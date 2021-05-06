@@ -45,27 +45,15 @@ if 1:  # Utility
         '''[1:-1]))
         exit(status)
     def ParseCommandLine(d):
-        d["-a"] = False
-        d["-d"] = 3         # Number of significant digits
+        d["-a"] = False     # Show all
         try:
-            opts, args = getopt.getopt(sys.argv[1:], "ad:h")
+            opts, args = getopt.getopt(sys.argv[1:], "a")
         except getopt.GetoptError as e:
             print(str(e))
             exit(1)
         for o, a in opts:
             if o[1] in list("a"):
                 d[o] = not d[o]
-            elif o in ("-d",):
-                try:
-                    d["-d"] = int(a)
-                    if not (1 <= d["-d"] <= 15):
-                        raise ValueError()
-                except ValueError:
-                    msg = ("-d option's argument must be an integer between "
-                        "1 and 15")
-                    Error(msg)
-            elif o in ("-h", "--help"):
-                Usage(d, status=0)
         if not args:
             Usage(d)
         return args
@@ -79,13 +67,24 @@ if 1:  # Utility
         else:
             eprint(f"Command '{cmd}' not recognized")
         exit(1)
+    def GetFiles():
+        'Return dictionaries keyed by file name (value is pathlib.Path)'
+        pl = set(P("/plib").glob("*.py"))
+        py = set(P("/pylib").glob("*.py"))
+        plib, pylib = {}, {}
+        for i in pl:
+            plib[i.name] = i
+        for i in py:
+            pylib[i.name] = i
+        return plib, pylib
 if 1:   # Core functions
     def Details():
         pass
+    def Missing():
+        pass
     def Report():
-        plib = set([i.name for i in P("/plib").glob("*.py")])
-        pylib = set([i.name for i in P("/pylib").glob("*.py")])
-        common = plib & pylib
+        plib, pylib = GetFiles()
+        common = set(plib) & set(pylib)
         if not common:
             m = f"No common files ({len(plib)} in plib, {len(pylib)} in pylib"
             print(m)
@@ -96,6 +95,7 @@ if __name__ == "__main__":
     dispatch = {
         "report": Report,
         "details": Details,
+        "missing": Missing,
     }
     args = ParseCommandLine(d)
     cmd = GetCommand(args[0])
