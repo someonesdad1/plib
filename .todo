@@ -1,0 +1,2 @@
+* Add a what.py command.  This lets you execute the --what option on a
+  file and see a summary of what the file does.

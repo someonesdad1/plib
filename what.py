@@ -14,8 +14,7 @@ if __name__ == "__main__":
         import sys
         from pdb import set_trace as xx
         # Custom modules
-        from wrap import wrap, dedent, indent, Wrap
-        from globalcontainer import Global, Variable, Constant
+        from wrap import wrap, dedent, indent
         try:
             from lwtest import run, raises, assert_equal
             _have_lwtest = True
@@ -23,19 +22,6 @@ if __name__ == "__main__":
             # Get it from
             # https://someonesdad1.github.io/hobbyutil/prog/lwtest.zip
             _have_lwtest = False
-    if 1:   # Global variables
-        G = Global()
-        P = pathlib.Path
-        def MakeGlobals():
-            global G
-            G.ro = Constant()
-            # Root of filesystem for these files
-            G.ro.root = P("/plib")
-            # Directory of script relative to root
-            p = P(sys.argv[0]).resolve()
-            G.ro.name = p.relative_to(G.ro.root)
-            G.ro.category = "[utility]"
-        MakeGlobals()
     if 1:   # Module's base code
         def Error(msg, status=1):
             print(msg, file=sys.stderr)
@@ -63,7 +49,7 @@ if __name__ == "__main__":
                                         # --self, or --test was given
             try:
                 opts, args = getopt.getopt(sys.argv[1:], "ah", 
-                    "example help test Test= what".split())
+                    "example help test Test=".split())
             except getopt.GetoptError as e:
                 print(str(e))
                 exit(1)
@@ -78,25 +64,10 @@ if __name__ == "__main__":
                     d["--test"] = True
                 elif o == "--Test":
                     d["--Test"] = a
-                elif o == "--what":
-                    d["--what"] = not d["--what"]
-            d["special"] = (d["--example"] or d["--test"] or
-                           d["--Test"] or d["--what"])
+            d["special"] = (d["--example"] or d["--test"] or d["--Test"])
             if not args and not d["special"]:
                 Usage(d)
             return args
-        def What():
-            print(f"{G.ro.category} {G.ro.name}")
-            w = Wrap(rmargin=" "*2)
-            w.i = " "*2
-            print(w('''
-                This is a template file to include in scripts and
-                modules.  Its purposes are to 1) provide a command line
-                interface, 2) run self-test code with the --test option,
-                3) run an external test file with --Test, 4) show
-                example output using --example, and 5) get a short
-                description to stdout using --what.
-            '''))
     if 1:   # Test code 
         def Assert(cond):
             '''Same as assert, but you'll be dropped into the debugger on an
@@ -118,7 +89,12 @@ if __name__ == "__main__":
     d = {}      # Options dictionary
     args = ParseCommandLine(d)
     if d["special"]:
-        if d["--example"]:
+        if d["--self"]:
+            if not _have_lwtest:
+                raise RuntimeError("lwtest.py missing")
+            r = r"^Test_"
+            failed, messages = run(globals(), regexp=r)
+        elif d["--example"]:
             if not _have_lwtest:
                 raise RuntimeError("lwtest.py missing")
             r = r"^Example_"
@@ -136,8 +112,6 @@ if __name__ == "__main__":
             testfile = f"test/{name}_test.py"
             st = os.system(f"{e} {testfile}")
             exit(st)
-        elif d["--what"]:
-            What()
     else:
         # Normal execution
         pass
