@@ -26,7 +26,7 @@ if 1:   # Custom modules
 if 1:   # Global variables
     commands = "report details".split()
     P = pathlib.Path
-if 1:  # Utility
+if 1:   # Utility
     def eprint(*p, **kw):
         'Print to stderr'
         print(*p, **kw, file=sys.stderr)
@@ -57,6 +57,7 @@ if 1:  # Utility
         if not args:
             Usage(d)
         return args
+if 1:   # Core functionality
     def GetCommand(cmd):
         c = CommandDecode(commands)
         candidates = c(cmd)

@@ -13,7 +13,7 @@ if __name__ == "__main__":
         import pathlib
         import sys
         from pdb import set_trace as xx
-        # Custom modules
+    if 1:   # Custom modules
         from wrap import wrap, dedent, indent, Wrap
         from globalcontainer import Global, Variable, Constant
         try:
@@ -87,7 +87,7 @@ if __name__ == "__main__":
             return args
         def What():
             print(f"{G.ro.category} {G.ro.name}")
-            w = Wrap(rmargin=" "*2)
+            w = Wrap(rmargin=2)
             w.i = " "*2
             print(w('''
                 This is a template file to include in scripts and

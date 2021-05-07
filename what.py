@@ -1,20 +1,17 @@
 if __name__ == "__main__": 
-    '''
-    Drop this template into a module to:
-        * Create a normal script.
-        * Print examples of use when run as a script (use --example).
-        * Run regression test file when '--test file' is given.
-        * See what the purpose of the module is with --what
-    '''
     if 1:   # Imports
         # Standard library modules
+        from collections import deque, defaultdict
         import getopt
         import os
         import pathlib
+        import re
+        import subprocess
         import sys
         from pdb import set_trace as xx
-        # Custom modules
-        from wrap import wrap, dedent, indent
+    if 1:   # Custom modules
+        from wrap import wrap, dedent, indent, Wrap
+        from globalcontainer import Global, Variable, Constant
         try:
             from lwtest import run, raises, assert_equal
             _have_lwtest = True
@@ -22,34 +19,41 @@ if __name__ == "__main__":
             # Get it from
             # https://someonesdad1.github.io/hobbyutil/prog/lwtest.zip
             _have_lwtest = False
-    if 1:   # Module's base code
+    if 1:   # Global variables
+        G = Global()
+        P = pathlib.Path
+        def MakeGlobals():
+            global G
+            G.ro = Constant()
+            # Root of filesystem for these files
+            G.ro.root = P("/plib")
+            # Directory of script relative to root
+            p = P(sys.argv[0]).resolve()
+            G.ro.name = p.relative_to(G.ro.root)
+            G.ro.category = "[utility]"
+            G.ro.python = sys.executable
+        MakeGlobals()
+    if 1:   # Utility
         def Error(msg, status=1):
             print(msg, file=sys.stderr)
             exit(status)
         def Usage(d, status=1):
             name = sys.argv[0]
             print(dedent(f'''
-            Usage:  {name} [options] etc.
-              Explanations...
+            Usage:  {name} [options] files...
+              Show the --what string for each file.
              
             Options:
-              --example   Show examples of module's output
-              --test      Run internal self tests
-              --Test f    Run external regression test file f
-              --what      Brief description of module's purpose
+              -a        Show for all files
+              --what    Brief description of module's purpose
             '''))
             exit(status)
         def ParseCommandLine(d):
-            d["-a"] = False             # Not used yet
-            d["--example"] = False      # Show examples
-            d["--test"] = False         # Run self tests
-            d["--Test"] = None          # Run tests in another file
+            d["-a"] = False             # All files
             d["--what"] = False         # Print short description
-            d["special"] = False        # If True, one of --example,
-                                        # --self, or --test was given
             try:
                 opts, args = getopt.getopt(sys.argv[1:], "ah", 
-                    "example help test Test=".split())
+                    "what".split())
             except getopt.GetoptError as e:
                 print(str(e))
                 exit(1)
@@ -58,60 +62,77 @@ if __name__ == "__main__":
                     d[o] = not d[o]
                 elif o in ("-h", "--help"):
                     Usage(d, status=0)
-                elif o == "--example":
-                    d["--example"] = True
-                elif o == "--test":
-                    d["--test"] = True
-                elif o == "--Test":
-                    d["--Test"] = a
-            d["special"] = (d["--example"] or d["--test"] or d["--Test"])
-            if not args and not d["special"]:
+                elif o == "--what":
+                    d["--what"] = not d["--what"]
+            if not args and not d["--what"] and not d["-a"]:
                 Usage(d)
             return args
-    if 1:   # Test code 
-        def Assert(cond):
-            '''Same as assert, but you'll be dropped into the debugger on an
-            exception if you include a command line argument.
+        def What():
+            print(f"{G.ro.category} {G.ro.name}")
+            w = Wrap(rmargin=2)
+            w.i = " "*2
+            print(w('''
+                This script prints out the --what string for each file
+                given on the command line to give you a short
+                description of the file's purpose.
+            '''))
+    if 1:   # Core functionality
+        def GetFiles(regexps: list) -> deque:
+            all, keep = deque(G.ro.root.rglob("*.py")), deque()
+            R = [re.compile(regexp, re.I) for regexp in regexps]
+            if not d["-a"]:
+                while all:
+                    file = all.popleft()
+                    for r in R:
+                        if r.search(str(file)):
+                            keep.append(file)
+                            break
+            else:
+                keep = all
+            # keep contains the files to list
+            return keep
+        def HasWhat(file):
+            "Return True if file has string '--what'"
+            return "--what" in file.read_text()
+        def GetWhatString(file: pathlib.Path, container: deque):
+            '''Given the pathlib.Path file and deque, capture the output
+            of the --what option and put it in the deque.  This will let
+            us sort the output by categories.
             '''
-            if not cond:
-                if args:
-                    print("Type 'up' to go to line that failed")
-                    xx()
-                else:
-                    raise AssertionError
-        def Test_1():
-            pass
-    if 1:   # Example code 
-        def Example_1():
-            print("example 1")
-            pass
+            args = [G.ro.python, str(file), "--what"]
+            cp = subprocess.run(args, capture_output=True, encoding="UTF-8")
+            if not cp.returncode:
+                output = cp.stdout
+                s = output.replace("\n", "")
+                container.append(s)
+        def LoadDict(container: deque, dict: defaultdict):
+            while container:
+                fields = container.pop().split()
+                key = fields[0]
+                filename = fields[1]
+                dict[key].append([filename, ' '.join(fields[2:])])
+        def Report(dict):
+            items = list(sorted(dict.items()))
+            w = Wrap(rmargin=3)
+            w.i = " "*2
+            for key, value in items:
+                for filename, s in value:
+                    print(key, filename)
+                    s = w(s)
+                    print(w(s))
+
     # ----------------------------------------------------------------------
     d = {}      # Options dictionary
     args = ParseCommandLine(d)
-    if d["special"]:
-        if d["--self"]:
-            if not _have_lwtest:
-                raise RuntimeError("lwtest.py missing")
-            r = r"^Test_"
-            failed, messages = run(globals(), regexp=r)
-        elif d["--example"]:
-            if not _have_lwtest:
-                raise RuntimeError("lwtest.py missing")
-            r = r"^Example_"
-            failed, messages = run(globals(), regexp=r, quiet=True)
-        elif d["--Test"]:
-            # Execute external test file
-            e = sys.executable
-            st = os.system(f"{e} {d['--Test']}")
-            exit(st)
-        elif d["--test"]:
-            # Execute test file in test/
-            e = sys.executable
-            p = pathlib.Path(sys.argv[0])
-            name = p.stem
-            testfile = f"test/{name}_test.py"
-            st = os.system(f"{e} {testfile}")
-            exit(st)
+    if d["--what"]:
+        What()
     else:
         # Normal execution
-        pass
+        files = GetFiles(args)
+        container = deque()
+        for file in sorted(files):
+            if HasWhat(file):
+                GetWhatString(file, container)
+        dict = defaultdict(list)
+        LoadDict(container, dict)
+        Report(dict)
