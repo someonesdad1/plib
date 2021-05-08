@@ -1,2 +1,13 @@
-* Add a what.py command.  This lets you execute the --what option on a
-  file and see a summary of what the file does.
+* I see two options for the module files for testing:
+
+    * Put in a trigger string that identifies the file as ready for
+      testing if you pass it the --test option.
+    * Do nothing with the file.  If there is a test for it, it's in 
+      the test directory.
+    * Or, the trigger string can either be '--test' or the name of the
+      test file(s) to run.
+    * Trigger string can be #∞test∞#.  There should be two of them.  If
+      the content is not --test, then it's executable python code that
+      will give you a tuple of test files to run.  If there are no
+      parentheses or square brackets, then it's a single file.  If it's
+      'do_not_test', then there's no test.
