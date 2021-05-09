@@ -1,3 +1,18 @@
+* Go through each of the pushed files, clean them up, add test support
+  if needed, and rewrite code if needed, getting rid of python 2 syntax.
+
+  * Add the needed support files like asciify.script, etc.
+
+* Put archimedean.py in util.py or combine the math formulas into a
+  single file.
+
+* sig is a mess of code.  Is it really all needed?  Maybe it would be
+  best to move the key stuff to flt and cpx.  It can still be kept
+  around for when it's needed.
+
+* 8 May 2021 09:41:21 AM:  copied /pylib files that import OK into
+  python 3 to this directory and pushed them.
+
 * I see two options for the module files for testing:
 
     * Put in a trigger string that identifies the file as ready for

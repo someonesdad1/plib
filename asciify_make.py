@@ -20,7 +20,17 @@ is "LATIN LETTER EXCLAMATION MARK", so it is reasonable that it be
 translated to !, U+0021.  In other words, syntax and not semantic
 content is the driving force behind this transliteration, primarily
 because I am not a linguist.
+
+Yes, this script was a lot of work.
 '''
+
+# Copyright (C) 2019 Don Peterson
+# Contact:  gmail.com@someonesdad1
+
+#
+# Licensed under the Open Software License version 3.0.
+# See http://opensource.org/licenses/OSL-3.0.
+#
 
 import unicodedata as U
 import re
