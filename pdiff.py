@@ -18,13 +18,14 @@ if 1:   # Standard modules
 if 1:   # Custom modules
     from cmddecode import CommandDecode
     from wrap import dedent
+    from columnize import Columnize
     # Debugging stuff
     from pdb import set_trace as xx
     if 0:
         import debug
         debug.SetDebugger()  # Start debugger on unhandled exception
 if 1:   # Global variables
-    commands = "report details".split()
+    commands = "report details diff".split()
     P = pathlib.Path
 if 1:   # Utility
     def eprint(*p, **kw):
@@ -38,6 +39,7 @@ if 1:   # Utility
         print(dedent(f'''
         Usage:  {name} [options] cmd
           Analyze differences between /plib and /pylib.  cmd:
+            diff               Show files in /plib that differ from /pylib
             report             Show summary report
             details files...   Explain how they differ
         Options:
@@ -90,10 +92,25 @@ if 1:   # Core functions
             m = f"No common files ({len(plib)} in plib, {len(pylib)} in pylib"
             print(m)
         print("Common: ", common)
+    def Diff():
+        plib, pylib = GetFiles()
+        common = set(plib) & set(pylib)
+        o = []
+        for i in common:
+            pl = plib[i].read_text()
+            py = pylib[i].read_text()
+            if pl != py:
+                o.append(i)
+        if o:
+            print("Files that differ between /plib and /pylib:")
+            for line in Columnize(o, indent="  "):
+                print(line)
+        xx()
 
 if __name__ == "__main__":
     d = {}      # Options dictionary
     dispatch = {
+        "diff": Diff,
         "report": Report,
         "details": Details,
         "missing": Missing,

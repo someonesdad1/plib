@@ -1,3 +1,10 @@
+* 10 May 2021 got all the /pylib/test stuff running; only asciify and
+  the old integer.py file fail self tests.  This means each module can
+  be instrumented with a test trigger and can be tested from /plib.
+
+  I removed python 2 stuff from the test files.  Now this needs to be
+  done for the /plib stuff.
+
 * Go through each of the pushed files, clean them up, add test support
   if needed, and rewrite code if needed, getting rid of python 2 syntax.
 
