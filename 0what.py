@@ -41,7 +41,7 @@ if __name__ == "__main__":
             name = sys.argv[0]
             print(dedent(f'''
             Usage:  {name} [options] files...
-              Show the --what string for each file.
+              Show the 'what' trigger string for each file.
              
             Options:
               -a        Show for all files
