@@ -2,14 +2,16 @@
 
 This repository is a collection of python stuff I've written.  Feel free
 to browse and use what suits your needs.  There are quite a few files,
-peruse the tools (see below) to help understand what these files are
+ruse the tools (see below) to help understand what these files are
 for.
 
 The general organization is that the root directory holds modules that
 are mostly intended to be imported into other scripts.
 
-The `pgm` directory holds scripts that are separate programs.  The
-`test` directory holds files that test the modules.
+* The `plib` directory holds modules that are intended to be used by
+  other scripts.
+* The `pgm` directory holds scripts that are separate programs.
+* The `test` directory holds scripts that test the modules.
 
 # Conventions
 
