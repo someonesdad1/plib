@@ -1,9 +1,7 @@
-from __future__ import print_function, division
 import sys
 import os
 import termios
 import fcntl
-# no_tests:ignore
 
 def kbhit(block=True):
     '''Get the next character typed at the keyboard.  If block is True,

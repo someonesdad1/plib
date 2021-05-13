@@ -20,7 +20,6 @@ Functions:
 # See http://opensource.org/licenses/OSL-3.0.
 #
 
-from __future__ import print_function, division
 import re
 import sys
 from fractions import Fraction
@@ -42,11 +41,6 @@ try:
 except ImportError:
     from math import *
     unc_re = None
-
-if sys.version_info[0] == 3:
-    _get_input = input
-else:
-    _get_input = raw_input
 
 def GetNumber(prompt_msg, **kw):
     '''General-purpose routine to get a number (integer, float [default],
@@ -234,7 +228,7 @@ def GetNumber(prompt_msg, **kw):
                         else:
                             return numtype(default)
             else:
-                s = _get_input().strip()
+                s = input().strip()
         else:
             s = inspect
         if not s:

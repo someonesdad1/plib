@@ -47,7 +47,6 @@ ToolzAdapter()
 #
 
 # Built-in modules
-from __future__ import print_function, division
 import re
 import sys
 from pdb import set_trace as xx 
@@ -84,12 +83,6 @@ except ImportError:
     have_unc = False
     from math import *
     unc_re = None
-
-py3 = (sys.version_info[0] == 3)
-_get_input = input if py3 else raw_input
-
-if py3:
-    unicode = lambda x: x
 
 __all__ = [
     "AWG",
@@ -408,9 +401,9 @@ def GetNumber(prompt_msg, **kw):
     unit_string = ""
     while True:
         if inspect is None:
-            out(unicode(prompt_msg))
+            out(prompt_msg)
             if default is not None:
-                out(unicode("[" + str(default) + "] "))
+                out("[" + str(default) + "] ")
             if instream is not None:
                 s = instream.readline()
                 if not s:
@@ -423,7 +416,7 @@ def GetNumber(prompt_msg, **kw):
                         else:
                             return numtype(default)
             else:
-                s = _get_input().strip()
+                s = input().strip()
         else:
             s = inspect
         if not s:
@@ -457,9 +450,9 @@ def GetNumber(prompt_msg, **kw):
             if inspect is not None:
                 return False
             if numtype == int:
-                out(unicode("'%s' is not a valid integer\n" % s))
+                out("'%s' is not a valid integer\n" % s)
             else:
-                out(unicode("'%s' is not a valid number\n" % s))
+                out("'%s' is not a valid number\n" % s)
         else:
             if low is None and high is None:
                 if inspect is not None:
@@ -492,7 +485,7 @@ def GetNumber(prompt_msg, **kw):
                 condition = prefix + condition
                 condition = condition.replace("high", "{high}")
                 condition = condition.replace("low", "{low}")
-                out(unicode(condition.format(**locals()) + "\n"))
+                out(condition.format(**locals()) + "\n")
                 # If instream is defined, we're testing, so just return.
                 if instream is not None:
                     return

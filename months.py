@@ -1,11 +1,3 @@
-'''
-Provides a bi-directional mapping for month number to/from month name.
-
-Examples:
-    months[1] -> "Jan"
-    months("Jan") -> 1
-'''
-
 # Copyright (C) 2014 Don Peterson
 # Contact:  gmail.com@someonesdad1
 
@@ -16,9 +8,12 @@ Examples:
 from bidict import bidict
 
 # Names of the months
-Months = set("Jan Feb Mar Apr May Jun Jul Aug Sep Oct Nov Dec".split())
-Months_lc = set([i.lower() for i in Months])
-Months_uc = set([i.upper() for i in Months])
+Months = set(("Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep",
+     "Oct", "Nov", "Dec"))
+Months_lc = set(("jan", "feb", "mar", "apr", "may", "jun", "jul", "aug", "sep",
+     "oct", "nov", "dec"))
+Months_uc = set (("JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP",
+     "OCT", "NOV", "DEC"))
 
 # Bi-directional mappings between month number and 3-letter string name
 months = bidict({
@@ -67,11 +62,3 @@ months_lc = bidict({
     11 : "nov",
     12 : "dec",
 })
-
-if __name__ == "__main__": 
-    print("months[1] =", months[1])
-    print('months("Jan") =', months("Jan"))
-    print("months_lc[1] =", months_lc[1])
-    print('months_lc("jan") =', months_lc("jan"))
-    print("months_uc[1] =", months_uc[1])
-    print('months_uc("JAN") =', months_uc("JAN"))

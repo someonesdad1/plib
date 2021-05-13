@@ -37,8 +37,6 @@ ShowFunctionCall decorator [Beazley]
 References:
     A. Martelli and D. Ascher, ed., "Python Cookbook", O'Reilly, 2002.
     D. Beazley, "Python Essential Reference", 4th ed. (Kindle version)
-
-no_tests:ignore
 '''
  
 # Copyright (C) 2009, 2014 Don Peterson
@@ -49,15 +47,13 @@ no_tests:ignore
 # See http://opensource.org/licenses/OSL-3.0.
 #
  
-from __future__ import print_function, division
 import types
 import sys
 import traceback as TB
 import re
 import bdb
 from inspect import stack
-import pdb
-xx = pdb.set_trace
+from pdb import set_trace as xx 
 
 try:
     import color as c
@@ -71,9 +67,6 @@ except ImportError:
         def normal(self):
             pass
     c = C()
-
-py3 = (sys.version_info[0] == 3)
-Str = (str,) if py3 else (str, unicode)
 
 # dash_O_on = True  ==> Use python -O to turn debugging on.
 # dash_O_on = False ==> Use python -O to turn debugging off.
@@ -390,8 +383,8 @@ def DumpArgs(func):
     for this to work.
     '''
     def echo_func(*p, **kw):
-        fc = func.__code__ if py3 else func.func_code
-        fn = func.__name__ if py3 else func.func_name
+        fc = func.__code__
+        fn = func.__name__
         argnames = fc.co_varnames[:fc.co_argcount]
         args = ", ".join("%s=%r" % entry for entry in
                          list(zip(argnames, p)) + list(kw.items()))
@@ -483,7 +476,7 @@ class AutoIndent(object):
     def write(self, data):
         # Note we intercept ANSI escape codes when data is a string
         # and send them on unindented.
-        if isinstance(data, Str) and self.ansi:
+        if isinstance(data, str) and self.ansi:
             mo = self.ansi.search(data)
             if mo:
                 self.stream.write(data)

@@ -1,6 +1,5 @@
 '''
-Class to make frozen dictionaries.  NOTE:  the same dict will hash to
-different values under python 2 versus python 3.
+Class to make frozen dictionaries.
 
 This code is derived from the routine by Oren Tirosh dated 16 May 2005
 at http://code.activestate.com/recipes/414283-frozen-dictionaries/.
@@ -21,7 +20,6 @@ following modifications
       it's a shallow copy which can be done by dict.copy().
     * Unit tests are in /pylib/test/frozendict_test.py.
 '''
-from __future__ import print_function, division
 
 # Copyright (C) 2014 Don Peterson
 # Contact:  gmail.com@someonesdad1

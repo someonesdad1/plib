@@ -11,7 +11,6 @@ if it's available.
 # See http://opensource.org/licenses/OSL-3.0.
 #
 
-from __future__ import print_function, division
 from math import cos, acos, sin, asin, tan, atan, sqrt, pi
 
 try:

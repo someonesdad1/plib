@@ -1,4 +1,3 @@
-# coding=utf8
 '''
  
 Provide for simple command line mathematical equations
@@ -18,9 +17,7 @@ characters (see the Interpret function for what's allowed).
 Analogously, use '_{s}' for subscripts.  Note the curly brackets are
 required.
 '''
-# no_tests:ignore
  
-from __future__ import print_function
 import re
 from columnize import Columnize
 

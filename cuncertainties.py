@@ -1,4 +1,3 @@
-# encoding: utf-8
 '''
 This module defines a cufloat object that can be used as a complex
 number that has uncertainties associated with the real and imaginary
@@ -17,7 +16,6 @@ impedance by using an oscilloscope.
 # See http://opensource.org/licenses/OSL-3.0.
 #
 
-from __future__ import division, print_function
 import math
 import cmath
 import os
@@ -26,10 +24,6 @@ import uncertainties.umath as um
 from uncertainties import ufloat, UFloat
 from sig import sig
 from pdb import set_trace as xx
-
-pyver = sys.version_info[0]
-if pyver == 3:
-    long = int
 
 # The uncertainties correlated_values_norm function requires numpy to be
 # present.
@@ -46,8 +40,8 @@ class cufloat(object):
     real and imaginary parts.
     '''
     def __init__(self, re_nom=0, re_std=0, im_nom=0, im_std=0, r=0):
-        e = TypeError("Arguments must be int, long, or float")
-        Number = (int, long, float)
+        e = TypeError("Arguments must be int or float")
+        Number = (int, float)
         for i in (re_nom, re_std, im_nom, im_std, r):
             if not isinstance(i, Number):
                 raise e
@@ -166,7 +160,7 @@ class cufloat(object):
         '''
         if isinstance(other, complex):
             return cufloat(other.real, 0, other.imag, 0)
-        elif isinstance(other, (float, int, long)):
+        elif isinstance(other, (float, int)):
             return cufloat(other, 0, 0, 0)
         elif isinstance(other, UFloat):
             return cufloat(other.nominal_value, other.std_dev)
@@ -177,7 +171,7 @@ class cufloat(object):
     def _re_get(self):
         return self._re
     def _re_set(self, other):
-        if isinstance(other, (int, long, float)):
+        if isinstance(other, (int, float)):
             self._re = ufloat(other, 0)
         elif isinstance(other, UFloat):
             self._re = other
@@ -187,7 +181,7 @@ class cufloat(object):
     def _im_get(self):
         return self._im
     def _im_set(self, other):
-        if isinstance(other, (int, long, float)):
+        if isinstance(other, (int, float)):
             self._im = ufloat(other, 0)
         elif isinstance(other, UFloat):
             self._im = other
@@ -211,7 +205,7 @@ def _IsProperType(x, need_complex=False):
     if need_complex:
         allowed = (complex, cufloat)
     else:
-        allowed = (int, long, float, complex, UFloat, cufloat)
+        allowed = (int, float, complex, UFloat, cufloat)
     if not isinstance(x, allowed):
         raise TypeError("'%s' is an improper type" % str(x))
 
@@ -228,7 +222,7 @@ def polar(x):
     return (abs(x), phase(x))
 
 def rect(r, theta):
-    allowed = (int, long, float, UFloat)
+    allowed = (int, float, UFloat)
     if not isinstance(r, allowed):
         raise TypeError("'%s' is an improper type" % str(r))
     if not isinstance(theta, allowed):
@@ -336,7 +330,7 @@ def isnan(x):
 # cufloat type.
 def Convert(x):
     _IsProperType(x)
-    if isinstance(x, (int, long, float)):
+    if isinstance(x, (int, float)):
         return cufloat(x, 0, 0, 0)
     elif isinstance(x, complex):
         return cufloat(x.real, 0, x.imag, 0)

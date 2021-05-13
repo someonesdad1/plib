@@ -37,13 +37,13 @@ if 1:   # Utility
     def Usage(d, status=1):
         name = sys.argv[0]
         print(dedent(f'''
-        Usage:  {name} [options] cmd
+        Usage:  {name} [options] cmd [file1 ...]
           Analyze differences between /plib and /pylib.  cmd:
             diff               Show files in /plib that differ from /pylib
             report             Show summary report
             details files...   Explain how they differ
         Options:
-          -h  Print a manpage.
+          -a  Print a manpage.
         '''[1:-1]))
         exit(status)
     def ParseCommandLine(d):

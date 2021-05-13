@@ -9,11 +9,7 @@ Various pure-python numerical integration routines.
 # Licensed under the Open Software License version 3.0.
 # See http://opensource.org/licenses/OSL-3.0.
 #
-from __future__ import print_function, division
 import sys
-
-py3 = sys.version_info[0] >= 3
-Int = (int,) if py3 else (int, long)
 
 def Simpson(f, a, b, n):
     '''Integrate f over the interval [a, b] with n points via Simpson's
@@ -101,7 +97,7 @@ def Trapezoid(f, a, b, eps=1e-6, itmax=50):
 def _CheckParameters(f, a, b, n, neven=False):
     if not callable(f):
         raise ValueError("f must be a univariate function")
-    if not isinstance(n, Int):
+    if not isinstance(n, int):
         raise TypeError(msg)
     if neven:
         if n < 2 or n % 2 != 0:

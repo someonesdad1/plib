@@ -85,7 +85,6 @@ In terms of the constant in the polar equation for the spiral, we have
 # See http://opensource.org/licenses/OSL-3.0.
 #
  
-from __future__ import print_function, division
 import math
  
 def SpiralArcLength(a, theta, degrees=False):

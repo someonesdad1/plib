@@ -1,13 +1,9 @@
 '''
-
 Hashes the string answers to a set of questions.  This is intended to allow
 me to have a secure hash that is nearly certain that no one else would be
 able to guess, even if given this script.  This is because no one would
 know all the answers to the questions below.
-
-no_tests:ignore
 '''
-from __future__ import print_function, division
 import hashlib
 from getpass import getpass
 

@@ -14,14 +14,8 @@ statement.
 # See http://opensource.org/licenses/OSL-3.0.
 #
 
-from __future__ import print_function, division
 import os
 import re
-from pdb import set_trace as xx
-
-if 0:
-    import debug
-    debug.SetDebugger()
 
 def Columnize(seq, **kw):
     '''Returns a list of strings with the elements of the sequence seq

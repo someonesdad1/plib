@@ -1,4 +1,3 @@
-# encoding: utf-8
 '''
 Provides a class FPFormat that formats floating point numbers in a
 variety of ways.  Run this file as a script for help info.
@@ -12,7 +11,6 @@ variety of ways.  Run this file as a script for help info.
 # See http://opensource.org/licenses/OSL-3.0.
 #
 
-from __future__ import division, print_function
 import sys
 from os import name as platform
 

@@ -50,17 +50,6 @@ returns
 # See http://opensource.org/licenses/OSL-3.0.
 #
 
-# Written and tested 27 Oct 2010
-# lrange added 21 Dec 2010
-
-# 22 May 2014:  removed rrange because I added fractional capabilities
-# to frange.  Moved all doctests to unittest stuff.  Fixed things to
-# work under python 2 & 3.  Tested OK using 2.6.5, 2.7.2, and 3.2.2.
-
-# 30 Dec 2014:  I added the test for a '/' character in start; if present,
-# it uses the Rational implementation as a convenience.
-
-from __future__ import division, print_function
 import re
 import sys
 import itertools
@@ -81,12 +70,6 @@ __all__ = [
     "lrange",
     "Sequence",
 ]
-
-pyver = sys.version_info[0]
-if pyver == 3:
-    String = str
-else:
-    from types import StringTypes as String
 
 try:
     numpy_available = True
@@ -189,7 +172,7 @@ def frange(start, stop=None, step=None, return_type=float, impl=Decimal,
         if x > i:
             i += 1
         return (-1 if x < 0 else 1)*i
-    if isinstance(start, String) and "/" in start:
+    if isinstance(start, str) and "/" in start:
         impl = return_type = Rational
     init = lambda x: (impl(repr(x)) if isinstance(x, float) else impl(x))
     start = init(start)

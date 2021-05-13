@@ -34,7 +34,6 @@ passed; where they are, make sure you pass in a list.  '''
 # See http://opensource.org/licenses/OSL-3.0.
 #
  
-from __future__ import division
 from math import pi, fabs, fmod, sin, cos, atan2, asin, sqrt
 
 ii = isinstance
@@ -57,7 +56,6 @@ TWOPI = 2*pi
 RAD2SEC = 3600*180/pi
 DEG2RAD = pi/180
 RAD2DEG = 180/pi
-
 
 # The following three dictionaries are used to represent the structures
 # that were in novas.h.

@@ -2,7 +2,6 @@
 Inverse normal CDF approximation (relative error about 1e-9)
 '''
 
-from __future__ import division, print_function
 import math
 
 def inverse_normal_cdf(p):

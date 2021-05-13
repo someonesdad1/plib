@@ -20,17 +20,7 @@ is "LATIN LETTER EXCLAMATION MARK", so it is reasonable that it be
 translated to !, U+0021.  In other words, syntax and not semantic
 content is the driving force behind this transliteration, primarily
 because I am not a linguist.
-
-Yes, this script was a lot of work.
 '''
-
-# Copyright (C) 2019 Don Peterson
-# Contact:  gmail.com@someonesdad1
-
-#
-# Licensed under the Open Software License version 3.0.
-# See http://opensource.org/licenses/OSL-3.0.
-#
 
 import unicodedata as U
 import re
@@ -60,9 +50,6 @@ def ShowAll(cpset, arg="all"):
         descr = U.name(chr(cp))
         if arg == "all" or r.search(descr):
             print(f"{cp:06x} {chr(cp)} {descr}")
-
-def Debug(*p, **kw):
-    print(*p, **kw, file=sys.stderr)
 
 def PrintCP(cp, indent=""):
     c = chr(cp)
@@ -189,6 +176,44 @@ def GetWorkingSet(file="asciify_make.pickle", build=False):
         Debug(f"Left with {len(cpset)} valid codepoints")
     return cpset, defaultdict(set)
 
+if 1:   # Utility
+    def Debug(*p, **kw):
+        print(*p, **kw, file=sys.stderr)
+    def IsASCII(s):
+        '''Return True if string s is composed of all ASCII characters.
+        Note it returns True for the empty string.
+        '''
+        return all(ord(i) < 0x80 for i in s)
+    def flatten(listOfLists):
+        "Flatten one level of nesting"
+        return chain.from_iterable(listOfLists)
+        def Usage(d, status=1):
+            name = sys.argv[0]
+            print(dedent(f'''
+            Usage:  {name} [options] [output_file]
+        
+            -d dbg      Debug level
+            -f          Force a rebuild
+            -s          Set select to True
+            '''[1:-1]))
+            exit(status)
+    def ParseCommandLine(d):
+        d["-d"] = 0
+        d["-f"] = False
+        d["-s"] = False
+        try:
+            opts, args = getopt.getopt(sys.argv[1:], "d:fhs")
+        except getopt.GetoptError as e:
+            print(str(e))
+            exit(1)
+        for o, a in opts:
+            if o[1] in list("fs"):
+                d[o] = not d[o]
+            if o == "-d":
+                d[o] = int(a)
+            elif o == "-h":
+                Usage(d)
+        return args
 if 1:   # Handling the codepoints
     def Quotes(cpset, keep):
         def GetDoubleQuotes():
@@ -226,7 +251,6 @@ if 1:   # Handling the codepoints
             GetSingleQuotes()
             GetDoubleQuotes()
             GetBackQuote()
-
     def Brackets(cpset, keep):
         def GetLeftParenthesis():
             get = ["parenthesis"]
@@ -277,7 +301,6 @@ if 1:   # Handling the codepoints
             GetRightBracket()
             GetLeftCurly()
             GetRightCurly()
-
     def Punctuation(cpset, keep):
         def GetApostrophe():
             get = ["apostrophe", "prime"]
@@ -328,7 +351,6 @@ if 1:   # Handling the codepoints
             GetQuestion()
             GetSpace()
             GetExclamation()
-
     def Slash_bar(cpset, keep):
         def GetSlash():
             get = ["solidus", "slash"]
@@ -346,7 +368,6 @@ if 1:   # Handling the codepoints
             GetSlash()
             GetBackslash()
             GetVerticalLine()
-
     def OtherCharacters(cpset, keep):
         def GetNumberSign():
             get = ["number sign"]
@@ -404,7 +425,6 @@ if 1:   # Handling the codepoints
             GetCircumflex()
             GetUnderscore()
             GetTilde()
-
     def Digits(cpset, keep):
         if not select:
             for n, s in (
@@ -422,7 +442,6 @@ if 1:   # Handling the codepoints
                     f"double-struck digit {s}"]
                 remove = "rod fraction".split()
                 Extract(cpset, keep, get, remove, n, verbose=f"{s}")
-
     def Letters(cpset, keep):
         d = "double-struck"
         # Dict for superscripts & subscripts
@@ -440,7 +459,6 @@ if 1:   # Handling the codepoints
                 remove = "capital schwa".split()
                 Extract(cpset, keep, get, remove, i.lower(),
                     verbose=f"{i.lower()}", other=other)
-
     def Miscellaneous(cpset, keep):
         # Note:  set show_orig to True to print out the characters extracted
         # using regexps.  
@@ -609,282 +627,239 @@ if 1:   # Handling the codepoints
             Precedes()
             Square()
             Other()
-
-def Check(cpset, keep):
-    '''Verify there's no overlap between the sets in keep.
-    '''
-    for a, b in combinations(keep, 2):
-        setA, setB = keep[a], keep[b]
-        assert(not (setA & setB))
-        assert(not (cpset & setA))
-        assert(not (cpset & setB))
-
-def GetAliases(cp):
-    '''Return a list of the aliases of the indicated codepoint.
-    '''
-    if not ucd:
-        return []
-    try:
-        group, data = ucd["chars"][cp]
-    except KeyError:
-        return []
-    aliases = []
-    if "na1" in data:
-        aliases.append(data["na1"])
-    if cp in ucd["aliases"]:
-        for a in ucd["aliases"][cp]:
-            aliases.append(a["alias"])
-    return aliases
-
-def Get(cpset, build, remove, other=None):
-    '''Return (local, remove_set) where local is the set of characters
-    described by the sequence of regular expressions in build and
-    remove_set is the set of characters in local that were removed
-    because they matched the regular expressions in the sequence remove.
-    Any characters in local must not be in the dictionary decomp because
-    they have already been handled.
-    '''
-    assert(isinstance(cpset, set))
-    assert(isinstance(build, (list, tuple)))
-    assert(isinstance(remove, (list, tuple)))
-    if other is not None:
-        assert(isinstance(other, set))
-    # Compile regular expressions
-    bld = [re.compile(i, re.I) for i in build]
-    rem = [re.compile(i, re.I) for i in remove]
-    # Build our local maximal set (cache descr for later loop)
-    local = []
-    for cp in cpset:
-        if cp in decomp:    # It's already been handled
-            continue
-        c = chr(cp)
-        # Check the U database's description
-        descr = U.name(c)
-        for b in bld:
-            if b.search(descr):
-                local.append((cp, descr))
-        # Check aliases
-        for alias in GetAliases(cp):
+if 1:   # Core functions
+    def Check(cpset, keep):
+        '''Verify there's no overlap between the sets in keep.
+        '''
+        for a, b in combinations(keep, 2):
+            setA, setB = keep[a], keep[b]
+            assert(not (setA & setB))
+            assert(not (cpset & setA))
+            assert(not (cpset & setB))
+    def GetAliases(cp):
+        '''Return a list of the aliases of the indicated codepoint.
+        '''
+        if not ucd:
+            return []
+        try:
+            group, data = ucd["chars"][cp]
+        except KeyError:
+            return []
+        aliases = []
+        if "na1" in data:
+            aliases.append(data["na1"])
+        if cp in ucd["aliases"]:
+            for a in ucd["aliases"][cp]:
+                aliases.append(a["alias"])
+        return aliases
+    def Get(cpset, build, remove, other=None):
+        '''Return (local, remove_set) where local is the set of characters
+        described by the sequence of regular expressions in build and
+        remove_set is the set of characters in local that were removed
+        because they matched the regular expressions in the sequence remove.
+        Any characters in local must not be in the dictionary decomp because
+        they have already been handled.
+        '''
+        assert(isinstance(cpset, set))
+        assert(isinstance(build, (list, tuple)))
+        assert(isinstance(remove, (list, tuple)))
+        if other is not None:
+            assert(isinstance(other, set))
+        # Compile regular expressions
+        bld = [re.compile(i, re.I) for i in build]
+        rem = [re.compile(i, re.I) for i in remove]
+        # Build our local maximal set (cache descr for later loop)
+        local = []
+        for cp in cpset:
+            if cp in decomp:    # It's already been handled
+                continue
+            c = chr(cp)
+            # Check the U database's description
+            descr = U.name(c)
             for b in bld:
-                if b.search(alias):
-                    local.append((cp, alias))
-    # Remove the indicated chars
-    remove_set = set()
-    for cp, descr in local:
-        for r in rem:
-            if r.search(descr):
-                remove_set.add(cp)
-    # Change local to a set of cp and don't keep any ASCII characters
-    local = set(i[0] for i in local if i[0] >= 0x80)
-    if other:
-        local.update(other)
-    local -= remove_set
-    return local, remove_set
-
-def Extract(cpset, keep, build, remove, key, verbose="", other=None):
-    '''For the set of codepoints cpset, put the subset defined by build
-    and remove into the keep dictionary under the indicated key.
-        cpset    set of codepoints
-        keep     dict{key:set(equivalent_codepoints)}
-        build    list[regex]:  extract these matches from cpset
-        remove   list[regex]:  remove these matches from build
-        key      single character
-    keep[key] = build - remove 
+                if b.search(descr):
+                    local.append((cp, descr))
+            # Check aliases
+            for alias in GetAliases(cp):
+                for b in bld:
+                    if b.search(alias):
+                        local.append((cp, alias))
+        # Remove the indicated chars
+        remove_set = set()
+        for cp, descr in local:
+            for r in rem:
+                if r.search(descr):
+                    remove_set.add(cp)
+        # Change local to a set of cp and don't keep any ASCII characters
+        local = set(i[0] for i in local if i[0] >= 0x80)
+        if other:
+            local.update(other)
+        local -= remove_set
+        return local, remove_set
+    def Extract(cpset, keep, build, remove, key, verbose="", other=None):
+        '''For the set of codepoints cpset, put the subset defined by build
+        and remove into the keep dictionary under the indicated key.
+            cpset    set of codepoints
+            keep     dict{key:set(equivalent_codepoints)}
+            build    list[regex]:  extract these matches from cpset
+            remove   list[regex]:  remove these matches from build
+            key      single character
+        keep[key] = build - remove 
+    
+        other is a set of characters that should be kept but aren't easy to
+        find with regex searches.
+    
+        If verbose is not the empty string and dbg is True, it is printed
+        out as a header, then the removed and kept sets are printed, along
+        with keep: keep[key].  This lets you see what's kept & not.
+        '''
+        assert(isinstance(key, str))
+        assert(isinstance(verbose, str))
+        local, remove_set = Get(cpset, build, remove, other=other)
+        # Update sets
+        if local:
+            keep[key].update(local)
+            cpset -= local
+            # Show the results
+            if dbg and verbose:
+                # dbg == 1:  only print ASCII_char tab codepoints
+                # dbg == 2:  Print all data
+                if dbg > 1:
+                    print(verbose, file=stream)
+                    print("  Characters removed:", file=stream)
+                    for cp in sorted(remove_set, reverse=True):
+                        PrintCP(cp, indent=" "*4)
+                    print("  Characters kept:", file=stream)
+                    for cp in sorted(local, reverse=True):
+                        PrintCP(cp, indent=" "*4)
+                    print("  Result:", file=stream)
+                c = ''.join(chr(i) for i in sorted(local))
+                if dbg == 1:
+                    print(f"{key}\t{c}", file=stream)
+                else:
+                    print(f"    {key}\t{c}", file=stream)
+                if dbg > 1:
+                    n = ', '.join(f"0x{i:x}" for i in sorted(local))
+                    print(f"    {key}\t[{n}]", file=stream)
+                    print(file=stream)
+    def Decompose(char):
+        '''Return the decomposed string or '' if there is no suitable one.
+        '''
+        # Make a dictionary to translate some of the strings like "⁄"
+        T = {
+            0x2044: "/",
+            0x2215: "/",
+            0x03A9: "ohm",
+            0x0301: "'",
+            0x0327: ",",
+        }
+        for cp in range(768, 880):      # Remove combining characters
+            T[cp] = None
+        s = char
+        while s and not IsASCII(s):
+            t = []
+            for c in s:
+                if IsASCII(c):
+                    t.append(c)
+                else:
+                    d = U.decomposition(c)
+                    if not d:
+                        continue
+                    f = d.split()
+                    if f[0].startswith("<"):
+                        f = f[1:]
+                    t.append(chr(int(i, 16)).translate(T) for i in f)
+            s = ''.join(flatten(t))
+        # Manual fixes:  there are some characters that should have ''
+        # returned because the above routine returns e.g. ' ' for them, but
+        # they are not space-like characters.
+        not_ok = set((
+            0x203e, 0x2017, 0x2dd, 0x2dc, 0x2da, 0x2d9, 0x2d8, 0xb8, 0xb4,
+            0xaf, 0xa8
+        ))
+        if s == " " and ord(char) in not_ok: 
+            return ""
+        elif char in set("℉℃₨"):
+            return ""
+        return s
+    def Decomp(cpset, decomp):
+        '''Use decomposition to construct conversions.  decomp is a
+        dictionary to store the codepoints and their conversions in.
  
-    other is a set of characters that should be kept but aren't easy to
-    find with regex searches.
-   
-    If verbose is not the empty string and dbg is True, it is printed
-    out as a header, then the removed and kept sets are printed, along
-    with keep: keep[key].  This lets you see what's kept & not.
-    '''
-    assert(isinstance(key, str))
-    assert(isinstance(verbose, str))
-    local, remove_set = Get(cpset, build, remove, other=other)
-    # Update sets
-    if local:
-        keep[key].update(local)
-        cpset -= local
-        # Show the results
-        if dbg and verbose:
-            # dbg == 1:  only print ASCII_char tab codepoints
-            # dbg == 2:  Print all data
-            if dbg > 1:
-                print(verbose, file=stream)
-                print("  Characters removed:", file=stream)
-                for cp in sorted(remove_set, reverse=True):
-                    PrintCP(cp, indent=" "*4)
-                print("  Characters kept:", file=stream)
-                for cp in sorted(local, reverse=True):
-                    PrintCP(cp, indent=" "*4)
-                print("  Result:", file=stream)
-            c = ''.join(chr(i) for i in sorted(local))
-            if dbg == 1:
-                print(f"{key}\t{c}", file=stream)
-            else:
-                print(f"    {key}\t{c}", file=stream)
-            if dbg > 1:
-                n = ', '.join(f"0x{i:x}" for i in sorted(local))
-                print(f"    {key}\t[{n}]", file=stream)
-                print(file=stream)
-
-def MakeScript(file, keep):
-    '''Write the kept data in a form suitable for a python script's 
-    str.translate use.
-    '''
-    f = open(file, "w")
-    print(dedent(f'''
-    # Constructed {time.asctime()} by {sys.argv[0]}
- 
-    # This dictionary can be used by str.translate to "asciify" Unicode
-    # text by converting non-7-bit Unicode characters to their (rough)
-    # ASCII equivalents.
- 
-    ascii_translate = {{'''[1:]), file=f)
-    s = []
-    for c in keep:
-        for cp in keep[c]:
-            s.append((cp, repr(c)))
-    for cp in decomp:
-        s.append((cp, repr(decomp[cp])))
-    for cp, c in sorted(s):
-        print(f"    0x{cp:x}: {c},", file=f)
-    print(f'''}}
-if __name__ == "__main__": 
-    import sys
-    s = sys.stdin.read()
-    print(s.translate(ascii_translate))
-''', file=f)
-    print(f"Wrote '{file}'", file=sys.stderr)
-
-def MakeTestFile(file, keep):
-    '''This function writes the data in keep to file, which can be used
-    to test the transliteration facilities.  The output format is the
-    key ASCII character, followed by a tab, followed by the Unicode
-    characters that should be mapped to it.  After the transliteration,
-    the line should contain all the same characters with one tab
-    character.
-    '''
-    f = open(file, "w")
-    for key in decomp:
-        keep[decomp[key]].add(key)
-    for key in keep:
-        u = ''.join([chr(i) for i in keep[key]])
-        print(f"{key}\t{u}", file=f)
-    print(f"Wrote '{file}'", file=sys.stderr)
-
-def Usage(d, status=1):
-    name = sys.argv[0]
-    print(dedent(f'''
-    Usage:  {name} [options] [output_file]
- 
-    -d dbg      Debug level
-    -f          Force a rebuild
-    -s          Set select to True
-    '''[1:-1]))
-    exit(status)
-
-def ParseCommandLine(d):
-    d["-d"] = 0
-    d["-f"] = False
-    d["-s"] = False
-    try:
-        opts, args = getopt.getopt(sys.argv[1:], "d:fhs")
-    except getopt.GetoptError as e:
-        print(str(e))
-        exit(1)
-    for o, a in opts:
-        if o[1] in list("fs"):
-            d[o] = not d[o]
-        if o == "-d":
-            d[o] = int(a)
-        elif o == "-h":
-            Usage(d)
-    return args
-
-def IsASCII(s):
-    '''Return True if string s is composed of all ASCII characters.
-    Note it returns True for the empty string.
-    '''
-    return all(ord(i) < 0x80 for i in s)
-
-def flatten(listOfLists):
-    "Flatten one level of nesting"
-    return chain.from_iterable(listOfLists)
-
-def Decompose(char):
-    '''Return the decomposed string or '' if there is no suitable one.
-    '''
-    # Make a dictionary to translate some of the strings like "⁄"
-    T = {
-        0x2044: "/",
-        0x2215: "/",
-        0x03A9: "ohm",
-        0x0301: "'",
-        0x0327: ",",
-    }
-    for cp in range(768, 880):      # Remove combining characters
-        T[cp] = None
-    s = char
-    while s and not IsASCII(s):
-        t = []
-        for c in s:
-            if IsASCII(c):
-                t.append(c)
-            else:
-                d = U.decomposition(c)
-                if not d:
-                    continue
-                f = d.split()
-                if f[0].startswith("<"):
-                    f = f[1:]
-                t.append(chr(int(i, 16)).translate(T) for i in f)
-        s = ''.join(flatten(t))
-    # Manual fixes:  there are some characters that should have ''
-    # returned because the above routine returns e.g. ' ' for them, but
-    # they are not space-like characters.
-    not_ok = set((
-        0x203e, 0x2017, 0x2dd, 0x2dc, 0x2da, 0x2d9, 0x2d8, 0xb8, 0xb4,
-        0xaf, 0xa8
-    ))
-    if s == " " and ord(char) in not_ok: 
-        return ""
-    elif char in set("℉℃₨"):
-        return ""
-    return s
-
-def Decomp(cpset, decomp):
-    '''Use decomposition to construct conversions.  decomp is a
-    dictionary to store the codepoints and their conversions in.
-    '''
-    remove = set()
-    for cp in sorted(cpset, reverse=1):
-        if cp < 0x80:
-            continue
-        t = Decompose(chr(cp))
-        if t:
-            decomp[cp] = t
-            remove.add(cp)
-    cpset -= remove
-
-def GetTranslations():
-    cpset, keep = GetWorkingSet()
-    Decomp(cpset, decomp)
-    # Build keep dictionary
-    Quotes(cpset, keep)
-    Brackets(cpset, keep)
-    Punctuation(cpset, keep)
-    Slash_bar(cpset, keep)
-    OtherCharacters(cpset, keep)
-    Digits(cpset, keep)
-    Letters(cpset, keep)
-    Miscellaneous(cpset, keep)
-    # Make sure all items in keep are sets
-    for i in keep:
-        assert(isinstance(keep[i], set))
-    # Output data
-    MakeScript("asciify.script", keep)
-    MakeTestFile("asciify.test", keep)
+        Example:  '🆐' (0x1f190) decomposes to 'DJ'
+        '''
+        remove = set()
+        for cp in sorted(cpset, reverse=1):
+            if cp < 0x80:
+                continue
+            t = Decompose(chr(cp))
+            if t:
+                decomp[cp] = t
+                remove.add(cp)
+        cpset -= remove
+    def GetTranslations():
+        cpset, keep = GetWorkingSet()
+        Decomp(cpset, decomp)
+        # Build keep dictionary
+        Quotes(cpset, keep)
+        Brackets(cpset, keep)
+        Punctuation(cpset, keep)
+        Slash_bar(cpset, keep)
+        OtherCharacters(cpset, keep)
+        Digits(cpset, keep)
+        Letters(cpset, keep)
+        Miscellaneous(cpset, keep)
+        # Make sure all items in keep are sets
+        for i in keep:
+            assert(isinstance(keep[i], set))
+        # Output data
+        MakeScript("asciify.script", keep)
+        MakeTestFile("asciify.test", keep)
+if 1:   # Make the files
+    def MakeScript(file, keep):
+        '''Write the kept data in a form suitable for a python script's 
+        str.translate use.
+        '''
+        f = open(file, "w")
+        print(dedent(f'''
+        # Constructed {time.asctime()} by {sys.argv[0]}
+    
+        # This dictionary can be used by str.translate to "asciify" Unicode
+        # text by converting non-7-bit Unicode characters to their (rough)
+        # ASCII equivalents.
+    
+        ascii_translate = {{'''[1:]), file=f)
+        s = []
+        for c in keep:
+            for cp in keep[c]:
+                s.append((cp, repr(c)))
+        for cp in decomp:
+            s.append((cp, repr(decomp[cp])))
+        for cp, c in sorted(s):
+            print(f"    0x{cp:x}: {c},", file=f)
+        print(dedent(f'''
+        }}
+        if __name__ == "__main__": 
+            import sys
+            s = sys.stdin.read()
+            print(s.translate(ascii_translate))
+        '''[1:]), file=f)
+        print(f"Wrote '{file}'", file=sys.stderr)
+    def MakeTestFile(file, keep):
+        '''This function writes the data in keep to file, which can be used
+        to test the transliteration facilities.  The output format is the
+        key ASCII character, followed by a tab, followed by the Unicode
+        characters that should be mapped to it.  After the transliteration,
+        the line should contain all the same characters with one tab
+        character.
+        '''
+        f = open(file, "w")
+        for key in decomp:
+            keep[decomp[key]].add(key)
+        for key in keep:
+            u = ''.join([chr(i) for i in keep[key]])
+            print(f"{key}\t{u}", file=f)
+        print(f"Wrote '{file}'", file=sys.stderr)
 
 if __name__ == "__main__": 
     d = {}      # Options dictionary
@@ -896,6 +871,5 @@ if __name__ == "__main__":
     select = True if d["-s"] else False
     # Set to 0 for no debug output, 1 for only title & result, 2 for all
     dbg = d["-d"]
-    #stream = open(args[0], "w") if args else sys.stdout
     stream = sys.stdout
     GetTranslations()

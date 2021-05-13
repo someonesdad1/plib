@@ -1,4 +1,3 @@
-# encoding: utf-8
 '''
 TODO/issues:
  
@@ -24,7 +23,6 @@ documentation xyz.pdf for details.
 # See http://opensource.org/licenses/OSL-3.0.
 #
 
-from __future__ import print_function, division
 import sys
 import traceback
 from math import *
@@ -42,10 +40,7 @@ __all__ = [
     "Det4",
 ]
 
-py3 = True if sys.version_info[0] > 2 else False
-if py3:
-    long = int
-Numbers = [int, long, float]
+Numbers = [int, float]
 ii = isinstance
  
 have_unc = False
@@ -258,7 +253,7 @@ class Ctm(object):
             raise ValueError("Need sequence of 16 parameters for CTM")
         Ctm._CTM = list(ctm[:])
         # Verify all the matrix elements are numbers
-        allowed = [int, long, float]
+        allowed = [int, float]
         if have_unc:
             allowed += [UFloat]
         allowed = tuple(allowed)
@@ -432,7 +427,7 @@ class Ctm(object):
                 x = ufloat(mean, 0)
             elif abs(mean) < Ctm.eps:
                 x = ufloat(0, s)
-        elif ii(x, (float, int, long)):
+        elif ii(x, (float, int)):
             if abs(x) < Ctm.eps:
                 x = 0
             # Convert to integer if appropriate

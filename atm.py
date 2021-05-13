@@ -1,4 +1,3 @@
-# encoding: utf-8
 '''
 Calculate atmospheric properties.
 
@@ -26,7 +25,6 @@ equation 33b in the NASA paper.
 # See http://opensource.org/licenses/OSL-3.0.
 #
 
-from __future__ import division, print_function
 import getopt
 import os
 import sys
@@ -328,7 +326,7 @@ Height  Density      Pressure      Temp      Acc. grav.   Speed of Sound
 '''[1:-1]
     print(header)
     #for z_km in range(-5, 87):
-    for z_km in range(-5, 7):
+    for z_km in range(-5, 31):
         prop = atm(z_km)
         d = e(prop["density"])
         p = e(prop["pressure"])

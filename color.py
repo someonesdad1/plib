@@ -141,23 +141,11 @@ except ImportError:
 # See http://opensource.org/licenses/OSL-3.0.
 #
 
-from __future__ import print_function
-
 if 1:   # Imports & globals
     import os
     import sys
+    from collections.abc import Iterable
     from pdb import set_trace as xx
-    py3 = sys.version_info[0] == 3
-    if py3:
-        String = (str,)
-        Int = (int,)
-    else:
-        String = (str, unicode)
-        Int = (int, long)
-    if py3:
-        from collections.abc import Iterable
-    else:
-        from collections import Iterable
     # To use this under the old cygwin bash, which was derived from a Windows
     # console, you must define the environment variable BASH_IS_WIN_CONSOLE.
     # The new cygwin bash window is based on mintty and accepts ANSI escape
@@ -262,7 +250,7 @@ if 1:   # Imports & globals
 def _is_iterable(x):
     '''Return True if x is an iterable that isn't a string.
     '''
-    return isinstance(x, Iterable) and not isinstance(x, String)
+    return isinstance(x, Iterable) and not isinstance(x, str)
 
 def _DecodeColor(*c):
     '''Return a 1-byte integer that represents the foreground and
@@ -278,7 +266,7 @@ def _DecodeColor(*c):
                 raise ValueError("Must be a sequence of two integers")
             color = ((c[0][1] << 4) | c[0][0]) & 0xff
         else:
-            if not isinstance(c[0], Int):
+            if not isinstance(c[0], int):
                 raise ValueError("Argument must be an integer")
             color = c[0] & 0xff
     elif len(c) == 2:

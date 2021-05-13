@@ -9,7 +9,6 @@ that aren't relative to the document's location will be flagged.
  
 This is done by a heuristic rather than parsing the XML.
 '''
-# no_tests:ignore
 
 # Copyright (C) 2014 Don Peterson
 # Contact:  gmail.com@someonesdad1
@@ -19,17 +18,14 @@ This is done by a heuristic rather than parsing the XML.
 # See http://opensource.org/licenses/OSL-3.0.
 #
 
-from __future__ import absolute_import, division, print_function
 import sys
 import getopt
 import os
 import zipfile
 from re import sub
 from string import whitespace
-
 from pdb import set_trace as xx
 
-py3 = sys.version_info[0] == 3
 out = sys.stdout.write
 err = sys.stderr.write
 broken_link = "[missing]"
@@ -191,8 +187,7 @@ def _ProcessZipObject(zipobj, filename):
     the zip archive, read in its bytes, and search them for image tags.
     '''
     s = zipobj.open(filename).read()
-    if py3:
-        s = s.decode("UTF-8")
+    s = s.decode("UTF-8")
     tag_begin, tag_end = "<draw:image xlink:href", "/>"
     loc = s.find(tag_begin)
     found_files = []
@@ -268,23 +263,14 @@ def GetOOFilePictures(oofile):
         os.chdir(olddir)
     return tuple(found)
 
-if py3:
-    def keep(s, chars, incl_ws=False):
-        '''Returns the string s after keeping only the characters in chars.
-        If incl_ws is True, then whitespace characters are added to chars
-        (this is useful for processing text files).
-        '''
-        chars = chars + whitespace if incl_ws else chars
-        c = "[^{}]".format(''.join(list(set(chars))))
-        return sub(c, "", s)
-else:
-    def keep(s, chars_to_keep):
-        '''This is specific to 8-bit ASCII, so it will break on Unicode
-        file names.
-        '''
-        delete_chars = ''.join(keep.all - set(chars_to_keep))
-        return s.translate(None, delete_chars)
-    keep.all = set([chr(i) for i in range(256)])
+def keep(s, chars, incl_ws=False):
+    '''Returns the string s after keeping only the characters in chars.
+    If incl_ws is True, then whitespace characters are added to chars
+    (this is useful for processing text files).
+    '''
+    chars = chars + whitespace if incl_ws else chars
+    c = "[^{}]".format(''.join(list(set(chars))))
+    return sub(c, "", s)
 
 def J(*p):
     '''Join the components of the sequence p into a path and Normalize

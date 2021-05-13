@@ -33,7 +33,6 @@ The bisect module is used to perform a binary search, so time for a
 membership check will be O(log(len(intervals))) where intervals is the
 sequence passed to the constructor.
 
-no_tests:ignore
 '''
 
 # Copyright (C) 2014 Don Peterson
@@ -44,7 +43,6 @@ no_tests:ignore
 # See http://opensource.org/licenses/OSL-3.0.
 #
 
-from __future__ import print_function, division
 import sys
 from bisect import bisect_right
 
@@ -54,16 +52,6 @@ if 0:
     debug.SetDebugger()
 
 __all__ = ["Interval"]
-
-py3 = True if sys.version_info[0] > 2 else False
-py2 = not py3
-if py3:
-    Int = (int,)
-    long = int
-    Str = (str,)
-else:
-    Int = (int, long)
-    Str = (str, unicode)
 
 def LeastRightmost(x, seq):
     '''Return the index of the rightmost value in sequence seq that is
@@ -89,7 +77,7 @@ class Interval(object):
     def is_2(self, x):
         '''Return True if x is a 2-sequence.
         '''
-        if isinstance(x, Str):
+        if isinstance(x, str):
             return False
         try:
             return True if len(x) == 2 else False

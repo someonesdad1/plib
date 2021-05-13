@@ -19,8 +19,6 @@ Note 20 Sep 2010:  The routines in this module are obsoleted by the
 combinations() and permutations() methods of the itertools module.
 Also note the URLs given below do not work anymore; I had last accessed
 them when solving the "Einstein" fish puzzle in February of 2002.
-
-no_tests:ignore
 '''
 
 # Copyright (C) 2005 Don Peterson
@@ -31,9 +29,7 @@ no_tests:ignore
 # See http://opensource.org/licenses/OSL-3.0.
 #
 
-from __future__ import division, print_function
 import sys
-
 
 # The following global variables are used to save the state within the
 # routines so that they can be called once for each combination or

@@ -1,5 +1,4 @@
 '''
-no_tests:ignore
 ToDo:
 
     * Look at what it would take to produce mirror image scales by just
@@ -62,20 +61,19 @@ How to use:
         from 0 to 1.
  
     Label the scale
-        push()
-        y = y0 - 0.1
-        x = x0 - 1.3*line_label_offset
-        move(x, y)
-        text("AWG")
-        move(x, y0 + 0.05)
-        textSize(base_font_size)
-        text("D, in")
-        if not print_slide_rule_scale:
-            NumberScale(x1, y1)  # Print a number to the right of the scale
+    push()
+    y = y0 - 0.1
+    x = x0 - 1.3*line_label_offset
+    move(x, y)
+    text("AWG")
+    move(x, y0 + 0.05)
+    textSize(base_font_size)
+    text("D, in")
+    if not print_slide_rule_scale:
+        NumberScale(x1, y1)  # Print a number to the right of the scale
 
 '''
 
-from __future__ import print_function, division
 import sys
 import g
 import math

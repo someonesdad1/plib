@@ -1,4 +1,3 @@
-# encoding: utf-8
 '''
 Hex dump utility.
 '''
@@ -11,22 +10,12 @@ Hex dump utility.
 # See http://opensource.org/licenses/OSL-3.0.
 #
 
-from __future__ import print_function, division
 import sys
-
+from io import StringIO, BytesIO
 from pdb import set_trace as xx
 if len(sys.argv) > 1:
     import debug
     debug.SetDebugger()
-
-py3 = sys.version_info[0] == 3
-String = (str,) if py3 else (str, unicode)
-Int = (int,) if py3 else (int, long)
-if py3:
-    from io import StringIO
-else:
-    from StringIO import StringIO
-from io import BytesIO
 
 # Global variable convenience container
 class G:
@@ -49,11 +38,11 @@ def hexdump(text, n=None, offset=0, out=None, encoding="utf-8"):
     # Check argument types
     if not hasattr(stream, "write"):    
         raise TypeError("out must be a stream-like object")
-    if n is not None and not isinstance(n, Int):
+    if n is not None and not isinstance(n, int):
         raise TypeError("n must be an integer")
-    if not isinstance(offset, Int):
+    if not isinstance(offset, int):
         raise TypeError("offset must be an integer")
-    if not isinstance(encoding, String):
+    if not isinstance(encoding, str):
         raise TypeError("encoding must be a string")
     def OutputLine(mybytes, offset):
         if len(mybytes) == 0:
@@ -62,7 +51,7 @@ def hexdump(text, n=None, offset=0, out=None, encoding="utf-8"):
         # Print the hex values
         for i in range(G.bytes_per_line):
             if i < len(mybytes):
-                c = mybytes[i] if py3 else ord(mybytes[i])
+                c = mybytes[i]
                 stream.write("{:02x} ".format(c))
             else:
                 stream.write("   ")
@@ -72,14 +61,14 @@ def hexdump(text, n=None, offset=0, out=None, encoding="utf-8"):
         # Print the ASCII representation
         for i in range(G.bytes_per_line):
             if i < len(mybytes):
-                c = mybytes[i] if py3 else ord(mybytes[i])
+                c = mybytes[i]
                 if 32 <= c < 128:
                     stream.write("%c" % c)
                 else:
                     stream.write("%c" % G.nonprintable_char)
         stream.write("\n")
     # Turn input into bytes
-    if isinstance(text, String):
+    if isinstance(text, str):
         try:
             text = text.encode(encoding)
         except UnicodeDecodeError:

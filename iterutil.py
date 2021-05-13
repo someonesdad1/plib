@@ -31,7 +31,6 @@ Utility recipes from the itertools documentation.
 # See http://opensource.org/licenses/OSL-3.0.
 #
  
-from __future__ import division, print_function
 import collections
 import operator
 import random
@@ -42,12 +41,6 @@ if 1:
     import debug
     debug.SetDebugger()
 
-py3 = sys.version_info[0] == 3
-
-Map = map if py3 else it.imap
-Zip = zip if py3 else it.izip
-Filterfalse = it.filterfalse if py3 else it.ifilterfalse
-
 def take(iterable, n):
     "Return first n items of the iterable as a list"
     return list(it.islice(iterable, n))
@@ -57,9 +50,9 @@ def tabulate(function, start=0, iterable=None):
     or at the arguments returned by iterable.
     '''
     if iterable:
-        return Map(function, iterable)
+        return map(function, iterable)
     else:
-        return Map(function, it.count(start))
+        return map(function, it.count(start))
 
 def consume(iterator, n=None):
     "Advance the iterator n-steps ahead. If n is None, consume entirely."
@@ -112,22 +105,18 @@ def pairwise(iterable, offset=1):
     a, b = it.tee(iterable)
     for i in range(offset):
         next(b, None)
-    return Zip(a, b)
+    return zip(a, b)
 
 def grouper(n, iterable, fillvalue=None):
     "grouper(3, 'ABCDEFG', 'y') --> ABC DEF Gyy"
     args = [iter(iterable)]*n
-    if py3:
-        return it.zip_longest(*args, fillvalue=fillvalue)
-    else:
-        return it.izip_longest(fillvalue=fillvalue, *args)
+    return it.zip_longest(*args, fillvalue=fillvalue)
 
 def roundrobin(*iterables):
     "roundrobin('ABC', 'D', 'EF') --> A D E B F C"
     # Recipe credited to George Sakkis
     pending = len(iterables)
-    nexts = (it.cycle(iter(it).__next__ for it in iterables) if py3 else
-             it.cycle(iter(it).next for it in iterables))
+    nexts = it.cycle(iter(it).__next__ for it in iterables)
     while pending:
         try:
             for next in nexts:
@@ -166,7 +155,7 @@ def unique_everseen(iterable, key=None):
     seen = set()
     seen_add = seen.add
     if key is None:
-        for element in Filterfalse(seen.__contains__, iterable):
+        for element in it.filterfalse(seen.__contains__, iterable):
             seen_add(element)
             yield element
     else:

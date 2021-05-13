@@ -1,10 +1,15 @@
 '''
 TODO:
     * Test sum attribute
+    * Consider getting rid of Complex and importing flt/cpx
+        * This could mean Matrices container is obsolete and can be
+          removed.
+    * Move ParseComplex to f.py?
+        * Should it also support the iy+x and yi+x forms?
 
 Matrix module (python 3 only)
 '''
-if True: # Imports & globals
+if 1:   # Standard imports
     # This module is a derivative work of the 3.0.0 version of pymatrix,
     # gotten on 15 Jul 2019 from
     # https://github.com/dmulholl/pymatrix.git.
@@ -22,8 +27,9 @@ if True: # Imports & globals
     from decimal import Decimal, localcontext
     from fractions import Fraction
     from functools import reduce, partial
-    from itertools import chain, zip_longest, starmap
+    from itertools import zip_longest, starmap
     from pdb import set_trace as xx
+    import locale
     import math
     from cmath import sqrt as csqrt
     import operator
@@ -32,7 +38,7 @@ if True: # Imports & globals
     import re
     import sys
     import textwrap
-
+if 1:   # Custom imports
     # You can decide here whether you want this module to support
     # mpmath, the python uncertainties library, or sympy.
     # Alternately, you can define the environment variables
@@ -62,7 +68,12 @@ if True: # Imports & globals
             have_sympy = True
         except ImportError:
             pass
-    __version__ = "11Aug2019"
+    from pdb import set_trace as xx
+    if 1:
+        import debug
+        debug.SetDebugger()
+if 1:   # Global variables
+    __version__ = "xxMay2021"
     __all__ = [
         "Complex", 
         "cross", 
@@ -79,6 +90,7 @@ if True: # Imports & globals
         "RoundOff",
         "vector",
         ]
+    ii = isinstance
 
 class ParseComplex(object):
     '''Parses complex numbers in the ways humans like to write them.
@@ -230,7 +242,7 @@ class Matrix:
     SigFig = None
  
     def __init__(self, rows, cols, fill=0):
-        if not isinstance(rows, int) or not isinstance(cols, int):
+        if not ii(rows, int) or not ii(cols, int):
             raise TypeError("rows and cols must be integers")
         self._r = rows
         self._c = cols
@@ -242,12 +254,14 @@ class Matrix:
         '''Returns self + other; other can be a compatible matrix or
         scalar.
         '''
-        if isinstance(other, Matrix):   # Matrix addition
+        if ii(other, Matrix):   # Matrix addition
             if self.r != other.r or self.c != other.c:
                 raise TypeError('Cannot add matrices of different sizes')
             m = Matrix(self.r, self.c)
-            with Flatten(self): M1 = self._grid
-            with Flatten(other): M2 = other._grid
+            with Flatten(self):
+                M1 = self._grid
+            with Flatten(other):
+                M2 = other._grid
             m._grid = list(starmap(operator.add, zip(M1, M2)))
             m._nested()
             m._copy_attr(self)
@@ -271,7 +285,7 @@ class Matrix:
         '''Allows self//other where other is a scalar.  Not defined if 
         other is a matrix.
         '''
-        if isinstance(other, Matrix):
+        if ii(other, Matrix):
             raise TypeError("// not defined for two matrices")
         else:
             try:
@@ -293,10 +307,10 @@ class Matrix:
         returns the indicated component.  Otherwise, self[i] returns row
         i as a row vector.
         '''
-        if isinstance(key, (tuple, list)):
+        if ii(key, (tuple, list)):
             row, col = key
             return self._grid[row][col]
-        elif isinstance(key, slice):
+        elif ii(key, slice):
             i, j, k = key.start, key.stop, key.step
             # Check that only allowed slice forms are present
             if not ((i is not None and j is None and k is None) or
@@ -354,7 +368,7 @@ class Matrix:
                 return m
             else:
                 raise ValueError("Slice '{}' is invalid".format(key))
-        elif isinstance(key, int):
+        elif ii(key, int):
             if self.is_vector:
                 with Flatten(self): 
                     return self._grid[key]   # Return vector component
@@ -380,7 +394,7 @@ class Matrix:
         '''Multiply by another matrix or a scalar.  If the result is a 
         1 by 1 matrix, the number is returned instead of the matrix.
         '''
-        if isinstance(other, Matrix):
+        if ii(other, Matrix):
             if self.c != other.r:
                 raise TypeError('Incompatible sizes for multiplication')
             m = Matrix(self.r, other.c)
@@ -401,7 +415,7 @@ class Matrix:
         identity matrix is returned.  If other is negative, the inverse
         matrix is raised to the abs(other) power.
         '''
-        if not isinstance(other, int):
+        if not ii(other, int):
             raise TypeError("Only integer powers are supported")
         if not self.is_square:
             raise TypeError("The matrix must be square to raise to a power")
@@ -440,7 +454,7 @@ class Matrix:
         will be changed.
         '''
         self._check_frozen()
-        if isinstance(key, (tuple, list)):  # Set a single element
+        if ii(key, (tuple, list)):  # Set a single element
             nr, nc = self.r, self.c
             row, col = key
             row = row + nr if row < 0 else row
@@ -450,7 +464,7 @@ class Matrix:
             if not (0 <= col < nc):
                 raise ValueError("col must be 0 to {}".format(nc - 1))
             self._grid[row][col] = value
-        elif isinstance(key, int):
+        elif ii(key, int):
             # This is either to insert a new row or change the element
             # of a vector.
             if self.is_vector:
@@ -462,7 +476,7 @@ class Matrix:
                     raise ValueError("Vector index of {} is bad".format(key))
             else:
                 msg = "value must be a {{}} with {} elements".format(self.c)
-                if isinstance(value, Matrix):
+                if ii(value, Matrix):
                     if not value.is_vector and value.len != self.c :
                         raise TypeError(msg.format("vector"))
                     v = value.l
@@ -482,7 +496,7 @@ class Matrix:
         '''Subtract a matrix or scalar from the current matrix and return
         the result.
         '''
-        if isinstance(other, Matrix):
+        if ii(other, Matrix):
             # Matrix subtraction
             if self.r != other.r or self.c != other.c:
                 raise TypeError("Cannot subtract matrices of different sizes")
@@ -500,7 +514,7 @@ class Matrix:
         self and other are square matrices of the same size, returns
         self*other.i.
         '''
-        if isinstance(other, Matrix):
+        if ii(other, Matrix):
             # Must have self and other square and of the same size
             if not self.is_square or not other.is_square:
                 raise TypeError("Self and other must be square matrices")
@@ -567,19 +581,19 @@ class Matrix:
         '''
         f = lambda x: 0 if abs(x) <= tol else x
         def ch(x):
-            if isinstance(x, complex):
+            if ii(x, complex):
                 return complex(f(x.real), f(x.imag))
-            elif isinstance(x, Complex):
+            elif ii(x, Complex):
                 return Complex(f(x.real), f(x.imag))
-            elif have_mpmath and isinstance(x, mpmath.mpc):
+            elif have_mpmath and ii(x, mpmath.mpc):
                 return mpmath.mpc(f(x.real), f(x.imag))
-            elif isinstance(x, float):
+            elif ii(x, float):
                 return f(x)
-            elif have_mpmath and isinstance(x, mpmath.mpf):
+            elif have_mpmath and ii(x, mpmath.mpf):
                 return f(x)
-            elif have_unc and isinstance(x, UFloat):
+            elif have_unc and ii(x, UFloat):
                 raise TypeError("Can't chop an uncertain number")
-            elif isinstance(x, Decimal):
+            elif ii(x, Decimal):
                 return f(x)
             else:
                 return x
@@ -591,6 +605,7 @@ class Matrix:
         '''
         row = row + self.r if row < 0 else row
         col = col + self.c if col < 0 else col
+        # Note the minor is the determinant
         return pow(-1, row + col)*self.minor(row, col)
     def col(self, *n): 
         'Returns the indicated columns as a new matrix'
@@ -641,7 +656,7 @@ class Matrix:
                     break
                 # See if it's of this type
                 try:
-                    if isinstance(item, key):
+                    if ii(item, key):
                         if callable(value):
                             L[i] = value(item)  # Call a function
                         else:
@@ -680,10 +695,10 @@ class Matrix:
                 raise ValueError("n must be between 0 and {}".format(self.c - 1))
             # Used delete_row() on the transpose
             m = self.t
-            cv = m._grid.pop(n)    # cv is a list
+            cv = m._grid.pop(n)     # cv is a list
             m._r -= 1
-            cv = vector([cv]).t  # Convert it to a column vector
-            self._grid = m.t._grid
+            self._grid = m.t._grid  # Put the reduced matrix back
+            cv = vector(*cv).t      # Convert it to a column vector
             self._c -= 1
             cv._copy_attr(self)
             return cv
@@ -695,7 +710,7 @@ class Matrix:
                 raise ValueError("n must be between 0 and {}".format(self.r - 1))
             r = self._grid.pop(n)
             self._r -= 1
-            v = vector([r])
+            v = vector(*r)
             v._copy_attr(self)
             return v
     def equals(self, other, tol=None): 
@@ -712,7 +727,7 @@ class Matrix:
         not None, then it is used irrespective of the instance.sigfig
         values.
         '''
-        if not isinstance(other, Matrix):
+        if not ii(other, Matrix):
             raise TypeError("other must be a Matrix instance")
         if self.r != other.r or self.c != other.c:
             return False
@@ -780,7 +795,7 @@ class Matrix:
         part is zero.
         '''
         def Float(x):
-            if isinstance(x, complex) and not x.imag:
+            if ii(x, complex) and not x.imag:
                 return x.real
             return x
         if ip:
@@ -788,14 +803,14 @@ class Matrix:
         m = self if ip else self.copy
         m.map(Float, ip=True)
         return None if ip else m
-    def insert(self, n, c=False, vector=None, fill=0):
+    def insert(self, n, c=False, Vector=None, fill=0):
         '''Inserts a new row or column before the indicated row or
         column n, counting from top to bottom for rows and left to right
         for columns.  Set n to self.r to insert after the bottom row or
         self.c to insert after the rightmost column.  The new elements
         are filled with the value of fill.
  
-        If vector is not None, then the vector's values are inserted into
+        If Vector is not None, then the vector's values are inserted into
         the row or column.  The vector can be either a row or column vector
         as long as it has the correct number of elements for the target row
         or column.
@@ -822,19 +837,19 @@ class Matrix:
             if not (0 <= n < self.c) and not concat:
                 raise ValueError("n must be between 0 "
                                  "and {}".format(self.c - 1))
-            if vector is not None:
-                if vector.len != self.r:
-                    raise TypeError("vector must have {} elements".format(
+            if Vector is not None:
+                if Vector.len != self.r:
+                    raise TypeError("Vector must have {} elements".format(
                                     self.r))
-                v = vector if vector.is_col_vector else vector.t
+                v = Vector if Vector.is_col_vector else Vector.t
             else:
                 v = vector(self.r, c=True, fill=fill)
             # Operate on the transpose so we can use insert for rows
             m = self.t
             if concat:
-                m.insert(self.c, c=False, vector=v)
+                m.insert(self.c, c=False, Vector=v)
             else:
-                m.insert(n, c=False, vector=v)
+                m.insert(n, c=False, Vector=v)
             self._grid = m.t._grid
             self._c += 1
         else:
@@ -843,11 +858,11 @@ class Matrix:
             if not (0 <= n < self.r) and not concat:
                 raise ValueError("n must be between 0 "
                                  "and {}".format(self.r - 1))
-            if vector is not None:
-                if vector.len != self.c:
-                    raise TypeError("vector must have {} elements".format(
+            if Vector is not None:
+                if Vector.len != self.c:
+                    raise TypeError("Vector must have {} elements".format(
                                     self.c))
-                v = vector if vector.is_row_vector else vector.t
+                v = Vector if Vector.is_row_vector else Vector.t
             else:
                 v = vector(self.c, fill=fill)
             if concat:
@@ -893,7 +908,7 @@ class Matrix:
         self.  If c is True, m and self must have the same number of
         columns and m is joined on the bottom side of self.
         '''
-        if not isinstance(m, Matrix):
+        if not ii(m, Matrix):
             raise TypeError("m must be a Matrix instance")
         self._check_frozen()
         if c:
@@ -951,7 +966,7 @@ class Matrix:
             if ip:
                 self._grid = m._grid
             return None if ip else m
-        elif isinstance(n, int):
+        elif ii(n, int):
             # Single row or column
             if not (0 <= n < self.c if c else self.r):
                 raise ValueError("n must be between 0 and {}".format(
@@ -964,7 +979,7 @@ class Matrix:
                 self._grid = m._grid
                 return
             return m
-        elif not isinstance(n, str) and isinstance(n, Iterable):
+        elif not ii(n, str) and ii(n, Iterable):
             # Multiple rows or columns
             for i in n:
                 m.map(func, i, c=c, ip=ip)
@@ -1005,12 +1020,12 @@ class Matrix:
         elements may be lost.
         '''
         self._check_frozen()
-        if not isinstance(r, int) and not isinstance(c, int):
+        if not ii(r, int) and not ii(c, int):
             raise TypeError("r and c must be integers")
         if r < 1 or c < 1:
             raise ValueError("r and c must be > 0")
         # Flatten self._grid
-        L = list(chain.from_iterable(self._grid))
+        L = list(Matrix._Flatten(self._grid))
         # Get new length
         n, N = r*c, len(L)
         if N > n:
@@ -1094,6 +1109,7 @@ class Matrix:
                 return self.copy
     def row(self, *n):
         'Returns the indicated row(s) as a new matrix'
+        # Validate n's components
         for i in n:
             if i < 0:
                 k = self.r + i
@@ -1108,7 +1124,10 @@ class Matrix:
         for i in n:
             i = self.r + i if i < 0 else i
             s.append(self._grid[i])
-        m = matrix(s)
+        if len(n) == 1:
+            m = vector(s[0])
+        else:
+            m = matrix(s)
         m._copy_attr(self)
         return m
     def scale(self, n, b, c=False): 
@@ -1176,7 +1195,7 @@ class Matrix:
         matrix is unchanged.
         '''
         R, C = self._r, self._c
-        if not isinstance(n, int): 
+        if not ii(n, int): 
             raise TypeError("n must be an integer")
         def row_split(M, n):
             if n < 0 or n >= M.r - 1:
@@ -1225,20 +1244,17 @@ class Matrix:
             raise TypeError("Cannot modify a frozen matrix or vector")
     def _copy_attr(self, m):
         'Copy the attributes of the matrix m to self'
-        if not isinstance(m, Matrix):
+        if not ii(m, Matrix):
             raise TypeError("m must be a Matrix instance")
         self.numtype = m._numtype
         self.frozen = m._frozen
         self.sigfig = m._sigfig
     def _flatten(self):
         'Convert self._grid to a flat list'
-        if isinstance(self._grid[0], list):
-            # Note this only flattens the first level of nesting:
-            # [[1, 2], [3, 4, [5, 6]]] --> [1, 2, 3, 4, [5, 6]]
-            self._grid = list(chain.from_iterable(self._grid))
+        self._grid = Matrix._Flatten(self._grid)
     def _nested(self):
         'Convert self._grid to a nested list'
-        if not isinstance(self._grid[0], list):
+        if not ii(self._grid[0], list):
             self._grid = [list(i) for i in 
                          zip_longest(*([iter(self._grid)]*self.c))]
     def _get_sigfig(self, other=None):
@@ -1247,7 +1263,7 @@ class Matrix:
         smaller of self.sigfig and other.sigfig.
         '''
         if Matrix.SigFig is not None:
-            if not isinstance(Matrix.SigFig, int):
+            if not ii(Matrix.SigFig, int):
                 raise TypeError("Matrix.sigfig must be an integer")
             if Matrix.SigFig < 1:
                 raise ValueError("Matrix.sigfig must be > 0")
@@ -1309,21 +1325,21 @@ class Matrix:
             digits = (Matrix.SigFig if Matrix.SigFig is not None else
                       self._sigfig if self._sigfig is not None else None)
             if digits:
-                if isinstance(x, (float, Decimal)):
+                if ii(x, (float, Decimal)):
                     return str(RoundOff(float(x), digits))
-                elif isinstance(x, Complex):
+                elif ii(x, Complex):
                     # This is a bit of a hack to get self's sigdig
                     # setting to the Complex instance (but it works).
                     x.sigdig = digits
                     return str(x)
-                elif isinstance(x, complex):
+                elif ii(x, complex):
                     if Matrix.use_Complex:
                         return str(Complex(RoundOff(x, digits)))
                     return str(RoundOff(x, digits))
                 else:
                     return str(x)
             else:
-                if isinstance(x, complex) and Matrix.use_Complex:
+                if ii(x, complex) and Matrix.use_Complex:
                     return str(Complex(x))
                 return str(x)
         with Flatten(self): 
@@ -1366,71 +1382,64 @@ class Matrix:
         else:
             return s
     @staticmethod
-    def from_list(*p, **kw):
-        '''Instantiate a matrix from a list.  These are the valid forms:
+    def from_list(p, **kw):
+        '''Instantiate a matrix from a list or tuple p.  These are the
+        valid forms:
  
-        Nested list:  A single argument is a list [L1, L2, ..., Ln]
-        where each of the L's is a sequence of length m.  This will
-        result in a matrix of n rows and m columns.
+        Size not given
+            A:  Nested list:  A single argument is a list [L1, L2, ...,
+            Ln] where each of the L's is a sequence of length m.  This
+            will result in a matrix of n rows and m columns.
  
-        Flat list with size, such as
-            matrix([1, 2, 3, 4], size=(2, 2))
-            matrix(1, 2, 3, 4, size=(2, 2))
+            B:  Flat list with no size, which will return a row vector.
  
-        Flat list with no size, which will return a row vector.
+        Size given
+            C:  Flat list with size ([1, 2, 3, 4], size=(2, 2))
  
-        Examples:
-            matrix([[1, 2, 3]]) and matrix(1, 2, 3) return the row vector
-                1 2 3
-            matrix([[1], [2], [3]]) returns the column vector
-                1
-                2
-                3
-            matrix([[1, 2, 3], [4, 5, 6]]) returns the matrix
-                1 2 3
-                4 5 6
-            matrix([1, 2, 3, 4], size=(2, 2)) returns the matrix
-                1 2
-                3 4
-            as does matrix(1, 2, 3, 4, size=(2, 2)).
+        Examples:  M = Matrix.from_list
+ 
+        M([[1, 2, 3]]) and M([1, 2, 3]) return the row vector
+            1 2 3
+        M([[1], [2], [3]]) returns the column vector
+            1
+            2
+            3
+        M([[1, 2, 3], [4, 5, 6]]) returns the matrix
+            1 2 3
+            4 5 6
+        M([1, 2, 3, 4], size=(2, 2)) returns the matrix
+            1 2
+            3 4
         '''
-        # Four valid forms for p:
-        #   A:  p = ([[1, 2], [3, 4]],)     Nested list
-        #   B:  p = ([1, 2, 3, 4],), size   Flat list with size
-        #   C:  p = (1, 2, 3, 4), size      Flat list with size
-        #   D:  p = (1, 2, 3, 4)            Flat list with no size (vector)
         size = kw.get("size", None)
         numtype = kw.get("numtype", None)
-        if size is None:
-            # Form A or D
-            if len(p) == 1 and isinstance(p[0], Iterable):
-                # Form A (nested list)
-                r, c = len(p[0]), len(p[0][0])
-                if not all([len(i) == c for i in p[0]]):
-                    raise TypeError("Not all rows have {} elements".format(c))
+        if size is None:    # Form A or B
+            assert(ii(p, (list, tuple)))
+            if ii(p[0], (list, tuple)): # Form A (nested list)
+                r, c = len(p), len(p[0])
+                if not all([len(i) == c for i in p]):
+                    raise TypeError(f"Not all rows have {c} elements")
                 m = Matrix(r, c)
-                m._grid = p[0]
+                m._grid = p
                 if numtype is not None:
                     m.numtype = numtype
                 return m
-            else:
-                # Form D:  return a row vector
-                assert(len(p) > 1)  # Otherwise would have identity matrix
-                return vector(*p)
+            else:   # Form B:  flat sequence; return a row vector
+                m = Matrix(1, len(p))
+                m._grid = [p]
+                return m
         else:
-            # Form B or C
+            # Form C
             e = TypeError("size keyword must be a tuple of two integers")
             try:
                 r, c = size
             except ValueError:
                 raise e
-            if not (isinstance(r, int) and isinstance(c, int)):
+            if not (ii(r, int) and ii(c, int)):
                 raise e
-            # flat == True for form B, False for form C
-            flat = len(p) == 1 and isinstance(p[0], Iterable)
             m = Matrix(r, c)
             with Flatten(m):
-                m._grid = p[0] if flat else p
+                m._grid = p
             if len(m.l) != r*c:
                 raise TypeError("List needs {} elements".format(r*c))
             if numtype is not None:
@@ -1455,18 +1464,24 @@ class Matrix:
                 m[i, j] = Matrix.getnum(x, expr=expr, numtype=numtype)
         return m
     @staticmethod
-    def getnum(x, numtype=None, expr=None):  
+    def getnum(x, **kw):  
         '''Returns the number x; if it is a string, the method tries to
         identify it and return it in the most appropriate form.  If numtype
         is not None, then it will be coerced to the indicated type.
+        expr is used to pass globals() and locals() dictionaries so that
+        x can be eval'd when it is a string.
         '''
-        if expr is not None and isinstance(x, str):
+        numtype = kw.get("numtype", None)
+        expr = kw.get("expr", None)
+        if expr is not None and ii(x, str):
             # Assume x is an expression to be evaluated with globals
             # dictionary expr[0] and locals dictionary expr[1].
+            if not ii(expr, (list, tuple)) and len(expr) != 2:
+                raise ValueError(f"expr must be sequence of 2 dicts or None")
             return eval(x, expr[0], expr[1])
         if numtype is not None:
             return Matrix.NumberConvert(x, numtype)
-        if not isinstance(x, str):
+        if not ii(x, str):
             # Assume it's already some form of number
             return x
         # It's a string, so see if we can identify it
@@ -1524,40 +1539,40 @@ class Matrix:
             s = s[s.find("'") + 1:]
             return s[:s.find("'")]
         if have_unc and T == ufloat:
-            if isinstance(x, complex):
+            if ii(x, complex):
                 return ufloat(x.real, 0)    #**
-            elif isinstance(x, (Fraction, Decimal)):
+            elif ii(x, (Fraction, Decimal)):
                 return ufloat(float(x), 0)  #**
-            elif isinstance(x, UFloat):
+            elif ii(x, UFloat):
                 return x
             return ufloat(x, 0)
         elif T is complex:
-            if have_unc and isinstance(x, UFloat):
+            if have_unc and ii(x, UFloat):
                 return complex(x.nominal_value, 0)  #**
             return complex(x, 0)    #**
-        elif isinstance(x, float):
+        elif ii(x, float):
             if T is Decimal or T is Fraction:
                 return T(str(x))
             return T(x)
-        elif isinstance(x, complex):
+        elif ii(x, complex):
             if T is Decimal or T is Fraction:
                 return T(str(x.real))   #**
             return T(x.real)    #**
-        elif isinstance(x, Fraction):
+        elif ii(x, Fraction):
             if T is Decimal:
                 return Decimal(x.numerator)/Decimal(x.denominator)
             elif have_mpmath and T is mpmath.mpf:
                 return mpmath.mpf(x.numerator)/mpmath.mpf(x.denominator)
-        elif isinstance(x, Decimal):
+        elif ii(x, Decimal):
             if have_mpmath and T is mpmath.mpf:
                 n, d = x.as_integer_ratio()
                 return mpmath.mpf(n)/mpmath.mpf(d)
-        elif have_mpmath and isinstance(x, mpmath.mpf):
+        elif have_mpmath and ii(x, mpmath.mpf):
             if T is Fraction:
                 return Fraction(extract(str(x)))
             elif T is Decimal:
                 return Decimal(extract(str(x)))
-        elif have_unc and isinstance(x, UFloat):
+        elif have_unc and ii(x, UFloat):
             if T is complex:
                 return complex(x.nominal_value, 0)  #**
             if T is Fraction or T is Decimal:
@@ -1595,7 +1610,29 @@ class Matrix:
         from m.
         '''
         return mpmath.matrix(m.nl)
-
+    @staticmethod
+    def _Flatten(L):
+        'Flatten every sequence in L and return a list'
+        # Adapted from code by Kevin L. Sitze on 2010-11-25.  From
+        # http://code.activestate.com/recipes/577470-fast-flatten-with-depth-control-and-oversight-over/?in=lang-python
+        lt = (list, tuple)
+        is_seq = lt if callable(lt) else lambda x: ii(x, lt)
+        r, s = [], []
+        s.append((0, L))
+        while s:
+            i, L = s.pop()
+            while i < len(L):
+                while is_seq(L[i]):
+                    if not L[i]:
+                        break
+                    else:
+                        s.append((i + 1, L))
+                        L = L[i]
+                        i = 0
+                else:
+                    r.append(L[i])
+                i += 1
+        return r
     # ---------------------- Class methods -----------------------------
     @classmethod
     def set_default_state(cls):
@@ -1624,7 +1661,7 @@ class Matrix:
     def adjoint(self): 
         'Returns the Hermitian conjugate matrix'
         def C(x):
-            return x.conjugate() if isinstance(x, complex) else x
+            return x.conjugate() if ii(x, complex) else x
         return self.t.map(C)
     @property
     def adjugate(self): 
@@ -1663,7 +1700,7 @@ class Matrix:
         'Returns a new matrix with elements that are complex conjugates'
         m = self.copy
         for row, col, element in self:
-            if isinstance(m[row, col], complex):
+            if ii(m[row, col], complex):
                 m[row, col] = m[row, col].conjugate()
         m._copy_attr(self)
         return m
@@ -1696,18 +1733,18 @@ class Matrix:
         d = []
         for i in range(self.r):
             d.append(self[i, i])
-        return matrix([d])
+        return vector(d)
     @diag.setter
     def diag(self, seq):
         'Set the diagonal elements to those of seq, a list or vector'
         self._check_frozen()
         if not self.is_square:
             raise TypeError("Matrix must be square to set diagonal")
-        if (not isinstance(seq, (list, tuple)) and 
-            (isinstance(seq, Matrix) and not seq.is_vector)):
+        if (not ii(seq, (list, tuple)) and 
+            (ii(seq, Matrix) and not seq.is_vector)):
             raise TypeError("seq must be list, tuple, or vector")
         e = TypeError("seq must be of length {}".format(self.r))
-        if isinstance(seq, Matrix):
+        if ii(seq, Matrix):
             if seq.len != self.r:
                 raise e
         else:
@@ -1806,7 +1843,7 @@ class Matrix:
         def C(x, y):
             'Return True if x and y are complex conjugates'
             try:
-                if not isinstance(x, complex) and not isinstance(y, complex):
+                if not ii(x, complex) and not ii(y, complex):
                     return f(x) == f(y)
                 a = complex(x)
                 b = complex(y)
@@ -1825,13 +1862,13 @@ class Matrix:
             if not all([C(i, j) for i, j in zip(s, t)]):    
                 return False
             # The diagonal elements must also be non-complex
-            return all([not isinstance(i, complex) for i in self.diag.l])
+            return all([not ii(i, complex) for i in self.diag.l])
         except Exception:
             return False
     @property
     def is_int(self): 
         'Return True if all matrix elements are integers.'
-        return all([isinstance(i, int) for i in self.l])
+        return all([ii(i, int) for i in self.l])
     @property
     def is_invertible(self): 
         '''Returns True if this matrix has an inverse.
@@ -1873,7 +1910,7 @@ class Matrix:
     @property
     def is_complex(self): 
         'Return True if the matrix has complex elements'
-        return any([isinstance(i, complex) for i in self.l])
+        return any([ii(i, complex) for i in self.l])
     @property
     def is_normal(self): 
         '''Return True if the matrix is a normal matrix.  A normal
@@ -1886,7 +1923,7 @@ class Matrix:
     @property
     def is_real(self): 
         'Return True if the matrix has no complex elements'
-        return not any([isinstance(i, complex) for i in self.l])
+        return not any([ii(i, complex) for i in self.l])
     @property
     def is_row_vector(self): 
         'Returns True if matrix is a row vector'
@@ -1944,9 +1981,7 @@ class Matrix:
     @property
     def l(self): 
         '''Return a flattened list of the matrix's elements'''
-        # Note this only flattens the first level of nesting:
-        # [[1, 2], [3, 4, [5, 6]]] --> [1, 2, 3, 4, [5, 6]]
-        return list(chain.from_iterable(self.copy._grid))
+        return Matrix._Flatten(self.copy._grid)
     @property
     def mag(self): 
         'Returns the Euclidean length of the vector.'
@@ -2044,7 +2079,7 @@ class Matrix:
     @sigfig.setter
     def sigfig(self, value): 
         self._check_frozen()
-        if value is not None and not isinstance(value, int):
+        if value is not None and not ii(value, int):
             raise TypeError("value must be an integer")
         if value is not None and value < 1:
             raise ValueError("value must be > 0")
@@ -2058,9 +2093,9 @@ class Matrix:
         'Set the size of the matrix; value must be a 2-sequence of ints'
         self._check_frozen()
         e = TypeError("value must be a 2-sequence of ints")
-        if not isinstance(value, (list, tuple)):
+        if not ii(value, (list, tuple)):
             raise e
-        if not isinstance(value[0], int) and not isinstance(value[1], int):
+        if not ii(value[0], int) and not ii(value[1], int):
             raise e
         self.resize(*value)
     @property
@@ -2136,7 +2171,7 @@ class Matrix:
                     return "𝕍"
             except AttributeError:
                 pass
-            if isinstance(x, Matrix):
+            if ii(x, Matrix):
                 return "𝕄"
             s = str(type(x))
             loc = s.find("'")
@@ -2327,18 +2362,18 @@ class Complex(complex):
         number.  If present, imag can be a string or number
         '''
         re, im = 0, 0
-        if isinstance(real, (int, float, Fraction, Decimal)):
+        if ii(real, (int, float, Fraction, Decimal)):
             re = float(real)
-        elif isinstance(real, (complex, Complex)):
+        elif ii(real, (complex, Complex)):
             re, im = real.real, real.imag
-        elif isinstance(real, str):
+        elif ii(real, str):
             if imag is not None:
                 raise TypeError("imag not allowed if real is string")
             re, im = Matrix.PC(real)
         else:
             raise TypeError("real must be a string or number")
         if imag is not None:
-            if isinstance(imag, (int, float, Fraction, Decimal)):
+            if ii(imag, (int, float, Fraction, Decimal)):
                 im = float(imag)
             else:
                 raise TypeError("imag must be a number")
@@ -2483,7 +2518,7 @@ class Complex(complex):
         for key, value in state_dict.items():
             exec("Complex.{} = value".format(key))
 
-if True: # Utility functions
+if 1: # Utility functions
     def matrix(*p, **kw):
         '''Convenience function for instantiating Matrix objects.  Examples:
         Integer
@@ -2491,9 +2526,7 @@ if True: # Utility functions
           matrix(4, fill=x):  Return size 4 square matrix filled with x
         String
           matrix("1 2\\n3 4")
-          matrix("1 2; 3 4", ";")
         List
-
           Nested list:  A single argument is a list [L1, L2, ..., Ln]
             where each of the L's is a sequence of length m.  This will
             result in a matrix of n rows and m columns.
@@ -2505,83 +2538,119 @@ if True: # Utility functions
         Stream
           Reads the stream; use the string form in the stream.
         '''
-        if len(p) == 1 and isinstance(p[0], int):
-            if "size" in kw:
-                raise TypeError("size keyword not allowed here")
-            m = Matrix.identity(p[0])
-            if "fill" in kw:
-                with Flatten(m):
-                    m._grid = [kw["fill"]]*len(m._grid)
-            return m
-        elif isinstance(p[0], str):
-            return Matrix.from_string(*p, **kw)
-        elif len(p) > 1 or isinstance(p[0], list):
-            return Matrix.from_list(*p, **kw)
-        elif hasattr(p[0], "read"):
-            return matrix(p[0].read())
-        else:
-            raise NotImplementedError
-    def vector(*p, **kw):
-
-        '''Convenience function for instantiating row and column
-        vectors.  Returns a row vector by default; use keyword "c" to
-        get a column vector.
-    
-        vector(2) --> [0 0]
-        vector(2, fill=7) --> [7 7]
-        vector(2, fill="7") --> ["7" "7"]
-        vector(*[1, 2, 3]) --> [1 2 3]
-        vector([1, 2, 3]) --> [1 2 3]
-        vector("1 2 3") --> [1 2 3]
-        '''
-        c = kw.get("c", False)
-        if "c" in kw:
-            del kw["c"]
+        size = kw.get("size", None)
         fill = kw.get("fill", 0)
-        if c:
-            # Make a column vector
-            if isinstance(p[0], int):
-                return Matrix(p[0], 1, fill=fill)
-            elif isinstance(p[0], str):
-                m = Matrix.from_string(*p, **kw)
-                if m.c != 1:
-                    raise ValueError("String is not valid column vector")
-                return m
-            elif isinstance(p[0], (tuple, list)):
-                m = Matrix.from_list(*p[0], **kw)
-                xx()
-                if m.c != 1:
-                    if m.r == 1:
-                        # It was entered as a row vector
-                        m = m.t
-                    else:
-                        raise ValueError("List is not valid column vector\n"
-                            "Must be of form [[a], [b], ..., [c]].")
-                return m
+        if size is not None:
+            r, c = size
+            m = Matrix(r, c)
+            n = r*c
+            e = ValueError(f"list is not of size {r}x{c}")
+            if len(p) == 1:
+                # p[0] is a sequence
+                q = list(p[0])
+                if len(q) != n:
+                    raise e
+                with Flatten(m):
+                    m._grid = q
             else:
-                raise NotImplementedError
-        else:
-            # Make a row vector
-            if isinstance(p, (tuple, list)) and len(p) > 1:
-                m = Matrix(1, len(p))  # Row vector
+                # p is a sequence
+                if len(p) != n:
+                    raise e
                 with Flatten(m):
                     m._grid = list(p)
-                return m
-            elif isinstance(p[0], int):
-                return Matrix(1, p[0], fill=fill)
-            elif isinstance(p[0], str):
-                m = Matrix.from_string(*p, **kw)
-                if m.r != 1:
-                    raise ValueError("String is not valid row vector")
-                return m
-            elif isinstance(p[0], (tuple, list)):
-                m = Matrix.from_list(*p[0], **kw)
-                if m.r != 1:
-                    raise ValueError("List is not valid row vector.\n"
-                        "Must be of form [[a, b, ..., c]].")
-                return m
+        else:
+            if len(p) == 1:
+                q = p[0]
+                if ii(q, int):
+                    if "fill" in kw:
+                        m = Matrix(q, q, fill=fill)
+                    else:
+                        m = Matrix.identity(q)
+                elif ii(q, (list, tuple)):
+                    # Either a flat or nested list
+                    q = list(q)
+                    if len(Matrix._Flatten(q)) > len(p):
+                        # Nested list
+                        m = Matrix.from_list(q, **kw)
+                        r, c = len(q), len(q[0])
+                        assert m.r == r and m.c == c, "Bad row/column lengths" 
+                    else:
+                        m = Matrix.from_list(q, **kw)
+                        assert(m.r == 1 and m.c == len(p))
+                elif ii(q, str):
+                    m = Matrix.from_string(q, **kw)
+                elif hasattr(q, "read"):
+                    # It's a stream
+                    s = q.read()
+                    if ii(s, bytes):
+                        s = s.decode()
+                    if not s:
+                        raise ValueError("Empty stream")
+                    m = matrix(s, **kw)
             else:
-                raise NotImplementedError
+                # Either p is a sequence or p is a list of two or three
+                # strings.
+                if ii(p[0], str):
+                    s = p[0]
+                    sep = p[1]
+                    linesep = p[2] if len(p) > 2 else "\n"
+                    q = s.split(linesep)
+                    r = [i.split(sep) for i in q]
+                    for i, item in enumerate(r):
+                        r[i] = [Matrix.getnum(j, **kw) for j in item]
+                    m = matrix(r, **kw)
+                else:
+                    m = Matrix.from_list(list(p), **kw)
+                    assert(m.r == 1 and m.c == len(p))
+        assert(ii(m._grid, list))
+        return m
+    def vector(*p, **kw):
+        '''Convenience function for instantiating row and column
+        vectors.  Returns a row vector by default; set keyword "c" to
+        True to get a column vector.
+    
+        The following forms return the row vector [1 2 3]
+            A:  vector(1, 2, 3)
+            B:  vector(*[1, 2, 3])
+            C:  vector([1, 2, 3])
+            D:  vector("1 2 3")
+
+        The following forms return the column vector [1 2 3].t
+            A:  vector(1, 2, 3, c=True)
+            B:  vector(*[1, 2, 3], c=True)
+            C:  vector([1, 2, 3], c=True)
+            D:  vector("1 2 3", c=True)
+
+        vector(1) and vector(1, c=True) both return the 1x1 matrix [1].
+
+        vector(2, fill=0) returns [0 0]
+        '''
+        LT = (list, tuple)
+        c = kw.get("c", False)
+        fill = kw.get("fill", None)
+        # Get q, the sequence of vector components
+        q = Matrix._Flatten(p)
+        if fill is not None:
+            if len(q) != 1:
+                raise ValueError("Only 1 argument (an integer) allowed")
+            m = Matrix(1, q[0], fill=fill)
+        else:
+            if len(q) == 1:
+                if ii(q[0], str):               
+                    # Form D with string
+                    q = [Matrix.getnum(i, **kw) for i in q[0].split()]
+                elif hasattr(q[0], "read"):
+                    # Form D with stream
+                    s = q[0].read()
+                    if ii(s, bytes):
+                        s = s.decode()
+                    if not s:
+                        raise ValueError("Empty stream")
+                    q = [Matrix.getnum(i, **kw) for i in s.split()]
+            m = Matrix.from_list(q)
+            assert(m.r == 1)
+            assert(m._grid == [q])
+        return m.t if c else m
     def random_matrix(r, c=None, integer=None, normal=None, 
                       uniform=None, seed=None, cmplx=False):
         '''Returns an r x c  matrix filled with random numbers.  If c is
@@ -2771,46 +2840,46 @@ if True: # Utility functions
             math.sin(x) = 0.49999999999999994
             RoundOff(math.sin(x)) = 0.5
         '''
-        if isinstance(number, (int, Fraction)):
+        if ii(number, (int, Fraction)):
             return number
-        if have_unc and isinstance(number, UFloat):
+        if have_unc and ii(number, UFloat):
             return number
-        if isinstance(number, complex):
+        if ii(number, complex):
             re = RoundOff(number.real, digits=digits)
             im = RoundOff(number.imag, digits=digits)
             return complex(re, im)
         can_convert = False
-        if convert and not isinstance(number, Decimal):
+        if convert and not ii(number, Decimal):
             try:
                 float(number)
                 can_convert = True
             except ValueError:
                 pass
-        if isinstance(number, float) or (convert and can_convert):
+        if ii(number, float) or (convert and can_convert):
             # Convert to a decimal, then back to a float
             x = Decimal(number)
             with localcontext() as ctx:
                 ctx.prec = digits
                 x = +x
                 return float(x)
-        elif isinstance(number, complex):
+        elif ii(number, complex):
             return complex(
                 RoundOff(number.real, digits=digits, convert=True),
                 RoundOff(number.imag, digits=digits, convert=True)
                 )
-        elif isinstance(number, Decimal):
+        elif ii(number, Decimal):
             with localcontext() as ctx:
                 ctx.prec = digits
                 number = +number
                 return number
-        elif have_mpmath and isinstance(number, mpmath.mpf):
+        elif have_mpmath and ii(number, mpmath.mpf):
             x = Decimal(mpmath.nstr(number, mpmath.mp.dps))
             with localcontext() as ctx:
                 ctx.prec = digits
                 x = +x
                 s = str(x)
                 return mpmath.mpf(s)
-        elif have_mpmath and isinstance(number, mpmath.mpc):
+        elif have_mpmath and ii(number, mpmath.mpc):
             re = Decimal(mpmath.nstr(number.real, mpmath.mp.dps))
             im = Decimal(mpmath.nstr(number.imag, mpmath.mp.dps))
             old_dps = mpmath.mp.dps
@@ -2826,4 +2895,15 @@ if True: # Utility functions
             raise TypeError("Unrecognized floating point type")
 
 if __name__ == "__main__": 
-    m = matrix("1 mpmath.mpc(2)\n3-5j 4.3(1)")
+    if 0:
+        m = matrix("1 mpmath.mpc(2)\n3-5j 4.3(1)")
+        print(m)
+        exit()
+    if 0:
+        m = matrix("1 2\n3 4")
+        print(m.diag)
+    if 0:
+        m = matrix("1 2\n3 4")
+        n = m.copy
+        n.insert(0, fill=1)
+        print(n)

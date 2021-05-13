@@ -66,11 +66,8 @@ Here are some creation times of larger bitfields on a laptop PC
 # See http://opensource.org/licenses/OSL-3.0.
 #
  
-from __future__ import division
 import sys
 
-pyver = sys.version_info[0]
-if pyver == 3:
     long = int
 ii = isinstance
 
@@ -88,10 +85,10 @@ class bitfield(object):
     '''
     def __init__(self, num_bits, init_with_ones=0, num_bits_in_row=64*8):
         self.errorstr = "Error"
-        self.num_bits = long(num_bits)  # Allows ints, longs, floats
+        self.num_bits = int(num_bits)  # Allows ints floats
         if self.num_bits < 1:
             raise ValueError("number_of_bits must be > 0")
-        if not ii(num_bits_in_row, (int, long)) or num_bits_in_row < 8:
+        if not ii(num_bits_in_row, int) or num_bits_in_row < 8:
             raise ValueError("num_bits_in_row must be an integer >= 8")
         if num_bits_in_row % 8 != 0:
             raise ValueError("num_bits_in_row must be divisible by 8")
@@ -166,7 +163,7 @@ class bitfield(object):
         for i in range(self.num_rows):
             self.bitstr.append(self.one)
     def __within_range(self, bit_position):
-        if (not ii(bit_position, (int, long)) or
+        if (not ii(bit_position, int) or
                 bit_position < 0 or
                 bit_position > self.num_bits - 1):
             raise ValueError("bit position must be >= 0 and <= %d" %

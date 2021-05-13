@@ -19,6 +19,7 @@ documentation.
 '''
 if 1:  # Copyright, license
     # These "trigger strings" can be managed with trigger.py
+    #∞version∞# None #∞version∞#
     #∞copyright∞# Copyright (C) 2021 Don Peterson #∞copyright∞#
     #∞contact∞# gmail.com@someonesdad1 #∞contact∞#
     #∞license∞#

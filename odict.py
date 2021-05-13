@@ -51,13 +51,8 @@ References
 # See http://opensource.org/licenses/OSL-3.0.
 #
 
-from __future__ import print_function, division
 import sys
-py3 = sys.version_info[0] == 3
-if py3:
-    from collections.abc import Iterable
-else:
-    from collections import Iterable
+from collections.abc import Iterable
 
 class odict(dict):
     def __init__(self, *vars, **kw):

@@ -6,7 +6,6 @@
 # See http://opensource.org/licenses/OSL-3.0.
 #
 
-from __future__ import division
 import bisect
 
 def LagrangeInterpolation(x, X, Y, strict=False):

@@ -5,18 +5,7 @@ References
   ASPN Recipes, mathematics.py
 '''
 
-from __future__ import division, print_function
 import sys
-
-# python 2/3 adaptations
-pyver = sys.version_info[0]
-if pyver == 3:
-    Int = (int,)
-    long = int
-elif pyver == 2:
-    Int = (int, long)
-else:
-    raise RuntimeError("Unsupported python version")
 
 nl = "\n"
 ii = isinstance
@@ -68,7 +57,7 @@ def factorial(n):
     '''Returns the factorial of n.
         n! = n * (n-1) * (n-2) * ... * 2 * 1
     '''
-    if not ii(n, Int):
+    if not ii(n, int):
         raise TypeError("n must be an integer")
     if n < 0:
         raise ValueError("n must be >= 0")
@@ -84,7 +73,7 @@ def factorial(n):
 def rising_factorial(x, n):
     '''Returns value of x (x + 1) (x + 2) ... (x+n-1).
     '''
-    if n < 1 or not ii(n, Int):
+    if n < 1 or not ii(n, int):
         raise ValueError("n must be an integer >= 1")
     p = x
     for i in range(1, n):
@@ -94,7 +83,7 @@ def rising_factorial(x, n):
 def falling_factorial(x, n):
     '''Returns value of x (x-1) (x-2) ... (x - n + 1).
     '''
-    if n < 1 or not ii(n, Int):
+    if n < 1 or not ii(n, int):
         raise ValueError("n must be an integer >= 1")
     p = x
     for i in range(1, n):
@@ -106,9 +95,9 @@ def Comb(n, r):
     time.  Note recurrence relation
         Comb(r, r) = Comb(n-1, r) + Comb(n-1, r-1)
     '''
-    if not ii(n, Int):
+    if not ii(n, int):
         raise TypeError("n must be an integer")
-    if not ii(r, Int):
+    if not ii(r, int):
         raise TypeError("r must be an integer")
     if r < 0 or n < 1 or r > n:
         raise ValueError("n and r must be greater than zero and r <= n")
@@ -148,9 +137,9 @@ def int_partitions(n, k=1):
 def ackermann(m, n):
     '''Returns the ackermann function using recursion. (m, n are
     non-negative).'''
-    if not ii(m, Int):
+    if not ii(m, int):
         raise ValueError("m must be an integer >= 0")
-    if not ii(n, Int) or n < 0:
+    if not ii(n, int) or n < 0:
         raise ValueError("n must be an integer >= 0")
     if not m and n >= 0:
         return n + 1
@@ -161,7 +150,7 @@ def ackermann(m, n):
 def bell(n):
     '''Returns the nth Bell number.
     '''
-    if n < 0 or not ii(n, Int):
+    if n < 0 or not ii(n, int):
         raise ValueError("n must be an integer >= 0")
     if n < 2:
         return 1
@@ -173,7 +162,7 @@ def bell(n):
 def catalan(n):
     '''Returns the nth Catalan number.
     '''
-    if n < 0 or not ii(n, Int):
+    if n < 0 or not ii(n, int):
         raise ValueError("n must be an integer >= 0")
     if n <= 1:
         return 1
@@ -184,7 +173,7 @@ def catalan(n):
 def fibonacci(n):
     '''Returns the nth Fibonacci number.
     '''
-    if n < 0 or not ii(n, Int):
+    if n < 0 or not ii(n, int):
         raise ValueError("n must be an integer >= 0")
     if not n:
         return 0
@@ -197,7 +186,7 @@ def lucas(n):
     Recursive version:
         return lucas(n - 1) + lucas(n - 2)
     '''
-    if n < 0 or not ii(n, Int):
+    if n < 0 or not ii(n, int):
         raise ValueError("n must be an integer >= 0")
     if not n:
         return 2
@@ -211,9 +200,9 @@ def lucas(n):
 def stirling1(n, k):
     '''Returns the Stirling number of the first kind.
     '''
-    if n < 0 or not ii(n, Int):
+    if n < 0 or not ii(n, int):
         raise ValueError("n must be an integer >= 0")
-    if k < 0 or not ii(k, Int):
+    if k < 0 or not ii(k, int):
         raise ValueError("k must be an integer >= 0")
     if not n and not k:
         return 1
@@ -224,9 +213,9 @@ def stirling1(n, k):
 def stirling2(n, k):
     '''Returns the Stirling number of the second kind.
     '''
-    if n < 0 or not ii(n, Int):
+    if n < 0 or not ii(n, int):
         raise ValueError("n must be an integer >= 0")
-    if k < 0 or not ii(k, Int):
+    if k < 0 or not ii(k, int):
         raise ValueError("k must be an integer >= 0")
     if k <= 1 or k == n:
         return 1

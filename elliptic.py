@@ -22,7 +22,6 @@ http://electronbunker.sasktelwebsite.net/DL/KelvinEllipticCalcs.pdf
 # See http://opensource.org/licenses/OSL-3.0.
 #
 
-from __future__ import division, print_function
 import math
 
 debug = False

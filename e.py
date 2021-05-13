@@ -11,8 +11,6 @@ http://en.wikipedia.org/wiki/Preferred_value#E_series
 # See http://opensource.org/licenses/OSL-3.0.
 #
 
-from __future__ import division, print_function
-
 def E(series, normalize=False):
     '''Specify the series you want by an integer:  6, 12, 24, 48, 96,
     or 192.  If normalize is True, each value in the returned array

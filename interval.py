@@ -1,6 +1,4 @@
-# coding: utf-8
 '''
- 
 
 ----------------------------------------------------------------------
 Update Sun 20 Dec 2020 06:05:23 PM
@@ -190,14 +188,12 @@ See interval.odt or interval.pdf for documentation.
 
 # Imports for functionality
 #
-from __future__ import print_function, division
 import bisect
 import sys
 from decimal import Decimal
 from lwtest import run, raises, assert_equal
 
 if 1:  # Optional imports & globals
-    ''
     try:
         import datetime
         have_datetime = True
@@ -231,15 +227,6 @@ if 1:  # Optional imports & globals
         "Range",
         "Rng",
     ]
-    # Handle differences between python 2 and 3
-    py3 = True if sys.version_info[0] > 2 else False
-    if py3:
-        Int = (int,)
-        Str = (str,)
-    else:
-        Int = (int, long)
-        chr = unichr
-        Str = (str, unicode)
     # Controls whether binary search is used in the membership algorithms.
     use_binary_search = True
 
@@ -415,9 +402,9 @@ class Rng(object):
             raise ValueError(m)
         if self.int:
             msg = "'integer' keyword means objects must be integers or inf"
-            if not isinstance(a, Int) and abs(a) != inf:
+            if not isinstance(a, int) and abs(a) != inf:
                 raise ValueError(msg)
-            if not isinstance(b, Int) and abs(b) != inf:
+            if not isinstance(b, int) and abs(b) != inf:
                 raise ValueError(msg)
             # Check for open intervals that cause this discrete Rng to
             # not contain any points.
@@ -585,7 +572,7 @@ class Rng(object):
             right = value.b <= self.b if c else value.b < self.b
             return True if left and right else False
         else:
-            if self.int and not isinstance(value, Int):
+            if self.int and not isinstance(value, int):
                 # A non-integer can't be in a discrete range (it can,
                 # of course, be numerically in the range, but we
                 # disallow this case to get the desired discrete
@@ -752,7 +739,7 @@ class Interval(object):
                     self.remove(i)
                 for i in item.points:
                     self.points.discard(i)
-            elif isinstance(item, Str):
+            elif isinstance(item, str):
                 self.points.discard(item)
             else:
                 # It could be a 2-sequence
@@ -795,7 +782,7 @@ class Interval(object):
                 inserted_item = True
             else:
                 # It's either a sequence of 2 numbers or a scalar
-                if isinstance(item, Str):
+                if isinstance(item, str):
                     # Strings handled specially so we don't accidentally
                     # do len() on a string.
                     self.points.add(item)

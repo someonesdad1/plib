@@ -10,7 +10,6 @@ General-purpose math-related functions.
 # See http://opensource.org/licenses/OSL-3.0.
 #
 
-from __future__ import division
 import math
 import sys
 

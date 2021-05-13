@@ -30,16 +30,11 @@ Run this file as a script to get an interactive demo.
 # See http://opensource.org/licenses/OSL-3.0.
 #
  
-from __future__ import division, print_function
 import re
 import sys
 from collections import defaultdict
 from pdb import set_trace as xx
  
-pyver = sys.version_info[0]
-if pyver == 3:
-    raw_input = input
-
 class CommandDecode:
     '''Instantiate the class with a sequence of command strings.  Then
     call the object with a command candidate; the returned list will

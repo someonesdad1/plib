@@ -3,8 +3,6 @@ This module contains the function Banner() which can be used to print
 a banner message like the UNIX banner(1) function.
 
 28 Jul 2014 update:  added Raymond Hettinger's banner code.
-
-no_tests:ignore
 '''
 
 # Copyright (C) 2005 Don Peterson
@@ -15,19 +13,10 @@ no_tests:ignore
 # See http://opensource.org/licenses/OSL-3.0.
 #
 
-from __future__ import division, print_function
 import sys
 import os
 import getopt
 from pdb import set_trace as xx
-
-# python 2/3 adaptations
-pyver = sys.version_info[0]
-if pyver == 3:
-    Int = (int,)
-    long = int
-else:
-    Int = (int, long)
 
 def Hettinger(string, char="X"):
     '''Raymond Hettinger's banner code from

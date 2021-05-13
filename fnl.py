@@ -23,39 +23,34 @@ composed functions ------#'):
         selected = filter(satisfied, lines)
     or the last line could be the more readable
         selected = [line in lines if satisfied(line)]
- 
-no_tests:ignore
 '''
 
-from __future__ import print_function, division
 import sys
 from operator import mul, add
 from lwtest import run, assert_equal, raises
+from functools import reduce
 from pdb import set_trace as xx
 if len(sys.argv) > 1:
     import debug
     debug.SetDebugger()
 
-python3 = True if sys.version_info[0] == 3 else False
 nl = "\n"
-ver = '.'.join([str(i) for i in sys.version_info[:3]])
 
-if python3:
-    from functools import reduce
-    ''' The reduce function as used here can be written as
-    def reduce(function, seq):
-        it = iter(seq)
-        value = next(it)
-        for element in it:
-            value = function(value, element)
-        return value
+''' The reduce function as used here can be written as
+def reduce(function, seq):
+    it = iter(seq)
+    value = next(it)
+    for element in it:
+        value = function(value, element)
+    return value
+'''
+
+def apply(f, p, kw={}):
+    '''apply() was a function in python 2; it's not in python 3.
+    apply(f, (a, b, c)) returns f(a, b, c).  In python 3, you use
+    the asterisk notation on f directly.
     '''
-    def apply(f, p, kw={}):
-        '''apply() was a function in python 2; it's not in python 3.
-        apply(f, (a, b, c)) returns f(a, b, c).  In python 3, you use
-        the asterisk notation on f directly.
-        '''
-        return f(*p, **kw)
+    return f(*p, **kw)
 
 def apply_each(functions, x=[]):
     '''Apply a sequence of univariate functions to an argument x and
