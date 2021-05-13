@@ -19,8 +19,8 @@ def cufloat_rel_eq(a, b, eps=eps):
     else:
         return True
 def float_rel_eq(a, b, eps=eps):
-    assert(ii(a, (int, long, float)))
-    assert(ii(b, (int, long, float)))
+    assert(ii(a, (int, float)))
+    assert(ii(b, (int, float)))
     if a:
         return True if abs(b - a)/a < eps else False
     elif b:
@@ -195,10 +195,8 @@ def Test_arithmetic():
     assert_equal(x/y, cufloat(0.44, sx, 0.08, sy))
 def Test_init():
     z = cufloat(0)
-    z = cufloat(long(0))
     z = cufloat(0.0)
     z = cufloat(1)
-    z = cufloat(long(1))
     z = cufloat(1.0)
     z = cufloat(1, 2)
     z = cufloat(1, 2, 3)

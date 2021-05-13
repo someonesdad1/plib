@@ -70,7 +70,7 @@ def nth(iterable, n, default=None):
 
 def quantify(iterable, predicate=bool):
     "Count how many times the predicate is true"
-    return sum(Map(predicate, iterable))
+    return sum(map(predicate, iterable))
 
 def padnone(iterable):
     '''Returns the sequence elements and then returns None indefinitely.
@@ -83,7 +83,7 @@ def ncycles(iterable, n):
     return it.chain.from_iterable(it.repeat(tuple(iterable), n))
 
 def dotproduct(vec1, vec2):
-    return sum(Map(operator.mul, vec1, vec2))
+    return sum(map(operator.mul, vec1, vec2))
 
 def flatten(listOfLists):
     "Flatten one level of nesting"
@@ -171,7 +171,7 @@ def unique_justseen(iterable, key=None):
     '''
     # unique_justseen('AAAABBBCCDAABBB') --> A B C D A B
     # unique_justseen('ABBCcAD', str.lower) --> A B C A D
-    return Map(next, Map(operator.itemgetter(1),
+    return map(next, map(operator.itemgetter(1),
                it.groupby(iterable, key)))
 
 def iter_except(func, exception, first=None):

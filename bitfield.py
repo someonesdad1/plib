@@ -68,7 +68,6 @@ Here are some creation times of larger bitfields on a laptop PC
  
 import sys
 
-    long = int
 ii = isinstance
 
 class bitfield(object):
