@@ -1,9 +1,22 @@
 '''
 
+* Add buffer support.
+
+* Add Matrix/vector support.  Look at an auxiliary library for linear
+  regression.
+
+* Search for 'python units library' and there are numerous choices.
+    Maybe it would make more sense to integrate one of them.
+
+    * https://pint.readthedocs.io/en/stable/
+    * https://pypi.org/project/siunits/
+    * https://github.com/connorferster/forallpeople
+    * https://fangohr.github.io/blog/physical-quantities-numerical-value-with-units-in-python.html
+
+----------------------------------------------------------------------
 A REPL I use for an interactive python calculator.  See repl.pdf for
 documentation.
 '''
- 
 if 1:  # Copyright, license
     # These "trigger strings" can be managed with trigger.py
     #∞copyright∞# Copyright (C) 2021 Don Peterson #∞copyright∞#
@@ -16,11 +29,12 @@ if 1:  # Copyright, license
     # This provides a REPL I use for an interactive python calculator.
     #∞what∞#
     pass
-
 if 1:   # Standard imports
     from atexit import register
     import code
+    import contextlib
     import getopt
+    import io
     import os
     import pathlib
     import pickle
@@ -34,6 +48,7 @@ if 1:   # Standard imports
 if 1:   # Custom imports
     from util import EditData
     from wrap import wrap, dedent, indent, Wrap
+    from columnize import Columnize
     import color as C
     if 0:
         import debug
@@ -51,12 +66,44 @@ if 1:   # Core functionality
         print(C.normal(s=1), end="")
     register(Clean)
 
-if __name__ == "__main__": 
+if 1 or __name__ == "__main__": 
     '''Use a code.InteractiveInterpreter object to get a REPL (read,
     evaluate, print, loop) construct, which is what the python
     interactive interpreter does).  This shows how to build your own
     REPl with custom commands.
     '''
+    def eprint(*p, **kw):
+        'Print to stderr'
+        print(*p, **kw, file=sys.stderr)
+    def Error(msg, status=1):
+        eprint(msg)
+        exit(status)
+    def Usage(d, status=1):
+        name = sys.argv[0]
+        print(dedent(f'''
+        Usage:  {name} [options]
+          Run a python REPL with some added features.  See repl.pdf.
+        Options:
+            -h          Print a manpage
+            -l file     Log output to a file
+    '''))
+        exit(status)
+    def ParseCommandLine(d):
+        d["-l"] = None      # Name of file to log to
+        try:
+            opts, args = getopt.getopt(sys.argv[1:], "l:h", "help")
+        except getopt.GetoptError as e:
+            print(str(e))
+            exit(1)
+        for o, a in opts:
+            if o[1] in list("a"):
+                d[o] = not d[o]
+            elif o == "-l":
+                d[o] = a
+            elif o in ("-h", "--help"):
+                Usage(d, status=0)
+        return args
+
     def GetSymbols():
         'Return a dict of symbols I want'
         from u import u
@@ -81,15 +128,32 @@ if __name__ == "__main__":
         z.i = True
         z.c = True
         z.f = True
-        return locals().copy()
-    def Special(s):
-        assert s[0] == "."
-        s = s[1:]
-        if not s:
+        symbols = locals().copy()
+        return symbols
+    def Special(s, console):
+        if not s.strip():
             return
-        if s == "cls" or s == "c":
+        char, cmd = s[0], s[1:]
+        if char == "!":
+            # Shell command
+            os.system(s[1:])
+            return
+        if cmd in "cls c".split():
+            # Clear the screen
             os.system("clear")
-        elif s == "h":
+        elif cmd == "C":  
+            # Clear the local variables
+            console.locals.clear()
+        elif cmd == "d":  
+            # Enter debugger
+            xx()
+        elif cmd == "s":  
+            # Print symbols
+            sym = sorted(console.locals.keys())
+            for line in Columnize(sym):
+                print(line)
+        elif cmd == "h":
+            # Print help info
             print(dedent(f'''
             Things in scope:
             u:  units      xx:  debug      pp:  pretty print
@@ -103,36 +167,48 @@ if __name__ == "__main__":
         else:
             print(f"{g.err}'{s}' not recognized as special command{g.norm}")
     class Console(code.InteractiveConsole):
-        def start_message(self):
+        @property
+        def msg(self):
             v = sys.version_info
             ver = f"{v.major}.{v.minor}.{v.micro}"
-            from util import Time
-            print(dedent(f'''
-            someonesdad's REPL [python {ver}] {Time()}
-              Enter 'q' to quit or '.q' if q is a defined symbol
-              Enter '.h' for help
-            '''[1:].rstrip()))
+            ampm = time.strftime("%p")
+            tm = time.strftime(f"%d%b%Y %I:%M:%S {ampm.lower()} %a")
+            s = dedent(f'''
+            python {ver} {tm}:  .q quit, .h help, .s symbols
+              .c clear screen, .C clear variables, .x debugger
+            '''[1:].rstrip())
+            return s
+        def start_message(self):
+            print(self.msg)
         def write(self, data):
-            'Generate an error message to stdout'
-            print(f"{g.err}{data}{g.norm}", end="")
+            'Write colorized data to stdout'
+            print(f"{g.err}{data}{g.norm}", end="", file=sys.stderr)
         def raw_input(self, prompt=""):
-            'Customize the prompt'
             s = input(self.ps)
-            print(g.norm, end="")
-            # Handle special stuff before the interpreter sees it
+            print(g.norm, end="")   # Turn off any colorizing
+            # Handle special commands before the interpreter sees them
             if s == "q" and "q" not in self.locals:
                 exit()
-            elif s and s[0] == ".":
-                Special(s)
+            elif s and s[0] in ".!":
+                Special(s, self)
                 return ""
             return s
+    d = {}      # Options dictionary
+    args = ParseCommandLine(d)
     # Set up system prompts
     n = 3
     sys.ps1 = f"{'»'*n} "
     sys.ps2 = f"{'.'*n} "
+    # Run the console REPL
+    stdout, stderr = io.StringIO(), io.StringIO()
     console = Console(locals=GetSymbols())
     console.ps = sys.ps1
     console.start_message()
+    if not stdout.getvalue():
+        with contextlib.redirect_stdout(stdout):
+            print(console.msg, file=stdout)
+    returnvalue = None
+    log = open(d["-l"], "w") if d["-l"] is not None else open("/dev/null", "w")
     while True:
         try:
             line = console.raw_input()
@@ -140,13 +216,26 @@ if __name__ == "__main__":
             exit()
         while line and line[-1] == "\n":
             line = line[:-1]
-        if not line:
-            console.ps = sys.ps1
-        # Handle special commands
-        rv = console.push(line)
-        if rv:
-            # Need more input
-            console.ps = sys.ps2
-            continue
+        if not returnvalue and returnvalue is not None:
+            stdout, stderr = io.StringIO(), io.StringIO()
+        with contextlib.redirect_stderr(stderr):
+            with contextlib.redirect_stdout(stdout):
+                print(f"{console.ps} {line}", file=stdout)
+                returnvalue = console.push(line)
+        if returnvalue:
+            console.ps = sys.ps2    # Need more input
         else:
-            console.ps = sys.ps1
+            console.ps = sys.ps1    # Command finished
+            s, e = stdout.getvalue(), stderr.getvalue()
+            if s:
+                print(s, end="")
+                print(s, end="", file=log)
+            if e:
+                if d["-l"]:
+                    # Decorate with escape codes to color (they aren't
+                    # present, even though write() uses them)
+                    print(f"{g.err}{e}{g.norm}", end="")
+                    print(f"{g.err}{e}{g.norm}", end="", file=log)
+                else:
+                    print(e, end="")
+                    print(e, end="", file=log)
