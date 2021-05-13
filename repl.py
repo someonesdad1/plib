@@ -61,18 +61,8 @@ if 1:   # Global variables
     g.cyn = C.fg(C.lcyan, s=1)
     g.err = C.fg(C.lmagenta, s=1)
     g.norm = C.normal(s=1)
-if 1:   # Core functionality
-    def Clean():
-        'Register a cleanup function to ensure no color for shell'
-        print(C.normal(s=1), end="")
-    register(Clean)
-
-if 1 or __name__ == "__main__": 
-    '''Use a code.InteractiveInterpreter object to get a REPL (read,
-    evaluate, print, loop) construct, which is what the python
-    interactive interpreter does).  This shows how to build your own
-    REPl with custom commands.
-    '''
+    g.buffer = ""
+if 1:   # Utility
     def eprint(*p, **kw):
         'Print to stderr'
         print(*p, **kw, file=sys.stderr)
@@ -104,7 +94,11 @@ if 1 or __name__ == "__main__":
             elif o in ("-h", "--help"):
                 Usage(d, status=0)
         return args
-
+    def Clean():
+        'Register a cleanup function to ensure no color for shell'
+        print(C.normal(s=1), end="")
+    register(Clean)
+if 1:   # Core functionality
     def GetSymbols():
         'Return a dict of symbols I want'
         from u import u
@@ -148,6 +142,13 @@ if 1 or __name__ == "__main__":
         elif cmd == "d":  
             # Enter debugger
             xx()
+        elif cmd == "e":  
+            # Edit buffer
+            global g
+            g.buffer = EditData(g.buffer)
+        elif cmd == "r":  
+            # Run buffer
+            xx()
         elif cmd == "s":  
             # Print symbols
             sym = sorted(console.locals.keys())
@@ -162,9 +163,7 @@ if 1 or __name__ == "__main__":
             flt, cpx number types with math/cmath symbols:
                 x and z as examples, use .h attributes for help
                 Try sin(x) and sin(z)
-            d2r converts radian to degrees; r2d is the reciprocal
-            .c clears the screen
-                '''[1:].rstrip()))
+            '''[1:].rstrip()))
         else:
             print(f"{g.err}'{s}' not recognized as special command{g.norm}")
     class Console(code.InteractiveConsole):
@@ -176,7 +175,8 @@ if 1 or __name__ == "__main__":
             tm = time.strftime(f"%d%b%Y %I:%M:%S {ampm.lower()} %a")
             s = dedent(f'''
             python {ver} {tm}:  .q quit, .h help, .s symbols
-              .c clear screen, .C clear variables, .x debugger
+              .c clear screen, .C clear variables, .x debugger .e edit buffer
+              .r run buffer
             '''[1:].rstrip())
             return s
         def start_message(self):
@@ -194,6 +194,12 @@ if 1 or __name__ == "__main__":
                 Special(s, self)
                 return ""
             return s
+if __name__ == "__main__": 
+    '''Use a code.InteractiveInterpreter object to get a REPL (read,
+    evaluate, print, loop) construct, which is what the python
+    interactive interpreter does).  This shows how to build your own
+    REPl with custom commands.
+    '''
     d = {}      # Options dictionary
     args = ParseCommandLine(d)
     # Set up system prompts
@@ -209,8 +215,9 @@ if 1 or __name__ == "__main__":
         with contextlib.redirect_stdout(stdout):
             print(console.msg, file=stdout)
     returnvalue = None
-    log = open(d["-l"], "w") if d["-l"] is not None else open("/dev/null", "w")
-    while True:
+    file = d["-l"] if d["-l"] is not None else "/dev/null"
+    log = open(file, "w")
+    while True:     # REPL loop
         try:
             line = console.raw_input()
         except EOFError:
