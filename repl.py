@@ -1,6 +1,6 @@
 '''
 
-* Add buffer support.
+* help() doesn't work with stdout/stderr redirected
 
 * Add Matrix/vector support.  Look at an auxiliary library for linear
   regression.
@@ -58,10 +58,11 @@ if 1:   # Global variables
     # Escape strings for color coding
     class G: pass   # Container for global variables
     g = G()
+    g.P = pathlib.Path
     g.cyn = C.fg(C.lcyan, s=1)
+    g.wht = C.fg(C.lwhite, s=1)
     g.err = C.fg(C.lmagenta, s=1)
     g.norm = C.normal(s=1)
-    g.buffer = ""
 if 1:   # Utility
     def eprint(*p, **kw):
         'Print to stderr'
@@ -117,8 +118,6 @@ if 1:   # Core functionality
         from f import log, log10, log1p, log2, modf, nan, nanj, phase
         from f import pi, polar, pow, radians, rect, remainder, sin
         from f import sinh, sqrt, tan, tanh, tau, trunc
-        d2r = pi/180
-        r2d = 1/d2r
         x, z = flt(pi/7), cpx(pi/7, 7/pi)
         z.i = True
         z.c = True
@@ -128,11 +127,19 @@ if 1:   # Core functionality
     def Special(s, console):
         if not s.strip():
             return
-        char, cmd = s[0], s[1:]
+        char, cmd = s[0], s[1:].strip()
         if char == "!":
             # Shell command
             os.system(s[1:])
             return
+        elif cmd[0] == "<":  
+            # Read buffer
+            file = g.P(cmd[1:].strip())
+            console.userbuffer = file.read_text()
+        elif cmd[0] == ">":  
+            # Write buffer
+            file = g.P(cmd[1:].strip())
+            file.write_text(console.userbuffer)
         if cmd in "cls c".split():
             # Clear the screen
             os.system("clear")
@@ -144,26 +151,31 @@ if 1:   # Core functionality
             xx()
         elif cmd == "e":  
             # Edit buffer
-            global g
-            g.buffer = EditData(g.buffer)
+            console.userbuffer = EditData(console.userbuffer)
+        elif cmd == "f":  
+            # Load favorite symbols
+            console.locals.update(GetSymbols())
+        elif cmd == "h":
+            # Print help info
+            print(dedent(f'''
+              .c clear screen, .C clear variables, .x debugger .e edit buffer
+              .r run buffer, '.< file' read buffer, '.> file' write buffer
+            '''[1:].rstrip()))
         elif cmd == "r":  
             # Run buffer
-            xx()
+            fn = "<userbuffer>"
+            for line in console.userbuffer.split("\n"):
+                if line:
+                    assert line[-1] != "\n"
+                rv = console.push(line)
+                console.ps = sys.ps2 if rv else sys.ps1
         elif cmd == "s":  
             # Print symbols
             sym = sorted(console.locals.keys())
             for line in Columnize(sym):
                 print(line)
-        elif cmd == "h":
-            # Print help info
-            print(dedent(f'''
-            Things in scope:
-            u:  units      xx:  debug      pp:  pretty print
-            D as Decimal, F as Fraction
-            flt, cpx number types with math/cmath symbols:
-                x and z as examples, use .h attributes for help
-                Try sin(x) and sin(z)
-            '''[1:].rstrip()))
+        elif cmd == "x":
+            xx()
         else:
             print(f"{g.err}'{s}' not recognized as special command{g.norm}")
     class Console(code.InteractiveConsole):
@@ -174,9 +186,7 @@ if 1:   # Core functionality
             ampm = time.strftime("%p")
             tm = time.strftime(f"%d%b%Y %I:%M:%S {ampm.lower()} %a")
             s = dedent(f'''
-            python {ver} {tm}:  .q quit, .h help, .s symbols
-              .c clear screen, .C clear variables, .x debugger .e edit buffer
-              .r run buffer
+            [python {ver} {tm}]  .q quit, .h help
             '''[1:].rstrip())
             return s
         def start_message(self):
@@ -194,6 +204,7 @@ if 1:   # Core functionality
                 Special(s, self)
                 return ""
             return s
+
 if __name__ == "__main__": 
     '''Use a code.InteractiveInterpreter object to get a REPL (read,
     evaluate, print, loop) construct, which is what the python
@@ -208,28 +219,32 @@ if __name__ == "__main__":
     sys.ps2 = f"{'.'*n} "
     # Run the console REPL
     stdout, stderr = io.StringIO(), io.StringIO()
-    console = Console(locals=GetSymbols())
+    console = Console()
     console.ps = sys.ps1
+    console.userbuffer = ""
     console.start_message()
-    if not stdout.getvalue():
-        with contextlib.redirect_stdout(stdout):
-            print(console.msg, file=stdout)
+    console.locals.clear()
     returnvalue = None
     file = d["-l"] if d["-l"] is not None else "/dev/null"
     log = open(file, "w")
+    if not stdout.getvalue():
+        with contextlib.redirect_stdout(stdout):
+            print(console.msg, file=log)
+        stdout = io.StringIO()
     while True:     # REPL loop
         try:
-            line = console.raw_input()
+            line = console.raw_input().rstrip()
         except EOFError:
             exit()
-        while line and line[-1] == "\n":
-            line = line[:-1]
         if not returnvalue and returnvalue is not None:
             stdout, stderr = io.StringIO(), io.StringIO()
-        with contextlib.redirect_stderr(stderr):
-            with contextlib.redirect_stdout(stdout):
-                print(f"{console.ps} {line}", file=stdout)
-                returnvalue = console.push(line)
+        if line.startswith("help(") or line == "help":
+            # No plumbing so pager works
+            returnvalue = console.push(line)
+        else:
+            with contextlib.redirect_stderr(stderr):
+                with contextlib.redirect_stdout(stdout):
+                    returnvalue = console.push(line)
         if returnvalue:
             console.ps = sys.ps2    # Need more input
         else:
