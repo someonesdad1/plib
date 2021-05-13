@@ -140,7 +140,7 @@ if 1:   # Core functionality
             # Write buffer
             file = g.P(cmd[1:].strip())
             file.write_text(console.userbuffer)
-        if cmd in "cls c".split():
+        elif cmd in "cls c".split():
             # Clear the screen
             os.system("clear")
         elif cmd == "C":  
@@ -148,7 +148,7 @@ if 1:   # Core functionality
             console.locals.clear()
         elif cmd == "d":  
             # Enter debugger
-            xx()
+            breakpoint()
         elif cmd == "e":  
             # Edit buffer
             console.userbuffer = EditData(console.userbuffer)
@@ -157,27 +157,29 @@ if 1:   # Core functionality
             console.locals.update(GetSymbols())
         elif cmd == "h":
             # Print help info
-            print(dedent(f'''
-              .c clear screen, .C clear variables, .x debugger .e edit buffer
-              .r run buffer, '.< file' read buffer, '.> file' write buffer
-            '''[1:].rstrip()))
+            help = sorted([i.strip() for i in '''
+              .c clear screen, .C clear symbols, .d debugger,
+              .e edit buffer, .r run buffer (echo), .x execute buffer,
+              .s symbols, .q quit
+              .< file (read), '.> file' (write),
+            '''.replace("\n", " ").split(",") if i.strip()])
+            for i in Columnize(help):
+                print(i)
+                if d["-l"]:
+                    print(i, file=log)
         elif cmd == "r":  
             # Run buffer
             fn = "<userbuffer>"
             for line in console.userbuffer.split("\n"):
-                if line:
-                    assert line[-1] != "\n"
                 rv = console.push(line)
                 console.ps = sys.ps2 if rv else sys.ps1
         elif cmd == "s":  
             # Print symbols
             sym = sorted(console.locals.keys())
             for line in Columnize(sym):
-                print(line)
-        elif cmd == "x":
-            xx()
+                Print(line)
         else:
-            print(f"{g.err}'{s}' not recognized as special command{g.norm}")
+            Print(f"{g.err}'{s}' not recognized as special command{g.norm}")
     class Console(code.InteractiveConsole):
         @property
         def msg(self):
@@ -214,9 +216,14 @@ if __name__ == "__main__":
     d = {}      # Options dictionary
     args = ParseCommandLine(d)
     # Set up system prompts
-    n = 3
-    sys.ps1 = f"{'»'*n} "
-    sys.ps2 = f"{'.'*n} "
+    if 0:
+        n = 3
+        sys.ps1 = f"{'»'*n} "
+        sys.ps2 = f"{'.'*n} "
+    else:
+        n = 2
+        sys.ps1 = f"{'>'*n} "
+        sys.ps2 = f"{'.'*n} "
     # Run the console REPL
     stdout, stderr = io.StringIO(), io.StringIO()
     console = Console()
