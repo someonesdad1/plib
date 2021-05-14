@@ -146,7 +146,7 @@ if 1:   # Core functionality
           u, pp, D, F, P, uf (ufloat)
           flt, cpx, Matrix, vector, math/cmath functions
           flt/cpx colorizing on with {z.n} significant figures
-          x is a flt, z is a cpx
+          x is a flt, z is a cpx (use x.h and z.h for help on them)
         '''[1:].rstrip()))
         return symbols
     def Help():
@@ -199,6 +199,7 @@ if 1:   # Core functionality
             elif cmd in "CS".split():
                 return True
         return False
+if 1:   # Special commands
     def Special(cmd, console):
         first_char = cmd[0]
         arg = "" if len(cmd) == 1 else cmd[1:].strip()
@@ -246,8 +247,11 @@ if 1:   # Core functionality
         elif cmd == "s":  
             # Print symbols
             sym = sorted(console.locals.keys())
-            for line in Columnize(sym):
-                print(line)
+            if not sym:
+                print("No symbols")
+            else:
+                for line in Columnize(sym):
+                    print(line)
         elif cmd == "v":  
             # Print repl.py version
             print(f"{sys.argv[0]} version:  {_version}")
@@ -281,61 +285,60 @@ if 1:   # Core functionality
                 Special(s.strip(), self)
                 return ""
             return s
-if __name__ == "__main__": 
-    if 1:   # Setup
-        '''Use a code.InteractiveInterpreter object to get a REPL (read,
-        evaluate, print, loop) construct, which is what the python
-        interactive interpreter does).  This shows how to build your own
-        REPl with custom commands.
-        '''
-        d = {}      # Options dictionary
-        args = ParseCommandLine(d)
-    if 1:   # System prompts
-        m = 3
-        sys.ps1 = f"{g.whtblu}{'>'*m}{g.norm} "
-        sys.ps2 = f"{g.whtblu}{'.'*m}{g.norm} "
-    if 1:   # Run the console REPL
-        stdout, stderr = io.StringIO(), io.StringIO()
-        console = Console()
-        console.ps = sys.ps1
-        console.userbuffer = ""
-        console.start_message()
-        console.locals.clear()
-        returnvalue = None
-        file = d["-l"] if d["-l"] is not None else "/dev/null"
-        log = open(file, "w")
-        if not stdout.getvalue():
-            with contextlib.redirect_stdout(stdout):
-                print(console.msg, file=log)
-            stdout = io.StringIO()
-        while True:     # REPL loop
-            try:
-                line = console.raw_input().rstrip()
-            except EOFError:
-                exit()
-            if not returnvalue and returnvalue is not None:
-                stdout, stderr = io.StringIO(), io.StringIO()
-            if line.startswith("help(") or line == "help":
-                # No plumbing so pager works
-                returnvalue = console.push(line)
-            else:
-                with contextlib.redirect_stderr(stderr):
-                    with contextlib.redirect_stdout(stdout):
-                        returnvalue = console.push(line)
-            if returnvalue:
-                console.ps = sys.ps2    # Need more input
-            else:
-                console.ps = sys.ps1    # Command finished
-                s, e = stdout.getvalue(), stderr.getvalue()
-                if s:
-                    print(s, end="")
-                    print(s, end="", file=log)
-                if e:
-                    if d["-l"]:
-                        # Decorate with escape codes to color (they aren't
-                        # present, even though write() uses them)
-                        print(f"{g.err}{e}{g.norm}", end="")
-                        print(f"{g.err}{e}{g.norm}", end="", file=log)
-                    else:
-                        print(e, end="")
-                        print(e, end="", file=log)
+if 1:   # Setup
+    '''Use a code.InteractiveInterpreter object to get a REPL (read,
+    evaluate, print, loop) construct, which is what the python
+    interactive interpreter does).  This shows how to build your own
+    REPl with custom commands.
+    '''
+    d = {}      # Options dictionary
+    args = ParseCommandLine(d)
+if 1:   # System prompts
+    m = 3
+    sys.ps1 = f"{g.whtblu}{'>'*m}{g.norm} "
+    sys.ps2 = f"{g.whtblu}{'.'*m}{g.norm} "
+if 1:   # Run the console REPL
+    stdout, stderr = io.StringIO(), io.StringIO()
+    console = Console()
+    console.ps = sys.ps1
+    console.userbuffer = ""
+    console.start_message()
+    console.locals.clear()
+    returnvalue = None
+    file = d["-l"] if d["-l"] is not None else "/dev/null"
+    log = open(file, "w")
+    if not stdout.getvalue():
+        with contextlib.redirect_stdout(stdout):
+            print(console.msg, file=log)
+        stdout = io.StringIO()
+    while True:     # REPL loop
+        try:
+            line = console.raw_input().rstrip()
+        except EOFError:
+            exit()
+        if not returnvalue and returnvalue is not None:
+            stdout, stderr = io.StringIO(), io.StringIO()
+        if line.startswith("help(") or line == "help":
+            # No plumbing so pager works
+            returnvalue = console.push(line)
+        else:
+            with contextlib.redirect_stderr(stderr):
+                with contextlib.redirect_stdout(stdout):
+                    returnvalue = console.push(line)
+        if returnvalue:
+            console.ps = sys.ps2    # Need more input
+        else:
+            console.ps = sys.ps1    # Command finished
+            s, e = stdout.getvalue(), stderr.getvalue()
+            if s:
+                print(s, end="")
+                print(s, end="", file=log)
+            if e:
+                if d["-l"]:
+                    # Decorate with escape codes to color (they aren't
+                    # present, even though write() uses them)
+                    print(f"{g.err}{e}{g.norm}", end="")
+                    print(f"{g.err}{e}{g.norm}", end="", file=log)
+                else:
+                    print(e, end="")
+                    print(e, end="", file=log)

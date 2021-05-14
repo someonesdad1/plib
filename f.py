@@ -1,5 +1,44 @@
+# TODO
 '''
-f.py
+    * Units:  change constructor to flt(x, unit=None) to allow the
+      object to contain a physical unit.  A flt*cpx needs to infect both
+      re and im of cpx when flt has a unit for things to make sense.
+      Change cpx to cpx(re, im=0, unit=None).
+
+        * A strict attribute can be defined on flt which forces a flt in
+          a math/cmath function to not have a unit string.  This is
+          desirable for correct calculations; however, for informal
+          work, it could be nice to have it ignored.  It should default
+          to True.
+
+        * The u attribute can be the unit string or None if there isn't
+          one.
+
+        * The U attribute can return the float value in the indicated
+          units for when you want to use it without worrying about a
+          function call getting a unit with strict on.
+
+        * The .si attribute always returns the value in SI units with a
+          suitable prefix.  eng and sci return it in Unicode engineering
+          format with the original units.  str() returns it with
+          original units.  This needs to be experimented with, as it's
+          probably going to be confusing.
+
+        * Need to decide on string formatting for flt/cpx with units.
+          I like '3.45·m/s' for normal stuff.  More formal can be 
+          '3.45·m·s⁻¹'.  Unfortunately, I want to handle floating point
+          exponents too and Unicode's superscripts are incomplete, as
+          there's no '.' or '/' or 'e' symbols.  The best default is
+          probably to interpolate with the unit string passed into the
+          constructor, as long as it's dimensionally correct.
+
+    * cpx attributes
+        * ss:  (sign space) Defaults to ("", "").  Defaults to the empty
+          string.  If they are both space characters, then you get '(1 +
+          2j)' instead of '(1+2j)' or '1 + 2i' instead of '1+2i' if the
+          i attribute is True.
+'''
+__doc__ = '''
     This module is for routine calculations with real and complex numbers.
     The reals are of type flt and the complex numbers are of type cpx.
     These types should be handy for folks who do physical calculations with
@@ -44,16 +83,6 @@ f.py
     scope.
 '''
 
-# TODO
-'''
-    * Color:  consider using color if the color module is present.
-
-    * cpx attributes
-        * ss:  (sign space) Defaults to ("", "").  Defaults to the empty
-          string.  If they are both space characters, then you get '(1 +
-          2j)' instead of '(1+2j)' or '1 + 2i' instead of '1+2i' if the
-          i attribute is True.
-'''
 # Implementation
 '''
     flt and cpx are derived from float and complex, so they can be used
