@@ -49,14 +49,10 @@ if 1:   # Standard imports
     import sys
     import tempfile
     import time
-    from pdb import set_trace as xx
 if 1:   # Custom imports
     from wrap import wrap, dedent, indent, Wrap
     from columnize import Columnize
     import color as C
-    if 0:
-        import debug
-        debug.SetDebugger()  # Start debugger on unhandled exception
 if 1:   # Global variables
     class G: pass   # Container for global variables
     g = G()
@@ -155,7 +151,7 @@ if 1:   # Core functionality
             ("> f", "Write buffer to file f"),
             ("CS", "Clear symbols"),
             ("c", "Clear screen"),
-            ("d", "Start debugger"),
+            ("d", "Enter debugger"),
             ("e", "Edit buffer"),
             ("f", "Load favorite symbols (edit GetSymbols())"),
             ("H", "Shorthand to run help()"),
@@ -199,6 +195,56 @@ if 1:   # Core functionality
             elif cmd in "CS".split():
                 return True
         return False
+    def BreakPoint():
+        '''Find the line number of the input routine, which lets you set
+        a debugger breakpoint at the input line.
+        '''
+        def Find(s):
+            c = [(i, t) for i, t in enumerate(lines) if t.strip() == s]
+            bp = c[-1][0] + 1
+            return bp
+        s = "s = input(self.ps).rstrip()"
+        t = "returnvalue = console.push(line)"
+        lines = g.P(sys.argv[0]).read_text().split("\n")
+        print(dedent(f'''
+        Set a breakpoint at line {Find(s)} to stop before each input
+        Set a breakpoint at line {Find(t)} to stop before execution
+        If you use the latter breakpoint, press n or c to continue
+        To stop at an imported function named A, issue the command
+            b console.locals["A"]
+        Note you'll have subsequent problems with stdout, so the best
+        strategy is to us 'c' to continue and set another breakpoint.
+        '''))
+
+    def FixShellArgument(arg):
+        '''Some shell commands like ls and grep are better with color
+        output enabled.  This also lets me get the aliases I like to
+        use for ls-type commands.
+        '''
+        args = arg.split()
+        cmd = args[0]
+        if cmd in "grep egrep fgrep ls ll lll lrt lsr lz".split():
+            c = args.pop(0)
+            t = "--group-directories-first"
+            args.insert(0, "--color=auto")
+            if c == "ls":
+                args.insert(0, f"ls {t}")
+            elif c == "ll":
+                args.insert(0, f"ls -l {t}")
+            elif c == "lll":
+                args.insert(0, f"ls -lh --si {t}")
+            elif c == "lrt":
+                args.insert(0, f"ls -lrt {t}")
+            elif c == "lsf":
+                args.insert(0, f"ls -F  {t}")
+            elif c == "lsr":
+                args.insert(0, f"ls -R {t}")
+            elif c == "lz":
+                args.insert(0, f"ls -lSr {t}")
+            else:
+                args.insert(0, c)
+        return ' '.join(args)
+
 if 1:   # Special commands
     def Special(cmd, console):
         first_char = cmd[0]
@@ -206,7 +252,8 @@ if 1:   # Special commands
         if first_char == "!":
             # Shell command
             if arg:
-                os.system(arg)
+                newarg = FixShellArgument(arg)
+                os.system(newarg)
             return
         elif first_char == "<":  
             # Read buffer
@@ -226,6 +273,7 @@ if 1:   # Special commands
             console.locals.clear()
         elif cmd == "d":  
             # Enter debugger
+            BreakPoint()
             breakpoint()
         elif cmd == "e":  
             # Edit buffer
