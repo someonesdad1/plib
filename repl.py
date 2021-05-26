@@ -41,10 +41,8 @@ if 1:   # Standard imports
     import io
     import os
     import pathlib
-    import pickle
-    # The following two imports give history and command completion
-    import readline
-    import rlcompleter
+    import readline         # History and command editing
+    import rlcompleter      # Command completion
     import subprocess
     import sys
     import tempfile
@@ -109,20 +107,21 @@ if 1:   # Core functionality
         if not isinstance(data, str):
             raise TypeError("data must be a str object")
         with tempfile.NamedTemporaryFile() as temp:
-            file = P(temp.name)
+            file = g.P(temp.name)
             file.write_text(data)
             subprocess.call([g.editor, str(file)])
             data = file.read_text()
         return data
     def GetSymbols():
         'Return a dict of favorite symbols'
-        from u import u
+        from u import u, dim
         from pprint import pprint as pp
         from decimal import Decimal as D
         from pathlib import Path as P
         from fractions import Fraction as F
         from uncertainties import ufloat as uf
         from matrix import Matrix, vector
+        from pdb import set_trace as xx 
         from f import acos, acosh, asin, asinh, atan, atan2, atanh
         from f import ceil, cmath, constants, copysign, cos, cosh
         from f import cpx, decimal, dedent, degrees, e, erf, erfc
@@ -215,7 +214,6 @@ if 1:   # Core functionality
         Note you'll have subsequent problems with stdout, so the best
         strategy is to us 'c' to continue and set another breakpoint.
         '''))
-
     def FixShellArgument(arg):
         '''Some shell commands like ls and grep are better with color
         output enabled.  This also lets me get the aliases I like to
@@ -244,7 +242,6 @@ if 1:   # Core functionality
             else:
                 args.insert(0, c)
         return ' '.join(args)
-
 if 1:   # Special commands
     def Special(cmd, console):
         first_char = cmd[0]
