@@ -1,125 +1,22 @@
 # TODO
 '''
     * Focus
-
+        * Test that all needed constructors are written
         * Get arithmetic with units working
-        * Get add/sub promotions working
         * Get comprehensive unit tests for arithmetic written
+    * Need to fix cpx radd, etc. (search for xx)
+    * Tests need to cover all formatting options.
 
-    * Comparisons:  should there be an attribute such that comparisons
-      are made only to the number of significant figures?  This would
-      make a lot of sense because it would avoid the annoyance of things
-      like 0.44704 and 0.44704000000000005 being compared as different,
-      particularly for things with units.  The attribute could be
-      sigcomp or somesuch; the longer name means it has to be a bit more
-      deliberate.
-
-    * Unicode
-
-        * x = flt("2 mi/hr"), so x*x gives 4 mi**2/hr**2.  I'd like to
-          see the short form mi2/hr2 used, so there should be an
-          attribute for this.  Maybe flt.short or flt.strict.
-
-        * Add an attribute named uni that if True causes units to be
-          printed using Unicode characters?  This would be nice, but
-          then the constructors for flt/cpx will also need to translate
-          such expressions into proper syntax for the parser.
-
-    * If x.eng is True, return engineering form to present number
-      of digits.  Otherwise, if x.eng is an integer, use that as the
-      number of digits to return.  Note Decimal's engineering formatting
-      is poorly designed and not suitable.
-
-    * Add low and high attributes to flt to determine when string
-      interpolation switches to scientific.
-
-    * Add a color attribute to flt/cpx let you change the color of the
-      number.  Its value should be the escape code to turn the color on.
-
-    * It would be nice if the uncertainties library could be supported,
-      as these are needed for physical calculations too.  A distinct
-      disadvantage of the uncertainties ufloat is that it's not a class
-      instance.  See if:
+    * Uncertainties:  It would be nice if the uncertainties library
+      could be supported, as these are needed for physical calculations
+      too.  A distinct disadvantage of the uncertainties ufloat is that
+      it's not a class instance.  See if:
 
         * A suitable class can be defined.
         * The umath functions can also be in scope for such objects.
         * Can the flt object take a ufloat in the constructor and also
           use it otherwise as normal?  It should support the
           construction strings of 'a+-b', 'a+/-b', 'a±b', and 'a(b)'.
-
-    * x = flt("1 mi/hr").  Different operations return different things:
-        
-        float(x) returns 0.44704.  It's the SI equivalent in m/s to 1
-        mi/hr.
-        x.val returns 1, the value in the original units.
-        x.s returns '1\xa0mi/hr'.
-        x.r returns '1.000...\xa0mi/hr' to full significand resolution
-
-    * x.eng, x.sci, etc. are broken
-
-    * lax attribute (flt/cpx wide)
-        
-        * False (default)
-
-            * A flt/cpx in a math/cmath function must have no unit
-              string; otherwise, you get a TypeError exception.
-
-            * Unit strings are formatted per proper SI syntax.  Thus,
-              "m2 s-2 K-1" is returned as "m²/(s²·K)".
-
-        * True:  You can call math/cmath functions with a flt/cpx with a
-          unit string.  The value returned will be calculated on the val
-          attribute and will be a flt/cpx with no unit.
-
-    * solidus attribute (flt/cpx wide):  Determines the formatting of
-      unit strings.  The example is for the unit "m2 s-2 K-1".
-
-        * Decision:  put this code in but don't enable it.  I don't like
-          it because it may cause someone to make an error.  A user can
-          change the code to enable it if they want to.
-
-        * None:  returns "m²·s⁻²·K⁻¹" where the separation character is
-          flt.sep.
-
-        * False (default):  returns "m²/(s²·K)".
-
-        * True:  returns "m²/s²·K", always with a single solidus.  
-            
-            * This is convenient for reading by humans, but you have to
-              know that the solidus attribute is True because to the
-              python parser, this means "m2 s-2 K-1" is returned as
-              "m²/s²*K", which is a different unit.  
-
-            * A special color or style (e.g. underline) could be used
-              for such unit strings to flag that a special notation is
-              being used.  Or maybe it could be "m²//s²·K".
-
-    * Unit formatting
-
-        * Maybe have a fmt attribute that has different attributes to get
-          a variety of formats:
-
-            3.45 kg·m·s⁻²·K⁻¹       # Canonical SI with nobreak space
-            3.45·kg·m·s⁻²·K⁻¹       # Canonical SI with middle dot sep
-            3.45 kg m s⁻² K⁻¹       # Canonical SI with sep = space
-            3.45·kg·m/(s²·K)        # Correct SI with single solidus
-            3.45·kg·m/s²·K          # Informal single solidus form
-
-            fmt.sep = separates number and unit
-            fmt.usep = separates units
-            fmt.formal = "(", ")"
-                       = "", "" for informal form
-            fmt.ucolor = None   (None means same as number)
-
-        * The current implementation returns the interpolated string
-          with the unit in the same color as the number.  Having the
-          unit in a different color or style could help set things off
-          better to the eye.  But leave this for later.
-
-    * cpx attributes
-        * ss:  (sign space) Defaults to ("", "").  If they are both
-          space characters, then you get '(1 + 2j)' instead of '(1+2j)'
-          or '1 + 2i' instead of '1+2i' if the i attribute is True.
 
 '''
 __doc__ = '''
@@ -128,9 +25,17 @@ __doc__ = '''
     numbers.  The reals are of type flt (derived from float) and the
     complex numbers are of type cpx (derived from complex).
 
-    These types will be handy for folks who do physical calculations with
-    numbers derived from measurements.  The features that help with this
-    are:
+    The main characteristics are:
+
+        * You won't see all those annoying extra digits in the numbers'
+          interpolated strings.
+        * You can use physical units with the numbers.
+        * You can do reasonable calculations with numbers derived from
+          measurements.
+        * You'll have the math/cmath functions available and can use
+          them with either flt or cpx arguments where appropriate.
+
+    The module's features are:
         
     * Significant figures
 
@@ -147,6 +52,14 @@ __doc__ = '''
           letting you see the limited figures form in the interpreter
           and debugger.
 
+    * Colorizing
+
+        * Set the c attribute to True and ANSI escape codes will be used
+          to color the output to the terminal when str() or repr() are
+          called, letting you use color to identify flt and cpx values.
+          This is handy during interactive python interpreter sessions
+          because the colors alert you to the flt and cpx number types.
+
     * Physical units
 
         * These number types can be initialized with strings
@@ -159,13 +72,37 @@ __doc__ = '''
 
             x = flt(1, "mi/hr")     # Separate units
             x = flt("1 mi/hr")      # String form
-            float(x) returns 0.44704
+            float(x) returns 0.44704    # 1 mi/hr in m/s
             print(x) shows "1 mi/hr"
             x.s returns str(x) regardless of the f attribute
             x.r returns repr(x) regardless of the f attribute
 
         * Floating point and fractional exponents are supported.  This
-          allows you to have units like 1/sqrt(Hz):  flt("1 1/Hz^(0.5)").
+          allows you to have units like 1/sqrt(Hz):  flt("1 1/Hz^(1/2)").
+
+        * Some short notations are allowed in unit expressions.  A space
+          character denotes multiplication, '^' means '**', and a number
+          cuddled next to a unit is an exponent.  Note not every
+          expression will be correct, as I used the tokenize module and
+          there were a few problems that I didn't deem worth the effort
+          to fix.  For example, 'm3.3' won't parse correctly, so write
+          it with parentheses as 'm(3.3)'.
+
+            * Remember this is a syntax for units.  Addition and
+              subtraction are not allowed.  Thus, valid but
+              perhaps confusing syntax like 'x = flt("2.2 s-2 m/kg-1")'
+              is allowed and gives the units 'm·kg/s²'.
+          
+            * The unit expressions are actually evaluated by python's
+              parser, so an exponent expression like m**(2.3*0.7) is
+              allowed (but you can't use '+' or '-' in such
+              expressions).
+
+            * An exponent like m**(3/4) has the '3/4' evaluated by
+              python's parser, which returns the float 0.75.  Thus,
+              fractions aren't directly supported.  If Unicode would fix
+              their design (see below), fractions would be easy to
+              support.
 
         * Unicode
 
@@ -174,19 +111,36 @@ __doc__ = '''
               easier to read units with exponents.  
 
             * Example:  if x = flt("1 mi/hr**2"), its interpolated
-              string is '1 mi/hr²'.  Note there is a nobreak space
-              character after the 1.  
+              string is '1 mi/hr²'.  There is a nobreak space character
+              after the 1.  
+              
+            * Two flt/cpx attributes affect unit formatting.  Suppose the
+              unit to be formatted is "kg*m/(s**2*K)".  The standard
+              formatted form is 'kg·m/(s²·K)'.
 
-            * A weakness is Unicode's current design (as of version 13),
-              as there are no superscript characters for floating point
+                * flat is a Boolean when True that results in a "flat"
+                  Unicode form:  'kg·m·s⁻²·K⁻¹'.
+
+                * solidus is a Boolean when True results in the form
+                  'kg·m//s²·K'.  This form is convenient for informal
+                  work, but it is not algebraically correct with a
+                  left-associative parser.  The '//' is intended to flag
+                  to your eye that it's a special format.  Though this
+                  notation is not allowed by SI syntax, it's still
+                  convenient for informal calculations because we can
+                  quickly mentally parse the numerator and denominator.
+
+            * An ongoing weakness in Unicode's design (as of version 13)
+              is there are no superscript characters for floating point
               radix characters ('.' or ',') nor the solidus character
-              for rational numbers.  Thus, you'll get ugly mixed
-              displays for e.g. floating point exponents.  Examples:
+              for rational numbers.  Thus, you may get ugly mixed
+              displays when working with units.  Examples:
                 
                 * If x = flt("1 mi2/hr**2.2"), its interpolated form is
                   '1 mi²/hr**2.2'.  
-                * If x = flt("1 mi²/hr**(2/3)"), its interpolated form is
-                  '1 mi²/hr**(2/3)'.
+                * If x = flt("1 mi2/hr**(2/3)"), its interpolated form is
+                  'mi²/hr**0.6666666666666666'.  Fractions are evaluated
+                  as floating point numbers.
 
         * Comparisons
 
@@ -198,17 +152,23 @@ __doc__ = '''
             * x < y not supported unless promote attribute is True, in
               which case x is converted to a flt with the same units 
               as y.
-            * flt and cpx cannot be compared.  Compare abs() values.
+            * x == y has an exception unless x and y are dimensionally
+              the same.
             * abs(y) returns flt(abs(4), "mi/hr").
             * abs(z) returns cpx(abs(3+3j), "mi/hr").
+            * The sigcomp attribute of flt and cpx determine how many
+              significant figures are used for the comparison is the
+              attribute is not None and not zero.  This is handy when
+              comparing numbers derived from measurements.
 
         * Division with units
 
             * Suppose x = flt("2 mi/hr") and y = flt("1 km/hr").  If we
-              look at x/y, the answer should be 1 mi/km.  And that's
+              look at x/y, the answer by inspection is 1 mi/km.  And that's
               what we get.
 
-            * What should x//y be?  Here are some possibilities:
+            * However, floor division isn't as obvious.  What should
+              x//y be?  Here are some possibilities:
 
                 * Use SI values.  2 mi/hr is 0.894 m/s and 1 km/hr is
                   0.278 m/s.  Therefore the answer should be the
@@ -218,14 +178,19 @@ __doc__ = '''
                   [2(1.609) km/hr]//[1 km/hr], which is the
                   dimensionless number 3.218.
 
-                * Instead, convert the divisor to mi/hr:  then the
+                * Alternatively, convert the divisor to mi/hr:  then the
                   expression is [2 mi/hr]//[0.621 mi/hr] and that
                   results in the dimensionless number 3.
 
-            * Now, let y = flt("1 N/m**2").  Now we're asking how many
-              integer number of pressure values are in a velocity.  This
-              doesn't make physical sense, so x//y should raise an
-              exception unless x and y are dimensionally the same.
+                * Because the first and third cases are congruent,
+                  that's how floor division will work with flt objects
+                  with units.  It's not supported for cpx objects.
+
+                * Let y = flt("1 N/m**2").  Now x//y means we're asking
+                  how many integer number of pressure values are in a
+                  velocity.  This doesn't make physical sense, so x//y
+                  raises an exception unless x and y are dimensionally
+                  the same so that the returned value is dimensionless.
 
     * Attributes
 
@@ -234,53 +199,45 @@ __doc__ = '''
         - c:    Turn colorizing on if True
         - eng:  Return engineering string form
         - f:    Swap str() and repr() behavior if True
+        - flat: Show units in a flat SI form
         - h:    Return a help string
         - n:    Set to number of significant figures desired in str()
         - r:    Return repr() string regardless of f attribute
         - s:    Return str() string regardless of f attribute
         - sci:  Return scientific notation string form
         - si:   Return eng with SI prefix on unit
+        - sigcomp:   Number of sig figures to compare for equality
+        - solidus:   Show units in an informal form num//denom
         - t:    Return date/time string
         - u:    Return unit string or None if there isn't one
         - val:  Return value in original units
-        - z:    Remove traiing zeros in str() if True
+        - z:    Remove trailing zeros in str() if True
 
       cpx
+        - rad:   Use radians for angle in polar form
         - real:  Real part
         - imag:  Imaginary part
         - i:     Use a+bi str() form if True
-        - p:     Polar form:  None or 0 is rectangular, 1 is polar with
-                 degrees, 2 is polar with radians
+        - p:     Polar form (defaults to degrees for angle measure)
         - nz:    Don't show zero components if True
 
-    * Colorizing
+    * Type infection model
 
-      Set the c attribute to True and ANSI escape codes will be used to
-      color the output to the terminal when str() or repr() are called,
-      letting you use color to identify flt and cpx values.
-
-        * Default colors
-            - flt:  lgreen
-            - cpx:  yellow
-            - cpx (polar degrees):  black with yellow background
-            - cpx (polar radians):  black with white background
-            - units with solidus True:  units in lred italics
-
-    * Infection
-
-      The flt and cpx types "infect" calculations with their types.
-      Thus, a binary operation op(flt, numbers.Real) or op(numbers.Real,
-      flt) will always return a flt (similarly for cpx).  This lets you
-      perform physical calculations whose results only show the number
-      of significant figures you wish to see.
+        * The flt and cpx types "infect" calculations with their types.
+          Thus, a binary operation op(flt, numbers.Real) or
+          op(numbers.Real, flt) will always return a flt (similarly for
+          cpx).  This lets you perform physical calculations whose
+          results only show the number of significant figures you wish
+          to see.
 
     * Attributes and context management
 
-      The flt and cpx attributes are class-wide, meaning a change on any
-      instance affects all instances of that class.  A cpx is made up of
-      two flt instances, so any flt attribute change may also affect the
-      attributes of a cpx (for example, setting a flt.c attribute to
-      True also causes colored output for cpx instances).
+        * The flt and cpx attributes are class-wide, meaning a change on
+          any instance affects all instances of that class.  A cpx is
+          made up of two flt instances, so any flt attribute change may
+          also affect the attributes of a cpx (for example, setting a
+          flt.c attribute to True also causes colored output for cpx
+          instances).
 
         * This class-wide feature can be an annoyance when you want to
           temporarily change an attribute because you may forget to
@@ -294,7 +251,7 @@ __doc__ = '''
             >>> x = flt(1.23456)
             >>> x
             1.23456
-            >>> x.f = True
+            >>> x.f = True  # Swap str() and repr() behavior
             >>> x
             1.23            # Show 3 significant figures, the default
             >>> with x:
@@ -302,198 +259,165 @@ __doc__ = '''
             ...  x
             ...
             1.235
-            >>> x           # Reverts back to 3 figures
+            >>> x           # Reverts back to 3 figures after with block
             1.23
 
-        * When you want to do such things with both flt and cpx
-          instances, use the following pattern:
+        * To provide thread-safe behavior, this context manager behavior
+          is protected with a lock so that only one thread may change
+          the class attributes at a time.  If your code uses multiple
+          threads and you get a blocked thread, it's because of this
+          locking mechanism to avoid race conditions.
 
-            x, z = flt(something), cpx(something_else)
-            with x:
-                with z:
-                    <do some stuff>
+            * When you want to do such things with both flt and cpx
+              instances, the following won't work because the first with
+              statements causes the second statement to block while
+              trying to acquire the lock:
+
+                  x, z = flt(something), cpx(something_else)
+                  with x:
+                      with z:
+                          <do stuff>
+
+              To handle this use case, you can manually set the
+              Base._lock class variable to False.  However, you have to
+              remember to manually reset it after the with block exits:
+
+                  x, z = flt(something), cpx(something_else)
+                  Base._lock = False
+                  with x:
+                      with z:
+                          <do stuff>
+                  Base._lock = True
+
+             If you forget this, you may have a race condition in
+             subsequent code.
 
     * Factory behavior
 
-        The flt and cpx instances are factories to create similar number
-        instances with the same units.  This lets you use them in loops
-        over a physical value without having to use the promote
-        facility, which I'm not a fan of because of the potential for
-        mistakes.  Here's an example:
+        * flt and cpx instances are factories to create similar number
+          instances with the same units.  This lets you use them in
+          loops over a physical value without having to use the promote
+          facility, which I'm not a fan of because of the potential for
+          bugs in code.  Here's an example:
 
-            x = flt("1 mi/hr")
-            # Print out a table of 1 to 10 mi/hr values
-            for i in range(1, 11):
-                print(x(i))
+              x = flt("1 mi/hr")
+              # Print out a table of 1 to 10 mi/hr values
+              for i in range(1, 11):
+                  print(x(i))
 
-        The __call__ method of flt creates another flt object with the
-        called value and the same units as the factory object.
+        * The __call__ method of flt creates another flt object with the
+          called value and the same units as the factory object.
 
-        This is also a useful pattern for a physical calculation in a
-        single set of units.  For example, if we wanted to do ideal gas
-        law calculations with the units of yd3 for volume, lbf/furlong2
-        for pressure, kelvin for temperature, and mol for amount of
-        material, you'd set up the factories
+        * This is also a useful pattern for a physical calculation in a
+          particular set of units.  For example, if we wanted to do ideal
+          gas law calculations with the units of yd3 for volume,
+          lbf/furlong2 for pressure, kelvin for temperature, and mol for
+          amount of material, you'd set up the factories
 
-            Pf = flt("1 lbf/furlong**2")
-            vf = flt("1 yd**3")
-            Tf = flt("1 K")
-            Nf = flt("1 mol")
-            R = gas constant
+              Pf = flt("1 lbf/furlong**2")
+              vf = flt("1 yd**3")
+              Tf = flt("1 K")
+              Nf = flt("1 mol")
+              R = gas constant
 
-        Then for a pressure of 2, a volume of 3, and a temperature of 4,
-        the amount of material is
+          Then for a pressure of 2, a volume of 3, and a temperature of
+          4, the amount of material is
 
-            N = Nf(Pf(2)*vf(3)/(R*Tf(4)))
+              N = Nf(Pf(2)*vf(3)/(R*Tf(4)))
 
-        and N will be in the units of mol.
+          and N will be in the units of mol.
 
     * math/cmath symbols
 
-      As a convenience, the math/cmath symbols are in scope.
+        * As a convenience, the math/cmath symbols are in scope.
 
         * A Delegator object ensures the cmath version is called for
           cpx/complex objects and the math version is called for
-          flt/float objects.  As an example, you can call sin(0.1) and
-          sin(0.1j) and not get an exception and analogously with
-          sqrt(2) and sqrt(-2).
+          flt/float objects.  For example, you can call sin(0.1) and
+          sin(0.1j) and not get an exception.  Analogously, sqrt(2) and
+          sqrt(-2) both work.
 
     * promote attribute
 
         * Let x = flt("1 mi/hr").  An expression such as 'x + 3' is an
           error because the scalar 3 does not have physical dimensions
           compatible with x's speed units.  This expression will raise
-          an exception.
+          a TypeError exception.
 
         * For some use cases, you might want the '3' to be "promoted" to
           have the same units as x.  This can be done by setting
-          x.promote to True.  Then the '3' will be changed to flt("3
-          mi/hr") and the addition will succeed.
+          x.promote to True.  Then the '3' will be changed to
+          flt("3 mi/hr") and the addition will succeed.
 
           An example lets you print out a table of speeds:
-            
-            x = flt("1 mi/hr")
-            with x:
-                x.promote = True
-                while x < 5:
-                    print(x)    # Shows '1 mi/hr' for first time through
-                    x += 1      # Increment in 1 mi/hr units
+
+              x = flt("1 mi/hr")
+              with x:
+                  x.promote = True
+                  while x < 5:
+                      print(x)    # Shows '1 mi/hr' for first time through
+                      x += 1      # Increment in 1 mi/hr units
 
           Note the use in a 'with' statement.  This is recommended so
-          that you don't accidentally have the promote attribute True in
-          later code where it might cause a bug.
+          that you don't accidentally leave the promote attribute True
+          in later code where it might cause a bug.
 
-    * lax attribute
+    * sigcomp attribute
 
-        * Internally, unit expressions are handled by python's parser
-          and thus follow python's expression grammar.  
+        * This attribute is an integer between 0 and 15 or None and is
+          used to determine how to compare flt or cpx numbers for
+          equality.  If not None or zero, then the numbers' values are
+          rounded to the indicated number of significant figures before
+          the comparison.
 
-        * By default, you'll need to enter unit expressions that are
-          grammatically correct.  For example, 
-
-            x = flt("1 lbm*m/s^2")
-
-          lets x have the dimensions of a force, but with the pound mass
-          unit.  A convenience is that '^' is replaced by '**' before
-          evaluation, letting use either notation for exponentiation.
-
-        * For lots of work with units, it's more convenient to use the
-          shortcuts provided by the GNU units program.  To do this, set
-          the flt.lax attribute to True.  This lets you 
-
-            * Use cuddled numbers for exponents.  
-
-            * Use space characters for implied multiplication.
-
-            * Thus, the above value for x could be written 
-              flt("1 lbm m/s2").
-
-            * You cannot write exponents with a minus sign.  Thus,
-              flt("1 lbm m s-2") would result in an exception.
-
-            * You can use bare SI prefixes as convenience multipliers.
-              Thus, flt("10 k") will have the value of 10000.0.
-
-        * The units stuff is supported by the u.py module.  This module
-          is worth looking at for general lightweight units support in
-          other python scripts because it is simple to add units you
-          wish to support.  The default behavior of the f.py module is 
-          to use the convenience u.u() function to convert flt and cpx
-          units to SI equivalents and store these equivalents as the
-          actual float or complex number.  Then all calculations are
-          done with SI units.  The original units are used only when
-          doing string interpolation with e.g. str() or repr().
-
-    * solidus attribute
-
-        * This attribute can be None, False, or True.  The default is
-          False.
-
-        * Let x = flt("1 lbm*m/(s**2*K)").
-
-        * For the default value of the attribute solidus, the string
-          interpolation of x returns '1 bm·m/(s²·K)'.  Note that there
-          is a nobreak space after the '1'.
-
-        * If solidus is None, the string interpolation is 
-          '1 lbm·m·s⁻²·K⁻¹'.
-
-        * If solidus is True, the string interpolation is
-          '1 lbm·m//s²·K'.  The '//' is used as a flag to warn you that
-          a syntactically-illegal unit syntax is being used.  Though
-          this notation is not allowed by SI syntax, it's still
-          convenient for informal calculations because we can quickly
-          mentally parse the numerator and denominator.
+        * This attribute is handy for when dealing with numbers derived
+          from physical measurements because such numbers virtually
+          never have more than perhaps 12 significant figures.  This
+          helps avoid annoyances like 0.44704 not being the same as
+          0.44704000000000005, which is mi/hr in m/s -- these small
+          differences often appear in floating point calculations.  Yet
+          you would rarely have more than 4 or 5 significant figures in
+          such numbers.
 
     * cpx objects can also be initialized with a unit string.  The unit
       will apply equally to both the real and imaginary parts.
 
-    Example:
+        * Example:  An LCR meter reads an impedance of a component to be
+          473 ohms with a phase angle of 34 degrees.  What are the
+          impedance components?
 
-        >>> import f
-        >>> from math import pi
-        >>> pi
-        3.141592653589793
-        >>> type(pi)
-        <class 'float'>
-        >>> p = flt(pi)
-        >>> type(p)
-        <class 'f.flt'>
-        >>> x, z = flt(p), cpx(p, 1/p)
-        >>> x, z    # python uses repr() here, giving all the digits
-        (3.141592653589793, (3.141592653589793+0.3183098861837907j))
-        >>> x.f = True      # Interchange str() and repr() behavior
-        >>> x, z
-        (3.14, (3.14+0.318j))
-        >>> sqrt(-1)        # A Delegator wrapper class calls cmath.sqrt
-        (0.00+1.00j)
-
-    The primary intent of this module is that you won't see all those
-    pesky extra digits in the interpolated strings.
-
-    The h attribute for either a flt or cpx will return a help string to
-    give the class' attributes.
+              w = rect(473, 34*pi/180)      # Returns a cpx()
+              Z = cpx(x, "ohm")             # Add the unit
+              print(Z)
+                  --> '(392.+264.j) ohm'
 
     Implementation
     --------------
 
-    flt and cpx are derived from float and complex, so they can be used
-    wherever float and complex can be used.  The Base class collects
-    some common behavior.  A cpx object's real and imaginary parts are
-    flt objects.
+    The flt and cpx objects are derived from flt(Base, float) and
+    cpx(Base, complex), so they can be used wherever float and complex
+    numbers can be used.  The Base class collects some common behavior.
+    A cpx object's real and imaginary parts are flt objects.
 
-    The Formatter class in in the module helps with different string
-    interpolation forms (fixed point, scientific notation, engineering
-    notation, and SI notation with prefixes).  You can also set the
-    points where the fixed display changes to scientific notation.
+    The physical units feature is aided with the help of the u.py
+    module.  Over 800 common units are defined in it, but it's easy to
+    add new units or changed to a different set.  It includes a
+    randomization feature that helps determine when a calculation isn't
+    dimensionally correct (read the docstring).
 
-    The basic formatting strategy (with and without the Formatter class)
-    is to use the scientific format of string interpolation f"{x:e}" with
-    the proper number of decimal places to get the desired rounded string.
-    The formatting is always done with Decimal objects to avoid float
-    overflows or underflows.  I've testing the interpolation up to numbers
-    with a million digits and things seem to work OK, so it should be
-    robust.
+    The basic fixed-point formatting method is in Base.FixedFormat().
+    It uses the scientific format of string interpolation f"{x:e}"
+    with the proper number of decimal places to get the desired rounded
+    string.  The formatting is done with Decimal objects to avoid float
+    overflows or underflows.  I've testing the interpolation up to
+    numbers with a million digits and things seem to work OK.
+
+    There are perhaps 4000 lines of code in this module and the u.py
+    module for units, so this is not a lightweight implementation of
+    float and complex objects.  If you need computational speed, stick
+    with float, complex, or numpy stuff.  You can use flt/cpx objects at
+    the end of calculations for the presentation of results.
+
 '''
 
 if 1:   # Imports
@@ -511,6 +435,7 @@ if 1:   # Imports
     import pathlib
     import re
     import sys
+    import threading
     import time
 if 1:   # Custom imports
     import u
@@ -520,10 +445,12 @@ if 1:   # Custom imports
         # objects to a desired number of significant figures.  It also can
         # format in scientific and engineering forms.
         #from format_numbers import Formatter
-
+ 
+        #xx
         # Unfortunately, I apparently had a file containing a Formatter
         # class, but this seems to have been deleted.  I need to make a
         # wrapper class to call FormatNumber() or use fpformat.py.
+        #xx
         from xformat_numbers import FormatNumber
         _have_Formatter = True
         class Formatter:
@@ -550,6 +477,7 @@ if 1:   # Custom imports
         C = Dummy()
         _have_color = False
 if 1:   # Global variables
+    Lock = threading.Lock()
     D = decimal.Decimal
     P = pathlib.Path
     ii = isinstance
@@ -561,7 +489,8 @@ class Base(object):
     '''This class will contain the common things between the flt and cpx
     classes.
     '''
-    _digits = 3         # Number of significant digits
+    _digits = 3         # Number of significant digits for str()
+    _sigcomp = None     # Number of sig digits for comparisons
     _dp = locale.localeconv()["decimal_point"]
     _flip = False       # If True, interchange str() and repr()
     _fmt = None         # Formatter for flt
@@ -571,44 +500,46 @@ class Base(object):
     _rtz = False        # Remove trailing zeros if True
     _sep = chr(0xa0)    # Separate num from unit in str()
     _promote = False    # Allow e.g. flt("1 mi/hr") + 1 if True
+    _flat = False       # Flat form of Unicode units string interpolation
+    _solidus = False    # Solidus form of Unicode units string interpolation
+    _lock = True        # Use lock for context management
+    _low = 1e-5         # When to switch to scientific notation
+    _high = 1e16        # When to switch to scientific notation
     def __enter__(self):
-        if ii(self, flt):
-            self.saved = {
-                "c": self.c,
-                "f": self.f,
-                "n": self.n,
-                "rtz": self.rtz,
-            }
-        elif ii(self, cpx):
-            self.saved = {
-                "c": self.c,
-                "f": self.f,
-                "i": self.i,
-                "n": self.n,
-                "p": self.p,
-                "rtz": self.rtz,
-                "nz": self.nz,
-            }
-        else:
-            raise TypeError("Unexpected type")
+        if Base._lock:
+            Lock.acquire()
+        du = "__"
+        def Keep(s, A):
+            'Return True if this attribute should be kept'
+            if i.startswith(du) and i.endswith(du):
+                return False
+            if "function" in str(A[i]) or "property" in str(A[i]):
+                return False
+            if "staticmethod" in str(A[i]):
+                return False
+            return True
+        base, cls = {}, {}
+        B = Base.__dict__
+        for i in B:
+            if Keep(i, B):
+                base[i] = B[i]
+        S = flt.__dict__ if ii(self, flt) else cpx.__dict__
+        for i in S:
+            if Keep(i, S):
+                cls[i] = S[i]
+        self.base = base
+        self.cls = cls
     def __exit__(self, exc_type, exc_val, exc_tb):
-        if ii(self, flt):
-            self.c = self.saved['c']
-            self.f = self.saved['f']
-            self.n = self.saved['n']
-            self.rtz = self.saved['rtz']
-            return False
-        elif ii(self, cpx):
-            self.c = self.saved['c']
-            self.f = self.saved['f']
-            self.i = self.saved['i']
-            self.n = self.saved['n']
-            self.p = self.saved['p']
-            self.rtz = self.saved['rtz']
-            self.nz = self.saved['nz']
-            return False
-        else:
-            raise TypeError("Unexpected type")
+        B = Base.__dict__
+        for i in self.base:
+            exec(f"Base.{i} = self.base[i]")
+        S = flt.__dict__ if ii(self, flt) else cpx.__dict__
+        name = "flt" if ii(self, flt) else "cpx"
+        for i in self.cls:
+            exec(f"{name}.{i} = self.cls[i]")
+        if Base._lock:
+            Lock.release()
+        return False
     def to(self, units):
         '''Return a flt/cpx in the indicated units.  The new units must
         be dimensionally consistent with the current units.
@@ -652,6 +583,16 @@ class Base(object):
         raise RuntimeError("Base class method should be overridden")
     def _s(self):
         raise RuntimeError("Base class method should be overridden")
+    def eq_dim(self, other):
+        'Return True if dimensions of self and other are equal'
+        if self.u is None and other.u is None:
+            return True
+        elif self.u is None and other.u is not None:
+            return False
+        elif self.u is not None and other.u is None:
+            return False
+        # Both have unit strings
+        return u.dim(self.u) == u.dim(other.u)
     def FixedFormat(self, x, n):
         '''Return a string interpolation for fixed-point form of a
         Decimal number with n significant figures.
@@ -663,7 +604,7 @@ class Base(object):
         dp = locale.localeconv()["decimal_point"]
         sign = "-" if x < 0 else ""
         # Get significand and exponent
-        t = f"{abs(x):.{int(n) - 1}e}"
+        t = f"{abs(x):.{n - 1}e}"
         s, e = t.split("e")
         exponent = int(e)
         if not x:
@@ -672,22 +613,22 @@ class Base(object):
             return sign + s.replace(".", dp)
         significand = s.replace(dp, "")
         # Generate the fixed-point representation
-        i, o, dz = deque(significand), deque(), "0"
-        o.append(sign + dz + dp if exponent < 0 else sign)
+        sig, out, zero_digit = deque(significand), deque(), "0"
+        out.append(sign + zero_digit + dp if exponent < 0 else sign)
         if exponent < 0:
             while exponent + 1:
-                o.append(dz)
+                out.append(zero_digit)
                 exponent += 1
-            while i:
-                o.append(i.popleft())
+            while sig:
+                out.append(sig.popleft())
         else:
             while exponent + 1:
-                o.append(i.popleft()) if i else o.append(dz)
+                out.append(sig.popleft()) if sig else out.append(zero_digit)
                 exponent -= 1
-            o.append(dp)
-            while i:
-                o.append(i.popleft())
-        return f"{''.join(o)}"
+            out.append(dp)
+            while sig:
+                out.append(sig.popleft())
+        return f"{''.join(out)}"
     def __add__(self, other):
         return self._do_op(other, operator.add)
     def __sub__(self, other):
@@ -710,6 +651,12 @@ class Base(object):
     def c(self, value):
         Base._color = bool(value)
     @property
+    def dim(self):
+        "Return the Dim object of the instance's units"
+        if self.u is not None:
+            return u.dim(self.u)
+        return None
+    @property
     def f(self):
         'Flip the behavior of str() and repr() if value is True'
         return Base._flip
@@ -717,28 +664,51 @@ class Base(object):
     def f(self, value):
         Base._flip = bool(value)
     @property
+    def flat(self):
+        '''Unit string is given in Unicode flat form.  Example:  for
+        'kg*m/(s2*K)', flat form is 'kg·m·s⁻²·K⁻¹'.
+        '''
+        return Base._flat
+    @flat.setter
+    def flat(self, value):
+        Base._flat = bool(value)
+        Base._solidus = False
+    @property
     def h(self):
         'Return help string'
         return self.help()
     @property
+    def high(self):
+        'Switch to scientific notation when x > Base.high'
+        return Base._high
+    @high.setter
+    def high(self, value):
+        Base._high = D(abs(value)) if value is not None else D(0)
+    @property
+    def low(self):
+        'Switch to scientific notation when x < Base.low'
+        return Base._low
+    @low.setter
+    def low(self, value):
+        Base._low = D(abs(value)) if value is not None else D(0)
+    @property
     def n(self):
-        'Return/set how many digits to round to'
-        if not ii(Base._digits, int):
-            raise TypeError("Base._digits is not an integer")
+        'How many digits to round to'
         return Base._digits
     @n.setter
     def n(self, value):
+        'The value is clamped to be between 1 and 15 digits'
+        min_value, max_value = 1, 15
         if value is None:
-            value = 0
-        if not ii(value, int) or value < 0:
-            raise ValueError("value must be an integer >= 0 or None")
+            value = max_value
+        elif not ii(value, int):
+            raise ValueError("value must be an integer")
+        if value < min_value:
+            value = min_value
+        elif value > max_value:
+            value = max_value
         Base._digits = value
-        if _have_Formatter:
-            # Note Formatter won't allow 0 digits, so we let it be the
-            # maximum number of digits in a float.
-            from sys import float_info
-            Base._fmt.n = value if value else float_info.dig
-            Base._digits = Base._fmt.n
+        assert(min_value <= Base._digits <= max_value)
     @property
     def promote(self):
         '''If True, allow flt/cpx with units + number with no units.
@@ -756,6 +726,19 @@ class Base(object):
     def s(self):
         'Return the str() string, regardless of self.f'
         return self._s()
+    @property
+    def solidus(self):
+        '''Unit string is given in Unicode solidus form.  Example:  for
+        'kg*m/(s2*K)', solidus form is 'kg·m//s²·K'.  This is a
+        convenient short form, but it is NOT algebraically correct with
+        a left-associative multiplication.  The two solidus characters
+        are used to flag this visually.
+        '''
+        return Base._solidus
+    @solidus.setter
+    def solidus(self, value):
+        Base._solidus = bool(value)
+        Base._flat = False
     @property
     def t(self):
         'Return date/time string'
@@ -781,6 +764,22 @@ class Base(object):
     @rtz.setter
     def rtz(self, value):
         Base._rtz = bool(value)
+    @property
+    def sigcomp(self):
+        '''Significant digits for '==' and '<' comparisons.  If it is
+        None, then comparisons are made to full precision.  Otherwise,
+        it must be an integer between 1 and 15.
+        '''
+        return Base._sigcomp
+    @sigcomp.setter
+    def sigcomp(self, value):
+        if value is None:
+            self._sigcomp = None
+            return
+        val = int(value)
+        if not (1 <= val <= 15):
+            raise ValueError("sigcomp must be between 1 and 15")
+        Base._sigcomp = val
     # ----------------------------------------------------------------------
     # These properties will work if the Formatter object is present
     @property
@@ -1012,6 +1011,61 @@ class Base(object):
                 return GetResult(type_a, complex, cpx)
             else:
                 raise RuntimeError("At least one of a or b must be flt or cpx")
+    @staticmethod
+    def sig_equal(a, b, n=None):
+        '''Return True if objects a and b are equal to the indicated
+        number of significant figures.  a must be a flt or cpx.  If a is
+        a flt, b must be a flt or a number that can be converted to a
+        flt (and a must not have units).  If a is cpx, then b must be a
+        cpx or a number that can be converted to complex (and a must not
+        have units).  If a and b are both flt or cpx, is assumed that
+        they have dimensionally-equal units.
+        '''
+        #off off off  Make sure both a and b are flt or cpx types
+        if ii(a, flt):
+            if ii(b, flt):
+                if not Base.eq_dim(a, b):
+                    raise TypeError("a and b don't have same dimensions")
+            elif ii(b, cpx):
+                raise TypeError("b must be a flt since a is")
+            else:
+                if a.u is not None:
+                    raise TypeError("a must not have units")
+                b = flt(b)
+        elif ii(a, cpx):
+            if ii(b, cpx):
+                if not Base.eq_dim(a, b):
+                    raise TypeError("a and b don't have same dimensions")
+            elif ii(b, flt):
+                raise TypeError("b must be a cpx since a is")
+            else:
+                if a.u is not None:
+                    raise TypeError("a must not have units")
+                b = cpx(b)
+        assert((ii(a, flt) and ii(b, flt)) or (ii(a, cpx) and ii(b, cpx)))
+        def Round(x):
+            y = D(repr(float(x)))
+            with decimal.localcontext() as ctx:
+                # Round to n significant figures
+                ctx.prec = n
+                y = +y
+            return y
+        if n is None:
+            n = a.n
+        n = max(1, min(n, 15))  # Clamp n to [1, 15]
+        # Note we compare Decimal objects
+        if ii(a, flt) and ii(b, flt):
+            if not Base.eq_dim(a, b):
+                return False
+            return Round(a.val) == Round(b.val)
+        elif ii(a, cpx) and ii(b, cpx):
+            if not Base.eq_dim(a, b):
+                return False
+            a_re, a_im = Round(a.val.real), Round(a.val.imag)
+            b_re, b_im = Round(b.val.real), Round(b.val.imag)
+            return (a_re == b_re) and (a_im == b_im)
+        else:
+            raise TypeError("a and b must both be flt or cpx")
 
 class flt(Base, float):
     '''The flt class is a float except that its str() representation is
@@ -1053,17 +1107,64 @@ class flt(Base, float):
                         m = "Can't have units in string and the units keyword"
                         raise ValueError(m)
                     to_SI = u.u(un)
-                    units = un
+                    units = un if un else None
         instance = super().__new__(cls, float(val)*to_SI)
-        instance._units = units
+        instance._units = units if units else None
         instance._to_SI = D(to_SI)
         instance._check()
         if _have_Formatter and Base._fmt is None:
             Base._fmt = Formatter(Base._digits)
         return instance
+    def _eng(self, n=None):    # flt
+        'Return self in engineering notation (n overrides self.n)'
+        if n is None:
+            n = Base._digits
+        x = D(self)
+        dp = locale.localeconv()["decimal_point"]
+        s = f"{abs(x):.{n - 1}e}"
+        # Get significand and exponent
+        significand, exponent = s.split("e")
+        significand = significand.replace(dp, "")
+        e = int(exponent) if x else 0
+        sig = deque(significand)
+        while len(sig) < 3:
+            sig.append("0")
+        # Get exponent divmod with 3
+        div, rem = divmod(abs(e), 3)
+        if abs(x) >= 1:
+            nexp = abs(e) - rem
+            # Position decimal point
+            sig.insert(rem + 1, dp)
+        else:
+            nexp = 3*(div + bool(rem))
+            # Position decimal point
+            if rem == 2:
+                sig.insert(2, dp)
+            elif rem == 1:
+                sig.insert(3, dp)
+            else:
+                sig.insert(1, dp)
+        # Build output string
+        sig.append("e")
+        sig.append("-" if e < 0 else "")
+        sig.append(str(nexp))
+        return ''.join(sig)
+    def _sci(self, n=None):    # flt
+        'Return self in scientific notation (n overrides self.n)'
+        if n is None:
+            n = Base._digits
+        x = D(self)
+        s = f"{x:.{n - 1}e}"
+        sig, exp = s.split("e")
+        # Note e.g. f"{Decimal(0):.2e}" returns '0.00e+2', so 
+        # get rid of leading 0's and fix the '0.00e+2' annoyance.
+        exp = str(int(exp) if x else 0)
+        s = f"{sig}e{str(exp)}"
+        return s
     def _s(self, fmt="fix", no_color=False, no_units=False):    # flt
         '''Return the rounded string representation.  The fmt keyword only
-        works if the Formatter class is present.
+        works if the Formatter class is present.  The no_units feature
+        is needed for repr().
         '''
         self._check()
         if not Base._digits:
@@ -1072,25 +1173,25 @@ class flt(Base, float):
         x = D(self)
         if _have_Formatter:
             raise Exception("Need to rewrite")
-            if x and self._to_SI is not None:
-                # Convert to original units
-                x /= self._to_SI
-            s = decorate(Base._fmt(x, fmt=fmt))
-            if self._to_SI is not None:
-                s = f"{s}{Base._sep}{self._units}"
-            return s
         else:
             n = Base._digits
             if n is None:
                 n = 15
             if self.u is not None:
                 x = x/D(u.u(self.u))   # Convert to value of units
-            s = self.FixedFormat(x, n)
-            if Base._rtz:   # Remove trailing zeros
-                while "e" not in s and "E" not in s and s[-1] == "0":
-                    s = s[:-1]
+            if x and (abs(x) < self.low or abs(x) > self.high):
+                # Switch to scientific notation
+                s = self._sci()
+            else:
+                # Basic fixed-point string interpolation
+                s = self.FixedFormat(x, n)
+                if Base._rtz:   # Remove trailing zeros
+                    while "e" not in s and "E" not in s and s[-1] == "0":
+                        s = s[:-1]
             if self.u is not None and not no_units:
-                s = f"{s}{Base._sep}{self.u}"
+                un = u.FormatUnit(self.u, flat=self.flat,
+                                solidus=self.solidus)
+                s = f"{s}{Base._sep}{un}"
             return decorate(s)
     def _r(self, no_color=False):  # flt
         'Return the repr string representation'
@@ -1114,37 +1215,27 @@ class flt(Base, float):
             cp = flt(float(self))
         return cp
     def help(self): # flt
-        return dedent('''
+        print(dedent('''
         The flt class is derived from float and has the following attributes:
           c       * ANSI color escape codes in str() and repr()
+          dim       Returns the Dim object for the instance's units
           eng       Format in engineering notation
-          si        Format in engineering notation with SI prefix
-          sic       Format in engineering notation with SI prefix cuddled
           f       * Flip behavior of str() and repr()
+          flat    * Print units in flat form e.g. W·m⁻²·K⁻¹
           h         Print this help
+          high    * Switch to scientific notation if x > high
+          low     * Switch to scientific notation if x < low 
           n       * Set/read the number of significant figures
           promote   Allows flt("1 mi/hr") + 1 (the 1 is given "mi/hr" units)
           r         The repr() string, regardless of f attribute state
-          s         The str() string, regardless of f attribute state
-          t       * Date and time
           rtz     * Don't print trailing zeros
+          s         The str() string, regardless of f attribute state
           sci       Format in scientific notation
+          sigcomp * Only compare this number of sig figures for == if not None
+          solidus * Print units in solidus form e.g. W//m²·K
+          t       * Date and time
           val       Value in given units
-             * means the attribute affects all flt and cps instances'''[1:])
-    def round(self, n=None):    # flt
-        'Return flt rounded to n places or Base._digits if n is None'
-        if n is None:
-            n = Base._digits
-        if not ii(n, int) or n < 0:
-            raise ValueError("n must be an integer >= 0 or None")
-        if n:
-            x = D(self)
-            with decimal.localcontext() as ctx:
-                ctx.prec = abs(n)
-                x = +x
-                return flt(x)
-        else:
-            return self
+             * means the attribute affects all flt and cps instances'''[1:]))
     # ----------------------------------------------------------------------
     # Arithmetic functions
     def _do_op(self, other, op):  # flt
@@ -1244,25 +1335,35 @@ class flt(Base, float):
         '''To be equal, two flt objects must have the same unit
         dimensions and the same SI values.  With no units, they must be
         numerically equal.
+ 
+        If the sigcomp attribute is defined, it defines the number of
+        significant figures involved in the comparison.
         '''
         if ii(other, complex):
-            raise ValueError("Complex numbers are not ordered")
+            if other.imag:
+                return False
+            # Convert other to flt for comparison
+            if ii(other, cpx):
+                other = flt(other.real, units=other.u)
+            else:
+                other = flt(other.real)
+        # Get number of significant figures to make comparison to
+        n = self.sigcomp if self.sigcomp is not None else 15
         other_units = hasattr(other, "u") and bool(other.u)
         self_units = bool(self.u)
         if self_units and other_units:
-            dself = u.dim(self.u)
-            dother = u.dim(other.u)
-            if dself != dother:
-                # Not dimensionally the same
+            if not Base.eq_dim(self, other):
                 return False
             # Use their SI values
-            return float(self) == float(other)
+            a, b = flt(float(self)), flt(float(other))
+            return Base.sig_equal(a, b, n=n)
         elif ((self_units and not other_units) or 
             (not self_units and other_units)):
             return False
         else:
-            return float(self) == float(other)
-    def __le__(self, other):    # flt
+            b = flt(float(other))
+            return Base.sig_equal(self, b, n=n)
+    def __lt__(self, other):    # flt
         if ii(other, complex):
             raise ValueError("Complex numbers are not ordered")
         other_units = hasattr(other, "u") and bool(other.u)
@@ -1280,7 +1381,7 @@ class flt(Base, float):
         else:
             return float(self) < float(other)
     @property
-    def val(self):  # flt
+    def val(self) -> float:  # flt
         'Return the value as a float in the given units (not in SI)'
         if self.u is not None:
             return float(self)/u.u(self.u)
@@ -1305,15 +1406,30 @@ class cpx(Base, complex):
             instance = super().__new__(cls, re, im)
             instance._real = flt(f(real._real), units=units)
             instance._imag = flt(f(real._imag), units=units)
-            instance._units = units
-        elif ii(real, numbers.Real) and ii(imag, numbers.Real):
-            if ii(real, flt):
-                if units is not None and real.u is not None:
-                    raise ValueError("real can't have units")
-            if ii(imag, flt):
-                if units is not None and imag.u is not None:
-                    raise ValueError("imag can't have units")
-            re, im = float(real)*to_SI, float(imag)*to_SI
+            if ii(imag, str):
+                if units is not None:
+                    s = "Ambiguous units (imag or units parameter?)"
+                    raise ValueError(s)
+                instance._units = imag
+                to_SI = u.u(imag)
+            else:
+                instance._units = units
+        elif ii(real, numbers.Real):
+            re = float(real)*to_SI
+            if ii(imag, numbers.Real):
+                if ii(real, flt):
+                    if units is not None and real.u is not None:
+                        raise ValueError("real can't have units")
+                if ii(imag, flt):
+                    if units is not None and imag.u is not None:
+                        raise ValueError("imag can't have units")
+                re, im = float(real)*to_SI, float(imag)*to_SI
+            elif ii(imag, str):
+                re, im = float(real)*to_SI, float(imag)*to_SI
+            elif imag is None:
+                im = float(0)
+            else:
+                raise TypeError("imag not of proper type")
             instance = super().__new__(cls, re, im)
             instance._real = flt(f(real), units=units)
             instance._imag = flt(f(imag), units=units)
@@ -1344,8 +1460,15 @@ class cpx(Base, complex):
                     raise ValueError(m)
                 un = units if units is not None else un
                 if "j" in num:
-                    if imag:
-                        raise ValueError("Can't use 'j' and give imag number")
+                    if ii(imag, str):
+                        # It must be a unit
+                        un = imag
+                        to_SI = u.u(un)
+                        if units is not None:
+                            m = "Cannot have units in string and units keyword"
+                            raise ValueError(m)
+                    elif imag:
+                        raise ValueError("Can't use 'i' or 'j' and give imag number")
                     z = complex(num)
                     re, im = z.real*to_SI, z.imag*to_SI
                 else:
@@ -1354,22 +1477,28 @@ class cpx(Base, complex):
                 instance = super().__new__(cls, re, im)
                 instance._real = flt(f(re))
                 instance._imag = flt(f(im))
-                instance._to_SI = to_SI
                 instance._units = un
             else:
                 raise TypeError("Unexpected type for real")
+        instance._to_SI = to_SI
         return instance
     def _pol(self, repr=False): # cpx
         'Return polar form'
         f = lambda x:  Base.wrap(x, self)
-        r, theta = [flt(i) for i in polar(self)]
+        if self.u is None:
+            r, theta = [flt(i) for i in polar(self)]
+        else:
+            # Have to remove the units to call cmath.polar()
+            conv = 1/u.u(self.u)
+            z = complex(self.real*conv, self.imag*conv)
+            r, theta = [flt(i) for i in polar(z)]
         theta *= 1 if self.rad else 180/pi
         deg = "" if self.rad else "°"
         if repr:
             s = f"{r._r(no_color=True)}∠{theta._r(no_color=True)}{deg}"
         else:
             s = f"{r._s(no_color=True)}∠{theta._s(no_color=True)}{deg}"
-        if self._to_SI is not None:
+        if self.u is not None:
             t = "(" + s + ")"
             t = f"{t}{Base._sep}{self._units}"
         else:
@@ -1402,7 +1531,7 @@ class cpx(Base, complex):
     def _r(self):   # cpx
         'Return the full representation string'
         f = lambda x:  Base.wrap(x, self, force=cpx)
-        conv = 1/u.u(self.u) if self.u else 1
+        conv = 1/u.u(self.u) if self.u else 1   # SI to original units
         if self.p:
             s = self._pol(repr=True)
         else:
@@ -1427,8 +1556,8 @@ class cpx(Base, complex):
                 i = f"{float(self._imag*conv)!r}"
                 sgn = "+" if self._imag > 0 else ""
                 s = f"{r}{sgn}{i}{I}"
-                if self.u:
-                    s = f"({r}{sgn}{i}{I}) {self.u}"
+                if self.u:  # Include units
+                    s = f"({r}{sgn}{i}{I}){Base._sep}{self.u}"
         return f(s)
     def __str__(self):  # cpx
         return self._r() if Base._flip else self._s()
@@ -1442,16 +1571,18 @@ class cpx(Base, complex):
             cp = cpx(complex(self))
         return cp
     def help(self): # cpx
-        return dedent('''
+        return print(dedent('''
         The cpx class is derived from complex and has the following attributes:
           c       * ANSI color escape codes in str() and repr()
+          dim       Returns the Dim object for the instance's units
           eng       Format in engineering notation
-          si        Format in engineering notation with SI prefix
-          sic       Format in engineering notation with SI prefix cuddled
           f       * Flip behavior of str() and repr()
+          flat    * Print units in flat form e.g. W·m⁻²·K⁻¹
           h         Print this help
+          high    * Switch to scientific notation if x > high
           i       * Use 'i' instead of 'j' as the imaginary unit
           imag      Return the imaginary component
+          low     * Switch to scientific notation if x < low 
           n       * Set/read the number of significant figures
           nz      * Don't print zero components if True
           p       * Display in polar coordinates
@@ -1459,15 +1590,14 @@ class cpx(Base, complex):
           r         The repr() string, regardless of f attribute state
           rad       Display polar angle in radians
           real      Return the real component
-          s         The str() string, regardless of f attribute state
-          t       * Date and time
           rtz     * Don't print trailing zeros
+          s         The str() string, regardless of f attribute state
           sci       Format in scientific notation
+          sigcomp * Only compare this number of sig figures for == if not None
+          solidus * Print units in solidus form e.g. W//m²·K
+          t       * Date and time
           val       Value in given units
-             * means these attributes affect all cpx instances'''[1:])
-    def round(self, n=None):    # cpx
-        'Return a cpx with components rounded to n decimal places'
-        return cpx(self.real.round(n), self.imag.round(n))
+             * means these attributes affect all cpx instances'''[1:]))
     # Arithmetic functions
     def _do_op(self, other, op):    # cpx
         other_units = hasattr(other, "u") and bool(other.u)
@@ -1508,33 +1638,29 @@ class cpx(Base, complex):
     def __abs__(self):  # cpx
         return flt(abs(self.val), units=self.u)
     def __eq__(self, other):    # cpx
-        if not ii(other, (float, flt, complex, cpx)):
-            if self._units is not None:
+        '''To be equal, two cpx objects must have the same unit
+        dimensions and the same SI values.  With no units, they must be
+        numerically equal.
+ 
+        If the sigcomp attribute is defined, it defines the number of
+        significant figures involved in the comparison.
+        '''
+        # Get number of significant figures to make comparison to
+        n = self.sigcomp if self.sigcomp is not None else 15
+        other_units = hasattr(other, "u") and bool(other.u)
+        self_units = bool(self.u)
+        if self_units and other_units:
+            if not Base.eq_dim(self, other):
                 return False
-            if other != self:
-                return False
-            return True
-        elif ii(other, cpx):
-            if ((self._units and not other._units) or
-                (not self._units and other._units)):
-                return False
-            return other.val == self.val
-        elif ii(other, flt):
-            if self.imag:
-                return False
-            if other._units != self._units:
-                return False
-            if other != self.val:
-                return False
-            return True
-        elif ii(other, complex):
-            if self._units is not None:
-                return False
-            if self.val != other:
-                return False
-            return True
-    def __ne__(self, other):    # cpx
-        return not self.__eq__(other)
+            # Use their SI values
+            a, b = cpx(complex(self)), cpx(complex(other))
+            return Base.sig_equal(a, b, n=n)
+        elif ((self_units and not other_units) or 
+            (not self_units and other_units)):
+            return False
+        else:
+            b = cpx(complex(other))
+            return Base.sig_equal(self, b, n=n)
     # ----------------------------------------------------------------------
     # Properties
     @property
@@ -1684,130 +1810,179 @@ if 1:   # Get math/cmath functions into our namespace
         exec(f"{i} = flt({i})")
 
 if 0:
-    x = flt("10 k")
-    print(x)
-    print(x.u)
+    flt.n = 5
+    for i in range(-9, 10):
+        x = flt(pi*10**i)
+        s = x._eng()
+        print(f"Result for {x} = {s}")
+        assert(x.s == x(s).s)
+    print("Zero:", x(0)._eng())
     exit()
 
 if __name__ == "__main__": 
-    from lwtest import run, raises, assert_equal
-    if 1:   # Test code 
-        def Assert(cond):
-            '''Same as assert, but you'll be dropped into the debugger on an
-            exception if you include a command line argument.
-            '''
-            if not cond:
-                if len(sys.argv) > 1:
-                    print("Type 'up' to go to line that failed")
-                    xx()
-                else:
-                    raise AssertionError
-        def Equal(a, b, reltol=1e-15):
-            'Return if a == b within the indicated tolerance'
-            if not a and not b:
-                return True
-            if ii(a, flt) and ii(b, flt):
-                if (a.u and not b.u) or (not a.u and b.u):
+    from lwtest import run, raises, assert_equal, Assert
+    eps = 1e-15
+    def Equal(a, b, reltol=eps):
+        'Return True if a == b within the indicated tolerance'
+        if not a and not b:
+            return True
+        if ii(a, flt) and ii(b, flt):
+            if (a.u and not b.u) or (not a.u and b.u):
+                return False
+            if a.u is not None and b.u is not None:
+                da, db = u.dim(a.u), u.dim(b.u)
+                if da != db:
                     return False
-                if a.u is not None and b.u is not None:
-                    da, db = u.dim(a.u), u.dim(b.u)
-                    if da != db:
-                        return False
-                diff = abs(float(a) - float(b))
-                if float(a):
-                    reldiff = abs(diff/float(a))
-                elif float(b):
-                    reldiff = abs(diff/float(b))
-                return reldiff <= reltol
-            elif ii(a, cpx) and ii(b, cpx):
-                if (a.u and not b.u) or (not a.u and b.u):
+            diff = abs(float(a) - float(b))
+            if float(a):
+                reldiff = abs(diff/float(a))
+            elif float(b):
+                reldiff = abs(diff/float(b))
+            return reldiff <= reltol
+        elif ii(a, cpx) and ii(b, cpx):
+            if (a.u and not b.u) or (not a.u and b.u):
+                return False
+            if not a.u and not b.u:
+                da, db = u.dim(a.u), u.dim(b.u)
+                if da != db:
                     return False
-                if not a.u and not b.u:
-                    da, db = u.dim(a.u), u.dim(b.u)
-                    if da != db:
-                        return False
-                # Real part
-                realdiff = abs(float(a.real) - float(b.real))
-                if float(a.real):
-                    reldiff = abs(realdiff/float(a.real))
-                elif float(b):
-                    reldiff = abs(realdiff/float(b.real))
-                else:
-                    reldiff = realdiff
-                if reldiff > reltol:
-                    return False
-                # Imaginary part
-                imagdiff = abs(float(a.imag) - float(b.imag))
-                if float(a.imag):
-                    reldiff = abs(imagdiff/float(a.imag))
-                elif float(b.imag):
-                    reldiff = abs(imagdiff/float(b.imag))
-                else:
-                    reldiff = imagdiff
-                if reldiff > reltol:
-                    return False
-                return True
+            # Real part
+            realdiff = abs(float(a.real) - float(b.real))
+            if float(a.real):
+                reldiff = abs(realdiff/float(a.real))
+            elif float(b):
+                reldiff = abs(realdiff/float(b.real))
             else:
-                raise TypeError("Must both be flt or cpx")
-        def Test_constructors():
-            # W is any type that float(W) works on
-            # S is str
-            # X is types:  int, float, flt, Fraction, Decimal, W
-            # Z is types:  complex, cpx
-            with flt(0):
-                # flt(X) 
-                for i in (1, 1.0, flt(1), Fraction(1, 1), D("1")):
-                    Assert(flt(i) == float(i))
-                    Assert(flt(i, units=None) == float(i))
-                    Assert(flt(i, None) == float(i))
-                    x = flt(i)
-                    Assert(x(i) == x)
-                with raises(TypeError):
-                    flt(cpx(1))
+                reldiff = realdiff
+            if reldiff > reltol:
+                return False
+            # Imaginary part
+            imagdiff = abs(float(a.imag) - float(b.imag))
+            if float(a.imag):
+                reldiff = abs(imagdiff/float(a.imag))
+            elif float(b.imag):
+                reldiff = abs(imagdiff/float(b.imag))
+            else:
+                reldiff = imagdiff
+            if reldiff > reltol:
+                return False
+            return True
+        else:
+            raise TypeError("Both a and b must be flt or cpx")
+    def Test_sig_equal():
+        '''Base.sig_equal compares two numbers to a specified number of
+        significant figures and returns True if they are equal.
+        
+        The choice of this number for p means there will be no spurious
+        rounding of the last digit.  If you choose p == pi, you'll see
+        the following tests fail for n = 2, 6, and 9.  For example, for 
+        n == 2, you'll see x = 3.14... and y = 3.17...  In the 
+        Base.sig_equal function, the two numbers compared will be 
+        Decimal('3.1') and Decimal('3.2'), leading to an inequality.
+        '''
+        p = 1.111111111111111
+        for n in range(1, 15):
+            eps = 10**-n
+            a = 1 + eps
+            x = flt(p)
+            y = flt(p*a)
+            Assert(Base.sig_equal(x, y, n=n))
+            Assert(not Base.sig_equal(x, y, n=n + 1))
+            x = cpx(p, p)
+            y = cpx(p*a, p*a)
+            Assert(Base.sig_equal(x, y, n=n))
+            Assert(not Base.sig_equal(x, y, n=n + 1))
+    def Test_flt_constructor():
+        # No units
+        with flt(0):
+            # flt(X) 
+            for i in (1, 1.0, flt(1), Fraction(1, 1), D("1")):
+                Assert(flt(i) == float(i))
+                Assert(flt(i, units=None) == float(i))
+                Assert(flt(i, None) == float(i))
+                x = flt(i)
+                # Factory works
+                Assert(x(i) == x)
+            with raises(TypeError):
+                flt(cpx(1))
+        # With units
+        with flt(0):
+            one = flt(1)
             x = flt(1, units="mi/hr")
-            with x:
-                # With strings
-                Assert(flt("1") == 1)
-                Assert(flt("1", units="") == 1)
-                Assert(flt("1", units=None) == 1)
-                Assert(flt(1, units="mi/hr") == x)
-                Assert(flt("1", units="mi/hr") == x)
-                Assert(flt("1 mi/hr") == x)
-                Assert(x(1) == x)
-            with cpx(0):
-                z = cpx(1)
-                # Simple
-                Assert(z == cpx(1))
-                Assert(z == cpx(1, imag=None))
-                Assert(z == cpx(1, imag=None, units=None))
-                # Two components
-                z = cpx(1, 2)
-                Assert(z == cpx(1, 2))
-                Assert(z == cpx("1", 2))
-                Assert(z == cpx("1", "2"))
-                # String
-                Assert(z == cpx("1+2j"))
-                Assert(z == cpx("1+2i"))
-                # With units
-                z = cpx(1, 2, units="mi/hr")
-                # String
-                Assert(z == cpx("1+2i mi/hr"))
-                Assert(z == cpx("1+2i", units="mi/hr"))
-                Assert(z == cpx("1+2i", 0, units="mi/hr"))
-                with raises(ValueError):
-                    cpx("1+2i", 1, units="mi/hr")
-                Assert(z(z) == z)
-        def Test_copy():
+            Assert(flt(1) == one)
+            Assert(flt(1, units="") == one)
+            Assert(flt(1, units=None) == one)
+            # With strings
+            Assert(flt("1") == one)
+            Assert(flt("1", units="") == one)
+            Assert(flt("1", units=None) == one)
+            Assert(flt(1, units="mi/hr") == x)
+            Assert(flt("1", units="mi/hr") == x)
+            Assert(flt("1 mi/hr") == x)
+            # Factory with units works
+            Assert(x(1) == x)
+    def Test_cpx_constructor():
+        # No units
+        with cpx(0):
+            z = cpx(1)
+            # Simple
+            Assert(z == cpx(1))
+            Assert(z == cpx(1, imag=None))
+            Assert(z == cpx(1, imag=None, units=None))
+            # Two components
+            z = cpx(1, 2)
+            Assert(z == cpx(1, 2))
+            Assert(z == cpx("1", 2))
+            Assert(z == cpx(1, "2"))
+            Assert(z == cpx("1", "2"))
+            # String
+            Assert(z == cpx("1+2j"))
+            Assert(z == cpx("1+2i"))
+        # With units
+        with cpx(0):
+            z = cpx(1, 2, units="mi/hr")
+            Assert(z == cpx(1, 2, units="mi/hr"))
+            Assert(z == cpx("1", 2, units="mi/hr"))
+            Assert(z == cpx(1, "2", units="mi/hr"))
+            Assert(z == cpx("1", "2", units="mi/hr"))
+            # String
+            Assert(z == cpx("1+2i mi/hr"))
+            Assert(z == cpx("1+2i", "mi/hr"))
+            Assert(z == cpx("1+2i", units="mi/hr"))
+            Assert(z == cpx("1+2i", 0, units="mi/hr"))
+            # Factory with units works
+            Assert(z(z) == z)
+            # Unallowed forms
+            with raises(ValueError):
+                # Which imag part should be used?
+                cpx("1+2i", 1, units="mi/hr")
+            with raises(ValueError):
+                # Which units should be used?
+                cpx("1+2i", "m/s", units="mi/hr")
+    def Test_copy():
+        # flt
+        with flt(0):
             x = flt(1)
             Assert(x == x.copy())
+            Assert(x(x) == x.copy())
+            Assert(x(1) == x.copy())
             x = flt("1 mi/hr")
             Assert(x == x.copy())
+            Assert(x(x) == x.copy())
+            Assert(x(1) == x.copy())
+        # cpx
+        with cpx(0):
             z = cpx(1)
             Assert(z == z.copy())
+            Assert(z(z) == z.copy())
+            Assert(z(1) == z.copy())
             z = flt("1 mi/hr")
             Assert(z == z.copy())
-        def Test_FixedFormat():
-            x = flt(0)
+            Assert(z(z) == z.copy())
+            Assert(z(1) == z.copy())
+    def Test_FixedFormat():
+        x = flt(0)
+        with x:
             data = [i.strip() for i in '''
                 -10 0.0000000003142
                 -9 0.000000003142
@@ -1836,108 +2011,254 @@ if __name__ == "__main__":
                 y = D(f"{str(math.pi)}e{exp}")
                 got = x.FixedFormat(y, 4)
                 Assert(got == expected)
-        def Test_flt_with_units():
-            with flt(1):
-                # Same units
-                x = flt("2 mi/hr")
-                y = flt("1 mi/hr")
-                Assert(x + y == flt("3 mi/hr"))
-                Assert(x - y == flt("1 mi/hr"))
-                Assert(x*y == flt("2 mi2/hr2"))
-                Assert(x/y == flt(2))
-                Assert(x//y == flt(2))
-                # Different units
-                x = flt("2 mi/hr")
-                y = flt("1 km/hr")
-                Equal(x + y, flt("2.6213711922373344 mi/hr"))
-                Equal(x - y, flt("1.378628807762666 mi/hr"))
-                Equal(x*y, flt("2 km*mi/hr2"))
-                Equal(x/y, flt("2 mi/km"))
-                Equal(x//y, flt(3))
-                # pow
-                with raises(TypeError):
-                    x**y    # Exception because y has units
-                Equal(x**3, flt("8 mi3/hr3"))
-                Equal(x**3.3, flt(repr(2**3.3) + " mi^3.3/hr^3.3"))
-                # divmod
+            s = x.FixedFormat(D(0), 3)
+            Assert(s == "0.00")
+    def Test_flt_arithmetic_with_units():
+        with flt(1):
+            # Same units
+            x = flt("2 mi/hr")
+            y = flt("1 mi/hr")
+            Assert(x + y == flt("3 mi/hr"))
+            Assert(x - y == flt("1 mi/hr"))
+            Assert(x*y == flt("2 mi2/hr2"))
+            Assert(x/y == flt(2))
+            Assert(x//y == flt(2))
+            # Different units
+            x = flt("2 mi/hr")
+            y = flt("1 km/hr")
+            Equal(x + y, flt("2.6213711922373344 mi/hr"))
+            Equal(x - y, flt("1.378628807762666 mi/hr"))
+            Equal(x*y, flt("2 km*mi/hr2"))
+            Equal(x/y, flt("2 mi/km"))
+            Equal(x//y, flt(3))
+            # pow
+            with raises(TypeError):
+                x**y    # Exception because y has units
+            Equal(x**3, flt("8 mi3/hr3"))
+            Equal(x**3.3, flt(repr(2**3.3) + " mi^3.3/hr^3.3"))
+            # divmod
+            q, rem = divmod(x, y)
+            Assert(q == 2)
+            Assert(rem == 0)
+            Assert(ii(rem, flt))
+        # Test string interpolation behavior
+        with flt(1):
+            x = flt("1 mi/hr")
+            assert_equal(float(x), 0.44704, reltol=eps)
+            Assert(x.val == 1 and ii(x.val, float))
+            Assert(x.s == "1.00\xa0mi/hr")
+            Assert(x.r == "1.0\xa0mi/hr")
+            x.f = 1
+            Assert(x.s == "1.00\xa0mi/hr")
+            Assert(x.r == "1.0\xa0mi/hr")
+    def Test_reverse_flt_arithmetic_with_units():
+        with flt(0):
+            x = 2
+            y = flt("1 mi/hr")
+            y.f = y.c = 1
+            # Exception with promote off
+            y.promote = 0
+            with raises(TypeError):
+                x + y
+            # Works with promote on
+            y.promote = 1
+            Assert(x + y == flt("3 mi/hr"))
+            Assert(x - y == flt("1 mi/hr"))
+            Assert(x*y == flt("2 mi/hr"))
+            Equal(x/y, flt("2 hr/mi"))
+            # Different units
+            x = flt("2 mi/hr")
+            y = flt("1 km/hr")
+            Equal(x + y, flt("2.6213711922373344 mi/hr"))
+            Equal(x - y, flt("1.378628807762666 mi/hr"))
+            Equal(x*y, flt("2 km*mi/hr2"))
+            Equal(x/y, flt("2 mi/km"))
+            # pow
+            with raises(TypeError):
+                x**y
+            Equal(x**3, flt("8 mi3/hr3"))
+            Equal(x**3.3, flt(repr(2**3.3) + " mi^3.3/hr^3.3"))
+            # divmod
+            q, rem = divmod(x, y)
+            Assert(q == 2)
+            Assert(rem == 0)
+            Assert(ii(rem, flt))
+    def Test_cpx_with_units():
+        with cpx(1):
+            # Same units
+            x = cpx("2+1j mi/hr")
+            y = cpx("1+1j mi/hr")
+            Assert(x + y == cpx("3+2j mi/hr"))
+            Assert(x - y == cpx("1-0j mi/hr"))
+            Equal(x*y, cpx("1+3j mi**2/hr**2"))
+            Assert(x/y == cpx("1.5-0.5j"))
+            with raises(TypeError):
+                x//y
+            # Different units
+            x = cpx("2+1j mi/hr")
+            y = cpx("1+1j km/hr")
+            w = cpx("2.6213711922373344+1.6213711922373342j mi/hr")
+            Equal(x + y, w)
+            w = cpx("1.378628807762666+0.378628807762666j mi/hr")
+            Equal(x - y, w)
+            w = cpx("0.9999999999999997+2.999999999999999j mi/hr")
+            Equal(x*y, w)
+            w = cpx("1.4999999999999998-0.49999999999999994j mi/km")
+            Equal(x/y, w)
+            with raises(TypeError):
+                x//y
+            # pow
+            with raises(TypeError):
+                x**y    # Exception because y has units
+            Equal(x**3, cpx("1.9999999999999991+11.0j mi**3/hr**3"))
+            w = "0.5799707405700941+14.221311772360444j mi^3.3/hr^3.3"
+            Equal(x**3.3, cpx(w))
+            # divmod
+            with raises(TypeError):
                 q, rem = divmod(x, y)
-                Assert(q == 2)
-                Assert(rem == 0)
-                Assert(ii(rem, flt))
-        def Test_reverse_flt_with_units():
-            with flt(0):
-                x = 2
-                y = flt("1 mi/hr")
-                y.f = y.c = 1
-                # Exception with promote off
-                y.promote = 0
-                with raises(TypeError):
-                    x + y
-                # Works with promote on
-                y.promote = 1
-                Assert(x + y == flt("3 mi/hr"))
-                Assert(x - y == flt("1 mi/hr"))
-                Assert(x*y == flt("2 mi/hr"))
-                Equal(x/y, flt("2 hr/mi"))
-                # Different units
-                x = flt("2 mi/hr")
-                y = flt("1 km/hr")
-                Equal(x + y, flt("2.6213711922373344 mi/hr"))
-                Equal(x - y, flt("1.378628807762666 mi/hr"))
-                Equal(x*y, flt("2 km*mi/hr2"))
-                Equal(x/y, flt("2 mi/km"))
-                # pow
-                with raises(TypeError):
-                    x**y
-                Equal(x**3, flt("8 mi3/hr3"))
-                Equal(x**3.3, flt(repr(2**3.3) + " mi^3.3/hr^3.3"))
-                # divmod
-                q, rem = divmod(x, y)
-                Assert(q == 2)
-                Assert(rem == 0)
-                Assert(ii(rem, flt))
-        def Test_cpx_with_units():
-            with cpx(1):
-                # Same units
-                x = cpx("2+1j mi/hr")
-                y = cpx("1+1j mi/hr")
-                Assert(x + y == cpx("3+2j mi/hr"))
-                Assert(x - y == cpx("1-0j mi/hr"))
-                Equal(x*y, cpx("1+3j mi**2/hr**2"))
-                Assert(x/y == cpx("1.5-0.5j"))
-                with raises(TypeError):
-                    x//y
-                # Different units
-                x = cpx("2+1j mi/hr")
-                y = cpx("1+1j km/hr")
-                w = cpx("2.6213711922373344+1.6213711922373342j mi/hr")
-                Equal(x + y, w)
-                w = cpx("1.378628807762666+0.378628807762666j mi/hr")
-                Equal(x - y, w)
-                w = cpx("0.9999999999999997+2.999999999999999j mi/hr")
-                Equal(x*y, w)
-                w = cpx("1.4999999999999998-0.49999999999999994j mi/km")
-                Equal(x/y, w)
-                with raises(TypeError):
-                    x//y
-                # pow
-                with raises(TypeError):
-                    x**y    # Exception because y has units
-                Equal(x**3, cpx("1.9999999999999991+11.0j mi**3/hr**3"))
-                w = "0.5799707405700941+14.221311772360444j mi^3.3/hr^3.3"
-                Equal(x**3.3, cpx(w))
-                # divmod
-                with raises(TypeError):
-                    q, rem = divmod(x, y)
-        def Test_promote():
-            x, y, expected = 2, flt("1 mi/hr"), flt("3 mi/hr")
+    def Test_promote():
+        '''The promote attribute when True allows expressions like
+        'flt("1 mi/hr") + 1' to be evaluated by giving the '1' the same
+        units as the flt.
+        '''
+        x, y, expected = 2, flt("1 mi/hr"), flt("3 mi/hr")
+        with y:
+            # Arithmetic fails if promote False
             y.promote = 0
             with raises(TypeError):
                 x + y
             with raises(TypeError):
                 y + x
+            with raises(TypeError):
+                x - y
+            with raises(TypeError):
+                y - x
+            # Arithmetic succeeds if promote True
             y.promote = 1
             Assert(x + y == expected)
             Assert(y + x == expected)
-    r = r"^[Tt]est_"
-    failed, messages = run(globals(), regexp=r, quiet=0, halt=1)
+            Assert(x - y == y)
+            Assert(y - x == -y)
+    def Test_sigcomp():
+        '''The flt/cpx sigcomp attribute is an integer that forces
+        comparisons to be made to the indicated number of significant
+        figures.
+        '''
+        # flt
+        for i in range(2, 16):
+            x = flt(pi)
+            y = flt(pi*(1 + 10**-i))
+            with x:
+                x.sigcomp = i - 1
+                Assert(x == y)
+                x.sigcomp = i 
+                Assert(x != y)
+        # Check sigcomp = None
+        with x:
+            x.sigcomp = None
+            x = flt(pi)
+            y = flt(pi*(1 + 10**-16))
+            Assert(x == y)
+        # cpx
+        for i in range(2, 16):
+            x = cpx(pi, pi)
+            t = pi*(1 + 10**-i)
+            y = cpx(t, pi)
+            with x:
+                x.sigcomp = i - 1
+                Assert(x == y)
+                x.sigcomp = i 
+                Assert(x != y)
+            y = cpx(pi, t)
+            with x:
+                x.sigcomp = i - 1
+                Assert(x == y)
+                x.sigcomp = i 
+                Assert(x != y)
+        # Check sigcomp = None
+        with x:
+            x.sigcomp = None
+            x = cpx(pi, pi)
+            t = pi*(1 + 10**-16)
+            y = cpx(t, pi)
+            Assert(x == y)
+            y = cpx(pi, t)
+            Assert(x == y)
+    def Test_polar():
+        # No units
+        z = cpx(1, 1)
+        with z:
+            z.n = 3
+            z.p = 1
+            Assert(z.s == "(1.41∠45.0°)")
+            z.i = 1
+            Assert(z.s == "1.41∠45.0°")
+            z.rad = 1
+            Assert(z.s == "1.41∠0.785")
+        # Units
+        z = cpx(1, 1, "mi/hr")
+        nbs = Base._sep
+        with z:
+            z.n = 3
+            z.p = 1
+            Assert(z.s == f"(1.41∠45.0°){nbs}mi/hr")
+            z.i = 1
+            # Still have parentheses because units require them
+            Assert(z.s == f"(1.41∠45.0°){nbs}mi/hr")
+            z.rad = 1
+            Assert(z.s == f"(1.41∠0.785){nbs}mi/hr")
+    def Test_unit_formatting():
+        x = flt("2.23456 W/(m2*K)")
+        with x:
+            Assert(x.s == "2.23 W/(m²·K)")
+            x.solidus = 1
+            Assert(x.s == "2.23 W//m²·K")
+            x.flat = 1
+            Assert(x.s == "2.23 W·m⁻²·K⁻¹")
+    def Test_low_and_high():
+        'Also tests flt._sci()'
+        x = flt(1)
+        with x:
+            x.n = 2
+            x.low = 0.01
+            x.high = 100
+            Assert(x(1).s == "1.0")
+            Assert(x(10).s == "10.")
+            Assert(x(100).s == "100.")
+            Assert(x(99.9).s == "100.")
+            Assert(x(100.9).s == "1.0e2")
+            Assert(x(101).s == "1.0e2")
+            Assert(x(0.1).s == "0.10")
+            Assert(x(0.01).s == "0.010")
+            Assert(x(0.00999).s == "1.0e-2")
+            Assert(x(0.0099).s == "9.9e-3")
+            Assert(x(0.001).s == "1.0e-3")
+        z = cpx(1, 1)
+        with z:
+            z.n = 2
+            z.low = 0.01
+            Assert(z(1).s == "(1.0+0.0j)")
+            Assert(z(0.1).s == "(0.10+0.0j)")
+            Assert(z(0.01).s == "(0.010+0.0j)")
+            Assert(z(0.001).s == "(1.0e-3+0.0j)")
+            Assert(z(1j).s == "(0.0+1.0j)")
+            Assert(z(0.1j).s == "(0.0+0.10j)")
+            Assert(z(0.01j).s == "(0.0+0.010j)")
+            Assert(z(0.001j).s == "(0.0+1.0e-3j)")
+            Assert(z(1+1j).s == "(1.0+1.0j)")
+            Assert(z(0.1+0.1j).s == "(0.10+0.10j)")
+            Assert(z(0.01+0.01j).s == "(0.010+0.010j)")
+            Assert(z(0.001+0.001j).s == "(1.0e-3+1.0e-3j)")
+    def Test_eng():
+        Expected = '''
+            3.14e-9 31.4e-9 314.e-9 3.14e-6 31.4e-6 314.e-6 3.14e-3
+            31.4e-3 314.e-3 3.14e0 31.4e0 314.e0 3.14e3 31.4e3 314.e3
+            3.14e6 31.4e6 314.e6 3.14e9'''.split()
+        with flt(0):
+            for i in range(-9, 10):
+                expected = Expected[i + 9]
+                x = flt(pi*10**i)
+                s = x._eng()
+                Assert(s == expected)
+            Assert(x(0)._eng() == "0.00e0")
+    failed, messages = run(globals(), regexp=r"^[Tt]est_", halt=1)

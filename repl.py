@@ -22,7 +22,7 @@ documentation.
 if 1:  # Copyright, license
     # These "trigger strings" can be managed with trigger.py
     #∞version∞# 
-        _version = "14May2021-084856"
+        _version = "30May2021"
     #∞version∞#
     #∞copyright∞# Copyright (C) 2021 Don Peterson #∞copyright∞#
     #∞contact∞# gmail.com@someonesdad1 #∞contact∞#
@@ -135,7 +135,6 @@ if 1:   # Core functionality
         z.i = True
         z.c = True
         z.f = True
-        symbols = locals().copy()
         print(dedent(f'''
         Favorite symbols loaded:  
           u, pp, D, F, P, uf (ufloat)
@@ -143,7 +142,7 @@ if 1:   # Core functionality
           flt/cpx colorizing on with {z.n} significant figures
           x is a flt, z is a cpx (use x.h and z.h for help on them)
         '''[1:].rstrip()))
-        return symbols
+        return locals().copy()
     def Help():
         cmds = (
             ("< f", "Read buffer from file f"),
