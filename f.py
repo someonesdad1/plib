@@ -1767,6 +1767,18 @@ if 1:   # Get math/cmath functions into our namespace
                 result = eval(s)
             except AttributeError as err:
                 raise TypeError(err) from None
+            except ValueError as err:
+                if str(err) == "math domain error":
+                    # This can happen with e.g. asin(2) where you need
+                    # to use the cmath version to get a complex result.
+                    # The argument is a float, but the result is a
+                    # complex and this case won't be detected by the
+                    # above tests.
+                    if self.name in "asin acos".split():
+                        # Try using cmath
+                        result = eval("c" + s)
+                else:
+                    raise
             if ii(result, int):
                 return result
             elif ii(result, (float, flt)):
@@ -1817,6 +1829,7 @@ if 1:   # Get math/cmath functions into our namespace
         exec(f"{i} = flt({i})")
 
 if 0:
+    print(atan)
     exit()
 
 if __name__ == "__main__": 

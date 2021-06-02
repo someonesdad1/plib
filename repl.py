@@ -1,5 +1,8 @@
 '''
 
+* Bug:  asin(2) doesn't work; it should return
+  1.5707963267948966+1.3169578969248166j
+
 * Search for 'python units library' and there are numerous choices.
     Maybe it would make more sense to integrate one of them.
 
@@ -15,7 +18,7 @@ documentation.
 if 1:   # Standard imports
     # These "trigger strings" can be managed with trigger.py
     #∞version∞# 
-    _version = "30May2021"
+    _version = "2Jun2021"
     #∞version∞#
     #∞copyright∞# Copyright (C) 2021 Don Peterson #∞copyright∞#
     #∞contact∞# gmail.com@someonesdad1 #∞contact∞#
@@ -61,6 +64,8 @@ if 1:   # Global variables
     g.norm = C.normal(s=1)
     g.name = sys.argv[0]
     g.editor = "vim"
+    _ = sys.version_info
+    g.pyversion = f"{_.major}.{_.minor}.{_.micro}"
 if 1:   # Utility
     def eprint(*p, **kw):
         'Print to stderr'
@@ -94,7 +99,7 @@ if 1:   # Utility
         return args
     def Clean():
         'Register a cleanup function to ensure no color for shell'
-        print(C.normal(s=1), end="")
+        Print(C.normal(s=1), end="")
     register(Clean)
 if 1:   # Core functionality
     def EditString(data):
@@ -129,7 +134,6 @@ if 1:   # Core functionality
         z = cpx(0)
         z.i = True
         z.f = True
-        print("Favorite symbols loaded:  u, pp, D, F, P, uf, flt, cpx")
         loc = locals().copy()
         del loc["z"]
         return loc
@@ -147,14 +151,14 @@ if 1:   # Core functionality
             ("q", "Quit"),
             ("r", "Run buffer"),
             ("s", "Print symbols in scope"),
+            ("v", "Show version"),
         )
-        print("Commands:")
+        Print("Commands:")
         for cmd, meaning in cmds:
-            s = f"{g.cyn}{cmd:^5s}{g.norm}  {meaning}"
-            print(s)
-            if d["-l"]:
-                print(s, file=log)
-        print(wrap(f'''
+            s = f"{g.brn}{cmd:^5s}{g.norm}  {meaning}"
+            s = f"{cmd:^5s}  {meaning}"
+            Print(s)
+        Print(wrap(f'''
         If a command is defined as a symbol, then preface it with a
         space character to execute it as a command.
  
@@ -164,7 +168,7 @@ if 1:   # Core functionality
         function, include a blank line after the function's end so that
         the interpreter recogizes the end properly.
  
-        You can customize nearly all behavior of {g.name} by editing the
+        You can customize most of the behavior of {g.name} by editing the
         script.  If you are running in a UNIX-like environment or
         cygwin, you should have history and command completion available
         via readline.
@@ -195,14 +199,14 @@ if 1:   # Core functionality
         s = "s = input(self.ps).rstrip()"
         t = "returnvalue = console.push(line)"
         lines = g.P(sys.argv[0]).read_text().split("\n")
-        print(dedent(f'''
+        Print(dedent(f'''
         Set a breakpoint at line {Find(s)} to stop before each input
         Set a breakpoint at line {Find(t)} to stop before execution
         If you use the latter breakpoint, press n or c to continue
         To stop at an imported function named A, issue the command
             b console.locals["A"]
         Note you'll have subsequent problems with stdout, so the best
-        strategy is to us 'c' to continue and set another breakpoint.
+        strategy is to use 'c' to continue and set another breakpoint.
         '''))
     def FixShellArgument(arg):
         '''Some shell commands like ls and grep are better with color
@@ -232,6 +236,10 @@ if 1:   # Core functionality
             else:
                 args.insert(0, c)
         return ' '.join(args)
+    def Print(*p, **kw):
+        'Print to stdout and log'
+        print(*p, **kw)
+        print(*p, **kw, file=log)
 if 1:   # Special commands
     def Special(cmd, console):
         first_char = cmd[0]
@@ -268,11 +276,13 @@ if 1:   # Special commands
         elif cmd == "f":  
             # Load favorite symbols
             console.locals.update(GetSymbols())
+            Print("Loaded favorite symbols")
         elif cmd == "h":
             # Print help info
             Help()
         elif cmd == "q":  
-            print(f"Quit at {console.time}")
+            t = console.time
+            Print(f"{t}")
             exit(0)
         elif cmd == "r":  
             # Run buffer
@@ -284,9 +294,7 @@ if 1:   # Special commands
             # Print symbols
             d = console.locals
             symbols = sorted(d.keys())
-            if not symbols:
-                print("No symbols")
-            else:
+            if symbols:
                 lquote, rquote = "", ""
                 if "Delegator" in symbols:
                     lquote = d["Delegator"]._left
@@ -294,23 +302,32 @@ if 1:   # Special commands
                 o = []
                 for symbol in symbols:
                     if symbol == "Delegator":
+                        if symbol == "Delegator":
+                            continue
                         continue
                     item = d[symbol]
                     s = str(item)
                     if s.startswith(lquote):
-                        o.append(s)
+                        s = s.replace(lquote, "").replace(rquote, "")
+                        o.append(f"{g.brn}{s}{g.norm}")
                     else:
                         o.append(symbol)
-                for line in Columnize(o):
-                    print(line)
-                if lquote:
-                    print(f"{lquote}x{rquote} is a wrapped math/cmath function")
-            del d["Delegator"]
+                try:
+                    for line in Columnize(o):
+                        Print(line)
+                    if lquote:
+                        Print("Wrapped math/cmath functions are in color.  Thus, you can use expressions")
+                        Print("like cos(1) and cos(1j) directly.")
+                except ValueError:
+                    pass
+                if "Delegator" in symbols:
+                    del d["Delegator"]
         elif cmd == "v":  
             # Print repl.py version
-            print(f"{sys.argv[0]} version:  {_version}")
+            Print(f"{sys.argv[0]} version:  {_version}   "
+                  f"[running python {g.pyversion}]")
         else:
-            print(f"{g.err}'{cmd}' not recognized{g.norm}")
+            Print(f"{g.err}'{cmd}' not recognized{g.norm}")
 if 1:   # class Console
     class Console(code.InteractiveConsole):
         @property
@@ -328,17 +345,15 @@ if 1:   # class Console
             return f"{date} {tm}"
         @property
         def msg(self):
-            v = sys.version_info
-            ver = f"{v.major}.{v.minor}.{v.micro}"
-            return f"[python {ver}]  {self.time}"
+            return f"{self.time}"
         def start_message(self):
             print(self.msg)
         def write(self, data):
             'Write colorized data to stdout'
-            print(f"{g.err}{data}{g.norm}", end="", file=sys.stderr)
+            Print(f"{g.err}{data}{g.norm}", end="", file=sys.stderr)
         def raw_input(self, prompt=""):
             s = input(self.ps).rstrip()
-            print(g.norm, end="")   # Turn off any colorizing
+            Print(g.norm, end="")   # Turn off any colorizing
             if not s:
                 return s
             # Handle special commands before the interpreter sees them
@@ -350,26 +365,29 @@ if 1:   # class Console
             return s
 if 1:   # Setup
     '''Use a code.InteractiveInterpreter object to get a REPL (read,
-    evaluate, print, loop) construct, which is what the python
-    interactive interpreter does.  This shows how to build your own
-    REPl with custom commands.
+    evaluate, print, loop) construct, which simulates what the python
+    interactive interpreter does.  The code module lets you build your
+    own REPl with custom commands.
     '''
     d = {}      # Options dictionary
     args = ParseCommandLine(d)
-    # System prompts
-    m = 3
-    sys.ps1 = f"{g.brn}{'>'*m}{g.norm} "
-    sys.ps2 = f"{g.brn}{'.'*m}{g.norm} "
+    # System prompts (some possible characters are >˃⪢➔⇉⇶⮞▶⯈).  It's
+    # handy to choose characters other than those used by the default
+    # python REPL code so that you know this isn't a standard python
+    # interpreter prompt (color can help with this too).
+    sys.ps1 = f"{'▶'*3} "
+    sys.ps2 = f"{'·'*3} "
 if 1:   # Run the console REPL
     stdout, stderr = io.StringIO(), io.StringIO()
     console = Console()
     console.ps = sys.ps1
     console.userbuffer = ""
-    console.start_message()
-    console.locals.clear()
-    returnvalue = None
     file = d["-l"] if d["-l"] is not None else "/dev/null"
     log = open(file, "w")
+    console.start_message()
+    console.locals.clear()
+    console.locals.update(GetSymbols())
+    returnvalue = None
     if not stdout.getvalue():
         with contextlib.redirect_stdout(stdout):
             print(console.msg, file=log)
@@ -401,14 +419,11 @@ if 1:   # Run the console REPL
             console.ps = sys.ps1    # Command finished
             s, e = stdout.getvalue(), stderr.getvalue()
             if s:
-                print(s, end="")
-                print(s, end="", file=log)
+                Print(s, end="")
             if e:
                 if d["-l"]:
                     # Decorate with escape codes to color (they aren't
                     # present, even though write() uses them)
-                    print(f"{g.err}{e}{g.norm}", end="")
-                    print(f"{g.err}{e}{g.norm}", end="", file=log)
+                    Print(f"{g.err}{e}{g.norm}", end="")
                 else:
-                    print(e, end="")
-                    print(e, end="", file=log)
+                    Print(e, end="")
