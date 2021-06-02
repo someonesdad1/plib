@@ -6,6 +6,9 @@
         * Get comprehensive unit tests for arithmetic written
     * Need to fix cpx radd, etc. (search for xx)
     * Tests need to cover all formatting options.
+        * An invariant for divmod is that 'divmod(x,y)[0]*y + x % y' be
+          very close to x (in REPL, type help() and * and look at 
+          footnote 2 to the precedence table).
 
     * Uncertainties:  It would be nice if the uncertainties library
       could be supported, as these are needed for physical calculations
@@ -1721,8 +1724,12 @@ if 1:   # Get math/cmath functions into our namespace
         called if any of the arguments are complex; otherwise, the math
         routine is called.
         '''
+        _left = "«"
+        _right = "»"
         def __init__(self, name):
             self.name = name
+        def __str__(self):
+            return f"{Delegator._left}{self.name}{Delegator._right}"
         def __call__(self, *args, **kw):
             C = (complex, cpx)
             if hasattr(math, name) and not hasattr(cmath, name):
@@ -1810,13 +1817,6 @@ if 1:   # Get math/cmath functions into our namespace
         exec(f"{i} = flt({i})")
 
 if 0:
-    flt.n = 5
-    for i in range(-9, 10):
-        x = flt(pi*10**i)
-        s = x._eng()
-        print(f"Result for {x} = {s}")
-        assert(x.s == x(s).s)
-    print("Zero:", x(0)._eng())
     exit()
 
 if __name__ == "__main__": 

@@ -1,12 +1,5 @@
 '''
 
-* Change interface to regular behavior for a string that doesn't start
-  with a space; a space indicates a command except for a continuation
-  line.
-
-* Add Matrix/vector support.  Look at an auxiliary library for linear
-  regression.
-
 * Search for 'python units library' and there are numerous choices.
     Maybe it would make more sense to integrate one of them.
 
@@ -19,10 +12,10 @@
 A REPL I use for an interactive python calculator.  See repl.pdf for
 documentation.
 '''
-if 1:  # Copyright, license
+if 1:   # Standard imports
     # These "trigger strings" can be managed with trigger.py
     #∞version∞# 
-        _version = "30May2021"
+    _version = "30May2021"
     #∞version∞#
     #∞copyright∞# Copyright (C) 2021 Don Peterson #∞copyright∞#
     #∞contact∞# gmail.com@someonesdad1 #∞contact∞#
@@ -33,7 +26,6 @@ if 1:  # Copyright, license
     #∞what∞#
     # This provides a REPL I use for an interactive python calculator.
     #∞what∞#
-if 1:   # Standard imports
     from atexit import register
     import code
     import contextlib
@@ -47,6 +39,7 @@ if 1:   # Standard imports
     import sys
     import tempfile
     import time
+    from pdb import set_trace as xx 
 if 1:   # Custom imports
     from wrap import wrap, dedent, indent, Wrap
     from columnize import Columnize
@@ -57,13 +50,14 @@ if 1:   # Global variables
     g.P = pathlib.Path
     # Color coding using ANSI escape codes
     g.blu = C.fg(C.lblue, s=1)
+    g.brn = C.fg(C.brown, s=1)
     g.grn = C.fg(C.lgreen, s=1)
     g.cyn = C.fg(C.lcyan, s=1)
     g.red = C.fg(C.lred, s=1)
     g.yel = C.fg(C.yellow, s=1)
     g.wht = C.fg(C.lwhite, s=1)
     g.whtblu = C.fg(C.lwhite, C.blue, s=1)
-    g.err = C.fg(C.lmagenta, s=1)
+    g.err = C.fg(C.red, s=1)
     g.norm = C.normal(s=1)
     g.name = sys.argv[0]
     g.editor = "vim"
@@ -131,20 +125,17 @@ if 1:   # Core functionality
         from f import log, log10, log1p, log2, modf, nan, nanj, phase
         from f import pi, polar, pow, radians, rect, remainder, sin
         from f import sinh, sqrt, tan, tanh, tau, trunc
-        x, z = flt(pi/7), cpx(pi/7, 7/pi)
+        from f import Delegator
+        z = cpx(0)
         z.i = True
-        z.c = True
         z.f = True
-        print(dedent(f'''
-        Favorite symbols loaded:  
-          u, pp, D, F, P, uf (ufloat)
-          flt, cpx, Matrix, vector, math/cmath functions
-          flt/cpx colorizing on with {z.n} significant figures
-          x is a flt, z is a cpx (use x.h and z.h for help on them)
-        '''[1:].rstrip()))
-        return locals().copy()
+        print("Favorite symbols loaded:  u, pp, D, F, P, uf, flt, cpx")
+        loc = locals().copy()
+        del loc["z"]
+        return loc
     def Help():
         cmds = (
+            ("!", "Send command to shell"),
             ("< f", "Read buffer from file f"),
             ("> f", "Write buffer to file f"),
             ("CS", "Clear symbols"),
@@ -166,13 +157,13 @@ if 1:   # Core functionality
         print(wrap(f'''
         If a command is defined as a symbol, then preface it with a
         space character to execute it as a command.
-
+ 
         The buffer is used to let you compose code and run it as needed.
         It persists only while {g.name} is running, so save it in the
         editor or with the '>' command to a file.  If you define a
         function, include a blank line after the function's end so that
         the interpreter recogizes the end properly.
-
+ 
         You can customize nearly all behavior of {g.name} by editing the
         script.  If you are running in a UNIX-like environment or
         cygwin, you should have history and command completion available
@@ -281,6 +272,7 @@ if 1:   # Special commands
             # Print help info
             Help()
         elif cmd == "q":  
+            print(f"Quit at {console.time}")
             exit(0)
         elif cmd == "r":  
             # Run buffer
@@ -290,28 +282,55 @@ if 1:   # Special commands
                 console.ps = sys.ps2 if rv else sys.ps1
         elif cmd == "s":  
             # Print symbols
-            sym = sorted(console.locals.keys())
-            if not sym:
+            d = console.locals
+            symbols = sorted(d.keys())
+            if not symbols:
                 print("No symbols")
             else:
-                for line in Columnize(sym):
+                lquote, rquote = "", ""
+                if "Delegator" in symbols:
+                    lquote = d["Delegator"]._left
+                    rquote = d["Delegator"]._right
+                o = []
+                for symbol in symbols:
+                    if symbol == "Delegator":
+                        continue
+                    item = d[symbol]
+                    s = str(item)
+                    if s.startswith(lquote):
+                        o.append(s)
+                    else:
+                        o.append(symbol)
+                for line in Columnize(o):
                     print(line)
+                if lquote:
+                    print(f"{lquote}x{rquote} is a wrapped math/cmath function")
+            del d["Delegator"]
         elif cmd == "v":  
             # Print repl.py version
             print(f"{sys.argv[0]} version:  {_version}")
         else:
             print(f"{g.err}'{cmd}' not recognized{g.norm}")
+if 1:   # class Console
     class Console(code.InteractiveConsole):
+        @property
+        def time(self):
+            def rlz(s):     # Remove leading zero
+                if s[0] == "0":
+                    s = s[1]
+                return s
+            T = time.strftime
+            ampm = T("%p").lower()
+            day = rlz(T("%d"))
+            date = T(f"{day} %b %Y")
+            hr = rlz(T("%I"))
+            tm = T(f"{hr}:%M:%S {ampm} %a")
+            return f"{date} {tm}"
         @property
         def msg(self):
             v = sys.version_info
             ver = f"{v.major}.{v.minor}.{v.micro}"
-            ampm = time.strftime("%p")
-            tm = time.strftime(f"%d%b%Y %I:%M:%S {ampm.lower()} %a")
-            s = dedent(f'''
-            [{g.wht}python {ver}{g.norm}, {g.cyn}{tm}{g.norm}]  q to quit, h for help
-            '''[1:].rstrip())
-            return s
+            return f"[python {ver}]  {self.time}"
         def start_message(self):
             print(self.msg)
         def write(self, data):
@@ -332,15 +351,15 @@ if 1:   # Special commands
 if 1:   # Setup
     '''Use a code.InteractiveInterpreter object to get a REPL (read,
     evaluate, print, loop) construct, which is what the python
-    interactive interpreter does).  This shows how to build your own
+    interactive interpreter does.  This shows how to build your own
     REPl with custom commands.
     '''
     d = {}      # Options dictionary
     args = ParseCommandLine(d)
-if 1:   # System prompts
+    # System prompts
     m = 3
-    sys.ps1 = f"{g.whtblu}{'>'*m}{g.norm} "
-    sys.ps2 = f"{g.whtblu}{'.'*m}{g.norm} "
+    sys.ps1 = f"{g.brn}{'>'*m}{g.norm} "
+    sys.ps2 = f"{g.brn}{'.'*m}{g.norm} "
 if 1:   # Run the console REPL
     stdout, stderr = io.StringIO(), io.StringIO()
     console = Console()
@@ -357,7 +376,14 @@ if 1:   # Run the console REPL
         stdout = io.StringIO()
     while True:     # REPL loop
         try:
-            line = console.raw_input().rstrip()
+            while args:
+                # Execute any commands on command line (note 'H' won't
+                # be recognized
+                s = args.pop(0).strip()
+                if s not in console.locals and IsCommand(s):
+                    Special(s, console)
+            else:
+                line = console.raw_input().rstrip()
         except EOFError:
             exit()
         if not returnvalue and returnvalue is not None:
