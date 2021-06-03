@@ -1,7 +1,44 @@
 '''
 
-* Bug:  asin(2) doesn't work; it should return
-  1.5707963267948966+1.3169578969248166j
+* Persistence
+
+    * Unfortunately, pickle and json cannot save arbitrary data, so
+      being able to save state is probably nontrivial.  json failed on
+      trying to save a u.U object.
+
+* Namespaces
+    
+    * There should be a dictionary of namespaces.  'n' lists the names and
+      'n name' switches to it.  You can refer to a symbol in another
+      namespace with name.symbol.  
+
+    * This could be used for code development if two processes could
+      have the data opened at once.  One process would be used for
+      editing the file and the other would be for running it. 
+
+* Open the buffer and load f.py.  Save, then when you run the buffer you
+  get many errors.
+
+* Commands
+    
+    h or ? Short form help
+    ?? Detailed help
+    H  help()
+
+  !    Send command to shell
+ < f   Read buffer from file f
+ > f   Write buffer to file f
+ CS    Clear symbols
+  c    Clear screen
+  d    Enter debugger
+  e    Edit buffer
+  f    Load favorite symbols (edit GetSymbols())
+  H    Shorthand to run help()
+  q    Quit
+  r    Run buffer
+  s    Print symbols in scope
+  v    Show version
+
 
 * Search for 'python units library' and there are numerous choices.
     Maybe it would make more sense to integrate one of them.
@@ -18,7 +55,7 @@ documentation.
 if 1:   # Standard imports
     # These "trigger strings" can be managed with trigger.py
     #∞version∞# 
-    _version = "2Jun2021"
+    _version = "2 Jun 2021"
     #∞version∞#
     #∞copyright∞# Copyright (C) 2021 Don Peterson #∞copyright∞#
     #∞contact∞# gmail.com@someonesdad1 #∞contact∞#
@@ -34,6 +71,7 @@ if 1:   # Standard imports
     import contextlib
     import getopt
     import io
+    import json
     import os
     import pathlib
     import readline         # History and command editing
@@ -62,7 +100,8 @@ if 1:   # Global variables
     g.whtblu = C.fg(C.lwhite, C.blue, s=1)
     g.err = C.fg(C.red, s=1)
     g.norm = C.normal(s=1)
-    g.name = sys.argv[0]
+    g.name = g.P(sys.argv[0])
+    g.datafile = g.P(g.name.stem + ".data")
     g.editor = "vim"
     _ = sys.version_info
     g.pyversion = f"{_.major}.{_.minor}.{_.micro}"
@@ -102,18 +141,31 @@ if 1:   # Utility
         Print(C.normal(s=1), end="")
     register(Clean)
 if 1:   # Core functionality
-    def EditString(data):
-        if not isinstance(data, str):
-            raise TypeError("data must be a str object")
-        with tempfile.NamedTemporaryFile() as temp:
-            file = g.P(temp.name)
-            file.write_text(data)
+    def EditString(string, console):
+        if not isinstance(string, str):
+            raise TypeError("string must be a str object")
+        if 0: #xx
+            with tempfile.NamedTemporaryFile() as temp:
+                file = g.P(temp.name)
+                file.write_text(string)
+                subprocess.call([g.editor, str(file)])
+                newstring = file.read_text()
+            return newstring
+        else:
+            # We'll edit this string in a new temporary file in the
+            # current directory.
+            cwd = console.cwd
+            tempname = tempfile.mkstemp(prefix="repl", suffix=".py",
+                dir=console.cwd, text=True)[1]
+            file = g.P(tempname)
+            file.write_text(string)
             subprocess.call([g.editor, str(file)])
-            data = file.read_text()
-        return data
+            newstring = file.read_text()
+            file.unlink()
+            return newstring
     def GetSymbols():
         'Return a dict of favorite symbols'
-        from u import u, dim
+        from u import u, dim, to
         from pprint import pprint as pp
         from decimal import Decimal as D
         from pathlib import Path as P
@@ -123,19 +175,22 @@ if 1:   # Core functionality
         from pdb import set_trace as xx 
         from f import acos, acosh, asin, asinh, atan, atan2, atanh
         from f import ceil, cmath, constants, copysign, cos, cosh
-        from f import cpx, decimal, dedent, degrees, e, erf, erfc
+        from f import cpx, decimal, dedent, degrees, erf, erfc
         from f import exp, expm1, fabs, factorial, floor, flt, fmod
         from f import frexp, fsum, gamma, gcd, hypot, inf, infj
         from f import isclose, isfinite, isinf, isnan, ldexp, lgamma
         from f import log, log10, log1p, log2, modf, nan, nanj, phase
         from f import pi, polar, pow, radians, rect, remainder, sin
         from f import sinh, sqrt, tan, tanh, tau, trunc
+        #from f import e
         from f import Delegator
-        z = cpx(0)
-        z.i = True
-        z.f = True
+        i = cpx(0, 1)
+        i.i = True
+        i.f = True
+        i.nz = True
+        one = flt(1)
         loc = locals().copy()
-        del loc["z"]
+        #del loc["z"]
         return loc
     def Help():
         cmds = (
@@ -180,9 +235,11 @@ if 1:   # Core functionality
             return False
         first_char = cmd[0]
         if len(cmd) == 1:
-            if first_char in "cCdefHhqrsv":
+            # One character commands
+            if first_char in "?cCdefHhqrsv":
                 return True
         else:
+            # Multiple character commands
             if first_char in "!<>":
                 return True
             elif cmd in "CS".split():
@@ -254,12 +311,12 @@ if 1:   # Special commands
             # Read buffer
             if arg:
                 file = g.P(arg)
-                console.userbuffer = file.read_text()
+                console.buffer = file.read_text()
         elif first_char == ">":  
             # Write buffer
             if arg:
                 file = g.P(arg)
-                file.write_text(console.userbuffer)
+                file.write_text(console.buffer)
         elif cmd == "c" or cmd == "cls":
             # Clear the screen
             os.system("clear")
@@ -272,12 +329,12 @@ if 1:   # Special commands
             breakpoint()
         elif cmd == "e":  
             # Edit buffer
-            console.userbuffer = EditString(console.userbuffer)
+            console.buffer = EditString(console.buffer, console)
         elif cmd == "f":  
             # Load favorite symbols
             console.locals.update(GetSymbols())
             Print("Loaded favorite symbols")
-        elif cmd == "h":
+        elif cmd == "h" or cmd == "?":
             # Print help info
             Help()
         elif cmd == "q":  
@@ -286,8 +343,8 @@ if 1:   # Special commands
             exit(0)
         elif cmd == "r":  
             # Run buffer
-            fn = "<userbuffer>"
-            for line in console.userbuffer.split("\n"):
+            fn = "<buffer>"
+            for line in console.buffer.split("\n"):
                 rv = console.push(line)
                 console.ps = sys.ps2 if rv else sys.ps1
         elif cmd == "s":  
@@ -330,6 +387,11 @@ if 1:   # Special commands
             Print(f"{g.err}'{cmd}' not recognized{g.norm}")
 if 1:   # class Console
     class Console(code.InteractiveConsole):
+        def __init__(self, locals=None):
+            super().__init__(locals=locals)
+            self.locals.update(GetSymbols())
+            self.cwd = g.P(".").cwd()
+            self.buffer = ""
         @property
         def time(self):
             def rlz(s):     # Remove leading zero
@@ -371,22 +433,19 @@ if 1:   # Setup
     '''
     d = {}      # Options dictionary
     args = ParseCommandLine(d)
-    # System prompts (some possible characters are >˃⪢➔⇉⇶⮞▶⯈).  It's
+    # System prompts (some possible characters are >˃⪢➔⇉⇶⮞▶⯈█).  It's
     # handy to choose characters other than those used by the default
     # python REPL code so that you know this isn't a standard python
     # interpreter prompt (color can help with this too).
-    sys.ps1 = f"{'▶'*3} "
-    sys.ps2 = f"{'·'*3} "
+    sys.ps1 = f"{g.whtblu}{'▶'*3}{g.norm} "
+    sys.ps2 = f"{g.whtblu}{'·'*3}{g.norm} "
 if 1:   # Run the console REPL
     stdout, stderr = io.StringIO(), io.StringIO()
     console = Console()
     console.ps = sys.ps1
-    console.userbuffer = ""
     file = d["-l"] if d["-l"] is not None else "/dev/null"
     log = open(file, "w")
     console.start_message()
-    console.locals.clear()
-    console.locals.update(GetSymbols())
     returnvalue = None
     if not stdout.getvalue():
         with contextlib.redirect_stdout(stdout):
