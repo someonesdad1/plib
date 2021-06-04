@@ -61,7 +61,7 @@ if 1:   # Global variables
     g.norm = C.normal(s=1)
     g.name = g.P(sys.argv[0])
     g.datafile = g.P(g.name.stem + ".data")
-    g.editor = "vim"
+    g.editor = os.environ["EDITOR"]
     _ = sys.version_info
     g.pyversion = f"{_.major}.{_.minor}.{_.micro}"
 if 1:   # Utility
