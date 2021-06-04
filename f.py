@@ -4,6 +4,9 @@
         * Test that all needed constructors are written
         * Get arithmetic with units working
         * Get comprehensive unit tests for arithmetic written
+    * one = flt(1); one("1 mi/hr") does not work.  Should it?
+    * Need to remove Base.sci, etc.  Add these attributes to flt and
+      cpx.
     * Need to fix cpx radd, etc. (search for xx)
     * Tests need to cover all formatting options.
         * An invariant for divmod is that 'divmod(x,y)[0]*y + x % y' be

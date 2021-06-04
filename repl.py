@@ -1,52 +1,10 @@
 '''
 
-* Persistence
+* Aliases:  It could be handy to define aliases:  'a name command'.
 
-    * Unfortunately, pickle and json cannot save arbitrary data, so
-      being able to save state is probably nontrivial.  json failed on
-      trying to save a u.U object.
-
-* Namespaces
-    
-    * There should be a dictionary of namespaces.  'n' lists the names and
-      'n name' switches to it.  You can refer to a symbol in another
-      namespace with name.symbol.  
-
-    * This could be used for code development if two processes could
-      have the data opened at once.  One process would be used for
-      editing the file and the other would be for running it. 
-
-* Open the buffer and load f.py.  Save, then when you run the buffer you
-  get many errors.
-
-* Commands
-    
-    h or ? Short form help
-    ?? Detailed help
-    H  help()
-
-  !    Send command to shell
- < f   Read buffer from file f
- > f   Write buffer to file f
- CS    Clear symbols
-  c    Clear screen
-  d    Enter debugger
-  e    Edit buffer
-  f    Load favorite symbols (edit GetSymbols())
-  H    Shorthand to run help()
-  q    Quit
-  r    Run buffer
-  s    Print symbols in scope
-  v    Show version
-
-
-* Search for 'python units library' and there are numerous choices.
-    Maybe it would make more sense to integrate one of them.
-
-    * https://pint.readthedocs.io/en/stable/
-    * https://pypi.org/project/siunits/
-    * https://github.com/connorferster/forallpeople
-    * https://fangohr.github.io/blog/physical-quantities-numerical-value-with-units-in-python.html
+* Persistence:  Unfortunately, pickle and json cannot save arbitrary
+  data, so being able to save state is probably nontrivial.  json failed
+  on trying to save a u.U object.
 
 ----------------------------------------------------------------------
 A REPL I use for an interactive python calculator.  See repl.pdf for
@@ -99,6 +57,7 @@ if 1:   # Global variables
     g.wht = C.fg(C.lwhite, s=1)
     g.whtblu = C.fg(C.lwhite, C.blue, s=1)
     g.err = C.fg(C.red, s=1)
+    g.ital = C.Decorate().SetStyle("italic")
     g.norm = C.normal(s=1)
     g.name = g.P(sys.argv[0])
     g.datafile = g.P(g.name.stem + ".data")
@@ -114,15 +73,17 @@ if 1:   # Utility
         exit(status)
     def Usage(d, status=1):
         print(dedent(f'''
-        Usage:  {g.name} [options]
+        Usage:  {g.name} [options] [cmd1 [cmd2...]]
           Run a python REPL with some added features.  See repl.pdf.
+          You can include some starting commands on the command line,
+          but some like 'H' won't be recognized.
         Options:
             -h          Print a manpage
             -l file     Log output to a file
-    '''))
+        '''))
         exit(status)
     def ParseCommandLine(d):
-        d["-l"] = None      # Name of file to log to
+        d["-l"] = "/dev/null"      # Name of file to log to
         try:
             opts, args = getopt.getopt(sys.argv[1:], "l:h", "help")
         except getopt.GetoptError as e:
@@ -144,53 +105,60 @@ if 1:   # Core functionality
     def EditString(string, console):
         if not isinstance(string, str):
             raise TypeError("string must be a str object")
-        if 0: #xx
-            with tempfile.NamedTemporaryFile() as temp:
-                file = g.P(temp.name)
-                file.write_text(string)
-                subprocess.call([g.editor, str(file)])
-                newstring = file.read_text()
-            return newstring
-        else:
-            # We'll edit this string in a new temporary file in the
-            # current directory.
-            cwd = console.cwd
-            tempname = tempfile.mkstemp(prefix="repl", suffix=".py",
-                dir=console.cwd, text=True)[1]
-            file = g.P(tempname)
-            file.write_text(string)
-            subprocess.call([g.editor, str(file)])
-            newstring = file.read_text()
-            file.unlink()
-            return newstring
+        # We'll edit this string in a new temporary file in the
+        # current directory.
+        cwd = console.cwd
+        tempname = tempfile.mkstemp(prefix="repl", suffix=".py",
+            dir=console.cwd, text=True)[1]
+        file = g.P(tempname)
+        file.write_text(string)
+        subprocess.call([g.editor, str(file)])
+        newstring = file.read_text()
+        file.unlink()
+        return newstring
     def GetSymbols():
         'Return a dict of favorite symbols'
-        from u import u, dim, to
         from pprint import pprint as pp
         from decimal import Decimal as D
         from pathlib import Path as P
         from fractions import Fraction as F
-        from uncertainties import ufloat as uf
-        from matrix import Matrix, vector
         from pdb import set_trace as xx 
-        from f import acos, acosh, asin, asinh, atan, atan2, atanh
-        from f import ceil, cmath, constants, copysign, cos, cosh
-        from f import cpx, decimal, dedent, degrees, erf, erfc
-        from f import exp, expm1, fabs, factorial, floor, flt, fmod
-        from f import frexp, fsum, gamma, gcd, hypot, inf, infj
-        from f import isclose, isfinite, isinf, isnan, ldexp, lgamma
-        from f import log, log10, log1p, log2, modf, nan, nanj, phase
-        from f import pi, polar, pow, radians, rect, remainder, sin
-        from f import sinh, sqrt, tan, tanh, tau, trunc
-        #from f import e
-        from f import Delegator
-        i = cpx(0, 1)
-        i.i = True
-        i.f = True
-        i.nz = True
-        one = flt(1)
+        try:
+            from u import u, dim, to
+        except ImportError:
+            pass
+        try:
+            from uncertainties import ufloat as uf
+        except ImportError:
+            pass
+        try:
+            from matrix import Matrix, vector
+        except ImportError:
+            pass
+        try:
+            from f import acos, acosh, asin, asinh, atan, atan2, atanh
+            from f import ceil, cmath, constants, copysign, cos, cosh
+            from f import cpx, decimal, dedent, degrees, erf, erfc
+            from f import exp, expm1, fabs, factorial, floor, flt, fmod
+            from f import frexp, fsum, gamma, gcd, hypot, inf, infj
+            from f import isclose, isfinite, isinf, isnan, ldexp, lgamma
+            from f import log, log10, log1p, log2, modf, nan, nanj, phase
+            from f import pi, polar, pow, radians, rect, remainder, sin
+            from f import sinh, sqrt, tan, tanh, tau, trunc
+            # I comment this out because it overshadows the edit command
+            #from f import e
+            from f import Delegator
+            i = cpx(0, 1)
+            i.i = True
+            i.f = True
+            i.nz = True
+            i.c = True
+            one = flt(1)
+        except ImportError:
+            pass
         loc = locals().copy()
-        #del loc["z"]
+        if "z" in loc:
+            del loc["z"]
         return loc
     def Help():
         cmds = (
@@ -210,7 +178,6 @@ if 1:   # Core functionality
         )
         Print("Commands:")
         for cmd, meaning in cmds:
-            s = f"{g.brn}{cmd:^5s}{g.norm}  {meaning}"
             s = f"{cmd:^5s}  {meaning}"
             Print(s)
         Print(wrap(f'''
@@ -230,21 +197,12 @@ if 1:   # Core functionality
         '''))
     def IsCommand(cmd):
         'Return True if the string cmd is a special command'
-        cmd = cmd.strip()
         if not cmd:
             return False
-        first_char = cmd[0]
         if len(cmd) == 1:
-            # One character commands
-            if first_char in "?cCdefHhqrsv":
-                return True
+            return cmd[0] in "?cCdefHhqrsv"
         else:
-            # Multiple character commands
-            if first_char in "!<>":
-                return True
-            elif cmd in "CS".split():
-                return True
-        return False
+            return (cmd[0] in "!<>") or (cmd in "CS".split())
     def BreakPoint():
         '''Find the line number of the input routine, which lets you set
         a debugger breakpoint at the input line.
@@ -294,9 +252,10 @@ if 1:   # Core functionality
                 args.insert(0, c)
         return ' '.join(args)
     def Print(*p, **kw):
-        'Print to stdout and log'
+        'Print to stdout and logfile'
         print(*p, **kw)
-        print(*p, **kw, file=log)
+        if logfile is not None:
+            print(*p, **kw, file=logfile)
 if 1:   # Special commands
     def Special(cmd, console):
         first_char = cmd[0]
@@ -308,15 +267,15 @@ if 1:   # Special commands
                 os.system(newarg)
             return
         elif first_char == "<":  
-            # Read buffer
+            # Read userbuffer
             if arg:
                 file = g.P(arg)
-                console.buffer = file.read_text()
+                console.userbuffer = file.read_text()
         elif first_char == ">":  
-            # Write buffer
+            # Write userbuffer
             if arg:
                 file = g.P(arg)
-                file.write_text(console.buffer)
+                file.write_text(console.userbuffer)
         elif cmd == "c" or cmd == "cls":
             # Clear the screen
             os.system("clear")
@@ -328,8 +287,8 @@ if 1:   # Special commands
             BreakPoint()
             breakpoint()
         elif cmd == "e":  
-            # Edit buffer
-            console.buffer = EditString(console.buffer, console)
+            # Edit userbuffer
+            console.userbuffer = EditString(console.userbuffer, console)
         elif cmd == "f":  
             # Load favorite symbols
             console.locals.update(GetSymbols())
@@ -342,9 +301,9 @@ if 1:   # Special commands
             Print(f"{t}")
             exit(0)
         elif cmd == "r":  
-            # Run buffer
-            fn = "<buffer>"
-            for line in console.buffer.split("\n"):
+            # Run userbuffer
+            fn = "<userbuffer>"
+            for line in console.userbuffer.split("\n"):
                 rv = console.push(line)
                 console.ps = sys.ps2 if rv else sys.ps1
         elif cmd == "s":  
@@ -366,15 +325,15 @@ if 1:   # Special commands
                     s = str(item)
                     if s.startswith(lquote):
                         s = s.replace(lquote, "").replace(rquote, "")
-                        o.append(f"{g.brn}{s}{g.norm}")
+                        o.append(f"{g.ital}{s}{g.norm}")
                     else:
                         o.append(symbol)
                 try:
                     for line in Columnize(o):
                         Print(line)
                     if lquote:
-                        Print("Wrapped math/cmath functions are in color.  Thus, you can use expressions")
-                        Print("like cos(1) and cos(1j) directly.")
+                        Print("Wrapped math/cmath functions are in italics.  These wrapped functions let you")
+                        Print("use expressions like cos(1) and cos(1j) directly.")
                 except ValueError:
                     pass
                 if "Delegator" in symbols:
@@ -391,7 +350,7 @@ if 1:   # class Console
             super().__init__(locals=locals)
             self.locals.update(GetSymbols())
             self.cwd = g.P(".").cwd()
-            self.buffer = ""
+            self.userbuffer = ""
         @property
         def time(self):
             def rlz(s):     # Remove leading zero
@@ -422,8 +381,10 @@ if 1:   # class Console
             if s == "H":
                 return "help()"
             if s not in self.locals and IsCommand(s.strip()):
+                print(f"{sys.ps1}{s}", file=logfile) 
                 Special(s.strip(), self)
                 return ""
+            print(f"{sys.ps1}{s}", file=logfile) 
             return s
 if 1:   # Setup
     '''Use a code.InteractiveInterpreter object to get a REPL (read,
@@ -431,25 +392,24 @@ if 1:   # Setup
     interactive interpreter does.  The code module lets you build your
     own REPl with custom commands.
     '''
+    logfile = None
     d = {}      # Options dictionary
     args = ParseCommandLine(d)
-    # System prompts (some possible characters are >˃⪢➔⇉⇶⮞▶⯈█).  It's
-    # handy to choose characters other than those used by the default
-    # python REPL code so that you know this isn't a standard python
-    # interpreter prompt (color can help with this too).
-    sys.ps1 = f"{g.whtblu}{'▶'*3}{g.norm} "
-    sys.ps2 = f"{g.whtblu}{'·'*3}{g.norm} "
+    # System prompts
+    sys.ps1 = f"{'▶'*3} "
+    sys.ps2 = f"{g.cyn}{'·'*3}{g.norm} "
 if 1:   # Run the console REPL
     stdout, stderr = io.StringIO(), io.StringIO()
     console = Console()
     console.ps = sys.ps1
     file = d["-l"] if d["-l"] is not None else "/dev/null"
-    log = open(file, "w")
+    logfile = open(file, "w")
     console.start_message()
     returnvalue = None
+    # Show starting message
     if not stdout.getvalue():
         with contextlib.redirect_stdout(stdout):
-            print(console.msg, file=log)
+            print(console.msg, file=logfile)
         stdout = io.StringIO()
     while True:     # REPL loop
         try:
@@ -463,26 +423,23 @@ if 1:   # Run the console REPL
                 line = console.raw_input().rstrip()
         except EOFError:
             exit()
-        if not returnvalue and returnvalue is not None:
+        if not returnvalue:
             stdout, stderr = io.StringIO(), io.StringIO()
         if line.startswith("help(") or line == "help":
             # No plumbing so pager works
             returnvalue = console.push(line)
         else:
+            # Capture stdout & stderr to StringIO objects
             with contextlib.redirect_stderr(stderr):
                 with contextlib.redirect_stdout(stdout):
                     returnvalue = console.push(line)
-        if returnvalue:
-            console.ps = sys.ps2    # Need more input
-        else:
-            console.ps = sys.ps1    # Command finished
+        if returnvalue:     # Need more input
+            console.ps = sys.ps2
+        else:               # Command finished
+            console.ps = sys.ps1
             s, e = stdout.getvalue(), stderr.getvalue()
             if s:
                 Print(s, end="")
             if e:
-                if d["-l"]:
-                    # Decorate with escape codes to color (they aren't
-                    # present, even though write() uses them)
-                    Print(f"{g.err}{e}{g.norm}", end="")
-                else:
-                    Print(e, end="")
+                # Decorate with escape codes to color 
+                Print(f"{g.err}{e}{g.norm}", end="")
