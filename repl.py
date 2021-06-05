@@ -1,14 +1,49 @@
 '''
-
-* Aliases:  It could be handy to define aliases:  'a name command'.
-
-* Persistence:  Unfortunately, pickle and json cannot save arbitrary
-  data, so being able to save state is probably nontrivial.  json failed
-  on trying to save a u.U object.
-
-----------------------------------------------------------------------
-A REPL I use for an interactive python calculator.  See repl.pdf for
+A REPL that gives an interactive python calculator.  See repl.pdf for
 documentation.
+'''
+__doc__ = '''
+This module provides a REPL (read, evaluate, print, loop) construct that
+simulates the one in the python interactive interpreter.  This code is
+based on class code.InteractiveConsole in the code module.
+
+The origin of this module was my desire to be able to type 'q' to exit
+the standard python interpreter instead of 'quit()' or ctrl-D.  Once
+this was figured out, it was straightforward to add other features
+useful for a command-line calculator:
+
+  * flt/cpx numbers:  These are classes derived from float/complex in
+    the module f.py.  Their primary features are:
+
+    * Their string interpolations show 3 significant figures. 
+    * You can instantiate them with physical units.
+    * They are intended to be used to perform floating point
+      calculations with numbers derived from measurements.
+    * Use the h attribute on flt/cpx instances to see supported
+      attributes.
+    * The f attribute can flip the outputs of str()/repr().  This is
+      handy in the interpreter and debugger.
+    * Set the c attribute to True to get colored output, which helps to
+      identify flt/cpx types.
+
+  * Special added commands.  Type 'h' at the prompt to get a list.  If
+    you assign a variable to the same name as a command, preface the
+    command with one or more space characters.
+
+  * User buffer (a string) that you can edit and run the code/commands
+    in it.  Note it's not intended for loading/running python scripts,
+    as the global environment will be different than the typical script.
+
+  * Show the symbols that are in scope.
+
+  * Access python's help text via help().
+
+  * If you're in a UNIX-like environment, you'll have history and
+    command completion available.  You can also send commands to the
+    shell.
+
+The physical units in the flt/cpx types are provided by the u.py module.
+
 '''
 if 1:   # Standard imports
     # These "trigger strings" can be managed with trigger.py
@@ -25,11 +60,11 @@ if 1:   # Standard imports
     # This provides a REPL I use for an interactive python calculator.
     #∞what∞#
     from atexit import register
+    from collections import defaultdict
     import code
     import contextlib
     import getopt
     import io
-    import json
     import os
     import pathlib
     import readline         # History and command editing
@@ -64,6 +99,7 @@ if 1:   # Global variables
     g.editor = os.environ["EDITOR"]
     _ = sys.version_info
     g.pyversion = f"{_.major}.{_.minor}.{_.micro}"
+    g.ii = isinstance
 if 1:   # Utility
     def eprint(*p, **kw):
         'Print to stderr'
@@ -137,8 +173,8 @@ if 1:   # Core functionality
             pass
         try:
             from f import acos, acosh, asin, asinh, atan, atan2, atanh
-            from f import ceil, cmath, constants, copysign, cos, cosh
-            from f import cpx, decimal, dedent, degrees, erf, erfc
+            from f import ceil, copysign, cos, cosh
+            from f import cpx, dedent, degrees, erf, erfc
             from f import exp, expm1, fabs, factorial, floor, flt, fmod
             from f import frexp, fsum, gamma, gcd, hypot, inf, infj
             from f import isclose, isfinite, isinf, isnan, ldexp, lgamma
@@ -147,7 +183,6 @@ if 1:   # Core functionality
             from f import sinh, sqrt, tan, tanh, tau, trunc
             # I comment this out because it overshadows the edit command
             #from f import e
-            from f import Delegator
             i = cpx(0, 1)
             i.i = True
             i.f = True
@@ -223,6 +258,9 @@ if 1:   # Core functionality
         Note you'll have subsequent problems with stdout, so the best
         strategy is to use 'c' to continue and set another breakpoint.
         '''))
+    def Columns(seq, indent=""):
+        for line in Columnize(seq, indent=" "*2):
+            print(line)
     def FixShellArgument(arg):
         '''Some shell commands like ls and grep are better with color
         output enabled.  This also lets me get the aliases I like to
@@ -251,6 +289,52 @@ if 1:   # Core functionality
             else:
                 args.insert(0, c)
         return ' '.join(args)
+    def PrintSymbols(console):
+        def IsFunc(item):
+            return str(type(item)) == "<class 'function'>"
+        def IsModule(item):
+            return str(type(item)) == "<class 'module'>"
+        def IsClass(item):
+            return str(type(item)) == "<class 'type'>"
+        from f import Delegator, flt, cpx
+        Delegator._left = g.brn
+        Delegator._right = g.norm
+        d = console.locals.copy()
+        for i in "__name__ __doc__ Delegator constants".split():
+            if i in d:
+                del d[i]
+        symbols = sorted(d.keys())
+        if not symbols:
+            return
+        # Classify into different types
+        things = defaultdict(set)
+        for symbol in symbols:
+            item = d[symbol]
+            if g.ii(item, Delegator):
+                things["math/cmath functions"].add(symbol)
+            elif g.ii(item, (flt, float)):
+                things["float/flt"].add(symbol)
+            elif g.ii(item, (cpx, complex)):
+                things["complex/cpx"].add(symbol)
+            elif g.ii(item, list):
+                things["list"].add(symbol)
+            elif g.ii(item, tuple):
+                things["tuple"].add(symbol)
+            elif IsFunc(item):
+                things["function"].add(symbol)
+            elif IsModule(item):
+                things["module"].add(symbol)
+            elif IsClass(item):
+                things["class"].add(symbol)
+            else:
+                things["other"].add(symbol)
+        # Print the symbols
+        for category in things:
+            print(category)
+            o = []
+            for i in sorted(things[category]):
+                o.append(i)
+            Columns(o, " "*2)
     def Print(*p, **kw):
         'Print to stdout and logfile'
         print(*p, **kw)
@@ -308,36 +392,7 @@ if 1:   # Special commands
                 console.ps = sys.ps2 if rv else sys.ps1
         elif cmd == "s":  
             # Print symbols
-            d = console.locals
-            symbols = sorted(d.keys())
-            if symbols:
-                lquote, rquote = "", ""
-                if "Delegator" in symbols:
-                    lquote = d["Delegator"]._left
-                    rquote = d["Delegator"]._right
-                o = []
-                for symbol in symbols:
-                    if symbol == "Delegator":
-                        if symbol == "Delegator":
-                            continue
-                        continue
-                    item = d[symbol]
-                    s = str(item)
-                    if s.startswith(lquote):
-                        s = s.replace(lquote, "").replace(rquote, "")
-                        o.append(f"{g.ital}{s}{g.norm}")
-                    else:
-                        o.append(symbol)
-                try:
-                    for line in Columnize(o):
-                        Print(line)
-                    if lquote:
-                        Print("Wrapped math/cmath functions are in italics.  These wrapped functions let you")
-                        Print("use expressions like cos(1) and cos(1j) directly.")
-                except ValueError:
-                    pass
-                if "Delegator" in symbols:
-                    del d["Delegator"]
+            PrintSymbols(console)
         elif cmd == "v":  
             # Print repl.py version
             Print(f"{sys.argv[0]} version:  {_version}   "
@@ -398,7 +453,7 @@ if 1:   # Setup
     # System prompts
     sys.ps1 = f"{'▶'*3} "
     sys.ps2 = f"{g.cyn}{'·'*3}{g.norm} "
-if 1:   # Run the console REPL
+if __name__ == "__main__":  # Run the console REPL
     stdout, stderr = io.StringIO(), io.StringIO()
     console = Console()
     console.ps = sys.ps1

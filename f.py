@@ -1727,6 +1727,8 @@ if 1:   # Get math/cmath functions into our namespace
         called if any of the arguments are complex; otherwise, the math
         routine is called.
         '''
+        # The following strings can be used to decorate the names with
+        # e.g. ANSI escape codes for color
         _left = "«"
         _right = "»"
         def __init__(self, name):
@@ -1830,10 +1832,6 @@ if 1:   # Get math/cmath functions into our namespace
     constants = "e pi tau".split()
     for i in constants:
         exec(f"{i} = flt({i})")
-
-if 0:
-    print(atan)
-    exit()
 
 if __name__ == "__main__": 
     from lwtest import run, raises, assert_equal, Assert
