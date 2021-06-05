@@ -501,8 +501,8 @@ class Base(object):
     _flip = False       # If True, interchange str() and repr()
     _fmt = None         # Formatter for flt
     _color = False      # Allow ANSI color codes in str() & repr()
-    _flt_color = C.lgreen
-    _cpx_color = C.yellow
+    _flt_color = C.cyan
+    _cpx_color = C.brown
     _rtz = False        # Remove trailing zeros if True
     _sep = chr(0xa0)    # Separate num from unit in str()
     _promote = False    # Allow e.g. flt("1 mi/hr") + 1 if True
@@ -1519,8 +1519,9 @@ class cpx(Base, complex):
         f = lambda x:  Base.wrap(x, self)
         if self.p:   # Polar coordinates
             return self._pol()
-        else:       # Rectangular coordinates
-            r, i = self._real, self._imag
+        else:        # Rectangular coordinates
+            conv = 1/u.u(self.u) if self.u else 1
+            r, i = self._real*conv, self._imag*conv
             re = r._s(fmt=fmt, no_color=True, no_units=True)
             im = i._s(fmt=fmt, no_color=True, no_units=True)
             if self.nz and ((r and not i) or (not r and i)):
@@ -1832,6 +1833,14 @@ if 1:   # Get math/cmath functions into our namespace
     constants = "e pi tau".split()
     for i in constants:
         exec(f"{i} = flt({i})")
+
+if 0:
+    z = cpx("1+2j mi/hr")
+    z.i = z.c = 1
+    xx()
+    print(z.s)
+    print(z.r)
+    exit()
 
 if __name__ == "__main__": 
     from lwtest import run, raises, assert_equal, Assert

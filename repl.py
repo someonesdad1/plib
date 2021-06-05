@@ -1,4 +1,14 @@
 '''
+TODO
+
+* Add the ability to separate commands with ';'.
+* R file 
+    * Loads the file into a file buffer.
+    * r runs the file and reloads the buffer from the file every time.
+* e, <, and > are still used with the string buffer.  Now, x executes
+  the buffer.
+
+----------------------------------------------------------------------
 A REPL that gives an interactive python calculator.  See repl.pdf for
 documentation.
 '''
@@ -13,18 +23,22 @@ this was figured out, it was straightforward to add other features
 useful for a command-line calculator:
 
   * flt/cpx numbers:  These are classes derived from float/complex in
-    the module f.py.  Their primary features are:
+    the module f.py.  The module's features are:
 
-    * Their string interpolations show 3 significant figures. 
-    * You can instantiate them with physical units.
-    * They are intended to be used to perform floating point
-      calculations with numbers derived from measurements.
-    * Use the h attribute on flt/cpx instances to see supported
-      attributes.
-    * The f attribute can flip the outputs of str()/repr().  This is
-      handy in the interpreter and debugger.
-    * Set the c attribute to True to get colored output, which helps to
-      identify flt/cpx types.
+    * flt/cpx objects:
+        * The flt/cpx string interpolations show 3 significant figures. 
+        * They "infect" calculations with their types.
+        * You can instantiate flt/cpx with physical units.
+        * They are intended to be used to perform floating point
+        calculations with numbers derived from measurements.
+        * Use the h attribute on flt/cpx instances to see supported
+        attributes.
+        * The f attribute can flip the outputs of str()/repr().  This is
+        handy in the interpreter and debugger, which use repr() by default.
+        * Set the c attribute to True to get colored output, which helps to
+        identify flt/cpx types.
+    * The math/cmath symbols are in scope and can take flt/cpx
+      arguments.
 
   * Special added commands.  Type 'h' at the prompt to get a list.  If
     you assign a variable to the same name as a command, preface the
@@ -43,6 +57,9 @@ useful for a command-line calculator:
     shell.
 
 The physical units in the flt/cpx types are provided by the u.py module.
+
+Here's an example.  Save the text to a file, read it in with the 
+'< file' command, and run it with the 'r' command.
 
 '''
 if 1:   # Standard imports
@@ -198,8 +215,8 @@ if 1:   # Core functionality
     def Help():
         cmds = (
             ("!", "Send command to shell"),
-            ("< f", "Read buffer from file f"),
-            ("> f", "Write buffer to file f"),
+            ("< f", "Read string buffer from file f"),
+            ("> f", "Write string buffer to file f"),
             ("CS", "Clear symbols"),
             ("c", "Clear screen"),
             ("d", "Enter debugger"),
@@ -207,9 +224,11 @@ if 1:   # Core functionality
             ("f", "Load favorite symbols (edit GetSymbols())"),
             ("H", "Shorthand to run help()"),
             ("q", "Quit"),
-            ("r", "Run buffer"),
+            ("R file", "Get file to run with 'r' command"),
+            ("r", "Run file buffer"),
             ("s", "Print symbols in scope"),
             ("v", "Show version"),
+            ("x", "Execute string buffer"),
         )
         Print("Commands:")
         for cmd, meaning in cmds:
@@ -235,9 +254,9 @@ if 1:   # Core functionality
         if not cmd:
             return False
         if len(cmd) == 1:
-            return cmd[0] in "?cCdefHhqrsv"
+            return cmd[0] in "?cCdefHhqrsvx"
         else:
-            return (cmd[0] in "!<>") or (cmd in "CS".split())
+            return (cmd[0] in "!<>R") or (cmd in "CS".split())
     def BreakPoint():
         '''Find the line number of the input routine, which lets you set
         a debugger breakpoint at the input line.
@@ -351,15 +370,15 @@ if 1:   # Special commands
                 os.system(newarg)
             return
         elif first_char == "<":  
-            # Read userbuffer
+            # Read stringbuffer
             if arg:
                 file = g.P(arg)
-                console.userbuffer = file.read_text()
+                console.stringbuffer = file.read_text()
         elif first_char == ">":  
-            # Write userbuffer
+            # Write stringbuffer
             if arg:
                 file = g.P(arg)
-                file.write_text(console.userbuffer)
+                file.write_text(console.stringbuffer)
         elif cmd == "c" or cmd == "cls":
             # Clear the screen
             os.system("clear")
@@ -371,8 +390,8 @@ if 1:   # Special commands
             BreakPoint()
             breakpoint()
         elif cmd == "e":  
-            # Edit userbuffer
-            console.userbuffer = EditString(console.userbuffer, console)
+            # Edit stringbuffer
+            console.stringbuffer = EditString(console.stringbuffer, console)
         elif cmd == "f":  
             # Load favorite symbols
             console.locals.update(GetSymbols())
@@ -384,10 +403,15 @@ if 1:   # Special commands
             t = console.time
             Print(f"{t}")
             exit(0)
+        elif first_char == "R":  
+            # Set or clear console.file
+            console.file = arg if arg else None
         elif cmd == "r":  
-            # Run userbuffer
-            fn = "<userbuffer>"
-            for line in console.userbuffer.split("\n"):
+            # Run console.file
+            if console.file is None:
+                Print("No file set with R command")
+                return
+            for line in open(console.file, "r").read().split("\n"):
                 rv = console.push(line)
                 console.ps = sys.ps2 if rv else sys.ps1
         elif cmd == "s":  
@@ -397,6 +421,15 @@ if 1:   # Special commands
             # Print repl.py version
             Print(f"{sys.argv[0]} version:  {_version}   "
                   f"[running python {g.pyversion}]")
+        elif cmd == "x":  
+            # Run stringbuffer
+            fn = "<stringbuffer>"
+            if not console.stringbuffer:
+                Print("String buffer is empty")
+                return
+            for line in console.stringbuffer.split("\n"):
+                rv = console.push(line)
+                console.ps = sys.ps2 if rv else sys.ps1
         else:
             Print(f"{g.err}'{cmd}' not recognized{g.norm}")
 if 1:   # class Console
@@ -405,7 +438,8 @@ if 1:   # class Console
             super().__init__(locals=locals)
             self.locals.update(GetSymbols())
             self.cwd = g.P(".").cwd()
-            self.userbuffer = ""
+            self.stringbuffer = ""
+            self.filebuffer = ""
         @property
         def time(self):
             def rlz(s):     # Remove leading zero
@@ -451,8 +485,11 @@ if 1:   # Setup
     d = {}      # Options dictionary
     args = ParseCommandLine(d)
     # System prompts
-    sys.ps1 = f"{'▶'*3} "
-    sys.ps2 = f"{g.cyn}{'·'*3}{g.norm} "
+    if 0:   # Plain
+        sys.ps1 = f"{'▶'*3} "
+    else:   # Colored
+        sys.ps1 = f"{g.whtblu}{'▶'*3}{g.norm} "
+    sys.ps2 = f"{g.whtblu}{'·'*3}{g.norm} "
 if __name__ == "__main__":  # Run the console REPL
     stdout, stderr = io.StringIO(), io.StringIO()
     console = Console()
