@@ -5,6 +5,11 @@
         * Get arithmetic with units working
         * Get comprehensive unit tests for arithmetic written
     * one = flt(1); one("1 mi/hr") does not work.  Should it?
+    * Add si() method to Base?  This would return the number in base SI
+      units.  A use case is the gas law calculation:  the number of
+      moles results in units of 0.274 ft³·mol·psi/J.  Since p*V is
+      energy, the resulting unit is mol, but you don't see that unless
+      you know it.  The si method would fix this.
     * Need to remove Base.sci, etc.  Add these attributes to flt and
       cpx.
     * Need to fix cpx radd, etc. (search for xx)
@@ -559,6 +564,16 @@ class Base(object):
             raise TypeError("self and units aren't dimensionally the same")
         value = float(self)/u.u(units)
         return flt(value, units=units)
+    def toSI(self):
+        'Return the value of this flt/cpx in the base SI units'
+        if self.u is None:
+            return None
+        xx()
+        mytyp = flt if ii(self, flt) else cpx
+        typ = float if ii(self, flt) else complex
+        value = typ(self)   # This is numerically in SI units
+        units = u.dim(self.u).toSI()
+        return mytyp(value, units=units)
     def _check(self):
         'Make sure Base._digits is an integer >= 0 or None'
         if not ii(Base._digits, int):
@@ -1834,12 +1849,9 @@ if 1:   # Get math/cmath functions into our namespace
     for i in constants:
         exec(f"{i} = flt({i})")
 
-if 0:
-    z = cpx("1+2j mi/hr")
-    z.i = z.c = 1
-    xx()
-    print(z.s)
-    print(z.r)
+if 1:
+    x = flt("0.274 ft³·mol·psi/J")
+    print(x.toSI())
     exit()
 
 if __name__ == "__main__": 

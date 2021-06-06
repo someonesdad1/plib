@@ -1978,7 +1978,12 @@ class U(object):
         length.
         '''
         assert expr is not None, "Bug in U.__call__:  expr is None"
-        expression = self._expand_units(expr.strip(), strict=strict)
+        # Translate superscripts to digits and middle dot & no-break
+        # spaces to space characters
+        T = ''.maketrans(dict(zip("⁰¹²³⁴⁵⁶⁷⁸⁹\xb7\x0a", "0123456789  ")))
+        # Process the string 
+        s = expr.strip().translate(T)
+        expression = self._expand_units(s, strict=strict)
         exception = None
         try:
             if not expression.strip():
@@ -2320,9 +2325,13 @@ def FormatUnit(unit, expr=False, flat=False, solidus=False, strict=False,
     else:
         return ''.join([''.join(N), ''.join(D)])
 
-if 0:
-    print(u("2 s-2 m/kg-1", dim=1))
+if 1:
+    ss = dict(zip("⁰¹²³⁴⁵⁶⁷⁸⁹\xb7\x0a", "0123456789  "))
+    T = ''.maketrans(ss)
+    s = "ft³·mol·psi/J"
+    print(s.translate(T))
     exit()
+
 if __name__ == "__main__":
     # Print out the supported units
     from columnize import Columnize
