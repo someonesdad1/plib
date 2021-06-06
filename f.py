@@ -70,6 +70,8 @@ __doc__ = '''
           called, letting you use color to identify flt and cpx values.
           This is handy during interactive python interpreter sessions
           because the colors alert you to the flt and cpx number types.
+          This works in typical UNIX terminals, but you'll need to
+          modify the color.py module to get it to work in Windows.
 
     * Physical units
 
@@ -568,7 +570,6 @@ class Base(object):
         'Return the value of this flt/cpx in the base SI units'
         if self.u is None:
             return None
-        xx()
         mytyp = flt if ii(self, flt) else cpx
         typ = float if ii(self, flt) else complex
         value = typ(self)   # This is numerically in SI units
@@ -1849,7 +1850,7 @@ if 1:   # Get math/cmath functions into our namespace
     for i in constants:
         exec(f"{i} = flt({i})")
 
-if 1:
+if 0:
     x = flt("0.274 ft³·mol·psi/J")
     print(x.toSI())
     exit()

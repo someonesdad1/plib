@@ -71,10 +71,10 @@ Here's an example.  Save the text to a file, read it in with the
     #   1.  What is the mass of the remaining oxygen?
     #   2.  How many liters (at 1 atm) of oxygen remain in the tank?
 
-    one.f = False
-    one.c = True
-
     R = flt("8.314 J/(K*mol)")
+    R.n = 3         # Show results to 3 figures
+    R.f = False     # Don't interchange str() and repr()
+    R.c = True      # Use ANSI escape sequences to color flt/cpx
     print(f"R = gas constant = {R}")
 
     # Gas cylinder internal volume
@@ -92,7 +92,8 @@ Here's an example.  Save the text to a file, read it in with the
 
     # Number of moles of oxygen
     n = p*V/(R*T)
-    print(f"n = {n} = {n.to('mol')}")
+    print(f"n = {n} = {n.toSI()} = {n.to('mol')}")
+    print(f"Dimensions of n = {u.dim(n.u)}")
 
     # Molecular mass (standard atomic mass of oxygen is 16 and it's
     # a diatomic gas)
@@ -112,13 +113,19 @@ When you run the commands, you'll see the output
     V = volume = 0.550 ft³ = 0.0156 m³ = 15.6 L
     p = pressure = 1210. psi = 8.38 MPa
     T = temperature = 293. K
-    n = 0.274 ft³·mol·psi/J = 53.5 mol
+    n = 0.274 ft³·mol·psi/J = 53.5 mol = 53.5 mol
+    Dimensions of n = Dim("N")
     Mass of O₂ = 8.78 ft³·g·psi/J = 1.71 kg
     Volume of O₂ at 1 atm = 1290. liters
 
 Note the ft³·mol·psi/J units for the number of moles.  A pressure times
 a volume is an energy, so ft³·psi/J is dimensionless, but the u.py
-module doesn't perform this calculation for you.
+module doesn't perform this calculation for you.  However, the flt/cpx
+method toSI() will convert a flt/cpx instance to another in the base SI
+units when needed.  The u.dim() method can show you the dimensional
+structure of a unit string; the next line shows n is in the dimensional
+unit "N", quantity of material.
+
 '''
 if 1:   # Standard imports
     # These "trigger strings" can be managed with trigger.py

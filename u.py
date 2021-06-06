@@ -216,7 +216,7 @@ if 1:   # Custom imports
     try:
         import uncertainties
         _have_uncertainties = True
-    except ImportError:
+    except Exception:
         _have_uncertainties = False
 
 if 1:   # Global variables
@@ -1980,9 +1980,10 @@ class U(object):
         assert expr is not None, "Bug in U.__call__:  expr is None"
         # Translate superscripts to digits and middle dot & no-break
         # spaces to space characters
-        T = ''.maketrans(dict(zip("⁰¹²³⁴⁵⁶⁷⁸⁹\xb7\x0a", "0123456789  ")))
+        _from = "⁰¹²³⁴⁵⁶⁷⁸⁹⁻⁺· "
+        _to   = "0123456789-+  "
+        s = expr.strip().translate(''.maketrans(dict(zip(_from, _to))))
         # Process the string 
-        s = expr.strip().translate(T)
         expression = self._expand_units(s, strict=strict)
         exception = None
         try:
@@ -2325,11 +2326,7 @@ def FormatUnit(unit, expr=False, flat=False, solidus=False, strict=False,
     else:
         return ''.join([''.join(N), ''.join(D)])
 
-if 1:
-    ss = dict(zip("⁰¹²³⁴⁵⁶⁷⁸⁹\xb7\x0a", "0123456789  "))
-    T = ''.maketrans(ss)
-    s = "ft³·mol·psi/J"
-    print(s.translate(T))
+if 0:
     exit()
 
 if __name__ == "__main__":
