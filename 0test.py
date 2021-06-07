@@ -35,16 +35,16 @@ if 1:   # Standard imports
     from pdb import set_trace as xx
 if 1:   # Custom imports
     from wrap import wrap, dedent, indent, Wrap
-    from globalcontainer import Global, Variable, Constant
     import color as C
     import trigger
     if 0:
         import debug
         debug.SetDebugger()  # Start debugger on unhandled exception
 if 1:   # Global variables
-    G = Global()
-    G.ro = Constant()
-    G.rw = Variable()
+    class G: pass
+    G.red = C.fg(C.lred, s=1)
+    G.cyn = C.fg(C.lcyan, s=1)
+    G.norm = C.normal(s=1)
     P = pathlib.Path
 if 1:   # Utility
     def eprint(*p, **kw):
@@ -64,20 +64,22 @@ if 1:   # Utility
       -h    Print a manpage
       -l    List the files and their actions
       -r    Search for all python files recursively
+      -v    Show test results
     '''))
         exit(status)
     def ParseCommandLine(d):
         d["-l"] = False     # List the files
         d["-r"] = False     # Recursive
+        d["-v"] = False     # Verbose
         if len(sys.argv) < 2:
             Usage(d)
         try:
-            opts, args = getopt.getopt(sys.argv[1:], "hlr")
+            opts, args = getopt.getopt(sys.argv[1:], "hlrv")
         except getopt.GetoptError as e:
             print(str(e))
             exit(1)
         for o, a in opts:
-            if o[1] in list("lr"):
+            if o[1] in list("lrv"):
                 d[o] = not d[o]
             elif o in ("-h", "--help"):
                 Usage(d, status=0)
@@ -86,13 +88,20 @@ if 1:   # Core functionality
     def Run(file):
         if file.suffix == ".py":
             cmd = [sys.executable, str(file)]
-            r = subprocess.run(cmd, capture_output=True)
+            r = subprocess.run(cmd, capture_output=True, text=True)
+            if d["-v"]:
+                if r.stdout:
+                    print(r.stdout, end="")
+                if r.stderr:
+                    print(r.stderr, end="")
             if r.returncode:
-                print(f"{file} test failed")
+                d["failed"] += 1
+                print(f"{G.red}{file} test failed{G.norm}")
         else:
             status = os.system(str(file))
             if status:
-                print(f"{file} test failed")
+                d["failed"] += 1
+                print(f"{G.red}{file} test failed{G.norm}")
     def GetFiles(dir):
         'Return a sorted list of (files, trigger)'
         p, glb, o, T = P(dir), "*.py", [], d["trigger"]
@@ -104,9 +113,7 @@ if 1:   # Core functionality
     def ListFiles(dir):
         files = GetFiles(dir)
         n = max([len(str(i)) for i, j in files])
-        C.fg(C.lcyan)
-        print(f"Directory = {dir.resolve()}")
-        C.normal()
+        print(f"{G.cyn}Directory = {dir.resolve()}{G.norm}")
         for file, trig in files:
             print(f"  {file!s:{n}s} {trig}")
     def RunTests(dir):
@@ -124,14 +131,18 @@ if 1:   # Core functionality
 if __name__ == "__main__":
     d = {       # Options dictionary
         "trigger": trigger.Trigger(),
+        "total": 0,
+        "failed": 0,
     }
     dirs = [P(i) for i in ParseCommandLine(d)]
-    total = 0
     for dir in dirs:
         if d["-l"]:
             print("Python files with tests:")
             ListFiles(dir)
         else:
-            total += RunTests(dir)
-    if total:
-        print(f"{total} files tested")
+            d["total"] += RunTests(dir)
+    t, f = d["total"], d["failed"]
+    if f or t:
+        print(f"{t} file{'s' if t > 1 else ''} tested OK")
+        if f:
+            print(f"{G.red}{f} file{'s' if f > 1 else ''} failed{G.norm}")
