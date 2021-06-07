@@ -572,5 +572,5 @@ if __name__ == "__main__":
         print("In red reverse")
     print("  Back to normal")
     # Demo of Colors
-    print("Demo of yellow(1) call to get background yellow if f-string: ", end="")
+    print("Demo of yellow(1) call to get background yellow in f-string: ", end="")
     print(f"{yellow(1)}Hi there{norm()}")

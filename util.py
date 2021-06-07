@@ -1,17 +1,16 @@
+# TODO:  Convert Spinner to a class so the instance is thread-safe
 '''Miscellaneous routines in python:
 
 AlmostEqual           Returns True when two floats are nearly equal
 Ampacity              Returns NEC ampacity of copper wire
 AWG                   Returns wire diameter in inches for AWG gauge number
-base2int              Convert string is base x to base 10 integer
-Batch                 Generate to pick n items at a time from a sequence
+base2int              Convert string in base x to base 10 integer
+Batch                 Generator to pick n items at a time from a sequence
 Binary                Converts an integer to a binary string (see int2bin)
 bin2gray              Convert binary integer to Gray code
 bitlength             Return number of bits needed to represent an integer
 bitvector             Convenience class to get the binary bits of an integer
 Cfg                   Execute a sequence of text lines for config use
-CommonPrefix          Find common prefix in a list of strings
-CommonSuffix          Find common suffix in a list of strings
 ConvertToNumber       Convert a string to a number
 CountBits             Return the number of bits set in an integer
 cw2mc                 Convert cap-words naming to mixed-case
@@ -22,11 +21,7 @@ Dispatch              Class to aid polymorphism
 eng                   Convenience function for engineering format
 EditData              Edit a str or bytes object with vim
 Engineering           Represent a number in engineering notation
-FindDiff              Find the index where two strings first differ.
-FindSubstring         Return tuple of indexes where substr is in string
 Flatten               Flattens nested sequences to a sequence of scalars
-GetChoice             Return a unique string if possible from set of choices
-GetString             Return a string from a set by prompting the user
 gray2bin              Convert Gray code to binary integer
 GroupByN              Group items from a sequence by n items at a time
 grouper               Function to group data
@@ -44,14 +39,9 @@ IsCygwinSymlink       Returns True if a file is a cygwin symlink
 IsIterable            Determines if you can iterate over an object
 IsTextFile            Heuristic to see if a file is a text file
 ItemCount             Summarize a sequence with counts of each item
-Keep                  Keep only specified characters in a string
-KeepFilter            Return a function that keeps specified characters
-KeepOnlyLetters       Change everything in a string not a letter to spaces
-ListInColumns         Returns a list of strings listing a seq in columns
 mantissa              Return the mantissa of the base 10 log of a number
 mc2cw                 Convert mixed-case naming to cap-words
 mc2us                 Convert mixed-case naming to underscore
-MultipleReplace       Replace multiple patterns in a string
 partition             Generate a list of the partitions of an iterable
 Paste                 Return sequence of pasted sequences
 Percentile            Returns the percentile of a sorted sequence
@@ -60,30 +50,18 @@ ProperFraction        Converts a Fraction object to proper form
 randq                 Simple, fast random number generator
 randr                 Random numbers on [0,1) using randq
 ReadVariables         Read variables from a file
-Remove                Remove a specified set of characters from a string
-RemoveComment         Remove a # style comment
-RemoveFilter          Return a function that removes specified characters
-RemoveIndent          Remove leading spaces from a multi-line string
 significand           Return the significand of x
 SignificantFigures    Rounds to specified num of sig figs (returns float)
 SignificantFiguresS   Rounds to specified num of sig figs (returns string)
 SignSignificandExponent  Returns tuple of sign, significand, exponent
 signum                Signum function
 Singleton             Mix-in class to create the singleton pattern
-soundex               Returns a string characterizing a word's sound
-SoundSimilar          Returns True if two words sound similar
 SpeedOfSound          Calculate the speed of sound as func of temperature
-SpellCheck            Checks that a list of words is in a dictionary
 Spinner               Console spinner to show activity
-SplitOnNewlines       Splits a string on newlines for PC, Mac, Unix
-StringSplit           Split a string on fixed fields or cut at columns
 StringToNumbers       Convert a string to a sequence of numbers
 TempConvert           Convert a temperature
 Time                  Returns a string giving local time and date
 TranslateSymlink      Returns what a cygwin symlink is pointing to
-Unique                Return the unique items in a sequence
-us2cw                 Convert underscore naming to cap-words naming
-us2mc                 Convert underscore naming to mixed-case
 US_states             Dictionary of states indexed by e.g. "ID"
 VisualCount           Return a list representing a histogram of a sequence
 Walker                Generator to recursively return files or directories
@@ -106,7 +84,7 @@ from decimal import Decimal
 from fractions import Fraction
 from heapq import nlargest
 from itertools import chain, combinations, islice, groupby
-from itertools import filterfalse, cycle
+from itertools import cycle
 from itertools import zip_longest
 from operator import itemgetter
 from random import randint, seed
@@ -135,66 +113,6 @@ nl = "\n"
 # Note:  this choice of a small floating point number may be
 # wrong on a system that doesn't use IEEE floating point numbers.
 eps = 1e-15
-
-def KeepOnlyLetters(s, underscore=False, digits=True):
-    '''Replace all non-word characters with spaces.  If underscore is
-    True, keep underscores too (e.g., typical for programming language
-    identifiers).  If digits is True, keep digits too.
-    '''
-    allowed = ascii_letters + "_" if underscore else ascii_letters
-    allowed += DIGITS if digits is True else ""
-    c = [chr(i) for i in range(256)]
-    t = ''.join([i if i in allowed else " " for i in c])
-    return s.translate(t)
-
-def StringSplit(fields, string, remainder=True, strict=True):
-    '''Pick out the specified fields of the string and return them as
-    a tuple of strings.  fields can be either a format string or a
-    list/tuple of numbers.
- 
-    Field numbering starts at 0.  If strict is True, then the indicated
-    number of fields must be returned or a ValueError exception will be
-    raised.
- 
-    fields is a format string
-        A format string is used to get particular columns of the
-        string.  For example, the format string "5s 3x 8s 8s" means to
-        pick out the first five characters of the string, skip three
-        spaces, get the next 8 characters, then the next 8 characters.
-        If remainder is False, this is all that's returned; if
-        remainder is True, then whatever is left over will also be
-        returned.  Thus, if remainder is False, you'll have a 3-tuple
-        of strings returned; if True, a 4-tuple.
- 
-    fields is a sequence of numbers
-        The numbers specify cutting the string at the indicated
-        columns (numbering is 0-based).  Example:  for the input string
-        "hello there", using the fields of [3, 7] will return the tuple
-        of strings ("hel", "lo t", "here").
-            "hello there"
-             01234567890
- 
-    Derived from code by Alex Martelli at
-    http://code.activestate.com/recipes/65224-accessing-substrings/
-    Downloaded Sun 27 Jul 2014 07:52:44 AM
-    '''
-    if isinstance(fields, str):
-        left_over = len(string) - struct.calcsize(fields)
-        if left_over < 0:
-            raise ValueError("string is shorter than requested format")
-        format = "%s %ds" % (fields, left_over)
-        s = bytes(string.encode("ascii"))
-        result = list(struct.unpack(format, s))
-        return result if remainder else result[:-1]
-    else:
-        pieces = [string[i:j] for i, j in zip([0] + fields, fields)]
-        if remainder:
-            pieces.append(string[fields[-1]:])
-        num_expected = len(fields) + 1
-        if num_expected != len(pieces) and strict:
-            raise ValueError("Expected %d pieces; got %d" % (num_expected,
-                             len(pieces)))
-        return pieces
 
 def Percentile(seq, fraction):
     '''Return the indicated fraction of a sequence seq of sorted
@@ -335,69 +253,6 @@ def VisualCount(seq, n=None, char="*", width=None, indent=0):
         output.append(s + char*count)
     return output
 
-def cw2us(x):
-    '''Convert cap-words naming to underscore naming.
-    "Python Cookbook", pg 91.
-
-    Example:  ALotOfFuss --> a_lot_of_fuss
-    '''
-    return re.sub(r"(?<=[a-z])[A-Z]|(?<!^)[A-Z](?=[a-z])",
-                  r"_\g<0>", x).lower()
-
-def cw2mc(x):
-    '''Convert cap-words naming to mixed-case naming.
-    "Python Cookbook", pg 91.
-
-    Example:  ALotOfFuss --> aLotOfFuss
-    '''
-    return x[0].lower() + x[1:]
-
-def us2mc(x):
-    '''Convert underscore naming to mixed-case.
-    "Python Cookbook", pg 91.
-
-    Example:  a_lot_of_fuss --> aLotOfFuss
-    '''
-    return re.sub(r"_([a-z])", lambda m: (m.group(1).upper()), x)
-
-def us2cw(x):
-    '''Convert underscore naming to cap-words naming.
-    "Python Cookbook", pg 91.
-
-    Example:  a_lot_of_fuss --> ALotOfFuss
-    '''
-    s = us2mc(x)
-    return s[0].upper() + s[1:]
-
-def mc2us(x):
-    '''Convert mixed-case naming to underscore naming.
-    "Python Cookbook", pg 91.
-
-    Example:  aLotOfFuss --> a_lot_of_fuss
-    '''
-    return cw2us(x)
-
-def mc2cw(x):
-    '''Convert mixed-case naming to cap-words naming.
-    "Python Cookbook", pg 91.
-
-    Example:  aLotOfFuss --> ALotOfFuss
-    '''
-    return x[0].upper() + x[1:]
-
-def MultipleReplace(text, patterns, flags=0):
-    '''Replace multiple patterns in the string text.  patterns is a
-    dictionary whose keys are the regular expressions and values are the
-    replacement text.  The flags keyword variable is the same as that used
-    by the re.compile function.
-    
-    From page 88 of Python Cookbook.
-    '''
-    # Make a compound regular expression from all the keys
-    r = re.compile("|".join(map(re.escape, patterns.keys())), flags)
-    # For each match, look up the corresponding value in the dictionary
-    return r.sub(lambda match: patterns[match.group(0)], text)
-    
 class Singleton(object):
     '''Mix-in class to make an object a singleton.  From 'Python in a
     Nutshell', p 84.
@@ -534,77 +389,6 @@ def GroupByN(seq, n, fill=False):
     else:
         return zip(*([iter(seq)]*n))
 
-def Unique(seq):
-    '''Given a sequence seq, returns a sequence with the unique
-    items in seq.
-    '''
-    return list(OrderedDict.fromkeys(seq))
-
-def soundex(s):
-    '''Return the 4-character soundex value to a string argument.  The
-    string s must be one word formed with ASCII characters and with no
-    punctuation or spaces.  The returned soundex string can be used to
-    compare the sounds of words; from US patents 1261167(1918) and
-    1435663(1922) by Odell and Russell.
- 
-    The algorithm is from Knuth, "The Art of Computer Programming",
-    volume 3, "Sorting and Searching", pg. 392:
- 
-        1. Retain first letter of name and drop all occurrences
-           of a, e, h, i, o, u, w, y in other positions.
-        2. Assign the following numbers to the remaining letters
-           after the first:
-            1:  b, f, p, v
-            2:  c, g, j, k, q, s, x, z
-            3:  d, t
-            4:  l
-            5:  m, n
-            6:  r
-        3. If two or more letters with the same code were adjacent in
-           the original name (before step 1), omit all but the first.
-        4. Convert to the form "letter, digit, digit, digit" by adding
-           trailing zeroes (if there are less than three digits), or
-           by dropping rightmost digits (if there are more than
-           three).
-    '''
-    if not s:
-        raise ValueError("Argument s must not be empty string")
-    if set(s) - set(ascii_letters):
-        raise ValueError("String s must contain only ASCII letters")
-    if not hasattr(soundex, "m"):
-        soundex.m = dict(zip("ABCDEFGHIJKLMNOPQRSTUVWXYZ",
-                             "01230120022455012623010202"))
-    # Function to map lower-case letters to soundex number
-    getnum = lambda x: [soundex.m[i] for i in x]
-    t = s.upper()
-    num, keep = getnum(t), []
-    # Step 0 (and step 3):  keep only those letters that don't map to
-    # the same number as the previous letter.
-    for i, code in enumerate(num):
-        if not i:
-            keep.append(t[0])   # Always keep first letter
-        else:
-            if code != num[i - 1]:
-                keep.append(t[i])
-    # Step 1:  remove vowels, etc.
-    first_letter = keep[0]
-    ignore, process = set("AEHIOUWY"), []
-    process += [i for i in keep[1:] if i not in ignore]
-    # Step 2:  assign numbers for remaining letters
-    code = first_letter + ''.join(getnum(''.join(process)))
-    # Step 3:  same as step 0
-    # Step 4:  adjust length
-    if len(code) > 4:
-        code = code[:4]
-    while len(code) < 4:
-        code += "0"
-    return code
-
-def SoundSimilar(s, t):
-    '''Returns True if the strings s and t sound similar.
-    '''
-    return True if soundex(s) == soundex(t) else False
-
 def Cfg(lines, lvars=OrderedDict(), gvars=OrderedDict()):
     '''Allow use of sequences of text strings to be used for
     general-purpose configuration information.  Each string must be
@@ -652,24 +436,6 @@ def Cfg(lines, lvars=OrderedDict(), gvars=OrderedDict()):
     # The things defined in the configuration lines are now in the
     # dictionary lvars.
     return lvars
-
-def RemoveComment(line, code=False):
-    '''Remove the largest string starting with '#' from the string
-    line.  If code is True, then the resulting line will be compiled
-    and an exception will occur if the modified line won't compile.
-    This typically happens if '#' is inside of a comment.
-    '''
-    orig = line
-    loc = line.find("#")
-    if loc != -1:
-        line = line[:loc]
-    if code:
-        try:
-            compile(line, "", "single")
-        except Exception:
-            msg = "Line with comment removed won't compile:\n  '%s'" % orig
-            raise ValueError(msg)
-    return line
 
 def bitlength(n):
     '''This emulates the n.bit_count() function of integers in python 2.7
@@ -750,23 +516,6 @@ def ReadVariables(file, ignore_errors=False):
         del d[i]
     return d
 
-def FindSubstring(string, substring):
-    '''Return a tuple of the indexes of where the substring t is found
-    in the string s.
-    '''
-    if not isinstance(string, str):
-        raise TypeError("s needs to be a string")
-    if not isinstance(substring, str):
-        raise TypeError("t needs to be a string")
-    d, ls, lsub = [], len(string), len(substring)
-    if not ls or not lsub or lsub > ls:
-        return tuple(d)
-    start = string.find(substring)
-    while start != -1 and ls - start >= lsub:
-        d.append(start)
-        start = string.find(substring, start + 1)
-    return tuple(d)
-
 def randq(seed=-1):
     '''The simple random number generator in the section "An Even
     Quicker Generator" from "Numerical Recipes in C", page 284,
@@ -808,50 +557,6 @@ def TranslateSymlink(file):
     '''For a cygwin symlink, return a string of what it's pointing to.
     '''
     return open(file).read()[12:].replace("\x00", "")
-
-def GetString(prompt_msg, default, allowed_values, ignore_case=True):
-    '''Get a string from a user and compare it to a sequence of
-    allowed values.  If the response is in the allowed values, return
-    it.  Otherwise, print an error message and ask again.  The letter
-    'q' or 'Q' will let the user quit the program.  The returned
-    string will have no leading or trailing whitespace.
-    '''
-    if ignore_case:
-        allowed_values = [i.lower() for i in allowed_values]
-    while True:
-        msg = prompt_msg + " [" + default + "]:  "
-        response = input(msg)
-        s = response.strip()
-        if not s:
-            return default
-        if s.lower() == "q":
-            exit(0)
-        s = s.lower() if ignore_case else s
-        if s in allowed_values:
-            return s
-        print("'%s' is not a valid response" % response.strip())
-
-def GetChoice(name, names):
-    '''name is a string and names is a set or dict of strings.  Find
-    if name uniquely identifies a string in names; if so, return it.
-    If it isn't unique, return a list of the matches.  Otherwise
-    return None.  The objective is to allow name to be the minimum
-    length string necessary to uniquely identify the choice.
-    '''
-    # See self tests below for an example of use
-    if not isinstance(name, str):
-        raise ValueError("name must be a string")
-    if not isinstance(names, (set, dict)):
-        raise ValueError("names must be a set or dictionary")
-    d, n = defaultdict(list), len(name)
-    for i in names:
-        d[i[:len(name)]] += [i]
-    if name in d:
-        if len(d[name]) == 1:
-            return d[name][0]
-        else:
-            return d[name]
-    return None
 
 def Int(s):
     '''Convert the string x to an integer.  Allowed forms are:
@@ -991,75 +696,7 @@ def IsIterable(x, exclude_strings=False):
     '''
     if exclude_strings and isinstance(x, str):
         return False
-    return True if isinstance(x, Iterable) else False
-
-def ListInColumns(alist, col_width=0, num_columns=0, space_betw=0, truncate=0):
-    '''Returns a list of strings with the elements of alist (if
-    components are not strings, they will be converted to strings
-    using str) printed in columnar format.  Elements of alist that
-    won't fit in a column either generate an exception if truncate is
-    0 or get truncated if truncate is nonzero.  The number of spaces
-    between columns is space_betw.
- 
-    If col_width and num_columns are 0, then the program will set them
-    by reading the COLUMNS environment variable.  If COLUMNS doesn't
-    exist, col_width will default to 80.  num_columns will be chosen
-    by finding the length of the largest element so that it is not
-    truncated.
- 
-    Caveat:  if there are a small number of elements in the list, you
-    may not get what you expect.  For example, try a list size of 1 to
-    10 with num_columns equal to 4:  for lists of 1, 2, 3, 5, 6, and 9,
-    you'll get fewer than four columns.
- 
-    This function is obsolete; instead, use Columnize in columnize.py.
-    '''
-    # Make all integers
-    col_width = int(col_width)
-    num_columns = int(num_columns)
-    space_betw = int(space_betw)
-    truncate = int(truncate)
-    lines = []
-    N = len(alist)
-    if not N:
-        return [""]
-    # Get the length of the longest line in the alist
-    maxlen = max([len(str(i)) for i in alist])
-    if not maxlen:
-        return [""]
-    if not col_width:
-        if "COLUMNS" in os.environ:
-            columns = int(os.environ["COLUMNS"]) - 1
-        else:
-            columns = 80 - 1
-        col_width = maxlen
-    if not num_columns:
-        try:
-            num_columns = int(columns//maxlen)
-        except Exception:
-            return [""]
-        if num_columns < 1:
-            raise ValueError("A line is too long to display")
-        space_betw = 1
-    if not col_width or not num_columns or space_betw < 0:
-        raise ValueError("Error: invalid parameters")
-    num_rows = int(N//num_columns + (N % num_columns != 0))
-    for row in range(num_rows):
-        s = ""
-        for column in range(num_columns):
-            i = int(num_rows*column + row)
-            if 0 <= i <= (N-1):
-                if len(str(alist[i])) > col_width:
-                    if truncate:
-                        s += str(alist[i])[:col_width] + " "*space_betw
-                    else:
-                        raise ValueError("Error:  element %d too long" % i)
-                else:
-                    s += (str(alist[i]) + " " * (col_width -
-                          len(str(alist[i]))) + " " * space_betw)
-        lines.append(s)
-    assert(len(lines) == num_rows)
-    return lines
+    return isinstance(x, Iterable)
 
 def SpeedOfSound(T):
     '''Returns speed of sound in air in m/s as a function of temperature
@@ -1132,60 +769,6 @@ def HeatIndex(air_temp_deg_F, relative_humidity_percent):
           8.5282e-4*Tf*RH*RH - 1.99e-6*Tf*Tf*RH*RH)
     return HI
 
-def SpellCheck(input, Words, ignore_case=True):
-    '''input is a sequence of word strings; Words is a dictionary or set
-    of correct spellings.  Return the set of any words in input that are not
-    in Words.
-    '''
-    misspelled = set()
-    if not input:
-        return []
-    if not Words:
-        raise ValueError("Words parameter is empty")
-    for word in input:
-        if ignore_case:
-            word = word.lower()
-        if word not in Words:
-            misspelled.add(word)
-    return misspelled
-
-def Keep(s, keep):
-    '''Return a list (or a string if s is a string) of the items in s that
-    are in keep.
-    '''
-    k = set(keep)
-    if 0:
-        f = lambda x: x not in k
-        ret = filterfalse(f, s)
-    f = lambda x: x in k
-    ret = filter(f, s)
-    return ''.join(ret) if isinstance(s, str) else list(ret)
-
-def KeepFilter(keep):
-    '''Return a function that takes a string and returns a string
-    containing only those characters that are in keep.
-    '''
-    def func(s):
-        return Keep(s, keep)
-    return func
-
-def Remove(s, remove):
-    '''Return a list (or a string if s is a string) of the items in s that
-    are not in remove.
-    '''
-    r = set(remove)
-    f = lambda x: x in r
-    ret = filterfalse(f, s)
-    return ''.join(ret) if isinstance(s, str) else list(ret)
-
-def RemoveFilter(remove):
-    '''Return a function that takes a string and returns a string
-    containing only those characters that are not in remove.
-    '''
-    def func(s):
-        return Remove(s, remove)
-    return func
-
 class Debug:
     '''Implements a debug class that can be useful in printing debugging
     information.
@@ -1209,7 +792,7 @@ class Debug:
 
 def Time():
     '''Returns the current time in the following format:
-        Mon Oct 25 22:05:00 2010
+        '7Jun2021 7:24 am Mon'
     '''
     t, f = time.localtime(), lambda x: x[1:] if x[0] == "0" else x
     day = f(time.strftime("%a", t))
@@ -1599,23 +1182,6 @@ def Flatten(L, max_depth=None, ltypes=(list, tuple)):
     except TypeError:
         return r
 
-def CommonPrefix(seq):
-    '''Return the largest string that is a prefix of all the strings in
-    seq.
-    '''
-    return os.path.commonprefix(seq)
-
-def CommonSuffix(seq):
-    '''Return the largest string that is a suffix of all the strings in
-    seq.
-    '''
-    # Method:  reverse each string in seq, find their common prefix, then
-    # reverse the result.
-    f = lambda lst:  ''.join(lst)   # Convert the list back to a string
-    def rev(s):     # Reverse the string s
-        return f([f(list(i)) for i in reversed(s)])
-    return rev(CommonPrefix([rev(i) for i in seq]))
-
 def TempConvert(t, in_unit, to_unit):
     '''Convert the temperature in t in the unit specified in in_unit to the
     unit specified by to_unit.
@@ -1649,19 +1215,6 @@ def TempConvert(t, in_unit, to_unit):
             (tou == "f" and T < -r)):
         raise e
     return T
-
-def SplitOnNewlines(s):
-    ''' Splits s on all of the three newline sequences: "\r\n", "\r", or
-    "\n".  Returns a list of the strings.
- 
-    Copyright (c) 2002-2009 Zooko Wilcox-O'Hearn, who put it under the GPL.
-    '''
-    cr = "\r"
-    res = []
-    for x in s.split(cr + nl):
-        for y in x.split(cr):
-            res.extend(y.split(nl))
-    return res
 
 def DecimalToBase(num, base, check_result=False):
     '''Convert a decimal integer num to a string in base base.  Tested with
@@ -1923,33 +1476,6 @@ def grouper(data, mapper, reducer=None):
             d[key] = reducer(group)
     return d
 
-def FindDiff(s1, s2, ignore_empty=False, equal_length=False):
-    '''Returns the integer index of where the strings s1 and s2 first
-    differ.  The number returned is the index where the first
-    difference was found.  If the strings are equal, then -1 is
-    returned, implying one string is a substring of the other (or they
-    are the same string).  If ignore_empty is True, an exception is
-    raised if one of the strings is empty.  If equal_length is True,
-    then the strings must be of equal length or a ValueError exception
-    is raised.
-    '''
-    if not isinstance(s1, str) or not isinstance(s2, str):
-        raise TypeError("Arguments must be strings")
-    if (not s1 or not s2) and not ignore_empty:
-        raise ValueError("String cannot be empty")
-    ls1, ls2 = len(s1), len(s2)
-    if equal_length and ls1 != ls2:
-        raise ValueError("Strings must be equal lengths")
-    n = min(len(s1), len(s2))
-    if not n:
-        return 0
-    for i in range(n):
-        if s1[i] != s2[i]:
-            return i
-    # If we get here, every character matched up to the end of the
-    # shorter string.
-    return -1
-
 class Walker(object):
     '''Defines a class that operates as a generator for recursively getting
     files or directories from a starting directory.  The default is to
@@ -2116,53 +1642,6 @@ def gray2bin(bits):
         b.append(b[-1] ^ nextb)
     return ''.join([str(i) for i in b])
 
-def WordID(half_length=3, unique=None, num_tries=100):
-    '''Return an ID string that is (somewhat) pronounceable.  The
-    returned number of characters will be twice the half_length.  If
-    unique is not None, it must be a container that can be used to
-    determine if the ID is unique.  You are responsible for adding the
-    returned word to the container.
- 
-    The method is to choose a consonant from 'bdfghklmnprstvw' and append a
-    vowel; do this half_length number of times.
- 
-    Interestingly, the words often look like they came from Japanese or
-    Hawaiian.
-    '''
-    # Derived from http://code.activestate.com/recipes/576858
-    # downloaded Tue 12 Aug 2014 12:38:54 PM.  Original recipe by
-    # Robin Parmar on 8 Aug 2007 under PSF license.
-    from random import choice
-    v, c, r, count = 'aeiou', 'bdfghklmnprstvw', range(half_length), 0
-    while count < num_tries:
-        word = ''.join([choice(c) + choice(v) for i in r])
-        if not unique or (unique and word not in unique):
-            return word
-        count += 1
-    raise RuntimeError("Couldn't generate unique word")
- 
-    '''Here's some driver code that prints out lists of these words.
- 
-    from columnize import Columnize
-    from words import words_ic
-    num_words = 100
-    for n in range(2, 6):
-        print("{} letters:".format(2*n))
-        uniq = set()
-        for i in range(num_words):
-            is_word = True
-            while is_word:
-                w = WordID(n, unique=uniq)
-                is_word = w in words_ic
-                if not is_word:
-                    uniq.add(w)
-        s = sorted(list(uniq))
-        for line in Columnize(s, col_width=2*n+2, indent=" "*2):
-            print(line)
-        print()
-    '''
-
-# TODO:  Convert to a class so the instance is thread-safe
 
 def Spinner(chars=r"-\|/-\|/", delay=0.1):
     '''Show a spinner to indicate that processing is still taking place.

@@ -1,50 +1,62 @@
 '''
+TODO
+    Change the functions to a class, which allows the state to be saved
+    with the function.  This makes them thread safe if a lock is used
+    for each instance.
 
-These functions generate combinations and permutations in lexical order.
+    ------------------------------------------------------------
+
+    These functions generate combinations and permutations in lexical
+    order.
 
     WARNING:  These functions are not reentrant!
 
-If you must use these functions with multiple threads, you'll have to
-develop thread-safe storage for the global variables.  One way to do
-this would be to change the function signatures so that you pass in a
-list of the globals needed.
+    If you must use these functions with multiple threads, you'll have
+    to develop thread-safe storage for the global variables.  One way to
+    do this would be to change the function signatures so that you pass
+    in a list of the globals needed.
 
-The python algorithms here were implemented to return one combination or
-permutation with each call to a function.  These are intended to be used
-with schemes to exhaustively search all combinations or permutations of
-some problem without having to generate a large list or file of the
-combinatorial data.
+    The python algorithms here were implemented to return one
+    combination or permutation with each call to a function.  These are
+    intended to be used with schemes to exhaustively search all
+    combinations or permutations of some problem without having to
+    generate a large list or file of the combinatorial data.
 
-Note 20 Sep 2010:  The routines in this module are obsoleted by the
-combinations() and permutations() methods of the itertools module.
-Also note the URLs given below do not work anymore; I had last accessed
-them when solving the "Einstein" fish puzzle in February of 2002.
+    Note 20 Sep 2010:  The routines in this module are obsoleted by the
+    combinations() and permutations() methods of the itertools module.
+    Also note the URLs given below do not work anymore; I had last
+    accessed them when solving the "Einstein" fish puzzle in February of
+    2002.
+
+    A quick comparison of comb(100, 4) with GetCombination() versus
+    itertools.combinations() shows itertools is about 23 times faster.
 '''
 
-# Copyright (C) 2005 Don Peterson
-# Contact:  gmail.com@someonesdad1
+if 1:
+    # Copyright (C) 2005 Don Peterson
+    # Contact:  gmail.com@someonesdad1
 
-#
-# Licensed under the Open Software License version 3.0.
-# See http://opensource.org/licenses/OSL-3.0.
-#
+    #
+    # Licensed under the Open Software License version 3.0.
+    # See http://opensource.org/licenses/OSL-3.0.
+    #
 
-import sys
+    import sys
 
-# The following global variables are used to save the state within the
-# routines so that they can be called once for each combination or
-# permutation.
+    # The following global variables are used to save the state within the
+    # routines so that they can be called once for each combination or
+    # permutation.
 
-# Globals for the combination routine
-c_jx = 0
-c_array = []
-c_0_based = 0
+    # Globals for the combination routine
+    c_jx = 0
+    c_array = []
+    c_0_based = 0
 
-# Globals for the permutation routine
-p_ix = 0
-p_jx = 0
-p_array = []
-p_0_based = 0
+    # Globals for the permutation routine
+    p_ix = 0
+    p_jx = 0
+    p_array = []
+    p_0_based = 0
 
 def GetCombination(n, k, init=0, zero_based=0):
     '''Each call will return a tuple of the next combination of n items
@@ -317,3 +329,4 @@ def permute_g(s, use_generator=True):
         for s3 in permute(s2):
             s3.append(x)
             yield s3
+
