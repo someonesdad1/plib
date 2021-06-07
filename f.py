@@ -433,6 +433,22 @@ __doc__ = '''
 
 '''
 
+if 1:  # Copyright, license
+    # These "trigger strings" can be managed with trigger.py
+    #∞copyright∞# Copyright (C) 2021 Don Peterson #∞copyright∞#
+    #∞contact∞# gmail.com@someonesdad1 #∞contact∞#
+    #∞license∞#
+    #   Licensed under the Open Software License version 3.0.
+    #   See http://opensource.org/licenses/OSL-3.0.
+    #∞license∞#
+    #∞what∞#
+
+    # This module provides the flt/cpx types for calculations with
+    # numbers derived from measurements.
+
+    #∞what∞#
+    #∞test∞# run #∞test∞#
+    pass
 if 1:   # Imports
     # Standard library modules
     from collections import deque
@@ -452,25 +468,6 @@ if 1:   # Imports
     import time
 if 1:   # Custom imports
     import u
-    # Decimal formatter
-    try:
-        # This library, if present, is used to get the string form of flt
-        # objects to a desired number of significant figures.  It also can
-        # format in scientific and engineering forms.
-        #from format_numbers import Formatter
- 
-        #xx
-        # Unfortunately, I apparently had a file containing a Formatter
-        # class, but this seems to have been deleted.  I need to make a
-        # wrapper class to call FormatNumber() or use fpformat.py.
-        #xx
-        from xformat_numbers import FormatNumber
-        _have_Formatter = True
-        class Formatter:
-            def __init__(self, digits):
-                self.digits = digits
-    except ImportError:
-        _have_Formatter = False
     # Debugging
     from pdb import set_trace as xx
     if len(sys.argv) > 1:
@@ -489,6 +486,8 @@ if 1:   # Custom imports
             def __getattr__(self, name): pass
         C = Dummy()
         _have_color = False
+    # This can be True when a formatter class is written
+    _have_Formatter = False
 if 1:   # Global variables
     Lock = threading.Lock()
     D = decimal.Decimal

@@ -1,13 +1,6 @@
 * Change what.py to use a what trigger string.  This lets a what string
   be put into any file without having to run the file.
 
-  In fact, create a trigger.py file that manages and regularizes these
-  trigger strings.  The general trigger string pattern should be 
-  #∞X∞# where X is the trigger string type.  A Trigger object can be 
-  given the pathlib.Path() of a file and it will find all the trigger
-  strings in the file.  The Trigger constructor should let you supply
-  the regexp to find the trigger strings.
-
 * 10 May 2021 got all the /pylib/test stuff running; only asciify and
   the old integer.py file fail self tests.  This means each module can
   be instrumented with a test trigger and can be tested from /plib.

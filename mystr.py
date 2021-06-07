@@ -46,7 +46,7 @@ if 1:  # Copyright, license
     #∞what∞#
     # Program description string
     #∞what∞#
-    #∞test∞# Put test file information here (see 0test.py) #∞test∞#
+    #∞test∞# run #∞test∞#
     pass
 if 1:  # Imports
     from collections import deque, defaultdict

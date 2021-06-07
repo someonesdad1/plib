@@ -34,6 +34,7 @@ and call t.write() to write the information back to the file.
 import pathlib
 import re
 from pdb import set_trace as xx 
+P = pathlib.Path
 
 class Trigger(dict):
     def __new__(cls, start="#∞", end="∞#", allowed="[A-Za-z0-9_]"):
@@ -46,6 +47,7 @@ class Trigger(dict):
         instance.end = end
         instance.allowed = end
         instance.file = None
+        instance.text = None
         instance.not_allowed = ValueError("Operation not allowed")
         regexp = f"{start}({allowed}+){end}"
         instance.r = re.compile(regexp)
@@ -54,16 +56,19 @@ class Trigger(dict):
         '''Given file (a str or pathlib.Path), get all trigger strings'
         text.
         '''
+        self.clear()
         self.filled = False     # Allow changes
         # Get the file's string
         if isinstance(file, str):
-            p = pathlib.Path(file)
-        elif not isinstance(file, pathlib.Path):
+            p = P(file)
+        elif not isinstance(file, P):
             raise TypeError("file must be str or pathlib.Path")
         else:
             p = file
         self.text = p.read_text()
         self.file = p
+        if p.resolve() == P("/plib/trigger.py"):
+            return None
         # Get the file's trigger strings
         self.triggers = set(self.r.findall(self.text))
         # Get the text associated with each trigger string and put it
@@ -77,10 +82,12 @@ class Trigger(dict):
                 msg = f"Trigger '{trigger}' only occurred once"
                 raise ValueError(msg)
             elif len(t) != 1 or trigger in self:
-                msg = f"More than one string for trigger '{trigger}'"
+                msg = f"{p}:  More than one string for trigger '{trigger}'"
+                xx()
                 raise ValueError(msg)
             self[trigger] = t[0]
         self.filled = True
+        return self
     def __delitem__(self, key):
         raise ValueError("Deletion not allowed")
     def __setitem__(self, key, value):
@@ -96,6 +103,10 @@ class Trigger(dict):
         to the file, including any changes made in the trigger string
         contents.
         '''
+        if self.text is None:
+            raise ValueError("call() on a file hasn't been done")
+        # self.text contains the text of the file read in call().  This
+        # file is self.file.
         for trigger in self.triggers:
             s = f"{self.start}{trigger}{self.end}"
             r = re.compile(f"{s}(.+?){s}", re.S)
@@ -106,7 +117,6 @@ class Trigger(dict):
         pp(self.text)
         exit() #xx
     # Disable other dict methods
-    def clear(self): raise self.not_allowed
     def get(self, key, default=None): raise self.not_allowed
     def pop(self, key, default=None): raise self.not_allowed
     def popitem(self): raise self.not_allowed
