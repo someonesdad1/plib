@@ -36,6 +36,7 @@ if 1:   # Standard imports
 if 1:   # Custom imports
     from wrap import wrap, dedent, indent, Wrap
     from columnize import Columnize
+    from timer import Timer
     import color as C
     import trigger
     if 0:
@@ -65,13 +66,14 @@ if 1:   # Utility
 
       The default behavior with no arguments is to run the self tests on
       the files in the current directory.
-
+ 
     Options:
       -h    Print a manpage
       -L    List the files without test trigger strings
       -l    List the files and their actions
       -r    Search for all python files recursively
-      -v    Show test results
+      -v    Show test results (don't show files not run)
+      -V    Show test results and show files not run
     '''))
         exit(status)
     def ParseCommandLine(d):
@@ -79,120 +81,144 @@ if 1:   # Utility
         d["-l"] = False     # List the files
         d["-r"] = False     # Recursive
         d["-v"] = False     # Verbose
+        d["-V"] = False     # Verbose with files not run
         try:
-            opts, args = getopt.getopt(sys.argv[1:], "hLlrv")
+            opts, args = getopt.getopt(sys.argv[1:], "hLlrvV")
         except getopt.GetoptError as e:
             print(str(e))
             exit(1)
         for o, a in opts:
-            if o[1] in list("Llrv"):
+            if o[1] in list("LlrvV"):
                 d[o] = not d[o]
             elif o in ("-h", "--help"):
                 Usage(d, status=0)
         if not args:
             args = ["."]
         return args
-if 1:   # Core functionality
-    def Run(file):
-        if file.suffix == ".py":
-            cmd = [sys.executable, str(file)]
-            r = subprocess.run(cmd, capture_output=True, text=True)
-            if d["-v"]:
-                if r.stdout:
-                    print(r.stdout, end="")
-                if r.stderr:
-                    print(r.stderr, end="")
-            if r.returncode:
-                d["failed"] += 1
-                print(f"{G.red}{file} test failed{G.norm}")
-        else:
-            status = os.system(str(file))
-            if status:
-                d["failed"] += 1
-                print(f"{G.red}{file} test failed{G.norm}")
-    def GetTestTrigger(file):
-        T = d["trigger"]
-        triggers = T(file)
+
+class TestRunner:
+    def __init__(self):
+        self.total = 0
+        self.failed = 0
+        self.not_run = 0
+        self.trigger = trigger.Trigger()
+    def GetTestTrigger(self, file):
+        triggers = self.trigger(file)
         if triggers is not None and "test" in triggers:
             return (file, triggers["test"].strip())
         return None
-    def GetFiles(dir, negate=False):
+    def GetFiles(self, dir):
         'Return a sorted list of (files, trigger)'
-        p, glb, o, T = P(dir), "*.py", [], d["trigger"]
+        p, glb, o = P(dir), "*.py", []
         for file in p.rglob(glb) if d["-r"] else p.glob(glb):
-            triggers = T(file)
-            if negate:
-                if triggers is None or "test" not in triggers:
-                    o.append((file, None))
+            triggers = self.trigger(file)
+            if (triggers is not None and "test" in triggers and 
+                triggers["test"].strip()):
+                o.append((file, triggers["test"].strip()))
             else:
-                if triggers is not None and "test" in triggers:
-                    o.append((file, triggers["test"].strip()))
+                o.append((file, None))
         return list(sorted(o))
-    def ListFilesWithoutTrigger(dir):
+    def ListFilesWithoutTrigger(self, dir):
         if dir.is_file():
-            t = GetTestTrigger(dir)
+            t = self.GetTestTrigger(dir)
             if t is not None:
                 return
             files = [t]
         else:
-            files = GetFiles(dir, negate=True)
+            files = self.GetFiles(dir)
+        # Keep only those with None for the second element
+        files = [i for i in files if i[1] is None]
         print(f"{G.cyn}Directory = {dir.resolve()}{G.norm}")
         out = []
         for file, trig in files:
             out.append(f"{file!s}")
         for line in Columnize(out, indent=" "*2):
             print(line)
-    def ListFiles(dir):
+    def ListFiles(self, dir):
         if dir.is_file():
-            t = GetTestTrigger(dir)
+            t = self.GetTestTrigger(dir)
             if t is None:
                 return
             files = [t]
         else:
-            files = GetFiles(dir)
+            files = self.GetFiles(dir)
+        # Keep only those without None for the second element
+        files = [i for i in files if i[1] is not None]
         n = max([len(str(i)) for i, j in files])
         print(f"{G.cyn}Directory = {dir.resolve()}{G.norm}")
         for file, trig in files:
             print(f"  {file!s:{n}s} {trig}")
-    def RunTests(dir):
+    def Run(self, file):
+        if file.suffix == ".py":
+            cmd = [sys.executable, str(file)]
+            r = subprocess.run(cmd, capture_output=True, text=True)
+            if d["-v"] or d["-V"]:
+                if r.stdout:
+                    print(r.stdout, end="")
+                if r.stderr:
+                    print(r.stderr, end="")
+            if r.returncode:
+                self.failed += 1
+                print(f"{G.red}{file} test failed{G.norm}")
+        else:
+            status = os.system(str(file))
+            if status:
+                self.failed += 1
+                print(f"{G.red}{file} test failed{G.norm}")
+    def RunTests(self, dir):
         'Only failed tests have their info printed out'
         if dir.is_file():
-            t = GetTestTrigger(dir)
+            t = self.GetTestTrigger(dir)
             if t is None:
+                self.not_run += 1
+                if d["-V"]:
+                    print(f"{file}: no test to run")
                 return
             files = [t]
         else:
-            files = GetFiles(dir)
-        count = 0
+            files = self.GetFiles(dir)
         for file, trig in files:
-            count += 1
-            if trig == "run":
-                Run(P(file))
-            elif trig[0] == "[":
+            self.total += 1
+            if trig is None:
+                self.not_run += 1
+                if d["-V"]:
+                    print(f"{file}: no test to run")
+            elif trig == "run":
+                self.Run(P(file))
+            elif trig and trig[0] == "[":
                 for testfile in eval(trig):
-                    Run(P(testfile))
-        return count
+                    self.Run(P(testfile))
 
 if __name__ == "__main__":
-    d = {       # Options dictionary
-        "trigger": trigger.Trigger(),
-        "total": 0,
-        "failed": 0,
-    }
-    dirs = [P(i) for i in ParseCommandLine(d)]
-    for dir in dirs:
+    d = {}      # Options dictionary
+    items = [P(i) for i in ParseCommandLine(d)]
+    tr = TestRunner()
+    timer = Timer()
+    timer.start
+    for item in items:
         if d["-l"]:
-            print("Python files with a test trigger string:")
-            ListFiles(dir)
+            if item.is_dir():
+                print("Python files with a test trigger string:")
+            tr.ListFiles(item)
         elif d["-L"]:
-            print("Python files without a test trigger string:")
-            ListFilesWithoutTrigger(dir)
+            if item.is_dir():
+                print("Python files without a test trigger string:")
+            tr.ListFilesWithoutTrigger(item)
         else:
-            d["total"] += RunTests(dir)
-    t, f = d["total"], d["failed"]
+            tr.RunTests(item)
+    timer.stop
+    t, f, n = tr.total, tr.failed, tr.not_run
     if f or t:
         print("Test summary:")
-        p = t - f
-        print(f"  {p} file{'s' if p != 1 else ''} tested OK")
+        passed = t - f - n
+        print(f"  {passed} file{'s' if passed != 1 else ''} tested OK")
+        if n:
+            print(f"  {n} file{'s' if n != 1 else ''} not tested")
         if f:
             print(f"  {f} file{'s' if f != 1 else ''} failed")
+        tm = timer.et
+        tm.n = 2
+        if tm > 60:
+            print(f"  {tm/60} minutes to test")
+        else:
+            print(f"  {tm} seconds to test")

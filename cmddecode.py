@@ -21,20 +21,24 @@ Example usage:
  
 Run this file as a script to get an interactive demo.
 '''
- 
-# Copyright (C) 2006 Don Peterson
-# Contact:  gmail.com@someonesdad1
- 
-#
-# Licensed under the Open Software License version 3.0.
-# See http://opensource.org/licenses/OSL-3.0.
-#
- 
-import re
-import sys
-from collections import defaultdict
-from pdb import set_trace as xx
- 
+if 1:  # Copyright, license
+    # These "trigger strings" can be managed with trigger.py
+    #∞copyright∞# Copyright (C) 2006 Don Peterson #∞copyright∞#
+    #∞contact∞# gmail.com@someonesdad1 #∞contact∞#
+    #∞license∞#
+    #   Licensed under the Open Software License version 3.0.
+    #   See http://opensource.org/licenses/OSL-3.0.
+    #∞license∞#
+    #∞what∞#
+    # Decode user command strings
+    #∞what∞#
+    #∞test∞# ["test/cmddecode_test.py"] #∞test∞#
+    pass
+if 1:  # Imports
+    import re
+    import sys
+    from collections import defaultdict
+    from pdb import set_trace as xx
 class CommandDecode:
     '''Instantiate the class with a sequence of command strings.  Then
     call the object with a command candidate; the returned list will
@@ -105,7 +109,6 @@ class CommandDecode:
         if len(matches) == 1:
             return [matches[0]]
         return matches
-
 if __name__ == "__main__":
     # Demonstrate the class; use some typical UNIX program names.
     cmds, d = '''
