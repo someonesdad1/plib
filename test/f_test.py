@@ -505,7 +505,6 @@ def TestMathFunctions2():
                 y1 = eval(s)
                 y2 = eval(m)
             except ValueError:
-                xx()
                 # Probably acosh
                 s = f"f.{fn}(x1)"
                 m = f"math.{fn}(x1)"
@@ -625,7 +624,7 @@ def TestMathFunctions2():
             not_tested.append(f"math.prod")
         # Argument list
         # gcd
-        arg = [10, 12]  # xx python 3.9 lets len(arg) > 2
+        arg = [10, 12]  # python 3.9 lets len(arg) > 2
         y1 = f.gcd(*arg)
         y2 = math.gcd(*arg)
         Assert(y1 == y2)

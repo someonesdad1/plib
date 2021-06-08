@@ -3,19 +3,29 @@ Provides a thread class that will calculate the dimensions of Unified
 National thread forms in inches.  Formulas taken from ASME B1.1-1989.
 '''
 
-# Copyright (C) 2007 Don Peterson
-# Contact:  gmail.com@someonesdad1
-
-#
-# Licensed under the Open Software License version 3.0.
-# See http://opensource.org/licenses/OSL-3.0.
-#
+if 1:  # Copyright, license
+    # These "trigger strings" can be managed with trigger.py
+    #∞copyright∞# Copyright (C) 2007, 2021 Don Peterson #∞copyright∞#
+    #∞contact∞# gmail.com@someonesdad1 #∞contact∞#
+    #∞license∞#
+    #   Licensed under the Open Software License version 3.0.
+    #   See http://opensource.org/licenses/OSL-3.0.
+    #∞license∞#
+    #∞what∞#
+    # Provides the UnifiedThread class which gives the inch dimensions
+    # associated with Unified National thread forms from ASME B1.1-1989.
+    #∞what∞#
+    #∞test∞# run #∞test∞#
+    pass
 
 class UnifiedThread:
     '''Initialize with basic diameter in inches, threads per inch,
     class, and length of engagement in units of the basic diameter.
     You'll need to refer to the ASME standard for lengths of engagement
     greater than 1.5 times the major diameter.
+ 
+    Note the ASME standard formulas are, in general, not dimensionally
+    consistent.
     '''
     def __init__(self, basic_diameter, tpi, Class=2, length_of_engagement=1):
         if basic_diameter <= 0:
@@ -117,16 +127,53 @@ class UnifiedThread:
         pitch = a*(self.D + 5/8)**0.5 - 0.175
         return round(1/pitch, 2)
     def DoubleDepth(self):
-        '''Returns the double depth of the unified thread in inches.
-        '''
+        'Returns the double depth of the unified thread in inches'
         return round(3.0/2*self.H, 4)
     def NumberSize(self, n):
         '''A convenience function to return the diameter in inches of a
-        number-size thread.  n must be between 0 and 500, although
-        about the only sizes encountered in the wild are between 0 and 14
-        inclusive.
+        number-size thread.  abs(n) is used.
         '''
-        n = int(n)
-        if not (0 <= n <= 500):
-            raise ValueError("n must be between 0 and 500")
-        return 0.06 + 0.013*n
+        return 0.06 + 0.013*abs(n)
+
+if __name__ == "__main__": 
+    from lwtest import run, raises, assert_equal
+    def Test_asme():
+        eps = 0.0001
+        # Check the formulas on a 1/4-20 thread
+        u = UnifiedThread(1/4, 20, Class=1)
+        assert(abs(u.Class2PDtol() - 0.00373) <= eps)
+        assert(abs(u.Allowance() - 0.0011) <= eps)
+        # Class 1 thread
+        assert(abs(u.Dmin() - 0.2367) <= eps)
+        assert(abs(u.Dmax() - 0.2489) <= eps)
+        assert(abs(u.Emin() - 0.2108) <= eps)
+        assert(abs(u.Emax() - 0.2164) <= eps)
+        assert(abs(u.dmin() - 0.1959) <= eps)
+        assert(abs(u.dmax() - 0.2074) <= eps)
+        assert(abs(u.emin() - 0.2175) <= eps)
+        assert(abs(u.emax() - 0.2248) <= eps)
+        # Class 2 thread
+        u.Class = 2
+        assert(abs(u.Dmin() - 0.2408) <= eps)
+        assert(abs(u.Dmax() - 0.2489) <= eps)
+        assert(abs(u.Emin() - 0.2127) <= eps)
+        assert(abs(u.Emax() - 0.2164) <= eps)
+        assert(abs(u.dmin() - 0.1959) <= eps)
+        assert(abs(u.dmax() - 0.2074) <= eps)
+        assert(abs(u.emin() - 0.2175) <= eps)
+        assert(abs(u.emax() - 0.2223) <= eps)
+        # Class 3 thread
+        u.Class = 3
+        assert(abs(u.Dmin() - 0.2419) <= eps)
+        assert(abs(u.Dmax() - 0.2500) <= eps)
+        assert(abs(u.Emin() - 0.2147) <= eps)
+        assert(abs(u.Emax() - 0.2175) <= eps)
+        assert(abs(u.dmin() - 0.1959) <= eps)
+        assert(abs(u.dmax() - 0.2067) <= eps)
+        assert(abs(u.emin() - 0.2175) <= eps)
+        assert(abs(u.emax() - 0.2211) <= eps)
+        # Other
+        assert(abs(u.TapDrill(percent_thread=75) - 0.2013) <= eps)
+        assert(abs(u.SellersRecommendedTPI() - 20.2) <= 0.01)
+        assert(abs(u.DoubleDepth() - 0.065) <= eps)
+    exit(run(globals())[0])

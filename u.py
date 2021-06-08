@@ -1900,11 +1900,9 @@ class U(object):
                 if string == "-":
                     raise ValueError("Negative signs or hyphens are not allowed")
             else:
-                # xx
                 # Experiment 28 May 2021:  It would be nice to
                 # support negative exponents like 'm-1', so here's
                 # some hacking to see what might work.
-                # xx
                 if string == "-":
                     # Assume it's an implied exponent; the previous
                     # token must be a 1 (tokenize.NAME) or a ')'

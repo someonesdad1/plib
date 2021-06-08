@@ -44,6 +44,7 @@ if 1:   # Global variables
     class G: pass
     G.red = C.fg(C.lred, s=1)
     G.cyn = C.fg(C.lcyan, s=1)
+    G.grn = C.fg(C.lgreen, s=1)
     G.norm = C.normal(s=1)
     P = pathlib.Path
 if 1:   # Utility
@@ -163,6 +164,7 @@ if __name__ == "__main__":
             d["total"] += RunTests(dir)
     t, f = d["total"], d["failed"]
     if f or t:
-        print(f"{t} file{'s' if t > 1 else ''} tested OK")
+        p = t - f
+        print(f"{G.grn}{p} file{'s' if p != 1 else ''} tested OK{G.norm}")
         if f:
-            print(f"{G.red}{f} file{'s' if f > 1 else ''} failed{G.norm}")
+            print(f"{G.red}{f} file{'s' if f != 1 else ''} failed{G.norm}")
