@@ -56,9 +56,10 @@ if 1:   # Utility
     def Usage(d, status=1):
         name = sys.argv[0]
         print(dedent(f'''
-    Usage:  {name} [options] dir1 [dir2...]
+    Usage:  {name} [options] file1 [file2...]
       Find the python scripts with self test information in them and run
-      the self tests.
+      the self tests.  If one of the command arguments is a directory, 
+      all of its python files have their self tests run.
 
     Options:
       -h    Print a manpage
@@ -102,6 +103,12 @@ if 1:   # Core functionality
             if status:
                 d["failed"] += 1
                 print(f"{G.red}{file} test failed{G.norm}")
+    def GetTestTrigger(file):
+        T = d["trigger"]
+        triggers = T(file)
+        if triggers is not None and "test" in triggers:
+            return (file, triggers["test"].strip())
+        return None
     def GetFiles(dir):
         'Return a sorted list of (files, trigger)'
         p, glb, o, T = P(dir), "*.py", [], d["trigger"]
@@ -111,15 +118,28 @@ if 1:   # Core functionality
                 o.append((file, triggers["test"].strip()))
         return list(sorted(o))
     def ListFiles(dir):
-        files = GetFiles(dir)
+        if dir.is_file():
+            t = GetTestTrigger(dir)
+            if t is None:
+                return
+            files = [t]
+        else:
+            files = GetFiles(dir)
         n = max([len(str(i)) for i, j in files])
         print(f"{G.cyn}Directory = {dir.resolve()}{G.norm}")
         for file, trig in files:
             print(f"  {file!s:{n}s} {trig}")
     def RunTests(dir):
         'Only failed tests have their info printed out'
+        if dir.is_file():
+            t = GetTestTrigger(dir)
+            if t is None:
+                return
+            files = [t]
+        else:
+            files = GetFiles(dir)
         count = 0
-        for file, trig in GetFiles(dir):
+        for file, trig in files:
             count += 1
             if trig == "run":
                 Run(P(file))

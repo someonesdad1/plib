@@ -77,13 +77,19 @@ In terms of the constant in the polar equation for the spiral, we have
     a = t/(2*pi)
 '''
  
-# Copyright (C) 2011 Don Peterson
-# Contact:  gmail.com@someonesdad1
- 
-#
-# Licensed under the Open Software License version 3.0.
-# See http://opensource.org/licenses/OSL-3.0.
-#
+if 1:  # Copyright, license
+    # These "trigger strings" can be managed with trigger.py
+    #∞copyright∞# Copyright (C) 2011 Don Peterson #∞copyright∞#
+    #∞contact∞# gmail.com@someonesdad1 #∞contact∞#
+    #∞license∞#
+    #   Licensed under the Open Software License version 3.0.
+    #   See http://opensource.org/licenses/OSL-3.0.
+    #∞license∞#
+    #∞what∞#
+    # Program description string
+    #∞what∞#
+    #∞test∞# run #∞test∞#
+    pass
  
 import math
  
@@ -98,6 +104,33 @@ def SpiralArcLength(a, theta, degrees=False):
     '''
     if a <= 0:
         raise ValueError("a must be > 0")
-    theta = theta*math.pi/180 if degrees else theta
+    theta = math.radians(theta) if degrees else theta
     A = math.sqrt(theta*theta + 1)
     return a/2*(theta*A + math.log(theta + A))
+
+if __name__ == "__main__": 
+    from lwtest import run, raises, assert_equal
+    def Test_exact_formula():
+        # a = 1, one revolution
+        a, theta = 1, 2*math.pi
+        A = math.sqrt(theta**2 + 1)
+        exact = a/2*(theta*A + math.log(theta + A))
+        formula = SpiralArcLength(a, theta)
+        assert_equal(exact, formula)
+        # Get ValueError for a < 0
+        raises(ValueError, SpiralArcLength, -1, 1)
+    def Test_approximation():
+        # Approximation:  for a large diameter circle, one revolution of a
+        # fine-pitch spiral should be nearly equal to the circumference.
+        a, n_revolutions, twopi = 1, 10000, 2*math.pi
+        theta = n_revolutions*2*math.pi
+        arc_len = SpiralArcLength(a, theta) - SpiralArcLength(a, theta - 2*math.pi)
+        L_D = SpiralArcLength(a, n_revolutions*twopi)
+        L_d = SpiralArcLength(a, (n_revolutions - 1)*twopi)
+        arc_length = L_D - L_d
+        pitch = a*twopi
+        D = (2*n_revolutions - 1)*pitch
+        circumference = D*math.pi
+        assert_equal(circumference, arc_len, reltol=1e-8)
+    r = r"^Test_"
+    failed, messages = run(globals(), regexp=r, quiet=0)
