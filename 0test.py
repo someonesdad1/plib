@@ -35,6 +35,7 @@ if 1:   # Standard imports
     from pdb import set_trace as xx
 if 1:   # Custom imports
     from wrap import wrap, dedent, indent, Wrap
+    from columnize import Columnize
     import color as C
     import trigger
     if 0:
@@ -64,24 +65,26 @@ if 1:   # Utility
 
     Options:
       -h    Print a manpage
+      -L    List the files without test trigger strings
       -l    List the files and their actions
       -r    Search for all python files recursively
       -v    Show test results
     '''))
         exit(status)
     def ParseCommandLine(d):
+        d["-L"] = False     # List the files without trigger string
         d["-l"] = False     # List the files
         d["-r"] = False     # Recursive
         d["-v"] = False     # Verbose
         if len(sys.argv) < 2:
             Usage(d)
         try:
-            opts, args = getopt.getopt(sys.argv[1:], "hlrv")
+            opts, args = getopt.getopt(sys.argv[1:], "hLlrv")
         except getopt.GetoptError as e:
             print(str(e))
             exit(1)
         for o, a in opts:
-            if o[1] in list("lrv"):
+            if o[1] in list("Llrv"):
                 d[o] = not d[o]
             elif o in ("-h", "--help"):
                 Usage(d, status=0)
@@ -110,14 +113,32 @@ if 1:   # Core functionality
         if triggers is not None and "test" in triggers:
             return (file, triggers["test"].strip())
         return None
-    def GetFiles(dir):
+    def GetFiles(dir, negate=False):
         'Return a sorted list of (files, trigger)'
         p, glb, o, T = P(dir), "*.py", [], d["trigger"]
         for file in p.rglob(glb) if d["-r"] else p.glob(glb):
             triggers = T(file)
-            if triggers is not None and "test" in triggers:
-                o.append((file, triggers["test"].strip()))
+            if negate:
+                if triggers is None or "test" not in triggers:
+                    o.append((file, None))
+            else:
+                if triggers is not None and "test" in triggers:
+                    o.append((file, triggers["test"].strip()))
         return list(sorted(o))
+    def ListFilesWithoutTrigger(dir):
+        if dir.is_file():
+            t = GetTestTrigger(dir)
+            if t is not None:
+                return
+            files = [t]
+        else:
+            files = GetFiles(dir, negate=True)
+        print(f"{G.cyn}Directory = {dir.resolve()}{G.norm}")
+        out = []
+        for file, trig in files:
+            out.append(f"{file!s}")
+        for line in Columnize(out, indent=" "*2):
+            print(line)
     def ListFiles(dir):
         if dir.is_file():
             t = GetTestTrigger(dir)
@@ -160,6 +181,9 @@ if __name__ == "__main__":
         if d["-l"]:
             print("Python files with tests:")
             ListFiles(dir)
+        elif d["-L"]:
+            print("Python files without a test trigger string:")
+            ListFilesWithoutTrigger(dir)
         else:
             d["total"] += RunTests(dir)
     t, f = d["total"], d["failed"]
