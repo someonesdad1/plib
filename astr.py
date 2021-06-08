@@ -20,16 +20,21 @@ the ECMA standard is too annoyingly complicated for me to want to wade
 through it.
 '''
 
-import re
-import sys
-
-py3 = sys.version_info[0] == 3
-if 0 and not py3:
-    # The algorithm won't get correct string lengths for unicode strings
-    # under python 2 (it apparently counts bytes instead of characters,
-    # so the returned lengths will be too large for strings that contain
-    # non-7-bit characters).
-    raise RuntimeError("This module won't work under python 2")
+if 1:  # Copyright, license
+    # These "trigger strings" can be managed with trigger.py
+    #∞copyright∞# Copyright (C) 2021 Don Peterson #∞copyright∞#
+    #∞contact∞# gmail.com@someonesdad1 #∞contact∞#
+    #∞license∞#
+    #   Licensed under the Open Software License version 3.0.
+    #   See http://opensource.org/licenses/OSL-3.0.
+    #∞license∞#
+    #∞what∞#
+    # Program description string
+    #∞what∞#
+    #∞test∞# run #∞test∞#
+    pass
+if 1:  # Imports
+    import re
 
 class astr(str):
     '''This is a string object that uses a regular expression to remove
@@ -46,3 +51,21 @@ class astr(str):
 
 def alen(s):
     return len(astr.r.sub("", s))
+
+if __name__ == "__main__": 
+    from lwtest import run, raises, assert_equal
+    # Note the Unicode '∞' in the third line.
+    tststring = '''[1;37;42mstring1[0m
+string2
+[1;36mstring3∞[0m'''
+    def Test_len():
+        for i, s in enumerate(tststring.split("\n")):
+            a = astr(s)
+            if i in (0, 1):
+                assert_equal(len(a), 7)
+                assert_equal(alen(s), 7)
+            else:
+                assert_equal(len(a), 8)
+                assert_equal(alen(s), 8)
+    failed, messages = run(globals())
+    exit(failed)

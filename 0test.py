@@ -63,6 +63,9 @@ if 1:   # Utility
       the self tests.  If one of the command arguments is a directory, 
       all of its python files have their self tests run.
 
+      The default behavior with no arguments is to run the self tests on
+      the files in the current directory.
+
     Options:
       -h    Print a manpage
       -L    List the files without test trigger strings
@@ -76,8 +79,6 @@ if 1:   # Utility
         d["-l"] = False     # List the files
         d["-r"] = False     # Recursive
         d["-v"] = False     # Verbose
-        if len(sys.argv) < 2:
-            Usage(d)
         try:
             opts, args = getopt.getopt(sys.argv[1:], "hLlrv")
         except getopt.GetoptError as e:
@@ -88,6 +89,8 @@ if 1:   # Utility
                 d[o] = not d[o]
             elif o in ("-h", "--help"):
                 Usage(d, status=0)
+        if not args:
+            args = ["."]
         return args
 if 1:   # Core functionality
     def Run(file):
@@ -188,7 +191,8 @@ if __name__ == "__main__":
             d["total"] += RunTests(dir)
     t, f = d["total"], d["failed"]
     if f or t:
+        print("Test summary:")
         p = t - f
-        print(f"{G.grn}{p} file{'s' if p != 1 else ''} tested OK{G.norm}")
+        print(f"  {p} file{'s' if p != 1 else ''} tested OK")
         if f:
-            print(f"{G.red}{f} file{'s' if f != 1 else ''} failed{G.norm}")
+            print(f"  {f} file{'s' if f != 1 else ''} failed")
