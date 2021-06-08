@@ -148,9 +148,11 @@ class TestRunner:
         print(f"{G.cyn}Directory = {dir.resolve()}{G.norm}")
         for file, trig in files:
             print(f"  {file!s:{n}s} {trig}")
-    def Run(self, file):
+    def Run(self, file, additional=None):
         if file.suffix == ".py":
             cmd = [sys.executable, str(file)]
+            if additional is not None:
+                cmd.extend(additional)
             r = subprocess.run(cmd, capture_output=True, text=True)
             if d["-v"] or d["-V"]:
                 if r.stdout:
@@ -185,6 +187,8 @@ class TestRunner:
                     print(f"{file}: no test to run")
             elif trig == "run":
                 self.Run(P(file))
+            elif trig == "--test":
+                self.Run(P(file), additional=[trig])
             elif trig and trig[0] == "[":
                 for testfile in eval(trig):
                     self.Run(P(testfile))
