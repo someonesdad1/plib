@@ -17,116 +17,122 @@ equation 33b in the NASA paper.
 [eq 33] is equation 33 in the paper and [5] refers to page 5.
 '''
 
-# Copyright (C) 2010 Don Peterson
-# Contact:  gmail.com@someonesdad1
-
-#
-# Licensed under the Open Software License version 3.0.
-# See http://opensource.org/licenses/OSL-3.0.
-#
-
-import getopt
-import os
-import sys
-from math import exp, sqrt, pi
-from fpformat import FPFormat
-from u import u
-from pdb import set_trace as xx
-from sig import sig
-
-fp = FPFormat()
-
-radius_earth = 6369.0   # Radius of the Earth (km)
-gmr = 34.163195         # Hydrostatic constant
-P0 = 101325             # Standard sea-level atmospheric pressure in Pa
-T0 = 288.15             # Standard sea-level temperature, K
-M0 = 28.9644/1000       # Mean molecular weight for air, kg/mol
-rho0 = 1.225            # Sea-level density in kg/m^3
-R = 8.32432             # Universal gas constant N*m/(mol*K) [3]
-sigma = 3.65e-10        # Effective collision diameter, m [17]
-gamma = 1.40            # Specific heat ratio cp/cv
-Na = 6.022169e23        # Avogadro's constant, 1/mol [2]
-# Standard sea-level acceleration of gravity at a latitude of 45.5425
-# degrees. [3]
-g0 = 9.80665
-
-def _Code():
-    '''Original FORTRAN90 code from http://www.pdas.com/programs/atmos.f90.
-    See http://www.pdas.com/atmos.htm.
-    !+
-    SUBROUTINE Atmosphere(alt, sigma, delta, theta)
-    !   -------------------------------------------------------------------------
-    ! PURPOSE - Compute the properties of the 1976 standard atmosphere to 86 km.
-    ! AUTHOR - Ralph Carmichael, Public Domain Aeronautical Software
-    ! NOTE - If alt > 86, the values returned will not be correct, but they will
-    !   not be too far removed from the correct values for density.
-    !   The reference document does not use the terms pressure and temperature
-    !   above 86 km.
-      IMPLICIT NONE
-    !============================================================================
-    !     A R G U M E N T S                                                     |
-    !============================================================================
-      REAL,INTENT(IN)::  alt        ! geometric altitude, km.
-      REAL,INTENT(OUT):: sigma      ! density/sea-level standard density
-      REAL,INTENT(OUT):: delta      ! pressure/sea-level standard pressure
-      REAL,INTENT(OUT):: theta      ! temperature/sea-level standard temperature
-    !============================================================================
-    !     L O C A L   C O N S T A N T S                                         |
-    !============================================================================
-      REAL,PARAMETER:: REARTH = 6369.0                 ! radius of the Earth (km)
-      REAL,PARAMETER:: GMR = 34.163195                     ! hydrostatic constant
-      INTEGER,PARAMETER:: NTAB=8       ! number of entries in the defining tables
-    !============================================================================
-    !     L O C A L   V A R I A B L E S                                         |
-    !============================================================================
-      INTEGER:: i,j,k                                                  ! counters
-      REAL:: h                                       ! geopotential altitude (km)
-      REAL:: tgrad, tbase      ! temperature gradient and base temp of this layer
-      REAL:: tlocal                                           ! local temperature
-      REAL:: deltah                             ! height above base of this layer
-    !============================================================================
-    !     L O C A L   A R R A Y S   ( 1 9 7 6   S T D.  A T M O S P H E R E )   |
-    !============================================================================
-      REAL,DIMENSION(NTAB),PARAMETER:: htab= &
-                              (/0.0, 11.0, 20.0, 32.0, 47.0, 51.0, 71.0, 84.852/)
-      REAL,DIMENSION(NTAB),PARAMETER:: ttab= &
-              (/288.15, 216.65, 216.65, 228.65, 270.65, 270.65, 214.65, 186.946/)
-      REAL,DIMENSION(NTAB),PARAMETER:: ptab= &
-                   (/1.0, 2.233611E-1, 5.403295E-2, 8.5666784E-3, 1.0945601E-3, &
-                                         6.6063531E-4, 3.9046834E-5, 3.68501E-6/)
-      REAL,DIMENSION(NTAB),PARAMETER:: gtab= &
-                                    (/-6.5, 0.0, 1.0, 2.8, 0.0, -2.8, -2.0, 0.0/)
-    !----------------------------------------------------------------------------
-      h=alt*REARTH/(alt+REARTH)      ! convert geometric to geopotential altitude
-     
-      i=1
-      j=NTAB                                       ! setting up for binary search
-      DO
-        k=(i+j)/2                                              ! integer division
-        IF (h < htab(k)) THEN
-          j=k
+if 1:  # Copyright, license
+    # These "trigger strings" can be managed with trigger.py
+    #∞copyright∞# Copyright (C) 2010 Don Peterson #∞copyright∞#
+    #∞contact∞# gmail.com@someonesdad1 #∞contact∞#
+    #∞license∞#
+    #   Licensed under the Open Software License version 3.0.
+    #   See http://opensource.org/licenses/OSL-3.0.
+    #∞license∞#
+    #∞what∞#
+    # Calculate standard atmosphere characteristicx
+    #∞what∞#
+    #∞test∞# ["test/atm_test.py"] #∞test∞#
+    pass
+if 1:  # Imports
+    import getopt
+    import os
+    import sys
+    from math import exp, sqrt, pi
+if 1:  # Custom imports
+    from fpformat import FPFormat
+    from u import u
+    from pdb import set_trace as xx
+    from sig import sig
+if 1:  # Global variables
+    fp = FPFormat()
+    radius_earth = 6369.0   # Radius of the Earth (km)
+    gmr = 34.163195         # Hydrostatic constant
+    P0 = 101325             # Standard sea-level atmospheric pressure in Pa
+    T0 = 288.15             # Standard sea-level temperature, K
+    M0 = 28.9644/1000       # Mean molecular weight for air, kg/mol
+    rho0 = 1.225            # Sea-level density in kg/m^3
+    R = 8.32432             # Universal gas constant N*m/(mol*K) [3]
+    sigma = 3.65e-10        # Effective collision diameter, m [17]
+    gamma = 1.40            # Specific heat ratio cp/cv
+    Na = 6.022169e23        # Avogadro's constant, 1/mol [2]
+    # Standard sea-level acceleration of gravity at a latitude of 45.5425
+    # degrees. [3]
+    g0 = 9.80665
+if 1:  # Original FORTRAN code
+    def _Code():
+        '''Original FORTRAN90 code from http://www.pdas.com/programs/atmos.f90.
+        See http://www.pdas.com/atmos.htm.
+        !+
+        SUBROUTINE Atmosphere(alt, sigma, delta, theta)
+        !   -------------------------------------------------------------------------
+        ! PURPOSE - Compute the properties of the 1976 standard atmosphere to 86 km.
+        ! AUTHOR - Ralph Carmichael, Public Domain Aeronautical Software
+        ! NOTE - If alt > 86, the values returned will not be correct, but they will
+        !   not be too far removed from the correct values for density.
+        !   The reference document does not use the terms pressure and temperature
+        !   above 86 km.
+        IMPLICIT NONE
+        !============================================================================
+        !     A R G U M E N T S                                                     |
+        !============================================================================
+        REAL,INTENT(IN)::  alt        ! geometric altitude, km.
+        REAL,INTENT(OUT):: sigma      ! density/sea-level standard density
+        REAL,INTENT(OUT):: delta      ! pressure/sea-level standard pressure
+        REAL,INTENT(OUT):: theta      ! temperature/sea-level standard temperature
+        !============================================================================
+        !     L O C A L   C O N S T A N T S                                         |
+        !============================================================================
+        REAL,PARAMETER:: REARTH = 6369.0                 ! radius of the Earth (km)
+        REAL,PARAMETER:: GMR = 34.163195                     ! hydrostatic constant
+        INTEGER,PARAMETER:: NTAB=8       ! number of entries in the defining tables
+        !============================================================================
+        !     L O C A L   V A R I A B L E S                                         |
+        !============================================================================
+        INTEGER:: i,j,k                                                  ! counters
+        REAL:: h                                       ! geopotential altitude (km)
+        REAL:: tgrad, tbase      ! temperature gradient and base temp of this layer
+        REAL:: tlocal                                           ! local temperature
+        REAL:: deltah                             ! height above base of this layer
+        !============================================================================
+        !     L O C A L   A R R A Y S   ( 1 9 7 6   S T D.  A T M O S P H E R E )   |
+        !============================================================================
+        REAL,DIMENSION(NTAB),PARAMETER:: htab= &
+                                (/0.0, 11.0, 20.0, 32.0, 47.0, 51.0, 71.0, 84.852/)
+        REAL,DIMENSION(NTAB),PARAMETER:: ttab= &
+                (/288.15, 216.65, 216.65, 228.65, 270.65, 270.65, 214.65, 186.946/)
+        REAL,DIMENSION(NTAB),PARAMETER:: ptab= &
+                    (/1.0, 2.233611E-1, 5.403295E-2, 8.5666784E-3, 1.0945601E-3, &
+                                            6.6063531E-4, 3.9046834E-5, 3.68501E-6/)
+        REAL,DIMENSION(NTAB),PARAMETER:: gtab= &
+                                        (/-6.5, 0.0, 1.0, 2.8, 0.0, -2.8, -2.0, 0.0/)
+        !----------------------------------------------------------------------------
+        h=alt*REARTH/(alt+REARTH)      ! convert geometric to geopotential altitude
+        
+        i=1
+        j=NTAB                                       ! setting up for binary search
+        DO
+            k=(i+j)/2                                              ! integer division
+            IF (h < htab(k)) THEN
+            j=k
+            ELSE
+            i=k
+            END IF
+            IF (j <= i+1) EXIT
+        END DO
+        
+        tgrad=gtab(i)                                     ! i will be in 1...NTAB-1
+        tbase=ttab(i)
+        deltah=h-htab(i)
+        tlocal=tbase+tgrad*deltah
+        theta=tlocal/ttab(1)                                    ! temperature ratio
+        
+        IF (tgrad == 0.0) THEN                                     ! pressure ratio
+            delta=ptab(i)*EXP(-GMR*deltah/tbase)
         ELSE
-          i=k
+            delta=ptab(i)*(tbase/tlocal)**(GMR/tgrad)
         END IF
-        IF (j <= i+1) EXIT
-      END DO
-     
-      tgrad=gtab(i)                                     ! i will be in 1...NTAB-1
-      tbase=ttab(i)
-      deltah=h-htab(i)
-      tlocal=tbase+tgrad*deltah
-      theta=tlocal/ttab(1)                                    ! temperature ratio
-     
-      IF (tgrad == 0.0) THEN                                     ! pressure ratio
-        delta=ptab(i)*EXP(-GMR*deltah/tbase)
-      ELSE
-        delta=ptab(i)*(tbase/tlocal)**(GMR/tgrad)
-      END IF
-     
-      sigma=delta/theta                                           ! density ratio
-      RETURN
-    END Subroutine Atmosphere   ! -----------------------------------------------
-    '''
+        
+        sigma=delta/theta                                           ! density ratio
+        RETURN
+        END Subroutine Atmosphere   ! -----------------------------------------------
+        '''
 
 def atm(altitude_km):
     '''Returns a dictionary of the SI properties of air at the given
@@ -187,8 +193,8 @@ def Error(msg, status=1):
 def Usage(d, status=1):
     name = sys.argv[0]
     digits = d["-d"]
-    s = '''
-Usage:  %s altitude [unit]
+    print(f'''
+Usage:  {name} altitude [unit]
   Prints the density, pressure, and temperature for altitudes between
   -5 and 86 km.  From the 1976 NASA standard atmosphere.
  
@@ -200,8 +206,7 @@ Options:
         Specify the number of significant figures. [{digits}]
     -t
         Print a table of the standard atmosphere in km heights.
-'''[1:-1]
-    print(s.format(**locals()))
+'''[1:-1])
     exit(status)
 
 def ParseCommandLine(d):

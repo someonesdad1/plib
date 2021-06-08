@@ -4,19 +4,24 @@ a banner message like the UNIX banner(1) function.
 
 28 Jul 2014 update:  added Raymond Hettinger's banner code.
 '''
-
-# Copyright (C) 2005 Don Peterson
-# Contact:  gmail.com@someonesdad1
-
-#
-# Licensed under the Open Software License version 3.0.
-# See http://opensource.org/licenses/OSL-3.0.
-#
-
-import sys
-import os
-import getopt
-from pdb import set_trace as xx
+if 1:  # Copyright, license
+    # These "trigger strings" can be managed with trigger.py
+    #∞copyright∞# Copyright (C) 2005 Don Peterson #∞copyright∞#
+    #∞contact∞# gmail.com@someonesdad1 #∞contact∞#
+    #∞license∞#
+    #   Licensed under the Open Software License version 3.0.
+    #   See http://opensource.org/licenses/OSL-3.0.
+    #∞license∞#
+    #∞what∞#
+    # Program description string
+    #∞what∞#
+    #∞test∞# #∞test∞#
+    pass
+if 1:  # Imports
+    import sys
+    import os
+    import getopt
+    from pdb import set_trace as xx
 
 def Hettinger(string, char="X"):
     '''Raymond Hettinger's banner code from
@@ -176,8 +181,8 @@ def Banner(string, char_to_use):
     for element in out:
         for byte in element:
             PrintByteLine(byte, char_to_use)
-        sys.stdout.write("\n")
-    sys.stdout.write("\n")
+        print()
+    print()
 
 # The array Banner.letters contains the information on how to print
 # each character between 32 and 126, inclusive.  There are 8 bytes for
@@ -242,9 +247,9 @@ Banner.letters = (
 def PrintByteLine(byte, char_to_use):
     for i in range(8):
         if byte & (1 << (8 - i)):
-            sys.stdout.write("%s" % char_to_use)
+            print("%s" % char_to_use, end="")
         else:
-            sys.stdout.write(" ")
+            print(" ", end="")
 
 def Example(string):
     '''Prints the string to stdout with each ASCII character
@@ -275,7 +280,7 @@ Options
     -v      Vertical output (implies -a).
 '''[1:-1]
     print(s.format(**locals()))
-    sys.exit(status)
+    exit(status)
 
 def ParseCommandLine(d):
     d["-a"] = False     # Use Hettinger's implementation

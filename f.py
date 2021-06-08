@@ -1,5 +1,7 @@
 # TODO
 '''
+    * v=flt("15 mi/hr"); v.to("mi/minute") fails
+
     * Focus
         * Test that all needed constructors are written
         * Get arithmetic with units working

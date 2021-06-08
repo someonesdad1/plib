@@ -5,7 +5,7 @@ import sys
 from time import sleep
 from lwtest import run, assert_equal, raises
 from atm import P0, T0, rho0, atm
-from win import on_windows
+#from win import on_windows
 from pdb import set_trace as xx
 
 def GetReferenceData():
