@@ -1,21 +1,11 @@
 '''
-Implements a class that allows you to create arbitrarily long
-bitfields.  The bits are numbered from 0 to N-1, where N is the
-size of the bitfield.
- 
-The methods are:
-    is_set()            Return 1 if specified bit is set
-    is_clear()          Return 1 if specified bit is clear
-    set_bit()           Set a specified bit
-    clear_bit()         Clear a specified bit
-    set_bit_range()     Set a range of bits to one
-    clear_bit_range()   Set a range of bits to zero
-    set_to_zeros()      Set all the bits to zero
-    set_to_ones()       Set all the bits to one
-    num_bytes_used()    How many bytes the representation takes
- 
-The implementation uses a list of strings for the bitfields.  You
-can choose the size of the strings in the list.
+
+Implements a class that allows you to create large bitfields.  The bits
+are numbered from 0 to n - 1, where n is the size of the bitfield.
+
+There are two implementations:  sbitfield uses a list of string
+characters and bitfield is derived from an integer.  The code for
+bitfield is simpler, but it's slower for 
  
 Here are some creation times for a 166 MHz Pentium with 32 MB of RAM
 running Windows NT 4.0 (probably around 1999):
@@ -56,26 +46,49 @@ Here are some creation times of larger bitfields on a laptop PC
     Size 1.0e+08 time = 0.03 sec
     Size 1.0e+09 time = 0.26 sec
 
+----------------------------------------------------------------------
+8 Jun 2021 on quad core 3.5 GHz machine purchased Apr 2017 running Windows 10:
+    Running python 3.7.7 using the sbitfield class:
+    Size 1.0e+06 time = 0.00 sec
+    Size 1.0e+07 time = 0.00 sec
+    Size 1.0e+08 time = 0.02 sec
+    Size 1.0e+09 time = 0.23 sec
+    Size 1.0e+10 time = 2.51 sec
+    Size 1.0e+11 time = 25.87 sec
+
+On 8 Jun 2021 I reimplemented the class bitfield as derived from an
+integer, as it makes the implementation simpler.  However, it's slower
+for larger bitfields:
+    Size 1.0e+06 time = 0.01 sec
+    Size 1.0e+07 time = 0.05 sec
+    Size 1.0e+08 time = 0.69 sec
+    Size 1.0e+09 time = 9.50 sec
 '''
  
-# Copyright (C) 2005 Don Peterson
-# Contact:  gmail.com@someonesdad1
- 
-#
-# Licensed under the Open Software License version 3.0.
-# See http://opensource.org/licenses/OSL-3.0.
-#
- 
-import sys
-
-ii = isinstance
-
-class bitfield(object):
+if 1:  # Copyright, license
+    # These "trigger strings" can be managed with trigger.py
+    #∞copyright∞# Copyright (C) 2005 Don Peterson #∞copyright∞#
+    #∞contact∞# gmail.com@someonesdad1 #∞contact∞#
+    #∞license∞#
+    #   Licensed under the Open Software License version 3.0.
+    #   See http://opensource.org/licenses/OSL-3.0.
+    #∞license∞#
+    #∞what∞#
+    # Class for arbitrarily long bitfields
+    #∞what∞#
+    #∞test∞# run #∞test∞#
+    pass
+if 1:   # Imports
+    from pdb import set_trace as xx 
+if 1:   # Global variables
+    ii = isinstance
+    __all__ = ["sbitfield", "bitfield"]
+class sbitfield(object):
     '''Lets you define arbitrary bit fields.   All bit fields can be
     initialized to all zeros or all ones.  If you choose to use a
     large bit field, the most time consuming tasks are creation of
     and changing a large range.
- 
+
     A list of strings is used to implement the bit field.  Each character
     in a string represents 8 bits and each list element represents
     self.num_rows*8 bits.  You can specify the number of bits in each
@@ -84,7 +97,7 @@ class bitfield(object):
     '''
     def __init__(self, num_bits, init_with_ones=0, num_bits_in_row=64*8):
         self.errorstr = "Error"
-        self.num_bits = int(num_bits)  # Allows ints floats
+        self.num_bits = int(num_bits)
         if self.num_bits < 1:
             raise ValueError("number_of_bits must be > 0")
         if not ii(num_bits_in_row, int) or num_bits_in_row < 8:
@@ -141,17 +154,14 @@ class bitfield(object):
         else:
             s[row] = s[row][:byte] + new_byte + s[row][byte+1:]
         assert(len(s[row]) == self.num_bytes_in_row)
-    def set_bit_range(self, start, finish):
-        '''These two functions are inefficient for a setting or
-        clearing a large number of bits, but, boy, were they
-        easy to write. :)
-        '''
-        if start > finish:
-            raise ValueError("start must be less than finish")
-        for bit_position in range(start, finish+1):
+    def set_bit_range(self, start, end):
+        'Set a range of bits'
+        if start > end:
+            raise ValueError("start must be less than end")
+        for bit_position in range(start, end + 1):
             self.__set_bit(bit_position, 1)
-    def clear_bit_range(self, start, finish):
-        for bit_position in range(start, finish+1):
+    def clear_bit_range(self, start, end):
+        for bit_position in range(start, end + 1):
             self.__set_bit(bit_position, 0)
     def set_to_zeros(self):
         self.bitstr = []
@@ -166,7 +176,7 @@ class bitfield(object):
                 bit_position < 0 or
                 bit_position > self.num_bits - 1):
             raise ValueError("bit position must be >= 0 and <= %d" %
-                             (self.num_bits - 1))
+                            (self.num_bits - 1))
     def __repr__(self):
         '''Returns binary representation with LSB to right.  Set self.dot
         to nonzero to use an alternative form from 1's and 0's that's
@@ -211,24 +221,180 @@ class bitfield(object):
             if o.bitstr[i] != self.bitstr[i]:
                 return 1
         return 0
+class bitfield(int):
+    '''This implementation derives from integer.  The instantiated
+    integer value is the equivalent integer of all bits set for the
+    given number of bits.  Internally, the current value of the integer
+    is stored, as it can change over time.
 
+    An advantage of this implementation over the old one with an array
+    of string characters is that it uses python's built-in machinery to
+    deal with integers.  A disadvantage is that it's slower, but it
+    would be rare to need a bitfield over, say, a million bits, so this
+    isn't a big hardship.  If you need e.g. a billion bits, use the
+    sbitfield class.
+    '''
+    def __new__(cls, bits, value=0):
+        '''The bits of value are used to initialize the bitfield's
+        value, which is stored in the value attribute.
+        '''
+        if not ii(bits, int) or bits < 1:
+            raise ValueError("bits must be integer > 0")
+        if not ii(value, int) or value < 0:
+            raise ValueError("value must be integer >= 0")
+        instance = super(bitfield, cls).__new__(cls, 2**bits - 1)
+        instance._bits = bits
+        instance._value = value & int(instance)
+        return instance
+    def __str__(self):
+        return f"bitfield(<bits={self._bits}>{bin(self._value)})"
+    def __repr__(self):
+        return f"bitfield({self._bits})"
+    def __eq__(self, other):
+        'Note the number of bits is ignored as long as values are equal'
+        if not ii(other, bitfield):
+            raise ValueError("other is not a bitfield")
+        return int(self._value) == int(other._value)
+    def _check_n(self, n, name="n"):
+        if not ii(n, int) or n < 0 or n >= self.bits:
+            m = f"{name} must be integer and 0 <= n < {self.bits}"
+            raise ValueError(m)
+    def is_set(self, n):
+        self._check_n(n)
+        return self._value & (1 << n)
+    def is_clear(self, n):
+        self._check_n(n)
+        return not self.is_set(n)
+    def set_bit(self, n):
+        self._check_n(n)
+        self._value |= (1 << n)
+    def clear_bit(self, n):
+        self._check_n(n)
+        self._value |= (1 << n)     # Turns bit on
+        self._value ^= (1 << n)     # Turns bit off
+    def set_bit_range(self, start, end):
+        self._check_n(start, name="start")
+        self._check_n(end, name="end")
+        if start > end:
+            raise ValueError("start must be less than end")
+        for i in range(start, end + 1):
+            self._value |= (1 << i)
+    def clear_bit_range(self, start, end):
+        self._check_n(start, name="start")
+        self._check_n(end, name="end")
+        if start > end:
+            raise ValueError("start must be less than end")
+        for i in range(start, end + 1):
+            self._value |= (1 << i)
+            self._value ^= (1 << i)
+    def set_to_zeros(self):
+        self._value = 0
+    def set_to_ones(self):
+        self._value = self
+    def is_set(self, n):
+        self._check_n(n)
+        return self._value & (1 << n)
+    def is_clear(self, n):
+        return not self.is_set(n)
+    @property
+    def bits(self):
+        return self._bits
+    @property
+    def value(self):
+        'Returns the current integer value of the bitfield'
+        return int(self._value)
+    @value.setter
+    def value(self, val):
+        'Sets the current value of the bitfield'
+        if not ii(val, int) or val < 0:
+            raise ValueError("val must be an integer >= 0")
+        self._value = int(val & self)
 if __name__ == "__main__": 
-    from time import time
     import sys
-    if len(sys.argv) > 1:
-        # Print out the 10**9 times suitable for plotting
-        print('''
-# Year Time_in_s for the 10**9 size
-1999 327
-2002.92 42.2
-2008.25 10.13
-2011 3.57
-2014.6 2.43
-2017.4 0.26
-'''[1:-1])
-    else:
+    from lwtest import run, raises, Assert
+    from timer import Timer
+    def CheckTiming(name, cls):
+        timer = Timer()
+        print(f"{name} timing:")
         for n in (6, 7, 8, 9):
-            t0 = time()
-            b = bitfield(10**n)
-            t = time()
-            print("Size {:.1e} time = {:.2f} sec".format(10.0**n, t - t0))
+            start = timer.start
+            b = cls(10**n)
+            stop = timer.stop
+            print(f"  Size {10**n:.1e} time = {timer.et:.2f} sec")
+    if len(sys.argv) > 1:
+        CheckTiming("sbitfield", sbitfield)
+        CheckTiming("bitfield", bitfield)
+        exit()
+    def Check_bitfield(size, cls):
+        size = int(size)
+        if ii(cls, sbitfield):
+            a = sbitfield(size)
+            b = sbitfield(size, init_with_ones = 0)
+            ones = sbitfield(size, init_with_ones = 1)
+        else:
+            a = bitfield(size)
+            b = bitfield(size)  # All zeroes
+            ones = bitfield(size) 
+            ones.value = ones         # All ones
+        # Tests
+        err = Exception(f"Check_bitfield failed for size {size} cls {cls}")
+        b.set_bit(size - 1)
+        assert(b.is_set(size - 1))
+        b.clear_bit(size - 1)
+        assert(b.is_clear(size - 1))
+        b.set_bit(size - 2)
+        Assert(b.is_set(size - 2))
+        b.clear_bit(size - 2)
+        Assert(b.is_clear(size - 2))
+        b.set_bit(0)
+        Assert(b.is_set(0))
+        b.clear_bit(0)
+        Assert(b.is_clear(0))
+        b.set_bit(1)
+        Assert(b.is_set(1))
+        b.clear_bit(1)
+        Assert(b.is_clear(1))
+        Assert(a == b)
+        b.set_to_ones()
+        Assert(b == ones)
+        b.set_to_zeros()
+        Assert(a == b)
+    def Test_checks():
+        sizes = (2, 1e1, 1e2, 1e3, 1e4, 1e5, 1e6, 1e7)
+        for size in sizes:
+            Check_bitfield(size, sbitfield)
+        for size in sizes:
+            Check_bitfield(size, bitfield)
+    def Test4bit():
+        n = 4
+        b = bitfield(n)
+        Assert(f"{b!s}" == "bitfield(<bits=4>0b0)")
+        Assert(f"{b!r}" == "bitfield(4)")
+        Assert(b.value == 0)
+        x = 0
+        # Test set_bit() and is_set()
+        for i in range(b.bits):
+            b.set_bit(i)
+            x |= (1 << i)
+            Assert(b.value == x)
+            Assert(b.is_set(i))
+        # Test clear_bit() and is_clear()
+        for i in range(b.bits):
+            b.clear_bit(i)
+            x |= (1 << i)
+            x ^= (1 << i)
+            Assert(b.value == x)
+            Assert(b.is_clear(i))
+        # Test set_to_ones()
+        b.set_to_ones()
+        Assert(b.value == 2**n - 1)
+        # Test set_to_zeros()
+        b.set_to_zeros()
+        Assert(b.value == 0)
+        # Test set_bit_range()
+        b.set_bit_range(0, n - 1)
+        Assert(b.value == 2**n - 1)
+        # Test clear_bit_range()
+        b.clear_bit_range(0, n - 1)
+        Assert(b.value == 0)
+    exit(run(globals())[0])

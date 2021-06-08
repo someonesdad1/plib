@@ -182,7 +182,7 @@ if __name__ == "__main__":
     dirs = [P(i) for i in ParseCommandLine(d)]
     for dir in dirs:
         if d["-l"]:
-            print("Python files with tests:")
+            print("Python files with a test trigger string:")
             ListFiles(dir)
         elif d["-L"]:
             print("Python files without a test trigger string:")
