@@ -217,16 +217,9 @@ if __name__ == "__main__":
     timer.stop
     t, f, n = tr.total, tr.failed, tr.not_run
     if f or t:
-        print("Test summary:")
-        passed = t - f - n
-        print(f"  {passed} file{'s' if passed != 1 else ''} tested OK")
-        if n:
-            print(f"  {n} file{'s' if n != 1 else ''} not tested")
-        if f:
-            print(f"  {f} file{'s' if f != 1 else ''} failed")
         tm = timer.et
         tm.n = 2
-        if tm > 60:
-            print(f"  {tm/60} minutes to test")
-        else:
-            print(f"  {tm} seconds to test")
+        s = f"(took {tm/60} minutes)" if tm > 60 else f"(took {tm} seconds)"
+        print(f"Test summary {s}:")
+        passed = t - f - n
+        print(f"  {passed} file{'s' if passed != 1 else ''} tested OK")
