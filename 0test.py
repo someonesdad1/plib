@@ -192,6 +192,10 @@ class TestRunner:
             elif trig and trig[0] == "[":
                 for testfile in eval(trig):
                     self.Run(P(testfile))
+            else:
+                self.not_run += 1
+                if d["-V"]:
+                    print(f"{file}: no test to run")
 
 if __name__ == "__main__":
     d = {}      # Options dictionary

@@ -5,18 +5,22 @@ Function to turn a sequence into columns
 Run the module as a script to columnize stdin.  Use -h to get a usage
 statement.
 '''
-
-# Copyright (C) 2012 Don Peterson
-# Contact:  gmail.com@someonesdad1
-
-#
-# Licensed under the Open Software License version 3.0.
-# See http://opensource.org/licenses/OSL-3.0.
-#
-
-import os
-import re
-
+if 1:  # Copyright, license
+    # These "trigger strings" can be managed with trigger.py
+    #∞copyright∞# Copyright (C) 2012 Don Peterson #∞copyright∞#
+    #∞contact∞# gmail.com@someonesdad1 #∞contact∞#
+    #∞license∞#
+    #   Licensed under the Open Software License version 3.0.
+    #   See http://opensource.org/licenses/OSL-3.0.
+    #∞license∞#
+    #∞what∞#
+    # Function to turn a sequence into columns
+    #∞what∞#
+    #∞test∞# --test #∞test∞#
+    pass
+if 1:   # Imports
+    import os
+    import re
 def Columnize(seq, **kw):
     '''Returns a list of strings with the elements of the sequence seq
     (if components are not strings, they will be converted to strings
@@ -248,11 +252,110 @@ def Columnize(seq, **kw):
     return s
 
 if __name__ == "__main__":
+    from lwtest import run, assert_equal, raises, Assert
+    from pdb import set_trace as xx 
+    def TestBasicBehavior():
+        strings = ["12345678"]*30
+        result = Columnize(strings, width=80, col_width=9)
+        # Construct expected result
+        e = ["12345678  "]
+        row = ''.join(e*8).rstrip()
+        expected = [row]*3 + [''.join(e*6).rstrip()]
+        # Check they're the same
+        Assert(result == expected)
+    def TestHoriz():
+        seq = [str(i) for i in range(32)]
+        result = Columnize(seq, width=20, columns=4, horiz=False)
+        expected = [i.lstrip() for i in '''
+            0    8    16   24
+            1    9    17   25
+            2    10   18   26
+            3    11   19   27
+            4    12   20   28
+            5    13   21   29
+            6    14   22   30
+            7    15   23   31'''[1:].split("\n")]
+        Assert(result == expected)
+        result = Columnize(seq, width=20, columns=4, horiz=True)
+        s = '''
+            0    1    2    3
+            4    5    6    7
+            8    9    10   11
+            12   13   14   15
+            16   17   18   19
+            20   21   22   23
+            24   25   26   27
+            28   29   30   31'''[1:]
+        expected = [i.lstrip() for i in s.split("\n")]
+        Assert(result == expected)
+        # Now check that we can use the to_string keyword to get a string
+        # equivalent.
+        string = result = Columnize(seq, width=20, columns=4, horiz=True,
+            to_string=True)
+        Assert(string == "\n".join(expected))
+    def TestIdentityXfm():
+        seq = [str(i) for i in range(12)]
+        result = Columnize(seq, ignore=True)
+        Assert(seq == result)
+    def TestSeparator():
+        seq = [str(i) for i in range(12)]
+        result = Columnize(seq, width=12, columns=4, sep="|")
+        expected = [i.lstrip() for i in '''
+            0 |3 |6 |9
+            1 |4 |7 |10
+            2 |5 |8 |11'''[1:].split("\n")]
+        Assert(result == expected)
+    def TestIndent():
+        seq = [str(i) for i in range(12)]
+        result = Columnize(seq, width=18, columns=4, indent="yyy")
+        expected = [i.lstrip() for i in '''
+            yyy0   3   6   9
+            yyy1   4   7   10
+            yyy2   5   8   11'''[1:].split("\n")]
+        Assert(result == expected)
+    def TestTruncation():
+        seq = [str(i) for i in range(12)]
+        result = Columnize(seq, col_width=1, columns=4, trunc=True)
+        expected = [i.lstrip() for i in '''
+            0 3 6 9
+            1 4 7 1
+            2 5 8 1'''[1:].split("\n")]
+        Assert(result == expected)
+    def TestAlignment():
+        seq = [str(i) for i in range(12)]
+        result = Columnize(seq, col_width=10, columns=4, sep="|")
+        expected = [i.lstrip() for i in '''
+        0         |3         |6         |9
+        1         |4         |7         |10
+        2         |5         |8         |11'''[1:].split("\n")]
+        Assert(result == expected)
+        # Show this is the same as left alignment
+        result = Columnize(seq, col_width=10, columns=4, sep="|", align="left")
+        Assert(result == expected)
+        result = Columnize(seq, col_width=10, columns=4, sep="|", align="<")
+        Assert(result == expected)
+        # Centered
+        result = Columnize(seq, col_width=10, columns=4, sep="|", align="^")
+        expected = [i for i in '''
+    0     |    3     |    6     |    9
+    1     |    4     |    7     |    10
+    2     |    5     |    8     |    11'''[1:].split("\n")]
+        Assert(result == expected)
+        result = Columnize(seq, col_width=10, columns=4, sep="|", align="center")
+        Assert(result == expected)
+        # Right-aligned
+        result = Columnize(seq, col_width=10, columns=4, sep="|", align=">")
+        expected = [i for i in '''
+         0|         3|         6|         9
+         1|         4|         7|        10
+         2|         5|         8|        11'''[1:].split("\n")]
+        Assert(result == expected)
+        result = Columnize(seq, col_width=10, columns=4, sep="|", align="right")
+        Assert(result == expected)
+if __name__ == "__main__":
     # Running as a script provides a utility similar to pr.
     import sys
     import getopt
-    err = sys.stderr.write
-    nl = "\n"
     requested_columns = 0
     column_width = 0
     alignment = "left"
@@ -299,8 +402,10 @@ Options
         d["-s"] = " "           # Separator
         d["-t"] = False         # Truncate
         d["-w"] = 0             # Column width
+        d["--test"] = False     # Run self tests
         try:
-            optlist, args = getopt.getopt(sys.argv[1:], "a:c:efhi:s:tw:")
+            optlist, args = getopt.getopt(sys.argv[1:], "a:c:efhi:s:tw:",
+                                          "test")
         except getopt.GetoptError as str:
             msg, option = str
             print(msg)
@@ -311,7 +416,7 @@ Options
             elif o == "-c":
                 d["-c"] = int(a)
                 if d["-c"] <= 0:
-                    err("Number of columns must be > 0" + nl)
+                    print("Number of columns must be > 0", file=sys.stderr)
                     exit(1)
             elif o == "-e":
                 d["-e"] = not d["-e"]
@@ -323,6 +428,8 @@ Options
                 d["-i"] = a
             elif o == "-s":
                 d["-s"] = a
+            elif o == "--test":
+                d["--test"] = True
             elif o == "-t":
                 d["-t"] = not d["-t"]
             elif o == "-w":
@@ -378,6 +485,8 @@ Options
         exit(0)
     d = {}
     files = ParseCommandLine(d)
+    if d["--test"]:
+        exit(run(globals(), halt=1)[0])
     lines = GetInput(files)
     if d["-f"]:
         Fit(lines, d)
