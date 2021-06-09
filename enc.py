@@ -1,31 +1,32 @@
 '''
-Make this into a utility encoding tool.  Given a file, read it in as
-binary and try to determine its encoding by finding what decoder works
-on it.  Use '-o num' to choose an output encoding.
-
-Of course, it doesn't make sense to have all the encodings available, as
-I'd only practically use a few; choose this small set to be the standard
-and add an option that lets you expand the set of codecs.
-
-Here's a book that does a pretty good job of explaining Unicode and some
-problems (written by a non-native English speaker):
-https://unicodebook.readthedocs.io/index.html
-
+Utility encoding tool
+    Given a file, read it in as binary and try to determine its encoding
+    by finding what decoder works on it.  Use '-o num' to choose an
+    output encoding.
+   
+    It doesn't make sense to have all the encodings available, as I'd
+    only practically use a few; choose this small set to be the standard
+    and add an option that lets you expand the set of codecs.
+  
+    Here's a book that does a fairly good job of explaining Unicode and
+    some problems (written by a non-native English speaker):
+    https://unicodebook.readthedocs.io/index.html
 '''
-
-# Copyright (C) 2019 Don Peterson
-# Contact:  gmail.com@someonesdad1
- 
-#
-# Licensed under the Open Software License version 3.0.
-# See http://opensource.org/licenses/OSL-3.0.
-#
- 
-if 1:   # Imports & globals
+if 1:  # Copyright, license
+    # These "trigger strings" can be managed with trigger.py
+    #∞copyright∞# Copyright (C) 2019 Don Peterson #∞copyright∞#
+    #∞contact∞# gmail.com@someonesdad1 #∞contact∞#
+    #∞license∞#
+    #   Licensed under the Open Software License version 3.0.
+    #   See http://opensource.org/licenses/OSL-3.0.
+    #∞license∞#
+    #∞what∞# Utility encoding tool #∞what∞#
+    #∞test∞# #∞test∞#
+    pass
+if 1:   # Imports
     import getopt
     import os
     import sys
-    import textwrap
     from collections import defaultdict
     from pprint import pprint as pp
     from pdb import set_trace as xx
@@ -33,13 +34,12 @@ if 1:   # Imports & globals
     from columnize import Columnize
     # Debugging stuff
     from pdb import set_trace as xx
+if 1:   # Custom imports
+    from wrap import dedent
     if 0:
         import debug
         debug.SetDebugger()  # Start debugger on unhandled exception
-    dedent = textwrap.dedent
-    # Note:  'encodings' and 'priorities' were produced by the
-    # ConstructEncodingData function.  You may wish to edit it to your own
-    # tastes.
+if 1:   # Global variables
     # Note:  'encodings' and 'priorities' were produced by the
     # ConstructEncodingData function.  You may wish to edit it to your own
     # tastes.
@@ -150,20 +150,83 @@ if 1:   # Imports & globals
         # Key:  integer, Value: tuple of encodings
         # Highest priority is lowest integer
         0: ('utf_8', 'latin_1', 'ascii'),
-        1: ('cp1251', 'cp1252', 'shift_jis', 'gb2312', 'euc_kr', 'euc_jp', 'iso8859_2', 'gbk', 'cp1250', 'big5', 'iso8859_9', 'iso8859_15'),
-        2: ('cp1254', 'cp1256', 'iso8859_11', 'cp1255', 'iso8859_11', 'iso8859_7', 'cp1253', 'utf_16', 'koi8_r', 'cp1257', 'gb18030', 'utf_7', 'cp932', 'iso8859_8', 'iso8859_5', 'iso8859_4', 'iso8859_6', 'koi8_u', 'iso2022_jp', 'iso8859_13', 'iso8859_16', 'iso8859_3', 'cp949', 'iso8859_10', 'cp1258', 'iso8859_11', 'iso8859_14', 'cp850'),
-        3: ('mac_latin2', 'cp875', 'cp1125', 'cp856', 'cp1006', 'cp863', 'mac_roman', 'cp865', 'cp500', 'cp852', 'koi8_t', 'cp866', 'cp855', 'mac_iceland', 'cp1140', 'shift_jis_2004', 'shift_jisx0213', 'cp862', 'iso2022_kr', 'utf_32', 'utf_32_le', 'cp950', 'iso2022_jp_ext', 'utf_16_le', 'cp874', 'cp1026', 'iso2022_jp_1', 'euc_jis_2004', 'utf_8_sig', 'cp857', 'cp775', 'iso2022_jp_3', 'cp864', 'cp737', 'hz', 'mac_turkish', 'cp869', 'utf_16_be', 'ptcp154', 'mac_cyrillic', 'iso2022_jp_2004', 'cp437', 'cp424', 'johab', 'kz1048', 'cp858', 'iso2022_jp_2', 'cp720', 'cp860', 'utf_32_be', 'cp65001', 'big5hkscs', 'euc_jisx0213', 'cp037', 'mac_greek', 'cp273', 'cp861'),
+        1: ('cp1251', 'cp1252', 'shift_jis', 'gb2312', 'euc_kr',
+            'euc_jp', 'iso8859_2', 'gbk', 'cp1250', 'big5', 'iso8859_9',
+            'iso8859_15'),
+        2: ('cp1254', 'cp1256', 'iso8859_11', 'cp1255', 'iso8859_11',
+            'iso8859_7', 'cp1253', 'utf_16', 'koi8_r', 'cp1257', 'gb18030',
+            'utf_7', 'cp932', 'iso8859_8', 'iso8859_5', 'iso8859_4',
+            'iso8859_6', 'koi8_u', 'iso2022_jp', 'iso8859_13', 'iso8859_16',
+            'iso8859_3', 'cp949', 'iso8859_10', 'cp1258', 'iso8859_11',
+            'iso8859_14', 'cp850'),
+        3: ('mac_latin2', 'cp875', 'cp1125', 'cp856', 'cp1006', 'cp863',
+            'mac_roman', 'cp865', 'cp500', 'cp852', 'koi8_t', 'cp866',
+            'cp855', 'mac_iceland', 'cp1140', 'shift_jis_2004',
+            'shift_jisx0213', 'cp862', 'iso2022_kr', 'utf_32', 'utf_32_le',
+            'cp950', 'iso2022_jp_ext', 'utf_16_le', 'cp874', 'cp1026',
+            'iso2022_jp_1', 'euc_jis_2004', 'utf_8_sig', 'cp857', 'cp775',
+            'iso2022_jp_3', 'cp864', 'cp737', 'hz', 'mac_turkish', 'cp869',
+            'utf_16_be', 'ptcp154', 'mac_cyrillic', 'iso2022_jp_2004',
+            'cp437', 'cp424', 'johab', 'kz1048', 'cp858', 'iso2022_jp_2',
+            'cp720', 'cp860', 'utf_32_be', 'cp65001', 'big5hkscs',
+            'euc_jisx0213', 'cp037', 'mac_greek', 'cp273', 'cp861'),
     }
     # Build set of valid encoding names
     valid_encodings = set()
     for i in encodings:
         valid_encodings.add(i.lower())
         valid_encodings.update(set([j.lower() for j in encodings[i][0]]))
-
-def Error(msg, status=1):
-    print(msg, file=sys.stderr)
-    exit(status)
-
+if 1:   # Utility
+    def Error(msg, status=1):
+        print(msg, file=sys.stderr)
+        exit(status)
+    def Usage(d, status=1):
+        name = sys.argv[0]
+        print(dedent(f'''
+        Usage:  {name} [options] file1 [file2 ...]
+          Try to identify the encoding of the file(s) on the command line.  This
+          is done by finding which python codecs module encodings don't raise an
+          exception.  Note there is no way in general to determine the encoding 
+          of a file.
+          
+          Use the -o option to change the encoding of a file.
+          
+        Options (case of enc string is ignored):
+          -a        Try all encodings.
+          -d        Construct the encoding data as used by the script.
+                    You may want to edit this function to your tastes.
+          -i enc    Use the indicated encoding on file1 to decode it.
+          -l        List the allowed encoding strings.        
+          -o enc    Encode file1 with the indicated encoding and send
+                    the the second file on the command line.
+        '''))
+        exit(status)
+    def ParseCommandLine(d):
+        d["-a"] = False     # Try all encodings
+        d["-i"] = None      # Which encoding to use
+        d["-l"] = False     # List allowed encodings
+        d["-o"] = None      # Encode file on command line with this encoding
+        if len(sys.argv) < 2:
+            Usage(d)
+        try:
+            opts, args = getopt.getopt(sys.argv[1:], "adi:lo:")
+        except getopt.GetoptError as e:
+            print(str(e))
+            exit(1)
+        for o, a in opts:
+            if o[1] in list("al"):
+                d[o] = not d[o]
+            elif o in ("-d",):
+                ConstructEncodingData()
+                exit(0)
+            elif o in ("-i", "-o"):
+                e = a.lower()
+                if e not in valid_encodings:
+                    Error(f"'{a}' not a recognized encoding")
+                d[o] = e
+        if d["-o"] is not None and len(args) != 2:
+            Error(f"Two arguments needed with -o option")
+        return args
 def ConstructEncodingData():
     '''This function can be called to print a dict to stdout that builds
     the dictionary to use for doing decoding.  The keys are integers
@@ -416,61 +479,6 @@ def ConstructEncodingData():
     for i in d:
         print(f'    {i}: {d[i]},')
     print("}")
-
-def Usage(d, status=1):
-    name = sys.argv[0]
-    print(f'''
-Usage:  {name} [options] file1 [file2 ...]
-  Try to identify the encoding of the file(s) on the command line.  This
-  is done by finding which python codecs module encodings don't raise an
-  exception.  Note there is no way in general to determine the encoding 
-  of a file.
-
-  Use the -o option to change the encoding of a file.
-
-Options (case of enc string is ignored):
-  -a 
-    Try all encodings.
-  -d
-    Construct the encoding data as used by the script.  You may want to
-    edit this function to your tastes.
-  -i enc
-    Use the indicated encoding on file1 to decode it.
-  -l
-    List the allowed encoding strings.        
-  -o enc
-        Encode file1 (only one argument allowed) with the indicated
-        encoding and send the data to stdout.
-'''[1:-1])
-    exit(status)
-
-def ParseCommandLine(d):
-    d["-a"] = False
-    d["-i"] = None
-    d["-l"] = False
-    d["-o"] = None
-    if len(sys.argv) < 2:
-        Usage(d)
-    try:
-        opts, args = getopt.getopt(sys.argv[1:], "adi:lo:")
-    except getopt.GetoptError as e:
-        print(str(e))
-        exit(1)
-    for o, a in opts:
-        if o[1] in list("al"):
-            d[o] = not d[o]
-        elif o in ("-d",):
-            ConstructEncodingData()
-            exit(0)
-        elif o in ("-i", "-o"):
-            e = a.lower()
-            if e not in valid_encodings:
-                Error(f"'{a}' not a recognized encoding")
-            d[o] = e
-    if d["-o"] is not None and len(args) != 2:
-        Error(f"Need input and output file with -o option")
-    return args
-
 def GetEncoding(byts, enc_seq):
     enc = []
     for e in enc_seq:
@@ -480,7 +488,6 @@ def GetEncoding(byts, enc_seq):
         except (UnicodeDecodeError, LookupError):
             pass
     return enc
-
 def CheckEncoding(file):
     Priorities = priorities.keys() if d["-a"] else (0, 1)
     byts = open(file, "rb").read()
@@ -491,7 +498,6 @@ def CheckEncoding(file):
         print(f"{file} possible encodings:")
         for e in Columnize([i for i in enc if i], indent=" "*4, sep=" "*4):
             print(e)
-
 def Encode(files):
     '''Encode the input file to the encoding specified by the -o option.
     '''
@@ -501,7 +507,6 @@ def Encode(files):
     else:
         s = open(ifile, "r").read()
     open(ofile, "wb").write(s.encode(d["-o"]))
-
 if __name__ == "__main__":
     d = {}      # Options dictionary
     files = ParseCommandLine(d)
