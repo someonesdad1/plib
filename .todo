@@ -13,3 +13,5 @@
   best to move the key stuff to flt and cpx.  It can still be kept
   around for when it's needed.
 
+* atm.py:  See if it can change over to use flt for calculations with
+  units.  It will get rid of the sig() ugliness.

@@ -1,22 +1,19 @@
 '''
-Calculate atmospheric properties.
+Calculate atmospheric properties
+    Adapted from http://www.pdas.com/programs/atmos.f90 (included below).
 
-Adapted from http://www.pdas.com/programs/atmos.f90 (attached to the
-end of this file).
+    The equations are taken from the NASA publication "U.S. Standard
+    Atmosphere 1976".  A PDF can be downloaded from
+    http://ntrs.nasa.gov/archive/nasa/casi.ntrs.nasa.gov/19770009539_1977009539.pdf
 
-The equations are taken from the NASA publication "U.S. Standard
-Atmosphere 1976".  A PDF can be downloaded from
-http://ntrs.nasa.gov/archive/nasa/casi.ntrs.nasa.gov/19770009539_1977009539.pdf
-
-The "hydrostatic constant" is g0'*M0/R, where g0' is a constant that
-relates geopotential meters to geometric height (units of m^2/(s^2*m')
-where m' is a geopotential meter, M0 is the sea-level mean molar mass
-of the air, and R is the universal gas constant in J/(mol*K).  See
-equation 33b in the NASA paper.
-
-[eq 33] is equation 33 in the paper and [5] refers to page 5.
+    The "hydrostatic constant" is g0'*M0/R, where g0' is a constant that
+    relates geopotential meters to geometric height (units of
+    m^2/(s^2*m') where m' is a geopotential meter, M0 is the sea-level
+    mean molar mass of the air, and R is the universal gas constant in
+    J/(mol*K).  See equation 33b in the NASA paper.
+  
+    [eq 33] is equation 33 in the paper and [5] refers to page 5.
 '''
-
 if 1:  # Copyright, license
     # These "trigger strings" can be managed with trigger.py
     #∞copyright∞# Copyright (C) 2010 Don Peterson #∞copyright∞#
@@ -36,6 +33,7 @@ if 1:  # Imports
     import sys
     from math import exp, sqrt, pi
 if 1:  # Custom imports
+    from wrap import dedent
     from fpformat import FPFormat
     from u import u
     from pdb import set_trace as xx
@@ -133,7 +131,6 @@ if 1:  # Original FORTRAN code
         RETURN
         END Subroutine Atmosphere   ! -----------------------------------------------
         '''
-
 def atm(altitude_km):
     '''Returns a dictionary of the SI properties of air at the given
     geometric height, which is 0 for sea-level.  The returned
@@ -185,37 +182,35 @@ def atm(altitude_km):
     results["dynamic viscosity"] = 1.458e-6*T**(1.5)/(T + 110.4)
     results["mean free path"] = sqrt(2)*R*T/(2*pi*Na*sigma**2*P0*pr)
     return results
-
 def Error(msg, status=1):
     print(msg, file=sys.stderr)
     exit(status)
-
 def Usage(d, status=1):
     name = sys.argv[0]
     digits = d["-d"]
-    print(f'''
-Usage:  {name} altitude [unit]
-  Prints the density, pressure, and temperature for altitudes between
-  -5 and 86 km.  From the 1976 NASA standard atmosphere.
- 
-  Note:  you can include an optional unit for the altitude (any common
-  unit will work).  The number is interpreted in km if no unit is given.
+    print(dedent(f'''
+    Usage:  {name} altitude [unit]
+    Prints the density, pressure, and temperature for altitudes between
+    -5 and 86 km.  From the 1976 NASA standard atmosphere.
+    
+    Note:  you can include an optional unit for the altitude (any common
+    unit will work).  The number is interpreted in km if no unit is given.
 
-Options:
-    -d digits
-        Specify the number of significant figures. [{digits}]
-    -t
-        Print a table of the standard atmosphere in km heights.
-'''[1:-1])
+    Options:
+        -d digits
+            Specify the number of significant figures. [{digits}]
+        -t
+            Print a table of the standard atmosphere in km heights.
+    '''[1:-1]))
     exit(status)
-
 def ParseCommandLine(d):
-    d["-t"] = False
-    d["-d"] = 4         # Number of significant digits
+    d["-t"] = False         # Print table
+    d["-d"] = 4             # Number of significant digits
+    d["--test"] = False     # Number of significant digits
     if len(sys.argv) < 2:
         Usage(d)
     try:
-        opts, args = getopt.getopt(sys.argv[1:], "d:t")
+        opts, args = getopt.getopt(sys.argv[1:], "d:t", "test")
     except getopt.GetoptError as e:
         print(str(e))
         exit(1)
@@ -231,12 +226,13 @@ def ParseCommandLine(d):
                 Error(msg)
         elif o in ("-t",):
             d["-t"] = not d["-t"]
+        elif o in ("--test",):
+            exit(run(globals(), halt=1)[0])
     if not args and not d["-t"]:
         Usage(d)
     fp.digits(d["-d"])
     sig.digits = d["-d"]
     return args
-
 def GetHeight_km(args):
     to_km = 1
     if len(args) == 2:
@@ -250,7 +246,6 @@ def GetHeight_km(args):
         print("Altitude must be between -5 and 86 km.")
         exit(1)
     return z_km
-
 def PrintHeight(args, opts):
     digits = opts["-d"]
     fmt = lambda x, digits: ("%%.%dg" % digits) % x
@@ -300,35 +295,34 @@ def PrintHeight(args, opts):
     mfp0 = e(prop0["mean free path"]/mfp).strip()
     MFP_SI = e(mfp)
     # Print results
-    print('''
-1976 Standard atmosphere properties at {Z_km} km ({Z_ft} ft, {Z_mi} mi):
-  [Reduced values with respect to sea level are in square brackets]
-  Density                 = {D_SI} kg/m^3             [{d0}]
-                          = {D_lbpin3}lbm/in^3
-                          = {D_lbpft3}lbm/ft^3
-  Pressure                = {P_kPa} kPa                [{p0}]
-                          = {P_psi}psi
-                          = {P_torr}torr
-                          = {P_atm}atm
-  Temperature             = {T_SI} K                  [{t0}]
-                          = {T_degC} \xb0C
-                          = {T_degF} \xb0F
-  Acceleration of gravity = {G_SI} m/s^2              [{g0}]
-  Speed of sound          = {CS_SI} m/s
-                          = {CS_mph} mi/hr
-  Dynamic viscosity       = {MU_SI}(N*s/m^2)
-  Kinematic viscosity     = {NU_SI}(m^2/s)
-  Mean free path          = {MFP_SI}m                 [{mfp0}]
-'''[1:].format(**locals()))
-
+    print(dedent(f'''
+    1976 Standard atmosphere properties at {Z_km} km ({Z_ft} ft, {Z_mi} mi):
+      [Reduced values with respect to sea level are in square brackets]
+      Density                 = {D_SI} kg/m^3             [{d0}]
+                              = {D_lbpin3}lbm/in^3
+                              = {D_lbpft3}lbm/ft^3
+      Pressure                = {P_kPa} kPa                [{p0}]
+                              = {P_psi}psi
+                              = {P_torr}torr
+                              = {P_atm}atm
+      Temperature             = {T_SI} K                  [{t0}]
+                              = {T_degC} °C
+                              = {T_degF} °F
+      Acceleration of gravity = {G_SI} m/s^2              [{g0}]
+      Speed of sound          = {CS_SI} m/s
+                              = {CS_mph} mi/hr
+      Dynamic viscosity       = {MU_SI}(N*s/m^2)
+      Kinematic viscosity     = {NU_SI}(m^2/s)
+      Mean free path          = {MFP_SI}m                 [{mfp0}]
+    '''))
 def PrintTable(args, d):
     n = d["-d"] + 8
     e = fp.engsic
     fmt = "{z_km:5d} {d:^{n}s} {p:^{n}s} {t:^{n}s} {g:^{n}s} {Cs:^{n}s}"
-    header = '''
-Height  Density      Pressure      Temp      Acc. grav.   Speed of Sound
-  km     kg/m3          Pa          K            m/s2         m/s
-'''[1:-1]
+    header = dedent('''
+    Height  Density      Pressure      Temp      Acc. grav.   Speed of Sound
+      km     kg/m3          Pa          K            m/s2         m/s
+    ''')
     print(header)
     #for z_km in range(-5, 87):
     for z_km in range(-5, 31):
@@ -340,8 +334,44 @@ Height  Density      Pressure      Temp      Acc. grav.   Speed of Sound
         Cs = e(prop["speed of sound"])
         print(fmt.format(**locals()))
     print(header)
-
 if __name__ == "__main__":
+    # Unit test stuff
+    import subprocess
+    from time import sleep
+    from lwtest import run, assert_equal, raises
+    def GetReferenceData():
+        '''Return the altitude in km, along with sigma = reduced density,
+        delta = reduced pressure, theta = reduced temperature (reduced means
+        divided by the sea level values).
+    
+        The expected form of the output data of the atm command is:
+            NASA reference atmosphere function by R. Carmichael
+            Reduced atmosphere values at    5.00000000     km
+            sigma = reduced density     =  0.601166010    
+            delta = reduced pressure    =  0.533414602    
+            theta = reduced temperature =  0.887300014    
+        '''
+        # Note:  this script used to run the atm command, which was the
+        # atm.f90 code.  Now it just returns the above numbers.
+        h_km, sigma, delta, theta = 5, 0.601166010, 0.533414602, 0.887300014
+        return h_km, sigma, delta, theta
+    def Test():
+        altitude_km, sigma, delta, theta = GetReferenceData()
+        d = atm(altitude_km)
+        rho = sigma*rho0
+        P = delta*P0
+        T = theta*T0
+        if 0:
+            print("Density =", rho)
+            print("Pressure =", P)
+            print("Temperature =", T)
+            from pprint import pprint as pp
+            pp(d)
+        eps = 1e-6
+        assert_equal(rho, d["density"], reltol=eps)
+        assert_equal(P, d["pressure"], reltol=eps)
+        assert_equal(T, d["temperature"], reltol=eps)
+if __name__ == "__main__": 
     d = {}      # Options dictionary
     args = ParseCommandLine(d)
     if d["-t"]:

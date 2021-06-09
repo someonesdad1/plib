@@ -133,4 +133,4 @@ if __name__ == "__main__":
         circumference = D*math.pi
         assert_equal(circumference, arc_len, reltol=1e-8)
     r = r"^Test_"
-    failed, messages = run(globals(), regexp=r, quiet=0)
+    exit(run(globals(), regexp=r, quiet=0)[0])
