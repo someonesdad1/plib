@@ -31,33 +31,35 @@ TODO
     A quick comparison of comb(100, 4) with GetCombination() versus
     itertools.combinations() shows itertools is about 23 times faster.
 '''
-
-if 1:
-    # Copyright (C) 2005 Don Peterson
-    # Contact:  gmail.com@someonesdad1
-
-    #
-    # Licensed under the Open Software License version 3.0.
-    # See http://opensource.org/licenses/OSL-3.0.
-    #
-
+if 1:  # Copyright, license
+    # These "trigger strings" can be managed with trigger.py
+    #∞copyright∞# Copyright (C) 2005 Don Peterson #∞copyright∞#
+    #∞contact∞# gmail.com@someonesdad1 #∞contact∞#
+    #∞license∞#
+    #   Licensed under the Open Software License version 3.0.
+    #   See http://opensource.org/licenses/OSL-3.0.
+    #∞license∞#
+    #∞what∞#
+    # Generate combinations and permutations in lexical order
+    #∞what∞#
+    #∞test∞# #∞test∞#
+    pass
+if 1:   # Imports
     import sys
-
+if 1:   # Global variables
     # The following global variables are used to save the state within the
     # routines so that they can be called once for each combination or
     # permutation.
-
+    #
     # Globals for the combination routine
     c_jx = 0
     c_array = []
     c_0_based = 0
-
     # Globals for the permutation routine
     p_ix = 0
     p_jx = 0
     p_array = []
     p_0_based = 0
-
 def GetCombination(n, k, init=0, zero_based=0):
     '''Each call will return a tuple of the next combination of n items
     taken k at a time.  The procedure for use is:
@@ -104,7 +106,6 @@ def GetCombination(n, k, init=0, zero_based=0):
             return tuple(c_array[1:])
     else:
         return None
-
 def PrintArray(array, stream, num_places):
     if num_places == 0:
         fmt = "%d "
@@ -113,7 +114,6 @@ def PrintArray(array, stream, num_places):
     for num in array:
         stream.write(fmt % num)
     stream.write("\n")
-
 def GetPermutation(n, init=0, zero_based=0):
     '''Each call will return a tuple of the next permutation of n items
     The procedure for use is:
@@ -221,7 +221,6 @@ def GetPermutation(n, init=0, zero_based=0):
             return None
     else:
         return None
-
 def P(n, stream=sys.stdout, num_places=3):
     '''Print all n permutations to a stream.  n is the number of objects
     to permute, stream is the stream to print the permutations to, and
@@ -247,7 +246,6 @@ def P(n, stream=sys.stdout, num_places=3):
     while array:
         PrintArray(array, stream, num_places)
         array = GetPermutation(n, 0)
-
 def C(n, k, stream=sys.stdout, num_places=3):
     '''Print all (n, k) combinations to a stream.  n is the number of the
     items to choose from, k is the number of items in the combination,
@@ -282,7 +280,6 @@ def C(n, k, stream=sys.stdout, num_places=3):
     while array:
         PrintArray(array, stream, num_places)
         array = GetCombination(n, k, 0)
-
 def permute(s):
     '''Return all possible permutations of sequence s.  Adapted from the
     mathutil.py file in the utilities from
@@ -307,7 +304,6 @@ def permute(s):
             s3.append(x)
             res.append(s3)
     return res
-
 def permute_g(s, use_generator=True):
     '''Generator form of permute() above.  Example of use:
     for i in permute_g(range(3)):
@@ -329,4 +325,3 @@ def permute_g(s, use_generator=True):
         for s3 in permute(s2):
             s3.append(x)
             yield s3
-
