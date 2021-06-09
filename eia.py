@@ -1,123 +1,121 @@
 '''
-Module to provide EIA resistor values along with a custom set of
+Module to provide EIA resistance values along with a custom set of
 on-hand resistances.
-
 '''
+if 1:  # Copyright, license
+    # These "trigger strings" can be managed with trigger.py
+    #∞copyright∞# Copyright (C) 2010 Don Peterson #∞copyright∞#
+    #∞contact∞# gmail.com@someonesdad1 #∞contact∞#
+    #∞license∞#
+    #   Licensed under the Open Software License version 3.0.
+    #   See http://opensource.org/licenses/OSL-3.0.
+    #∞license∞#
+    #∞what∞# # Provides EIA resistor values #∞what∞#
+    #∞test∞# #∞test∞#
+    pass
+if 1:   # Custom imports
+    from roundoff import RoundOff
+    from columnize import Columnize
+if 1:   # Global variables
+    __all__ = '''EIA EIA_series OnHand '''.split()
+    # The following iterable defines the powers of 10 to use to get 
+    # commonly-available resistors.
+    powers_of_10 = (-1, 0, 1, 2, 3, 4, 5, 6, 7)
+    # EIA recommended resistor significand values.  From
+    # https://en.wikipedia.org/wiki/E_series_of_preferred_numbers
+    f = lambda x: tuple([int(i) for i in x.split() if i.strip()])
+    EIA_series = {
+        3 :  f('''100 220 470'''),
+        6 :  f('''100 150 220 330 470 680'''),
+        12 : f('''100 120 150 180 220 270 330 390 470 560 680 820'''),
+        24 : f('''100 110 120 130 150 160 180 200 220 240 270 300 330
+                  360 390 430 470 510 560 620 680 750 820 910'''),
+        48 : f('''100 105 110 115 121 127 133 140 147 154 162 169 178
+                  187 196 205 215 226 237 249 261 274 287 301 316 332
+                  348 365 383 402 422 442 464 487 511 536 562 590 619
+                  649 681 715 750 787 825 866 909 953'''),
+        96 : f('''100 102 105 107 110 113 115 118 121 124 127 130 133
+                  137 140 143 147 150 154 158 162 165 169 174 178 182
+                  187 191 196 200 205 210 215 221 226 232 237 243 249
+                  255 261 267 274 280 287 294 301 309 316 324 332 340
+                  348 357 365 374 383 392 402 412 422 432 442 453 464
+                  475 487 499 511 523 536 549 562 576 590 604 619 634
+                  649 665 681 698 715 732 750 768 787 806 825 845 866
+                  887 909 931 953 976'''),
+        192 : f('''100 101 102 104 105 106 107 109 110 111 113 114 115
+                   117 118 120 121 123 124 126 127 129 130 132 133 135
+                   137 138 140 142 143 145 147 149 150 152 154 156 158
+                   160 162 164 165 167 169 172 174 176 178 180 182 184
+                   187 189 191 193 196 198 200 203 205 208 210 213 215
+                   218 221 223 226 229 232 234 237 240 243 246 249 252
+                   255 258 261 264 267 271 274 277 280 284 287 291 294
+                   298 301 305 309 312 316 320 324 328 332 336 340 344
+                   348 352 357 361 365 370 374 379 383 388 392 397 402
+                   407 412 417 422 427 432 437 442 448 453 459 464 470
+                   475 481 487 493 499 505 511 517 523 530 536 542 549
+                   556 562 569 576 583 590 597 604 612 619 626 634 642
+                   649 657 665 673 681 690 698 706 715 723 732 741 750
+                   759 768 777 787 796 806 816 825 835 845 856 866 876
+                   887 898 909 920 931 942 953 965 976 988''')}
+if 1:   # Utility
+    def rtz(s):
+        'Remove trailing zeros from string s'
+        if "." not in s:
+            return s
+        while s and s[-1] == "0":
+            s = s[:-1]
+        return s
+    def Int(x):
+        '''If the string form of the float x ends in ".0", return it as an
+        integer; otherwise, return it unchanged.
+        '''
+        x = RoundOff(x)
+        return int(x) if str(x).endswith(".0") else x
+if 1:   # On-hand resistance values
+    def OnHand():
+        'Return a list of on-hand resistors'
+        return list(sorted(set(
+            [0.025, 0.2, 0.27, 0.33, 
 
-import sys
-import u
-from roundoff import RoundOff
-from columnize import Columnize
+            1, 2.2, 4.6, 8.3,
 
-# The following iterable defines the common powers of 10 to use to get 
-# commonly-available resistors.
-powers_of_10 = (-1, 0, 1, 2, 3, 4, 5, 6, 7)
+            10.1, 12, 14.7, 15, 17.8, 22, 27, 28.4, 30, 31.6, 33, 35,
+            38.4, 46.3, 50, 55.5, 61.8, 67, 75, 78, 81, 
 
-# EIA recommended resistor significand values.  From
-# https://en.wikipedia.org/wiki/E_series_of_preferred_numbers
-EIA_series = {
-    # >20%
-    3 : (1.0, 2.2, 4.7),
-    # 20%
-    6 : (1.0, 1.5, 2.2, 3.3, 4.7, 6.8),
-    # 10%
-    12 : (1.0, 1.2, 1.5, 1.8, 2.2, 2.7, 3.3, 3.9, 4.7, 5.6, 6.8, 8.2),
-    # 5%
-    24 : (1.0, 1.1, 1.2, 1.3, 1.5, 1.6, 1.8, 2.0, 2.2, 2.4, 2.7, 3.0, 
-          3.3, 3.6, 3.9, 4.3, 4.7, 5.1, 5.6, 6.2, 6.8, 7.5, 8.2, 9.1),
-    # 2%
-    48 : (1.00, 1.05, 1.10, 1.15, 1.21, 1.27, 1.33, 1.40, 1.47, 1.54,
-          1.62, 1.69, 1.78, 1.87, 1.96, 2.05, 2.15, 2.26, 2.37, 2.49, 2.61,
-          2.74, 2.87, 3.01, 3.16, 3.32, 3.48, 3.65, 3.83, 4.02, 4.22, 4.42,
-          4.64, 4.87, 5.11, 5.36, 5.62, 5.90, 6.19, 6.49, 6.81, 7.15, 7.50,
-          7.87, 8.25, 8.66, 9.09, 9.53),
-    # 1%
-    96 : (1.00, 1.02, 1.05, 1.07, 1.10, 1.13, 1.15, 1.18, 1.21, 1.24, 1.27,
-         1.30, 1.33, 1.37, 1.40, 1.43, 1.47, 1.50, 1.54, 1.58, 1.62, 1.65,
-         1.69, 1.74, 1.78, 1.82, 1.87, 1.91, 1.96, 2.00, 2.05, 2.10, 2.15,
-         2.21, 2.26, 2.32, 2.37, 2.43, 2.49, 2.55, 2.61, 2.67, 2.74, 2.80,
-         2.87, 2.94, 3.01, 3.09, 3.16, 3.24, 3.32, 3.40, 3.48, 3.57, 3.65,
-         3.74, 3.83, 3.92, 4.02, 4.12, 4.22, 4.32, 4.42, 4.53, 4.64, 4.75,
-         4.87, 4.99, 5.11, 5.23, 5.36, 5.49, 5.62, 5.76, 5.90, 6.04, 6.19,
-         6.34, 6.49, 6.65, 6.81, 6.98, 7.15, 7.32, 7.50, 7.68, 7.87, 8.06,
-         8.25, 8.45, 8.66, 8.87, 9.09, 9.31, 9.53, 9.76),
-    # 0.5%
-    192 : (1.00, 1.01, 1.02, 1.04, 1.05, 1.06, 1.07, 1.09, 1.10, 1.11,
-          1.13, 1.14, 1.15, 1.17, 1.18, 1.20, 1.21, 1.23, 1.24, 1.26, 1.27,
-          1.29, 1.30, 1.32, 1.33, 1.35, 1.37, 1.38, 1.40, 1.42, 1.43, 1.45,
-          1.47, 1.49, 1.50, 1.52, 1.54, 1.56, 1.58, 1.60, 1.62, 1.64, 1.65,
-          1.67, 1.69, 1.72, 1.74, 1.76, 1.78, 1.80, 1.82, 1.84, 1.87, 1.89,
-          1.91, 1.93, 1.96, 1.98, 2.00, 2.03, 2.05, 2.08, 2.10, 2.13, 2.15,
-          2.18, 2.21, 2.23, 2.26, 2.29, 2.32, 2.34, 2.37, 2.40, 2.43, 2.46,
-          2.49, 2.52, 2.55, 2.58, 2.61, 2.64, 2.67, 2.71, 2.74, 2.77, 2.80,
-          2.84, 2.87, 2.91, 2.94, 2.98, 3.01, 3.05, 3.09, 3.12, 3.16, 3.20,
-          3.24, 3.28, 3.32, 3.36, 3.40, 3.44, 3.48, 3.52, 3.57, 3.61, 3.65,
-          3.70, 3.74, 3.79, 3.83, 3.88, 3.92, 3.97, 4.02, 4.07, 4.12, 4.17,
-          4.22, 4.27, 4.32, 4.37, 4.42, 4.48, 4.53, 4.59, 4.64, 4.70, 4.75,
-          4.81, 4.87, 4.93, 4.99, 5.05, 5.11, 5.17, 5.23, 5.30, 5.36, 5.42,
-          5.49, 5.56, 5.62, 5.69, 5.76, 5.83, 5.90, 5.97, 6.04, 6.12, 6.19,
-          6.26, 6.34, 6.42, 6.49, 6.57, 6.65, 6.73, 6.81, 6.90, 6.98, 7.06,
-          7.15, 7.23, 7.32, 7.41, 7.50, 7.59, 7.68, 7.77, 7.87, 7.96, 8.06,
-          8.16, 8.25, 8.35, 8.45, 8.56, 8.66, 8.76, 8.87, 8.98, 9.09, 9.20,
-          9.31, 9.42, 9.53, 9.65, 9.76, 9.88),
-}
+            100, 110, 115, 121, 150, 162, 170, 178, 196, 215, 220, 237,
+            268, 270, 287, 316, 330, 349, 388, 465, 500, 513, 546, 563,
+            617, 680, 750, 808, 822, 980, 
 
-def Int(x):
-    '''If the string form of the float x ends in ".0", return it as an
-    integer; otherwise, return it unchanged.
-    '''
-    x = RoundOff(x)
-    return int(x) if str(x).endswith(".0") else x
+            1_000, 1_100, 1_180, 1_210, 1_330, 1_470, 1_500, 1_620,
+            1_780, 1_960, 2_160, 2_200, 2_370, 2_610, 2_720, 3_000,
+            3_160, 3_300, 3_470, 3_820, 4_640, 5_000, 5_530, 6_800,
+            6_840, 8_000, 8_300, 9_090,
 
-def OnHand():
-    '''Returns a set of on-hand resistors.
-    '''
-    prefixes = {"k": 3, "M": 6}
-    onhand = []
-    for i in OnHand.values.replace("\n", " ").split():
-        val, prefix = u.ParseUnit(i)
-        R = float(val)
-        if prefix:
-            R *= 10**prefixes[prefix]
-        onhand.append(Int(R))
-    return set(onhand)
+            10_000, 11_800, 12_100, 13_300, 15_000, 16_200, 17_800,
+            18_000, 19_500, 20_000, 22_000, 26_200, 33_000, 39_000,
+            42_400, 46_000, 51_000, 55_000, 67_000, 75_000, 82_000, 
 
-OnHand.values = '''
-0.025 0.2 0.27 0.33
+            100_000, 120_000, 147_000, 162_000, 170_000, 180_000,
+            220_000, 263_000, 330_000, 390_000, 422_000, 460_000,
+            464_000, 560_000, 674_000, 820_000,
 
-1 2.2 4.6 8.3
+            1_000_000, 1_200_000, 1_500_000, 1_700_000, 1_900_000,
+            2_200_000, 2_400_000, 2_600_000, 2_800_000, 3_200_000,
+            4_000_000, 4_800_000, 5_600_000, 6_000_000, 8_700_000,
+            10_000_000, 16_000_000, 23_500_000])))
+if 1:   # EIA
+    def EIA(series, powers=(0, 1, 2, 3, 4, 5, 6)):
+        '''Return a sorted list of EIA resistors.  powers must be an
+        iterable of integers giving the desired powers of 10 to use.
+        '''
+        R = []
+        for eia in EIA_series[series]:
+            for power in powers:
+                R.append(Int(eia*10**power))
+        return list(sorted(set(R)))
 
-10.1 12 14.7 15 17.8 22 27 28.4 30 31.6 33 35 38.4 46.3 50 55.5 61.8 67
-75 78 81
-
-100 110 115 121 150 162 170 178 196 215 220 237 268 270 287 316 330 349
-388 465 500 513 546 563 617 680 750 808 822 980
-
-1k 1.1k 1.18k 1.21k 1.33k 1.47k 1.5k 1.62k 1.78k 1.96k 2.16k 2.2k 2.37k
-2.61k 2.72k 3k 3.16k 3.3k 3.47k 3.82k 4.64k 5k 5.53k 6.8k 6.84k 8k 8.3k
-9.09k
-
-10k 11.8k 12.1k 13.3k 15k 16.2k 17.8k 18k 19.5k 20k 22k 26.2k 33k 39k 42.4k
-46k 51k 55k 67k 75k 82k
-
-100k 120k 147k 162k 170k 180k 220k 263k 330k 390k 422k 460k 464k 560k 674k
-820k
-
-1M 1.2M 1.5M 1.7M 1.9M 2.2M 2.4M 2.6M 2.8M 3.2M 4M 4.8M 5.6M 6M 8.7M 10M
-16M 23.5M
-'''[1:-1]
-
-def EIA(series, powers=(0, 1, 2, 3, 4, 5, 6)):
-    '''Return a set of EIA resistors.  powers must be an iterable of
-    integers giving the desired powers of 10 to use.
-    '''
-    R = []
-    for eia in EIA_series[series]:
-        for power in powers:
-            R.append(Int(eia*10**power))
-    return set(R)
-
-if __name__ == "__main__": 
+if 0 and __name__ == "__main__": 
+    import sys
     if len(sys.argv) < 2:
         print('''Give an EIA series number from
   0, 3, 6, 12, 24, 48, 96, or 192
@@ -134,5 +132,55 @@ If you give 0, the on-hand resistor set will be printed.''')
             print(i)
     else:
         print("On-hand resistances in ohms:")
-        for i in OnHand.values.split("\n"):
-            print(" ", i)
+        # Convert to strings with thousands separator
+        ii = isinstance
+        oh = [f"{i:,d}" if ii(i, int) else rtz(f"{i:,f}") for i in OnHand()]
+        for line in Columnize(oh):
+            print(line)
+
+if __name__ == "__main__": 
+    if 1:   # Imports
+        # Standard library modules
+        import getopt
+        import os
+        import pathlib
+        import sys
+        from pdb import set_trace as xx
+    if 1:   # Custom modules
+        from wrap import dedent
+    if 1:   # Module's base code
+        def Error(msg, status=1):
+            print(msg, file=sys.stderr)
+            exit(status)
+        def Usage(d, status=1):
+            name = sys.argv[0]
+            print(dedent(f'''
+            Usage:  {name}
+              Print EIA and on-hand resistance values.
+            '''))
+            exit(status)
+        def ParseCommandLine(d):
+            try:
+                opts, args = getopt.getopt(sys.argv[1:], "h", 
+                    "help".split())
+            except getopt.GetoptError as e:
+                print(str(e))
+                exit(1)
+            for o, a in opts:
+                if o in ("-h", "--help"):
+                    Usage(d, status=0)
+    # ----------------------------------------------------------------------
+    d = {}      # Options dictionary
+    ParseCommandLine(d)
+    if 1:   # On-hand resistances
+        print("On-hand resistances in ohms:")
+        # Convert to strings with thousands separator
+        ii = isinstance
+        oh = [f"{i:,d}" if ii(i, int) else rtz(f"{i:,f}") for i in OnHand()]
+        for line in Columnize(oh, indent=" "*2):
+            print(line)
+    if 1:   # EIA resistances
+        for n in (3, 6, 12, 24, 48, 96, 192):
+            print(f"EIA {n} series:")
+            for i in Columnize(EIA(n, (0,)), indent=" "*2, horiz=True):
+                print(i)
