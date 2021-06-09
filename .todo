@@ -1,17 +1,10 @@
 * Change what.py to use a what trigger string.  This lets a what string
   be put into any file without having to run the file.
 
-* 10 May 2021 got all the /pylib/test stuff running; only asciify and
-  the old integer.py file fail self tests.  This means each module can
-  be instrumented with a test trigger and can be tested from /plib.
-
-  I removed python 2 stuff from the test files.  Now this needs to be
-  done for the /plib stuff.
-
 * Go through each of the pushed files, clean them up, add test support
   if needed, and rewrite code if needed, getting rid of python 2 syntax.
 
-  * Add the needed support files like asciify.script, etc.
+    * Add the needed support files like asciify.script, etc.
 
 * Put archimedean.py in util.py or combine the math formulas into a
   single file.
@@ -20,19 +13,3 @@
   best to move the key stuff to flt and cpx.  It can still be kept
   around for when it's needed.
 
-* 8 May 2021 09:41:21 AM:  copied /pylib files that import OK into
-  python 3 to this directory and pushed them.
-
-* I see two options for the module files for testing:
-
-    * Put in a trigger string that identifies the file as ready for
-      testing if you pass it the --test option.
-    * Do nothing with the file.  If there is a test for it, it's in 
-      the test directory.
-    * Or, the trigger string can either be '--test' or the name of the
-      test file(s) to run.
-    * Trigger string can be #∞test∞#.  There should be two of them.  If
-      the content is not --test, then it's executable python code that
-      will give you a tuple of test files to run.  If there are no
-      parentheses or square brackets, then it's a single file.  If it's
-      'do_not_test', then there's no test.
