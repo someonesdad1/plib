@@ -1,84 +1,86 @@
 '''
-Set debug.on to True to debug.
+Debugging tools
+    Set debug.on to True to debug.
 
-Trace
-    Function decorator to show function calls with their parameters.
- 
-AutoIndent object
-    Use this object to cause printed messages to a stream to be
-    indented according to the stack level.  The output then gives you a
-    visual image of the call stack.
- 
-SetDebugger
-    Execute and you'll be dumped into the debugger if your code has an
-    unhandled exception.
- 
-Put in your code:
-    watch(variable)
-        Prints out the file and line number along with the
-        value and type of a variable.
-    trace(message)
-        Prints file and line number along with the message.
-  To turn off, run python with the -O option or set debug.on to False.
- 
-DumpException
-    Gives more exception information than a normal backtrace.
- 
-Identify location:
-        ThisFunctionName()
-        ThisLineNumber()
-        ThisFilename()
- 
-fln()
-    File & line number if debug.on is True.
- 
-ShowFunctionCall decorator [Beazley]
- 
-References:
-    A. Martelli and D. Ascher, ed., "Python Cookbook", O'Reilly, 2002.
-    D. Beazley, "Python Essential Reference", 4th ed. (Kindle version)
+    Trace
+        Function decorator to show function calls with their parameters.
+    
+    AutoIndent object
+        Use this object to cause printed messages to a stream to be
+        indented according to the stack level.  The output then gives you a
+        visual image of the call stack.
+    
+    SetDebugger
+        Execute and you'll be dumped into the debugger if your code has an
+        unhandled exception.
+    
+    Put in your code:
+        watch(variable)
+            Prints out the file and line number along with the
+            value and type of a variable.
+        trace(message)
+            Prints file and line number along with the message.
+    To turn off, run python with the -O option or set debug.on to False.
+    
+    DumpException
+        Gives more exception information than a normal backtrace.
+    
+    Identify location:
+            ThisFunctionName()
+            ThisLineNumber()
+            ThisFilename()
+    
+    fln()
+        File & line number if debug.on is True.
+    
+    ShowFunctionCall decorator [Beazley]
+    
+    References:
+        A. Martelli and D. Ascher, ed., "Python Cookbook", O'Reilly, 2002.
+        D. Beazley, "Python Essential Reference", 4th ed. (Kindle version)
 '''
- 
-# Copyright (C) 2009, 2014 Don Peterson
-# Contact:  gmail.com@someonesdad1
- 
-#
-# Licensed under the Open Software License version 3.0.
-# See http://opensource.org/licenses/OSL-3.0.
-#
- 
-import types
-import sys
-import traceback as TB
-import re
-import bdb
-from inspect import stack
-from pdb import set_trace as xx 
-
-try:
-    import color as c
-except ImportError:
-    # Make c a class that will swallow all color calls/references
-    class C:
-        def __getattr__(self, x):
-            pass
-        def fg(self, *p, **kw):
-            pass
-        def normal(self):
-            pass
-    c = C()
-
-# dash_O_on = True  ==> Use python -O to turn debugging on.
-# dash_O_on = False ==> Use python -O to turn debugging off.
-dash_O_on = False
-
-on = True   # Setting on to True causes debugging output.
-nl = "\n"
-
-enable_tracing = False
-if enable_tracing:
-    debug_log = open("debug.log", "wb")
-
+if 1:  # Copyright, license
+    # These "trigger strings" can be managed with trigger.py
+    #∞copyright∞# Copyright (C) 2009, 2014 Don Peterson #∞copyright∞#
+    #∞contact∞# gmail.com@someonesdad1 #∞contact∞#
+    #∞license∞#
+    #   Licensed under the Open Software License version 3.0.
+    #   See http://opensource.org/licenses/OSL-3.0.
+    #∞license∞#
+    #∞what∞#
+    # Debugging aids
+    #∞what∞#
+    #∞test∞# #∞test∞#
+    pass
+if 1:   # Imports 
+    import types
+    import sys
+    import traceback as TB
+    import re
+    import bdb
+    from inspect import stack
+    from pdb import set_trace as xx 
+if 1:   # Custom imports 
+    try:
+        import color as c
+    except ImportError:
+        # Make c a class that will swallow all color calls/references
+        class C:
+            def __getattr__(self, x):
+                pass
+            def fg(self, *p, **kw):
+                pass
+            def normal(self):
+                pass
+        c = C()
+if 1:   # Global variables
+    # dash_O_on = True  ==> Use python -O to turn debugging on.
+    # dash_O_on = False ==> Use python -O to turn debugging off.
+    dash_O_on = False
+    on = True   # Setting on to True causes debugging output.
+    enable_tracing = False
+    if enable_tracing:
+        debug_log = open("debug.log", "wb")
 class Trace:
     '''Function decorator to print the entry and exit of function calls
     to a stream.  Each nested call results in indentation to help you
@@ -126,7 +128,6 @@ class Trace:
             return retval
         else:
             return self.func(*p, **kw)
-
 def watch(variables, color=None, stream=sys.stdout):
     '''Watch a variable; variables must be a sequence of variable names.
     You can set the color if the color.py module has been loaded.
@@ -166,7 +167,6 @@ def watch(variables, color=None, stream=sys.stdout):
             stream.write(fmt.format(**locals()))
         if stream == sys.stdout and color is not None:
             c.normal()
-
 def trace(msg, color=None, stream=sys.stdout):
     '''Print a trace message.  You can set the color if the color.py
     module has been loaded.  Example:
@@ -188,7 +188,6 @@ def trace(msg, color=None, stream=sys.stdout):
         stream.write(fmt.format(**locals()))
         if stream == sys.stdout and color is not None:
             c.normal()
-
 def DumpException(fr_include=None, fr_ignore=None,
                   var_include=None, var_ignore=None,
                   num_levels=0, hl={}, stream=sys.stdout):
@@ -244,7 +243,7 @@ def DumpException(fr_include=None, fr_ignore=None,
     print("Unhandled exception:", file=stream)
     if stream == sys.stdout:
         c.normal()
-    for line in TB.format_exc().split(nl):
+    for line in TB.format_exc().split("\n"):
         print(" ", line, file=stream)  # Indent the stack trace
     # Get the needed traceback info
     tb = sys.exc_info()[2]
@@ -327,7 +326,6 @@ def DumpException(fr_include=None, fr_ignore=None,
         levels_printed += 1
         if num_levels and levels_printed >= num_levels:
             break
-
 def TestDump():
     data = ["1", "2", 3, "4"]
     def pad4(seq):
@@ -343,7 +341,6 @@ def TestDump():
         # 'data' in blue.
         hl = {"thing": c.yellow, "data": c.lblue}
         DumpException(fr_ignore=[0], hl=hl)
-
 def TraceInfo(type, value, tb):
     '''Start the debugger after an uncaught exception.
     From Thomas Heller's post on 22 Jun 2001
@@ -366,14 +363,12 @@ def TraceInfo(type, value, tb):
         print()
         # Now start the debugger
         pdb.pm()
-
 def SetDebugger():
     '''If you execute this function, TraceInfo() will be called when
     you get an unhandled exception and you'll be dumped into the
     debugger.
     '''
     sys.excepthook = TraceInfo
-
 def DumpArgs(func):
     '''Decorator to dump a function's arguments to show how the function
     was called.  From
@@ -388,10 +383,9 @@ def DumpArgs(func):
         argnames = fc.co_varnames[:fc.co_argcount]
         args = ", ".join("%s=%r" % entry for entry in
                          list(zip(argnames, p)) + list(kw.items()))
-        print("{fn}({args})".format(**locals()))
+        print(f"{fn}({args})")
         return func(*p, **kw)
     return echo_func if on else func
-
 def ShowFunctionCall(func):
     '''This is a wrapper function that decorates another function for
     tracing what happens.  The nice thing is that there is no overhead if
@@ -411,7 +405,6 @@ def ShowFunctionCall(func):
         return callf
     else:
         return func
-
 def fln(brackets=True):
     'Return a string showing the file and line number if debug is on.'
     s = TB.extract_stack()[-2:][0]
@@ -419,7 +412,6 @@ def fln(brackets=True):
     if brackets:
         t = "[{}]".format(t)
     return t
-
 class AutoIndent(object):
     '''Indent debug output based on function call depth.  Adapted from
     code by Lonnie Princehouse (submitted 26 Apr 2005) at
@@ -487,18 +479,20 @@ class AutoIndent(object):
         self.stream.write(data)
     def flush(self):
         self.stream.flush()
-
 if __name__ == "__main__":
+    from wrap import dedent
     # Print samples to stdout.  Set the global variable on to False to
     # see the debug printing turned off.
     #on = False
     sep = "="*70
     # Watch and trace
-    print('''Watch and trace functions:  these function calls can be put
-inside functions to allow you to watch how objects change their values.
-Note the convenience of colorizing the output (you could add logic that
-changed the color if a certain condition was true).
-''')
+    print(dedent('''
+    Watch and trace functions:  these function calls can be put inside
+    functions to allow you to watch how objects change their values.
+    Note the convenience of colorizing the output (you could add logic
+    that changed the color if a certain condition was true).
+    
+    '''))
     def test1():
         x, y = 17, -44.3
         watch([x, y], color=c.lgreen)
@@ -512,21 +506,23 @@ changed the color if a certain condition was true).
     a.f()
     print(sep)
     # Demonstrate an unhandled exception
-    print('''
-This example shows how DumpException() prints a backtrace followed by
-printing the local variables for each of the stack frames.  If you have
-the color.py module, you'll see the variables 'data' and 'thing'
-highlighted in color.
-'''[1:])
+    print(dedent('''
+    This example shows how DumpException() prints a backtrace followed by
+    printing the local variables for each of the stack frames.  If you have
+    the color.py module, you'll see the variables 'data' and 'thing'
+    highlighted in color.
+
+    '''))
     TestDump()
     print(sep)
     # Demonstrate tracing to a stream
-    print('''
-This example shows how @ShowFunctionCall decorates a function to allow
-function calls and their return values to be documented.  If the global
-variable enable_tracing is False, there's no output and little overhead
-is added.
-'''[1:])
+    print(dedent('''
+    This example shows how @ShowFunctionCall decorates a function to allow
+    function calls and their return values to be documented.  If the global
+    variable enable_tracing is False, there's no output and little overhead
+    is added.
+
+    '''))
     enable_tracing = True
     debug_log = sys.stdout
     if enable_tracing:
@@ -539,21 +535,22 @@ is added.
     enable_tracing = False
     print(sep)
     # Demonstrate auto indenting
-    print('''Autoindent example
- 
-This example demonstrates the use of the AutoIndent object.  The object
-is used to replace sys.stdout and, thus, intercepts calls going to that
-stream.  Then strings sent to stdout are indented based on the current
-stack frame depth.  If you're able to see color, note one of the
-messages is in color; this is helpul to focus your attention on a
-particular function.
- 
-An advantage of using Autoindent is that you only need to make the call
-shown in the first line; thereafter, all text going to stdout is
-indented by the stack frame's depth.
- 
-Autoindent isn't affected by debug.on.
-''')
+    print(dedent('''    Autoindent example
+     
+    This example demonstrates the use of the AutoIndent object.  The object
+    is used to replace sys.stdout and, thus, intercepts calls going to that
+    stream.  Then strings sent to stdout are indented based on the current
+    stack frame depth.  If you're able to see color, note one of the
+    messages is in color; this is helpul to focus your attention on a
+    particular function.
+    
+    An advantage of using Autoindent is that you only need to make the call
+    shown in the first line; thereafter, all text going to stdout is
+    indented by the stack frame's depth.
+    
+    Autoindent isn't affected by debug.on.
+
+    '''))
     sys.stdout = AutoIndent()
     def A():
         print("Entered A()")
@@ -573,13 +570,13 @@ Autoindent isn't affected by debug.on.
         print("Leaving C()")
     A()
     print(sep)
-    print()
     # Demonstrate an unhandled exception
-    print('''The following code demonstrates the DumpArgs function, a
-decorator that will dump a function's arguments.  I'm not sure of what
-causes the excess spacing after the strings and the parameter values,
-but it happens the same on both python 2.7 and 3.4.
-''')
+    print(dedent('''The following code demonstrates the DumpArgs function, a
+    decorator that will dump a function's arguments.  I'm not sure of what
+    causes the excess spacing after the strings and the parameter values,
+    but it happens the same on both python 2.7 and 3.4.
+
+    '''))
     @DumpArgs
     def func(a, b):
         print("Inside func:  a =", a)
