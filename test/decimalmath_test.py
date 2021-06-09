@@ -81,6 +81,8 @@ def Test_pow():
     assert_equal(pow(-three, -two),    one/Dec(9), reltol=eps)
     assert_equal(pow(-three, three),   Dec(-27), reltol=eps)
     assert_equal(pow(-three, -three), -one/Dec(27), reltol=eps)
+    
+    pow(Dec(-2), 1/Dec(3))
     raises(decimal.InvalidOperation, pow, Dec(-2), 1/Dec(3))
 
 def Test_sqrt():

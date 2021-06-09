@@ -1,95 +1,79 @@
 '''
 Elementary functions for the python Decimal library
+    TODO
 
-----------------------------------------------------------------------
-TODO
-
-* Needs to handle inf and nan in arguments.  Decimal supports methods
-  is_nan() and is_infinite().  If strict, then results in exception if
-  arg is one of these values; otherwise return something appropriate.
-  If not strict, then out-of-domain arguments can return nan.
-* Add strict bool.  If True, then all arguments must be decimal.  If
-  False, then will try to convert from mpmath, float, or string.
-* Add atan2
-* Add hyperbolic functions?
-* Add other trig functions (sec, csc, versine, haversine, etc.)?
-* All loops should have counters to avoid having the program hang.
-
+    * Needs to handle inf and nan in arguments.  Decimal supports
+      methods is_nan() and is_infinite().  If strict, then results in
+      exception if arg is one of these values; otherwise return
+      something appropriate.  If not strict, then out-of-domain
+      arguments can return nan.
+    * Add strict bool.  If True, then all arguments must be decimal.  If
+      False, then will try to convert from mpmath, float, or string.
+    * Add atan2
+    * Add hyperbolic functions?
+    * Add other trig functions (sec, csc, versine, haversine, etc.)?
+    * All loops should have counters to avoid having the program hang.
 '''
-
-# I suggest you read this module's documentation with pydoc; it's a
-# script in your python's distribution in <python>/Lib.
-
-# Copyright (C) 2006, 2012 Don Peterson
-# Contact:  gmail.com@someonesdad1
-
-#
-# Licensed under the Open Software License version 3.0.
-# See http://opensource.org/licenses/OSL-3.0.
-#
-
-import decimal
-import math
-
-__all__ = [
-    "acos",
-    "asin",
-    "atan",
-    "atan2",
-    "cos",
-    "exp",
-    "ln",
-    "log10",
-    "pi",
-    "pow",
-    "sin",
-    "sqrt",
-    "tan",
-]
-
-Dec = decimal.Decimal
-zero, one, two, three = Dec(0), Dec(1), Dec(2), Dec(3)
-half = Dec("0.5")
-precision_increment = 4
-inf = float("inf")
-
-__doc__ = '''
-Elementary functions for the python Decimal library.
- 
-Function      Domain            Range
---------      ------            -----
-  acos        -1 to 1           0 to pi
-  asin        -1 to 1           -pi/2 to pi/2
-  atan        -oo to oo         -pi/2 to pi/2
-  atan2       Two arguments     -pi to pi
-  cos         Any real          -1 to 1
-  exp         Any real          (0, oo]
-  ln          Any real > 0      -oo to oo
-  log10       Any real > 0      -oo to oo
-  pi          --                --
-  pow         Two arguments     -oo to oo
-  sin         Any real          -1 to 1
-  sqrt        Any real > 0      Real > 0
-  tan         Any real          -oo to oo
- 
-The calculation strategy of this module is to calculate pi, exp, sin,
-and cos by power series; the code for these is taken from examples in
-the Decimal documentation.  The remaining functions can be calculated
-from these core functions using a root-finding function.
- 
-This module has been tested with:
- 
-    python 2.6.5 with mpmath 0.12
-    python 3.2.2 with mpmath 0.17
-
-    Update 8 Mar 2020:  Tested under
+if 1:  # Copyright, license
+    # These "trigger strings" can be managed with trigger.py
+    #∞copyright∞# Copyright (C) 2006, 2012 Don Peterson #∞copyright∞#
+    #∞contact∞# gmail.com@someonesdad1 #∞contact∞#
+    #∞license∞#
+    #   Licensed under the Open Software License version 3.0.
+    #   See http://opensource.org/licenses/OSL-3.0.
+    #∞license∞#
+    #∞what∞#
+    # Elementary functions for the python Decimal library
+    #∞what∞#
+    #∞test∞# Put test file information here (see 0test.py) #∞test∞#
+    pass
+if 1:   # Imports
+    import decimal
+    import math
+if 1:   # Custom imports
+    from wrap import dedent
+if 1:   # Global variables
+    __all__ = '''acos asin atan atan2 cos exp ln log10 pi
+        pow sin sqrt tan'''.split()
+    Dec = decimal.Decimal
+    zero, one, two, three = Dec(0), Dec(1), Dec(2), Dec(3)
+    half = Dec("0.5")
+    precision_increment = 4
+    inf = float("inf")
+    __doc__ = dedent('''
+    Elementary functions for the python Decimal library.
+    
+    Function      Domain            Range
+    --------      ------            -----
+    acos        -1 to 1           0 to pi
+    asin        -1 to 1           -pi/2 to pi/2
+    atan        -oo to oo         -pi/2 to pi/2
+    atan2       Two arguments     -pi to pi
+    cos         Any real          -1 to 1
+    exp         Any real          (0, oo]
+    ln          Any real > 0      -oo to oo
+    log10       Any real > 0      -oo to oo
+    pi          --                --
+    pow         Two arguments     -oo to oo
+    sin         Any real          -1 to 1
+    sqrt        Any real > 0      Real > 0
+    tan         Any real          -oo to oo
+    
+    The calculation strategy of this module is to calculate pi, exp, sin,
+    and cos by power series; the code for these is taken from examples in
+    the Decimal documentation.  The remaining functions can be calculated
+    from these core functions using a root-finding function.
+    
+    This module has been tested with:
+    
+        python 2.6.5 with mpmath 0.12
+        python 3.2.2 with mpmath 0.17
         Python 2.7.16 cygwin with mpmath 1.0.0
         Python 3.7.4 cygwin with mpmath 1.1.0
- 
-mpmath (http://code.google.com/p/mpmath/) is not needed for normal
-use; it's used to provide reference values for testing.
-'''
-
+    
+    mpmath (http://code.google.com/p/mpmath/) is not needed for normal
+    use; it is used to provide reference values for testing.
+    ''')
 def pi():
     '''Returns pi to the current precision.
     '''
@@ -103,7 +87,6 @@ def pi():
             t = (t*n)/d
             s += t
     return +s  # Force rounding to current precision
-
 def exp(x):
     '''Returns e raised to the power of x.
     '''
@@ -119,7 +102,6 @@ def exp(x):
             num *= x
             s += num/fact
     return +s  # Force rounding to current precision
-
 def sin(x):
     '''Returns the sine of x; x is in radians.
     '''
@@ -136,7 +118,6 @@ def sin(x):
             sign *= -1
             s += num/fact*sign
     return +s  # Force rounding to current precision
-
 def cos(x):
     '''Returns the cosine of x; x is in radians.
     '''
@@ -153,7 +134,6 @@ def cos(x):
             sign *= -1
             s += num/fact*sign
     return +s  # Force rounding to current precision
-
 def tan(x):
     '''Returns the tangent of x; x is in radians.
     '''
@@ -169,7 +149,6 @@ def tan(x):
         ctx.prec += 2
         s = sin(x)/cos(x)
     return +s  # Force rounding to current precision
-
 def acos(x):
     '''Returns the inverse cosine (in radians) of x.
     '''
@@ -194,7 +173,6 @@ def acos(x):
         assert((math.cos(low) - float(x))*(math.cos(high) - float(x)) < 0)
         root = FindRoot(low, high, lambda t: cos(t) - x)[0]
     return +root  # Force rounding to current precision
-
 def atan(x):
     '''Returns the inverse tangent (in radians) of x.
     '''
@@ -222,7 +200,6 @@ def atan(x):
         assert((math.tan(low) - float(x))*(math.tan(high) - float(x)) < 0)
         root = FindRoot(low, high, lambda t: tan(t) - x)[0]
     return +root  # Force rounding to current precision
-
 def atan2(y, x):
     '''Returns the inverse tangent of y/x (in radians) and gets the
     correct quadrant.
@@ -249,7 +226,6 @@ def atan2(y, x):
         s = 1 if y > zero else -1
         theta = s*Pi - theta
     return +theta
-
 def asin(x):
     '''Returns the inverse sine (in radians) of x.
     '''
@@ -282,7 +258,6 @@ def asin(x):
         assert((math.sin(low) - float(x))*(math.sin(high) - float(x)) < 0)
         root = FindRoot(low, high, lambda t: sin(t) - x)[0]
     return +root  # Force rounding to current precision
-
 def log10(x):
     '''Returns the base 10 logarithm of x.
     '''
@@ -291,7 +266,6 @@ def log10(x):
     if x <= zero:
         raise ValueError("Argument must be > 0")
     return ln(x)/ln(Dec(10))
-
 def ln(x):
     '''Returns the natural logarithm of x.
     '''
@@ -319,7 +293,6 @@ def ln(x):
         assert((math.exp(low) - float(x))*(math.exp(high) - float(x)) < 0)
         root = inverse*FindRoot(low, high, lambda t: exp(t) - x)[0]
     return +root  # Force rounding to current precision
-
 def pow(y, x):
     '''Returns y raised to the power x.
     '''
@@ -357,7 +330,6 @@ def pow(y, x):
         else:
             retval = exp(x*ln(y))
     return +retval  # Force rounding to current precision
-
 def sqrt(x):
     '''Returns the square root of x.
     '''
@@ -370,7 +342,6 @@ def sqrt(x):
     if x == 1:
         return Dec(1)
     return pow(x, 1/Dec(2))
-
 def f2d(x):
     '''Convert a floating point number x to a Decimal.  See the
     decimal module's documentation for warnings about doing such
@@ -379,7 +350,6 @@ def f2d(x):
     if not isinstance(x, (float, str)):
         raise ValueError("x needs to be a float or string")
     return Dec(repr(float(x)))
-
 def FindRoot(x0, x2, f, maxit=50):
     '''Inverse parabolic interpolation algorithm to find roots.  The
     root must be bracketed by x0 and x2.  f is the function to
@@ -390,8 +360,8 @@ def FindRoot(x0, x2, f, maxit=50):
  
     Returns a tuple (root, number_of_iterations, eps)
  
-    The routine will raise an exception if the number of iterations is
-    greater than maxit.
+    The routine will raise a ValueError exception if the number of
+    iterations is greater than maxit.
  
     Reference:  "All Problems Are Simple" by Jack Crenshaw, Embedded
     Systems Programming, May, 2002, pg 7-14.  Translated from
@@ -472,4 +442,87 @@ def FindRoot(x0, x2, f, maxit=50):
                 y2 = y1
     msg = "FindRoot:  no convergence after {0} iterations".format(maxit)
     raise ValueError(msg)
-
+if __name__ == "__main__": 
+    # Use mpmath (http://mpmath.org/) to generate the numbers to test
+    # against (i.e., assume mpmath's algorithms are correct).
+    import mpmath as mp
+    from pdb import set_trace as xx
+    from wrap import wrap, dedent, indent, Wrap
+    from lwtest import run, raises, assert_equal, Assert
+    getcontext = decimal.getcontext
+    localcontext = decimal.localcontext
+    Dec = decimal.Decimal
+    def Test_pi():
+        s = repr(mp.pi())
+        x = eval(s.replace("mpf", "Dec"))
+        assert_equal(pi(), x, reltol=eps)
+        with localcontext() as ctx:
+            # Value from wikipedia page on pi
+            ctx.prec = 52
+            # Truncate instead of round to second to last digit
+            s_calc = str(pi())[:-1]
+            s_exact = "3.14159265358979323846264338327950288419716939937510"
+            assert_equal(s_calc, s_exact)
+    def Test_atan():
+        assert_equal(atan(zero),            zero, reltol=eps)
+        assert_equal(atan(Dec(3).sqrt()),   Pi/3, reltol=eps)
+        assert_equal(atan(one),             Pi/4, reltol=eps)
+        assert_equal(atan(-one),           -Pi/4, reltol=eps)
+        assert_equal(atan(-Dec(3).sqrt()), -Pi/3, reltol=eps)
+    def Test_asin():
+        assert_equal(asin(half),              Pi/6, reltol=eps)
+        assert_equal(asin(-half),            -Pi/6, reltol=eps)
+        assert_equal(asin(Dec(3).sqrt()/2),   Pi/3, reltol=eps)
+        assert_equal(asin(-Dec(3).sqrt()/2), -Pi/3, reltol=eps)
+        assert_equal(asin(zero),              zero, reltol=eps)
+        assert_equal(asin(one),               Pi/2, reltol=eps)
+        assert_equal(asin(-one),             -Pi/2, reltol=eps)
+        raises(ValueError, asin, Dec(2))
+    def Test_acos():
+        assert_equal(acos(zero),             Pi/2, reltol=eps)
+        assert_equal(acos(half),             Pi/3, reltol=eps)
+        assert_equal(acos(-half),            Pi/6 + Pi/2, reltol=eps)
+        assert_equal(acos(Dec(3).sqrt()/2),  Pi/6, reltol=eps)
+        assert_equal(acos(-Dec(3).sqrt()/2), Pi - Pi/6, reltol=eps)
+        assert_equal(acos(one),              zero, reltol=eps)
+        assert_equal(acos(-one),             Pi, reltol=eps)
+        raises(ValueError, acos, Dec(2))
+    def Test_ln():
+        s = repr(mp.log("0.5"))
+        x = eval(s.replace("mpf", "decimal.Decimal"))
+        assert_equal(ln(half), x, reltol=eps)
+        assert_equal(ln(one),     zero, reltol=eps)
+        s = repr(mp.log(mp.pi()/2))
+        x = eval(s.replace("mpf", "decimal.Decimal"))
+        assert_equal(ln(Pi/2), x, reltol=eps)
+        s = repr(mp.log(10))
+        x = eval(s.replace("mpf", "decimal.Decimal"))
+        assert_equal(ln(Dec(10)), x, reltol=eps)
+        raises(ValueError, ln, Dec(-1))
+    def Test_log10():
+        assert_equal(log10(half), mp.log10("0.5"), reltol=eps)
+        assert_equal(log10(one), zero, reltol=eps)
+        assert_equal(log10(Pi/2), mp.log10(mp.pi()/2), reltol=eps)
+        assert_equal(log10(Dec(10)), mp.log10(10), reltol=eps)
+        raises(ValueError, log10, Dec(-1))
+    def Test_pow():
+        assert_equal(pow(Dec(4), half),    two, reltol=eps)
+        assert_equal(pow(two, -two),       one/Dec(4), reltol=eps)
+        assert_equal(pow(-two, two),       Dec(4), reltol=eps)
+        assert_equal(pow(-three, two),     Dec(9), reltol=eps)
+        assert_equal(pow(-three, -two),    one/Dec(9), reltol=eps)
+        assert_equal(pow(-three, three),   Dec(-27), reltol=eps)
+        assert_equal(pow(-three, -three), -one/Dec(27), reltol=eps)
+        raises(ValueError, pow, Dec(-2), 1/Dec(3))
+    def Test_sqrt():
+        assert_equal(sqrt(Dec(0)), zero, reltol=eps)
+        assert_equal(sqrt(Dec(1)), one, reltol=eps)
+        assert_equal(sqrt(Dec(4)), two, reltol=eps)
+        assert_equal(sqrt(Dec(9)), three, reltol=eps)
+        x = "88.325"
+        assert_equal(sqrt(Dec(x)), mp.sqrt(mp.mpf(x)), reltol=eps)
+        raises(ValueError, sqrt, -two)
+    mp.mp.dps = getcontext().prec
+    Pi = Dec(str(mp.pi()))  # Reference value of pi at current precision
+    eps = 10*Dec(10)**(-Dec(getcontext().prec))
+    exit(run(globals())[0])
