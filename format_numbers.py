@@ -1,4 +1,6 @@
 '''
+xx This functionality should be moved to fmt.py
+
 xx A number like 3.14e-34 needs to be changed to a power of 10
 
 ----------------------------------------------------------------------

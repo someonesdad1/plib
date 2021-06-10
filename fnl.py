@@ -24,18 +24,52 @@ composed functions ------#'):
     or the last line could be the more readable
         selected = [line in lines if satisfied(line)]
 '''
-
-import sys
-from operator import mul, add
-from lwtest import run, assert_equal, raises
-from functools import reduce
-from pdb import set_trace as xx
-if len(sys.argv) > 1:
-    import debug
-    debug.SetDebugger()
-
-nl = "\n"
-
+if 1:  # License
+    # These "trigger strings" can be managed with trigger.py
+    #∞license∞#
+    # Note:  David Mertz's site https://gnosis.cx/TPiP/ appears to state
+    # (downloaded on 10 Jun 2021) that the book's copyright is owned by
+    # Addison-Wesley, but the code samples are released into the public
+    # domain.  Because of this, the following license text is deemed
+    # appropriate.
+    #
+    # This is free and unencumbered software released into the public
+    # domain.
+    #
+    # Anyone is free to copy, modify, publish, use, compile, sell, or
+    # distribute this software, either in source code form or as a
+    # compiled binary, for any purpose, commercial or non-commercial,
+    # and by any means.
+    #
+    # In jurisdictions that recognize copyright laws, the author or
+    # authors of this software dedicate any and all copyright interest
+    # in the software to the public domain.  We make this dedication for
+    # the benefit of the public at large and to the detriment of our
+    # heirs and successors.  We intend this dedication to be an overt
+    # act of relinquishment in perpetuity of all present and future
+    # rights to this software under copyright law.
+    #
+    # THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+    # EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+    # MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+    # NONINFRINGEMENT.  IN NO EVENT SHALL THE AUTHORS BE LIABLE FOR ANY
+    # CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF
+    # CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+    # WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+    #∞license∞#
+    #∞what∞#
+    # Functional programming examples from Mertz' book
+    #∞what∞#
+    #∞test∞# #∞test∞#
+    pass
+if 1:   # Imports
+    import sys
+    from operator import mul, add
+    from functools import reduce
+    from pdb import set_trace as xx
+    if len(sys.argv) > 1:
+        import debug
+        debug.SetDebugger()
 ''' The reduce function as used here can be written as
 def reduce(function, seq):
     it = iter(seq)
@@ -44,14 +78,12 @@ def reduce(function, seq):
         value = function(value, element)
     return value
 '''
-
 def apply(f, p, kw={}):
     '''apply() was a function in python 2; it's not in python 3.
     apply(f, (a, b, c)) returns f(a, b, c).  In python 3, you use
     the asterisk notation on f directly.
     '''
     return f(*p, **kw)
-
 def apply_each(functions, x=[]):
     '''Apply a sequence of univariate functions to an argument x and
     return the list [f0(x), f1(x), ...].  Note the functions can take no
@@ -129,135 +161,131 @@ def ident(x):
     '''Identity function; returns its argument.
     '''
     return x
-
-if 0 and __name__ == "__main__":
-    def Test_apply_each():
-        def A(a, b, c):
-            return a + b + c
-        def B(a, b, c):
-            return a * b * c
+def Test_apply_each():
+    def A(a, b, c):
+        return a + b + c
+    def B(a, b, c):
+        return a * b * c
+    a = range(5, 8)
+    result = list(apply_each((A, B), a))
+    print('''apply_each(function_list, argument_list):
+    This higher-order function returns a function that applies each
+    of a list of functions to a set of arguments; each function must
+    take the same number of arguments.  Here, we'll define two
+    functions:  A sums the arguments and B returns their product:
+        def A(a, b, c): return a + b + c
+        def B(a, b, c): return a * b * c
+    Then
         a = range(5, 8)
-        result = list(apply_each((A, B), a))
-        print('''apply_each(function_list, argument_list):
-        This higher-order function returns a function that applies each
-        of a list of functions to a set of arguments; each function must
-        take the same number of arguments.  Here, we'll define two
-        functions:  A sums the arguments and B returns their product:
-            def A(a, b, c): return a + b + c
-            def B(a, b, c): return a * b * c
-        Then
-            a = range(5, 8)
-            print(list(apply_each((A, B), a)))
-          returns {result} because 5 + 6 + 7 = 18 and 5*6*7 = 210.
-        '''[:-4].format(**locals()))
-    def Test_bools():
-        a = (0, 1, 2)
-        result = bools(a)
-        print('''bools(seq):
-        Returns a list of True or False elements for the sequence seq; is
-        equivalent to [bool(i) for i in seq].
-            bools({a})
-        returns {result}.
-        '''[:-4].format(**locals()))
-    def Test_bool_each():
-        def A(a, b, c):
-            return a + b + c
-        def B(a, b, c):
-            return a * b * c
-        a = range(5, 8)
-        result = bool_each((A, B), a)
-        print('''bool_each(function_list, argument_list):
-        Return a list of True or False elements that result from applying
-        bool() to the return of each function call with the indicated
-        parameters.  Using the results of the apply_each example, we get
-        {result}.
-        '''[:-4].format(**locals()))
-    def Test_compose():
-        def square(x):
-            return x*x
-        def add3(x):
-            return x + 3
-        f, x = compose(add3, square), 2
-        result = f(2)
-        print('''compose(*functions):
-        Returns a function representing the function composition of the
-        functions in the sequence functions.  If functions is the sequence
-        <f0, f1, f2, ...>, the returned function is
-            f(x) = ...f2(f1(f0(x)))
-        Here, the function f0 squares its argument and f1 adds 3 to its
-        argument.  We thus get f(x) = x*x + 3 and the numerical result for
-        x = {x} is {result}.
-        '''[:-4].format(**locals()))
-    def Test_all_f():
+        print(list(apply_each((A, B), a)))
+        returns {result} because 5 + 6 + 7 = 18 and 5*6*7 = 210.
+    '''[:-4].format(**locals()))
+def Test_bools():
+    a = (0, 1, 2)
+    result = bools(a)
+    print('''bools(seq):
+    Returns a list of True or False elements for the sequence seq; is
+    equivalent to [bool(i) for i in seq].
+        bools({a})
+    returns {result}.
+    '''[:-4].format(**locals()))
+def Test_bool_each():
+    def A(a, b, c):
+        return a + b + c
+    def B(a, b, c):
+        return a * b * c
+    a = range(5, 8)
+    result = bool_each((A, B), a)
+    print('''bool_each(function_list, argument_list):
+    Return a list of True or False elements that result from applying
+    bool() to the return of each function call with the indicated
+    parameters.  Using the results of the apply_each example, we get
+    {result}.
+    '''[:-4].format(**locals()))
+def Test_compose():
+    def square(x):
+        return x*x
+    def add3(x):
+        return x + 3
+    f, x = compose(add3, square), 2
+    result = f(2)
+    print('''compose(*functions):
+    Returns a function representing the function composition of the
+    functions in the sequence functions.  If functions is the sequence
+    <f0, f1, f2, ...>, the returned function is
+        f(x) = ...f2(f1(f0(x)))
+    Here, the function f0 squares its argument and f1 adds 3 to its
+    argument.  We thus get f(x) = x*x + 3 and the numerical result for
+    x = {x} is {result}.
+    '''[:-4].format(**locals()))
+def Test_all_f():
+    has_a = lambda x:  "a" in x
+    has_b = lambda x:  "b" in x
+    result = all_f((has_a, has_b), ["abc"])
+    print('''all_f(functions, arguments=[]):
+    Returns True or False, representing the Boolean product of each
+    function call.  If functions is the sequence
+    <f0, f1, f2, ...>, the returned value is
+        f(x) = bool(f0(arguments))*bool(f1(arguments))*...
+    Suppose we have the two functions
         has_a = lambda x:  "a" in x
         has_b = lambda x:  "b" in x
-        result = all_f((has_a, has_b), ["abc"])
-        print('''all_f(functions, arguments=[]):
-        Returns True or False, representing the Boolean product of each
-        function call.  If functions is the sequence
-        <f0, f1, f2, ...>, the returned value is
-            f(x) = bool(f0(arguments))*bool(f1(arguments))*...
-        Suppose we have the two functions
-            has_a = lambda x:  "a" in x
-            has_b = lambda x:  "b" in x
-        Then all_f((has_a, has_b), ["abc"]) returns {result} because 'a'
-        and 'b' are both in the string argument.
-        '''[:-4].format(**locals()))
-    def Test_any_f():
+    Then all_f((has_a, has_b), ["abc"]) returns {result} because 'a'
+    and 'b' are both in the string argument.
+    '''[:-4].format(**locals()))
+def Test_any_f():
+    has_a = lambda x:  "a" in x
+    has_d = lambda x:  "d" in x
+    result = any_f((has_a, has_d), ["abc"])
+    print('''any_f(functions, arguments=[]):
+    Returns True or False, representing the Boolean product of each
+    function call.  If functions is the sequence
+    <f0, f1, f2, ...>, the returned value is
+        f(x) = bool(f0(arguments))*bool(f1(arguments))*...
+    Suppose we have the two functions
         has_a = lambda x:  "a" in x
         has_d = lambda x:  "d" in x
-        result = any_f((has_a, has_d), ["abc"])
-        print('''any_f(functions, arguments=[]):
-        Returns True or False, representing the Boolean product of each
-        function call.  If functions is the sequence
-        <f0, f1, f2, ...>, the returned value is
-            f(x) = bool(f0(arguments))*bool(f1(arguments))*...
-        Suppose we have the two functions
-            has_a = lambda x:  "a" in x
-            has_d = lambda x:  "d" in x
-        Then any_f((has_a, has_d), ["abc"]) returns {result} because 'a'
-        and 'b' are both in the string argument.
-        '''[:-4].format(**locals()))
-    def Test_and_f():
+    Then any_f((has_a, has_d), ["abc"]) returns {result} because 'a'
+    and 'b' are both in the string argument.
+    '''[:-4].format(**locals()))
+def Test_and_f():
+    has_a = lambda x:  "a" in x
+    has_b = lambda x:  "b" in x
+    result = and_F((has_a, has_b), ["abc"])
+    print('''and_F(functions, arguments=[]):
+    Same as all_f except short-circuit evaluation is used.
+    Returns True or False, representing the Boolean product of each
+    function call.  If functions is the sequence
+    <f0, f1, f2, ...>, the returned value is
+        f(x) = bool(f0(arguments))*bool(f1(arguments))*...
+    Suppose we have the two functions
         has_a = lambda x:  "a" in x
         has_b = lambda x:  "b" in x
-        result = and_F((has_a, has_b), ["abc"])
-        print('''and_F(functions, arguments=[]):
-        Same as all_f except short-circuit evaluation is used.
-        Returns True or False, representing the Boolean product of each
-        function call.  If functions is the sequence
-        <f0, f1, f2, ...>, the returned value is
-            f(x) = bool(f0(arguments))*bool(f1(arguments))*...
-        Suppose we have the two functions
-            has_a = lambda x:  "a" in x
-            has_b = lambda x:  "b" in x
-        Then conjoin((has_a, has_b), ["abc"]) returns {result} because 'a'
-        and 'b' are both in the string argument.
-        '''[:-4].format(**locals()))
-    def Test_or_f():
+    Then conjoin((has_a, has_b), ["abc"]) returns {result} because 'a'
+    and 'b' are both in the string argument.
+    '''[:-4].format(**locals()))
+def Test_or_f():
+    has_a = lambda x:  "a" in x
+    has_d = lambda x:  "d" in x
+    result = or_f((has_a, has_d), set("abc"))
+    print('''or_f(functions, arguments=[]):
+    Same as any_f except short-circuit evaluation is used.
+    Returns True or False, representing the Boolean sum of each
+    function call.  If functions is the sequence
+    <f0, f1, f2, ...>, the returned value is
+        f(x) = bool(f0(arguments))*bool(f1(arguments))*...
+    Suppose we have the two functions
         has_a = lambda x:  "a" in x
         has_d = lambda x:  "d" in x
-        result = or_f((has_a, has_d), set("abc"))
-        print('''or_f(functions, arguments=[]):
-        Same as any_f except short-circuit evaluation is used.
-        Returns True or False, representing the Boolean sum of each
-        function call.  If functions is the sequence
-        <f0, f1, f2, ...>, the returned value is
-            f(x) = bool(f0(arguments))*bool(f1(arguments))*...
-        Suppose we have the two functions
-            has_a = lambda x:  "a" in x
-            has_d = lambda x:  "d" in x
-        Then or_f((has_a, has_d), set("abc")) returns {result} because 'a'
-        is in the string argument.
-        '''[:-4].format(**locals()))
-
+    Then or_f((has_a, has_d), set("abc")) returns {result} because 'a'
+    is in the string argument.
+    '''[:-4].format(**locals()))
 if __name__ == "__main__": 
     lines = ["{}".format(i) for i in range(20)]
     f1 = lambda x:  int(x) % 2 == 0
     f2 = lambda x:  int(x) % 3 == 0
     f3 = lambda x:  int(x) % 4 == 0
     f4 = lambda x:  int(x) % 5 == 0
-
     if 0:
         satisfied = all(any_f(f1, f2), any_f(f3, f4))
         selected = [line for line in lines if satisfied(line)]
@@ -344,7 +372,6 @@ if __name__ == "__main__":
             print("second set =", b)
             print("intersection =", list(a & b))
             print("Answer       =", [int(i) for i in selected])
-
     elif 0:
         # Develop a groupby-type function like Toolz's
         from toolz import groupby
@@ -362,7 +389,6 @@ if __name__ == "__main__":
         B = range(1, 8)
         print(Dictify(iseven, B))
         print(groupby(iseven, B))
-
     elif 1:
         # Demo toolz.itertoolz.iterate
         # Calculates iterated value for cosine, which should converge to 0.7390851332151607
