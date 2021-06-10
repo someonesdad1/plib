@@ -1,19 +1,24 @@
 '''
 Provide a more readable interface to file information than os.stat().
 '''
-# Copyright (C) 2020 Don Peterson
-# Contact:  gmail.com@someonesdad1
-
-# 
-# Licensed under the Academic Free License version 3.0.
-# See http://opensource.org/licenses/AFL-3.0.
-# 
-
-from collections import namedtuple
-import os
-import time 
-import pathlib
-
+if 1:  # Copyright, license
+    # These "trigger strings" can be managed with trigger.py
+    #∞copyright∞# Copyright (C) 2020 Don Peterson #∞copyright∞#
+    #∞contact∞# gmail.com@someonesdad1 #∞contact∞#
+    #∞license∞#
+    #   Licensed under the Open Software License version 3.0.
+    #   See http://opensource.org/licenses/OSL-3.0.
+    #∞license∞#
+    #∞what∞#
+    # Provide a more readable interface to file information than os.stat().
+    #∞what∞#
+    #∞test∞# #∞test∞#
+    pass
+if 1:   # Imports
+    from collections import namedtuple
+    import os
+    import time 
+    import pathlib
 class FileInfo:
     def __init__(s, file):
         s.file = file
@@ -40,7 +45,6 @@ class FileInfo:
         return f"FileInfo({s.file})"
     def __repr__(s):
         return f"FileInfo({s.abs}, {s.perm}, {s.size}B, {s.mtime})"
-
 def GetFileInfo(file):
     '''file can either be a string or a sequence and this function will
     return either a single FileInfo object or a list of them for the
@@ -48,7 +52,6 @@ def GetFileInfo(file):
     '''
     f = FileInfo
     return f(file) if isinstance(file, str) else [f(i) for i in file]
-
 def Now():
     'Convenience function to return time.time().'
     return time.time()

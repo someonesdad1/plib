@@ -3,6 +3,8 @@
 
 * Go through each of the pushed files, clean them up, add test support
   if needed, and rewrite code if needed, getting rid of python 2 syntax.
+  Try to remove as many files from the test directory, which makes it
+  easier to distribute files.
 
     * Add the needed support files like asciify.script, etc.
 

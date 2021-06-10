@@ -1,25 +1,36 @@
 '''
-
 Module to return file information in a more human-readable form than
 os.stat().  
 '''
-
-from collections import namedtuple
-from collections.abc import Iterable
-import hashlib
-import os
-import pathlib
-from datetime import datetime
-
-Filesize = namedtuple("Filesize", '''size perm inode hardlinks atime
-                      mtime ctime hash''')
-
+if 1:  # Copyright, license
+    # These "trigger strings" can be managed with trigger.py
+    #∞copyright∞# Copyright (C) 2019 Don Peterson #∞copyright∞#
+    #∞contact∞# gmail.com@someonesdad1 #∞contact∞#
+    #∞license∞#
+    #   Licensed under the Open Software License version 3.0.
+    #   See http://opensource.org/licenses/OSL-3.0.
+    #∞license∞#
+    #∞what∞#
+    # Module to return file information in a more human-readable form
+    # than os.stat().  
+    #∞what∞#
+    #∞test∞# run #∞test∞#
+    pass
+if 1:   # Imports
+    from collections import namedtuple
+    from collections.abc import Iterable
+    import hashlib
+    import os
+    import pathlib
+    from datetime import datetime
+if 1:   # Global variables
+    Filesize = namedtuple("Filesize", '''size perm inode hardlinks atime
+                           mtime ctime hash''')
 def IsIterable(x):
     'Return True if x is an iterable and not a string'
     if isinstance(x, str):
         return False
     return isinstance(x, Iterable)
-
 def GetFileData(p, gethash=None):
     'Return the Filesize object with the stat data'
     st = os.stat(p)
@@ -35,7 +46,6 @@ def GetFileData(p, gethash=None):
             datetime.fromtimestamp(st.st_ctime),
             h)
     return f
-
 def FileInfo(names, gethash=hashlib.sha1):
     '''Return a dictionary of the file names specified in names, which
     can be a single string or a sequence of strings and/or pathlib
@@ -88,3 +98,33 @@ def FileInfo(names, gethash=hashlib.sha1):
             file = p/names
             r[file] = GetFileData(file, gethash=gethash)
     return results
+
+if __name__ == "__main__": 
+    import pathlib
+    from lwtest import run, assert_equal, raises
+    from pdb import set_trace as xx
+    def Test_FileInfo():
+        # Single file
+        file = "test/get.a"
+        fi = FileInfo(file)
+        pth, fs = list(fi.items())[0]
+        assert(isinstance(pth, pathlib.Path))
+        assert(fs.size == 10)
+        assert(fs.hash == 'a4834bd6ba8ca17ca66bb968b3bb847cbdf71fa1')
+        # Globbing pattern in a sequence.  This pattern references some
+        # files that shouldn't change over time.
+        dir = "../pylib/test"
+        fi = FileInfo([f"{dir}/loo_image?.png"])
+        for i, f in enumerate(fi):
+            file = str(f)
+            info = fi[f]
+            assert(file == f"{dir}/loo_image{i + 1}.png")
+            if i == 0:
+                assert(info.size == 3676)
+            elif i == 1:
+                assert(info.size == 4009)
+            elif i == 2:
+                assert(info.size == 4097)
+            else:
+                raise Exception("Unexpected number of files")
+    exit(run(globals(), halt=True)[0])
