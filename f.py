@@ -671,7 +671,7 @@ class Base(object):
         return self._do_op(other, operator.truediv)
     def __neg__(self):
         if ii(self, (flt, cpx)):
-            return self(-self.val)
+            return self(-float(self.val))
         else:
             raise RuntimeError("Bug in logic")
     # Properties
@@ -1229,9 +1229,9 @@ class flt(Base, float):
         'Return the repr string representation'
         self._check()
         f = lambda x: x if no_color else Base.wrap(x, self, force=flt)
-        s = f"{repr(self.val)}"
-        if self.u is not None:
-            s = f"{repr(self.val)}{Base._sep}{self.u}"
+        s = f"{repr(float(self.val))}"
+        if self._units is not None:
+            s = f"{repr(float(self.val))}{Base._sep}{self._units}"
         if no_color:
             return s
         return f(s)
@@ -1241,8 +1241,8 @@ class flt(Base, float):
         return self._s() if Base._flip else self._r()
     def copy(self): # flt
         'Returns a copy of self'
-        if self.u:
-            cp = flt(self.val, units=self.u)
+        if self._units:
+            cp = flt(float(self.val), units=self._units)
         else:
             cp = flt(float(self))
         return cp
@@ -1305,7 +1305,7 @@ class flt(Base, float):
                 raise TypeError("Arguments must have the same unit dimensions")
         elif self.u is None and other.u is not None:
             raise TypeError("Arguments must both have no units")
-        rem = abs(self.val % other.val)
+        rem = abs(float(self.val) % float(other.val))
         assert(0 <= rem <= abs(other))
         rem *= -1 if other < 0 else 1
         return rem
@@ -1320,7 +1320,7 @@ class flt(Base, float):
         elif self.u is None and other.u is not None:
             raise TypeError("Arguments must both have no units")
         # See python-3.7.4-docs-html/library/functions.html#divmod
-        q = math.floor(self.val/other.val)
+        q = math.floor(float(self.val)/float(other.val))
         rem = self % other
         # Note self could be mi/hr and other could be km/hour, so we
         # need to correct for the non-unity conversion factor
@@ -1362,7 +1362,7 @@ class flt(Base, float):
                 raise TypeError("Exponent cannot have a unit")
             return pow(float(other), self)
     def __abs__(self):  # flt
-        return flt(abs(self.val), units=self.u)
+        return flt(abs(float(self.val)), units=self.u)
     def __eq__(self, other):    # flt
         '''To be equal, two flt objects must have the same unit
         dimensions and the same SI values.  With no units, they must be
@@ -1414,10 +1414,16 @@ class flt(Base, float):
             return float(self) < float(other)
     @property
     def val(self):  # flt
-        'Return the value as a float in the given units (not in SI)'
-        if self.u is not None:
-            return flt(float(self)/u.u(self.u))
-        return self
+        'Return the value as a flt in the given units (not in SI)'
+        # Warning:  Using self.val is convenient because user code will
+        # only see the necessary significant figures, but it should be
+        # first converted to a float for internal calculations to avoid
+        # exceeding the maximum recursion depth.
+        if self._units is not None:
+            # Convert to a float with a value of self in its given units
+            x = float(self)/u.u(self._units)
+            return flt(x)
+        return flt(float(self))
 
 class cpx(Base, complex):
     '''The cpx class is a complex except that its components are flt
@@ -1599,7 +1605,7 @@ class cpx(Base, complex):
     def copy(self): # cpx
         'Return a copy of self'
         if self.u:
-            cp = cpx(self.val, units=self.u)
+            cp = cpx(complex(self.val), units=self.u)
         else:
             cp = cpx(complex(self))
         return cp
@@ -1669,7 +1675,7 @@ class cpx(Base, complex):
         #xx
         return cpx(complex(self))
     def __abs__(self):  # cpx
-        return flt(abs(self.val), units=self.u)
+        return flt(abs(complex(self.val)), units=self.u)
     def __eq__(self, other):    # cpx
         '''To be equal, two cpx objects must have the same unit
         dimensions and the same SI values.  With no units, they must be
