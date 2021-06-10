@@ -47,17 +47,21 @@ Container for global variables
 
     Run the module as a script to get examples of use.
 '''
-
-# Copyright (C) 2021 Don Peterson
-# Contact:  gmail.com@someonesdad1
-
-#∞#
-# Licensed under the Academic Free License version 3.0.
-# See http://opensource.org/licenses/AFL-3.0.
-#∞#
-
-class ReadOnlyError(Exception): pass
-
+if 1:  # Copyright, license
+    # These "trigger strings" can be managed with trigger.py
+    #∞copyright∞# Copyright (C) 2021 Don Peterson #∞copyright∞#
+    #∞contact∞# gmail.com@someonesdad1 #∞contact∞#
+    #∞license∞#
+    #   Licensed under the Open Software License version 3.0.
+    #   See http://opensource.org/licenses/OSL-3.0.
+    #∞license∞#
+    #∞what∞#
+    # Container for global variables
+    #∞what∞#
+    #∞test∞# --test #∞test∞#
+    pass
+class ReadOnlyError(Exception):
+    pass
 class Descr:
     'Provide str() and repr() methods'
     def __init__(self, indent=" "*2):
@@ -71,11 +75,9 @@ class Descr:
         return '\n'.join(s)
     def __repr__(self):
         return self.__str__()
-
 class Variable(Descr):
     def __init__(self, indent=" "*4):
         super().__init__(indent)
-
 class Constant(Descr):
     def __init__(self, indent=" "*4):
         super().__init__(indent)
@@ -88,7 +90,6 @@ class Constant(Descr):
         if name in self.__dict__:
             msg = f"The constant '{name}' is read-only"
             raise ReadOnlyError(msg)
-
 class Global:
     'Container for global variables as instance attributes'
     @staticmethod
@@ -103,15 +104,7 @@ class Global:
     @staticmethod
     def repr():
         return Global.str()
-
 if __name__ == "__main__": 
-    '''
-    Drop this template into a module to:
-        * Create a normal script.
-        * Print examples of use when run as a script (use --example).
-        * Run selftests when --test is given.
-        * Run external test file when --Test is given.
-    '''
     # Standard library modules
     import getopt
     import os
@@ -119,6 +112,7 @@ if __name__ == "__main__":
     import sys
     from pdb import set_trace as xx
     # Custom modules
+    from lwtest import run, assert_equal, raises, Assert
     from wrap import wrap, dedent
     try:
         from lwtest import run, raises, assert_equal
@@ -134,44 +128,54 @@ if __name__ == "__main__":
         def Usage(d, status=1):
             name = sys.argv[0]
             s = dedent(f'''
-        Usage:  {name} [options] 
-          Use --example to show examples.''')
+        Usage:  {name}
+          Show example of use.  Use --test option to run tests.''')
             print(s)
             exit(status)
         def ParseCommandLine(d):
-            d["--example"] = False      # Run examples
-            d["special"] = False        # If True, one of --example,
-                                        # --self, or --test was given
+            d["--test"] = False
             try:
-                opts, args = getopt.getopt(sys.argv[1:], "ah", 
-                    "example help self test Test=".split())
+                opts, args = getopt.getopt(sys.argv[1:], "h", "test")
             except getopt.GetoptError as e:
                 print(str(e))
                 exit(1)
             for o, a in opts:
-                if o[1] in list("a"):
-                    d[o] = not d[o]
-                elif o in ("-h", "--help"):
+                if o in ("-h", "--help"):
                     Usage(d, status=0)
-                elif o == "--example":
-                    d["--example"] = True
-            if not d["--example"]:
-                Usage(d)
+                elif o == "--test":
+                    d["--test"] = True
             wrap.indent = " "*4
             return args
     if 1:   # Test code 
-        def Assert(cond):
-            '''Same as assert, but you'll be dropped into the debugger on an
-            exception if you include a command line argument.
-            '''
-            if not cond:
-                if args:
-                    print("Type 'up' to go to line that failed")
-                    xx()
-                else:
-                    raise AssertionError
-        def Test_1():
-            pass
+        one, two, three, four, five = 1, 2.0, "3", 4+0j, 5
+        g = Global()
+        g.one = one
+        g.two = two
+        g.three = three
+        g.ro = Constant()
+        g.ro.x = four
+        g.rw = Variable()
+        g.rw.y = five
+        def Test_read_write():
+            'This exercises the simple globals that are read/write'
+            assert(isinstance(g.one, int))
+            assert(isinstance(g.two, float))
+            assert(isinstance(g.three, str))
+            assert_equal(g.one, one)
+            assert_equal(g.two, two)
+            assert_equal(g.three, three)
+        def Test_more():
+            'Tests using Constant and Variable classes'
+            # Read only feature
+            assert(isinstance(g.ro.x, complex))
+            assert(g.ro.x == four)
+            with raises(ReadOnlyError):
+                g.ro.x = 1
+            # Variable is read/write
+            assert(isinstance(g.rw.y, int))
+            assert(g.rw.y == five)
+            g.rw.y = five + 1
+            assert(g.rw.y == five + 1)
     if 1:   # Example code 
         def Example_Instance():
             print("Example 1:  Using an Instance")
@@ -263,8 +267,8 @@ if __name__ == "__main__":
     # ----------------------------------------------------------------------
     d = {}      # Options dictionary
     args = ParseCommandLine(d)
-    if d["--example"]:
-        if not _have_lwtest:
-            raise RuntimeError("lwtest.py missing")
-        r = r"^Example_"
-        failed, messages = run(globals(), regexp=r, quiet=True)
+    if d["--test"]:
+        exit(run(globals(), halt=True)[0])
+    else:
+        Example_Instance()
+        Example_UsingClassVariables()

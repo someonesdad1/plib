@@ -1,4 +1,7 @@
 '''
+TODO
+    * obj can be a pathlib.Path
+
 Python 3 hexdump module
 
 hexdump("abc") produces

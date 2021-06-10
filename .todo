@@ -8,6 +8,10 @@
 * geom_prim.py:  Update properties, utilize matrix.py for determinants,
   as this would remove dependency on numpy.
 
+* get.py:  Put all stuff in here used to get things.  Include stuff from
+  getinput.py, getnumber.py, and gettokens.py.  Everything should be in
+  one file including all the tests.
+
 * Delete fsig.py once it's established it's not being used anywhere.
 
 * Go through each of the pushed files, clean them up, add test support
