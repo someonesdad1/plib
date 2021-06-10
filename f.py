@@ -1,23 +1,32 @@
 # TODO
 '''
-    * v=flt("15 mi/hr"); v.to("mi/minute") fails
+    BUGS
+        * v=flt("15 mi/hr"); v.to("mi/minute") fails
+        * flt("1_1") gives an exception, but it should be flt(11).
+
 
     * Focus
+        * fmt.py works and has tests.  Use it as the formatter.
         * Test that all needed constructors are written
         * Get arithmetic with units working
         * Get comprehensive unit tests for arithmetic written
     * one = flt(1); one("1 mi/hr") does not work.  Should it?
-    * Add si() method to Base?  This would return the number in base SI
-      units.  A use case is the gas law calculation:  the number of
-      moles results in units of 0.274 ft³·mol·psi/J.  Since p*V is
-      energy, the resulting unit is mol, but you don't see that unless
-      you know it.  The si method would fix this.
+    * Add si method or attribute to Base?  This would return the number
+      in base SI units.  A use case is the gas law calculation:  the
+      number of moles results in units of 0.274 ft³·mol·psi/J.  Since
+      p*V is energy, the resulting unit is mol, but you don't see that
+      unless you know it.  si would fix this.
+        * There's no easy way to use SI prefixes with the unit string
+          unless you put the prefix in a numerator object with unity
+          power.
+        * Thus, the output should be in scientific notation if it's
+          beyond the fixed point limits.
     * Need to remove Base.sci, etc.  Add these attributes to flt and
       cpx.
     * Need to fix cpx radd, etc. (search for xx)
     * Tests need to cover all formatting options.
         * An invariant for divmod is that 'divmod(x,y)[0]*y + x % y' be
-          very close to x (in REPL, type help() and * and look at 
+          very close to x (in REPL, type help() and * and look at
           footnote 2 to the precedence table).
 
     * Uncertainties:  It would be nice if the uncertainties library

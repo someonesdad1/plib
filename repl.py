@@ -173,7 +173,7 @@ if 1:   # Global variables
     g.yel = C.fg(C.yellow, s=1)
     g.wht = C.fg(C.lwhite, s=1)
     g.whtblu = C.fg(C.lwhite, C.blue, s=1)
-    g.err = C.fg(C.red, s=1)
+    g.err = C.fg(C.lred, s=1)
     g.ital = C.Decorate().SetStyle("italic")
     g.norm = C.normal(s=1)
     g.name = g.P(sys.argv[0])

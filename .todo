@@ -1,3 +1,9 @@
+* flt("1_1") gives an exception, but it should be flt(11).
+
+* fmt.py:  Add support for mpmath numbers, fractions, floats in the
+  constructor, as str(x) isn't going to work for all the desired
+  situations.
+
 * Change what.py to use a what trigger string.  This lets a what string
   be put into any file without having to run the file.
 

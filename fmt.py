@@ -24,6 +24,13 @@ if 1:   # Imports
     import decimal
     import collections 
     import locale 
+    from fraction import Fraction
+if 1:   # Custom imports
+    try:
+        import mpmath
+        have_mpmath = True
+    except ImportError:
+        have_mpmath = False
 if 1:   # Global variables
     D = decimal.Decimal
     ii = isinstance
@@ -57,9 +64,30 @@ class Fmt(object):
         Fmt._SI_prefixes[0] = ""    # Need empty string
         self._n = n
         self._u = False
-        self._low = low if ii(low, D) else D(str(low))
-        self._high = high if ii(high, D) else D(str(high))
+        self._low = self.toD(low)
+        self._high = self.toD(high)
     # Methods
+    def toD(self, value):
+        '''Convert value to a Decimal object.  Supported types are int,
+        float, Fraction, Decimal, str, mpmath.mpf, and any other type
+        that gives a value from str(value)
+        '''
+        if ii(value, (int, float)):
+            return D(value)
+        elif ii(value, D):
+            return value
+        elif ii(value, Fraction):
+            return D(value.numerator)/D(value.denominator)
+        elif ii(value, str):
+            if "/" in value:
+                f = Fraction(value)
+                return D(f.numerator)/D(f.denominator)
+            else:
+                return D(value)
+        elif have_mpmath and ii(value, mpmath.mpf):
+            return D(str(value))
+        else:
+            return D(str(value))
     def _take_apart(self, x, n=None):
         '''Take the Decimal number x apart into its sign, digits,
         decimal point, and exponent.  Return the named tuple 
@@ -98,7 +126,7 @@ class Fmt(object):
             collections.deque(parts.other), "0")
     def fix(self, value, n=None):
         'Return a fixed point representation'
-        x = D(str(value))
+        x = self.toD(value)
         parts, d, z = self._get_data(x, n)
         ne = parts.e + 1
         if parts.e >= 0:
@@ -115,7 +143,7 @@ class Fmt(object):
         return ''.join(d)
     def sci(self, value, n=None):
         'Return a scientific format representation'
-        x = D(str(value))
+        x = self.toD(value)
         parts, d, z = self._get_data(x, n)
         d.insert(1, self.dp)
         d.appendleft(parts.sign)
@@ -130,13 +158,14 @@ class Fmt(object):
         else:
             d.extend(["e", str(parts.e)])
         return ''.join(d)
-    def eng(self, x, fmt="eng", n=None):
-        '''Return an engineering format representation.  Suppose x is
-        31415.9 and n is 3.  Then fmt can be:
+    def eng(self, value, fmt="eng", n=None):
+        '''Return an engineering format representation.  Suppose value
+        is 31415.9 and n is 3.  Then fmt can be:
             "eng"    returns "31.4e3"
             "engsi"  returns "31.4 k"
             "engsic" returns "31.4k" (the SI prefix is cuddled)
         '''
+        x = self.toD(value)
         fmt = fmt.strip().lower()
         parts, d, z = self._get_data(x, n)
         eng_step = 3
@@ -173,7 +202,7 @@ class Fmt(object):
         self.n significant figures.  fmt can be "fix", "sci", "eng", 
         "engsi", or "engsic".
         '''
-        x = value if ii(value, D) else D(str(value))
+        x = self.toD(value)
         if fmt not in "fix sci eng engsi engsic".split():
             raise ValueError(f"'{fmt}' is unrecognized format string")
         if fmt == "fix":
@@ -212,7 +241,8 @@ class Fmt(object):
     @n.setter
     def n(self, value):
         self._n = int(value)
-        assert(self._n > 0)
+        if self._n <= 0:
+            raise ValueError("n must be > 0")
     @property
     def u(self):
         '(bool) Use Unicode in "sci" and "eng" formats if True'
@@ -358,6 +388,7 @@ if __name__ == "__main__":
             Assert(f(-x, n=2) == "-0.99")
             x = 0.999999
             raises(ValueError, f, x, n=0)
+            raises(ValueError, f, x, n=-1)
             Assert(f(x, n=1) == "1.")
             Assert(f(x, n=2) == "1.0")
             Assert(f(x, n=3) == "1.00")
@@ -366,6 +397,7 @@ if __name__ == "__main__":
             Assert(f(x, n=6) == "0.999999")
             Assert(f(x, n=7) == "0.9999990")
             raises(ValueError, f, -x, n=0)
+            raises(ValueError, f, -x, n=-1)
             Assert(f(-x, n=1) == "-1.")
             Assert(f(-x, n=2) == "-1.0")
             Assert(f(-x, n=3) == "-1.00")
@@ -373,6 +405,40 @@ if __name__ == "__main__":
             Assert(f(-x, n=5) == "-1.0000")
             Assert(f(-x, n=6) == "-0.999999")
             Assert(f(-x, n=7) == "-0.9999990")
+        def Test_toD():
+            f = Init().toD
+            # int and str
+            for i in (-1, 0, 1, "-1", "0", "1", "inf", "-inf"): 
+                Assert(f(i) == D(i))
+                Assert(f(D(i)) == D(i))
+            for i in (-1_000, 1_000, "-1_000", "1_000"): 
+                Assert(f(i) == D(i))
+                Assert(f(D(i)) == D(i))
+            # float and str
+            for i in (-1., 0., 1., "-1.", "0.", "1."): 
+                Assert(f(i) == D(i))
+                Assert(f(D(i)) == D(i))
+            for i in (-0.00_1, 0.00_1, 
+                      -1_000., 1_000.,
+                      "-0.00_1", "0.00_1",
+                      "-1_000.", "1_000."): 
+                Assert(f(i) == D(i))
+                Assert(f(D(i)) == D(i))
+            # Fraction
+            n, d = 3, 8
+            x = Fraction(n, d)
+            Assert(f(x) == D(n/d))
+            # Fraction string
+            Assert(f(f"{n}/{d}") == D(n/d))
+            # mpmath 
+            if have_mpmath:
+                mpf = mpmath.mpf
+                n = 50
+                mpmath.mp.dps = n
+                x = mpf(2)**mpf(1/2)
+                with decimal.localcontext() as ctx:
+                    ctx.prec = n
+                    Assert(f(x) == D(2)**D(1/2))
         def Test_Fix():
             def TestHuge(n, digits=3):
                 f = Init()
