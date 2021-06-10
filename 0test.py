@@ -222,4 +222,6 @@ if __name__ == "__main__":
         s = f"(took {tm/60} minutes)" if tm > 60 else f"(took {tm} seconds)"
         print(f"Test summary {s}:")
         passed = t - f - n
-        print(f"  {passed} file{'s' if passed != 1 else ''} tested OK")
+        print(f"  {passed} python file{'s' if passed != 1 else ''} tested OK")
+        print(f"  {f} python file{'s' if f != 1 else ''} failed")
+        print(f"  {n} python file{'s' if n != 1 else ''} were not tested")
