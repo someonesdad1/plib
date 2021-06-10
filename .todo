@@ -5,6 +5,9 @@
 * Change what.py to use a what trigger string.  This lets a what string
   be put into any file without having to run the file.
 
+* geom_prim.py:  Update properties, utilize matrix.py for determinants,
+  as this would remove dependency on numpy.
+
 * Delete fsig.py once it's established it's not being used anywhere.
 
 * Go through each of the pushed files, clean them up, add test support
