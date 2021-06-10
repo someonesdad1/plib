@@ -755,9 +755,32 @@ class Base(object):
         'Return the repr() string, regardless of self.f'
         return self._r()
     @property
+    def rtz(self):
+        'Remove trailing zeros if True'
+        return Base._rtz
+    @rtz.setter
+    def rtz(self, value):
+        Base._rtz = bool(value)
+    @property
     def s(self):
         'Return the str() string, regardless of self.f'
         return self._s()
+    @property
+    def sigcomp(self):
+        '''Significant digits for '==' and '<' comparisons.  If it is
+        None, then comparisons are made to full precision.  Otherwise,
+        it must be an integer between 1 and 15.
+        '''
+        return Base._sigcomp
+    @sigcomp.setter
+    def sigcomp(self, value):
+        if value is None:
+            self._sigcomp = None
+            return
+        val = int(value)
+        if not (1 <= val <= 15):
+            raise ValueError("sigcomp must be between 1 and 15")
+        Base._sigcomp = val
     @property
     def solidus(self):
         '''Unit string is given in Unicode solidus form.  Example:  for
@@ -789,29 +812,6 @@ class Base(object):
     @property
     def val(self):
         raise Exception("Abstract base class method")
-    @property
-    def rtz(self):
-        'Remove trailing zeros if True'
-        return Base._rtz
-    @rtz.setter
-    def rtz(self, value):
-        Base._rtz = bool(value)
-    @property
-    def sigcomp(self):
-        '''Significant digits for '==' and '<' comparisons.  If it is
-        None, then comparisons are made to full precision.  Otherwise,
-        it must be an integer between 1 and 15.
-        '''
-        return Base._sigcomp
-    @sigcomp.setter
-    def sigcomp(self, value):
-        if value is None:
-            self._sigcomp = None
-            return
-        val = int(value)
-        if not (1 <= val <= 15):
-            raise ValueError("sigcomp must be between 1 and 15")
-        Base._sigcomp = val
     # ----------------------------------------------------------------------
     # These properties will work if the Formatter object is present
     @property
@@ -1413,11 +1413,11 @@ class flt(Base, float):
         else:
             return float(self) < float(other)
     @property
-    def val(self) -> float:  # flt
+    def val(self):  # flt
         'Return the value as a float in the given units (not in SI)'
         if self.u is not None:
-            return float(self)/u.u(self.u)
-        return float(self)
+            return flt(float(self)/u.u(self.u))
+        return self
 
 class cpx(Base, complex):
     '''The cpx class is a complex except that its components are flt
@@ -1734,10 +1734,10 @@ class cpx(Base, complex):
         cpx._rad = bool(value)
     @property
     def val(self):  # cpx
-        'Return the value as a complex in the given units (not in SI)'
+        'Return the value as a cpx in the given units (not in SI)'
         if self._units is not None:
-            return complex(self)/u.u(self._units)
-        return complex(self)
+            return cpx(complex(self)/u.u(self._units))
+        return self
 
 if 1:   # Get math/cmath functions into our namespace
     '''Put all math symbols into this namespace.  We use an object with

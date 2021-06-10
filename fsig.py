@@ -10,6 +10,11 @@ if 0:
     import debug
     debug.SetDebugger()
 
+msg = '''
+  This module is obsolete, so do not use.  Instead, use the flt class in
+  f.py or the formatter in fmt.py.'''
+raise RuntimeError(msg)
+
 def fsig(x, digits=3, low=1e-6, high=1e6):
     '''Return a string representing the number x to the indicated number
     of signifcant digits.  If x is < low or > high, convert to

@@ -1,11 +1,11 @@
 * flt("1_1") gives an exception, but it should be flt(11).
 
-* fmt.py:  Add support for mpmath numbers, fractions, floats in the
-  constructor, as str(x) isn't going to work for all the desired
-  situations.
+* gauge_sizes.py:  Change the floats to flt with units of inches.
 
 * Change what.py to use a what trigger string.  This lets a what string
   be put into any file without having to run the file.
+
+* Delete fsig.py once it's established it's not being used anywhere.
 
 * Go through each of the pushed files, clean them up, add test support
   if needed, and rewrite code if needed, getting rid of python 2 syntax.
