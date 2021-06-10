@@ -1,25 +1,31 @@
 '''
-Provides a class FPFormat that formats floating point numbers in a
-variety of ways.  Run this file as a script for help info.
+Format floating point numbers in a variety of ways
+    Run this file as a script for help info.  Note:  this is obsolete
+    code that was developed using python 2, but it will run under python
+    3.  I recommend use of the fmt.py module for python 3 stuff.
 '''
-
-# Copyright (C) 2008, 2012 Don Peterson
-# Contact:  gmail.com@someonesdad1
-
-#
-# Licensed under the Open Software License version 3.0.
-# See http://opensource.org/licenses/OSL-3.0.
-#
-
-import sys
-from os import name as platform
-
-# These variables can be used to control the characters that appear in
-# output.
-decimal_point = "."
-exponent_character = "e"
-imaginary_unit = "i"
-
+if 1:  # Copyright, license
+    # These "trigger strings" can be managed with trigger.py
+    #∞copyright∞# Copyright (C) 2008, 2012 Don Peterson #∞copyright∞#
+    #∞contact∞# gmail.com@someonesdad1 #∞contact∞#
+    #∞license∞#
+    #   Licensed under the Open Software License version 3.0.
+    #   See http://opensource.org/licenses/OSL-3.0.
+    #∞license∞#
+    #∞what∞#
+    # Obsolete formatter for floating point numbers
+    #∞what∞#
+    #∞test∞# ["test/fpformat_test.py"] #∞test∞#
+    pass
+if 1:   # Imports
+    import sys
+    from os import name as platform
+if 1:   # Global variables
+    # These variables can be used to control the characters that appear in
+    # output.
+    decimal_point = "."
+    exponent_character = "e"
+    imaginary_unit = "i"
 class FPFormat:
     '''Formats a floating point number in a variety of ways:
     Fixed           Fixed number of digits after the decimal point (may
@@ -76,19 +82,16 @@ class FPFormat:
         self.trailing_dp = True
         self.dp_width = 10      # Width of output string
         self.dp_position = 4    # Position of dp from left
-
     def trailing_decimal_point(self, trail=True):
         '''Set whether a trailing decimal point is displayed.
         '''
         self.trailing_dp = True if trail else False
-
     def digits(self, num_digits):
         '''Set the number of significant digits.
         '''
         if num_digits < self.digits_min:
             raise ValueError("must be >= %d" % self.digits_min)
         self.num_digits = num_digits
-
     def fix(self, number):
         f = "%%.%df" % self.num_digits
         f1 = "%%+.%df" % self.num_digits
@@ -103,7 +106,6 @@ class FPFormat:
                 return (f % number.real) + (f1 % number.imag) + imaginary_unit
         else:
             return f % number
-
     def sci(self, number):
         if "j" in str(number):
             if number.real == 0:
@@ -116,7 +118,6 @@ class FPFormat:
                         self._sci(number.imag) + imaginary_unit)
         else:
             return self._sci(number)
-
     def _sci(self, number):
         "Scientific format for a floating point number"
         f = "%%.%de" % max(self.num_digits - 1, 0)
@@ -130,7 +131,6 @@ class FPFormat:
         # Get exponent with required leading zeros
         e = ("%%0%dd" % max(0, self.expdigits)) % abs(int(exponent))
         return ''.join((significand, exponent_character, exponent_sign, e))
-
     def eng(self, number):
         if "j" in str(number):
             if number.real == 0:
@@ -143,10 +143,8 @@ class FPFormat:
                         self._eng(number.imag) + imaginary_unit)
         else:
             return self._eng(number)
-
     def engsic(self, number):
         return self.engsi(number, cuddle=True)
-
     def engsi(self, number, cuddle=False):
         '''Same as eng(), but decorate with SI suffix.
         Will throw exception for a complex number.  If cuddle is true,
@@ -169,7 +167,6 @@ class FPFormat:
             else:
                 return s[:pos] + " " + self.suffixes[exponent]
         return s
-
     def sig(self, number):
         if number and (abs(number) < self.low or abs(number) > self.high):
             return self.sci(number)
@@ -185,7 +182,6 @@ class FPFormat:
                 return re + im_sign + im + imaginary_unit
         else:
             return self._sig(number)
-
     def _sig(self, number):
         "Handle the real number case"
         sign = "-" if number < 0 else ""
@@ -223,7 +219,6 @@ class FPFormat:
                     if self.trailing_dp:
                         significand += decimal_point
         return sign + significand
-
     def _eng(self, number):
         "Engineering format for a floating point number"
         efmt = "%%0%dd" % max(0, self.expdigits)
@@ -276,7 +271,6 @@ class FPFormat:
         if number < 0:
             m = "-" + m
         return ''.join((m, exponent_character, esign, e))
-
     def dp(self, num, width=None, dpoint=None):
         '''Fit the string into a stated width with the decimal point at the
         0-based position starting from the left.  width overrides the
@@ -371,42 +365,42 @@ class FPFormat:
         if len(s) <= w:
             return s
         raise ValueError("width of %d too small" % w)
-
 if __name__ == "__main__":
-    print('''
-How to use fpformat:
-  Create an object:      fp = fpformat.FPFormat(num_digits=3)
-  Set number of digits:  fp.digits(num_digits)
-  Get formatted string:  sig(x), fix(x), sci(x), eng(x), engsi(x), engsic(x)
-  The fp.dp() method is used to get strings of fixed width where the
-      decimal points line up.
-  Use fp.trailing_decimal_point(False) to turn off trailing decimal point.
-    It is on by default to show that a number is floating point.
-  Set the attributes
-      low, high       Determine when sci format is output for sig()
-      expdigits       Number of digits in exponent
-      expsign         If true, display exponent's sign
-    for fine control over the scientific display.
- 
-Set the following global variables to control some of the output
-characteristics:             Default
-                             -------
-    decimal_point               %s
-    exponent_character          %s
-    imaginary_unit              %s
-'''[:-1] % (decimal_point, exponent_character, imaginary_unit) + "\n")
+    from wrap import dedent
+    print(dedent(f'''
+    How to use fpformat:
+      Create an object:      fp = fpformat.FPFormat(num_digits=3)
+      Set number of digits:  fp.digits(num_digits)
+      Get formatted string:  sig(x), fix(x), sci(x), eng(x), engsi(x), engsic(x)
+      The fp.dp() method is used to get strings of fixed width where the
+          decimal points line up.
+      Use fp.trailing_decimal_point(False) to turn off trailing decimal point.
+        It is on by default to show that a number is floating point.
+      Set the attributes
+          low, high       Determine when sci format is output for sig()
+          expdigits       Number of digits in exponent
+          expsign         If true, display exponent's sign
+        for fine control over the scientific display.
+     
+    Set the following global variables to control some of the output
+    characteristics:             Default
+                                 -------
+        decimal_point               {decimal_point}
+        exponent_character          {exponent_character}
+        imaginary_unit              {imaginary_unit}
+    '''))
     f, L, indent = FPFormat(4), 10, " "*5
     f.low, f.high = 10**(-L), 10**L
     w, dp = 15, 8
     x, places = 1.23456*10**(-dp), w - dp - 1
-    print('''
-Demonstration of dp() method for decimal point alignment.  Note
-it can reduce the number of significant figures printed.  The form of
-the function is fpformat.dp(x, width=w, dppoint=dp) where here
-w = {w} and dp = {dp}.  The total width is 15 spaces and the decimal
-point is at position dp, which is numbered from zero from the left.
-This leaves room for {w} - {dp} - 1 = {places} decimal places.
-'''[1:].format(**globals()))
+    print(dedent(f'''
+    Demonstration of dp() method for decimal point alignment.  Note
+    it can reduce the number of significant figures printed.  The form of
+    the function is fpformat.dp(x, width=w, dppoint=dp) where here
+    w = {w} and dp = {dp}.  The total width is 15 spaces and the decimal
+    point is at position dp, which is numbered from zero from the left.
+    This leaves room for {w} - {dp} - 1 = {places} decimal places.
+    '''))
     print(indent + " ", end="")
     for i in range(w):
         print(str(i)[-1], end="")
