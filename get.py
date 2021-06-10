@@ -1,48 +1,47 @@
 '''
 Module for getting data from files, strings, and streams.
 
-TODO:  Add function for getting a list of numbers from a string.
-    GetNumbers(thing, type=None)
-        Recognizes integers, floats, fractions, complex, and uncertain
-        numbers.  If type is given, all found strings are converted to
-        that type.  thing can be a string, filename, or stream.
-
-        Add flt, cpx, Zn
-
+TODO:  
+    * Add Zn to GetNumbers
 '''
-
-# Copyright (C) 2019 Don Peterson
-# Contact:  gmail.com@someonesdad1
-
-#
-# Licensed under the Open Software License version 3.0.
-# See http://opensource.org/licenses/OSL-3.0.
-#
-
-import locale
-import pathlib
-import re
-from asciify import Asciify
-from collections import defaultdict
-from fractions import Fraction
-
-try:
-    from uncertainties import ufloat, ufloat_fromstr
-    _have_unc = True
-except ImportError:
-    _have_unc = False
-
-try:
-    from f import flt, cpx
-    _have_f = True
-except ImportError:
-    _have_f = False
-
-from pdb import set_trace as xx
-if 0:
-    import debug
-    debug.SetDebugger()
-
+if 1:  # Copyright, license
+    # These "trigger strings" can be managed with trigger.py
+    #∞copyright∞# Copyright (C) 2019 Don Peterson #∞copyright∞#
+    #∞contact∞# gmail.com@someonesdad1 #∞contact∞#
+    #∞license∞#
+    #   Licensed under the Open Software License version 3.0.
+    #   See http://opensource.org/licenses/OSL-3.0.
+    #∞license∞#
+    #∞what∞#
+    # Module for getting data from files, strings, and streams
+    #∞what∞#
+    #∞test∞# run #∞test∞#
+    pass
+if 1:   # Imports
+    import locale
+    import pathlib
+    import re
+    from collections import defaultdict
+    from fractions import Fraction
+    from pdb import set_trace as xx
+if 1:   # Custom imports
+    from asciify import Asciify
+    try:
+        from uncertainties import ufloat, ufloat_fromstr
+        _have_unc = True
+    except ImportError:
+        _have_unc = False
+    try:
+        from f import flt, cpx
+        _have_f = True
+    except ImportError:
+        _have_f = False
+    if 0:
+        import debug
+        debug.SetDebugger()
+if 1:   # Global variables
+    P = pathlib.Path
+    ii = isinstance
 def GetText(thing, enc=None, xfms=[]):
     '''Return the text from thing, which can be a string, bytes,
     or stream.  If thing is a string, it's assumed to be a file name;
@@ -55,10 +54,10 @@ def GetText(thing, enc=None, xfms=[]):
     xfms should be a sequence of univariate functions which will transform
     the string.
     '''
-    if isinstance(thing, bytes):
+    if ii(thing, bytes):
         # Bytes
         s = thing.decode(encoding="UTF-8" if enc is None else enc)
-    elif isinstance(thing, str):
+    elif ii(thing, (str, pathlib.Path)):
         # File name
         p = pathlib.Path(thing)
         try:
@@ -75,7 +74,6 @@ def GetText(thing, enc=None, xfms=[]):
         for xfm in xfms:
             s = xfm(s)
     return s
-
 def GetLines(thing, enc=None, regex=None, xfms=None):
     '''Return either lines or (lines, meta) where lines is a list of the
     lines in thing and meta is a dictionary containing lists of lines
@@ -104,7 +102,7 @@ def GetLines(thing, enc=None, regex=None, xfms=None):
             '^ *##': ['  ## Another comment']})
     '''
     if regex is not None:
-        assert(isinstance(regex, (list, tuple, set)))
+        assert(ii(regex, (list, tuple, set)))
     meta = defaultdict(list) if regex is not None else None
     def Filter(line):
         if regex is not None:
@@ -121,7 +119,6 @@ def GetLines(thing, enc=None, regex=None, xfms=None):
     if regex is None:
         return lines
     return (lines, meta)
-
 def GetNumberedLines(thing, enc=None):
     '''Return a tuple of (linenum, line_string) tuples where linenum is
     the line number in the file.  See GetText for details on the enc
@@ -129,7 +126,6 @@ def GetNumberedLines(thing, enc=None):
     '''
     lines = GetText(thing, enc=enc).split("\n")
     return tuple((i + 1, j) for i, j in enumerate(lines))
-
 def GetWords(thing, sep=None, enc=None, regex=None, xfms=None):
     '''Return a list of words separated by the string sep from the thing
     (see details for GetLines).  If sep is None, then the data are split
@@ -145,7 +141,6 @@ def GetWords(thing, sep=None, enc=None, regex=None, xfms=None):
         return sep.join(lines).split(sep)
     else:
         return ' '.join(lines).split()
-
 def GetBinary(thing, encoded=False):
     '''Read in thing as binary (thing is a stream or filename).  Bytes
     will be returned.
@@ -164,7 +159,7 @@ def GetBinary(thing, encoded=False):
             s = thing.read()
         except AttributeError:
             s = open(thing, "rb").read()
-        if isinstance(s, str):
+        if ii(s, str):
             return s
         # Got bytes; try to decode them
         for encoding in encodings:
@@ -178,7 +173,6 @@ def GetBinary(thing, encoded=False):
             return thing.read()
         except AttributeError:
             return open(thing, "rb").read()
-
 def GetNumbers(thing, numtype=None,  enc=None, xfms=None):
     '''Uses GetText() to get a string, then recognizes integers, floats,
     fractions, complex, and uncertain numbers in the string separated by
@@ -190,6 +184,7 @@ def GetNumbers(thing, numtype=None,  enc=None, xfms=None):
     respectively.
  
     If the uncertainties library is present, the ufloat type can be
+    recognized.
     '''
     lst, dp = [], locale.localeconv()["decimal_point"]
     for s in GetText(thing, enc=enc, xfms=xfms).split():
@@ -210,7 +205,120 @@ def GetNumbers(thing, numtype=None,  enc=None, xfms=None):
                 x = int(s)
             lst.append(x)
     return lst
-
 if __name__ == "__main__": 
-    s = '''1 1.2 3/4 3+1j 3±4 3+-4 3+/-4 3(4)'''
-    print(GetNumbers(s))
+    import os
+    from wrap import dedent
+    from lwtest import run, raises, Assert
+    from io import StringIO
+    if _have_f:
+        from get import flt, cpx
+    text_file, S = None, None
+    def SetUp():
+        global text_file, S
+        text_file = P("get.a")
+        S = "Some\ntext\n"
+        text_file.write_text(S)
+    def TearDown():
+        if text_file.exists():
+            text_file.unlink()
+    def TestGetText():
+        sio = StringIO(S)
+        t = GetText(sio)
+        Assert(t == S)
+        t = GetText(S)
+        Assert(t == S)
+        t = GetText(text_file)
+        Assert(t == S)
+        # Test with bytes
+        b = b"Some\ntext\n"
+        t = GetText(b)
+        Assert(t == S)
+        t = GetText(b, enc="ISO-8859-1")
+        Assert(t == S)
+        t = GetText(b"\xb5", enc="ISO-8859-1")
+        Assert(t == "µ")
+        # Test with regexp
+        s = dedent('''
+        # Comment
+        ## Another comment
+    Line 1
+        Line 2''')
+        r = ("^ *##", "^ *#")
+        lines, meta = GetLines(s, regex=r)
+        Assert(lines == ['Line 1', '    Line 2'])
+        Assert(meta[r[0]] == ['    ## Another comment'])
+        Assert(meta[r[1]] == ['    # Comment'])
+    def TestGetLines():
+        sio = StringIO(S)
+        l = S.split() + [""]
+        t = GetLines(sio)
+        Assert(t == l)
+        t = GetLines(S)
+        Assert(t == l)
+        t = GetLines(text_file)
+        Assert(t == l)
+    def TestGetWords():
+        sio = StringIO(S)
+        l = S.split()
+        t = GetWords(sio)
+        Assert(t == l)
+        t = GetWords(S)
+        Assert(t == l)
+        t = GetWords(text_file)
+        Assert(t == l)
+    def TestGetBinary():
+        enc = "iso-8859-1"
+        open(text_file, "wb").write(S.encode(enc))
+        t = GetBinary(text_file)
+        Assert(t == S.encode("ascii"))
+    def TestGetNumberedLines():
+        expected = ((1, "Some"), (2, "text"), (3, ""))
+        sio = StringIO(S)
+        t = GetNumberedLines(sio)
+        Assert(t == expected)
+        t = GetNumberedLines(S)
+        Assert(t == expected)
+        t = GetNumberedLines(text_file)
+        Assert(t == expected)
+    def TestGetNumbers():
+        # Check general python numerical types
+        s = "1 1.2 3/4 3+1j"
+        l = GetNumbers(s)
+        Assert(l == [1, 1.2, Fraction(3, 4), (3+1j)])
+        # Check f.py types flt and cpx
+        if _have_f:
+            s = "1.2 3+1j"
+            x, z = GetNumbers(s)
+            Assert(ii(x, flt) and ii(z, cpx))
+            Assert(x == flt(1.2))
+            Assert(z == cpx(3+1j))
+        # Check uncertainties library forms
+        if _have_unc:
+            s = "3±4 3+-4 3+/-4 3(4)"
+            for u in GetNumbers(s):
+                Assert(u.nominal_value == 3)
+                Assert(u.std_dev == 4)
+        # Test with a float type
+        s = "1 1.2"
+        l = GetNumbers(s, numtype=float)
+        Assert(l == [1.0, 1.2])
+        Assert(all([ii(i, float) for i in l]))
+        l = GetNumbers(s, numtype=flt)
+        Assert(l == [flt(1.0), flt(1.2)])
+        Assert(all([ii(i, flt) for i in l]))
+        # Test with a complex type
+        s = "1 1.2 3+4j"
+        l = GetNumbers(s, numtype=complex)
+        Assert(l == [1+0j, 1.2+0j, 3+4j])
+        l = GetNumbers(s, numtype=cpx)
+        Assert(all([ii(i, cpx) for i in l]))
+        Assert(l == [cpx(1+0j), cpx(1.2+0j), cpx(3+4j)])
+        # Test Fraction
+        s = "3/8 7/16 1/2"
+        l = GetNumbers(s)
+        Assert(all([ii(i, Fraction) for i in l]))
+        Assert(l == [Fraction(3, 8), Fraction(7, 16), Fraction(1, 2)])
+    SetUp()
+    status = run(globals(), halt=True)[0]
+    TearDown()
+    exit(status)
