@@ -1,14 +1,26 @@
 '''
-Provides the iso object which will give you current data and time.
+Provides the ISO object which will give you current date and time.
 
+    iso = ISO()
     print(iso)      20210414-08:42:44
     print(iso.d)    14Apr2021
     print(iso.t)    8:42:44am
 '''
-
-import time
-import datetime
-
+if 1:  # Copyright, license
+    # These "trigger strings" can be managed with trigger.py
+    #∞copyright∞# Copyright (C) 2021 Don Peterson #∞copyright∞#
+    #∞contact∞# gmail.com@someonesdad1 #∞contact∞#
+    #∞license∞#
+    #   Licensed under the Open Software License version 3.0.
+    #   See http://opensource.org/licenses/OSL-3.0.
+    #∞license∞#
+    #∞what∞#
+    # Provides the ISO object to provide current date and time
+    #∞what∞#
+    #∞test∞# #∞test∞#
+    pass
+if 1:   # Imports
+    import time
 class ISO(object):
     def __str__(self):
         return time.strftime("%Y%m%d-%H:%M:%S")
@@ -24,11 +36,3 @@ class ISO(object):
         if h[0] == "0":
             h = h[1:]
         return h + time.strftime(":%M:%S %p").lower()
-
-iso = ISO()
-
-if __name__ == "__main__": 
-    print("str(iso) ", iso)
-    print("iso.d    ", iso.d)
-    print("iso.t    ", iso.t)
-    print("iso.dt   ", iso.dt)
