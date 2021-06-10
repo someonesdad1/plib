@@ -13,10 +13,22 @@ hexdump("abc", offset=1) produces
 hexdump("abc", length=2) produces
     "00000000: 6162                                     ab\n"
 '''
-
-import io
-from functools import partial
-
+if 1:  # Copyright, license
+    # These "trigger strings" can be managed with trigger.py
+    #∞copyright∞# Copyright (C) 2020 Don Peterson #∞copyright∞#
+    #∞contact∞# gmail.com@someonesdad1 #∞contact∞#
+    #∞license∞#
+    #   Licensed under the Open Software License version 3.0.
+    #   See http://opensource.org/licenses/OSL-3.0.
+    #∞license∞#
+    #∞what∞#
+    # Python 3 hexdump module
+    #∞what∞#
+    #∞test∞# run #∞test∞#
+    pass
+if 1:   # Imports
+    import io
+    from functools import partial
 def hexdump(obj, offset=0, length=0, asc=True, out=None, encoding="UTF-8"):
     '''Return a string of the hexdump of obj.  If out is given, then
     send the hexdump string to it.
@@ -100,9 +112,30 @@ def hexdump(obj, offset=0, length=0, asc=True, out=None, encoding="UTF-8"):
     # We're done
     if out is None:
         return o.getvalue()
-
 if __name__ == "__main__": 
-    import sys
-    if len(sys.argv) > 1:
-        for file in sys.argv[1:]:
-            hexdump(open(file, "rb"), out_stream=sys.stdout)
+    from lwtest import run, assert_equal, raises
+    from io import StringIO
+    from pdb import set_trace as xx 
+    def Test():
+        s = "abc"
+        t = hexdump(s)
+        e = "00000000: 6162 63                                  abc\n"
+        assert(t == e)
+        # Test out
+        o = StringIO()
+        t = hexdump(s, out=o)
+        u = o.getvalue()
+        assert(u == e)
+        # Test offset
+        t = hexdump(s, offset=1)
+        e = "00000001: 6263                                     bc\n"
+        assert(t == e)
+        # Test length
+        t = hexdump(s, length=2)
+        e = "00000000: 6162                                     ab\n"
+        assert(t == e)
+        # Test asc
+        t = hexdump(s, asc=False)
+        e = "00000000: 6162 63\n"
+        assert(t == e)
+    exit(run(globals(), halt=1)[0])
