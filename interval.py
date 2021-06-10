@@ -1095,7 +1095,7 @@ def Range(*p):
             yield i
             i += inc
 
-if 0: #xx
+if 0:
     # Show ordering amongst different scalars
     from mpmath import mpf
     from decimal import Decimal

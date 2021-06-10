@@ -1,4 +1,6 @@
 '''
+xx Move to fmt.py
+
 FormatFraction
   Return the string form of a fraction using Unicode subscript and superscript
   characters.  Example:  Fraction(3, 16) returns '³/₁₆'.

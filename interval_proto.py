@@ -1,6 +1,5 @@
 '''
 Wed 03 Sep 2014 02:23:05 PM
-xx
     I've stopped work on this because it's more likely I'll get what I
     want by modifying an interval library found on pypi because it
     will be less work.

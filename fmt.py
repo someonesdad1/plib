@@ -578,7 +578,6 @@ if __name__ == "__main__":
             return args
     args = ParseCommandLine(d)
     if d["--test"]:
-        r = r"^Test_"
-        exit(run(globals(), regexp=r, halt=1)[0])
+        exit(run(globals(), regexp=r"Test_", halt=1)[0])
     else:
         Demo()

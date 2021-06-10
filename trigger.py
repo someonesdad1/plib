@@ -83,7 +83,6 @@ class Trigger(dict):
                 raise ValueError(msg)
             elif len(t) != 1 or trigger in self:
                 msg = f"{p}:  More than one string for trigger '{trigger}'"
-                xx()
                 raise ValueError(msg)
             self[trigger] = t[0]
         self.filled = True
@@ -113,9 +112,12 @@ class Trigger(dict):
             trig = f"{self.start}{trigger}{self.end}"
             repl = f"{trig}{self[trigger]}{trig}"
             self.text = r.sub(repl, self.text)
+
+        #xx Need to test write functionality
         print("New text")
         pp(self.text)
-        exit() #xx
+        exit()
+        
     # Disable other dict methods
     def get(self, key, default=None): raise self.not_allowed
     def pop(self, key, default=None): raise self.not_allowed

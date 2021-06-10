@@ -25,7 +25,7 @@ if 1:  # Copyright, license
     #∞what∞#
     # Calculate standard atmosphere characteristicx
     #∞what∞#
-    #∞test∞# ["test/atm_test.py"] #∞test∞#
+    #∞test∞# --test #∞test∞#
     pass
 if 1:  # Imports
     import getopt
