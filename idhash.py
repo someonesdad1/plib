@@ -4,9 +4,22 @@ me to have a secure hash that is nearly certain that no one else would be
 able to guess, even if given this script.  This is because no one would
 know all the answers to the questions below.
 '''
-import hashlib
-from getpass import getpass
-
+if 1:  # Copyright, license
+    # These "trigger strings" can be managed with trigger.py
+    #∞copyright∞# Copyright (C) 2014 Don Peterson #∞copyright∞#
+    #∞contact∞# gmail.com@someonesdad1 #∞contact∞#
+    #∞license∞#
+    #   Licensed under the Open Software License version 3.0.
+    #   See http://opensource.org/licenses/OSL-3.0.
+    #∞license∞#
+    #∞what∞#
+    # Hashes answers to a set of questions
+    #∞what∞#
+    #∞test∞# #∞test∞#
+    pass
+if 1:   # Imports
+    import hashlib
+    from getpass import getpass
 def ID_Hash(questions, remws=True, lc=True, visible=False,
             hash="sha1", truncate=None, show=False, passes=2):
     '''Returns a tuple (a, hash) where a is the answer string that was
@@ -80,17 +93,18 @@ def ID_Hash(questions, remws=True, lc=True, visible=False,
 
 if __name__ == "__main__":
     # Answer 'a' to every question and you should get the hash
-    # dc12ef7691d0f0a5b3eda6dbc10f27cd032d5fcd.
+    # 3aa25c07b73e196ecda364043a270ee9bb8143e2 
+    # (on system with python 3.7.10)
     print('''Enter the answers to the following questions.  Whitespace
 and case are ignored; backspace erases characters.
 ''')
     q = [
         "Vernon's phone number",
-        "DL of mother1's youngest daughter?",
+        "DLN of Zazu's youngest daughter?",
         "Phone extension?",
         "Phone password?",
         "Gary E.'s password?",
-        "First UNIX password?",
+        "Dave R.'s old computer's password?",
     ]
     hashfunc = "sha1"
     vis = True
