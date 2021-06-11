@@ -1,12 +1,10 @@
 # plib
 
-This repository is a collection of python stuff I've written.  Feel free
-to browse and use what suits your needs.  There are quite a few files,
-use the tools (see below) to help understand what these files are
-for.
-
-The general organization is that the root directory holds modules that
-are mostly intended to be imported into other scripts.
+This repository is a collection of python stuff I've written from 1998
+on.  Feel free to browse and use what suits your needs.  There are quite
+a few files, use the tools (see below) to help understand what these
+files are for.  Most of the stuff is licensed under the Open Software
+License version 3.0.
 
 * The `plib` directory holds modules that are intended to be used by
   other scripts.
@@ -29,19 +27,21 @@ with.
 
 ## Coding style
 
-    It is likely you will not like my coding style, as I vertically compress
-    things as much as possible.  This is because screen vertical real estate
-    is the most precious resource.  It's because of the editor I use that I
-    can use this comfortably (it's a folding editor).  I can usually see the
-    whole file's contents when folded in 20 to 30 lines, which makes
-    navigation easier.  Since this will bug most people, it's not hard to
-    get a code formatter to put things back to a more conventional form.
+It is likely you will not like my coding style, as I vertically compress
+things as much as possible.  This is because screen vertical real estate
+is the most precious resource.  Because of the editor I use, I can use
+this compressed form comfortably (it's a folding editor).  I can usually
+see the whole file's contents when folded in 20 to 30 lines, which makes
+navigation easy.  Since this will bug most people, it's not hard to
+get a code formatter to put things back to a more conventional form.
+Otherwise, I mostly follow the guidelines of PEP-8 (see
+https://www.python.org/dev/peps/pep-0008/).
 
 # Tools
 
-## what.py
+## 0what.py
 
-The what.py script can be run with the argument 'all' and you'll get
+The 0what.py script can be run with the argument 'all' and you'll get
 a short description of each python file.  These will be organized by 
 topical categories, such as 'programming', 'utility', 'science', 
 'math', 'shop', etc.  You can also see this description by providing the

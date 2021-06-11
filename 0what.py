@@ -1,138 +1,148 @@
-if __name__ == "__main__": 
-    if 1:   # Imports
-        # Standard library modules
-        from collections import deque, defaultdict
-        import getopt
-        import os
-        import pathlib
-        import re
-        import subprocess
-        import sys
-        from pdb import set_trace as xx
-    if 1:   # Custom modules
-        from wrap import wrap, dedent, indent, Wrap
-        from globalcontainer import Global, Variable, Constant
+'''
+Show the what strings for python scripts
+'''
+if 1:  # Copyright, license
+    # These "trigger strings" can be managed with trigger.py
+    #∞copyright∞# Copyright (C) 2021 Don Peterson #∞copyright∞#
+    #∞contact∞# gmail.com@someonesdad1 #∞contact∞#
+    #∞license∞#
+    #   Licensed under the Open Software License version 3.0.
+    #   See http://opensource.org/licenses/OSL-3.0.
+    #∞license∞#
+    #∞what∞#
+    # Show the what strings for python scripts
+    #∞what∞#
+    #∞test∞# #∞test∞#
+    pass
+if 1:   # Imports
+    # Standard library modules
+    from collections import deque, defaultdict
+    import getopt
+    import os
+    import pathlib
+    import re
+    import subprocess
+    import sys
+    from pdb import set_trace as xx
+if 1:   # Custom imports
+    import trigger
+    from wrap import wrap, dedent, indent, Wrap
+    from lwtest import run, raises, assert_equal, Assert
+if 1:   # Global variables
+    P = pathlib.Path
+    rcat = re.compile(r"<(.*?)>")  # Find category strings
+if 1:   # Utility
+    def Error(msg, status=1):
+        print(msg, file=sys.stderr)
+        exit(status)
+    def Usage(d, status=1):
+        name = sys.argv[0]
+        print(dedent(f'''
+        Usage:  {name} [options] [files...]
+          Show the 'what' trigger string for each python file.  A command line
+          argument can also be a directory, in which case all python files in
+          that directory are queried.
+        Options:
+          -r    Act recursively
+          -s    Ignore category and sort by filename
+        '''))
+        exit(status)
+    def ParseCommandLine(d):
+        d["-r"] = False             # Act recursively
+        d["-s"] = False             # Sort by filename
         try:
-            from lwtest import run, raises, assert_equal
-            _have_lwtest = True
-        except ImportError:
-            # Get it from
-            # https://someonesdad1.github.io/hobbyutil/prog/lwtest.zip
-            _have_lwtest = False
-    if 1:   # Global variables
-        G = Global()
-        P = pathlib.Path
-        def MakeGlobals():
-            global G
-            G.ro = Constant()
-            # Root of filesystem for these files
-            G.ro.root = P("/plib")
-            # Directory of script relative to root
-            p = P(sys.argv[0]).resolve()
-            G.ro.name = p.relative_to(G.ro.root)
-            G.ro.category = "[utility]"
-            G.ro.python = sys.executable
-        MakeGlobals()
-    if 1:   # Utility
-        def Error(msg, status=1):
-            print(msg, file=sys.stderr)
-            exit(status)
-        def Usage(d, status=1):
-            name = sys.argv[0]
-            print(dedent(f'''
-            Usage:  {name} [options] files...
-              Show the 'what' trigger string for each file.
-             
-            Options:
-              -a        Show for all files
-              --what    Brief description of module's purpose
-            '''))
-            exit(status)
-        def ParseCommandLine(d):
-            d["-a"] = False             # All files
-            d["--what"] = False         # Print short description
-            try:
-                opts, args = getopt.getopt(sys.argv[1:], "ah", 
-                    "what".split())
-            except getopt.GetoptError as e:
-                print(str(e))
-                exit(1)
-            for o, a in opts:
-                if o[1] in list("a"):
-                    d[o] = not d[o]
-                elif o in ("-h", "--help"):
-                    Usage(d, status=0)
-                elif o == "--what":
-                    d["--what"] = not d["--what"]
-            if not args and not d["--what"] and not d["-a"]:
-                Usage(d)
-            return args
-        def What():
-            print(f"{G.ro.category} {G.ro.name}")
-            w = Wrap(rmargin=2)
-            w.i = " "*2
-            print(w('''
-                This script prints out the --what string for each file
-                given on the command line to give you a short
-                description of the file's purpose.
-            '''))
-    if 1:   # Core functionality
-        def GetFiles(regexps: list) -> deque:
-            all, keep = deque(G.ro.root.rglob("*.py")), deque()
-            R = [re.compile(regexp, re.I) for regexp in regexps]
-            if not d["-a"]:
-                while all:
-                    file = all.popleft()
-                    for r in R:
-                        if r.search(str(file)):
-                            keep.append(file)
-                            break
+            opts, args = getopt.getopt(sys.argv[1:], "hrs")
+        except getopt.GetoptError as e:
+            print(str(e))
+            exit(1)
+        for o, a in opts:
+            if o[1] in list("rs"):
+                d[o] = not d[o]
+            elif o in ("-h", "--help"):
+                Usage(d, status=0)
+        if not args:
+            Usage(d)
+        return args
+if 1:   # Core functionality
+    def FormatWhat(what, indent=" "*2):
+        '''Return (what, category) where what is the wrapped string
+        without '#' leaders and category is the category string or None.
+        '''
+        s = what.strip() 
+        lines = s.split("\n")
+        # Remove beginning '#'
+        o = deque()
+        for line in lines:
+            line = line.strip()
+            if line and line[0] == "#":
+                line = line[1:].strip()
+            o.append(line)
+        s = ' '.join(o)
+        # Remove category string if present
+        mo = rcat.search(s)
+        category = mo.groups()[0] if mo else None
+        s = rcat.sub("", s).strip()
+        return (s, category)
+    def ProcessFile(file):
+        '''Return (file, ts, category) where ts is the trigger string
+        for 'what'.  If there is no trigger string, ts is None.  If
+        there was a category in the trigger string, it is returned in
+        the string category or is None.
+        '''
+        if not hasattr(ProcessFile, "tr"):
+            ProcessFile.tr = trigger.Trigger()
+        di = ProcessFile.tr
+        di(file)
+        if "what" in di:
+            what, category = FormatWhat(di["what"])
+            return (file, what, category)
+        else:
+            return None
+    def GetDirectoryFiles(dir):
+        glb = dir.rglob if d["-r"] else dir.glob
+        files = []
+        for file in glb("*.py"):
+            data = ProcessFile(file)
+            if data is not None:
+                files.append(data)
+        return files
+    def GetFiles(args):
+        '''Return a sequence of files from the files/directories given on
+        the command line.  args is a sequence of file or directory names
+        The returned sequence will be of the form:
+            (filename, what_string)
+        where filename is a pathlib.Path object and what_string is the
+        what string for that file or None if there wasn't a what string.
+        '''
+        files = []
+        for item in args:
+            p = P(item)
+            if p.is_dir():
+                files.extend(GetDirectoryFiles(p))
+            elif p.is_file():
+                data = ProcessFile(p)
+                if data is not None:
+                    files.append(data)
             else:
-                keep = all
-            # keep contains the files to list
-            return keep
-        def HasWhat(file):
-            "Return True if file has string '--what'"
-            return "--what" in file.read_text()
-        def GetWhatString(file: pathlib.Path, container: deque):
-            '''Given the pathlib.Path file and deque, capture the output
-            of the --what option and put it in the deque.  This will let
-            us sort the output by categories.
-            '''
-            args = [G.ro.python, str(file), "--what"]
-            cp = subprocess.run(args, capture_output=True, encoding="UTF-8")
-            if not cp.returncode:
-                output = cp.stdout
-                s = output.replace("\n", "")
-                container.append(s)
-        def LoadDict(container: deque, dict: defaultdict):
-            while container:
-                fields = container.pop().split()
-                key = fields[0]
-                filename = fields[1]
-                dict[key].append([filename, ' '.join(fields[2:])])
-        def Report(dict):
-            items = list(sorted(dict.items()))
-            w = Wrap(rmargin=3)
-            w.i = " "*2
-            for key, value in items:
-                for filename, s in value:
-                    print(key, filename)
-                    s = w(s)
-                    print(w(s))
+                raise TypeError(f"'{p}' is not a file or directory")
+        return files
 
-    # ----------------------------------------------------------------------
+if __name__ == "__main__": 
     d = {}      # Options dictionary
+    import color as C
     args = ParseCommandLine(d)
-    if d["--what"]:
-        What()
-    else:
-        # Normal execution
-        files = GetFiles(args)
-        container = deque()
-        for file in sorted(files):
-            if HasWhat(file):
-                GetWhatString(file, container)
-        dict = defaultdict(list)
-        LoadDict(container, dict)
-        Report(dict)
+    files = GetFiles(args)
+    for file in files:
+        f, tr, cat = file
+        if tr is not None:
+            s = f"{C.fg(C.lgreen, s=1)}{cat}{C.normal(s=1)}" if cat is not None else ""
+            print(f"{f}      {tr[:20]}       {s}")
+    exit()
+
+    container = deque()
+    for file in sorted(files):
+        if HasWhat(file):
+            GetWhatString(file, container)
+    dict = defaultdict(list)
+    LoadDict(container, dict)
+    Report(dict)
