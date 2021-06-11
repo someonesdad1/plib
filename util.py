@@ -1,6 +1,6 @@
 # TODO:  Convert Spinner to a class so the instance is thread-safe
 '''Miscellaneous routines in python:
-
+ 
 AlmostEqual           Returns True when two floats are nearly equal
 Ampacity              Returns NEC ampacity of copper wire
 AWG                   Returns wire diameter in inches for AWG gauge number
@@ -62,58 +62,72 @@ StringToNumbers       Convert a string to a sequence of numbers
 TempConvert           Convert a temperature
 Time                  Returns a string giving local time and date
 TranslateSymlink      Returns what a cygwin symlink is pointing to
-US_states             Dictionary of states indexed by e.g. "ID"
+US_states             Dictionary of states keyed by 2-letter abbreviation
 VisualCount           Return a list representing a histogram of a sequence
 Walker                Generator to recursively return files or directories
 WindChillInDegF       Calculate wind chill given OAT & wind speed
 WireGauge             Get diameter or number of wire gauge sizes
 WordID                Generate nonsense words that are somewhat prounounceable
 '''
-
-# Copyright (C) 2014 Don Peterson
-# Contact:  gmail.com@someonesdad1
-
-#
-# Licensed under the Open Software License version 3.0.
-# See http://opensource.org/licenses/OSL-3.0.
-#
-
-from collections import deque, defaultdict, OrderedDict
-from collections.abc import Iterable
-from decimal import Decimal
-from fractions import Fraction
-from heapq import nlargest
-from itertools import chain, combinations, islice, groupby
-from itertools import cycle
-from itertools import zip_longest
-from operator import itemgetter
-from random import randint, seed
-from sig import sig
-from string import ascii_letters, digits as DIGITS, punctuation
-import cmath
-import glob
-import math
-import os
-import pathlib
-import re
-import struct
-import subprocess
-import sys
-import tempfile
-import time
-
-from pdb import set_trace as xx
-import debug
-if 0:
-    debug.SetDebugger()
-
-P = pathlib.Path
-nl = "\n"
-
-# Note:  this choice of a small floating point number may be
-# wrong on a system that doesn't use IEEE floating point numbers.
-eps = 1e-15
-
+if 1:  # Copyright, license
+    # These "trigger strings" can be managed with trigger.py
+    #∞copyright∞# Copyright (C) 2014 Don Peterson #∞copyright∞#
+    #∞contact∞# gmail.com@someonesdad1 #∞contact∞#
+    #∞license∞#
+    #   Licensed under the Open Software License version 3.0.
+    #   See http://opensource.org/licenses/OSL-3.0.
+    #∞license∞#
+    #∞what∞#
+    # Utility python tools
+    #∞what∞#
+    #∞test∞# run #∞test∞#
+    pass
+if 1:   # Imports
+    from collections import deque, defaultdict, OrderedDict
+    from collections.abc import Iterable
+    from decimal import Decimal
+    from fractions import Fraction
+    from heapq import nlargest
+    from itertools import chain, combinations, islice, groupby
+    from itertools import cycle, zip_longest
+    from operator import itemgetter
+    from pdb import set_trace as xx
+    from random import randint, seed
+    from string import ascii_letters, digits as DIGITS, punctuation
+    import cmath
+    import glob
+    import math
+    import os
+    import pathlib
+    import re
+    import struct
+    import subprocess
+    import sys
+    import tempfile
+    import time
+if 1:   # Custom imports
+    from sig import sig
+if 1:   # Global variables
+    P = pathlib.Path
+    nl = "\n"
+    # Note:  this choice of a small floating point number may be
+    # wrong on a system that doesn't use IEEE floating point numbers.
+    eps = 1e-15
+    # Dictionary of US state abbreviations
+    a = '''AK AL AR AZ CA CO CT DE FL GA HI IA ID IL IN KS KY LA MA MD ME MI
+        MN MO MS MT NC ND NE NH NJ NM NV NY OH OK OR PA RI SC SD TN TX UT
+        VA VT WA WI WV WY'''.split()
+    b = [i.replace("·", " ") for i in '''Alaska Alabama Arkansas Arizona
+        California Colorado Connecticut Delaware Florida Georgia Hawaii
+        Iowa Idaho Illinois Indiana Kansas Kentucky Louisiana
+        Massachusetts Maryland Maine Michigan Minnesota Missouri
+        Mississippi Montana North·Carolina North·Dakota Nebraska
+        New·Hampshire New·Jersey New·Mexico Nevada New·York Ohio Oklahoma
+        Oregon Pennsylvania Rhode·Island South·Carolina South·Dakota
+        Tennessee Texas Utah Virginia Vermont Washington Wisconsin
+        West·Virginia Wyoming'''.split()]
+    US_states = dict(zip(a, b))
+    del a, b
 def Percentile(seq, fraction):
     '''Return the indicated fraction of a sequence seq of sorted
     values.  fraction will be converted to be in [0, 1].
@@ -185,7 +199,6 @@ def Percentile(seq, fraction):
     else:
         y = seq[0]
     return y
-
 def ItemCount(seq, n=None):
     '''Return a sorted list of the items and their counts in the iterable
     seq, with the largest count first in the tuple.  If n is given, only
@@ -208,7 +221,6 @@ def ItemCount(seq, n=None):
         items[item] += 1
     s = sorted(items.items(), key=itemgetter(1), reverse=True)
     return s if n is None else s[:n]
-
 def VisualCount(seq, n=None, char="*", width=None, indent=0):
     '''Return a list of strings representing a histogram of the items in
     the iterable seq.  If the values in the sequence can be sorted, the
@@ -223,15 +235,15 @@ def VisualCount(seq, n=None, char="*", width=None, indent=0):
  
     Note:  the width calculations are only correct if the length of the
     char string is 1.
-
+ 
     Example:  
-        for i in VisualCount([1,1,1,1,1,8,8,8,9,9,9,9,9,9,9,9,9,9,9], 
-                             width=40, indent=8):
+        seq = [1,1,1,1,1,8,8,8,9,9,9,9,9,9,9,9,9,9,9]
+        for i in VisualCount(seq, width=40, indent=8):
             print(i)
-    prints
-        1 *************
-        8 ********
-        9 ******************************
+        prints
+            1 *************
+            8 ********
+            9 ******************************
     '''
     counts = ItemCount(seq, n=n)
     try:
@@ -241,7 +253,7 @@ def VisualCount(seq, n=None, char="*", width=None, indent=0):
     max_obj_len = max([len(str(i[0])) for i in counts])
     max_count = max([i[1] for i in counts])
     if width is None:
-        width = int(os.environ.setdefault("COLUMNS", 80)) - 1
+        width = int(os.environ.get("COLUMNS", 80)) - 1
     max_hist_len = width - indent - 1 - max_obj_len
     assert(max_hist_len > 0)
     # Scale counts to fit on screen
@@ -252,7 +264,6 @@ def VisualCount(seq, n=None, char="*", width=None, indent=0):
         s = "{}{:{}s} ".format(" "*indent, str(item), max_obj_len)
         output.append(s + char*count)
     return output
-
 class Singleton(object):
     '''Mix-in class to make an object a singleton.  From 'Python in a
     Nutshell', p 84.
@@ -262,7 +273,6 @@ class Singleton(object):
         if cls not in cls._singletons:
             cls._singletons[cls] = object.__new__(cls)
         return cls._singletons[cls]
-
 def signum(x, ret_type=int):
     '''Return a number -1, 0, or 1 representing the sign of x.
     '''
@@ -271,7 +281,6 @@ def signum(x, ret_type=int):
     elif x > 0:
         return ret_type(1)
     return ret_type(0)
-
 def InterpretFraction(s):
     '''Interprets the string s as a fraction.  The following are
     equivalent forms:  '5/4', '1 1/4', '1-1/4', or '1+1/4'.  The
@@ -299,7 +308,6 @@ def InterpretFraction(s):
         return -(ip + fp) if neg else ip + fp
     except ValueError:
         raise ValueError(msg)
-
 def ProperFraction(fraction, separator=" "):
     '''Return the Fraction object fraction in a proper fraction string
     form.
@@ -312,7 +320,6 @@ def ProperFraction(fraction, separator=" "):
     n, d = abs(fraction.numerator), abs(fraction.denominator)
     ip, numerator = divmod(n, d)
     return "{}{}{}{}/{}".format(sgn, ip, separator, numerator, d)
-
 def RemoveIndent(s, numspaces=4):
     '''Given a multi-line string s, remove the indicated number of
     spaces from the beginning each line.  If that number of space
@@ -325,7 +332,6 @@ def RemoveIndent(s, numspaces=4):
         if line.startswith(" "*numspaces):
             lines[i] = lines[i][numspaces:]
     return nl.join(lines)
-
 def Batch(iterable, size):
     '''Generator that gives you batches from an iterable in manageable
     sizes.  Slightly adapted from Raymond Hettinger's entry in the
@@ -359,7 +365,6 @@ def Batch(iterable, size):
     counter.n = -1
     for k, g in groupby(iterable, counter):
         yield g
-
 def GroupByN(seq, n, fill=False):
     '''Return an iterator that gives groups of n items from the
     sequence.  If fill is True, return None for any missing items.  In
@@ -388,7 +393,6 @@ def GroupByN(seq, n, fill=False):
         return zip_longest(*([iter(seq)]*n), fillvalue=None)
     else:
         return zip(*([iter(seq)]*n))
-
 def Cfg(lines, lvars=OrderedDict(), gvars=OrderedDict()):
     '''Allow use of sequences of text strings to be used for
     general-purpose configuration information.  Each string must be
@@ -436,7 +440,6 @@ def Cfg(lines, lvars=OrderedDict(), gvars=OrderedDict()):
     # The things defined in the configuration lines are now in the
     # dictionary lvars.
     return lvars
-
 def bitlength(n):
     '''This emulates the n.bit_count() function of integers in python 2.7
     and 3.  This returns the number of bits needed to represent the
@@ -450,7 +453,6 @@ def bitlength(n):
         return n.bit_count()
     except Exception:
         return len(bin(abs(n))) - 2
-
 def CountBits(num):
     '''Return (n_on, n_off), the number of 'on' and 'off' bits in the 
     integer num.
@@ -461,7 +463,6 @@ def CountBits(num):
     on  = sum([i == "1" for i in s])
     off = sum([i == "0" for i in s])
     return (on, off)
-
 def ReadVariables(file, ignore_errors=False):
     '''Given a file of lines of python code, this function reads in
     each line and executes it.  If the lines of the file are
@@ -515,7 +516,6 @@ def ReadVariables(file, ignore_errors=False):
     for i in "line lines i file ignore_errors".split():
         del d[i]
     return d
-
 def randq(seed=-1):
     '''The simple random number generator in the section "An Even
     Quicker Generator" from "Numerical Recipes in C", page 284,
@@ -531,19 +531,16 @@ def randq(seed=-1):
         randq.idum = abs(hash(seed))
     randq.idum = (randq.a*randq.idum + randq.c) % randq.maxidum
     return randq.idum
-
-# State variables for randq
-randq.a = 1664525
-randq.c = 1013904223
-randq.idum = 0
-randq.maxidum = 2**32
-
+if 1:   # State variables for randq
+    randq.a = 1664525
+    randq.c = 1013904223
+    randq.idum = 0
+    randq.maxidum = 2**32
 def randr(seed=-1):
     '''Uses randq to return a floating point number on [0, 1).
     '''
     n = randq(seed=seed) if seed != -1 else randq()
     return n/float(randq.maxidum)
-
 def IsCygwinSymlink(file):
     '''Return True if file is a cygwin symbolic link.
     '''
@@ -552,12 +549,10 @@ def IsCygwinSymlink(file):
         if s[2:9] == "symlink":
             return True
     return False
-
 def TranslateSymlink(file):
     '''For a cygwin symlink, return a string of what it's pointing to.
     '''
     return open(file).read()[12:].replace("\x00", "")
-
 def Int(s):
     '''Convert the string x to an integer.  Allowed forms are:
     Plain base 10 string
@@ -577,7 +572,6 @@ def Int(s):
         return neg*int(s, 16)
     else:
         return neg*int(s, 10)
-
 def int2base(x, base):
     '''Converts the integer x to a string representation in a given
     base.  base may be from 2 to 94.
@@ -606,9 +600,6 @@ def int2base(x, base):
         answer.append('-')
     answer.reverse()
     return ''.join(answer)
-
-int2base.digits = DIGITS + ascii_letters + punctuation
-
 def base2int(x, base):
     '''Inverse of int2base.  Converts a string x in the indicated base
     to a base 10 integer.  base may be from 2 to 94.
@@ -628,15 +619,15 @@ def base2int(x, base):
             raise ValueError(msg)
         n += val*(base**i)
     return n
-
-base2int.digits = DIGITS + ascii_letters + punctuation
-
+if 1:   # State variables for int2base, base2int
+    int2base.digits = DIGITS + ascii_letters + punctuation
+    base2int.digits = int2base.digits
 def IsTextFile(file, num_bytes=100):
     '''Heuristic to classify a file as text or binary.  The algorithm
     is to read num_bytes from the beginning of the file; if there are
     any characters other than the "typical" ones found in plain text
     files, the file is classified as binary.
-
+ 
     This won't work on a file that contains Unicode characters but is
     otherwise plain text.  Here, "text" means plain ASCII.
  
@@ -652,11 +643,9 @@ def IsTextFile(file, num_bytes=100):
         if ord(c) not in text_chars:
             return False
     return True
-
 def IsBinaryFile(file, num_bytes=100):
     'Heuristic that returns True if a file is a binary file'
     return not IsTextFile(file, num_bytes)
-
 class Dispatch:
     '''The Dispatch class allows different functions to be called
     depending on the argument types.  Thus, there can be one function
@@ -681,7 +670,6 @@ class Dispatch:
             raise TypeError("Don't know how to dispatch %s arguments" %
                             type(arg1))
         return apply(self._dispatch[type(arg1)], (arg1,) + args, kw)
-
 def IsIterable(x, exclude_strings=False):
     '''Return True if x is an iterable.  You can exclude strings from the
     things that can be iterated on if you wish.
@@ -697,14 +685,12 @@ def IsIterable(x, exclude_strings=False):
     if exclude_strings and isinstance(x, str):
         return False
     return isinstance(x, Iterable)
-
 def SpeedOfSound(T):
     '''Returns speed of sound in air in m/s as a function of temperature
     T in K.  Assumes sea level pressure.
     '''
     assert(T > 0)
     return 331.4*math.sqrt(T/273.15)
-
 def WindChillInDegF(wind_speed_in_mph, air_temp_deg_F):
     '''Wind Chill for exposed human skin, expressed as a function of
     wind speed in miles per hour and temperature in degrees Fahrenheit.
@@ -717,7 +703,6 @@ def WindChillInDegF(wind_speed_in_mph, air_temp_deg_F):
         raise ValueError("Air temperature must be < 50 deg F")
     return (35.74 + 0.6215*air_temp_deg_F - 35.75*wind_speed_in_mph**0.16 +
             0.4275*air_temp_deg_F*wind_speed_in_mph**0.16)
-
 def Height(current_height_inches, age_years, sex):
     '''Returns the predicted adult height in inches of a child.
     Unattributed, but found in the C code files of Glenn Rhoads' old
@@ -735,7 +720,6 @@ def Height(current_height_inches, age_years, sex):
         return h/(((0.00011*a - 0.0032)*a + 0.0604)*a + 0.3796)
     else:
         return h/(((0.00028*a - 0.0071)*a + 0.0926)*a + 0.3524)
-
 def HeatIndex(air_temp_deg_F, relative_humidity_percent):
     '''From http://www.weather.gov/forecasts/graphical/sectors/idaho.php#tabs.
     See also http://www.crh.noaa.gov/pub/heat.php.
@@ -768,11 +752,10 @@ def HeatIndex(air_temp_deg_F, relative_humidity_percent):
           6.83783e-3*Tf*Tf - 5.481717e-2*RH*RH + 1.22874e-3*Tf*Tf*RH +
           8.5282e-4*Tf*RH*RH - 1.99e-6*Tf*Tf*RH*RH)
     return HI
-
 class Debug:
     '''Implements a debug class that can be useful in printing debugging
     information.
-
+ 
     dbg = Debug()
     dbg.print("Message")
         Will print '+ Message' to stderr
@@ -789,7 +772,6 @@ class Debug:
             if self.add_nl:
                 s += nl
             self.stream.write(s)
-
 def Time():
     '''Returns the current time in the following format:
         '7Jun2021 7:24 am Mon'
@@ -800,7 +782,6 @@ def Time():
     clock = f(time.strftime("%I:%M", t))
     ampm = time.strftime("%p", t).lower()
     return ' '.join((date, clock, ampm, day))
-
 def AWG(n):
     '''Returns the wire diameter in inches given the AWG (American Wire
     Gauge) number (also known as the Brown and Sharpe gauge).  Use negative
@@ -836,7 +817,6 @@ def AWG(n):
     if n <= 44:
         return round(diameter, 4)
     return round(diameter, 5)
-
 def WireGauge(num, mm=False):
     '''If num is an integer between 1 and 80, this function will return the
     diameter of the indicated wire gauge size in inches (or mm if the mm
@@ -877,27 +857,23 @@ def WireGauge(num, mm=False):
         return t[0][1] + 1  # Add 1 because we deleted the first element
     else:
         raise ValueError("num is an unexpected type")
-
 def SignSignificandExponent(x, digits=15):
     '''Returns a tuple (sign, significand, exponent) of a floating point
     number x.
     '''
     s = ("%%.%de" % digits) % abs(float(x))
     return (1 - 2*(x < 0), float(s[0:digits + 2]), int(s[digits + 3:]))
-
 def significand(x, digits=6):
     '''Return the significand of x rounded to the indicated number of
     digits.
     '''
     s = SignSignificandExponent(x)[1]
     return round(s, digits - 1)
-
 def mantissa(x, digits=6):
     '''Return the mantissa of the base 10 logarithm of x rounded to the
     indicated number of digits.
     '''
     return round(math.log10(significand(x, digits=digits)), digits)
-
 def SignificantFiguresS(value, digits=3, exp_compress=True):
     '''Returns a string representing the number value rounded to
     a specified number of significant figures.  The number is
@@ -949,13 +925,11 @@ def SignificantFiguresS(value, digits=3, exp_compress=True):
     neg = "-" if sign < 0 else ""
     e = "e%+d" % exponent if exp_compress else "e%+04d" % exponent
     return neg + (fmt % significand) + e
-
 def SignificantFigures(value, figures=3):
     '''Rounds a value to specified number of significant figures.
     Returns a float.
     '''
     return float(SignificantFiguresS(value, figures))
-
 def EditData(data, binary=False):
     'Edit a str or bytes object using vim'
     if not isinstance(data, (str, bytes)):
@@ -979,7 +953,6 @@ def EditData(data, binary=False):
         else:
             data = file.read_text()
     return data
-
 def Engineering(value, digits=3):
     '''Return a tuple (m, e, s) representing a number in engineering
     notation.  m is the significand.  e is the exponent in the form of
@@ -1006,7 +979,6 @@ def Engineering(value, digits=3):
         # eliminates the exponential notation
         m = str(int(float(m)))
     return m, 3*(exponent//3), s
-
 def eng(value, digits=3, unit=None, width=0):
     '''Convenience function for engineering representation.  If unit is
     given, then the number of digits is displayed in value with the
@@ -1025,7 +997,6 @@ def eng(value, digits=3, unit=None, width=0):
             p = (" " * (width - len(s)))
             s = p + s
     return s
-
 def IdealGas(P=0, v=0, T=0, MW=28.9):
     '''Given two of the three variables P, v, and T, calculates the
     third for the indicated gas.  The variable that is unknown should
@@ -1099,7 +1070,6 @@ def IdealGas(P=0, v=0, T=0, MW=28.9):
         return R*T/P
     else:
         return P*v/R
-
 def AlmostEqual(a, b, rel_err=2e-15, abs_err=5e-323):
     '''Determine whether floating-point values a and b are equal to
     within a (small) rounding error; return True if almost equal and
@@ -1132,7 +1102,6 @@ def AlmostEqual(a, b, rel_err=2e-15, abs_err=5e-323):
         return False
     else:
         return absolute_error <= max(abs_err, rel_err*abs(a))
-
 def Flatten(L, max_depth=None, ltypes=(list, tuple)):
     ''' Flatten every sequence in L whose type is contained in
     "ltypes" to "max_depth" levels down the tree.  The sequence
@@ -1181,7 +1150,6 @@ def Flatten(L, max_depth=None, ltypes=(list, tuple)):
         return type(L)(r)
     except TypeError:
         return r
-
 def TempConvert(t, in_unit, to_unit):
     '''Convert the temperature in t in the unit specified in in_unit to the
     unit specified by to_unit.
@@ -1215,7 +1183,6 @@ def TempConvert(t, in_unit, to_unit):
             (tou == "f" and T < -r)):
         raise e
     return T
-
 def DecimalToBase(num, base, check_result=False):
     '''Convert a decimal integer num to a string in base base.  Tested with
     random integers from 10 to 10,000 digits in bases 2 to 36 inclusive.
@@ -1237,7 +1204,6 @@ def DecimalToBase(num, base, check_result=False):
         raise ArithmeticError("Base conversion failed for %d to base %d" %
                               (num, base))
     return sign + in_base
-
 def ConvertToNumber(s, handle_i=True):
     '''This is a general-purpose routine that will return a python number
     for a string if it is possible.  The basic logic is:
@@ -1259,7 +1225,6 @@ def ConvertToNumber(s, handle_i=True):
         return Fraction(s)
     else:
         return int(s)
-
 def StringToNumbers(s, sep=" ", handle_i=True):
     '''s is a string; return the sequence (tuple) of numbers it
     represents; number strings are separated by the string sep.  The
@@ -1273,7 +1238,6 @@ def StringToNumbers(s, sep=" ", handle_i=True):
         else:
             seq.extend(line.split())
     return tuple([ConvertToNumber(i, handle_i=handle_i) for i in seq])
-
 class bitvector(int):
     '''This convenience class is an integer that lets you get its bit
     values using indexing or slices.
@@ -1327,7 +1291,6 @@ class bitvector(int):
             if index < 0:
                 raise ValueError("Negative bit index not allowed")
             return bitvector((self & 2**index) >> index)
-
 def hyphen_range(s, sorted=False, unique=False):
     '''Takes a set of range specifications of the form "a-b" and returns a
     list of integers between a and b inclusive.  Also accepts comma
@@ -1359,60 +1322,6 @@ def hyphen_range(s, sorted=False, unique=False):
         r = list(set(r))
         r.sort()
     return r
-
-US_states = {
-    'AK': 'Alaska',
-    'AL': 'Alabama',
-    'AR': 'Arkansas',
-    'AZ': 'Arizona',
-    'CA': 'California',
-    'CO': 'Colorado',
-    'CT': 'Connecticut',
-    'DE': 'Delaware',
-    'FL': 'Florida',
-    'GA': 'Georgia',
-    'HI': 'Hawaii',
-    'IA': 'Iowa',
-    'ID': 'Idaho',
-    'IL': 'Illinois',
-    'IN': 'Indiana',
-    'KS': 'Kansas',
-    'KY': 'Kentucky',
-    'LA': 'Louisiana',
-    'MA': 'Massachusetts',
-    'MD': 'Maryland',
-    'ME': 'Maine',
-    'MI': 'Michigan',
-    'MN': 'Minnesota',
-    'MO': 'Missouri',
-    'MS': 'Mississippi',
-    'MT': 'Montana',
-    'NC': 'North Carolina',
-    'ND': 'North Dakota',
-    'NE': 'Nebraska',
-    'NH': 'New Hampshire',
-    'NJ': 'New Jersey',
-    'NM': 'New Mexico',
-    'NV': 'Nevada',
-    'NY': 'New York',
-    'OH': 'Ohio',
-    'OK': 'Oklahoma',
-    'OR': 'Oregon',
-    'PA': 'Pennsylvania',
-    'RI': 'Rhode Island',
-    'SC': 'South Carolina',
-    'SD': 'South Dakota',
-    'TN': 'Tennessee',
-    'TX': 'Texas',
-    'UT': 'Utah',
-    'VA': 'Virginia',
-    'VT': 'Vermont',
-    'WA': 'Washington',
-    'WI': 'Wisconsin',
-    'WV': 'West Virginia',
-    'WY': 'Wyoming'
-}
-
 def Binary(n):
     '''convert an integer n to a binary string.  Example:  Binary(11549)
     gives '10110100011101'.
@@ -1429,14 +1338,12 @@ def Binary(n):
     else:
         # Use built-in bin()
         return "-" + bin(n)[3:] if n < 0 else bin(n)[2:]
-
 def int2bin(n, numbits=32):
     '''Returns the binary of integer n, using numbits number of
     digits.  Note this is a two's-complement representation.
     From http://www.daniweb.com/software-development/python/code/216539
     '''
     return "".join([str((n >> y) & 1) for y in range(numbits - 1, -1, -1)])
-
 def grouper(data, mapper, reducer=None):
     '''Simple map/reduce for data analysis.
  
@@ -1475,7 +1382,6 @@ def grouper(data, mapper, reducer=None):
         for key, group in d.items():
             d[key] = reducer(group)
     return d
-
 class Walker(object):
     '''Defines a class that operates as a generator for recursively getting
     files or directories from a starting directory.  The default is to
@@ -1525,7 +1431,6 @@ class Walker(object):
                     p = os.path.join(root, file)
                     if os.path.isfile(p):
                         yield p
-
 def IsConvexPolygon(*p):
     '''Return True if the sequence p of two-dimensional points
     constitutes a convex polygon.  Ref:
@@ -1562,7 +1467,6 @@ def IsConvexPolygon(*p):
     if cross_product_signs[0] and len(set(cross_product_signs)) == 1:
         return True
     return False
-
 def BraceExpansion(s, glob=False):
     '''Generator to perform brace expansion on the string s.  If glob
     is True, then also glob each pattern in the current directory.
@@ -1612,7 +1516,6 @@ def BraceExpansion(s, glob=False):
     else:
         for i in getitem(s)[0]:
             yield i
-
 def bin2gray(bits):
     '''bits will be a string representing a binary number with the most
     significant bit at index 0; for example, the integer 13 would be
@@ -1626,7 +1529,6 @@ def bin2gray(bits):
     b = [int(i) for i in bits]
     g = b[:1] + [i ^ ishift for i, ishift in zip(b[:-1], b[1:])]
     return ''.join([str(i) for i in g])
-
 def gray2bin(bits):
     '''bits will be a string representing a Gray-encoded binary number.
     Return a string representing a binary number with the most significant
@@ -1641,8 +1543,6 @@ def gray2bin(bits):
     for nextb in Bits[1:]:
         b.append(b[-1] ^ nextb)
     return ''.join([str(i) for i in b])
-
-
 def Spinner(chars=r"-\|/-\|/", delay=0.1):
     '''Show a spinner to indicate that processing is still taking place.
     Set Spinner.stop to True to cause it to exit.  Note this is not
@@ -1668,7 +1568,6 @@ def Spinner(chars=r"-\|/-\|/", delay=0.1):
             print()
             return
 Spinner.stop = False
-
 def ProgressBar(frac=0, width=40, char="#"):
     '''Prints a progress bar to stdout.  frac must be a number on the
     closed interval [0, 1].
@@ -1687,7 +1586,6 @@ def ProgressBar(frac=0, width=40, char="#"):
     percent = int(100*frac)
     print("\r[", char*left, " "*right, "]", " {}%".format(percent),
           sep="", end="", flush=True)
-
 def Paste(*seq, missing="", sep="\t"):
     '''Return a list whose elements are each corresponding element of the
     sequences in *seq, separated by the string sep.  If a sequence is too
@@ -1703,7 +1601,6 @@ def Paste(*seq, missing="", sep="\t"):
     for i, item in enumerate(result):   # Convert all elements to strings
         result[i] = [str(j) for j in result[i]]
     return [sep.join(i) for i in result]
-
 def EBCDIC():
     '''Returns two byte-translation tables to use with
     bytes.translate().  The first converts ASCII bytes to EBCDIC and the
@@ -1747,7 +1644,6 @@ def EBCDIC():
     ]
     s, t = bytearray(a2e), bytearray(e2a)
     return s.maketrans(s, t), s.maketrans(t, s)
-
 def Ampacity(dia_mm, insul_degC=60, ambient_degC=30):
     '''Return the NEC-allowed current in a copper conductor at the
     indicated ambient temperature and with the indicated insulation
@@ -1810,3 +1706,530 @@ def Ampacity(dia_mm, insul_degC=60, ambient_degC=30):
         return correction*(b1*dia_mm + b2*dia_mm**2 + b3*dia_mm**3)
     else:
         raise ValueError("ambient_degC out of range")
+if __name__ == "__main__": 
+    # Missing tests for: Ignore Debug, Dispatch, GetString
+    from io import StringIO
+    from lwtest import run, assert_equal, raises, Assert
+    from random import seed
+    from wrap import dedent
+    import itertools
+    import math
+    import sys
+    from itertools import zip_longest
+    from pdb import set_trace as xx
+    seed(2**64)  # Make test sequences repeatable
+    show_coverage = len(sys.argv) > 1
+    def TestInt():
+        data = (
+            ("0b11", 3),
+            ("0o10", 8),
+            ("0x10", 16),
+            ("10", 10),
+            ("-0b11", -3),
+            ("-0o10", -8),
+            ("-0x10", -16),
+            ("-10", -10),
+        )
+        for s, n in data:
+            Assert(Int(s) == n)
+    def TestAlmostEqual():
+        Assert(AlmostEqual(0, 0))
+        Assert(AlmostEqual(0, 1e-353))
+        Assert(AlmostEqual(1.0, 1.0))
+        Assert(AlmostEqual(1, 1 + 2e-15))
+        Assert(not AlmostEqual(1, 1 + 2.11e-15))
+        Assert(AlmostEqual(1.0, 1.001, 1e-2))
+        Assert(not AlmostEqual(1.0, 1.011, 1e-2))
+    def TestSpeedOfSound():
+        Assert(AlmostEqual(SpeedOfSound(273.15), 331.4, 1e-5))
+    def TestWindChillInDegF():
+        Assert(AlmostEqual(WindChillInDegF(20, 0), -21.9952, 1e-5))
+    def TestHeatIndex():
+        Assert(AlmostEqual(HeatIndex(40, 96), 101, 7e-2))
+        Assert(AlmostEqual(HeatIndex(100, 90), 132, 4e-1))
+    def TestAWG():
+        Assert(AlmostEqual(AWG(12), 0.0808, 8e-4))
+    def TestWireGauge():
+        Assert(AlmostEqual(WireGauge(12), 0.189))
+        Assert(AlmostEqual(WireGauge(0.189), 12))
+        # Check that each gauge number, when run back through the function as a
+        # dimension in inches, gives the original gauge number.
+        sizes = list(range(80, 0, -1))
+        t = [WireGauge(i) for i in sizes]
+        s = [WireGauge(i) for i in t]
+        Assert(s == sizes)
+    def TestSignSignificandExponent():
+        s, m, e = SignSignificandExponent(-1.23e-4)
+        Assert(s == -1 and m == 1.23 and e == -4)
+    def TestSignificantFigures():
+        Assert(AlmostEqual(float(SignificantFiguresS(1.2345e-6)), 1.23e-6))
+        Assert(AlmostEqual(SignificantFigures(1.2345e-6), 1.23e-6))
+    def TestEngineering():
+        m, e, s = Engineering(1.2345e-6)
+        Assert(float(m) == 1.23 and e == -6 and s == "u")
+        m, e, s = Engineering(1.2345e-7)
+        Assert(float(m) == 123 and e == -9 and s == "n")
+        m, e, s = Engineering(1.2345e-8)
+        Assert(float(m) == 12.3 and e == -9 and s == "n")
+    def TestIdealGas():
+        P, v, T = 0.101325e6, 0, 300
+        v = IdealGas(P, v, T)
+        Assert(AlmostEqual(v, 0.85181, 1e-5))
+        P = 0
+        P = IdealGas(P, v, T)
+        Assert(AlmostEqual(P, 0.101325e6))
+        T = 0
+        T = IdealGas(P, v, T)
+        Assert(AlmostEqual(T, 300))
+    def TestConvertToNumber():
+        Assert(ConvertToNumber("1+i") == 1+1j)
+        Assert(ConvertToNumber("1+j") == 1+1j)
+        Assert(ConvertToNumber("j") == 1j)
+        Assert(ConvertToNumber("1.") == 1)
+        Assert(ConvertToNumber("1e2") == 1e2)
+        Assert(ConvertToNumber("1E2") == 1E2)
+        Assert(ConvertToNumber("1/2") == Fraction(1, 2))
+        Assert(ConvertToNumber("1") == 1)
+        n = 10**50  # Large integer
+        Assert(ConvertToNumber(str(n)) == n)
+    def TestDecimalToBase():
+        # Generate a few random integers and check the results with
+        # python's int() built-in.
+        for base in range(2, 37):
+            for i in range(100):
+                x = randint(0, int(1e6))
+                # Note the following call also checks the result
+                s = DecimalToBase(x, base, check_result=True)
+    def TestFlatten():
+        Assert(list(Flatten([])) == [])
+        r = list(range(11))
+        Assert(list(Flatten(r)) == r)
+        a = [0, (1, 2, (3, 4, (5, 6, 7))), (8, (9, 10))]
+        Assert(list(Flatten(a)) == r)
+    def Test_eng():
+        Assert(eng(3456.78) == "3.46e3")
+        Assert(eng(3456.78, digits=4) == "3.457e3")
+        # kkg is a illegal SI unit, but the code allows it
+        Assert(eng(3456.78, unit="kg") == "3.46 kkg")
+    def TestIsIterable():
+        Assert(IsIterable("") and IsIterable([]) and IsIterable(()) )
+        Assert(IsIterable({}) and IsIterable(set()))
+        Assert(not IsIterable(3))
+        Assert(IsIterable("a"))
+        Assert(not IsIterable("a", exclude_strings=True))
+        Assert(IsIterable([]))
+        Assert(IsIterable((0,)))
+        Assert(IsIterable(iter((0,))))
+        Assert(not IsIterable(0))
+    def TestBinary():
+        d = '''
+        -1000 -1111101000
+        -501 -111110101
+        -500 -111110100
+        -499 -111110011
+        -16 -10000
+        -15 -1111
+        -14 -1110
+        -13 -1101
+        -12 -1100
+        -11 -1011
+        -10 -1010
+        -9 -1001
+        -8 -1000
+        -7 -111
+        -6 -110
+        -5 -101
+        -4 -100
+        -3 -11
+        -2 -10
+        -1 -1
+        0 0
+        1 1
+        2 10
+        3 11
+        4 100
+        5 101
+        6 110
+        7 111
+        8 1000
+        9 1001
+        10 1010
+        11 1011
+        12 1100
+        13 1101
+        14 1110
+        15 1111
+        16 10000
+        499 111110011
+        500 111110100
+        501 111110101
+        999 1111100111
+        1000 1111101000
+        '''.strip()
+        for line in d.split("\n"):
+            n, b = line.strip().split()
+            n = int(n)
+            Assert(Binary(n) == b)
+    def Test_int2base():
+        raises(ValueError, int2base, "", 2)
+        raises(ValueError, int2base, 0, 370)
+        x = 12345
+        Assert(int2base(x, 2) == bin(x)[2:])
+        Assert(int2base(x, 8) == oct(x)[2:])
+        Assert(int2base(x, 16) == hex(x)[2:])
+        Assert(int2base(36**2, 36) == "100")
+        s = "53,kkns^~laU"
+        Assert(int2base("255" + str(2**64), 94) == s)
+    def Test_base2int():
+        s = "53,kkns^~laU"
+        Assert(base2int(s, 94) == int("255" + str(2**64)))
+    def Test_hyphen_range():
+        s, h = "77", hyphen_range
+        Assert(h(s) == [77])
+        s = "8-12,14,18"
+        Assert(h(s) == [8, 9, 10, 11, 12, 14, 18])
+        s = "8 - 12, 14, 18"
+        L1 = h(s)
+        Assert(L1 == [8, 9, 10, 11, 12, 14, 18])
+        s = "12-8,14,18,18"
+        L = h(s)
+        Assert(L == [12, 11, 10, 9, 8, 14, 18, 18])
+        L = h(s, sorted=True)
+        Assert(L == L1 + [18])
+        L = h(s, unique=True)
+        Assert(L == L1)
+    def TestTempConvert():
+        k, r = 273.15, 459.67
+        Assert(AlmostEqual(TempConvert(0, "c", "f"), 32))
+        Assert(AlmostEqual(TempConvert(0, "c", "k"), k))
+        Assert(AlmostEqual(TempConvert(0, "c", "r"), 32 + r))
+        Assert(AlmostEqual(TempConvert(0, "c", "c"), 0))
+        Assert(AlmostEqual(TempConvert(212, "f", "c"), 100))
+        Assert(AlmostEqual(TempConvert(212, "f", "f"), 212))
+        Assert(AlmostEqual(TempConvert(212, "f", "k"), k + 100))
+        Assert(AlmostEqual(TempConvert(212, "f", "r"), r + 212))
+    def TestIsTextFile():
+        s = StringIO("Some text")
+        Assert(IsTextFile(s))
+        s = StringIO("Some text\xf8")
+        Assert(not IsTextFile(s))
+        # Also test IsBinaryFile()
+        s = StringIO("Some text\xf8")
+        Assert(IsBinaryFile(s))
+    def Test_randq():
+        s = [randq(seed=0)]
+        for i in range(10):
+            s.append(randq())
+        s = ["%08X" % i for i in s]
+        # Hex strings from "Numerical Recipes in C", page 284
+        t = ["3C6EF35F", "47502932", "D1CCF6E9", "AAF95334", "6252E503",
+            "9F2EC686", "57FE6C2D", "A3D95FA8", "81FDBEE7", "94F0AF1A",
+            "CBF633B1"]
+        Assert(s == t)
+    def Test_randr():
+        m = randq.maxidum
+        Assert(randr(0) == (1013904223 % m)/float(m))
+    def TestCountBits():
+        bits = "0112122312"
+        for i in range(10):
+            Assert(CountBits(i)[0] == int(bits[i]))
+    util_simlink = "c:/cygwin/pylib/test/util_simlink.py"
+    translated_util_simlink = "../util.py"
+    def TestIsCygwinSymlink():
+        if sys.platform == "win32":
+            # For this to work, create a cygwin simlink named util_simlink.py
+            # in /pylib/test that points to /pylib/util.py.
+            Assert(IsCygwinSymlink(util_simlink))
+            Assert(not IsCygwinSymlink("c:/cygwin/home/Don/bin/data/notes.txt"))
+    def TestTranslateSymlink():
+        if sys.platform == "win32":
+            # For this to work, create a cygwin simlink named util_simlink.py
+            # in /pylib/test that points to /pylib/util.py.
+            Assert(TranslateSymlink(util_simlink) == translated_util_simlink)
+    def Test_bitlength():
+        Assert(bitlength(0) == 1)
+        Assert(bitlength(1) == 1)
+        Assert(bitlength(2) == 2)
+        Assert(bitlength(255) == 8)
+        Assert(bitlength(256) == 9)
+    def Test_grouper():
+        def even_odd(elem):         # sample mapper
+            if 10 <= elem <= 20:    # skip elems outside the range
+                key = elem % 2      # group into evens and odds
+                return key, elem
+        got = grouper(range(30), even_odd)
+        expected = {0: [10, 12, 14, 16, 18, 20], 1: [11, 13, 15, 17, 19]}
+        Assert(got == expected)
+        got = grouper(range(30), even_odd, sum)
+        expected = {0: 90, 1: 75}
+        Assert(got == expected)
+    def Test_int2bin():
+        Assert(int2bin(-33, 8) == "11011111")
+        Assert(int2bin( 33, 8) == "00100001")
+    def TestCfg():
+        lines = dedent('''
+            from math import sqrt
+            a = 44
+            b = "A string"
+            def X(a):
+                return a/2
+            c = a*sqrt(2)
+            d = X(a)
+        ''').split("\n")
+        d = Cfg(lines)
+        Assert(d["a"] == 44)
+        Assert(d["b"] == "A string")
+        Assert(d["c"] == d["a"]*d["sqrt"](2))
+        Assert(d["d"] == 22)
+        Assert(str(d["X"])[:11] == "<function X")
+    def TestRemoveIndent():
+        s = '''
+        This is a test
+            Second line
+          Third line
+        '''
+        lines = RemoveIndent(s, numspaces=8).split("\n")
+        Assert(lines[0] == "")
+        Assert(lines[1] == "This is a test")
+        Assert(lines[2] == "    Second line")
+        Assert(lines[3] == "  Third line")
+        Assert(lines[4] == "")
+    def TestInterpretFraction():
+        expected = Fraction(5, 4)
+        Assert(InterpretFraction("5/4") == expected)
+        Assert(InterpretFraction("1 1/4") == expected)
+        Assert(InterpretFraction("1+1/4") == expected)
+        Assert(InterpretFraction("1-1/4") == expected)
+        #
+        Assert(InterpretFraction("+5/4") == expected)
+        Assert(InterpretFraction("+1 1/4") == expected)
+        Assert(InterpretFraction("+1+1/4") == expected)
+        Assert(InterpretFraction("+1-1/4") == expected)
+        #
+        Assert(InterpretFraction("-5/4") == -expected)
+        Assert(InterpretFraction("-1 1/4") == -expected)
+        Assert(InterpretFraction("-1+1/4") == -expected)
+        Assert(InterpretFraction("-1-1/4") == -expected)
+        #
+        Assert(InterpretFraction("1 1/1") == Fraction(2, 1))
+        Assert(InterpretFraction("+1 1/1") == Fraction(2, 1))
+        Assert(InterpretFraction("-1 1/1") == Fraction(-2, 1))
+        #
+        Assert(InterpretFraction("1 2/1") == Fraction(3, 1))
+        Assert(InterpretFraction("+1 2/1") == Fraction(3, 1))
+        Assert(InterpretFraction("-1 2/1") == Fraction(-3, 1))
+        # Argument must contain "/" and be parseable
+        raises(ValueError, InterpretFraction, "1")
+        raises(ValueError, InterpretFraction, "1/")
+        raises(ValueError, InterpretFraction, "/1")
+    def TestProperFraction():
+        Assert(ProperFraction(Fraction("-1")) == "-1 0/1")
+        Assert(ProperFraction(Fraction("1")) == "1 0/1")
+        Assert(ProperFraction(Fraction(-1, 1)) == "-1 0/1")
+        Assert(ProperFraction(Fraction(1, 1)) == "1 0/1")
+        Assert(ProperFraction(Fraction(-3, 1)) == "-3 0/1")
+        Assert(ProperFraction(Fraction(3, 1)) == "3 0/1")
+        Assert(ProperFraction(Fraction(5, 4)) == "1 1/4")
+        Assert(ProperFraction(Fraction(-5, 4)) == "-1 1/4")
+    def Test_signum():
+        Assert(signum(-5) == -1)
+        Assert(signum(5) == 1)
+        Assert(signum(0) == 0)
+        t = float
+        Assert(isinstance(signum(5, ret_type=t), t))
+    def TestSingleton():
+        class A(object): pass
+        a, b = A(), A()
+        Assert(hash(a) != hash(b))
+        class A(Singleton): pass
+        a, b = A(), A()
+        Assert(hash(a) == hash(b))
+    def TestBatch():
+        s = "0123456789"
+        r = ("012", "345", "678", "9")
+        for i, b in enumerate(Batch(s, 3)):
+            Assert(r[i] == ''.join(list(b)))
+    def TestGroupByN():
+        n, m = 5, 3
+        s = range(n)
+        t = ((0, 1, 2),)
+        Assert(t == tuple(GroupByN(s, m, fill=False)))
+        t = ((0, 1, 2), (3, 4, None))
+        u = tuple(GroupByN(s, m, fill=True))
+        Assert(t == tuple(GroupByN(s, m, fill=True)))
+    def TestPercentile():
+        s = sorted([  # NIST gauge study data from
+            # https://www.itl.nist.gov/div898/handbook/prc/section2/prc262.htm
+            95.0610, 95.0925, 95.1065, 95.1195, 95.1442, 95.1567, 95.1591,
+            95.1682, 95.1772, 95.1937, 95.1959, 95.1990])
+        Assert(round(Percentile(s, -1), 4) == 95.0610)
+        Assert(round(Percentile(s, 0), 4) == 95.0610)
+        Assert(round(Percentile(s, 0.5), 4) == 95.1579)
+        Assert(round(Percentile(s, 0.9), 4) == 95.1981)
+        Assert(round(Percentile(s, 1), 4) == 95.1990)
+        Assert(round(Percentile(s, 1.1), 4) == 95.1990)
+        raises(ValueError, Percentile, [1], 0.5)
+    def TestIsConvexPolygon():
+        p = ((0, 0), (1, 0), (1, 1), (0, 1))
+        Assert(IsConvexPolygon(*p))
+        p = ((0, 0), (1, 0), (1, 1), (0.5, 0.5))
+        Assert(not IsConvexPolygon(*p))
+        # Test with lines slightly above and below the above figure's
+        # diagonal.
+        d = 1e-10
+        p = ((0, 0), (1, 0), (1, 1), (0.5 + d, 0.5))    # Concave
+        Assert(not IsConvexPolygon(*p))
+        p = ((0, 0), (1, 0), (1, 1), (0.5 - d, 0.5))    # Convex
+        Assert(IsConvexPolygon(*p))
+        p = ((0, 0), (1, 0), (1, 1), (0.5, 0.5 + d))    # Convex
+        Assert(IsConvexPolygon(*p))
+        p = ((0, 0), (1, 0), (1, 1), (0.5, 0.5 - d))    # Concave
+        Assert(not IsConvexPolygon(*p))
+    def TestStringToNumbers():
+        s = "4j 3/5 6. 7"
+        Assert(StringToNumbers(s) == (4j, Fraction(3, 5), 6.0, 7))
+    def TestPaste():
+        a = ["a", "b", 1]
+        b = ["d", "e"]
+        c = ["f"]
+        s = Paste(a, b, c)
+        Assert(s == ['a\td\tf', 'b\te\t', '1\t\t'])
+    def TestItemCount():
+        f, F = ItemCount, Fraction
+        raises(Exception, f, 1)
+        raises(Exception, f, 1.0)
+        raises(Exception, f, F(1, 1))
+        raises(Exception, f, object())
+        # Empty sequence returns empty string
+        Assert(f([]) == [])
+        # Elementary counting
+        Assert(f([1]) == [(1, 1)])
+        Assert(f([1.0]) == [(1.0, 1)])
+        Assert(f([1, 1]) == [(1, 2)])
+        Assert(f([1, 1, 1]) == [(1, 3)])
+        # Two element types
+        Assert(f([1, 2]) == [(1, 1), (2, 1)])
+        Assert(f([1, 1, 2]) == [(1, 2), (2, 1)])
+        Assert(f([1, 2.0]) == [(1, 1), (2.0, 1)])
+        Assert(f([1.0, 2.0]) == [(1.0, 1), (2.0, 1)])
+        Assert(f([1.0, 2.0, 2]) == [(2.0, 2), (1.0, 1)])
+        Assert(f([1.0, 2, 2.0]) == [(2, 2), (1.0, 1)])
+        Assert(f([1.0, 2, 2.0, F(2, 1)]) == [(2, 3), (1.0, 1)])
+        # Show order can matter.  Thus, the results can be syntactically
+        # different but semantically the same.
+        Assert(f([1, 2, 1, 2]) == [(1, 2), (2, 2)])
+        Assert(f([2, 1, 1, 2]) == [(2, 2), (1, 2)])
+        Assert(f([2, 1, F(1, 1), 2]) == [(2, 2), (1, 2)])
+        # Item type also matters
+        Assert(f([1, F(1, 1)]) == [(1, 2)])
+        Assert(f([1.0, F(1, 1)]) == [(1.0, 2)])
+        Assert(f([F(1, 1), 1.0]) == [(F(1, 1), 2)])
+        Assert(f([F(1, 1), 1]) == [(F(1, 1), 2)])
+        # Fractions
+        Assert(f([F(1, 2), 1]) == [(F(1, 2), 1), (1, 1)])
+        Assert(f([F(1, 2), F(1, 2)]) == [(F(1, 2), 2)])
+        # Show that it works with strings
+        Assert(f(["a", "b", "a"]) == [("a", 2), ("b", 1)])
+        # Any hashable object can be counted
+        a, b = object(), object()
+        Assert(f([a, b]) == [(a, 1), (b, 1)])
+        # Show the n keyword returns the n largest counts
+        a = [1, 2, 2, 3, 3, 3]
+        Assert(f(a, n=1) == [(3, 3)])
+        Assert(f(a, n=2) == [(3, 3), (2, 2)])
+        Assert(f(a, n=3) == [(3, 3), (2, 2), (1, 1)])
+        Assert(f(a, n=4) == [(3, 3), (2, 2), (1, 1)])
+    def TestReadVariables():
+        code = dedent('''
+        a = 3
+        b = 4
+        c = "5"''')
+        s = StringIO(code)
+        d = ReadVariables(s)
+        Assert(d == {"a": 3, "b": 4, "c": "5"})
+    def TestVisualCount():
+        s = (1, 1, 1, 2, "a", "a", (1, 2))
+        got = "\n".join(VisualCount(s, width=20))
+        expected = dedent('''
+        1      *************
+        a      ********
+        2      ****
+        (1, 2) ****''')
+        Assert(got == expected)
+    def TestWalker():
+        # Construct a dummy directory structure
+        dir, file = "walker", "a"
+        path = os.path.join(dir, file)
+        try:
+            os.mkdir(dir)
+        except FileExistsError:
+            pass
+        open(path, "w").write("hello")
+        # Test we see directory
+        w = Walker()
+        w.dir = True
+        for i in w("."):
+            # Ignore the test directory (needed after moving util.py to
+            # /plib)
+            if "test" in i:
+                continue
+            Assert(i.replace("\\", "/") == "./walker")
+        # Test we see file
+        w = Walker()
+        w.dir = False
+        for i in w("walker"):
+            Assert(i.replace("\\", "/") == "walker/a")
+        # Remove what we set up
+        os.remove(path)
+        os.rmdir(dir)
+    def Test_mantissa():
+        x = 1.234 
+        mant = mantissa(x)
+        Assert(mant == 0.091315)
+    def Test_significand():
+        x = math.pi*1e-10
+        Assert(significand(x, digits=6) == 3.14159)
+        Assert(significand(x, digits=2) == 3.1)
+    def Test_bitvector():
+        s = "9"
+        bv = bitvector(s)
+        Assert(str(bv) == s)
+        Assert(repr(bv) == "bitvector({})".format(s))
+        binary = bin(int(s))[2:] + "0"*8
+        for i, value in enumerate(binary):
+            Assert(bv[i] == int(value))
+        Assert(bv[1000] == 0)   # Check a high bit number
+    def Test_BraceExpansion():
+        Assert(list(BraceExpansion("a.{a, b}")) == ['a.a', 'a. b'])
+        # Cartesian product
+        s = list(BraceExpansion("{A,B,C,D}{A,B,C,D}"))
+        t = [i + j for i, j in itertools.product('ABCD', repeat=2)]
+        Assert(s == t)
+    def Test_GrayConversions():
+        # Test integers from 0 to 15
+        gray = "0 1 11 10 110 111 101 100 1100 1101 1111 1110 1010 1011 1001 1000"
+        for i, g in enumerate(gray.split()):
+            b = gray2bin(g)
+            Assert(b == bin(i)[2:])
+            g1 = bin2gray(b)
+            Assert(g1 == g)
+    def Test_EBCDIC():
+        a2e, e2a = EBCDIC()
+        # Show that these byte translation tables are inverses
+        a = bytearray(range(256))
+        e = a.translate(a2e)
+        a1 = e.translate(e2a)
+        Assert(a == a1)
+    def Test_Ampacity():
+        dia_mm = 11.68
+        i = Ampacity(dia_mm, insul_degC=60, ambient_degC=30)
+        Assert(i == 193.46399267737598)
+        i = Ampacity(dia_mm, insul_degC=75, ambient_degC=30)
+        Assert(i == 229.27285356605438)
+        i = Ampacity(dia_mm, insul_degC=90, ambient_degC=30)
+        Assert(i == 258.78428183511033)
+        # Test a derated value
+        i = Ampacity(dia_mm, insul_degC=90, ambient_degC=21)
+        Assert(i == 1.04*258.78428183511033)
+    exit(run(globals(), halt=1)[0])
+
