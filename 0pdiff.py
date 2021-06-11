@@ -1,15 +1,19 @@
 '''
 Identify file differences between /plib and /pylib.
 '''
- 
-# Copyright (C) 2021 Don Peterson
-# Contact:  gmail.com@someonesdad1
- 
-#
-# Licensed under the Academic Free License version 3.0.
-# See http://opensource.org/licenses/AFL-3.0.
-#
-
+if 1:  # Copyright, license
+    # These "trigger strings" can be managed with trigger.py
+    #∞copyright∞# Copyright (C) 2021 Don Peterson #∞copyright∞#
+    #∞contact∞# gmail.com@someonesdad1 #∞contact∞#
+    #∞license∞#
+    #   Licensed under the Open Software License version 3.0.
+    #   See http://opensource.org/licenses/OSL-3.0.
+    #∞license∞#
+    #∞what∞#
+    # <utility> Identify file differences between /plib and /pylib.
+    #∞what∞#
+    #∞test∞# #∞test∞#
+    pass
 if 1:   # Standard modules
     import getopt
     import os
@@ -105,7 +109,6 @@ if 1:   # Core functions
             print("Files that differ between /plib and /pylib:")
             for line in Columnize(o, indent="  "):
                 print(line)
-
 if __name__ == "__main__":
     d = {}      # Options dictionary
     dispatch = {

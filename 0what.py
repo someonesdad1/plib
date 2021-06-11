@@ -10,7 +10,8 @@ if 1:  # Copyright, license
     #   See http://opensource.org/licenses/OSL-3.0.
     #∞license∞#
     #∞what∞#
-    # <utility> Show the what strings for python scripts
+    # <utility> Show the 'what' strings for python scripts.  These are
+    # the strings in each script describing the purpose of the script.
     #∞what∞#
     #∞test∞# #∞test∞#
     pass

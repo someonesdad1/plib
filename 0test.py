@@ -23,7 +23,10 @@ if 1:  # Copyright, license
     #   See http://opensource.org/licenses/OSL-3.0.
     #∞license∞#
     #∞what∞#
-    # <utility> Run self tests of python scripts with a test trigger string
+    # <utility> Run self tests of python scripts with a test trigger
+    # string.  A trigger string of "run" means run the script directly.
+    # "--test" means run it with this option.  A list of strings
+    # specifies one or more test files to run.
     #∞what∞#
     pass
 if 1:   # Standard imports

@@ -11,9 +11,11 @@ The polar equation of this spiral is
     r = a*theta
  
 where theta is the angle and a is a constant.  For a spiral with
-multiple revolutions, the distance between the revolutions (pitch)
-is 2*pi*a.
- 
+multiple revolutions, the distance between the revolutions (i.e., the
+pitch) is 
+        
+    pitch = 2*pi*a = math.tau*a.
+  
 The arc length s is gotten from the integral from theta1 to theta2
 of
  
@@ -76,7 +78,6 @@ In terms of the constant in the polar equation for the spiral, we have
     t = 2*pi*a
     a = t/(2*pi)
 '''
- 
 if 1:  # Copyright, license
     # These "trigger strings" can be managed with trigger.py
     #∞copyright∞# Copyright (C) 2011 Don Peterson #∞copyright∞#
@@ -86,13 +87,18 @@ if 1:  # Copyright, license
     #   See http://opensource.org/licenses/OSL-3.0.
     #∞license∞#
     #∞what∞#
-    # <math> Length of an Archimedian spiral
+    # <math> Function to calculate the length of an Archimedian spiral.
+    # Both an exact and approximate formulas are given.  Example:
+    # estimate the length of paper on a roll of paper towels.
     #∞what∞#
     #∞test∞# run #∞test∞#
     pass
- 
-import math
- 
+if 1:   # Imports
+    import math
+    from pdb import set_trace as xx 
+if 1:   # Custom imports
+    from frange import frange
+    from f import flt, radians, log, sqrt
 def SpiralArcLength(a, theta, degrees=False):
     '''Calculate the arc length of an Archimedian spiral from angle
     0 to theta.  theta is in radians unless degrees is True.  The number a
@@ -104,9 +110,34 @@ def SpiralArcLength(a, theta, degrees=False):
     '''
     if a <= 0:
         raise ValueError("a must be > 0")
-    theta = math.radians(theta) if degrees else theta
-    A = math.sqrt(theta*theta + 1)
-    return a/2*(theta*A + math.log(theta + A))
+    theta = radians(flt(theta)) if degrees else flt(theta)
+    A = sqrt(theta*theta + 1)
+    return flt(a)/2*(theta*A + log(theta + A))
+def ApproximateSpiralArcLength(ID, OD, thickness):
+    '''Given the inside and outside diameters of a spiral roll of
+    material with uniform thickness, estimate the length of material on
+    the roll.  The three parameters must be measured in the same units
+    and the returned number will be in the same units.
+ 
+    The smaller thickness(OD - ID) is, the better the approximation.
+    '''
+    # Approximation:  for a large diameter circle, one revolution of a
+    # fine-pitch spiral should be nearly equal to the circumference.
+    if ID < 0 or ID >= OD:
+        raise ValueError("ID must be >= 0 and < OD")
+    if OD <= 0:
+        raise ValueError("OD must be > 0")
+    if thickness <= 0:
+        raise ValueError("thickness must be > 0")
+    n = (OD - ID)/thickness
+    if n < 1:
+        raise ValueError("Number of turns is < 1")
+    pitch = (OD - ID)/n
+    length = 0
+    for dia in frange(ID, OD, 2*pitch):
+        dia += pitch    # Use in-between diameter
+        length += 2*math.pi*(dia + pitch)
+    return length
 
 if __name__ == "__main__": 
     from lwtest import run, raises, assert_equal
@@ -122,15 +153,74 @@ if __name__ == "__main__":
     def Test_approximation():
         # Approximation:  for a large diameter circle, one revolution of a
         # fine-pitch spiral should be nearly equal to the circumference.
-        a, n_revolutions, twopi = 1, 10000, 2*math.pi
-        theta = n_revolutions*2*math.pi
-        arc_len = SpiralArcLength(a, theta) - SpiralArcLength(a, theta - 2*math.pi)
-        L_D = SpiralArcLength(a, n_revolutions*twopi)
-        L_d = SpiralArcLength(a, (n_revolutions - 1)*twopi)
+        a, n_revolutions = 1, 10000
+        theta = n_revolutions*math.tau
+        arc_len = (SpiralArcLength(a, theta) -
+                   SpiralArcLength(a, theta - math.tau))
+        L_D = SpiralArcLength(a, n_revolutions*math.tau)
+        L_d = SpiralArcLength(a, (n_revolutions - 1)*math.tau)
         arc_length = L_D - L_d
-        pitch = a*twopi
+        pitch = a*math.tau
         D = (2*n_revolutions - 1)*pitch
         circumference = D*math.pi
         assert_equal(circumference, arc_len, reltol=1e-8)
-    r = r"^Test_"
-    exit(run(globals(), regexp=r, quiet=0)[0])
+    def Test_approximate_formula():
+        ID, OD = 1, 2
+        thickness = 0.001
+        pitch = 2*thickness
+        diameters = list(frange("1", "2", "0.001"))
+        # Sum the circumferences
+        estL1 = sum([dia*math.pi for dia in diameters])
+        estL2 = ApproximateSpiralArcLength(ID, OD, thickness)
+        assert_equal(estL1, estL2, reltol=0.002)
+        # Now compare to exact formula
+        a = pitch/math.tau
+        # There are approximately ID/pitch circles from the spiral center
+        # to the ID.  Since each is a revolution, multiplying by 2*pi
+        # gives the total angle from 0 to the ID.  Similarly for OD.
+        theta1 = math.tau*(ID/pitch)
+        theta2 = math.tau*(OD/pitch)
+        length1 = SpiralArcLength(a, theta1)
+        length2 = SpiralArcLength(a, theta2)
+        exact_length = length2 - length1
+        tol = 0.001
+        assert_equal(estL1, exact_length, reltol=tol)
+        assert_equal(estL2, exact_length, reltol=tol)
+        # In the above, L = 4710.8, estL = 4715.5, and the exact length
+        # is 4712.4.  Note the exact length is between the two
+        # estimates.
+    def Test_toilet_paper_roll():
+        '''A roll of toilet paper has an ID of 60 mm, an OD of 130 mm,
+        and a thickness of about 0.125 mm.  Each sheet is 101x96 mm with
+        the 101 mm dimension perpendicular to the perforations.  The
+        manufacturer states there are 18 rolls in the package and the
+        total area is 815.1 square feet.  Check if this is approximately
+        correct.  Use flt for calculations.
+        '''
+        from f import flt, tau
+        from sys import argv
+        num_rolls = 18
+        mm = flt("1 mm")
+        ID, OD = mm(60), mm(130)
+        width, thickness = mm(96), mm(0.125)
+        pitch = 2*thickness
+        a = pitch/tau
+        # Have to use ID.val because frange barfs on a flt
+        f = lambda x:  float(x.val)
+        length = mm(ApproximateSpiralArcLength(f(ID), f(OD),
+                        f(thickness)))
+        # The area per roll is the exact_length times the 101 mm
+        # dimension
+        area_per_roll = length*width
+        area_per_roll_ft2 = area_per_roll.to("ft2")
+        total_area = num_rolls*area_per_roll
+        total_area_ft2 = total_area.to('ft2')
+
+        # xx  Dump the variables
+        d = locals()
+        for i in sorted(d.keys()):
+            if i in "flt tau mm f".split():
+                continue
+            print(f"{i}: {d[i]}")
+        print(f"{argv[0]}:  Warning:  Test_toilet_paper_roll() not working")
+    exit(run(globals(), regexp="^Test_", quiet=0)[0])

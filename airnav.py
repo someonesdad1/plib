@@ -14,7 +14,8 @@ if 1:  # Copyright, license
     #   See http://opensource.org/licenses/OSL-3.0.
     #∞license∞#
     #∞what∞#
-    # <miscellaneous> Module to perform various navigation tasks
+    # <miscellaneous> Module to perform various air navigation tasks.
+    # The reference used is the Aviation Formulary V1.20 by Ed Williams.
     #∞what∞#
     #∞test∞# run #∞test∞#
     pass

@@ -1,5 +1,7 @@
 * flt("1_1") gives an exception, but it should be flt(11).
 
+* Make frange work with flt
+
 * gauge_sizes.py:  Change the floats to flt with units of inches.
 
 * Change what.py to use a what trigger string.  This lets a what string
