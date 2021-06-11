@@ -17,6 +17,10 @@
 
 * mystr.py:  Convert token naming to a class.
 
+* wire.py:  Change to use flt with proper units.  Update
+  MaxCurrentDensity to use the chassis current data Richard alerted me
+  to (it's in pgm/cu_wire.py).  Also do similar for Ampacity.
+
 * Delete fsig.py once it's established it's not being used anywhere.
 
 * Go through each of the pushed files, clean them up, add test support

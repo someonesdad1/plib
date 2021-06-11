@@ -1,21 +1,26 @@
 '''
-
-Library to provide wire information.
-
+Wire information
 '''
- 
-# Copyright (C) 2019 Don Peterson
-# Contact:  gmail.com@someonesdad1
- 
-#
-# Licensed under the Open Software License version 3.0.
-# See http://opensource.org/licenses/OSL-3.0.
-#
-
-from roundoff import RoundOff
-from math import sqrt, log10, log
-from pdb import set_trace as xx
-
+if 1:  # Copyright, license
+    # These "trigger strings" can be managed with trigger.py
+    #∞copyright∞# Copyright (C) 2019 Don Peterson #∞copyright∞#
+    #∞contact∞# gmail.com@someonesdad1 #∞contact∞#
+    #∞license∞#
+    #   Licensed under the Open Software License version 3.0.
+    #   See http://opensource.org/licenses/OSL-3.0.
+    #∞license∞#
+    #∞what∞#
+    # Wire information
+    #∞what∞#
+    #∞test∞# run #∞test∞#
+    pass
+if 1:   # Imports
+    from math import sqrt, log10, log
+    from pdb import set_trace as xx
+if 1:   # Custom imports
+    from roundoff import RoundOff
+if 1:   # Global variables
+    ii = isinstance
 def MaterialData(material="copper"):
     '''Returns a dictionary containing the physical properties of the
     indicated material in SI units.
@@ -25,7 +30,7 @@ def MaterialData(material="copper"):
     # http://en.wikipedia.org/wiki/American_wire_gauge#cite_note-6.  The
     # value given on that web page is 58.0 MS/m at 68 deg F.  This also
     # agrees to 5 figures with the International Annealed Copper Standard
-    # of 1.7241 uohm*cm.
+    # of 1.7241 μohm*cm.
     Cu_conductivity = 58.0e6 # S/m at 20 deg C
     data = {
         "conductivity": Cu_conductivity,   # In S/m
@@ -65,23 +70,25 @@ def MaterialData(material="copper"):
         "stainless steel": (40, 0.88),
     }
     if material not in matl:
-        raise ValueError("Material '{}' not recognized".format(material))
+        raise ValueError(f"Material '{material}' not recognized")
     factor, density_factor = matl[material]
     data[conductivity] = data[conductivity]/factor
     data[resistivity] = data[resistivity]*factor
     data[resistivity] = data[resistivity]*factor
     data[density] = data[density]*density_factor
     return data
-
 def MaxCurrentDensity(diameter_m, insul_temp_rating_degC):
-    '''This function returns the maximum allowed current density in A/mm2
-    given the wire diameter in m and insul_temp_rating_degC is the
-    insulation temperature rating in deg C.  The algorithm is from the
-    resistor.ods Open Office spreadsheet I wrote and ultimately comes from
-    a linear regression of a log-log plot of the NEC allowed ampacities.
-    insul_temp_rating_degC must be 60, 75, or 90 deg C.
+    '''This function returns the maximum allowed current density in
+    A/mm2 given the wire diameter in m.  insul_temp_rating_degC is the
+    insulation's temperature rating in deg C.  The algorithm is from the
+    resistor.ods Open Office spreadsheet I wrote and ultimately comes
+    from a linear regression of a log-log plot of the NEC allowed
+    ampacities.  insul_temp_rating_degC must be 60, 75, or 90 deg C.
  
-    The code is from an Open Office macro in Basic.
+    The code is from an Open Office macro in BASIC.
+ 
+    xx Update this to use the chassis current values from
+    pgm/cu_wire.py.
     '''
     slope = -0.820  # Common to each curve
     if diameter_m <= 0:
@@ -121,7 +128,6 @@ def MaxCurrentDensity(diameter_m, insul_temp_rating_degC):
                " and diameter in m = " + str(diameter_m))
         raise Exception(msg)
     return jmax
-
 def Ampacity(n, insul_temp_rating_degC):
     '''Return the allowed current in A for copper wire of size n in AWG.
     The insulation's temperature rating must be 60, 75, or 90 deg C.  The
@@ -134,6 +140,9 @@ def Ampacity(n, insul_temp_rating_degC):
     engineering judgment.  See the /pylib/pgm/ampacity.py script for the
     plot of the data and the fitted piecewise-linear models.  Note the
     models are conservative with respect to the wikipedia tabulation.
+ 
+    xx Update this to use the chassis current values from
+    pgm/cu_wire.py.
     '''
     # Data from
     # https://en.wikipedia.org/wiki/American_wire_gauge#Tables_of_AWG_wire_sizes
@@ -155,7 +164,6 @@ def Ampacity(n, insul_temp_rating_degC):
         elif insul_temp_rating_degC == 75:
             b = 1000
     return b*10**(m*n)
-
 def EquivalentArea(n, m):
     '''Given a size n in AWG of a wire, return (D, d, ratio) where D is the
     first wire's area in inches, d is the second wire's diameter in inches,
@@ -166,21 +174,14 @@ def EquivalentArea(n, m):
         raise ValueError("n must be <= m")
     D, d = [AWG(i) for i in (n, m)]     # Diameter in inches
     return D, d, RoundOff((D/d)**2, digits=4)
-
 def AWG(n):
     '''Returns the wire diameter in inches given the AWG (American Wire
     Gauge) number (also known as the Brown and Sharpe gauge).  Use negative
     numbers as follows:  -1 means 2/0, -2 means 3/0, and -3 means 4/0.
-
+ 
     n must be an integer in the closed interval [-3, 56].
     '''
-    if int(n) != n or (n > 56) or (n < -3):
-        raise ValueError("n must be and integer in [-3, 56]")
-    # We use a table lookup for 40 gauge or larger and a formula for 41 to
-    # 56 gauge.
-    try:
-        data = getattr(AWG, "data")
-    except AttributeError:
+    if not hasattr(AWG, "data"):
         AWG.data = (
             # Diameter in 1e5 inch units of AWG wire sizes from -3 (4/0) to
             # 40 AWG.
@@ -190,12 +191,19 @@ def AWG(n):
             1790, 1590, 1420, 1260, 1130, 1000, 893, 795, 708, 630, 561,
             500, 445, 396, 353, 314
         )
+    if not ii(n, int) or (n > 56) or (n < -3):
+        raise ValueError("n must be an integer in [-3, 56]")
+    # We use a table lookup for 40 gauge or larger and a formula for 41 to
+    # 56 gauge.
+    try:
+        data = getattr(AWG, "data")
+    except AttributeError:
+        pass
     if n <= 40:
         d = AWG.data[n + 3]/1e5
         return RoundOff(d, 4) if n <= 30 else RoundOff(d, 5)
     else:
         return RoundOff(92.**((36 - n)/39)/200, 4)
-
 def Preece(n):
     '''Returns the fusing current in A to 3 figures for copper wire in size
     n AWG.  The formula used is Preece's formula, which estimates how much
@@ -208,17 +216,25 @@ def Preece(n):
     where 
         d = wire diameter in inches 
         i = current in A
+
+    Reference:
+    https://pcdandf.com/pcdesign/index.php/magazine/10179-pcb-design-1507
   
     Example:  For 12 gauge copper wire (d = 0.08081 inches), the fusing
     current is 235 A.
     '''
     i = 10244*AWG(n)**1.5
     return RoundOff(i, 3)
-
 def Onderdonk(n, t, Ta):
-    '''Returns the current in amperes to 2 significant figures for copper
-    wire of size n AWG to reach the melting point of copper (1083 deg C) in
-    a given time t seconds for an ambient temperature of Ta in deg C using
+    '''Fusing current in A for copper wire
+ 
+    n = AWG size of wire
+    t = time in s (limited to 10 s or less)
+    Ta = ambient temperature in °C
+
+    Returns the current in amperes to 2 significant figures for copper
+    wire of size n AWG to reach the melting point of copper (1083 °C) in
+    a given time t seconds for an ambient temperature of Ta in °C using
     Onderdonk's equation:
  
         i = A*sqrt(K/(33*t))
@@ -226,7 +242,7 @@ def Onderdonk(n, t, Ta):
     This is taken from
     https://pcdandf.com/pcdesign/index.php/magazine/10179-pcb-design-1507
     and is slightly more general than the original form of Onderdonk's
-    equation, which was given for Ta = 40 deg C in E. R. Stauffacher (June
+    equation, which was given for Ta = 40 °C in E. R. Stauffacher (June
     1928), "Short-time Current Carrying Capacity of Copper Wire", General
     Electric Review, 31 (6) (a copy can be found at
     http://ultracad.com/articles/reprints/stauffacher.pdf).  The variables
@@ -236,10 +252,10 @@ def Onderdonk(n, t, Ta):
         A = cross-sectional area of wire in circular mils (square the 
             diameter of the wire in mils)
         t = time in seconds the current is applied 
-        Ta = ambient temperature in deg C
+        Ta = ambient temperature in °C
         K = log10((1083 - Ta)/(234 + Ta) + 1)
  
-    Example:  4/0 AWG wire has a diameter of 460 mils.  At Ta = 25 deg C,
+    Example:  4/0 AWG wire has a diameter of 460 mils.  At Ta = 25 °C,
     what current can be applied to the wire for 1 s?
  
         K = log10((1083 - 25)/259 + 1) = log10(1058/259 + 1) = 0.7063
@@ -249,15 +265,15 @@ def Onderdonk(n, t, Ta):
     Therefore
  
         i = 211600*sqrt(0.7063/(33*1)) = 30956 amperes
-
+ 
     This function would round this off to 31 kA.  The table on the
     wikipedia page https://en.wikipedia.org/wiki/American_wire_gauge gives
     33 kA, but the page doesn't say how its computation was done.
  
-    The time t in seconds is somewhat arbitrarily limited to a maximum of
-    10 because the derivation ignores heat losses from the wire due to
-    convection, conduction, and radiation.  In reality, it's probably only
-    appropriate to consider times on the order of a few seconds or less.
+    The time t in seconds is arbitrarily limited to a maximum of 10
+    because the derivation ignores heat losses from the wire due to
+    convection, conduction, and radiation.  In reality, it's probably
+    only appropriate to consider times on the order of a second or so.
     '''
     if t > 10:
         raise ValueError("Time t must be <= 10 seconds")
@@ -265,3 +281,61 @@ def Onderdonk(n, t, Ta):
     K = log10((1083 - Ta)/(234 + Ta) + 1)
     i = A*sqrt(K/(33*t))
     return RoundOff(i, 2)
+if __name__ == "__main__": 
+    import sys
+    from lwtest import run, raises, assert_equal, Assert
+    from wire import MaterialData, MaxCurrentDensity, Ampacity
+    from wire import EquivalentArea, AWG, Preece, Onderdonk
+    from pdb import set_trace as xx
+    def TestMaterialData():
+        d = MaterialData(material="copper")
+        cus = 58e6  # Copper conductivity in S/m
+        assert_equal(d["conductivity"], cus)
+        assert_equal(d["resistivity"], 1/cus)
+        assert_equal(d["temp_coeff"], 0.0039)
+        assert_equal(d["density"], 8960)
+        assert_equal(d["units"]["conductivity"], "S")
+        assert_equal(d["units"]["resistivity"], "ohm*m")
+        assert_equal(d["units"]["temp_coeff"], "1/K")
+        assert_equal(d["units"]["density"], "kg/m3")
+    def TestMaxCurrentDensity():
+        assert_equal(MaxCurrentDensity(1, 60), 0.04425883723626271)
+        assert_equal(MaxCurrentDensity(1, 75), 0.05533501092157374)
+        assert_equal(MaxCurrentDensity(1, 90), 0.06367955209079165)
+    def TestAmpacity():
+        assert_equal(Ampacity(12, 60), 23.233252533606738)
+        assert_equal(Ampacity(12, 75), 27.879903040328085)
+        assert_equal(Ampacity(12, 90), 31.597223445705165)
+    def TestEquivalentArea():
+        dn, dm, r = EquivalentArea(12, 14)
+        assert_equal(r, 1.589)
+        dn, dm, r = EquivalentArea(12, 16)
+        assert_equal(r, 2.53)
+        dn, dm, r = EquivalentArea(12, 18)
+        assert_equal(r, 4.02)
+        dn, dm, r = EquivalentArea(12, 30)
+        assert_equal(r, 65.29)
+    def TestAWG():
+        assert_equal(AWG(-3), 0.46)
+        assert_equal(AWG(12), 0.0808)
+        assert_equal(AWG(18), 0.0403)
+        assert_equal(AWG(24), 0.0201)
+        assert_equal(AWG(40), 0.00314)
+        assert_equal(AWG(56), 0.0004919)
+        # Check that we get exceptions for bad values
+        raises(ValueError, AWG, -4)
+        raises(ValueError, AWG, 1.1)
+        raises(ValueError, AWG, 57)
+    def TestPreece():
+        assert_equal(Preece(0), 1900)
+        assert_equal(Preece(10), 333)
+        assert_equal(Preece(12), 235)
+        assert_equal(Preece(18), 82.9)
+        assert_equal(Preece(24), 29.2)
+    def TestOnderdonk():
+        t, Ta = 1, 20
+        assert_equal(Onderdonk(0, t, Ta), 16000)
+        assert_equal(Onderdonk(12, t, Ta), 960)
+        assert_equal(Onderdonk(18, t, Ta), 240)
+        assert_equal(Onderdonk(24, t, Ta), 59)
+    exit(run(globals(), halt=1)[0])
