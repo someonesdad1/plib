@@ -10,7 +10,7 @@ if 1:  # Copyright, license
     #   See http://opensource.org/licenses/OSL-3.0.
     #∞license∞#
     #∞what∞#
-    # Homogeneous list
+    # <programming> Homogeneous list
     #∞what∞#
     #∞test∞# run #∞test∞#
     pass

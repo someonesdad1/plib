@@ -10,7 +10,7 @@ if 1:  # Copyright, license
     #   See http://opensource.org/licenses/OSL-3.0.
     #∞license∞#
     #∞what∞#
-    # General-purpose math-related functions
+    # <math> General-purpose math-related functions
     #∞what∞#
     #∞test∞# run #∞test∞#
     pass

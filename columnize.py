@@ -14,7 +14,7 @@ if 1:  # Copyright, license
     #   See http://opensource.org/licenses/OSL-3.0.
     #∞license∞#
     #∞what∞#
-    # Function to turn a sequence into columns
+    # <programming> Function to turn a sequence into columns
     #∞what∞#
     #∞test∞# --test #∞test∞#
     pass

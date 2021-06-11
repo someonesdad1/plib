@@ -48,7 +48,7 @@ if 1:  # Copyright, license
     #   See http://opensource.org/licenses/OSL-3.0.
     #∞license∞#
     #∞what∞#
-    # Debugging aids
+    # <programming> Debugging aids
     #∞what∞#
     #∞test∞# #∞test∞#
     pass

@@ -21,7 +21,7 @@ if 1:  # Copyright, license
     #   Licensed under the Open Software License version 3.0.
     #   See http://opensource.org/licenses/OSL-3.0.
     #∞license∞#
-    #∞what∞# # Complete elliptic functions #∞what∞#
+    #∞what∞# # <math> Complete elliptic functions #∞what∞#
     #∞test∞# run #∞test∞#
     pass
 if 1:   # Imports

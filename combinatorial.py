@@ -13,7 +13,7 @@ if 1:  # Copyright, license
     #   See http://opensource.org/licenses/OSL-3.0.
     #∞license∞#
     #∞what∞#
-    # Elementary number theory and combinatorics functions
+    # <math> Elementary number theory and combinatorics functions
     #∞what∞#
     #∞test∞# run #∞test∞#
     pass

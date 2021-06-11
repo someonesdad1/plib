@@ -20,7 +20,7 @@ if 1:  # Copyright, license
     #   Licensed under the Open Software License version 3.0.
     #   See http://opensource.org/licenses/OSL-3.0.
     #∞license∞#
-    #∞what∞# Utility encoding tool #∞what∞#
+    #∞what∞# <utility> Utility encoding tool #∞what∞#
     #∞test∞# #∞test∞#
     pass
 if 1:   # Imports

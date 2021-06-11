@@ -22,7 +22,7 @@ if 1:  # Copyright, license
     #   See http://opensource.org/licenses/OSL-3.0.
     #∞license∞#
     #∞what∞#
-    # Replace license statements in files
+    # <utility> Replace license statements in files
     #∞what∞#
     #∞test∞# #∞test∞#
     pass

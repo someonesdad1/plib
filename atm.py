@@ -23,7 +23,7 @@ if 1:  # Copyright, license
     #   See http://opensource.org/licenses/OSL-3.0.
     #∞license∞#
     #∞what∞#
-    # Calculate standard atmosphere characteristicx
+    # <science> Calculate standard atmosphere characteristicx
     #∞what∞#
     #∞test∞# --test #∞test∞#
     pass

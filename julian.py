@@ -28,7 +28,7 @@ if 1:  # Copyright, license
     #   See http://opensource.org/licenses/OSL-3.0.
     #∞license∞#
     #∞what∞#
-    # Julian day routines 
+    # <science> Julian day routines 
     #∞what∞#
     #∞test∞# run #∞test∞#
     pass

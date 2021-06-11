@@ -139,7 +139,7 @@ if 1:   # Standard imports
     #   See http://opensource.org/licenses/OSL-3.0.
     #∞license∞#
     #∞what∞#
-    # This provides a REPL I use for an interactive python calculator.
+    # <utility> This provides a REPL I use for an interactive python calculator.
     #∞what∞#
     from atexit import register
     from collections import defaultdict

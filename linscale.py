@@ -79,7 +79,7 @@ if 1:  # Copyright, license
     #   See http://opensource.org/licenses/OSL-3.0.
     #∞license∞#
     #∞what∞#
-    # Draw linear scales with tick marks and labels
+    # <programming> Draw linear scales with tick marks and labels
     #∞what∞#
     #∞test∞# #∞test∞#
     pass

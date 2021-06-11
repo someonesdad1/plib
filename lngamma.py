@@ -7,7 +7,7 @@ if 1:  # Copyright, license
     #   See http://opensource.org/licenses/OSL-3.0.
     #∞license∞#
     #∞what∞#
-    # Lanczos' formula to calculate ln of gamma function
+    # <math> Lanczos' formula to calculate ln of gamma function
     #∞what∞#
     #∞test∞# run #∞test∞#
     pass

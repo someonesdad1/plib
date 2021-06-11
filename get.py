@@ -13,7 +13,7 @@ if 1:  # Copyright, license
     #   See http://opensource.org/licenses/OSL-3.0.
     #∞license∞#
     #∞what∞#
-    # Module for getting data from files, strings, and streams
+    # <programming> Module for getting data from files, strings, and streams
     #∞what∞#
     #∞test∞# run #∞test∞#
     pass

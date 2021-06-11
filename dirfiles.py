@@ -10,7 +10,7 @@ if 1:  # Copyright, license
     #   See http://opensource.org/licenses/OSL-3.0.
     #∞license∞#
     #∞what∞#
-    # Get a set of files from a set of disjoint directory trees
+    # <programming> Get a set of files from a set of disjoint directory trees
     #∞what∞#
     #∞test∞# run #∞test∞#
     pass

@@ -10,7 +10,9 @@ if 1:  # Copyright, license
     #   Licensed under the Open Software License version 3.0.
     #   See http://opensource.org/licenses/OSL-3.0.
     #∞license∞#
-    #∞what∞# # Provides EIA resistor values #∞what∞#
+    #∞what∞# 
+    # <electrical> Provides EIA resistor values 
+    #∞what∞#
     #∞test∞# #∞test∞#
     pass
 if 1:   # Custom imports

@@ -86,7 +86,7 @@ if 1:  # Copyright, license
     #   See http://opensource.org/licenses/OSL-3.0.
     #∞license∞#
     #∞what∞#
-    # Program description string
+    # <math> Length of an Archimedian spiral
     #∞what∞#
     #∞test∞# run #∞test∞#
     pass

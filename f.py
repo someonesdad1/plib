@@ -453,10 +453,8 @@ if 1:  # Copyright, license
     #   See http://opensource.org/licenses/OSL-3.0.
     #∞license∞#
     #∞what∞#
-
-    # This module provides the flt/cpx types for calculations with
-    # numbers derived from measurements.
-
+    # <programming> This module provides the flt/cpx types for
+    # calculations with numbers derived from measurements.
     #∞what∞#
     #∞test∞# run #∞test∞#
     pass

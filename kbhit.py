@@ -9,7 +9,7 @@ if 1:  # Copyright, license
     #   see that site for any license coverage.
     #∞license∞#
     #∞what∞#
-    # Get the next character typed at the keyboard
+    # <programming> Get the next character typed at the keyboard
     #∞what∞#
     #∞test∞# #∞test∞#
     pass

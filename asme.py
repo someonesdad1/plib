@@ -12,7 +12,7 @@ if 1:  # Copyright, license
     #   See http://opensource.org/licenses/OSL-3.0.
     #∞license∞#
     #∞what∞#
-    # Provides the UnifiedThread class which gives the inch dimensions
+    # <shop> Provides the UnifiedThread class which gives the inch dimensions
     # associated with Unified National thread forms from ASME B1.1-1989.
     #∞what∞#
     #∞test∞# run #∞test∞#

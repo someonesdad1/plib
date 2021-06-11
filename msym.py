@@ -26,7 +26,7 @@ if 1:  # Copyright, license
     #   See http://opensource.org/licenses/OSL-3.0.
     #∞license∞#
     #∞what∞#
-    # Command line simple math equations using Unicode
+    # <math> Command line simple math equations using Unicode
     #∞what∞#
     #∞test∞# #∞test∞#
     pass

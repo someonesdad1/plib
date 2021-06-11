@@ -74,7 +74,7 @@ if 1:  # Copyright, license
     #   See http://opensource.org/licenses/OSL-3.0.
     #∞license∞#
     #∞what∞#
-    # Class for arbitrarily long bitfields
+    # <programming> Class for arbitrarily long bitfields
     #∞what∞#
     #∞test∞# run #∞test∞#
     pass

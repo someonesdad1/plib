@@ -40,7 +40,7 @@ if 1:  # Copyright, license
     #   See http://opensource.org/licenses/OSL-3.0.
     #∞license∞#
     #∞what∞#
-    # Generate combinations and permutations in lexical order
+    # <math> Generate combinations and permutations in lexical order
     #∞what∞#
     #∞test∞# #∞test∞#
     pass

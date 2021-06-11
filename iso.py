@@ -15,7 +15,7 @@ if 1:  # Copyright, license
     #   See http://opensource.org/licenses/OSL-3.0.
     #∞license∞#
     #∞what∞#
-    # Provides the ISO object to provide current date and time
+    # <utility> Provides the ISO object to provide current date and time
     #∞what∞#
     #∞test∞# #∞test∞#
     pass

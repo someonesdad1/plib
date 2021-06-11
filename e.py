@@ -10,7 +10,7 @@ if 1:  # Copyright, license
     #   See http://opensource.org/licenses/OSL-3.0.
     #∞license∞#
     #∞what∞#
-    # IEC 60063 numbers (E-series:  E6, E12, etc.)
+    # <utility> IEC 60063 numbers (E-series:  E6, E12, etc.)
     #∞what∞#
     #∞test∞# --test #∞test∞#
     pass

@@ -15,7 +15,7 @@ if 1:  # Copyright, license
     #   See http://opensource.org/licenses/OSL-3.0.
     #∞license∞#
     #∞what∞#
-    # A collection of plane geometry formulas
+    # <math> A collection of plane geometry formulas
     #∞what∞#
     #∞test∞# run #∞test∞#
     pass

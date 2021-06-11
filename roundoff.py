@@ -18,7 +18,7 @@ if 1:  # Copyright, license
     #   See http://opensource.org/licenses/OSL-3.0.
     #∞license∞#
     #∞what∞#
-    # Round off floating point values
+    # <programming> Round off floating point values
     #∞what∞#
     #∞test∞# --test #∞test∞#
     pass

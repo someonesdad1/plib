@@ -22,7 +22,7 @@ if 1:  # Copyright, license
     #   See http://opensource.org/licenses/OSL-3.0.
     #∞license∞#
     #∞what∞#
-    # Python 3 hexdump module
+    # <utility> Python 3 hexdump module
     #∞what∞#
     #∞test∞# run #∞test∞#
     pass

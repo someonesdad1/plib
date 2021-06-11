@@ -56,7 +56,7 @@ if 1:  # Copyright, license
     #   See http://opensource.org/licenses/OSL-3.0.
     #∞license∞#
     #∞what∞#
-    # Container for global variables
+    # <programming> Container for global variables
     #∞what∞#
     #∞test∞# --test #∞test∞#
     pass

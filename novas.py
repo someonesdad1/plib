@@ -35,7 +35,7 @@ if 1:  # Copyright, license
     #   See http://opensource.org/licenses/OSL-3.0.
     #∞license∞#
     #∞what∞#
-    # Python translation of NOVAS software from USNO
+    # <science> Python translation of NOVAS software from USNO
     #∞what∞#
     #∞test∞# Put test file information here (see 0test.py) #∞test∞#
     pass

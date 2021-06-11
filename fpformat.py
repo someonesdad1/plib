@@ -13,7 +13,7 @@ if 1:  # Copyright, license
     #   See http://opensource.org/licenses/OSL-3.0.
     #∞license∞#
     #∞what∞#
-    # Obsolete formatter for floating point numbers
+    # <programming> Obsolete formatter for floating point numbers
     #∞what∞#
     #∞test∞# ["test/fpformat_test.py"] #∞test∞#
     pass

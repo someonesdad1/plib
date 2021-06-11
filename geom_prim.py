@@ -27,7 +27,7 @@ if 1:  # Copyright, license
     #   See http://opensource.org/licenses/OSL-3.0.
     #∞license∞#
     #∞what∞#
-    # Models points, lines, and planes and their transformations
+    # <math> Models points, lines, and planes and their transformations
     #∞what∞#
     #∞test∞# run #∞test∞#
     pass

@@ -11,7 +11,7 @@ if 1:  # Copyright, license
     #   See http://opensource.org/licenses/OSL-3.0.
     #∞license∞#
     #∞what∞#
-    # Module to return file information in a more human-readable form
+    # <utility> Module to return file information in a more human-readable form
     # than os.stat().  
     #∞what∞#
     #∞test∞# run #∞test∞#

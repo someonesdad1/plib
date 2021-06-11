@@ -10,7 +10,7 @@ if 1:  # Copyright, license
     #   See http://opensource.org/licenses/OSL-3.0.
     #∞license∞#
     #∞what∞#
-    # Various astronomical formulas from Meeus, "Astronomical
+    # <science> Various astronomical formulas from Meeus, "Astronomical
     # Algorithms", 2nd ed.  
     #∞what∞#
     #∞test∞# Put test file information here (see 0test.py) #∞test∞#

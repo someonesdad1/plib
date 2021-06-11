@@ -11,7 +11,7 @@ if 1:  # Copyright, license
     #   See http://opensource.org/licenses/OSL-3.0.
     #∞license∞#
     #∞what∞#
-    # Program description string
+    # <programming> Change Unicode characters to nearest ASCII equivalents
     #∞what∞#
     #∞test∞# ["test/asciify_test.py"] #∞test∞#
     pass

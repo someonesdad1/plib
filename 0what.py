@@ -10,13 +10,13 @@ if 1:  # Copyright, license
     #   See http://opensource.org/licenses/OSL-3.0.
     #∞license∞#
     #∞what∞#
-    # Show the what strings for python scripts
+    # <utility> Show the what strings for python scripts
     #∞what∞#
     #∞test∞# #∞test∞#
     pass
 if 1:   # Imports
     # Standard library modules
-    from collections import deque, defaultdict
+    from collections import deque, defaultdict, namedtuple
     import getopt
     import os
     import pathlib
@@ -28,9 +28,14 @@ if 1:   # Custom imports
     import trigger
     from wrap import wrap, dedent, indent, Wrap
     from lwtest import run, raises, assert_equal, Assert
+    import color as C
 if 1:   # Global variables
     P = pathlib.Path
     rcat = re.compile(r"<(.*?)>")  # Find category strings
+    categories = set()
+    EntryType = namedtuple("EntryType", "p what category")
+    grn = C.fg(C.lgreen, s=1)
+    norm = C.normal(s=1)
 if 1:   # Utility
     def Error(msg, status=1):
         print(msg, file=sys.stderr)
@@ -81,6 +86,8 @@ if 1:   # Core functionality
         # Remove category string if present
         mo = rcat.search(s)
         category = mo.groups()[0] if mo else None
+        if category is not None:
+            categories.add(category)
         s = rcat.sub("", s).strip()
         return (s, category)
     def ProcessFile(file):
@@ -95,7 +102,7 @@ if 1:   # Core functionality
         di(file)
         if "what" in di:
             what, category = FormatWhat(di["what"])
-            return (file, what, category)
+            return EntryType(file, what, category)
         else:
             return None
     def GetDirectoryFiles(dir):
@@ -125,24 +132,32 @@ if 1:   # Core functionality
                     files.append(data)
             else:
                 raise TypeError(f"'{p}' is not a file or directory")
-        return files
+        return tuple(sorted(files))
+def ReportByCategory(files):
+    di = defaultdict(list)
+    for item in files:
+        di[item.category] += [item]
+    for key in sorted(categories):
+        print(f"{grn}{key}{norm}")
+        for item in di[key]:
+            p = item.p
+            print(f"  {p!s}"
+            print(wrap(item.what, i=" "*4))
+            print(f"  {p!s:20s} {item.what[:56]}")
 
 if __name__ == "__main__": 
     d = {}      # Options dictionary
     import color as C
     args = ParseCommandLine(d)
     files = GetFiles(args)
-    for file in files:
-        f, tr, cat = file
-        if tr is not None:
-            s = f"{C.fg(C.lgreen, s=1)}{cat}{C.normal(s=1)}" if cat is not None else ""
-            print(f"{f}      {tr[:20]}       {s}")
-    exit()
-
-    container = deque()
-    for file in sorted(files):
-        if HasWhat(file):
-            GetWhatString(file, container)
-    dict = defaultdict(list)
-    LoadDict(container, dict)
-    Report(dict)
+    if 0:   # Show the output from the command line arguments
+        for file in files:
+            f, tr, cat = file
+            if tr is not None:
+                s = f"{C.fg(C.lgreen, s=1)}{cat}{C.normal(s=1)}" if cat is not None else ""
+                print(f"{f!s:20s} {tr[:20]:<20s}      {s}")
+        print("Categories:")
+        for i in sorted(categories):
+            print(f"  {i.capitalize()}")
+        exit()
+    ReportByCategory(files)

@@ -58,7 +58,7 @@ if 1:  # License
     # WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
     #∞license∞#
     #∞what∞#
-    # Functional programming examples from Mertz' book
+    # <programming> Functional programming examples from Mertz' book
     #∞what∞#
     #∞test∞# #∞test∞#
     pass

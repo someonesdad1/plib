@@ -11,7 +11,7 @@ if 1:  # Copyright, license
     #   See http://opensource.org/licenses/OSL-3.0.
     #∞license∞#
     #∞what∞#
-    # Dictionary of various gauge sizes for sheet and wire
+    # <shop> Dictionary of various gauge sizes for sheet and wire
     #∞what∞#
     #∞test∞# #∞test∞#
     pass

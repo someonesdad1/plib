@@ -18,7 +18,7 @@ if 1:  # Copyright, license
     #   See http://opensource.org/licenses/OSL-3.0.
     #∞license∞#
     #∞what∞#
-    #  Represent a number to a specified number of significant figures
+    # <programming> Represent a number to a specified number of significant figures
     #∞what∞#
     #∞test∞# --test #∞test∞#
     pass

@@ -23,7 +23,7 @@ if 1:  # Copyright, license
     #   See http://opensource.org/licenses/OSL-3.0.
     #∞license∞#
     #∞what∞#
-    # Run self tests of python scripts with a test trigger string
+    # <utility> Run self tests of python scripts with a test trigger string
     #∞what∞#
     pass
 if 1:   # Standard imports

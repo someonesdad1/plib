@@ -10,7 +10,7 @@ if 1:  # Copyright, license
     #   See http://opensource.org/licenses/OSL-3.0.
     #∞license∞#
     #∞what∞#
-    # Hex dump utility
+    # <utility> Hex dump utility
     #∞what∞#
     #∞test∞# run #∞test∞#
     pass

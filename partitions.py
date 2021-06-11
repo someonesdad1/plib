@@ -10,7 +10,7 @@ if 1:  # Copyright, license
     #   See http://opensource.org/licenses/OSL-3.0.
     #∞license∞#
     #∞what∞#
-    # Generate partitions of the integer n
+    # <math> Generate partitions of the integer n
     #∞what∞#
     #∞test∞# Put test file information here (see 0test.py) #∞test∞#
     pass

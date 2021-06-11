@@ -14,7 +14,7 @@ if 1:  # Copyright, license
     #   See http://opensource.org/licenses/OSL-3.0.
     #∞license∞#
     #∞what∞#
-    # Program description string
+    # <miscellaneous> Module to perform various navigation tasks
     #∞what∞#
     #∞test∞# run #∞test∞#
     pass

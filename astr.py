@@ -29,7 +29,7 @@ if 1:  # Copyright, license
     #   See http://opensource.org/licenses/OSL-3.0.
     #∞license∞#
     #∞what∞#
-    # Program description string
+    # <programming> String class that ignores length of escape sequences
     #∞what∞#
     #∞test∞# run #∞test∞#
     pass

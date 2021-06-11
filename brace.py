@@ -11,7 +11,7 @@ if 1:  # Copyright, license
     #   Licensed under the GNU Free Documentation License 1.2
     #∞license∞#
     #∞what∞#
-    # Function to perform brace expansion similar to modern shells
+    # <utility> Function to perform brace expansion similar to modern shells
     #∞what∞#
     #∞test∞# run #∞test∞#
     pass

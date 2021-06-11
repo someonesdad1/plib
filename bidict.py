@@ -10,7 +10,7 @@ if 1:  # Copyright, license
     #   See http://opensource.org/licenses/OSL-3.0.
     #∞license∞#
     #∞what∞#
-    # A dictionary that is an invertible function
+    # <programming> A dictionary that is an invertible function
     #∞what∞#
     #∞test∞# run #∞test∞#
     pass

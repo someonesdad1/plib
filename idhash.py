@@ -13,7 +13,7 @@ if 1:  # Copyright, license
     #   See http://opensource.org/licenses/OSL-3.0.
     #∞license∞#
     #∞what∞#
-    # Hashes answers to a set of questions
+    # <programming> Hashes answers to a set of questions
     #∞what∞#
     #∞test∞# #∞test∞#
     pass

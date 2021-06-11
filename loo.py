@@ -18,7 +18,7 @@ if 1:  # Copyright, license
     #   See http://opensource.org/licenses/OSL-3.0.
     #∞license∞#
     #∞what∞#
-    # Find picture files in Open Office files
+    # <utility> Find picture files in Open Office files
     #∞what∞#
     #∞test∞# Put test file information here (see 0test.py) #∞test∞#
     pass

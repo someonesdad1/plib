@@ -17,7 +17,7 @@ if 1:  # Copyright, license
     #   See http://opensource.org/licenses/OSL-3.0.
     #∞license∞#
     #∞what∞#
-    # Matrix module.  This module is a derivative work of the 3.0.0
+    # <math> Matrix module.  This module is a derivative work of the 3.0.0
     # version of pymatrix, gotten on 15 Jul 2019 from
     # https://github.com/dmulholl/pymatrix.git.
     #∞what∞#

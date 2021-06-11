@@ -10,7 +10,7 @@ if 1:  # Copyright, license
     #   See http://opensource.org/licenses/OSL-3.0.
     #∞license∞#
     #∞what∞#
-    # Launch files with their registered applications
+    # <utility> Launch files with their registered applications
     #∞what∞#
     #∞test∞# #∞test∞#
     pass

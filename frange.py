@@ -47,7 +47,7 @@ if 1:  # Copyright, license
     #   See http://opensource.org/licenses/OSL-3.0.
     #∞license∞#
     #∞what∞#
-    # Generators that are floating point analogs of range()
+    # <programming> Generators that are floating point analogs of range()
     #∞what∞#
     #∞test∞# --test #∞test∞#
     pass

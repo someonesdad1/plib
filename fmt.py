@@ -16,7 +16,7 @@ if 1:  # Copyright, license
     #   See http://opensource.org/licenses/OSL-3.0.
     #∞license∞#
     #∞what∞#
-    # Format Decimal numbers
+    # <programming> Format Decimal numbers
     #∞what∞#
     #∞test∞# --test #∞test∞#
     pass

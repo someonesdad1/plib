@@ -34,7 +34,7 @@ if 1:  # Copyright, license
     #   See https://docs.python.org/3/license.html
     #∞license∞#
     #∞what∞#
-    # Program description string
+    # <utility> Utility itertools recipes 
     #∞what∞#
     #∞test∞# run #∞test∞#
     pass

@@ -30,7 +30,7 @@ if 1:  # Copyright, license
     #   See http://opensource.org/licenses/OSL-3.0.
     #∞license∞#
     #∞what∞#
-    # Decode user command strings
+    # <programming> Decode user command strings
     #∞what∞#
     #∞test∞# ["test/cmddecode_test.py"] #∞test∞#
     pass
