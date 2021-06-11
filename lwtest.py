@@ -50,22 +50,22 @@ Lightweight testrunner framework
 if 1:   # Enhancement ideas
     '''
     TODO:
-
+ 
         * If an argument passed on the command line is a directory,
           search it recursively for all files that appear to be test
           scripts and run them.
-
+ 
             - If a file is passed on the command line, search it for
               suitable test functions and run them, even if there's no
               run() call in the script.  Options to provide run()'s
               features:  -h to halt at first failure, -r for regexp to
               identify a test function, -R for regexp's options, -v for
               verbose
-
+ 
         * assert_equal:  add a dict keyword so that when dictionaries
           are compared, both keys and values are compared.  Consider
           adding sets to the function too.
-
+ 
         * Add a verbose keyword to run() which prints the file name and
           the function/class to be executed, like 'nosetests -v' does.
           Another thing to consider would be to let run look at sys.argv
@@ -73,15 +73,19 @@ if 1:   # Enhancement ideas
           handy for command line work, as the command line options would
           overrule the keywords).
     '''
-if 1:   # Copyright and license
-    # Copyright (C) 2014 Don Peterson
-    # Contact:  gmail.com@someonesdad1
-    
-    #
-    # Licensed under the Open Software License version 3.0.
-    # See http://opensource.org/licenses/OSL-3.0.
-    #
-    
+if 1:  # Copyright, license
+    # These "trigger strings" can be managed with trigger.py
+    #∞copyright∞# Copyright (C) 2014 Don Peterson #∞copyright∞#
+    #∞contact∞# gmail.com@someonesdad1 #∞contact∞#
+    #∞license∞#
+    #   Licensed under the Open Software License version 3.0.
+    #   See http://opensource.org/licenses/OSL-3.0.
+    #∞license∞#
+    #∞what∞#
+    # Program description string
+    #∞what∞#
+    #∞test∞# ["test/lwtest_test.py"] #∞test∞#
+    pass
     # Derived from some nice code by Raymond Hettinger 8 May 2008:
     # http://code.activestate.com/recipes/572194/.  Downloaded 27 Jul
     # 2014.  The ActiveState web page appears to state Hettinger's code
@@ -89,7 +93,7 @@ if 1:   # Copyright and license
     # Hettinger's code includes a search for test functions that are
     # generators; if such functionality is important to you, you might
     # want to add it to this file.
-
+    #
     # The raises context() manager functionality was inspired by pytest's
     # implementation (see https://docs.pytest.org/en/latest/).
     pass
@@ -471,7 +475,7 @@ if 1:   # Checking functions
         If halt is True, a failed assertion causes an exception to be
         raised; if halt is False, the error message is printed to stderr and
         the function returns (this allows you to e.g. start a debugger).
-
+ 
         If debug is True, a failed assertion will drop you into the
         debugger.
         '''
@@ -598,4 +602,6 @@ if __name__ == "__main__":
                 <code that must raise an exception>
         Send a colored reminder message to stdout:
             ToDoMessage(message, prefix="+")
+        Like assert, but puts you into the debugger with cmd line arg:
+            Assert(condition)
     '''[1:].rstrip()))
