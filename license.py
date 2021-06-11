@@ -1,6 +1,9 @@
 '''
 TODO
 
+* Rewrite to use the trigger.py functionality.  I'd like to see it only
+  replace the license portion with a short header statement.
+
 * For each file, check that the trigger string only matches in two
   places.
 
@@ -10,69 +13,65 @@ TODO
 ----------------------------------------------------------------------
 Replace license statements in files.
 '''
-
-# Copyright (C) 2014, 2021 Don Peterson
-# gmail.com at someonesdad1
- 
-#
-# Licensed under the Open Software License version 3.0.
-# See http://opensource.org/licenses/OSL-3.0.
-#
-
-# Standard modules
-from pdb import set_trace as xx
-import getopt
-import os
-import pathlib
-import re
-import shutil
-import sys
-import time
-# Custom modules
-import color as C
-from wrap import dedent
-from license_data import licenses
-
-P = pathlib.Path
-
-# Trigger string for replacements
-trigger = "#∞#"
-
-# Regexp used to identify the string to be replaced
-regexp = re.compile(r"%s(.*?)%s" % (trigger, trigger), re.S)
-
-# The following are too short to warrant a separate header file
-short_choices = ("bsd", "mit", "pd", "wol", "rem")
-backup_extension = ".bak"
-nl = "\n"
-
-descr = {
-    "rem":     "  Remove any existing license text",
-    "afl3":    "  Academic Free License 3.0",
-    "apache2": "  Apache License 2.0",
-    "bsd3":    "  BSD 3-clause license",
-    "ccsa4":   "* Creative Commons Attribution-ShareAlike 4.0",
-    "gpl2":    "* GNU Public License version 2",
-    "gpl3":    "* GNU Public License version 3",
-    "lgpl2":   "- Lesser GNU Public License version 2.1",
-    "lgpl3":   "- Lesser GNU Public License version 3",
-    "mit":     "  MIT License",
-    "nposl3":  "* Non-Profit Open Software License 3.0",
-    "osl3":    "* Open Software License 3.0",
-    "pd":      "  Public domain release",
-    "wol":     "  Wide-open License",
-}
-
-analysis = None
-
+if 1:  # Copyright, license
+    # These "trigger strings" can be managed with trigger.py
+    #∞copyright∞# Copyright (C) 2014, 2021 Don Peterson #∞copyright∞#
+    #∞contact∞# gmail.com@someonesdad1 #∞contact∞#
+    #∞license∞#
+    #   Licensed under the Open Software License version 3.0.
+    #   See http://opensource.org/licenses/OSL-3.0.
+    #∞license∞#
+    #∞what∞#
+    # Replace license statements in files
+    #∞what∞#
+    #∞test∞# #∞test∞#
+    pass
+if 1:   # Imports
+    from pdb import set_trace as xx
+    import getopt
+    import os
+    import pathlib
+    import re
+    import shutil
+    import sys
+    import time
+if 1:   # Custom imports
+    import color as C
+    from wrap import dedent
+    from license_data import licenses
+if 1:   # Global variables
+    P = pathlib.Path
+    # Trigger string for replacements
+    trigger = "#∞#"
+    # Regexp used to identify the string to be replaced
+    regexp = re.compile(r"%s(.*?)%s" % (trigger, trigger), re.S)
+    # The following are too short to warrant a separate header file
+    short_choices = ("bsd", "mit", "pd", "wol", "rem")
+    backup_extension = ".bak"
+    nl = "\n"
+    descr = {
+        "rem":     "  Remove any existing license text",
+        "afl3":    "  Academic Free License 3.0",
+        "apache2": "  Apache License 2.0",
+        "bsd3":    "  BSD 3-clause license",
+        "ccsa4":   "* Creative Commons Attribution-ShareAlike 4.0",
+        "gpl2":    "* GNU Public License version 2",
+        "gpl3":    "* GNU Public License version 3",
+        "lgpl2":   "- Lesser GNU Public License version 2.1",
+        "lgpl3":   "- Lesser GNU Public License version 3",
+        "mit":     "  MIT License",
+        "nposl3":  "* Non-Profit Open Software License 3.0",
+        "osl3":    "* Open Software License 3.0",
+        "pd":      "  Public domain release",
+        "wol":     "  Wide-open License",
+    }
+    analysis = None
 def eprint(*p, **kw):
     'Print to stderr'
     print(*p, **kw, file=sys.stderr)
-
 def Error(msg, status=1):
     eprint(msg)
     exit(status)
-
 def Usage(d, status=1):
     name = sys.argv[0]
     choices = sorted(descr.keys())
@@ -114,7 +113,6 @@ def Usage(d, status=1):
       -t s    Change the trigger string to s
     '''))
     exit(status)
-
 def ParseCommandLine(d):
     global trigger
     d["-c"] = "# "      # Comment prepend string
@@ -126,7 +124,7 @@ def ParseCommandLine(d):
     # Get the analysis text, in the licenses subdirectory
     d["dir"] = GetDir()
     global analysis
-    file = GetDir()/"licenses/analysis"
+    file = P("/pylib/licenses/analysis")
     analysis = file.read_text().strip()
     if len(sys.argv) < 2:
         Usage(d)
@@ -154,11 +152,9 @@ def ParseCommandLine(d):
         # Need choice and at least one file
         Usage(d)
     return args
-
 def GetDir():
     'Return the directory of the script'
     return pathlib.Path(sys.argv[0]).resolve().parent
-
 def PrintLicense(choice):
     if choice not in licenses:
         Error(f"'{choice}' license not recognized")
@@ -169,7 +165,6 @@ def PrintLicense(choice):
     '''))
     print()
     print(licenses[choice].text)
-
 def CheckFiles(files, d):
     '''For each file in files, ensure that it is readable and has the
     requisite string for substitution.
@@ -198,7 +193,6 @@ def CheckFiles(files, d):
             eprint("Cannot continue because of the above problems")
             C.normal()
         exit(1)
-
 def MakeBackups(files, d):
     'For each file in files, make a backup file'
     for file in files:
@@ -214,7 +208,6 @@ def MakeBackups(files, d):
         except Exception:
             eprint(f"Copy of '{file}' to '{bu}' failed")
             exit(1)
-
 def ProcessFile(choice, file, d):
     if d["-s"] and choice not in short_choices:
         # Use license text rather than header
@@ -238,11 +231,9 @@ def ProcessFile(choice, file, d):
   '%s'
 ''' % (file, e))
         C.normal()
-
 def ChangeFiles(choice, files, d):
     for file in files:
         ProcessFile(choice, file, d)
-
 if __name__ == "__main__":
     d = {}      # Options dictionary
     args = ParseCommandLine(d)

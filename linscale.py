@@ -1,6 +1,6 @@
 '''
 ToDo:
-
+ 
     * Look at what it would take to produce mirror image scales by just
       setting a Boolean.  This would be quite handy to allow
       laser-printed stuff to be ironed onto a substrate.  For example,
@@ -10,22 +10,20 @@ ToDo:
       xylene (the polystyrene dissolves in it).  Wet the cotton, rub on
       the back of the paper (keep thin), and then rub things off with a
       burnisher or spoon.
-
+ 
       Get some spray white latex paint and put on a few thin coats and
       sand smooth.  Then the laser printing should transfer on OK
       without disturbing the white substrate.
-
+ 
     * Instead of a settings dictionary, make all the things like
       index_function, label_angle, tick1_length, etc. be attributes of
       the instance.  This would make source code look a little cleaner.
       It might also allow computed forms for the attributes that aren't
       defined; this would be easy to handle in __getattr__.
-
-----------------------------------------------------------------------
-
+ 
 This module contains the Scale object which uses the g library to draw
 linear scales with tick marks and labels.
-
+ 
 How to use:
     Get a default settings dictionary:
         settings = DefaultSettings()
@@ -71,79 +69,82 @@ How to use:
     text("D, in")
     if not print_slide_rule_scale:
         NumberScale(x1, y1)  # Print a number to the right of the scale
-
 '''
-
-import sys
-import g
-import math
-
-from pdb import set_trace as xx
-if len(sys.argv) > 1:
-    import debug as DEBUG
-    DEBUG.SetDebugger()
-debug = 0
-
-wrap_in_PJL = 0
-in_color = True
-d2r = math.pi/180
- 
-# For applying a number to a scale on the RHS
-scale_count = 1
-scale_count_offset_x =  0.15
-scale_count_offset_y = -0.05
- 
-# Font sizes are all relative to the base font size
-base_font_size      = 8/72.27
-footer_font_size    = 1
-title_font_size     = 1
-exponent_font       = 0.8
-line_width          = 0.005
-tick_length         = 0.1
-line_label_offset   = 0.25
-base_font           = g.Sans
-base_font_bold      = g.SansBold
-
-# Whether we should print the slide rule scale name to the right
-print_slide_rule_scale = 0
-slide_rule_scale_x_offset = 1.0  # Fraction of base font size
-slide_rule_scale_y_offset = 0.4  # Fraction of base font size
-
-if in_color:
-    page_background_color  = g.black
-    table_background_color = g.black
-    title_color            = g.red
-    entry_color            = g.green
-    bounding_box_color     = g.blue
-    bounding_box_thickness = 0.02
-    table_line_thickness   = 0.005
-    line_color             = g.black
-    grid_color             = g.cyan
-    major_tick_color       = g.red
-    medium_tick_color      = g.magenta
-    minor_tick_color       = g.black
-    number_color           = g.blue
-    footer_color           = g.black
-else:
-    page_background_color  = g.white
-    table_background_color = g.white
-    title_color            = g.black
-    entry_color            = g.black
-    bounding_box_color     = g.black
-    bounding_box_thickness = 0.02
-    table_line_thickness   = 0.005
-    line_color             = g.black
-    grid_color             = g.black
-    major_tick_color       = g.black
-    medium_tick_color      = g.black
-    minor_tick_color       = g.black
-    number_color           = g.black
-    footer_color           = g.black
-
-# The following global is used to correct a base 10 log to the interval
-# [0, 1].
-log_correction = 0
-
+if 1:  # Copyright, license
+    # These "trigger strings" can be managed with trigger.py
+    #∞copyright∞# Copyright (C) 2010 Don Peterson #∞copyright∞#
+    #∞contact∞# gmail.com@someonesdad1 #∞contact∞#
+    #∞license∞#
+    #   Licensed under the Open Software License version 3.0.
+    #   See http://opensource.org/licenses/OSL-3.0.
+    #∞license∞#
+    #∞what∞#
+    # Draw linear scales with tick marks and labels
+    #∞what∞#
+    #∞test∞# #∞test∞#
+    pass
+if 1:   # Imports
+    import sys
+    import g
+    import math
+    from pdb import set_trace as xx
+if 1:   # Global variables
+    debug = 0
+    wrap_in_PJL = 0
+    in_color = True
+    d2r = math.pi/180
+    # For applying a number to a scale on the RHS
+    scale_count = 1
+    scale_count_offset_x =  0.15
+    scale_count_offset_y = -0.05
+    # Font sizes are all relative to the base font size
+    base_font_size      = 8/72.27
+    footer_font_size    = 1
+    title_font_size     = 1
+    exponent_font       = 0.8
+    line_width          = 0.005
+    tick_length         = 0.1
+    line_label_offset   = 0.25
+    base_font           = g.Sans
+    base_font_bold      = g.SansBold
+    # Whether we should print the slide rule scale name to the right
+    print_slide_rule_scale = 0
+    slide_rule_scale_x_offset = 1.0  # Fraction of base font size
+    slide_rule_scale_y_offset = 0.4  # Fraction of base font size
+    #
+    if in_color:
+        page_background_color  = g.black
+        table_background_color = g.black
+        title_color            = g.red
+        entry_color            = g.green
+        bounding_box_color     = g.blue
+        bounding_box_thickness = 0.02
+        table_line_thickness   = 0.005
+        line_color             = g.black
+        grid_color             = g.cyan
+        major_tick_color       = g.red
+        medium_tick_color      = g.magenta
+        minor_tick_color       = g.black
+        number_color           = g.blue
+        footer_color           = g.black
+    else:
+        page_background_color  = g.white
+        table_background_color = g.white
+        title_color            = g.black
+        entry_color            = g.black
+        bounding_box_color     = g.black
+        bounding_box_thickness = 0.02
+        table_line_thickness   = 0.005
+        line_color             = g.black
+        grid_color             = g.black
+        major_tick_color       = g.black
+        medium_tick_color      = g.black
+        minor_tick_color       = g.black
+        number_color           = g.black
+        footer_color           = g.black
+    # The following variable is used to correct a base 10 log to the
+    # interval [0, 1].
+    log_correction = 0
 class Scale:
     def __init__(self, x0, y0, x1, y1, settings={}):
         '''Draw a scale from point (x0, y0) to (x1, y1).  The dictionary
@@ -319,16 +320,13 @@ class Scale:
         for i in range(self.N, 0, -1):
             self.DrawLabel(i)
         g.pop()
-
 def Distance(x0, y0, x1, y1):
     x, y = x0 - x1, y0 - y1
     return math.sqrt(x*x + y*y)
-
 def Angle(x0, y0, x1, y1):
     '''Return the angle in degrees.
     '''
     return math.atan2(y1 - y0, x1 - x0)/d2r
-
 def DefaultSettings(index_function=None):
     return {
         "line_width" : line_width,
@@ -339,7 +337,6 @@ def DefaultSettings(index_function=None):
         "tick3_length" : 0.7,
         "tick4_length" : 0.4,
     }
-
 def SetUp(file, orientation=g.landscape, units=g.inches):
     '''Convenience function to set up the drawing environment and return a
     file object to the output stream.
@@ -348,7 +345,6 @@ def SetUp(file, orientation=g.landscape, units=g.inches):
     g.ginitialize(ofp)
     g.setOrientation(orientation, units)
     return ofp
-
 if __name__ == "__main__":
     # When run as a script, this will create an output file
     # "linscale.ps" that contains a simple scale from 0 to 10 with

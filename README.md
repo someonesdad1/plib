@@ -27,6 +27,16 @@ I started working on building this repository in May of 2021 and my
 current python version is 3.7.10, so that's what things will be tested
 with.
 
+## Coding style
+
+    It is likely you will not like my coding style, as I vertically compress
+    things as much as possible.  This is because screen vertical real estate
+    is the most precious resource.  It's because of the editor I use that I
+    can use this comfortably (it's a folding editor).  I can usually see the
+    whole file's contents when folded in 20 to 30 lines, which makes
+    navigation easier.  Since this will bug most people, it's not hard to
+    get a code formatter to put things back to a more conventional form.
+
 # Tools
 
 ## what.py

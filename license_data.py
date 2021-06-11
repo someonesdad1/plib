@@ -62,7 +62,7 @@ urls = {
 
 # Fill licenses from the licenses directory
 P = pathlib.Path
-p = P("licenses")
+p = P("/pylib/licenses")
 get = lambda x: open(x).read()
 for h in p.glob("*.header"):
     header = get(h)
@@ -71,3 +71,6 @@ for h in p.glob("*.header"):
     text = get(f) if f.exists() else None
     L = License(header, text=text, url=urls.get(key, None))
     licenses[key] = L
+if 0:
+    from pprint import pprint as pp
+    pp(licenses)

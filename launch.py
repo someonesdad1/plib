@@ -1,18 +1,22 @@
 '''
 Launch files with their registered applications.
 '''
-
-# Copyright (C) 2021 Don Peterson
-# Contact:  gmail.com@someonesdad1
- 
-#
-# Licensed under the Academic Free License version 3.0.
-# See http://opensource.org/licenses/AFL-3.0.
-#
-
-import platform
-import subprocess
-
+if 1:  # Copyright, license
+    # These "trigger strings" can be managed with trigger.py
+    #∞copyright∞# Copyright (C) 2021 Don Peterson #∞copyright∞#
+    #∞contact∞# gmail.com@someonesdad1 #∞contact∞#
+    #∞license∞#
+    #   Licensed under the Open Software License version 3.0.
+    #   See http://opensource.org/licenses/OSL-3.0.
+    #∞license∞#
+    #∞what∞#
+    # Launch files with their registered applications
+    #∞what∞#
+    #∞test∞# #∞test∞#
+    pass
+if 1:   # Imports
+    import platform
+    import subprocess
 def Launch(*files):
     s = platform.system()
     for file in files:
@@ -24,7 +28,6 @@ def Launch(*files):
             subprocess.call(('xdg-open', filepath))
 Launch.app = "c:/cygwin/home/Don/bin/app.exe"
 Launch.cygwin = "c:/cygwin/bin/cygstart.exe"
-
 if 0:   # Source code for Windows launcher
     '''
     Note:  the above Windows application can be used to launch files.
@@ -205,7 +208,6 @@ if 0:   # Source code for Windows launcher
         return 0;
     }
     '''
-
 if __name__ == "__main__":
     import getopt
     import sys
