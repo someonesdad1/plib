@@ -53,15 +53,16 @@ if 1:   # Utility
         '''))
         exit(status)
     def ParseCommandLine(d):
+        d["-d"] = False             # Show debug output
         d["-r"] = False             # Act recursively
         d["-s"] = False             # Sort by filename
         try:
-            opts, args = getopt.getopt(sys.argv[1:], "hrs")
+            opts, args = getopt.getopt(sys.argv[1:], "dhrs")
         except getopt.GetoptError as e:
             print(str(e))
             exit(1)
         for o, a in opts:
-            if o[1] in list("rs"):
+            if o[1] in list("drs"):
                 d[o] = not d[o]
             elif o in ("-h", "--help"):
                 Usage(d, status=0)
@@ -113,6 +114,17 @@ if 1:   # Core functionality
             if data is not None:
                 files.append(data)
         return files
+    def DumpFiles(seq):
+        for file in seq:
+            f, tr, cat = file
+            n = 35
+            if tr is not None:
+                s = (f"{C.fg(C.lgreen, s=1)}{cat}{C.normal(s=1)}" if cat
+                     is not None else "")
+                print(f"{f!s:20s} {tr[:n]:<{n}s}      {s}")
+        print("Categories:")
+        for i in sorted(categories):
+            print(f"  {i.capitalize()}")
     def GetFiles(args):
         '''Return a sequence of files from the files/directories given on
         the command line.  args is a sequence of file or directory names
@@ -132,32 +144,29 @@ if 1:   # Core functionality
                     files.append(data)
             else:
                 raise TypeError(f"'{p}' is not a file or directory")
-        return tuple(sorted(files))
-def ReportByCategory(files):
-    di = defaultdict(list)
-    for item in files:
-        di[item.category] += [item]
-    for key in sorted(categories):
-        print(f"{grn}{key}{norm}")
-        for item in di[key]:
-            p = item.p
-            print(f"  {p!s}"
-            print(wrap(item.what, i=" "*4))
-            print(f"  {p!s:20s} {item.what[:56]}")
+        t = tuple(sorted(files))
+        if d["-d"]:
+            DumpFiles(t)
+        return t
+    def ReportByCategory(files):
+        def Header(s):
+            width = int(os.environ.get("COLUMNS", 79)) - 5
+            h = "-"*((width - len(s) - 1)//2)
+            return f"{grn}{h} {s.capitalize()} {h}{norm}"
+        di = defaultdict(list)
+        for item in files:
+            di[item.category] += [item]
+        wrap.i = " "*4
+        for key in sorted(categories):
+            print(Header(key))
+            for item in di[key]:
+                p = item.p
+                print(f"{p!s}")
+                print(wrap(item.what))
 
 if __name__ == "__main__": 
     d = {}      # Options dictionary
     import color as C
     args = ParseCommandLine(d)
     files = GetFiles(args)
-    if 0:   # Show the output from the command line arguments
-        for file in files:
-            f, tr, cat = file
-            if tr is not None:
-                s = f"{C.fg(C.lgreen, s=1)}{cat}{C.normal(s=1)}" if cat is not None else ""
-                print(f"{f!s:20s} {tr[:20]:<20s}      {s}")
-        print("Categories:")
-        for i in sorted(categories):
-            print(f"  {i.capitalize()}")
-        exit()
     ReportByCategory(files)
