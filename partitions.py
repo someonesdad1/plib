@@ -1,18 +1,22 @@
 '''
 Generate partitions of the integer n.
 '''
-
-# Copyright (C) 2014 Don Peterson
-# Contact:  gmail.com@someonesdad1
-
-#
-# Licensed under the Open Software License version 3.0.
-# See http://opensource.org/licenses/OSL-3.0.
-#
-from __future__ import print_function, division
-import sys
-from collections import OrderedDict
-
+if 1:  # Copyright, license
+    # These "trigger strings" can be managed with trigger.py
+    #∞copyright∞# Copyright (C) 2014 Don Peterson #∞copyright∞#
+    #∞contact∞# gmail.com@someonesdad1 #∞contact∞#
+    #∞license∞#
+    #   Licensed under the Open Software License version 3.0.
+    #   See http://opensource.org/licenses/OSL-3.0.
+    #∞license∞#
+    #∞what∞#
+    # Generate partitions of the integer n
+    #∞what∞#
+    #∞test∞# Put test file information here (see 0test.py) #∞test∞#
+    pass
+if 1:   # Imports
+    import sys
+    from collections import OrderedDict
 def partitions(n, k=None):
     '''Generator for partitions of the integer n.  For each iteration, a
     tuple of integers that sum to n is returned.  If k is an integer > 0,
@@ -34,7 +38,6 @@ def partitions(n, k=None):
         result = tuple(result)
         assert sum(result) == n
         yield result
-
 def partitions_cs(n, k=None):
     '''This is Chris Smith's modification of Tim Peters' fast
     algorithm based on a dictionary.  If k is defined, then the
@@ -112,7 +115,6 @@ def partitions_cs(n, k=None):
             ms[r] = 1
             keys.append(r)
         yield ms
-
 if __name__ == "__main__":
     k = None
     try:
@@ -130,5 +132,5 @@ if __name__ == "__main__":
     if k is not None and k < 1:
         print("k must be > 0")
         exit(1)
-    for i in partitions(n, k):
+    for i in partitionss(n, k):
         print(' '.join([str(j) for j in i]))

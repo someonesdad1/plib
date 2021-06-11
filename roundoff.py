@@ -7,38 +7,42 @@ that printed forms are easier to read.  Examples:
 
 The function SigFig() returns the number of significant figures in the
 argument as long as it can be converted to a float.  Trailing zeros are 
-not significant.
+not significant.  Only works up to 12 significant figures.
 '''
- 
-# Copyright (C) 2015 Don Peterson
-# Contact:  gmail.com@someonesdad1
-
-#
-# Licensed under the Open Software License version 3.0.
-# See http://opensource.org/licenses/OSL-3.0.
-#
-
-import sys
-import re
-from decimal import Decimal, localcontext
-from fractions import Fraction
-from pdb import set_trace as xx
-
-try:
-    from uncertainties import ufloat, UFloat
-    _have_unc = True
-except ImportError:
-    _have_unc = False
-try:
-    import mpmath
-    _have_mpmath = True
-except ImportError:
-    _have_mpmath = False
-
-__all__ = [
-    "RoundOff",
-]
-
+if 1:  # Copyright, license
+    # These "trigger strings" can be managed with trigger.py
+    #∞copyright∞# Copyright (C) 2015 Don Peterson #∞copyright∞#
+    #∞contact∞# gmail.com@someonesdad1 #∞contact∞#
+    #∞license∞#
+    #   Licensed under the Open Software License version 3.0.
+    #   See http://opensource.org/licenses/OSL-3.0.
+    #∞license∞#
+    #∞what∞#
+    # Round off floating point values
+    #∞what∞#
+    #∞test∞# --test #∞test∞#
+    pass
+if 1:   # Imports
+    import sys
+    import re
+    from decimal import Decimal, localcontext
+    from fractions import Fraction
+    from pdb import set_trace as xx
+if 1:   # Custom imports
+    try:
+        from uncertainties import ufloat, UFloat
+        _have_unc = True
+    except ImportError:
+        _have_unc = False
+    try:
+        import mpmath
+        _have_mpmath = True
+    except ImportError:
+        _have_mpmath = False
+if 1:   # Global variables
+    __all__ = [
+        "RoundOff",
+    ]
 def RoundOff(number, digits=12, convert=False):
     '''Round the significand of number to the indicated number of digits
     and return the rounded number (integers and Fractions are returned
@@ -124,11 +128,11 @@ def RoundOff(number, digits=12, convert=False):
                 return z
     else:
         raise TypeError("Unrecognized floating point type")
-
 def SigFig(x):
     '''Return the number of significant figures in the float x (x must
     be anything that can be converted to a float).  This is done by
-    rounding to 12 figures, the default for RoundOff().
+    rounding to 12 figures, the default for RoundOff().  Note you won't
+    get more than 12 figures, even if the number has them.
  
     Note that trailing '0' digits are removed, so a number like 30000
     will have 1 significant figure, as will 30000.00.
@@ -149,14 +153,31 @@ def SigFig(x):
     s = RemoveRadix(s)
     s = RemoveTrailingZeroes(s)
     return len(s)
-
 if __name__ == "__main__":
-    print("Examples of RoundOff() and SigFig() use:")
-    for i in (745.6998719999999, 4046.8726100000003, -0.0254*12):
-        print("  RoundOff({}) = {}".format(i, RoundOff(i)))
     from math import pi
-    x = pi*1e8
-    print("pi*1e8 rounded to indicated number of digits:")
-    for i in range(1, 15):
-        y = RoundOff(x, digits=i)
-        print("  {:2d} {} [sigfig = {}]".format(i, y, SigFig(y)))
+    from lwtest import run, raises, assert_equal, Assert
+    def Test_RoundOff():
+        Assert(RoundOff(745.6998719999999) == 745.699872)
+        Assert(RoundOff(745.6998719999999, 5) == 745.70)
+        Assert(RoundOff(745.6998719999999, 4) == 745.7)
+        Assert(RoundOff(745.6998719999999, 3) == 746)
+        Assert(RoundOff(745.6998719999999, 2) == 750)
+        Assert(RoundOff(745.6998719999999, 1) == 700)
+        Assert(RoundOff(4046.8726100000003) == 4046.87261)
+        Assert(RoundOff(-0.30479999999999996) == -0.3048)
+    def Test_SigFig():
+        x = pi*1e8
+        for n in range(1, 14):
+            y = RoundOff(x, n)
+            Assert(SigFig(y) == min(n, 12))
+    if len(sys.argv) > 1 and sys.argv[1] == "--test":
+        exit(run(globals(), halt=True)[0])
+    else:
+        print("Examples of RoundOff() and SigFig() use:")
+        for i in (745.6998719999999, 4046.8726100000003, -0.0254*12):
+            print("  RoundOff({}) = {}".format(i, RoundOff(i)))
+        x = pi*1e8
+        print("pi*1e8 rounded to indicated number of digits:")
+        for i in range(1, 15):
+            y = RoundOff(x, digits=i)
+            print("  {:2d} {} [sigfig = {}]".format(i, y, SigFig(y)))
