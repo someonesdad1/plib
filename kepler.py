@@ -1,47 +1,47 @@
 '''
-Functions to calculate a solution to Kepler's equation.  Ref. Meeus
-"Astronomical Algorithms", pg 206.
+Functions to calculate a solution to Kepler's equation 
+    Ref. Meeus "Astronomical Algorithms", pg 206.
 
-----------------------------------------------------------------------
+    The equation is E = M + e*sin(E).  E is to be solved for given M and
+    e.  M will be between 0 and 2*pi and e >= 0.
 
-The equation is E = M + e*sin(E).  E is to be solved for given M and
-e.  M will be between 0 and 2*pi and e >= 0.
+    The iterative methods include a third parameter precision, which is
+    what two successive iterations must be less than for the function to
+    return.
 
-The iterative methods include a third parameter precision, which is
-what two successive iterations must be less than for the function to
-return.
-
-The individual SolveKepler? functions return a tuple (E, n) where E is the
-eccentric anomaly and n is the number of iterations to get the answer.  The
-test examples demonstrate how much faster Newton's method is over plain
-iteration.
+    The individual SolveKepler? functions return a tuple (E, n) where E
+    is the eccentric anomaly and n is the number of iterations to get
+    the answer.  The test examples demonstrate how much faster Newton's
+    method is over plain iteration.
 '''
-
-# Copyright (C) 2002 Don Peterson
-# Contact:  gmail.com@someonesdad1
-
-#
-# Licensed under the Open Software License version 3.0.
-# See http://opensource.org/licenses/OSL-3.0.
-#
-
-import math
-
-try:
-    from root import RootFinder
-    _have_rootfinder = True
-except ImportError:
-    _have_rootfinder = False
-
-all = ["Kepler"]
-
-allowed_iterations = 120
-d2r = math.pi/180
-r2d = 1/d2r
-twopi = 2*math.pi
-pio2 = math.pi/2
-signum = lambda x: 0 if not x else -1 if x < 0 else 1
-
+if 1:  # Copyright, license
+    # These "trigger strings" can be managed with trigger.py
+    #∞copyright∞# Copyright (C) 2002 Don Peterson #∞copyright∞#
+    #∞contact∞# gmail.com@someonesdad1 #∞contact∞#
+    #∞license∞#
+    #   Licensed under the Open Software License version 3.0.
+    #   See http://opensource.org/licenses/OSL-3.0.
+    #∞license∞#
+    #∞what∞#
+    # Functions to calculate a solution to Kepler's equation 
+    #∞what∞#
+    #∞test∞# run #∞test∞#
+    pass
+if 1:   # Imports
+    import math
+if 1:   # Custom imports
+    try:
+        from root import RootFinder
+        _have_rootfinder = True
+    except ImportError:
+        _have_rootfinder = False
+if 1:   # Global variables
+    all = ["Kepler"]
+    allowed_iterations = 120
+    d2r = math.pi/180
+    twopi = 2*math.pi
+    pio2 = math.pi/2
+    signum = lambda x: 0 if not x else -1 if x < 0 else 1
 def Kepler(m, e, abstol=1e-8, algorithm=3):
     '''Call one of the Kepler equation solving methods.  Return the
     value of E (eccentric anomaly) and the number of iterations
@@ -150,7 +150,6 @@ def Kepler(m, e, abstol=1e-8, algorithm=3):
         # Need to find a reliable way to bracket the root
         root, count = RootFinder(m/2, m, f, eps=abstol)
         return root
-
     if algorithm == 0:
         return SolveKepler0(m, e, abstol=abstol)
     elif algorithm == 1:
@@ -163,7 +162,6 @@ def Kepler(m, e, abstol=1e-8, algorithm=3):
     #    return SolveKepler4(m, e, abstol=abstol)
     else:
         raise ValueError("Bad algorithm number")
-
 def Show(m, e, p):
     def P(N, E, n, p, s):
         digits = int(math.log10(1/p)) + 1
@@ -180,10 +178,38 @@ def Show(m, e, p):
     #E, n = Kepler(m*d2r, e, p, algorithm=4)
     #P(4, E, n, p, "Inverse parabolic interpolation")
     print()
-
 if __name__ == "__main__":
-    # Show some example cases
-    p = 1e-15
-    Show(90, 1/2, p)
-    Show(80, 1/3, p)
-    Show(40, 1/8, p)
+    from lwtest import run, assert_equal
+    from frange import frange
+    def TestCases():
+        '''Run a variety of test cases on the different algorithms and show
+        they all produce answers essentially equal to each other.
+        '''
+        tol = 1e-12
+        for theta in range(5, 91):
+            radians = theta*d2r
+            for ecc in frange("0.1", "1.0", "0.1"):
+                E = []
+                for alg in range(4):
+                    try:
+                        e, n = Kepler(radians, ecc, tol, algorithm=alg)
+                    except ValueError:
+                        print("Too many iterations {0}".format(allowed_iterations))
+                        print("theta = {theta}, ecc = {ecc:.1f}".
+                            format(**locals()))
+                        print("algorithm =", alg)
+                        exit(1)
+                    E.append(e)
+                actual, n = Kepler(radians, ecc, tol/100, algorithm=3)
+                for i, e in enumerate(E):
+                    if abs(e - actual) > tol:
+                        print("theta = {theta}, ecc = {ecc:.1f}".
+                            format(**locals()))
+                        print("E =")
+                        for j, k in enumerate(E):
+                            print(" ", j, "    ", k)
+                        print("actual =", actual)
+                        print("Error for i =", i)
+                        print("  E[i] - actual =", E[i] - actual)
+                        exit(1)
+    exit(run(globals(), halt=1)[0])
