@@ -3,133 +3,132 @@ Library routine to find picture files linked or embedded in an Open
 Office document.  call GetOOFilePictures(oofile) with the path to an
 OO file and you'll get a list of image files in that document.
  
-Run as a script to pass OO files on the command line; their picture
+Run as a script and pass OO files on the command line; their picture
 files will be printed to stdout.  Missing image files and image files
 that aren't relative to the document's location will be flagged.
  
 This is done by a heuristic rather than parsing the XML.
 '''
-
-# Copyright (C) 2014 Don Peterson
-# Contact:  gmail.com@someonesdad1
- 
-#
-# Licensed under the Open Software License version 3.0.
-# See http://opensource.org/licenses/OSL-3.0.
-#
-
-import sys
-import getopt
-import os
-import zipfile
-from re import sub
-from string import whitespace
-from pdb import set_trace as xx
-
-out = sys.stdout.write
-err = sys.stderr.write
-broken_link = "[missing]"
-notrel_image = "[not relative]"
-nl = "\n"
-
-# File extensions that indicate a picture.  This list came from
-# https://wiki.openoffice.org/wiki/Documentation/OOo3_User_Guides/Getting_Started/File_formats
-_raw_ext = '''
+if 1:  # Copyright, license
+    # These "trigger strings" can be managed with trigger.py
+    #∞copyright∞# Copyright (C) 2014 Don Peterson #∞copyright∞#
+    #∞contact∞# gmail.com@someonesdad1 #∞contact∞#
+    #∞license∞#
+    #   Licensed under the Open Software License version 3.0.
+    #   See http://opensource.org/licenses/OSL-3.0.
+    #∞license∞#
+    #∞what∞#
+    # Find picture files in Open Office files
+    #∞what∞#
+    #∞test∞# Put test file information here (see 0test.py) #∞test∞#
+    pass
+if 1:   # Imports
+    import sys
+    import getopt
+    import os
+    import zipfile
+    from re import sub
+    from string import whitespace
+    from pdb import set_trace as xx
+if 1:   # Custom imports
+    from wrap import dedent
+    # Try to import the color.py module to allow highlighting missing
+    # files in color to make them easier to see.  If you don't have the
+    # module, it won't be an error (you'll just get uncolored output).
+    _have_color = False
+    try:
+        import color as c
+        _have_color = True
+    except ImportError:
+        # Make a dummy color object to swallow function calls
+        class Dummy:
+            def fg(self, *p, **kw): pass
+            def normal(self, *p, **kw): pass
+            def __getattr__(self, name): pass
+        c = Dummy()
+if 1:   # Global variables
+    out = sys.stdout.write
+    err = sys.stderr.write
+    broken_link = "[missing]"
+    notrel_image = "[not relative]"
+    nl = "\n"
+    # File extensions that indicate a picture.  This list came from
+    # https://wiki.openoffice.org/wiki/Documentation/OOo3_User_Guides/Getting_Started/File_formats
+    _raw_ext = '''
     bmp  gif  pbm  pgm  psd  sgf  tif  wmf
     dxf  jpeg pcd  plt  ras  sgv  tiff xbm
     emf  jpg  pct  png  sda  svm  vor  xpm
     eps  met  pcx  ppm  sdd  tga
-'''[:-1]
-ext = []
-for i in _raw_ext.split(nl):
-    ext += ["." + j.lower() for j in i.split()]
-_picture_ext = set((ext))
-try:
-    del ext, i, j
-except NameError:  # j will be local on python 3
-    pass
-
-# File extensions for Open Office documents.  Add to this list if
-# there are additional files you want searched.
-_oo_ext = set((
-    ".odb",     # OO Base database
-    ".odg",     # OO Draw drawing
-    ".odp",     # OO Impress presentation
-    ".ods",     # OO Calc spreadsheet
-    ".odt",     # OO Writer document
-    ".ott",     # OO Writer template document
-))
-
-# Try to import the color.py module to allow highlighting missing
-# files in color to make them easier to see.  If you don't have the
-# module, it won't be an error (you'll just get uncolored output).
-_have_color = False
-try:
-    import color as c
-    _have_color = True
-except ImportError:
-    # Make a dummy color object to swallow function calls
-    class Dummy:
-        def fg(self, *p, **kw):
-            pass
-        def normal(self, *p, **kw):
-            pass
-        def __getattr__(self, name):
-            pass
-    c = Dummy()
-
+    '''
+    ext = []
+    for i in _raw_ext.split(nl):
+        ext += ["." + j.lower() for j in i.split()]
+    _picture_ext = set((ext))
+    try:
+        del ext, i, j
+    except NameError:  # j will be local on python 3
+        pass
+    # File extensions for Open Office documents.  Add to this list if
+    # there are additional files you want searched.
+    _oo_ext = set((
+        ".odb",     # OO Base database
+        ".odg",     # OO Draw drawing
+        ".odp",     # OO Impress presentation
+        ".ods",     # OO Calc spreadsheet
+        ".odt",     # OO Writer document
+        ".ott",     # OO Writer template document
+    ))
 class ZipfileError(Exception):
     pass
-
 def Usage(d, status=1):
     name = sys.argv[0]
     shortname = os.path.split(sys.argv[0])[1]
     missing = broken_link
     notrel = notrel_image
-    image_extensions = _raw_ext
-    oo_extensions = list(_oo_ext)
-    oo_extensions.sort()
-    out('''
-Usage:  {name} [options] file1 [file2...]
-  For each Open Office document file given on the command line, print
-  out any image files that the document file has links to.  Highlight
-  any missing image (mark with '{missing}').
- 
-  Image files that are not at or below the same directory as the
-  document file will be marked '{notrel}'.  This is done so that
-  creating a zip file containing one or more Open Office files will
-  have the documents display their images properly when the package is
-  unzipped.  You may need to create some hard or soft links to the
-  image files for this to work properly.
-  
-  Image files have extensions{image_extensions}
-  Open Office document files have extensions
-    {oo_extensions}
-  
-Options
-  -e
-    Also print the names of embedded image files.
-  -l
-    Just list the encountered Open Office files (i.e., don't list
-    their image files).
-  -m
-    Print only missing or not relative image files.
-  -r
-    Each 'file' on the command line is a directory.  Recursively search
-    it for Open Office files and print the images in the files found.
-    If no directories are given on the command line, search the
-    current directory tree by default.
- 
-Examples
-    - '{shortname} -r' will show all the OO files and their images at
-      and below the current directory.
-    - '{shortname} -l' will do the same, but only display the file
-      names.
-    - '{shortname} -r dir' will show all the OO files and their images
-      at below the directory dir.
-'''[1:].format(**locals()))
+    print(dedent(f'''
+    Usage:  {name} [options] file1 [file2...]
+      For each Open Office document file given on the command line, print
+      out any image files that the document file has links to.  Highlight
+      any missing image (mark with '{missing}').
+      
+      Image files that are not at or below the same directory as the
+      document file will be marked '{notrel}'.  This is done so that
+      creating a zip file containing one or more Open Office files will
+      have the documents display their images properly when the package is
+      unzipped.  You may need to create some hard or soft links to the
+      image files for this to work properly.
+      
+      Image files have extensions:
+        bmp  gif  pbm  pgm  psd  sgf  tif  wmf
+        dxf  jpeg pcd  plt  ras  sgv  tiff xbm
+        emf  jpg  pct  png  sda  svm  vor  xpm
+        eps  met  pcx  ppm  sdd  tga
+      Open Office document files have extensions
+        .odb .odg .odp .ods .odt .ott
+      
+    Options
+      -e
+        Also print the names of embedded image files.
+      -l
+        Just list the encountered Open Office files (i.e., don't list
+        their image files).
+      -m
+        Print only missing or not relative image files.
+      -r
+        Each 'file' on the command line is a directory.  Recursively search
+        it for Open Office files and print the images in the files found.
+        If no directories are given on the command line, search the
+        current directory tree by default.
+      
+    Examples
+      - '{shortname} -r' will show all the OO files and their images at
+        and below the current directory.
+      - '{shortname} -l' will do the same, but only display the file
+        names.
+      - '{shortname} -r dir' will show all the OO files and their images
+        at below the directory dir.
+    '''))
     exit(status)
-
 def ParseCommandLine(d):
     d["-e"] = False     # Don't ignore embedded pictures
     d["-l"] = False     # Only list OO file names
@@ -160,7 +159,6 @@ def ParseCommandLine(d):
         out("Need at least one Open Office file" + nl)
         Usage(d)
     return args
-
 def _Extract(filename, s):
     '''_Extract the image tag at the beginning of the string s.
     '''
@@ -181,7 +179,6 @@ def _Extract(filename, s):
         if path.startswith("../"):
             path = path[3:]
         return path
-
 def _ProcessZipObject(zipobj, filename):
     '''zipobj is an open ZipFile object.  Open the file filename in
     the zip archive, read in its bytes, and search them for image tags.
@@ -204,7 +201,6 @@ def _ProcessZipObject(zipobj, filename):
         s = s[end:]
         loc = s.find("<draw:image xlink:href")
     return found_files
-
 def IsOOFile(file):
     '''Return True if file has the name of an Open Office document
     file.
@@ -212,7 +208,6 @@ def IsOOFile(file):
     path, filename = os.path.split(file)
     name, ext = os.path.splitext(filename)
     return ext.lower() in _oo_ext
-
 def GetOOFilePictures(oofile):
     '''Return a sequence of the picture files included in the given
     Open Office file.  If oofile contains a path, it will be made the
@@ -262,7 +257,6 @@ def GetOOFilePictures(oofile):
     finally:
         os.chdir(olddir)
     return tuple(found)
-
 def keep(s, chars, incl_ws=False):
     '''Returns the string s after keeping only the characters in chars.
     If incl_ws is True, then whitespace characters are added to chars
@@ -271,18 +265,15 @@ def keep(s, chars, incl_ws=False):
     chars = chars + whitespace if incl_ws else chars
     c = "[^{}]".format(''.join(list(set(chars))))
     return sub(c, "", s)
-
 def J(*p):
     '''Join the components of the sequence p into a path and Normalize
     it to have forward slashes.
     '''
     return Normalize(os.path.join(*p))
-
 def Normalize(path):
     '''Use forward slashes in file names.
     '''
     return path.replace("\\", "/")
-
 def IsEmbeddedImage(path):
     '''If the path is of the form e.g.
     Pictures/1000000000000233000000FE20974D73.png
@@ -295,7 +286,6 @@ def IsEmbeddedImage(path):
     if dir == "Pictures" and k == name:
         return True
     return False
-
 def GetImages(file, ignore_embedded=True):
     olddir, image_files = os.getcwd(), []
     path, name = os.path.split(file)
@@ -324,7 +314,6 @@ def GetImages(file, ignore_embedded=True):
                     non_embedded.append(i)
             image_files = non_embedded
         return image_files
-
 def ProcessFile(oofile, d):
     '''Print out any linked image files in the Open Office file
     oofile.  d is the options directory.
@@ -387,7 +376,6 @@ def ProcessFile(oofile, d):
             out("[%s]" % state)
             c.normal()
         out(nl)
-
 def ProcessDirectory(directory, d):
     if not os.path.isdir(directory):
         err("'%s' is not a directory%s" % (directory, nl))
@@ -404,11 +392,9 @@ def ProcessDirectory(directory, d):
                 if oofile[:2] == "./":  # Remove './' prefix
                     oofile = oofile[2:]
                 ProcessFile(oofile, d)
-
 def SearchDirectories(directories, d):
     for directory in directories:
         ProcessDirectory(directory, d)
-
 if __name__ == "__main__": 
     d = {}      # Options dictionary
     args = ParseCommandLine(d)
