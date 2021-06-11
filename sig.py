@@ -20,7 +20,7 @@ if 1:  # Copyright, license
     #∞what∞#
     #  Represent a number to a specified number of significant figures
     #∞what∞#
-    #∞test∞# Put test file information here (see 0test.py) #∞test∞#
+    #∞test∞# --test #∞test∞#
     pass
 if 1:   # Imports
     from fractions import Fraction
@@ -2323,6 +2323,9 @@ if __name__ == "__main__":
     if len(sys.argv) == 1:
         Examples()
         exit(0)
+    if sys.argv[1] != "--test":
+        print("Use --test to run self tests")
+        exit(1)
     def Init():
         '''We set the SigFig class variables here so that the default
         settings the user chooses won't affect the tests.
