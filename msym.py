@@ -17,10 +17,23 @@ characters (see the Interpret function for what's allowed).
 Analogously, use '_{s}' for subscripts.  Note the curly brackets are
 required.
 '''
- 
-import re
-from columnize import Columnize
-
+if 1:  # Copyright, license
+    # These "trigger strings" can be managed with trigger.py
+    #∞copyright∞# Copyright (C) 2016 Don Peterson #∞copyright∞#
+    #∞contact∞# gmail.com@someonesdad1 #∞contact∞#
+    #∞license∞#
+    #   Licensed under the Open Software License version 3.0.
+    #   See http://opensource.org/licenses/OSL-3.0.
+    #∞license∞#
+    #∞what∞#
+    # Command line simple math equations using Unicode
+    #∞what∞#
+    #∞test∞# #∞test∞#
+    pass
+if 1:   # Imports
+    import re
+if 1:   # Custom imports
+    from columnize import Columnize
 def _GetSymbols():
     '''Attach attributes to the Interpret function:
  
@@ -81,7 +94,6 @@ def _GetSymbols():
     # Compile special character subscripts
     s = ["(" + i + ")" for i in symbols]
     S.special_chars = re.compile('|'.join(s))
-
 def Interpret(s):
     '''Change the string s into an expression by substituting for the
     special characters and superscripts/subscripts.
@@ -123,14 +135,12 @@ def Interpret(s):
         mo = S.rsub.search(s)
     s = s.replace(pct_sym, "%")
     return s
-
 def DumpSupportedCharacters():
     s = []
     for name, sym in sorted(Interpret.symbols.items()):
         s.append(name[1:] + " " + sym)
     for i in Columnize(s, indent=" "*2):
         print(i)
-        
 if __name__ == "__main__":
     t = "%%%alp^{-32} %bet^{3i} %gam_{2} %del_{3i}"
     s = Interpret(t)

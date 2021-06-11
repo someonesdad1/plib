@@ -1,40 +1,39 @@
 #TODO
 #  * Convert token naming conversions to a class
+#  * Missing tests for GetString, WordID
 '''
 String utilities
-
-CommonPrefix        Return a common prefix of a sequence of strings
-CommonSuffix        Return a common suffix of a sequence of strings
-FilterStr           Return a function that removes characters from strings
-FindDiff            Return where two strings first differ
-FindSubstring       Return indexes of substring in string
-GetChoice           Return choice from a set of choices (minimizes typing)
-GetString           Return string from user that matches choices
-Keep                Return items in sequence that are in keep sequence
-KeepFilter          Returns a function that will keep a character set
-KeepOnlyLetters     Replace all non-word characters with spaces
-ListInColumns       Obsolete (use columnize.py)
-MatchCap            Match string capitalization
-MultipleReplace     Replace multiple patterns in a string
-Remove              Return items from sequence not in the remove sequence
-RemoveComment       Remove '#.*$' from a string
-RemoveFilter        Functional form of Remove (i.e., a closure)
-soundex             Return 4-character soundex value for a string
-SoundSimilar        Return True if two strings sound similar
-SpellCheck          Spell check a sequence of words
-SplitOnNewlines     Split on \r, \n, or \r\n
-StringSplit         Pick out specified fields of a string
-WordID              Return an ID string that is somewhat pronounceable
-
-Token naming conversions:
-cw2mc
-cw2us
-mc2cw
-mc2us
-us2cw
-us2mc
+    CommonPrefix     Return a common prefix of a sequence of strings
+    CommonSuffix     Return a common suffix of a sequence of strings
+    FilterStr        Return a function that removes characters from strings
+    FindDiff         Return where two strings first differ
+    FindSubstring    Return indexes of substring in string
+    GetChoice        Return choice from a set of choices (minimizes typing)
+    GetString        Return string from user that matches choices
+    Keep             Return items in sequence that are in keep sequence
+    KeepFilter       Returns a function that will keep a character set
+    KeepOnlyLetters  Replace all non-word characters with spaces
+    ListInColumns    Obsolete (use columnize.py)
+    MatchCap         Match string capitalization
+    MultipleReplace  Replace multiple patterns in a string
+    Remove           Return items from sequence not in the remove sequence
+    RemoveComment    Remove '#.*$' from a string
+    RemoveFilter     Functional form of Remove (i.e., a closure)
+    soundex          Return 4-character soundex value for a string
+    SoundSimilar     Return True if two strings sound similar
+    SpellCheck       Spell check a sequence of words
+    SplitOnNewlines  Split on \r, \n, or \r\n
+    StringSplit      Pick out specified fields of a string
+    WordID           Return an ID string that is somewhat pronounceable
+    
+    Token naming conversions:
+    cw2mc
+    cw2us
+    mc2cw
+    mc2us
+    us2cw
+    us2mc
 '''
-
 if 1:  # Copyright, license
     # These "trigger strings" can be managed with trigger.py
     #∞copyright∞# Copyright (C) 2021 Don Peterson #∞copyright∞#
@@ -44,7 +43,7 @@ if 1:  # Copyright, license
     #   See http://opensource.org/licenses/OSL-3.0.
     #∞license∞#
     #∞what∞#
-    # Program description string
+    # String utilities
     #∞what∞#
     #∞test∞# run #∞test∞#
     pass
@@ -59,7 +58,6 @@ if 1:  # Imports
     from pdb import set_trace as xx 
 if 1:  # Global variables
     ii = isinstance
-
 def MatchCap(s, t):
     '''Return t capitalized as s is.  s and t are expected to be sequences
     of characters.  The returned sequence matches the type of t.
@@ -87,7 +85,6 @@ def MatchCap(s, t):
         else:
             out.append(t[i])
     return ''.join(out) if ii(t, str) else type(t)(out)
-
 def soundex(s):
     '''Return the 4-character soundex value to a string argument.  The
     string s must be one word formed with ASCII characters and with no
@@ -147,17 +144,14 @@ def soundex(s):
     while len(code) < 4:
         code += "0"
     return code
-
 def SoundSimilar(s, t):
     'Return True if the strings s and t sound similar'
     return True if soundex(s) == soundex(t) else False
-
 def CommonPrefix(seq):
     '''Return the largest string that is a prefix of all the strings in
     seq.
     '''
     return os.path.commonprefix(seq)
-
 def CommonSuffix(seq):
     '''Return the largest string that is a suffix of all the strings in
     seq.
@@ -168,7 +162,6 @@ def CommonSuffix(seq):
     def rev(s):     # Reverse the string s
         return f([f(list(i)) for i in reversed(s)])
     return rev(CommonPrefix([rev(i) for i in seq]))
-
 def Keep(s, keep):
     '''Return a list (or a string if s is a string) of the items in s that
     are in keep.
@@ -180,7 +173,6 @@ def Keep(s, keep):
     f = lambda x: x in k
     ret = filter(f, s)
     return ''.join(ret) if isinstance(s, str) else list(ret)
-
 def KeepFilter(keep):
     '''Return a function that takes a string and returns a string
     containing only those characters that are in keep.
@@ -188,14 +180,12 @@ def KeepFilter(keep):
     def func(s):
         return Keep(s, keep)
     return func
-
 def Remove(s, remove):
     'Return a sequence of the items in s that are not in remove'
     r = set(remove)
     f = lambda x: x in r
     ret = filterfalse(f, s)
     return ''.join(ret) if isinstance(s, str) else type(s)(ret)
-
 def RemoveFilter(remove):
     '''Return a function that takes a string and returns a string
     containing only those characters that are not in remove.
@@ -203,7 +193,6 @@ def RemoveFilter(remove):
     def func(s):
         return Remove(s, remove)
     return func
-
 def FilterStr(remove, replacements):
     '''Return a function that removes the characters in sequence remove
     from other strings and replaces them with corresponding characters
@@ -213,7 +202,6 @@ def FilterStr(remove, replacements):
         raise ValueError("remove and replacements must be the same length")
     T = ''.maketrans(dict(zip(remove, replacements)))
     return lambda s:  s.translate(T)
-
 def FindDiff(s1, s2, ignore_empty=False, equal_length=False):
     '''Returns the integer index of where the strings s1 and s2 first
     differ.  The number returned is the index where the first
@@ -240,7 +228,6 @@ def FindDiff(s1, s2, ignore_empty=False, equal_length=False):
     # If we get here, every character matched up to the end of the
     # shorter string.
     return -1
-
 def FindSubstring(mystring, substring):
     '''Return a tuple of the indexes of where the substring is found
     in the string mystring.
@@ -257,7 +244,6 @@ def FindSubstring(mystring, substring):
         d.append(start)
         start = mystring.find(substring, start + 1)
     return tuple(d)
-
 def GetString(prompt_msg, default, allowed_values, ignore_case=True):
     '''Get a string from a user and compare it to a sequence of
     allowed values.  If the response is in the allowed values, return
@@ -279,7 +265,6 @@ def GetString(prompt_msg, default, allowed_values, ignore_case=True):
         if s in allowed_values:
             return s
         print("'%s' is not a valid response" % response.strip())
-
 def GetChoice(name, names):
     '''name is a string and names is a set or dict of strings.  Find
     if name uniquely identifies a string in names; if so, return it.
@@ -301,7 +286,6 @@ def GetChoice(name, names):
         else:
             return d[name]
     return None
-
 def KeepOnlyLetters(s, underscore=False, digits=True):
     '''Replace all non-word characters with spaces.  If underscore is
     True, keep underscores too (e.g., typical for programming language
@@ -312,7 +296,6 @@ def KeepOnlyLetters(s, underscore=False, digits=True):
     c = [chr(i) for i in range(256)]
     t = ''.join([i if i in allowed else " " for i in c])
     return s.translate(t)
-
 def StringSplit(fields, string, remainder=True, strict=True):
     '''Pick out the specified fields of the string and return them as
     a tuple of strings.  fields can be either a format string or a
@@ -361,7 +344,6 @@ def StringSplit(fields, string, remainder=True, strict=True):
             raise ValueError("Expected %d pieces; got %d" % (num_expected,
                              len(pieces)))
         return pieces
-
 def ListInColumns(alist, col_width=0, num_columns=0, space_betw=0, truncate=0):
     '''Returns a list of strings with the elements of alist (if
     components are not strings, they will be converted to strings
@@ -429,57 +411,50 @@ def ListInColumns(alist, col_width=0, num_columns=0, space_betw=0, truncate=0):
         lines.append(s)
     assert(len(lines) == num_rows)
     return lines
-
 def cw2us(x):
     '''Convert cap-words naming to underscore naming.
     "Python Cookbook", pg 91.
-
+ 
     Example:  ALotOfFuss --> a_lot_of_fuss
     '''
     return re.sub(r"(?<=[a-z])[A-Z]|(?<!^)[A-Z](?=[a-z])",
                   r"_\g<0>", x).lower()
-
 def cw2mc(x):
     '''Convert cap-words naming to mixed-case naming.
     "Python Cookbook", pg 91.
-
+ 
     Example:  ALotOfFuss --> aLotOfFuss
     '''
     return x[0].lower() + x[1:]
-
 def us2mc(x):
     '''Convert underscore naming to mixed-case.
     "Python Cookbook", pg 91.
-
+ 
     Example:  a_lot_of_fuss --> aLotOfFuss
     '''
     return re.sub(r"_([a-z])", lambda m: (m.group(1).upper()), x)
-
 def us2cw(x):
     '''Convert underscore naming to cap-words naming.
     "Python Cookbook", pg 91.
-
+ 
     Example:  a_lot_of_fuss --> ALotOfFuss
     '''
     s = us2mc(x)
     return s[0].upper() + s[1:]
-
 def mc2us(x):
     '''Convert mixed-case naming to underscore naming.
     "Python Cookbook", pg 91.
-
+ 
     Example:  aLotOfFuss --> a_lot_of_fuss
     '''
     return cw2us(x)
-
 def mc2cw(x):
     '''Convert mixed-case naming to cap-words naming.
     "Python Cookbook", pg 91.
-
+ 
     Example:  aLotOfFuss --> ALotOfFuss
     '''
     return x[0].upper() + x[1:]
-
 def MultipleReplace(text, patterns, flags=0):
     '''Replace multiple patterns in the string text.  patterns is a
     dictionary whose keys are the regular expressions and values are the
@@ -492,7 +467,6 @@ def MultipleReplace(text, patterns, flags=0):
     r = re.compile("|".join(map(re.escape, patterns.keys())), flags)
     # For each match, look up the corresponding value in the dictionary
     return r.sub(lambda match: patterns[match.group(0)], text)
-    
 def RemoveComment(line, code=False):
     '''Remove the largest string starting with '#' from the string
     line.  If code is True, then the resulting line will be compiled
@@ -510,7 +484,6 @@ def RemoveComment(line, code=False):
             msg = "Line with comment removed won't compile:\n  '%s'" % orig
             raise ValueError(msg)
     return line
-
 def SpellCheck(input, Words, ignore_case=True):
     '''input is a sequence of word strings; Words is a dictionary or set
     of correct spellings.  Return the set of any words in input that are not
@@ -527,7 +500,6 @@ def SpellCheck(input, Words, ignore_case=True):
         if word not in Words:
             misspelled.add(word)
     return misspelled
-
 def SplitOnNewlines(s):
     ''' Splits s on all of the three newline sequences: "\r\n", "\r", or
     "\n".  Returns a list of the strings.
@@ -540,7 +512,6 @@ def SplitOnNewlines(s):
         for y in x.split(cr):
             res.extend(y.split(nl))
     return res
-
 def WordID(half_length=3, unique=None, num_tries=100):
     '''Return an ID string that is (somewhat) pronounceable.  The
     returned number of characters will be twice the half_length.  If
@@ -583,7 +554,6 @@ def WordID(half_length=3, unique=None, num_tries=100):
                 print(line)
             print()
     '''
-
 if __name__ == "__main__": 
     from lwtest import run, raises, assert_equal, Assert
     import math
@@ -760,23 +730,4 @@ if __name__ == "__main__":
         assert(len(s) == 2 and "cAt" in s and "hurse" in s)
     def TestSplitOnNewlines():
         assert(SplitOnNewlines("1\n2\r\n3\r") == ["1", "2", "3", ""])
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    # TODO:  Missing tests for GetString, WordID
-    r = r"^Test"
-    failed, messages = run(globals(), regexp=r, halt=1, verbose=0)
-    exit(failed)
+    exit(run(globals(), regexp="^Test", halt=1)[0])
