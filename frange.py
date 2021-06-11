@@ -288,9 +288,11 @@ if __name__ == "__main__":
     if 1:   # Custom modules
         from wrap import dedent
         from lwtest import run, raises, assert_equal, Assert
+        import color as C
     if 1:   # Global variables
         d = {}      # Options dictionary
         P = pathlib.Path
+        yel, norm = C.fg(C.yellow, s=1), C.normal(s=1)
     if 1:   # Module's base code
         def Error(msg, status=1):
             print(msg, file=sys.stderr)
@@ -374,7 +376,7 @@ if __name__ == "__main__":
             try:
                 from mpmath import mpf, mpc, mp, arange
             except ImportError:
-                print("{}:  Warning:  mpmath not tested".format(__file__),
+                print(f"{yel}{__file__}:  Warning:  mpmath not tested{norm}",
                     file=sys.stderr)
             else:
                 # Plain floating point
@@ -407,7 +409,7 @@ if __name__ == "__main__":
             try:
                 import numpy
             except ImportError:
-                print("{}:  Warning:  numpy not tested".format(__file__),
+                print(f"{yel}{__file__}:  Warning:  numpy not tested{norm}",
                     file=sys.stderr)
             else:
                 # Things work OK for the following case

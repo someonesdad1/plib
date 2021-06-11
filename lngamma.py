@@ -44,6 +44,9 @@ if __name__ == "__main__":
     from frange import frange
     from lwtest import run, assert_equal, raises
     import sys
+    import color as C
+    # Color for warnings
+    yel, norm = C.fg(C.yellow, s=1), C.normal(s=1)
     def TestReal():
         tol = 1e-10
         for x, value in ((1, 1),
@@ -66,7 +69,7 @@ if __name__ == "__main__":
         try:
             from mpmath import ln, gamma
         except ImportError:
-            print("Warning:  TestComplex in lngamma_test.py not run")
+            print(f"{yel}Warning:  TestComplex in lngamma_test.py not run{norm}")
             return
         start, stop, step = 0, 10, 1
         eps = 3e-10

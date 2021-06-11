@@ -82,12 +82,15 @@ def invnormal_as(p):
     return sign*(t - (2.30753 + 0.27061*t)/(1 + 0.99229*t + 0.04481*t**2))
 if __name__ == "__main__": 
     from lwtest import run, assert_equal, raises, Assert
+    import color as C
+    # Color for warnings
+    yel, norm = C.fg(C.yellow, s=1), C.normal(s=1)
     try:
         import scipy.stats
         have_scipy = True
     except ImportError:
         have_scipy = False
-        print("invnorm_test.py:  Warning:  scipy not available")
+        print(f"{yel}invnorm_test.py:  Warning:  scipy not available{norm}")
     from frange import frange
     def Test_with_scipy():
         'Test at P values of 1/n to 1 in steps of 1/n'

@@ -2397,8 +2397,11 @@ if __name__ == "__main__":
     from lwtest import run, raises, assert_equal, Assert
     from uncertainties import ufloat, ufloat_fromstr, UFloat
     from io import StringIO
+    import color as C
     eps = 1e-15     # For testing float equality
     seed(0)         # So results are repeatable
+    # Color for warnings
+    yel, norm = C.fg(C.yellow, s=1), C.normal(s=1)
     def Initialize(randomize=False):
         global u
         units, dims = GetUnits(randomize=randomize)
@@ -2636,7 +2639,7 @@ if __name__ == "__main__":
             raises(ValueError, ParseUnit, "4+/-1m", allow_unc=True)
             raises(ValueError, ParseUnit, "m", allow_unc=True)
         else:
-            print("Warning:  uncertainties in u.py not tested")
+            print(f"{yel}Warning:  uncertainties in u.py not tested{norm}")
     def TestParseFraction():
         pf = ParseFraction
         expected_f = (Fraction(9, 8), "mm")

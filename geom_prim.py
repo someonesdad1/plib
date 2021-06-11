@@ -1963,26 +1963,31 @@ def Det4(matrix):
             -b*Det3((e, g, h, i, k, l, m, o, p)) +
             c*Det3((e, f, h, i, j, l, m, n, p)) +
             -d*Det3((e, f, g, i, j, k, m, n, o)))
-
 if __name__ == "__main__": 
-    from lwtest import run, assert_equal, raises, Assert
-    import math
-    # The following is a "random" matrix that I made up; it has no
-    # other significance.
-    rm = [  1,    -7,      3,   17, 
-        -47.5,   0.002,  1,   -1, 
-        -0.2, -10,     -3.3,  4, 
-            1,     0.1,   -0.2,  0.3]
-    identity = [1, 0, 0, 0,
-                0, 1, 0, 0,
-                0, 0, 1, 0,
-                0, 0, 0, 1]
-    # Make sure we test with Ctm angle measurements in radians
-    Ctm._angle = 1
-    Ctm._angle_name = "rad"
-    # Tolerance for floating point stuff
-    eps = 1e-15
-    def test_Ctm():
+    if 1:   # Imports
+        import math
+    if 1:   # Custom imports
+        from lwtest import run, assert_equal, raises, Assert
+        import color as C
+    if 1:   # Global variables
+        # The following is a "random" matrix that I made up; it has no
+        # other significance.
+        rm = [  1,    -7,      3,   17, 
+            -47.5,   0.002,  1,   -1, 
+            -0.2, -10,     -3.3,  4, 
+                1,     0.1,   -0.2,  0.3]
+        identity = [1, 0, 0, 0,
+                    0, 1, 0, 0,
+                    0, 0, 1, 0,
+                    0, 0, 0, 1]
+        # Make sure we test with Ctm angle measurements in radians
+        Ctm._angle = 1
+        Ctm._angle_name = "rad"
+        # Tolerance for floating point stuff
+        eps = 1e-15
+        # Color for warnings
+        yel, norm = C.fg(C.yellow, s=1), C.normal(s=1)
+    def Test_Ctm():
         # We'll test some of the basic capabilities of Ctm.  We can't
         # test the transformations, as that would use one of the methods
         # which is abstract; they'll be tested in e.g. the tests of the
@@ -2013,11 +2018,11 @@ if __name__ == "__main__":
         # If reset() is not used here, later tests will fail
         c.reset()
         assert_equal(c.GetCTM(), identity[:])
-    def test_MatrixInverse():
+    def Test_MatrixInverse():
         # This test uses numpy's matrix inversion as a standard.
         if not have_numpy:
-            msg = ("geom_prim_test.py:  Warning:  Ctm matrix inverse not "
-                "tested (need numpy)")
+            msg = (f"{yel}geom_prim_test.py:  Warning:  Ctm matrix inverse "
+                   f"not tested (need numpy){norm}")
             print(msg, file=sys.stderr)
             return
         def MakeMatrix(lst):
@@ -2035,7 +2040,7 @@ if __name__ == "__main__":
                 else:
                     assert_equal(p.Rnd(P[i, j]), 0)
         c.reset()
-    def test_Det():
+    def Test_Det():
         # Determinant.  Check Det4, as it depends on Det3 and Det2.
         # numpy provides the standard determinant.
         if have_numpy:
@@ -2045,10 +2050,10 @@ if __name__ == "__main__":
             p = Point(0, 0, 0)
             assert_equal(p.Rnd(Det4(rm) - npdet(A)), 0)
         else:
-            msg = ("geom_prim_test.py:  Warning:  determinants not "
-                "tested (need numpy)")
+            msg = (f"{yel}geom_prim_test.py:  Warning:  determinants not "
+                   f"tested (need numpy){norm}")
             print(msg, file=sys.stderr)
-    def test_Vector():
+    def Test_Vector():
         Ctm._compass = False
         Ctm._neg = False
         Ctm._elev = False
@@ -2124,7 +2129,7 @@ if __name__ == "__main__":
         assert_equal(r, v.r)
         assert_equal(theta, v.theta)
         assert_equal(phi, v.phi)
-    def test_Point():
+    def Test_Point():
         Ctm._compass = False
         Ctm._neg = False
         Ctm._elev = False
@@ -2328,7 +2333,7 @@ if __name__ == "__main__":
             pa = p.proj_ang
             a = math.pi/4
             assert_equal(pa, (a, a))
-    def test_Line():
+    def Test_Line():
         Ctm._compass = False
         Ctm._neg = False
         Ctm._elev = False
@@ -2437,7 +2442,7 @@ if __name__ == "__main__":
         assert_equal(ln, Line(Point(0, 1), Point(1, 1)))
         o.locate(p)
         assert_equal(o, p)
-    def test_Plane():
+    def Test_Plane():
         Ctm._compass = False
         Ctm._neg = False
         Ctm._elev = False
