@@ -1,8 +1,23 @@
-import sys
-import os
-import termios
-import fcntl
-
+'''Get the next character typed at the keyboard
+'''
+if 1:  # Copyright, license
+    # These "trigger strings" can be managed with trigger.py
+    #∞copyright∞# Copyright (C) 2010 Don Peterson #∞copyright∞#
+    #∞contact∞# gmail.com@someonesdad1 #∞contact∞#
+    #∞license∞#
+    #   No specific license; as it was mostly copied from the URL below,
+    #   see that site for any license coverage.
+    #∞license∞#
+    #∞what∞#
+    # Get the next character typed at the keyboard
+    #∞what∞#
+    #∞test∞# #∞test∞#
+    pass
+if 1:  # Imports
+    import sys
+    import os
+    import termios
+    import fcntl
 def kbhit(block=True):
     '''Get the next character typed at the keyboard.  If block is True,
     then wait for the key to be pressed, otherwise return immediately.
@@ -40,12 +55,13 @@ def kbhit(block=True):
         # characteristics.
         termios.tcsetattr(fd, termios.TCSAFLUSH, oldattr)
         fcntl.fcntl(fd, fcntl.F_SETFL, oldflags)
-
 if __name__ == "__main__":
+    # Run as a script for a demonstration
     print("Type 'q' to exit")
     while True:
         c = kbhit()
         if c == "q":
             break
-        s = c if ord(c) >= ord(" ") else ''
-        print("char = '{}'  num = {:3d} (0x{:02x})".format(s, ord(c), ord(c)))
+        o = ord(c)
+        s = c if o >= ord(" ") else ''
+        print(f"char = '{s}'  ord(char) = {o:3d} (0x{o:02x})")
