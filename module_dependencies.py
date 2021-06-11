@@ -38,9 +38,6 @@ if 1:   # Standard imports
 if 1:   # Custom imports
     from wrap import wrap, dedent, indent, Wrap
     from columnize import Columnize
-    if 0:
-        import debug
-        debug.SetDebugger()  # Start debugger on unhandled exception
 if 1:   # Global variables
     P = pathlib.Path
     # This will collect bad import lines that need fixing
@@ -219,7 +216,7 @@ if 1:   # Core functionality
         return out
 if __name__ == "__main__":
     d = {}      # Options dictionary
-    os.chdir("/pylib")
+    os.chdir("/plib")
     modules = GetModuleNames()
     source = GetSourceFiles(modules)
     used_dict = GetUsed(modules, source)

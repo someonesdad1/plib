@@ -12,6 +12,9 @@
   getinput.py, getnumber.py, and gettokens.py.  Everything should be in
   one file including all the tests.
 
+* module_dependencies.py needs to be rewritten to accommodate /pylib.
+  The tools and programs need to be moved in first.
+
 * Delete fsig.py once it's established it's not being used anywhere.
 
 * Go through each of the pushed files, clean them up, add test support
