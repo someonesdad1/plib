@@ -1,52 +1,54 @@
 '''
-Various formulas from Meeus, "Astronomical Algorithms", 2nd ed.  This
-code will only work on later versions of python 3.
+Various formulas from Meeus, "Astronomical Algorithms", 2nd ed.  
 '''
- 
-# Copyright (C) 1999, 2014, 2020 Don Peterson
-# Contact:  gmail.com@someonesdad1
- 
-#
-# Licensed under the Open Software License version 3.0.
-# See http://opensource.org/licenses/OSL-3.0.
-#
- 
-import sys
-import operator
-import datetime
-import functools
-from math import pi, floor, sqrt, sin, cos, tan, asin, acos, atan, atan2
-from math import fabs, fmod, radians, degrees, ceil, log10
-reduce = functools.reduce
-
-# Constants
-class Global:  pass
-G = Global()
-G.earth_equatorial_radius_km = 6378.14
-G.earth_flattening = f = 1/298.257
-G.earth_meridian_eccentricity = sqrt(2*f - f*f)
-del f
-G.minimum_year = -4712
-
-# Days in months (February handled specially because of leap years)
-months = {
-    1: 31, 
-    3: 31,
-    4: 30,
-    5: 31,
-    6: 30,
-    7: 31,
-    8: 31,
-    9: 30,
-    10: 31,
-    11: 30,
-    12: 31
-}
-
+if 1:  # Copyright, license
+    # These "trigger strings" can be managed with trigger.py
+    #∞copyright∞# Copyright (C) 1999, 2014, 2020 Don Peterson #∞copyright∞#
+    #∞contact∞# gmail.com@someonesdad1 #∞contact∞#
+    #∞license∞#
+    #   Licensed under the Open Software License version 3.0.
+    #   See http://opensource.org/licenses/OSL-3.0.
+    #∞license∞#
+    #∞what∞#
+    # Various astronomical formulas from Meeus, "Astronomical
+    # Algorithms", 2nd ed.  
+    #∞what∞#
+    #∞test∞# Put test file information here (see 0test.py) #∞test∞#
+    pass
+if 1:   # Imports
+    import sys
+    import operator
+    import datetime
+    import functools
+    from math import pi, floor, sqrt, sin, cos, tan, asin, acos, atan, atan2
+    from math import fabs, fmod, radians, degrees, ceil, log10
+if 1:   # Global variables
+    reduce = functools.reduce
+    # Constants
+    class Global:  pass
+    G = Global()
+    G.earth_equatorial_radius_km = 6378.14
+    G.earth_flattening = f = 1/298.257
+    G.earth_meridian_eccentricity = sqrt(2*f - f*f)
+    del f
+    G.minimum_year = -4712
+    # Days in months (February handled specially because of leap years)
+    months = {
+        1: 31, 
+        3: 31,
+        4: 30,
+        5: 31,
+        6: 30,
+        7: 31,
+        8: 31,
+        9: 30,
+        10: 31,
+        11: 30,
+        12: 31
+    }
 def IsInt(x, msg):
     'Check that x is an integer'
     assert isinstance(x, int), msg
-
 def MDY2ISO(month, day, year):
     '''Returns an integer in the ISO form YYYYMMDD.  month and year
     must be integers.  day can be a float; it is truncated to an
@@ -58,14 +60,12 @@ def MDY2ISO(month, day, year):
     if not IsValidGregorianDate(month, day, year):
         raise ValueError("Not a valid Gregorian calendar date")
     return int("%d%02d%02d" % (year, month, day))
-
 def IsLeapYear(year):
     '''Page 62.  Returns True if year is a leap year.
     '''
     IsInt(year, "year must be an integer")
     assert year > 0, "year must be >= 0"
     return (year % 400 == 0) or (year % 4 == 0 and year % 100 != 0)
-
 def NumDaysInMonth(month, year):
     IsInt(year, "year must be an integer")
     IsInt(month, "month must be an integer")
@@ -74,7 +74,6 @@ def NumDaysInMonth(month, year):
     if month == 2:
         return 29 if IsLeapYear(year) else 28
     return months[month]
-
 def DayOfYear(month, day, year):
     '''Page 65.  Returns an integer between 1 and 366 corresponding to
     the day of the year.  1 January is day 1 and 31 December is day
@@ -88,7 +87,6 @@ def DayOfYear(month, day, year):
     if not 1 <= N <= 366:
         raise ValueError("Illegal day number")
     return N
-
 def DayOfYear2MDY(day_of_year, year):
     '''Page 66.  Returns a tuple of integers (month, day, year) given
     the day number and a year.
@@ -103,7 +101,6 @@ def DayOfYear2MDY(day_of_year, year):
         M = 1
     D = N - int(275*M/9) + K*int((M + 9)/12) + 30
     return (M, D, year)
-
 def CheckIntegerDate(month, day, year, decimal_day=False):
     '''Raises a ValueError if month, day, and year aren't integers and
     properly bounded.  If decimal_day is True, then day can be a
@@ -127,7 +124,6 @@ def CheckIntegerDate(month, day, year, decimal_day=False):
                 raise e
         else:
             raise e
-
 def DayOfWeek(month, day, year):
     '''Page 65.  Returns a number between 0 (Sunday) and 6 (Saturday)
     for a given date.
@@ -135,7 +131,6 @@ def DayOfWeek(month, day, year):
     CheckIntegerDate(month, day, year, decimal_day=True)
     julian = int(JulianAstro(month, int(day), year) + 1.5)
     return julian % 7
-
 def IsDST(month, day, year):
     '''Return True if daylight savings time (DST) is in effect.  Assumes
     a location in the US that utilizes DST.  Note the rules can change
@@ -160,7 +155,6 @@ def IsDST(month, day, year):
     # In Nov we must be before the first Sunday to be DST.  That means
     # the previous Sunday must be before the first.
     return previous_sunday <= 0
-
 def IsValidGregorianDate(month, day, year):
     '''Returns True if the year is a valid Gregorian calendar date
     (i.e., year is 1583 or greater) and the month and day numbers
@@ -176,7 +170,6 @@ def IsValidGregorianDate(month, day, year):
         return True
     except ValueError:
         return False
-
 def JulianAstro(month, day, year):
     '''Page 60.  Returns the astronomical Julian day number which is a
     floating point number that is zero at Greenwich mean noon.  The
@@ -195,7 +188,6 @@ def JulianAstro(month, day, year):
     B = 0 if tmp < 1582.1015 else 2 - A + int(A/4)      # B==0 ==> Julian cal.
     julian = int(365.25*(Y + 4716)) + int(30.6001*(M + 1)) + D + B - 1524.5
     return julian
-
 def JD(month, day, year):
     '''Return the Julian day of the year.  The Julian day will be an
     integer that is less than or equal to 366.
@@ -203,7 +195,6 @@ def JD(month, day, year):
     jd = int(JulianAstro(month, day, year) + 0.55)
     jd0 = int(JulianAstro(1, 1, year) + 0.55)
     return jd - jd0 + 1
-
 def JD2MDY(julian_day, year):
     '''Return (month, day, year) for the given julian_day and year.
     '''
@@ -222,7 +213,6 @@ def JD2MDY(julian_day, year):
             cum_days = cum_num_days[i]
             day = days_in_month[i] - (cum_days - julian_day)
             return (month, day, year)
-
 def JulianToMonthDayYear(jd):
     '''Page 63.  Returns (month, day, year) given the Julian day jd.
     month and year are integers; day may be an integer or float.
@@ -249,12 +239,10 @@ def JulianToMonthDayYear(jd):
     else:
         year = int(C - 4715)
     return month, day, year  # month, year are integers
-
 def SGN(x):
     '''Signum function; returns -1 if x < 0, 0 if x == 0, and 1 if x > 0.
     '''
     return 1 if x > 0 else -1 if x < 0 else 0
-
 def hms2rad(h, m, s):
     '''Converts angular measure in hours, minutes, seconds to radians.
     One hour is equivalent to 360/24 = 15 degrees.
@@ -265,7 +253,6 @@ def hms2rad(h, m, s):
     assert s >= 0, "s must be >= 0"
     decimal_hours = abs(h) + abs(m)/60 + abs(s)/3600
     return radians(SGN(h)*decimal_hours*15)
-
 def dms2rad(d, m, s):
     '''Converts angular measure in degrees, minutes, seconds to radians.
     The result will have the sign of d.
@@ -276,7 +263,6 @@ def dms2rad(d, m, s):
     assert s >= 0, "s must be >= 0"
     deg = abs(d) + abs(m)/60 + abs(s)/3600
     return radians(SGN(d)*deg)
-
 def EarthSurfaceDistance(lat1, long1, lat2, long2):
     '''Page 85.  Returns the distance in km between two points on the
     Earth's surface.  The latitudes and longitudes must be in radians.
@@ -301,7 +287,6 @@ def EarthSurfaceDistance(lat1, long1, lat2, long2):
     H2 = (3*R + 1)/(2*S)
     return D*(1 + f*H1*sin(F)*sin(F)*cos(G1)*cos(G1) -
               f*H2*cos(F)*cos(F)*sin(G1)*sin(G1))
-
 def LongitudinalDistance(latitude, angle):
     '''Page 83.  Returns the distance in km along a circle of constant
     latitude for Earth for an angular longitude distance of angle.
@@ -314,7 +299,6 @@ def LongitudinalDistance(latitude, angle):
     a = G.earth_equatorial_radius_km
     e = G.earth_meridian_eccentricity
     return angle*a*cos(latitude)/sqrt(1 - e*e*sin(latitude)*sin(latitude))
-
 def LatitudinalDistance(latitude, angle):
     '''Page 84.  Returns the distance in km along a circle of constant
     longitude for Earth for an angular distance of angle along the
@@ -328,7 +312,6 @@ def LatitudinalDistance(latitude, angle):
     e = G.earth_meridian_eccentricity
     d = 1 - e*e*sin(latitude)*sin(latitude)
     return angle*a*(1-e*e)/pow(d, 3/2.)
-
 def UT2DT(year):
     '''Page 78.  Returns the correction in seconds to add to Universal
     Time to get dynamical time.
@@ -354,7 +337,6 @@ def UT2DT(year):
     if int(year + 0.5) == 1999:
         return 64.0
     raise ValueError("Year is out of bounds")
-
 def LagrangeInterpolation(x, X, Y, strict=0):
     '''Page 32.  Given x, an abscissa, calculates the interpolated
     value y = f(x) where f(x) is Lagrange's interpolating polynomial.
@@ -380,12 +362,10 @@ def LagrangeInterpolation(x, X, Y, strict=0):
             c *= (x - X[j])/(X[i] - X[j])
         y += c*Y[i]
     return y
-
 def product(x):
     '''Returns the product of the components of the iterable x.
     '''
     return reduce(operator.mul, x)
-
 def LinearRegression(X, Y):
     '''Page 36.  Returns a tuple (slope, intercept, correlation) from
     the linear regression of Y against X.  X and Y are sequences of
@@ -404,7 +384,6 @@ def LinearRegression(X, Y):
     r = (N*sxy - sx*sy)/sqrt(denomx*denomy)
     assert -1 <= r <= 1, "Correlation coefficient out of range"
     return (slope, intercept, r)
-
 def Nutation(jd):
     '''Page 143.  Returns the tuple (d_psi, d_eps) in radians where
     d_psi is the nutation in longitude and d_eps is the nutation
@@ -433,7 +412,6 @@ def Nutation(jd):
     d_eps = (9.20*cos(radians(Omega)) + 0.57*cos(radians(2*L)) +
              0.10*cos(radians(2*L)) - 0.09*cos(radians(2*Omega)))
     return (radians(d_psi)/3600, radians(d_eps)/3600)
-
 def EclipticObliquity(jd):
     '''Page 147.  Returns the obliquity of the ecliptic in radians
     given the Julian day jd.  This is the angle between the Earth's
@@ -450,19 +428,16 @@ def EclipticObliquity(jd):
     # e is in arcseconds; convert to radians and add the constant
     e = c + radians(e/3600)
     return e
-
 def EarthOrbitEccentricity(T):
     '''Returns Earth's orbit eccentricity (dimensionless) for the time
     T in Julian centuries from 1 Jan 2000.  Equation 25.4 on page 163.
     '''
     return 0.016708634 - 0.000042037*T - 0.0000001267*T*T
-
 def SunMeanAnomaly(T):
     '''Return the Sun's mean anomaly in radians.  Equation 25.3 pg
     163.
     '''
     return Normalize(radians(357.52911 + 35999.05029*T + 0.0001537*T*T))
-
 def MeanSiderealTime(month, day, year):
     '''Page 87.  The calculation returns the mean sidereal time in
     decimal hours for 0 UT on the given day.
@@ -476,7 +451,6 @@ def MeanSiderealTime(month, day, year):
     if mst < 0:
         mst += 360
     return mst/15
-
 def ApparentSiderealTime(month, day, year):
     '''Page 88.  The calculation returns the apparent sidereal time
     in decimal hours for 0 UT on the given day.
@@ -495,7 +469,6 @@ def ApparentSiderealTime(month, day, year):
     eps = EclipticObliquity(jd)         # Leave in radians
     mst += d_psi*cos(eps)               # Correction to apparent sid. time
     return mst/15  # Convert to decimal hours
-
 def hr2hms(hr):
     '''Return a tuple (hours, minutes, seconds) of a decimal hour
     value hr.  hours will have the sign of hr.
@@ -505,7 +478,6 @@ def hr2hms(hr):
     m = 60*(abs(hr) - h)
     s = 60*(m - int(m))
     return sgn*h, int(m), s
-
 def rad2dms(x):
     '''Return a tuple (degrees, minutes, seconds) of a radian value.
     The degrees value will have the sign of x.
@@ -517,12 +489,10 @@ def rad2dms(x):
     min = 60*(d - deg)
     sec = 60*(min - int(min))
     return sgn*deg, int(min), sec
-
 def rad2hms(x):
     '''Return a tuple (hour, minutes, seconds) of a radian value.
     '''
     return rad2dms(x/15)
-
 def LocalCoordinates(latitude, longitude, ra, dec, jd):
     '''Page 93.  Calculate the local horizontal coordinates for an
     object with right ascension ra and declination dec.  The current
@@ -550,7 +520,6 @@ def LocalCoordinates(latitude, longitude, ra, dec, jd):
     assert 0 <= A <= 360
     assert -90 <= h <= 90
     return (A, h)
-
 def AngularSeparation(ra1, dec1, ra2, dec2):
     '''Page 109.  Returns the angular separation in radians between two
     bodies at (ra1, dec1) and (ra2, dec2).  ra is right ascension and
@@ -563,7 +532,6 @@ def AngularSeparation(ra1, dec1, ra2, dec2):
         b = dec1 - dec2
         d = sqrt(a*a + b*b)
     return d
-
 def Precession(jd, jd0, ra0, dec0, pm_ra=0, pm_dec=0):
     '''Page 134.  Returns (ra, dec) representing a position in
     equatorial coordinates at time Julian day jd for a position (ra0,
@@ -601,7 +569,6 @@ def Precession(jd, jd0, ra0, dec0, pm_ra=0, pm_dec=0):
     else:
         dec = asin(C)
     return (ra, dec)
-
 def Normalize(angle, degrees=0):
     '''Normalize an angle to between 0 and 2*pi radians (0 and 360
     degrees if degrees is true).
@@ -611,7 +578,6 @@ def Normalize(angle, degrees=0):
     if new_angle < 0:
         new_angle += rotation
     return new_angle
-
 def SunPosition(jd, apparent=0):
     '''Page 163.  Returns equatorial coordinates (ra, dec) in radians
     for the true position of the sun at the specified Julian day.  If
@@ -651,7 +617,6 @@ def SunPosition(jd, apparent=0):
         ra = Normalize(atan2(cos(eps)*sin(L), cos(L)))
         dec = asin(sin(eps)*sin(L))
     return (ra, dec)
-
 def SunriseSunset(month, day, year, latitude, longitude):
     '''Returns a tuple (t_UT_sunrise, t_UT_sunset) of the UT times in
     decimal hours for sunrise and sunset on the indicated day.
@@ -676,7 +641,6 @@ def SunriseSunset(month, day, year, latitude, longitude):
     while m1 < 0:
         m1 += 1
     return 24*m1, 24*m2
-
 def TimeOfMoonPhase(year, quarter=0):
     ''' Returns the time in JDE (Julian Day Ephemeris, which is
     equivalent to Dynamical Time TD).  Note if you want the time in
@@ -807,7 +771,6 @@ def TimeOfMoonPhase(year, quarter=0):
         print("  W                                :  %.5f" % W)
         print("  JDE                              :  %.5f" % jde)
     return jde
-
 def SunMeanLongitude(T):
     '''Returns sun's mean longitude in radians for time T in Julian
     centuries.  Equation 28.2 pg 183.
@@ -819,7 +782,6 @@ def SunMeanLongitude(T):
     if L0 < 0:
         L0 += 360
     return radians(L0)
-
 def EquationOfTime(jd):
     '''Returns the Equation of Time in radians given the Julian day;
     see equation 28.1 pg 183.  The equation of time is the time
@@ -841,7 +803,6 @@ def EquationOfTime(jd):
     E = (y*sin(2*L0) - 2*e*sin(M) + 4*e*y*sin(M)*cos(2*L0) -
          y*y/2*sin(4*L0) - 5/4*e*e*sin(2*M))
     return E
-
 def KeplerEquation(e, M, reltol=0):
     '''Returns eccentric anomaly E in radians by solving Kepler's
     equation 30.5 pg 195 via Sinnott's binary search algorithm on page
@@ -885,3 +846,452 @@ def KeplerEquation(e, M, reltol=0):
     E0 = E0*F                               # 220
     return E0
 KeplerEquation.N = ceil(sys.float_info.dig/log10(2))
+if __name__ == "__main__": 
+    import sys
+    from lwtest import run, assert_equal, raises, Assert
+    from pdb import set_trace as xx
+    def TestAngularSeparation():
+        # Page 110:  Angular separation
+        ra1  = radians(213.9154)
+        dec1 = radians(19.1825)
+        ra2  = radians(201.2983)
+        dec2 = radians(-11.1614)
+        d = AngularSeparation(ra1, dec1, ra2, dec2)
+        assert(fabs(degrees(d) - 32.7930) < 1e-4)
+    def TestSiderealTime():
+        # Page 88 and 89:  Sidereal time
+        d = 10 + (19 + 21/60.)/24   # Example 12.b
+        t = MeanSiderealTime(4, d, 1987)
+        expected = 8 + 34./60 + 57.0896/3600
+        assert(t - expected < 1e-10)
+        t = MeanSiderealTime(4, 10, 1987)
+        h, m, s = hr2hms(t)
+        assert(h == 13 and m == 10)
+        assert(fabs(s - 46.3668) < 0.0001)
+        t = ApparentSiderealTime(4, 10, 1987)
+        h, m, s = hr2hms(t)
+        assert(h == 13 and m == 10)
+        expected = 46.1351  # Example 12.a bottom
+        assert(fabs(s - expected) < 0.01)
+    def TestCheckIntegerDate():
+        # Bad month
+        raises(ValueError, CheckIntegerDate, 13, 1, 1)
+        raises(ValueError, CheckIntegerDate, 0, 1, 1)
+        # Bad day
+        raises(ValueError, CheckIntegerDate, 1, 0, 1)
+        raises(ValueError, CheckIntegerDate, 1, 32, 1)
+        # Bad year
+        raises(ValueError, CheckIntegerDate, 1, 1, G.minimum_year - 1)
+        max_year = datetime.MAXYEAR
+        raises(ValueError, CheckIntegerDate, 1, 1, max_year + 1)
+        # OK date
+        CheckIntegerDate( 1,  1, 2000)
+        CheckIntegerDate(12, 31, 2000)
+        CheckIntegerDate( 1,  1.1, 2000, decimal_day=True)
+        CheckIntegerDate(12, 30.1, 2000, decimal_day=True)
+    def TestDayOfYear2MDY():
+        # Page 65:  Day of the year
+        assert(DayOfYear2MDY(113, 1988) == (4, 22, 1988))
+        assert(DayOfYear2MDY(318, 1978) == (11, 14, 1978))
+    def TestEarthSurfaceDistance():
+        # Page 85:  Distance between points in France & USNO
+        long1 = dms2rad(-2, 20, 14)
+        lat1  = dms2rad(48, 50, 11)
+        long2 = dms2rad(77,  3, 56)
+        lat2  = dms2rad(38, 55, 17)
+        d = EarthSurfaceDistance(lat1, long1, lat2, long2)
+        assert(fabs(d - 6181.63) <= .05)
+    def TestLongitudinalDistance():
+        # Page 83:  distance along a line of constant latitude
+        latitude = dms2rad(42, 0, 0)
+        angle = dms2rad(1, 0, 0)
+        d = LongitudinalDistance(latitude, angle)
+        assert(fabs(d - 82.8508) < 0.0001)
+        # Page 84:  distance along a line of constant longitude
+        latitude = dms2rad(42, 0, 0)
+        angle = dms2rad(1, 0, 0)
+        d = LatitudinalDistance(latitude, angle)
+        assert(fabs(d - 111.0733) < 0.0001)
+    def TestUT2DT():
+        # Page 78:  Correction to universal time to get dynamical time
+        assert(fabs(UT2DT(1977) - 48) < 1)
+        assert(fabs(UT2DT(333) - 6146) < 1)
+    def TestLagrangeInterpolation():
+        # Page 34:  Lagrangian interpolation
+        X = [29.43, 30.97, 27.69, 28.11, 31.58, 33.05]
+        Y = [0.4913598528, 0.5145891926, 0.4646875083, 0.4711658342,
+            0.5236885653, 0.5453707057]
+        d = LagrangeInterpolation(30, X, Y)
+        assert(fabs(d - 1/2.) < 1e-9)
+        d = LagrangeInterpolation(0, X, Y)
+        assert(fabs(d - 0.0000482) < 1e-5)
+        d = LagrangeInterpolation(90, X, Y)
+        assert(fabs(d - 1.00007) < 2e-4)
+    def TestLinearRegression():
+        # Page 40:  Linear regression
+        x = (73, 38, 35, 42, 78, 68, 74, 42, 52, 54, 39,
+            61, 42, 49, 50, 62, 44, 39, 43, 54, 44, 37)
+        y = (90.4, 125.3, 161.8, 143.4,  52.5,  50.8,  71.5, 152.8,
+            131.3,  98.5, 144.8, 78.1,  89.5,  63.9, 112.1,  82.0, 119.8,
+            161.2, 208.4, 111.6, 167.1, 162.1)
+        slope, intercept, r = LinearRegression(x, y)
+        assert(fabs(slope + 2.49) < .01)
+        assert(fabs(intercept - 244.18) < .01)
+        assert(fabs(r + 0.767) < .001)
+    def TestJulian():
+        # Page 59:  Julian day and associated routines
+        assert(JulianAstro(10, 4.81, 1957) == 2436116.31)
+        assert(JulianAstro(1, 27.5, 333) == 1842713.0)
+        assert(JulianAstro(1, 1.5, -4712) == 0.0)
+        assert(DayOfWeek(11, 13, 1949) == 0)
+        assert(DayOfWeek( 5, 30, 1998) == 6)
+        assert(DayOfYear(11, 14, 1978) == 318)
+        assert(DayOfYear( 4, 22, 1980) == 113)
+        month, day, year = JulianToMonthDayYear(2436116.31)
+        assert(month == 10)
+        assert(year == 1957)
+        assert(abs(day - 4.81) < 0.00001)
+        month, day, year = JulianToMonthDayYear(1842713.0)
+        assert(month == 1)
+        assert(year == 333)
+        assert(abs(day - 27.5) < 0.00001)
+        month, day, year = JulianToMonthDayYear(1507900.13)
+        assert(month == 5)
+        assert(year == -584)
+        assert(abs(day - 28.63) < 0.00001)
+        assert(NumDaysInMonth( 1, 1999) == 31)
+        assert(NumDaysInMonth( 2, 1999) == 28)
+        assert(NumDaysInMonth( 3, 1999) == 31)
+        assert(NumDaysInMonth( 4, 1999) == 30)
+        assert(NumDaysInMonth( 5, 1999) == 31)
+        assert(NumDaysInMonth( 6, 1999) == 30)
+        assert(NumDaysInMonth( 7, 1999) == 31)
+        assert(NumDaysInMonth( 8, 1999) == 31)
+        assert(NumDaysInMonth( 9, 1999) == 30)
+        assert(NumDaysInMonth(10, 1999) == 31)
+        assert(NumDaysInMonth(11, 1999) == 30)
+        assert(NumDaysInMonth(12, 1999) == 31)
+        assert(NumDaysInMonth( 1, 2000) == 31)
+        assert(NumDaysInMonth( 2, 2000) == 29)
+        assert(NumDaysInMonth( 3, 2000) == 31)
+        assert(NumDaysInMonth( 4, 2000) == 30)
+        assert(NumDaysInMonth( 5, 2000) == 31)
+        assert(NumDaysInMonth( 6, 2000) == 30)
+        assert(NumDaysInMonth( 7, 2000) == 31)
+        assert(NumDaysInMonth( 8, 2000) == 31)
+        assert(NumDaysInMonth( 9, 2000) == 30)
+        assert(NumDaysInMonth(10, 2000) == 31)
+        assert(NumDaysInMonth(11, 2000) == 30)
+        assert(NumDaysInMonth(12, 2000) == 31)
+    def TestTransformationOfCoordinates():
+        # Page 95:  Transformation of coordinates
+        jd = JulianAstro(4, 10 + (19 + 21/60.)/24, 1987)
+        longitude = dms2rad(77, 3, 56)
+        latitude = dms2rad(38, 55, 17)
+        ra = hms2rad(23, 9, 16.641)
+        dec = dms2rad(-6, 43, 11.61)
+        azimuth, altitude = LocalCoordinates(latitude, longitude, ra, dec, jd)
+        assert(fabs(azimuth - 248.03) < 0.01)
+        assert(fabs(altitude - 15.12) < 0.01)
+    def TestPrecession():
+        # Page 135:  Precession
+        ra0 = hms2rad(2, 44, 11.986)
+        dec0 = dms2rad(49, 13, 42.48)
+        pm_ra = radians(0.03425/3600*15)
+        pm_dec = radians(-0.0895/3600)
+        jd0 = 2451545.0
+        jd = 2462088.69
+        ra, dec = Precession(jd, jd0, ra0, dec0, pm_ra, pm_dec)
+        eps = 2e-6
+        assert(fabs(degrees(ra) - 41.547214) < eps)
+        assert(fabs(degrees(dec) - 49.348483) < eps)
+    def TestPolarisPrecession():
+        # For Polaris
+        ra0 = hms2rad(2, 31, 48.704)
+        dec0 = dms2rad(89, 15, 50.72)
+        pm_ra = radians(0.19877/3600*15)
+        pm_dec = radians(-0.0152/3600)
+        jd0 = 2451545.0
+        jd = JulianAstro(1, 1, 2050)
+        ra, dec = Precession(jd, jd0, ra0, dec0, pm_ra, pm_dec)
+        h, m, s = rad2hms(ra)
+        assert(h == 3 and m == 48 and fabs(s - 16.427) < 0.01)
+        d, m, s = rad2dms(dec)
+        assert(d == 89 and m == 27 and fabs(s - 15.375) < 0.01)
+    def TestEclipticObliquity():
+        # Page 148:  obliquity of the ecliptic
+        d, m, s = rad2dms(EclipticObliquity(2446895.5))
+        assert(d == 23 and m == 26 and fabs(s - 27.407) < 0.01)
+        d_psi, d_eps = Nutation(2446895.5)
+        assert(fabs(d_psi + radians(3.788/3600)) < radians(0.5/3600))
+        assert(fabs(d_eps - radians(9.443/3600)) < radians(0.1/3600))
+        # Page 147:  Obliquity of the ecliptic; example 28.b pg 185.
+        eps = EclipticObliquity(JulianAstro(10, 13, 1992))
+        assert(fabs(degrees(eps) - 23.44023) < 1e-5)
+        jd = JulianAstro(1, 1, 2050)
+    def TestSunPosition():
+        # Page 165:  solar coordinates
+        ra, dec = SunPosition(2448908.5, apparent=0)
+        assert(fabs(degrees(ra) - 198.38) < 0.01)
+        assert(fabs(degrees(dec) + 7.785) < 0.001)
+    def TestEquationOfTime():
+        # Page 183:  Equation of Time; example 28.b pg 185
+        jd = JulianAstro(10, 13, 1992)
+        assert(fabs(EquationOfTime(jd) - 0.059825572) < 1e-8)
+    def TestSunMeanLongitude():
+        # Page 183:  Sun's mean longitude; example 28.b pg 185
+        T = (JulianAstro(10, 13, 1992) - 2451545)/36525
+        L0 = SunMeanLongitude(T)            # In radians
+        assert(fabs(degrees(L0) - 201.80720) < 1e-5)
+    def TestEarthOrbitEccentricity():
+        # Page 163:  Eccentricity of Earth's orbit; example 28.b pg 185.
+        T = (JulianAstro(10, 13, 1992) - 2451545)/36525
+        e = EarthOrbitEccentricity(T)
+        assert(fabs(e - 0.016711668) < 1e-9)
+    def TestSunMeanAnomaly():
+        # Page 163:  Sun's mean anomaly; example 28.b pg 185.
+        T = (JulianAstro(10, 13, 1992) - 2451545)/36525
+        M = degrees(SunMeanAnomaly(T))
+        assert(fabs(M - 278.99397) < 1e-5)
+    def TestKeplerEquation():
+        # Page 195:  Kepler's equation
+        e, M = 0.1, radians(5)  # Example 30.a pg 196
+        assert(fabs(degrees(KeplerEquation(e, M)) - 5.554589) < 1e-6)
+        e, M = 0.99, 0.2  # Example 30.a pg 196
+        assert(fabs(KeplerEquation(e, M) - 1.066997365282) < 1e-12)
+    def TestSignum():
+        # Signum function
+        assert(SGN(5) == 1)
+        assert(SGN(0) == 0)
+        assert(SGN(-5) == -1)
+        assert(SGN(5.0) == 1)
+        assert(SGN(0.0) == 0)
+        assert(SGN(-5.0) == -1)
+    def TestSunriseSunset():
+        # Sunrise & sunset for Alamo, CA on 15 Dec 2012.  Correct values
+        # come from http://www.sunrisesunset.com/ (I prefer to use the
+        # USNO pages, but that website seems to be down much of the time).
+        # The MST times from the web were 05:07 and 20:30.  MST's offset
+        # from UT is -7 hours.
+        lat, long = radians(37 + 51.4/60), radians(121 + 59.9/60)
+        rise, set = SunriseSunset(12, 15, 2012, lat, long)
+        # Results should be sunrise = 7:16 am, sunset = 4:50 pm.
+        offset = -8
+        rise += offset
+        set  += offset
+        if rise < 0:
+            rise += 24
+        if set < 0:
+            set += 24
+        hr = int(rise)
+        min = int((rise - hr)*60 + 0.5)
+        assert(hr == 7 and abs(min - 16) < 1)
+        hr = int(set)
+        min = int((set - hr)*60 + 0.5)
+        assert(hr == 16 and abs(min - 50) < 1)
+    def TestIsDST():
+        # IsDST:  Test cases from
+        # http://www.webexhibits.org/daylightsaving/b.html accessed Mon 19
+        # May 2014 09:23:55 AM.
+        M, D, Y = 3, 14, 2010
+        assert(IsDST(M, D, Y))
+        assert(not IsDST(M, D-1, Y))
+        M, D, Y = 11, 7, 2010
+        assert(not IsDST(M, D, Y))
+        assert(IsDST(M, D-1, Y))
+        M, D, Y = 3, 13, 2011
+        assert(IsDST(M, D, Y))
+        assert(not IsDST(M, D-1, Y))
+        M, D, Y = 11, 6, 2011
+        assert(not IsDST(M, D, Y))
+        assert(IsDST(M, D-1, Y))
+        M, D, Y = 3, 11, 2012
+        assert(IsDST(M, D, Y))
+        assert(not IsDST(M, D-1, Y))
+        M, D, Y = 11, 4, 2012
+        assert(not IsDST(M, D, Y))
+        assert(IsDST(M, D-1, Y))
+        M, D, Y = 3, 10, 2013
+        assert(IsDST(M, D, Y))
+        assert(not IsDST(M, D-1, Y))
+        M, D, Y = 11, 3, 2013
+        assert(not IsDST(M, D, Y))
+        assert(IsDST(M, D-1, Y))
+        M, D, Y = 3,  9, 2014
+        assert(IsDST(M, D, Y))
+        assert(not IsDST(M, D-1, Y))
+        M, D, Y = 11, 2, 2014
+        assert(not IsDST(M, D, Y))
+        assert(IsDST(M, D-1, Y))
+        M, D, Y = 3,  8, 2015
+        assert(IsDST(M, D, Y))
+        assert(not IsDST(M, D-1, Y))
+        M, D, Y = 11, 1, 2015
+        assert(not IsDST(M, D, Y))
+        assert(IsDST(10, 31, Y))
+        M, D, Y = 3, 13, 2016
+        assert(IsDST(M, D, Y))
+        assert(not IsDST(M, D-1, Y))
+        M, D, Y = 11, 6, 2016
+        assert(not IsDST(M, D, Y))
+        assert(IsDST(M, D-1, Y))
+    def TestTimeOfMoonPhase():
+        yr = 1977.13    # Example 49.a, p 353
+        t = TimeOfMoonPhase(yr, quarter=0)
+        assert(abs(t - 2443192.65118) < 0.00001)
+        yr = 2044       # Example 49.b, p 353
+        t = TimeOfMoonPhase(yr, quarter=3)
+        assert(abs(t - 2467636.49186) < 0.00001)
+    def Test_dms2rad():
+        d, m, s = 22, 30, 30
+        t_rad = radians(d + m/60 + s/3600)
+        assert(t_rad == dms2rad(d, m, s))
+    def Test_hms2rad():
+        h, m, s = 22, 30, 30
+        hrs = h + m/60.0 + s/3600.0
+        t_deg = hrs*15
+        t_rad = radians(t_deg)
+        assert(t_rad == hms2rad(h, m, s))
+    def Test_hr2hms():
+        hr, hms = 12.5822222222, 12.3456
+        h, m, s = hr2hms(hr)
+        hms1 = h + m/1e2 + s/1e4
+        assert(abs(hms - hms1) < 0.0001)
+    def TestIsLeapYear():
+        assert(IsLeapYear(1600))
+        assert(IsLeapYear(2000))
+        assert(IsLeapYear(2004))
+        assert(IsLeapYear(2400))
+        assert(not IsLeapYear(1700))
+        assert(not IsLeapYear(1800))
+        assert(not IsLeapYear(1900))
+        assert(not IsLeapYear(2100))
+        assert(not IsLeapYear(2200))
+    def TestIsValidGregorianDate():
+        assert(IsValidGregorianDate(1, 1, 1583))
+        assert(IsValidGregorianDate(12, 31, 1583))
+        assert(not IsValidGregorianDate(1, 1, 1582))
+        assert(not IsValidGregorianDate(1, 32, 2000))
+    def TestNormalize():
+        assert(Normalize(0, degrees=True) == 0)
+        assert(Normalize(1, degrees=True) == 1)
+        assert(Normalize(361, degrees=True) == 1)
+        assert(Normalize(-1, degrees=True) == 359)
+        assert(Normalize(0) == 0)
+        assert(Normalize(-pi/2) == 3*pi/2)
+        assert(Normalize(-pi) == pi)
+    def Test_product():
+        a = (1, 2, 3, 4, 5, 6)
+        assert(product(a) == 720)
+    def Test_rad2dms():
+        assert(dms2rad(*rad2dms(pi/6)) == pi/6)
+    def Test_rad2hms():
+        assert(hms2rad(*rad2hms(pi/6)) == pi/6)
+    def Test_SGN():
+        assert(SGN(-5) == -1)
+        assert(SGN(-1) == -1)
+        assert(SGN( 0) ==  0)
+        assert(SGN( 1) ==  1)
+        assert(SGN( 5) ==  1)
+        assert(SGN(-5.) == -1)
+        assert(SGN(-1.) == -1)
+        assert(SGN( 0.) ==  0)
+        assert(SGN( 1.) ==  1)
+        assert(SGN( 5.) ==  1)
+    def Test_JD():
+        D = ( # jd, m, d for 2000 (a leap year)
+            (1, 1, 1), (2, 1, 2), (3, 1, 3), (4, 1, 4), (5, 1, 5), (6, 1, 6),
+            (7, 1, 7), (8, 1, 8), (9, 1, 9), (10, 1, 10), (11, 1, 11),
+            (12, 1, 12), (13, 1, 13), (14, 1, 14), (15, 1, 15), (16, 1, 16),
+            (17, 1, 17), (18, 1, 18), (19, 1, 19), (20, 1, 20), (21, 1, 21),
+            (22, 1, 22), (23, 1, 23), (24, 1, 24), (25, 1, 25), (26, 1, 26),
+            (27, 1, 27), (28, 1, 28), (29, 1, 29), (30, 1, 30), (31, 1, 31),
+            (32, 2, 1), (33, 2, 2), (34, 2, 3), (35, 2, 4), (36, 2, 5),
+            (37, 2, 6), (38, 2, 7), (39, 2, 8), (40, 2, 9), (41, 2, 10),
+            (42, 2, 11), (43, 2, 12), (44, 2, 13), (45, 2, 14), (46, 2, 15),
+            (47, 2, 16), (48, 2, 17), (49, 2, 18), (50, 2, 19), (51, 2, 20),
+            (52, 2, 21), (53, 2, 22), (54, 2, 23), (55, 2, 24), (56, 2, 25),
+            (57, 2, 26), (58, 2, 27), (59, 2, 28), (60, 2, 29), (61, 3, 1),
+            (62, 3, 2), (63, 3, 3), (64, 3, 4), (65, 3, 5), (66, 3, 6),
+            (67, 3, 7), (68, 3, 8), (69, 3, 9), (70, 3, 10), (71, 3, 11),
+            (72, 3, 12), (73, 3, 13), (74, 3, 14), (75, 3, 15), (76, 3, 16),
+            (77, 3, 17), (78, 3, 18), (79, 3, 19), (80, 3, 20), (81, 3, 21),
+            (82, 3, 22), (83, 3, 23), (84, 3, 24), (85, 3, 25), (86, 3, 26),
+            (87, 3, 27), (88, 3, 28), (89, 3, 29), (90, 3, 30), (91, 3, 31),
+            (92, 4, 1), (93, 4, 2), (94, 4, 3), (95, 4, 4), (96, 4, 5),
+            (97, 4, 6), (98, 4, 7), (99, 4, 8), (100, 4, 9), (101, 4, 10),
+            (102, 4, 11), (103, 4, 12), (104, 4, 13), (105, 4, 14),
+            (106, 4, 15), (107, 4, 16), (108, 4, 17), (109, 4, 18),
+            (110, 4, 19), (111, 4, 20), (112, 4, 21), (113, 4, 22),
+            (114, 4, 23), (115, 4, 24), (116, 4, 25), (117, 4, 26),
+            (118, 4, 27), (119, 4, 28), (120, 4, 29), (121, 4, 30),
+            (122, 5, 1), (123, 5, 2), (124, 5, 3), (125, 5, 4),
+            (126, 5, 5), (127, 5, 6), (128, 5, 7), (129, 5, 8),
+            (130, 5, 9), (131, 5, 10), (132, 5, 11), (133, 5, 12),
+            (134, 5, 13), (135, 5, 14), (136, 5, 15), (137, 5, 16),
+            (138, 5, 17), (139, 5, 18), (140, 5, 19), (141, 5, 20),
+            (142, 5, 21), (143, 5, 22), (144, 5, 23), (145, 5, 24),
+            (146, 5, 25), (147, 5, 26), (148, 5, 27), (149, 5, 28),
+            (150, 5, 29), (151, 5, 30), (152, 5, 31), (153, 6, 1),
+            (154, 6, 2), (155, 6, 3), (156, 6, 4), (157, 6, 5),
+            (158, 6, 6), (159, 6, 7), (160, 6, 8), (161, 6, 9),
+            (162, 6, 10), (163, 6, 11), (164, 6, 12), (165, 6, 13),
+            (166, 6, 14), (167, 6, 15), (168, 6, 16), (169, 6, 17),
+            (170, 6, 18), (171, 6, 19), (172, 6, 20), (173, 6, 21),
+            (174, 6, 22), (175, 6, 23), (176, 6, 24), (177, 6, 25),
+            (178, 6, 26), (179, 6, 27), (180, 6, 28), (181, 6, 29),
+            (182, 6, 30), (183, 7, 1), (184, 7, 2), (185, 7, 3),
+            (186, 7, 4), (187, 7, 5), (188, 7, 6), (189, 7, 7),
+            (190, 7, 8), (191, 7, 9), (192, 7, 10), (193, 7, 11),
+            (194, 7, 12), (195, 7, 13), (196, 7, 14), (197, 7, 15),
+            (198, 7, 16), (199, 7, 17), (200, 7, 18), (201, 7, 19),
+            (202, 7, 20), (203, 7, 21), (204, 7, 22), (205, 7, 23),
+            (206, 7, 24), (207, 7, 25), (208, 7, 26), (209, 7, 27),
+            (210, 7, 28), (211, 7, 29), (212, 7, 30), (213, 7, 31),
+            (214, 8, 1), (215, 8, 2), (216, 8, 3), (217, 8, 4),
+            (218, 8, 5), (219, 8, 6), (220, 8, 7), (221, 8, 8),
+            (222, 8, 9), (223, 8, 10), (224, 8, 11), (225, 8, 12),
+            (226, 8, 13), (227, 8, 14), (228, 8, 15), (229, 8, 16),
+            (230, 8, 17), (231, 8, 18), (232, 8, 19), (233, 8, 20),
+            (234, 8, 21), (235, 8, 22), (236, 8, 23), (237, 8, 24),
+            (238, 8, 25), (239, 8, 26), (240, 8, 27), (241, 8, 28),
+            (242, 8, 29), (243, 8, 30), (244, 8, 31), (245, 9, 1),
+            (246, 9, 2), (247, 9, 3), (248, 9, 4), (249, 9, 5),
+            (250, 9, 6), (251, 9, 7), (252, 9, 8), (253, 9, 9),
+            (254, 9, 10), (255, 9, 11), (256, 9, 12), (257, 9, 13),
+            (258, 9, 14), (259, 9, 15), (260, 9, 16), (261, 9, 17),
+            (262, 9, 18), (263, 9, 19), (264, 9, 20), (265, 9, 21),
+            (266, 9, 22), (267, 9, 23), (268, 9, 24), (269, 9, 25),
+            (270, 9, 26), (271, 9, 27), (272, 9, 28), (273, 9, 29),
+            (274, 9, 30), (275, 10, 1), (276, 10, 2), (277, 10, 3),
+            (278, 10, 4), (279, 10, 5), (280, 10, 6), (281, 10, 7),
+            (282, 10, 8), (283, 10, 9), (284, 10, 10), (285, 10, 11),
+            (286, 10, 12), (287, 10, 13), (288, 10, 14), (289, 10, 15),
+            (290, 10, 16), (291, 10, 17), (292, 10, 18), (293, 10, 19),
+            (294, 10, 20), (295, 10, 21), (296, 10, 22), (297, 10, 23),
+            (298, 10, 24), (299, 10, 25), (300, 10, 26), (301, 10, 27),
+            (302, 10, 28), (303, 10, 29), (304, 10, 30), (305, 10, 31),
+            (306, 11, 1), (307, 11, 2), (308, 11, 3), (309, 11, 4),
+            (310, 11, 5), (311, 11, 6), (312, 11, 7), (313, 11, 8),
+            (314, 11, 9), (315, 11, 10), (316, 11, 11), (317, 11, 12),
+            (318, 11, 13), (319, 11, 14), (320, 11, 15), (321, 11, 16),
+            (322, 11, 17), (323, 11, 18), (324, 11, 19), (325, 11, 20),
+            (326, 11, 21), (327, 11, 22), (328, 11, 23), (329, 11, 24),
+            (330, 11, 25), (331, 11, 26), (332, 11, 27), (333, 11, 28),
+            (334, 11, 29), (335, 11, 30), (336, 12, 1), (337, 12, 2),
+            (338, 12, 3), (339, 12, 4), (340, 12, 5), (341, 12, 6),
+            (342, 12, 7), (343, 12, 8), (344, 12, 9), (345, 12, 10),
+            (346, 12, 11), (347, 12, 12), (348, 12, 13), (349, 12, 14),
+            (350, 12, 15), (351, 12, 16), (352, 12, 17), (353, 12, 18),
+            (354, 12, 19), (355, 12, 20), (356, 12, 21), (357, 12, 22),
+            (358, 12, 23), (359, 12, 24), (360, 12, 25), (361, 12, 26),
+            (362, 12, 27), (363, 12, 28), (364, 12, 29), (365, 12, 30),
+        )
+        yr = 2000
+        for jd, m, d in D:
+            assert(jd == JD(*JD2MDY(jd, yr)))
+    def Test_MDY2ISO():
+        assert(MDY2ISO(1, 1, 2014) == 20140101)
+        assert(MDY2ISO(12, 31, 2014) == 20141231)
+        raises(ValueError, MDY2ISO, 12, 32, 2014)
+    exit(run(globals(), halt=1)[0])
