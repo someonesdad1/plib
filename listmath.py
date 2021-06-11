@@ -5,7 +5,6 @@ and cmath modules.
 import sys
 from columnize import Columnize
 from collections import namedtuple, defaultdict
-from iso import iso
 from pprint import pprint as pp
 from pdb import set_trace as xx
 if len(sys.argv) > 1:
