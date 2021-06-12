@@ -1127,7 +1127,7 @@ class flt(Base, float):
                 val = float(value)
             else:
                 # Use u.ParseUnit to see if there's a unit in value
-                rv = u.ParseUnit(value)
+                rv = u.ParseUnit(value.replace("_", ""))
                 if rv is None:
                     raise ValueError(f"'{value}' is not recognized as a number")
                 val, un = rv
@@ -1871,8 +1871,6 @@ if 1:   # Get math/cmath functions into our namespace
         exec(f"{i} = flt({i})")
 
 if 0:
-    x = flt("0.274 ft³·mol·psi/J")
-    print(x.toSI())
     exit()
 
 if __name__ == "__main__": 
