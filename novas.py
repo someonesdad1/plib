@@ -37,7 +37,7 @@ if 1:  # Copyright, license
     #∞what∞#
     # <science> Python translation of NOVAS software from USNO
     #∞what∞#
-    #∞test∞# Put test file information here (see 0test.py) #∞test∞#
+    #∞test∞# run #∞test∞#
     pass
 if 1:   # Imports
     from math import pi, fabs, fmod, sin, cos, atan2, asin, sqrt

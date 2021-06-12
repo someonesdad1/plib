@@ -21,7 +21,7 @@ if 1:  # Copyright, license
     # version of pymatrix, gotten on 15 Jul 2019 from
     # https://github.com/dmulholl/pymatrix.git.
     #∞what∞#
-    #∞test∞# Put test file information here (see 0test.py) #∞test∞#
+    #∞test∞# run #∞test∞#
     pass
 if 1:   # Standard imports
     from cmath import sqrt as csqrt

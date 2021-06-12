@@ -12,7 +12,7 @@ if 1:  # Copyright, license
     #∞what∞#
     # <math> Lagrange and linear interpolation routines
     #∞what∞#
-    #∞test∞# Put test file information here (see 0test.py) #∞test∞#
+    #∞test∞# run #∞test∞#
     pass
 if 1:  # Imports
     import bisect

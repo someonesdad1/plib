@@ -14,7 +14,7 @@ if 1:  # Copyright, license
     # <math> Routines to help with triangulation.  Will use the
     # uncertainties module if it's available.
     #∞what∞#
-    #∞test∞# Put test file information here (see 0test.py) #∞test∞#
+    #∞test∞# run #∞test∞#
     pass
 if 1:   # Imports
     from math import cos, acos, sin, asin, tan, atan, sqrt, pi

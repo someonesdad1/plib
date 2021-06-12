@@ -12,7 +12,7 @@ if 1:  # Copyright, license
     #∞what∞#
     # <math> Generate partitions of the integer n
     #∞what∞#
-    #∞test∞# Put test file information here (see 0test.py) #∞test∞#
+    #∞test∞# #∞test∞#
     pass
 if 1:   # Imports
     import sys

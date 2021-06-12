@@ -25,7 +25,7 @@ if 1:  # Copyright, license
     # file, you can have a problem when you distribute the OO file and
     # its pictures to a user.  This script heads off this problem.
     #∞what∞#
-    #∞test∞# Put test file information here (see 0test.py) #∞test∞#
+    #∞test∞# #∞test∞#
     pass
 if 1:   # Imports
     import sys

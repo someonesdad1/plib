@@ -13,7 +13,7 @@ if 1:  # Copyright, license
     # <math> Pure-python numerical integration routines:  Simpson's
     # and trapezoidal methods provided.
     #∞what∞#
-    #∞test∞# Put test file information here (see 0test.py) #∞test∞#
+    #∞test∞# run #∞test∞#
     pass
 def Simpson(f, a, b, n):
     '''Integrate f over the interval [a, b] with n points via Simpson's
