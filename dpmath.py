@@ -1,5 +1,5 @@
 '''
-General-purpose math-related functions.
+Math-related functions
 '''
 if 1:  # Copyright, license
     # These "trigger strings" can be managed with trigger.py
@@ -10,10 +10,7 @@ if 1:  # Copyright, license
     #   See http://opensource.org/licenses/OSL-3.0.
     #∞license∞#
     #∞what∞#
-    # <math> General-purpose math-related functions:  AlmostEqual, polar
-    # and rectangular coordinate conversions, bitlength of an integer,
-    # integer square root, length of an Archimedean spiral,
-    # approximation of inverse normal CDF.
+    # <math> Math-related functions
     #∞what∞#
     #∞test∞# run #∞test∞#
     pass
@@ -21,6 +18,7 @@ if 1:   # Imports
     import math
     import string
     import sys
+    from fractions import Fraction
 if 1:   # Custom imports
     from frange import frange
 if 1:   # Global variables
@@ -443,6 +441,244 @@ def base2int(x, base):
             raise ValueError(f"'{c}' not a valid character for base {base}")
         n += val*(base**i)
     return n
+def int2bin(n, numbits=32):
+    '''Returns the binary of integer n, using numbits number of
+    digits.  Note this is a two's-complement representation.
+    From http://www.daniweb.com/software-development/python/code/216539
+    '''
+    return "".join([str((n >> y) & 1) for y in range(numbits - 1, -1, -1)])
+def Binary(n):
+    '''convert an integer n to a binary string.  Example:  Binary(11549)
+    gives '10110100011101'.
+    '''
+    if 0:
+        # from http://www.daniweb.com/software-development/python/code/216539
+        s, m = "", abs(n)
+        if not n:
+            return "0"
+        while m > 0:
+            s = str(m % 2) + s
+            m >>= 1
+        return "-" + s if n < 0 else s
+    else:
+        # Use built-in bin()
+        return "-" + bin(n)[3:] if n < 0 else bin(n)[2:]
+class bitvector(int):
+    '''This convenience class is an integer that lets you get its bit
+    values using indexing or slices.
+ 
+    Examples:
+        x = bitvector(9)
+        x[3] returns 1
+        x[2] returns 0
+        x[2:3] returns 2
+        x[123] returns 0    # Arbitrary bits can be addressed
+        x[-1] raises an IndexError
+ 
+    Suggested from python 2 code given by Ross Rogers at
+    (http://stackoverflow.com/questions/147713/how-do-i-manipulate-bits-in-python)
+    dated 29 Sep 2008.
+    '''
+    def __repr__(self):
+        return "bitvector({})".format(self)
+    def _validate_slice(self, slice):
+        '''Check the slice object for valid values; raises an IndexError if
+        it's improper.  Return (start, stop) where the values are valid
+        indices into the binary value.  Note that start and stop values can
+        be any integers >= 0 as long as start is less than or equal to
+        stop.
+        '''
+        start, stop, step = slice.start, slice.stop, slice.step
+        # Check start
+        if start is None:
+            start = 0
+        elif start < 0:
+            raise IndexError("Slice start cannot be < 0")
+        # Check stop
+        if stop is None:
+            stop = int(math.log(self)/math.log(2))
+        elif stop < 0:
+            raise IndexError("Slice stop cannot be < 0")
+        if step is not None:
+            raise IndexError("Slice step must be None")
+        if start > stop:
+            raise IndexError("Slice start must be <= stop")
+        return start, stop
+    def __getitem__(self, key):
+        if isinstance(key, slice):
+            start, stop = self._validate_slice(key)
+            return bitvector((self >> start) & (2**(stop - start + 1) - 1))
+        else:
+            try:
+                index = int(key)
+            except Exception:
+                raise IndexError("'{}' is an invalid index".format(key))
+            if index < 0:
+                raise ValueError("Negative bit index not allowed")
+            return bitvector((self & 2**index) >> index)
+def bin2gray(bits):
+    '''bits will be a string representing a binary number with the most
+    significant bit at index 0; for example, the integer 13 would be
+    represented by the string '1101'.  Return a string representing a Gray
+    code of this number.
+ 
+    Example:  If bits = '1011' (binary of the integer 13), this function
+    returns '1011'.
+    '''
+    # Algorithm from http://rosettacode.org/wiki/Gray_code#Python
+    b = [int(i) for i in bits]
+    g = b[:1] + [i ^ ishift for i, ishift in zip(b[:-1], b[1:])]
+    return ''.join([str(i) for i in g])
+def gray2bin(bits):
+    '''bits will be a string representing a Gray-encoded binary number.
+    Return a string representing a binary number with the most significant
+    bit at index 0.
+ 
+    Example:  If bits = '1101', this function returns '1101', the binary
+    form of the integer 13.
+    '''
+    # Algorithm from http://rosettacode.org/wiki/Gray_code#Python
+    Bits = [int(i) for i in bits]
+    b = [Bits[0]]
+    for nextb in Bits[1:]:
+        b.append(b[-1] ^ nextb)
+    return ''.join([str(i) for i in b])
+def InterpretFraction(s):
+    '''Interprets the string s as a fraction.  The following are
+    equivalent forms:  '5/4', '1 1/4', '1-1/4', or '1+1/4'.  The
+    fractional part in a proper fraction can be improper:  thus,
+    '1 5/4' is returned as Fraction(9, 4).
+    '''
+    if "/" not in s:
+        raise ValueError("'%s' must contain '/'" % s)
+    t = s.strip()
+    # First, try to convert the string to a Fraction object
+    try:
+        return Fraction(t)
+    except ValueError:
+        pass
+    # Assume it's of the form 'm[ +-]n/d' where m, n, d are
+    # integers.
+    msg = "'%s' is not of the correct form" % s
+    neg = True if t[0] == "-" else False
+    fields = t.replace("+", " ").replace("-", " ").strip().split()
+    if len(fields) != 2:
+        raise ValueError(msg)
+    try:
+        ip = abs(int(fields[0]))
+        fp = abs(Fraction(fields[1]))
+        return -(ip + fp) if neg else ip + fp
+    except ValueError:
+        raise ValueError(msg)
+def ProperFraction(fraction, separator=" "):
+    '''Return the Fraction object fraction in a proper fraction string
+    form.
+ 
+    Example:  Fraction(-5, 4) returns '-1 1/4'.
+    '''
+    if not isinstance(fraction, Fraction):
+        raise ValueError("frac must be a Fraction object")
+    sgn = "-" if fraction < 0 else ""
+    n, d = abs(fraction.numerator), abs(fraction.denominator)
+    ip, numerator = divmod(n, d)
+    return "{}{}{}{}/{}".format(sgn, ip, separator, numerator, d)
+def mantissa(x, digits=6):
+    '''Return the mantissa of the base 10 logarithm of x rounded to the
+    indicated number of digits.
+    '''
+    return round(math.log10(significand(x, digits=digits)), digits)
+def significand(x, digits=6):
+    '''Return the significand of x rounded to the indicated number of
+    digits.
+    '''
+    s = SignSignificandExponent(x)[1]
+    return round(s, digits - 1)
+def SignSignificandExponent(x, digits=15):
+    '''Returns a tuple (sign, significand, exponent) of a floating point
+    number x.
+    '''
+    s = ("%%.%de" % digits) % abs(float(x))
+    return (1 - 2*(x < 0), float(s[0:digits + 2]), int(s[digits + 3:]))
+def signum(x, ret_type=int):
+    '''Return a number -1, 0, or 1 representing the sign of x.
+    '''
+    if x < 0:
+        return ret_type(-1)
+    elif x > 0:
+        return ret_type(1)
+    return ret_type(0)
+def Percentile(seq, fraction):
+    '''Return the indicated fraction of a sequence seq of sorted
+    values.  fraction will be converted to be in [0, 1].
+ 
+    The method is recommended by NIST at
+    https://www.itl.nist.gov/div898/handbook/prc/section2/prc262.htm.  
+    
+    The algorithm is:
+ 
+        Suppose you have N numbers Y_[1] to Y_[N].  For the pth percentile,
+        let x = p*(N + 1) and
+      
+          k = int(x)      [Integer part of x], d >= 0
+          d = x - k       [Fractional part of x], d in [0, 1)
+      
+        Then calculate
+      
+          1.  For 0 < k < N, Y_(p) = Y_[k] + d*(Y_[k+1] - Y_[k]).
+          2.  For k = 0, Y_[p] = Y[1].  Note that any p <= 1/(N+1) will be
+              set to the minimum value.
+          3.  For k >= N, Y_(p) = = Y_[N].  Note that any p > N/(N+1) will
+              be set to the maximum value.
+      
+          Note the array indexing is 1-based, so python code will need to
+          take this into account.
+  
+    Example:  A gauge study resulted in 12 measurements:
+  
+         i  Measurements   Sorted       Ranks
+        --- ------------   -------      -----
+         1     95.1772     95.0610        9
+         2     95.1567     95.0925        6
+         3     95.1937     95.1065       10
+         4     95.1959     95.1195       11
+         5     95.1442     95.1442        5
+         6     95.0610     95.1567        1
+         7     95.1591     95.1591        7
+         8     95.1195     95.1682        4
+         9     95.1065     95.1772        3
+        10     95.0925     95.1937        2
+        11     95.1990     95.1959       12
+        12     95.1682     95.1990        8
+  
+    To find the 90th percentile, we have p*(N+1) = 0.9*13 = 11.7.  Then 
+    k = 11 and d = 0.7.  From step 1 above, we estimate Y_(90) as
+  
+        Y_(90) = Y[11] + 0.7*(95.1990 - 95.1959) = 95.1981
+  
+    Note this algorithm will work for N > 1.
+ 
+    http://code.activestate.com/recipes/511478-finding-the-percentile-of-the-values/
+    gives another algorithm, but it doesn't give the same results as the
+    NIST algorithm.
+    '''
+    if not seq:
+        return None
+    N = len(seq)
+    if N == 1:
+        raise ValueError("Sequence must have at least 2 elements")
+    fraction = max(min(fraction, 1), 0)
+    x = fraction*(N + 1)
+    k = int(x)      # Integer part of x
+    d = x - k       # Fractional part of x
+    if 0 < k < N:
+        yk = seq[k - 1]
+        y = yk + d*(seq[k] - yk)
+    elif k >= N:
+        y = seq[-1]
+    else:
+        y = seq[0]
+    return y
+
 if __name__ == "__main__": 
     from lwtest import run, raises, assert_equal, Assert
     from f import flt, tau, radians, log, sqrt
@@ -727,4 +963,139 @@ if __name__ == "__main__":
     def Test_base2int():
         s = "53,kkns^~laU"
         Assert(base2int(s, 94) == int("255" + str(2**64)))
+    def Test_int2bin():
+        Assert(int2bin(-33, 8) == "11011111")
+        Assert(int2bin( 33, 8) == "00100001")
+    def TestBinary():
+        d = '''
+        -1000 -1111101000
+        -501 -111110101
+        -500 -111110100
+        -499 -111110011
+        -16 -10000
+        -15 -1111
+        -14 -1110
+        -13 -1101
+        -12 -1100
+        -11 -1011
+        -10 -1010
+        -9 -1001
+        -8 -1000
+        -7 -111
+        -6 -110
+        -5 -101
+        -4 -100
+        -3 -11
+        -2 -10
+        -1 -1
+        0 0
+        1 1
+        2 10
+        3 11
+        4 100
+        5 101
+        6 110
+        7 111
+        8 1000
+        9 1001
+        10 1010
+        11 1011
+        12 1100
+        13 1101
+        14 1110
+        15 1111
+        16 10000
+        499 111110011
+        500 111110100
+        501 111110101
+        999 1111100111
+        1000 1111101000
+        '''.strip()
+        for line in d.split("\n"):
+            n, b = line.strip().split()
+            n = int(n)
+            Assert(Binary(n) == b)
+    def Test_bitvector():
+        s = "9"
+        bv = bitvector(s)
+        Assert(str(bv) == s)
+        Assert(repr(bv) == "bitvector({})".format(s))
+        binary = bin(int(s))[2:] + "0"*8
+        for i, value in enumerate(binary):
+            Assert(bv[i] == int(value))
+        Assert(bv[1000] == 0)   # Check a high bit number
+    def Test_GrayConversions():
+        # Test integers from 0 to 15
+        gray = "0 1 11 10 110 111 101 100 1100 1101 1111 1110 1010 1011 1001 1000"
+        for i, g in enumerate(gray.split()):
+            b = gray2bin(g)
+            Assert(b == bin(i)[2:])
+            g1 = bin2gray(b)
+            Assert(g1 == g)
+    def TestInterpretFraction():
+        expected = Fraction(5, 4)
+        Assert(InterpretFraction("5/4") == expected)
+        Assert(InterpretFraction("1 1/4") == expected)
+        Assert(InterpretFraction("1+1/4") == expected)
+        Assert(InterpretFraction("1-1/4") == expected)
+        #
+        Assert(InterpretFraction("+5/4") == expected)
+        Assert(InterpretFraction("+1 1/4") == expected)
+        Assert(InterpretFraction("+1+1/4") == expected)
+        Assert(InterpretFraction("+1-1/4") == expected)
+        #
+        Assert(InterpretFraction("-5/4") == -expected)
+        Assert(InterpretFraction("-1 1/4") == -expected)
+        Assert(InterpretFraction("-1+1/4") == -expected)
+        Assert(InterpretFraction("-1-1/4") == -expected)
+        #
+        Assert(InterpretFraction("1 1/1") == Fraction(2, 1))
+        Assert(InterpretFraction("+1 1/1") == Fraction(2, 1))
+        Assert(InterpretFraction("-1 1/1") == Fraction(-2, 1))
+        #
+        Assert(InterpretFraction("1 2/1") == Fraction(3, 1))
+        Assert(InterpretFraction("+1 2/1") == Fraction(3, 1))
+        Assert(InterpretFraction("-1 2/1") == Fraction(-3, 1))
+        # Argument must contain "/" and be parseable
+        raises(ValueError, InterpretFraction, "1")
+        raises(ValueError, InterpretFraction, "1/")
+        raises(ValueError, InterpretFraction, "/1")
+    def TestProperFraction():
+        Assert(ProperFraction(Fraction("-1")) == "-1 0/1")
+        Assert(ProperFraction(Fraction("1")) == "1 0/1")
+        Assert(ProperFraction(Fraction(-1, 1)) == "-1 0/1")
+        Assert(ProperFraction(Fraction(1, 1)) == "1 0/1")
+        Assert(ProperFraction(Fraction(-3, 1)) == "-3 0/1")
+        Assert(ProperFraction(Fraction(3, 1)) == "3 0/1")
+        Assert(ProperFraction(Fraction(5, 4)) == "1 1/4")
+        Assert(ProperFraction(Fraction(-5, 4)) == "-1 1/4")
+    def Test_mantissa():
+        x = 1.234 
+        mant = mantissa(x)
+        Assert(mant == 0.091315)
+    def Test_significand():
+        x = math.pi*1e-10
+        Assert(significand(x, digits=6) == 3.14159)
+        Assert(significand(x, digits=2) == 3.1)
+    def Test_SignSignificandExponent():
+        s, m, e = SignSignificandExponent(-1.23e-4)
+        Assert(s == -1 and m == 1.23 and e == -4)
+    def Test_signum():
+        Assert(signum(-5) == -1)
+        Assert(signum(5) == 1)
+        Assert(signum(0) == 0)
+        t = float
+        Assert(isinstance(signum(5, ret_type=t), t))
+    def TestPercentile():
+        s = sorted([  # NIST gauge study data from
+            # https://www.itl.nist.gov/div898/handbook/prc/section2/prc262.htm
+            95.0610, 95.0925, 95.1065, 95.1195, 95.1442, 95.1567, 95.1591,
+            95.1682, 95.1772, 95.1937, 95.1959, 95.1990])
+        Assert(round(Percentile(s, -1), 4) == 95.0610)
+        Assert(round(Percentile(s, 0), 4) == 95.0610)
+        Assert(round(Percentile(s, 0.5), 4) == 95.1579)
+        Assert(round(Percentile(s, 0.9), 4) == 95.1981)
+        Assert(round(Percentile(s, 1), 4) == 95.1990)
+        Assert(round(Percentile(s, 1.1), 4) == 95.1990)
+        raises(ValueError, Percentile, [1], 0.5)
     exit(run(globals(), halt=1)[0])

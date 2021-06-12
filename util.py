@@ -3,53 +3,37 @@
  
 Ampacity              Returns NEC ampacity of copper wire
 AWG                   Returns wire diameter in inches for AWG gauge number
-base2int              Convert string in base x to base 10 integer
 Batch                 Generator to pick n items at a time from a sequence
-Binary                Converts an integer to a binary string (see int2bin)
-bin2gray              Convert binary integer to Gray code
-bitvector             Convenience class to get the binary bits of an integer
+BraceExpansion        Brace expansion like modern shells
 Cfg                   Execute a sequence of text lines for config use
 ConvertToNumber       Convert a string to a number
-cw2mc                 Convert cap-words naming to mixed-case
-cw2us                 Convert cap-words naming to underscore
 Debug                 A class that helps with debugging
 Dispatch              Class to aid polymorphism
+EBCDIC                Return string translation table ASCII <--> EBCDIC
 eng                   Convenience function for engineering format
 EditData              Edit a str or bytes object with vim
 Engineering           Represent a number in engineering notation
 Flatten               Flattens nested sequences to a sequence of scalars
-gray2bin              Convert Gray code to binary integer
 GroupByN              Group items from a sequence by n items at a time
 grouper               Function to group data
 HeatIndex             Effect of temperature and humidity
 Height                Predict a child's adult height
 hyphen_range          Returns list of integers specified as ranges
 IdealGas              Calculate ideal gas P, v, T (v is specific volume)
-int2base              Convert an integer to a specified base
-int2bin               Converts int to specified number of binary digits
-InterpretFraction     Interprets string as proper or improper fraction
 IsBinaryFile          Heuristic to see if a file is a binary file
 IsConvexPolygon       Is seq of 2-D points a convex polygon?
 IsCygwinSymlink       Returns True if a file is a cygwin symlink
 IsIterable            Determines if you can iterate over an object
 IsTextFile            Heuristic to see if a file is a text file
 ItemCount             Summarize a sequence with counts of each item
-mantissa              Return the mantissa of the base 10 log of a number
-mc2cw                 Convert mixed-case naming to cap-words
-mc2us                 Convert mixed-case naming to underscore
-partition             Generate a list of the partitions of an iterable
 Paste                 Return sequence of pasted sequences
-Percentile            Returns the percentile of a sorted sequence
 ProgressBar           Prints a progress bar to stdout
-ProperFraction        Converts a Fraction object to proper form
 randq                 Simple, fast random number generator
 randr                 Random numbers on [0,1) using randq
 ReadVariables         Read variables from a file
-significand           Return the significand of x
+RemoveIndent          Remove spaces from beginning of multiline string
 SignificantFigures    Rounds to specified num of sig figs (returns float)
 SignificantFiguresS   Rounds to specified num of sig figs (returns string)
-SignSignificandExponent  Returns tuple of sign, significand, exponent
-signum                Signum function
 Singleton             Mix-in class to create the singleton pattern
 SpeedOfSound          Calculate the speed of sound as func of temperature
 Spinner               Console spinner to show activity
@@ -59,10 +43,8 @@ Time                  Returns a string giving local time and date
 TranslateSymlink      Returns what a cygwin symlink is pointing to
 US_states             Dictionary of states keyed by 2-letter abbreviation
 VisualCount           Return a list representing a histogram of a sequence
-Walker                Generator to recursively return files or directories
+Walker  (deprecated)  Generator to recursively return files or directories
 WindChillInDegF       Calculate wind chill given OAT & wind speed
-WireGauge             Get diameter or number of wire gauge sizes
-WordID                Generate nonsense words that are somewhat prounounceable
 '''
 if 1:  # Copyright, license
     # These "trigger strings" can be managed with trigger.py
@@ -84,12 +66,12 @@ if 1:   # Imports
     from fractions import Fraction
     from heapq import nlargest
     from itertools import chain, combinations, islice, groupby
-    from itertools import cycle, zip_longest
+    from itertools import cycle, zip_longest, product
     from operator import itemgetter
     from pdb import set_trace as xx
     from random import randint, seed
     from string import ascii_letters, digits as DIGITS, punctuation
-    from dpmath import AlmostEqual
+    from dpmath import AlmostEqual, SignSignificandExponent, signum
     import cmath
     import glob
     import math
@@ -124,77 +106,6 @@ if 1:   # Global variables
         West·Virginia Wyoming'''.split()]
     US_states = dict(zip(a, b))
     del a, b
-def Percentile(seq, fraction):
-    '''Return the indicated fraction of a sequence seq of sorted
-    values.  fraction will be converted to be in [0, 1].
- 
-    The method is recommended by NIST at
-    https://www.itl.nist.gov/div898/handbook/prc/section2/prc262.htm.  
-    
-    The algorithm is:
- 
-        Suppose you have N numbers Y_[1] to Y_[N].  For the pth percentile,
-        let x = p*(N + 1) and
-      
-          k = int(x)      [Integer part of x], d >= 0
-          d = x - k       [Fractional part of x], d in [0, 1)
-      
-        Then calculate
-      
-          1.  For 0 < k < N, Y_(p) = Y_[k] + d*(Y_[k+1] - Y_[k]).
-          2.  For k = 0, Y_[p] = Y[1].  Note that any p <= 1/(N+1) will be
-              set to the minimum value.
-          3.  For k >= N, Y_(p) = = Y_[N].  Note that any p > N/(N+1) will
-              be set to the maximum value.
-      
-          Note the array indexing is 1-based, so python code will need to
-          take this into account.
-  
-    Example:  A gauge study resulted in 12 measurements:
-  
-         i  Measurements   Sorted       Ranks
-        --- ------------   -------      -----
-         1     95.1772     95.0610        9
-         2     95.1567     95.0925        6
-         3     95.1937     95.1065       10
-         4     95.1959     95.1195       11
-         5     95.1442     95.1442        5
-         6     95.0610     95.1567        1
-         7     95.1591     95.1591        7
-         8     95.1195     95.1682        4
-         9     95.1065     95.1772        3
-        10     95.0925     95.1937        2
-        11     95.1990     95.1959       12
-        12     95.1682     95.1990        8
-  
-    To find the 90th percentile, we have p*(N+1) = 0.9*13 = 11.7.  Then 
-    k = 11 and d = 0.7.  From step 1 above, we estimate Y_(90) as
-  
-        Y_(90) = Y[11] + 0.7*(95.1990 - 95.1959) = 95.1981
-  
-    Note this algorithm will work for N > 1.
- 
-    http://code.activestate.com/recipes/511478-finding-the-percentile-of-the-values/
-    gives another algorithm, but it doesn't give the same results as the
-    NIST algorithm.
-    '''
-    if not seq:
-        return None
-    N = len(seq)
-    if N == 1:
-        raise ValueError("Sequence must have at least 2 elements")
-    fraction = max(min(fraction, 1), 0)
-    x = fraction*(N + 1)
-    k = int(x)      # Integer part of x
-    d = x - k       # Fractional part of x
-    if 0 < k < N:
-        yk = seq[k - 1]
-        y = yk + d*(seq[k] - yk)
-    elif k >= N:
-        y = seq[-1]
-    else:
-        y = seq[0]
-    return y
 def ItemCount(seq, n=None):
     '''Return a sorted list of the items and their counts in the iterable
     seq, with the largest count first in the tuple.  If n is given, only
@@ -269,53 +180,6 @@ class Singleton(object):
         if cls not in cls._singletons:
             cls._singletons[cls] = object.__new__(cls)
         return cls._singletons[cls]
-def signum(x, ret_type=int):
-    '''Return a number -1, 0, or 1 representing the sign of x.
-    '''
-    if x < 0:
-        return ret_type(-1)
-    elif x > 0:
-        return ret_type(1)
-    return ret_type(0)
-def InterpretFraction(s):
-    '''Interprets the string s as a fraction.  The following are
-    equivalent forms:  '5/4', '1 1/4', '1-1/4', or '1+1/4'.  The
-    fractional part in a proper fraction can be improper:  thus,
-    '1 5/4' is returned as Fraction(9, 4).
-    '''
-    if "/" not in s:
-        raise ValueError("'%s' must contain '/'" % s)
-    t = s.strip()
-    # First, try to convert the string to a Fraction object
-    try:
-        return Fraction(t)
-    except ValueError:
-        pass
-    # Assume it's of the form 'm[ +-]n/d' where m, n, d are
-    # integers.
-    msg = "'%s' is not of the correct form" % s
-    neg = True if t[0] == "-" else False
-    fields = t.replace("+", " ").replace("-", " ").strip().split()
-    if len(fields) != 2:
-        raise ValueError(msg)
-    try:
-        ip = abs(int(fields[0]))
-        fp = abs(Fraction(fields[1]))
-        return -(ip + fp) if neg else ip + fp
-    except ValueError:
-        raise ValueError(msg)
-def ProperFraction(fraction, separator=" "):
-    '''Return the Fraction object fraction in a proper fraction string
-    form.
- 
-    Example:  Fraction(-5, 4) returns '-1 1/4'.
-    '''
-    if not isinstance(fraction, Fraction):
-        raise ValueError("frac must be a Fraction object")
-    sgn = "-" if fraction < 0 else ""
-    n, d = abs(fraction.numerator), abs(fraction.denominator)
-    ip, numerator = divmod(n, d)
-    return "{}{}{}{}/{}".format(sgn, ip, separator, numerator, d)
 def RemoveIndent(s, numspaces=4):
     '''Given a multi-line string s, remove the indicated number of
     spaces from the beginning each line.  If that number of space
@@ -436,19 +300,6 @@ def Cfg(lines, lvars=OrderedDict(), gvars=OrderedDict()):
     # The things defined in the configuration lines are now in the
     # dictionary lvars.
     return lvars
-def bitlength(n):
-    '''This emulates the n.bit_count() function of integers in python 2.7
-    and 3.  This returns the number of bits needed to represent the
-    integer n; n can be any integer.
- 
-    A naive implementation is to take the base two logarithm of the
-    integer, but this will fail if abs(n) is larger than the largest
-    floating point number.
-    '''
-    try:
-        return n.bit_count()
-    except Exception:
-        return len(bin(abs(n))) - 2
 def ReadVariables(file, ignore_errors=False):
     '''Given a file of lines of python code, this function reads in
     each line and executes it.  If the lines of the file are
@@ -734,63 +585,6 @@ def AWG(n):
     if n <= 44:
         return round(diameter, 4)
     return round(diameter, 5)
-def WireGauge(num, mm=False):
-    '''If num is an integer between 1 and 80, this function will return the
-    diameter of the indicated wire gauge size in inches (or mm if the mm
-    keyword is True).  This gauge is used for number-sized drills in the
-    US.
- 
-    If num is a floating point number, this function will return an
-    integer representing the nearest wire gauge size.  It will throw
-    an exception if the floating point number is greater than the
-    diameter of #1 or less than #80.
-    '''
-    # Index number in sizes is wire gauge number.  units is the number of
-    # inches for each integral wire gauge size.
-    units, sizes = 1e-4, (
-        0, 2280, 2210, 2130, 2090, 2055, 2040, 2010, 1990, 1960, 1935,
-        1910, 1890, 1850, 1820, 1800, 1770, 1730, 1695, 1660, 1610,
-        1590, 1570, 1540, 1520, 1495, 1470, 1440, 1405, 1360, 1285,
-        1200, 1160, 1130, 1110, 1100, 1065, 1040, 1015,  995,  980, 960,
-        935,  890,  860,  820,  810,  785,  760, 730,  700,  670,  635,
-        595,  550,  520,  465, 430,  420,  410,  400,  390,  380,  370,
-        360, 350,  330,  320,  310,  293,  280,  260,  250, 240,  225,
-        210,  200,  180,  160,  145,  135)
-    if isinstance(num, int):
-        if num < 1 or num > 80:
-            raise ValueError("num must be between 1 and 80 inclusive")
-        return units*sizes[num]*25.4 if mm else units*sizes[num]
-    elif isinstance(num, float):
-        if mm:
-            num /= 25.4  # Convert to inches
-        # Note sizes is from largest to smallest
-        if num > units*sizes[1] or num < units*sizes[80]:
-            raise ValueError("num diameter is outside wire gauge range")
-        # Create units list with the differences from the target value.
-        # Note we've deleted the 0 element.
-        s = list(map(lambda x: abs(x - num/units), sizes[1:]))
-        t = [(s[i], i) for i in range(len(s))]    # Combine with array position
-        t.sort()  # Sort to put minimum diff first in list
-        return t[0][1] + 1  # Add 1 because we deleted the first element
-    else:
-        raise ValueError("num is an unexpected type")
-def SignSignificandExponent(x, digits=15):
-    '''Returns a tuple (sign, significand, exponent) of a floating point
-    number x.
-    '''
-    s = ("%%.%de" % digits) % abs(float(x))
-    return (1 - 2*(x < 0), float(s[0:digits + 2]), int(s[digits + 3:]))
-def significand(x, digits=6):
-    '''Return the significand of x rounded to the indicated number of
-    digits.
-    '''
-    s = SignSignificandExponent(x)[1]
-    return round(s, digits - 1)
-def mantissa(x, digits=6):
-    '''Return the mantissa of the base 10 logarithm of x rounded to the
-    indicated number of digits.
-    '''
-    return round(math.log10(significand(x, digits=digits)), digits)
 def SignificantFiguresS(value, digits=3, exp_compress=True):
     '''Returns a string representing the number value rounded to
     a specified number of significant figures.  The number is
@@ -1102,59 +896,6 @@ def StringToNumbers(s, sep=" ", handle_i=True):
         else:
             seq.extend(line.split())
     return tuple([ConvertToNumber(i, handle_i=handle_i) for i in seq])
-class bitvector(int):
-    '''This convenience class is an integer that lets you get its bit
-    values using indexing or slices.
- 
-    Examples:
-        x = bitvector(9)
-        x[3] returns 1
-        x[2] returns 0
-        x[2:3] returns 2
-        x[123] returns 0    # Arbitrary bits can be addressed
-        x[-1] raises an IndexError
- 
-    Suggested from python 2 code given by Ross Rogers at
-    (http://stackoverflow.com/questions/147713/how-do-i-manipulate-bits-in-python)
-    dated 29 Sep 2008.
-    '''
-    def __repr__(self):
-        return "bitvector({})".format(self)
-    def _validate_slice(self, slice):
-        '''Check the slice object for valid values; raises an IndexError if
-        it's improper.  Return (start, stop) where the values are valid
-        indices into the binary value.  Note that start and stop values can
-        be any integers >= 0 as long as start is less than or equal to
-        stop.
-        '''
-        start, stop, step = slice.start, slice.stop, slice.step
-        # Check start
-        if start is None:
-            start = 0
-        elif start < 0:
-            raise IndexError("Slice start cannot be < 0")
-        # Check stop
-        if stop is None:
-            stop = int(math.log(self)/math.log(2))
-        elif stop < 0:
-            raise IndexError("Slice stop cannot be < 0")
-        if step is not None:
-            raise IndexError("Slice step must be None")
-        if start > stop:
-            raise IndexError("Slice start must be <= stop")
-        return start, stop
-    def __getitem__(self, key):
-        if isinstance(key, slice):
-            start, stop = self._validate_slice(key)
-            return bitvector((self >> start) & (2**(stop - start + 1) - 1))
-        else:
-            try:
-                index = int(key)
-            except Exception:
-                raise IndexError("'{}' is an invalid index".format(key))
-            if index < 0:
-                raise ValueError("Negative bit index not allowed")
-            return bitvector((self & 2**index) >> index)
 def hyphen_range(s, sorted=False, unique=False):
     '''Takes a set of range specifications of the form "a-b" and returns a
     list of integers between a and b inclusive.  Also accepts comma
@@ -1186,28 +927,6 @@ def hyphen_range(s, sorted=False, unique=False):
         r = list(set(r))
         r.sort()
     return r
-def Binary(n):
-    '''convert an integer n to a binary string.  Example:  Binary(11549)
-    gives '10110100011101'.
-    '''
-    if 0:
-        # from http://www.daniweb.com/software-development/python/code/216539
-        s, m = "", abs(n)
-        if not n:
-            return "0"
-        while m > 0:
-            s = str(m % 2) + s
-            m >>= 1
-        return "-" + s if n < 0 else s
-    else:
-        # Use built-in bin()
-        return "-" + bin(n)[3:] if n < 0 else bin(n)[2:]
-def int2bin(n, numbits=32):
-    '''Returns the binary of integer n, using numbits number of
-    digits.  Note this is a two's-complement representation.
-    From http://www.daniweb.com/software-development/python/code/216539
-    '''
-    return "".join([str((n >> y) & 1) for y in range(numbits - 1, -1, -1)])
 def grouper(data, mapper, reducer=None):
     '''Simple map/reduce for data analysis.
  
@@ -1265,6 +984,8 @@ class Walker(object):
                  dir=False):
         self.dir = dir
         self._ignore = ignore
+        print(f"{sys.argv[0]}:  Warning:  Walker is deprecated; use "
+              "e.g. pathlib.Path.glob('**/*')", file=sys.stderr)
     def __str__(self):
         return "util.Walker(ignore={}, dir={})".format(self._ignore, self.dir)
     def __repr__(self):
@@ -1334,16 +1055,23 @@ def IsConvexPolygon(*p):
 def BraceExpansion(s, glob=False):
     '''Generator to perform brace expansion on the string s.  If glob
     is True, then also glob each pattern in the current directory.
-     
     Examples:
     
-        - list(BraceExpansion("a.{a, b}")) returns ['a.a', 'a. b'].
- 
-        - list(BraceExpansion("pictures/*.{jpg, png}")) returns a list of
-          all the JPG and PNG files in the pictures directory under the
-          current directory.
+    * BraceExpansion("a.{a, b}")) returns 
+        ['a.a', 'a. b'].
+    * BraceExpansion("pictures/*.{jpg, png}")) returns a list of
+        all the JPG and PNG files in the pictures directory under the
+        current directory.
+    * BraceExpansion("{a,b}/*.{jpg,png}") returns
+        ['a/*.jpg', 'a/*.png', ' b/*.jpg', ' b/*.png']
+    * BraceExpansion("{,a}/{c,d}") returns
+        ['/c', '/d', 'a/c', 'a/d']
+    * BraceExpansion(r"{,,a}/{c,d}") returns
+        ['/c', '/d', '/c', '/d', 'a/c', 'a/d']
     '''
     # Algorithm from http://rosettacode.org/wiki/Brace_expansion#Python
+    # The web page's content is available under the GNU Free
+    # Documentation license 1.2.
     def getitem(s, depth=0):
         out = [""]
         while s:
@@ -1380,33 +1108,6 @@ def BraceExpansion(s, glob=False):
     else:
         for i in getitem(s)[0]:
             yield i
-def bin2gray(bits):
-    '''bits will be a string representing a binary number with the most
-    significant bit at index 0; for example, the integer 13 would be
-    represented by the string '1101'.  Return a string representing a Gray
-    code of this number.
- 
-    Example:  If bits = '1011' (binary of the integer 13), this function
-    returns '1011'.
-    '''
-    # Algorithm from http://rosettacode.org/wiki/Gray_code#Python
-    b = [int(i) for i in bits]
-    g = b[:1] + [i ^ ishift for i, ishift in zip(b[:-1], b[1:])]
-    return ''.join([str(i) for i in g])
-def gray2bin(bits):
-    '''bits will be a string representing a Gray-encoded binary number.
-    Return a string representing a binary number with the most significant
-    bit at index 0.
- 
-    Example:  If bits = '1101', this function returns '1101', the binary
-    form of the integer 13.
-    '''
-    # Algorithm from http://rosettacode.org/wiki/Gray_code#Python
-    Bits = [int(i) for i in bits]
-    b = [Bits[0]]
-    for nextb in Bits[1:]:
-        b.append(b[-1] ^ nextb)
-    return ''.join([str(i) for i in b])
 def Spinner(chars=r"-\|/-\|/", delay=0.1):
     '''Show a spinner to indicate that processing is still taking place.
     Set Spinner.stop to True to cause it to exit.  Note this is not
@@ -1600,18 +1301,6 @@ if __name__ == "__main__":
         Assert(AlmostEqual(HeatIndex(100, 90), 132, 4e-1))
     def TestAWG():
         Assert(AlmostEqual(AWG(12), 0.0808, 8e-4))
-    def TestWireGauge():
-        Assert(AlmostEqual(WireGauge(12), 0.189))
-        Assert(AlmostEqual(WireGauge(0.189), 12))
-        # Check that each gauge number, when run back through the function as a
-        # dimension in inches, gives the original gauge number.
-        sizes = list(range(80, 0, -1))
-        t = [WireGauge(i) for i in sizes]
-        s = [WireGauge(i) for i in t]
-        Assert(s == sizes)
-    def TestSignSignificandExponent():
-        s, m, e = SignSignificandExponent(-1.23e-4)
-        Assert(s == -1 and m == 1.23 and e == -4)
     def TestSignificantFigures():
         Assert(AlmostEqual(float(SignificantFiguresS(1.2345e-6)), 1.23e-6))
         Assert(AlmostEqual(SignificantFigures(1.2345e-6), 1.23e-6))
@@ -1664,55 +1353,6 @@ if __name__ == "__main__":
         Assert(IsIterable((0,)))
         Assert(IsIterable(iter((0,))))
         Assert(not IsIterable(0))
-    def TestBinary():
-        d = '''
-        -1000 -1111101000
-        -501 -111110101
-        -500 -111110100
-        -499 -111110011
-        -16 -10000
-        -15 -1111
-        -14 -1110
-        -13 -1101
-        -12 -1100
-        -11 -1011
-        -10 -1010
-        -9 -1001
-        -8 -1000
-        -7 -111
-        -6 -110
-        -5 -101
-        -4 -100
-        -3 -11
-        -2 -10
-        -1 -1
-        0 0
-        1 1
-        2 10
-        3 11
-        4 100
-        5 101
-        6 110
-        7 111
-        8 1000
-        9 1001
-        10 1010
-        11 1011
-        12 1100
-        13 1101
-        14 1110
-        15 1111
-        16 10000
-        499 111110011
-        500 111110100
-        501 111110101
-        999 1111100111
-        1000 1111101000
-        '''.strip()
-        for line in d.split("\n"):
-            n, b = line.strip().split()
-            n = int(n)
-            Assert(Binary(n) == b)
     def Test_hyphen_range():
         s, h = "77", hyphen_range
         Assert(h(s) == [77])
@@ -1783,9 +1423,6 @@ if __name__ == "__main__":
         got = grouper(range(30), even_odd, sum)
         expected = {0: 90, 1: 75}
         Assert(got == expected)
-    def Test_int2bin():
-        Assert(int2bin(-33, 8) == "11011111")
-        Assert(int2bin( 33, 8) == "00100001")
     def TestCfg():
         lines = dedent('''
             from math import sqrt
@@ -1814,49 +1451,6 @@ if __name__ == "__main__":
         Assert(lines[2] == "    Second line")
         Assert(lines[3] == "  Third line")
         Assert(lines[4] == "")
-    def TestInterpretFraction():
-        expected = Fraction(5, 4)
-        Assert(InterpretFraction("5/4") == expected)
-        Assert(InterpretFraction("1 1/4") == expected)
-        Assert(InterpretFraction("1+1/4") == expected)
-        Assert(InterpretFraction("1-1/4") == expected)
-        #
-        Assert(InterpretFraction("+5/4") == expected)
-        Assert(InterpretFraction("+1 1/4") == expected)
-        Assert(InterpretFraction("+1+1/4") == expected)
-        Assert(InterpretFraction("+1-1/4") == expected)
-        #
-        Assert(InterpretFraction("-5/4") == -expected)
-        Assert(InterpretFraction("-1 1/4") == -expected)
-        Assert(InterpretFraction("-1+1/4") == -expected)
-        Assert(InterpretFraction("-1-1/4") == -expected)
-        #
-        Assert(InterpretFraction("1 1/1") == Fraction(2, 1))
-        Assert(InterpretFraction("+1 1/1") == Fraction(2, 1))
-        Assert(InterpretFraction("-1 1/1") == Fraction(-2, 1))
-        #
-        Assert(InterpretFraction("1 2/1") == Fraction(3, 1))
-        Assert(InterpretFraction("+1 2/1") == Fraction(3, 1))
-        Assert(InterpretFraction("-1 2/1") == Fraction(-3, 1))
-        # Argument must contain "/" and be parseable
-        raises(ValueError, InterpretFraction, "1")
-        raises(ValueError, InterpretFraction, "1/")
-        raises(ValueError, InterpretFraction, "/1")
-    def TestProperFraction():
-        Assert(ProperFraction(Fraction("-1")) == "-1 0/1")
-        Assert(ProperFraction(Fraction("1")) == "1 0/1")
-        Assert(ProperFraction(Fraction(-1, 1)) == "-1 0/1")
-        Assert(ProperFraction(Fraction(1, 1)) == "1 0/1")
-        Assert(ProperFraction(Fraction(-3, 1)) == "-3 0/1")
-        Assert(ProperFraction(Fraction(3, 1)) == "3 0/1")
-        Assert(ProperFraction(Fraction(5, 4)) == "1 1/4")
-        Assert(ProperFraction(Fraction(-5, 4)) == "-1 1/4")
-    def Test_signum():
-        Assert(signum(-5) == -1)
-        Assert(signum(5) == 1)
-        Assert(signum(0) == 0)
-        t = float
-        Assert(isinstance(signum(5, ret_type=t), t))
     def TestSingleton():
         class A(object): pass
         a, b = A(), A()
@@ -1877,18 +1471,6 @@ if __name__ == "__main__":
         t = ((0, 1, 2), (3, 4, None))
         u = tuple(GroupByN(s, m, fill=True))
         Assert(t == tuple(GroupByN(s, m, fill=True)))
-    def TestPercentile():
-        s = sorted([  # NIST gauge study data from
-            # https://www.itl.nist.gov/div898/handbook/prc/section2/prc262.htm
-            95.0610, 95.0925, 95.1065, 95.1195, 95.1442, 95.1567, 95.1591,
-            95.1682, 95.1772, 95.1937, 95.1959, 95.1990])
-        Assert(round(Percentile(s, -1), 4) == 95.0610)
-        Assert(round(Percentile(s, 0), 4) == 95.0610)
-        Assert(round(Percentile(s, 0.5), 4) == 95.1579)
-        Assert(round(Percentile(s, 0.9), 4) == 95.1981)
-        Assert(round(Percentile(s, 1), 4) == 95.1990)
-        Assert(round(Percentile(s, 1.1), 4) == 95.1990)
-        raises(ValueError, Percentile, [1], 0.5)
     def TestIsConvexPolygon():
         p = ((0, 0), (1, 0), (1, 1), (0, 1))
         Assert(IsConvexPolygon(*p))
@@ -2002,37 +1584,27 @@ if __name__ == "__main__":
         # Remove what we set up
         os.remove(path)
         os.rmdir(dir)
-    def Test_mantissa():
-        x = 1.234 
-        mant = mantissa(x)
-        Assert(mant == 0.091315)
-    def Test_significand():
-        x = math.pi*1e-10
-        Assert(significand(x, digits=6) == 3.14159)
-        Assert(significand(x, digits=2) == 3.1)
-    def Test_bitvector():
-        s = "9"
-        bv = bitvector(s)
-        Assert(str(bv) == s)
-        Assert(repr(bv) == "bitvector({})".format(s))
-        binary = bin(int(s))[2:] + "0"*8
-        for i, value in enumerate(binary):
-            Assert(bv[i] == int(value))
-        Assert(bv[1000] == 0)   # Check a high bit number
     def Test_BraceExpansion():
+        # Simple
+        s = ' '.join(BraceExpansion("a{d,c,b}e"))
+        assert(s == "ade ace abe")
+        #
         Assert(list(BraceExpansion("a.{a, b}")) == ['a.a', 'a. b'])
         # Cartesian product
         s = list(BraceExpansion("{A,B,C,D}{A,B,C,D}"))
         t = [i + j for i, j in itertools.product('ABCD', repeat=2)]
         Assert(s == t)
-    def Test_GrayConversions():
-        # Test integers from 0 to 15
-        gray = "0 1 11 10 110 111 101 100 1100 1101 1111 1110 1010 1011 1001 1000"
-        for i, g in enumerate(gray.split()):
-            b = gray2bin(g)
-            Assert(b == bin(i)[2:])
-            g1 = bin2gray(b)
-            Assert(g1 == g)
+        #
+        s = ' '.join(BraceExpansion("{a,b,c}{d,e,f}"))
+        t = ' '.join([i + j for i, j in product("abc", "def")])
+        Assert(s == t)
+        s = str(list(BraceExpansion("{a,b}/*.{jpg,png}")))
+        t = "['a/*.jpg', 'a/*.png', 'b/*.jpg', 'b/*.png']"
+        Assert(s == t)
+        # Nested
+        s = ' '.join(BraceExpansion("{,a}{b,{c,d},e}"))
+        t = "b c d e ab ac ad ae"
+        assert(s == t)
     def Test_EBCDIC():
         a2e, e2a = EBCDIC()
         # Show that these byte translation tables are inverses
@@ -2051,5 +1623,43 @@ if __name__ == "__main__":
         # Test a derated value
         i = Ampacity(dia_mm, insul_degC=90, ambient_degC=21)
         Assert(i == 1.04*258.78428183511033)
+    def Test_check_names():
+        'Make sure the docstring list of names is up-to-date'
+        if not check_names:
+            return
+        names = set()
+        ignore = "Miscellaneous".split()
+        for line in __doc__.split("\n"):
+            if not line.strip():
+                continue
+            name = line.split()[0]
+            if name in ignore:
+                continue
+            names.add(name)
+            if name not in mnames:
+                print(f"{name} in docstring not in module")
+        print("-"*70)
+        for name in mnames:
+            if name.startswith("Test"):
+                continue
+            if name not in names:
+                print(f"{name} in module not in docstring")
+        exit()#xx
+    check_names = False
+    if check_names:
+        mnames, delete = set(dir()), []
+        ignore = '''
+        deque defaultdict OrderedDict Iterable Decimal Fraction nlargest
+        chain combinations islice groupby cycle zip_longest itemgetter xx
+        randint seed ascii_letters DIGITS punctuation AlmostEqual
+        SignSignificandExponent signum cmath glob math os pathlib re struct
+        subprocess sys tempfile time sig Test __ Miscellaneous'''.split()
+        for name in mnames:
+            for s in ignore:
+                if name.startswith(s):
+                    delete.append(name)
+                    break
+        for name in delete:
+            mnames.discard(name)
     exit(run(globals(), halt=1)[0])
 

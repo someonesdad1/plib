@@ -11,7 +11,8 @@ if 1:  # Copyright, license
     #   See http://opensource.org/licenses/OSL-3.0.
     #∞license∞#
     #∞what∞#
-    # <shop> Dictionary of various gauge sizes for sheet and wire
+    # <shop> Dictionary of various gauge sizes for sheet and wire.  Also
+    # has the function WireGauge() to get drill sizes from 1 to 80.
     #∞what∞#
     #∞test∞# #∞test∞#
     pass
@@ -24,8 +25,48 @@ if 1:   # Custom imports
     except ImportError:
         have_flt = False
 if 1:   # Global variables
-    __all__ = ["gauges", "GetGauge"]
+    __all__ = "gauges GetGauge WireGauge".split()
     gauges, urls = {}, {}
+def WireGauge(num, mm=False):
+    '''If num is an integer between 1 and 80, this function will return the
+    diameter of the indicated wire gauge size in inches (or mm if the mm
+    keyword is True).  This gauge is used for number-sized drills in the
+    US.
+ 
+    If num is a floating point number, this function will return an
+    integer representing the nearest wire gauge size.  It will throw
+    an exception if the floating point number is greater than the
+    diameter of #1 or less than #80.
+    '''
+    # Index number in sizes is wire gauge number.  units is the number of
+    # inches for each integral wire gauge size.
+    units, sizes = 1e-4, (
+        0, 2280, 2210, 2130, 2090, 2055, 2040, 2010, 1990, 1960, 1935,
+        1910, 1890, 1850, 1820, 1800, 1770, 1730, 1695, 1660, 1610,
+        1590, 1570, 1540, 1520, 1495, 1470, 1440, 1405, 1360, 1285,
+        1200, 1160, 1130, 1110, 1100, 1065, 1040, 1015,  995,  980, 960,
+        935,  890,  860,  820,  810,  785,  760, 730,  700,  670,  635,
+        595,  550,  520,  465, 430,  420,  410,  400,  390,  380,  370,
+        360, 350,  330,  320,  310,  293,  280,  260,  250, 240,  225,
+        210,  200,  180,  160,  145,  135)
+    if isinstance(num, int):
+        if num < 1 or num > 80:
+            raise ValueError("num must be between 1 and 80 inclusive")
+        return units*sizes[num]*25.4 if mm else units*sizes[num]
+    elif isinstance(num, float):
+        if mm:
+            num /= 25.4  # Convert to inches
+        # Note sizes is from largest to smallest
+        if num > units*sizes[1] or num < units*sizes[80]:
+            raise ValueError("num diameter is outside wire gauge range")
+        # Create units list with the differences from the target value.
+        # Note we've deleted the 0 element.
+        s = list(map(lambda x: abs(x - num/units), sizes[1:]))
+        t = [(s[i], i) for i in range(len(s))]    # Combine with array position
+        t.sort()  # Sort to put minimum diff first in list
+        return t[0][1] + 1  # Add 1 because we deleted the first element
+    else:
+        raise ValueError("num is an unexpected type")
 def Convert(text):
     ''' Given the string text, put the indicated data into the global dict
     gauges under the key on the first comment line.  The value is a
@@ -434,6 +475,18 @@ if __name__ == "__main__":
     import os
     from wrap import dedent
     from columnize import Columnize
+    from dpmath import AlmostEqual
+    from lwtest import Assert
+    def TestWireGauge():
+        Assert(AlmostEqual(WireGauge(12), 0.189))
+        Assert(AlmostEqual(WireGauge(0.189), 12))
+        # Check that each gauge number, when run back through the function as a
+        # dimension in inches, gives the original gauge number.
+        sizes = list(range(80, 0, -1))
+        t = [WireGauge(i) for i in sizes]
+        s = [WireGauge(i) for i in t]
+        Assert(s == sizes)
+    TestWireGauge()
     name = sys.argv[0]
     w = int(os.environ.get("COLUMNS", 80)) - 5
     sep = "-"*w
