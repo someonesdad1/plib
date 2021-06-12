@@ -1,7 +1,7 @@
 * dpmath.py
-    * Move archimedean.py in.
     * Check util.py for math stuff that should be moved.
-* Delete fsig.py once it's established it's not being used anywhere.
+    * Make base2int and int2base work with nearly any base by using
+      Unicode letters.
 * Make frange work with flt
 * wire.py:  Change to use flt with proper units.  Update
   MaxCurrentDensity to use the chassis current data Richard alerted me

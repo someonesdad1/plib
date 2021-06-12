@@ -1,22 +1,18 @@
 # TODO:  Convert Spinner to a class so the instance is thread-safe
 '''Miscellaneous routines in python:
  
-AlmostEqual           Returns True when two floats are nearly equal
 Ampacity              Returns NEC ampacity of copper wire
 AWG                   Returns wire diameter in inches for AWG gauge number
 base2int              Convert string in base x to base 10 integer
 Batch                 Generator to pick n items at a time from a sequence
 Binary                Converts an integer to a binary string (see int2bin)
 bin2gray              Convert binary integer to Gray code
-bitlength             Return number of bits needed to represent an integer
 bitvector             Convenience class to get the binary bits of an integer
 Cfg                   Execute a sequence of text lines for config use
 ConvertToNumber       Convert a string to a number
-CountBits             Return the number of bits set in an integer
 cw2mc                 Convert cap-words naming to mixed-case
 cw2us                 Convert cap-words naming to underscore
 Debug                 A class that helps with debugging
-DecimalToBase         Convert a decimal integer to a base between 2 and 36
 Dispatch              Class to aid polymorphism
 eng                   Convenience function for engineering format
 EditData              Edit a str or bytes object with vim
@@ -29,7 +25,6 @@ HeatIndex             Effect of temperature and humidity
 Height                Predict a child's adult height
 hyphen_range          Returns list of integers specified as ranges
 IdealGas              Calculate ideal gas P, v, T (v is specific volume)
-Int                   Convert a string to an integer
 int2base              Convert an integer to a specified base
 int2bin               Converts int to specified number of binary digits
 InterpretFraction     Interprets string as proper or improper fraction
@@ -94,6 +89,7 @@ if 1:   # Imports
     from pdb import set_trace as xx
     from random import randint, seed
     from string import ascii_letters, digits as DIGITS, punctuation
+    from dpmath import AlmostEqual
     import cmath
     import glob
     import math
@@ -453,16 +449,6 @@ def bitlength(n):
         return n.bit_count()
     except Exception:
         return len(bin(abs(n))) - 2
-def CountBits(num):
-    '''Return (n_on, n_off), the number of 'on' and 'off' bits in the 
-    integer num.
-    '''
-    if not isinstance(num, int):
-        raise ValueError("num must be an integer")
-    s = list(bin(num)[2:])
-    on  = sum([i == "1" for i in s])
-    off = sum([i == "0" for i in s])
-    return (on, off)
 def ReadVariables(file, ignore_errors=False):
     '''Given a file of lines of python code, this function reads in
     each line and executes it.  If the lines of the file are
@@ -553,75 +539,6 @@ def TranslateSymlink(file):
     '''For a cygwin symlink, return a string of what it's pointing to.
     '''
     return open(file).read()[12:].replace("\x00", "")
-def Int(s):
-    '''Convert the string x to an integer.  Allowed forms are:
-    Plain base 10 string
-    0b binary
-    0o octal
-    0x hex
-    '''
-    neg = 1
-    if s[0] == "-":
-        neg = -1
-        s = s[1:]
-    if s.startswith("0b"):
-        return neg*int(s, 2)
-    elif s.startswith("0o"):
-        return neg*int(s, 8)
-    elif s.startswith("0x"):
-        return neg*int(s, 16)
-    else:
-        return neg*int(s, 10)
-def int2base(x, base):
-    '''Converts the integer x to a string representation in a given
-    base.  base may be from 2 to 94.
- 
-    Method by Alex Martelli
-    http://stackoverflow.com/questions/2267362/convert-integer-to-a-string-in-a-given-numeric-base-in-python
-    Modified slightly by DP.
-    '''
-    if not (2 <= base <= len(int2base.digits)):
-        msg = "base must be between 2 and %d inclusive" % len(int2base.digits)
-        raise ValueError(msg)
-    if not isinstance(x, (int, str)):
-        raise ValueError("Argument x must be an integer or string")
-    if isinstance(x, str):
-        x = int(x)
-    sgn = 1
-    if x < 0:
-        sgn = -1
-    elif not x:
-        return '0'
-    x, answer = abs(x), []
-    while x:
-        answer.append(int2base.digits[x % base])
-        x //= base
-    if sgn < 0:
-        answer.append('-')
-    answer.reverse()
-    return ''.join(answer)
-def base2int(x, base):
-    '''Inverse of int2base.  Converts a string x in the indicated base
-    to a base 10 integer.  base may be from 2 to 94.
-    '''
-    if not (2 <= base <= len(base2int.digits)):
-        msg = "base must be between 2 and %d inclusive" % len(base2int.digits)
-        raise ValueError(msg)
-    if not isinstance(x, str):
-        raise ValueError("Argument x must be a string")
-    y = list(reversed(x))
-    n = 0
-    for i, c in enumerate(list(reversed(x))):
-        try:
-            val = base2int.digits.index(c)
-        except Exception:
-            msg = "'%c' not a valid character for base %d" % (c, base)
-            raise ValueError(msg)
-        n += val*(base**i)
-    return n
-if 1:   # State variables for int2base, base2int
-    int2base.digits = DIGITS + ascii_letters + punctuation
-    base2int.digits = int2base.digits
 def IsTextFile(file, num_bytes=100):
     '''Heuristic to classify a file as text or binary.  The algorithm
     is to read num_bytes from the beginning of the file; if there are
@@ -1070,38 +987,6 @@ def IdealGas(P=0, v=0, T=0, MW=28.9):
         return R*T/P
     else:
         return P*v/R
-def AlmostEqual(a, b, rel_err=2e-15, abs_err=5e-323):
-    '''Determine whether floating-point values a and b are equal to
-    within a (small) rounding error; return True if almost equal and
-    False otherwise.  The default values for rel_err and abs_err are
-    chosen to be suitable for platforms where a float is represented
-    by an IEEE 754 double.  They allow an error of between 9 and 19
-    ulps.
- 
-    This routine comes from the Lib/test/test_cmath.py in the python
-    distribution; the function was called almostEqualF.
-    '''
-    # Special values testing
-    if math.isnan(a):
-        return math.isnan(b)
-    if math.isinf(a):
-        return a == b
-    # If both a and b are zero, check whether they have the same sign
-    # (in theory there are examples where it would be legitimate for a
-    # and b to have opposite signs; in practice these hardly ever
-    # occur).
-    if not a and not b:
-        return math.copysign(1., a) == math.copysign(1., b)
-    # If a-b overflows, or b is infinite, return False.  Again, in
-    # theory there are examples where a is within a few ulps of the
-    # max representable float, and then b could legitimately be
-    # infinite.  In practice these examples are rare.
-    try:
-        absolute_error = abs(b-a)
-    except OverflowError:
-        return False
-    else:
-        return absolute_error <= max(abs_err, rel_err*abs(a))
 def Flatten(L, max_depth=None, ltypes=(list, tuple)):
     ''' Flatten every sequence in L whose type is contained in
     "ltypes" to "max_depth" levels down the tree.  The sequence
@@ -1183,27 +1068,6 @@ def TempConvert(t, in_unit, to_unit):
             (tou == "f" and T < -r)):
         raise e
     return T
-def DecimalToBase(num, base, check_result=False):
-    '''Convert a decimal integer num to a string in base base.  Tested with
-    random integers from 10 to 10,000 digits in bases 2 to 36 inclusive.
-    Set check_result to True to assure that the integer was converted
-    properly.
-    '''
-    if not 2 <= base <= 36:
-        raise ValueError('Base must be between 2 and 36.')
-    if num == 0:
-        return "0"
-    s, sign, n = "0123456789abcdefghijklmnopqrstuvwxyz", "", abs(num)
-    if num < 0:
-        sign, num = "-", abs(num)
-    d, in_base = dict(zip(range(len(s)), list(s))), ""
-    while num:
-        num, rem = divmod(num, base)
-        in_base = d[rem] + in_base
-    if check_result and int(in_base, base) != n:
-        raise ArithmeticError("Base conversion failed for %d to base %d" %
-                              (num, base))
-    return sign + in_base
 def ConvertToNumber(s, handle_i=True):
     '''This is a general-purpose routine that will return a python number
     for a string if it is possible.  The basic logic is:
@@ -1719,19 +1583,6 @@ if __name__ == "__main__":
     from pdb import set_trace as xx
     seed(2**64)  # Make test sequences repeatable
     show_coverage = len(sys.argv) > 1
-    def TestInt():
-        data = (
-            ("0b11", 3),
-            ("0o10", 8),
-            ("0x10", 16),
-            ("10", 10),
-            ("-0b11", -3),
-            ("-0o10", -8),
-            ("-0x10", -16),
-            ("-10", -10),
-        )
-        for s, n in data:
-            Assert(Int(s) == n)
     def TestAlmostEqual():
         Assert(AlmostEqual(0, 0))
         Assert(AlmostEqual(0, 1e-353))
@@ -1792,14 +1643,6 @@ if __name__ == "__main__":
         Assert(ConvertToNumber("1") == 1)
         n = 10**50  # Large integer
         Assert(ConvertToNumber(str(n)) == n)
-    def TestDecimalToBase():
-        # Generate a few random integers and check the results with
-        # python's int() built-in.
-        for base in range(2, 37):
-            for i in range(100):
-                x = randint(0, int(1e6))
-                # Note the following call also checks the result
-                s = DecimalToBase(x, base, check_result=True)
     def TestFlatten():
         Assert(list(Flatten([])) == [])
         r = list(range(11))
@@ -1870,19 +1713,6 @@ if __name__ == "__main__":
             n, b = line.strip().split()
             n = int(n)
             Assert(Binary(n) == b)
-    def Test_int2base():
-        raises(ValueError, int2base, "", 2)
-        raises(ValueError, int2base, 0, 370)
-        x = 12345
-        Assert(int2base(x, 2) == bin(x)[2:])
-        Assert(int2base(x, 8) == oct(x)[2:])
-        Assert(int2base(x, 16) == hex(x)[2:])
-        Assert(int2base(36**2, 36) == "100")
-        s = "53,kkns^~laU"
-        Assert(int2base("255" + str(2**64), 94) == s)
-    def Test_base2int():
-        s = "53,kkns^~laU"
-        Assert(base2int(s, 94) == int("255" + str(2**64)))
     def Test_hyphen_range():
         s, h = "77", hyphen_range
         Assert(h(s) == [77])
@@ -1929,10 +1759,6 @@ if __name__ == "__main__":
     def Test_randr():
         m = randq.maxidum
         Assert(randr(0) == (1013904223 % m)/float(m))
-    def TestCountBits():
-        bits = "0112122312"
-        for i in range(10):
-            Assert(CountBits(i)[0] == int(bits[i]))
     util_simlink = "c:/cygwin/pylib/test/util_simlink.py"
     translated_util_simlink = "../util.py"
     def TestIsCygwinSymlink():
@@ -1946,12 +1772,6 @@ if __name__ == "__main__":
             # For this to work, create a cygwin simlink named util_simlink.py
             # in /pylib/test that points to /pylib/util.py.
             Assert(TranslateSymlink(util_simlink) == translated_util_simlink)
-    def Test_bitlength():
-        Assert(bitlength(0) == 1)
-        Assert(bitlength(1) == 1)
-        Assert(bitlength(2) == 2)
-        Assert(bitlength(255) == 8)
-        Assert(bitlength(256) == 9)
     def Test_grouper():
         def even_odd(elem):         # sample mapper
             if 10 <= elem <= 20:    # skip elems outside the range

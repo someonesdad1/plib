@@ -19,9 +19,12 @@ if 1:  # Copyright, license
     pass
 if 1:   # Imports
     import math
+    import string
     import sys
 if 1:   # Custom imports
     from frange import frange
+if 1:   # Global variables
+    ii = isinstance
 def AlmostEqual(a, b, rel_err=2e-15, abs_err=5e-323):
     '''Determine whether floating-point values a and b are equal to
     within a (small) rounding error; return True if almost equal and
@@ -338,9 +341,112 @@ def ApproximateSpiralArcLength(ID, OD, thickness):
         dia += pitch    # Use in-between diameter
         length += 2*math.pi*(dia + pitch)
     return length
+def CountBits(num):
+    '''Return (n_on, n_off), the number of 'on' and 'off' bits in the 
+    integer num.
+    '''
+    if not isinstance(num, int):
+        raise ValueError("num must be an integer")
+    s = list(bin(num)[2:])
+    on  = sum([i == "1" for i in s])
+    off = sum([i == "0" for i in s])
+    return (on, off)
+def DecimalToBase(num, base, check_result=False):
+    '''Convert a decimal integer num to a string in base base.  Tested with
+    random integers from 10 to 10,000 digits in bases 2 to 36 inclusive.
+    Set check_result to True to assure that the integer was converted
+    properly.
+    '''
+    if not 2 <= base <= 36:
+        raise ValueError('Base must be between 2 and 36.')
+    if num == 0:
+        return "0"
+    s, sign, n = "0123456789abcdefghijklmnopqrstuvwxyz", "", abs(num)
+    if num < 0:
+        sign, num = "-", abs(num)
+    d, in_base = dict(zip(range(len(s)), list(s))), ""
+    while num:
+        num, rem = divmod(num, base)
+        in_base = d[rem] + in_base
+    if check_result and int(in_base, base) != n:
+        raise ArithmeticError("Base conversion failed for %d to base %d" %
+                              (num, base))
+    return sign + in_base
+def Int(s):
+    '''Convert the string x to an integer.  Allowed forms are:
+    Plain base 10 string
+    0b binary
+    0o octal
+    0x hex
+    '''
+    neg = 1
+    if s[0] == "-":
+        neg = -1
+        s = s[1:]
+    if s.startswith("0b"):
+        return neg*int(s, 2)
+    elif s.startswith("0o"):
+        return neg*int(s, 8)
+    elif s.startswith("0x"):
+        return neg*int(s, 16)
+    else:
+        return neg*int(s, 10)
+def int2base(x, base):
+    '''Converts the integer x to a string representation in a given
+    base.  base may be from 2 to 94.
+ 
+    Method by Alex Martelli
+    http://stackoverflow.com/questions/2267362/convert-integer-to-a-string-in-a-given-numeric-base-in-python
+    Modified slightly by DP.
+    '''
+    if not hasattr(int2base, "digits"):
+        int2base.digits = (string.digits + string.ascii_letters +
+                           string.punctuation)
+    if not ii(base, int):
+        raise TypeError(f"base must be an integer")
+    if not (2 <= base <= len(int2base.digits)):
+        n = len(int2base.digits)
+        raise ValueError(f"base must be between 2 and {n} inclusive")
+    if not isinstance(x, (int, str)):
+        raise ValueError("Argument x must be an integer or string")
+    y = int(x) if isinstance(x, str) else x
+    sgn = -1 if y < 0 else 1
+    if not y:
+        return '0'
+    y, answer = abs(y), []
+    while y:
+        answer.append(int2base.digits[y % base])
+        y //= base
+    if sgn < 0:
+        answer.append('-')
+    return ''.join(reversed(answer))
+def base2int(x, base):
+    '''Inverse of int2base.  Converts a string x in the indicated base
+    to a base 10 integer.  base may be from 2 to 94.
+    '''
+    if not hasattr(base2int, "digits"):
+        base2int.digits = (string.digits + string.ascii_letters +
+                           string.punctuation)
+    if not ii(base, int):
+        raise TypeError(f"base must be an integer")
+    if not (2 <= base <= len(base2int.digits)):
+        n = len(int2base.digits)
+        raise ValueError(f"base must be between 2 and {n} inclusive")
+    if not isinstance(x, str):
+        raise ValueError("Argument x must be a string")
+    n, y = 0, reversed(x)
+    n = 0
+    for i, c in enumerate(y):
+        try:
+            val = base2int.digits.index(c)
+        except Exception:
+            raise ValueError(f"'{c}' not a valid character for base {base}")
+        n += val*(base**i)
+    return n
 if __name__ == "__main__": 
     from lwtest import run, raises, assert_equal, Assert
     from f import flt, tau, radians, log, sqrt
+    from random import randint
     eps = 1e-15
     def Test_polyeval():
         Assert(polyeval((3, 2, 1), 6) == 51)
@@ -577,4 +683,48 @@ if __name__ == "__main__":
                 if i in "flt tau mm f".split():
                     continue
                 print(f"{i}: {d[i]}")
+    def Test_CountBits():
+        bits = "0112122312"
+        for i in range(10):
+            Assert(CountBits(i)[0] == int(bits[i]))
+    def Test_bitlength():
+        Assert(bitlength(0) == 1)
+        Assert(bitlength(1) == 1)
+        Assert(bitlength(2) == 2)
+        Assert(bitlength(255) == 8)
+        Assert(bitlength(256) == 9)
+    def TestDecimalToBase():
+        # Generate a few random integers and check the results with
+        # python's int() built-in.
+        for base in range(2, 37):
+            for i in range(100):
+                x = randint(0, int(1e6))
+                # Note the following call also checks the result
+                s = DecimalToBase(x, base, check_result=True)
+    def TestInt():
+        data = (
+            ("0b11", 3),
+            ("0o10", 8),
+            ("0x10", 16),
+            ("10", 10),
+            ("-0b11", -3),
+            ("-0o10", -8),
+            ("-0x10", -16),
+            ("-10", -10),
+        )
+        for s, n in data:
+            Assert(Int(s) == n)
+    def Test_int2base():
+        raises(ValueError, int2base, "", 2)
+        raises(ValueError, int2base, 0, 370)
+        x = 12345
+        Assert(int2base(x, 2) == bin(x)[2:])
+        Assert(int2base(x, 8) == oct(x)[2:])
+        Assert(int2base(x, 16) == hex(x)[2:])
+        Assert(int2base(36**2, 36) == "100")
+        s = "53,kkns^~laU"
+        Assert(int2base("255" + str(2**64), 94) == s)
+    def Test_base2int():
+        s = "53,kkns^~laU"
+        Assert(base2int(s, 94) == int("255" + str(2**64)))
     exit(run(globals(), halt=1)[0])
