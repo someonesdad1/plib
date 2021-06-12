@@ -2,8 +2,7 @@
 '''
     BUGS
         * v=flt("15 mi/hr"); v.to("mi/minute") fails
-        * flt("1_1") gives an exception, but it should be flt(11).
-
+----------------------------------------------------------------------
 
     * Focus
         * fmt.py works and has tests.  Use it as the formatter.
@@ -73,6 +72,30 @@ __doc__ = '''
           This switches the output of the repr() and str() functions,
           letting you see the limited figures form in the interpreter
           and debugger.
+
+        * Class variables:  if x = flt(1) and you set x.n = 6, this
+          changes the Base._digits class variable.
+
+          Multiple threads:  all threads in a process see the same class
+          variables.  Suppose you want two threads to use different
+          number of significant figures to print out a number.  The way
+          to do this is use the context manager facilities of flt:
+
+            Thread1:
+                with x:
+                    x.n = 6
+                    print(x)
+            Thread2:
+                with x:
+                    x.n = 2
+                    print(x)
+
+          The context manager uses a lock to ensure that the attribute
+          can't be changed during the context's scope.  To keep delays
+          to a minimum, only put necessary code in the with statement.
+
+          Multiple processes:  changes to the class variables in Base
+          are not seen by different processes.
 
     * Colorizing
 

@@ -486,6 +486,30 @@ def norm():
     'Return the escape string for normal text'
     return normal(s=True)
 
+class C:
+    '''This is a convenience instance that holds the escape strings for
+    the colors.  The color names are abbreviated with three letters
+    commonly seen in resistor color codes.  Preface with 'l' to get the
+    brighter color.
+    '''
+    blk = fg(black, s=1)
+    blu = fg(blue, s=1)
+    grn = fg(green, s=1)
+    cyn = fg(cyan, s=1)
+    red = fg(red, s=1)
+    mag = fg(magenta, s=1)
+    yel = fg(brown, s=1)
+    wht = fg(white, s=1)
+    gry = fg(gray, s=1)
+    lblu = fg(lblue, s=1)
+    lgrn = fg(lgreen, s=1)
+    lcyn = fg(lcyan, s=1)
+    lred = fg(lred, s=1)
+    lmag = fg(lmagenta, s=1)
+    lyel = fg(yellow, s=1)
+    lwht = fg(lwhite, s=1)
+    norm = normal(s=1)
+
 if __name__ == "__main__": 
     from lwtest import run, Assert
     import subprocess

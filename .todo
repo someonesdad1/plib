@@ -1,6 +1,15 @@
-* flt("1_1") gives an exception, but it should be flt(11).
-
+* dpmath.py
+    * Move archimedean.py in.
+    * Check util.py for math stuff that should be moved.
+* Delete fsig.py once it's established it's not being used anywhere.
 * Make frange work with flt
+* wire.py:  Change to use flt with proper units.  Update
+  MaxCurrentDensity to use the chassis current data Richard alerted me
+  to (it's in pgm/cu_wire.py).  Also do similar for Ampacity.
+* atm.py:  See if it can change over to use flt for calculations with
+  units.  It will get rid of the sig() ugliness.
+* gauge_sizes.py:  Change the floats to flt with units of inches.
+
 
 * Look at fileinfo.py.  It might make more sense to derive it from
   namedtuple.  This should be combined with filesizes.py into one file.
@@ -8,15 +17,6 @@
   pathlib to produce a pathlib object that also contained the os.stat
   information for a file when desired (it would only retrieve it if you
   ask for the attribute).
-
-* Is module_dependencies.py necessary?
-
-* Move invnorm.py to dpmath.py.
-
-* gauge_sizes.py:  Change the floats to flt with units of inches.
-
-* Change what.py to use a what trigger string.  This lets a what string
-  be put into any file without having to run the file.
 
 * geom_prim.py:  Update properties, utilize matrix.py for determinants,
   as this would remove dependency on numpy.
@@ -26,29 +26,12 @@
   one file including all the tests.
 
 * module_dependencies.py needs to be rewritten to accommodate /pylib.
-  The tools and programs need to be moved in first.
+  The tools and programs need to be moved in first.  Is it even
+  necessary?
 
 * mystr.py:  Convert token naming to a class.
-
-* wire.py:  Change to use flt with proper units.  Update
-  MaxCurrentDensity to use the chassis current data Richard alerted me
-  to (it's in pgm/cu_wire.py).  Also do similar for Ampacity.
-
-* Delete fsig.py once it's established it's not being used anywhere.
-
-* Go through each of the pushed files, clean them up, add test support
-  if needed, and rewrite code if needed, getting rid of python 2 syntax.
-  Try to remove as many files from the test directory, which makes it
-  easier to distribute files.
-
-    * Add the needed support files like asciify.script, etc.
-
-* Put archimedean.py in util.py or combine the math formulas into a
-  single file.
 
 * sig is a mess of code.  Is it really all needed?  Maybe it would be
   best to move the key stuff to flt and cpx.  It can still be kept
   around for when it's needed.
 
-* atm.py:  See if it can change over to use flt for calculations with
-  units.  It will get rid of the sig() ugliness.
