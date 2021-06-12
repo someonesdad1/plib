@@ -16,7 +16,7 @@ if 1:  # Copyright, license
     #   See http://opensource.org/licenses/OSL-3.0.
     #∞license∞#
     #∞what∞#
-    # <math> Calculates Stirling numbers
+    # <math> Calculates Stirling numbers of the first and second kinds.
     #∞what∞#
     #∞test∞# run #∞test∞#
     pass

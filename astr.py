@@ -29,7 +29,9 @@ if 1:  # Copyright, license
     #   See http://opensource.org/licenses/OSL-3.0.
     #∞license∞#
     #∞what∞#
-    # <programming> String class that ignores length of escape sequences
+    # <programming> String class that ignores length of escape
+    # sequences.  This lets you position strings on the page that are
+    # colored without regard to the extra escape code information.
     #∞what∞#
     #∞test∞# run #∞test∞#
     pass

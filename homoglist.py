@@ -10,7 +10,9 @@ if 1:  # Copyright, license
     #   See http://opensource.org/licenses/OSL-3.0.
     #∞license∞#
     #∞what∞#
-    # <programming> Homogeneous list
+    # <programming> Homogeneous list.  This is a list object that only
+    # allows one type of object to be stored in it.  The first element
+    # stored determines the type of the others.
     #∞what∞#
     #∞test∞# run #∞test∞#
     pass

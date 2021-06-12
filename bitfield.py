@@ -5,7 +5,7 @@ are numbered from 0 to n - 1, where n is the size of the bitfield.
 
 There are two implementations:  sbitfield uses a list of string
 characters and bitfield is derived from an integer.  The code for
-bitfield is simpler, but it's slower for 
+bitfield is simpler, but it's slower for larger numbers of bits.
  
 Here are some creation times for a 166 MHz Pentium with 32 MB of RAM
 running Windows NT 4.0 (probably around 1999):
@@ -74,7 +74,11 @@ if 1:  # Copyright, license
     #   See http://opensource.org/licenses/OSL-3.0.
     #∞license∞#
     #∞what∞#
-    # <programming> Class for arbitrarily long bitfields
+    # <programming> Class for arbitrarily long bitfields.  There are two
+    # implementation classes:  one uses lists of strings to store the
+    # data (and thus more memory); the other is derived from an int.
+    # The int-derived one has simpler code, but it's slower than the
+    # string implementation.
     #∞what∞#
     #∞test∞# run #∞test∞#
     pass

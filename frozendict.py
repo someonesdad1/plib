@@ -30,7 +30,8 @@ if 1:  # Copyright, license
     #   See https://docs.python.org/3/license.html
     #∞license∞#
     #∞what∞#
-    # <programming> Class to make frozen dictionaries
+    # <programming> Class to make frozen dictionaries.  These are
+    # derived from dict, but have elements that cannot be changed.
     #∞what∞#
     #∞test∞# run #∞test∞#
     pass

@@ -10,7 +10,8 @@ if 1:  # Copyright, license
     #   See http://opensource.org/licenses/OSL-3.0.
     #∞license∞#
     #∞what∞#
-    # <math> Pure-python numerical integration routines
+    # <math> Pure-python numerical integration routines:  Simpson's
+    # and trapezoidal methods provided.
     #∞what∞#
     #∞test∞# Put test file information here (see 0test.py) #∞test∞#
     pass

@@ -141,7 +141,8 @@ if 1:  # Copyright, license
     #   See http://opensource.org/licenses/OSL-3.0.
     #∞license∞#
     #∞what∞#
-    # <programming> Module to provide ANSI color escape sequences
+    # <programming> Module to provide ANSI color escape sequences.
+    # These are useful for coloring output to a terminal.
     #∞what∞#
     #∞test∞# --test #∞test∞#
     pass

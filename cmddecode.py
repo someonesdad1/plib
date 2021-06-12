@@ -30,7 +30,11 @@ if 1:  # Copyright, license
     #   See http://opensource.org/licenses/OSL-3.0.
     #∞license∞#
     #∞what∞#
-    # <programming> Decode user command strings
+    # <programming> Decode user command strings.  When initialized with
+    # a sequence of command strings, calling the object with a string
+    # will return a list of 0, 1 or many strings.  0 means no match, 1
+    # is a unique match, and many means more than one match.  The
+    # constructor lets you choose to ignore the command's case or not.
     #∞what∞#
     #∞test∞# ["test/cmddecode_test.py"] #∞test∞#
     pass

@@ -23,7 +23,8 @@ if 1:  # Copyright, license
     #   See http://opensource.org/licenses/OSL-3.0.
     #∞license∞#
     #∞what∞#
-    # <science> Calculate standard atmosphere characteristicx
+    # <science> Calculate standard atmosphere characteristics.
+    # Equations taken from a 1976 NASA document.
     #∞what∞#
     #∞test∞# --test #∞test∞#
     pass

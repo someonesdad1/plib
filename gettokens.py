@@ -1,4 +1,6 @@
 '''
+xx Move stuff to get.py
+
 Provides functions to tokenize files and streams:
 
 GetTokens

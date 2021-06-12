@@ -18,7 +18,9 @@ if 1:  # Copyright, license
     #   See http://opensource.org/licenses/OSL-3.0.
     #∞license∞#
     #∞what∞#
-    # <programming> Round off floating point values
+    # <programming> Round off floating point values.  By default, floats
+    # are rounded to 12 figures.  This means numbers like 0.0254*12 =
+    # 0.30479999999999996 will become 0.3048, which is easier to read.
     #∞what∞#
     #∞test∞# --test #∞test∞#
     pass

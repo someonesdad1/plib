@@ -1,4 +1,6 @@
 '''
+xx Move functionality to get.py
+
 Functions:  
 
 * GetNumber prompts the user for a number until an acceptable number is

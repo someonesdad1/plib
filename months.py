@@ -10,7 +10,7 @@ if 1:  # Copyright, license
     #   See http://opensource.org/licenses/OSL-3.0.
     #∞license∞#
     #∞what∞#
-    # <programming> Month names and numbers
+    # <programming> Month names and numbers in dictionary form.
     #∞what∞#
     #∞test∞# run #∞test∞#
     pass

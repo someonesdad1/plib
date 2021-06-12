@@ -18,7 +18,12 @@ if 1:  # Copyright, license
     #   See http://opensource.org/licenses/OSL-3.0.
     #∞license∞#
     #∞what∞#
-    # <utility> Find picture files in Open Office files
+    # <utility> Find picture files in Open Office files.  I find it
+    # useful because I always link in pictures rather than copy them
+    # into the OO document (this saves space).  However, when the
+    # pictures aren't in a subdirectory below the location of the OO
+    # file, you can have a problem when you distribute the OO file and
+    # its pictures to a user.  This script heads off this problem.
     #∞what∞#
     #∞test∞# Put test file information here (see 0test.py) #∞test∞#
     pass

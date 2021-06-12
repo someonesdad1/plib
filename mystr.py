@@ -43,7 +43,7 @@ if 1:  # Copyright, license
     #   See http://opensource.org/licenses/OSL-3.0.
     #∞license∞#
     #∞what∞#
-    # <programming> String utilities
+    # <programming> A number of utilities that deal with strings.
     #∞what∞#
     #∞test∞# run #∞test∞#
     pass

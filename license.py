@@ -1,14 +1,6 @@
 '''
-TODO
-
-* Rewrite to use the trigger.py functionality.  I'd like to see it only
-  replace the license portion with a short header statement.
-
-* For each file, check that the trigger string only matches in two
-  places.
-
-* Write another script that lets you change the trigger string in all
-  files on the command line with args 'old_trigger new_trigger files'.
+xx Make the license header substitution part of trigger.py.  Then this
+script is only used to print copies of the licenses to stdout.
 
 ----------------------------------------------------------------------
 Replace license statements in files.

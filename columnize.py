@@ -14,7 +14,8 @@ if 1:  # Copyright, license
     #   See http://opensource.org/licenses/OSL-3.0.
     #∞license∞#
     #∞what∞#
-    # <programming> Function to turn a sequence into columns
+    # <programming> Function to turn a sequence into columns.  Similar
+    # in output to the pr command for printing in columns.
     #∞what∞#
     #∞test∞# --test #∞test∞#
     pass

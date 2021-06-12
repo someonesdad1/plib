@@ -58,7 +58,8 @@ if 1:  # License
     # WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
     #∞license∞#
     #∞what∞#
-    # <programming> Functional programming examples from Mertz' book
+    # <programming> Functional programming examples from D. Mertz, "Text
+    # Processing in Python" (see http://gnosis.cx/TPiP).
     #∞what∞#
     #∞test∞# #∞test∞#
     pass

@@ -11,7 +11,8 @@ if 1:  # Copyright, license
     #   See http://opensource.org/licenses/OSL-3.0.
     #∞license∞#
     #∞what∞#
-    # <programming> Change Unicode characters to nearest ASCII equivalents
+    # <programming> Change Unicode characters to nearest ASCII
+    # equivalents.  For example, é and è would be changed to e.
     #∞what∞#
     #∞test∞# ["test/asciify_test.py"] #∞test∞#
     pass

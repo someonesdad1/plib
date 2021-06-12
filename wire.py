@@ -10,7 +10,8 @@ if 1:  # Copyright, license
     #   See http://opensource.org/licenses/OSL-3.0.
     #∞license∞#
     #∞what∞#
-    # <electrical> Wire information
+    # <electrical> Wire information:  size, equivalent areas. ampacity,
+    # and fusing current estimates.
     #∞what∞#
     #∞test∞# run #∞test∞#
     pass

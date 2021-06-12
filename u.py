@@ -208,7 +208,8 @@ if 1:  # Copyright, license
     #   See http://opensource.org/licenses/OSL-3.0.
     #∞license∞#
     #∞what∞#
-    # <science> Unit conversion utilities
+    # <science> Unit conversion utilities.  Provides the unit handling
+    # for the flt/cpx types in f.py.
     #∞what∞#
     #∞test∞# --test #∞test∞#
     pass

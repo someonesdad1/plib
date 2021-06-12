@@ -23,7 +23,8 @@ if 1:  # Copyright, license
     #   See http://opensource.org/licenses/OSL-3.0.
     #∞license∞#
     #∞what∞#
-    # <math> Functions to calculate a solution to Kepler's equation 
+    # <math> Functions to calculate a solution to Kepler's equation from
+    # Meeus "Astronomical Algorithms", pg 206.
     #∞what∞#
     #∞test∞# run #∞test∞#
     pass

@@ -2,6 +2,17 @@
 
 * Make frange work with flt
 
+* Look at fileinfo.py.  It might make more sense to derive it from
+  namedtuple.  This should be combined with filesizes.py into one file.
+  In fact, what would make the most sense would to be combine them with
+  pathlib to produce a pathlib object that also contained the os.stat
+  information for a file when desired (it would only retrieve it if you
+  ask for the attribute).
+
+* Is module_dependencies.py necessary?
+
+* Move invnorm.py to dpmath.py.
+
 * gauge_sizes.py:  Change the floats to flt with units of inches.
 
 * Change what.py to use a what trigger string.  This lets a what string

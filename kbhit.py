@@ -9,7 +9,8 @@ if 1:  # Copyright, license
     #   see that site for any license coverage.
     #∞license∞#
     #∞what∞#
-    # <programming> Get the next character typed at the keyboard
+    # <programming> Get the next character typed at the keyboard.  Works
+    # on Posix systems.
     #∞what∞#
     #∞test∞# #∞test∞#
     pass

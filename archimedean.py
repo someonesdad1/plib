@@ -87,9 +87,9 @@ if 1:  # Copyright, license
     #   See http://opensource.org/licenses/OSL-3.0.
     #∞license∞#
     #∞what∞#
-    # <math> Function to calculate the length of an Archimedian spiral.
-    # Both an exact and approximate formulas are given.  Example:
-    # estimate the length of paper on a roll of paper towels.
+    # <math> Functions to calculate the length of an Archimedian spiral.
+    # Both exact and approximate formulas are given.  Example:
+    # estimate the length of paper on a roll of toilet paper.
     #∞what∞#
     #∞test∞# run #∞test∞#
     pass
@@ -190,37 +190,46 @@ if __name__ == "__main__":
         # is 4712.4.  Note the exact length is between the two
         # estimates.
     def Test_toilet_paper_roll():
-        '''A roll of toilet paper has an ID of 60 mm, an OD of 130 mm,
+        '''A roll of toilet paper has an ID of 42 mm, an OD of 130 mm,
         and a thickness of about 0.125 mm.  Each sheet is 101x96 mm with
         the 101 mm dimension perpendicular to the perforations.  The
         manufacturer states there are 18 rolls in the package and the
-        total area is 815.1 square feet.  Check if this is approximately
+        total area is 815.1 square feet.  Each roll is stated to have
+        425 sheets on it, so that means the length of paper is 425(101
+        mm) or 
+        Check if this is approximately
         correct.  Use flt for calculations.
         '''
         from f import flt, tau
         from sys import argv
         num_rolls = 18
         mm = flt("1 mm")
+        mm.n = 4
         ID, OD = mm(60), mm(130)
-        width, thickness = mm(96), mm(0.125)
+        fudge = 3.942
+        width, thickness = mm(96), mm(0.125)*fudge
         pitch = 2*thickness
+        length_actual = 425*mm(101)
         a = pitch/tau
         # Have to use ID.val because frange barfs on a flt
         f = lambda x:  float(x.val)
+        # Since we know the stated length, use the approximate formula
+        # to calculate what the thickness must be.
         length = mm(ApproximateSpiralArcLength(f(ID), f(OD),
                         f(thickness)))
+        length_ft = length.to("ft")
         # The area per roll is the exact_length times the 101 mm
         # dimension
         area_per_roll = length*width
         area_per_roll_ft2 = area_per_roll.to("ft2")
         total_area = num_rolls*area_per_roll
-        total_area_ft2 = total_area.to('ft2')
-
-        # xx  Dump the variables
-        d = locals()
-        for i in sorted(d.keys()):
-            if i in "flt tau mm f".split():
-                continue
-            print(f"{i}: {d[i]}")
-        print(f"{argv[0]}:  Warning:  Test_toilet_paper_roll() not working")
+        A_calc_ft2 = total_area.to('ft2')
+        A_exact_ft2 = flt("815 ft2")
+        assert_equal(A_calc_ft2, A_exact_ft2, reltol=0.01)
+        if 0:   # Dump the variables
+            d = locals()
+            for i in sorted(d.keys()):
+                if i in "flt tau mm f".split():
+                    continue
+                print(f"{i}: {d[i]}")
     exit(run(globals(), regexp="^Test_", quiet=0)[0])

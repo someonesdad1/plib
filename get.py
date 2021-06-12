@@ -13,7 +13,11 @@ if 1:  # Copyright, license
     #   See http://opensource.org/licenses/OSL-3.0.
     #∞license∞#
     #∞what∞#
-    # <programming> Module for getting data from files, strings, and streams
+    # <programming> Module for getting data from files, strings, and
+    # streams.  An example is reading a text file, getting all the lines
+    # except for those that match a sequency of regular expressions.
+    # Other examples are getting all the words (tokens) from a file or a
+    # set of numbers.  # Handles a number of common programming tasks.
     #∞what∞#
     #∞test∞# run #∞test∞#
     pass

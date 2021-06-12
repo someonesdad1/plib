@@ -16,7 +16,14 @@ if 1:  # Copyright, license
     #   See http://opensource.org/licenses/OSL-3.0.
     #∞license∞#
     #∞what∞#
-    # <programming> Format Decimal numbers
+    # <programming> Format Decimal numbers with the Fmt class.  Provides
+    # fixed point, scientific, and engineering formats.  You can control
+    # the points at which fixed point switches to scientific notation
+    # (or set them to None, which means you always get fixed point
+    # notation).  Scientific and engineering notation can use Unicode
+    # characters for exponents, such as 3.14✕10⁶ and 314✕10⁻⁹.  Since
+    # the implementation is in Decimal numbers, you can work with
+    # arbitrarily large numbers and arbitrary number of decimal places.
     #∞what∞#
     #∞test∞# --test #∞test∞#
     pass

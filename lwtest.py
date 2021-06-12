@@ -82,7 +82,9 @@ if 1:  # Copyright, license
     #   See http://opensource.org/licenses/OSL-3.0.
     #∞license∞#
     #∞what∞#
-    # <programming> Lightweight test runner
+    # <programming> Lightweight test runner.  I use this tool to run all
+    # my python module's regression tests, as I was dissatisfied with
+    # python's unittest and I've never liked doctest.
     #∞what∞#
     #∞test∞# ["test/lwtest_test.py"] #∞test∞#
     pass

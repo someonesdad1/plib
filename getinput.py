@@ -1,4 +1,7 @@
 '''
+xx This functionality should be moved to get.py as needed and the
+rest obsoleted.
+
 Utility functions to get various types of input.  Should work with python
 2.7 and 3.
 

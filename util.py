@@ -78,7 +78,7 @@ if 1:  # Copyright, license
     #   See http://opensource.org/licenses/OSL-3.0.
     #∞license∞#
     #∞what∞#
-    # <utility> Utility python tools
+    # <utility> Contains over 60 utility functions.
     #∞what∞#
     #∞test∞# run #∞test∞#
     pass

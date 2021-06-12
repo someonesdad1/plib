@@ -18,7 +18,10 @@ if 1:  # Copyright, license
     #   See http://opensource.org/licenses/OSL-3.0.
     #∞license∞#
     #∞what∞#
-    # <programming> Represent a number to a specified number of significant figures
+    # <programming> Represent a number to a specified number of
+    # significant figures.  Handles numerous number types (including
+    # complex numbers and ufloats from the python uncertainties library)
+    # and sequences of them and gives you fine control over the details.
     #∞what∞#
     #∞test∞# --test #∞test∞#
     pass

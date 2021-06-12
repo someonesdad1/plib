@@ -40,7 +40,9 @@ if 1:  # Copyright, license
     #   See http://opensource.org/licenses/OSL-3.0.
     #∞license∞#
     #∞what∞#
-    # <math> Generate combinations and permutations in lexical order
+    # <math> Generate combinations and permutations in lexical order.
+    # Derived from C code by Glenn Rhoads.  Note they are not
+    # thread-safe.
     #∞what∞#
     #∞test∞# #∞test∞#
     pass

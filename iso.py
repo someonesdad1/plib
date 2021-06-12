@@ -1,5 +1,6 @@
 '''
-Provides the ISO object which will give you current date and time.
+Provides the ISO object which will give you current date and time in
+standard ISO format.
 
     iso = ISO()
     print(iso)      20210414-08:42:44
@@ -16,6 +17,7 @@ if 1:  # Copyright, license
     #∞license∞#
     #∞what∞#
     # <utility> Provides the ISO object to provide current date and time
+    # in standard ISO format.
     #∞what∞#
     #∞test∞# #∞test∞#
     pass

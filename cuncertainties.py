@@ -16,9 +16,9 @@ if 1:   # Copyright, license
     #   See http://opensource.org/licenses/OSL-3.0.
     #∞license∞#
     #∞what∞#
-    # <math> This module defines a cufloat object that can be used as a complex
-    # number that has uncertainties associated with the real and imaginary
-    # parts.
+    # <math> This module defines a cufloat object that can be used as a
+    # complex number that has uncertainties associated with the real and
+    # imaginary parts.
     #∞what∞#
     #∞test∞# --test #∞test∞#
     pass

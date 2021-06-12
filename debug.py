@@ -48,7 +48,8 @@ if 1:  # Copyright, license
     #   See http://opensource.org/licenses/OSL-3.0.
     #∞license∞#
     #∞what∞#
-    # <programming> Debugging aids
+    # <programming> Debugging aids (taken from the "Python Cookbook" and
+    # Beazley's "Python Essential Reference", 4th edition).
     #∞what∞#
     #∞test∞# #∞test∞#
     pass

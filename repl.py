@@ -139,7 +139,14 @@ if 1:   # Standard imports
     #   See http://opensource.org/licenses/OSL-3.0.
     #∞license∞#
     #∞what∞#
-    # <utility> This provides a REPL I use for an interactive python calculator.
+    # <utility> This provides a REPL I use for an interactive python
+    # calculator.  By default it uses flt and cpx number types from
+    # f.py, along with units from u.py, letting you do physical
+    # calculations with numbers derived from measurements.  An advantage
+    # of these types is that they by default only show 3 decimal places
+    # in their interpolated strings (you can set the number of digits
+    # you want to see), so you don't see all the annoying digits common
+    # in floating point calculations.
     #∞what∞#
     from atexit import register
     from collections import defaultdict

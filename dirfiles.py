@@ -10,7 +10,14 @@ if 1:  # Copyright, license
     #   See http://opensource.org/licenses/OSL-3.0.
     #∞license∞#
     #∞what∞#
-    # <programming> Get a set of files from a set of disjoint directory trees
+    # <programming> Get a set of files from a set of disjoint directory
+    # trees An example use case is to generate a set of PDF files in
+    # various locations.  An example shows you how to collect the PDF
+    # files from the directory trees /tree1, /tree2/branch3, and /tree3.
+    # I use this object in one of my most heavily-used scripts, which
+    # locates many thousands of PDF files on my system (e.g., books,
+    # articles, data sheets, catalogs, etc.).  The names of the files
+    # are cached to disk and only take a couple of seconds to update.
     #∞what∞#
     #∞test∞# run #∞test∞#
     pass

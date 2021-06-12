@@ -23,7 +23,10 @@ if 1:  # Copyright, license
     #   See http://opensource.org/licenses/OSL-3.0.
     #∞license∞#
     #∞what∞#
-    # <math> Elementary functions for the python Decimal library
+    # <math> Elementary math functions for the python Decimal library.
+    # The functions provided are acos, asin, atan, atan2, cos, exp, ln,
+    # log10, pi, pow, sin, sqrt, and tan.  Uses mpmath's functions for
+    # the self tests (i.e., assumes mpmath's output is correct).
     #∞what∞#
     #∞test∞# run #∞test∞#
     pass
@@ -70,6 +73,7 @@ if 1:   # Global variables
         python 3.2.2 with mpmath 0.17
         Python 2.7.16 cygwin with mpmath 1.0.0
         Python 3.7.4 cygwin with mpmath 1.1.0
+        Python 3.7.10 cygwin with mpmath 1.1.0
     
     mpmath (http://code.google.com/p/mpmath/) is not needed for normal
     use; it is used to provide reference values for testing.

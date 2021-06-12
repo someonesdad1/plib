@@ -11,7 +11,8 @@ if 1:  # Copyright, license
     #   See http://opensource.org/licenses/OSL-3.0.
     #∞license∞#
     #∞what∞# 
-    # <electrical> Provides EIA resistor values 
+    # <electrical> Provides EIA resistor values (based on IEC 60063
+    # preferred numbers).
     #∞what∞#
     #∞test∞# #∞test∞#
     pass

@@ -47,7 +47,10 @@ if 1:  # Copyright, license
     #   See http://opensource.org/licenses/OSL-3.0.
     #∞license∞#
     #∞what∞#
-    # <programming> Generators that are floating point analogs of range()
+    # <programming> Generators that are floating point analogs of
+    # range().  Also provides a utility function that can produce
+    # arithmetic sequences of integers, floating point numbers, and
+    # fractions.
     #∞what∞#
     #∞test∞# --test #∞test∞#
     pass

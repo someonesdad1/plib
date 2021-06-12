@@ -11,7 +11,8 @@ if 1:  # Copyright, license
     #   See http://opensource.org/licenses/OSL-3.0.
     #∞license∞#
     #∞what∞#
-    # <math> Routines to help with triangulation
+    # <math> Routines to help with triangulation.  Will use the
+    # uncertainties module if it's available.
     #∞what∞#
     #∞test∞# Put test file information here (see 0test.py) #∞test∞#
     pass

@@ -10,7 +10,10 @@ if 1:  # Copyright, license
     #   See http://opensource.org/licenses/OSL-3.0.
     #∞license∞#
     #∞what∞#
-    # <programming> A dictionary that is an invertible function
+    # <programming> A dictionary that is an invertible function.  As
+    # long as the mapping is one-to-one, you can use the dictionary in
+    # either direction.  dict[a] goes the "normal" direction and dict(a)
+    # goes the reverse direction.
     #∞what∞#
     #∞test∞# run #∞test∞#
     pass

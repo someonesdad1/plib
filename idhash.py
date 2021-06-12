@@ -13,7 +13,11 @@ if 1:  # Copyright, license
     #   See http://opensource.org/licenses/OSL-3.0.
     #∞license∞#
     #∞what∞#
-    # <programming> Hashes answers to a set of questions
+    # <programming> Hashes answers to a set of questions.  I have used
+    # this as a method of generating a hash using answers to questions
+    # only I would know the answers to.  You'll want to use a secure
+    # hashing algorithm and enough questions to make it unfeasible for
+    # someone to do a brute-force attack.  
     #∞what∞#
     #∞test∞# #∞test∞#
     pass

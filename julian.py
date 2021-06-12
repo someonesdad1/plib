@@ -28,7 +28,8 @@ if 1:  # Copyright, license
     #   See http://opensource.org/licenses/OSL-3.0.
     #∞license∞#
     #∞what∞#
-    # <science> Julian day routines 
+    # <science> Julian day routines from Meeus, "Astronomical Formulae
+    # for Calculators".
     #∞what∞#
     #∞test∞# run #∞test∞#
     pass

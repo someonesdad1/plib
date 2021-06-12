@@ -79,7 +79,8 @@ if 1:  # Copyright, license
     #   See http://opensource.org/licenses/OSL-3.0.
     #∞license∞#
     #∞what∞#
-    # <programming> Draw linear scales with tick marks and labels
+    # <programming> Draw linear scales with tick marks and labels.
+    # Requires the g.py module for generating PostScript.
     #∞what∞#
     #∞test∞# #∞test∞#
     pass

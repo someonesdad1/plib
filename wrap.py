@@ -50,7 +50,9 @@ if 1:  # Copyright, license
     #∞license∞#
     #∞what∞#
     # <programming> Provides the Wrap class, which can be used to make
-    # text fit into a desired width with a specified indent.
+    # text fit into a desired width with a specified indent.  Can also
+    # indent and dedent like the textwrap module.  Handles common
+    # English abbreviations also.
     #∞what∞#
     #∞test∞# --test #∞test∞#
     pass

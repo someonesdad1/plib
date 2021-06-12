@@ -20,7 +20,11 @@ if 1:  # Copyright, license
     #   Licensed under the Open Software License version 3.0.
     #   See http://opensource.org/licenses/OSL-3.0.
     #∞license∞#
-    #∞what∞# <utility> Utility encoding tool #∞what∞#
+    #∞what∞# <utility> Utility encoding tool.  It reads a file and
+    # decodes it with various codecs; the ones that don't raise an
+    # exception are possible encodings.  Also lets you change a file's
+    # encoding like iconv.
+    #∞what∞#
     #∞test∞# #∞test∞#
     pass
 if 1:   # Imports
