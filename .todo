@@ -1,11 +1,9 @@
-* Make frange work with flt
 * wire.py:  Change to use flt with proper units.  Update
   MaxCurrentDensity to use the chassis current data Richard alerted me
   to (it's in pgm/cu_wire.py).  Also do similar for Ampacity.
 * atm.py:  See if it can change over to use flt for calculations with
   units.  It will get rid of the sig() ugliness.
 * gauge_sizes.py:  Change the floats to flt with units of inches.
-
 
 * Look at fileinfo.py.  It might make more sense to derive it from
   namedtuple.  This should be combined with filesizes.py into one file.

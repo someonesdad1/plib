@@ -85,6 +85,7 @@ if 1:   # Imports
     import time
 if 1:   # Custom imports
     from sig import sig
+    from color import C
 if 1:   # Global variables
     P = pathlib.Path
     nl = "\n"
@@ -984,8 +985,8 @@ class Walker(object):
                  dir=False):
         self.dir = dir
         self._ignore = ignore
-        print(f"{sys.argv[0]}:  Warning:  Walker is deprecated; use "
-              "e.g. pathlib.Path.glob('**/*')", file=sys.stderr)
+        print(f"{C.lyel}{sys.argv[0]}:  Warning:  Walker is deprecated; use "
+              f"e.g. pathlib.Path.glob('**/*'){C.norm}")
     def __str__(self):
         return "util.Walker(ignore={}, dir={})".format(self._ignore, self.dir)
     def __repr__(self):

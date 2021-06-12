@@ -14,7 +14,7 @@ if 1:  # Copyright, license
     # <shop> Dictionary of various gauge sizes for sheet and wire.  Also
     # has the function WireGauge() to get drill sizes from 1 to 80.
     #∞what∞#
-    #∞test∞# #∞test∞#
+    #∞test∞# --test #∞test∞#
     pass
 if 1:   # Imports
     from pdb import set_trace as xx 
@@ -52,8 +52,15 @@ def WireGauge(num, mm=False):
     if isinstance(num, int):
         if num < 1 or num > 80:
             raise ValueError("num must be between 1 and 80 inclusive")
-        return units*sizes[num]*25.4 if mm else units*sizes[num]
-    elif isinstance(num, float):
+        if mm:
+            return flt(units*sizes[num]*25.4, "mm")
+        else:
+            return flt(units*sizes[num], "inch")
+    elif isinstance(num, (flt, float)):
+        if isinstance(num, flt):
+            if num.u is not None:
+                num = float(num.to("inch").val)
+        # num is now a float in either inches or mm
         if mm:
             num /= 25.4  # Convert to inches
         # Note sizes is from largest to smallest
@@ -476,8 +483,10 @@ if __name__ == "__main__":
     from wrap import dedent
     from columnize import Columnize
     from dpmath import AlmostEqual
-    from lwtest import Assert
+    from lwtest import run, Assert
     def TestWireGauge():
+        x = flt(1)
+        x.promote = True    # Allows the following comparisons
         Assert(AlmostEqual(WireGauge(12), 0.189))
         Assert(AlmostEqual(WireGauge(0.189), 12))
         # Check that each gauge number, when run back through the function as a
@@ -486,7 +495,8 @@ if __name__ == "__main__":
         t = [WireGauge(i) for i in sizes]
         s = [WireGauge(i) for i in t]
         Assert(s == sizes)
-    TestWireGauge()
+    if len(sys.argv) > 1 and sys.argv[1] == "--test":
+        exit(run(globals(), halt=1)[0])
     name = sys.argv[0]
     w = int(os.environ.get("COLUMNS", 80)) - 5
     sep = "-"*w
