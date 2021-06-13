@@ -1560,31 +1560,61 @@ if __name__ == "__main__":
         (1, 2) ****''')
         Assert(got == expected)
     def TestWalker():
-        # Construct a dummy directory structure
         dir, file = "walker", "a"
-        path = os.path.join(dir, file)
-        try:
-            os.mkdir(dir)
-        except FileExistsError:
-            pass
-        open(path, "w").write("hello")
-        # Test we see directory
-        w = Walker()
-        w.dir = True
-        for i in w("."):
-            # Ignore the test directory (needed after moving util.py to
-            # /plib)
-            if "test" in i:
-                continue
-            Assert(i.replace("\\", "/") == "./walker")
-        # Test we see file
-        w = Walker()
-        w.dir = False
-        for i in w("walker"):
-            Assert(i.replace("\\", "/") == "walker/a")
-        # Remove what we set up
-        os.remove(path)
-        os.rmdir(dir)
+        if 0:   # Old method using os.path
+            # Construct a dummy directory structure
+            path = os.path.join(dir, file)
+            try:
+                os.mkdir(dir)
+            except FileExistsError:
+                pass
+            open(path, "w").write("hello")
+            # Test we see directory
+            w = Walker()
+            w.dir = True
+            for i in w("."):
+                # Ignore the test directory (needed after moving util.py to
+                # /plib)
+                if "test" in i:
+                    continue
+                Assert(i.replace("\\", "/") == "./walker")
+            # Test we see file
+            w = Walker()
+            w.dir = False
+            for i in w("walker"):
+                Assert(i.replace("\\", "/") == "walker/a")
+            # Remove what we set up
+            os.remove(path)
+            os.rmdir(dir)
+        else:   # Use pathlib
+            p = P(".")/dir
+            try:
+                p.mkdir()
+            except Exception:
+                if p.is_dir():
+                    pass
+                else:
+                    raise ValueError(f"Couldn't make {p}")
+            path = p/file
+            path.write_text("hello")
+            # Test we see directory
+            w = Walker()
+            w.dir = True
+            for i in w("."):
+                # Ignore the test directory (needed after moving util.py to
+                # /plib)
+                if "test" in i:
+                    continue
+                Assert(i.replace("\\", "/") == "./walker")
+            # Test we see file
+            w = Walker()
+            w.dir = False
+            for i in w("walker"):
+                Assert(i.replace("\\", "/") == "walker/a")
+            # Remove what we set up
+            path.unlink()
+            p.rmdir()
+
     def Test_BraceExpansion():
         # Simple
         s = ' '.join(BraceExpansion("a{d,c,b}e"))

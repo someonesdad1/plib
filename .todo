@@ -1,3 +1,6 @@
+* lwtest.py:  check_equal needs to handle flt and cpx.  Also look at 
+  check_float and check_complex.
+
 * wire.py:  Change to use flt with proper units.  Update
   MaxCurrentDensity to use the chassis current data Richard alerted me
   to (it's in pgm/cu_wire.py).  Also do similar for Ampacity.

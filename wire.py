@@ -20,6 +20,11 @@ if 1:   # Imports
     from pdb import set_trace as xx
 if 1:   # Custom imports
     from roundoff import RoundOff
+    try:
+        from f import flt
+        have_flt = True
+    except ImportError:
+        have_flt = False
 if 1:   # Global variables
     ii = isinstance
 def MaterialData(material="copper"):
@@ -32,19 +37,34 @@ def MaterialData(material="copper"):
     # value given on that web page is 58.0 MS/m at 68 deg F.  This also
     # agrees to 5 figures with the International Annealed Copper Standard
     # of 1.7241 μohm*cm.
-    Cu_conductivity = 58.0e6 # S/m at 20 deg C
-    data = {
-        "conductivity": Cu_conductivity,   # In S/m
-        "resistivity": 1/Cu_conductivity,  # In ohm*m
-        "temp_coeff": 0.0039,              # In 1/K
-        "density": 8960,                   # kg/m3
-        "units": {
-            "conductivity": "S",
-            "resistivity": "ohm*m",
-            "temp_coeff": "1/K",
-            "density": "kg/m3",
+    if have_flt:
+        Cu_conductivity = flt("58.0e6 S/m")     # S/m at 20 deg C
+        data = {
+            "conductivity": Cu_conductivity,    # In S/m
+            "resistivity": 1/Cu_conductivity,   # In ohm*m
+            "temp_coeff": flt("0.0039 K-1"),    # In 1/K
+            "density": flt("8960 kg/m3"),       # kg/m3
+            "units": {
+                "conductivity": "S",
+                "resistivity": "ohm*m",
+                "temp_coeff": "1/K",
+                "density": "kg/m3",
+            }
         }
-    }
+    else:
+        Cu_conductivity = 58.0e6 # S/m at 20 deg C
+        data = {
+            "conductivity": Cu_conductivity,   # In S/m
+            "resistivity": 1/Cu_conductivity,  # In ohm*m
+            "temp_coeff": 0.0039,              # In 1/K
+            "density": 8960,                   # kg/m3
+            "units": {
+                "conductivity": "S",
+                "resistivity": "ohm*m",
+                "temp_coeff": "1/K",
+                "density": "kg/m3",
+            }
+        }
     if material == "copper" or material == "Cu":
         return data
     # Factors to scale resistivity of copper to get resistivity of other
@@ -86,7 +106,7 @@ def MaxCurrentDensity(diameter_m, insul_temp_rating_degC):
     from a linear regression of a log-log plot of the NEC allowed
     ampacities.  insul_temp_rating_degC must be 60, 75, or 90 deg C.
  
-    The code is from an Open Office macro in BASIC.
+    The code is from an Open Office macro I wrote in BASIC.
  
     xx Update this to use the chassis current values from
     pgm/cu_wire.py.
@@ -128,7 +148,7 @@ def MaxCurrentDensity(diameter_m, insul_temp_rating_degC):
                str(jmax) + " for " + str(insul_temp_rating_degC) +
                " and diameter in m = " + str(diameter_m))
         raise Exception(msg)
-    return jmax
+    return flt(jmax, units="A/mm2") if have_flt else jmax
 def Ampacity(n, insul_temp_rating_degC):
     '''Return the allowed current in A for copper wire of size n in AWG.
     The insulation's temperature rating must be 60, 75, or 90 deg C.  The
@@ -164,7 +184,8 @@ def Ampacity(n, insul_temp_rating_degC):
             b = 840
         elif insul_temp_rating_degC == 75:
             b = 1000
-    return b*10**(m*n)
+    i = b*10**(m*n)
+    return flt(i, units="A") if have_flt else i
 def EquivalentArea(n, m):
     '''Given a size n in AWG of a wire, return (D, d, ratio) where D is the
     first wire's area in inches, d is the second wire's diameter in inches,
@@ -174,6 +195,9 @@ def EquivalentArea(n, m):
     if n > m:
         raise ValueError("n must be <= m")
     D, d = [AWG(i) for i in (n, m)]     # Diameter in inches
+    if have_flt:
+        D = flt(D, units="inch")
+        d = flt(d, units="inch")
     return D, d, RoundOff((D/d)**2, digits=4)
 def AWG(n):
     '''Returns the wire diameter in inches given the AWG (American Wire
@@ -202,9 +226,10 @@ def AWG(n):
         pass
     if n <= 40:
         d = AWG.data[n + 3]/1e5
-        return RoundOff(d, 4) if n <= 30 else RoundOff(d, 5)
+        d = RoundOff(d, 4) if n <= 30 else RoundOff(d, 5)
     else:
-        return RoundOff(92.**((36 - n)/39)/200, 4)
+        d = RoundOff(92.**((36 - n)/39)/200, 4)
+    return flt(d, units="inch") if have_flt else d
 def Preece(n):
     '''Returns the fusing current in A to 3 figures for copper wire in size
     n AWG.  The formula used is Preece's formula, which estimates how much
@@ -224,8 +249,11 @@ def Preece(n):
     Example:  For 12 gauge copper wire (d = 0.08081 inches), the fusing
     current is 235 A.
     '''
-    i = 10244*AWG(n)**1.5
-    return RoundOff(i, 3)
+    d = AWG(n)
+    d = d.val if have_flt else d
+    i = 10244*d**1.5
+    i = RoundOff(i, 3)
+    return flt(i, units="A") if have_flt else i
 def Onderdonk(n, t, Ta):
     '''Fusing current in A for copper wire
  
@@ -278,10 +306,13 @@ def Onderdonk(n, t, Ta):
     '''
     if t > 10:
         raise ValueError("Time t must be <= 10 seconds")
-    A = (AWG(n)*1000)**2
+    d = AWG(n)
+    d = d.val if have_flt else d
+    A = (d*1000)**2
     K = log10((1083 - Ta)/(234 + Ta) + 1)
     i = A*sqrt(K/(33*t))
-    return RoundOff(i, 2)
+    i = RoundOff(i, 2)
+    return flt(i, units="A") if have_flt else i
 if __name__ == "__main__": 
     import sys
     from lwtest import run, raises, assert_equal, Assert
@@ -300,13 +331,21 @@ if __name__ == "__main__":
         assert_equal(d["units"]["temp_coeff"], "1/K")
         assert_equal(d["units"]["density"], "kg/m3")
     def TestMaxCurrentDensity():
-        assert_equal(MaxCurrentDensity(1, 60), 0.04425883723626271)
-        assert_equal(MaxCurrentDensity(1, 75), 0.05533501092157374)
-        assert_equal(MaxCurrentDensity(1, 90), 0.06367955209079165)
+        if have_flt:
+            f = lambda x: flt(x, units="A/mm2")
+        else:
+            f = lambda x: x
+        assert_equal(MaxCurrentDensity(1, 60), f(0.04425883723626271))
+        assert_equal(MaxCurrentDensity(1, 75), f(0.05533501092157374))
+        assert_equal(MaxCurrentDensity(1, 90), f(0.06367955209079165))
     def TestAmpacity():
-        assert_equal(Ampacity(12, 60), 23.233252533606738)
-        assert_equal(Ampacity(12, 75), 27.879903040328085)
-        assert_equal(Ampacity(12, 90), 31.597223445705165)
+        if have_flt:
+            f = lambda x: flt(x, units="A")
+        else:
+            f = lambda x: x
+        assert_equal(Ampacity(12, 60), f(23.233252533606738))
+        assert_equal(Ampacity(12, 75), f(27.879903040328085))
+        assert_equal(Ampacity(12, 90), f(31.597223445705165))
     def TestEquivalentArea():
         dn, dm, r = EquivalentArea(12, 14)
         assert_equal(r, 1.589)
@@ -317,12 +356,16 @@ if __name__ == "__main__":
         dn, dm, r = EquivalentArea(12, 30)
         assert_equal(r, 65.29)
     def TestAWG():
-        assert_equal(AWG(-3), 0.46)
-        assert_equal(AWG(12), 0.0808)
-        assert_equal(AWG(18), 0.0403)
-        assert_equal(AWG(24), 0.0201)
-        assert_equal(AWG(40), 0.00314)
-        assert_equal(AWG(56), 0.0004919)
+        if have_flt:
+            f = lambda x: flt(x, units="inch")
+        else:
+            f = lambda x: x
+        assert_equal(AWG(-3), f(0.46))
+        assert_equal(AWG(12), f(0.0808))
+        assert_equal(AWG(18), f(0.0403))
+        assert_equal(AWG(24), f(0.0201))
+        assert_equal(AWG(40), f(0.00314))
+        assert_equal(AWG(56), f(0.0004919))
         # Check that we get exceptions for bad values
         raises(ValueError, AWG, -4)
         raises(ValueError, AWG, 1.1)

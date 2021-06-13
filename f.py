@@ -1337,6 +1337,9 @@ class flt(Base, float):
         rem *= -1 if other < 0 else 1
         return rem
     def __divmod__(self, other):    # flt
+        '''Return (q, rem) where q is how many integer units of other are in
+        self and rem is a float giving the remainder.
+        '''
         # The two operands must have the same dimensions; this ensures
         # plain numbers are returned.
         if not ii(other, flt):
@@ -1352,8 +1355,8 @@ class flt(Base, float):
         # Note self could be mi/hr and other could be km/hour, so we
         # need to correct for the non-unity conversion factor
         units = Base.get_units(self, other, operator.truediv)
-        conv = u.u(units)
-        return q, flt(rem*conv)
+        conv = float(u.u(units))
+        return q, float(rem)*conv
     def __pow__(self, other):   # flt
         'self**other'
         return self._do_op(other, operator.pow)
@@ -1390,6 +1393,8 @@ class flt(Base, float):
             return pow(float(other), self)
     def __abs__(self):  # flt
         return flt(abs(float(self.val)), units=self.u)
+    def __ne__(self, other):    # flt
+        return not(self == other)
     def __eq__(self, other):    # flt
         '''To be equal, two flt objects must have the same unit
         dimensions and the same SI values.  With no units, they must be
@@ -1398,26 +1403,62 @@ class flt(Base, float):
         If the sigcomp attribute is defined, it defines the number of
         significant figures involved in the comparison.
         '''
-        if ii(other, complex):
-            if other.imag:
+        self_has_units = self._units is not None
+        other_has_units = ii(other, flt) and other._units is not None
+        #xx()
+        if self_has_units and other_has_units:
+            # They are both flt instances
+            if not Base.eq_dim(self, other):
                 return False
-            # Convert other to flt for comparison
-            if ii(other, cpx):
-                other = flt(other.real, units=other.u)
+            # Comparison will be below
+        elif self_has_units and not other_has_units:
+            if Base._promote:
+                other = flt(other, units=self._units)
+                return float(self) == float(other)
+            return False
+        elif not self_has_units and other_has_units:
+            if Base._promote:
+                me = flt(float(self), units=self._units)
+                return float(me) == float(other)
+            return False
+        else:
+            if ii(other, complex):
+                if other.imag:
+                    return False
+                # Convert other to flt for comparison
+                if ii(other, cpx):
+                    other = flt(other.real, units=other.u)
+                else:
+                    other = flt(other.real)
+            elif ii(other, float) and not ii(other, flt):
+                if not self_has_units:
+                    return float(self) == float(other)
+                else:
+                    # If we can promote other, do so
+                    if Base._promote:
+                        other = flt(float(other), units=self._units)
+                        return float(self) == float(other)
+                    return False
             else:
-                other = flt(other.real)
+                if Base._promote:
+                    other = flt(float(other), units=self._units)
+                elif self._units == None:
+                    other = flt(other)
+                else:
+                    m = ("other must be a flt with matching units or "
+                        "promote must be on")
+                    raise TypeError(m)
         # Get number of significant figures to make comparison to
         n = self.sigcomp if self.sigcomp is not None else 15
         other_units = hasattr(other, "u") and bool(other.u)
-        self_units = bool(self.u)
-        if self_units and other_units:
+        if self_has_units and other_has_units:
             if not Base.eq_dim(self, other):
                 return False
             # Use their SI values
             a, b = flt(float(self)), flt(float(other))
             return Base.sig_equal(a, b, n=n)
-        elif ((self_units and not other_units) or 
-            (not self_units and other_units)):
+        elif ((self_has_units and not other_has_units) or 
+            (not self_has_units and other_has_units)):
             return False
         else:
             b = flt(float(other))
@@ -1441,16 +1482,25 @@ class flt(Base, float):
             return float(self) < float(other)
     @property
     def val(self):  # flt
-        'Return the value as a flt in the given units (not in SI)'
-        # Warning:  Using self.val is convenient because user code will
-        # only see the necessary significant figures, but it should be
-        # first converted to a float for internal calculations to avoid
-        # exceeding the maximum recursion depth.
-        if self._units is not None:
-            # Convert to a float with a value of self in its given units
-            x = float(self)/u.u(self._units)
-            return flt(x)
-        return flt(float(self))
+        '''Return the value as a flt in the given units (not in SI).  
+        Note that the returned value will have no units.
+        '''
+        if 0:
+            # Warning:  Using self.val is convenient because user code will
+            # only see the necessary significant figures, but it should be
+            # first converted to a float for internal calculations to avoid
+            # exceeding the maximum recursion depth.
+            if self._units is not None:
+                # Convert to a float with a value of self in its given units
+                x = float(self)/u.u(self._units)
+                return flt(x)
+            return flt(float(self))
+        else:
+            # Test how things work returning a float
+            if self._units is not None:
+                # Convert to a float with a value of self in its given units
+                return float(self)/u.u(self._units)
+            return float(self)
 
 class cpx(Base, complex):
     '''The cpx class is a complex except that its components are flt
@@ -1894,6 +1944,11 @@ if 1:   # Get math/cmath functions into our namespace
         exec(f"{i} = flt({i})")
 
 if 0:
+    a=flt(1)
+    b=flt("1 A")
+    a.promote = 1
+    print("==", a == b)
+    print("!=", a != b)
     exit()
 
 if __name__ == "__main__": 
@@ -2044,19 +2099,22 @@ if __name__ == "__main__":
             Assert(x(x) == x.copy())
             Assert(x(1) == x.copy())
             x = flt("1 mi/hr")
-            Assert(x == x.copy())
-            Assert(x(x) == x.copy())
-            Assert(x(1) == x.copy())
+            xcopy = x.copy()
+            Assert(x == xcopy)
+            Assert(x(x) == xcopy)
+            Assert(x(1) == xcopy)
         # cpx
         with cpx(0):
             z = cpx(1)
-            Assert(z == z.copy())
-            Assert(z(z) == z.copy())
-            Assert(z(1) == z.copy())
+            zcopy = z.copy()
+            Assert(z == zcopy)
+            Assert(z(z) == zcopy)
+            Assert(z(1) == zcopy)
             z = flt("1 mi/hr")
-            Assert(z == z.copy())
-            Assert(z(z) == z.copy())
-            Assert(z(1) == z.copy())
+            zcopy = z.copy()
+            Assert(z == zcopy)
+            Assert(z(z) == zcopy)
+            Assert(z(1) == zcopy)
     def Test_FixedFormat():
         x = flt(0)
         with x:
@@ -2117,7 +2175,7 @@ if __name__ == "__main__":
             q, rem = divmod(x, y)
             Assert(q == 2)
             Assert(rem == 0)
-            Assert(ii(rem, flt))
+            Assert(ii(rem, float))
         # Test string interpolation behavior
         with flt(1):
             x = flt("1 mi/hr")
@@ -2159,7 +2217,7 @@ if __name__ == "__main__":
             q, rem = divmod(x, y)
             Assert(q == 2)
             Assert(rem == 0)
-            Assert(ii(rem, flt))
+            Assert(ii(rem, float))
     def Test_cpx_with_units():
         with cpx(1):
             # Same units
@@ -2216,19 +2274,46 @@ if __name__ == "__main__":
             Assert(y + x == expected)
             Assert(x - y == y)
             Assert(y - x == -y)
+        x, y =flt(1), flt("1 A")
+        with y:
+            for p in (False, True):
+                x.promote = p
+                if p:
+                    Assert(x == y)
+                    Assert(1 == y)
+                    Assert(1.0 == y)
+                    Assert(y == x)
+                    Assert(y == 1)
+                    Assert(y == 1.0)
+                else:
+                    Assert(not (x == y))
+                    Assert(not (1 == y))
+                    Assert(not (1.0 == y))
+                    Assert(not (y == x))
+                    Assert(not (y == 1))
+                    Assert(not (y == 1.0))
+        # Make sure == and != are opposites
+        with y:
+            x.promote = 0
+            Assert(bool(x != y) == (not bool(x == y)))
+            x.promote = 0
+            Assert(bool(x != y) == (not bool(x == y)))
     def Test_sigcomp():
         '''The flt/cpx sigcomp attribute is an integer that forces
         comparisons to be made to the indicated number of significant
         figures.
         '''
         # flt
-        for i in range(2, 16):
-            x = flt(pi)
-            y = flt(pi*(1 + 10**-i))
+        # Note:  if you use a number like pi, some digits will round up,
+        # some won't and the test won't pass for some values of i.
+        o = 1.1111111111111111
+        for i in range(2, 14):
+            x = flt(o)
+            y = flt(o*(1 + 10**-i))
             with x:
-                x.sigcomp = i - 1
-                Assert(x == y)
                 x.sigcomp = i 
+                Assert(x == y)
+                x.sigcomp = i + 1
                 Assert(x != y)
         # Check sigcomp = None
         with x:
