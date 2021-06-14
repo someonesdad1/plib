@@ -2,12 +2,8 @@ import sys
 from lwtest import run, raises, assert_equal
 from decimal import Decimal
 from io import StringIO
-
 from pdb import set_trace as xx
-if 1:
-    import debug
-    debug.SetDebugger()
-
+from f import flt, cpx
 try:
     import numpy
     have_numpy = True
@@ -18,9 +14,7 @@ try:
     have_mpmath = True
 except ImportError:
     have_mpmath = False
-
 nl = "\n"
-
 def TestRaises():
     f = lambda x: 1/x
     # Function call & object instantiation semantics
@@ -48,7 +42,6 @@ def TestRaises():
         pass
     else:
         raise Exception("Bug!")
-
 def TestAssertEqual():
     '''Demonstrate that the assert_equal function can detect equal and 
     non-equal objects for the following types:
@@ -135,7 +128,30 @@ def TestAssertEqual():
     # Functions
     assert_equal(TestRaises, TestRaises)
     raises(E, assert_equal, TestRaises, assert_equal)
-
+def Test_flt_cpx():
+    x, z = flt(0), cpx(0)
+    with x:
+        a, b = flt(1), flt(1)
+        assert_equal(a, b)
+        a = flt(1, "m")
+        raises(AssertionError, assert_equal, a, b)
+        a.promote = 1
+        assert_equal(a, b)
+        b = 1.0
+        assert_equal(a, b)
+        a.promote = 0
+        raises(AssertionError, assert_equal, a, b)
+    with z:
+        a, b = cpx(1+1j), cpx(1+1j)
+        assert_equal(a, b)
+        a = cpx(1+1j, "m")
+        raises(AssertionError, assert_equal, a, b)
+        a.promote = 1
+        assert_equal(a, b)
+        b = 1+1j
+        assert_equal(a, b)
+        a.promote = 0
+        raises(AssertionError, assert_equal, a, b)
 def TestRun():
     def TestA(): raise ValueError()
     def TestB(): raise ValueError()
@@ -157,6 +173,5 @@ def TestRun():
     s = st.getvalue().strip().split(nl)
     assert(s[0] == "testA failed:  ValueError()")
     assert(m1 not in messages and m2 not in messages)
-
 if __name__ == "__main__":
-    exit(run(globals())[0])
+    exit(run(globals(), halt=1)[0])

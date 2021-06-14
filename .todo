@@ -1,17 +1,9 @@
 * lwtest.py:  check_equal needs to handle flt and cpx.  Also look at 
-  check_float and check_complex.
+  check_float and check_complex.  Add test cases to test/lwtest_test.py.
 
-* wire.py:  Change to use flt with proper units.  Update
-  MaxCurrentDensity to use the chassis current data Richard alerted me
-  to (it's in pgm/cu_wire.py).  Also do similar for Ampacity.
-
-* u.py and f.py:  A notation for using SI prefixes could be to use
-  something like μ(N*s/m^2).  This might not be acceptable SI syntax,
-  but it would be understandable by anyone and I should use it if the
-  tokenizer in the u.py script can be made to utilize it.  A way to do
-  this might be to simply insert the equivalent number with a
-  multiplication sign on the right when it's encountered; this should
-  evaluate OK with python's parser.
+* get.py:  Put all stuff in here used to get things.  Include stuff from
+  getinput.py, getnumber.py, and gettokens.py.  Everything should be in
+  one file including all the tests.
 
 ----------------------------------------------------------------------
 Low priority
@@ -26,9 +18,13 @@ Low priority
 * geom_prim.py:  Update properties to modern syntax, utilize matrix.py
   for determinants, as this would remove dependency on numpy.
 
-* get.py:  Put all stuff in here used to get things.  Include stuff from
-  getinput.py, getnumber.py, and gettokens.py.  Everything should be in
-  one file including all the tests.
+* u.py and f.py:  A notation for using SI prefixes could be to use
+  something like μ(N*s/m^2).  This might not be acceptable SI syntax,
+  but it would be understandable by anyone and I should use it if the
+  tokenizer in the u.py script can be made to utilize it.  A way to do
+  this might be to simply insert the equivalent number with a
+  multiplication sign on the right when it's encountered; this should
+  evaluate OK with python's parser.
 
 * module_dependencies.py:   Is it necessary?  It needs to be rewritten
   to accommodate /plib.  The tools and programs need to be moved in

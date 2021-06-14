@@ -108,6 +108,8 @@ if 1:   # Imports
     import re
     import sys
     import traceback
+    from pdb import set_trace as xx 
+if 1:   # Custom imports
     # Try to import the color.py module; if not available, the script
     # should still work (you'll just get uncolored output).  You can get the
     # module from https://someonesdad1.github.io/hobbyutil/util/color.py.
@@ -122,6 +124,7 @@ if 1:   # Imports
             def __getattr__(self, name): pass
         color = Dummy()
         _have_color = False
+    from f import flt, cpx
 if 1:   # Globals
     __all__ = [
         "Assert",
@@ -131,6 +134,7 @@ if 1:   # Globals
         "run",
         "test_function_regexp",
     ]
+    ii = isinstance
     python_version = '.'.join([str(i) for i in sys.version_info[:3]])
     # Regular expression to identify test functions
     test_function_regexp = "^_*test|test$"
@@ -312,14 +316,56 @@ if 1:   # Utility
         except ImportError:
             trace(message, vars)
 if 1:   # Checking functions
+    def check_flt(a, b, reltol=None, abstol=None, use_min=False):
+        '''a must be a flt.  If b is not a flt, then promote it if
+        possible.
+        '''
+        assert(ii(a, flt))
+        if ii(b, flt):
+            if a.u != b.u:
+                fail = [f"a ('{a.u}') and b ('{b.u}') do not have the same units"]
+            else:
+                check_float(float(a), float(b), reltol=reltol,
+                            abstol=abstol, use_min=use_min)
+        else:
+            if a.u is not None:
+                if a.promote:
+                    check_float(float(a), float(a(float(b))), reltol=reltol,
+                                abstol=abstol, use_min=use_min)
+                else:
+                    fail = ["a has units, but b does not"]
+            else:
+                check_float(float(a), float(b), reltol=reltol,
+                            abstol=abstol, use_min=use_min)
+    def check_cpx(a, b, reltol=None, abstol=None, use_min=False):
+        '''a must be a cpx.  If b is not a cpx, then promote it if
+        possible.
+        '''
+        assert(ii(a, cpx))
+        if ii(b, cpx):
+            if a.u != b.u:
+                fail = [f"a ('{a.u}') and b ('{b.u}') do not have the same units"]
+            else:
+                check_complex(complex(a), complex(b), reltol=reltol,
+                            abstol=abstol, use_min=use_min)
+        else:
+            if a.u is not None:
+                if a.promote:
+                    check_complex(complex(a), complex(a(complex(b))), reltol=reltol,
+                                abstol=abstol, use_min=use_min)
+                else:
+                    fail = ["a has units, but b does not"]
+            else:
+                check_complex(complex(a), complex(b), reltol=reltol,
+                            abstol=abstol, use_min=use_min)
     def check_float(a, b, reltol=None, abstol=None, use_min=False):
         '''Some of these checks were patterned after the checks in
         Lib/test/test_cmath.py in the python distribution (probably
         version 2.6.5).
         '''
-        if not isinstance(a, (int, float)):
+        if not ii(a, (int, float)):
             raise ValueError("a needs to be a float")
-        if not isinstance(b, float):
+        if not ii(b, float):
             # Convert b to float
             try:
                 b = float(str(b))
@@ -365,9 +411,9 @@ if 1:   # Checking functions
         return fail
     def check_decimal(a, b, reltol=None, abstol=None, use_min=False):
         fail = None
-        if not isinstance(a, Decimal):
+        if not ii(a, Decimal):
             raise ValueError("a needs to be a Decimal")
-        if not isinstance(b, Decimal):
+        if not ii(b, Decimal):
             # Convert b to Decimal
             try:
                 b = Decimal(str(b))
@@ -412,7 +458,7 @@ if 1:   # Checking functions
                     ]
         return fail
     def check_complex(a, b, reltol=None, abstol=None, use_min=False):
-        if not isinstance(a, complex) or not isinstance(b, complex):
+        if not ii(a, complex) or not ii(b, complex):
             raise ValueError("Both a and be need to be complex")
         # The real and imaginary parts must satisfy the requirements
         # separately.
@@ -437,21 +483,23 @@ if 1:   # Checking functions
         R, A, U = reltol, abstol, use_min
         if reltol is not None or abstol is not None:
             # Floating point comparisons
-            if isinstance(a, (int, float)):
+            if ii(a, flt):
+                fail = check_flt(a, b, reltol=R, abstol=A, use_min=U)
+            elif ii(a, (int, float)):
                 fail = check_float(a, b, reltol=R, abstol=A, use_min=U)
-            elif isinstance(a, complex):
+            elif ii(a, complex):
                 fail = check_complex(a, b, reltol=R, abstol=A, use_min=U)
-            elif isinstance(a, Decimal):
+            elif ii(a, Decimal):
                 fail = check_decimal(a, b, reltol=R, abstol=A, use_min=U)
-            elif have_mpmath and isinstance(a, mpmath.mpf):
+            elif have_mpmath and ii(a, mpmath.mpf):
                 fail = check_float(a, b, reltol=R, abstol=A, use_min=U)
-            elif have_mpmath and isinstance(a, mpmath.mpc):
+            elif have_mpmath and ii(a, mpmath.mpc):
                 fail = check_complex(a, b, reltol=R, abstol=A, use_min=U)
             else:
                 raise RuntimeError("a is unrecognized type '%s'" % type(a))
         else:
             # Object comparison
-            if isinstance(a, str):
+            if ii(a, str):
                 if a != b:
                     fail = ["Unequal strings"]
             else:
@@ -485,7 +533,7 @@ if 1:   # Checking functions
         # it will be a list of error message strings detailing where the
         # comparison(s) failed.
         fail = None
-        if not isinstance(a, str) and isinstance(a, Iterable):
+        if not ii(a, str) and ii(a, Iterable):
             if reltol is None and abstol is None:
                 # Compare them as objects.  Note they could be numpy
                 # arrays.
