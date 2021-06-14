@@ -14,7 +14,7 @@ if 1:  # Copyright, license
     # <utility> Module to return file information in a more human-readable form
     # than os.stat().  
     #∞what∞#
-    #∞test∞# run #∞test∞#
+    #∞test∞# --test #∞test∞#
     pass
 if 1:   # Imports
     from collections import namedtuple
@@ -79,7 +79,7 @@ def FileInfo(names, gethash=hashlib.sha1):
     around 1130 python files in my /pylib directory tree that totaled
     about 50 Mbytes in size.
  
-    Example:
+    Example 1:
         To get the size in bytes of a file named "abc" in the current
         directory, use
             FileInfo("abc").size
@@ -100,9 +100,18 @@ def FileInfo(names, gethash=hashlib.sha1):
     return results
 
 if __name__ == "__main__": 
-    import pathlib
+    import sys
+    from wrap import dedent
     from lwtest import run, assert_equal, raises
     from pdb import set_trace as xx
+    def ShowExample(pattern):
+        print(dedent(f'''
+        {__file__} example output (python file sizes) for current directory
+        (the file globbing pattern was '{pattern}'):
+        '''))
+        d = FileInfo(pattern)
+        for key in d:
+            print(f"{'':4s}{key!s:20s} {d[key].size:>8d}")
     def Test_FileInfo():
         # Single file
         file = "test/get.a"
@@ -127,4 +136,6 @@ if __name__ == "__main__":
                 assert(info.size == 4097)
             else:
                 raise Exception("Unexpected number of files")
-    exit(run(globals(), halt=True)[0])
+    if len(sys.argv) > 1 and sys.argv[1] == "--test":
+        exit(run(globals(), halt=True)[0])
+    ShowExample("f*.py")

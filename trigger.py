@@ -128,7 +128,13 @@ class Trigger(dict):
 if __name__ == "__main__": 
     from pprint import pprint as pp
     from lwtest import raises
-    p = pathlib.Path("trigger.tmpfile")
+    p = None
+    def Setup():
+        global p
+        p = pathlib.Path("/plib/trigger.tmpfile")
+    def Teardown():
+        p.unlink()
+        assert(not p.is_file())
     def Separator():
         print(f"{'-'*70}")
     def CheckDisabled():
@@ -138,17 +144,9 @@ if __name__ == "__main__":
         t = Trigger()
         t(p)    # Load the file
         key = "dummy"
-        methods = (
-            "t.clear()",
-            "t.get(key)",
-            "t.pop(key)",
-            "t.popitem()",
-            "t.setdefault(key)",
-            "t.update()",
-        )
-        for i in methods:
-            with raises(ValueError):
-                exec(i)
+        for i in ((t.get, key), (t.pop, key), (t.setdefault, key),
+                  (t.popitem,), (t.update,)):
+            raises(ValueError, *i)
     def ShowStrings():
         text = '''
         #∞who∞#
@@ -158,6 +156,7 @@ if __name__ == "__main__":
         #∞who∞#
         #∞what∞# The text can be one line. #∞what∞# 
         '''
+        print(f"Demo of {__file__}'s Trigger() object:\n")
         print("Here's our text:")
         print(text)
         p.write_text(text)
@@ -201,9 +200,9 @@ if __name__ == "__main__":
         t(p)    # Get our contents
         print("Swapped strings:")
         pp(t)
+    Setup()
     CheckDisabled()
     ShowStrings()
     SingleTriggerStringException()
     ReplaceText()
-    p.unlink()
-
+    Teardown()
