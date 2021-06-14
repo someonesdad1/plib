@@ -1367,9 +1367,20 @@ class Dim(object):
         if self.ignore_case:
             symbols = [i.upper() for i in symbols]
             item = item.upper()
+        if item in symbols:
+            return (item, "")
         for symbol in symbols:
             if item.startswith(symbol):
-                return (symbol, item[len(symbol):])
+                number = item[len(symbol):].strip()
+                if not number:
+                    return (symbol, "")
+                if 1:
+                    # Number must be an integer or number expression
+                    try:
+                        x = eval(number)
+                    except Exception:
+                        return (symbol, "")
+                return (symbol, number)
         return (None, None)
     def _normalize(self):
         'Remove any dimensions with exponents of zero.'

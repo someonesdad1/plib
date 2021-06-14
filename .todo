@@ -6,7 +6,14 @@
   to (it's in pgm/cu_wire.py).  Also do similar for Ampacity.
 * atm.py:  See if it can change over to use flt for calculations with
   units.  It will get rid of the sig() ugliness.
-* gauge_sizes.py:  Change the floats to flt with units of inches.
+
+* u.py and f.py:  A notation for using SI prefixes could be to use
+  something like μ(N*s/m^2).  This might not be acceptable SI syntax,
+  but it would be understandable by anyone and I should use it if the
+  tokenizer in the u.py script can be made to utilize it.  A way to do
+  this might be to simply insert the equivalent number with a
+  multiplication sign on the right when it's encountered; this should
+  evaluate OK with python's parser.
 
 * Look at fileinfo.py.  It might make more sense to derive it from
   namedtuple.  This should be combined with filesizes.py into one file.

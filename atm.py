@@ -1,11 +1,18 @@
 '''
+TODO
+
+* Change reduced stuff in brackets to be % of sea level.  Using the SI
+  prefixes unadorned is confusing.
+
+----------------------------------------------------------------------
 Calculate atmospheric properties
     Adapted from http://www.pdas.com/programs/atmos.f90 (included below).
 
     The equations are taken from the NASA publication "U.S. Standard
     Atmosphere 1976".  A PDF can be downloaded from
     http://ntrs.nasa.gov/archive/nasa/casi.ntrs.nasa.gov/19770009539_1977009539.pdf
-
+    (Defunct as of 13 Jun 2021)
+ 
     The "hydrostatic constant" is g0'*M0/R, where g0' is a constant that
     relates geopotential meters to geometric height (units of
     m^2/(s^2*m') where m' is a geopotential meter, M0 is the sea-level
@@ -37,9 +44,11 @@ if 1:  # Custom imports
     from wrap import dedent
     from fpformat import FPFormat
     from u import u
+    from f import flt
     from pdb import set_trace as xx
     from sig import sig
 if 1:  # Global variables
+    ii = isinstance
     fp = FPFormat()
     radius_earth = 6369.0   # Radius of the Earth (km)
     gmr = 34.163195         # Hydrostatic constant
@@ -147,6 +156,15 @@ def atm(altitude_km):
         }
     The values returned will be floating point numbers.
     '''
+    if ii(altitude_km, flt):
+        if altitude_km.u is not None:
+            z_km = altitude_km.val
+        else:
+            z_km = float(altitude_km)
+    else:
+        z_km = float(altitude_km)
+    if not (-5 <= z_km < 86):
+        raise ValueError("altitude_km must be between -5 and 86 km")
     results = {}
     htab = (0.0, 11.0, 20.0, 32.0, 47.0, 51.0, 71.0, 84.852)
     ttab = (288.15, 216.65, 216.65, 228.65, 270.65, 270.65, 214.65, 186.946)
@@ -154,7 +172,7 @@ def atm(altitude_km):
             6.6063531e-4, 3.9046834e-5, 3.68501e-6)
     gtab = (-6.5, 0.0, 1.0, 2.8, 0.0, -2.8, -2.0, 0.0)
     # Geometric to geopotential altitude
-    h = altitude_km*radius_earth/(altitude_km + radius_earth)
+    h = z_km*radius_earth/(z_km + radius_earth)
     i, j = 0, 7   # Set up binary search
     while 1:
         k = (i + j)//2
@@ -178,7 +196,7 @@ def atm(altitude_km):
     results["density"] = rho0*rhor
     results["pressure"] = P0*pr
     results["temperature"] = T0*tr
-    results["g"] = g0*(radius_earth/(radius_earth + altitude_km))**2
+    results["g"] = g0*(radius_earth/(radius_earth + z_km))**2
     results["speed of sound"] = sqrt(gamma*R*T/M0)
     results["dynamic viscosity"] = 1.458e-6*T**(1.5)/(T + 110.4)
     results["mean free path"] = sqrt(2)*R*T/(2*pi*Na*sigma**2*P0*pr)
@@ -191,17 +209,14 @@ def Usage(d, status=1):
     digits = d["-d"]
     print(dedent(f'''
     Usage:  {name} altitude [unit]
-    Prints the density, pressure, and temperature for altitudes between
-    -5 and 86 km.  From the 1976 NASA standard atmosphere.
+      Prints the density, pressure, and temperature for altitudes between
+      -5 and 86 km.  From the 1976 NASA standard atmosphere.
     
-    Note:  you can include an optional unit for the altitude (any common
-    unit will work).  The number is interpreted in km if no unit is given.
-
+      Note:  you can include an optional unit for the altitude (any common
+      unit will work).  The number is interpreted in km if no unit is given.
     Options:
-        -d digits
-            Specify the number of significant figures. [{digits}]
-        -t
-            Print a table of the standard atmosphere in km heights.
+      -d n      Number of significant figures. [{digits}]
+      -t        Print a table of the standard atmosphere in km heights
     '''[1:-1]))
     exit(status)
 def ParseCommandLine(d):
@@ -248,6 +263,9 @@ def GetHeight_km(args):
         exit(1)
     return z_km
 def PrintHeight(args, opts):
+    def F(a, b):
+        'Return 100*a/prop0[b] in %'
+        return sig(100*a/prop0[b], 3) + "%"
     digits = opts["-d"]
     fmt = lambda x, digits: ("%%.%dg" % digits) % x
     e = fp.engsi
@@ -260,27 +278,27 @@ def PrintHeight(args, opts):
     prop0 = atm(0)
     # Density
     d = prop["density"]
-    d0 = e(d/prop0["density"]).strip()
+    d0 = F(d, "density")
     D_SI = sig(d)
     D_lbpin3 = e(d/u("lbm/in3"))
     D_lbpft3 = e(d/u("lbm/ft3"))
     # Pressure
     p = prop["pressure"]
-    p0 = e(p/prop0["pressure"]).strip()
+    p0 = F(p, "pressure")
     P_kPa = sig(p/1000)
     P_psi = e(p/u("psi"))
     P_torr = e(p/u("torr"))
     P_atm = e(p/u("atm"))
     # Temperature
     t = prop["temperature"]
-    t0 = e(t/prop0["temperature"]).strip()
+    t0 = F(t, "temperature")
     T_SI = sig(t)
     T_C = t - 273.15
     T_degC = sig(T_C)
     T_degF = sig(9/5*T_C + 32)
     # Gravity
     g = prop["g"]
-    g0 = e(g/prop0["g"]).strip()
+    g0 = F(g, "g")
     G_SI = sig(g)
     # Speed of sound
     Cs = prop["speed of sound"]
@@ -293,7 +311,7 @@ def PrintHeight(args, opts):
     NU_SI = e(nu)
     # Mean free path
     mfp = prop["mean free path"]
-    mfp0 = e(prop0["mean free path"]/mfp).strip()
+    mfp0 = F(mfp, "mean free path")
     MFP_SI = e(mfp)
     # Print results
     print(dedent(f'''
@@ -335,11 +353,191 @@ def PrintTable(args, d):
         Cs = e(prop["speed of sound"])
         print(fmt.format(**locals()))
     print(header)
+if 1:   # Another properties function
+    def atm2(hm):
+        '''Return (T, p, ρ) where 
+            T is absolute temperature in K
+            p is pressure in Pa
+            ρ is density in kg/m³
+        for the standard atmosphere at height hm in meters above sea level.
+ 
+        The height hm can either be a flt (from f.py) instance with
+        optional length dimensions or can be a number convertible to a
+        float.  The allowed range for hm is 0 to 85 km.
+        '''
+        # Formulas from http://nebula.wsimg.com/ab321c1edd4fa69eaa94b5e8e769b113?AccessKeyId=AF1D67CEBF3A194F66A3&disposition=0&alloworigin=1
+        '''
+        Calculation of Earth's atmospheric properties
+ 
+        Text from the web page:
+ 
+        The "standard atmosphere" is a hypothetical vertical distribution of
+        atmospheric properties which, by international agreement, is roughly
+        representative of year-round, mid-latitude conditions.  Typical usages
+        include altimeter calibrations and aircraft design and performance
+        calculations. It should be recognized that actual conditions may vary
+        considerably from this standard.
+ 
+        The most recent definition is the "US Standard Atmosphere, 1976"
+        developed jointly by NOAA, NASA, and the USAF. It is an idealized,
+        steady state representation of the earth's atmosphere from the surface
+        to 1000 km, as it is assumed to exist during a period of moderate solar
+        activity. The 1976 model is identical with the earlier 1962 standard up
+        to 51 km, and with the International Civil Aviation Organization (ICAO)
+        standard up to 32 km.
+ 
+        Up to 86 km, the model assumes a constant mean molecular weight, and
+        comprises of a series of six layers, each defined by a linear
+        temperature gradient (lapse rate). (The assumption of linearity
+        conveniently avoids the need for numerical integration in the
+        computation of properties.) The bottom layer, with a negative lapse
+        rate, represents the earth's troposphere, a region where most clouds
+        form, and with generally turbulent conditions. Higher layers form part
+        of the earth's stratosphere, where winds may be high, but turbulence is
+        generally low.
+ 
+        The model is derived by assuming a constant value for g (gravitational
+        acceleration). Strictly speaking, altitudes in this model should
+        therefore be referred to as "geopotential altitudes" rather than
+        "geometric altitudes" (physical height above mean sea level). The
+        relationship between these altitudes is given by:
+ 
+        hgeometric = hgeopotential x Rearth / (Rearth - hgeopotential)
+ 
+        where Rearth is the earth's effective radius. The difference is small,
+        with geometric altitude and geopotential altitude differing from by less
+        than 0.5% at 30 km (~100,000 ft).
+ 
+        The standard is defined in terms of the International System of Units
+        (SI). The air is assumed to be dry and to obey the perfect gas law and
+        hydrostatic equation, which, taken together, relate temperature,
+        pressure and density with geopotential altitude.
+ 
+        It should also be noted that since the standard atmosphere model does
+        not include humidity, and since water has a lower molecular weight than
+        air, its presence produces a lower density. Under extreme circumstances,
+        this can amount to as much as a 3% reduction, but typically is less than
+        1% and may be neglected.
+ 
+        Symbols
+ 
+        The following symbols are used to define the relationships between
+        variables in the model. Subscript n indicates conditions at the base of
+        the nth layer (or at the top of the (n-1)th layer) or refers to the
+        constant lapse rate in the nth layer.  The first layer is considered to
+        be layer 0, hence subscript 0 indicates standard, sea level conditions,
+        or lapse rate in the bottom layer.
+ 
+            h = Pressure/Geopotential Altitude
+            T = Temperature
+            p = Pressure
+            ρ = Density
+            θ = T/T0 (Temperature Ratio)
+            δ = p/p0 (Pressure Ratio)
+            σ = ρ/ρ0 (Density Ratio)
+            μ = Dynamic Viscosity
+            ν = μ/ρ = Kinematic Viscosity
+        '''
+        # Sea level values
+        T0 = flt(288.15, "K")       # Temperature (15 °C)
+        p0 = flt(101325, "Pa")      # Pressure
+        ρ0 = flt(1.225, "kg/m3")    # Density
+        # Check incoming height
+        e = TypeError("hm must be >= 0")
+        if ii(hm, flt):
+            if hm.u is not None:
+                try:
+                    h = float(hm.to("ft").val)
+                except Exception:
+                    raise TypeError("hm must be a length dimension")
+            else:
+                h = flt(float(hm), "m").to("ft")
+            if h < 0:
+                raise e
+        else:
+            h = flt(float(hm), "m").to("ft")
+            if h < 0:
+                raise e
+        # Note:  I used the web page's numerical solutions where h is
+        # converted to feet because the formulas can be pasted in and 
+        # fixed with minor editing.
+        #
+        # θ = T/T0 temperature ratio to sea level
+        # δ = p/p0 pressure ratio to sea level
+        # σ = ρ/ρ0 density ratio to sea level
+        if h <= 36089:
+            θ = 1 - h/145442
+            δ = (1 - h/145442)**5.255876
+            σ = (1 - h/145442)**4.255876 
+        elif 36089 < h <= 65617: # Isothermal
+            θ = 0.751865
+            δ = 0.223361*exp(-(h - 36089)/20806)
+            σ = 0.297076*exp(-(h - 36089)/20806)
+        elif 65617 < h <= 104987: # Inversion
+            θ = 0.682457 + h/945374
+            δ = (0.988626 + h/652600)**(-34.16320)
+            σ = (0.978261 + h/659515)**(-35.16320)
+        elif 104987< h <= 154199: # Inversion
+            θ = 0.482561 + h/337634
+            δ = (0.898309 + h/181373)**(-12.20114)
+            σ = (0.857003 + h/190115)**(-13.20114)
+        elif 154199 < h <= 167323: # Isothermal
+            θ = 0.939268
+            δ = 0.00109456*exp(-(h - 154199)/25992)
+            σ = 0.00116533*exp(-(h - 154199)/25992 )
+        elif 167323 < h <= 232940:
+            θ = 1.434843 - h/337634
+            δ = (0.838263 - h/577922)**12.20114
+            σ = (0.798990 - h/606330)**11.20114 
+        elif 232940 < h <= 278386:
+            θ = 1.237723 - h/472687
+            δ = (0.917131 - h/637919)**17.08160
+            σ = (0.900194 - h/649922)**16.08160 
+        else:
+            raise ValueError("h must be <= 84852 m")
+        if 0:
+            print(f"θ δ σ = {flt(θ)} {flt(δ)._sci()} {flt(σ)._sci()}")
+        T = θ*T0
+        p = δ*p0
+        ρ = σ*ρ0
+        assert(T.u == "K")
+        assert(p.u == "Pa")
+        assert(ρ.u == "kg/m3")
+        return (T, p, ρ)
+    def Compare_atm2_to_atm():
+        dev = ["Height      kFeet      Temp_dev%      Press_dev%    Density_dev%"]
+        f = lambda x, y:  str(flt(100*(x - y)/y))
+        for km in range(0, 85, 2):
+            Z = flt(km, "km")
+            z = flt(km*1000, "m")
+            Tnew, pnew, rhonew = atm2(z)
+            old = atm(km)
+            Told, pold, rhoold = (flt(old["temperature"], "K"),
+                                flt(old["pressure"], "Pa"),
+                                flt(old["density"], "kg/m3"))
+            s = []
+            with Z:
+                Z.n = 2
+                t = str(Z).replace("\xa0", " ")
+            kft = Z.to("kft").val
+            kft = str(flt(kft))
+            n = 14
+            s.append(f"{t:8s}")
+            s.append(f"{kft:>8s}")
+            with Z:
+                Z.n = 2
+                s.append(f"   {f(Tnew, Told):^{n}s}")
+                s.append(f"{f(pnew, pold):^{n}s}")
+                s.append(f"{f(rhonew, rhoold):^{n}s}")
+            dev.append(' '.join(s))
+        for i in dev:
+            print(i)
+
 if __name__ == "__main__":
     # Unit test stuff
     import subprocess
     from time import sleep
-    from lwtest import run, assert_equal, raises
+    from lwtest import run, assert_equal, raises, Assert
     def GetReferenceData():
         '''Return the altitude in km, along with sigma = reduced density,
         delta = reduced pressure, theta = reduced temperature (reduced means
@@ -356,7 +554,7 @@ if __name__ == "__main__":
         # atm.f90 code.  Now it just returns the above numbers.
         h_km, sigma, delta, theta = 5, 0.601166010, 0.533414602, 0.887300014
         return h_km, sigma, delta, theta
-    def Test():
+    def Test_atm_1():
         altitude_km, sigma, delta, theta = GetReferenceData()
         d = atm(altitude_km)
         rho = sigma*rho0
@@ -372,6 +570,63 @@ if __name__ == "__main__":
         assert_equal(rho, d["density"], reltol=eps)
         assert_equal(P, d["pressure"], reltol=eps)
         assert_equal(T, d["temperature"], reltol=eps)
+    def Test_atm_2():
+        '''The following data came from table 1 in "U.S. Standard
+        Atmosphere 1976" published by NASA.  The columns used in the
+        table are 
+            2       Z, geometrical height in m
+            3       T in K
+            6       P, pressure in mbar = 100 Pa
+            9       Density in kg/m3
+        Maximum relative diff in % for the data below was 0.0078%.
+        Thus, the atm() function fits the NASA paper's data to better
+        than 1 part in 10,000 at the tested points; this is a pretty
+        good indication that the algorithm is correct.
+        '''
+        def RelDiffPct(a, b):
+            return 100*(a - b)/b
+        data = '''
+        # Col  2       3            6         9
+            -4996   320.65      1.7768e3    1.9305e0
+            -3997   314.15      1.5955e3    1.7693e0
+            -1999   301.15      1.2777e3    1.4781e0
+                0   288.15      1.01325e3   1.2250e0
+             1000   281.65      8.9874e2    1.1116e0
+             5004   255.65      5.4019e2    7.3612e-1
+            10016   223.15      2.6436e2    4.1271e-1
+            20063   216.65      5.4748e1    8.8035e-2
+            30041   226.55      1.1896e1    1.8294e-2
+            49990   270.65      7.9877e-1   1.0281e-3
+        #  100389   199.53      2.3144e-4   3.935e-7
+        '''[1:].rstrip()
+        flt(0).n = 2
+        rd = RelDiffPct
+        o = []
+        for line in data.split("\n"):
+            l = line.strip()
+            if not l or l[0] == "#":
+                continue
+            f = l.split()
+            Z = flt(f[0], "m")
+            T = flt(f[1], "K")
+            P = flt(f[2], "mbar").to("Pa")
+            ρ = flt(f[3], "kg/m3")
+            d = atm(Z.to("km"))
+            Td = flt(d["temperature"], "K")
+            Pd = flt(d["pressure"], "Pa")
+            ρd = flt(d["density"], "kg/m3")
+            if 0:
+                print(f"{Z.to('km')}   T {rd(Td, T)}%, "
+                      f"P {rd(Pd, P)}%, ρ {rd(ρd, ρ)}%")
+            o.extend([rd(Td, T), rd(Pd, P), rd(ρd, ρ)])
+            Assert(rd(Pd, P) < 0.01)
+            Assert(rd(ρd, ρ) < 0.01)
+            Assert(rd(Td, T) < 0.01)
+            Assert(rd(Pd, P) < 0.01)
+            Assert(rd(ρd, ρ) < 0.01)
+        if 0:
+            m = max([abs(i) for i in o])
+            print(f"Max % relative diff = {m}")
 if __name__ == "__main__": 
     d = {}      # Options dictionary
     args = ParseCommandLine(d)
