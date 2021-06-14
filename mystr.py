@@ -411,50 +411,6 @@ def ListInColumns(alist, col_width=0, num_columns=0, space_betw=0, truncate=0):
         lines.append(s)
     assert(len(lines) == num_rows)
     return lines
-def cw2us(x):
-    '''Convert cap-words naming to underscore naming.
-    "Python Cookbook", pg 91.
- 
-    Example:  ALotOfFuss --> a_lot_of_fuss
-    '''
-    return re.sub(r"(?<=[a-z])[A-Z]|(?<!^)[A-Z](?=[a-z])",
-                  r"_\g<0>", x).lower()
-def cw2mc(x):
-    '''Convert cap-words naming to mixed-case naming.
-    "Python Cookbook", pg 91.
- 
-    Example:  ALotOfFuss --> aLotOfFuss
-    '''
-    return x[0].lower() + x[1:]
-def us2mc(x):
-    '''Convert underscore naming to mixed-case.
-    "Python Cookbook", pg 91.
- 
-    Example:  a_lot_of_fuss --> aLotOfFuss
-    '''
-    return re.sub(r"_([a-z])", lambda m: (m.group(1).upper()), x)
-def us2cw(x):
-    '''Convert underscore naming to cap-words naming.
-    "Python Cookbook", pg 91.
- 
-    Example:  a_lot_of_fuss --> ALotOfFuss
-    '''
-    s = us2mc(x)
-    return s[0].upper() + s[1:]
-def mc2us(x):
-    '''Convert mixed-case naming to underscore naming.
-    "Python Cookbook", pg 91.
- 
-    Example:  aLotOfFuss --> a_lot_of_fuss
-    '''
-    return cw2us(x)
-def mc2cw(x):
-    '''Convert mixed-case naming to cap-words naming.
-    "Python Cookbook", pg 91.
- 
-    Example:  aLotOfFuss --> ALotOfFuss
-    '''
-    return x[0].upper() + x[1:]
 def MultipleReplace(text, patterns, flags=0):
     '''Replace multiple patterns in the string text.  patterns is a
     dictionary whose keys are the regular expressions and values are the
@@ -554,6 +510,52 @@ def WordID(half_length=3, unique=None, num_tries=100):
                 print(line)
             print()
     '''
+class NameConvert:
+    'Convert programming naming styles, "Python Cookbook" pg. 91'
+    def cw2us(self, x):
+        '''Cap-words to underscore:
+            ALotOfFuss --> a_lot_of_fuss
+        '''
+        if not x:   
+            return x
+        return re.sub(r"(?<=[a-z])[A-Z]|(?<!^)[A-Z](?=[a-z])",
+                    r"_\g<0>", x).lower()
+    def cw2mc(self, x):
+        '''Cap-words to mixed-case:
+            ALotOfFuss --> aLotOfFuss
+        '''
+        if not x:   
+            return x
+        return x[0].lower() + x[1:]
+    def us2mc(self, x):
+        '''Underscore to mixed-case:
+            a_lot_of_fuss --> aLotOfFuss
+        '''
+        if not x:   
+            return x
+        return re.sub(r"_([a-z])", lambda m: (m.group(1).upper()), x)
+    def us2cw(self, x):
+        '''Underscore to cap-words:
+            a_lot_of_fuss --> ALotOfFuss
+        '''
+        if not x:   
+            return x
+        s = self.us2mc(x)
+        return s[0].upper() + s[1:]
+    def mc2us(self, x):
+        '''Mixed-case to underscore:
+            aLotOfFuss --> a_lot_of_fuss
+        '''
+        if not x:   
+            return x
+        return self.cw2us(x)
+    def mc2cw(self, x):
+        '''Mixed-case to cap-words:
+            aLotOfFuss --> ALotOfFuss
+        '''
+        if not x:   
+            return x
+        return x[0].upper() + x[1:]
 if __name__ == "__main__": 
     from lwtest import run, raises, assert_equal, Assert
     import math
@@ -593,87 +595,87 @@ if __name__ == "__main__":
             ("A",           "A000"),
         )
         for s, expected in test_cases:
-            assert(soundex(s) == expected)
-        assert(soundex("a") == "A000")
+            Assert(soundex(s) == expected)
+        Assert(soundex("a") == "A000")
         raises(ValueError, soundex, "")
         raises(ValueError, soundex, " ")
         raises(ValueError, soundex, ".")
     def Test_SoundSimilar():
-        assert(SoundSimilar("bob", "bib"))
-        assert(SoundSimilar("mike", "make"))
-        assert(SoundSimilar("mike", "muke"))
-        assert(SoundSimilar("mike", "moke"))
-        assert(SoundSimilar("mike", "meke"))
-        assert(SoundSimilar("don", "dan"))
-        assert(SoundSimilar("don", "din"))
-        assert(not SoundSimilar("robert", "rabbit"))
-        assert(not SoundSimilar("aorta", "rabbit"))
+        Assert(SoundSimilar("bob", "bib"))
+        Assert(SoundSimilar("mike", "make"))
+        Assert(SoundSimilar("mike", "muke"))
+        Assert(SoundSimilar("mike", "moke"))
+        Assert(SoundSimilar("mike", "meke"))
+        Assert(SoundSimilar("don", "dan"))
+        Assert(SoundSimilar("don", "din"))
+        Assert(not SoundSimilar("robert", "rabbit"))
+        Assert(not SoundSimilar("aorta", "rabbit"))
     def TestCommonPrefix():
-        assert(not CommonPrefix(["a", "b"]))
-        assert("a" == CommonPrefix(["aone", "atwo", "athree"]))
-        assert("abc" == CommonPrefix(["abc", "abc", "abc"]))
+        Assert(not CommonPrefix(["a", "b"]))
+        Assert("a" == CommonPrefix(["aone", "atwo", "athree"]))
+        Assert("abc" == CommonPrefix(["abc", "abc", "abc"]))
         raises(TypeError, CommonPrefix, ["a", 1])
     def TestCommonSuffix():
-        assert(not CommonSuffix(["a", "b"]))
-        assert("a" == CommonSuffix(["onea", "twoa", "threea"]))
-        assert("abc" == CommonSuffix(["abc", "abc", "abc"]))
+        Assert(not CommonSuffix(["a", "b"]))
+        Assert("a" == CommonSuffix(["onea", "twoa", "threea"]))
+        Assert("abc" == CommonSuffix(["abc", "abc", "abc"]))
         raises(TypeError, CommonSuffix, ["a", 1])
     def TestKeep():
-        assert(Keep("abc", "bc") == "bc")
+        Assert(Keep("abc", "bc") == "bc")
         A, B = "a b c".split(), "b c".split()
-        assert(Keep(A, B) == B)
+        Assert(Keep(A, B) == B)
     def TestKeepFilter():
         f = KeepFilter("bc")
-        assert(f("abc") == "bc")
+        Assert(f("abc") == "bc")
     def TestRemove():
-        assert(Remove("abc", "cb") == "a")
+        Assert(Remove("abc", "cb") == "a")
     def TestRemoveFilter():
         f = RemoveFilter("bc")
-        assert(f("abc") == "a")
+        Assert(f("abc") == "a")
     def Test_FilterStr():
         s = '''"Not that easy, I'm sure."'''
         f = FilterStr('''"',.''', [None]*4)
         t = f(s)
-        assert(t == "Not that easy Im sure")
+        Assert(t == "Not that easy Im sure")
     def TestFindDiff():
         s1 = u"hello"
         s2 = u"hello there"
-        assert(FindDiff(s1, s2) == -1)
+        Assert(FindDiff(s1, s2) == -1)
         s1 = u"hellx"
-        assert(FindDiff(s1, s2) == 4)
+        Assert(FindDiff(s1, s2) == 4)
         s1 = u""
-        assert(FindDiff(s1, s2, ignore_empty=True) == 0)
+        Assert(FindDiff(s1, s2, ignore_empty=True) == 0)
     def TestFindSubstring():
         #    01234567890
         s = "x  x    x  "
-        assert(FindSubstring(s, "x") == (0, 3, 8))
+        Assert(FindSubstring(s, "x") == (0, 3, 8))
     def TestGetChoice():
         names = set(("one", "two", "three", "thrifty"))
-        assert(GetChoice("o", names) == "one")
-        assert(set(GetChoice("th", names)) == set(["three", "thrifty"]))
-        assert(GetChoice("z", names) == None)
+        Assert(GetChoice("o", names) == "one")
+        Assert(set(GetChoice("th", names)) == set(["three", "thrifty"]))
+        Assert(GetChoice("z", names) == None)
     def TestKeepOnlyLetters():
         s = "\t\n\xf8abcABC123_"
         # digits True
         expected = "   abcABC123"
         t = KeepOnlyLetters(s, underscore=False, digits=True)
-        assert(t == expected + " ")
+        Assert(t == expected + " ")
         t = KeepOnlyLetters(s, underscore=True, digits=True)
-        assert(t == expected + "_")
+        Assert(t == expected + "_")
         # digits False
         expected = "   abcABC"
         t = KeepOnlyLetters(s, underscore=False, digits=False)
-        assert(t == expected + " "*4)
+        Assert(t == expected + " "*4)
         t = KeepOnlyLetters(s, underscore=True, digits=False)
-        assert(t == expected + " "*3 + "_")
+        Assert(t == expected + " "*3 + "_")
     def TestStringSplit():
         s = "hello there"
-        assert(StringSplit([4, 7], s) == ['hell', 'o t', 'here'])
+        Assert(StringSplit([4, 7], s) == ['hell', 'o t', 'here'])
         t = "3s 3x 4s"
         f = lambda x: bytes(x, encoding="ascii")
         q = [f('hel'), f('ther'), f('e')]
-        assert(StringSplit(t, s, remainder=True) == q)
-        assert(StringSplit(t, s, remainder=False) == q[:-1])
+        Assert(StringSplit(t, s, remainder=True) == q)
+        Assert(StringSplit(t, s, remainder=False) == q[:-1])
     def TestListInColumns():
         s = [sig(math.sin(i/20), 3) for i in range(20)]
         got = "\n".join(ListInColumns(s))
@@ -683,15 +685,31 @@ if __name__ == "__main__":
         exp += "\n"
         exp += "0.0500 0.149  0.247  0.343  0.435  0.523  0.605  0.682  0.751  0.813"
         exp += ts
-        assert(got == exp)
+        Assert(got == exp)
     def TestNamingConventionConversions():
         cw, us, mc = "AbcDef", "abc_def", "abcDef"
-        assert(cw2us(cw) == us)
-        assert(cw2mc(cw) == mc)
-        assert(us2mc(us) == mc)
-        assert(us2cw(us) == cw)
-        assert(mc2us(mc) == us)
-        assert(mc2cw(mc) == cw)
+        nc = NameConvert()
+        Assert(nc.cw2us(cw) == us)
+        Assert(nc.cw2mc(cw) == mc)
+        Assert(nc.us2mc(us) == mc)
+        Assert(nc.us2cw(us) == cw)
+        Assert(nc.mc2us(mc) == us)
+        Assert(nc.mc2cw(mc) == cw)
+        # No barfing on empty strings
+        s = ""
+        nc.cw2mc(s)
+        nc.cw2us(s)
+        nc.mc2cw(s)
+        nc.mc2us(s)
+        nc.us2cw(s)
+        nc.us2mc(s)
+        # Check inverses
+        Assert(nc.us2cw(nc.cw2us(cw)) == cw)
+        Assert(nc.mc2cw(nc.cw2mc(cw)) == cw)
+        Assert(nc.cw2mc(nc.mc2cw(mc)) == mc)
+        Assert(nc.us2mc(nc.mc2us(mc)) == mc)
+        Assert(nc.cw2us(nc.us2cw(us)) == us)
+        Assert(nc.mc2us(nc.us2mc(us)) == us)
     def Test_MultipleReplace():
         text = '''This
         is some
@@ -705,16 +723,16 @@ if __name__ == "__main__":
             "text": "x",
         }
         result = MultipleReplace(text, patterns)
-        assert(result == 'x        x x        x')
+        Assert(result == 'x        x x        x')
     def TestRemoveComment():
         s = ""
-        assert(RemoveComment(s) == s)
+        Assert(RemoveComment(s) == s)
         s = "abc"
-        assert(RemoveComment(s) == s)
+        Assert(RemoveComment(s) == s)
         s = " #"
-        assert(RemoveComment(s) == " ")
+        Assert(RemoveComment(s) == " ")
         s = "a = 1 # kdjjfd"
-        assert(RemoveComment(s, code=True) == "a = 1 ")
+        Assert(RemoveComment(s, code=True) == "a = 1 ")
         s = "a = '#'"
         try:
             RemoveComment(s, code=True)
@@ -725,9 +743,9 @@ if __name__ == "__main__":
         input_list = ("dog", "cAt", "hurse")
         word_dictionary = {"dog":"", "cat":"", "horse":"", "chicken":""}
         s = SpellCheck(input_list, word_dictionary, ignore_case=True)
-        assert(len(s) == 1 and "hurse" in s)
+        Assert(len(s) == 1 and "hurse" in s)
         s = SpellCheck(input_list, word_dictionary, ignore_case=False)
-        assert(len(s) == 2 and "cAt" in s and "hurse" in s)
+        Assert(len(s) == 2 and "cAt" in s and "hurse" in s)
     def TestSplitOnNewlines():
-        assert(SplitOnNewlines("1\n2\r\n3\r") == ["1", "2", "3", ""])
+        Assert(SplitOnNewlines("1\n2\r\n3\r") == ["1", "2", "3", ""])
     exit(run(globals(), regexp="^Test", halt=1)[0])

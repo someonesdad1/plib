@@ -5,13 +5,6 @@
 ----------------------------------------------------------------------
 Low priority
 
-* Look at fileinfo.py.  It might make more sense to derive it from
-  namedtuple.  This should be combined with filesizes.py into one file.
-  In fact, what would make the most sense would to be combine them with
-  pathlib to produce a pathlib object that also contained the os.stat
-  information for a file when desired (it would only retrieve it if you
-  ask for the attribute).
-
 * geom_prim.py:  Update properties to modern syntax, utilize matrix.py
   for determinants, as this would remove dependency on numpy.
 
@@ -26,8 +19,6 @@ Low priority
 * module_dependencies.py:   Is it necessary?  It needs to be rewritten
   to accommodate /plib.  The tools and programs need to be moved in
   first.  
-
-* mystr.py:  Convert token naming to a class.
 
 * sig is a mess of code.  Is it really all needed?  Maybe it would be
   best to move the key stuff to flt and cpx.  It can still be kept
