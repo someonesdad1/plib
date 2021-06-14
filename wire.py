@@ -21,7 +21,7 @@ if 1:   # Imports
 if 1:   # Custom imports
     from roundoff import RoundOff
     try:
-        from f import flt
+        from f import flt, pi
         have_flt = True
     except ImportError:
         have_flt = False
@@ -242,7 +242,7 @@ def Preece(n):
     where 
         d = wire diameter in inches 
         i = current in A
-
+ 
     Reference:
     https://pcdandf.com/pcdesign/index.php/magazine/10179-pcb-design-1507
   
@@ -260,7 +260,7 @@ def Onderdonk(n, t, Ta):
     n = AWG size of wire
     t = time in s (limited to 10 s or less)
     Ta = ambient temperature in °C
-
+ 
     Returns the current in amperes to 2 significant figures for copper
     wire of size n AWG to reach the melting point of copper (1083 °C) in
     a given time t seconds for an ambient temperature of Ta in °C using
@@ -313,6 +313,117 @@ def Onderdonk(n, t, Ta):
     i = A*sqrt(K/(33*t))
     i = RoundOff(i, 2)
     return flt(i, units="A") if have_flt else i
+def GetAmpacityData(dbg=False):
+    '''Return a dictionary keyed by AWG size (as a string) with the
+    values
+        Diameter, inches
+        Maximum current for chassis wiring, A
+        Maximum current for power transmission, A (based on the
+            conservative rule of 700 circular mils per A, which is 
+            0.35 mm²/A)
+        Maximum frequency for 100% skin depth for solid copper, Hz
+        Breaking force in lbf for annealed Cu (37 kpsi)
+ 
+    The following data come from
+    https://www.powerstream.com/Wire_Size.htm
+        Column 1:  AWG
+        Column 2:  Diameter, inches
+        Column 3:  Maximum current for chassis wiring, A
+        Column 4:  Maximum current for power transmission, A
+        Column 5:  Maximum frequency for 100% skin depth for solid copper
+        Column 6:  Breaking force in lbf for annealed Cu (37 kpsi)
+    '''
+    data = '''
+    -3, 0.46  , 380 , 302   , 125 Hz  , 6120 lbs
+    -2, 0.4096, 328 , 239   , 160 Hz  , 4860 lbs
+    -1, 0.3648, 283 , 190   , 200 Hz  , 3860 lbs
+     0, 0.3249, 245 , 150   , 250 Hz  , 3060 lbs
+     1, 0.2893, 211 , 119   , 325 Hz  , 2430 lbs
+     2, 0.2576, 181 , 94    , 410 Hz  , 1930 lbs
+     3, 0.2294, 158 , 75    , 500 Hz  , 1530 lbs
+     4, 0.2043, 135 , 60    , 650 Hz  , 1210 lbs
+     5, 0.1819, 118 , 47    , 810 Hz  , 960 lbs
+     6, 0.162 , 101 , 37    , 1.1 kHz , 760 lbs
+     7, 0.1443, 89  , 30    , 1.3 kHz , 605 lbs
+     8, 0.1285, 73  , 24    , 1.65 kHz, 480 lbs
+     9, 0.1144, 64  , 19    , 2.05 kHz, 380 lbs
+    10, 0.1019, 55  , 15    , 2.6 kHz , 314 lbs
+    11, 0.0907, 47  , 12    , 3.2 kHz , 249 lbs
+    12, 0.0808, 41  , 9.3   , 4.15 kHz, 197 lbs
+    13, 0.072 , 35  , 7.4   , 5.3 kHz , 150 lbs
+    14, 0.0641, 32  , 5.9   , 6.7 kHz , 119 lbs
+    15, 0.0571, 28  , 4.7   , 8.25 kHz, 94 lbs
+    16, 0.0508, 22  , 3.7   , 11 kHz  , 75 lbs
+    17, 0.0453, 19  , 2.9   , 13 kHz  , 59 lbs
+    18, 0.0403, 16  , 2.3   , 17 kHz  , 47 lbs
+    19, 0.0359, 14  , 1.8   , 21 kHz  , 37 lbs
+    20, 0.032 , 11  , 1.5   , 27 kHz  , 29 lbs
+    21, 0.0285, 9   , 1.2   , 33 kHz  , 23 lbs
+    22, 0.0253, 7   , 0.92  , 42 kHz  , 18 lbs
+    23, 0.0226, 4.7 , 0.729 , 53 kHz  , 14.5 lbs
+    24, 0.0201, 3.5 , 0.577 , 68 kHz  , 11.5 lbs
+    25, 0.0179, 2.7 , 0.457 , 85 kHz  , 9 lbs
+    26, 0.0159, 2.2 , 0.361 , 107 kHz , 7.2 lbs
+    27, 0.0142, 1.7 , 0.288 , 130 kHz , 5.5 lbs
+    28, 0.0126, 1.4 , 0.226 , 170 kHz , 4.5 lbs
+    29, 0.0113, 1.2 , 0.182 , 210 kHz , 3.6 lbs
+    30, 0.01  , 0.86, 0.142 , 270 kHz , 2.75 lbs
+    31, 0.0089, 0.7 , 0.113 , 340 kHz , 2.25 lbs
+    32, 0.008 , 0.53, 0.091 , 430 kHz , 1.8 lbs
+    33, 0.0071, 0.43, 0.072 , 540 kHz , 1.3 lbs
+    34, 0.0063, 0.33, 0.056 , 690 kHz , 1.1 lbs
+    35, 0.0056, 0.27, 0.044 , 870 kHz , 0.92 lbs
+    36, 0.005 , 0.21, 0.035 , 1.1 MHz , 0.72 lbs
+    37, 0.0045, 0.17, 0.0289, 1.35 MHz, 0.57 lbs
+    38, 0.004 , 0.13, 0.0228, 1.75 MHz, 0.45 lbs
+    39, 0.0035, 0.11, 0.0175, 2.25 MHz, 0.36 lbs
+    40, 0.0031, 0.09, 0.0137, 2.9 MHz , 0.29 lbs'''[1:]
+    wt = {}
+    if dbg:
+        print("Column 1:  AWG")
+        print("Column 2:  Diameter, inches")
+        print("Column 3:  Maximum current for chassis wiring, A")
+        print("Column 4:  Maximum current for power transmission, A")
+        print("Column 5:  Maximum frequency in kHz for 100% skin depth for Cu wire")
+        print("Column 6:  Breaking force in lbf for annealed Cu (37 kpsi)")
+        #print("  AWG Dia, in      Chassis, A       Power, A")
+    for line in data.split("\n"):
+        f = line.split(",")
+        awg = int(f[0].strip())
+        dia_in = flt(f[1], "inch")
+        chassis_A = flt(f[2], "A")
+        pwr_A = flt(f[3], "A")
+        freq = flt(f[4])
+        if 0:
+            # http://www.nessengr.com/technical-data/skin-depth/ gives the
+            # formula for Cu as δ = 0.066/sqrt(f) for δ = skin depth in m
+            # and f in Hz.  Then f = 0.00436/δ**2.
+            δ = (dia_in*25.4/1000)/2  # Radius is the skin depth
+            f_kHz = flt((0.066/δ)**2/1000, "kHz")
+            # Check that calculated and table values are close
+            alpha = 0.07
+            alpha = 0.5  #xx Temp to see table
+            if not (1 - alpha < freq/f_kHz < 1 + alpha):
+                print(freq/f_kHz, awg)
+                exit()
+        # Note the tabulated breaking values aren't quite correct -- use
+        # calculated value instead.
+        area = pi*dia_in**2/4
+        uts = flt("37000 lbf/inch2")
+        brk = (area*uts).to("lbf")
+        if dbg:
+            print(f"{awg:>2d}, {dia_in!s:>15s}, {chassis_A!s:>10s}, "
+                f"{pwr_A!s:>10s}, {freq!s:>12s}, {brk!s:>12s}")
+        else:
+            wt[awg] = (dia_in, chassis_A, pwr_A, freq, brk)
+    return wt
+if 1:
+    w = GetAmpacityData(dbg=0)
+    from pprint import pprint as pp
+    flt(0).f = 1
+    pp(w)
+    exit()
+
 if __name__ == "__main__": 
     import sys
     from lwtest import run, raises, assert_equal, Assert

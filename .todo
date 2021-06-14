@@ -4,8 +4,6 @@
 * wire.py:  Change to use flt with proper units.  Update
   MaxCurrentDensity to use the chassis current data Richard alerted me
   to (it's in pgm/cu_wire.py).  Also do similar for Ampacity.
-* atm.py:  See if it can change over to use flt for calculations with
-  units.  It will get rid of the sig() ugliness.
 
 * u.py and f.py:  A notation for using SI prefixes could be to use
   something like μ(N*s/m^2).  This might not be acceptable SI syntax,
@@ -15,6 +13,9 @@
   multiplication sign on the right when it's encountered; this should
   evaluate OK with python's parser.
 
+----------------------------------------------------------------------
+Low priority
+
 * Look at fileinfo.py.  It might make more sense to derive it from
   namedtuple.  This should be combined with filesizes.py into one file.
   In fact, what would make the most sense would to be combine them with
@@ -22,16 +23,16 @@
   information for a file when desired (it would only retrieve it if you
   ask for the attribute).
 
-* geom_prim.py:  Update properties, utilize matrix.py for determinants,
-  as this would remove dependency on numpy.
+* geom_prim.py:  Update properties to modern syntax, utilize matrix.py
+  for determinants, as this would remove dependency on numpy.
 
 * get.py:  Put all stuff in here used to get things.  Include stuff from
   getinput.py, getnumber.py, and gettokens.py.  Everything should be in
   one file including all the tests.
 
-* module_dependencies.py needs to be rewritten to accommodate /pylib.
-  The tools and programs need to be moved in first.  Is it even
-  necessary?
+* module_dependencies.py:   Is it necessary?  It needs to be rewritten
+  to accommodate /plib.  The tools and programs need to be moved in
+  first.  
 
 * mystr.py:  Convert token naming to a class.
 
