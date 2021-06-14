@@ -17,6 +17,7 @@ if 1:  # Copyright, license
     pass
 if 1:   # Imports
     from math import sqrt, log10, log
+    from collections import namedtuple
     from pdb import set_trace as xx
 if 1:   # Custom imports
     from roundoff import RoundOff
@@ -319,8 +320,7 @@ def GetAmpacityData(dbg=False):
         Diameter, inches
         Maximum current for chassis wiring, A
         Maximum current for power transmission, A (based on the
-            conservative rule of 700 circular mils per A, which is 
-            0.35 mm²/A)
+            conservative rule of j = 2.8 A/mm² = 1.43 mA/cmil)
         Maximum frequency for 100% skin depth for solid copper, Hz
         Breaking force in lbf for annealed Cu (37 kpsi)
  
@@ -333,6 +333,7 @@ def GetAmpacityData(dbg=False):
         Column 5:  Maximum frequency for 100% skin depth for solid copper
         Column 6:  Breaking force in lbf for annealed Cu (37 kpsi)
     '''
+    Ampac = namedtuple("Ampac", "AWG dia chass pwr freq brk")
     data = '''
     -3, 0.46  , 380 , 302   , 125 Hz  , 6120 lbs
     -2, 0.4096, 328 , 239   , 160 Hz  , 4860 lbs
@@ -415,32 +416,132 @@ def GetAmpacityData(dbg=False):
             print(f"{awg:>2d}, {dia_in!s:>15s}, {chassis_A!s:>10s}, "
                 f"{pwr_A!s:>10s}, {freq!s:>12s}, {brk!s:>12s}")
         else:
-            wt[awg] = (dia_in, chassis_A, pwr_A, freq, brk)
+            wt[awg] = Ampac(awg, dia_in, chassis_A, pwr_A, freq, brk)
     return wt
-if 1:
-    w = GetAmpacityData(dbg=0)
-    from pprint import pprint as pp
-    flt(0).f = 1
-    pp(w)
-    exit()
+def PlotAmpacityData():
+    '''Plot chass and pwr data to derive a formula.
 
+    The results show that the chassis ampacity data can be modeled by
+    two power functions imax = a*dia_mm**e:
+        For dia < 1.3 mm:  a = 13, e = 2
+        For dia >= 1.3 mm:  a = 16, e = 1.3
+    '''
+    w, x = GetAmpacityData(), flt(0)
+    Dia, Chass, Pwr = [], [], []
+    for i in w:
+        item = w[i]
+        Dia.append(item.dia.to("mm").val)
+        Chass.append(item.chass.val)
+        Pwr.append(item.pwr.val)
+    from pylab import plot, loglog, xlabel, ylabel, title, text
+    from pylab import legend, grid, show, array, savefig, axvline
+    from f import pi
+    dia, chass, pwr = [array(i) for i in (Dia, Chass, Pwr)]
+    p = plot
+    p = loglog
+    p(dia, pwr, "b-", label="j = 2.8 A/mm²")
+    p(dia, chass, "r.", label="Chassis data")
+    if 1:
+        # Fit a power function i = a*d**e to the chassis data.  From the
+        # scatter plot, it's clear that two linear approximations on a
+        # log-log plot are adequate.
+        #
+        # Choose the exponent e and fit the constant a to a chosen data
+        # point:  a = i*d**-e
+        #
+        # Cutoff point for the two straight line approximation
+        m = len(dia) - 25
+        n = 0
+        i, d = chass[n], dia[n]
+        e = 1.3
+        a = i*d**-e
+        D = dia[:m + 1]
+        # Calculate j at point m//2
+        di, i = dia[m//2], chass[m//2]
+        with x:
+            x.n = 2
+            p(D, a*D**e, "g", label=f"a={flt(a)}, e={e}")   # Green line
+        # The smaller diameters are at a larger slope.  Make it go
+        # through the 0.3 mm diameter point
+        n = -11
+        i, d = chass[n], dia[n]
+        e = 2
+        a = i*d**-e
+        D = dia[m - 3:]
+        # Calculate j at point 3*m//2
+        di, i = dia[3*m//2], chass[3*m//2]
+        with x:
+            x.n = 2
+            p(D, a*D**e, "k", label=f"a={flt(a)}, e={e}")   # Black line
+            bp = flt(Dia[m], "mm")
+            text(1.1*Dia[m], 225, f"d = {bp}")
+            axvline(x=bp.val, color="k", linestyle="--")
+    xlabel("d = wire diameter, mm")
+    ylabel("i = maximum current, A")
+    title("Copper wire ampacities\nRef:  https://www.powerstream.com/Wire_Size.htm")
+    text(2, 0.02, "DP 14 Jun 2021")
+    text(2, 0.05, "Model:  i = a*d**e")
+    legend()
+    grid()
+    if 0:
+        show()
+    else:
+        savefig("wire.png")
+def ChassisAmpacity(dia):
+    '''Return the maximum chassis current for copper wire near room
+    temperature for a given diameter dia.  If dia is an integer, it 
+    will be interpreted as AWG.  If it is a float, it will be
+    interpreted as diameter in mm.  Or, set it to a flt with suitable
+    length units.
+
+    The PlotAmpacityData() function shows that a suitable model is
+    imax = a*dia_mm**e where
+        a = 13, e = 2 for dia < 1.3 mm
+        a = 16, e = 1.3 for dia >= 1.3 mm
+    '''
+    if ii(dia, int):
+        D = AWG(dia)
+        if not have_flt:
+            D *= 25.4   # Convert to mm
+    elif ii(dia, flt):
+        if dia.u is None:
+            D = flt(float(dia), "mm")
+        else:
+            D = dia.to("mm")
+    else:
+        D = flt(float(dia), "mm")
+    assert(ii(D, flt))
+    Dmax = AWG(-3).to("mm") if have_flt else flt(AWG(-3), "inch").to("mm")
+    if D > Dmax:
+        raise ValueError(f"Wire diameter must be <= {Dmax}")
+    if D >= flt("1.3 mm"):
+        imax = flt(16*D.val**1.3, "A")
+    else:
+        imax = flt(13*D.val**2, "A")
+    return imax
+if 0:
+    PlotAmpacityData()
+    exit()
 if __name__ == "__main__": 
     import sys
     from lwtest import run, raises, assert_equal, Assert
     from wire import MaterialData, MaxCurrentDensity, Ampacity
     from wire import EquivalentArea, AWG, Preece, Onderdonk
     from pdb import set_trace as xx
+    x = flt(0)
     def TestMaterialData():
-        d = MaterialData(material="copper")
+        d, x = MaterialData(material="copper"), flt(0)
         cus = 58e6  # Copper conductivity in S/m
-        assert_equal(d["conductivity"], cus)
-        assert_equal(d["resistivity"], 1/cus)
-        assert_equal(d["temp_coeff"], 0.0039)
-        assert_equal(d["density"], 8960)
-        assert_equal(d["units"]["conductivity"], "S")
-        assert_equal(d["units"]["resistivity"], "ohm*m")
-        assert_equal(d["units"]["temp_coeff"], "1/K")
-        assert_equal(d["units"]["density"], "kg/m3")
+        with x:
+            x.promote = 1
+            assert_equal(d["conductivity"], cus)
+            assert_equal(d["resistivity"], 1/cus)
+            assert_equal(d["temp_coeff"], 0.0039)
+            assert_equal(d["density"], 8960)
+            assert_equal(d["units"]["conductivity"], "S")
+            assert_equal(d["units"]["resistivity"], "ohm*m")
+            assert_equal(d["units"]["temp_coeff"], "1/K")
+            assert_equal(d["units"]["density"], "kg/m3")
     def TestMaxCurrentDensity():
         if have_flt:
             f = lambda x: flt(x, units="A/mm2")
@@ -467,10 +568,7 @@ if __name__ == "__main__":
         dn, dm, r = EquivalentArea(12, 30)
         assert_equal(r, 65.29)
     def TestAWG():
-        if have_flt:
-            f = lambda x: flt(x, units="inch")
-        else:
-            f = lambda x: x
+        f = lambda x: flt(x, units="inch") if have_flt else lambda x: x
         assert_equal(AWG(-3), f(0.46))
         assert_equal(AWG(12), f(0.0808))
         assert_equal(AWG(18), f(0.0403))
@@ -482,15 +580,28 @@ if __name__ == "__main__":
         raises(ValueError, AWG, 1.1)
         raises(ValueError, AWG, 57)
     def TestPreece():
-        assert_equal(Preece(0), 1900)
-        assert_equal(Preece(10), 333)
-        assert_equal(Preece(12), 235)
-        assert_equal(Preece(18), 82.9)
-        assert_equal(Preece(24), 29.2)
+        with x:
+            x.promote = 1
+            assert_equal(Preece(0), 1900)
+            assert_equal(Preece(10), 333)
+            assert_equal(Preece(12), 235)
+            assert_equal(Preece(18), 82.9)
+            assert_equal(Preece(24), 29.2)
     def TestOnderdonk():
         t, Ta = 1, 20
-        assert_equal(Onderdonk(0, t, Ta), 16000)
-        assert_equal(Onderdonk(12, t, Ta), 960)
-        assert_equal(Onderdonk(18, t, Ta), 240)
-        assert_equal(Onderdonk(24, t, Ta), 59)
+        with x:
+            x.promote = 1
+            assert_equal(Onderdonk(0, t, Ta), 16000)
+            assert_equal(Onderdonk(12, t, Ta), 960)
+            assert_equal(Onderdonk(18, t, Ta), 240)
+            assert_equal(Onderdonk(24, t, Ta), 59)
+    def TestChassisAmpacity():
+        for d in (0.1, 0.2, 0.5, 0.75, 1):
+            got = ChassisAmpacity(flt(d, "mm"))
+            expected = flt(13*d**2, "A")
+            assert_equal(got, expected)
+        for d in (1.3, 1.5, 2, 3, 5, 7.5, 10):
+            got = ChassisAmpacity(flt(d, "mm"))
+            expected = flt(16*d**1.3, "A")
+            assert_equal(got, expected)
     exit(run(globals(), halt=1)[0])
