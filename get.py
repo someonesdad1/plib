@@ -26,6 +26,8 @@ if 1:   # Imports
     import pathlib
     import re
     from collections import defaultdict
+    from collections.abc import Iterable
+    from io import StringIO
     from fractions import Fraction
     from pdb import set_trace as xx
 if 1:   # Custom imports
@@ -46,7 +48,7 @@ if 1:   # Custom imports
 if 1:   # Global variables
     P = pathlib.Path
     ii = isinstance
-def GetText(thing, enc=None, xfms=[]):
+def GetText(thing, enc=None):
     '''Return the text from thing, which can be a string, bytes,
     or stream.  If thing is a string, it's assumed to be a file name;
     if trying to read the file generates an exception, the string itself
@@ -54,9 +56,6 @@ def GetText(thing, enc=None, xfms=[]):
     
     If enc is not None, then it is an encoding to decode the data and
     if thing is a str, the file will be read as binary.
- 
-    xfms should be a sequence of univariate functions which will transform
-    the string.
     '''
     if ii(thing, bytes):
         # Bytes
@@ -73,21 +72,14 @@ def GetText(thing, enc=None, xfms=[]):
         s = thing.read()
     else:
         raise TypeError("Type of 'thing' not recognized")
-    if xfms:
-        # Apply the transformations
-        for xfm in xfms:
-            s = xfm(s)
     return s
-def GetLines(thing, enc=None, regex=None, xfms=None):
-    '''Return either lines or (lines, meta) where lines is a list of the
-    lines in thing and meta is a dictionary containing lists of lines
-    that were ignored in thing that matched (with re.search) the regular
-    expressions in the sequence of strings regex; the keys of meta are
-    the regular expression strings.  If regex is None, then only the
-    list lines is returned.  See GetText for details on arguments.
+def GetLines(thing, enc=None, regex=None):
+    '''Return a list of lines that are in thing.  See GetText for
+    details on thing.
  
-    If xfms is not None, then it is a sequence of univariate functions
-    that will transform every line (note it is not passed on to GetText).
+    regex:  must be None or a sequence of strings that are regular
+    expressions.  Any line that matches any of the regular expressions
+    is ignored.
  
     Example:
         s = """# Comment
@@ -95,34 +87,49 @@ def GetLines(thing, enc=None, regex=None, xfms=None):
         Line 1
             Line 2
         """
-        r = ("^ *##", "^ *#")
-        lines, meta = GetLines(s, regex=r)
+        r = ["^ *#"]
+        lines = GetLines(s, regex=r)
         print(f"lines {list(lines)}")
-        print(f"meta {meta}")
- 
-    returns 
+    outputs 
         lines ['Line 1', '    Line 2', '']
-        meta defaultdict(<class 'list'>, {'^ *#': ['# Comment'],
-            '^ *##': ['  ## Another comment']})
     '''
-    if regex is not None:
-        assert(ii(regex, (list, tuple, set)))
-    meta = defaultdict(list) if regex is not None else None
     def Filter(line):
         if regex is not None:
             for r in regex:
                 if re.search(r, line):
-                    meta[r].append(line)
-                    return None     # Don't keep this line
+                    return False     # Don't keep this line
         return True     # Keep this line
-    lines = GetText(thing, enc=enc, xfms=xfms).split("\n")
+    if regex is not None and (ii(regex, str) or not ii(regex, Iterable)):
+        raise TypeError("regex must be an iterable")
+    lines = GetText(thing, enc=enc).split("\n")
     lines = list(filter(Filter, lines))
-    if xfms:
-        for xfm in xfms:
-            lines = [xfm(line) for line in lines]
-    if regex is None:
-        return lines
-    return (lines, meta)
+    return lines
+def GetLine(thing, enc=None):
+    '''Similar to GetLines, but is a generator so it gets a line at a time.
+    thing can be a string, bytes, or a stream.  If it is a string, it's
+    assumed to be a file name; if trying to read the file generates an
+    exception, the string itself is used as the text.
+ 
+    If it is a bytes object, then the indicated encoding is used to
+    decode it, then it's read a line at a time.
+    '''
+    if ii(thing, bytes): # Bytes
+        s = thing.decode(encoding="UTF-8" if enc is None else enc)
+        stream = StringIO(s)
+    elif ii(thing, (str, pathlib.Path)): # File name
+        p = pathlib.Path(thing)
+        try:
+            stream = open(p)
+        except Exception:
+            stream = StringIO(thing)
+    elif hasattr(thing, "read"): # Stream
+        stream = thing
+    else:
+        raise TypeError("Type of 'thing' not recognized")
+    line = stream.readline()
+    while line:
+        yield line
+        line = stream.readline()
 def GetNumberedLines(thing, enc=None):
     '''Return a tuple of (linenum, line_string) tuples where linenum is
     the line number in the file.  See GetText for details on the enc
@@ -130,21 +137,29 @@ def GetNumberedLines(thing, enc=None):
     '''
     lines = GetText(thing, enc=enc).split("\n")
     return tuple((i + 1, j) for i, j in enumerate(lines))
-def GetWords(thing, sep=None, enc=None, regex=None, xfms=None):
+def GetWords(thing, sep=None, enc=None, regex=None):
     '''Return a list of words separated by the string sep from the thing
     (see details for GetLines).  If sep is None, then the data are split
     on whitespace; otherwise, the newlines are replaced by sep, then the
     data are split on sep.  
     '''
-    if regex is None:
-        lines = GetLines(thing, xfms=xfms)
-    else:
-        lines, meta = GetLines(thing, regex=regex, xfms=xfms)
+    lines = GetLines(thing, regex=regex)
     if sep is not None:
         s = sep.join(lines)
         return sep.join(lines).split(sep)
     else:
         return ' '.join(lines).split()
+def GetTokens(thing, sep=None, enc=None, regex=None):
+    '''Similar to GetWords(), but this is a generator so that arbitrarily 
+    large files can be processed.
+    '''
+    for line in GetLine(thing, enc=enc):
+        if sep is None:
+            for token in line.split():
+                yield token
+        else:
+            for token in line.split(sep):
+                yield token
 def GetBinary(thing, encoded=False):
     '''Read in thing as binary (thing is a stream or filename).  Bytes
     will be returned.
@@ -177,7 +192,7 @@ def GetBinary(thing, encoded=False):
             return thing.read()
         except AttributeError:
             return open(thing, "rb").read()
-def GetNumbers(thing, numtype=None,  enc=None, xfms=None):
+def GetNumbers(thing, numtype=None,  enc=None):
     '''Uses GetText() to get a string, then recognizes integers, floats,
     fractions, complex, and uncertain numbers in the string separated by
     whitespace and returns a list of these numbers.  If numtype is
@@ -191,7 +206,7 @@ def GetNumbers(thing, numtype=None,  enc=None, xfms=None):
     recognized.
     '''
     lst, dp = [], locale.localeconv()["decimal_point"]
-    for s in GetText(thing, enc=enc, xfms=xfms).split():
+    for s in GetText(thing, enc=enc).split():
         if numtype:
             lst.append(numtype(s))
         else:
@@ -219,7 +234,7 @@ if __name__ == "__main__":
     text_file, S = None, None
     def SetUp():
         global text_file, S
-        text_file = P("get.a")
+        text_file = P("get.test")
         S = "Some\ntext\n"
         text_file.write_text(S)
     def TearDown():
@@ -247,18 +262,31 @@ if __name__ == "__main__":
         ## Another comment
     Line 1
         Line 2''')
-        r = ("^ *##", "^ *#")
-        lines, meta = GetLines(s, regex=r)
+        r = ("^ *#",)
+        lines = GetLines(s, regex=r)
         Assert(lines == ['Line 1', '    Line 2'])
-        Assert(meta[r[0]] == ['    ## Another comment'])
-        Assert(meta[r[1]] == ['    # Comment'])
+    def TestGetLine():
+        # Test with stream
+        sio = StringIO(S)
+        lines = ["Some\n", "text\n"]
+        for i, line in enumerate(GetLine(sio)):
+            Assert(line == lines[i])
+        # Test with string
+        for i, line in enumerate(GetLine(S)):
+            Assert(line == lines[i])
+        # Test with file
+        for i, line in enumerate(GetLine(text_file)):
+            Assert(line == lines[i])
     def TestGetLines():
+        # Test with stream
         sio = StringIO(S)
         l = S.split() + [""]
         t = GetLines(sio)
         Assert(t == l)
+        # Test with string
         t = GetLines(S)
         Assert(t == l)
+        # Test with file
         t = GetLines(text_file)
         Assert(t == l)
     def TestGetWords():
@@ -270,6 +298,10 @@ if __name__ == "__main__":
         Assert(t == l)
         t = GetWords(text_file)
         Assert(t == l)
+    def TestGetTokens():
+        s = "1 2 3\n4 5 6\n"
+        l = list(GetTokens(s))
+        Assert(l == "1 2 3 4 5 6".split())
     def TestGetBinary():
         enc = "iso-8859-1"
         open(text_file, "wb").write(S.encode(enc))
