@@ -241,6 +241,10 @@ def IsPunctuation(c):
             return False
     return True
 
+IsPunctuation(";")
+print(''.join(IsPunctuation.punc))
+exit()
+
 def ProcessWord(w, no_possessives=False, asciify=False):
     '''The word w may have punctuation preceding or following it.
     The punctuation characters need to be separated from the word's

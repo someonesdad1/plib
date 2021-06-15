@@ -25,6 +25,7 @@ if 1:   # Imports
     import locale
     import pathlib
     import re
+    import string
     import sys
     from collections import defaultdict
     from collections.abc import Iterable
@@ -223,7 +224,7 @@ def GetNumbers(thing, numtype=None,  enc=None):
                 x = int(s)
             lst.append(x)
     return lst
-def Choice(seq, default=1, indent=None, col=False):
+def GetChoice(seq, default=1, indent=None, col=False):
     '''Display the choices in seq with numbers and prompt the user for his
     choice.  Note the numbers are 1-based as displayed to the user, but the
     returned value of choice will be 0-based.  Return the choice_number.
@@ -547,6 +548,58 @@ def GetFraction(s):
         return neg*(ip + Fraction(int(n), int(d)))
     except Exception:
         return None
+def IsPunctuation(c):
+    '''Return True if all characters in the sequence c are punctuation.
+    '''
+    if not hasattr(IsPunctuation, "punc"):
+        # Get punctuation characters
+        others = ''.join([chr(i) for i in 
+            (0x00ab, 0x00bb, 0x2012, 0x2013, 0x2014, 0x2015, 0x2018,
+             0x2019, 0x201a, 0x201b, 0x201c, 0x201d, 0x201e, 0x201f,
+             0x2039, 0x203a, 0x2053, 0x229d, 0x2448, 0x2449, 0x2504,
+             0x2505, 0x2508, 0x2509, 0x254c, 0x254d, 0x275b, 0x275c,
+             0x275d, 0x275e, 0x275f, 0x2760, 0x276e, 0x276f, 0x2e3a,
+             0x2e3b, 0x301c, 0x301d, 0x301e, 0x301f, 0x3030, 0xff02)])
+        IsPunctuation.punc = set(string.punctuation + others)
+    for i in c:
+        if i not in IsPunctuation.punc:
+            return False
+    return True
+def GetWordlist(*files, case=None):
+    '''The arguments can be a stream, filename, or string to parse.
+    Return a set of all the words in these files.
+ 
+    This function is aimed at reading wordlists I use on my computer.
+    These will have comment lines beginning with '#' after stripping
+    whitespace.  Then words are separated by whitespace and can be
+    gotten at once on the whole file's string with strip().
+ 
+    If case is None, do nothing with the words.  If it is "lower",
+    change them to lower case; upper with "upper".
+    '''
+    words = set()
+    for file in files:
+        try:
+            # See if it's a stream
+            s = file.read()
+        except Exception:
+            try:
+                s = open(file).read()   # It's a file
+            except FileNotFoundError:
+                s = file    # It's a string
+        lines = []
+        for line in s.split("\n"):
+            line = line.strip()
+            if not line or line[0] == "#":
+                continue
+            lines.append(line)
+        s = ' '.join(lines)
+        if case == "upper":
+            s = s.upper()
+        elif case == "lower":
+            s = s.lower()
+        words.update(set(s.split()))
+    return words
 if __name__ == "__main__": 
     from wrap import dedent
     from lwtest import run, raises, Assert
@@ -948,6 +1001,32 @@ if __name__ == "__main__":
             i = i.strip()
             neg = -1 if i[0] == "-" else 1
             assert(GetFraction(i) == neg*e)
+    def TestIsPunctuation():
+        others = ''.join([chr(i) for i in 
+            (0x00ab, 0x00bb, 0x2012, 0x2013, 0x2014, 0x2015, 0x2018,
+             0x2019, 0x201a, 0x201b, 0x201c, 0x201d, 0x201e, 0x201f,
+             0x2039, 0x203a, 0x2053, 0x229d, 0x2448, 0x2449, 0x2504,
+             0x2505, 0x2508, 0x2509, 0x254c, 0x254d, 0x275b, 0x275c,
+             0x275d, 0x275e, 0x275f, 0x2760, 0x276e, 0x276f, 0x2e3a,
+             0x2e3b, 0x301c, 0x301d, 0x301e, 0x301f, 0x3030, 0xff02)])
+        s = set(string.punctuation + others)
+        Assert(IsPunctuation(s))
+        s.add("s")
+        Assert(not IsPunctuation(s))
+    def TestGetWordlist():
+        t = "Aa Bb cC"
+        s = f'''# Comment
+        # Another comment
+        {t}
+                    {t}
+ 
+        '''
+        wl = GetWordlist(s, case=None)
+        Assert(wl == set(t.split()))
+        wl = GetWordlist(s, case="lower")
+        Assert(wl == set(t.lower().split()))
+        wl = GetWordlist(s, case="upper")
+        Assert(wl == set(t.upper().split()))
     SetUp()
     status = run(globals(), halt=True)[0]
     TearDown()
