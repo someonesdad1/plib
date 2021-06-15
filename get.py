@@ -1,6 +1,6 @@
 '''
 Module for getting data from files, strings, and streams.
-
+ 
 TODO:  
     * Add Zn to GetNumbers
 '''
@@ -234,7 +234,7 @@ def Choice(seq, default=1, indent=None, col=False):
     indent is a string to prepend to each line if not None.  If col is
     True, use Columnize to print the choices (allows more dense listings
     for a given screen space).
-
+ 
     '''
     if not seq:
         raise ValueError("seq can't be empty")
@@ -459,11 +459,14 @@ def GetNumber(prompt_msg, **kw):
             s = s.replace("+-", "+/-")
         # Check to see if number contains a unit
         if use_unit:
-            number_string, unit_string = u.ParseUnit(s)
+            number_string, unit_string = u.ParseUnit(s, allow_unc=use_unc)
             s = number_string
         try:
             if use_unc:
-                x = ufloat_fromstr(s)
+                if ii(s, str):
+                    x = ufloat_fromstr(s)
+                else:
+                    x = s   # It's already a uncertainties.core.Variable
             else:
                 # Note the use of eval lets the user type expressions in.
                 # The math module's symbols are in scope.
@@ -900,16 +903,13 @@ if __name__ == "__main__":
         #--------------------
         # Uncertainties
         #--------------------
-        if 0: # xx Need to fix this section
-            for t in ("8 mm", "8+-1 mm", "8+/-1 mm", "8(1) mm"):
-                print(t, "  ", end="")#xx
-                n = GetNumber("", low=-1e100, high=1e100, outstream=sio(),
-                            instream=sio(t), use_unit=True, use_unc=True)
-                print(n)
-                assert(isinstance(n[0], UFloat))
-                assert(n[0].nominal_value == 8)
-                assert(n[0].std_dev == 1)
-                assert(n[1] == "mm")
+        for t in ("8 mm", "8+-1 mm", "8+/-1 mm", "8(1) mm"):
+            n = GetNumber("", low=-1e100, high=1e100, outstream=sio(),
+                        instream=sio(t), use_unit=True, use_unc=True)
+            assert(isinstance(n[0], UFloat))
+            assert(n[0].nominal_value == 8)
+            assert(n[0].std_dev == 1)
+            assert(n[1] == "mm")
     def TestGetNumberInspect():
         # Test that 2 isn't in the first interval, but is in the second.
         assert(GetNumber("", low=0, high=1, inspect="2") == False)

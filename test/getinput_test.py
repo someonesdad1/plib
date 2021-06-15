@@ -7,13 +7,11 @@ from io import StringIO
 from pdb import set_trace as xx 
 
 err = sys.stderr
-
 def sio(*s):
     'Allows StringIO to be used for input or output'
     if not s:
         return StringIO()
     return StringIO(s[0])
-
 def TestGetNumberExceptionalCases():
     # low > high
     raises(ValueError, GetNumber, "", low=1, high=0, instream=sio("0"))
