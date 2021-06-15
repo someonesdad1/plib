@@ -86,7 +86,6 @@ except ImportError:
     have_unc = False
     from math import *
     unc_re = None
-
 __all__ = [
     "AWG",
     "Choice",
@@ -101,7 +100,6 @@ __all__ = [
     "TokenizeString",
     "ToolzAdapter",
     ]
-
 def AWG(n):
     '''Returns the wire diameter in inches given the AWG (American Wire
     Gauge) number (also known as the Brown and Sharpe gauge).  Use negative
@@ -133,7 +131,6 @@ def AWG(n):
     if n <= 44:
         return round(diameter, 4)
     return round(diameter, 5)
-
 def Choice(seq, default=1, indent=None, col=False):
     '''Display the choices in seq with numbers and prompt the user for his
     choice.  Note the numbers are 1-based as displayed to the user, but the
@@ -165,7 +162,6 @@ def Choice(seq, default=1, indent=None, col=False):
                            low=1, high=n) - 1
     return (choice, seq[choice])
 Choice.test = False     # Used for self tests
-
 def GetAllLines(*files, **kw):
     '''Returns a list of all the lines from the indicated input
     source(s).  *files can contain file names and stream objects.  
@@ -175,7 +171,6 @@ def GetAllLines(*files, **kw):
     if not files:
         return []
     return list(GetLines(*files, **kw))
-
 def GetLines(*files, **kw):
     '''Generator that returns a sequence of lines from the indicated input
     source(s).  *files can contain file names and stream objects.  
@@ -231,7 +226,6 @@ def GetLines(*files, **kw):
 # Convenience functions
 GetLines.IgnoreComment = lambda x: True if x.lstrip()[0] == "#" else False
 GetLines.IgnoreEmpty = lambda x: True if not x.strip() else False
-
 def GetNumber(prompt_msg, **kw):
     '''General-purpose routine to get a number (integer, float [default],
     or UFloat types) from the user with the prompt msg:
@@ -500,7 +494,6 @@ def GetNumber(prompt_msg, **kw):
                 return (x, unit_string)
             else:
                 return x
-
 def GetTokens(*files, **kw):
     '''Generator that returns a sequence of tokens gotten from the
     indicated input source(s).  files can be either file names or stream
@@ -529,7 +522,6 @@ def GetTokens(*files, **kw):
             tokens = remove_nl(line).split(sep)
             for token in tokens:
                 yield convert(token)
-
 def GetWireDiameter(default_unit="mm"):
     '''Returns (s, d) where d is a wire diameter in the indicated units and
     s is the string the user input.  The user is prompted for the value,
@@ -570,7 +562,6 @@ def GetWireDiameter(default_unit="mm"):
             elif not unit:
                 return s, value
 GetWireDiameter.input = None    # Used for self tests
-
 def ParseUnit(s):
     '''Assume the string s has a unit and possible SI prefix appended
     to the end, such as '123Pa', '123 Pa', or '1.23e4 Pa'.  Remove the
@@ -600,7 +591,6 @@ def ParseUnit(s):
         else:
             unit.append(i)
     return (''.join(reversed(num)), (''.join(reversed(unit))).strip())
-
 def ParseUnitString(x, allowed_units, strict=True):
     '''This routine will take a string x and return a tuple (prefix,
     unit) where prefix is a power of ten gotten from the SI prefix
@@ -651,7 +641,6 @@ def ParseUnitString(x, allowed_units, strict=True):
         if prefix not in si:
             raise ValueError("'%s' prefix not an SI prefix" % prefix)
         return (10**si[prefix], unit)
-
 def TokenizeString(*strings, **kw):
     '''Generator to produce tokens from a group of string arguments.
  
@@ -688,7 +677,6 @@ def TokenizeString(*strings, **kw):
             for token in line_filter(line).split(sep):
                 if token:
                     yield token_filter(token)
-
 def ToolzAdapter(arg):
     '''For toolz.compose, the argument must be a sequence of functions, so
     we'll convert a single function to a list.  If toolz isn't available,

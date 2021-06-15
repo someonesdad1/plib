@@ -2,21 +2,9 @@
   getinput.py, getnumber.py, and gettokens.py.  Everything should be in
   one file including all the tests.
 
-    * In GetLines, consider getting rid of the regex argument.  I could
-      only find the following files that appear to use it:
-
-        pgm/population.py
-            Used it to get rid of comments with 
-            regex = [r"^\s*#"]
-        pgm/words_make_universal.py
-            Same thing
-
-      Actually, the use case is fairly compelling, but I think the
-      interface should be changed to not return meta.  Then you just
-      need to understand that the regexes are used to remove lines you
-      don't want.
-    * Actually, the xfms keyword hasn't been used, so it would make more
-      sense to get rid of.
+    * TestGetNumberNumberWithUnit() is failing with the uncertainties
+      stuff at end.  It's likely because it's using u.ParseUnit instead
+      of the one in getinput.py.
 
 ----------------------------------------------------------------------
 Low priority

@@ -14,13 +14,12 @@ def sio(*s):
         return StringIO()
     return StringIO(s[0])
 
-def TestExceptionalCases():
+def TestGetNumberExceptionalCases():
     # low > high
     raises(ValueError, GetNumber, "", low=1, high=0, instream=sio("0"))
     # Invert True without low or high
     raises(ValueError, GetNumber, "", invert=True, instream=sio("0"))
-
-def TestAll():
+def TestGetNumberAll():
     msg = "Error:  must have "
     # Note:  the test case comment is a picture of the allowed interval;
     # '(' and ')' mean open, '[' and ']' mean closed.
@@ -204,8 +203,7 @@ def TestAll():
     n = GetNumber("", low=2, high=5, invert=True, outstream=s_out,
            instream=sio("sin(pi/6)"), vars=v)
     assert(n == sin(pi/6) and isinstance(n, float))
-
-def Test_mpmath():
+def TestGetNumber_mpmath():
     # Import mpmath and use for testing if available.
     # Demonstrates that GetNumber works with ordered number types
     # other than int and float.
@@ -218,8 +216,7 @@ def Test_mpmath():
         n = GetNumber("", numtype=mpmath.mpf, low=2, outstream=sio(),
                    instream=sio("4"))
         assert(n == 4 and isinstance(n, mpmath.mpf))
-
-def TestDefaultValue():
+def TestGetNumberDefaultValue():
     # See that we get an exception when the default is not between low and
     # high.
     with raises(ValueError):
@@ -235,8 +232,7 @@ def TestDefaultValue():
     num = GetNumber("", low=2, high=5, invert=True, outstream=sio(),
                  default=default, instream=sio(""))
     assert(num == default)
-
-def TestNumberWithUnit():
+def TestGetNumberNumberWithUnit():
     # Show that we can return numbers with units
     # 5 with no unit string
     n = GetNumber("", low=0, high=10, outstream=sio(), instream=sio("5"),
@@ -272,6 +268,12 @@ def TestNumberWithUnit():
         assert(n[0].nominal_value == 8)
         assert(n[0].std_dev == 1)
         assert(n[1] == "mm")
+def TestGetNumberInspect():
+    # Test that 2 isn't in the first interval, but is in the second.
+    assert(GetNumber("", low=0, high=1, inspect="2") == False)
+    assert(GetNumber("", low=0, high=3, inspect="2") == True)
+    # If inspect is not a string, get exception
+    raises(ValueError, GetNumber, "", inspect=1)
 
 def TestParseUnitString():
     allowed = ("kg", "m")
@@ -289,14 +291,6 @@ def TestParseUnitString():
     # Must have unit in the allowed container
     raises(ValueError, ParseUnitString, "kz", allowed,
                       strict=True)
-
-def TestInspect():
-    # Test that 2 isn't in the first interval, but is in the second.
-    assert(GetNumber("", low=0, high=1, inspect="2") == False)
-    assert(GetNumber("", low=0, high=3, inspect="2") == True)
-    # If inspect is not a string, get exception
-    raises(ValueError, GetNumber, "", inspect=1)
-
 def TestGetWireDiameter():
     GetWireDiameter.input = sio("12 ga")
     awg, d_mm = GetWireDiameter()
@@ -322,10 +316,8 @@ def TestGetWireDiameter():
     # Note we can't test outside of proper bounds with a StringIO stream
     # because an infinite loop will occur.
     GetWireDiameter.input = None
-
 #----------------------------------------------------------------------
 # GetLines tests
-
 def TestGetLines():
     file = "test_GetLines"
     try:
@@ -347,10 +339,8 @@ def TestGetLines():
             os.remove(file)
         except Exception:
             pass
-
 #----------------------------------------------------------------------
 # GetTokens tests
-
 def TestGetTokens():
     file = "test_GetTokens"
     try:
@@ -397,7 +387,6 @@ def TestGetTokens():
             os.remove(file)
         except Exception:
             pass
-
 def TestChoice():
     try:
         instream, outstream = sio("2"), sio()
@@ -410,7 +399,6 @@ def TestChoice():
     finally:
         del Choice.instream, Choice.outstream
         Choice.test = False
-
 def TestTokenizeString():
     x = '''
         and as 
@@ -438,6 +426,5 @@ def TestTokenizeString():
                                    str.upper])) == ["a", "b"])
         assert(list(TokenizeString("A;B", sep=";", token_filter=[str.lower,
                                    str.upper])) == ["a", "b"])
-
 if __name__ == "__main__":
     exit(run(globals())[0])
