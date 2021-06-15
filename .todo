@@ -1,10 +1,3 @@
-* get.py:  Put all stuff in here used to get things.  Include stuff from
-  getinput.py, getnumber.py, and gettokens.py.  Everything should be in
-  one file including all the tests.
-
-    * TestGetNumberNumberWithUnit() is failing with the uncertainties
-      stuff at end.  It's likely because it's using u.ParseUnit instead
-      of the one in getinput.py.
 
 ----------------------------------------------------------------------
 Low priority
