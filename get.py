@@ -547,7 +547,6 @@ def GetFraction(s):
         return neg*(ip + Fraction(int(n), int(d)))
     except Exception:
         return None
-
 if __name__ == "__main__": 
     from wrap import dedent
     from lwtest import run, raises, Assert
