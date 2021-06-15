@@ -1,3 +1,6 @@
+* _goto.py:  get it working in /plib/pgm.  Get rid of the silly g()
+  shell function and do everything in a python script, as it would be
+  so much easier.
 
 ----------------------------------------------------------------------
 Low priority

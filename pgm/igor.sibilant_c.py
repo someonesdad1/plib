@@ -1,0 +1,1479 @@
+from collections import deque
+import string
+import sys
+from pdb import set_trace as xx 
+ii = isinstance
+
+# Words from PNP   1114
+'''
+Absence Accept Accordingly Affectation Archbishop Assistance Attendance
+Because Church Commerce Conceal Conjectures Convinced Darcy Each Exceed
+Exceedingly Excellent Except Excuse Fordyce French Gracechurch
+Implacable Importance Imprudence Lucas Lucases March Matlock Metcalf
+Michaelmas Much Neglect Newcastle Nicholls Occupied October Office Once
+Perfectly Recovering Reflection Respect Richard Scarborough Scarcely
+Scotch Scotland Since Society Such Twice Warwick Which Wickham Wretched
+abhorrence absence accede acceded acceding accent accents accept
+acceptable acceptance accepted accepting accident accidental
+accidentally accompanied accompany accompanying accomplished
+accomplishment accomplishments according accordingly accosted account
+accounted accounting accounts accuracy accurate accusation accusations
+accuse accused accusing accustomed ached achieving acknowledge
+acknowledged acknowledging acknowledgment acknowledgments acquaint
+acquaintance acquaintances acquainted acquainting acquiesce acquiescence
+acquire acquired acquisition acquit acrimony across act acted acting
+action actions active activity actual actually actuated acute acutely
+acutest admittance advance advanced advancement advances advice affect
+affectation affected affection affectionate affectionately affections
+afflicted afflicting affliction alacrity alliance allowance allowances
+ancient anecdote anecdotes announce announced anticipate anticipated
+anticipating anticipation apace apothecary appearance appearances
+application approach approached approaching arch archly archness
+arrogance article articles artificial ascended ascertain ascertaining
+aspect assistance associating assurance assurances attach attached
+attachment attachments attack attacked attacks attendance attics
+attracted attraction attractions audience avarice avoidance back backed
+backgammon backward backwards barefaced barouche became because become
+becomes becoming benches beneficence beneficial benevolence bewitched
+bewitching black blacken bracelets branch breach brilliancy butcher
+dance danced dances dancing decamping decease deceitful deceive deceived
+deceives deceiving decency decent deception decide decided decidedly
+deciding decisions decisive decked declaration declare declared declares
+declaring decline declined decorum decorums deduced defect defection
+defective defects defence deference defiance deficiency deficient
+dejection delicacy delicate delicious dependence depreciate descended
+descending descent describe described describing description despicable
+despicably destructive detached detaching detect detected detection
+device dictate dictated dictates dictating dictatorial difference
+differences difficult difficulty diffidence diligence direct directed
+directing direction directions directly discern discernible discerning
+discernment discharge discharged discharging disclaim disclaimed
+disclose disclosed disclosure discompose discomposed discomposure
+disconcerted discontented discontentedness discontinuance discourage
+discouraged discourse discourses discover discovered discovering
+discovery discredit discreditable discretion discrimination discuss
+discussed discussion disgrace disgraced disgraceful disgracing
+disinclination disinclined dispatched disrespect disrespectful
+disservice distance distinction distracted distractedly distraction
+disturbance domestics duchess ducks ductility duplicity each eccentric
+echo eclat eclipsed economically economy ecstasy educated education
+effect effects effectual effectually efficacy elegance eloquence
+embraced embracing emergence eminence emphatically encamped encounter
+encourage encouraged encouragement encouraging encroaching encumbrance
+enforced enhance ensigncy entrance equivocal escape escaped escaping
+especially essence exact exactly exceed exceeded exceeding exceedingly
+excel excellence excellency excellent except excepting exception
+exceptional excess excessive excessively exchanged excite excited
+exciting exclaim exclaimed exclaiming exclamation exclamations exclude
+exclusion excuse excused excuses executed execution executors exercise
+exercising exigence existence expect expectation expectations expected
+expecting expects expence expences experience experienced explicit
+explicitly extractions extracts extravagance exuberance face faced faces
+fact facts faculties fancied fancy fancying felicitations felicity fetch
+fetched finances fireplace fluctuating forbearance force forced forcibly
+forcing freckled glance glancing grace graceful gracefully graces
+gracious graciously graciousness gratification grievances guidance hack
+hackney hackneyed handkerchief haunch headache hence henceforth
+horseback hypocrisy hypocritical hysterics ignorance impatience
+imperfection imperfectly impertinence implacability implicit
+implicitness importance imprudence impudence incapable incautiously
+incensed incessant incessantly inches incivility inclination
+inclinations inclined include included including income incomprehensible
+inconceivable inconsiderable inconsistencies inconsistency inconvenience
+inconveniences inconvenient increase increased increases increasing
+incredible incredulity incredulous incumbent incur incurred indecision
+indecorum indelicacy indelicate independence indicated indifference
+indirect indiscreet indistinctly indolence induce induced inducement
+inducements indulgence ineffectual infancy inferences inflict inflicted
+infliction influence influenced influencing injunction injunctions
+injustice innocence innocent innocently insignificance insignificant
+insincere insolence inspection instance instances instinctively instruct
+instructed instructing instruction instructions insufficient
+intelligence intercourse interference intimacy intricate introduce
+introduced introducing introduction invectives irreproachable
+irrevocably justice justification kitchen lace laconic legacy licence
+licentiousness local lock luck luckiest luckily luckless lucky luncheon
+malice malicious mantelpiece match mechanically mediocrity melancholy
+mercenary mince miraculous mischance mischief mischievously misconduct
+mortification mortifications much musical necessarily necessary
+necessity nectarines neglect neglected neglecting negligence newcomers
+nice nicely nicest niece nieces nightcap nonsensical notice noticed
+noticing obeisance object objected objecting objection objectionable
+objections objects observances obstacles obstinacy occasion occasional
+occasionally occasioned occasions occupation occupied occupies occupy
+occur occurred occurrences occurring occurs offence office officer
+officers officious officiousness once overcame overcome overcoming pace
+pack packed packing paddock parcels participation particular
+particularly particulars patched patience peace peaches peculiar
+peculiarities peculiarity peculiarly pecuniary penance perceive
+perceived perceiving perceptible perfect perfections perfectly perforce
+performance perseverance petticoat petulance physicians picture pictured
+pictures picturesque piece pieces pitched place placed places placing
+pliancy pocket policy postscript practice practised practises practising
+preaching preceded preceding precious precipitance precipitate precisely
+precision precluding predict predominance prefaced preference prejudice
+prejudiced prejudices presence pretence price principal principally
+principle principles proceed proceeded proceeding proceedings process
+proclaim procure procured procuring produce produced productive
+proficiency proficient profligacy prognostics project projected
+pronounce pronounced pronouncing prospect prospects protection
+provocations prudence publicly punch punctual punctuality punctually
+purchase purchased purchases qualification qualifications quick quickly
+quickness race racked rapacity reach reached reaching recall recalled
+recede receipt receive received receiving recent reception recital
+reckon reckoned recognized recognizing recollect recollected
+recollecting recollection recollections recommenced recommend
+recommendation recommendations recommended recommending reconcile
+reconciled reconciliation reconciling recover recovered recovering
+recovery recreation rectitude rector rectory recurring reduced reference
+reflect reflected reflecting reflection reflections reject rejected
+rejecting rejection rejoice rejoiced rejoicing reliance reluctance
+reluctant remembrance remonstrance rencontre repentance reproach
+reproached reproaches repugnance rescue research resemblance residence
+resistance resource respect respectability respectable respected
+respectful respecting respective respects retrospections retrospective
+rich richly ridicule ridiculing ridiculous rocks sacrifice sacrificed
+sagacity sanction sanctioned sarcastic satirical satisfaction
+satisfactions satisfactory saucy scale scampering scandalous scarce
+scarcely scarcity scarlet scattered scene scenes scheme schemes scheming
+school science scold scolded scolding scope score scores scorn scorned
+scrape screen screens scruple scrupled scruples scrupulous scrutiny
+search searching secluded seclusion second seconded seconding secondly
+secrecy secret secretly secrets secure secured security seduction
+selected selecting sentence sentences service serviceable services shock
+shocked shocking sick sickly significant silence silenced since sincere
+sincerely sincerity sixpence sketch slacken social societies society
+solace solaced solicit solicitation soliciting solicitude source sources
+space spacious special speculation speech speeches staircase stockings
+stretch stretched stretching strictest strictly strictures struck
+subject subjection subjects substance succeed succeeded succeeding
+succeeds success successful successfully succession successively
+successor such sufficiency sufficient sufficiently supercilious
+superciliousness superintendence supplication susceptibility suspect
+suspected suspecting suspects suspicion suspicions suspicious tacit
+taciturn tackle teach teaching tendency thence tickets topics touched
+trace traced traces tractable transactions tricks twice unaccountable
+unacknowledged unacquainted unaffected unaffectedly unbecoming uncertain
+uncertainty unchanged uncivil uncle uncles uncomfortable uncommon
+uncommonly uncompanionable unconcern unconcerned unconnected
+unconsciously uncontrolled undeceive undecided unexpected unexpectedly
+ungracious ungraciousness unluckily unlucky unnecessarily unnecessary
+unprincipled unprotected unshackled unsocial unsuccessfully unsuspicious
+untinctured untouched unwelcome vacancy vacant variance vehemence
+veracity vice vices vicinity vicious victim victory vindication violence
+vivacity voice vouch vouchsafed watch watched watches watchful
+watchfulness watching welcome welcomed welcoming whence which whichever
+whimsical wickedest wickedness witticisms wretched wretchedly
+wretchedness
+'''
+
+# words.beale.2of12   8056
+'''
+abaci aback abacus abdicate abdication abduct abduction abductor
+abeyance abhorrence abidance abject abjection abjectly abjectness
+abracadabra abscess abscessed abscissa abscissae abscission abscond
+absconder absence absorbency abstinence abstract abstracted abstractedly
+abstractedness abstraction abstractly abstractness abundance acacia
+academe academia academic academically academician academics academy
+acanthus accede accelerate acceleration accelerator accent accented
+accentual accentuate accentuation accept acceptability acceptable
+acceptableness acceptably acceptance acceptation accepted access
+accessibility accessible accessibly accession accessory accident
+accidental accidentally acclaim acclaimed acclamation acclimate
+acclimation acclimatization acclimatize acclivity accolade accommodate
+accommodating accommodatingly accommodation accommodations accompaniment
+accompanist accompany accomplice accomplish accomplished accomplishment
+accord accordance accordant according accordingly accordion accordionist
+accost account accountability accountable accountancy accountant
+accounting accounts accouter accouterments accoutre accoutrements
+accredit accreditation accredited accretion accrual accrue acculturate
+acculturation accumulate accumulation accumulative accumulator accuracy
+accurate accurately accurateness accursed accursedness accusation
+accusative accusatory accuse accused accuser accusingly accustom
+accustomed ace acerbate acerbic acerbically acerbity acetaminophen
+acetate acetic acetone acetonic acetylene ache achene achievable achieve
+achievement achiever achoo achromatic achy acid acidic acidify acidity
+acidly acidosis acidulous acknowledge acknowledged acknowledgement
+acknowledgment acme acne acolyte aconite acorn acoustic acoustical
+acoustically acoustics acquaint acquaintance acquaintanceship acquainted
+acquiesce acquiescence acquiescent acquiescently acquirable acquire
+acquirement acquisition acquisitive acquisitively acquisitiveness acquit
+acquittal acre acreage acrid acridity acridly acridness acrimonious
+acrimoniously acrimoniousness acrimony acrobat acrobatic acrobatically
+acrobatics acronym acrophobia acropolis across acrostic acrylic act
+acting actinium action actionable activate activation activator active
+actively activeness activism activist activity actor actress actual
+actuality actualization actualize actually actuarial actuary actuate
+actuation actuator acuity acumen acupressure acupuncture acupuncturist
+acute acutely acuteness acyclovir addict addicted addiction addictive
+adduce adequacy adherence adjacency adjacent adjacently adjectival
+adjectivally adjective adjudicate adjudication adjudicative adjudicator
+adjudicatory adjunct admittance adolescence adolescent advance advanced
+advancement advances advice advocacy advocate aerobatics aerobically
+aerobics aerodynamically aerodynamics aeronautical aeronautics aerospace
+aesthetically aestheticism aesthetics affect affectation affected
+affectedly affecting affectingly affection affectionate affectionately
+affiance afflict affliction affluence aficionado aftercare aftereffect
+aftershock agency agnosticism agricultural agriculturalist
+agriculturally agriculture agriculturist aircraft airlock airsick
+airsickness airspace alack alacrity albacore alchemist alchemy alcohol
+alcoholic alcoholically alcoholism alcove alecky alfresco algebraically
+allegiance allegorical allegorically allergically alliance allocate
+allocation allowance allspice alpaca alphabetical alphabetically
+alphanumerical alphanumerically altarpiece altercation altruistically
+ambiance ambience ambivalence ambulance ambuscade amerce amercement
+americium amicability amicable amicably amniocenteses amniocentesis
+amplification amuck anachronism anachronistic anachronistically anaconda
+anaerobically analogical analogically analytical analytically anarchic
+anarchically anarchism anarchist anarchistic anarchy anatomical
+anatomically ancestor ancestral ancestrally ancestress ancestry anchor
+anchorage anchorite anchorman anchorperson anchorwoman anchovy ancient
+anciently ancientness ancients ancillary anecdotal anecdote anemically
+angelica angelical angelically anglicize animalcule announce
+announcement announcer annoyance annunciation anorectic antacid
+antagonistically antarctic antecedence antecedent antecedents
+antechamber anthracite anthropocentric anthropological anthropologically
+anthropomorphically antiaircraft antibacterial anticancer antichrist
+anticipate anticipation anticipatory anticlerical anticlimactic
+anticlimactically anticlimax anticline anticoagulant anticommunism
+anticommunist antics anticyclone anticyclonic antidemocratic antifascist
+antigenicity antiknock antimacassar antimicrobial antinuclear
+antiparticle antiseptically antisocial antisocially antithetical
+antithetically antivivisectionist anyplace apace apathetically
+aphoristically apical apically apices apiece apocalypse apocalyptic
+apocrypha apocryphal apocryphally apolitical apolitically apologetically
+apoplectic apothecary appearance appearances appendectomy appendices
+appendicitis applejack applesauce appliance applicability applicable
+applicably applicant application applicator appreciable appreciably
+appreciate appreciation appreciative appreciatively appreciator
+appreciatory apprentice apprenticeship approach approachable
+appurtenance appurtenances apricot aquaculture aquatically aquatics
+aqueduct aquiculture arachnid arcade arcane arch archaeological
+archaeologically archaeologist archaeology archaic archaically archaism
+archaist archangel archbishop archbishopric archdeacon archdiocesan
+archdiocese archduchess archduke arched archenemy archeology archer
+archery archetypal archetype archetypical archfiend archiepiscopal
+archipelago architect architectonic architectonics architectural
+architecturally architecture architrave archival archive archives
+archivist archly archness archway arctic aristocracy aristocrat
+aristocratic aristocratically arithmetical arithmetically arithmetician
+armchair armistice aromatically arrogance artefact arteriosclerosis
+arthroscope arthroscopic artichoke article articular articulate
+articulated articulately articulateness articulation artifact artifice
+artificer artificial artificiality artificially artistically ascend
+ascendance ascendancy ascendant ascendency ascendent ascension ascent
+ascertain ascertainable ascertainment ascetic ascetically asceticism
+ascot ascribable ascribe ascription aseptically ashcan askance asocial
+aspect assistance associate association associative assonance assurance
+astringency astrological astrologically astronautical astronautics
+astronomical astronomically astrophysical astrophysicist astrophysics
+asymmetrical asymmetrically atherosclerosis athletically athletics
+atmospherically atmospherics atomically atrocious atrociously
+atrociousness atrocity attach attachable attache attachment attack
+attacker attendance attract attractable attractant attraction attractive
+attractively attractiveness atypical atypically auction auctioneer
+audacious audaciously audaciousness audacity audience audiological
+auricle auricular auscultate auscultation auspice auspices auspicious
+auspiciously auspiciousness authentically authenticate authentication
+authenticity autobiographical autobiographically autoclave autocracy
+autocrat autocratic autocratically autodidact automatically avalanche
+avarice avaricious avariciously aviatrices avionics avocado avocation
+avocational avoidance avouch avuncular awestricken awestruck
+axiomatically baccalaureate baccarat bacchanal bacchanalia bacchanalian
+bachelor bachelorhood bacillary bacilli bacillus back backache backbit
+backbite backbiter backbiting backbitten backboard backbone backbreaking
+backdate backdrop backer backfield backfire backgammon background
+backgrounder backhand backhanded backhandedly backhander backhoe backing
+backlash backless backlog backpack backpacker backpacking backpedal
+backrest backroom backscratching backseat backside backslapper
+backslapping backslash backslid backslide backslider backspace backspin
+backstabber backstage backstairs backstop backstretch backstroke
+backtalk backtrack backup backward backwardly backwardness backwards
+backwash backwater backwoods backwoodsman backyard bacon bacteria
+bacterial bactericidal bactericide bacteriologic bacteriological
+bacteriologist bacteriology bacterium bailiwick balance balanced balcony
+baldfaced ballcock ballistics bankcard bankruptcy barbarically barbecue
+barcarole bareback barefaced barefacedly barnacle barnacled
+barometrically baronetcy barrack barracks barracuda barricade basically
+basics basilica batch bathyscaph bathyscaphe beach beachcomber beachhead
+beachwear beacon beatifically beatification beautician beautification
+becalm becalmed became because beck beckon becloud become becoming
+becomingly bedclothes bedeck bedrock beech beechnut beefcake belch
+bellicose bellicosity belligerence belligerency bellyache bench
+benchmark benediction benedictory benefaction benefactor benefactress
+benefice beneficence beneficent beneficently beneficial beneficially
+beneficiary benevolence beseech beseecher beseeching beseechingly
+besmirch bespectacled betcha bewitch bewitched bewitching bewitchingly
+bewitchment biblical bibliographical bibliographically bicameral
+bicameralism bicarb bicarbonate bicentenary bicentennial bicep biceps
+bicker bickerer biconcave biconvex bicuspid bicycle bicycler bicyclist
+bidirectional bidirectionally bifocal bifocals bifurcate bifurcation
+binnacle binocular binoculars biochemical biochemically biochemist
+biochemistry bioethics biofeedback biographical biographically
+biological biologically bionically bionics biophysical biophysicist
+biophysics biotechnological biotechnology biracial birch birdwatcher
+birthplace biscuit bisect bisection bisector bitch bitchily bitchiness
+bitchy black blackamoor blackball blackberry blackbird blackboard
+blacken blackguard blackhead blacking blackish blackjack blacklist
+blackly blackmail blackmailer blackness blackout blacksmith blacksnake
+blackthorn blacktop blanch blatancy bleach bleacher bleachers blench
+block blockade blockader blockage blockbuster blockbusting blocker
+blockhead blockhouse bloodcurdling bloodsucker bloodsucking blotch
+blotched blotchy blowtorch bluejacket bluestocking bobcat boccie bock
+bodacious bodice boldface boldfaced bombastically bookcase boondocks
+bootblack borscht botanical botanically botch botcher bottleneck bounce
+bouncer bouncily bounciness bouncing bouncy boxcar boycott brace
+bracelet bracer bracero braces bracing bracken bracket brackish
+brackishness bract braggadocio brainchild brainchildren branch branched
+branchlike breach breadcrumb breakneck breech breeches brick brickbat
+bricklayer bricklaying brickwork briefcase brilliance brilliancy brioche
+britches broach broadcast broadcaster broadcasting broadcloth brocade
+broccoli brochette brochure bronchi bronchial bronchitic bronchitis
+bronchus bronco broncobuster brooch broomstick brunch buccaneer buck
+buckaroo buckboard bucket bucketful buckeye buckle buckler buckram
+bucksaw buckshot buckskin buckskins buckteeth bucktooth bucktoothed
+buckwheat bucolic bucolically bullfinch bullock bunch bunchy bunco
+buncombe buoyancy burdock bureaucracy bureaucrat bureaucratic
+bureaucratically bureaucratization bureaucratize bushwhack bushwhacker
+butch butcher butchery buttercup butterscotch buttock buttocks buyback
+byproduct dace dacha dachshund dactyl dactylic dalliance dance dancer
+dancing daycare deacon deaconess deactivate deactivation deadlock
+deathwatch debacle debauch debauched debauchee debauchery decade
+decadence decadency decadent decadently decaf decaffeinate decaffeinated
+decagon decal decamp decampment decant decanter decapitate decapitation
+decapitator decathlon decay decease deceased decedent deceit deceitful
+deceitfully deceitfulness deceive deceiver deceivingly decelerate
+deceleration decelerator decencies decency decennial decent decently
+decentralization decentralize deception deceptive deceptively
+deceptiveness decibel decidable decide decided decidedly deciduous
+deciliter decimal decimate decimation decimeter decipher decipherable
+decision decisive decisively decisiveness deck decker deckhand declaim
+declaimer declamation declamatory declarable declaration declarative
+declaratory declare declarer declassification declassify declension
+declination decline decliner declivity decode decoder decolletage
+decollete decolonization decolonize decommission decompose decomposition
+decompress decompression decongestant deconstruction decontaminate
+decontamination decontrol decor decorate decoration decorative
+decoratively decorator decorous decorously decorousness decorum
+decoupage decoy decrease decreasing decreasingly decree decrepit
+decrepitude decrescendo decriminalization decriminalize decry dedicate
+dedicated dedication dedicator dedicatory deduce deducible deduct
+deductible deduction deductive deductively deescalate deescalation
+deface defacement defacer defalcate defalcation defecate defecation
+defect defection defective defectively defectiveness defector deference
+defiance deficiency deficient deficit deflect deflection deflective
+deflector defrock defunct degeneracy deice deicer deification deject
+dejected dejectedly dejection delectable delectably delectation delicacy
+delicate delicately delicateness delicatessen delicious deliciously
+deliciousness delinquency deliquesce deliquescent deliverance demarcate
+demarcation democracy democrat democratic democratically democratization
+democratize demographically demographics demoniacal demoniacally
+demulcent demystification denounce denouncement dentifrice denuclearize
+denunciation dependence dependency depict depiction depoliticize
+deprecate deprecating deprecation deprecatory depreciate depreciation
+derelict dereliction dermatological derrick descant descend descendant
+descendent descent describable describe describer description
+descriptive descriptively descriptiveness descry desecrate desecration
+desiccant desiccate desiccation desiccator despatch despicable
+despicably despondence despondency despotically destruct destructibility
+destructible destruction destructive destructively destructiveness
+detach detachable detached detachment detect detectable detection
+detective detector deterrence detoxification detract detraction
+detractor deuce deviance deviancy device dewclaw diabolical diabolically
+diacritic diacritical diagnostically diagnostician diagnostics
+diagrammatically dialect dialectal dialectic dialectical dialectics
+diametrical diametrically diamondback dice dicey dichotomous dichotomy
+dick dicker dickey dicky dicotyledon dicotyledonous dicta dictate
+dictation dictator dictatorial dictatorially dictatorship diction
+dictionary dictum didactic didactically dielectric dietetics dietician
+difference difficult difficultly difficulty diffidence diffraction
+diligence diocesan diocese diplomacy diplomatically dipstick diptych
+direct directed direction directional directions directive directly
+directness director directorate directorial directorship directory
+disaffect disaffected disaffection disappearance disassociate
+disassociation discard discern discernible discernibly discerning
+discerningly discernment discharge disciple discipleship disciplinarian
+disciplinary discipline disciplined disclaim disclaimer disclose
+disclosure disco discography discolor discoloration discombobulate
+discombobulation discomfit discomfiture discomfort discommode discompose
+discomposure disconcert disconcerted disconcerting disconcertingly
+disconnect disconnected disconnectedly disconnectedness disconnection
+disconsolate disconsolately discontent discontented discontentedly
+discontentment discontinuance discontinuation discontinue discontinuity
+discontinuous discontinuously discord discordance discordant
+discordantly discotheque discount discountenance discounter discourage
+discouraged discouragement discouraging discouragingly discourse
+discourteous discourteously discourtesy discover discoverer discovery
+discredit discreditable discreditably discreet discreetly discreetness
+discrepancy discrepant discrete discretely discretion discretionary
+discriminate discriminating discrimination discriminator discriminatory
+discursive discursively discursiveness discus discuss discussant
+discussion disenchant disenchanted disenchantment disencumber
+disenfranchise disenfranchised disenfranchisement disfranchise
+disfranchisement disgrace disgraceful disgracefully disgracefulness
+dishcloth disinclination disincline disinclined disinfect disinfectant
+disinfection disinheritance dislocate dislocation disobedience dispatch
+dispatcher displace displacement disqualification disrespect
+disrespectful disrespectfully dissatisfaction dissect dissection
+dissector dissemblance disservice dissidence dissociate dissociation
+dissonance distance distinct distinction distinctive distinctively
+distinctiveness distinctly distinctness distract distracted distractedly
+distracting distraction district disturbance ditch divergence
+diversification diverticulitis divorce divorced divorcee divorcement
+docent docile docilely docility dock docket dockworker dockyard doctor
+doctoral doctorate doctrinaire doctrinal doctrine docudrama document
+documentary documentation dogcart dogcatcher dogmatically domestically
+domesticate domesticated domestication domesticity domicile domiciled
+domiciliary dominance doohickey dormancy dormice douche dovecote
+downcast downscale drachma draconian dramatically dramatics drastically
+drawback dreadlocks drench drenched drenching dropkick dropsical
+drumstick ducal ducat duchess duchy duck duckbill duckling duckpins
+duckweed ducky duct ductile ductility ductless dulcet dulcimer
+dumbstruck dunce duodecimal duplicate duplication duplicator duplicitous
+duplicity durance dutch dynamically dynamics dysfunction dysfunctional
+dyslectic each earache ebullience eccentric eccentrically eccentricity
+ecclesiastic ecclesiastical ecclesiastically echelon echinoderm echo
+echoic echolocation eclair eclat eclectic eclectically eclecticism
+eclipse ecliptic eclogue ecocide ecological ecologically ecologist
+ecology economic economical economically economics economist economize
+economizer economy ecosystem ecru ecstasy ecstatic ecstatically
+ecumenical ecumenically ecumenism eczema edict edification edifice
+educability educable educate educated education educational
+educationally educator educe efface effacement effacing effect effective
+effectively effectiveness effects effectual effectually effectuate
+effeminacy effervesce effervescence effervescent effervescently
+efficacious efficaciously efficacy efficiency efficient efficiently
+efflorescence effluence effulgence egocentric egocentrically
+egocentricity egoistical egoistically egotistical egotistically
+ejaculate ejaculation ejaculatory eject ejection ejector elastically
+elasticity elasticize elect electable election electioneer elective
+elector electoral electorate electric electrical electrically
+electrician electricity electrification electrifier electrify
+electrifying electrocardiogram electrocardiograph electrocardiography
+electrocute electrocution electrode electroencephalogram
+electroencephalograph electroencephalographic electroencephalography
+electrologist electrolysis electrolyte electrolytic electromagnet
+electromagnetic electromagnetically electromagnetism electromotive
+electron electronic electronically electronics electroplate electroscope
+electroscopic electroshock electrostatics electrotype elegance elicit
+elicitation elliptical elliptically elocution elocutionary elocutionist
+eloquence elucidate elucidation emaciate emaciated emaciation emancipate
+emancipated emancipation emancipator emasculate emasculation embouchure
+embrace embraceable embrocation emcee emergence emergency eminence
+emoticon emphatically empirical empirically empiricism empiricist
+emplacement emulsification enact enactment encamp encampment encapsulate
+encapsulation encase encasement encephalitic encephalitis enchain
+enchant enchanted enchanter enchanting enchantingly enchantment
+enchantress enchilada encipher encircle encirclement enclave enclose
+enclosed enclosure encode encoder encomium encompass encore encounter
+encourage encouragement encouraging encouragingly encroach encroachment
+encrust encrustation encrusted encumber encumbrance encyclical
+encyclopaedia encyclopedia encyclopedic encyst encystment endemically
+endocrine endocrinologist endocrinology endoscope endoscopic endoscopy
+endurance energetically enforce enforceable enforcement enforcer
+enfranchise enfranchisement enhance enhancement enigmatically enrich
+enrichment ensconce enthusiastically entice enticement enticing
+enticingly entomological entrance entrancement entrancing entrancingly
+entrench entrenched entrenchment enunciate enunciation epicenter epicure
+epicurean epidemically episcopacy episcopal episcopate episodically
+epoch epochal equinoctial equivalence equivalency equivocal equivocally
+equivocalness equivocate equivocation equivocator eradicable eradicate
+eradication eradicator erect erectile erection erectly erectness erector
+ergonomically ergonomics erotica erotically eroticism erratically eruct
+eructation erythrocyte escalate escalation escalator escallop escapade
+escape escaped escapee escapement escapism escapist escargot escarole
+escarpment eschew escort escritoire escrow escutcheon esoterically
+especial especially essence esthetically esthetics etch etcher etching
+ethical ethically ethics ethnically ethnicity ethnocentric ethnocentrism
+ethnological ethological etiological etymological etymologically
+eucalypti eucalyptus euchre eugenically eugenicist eugenics eunuch
+euphemistically euphorically euthenics evacuate evacuation evacuee
+evanescence evanescent evangelical evangelicalism evangelically
+everyplace evict eviction evidence evince eviscerate evisceration
+evocation evocative evocatively exacerbate exacerbation exact exacting
+exactingly exaction exactitude exactly exactness excavate excavation
+excavator exceed exceeding exceedingly excel excellence excellency
+excellent excellently excelsior except excepted excepting exception
+exceptionable exceptional exceptionally excerpt excess excesses
+excessive excessively exchange exchangeable exchequer excise excision
+excitability excitable excitably excitation excite excited excitedly
+excitement exciter exciting excitingly exclaim exclamation exclamatory
+exclude excluding exclusion exclusive exclusively exclusiveness
+exclusivity excommunicate excommunication excoriate excoriation
+excrement excremental excrescence excrescent excreta excrete excretion
+excretory excruciating excruciatingly exculpate exculpation exculpatory
+excursion excursionist excursive excursively excursiveness excusable
+excusably excuse execrable execrate execration execute execution
+executioner executive executor executrices executrix exegetical
+exemplification exercise exerciser exercises exigencies exigency
+existence exorbitance exorcise exorcism exorcist exorcize exotically
+exoticism expect expectancy expectant expectantly expectation
+expectations expectorant expectorate expectoration expedience expediency
+experience experienced explicable explicate explication explicit
+explicitly explicitness extinct extinction extract extraction extractor
+extracurricular extravagance extravehicular extricable extricate
+extrication extrinsically exuberance eyepiece fabricate fabrication
+fabricator facade face faced facedly faceless facelift facet facetious
+facetiously facetiousness facial facially facile facilely facilitate
+facilitation facilitator facilities facility facing facsimile fact
+faction factional factionalism factious factitious factly factness
+factoid factor factorial factory factotum factual factually faculty
+faience falcon falconer falconry fallacious fallaciously fallacy
+falsification fanatical fanatically fanaticism fancier fanciful
+fancifully fancifulness fancily fanciness fancy fancywork fantastical
+fantastically farce farcical farcically farfetched farinaceous fascia
+fascicle fascinate fascinated fascinating fascinatingly fascination
+fascism fascist fascistic fastback fatalistically fatback faucet fecal
+feces feckless fecklessly fecund fecundate fecundation fecundity
+feedback felicitate felicitation felicitations felicitous felicitously
+felicity fence fencer fencing ferocious ferociously ferociousness
+ferocity fervency fetch fetcher fetching fetchingly fetlock fettuccine
+fiance fiancee fiasco fiche fichu fickle fickleness fiction fictional
+fictionalization fictionalize fictionally fictitious fictitiously
+fictive ficus fiddlesticks fiduciary fierce fiercely fierceness filch
+finance finances financial financially financier financing finch
+finickiness finicky firebrick firecracker fireplace firetruck fiscal
+fiscally fishcake fisticuffs flaccid flaccidity flaccidly flack
+flagrancy flamboyance flamboyancy flamenco flapjack flashback flashcard
+flashcube flatcar flatulence fleck flecked fleece fleecer fleeciness
+fleecy flick flicker flinch flintlock flippancy flock flocking
+florescence florescent flounce flouncy flowchart fluctuate fluctuation
+fluency fluoresce fluorescence fluorescent fluorocarbon fluoroscope
+fluoroscopic flycatcher flyspeck focal focally foci focus follicle
+foolscap footlocker footrace forbearance force forced forceful
+forcefully forcefulness forceps forces forcible forcibly forecast
+forecaster forecastle foreclose foreclosure forelock forensically
+forensics fornicate fornication fornicator forthcoming fortification
+fortifications fourscore fracas fractal fraction fractional fractionally
+fractious fractiously fractiousness fracture fragrance franchise
+franchisee franchiser franchisor francium frankincense frantically
+fratricidal fratricide fraudulence freckle freckled freckly freelance
+freelancer frenetically frequency fresco fricassee fricative friction
+frictional friedcake frock frolicker frolicsome frontispiece fructify
+fructose fruitcake fuchsia fuck fucker fucking fulcra fulcrum fullback
+function functional functionally functionary fungicidal fungicide
+funicular furnace furtherance galactic gamecock garcon garlicky
+gastronomical gastronomically gatecrash gatecrasher gauche gauchely
+gaucheness gaucherie gaucho gazpacho gecko gelcap gemological
+genealogical genealogically generically genetically geneticist genetics
+genocidal genocide gentrification genuflect genuflection geocentric
+geocentrically geochemistry geographical geographically geological
+geologically geometrical geometrically geophysical geophysicist
+geophysics geopolitical geopolitics geosyncline geriatrics germicidal
+germicide gerontological gesticulate gesticulation gigantically gimcrack
+gimcrackery gimmick gimmickry gimmicky giveback glace glacial glacially
+glaciate glaciation glacier glance glancing glaucoma glitch glockenspiel
+glorification glucose glycerin glycerine glycerol glycogen godchild
+godchildren goldbrick goldfinch gotcha governance grace graceful
+gracefully gracefulness graceless gracelessly gracelessness gracious
+graciously graciousness grackle grammatical grammatically grandchild
+grandchildren grandiloquence grandniece granduncle graphical graphically
+graphics gratification greatcoat greenback greengrocer griddlecake
+gridlock gridlocked grievance grimace grocer groceries grocery grouch
+grouchily grouchiness grouchy guacamole guidance gulch gunnysack
+gymnastically gymnastics gynecologic gynecological gynecologist
+gynecology gyrfalcon gyroscope gyroscopic hacienda hack hacker hacking
+hackle hackles hackney hackneyed hacksaw haddock haircloth haircut
+hairpiece halcyon halfback halfpence hallucinate hallucination
+hallucinatory hallucinogen hallucinogenic hammerlock hammock handcar
+handcart handclasp handcraft handcrafted handcuff handcuffs handicap
+handicapped handicapper handicraft handkerchief handpick handpicked
+happenstance hardback hardcore hardcover hardscrabble hardtack harmonica
+harmonically harpsichord harpsichordist hassock hatch hatchback hatcheck
+hatchery hatchet hatching hatchway haunch haunches haversack haycock
+hayrick haystack headache headlock headpiece heartache heartsick
+heartsickness heck heckle heckler heckling hectare hectic hectically
+hectogram hectometer hector helical helices helicopter heliocentric
+hellcat hemispherical hemlock hemstitch hence henceforth henceforward
+henchman henpeck henpecked herbaceous herbicidal herbicide herculean
+heretical hermetically heroically heroics hesitance hesitancy
+heuristically heuristics hexadecimal hibachi hibiscus hiccough hiccup
+hiccups hick hickey hickory hierarchic hierarchical hierarchically
+hierarchy hieroglyphics highchair highjack hijack hijacker hijacking
+hillock hindrance historical historically historicity histrionically
+histrionics hitch hitcher hitchhike hitchhiker hock hockey hockshop
+hocus hoecake hogback holistically hollyhock holocaust homecoming
+homeschooling homesick homesickness homestretch homicidal homicide
+honcho honeycomb honeycombed honeylocust honeysuckle hooch hopscotch
+horological horoscope horrifically horseback horticultural horticulture
+horticulturist hospice hotcake houseclean housecleaning housecoat
+hovercraft huarache hubcap huckleberry huckster hucksterism
+humidification hummock hummocky humpback humpbacked hunch hunchback
+hunchbacked hunched hurricane hutch hyacinth hydraulically hydraulics
+hydrocarbon hydrocephalus hydrocephaly hydrodynamics hydroelectric
+hydroelectrically hydroelectricity hydroponically hydroponics
+hygienically hyperactive hyperactivity hypercritical hypercritically
+hyperglycemia hypnotically hypochondria hypochondriac hypocrisy
+hypocrite hypocritical hypocritically hypoglycemia hypoglycemic
+hypothetical hypothetically hysterectomy hysterical hysterically
+hysterics ice iceberg iceboat icebound icebox icebreaker icecap iced
+iceman ichthyologist ichthyology icicle icily iciness icing icky icon
+iconic iconoclasm iconoclast iconoclastic iconography ictus icy
+idealistically identical identically identification ideological
+ideologically idiocy idiomatically idiosyncrasy idiosyncratic
+idiosyncratically idiotically idyllically ignorance illegitimacy illicit
+illicitly illicitness illiteracy illogical illogicality illogically
+imbalance imbecile imbecilic imbecility imbrication immaculate
+immaculately immaculateness immanence immanency immediacies immediacy
+imminence immunodeficiency immunodeficient immunological impact impacted
+impatience impeach impeachable impeacher impeachment impeccability
+impeccable impeccably impecunious impecuniously impecuniousness
+impedance impenitence imperceptibility imperceptible imperceptibly
+imperceptive imperfect imperfection imperfectly imperfectness
+imperialistically impermanence impertinence implacability implacable
+implacably implicate implication implicit implicitly implicitness
+importance impotence impotency impracticable impracticably impractical
+impracticality impractically imprecate imprecation imprecise imprecisely
+impreciseness imprecision improvidence imprudence impudence
+inaccessibility inaccessible inaccuracy inaccurate inaccurately inaction
+inactivate inactivation inactive inactively inactivity inadequacy
+inadvertence inapplicable inappreciable inappreciably inapproachable
+inarticulate inarticulately inarticulateness inauspicious inauspiciously
+incalculable incalculably incandescence incandescent incandescently
+incantation incapability incapable incapably incapacitate incapacity
+incarcerate incarceration incarnadine incarnate incarnation incautious
+incendiary incense incentive inception incertitude incessant incessantly
+incest incestuous incestuously inch inchoate inchworm incidence incident
+incidental incidentally incidentals incinerate incineration incinerator
+incipience incipient incipiently incise incision incisive incisively
+incisiveness incisor incite incitement inciter incivility inclemency
+inclement inclination incline inclined inclose inclosure include
+included including inclusion inclusive inclusively inclusiveness
+incognito incoherence incoherent incoherently incombustible income
+incoming incommensurate incommensurately incommode incommodious
+incommunicable incommunicado incomparable incomparably incompatibility
+incompatible incompatibly incompetence incompetency incompetent
+incompetently incomplete incompletely incompleteness incomprehensibility
+incomprehensible incomprehensibly incomprehension inconceivable
+inconceivably inconclusive inconclusively incongruity incongruous
+incongruously inconsequential inconsequentially inconsiderable
+inconsiderate inconsiderately inconsiderateness inconsistency
+inconsistent inconsistently inconsolable inconsolably inconspicuous
+inconspicuously inconspicuousness inconstancy inconstant inconstantly
+incontestability incontestable incontestably incontinence incontinent
+incontrovertible incontrovertibly inconvenience inconvenient
+inconveniently incorporate incorporated incorporation incorporeal
+incorrect incorrectly incorrectness incorrigibility incorrigible
+incorrigibly incorruptibility incorruptible incorruptibly increase
+increased increasing increasingly incredibility incredible incredibly
+incredulity incredulous incredulously increment incremental incriminate
+incriminating incrimination incriminatory incrust incrustation incubate
+incubation incubator incubi incubus inculcate inculcation inculpable
+inculpate incumbency incumbent incunabula incunabulum incur incurable
+incurably incurious incursion indecency indecent indecently
+indecipherable indecision indecisive indecisively indecisiveness
+indecorous indecorously indelicacy indelicate indelicately
+indemnification independence indescribable indescribably
+indestructibility indestructible indestructibly indeterminacy indicate
+indication indicative indicatively indicator indices indict indictable
+indictment indifference indigence indirect indirection indirectly
+indirectness indiscernible indiscreet indiscreetly indiscretion
+indiscriminate indiscriminately indistinct indistinctly indistinctness
+indoctrinate indoctrination indolence induce induced inducement inducer
+induct inductance inductee induction inductive indulgence ineducable
+ineffective ineffectively ineffectiveness ineffectual ineffectually
+inefficacy inefficiency inefficient inefficiently inelegance ineluctable
+ineluctably ineradicable inescapable inescapably inexact inexactly
+inexactness inexcusable inexcusably inexpediency inexperience
+inexperienced inexplicable inexplicably inextricable inextricably
+infancy infanticide infarct infarction infect infected infection
+infectious infectiously infectiousness infelicitous infelicity inference
+inflect inflection inflectional inflict inflicted infliction inflictive
+inflorescence inflorescent influence infomercial infraction
+infrastructure infrequency inheritance inimical inimically inject
+injection injector injudicious injudiciously injunction injustice
+innocence innocent innocently innocuous innocuously innocuousness
+innumeracy inoculate inoculation inorganically inscribe inscriber
+inscription inscrutability inscrutable inscrutably insect insecticidal
+insecticide insectivore insectivorous insecure insecurely insecurity
+insentience insignificance insignificant insignificantly insincere
+insincerely insincerity insistence insolence insolvency insomuch
+insouciance insouciant inspect inspection inspector instance instinct
+instinctive instinctively instinctual instruct instruction instructional
+instructions instructive instructively instructor insufficiency
+insufficient insufficiently insurance insurgence insurgency insurrection
+insurrectionist insusceptible intact intellect intellectual
+intellectualism intellectualize intellectually intelligence intemperance
+intensification interact interaction interactive interactively intercede
+intercept interception interceptor intercession intercessor intercessory
+interchange interchangeable interchangeably intercollegiate intercom
+intercommunicate intercommunication interconnect interconnection
+intercontinental intercourse intercultural interdependence interdict
+interdiction interdisciplinary interface interference intergalactic
+interject interjection interlace interlock interlocking interlocutor
+interlocutory internecine interoffice interracial interscholastic
+intersect intersection interstice intervocalic intestacy intimacy
+intolerance intoxicant intoxicate intoxicated intoxicating intoxication
+intractability intractable intractably intramuscular intransigence
+intricacy intricate intricately intrinsically introduce introduction
+introductory introspect introspection introspective introspectively
+invective inveteracy invincibility invincible invincibly invocation
+invoice ipecac irascibility irascible irascibly iridescence iridescent
+iridescently ironclad ironical ironically irreclaimable
+irreconcilability irreconcilable irreconcilably irrecoverable
+irrecoverably irreducible irreducibly irrelevance irrelevancy
+irreplaceable irreproachable irreproachably irrespective irreverence
+irrevocable irrevocably isometrically isometrics isosceles issuance
+italicization italicize italicized italics itch itchiness itchy
+jacaranda jack jackal jackass jackboot jackdaw jacket jacketed
+jackhammer jackknife jackknives jackpot jackrabbit jacks jackstraw
+jacquard jaundice jaundiced jock jockey jockstrap jocose jocosely
+jocoseness jocosity jocular jocularity jocularly jocund jocundity
+jocundly johnnycake jounce jouncy joystick judicatory judicature
+judicial judicially judiciary judicious judiciously judiciousness juice
+juiced juicer juicily juiciness juicy junco junction juncture juridical
+juridically jurisdiction jurisdictional jurisprudence justice
+justification kaffeeklatch kaffeeklatsch kaleidoscope kaleidoscopic
+kerchief ketch ketchup keypunch keypuncher kick kickback kickball kicker
+kickoff kickstand kicky kilocycle kinematics kinetically kinetics kirsch
+kitchen kitchenette kitchenware kitsch kitschy knack knackwurst knapsack
+kneecap knickerbockers knickers knickknack knock knockdown knocker
+knockoff knockout knockwurst knuckle knucklehead kopeck kuchen kvetch
+lace lacerate laceration lacewing lacework lachrymal lachrymose lack
+lackadaisical lackadaisically lackey lacking lackluster laconic
+laconically lacquer lacrimal lacrosse lactate lactation lacteal lactic
+lactose lacuna lacunae lacy lambency lampblack lance lancer lancet
+landlocked landscape landscaper larcenist larcenous larceny larch
+lascivious lasciviously lasciviousness latch latchkey latecomer latency
+latices lattice latticed latticework laughingstock launch launcher
+launchpad lawrencium leach leaseback leatherneck lech lecher lecherous
+lecherously lecherousness lechery lecithin lectern lecture lecturer
+lectureship leech legacy legitimacy lenience leniency leprechaun
+lethargically lettuce leukocyte lexical lexicographer lexicographic
+lexicographical lexicography lexicon lice license licensed licensee
+licentiate licentious licentiously licentiousness lichee lichen licit
+licitly lick lickety licking licorice lieutenancy lightface lightfaced
+limerick linchpin linebacker linguistically linguistics liposuction
+lipstick liquefaction litchi literacy lithographically liturgical
+liturgically livestock local locale locality localization localize
+localized locally locate location locator loch loci lock locker locket
+lockjaw lockout locks locksmith lockstep lockup loco locomotion
+locomotive locoweed locus locust locution logical logically logician
+logistical logistically logistics loincloth loquacious loquaciousness
+loquacity lovechild lovesick lowercase lubricant lubricate lubrication
+lubricator lubricious lubricity lucid lucidity lucidly lucidness luck
+luckily luckiness luckless lucky lucrative lucratively lucrativeness
+lucre lucubrate lucubration ludicrous ludicrously ludicrousness
+lumberjack luminescence luminescent lunacy lunch luncheon luncheonette
+lunchroom lunchtime lurch luscious lusciously lusciousness luxuriance
+lyceum lychee lymphocyte lynch lyncher lynching lyrical lyrically
+lyricism lyricist lyrics macabre macadam macadamia macadamize macaque
+macaroni macaroon macaw mace macerate maceration mach mache machete
+machinate machination machinations machine machinery machinist machismo
+macho macintosh mackerel mackinaw mackintosh macrame macro macrobiotic
+macrobiotics macrocosm macroeconomics macron macroscopic madcap magical
+magically magician magistracy magnetically magnification magnificence
+magnificent magnificently magniloquence maintenance majestically
+majolica malachite malcontent malediction malefaction malefactor
+maleficence maleficent malevolence malfeasance malfunction malice
+malicious maliciously maliciousness malignancy malocclusion malpractice
+manacle maniacal maniacally manically manicure manicurist mantelpiece
+manufacture manufacturer manufacturing manuscript maraca maraschino
+march marcher marchioness mariachi marketplace mascara mascot masculine
+masculinity masochism masochist masochistic masochistically massacre
+mastectomy masterpiece masticate mastication match matchbook matchbox
+matching matchless matchlock matchmaker matchmaking matchstick
+materialistically mathematical mathematically mathematician mathematics
+matriarch matriarchal matriarchy matrices matricidal matricide
+matriculate matriculation mattock maverick meatpacking mecca mechanic
+mechanical mechanically mechanics mechanism mechanistic mechanistically
+mechanization mechanize mechanized medicaid medical medically medicament
+medicare medicate medicated medication medicinal medicinally medicine
+mediocre mediocrity meerschaum megabucks megacycle melancholia
+melancholic melancholy melodically melodramatically melodramatics menace
+menacing menacingly mendacious mendaciously mendacity mendicancy
+mendicant menisci meniscus mensch mercantile mercantilism mercenary
+mercer mercerize merchandise merchandiser merchandising merchant
+merchantable merchantman merciful mercifully merciless mercilessly
+mercilessness mercurial mercurially mercuric mercury mercy meretricious
+meretriciously meretriciousness meritocracy mescal mescaline
+metabolically metacarpal metacarpi metacarpus metallurgical metaphorical
+metaphorically metaphysical metaphysically metaphysics metempsychoses
+metempsychosis meteorically meteorological methodical methodically
+methodicalness methodological methodologically meticulous meticulously
+meticulousness metrical metrically metricate metrication metricize mica
+mice mickey microbe microbial microbiological microbiologist
+microbiology microbrewery microchip microcircuit microcomputer microcosm
+microcosmic microdot microeconomics microelectronic microelectronics
+microfiber microfiche microfilm microgroove micromanage micromanagement
+micrometeorite micrometer micron microorganism microphone microprocessor
+microscope microscopic microscopically microscopy microsecond
+microsurgery microwavable microwave microwaveable midsection milch
+militancy millisecond millrace mimicker mimicry mince mincemeat mincing
+mineralogical minicam minicomputer miniscule minuscule miracle
+miraculous miraculously misalliance misanthropically misapplication
+miscalculate miscalculation miscall miscarriage miscarry miscast
+miscegenation miscellaneous miscellaneously miscellany mischance
+mischief mischievous mischievously mischievousness miscibility miscible
+misconceive misconceived misconception misconduct misconstruction
+misconstrue miscount miscreant miscue misdirect misdirection misfeasance
+misguidance mismatch mismatched misplace misplaced misplacement
+mispronounce mispronunciation mnemonically moccasin mocha mock mocker
+mockery mockingbird mockingly modicum modification molecular
+molecularity molecule mollification molluscan mollycoddle monarch
+monarchic monarchical monarchism monarchist monarchistic monarchy
+monastically monasticism monicker monochromatic monochrome monocle
+monocled monoclonal monocotyledon monocotyledonous monocular
+monomaniacal mononucleosis monstrance mooch moocher moonscape moonstruck
+moralistically mordancy morocco moronically morphological mortician
+mortification mossback motherfucker motherfucking motocross motorcade
+motorcar motorcycle motorcyclist moustache mouthpiece much mucilage
+mucilaginous muck muckrake muckraker muckraking mucky mucous mucus mulch
+mulct multicolored multicultural multiculturalism multidisciplinary
+multifaceted multiplicand multiplication multiplicity multiprocessor
+multiracial mummification munch munchies munchkin municipal municipality
+municipally munificence munificent munificently muscat muscatel muscle
+musclebound muscular muscularity muscularly musculature musical musicale
+musicality musically musician musicianly musicianship musicological
+musicologist musicology mustache mustached mustachio muttonchops
+mycologist mycology myopically mystical mystically mysticism
+mystification mythical mythological nacelle nacho nachos nacre nacreous
+nanosecond narcissi narcissism narcissist narcissistic narcissus
+narcolepsy narcoses narcosis narcotic narcotization narcotize nascence
+nascent natch nationalistically nautical nautically necessarily
+necessary necessitate necessity neck necked neckerchief necking necklace
+neckline necktie necrology necromancer necromancy necropolis necroses
+necrosis necrotic nectar nectarine neglect neglectful neglectfully
+neglectfulness negligence neoclassic neoclassical neoclassicism
+neocolonialism neocolonialist neoconservative neurological
+neurologically neurotically newcomer newscast newscaster niacin nice
+nicely niceness niceties nicety niche nick nickel nickelodeon nicker
+nickname nicotine niece nightcap nightclothes nightclub nightstick
+nincompoop nitpick nitpicker nitpicking nitrification nitrocellulose
+nitroglycerin nitroglycerine nocturnal nocturnally nocturne nomenclature
+nonacademic nonacceptance nonacid nonactive nonaddictive nonadjacent
+nonalcoholic nonappearance nonattendance noncaloric noncancerous nonce
+nonchalance nonchalant nonchalantly nonchargeable nonclerical
+nonclinical noncollectable noncom noncombat noncombatant noncombustible
+noncommercial noncommittal noncommittally noncommunicable noncompeting
+noncompetitive noncompliance noncomplying nonconducting nonconductor
+nonconforming nonconformist nonconformity nonconsecutive nonconstructive
+noncontagious noncontinuous noncontributing noncontributory
+noncontroversial nonconvertible noncooperation noncorroding noncorrosive
+noncredit noncriminal noncritical noncrystalline noncumulative
+noncustodial nondeductible nondemocratic nondepreciating nondescript
+nondestructive nondetachable nondisciplinary nondisclosure
+nondiscrimination nondiscriminatory noneducational noneffective
+nonelectric nonelectrical nonenforceable nonesuch nonexchangeable
+nonexclusive nonexistence nonfactual nonfiction nonfictional
+nonfluctuating nonfunctional nonidentical noninclusive noninfectious
+noninflected nonintellectual noninterchangeable noninterference
+nonintoxicating nonjudicial nonnarcotic nonnuclear nonnumerical
+nonobjective nonobservance nonoccupational nonoccurrence nonofficial
+nonparticipant nonparticipating nonperformance nonphysical nonphysically
+nonpolitical nonpracticing nonprejudicial nonprescription nonproductive
+nonracial nonradioactive nonreactive nonreciprocal nonreciprocating
+nonrecognition nonrecoverable nonrecurring nonresistance nonrestrictive
+nonscheduled nonscientific nonscoring nonsectarian nonsecular
+nonsensical nonsensically nonsocial nonspecialist nonspecializing
+nonspecific nonstick nonstructural nonsuccessive nonsurgical
+nontechnical nontheatrical nontropical nonviolence nonvocal
+nonvocational normalcy nosecone nostalgically notch notice noticeable
+noticeably notification novice nuance nuanced nuclear nucleate
+nucleation nuclei nucleoli nucleolus nucleon nucleus nuisance
+nullification numeracy numerical numerically numismatics nuncio
+nutcracker nuthatch nutpick oarlock oatcake obduracy obedience obeisance
+obfuscate obfuscation object objectify objection objectionable
+objectionably objective objectively objectiveness objectivity objector
+obscene obscenely obscenity obscurantism obscurantist obscure obscurely
+obscurity observance obsolesce obsolescence obsolescent obstacle
+obstetrical obstetrician obstetrics obstinacy obstruct obstruction
+obstructionism obstructionist obstructive obstructively obstructiveness
+ocarina occasion occasional occasionally occidental occlude occlusion
+occlusive occult occultism occultist occupancy occupant occupation
+occupational occupationally occupied occupier occupy occur occurrence
+ocean oceanfront oceangoing oceanic oceanographer oceanographic
+oceanography oceanology ocelot ocher ochre octagon octagonal octane
+octave octavo octet octette octogenarian octopi octopus ocular oculist
+office officeholder officer offices official officialdom officialism
+officially officiant officiate officiator officious officiously
+officiousness offtrack oilcloth olfactory oligarch oligarchic
+oligarchical oligarchy omicron omnipotence omnipresence omniscience
+omniscient once oncogene oncologist oncology oncoming onscreen
+ontological opacity opalescence opalescent operatically
+opportunistically optical optically optician optics optimistically
+opulence oracle oracular oratorical oratorically orbicular orchard
+orchestra orchestral orchestrate orchestration orchid ordinance ordnance
+organically orifice ornithological orthodontics orthopaedics orthopedics
+oscillate oscillation oscillator oscillatory oscilloscope osculate
+osculation ossification ostracism ostracize ostrich ouch ounce outback
+outbalance outcast outclass outcome outcrop outcropping outcry
+outdistance outmatch outplace outplacement outproduce outrace outreach
+outscore outsource outsourcing outstretch outstretched overabundance
+overachieve overachiever overact overactive overbalance overcame
+overcapacity overcapitalize overcareful overcast overcautious overcharge
+overcloud overcoat overcome overcompensate overcompensation
+overconfidence overconfident overconscientious overcook overcooked
+overcritical overcrowd overcrowded overcrowding overdecorate overexcite
+overexcited overexercise overindulgence overmuch overnice overparticular
+overprecise overprice overpriced overproduce overproduction overprotect
+overprotective overreach overreact overreaction oversimplification
+overspecialization overspecialize overstock overstrict oversubscribe
+oversuspicious oviduct oxcart oxyacetylene pace pacemaker pacer
+pacesetter pachyderm pachysandra pacific pacifically pacification
+pacifier pacifism pacifist pacifistic pacify pack package packager
+packaging packed packer packet packing packinghouse packsaddle pact
+paddock padlock palace paleface panacea panache pancake panchromatic
+pancreas pancreatic panicky papacy paperback parachute parachutist
+paradisaical paradoxical paradoxically paramecia paramecium paramedical
+parapsychologist parapsychology parasitically parcel parch parched
+parchment parenthetical parenthetically parlance parochial parochialism
+parochially parricidal parricide participant participate participation
+participator participatory participial participle particle particleboard
+particular particularity particularization particularize particularly
+particulars particulate pascal paschal pastiche patch patchily
+patchiness patchwork patchy pathetically pathological pathologically
+patience patriarch patriarchal patriarchate patriarchy patrician
+patricide patriotically patronymically paucity paunch paunchy payback
+paycheck peace peaceable peaceably peaceful peacefully peacefulness
+peacekeeper peacekeeping peacemaker peacemaking peacetime peach peachy
+peacock pecan peccadillo peccary peck pectic pectin pectoral peculate
+peculation peculator peculiar peculiarity peculiarly pecuniary
+pedagogical pedantically pediatrician pediatrics pedicab pedicure
+pedicurist peduncle pelican pellucid pemmican penance pence penchant
+pencil penicillin penitence pentacle penuche peppercorn percale
+perceivable perceive percent percentage percentile perceptible
+perceptibly perception perceptional perceptive perceptively
+perceptiveness perceptual perceptually perch percha perchance
+percipience percipient percolate percolation percolator percussion
+percussionist perfect perfecta perfectibility perfectible perfection
+perfectionism perfectionist perfectly perfectness perforce performance
+perfunctorily perfunctory pericardia pericardium periodical periodically
+periodicity periodontics periscope permanence permanency pernicious
+perniciously perniciousness perpendicular perpendicularity
+perpendicularly persecute persecution persecutor perseverance
+persistence persnickety personification perspective perspicacious
+perspicaciously perspicacity perspicuity perspicuous pertinacious
+pertinaciously pertinacity pertinence pessimistically pesticide
+pestilence petcock petrifaction petrochemical petticoat petulance
+phagocyte pharmaceutical pharmaceuticals pharmaceutics pharmacist
+pharmacological pharmacologist pharmacology pharmacopeia pharmacopoeia
+pharmacy phenacetin philanthropically philological philosophical
+philosophically phlegmatically phonetically phonetician phonetics
+phonically phonics phonological phonologically phosphorescence
+phosphorescent phosphorescently photocell photocopier photocopy
+photoelectric photoelectrically photogenically photographically
+phylactery physical physically physician physicist physics physiological
+physiologically pibroch pica picaresque picayune piccalilli piccolo pick
+pickaback pickax pickaxe picker pickerel picket picking pickings pickle
+pickled pickpocket pickup picky picnic picnicker picot pictograph
+pictorial pictorially picture picturesque picturesquely picturesqueness
+piece piecemeal piecework pieceworker pierce piercing piercingly
+piggyback pilchard pillowcase pince pincer pincers pinch pinched pincher
+pinching pincushion pinnacle pinochle pinprick piquancy piracy piratical
+piscatorial pistachio pitch pitchblende pitched pitcher pitchfork
+pitchman pittance pizzicato placard placate placation placatory place
+placebo placeholder placekick placekicker placement placenta placentae
+placental placer placid placidity placidly placket plainclothes
+plainclothesman plasticity plasticize playact playacting playback
+plebiscite plectra plectrum pliancy pluck pluckiness plucky pluperfect
+plutocracy plutocrat plutocratic pneumatically poach poacher poaching
+pock pocked pocket pocketbook pocketful pocketknife pocketknives
+pockmark pockmarked pocus poetical poetically poignancy poinciana
+polecat polemical polemically polemicist polemics police policeman
+policewoman policy policyholder political politically politician
+politicization politicize politicized politicking politico politics
+pollack polyclinic polytechnic poncho pontifical pontifically
+pontificate pooch popcorn poppycock populace porcelain porch porcine
+porcupine pornographically portcullis portico portulaca postcard
+postconsonantal postdoctoral postscript potency potluck pouch poultice
+pounce practicability practicable practicably practical practicalities
+practicality practically practice practiced practicing practicum
+practitioner pragmatically prance prancer prancingly preach preacher
+preachment preachy preadolescence precancel precancerous precarious
+precariously precariousness precaution precautionary precede precedence
+precedent preceding precept preceptor precinct precincts preciosity
+precious preciously preciousness precipice precipitant precipitate
+precipitately precipitation precipitous precipitously precis precise
+precisely preciseness precision preclude preclusion precocious
+precociously precociousness precocity precognition precognitive
+precolonial preconceive preconceived preconception precondition precook
+precursor precursory predecease predecessor predicable predicament
+predicate predication predicative predict predictability predictable
+predictably prediction predictive predictor predilection predominance
+preeminence preexistence prefabricate prefabricated prefabrication
+preface prefect prefecture preference pregnancy prehistorically
+prejudice prejudiced prejudicial prelacy premedical preoccupation
+preoccupied preoccupy prepackage preponderance prepubescence
+prepubescent prepuce prerecord prerecorded preschool preschooler
+prescience prescient presciently prescribe prescript prescription
+prescriptive prescriptively presence presidency prevalence prevaricate
+prevarication prevaricator price priced priceless pricey prick pricker
+prickle prickliness prickly primacy prince princeliness princely
+princess principal principality principally principle principled privacy
+proactive problematical problematically proboscis procaine procedural
+procedure proceed proceeding proceedings proceeds process procession
+processional processor proclaim proclaimed proclamation proclivity
+proconsul procrastinate procrastination procrastinator procreate
+procreation procreative proctor procurable procurator procure
+procurement procurer produce produced producer producible product
+production productive productively productiveness productivity
+proficiency proficient proficiently profligacy prognosticate
+prognostication prognosticator project projectile projection
+projectionist projector projects prolifically prominence promiscuity
+promiscuous promiscuously pronounce pronounceable pronounced
+pronouncement pronuclear pronunciation prophecy prophetical
+prophetically prophylactic prosaically proscenia proscenium prosciutto
+proscribe proscription prosecute prosecution prosecutor prospect
+prospective prospectively prospector prospects prospectus protactinium
+protect protected protection protectionism protectionist protective
+protectively protectiveness protector protectorate protocol prototypical
+protract protracted protraction protractor protuberance provenance
+provenience providence province provinces provincial provincialism
+provocation provocative provocatively provocativeness prudence prurience
+pseudoscience psittacosis psych psyche psyched psychedelic psychiatric
+psychiatrist psychiatry psychic psychical psychically psycho
+psychoactive psychoanalysis psychoanalyst psychoanalytic
+psychoanalytical psychoanalyze psychobabble psychodrama psychogenic
+psychological psychologically psychologist psychology psychoneuroses
+psychoneurosis psychopath psychopathic psychopathy psychoses psychosis
+psychosomatic psychotherapist psychotherapy psychotic psychotically
+psychotropic pterodactyl pubescence pubescent publican publication
+publicist publicity publicize publicly puce puck pucker puckered puckish
+puckishly puckishness pugnacious pugnaciously pugnaciousness pugnacity
+pulchritude pulchritudinous pullback pumice pumpernickel punch puncheon
+puncher punchy punctilio punctilious punctiliously punctiliousness
+punctual punctuality punctually punctuate punctuation puncture pungency
+purchasable purchase purchaser purification puritanical puritanically
+pursuance purulence purveyance pushcart pussycat putrefaction
+putrefactive putrescence putrescent putsch pyrotechnic pyrotechnics
+quack quackery quadriceps quadruplicate quadruplication qualification
+quantification quarterback quarterdeck quench quenchable quencher
+quenchless quiche quick quicken quickie quicklime quickly quickness
+quicksand quicksilver quickstep quiescence quiescent quiescently quince
+quintessence quitclaim quittance quixotically quizzical quizzically
+rabbinical raccoon race racecourse racehorse raceme racer races
+racetrack raceway racial racialism racialist racially racily raciness
+racing racism racist rack racket racketeer racketeering racking
+raconteur racquet racquetball racy radarscope radiance radical
+radicalism radicalization radicalize radically radicchio radioactive
+radioactively radioactivity radiocarbon radioscopy raincoat rambunctious
+rambunctiously rambunctiousness ramification rampancy ramshackle ranch
+rancher ranching rancid rancidity rancidness rancor rancorous
+rancorously ransack rapacious rapaciously rapaciousness rapacity
+rapprochement rapscallion rarefaction rascal rascally ratchet
+ratification ratiocinate ratiocination raucous raucously raucousness
+raunchily raunchiness raunchy razorback reach reachable reaching
+reacquaint reacquire react reactant reaction reactionary reactions
+reactivate reactivation reactive reactor realistically reallocate
+reallocation reappearance reapplication reascend reassurance reattach
+reattachment rebroadcast recalcitrance recalcitrant recalculate
+recalculation recall recant recantation recap recapitalize recapitulate
+recapitulation recapture recast recasting recede receipt receipts
+receivable receivables receive received receiver receivership recent
+recently recentness receptacle reception receptionist receptive
+receptively receptiveness receptivity receptor recess recesses recession
+recessional recessionary recessive recharge rechargeable recharter
+recheck recherche rechristen recidivism recidivist recipe recipient
+reciprocal reciprocally reciprocate reciprocation reciprocity
+recirculate recital recitalist recitation recitative recite reciter
+reckless recklessly recklessness reckon reckoning reclaim reclaimable
+reclamation reclassification reclassify recline recliner recluse
+reclusive recognition recognizable recognizably recognizance recognize
+recoil recollect recollection recolonization recolonize recolor
+recombine recommence recommencement recommend recommendable
+recommendation recommission recommit recompense recompose recompute
+reconcilable reconcile reconciliation recondite recondition reconfirm
+reconfirmation reconnaissance reconnect reconnoiter reconquer reconquest
+reconsecrate reconsecration reconsider reconsideration reconsign
+reconstitute reconstitution reconstruct reconstruction recontact
+recontaminate reconvene reconvert recook recopy record recorder
+recording recount recoup recourse recover recoverable recovery recreant
+recreate recreation recreational recriminate recrimination recriminatory
+recross recrudesce recrudescence recrudescent recruit recruiter
+recruitment recrystallize rectal rectally rectangle rectangular
+rectifiable rectification rectifier rectify rectilinear rectitude recto
+rector rectory rectum recumbent recuperate recuperation recuperative
+recur recurrence recurrent recurrently recyclable recycle recycled
+recycling redact redaction redactor redcap redcoat redecorate
+redecoration rededicate redirect rediscover rediscovery redistrict
+redneck redolence reduce reducer reducible reduction reductive
+redundancy reecho reeducate reeducation reelect reelection reemergence
+reenact reenactment reenforce reface refection refectory reference
+refinance reflect reflection reflective reflectively reflector refocus
+refract refraction refractive refractory refulgence regency regeneracy
+regicide reincarnate reincarnation reincorporate reincorporation
+reinfect reinfection reinforce reinforcement reinforcements reinoculate
+reinspect reintroduce reintroduction reject rejection rejoice rejoicing
+relaunch relevance relevancy reliance relocate relocation reluctance
+reluctant reluctantly rematch remembrance reminisce reminiscence
+reminiscences reminiscent reminiscently remittance remonstrance
+renaissance renascence renascent renounce renouncement renunciation
+reoccupation reoccupy reoccur repack repackage repentance repercussion
+replace replaceable replacement replica replicate replication reprice
+reproach reproachable reproachful reproachfully reprocess reproduce
+reproducer reproducible reproduction reproductive republican
+republicanism republication repugnance repurchase rerecord reschedule
+rescind rescission rescue rescuer research researcher resection
+resemblance residence residency resilience resiliency resistance
+resonance resource resourceful resourcefully resourcefulness resources
+respect respectability respectable respectably respected respecter
+respectful respectfully respectfulness respecting respective
+respectively respects resplendence restitch restock restrict restricted
+restriction restrictive restrictively restrictiveness restructure
+restructuring resubscribe resurface resurgence resurrect resurrection
+resuscitate resuscitation resuscitator retch reteach reticence reticent
+reticently reticulation retouch retrace retract retractable retractile
+retraction retrench retrenchment retroactive retroactively retrorocket
+retrospect retrospection retrospective retrospectively reunification
+reverence revivification revocable revocation rhapsodical rhetorical
+rhetorically rhetorician rheumatically rhinoceros rhythmical
+rhythmically rice ricer rich riches richly richness rick rickets rickety
+rickrack ricksha rickshaw ricochet ricotta riddance ridicule ridiculous
+ridiculously ridiculousness ripcord ritualistically roach roadblock
+robotics rock rockabilly rockbound rocker rocket rocketry rockfall
+rockiness rocky rococo roebuck rollback rollick rollicking romance
+romancer romantically romanticism romanticist romanticize roughneck
+rubberneck rubbernecker rubicund rucksack ruckus rustically rusticate
+rustication rusticity sabbatical saccharin saccharine sacerdotal sachem
+sachet sack sackcloth sackful sacking sacra sacrament sacramental sacred
+sacredly sacredness sacrifice sacrificial sacrificially sacrificing
+sacrilege sacrilegious sacrilegiously sacristan sacristy sacroiliac
+sacrosanct sacrosanctness sacrum sadistically sadomasochism
+sadomasochist sadomasochistic sagacious sagaciously sagacity sailcloth
+salacious salaciously salaciousness salesclerk salience saltcellar
+sanctification sanctify sanctimonious sanctimoniously sanctimoniousness
+sanctimony sanction sanctions sanctity sanctuary sanctum sandcastle
+sandwich sapience sapsucker sarcasm sarcastic sarcastically sarcoma
+sarcomata sarcophagi sarcophagus sardonically satanically satchel
+satirical satirically satisfaction satisfactorily satisfactory sauce
+saucepan saucer saucily sauciness saucy sawbuck scab scabbard scabbiness
+scabby scabies scabrous scad scads scaffold scaffolding scalawag scald
+scalding scale scaled scaleless scalene scales scaliness scallion
+scallop scalloped scalp scalpel scalper scaly scam scamp scamper scampi
+scan scandal scandalize scandalmonger scandalous scandalously scandium
+scanner scansion scant scantily scantiness scantly scantness scanty
+scapegoat scapegrace scapula scapulae scapular scar scarab scarce
+scarcely scarceness scarcity scare scarecrow scared scaredy scarf
+scarification scarify scarily scariness scarlatina scarlet scarp scarum
+scarves scary scat scathing scathingly scatological scatology scatter
+scatterbrain scatterbrained scattered scattering scavenge scavenger
+scenario scenarist scene scenery scenic scenically scent scented
+scentless scepter schedule schematic schematically scheme schemer
+scheming scherzi scherzo schism schismatic schist schizo schizoid
+schizophrenia schizophrenic schlemiel schlep schlepp schlock schlocky
+schmaltz schmaltzy schmo schmooze schmuck schnapps schnauzer schnitzel
+schnook schnoz schnozzle scholar scholarly scholarship scholastic
+scholastically school schoolbag schoolbook schoolboy schoolchild
+schoolchildren schoolfellow schoolgirl schoolhouse schooling schoolmarm
+schoolmarmish schoolmaster schoolmate schoolmistress schoolroom
+schoolteacher schoolwork schoolyard schooner schuss schussboomer schwa
+sci sciatic sciatica science scientific scientifically scientist
+scimitar scintilla scintillate scintillating scintillation scion scissor
+scissors scleroses sclerosis sclerotic scoff scoffer scofflaw scold
+scolding scoliosis sconce scone scoop scoopful scoot scooter scope
+scorbutic scorch scorcher scorching score scoreboard scorecard
+scorekeeper scoreless scorer scorn scorner scornful scornfully scorpion
+scot scotch scoundrel scour scourer scourge scout scouting scoutmaster
+scow scowl scrabble scrabbler scraggly scram scramble scrambler scrap
+scrapbook scrape scraper scrapheap scrapper scrappy scraps scrapyard
+scratch scratchily scratchiness scratchy scrawl scrawly scrawniness
+scrawny scream screamer scree screech screechy screen screening
+screenplay screenwriter screenwriting screw screwball screwdriver
+screwiness screwworm screwy scribal scribble scribbler scribbles scribe
+scrim scrimmage scrimp scrimshaw scrip script scripted scriptural
+scripture scriptwriter scrivener scrod scrofula scrofulous scroll
+scrooge scrota scrotal scrotum scrounge scrounger scroungy scrub
+scrubber scrubby scruff scruffy scrumptious scrumptiously scrunch
+scrunchie scrunchy scruple scrupulosity scrupulous scrupulously
+scrupulousness scrutinize scrutiny scuba scud scuff scuffle scull
+sculler scullery scullion sculpt sculptor sculptress sculptural
+sculpture sculptured scum scumbag scummy scupper scurf scurfy scurrility
+scurrilous scurrilously scurrilousness scurry scurvily scurvy scutcheon
+scuttle scuttlebutt scuzzy scythe seacoast seance search searcher
+searching searchingly searchlight seascape seasick seasickness sebaceous
+secant secede secession secessionist seclude secluded seclusion
+seclusive second secondarily secondary seconder secondhand secondly
+seconds secrecy secret secretarial secretariat secretary secretaryship
+secrete secretion secretive secretively secretiveness secretly secretory
+sect sectarian sectarianism sectary section sectional sectionalism
+sector secular secularism secularist secularization secularize secure
+securely securities security seduce seducer seduction seductive
+seductively seductiveness seductress seedcase seersucker seismically
+seismological select selection selective selectively selectivity
+selectman selectness selector semantically semanticist semantics
+semblance semicircle semicircular semicolon semiconducting semiconductor
+semiconscious semiofficial semiotics semiprecious semitropical
+senescence senescent sentence sentience septicemia sepulcher sepulchral
+sepulchre sequence sequencing service serviceability serviceable
+serviceman servicewoman servomechanism sesquicentennial setback setscrew
+severance shack shackle shackles shamefaced shamefacedly shamrock
+sharecrop sharecropper shellacking shipwreck shock shocked shocker
+shocking shockingly shockproof shoelace shortcake shortchange
+shortcoming shortcut showcase showpiece showplace shtick shuck shucks
+shuttlecock sick sickbed sicken sickening sickeningly sickie sickish
+sickle sickly sickness sicko sickout sickroom sidecar sidekick sidepiece
+sidetrack siecle significance significant significantly signification
+silence silencer silica silicate siliceous silicon silicone silicosis
+silkscreen simpatico simplicity simplification simplistically simulcast
+since sincere sincerely sincerity sinecure sirocco sitcom sixpence
+skeptical skeptically skepticism sketch sketcher sketchily sketchiness
+sketchy skincare skinflick skullcap skycap skyjack skyjacker skyjacking
+skyrocket skyscraper slack slacken slacker slackly slackness slacks
+slapstick slice slicer slick slicker slickly slickness slipcase
+slipcover slouch sloucher slouchy sluice smack smacker smirch smock
+smocking smokescreen smokestack smooch snack snatch snatcher snicker
+snitch snuck soccer sociability sociable sociably social socialism
+socialist socialistic socialite socialization socialize socially
+societal society socioeconomic sociological sociologically sociologist
+sociology sociopath sock socket sockeye solace solecism solicit
+solicitation solicitor solicitous solicitously solicitousness solicitude
+solidification solstice solvency someplace somnolence sophistical
+sophisticate sophisticated sophistication sorcerer sorceress sorcery
+soundtrack soupcon source space spacecraft spaced spaceflight spaceman
+spaceport spacer spaceship spacesuit spacewalk spacey spaciness spacing
+spacious spaciously spaciousness spacy spadices spasmodically special
+specialist speciality specialization specialize specialized specially
+specialty specie species specific specifically specification
+specifications specificity specifics specify specimen specious
+speciously speciousness speck specked speckle speckled specs spectacle
+spectacles spectacular spectacularly spectator specter spectra spectral
+spectrometer spectroscope spectroscopic spectroscopy spectrum speculate
+speculation speculative speculatively speculator speech speechless
+speechlessly speechlessness spermicidal spermicide spherical spherically
+sphincter spice spiciness spick spicule spicy spinach spiracle
+spirochete splice splicer splotch splotchy spongecake sporadically
+sportscast sportscaster sprocket spruce sprucely spruceness squelch
+squelchy staccato stack stacked stacks stagecoach stagecraft stagestruck
+stagnancy staircase stalactite stance stanch stanchion staphylococcal
+staphylococci staphylococcus starch starched starchily starchiness
+starchy statecraft statically statistical statistically statistician
+statistics staunch staunchly staunchness steeplechase steeplejack stench
+stencil stepchild stepchildren stereoscope stereoscopic stereotypical
+stethoscope stick sticker stickily stickiness stickleback stickler
+stickpin sticks stickup sticky stitch stitchery stitching stock stockade
+stockbreeder stockbroker stockbroking stockholder stockily stockiness
+stockinette stocking stockpile stockpot stockroom stocks stocktaking
+stocky stockyard stoical stoically stoicism stomach stomachache
+stomacher stopcock stopwatch straightjacket straitjacket straitlaced
+strategically strategics stratification streetcar streptococcal
+streptococci streptococcus streptomycin stretch stretchable stretcher
+stretchy stricken strict strictly strictness stricture stridency
+stringency stroboscope stroboscopic struck structural structurally
+structure structured strychnine stucco stuck stultification stupefaction
+stylistically subarctic subbranch subcategory subcommittee subcompact
+subconscious subconsciously subconsciousness subcontinent subcontinental
+subcontract subcontractor subculture subcutaneous subcutaneously subject
+subjection subjective subjectively subjectivity subjunctive submergence
+submicroscopic subscribe subscriber subscript subscription subsection
+subservience subsidence subsistence subspecies substance substructure
+subsurface subtenancy subtract subtraction subtropical subtropics
+succeed succeeding success successful successfully succession successive
+successively successor succinct succinctly succinctness succor succotash
+succulence succulent succumb such suchlike suck sucker suckle suckling
+sucrose suction sufferance suffice sufficiency sufficient sufficiently
+suffocate suffocation sugarcane sugarcoat suicidal suicide suitcase
+sumach sunblock sunscreen superabundance supercargo supercharge
+supercharger supercilious superciliously superciliousness supercity
+supercomputer superconducting superconductive superconductivity
+superconductor superficial superficiality superficially superintendence
+superintendency superscribe superscript superscription superstructure
+supplicant supplicate supplication supremacist supremacy surcease
+surcharge surcingle surface surgical surgically surplice
+surrealistically surrogacy surveillance susceptibility susceptible
+suspect suspicion suspicious suspiciously sustenance swashbuckler
+swashbuckling swatch swayback swaybacked sweptback switch switchback
+switchblade switchboard switcher sycamore sycophancy sycophant
+sycophantic syllabicate syllabication syllabification symbolically
+symmetrical symmetrically sympathetically symptomatically synch
+synchronization synchronize synchronous syncopate syncopation syncope
+syndicate syndicated syndication syntactic syntactical syntactically
+synthetically systematically systemically tabernacle tablecloth
+tachometer tachycardia tacit tacitly tacitness taciturn taciturnity
+taciturnly tack tacker tackiness tackle tackler tacky taco tact tactful
+tactfully tactfulness tactic tactical tactically tactician tactics
+tactile tactility tactless tactlessly tactlessness tailback tailcoat
+talcum tamarack tapioca tautological tautologically taxicab taxonomical
+teach teachable teacher teaching teachings teacup teacupful tech
+technetium technical technicality technically technician technique
+technocracy technocrat technocratic technological technologically
+technologist technology tectonic tectonics telecast telecaster
+telecommunication telecommunications telecommute telecommuter
+telecommuting teleconference teleconferencing telegraphically
+telepathically teleprocessing telescope telescopic telescopically
+temperance tenacious tenaciously tenaciousness tenacity tenancy tendency
+tentacle tentacled tercentenary tercentennial terminological
+terminologically terrace terracotta terrifically terrycloth testicle
+tetracycline thatch thatched thatcher thatching theatrical theatricality
+theatrically theatricals theatrics thematically thence thenceforth
+thenceforward theocracy theocratic theological theologically theoretical
+theoretically theoretician theosophical therapeutically therapeutics
+thermodynamics thermonuclear thermostatically thick thicken thickener
+thickening thicket thickheaded thickly thickness thickset thoraces
+thoracic threescore thrice throwback thumbscrew thumbtack thunderclap
+thundercloud thunderstruck thwack thwacker tick ticker ticket ticking
+tickle tickler ticklish ticklishness ticktacktoe ticktock tieback
+timepiece tincture titmice tobacco tobacconist tocsin toecap tolerance
+tomcat tonsillectomy toothache toothpick topcoat topical topicality
+topically topnotch topographical topographically torch torchbearer
+torchlight toucan touch touchable touchdown touche touched touchily
+touchiness touching touchingly touchscreen touchstone touchy toxicity
+toxicological toxicologist toxicology trace traceable tracer tracery
+trachea tracheae tracheal tracheotomy tracing track trackball tracker
+trackless tracks tract tractability tractable tractably traction tractor
+traduce traducer trafficker trafficking tragically tragicomedy
+tragicomic trajectory trance transact transaction transactions
+transactor transceiver transcend transcendence transcendent
+transcendental transcendentalism transcendentalist transcendentally
+transcontinental transcribe transcriber transcript transcription
+transducer transect transference transience transiency translucence
+translucency translucent translucently transmogrification transoceanic
+transpacific transparency traumatically treacherous treacherously
+treacherousness treachery treacle treacly trench trenchancy trenchant
+trenchantly trencher trencherman trice tricentennial triceps triceratops
+trichina trichinae trichinosis trick trickery trickily trickiness
+trickle trickster tricky tricolor tricycle trifocals triglyceride
+trigonometrical triplicate triptych trisect trisection trochaic trochee
+tropical tropically tropics trounce trouncer truancy truce truck trucker
+trucking truckle truckload truculence truculent truculently truncate
+truncated truncation truncheon tubercle tubercular tuberculin
+tuberculosis tuberculous tuck tucker tumescence tumescent turbocharge
+turbocharger turbulence turnbuckle turncoat turtleneck tussock tussocky
+twice twitch twitchy twopence tycoon typecast typeface typescript
+typical typicality typically typification typographical typographically
+tyrannical tyrannically ulcer ulcerate ulcerated ulceration ulcerous
+ultraconservative ultrasonically umbilical umbilici umbilicus unaccented
+unacceptable unacceptably unaccommodating unaccompanied unaccomplished
+unaccountable unaccountably unaccounted unaccredited unaccustomed
+unacknowledged unacquainted unaffected unaffectedly unannounced
+unanticipated unappreciated unappreciative unapproachable unattached
+unattractive unattractively unbalanced unbecoming unbecomingly
+unbleached unblock unbuckle uncalled uncannily uncanny uncap uncared
+uncaring uncaught unceasing unceasingly uncensored unceremonious
+unceremoniously uncertain uncertainly uncertainty unchain unchallenged
+unchangeable unchanged unchanging unchaperoned uncharacteristic
+uncharacteristically uncharged uncharitable uncharitably uncharted
+unchaste unchecked unchristian uncial uncircumcised uncivil uncivilized
+uncivilly unclad unclaimed unclasp unclassified uncle unclean uncleaned
+uncleanliness uncleanly uncleanness unclear uncleared uncloak unclog
+unclothe unclothed unclouded uncluttered uncoil uncollected uncolored
+uncombed uncombined uncomfortable uncomfortably uncommitted uncommon
+uncommonly uncommonness uncommunicative uncompensated uncomplaining
+uncomplainingly uncompleted uncomplicated uncomplimentary uncompounded
+uncomprehending uncomprehendingly uncompromising uncompromisingly
+unconcealed unconcern unconcerned unconcernedly unconditional
+unconditionally unconditioned unconfined unconfirmed unconformable
+uncongenial unconnected unconquerable unconquered unconscionable
+unconscionably unconscious unconsciously unconsciousness unconsecrated
+unconsidered unconsolidated unconstitutional unconstitutionality
+unconstitutionally unconstrained unconsumed unconsummated uncontaminated
+uncontested uncontrollable uncontrollably uncontrolled unconventional
+unconventionality unconventionally unconverted unconvinced unconvincing
+unconvincingly uncooked uncool uncooperative uncoordinated uncork
+uncorrected uncorroborated uncountable uncounted uncouple uncouth
+uncouthly uncover uncovered uncritical uncritically uncross uncrowded
+uncrowned unction unctuous unctuously unctuousness uncultivated
+uncultured uncured uncurl uncustomary uncut undeceive undecided
+undecipherable undeclared undemocratic underachieve underachiever
+underact undercarriage undercharge underclass underclassman underclothes
+underclothing undercoat undercoating undercover undercurrent undercut
+underproduction underscore undersecretary undetectable undetected
+undisciplined undisclosed undiscovered undiscriminating undocumented
+undomesticated uneconomic uneconomical uneducated unenclosed
+unencumbered unenforced unequivocal unequivocally unethical unethically
+unexceptionable unexceptionably unexceptional unexceptionally unexcited
+unexciting unexcused unexpected unexpectedly unexpectedness unflinching
+unflinchingly unfocused unforced unfrock unfrocked ungraceful
+ungracefully ungracious ungraciously ungrammatical ungrammatically
+unhatched unhistorical unhitch unicameral unicellular unicorn unicycle
+unification unimpeachable unincorporated uninfected uninfluenced
+uninstructed unlace unlatch unlicensed unlock unluckily unluckiness
+unlucky unmatched unmerciful unmercifully unmusical unnecessarily
+unnecessary unnoticeable unnoticed unobjectionable unobstructed
+unoccupied unofficial unofficially unpack unperceived unperceptive
+unpolitical unpractical unpracticed unprecedented unprecedentedly
+unpredictability unpredictable unpredictably unprejudiced unprincipled
+unprocessed unproductive unproductively unpronounceable unprotected
+unquenchable unrealistically unrecognizable unrecognized unreconstructed
+unrecorded unrecoverable unrestricted unsanctioned unsatisfactorily
+unsatisfactory unscathed unscented unscheduled unschooled unscientific
+unscientifically unscramble unscratched unscrew unscripted unscrupulous
+unscrupulously unscrupulousness unsearchable unshackle unsociable
+unsolicited unsophisticated unspecific unspecified unspectacular
+unstructured unstuck unsuccessful unsuccessfully unsuspected
+unsuspecting unsuspectingly unsymmetrical unsympathetically untactful
+unteachable untouchable untouched untraceable untypical unvoiced
+unwelcome upchuck upcoming upcountry uppercase upperclassman uppercut
+upscale uptick uracil urchin urgency urological urticaria utterance
+vacancy vacant vacantly vacate vacation vacationer vacationist vaccinate
+vaccination vaccine vacillate vacillation vacua vacuity vacuole vacuous
+vacuously vacuousness vacuum vagrancy valance valediction valedictorian
+valedictory valence valiance variance varicolored varicose vascular
+vasectomy vector vehemence vehicle vehicular velocipede velocity
+vengeance ventricle ventricular veracious veraciously veracity verdict
+verification vermicelli vermiculite vernacular veronica versification
+vertical vertically vertices vesicle vesicular vesiculate vetch viaduct
+vibrancy vicar vicarage vicarious vicariously vicariousness vice
+vicegerent vicennial viceregal viceroy vichyssoise vicinity vicious
+viciously viciousness vicissitude vicissitudes victim victimization
+victimize victor victorious victoriously victory victual victuals vicuna
+videocassette vigilance vilification vincible vindicate vindication
+vindicator vindictive vindictively vindictiveness violence violoncellist
+violoncello virulence viscera visceral viscerally viscid viscose
+viscosity viscount viscountess viscous viscus viticulture viticulturist
+vitrifaction vivace vivacious vivaciously vivaciousness vivacity
+vivisect vivisection vivisectional vivisectionist vocable vocabulary
+vocal vocalic vocalist vocalization vocalize vocally vocation vocational
+vocative vociferate vociferation vociferous vociferously voice voiced
+voiceless voicelessly voicelessness volcanic volcano voracious
+voraciously voraciousness voracity vortices vouch voucher vouchsafe
+vulcanization vulcanize wackiness wacko wacky wainscot wainscoting
+wainscotting waistcoat warlock washcloth watch watchband watchdog
+watcher watchful watchfully watchfulness watchmaker watchmaking watchman
+watchtower watchword watercolor watercourse watercraft watercress
+weathercock wedlock welch welcome wench wetback whack whacked whacker
+whatchamacallit wheelchair whence which whichever whimsical whimsicality
+whimsically whipcord whitecap wick wicked wickedly wickedness wicker
+wickerwork wicket wildcat wildcatter wince winch windchill windsock
+wiseacre wisecrack witch witchcraft witchery witticism woodblock
+woodcarver woodcarving woodchuck woodcock woodcraft woodcut woodcutter
+woodcutting woodpecker workbench workforce workplace wrack wracking
+wreck wreckage wrecker wrench wrenching wretch wretched wretchedly
+wretchedness wristwatch yacht yachting yachtsman yack yardstick yucca
+yuck yucky zilch zircon zirconium zodiacal zoological zucchini zwieback
+zydeco
+'''
+
+def GetCWords():
+    'Print words that have "c" in middle'
+    # Change punctuation to space
+    p = string.punctuation
+    T = ''.maketrans(dict(zip(p, " "*len(p))))
+    data = open(sys.argv[1]).read().translate(T)
+    words = []
+    for word in data.split():
+        loc = word.find("c")
+        if loc != -1 and (loc != 0 and loc != len(word) - 1):
+            words.append(word)
+    for i in sorted(set(words)):
+        print(i)
+
+def MatchCap(s, t):
+    '''Return t capitalized as s is.  s and t are expected to be
+    sequences of characters.  The returned sequence matches the type of
+    t.
+    '''
+    if not t:
+        return t
+    if len(s) < len(t):
+        raise ValueError("len(s) must be >= len(t)")
+    if not hasattr(MatchCap, "ac"):
+        MatchCap.ac = ac = string.ascii_letters
+        MatchCap.uc = uc = string.ascii_uppercase
+        MatchCap.lc = lc = string.ascii_lowercase
+    else:
+        ac, uc, lc = MatchCap.ac, MatchCap.uc, MatchCap.lc
+    out = deque()
+    for i in range(len(t)):
+        if s[i] in ac and t[i] in ac:
+            if s[i] in uc and t[i] in lc:
+                out.append(t[i].upper())
+            elif s[i] in lc and t[i] in uc:
+                out.append(t[i].lower())
+            else:
+                out.append(t[i])
+        else:
+            out.append(t[i])
+    return ''.join(out) if ii(t, str) else type(t)(out)
+
+GetCWords()
