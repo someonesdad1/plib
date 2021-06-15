@@ -151,16 +151,13 @@ def GetWords(thing, sep=None, enc=None, regex=None):
         return sep.join(lines).split(sep)
     else:
         return ' '.join(lines).split()
-def GetTokens(thing, sep=None, enc=None, regex=None):
+def GetTokens(*things, sep=None, enc=None):
     '''Similar to GetWords(), but this is a generator so that arbitrarily 
-    large files can be processed.
+    large sets of files or streams can be processed.
     '''
-    for line in GetLine(thing, enc=enc):
-        if sep is None:
-            for token in line.split():
-                yield token
-        else:
-            for token in line.split(sep):
+    for thing in things:
+        for line in GetLine(thing, enc=enc):
+            for token in line.split() if sep is None else line.split(sep):
                 yield token
 def GetBinary(thing, encoded=False):
     '''Read in thing as binary (thing is a stream or filename).  Bytes
@@ -522,6 +519,35 @@ def GetNumber(prompt_msg, **kw):
                 return (x, unit_string)
             else:
                 return x
+def GetFraction(s):
+    '''Return a Fraction object if string s contains a '/' and can be interpreted
+    as an improper or proper fraction; otherwise return None.  The following 
+    forms are allowed:
+        A   5/4     +5/4    -5/4
+        B   1 1/4   +1 1/4  -1 1/4
+        C   1-1/4   +1-1/4  -1-1/4
+        D   1+1/4   +1+1/4  -1+1/4
+    '''
+    if "/" not in s:
+        return None
+    s = s.strip()
+    try:
+        neg = 1
+        if s[0] == "+":
+            s = s[1:]
+        elif s[0] == "-":
+            s = s[1:]
+            neg = -neg
+        s = s.replace("+", " ").replace("-", " ")
+        ip = 0
+        if " " in s:
+            ip, s = s.split()
+            ip = int(ip)
+        n, d = s.split("/")
+        return neg*(ip + Fraction(int(n), int(d)))
+    except Exception:
+        return None
+
 if __name__ == "__main__": 
     from wrap import dedent
     from lwtest import run, raises, Assert
@@ -557,11 +583,11 @@ if __name__ == "__main__":
         s = dedent('''
         # Comment
         ## Another comment
-    Line 1
-        Line 2''')
+        Line 1
+          Line 2''')
         r = ("^ *#",)
         lines = GetLines(s, regex=r)
-        Assert(lines == ['Line 1', '    Line 2'])
+        Assert(lines == ['Line 1', '  Line 2'])
     def TestGetLine():
         # Test with stream
         sio = StringIO(S)
@@ -916,6 +942,13 @@ if __name__ == "__main__":
         assert(GetNumber("", low=0, high=3, inspect="2") == True)
         # If inspect is not a string, get exception
         raises(ValueError, GetNumber, "", inspect=1)
+    def TestGetFraction():
+        e = Fraction(5, 4)
+        for i in ("5/4", "+5/4", " -5/4", "1   1/4", "+1 1/4", "  -1 1/4",
+            "1-1/4", "+1-1/4", "-1-1/4", "1+1/4", "+1+1/4", "-1+1/4"):
+            i = i.strip()
+            neg = -1 if i[0] == "-" else 1
+            assert(GetFraction(i) == neg*e)
     SetUp()
     status = run(globals(), halt=True)[0]
     TearDown()
