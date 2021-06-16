@@ -21,8 +21,10 @@ if 1:  # Copyright, license
 if 1:   # Standard imports
     import getopt
     import pathlib
+    import os
     import re
     import sys
+    from pprint import pprint as pp
     from pdb import set_trace as xx
 if 1:   # Custom imports
     from wrap import wrap, dedent
@@ -60,6 +62,8 @@ if 1:   # Utility
         S       Search all lines in the config file for a string
         s       Search the active lines in the config file for a string
       Options are:
+        -d      Debug printing:  show data file contents
+        -e f    Write result to file f
         -f f    Set the name of the datafile (default is {G.gotorc})
         -H      Explains details of the .gotorc file syntax
         -t      Checks each directory in the file
@@ -68,29 +72,41 @@ if 1:   # Utility
     '''))
         exit(status)
     def ParseCommandLine(d):
+        d["-d"] = False
+        d["-e"] = None
         d["-f"] = None
         d["-H"] = False
         d["-t"] = False
         d["-T"] = False
         d["-s"] = False
         try:
-            opts, args = getopt.getopt(sys.argv[1:], "f:HhTts")
+            opts, args = getopt.getopt(sys.argv[1:], "de:f:HhTts")
         except getopt.GetoptError as e:
             print(str(e))
             exit(1)
         for o, a in opts:
-            if o[1] in list("tTs"):
+            if o[1] in list("dtTs"):
                 d[o] = not d[o]
+            elif o == "-e":
+                d["-e"] = a
             elif o == "-f":
                 G.gotorc = P(a)
             elif o in ("-h", "--help"):
                 Usage(d, 0)
             elif o == "-H":
                 Manpage()
+        if d["-d"]:
+            print("Options dictionary:")
+            pp(d)
+            print(f"Command line arguments:  {args}")
         return [i.strip() for i in args]
     def Manpage():
         print(wrap(dedent(f'''
-        Details of the syntax of the configuration file (default file is {G.gotorc}, change it with the -f option):
+        Configuration file
+        ------------------
+
+        Details of the syntax of the configuration file (default file is
+        {G.gotorc}, change it with the -f option).
         
         This file contains lines with 1, 2, or 3 strings separated by 
         '{G.sep}'.  
@@ -113,6 +129,27 @@ if 1:   # Utility
         included in the list of choices you can make.  Otherwise, the
         line is ignored.  Any line with a leading '#' character is also
         ignored.
+
+        Use in a POSIX environment
+        --------------------------
+
+        The following shell function can prompt you for a directory to
+        go to, then go to that directory:
+
+            g()
+            {
+                typeset tmp=/tmp/goto.$$
+                $PYTHON /plib/pgm/goto.py -e $tmp "$@"
+                if [ -e $tmp ] ; then
+                    typeset res="$(cat $tmp)"
+                    if [ "$res" ] ; then
+                        cd $res
+                        cd -
+                        cd $res
+                    fi
+                    rm -f $tmp
+                fi
+            }
         ''')))
         exit(0)
 if 1:   # Core functionality
@@ -180,34 +217,46 @@ if 1:   # Core functionality
         for i, item in enumerate(tmp):
             choices[i + 1] = item
         return choices, aliases
+    def DumpChoicesAndAliases(choices, aliases):
+        if not d["-d"]:
+            return
+        print("Choices:")
+        for i in choices:
+            file, name = choices[i]
+            print(f"{name} --> {file}") if name else print(f"{file}")
+            print
+            xx()
+        from pprint import pprint as pp
+        pp(choices)
+        print("Aliases:")
+        pp(aliases)
+    def Output(dir):
+        s = sys.stdout
+        if d["-e"]:
+            s = open(d["-e"], "w")
+        print(dir, file=s)
     def GoTo(arg):
         'Print the path string the user selected'
         lines = GetFile()
         choices, aliases = GetChoicesAndAliases(lines)
-        if 0:
-            # Dump choices and aliases
-            print("Choices:")
-            from pprint import pprint as pp
-            pp(choices)
-            print("Aliases:")
-            pp(aliases)
+        DumpChoicesAndAliases(choices, aliases)
         if arg:     # User passed in a number or alias
             try:
                 choice = int(arg)
                 if choice not in choices:
                     Error("'{arg}' isn't a valid choice")
                 selection = choices[choice][0]
-                print(choices[choice][0])
+                Output(choices[choice][0])
                 return
             except ValueError:
                 # See if it's an alias
                 if arg in aliases:
                     dir, name = aliases[arg]
-                if "@" + arg in aliases:
+                elif "@" + arg in aliases:
                     dir, name = aliases["@" + arg]
                 else:
                     Error(f"'{arg}' isn't a valid choice")
-                print(dir)
+                Output(dir)
         else:       # Prompt for a choice
             n = max([len(i) for i in aliases])
             n = max(n, 3)
@@ -226,7 +275,7 @@ if 1:   # Core functionality
                 print("Selection? ", end="")
                 s = input().strip()
                 if not s:
-                    continue
+                    exit(0)
                 if s == "q" and s not in aliases:
                     exit(0)
                 if s == "Q" and s not in aliases:
@@ -236,14 +285,14 @@ if 1:   # Core functionality
                 except ValueError:
                     if s in aliases:
                         dir, name = aliases[s]
-                        print(dir)
+                        Output(dir)
                         return
                 else:
                     if choice not in choices:
                         print(f"'{s}' not a valid choice")
                         continue
                     dir, name = choices[choice]
-                    print(dir)
+                    Output(dir)
                     return
 
     def SearchLines(cmd, args):
@@ -272,6 +321,7 @@ if 1:   # Core functionality
         else:
             # cmd will be a number or alias
             GoTo(cmd)
+
 if __name__ == "__main__":
     d = {}      # Options dictionary
     args = ParseCommandLine(d)
