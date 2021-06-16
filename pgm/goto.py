@@ -128,10 +128,15 @@ if 1:   # Standard imports
 if 1:   # Custom imports
     from wrap import dedent
     import get
+    from color import C
 if 1:   # Global variables
     P = pathlib.Path
     class G: pass
     G.gotorc = P("c:/cygwin/home/Don/.gotorc")
+    G.Y = C.lyel
+    G.R = C.lred
+    G.G = C.lgreen
+    G.N = Cnorm
 if 1:   # Utility
     def Error(msg, status=1):
         print(msg, file=sys.stderr)
@@ -175,21 +180,41 @@ if 1:   # Core functionality
         '''Read in the goto file.  If all is True, include the commented
         out lines.
         '''
-        r = None if all else ["^ *#"]
-        lines = get.GetLines(G.gotorc, regex=r)
-        from pprint import pprint as pp
-        pp(lines)
-        exit()
+        r = None if all else [r"^\s*#"]
+        lines = [(linenum, line) for linenum, line in
+                 enumerate(get.GetLines(G.gotorc, regex=r)) if line]
+        return lines
     def CheckFile():
+        'For each line, verify the file exists'
         lines = GetFile(all=True if d["-T"] else False)
-    def AddCurrentDirectory():
-        raise Exception("Need to implement")
-    def EditFile():
-        raise Exception("Need to implement")
-    def GoTo(args):
-        raise Exception("Need to implement")
-    def SearchLines(cmd):
-        raise Exception("Need to implement")
+        bad = False
+        for linenum, line in lines:
+            ln = linenum + 1
+            f = [i.strip() for i in line.split(";")]
+            if len(f) in (1, 2, 3):
+                file = P(f[-1])
+                fs = str(file)
+                if fs[0] == "#":
+                    if fs[1] == "-":
+                        continue
+                    file = P(fs[1].strip())
+                if not file.exists():
+                    l = line.strip()
+                    print(f"Line {ln}:  {G.Y}{file}{G.N} doesn't exist")
+                    bad = True
+            else:
+                print(f"{G.R}Line {ln} in '{G.gotorc}' is bad\n '{line}'{G.N}")
+                bad = True
+        if bad:
+            print(f"Source file is {G.G}{G.gotorc}{G.N}")
+    def AddCurrentDirectory():      #xx Impl
+        pass
+    def EditFile():     #xx Impl
+        pass
+    def GoTo(args):     #xx Impl
+        pass
+    def SearchLines(cmd):       #xx Impl
+        pass
     def ExecuteCommand(cmd, args):
         if d["-t"] or d["-T"]:
             CheckFile()
