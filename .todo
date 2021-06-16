@@ -2,6 +2,8 @@
   shell function and do everything in a python script, as it would be
   so much easier.
 
+* wrap.py:  There should be two spaces after a ':' at the end of a word.
+
 ----------------------------------------------------------------------
 Low priority
 

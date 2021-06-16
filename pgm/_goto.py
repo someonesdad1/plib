@@ -306,7 +306,7 @@ def Usage():
       -l    Dump logfile to stdout
       -t    Print out files in the config file that don't exist
       -T    Same as -t, but include commented-out paths
-    ''', file=err))
+    '''), file=err)
     exit(1)
 
 def DumpExtension(pth):
