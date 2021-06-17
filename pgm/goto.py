@@ -19,13 +19,15 @@ if 1:  # Copyright, license
     #∞test∞# #∞test∞#
     pass
 if 1:   # Standard imports
-    import getopt
-    import pathlib
-    import os
-    import re
-    import sys
-    from pprint import pprint as pp
     from pdb import set_trace as xx
+    from pprint import pprint as pp
+    import getopt
+    import os
+    import pathlib
+    import platform
+    import re
+    import subprocess
+    import sys
 if 1:   # Custom imports
     from wrap import wrap, dedent
     import get
@@ -34,12 +36,19 @@ if 1:   # Global variables
     P = pathlib.Path
     ii = isinstance
     class G: pass
-    G.gotorc = P("c:/cygwin/home/Don/.gotorc")
+    G.home = P("/home/Don")
+    G.config = ".gotorc"
+    G.gotorc = G.home/G.config
+    G.y = C.C.yel
     G.Y = C.C.lyel
+    G.r = C.C.red
     G.R = C.C.lred
+    G.g = C.C.grn
     G.G = C.C.lgrn
+    G.W = C.C.lwht
     G.N = C.C.norm
     G.sep = ";"
+    G.editor = os.environ["EDITOR"]
 if 1:   # Utility
     def Error(msg, status=1):
         print(msg, file=sys.stderr)
@@ -66,6 +75,7 @@ if 1:   # Utility
         -e f    Write result to file f
         -f f    Set the name of the datafile (default is {G.gotorc})
         -H      Explains details of the .gotorc file syntax
+        -l      Launch the file with the registered application
         -t      Checks each directory in the file
         -T      Checks all directory in the file, even those commented out
         -s      Print silent link names
@@ -76,16 +86,17 @@ if 1:   # Utility
         d["-e"] = None
         d["-f"] = None
         d["-H"] = False
+        d["-l"] = False
         d["-t"] = False
         d["-T"] = False
         d["-s"] = False
         try:
-            opts, args = getopt.getopt(sys.argv[1:], "de:f:HhTts")
+            opts, args = getopt.getopt(sys.argv[1:], "de:f:HhlTts")
         except getopt.GetoptError as e:
             print(str(e))
             exit(1)
         for o, a in opts:
-            if o[1] in list("dtTs"):
+            if o[1] in list("dltTs"):
                 d[o] = not d[o]
             elif o == "-e":
                 d["-e"] = a
@@ -95,50 +106,45 @@ if 1:   # Utility
                 Usage(d, 0)
             elif o == "-H":
                 Manpage()
-        if d["-d"]:
-            print("Options dictionary:")
-            pp(d)
-            print(f"Command line arguments:  {args}")
-        return [i.strip() for i in args]
+        args = d["args"] = [i.strip() for i in args]
+        return args
     def Manpage():
-        print(wrap(dedent(f'''
-        Configuration file
-        ------------------
+        print(dedent(f'''
+                            Configuration file
 
         Details of the syntax of the configuration file (default file is
         {G.gotorc}, change it with the -f option).
-        
-        This file contains lines with 1, 2, or 3 strings separated by 
-        '{G.sep}'.  
-        
-          1 string:   It is a directory or file to choose.  
-        
-          2 strings:  It is short name followed by the directory or file
-          to choose.  
-        
-          3 strings:  It is short name, an alias, then  the directory or
-          file to choose.
-        
-        The alias is a string that you can give instead of the number
-        you're prompted for in case of the 1 or 2 string case.  The
-        alias can have a leading '@' character, which means it's a
-        silent alias and not printed unless the -s option was used.
-        These silent aliases are for things you use a lot.
-        
-        If there is no leading whitespace on a line, then that line is
-        included in the list of choices you can make.  Otherwise, the
-        line is ignored.  Any line with a leading '#' character is also
-        ignored.
 
-        Use in a POSIX environment
-        --------------------------
+        This file contains lines with 1, 2, or 3 strings separated by '{G.sep}'.  
 
-        The following shell function can prompt you for a directory to
-        go to, then go to that directory:
+            1 string:   It is a directory or file to choose.  
+
+            2 strings:  It is short name followed by the directory or file to
+            choose.  
+
+            3 strings:  It is short name, an alias, then  the directory or file
+            to choose.
+
+        The alias is a string that you can give instead of the number you're
+        prompted for in case of the 1 or 2 string case.  The alias can have a
+        leading '@' character, which means it's a silent alias and not printed
+        unless the -s option was used.  These silent aliases are for things you
+        use a lot.
+
+        If there is no leading whitespace on a line, then that line is included
+        in the list of choices you can make.  Otherwise, the line is ignored.
+        Any line with a leading '#' character is also ignored.
+
+                        Use in a POSIX environment
+
+        The following shell function can prompt you for a directory to go to,
+        then go to that directory:
 
             g()
-            {
+            {{
                 typeset tmp=/tmp/goto.$$
+                # Run goto.py to get the desired file/directory and put
+                # it in a temporary file.
                 $PYTHON /plib/pgm/goto.py -e $tmp "$@"
                 if [ -e $tmp ] ; then
                     typeset res="$(cat $tmp)"
@@ -149,8 +155,11 @@ if 1:   # Utility
                     fi
                     rm -f $tmp
                 fi
-            }
-        ''')))
+            }}
+
+        Or, give the number or alias of the directory/file you want on the   
+        command line and you won't be prompted.
+        '''))
         exit(0)
 if 1:   # Core functionality
     def GetFile(all=False):
@@ -179,10 +188,27 @@ if 1:   # Core functionality
             else:
                 print(f"{G.R}Line {ln} in '{G.gotorc}' is bad\n '{line}'{G.N}")
                 bad = True
-    def AddCurrentDirectory():      #xx Impl
-        pass
-    def EditFile():     #xx Impl
-        pass
+    def BackUpConfigFile():
+        '''The configuration file is about to be modified, so save a
+        copy of it in ~/.bup.
+ 
+        Note we check that the -f option must be used if the script
+        name doesn't contain 'goto' to avoid overwriting the default
+        configuration file in G.gotorc.
+        '''
+        script = P(sys.argv[0]).resolve()
+        needs_dash_f = script.stem != "goto"
+        if needs_dash_f and d["-f"] is None:
+            Error("Won't backup to default config file unless script is goto.py")
+        bup = G.home/f".bup/{script.name}.{os.getpid()}"
+        s = open(d["-f"]).read() if d["-f"] else open(G.gotorc).read()
+        open(bup, "w").write(s)
+    def AddCurrentDirectory(): 
+        BackUpConfigFile()
+        s = str(P(".").resolve()) + "\n" + open(G.gotorc).read()
+        open(G.gotorc, "w").write(s)
+    def EditFile():
+        subprocess.call([G.editor, str(G.gotorc)])
     def CheckAlias(alias):
         "No spaces; optional leading '@'"
         if '@' in alias and alias[0] != '@':
@@ -217,36 +243,71 @@ if 1:   # Core functionality
         for i, item in enumerate(tmp):
             choices[i + 1] = item
         return choices, aliases
-    def DumpChoicesAndAliases(choices, aliases):
+    def DumpAll(choices, aliases):
         if not d["-d"]:
             return
-        print("Choices:")
-        for i in choices:
-            file, name = choices[i]
-            print(f"{name} --> {file}") if name else print(f"{file}")
-            print
-            xx()
-        from pprint import pprint as pp
-        pp(choices)
+        i = " "*2
+        print(f"{G.y}Options dictionary:")
+        for key in d:
+            print(f"{i}{key}:  {d[key]}")
+        if d["args"]:
+            print(f"Command line arguments:")
+            print(f"{i}{' '.join(d['args'])}")
+        else:
+            print(f"Command line arguments:  None")
+        print(f"Choices:")
+        for key in choices:
+            dir, name = choices[key]
+            if name is None:
+                print(f"{i}{key}:  {dir}")
+            else:
+                print(f"{i}{key}:  {name}, {dir}")
         print("Aliases:")
-        pp(aliases)
-    def Output(dir):
-        s = sys.stdout
-        if d["-e"]:
-            s = open(d["-e"], "w")
-        print(dir, file=s)
+        for key in aliases:
+            print(f"{i}{key}:  {', '.join(aliases[key])}")
+        print(f"{G.N}")
+    def ActOn(dir):
+        '''dir is a directory or file.  Write it to stdout or the output
+        file if -e option was used.  If -l was used, launch dir with the
+        registered application.
+        '''
+        if d["-l"]:
+            s = platform.system()
+            if s.startswith("CYGWIN_NT"):
+                subprocess.call((ActOn.cygwin, dir))
+            elif s == "Windows":
+                subprocess.call((ActOn.app, dir))
+            else:   # Linux variants
+                subprocess.call(('xdg-open', filepath))
+        else:
+            s = sys.stdout
+            if d["-e"]:
+                s = open(d["-e"], "w")
+            print(dir, file=s)
+    ActOn.app = "c:/cygwin/home/Don/bin/app.exe"
+    ActOn.cygwin = "c:/cygwin/bin/cygstart.exe"
+    def GetSortedAliases(aliases):
+        '''Generator to return the keys of the aliases dictionary, but
+        sorted so that aliases like '@abc' and 'abc' sort next to each
+        other.
+        '''
+        at = "@"
+        f, g = lambda x:  x[1:] + at, lambda x:  at + x[:-1]
+        tmp = sorted([f(k) if k[0] == at else k for k in aliases.keys()])
+        for key in [g(k) if k[-1] == at else k for k in tmp]:
+            yield key
     def GoTo(arg):
-        'Print the path string the user selected'
+        'Print the path string the user selects'
         lines = GetFile()
         choices, aliases = GetChoicesAndAliases(lines)
-        DumpChoicesAndAliases(choices, aliases)
+        DumpAll(choices, aliases)
         if arg:     # User passed in a number or alias
             try:
                 choice = int(arg)
                 if choice not in choices:
                     Error("'{arg}' isn't a valid choice")
                 selection = choices[choice][0]
-                Output(choices[choice][0])
+                ActOn(choices[choice][0])
                 return
             except ValueError:
                 # See if it's an alias
@@ -256,7 +317,7 @@ if 1:   # Core functionality
                     dir, name = aliases["@" + arg]
                 else:
                     Error(f"'{arg}' isn't a valid choice")
-                Output(dir)
+                ActOn(dir)
         else:       # Prompt for a choice
             n = max([len(i) for i in aliases])
             n = max(n, 3)
@@ -266,11 +327,17 @@ if 1:   # Core functionality
                 print(f"{i:<{n}d}  {name if name else dir}")
             print()
             # Print out aliases
-            for i in aliases:
+            for i in GetSortedAliases(aliases):
                 dir, name = aliases[i]
                 if not d["-s"] and i.startswith("@"):
                     continue
-                print(f"{i:{n}s}  {name if name else dir}")
+                if i.startswith("@"):
+                    print(f"{G.y}{i:{n}s}  {name if name else dir}{G.N}")
+                else:
+                    if d["-s"]:
+                        print(f"{G.W}{i:{n}s}  {name if name else dir}{G.N}")
+                    else:
+                        print(f"{i:{n}s}  {name if name else dir}")
             while True:
                 print("Selection? ", end="")
                 s = input().strip()
@@ -285,16 +352,15 @@ if 1:   # Core functionality
                 except ValueError:
                     if s in aliases:
                         dir, name = aliases[s]
-                        Output(dir)
+                        ActOn(dir)
                         return
                 else:
                     if choice not in choices:
                         print(f"'{s}' not a valid choice")
                         continue
                     dir, name = choices[choice]
-                    Output(dir)
+                    ActOn(dir)
                     return
-
     def SearchLines(cmd, args):
         '''s or S:  find regexps on the gotorc file's lines'''
         lines = GetFile(all=True if cmd == "S" else False)
@@ -312,7 +378,7 @@ if 1:   # Core functionality
     def ExecuteCommand(cmd, args):
         if d["-t"] or d["-T"]:
             CheckFile()
-        if cmd == "a":
+        elif cmd == "a":
             AddCurrentDirectory()
         elif cmd == "e":
             EditFile()

@@ -3,6 +3,8 @@
   so much easier.
 
 * wrap.py:  There should be two spaces after a ':' at the end of a word.
+  Also need to add .on and .off directives (those lines are deleted) to 
+  start or stop wrapping.
 
 ----------------------------------------------------------------------
 Low priority
