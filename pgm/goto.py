@@ -1,8 +1,16 @@
 '''
-* xx Let alias string be e.g. '@ help'; remove the space characters.
-* xx An argument of 'sa' doesn't work, but it should.
+* xx The -l option should take all the options passed on the command
+  line.  If they are not numbers/aliases, they'll be files and these
+  should also be opened.
 
-Driver for the old shell g() function; uses _goto.py script.
+* xx Change the defaults to NOT have a default file.  This forces all
+  use to include a -f option.  Or -g could pick the default goto file;
+  -f would be needed for others.
+
+Driver for the old shell g() function that used the _goto.py script.
+This new file includes the functionality of the g() function, so minimal
+shell function support is needed to use it.  This gets around the need
+for writing ugly shell syntax stuff.
 '''
  
 if 1:  # Copyright, license
@@ -58,10 +66,10 @@ if 1:   # Utility
         print(dedent(f'''
     Usage:  {name} [options] arguments
       Script to save/choose file or directory names.  When run, the
-      datafile is read (change it with -f option) and you are prompted
-      for a choice.  The file/directory you choose is printed to stdout,
-      letting e.g. a shell function change to that directory or launch
-      the file.
+      datafile is read (change it with the -f option) and you are
+      prompted for a choice.  The file/directory you choose is printed
+      to stdout, letting e.g. a shell function change to that directory
+      or launch the file.
 
       Arguments are:
         a       Adds current directory to top of datafile
@@ -73,7 +81,8 @@ if 1:   # Utility
       Options are:
         -d      Debug printing:  show data file contents
         -e f    Write result to file f
-        -f f    Set the name of the datafile (default is {G.gotorc})
+        -g      Use the default goto datafile {G.gotorc}
+        -f f    Set the name of the datafile
         -H      Explains details of the .gotorc file syntax
         -l      Launch the file with the registered application
         -t      Checks each directory in the file
@@ -84,6 +93,7 @@ if 1:   # Utility
     def ParseCommandLine(d):
         d["-d"] = False
         d["-e"] = None
+        d["-g"] = False
         d["-f"] = None
         d["-H"] = False
         d["-l"] = False
@@ -91,12 +101,12 @@ if 1:   # Utility
         d["-T"] = False
         d["-s"] = False
         try:
-            opts, args = getopt.getopt(sys.argv[1:], "de:f:HhlTts")
+            opts, args = getopt.getopt(sys.argv[1:], "de:f:gHhlTts")
         except getopt.GetoptError as e:
             print(str(e))
             exit(1)
         for o, a in opts:
-            if o[1] in list("dltTs"):
+            if o[1] in list("dgltTs"):
                 d[o] = not d[o]
             elif o == "-e":
                 d["-e"] = a
@@ -107,13 +117,15 @@ if 1:   # Utility
             elif o == "-H":
                 Manpage()
         args = d["args"] = [i.strip() for i in args]
+        if d["-g"]:
+            d["-f"] = G.gotorc
         return args
     def Manpage():
         print(dedent(f'''
                             Configuration file
 
-        Details of the syntax of the configuration file (default file is
-        {G.gotorc}, change it with the -f option).
+        Details of the syntax of the configuration file (change it with
+        the -f option).
 
         This file contains lines with 1, 2, or 3 strings separated by '{G.sep}'.  
 
@@ -129,11 +141,17 @@ if 1:   # Utility
         prompted for in case of the 1 or 2 string case.  The alias can have a
         leading '@' character, which means it's a silent alias and not printed
         unless the -s option was used.  These silent aliases are for things you
-        use a lot.
+        use a lot and don't need to see in a listing.
 
-        If there is no leading whitespace on a line, then that line is included
-        in the list of choices you can make.  Otherwise, the line is ignored.
-        Any line with a leading '#' character is also ignored.
+        Any line with a leading '#' character is also ignored, except
+        when the -T option is used.
+
+                         Launching project files
+
+        I use the launching capability of this script in a number of
+        shell commands.  When the -l option is included on the command
+        line, the indicated file or directory is opened with its
+        registered application.
 
                         Use in a POSIX environment
 
@@ -144,11 +162,12 @@ if 1:   # Utility
             {{
                 typeset tmp=/tmp/goto.$$
                 # Run goto.py to get the desired file/directory and put
-                # it in a temporary file.
+                # it in the temporary file.
                 $PYTHON /plib/pgm/goto.py -e $tmp "$@"
                 if [ -e $tmp ] ; then
                     typeset res="$(cat $tmp)"
                     if [ "$res" ] ; then
+                        # Change to the desired directory
                         cd $res
                         cd -
                         cd $res
@@ -162,15 +181,15 @@ if 1:   # Utility
         '''))
         exit(0)
 if 1:   # Core functionality
-    def GetFile(all=False):
+    def ReadConfigFile(all=False):
         'Read in the goto file.  If all is True, include comments.'
         r = None if all else [r"^\s*#"]
         lines = [(linenum + 1, line) for linenum, line in
                  enumerate(get.GetLines(G.gotorc, regex=r)) if line]
         return lines
-    def CheckFile():
+    def CheckConfigFile():
         'For each line, verify the file exists'
-        lines = GetFile(all=True if d["-T"] else False)
+        lines = ReadConfigFile(all=True if d["-T"] else False)
         bad = False
         for ln, line in lines:
             f = [i.strip() for i in line.split(G.sep)]
@@ -298,7 +317,7 @@ if 1:   # Core functionality
             yield key
     def GoTo(arg):
         'Print the path string the user selects'
-        lines = GetFile()
+        lines = ReadConfigFile()
         choices, aliases = GetChoicesAndAliases(lines)
         DumpAll(choices, aliases)
         if arg:     # User passed in a number or alias
@@ -363,7 +382,7 @@ if 1:   # Core functionality
                     return
     def SearchLines(cmd, args):
         '''s or S:  find regexps on the gotorc file's lines'''
-        lines = GetFile(all=True if cmd == "S" else False)
+        lines = ReadConfigFile(all=True if cmd == "S" else False)
         S = C.Style(C.yellow, C.black)
         for regex in args:
             r = re.compile(regex, re.I)
@@ -377,7 +396,7 @@ if 1:   # Core functionality
             print("-"*70)
     def ExecuteCommand(cmd, args):
         if d["-t"] or d["-T"]:
-            CheckFile()
+            CheckConfigFile()
         elif cmd == "a":
             AddCurrentDirectory()
         elif cmd == "e":
