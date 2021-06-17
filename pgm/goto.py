@@ -334,6 +334,9 @@ if 1:   # Core functionality
                     dir, name = aliases[arg]
                 elif "@" + arg in aliases:
                     dir, name = aliases["@" + arg]
+                elif d["-l"]:
+                    # Assume it's a file; open it with registered application.
+                    dir = arg
                 else:
                     Error(f"'{arg}' isn't a valid choice")
                 ActOn(dir)

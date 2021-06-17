@@ -19,8 +19,10 @@ if 1:   # Imports
     import string
     import sys
     from fractions import Fraction
+    from pdb import set_trace as xx 
 if 1:   # Custom imports
     from frange import frange
+    from f import flt
 if 1:   # Global variables
     ii = isinstance
 def AlmostEqual(a, b, rel_err=2e-15, abs_err=5e-323):
@@ -678,6 +680,29 @@ def Percentile(seq, fraction):
     else:
         y = seq[0]
     return y
+def LengthOfRopeOnDrum(dia, width, flange_dia, barrel_dia, output_units="m"):
+    '''Return the length of rope of diameter dia that will fit on a
+    winch drum of diameter barrel_dia.  The width of winding area is
+    width and the maximum diameter of the drum's flange is flange_dia.
+    These variables must be flt instances with dimensionss of length.
+    '''
+    # Formula from Sampson Rope Users Manual pg. 28.  Note the formula
+    # is for all input variables in inches and output length in feet.
+    if not ii(dia, flt):
+        raise TypeError("dia must be a flt from f.py")
+    if not ii(width, flt):
+        raise TypeError("width must be a flt from f.py")
+    if not ii(flange_dia, flt):
+        raise TypeError("flange_dia must be a flt from f.py")
+    if not ii(barrel_dia, flt):
+        raise TypeError("barrel_dia must be a flt from f.py")
+    # Convert dimensions to inches
+    A = width.val
+    B = flange_dia.val
+    C = barrel_dia.val
+    rope_dia = dia.val
+    L = flt(A*(B**2 - C**2)/(15.3*rope_dia**2), "ft")
+    return L.to(output_units)
 
 if __name__ == "__main__": 
     from lwtest import run, raises, assert_equal, Assert
@@ -1098,4 +1123,11 @@ if __name__ == "__main__":
         Assert(round(Percentile(s, 1), 4) == 95.1990)
         Assert(round(Percentile(s, 1.1), 4) == 95.1990)
         raises(ValueError, Percentile, [1], 0.5)
+    def TestLengthOfRopeOnDrum():
+        a, b, c, d = 72, 48, 12, 1
+        A = flt(a, "inch")
+        B, C, dia = A(b), A(c), A(d)
+        expected = (a*(b**2 - c**2)/(15.3*d**2))
+        got = LengthOfRopeOnDrum(dia, A, B, C, output_units="ft")
+        assert_equal(got, expected, reltol=1e-10)
     exit(run(globals(), halt=1)[0])
