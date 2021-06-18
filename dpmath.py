@@ -75,7 +75,7 @@ if 1:   # Polynomial utilities
     # These routines were originally from 
     # http://www.physics.rutgers.edu/~masud/computing/
     # in the file WPark_recipes_in_python.html.  This URL is now defunct.
-
+ 
     # coef is a sequence of the polynomial's coefficients; coef[0] is the
     # constant term and coef[-1] is the highest term; x is a number.
     def polyeval(coef, x):
@@ -703,6 +703,231 @@ def LengthOfRopeOnDrum(dia, width, flange_dia, barrel_dia, output_units="m"):
     rope_dia = dia.val
     L = flt(A*(B**2 - C**2)/(15.3*rope_dia**2), "ft")
     return L.to(output_units)
+    '''Here's a post on math.stackexchange that discusses this problem
+    https://math.stackexchange.com/questions/3853557/how-to-calculate-the-length-of-cable-on-a-winch-given-the-rotations-of-the-drum
+ 
+    Let's let n be the number of complete layers already laid down, and t be
+    the number of turns in the current (partial) layer, and s be the length
+    of cable currently wound on the spool. Given the other constants (drum
+    diameter, drum width, cable diameter), you'd like
+ 
+    A formula that converts n,t into s
+ 
+    A formula that converts s into n,t
+ 
+    each of them without loops if possible, and with the property that
+ 
+    if you start with some n,t, convert to s, and convert back, you get back
+    the same n,t you started with, and if you start with s, convert to
+    (n,t), and then back to s, you get the same s you started with.  Before
+    I jump into this, I want to observe that property 3 is almost impossible
+    on a computer. If you start with a number x, compute its square root,
+    and square that, you'll get back something very close to x, but not, in
+    general, actually equal to x -- they'll differ in the 10th or 12th or
+    20th digit somewhere. So testing for perfect equality of floating-point
+    numbers is always a bad idea. The most you can hope for is approximate
+    equality. Notice, however, that an error in the 20th digit in the
+    reconstructed value for s is hugely smaller than the variation in the
+    length of s due to differing loads on the winch, different temperature
+    (because everything has a temperature coefficient, even your drum!), and
+    probably amounts to something less than a wavelength of light in the
+    cable-length --- a far tinier error than you have in your measurement of
+    your (physical) drum or cable. In short: don't expect equality.
+ 
+    I also want to note that I think your model of cable winding on a spool
+    is probably a bit broken --- unless the diameter of the cable is small
+    compared to the diameter of the drum, you probably want to worry about
+    the fact that individual wraps are not circles, but are helixes. And at
+    the end of a layer, the "climb up" to the next layer isn't really
+    accounted for. Perhaps none of these matters for you, but they are
+    caveats: my answer assumes that your model is a good one, and solves the
+    problems you posed within that context only.
+ 
+    As I said, I'm going to answer the question you asked. Your "side note"
+    at the bottom makes me worry that this will all be of no use. It's
+    incredibly easy to change a problem from one that's easy to solve into
+    one that's impossible. Find an elementary antiderivative for x↦exp(−x)?
+    Easy. Find one for x↦exp(−x2)? Impossible. I just say this so that
+    you're warned.
+ 
+    Letting w be the constant number of turns per full layer, d the drum
+    diameter, and h the rope diameter...here goes.
+ 
+    To convert (n,t) into s (only valid when t≤w, of course):
+ 
+    Let's start with a largish value of n, to detect a pattern:
+ 
+    Total length on layer 1: w(π(d+h))
+ 
+    Total length on layer 2: w(π(d+2h))
+ 
+    Total length on layer 3: w(π(d+3h))
+ 
+    ...
+ 
+    Total length on layer (n−1): w(π(d+(n−1)h))
+ 
+    Total length on layer n: w(π(d+nh))
+ 
+    Total length on layer n: t(π(d+(n+1)h))
+ 
+    So the total length on the first n−1 layers is
+ 
+    T1=πw[(d+h)+(d+2h)+…+(d+nh)]
+ 
+    Within the brackets, there are n copies of d,which I'll gather together:
+ 
+    T1=πw[nd+(h+2h+…+nh)]
+ 
+    and then I factor out an h to get
+ 
+    T1=πw[nd+h(1+2+…+n)]
+ 
+    Now I have to pull out a formula, due to Gauss, for the sum of the first
+    n positive integers, namely,
+ 
+    1+2+…+n=(n(n+1))/2.
+ 
+    So we can write
+ 
+    T1=πw[nd+h(n(n+1)/2)]
+ 
+    and then simplify to get
+ 
+    T1=πwn[d+h(n+1)2].
+ 
+    We add to this the total length on the (n+1)th layer, which is
+    t(π(d+(n+1)h)), and we get
+ 
+    s=T1+t(π(d+(n+1)h))=πwn[d+h(n+1)/2]+t(π(d+(n+1)h))
+ 
+    At this point, it's nice to divide through by π just to make things
+    prettier, and to multiply by 2 to get rid of fractions; we'll get back
+    to s in a while. So we have
+ 
+    2sπ=2wn[d+h(n+1)/2]+2t(d+(n+1)h)
+ 
+    and now I'm going to just do algebra to expand all of this to be a
+    nicely expressed function of n.
+ 
+    2s/π=2wnd+2wnh(n+1)/2+2td+2th(n+1)
+        =2wdn+wnhn+wnh+2td+2thn+2th
+        =(wh)n2+(2wd+wh+2th)n+2td+2th
+        =(wh)n2+(2wd+wh+2th)n+2t(h+d)
+ 
+    so that
+ 
+    s=π/2((wh)n^2+(2wd+wh+2th)n+2t(h+d)).
+ 
+    So that's part 1: you can compute the total length s wrapped up in n−1
+    layers with t more turns on the nth layer using that formula.
+ 
+    I'm going to rewrite that as a sum of two terms:
+ 
+    s=π/2(whn^2+(2wd+wh)n)+π/2((2th)n+t(2d+2h))
+ 
+    Let's call those S1 and S2, respectively. S1 is the stuff in the first n
+    (complete) layers; S2 is the length due to the additional t turns on the
+    (n+1)st layer.
+ 
+    Now suppose we have s and want to find n and t. Let's start out by
+    finding n. We need the total length of the completed layers to be no
+    more than s, i.e., we need to find the largest integer n with S1≤s. So
+    we're looking for the largest integer n with
+ 
+    π/2(whn^2+(2wd+wh)n) ≤ s (1)
+ 
+    Because the length of the wrapped-up rope is an increasing function of n
+    (at least for n>0, which is all we care about), we can find the real
+    number n0 that makes equation 1 into an equality --- maybe we find that
+    6.3 layers would produce our chosen value s. Well, you can't have 6.3
+    layers, but the largest whole number of layers you can have that'll fit
+    is 6 layers, and then you have to compute how many more wraps there will
+    in the 7th layer to get all the way to s. So let's change to equality in
+    equation 1, and solve:
+ 
+    s = π/2(whn^2+(2wd+wh)n)
+    2s/π = whn^2+(2wd+wh)n
+    0=whn^2+(2wd+wh)n−2s/π
+    0 =An^2+Bn+C, where
+    A = wh
+    B = (2wd+wh)
+    C =−2s/π
+ 
+    We can solve this with the quadratic formula, choosing the "plus" part
+    of the plus-or-minus to avoid negative values of n, and get
+ 
+    2wh(n_0) = -(2wd + wh) + sqrt((2wd+wh)^2 + 8whs/π)
+ 
+    That'll be some typically non-integer number, but we can compute n to be
+    the "floor" of n0, i.e., the result of rounding down to the nearest
+    whole number. (The floor of 3.8 is 3; the floor of 7 is 7.)
+ 
+    Now knowing n, the number of complete layers, we know the length of the
+    cable in those layers is given by S1, i.e., it's
+ 
+    s1=π/2(whn^2+(2wd+wh)n)
+ 
+    Now the remaining part, s2, must be s−s1, so to find t, we need to solve
+ 
+    π/2((2th)n+t(2d+2h))=s−s1
+ 
+    for t. Let's do it!
+ 
+    π/2((2th)n+t(2d+2h)) = s -s1
+    (2th)n+t(2d+2h) = 2/π(s-s1)
+    t(2nh)+t(2d+2h) = 2/π(s-s1)
+    t(2nh+2d+2h)
+    t = (2/π)(s−s1)/(2nh+2d+2h)
+ 
+    and we're done.
+ 
+    The only remaining question is whether this all works.
+ 
+    It does: here's Matlab code that runs the operations both ways. THe
+    result, when this is run, is to print out 200 zeroes (i.e., the input
+    length and output lengths agree).
+ 
+    ---------------------------------------------------------------------
+    function test()
+    for s = 1:200
+        [n, t] = layersAndTurns(s); 
+        sp = cableLength(n, t); 
+        s - sp  % print out the difference between the two values.
+    end
+ 
+    function s = cableLength(n, t)
+    % Express total length of cable as a function of the number of complete
+    % layers, n, and the number, t, of turns on the (n+1)-st layer. Depends on 
+    % constants d = drum diameter, w = number of turns in a full layer, and 
+    % h = cable diameter. 
+    w = 10;
+    d = 20; 
+    h = 1; 
+ 
+    s = (pi/2)*( w*h*n^2 + (2*w*d + w*h + 2*t*h)*n + 2*t*(h + d));
+    %s = (pi/2) * ( w*h * n^2 + (2*w*d - w*h + 2*t*h)*n + 2*(t-w)*d);
+ 
+    function [n, t] = layersAndTurns(s)
+    % Given the total length of cable, determine the number, n, of full layers 
+    % on the cable drum, and the number, t, of turns on the next (unfilled)
+    % layer.  Depends on 
+    % constants d = drum diameter, w = number of turns in a full layer, and 
+    % h = cable diameter. 
+    w = 10;
+    d = 20; 
+    h = 1; 
+ 
+    n0 = (-(2*w*d + w*h) + sqrt((2*w*d + w*h)^2 + 8*w*h*s/pi))/(2*w*h);
+    n = floor(n0); % The whole number of layers that fit. 
+ 
+    s_1 = (pi/2) * (w * h * n^2 + (2*w*d + w*h)* n);
+    t   = (2/pi) * (s - s_1)/(2*n*h + 2*d + 2*h);
+    ---------------------------------------------------------------------
+    answered Oct 6 '20 at 16:22
+ 
+    John Hughes
+    '''
 
 if __name__ == "__main__": 
     from lwtest import run, raises, assert_equal, Assert
