@@ -59,6 +59,13 @@ if 1:   # Global variables
     G.G = C.C.lgrn
     G.W = C.C.lwht
     G.N = C.C.norm
+    # Regular expressions describing configuration file lines that
+    # should be ignored
+    G.ignore = (
+        re.compile(r"^\s*##"),
+        re.compile(r"^\s*#[《》]"),     # vim folding markers
+        re.compile(r"^\s*#<<|^\s#>>"),  # vim folding markers
+    )
 if 1:   # Utility
     def Error(msg, status=1):
         print(msg, file=sys.stderr)
@@ -72,14 +79,14 @@ if 1:   # Utility
       printed to stdout, letting e.g. a shell function change to that
       directory or launch the file.
 
-      Arguments are:
+    Arguments are:
         a       Adds current directory to top of configuration file
         e       Edits the configuration file
         n       Goes directly to the nth directory.  n can also be an
                 alias string.
         S       Search all lines in the config file for a string
         s       Search the active lines in the config file for a string
-      Options are:
+    Options are:
         -a      Read and check all configuration file lines, then exit
         -d      Debug printing:  show data file contents
         -e f    Write result to file f
@@ -212,6 +219,12 @@ if 1:   # Utility
         '''))
         exit(0)
 if 1:   # Core functionality
+    def Ignore(line):
+        'Return True if this configuration file line should be ignored'
+        for r in G.ignore:
+            if r.search(line):
+                return True
+        return False
     def CheckConfigFile(lines):
         'For each line, verify the file exists'
         def BadLine(ln, line, msg):
@@ -226,7 +239,9 @@ if 1:   # Core functionality
             line = line.strip()
             if not line:
                 continue
-            if line[0] == "#" and not d["-a"]:
+            elif line[0] == "#" and not d["-a"]:
+                continue
+            elif Ignore(line):
                 continue
             f = [i.strip() for i in line.split(G.sep)]
             if len(f) not in (1, 2, 3):
@@ -314,24 +329,30 @@ if 1:   # Core functionality
         if not d["-d"]:
             return
         i = " "*2
+        # Options
         print(f"{G.y}Options dictionary:")
         for key in d:
             print(f"{i}{key}:  {d[key]}")
+        # Command line arguments
         if d["args"]:
             print(f"Command line arguments:")
             print(f"{i}{' '.join(d['args'])}")
         else:
             print(f"Command line arguments:  None")
+        # Numerical choices
         print(f"Choices:")
+        n = 4
         for key in choices:
             dir, name = choices[key]
             if name is None:
-                print(f"{i}{key}:  {dir}")
+                print(f"{i}{key:{n}d}:  {dir}")
             else:
-                print(f"{i}{key}:  {name}, {dir}")
+                print(f"{i}{key:{n}d}:  {name}, {dir}")
+        # Aliases
         print("Aliases:")
-        for key in aliases:
-            print(f"{i}{key}:  {', '.join(aliases[key])}")
+        n = max([len(i) for i in aliases])
+        for key in GetSortedAliases(aliases):
+            print(f"{i}{key:{n}s}:  {', '.join(aliases[key])}")
         print(f"{G.N}")
     def ActOn(dir):
         '''dir is a directory or file.  Write it to stdout or the output
@@ -404,10 +425,7 @@ if 1:   # Core functionality
                 if i.startswith(G.at):
                     print(f"{G.y}{i:{n}s}  {name if name else dir}{G.N}")
                 else:
-                    if d["-s"]:
-                        print(f"{G.W}{i:{n}s}  {name if name else dir}{G.N}")
-                    else:
-                        print(f"{i:{n}s}  {name if name else dir}")
+                    print(f"{i:{n}s}  {name if name else dir}")
             while True:
                 print("Selection? ", end="")
                 s = input().strip()
@@ -424,6 +442,12 @@ if 1:   # Core functionality
                         dir, name = aliases[s]
                         ActOn(dir)
                         return
+                    elif G.at + s in aliases:
+                        dir, name = aliases[G.at + s]
+                        ActOn(dir)
+                        return
+                    else:
+                        print(f"'{s}' not a valid choice")
                 else:
                     if choice not in choices:
                         print(f"'{s}' not a valid choice")
