@@ -45,9 +45,6 @@ if 1:   # Custom imports
         _have_f = True
     except ImportError:
         _have_f = False
-    if 0:
-        import debug
-        debug.SetDebugger()
 if 1:   # Global variables
     P = pathlib.Path
     ii = isinstance

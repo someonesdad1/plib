@@ -1,12 +1,10 @@
 '''
-
-* xx Need to detect duplicate aliases.
 * xx Change the defaults to NOT have a default file.  This forces all
   use to include a -f option. 
 * xx The -T option isn't really needed.  When checking, the script just
   needs to ignore a comment line that doesn't parse correctly.
   CheckConfigFile() is the relevant function.
-
+ 
 Driver for the old shell g() function that used the _goto.py script.
 This new file includes the functionality of the g() function, so minimal
 shell function support is needed to use it.  This gets around the need
@@ -78,14 +76,12 @@ if 1:   # Utility
       are prompted for a choice.  The file/directory you choose is
       printed to stdout, letting e.g. a shell function change to that
       directory or launch the file.
-
+ 
     Arguments are:
         a       Adds current directory to top of configuration file
         e       Edits the configuration file
         n       Goes directly to the nth directory.  n can also be an
                 alias string.
-        S       Search all lines in the config file for a string
-        s       Search the active lines in the config file for a string
     Options are:
         -a      Read and check all configuration file lines, then exit
         -d      Debug printing:  show data file contents
@@ -93,7 +89,9 @@ if 1:   # Utility
         -f f    Set the name of the configuration file
         -H      Explains details of the configuration file syntax
         -l      Launch the file(s) with the registered application
-        -s      Print silent alias names (prefaced with {G.at})
+        -q      Print silent alias names (prefaced with {G.at})
+        -S      Search all lines in the config file for a regex
+        -s      Search the non-commented lines in the config file for a regex
     '''))
         exit(status)
     def ParseCommandLine(d):
@@ -103,14 +101,16 @@ if 1:   # Utility
         d["-f"] = None
         d["-H"] = False
         d["-l"] = False
+        d["-q"] = False
+        d["-S"] = False
         d["-s"] = False
         try:
-            opts, args = getopt.getopt(sys.argv[1:], "ade:f:Hhls")
+            opts, args = getopt.getopt(sys.argv[1:], "ade:f:HhlqSs")
         except getopt.GetoptError as e:
             print(str(e))
             exit(1)
         for o, a in opts:
-            if o[1] in list("adls"):
+            if o[1] in list("adlqSs"):
                 d[o] = not d[o]
             elif o == "-e":
                 d["-e"] = a
@@ -130,56 +130,54 @@ if 1:   # Utility
         return args
     def Manpage():
         print(dedent(f'''
-                                Typical Use
-
         This script is for "remembering" directories and project files.
         I use it primarily to remember directory locations and to keep a
         list of project files I work on.  When I'm finished with working
         on a project file, I'll comment out its line in the
         configuration file, but leave it there because I may later want
-        to go back to the file -- and with hundreds of thousands of
-        files and directories on my system, it's easy to forget where
-        something is.
-
+        to go back to the file.  Since my computer has around 100
+        thousand directories, it can be difficult to remember where
+        something is that I worked on before.
+        
                             Configuration file
-
+        
         The lines of the configuration file have the following allowed forms:
-
+        
             <blank line>                Ignored
             # Comment line              Ignored
             path
             name; path
             name; alias; path
-
+        
         Here, path is a directory or file name.  The last three are of
         the form:
-
-            1 string:   It is a directory or file to choose.  
-
-            2 strings:  It is short name followed by the directory or file to
-            choose.  
-
-            3 strings:  It is short name, an alias, then the directory or file
-            to choose.
-
+        
+            1 string:   It is a directory or file to choose.
+        
+            2 strings:  It is short name followed by the directory or
+            file to choose.
+        
+            3 strings:  It is short name, an alias, then the directory
+            or file to choose.
+        
         The alias is a string that you can give on the command line
         instead of the number you're prompted for in case of the 1 or 2
         string case.  The alias can have a leading '{G.at}' character,
-        which means it's a silent alias and not printed unless the -s
+        which means it's a silent alias and not printed unless the -q
         option was used.  These silent aliases are for things you use a
         lot and don't need to see in a listing.
-
+        
         When the configuration file is read in, the directory/filename
         for each line is checked to see that it exists; if the file or
-        directory doesn't exist, and error message will be printed.  The
+        directory doesn't exist, an error message will be printed.  The
         intent is to make sure that all the active directories and files
-        exist.  If you use the -a option, the same check is done, but on
+        exist.  If you use the -a option, the same check is done but on
         all lines in the file, even the ones that are commented out.
         This helps you when you rename things, hopefully when it's close
         enough in time to the renaming event to remember the new name.
-
-                         Launching project files
-
+        
+                        Launching project files
+        
         I use the launching capability of this script in a number of
         shell commands.  When the -l option is included on the command
         line, the indicated file/directory (by number or alias) is
@@ -187,15 +185,15 @@ if 1:   # Utility
         strings that aren't aliases in the configuration file and they
         will be interpreted as files and opened with their registered
         application.
-
+        
         Example:  'python {G.name} -l *.pdf' will launch all the PDF files
         in the current directory.
-
+        
                         Use in a POSIX environment
-
+        
         The following shell function can prompt you for a directory to go to,
         then go to that directory:
-
+        
             g()
             {{
                 typeset tmp=/tmp/goto.$$
@@ -213,11 +211,12 @@ if 1:   # Utility
                     rm -f $tmp
                 fi
             }}
-
+        
         Or, give the number or alias of the directory/file you want on the   
         command line and you won't be prompted.
         '''))
         exit(0)
+
 if 1:   # Core functionality
     def Ignore(line):
         'Return True if this configuration file line should be ignored'
@@ -265,9 +264,16 @@ if 1:   # Core functionality
             exit(0)
     def ReadConfigFile():
         'Read in the configuration file and check the lines'
-        r = None if d["-a"] else [r"^\s*#"]
+        # Note:  we have to sequentially filter to ensure the lines list
+        # has the correct line numbers.
         lines = [(linenum + 1, line) for linenum, line in
-                 enumerate(get.GetLines(G.config, regex=r)) if line]
+                 enumerate(get.GetLines(G.config))]
+        # Filter out blank lines
+        lines = [(ln, line) for ln, line in lines if line.strip()]
+        # Filter out comments
+        if not d["-a"]:     
+            r = re.compile(r"^\s*#")
+            lines = [(ln, line) for ln, line in lines if not r.search(line)]
         CheckConfigFile(lines)
         return lines
     def BackUpConfigFile():
@@ -282,7 +288,7 @@ if 1:   # Core functionality
         needs_dash_f = script.stem != "goto"
         if needs_dash_f and d["-f"] is None:
             Error("Won't backup to default config file unless script is goto.py")
-        bup = G.home/f".bup/{script.name}.{os.getpid()}"
+        bup = G.backup/f"{script.name}.{os.getpid()}"
         s = open(d["-f"]).read() if d["-f"] else open(G.config).read()
         open(bup, "w").write(s)
     def AddCurrentDirectory(): 
@@ -312,6 +318,21 @@ if 1:   # Core functionality
             if len(f) == 3:         # This line has an alias
                 name, alias, dir = [i.strip() for i in f]
                 alias = CheckAlias(alias)
+                alias1 = f"{G.at}{alias}"
+                if alias in aliases or alias1 in aliases:
+                    try:
+                        dir, name = aliases[alias]
+                        al = alias
+                    except KeyError:
+                        dir, name = aliases[alias1]
+                        al = alias1
+                    m = dedent(f'''
+                    {G.R}Duplicate alias '{al}' on line {ln}{G.N}
+                      Previous definition:
+                        name:      {name}
+                        file/dir:  {dir}
+                    ''')
+                    Error(m)
                 aliases[alias] = (dir, name)
             elif len(f) == 2:       # Name and directory
                 name, dir = [i.strip() for i in f]
@@ -420,7 +441,7 @@ if 1:   # Core functionality
             # Print out aliases
             for i in GetSortedAliases(aliases):
                 dir, name = aliases[i]
-                if not d["-s"] and i.startswith(G.at):
+                if not d["-q"] and i.startswith(G.at):
                     continue
                 if i.startswith(G.at):
                     print(f"{G.y}{i:{n}s}  {name if name else dir}{G.N}")
@@ -455,11 +476,11 @@ if 1:   # Core functionality
                     dir, name = choices[choice]
                     ActOn(dir)
                     return
-    def SearchLines(cmd, args):
-        '''s or S:  find regexps on the gotorc file's lines'''
-        lines = ReadConfigFile(all=True if cmd == "S" else False)
+    def SearchLines(regexps):
+        '''Find regexps on the gotorc file's lines'''
+        lines = ReadConfigFile()
         S = C.Style(C.yellow, C.black)
-        for regex in args:
+        for regex in regexps:
             r = re.compile(regex, re.I)
             for ln, line in lines:
                 mo = r.search(line)
@@ -475,12 +496,11 @@ if 1:   # Core functionality
             AddCurrentDirectory()
         elif cmd == "e":
             EditFile()
-        elif cmd in ("s", "S"):
-            SearchLines(cmd, args)    
+        elif d["-s"] or d["-S"]:
+            SearchLines([cmd].extend(args) if args else [cmd])    
         else:
             # cmd will be a number or alias
             GoTo(cmd)
-
 if __name__ == "__main__":
     d = {}      # Options dictionary
     args = ParseCommandLine(d)

@@ -1,12 +1,8 @@
-* _goto.py:  get it working in /plib/pgm.  Get rid of the silly g()
-  shell function and do everything in a python script, as it would be
-  so much easier.
+* /pylib/pgm/loc.py no longer works because fileinfo.py is gone.
 
 * wrap.py:  There should be two spaces after a ':' at the end of a word.
   Also need to add .on and .off directives (those lines are deleted) to 
   start or stop wrapping.
-
-* /pylib/pgm/loc.py no longer works because fileinfo.py is gone.
 
 ----------------------------------------------------------------------
 Low priority

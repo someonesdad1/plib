@@ -1,6 +1,49 @@
 '''
 TODO
 
+* Use the -H string from /plib/pgm/goto.py as an example of the typical
+  help string found in a script.
+
+    * Develop a mini-language for formatting things; these get stripped
+      out of the output.
+
+        * Look at mp.py and ts.py and see what of them can be put into a
+          text processing module.
+
+        * Commands (column numbering is 1-based)
+            * .fmt on/off:  Turn formatted output on/off.  If it is off,
+              the lines are output verbatim.
+            * .output on/off:  Turn output on/off.  If it is off, no
+              lines are output until the next '.output on' is seen.
+            * .lm n:  Set left margin.  Set to 0 or 1 to have text start
+              at column 1.
+            * .rm n:  Set right margin.  Set to 0 to make it be
+              determined by the .width command.
+            * .width n:  0 means wrap to width from COLUMNS.  'n' means
+              to wrap to int(n) columns.
+            * .indent n:  How many spaces to indent if n is an integer.
+              Otherwise, n is interpreted as the indent string (it must
+              be a valid python string usable by eval()).
+            * .empty n:  A line with no whitespace is replaced by one
+              with n space characters.
+            * .#:  Delete this line up to and including the newline.
+            * .|   No justification or centering
+            * .< [n]:  Left justify the following n lines (if n isn't
+              present, the setting is sticky)
+            * .> [n]:  Right justify the next n lines (sticky if n not
+              given)
+            * .^ [n]:  Center the next n lines (sticky if n not given)
+
+* For use with Usage strings in a script, in dedent, remove the first
+  and last lines with newlines if they are whitespace only.  Then
+  include an option that's True to let empty lines with no space be
+  ignored in the analysis of the number of common spaces on the line.
+
+* There should be two spaces after a word that ends in a colon.
+
+* Add .on and .off switches in the text to allow customization.  These
+  lines will be stripped out of the output.
+
 * Use template.py, then copy to /plib.
 
 * Sometimes you want to wrap a set of things like numbers, but you want
@@ -313,7 +356,7 @@ if __name__ == "__main__":
     # Run the selftests
     from lwtest import run, Assert
     import sys
-    from pdb import set_trace as xx 
+    from pdb import set_trace as xx
     def W():
         return Wrap()
     def TestBasic():
