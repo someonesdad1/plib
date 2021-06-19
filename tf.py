@@ -39,7 +39,8 @@ Python code blocks and variables
 State 
 
     The saved states are in a dictionary that is independent of the
-    variables in vars and code.
+    variables in vars and code.  This dictionary gets put onto a stack
+    when you .push.
 
     verbatim x/on/off:  If on, the output is not formatted; it is output
     as it is found in the line.  If the argument is x, it is
@@ -95,6 +96,15 @@ Other commands
 
     #:  This line is a comment and won't make it to the output
 
+Commands with arguments:
+    exec del verbatim out save load remove lm rm width prefix suffix
+    emtpy
+
+Commands with no arguments:
+    { } clear push pop 
+
+Commands with optional arguments
+    < > ^ #
 
 
 '''
@@ -125,13 +135,13 @@ if 1:   # Global variables
     G.commands = r'''{ } exec del clear verbatim out push pop save load
         remove lm rm width prefix suffix < > \^ empty # '''.split()
     # For debugging
-    G.commands = r'''{ } exec del clear < \^ # '''.split()
+    G.commands = r'''{ } exec del clear < \^ #'''.split()
 
 if 1:
     # Build up a regexp to recognize commands
     s = []
     for cmd in G.commands:
-        s.append(f"^\\s*\\.{cmd}")
+        s.append(r"^\s*\.{}\s?".format(cmd))
     t = '|'.join(s)
     r = re.compile(t)
     a = '''
@@ -140,7 +150,12 @@ if 1:
     .exec a
     .< b
     .^ c
+
+    .exece a
+    ,exec a
+    ;exec a
     .kjdk
+    .<< b
     me
     you
     '''
@@ -148,6 +163,11 @@ if 1:
         if r.search(i):
             print(i)
     exit()
+    '''Conclusions:
+    Need to divide commands into those that have arguments and those
+    that don't.  For a command like .{, the line will have to be
+    rstripped first.  Then the regexp can be "^\s*\.{$".
+    '''
 
 if __name__ == "__main__": 
     # Run the selftests
