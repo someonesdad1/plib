@@ -1,111 +1,86 @@
 '''
+Text formatter: Develop a mini-language for formatting strings.
 
-Text formatter: Develop a mini-language for formatting strings.  The
-formatting commands get stripped out of the output.
+    The main use case is to be able to get formatted output for the help
+    strings used in scripts.
 
-The main use case is to be able to get formatted output for the help
-strings used in scripts, as I need this a lot.
+    A line containing a formatter command begins with a "." after
+    stripping off whitespace.  If you want a line to begin with a
+    period, escape it with a backslash.
 
-Commands to the formatter will match the regexp '^\s*[^\\]\.' followed
-by a command token.  If you want a line to begin with a period, escape
-it with a backslash.
+    In the following, the leading '.' to the commands is not shown.
 
-In the following, the preceding '.' to the commands is not shown.
+    Python code blocks and variables
 
-It would be nice to include a simple class that ignores the formatting
-commands in a string and just lets it be printed to stdout.  This could
-be done with a regexp that is used on every line of the string.  This
-means that someone will still see the output, though it won't look like
-it was intended; this could happen if a user didn't get a copy of the
-tf.py script.
+        { and } delimit code blocks.  Common indentation is removed and the
+        lines are executed one at a time with exec(line, globals(), vars)
+        where vars is a maintained local variables dictionary.
 
-    Idea:  would it be possible to make the documentation string python
-    code that the script would execute a line at a time?  This would be
-    cool and portable, but probably a lot of work and complex.
+        del x:  Delete the variable named x from vars.
 
-Python code blocks and variables
+        clear:  Clears the vars dictionary.  If you .pop, the old vars
+        dictionary will be restored.
 
-    { and } delimit code blocks.  Common indentation is removed and the
-    lines are executed one at a time with exec(line, globals(), vars)
-    where vars is a maintained local variables dictionary.
+    State 
 
-    exec s:  Execute the statement s with exec(s, globals(), vars).
+        The saved states are in a dictionary that is independent of the
+        variables in vars and code.  This dictionary gets put onto a stack
+        when you .push.
 
-    del x:  Delete the variable named x from vars.
+        format x/on/off:  If off, the output is not formatted; it is
+        output as it is found in the line.  Otherwise, each line is
+        formatted per the current state.  If the argument is x, it is
+        bool(vars["x"]).
 
-    clear:  Clears the vars dictionary.  If you .restore or .pop, the
-    old vars dictionary will be restored.
+        out x/on/off:  Turn output on/off.  If it is off, no lines are
+        output until the next '.output on' is seen.  This is a handy way to 
+        comment out a chunk of text.  If the argument is x, it is
+        bool(vars["x"]).
 
-State 
+        push:  Save the current state.  Note vars is part of the state, so a
+        subsequent '.clear' will be "forgotten" when you .pop or .restore an
+        older state.  A shallow copy of vars is made for the new state.
 
-    The saved states are in a dictionary that is independent of the
-    variables in vars and code.  This dictionary gets put onto a stack
-    when you .push.
+        pop:  Restore the previously pushed state
 
-    verbatim x/on/off:  If on, the output is not formatted; it is output
-    as it is found in the line.  If the argument is x, it is
-    bool(vars["x"]).
+        State variables:
 
-    out x/on/off:  Turn output on/off.  If it is off, no lines are
-    output until the next '.output on' is seen.  This is a handy way to 
-    comment out a chunk of text.  If the argument is x, it is
-    bool(vars["x"]).
+            Left margin:        integer >= 0
+            Right margin:       integer >= 0
+            Width               integer >= 0
+            Prefi               string
+            Suffi               string
+            Justification:      {left, right, center}
 
-    push:  Save the current state.  Note vars is part of the state, so a
-    subsequent '.clear' will be "forgotten" when you .pop or .restore an
-    older state.  A shallow copy of vars is made for the new state.
+    Margins
 
-    pop:  Restore the previously pushed state
+        lm n:  Set left margin.  Set to 0 to have text start at column 1.
+        Default 0.
 
-    save x:  Save the current state to name x.  Same vars semantics as
-    .push.
+        width n:  0 means wrap to width from COLUMNS.  'n' means to wrap to
+        int(n) columns.  Default 0.
 
-    load x:  Restore the state with name x
+    Justification
+        <:      Left justification
+        >:      Right justification
+        ^:      Center the lines
+        wrap x/on/off:   Wrap paragraphs to current margins
 
-    remove x:  Remove the saves state named x
+    Other commands
+        empty n:  A line with no whitespace is replaced by one with n space
+        characters.
 
-Margins
+        #:  This line is a comment and won't make it to the output
 
-    lm n:  Set left margin.  Set to 0 to have text start at column 1.
-    Default 0.
+    Commands with arguments:
+        exec del verbatim out save load remove lm rm width prefix suffix
+        emtpy
 
-    rm n:  Set right margin.  Set to 0 to make it be determined by the
-    .width command; it will be (width - lm).  Default 0.
+    Commands with no arguments:
+        { } clear push pop 
 
-    width n:  0 means wrap to width from COLUMNS.  'n' means to wrap to
-    int(n) columns.  Default 0.
-
-    prefix s:  String to prefix before each line.  Default "".
-
-    suffix s:  String to append to each line.  Default "".
-
-Justification
-    If n is given, it's for the following n lines, then return to the
-    previous state.  If n is not given, then it's "sticky" and remains
-    set.  Left justification is the default.  
-
-    < [n]:  Left justification
-
-    > [n]:  Right justification
-
-    ^ [n]:  Center the lines
-
-Other commands
-    empty n:  A line with no whitespace is replaced by one with n space
-    characters.
-
-    #:  This line is a comment and won't make it to the output
-
-Commands with arguments:
-    exec del verbatim out save load remove lm rm width prefix suffix
-    emtpy
-
-Commands with no arguments:
-    { } clear push pop 
-
-Commands with optional arguments
-    < > ^ #
-
+    Commands with optional arguments
+        < > ^ #
 
 '''
 if 1:  # Copyright, license
@@ -128,23 +103,108 @@ if 1:   # Imports
     import pathlib
     import re
     import sys
+    from pdb import set_trace as xx 
 if 1:   # Global variables
     P = pathlib.Path
     ii = isinstance
     class G: pass
-    G.commands = r'''{ } exec del clear verbatim out push pop save load
-        remove lm rm width prefix suffix < > \^ empty # '''.split()
-    # For debugging
-    G.commands = r'''{ } exec del clear < \^ #'''.split()
+    G.nl = "\n"
+class IdentifyCmd:
+    '''Call the identify method with the candidate line and it will
+    return the parsed command if it is a command; otherwise None is
+    returned.
+    '''
+    def __init__(self):
+        self.no_args = set("{ } clear push pop".split())
+        self.opt_args = set("< > ^ #".split())
+        self.args = set('''exec del verbatim out save load 
+            remove lm rm width prefix suffix emtpy'''.split())
+        self.all = self.no_args | self.opt_args | self.args
+    def identify(self, line):
+        '''Return None if not a command; otherwise return list of 
+        [cmd, arg1, ...].
+        '''
+        s = line.strip()
+        if not s.startswith("."):
+            return None
+        f = s[1:].split()
+        candidate = f[0]
+        if candidate not in self.all:
+            return None
+        elif candidate in self.no_args:
+            return [candidate]
+        elif candidate in self.opt_args or candidate in self.args:
+            return f
 
-if 1:
-    # Build up a regexp to recognize commands
-    s = []
-    for cmd in G.commands:
-        s.append(r"^\s*\.{}\s?".format(cmd))
-    t = '|'.join(s)
-    r = re.compile(t)
-    a = '''
+def dedent(s, empty=True, trim_leading=True, trim_trailing=False,
+           trim_end=True):
+    '''For the multiline string s, remove the common leading space
+    characters and return the modified string.
+
+    empty               Consider empty lines to have an infinite number
+                        of spaces.  They will be empty lines in the
+                        output string.
+    trim_leading        Remove the first line if it only consists of
+                        space characters.
+    trim_trailing       Remove the last line if it only consists of
+                        space characters.
+    trim_end            Remove any trailing whitespace.
+    '''
+    def LeadingSpaces(s):
+        'Return the number of space characters at the beginning of s'
+        t, count = deque(s), 0
+        while t:
+            c = t.popleft()
+            if c == " ":
+                count += 1
+            else:
+                return count
+        return 0
+    t = s.strip()
+    if not t:
+        return ""
+    if trim_end:
+       s = s.rstrip()
+    lines = s.split(G.nl)   # Splitting on a newline always returns a list
+    if len(lines) == 1:
+        return s.lstrip()
+    if not trim_end and trim_trailing:
+        if set(lines[-1]) == set(" "):
+            del lines[-1]
+    if len(lines) > 1 and trim_leading:
+        t = set(lines[0])
+        if not t or t == set(" "):
+            del lines[0]
+    # Get sequence of the number of beginning spaces on each line
+    o = [LeadingSpaces(i) for i in lines]
+    if empty:
+        # Decorate the blank lines
+        m = max(o)
+        o = [i if i else m + 1 for i in o]  
+    n = min(o)
+    if n:
+        o = [i[n:] for i in lines]
+    return G.nl.join(o)
+
+s = '''    
+        Here's line 1
+            Here's line 2 with following empty line
+
+
+
+
+    '''
+print("Original:")
+for i in s.split(G.nl):
+    print(repr(i))
+print("-"*70)
+t = dedent(s, trim_end=True)
+print("Dedented:")
+for i in t.split(G.nl):
+    print(repr(i))
+exit()
+
+test = '''
     .{
     .}
     .exec a
@@ -152,22 +212,36 @@ if 1:
     .^ c
 
     .exece a
-    ,exec a
-    ;exec a
     .kjdk
     .<< b
-    me
-    you
-    '''
-    for i in a.split("\n"):
-        if r.search(i):
-            print(i)
+'''
+if 0:
+    # Use a regexp to identify a candidate line.  Then split the line
+    # into tokens and search in a set.
+    commands = r'''{ } exec del clear verbatim out push pop save load
+        remove lm rm width prefix suffix < > ^ empty # '''.split()
+    # Recognizing commands
+    r = re.compile(r"^\s*\.")
+    def Cmd(line):
+        if not r.search(line):
+            return None
+        f = line.strip().split()
+        c = f[0]
+        if c[1:] in commands:
+            print(f"Command = {line.strip()}")
+        else:
+            print(f"'{c}' not recognized")
+    for i in test.split("\n"):
+        Cmd(i)
     exit()
-    '''Conclusions:
-    Need to divide commands into those that have arguments and those
-    that don't.  For a command like .{, the line will have to be
-    rstripped first.  Then the regexp can be "^\s*\.{$".
-    '''
+
+if 1:
+    c = IdentifyCmd()
+    for i in test.split("\n"):
+        t = c.identify(i)
+        if t is not None:
+            print(f"{i:20s}    command = {t}")
+    exit()
 
 if __name__ == "__main__": 
     # Run the selftests
