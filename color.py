@@ -590,6 +590,10 @@ if __name__ == "__main__":
         # Demo of Colors
         print("Demo of yellow(1) call to get background yellow in f-string: ", end="")
         print(f"{yellow(1)}Hi there{norm()}")
+        # C convenience escape codes
+        print(f"{C.lmag}C convenience escape code strings:")
+        print(f"{C.grn}  blk  blu  grn  cyn  red  mag  yel  wht gry")
+        print(f"{C.lgrn}      lblu lgrn lcyn lred lmag lyel lwht norm{C.norm}")
     if 1:   # Imports
         # Standard library modules
         import getopt
