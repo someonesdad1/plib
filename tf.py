@@ -149,6 +149,14 @@ def dedent(s, empty=True, trim_leading=True, trim_trailing=False,
     trim_trailing       Remove the last line if it only consists of
                         space characters.
     trim_end            Remove any trailing whitespace.
+    
+    The keywords default to the values most useful in help strings for
+    scripts.  Typical use is 
+        print(dedent(f"""
+            Line 1
+            Line 2
+        """))
+    and you'll get the unindented string printed.
     '''
     def LeadingSpaces(s):
         'Return the number of space characters at the beginning of s'

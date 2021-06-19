@@ -178,56 +178,6 @@ class Wrap(Abbr):
             t = d.popleft()
             o.append(indent + t)
         return '\n'.join(o)
-    def dedent(self, s, empty=False):
-        '''Remove spc*\n from the beginning and end of s.  Then remove
-        all common space characters from each line of s and return the
-        modified string.  Empty lines are ignored if empty is True.
-  
-        The use case for this is help information printed from multiline
-        strings.  textwrap.dedent doesn't work for me because I like to
-        write my strings like:
- 
-            s = """
-            This is 
-            some multiline
-            text.
-            """
-            print(s)
- 
-        and the textwrap method doesn't work because the first line
-        usually has no space characters.  However, 
- 
-            print(wrap.dedent(s))
- 
-        does what I want.
-        '''
-        lines = s.split("\n")
-        if len(lines) > 2:
-            if not lines[0].strip():
-                del lines[0]
-            if not lines[-1].strip():
-                del lines[-1]
-        # Find common number of spaces for each line
-        num_spaces = []
-        for line in lines:
-            d, n = deque(line), 0
-            while d:
-                c = d.popleft()
-                if c == " ":
-                    n += 1
-                else:
-                    break
-            num_spaces.append(n)
-        num_spaces = set(num_spaces)
-        if empty and 0 in num_spaces:
-            num_spaces.remove(0)
-        common = min(num_spaces)
-        if not common:
-            return '\n'.join(lines)
-        # Remove common space string
-        for i, line in enumerate(lines):
-            lines[i] = line[common:]
-        return '\n'.join(lines)
     def is_sentence_end(self, token):
         if not token.endswith(self.ends):
             return False
@@ -346,21 +296,77 @@ class Wrap(Abbr):
     def width(self, value):
         self._width = int(value)
 wrap = Wrap()   # Convenience instance
-def dedent(s: str, empty=True):
-    'Convenience function to dedent'
-    if not hasattr(dedent, "wrap"):
-        dedent.wrap = Wrap()
-    return dedent.wrap.dedent(s, empty=empty)
 def indent(s: str, indent=""):
     'Convenience function to indent'
     if not hasattr(indent, "wrap"):
         indent.wrap = Wrap()
     return indent.wrap.indent(s, indent)
+def dedent(s, empty=True, trim_leading=True, trim_trailing=True,
+           trim_end=False):
+    '''For the multiline string s, remove the common leading space
+    characters and return the modified string.
+ 
+    empty               Consider empty lines to have an infinite number
+                        of spaces.  They will be empty lines in the
+                        output string.
+    trim_leading        Remove the first line if it only consists of
+                        space characters.
+    trim_trailing       Remove the last line if it only consists of
+                        space characters.
+    trim_end            Remove all trailing whitespace.
+    
+    The keywords default to the values most useful in help strings for
+    scripts.  Typical use is 
+        s = """
+        Line 1
+          Line 2
+        """
+    and dedent(s) will return the string 'Line 1\n  Line 2'.
+    '''
+    def LeadingSpaces(s):
+        'Return the number of space characters at the beginning of s'
+        t, count = deque(s), 0
+        while t:
+            c = t.popleft()
+            if c == " ":
+                count += 1
+            else:
+                return count
+        return 0
+    t, nl = s.strip(), "\n"
+    if not t:
+        return ""
+    if trim_end:
+       s = s.rstrip()
+    lines = s.split(nl)   # Splitting on a newline always returns a list
+    if len(lines) == 1:
+        return s.lstrip()
+    if not trim_end and trim_trailing:
+        if set(lines[-1]) == set(" "):
+            del lines[-1]
+    if len(lines) > 1 and trim_leading:
+        t = set(lines[0])
+        if not t or t == set(" "):
+            del lines[0]
+    # Get sequence of the number of beginning spaces on each line
+    o = [LeadingSpaces(i) for i in lines]
+    if empty:
+        # Fix the empty lines
+        m = max(o)
+        o = [i if i else m + 1 for i in o]  
+    n = min(o)
+    if n:
+        lines = [i[n:] for i in lines]
+    return nl.join(lines)
 if __name__ == "__main__": 
     # Run the selftests
     from lwtest import run, Assert
     import sys
     from pdb import set_trace as xx
+    def Dump(s):
+        'Print a multiline string to stdout'
+        for i in s.split("\n"):
+            print(repr(i))
     def W():
         return Wrap()
     def TestBasic():
@@ -399,7 +405,7 @@ if __name__ == "__main__":
             '\n' 'else could do.')
         Assert(u == t)
     def TestDedent():
-        f = wrap.dedent
+        f = dedent
         Assert(f(" x") == "x")
         s = '''        a
         b'''
@@ -407,6 +413,32 @@ if __name__ == "__main__":
         Assert(f(s) == "a\nb")
         s = "\n        a\n        b\n          c\n        "
         Assert(f(s) == "a\nb\n  c")
+        # Test main use case:  script help strings
+        s = '''   
+        Line 1
+          Line 2
+        
+        '''
+        t = "Line 1\n  Line 2\n"
+        Assert(f(s) == t)
+        # Blank line with empty False
+        s = '''   
+        Line 1
+          Line 2
+
+        
+        '''
+        t = "        Line 1\n          Line 2\n\n        "
+        Assert(f(s, empty=False) == t)
+        t = "Line 1\n  Line 2\n\n"
+        Assert(f(s, empty=True) == t)
+        # Test the most common use case
+        s = '''
+        Line 1
+          Line 2
+        '''
+        t = "Line 1\n  Line 2"
+        Assert(f(s) == t)
     def TestIndent():
         f, spc = wrap.indent, " "
         Assert(f(" x", spc) == "  x")
