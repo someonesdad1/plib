@@ -11,10 +11,19 @@ TODO
           text processing module.
 
         * Commands (column numbering is 1-based)
+            * If you want a line to begin with a period, escape it with
+              a backslash.
+            * .exec s:  Execute this python line of code
+            * .{ and .}  Defines a python code block
+            * .default:  Set the default state
             * .fmt on/off:  Turn formatted output on/off.  If it is off,
               the lines are output verbatim.
             * .output on/off:  Turn output on/off.  If it is off, no
               lines are output until the next '.output on' is seen.
+            * .push:  Save the current state
+            * .pop:  Use the previously saved state
+            * .save x:  Save the current state to variable x
+            * .restore x:  Restore the current state from variable x
             * .lm n:  Set left margin.  Set to 0 or 1 to have text start
               at column 1.
             * .rm n:  Set right margin.  Set to 0 to make it be
@@ -38,13 +47,6 @@ TODO
   and last lines with newlines if they are whitespace only.  Then
   include an option that's True to let empty lines with no space be
   ignored in the analysis of the number of common spaces on the line.
-
-* There should be two spaces after a word that ends in a colon.
-
-* Add .on and .off switches in the text to allow customization.  These
-  lines will be stripped out of the output.
-
-* Use template.py, then copy to /plib.
 
 * Sometimes you want to wrap a set of things like numbers, but you want
   a specified spacing between the numbers.  For example, consider the
@@ -281,6 +283,8 @@ class Wrap(Abbr):
                 line.append(self.ss)
             else:
                 line.append(token)
+                if token.endswith(":"):
+                    line.append(space)
                 line.append(space)
             next_token_length = len(results[0]) if results else 0
             if Len(line) + next_token_length >= W:
@@ -412,6 +416,14 @@ if __name__ == "__main__":
         s = "\n        a\n        b\n          c\n        "
         t = " \n         a\n         b\n           c\n         "
         Assert(f(s, spc) == t)
+    def TestTwoSpacesAfterColon():
+        s = "This is a:     test."
+        w = W()
+        w.ls = "\n"
+        w.width = 60
+        t = w(s)
+        u = "This is a:  test."
+        Assert(u == t)
     if "--test" in sys.argv:
         exit(run(globals(), halt=1)[0])
 if __name__ == "__main__": 

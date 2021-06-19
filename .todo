@@ -26,3 +26,4 @@ Low priority
   best to move the key stuff to flt and cpx.  It can still be kept
   around for when it's needed.
 
+* 'ts.py -m' doesn't work.
