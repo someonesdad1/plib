@@ -246,22 +246,32 @@ class TF:
         self.state = state.normal
         self.stream = io.StringIO()
         for i, line in self.lines:
-            if self.state != state.code:
+            if self.state == state.code:
+                cmd, args = None, []
+                if line == f"{G.trigger}}}":
+                    cmd = "}"
+            else:
                 c = self.idcmd.identify(line, self.vars)
-            cmd = c[0]
-            args = c[1:] if len(c) > 1 else []
-            if cmd is not None:
+                cmd = c[0]
+                args = c[1:] if len(c) > 1 else []
+            if cmd is None:
+                if self.state == state.code:
+                    codeblock.append(line)
+                else:
+                    print(line, file=self.stream)
+            else:
                 if cmd == "{":
                     self.state = state.code
                     codeblock = []
                 elif cmd == "}":
                     self.state = state.normal
                     self.execute(codeblock)
-            else:
-                if self.state == state.code:
-                    codeblock.append(line)
                 else:
-                    print(line, file=self.stream)
+                    pass
+                    #xx()
+        if self.state == state.code:
+            m = f"Missing end of a code block '{G.trigger}}}'"
+            raise SyntaxError(m)
         return self.stream.getvalue()
 
 if 0:
@@ -269,22 +279,9 @@ if 0:
         .{
             x = 1
         .}
-        .lm 0
-        .width 0
-        .del x
-        .clear
-
-        1. This is some text
-        2. Here's the second line
-        .{
-            if x:
-                print(f"{C.mag}Hello from second code{C.norm}")
-        .}
-        3. And a third line
     '''
     t = TF(test)
-    t.debug = len(sys.argv) > 1
-    sys.stdout.write(t.process())
+    t.process()
     exit()
 
 if 0:
@@ -305,11 +302,15 @@ if __name__ == "__main__":
         error.
         '''
         test = '''
+            .{
+                x = 1
+            .}
             .# Check reasonable bool values
             .fmt 0
             .fmt 1
             .fmt 2
             .fmt -1
+            .fmt x
             .fmt True
             .fmt False
             .# Other commands
@@ -346,9 +347,6 @@ if __name__ == "__main__":
             .^
             .|
             .clear
-            .{
-                x = 1
-            .}
             .del x
         '''
         t = TF(test)
@@ -358,6 +356,15 @@ if __name__ == "__main__":
         with raises(SyntaxError):
             t = TF(".del x")
             t.process()
+        # This should result in a syntax error because of a missing end
+        # of a code block.
+        t = TF('''
+            .{
+                x = 3
+        ''')
+        raises(SyntaxError, t.process)
+        #with raises(SyntaxError):
+        #    t.process()
     if "--test" in sys.argv:
         exit(run(globals(), halt=1)[0])
     #xx
