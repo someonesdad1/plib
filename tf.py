@@ -1,5 +1,5 @@
 '''
-Text formatter: Develop a mini-language for formatting strings.
+Text formatter:  format text for a script's printing to stdout
  
     The main use case is to be able to get formatted output for the help
     strings used in scripts.
@@ -8,93 +8,84 @@ Text formatter: Develop a mini-language for formatting strings.
     stripping off whitespace.  If you want a line to begin with a
     period, escape it with a backslash.
  
-    In the following, the leading '.' to the commands is not shown.
- 
-    Python code blocks and variables
- 
-        { and } delimit code blocks.  Common indentation is removed and the
-        lines are executed one at a time with exec(line, globals(), vars)
-        where vars is a maintained local variables dictionary.
-  
-            When a } is encountered, the code block is finished and it
-            is executed.  stdout is trapped and becomes part of the
-            formatted string.  stderr is also trapped, colorized, and
-            printed to stderr.
- 
-            Colors:
-                Code line               lcyan
-                Source line in debug    brown
-                Stuff sent to stdout    yellow
-                Stuff sent to stderr    lred
- 
-        del x:  Delete the variable named x from vars.
- 
-        clear:  Clears the vars dictionary.  If you .pop, the old vars
+    { and }
+        Begin and end a code block.
+
+    fmt bool
+        If off, the output is output verbatim.  Otherwise, each line
+        is formatted per the current state.
+
+    out bool
+        Turn output on/off.  If it is off, no lines are output until
+        the next '.out True' is seen.  This is a handy way to
+        comment out a chunk of text.
+
+    push
+        Save the current state.  Note vars is part of the state, so
+        a subsequent '.clear' will be "forgotten" when you .pop an
+        older state.  A shallow copy of vars is made for the new
+        state.
+
+    pop
+        Restore the previously pushed state.  Exception if stack is
+        empty.
+
+    lm int
+        int >= 1.  Set left margin.  Set to 1 to have text start at
+        column 1.
+
+    width int
+        int >= 0.  0 means wrap to width from COLUMNS; if no COLUMNS
+        variable, then it's set to 80.
+
+    hang int [str]
+        Make first line a hanging indent.  Negative means outdented to
+        left and positive is indented to right.  If str is given, a
+        newline is substituted for it.
+
+    bullet str1 [int [str2]]
+        Use str1 as a bullet string and indent the block of text
+        int to the right of the left margin.  If str2 is present, it's
+        used the same as the str in the hanging indent command to
+        provide line breaks.
+        
+    wrap bool
+        Wrap paragraphs to current margins.  If off, then existing
+        newlines are respected.
+
+    <
+        Left justification:  text aligned at left margin.
+    >
+        Right justification:  text aligned at right margin.
+    ^
+        Center the lines:  text centered at (lm + width//2) and wrapped
+        if necessary.
+    |
+        Block justification:  use both left and right justification by
+        inserting enough blanks between the words.
+
+    #
+        This line is a comment and won't make it to the output.
+    
+    del str
+        Delete the variable named str from vars.
+
+    clear
+        Clears the vars dictionary.  If you .pop, the old vars
         dictionary will be restored.
- 
-    State 
- 
-        The saved states are in a dictionary that is independent of the
-        variables in vars and code.  This dictionary gets put onto a stack
-        when you .push.
-    
-        debug x/on/off:  If True, print each line in color with its line
-        number, followed by its formatted form.  Code lines are printed
-        in a different color with no formatted form.
- 
-        format x/on/off:  If off, the output is not formatted; it is
-        output as it is found in the line.  Otherwise, each line is
-        formatted per the current state.  If the argument is x, it is
-        bool(vars["x"]).
-    
-        out x/on/off:  Turn output on/off.  If it is off, no lines are
-        output until the next '.output on' is seen.  This is a handy way to 
-        comment out a chunk of text.  If the argument is x, it is
-        bool(vars["x"]).
-    
-        push:  Save the current state.  Note vars is part of the state, so a
-        subsequent '.clear' will be "forgotten" when you .pop or .restore an
-        older state.  A shallow copy of vars is made for the new state.
-    
-        pop:  Restore the previously pushed state
-    
-        State variables:
-    
-            Left margin:        integer >= 0
-            Right margin:       integer >= 0
-            Width               integer >= 0
-            Justification:      {left, right, center}
-            wrap                bool
-    
-    Margins
-    
-        lm n:  Set left margin.  Set to 0 to have text start at column 1.
-        Default 0.
-    
-        width n:  0 means wrap to width from COLUMNS.  'n' means to wrap to
-        int(n) columns.  Default 0.
-    
-    Justification
-        <:      Left justification
-        >:      Right justification
-        ^:      Center the lines
-        wrap x/on/off:   Wrap paragraphs to current margins
-    
-    Other commands
-        empty n:  A line with no whitespace is replaced by one with n space
-        characters.
-    
-        #:  This line is a comment and won't make it to the output
-    
-    Commands with arguments:
-        exec del verbatim out save load remove lm rm width prefix suffix
-        emtpy
-    
-    Commands with no arguments:
-        { } clear push pop 
-    
-    Commands with optional arguments
-        < > ^ #
+
+    ----------------------------------------------------------------------
+    State variables
+
+        Left margin         integer >= 0
+        Right margin        integer >= 0
+        Width               integer >= 0
+        Hanging             integer or None
+        Bullet              str or None
+        Bullet_hang         integer >= 0
+        Justification       {left, right, center, block}
+        wrap                bool
+
     
 '''
 if 1:  # Copyright, license
@@ -114,7 +105,7 @@ if 1:  # Copyright, license
 if 1:   # Imports
     from collections import deque
     import contextlib
-    from enum import Enum
+    from enum import Enum, auto
     import io
     import os
     import pathlib
@@ -135,32 +126,78 @@ if 1:   # Global variables
     G.stdout = C.lyel
     G.stderr = C.lred
     G.norm = C.norm
+    G.trigger = "."
 class IdentifyCmd:
     def __init__(self):
-        self.no_args = set("{ } clear push pop".split())
-        self.opt_args = set("< > ^ #".split())
-        self.args = set('''exec del verbatim out 
-            lm width prefix suffix emtpy'''.split())
-        self.all = self.no_args | self.opt_args | self.args
-    def identify(self, line):
+        self.no_args = set("{ } push pop clear # < > ^ |".split())
+        self.args = set('''fmt out lm width hang bullet wrap del'''.split())
+        self.all = self.no_args | self.args
+    def identify(self, line, vars):
         '''Return None if not a command; otherwise return list of 
-        [cmd, arg1, ...].
+        [cmd, arg1, ...].  vars is a dictionary of variables.
         '''
+        self.vars = vars
         s = line.strip()
-        if not s.startswith("."):
+        if not s.startswith(G.trigger):
             return None
-        f = s[1:].split()
+        f = s[len(G.trigger):].split()
         candidate = f[0]
         if candidate not in self.all:
             return None
-        elif candidate in self.no_args:
-            return [candidate]
-        elif candidate in self.opt_args or candidate in self.args:
-            return f
+        if candidate in self.no_args:
+            if candidate == "#":
+                cmd, args = candidate, [s[2:]]
+            else:
+                cmd, args = candidate, []
+        else:
+            cmd, args = candidate, f[1:]
+        if cmd in self.args:
+            self.check_syntax(cmd, args, s)
+        return cmd, args
+    def is_int_or_var(self, candidate):
+        '''Return True if the candidate string can be converted to an
+        integer, bool or is in self.vars.
+        '''
+        if candidate in self.vars:
+            return True
+        try:
+            int(candidate)
+            return True
+        except Exception:
+            try:
+                bool(candidate)
+                return True
+            except Exception:
+                return False
+        else:
+            return False
+    def check_syntax(self, cmd, args, line):
+        e = SyntaxError(f"'{line}' is incorrect syntax")
+        if not args:
+            raise SyntaxError(f"'{line}' is missing an argument")
+        # First argument must be a bool, int, or variable
+        if cmd in "fmt out lm width hang wrap".split():
+            if not self.is_int_or_var(args[0]):
+                raise e
+        if cmd == "del":
+            if args[0] not in self.vars:
+                raise SyntaxError(f"'{line}' needs the name of a variable")
+        elif cmd == "bullet":
+            if len(args) not in (1, 2, 3):
+                raise e
+            if len(args) > 1:
+                if not self.is_int_or_var(args[1]):
+                    m = f"'{line}':  second argument needs to be int or variable"
+                    raise SyntaxError(m)
 class state(Enum):
-    init = 0
-    normal = 1
-    code = 2
+    init = auto()
+    normal = auto()
+    code = auto()
+class justification(Enum):
+    left = auto()
+    right = auto()
+    center = auto()
+    block = auto()
 class TF:
     def __init__(self, s):
         lines = dedent(s).splitlines()
@@ -185,8 +222,9 @@ class TF:
         for i, l in self.lines:
             print(f"[{i:3d}] {l}")
     def execute(self, lines_of_code):
+        'Execute the lines of code from a code block'
         lines = dedent('\n'.join(lines_of_code))
-        if self.debug:
+        if self.debug:  # If debug on, print code in color
             print(f"{G.code}", end="", file=self.stream)
             for line in lines.splitlines():
                 print(line, file=self.stream)
@@ -202,49 +240,51 @@ class TF:
             print(f"{stdout.getvalue()}", end="", file=self.stream)
         err = stderr.getvalue()
         if err:     # Always print stderr in color
-            print(f"{G.stderr}{err}{G.norm}, end=""", file=sys.stderr)
+            print(f"{G.stderr}{err}{G.norm}", end="", file=sys.stderr)
     def process(self):
         'Return the processed lines'
         self.state = state.normal
         self.stream = io.StringIO()
         for i, line in self.lines:
-            cmd = self.idcmd.identify(line)
+            if self.state != state.code:
+                c = self.idcmd.identify(line, self.vars)
+            cmd = c[0]
+            args = c[1:] if len(c) > 1 else []
             if cmd is not None:
-                if cmd[0] == "{":
+                if cmd == "{":
                     self.state = state.code
-                    cl = []
-                elif cmd[0] == "}":
+                    codeblock = []
+                elif cmd == "}":
                     self.state = state.normal
-                    self.execute(cl)
+                    self.execute(codeblock)
             else:
                 if self.state == state.code:
-                    cl.append(line)
+                    codeblock.append(line)
                 else:
                     print(line, file=self.stream)
         return self.stream.getvalue()
 
-if 1:
+if 0:
     test = '''
         .{
-            # Test code
-            x = 0
-            if x:
-                print("hello from first code")
             x = 1
         .}
         .lm 0
-        This is some text
-        Here's the second line
+        .width 0
+        .del x
+        .clear
+
+        1. This is some text
+        2. Here's the second line
         .{
             if x:
-                print("Hello from second code")
+                print(f"{C.mag}Hello from second code{C.norm}")
         .}
-        And a third line
+        3. And a third line
     '''
     t = TF(test)
     t.debug = len(sys.argv) > 1
-    s = t.process()
-    print(s, end="")
+    sys.stdout.write(t.process())
     exit()
 
 if 0:
@@ -257,13 +297,71 @@ if 0:
 
 if __name__ == "__main__": 
     # Run the selftests
-    from lwtest import run, Assert
+    from lwtest import run, raises, assert_equal, Assert
     import sys
     from pdb import set_trace as xx
-    def Test1():
-        pass
+    def Test_cmd_syntax():
+        '''These are all valid commands, so there should be no syntax
+        error.
+        '''
+        test = '''
+            .# Check reasonable bool values
+            .fmt 0
+            .fmt 1
+            .fmt 2
+            .fmt -1
+            .fmt True
+            .fmt False
+            .# Other commands
+            .out 0
+            .out 1
+            .push
+            .pop
+            .lm 0
+            .lm 1
+            .lm 100
+            .width 0
+            .width 1
+            .width 100
+            .# hang
+            .hang 0
+            .hang 1
+            .hang 2
+            .hang -1
+            .hang 0 *
+            .hang 1 *
+            .hang 2 *
+            .hang -1 *
+            .# bullet
+            .bullet *
+            .bullet * 0
+            .bullet * 1
+            .bullet * 2
+            .bullet * 0 |
+            .bullet * 1 |
+            .bullet * 2 |
+            .# Other stuff
+            .>
+            .<
+            .^
+            .|
+            .clear
+            .{
+                x = 1
+            .}
+            .del x
+        '''
+        t = TF(test)
+        t.process()
+        # This should result in a syntax error because vars doesn't
+        # contain 'x'.
+        with raises(SyntaxError):
+            t = TF(".del x")
+            t.process()
     if "--test" in sys.argv:
         exit(run(globals(), halt=1)[0])
+    #xx
+    exit(run(globals(), halt=1)[0]) #xx
 if __name__ == "__main__": 
     # Run the demos
     def Example1():
