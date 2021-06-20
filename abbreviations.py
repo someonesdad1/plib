@@ -26,11 +26,11 @@ def IsAbbreviation(w):
     if not hasattr(IsAbbreviation, "abbrev"):
         IsAbbreviation.data = '''
 
-            a.c. a.d. a.k.a. a.m. a.s.a.p. abbr. abbr. abbrev. abol.
-            aborig. abr. abr. abstr. acad. acc. acct. accts. addr. adj.
-            adjs. adm. admon. adv. advb. amer. anal. anat. annot. anon.
-            apoc. app. appl. approx. appt. apr. apt. arb. arch. assoc.
-            astr. astrol. astron. att. attrib. aug. auth. ave.
+            a.c. a.d. a.k.a. a.m. a.s.a.p. abbr. abbrev. abol.  aborig.
+            abr. abr. abstr. acad. acc. acct. accts. addr. adj.  adjs.
+            adm. admon. adv. advb. amer. anal. anat. annot. anon.  apoc.
+            app. appl. approx. appt. apr. apt. arb. arch. assoc.  astr.
+            astrol. astron. att. attrib. aug. auth. ave.
 
             b. b.c. b.c.e. b.o. b.t.u. b.y.o.b. betw. bibliog. biochem.
             biog. biogr. biol. bk. bks. blvd. bot. brit. bur.
@@ -153,8 +153,7 @@ if 1:   # Utility functions to vet data
             print()
 if __name__ == "__main__": 
     if 1:   # Custom modules
-        from wrap import dedent
-        from lwtest import run, raises, assert_equal, Assert
+        from lwtest import run, Assert
     def Test_IsAbbreviation():
         f = IsAbbreviation
         Assert(f("zeitschr."))

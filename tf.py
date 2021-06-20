@@ -1,4 +1,25 @@
 '''
+TODO
+
+    * Consider whether it's possible to utilize some kind of markdown to
+      get the desired formatting.  This would make it easy to get
+      indented stuff, something I use a lot, as the common indent would
+      first be removed.  Wrapping could be enabled by default and '.fmt
+      on' and '.fmt off' could be used for verbatim formatting.
+
+      '.li on' and '.nl on' could be used for bulletted lists and
+      numbered lists.  Numbered lists is really the only feature that 
+      isn't addressed by the design below.  I'd like it to handle
+      specifiers like '1.' (Arabic numbering), 'i.' (Roman numerals), 
+      and 'a.' (letter numbering).  The first line would determine 
+      the starting number.  Also consider numbering such as 
+
+        1. Main topic
+            1.1 Subtopic
+                1.1.1 Another subtopic
+            1.2 Second subtopic
+        etc.
+
 Text formatter:  format text for a script's printing to stdout
  
     The main use case is to be able to get formatted output for the help
@@ -10,49 +31,68 @@ Text formatter:  format text for a script's printing to stdout
  
     { and }
         Begin and end a code block.
-
+ 
     fmt bool
         If off, the output is output verbatim.  Otherwise, each line
         is formatted per the current state.
-
+ 
     out bool
         Turn output on/off.  If it is off, no lines are output until
         the next '.out True' is seen.  This is a handy way to
         comment out a chunk of text.
-
+ 
     push
         Save the current state.  Note vars is part of the state, so
         a subsequent '.clear' will be "forgotten" when you .pop an
         older state.  A shallow copy of vars is made for the new
         state.
-
+ 
     pop
         Restore the previously pushed state.  Exception if stack is
         empty.
-
+ 
     lm int
         int >= 1.  Set left margin.  Set to 1 to have text start at
         column 1.
-
+ 
     width int
         int >= 0.  0 means wrap to width from COLUMNS; if no COLUMNS
         variable, then it's set to 80.
-
+ 
     hang int [str]
         Make first line a hanging indent.  Negative means outdented to
         left and positive is indented to right.  If str is given, a
         newline is substituted for it.
+ 
+    bullet str1 [str2]
+        Use str1 as a bullet string; it is placed at the left margin.
+        If str2 is present, it's used the same as the str in the hanging
+        indent command to provide line breaks.
 
-    bullet str1 [int [str2]]
-        Use str1 as a bullet string and indent the block of text
-        int to the right of the left margin.  If str2 is present, it's
-        used the same as the str in the hanging indent command to
-        provide line breaks.
+        Thus, ".bullet * ∞" in the following:
+
+            It is a truth universally acknowledged, that a single man in
+            possession of a good fortune, must be in want of a wife.∞ It
+            was then disclosed in the following manner.  Observing his
+            second daughter employed in trimming a hat, he suddenly
+            addressed her with, "I hope Mr. Bingley will like it,
+            Lizzy."
+
+        results in
+
+            * It is a truth universally acknowledged, that a single man
+              in possession of a good fortune, must be in want of a
+              wife.
+
+              It was then disclosed in the following manner.  Observing
+              his second daughter employed in trimming a hat, he
+              suddenly addressed her with, "I hope Mr. Bingley will like
+              it, Lizzy."
         
     wrap bool
         Wrap paragraphs to current margins.  If off, then existing
         newlines are respected.
-
+ 
     <
         Left justification:  text aligned at left margin.
     >
@@ -63,20 +103,20 @@ Text formatter:  format text for a script's printing to stdout
     |
         Block justification:  use both left and right justification by
         inserting enough blanks between the words.
-
+ 
     #
         This line is a comment and won't make it to the output.
     
     del str
         Delete the variable named str from vars.
-
+ 
     clear
         Clears the vars dictionary.  If you .pop, the old vars
         dictionary will be restored.
-
+ 
     ----------------------------------------------------------------------
     State variables
-
+ 
         Left margin         integer >= 0
         Right margin        integer >= 0
         Width               integer >= 0
@@ -85,8 +125,6 @@ Text formatter:  format text for a script's printing to stdout
         Bullet_hang         integer >= 0
         Justification       {left, right, center, block}
         wrap                bool
-
-    
 '''
 if 1:  # Copyright, license
     # These "trigger strings" can be managed with trigger.py
@@ -133,8 +171,8 @@ class IdentifyCmd:
         self.args = set('''fmt out lm width hang bullet wrap del'''.split())
         self.all = self.no_args | self.args
     def identify(self, line, vars):
-        '''Return None if not a command; otherwise return list of 
-        [cmd, arg1, ...].  vars is a dictionary of variables.
+        '''Return None if not a command; otherwise return tuple of 
+        (cmd, arg1, ...).  vars is a dictionary of variables.
         '''
         self.vars = vars
         s = line.strip()
@@ -146,11 +184,11 @@ class IdentifyCmd:
             return None
         if candidate in self.no_args:
             if candidate == "#":
-                cmd, args = candidate, [s[2:]]
+                cmd, args = candidate, tuple([s[2:]])
             else:
-                cmd, args = candidate, []
+                cmd, args = candidate, tuple()
         else:
-            cmd, args = candidate, f[1:]
+            cmd, args = candidate, tuple(f[1:])
         if cmd in self.args:
             self.check_syntax(cmd, args, s)
         return cmd, args
@@ -181,7 +219,7 @@ class IdentifyCmd:
                 raise e
         if cmd == "del":
             if args[0] not in self.vars:
-                raise SyntaxError(f"'{line}' needs the name of a variable")
+                raise ValueError(f"'{args[0]}' not in vars dictionary")
         elif cmd == "bullet":
             if len(args) not in (1, 2, 3):
                 raise e
@@ -193,6 +231,8 @@ class state(Enum):
     init = auto()
     normal = auto()
     code = auto()
+    hang = auto()
+    bullet = auto()
 class justification(Enum):
     left = auto()
     right = auto()
@@ -204,16 +244,24 @@ class TF:
         self.debug = False
         self.lines = deque([(i, line) for i, line in enumerate(lines)])
         self.stack = deque()
-        self.state = state.init
+        self.cmdstate = state.init
         self.idcmd = IdentifyCmd()
         self.state = {
-            "left_margin": 0,
-            "width": 0,
-            "format": True,
-            "out": True,
-            "justification": "left",
-            "empty": 0,
+            "left_margin": 0,       # 0 or 1 means column 1
+            "width": 0,             # Right margin is lm + width
+            "format": True,         # If True, format line; if false,
+                                    # pass through unchanged.
+            "out": True,            # If True, output enabled
+            # hang:  If negative, the body starts at the left margin and
+            # the first line is to the right of the body.  If positive,
+            # the first line is at the left margin and the body is to
+            # the right.
+            "hang": 0,
+            "hang_nl": None,        # String to substitute a newline
+            "bullet_str": 0,        # Used for bullet 'character'
+            "bullet_nl": None,      # String to substitute a newline
             "wrap": False,
+            "justification": justification.left,
         }
         self.vars = {}
         if 0:
@@ -241,36 +289,118 @@ class TF:
         err = stderr.getvalue()
         if err:     # Always print stderr in color
             print(f"{G.stderr}{err}{G.norm}", end="", file=sys.stderr)
+    def bool(self, s):
+        x = s.strip()
+        if x in self.vars:
+            return bool(self.vars[x])
+        elif x in "on True".split():
+            return True
+        elif x in "off False".split():
+            return False
+        try:
+            return(bool(int(x)))
+        except Exception:
+            return(bool(float(x)))
+        else:
+            try:
+                return(bool(float(x)))
+            except Exception:
+                raise ValueError(f"Could not convert '{x}' to bool")
+    def process_line(self, line, ln):
+        print(line, file=self.stream)
+    def process_cmd_line(self, cmd, args, line, ln):
+        if cmd == "#":
+            return
+        elif cmd in "fmt out".split():
+            self.state[cmd] = self.bool(args[0])
+            self.cmdstate = state.normal
+            return
+        elif cmd == "wrap":
+            self.state[cmd] = self.bool(args[0])
+            self.cmdstate = state.wrap
+            return
+        elif cmd == "push":
+            self.stack.append(self.state)
+            return
+        elif cmd == "pop":
+            if not self.stack:
+                raise ValueError("stack is empty")
+            self.state = self.stack.pop()
+            return
+        elif cmd in "lm width".split():
+            self.state[cmd] = int(args[0])
+            return
+        elif cmd == "hang":
+            while len(args) < 2:
+                args.append(None)
+            self.state["hang"] = int(args[0])
+            self.state["hang_str"] = args[1]
+            self.cmdstate = state.hang
+            return 
+        elif cmd == "bullet":
+            while len(args) < 2:
+                args.append(None)
+            self.state["bullet_str"] = args[0] if args[0] is not None else "*"
+            self.state["bullet_nl"] = args[1]
+            self.cmdstate = state.bullet
+            return 
+        elif cmd == ">":
+            self.state["justification"] = justification.right
+            self.cmdstate = state.normal
+            return
+        elif cmd == "<":
+            self.state["justification"] = justification.left
+            self.cmdstate = state.normal
+            return
+        elif cmd == "^":
+            self.state["justification"] = justification.center
+            self.cmdstate = state.normal
+            return
+        elif cmd == "|":
+            self.state["justification"] = justification.block
+            self.cmdstate = state.normal
+            return
+        elif cmd == "clear":
+            self.vars.clear()
+            return
+        elif cmd == "del":
+            if args[0] not in self.vars:
+                raise KeyError(f"'{args[0]}' not in vars dictionary")
+            del self.vars[args[0]]
+            return
+        else:
+            raise SyntaxError(f"'{cmd}' is an unrecognized command")
+        if self.debug:
+            print(f"{C.yel}Need to process {cmd}, {args}{C.norm}")
     def process(self):
         'Return the processed lines'
-        self.state = state.normal
+        self.cmdstate = state.normal
         self.stream = io.StringIO()
         for i, line in self.lines:
-            if self.state == state.code:
-                cmd, args = None, []
+            if self.cmdstate == state.code:
+                cmd, args = None, deque()
                 if line == f"{G.trigger}}}":
                     cmd = "}"
             else:
                 c = self.idcmd.identify(line, self.vars)
                 cmd = c[0]
-                args = c[1:] if len(c) > 1 else []
+                args = deque(c[1]) if len(c) > 1 else deque()
             if cmd is None:
-                if self.state == state.code:
+                if self.cmdstate == state.code:
                     codeblock.append(line)
                 else:
-                    print(line, file=self.stream)
+                    self.process_line(line, i)
             else:
                 if cmd == "{":
-                    self.state = state.code
+                    self.cmdstate = state.code
                     codeblock = []
                 elif cmd == "}":
-                    self.state = state.normal
+                    self.cmdstate = state.normal
                     self.execute(codeblock)
                 else:
-                    pass
-                    #xx()
-        if self.state == state.code:
-            m = f"Missing end of a code block '{G.trigger}}}'"
+                    self.process_cmd_line(cmd, args, line, i)
+        if self.cmdstate == state.code:
+            m = f"Missing an end of a code block '{G.trigger}}}'"
             raise SyntaxError(m)
         return self.stream.getvalue()
 
@@ -279,19 +409,11 @@ if 0:
         .{
             x = 1
         .}
+        .del x
     '''
     t = TF(test)
     t.process()
     exit()
-
-if 0:
-    c = IdentifyCmd()
-    for i in test.split("\n"):
-        t = c.identify(i)
-        if t is not None:
-            print(f"{i:20s}    command = {t}")
-    exit()
-
 if __name__ == "__main__": 
     # Run the selftests
     from lwtest import run, raises, assert_equal, Assert
@@ -299,13 +421,14 @@ if __name__ == "__main__":
     from pdb import set_trace as xx
     def Test_cmd_syntax():
         '''These are all valid commands, so there should be no syntax
-        error.
+        errors.
         '''
         test = '''
             .{
                 x = 1
+                y = 2
             .}
-            .# Check reasonable bool values
+            .# Check reasonable bool values with IdentifyCmd.check_syntax
             .fmt 0
             .fmt 1
             .fmt 2
@@ -346,14 +469,15 @@ if __name__ == "__main__":
             .<
             .^
             .|
-            .clear
             .del x
+            .clear
         '''
         t = TF(test)
+        t.debug = True #xx
         t.process()
         # This should result in a syntax error because vars doesn't
         # contain 'x'.
-        with raises(SyntaxError):
+        with raises(ValueError):
             t = TF(".del x")
             t.process()
         # This should result in a syntax error because of a missing end
@@ -362,9 +486,28 @@ if __name__ == "__main__":
             .{
                 x = 3
         ''')
-        raises(SyntaxError, t.process)
-        #with raises(SyntaxError):
-        #    t.process()
+        with raises(SyntaxError):
+            t.process()
+    def Test_clear_and_del():
+        # Works on empty dict
+        t = TF(".clear")
+        t.process()
+        # Works on non-empty dict
+        t = TF('''
+            .{
+                x = 8
+            .}
+            .clear
+        ''')
+        t.process()
+        # del x works
+        t = TF('''
+            .{
+                x = 8
+            .}
+            .del x
+        ''')
+        t.process()
     if "--test" in sys.argv:
         exit(run(globals(), halt=1)[0])
     #xx
