@@ -1,10 +1,15 @@
 '''
 TODO
 
-    * TF should be an object that you can submit text to with
-      tf.input(s) and get the subsequent output tf.output().  The
-      commands can be buried in the string input, changing the state of
-      tf.  This lets you either write sequential code, 
+    * Create classes:  wrapper, bulletter, numberer.  These can handle
+      the various formatting tasks.  They all derive from a base class
+      that has the methods input() and output().  You call input() an
+      arbitrary number of times, then call output() to get the final
+      formatted string to print.
+
+        class Formatter:
+            def input(self, s): raise SyntaxError("Abstract")
+            def output(self): raise SyntaxError("Abstract")
 
     * It appears ts.py has most or all of the functionality needed and 
       can be imported as a module.  It's possible that this module
@@ -162,7 +167,7 @@ if 1:   # Imports
     from pdb import set_trace as xx 
     from pprint import pprint as pp
 if 1:   # Custom imports
-    from wrap import dedent
+    from wrap import dedent, Wrap as WrapModule
     from color import C
 if 1:   # Global variables
     P = pathlib.Path
@@ -243,7 +248,13 @@ class state(Enum):
     code = auto()
     hang = auto()
     bullet = auto()
-class justification(Enum):
+class fmtstate(Enum):
+    normal = auto()     # Echo lines adj to margins, no wrapping, hang, etc.
+    hang = auto()       # Hanging indent
+    bullet = auto()     # Bullet form
+    number = auto()     # Numbered items
+    wrap = auto()       # Wrap to existing margins
+class just(Enum):
     left = auto()
     right = auto()
     center = auto()
@@ -272,7 +283,7 @@ class TF:
             "bullet_str": 0,        # Used for bullet 'character'
             "bullet_nl": None,      # String to substitute a newline
             "wrap": False,
-            "justification": justification.left,
+            "just": just.left,
         }
         self.vars = {}
         if 0:
@@ -356,19 +367,19 @@ class TF:
             self.cmdstate = state.bullet
             return 
         elif cmd == ">":
-            self.state["justification"] = justification.right
+            self.state["just"] = just.right
             self.cmdstate = state.normal
             return
         elif cmd == "<":
-            self.state["justification"] = justification.left
+            self.state["just"] = just.left
             self.cmdstate = state.normal
             return
         elif cmd == "^":
-            self.state["justification"] = justification.center
+            self.state["just"] = just.center
             self.cmdstate = state.normal
             return
         elif cmd == "|":
-            self.state["justification"] = justification.block
+            self.state["just"] = just.block
             self.cmdstate = state.normal
             return
         elif cmd == "clear":
@@ -414,17 +425,126 @@ class TF:
             m = f"Missing an end of a code block '{G.trigger}}}'"
             raise SyntaxError(m)
         return self.stream.getvalue()
-
-if 0:
-    test = '''
-        .{
-            x = 1
-        .}
-        .del x
+class PF:
+    '''Paragraph formatter.  Read a line at a time and process as
+    needed.
     '''
-    t = TF(test)
-    t.process()
+    def __init__(self):
+        self.buffer = io.StringIO() 
+        self.wrap = False
+        self.leftmargin = 0
+        self.ltrim = 0
+        self.width = os.environ.get("COLUMNS", 79)
+    def input(self, s):
+        '''s is a string, stream, or pathlib object.  Input individual lines
+        from it and process them.
+        '''
+        if ii(s, P):
+            for line in open(s).read().splitlines():
+                self.process(line)
+        elif ii(s, str):
+            for line in s.splitlines():
+                self.process(line)
+        elif hasattr(s, "read"):
+            for line in s:
+                line = line.rstrip("\n")
+                self.process(line)
+        else:
+            raise TypeError("s doesn't have the proper type")
+    def process(self, line):
+        if self.ltrim and line.startswith(" "*self.ltrim):
+            line = line[self.ltrim:]
+        if not line:    # End of a paragraph
+            print("\n", file=self.buffer)
+            return
+        # Process this line
+        if self.wrap:
+            tokens = line.split()
+            
+        print(f"+ {line}", file=self.buffer)
+    def dump(self):
+        s = self.buffer.getvalue()
+        print(f"{s}", end="")
+
+class Fmt:
+    'Base class for formatters'
+    state = fmtstate.normal     # State of formatter
+    just = just.left            # Justification
+    lm = 0                      # Left margin
+    ltrim = 0                   # How many spaces to remove from each line
+    width = int(os.environ.get("COLUMNS", 79))
+    def __init__(self):
+        self.buffer = io.StringIO() 
+    def input(self, s):
+        '''s is a string, stream, or pathlib object.  Input the data
+        from s and process it.
+        '''
+        if ii(s, P):
+            t = dedent(open(s).read())
+            self.process(t)
+        elif ii(s, str):
+            self.process(dedent(s))
+        elif hasattr(s, "read"):
+            self.process(dedent(s.read()))
+        else:
+            raise TypeError("s must be string, stream, or pathlib.Path")
+    def output(self):
+        return self.buffer.getvalue()
+    def process(self, s):
+        raise Exception("Abstract base class method")
+
+class Normal(Fmt):
+    'Echo the lines, adjusting for the left margin'
+    def __init__(self):
+        super().__init__()
+    def process(self, s):
+        assert(Fmt.state == fmtstate.normal)
+        for line in s.splitlines():
+            if Fmt.ltrim and line.startswith(" "*Fmt.ltrim):
+                line = line[Fmt.ltrim:]
+            if Fmt.lm > 1:
+                line = (" "*(Fmt.lm - 1)) + line
+            # Ignore width and justification
+            print(line, file=self.buffer)
+class Wrap(Fmt):
+    'Wrap the lines'
+    def __init__(self):
+        super().__init__()
+    def process(self, s):
+        assert(Fmt.state == fmtstate.wrap)
+        w = WrapModule()
+        w.i = " "*(Fmt.lm - 1) if Fmt.lm > 1 else ""
+        w.width = Fmt.width
+        t = w(s)
+        print(t, file=self.buffer)
+
+if 1:
+    ios = io.StringIO
+    s = '''
+        It is a truth universally acknowledged, that a single man in
+        possession of a good fortune, must be in want of a wife.
+
+        However little known the feelings or views of such a man may be
+        on his first entering a neighbourhood, this truth is so well
+        fixed in the minds of the surrounding families, that he is
+        considered the rightful property of some one or other of their
+        daughters.
+
+        "My dear Mr. Bennet," said his lady to him one day, "have you
+        heard that Netherfield Park is let at last?"
+
+        Mr. Bennet replied that he had not.
+
+        "But it is," returned she; "for Mrs. Long has just been here,
+        and she told me all about it."
+    '''
+    Fmt.lm = 0
+    p = Wrap()
+    Fmt.state = fmtstate.wrap
+    p.input(ios(s))
+    print(p.output(), end="")
     exit()
+
 if __name__ == "__main__": 
     # Run the selftests
     from lwtest import run, raises, assert_equal, Assert
