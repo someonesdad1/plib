@@ -1,6 +1,16 @@
 '''
 TODO
 
+    * TF should be an object that you can submit text to with
+      tf.input(s) and get the subsequent output tf.output().  The
+      commands can be buried in the string input, changing the state of
+      tf.  This lets you either write sequential code, 
+
+    * It appears ts.py has most or all of the functionality needed and 
+      can be imported as a module.  It's possible that this module
+      (tf.py) could write a suitable string in ts.py's syntax and get
+      what's needed.
+
     * Consider whether it's possible to utilize some kind of markdown to
       get the desired formatting.  This would make it easy to get
       indented stuff, something I use a lot, as the common indent would
@@ -240,6 +250,7 @@ class justification(Enum):
     block = auto()
 class TF:
     def __init__(self, s):
+        's is the string it initialize with'
         lines = dedent(s).splitlines()
         self.debug = False
         self.lines = deque([(i, line) for i, line in enumerate(lines)])
@@ -508,12 +519,19 @@ if __name__ == "__main__":
             .del x
         ''')
         t.process()
+    def Test_push():
+        t = TF('''
+            .lm 8
+                x = 8
+            .}
+            .clear
+        ''')
+        t.process()
     if "--test" in sys.argv:
         exit(run(globals(), halt=1)[0])
     #xx
     exit(run(globals(), halt=1)[0]) #xx
 if __name__ == "__main__": 
     # Run the demos
-    def Example1():
-        pass
+    def Example1(): pass
     run(globals(), regexp=r"^Example\d\d?", quiet=True)

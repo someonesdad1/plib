@@ -1,8 +1,3 @@
-* /pylib/pgm/loc.py no longer works because fileinfo.py is gone.
-
-* wrap.py:  There should be two spaces after a ':' at the end of a word.
-  Also need to add .on and .off directives (those lines are deleted) to 
-  start or stop wrapping.
 
 ----------------------------------------------------------------------
 Low priority
@@ -26,3 +21,4 @@ Low priority
   best to move the key stuff to flt and cpx.  It can still be kept
   around for when it's needed.
 
+* 'ts.py -m' doesn't work.
