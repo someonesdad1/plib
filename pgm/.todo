@@ -1,3 +1,45 @@
+* wrap.py:  Add a Block object that is like wrap, but justifies both the
+  right and left margins.
+  
+  https://medium.com/@dimko1/text-justification-63f4cda29375 gives a
+  python solution:
+
+    def fullJustify(words, maxWidth):
+        res, curr, num_of_letters = [], [], 0
+        for w in words:
+            if num_of_letters + len(w) + len(curr) > maxWidth:
+                num_of_spaces = maxWidth - num_of_letters
+                words_amout = len(curr) - 1 or 1
+                for i in range(num_of_spaces):
+                    curr[i % words_amout] += ' '
+                res.append(''.join(curr))
+                curr, num_of_letters = [], 0
+            curr += [w]
+            num_of_letters += len(w)
+        return res + [' '.join(curr).ljust(maxWidth)]
+
+  https://www.malikbrowne.com/blog/text-justification-coding-question
+
+  https://algorithms.tutorialhorizon.com/text-justification-problem/:
+  Maintain an index which tracks the numbers of words already used
+  (already justified)
+
+    * Say Length = L number of characters in each line.
+    * Start taking words into a new line.
+    * Keep track of number of characters adding to the new line.
+    * Add a special character (‘@’) after each word (later will replace
+      by space ‘ ‘)
+    * Stop adding word to new line if Either adding new word will exceed
+      the characters count in line from given length L Or characters
+      count = Length L.
+    * Calculate the number of spaces needs to add to make the characters
+      count to length L.
+    * Evenly distribute the spaces between the selected words. If any
+      spaces are left (in case even distribution is not possible), add
+      it to between first 2 words.
+    * Replace ‘@’ with spaces calculated in the step above.
+    * Make a recursive call for rest of the words (from step 2 to Step
+      8)
 
 ----------------------------------------------------------------------
 Low priority
@@ -22,3 +64,7 @@ Low priority
   around for when it's needed.
 
 * 'ts.py -m' doesn't work.
+
+* /pylib/pgm/readability/indict.py looks like an interesting tool.  
+  It should use a reasonable dictionary by default and print the tokens
+  out in columns for each file.
