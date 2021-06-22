@@ -11,29 +11,10 @@ TODO
             def input(self, s): raise SyntaxError("Abstract")
             def output(self): raise SyntaxError("Abstract")
 
-    * It appears ts.py has most or all of the functionality needed and 
-      can be imported as a module.  It's possible that this module
-      (tf.py) could write a suitable string in ts.py's syntax and get
-      what's needed.
-
-    * Consider whether it's possible to utilize some kind of markdown to
-      get the desired formatting.  This would make it easy to get
-      indented stuff, something I use a lot, as the common indent would
-      first be removed.  Wrapping could be enabled by default and '.fmt
-      on' and '.fmt off' could be used for verbatim formatting.
-
-      '.li on' and '.nl on' could be used for bulletted lists and
-      numbered lists.  Numbered lists is really the only feature that 
-      isn't addressed by the design below.  I'd like it to handle
-      specifiers like '1.' (Arabic numbering), 'i.' (Roman numerals), 
-      and 'a.' (letter numbering).  The first line would determine 
-      the starting number.  Also consider numbering such as 
-
-        1. Main topic
-            1.1 Subtopic
-                1.1.1 Another subtopic
-            1.2 Second subtopic
-        etc.
+    * I've investigated trying to build tools that process a line at a
+      time, but this doesn't appear to be easy to implement,
+      particularly for situations with wrapping like bullets or wrapped
+      paragrams.  
 
 Text formatter:  format text for a script's printing to stdout
  
@@ -248,18 +229,8 @@ class state(Enum):
     code = auto()
     hang = auto()
     bullet = auto()
-class fmtstate(Enum):
-    normal = auto()     # Echo lines adj to margins, no wrapping, hang, etc.
-    hang = auto()       # Hanging indent
-    bullet = auto()     # Bullet form
-    number = auto()     # Numbered items
-    wrap = auto()       # Wrap to existing margins
-class just(Enum):
-    left = auto()
-    right = auto()
-    center = auto()
-    block = auto()
 class TF:
+    'Text formatter'
     def __init__(self, s):
         's is the string it initialize with'
         lines = dedent(s).splitlines()
@@ -425,54 +396,23 @@ class TF:
             m = f"Missing an end of a code block '{G.trigger}}}'"
             raise SyntaxError(m)
         return self.stream.getvalue()
-class PF:
-    '''Paragraph formatter.  Read a line at a time and process as
-    needed.
-    '''
-    def __init__(self):
-        self.buffer = io.StringIO() 
-        self.wrap = False
-        self.leftmargin = 0
-        self.ltrim = 0
-        self.width = os.environ.get("COLUMNS", 79)
-    def input(self, s):
-        '''s is a string, stream, or pathlib object.  Input individual lines
-        from it and process them.
-        '''
-        if ii(s, P):
-            for line in open(s).read().splitlines():
-                self.process(line)
-        elif ii(s, str):
-            for line in s.splitlines():
-                self.process(line)
-        elif hasattr(s, "read"):
-            for line in s:
-                line = line.rstrip("\n")
-                self.process(line)
-        else:
-            raise TypeError("s doesn't have the proper type")
-    def process(self, line):
-        if self.ltrim and line.startswith(" "*self.ltrim):
-            line = line[self.ltrim:]
-        if not line:    # End of a paragraph
-            print("\n", file=self.buffer)
-            return
-        # Process this line
-        if self.wrap:
-            tokens = line.split()
-            
-        print(f"+ {line}", file=self.buffer)
-    def dump(self):
-        s = self.buffer.getvalue()
-        print(f"{s}", end="")
 
+class fmtstate(Enum):
+    normal = auto()     # Echo lines adj to margins, no wrapping, hang, etc.
+    hang = auto()       # Hanging indent
+    bullet = auto()     # Bullet form
+    number = auto()     # Numbered items
+    wrap = auto()       # Wrap to existing margins
+class just(Enum):
+    left = auto()
+    right = auto()
+    center = auto()
 class Fmt:
     'Base class for formatters'
     state = fmtstate.normal     # State of formatter
     just = just.left            # Justification
     lm = 0                      # Left margin
-    ltrim = 0                   # How many spaces to remove from each line
-    width = int(os.environ.get("COLUMNS", 79))
+    width = int(os.environ.get("COLUMNS", 80)) - 1
     def __init__(self):
         self.buffer = io.StringIO() 
     def input(self, s):
@@ -494,20 +434,24 @@ class Fmt:
         raise Exception("Abstract base class method")
 
 class Normal(Fmt):
-    'Echo the lines, adjusting for the left margin'
+    'Echo the lines, adjusting for the left margin & justification'
     def __init__(self):
         super().__init__()
     def process(self, s):
         assert(Fmt.state == fmtstate.normal)
         for line in s.splitlines():
-            if Fmt.ltrim and line.startswith(" "*Fmt.ltrim):
-                line = line[Fmt.ltrim:]
-            if Fmt.lm > 1:
-                line = (" "*(Fmt.lm - 1)) + line
-            # Ignore width and justification
-            print(line, file=self.buffer)
+            lm = 1 if not Fmt.lm else Fmt.lm
+            if lm > 1:
+                line = ''.join([" "*(lm - 1), line])
+            n = lm - 1 + self.width
+            if Fmt.just == just.left:
+                j = "<"
+            elif Fmt.just == just.right:
+                j = ">"
+            elif Fmt.just == just.center:
+                j = "^"
+            print(f"{line:{j}{n}s}", file=self.buffer)
 class Wrap(Fmt):
-    'Wrap the lines'
     def __init__(self):
         super().__init__()
     def process(self, s):
@@ -517,30 +461,47 @@ class Wrap(Fmt):
         w.width = Fmt.width
         t = w(s)
         print(t, file=self.buffer)
+class Bullet(Fmt):
+    def __init__(self, bullet="*", nltrigger=None):
+        super().__init__()
+        self.bullet = bullet
+        self.nltrigger = nltrigger
+    def first_paragraph(self, s):
+        xx()
+    def process(self, s):
+        assert(Fmt.state == fmtstate.bullet)
+        nlnl = "\n\n"
+        w = WrapModule()
+        w.i = " "*(Fmt.lm - 1) if Fmt.lm > 1 else ""
+        # Allow for bullet string and space character in width
+        w.width = Fmt.width - len(self.bullet) - 1
+        n = len(self.bullet) + 1    # Bullet string and space character
+        # Break into paragraphs and process each paragraph
+        paragraphs = s.split(nlnl)
+        for paragraph in paragraphs:
+            paragraph.replace(self.nltrigger, nlnl)
+            t = w(paragraph)
+            plines = t.splitlines()
+            plines[0] = self.bullet + " " + plines[0]
+            for i in range(1, len(plines)):
+                plines[i] = " "*n + plines[i]
+
+        print(t, file=self.buffer)
 
 if 1:
     ios = io.StringIO
     s = '''
         It is a truth universally acknowledged, that a single man in
-        possession of a good fortune, must be in want of a wife.
-
+        possession of a good fortune, must be in want of a wife.∞ 
         However little known the feelings or views of such a man may be
         on his first entering a neighbourhood, this truth is so well
         fixed in the minds of the surrounding families, that he is
         considered the rightful property of some one or other of their
         daughters.
-
-        "My dear Mr. Bennet," said his lady to him one day, "have you
-        heard that Netherfield Park is let at last?"
-
-        Mr. Bennet replied that he had not.
-
-        "But it is," returned she; "for Mrs. Long has just been here,
-        and she told me all about it."
     '''
-    Fmt.lm = 0
-    p = Wrap()
-    Fmt.state = fmtstate.wrap
+    Fmt.lm = 5
+    Fmt.state = fmtstate.bullet
+    p = Bullet()
     p.input(ios(s))
     print(p.output(), end="")
     exit()

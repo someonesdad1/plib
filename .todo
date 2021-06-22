@@ -1,3 +1,5 @@
+* wrap.py:  Add a Block object that is like wrap, but justifies both the
+  right and left margins.
 
 ----------------------------------------------------------------------
 Low priority
@@ -22,3 +24,7 @@ Low priority
   around for when it's needed.
 
 * 'ts.py -m' doesn't work.
+
+* /pylib/pgm/readability/indict.py looks like an interesting tool.  
+  It should use a reasonable dictionary by default and print the tokens
+  out in columns for each file.
