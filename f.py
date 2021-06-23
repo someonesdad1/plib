@@ -465,6 +465,75 @@ __doc__ = '''
     with float, complex, or numpy stuff.  You can use flt/cpx objects at
     the end of calculations for the presentation of results.
 
+    Example
+    -------
+
+        from f import flt
+        from u import u
+
+        # Ideal gas law example calculation:  the oxygen cylinder on my
+        # torch is about 7 inches in diameter and 33 inches long.  The
+        # nominal internal volume is about 0.55 cubic feet per a table for
+        # a "BL" type cylinder.  The gauge pressure of the tank is 1200
+        # psi.  
+
+        # Questions:
+        #   1.  What is the mass of the remaining oxygen?
+        #   2.  How many liters (at 1 atm) of oxygen remain in the tank?
+
+        R = flt("8.314 J/(K*mol)")
+        R.n = 3         # Show results to 3 figures
+        R.f = False     # Don't interchange str() and repr()
+        R.c = True      # Use ANSI escape sequences to color flt/cpx
+        print(f"R = gas constant = {R}")
+
+        # Gas cylinder internal volume
+        V = flt("0.55 ft3")
+        print(f"V = volume = {V} = {V.to('m3')} = {V.to('L')}")
+
+        # This is the pressure reading from the regulator in psig
+        # (i.e., gauge pressure with respect to atmospheric pressure),
+        # which is corrected to an absolute pressure by adding 1 atm.  
+        p = flt("1200 psi") + flt("1 atm")
+        print(f"p = pressure = {p} = {p.to('MPa')}")
+
+        T = flt("293 K")
+        print(f"T = temperature = {T}")
+
+        # Number of moles of oxygen
+        n = p*V/(R*T)
+        print(f"n = {n} = {n.toSI()} = {n.to('mol')}")
+        print(f"Dimensions of n = {u.dim(n.u)}")
+
+        # Molecular mass (standard atomic mass of oxygen is 16 and it's
+        # a diatomic gas)
+        molarmass = flt("32 g/mol")
+        m = n*molarmass
+        print(f"Mass of O₂ = {m} = {m.to('kg')}")
+
+        # Since the tank volume is V, the volume Va at 1 atm is calculated
+        # from p*V = pa*Va.  Thus, Va = V*p/pa.
+        pa = flt("1 atm")
+        Va = V*p/pa
+        print(f"Volume of O₂ at 1 atm = {Va.to('liters')}")
+
+    will print out
+
+        R = gas constant = 8.31 J/(K·mol)
+        V = volume = 0.550 ft³ = 0.0156 m³ = 15.6 L
+        p = pressure = 1210. psi = 8.38 MPa
+        T = temperature = 293. K
+        n = 0.274 ft³·mol·psi/J = 53.5 mol = 53.5 mol
+        Dimensions of n = Dim("N")
+        R = gas constant = 8.31 J/(K·mol)
+        V = volume = 0.550 ft³ = 0.0156 m³ = 15.6 L
+        p = pressure = 1210. psi = 8.38 MPa
+        T = temperature = 293. K
+        n = 0.274 ft³·mol·psi/J = 53.5 mol = 53.5 mol
+        Dimensions of n = Dim("N")
+        Mass of O₂ = 8.78 ft³·g·psi/J = 1.71 kg
+        Volume of O₂ at 1 atm = 1290. liters
+
 '''
 
 if 1:  # Copyright, license
