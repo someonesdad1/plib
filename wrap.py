@@ -215,6 +215,8 @@ class Wrap(Abbr):
         sentinel = chr(sentinels.pop())
         while sentinel in p:
             sentinel = chr(sentinels.pop())
+        if not sentinels:
+            raise RuntimeError("All sentinels used")
         while tokens:
             token = tokens.popleft()
             results.append(token)
@@ -301,19 +303,15 @@ def indent(s: str, indent=""):
     if not hasattr(indent, "wrap"):
         indent.wrap = Wrap()
     return indent.wrap.indent(s, indent)
-def dedent(s, empty=True, trim_leading=True, trim_trailing=True,
-           trim_end=False):
+def dedent(s, empty=True, leading=True, trailing=True, trim=False):
     '''For the multiline string s, remove the common leading space
     characters and return the modified string.
- 
-    empty               Consider empty lines to have an infinite number
-                        of spaces.  They will be empty lines in the
-                        output string.
-    trim_leading        Remove the first line if it only consists of
-                        space characters.
-    trim_trailing       Remove the last line if it only consists of
-                        space characters.
-    trim_end            Remove all trailing whitespace.
+    
+    empty       Consider empty lines to have an infinite number of spaces.
+                They will be empty lines in the output string.
+    leading     Remove first line if it is only space characters.
+    trailing    Remove last line if it is only space characters.
+    trim        Remove all trailing whitespace.
     
     The keywords default to the values most useful in help strings for
     scripts.  Typical use is 
@@ -336,15 +334,15 @@ def dedent(s, empty=True, trim_leading=True, trim_trailing=True,
     t, nl = s.strip(), "\n"
     if not t:
         return ""
-    if trim_end:
+    if trim:
        s = s.rstrip()
     lines = s.split(nl)   # Splitting on a newline always returns a list
     if len(lines) == 1:
         return s.lstrip()
-    if not trim_end and trim_trailing:
+    if not trim and trailing:
         if set(lines[-1]) == set(" "):
             del lines[-1]
-    if len(lines) > 1 and trim_leading:
+    if len(lines) > 1 and leading:
         t = set(lines[0])
         if not t or t == set(" "):
             del lines[0]

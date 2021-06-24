@@ -1,21 +1,21 @@
 '''
 TODO
-
+ 
     * Create classes:  wrapper, bulletter, numberer.  These can handle
       the various formatting tasks.  They all derive from a base class
       that has the methods input() and output().  You call input() an
       arbitrary number of times, then call output() to get the final
       formatted string to print.
-
+ 
         class Formatter:
             def input(self, s): raise SyntaxError("Abstract")
             def output(self): raise SyntaxError("Abstract")
-
+ 
     * I've investigated trying to build tools that process a line at a
       time, but this doesn't appear to be easy to implement,
       particularly for situations with wrapping like bullets or wrapped
       paragrams.  
-
+ 
 Text formatter:  format text for a script's printing to stdout
  
     The main use case is to be able to get formatted output for the help
@@ -64,22 +64,22 @@ Text formatter:  format text for a script's printing to stdout
         Use str1 as a bullet string; it is placed at the left margin.
         If str2 is present, it's used the same as the str in the hanging
         indent command to provide line breaks.
-
+ 
         Thus, ".bullet * ∞" in the following:
-
+ 
             It is a truth universally acknowledged, that a single man in
             possession of a good fortune, must be in want of a wife.∞ It
             was then disclosed in the following manner.  Observing his
             second daughter employed in trimming a hat, he suddenly
             addressed her with, "I hope Mr. Bingley will like it,
             Lizzy."
-
+ 
         results in
-
+ 
             * It is a truth universally acknowledged, that a single man
               in possession of a good fortune, must be in want of a
               wife.
-
+ 
               It was then disclosed in the following manner.  Observing
               his second daughter employed in trimming a hat, he
               suddenly addressed her with, "I hope Mr. Bingley will like
@@ -150,6 +150,7 @@ if 1:   # Imports
 if 1:   # Custom imports
     from wrap import dedent, Wrap as WrapModule
     from color import C
+    from abbreviations import IsAbbreviation
 if 1:   # Global variables
     P = pathlib.Path
     ii = isinstance
@@ -223,6 +224,40 @@ class IdentifyCmd:
                 if not self.is_int_or_var(args[1]):
                     m = f"'{line}':  second argument needs to be int or variable"
                     raise SyntaxError(m)
+def dedent(s, empty=True):
+    '''For the string s, trim leading and trailing lines of whitespace,
+    then remove any common leading space characters from each line.  If
+    empty is True, then empty lines are considered to have the common
+    indent number of spaces.
+ 
+    Example:  For s = "   \n    Line 1\n      Line 2  \n    ", dedent(s)
+    will return 'Line 1\n  Line 2  '.
+    '''
+    def LeadingSpaces(s):
+        'Return the number of space characters at the beginning of s'
+        i = 0
+        while len(s) > i and s[i] == " ":
+            i += 1
+        return i
+    if not ii(s, str):
+        raise TypeError("s must be a string")
+    if not s.strip():
+        return ""
+    lines = s.split("\n")   # Splitting on a newline always returns a list
+    if len(lines) == 1:
+        return lines[0].strip()
+    # Delete first & last lines if only whitespace
+    for i in (0, -1):
+        if not lines[i].strip():
+            del lines[i]
+    # Get sequence of the number of beginning spaces on each line
+    o = [LeadingSpaces(i) for i in lines]
+    if empty:   # Make the empty lines have "infinite" spaces
+        m = max(o)
+        o = [i if i else m + 1 for i in o]  
+    if min(o):
+        lines = [line[min(o):] for line in lines]
+    return "\n".join(lines)
 class state(Enum):
     init = auto()
     normal = auto()
@@ -396,26 +431,24 @@ class TF:
             m = f"Missing an end of a code block '{G.trigger}}}'"
             raise SyntaxError(m)
         return self.stream.getvalue()
-
 class fmtstate(Enum):
     normal = auto()     # Echo lines adj to margins, no wrapping, hang, etc.
     hang = auto()       # Hanging indent
     bullet = auto()     # Bullet form
     number = auto()     # Numbered items
     wrap = auto()       # Wrap to existing margins
+    block = auto()      # Left and right justified
 class just(Enum):
     left = auto()
     right = auto()
     center = auto()
 class Fmt:
     'Base class for formatters'
-    state = fmtstate.normal     # State of formatter
-    just = just.left            # Justification
-    lm = 0                      # Left margin
-    width = int(os.environ.get("COLUMNS", 80)) - 1
     def __init__(self):
-        self.buffer = io.StringIO() 
-    def input(self, s):
+        self.state = fmtstate.normal
+        self._left = 0      # Left margin
+        self.width = int(os.environ.get("COLUMNS", 80)) - 1
+    def process(self, s):
         '''s is a string, stream, or pathlib object.  Input the data
         from s and process it.
         '''
@@ -428,39 +461,92 @@ class Fmt:
             self.process(dedent(s.read()))
         else:
             raise TypeError("s must be string, stream, or pathlib.Path")
-    def output(self):
-        return self.buffer.getvalue()
-    def process(self, s):
-        raise Exception("Abstract base class method")
-
+    @property
+    def left(self):
+        '''This 'left margin' variable is equivalent to the number of
+        space characters that must be appended to a line to get the
+        first character at the desired 1-based column number.  Thus, you
+        can consider this left margin number the 0-based python
+        numbering of the columns.
+        '''
+        assert(self._left >= 0)
+        return self._left - 1 if self._left else 0
+    @left.setter
+    def left(self, value):
+        if not ii(value, int):
+            raise TypeError("left must be an integer")
+        self._left = max(0, int(value))
 class Normal(Fmt):
     'Echo the lines, adjusting for the left margin & justification'
-    def __init__(self):
+    def __init__(self, just=just.left):
+        self.just = just
         super().__init__()
     def process(self, s):
-        assert(Fmt.state == fmtstate.normal)
         for line in s.splitlines():
-            lm = 1 if not Fmt.lm else Fmt.lm
-            if lm > 1:
-                line = ''.join([" "*(lm - 1), line])
-            n = lm - 1 + self.width
-            if Fmt.just == just.left:
+            line = ''.join([" "*self.left, line])
+            n = self.left + self.width
+            if self.just == just.left:
                 j = "<"
-            elif Fmt.just == just.right:
+            elif self.just == just.right:
                 j = ">"
-            elif Fmt.just == just.center:
+            elif self.just == just.center:
                 j = "^"
             print(f"{line:{j}{n}s}", file=self.buffer)
-class Wrap(Fmt):
-    def __init__(self):
-        super().__init__()
-    def process(self, s):
-        assert(Fmt.state == fmtstate.wrap)
-        w = WrapModule()
-        w.i = " "*(Fmt.lm - 1) if Fmt.lm > 1 else ""
-        w.width = Fmt.width
-        t = w(s)
-        print(t, file=self.buffer)
+if 0:
+    class Wrap(Fmt):
+        def __init__(self):
+            super().__init__()
+        def process(self, s):
+            w = WrapModule()
+            w.width = self.width
+            t = w(s)
+            # Add in the indent
+            indent = " "*self.left
+            return "\n".join([indent + i for i in t.split("\n")])
+else:
+    class Wrap(Fmt):
+        # Independently generated wrap class, simpler than wrap.py.
+        def __init__(self):
+            super().__init__()
+            self.sentence_sep = " "
+        def __call__(self, s, sep="\n\n"):
+            '''Return the wrapped string from paragraphs of s.  paragraphs
+            are separated by the string sep.
+            '''
+            xx()
+            out = []
+            for i in s.split(sep):
+                out.append(self.wrap(i))
+            t = " "*self.left
+            return sep.join([t + i for i in out])
+        def is_sentence_end(self, t):
+            'Return True if string t ends a sentence'
+            # Note we call 'word:' a sentence end too.
+            f = lambda x, y:  x.endswith(y)
+            if f(t, ".") and not IsAbbreviation(t):
+                return True
+            elif f(t, "?") or f(t, "!") or f(t, ":"):
+                return True
+            return False
+        def wrap(self, s):
+            'Wrap the string s to self.width'
+            out, line, tokens = deque(), deque(), deque(s.split())
+            LEN = lambda x:  len(' '.join(x))
+            while tokens:
+                token = tokens.popleft()
+                if self.is_sentence_end(token):
+                    token += self.sentence_sep
+                line.append(token)
+                next_token_length = len(tokens[0]) if tokens else 0
+                if LEN(line) + next_token_length + 1 >= abs(int(self.width)):
+                    out.append(' '.join(line).rstrip())
+                    line.clear()
+            if line:
+                out.append(' '.join(line))
+            # Apply indent to each line
+            t = " "*self.left
+            return '\n'.join([t + i for i in out])
+
 class Bullet(Fmt):
     def __init__(self, bullet="*", nltrigger=None):
         super().__init__()
@@ -469,10 +555,9 @@ class Bullet(Fmt):
     def first_paragraph(self, s):
         xx()
     def process(self, s):
-        assert(Fmt.state == fmtstate.bullet)
         nlnl = "\n\n"
         w = WrapModule()
-        w.i = " "*(Fmt.lm - 1) if Fmt.lm > 1 else ""
+        w.i = " "*self.left
         # Allow for bullet string and space character in width
         w.width = Fmt.width - len(self.bullet) - 1
         n = len(self.bullet) + 1    # Bullet string and space character
@@ -485,25 +570,79 @@ class Bullet(Fmt):
             plines[0] = self.bullet + " " + plines[0]
             for i in range(1, len(plines)):
                 plines[i] = " "*n + plines[i]
-
         print(t, file=self.buffer)
+class Block(Fmt):
+    def __init__(self):
+        super().__init__()
+    def justify_paragraph(self, s):
+        'Block justify string s into width self.width = L and return it'  
+        # Modified by DP; the original algorithm had a couple of bugs that
+        # show up when you test at corner cases like L == 1.  Also added
+        # extra stuff for end of sentence and colon.
+        # From https://medium.com/@dimko1/text-justification-63f4cda29375
+        f = lambda x, y: x.endswith(y)
+        L = self.width
+        indent = " "*self.left
+        out, line, num_of_letters = [], [], 0
+        for w in s.split():
+            if (not IsAbbreviation(w) and 
+                    (f(w, ".") or f(w, "!") or f(w, "?") or f(w, ":"))):
+                w = w + " "
+            if num_of_letters + len(w) + len(line) > L:
+                spaces_to_add = max(L - num_of_letters, 0)
+                # The following avoids a divide by zero when L is small
+                ws_amount = max(len(line) - 1, 1)
+                for i in range(spaces_to_add):
+                    # When L is small, line can be empty and the
+                    # mod results in an exception
+                    if line:
+                        line[i % ws_amount] += ' '
+                out.append(indent + ''.join(line))
+                line, num_of_letters = [], 0
+            line.append(w)
+            num_of_letters += len(w)
+        # I don't want the last line to have trailing spaces
+        out.append(indent + ' '.join(line))
+        return '\n'.join(out)
+    def process(self, s):
+        brk="\n\n"
+        paragraphs = [self.justify_paragraph(p) for p in s.split(brk)]
+        return brk.join(paragraphs)
 
 if 1:
-    ios = io.StringIO
     s = '''
         It is a truth universally acknowledged, that a single man in
-        possession of a good fortune, must be in want of a wife.∞ 
+        possession of a good fortune, must be in want of a wife.
+
         However little known the feelings or views of such a man may be
         on his first entering a neighbourhood, this truth is so well
         fixed in the minds of the surrounding families, that he is
         considered the rightful property of some one or other of their
         daughters.
     '''
-    Fmt.lm = 5
-    Fmt.state = fmtstate.bullet
-    p = Bullet()
-    p.input(ios(s))
-    print(p.output(), end="")
+    w = Wrap()
+    print(w(s))
+    exit()
+if 0:
+    s = '''
+        It is a truth universally acknowledged, that a single man in
+        possession of a good fortune, must be in want of a wife.
+
+        However little known the feelings or views of such a man may be
+        on his first entering a neighbourhood, this truth is so well
+        fixed in the minds of the surrounding families, that he is
+        considered the rightful property of some one or other of their
+        daughters.
+    '''
+    p = Block()
+    p.left = 5
+    p.width = 60
+    print(p.process(s))
+    print("-"*70)
+    p = Wrap()
+    p.left = 5
+    p.width = 60
+    print(p.process(s))
     exit()
 
 if __name__ == "__main__": 
