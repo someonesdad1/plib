@@ -296,7 +296,7 @@ if 1:   # Core functionality
             ("f", "Load favorite symbols (edit GetSymbols())"),
             ("H", "Shorthand to run help()"),
             ("q", "Quit"),
-            ("R file", "Get file to run with 'r' command"),
+            ("R f", "Get file f to run with 'r' command"),
             ("r", "Run file buffer"),
             ("s", "Print symbols in scope"),
             ("v", "Show version"),
@@ -483,9 +483,21 @@ if 1:   # Special commands
             if console.file is None:
                 Print("No file set with R command")
                 return
-            for line in open(console.file, "r").read().split("\n"):
-                rv = console.push(line)
-                console.ps = sys.ps2 if rv else sys.ps1
+            if 0:
+                # Execute single lines
+                for line in open(console.file, "r").read().split("\n"):
+                    rv = console.push(line)
+                    console.ps = sys.ps2 if rv else sys.ps1
+            else:
+                # Run it as a script
+                try:
+                    p = g.P(console.file).resolve()
+                    cmd = ' '.join([sys.executable, str(p)])
+                    r = subprocess.call(cmd, shell=True)
+                except Exception as e:
+                    print(f"Exception:  {e}")
+                else:
+                    print(f"Script returned {r}")
         elif cmd == "s":  
             # Print symbols
             PrintSymbols(console)

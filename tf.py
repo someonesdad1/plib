@@ -490,64 +490,6 @@ class Fmt:
         if not ii(value, int):
             raise TypeError("left must be an integer")
         self._left = max(0, int(value))
-class Wrap(Fmt):
-    # Independently generated wrap class, simpler than wrap.py.
-    def __init__(self):
-        super().__init__()
-        self.sentence_sep = " "
-    def __call__(self, s, sep="\n\n"):
-        '''Return the wrapped string from paragraphs of s.  paragraphs
-        are separated by the string sep.
-        '''
-        out = []
-        for i in s.split(sep):
-            out.append(self.wrap(i))
-        return sep.join(out)
-    def is_sentence_end(self, t):
-        'Return True if string t ends a sentence'
-        # Note we call 'word:' a sentence end too.
-        f = lambda x, y:  x.endswith(y)
-        if f(t, ".") and not IsAbbreviation(t):
-            return True
-        elif f(t, "?") or f(t, "!") or f(t, ":"):
-            return True
-        return False
-    def wrap_line(self, s):
-        '''Wrap s to get it to fit a line of width self.width and return 
-        (first_line_string, remaining_string).
-        '''
-        def get(s, count):
-            if s[count] == " ":
-                first_line_string = s[:count].rstrip()
-                remaining_string = s[count:].strip()
-                return first_line_string, remaining_string
-            else:
-                return None
-        count = self.width - 1
-        while count and get(s, count) is None:
-            count -= 1
-        if not count:
-            raise ValueError("No space characters in first line")
-        return get(s, count)
-    def wrap(self, s):
-        'Wrap the string s to self.width'
-        out, line, tokens = deque(), deque(), deque(s.split())
-        LEN = lambda x:  len(' '.join(x))
-        while tokens:
-            token = tokens.popleft()
-            if self.is_sentence_end(token):
-                token += self.sentence_sep
-            line.append(token)
-            next_token_length = len(tokens[0]) if tokens else 0
-            if LEN(line) + next_token_length + 1 >= abs(int(self.width)):
-                out.append(' '.join(line).rstrip())
-                line.clear()
-        if line:
-            out.append(' '.join(line))
-        # Apply indent to each line
-        t = " "*self.left
-        u = [t + i for i in out]
-        return '\n'.join(u)
 class Block(Fmt):
     def __init__(self):
         super().__init__()
@@ -585,48 +527,124 @@ class Block(Fmt):
         brk="\n\n"
         paragraphs = [self.justify_paragraph(p) for p in s.split(brk)]
         return brk.join(paragraphs)
+class Wrap(Fmt):
+    # Independently generated wrap class, simpler than wrap.py.
+    def __init__(self):
+        super().__init__()
+        self.sentence_sep = " "
+    def __call__(self, s, sep="\n\n"):
+        '''Return the wrapped string from paragraphs of s.  paragraphs
+        are separated by the string sep.
+        '''
+        out = []
+        for i in s.split(sep):
+            out.append(self.wrap(i))
+        return sep.join(out)
+    def is_sentence_end(self, t):
+        'Return True if string t ends a sentence'
+        # Note we call 'word:' a sentence end too.
+        f = lambda x, y:  x.endswith(y)
+        if f(t, ".") and not IsAbbreviation(t):
+            return True
+        elif f(t, "?") or f(t, "!") or f(t, ":"):
+            return True
+        return False
+    def wrap_line(self, s):
+        '''Wrap s to get it to fit a line of width self.width and return 
+        (first_line_string, remaining_string).
+        '''
+        raise Exception("xx Not needed") #xx
+        def get(s, count):
+            if s[count] == " ":
+                first_line_string = s[:count].rstrip()
+                remaining_string = s[count:].strip()
+                return first_line_string, remaining_string
+            else:
+                return None
+        count = self.width - 1
+        while count and get(s, count) is None:
+            count -= 1
+        if not count:
+            raise ValueError("No space characters in first line")
+        return get(s, count)
+    def wrap(self, s, indent=True):
+        'Wrap the string s to self.width'
+        out, line, tokens = deque(), deque(), deque(s.split())
+        LEN = lambda x:  len(' '.join(x))
+        while tokens:
+            token = tokens.popleft()
+            if self.is_sentence_end(token):
+                token += self.sentence_sep
+            line.append(token)
+            next_token_length = len(tokens[0]) if tokens else 0
+            if LEN(line) + next_token_length + 1 >= abs(int(self.width)):
+                out.append(' '.join(line).rstrip())
+                line.clear()
+        if line:
+            out.append(' '.join(line))
+        if indent:      # Apply indent to each line
+            t = " "*self.left
+            u = [t + i for i in out]
+            return '\n'.join(u)
+        else:
+            return '\n'.join(out)
 
 class Bullet(Fmt):
-    def __init__(self, bullet="*", newline=None):
-        '''Format with the indicated bullet string.  newline is the
+    def __init__(self, bullet="*", internalnl=None):
+        '''Format with the indicated bullet string.  internalnl is the
         string to use to break on to continue a bullet with a pair of
         newline characters.
+ 
+        Example:  If s = "This is a bullet.XA follow-on paragraph." then
+        using 'X' as the internalnl, the bulleted form would be
+ 
+            * This is a bullet.
+ 
+              A follow-on paragraph.
         '''
         super().__init__()
         self.bullet = bullet
-        self.newline = newline
-    def paragraph(self, s, insep="\n\n", outsep="\n"):
-        indent = " "*(len(self.bullet) + 1)
-        line = deque()
-        for i, p in enumerate(s.split(self.newline)):
+        self.internalnl = internalnl
+    def paragraph(self, s, outsep="\n\n"):
+        n = len(self.bullet) + 1
+        lines, wrap = deque(), Wrap()
+        for i, p in enumerate(s.split(self.internalnl)):
             if i:
-                pass
+                wrap.width -= n
+                lines.append(wrap(p))
+                wrap.width += n
             else:
-                pass
-            
-    def __call__(self, s, insep="\n\n", outsep="\n"):
+                # First line
+                first, remainder = wrap.wrap_line(p)
+                lines.append(first)
+                wrap.width -= n
+                lines.append(wrap(remainder))
+                wrap.width += n
+        return outsep.join(lines)
+    def __call__(self, s, insep="\n\n", outsep="\n\n"):
         '''Break the string s into paragraphs separated at insep, then
-        format it as a bulleted item.  Separate the out paragraphs with
-        outsep.
+        format each paragraph as a bulleted item.  Separate the out
+        paragraphs with outsep.
         '''
-        out = []
-        for p in s.split(in_sep):
-            out.extend(self.paragraph(p, insep=insep, outsep=outsep))
+        out = deque()
+        for paragraph in s.split(insep):
+            paragraph = self.bullet + " " + paragraph
+            out.append(self.paragraph(paragraph, outsep=outsep))
         pp(out);exit() #xx
+        return outsep.join(out)
 
 if 1:
-    s = '''
-        It is a truth universally acknowledged, that a single man in
-        possession of a good fortune, must be in want of a wife.
+    s = dedent('''
+        Mrs. Gardiner's caution to Elizabeth was punctually and kindly given on
+        the first favourable opportunity of speaking to her alone; after
+        honestly telling her what she thought, she thus went on:
 
-        However little known the feelings or views of such a man may be
-        on his first entering a neighbourhood, this truth is so well
-        fixed in the minds of the surrounding families, that he is
-        considered the rightful property of some one or other of their
-        daughters.
-    '''
+        "You are too sensible a girl, Lizzy, to fall in love merely because you
+        are warned against it; and, therefore, I am not afraid of speaking
+        openly.  Seriously, I would have you be on your guard.
+    ''')
     w = Bullet()
-    w.newline = "∞"
+    w.internalnl = "∞"
     w.width = 60
     w.left = 5
     print(w(s))
