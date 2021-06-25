@@ -502,8 +502,7 @@ class Wrap(Fmt):
         out = []
         for i in s.split(sep):
             out.append(self.wrap(i))
-        t = " "*self.left
-        return sep.join([t + i for i in out])
+        return sep.join(out)
     def is_sentence_end(self, t):
         'Return True if string t ends a sentence'
         # Note we call 'word:' a sentence end too.
@@ -513,6 +512,23 @@ class Wrap(Fmt):
         elif f(t, "?") or f(t, "!") or f(t, ":"):
             return True
         return False
+    def wrap_line(self, s):
+        '''Wrap s to get it to fit a line of width self.width and return 
+        (first_line_string, remaining_string).
+        '''
+        def get(s, count):
+            if s[count] == " ":
+                first_line_string = s[:count].rstrip()
+                remaining_string = s[count:].strip()
+                return first_line_string, remaining_string
+            else:
+                return None
+        count = self.width - 1
+        while count and get(s, count) is None:
+            count -= 1
+        if not count:
+            raise ValueError("No space characters in first line")
+        return get(s, count)
     def wrap(self, s):
         'Wrap the string s to self.width'
         out, line, tokens = deque(), deque(), deque(s.split())
@@ -530,32 +546,8 @@ class Wrap(Fmt):
             out.append(' '.join(line))
         # Apply indent to each line
         t = " "*self.left
-        return '\n'.join([t + i for i in out])
-
-class Bullet(Fmt):
-    def __init__(self, bullet="*", nltrigger=None):
-        super().__init__()
-        self.bullet = bullet
-        self.nltrigger = nltrigger
-    def first_paragraph(self, s):
-        xx()
-    def process(self, s):
-        nlnl = "\n\n"
-        w = WrapModule()
-        w.i = " "*self.left
-        # Allow for bullet string and space character in width
-        w.width = Fmt.width - len(self.bullet) - 1
-        n = len(self.bullet) + 1    # Bullet string and space character
-        # Break into paragraphs and process each paragraph
-        paragraphs = s.split(nlnl)
-        for paragraph in paragraphs:
-            paragraph.replace(self.nltrigger, nlnl)
-            t = w(paragraph)
-            plines = t.splitlines()
-            plines[0] = self.bullet + " " + plines[0]
-            for i in range(1, len(plines)):
-                plines[i] = " "*n + plines[i]
-        print(t, file=self.buffer)
+        u = [t + i for i in out]
+        return '\n'.join(u)
 class Block(Fmt):
     def __init__(self):
         super().__init__()
@@ -594,6 +586,34 @@ class Block(Fmt):
         paragraphs = [self.justify_paragraph(p) for p in s.split(brk)]
         return brk.join(paragraphs)
 
+class Bullet(Fmt):
+    def __init__(self, bullet="*", newline=None):
+        '''Format with the indicated bullet string.  newline is the
+        string to use to break on to continue a bullet with a pair of
+        newline characters.
+        '''
+        super().__init__()
+        self.bullet = bullet
+        self.newline = newline
+    def paragraph(self, s, insep="\n\n", outsep="\n"):
+        indent = " "*(len(self.bullet) + 1)
+        line = deque()
+        for i, p in enumerate(s.split(self.newline)):
+            if i:
+                pass
+            else:
+                pass
+            
+    def __call__(self, s, insep="\n\n", outsep="\n"):
+        '''Break the string s into paragraphs separated at insep, then
+        format it as a bulleted item.  Separate the out paragraphs with
+        outsep.
+        '''
+        out = []
+        for p in s.split(in_sep):
+            out.extend(self.paragraph(p, insep=insep, outsep=outsep))
+        pp(out);exit() #xx
+
 if 1:
     s = '''
         It is a truth universally acknowledged, that a single man in
@@ -605,11 +625,11 @@ if 1:
         considered the rightful property of some one or other of their
         daughters.
     '''
-    w = Wrap()
-    w.left = 5
+    w = Bullet()
+    w.newline = "∞"
     w.width = 60
+    w.left = 5
     print(w(s))
-    print(f"\n{G.stderr}xx Bug:  why is first line indented?{G.norm}")
     exit()
 if 0:
     s = '''
