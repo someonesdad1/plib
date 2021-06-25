@@ -298,6 +298,7 @@ if 1:   # Core functionality
             ("q", "Quit"),
             ("R f", "Get file f to run with 'r' command"),
             ("r", "Run file buffer"),
+            ("ri", "Run file buffer with 'python -i'"),
             ("s", "Print symbols in scope"),
             ("v", "Show version"),
             ("x", "Execute string buffer"),
@@ -328,7 +329,7 @@ if 1:   # Core functionality
         if len(cmd) == 1:
             return cmd[0] in "?cCdefHhqrsvx"
         else:
-            return (cmd[0] in "!<>R") or (cmd in "CS".split())
+            return (cmd[0] in "!<>R") or (cmd in "CS ri".split())
     def BreakPoint():
         '''Find the line number of the input routine, which lets you set
         a debugger breakpoint at the input line.
@@ -477,27 +478,32 @@ if 1:   # Special commands
             exit(0)
         elif first_char == "R":  
             # Set or clear console.file
-            console.file = arg if arg else None
-        elif cmd == "r":  
+            console.file = None
+            console.args = None
+            if arg:
+                args = arg.split()
+                console.file = args[0]
+                if len(args) > 1:
+                    console.args = " ".join(args[1:])
+        elif cmd in "r ri".split():  
             # Run console.file
             if console.file is None:
                 Print("No file set with R command")
                 return
-            if 0:
-                # Execute single lines
-                for line in open(console.file, "r").read().split("\n"):
-                    rv = console.push(line)
-                    console.ps = sys.ps2 if rv else sys.ps1
-            else:
-                # Run it as a script
-                try:
-                    p = g.P(console.file).resolve()
-                    cmd = ' '.join([sys.executable, str(p)])
-                    r = subprocess.call(cmd, shell=True)
-                except Exception as e:
-                    print(f"Exception:  {e}")
+            # Run it as a script
+            try:
+                p = g.P(console.file).resolve()
+                if cmd == "ri":
+                    c = [sys.executable, "-i", str(p)]
                 else:
-                    print(f"Script returned {r}")
+                    c = [sys.executable, str(p)]
+                if console.args:
+                    c.append(console.args)
+                r = subprocess.call(' '.join(c), shell=True)
+            except Exception as e:
+                print(f"Exception:  {e}")
+            else:
+                print(f"Script returned {r}")
         elif cmd == "s":  
             # Print symbols
             PrintSymbols(console)
