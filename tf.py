@@ -1,5 +1,5 @@
 '''
-TODO
+    TODO
  
     * Create classes:  wrapper, bulletter, numberer.  These can handle
       the various formatting tasks.  They all derive from a base class
@@ -443,27 +443,41 @@ class just(Enum):
     right = auto()
     center = auto()
 class Fmt:
-    'Base class for formatters'
+    '''Base class for formatters.  Does basic left/center/right
+    formatting of lines.
+    '''
     def __init__(self):
         self.state = fmtstate.normal
         self._left = 0      # Left margin
         self.width = int(os.environ.get("COLUMNS", 80)) - 1
-    def process(self, s):
+        self.just = just.left
+    def __call__(self, s):
         '''s is a string, stream, or pathlib object.  Input the data
         from s and process it.
         '''
+        # Get the string to process
         if ii(s, P):
             t = dedent(open(s).read())
-            self.process(t)
         elif ii(s, str):
-            self.process(dedent(s))
+            t = dedent(s)
         elif hasattr(s, "read"):
-            self.process(dedent(s.read()))
+            t = dedent(s.read())
         else:
             raise TypeError("s must be string, stream, or pathlib.Path")
+        # Format the lines
+        lines = t.split("\n")
+        if self.just == just.left:
+            j = "<"
+        elif self.just == just.right:
+            j = ">"
+        elif self.just == just.center:
+            j = "^"
+        i = " "*self.left
+        lines = [f"{i}{line:{j}{self.width}s}" for line in lines]
+        return '\n'.join(lines)
     @property
     def left(self):
-        '''This 'left margin' variable is equivalent to the number of
+        '''This 'left margin' property is equivalent to the number of
         space characters that must be appended to a line to get the
         first character at the desired 1-based column number.  Thus, you
         can consider this left margin number the 0-based python
@@ -476,76 +490,47 @@ class Fmt:
         if not ii(value, int):
             raise TypeError("left must be an integer")
         self._left = max(0, int(value))
-class Normal(Fmt):
-    'Echo the lines, adjusting for the left margin & justification'
-    def __init__(self, just=just.left):
-        self.just = just
+class Wrap(Fmt):
+    # Independently generated wrap class, simpler than wrap.py.
+    def __init__(self):
         super().__init__()
-    def process(self, s):
-        for line in s.splitlines():
-            line = ''.join([" "*self.left, line])
-            n = self.left + self.width
-            if self.just == just.left:
-                j = "<"
-            elif self.just == just.right:
-                j = ">"
-            elif self.just == just.center:
-                j = "^"
-            print(f"{line:{j}{n}s}", file=self.buffer)
-if 0:
-    class Wrap(Fmt):
-        def __init__(self):
-            super().__init__()
-        def process(self, s):
-            w = WrapModule()
-            w.width = self.width
-            t = w(s)
-            # Add in the indent
-            indent = " "*self.left
-            return "\n".join([indent + i for i in t.split("\n")])
-else:
-    class Wrap(Fmt):
-        # Independently generated wrap class, simpler than wrap.py.
-        def __init__(self):
-            super().__init__()
-            self.sentence_sep = " "
-        def __call__(self, s, sep="\n\n"):
-            '''Return the wrapped string from paragraphs of s.  paragraphs
-            are separated by the string sep.
-            '''
-            xx()
-            out = []
-            for i in s.split(sep):
-                out.append(self.wrap(i))
-            t = " "*self.left
-            return sep.join([t + i for i in out])
-        def is_sentence_end(self, t):
-            'Return True if string t ends a sentence'
-            # Note we call 'word:' a sentence end too.
-            f = lambda x, y:  x.endswith(y)
-            if f(t, ".") and not IsAbbreviation(t):
-                return True
-            elif f(t, "?") or f(t, "!") or f(t, ":"):
-                return True
-            return False
-        def wrap(self, s):
-            'Wrap the string s to self.width'
-            out, line, tokens = deque(), deque(), deque(s.split())
-            LEN = lambda x:  len(' '.join(x))
-            while tokens:
-                token = tokens.popleft()
-                if self.is_sentence_end(token):
-                    token += self.sentence_sep
-                line.append(token)
-                next_token_length = len(tokens[0]) if tokens else 0
-                if LEN(line) + next_token_length + 1 >= abs(int(self.width)):
-                    out.append(' '.join(line).rstrip())
-                    line.clear()
-            if line:
-                out.append(' '.join(line))
-            # Apply indent to each line
-            t = " "*self.left
-            return '\n'.join([t + i for i in out])
+        self.sentence_sep = " "
+    def __call__(self, s, sep="\n\n"):
+        '''Return the wrapped string from paragraphs of s.  paragraphs
+        are separated by the string sep.
+        '''
+        out = []
+        for i in s.split(sep):
+            out.append(self.wrap(i))
+        t = " "*self.left
+        return sep.join([t + i for i in out])
+    def is_sentence_end(self, t):
+        'Return True if string t ends a sentence'
+        # Note we call 'word:' a sentence end too.
+        f = lambda x, y:  x.endswith(y)
+        if f(t, ".") and not IsAbbreviation(t):
+            return True
+        elif f(t, "?") or f(t, "!") or f(t, ":"):
+            return True
+        return False
+    def wrap(self, s):
+        'Wrap the string s to self.width'
+        out, line, tokens = deque(), deque(), deque(s.split())
+        LEN = lambda x:  len(' '.join(x))
+        while tokens:
+            token = tokens.popleft()
+            if self.is_sentence_end(token):
+                token += self.sentence_sep
+            line.append(token)
+            next_token_length = len(tokens[0]) if tokens else 0
+            if LEN(line) + next_token_length + 1 >= abs(int(self.width)):
+                out.append(' '.join(line).rstrip())
+                line.clear()
+        if line:
+            out.append(' '.join(line))
+        # Apply indent to each line
+        t = " "*self.left
+        return '\n'.join([t + i for i in out])
 
 class Bullet(Fmt):
     def __init__(self, bullet="*", nltrigger=None):
@@ -604,7 +589,7 @@ class Block(Fmt):
         # I don't want the last line to have trailing spaces
         out.append(indent + ' '.join(line))
         return '\n'.join(out)
-    def process(self, s):
+    def __call__(self, s):
         brk="\n\n"
         paragraphs = [self.justify_paragraph(p) for p in s.split(brk)]
         return brk.join(paragraphs)
@@ -621,7 +606,10 @@ if 1:
         daughters.
     '''
     w = Wrap()
+    w.left = 5
+    w.width = 60
     print(w(s))
+    print(f"\n{G.stderr}xx Bug:  why is first line indented?{G.norm}")
     exit()
 if 0:
     s = '''
@@ -637,12 +625,12 @@ if 0:
     p = Block()
     p.left = 5
     p.width = 60
-    print(p.process(s))
+    print(p(s))
     print("-"*70)
     p = Wrap()
     p.left = 5
     p.width = 60
-    print(p.process(s))
+    print(p(s))
     exit()
 
 if __name__ == "__main__": 
