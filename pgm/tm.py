@@ -1,7 +1,6 @@
 '''
 Times in seconds since epoch
 '''
- 
 if 1:  # Copyright, license
     # These "trigger strings" can be managed with trigger.py
     #∞copyright∞# Copyright (C) 2021 Don Peterson #∞copyright∞#
@@ -64,9 +63,6 @@ if 1:   # Utility
             if o in ("-h", "--help"):
                 Usage(d, status=0)
         return args
-if 1:   # Core functionality
-    pass
-
 if __name__ == "__main__":
     d = {}      # Options dictionary
     args = ParseCommandLine(d)
