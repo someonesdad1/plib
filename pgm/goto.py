@@ -49,6 +49,7 @@ if 1:   # Global variables
     G.at = "@"                  # Designates a silent alias
     G.editor = os.environ["EDITOR"]
     # Colors for terminal printing
+    G.C = C.C.lcyn
     G.y = C.C.yel
     G.Y = C.C.lyel
     G.r = C.C.red
@@ -216,7 +217,6 @@ if 1:   # Utility
         command line and you won't be prompted.
         '''))
         exit(0)
-
 if 1:   # Core functionality
     def Ignore(line):
         'Return True if this configuration file line should be ignored'
@@ -228,9 +228,9 @@ if 1:   # Core functionality
         'For each line, verify the file exists'
         def BadLine(ln, line, msg):
             print(dedent(f'''
-            Line {ln} in configuration file is bad:
+            {G.C}Line {ln} in configuration file is bad:
                 Line:     '{line}'
-                Problem:  {G.R}{msg}{G.N}
+                Problem:  {G.R}{msg}{G.C}
             '''))
             BadLine.bad = True
         BadLine.bad = False
@@ -258,8 +258,9 @@ if 1:   # Core functionality
             if not file.exists():
                 BadLine(ln, line, "File/directory doesn't exist")
         if BadLine.bad:
-            print(f"Configuration file is '{G.G}{G.config}{G.N}'")
-            exit(1)
+            print(f"{G.C}Configuration file is '{G.config}{G.N}'")
+            if d["-a"]:
+                exit(1)
         if d["-a"]:
             exit(0)
     def ReadConfigFile():
@@ -291,10 +292,23 @@ if 1:   # Core functionality
         bup = G.backup/f"{script.name}.{os.getpid()}"
         s = open(d["-f"]).read() if d["-f"] else open(G.config).read()
         open(bup, "w").write(s)
-    def AddCurrentDirectory(): 
+    def AddCurrentDirectory(args):
+        '''If args is empty, then add the current directory to the
+        beginning of the config file.  Otherwise, add each file to the
+        beginning of the config file.
+        '''
         BackUpConfigFile()
-        s = str(P(".").resolve()) + "\n" + open(G.config).read()
-        open(G.config, "w").write(s)
+        out = []
+        if args:
+            for arg in args:
+                p = P(arg).resolve()
+                if not p.exists():
+                    Error(f"'{arg}' doesn't exist")
+                out.append(str(p))
+        else:
+            out = [str(P(".").resolve())]
+        out.append(open(G.config).read())
+        open(G.config, "w").write('\n'.join(out))
     def EditFile():
         subprocess.call([G.editor, str(G.config)])
     def CheckAlias(alias):
@@ -493,7 +507,7 @@ if 1:   # Core functionality
                 print("-"*70)
     def ExecuteCommand(cmd, args):
         if cmd == "a":
-            AddCurrentDirectory()
+            AddCurrentDirectory(args)
         elif cmd == "e":
             EditFile()
         elif d["-s"] or d["-S"]:
