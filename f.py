@@ -577,7 +577,7 @@ if 1:   # Custom imports
     import u
     # Debugging
     from pdb import set_trace as xx
-    if len(sys.argv) > 1:
+    if 0:
         import debug
         debug.SetDebugger()
     # Try to import the color.py module; if not available, the script

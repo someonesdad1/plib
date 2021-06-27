@@ -303,7 +303,7 @@ def indent(s: str, indent=""):
     if not hasattr(indent, "wrap"):
         indent.wrap = Wrap()
     return indent.wrap.indent(s, indent)
-def dedent(s, empty=True, leading=True, trailing=True, trim=False):
+def dedent(s, empty=True, leading=True, trailing=True, trim=False, n=None):
     '''For the multiline string s, remove the common leading space
     characters and return the modified string.
     
@@ -312,6 +312,7 @@ def dedent(s, empty=True, leading=True, trailing=True, trim=False):
     leading     Remove first line if it is only space characters.
     trailing    Remove last line if it is only space characters.
     trim        Remove all trailing whitespace.
+    n           If not None, remove this number of leading space characters
     
     The keywords default to the values most useful in help strings for
     scripts.  Typical use is 
@@ -352,7 +353,7 @@ def dedent(s, empty=True, leading=True, trailing=True, trim=False):
         # Fix the empty lines
         m = max(o)
         o = [i if i else m + 1 for i in o]  
-    n = min(o)
+    n = min(o) if n is None else n
     if n:
         lines = [i[n:] for i in lines]
     return nl.join(lines)
