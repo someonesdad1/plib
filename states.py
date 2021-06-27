@@ -11,6 +11,7 @@ name_to_two_letters = n2l = {
     "Colorado": "CO",
     "Connecticut": "CT",
     "Delaware": "DE",
+    "District of Columbia": "DC",
     "Florida": "FL",
     "Georgia": "GA",
     "Hawaii": "HI",
@@ -55,7 +56,7 @@ name_to_two_letters = n2l = {
     "Wyoming": "WY"
 }
 
-two_letters_to_name = l2n{
+two_letters_to_name = l2n = {
     "AK": "Alaska",
     "AL": "Alabama",
     "AR": "Arkansas",
@@ -63,6 +64,7 @@ two_letters_to_name = l2n{
     "CA": "California",
     "CO": "Colorado",
     "CT": "Connecticut",
+    "DC": "District of Columbia",
     "DE": "Delaware",
     "FL": "Florida",
     "GA": "Georgia",
