@@ -22,6 +22,8 @@ if 1:  # Copyright, license
 if 1:   # Imports
     import os
     import re
+    from pprint import pprint
+    from pdb import set_trace as xx 
 def Columnize(seq, **kw):
     '''Returns a list of strings with the elements of the sequence seq
     (if components are not strings, they will be converted to strings
@@ -41,6 +43,8 @@ def Columnize(seq, **kw):
                     it's zero, it will be figured out from the length
                     of the largest string and the screen width.
  
+    debug           If True, print out debug information.
+
     esc [True]      Strip out ANSI escape sequences when calculating string
                     lengths.  This allows you to display colored text in
                     columns.
@@ -95,15 +99,17 @@ def Columnize(seq, **kw):
     if not seq:
         return [""]
     # Check keywords
-    allowed = set(("align", "col_width", "columns", "esc", "horiz", "ignore",
-                   "indent", "sep", "to_string", "trunc", "width",))
+    allowed = set(('''
+        align col_width columns debug esc horiz ignore indent sep
+        to_string trunc width'''.split()))
     for k in kw:
         if k not in allowed:
-            raise ValueError("'%s' is unknown keyword" % k)
+            raise ValueError(f"'{k}' is an unknown keyword")
     # Get keyword parameters
     align = kw.setdefault("align", "left")
     col_width = abs(int(kw.setdefault("col_width", 0)))
     columns = abs(int(kw.setdefault("columns", 0)))
+    debug = bool(kw.setdefault("debug", False))
     esc = kw.setdefault("esc", True)
     horiz = kw.setdefault("horiz", False)
     ignore = kw.setdefault("ignore", False)
@@ -137,16 +143,15 @@ def Columnize(seq, **kw):
     # Pick reasonable defaults if width and columns not given
     if not width :
         if not columns:
-            width = 79
-            if "COLUMNS" in os.environ:
-                width = int(os.environ["COLUMNS"]) - 1
+            width = int(os.environ.get("COLUMNS", 80)) - 1
             columns = width//(maxlen + len(sep))
             if not columns:
-                msg = "Cannot fit longest string ({} characters) on screen"
-                raise ValueError(msg.format(maxlen))
+                msg = (f"Cannot fit longest string ({maxlen} characters) "
+                       "on screen")
+                raise ValueError(msg)
         else:
             if columns < 1:
-                raise ValueError("'%s' is bad value for columns" % columns)
+                raise ValueError(f"'{columns}' is a bad value for columns")
             sw = lsep*(columns - 1)
             width = (columns*col_width if col_width else columns*maxlen) + sw
     if indent is not None:
@@ -163,6 +168,11 @@ def Columnize(seq, **kw):
             col_width = maxlen
     if not col_width:
         col_width = abs(int((width - (columns - 1)*lsep)/columns))
+        if col_width < maxlen:
+            columns -= 1
+            if columns < 1:
+                raise e
+            col_width = abs(int((width - (columns - 1)*lsep)/columns))
     # Ensure we're below the width of the screen
     total_width = col_width*columns + lsep*(columns - 1)
     while total_width > width:
@@ -179,9 +189,9 @@ def Columnize(seq, **kw):
     # Correct for gap
     for i in range(gap):
         num_in_column[-(i + 1)] -= 1
-    if 0:
-        nl = "\n"
-        print(str(kw) + nl)
+    if debug:
+        print("Keyword dictionary:")
+        pprint(kw)
         print("screen width  = ", width)
         print("col_width     = ", col_width)
         print("total_width   = ", total_width)
@@ -251,10 +261,8 @@ def Columnize(seq, **kw):
     if to_string:
         s = "\n".join(s)
     return s
-
 if __name__ == "__main__":
     from lwtest import run, assert_equal, raises, Assert
-    from pdb import set_trace as xx 
     def TestBasicBehavior():
         strings = ["12345678"]*30
         result = Columnize(strings, width=80, col_width=9)
@@ -357,6 +365,7 @@ if __name__ == "__main__":
     # Running as a script provides a utility similar to pr.
     import sys
     import getopt
+    from wrap import dedent
     requested_columns = 0
     column_width = 0
     alignment = "left"
@@ -364,35 +373,36 @@ if __name__ == "__main__":
     truncate = False
     def Usage(status=1):
         name = sys.argv[0]
-        print('''
-Usage:  %(name)s [options] [file1 ...]
-  Prints in columns.  The number of columns is made a maximum to fit
-  into the current screen width given in the COLUMNS environment
-  variable less one character.  If no files are given on the command
-  line, input is taken from stdin.
- 
-Options
-    -a s
-        Align each column as indicated by s:  left or <, center or ^,
-        right or >.
-    -c n
-        Force number of columns to be n.  Resulting line length
-        ignores COLUMNS; no strings are truncated.
-    -e
-        Ignore ANSI escape sequences (e.g., terminal color codes).
-    -f
-        Adjust column width and number of columns to attempt to get
-        the output within the given number of LINES and COLUMNS.
-    -h
-        Print this help message
-    -i s
-        Indent each output line with the string s.
-    -s s
-        Separate each column with the string s.
-    -t
-        Truncate each string if needed to fit into the column width.
-    -w n
-        Set the column width.'''[1:] % locals())
+        print(dedent(f'''
+    Usage:  {name} [options] [file1 ...]
+      Prints in columns.  The number of columns is made a maximum to fit
+      into the current screen width given in the COLUMNS environment
+      variable less one character.  If no files are given on the command
+      line, input is taken from stdin.
+     
+    Options
+        -a s
+            Align each column as indicated by s:  left or <, center or ^,
+            right or >.
+        -c n
+            Force number of columns to be n.  Resulting line length
+            ignores COLUMNS; no strings are truncated.
+        -e
+            Ignore ANSI escape sequences (e.g., terminal color codes).
+        -f
+            Adjust column width and number of columns to attempt to get
+            the output within the given number of LINES and COLUMNS.
+        -h
+            Print this help message
+        -i s
+            Indent each output line with the string s.
+        -s s
+            Separate each column with the string s.
+        -t
+            Truncate each string if needed to fit into the column width.
+        -w n
+            Set the column width.
+        '''))
         exit(status)
     def ParseCommandLine(d):
         d["-a"] = "left"        # Alignment
