@@ -34,4 +34,21 @@ Low priority
 * u.py and f.py:  A notation for using SI prefixes could be to use
   something like μ(N*s/m^2).  This might not be acceptable SI syntax,
   but it would be understandable by anyone and I should use it if the
-  tokenizer in the u.py script can be made to 
+  tokenizer in the u.py script can be made to utilize it.  A way to do
+  this might be to simply insert the equivalent number with a
+  multiplication sign on the right when it's encountered; this should
+  evaluate OK with python's parser.
+
+* module_dependencies.py:   Is it necessary?  It needs to be rewritten
+  to accommodate /plib.  The tools and programs need to be moved in
+  first.  
+
+* sig is a mess of code.  Is it really all needed?  Maybe it would be
+  best to move the key stuff to flt and cpx.  It can still be kept
+  around for when it's needed.
+
+* 'ts.py -m' doesn't work.
+
+* /pylib/pgm/readability/indict.py looks like an interesting tool.  
+  It should use a reasonable dictionary by default and print the tokens
+  out in columns for each file.
