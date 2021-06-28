@@ -29,11 +29,12 @@ def TestRaises():
         def __init__(self):
             raise RuntimeError
     raises(RuntimeError, A)
-    # Context manager semantics
+def TestRaisesContextManager():
+    f = lambda x: 1/x
     with raises(ZeroDivisionError):
         f(0)
     with raises(ZeroDivisionError) as x:
-        assert(x is None)
+        assert(x is not None)
         f(0)
     try:
         with raises(ZeroDivisionError):
@@ -144,7 +145,7 @@ def Test_flt_cpx():
     with z:
         a, b = cpx(1+1j), cpx(1+1j)
         assert_equal(a, b)
-        a = cpx(1+1j, "m")
+        a = cpx(1+1j, units="m")
         raises(AssertionError, assert_equal, a, b)
         a.promote = 1
         assert_equal(a, b)

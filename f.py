@@ -1463,7 +1463,7 @@ class flt(Base, float):
     def __abs__(self):  # flt
         return flt(abs(float(self.val)), units=self.u)
     def __ne__(self, other):    # flt
-        return not(self == other)
+        return not (self == other)
     def __eq__(self, other):    # flt
         '''To be equal, two flt objects must have the same unit
         dimensions and the same SI values.  With no units, they must be
@@ -1474,7 +1474,6 @@ class flt(Base, float):
         '''
         self_has_units = self._units is not None
         other_has_units = ii(other, flt) and other._units is not None
-        #xx()
         if self_has_units and other_has_units:
             # They are both flt instances
             if not Base.eq_dim(self, other):
@@ -1846,6 +1845,8 @@ class cpx(Base, complex):
         else:
             b = cpx(complex(other))
             return Base.sig_equal(self, b, n=n)
+    def __ne__(self, other):    # cpx
+        return not (self == other)
     # ----------------------------------------------------------------------
     # Properties
     @property
@@ -2320,7 +2321,7 @@ if __name__ == "__main__":
             # divmod
             with raises(TypeError):
                 q, rem = divmod(x, y)
-    def Test_promote():
+    def Test_promote_flt():
         '''The promote attribute when True allows expressions like
         'flt("1 mi/hr") + 1' to be evaluated by giving the '1' the same
         units as the flt.
@@ -2367,12 +2368,20 @@ if __name__ == "__main__":
             Assert(bool(x != y) == (not bool(x == y)))
             x.promote = 0
             Assert(bool(x != y) == (not bool(x == y)))
-    def Test_sigcomp():
+    def Test_promote_cpx():
+        a = cpx(0)
+        with a:
+            a.promote = 0
+            z = cpx(1+1j, "m")
+            w = cpx(1+1j)
+            print(f"{C.C.lred}xx Promotion for cpx doesn't work{C.C.norm}") #xx
+            Assert(z != w)
+            #xx promotion for cpx doesn't work
+    def Test_sigcomp_flt():
         '''The flt/cpx sigcomp attribute is an integer that forces
         comparisons to be made to the indicated number of significant
         figures.
         '''
-        # flt
         # Note:  if you use a number like pi, some digits will round up,
         # some won't and the test won't pass for some values of i.
         o = 1.1111111111111111
@@ -2390,21 +2399,24 @@ if __name__ == "__main__":
             x = flt(pi)
             y = flt(pi*(1 + 10**-16))
             Assert(x == y)
-        # cpx
-        for i in range(2, 16):
-            x = cpx(pi, pi)
-            t = pi*(1 + 10**-i)
-            y = cpx(t, pi)
+    def Test_sigcomp_cpx():
+        # Note:  if you use a number like pi, some digits will round up,
+        # some won't and the test won't pass for some values of i.
+        o = 1.1111111111111111
+        for i in range(2, 14):
+            x = cpx(o, o)
+            t = o*(1 + 10**-i)
+            y = cpx(t, o)
             with x:
-                x.sigcomp = i - 1
+                x.sigcomp = i
                 Assert(x == y)
-                x.sigcomp = i 
+                x.sigcomp = i + 1
                 Assert(x != y)
-            y = cpx(pi, t)
+            y = cpx(o, t)
             with x:
-                x.sigcomp = i - 1
+                x.sigcomp = i
                 Assert(x == y)
-                x.sigcomp = i 
+                x.sigcomp = i + 1
                 Assert(x != y)
         # Check sigcomp = None
         with x:

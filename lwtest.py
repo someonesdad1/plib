@@ -279,10 +279,16 @@ if 1:   # Core functionality
                 m = f"ExpectedExceptions must be a container of Exceptions"
                 raise ValueError(m)
             self.expected = set(ExpectedExceptions)
+            for exc in self.expected:
+                if not issubclass(exc, BaseException):
+                    m = f"'{exc}' is not a subclass of BaseException"
+                    raise ValueError(m)
+            self.value = None
         def __enter__(self):
-            return None
+            return self
         def __exit__(self, exception, exception_value, traceback):
             if exception in self.expected:
+                self.value = str(exception)
                 return True
             raise AssertionError("Did not raise expected exception")
 if 1:   # Utility

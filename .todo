@@ -1,45 +1,29 @@
 * wrap.py:  Add a Block object that is like wrap, but justifies both the
   right and left margins.
   
-  https://medium.com/@dimko1/text-justification-63f4cda29375 gives a
-  python solution:
+* flt:  add the engsi feature that will print a prefix with a unit.
+  If it's a multiple unit, surround it in (...).
 
-    def fullJustify(words, maxWidth):
-        res, curr, num_of_letters = [], [], 0
-        for w in words:
-            if num_of_letters + len(w) + len(curr) > maxWidth:
-                num_of_spaces = maxWidth - num_of_letters
-                words_amout = len(curr) - 1 or 1
-                for i in range(num_of_spaces):
-                    curr[i % words_amout] += ' '
-                res.append(''.join(curr))
-                curr, num_of_letters = [], 0
-            curr += [w]
-            num_of_letters += len(w)
-        return res + [' '.join(curr).ljust(maxWidth)]
+* f.py:  Test_sigcomp() fails.
 
-  https://www.malikbrowne.com/blog/text-justification-coding-question
+* f.py:  see line 150 in test/lwtest_test.py.  
+    
+    b = cpx(1+1j)
+    b.promote = 0
+    a = cpx(1+1j, units="m")
+    Then in debugger, both a==b and a!=b are False
 
-  https://algorithms.tutorialhorizon.com/text-justification-problem/:
-  Maintain an index which tracks the numbers of words already used
-  (already justified)
+* lwtest.py:  https://realpython.com/python-with-statement/#testing-for-exceptions-with-pytest
+  shows pytest's raises as a context manager.  Note
 
-    * Say Length = L number of characters in each line.
-    * Start taking words into a new line.
-    * Keep track of number of characters adding to the new line.
-    * Add a special character (‘@’) after each word (later will replace
-      by space ‘ ‘)
-    * Stop adding word to new line if Either adding new word will exceed
-      the characters count in line from given length L Or characters
-      count = Length L.
-    * Calculate the number of spaces needs to add to make the characters
-      count to length L.
-    * Evenly distribute the spaces between the selected words. If any
-      spaces are left (in case even distribution is not possible), add
-      it to between first 2 words.
-    * Replace ‘@’ with spaces calculated in the step above.
-    * Make a recursive call for rest of the words (from step 2 to Step
-      8)
+    with pytest.raises(ZeroDivisionError) as exc:
+        1/0
+    assert str(exc.value) == "division by zero"
+
+  which lets you check that the exception gives the required error
+  message.  I've started the changes for this, but ran into a bug 
+  in test/lwtest_test.py caused by f.py problems, so that needs to be
+  fixed before I can test the lwtest.py changes.
 
 ----------------------------------------------------------------------
 Low priority
