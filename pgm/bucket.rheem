@@ -1,0 +1,16 @@
+# Test datafile for the bucket.py script.
+shape = "round"
+title = "Rheem 5 gallon bucket test case"
+input_units = "inches"
+D = 11.34
+d = 10.42
+offset = "11.9 mm"
+h = 14
+Report("liters", "mm", 1)
+
+print('''Rheem 5 gallon bucket test case
+  Expected values:
+     5 L : 100.9 mm
+    10 L : 186.1 mm
+    15 L : 268.1 mm
+''')

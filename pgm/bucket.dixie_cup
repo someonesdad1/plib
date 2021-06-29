@@ -1,0 +1,14 @@
+# Test case for bucket.py.  The container is an 8 ounce Dixie cup.
+# Checked an actual cup against a Rubbermaid kitchen measuring cup; the
+# accuracy was within about 2 or 3 mm of height.
+
+title = "8 ounce Dixie cup"
+shape = "round"
+input_units = "mm"
+D = 73
+d = 51.6
+offset = 5
+h = 89
+output_volume_units = "ml"
+output_length_units = "mm"
+volume_steps = 10

@@ -1,0 +1,13 @@
+# Test case for bucket.py.  Bucket is a 1 meter cube; volume in liters
+# should equal length in mm.
+
+shape = "square"
+input_units = "m"
+D = 1
+d = 1
+offset = 0
+h = 1
+r = 0
+output_volume_units = "l"
+output_length_units = "mm"
+volume_steps = 100

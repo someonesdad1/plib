@@ -1,0 +1,13 @@
+# Test case for bucket.py.  Bucket is a 1 meter cube; output should be in
+# percent.
+
+shape = "square"
+input_units = "m"
+D = 1
+d = 1
+offset = 0
+h = 1
+r = 0
+output_volume_units = "%"
+output_length_units = "mm"
+volume_steps = 10

@@ -1,17 +1,45 @@
 * wrap.py:  Add a Block object that is like wrap, but justifies both the
   right and left margins.
-  
-* flt:  add the engsi feature that will print a prefix with a unit.
-  If it's a multiple unit, surround it in (...).
 
-* f.py:  Test_sigcomp() fails.
-
-* f.py:  see line 150 in test/lwtest_test.py.  
+* f.py
+    * Must allow some functions to have arguments with units.  Example:
+      take the square root of an area.  Each of the functions' behaviors
+      need to be thought out for both real and complex arguments.  The
+      Dim class may then need to specifically allow rational exponents.
+        * math
+            * Must be dimensionless:  acos, acosh, asin, asinh, atan,
+              atanh, exp, expm1, log, log1p, log2, log10, degrees,
+              radians, erf, erfc, gamma, lgamma
+            * Could handle units, but return value disallows:  ceil,
+              floor, gcd, trunc
+            * Probably OK with units:  atan2, copysign, fabs, fmod (args
+              must have same units), frexp, fsum, isclose, isfinite,
+              isinf, isnan, modf, remainder, pow (first argument), sqrt,
+              hypot
+        * cmath
+            * Must be dimensionless:  exp, log, log10, acos, asin, atan,
+              cos, sin, tan, acosh, asinh, atanh, cosh, sinh, tanh
+            * Probably OK with units:  phase, polar, rect, sqrt,
+              isfinite, isinf, isnan, isclose
+        * The general test should be that the function's answer should
+          be "obvious".  Thus, for exp(), I wouldn't be able to decide
+          whether the value used should be the SI value or the .val
+          attribute, meaning exp() cannot take a flt/cpx with units.
+          However, atan2 is OK if the two arguments are dimensionally
+          cosistent because it's their ratio that is used in the
+          function.  Thus, the function is allowed with units if you get
+          the same answer using either "interpretation" of the number.
+          For some functions like isclose, you need the two arguments to
+          be dimensionally consistent and use the same interpretation.
+    * Test_sigcomp() fails.
+    * flt:  add the engsi feature that will print a prefix with a unit.
+      If it's a multiple unit, surround it in (...).
+    * f.py:  see line 150 in test/lwtest_test.py.  
     
-    b = cpx(1+1j)
-    b.promote = 0
-    a = cpx(1+1j, units="m")
-    Then in debugger, both a==b and a!=b are False
+        b = cpx(1+1j)
+        b.promote = 0
+        a = cpx(1+1j, units="m")
+        Then in debugger, both a==b and a!=b are False
 
 * lwtest.py:  https://realpython.com/python-with-statement/#testing-for-exceptions-with-pytest
   shows pytest's raises as a context manager.  Note

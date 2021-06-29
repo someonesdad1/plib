@@ -1,0 +1,14 @@
+# Test case for bucket.py.  The container is a square cross section with no
+# taper; the side is sqrt(231) inches, which means the area is 231 square
+# inches.  This means each inch of height should be 1 gallon because a
+# gallon is 231 cubic inches.
+
+title = "1 gallon per inch of height"
+shape = "square"
+input_units = "inch"
+D = d = 231**0.5
+offset = r = 0
+h = 10
+output_volume_units = "gallons"
+output_length_units = "inches"
+volume_steps = 1
