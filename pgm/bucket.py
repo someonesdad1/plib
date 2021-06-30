@@ -4,14 +4,16 @@ Print out volume calibration marks for a bucket
     Run with the -h option to see a help statement (the default behavior
     is to prompt you for the needed variables).
  
-    19 Feb 2012 Validation data using Nalgene 1000 ml graduated cylinder:
+    19 Feb 2012 Validation data using Nalgene 1000 ml graduated
+    cylinder.  These tests were done carefully and are probably at
+    around 0.5% uncertainty levels.
  
     * Ropak 4 gallon cat litter square bucket:  (inches)
         D=9.10, d=8.16, h=13, r=1.25, offset=0.12
  
       Measured 5 liters into bucket, water level at 118 mm from bottom;
-      program calculates 117.3.  Measured 9 liters into bucket, water level
-      at 201 mm from bottom; program calculates 202.8 mm.
+      program calculates 117.3.  Measured 9 liters into bucket, water
+      level at 201 mm from bottom; program calculates 202.8 mm.
  
     * Rheem 5 gallon round bucket:  (inches) D=11.34, d=10.42, h=14,
       offset=0.47.
@@ -27,17 +29,19 @@ Print out volume calibration marks for a bucket
  
     I used a flashlight inside the bucket to illuminate the water level and
     then measured the height of the water level up the side from the
-    countertop.
+    countertop with either a machinist's rule or a Starrett tape measure
+    calibrated in mm.  Estimated length uncertainty is 0.25 mm.
 
     Comment:  I made these measurements carefully and this demonstrated
-    to me that the script produces correct results (this didn't worry
-    me, as the formula is exact).  However, real molded buckets are not
-    perfect geometrically and exhibit e.g. elliptical or other shapes
-    when you measure them carefully.  Thus, you should probably expect
-    your calibration marks be, at best, a few percent within the correct
-    values.  If you need better than this, find a smaller bucket of
-    suitable unit volume and use it to calibrate the marks on the larger
-    bucket.
+    to me that the script produces correct results (this wasn't an
+    experimental goal, as the formula itself is exact).  However, real
+    molded buckets are not geometrically perfect and exhibit e.g.
+    elliptical or other shapes when you measure them carefully.  Thus,
+    you should probably expect your calibration marks be, at best, one
+    to a few percent within the correct values.  If you need better than
+    this, find a smaller container of known unit volume and use it to
+    calibrate the marks on the larger bucket.
+
 '''
 if 1:  # Copyright, license
     # These "trigger strings" can be managed with trigger.py

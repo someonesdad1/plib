@@ -406,6 +406,56 @@ if 1:   # Parsing
                     x, unit = s[:mo.end()].rstrip(), s[mo.end():].lstrip()
                     return (x, unit)
                 return None
+    def ParseUnitString(x, allowed_units, strict=True):
+        '''This routine will take a string x and return a tuple (prefix,
+        unit) where prefix is a power of ten gotten from the SI prefix
+        found in x and unit is one of the allowed_units strings.
+        allowed_units must be an iterable container.  Note things are
+        case-sensitive.  prefix will either be a float or an integer.
+    
+        The typical use case is where ParseUnit() has been used to
+        separate a number and unit.  Then ParseUnitString() can be used to
+        parse the returned unit string to get the SI prefix actual unit
+        string.  Note parsing of composite units (such as m/s) must take
+        place outside this function.
+    
+        If strict is True, then one of the strings in allowed_units must
+        be anchored at the right end of x.  If strict is False, then the
+        strings in allowed_units do not have to be present in x; in this
+        case, (1, "") will be returned.
+        '''
+        # Define the allowed SI prefixes
+        si = {"y":  -24, "z": -21, "a": -18, "f": -15, "p": -12, "n": -9,
+            "u": -6, "m": -3, "c": -2, "d": -1, "": 0, "da": 1, "h": 2,
+            "k":  3, "M":  6, "G":  9, "T": 12, "P": 15, "E": 18, "Z": 21,
+            "Y": 24}
+        s = x.strip()  # Remove any leading/trailing whitespace
+        # See if s ends with one of the strings in allowed_units
+        unit = ""
+        for u in allowed_units:
+            u = u.strip()
+            # The following can be used if a unit _must_ be supplied.
+            # However, it's convenient to allow for a default unit, which
+            # is handled by the empty string for the unit.
+            #if not u:
+            #    raise ValueError("Bad unit (empty or all spaces)")
+            if u and s.endswith(u):
+                unit = u
+                break
+        if not unit:
+            if strict:
+                raise ValueError("'%s' did not contain an allowed unit" % x)
+            else:
+                return (1, "")
+        else:
+            # Get right index of unit string
+            index = s.rfind(unit)
+            if index == -1:
+                raise Exception("Bug in ParseUnitString() routine")
+            prefix = s[:index]
+            if prefix not in si:
+                raise ValueError("'%s' prefix not an SI prefix" % prefix)
+            return (10**si[prefix], unit)
     def ParseFraction(s):
         '''Parse the number s and return it as (significand, unit) where
             significand = an int, float, or Fraction
