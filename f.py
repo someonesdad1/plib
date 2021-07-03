@@ -535,7 +535,6 @@ __doc__ = '''
         Volume of O₂ at 1 atm = 1290. liters
 
 '''
-
 if 1:  # Copyright, license
     # These "trigger strings" can be managed with trigger.py
     #∞copyright∞# Copyright (C) 2021 Don Peterson #∞copyright∞#
@@ -560,7 +559,6 @@ if 1:   # Imports
     # Standard library modules
     from collections import deque
     from collections.abc import Iterable
-    from textwrap import dedent
     from fractions import Fraction
     import cmath
     import decimal
@@ -574,6 +572,7 @@ if 1:   # Imports
     import threading
     import time
 if 1:   # Custom imports
+    from wrap import dedent
     import u
     # Debugging
     from pdb import set_trace as xx
@@ -600,10 +599,8 @@ if 1:   # Global variables
     D = decimal.Decimal
     P = pathlib.Path
     ii = isinstance
-
-all = ["flt", "cpx"]
-_no_color = (not sys.stdout.isatty()) or (not _have_color)
-
+    #__all__ = ["flt", "cpx"]
+    _no_color = (not sys.stdout.isatty()) or (not _have_color)
 class Base(object):
     '''This class will contain the common things between the flt and cpx
     classes.
@@ -1194,7 +1191,6 @@ class Base(object):
             return (a_re == b_re) and (a_im == b_im)
         else:
             raise TypeError("a and b must both be flt or cpx")
-
 class flt(Base, float):
     '''The flt class is a float except that its str() representation is
     limited to the number of significant figures set in the attribute n.
@@ -1569,7 +1565,6 @@ class flt(Base, float):
                 # Convert to a float with a value of self in its given units
                 return float(self)/u.u(self._units)
             return float(self)
-
 class cpx(Base, complex):
     '''The cpx class is a complex except that its components are flt
     numbers.
@@ -1891,7 +1886,6 @@ class cpx(Base, complex):
         if self._units is not None:
             return cpx(complex(self)/u.u(self._units))
         return self
-
 if 1:   # Get math/cmath functions into our namespace
     '''Put all math symbols into this namespace.  We use an object with
     the same name as the function and let it have a __call__ method.
@@ -2012,7 +2006,6 @@ if 1:   # Get math/cmath functions into our namespace
     constants = "e pi tau".split()
     for i in constants:
         exec(f"{i} = flt({i})")
-
 if 0:
     a=flt(1)
     b=flt("1 A")
@@ -2020,7 +2013,6 @@ if 0:
     print("==", a == b)
     print("!=", a != b)
     exit()
-
 if __name__ == "__main__": 
     from lwtest import run, raises, assert_equal, Assert
     eps = 1e-15

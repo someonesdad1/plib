@@ -1,3 +1,32 @@
+* Move british.py to pylib and give it a function that will take a
+  sentence of text and replace all the British words with English
+  words, maintaining capitalization and punctuation.  This will require
+  another function to split a string into a list of words and
+  punctuation characters.  It would be nice to also maintain the spaces
+  between the words too.  See the next function, which should be in
+  dpstr.py.
+
+* dpstr.Tokenize(s):  split a string into a sequence S such that
+  ''.join(S) == s.  The keyword wordchars is a set that contains the 
+  characters that should NOT be split on.  wordchars would default to 
+  string.ascii_letters.  A better default would be "un latin |grep -i
+  letter" and limited to letters < 0x17f (this is 237 letters).
+
+  This means a sentence like "Must be one of:  exp, log." needs to be
+  parsed as
+
+    x = ["Must", " ", "be", " ", "one", "of", ":", "  ", "exp", "."]
+
+  such that ''.join(x) reproduces the original string.  This function
+  should be in dpstr.py.  Numbers in names could be an issue.
+
+  First check if char is in string.ascii_letters because this will be
+  fast.  Then check for the following set:
+
+    žŽżŻźŹŸŷŶŵŴųŲűŰůŮŭŬūŪũŨŧŦťŤţŢšŠşŞŝŜśŚřŘŗŖŕŔőŐŏŎōŌŋŊŉňŇņŅńŃłŁŀĿľĽļĻĺĹ
+    ĸķĶĵĴıİįĮĭĬīĪĩĨħĦĥĤģĢġĠğĞĝĜěĚęĘėĖĕĔēĒđĐďĎčČċĊĉĈćĆąĄăĂāĀÿþýüûúùøöõôóò
+    ñðïîíìëêéèçæåäãâáàßÞÝÜÛÚÙØÖÕÔÓÒÑÐÏÎÍÌËÊÉÈÇÆÅÄÃÂÁÀ
+
 * wrap.py:  Add a Block object that is like wrap, but justifies both the
   right and left margins.
 

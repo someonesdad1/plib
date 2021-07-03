@@ -48,6 +48,13 @@ if 1:   # Custom imports
 if 1:   # Global variables
     P = pathlib.Path
     ii = isinstance
+    # For Tokenize
+    letters = set(string.ascii_letters)
+    others = set(
+        "žŽżŻźŹŸŷŶŵŴųŲűŰůŮŭŬūŪũŨŧŦťŤţŢšŠşŞŝŜśŚřŘŗŖŕŔőŐŏŎōŌŋŊŉňŇņŅńŃ"
+        "łŁŀĿľĽļĻĺĹĸķĶĵĴıİįĮĭĬīĪĩĨħĦĥĤģĢġĠğĞĝĜěĚęĘėĖĕĔēĒđĐďĎčČċĊĉĈć"
+        "ĆąĄăĂāĀÿþýüûúùøöõôóòñðïîíìëêéèçæåäãâáàßÞÝÜÛÚÙØÖÕÔÓÒÑÐÏÎÍÌË"
+        "ÊÉÈÇÆÅÄÃÂÁÀ")
 def GetText(thing, enc=None):
     '''Return the text from thing, which can be a string, bytes,
     or stream.  If thing is a string, it's assumed to be a file name;
@@ -518,9 +525,10 @@ def GetNumber(prompt_msg, **kw):
             else:
                 return x
 def GetFraction(s):
-    '''Return a Fraction object if string s contains a '/' and can be interpreted
-    as an improper or proper fraction; otherwise return None.  The following 
-    forms are allowed:
+    '''Return a Fraction object if string s contains a '/' and can be
+    interpreted as an improper or proper fraction; otherwise return
+    None.  The following forms are allowed:
+
         A   5/4     +5/4    -5/4
         B   1 1/4   +1 1/4  -1 1/4
         C   1-1/4   +1-1/4  -1-1/4
@@ -597,7 +605,57 @@ def GetWordlist(*files, case=None):
             s = s.lower()
         words.update(set(s.split()))
     return words
+class wrd(str):
+    def __new__(cls, value):
+        return super(wrd, cls).__new__(cls, value)
+class pnc(str):
+    def __new__(cls, value):
+        return super(pnc, cls).__new__(cls, value)
+def Tokenize(s, wordchars=letters, otherchars=others, check=True,
+             wordtype=wrd, punctype=pnc):
+    '''Return a deque t that contains all the word tokens in the string
+    s.  The tokenizing process is such that ''.join(t) is the same
+    string as s (this is verified if check is True).  wordchars and
+    otherchars must be sequences of letters so that "in" works on
+    detecting whether a letter is in the sequence.
+ 
+    The returned deque is made up of non-empty strings of a) words with
+    letters and b) non-letters.  These strings will be wordtype and
+    punctype, respectively, which are derived from str.
+ 
+    Example:  Tokenize("To be, or not to be:") returns
+    deque(['To', ' ', 'be', ', ', 'or', ' ', 'not', ' ', 'to', ' ',
+           'be', ':']).  The word tokens have isinstance(token, wrd)
+    return True and the punctuation strings have isinstance(token, pnc)
+    return True.
+    '''
+    def Handle(c, seq1, seq2, seq2type):
+        seq1.append(c)
+        if seq2:
+            p = ''.join(seq2)
+            if p:
+                out.append(seq2type(p))
+            seq2.clear()
+    inp, out, word, punc = deque(s), deque(), deque(), deque()
+    while inp:
+        c = inp.popleft()
+        if c in letters or c in otherchars:
+            Handle(c, word, punc, punctype)
+        else:
+            Handle(c, punc, word, wordtype)
+    if word:
+        out.append(wordtype(''.join(word)))
+    if punc:
+        out.append(punctype(''.join(punc)))
+    if check:
+        t = ''.join(out)
+        if t != s:
+            print(f"Orig:  {repr(s)}")
+            print(f"New :  {repr(t)}")
+            print("Tokenize's invariant failed")
+    return out
 if __name__ == "__main__": 
+    from collections import deque
     from wrap import dedent
     from lwtest import run, raises, Assert
     from io import StringIO
@@ -1024,6 +1082,22 @@ if __name__ == "__main__":
         Assert(wl == set(t.lower().split()))
         wl = GetWordlist(s, case="upper")
         Assert(wl == set(t.upper().split()))
+    def TestTokenize():
+        s = "To be, or not to be:"
+        t = list(Tokenize(s))
+        assert(t == ['To', ' ', 'be', ', ', 'or', ' ', 'not', ' ', 'to', ' ',
+           'be', ':'])
+        for i in (0, 2, 4, 6, 8, 10):
+            Assert(ii(t[i], wrd))
+            Assert(ii(t[i + 1], pnc))
+        # Handles empty string
+        s = ""
+        t = Tokenize(s)
+        Assert(t == deque())
+        # Handles string of spaces
+        s, a = "   ", "a"
+        t = Tokenize(s + a + s)
+        Assert(t == deque([s, a, s]))
     SetUp()
     status = run(globals(), halt=True)[0]
     TearDown()

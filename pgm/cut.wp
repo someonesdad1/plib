@@ -1,0 +1,38 @@
+# This is the example given in the wikipedia web page on the cutting stock
+# problem: 
+# https://en.wikipedia.org/wiki/Cutting_stock_problem#Illustration_of_one-dimensional_cutting-stock_problem 
+# downloaded Sun 14 May 2017 10:56:31 AM.
+
+# Note the cut.py script fails miserably on this problem; the optimal
+# solution given in the above link has 0.4% wasted.
+
+significant_digits = 6
+
+# The example is paper roll cutting, so we'll assume the kerf is zero.
+kerf = 0
+
+resolution = 1
+
+# The stock dictionary defines stock on-hand for the problem.
+stock = {
+    # length : count,
+    5600: 73,
+}
+
+# The pieces dictionary defines the cut pieces desired.
+pieces = { # length : count,
+    1380: 22,
+    1520: 25,
+    1560: 12,
+    1710: 14,
+    1820: 18,
+    1880: 18,
+    1930: 20,
+    2000: 10,
+    2050: 12,
+    2100: 14,
+    2140: 16,
+    2150: 18,
+    2200: 20,
+}
+

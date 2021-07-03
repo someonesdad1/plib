@@ -158,7 +158,7 @@ def Usage(d, status=1):
       -p    Instead of the counts, show the frequency in percent relative
             to the most-frequent character count.
       -S chars
-            Add the characters is chars to the characters to be counted.
+            Add the characters in chars to the characters to be counted.
             set(chars) is added to those specified with -c.
       -s    Sort table by count rather than byte's ord() value.
       -r    Include the chi-squared statistic in the statistics.  This can be

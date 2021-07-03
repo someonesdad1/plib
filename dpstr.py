@@ -18,7 +18,7 @@ String utilities
     MultipleReplace  Replace multiple patterns in a string
     Remove           Return items from sequence not in the remove sequence
     RemoveComment    Remove '#.*$' from a string
-    RemoveFilter     Functional form of Remove (i.e., a closure)
+    RemoveFilter     Functional form of Remove (it's a closure)
     soundex          Return 4-character soundex value for a string
     SoundSimilar     Return True if two strings sound similar
     SpellCheck       Spell check a sequence of words

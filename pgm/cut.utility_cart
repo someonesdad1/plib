@@ -1,0 +1,34 @@
+# Utility cart info for cut.py
+
+# Specify the number of significant digits in the output report.
+significant_digits = 6
+
+# The kerf keyword is used to define the kerf width of a cut.  It
+# is essentially tacked onto the end of each piece desired as it
+# is cut from a stock piece.  The default value is 0.
+kerf = 0.1
+
+# The resolution is used to convert each stock and piece length to an
+# integer so that the arithmetic is exact.  Each length is divided by this
+# number and converted to an integer.  If you define it as a string in
+# fractional form, the report will use fractions for output.
+resolution = 0.01
+
+# The stock dictionary defines stock on-hand for the problem.  For this
+# cart, the stock is 2x6 material.
+stock = {
+    # length : count,
+    96: 8,      # 8'
+    144:1,      # 12'
+}
+
+# The pieces dictionary defines the cut pieces desired.
+pieces = { # length : count,
+    54: 2,
+    137: 1,
+    45: 5,
+    96: 2,
+    29: 4,
+    25: 2,
+    12: 1,
+}

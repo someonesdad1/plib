@@ -1,0 +1,44 @@
+# These are examples found at http://cutoptimize.com/examples.html that the
+# script's heuristic either fails or has a solution with higher scrap.
+significant_digits = 3
+kerf = 0
+resolution = 1
+
+case = 0
+
+if case == 0:
+    stock = {
+        1000:5,
+    }
+    pieces = {
+        100:10,
+        115:10,
+        200:14
+    }
+    # Answer:
+    #   3 times:  100{2} 200{4}
+    #   2 times:  100{2} 115{5} 200
+elif case == 1:
+    stock = {
+        1100:31,
+    }
+    pieces = {
+        200:33,
+        210:27,
+        220: 7,
+        225:11,
+        230: 9,
+        240: 7,
+        255:22,
+        265: 6,
+        330: 6,
+    }
+    # Answer:
+    #   9 times:  225 230 255{2}
+    #   6 times:  210 220 240 330
+    #   6 times:  200{5}
+    #   2 times:  225 255{2} 265
+    #   1 time:   200 265{3}
+    #   1 time:   220 220 240 265
+    #   5 times:  210{4}
+    #   1 time:   200{2}

@@ -1,54 +1,76 @@
+* Move british.py to pylib and give it a function that will take a
+  sentence of text and replace all the British words with English
+  words, maintaining capitalization and punctuation.  This will require
+  another function to split a string into a list of words and
+  punctuation characters.  It would be nice to also maintain the spaces
+  between the words too.  See the next function, which should be in
+  dpstr.py.
+
+* dpstr.Tokenize(s):  split a string into a sequence S such that
+  ''.join(S) == s.  The keyword wordchars is a set that contains the 
+  characters that should NOT be split on.  wordchars would default to 
+  string.ascii_letters.  A better default would be "un latin |grep -i
+  letter" and limited to letters < 0x17f (this is 237 letters).
+
+  This means a sentence like "Must be one of:  exp, log." needs to be
+  parsed as
+
+    x = ["Must", " ", "be", " ", "one", "of", ":", "  ", "exp", "."]
+
+  such that ''.join(x) reproduces the original string.  This function
+  should be in dpstr.py.  Numbers in names could be an issue.
+
+  First check if char is in string.ascii_letters because this will be
+  fast.  Then check for the following set:
+
+    žŽżŻźŹŸŷŶŵŴųŲűŰůŮŭŬūŪũŨŧŦťŤţŢšŠşŞŝŜśŚřŘŗŖŕŔőŐŏŎōŌŋŊŉňŇņŅńŃłŁŀĿľĽļĻĺĹ
+    ĸķĶĵĴıİįĮĭĬīĪĩĨħĦĥĤģĢġĠğĞĝĜěĚęĘėĖĕĔēĒđĐďĎčČċĊĉĈćĆąĄăĂāĀÿþýüûúùøöõôóò
+    ñðïîíìëêéèçæåäãâáàßÞÝÜÛÚÙØÖÕÔÓÒÑÐÏÎÍÌËÊÉÈÇÆÅÄÃÂÁÀ
+
 * wrap.py:  Add a Block object that is like wrap, but justifies both the
   right and left margins.
-  
-* flt:  add the engsi feature that will print a prefix with a unit.
-  If it's a multiple unit, surround it in (...).
 
-* f.py:  Test_sigcomp() fails.
-
-* f.py:  see line 150 in test/lwtest_test.py.  
+* f.py
+    * Must allow some functions to have arguments with units.  Example:
+      take the square root of an area.  Each of the functions' behaviors
+      need to be thought out for both real and complex arguments.  The
+      Dim class may then need to specifically allow rational exponents.
+        * math
+            * Must be dimensionless:  acos, acosh, asin, asinh, atan,
+              atanh, exp, expm1, log, log1p, log2, log10, degrees,
+              radians, erf, erfc, gamma, lgamma
+            * Could handle units, but return value disallows:  ceil,
+              floor, gcd, trunc
+            * Probably OK with units:  atan2, copysign, fabs, fmod (args
+              must have same units), frexp, fsum, isclose, isfinite,
+              isinf, isnan, modf, remainder, pow (first argument), sqrt,
+              hypot
+        * cmath
+            * Must be dimensionless:  exp, log, log10, acos, asin, atan,
+              cos, sin, tan, acosh, asinh, atanh, cosh, sinh, tanh
+            * Probably OK with units:  phase, polar, rect, sqrt,
+              isfinite, isinf, isnan, isclose
+        * The general test should be that the function's answer should
+          be "obvious".  Thus, for exp(), I wouldn't be able to decide
+          whether the value used should be the SI value or the .val
+          attribute, meaning exp() cannot take a flt/cpx with units.
+          However, atan2 is OK if the two arguments are dimensionally
+          cosistent because it's their ratio that is used in the
+          function.  Thus, the function is allowed with units if you get
+          the same answer using either "interpretation" of the number.
+          For some functions like isclose, you need the two arguments to
+          be dimensionally consistent and use the same interpretation.
+    * Test_sigcomp() fails.
+    * flt:  add the engsi feature that will print a prefix with a unit.
+      If it's a multiple unit, surround it in (...).
+    * f.py:  see line 150 in test/lwtest_test.py.  
     
-    b = cpx(1+1j)
-    b.promote = 0
-    a = cpx(1+1j, units="m")
-    Then in debugger, both a==b and a!=b are False
+        b = cpx(1+1j)
+        b.promote = 0
+        a = cpx(1+1j, units="m")
+        Then in debugger, both a==b and a!=b are False
 
 * lwtest.py:  https://realpython.com/python-with-statement/#testing-for-exceptions-with-pytest
   shows pytest's raises as a context manager.  Note
 
-    with pytest.raises(ZeroDivisionError) as exc:
-        1/0
-    assert str(exc.value) == "division by zero"
-
-  which lets you check that the exception gives the required error
-  message.  I've started the changes for this, but ran into a bug 
-  in test/lwtest_test.py caused by f.py problems, so that needs to be
-  fixed before I can test the lwtest.py changes.
-
-----------------------------------------------------------------------
-Low priority
-
-* geom_prim.py:  Update properties to modern syntax, utilize matrix.py
-  for determinants, as this would remove dependency on numpy.
-
-* u.py and f.py:  A notation for using SI prefixes could be to use
-  something like μ(N*s/m^2).  This might not be acceptable SI syntax,
-  but it would be understandable by anyone and I should use it if the
-  tokenizer in the u.py script can be made to utilize it.  A way to do
-  this might be to simply insert the equivalent number with a
-  multiplication sign on the right when it's encountered; this should
-  evaluate OK with python's parser.
-
-* module_dependencies.py:   Is it necessary?  It needs to be rewritten
-  to accommodate /plib.  The tools and programs need to be moved in
-  first.  
-
-* sig is a mess of code.  Is it really all needed?  Maybe it would be
-  best to move the key stuff to flt and cpx.  It can still be kept
-  around for when it's needed.
-
-* 'ts.py -m' doesn't work.
-
-* /pylib/pgm/readability/indict.py looks like an interesting tool.  
-  It should use a reasonable dictionary by default and print the tokens
-  out in columns for each file.
+    wi
