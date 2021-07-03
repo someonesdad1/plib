@@ -73,4 +73,39 @@
 * lwtest.py:  https://realpython.com/python-with-statement/#testing-for-exceptions-with-pytest
   shows pytest's raises as a context manager.  Note
 
-    wi
+    with pytest.raises(ZeroDivisionError) as exc:
+        1/0
+    assert str(exc.value) == "division by zero"
+
+  which lets you check that the exception gives the required error
+  message.  I've started the changes for this, but ran into a bug 
+  in test/lwtest_test.py caused by f.py problems, so that needs to be
+  fixed before I can test the lwtest.py changes.
+
+----------------------------------------------------------------------
+Low priority
+
+* geom_prim.py:  Update properties to modern syntax, utilize matrix.py
+  for determinants, as this would remove dependency on numpy.
+
+* u.py and f.py:  A notation for using SI prefixes could be to use
+  something like μ(N*s/m^2).  This might not be acceptable SI syntax,
+  but it would be understandable by anyone and I should use it if the
+  tokenizer in the u.py script can be made to utilize it.  A way to do
+  this might be to simply insert the equivalent number with a
+  multiplication sign on the right when it's encountered; this should
+  evaluate OK with python's parser.
+
+* module_dependencies.py:   Is it necessary?  It needs to be rewritten
+  to accommodate /plib.  The tools and programs need to be moved in
+  first.  
+
+* sig is a mess of code.  Is it really all needed?  Maybe it would be
+  best to move the key stuff to flt and cpx.  It can still be kept
+  around for when it's needed.
+
+* 'ts.py -m' doesn't work.
+
+* /pylib/pgm/readability/indict.py looks like an interesting tool.  
+  It should use a reasonable dictionary by default and print the tokens
+  out in columns for each file.
