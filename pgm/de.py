@@ -185,7 +185,6 @@ def FmtFrac(f, indents=default_indents):
 def PrintNormalTable(d):
     out, denom, n = [], 64, d["-d"]
     length = None
-    xx()
     for numer in range(1, denom + 1):
         f = Fraction(numer, denom)
         s = FmtFrac(f)
@@ -557,7 +556,8 @@ def ParseCommandLine(d):
     if d["-H"]:
         ExtendedHelp()
     sig.digits = d["-d"]
-    if not args:
+    tbl = d["-t"] or d["-T"] or d["-w"] or d["-x"]
+    if not args and not tbl:
         Usage(d)
     return args
 if __name__ == "__main__": 
