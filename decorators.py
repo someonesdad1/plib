@@ -22,10 +22,12 @@ if 1:   # Imports
     import sys
     import functools
     import linecache
+    import pathlib
     import os
 if 1:   # Custom imports
     from wrap import dedent
 if 1:   # Global variables
+    P = pathlib.Path
     # Set to a stream-like object to dump arguments
     dump_stream = sys.stdout
 def StreamOut(stream, *s, **kw):
@@ -79,26 +81,39 @@ class Memoized(object):
     def __repr__(self):
         '''Return the function's docstring.'''
         return self.func.__doc__
-def TraceExecution(f):
-    'Trace execution of lines inside a function'
+def TraceExecution(f, ignore_exit=True, noname=True):
+    '''Trace execution of lines inside a function.  If ignore_exit is
+    True, typical files like _sitebuiltins.py and threading.py are
+    ignored.  If noname is True, don't preface printed line with 
+    'TraceExecution()'.
+    '''
+    def DoNotIgnore(filename):
+        if not ignore_exit:
+            return True
+        if filename.name in set("_sitebuiltins.py threading.py".split()):
+            return False
+        return True
     def globaltrace(frame, why, arg):
         if why == "call":
             return localtrace
         return None
     def localtrace(frame, why, arg):
-        h = "TraceExecution() "
+        h = "" if noname else "TraceExecution() "
         lc = linecache.getline
         filename = frame.f_code.co_filename
         lineno = frame.f_lineno
         bname = os.path.basename(filename)
         if why == "line":
             # Print the file name and line number of every trace
-            tracen("%s[%s:%d] %s" % (h, bname, lineno, lc(filename, lineno)))
+            if DoNotIgnore(P(filename)):
+                tracen("%s[%s:%d] %s" % (h, bname, lineno, lc(filename, lineno)))
         elif why == "return":
-            retval = "==> returning %s <==\n" % repr(arg)
-            trace("%s[%s:%d] %s" % (h, bname, lineno, retval))
+            if DoNotIgnore(P(filename)):
+                retval = "==> returning %s <==\n" % repr(arg)
+                trace("%s[%s:%d] %s" % (h, bname, lineno, retval))
         elif why == "exception":
-            trace("%s[%s:%d] %s" % (h, bname, lineno, "*** Got exception ***"))
+            if DoNotIgnore(P(filename)):
+                trace("%s[%s:%d] %s" % (h, bname, lineno, "*** Got exception ***"))
         return localtrace
     def _f(*args, **kwds):
         sys.settrace(globaltrace)

@@ -101,7 +101,10 @@ if 1:   # Core functionality
         if not hasattr(ProcessFile, "tr"):
             ProcessFile.tr = trigger.Trigger()
         di = ProcessFile.tr
-        di(file)
+        try:
+            di(file)
+        except Exception:
+            return None
         if "what" in di:
             what, category = FormatWhat(di["what"])
             return EntryType(file, what, category)

@@ -1,3 +1,5 @@
+* Add <category> to all what trigger strings.
+
 * Move british.py to pylib and give it a function that will take a
   sentence of text and replace all the British words with English
   words, maintaining capitalization and punctuation.  This will require
