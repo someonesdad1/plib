@@ -125,12 +125,11 @@ def Usage(d, status=1):
       out the matches and choose which ones to display.  When choosing, you
       can select multiple numbers by separating them with spaces or commas.
       Ranges like 5-8 are recognized.
-    
     Options
       -I    Generate the index
       -i    Make the search case sensitive
-      -j    Search HP Journal and Bench Brief files
-    
+      -j    Search HP Journal and Bench Brief files (note:  consider
+            using the hpj.py script for such searches)
     Long options
       --exec n
         Name of index file for usage statement.  Choices are:
