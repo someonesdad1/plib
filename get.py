@@ -34,6 +34,7 @@ if 1:   # Imports
     from pdb import set_trace as xx
 if 1:   # Custom imports
     import u
+    from util import AWG
     from asciify import Asciify
     try:
         from uncertainties import ufloat, ufloat_fromstr, UFloat
@@ -654,6 +655,126 @@ def Tokenize(s, wordchars=letters, otherchars=others, check=True,
             print(f"New :  {repr(t)}")
             print("Tokenize's invariant failed")
     return out
+def GetWireDiameter(default_unit="mm"):
+    '''Returns (s, d) where d is a wire diameter in the indicated units and
+    s is the string the user input.  The user is prompted for the value,
+    which can use an optional length unit (must be separated from the value
+    by one or more spaces) or ' ga' to denote AWG.  The number portion of
+    the input can be a valid python expression.
+    '''
+    msg = "Enter wire diameter (use 'ga' suffix for AWG): "
+    while True:
+        if GetWireDiameter.input is not None:
+            # This is a StringIO stream used for testing
+            s = GetWireDiameter.input.readline()
+        else:
+            s = input(msg).strip()
+        if s == "q":
+            exit(0)
+        # See if it's AWG
+        if s.endswith("ga"):
+            t = s[:-2].strip()
+            try:
+                dia_inches = AWG(int(t))
+            except ValueError:
+                print("'{}' is not a valid AWG number".format(t))
+                continue
+            return s, dia_inches*u("inches")/u(default_unit)
+        else:
+            x, unit = ParseUnit(s)
+            try:
+                value = float(eval(x))
+            except Exception:
+                print("Expression '{}' not valid".format(x))
+                continue
+            if value <= 0:
+                print("The value must be > 0")
+                continue
+            if u.dim(unit) == u.dim("m"):
+                return s, value*u(unit)/u(default_unit)
+            elif not unit:
+                return s, value
+GetWireDiameter.input = None    # Used for self tests
+if 0:
+    def ParseUnit(s):
+        '''Assume the string s has a unit and possible SI prefix appended
+        to the end, such as '123Pa', '123 Pa', or '1.23e4 Pa'.  Remove the
+        unit and prefix and return the tuple (num, unit).  Note that two
+        methods are used.  First, if the string contains one or more space
+        characters, the string is split on the space and the two parts are
+        returned immediately; an exception is thrown if there are more
+        than two portions.  The other method covers the case where the
+        unit may be cuddled against the number.
+        '''
+        if " " in s:
+            f = s.split()
+            if len(f) != 2:
+                raise ValueError("'%s' must have only two fields" % s)
+            return f
+        # The second method is done by reversing the string and looking for
+        # unit characters until a character that must be in the number is
+        # found.  Note this means that digit characters cannot be in the unit.
+        unit, num, num_chars, done = [], [], set("1234567890."), False
+        for i in reversed(s):
+            if done:
+                num.append(i)
+                continue
+            if i in num_chars:
+                num.append(i)
+                done = True
+            else:
+                unit.append(i)
+        return (''.join(reversed(num)), (''.join(reversed(unit))).strip())
+    def ParseUnitString(x, allowed_units, strict=True):
+        '''This routine will take a string x and return a tuple (prefix,
+        unit) where prefix is a power of ten gotten from the SI prefix
+        found in x and unit is one of the allowed_units strings.
+        allowed_units must be an iterable container.  Note things are
+        case-sensitive.  prefix will either be a float or an integer.
+    
+        The typical use case is where ParseUnit() has been used to
+        separate a number and unit.  Then ParseUnitString() can be used to
+        parse the returned unit string to get the SI prefix actual unit
+        string.  Note parsing of composite units (such as m/s) must take
+        place outside this function.
+    
+        If strict is True, then one of the strings in allowed_units must
+        be anchored at the right end of x.  If strict is False, then the
+        strings in allowed_units do not have to be present in x; in this
+        case, (1, "") will be returned.
+        '''
+        # Define the allowed SI prefixes
+        si = {"y":  -24, "z": -21, "a": -18, "f": -15, "p": -12, "n": -9,
+            "u": -6, "m": -3, "c": -2, "d": -1, "": 0, "da": 1, "h": 2,
+            "k":  3, "M":  6, "G":  9, "T": 12, "P": 15, "E": 18, "Z": 21,
+            "Y": 24}
+        s = x.strip()  # Remove any leading/trailing whitespace
+        # See if s ends with one of the strings in allowed_units
+        unit = ""
+        for u in allowed_units:
+            u = u.strip()
+            # The following can be used if a unit _must_ be supplied.
+            # However, it's convenient to allow for a default unit, which
+            # is handled by the empty string for the unit.
+            #if not u:
+            #    raise ValueError("Bad unit (empty or all spaces)")
+            if u and s.endswith(u):
+                unit = u
+                break
+        if not unit:
+            if strict:
+                raise ValueError("'%s' did not contain an allowed unit" % x)
+            else:
+                return (1, "")
+        else:
+            # Get right index of unit string
+            index = s.rfind(unit)
+            if index == -1:
+                raise Exception("Bug in ParseUnitString() routine")
+            prefix = s[:index]
+            if prefix not in si:
+                raise ValueError("'%s' prefix not an SI prefix" % prefix)
+            return (10**si[prefix], unit)
 if __name__ == "__main__": 
     from collections import deque
     from wrap import dedent
