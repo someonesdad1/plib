@@ -2,6 +2,8 @@
 '''
     BUGS
         * v=flt("15 mi/hr"); v.to("mi/minute") fails
+        * _sci() and other stuff need to handle inf.  flt('inf') should
+          work.
 ----------------------------------------------------------------------
 
     * Focus
@@ -1313,8 +1315,7 @@ class flt(Base, float):
                     while "e" not in s and "E" not in s and s[-1] == "0":
                         s = s[:-1]
             if self.u is not None and not no_units:
-                un = u.FormatUnit(self.u, flat=self.flat,
-                                solidus=self.solidus)
+                un = u.FormatUnit(self.u, flat=self.flat, solidus=self.solidus)
                 s = f"{s}{Base._sep}{un}"
             return decorate(s)
     def _r(self, no_color=False):  # flt

@@ -1,5 +1,8 @@
 '''
 TODO
+    * GetDim barfs on units like 'galh2o' because it contains a
+      digit.  Look at changing this to see if things will
+      continue to work.
     * u() doesn't recognize units with negative exponents.  Something
       like m**-1 should work because it's valid python expression
       syntax.  The cause is probably in the code that uses the
@@ -1020,11 +1023,12 @@ def DefaultUnitData(level=-1, randomize=False, angles_have_dim=False):
             [2, "dwt = troyounce/20"],
             [2, "pennyweight = dwt"],
             [2, "egg = 50*g"],
-            [2, "ft3h2o = 28.2661*kg"],
-            [2, "galH2O = 3.7855178*kg"],
-            [2, "galh2o = galH2O"],
-            [2, "galwater = galH2O"],
-            [2, "gallonwater = galH2O"],
+            [2, "cuftwater = 28.2661*kg"],
+            [2, "ft3h2o = cuftwater"],
+            [2, "galwater = 3.7855178*kg"],
+            [2, "galH2O = galwater"],
+            [2, "galh2o = galwater"],
+            [2, "gallonwater = galwater"],
             [2, "carat = g/5"],
             [2, "ct = carat"],
             [2, "dram = ounce/16"],

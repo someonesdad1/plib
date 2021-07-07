@@ -1,0 +1,265 @@
+'''
+Prints out facts about integers
+'''
+if 1:  # Copyright, license
+    # These "trigger strings" can be managed with trigger.py
+    #∞copyright∞# Copyright (C) 2010 Don Peterson #∞copyright∞#
+    #∞contact∞# gmail.com@someonesdad1 #∞contact∞#
+    #∞license∞#
+    #   Licensed under the Open Software License version 3.0.
+    #   See http://opensource.org/licenses/OSL-3.0.
+    #∞license∞#
+    #∞what∞#
+    # Prints out facts about integers
+    #∞what∞#
+    #∞test∞# #∞test∞#
+    pass
+if 1:   # Imports
+    import sys
+    import math
+    import functools
+    import operator
+    import string
+    import itertools
+    import getopt
+    import random
+    from functools import reduce
+if 1:   # Custom imports
+    from wrap import dedent
+    import primes as P
+if 1:   # Global variables
+    max_num_to_use = 100  # For sum of squares and cubes
+    # Dictionary used for command line options
+    d = {}
+    # The following variable holds a list of primes
+    primes = None
+    # The following variable determines how large of a number we can factor;
+    # this number will be the square of the largest prime less than max_prime.
+    max_prime = int(1e6)
+def Search(n, k):
+    N = max_num_to_use
+    def Find(n, power):
+        m = power
+        for i in range(1, N+1):
+            for j in range(i, N+1):
+                if i**m + j**m == n:
+                    print("  %d^%d + %d^%d\n" % (i, m, j, m))
+                if j**m - i**m == n:
+                    print("  %d^%d - %d^%d\n" % (j, m, i, m))
+    print(str(n) + "\n")
+    for i in range(2, k + 1):
+        Find(n, i)
+def GetPrimeFactors(n):
+    '''Get the prime factors of n.  The items returned are:
+        * A boolean; if True, the number was factorable (it will be false
+          if n is too large to factor).
+        * A boolean; if True, the number is prime.
+        * A string representing the prime factorization.
+        * A list of the actual factors (will be empty if n is prime).
+    Note:  we use int around elements from the prime array because it's
+    possible that they're numpy integers and we want python integers.
+    '''
+    num, msg, factorable, is_prime = n, "  Prime factorization:", True, False
+    if P.IsPrime(n):
+        return True, True, "  Is a prime number", []
+    factor_dict = P.Factor(n)
+    factors = []
+    for factor in factor_dict:
+        factors += [factor]*factor_dict[factor]
+    s = P.FormatFactors(n, factor_dict=factor_dict).split(":")[1]
+    s = " * ".join(s.split())
+    msg += " " + s
+    return factorable, is_prime, msg, factors
+def AllFactors(n, factors):
+    '''Construct a string representing all the factors of n, given the
+    prime factors of n in the list factors.
+    '''
+    assert len(factors) > 1
+    all_factors = set([])
+    for factor in factors:
+        all_factors.add(factor)
+    for num_factors in range(2, len(factors)):
+        for comb in itertools.combinations(factors, num_factors):
+            all_factors.add(reduce(operator.mul, comb))
+    numbers = list(all_factors)
+    numbers.sort()
+    msg = "  All factors [%d]:  " % len(all_factors) + \
+          str(numbers).replace("[", "").replace("]", "")
+    return msg
+def Factors(n):
+    '''Print out the prime and non-prime factors of n.
+    '''
+    factorable, is_prime, msg, factors = GetPrimeFactors(n)
+    print(msg)
+    if factorable and not is_prime:
+        # Make a list of all nonprime factors
+        print(str(AllFactors(n, factors)).replace("L", ""))
+def Logarithms(n):
+    l, ln, l2 = math.log10(n), math.log(n), math.log(n)/math.log(2)
+    print("  Logarithms:  log = %.10f, ln = %.10f, log2 = %.10f" % (l, ln, l2))
+def DecimalToBase(num, base):
+    '''Convert a decimal integer num to a string in base base.  Tested with
+    random integers from 10 to 10,000 digits in bases 2 to 36 inclusive.
+    '''
+    if not 2 <= base <= 36:
+        raise ValueError("Base must be between 2 and 36.")
+    if num == 0:
+        return "0"
+    s, sign, n = "0123456789abcdefghijklmnopqrstuvwxyz", "", abs(num)
+    if num < 0:
+        sign, num = "-", abs(num)
+    d, in_base = dict(zip(range(len(s)), list(s))), ""
+    while num:
+        num, rem = divmod(num, base)
+        in_base = d[rem] + in_base
+    # Check our conversion with python's built-in conversion.  Comment this
+    # line out for slightly better performance.
+    assert int(in_base, base) == n
+    return sign + in_base
+def Bases(n):
+    bases = (2, 3, 8, 12, 16, 36)
+    print("  Bases:  ", end="")
+    for base in bases:
+        base_str = DecimalToBase(n, base)
+        assert int(base_str, base) == n
+        print("%d:%s " % (base, base_str), end="")
+    print()
+def Search(n, max_number_to_use=100):
+    N = max_num_to_use
+    def Find(n, power):
+        m = power
+        for i in range(1, N+1):
+            for j in range(i, N+1):
+                if i**m + j**m == n:
+                    print("  %d^%d + %d^%d\n" % (i, m, j, m))
+                if j**m - i**m == n:
+                    print("  %d^%d - %d^%d\n" % (j, m, i, m))
+    print(str(n) + "\n")
+    for i in range(2, k + 1):
+        Find(n, i)
+def Sums(n):
+    '''Print out any sums of squares or sum of cubes (up to three terms) or
+    difference of squares or cubes that compose n.
+    '''
+    N, s = d["-s"], []  # N is the max number to use
+    if d["-o"]:
+        a, b = "", ""
+    else:
+        a, b = "    ", "\n"
+    if n > 3*N**3:
+        return
+    for i in range(1, N + 1):
+        for j in range(i, N + 1):
+            if i*i + j*j == n:
+                s.append("%s%d^2 + %d^2%s" % (a, i, j, b))
+            if j*j - i*i == n:
+                s.append("%s%d^2 - %d^2%s" % (a, j, i, b))
+            if i*i*i + j*j*j == n:
+                s.append("%s%d^3 + %d^3%s" % (a, i, j, b))
+            if j*j*j - i*i*i == n:
+                s.append("%s%d^3 - %d^3%s" % (a, j, i, b))
+            if d["-t"]:     # Triple sums
+                for k in range(i, N + 1):
+                    if i*i + j*j + k*k == n:
+                        s.append("%s%d^2 + %d^2 + %d^2%s" % (a, i, j, k, b))
+                    if i*i*i + j*j*j + k*k*k == n:
+                        s.append("%s%d^3 + %d^3 + %d^3%s" % (a, i, j, k, b))
+    if s:
+        msg = "  Sum of squares/cubes (terms < %d): " % N
+        if d["-o"]:
+            print(msg, ", ".join(s))
+        else:
+            print(msg)
+            print(''.join(s).rstrip())
+def Roots(n):
+    print("  Roots:  ", end="")
+    for i in range(2, 10):
+        print("%d:%.3f " % (i, math.pow(n, 1/i)), end="")
+    print()
+def Factorial(n):
+    '''When n > 50, we'll print a floating point approximation.
+    '''
+    print("  Factorial:  ", end="")
+    if n > 170:
+        # We need to print the logarithm of the factorial because the
+        # factorial is too large for a float.  We use the formula for ln n!
+        # from http://en.wikipedia.org/wiki/Stirling%27s_approximation
+        f = n*math.log(n) - n + math.log(2*math.pi*n)/2
+        f += (1/(12*n) - 1/(360*n**3) + 1/(1260*n**5) - 1/(1680*n**7))
+        # Convert to base 10 log
+        f /= math.log(10)
+        print("log = ", f, "(too large for floating point)")
+    else:
+        f = math.factorial(n)
+        if n > 50:
+            # Only show floating point form and log
+            print(str(float(f)), " log = ", math.log10(float(f)))
+        else:
+            print(f, " log = ", math.log10(float(f)))
+def PrintProperties(n):
+    print(n)
+    Bases(n)
+    Logarithms(n)
+    Factors(n)
+    Roots(n)
+    Factorial(n)
+    if d["-s"]:
+        Sums(n)
+def Usage(status):
+    print(dedent('''
+    Usage:  %s [options] num1 [num2 ...]
+      Prints out information on the integers num1, num2, ...
+    Options
+        -a n    Print the data out for the numbers 2 to n.  The other numbers
+                on the command line are ignored.
+        -o      Print the sum of squares and cubes on one line.
+        -s n    Calculates sums of squares and cubes that are equal to the
+                number.  n is the maximum number to use.  The computation time
+                can be long if n is significantly above 100.
+        -t      Include triple sums in sums of squares and cubes.
+    '''))
+    exit(status)
+def ParseCommandLine():
+    global d
+    d["-a"] = None
+    d["-o"] = False
+    d["-s"] = None
+    d["-t"] = False
+    if len(sys.argv) < 2:
+        Usage(1)
+    try:
+        optlist, args = getopt.getopt(sys.argv[1:], "a:os:t")
+    except getopt.GetoptError as str:
+        msg, option = str
+        print(msg)
+        sys.exit(1)
+    for o, a in optlist:
+        if o == "-a":
+            d["-a"] = int(a)
+        elif o == "-o":
+            d["-o"] = True
+        elif o == "-s":
+            d["-s"] = int(a)
+        elif o == "-t":
+            d["-t"] = True
+    if not args and d["-a"] is None:
+        Usage()
+    return args
+if __name__ == "__main__": 
+    numbers = ParseCommandLine()
+    primes = P.Primes(max_prime)
+    if d["-a"] is not None:
+        for n in range(2, d["-a"] + 1):
+            PrintProperties(n)
+    else:
+        se = sys.stderr
+        for number in numbers:
+            try:
+                n = int(number)
+            except ValueError:
+                print(f"'{number}' isn't an integer", file=se)
+                continue
+            if n < 2:
+                print("Numbers must be positive integers > 2", file=se)
+                exit(1)
+            PrintProperties(n)
