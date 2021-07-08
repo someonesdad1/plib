@@ -1,0 +1,11 @@
+# For the torque calibration tool made 19 Jul 2015.  This calculates the
+# various masses of the steel bar.
+material steel
+units in
+angles pi/180
+munit lb
+vunit cc
+
+rect a=1.125, b=1.13, L="731.5 mm", name="bar"
+rect a=0.5, b=0.5, L=1.125, name="square hole", neg=True
+cyl d=1/4, L=1.125, name="eyebolt hole", neg=True

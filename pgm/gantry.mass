@@ -1,0 +1,20 @@
+# Lifting gantry made from 2xX boards and 4x4 material.
+material fir
+units inches
+munit lb
+vunit in3
+
+# Design choices for variables in inches
+
+h = 96      # Standard 8 foot 4x4
+d = 72
+w = 96      # Standard 8 foot board to fit pickup truck width
+
+# The beams A can be 2 by boards such as 2x8, 2x10, 2x12
+2x6 name="A", L = w, n = 2
+
+# Components
+4x4 name="B", L = h, n = 2
+4x4 name="C", L = d/2*sqrt(2), n = 4
+4x4 name="D", L = d, n = 2
+

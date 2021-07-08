@@ -1,0 +1,18 @@
+# Models a sawhorse design I've come up with.
+
+# Old sawhorse without big end pieces:  top 47.9 x 8.42 x 1.5, leg
+# length along angle is 32.15, looking at leg from side it's 10
+# degrees off the vertical; from the end it's 13 degrees off the
+# vertical.  The end stretcher is 15.1 long on top and 17.1 long on
+# bottom; it's made from a 2x4.
+
+material plywood
+units in
+munit lb
+vunit in^3
+title = "Sawhorse"
+
+L = 48  # Length of top
+W = 10  # Width of top
+
+rect a=0.5, b=W, L=L, name="Top slabs", n=3

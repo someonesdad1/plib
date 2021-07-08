@@ -1,0 +1,5 @@
+material steel
+units in
+munit lb
+angle a=3, b=3, t=3/16, L=12
+# Should result in 3.71 pounds

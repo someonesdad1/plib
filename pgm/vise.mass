@@ -1,0 +1,14 @@
+# Models a filled 30 gallon drum for a vise anchor.  The drum
+# dimensions are the internal dimensions taken from the plastic drums
+# we got from the car wash.
+
+material ddirt
+units in
+munit lb
+vunit gal
+
+h = 26  # height of cylinder
+cyl d = 18, L = h, name="drum"
+# Assume a 4x4 post is used to support the vise
+4x4 L=h, name="4x4 no sand", neg=True   # Subtract the missing sand
+4x4 L=h, name="4x4", rho="fir"  # Add in the wood

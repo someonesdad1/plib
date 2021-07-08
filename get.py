@@ -27,7 +27,7 @@ if 1:   # Imports
     import re
     import string
     import sys
-    from collections import defaultdict
+    from collections import defaultdict, deque
     from collections.abc import Iterable
     from io import StringIO
     from fractions import Fraction

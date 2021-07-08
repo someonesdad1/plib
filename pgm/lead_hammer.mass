@@ -1,0 +1,15 @@
+# This is a design for a lead hammer.  The mold is made from two
+# pieces of aluminum plate; the pieces are pinned together and held
+# together by a screw.  Then a hole is bored along the joint between
+# the plates.  A 90 degree hole is drilled to intersect the first hole
+# to provide a hole for e.g. a socket head cap screw, which allows the
+# head to be screwed to a handle.
+
+material al
+units in
+munit oz
+vunit in^3
+
+cyl d=3/4, L=3, rho="pb", name="Head"
+cyl d=0.5, L=3.5, name="Handle handle"
+cyl d=0.375, L=4, name="Handle head"

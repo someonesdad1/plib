@@ -1,0 +1,20 @@
+# Fri 16 Sep 2016 12:39:28 PM  This is a datafile for the mass.py script
+# to estimate the mass of the large volcanic rock that was near our
+# dining room windows.  It is irregular in shape, but I estimate it's
+# about the same as a 18x18x30 inch parallelopiped.
+
+# I took a small piece of the rock I broke off and measured its volume
+# by immersing it in water in a measuring cup; the increase in volume
+# was 50 ml and I could estimate volume to about 10 ml.  The mass of
+# this piece was 119.5 g, giving a specific gravity of 2.4.  This is
+# roughly the same as fused quartz (SiO2), sandstone, or marble; granite
+# is around 2.6, so this is reasonable for this rock.
+
+# The script predicts a mass of around 840 lb.
+
+material 119.5/50
+digits 2
+munit lb
+vunit ft3
+
+rect a = 18 in, b = 18 in, L = 30 in

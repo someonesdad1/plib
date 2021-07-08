@@ -1,0 +1,1309 @@
+py ; Template ; python
+Python script template
+'''
+Description of program
+'''
+ 
+if 1:  # Copyright, license
+    # These "trigger strings" can be managed with trigger.py
+    #∞copyright∞# Copyright (C) 2021 Don Peterson #∞copyright∞#
+    #∞contact∞# gmail.com@someonesdad1 #∞contact∞#
+    #∞license∞#
+    #   Licensed under the Open Software License version 3.0.
+    #   See http://opensource.org/licenses/OSL-3.0.
+    #∞license∞#
+    #∞what∞#
+    # Program description string
+    #∞what∞#
+    #∞test∞# #∞test∞#
+    pass
+if 1:   # Standard imports
+    import getopt
+    import os
+    import pathlib
+    import sys
+    from pdb import set_trace as xx
+if 1:   # Custom imports
+    from wrap import wrap, dedent
+if 1:   # Global variables
+    P = pathlib.Path
+    ii = isinstance
+if 1:   # Utility
+    def Error(*msg, status=1):
+        print(*msg, file=sys.stderr)
+        exit(status)
+    def Usage(d, status=1):
+        name = sys.argv[0]
+        print(dedent(f'''
+        Usage:  {name} [options] etc.
+        Explanations...
+    
+        Options:
+            -h
+                Print a manpage.
+        '''))
+        exit(status)
+    def ParseCommandLine(d):
+        d["-a"] = False
+        d["-d"] = 3         # Number of significant digits
+        if len(sys.argv) < 2:
+            Usage(d)
+        try:
+            opts, args = getopt.getopt(sys.argv[1:], "ad:h")
+        except getopt.GetoptError as e:
+            print(str(e))
+            exit(1)
+        for o, a in opts:
+            if o[1] in list("a"):
+                d[o] = not d[o]
+            elif o in ("-d",):
+                try:
+                    d["-d"] = int(a)
+                    if not (1 <= d["-d"] <= 15):
+                        raise ValueError()
+                except ValueError:
+                    msg = ("-d option's argument must be an integer between "
+                        "1 and 15")
+                    Error(msg)
+            elif o in ("-h", "--help"):
+                Usage(d, status=0)
+        return args
+if 1:   # Core functionality
+    pass
+
+if __name__ == "__main__":
+    d = {}      # Options dictionary
+    args = ParseCommandLine(d)
+@@--------------------------------------------------------------------
+bits; Utility; python
+Bit utility functions
+def get_bit(value, n):
+    return ((value >> n & 1) != 0)
+
+def set_bit(value, n):
+    return value | (1 << n)
+
+def clear_bit(value, n):
+    return value & ~(1 << n)
+@@--------------------------------------------------------------------
+
+remove ; Text ; python
+Returns a function that will remove characters from a string
+Python 2:
+    def remove(chars):
+        '''Returns a function that will remove the indicated characters from
+        a string.
+        '''
+        return lambda x:  x.translate(None, chars)
+Python 3:
+    def remove(chars, di={}, replace=False):
+        '''Returns a function that will remove the indicated characters from
+        a string.  You can pass in the dictionary di, which will be updated
+        to include all the characters from chars each call.  If replace is
+        True, then a space character replaces the letters to be removed
+        (this is useful when e.g. parsing code for its words).
+ 
+        Example to remove vowels and punctuation:
+            d, vowels = {}, "aeiou"
+            remove(vowels, di=d)
+            remove(vowels.upper(), di=d)
+            f = remove(string.punctuation, di=d)
+        '''
+        # Note:  this implementation is about 20% faster than using
+        # re.sub as is done in the keep() function.
+        #
+        # Another approach:  
+        #    f = lambda x: x not in set(chars_to_remove)
+        #    ''.join(itertools.filterfalse(f, chars))
+        for i in set(chars):
+            # str.translate takes dict with ordinals as keys; None => delete
+            di[ord(i)] = None
+        return lambda x: x.translate(di)
+
+@@--------------------------------------------------------------------
+
+keep ; Text ; python
+Keep only given characters in a string
+
+Python 2:
+    def keep(s, chars_to_keep):
+        delete_chars = ''.join(set(keep.all) - set(chars_to_keep))
+        return s.translate(None, delete_chars)
+    keep.all = [chr(i) for i in range(256)]
+Python 3:
+    def keep(s, chars, incl_ws=False):
+        '''Returns the string s after keeping only the characters in chars.
+        If incl_ws is True, then whitespace characters are added to chars 
+        (this is useful for processing text files).
+        '''
+        from re import sub
+        from string import whitespace
+        chars = chars + whitespace if incl_ws else chars
+        c = "[^{}]".format(''.join(list(set(chars))))
+        return sub(c, "", s)
+
+@@--------------------------------------------------------------------
+
+keepfilter ; Text ; python; ignore
+Return a function to keep specified characters
+_allchars = ''.join([chr(i) for i in range(256)])
+
+def makefilter(keep):
+    '''Return a functor that takes a string and returns a partial copy
+    of that string consisting of only the characters in keep.
+    See pg 77 Python Cookbook.
+    Won't work under python 3.
+    '''
+    # Make a string of all characters not in keep
+    delchars = _allchars.translate(_allchars, keep)
+    # Return the functor, binding the two strings as default args
+    return lambda s, a=_allchars, d=delchars: s.translate(a, d)
+
+@@--------------------------------------------------------------------
+
+acf ; Math ; python ; ignore
+Plot autocorrelation function
+from pylab import *
+
+def PlotAutocorrelation(x, maxlag=10, color="b", plot_title=""):
+    '''Plot the autocorrelation of the sequence x.  This should give
+    similar results to the following matplotlib code:
+        acorr(x, maxlags=maxlag)
+        xlim(0, maxlag)
+    '''
+    def acf(x):
+        # Calculate autocorrelation function.  Note the different
+        # sample sizes depending on the lag.
+        results = []
+        for lag in range(1, maxlag + 1):
+            results.append(corrcoef(x[lag:], x[:-lag])[1, 0])
+        return concatenate((array([1]), array(results)))
+    if len(x) <= maxlag:
+        raise ValueError("Array must have more elements than maximum lag")
+    A, lw = acf(x), 3
+    plot(A, "bo")   # Plot the points
+    for x, r in zip(range(len(A)), A): # Draw a line to each point
+        y = 0.5 + r/2
+        if r < 0:
+            axvline(x, ymin=y, ymax=0.5, linewidth=lw, color=color)
+        else:
+            axvline(x, ymin=0.5, ymax=y, linewidth=lw, color=color)
+    axhline(y=0, linewidth=1, color="k")   # y = 0 line
+    xlabel("Lag")
+    ylabel("Autocorrelation")
+    xlim(0, 10)
+    ylim(-1, 1)
+    title(plot_title)
+    grid()
+
+@@--------------------------------------------------------------------
+
+g ; Utility ; python
+Header for g library use
+# from g import *
+def SetUp(file, orientation=portrait, units=inches, wrap_in_PJL=False):
+    '''Convenience function to set up the drawing environment and return a
+    file object to the output stream.
+    '''
+    ofp = open(file, "w")
+    ginitialize(ofp, wrap_in_PJL)
+    setOrientation(orientation, units)
+    return ofp
+
+@@--------------------------------------------------------------------
+
+useful ; Text ; python
+Useful code snippets
+Interpreting escaped string characters
+    s = r"\xb1ab\t\nc\n"
+    print s.decode("string_escape")
+
+Escaping characters to be used in regular expressions
+    print re.escape("This is a $ test")
+    This\ is\ a\ \$\ test
+
+Pass some local variables to a function (variables is a dict):
+    def func(variables):
+        for k in variables:  # Set up local variables
+            exec("%s = variables['%s']" % (k, k))
+    func(locals())
+
+locals() is read-only (But I've been able to modify it occasionally)
+globals() is writable (i.e., you can modify the global namespace)
+
+@@--------------------------------------------------------------------
+
+tr ; Math ; python
+Round a float to a template
+def TemplateRound(x, template, up=True):
+    '''Round a float to a template number.  The basic algorithm is to
+    determine how many template values are in x.  You can choose to
+    round up (the default) or down.
+    if not x:
+        return x
+    sign = 1 if x >= 0 else -1
+    if sign < 0:
+        up = not up
+    y = int(abs(x/template) + 0.5)*abs(template)
+    if up and y < abs(x):
+        y += template
+    elif not up and y > abs(x):
+        y -= template
+    return sign*y
+
+a, t = 463.77, 0.1
+assert TemplateRound(-a, t, up=True) == -463.7
+assert TemplateRound(-a, t, up=False) == -463.8
+assert TemplateRound(a, t, up=True) == 463.8
+assert TemplateRound(a, t, up=False) == 463.7
+a, t = 463.77, 1
+assert TemplateRound(-a, t, up=True) == -463
+assert TemplateRound(-a, t, up=False) == -464
+assert TemplateRound( a, t, up=True) == 464
+assert TemplateRound( a, t, up=False) == 463
+a, t = 463.77, 10
+assert TemplateRound(-a, t, up=True) == -460
+assert TemplateRound(-a, t, up=False) == -470
+assert TemplateRound( a, t, up=True) == 470
+assert TemplateRound( a, t, up=False) == 460
+
+@@--------------------------------------------------------------------
+
+sh ; Template ; sh
+Shell template
+#!/bin/bash
+#
+#
+#
+#----------------------------------------------------------------------
+
+main()
+{
+    Initialize "$@"
+}
+
+Initialize()
+{
+    :
+}
+
+CleanUp()
+{
+    :
+}
+
+Error()
+{
+    echo "$*" >&2
+    exit 1
+}
+
+#---------------------
+pgmname=$(basename $0)
+trap CleanUp EXIT
+main "$@"
+
+@@--------------------------------------------------------------------
+
+rand ; Math ; C
+Simple & fast random number generator 
+
+/* Simple, fast random number generator.  No function call necessary.
+Make sure X is global.  Numerical Recipes in C, ch 7, pg 284.  Include
+<limits.h> and divide X by ULONG_MAX*1.0 to get a double >= 0 and <
+1.0. 
+
+To use:  define X as an appropriate unsigned long.  Then you can 
+pretend simp_rand is a kind of function call by assigning it to
+_another_ variable Y such as
+    
+    Y = simp_rand;
+*/
+
+unsigned long X;  // Make sure this is global
+
+#define simp_rand     (X = 1664525L*X + 1013904223L)
+
+@@--------------------------------------------------------------------
+
+ss ; Utility ; sh
+Show disk space used (du wrapper)
+#!/bin/sh
+
+# Script to show amount of disk space used.  Converted to Bourne shell
+# on 6 Jun 2014 from old ksh script.
+
+Usage()
+{
+    echo "Usage:  $(basename $0) [opt] dir1 [dir2...]"
+    echo "  Shows disk space by directory"
+    echo "  Options are:"
+    echo "  -r    Recursive"
+    echo "  -l n  Only descend n levels (implies -r)"
+    exit 1
+}
+
+[ $# -eq 0 ] && Usage
+
+recursive=no
+levels=0
+
+for o in $* ; do 
+    case $o in
+        -h) Usage;;
+        -r) recursive=yes
+            shift ;;
+        -l) shift
+            recursive=yes
+            levels=${1:?-l option needs number of levels}
+            shift;;
+        --) shift
+            break;;
+    esac
+done
+
+opt="-k"
+
+if [ $recursive = "no" ] ; then
+    opt="$opt -s"  # du option -s means summarize total only
+fi
+
+if [ $levels -ne 0 ] ; then
+    opt="$opt -d $levels"   # du option -d to limit levels traversed
+fi
+
+du $opt $* | awk '
+    BEGIN{
+        total = 0
+    }
+    {
+        MB = $1/1000.
+        printf("%8.2f M %s\n", MB, $2)
+        total += MB
+    }
+    END {
+        fmt = "Total = %.3f M\n"
+        if (total > 100)
+            fmt = "Total = %d M\n"
+        else if (total > 10)
+            fmt = "Total = %.1f M\n"
+        else if (total > 1)
+            fmt = "Total = %.2f M\n"
+        printf(fmt, total)
+    }'
+
+@@--------------------------------------------------------------------
+
+uniq ; Utility ; python
+Keep unique items in a sequence and maintain their order
+def uniq(seq):
+    '''Given a sequence seq, returns a sequence with the unique
+    items in seq.
+    '''
+    try:
+        # In python 2.7 and later
+        from collections import OrderedDict
+    except ImportError:
+        # Use a set to keep track of uniqueness and list for order
+        mmap, oset = set(), []
+        for item in alist:
+            if item not in mmap:
+                mmap.add(item)
+                oset.append(item)
+        return oset
+    else:
+        return list(OrderedDict.fromkeys(seq))
+
+if __name__ == "__main__": 
+    seq = []
+    assert uniq(seq) == []
+    seq = [1, 1, 1, 1, 1, 1]
+    assert uniq(seq) == [1]
+    seq = [3, 2, 1, 1, 3, 5]
+    assert uniq(seq) == [3, 2, 1, 5]
+
+@@--------------------------------------------------------------------
+
+rindent ; Text ; python
+Remove leading whitespace from a multi-line string
+def RemoveIndent(s, numspaces=4):
+    '''Given a multi-line string s, remove the indicated number of
+    spaces from the beginning each line.  If that number of space
+    characters aren't present, then leave the line alone.
+
+    Consider textwrap.dedent() if you don't know how many spaces of
+    indentation there are.
+    '''
+    if numspaces < 0:
+        raise ValueError("numspaces must be >= 0")
+    lines = s.split("\n")
+    for i, line in enumerate(lines):
+        if line.startswith(" "*numspaces):
+            lines[i] = lines[i][numspaces:]
+    return "\n".join(lines)
+
+@@--------------------------------------------------------------------
+
+dedent ; Text ; python
+Remove leading common whitespace from a sequence of strings
+def Dedent(lines):
+    '''Given a sequence of strings, return a list of those strings
+    with the common indentation removed.
+    '''
+    indent = os.path.commonprefix(lines)
+    if indent:
+        lines = [i.replace(indent, "", 1) for i in lines]
+    return lines
+
+@@--------------------------------------------------------------------
+
+ramdisk ; Utility ; sh
+Create a RAM disk on Linux
+#!/bin/bash
+
+# Script to create a RAM disk.  Downloaded from
+# http://tldp.org/LDP/abs/html/zeros.html.  Must be run as root.
+#
+# A RAM disk is a chunk of memory that is allocated and a filesystem
+# is created on it.  It gives very fast read/write access, but it is
+# volatile.  It can be used e.g. to keep a large dataset and data
+# lookups will be much faster.
+#
+#----------------------------------------------------------------------
+
+xxxxxx!  Has not been tested yet...
+
+main()
+{
+    Initialize "$@"
+    [ "$(id -nu)" != "root" ] && Error "Must be root to run $0"
+    # Make mount point
+    [ ! -d "$mountpoint" ] && mkdir $mountpoint 
+    # Zero out the bytes
+    dd if=/dev/zero of=$device count=$size bs=$blocksize 
+    # Create an ext2 file system on it
+    mke2fs $device
+    # Mount it
+    mount $device $mountpoint
+    # Let anyone read and write it
+    chmod 777 $mountpoint
+    # Success message
+    MB=$(echo $size $blocksize | awk '{printf("%.1f MB", $1*$2/1e6)}')
+    echo "\"$mountpoint\" now available for use ($MB MB)"
+    exit 0
+}
+
+Initialize()
+{
+    mountpoint=/mnt/ramdisk 
+    size=2000                      # How many blocks to create
+    blocksize=1024                 # Size of block in bytes
+    device=/dev/ram_user0
+    readonly mountpoint size blocksize device
+}
+
+Error()
+{
+    echo "$*" >&2
+    exit 1
+}
+
+#---------------------
+pgmname=$(basename $0)
+main "$@"
+
+@@--------------------------------------------------------------------
+
+sh_getopt ; Utility ; sh
+Use getopt to get bash command-line options
+#!/bin/bash
+
+# An example of using the getopt(1).  This program will only work with
+# bash(1)
+
+# Example input and output (from the bash prompt):
+# ./parse.bash -a par1 'another arg' --c-long 'wow!*\?' -cmore -b " very long "
+# Option a
+# Option c, no argument
+# Option c, argument `more'
+# Option b, argument ` very long '
+# Remaining arguments:
+# --> `par1'
+# --> `another arg'
+# --> `wow!*\?'
+
+# Note that we use `"$@"' to let each command-line parameter expand to a 
+# separate word. The quotes around `$@' are essential!
+# We need TEMP as the `eval set --' would nuke the return value of getopt.
+TEMP=`getopt -o ab:c:: --long a-long,b-long:,c-long:: \
+     -n 'example.bash' -- "$@"`
+
+if [ $? != 0 ] ; then echo "Terminating..." >&2 ; exit 1 ; fi
+
+# Quotes around $TEMP are essential.
+eval set -- "$TEMP"
+
+while true ; do
+	case "$1" in
+		-a|--a-long) echo "Option a" ; shift ;;
+		-b|--b-long) echo "Option b, argument \`$2'" ; shift 2 ;;
+		-c|--c-long) 
+			# c has an optional argument. As we are in quoted mode,
+			# an empty parameter will be generated if its optional
+			# argument is not found.
+			case "$2" in
+				"") echo "Option c, no argument"; shift 2 ;;
+				*)  echo "Option c, argument \`$2'" ; shift 2 ;;
+			esac ;;
+		--) shift ; break ;;
+		*) echo "Internal error!" ; exit 1 ;;
+	esac
+done
+echo "Remaining arguments:"
+for arg do echo '--> '"\`$arg'" ; done
+
+@@--------------------------------------------------------------------
+
+compose ; Utility ; python
+Function composition
+def compose(*funcs):
+    '''Composition of a set of unary functions.  Returns the identity
+    function for no arguments.  Uses functools because reduce() isn't
+    in python 3.  Handling functions that take multiple arguments is
+    more involved.
+    '''
+    idn = lambda x: x
+    return functools.reduce(lambda f, g: lambda x: f(g(x)), funcs, idn)
+
+@@--------------------------------------------------------------------
+
+group ; Utility ; python
+Class to group some related values (also see ndict)
+class Group:
+    '''Simple grouping of variable values.  Create different types by
+    subclassing:
+        class Point(Group): pass
+    '''
+    # from http://code.activestate.com/recipes/52308 by Alex Martelli
+    def __init__(self, **kw):
+            self.__dict__.update(kw)
+    def __str__(self):
+        items = sorted(self.__dict__.items())
+        state = ["%s=%r" % (k, v) for k, v in items]
+        return "%s[%s]" % (self.__class__.__name__, ', '.join(state))
+x, y, threshold = 2.1, 14.3, 30
+point = Group(datum=y, squared=y*y, coord=x, name="my data")
+# Read/write the named attributes, add others, del them, etc.
+if point.squared > threshold:
+    point.isok = 1
+print(point)
+del point.coord
+print("coord deleted")
+print(point)
+
+@@--------------------------------------------------------------------
+
+locate ; Utility ; python
+Function to locate all matching files in a tree
+import os, fnmatch
+
+def locate(pattern, root=os.curdir):
+    '''Locate all files matching supplied filename pattern in and below
+    supplied root directory.'''
+    # By Simon Brunning 12 Dec 2006, released under PSF license.
+    # From http://code.activestate.com/recipes/499305
+    # Downloaded Tue 12 Aug 2014 06:49:15 PM
+    for path, dirs, files in os.walk(os.path.abspath(root)):
+        for filename in fnmatch.filter(files, pattern):
+            yield os.path.join(path, filename)
+
+@@--------------------------------------------------------------------
+
+ndict ; Utility ; python
+Nested dictionary object (also see group)
+class ndict(dict):
+    '''Nested dictionary object.  Syntactic sugar to support the
+    following:
+        d = ndict()
+        d.point.x = 3
+        d.point.y = 4
+        d.distance = (d.point.x**2 + d.point.y**2)*(1/2)
+        d.other_point.x = 14
+        if "other_point.x" in d:
+            print("Has other_point.x")
+        del d.other_point.x
+    Do not use hasattr() to test whether these ndicts have an
+    attribute because hasattr() calls __getattr__() to do the
+    checking; this will add the attribute to the ndict.
+
+    See http://code.activestate.com/recipes/578644 by Ariel Keselman
+    on 18 Aug 2013 (apparently licensed under the MIT license).
+    Adapted from a comment made by Nezar Abdennur on the above web
+    page.  Downloaded Tue 12 Aug 2014 09:04:26 AM
+    '''
+    def __str__(self):
+        return "ndict%s" % super(ndict, self).__str__()
+    def __delattr__(self, name):
+        del self[name]
+    def __getattr__(self, name):
+        return super(ndict, self).__getitem__(name)
+    def __setattr__(self, name, value):
+        super(ndict, self).__setitem__(name, value)
+    def __missing__(self, name):
+        super(ndict, self).__setitem__(name, ndict())
+        return super(ndict, self).__getitem__(name)
+    def __contains__(self, name):
+        su = super(ndict, self)
+        if '.' in name:
+            first, remaining = name.split(".", 1)
+            if first and su.__contains__(first):
+                su = super(ndict, self[first])
+                return su.__contains__(remaining)
+            else:
+                return False
+        else:
+            return su.__contains__(name)
+
+@@--------------------------------------------------------------------
+
+wordid ; Text ; python
+Pronounceable ID name
+def WordID(half_length=3, unique=None, num_tries=100):
+    '''Return an ID string that is (somewhat) pronounceable.  The
+    returned number of characters will be twice the half_length.  If
+    unique is not None, it must be a container that can be used to
+    determine if the ID is unique.  You are responsible for adding the
+    returned word to the container.
+    '''
+    # Derived from http://code.activestate.com/recipes/576858
+    # downloaded Tue 12 Aug 2014 12:38:54 PM.  Original recipe by
+    # Robin Parmar on 8 Aug 2007 under PSF license.
+    from random import choice
+    v, c, r, count = 'aeiou', 'bdfghklmnprstvw', range(half_length), 0
+    while count < num_tries:
+        word = ''.join([choice(c) + choice(v) for i in r])
+        if not unique or (unique and word not in unique):
+            return word
+        count += 1
+    raise RuntimeError("Couldn't generate unique word")
+
+@@--------------------------------------------------------------------
+
+chkpy ; Utility ; python
+Python 3 check
+_py3 = True if sys.version_info[0] == 3 else False
+if _py3:
+    Int = (int,)
+    long = int
+    Str = (str,)
+else:
+    Int = (int, long)
+    Str = (str, unicode)
+
+#if _py3:
+#    raise RuntimeError("This script won't work under python 3")
+
+@@--------------------------------------------------------------------
+
+goto ; Utility ; python
+Adding goto ability for python 2
+# http://code.activestate.com/recipes/576944-the-goto-decorator/
+# Mon 11 Aug 2014 06:25:48 PM
+
+'''
+This won't work on python 3 because the new module was removed.  I can
+see little need for such a tool -- about the only application might be
+translating some C or Fortran code that had lots of gotos.  However,
+it does work under python 2.7.6 and is an interesting hack.
+
+A better approach that works on python 2.7 and 3.4+ is
+https://github.com/snoack/python-goto.
+'''
+
+from __future__ import print_function, division
+import dis
+import new
+
+def goto(fn):
+    '''A function decorator to add the goto command for a function.
+    Specify labels like so:
+        label .foo
+    Goto labels like so:
+        goto .foo
+    '''
+    labels, gotos, globalName, index = {}, {}, None, 0
+    end, i = len(fn.func_code.co_code), 0
+    # Scan through the byte codes to find the labels and gotos
+    while i < end:
+        op = ord(fn.func_code.co_code[i])
+        i += 1
+        name = dis.opname[op]
+        if op > dis.HAVE_ARGUMENT:
+            b1 = ord(fn.func_code.co_code[i])
+            b2 = ord(fn.func_code.co_code[i+1])
+            num = b2 * 256 + b1
+            if name == 'LOAD_GLOBAL':
+                globalName = fn.func_code.co_names[num]
+                index = i - 1
+                i += 2
+                continue
+            if name == 'LOAD_ATTR':
+                if globalName == 'label':
+                    labels[fn.func_code.co_names[num]] = index
+                elif globalName == 'goto':
+                    gotos[fn.func_code.co_names[num]] = index
+            name = None
+            i += 2
+    # No-op the labels
+    ilist = list(fn.func_code.co_code)
+    for label,index in labels.items():
+        ilist[index:index+7] = [chr(dis.opmap['NOP'])]*7
+    # Change gotos to jumps
+    for label,index in gotos.items():
+        if label not in labels:
+            raise RuntimeError("Missing label: %s"%label)
+        target = labels[label] + 7   # skip NOPs
+        ilist[index] = chr(dis.opmap['JUMP_ABSOLUTE'])
+        ilist[index + 1] = chr(target & 255)
+        ilist[index + 2] = chr(target >> 8)
+    # Create new function from existing function
+    c = fn.func_code
+    newcode = new.code(c.co_argcount,
+                       c.co_nlocals,
+                       c.co_stacksize,
+                       c.co_flags,
+                       ''.join(ilist),
+                       c.co_consts,
+                       c.co_names,
+                       c.co_varnames,
+                       c.co_filename,
+                       c.co_name,
+                       c.co_firstlineno,
+                       c.co_lnotab)
+    newfn = new.function(newcode,fn.func_globals)
+    return newfn
+
+if __name__ == '__main__':
+    @goto
+    def test1(n):
+        s = 0
+        label .myLoop
+        if n <= 0:
+            return s
+        s += n
+        n -= 1
+        goto .myLoop
+    assert(test1(10) == 55)
+    @goto
+    def test2():
+        goto .my_exit
+        raise Exception()
+        label .my_exit
+        print("Branch successful")
+    test2()
+@@--------------------------------------------------------------------
+
+py3 ; Utility ; python
+Python coding policies
+Because I'm interested in having my scripts run with both python 2 and
+3, here are some policies to follow.  Of course, the python 2
+interpreter will tell you when there's a problem, but it's easier not
+to use incompatible code in the first place.
+Also read the book chapter at
+http://python3porting.com/differences.html.
+
+A benefit is that python 3 code virtually always seems to execute
+faster, sometimes by a factor of 2 or 3.
+
+Do:
+
+    * Use 'from __future__ import print_function, division'
+    * Follow the policy of reading all input, decoding it, using it internally
+      as Unicode strings, then encoding it immediately before outputting it.
+    * Use python 2 super() syntax.
+    * Check that python 2 code never concatenates strings and bytes; you'll
+      get the bytes coerced to Unicode.
+    * Python 3 uses iterators heavily, so much code will need to be wrapped in
+      list to work with python 2.
+    * Always use true division.  Always.  If you need integer division, use
+      //.
+    * Use care with comparisons:  python 2 allows '3 < "hi"', but python 3
+      does not.
+    * Library reorg:  e.g. StringIO now in io.  StringIO is a memory stream
+      for Unicode only.
+    * Make sure self-tests are extensive and work correctly under both python
+      2 and 3.
+    * Use the 2to3 tool to identify things that will change.
+    * For python 2 code, set print equal to an out function that provides the
+      same functionality.
+
+Don't use:
+
+    * Set or dictionary comprehensions.
+    * Extended iterable unpacking like 'a, *b = iterable'.
+    * The keyword 'nonlocal'.
+    * Function annotations.  def a() -> int: pass
+    * Keyword-only arguments 'def a(x, *, strict=0):'
+    * Ellipsis as an expression '[1, 2, ...]'
+    * Copy() method of lists; use [:].
+    * exec if possible.
+    * execfile.
+    * Views.
+
+@@--------------------------------------------------------------------
+
+out ; Utility ; python
+Python 2 equivalent to python 3's print()
+import sys
+
+class Out(object):
+    def __init__(self):
+        self.stream = sys.stdout
+        self.flush  = False
+        self.end = "\n"
+        self.sep = " "
+    def __call__(self, *v, **kw):
+        '''Sends the string representation of each element of v to the
+        stream.  Same keywords as print() in python 3, but they only
+        have an effect during the function call.  Change the
+        attributes if you want a permanent change.
+        '''
+        end    = kw.setdefault("end",    self.end)
+        sep    = kw.setdefault("sep",    self.sep)
+        stream = kw.setdefault("file",   self.stream)
+        flush  = kw.setdefault("flush",  self.flush)
+        if v and stream: # Print each parameter
+            stream.write(str(sep).join([str(i) for i in v]))
+        if end and stream:
+            stream.write(end)
+        if self.flush:
+            self.stream.flush()
+            self.flush = False
+
+# out is a convenience instance of the Out object
+out = Out()
+
+@@--------------------------------------------------------------------
+
+profile ; Utility ; python
+Sample profiling session
+import cProfile, pstats, io
+pr = cProfile.Profile()
+pr.enable()
+
+# Here's the code being profiled
+def func2(a):
+    return a//2
+def func1(a):
+    a = a + a + a + a + a + a + a + a + a + a + a + a + a + a + a 
+    a = func2(a)
+    return a + a + a + a + a + a + a + a + a + a + a + a + a + a + a
+def func(a):
+    t = 0
+    for i in range(10**5):
+        t += func1(i)
+func(1)
+# Done
+
+pr.disable()
+s = io.StringIO()
+sortby = 'cumulative'
+ps = pstats.Stats(pr, stream=s).sort_stats(sortby)
+ps.print_stats()
+print(s.getvalue())
+
+@@--------------------------------------------------------------------
+
+with ; Utility ; python
+Demonstration of a context manager
+'''
+Example of a use of a context manager to redirect standard out.
+The 'with' block causes the __enter__ method to be called at entry,
+which causes stdout to be replaced by a StringIO object.  The 'with'
+block essentially executes things with a try/finally block and, when
+it's time to exit the block, __exit__ is called, which puts things
+back the way they were.
+
+In fact, the example shows a handy way of redirecting the output of a
+chunk of code.
+
+Slightly modified from the book "Porting to Python 3" by Lennart
+Regebro (in the section "Improving your code with modern idioms"; see
+the link
+http://python3porting.com/improving.html#coding-with-context-managers).
+
+The canonical example of a context manager is using it to ensure a
+file handle is closed:
+
+with open('somefile', 'w') as f:
+    # f is a file object
+    n = f.write('sometext')     # write now returns num bytes written
+
+This context manager ensures that the file is closed, even if an
+exception interrupts things.
+
+'''
+
+import sys
+from io import StringIO
+
+class RedirectStdout:
+    def __init__(self, stream):
+        self.original_stream = sys.stdout
+        self.stream = stream
+    def __enter__(self):
+        sys.stdout = self.stream
+    def __exit__(self, type, value, tb):
+        sys.stdout = self.original_stream
+
+out = StringIO()
+with RedirectStdout(out):
+    print('Test')
+
+print("StringIO contains '%s'" % out.getvalue())
+
+@@--------------------------------------------------------------------
+
+color ; Utility ; python
+Code to swallow color module calls
+# Try to import the color.py module; if not available, the script
+# should still work (you'll just get uncolored output).
+try:
+    import color
+    have_color = True
+except ImportError:
+    # Make a dummy color object to swallow function calls
+    class Dummy:
+        def fg(self, *p, **kw): pass
+        def normal(self, *p, **kw): pass
+        def __getattr__(self, name): pass
+    color = Dummy()
+    have_color = False
+
+@@--------------------------------------------------------------------
+
+html ; Text ; python
+HTML template
+<!doctype html>
+
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+
+  <title>The Title</title>
+  <meta name="description" content="The Title">
+  <meta name="author" content="John Doe">
+  <link rel="stylesheet" href="css/styles.css?v=1.0">
+</head>
+
+<body>
+  <a href="http://www.wikipedia.com">link</a>
+</body>
+</html>
+
+@@--------------------------------------------------------------------
+cmd ; Utility ; python
+Run a command & capture output
+
+# Running a command and capturing its output
+import sys
+import subprocess
+py3 = sys.version_info[0] == 3
+cmd = ["", "", ...]
+s = subprocess.Popen(cmd, stdout=subprocess.PIPE)
+if py3:
+    lines = [i.decode("utf8") for i in s.stdout.readlines()]
+else:
+    lines = s.stdout.readlines()
+
+@@--------------------------------------------------------------------
+check ; Utility ; python
+Alternative function for assert
+
+from time import time, strftime
+
+check_off = False
+class CheckFailed(Exception): pass
+
+def Check(condition, message="", log_stream=None, incl_time=False):
+    '''If condition is not true, raise an exception.
+ 
+    message     Initialize the exception with this message
+ 
+    log_stream  Instead of raising an exception if the condition is false,
+                just log the message to the stream.
+ 
+    incl_time   If true, time stamp the message.
+
+    Check() can be used as a substitute for assert, as it doesn't get
+    removed when the -O option is used.  It can be turned on and off
+    using the check_off variable.
+    '''
+    if check_off:
+        return
+    tm = ""
+    if incl_time:
+        tm = strftime("[%d%b%Y-%H:%M:%S] ")
+    msg = tm + message
+    if not condition:
+        if log_stream:
+            log_stream.write(msg + "\n")
+        else:
+            raise CheckFailed(msg)
+
+@@--------------------------------------------------------------------
+ssig1 ; Math ; python
+Shortened version of sig
+'''
+Format numbers to specified number of significant figures
+
+The ssig() function is similar to 'g' string formatting format_spec, but
+you can control the points at which the fixed point formatting is
+changed to scientific notation.
+'''
+from pdb import set_trace as xx
+
+def ssig(x, digits=None):
+    '''Returns a string representing the float x to a specified number
+    of significant digits.  x can also be an integer, complex number,
+    sequence of numbers, or any object or sequence of objects that can
+    be converted to a float.  If the digits parameter is None, the
+    ssig.digits setting is used.  Integers are returned with their full
+    number of digits.  Warning: extended precision numbers like
+    decimal.Decimal or mpmath.mpf types may lose precision when
+    converted to floats.
+ 
+    Function attributes:
+ 
+    ssig.low         Use scientific notation if x < low
+    ssig.high        Use scientific notation if x > high
+    ssig.digits      Default number of significant digits
+    ssig.dp          String to use for decimal point
+    ssig.rdp         Remove ending decimal point if True
+    ssig.imagunit    Imaginary unit string
+    ssig.rtz         Remove trailing zeroes if True
+    ssig.rlz         Remove leading 0 before decimal point if True
+    '''
+    ssig.low = ssig.__dict__.get("low", 1e-5)
+    ssig.high = ssig.__dict__.get("high", 1e6)
+    ssig.digits = ssig.__dict__.get("digits", 3)
+    ssig.dp = ssig.__dict__.get("dp", ".")
+    ssig.rdp = ssig.__dict__.get("rdp", False)
+    ssig.imagunit = ssig.__dict__.get("imagunit", "i")
+    ssig.rtz = ssig.__dict__.get("rtz", False)
+    ssig.rlz = ssig.__dict__.get("rlz", False)
+    def rtz(s):
+        if not ssig.rtz:
+            return s
+        t = list(s)
+        while t[-1] == "0":
+            del t[-1]
+        return ''.join(t)
+    if ssig.low > ssig.high:
+        raise ValueError("ssig.low > ssig.high")
+    msg = "{}digits = {} is out of range"
+    if not (1 <= ssig.digits <= 15):
+        raise ValueError(msg.format("ssig.", ssig.digits))
+    if digits is not None and not (1 <= digits <= 15):
+        raise ValueError(msg.format("", digits))
+    try:    # If x is an iterable, iterate over it
+        iter(x)
+        T = tuple if isinstance(x, tuple) else list
+        return T(ssig(i, digits=digits) for i in x)
+    except TypeError:
+        pass
+    from sys import version_info
+    Int = int if version_info[0] == 3 else (int, long)
+    if isinstance(x, Int):      # Return integers with all their digits
+        return str(x)
+    elif isinstance(x, complex):
+        r = ssig(x.real, digits=digits)
+        i = ssig(abs(x.imag), digits=digits)
+        sgn = "-" if x.imag < 0 else "+"
+        return "{}{}{}{}".format(r, sgn, i, ssig.imagunit)
+    elif not isinstance(x, float):
+        x = float(x)
+    ndig = ssig.digits - 1 if digits is None else digits - 1
+    if x and (abs(x) < ssig.low or abs(x) > ssig.high):
+        xs = "{:.{}e}".format(x, ndig)      # Use scientific notation
+        st, e = xs.split("e")
+        t = "{}e{}".format(rtz(st), int(e))
+        return t.replace(".", ssig.dp)
+    # xs = list of significant digits with decimal point removed
+    # e = integer exponent
+    xs, e = "{:.{}e}".format(abs(x), ndig).replace(".", "").split("e")
+    xs, e = list(xs), int(e)
+    sgn = "-" if x < 0 else ""
+    if not e:
+        t = "{:.{}e}".format(abs(x), ndig).split("e")[0]
+        u = t.replace(".", ssig.dp)
+        v = rtz(u)
+        if ssig.rdp and v[-1] == ssig.dp:
+            v = v[:-1]
+        return sgn + v
+    elif e < 0:
+        e = abs(e) - 1
+        xs.reverse()
+        while e:
+            xs.append("0")
+            e -= 1
+        xs.append(ssig.dp)
+        if not ssig.rlz:
+            xs.append("0")
+        xs.reverse()
+    else:
+        n = len(xs)
+        if e >= n:
+            e -= n - 1
+            while e:
+                xs.append("0")
+                e -= 1
+            xs.append(ssig.dp)
+        else:
+            xs.insert(e + 1, ssig.dp)
+    t = rtz(''.join(xs))
+    if ssig.rdp and t[-1] == ssig.dp:
+        t = t[:-1]
+    return sgn + t
+
+if __name__ == "__main__":
+    # A few test cases
+    ssig.digits, ssig.rtz, ssig.rlz = 2, True, True
+    u = 1.23456789
+    for x, s in (
+        (u, "1.2"),
+        (u*10, "12."),
+        (u*100, "120."),
+        (u*1e5, "120000."),
+        (u*1e6, "1.2e6"),
+        (u/10, ".12"),
+        (u/100, ".012"),
+        (u/1e5, ".000012"),
+        (u/1e6, "1.2e-6"),
+        ):
+        assert ssig(x) == s, "ssig({}) != {}".format(x, s)
+@@--------------------------------------------------------------------
+ssig2 ; Math ; python
+Even more shortened version of sig
+'''
+Format numbers to specified number of significant figures
+
+def sig(x, digits=3):
+    '''Format numbers or sequences to a specified number of digits.  If
+    x is not a number or sequence, return str(x).
+    '''
+    if isinstance(x, (list, tuple)):
+        items = ["{:.{}g}".format(i, digits) for i in x]
+        return str(items).replace("'", "")
+    elif isinstance(x, int):
+        return str(x)
+    elif isinstance(x, float):
+        return "{:.{}g}".format(x, digits)
+    else:
+        return str(x)
+
+@@--------------------------------------------------------------------
+getopt ; Utility ; C
+Example of using getopt in a C program
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+
+void Usage(void)
+{
+    printf("xxx Usage\n");
+    exit(0);
+}
+
+// Demo of using getopt for processing command line options.  This one
+// recognizes -d, -f, and -h or -? for a Usage statement.  There can be
+// one or two variables on the command line.
+int main(int argc, char **argv)
+{
+    extern int optind;
+    char *file = "/usr/dict/words";
+    char *string;
+    int ch;
+    int d_option = 0;
+    int f_option = 0;
+    
+    while ((ch = getopt(argc, argv, "dfh?")) != -1)
+    {
+        switch(ch) {
+            case 'd':   
+                d_option = 1; 
+                break;
+            case 'f':
+                f_option = 1;
+                break;
+            case 'h':
+            case '?':
+                Usage();
+                break;
+        }
+    }
+    argc -= optind;
+    argv += optind;
+    if (argc < 1 || argc > 2) 
+        Usage();
+    string = *argv;
+    if (*++argv)
+        file = *argv;
+    printf("d_option = %d\n", d_option);
+    printf("f_option = %d\n", f_option);
+    printf("arg1 = %s\n", string);
+    printf("arg2 = %s\n", file);
+    return 0;
+}
+
+@@--------------------------------------------------------------------
+c++ ; Utility ; C
+C++ program template
+#include <iostream>
+
+using namespace std;
+
+int main(int argc, char **argv)
+{
+
+    return 0;
+}
+@@--------------------------------------------------------------------
+c ; Utility ; C
+C program template
+#include <stdio.h>
+
+int main(int argc, char **argv)
+{
+    return 0;
+}
+#endif
+@@--------------------------------------------------------------------
+m ; Utility ; C
+makefile template
+# vim: noet
+
+f = climits
+e = .cpp
+e = .c
+cc = g++
+cc = gcc
+o = -Wall -g
+
+.PHONY: z
+
+z: 
+	@ctags $f$e
+	$(cc) $o -o $@ $f$e
+@@--------------------------------------------------------------------
+setup ; Utility ; python
+SetUp function for g library
+def SetUp(file, orientation=portrait, units=inches, wrap_in_PJL=False):
+    '''Convenience function to set up the drawing environment and return a
+    file object to the output stream.
+    '''
+    ofp = open(file, "w")
+    ginitialize(ofp, wrap_in_PJL)
+    setOrientation(orientation, units)
+    return ofp

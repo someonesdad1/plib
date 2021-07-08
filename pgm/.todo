@@ -1,3 +1,5 @@
+* Add <category> to all what trigger strings.
+
 * Move british.py to pylib and give it a function that will take a
   sentence of text and replace all the British words with English
   words, maintaining capitalization and punctuation.  This will require
@@ -31,6 +33,7 @@
   right and left margins.
 
 * f.py
+    * Allow init from "3in" or "3 in".
     * Must allow some functions to have arguments with units.  Example:
       take the square root of an area.  Each of the functions' behaviors
       need to be thought out for both real and complex arguments.  The
