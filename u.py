@@ -1220,6 +1220,12 @@ def DefaultUnitData(level=-1, randomize=False, angles_have_dim=False):
         ["L-1", [   "Reciprocal focal length",
             [2, "diopter = 1/m"],
         ]],
+        ["ↀ", [   "Cost",
+            [1, "dollar = dol"],
+            [1, "cent = dol/100"],
+            [2, "buck = dol"],
+            [2, "bucks = dol"],
+        ]],
     ]
     # BaseUnits contains the base units with conversion factors of unity
     # unless randomization is on for dimensional checking.  Note they will
@@ -1233,6 +1239,7 @@ def DefaultUnitData(level=-1, randomize=False, angles_have_dim=False):
         ["cd",  [R(randomize=randomize), Dim("C")]],
         ["mol", [R(randomize=randomize), Dim("N")]],
         ["K",   [R(randomize=randomize), Dim("K")]],
+        ["dol",   [R(randomize=randomize), Dim("ↀ")]],
     ]
     # Add the capital omega for resistance and construct our description
     # to dimensions dictionary.
@@ -1363,7 +1370,7 @@ class Dim(object):
     allowed symbols.
     '''
     def __init__(self, s="", ignore_case=True,
-                allowed_symbols=tuple("M L T A K N C".split())):
+                allowed_symbols=tuple("M L T A K N C ↀ".split())):
         '''Initialize with a string s of e.g. the form 'L1 T-2', which
         means L/T**2, an acceleration.  Case of the symbols isn't important
         if ignore_case is True.  The allowed_symbols container has the
@@ -1378,6 +1385,7 @@ class Dim(object):
             K = temperature
             N = amount of substance
             C = luminous intensity
+            D = cost 
         The order of the symbols determines the print order in __str__.
  
         Using the convenience U object later in this module, you can

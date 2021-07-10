@@ -1204,7 +1204,9 @@ class flt(Base, float):
     def __new__(cls, value, units=None):    # flt
         # See if we have a valid unit string
         to_SI, val = 1, value
+        toi = lambda x: "inch" if x.strip() == "in" else x
         if units is not None:
+            units = toi(units)
             to_SI = u.u(units)
             if to_SI is None:
                 raise ValueError(f"Unit '{units}' is not recognized")
@@ -1212,6 +1214,7 @@ class flt(Base, float):
             if Base._sep in value:
                 # It's either a flt or cpx str() value
                 val, units = [i.strip() for i in value.split(Base._sep)]
+                units = toi(units)
                 val = float(val)
             elif units is not None:
                 val = float(value)
@@ -1221,6 +1224,7 @@ class flt(Base, float):
                 if rv is None:
                     raise ValueError(f"'{value}' is not recognized as a number")
                 val, un = rv
+                un = toi(un)
                 val = float(val)
                 if u.dim(un) == u.dim("k"):
                     # The "units" were an SI prefix

@@ -8,6 +8,13 @@ TODO
 * e, <, and > are still used with the string buffer.  Now, x executes
   the buffer.
 
+* It would be nice to add the ability to load a special command package.
+  For example, 'l barstock' would load an environment that would let you
+  calculate properties of bar stock in the shop (see material.py scipt).
+  A special prompt would tell you that you're in this mode and you could
+  quit it by exit.  But the mode's state would be saved so you could
+  re-enter it as needed.
+
 ----------------------------------------------------------------------
 A REPL that gives an interactive python calculator.  See repl.pdf for
 documentation.
