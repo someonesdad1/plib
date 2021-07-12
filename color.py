@@ -131,6 +131,7 @@ except ImportError:
         def __getattr__(self, name): pass
     color = Dummy()
     _have_color = False
+
 '''
 if 1:  # Copyright, license
     # These "trigger strings" can be managed with trigger.py
@@ -147,10 +148,18 @@ if 1:  # Copyright, license
     #∞test∞# --test #∞test∞#
     pass
 if 1:   # Imports & globals
+    from decimal import Decimal, localcontext
+    import locale
     import os
     import sys
+    from collections import deque
     from collections.abc import Iterable
     from pdb import set_trace as xx
+    try:
+        import mpmath
+        _have_mpmath = True
+    except ImportError:
+        _have_mpmath = False
     # To use this under the old cygwin bash, which was derived from a Windows
     # console, you must define the environment variable BASH_IS_WIN_CONSOLE.
     # The new cygwin bash window is based on mintty and accepts ANSI escape
@@ -164,6 +173,7 @@ if 1:   # Imports & globals
         SetStyle Decorate Style
         PrintMatch PrintMatches
     '''.split()
+    ii = isinstance
     if _win:
         from ctypes import windll
     class Colors(int):
@@ -242,7 +252,7 @@ if 1:   # Utility
     def _is_iterable(x):
         '''Return True if x is an iterable that isn't a string.
         '''
-        return isinstance(x, Iterable) and not isinstance(x, str)
+        return ii(x, Iterable) and not ii(x, str)
     def _DecodeColor(*c):
         '''Return a 1-byte integer that represents the foreground and
         background color.  c can be
@@ -257,7 +267,7 @@ if 1:   # Utility
                     raise ValueError("Must be a sequence of two integers")
                 color = ((c[0][1] << 4) | c[0][0]) & 0xff
             else:
-                if not isinstance(c[0], int):
+                if not ii(c[0], int):
                     raise ValueError("Argument must be an integer")
                 color = c[0] & 0xff
         elif len(c) == 2:
@@ -509,6 +519,116 @@ class C:
     lyel = fg(yellow, s=1)
     lwht = fg(lwhite, s=1)
     norm = normal(s=1)
+
+if 1:   # Dictionary for colorizing numbers
+    # Groups of three digits are colored with the following colors
+    clrdict = {
+        0: C.wht,
+        1: C.lgrn,
+        2: C.lyel,
+        3: C.lred, 
+        4: C.lcyn, 
+        5: C.lmag, 
+        6: C.lblu, 
+        7: C.lwht, 
+        8: C.cyn, 
+        9: C.yel, 
+        10: fg(0x4f, s=1), 
+    }
+
+def c(x, colors=clrdict):
+    'Return a colorized string for the number x'
+    S = set("1234567890")
+    dp = locale.localeconv()["decimal_point"]
+    sgn = "-" if x < 0 else ""
+    N = len(colors)
+    print("x =", x) #xx
+    def Colorize(s, rev=False):
+        '''Colorize the string of digits in s.  If rev is True, then the
+        set of digits in s are considered to be the digits in a floating
+        point number to the right of the decimal point.
+        '''
+        assert(set(s).issubset(S))
+        t, o, count = deque(), deque(), 0
+        # Put groups of 3 digits in t
+        if rev:
+            u = list(s)
+            while u:
+                if len(u) > 3:
+                    t.append(''.join(u[:3]))
+                    del u[:3]
+                else:
+                    t.append(''.join(u))
+                    break
+            #print("float t: ", t)
+            o.append(colors[0])
+            count += 1
+            while t:
+                a = t.popleft()
+                o.append(a)
+                o.append(colors[count % N])
+                count += 1
+            o.append(C.norm)
+            return ''.join(o)
+        else:
+            u = list(s)
+            while u:
+                if len(u) > 3:
+                    t.append(''.join(u[-3:]))
+                    del u[-3:]
+                else:
+                    t.append(''.join(u))
+                    break
+            #print("integer t: ", t)
+            o.append(C.norm)
+            while t:
+                a = t.popleft()
+                o.appendleft(a)
+                o.appendleft(colors[count % N])
+                count += 1
+            o.append(C.norm)
+            return ''.join(o)
+    reals = (float, Decimal)
+    if _have_mpmath:
+        reals = (float, Decimal, mpmath.mpf)
+    if ii(x, int):
+        o = Colorize(str(abs(x)))
+        return sgn + ''.join(o)
+    elif ii(x, (float, reals)):
+        s = str(abs(x)).lower()
+        if "e" in s:
+            # It's in scientific notation
+            m, exp = s.split("e")
+            ld, rd = m.split(dp)
+            o = Colorize(rd, rev=True)
+            E = "E" if ii(x, Decimal) else "e"
+            return sgn + ld + dp + ''.join(o) + E + exp
+        else:
+            ld, rd = s.split(dp)
+            l = Colorize(ld)
+            r = Colorize(rd, rev=True)
+            return sgn + ''.join(l) + dp + ''.join(r)
+
+if len(sys.argv) == 1:
+    print(c(12345678901))
+    print()
+    print(c(12345.12345678901))
+    print()
+    n = 75
+    with localcontext() as ctx:
+        ctx.prec = n
+        s = "12345678901234567890"
+        print(f"Decimal to {n} digits precision:")
+        print(c(Decimal(s + "." + s + s)))
+        print()
+        print("Decimal with big exponent")
+        print(c(Decimal("1.23456789012345678901234567890e1234")))
+    if _have_mpmath:
+        print(f"mpmath number to {n} digits:")
+        mpmath.mp.dps = n
+        x = mpmath.mpf(s + "." + s + s)
+        print(c(x))
+    exit()
 
 if __name__ == "__main__": 
     from lwtest import run, Assert

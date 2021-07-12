@@ -10,6 +10,12 @@
   between the words too.  See the next function, which should be in
   dpstr.py.
 
+* Construct /plib/density.py for common density values.
+
+* color.py:  Add a function that colorizes an integer to make it easier
+  to count the 3-digit groups.  Let n = numdigits % 3.  Then use plain
+  for 0, green for 1, yellow for 2, red for 3, etc.
+
 * dpstr.Tokenize(s):  split a string into a sequence S such that
   ''.join(S) == s.  The keyword wordchars is a set that contains the 
   characters that should NOT be split on.  wordchars would default to 
