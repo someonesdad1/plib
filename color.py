@@ -92,6 +92,9 @@ PrintMatches()
         print("Groups:")
         for i, g in enumerate(mo.groups()):
             print("[{}]:  {}\n".format(i, g))
+
+The c() function decorates integers and floats to make the
+three-digit-groups easier to read.
  
 The Decorate() object is a convenience; an instance of it will return the
 escape strings to set the console colors.  An example use would be
@@ -611,27 +614,6 @@ def c(x, colors=clrdict):
             l = Colorize(ld)
             r = Colorize(rd, rev=True)
             return sgn + ''.join(l) + dp + ''.join(r)
-
-if 0:
-    print(c(12345678901))
-    print()
-    print(c(12345.12345678901))
-    print()
-    n = 75
-    with localcontext() as ctx:
-        ctx.prec = n
-        s = "12345678901234567890"
-        print(f"Decimal to {n} digits precision:")
-        print(c(Decimal(s + "." + s + s)))
-        print()
-        print("Decimal with big exponent")
-        print(c(Decimal("1.23456789012345678901234567890e1234")))
-    if _have_mpmath:
-        print(f"mpmath number to {n} digits:")
-        mpmath.mp.dps = n
-        x = mpmath.mpf(s + "." + s + s)
-        print(c(x))
-    exit()
 
 if __name__ == "__main__": 
     from lwtest import run, Assert
