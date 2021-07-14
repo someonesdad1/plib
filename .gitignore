@@ -1,4 +1,5 @@
 *.swp
+*.pdf
 .local_profile
 .vi
 .z

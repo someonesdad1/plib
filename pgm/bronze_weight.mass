@@ -1,0 +1,14 @@
+# This calculation is to get the weight of a chunk of bronze bearing
+# material in the shop to use in exercises.  It's 1.16 lbm.
+
+material bronze
+units mm
+munit lb
+vunit in3
+
+
+cyl d=58, L=25
+cyl d=18, L=25, neg=True
+
+# Would also work with:
+# pipe d=58, L=25, t=20
