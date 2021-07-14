@@ -44,7 +44,7 @@ Lightweight testrunner framework
  
     If you hate my vertically-compressed code, sorry:  it's because I
     use a folding editor that makes it trivial to see the code's
-    organzation -- and vertical screen space is the most precious
+    organization -- and vertical screen space is the most precious
     resource.  Fully folded, the file is 24 lines.
 '''
 if 1:   # Enhancement ideas
