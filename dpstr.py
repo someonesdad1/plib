@@ -3,6 +3,7 @@
 #  * Missing tests for GetString, WordID
 '''
 String utilities
+    Chop             Return a string chopped into equal parts
     CommonPrefix     Return a common prefix of a sequence of strings
     CommonSuffix     Return a common suffix of a sequence of strings
     FilterStr        Return a function that removes characters from strings
@@ -556,11 +557,33 @@ class NameConvert:
         if not x:   
             return x
         return x[0].upper() + x[1:]
+def Chop(s, size):
+    '''Return a list of the sequence seq chopped into subsequences of
+    length size.  The last subsequence will be shorter than size if
+    len(s) % size is not zero.
+    '''
+    if not ii(size, int) or size <= 0:
+        raise ValueError("size must be integer > 0")
+    out = []
+    for i in range(0, len(s), size):
+        out.append(s[i:i + size])
+    return out
 if __name__ == "__main__": 
     from lwtest import run, raises, assert_equal, Assert
     import math
     import os
     from sig import sig
+    def Test_Chop():
+        s = "10f6b8a"
+        l = Chop(s, 2)
+        Assert(l == ['10', 'f6', 'b8', 'a'])
+        s = ""
+        l = Chop(s, 2)
+        Assert(l == [])
+        # Works with sequences
+        s = (1, 2, 3, 4, 5)
+        l = Chop(s, 2)
+        Assert(l == [(1, 2), (3, 4), (5,)])
     def Test_MatchCap():
         t = "AbCdEf"
         # s needs to have as many characters as t

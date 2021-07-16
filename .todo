@@ -10,6 +10,12 @@
   between the words too.  See the next function, which should be in
   dpstr.py.
 
+* pgm/char.py:  When a line (e.g. Lower) is complete with all the 
+  allowed characters, print <all> at the end to denote this state.
+  Also add -s option, which removes the space between characters, 
+  giving a more compact output.  For -c option, include summary 
+  stats.
+
 * Construct /plib/density.py for common density values.
 
 * dpstr.Tokenize(s):  split a string into a sequence S such that
