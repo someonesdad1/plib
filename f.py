@@ -14,6 +14,8 @@
         * Get comprehensive unit tests for arithmetic written
     * Add .rdp attribute to allow removal of decimal point if it is
       trailing. 
+    * Add attribute to remove leading zero like sig.lead_zero.  Convenient
+      to minimize length in tables.
     * Try to duplicate fpformat's engsi and engsic formatting for flt
       objects.
         * A common use case is in vmdivider.py.  A calculated resistance is

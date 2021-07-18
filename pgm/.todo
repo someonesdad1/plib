@@ -39,8 +39,11 @@
     ĸķĶĵĴıİįĮĭĬīĪĩĨħĦĥĤģĢġĠğĞĝĜěĚęĘėĖĕĔēĒđĐďĎčČċĊĉĈćĆąĄăĂāĀÿþýüûúùøöõôóò
     ñðïîíìëêéèçæåäãâáàßÞÝÜÛÚÙØÖÕÔÓÒÑÐÏÎÍÌËÊÉÈÇÆÅÄÃÂÁÀ
 
-* wrap.py:  Add a Block object that is like wrap, but justifies both the
-  right and left margins.
+* wrap.py:  
+    - Add a Block object that is like wrap, but justifies both the right
+      and left margins.
+    - Add a fold function that folds a string into a width, breaking where
+      necessary.
 
 * f.py
     * Should color.c() be used in f.py?
