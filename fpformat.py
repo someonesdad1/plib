@@ -84,12 +84,10 @@ class FPFormat:
         self.dp_width = 10      # Width of output string
         self.dp_position = 4    # Position of dp from left
     def trailing_decimal_point(self, trail=True):
-        '''Set whether a trailing decimal point is displayed.
-        '''
+        'Set whether a trailing decimal point is displayed'
         self.trailing_dp = True if trail else False
     def digits(self, num_digits):
-        '''Set the number of significant digits.
-        '''
+        'Set the number of significant digits'
         if num_digits < self.digits_min:
             raise ValueError("must be >= %d" % self.digits_min)
         self.num_digits = num_digits

@@ -47,6 +47,10 @@ if 1:   # Custom imports
     from fpformat import FPFormat
     from roundoff import RoundOff
     import color as C
+    from pdb import set_trace as xx
+    if 0:
+        import debug
+        debug.SetDebugger()
 if 1:   # Global variables
     # Colors
     C.max = C.lgreen
@@ -404,7 +408,6 @@ def ReportLongForm(d):
         else:
             print()
 def PrintStatistics(d):
-    ''
     dec = C.Decorate()
     def F(x, flag, name):
         # flag:  0 = normal, 1 = max, 2 = min, 3 = median
@@ -434,13 +437,16 @@ def PrintStatistics(d):
     used_dot = False
     lines = []
     n = 23      # Width of statistics names
-    trans = {
+    trans = {   # Get printed name of statistics
+        "chi_squared": "Chi-squared",
         "count_nonzero": "Used bytes",
         "count_zero": "Unused bytes",
+        "expected_count": "Expected count",
         "highest": "Most frequent byte",
         "highest_count": "  Count",
         "lowest": "Least frequent byte(s)",
         "lowest_count": "  Count",
+        "mean": "Mean",
         "median": "Median",
         "total_bytes_read": "Total bytes read",
     }

@@ -33,14 +33,11 @@ if 1:   # Utility
         print(*msg, file=sys.stderr)
         exit(status)
     def Usage(d, status=1):
-        name = sys.argv[0]
         print(dedent(f'''
-        Usage:  {name} [options] etc.
-        Explanations...
-    
+        Usage:  {sys.argv[0]} [options] etc.
+          Explanations...
         Options:
-            -h
-                Print a manpage.
+            -h      Print a manpage
         '''))
         exit(status)
     def ParseCommandLine(d):

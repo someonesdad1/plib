@@ -4,6 +4,7 @@
         * v=flt("15 mi/hr"); v.to("mi/minute") fails
         * _sci() and other stuff need to handle inf.  flt('inf') should
           work.
+        * flt and cpx need to be hashable.
 ----------------------------------------------------------------------
 
     * Focus
@@ -11,6 +12,15 @@
         * Test that all needed constructors are written
         * Get arithmetic with units working
         * Get comprehensive unit tests for arithmetic written
+    * Add .rdp attribute to allow removal of decimal point if it is
+      trailing. 
+    * Try to duplicate fpformat's engsi and engsic formatting for flt
+      objects.
+        * A common use case is in vmdivider.py.  A calculated resistance is
+          e.g. 9k, but it gets displayed as '9.000k'.  It would be nice to
+          see it as '9k', as that's easiest to read.  Attributes are
+          needed to suppress the unit string but leave the SI prefix as a
+          suffix.
     * one = flt(1); one("1 mi/hr") does not work.  Should it?
     * Add si method or attribute to Base?  This would return the number
       in base SI units.  A use case is the gas law calculation:  the
@@ -1336,6 +1346,8 @@ class flt(Base, float):
         return self._r() if Base._flip else self._s()
     def __repr__(self): # flt
         return self._s() if Base._flip else self._r()
+    def __hash__(self): # flt
+        return hash(float(self._r()))
     def copy(self): # flt
         'Returns a copy of self'
         if self._units:
@@ -1747,6 +1759,8 @@ class cpx(Base, complex):
         return self._r() if Base._flip else self._s()
     def __repr__(self): # cpx
         return self._s() if Base._flip else self._r()
+    def __hash__(self): # cpx
+        return hash(complex(self))
     def copy(self): # cpx
         'Return a copy of self'
         if self.u:
