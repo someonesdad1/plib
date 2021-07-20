@@ -5,6 +5,7 @@
         * _sci() and other stuff need to handle inf.  flt('inf') should
           work.
         * flt and cpx need to be hashable.
+
 ----------------------------------------------------------------------
 
     * Focus
@@ -1857,7 +1858,12 @@ class cpx(Base, complex):
             return Base.sig_equal(a, b, n=n)
         elif ((self_units and not other_units) or 
             (not self_units and other_units)):
-            return False
+            if Base._promote:
+                # Use their SI values
+                a, b = cpx(complex(self)), cpx(complex(other))
+                return Base.sig_equal(a, b, n=n)
+            else:
+                return False
         else:
             b = cpx(complex(other))
             return Base.sig_equal(self, b, n=n)

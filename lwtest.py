@@ -1,52 +1,28 @@
-__doc__ = '''
-Lightweight testrunner framework
-    from lwtest import run, raises, assert_equal, Assert
- 
-    def TestExample():
-        f = lambda x: set(x)
-        # Two ways to check for expected exceptions
-        raises(TypeError, f, 1)
-        with raises(ZeroDivisionError):
-            1/0
-        # How to compare floating point numbers
-        eps = 1e-6
-        a, b = 1, 1 + eps
-        assert_equal(a, b, abstol=eps)
-        # Assert() allows you to start debugger with command line
-        # argument; type 'up' to go to the offending line.
-        Assert(a == b)
- 
-    if __name__ == "__main__":
-        failed, messages = run(globals())
- 
-    run() will find test functions and execute them; its single
-    parameter must be a dictionary containing the names and their
-    associated function objects.  Call run(verbose=True) to see which
-    functions will be executed and their execution order.
- 
-    Assert() works like assert, but if you include a command line
-    argument, you'll be dropped into the debugger when the Assert fails.
-    Type 'up' to go to the line that had the problem.
- 
-    Use the ToDoMessage() function to cause a colored message to be
-    printed to stdout to remind you of something that needs to be done.
- 
-    My motivation for generating this lightweight testrunner framework
-    was my frustration with the unittest module in conjunction with the
-    way I develop code.  I write my unit tests before or during code
-    development and often need to drop into the debugger or add a print
-    statement to see what's going wrong.  The unittest module traps
-    stdout and makes this painful to do.  I liked some of the available
-    testrunners like nose or pytest, but I decided that if I was going
-    to add a new dependency, it might as well be a dependency I could
-    tune to my own preferences.  The other major desire was to allow
-    fairly comprehensive coverage of comparing numerical results.
- 
-    If you hate my vertically-compressed code, sorry:  it's because I
-    use a folding editor that makes it trivial to see the code's
-    organization -- and vertical screen space is the most precious
-    resource.  Fully folded, the file is 24 lines.
-'''
+if 1:  # Copyright, license
+    # These "trigger strings" can be managed with trigger.py
+    #∞copyright∞# Copyright (C) 2014 Don Peterson #∞copyright∞#
+    #∞contact∞# gmail.com@someonesdad1 #∞contact∞#
+    #∞license∞#
+    #   Licensed under the Open Software License version 3.0.
+    #   See http://opensource.org/licenses/OSL-3.0.
+    #∞license∞#
+    #∞what∞#
+    # <programming> Lightweight test runner.  I use this tool to run all
+    # my python module's regression tests, as I was dissatisfied with
+    # python's unittest and I've never liked doctest.
+    #∞what∞#
+    #∞test∞# ["test/lwtest_test.py"] #∞test∞#
+    pass
+    # Derived from some nice code by Raymond Hettinger 8 May 2008:
+    # http://code.activestate.com/recipes/572194/.  Downloaded 27 Jul
+    # 2014.  The ActiveState web page appears to state Hettinger's code
+    # was released under the PSF (Python Software Foundation) License.
+    # Hettinger's code includes a search for test functions that are
+    # generators; if such functionality is important to you, you might
+    # want to add it to this file.
+    #
+    # The raises context() manager functionality was inspired by pytest's
+    # implementation (see https://docs.pytest.org/en/latest/).
 if 1:   # Enhancement ideas
     '''
     TODO:
@@ -73,32 +49,6 @@ if 1:   # Enhancement ideas
           handy for command line work, as the command line options would
           overrule the keywords).
     '''
-if 1:  # Copyright, license
-    # These "trigger strings" can be managed with trigger.py
-    #∞copyright∞# Copyright (C) 2014 Don Peterson #∞copyright∞#
-    #∞contact∞# gmail.com@someonesdad1 #∞contact∞#
-    #∞license∞#
-    #   Licensed under the Open Software License version 3.0.
-    #   See http://opensource.org/licenses/OSL-3.0.
-    #∞license∞#
-    #∞what∞#
-    # <programming> Lightweight test runner.  I use this tool to run all
-    # my python module's regression tests, as I was dissatisfied with
-    # python's unittest and I've never liked doctest.
-    #∞what∞#
-    #∞test∞# ["test/lwtest_test.py"] #∞test∞#
-    pass
-    # Derived from some nice code by Raymond Hettinger 8 May 2008:
-    # http://code.activestate.com/recipes/572194/.  Downloaded 27 Jul
-    # 2014.  The ActiveState web page appears to state Hettinger's code
-    # was released under the PSF (Python Software Foundation) License.
-    # Hettinger's code includes a search for test functions that are
-    # generators; if such functionality is important to you, you might
-    # want to add it to this file.
-    #
-    # The raises context() manager functionality was inspired by pytest's
-    # implementation (see https://docs.pytest.org/en/latest/).
-    pass
 if 1:   # Imports
     from collections.abc import Iterable
     from decimal import Decimal
@@ -125,7 +75,57 @@ if 1:   # Custom imports
         color = Dummy()
         _have_color = False
     from f import flt, cpx
+    from wrap import dedent
 if 1:   # Globals
+    __doc__ = dedent('''
+    Lightweight testrunner framework
+        from lwtest import run, raises, assert_equal, Assert
+     
+        def TestExample():
+            f = lambda x: set(x)
+            # Two ways to check for expected exceptions
+            raises(TypeError, f, 1)
+            with raises(ZeroDivisionError):
+                1/0
+            # How to compare floating point numbers
+            eps = 1e-6
+            a, b = 1, 1 + eps
+            assert_equal(a, b, abstol=eps)
+            # Assert() allows you to start debugger with command line
+            # argument; type 'up' to go to the offending line.
+            Assert(a == b)
+     
+        if __name__ == "__main__":
+            failed, messages = run(globals())
+     
+        run() will find test functions and execute them; its single
+        argument must be a dictionary containing the names and their
+        associated function objects.  Set verbose=True to see which
+        functions will be executed and their execution order.
+     
+        Assert() works like assert, but if you include a command line
+        argument, you'll be dropped into the debugger when the Assert fails.
+        Type 'up' to go to the line that had the problem.
+     
+        Use the ToDoMessage() function to cause a colored message to be
+        printed to stdout to remind you of something that needs to be done.
+     
+        My motivation for generating this lightweight testrunner framework
+        was my frustration with the unittest module in conjunction with the
+        way I develop code.  I write my unit tests before or during code
+        development and often need to drop into the debugger or add a print
+        statement to see what's going wrong.  The unittest module traps
+        stdout and makes this painful to do.  I liked some of the available
+        testrunners like nose or pytest, but I decided that if I was going
+        to add a new dependency, it might as well be a dependency I could
+        tune to my own preferences.  The other major desire was to allow
+        fairly comprehensive coverage of comparing numerical results.
+     
+        If you hate my vertically-compressed code, sorry:  it's because I
+        use a folding editor that makes it trivial to see the code's
+        organization -- and vertical screen space is the most precious
+        resource.  Fully folded, the file is 24 lines.
+    ''')
     __all__ = [
         "Assert",
         "ToDoMessage",
@@ -153,7 +153,7 @@ if 1:   # Core functionality
     def run(names_dict, **kw):
         '''Discover and run the test functions in the names_dict
         dictionary (name : function pairs).  Return (failed, s) where
-        failed is a Boolean that is True if one or more failures occurred
+        failed is an integer giving the number of failures that occurred
         and s is the information string that was sent (or would have been
         sent) to the stream.  A failure is an unhandled exception.
     
@@ -171,6 +171,7 @@ if 1:   # Core functionality
                         Default is in global variable test_function_regexp.
             reopts:     Regular expression's options. [re.I]
             stream:     Where to send output [stdout].  None = no output.
+            nomsg       If True, return only the integer 'failed'.
         '''
         # Keyword arguments
         broken = bool(kw.get("broken", False))
@@ -181,6 +182,7 @@ if 1:   # Core functionality
         reopts = kw.get("reopts", re.I)
         regexp = kw.get("regexp", test_function_regexp)
         stream = kw.get("stream", sys.stdout)
+        nomsg = kw.get("nomsg", False)
         # If broken, print error message and return
         if broken:
             # Get the name of the file that called us
@@ -247,7 +249,10 @@ if 1:   # Core functionality
                         python_version))
         if stream and not quiet:
             stream.write(output + nl)
-        return (fail_count > 0, output)
+        if nomsg:
+            return fail_count
+        else:
+            return (fail_count, output)
     def raises(ExpectedExceptions, *args, **kw):
         '''Asserts that a function call raises one of a sequence of expected
         exceptions.  ExpectedExceptions can either be a single exception

@@ -1,5 +1,5 @@
 import sys
-from lwtest import run, raises, assert_equal
+from lwtest import run, raises, assert_equal, Assert
 from decimal import Decimal
 from io import StringIO
 from pdb import set_trace as xx
@@ -148,6 +148,7 @@ def Test_flt_cpx():
         a = cpx(1+1j, units="m")
         raises(AssertionError, assert_equal, a, b)
         a.promote = 1
+        a == b
         assert_equal(a, b)
         b = 1+1j
         assert_equal(a, b)

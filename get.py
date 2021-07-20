@@ -456,7 +456,10 @@ def GetNumber(prompt_msg, **kw):
             s = inspect
         if not s:
             if default is None:
-                raise ValueError("Default value not defined")
+                if allow_none:
+                    return None
+                else:
+                    raise ValueError("Default value not defined")
             else:
                 if inspect is not None:
                     return True
