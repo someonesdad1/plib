@@ -5,9 +5,10 @@
         * _sci() and other stuff need to handle inf.  flt('inf') should
           work.
         * flt and cpx need to be hashable.
+        * cpx(274-22j, "kohms") and cpx(274-22j, "ohms") result in the same
+          number, meaning the k prefix is not recognized.
 
 ----------------------------------------------------------------------
-
     * Focus
         * fmt.py works and has tests.  Use it as the formatter.
         * Test that all needed constructors are written
@@ -42,27 +43,23 @@
         * An invariant for divmod is that 'divmod(x,y)[0]*y + x % y' be
           very close to x (in REPL, type help() and * and look at
           footnote 2 to the precedence table).
-
     * Uncertainties:  It would be nice if the uncertainties library
       could be supported, as these are needed for physical calculations
       too.  A distinct disadvantage of the uncertainties ufloat is that
       it's not a class instance.  See if:
-
         * A suitable class can be defined.
         * The umath functions can also be in scope for such objects.
         * Can the flt object take a ufloat in the constructor and also
           use it otherwise as normal?  It should support the
           construction strings of 'a+-b', 'a+/-b', 'a±b', and 'a(b)'.
-
 '''
 __doc__ = '''
-
     This module is for routine calculations with real and complex
     numbers.  The reals are of type flt (derived from float) and the
     complex numbers are of type cpx (derived from complex).
-
+ 
     The main characteristics are:
-
+ 
         * You won't see all those annoying extra digits in the numbers'
           interpolated strings.
         * You can use physical units with the numbers.
@@ -70,32 +67,33 @@ __doc__ = '''
           measurements.
         * You'll have the math/cmath functions available and can use
           them with either flt or cpx arguments where appropriate.
-
+ 
     The module's features are:
         
     * Significant figures
-
+ 
       The str() form of the numbers only shows three significant figures
       by default (the n attribute lets you choose how many figures you
       want to see).  This is handy to avoid seeing meaningless digits in
       calculations with numbers gotten from measurements.  Use repr() if
       you want to see all the digits.
-
+ 
         * The interactive python interpreter and debugger use repr() for
           the default string interpolation of values.  For these
           conditions, set the flt or cpx instance's f attribute to True.
-          This switches the output of the repr() and str() functions,
+          This flips the output of the repr() and str() functions,
           letting you see the limited figures form in the interpreter
           and debugger.
-
-        * Class variables:  if x = flt(1) and you set x.n = 6, this
-          changes the Base._digits class variable.
-
+ 
+        * Class variables:  if x = flt(1) and you set x.n = 6, this changes
+          the Base._digits class variable.  Thus, all flt and cpx objects
+          are then shown with 6 figures.
+ 
           Multiple threads:  all threads in a process see the same class
           variables.  Suppose you want two threads to use different
           number of significant figures to print out a number.  The way
           to do this is use the context manager facilities of flt:
-
+ 
             Thread1:
                 with x:
                     x.n = 6
@@ -104,16 +102,16 @@ __doc__ = '''
                 with x:
                     x.n = 2
                     print(x)
-
+ 
           The context manager uses a lock to ensure that the attribute
           can't be changed during the context's scope.  To keep delays
           to a minimum, only put necessary code in the with statement.
-
+ 
           Multiple processes:  changes to the class variables in Base
           are not seen by different processes.
-
+ 
     * Colorizing
-
+ 
         * Set the c attribute to True and ANSI escape codes will be used
           to color the output to the terminal when str() or repr() are
           called, letting you use color to identify flt and cpx values.
@@ -121,27 +119,27 @@ __doc__ = '''
           because the colors alert you to the flt and cpx number types.
           This works in typical UNIX terminals, but you'll need to
           modify the color.py module to get it to work in Windows.
-
+ 
     * Physical units
-
+ 
         * These number types can be initialized with strings
           representing common physical units.  The number's actual value
           is converted to an SI representation, but the str()
           interpolation will return the value in the original units and
           the unit string will be part of the str() value.
-
+ 
             Example:
-
+ 
             x = flt(1, "mi/hr")     # Separate units
             x = flt("1 mi/hr")      # String form
             float(x) returns 0.44704    # 1 mi/hr in m/s
             print(x) shows "1 mi/hr"
             x.s returns str(x) regardless of the f attribute
             x.r returns repr(x) regardless of the f attribute
-
+ 
         * Floating point and fractional exponents are supported.  This
           allows you to have units like 1/sqrt(Hz):  flt("1 1/Hz^(1/2)").
-
+ 
         * Some short notations are allowed in unit expressions.  A space
           character denotes multiplication, '^' means '**', and a number
           cuddled next to a unit is an exponent.  Note not every
@@ -149,7 +147,7 @@ __doc__ = '''
           there were a few problems that I didn't deem worth the effort
           to fix.  For example, 'm3.3' won't parse correctly, so write
           it with parentheses as 'm(3.3)'.
-
+ 
             * Remember this is a syntax for units.  Addition and
               subtraction are not allowed.  Thus, valid but
               perhaps confusing syntax like 'x = flt("2.2 s-2 m/kg-1")'
@@ -159,19 +157,29 @@ __doc__ = '''
               parser, so an exponent expression like m**(2.3*0.7) is
               allowed (but you can't use '+' or '-' in such
               expressions).
-
+ 
             * An exponent like m**(3/4) has the '3/4' evaluated by
               python's parser, which returns the float 0.75.  Thus,
               fractions aren't directly supported.  If Unicode would fix
               their design (see below), fractions would be easy to
               support.
+ 
+        * Complex numbers
+
+            * The cpx type is composed of two flt types and a cpx can have
+              a physical unit, which is given to both real and imaginary
+              parts (otherwise, what units should abs(z) have?).  
+
+            * Z = cpx(274-22j, "ohms") constructs an impedance.  I like to
+              change to polar form (Z.p = True) to see it displayed as
+              275.∠-4.59°. 
 
         * Unicode
-
+ 
             * Since this code is intended to be used with python 3 only,
               string interpolations use Unicode symbols to make it
               easier to read units with exponents.  
-
+ 
             * Example:  if x = flt("1 mi/hr**2"), its interpolated
               string is '1 mi/hr²'.  There is a nobreak space character
               after the 1.  
@@ -179,10 +187,10 @@ __doc__ = '''
             * Two flt/cpx attributes affect unit formatting.  Suppose the
               unit to be formatted is "kg*m/(s**2*K)".  The standard
               formatted form is 'kg·m/(s²·K)'.
-
+ 
                 * flat is a Boolean when True that results in a "flat"
                   Unicode form:  'kg·m·s⁻²·K⁻¹'.
-
+ 
                 * solidus is a Boolean when True results in the form
                   'kg·m//s²·K'.  This form is convenient for informal
                   work, but it is not algebraically correct with a
@@ -191,7 +199,7 @@ __doc__ = '''
                   notation is not allowed by SI syntax, it's still
                   convenient for informal calculations because we can
                   quickly mentally parse the numerator and denominator.
-
+ 
             * An ongoing weakness in Unicode's design (as of version 13)
               is there are no superscript characters for floating point
               radix characters ('.' or ',') nor the solidus character
@@ -203,14 +211,14 @@ __doc__ = '''
                 * If x = flt("1 mi2/hr**(2/3)"), its interpolated form is
                   'mi²/hr**0.6666666666666666'.  Fractions are evaluated
                   as floating point numbers.
-
+ 
         * Comparisons
-
+ 
             Let x = flt(3)
                 y = flt("4 mi/hr")
                 w = cpx(3+3j)
                 z = cpx("3+3j mi/hr")
-
+ 
             * x < y not supported unless promote attribute is True, in
               which case x is converted to a flt with the same units 
               as y.
@@ -222,42 +230,42 @@ __doc__ = '''
               significant figures are used for the comparison is the
               attribute is not None and not zero.  This is handy when
               comparing numbers derived from measurements.
-
+ 
         * Division with units
-
+ 
             * Suppose x = flt("2 mi/hr") and y = flt("1 km/hr").  If we
               look at x/y, the answer by inspection is 1 mi/km.  And that's
               what we get.
-
+ 
             * However, floor division isn't as obvious.  What should
               x//y be?  Here are some possibilities:
-
+ 
                 * Use SI values.  2 mi/hr is 0.894 m/s and 1 km/hr is
                   0.278 m/s.  Therefore the answer should be the
                   dimensionless number 0.894//0.278, which is 3.0.
-
+ 
                 * One mi/hr is 1.609 km/hr.  Therefore the expression is
                   [2(1.609) km/hr]//[1 km/hr], which is the
                   dimensionless number 3.218.
-
+ 
                 * Alternatively, convert the divisor to mi/hr:  then the
                   expression is [2 mi/hr]//[0.621 mi/hr] and that
                   results in the dimensionless number 3.
-
+ 
                 * Because the first and third cases are congruent,
                   that's how floor division will work with flt objects
                   with units.  It's not supported for cpx objects.
-
+ 
                 * Let y = flt("1 N/m**2").  Now x//y means we're asking
                   how many integer number of pressure values are in a
                   velocity.  This doesn't make physical sense, so x//y
                   raises an exception unless x and y are dimensionally
                   the same so that the returned value is dimensionless.
-
+ 
     * Attributes
-
+ 
       Common to both flt and cpx
-
+ 
         - c:    Turn colorizing on if True
         - eng:  Return engineering string form
         - f:    Swap str() and repr() behavior if True
@@ -274,7 +282,7 @@ __doc__ = '''
         - u:    Return unit string or None if there isn't one
         - val:  Return value in original units
         - z:    Remove trailing zeros in str() if True
-
+ 
       cpx
         - rad:   Use radians for angle in polar form
         - real:  Real part
@@ -282,25 +290,25 @@ __doc__ = '''
         - i:     Use a+bi str() form if True
         - p:     Polar form (defaults to degrees for angle measure)
         - nz:    Don't show zero components if True
-
+ 
     * Type infection model
-
+ 
         * The flt and cpx types "infect" calculations with their types.
           Thus, a binary operation op(flt, numbers.Real) or
           op(numbers.Real, flt) will always return a flt (similarly for
           cpx).  This lets you perform physical calculations whose
           results only show the number of significant figures you wish
           to see.
-
+ 
     * Attributes and context management
-
+ 
         * The flt and cpx attributes are class-wide, meaning a change on
           any instance affects all instances of that class.  A cpx is
           made up of two flt instances, so any flt attribute change may
           also affect the attributes of a cpx (for example, setting a
           flt.c attribute to True also causes colored output for cpx
           instances).
-
+ 
         * This class-wide feature can be an annoyance when you want to
           temporarily change an attribute because you may forget to
           change things back, leading to a bug or unexpected behavior
@@ -309,10 +317,10 @@ __doc__ = '''
           temporarily change the class attributes and have them reset to
           what they were before the 'with' statement after the 'with'
           block exits.  Example:
-
+ 
             >>> x = flt(1.23456)
             >>> x
-            1.23456
+            1.23456         # This is the repr() string
             >>> x.f = True  # Swap str() and repr() behavior
             >>> x
             1.23            # Show 3 significant figures, the default
@@ -323,115 +331,129 @@ __doc__ = '''
             1.235
             >>> x           # Reverts back to 3 figures after with block
             1.23
-
+ 
         * To provide thread-safe behavior, this context manager behavior
           is protected with a lock so that only one thread may change
           the class attributes at a time.  If your code uses multiple
           threads and you get a blocked thread, it's because of this
           locking mechanism to avoid race conditions.
-
+ 
             * When you want to do such things with both flt and cpx
               instances, the following won't work because the first with
               statements causes the second statement to block while
               trying to acquire the lock:
-
+ 
                   x, z = flt(something), cpx(something_else)
                   with x:
                       with z:
                           <do stuff>
-
+ 
               To handle this use case, you can manually set the
               Base._lock class variable to False.  However, you have to
               remember to manually reset it after the with block exits:
-
+ 
                   x, z = flt(something), cpx(something_else)
                   Base._lock = False
                   with x:
                       with z:
                           <do stuff>
                   Base._lock = True
-
+ 
              If you forget this, you may have a race condition in
              subsequent code.
-
+ 
     * Factory behavior
-
+ 
         * flt and cpx instances are factories to create similar number
           instances with the same units.  This lets you use them in
           loops over a physical value without having to use the promote
           facility, which I'm not a fan of because of the potential for
           bugs in code.  Here's an example:
-
+ 
               x = flt("1 mi/hr")
               # Print out a table of 1 to 10 mi/hr values
               for i in range(1, 11):
                   print(x(i))
-
+ 
         * The __call__ method of flt creates another flt object with the
           called value and the same units as the factory object.
-
+ 
         * This is also a useful pattern for a physical calculation in a
           particular set of units.  For example, if we wanted to do ideal
           gas law calculations with the units of yd3 for volume,
           lbf/furlong2 for pressure, kelvin for temperature, and mol for
           amount of material, you'd set up the factories
-
+ 
               Pf = flt("1 lbf/furlong**2")
               vf = flt("1 yd**3")
               Tf = flt("1 K")
               Nf = flt("1 mol")
               R = gas constant
-
+ 
           Then for a pressure of 2, a volume of 3, and a temperature of
           4, the amount of material is
-
+ 
               N = Nf(Pf(2)*vf(3)/(R*Tf(4)))
-
+ 
           and N will be in the units of mol.
-
+ 
     * math/cmath symbols
-
+ 
         * As a convenience, the math/cmath symbols are in scope.
-
+ 
         * A Delegator object ensures the cmath version is called for
           cpx/complex objects and the math version is called for
           flt/float objects.  For example, you can call sin(0.1) and
           sin(0.1j) and not get an exception.  Analogously, sqrt(2) and
           sqrt(-2) both work.
 
-    * promote attribute
+        * This use is distinct from standard python which divides things
+          into math and cmath libraries and comments that users may not
+          even know or care what complex numbers are.  The reason I did
+          things this way is because of the HP-42s calculators I've been
+          using since 1988 when they were introduced.  I have them set up
+          so that complex results are allowed.  I feel this is most
+          convenient for typical scientific/engineering use.
 
+        * I use the flt/cpx types in my repl.py script, which is my version
+          of a python-based console calculator.  It simulates an
+          interactive python session, but allows customization to provide
+          the classes and features you want (this is done using python's
+          code module).  
+ 
+    * promote attribute
+ 
         * Let x = flt("1 mi/hr").  An expression such as 'x + 3' is an
           error because the scalar 3 does not have physical dimensions
           compatible with x's speed units.  This expression will raise
           a TypeError exception.
-
+ 
         * For some use cases, you might want the '3' to be "promoted" to
           have the same units as x.  This can be done by setting
           x.promote to True.  Then the '3' will be changed to
           flt("3 mi/hr") and the addition will succeed.
-
+ 
           An example lets you print out a table of speeds:
-
+ 
               x = flt("1 mi/hr")
               with x:
                   x.promote = True
                   while x < 5:
                       print(x)    # Shows '1 mi/hr' for first time through
                       x += 1      # Increment in 1 mi/hr units
-
+ 
           Note the use in a 'with' statement.  This is recommended so
           that you don't accidentally leave the promote attribute True
           in later code where it might cause a bug.
-
+ 
     * sigcomp attribute
-
+ 
         * This attribute is an integer between 0 and 15 or None and is
           used to determine how to compare flt or cpx numbers for
           equality.  If not None or zero, then the numbers' values are
           rounded to the indicated number of significant figures before
           the comparison.
-
+ 
         * This attribute is handy for when dealing with numbers derived
           from physical measurements because such numbers virtually
           never have more than perhaps 12 significant figures.  This
@@ -440,100 +462,100 @@ __doc__ = '''
           differences often appear in floating point calculations.  Yet
           you would rarely have more than 4 or 5 significant figures in
           such numbers.
-
+ 
     * cpx objects can also be initialized with a unit string.  The unit
       will apply equally to both the real and imaginary parts.
-
+ 
         * Example:  An LCR meter reads an impedance of a component to be
           473 ohms with a phase angle of 34 degrees.  What are the
           impedance components?
-
+ 
               w = rect(473, 34*pi/180)      # Returns a cpx()
               Z = cpx(x, "ohm")             # Add the unit
               print(Z)
                   --> '(392.+264.j) ohm'
-
+ 
     Implementation
     --------------
-
+ 
     The flt and cpx objects are derived from flt(Base, float) and
     cpx(Base, complex), so they can be used wherever float and complex
     numbers can be used.  The Base class collects some common behavior.
     A cpx object's real and imaginary parts are flt objects.
-
+ 
     The physical units feature is aided with the help of the u.py
     module.  Over 800 common units are defined in it, but it's easy to
     add new units or changed to a different set.  It includes a
     randomization feature that helps determine when a calculation isn't
     dimensionally correct (read the docstring).
-
+ 
     The basic fixed-point formatting method is in Base.FixedFormat().
     It uses the scientific format of string interpolation f"{x:e}"
     with the proper number of decimal places to get the desired rounded
     string.  The formatting is done with Decimal objects to avoid float
     overflows or underflows.  I've testing the interpolation up to
     numbers with a million digits and things seem to work OK.
-
+ 
     There are perhaps 4000 lines of code in this module and the u.py
     module for units, so this is not a lightweight implementation of
     float and complex objects.  If you need computational speed, stick
     with float, complex, or numpy stuff.  You can use flt/cpx objects at
     the end of calculations for the presentation of results.
-
+ 
     Example
     -------
-
+ 
         from f import flt
         from u import u
-
+ 
         # Ideal gas law example calculation:  the oxygen cylinder on my
         # torch is about 7 inches in diameter and 33 inches long.  The
         # nominal internal volume is about 0.55 cubic feet per a table for
         # a "BL" type cylinder.  The gauge pressure of the tank is 1200
         # psi.  
-
+ 
         # Questions:
         #   1.  What is the mass of the remaining oxygen?
         #   2.  How many liters (at 1 atm) of oxygen remain in the tank?
-
+ 
         R = flt("8.314 J/(K*mol)")
         R.n = 3         # Show results to 3 figures
         R.f = False     # Don't interchange str() and repr()
         R.c = True      # Use ANSI escape sequences to color flt/cpx
         print(f"R = gas constant = {R}")
-
+ 
         # Gas cylinder internal volume
         V = flt("0.55 ft3")
         print(f"V = volume = {V} = {V.to('m3')} = {V.to('L')}")
-
+ 
         # This is the pressure reading from the regulator in psig
         # (i.e., gauge pressure with respect to atmospheric pressure),
         # which is corrected to an absolute pressure by adding 1 atm.  
         p = flt("1200 psi") + flt("1 atm")
         print(f"p = pressure = {p} = {p.to('MPa')}")
-
+ 
         T = flt("293 K")
         print(f"T = temperature = {T}")
-
+ 
         # Number of moles of oxygen
         n = p*V/(R*T)
         print(f"n = {n} = {n.toSI()} = {n.to('mol')}")
         print(f"Dimensions of n = {u.dim(n.u)}")
-
+ 
         # Molecular mass (standard atomic mass of oxygen is 16 and it's
         # a diatomic gas)
         molarmass = flt("32 g/mol")
         m = n*molarmass
         print(f"Mass of O₂ = {m} = {m.to('kg')}")
-
+ 
         # Since the tank volume is V, the volume Va at 1 atm is calculated
         # from p*V = pa*Va.  Thus, Va = V*p/pa.
         pa = flt("1 atm")
         Va = V*p/pa
         print(f"Volume of O₂ at 1 atm = {Va.to('liters')}")
-
+ 
     will print out
-
+ 
         R = gas constant = 8.31 J/(K·mol)
         V = volume = 0.550 ft³ = 0.0156 m³ = 15.6 L
         p = pressure = 1210. psi = 8.38 MPa
@@ -769,6 +791,19 @@ class Base(object):
             while sig:
                 out.append(sig.popleft())
         return f"{''.join(out)}"
+    def rnd(self, n=None):
+        '''Return a flt that is rounded to the current number of digits 
+        or n digits if n is not None.
+        '''
+        with self:
+            if n is not None:
+                if not ii(n, int) and not (1 <= n <= 15):
+                    raise ValueError("n must be an integer between 1 and 15")
+                self.n = n
+            if self.u is None:
+                return flt(self.s)
+            else:
+                return flt(self.s, units=self.u)
     def __add__(self, other):
         return self._do_op(other, operator.add)
     def __sub__(self, other):
@@ -1161,7 +1196,7 @@ class Base(object):
         have units).  If a and b are both flt or cpx, is assumed that
         they have dimensionally-equal units.
         '''
-        #off off off  Make sure both a and b are flt or cpx types
+        # Make sure both a and b are flt or cpx types
         if ii(a, flt):
             if ii(b, flt):
                 if not Base.eq_dim(a, b):
@@ -2033,13 +2068,16 @@ if 1:   # Get math/cmath functions into our namespace
     constants = "e pi tau".split()
     for i in constants:
         exec(f"{i} = flt({i})")
+
 if 0:
-    a=flt(1)
-    b=flt("1 A")
-    a.promote = 1
-    print("==", a == b)
-    print("!=", a != b)
+    a=flt(pi, "mi")
+    b = a.rnd(6)
+    print(type(b))
+    with b:
+        b.n = 8
+        print(b)
     exit()
+
 if __name__ == "__main__": 
     from lwtest import run, raises, assert_equal, Assert
     eps = 1e-15
