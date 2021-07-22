@@ -30,6 +30,7 @@ Paste                 Return sequence of pasted sequences
 ProgressBar           Prints a progress bar to stdout
 randq                 Simple, fast random number generator
 randr                 Random numbers on [0,1) using randq
+RandomIntegers        Return a list of random integers
 ReadVariables         Read variables from a file
 RemoveIndent          Remove spaces from beginning of multiline string
 SignificantFigures    Rounds to specified num of sig figs (returns float)
@@ -77,6 +78,7 @@ if 1:   # Imports
     import math
     import os
     import pathlib
+    import random
     import re
     import struct
     import subprocess
@@ -1272,6 +1274,34 @@ def Ampacity(dia_mm, insul_degC=60, ambient_degC=30):
         return correction*(b1*dia_mm + b2*dia_mm**2 + b3*dia_mm**3)
     else:
         raise ValueError("ambient_degC out of range")
+def RandomIntegers(n, maxint, seed=None, duplicates_OK=False):
+    '''Return a random list of n integers between 0 and maxint - 1.  Set
+    seed to be not None to generate a repeatable set of integers.  If
+    duplicates_OK is False, the integers are distinct; otherwise, the list
+    may contain duplicates.
+    '''
+    # Check parameters
+    if not isinstance(n, int) or not isinstance(maxint, int):
+        raise TypeError("n and maxint must be integers")
+    if n <= 0:
+        raise ValueError("n must be > 0")
+    if not maxint and duplicates_OK:
+        return [0]*n
+    if not duplicates_OK and n > maxint:
+        m = f"maxint ({maxint}) is too small to generate {n} distinct integers"
+        raise ValueError("maxint is too small to generate n distinct integers")
+    #
+    s = [] if duplicates_OK else set()
+    f = s.append if duplicates_OK else s.add
+    numbytes = maxint.bit_length()//8 + 1
+    if seed is not None:
+        random.seed(seed)
+    while len(s) < n:
+        if seed is None:
+            f(int.from_bytes(os.urandom(numbytes), "big") % maxint)
+        else:
+            f(random.randint(0, maxint - 1))
+    return list(s)
 if __name__ == "__main__": 
     # Missing tests for: Ignore Debug, Dispatch, GetString
     from io import StringIO
@@ -1285,7 +1315,7 @@ if __name__ == "__main__":
     from pdb import set_trace as xx
     seed(2**64)  # Make test sequences repeatable
     show_coverage = len(sys.argv) > 1
-    def TestAlmostEqual():
+    def Test_AlmostEqual():
         Assert(AlmostEqual(0, 0))
         Assert(AlmostEqual(0, 1e-353))
         Assert(AlmostEqual(1.0, 1.0))
@@ -1293,26 +1323,26 @@ if __name__ == "__main__":
         Assert(not AlmostEqual(1, 1 + 2.11e-15))
         Assert(AlmostEqual(1.0, 1.001, 1e-2))
         Assert(not AlmostEqual(1.0, 1.011, 1e-2))
-    def TestSpeedOfSound():
+    def Test_SpeedOfSound():
         Assert(AlmostEqual(SpeedOfSound(273.15), 331.4, 1e-5))
-    def TestWindChillInDegF():
+    def Test_WindChillInDegF():
         Assert(AlmostEqual(WindChillInDegF(20, 0), -21.9952, 1e-5))
-    def TestHeatIndex():
+    def Test_HeatIndex():
         Assert(AlmostEqual(HeatIndex(40, 96), 101, 7e-2))
         Assert(AlmostEqual(HeatIndex(100, 90), 132, 4e-1))
-    def TestAWG():
+    def Test_AWG():
         Assert(AlmostEqual(AWG(12), 0.0808, 8e-4))
-    def TestSignificantFigures():
+    def Test_SignificantFigures():
         Assert(AlmostEqual(float(SignificantFiguresS(1.2345e-6)), 1.23e-6))
         Assert(AlmostEqual(SignificantFigures(1.2345e-6), 1.23e-6))
-    def TestEngineering():
+    def Test_Engineering():
         m, e, s = Engineering(1.2345e-6)
         Assert(float(m) == 1.23 and e == -6 and s == "u")
         m, e, s = Engineering(1.2345e-7)
         Assert(float(m) == 123 and e == -9 and s == "n")
         m, e, s = Engineering(1.2345e-8)
         Assert(float(m) == 12.3 and e == -9 and s == "n")
-    def TestIdealGas():
+    def Test_IdealGas():
         P, v, T = 0.101325e6, 0, 300
         v = IdealGas(P, v, T)
         Assert(AlmostEqual(v, 0.85181, 1e-5))
@@ -1322,7 +1352,7 @@ if __name__ == "__main__":
         T = 0
         T = IdealGas(P, v, T)
         Assert(AlmostEqual(T, 300))
-    def TestConvertToNumber():
+    def Test_ConvertToNumber():
         Assert(ConvertToNumber("1+i") == 1+1j)
         Assert(ConvertToNumber("1+j") == 1+1j)
         Assert(ConvertToNumber("j") == 1j)
@@ -1333,7 +1363,7 @@ if __name__ == "__main__":
         Assert(ConvertToNumber("1") == 1)
         n = 10**50  # Large integer
         Assert(ConvertToNumber(str(n)) == n)
-    def TestFlatten():
+    def Test_Flatten():
         Assert(list(Flatten([])) == [])
         r = list(range(11))
         Assert(list(Flatten(r)) == r)
@@ -1344,7 +1374,7 @@ if __name__ == "__main__":
         Assert(eng(3456.78, digits=4) == "3.457e3")
         # kkg is a illegal SI unit, but the code allows it
         Assert(eng(3456.78, unit="kg") == "3.46 kkg")
-    def TestIsIterable():
+    def Test_IsIterable():
         Assert(IsIterable("") and IsIterable([]) and IsIterable(()) )
         Assert(IsIterable({}) and IsIterable(set()))
         Assert(not IsIterable(3))
@@ -1369,7 +1399,7 @@ if __name__ == "__main__":
         Assert(L == L1 + [18])
         L = h(s, unique=True)
         Assert(L == L1)
-    def TestTempConvert():
+    def Test_TempConvert():
         k, r = 273.15, 459.67
         Assert(AlmostEqual(TempConvert(0, "c", "f"), 32))
         Assert(AlmostEqual(TempConvert(0, "c", "k"), k))
@@ -1379,7 +1409,7 @@ if __name__ == "__main__":
         Assert(AlmostEqual(TempConvert(212, "f", "f"), 212))
         Assert(AlmostEqual(TempConvert(212, "f", "k"), k + 100))
         Assert(AlmostEqual(TempConvert(212, "f", "r"), r + 212))
-    def TestIsTextFile():
+    def Test_IsTextFile():
         s = StringIO("Some text")
         Assert(IsTextFile(s))
         s = StringIO("Some text\xf8")
@@ -1402,13 +1432,13 @@ if __name__ == "__main__":
         Assert(randr(0) == (1013904223 % m)/float(m))
     util_simlink = "c:/cygwin/pylib/test/util_simlink.py"
     translated_util_simlink = "../util.py"
-    def TestIsCygwinSymlink():
+    def Test_IsCygwinSymlink():
         if sys.platform == "win32":
             # For this to work, create a cygwin simlink named util_simlink.py
             # in /pylib/test that points to /pylib/util.py.
             Assert(IsCygwinSymlink(util_simlink))
             Assert(not IsCygwinSymlink("c:/cygwin/home/Don/bin/data/notes.txt"))
-    def TestTranslateSymlink():
+    def Test_TranslateSymlink():
         if sys.platform == "win32":
             # For this to work, create a cygwin simlink named util_simlink.py
             # in /pylib/test that points to /pylib/util.py.
@@ -1424,7 +1454,7 @@ if __name__ == "__main__":
         got = grouper(range(30), even_odd, sum)
         expected = {0: 90, 1: 75}
         Assert(got == expected)
-    def TestCfg():
+    def Test_Cfg():
         lines = dedent('''
             from math import sqrt
             a = 44
@@ -1440,7 +1470,7 @@ if __name__ == "__main__":
         Assert(d["c"] == d["a"]*d["sqrt"](2))
         Assert(d["d"] == 22)
         Assert(str(d["X"])[:11] == "<function X")
-    def TestRemoveIndent():
+    def Test_RemoveIndent():
         s = '''
         This is a test
             Second line
@@ -1452,19 +1482,19 @@ if __name__ == "__main__":
         Assert(lines[2] == "    Second line")
         Assert(lines[3] == "  Third line")
         Assert(lines[4] == "")
-    def TestSingleton():
+    def Test_Singleton():
         class A(object): pass
         a, b = A(), A()
         Assert(hash(a) != hash(b))
         class A(Singleton): pass
         a, b = A(), A()
         Assert(hash(a) == hash(b))
-    def TestBatch():
+    def Test_Batch():
         s = "0123456789"
         r = ("012", "345", "678", "9")
         for i, b in enumerate(Batch(s, 3)):
             Assert(r[i] == ''.join(list(b)))
-    def TestGroupByN():
+    def Test_GroupByN():
         n, m = 5, 3
         s = range(n)
         t = ((0, 1, 2),)
@@ -1472,7 +1502,7 @@ if __name__ == "__main__":
         t = ((0, 1, 2), (3, 4, None))
         u = tuple(GroupByN(s, m, fill=True))
         Assert(t == tuple(GroupByN(s, m, fill=True)))
-    def TestIsConvexPolygon():
+    def Test_IsConvexPolygon():
         p = ((0, 0), (1, 0), (1, 1), (0, 1))
         Assert(IsConvexPolygon(*p))
         p = ((0, 0), (1, 0), (1, 1), (0.5, 0.5))
@@ -1488,16 +1518,16 @@ if __name__ == "__main__":
         Assert(IsConvexPolygon(*p))
         p = ((0, 0), (1, 0), (1, 1), (0.5, 0.5 - d))    # Concave
         Assert(not IsConvexPolygon(*p))
-    def TestStringToNumbers():
+    def Test_StringToNumbers():
         s = "4j 3/5 6. 7"
         Assert(StringToNumbers(s) == (4j, Fraction(3, 5), 6.0, 7))
-    def TestPaste():
+    def Test_Paste():
         a = ["a", "b", 1]
         b = ["d", "e"]
         c = ["f"]
         s = Paste(a, b, c)
         Assert(s == ['a\td\tf', 'b\te\t', '1\t\t'])
-    def TestItemCount():
+    def Test_ItemCount():
         f, F = ItemCount, Fraction
         raises(Exception, f, 1)
         raises(Exception, f, 1.0)
@@ -1542,7 +1572,7 @@ if __name__ == "__main__":
         Assert(f(a, n=2) == [(3, 3), (2, 2)])
         Assert(f(a, n=3) == [(3, 3), (2, 2), (1, 1)])
         Assert(f(a, n=4) == [(3, 3), (2, 2), (1, 1)])
-    def TestReadVariables():
+    def Test_ReadVariables():
         code = dedent('''
         a = 3
         b = 4
@@ -1550,7 +1580,7 @@ if __name__ == "__main__":
         s = StringIO(code)
         d = ReadVariables(s)
         Assert(d == {"a": 3, "b": 4, "c": "5"})
-    def TestVisualCount():
+    def Test_VisualCount():
         s = (1, 1, 1, 2, "a", "a", (1, 2))
         got = "\n".join(VisualCount(s, width=20))
         expected = dedent('''
@@ -1559,7 +1589,7 @@ if __name__ == "__main__":
         2      ****
         (1, 2) ****''')
         Assert(got == expected)
-    def TestWalker():
+    def Test_Walker():
         dir, file = "walker", "a"
         if 0:   # Old method using os.path
             # Construct a dummy directory structure
@@ -1614,7 +1644,6 @@ if __name__ == "__main__":
             # Remove what we set up
             path.unlink()
             p.rmdir()
-
     def Test_BraceExpansion():
         # Simple
         s = ' '.join(BraceExpansion("a{d,c,b}e"))
@@ -1654,6 +1683,30 @@ if __name__ == "__main__":
         # Test a derated value
         i = Ampacity(dia_mm, insul_degC=90, ambient_degC=21)
         Assert(i == 1.04*258.78428183511033)
+    def Test_RandomIntegers():
+        # Random, no duplicates
+        n = 10
+        maxint = 10     # This means we must get all integers from 0 to 9
+        s = RandomIntegers(n, maxint, seed=None, duplicates_OK=False)
+        Assert(s == list(range(n)))
+        # Random, no duplicates, larger set
+        s = RandomIntegers(n, 1000, seed=None, duplicates_OK=False)
+        t = RandomIntegers(n, 1000, seed=None, duplicates_OK=False)
+        Assert(s != t)
+        # maxint is too small --> generates exception
+        with raises(ValueError):
+            s = RandomIntegers(n, 9, seed=None, duplicates_OK=False)
+        # maxint == 0 OK if duplicates allowed
+        maxint = 0
+        s = RandomIntegers(n, maxint, seed=None, duplicates_OK=True)
+        Assert(s == [0]*n)
+        # Repeatable sequence
+        s = RandomIntegers(n, 1000, seed=0, duplicates_OK=False)
+        t = RandomIntegers(n, 1000, seed=0, duplicates_OK=False)
+        Assert(s == t)
+        s = RandomIntegers(n, 1000, seed=0, duplicates_OK=True)
+        t = RandomIntegers(n, 1000, seed=0, duplicates_OK=True)
+        Assert(s == t)
     def Test_check_names():
         'Make sure the docstring list of names is up-to-date'
         if not check_names:
@@ -1692,5 +1745,4 @@ if __name__ == "__main__":
                     break
         for name in delete:
             mnames.discard(name)
-    exit(run(globals(), halt=1)[0])
-
+    exit(run(globals(), halt=0, verbose=1)[0])
