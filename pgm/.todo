@@ -18,26 +18,33 @@
 
 * Construct /plib/density.py for common density values.
 
-* dpstr.Tokenize(s):  split a string into a sequence S such that
-  ''.join(S) == s.  The keyword wordchars is a set that contains the 
-  characters that should NOT be split on.  wordchars would default to 
-  string.ascii_letters.  A better default would be "un latin |grep -i
-  letter" and limited to letters < 0x17f (this is 237 letters).
+* dpstr.py
 
-  This means a sentence like "Must be one of:  exp, log." needs to be
-  parsed as
+    * Tokenize(s):  split a string into a sequence S such that ''.join(S)
+      == s.  The keyword wordchars is a set that contains the characters
+      that should NOT be split on.  wordchars would default to
+      string.ascii_letters.  A better default would be "un latin |grep -i
+      letter" and limited to letters < 0x17f (this is 237 letters).
 
-    x = ["Must", " ", "be", " ", "one", "of", ":", "  ", "exp", "."]
+      This means a sentence like "Must be one of:  exp, log." needs to be
+      parsed as
 
-  such that ''.join(x) reproduces the original string.  This function
-  should be in dpstr.py.  Numbers in names could be an issue.
+        x = ["Must", " ", "be", " ", "one", "of", ":", "  ", "exp", "."]
+ 
+      such that ''.join(x) reproduces the original string.  This function
+      should be in dpstr.py.  Numbers in names could be an issue.
 
-  First check if char is in string.ascii_letters because this will be
-  fast.  Then check for the following set:
+      First check if char is in string.ascii_letters because this will be
+      fast.  Then check for the following set:
 
     žŽżŻźŹŸŷŶŵŴųŲűŰůŮŭŬūŪũŨŧŦťŤţŢšŠşŞŝŜśŚřŘŗŖŕŔőŐŏŎōŌŋŊŉňŇņŅńŃłŁŀĿľĽļĻĺĹ
     ĸķĶĵĴıİįĮĭĬīĪĩĨħĦĥĤģĢġĠğĞĝĜěĚęĘėĖĕĔēĒđĐďĎčČċĊĉĈćĆąĄăĂāĀÿþýüûúùøöõôóò
     ñðïîíìëêéèçæåäãâáàßÞÝÜÛÚÙØÖÕÔÓÒÑÐÏÎÍÌËÊÉÈÇÆÅÄÃÂÁÀ
+
+    * Add a TokenSplit(token, seq) function that will split a token into a
+      list of subtokens.  If seq is a string, then it will be split on 
+      any of the characters in the string.  Otherwise, str.split() will
+      have to be called with each sequence item.
 
 * wrap.py:  
     - Add a Block object that is like wrap, but justifies both the right

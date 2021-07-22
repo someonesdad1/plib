@@ -79,7 +79,7 @@ def Usage(status=1):
       than the other methods.
     Options:
       -b n      Fill with byte value n
-      -r        Fill with random bytes (uses random module)
+      -r        Fill with pseudorandom bytes (uses random module)
       -s seed   Seed for the -r random number generator
       -u        Same as -r except os.urandom() is used
     '''))

@@ -81,11 +81,11 @@ def GetText(thing, enc=None):
     else:
         raise TypeError("Type of 'thing' not recognized")
     return s
-def GetLines(thing, enc=None, regex=None):
+def GetLines(thing, enc=None, ignore_regexes=None):
     '''Return a list of lines that are in thing.  See GetText for
     details on thing.
  
-    regex:  must be None or a sequence of strings that are regular
+    ignore_regexes:  must be None or a sequence of strings that are regular
     expressions.  Any line that matches any of the regular expressions
     is ignored.
  
@@ -102,13 +102,14 @@ def GetLines(thing, enc=None, regex=None):
         lines ['Line 1', '    Line 2', '']
     '''
     def Filter(line):
-        if regex is not None:
-            for r in regex:
+        if ignore_regexes is not None:
+            for r in ignore_regexes:
                 if re.search(r, line):
                     return False     # Don't keep this line
         return True     # Keep this line
-    if regex is not None and (ii(regex, str) or not ii(regex, Iterable)):
-        raise TypeError("regex must be an iterable")
+    if (ignore_regexes is not None and (ii(ignore_regexes, str) or 
+        not ii(ignore_regexes, Iterable))):
+        raise TypeError("ignore_regexes must be an iterable")
     lines = GetText(thing, enc=enc).split("\n")
     lines = list(filter(Filter, lines))
     return lines
@@ -145,13 +146,13 @@ def GetNumberedLines(thing, enc=None):
     '''
     lines = GetText(thing, enc=enc).split("\n")
     return tuple((i + 1, j) for i, j in enumerate(lines))
-def GetWords(thing, sep=None, enc=None, regex=None):
+def GetWords(thing, sep=None, enc=None, ignore_regexes=None):
     '''Return a list of words separated by the string sep from the thing
     (see details for GetLines).  If sep is None, then the data are split
     on whitespace; otherwise, the newlines are replaced by sep, then the
     data are split on sep.  
     '''
-    lines = GetLines(thing, regex=regex)
+    lines = GetLines(thing, ignore_regexes=ignore_regexes)
     if sep is not None:
         s = sep.join(lines)
         return sep.join(lines).split(sep)
@@ -827,7 +828,7 @@ if __name__ == "__main__":
         Line 1
           Line 2''')
         r = ("^ *#",)
-        lines = GetLines(s, regex=r)
+        lines = GetLines(s, ignore_regexes=r)
         Assert(lines == ['Line 1', '  Line 2'])
     def TestGetLine():
         # Test with stream
