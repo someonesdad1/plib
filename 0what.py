@@ -167,7 +167,6 @@ if 1:   # Core functionality
                 p = item.p
                 print(f"{p!s}")
                 print(wrap(item.what))
-
 if __name__ == "__main__": 
     d = {}      # Options dictionary
     import color as C

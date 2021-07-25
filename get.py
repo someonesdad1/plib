@@ -96,7 +96,7 @@ def GetLines(thing, enc=None, ignore_regexes=None):
             Line 2
         """
         r = ["^ *#"]
-        lines = GetLines(s, regex=r)
+        lines = GetLines(s, ignore_regexes=r)
         print(f"lines {list(lines)}")
     outputs 
         lines ['Line 1', '    Line 2', '']

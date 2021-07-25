@@ -46,6 +46,19 @@ and look at the code, then get back to my working spot with one key
 press.  It's very efficient.  To jump between two different sections,
 insert blank lines at each position.
 
+# Environment
+
+I work in a cygwin environment on a Windows computer, so most of this
+stuff is organized around a POSIX environment.  In particular, I spend
+most of my day in bash shell windows, using an editor and running python
+scripts.  Many of the scripts use the ANSI escape sequences provided by
+the color.py module.  I originally developed this on a Linux box, then
+adapted it to work under cygwin.  You may have to fiddle with things to
+get them to work under a Windows shell or other shell, but it's probably
+worth it, as the color coding of things is so useful.
+
+The scripts are also heavily biased towards POSIX-style paths.
+
 # Tools
 
 ## 0what.py
