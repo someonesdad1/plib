@@ -1,140 +1,143 @@
 '''
 Contains functions to set screen color for console applications
-Use sys.stdout.isatty() to determine if you should emit escape codes.
+    Use sys.stdout.isatty() to determine if you should emit escape codes.
 
-TODO:
+    TODO:
 
-    * The whole thing should be rewritten to be a single Color object
-      that lets you define the styles to use.  Colors would be C.lred,
-      C.yellow, etc., where C would be a default convenience instance.
-      Functions would be C.fg(), etc.  Different instantiations could
-      have different styles.
+        * PrintMatch() should allow regexp to be a string too.  If it's in the
+        target string, then colorize its locations too.  Note a regexp will
+        be of type re.Pattern.
 
-      Of course, this will mean rewriting a lot of existing code.
+        * The whole thing should be rewritten to be a single Color object
+        that lets you define the styles to use.  Colors would be C.lred,
+        C.yellow, etc., where C would be a default convenience instance.
+        Functions would be C.fg(), etc.  Different instantiations could
+        have different styles.
 
-    * There should be a function that returns the style or color's
-      escape sequence.
+        Of course, this will mean rewriting a lot of existing code.
 
-    * There should be a global variable that, if set, causes no escape
-      codes if stdout is not a TTY (it is set by default).  This makes
-      it easy for apps to support color without having escape codes in
-      files or pipes.
+        * There should be a function that returns the style or color's
+        escape sequence.
 
-    * A cprint() function should allow the following syntax:
+        * There should be a global variable that, if set, causes no escape
+        codes if stdout is not a TTY (it is set by default).  This makes
+        it easy for apps to support color without having escape codes in
+        files or pipes.
 
-        import color as C                                      
-        C.cprint(C.lred, "Red text, ", C.normal, " plain text")
+        * A cprint() function should allow the following syntax:
 
-      which lets you easily get colored text with one line.  The C.lred
-      object would be a Style object and you could easily define other
-      styles.  
+            import color as C                                      
+            C.cprint(C.lred, "Red text, ", C.normal, " plain text")
 
-      Question:  would it make sense to make the Style objects derive
-      from int so that older code wouldn't need to be changed?  One way
-      to do this would be to make the object's str() method return the 
-      desired escape code, but make fg() etc. know to get the equivalent
-      integer.  Then no cprint() function is needed, as print() works as
-      desired.
- 
-----------------------------------------------------------------------
+        which lets you easily get colored text with one line.  The C.lred
+        object would be a Style object and you could easily define other
+        styles.  
 
-There are 16 colors given by names:  black, blue, green, cyan, red,
-magenta, brown, white, gray, lblue, lgreen, lcyan, lred, lmagenta,
-yellow, and lwhite.
- 
-The primary function is fg(), which can be used in the following ways
-to set the foreground and background colors:
- 
-    fg(white)
-        Sets the foreground color to white and leaves the background
-        unchanged.
-    fg(white, black)
-        Sets the foreground color to white and the background to
-        black.
-    fg((white, black)) or fg([white, black])
-        Same as previous call.
-    fg(color_byte)
-        Sets the foreground and background colors by using the number
-        color_byte.  The low nibble gives the foreground color and the
-        high nibble gives the background color
- 
-The normal() function sets the foreground and background colors back
-to their normal values.  Call with arguments the same as fg() to
-define the normal foreground and background colors.  Set the
-default_colors global variable to the default colors you use.
- 
-A ColorContext instance is useful as a context manager to ensure that 
-you have normal colors enabled when your script exits.  See the example
-at the end of the file.
- 
-These functions should work on both Windows and an environment that
-uses ANSI escape sequences (e.g., an xterm).
- 
-PrintMatch()
-PrintMatches()
- 
-    These two functions can be used to print color annotations of regular
-    expression matches in strings being printed to the console.  I find
-    PrintMatch() very helpful when developing a complicated regular
-    expression.  Here's an example of how I'd use it in a python script:
- 
-    r = re.compile(r"<your regular expression here", re.S)
- 
-    # Colorize where the regexp r matches in the file
-    s = open(file).read()
-    print("-"*70)
-    PrintMatch(s, r)
-    print("-"*70)
-    print()
-    # Show the group matches
-    mo = r.search(s)
-    if mo:
-        print("Groups:")
-        for i, g in enumerate(mo.groups()):
-            print("[{}]:  {}\n".format(i, g))
+        Question:  would it make sense to make the Style objects derive
+        from int so that older code wouldn't need to be changed?  One way
+        to do this would be to make the object's str() method return the 
+        desired escape code, but make fg() etc. know to get the equivalent
+        integer.  Then no cprint() function is needed, as print() works as
+        desired.
+    
+    ----------------------------------------------------------------------
 
-The c() function decorates integers and floats to make the
-three-digit-groups easier to read.
- 
-The Decorate() object is a convenience; an instance of it will return the
-escape strings to set the console colors.  An example use would be
- 
-    dec = Decorate()
-    print("Hello", dec.fg(dec.lred), " there", dec.normal(), sep="")
- 
-which would print the word "there" in light red.
- 
-The code for Windows console colors was taken from Andre Burgaud's work at
-http://www.burgaud.com/bring-colors-to-the-windows-console-with-python/,
-downloaded Wed 28 May 2014.
- 
----------------------------------------------------------------------------
-Some ANSI control codes for attributes that have an effect in xterms:
-    Esc[0m  Attributes off
-    Esc[1m  Bold
-    Esc[3m  Italics
-    Esc[4m  Underline
-    Esc[5m  Blinking
-    Esc[7m  Reverse video
- 
----------------------------------------------------------------------------
-If this module is not available, put the following in your code so that
-things will still work.
- 
-# Try to import the color.py module; if not available, the script
-# should still work (you'll just get uncolored output).
-try:
-    import color
-    _have_color = True
-except ImportError:
-    # Make a dummy color object to swallow function calls
-    class Dummy:
-        def fg(self, *p, **kw): pass
-        def normal(self, *p, **kw): pass
-        def __getattr__(self, name): pass
-    color = Dummy()
-    _have_color = False
+    There are 16 colors given by names:  black, blue, green, cyan, red,
+    magenta, brown, white, gray, lblue, lgreen, lcyan, lred, lmagenta,
+    yellow, and lwhite.
+    
+    The primary function is fg(), which can be used in the following ways
+    to set the foreground and background colors:
+    
+        fg(white)
+            Sets the foreground color to white and leaves the background
+            unchanged.
+        fg(white, black)
+            Sets the foreground color to white and the background to
+            black.
+        fg((white, black)) or fg([white, black])
+            Same as previous call.
+        fg(color_byte)
+            Sets the foreground and background colors by using the number
+            color_byte.  The low nibble gives the foreground color and the
+            high nibble gives the background color
+    
+    The normal() function sets the foreground and background colors back
+    to their normal values.  Call with arguments the same as fg() to
+    define the normal foreground and background colors.  Set the
+    default_colors global variable to the default colors you use.
+    
+    A ColorContext instance is useful as a context manager to ensure that 
+    you have normal colors enabled when your script exits.  See the example
+    at the end of the file.
+    
+    These functions should work on both Windows and an environment that
+    uses ANSI escape sequences (e.g., an xterm).
+    
+    PrintMatch()
+    PrintMatches()
+    
+        These two functions can be used to print color annotations of regular
+        expression matches in strings being printed to the console.  I find
+        PrintMatch() very helpful when developing a complicated regular
+        expression.  Here's an example of how I'd use it in a python script:
+    
+        r = re.compile(r"<your regular expression here", re.S)
+    
+        # Colorize where the regexp r matches in the file
+        s = open(file).read()
+        print("-"*70)
+        PrintMatch(s, r)
+        print("-"*70)
+        print()
+        # Show the group matches
+        mo = r.search(s)
+        if mo:
+            print("Groups:")
+            for i, g in enumerate(mo.groups()):
+                print("[{}]:  {}\n".format(i, g))
 
+    The c() function decorates integers and floats to make the
+    three-digit-groups easier to read.
+    
+    The Decorate() object is a convenience; an instance of it will return the
+    escape strings to set the console colors.  An example use would be
+    
+        dec = Decorate()
+        print("Hello", dec.fg(dec.lred), " there", dec.normal(), sep="")
+    
+    which would print the word "there" in light red.
+    
+    The code for Windows console colors was taken from Andre Burgaud's work at
+    http://www.burgaud.com/bring-colors-to-the-windows-console-with-python/,
+    downloaded Wed 28 May 2014.
+    
+    ---------------------------------------------------------------------------
+    Some ANSI control codes for attributes that have an effect in xterms:
+        Esc[0m  Attributes off
+        Esc[1m  Bold
+        Esc[3m  Italics
+        Esc[4m  Underline
+        Esc[5m  Blinking
+        Esc[7m  Reverse video
+    
+    ---------------------------------------------------------------------------
+    If this module is not available, put the following in your code so that
+    things will still work.
+    
+    # Try to import the color.py module; if not available, the script
+    # should still work (you'll just get uncolored output).
+    try:
+        import color
+        _have_color = True
+    except ImportError:
+        # Make a dummy color object to swallow function calls
+        class Dummy:
+            def fg(self, *p, **kw): pass
+            def normal(self, *p, **kw): pass
+            def __getattr__(self, name): pass
+        color = Dummy()
+        _have_color = False
 '''
 if 1:  # Copyright, license
     # These "trigger strings" can be managed with trigger.py
@@ -154,6 +157,7 @@ if 1:   # Imports
     from decimal import Decimal, localcontext
     import locale
     import os
+    import re
     import sys
     from collections import deque
     from collections.abc import Iterable
@@ -253,7 +257,6 @@ if 1:   # Global variables
     # Handle to call into Windows DLL
     STD_OUTPUT_HANDLE = -11
     _hstdout = windll.kernel32.GetStdHandle(STD_OUTPUT_HANDLE) if _win else None
-
 if 1:   # Utility
     def _is_iterable(x):
         '''Return True if x is an iterable that isn't a string.
@@ -355,7 +358,6 @@ def SetStyle(style, **kw):
         return "\x1b[%sm" % st
     else:
         print("\x1b[%sm" % st, end="")
-
 class Decorate(object):
     '''A convenience object that will return escape code strings.
     '''
@@ -384,7 +386,6 @@ class Decorate(object):
         return normal(*p, **self.kw)
     def SetStyle(self, style):
         return SetStyle(style, **self.kw)
-
 class Style(object):
     '''Defines foreground and background colors and a particular text
     style (such as bold, italic, etc.).  The class is intended to be a
@@ -410,7 +411,6 @@ class Style(object):
         '''Print the normal style escape codes to stdout.
         '''
         normal()
-
 class ColorContext:
     '''Context manager to ensure the screen colors are reset to desired
     values when the manager exits.  Here's an example use:
@@ -436,15 +436,25 @@ class ColorContext:
         if self.background is None:
             b = default_colors[1]
         fg(f, b)
-
 def PrintMatch(text, regexp, style=Style(yellow, black)):
     '''Print the indicated text in normal colors if there are no
     matches to the regular expression.  If there are matches, print each
     of them in the indicated style.  text can be a multiline string.
+ 
+    regexp can also be a plain text string that occurs in text and it will
+    also printed via highlighting by converting it to a regexp.
     '''
-    def out(s):
-        print(s, end="")
-    mo = regexp.search(text)
+    if isinstance(regexp, str):
+        # Need to escape magic characters
+        magic = set("*+^$.?{}[]|()")
+        t, q = deque(regexp), deque()
+        while t:
+            c = t.popleft()
+            q.append("\\" + c if c in magic else c)
+        r = re.compile(''.join(q)) 
+    else:
+        r = regexp
+    mo = r.search(text)
     if not mo:
         normal()
         print(text)
@@ -452,17 +462,16 @@ def PrintMatch(text, regexp, style=Style(yellow, black)):
     text = mo.string
     while text:
         style.clear()
-        out(text[:mo.start()])      # Print non-matching start stuff
+        print(text[:mo.start()], end="")      # Print non-matching start stuff
         style.set()
-        out(text[mo.start():mo.end()])  # Print the match in color
+        print(text[mo.start():mo.end()], end="")  # Print the match in color
         style.clear()
         # Use the remaining substring
         text = text[mo.end():]
-        mo = regexp.search(text)
+        mo = r.search(text)
         if not mo:
-            out(text + "\n")
+            print(text)
             return
-
 def PrintMatches(line, regexps):
     '''Given a line of text, search for regular expression matches
     given in the sequence of regexps, which contain pairs of regular
@@ -492,16 +501,14 @@ def PrintMatches(line, regexps):
         out(line[start:end])    # Print match in chosen style
         style.clear()
         line = line[end:]       # Use the remaining substring
-
-Colors._DecodeColor = _DecodeColor
-Colors._GetNibbles = _GetNibbles
-Colors._cfg = _cfg
-Colors._cbg = _cbg
-
+if 1:
+    Colors._DecodeColor = _DecodeColor
+    Colors._GetNibbles = _GetNibbles
+    Colors._cfg = _cfg
+    Colors._cbg = _cbg
 def norm():
     'Return the escape string for normal text'
     return normal(s=True)
-
 class C:
     '''This is a convenience instance that holds the escape strings for
     the colors.  The color names are abbreviated with three letters
@@ -525,7 +532,6 @@ class C:
     lyel = fg(yellow, s=1)
     lwht = fg(lwhite, s=1)
     norm = normal(s=1)
-
 if 1:   # Dictionary for colorizing numbers
     # Groups of three digits are colored with the following colors
     clrdict = {
@@ -541,7 +547,6 @@ if 1:   # Dictionary for colorizing numbers
         9: C.yel, 
         10: fg(0x4f, s=1), 
     }
-
 def c(x, colors=clrdict):
     'Return a colorized string for the number x'
     S = set("1234567890")
@@ -614,7 +619,6 @@ def c(x, colors=clrdict):
             l = Colorize(ld)
             r = Colorize(rd, rev=True)
             return sgn + ''.join(l) + dp + ''.join(r)
-
 if __name__ == "__main__": 
     from lwtest import run, Assert
     from wrap import dedent
@@ -754,53 +758,53 @@ if __name__ == "__main__":
                 else:
                     raise AssertionError
         expected_lines = '''
-[1;33;40m                              color.py Text Colors                             
-[1;36;40mBackground -->  black   blue    green   cyan    red    magenta  brown   white
-[0;37;40mblack (0)      [0;30;40mwxyz 00[0;37;40m [0;30;44mwxyz 10[0;37;40m [0;30;42mwxyz 20[0;37;40m [0;30;46mwxyz 30[0;37;40m [0;30;41mwxyz 40[0;37;40m [0;30;45mwxyz 50[0;37;40m [0;30;43mwxyz 60[0;37;40m [0;30;47mwxyz 70[0;37;40m [0;37;40m
-[0;37;40mblue (1)       [0;34;40mwxyz 01[0;37;40m [0;34;44mwxyz 11[0;37;40m [0;34;42mwxyz 21[0;37;40m [0;34;46mwxyz 31[0;37;40m [0;34;41mwxyz 41[0;37;40m [0;34;45mwxyz 51[0;37;40m [0;34;43mwxyz 61[0;37;40m [0;34;47mwxyz 71[0;37;40m [0;37;40m
-[0;37;40mgreen (2)      [0;32;40mwxyz 02[0;37;40m [0;32;44mwxyz 12[0;37;40m [0;32;42mwxyz 22[0;37;40m [0;32;46mwxyz 32[0;37;40m [0;32;41mwxyz 42[0;37;40m [0;32;45mwxyz 52[0;37;40m [0;32;43mwxyz 62[0;37;40m [0;32;47mwxyz 72[0;37;40m [0;37;40m
-[0;37;40mcyan (3)       [0;36;40mwxyz 03[0;37;40m [0;36;44mwxyz 13[0;37;40m [0;36;42mwxyz 23[0;37;40m [0;36;46mwxyz 33[0;37;40m [0;36;41mwxyz 43[0;37;40m [0;36;45mwxyz 53[0;37;40m [0;36;43mwxyz 63[0;37;40m [0;36;47mwxyz 73[0;37;40m [0;37;40m
-[0;37;40mred (4)        [0;31;40mwxyz 04[0;37;40m [0;31;44mwxyz 14[0;37;40m [0;31;42mwxyz 24[0;37;40m [0;31;46mwxyz 34[0;37;40m [0;31;41mwxyz 44[0;37;40m [0;31;45mwxyz 54[0;37;40m [0;31;43mwxyz 64[0;37;40m [0;31;47mwxyz 74[0;37;40m [0;37;40m
-[0;37;40mmagenta (5)    [0;35;40mwxyz 05[0;37;40m [0;35;44mwxyz 15[0;37;40m [0;35;42mwxyz 25[0;37;40m [0;35;46mwxyz 35[0;37;40m [0;35;41mwxyz 45[0;37;40m [0;35;45mwxyz 55[0;37;40m [0;35;43mwxyz 65[0;37;40m [0;35;47mwxyz 75[0;37;40m [0;37;40m
-[0;37;40mbrown (6)      [0;33;40mwxyz 06[0;37;40m [0;33;44mwxyz 16[0;37;40m [0;33;42mwxyz 26[0;37;40m [0;33;46mwxyz 36[0;37;40m [0;33;41mwxyz 46[0;37;40m [0;33;45mwxyz 56[0;37;40m [0;33;43mwxyz 66[0;37;40m [0;33;47mwxyz 76[0;37;40m [0;37;40m
-[0;37;40mwhite (7)      [0;37;40mwxyz 07[0;37;40m [0;37;44mwxyz 17[0;37;40m [0;37;42mwxyz 27[0;37;40m [0;37;46mwxyz 37[0;37;40m [0;37;41mwxyz 47[0;37;40m [0;37;45mwxyz 57[0;37;40m [0;37;43mwxyz 67[0;37;40m [0;37;47mwxyz 77[0;37;40m [0;37;40m
-[0;37;40mgray (8)       [1;30;40mwxyz 08[0;37;40m [1;30;44mwxyz 18[0;37;40m [1;30;42mwxyz 28[0;37;40m [1;30;46mwxyz 38[0;37;40m [1;30;41mwxyz 48[0;37;40m [1;30;45mwxyz 58[0;37;40m [1;30;43mwxyz 68[0;37;40m [1;30;47mwxyz 78[0;37;40m [0;37;40m
-[0;37;40mlblue (9)      [1;34;40mwxyz 09[0;37;40m [1;34;44mwxyz 19[0;37;40m [1;34;42mwxyz 29[0;37;40m [1;34;46mwxyz 39[0;37;40m [1;34;41mwxyz 49[0;37;40m [1;34;45mwxyz 59[0;37;40m [1;34;43mwxyz 69[0;37;40m [1;34;47mwxyz 79[0;37;40m [0;37;40m
-[0;37;40mlgreen (10)    [1;32;40mwxyz 0a[0;37;40m [1;32;44mwxyz 1a[0;37;40m [1;32;42mwxyz 2a[0;37;40m [1;32;46mwxyz 3a[0;37;40m [1;32;41mwxyz 4a[0;37;40m [1;32;45mwxyz 5a[0;37;40m [1;32;43mwxyz 6a[0;37;40m [1;32;47mwxyz 7a[0;37;40m [0;37;40m
-[0;37;40mlcyan (11)     [1;36;40mwxyz 0b[0;37;40m [1;36;44mwxyz 1b[0;37;40m [1;36;42mwxyz 2b[0;37;40m [1;36;46mwxyz 3b[0;37;40m [1;36;41mwxyz 4b[0;37;40m [1;36;45mwxyz 5b[0;37;40m [1;36;43mwxyz 6b[0;37;40m [1;36;47mwxyz 7b[0;37;40m [0;37;40m
-[0;37;40mlred (12)      [1;31;40mwxyz 0c[0;37;40m [1;31;44mwxyz 1c[0;37;40m [1;31;42mwxyz 2c[0;37;40m [1;31;46mwxyz 3c[0;37;40m [1;31;41mwxyz 4c[0;37;40m [1;31;45mwxyz 5c[0;37;40m [1;31;43mwxyz 6c[0;37;40m [1;31;47mwxyz 7c[0;37;40m [0;37;40m
-[0;37;40mlmagenta (13)  [1;35;40mwxyz 0d[0;37;40m [1;35;44mwxyz 1d[0;37;40m [1;35;42mwxyz 2d[0;37;40m [1;35;46mwxyz 3d[0;37;40m [1;35;41mwxyz 4d[0;37;40m [1;35;45mwxyz 5d[0;37;40m [1;35;43mwxyz 6d[0;37;40m [1;35;47mwxyz 7d[0;37;40m [0;37;40m
-[0;37;40myellow (14)    [1;33;40mwxyz 0e[0;37;40m [1;33;44mwxyz 1e[0;37;40m [1;33;42mwxyz 2e[0;37;40m [1;33;46mwxyz 3e[0;37;40m [1;33;41mwxyz 4e[0;37;40m [1;33;45mwxyz 5e[0;37;40m [1;33;43mwxyz 6e[0;37;40m [1;33;47mwxyz 7e[0;37;40m [0;37;40m
-[0;37;40mlwhite (15)    [1;37;40mwxyz 0f[0;37;40m [1;37;44mwxyz 1f[0;37;40m [1;37;42mwxyz 2f[0;37;40m [1;37;46mwxyz 3f[0;37;40m [1;37;41mwxyz 4f[0;37;40m [1;37;45mwxyz 5f[0;37;40m [1;37;43mwxyz 6f[0;37;40m [1;37;47mwxyz 7f[0;37;40m [0;37;40m
-[1;36;40m
-Background -->  gray    lblue   lgreen  lcyan   lred  lmagenta yellow  lWhite
-[0;37;40mblack (0)      [0;30;40mwxyz 80[0;37;40m [0;30;44mwxyz 90[0;37;40m [0;30;42mwxyz a0[0;37;40m [0;30;46mwxyz b0[0;37;40m [0;30;41mwxyz c0[0;37;40m [0;30;45mwxyz d0[0;37;40m [0;30;43mwxyz e0[0;37;40m [0;30;47mwxyz f0[0;37;40m [0;37;40m
-[0;37;40mblue (1)       [0;34;40mwxyz 81[0;37;40m [0;34;44mwxyz 91[0;37;40m [0;34;42mwxyz a1[0;37;40m [0;34;46mwxyz b1[0;37;40m [0;34;41mwxyz c1[0;37;40m [0;34;45mwxyz d1[0;37;40m [0;34;43mwxyz e1[0;37;40m [0;34;47mwxyz f1[0;37;40m [0;37;40m
-[0;37;40mgreen (2)      [0;32;40mwxyz 82[0;37;40m [0;32;44mwxyz 92[0;37;40m [0;32;42mwxyz a2[0;37;40m [0;32;46mwxyz b2[0;37;40m [0;32;41mwxyz c2[0;37;40m [0;32;45mwxyz d2[0;37;40m [0;32;43mwxyz e2[0;37;40m [0;32;47mwxyz f2[0;37;40m [0;37;40m
-[0;37;40mcyan (3)       [0;36;40mwxyz 83[0;37;40m [0;36;44mwxyz 93[0;37;40m [0;36;42mwxyz a3[0;37;40m [0;36;46mwxyz b3[0;37;40m [0;36;41mwxyz c3[0;37;40m [0;36;45mwxyz d3[0;37;40m [0;36;43mwxyz e3[0;37;40m [0;36;47mwxyz f3[0;37;40m [0;37;40m
-[0;37;40mred (4)        [0;31;40mwxyz 84[0;37;40m [0;31;44mwxyz 94[0;37;40m [0;31;42mwxyz a4[0;37;40m [0;31;46mwxyz b4[0;37;40m [0;31;41mwxyz c4[0;37;40m [0;31;45mwxyz d4[0;37;40m [0;31;43mwxyz e4[0;37;40m [0;31;47mwxyz f4[0;37;40m [0;37;40m
-[0;37;40mmagenta (5)    [0;35;40mwxyz 85[0;37;40m [0;35;44mwxyz 95[0;37;40m [0;35;42mwxyz a5[0;37;40m [0;35;46mwxyz b5[0;37;40m [0;35;41mwxyz c5[0;37;40m [0;35;45mwxyz d5[0;37;40m [0;35;43mwxyz e5[0;37;40m [0;35;47mwxyz f5[0;37;40m [0;37;40m
-[0;37;40mbrown (6)      [0;33;40mwxyz 86[0;37;40m [0;33;44mwxyz 96[0;37;40m [0;33;42mwxyz a6[0;37;40m [0;33;46mwxyz b6[0;37;40m [0;33;41mwxyz c6[0;37;40m [0;33;45mwxyz d6[0;37;40m [0;33;43mwxyz e6[0;37;40m [0;33;47mwxyz f6[0;37;40m [0;37;40m
-[0;37;40mwhite (7)      [0;37;40mwxyz 87[0;37;40m [0;37;44mwxyz 97[0;37;40m [0;37;42mwxyz a7[0;37;40m [0;37;46mwxyz b7[0;37;40m [0;37;41mwxyz c7[0;37;40m [0;37;45mwxyz d7[0;37;40m [0;37;43mwxyz e7[0;37;40m [0;37;47mwxyz f7[0;37;40m [0;37;40m
-[0;37;40mgray (8)       [1;30;40mwxyz 88[0;37;40m [1;30;44mwxyz 98[0;37;40m [1;30;42mwxyz a8[0;37;40m [1;30;46mwxyz b8[0;37;40m [1;30;41mwxyz c8[0;37;40m [1;30;45mwxyz d8[0;37;40m [1;30;43mwxyz e8[0;37;40m [1;30;47mwxyz f8[0;37;40m [0;37;40m
-[0;37;40mlblue (9)      [1;34;40mwxyz 89[0;37;40m [1;34;44mwxyz 99[0;37;40m [1;34;42mwxyz a9[0;37;40m [1;34;46mwxyz b9[0;37;40m [1;34;41mwxyz c9[0;37;40m [1;34;45mwxyz d9[0;37;40m [1;34;43mwxyz e9[0;37;40m [1;34;47mwxyz f9[0;37;40m [0;37;40m
-[0;37;40mlgreen (10)    [1;32;40mwxyz 8a[0;37;40m [1;32;44mwxyz 9a[0;37;40m [1;32;42mwxyz aa[0;37;40m [1;32;46mwxyz ba[0;37;40m [1;32;41mwxyz ca[0;37;40m [1;32;45mwxyz da[0;37;40m [1;32;43mwxyz ea[0;37;40m [1;32;47mwxyz fa[0;37;40m [0;37;40m
-[0;37;40mlcyan (11)     [1;36;40mwxyz 8b[0;37;40m [1;36;44mwxyz 9b[0;37;40m [1;36;42mwxyz ab[0;37;40m [1;36;46mwxyz bb[0;37;40m [1;36;41mwxyz cb[0;37;40m [1;36;45mwxyz db[0;37;40m [1;36;43mwxyz eb[0;37;40m [1;36;47mwxyz fb[0;37;40m [0;37;40m
-[0;37;40mlred (12)      [1;31;40mwxyz 8c[0;37;40m [1;31;44mwxyz 9c[0;37;40m [1;31;42mwxyz ac[0;37;40m [1;31;46mwxyz bc[0;37;40m [1;31;41mwxyz cc[0;37;40m [1;31;45mwxyz dc[0;37;40m [1;31;43mwxyz ec[0;37;40m [1;31;47mwxyz fc[0;37;40m [0;37;40m
-[0;37;40mlmagenta (13)  [1;35;40mwxyz 8d[0;37;40m [1;35;44mwxyz 9d[0;37;40m [1;35;42mwxyz ad[0;37;40m [1;35;46mwxyz bd[0;37;40m [1;35;41mwxyz cd[0;37;40m [1;35;45mwxyz dd[0;37;40m [1;35;43mwxyz ed[0;37;40m [1;35;47mwxyz fd[0;37;40m [0;37;40m
-[0;37;40myellow (14)    [1;33;40mwxyz 8e[0;37;40m [1;33;44mwxyz 9e[0;37;40m [1;33;42mwxyz ae[0;37;40m [1;33;46mwxyz be[0;37;40m [1;33;41mwxyz ce[0;37;40m [1;33;45mwxyz de[0;37;40m [1;33;43mwxyz ee[0;37;40m [1;33;47mwxyz fe[0;37;40m [0;37;40m
-[0;37;40mlwhite (15)    [1;37;40mwxyz 8f[0;37;40m [1;37;44mwxyz 9f[0;37;40m [1;37;42mwxyz af[0;37;40m [1;37;46mwxyz bf[0;37;40m [1;37;41mwxyz cf[0;37;40m [1;37;45mwxyz df[0;37;40m [1;37;43mwxyz ef[0;37;40m [1;37;47mwxyz ff[0;37;40m [0;37;40m
-Styles:  [0mnormal[0m [1mbold[0m [3mitalic[0m [4munderline[0m [5mblink[0m [7mreverse[0m [0;37;40m
-Demo of ColorContext object:
-[1;33;40m[3m  In yellow italics
-  [1;34;40m[4mIn blue underlined
-[0;37;40m  [1;31;40m[7mIn red reverse
-[0;37;40m[0;37;40m  Back to normal
-Demo of yellow(1) call to get background yellow in f-string: [0;30;43mHi there[0;37;40m
-[1;35;40mC convenience escape code strings:
-[0;32;40m  blk  blu  grn  cyn  red  mag  yel  wht gry
-[1;32;40m      lblu lgrn lcyn lred lmag lyel lwht norm[0;37;40m
-'''[1:].split("\n")
+        [1;33;40m                              color.py Text Colors                             
+        [1;36;40mBackground -->  black   blue    green   cyan    red    magenta  brown   white
+        [0;37;40mblack (0)      [0;30;40mwxyz 00[0;37;40m [0;30;44mwxyz 10[0;37;40m [0;30;42mwxyz 20[0;37;40m [0;30;46mwxyz 30[0;37;40m [0;30;41mwxyz 40[0;37;40m [0;30;45mwxyz 50[0;37;40m [0;30;43mwxyz 60[0;37;40m [0;30;47mwxyz 70[0;37;40m [0;37;40m
+        [0;37;40mblue (1)       [0;34;40mwxyz 01[0;37;40m [0;34;44mwxyz 11[0;37;40m [0;34;42mwxyz 21[0;37;40m [0;34;46mwxyz 31[0;37;40m [0;34;41mwxyz 41[0;37;40m [0;34;45mwxyz 51[0;37;40m [0;34;43mwxyz 61[0;37;40m [0;34;47mwxyz 71[0;37;40m [0;37;40m
+        [0;37;40mgreen (2)      [0;32;40mwxyz 02[0;37;40m [0;32;44mwxyz 12[0;37;40m [0;32;42mwxyz 22[0;37;40m [0;32;46mwxyz 32[0;37;40m [0;32;41mwxyz 42[0;37;40m [0;32;45mwxyz 52[0;37;40m [0;32;43mwxyz 62[0;37;40m [0;32;47mwxyz 72[0;37;40m [0;37;40m
+        [0;37;40mcyan (3)       [0;36;40mwxyz 03[0;37;40m [0;36;44mwxyz 13[0;37;40m [0;36;42mwxyz 23[0;37;40m [0;36;46mwxyz 33[0;37;40m [0;36;41mwxyz 43[0;37;40m [0;36;45mwxyz 53[0;37;40m [0;36;43mwxyz 63[0;37;40m [0;36;47mwxyz 73[0;37;40m [0;37;40m
+        [0;37;40mred (4)        [0;31;40mwxyz 04[0;37;40m [0;31;44mwxyz 14[0;37;40m [0;31;42mwxyz 24[0;37;40m [0;31;46mwxyz 34[0;37;40m [0;31;41mwxyz 44[0;37;40m [0;31;45mwxyz 54[0;37;40m [0;31;43mwxyz 64[0;37;40m [0;31;47mwxyz 74[0;37;40m [0;37;40m
+        [0;37;40mmagenta (5)    [0;35;40mwxyz 05[0;37;40m [0;35;44mwxyz 15[0;37;40m [0;35;42mwxyz 25[0;37;40m [0;35;46mwxyz 35[0;37;40m [0;35;41mwxyz 45[0;37;40m [0;35;45mwxyz 55[0;37;40m [0;35;43mwxyz 65[0;37;40m [0;35;47mwxyz 75[0;37;40m [0;37;40m
+        [0;37;40mbrown (6)      [0;33;40mwxyz 06[0;37;40m [0;33;44mwxyz 16[0;37;40m [0;33;42mwxyz 26[0;37;40m [0;33;46mwxyz 36[0;37;40m [0;33;41mwxyz 46[0;37;40m [0;33;45mwxyz 56[0;37;40m [0;33;43mwxyz 66[0;37;40m [0;33;47mwxyz 76[0;37;40m [0;37;40m
+        [0;37;40mwhite (7)      [0;37;40mwxyz 07[0;37;40m [0;37;44mwxyz 17[0;37;40m [0;37;42mwxyz 27[0;37;40m [0;37;46mwxyz 37[0;37;40m [0;37;41mwxyz 47[0;37;40m [0;37;45mwxyz 57[0;37;40m [0;37;43mwxyz 67[0;37;40m [0;37;47mwxyz 77[0;37;40m [0;37;40m
+        [0;37;40mgray (8)       [1;30;40mwxyz 08[0;37;40m [1;30;44mwxyz 18[0;37;40m [1;30;42mwxyz 28[0;37;40m [1;30;46mwxyz 38[0;37;40m [1;30;41mwxyz 48[0;37;40m [1;30;45mwxyz 58[0;37;40m [1;30;43mwxyz 68[0;37;40m [1;30;47mwxyz 78[0;37;40m [0;37;40m
+        [0;37;40mlblue (9)      [1;34;40mwxyz 09[0;37;40m [1;34;44mwxyz 19[0;37;40m [1;34;42mwxyz 29[0;37;40m [1;34;46mwxyz 39[0;37;40m [1;34;41mwxyz 49[0;37;40m [1;34;45mwxyz 59[0;37;40m [1;34;43mwxyz 69[0;37;40m [1;34;47mwxyz 79[0;37;40m [0;37;40m
+        [0;37;40mlgreen (10)    [1;32;40mwxyz 0a[0;37;40m [1;32;44mwxyz 1a[0;37;40m [1;32;42mwxyz 2a[0;37;40m [1;32;46mwxyz 3a[0;37;40m [1;32;41mwxyz 4a[0;37;40m [1;32;45mwxyz 5a[0;37;40m [1;32;43mwxyz 6a[0;37;40m [1;32;47mwxyz 7a[0;37;40m [0;37;40m
+        [0;37;40mlcyan (11)     [1;36;40mwxyz 0b[0;37;40m [1;36;44mwxyz 1b[0;37;40m [1;36;42mwxyz 2b[0;37;40m [1;36;46mwxyz 3b[0;37;40m [1;36;41mwxyz 4b[0;37;40m [1;36;45mwxyz 5b[0;37;40m [1;36;43mwxyz 6b[0;37;40m [1;36;47mwxyz 7b[0;37;40m [0;37;40m
+        [0;37;40mlred (12)      [1;31;40mwxyz 0c[0;37;40m [1;31;44mwxyz 1c[0;37;40m [1;31;42mwxyz 2c[0;37;40m [1;31;46mwxyz 3c[0;37;40m [1;31;41mwxyz 4c[0;37;40m [1;31;45mwxyz 5c[0;37;40m [1;31;43mwxyz 6c[0;37;40m [1;31;47mwxyz 7c[0;37;40m [0;37;40m
+        [0;37;40mlmagenta (13)  [1;35;40mwxyz 0d[0;37;40m [1;35;44mwxyz 1d[0;37;40m [1;35;42mwxyz 2d[0;37;40m [1;35;46mwxyz 3d[0;37;40m [1;35;41mwxyz 4d[0;37;40m [1;35;45mwxyz 5d[0;37;40m [1;35;43mwxyz 6d[0;37;40m [1;35;47mwxyz 7d[0;37;40m [0;37;40m
+        [0;37;40myellow (14)    [1;33;40mwxyz 0e[0;37;40m [1;33;44mwxyz 1e[0;37;40m [1;33;42mwxyz 2e[0;37;40m [1;33;46mwxyz 3e[0;37;40m [1;33;41mwxyz 4e[0;37;40m [1;33;45mwxyz 5e[0;37;40m [1;33;43mwxyz 6e[0;37;40m [1;33;47mwxyz 7e[0;37;40m [0;37;40m
+        [0;37;40mlwhite (15)    [1;37;40mwxyz 0f[0;37;40m [1;37;44mwxyz 1f[0;37;40m [1;37;42mwxyz 2f[0;37;40m [1;37;46mwxyz 3f[0;37;40m [1;37;41mwxyz 4f[0;37;40m [1;37;45mwxyz 5f[0;37;40m [1;37;43mwxyz 6f[0;37;40m [1;37;47mwxyz 7f[0;37;40m [0;37;40m
+        [1;36;40m
+        Background -->  gray    lblue   lgreen  lcyan   lred  lmagenta yellow  lWhite
+        [0;37;40mblack (0)      [0;30;40mwxyz 80[0;37;40m [0;30;44mwxyz 90[0;37;40m [0;30;42mwxyz a0[0;37;40m [0;30;46mwxyz b0[0;37;40m [0;30;41mwxyz c0[0;37;40m [0;30;45mwxyz d0[0;37;40m [0;30;43mwxyz e0[0;37;40m [0;30;47mwxyz f0[0;37;40m [0;37;40m
+        [0;37;40mblue (1)       [0;34;40mwxyz 81[0;37;40m [0;34;44mwxyz 91[0;37;40m [0;34;42mwxyz a1[0;37;40m [0;34;46mwxyz b1[0;37;40m [0;34;41mwxyz c1[0;37;40m [0;34;45mwxyz d1[0;37;40m [0;34;43mwxyz e1[0;37;40m [0;34;47mwxyz f1[0;37;40m [0;37;40m
+        [0;37;40mgreen (2)      [0;32;40mwxyz 82[0;37;40m [0;32;44mwxyz 92[0;37;40m [0;32;42mwxyz a2[0;37;40m [0;32;46mwxyz b2[0;37;40m [0;32;41mwxyz c2[0;37;40m [0;32;45mwxyz d2[0;37;40m [0;32;43mwxyz e2[0;37;40m [0;32;47mwxyz f2[0;37;40m [0;37;40m
+        [0;37;40mcyan (3)       [0;36;40mwxyz 83[0;37;40m [0;36;44mwxyz 93[0;37;40m [0;36;42mwxyz a3[0;37;40m [0;36;46mwxyz b3[0;37;40m [0;36;41mwxyz c3[0;37;40m [0;36;45mwxyz d3[0;37;40m [0;36;43mwxyz e3[0;37;40m [0;36;47mwxyz f3[0;37;40m [0;37;40m
+        [0;37;40mred (4)        [0;31;40mwxyz 84[0;37;40m [0;31;44mwxyz 94[0;37;40m [0;31;42mwxyz a4[0;37;40m [0;31;46mwxyz b4[0;37;40m [0;31;41mwxyz c4[0;37;40m [0;31;45mwxyz d4[0;37;40m [0;31;43mwxyz e4[0;37;40m [0;31;47mwxyz f4[0;37;40m [0;37;40m
+        [0;37;40mmagenta (5)    [0;35;40mwxyz 85[0;37;40m [0;35;44mwxyz 95[0;37;40m [0;35;42mwxyz a5[0;37;40m [0;35;46mwxyz b5[0;37;40m [0;35;41mwxyz c5[0;37;40m [0;35;45mwxyz d5[0;37;40m [0;35;43mwxyz e5[0;37;40m [0;35;47mwxyz f5[0;37;40m [0;37;40m
+        [0;37;40mbrown (6)      [0;33;40mwxyz 86[0;37;40m [0;33;44mwxyz 96[0;37;40m [0;33;42mwxyz a6[0;37;40m [0;33;46mwxyz b6[0;37;40m [0;33;41mwxyz c6[0;37;40m [0;33;45mwxyz d6[0;37;40m [0;33;43mwxyz e6[0;37;40m [0;33;47mwxyz f6[0;37;40m [0;37;40m
+        [0;37;40mwhite (7)      [0;37;40mwxyz 87[0;37;40m [0;37;44mwxyz 97[0;37;40m [0;37;42mwxyz a7[0;37;40m [0;37;46mwxyz b7[0;37;40m [0;37;41mwxyz c7[0;37;40m [0;37;45mwxyz d7[0;37;40m [0;37;43mwxyz e7[0;37;40m [0;37;47mwxyz f7[0;37;40m [0;37;40m
+        [0;37;40mgray (8)       [1;30;40mwxyz 88[0;37;40m [1;30;44mwxyz 98[0;37;40m [1;30;42mwxyz a8[0;37;40m [1;30;46mwxyz b8[0;37;40m [1;30;41mwxyz c8[0;37;40m [1;30;45mwxyz d8[0;37;40m [1;30;43mwxyz e8[0;37;40m [1;30;47mwxyz f8[0;37;40m [0;37;40m
+        [0;37;40mlblue (9)      [1;34;40mwxyz 89[0;37;40m [1;34;44mwxyz 99[0;37;40m [1;34;42mwxyz a9[0;37;40m [1;34;46mwxyz b9[0;37;40m [1;34;41mwxyz c9[0;37;40m [1;34;45mwxyz d9[0;37;40m [1;34;43mwxyz e9[0;37;40m [1;34;47mwxyz f9[0;37;40m [0;37;40m
+        [0;37;40mlgreen (10)    [1;32;40mwxyz 8a[0;37;40m [1;32;44mwxyz 9a[0;37;40m [1;32;42mwxyz aa[0;37;40m [1;32;46mwxyz ba[0;37;40m [1;32;41mwxyz ca[0;37;40m [1;32;45mwxyz da[0;37;40m [1;32;43mwxyz ea[0;37;40m [1;32;47mwxyz fa[0;37;40m [0;37;40m
+        [0;37;40mlcyan (11)     [1;36;40mwxyz 8b[0;37;40m [1;36;44mwxyz 9b[0;37;40m [1;36;42mwxyz ab[0;37;40m [1;36;46mwxyz bb[0;37;40m [1;36;41mwxyz cb[0;37;40m [1;36;45mwxyz db[0;37;40m [1;36;43mwxyz eb[0;37;40m [1;36;47mwxyz fb[0;37;40m [0;37;40m
+        [0;37;40mlred (12)      [1;31;40mwxyz 8c[0;37;40m [1;31;44mwxyz 9c[0;37;40m [1;31;42mwxyz ac[0;37;40m [1;31;46mwxyz bc[0;37;40m [1;31;41mwxyz cc[0;37;40m [1;31;45mwxyz dc[0;37;40m [1;31;43mwxyz ec[0;37;40m [1;31;47mwxyz fc[0;37;40m [0;37;40m
+        [0;37;40mlmagenta (13)  [1;35;40mwxyz 8d[0;37;40m [1;35;44mwxyz 9d[0;37;40m [1;35;42mwxyz ad[0;37;40m [1;35;46mwxyz bd[0;37;40m [1;35;41mwxyz cd[0;37;40m [1;35;45mwxyz dd[0;37;40m [1;35;43mwxyz ed[0;37;40m [1;35;47mwxyz fd[0;37;40m [0;37;40m
+        [0;37;40myellow (14)    [1;33;40mwxyz 8e[0;37;40m [1;33;44mwxyz 9e[0;37;40m [1;33;42mwxyz ae[0;37;40m [1;33;46mwxyz be[0;37;40m [1;33;41mwxyz ce[0;37;40m [1;33;45mwxyz de[0;37;40m [1;33;43mwxyz ee[0;37;40m [1;33;47mwxyz fe[0;37;40m [0;37;40m
+        [0;37;40mlwhite (15)    [1;37;40mwxyz 8f[0;37;40m [1;37;44mwxyz 9f[0;37;40m [1;37;42mwxyz af[0;37;40m [1;37;46mwxyz bf[0;37;40m [1;37;41mwxyz cf[0;37;40m [1;37;45mwxyz df[0;37;40m [1;37;43mwxyz ef[0;37;40m [1;37;47mwxyz ff[0;37;40m [0;37;40m
+        Styles:  [0mnormal[0m [1mbold[0m [3mitalic[0m [4munderline[0m [5mblink[0m [7mreverse[0m [0;37;40m
+        Demo of ColorContext object:
+        [1;33;40m[3m  In yellow italics
+          [1;34;40m[4mIn blue underlined
+        [0;37;40m  [1;31;40m[7mIn red reverse
+        [0;37;40m[0;37;40m  Back to normal
+        Demo of yellow(1) call to get background yellow in f-string: [0;30;43mHi there[0;37;40m
+        [1;35;40mC convenience escape code strings:
+        [0;32;40m  blk  blu  grn  cyn  red  mag  yel  wht gry
+        [1;32;40m      lblu lgrn lcyn lred lmag lyel lwht norm[0;37;40m
+        '''[1:].split("\n")
         def TestAsScript():
             # Run the color.py module as a script and capture its
             # output.  Compare the results to the above string (remove
@@ -815,11 +819,12 @@ Demo of yellow(1) call to get background yellow in f-string: [0;30;43mHi there
             del expected_lines[0]
             Assert(len(lines) == len(expected_lines))
             for i in range(len(lines)):
-                if lines[i] != expected_lines[i]:
+                E = expected_lines[i][8:]    # Remove first 8 space characters
+                if lines[i] != E:
                     print(f"Difference in line {i + 1} (second line is expected):")
                     print(repr(lines[i]))
-                    print(repr(expected_lines[i]))
-                    Assert(lines[i] == expected_lines[i])
+                    print(repr(E))
+                    Assert(lines[i] == E)
         def TestCanReturnAsString():
             # fg
             got = fg(lred, s=True)

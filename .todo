@@ -51,7 +51,12 @@
       and left margins.
     - Add a fold function that folds a string into a width, breaking where
       necessary.
-
+    - For wrap(), it would be nice to have a simple syntax for lines that
+      should be left verbatim.  Maybe a leading '.' would do it.  This lets
+      you e.g. have header lines in a manpage like 
+        .This is a section title
+        .-----------------------
+      and they get left alone.
 * f.py
     * Should color.c() be used in f.py?
     * Sometimes you want to perform calculations regardless of units.
