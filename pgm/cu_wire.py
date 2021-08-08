@@ -701,10 +701,18 @@ def Usage(status=1):
     name = sys.argv[0]
     print(dedent(f'''
     Usage:  {name} [options] [n_awg m_awg]
-      With no arguments, print a copper wire table.  With arguments, print
-      out how many wires of n_awg are needed to be equivalent in area to
-      m_awg wires.
+      With no arguments, print a copper wire table.  With arguments, print out
+      how many wires of n_awg are needed to be equivalent in area to m_awg
+      wires.
+     
+      A handy number to memorize is that 10 gauge copper wire has a resistance
+      of about 1 mΩ/ft at 38 °C.  A 1 foot long piece of this wire can make 
+      a 1 mΩ shunt that can e.g. measure 50 A readily, but of course it will
+      be substantially temperature-dependent.  Still, it's fine for quick
+      estimates.
     
+      Wire calculations are assumed to be for commercial copper with a
+      resistivity of 17.241e-9 Ω·m at 20 °C
     Options:
         -a  Print detailed ampacity data.
         -C  Do not print in color
@@ -799,7 +807,7 @@ def PrintTable(n, m, step=1):
     for n in range(n, m, step):
         PrintLine(n)
 def PrintLine(awg):
-    fp.digits(4)
+    fp.digits(3)
     if awg in popular_sizes and isatty and not no_color:
         C.fg(*popular_sizes[awg])
     Print(f"{Size(awg):>4s}  ")

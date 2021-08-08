@@ -1,3 +1,15 @@
+* Move root.py to /plib.
+
+* fold.py:  This will change text files to have one space on blank lines or
+  no spaces on blank lines.  Need to intelligently process python files?
+  The default behavior would be to print each line with 2 lines of context
+  on either side.  Then if you like what you see, use -x to make the
+  changes.  The intent is to get a source file where { and } can be used to
+  navigate to sections you're working on.
+
+* frac (de.py):  Colorize eighths and sixteenths and show close matches in
+  mm.
+
 * get.GetNumber:  make flt the default number type.
 
 * Add <category> to all what trigger strings.
@@ -47,16 +59,32 @@
       have to be called with each sequence item.
 
 * wrap.py:  
-    - Add a Block object that is like wrap, but justifies both the right
+    * Look at syntax from ts.py (/pylib/pgm/ts/ts.py).  I seem to have
+      designed it as a module, so it might be the tool of choice.
+    * This really needs to be a simple text formatting language.  In
+      particular, it could be simply a Wrap object with a __call__ method
+      that gives you the functionality desired with keyword arguments.
+        * A dedent keyword would remove common whitespace from lines if
+          True; otherwise, it would be an int that tells how many spaces to
+          remove from each line.
+        * The common use case would be for Usage/manpage stuff in python
+          scripts, so tune syntax to this case.
+        * f-strings are used most frequently, but also need to handle case
+          with older '{}'.format(**locals()) type stuff.
+        * Need simple syntax for common tasks.  Maybe leading '.' is all
+          that's needed within a text string. '.^' to center, '.>' to
+          right-justify, '.' to leave untouched, etc.  
+    * Add a Block object that is like wrap, but justifies both the right
       and left margins.
-    - Add a fold function that folds a string into a width, breaking where
+    * Add a fold function that folds a string into a width, breaking where
       necessary.
-    - For wrap(), it would be nice to have a simple syntax for lines that
+    * For wrap(), it would be nice to have a simple syntax for lines that
       should be left verbatim.  Maybe a leading '.' would do it.  This lets
       you e.g. have header lines in a manpage like 
         .This is a section title
         .-----------------------
       and they get left alone.
+
 * f.py
     * Should color.c() be used in f.py?
     * Sometimes you want to perform calculations regardless of units.

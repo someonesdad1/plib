@@ -1,0 +1,141 @@
+<HTML>
+<HEAD>
+<TITLE>Scrambling Letters Within a Word</TITLE>
+</HEAD>
+<BODY>
+
+<h1>Scrambling Letters Within a Word</h1>
+Don Peterson, someonesdad1 at gmail.com, 6 Oct 2009<br><br>
+
+A number of years ago someone sent me a paragraph similar to the following:
+
+<pre>
+    I cdnuolt blveiee taht I cluod aulaclty  uesdnatnrd waht I was rdanieg.
+    The phaonmneal pweor of the hmuan mnid, aoccdrnig  to a rscheearch at
+    Cmabrigde Uinervtisy, it deosn't mttaer in waht oredr the ltteers in a wrod
+    are, the olny iprmoatnt tihng is taht the frist and lsat ltteer be in the
+    rghit pclae. The rset can be a taotl mses and you can sitll raed it wouthit
+    a porbelm.   Tihs is bcuseae the huamn mnid deos not raed ervey lteter by
+    istlef, but the wrod as a wlohe. Amzanig huh? yaeh and I awlyas tghuhot
+    slpeling was ipmorantt. 
+</pre>
+
+This statement intrigued me so much that I wondered if it worked in
+general.  I wrote a program to scramble the internal letters of each word.
+I tried it on numerous pieces of text and found that it was generally true
+for sentences composed of short words.  However, longer words were more
+problematic to comprehension.  And while there is quite a bit of redundancy
+in English and one can often guess the meaning of a word from context
+without unscrambling the letters, often a scrambled noun or verb with lots
+of letters would not be decipherable, leading to the sentence not being
+understood.  No doubt the ability to read such scrambled text also depends 
+on your ability to unscramble anagrams.<p>
+
+You can play with the script yourself.  Here are the results of running it
+on various pieces of text:<p>
+
+This first paragraph contains simple words:
+<pre>
+    I saw a masegse a few yeras ago taht said taht one cuold mix up the
+    letrets in between the fisrt and lsat lertets in the wrdos and the
+    maegsse wloud sitll mkae sense.  I wrtoe a poythn siprct to tset tihs
+    idea on voarius text.
+</pre>
+Here is a paragraph with longer words:
+<pre>
+    I tinhk the eessnias of raiedng scuh slrcbmead taxetul
+    mateiral denepds hlihgy on the avearge legnth of wdros
+    in ecah snnetcee.  Tihs sconed praragaph has illnnatoitney
+    longer wdors; the sisocpuin is taht it will be hedrar
+    to dhepceir.  What's yuor onpoiin?
+</pre>
+Here's a chunk of text on a blog:
+<pre>
+    In fcat, deispte what the blgeogrs theeeslmvs bivelee, the frtuue of
+    lrtieary ctruule does not lie with bolgs -- or at lseat, it suhldon't.
+    The bolg from, that mneicslaly of oeabtnrvosis, onniipos, and likns, is not
+    well-suteid to witirng auobt lartiurete, and it is no cdiniconcee taht
+    trhee is no lareitry bggoelr wtih the aceuidne and inuefncle of the top
+    polaiictl brgegols. For one thnig, leturarite is not nwes the way pcoiilts
+    is news -- it doesn't ofefr mtpilule evetns erevy day for the bgegolr to
+    cmonemt on. For athenor, beziitsed cnaromtemy, whcih is all the bolg form
+    awolls, is next to uelsess when it cemos to tkliang aubot bkoos. Ltrrieay
+    ccsiritim is olny worth hanvig if it at laset svitres to be liatrrey in its
+    own rihgt, wtih a spoce, citopelxmy, and aroithtuy taht no bggleor I know
+    even wtnas to acivhee. The only ufusel prat of msot book bgols, in fcat,
+    are the links to lnog-from esyass and aictrels by psaeroifosnl werrtis,
+    ulsualy from pnirt janrluos. 
+</pre>
+Here's an abstract of a technical paper:
+<pre>
+    5-Oxo-6,8,11,14-eeteitaiasncoorc aicd (5-oxo-ETE) is a rtlcneey
+    dveicorsed mtaebliote of aiidhcoranc acid that aacevttis haumn
+    npleoiuthrs by a mhecasnim iennnepdedt of the rotcpeer for lienruteoke
+    B4 (LTB4). The obvcjeetis of tihs study wree to idtnfeiy the moajr
+    mibeaotelts of 5-oxo-ETE in nhlroutpies and to cmraope the biilgooc
+    aviieitcts of 5-oxo-ETE wtih thsoe of its matieeotbls and oehtr 5-
+    onixascdiooeos.  Npuoirlehts rldaipy cneeotvrd 5-oxo-ETE to its ogema-
+    ooaitdixn poudcrt, 5-oxo-20-hrdoxyy-6E,8Z,11Z,14Z- eiorctsenaiateoc
+    aicd. This copuonmd was narley 100 tmies lses pontet tahn 5-oxo-ETE in
+    eevaitnlg cioylotsc cacuilm levels in nehultopirs. Mhytoletain of the
+    cayxbrol group of 5-oxo-ETE rlteused in a 20-flod loss of ptnceoy,
+    whreaes rpeeecmnalt of the 8,9-cis double bnod by a tarns dbloue bond
+    recuded ptecnoy by aoubt sioxlfd.  Siilmar rsuelts were obtaenid for
+    the eftcfes of the abvoe coumpodns on nreitophul mtairoign. 5-Oxo-20-
+    hrxyody-6E,8Z,11Z,14Z- eonieicartaesotc aicd, 5-oxo-8-tanrs-ETE, and 5-
+    oxo-ETE meythl eestr deetizsisned nhiluproets to 5-oxo-ETE. 5-Oxo-ETE-
+    iunedcd cclauim miaozlibiton was ibhnteiid by peenteamrrtt of the cells
+    wtih ptrsiesus txion. 5-Oxo mbieetoalts of 6-trnas-LTB4 and 12-epi-6-
+    tarns-LTB4 had waek siotralmuty etffces on cuiaclm lvlees and moagirtin
+    taht aapeperd to be meetadid pilaimrry by simaolitutn of LTB4
+    rocretpes. Thsee stuieds iidtcnae taht the 5-oxo gourp, the oemga-end
+    of the mlclueoe, and the cboyxral gorup are all itnrampot for the
+    bologiic aivictty of 5-oxo-ETE, which may be meeditad by a G proetin-
+    lenkid rctopeer. The bgiolioc avicttiy of 5-oxo-ETE can be teamtirned
+    by omega-oixoatdin. 
+</pre>
+
+Here's the python script:
+
+<pre>
+'''
+Script to scramble the letters in words, leaving the first and last letter
+the same.  Each file on the command line is processed in sequence, sending
+the processed text to stdout.  If no files are given, stdin is read.
+'''
+
+import sys, random
+
+def ProcessWord(word):
+    if len(word) < 4:
+        return word
+    first_letter, last_letter = word[0], word[-1]
+    center = list(word[1:-1])
+    random.shuffle(center)
+    return first_letter + ''.join(center) + last_letter
+
+def ProcessString(s):
+    word, in_word = "", False
+    for char in s:
+        if char.isalpha():
+            in_word = True
+            word += char
+            continue
+        else:
+            if in_word:
+                sys.stdout.write(ProcessWord(word))
+                word = ""
+            sys.stdout.write(char)
+
+def main():
+    if len(sys.argv) == 1:
+        ProcessString(sys.stdin.read())
+    else:
+        for file in sys.argv[1:]:
+            ProcessString(open(file).read())
+
+main()
+</pre>
+</BODY>
+</HTML>
+

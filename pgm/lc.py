@@ -29,6 +29,7 @@ def Usage(status=1):
       The smallest and largest line counts are highlighted.
     Options
         -c  Colorize output to show high and low counts
+        -h  Print this help
         -n  Sort by file name
         -z  Sort by file size, smallest to largest
         -Z  Sort by file size, largest to smallest
@@ -50,7 +51,7 @@ def ParseCommandLine(d):
             d[o] = not d[o]
         if o == "-h":
             Usage(0)
-    if not files:
+    if not case1 and not files:
         Usage()
     return files
 def CountLines(stream, file):
@@ -101,19 +102,28 @@ def PrintReport(results):
     if d["-c"]:
         c.normal()
 if __name__ == "__main__":
+    # NOTE:  there are two behaviors:  1) read from stdin if there are no
+    # arguments or 2) you must use '-' as a file to read from stdin.  Set
+    # case1 to True if you want 1).
+    case1 = True
     d = {   # Options dictionary
         "stdin": "<stdin>",
     }
     files = ParseCommandLine(d)
     results = []
-    for file in files:
-        try:
-            s = sys.stdin if file == "-" else open(file)
-            name = "<stdin>" if file == "-" else file
-        except Exception:
-            print("Couldn't open '{name}'", file=sys.stderr) 
-        result = CountLines(s, name)
+    if not files and case1:
+        result = CountLines(sys.stdin, "<stdin>")
         if result is not None:
             results.append(result)
+    else:
+        for file in files:
+            try:
+                s = sys.stdin if file == "-" else open(file)
+                name = "<stdin>" if file == "-" else file
+            except Exception:
+                print(f"Couldn't open '{name}'", file=sys.stderr) 
+            result = CountLines(s, name)
+            if result is not None:
+                results.append(result)
     PrintReport(results)
     c.normal()

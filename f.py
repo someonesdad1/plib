@@ -651,6 +651,7 @@ class Base(object):
     _flt_color = C.cyan
     _cpx_color = C.brown
     _rtz = False        # Remove trailing zeros if True
+    _rtdp = False       # Remove trailing decimal point
     _sep = chr(0xa0)    # Separate num from unit in str()
     _promote = False    # Allow e.g. flt("1 mi/hr") + 1 if True
     _flat = False       # Flat form of Unicode units string interpolation
@@ -897,6 +898,13 @@ class Base(object):
     def r(self):
         'Return the repr() string, regardless of self.f'
         return self._r()
+    @property
+    def rtdp(self):
+        'Remove trailing zeros if True'
+        return Base._rtdp
+    @rtdp.setter
+    def rtdp(self, value):
+        Base._rtdp = bool(value)
     @property
     def rtz(self):
         'Remove trailing zeros if True'
@@ -1366,6 +1374,9 @@ class flt(Base, float):
                 if Base._rtz:   # Remove trailing zeros
                     while "e" not in s and "E" not in s and s[-1] == "0":
                         s = s[:-1]
+                if Base._rtdp and s[-1] == Base._dp: 
+                    # Remove trailing decimal point
+                    s = s[:-1]
             if self.u is not None and not no_units:
                 un = u.FormatUnit(self.u, flat=self.flat, solidus=self.solidus)
                 s = f"{s}{Base._sep}{un}"
@@ -1604,7 +1615,7 @@ class flt(Base, float):
         '''Return the value as a flt in the given units (not in SI).  
         Note that the returned value will have no units.
         '''
-        if 0:
+        if 1:
             # Warning:  Using self.val is convenient because user code will
             # only see the necessary significant figures, but it should be
             # first converted to a float for internal calculations to avoid

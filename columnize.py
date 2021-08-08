@@ -1,4 +1,6 @@
 '''
+TODO
+    * Columnize(['a'], indent=" "*4) has an exception
 
 Function to turn a sequence into columns
 

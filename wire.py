@@ -230,7 +230,7 @@ def AWG(n):
         d = RoundOff(d, 4) if n <= 30 else RoundOff(d, 5)
     else:
         d = RoundOff(92.**((36 - n)/39)/200, 4)
-    return flt(d, units="inch") if have_flt else d
+    return flt(d) if have_flt else float(d)
 def Preece(n):
     '''Returns the fusing current in A to 3 figures for copper wire in size
     n AWG.  The formula used is Preece's formula, which estimates how much
@@ -250,11 +250,10 @@ def Preece(n):
     Example:  For 12 gauge copper wire (d = 0.08081 inches), the fusing
     current is 235 A.
     '''
-    d = AWG(n)
-    d = d.val if have_flt else d
+    d = AWG(n)  # Diameter in inches as a dimensionless flt
     i = 10244*d**1.5
     i = RoundOff(i, 3)
-    return flt(i, units="A") if have_flt else i
+    return flt(i) if have_flt else float(i)
 def Onderdonk(n, t, Ta):
     '''Fusing current in A for copper wire
  
@@ -307,13 +306,12 @@ def Onderdonk(n, t, Ta):
     '''
     if t > 10:
         raise ValueError("Time t must be <= 10 seconds")
-    d = AWG(n)
-    d = d.val if have_flt else d
+    d = AWG(n)  # Diameter in inches as a flt
     A = (d*1000)**2
     K = log10((1083 - Ta)/(234 + Ta) + 1)
     i = A*sqrt(K/(33*t))
     i = RoundOff(i, 2)
-    return flt(i, units="A") if have_flt else i
+    return flt(i) if have_flt else float(i)
 def GetAmpacityData(dbg=False):
     '''Return a dictionary keyed by AWG size (as a string) with the
     values
@@ -391,16 +389,16 @@ def GetAmpacityData(dbg=False):
     for line in data.split("\n"):
         f = line.split(",")
         awg = int(f[0].strip())
-        dia_in = flt(f[1], "inch")
-        chassis_A = flt(f[2], "A")
-        pwr_A = flt(f[3], "A")
+        dia_in = flt(f[1])
+        chassis_A = flt(f[2])
+        pwr_A = flt(f[3])
         freq = flt(f[4])
         if 0:
             # http://www.nessengr.com/technical-data/skin-depth/ gives the
             # formula for Cu as δ = 0.066/sqrt(f) for δ = skin depth in m
             # and f in Hz.  Then f = 0.00436/δ**2.
             δ = (dia_in*25.4/1000)/2  # Radius is the skin depth
-            f_kHz = flt((0.066/δ)**2/1000, "kHz")
+            f_kHz = flt((0.066/δ)**2/1000)
             # Check that calculated and table values are close
             alpha = 0.07
             alpha = 0.5  #xx Temp to see table
@@ -410,8 +408,8 @@ def GetAmpacityData(dbg=False):
         # Note the tabulated breaking values aren't quite correct -- use
         # calculated value instead.
         area = pi*dia_in**2/4
-        uts = flt("37000 lbf/inch2")
-        brk = (area*uts).to("lbf")
+        uts = flt(37000)    # In psi
+        brk = area*uts      # In lbf
         if dbg:
             print(f"{awg:>2d}, {dia_in!s:>15s}, {chassis_A!s:>10s}, "
                 f"{pwr_A!s:>10s}, {freq!s:>12s}, {brk!s:>12s}")

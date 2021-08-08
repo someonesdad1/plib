@@ -13,6 +13,7 @@ EBCDIC                Return string translation table ASCII <--> EBCDIC
 eng                   Convenience function for engineering format
 EditData              Edit a str or bytes object with vim
 Engineering           Represent a number in engineering notation
+execfile              Python 3 replacement for python 2 function
 Flatten               Flattens nested sequences to a sequence of scalars
 GroupByN              Group items from a sequence by n items at a time
 grouper               Function to group data
@@ -968,57 +969,58 @@ def grouper(data, mapper, reducer=None):
         for key, group in d.items():
             d[key] = reducer(group)
     return d
-class Walker(object):
-    '''Defines a class that operates as a generator for recursively getting
-    files or directories from a starting directory.  The default is to
-    return files; if you want directories, set the dir attribute to True.
-    The ignore option to the constructor defines directories to ignore.
- 
-    An example of use to show all the files in the current directory tree:
- 
-        w = Walker()
-        for i in w("."):
-            print(i)
-     
-    Note:  the functionality here is obsolete because
-    pathlib.glob("**/*") can do these things.
-    '''
-    def __init__(self, ignore=".bzr .git .hg .rcs __pycache__".split(),
-                 dir=False):
-        self.dir = dir
-        self._ignore = ignore
-        print(f"{C.lyel}{sys.argv[0]}:  Warning:  Walker is deprecated; use "
-              f"e.g. pathlib.Path.glob('**/*'){C.norm}")
-    def __str__(self):
-        return "util.Walker(ignore={}, dir={})".format(self._ignore, self.dir)
-    def __repr__(self):
-        return str(self)
-    def _ignore_this(self, dir):
-        for i in dir.split("/"):
-            if i in self._ignore:
-                return True
-        return False
-    def __call__(self, location):
-        '''Walk the directory tree starting at location.  This is a
-        generator that returns each file or directory found.
+if 0:
+    class Walker(object):
+        '''Defines a class that operates as a generator for recursively getting
+        files or directories from a starting directory.  The default is to
+        return files; if you want directories, set the dir attribute to True.
+        The ignore option to the constructor defines directories to ignore.
+    
+        An example of use to show all the files in the current directory tree:
+    
+            w = Walker()
+            for i in w("."):
+                print(i)
+        
+        Note:  the functionality here is obsolete because
+        pathlib.glob("**/*") can do these things.
         '''
-        if not os.path.isdir(location):
-            raise ValueError("location must be a directory")
-        for root, dirs, files in os.walk(location):
-            if self._ignore_this(root):
-                continue
-            if self.dir:
-                for dir in dirs:
-                    if self._ignore_this(dir):
-                        continue
-                    p = os.path.join(root, dir)
-                    if os.path.isdir(p):
-                        yield p
-            else:
-                for file in files:
-                    p = os.path.join(root, file)
-                    if os.path.isfile(p):
-                        yield p
+        def __init__(self, ignore=".bzr .git .hg .rcs __pycache__".split(),
+                    dir=False):
+            self.dir = dir
+            self._ignore = ignore
+            print(f"{C.lyel}{sys.argv[0]}:  Warning:  Walker is deprecated; use "
+                f"e.g. pathlib.Path.glob('**/*'){C.norm}")
+        def __str__(self):
+            return "util.Walker(ignore={}, dir={})".format(self._ignore, self.dir)
+        def __repr__(self):
+            return str(self)
+        def _ignore_this(self, dir):
+            for i in dir.split("/"):
+                if i in self._ignore:
+                    return True
+            return False
+        def __call__(self, location):
+            '''Walk the directory tree starting at location.  This is a
+            generator that returns each file or directory found.
+            '''
+            if not os.path.isdir(location):
+                raise ValueError("location must be a directory")
+            for root, dirs, files in os.walk(location):
+                if self._ignore_this(root):
+                    continue
+                if self.dir:
+                    for dir in dirs:
+                        if self._ignore_this(dir):
+                            continue
+                        p = os.path.join(root, dir)
+                        if os.path.isdir(p):
+                            yield p
+                else:
+                    for file in files:
+                        p = os.path.join(root, file)
+                        if os.path.isfile(p):
+                            yield p
 def IsConvexPolygon(*p):
     '''Return True if the sequence p of two-dimensional points
     constitutes a convex polygon.  Ref:
@@ -1302,6 +1304,21 @@ def RandomIntegers(n, maxint, seed=None, duplicates_OK=False):
         else:
             f(random.randint(0, maxint - 1))
     return list(s)
+def execfile(filename, globals=None, locals=None, use_user_env=True):
+    '''Python 3 substitute for python 2's execfile.  It gets the locals
+    and globals from the caller's environment unless use_user_env is
+    False.
+    '''
+    # https://stackoverflow.com/questions/436198/what-is-an-alternative-
+    #    to-execfile-in-python-3
+    e = sys._getframe(1)
+    if globals is None and use_user_env:
+        globals = e.f_globals
+    if locals is None and use_user_env:
+        locals = e.f_locals
+    with open(filename, "r") as fh:
+        s = fh.read() + "\n"
+        exec(s, globals, locals)
 if __name__ == "__main__": 
     # Missing tests for: Ignore Debug, Dispatch, GetString
     from io import StringIO
@@ -1590,6 +1607,7 @@ if __name__ == "__main__":
         (1, 2) ****''')
         Assert(got == expected)
     def Test_Walker():
+        return  # Walker() is commented out
         dir, file = "walker", "a"
         if 0:   # Old method using os.path
             # Construct a dummy directory structure
@@ -1745,4 +1763,4 @@ if __name__ == "__main__":
                     break
         for name in delete:
             mnames.discard(name)
-    exit(run(globals(), halt=0, verbose=1)[0])
+    exit(run(globals(), halt=0, verbose=0)[0])
