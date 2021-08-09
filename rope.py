@@ -58,7 +58,7 @@ def GetData(metric=False, use_fractions=False):
     # Convert first element to decimal inches if wanted
     if not use_fractions:
         for i in range(len(data)):
-            data[i][0] = round(float(data[i][0]), 2)
+            data[i][0] = flt(round(data[i][0], 2))
     # Convert to metric if wanted
     if metric:
         for i in range(len(data)):
@@ -66,9 +66,16 @@ def GetData(metric=False, use_fractions=False):
             data[i][1] = flt(round(float(data[i][1])*0.453592, 2))
             data[i][2] = flt(round(float(data[i][2])*4.44822, 2))
             data[i][3] = flt(round(float(data[i][3])*4.44822, 2))
-    # xx
-    for i in data:
-        for j in i:
-            print(j, end= " ")
-        print()
-GetData(metric=1)
+    return data
+
+if __name__ == "__main__": 
+    data = GetData()
+    print("Data on uncoated Samson double-braided polyester rope\n")
+    print(dedent('''
+                    Weight per      Average breaking    Minimum breaking
+    Dia, inches     100 ft, lb       strength, klbf      strength, klbf
+    -----------     ----------      ----------------    ----------------'''))
+    for line in data:
+        dia, wt, avg, min = line
+        print(f"{dia!s:^11s}      {wt!s:^10s}      {avg!s:^16s}         "
+              f"{min!s:18s}")
