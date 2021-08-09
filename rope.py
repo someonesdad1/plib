@@ -8,6 +8,7 @@ if 1:   # Imports
 if 1:   # Custom imports
     from wrap import dedent
     from f import flt
+    from fraction import FormatFraction
     from get import GetFraction
 
 def GetData(metric=False, use_fractions=False):
@@ -69,7 +70,7 @@ def GetData(metric=False, use_fractions=False):
     return data
 
 if __name__ == "__main__": 
-    data = GetData()
+    data = GetData(use_fractions=True)
     print("Data on uncoated Samson double-braided polyester rope\n")
     print(dedent('''
                     Weight per      Average breaking    Minimum breaking
@@ -77,5 +78,6 @@ if __name__ == "__main__":
     -----------     ----------      ----------------    ----------------'''))
     for line in data:
         dia, wt, avg, min = line
-        print(f"{dia!s:^11s}      {wt!s:^10s}      {avg!s:^16s}         "
+        d = FormatFraction(dia)
+        print(f"{d:^11s}      {wt!s:^10s}      {avg!s:^16s}         "
               f"{min!s:18s}")
