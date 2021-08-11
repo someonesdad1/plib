@@ -89,7 +89,10 @@ if 1:   # Utility
         diameter and 18 gauge wire is about 1 mm in diameter (if you want
         approximate inches, multiply mm by 2 twice and divide by 100).  Changing 6
         AWG gauge numbers changes the wire diameter by about 2.  Use the -e option
-        to see relationships amongst the gauge sizes.
+        to see areal relationships amongst the gauge sizes.
+
+        Another useful tidbit is that a 1 foot long chunk of 10 gauge copper has a
+        resistance of about 1 mΩ.
         
         To estimate the electrical behavior of copper as a function of temperature,
         you need to know:
@@ -367,6 +370,26 @@ if 1:   # Utility
             global no_color
             no_color = True
         return args
+    def Usage(status=1):
+        name = sys.argv[0]
+        print(dedent(f'''
+        Usage:  {name} [options] [n_awg m_awg]
+          With no arguments, print a copper wire table.  With arguments, print out
+          how many wires of n_awg are needed to be equivalent in area to m_awg
+          wires.
+        Options:
+          -a  Print detailed ampacity data
+          -C  Do not print in color
+          -c  Include escape sequences for color if std out is not a terminal
+          -e  Print out an equivalence table showing how many wires of a
+              particular gauge size are equal to another
+          -f  Print full table
+          -h  Print this help message
+          -H  Print detailed help message
+          -i  Interactively determine length, diameter, resistivity, or
+              resistance
+        '''[1:-1]))
+        exit(status)
 def ShowResistivities():
     r = (
         ("Aluminum",        "1.6"),
@@ -697,35 +720,6 @@ def GetAmpacityData():
         else:
             wt[awg] = (dia_in, chassis_A, pwr_A, int(f_kHz*1000), brk)
     return wt
-def Usage(status=1):
-    name = sys.argv[0]
-    print(dedent(f'''
-    Usage:  {name} [options] [n_awg m_awg]
-      With no arguments, print a copper wire table.  With arguments, print out
-      how many wires of n_awg are needed to be equivalent in area to m_awg
-      wires.
-     
-      A handy number to memorize is that 10 gauge copper wire has a resistance
-      of about 1 mΩ/ft at 38 °C.  A 1 foot long piece of this wire can make 
-      a 1 mΩ shunt that can e.g. measure 50 A readily, but of course it will
-      be substantially temperature-dependent.  Still, it's fine for quick
-      estimates.
-    
-      Wire calculations are assumed to be for commercial copper with a
-      resistivity of 17.241e-9 Ω·m at 20 °C
-    Options:
-        -a  Print detailed ampacity data.
-        -C  Do not print in color
-        -c  Include escape sequences for color if std out is not a terminal
-        -e  Print out an equivalence table showing how many wires of a
-            particular gauge size are equal to another.
-        -f  Print full table.
-        -h  Print this help message.
-        -H  Print detailed help message.
-        -i  Interactively determine length, diameter, resistivity, or
-            resistance.
-    '''[1:-1]))
-    exit(status)
 def EquivalentArea(n, m):
     '''Given n ga wire, return how many m ga wires have the equivalent
     area.
@@ -733,7 +727,7 @@ def EquivalentArea(n, m):
     assert(n <= m)
     D, d = [round(AWG(i), 4) for i in (n, m)]     # Diameter in inches
     ratio = D/d
-    ratio = RoundOff(ratio**2, digits=1)
+    ratio = RoundOff(ratio**2, digits=2)
     return D, d, ratio
 def ShowEquivalentAreas(args, d):
     '''args is [n_awg, m_awg].  Print out how many of the smaller size wires
