@@ -1,5 +1,6 @@
 '''
 Search RPO codes
+    'Retail Production Order'
 '''
 if 1:  # Copyright, license
     # These "trigger strings" can be managed with trigger.py
@@ -5876,6 +5877,7 @@ def Usage(d, status=1):
       -r    Search RPO codes only
       -s    Show 2011 Suburban's RPO codes
       -t    Show 2002 Tahoe's RPO codes
+      -t    Show 2006 Yukon's RPO codes
     '''))
     exit(status)
 def ParseCommandLine(d):
@@ -5888,7 +5890,8 @@ def ParseCommandLine(d):
     d["-r"] = False     # Search RPO only
     d["-s"] = False     # Show 2011 Suburban's RPO codes
     d["-t"] = False     # Show 2002 Tahoe's RPO codes
-    s, newargs = "@cDdfgirst", []
+    d["-y"] = False     # Show 2006 Yukon's RPO codes
+    s, newargs = "@cDdfgirsty", []
     try:
         opts, args = getopt.getopt(sys.argv[1:], s)
     except getopt.GetoptError as e:
@@ -5897,7 +5900,7 @@ def ParseCommandLine(d):
     for o, a in opts:
         if o[1] in list(s):
             d[o] = not d[o]
-    others = d["-D"] or d["-s"] or d["-t"]
+    others = d["-D"] or d["-s"] or d["-t"] or d["-y"]
     if not args and not others:
         Usage(d)
     if not d["-g"] and not d["-f"] and not d["-c"]:
@@ -6030,6 +6033,22 @@ def Suburban(d):
         ZY1 Z82 1LS 1SZ 19C 19I 50U 6SH 7SH'''.split()
     print("RPO codes for 2011 Suburban:")
     GM_Dump(RPO)
+def Yukon06(d):
+    d["-f"] = d["-c"] = False
+    vin = "1GKEK63U16J151440"
+    RPO = '''
+        AG1 AG2 AJ1 AJ7 AL0 AN3 AP9 AS3 AT5 AU0 AXP
+        A31 BS1 BVF BW2 B30 B58 CF5 CJ2 C25 C36 C49
+        C5W C69 DF5 DH6 DK8 DL3 D07 EVA E52 FE9 FK2
+        FK3 GT4 G69 JAN JF4 JH2 JL4 KA6 KC4 KNP KUP
+        KW1 K34 K47 LQ4 M32 NA1 NP5 NR3 NT8 N93 PCJ
+        PDC QAN R4Y R6P R7J R9N R9Z SAF SLM TFE TL1
+        T74 T96 UE1 UC1 UJ6 UK3 UK6 UM8 UQ7 U1S U2K
+        U42 VFF VK3 VR4 VT4 VT5 VXS VZ2 V1K V54 V73
+        V76 XAN YAN YD3 YD5 YD6 YE9 Y91 ZNK ZY1 Z55
+        Z82 Z88 1SZ 5SA 50U 6XK 7XK 921 922'''.split()
+    print(f"RPO codes for 2006 Yukon (VIN {vin}):")
+    GM_Dump(RPO)
 def GM_Dump(RPO):
     d["-f"] = d["-c"] = d["-d"] = False
     d["-r"] = True
@@ -6046,5 +6065,7 @@ if __name__ == "__main__":
         Suburban(d)
     elif d["-t"]:
         Tahoe(d)
+    elif d["-y"]:
+        Yukon06(d)
     else:
         Search(args, d)
