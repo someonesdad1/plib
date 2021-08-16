@@ -982,6 +982,7 @@ def DefaultUnitData(level=-1, randomize=False, angles_have_dim=False):
             [1, "kph = 1000*m/hr"],
             [1, "fps = ft/s"],
             [1, "fpm = ft/min"],
+            [1, "sfpm = ft/min"],   # Surface speed in metal cutting
             [1, "knot = 1852*m/hr"],
             [2, "light = c*m/s"],
         ]],
