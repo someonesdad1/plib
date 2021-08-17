@@ -1,6 +1,8 @@
 '''
 Path utilities
-    Remove          Remove files from a sequence that match a pattern
+    RemoveDirs      Remove directories from a sequence that match a pattern
+    RemoveFiles     Remove filenames from a sequence that match a pattern
+    RemoveVCDir     Remove version control directories
 '''
 if 1:  # Copyright, license
     # These "trigger strings" can be managed with trigger.py
@@ -22,10 +24,13 @@ if 1:  # Imports
     import sys
     from itertools import filterfalse
     from pdb import set_trace as xx 
+    from pprint import pprint as pp
+if 1:   # Custom imports
+    from columnize import Columnize
 if 1:  # Global variables
     ii = isinstance
     P = pathlib.Path
-def RemoveDir(seq, match=[], search=[], ic=False):
+def Remove(seq, match=[], search=[], ic=False, dir=False):
     '''Return the items in the sequence seq with the patterns in the lists
     match and search removed.  Those in match must match fully and those in
     search can match anywhere in the path's components.  The patterns are
@@ -34,7 +39,8 @@ def RemoveDir(seq, match=[], search=[], ic=False):
     match or search pattern is a match.  Do not include '^' or '$' anchors
     in the match strings because they will be added.  The
     matching/searching is only done on the directory components of the
-    items in seq.
+    items in seq if dir is True; otherwise, the matching is on the file
+    name component only.
     '''
     if not match and not search:
         return seq
@@ -49,12 +55,18 @@ def RemoveDir(seq, match=[], search=[], ic=False):
         a = []
         S = re.compile('|'.join(search), re.I if ic else 0)
     input, output = deque(seq), deque()
+    # Process the sequence
     while input:
         p = input.popleft()
         if not ii(p, P):
             raise ValueError(f"'{p}' is not a pathlib.Path object")
         p = p.resolve()
-        parts = p.parts[:-1] if p.is_file() else p.parts
+        if dir:
+            parts = p.parts[:-1] if p.is_file() else p.parts
+        else:
+            if p.is_dir():
+                continue
+            parts = [p.parts[-1]]   # File name portion
         match_found, search_found = False, False
         if M:
             found = False
@@ -67,24 +79,34 @@ def RemoveDir(seq, match=[], search=[], ic=False):
         if S:
             found = False
             for part in parts:
-                if M.search(part):
+                if S.search(part):
                     found = True
                     break
             if found:
                 continue
         output.append(p)
     return list(output)
+def RemoveDirs(seq, match=[], search=[], ic=False):
+    return Remove(seq, match=match, search=search, ic=ic, dir=True)
+def RemoveVCDir(seq):
+    'Remove git, Mercurial, Bazaar, and RCS directories'
+    m = ["\\.git", "\\.hg", "\\.bzr", "RCS"]
+    return Remove(seq, match=m, dir=True)
+def RemoveFiles(seq, match=[], search=[], ic=False):
+    return Remove(seq, match=match, search=search, ic=ic, dir=False)
 
 if 1:
-    from columnize import Columnize
-    seq = list(P(".").glob("*"))
-    seq = [i for i in seq if i.is_dir()]
-    from pprint import pprint as pp
-    m = ["[t].*"]
-    s = []
-    t = RemoveDir(seq, match=m, search=s, ic=True)
-    for i in Columnize([str(j) for j in t]):
-        print(i)
+    f = lambda x:  [str(i) for i in x]
+    seq = [i.resolve() for i in P(".").glob("c*")]
+    seq = [i for i in seq if i.is_file()]
+    m = []
+    s = ["or"]
+    before = set(f(seq))
+    print("Before: ", ' '.join(before))
+    t = RemoveFiles(seq, search=s)
+    after = set(f(t))
+    print("\nAfter: ", ' '.join(after))
+    print("\nRemoved: ", ' '.join(before - after))
     exit()
 
 if __name__ == "__main__": 
