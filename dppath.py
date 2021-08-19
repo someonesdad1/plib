@@ -5,6 +5,8 @@ Path utilities
     RemoveVCDir     Remove version control directories
     GetFiles        Return a recursive list of files
     GetDirs         Return a recursive list of directories
+    KeepOnlyDirs    Keep only the directories in a list
+    KeepOnlyFiles   Keep only the files in a list
 '''
 if 1:  # Copyright, license
     # These "trigger strings" can be managed with trigger.py
@@ -134,7 +136,6 @@ def KeepOnlyDirs(pathseq):
     return list(filter(lambda x: P(x).is_dir(), pathseq))
 def KeepOnlyFiles(pathseq):
     return list(filter(lambda x: P(x).is_file(), pathseq))
-    
 if __name__ == "__main__": 
     from lwtest import run, raises, assert_equal, Assert
     import math
@@ -167,7 +168,7 @@ if __name__ == "__main__":
         t = [P(i) for i in '''/plib/e.py /plib/enc.py /plib/states.py
                     /plib/enc_codecs.csv'''.split()]
         Assert(s == t)
-        # See that we remove version control directories
+    def Test_RemoveVCDir():
         dirs = KeepOnlyDirs(Get("/plib"))
         Assert(P("/plib/.git") in dirs)
         dirs = RemoveVCDir(dirs)
