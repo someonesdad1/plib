@@ -1,5 +1,12 @@
 '''
-Python implementation of consult-o-matic at http://hewgill.com/.
+Generate n sentences of gibberish
+    Python implementation of consult-o-matic at http://hewgill.com/.
+ 
+    Example output:
+        Of course, the highly factual report is further compounded when
+        taking into account the subsystem compatibility testing.
+        Similarly, the incorporation of additional mission constraints
+        greatly reduces the complexity of the total system rationale.
 '''
 if 1:  # Copyright, license
     # These "trigger strings" can be managed with trigger.py
