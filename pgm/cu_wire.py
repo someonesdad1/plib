@@ -37,6 +37,7 @@ if 1:   # Custom imports
     from wire import AWG, Ampacity
     from sig import sig
     from u import u, ParseUnit
+    from f import flt
     # Debugging
     from pdb import set_trace as xx
     if 0:
@@ -726,8 +727,7 @@ def EquivalentArea(n, m):
     '''
     assert(n <= m)
     D, d = [round(AWG(i), 4) for i in (n, m)]     # Diameter in inches
-    ratio = D/d
-    ratio = RoundOff(ratio**2, digits=2)
+    ratio = flt(D/d)**2
     return D, d, ratio
 def ShowEquivalentAreas(args, d):
     '''args is [n_awg, m_awg].  Print out how many of the smaller size wires
@@ -745,16 +745,11 @@ def PrintEquivalenceTable():
     '''Print out a list of gauge sizes with the number of wires of smaller
     sizes that are equivalent in area.
     '''
-    print(dedent('''
-    Areal equivalence of AWG gauge numbers:  AWG gauge n is equivalent to 
-        1.6 of (n + 2) gauge
-        2.5 of (n + 4) gauge
-        4.0 of (n + 6) gauge
-        6.4 of (n + 8) gauge
-        10 of (n + 10) gauge
-        16 of (n + 12) gauge
-        26 of (n + 14) gauge
-        41 of (n + 16) gauge'''[1:]))
+    print("Areal equivalence of AWG gauge numbers:  AWG gauge n is equivalent to")
+    N = 10
+    for i in range(2, 21, 2):
+        D, d, ratio = EquivalentArea(N, N + i)
+        print(f"    {ratio} of (n + {i}) gauge")
 def NEC():
     '''Return a dictionary containing NEC-allowed currents for copper
     conductors.  The three values are for 60, 75, and 90 °C rated

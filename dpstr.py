@@ -17,6 +17,7 @@ String utilities
     ListInColumns    Obsolete (use columnize.py)
     MatchCap         Match string capitalization
     MultipleReplace  Replace multiple patterns in a string
+    ReadData         Read data from a multiline string
     Remove           Return items from sequence not in the remove sequence
     RemoveComment    Remove '#.*$' from a string
     RemoveFilter     Functional form of Remove (it's a closure)
@@ -57,7 +58,10 @@ if 1:  # Imports
     from itertools import filterfalse
     from random import choice
     from pdb import set_trace as xx 
-if 1:  # Global variables
+if 1:   # Custom imports
+    from wrap import dedent
+    from f import flt
+if 1:   # Global variables
     ii = isinstance
 def MatchCap(s, t):
     '''Return t capitalized as s is.  s and t are expected to be sequences
@@ -568,11 +572,108 @@ def Chop(s, size):
     for i in range(0, len(s), size):
         out.append(s[i:i + size])
     return out
+def ReadData(data, structure, **kw):
+    '''Read data from a multiline string data.  structure is a list of the 
+    field types.  Any line starting with optional whitespace and the
+    comment string is ignored, as is any line with only whitespace.
+
+    Keywords:
+
+        comment     Ignore lines that start with this string and optional
+                    whitespace.  Can also be a compiled regular expression.
+        sep         Separator string for fields.  Defaults to whitespace.
+                    Can be a compiled regular expression.
+
+    Example:  For the string
+
+        data = """
+             9   680     2100    0       750
+            10   680     2100    250     750
+        """
+    the call ReadData(data, structure=[str, int, int, int, int] returns
+    the list
+        [["9", 680, 2100, 0, 750],
+        ["10", 680, 2100, 250, 750]]
+
+    If an error occurs, the 1-based line number of the offending string
+    will be printed along with the problem.
+    '''
+    # Get keywords
+    comment = kw.get("comment", None)
+    sep = kw.get("sep", None)
+    out = []
+    for linenum, line in enumerate(data.split("\n")):
+        linenum += 1
+        line = line.strip()
+        if not line:
+            continue
+        if comment is not None:
+            if ii(comment, str) and line.startswith(comment):
+                continue
+            elif hasattr(comment, "search"):
+                # It's a compiled regular expression
+                if comment.search(line):
+                    continue
+        if sep is not None:
+            if ii(sep, str):
+                fields = line.split(sep)
+            elif hasattr(sep, split):
+                fields = sep.split(line)
+            else:
+                raise ValueError("sep '{sep}' is unknown type")
+        else:
+            fields = line.split()
+        if len(fields) != len(structure):
+            n, m = len(fields), len(structure)
+            msg = dedent(f'''
+            Line {linenum} has {n} field{'s' if n > 1 else ''}
+            The structure list has {m} field{'s' if m > 1 else ''}
+            They must be the same.
+            ''')
+            raise ValueError(msg)
+        thisline = []
+        for i in range(len(structure)):
+            thisline.append(structure[i](fields[i]))
+        out.append(thisline)
+    return out
+
+if 0:
+    data = """
+                9 , 680  ,  2100  , 0  ,    750
+                10,  680  ,  2100  , 250    ,750
+    """
+    o = ReadData(data, structure=[str, int, int, int, int], sep=",")
+    from pprint import pprint as pp
+    pp(o)
+    exit()
+
 if __name__ == "__main__": 
     from lwtest import run, raises, assert_equal, Assert
     import math
     import os
     from sig import sig
+    def Test_ReadData():
+        data = '''
+                    #
+                    9 , 680  ,  2100  , 0  ,    750
+                    10,  680  ,  2100  , 250    ,750
+        '''
+        o = ReadData(data, structure=[str, int, int, int, int], sep=",",
+                     comment="#")
+        # Note the space after '9'
+        e = [['9 ', 680, 2100, 0, 750], ['10', 680, 2100, 250, 750]]
+        Assert(o == e)
+        o = ReadData(data, structure=[str, flt, int, int, int], sep=",",
+                     comment="#")
+        e = [['9 ', flt(680), 2100, 0, 750], ['10', flt(680), 2100, 250, 750]]
+        Assert(o == e)
+        data = '''
+                    9  680    2100   0      750
+                        10  680    2100   250    750
+        '''
+        o = ReadData(data, structure=[str, int, int, int, int])
+        e = [['9', 680, 2100, 0, 750], ['10', 680, 2100, 250, 750]]
+        Assert(o == e)
     def Test_Chop():
         s = "10f6b8a"
         l = Chop(s, 2)

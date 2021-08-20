@@ -1,8 +1,9 @@
 '''
-Path utilities
+Path utilities (all paths are pathlib.Path objects)
     RemoveDirs      Remove directories from a sequence that match a pattern
     RemoveFiles     Remove filenames from a sequence that match a pattern
     RemoveVCDir     Remove version control directories
+    Get             Get all files and directories
     GetFiles        Return a recursive list of files
     GetDirs         Return a recursive list of directories
     KeepOnlyDirs    Keep only the directories in a list
