@@ -1,5 +1,10 @@
 * Move root.py to /plib.
 
+* Copy the basic float functionality of sig.GetSigFig() to f.py.  
+  Remove the uncertainty stuff, as the key need is to be able to assess
+  the number of significant figures in integer, float, and Decimal
+  objects.  Note it needs to use locale decimal point stuff.
+
 * fold.py:  This will change text files to have one space on blank lines or
   no spaces on blank lines.  Need to intelligently process python files?
   The default behavior would be to print each line with 2 lines of context

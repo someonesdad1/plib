@@ -1,4 +1,3 @@
-# TODO
 '''
     BUGS
         * v=flt("15 mi/hr"); v.to("mi/minute") fails
@@ -8,7 +7,8 @@
         * cpx(274-22j, "kohms") and cpx(274-22j, "ohms") result in the same
           number, meaning the k prefix is not recognized.
 
-----------------------------------------------------------------------
+    TODO
+
     * Focus
         * fmt.py works and has tests.  Use it as the formatter.
         * Test that all needed constructors are written
