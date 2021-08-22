@@ -1,175 +1,173 @@
 '''
-Root Finding Routines (should work with python 2 or 3)
-
-The following functions find real roots of functions.  Note you can
-call them using e.g. mpmath numbers and find roots to arbitrary
-precision.  The functions QuadraticEquation, CubicEquation, and
-QuarticEquation use functions from the math and cmath library, so they
-can't be used with other floating point implementations.
-
-Note that the fp keyword arguments let you perform these root-finding
-calculations with any floating point type that can convert strings
-like "1.5" to a floating point number.  Python's float type is the
-default.
-
-The following "prototypes" may be abbreviated; see the actual function
-definitions for details.
-
-Bisection(x1, x2, f)
-    Finds a root by bisection.  Slow, but guaranteed to find the root
-    if the root is bracketed in [x1, x2].
-
-Note:  Crenshaw, RootFinder, Brent, and kbrent are all forms of Brent's
-algorithm, but have different source code.  From my testing they behave
-quite similarly, but Jack Crenshaw's routine sometimes is a tad bit more
-efficient because of the more carefully thought out convergence criteria
-Jack used.
-
-Crenshaw(x1, x3, f)
-    This is a slightly updated form of the translation of Jack
-    Crenshaw's C code in the RootFinder routine.  It includes a keyword
-    to show progress to a stream so you can watch convergence and it
-    uses slightly better convergence criteria on both x and y so that
-    sometimes it takes one less iteration.  Currently, it doesn't
-    support the ability to call the function f with other parameters or
-    keywords.
-
-RootFinder(x0, x2, f)
-    Finds a root with quadratic convergence that lies between x0 and
-    x2.  x0 and x2 must bracket the root.  The function whose root is
-    being found is f(x).  The root is found when successive estimates
-    differ by less than eps.  The routine will throw an exception if
-    the number of iterations exceeds itmax.  The returned value is the
-    root.
-
-Brent(x1, x2, f)
-    Brent's method.  The root must be bracketed in [x1, x2].  Uses a
-    combination of bisection and inverse quadratic interpolation.
-    Translated from the C algorithm in "Numerical Recipes".
-
-kbrent(a, b, f)
-    Another form of Brent's method from Kiusalaas, "Numerical Methods
-    in Engineering with Python".
-
-Ostrowski(x0, f, deriv)
-    An improved form of Newton's method which uses another evaluation of
-    the function f(x) in each iteration to get fourth-order convergence.
-
-FindRoots(f, n, x1, x2)
-    This is a general-purpose root finding routine.  It uses
-    SearchIntervalForRoots to divide the interval [x1, x2] into n
-    intervals and look for roots in each subinterval by sign changes.
-    If a subinterval has a root, the RootFinder routine is used to find
-    the root to precision eps.  If more than itmax iterations are used
-    in any interval, an exception is raised.  Returns a tuple of the
-    roots found.
-
-Pound(x)
-    Utility function to reduce complex numbers with small real or
-    imaginary components to pure imaginary or pure real numbers,
-    respectively.
-
-Ridders(f, a, b)
-    Finds a root via Ridder's method if the root is bracketed.
-    Converges quadratically with two function evaluations per
-    iteration.
-
-NewtonRaphson(f, fd, x)
-    Quadratically-converging root-finding method; you need to supply the
-    function f, its derivative fd, and an initial guess x.
-
-SearchIntervalForRoots(f, n, x1, x2)
-    Given a function f of one variable, divide the interval [x1, x2]
-    into n subintervals and determine if the function crosses the x
-    axis in each subinterval.  Return a tuple of the intervals where
-    there is a zero crossing (i.e., there's at least one root in each
-    intervale in the tuple).
-
-BracketRoots(f, x1, x2):
-    Expands an interval geometrically until a root is bracketed or the
-    number of iterations exceed itmax.  Returns (a, b) where a and b
-    bracket the root.  An exception is raised if too many iterations
-    are used.
-
-The following functions find real and complex roots and use the math
-library, so are only for calculations with floats.  If adjust is True,
-any root where Im/Re < epsilon is converted to a real root.  epsilon is a
-global variable.  Set adjust to False, to have the roots returned as
-complex numbers.
-
-QuadraticEquation(a, b, c, adjust=True)
-    Returns the two roots of a*x^2 + b*x + c = 0.  If adjust is true,
-    any root where Im/Re < eps is converted to a real root.  Set
-    adjust to zero to have all roots returned as complex numbers.
-
-CubicEquation(a, b, c, d, adjust=True)
-    Returns the three roots of a*x^3 + b*x^2 + c*x + d = 0.  If adjust
-    is true, any root where Im/Re < eps is converted to a real root.
-    Set adjust to zero to have all roots returned as complex numbers.
-
-QuarticEquation(a, b, c, d, e, adjust=True)
-    Returns the four roots of a*x^4 + b*x^3 + c*x^2 + d*x + e = 0.
-    If adjust is true, any root where Im/Re < eps is converted to a
-    real root.  Set adjust to zero to have all roots returned as
+Root Finding Routines
+    The following functions find real roots of functions.  Note you can
+    call them using e.g. mpmath numbers and find roots to arbitrary
+    precision.  The functions QuadraticEquation, CubicEquation, and
+    QuarticEquation use functions from the math and cmath library, so they
+    can't be used with other floating point implementations.
+ 
+    Note that the fp keyword arguments let you perform these root-finding
+    calculations with any floating point type that can convert strings
+    like "1.5" to a floating point number.  Python's float type is the
+    default.
+ 
+    The following "prototypes" may be abbreviated; see the actual function
+    definitions for details.
+ 
+    Bisection(x1, x2, f)
+        Finds a root by bisection.  Slow, but guaranteed to find the root
+        if the root is bracketed in [x1, x2].
+ 
+    Note:  Crenshaw, RootFinder, Brent, and kbrent are all forms of Brent's
+    algorithm, but have different source code.  From my testing they behave
+    quite similarly, but Jack Crenshaw's routine sometimes is a tad bit more
+    efficient because of the more carefully thought out convergence criteria
+    Jack used.
+ 
+    Crenshaw(x1, x3, f)
+        This is a slightly updated form of the translation of Jack
+        Crenshaw's C code in the RootFinder routine.  It includes a keyword
+        to show progress to a stream so you can watch convergence and it
+        uses slightly better convergence criteria on both x and y so that
+        sometimes it takes one less iteration.  Currently, it doesn't
+        support the ability to call the function f with other parameters or
+        keywords.
+ 
+    RootFinder(x0, x2, f)
+        Finds a root with quadratic convergence that lies between x0 and
+        x2.  x0 and x2 must bracket the root.  The function whose root is
+        being found is f(x).  The root is found when successive estimates
+        differ by less than eps.  The routine will throw an exception if
+        the number of iterations exceeds itmax.  The returned value is the
+        root.
+ 
+    Brent(x1, x2, f)
+        Brent's method.  The root must be bracketed in [x1, x2].  Uses a
+        combination of bisection and inverse quadratic interpolation.
+        Translated from the C algorithm in "Numerical Recipes".
+ 
+    kbrent(a, b, f)
+        Another form of Brent's method from Kiusalaas, "Numerical Methods
+        in Engineering with Python".
+ 
+    Ostrowski(x0, f, deriv)
+        An improved form of Newton's method which uses another evaluation of
+        the function f(x) in each iteration to get fourth-order convergence.
+ 
+    FindRoots(f, n, x1, x2)
+        This is a general-purpose root finding routine.  It uses
+        SearchIntervalForRoots to divide the interval [x1, x2] into n
+        intervals and look for roots in each subinterval by sign changes.
+        If a subinterval has a root, the RootFinder routine is used to find
+        the root to precision eps.  If more than itmax iterations are used
+        in any interval, an exception is raised.  Returns a tuple of the
+        roots found.
+ 
+    Pound(x)
+        Utility function to reduce complex numbers with small real or
+        imaginary components to pure imaginary or pure real numbers,
+        respectively.
+ 
+    Ridders(f, a, b)
+        Finds a root via Ridder's method if the root is bracketed.
+        Converges quadratically with two function evaluations per
+        iteration.
+ 
+    NewtonRaphson(f, fd, x)
+        Quadratically-converging root-finding method; you need to supply the
+        function f, its derivative fd, and an initial guess x.
+ 
+    SearchIntervalForRoots(f, n, x1, x2)
+        Given a function f of one variable, divide the interval [x1, x2]
+        into n subintervals and determine if the function crosses the x
+        axis in each subinterval.  Return a tuple of the intervals where
+        there is a zero crossing (i.e., there's at least one root in each
+        intervale in the tuple).
+ 
+    BracketRoots(f, x1, x2):
+        Expands an interval geometrically until a root is bracketed or the
+        number of iterations exceed itmax.  Returns (a, b) where a and b
+        bracket the root.  An exception is raised if too many iterations
+        are used.
+ 
+    The following functions find real and complex roots and use the math
+    library, so are only for calculations with floats.  If adjust is True,
+    any root where Im/Re < epsilon is converted to a real root.  epsilon is a
+    global variable.  Set adjust to False, to have the roots returned as
     complex numbers.
+ 
+    QuadraticEquation(a, b, c, adjust=True)
+        Returns the two roots of a*x^2 + b*x + c = 0.  If adjust is true,
+        any root where Im/Re < eps is converted to a real root.  Set
+        adjust to zero to have all roots returned as complex numbers.
+ 
+    CubicEquation(a, b, c, d, adjust=True)
+        Returns the three roots of a*x^3 + b*x^2 + c*x + d = 0.  If adjust
+        is true, any root where Im/Re < eps is converted to a real root.
+        Set adjust to zero to have all roots returned as complex numbers.
+ 
+    QuarticEquation(a, b, c, d, e, adjust=True)
+        Returns the four roots of a*x^4 + b*x^3 + c*x^2 + d*x + e = 0.
+        If adjust is true, any root where Im/Re < eps is converted to a
+        real root.  Set adjust to zero to have all roots returned as
+        complex numbers.
 '''
-
-# Copyright (c) 2006, 2010 Don Peterson
-# Contact:  gmail.com@someonesdad1
-
-#
-# Licensed under the Open Software License version 3.0.
-# See http://opensource.org/licenses/OSL-3.0.
-#
-
-import sys
-import math
-import cmath
-import numbers
-
-from pdb import set_trace as xx
-if 0:
-    import debug
-    debug.SetDebugger()
-
-all = [
-    "ITMAX",
-    "NoConvergence",
-    "FindRoots",
-    "RootFinder",
-    "NewtonRaphson",
-    "BracketRoots",
-    "SearchIntervalForRoots",
-    "Bisection",
-    "Ridders",
-    "Pound",
-    "QuadraticEquation",
-    "CubicEquation",
-    "QuarticEquation",
-    "Brent",
-    "kbrent",
-    "Crenshaw",
-]
-
-ITMAX = 100     # Default maximum number of iterations
+if 1:  # Copyright, license
+    # These "trigger strings" can be managed with trigger.py
+    #∞copyright∞# Copyright (C) 2006, 2010 Don Peterson #∞copyright∞#
+    #∞contact∞# gmail.com@someonesdad1 #∞contact∞#
+    #∞license∞#
+    #   Licensed under the Open Software License version 3.0.
+    #   See http://opensource.org/licenses/OSL-3.0.
+    #∞license∞#
+    #∞what∞#
+    # Root finding routines
+    #∞what∞#
+    #∞test∞# #∞test∞#
+    pass
+if 1:   # Imports
+    import sys
+    import math
+    import cmath
+    import numbers
+    from pdb import set_trace as xx
+if 1:   # Custom imports
+    from wrap import dedent
+if 1:   # Global variables
+    __all__ = [
+        "ITMAX",
+        "NoConvergence",
+        "FindRoots",
+        "RootFinder",
+        "NewtonRaphson",
+        "BracketRoots",
+        "SearchIntervalForRoots",
+        "Bisection",
+        "Ridders",
+        "Pound",
+        "QuadraticEquation",
+        "CubicEquation",
+        "QuarticEquation",
+        "Brent",
+        "kbrent",
+        "Crenshaw",
+    ]
+    ITMAX = 100     # Default maximum number of iterations
+    # Ratio of imag/real to decide when something is a real root (or
+    # real/imag to decide when something is pure imaginary).  Also used as
+    # the default tolerance for root finding.  Note it's a string because
+    # it will be converted to a floating point type inside the function
+    # it's used in (some of the functions can allow other numerical types
+    # besides floating point).
+    epsilon = "2.5e-15"
+    # Default relative tolerance for root finding.  I've set it to 1e-6 because
+    # it is rare in working with practical stuff to need higher precisions
+    # because the problem's solution is probably limited by the uncertainties
+    # in measured parameters -- and it's rare to have more than 6 figures for
+    # measurements.
+    eps0 = 1e-6
 class NoConvergence(Exception):
     pass
-
-# Ratio of imag/real to decide when something is a real root (or
-# real/imag to decide when something is pure imaginary).  Also used as
-# the default tolerance for root finding.  Note it's a string because
-# it will be converted to a floating point type inside the function
-# it's used in (some of the functions can allow other numerical types
-# besides floating point).
-epsilon = "2.5e-15"
-
-# Default relative tolerance for root finding.  I've set it to 1e-6 because
-# it is rare in working with practical stuff to need higher precisions
-# because the problem's solution is probably limited by the uncertainties
-# in measured parameters -- and it's rare to have more than 6 figures for
-# measurements.
-eps0 = 1e-6
-
 def FindRoots(f, n, x1, x2, eps=eps0, itmax=ITMAX, fp=float,
               args=[], kw={}):
     '''This is a general-purpose root finding routine that returns a
@@ -222,7 +220,6 @@ def FindRoots(f, n, x1, x2, eps=eps0, itmax=ITMAX, fp=float,
         else:
             roots.append(x)
     return tuple(roots)
-
 def RootFinder(x0, x2, f, eps=eps0, itmax=ITMAX, fp=float, args=[], kw={}):
     '''Return (root, num_iterations) where root is a root of the function
     f() that lies in the interval [x0, x2] and num_iterations is the number
@@ -252,9 +249,10 @@ def RootFinder(x0, x2, f, eps=eps0, itmax=ITMAX, fp=float, args=[], kw={}):
     In 2014, Jack sent me some of the files he could find related to this
     root finding method.  One of these files was titled "The IBM Algorithm
     for Inverse Parabolic Interpolation"; it was a FORTRAN function called
-    RTMI.  It explains that the algorithm is originally due to someone at
-    IBM.  I've associated it with Jack's name because he has studied it and
-    done much to draw attention to the algorithm.
+    RTMI.  It explains that the algorithm is due to an unknown author at
+    IBM, probably in the 1960's.  I've associated it with Jack's name
+    because he has studied it and done much to draw attention to the
+    algorithm.
  
     The method is called "inverse parabolic interpolation" and will
     converge rapidly as it's a 4th order algorithm.  The routine works by
@@ -313,7 +311,6 @@ def RootFinder(x0, x2, f, eps=eps0, itmax=ITMAX, fp=float, args=[], kw={}):
             else:
                 x0, y0, x2, y2 = xm, ym, x1, y1
     raise NoConvergence("No convergence in RootFinder()")
-
 def NewtonRaphson(f, fd, x, eps=eps0, itmax=ITMAX, show=False,
                   fp=float, args=[], kw={}):
     '''Returns the root using Newton-Raphson algorithm for solving
@@ -365,7 +362,6 @@ def NewtonRaphson(f, fd, x, eps=eps0, itmax=ITMAX, show=False,
             raise NoConvergence(msg)
         if show:
             print("NewtonRaphson[%d]: x = %s" % (count, x))
-
 def BracketRoots(f, x1, x2, itmax=ITMAX, fp=float, args=[], kw={}):
     '''Given a function f and an initial interval [x1, x2], expand the
     interval geometrically until a root is bracketed or the number of
@@ -407,7 +403,6 @@ def BracketRoots(f, x1, x2, itmax=ITMAX, fp=float, args=[], kw={}):
         count += 1
         if count > itmax:
             raise NoConvergence("No convergence in BracketRoots()")
-
 def SearchIntervalForRoots(f, n, x1, x2, fp=float, args=[], kw={}):
     '''Given a function f of one variable, divide the interval [x1, x2]
     into n subintervals and determine if the function crosses the x axis
@@ -434,7 +429,6 @@ def SearchIntervalForRoots(f, n, x1, x2, fp=float, args=[], kw={}):
             intervals.append((x0, x))
         x0, y0 = x, y
     return tuple(intervals)
-
 def Bisection(x1, x2, f, eps=eps0, switch=False):
     '''Returns (root, num_it) (the root and number of iterations) by
     finding a root of f(x) = 0 by bisection.  The root must be
@@ -490,7 +484,6 @@ def Bisection(x1, x2, f, eps=eps0, switch=False):
     x = (x1 + x2)/2
     assert(d/2**n <= eps)
     return x, n
-
 def Ridders(a, b, f, eps=eps0, itmax=ITMAX):
     '''Returns (root, num_it) (root and the number of iterations) using
     Ridders' method to find a root of f(x) = 0 to the specified relative
@@ -546,7 +539,6 @@ def Ridders(a, b, f, eps=eps0, itmax=ITMAX):
         else:
             a, b, fa, fb = c, x, fc, fx
     raise NoConvergence("Too many iterations ({0}) in Ridders()".format(i))
-
 def Brent(x1, x2, f, args=[], kw={}, eps=eps0, itmax=ITMAX):
     '''Return (r, numits) where r is the root of the function f that
     is known to lie in the interval [x1, x2].  The root will be found
@@ -615,7 +607,6 @@ def Brent(x1, x2, f, args=[], kw={}, eps=eps0, itmax=ITMAX):
             b += tol1 if xm >= 0 else -tol1
         fb = F(b)
     raise NoConvergence("No convergence in Brent()")
-
 def kbrent(a, b, f, eps=eps0, itmax=ITMAX):
     '''Finds root of f(x) = 0 by combining quadratic interpolation
     with bisection (simplified Brent's method).  The root must be
@@ -670,7 +661,6 @@ def kbrent(a, b, f, eps=eps0, itmax=ITMAX):
             x1, f1 = x3, f3
         x3 = x
     raise NoConvergence("No convergence in kbrent()")
-
 def Crenshaw(x1, x3, f, eps=eps0, itmax=ITMAX, dbg=None, p=4):
     '''Returns (root, number_of_iterations).  x1 and x3 are the initial
     estimates of the root and must bracket it.  f is the function f(x) to
@@ -810,7 +800,6 @@ def Crenshaw(x1, x3, f, eps=eps0, itmax=ITMAX, dbg=None, p=4):
                 # Do another bisection
                 x3, y3 = x2, y2
     raise NoConvergence("No convergence in Crenshaw()")
-
 def Ostrowski(x0, f, deriv, eps=eps0, itmax=ITMAX, dbg=None):
     '''Returns (root, num_iterations) for the root of the function f(x).
     
@@ -867,12 +856,11 @@ def Ostrowski(x0, f, deriv, eps=eps0, itmax=ITMAX, dbg=None):
         # Set up for next iteration
         xn = xn1
     raise NoConvergence("No convergence in Ostrowski()")
-
 def Pound(x, adjust=True, eps=float(epsilon)):
     '''Turn x into a real if the imaginary part is small enough
     relative to the real part and adjust is True.  The analogous thing
     is done for a nearly pure imaginary number.
-
+ 
     The name comes from imagining the complex number is a nail which a
     light tap from a hammer makes it lie parallel to either the real or
     imaginary axis.
@@ -895,7 +883,6 @@ def Pound(x, adjust=True, eps=float(epsilon)):
     elif adjust and x.imag and abs(x.real/x.imag) < eps:
         return x.imag*1j
     return x
-
 def QuadraticEquation(a, b, c, adjust=True, force_real=False):
     '''Return the two roots of a quadratic equation.  The equation is
     a*x^2 + b*x + c = 0; the coefficients can be complex.  Note this
@@ -962,7 +949,6 @@ def QuadraticEquation(a, b, c, adjust=True, force_real=False):
         if force_real:
             return tuple([i.real for i in (x1, x2)])
         return Pound(x1, adjust), Pound(x2, adjust)
-
 def CubicEquation(a, b, c, d, adjust=True, force_real=False):
     '''Returns the roots of a cubic with complex coefficients: a*z**3
     + b*z**2 + c*z + d.
@@ -1073,7 +1059,6 @@ def CubicEquation(a, b, c, d, adjust=True, force_real=False):
     if force_real:
         return tuple(i.real for i in (x1, x2, x3))
     return tuple(Pound(i, adjust) for i in (x1, x2, x3))
-
 def QuarticEquation(a, b, c, d, e, adjust=True, force_real=False):
     '''Returns the roots of a quartic with complex coefficients:
     a*x**4 + b*x**3 + c*x**2 + d*x + e.  Note this works with float
@@ -1151,4 +1136,3 @@ def QuarticEquation(a, b, c, d, e, adjust=True, force_real=False):
     if force_real:
         return tuple([i.real for i in roots])
     return tuple(Pound(i, adjust) for i in roots)
-
