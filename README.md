@@ -15,15 +15,9 @@ License version 3.0.
 
 ## Python version
 
-The python files are intended to be used with python 3.  If a particular
-python 3 version has been used to test everything and all the tests
-passed, then a git tag is used to indicate a repository state where
-those tests passed.  It will be an annotated tag with a name something
-like 'Tested_python3.7.10_16Jun2021'.
-
-I started working on building this repository in May of 2021 and my
-current python version is 3.7.10, so that's what things will be tested
-with.
+The python files are intended to be used with python 3.  I started working
+on building this repository in May of 2021 and my current python version is
+3.7.10, so that's what things were tested with.
 
 ## Coding style
 
@@ -33,13 +27,13 @@ the most precious resource.  Because of the editor I use, I can use this
 compressed form comfortably (it's a folding editor).  I can usually see the
 whole file's contents when it's folded into 20 to 30 lines, which makes
 navigation easy (the 'if 1:' lines cause the folding and the comments give
-the section a name).  Since this will bug most people, it's not hard to get
-a code formatter to put things back to a more conventional form.  Except
-for this vertical compression, I mostly follow the formatting guidelines of
-PEP-8 (see https://www.python.org/dev/peps/pep-0008/).
+the section a name).  Since this will likely bug most people, it's not hard
+to get a code formatter to put things back to a more conventional form.
+Except for this vertical compression, I mostly follow the formatting
+guidelines of PEP-8 (see https://www.python.org/dev/peps/pep-0008/).
 
-One great advantage of this vertically compressed form is that I can insert
-a single blank line where I'm working in the file.  The editor I use has
+An advantage of this vertically compressed form is that I can insert a
+single blank line where I'm working in the file.  The editor I use has
 commands to move to the next or previous paragraph, which is an empty line.
 Thus, I can fold the text, go to another section and look at the code, then
 get back to my working spot with one key press.  It's very efficient.  To
