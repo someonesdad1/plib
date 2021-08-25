@@ -1,3 +1,5 @@
+* Add IsVCDir() to dppath.py.  Original is in tree.py.
+
 * Copy the basic float functionality of sig.GetSigFig() to f.py.  
   Remove the uncertainty stuff, as the key need is to be able to assess
   the number of significant figures in integer, float, and Decimal

@@ -8,6 +8,7 @@ Path utilities (all paths are pathlib.Path objects)
     GetDirs         Return a recursive list of directories
     KeepOnlyDirs    Keep only the directories in a list
     KeepOnlyFiles   Keep only the files in a list
+    IsVCDir         Return True if dir is a version control directory
 '''
 if 1:  # Copyright, license
     # These "trigger strings" can be managed with trigger.py
@@ -137,6 +138,15 @@ def KeepOnlyDirs(pathseq):
     return list(filter(lambda x: P(x).is_dir(), pathseq))
 def KeepOnlyFiles(pathseq):
     return list(filter(lambda x: P(x).is_file(), pathseq))
+def IsVCDir(dir):
+    'Return True if dir is in a version control directory tree'
+    if not hasattr(IsVCDir, "vc"):
+        IsVCDir.vc = set((".bzr", ".git", ".hg", ".svn", "RCS"))
+    for i in dir.parts:
+        if i in IsVCDir.vc:
+            return True
+    return False
+
 if __name__ == "__main__": 
     from lwtest import run, raises, assert_equal, Assert
     import math
