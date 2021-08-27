@@ -1,10 +1,122 @@
 '''
 Todo:
 
-    * If x is a dpDecimal, then -x returns a Decimal.  Need to have all 
-      such operations defined so that a dpDecimal is returned.
+    * If x is a dec, then -x returns a Decimal.  Need to have all 
+      such operations defined so that a dec is returned.
     * Similarly, all math operations need to be defined to allow infection
-      to occur.
+      to occur.  Maybe these can be defined as part of the script instead
+      of having to write every one of them:
+
+__repr__           __bool__           quantize           copy_sign
+__hash__           __int__            remainder_near     same_quantum
+__str__            __float__          fma                logical_and
+__getattribute__   __floordiv__       is_canonical       logical_or
+__lt__             __rfloordiv__      is_finite          logical_xor
+__le__             __truediv__        is_infinite        rotate
+__eq__             __rtruediv__       is_nan             scaleb
+__ne__             __new__            is_qnan            shift
+__gt__             exp                is_snan            from_float
+__ge__             ln                 is_signed          as_tuple
+__add__            log10              is_zero            as_integer_ratio
+__radd__           next_minus         is_normal          __copy__
+__sub__            next_plus          is_subnormal       __deepcopy__
+__rsub__           normalize          adjusted           __format__
+__mul__            to_integral        canonical          __reduce__
+__rmul__           to_integral_exact  conjugate          __round__
+__mod__            to_integral_value  radix              __ceil__
+__rmod__           sqrt               copy_abs           __floor__
+__divmod__         compare            copy_negate        __trunc__
+__rdivmod__        compare_signal     logb               __complex__
+__pow__            max                logical_invert     __sizeof__
+__rpow__           max_mag            number_class       real
+__neg__            min                to_eng_string      imag
+__pos__            min_mag            compare_total      __doc__
+__abs__            next_toward        compare_total_mag  __module__
+
+Signatures:
+ *  __abs__(self, /)
+ *  __add__(self, value, /)
+    __bool__(self, /)
+    __ceil__(...)
+    __complex__(...)
+ *  __copy__(...)
+ *  __deepcopy__(...)
+    __divmod__(self, value, /)
+    __eq__(self, value, /)
+    __float__(self, /)
+    __floor__(...)
+ *  __floordiv__(self, value, /)
+    __format__(...)
+    __ge__(self, value, /)
+    __getattribute__(self, name, /)
+    __gt__(self, value, /)
+    __hash__(self, /)
+    __int__(self, /)
+    __le__(self, value, /)
+    __lt__(self, value, /)
+ *  __mod__(self, value, /)
+ *  __mul__(self, value, /)
+    __ne__(self, value, /)
+ *  __neg__(self, /)
+ *  __pos__(self, /)
+ *  __pow__(self, value, mod=None, /)
+ *  __radd__(self, value, /)
+ *  __rdivmod__(self, value, /)
+    __reduce__(...)
+ *  __repr__(self, /)
+ *  __rfloordiv__(self, value, /)
+    __rmod__(self, value, /)
+ *  __rmul__(self, value, /)
+    __round__(...)
+ *  __rpow__(self, value, mod=None, /)
+ *  __rsub__(self, value, /)
+ *  __rtruediv__(self, value, /)
+    __sizeof__(...)
+ *  __str__(self, /)
+ *  __sub__(self, value, /)
+ *  __truediv__(self, value, /)
+    __trunc__(...)
+    compare(self, /, other, context=None)
+    compare_signal(self, /, other, context=None)
+    compare_total(self, /, other, context=None)
+    compare_total_mag(self, /, other, context=None)
+    conjugate(self, /)
+    copy_abs(self, /)
+    copy_negate(self, /)
+    copy_sign(self, /, other, context=None)
+ *  exp(self, /, context=None)
+    fma(self, /, other, third, context=None)
+ *  ln(self, /, context=None)
+ *  log10(self, /, context=None)
+ *  logb(self, /, context=None)
+ *  logical_and(self, /, other, context=None)
+ *  logical_invert(self, /, context=None)
+ *  logical_or(self, /, other, context=None)
+ *  logical_xor(self, /, other, context=None)
+    max(self, /, other, context=None)
+    max_mag(self, /, other, context=None)
+    min(self, /, other, context=None)
+    min_mag(self, /, other, context=None)
+    next_minus(self, /, context=None)
+    next_plus(self, /, context=None)
+    next_toward(self, /, other, context=None)
+    normalize(self, /, context=None)
+    number_class(self, /, context=None)
+    quantize(self, /, exp, rounding=None, context=None)
+    radix(self, /)
+    remainder_near(self, /, other, context=None)
+    rotate(self, /, other, context=None)
+    same_quantum(self, /, other, context=None)
+    scaleb(self, /, other, context=None)
+    shift(self, /, other, context=None)
+    sqrt(self, /, context=None)
+    to_eng_string(self, /, context=None)
+    to_integral(self, /, rounding=None, context=None)
+    to_integral_exact(self, /, rounding=None, context=None)
+    to_integral_value(self, /, rounding=None, context=None)
+
+    Class methods:
+        from_float(f, /) from builtins.type
 
 Provides Decimal objects with custom string interpolation
 '''
@@ -17,8 +129,11 @@ if 1:  # Copyright, license
     #   See http://opensource.org/licenses/OSL-3.0.
     #∞license∞#
     #∞what∞#
-    # <math> Provides a dpDecimal object that is derived from
-    # decimal.Decimal but has custom string interpolation.
+    # <math> Provides a dec object that is derived from
+    # decimal.Decimal but has custom string interpolation.  It also
+    # "infects" calculations with its type, providing a number class for
+    # general-purpose calculations without the limitations of the float
+    # type.
     #∞what∞#
     #∞test∞# run #∞test∞#
     pass
@@ -31,7 +146,12 @@ if 1:   # Custom imports
     from wrap import dedent
 if 1:   # Global variables
     ii = isinstance
-class dpDecimal(decimal.Decimal):
+    D = decimal.Decimal
+class dec(decimal.Decimal):
+    '''Provides decimal.Decimal numbers with custom string interpolation.
+    This class also "infects" calculations with integers, floats, and
+    decimal.Decimal numbers by always returning a dec object.
+    '''
     _digits = 3         # Number of significant digits for str()
     _sigcomp = None     # Number of sig digits for comparisons
     _dp = locale.localeconv()["decimal_point"]
@@ -44,18 +164,18 @@ class dpDecimal(decimal.Decimal):
         instance = super().__new__(cls, value, context)
         return instance
     def __str__(self):
-        if self > dpDecimal._high or self < dpDecimal._low:
-            return self.sci(dpDecimal._digits)
-        return self.fix(dpDecimal._digits)
+        if self > dec._high or self < dec._low:
+            return self.sci(dec._digits)
+        return self.fix(dec._digits)
     def __neg__(self):
-        return dpDecimal(-decimal.Decimal(self))
+        return dec(-decimal.Decimal(self))
     def fix(self, n):
         'Return fixed-point form of x with n significant figures'
         dp = locale.localeconv()["decimal_point"]
         sign = "-" if self < 0 else ""
         # Get significand and exponent
-        t = f"{abs(self):.{n - 1}{dpDecimal._e}}"
-        s, e = t.split(dpDecimal._e)
+        t = f"{abs(self):.{n - 1}{dec._e}}"
+        s, e = t.split(dec._e)
         exponent = int(e)
         if not self:
             return s
@@ -84,8 +204,8 @@ class dpDecimal(decimal.Decimal):
         dp = locale.localeconv()["decimal_point"]
         sign = "-" if self < 0 else ""
         # Get significand and exponent
-        t = f"{abs(self):.{n - 1}{dpDecimal._e}}"
-        s, e = t.split(dpDecimal._e)
+        t = f"{abs(self):.{n - 1}{dec._e}}"
+        s, e = t.split(dec._e)
         s.replace(".", dp)
         exponent = int(e)
         if not self:
@@ -93,10 +213,17 @@ class dpDecimal(decimal.Decimal):
         if not exponent:
             return sign + s
         # Generate the scientific notation representation
-        return sign + s + dpDecimal._e + str(exponent)
+        return sign + s + dec._e + str(exponent)
+dec = dec
 
 if 0:
-    a = dpDecimal(1.23)
+    d = decimal.Decimal.__dict__
+    from columnize import Columnize
+    for i in Columnize(d.keys()):
+        print(i)
+    exit()
+if 0:
+    a = dec(1.23)
     print(a)
     print(type(-a))
     exit(0)
@@ -110,9 +237,8 @@ if __name__ == "__main__":
     from lwtest import run, raises, assert_equal, Assert
     getcontext = decimal.getcontext
     localcontext = decimal.localcontext
-    D = dpDecimal
     def Test_fix():
-        d = D("1.23456789")
+        d = dec("1.23456789")
         expected = '''
             1
             1.2
@@ -130,7 +256,7 @@ if __name__ == "__main__":
             Assert(d.fix(i) == expected[i - 1])
             Assert((-d).fix(i) == "-" + expected[i - 1])
     def Test_sci():
-        d = D("1.23456789e33")
+        d = dec("1.23456789e33")
         expected = '''
             1e33
             1.2e33
@@ -147,7 +273,7 @@ if __name__ == "__main__":
         for i in range(1, 12):
             Assert(d.sci(i) == expected[i - 1])
             Assert((-d).sci(i) == "-" + expected[i - 1])
-        d = D("1.23456789e-33")
+        d = dec("1.23456789e-33")
         expected = '''
             1e-33
             1.2e-33
@@ -164,6 +290,9 @@ if __name__ == "__main__":
         for i in range(1, 12):
             Assert(d.sci(i) == expected[i - 1])
             Assert((-d).sci(i) == "-" + expected[i - 1])
+    def Test_add():
+        d = dec("1.2345")
+        print(type(d + 3))
     mp.mp.dps = getcontext().prec
-    eps = 10*D(10)**(-D(getcontext().prec))
+    eps = 10*dec(10)**(-dec(getcontext().prec))
     exit(run(globals())[0])
