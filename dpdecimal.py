@@ -167,8 +167,6 @@ class dec(decimal.Decimal):
         if self > dec._high or self < dec._low:
             return self.sci(dec._digits)
         return self.fix(dec._digits)
-    def __neg__(self):
-        return dec(-decimal.Decimal(self))
     def fix(self, n):
         'Return fixed-point form of x with n significant figures'
         dp = locale.localeconv()["decimal_point"]
@@ -214,8 +212,47 @@ class dec(decimal.Decimal):
             return sign + s
         # Generate the scientific notation representation
         return sign + s + dec._e + str(exponent)
-dec = dec
+    def __neg__(self):
+        return dec(super().__neg__())
+    def __add__(self, other):
+        return dec(super().__add__(other))
 
+def AddMethods():
+    '''Routine to add the necessary methods so that dec objects infect
+    routine calculations with their type.
+    
+    https://www.oreilly.com/library/view/python-cookbook/0596001673/ch05s13.html
+    '''
+    # No arguments
+    def Add(name, *args):
+        if not args:
+            f = lambda: eval(f"dec(super().__{name}__())")
+        elif len(args) ==  1:
+            f = lambda x: eval(f"dec(super().__{name}__(x))")
+        elif len(args) ==  2:
+            f = lambda x, y: eval(f"dec(super().__{name}__(x, y))")
+        elif len(args) ==  3:
+            f = lambda x, y, z: eval(f"dec(super().__{name}__(x, y, z))")
+        else:
+            raise ValueError("Too many args")
+        setattr(dec, name, f)
+    for name in '''abs copy deepcopy neg pos'''.split():
+        Add(name)
+    for name in '''add'''.split():
+        Add(name, "other")
+AddMethods()
+
+if 1:
+    from lwtest import run, raises, assert_equal, Assert
+    d = dec("1.2345")
+    e = -d
+    Assert(e == dec("-1.2345"))
+    Assert(type(e) == type(dec("-1.2345")))
+    # Addition
+    e = d + d
+    Assert(e == 2*dec("1.2345"))
+    Assert(type(e) == type(d))
+    exit()
 if 0:
     d = decimal.Decimal.__dict__
     from columnize import Columnize
@@ -227,7 +264,6 @@ if 0:
     print(a)
     print(type(-a))
     exit(0)
-
 if __name__ == "__main__": 
     # Use mpmath (http://mpmath.org/) to generate the numbers to test
     # against (i.e., assume mpmath's algorithms are correct).
@@ -292,7 +328,9 @@ if __name__ == "__main__":
             Assert((-d).sci(i) == "-" + expected[i - 1])
     def Test_add():
         d = dec("1.2345")
-        print(type(d + 3))
+        x = d + 3
+        Assert(x == dec("4.2345"))
+        Assert(ii(x, dec))
     mp.mp.dps = getcontext().prec
     eps = 10*dec(10)**(-dec(getcontext().prec))
     exit(run(globals())[0])
