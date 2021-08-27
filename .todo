@@ -1,4 +1,14 @@
-* Add IsVCDir() to dppath.py.  Original is in tree.py.
+* Because f.py uses Decimals to get formatting, the module should include
+  a utility routine that can format Decimal objects similarly.  This could
+  be put in decimalmath.py instead. 
+
+    * Here's an example of the need.  In tri.py, the arithmetic and trig is
+      done with Decimals to allow arbitrary precision.  Unfortunately, if
+      you e.g. use 2 significant figures and get a result like 20 degrees
+      for an angle, the stock interpolation gives 2E+1, an ugly form.
+      Perhaps a dpdecimal.py module should be written that includes all the
+      decimal behavior, but gives the desired string interpolations and 
+      math functions.  dpdecimal.py would infect like f.py does.
 
 * Copy the basic float functionality of sig.GetSigFig() to f.py.  
   Remove the uncertainty stuff, as the key need is to be able to assess

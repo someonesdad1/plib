@@ -36,6 +36,7 @@ if 1:   # Imports
 if 1:   # Custom imports
     from wrap import dedent
 if 1:   # Global variables
+    ii = isinstance
     __all__ = '''acos asin atan atan2 cos exp ln log10 pi
         pow sin sqrt tan'''.split()
     Dec = decimal.Decimal
@@ -94,7 +95,7 @@ def pi():
 def exp(x):
     '''Returns e raised to the power of x.
     '''
-    if not isinstance(x, Dec):
+    if not ii(x, Dec):
         raise ValueError("Argument is not Decimal type")
     with decimal.localcontext() as ctx:
         ctx.prec += precision_increment
@@ -109,7 +110,7 @@ def exp(x):
 def sin(x):
     '''Returns the sine of x; x is in radians.
     '''
-    if not isinstance(x, Dec):
+    if not ii(x, Dec):
         raise ValueError("Argument is not Decimal type")
     i, lasts, s, fact, num, sign = 1, 0, x, 1, x, 1
     with decimal.localcontext() as ctx:
@@ -125,7 +126,7 @@ def sin(x):
 def cos(x):
     '''Returns the cosine of x; x is in radians.
     '''
-    if not isinstance(x, Dec):
+    if not ii(x, Dec):
         raise ValueError("Argument is not Decimal type")
     i, lasts, s, fact, num, sign = 0, 0, 1, 1, 1, 1
     with decimal.localcontext() as ctx:
@@ -141,7 +142,7 @@ def cos(x):
 def tan(x):
     '''Returns the tangent of x; x is in radians.
     '''
-    if not isinstance(x, Dec):
+    if not ii(x, Dec):
         raise ValueError("Argument is not Decimal type")
     if x == zero:
         return zero
@@ -156,7 +157,7 @@ def tan(x):
 def acos(x):
     '''Returns the inverse cosine (in radians) of x.
     '''
-    if not isinstance(x, Dec):
+    if not ii(x, Dec):
         raise ValueError("Argument is not Decimal type")
     if abs(x) > 1:
         raise ValueError("Absolute value of argument must be <= 1")
@@ -182,7 +183,7 @@ def atan(x):
     '''
     # The algorithm uses the root finder with the tangent function as
     # an argument.
-    if not isinstance(x, Dec):
+    if not ii(x, Dec):
         raise ValueError("Argument is not Decimal type")
     if x == zero:
         return zero
@@ -208,9 +209,9 @@ def atan2(y, x):
     '''Returns the inverse tangent of y/x (in radians) and gets the
     correct quadrant.
     '''
-    if not isinstance(x, Dec):
+    if not ii(x, Dec):
         raise ValueError("x argument is not Decimal type")
-    if not isinstance(y, Dec):
+    if not ii(y, Dec):
         raise ValueError("y argument is not Decimal type")
     Pi = pi()
     if x == zero:
@@ -235,7 +236,7 @@ def asin(x):
     '''
     # The algorithm uses the root finder with the sine function as
     # an argument.
-    if not isinstance(x, Dec):
+    if not ii(x, Dec):
         raise ValueError("Argument is not Decimal type")
     if not (-one <= x <= one):
         raise ValueError("Absolute value of Argument must be <= 1")
@@ -265,7 +266,7 @@ def asin(x):
 def log10(x):
     '''Returns the base 10 logarithm of x.
     '''
-    if not isinstance(x, Dec):
+    if not ii(x, Dec):
         raise ValueError("Argument is not Decimal type")
     if x <= zero:
         raise ValueError("Argument must be > 0")
@@ -273,7 +274,7 @@ def log10(x):
 def ln(x):
     '''Returns the natural logarithm of x.
     '''
-    if not isinstance(x, Dec):
+    if not ii(x, Dec):
         raise ValueError("Argument is not Decimal type")
     if x == one:
         return zero
@@ -300,9 +301,9 @@ def ln(x):
 def pow(y, x):
     '''Returns y raised to the power x.
     '''
-    if not isinstance(x, (Dec, int)):
+    if not ii(x, (Dec, int)):
         raise ValueError("Argument is not Decimal or integer type")
-    if not isinstance(y, (Dec, int)):
+    if not ii(y, (Dec, int)):
         raise ValueError("Argument is not Decimal or integer type")
     if not y:
         raise ValueError("Base must not be zero")
@@ -315,7 +316,7 @@ def pow(y, x):
     with decimal.localcontext() as ctx:
         ctx.prec += precision_increment
         if y < 0:
-            if isinstance(x, int) or int(x) == x:
+            if ii(x, int) or int(x) == x:
                 y = abs(y)
                 if x % 2 == 0:
                     # Even power
@@ -337,7 +338,7 @@ def pow(y, x):
 def sqrt(x):
     '''Returns the square root of x.
     '''
-    if not isinstance(x, Dec):
+    if not ii(x, Dec):
         raise ValueError("Argument is not Decimal type")
     if x < 0:
         raise ValueError("Can't take square root of negative argument")
@@ -351,52 +352,58 @@ def f2d(x):
     decimal module's documentation for warnings about doing such
     things.
     '''
-    if not isinstance(x, (float, str)):
+    if not ii(x, (float, str)):
         raise ValueError("x needs to be a float or string")
     return Dec(repr(float(x)))
 def FindRoot(x0, x2, f, maxit=50):
-    '''Inverse parabolic interpolation algorithm to find roots.  The
-    root must be bracketed by x0 and x2.  f is the function to
-    evaluate; it takes one Decimal argument and returns a Decimal.  If
-    your f has more arguments, use functools.partial.  The iteration
-    will terminate when two consecutive calculations differ by eps (see
-    below) or less.
- 
-    Returns a tuple (root, number_of_iterations, eps)
+    '''Returns a tuple (root, number_of_iterations, eps) where root is the
+    root of f(x) == 0.  The root must be bracketed by x0 and x2.  f is the
+    function to evaluate; it takes one Decimal argument and returns a
+    Decimal.  If your f(x) has more arguments, use functools.partial.  
+
+    The iteration will terminate when two consecutive calculations differ
+    by eps (see below) or less.
  
     The routine will raise a ValueError exception if the number of
     iterations is greater than maxit.
  
     Reference:  "All Problems Are Simple" by Jack Crenshaw, Embedded
-    Systems Programming, May, 2002, pg 7-14.  Translated from
-    Crenshaw's C code modified by Don Peterson 20 May 2003.
+    Systems Programming, May, 2002, pg 7-14.  Translated from Jack's C
+    code by myself on 20 May 2003.
  
-    Crenshaw states this routine will converge rapidly on most
-    functions, typically adding 4 digits to the solution on each
-    iteration.  The routine works by starting with x0, x2, and finding
-    a third x1 by bisection.  The ordinates are gotten, then a
-    horizontally-opening parabola is fitted to the points.  The
-    parabola's root's abscissa is gotten, and the iteration is
-    repeated.
+    Inverse parabolic interpolation algorithm to find the roots.  Jack
+    states this routine will converge rapidly on most functions, typically
+    adding 4 digits to the solution on each iteration.  The routine works
+    by starting with x0, x2, and finding a third x1 by bisection.  The
+    ordinates are gotten, then a horizontally-opening parabola is fitted to
+    the points.  The parabola's root's abscissa is gotten, and the
+    iteration is repeated.
+
+    Note:  Jack commented that this routine was written by some unknown
+    genius at IBM and was in IBM's FORTRAN library code in the 1960's.
+    Jack has done quite a bit of work to popularize it.
     '''
     # We'll find the value to a precision that is 10**(-n + 1) where
     # n is the current number of Decimal digits.  Note:  we add 1
     # because there are two guard digits and, if 1 wasn't added, some
     # of the iterations won't converge (e.g., asin(-0.5)).
     eps = Dec(10)**(-Dec(decimal.getcontext().prec) + 1)
+    # Check arithmetic
+    if 1/2 != 0.5:
+        raise ValueError("Inadequate arithmetic")
     # Set up constants
     xmlast = x0
     x1 = y0 = y1 = y2 = b = c = temp = y10 = y20 = y21 = xm = ym = zero
     # Check input
-    if not isinstance(x0, Dec):
+    if not ii(x0, Dec):
         raise ValueError("Argument is not Decimal type")
-    if not isinstance(x2, Dec):
+    if not ii(x2, Dec):
         raise ValueError("Argument is not Decimal type")
     if x0 >= x2:
         raise ValueError("x0 must be strictly less than x2")
     if eps <= zero:
         raise ValueError("eps must be > 0")
-    if maxit < one or not isinstance(maxit, int):
+    if not ii(maxit, int) or maxit < one:
         raise ValueError("maxit must be integer > 0")
     # Handle special cases
     y0 = f(x0)
@@ -405,14 +412,15 @@ def FindRoot(x0, x2, f, maxit=50):
     y2 = f(x2)
     if not y2:
         return x2, 0, eps
+    # Make sure root is bracketed
     if y2*y0 > zero:
         raise ValueError("x0 and x2 don't bracket a root")
     # Iterate for root
-    for ix in range(maxit):
+    for i in range(maxit):
         x1 = (x2 + x0)/two
         y1 = f(x1)
         if not y1 or abs(x1 - x0) < eps:
-            return x1, ix+1, eps
+            return x1, i + 1, eps
         if y1*y0 > zero:
             temp = x0
             x0 = x2
@@ -427,14 +435,14 @@ def FindRoot(x0, x2, f, maxit=50):
             x2 = x1
             y2 = y1
             if abs(xm - xmlast) < eps:
-                return xm, ix+1, eps
+                return xm, i + 1, eps
         else:
             b = (x1 - x0)/y10
             c = (y10 - y21)/(y21*y20)
             xm = x0 - b*y0*(one - c*y1)
             ym = f(xm)
             if not ym or abs(xm - xmlast) < eps:
-                return xm, ix+1, eps
+                return xm, i + 1, eps
             xmlast = xm
             if ym*y0 < zero:
                 x2 = xm
@@ -444,8 +452,7 @@ def FindRoot(x0, x2, f, maxit=50):
                 y0 = ym
                 x2 = x1
                 y2 = y1
-    msg = "FindRoot:  no convergence after {0} iterations".format(maxit)
-    raise ValueError(msg)
+    raise ValueError(f"FindRoot:  no convergence after {maxit} iterations")
 if __name__ == "__main__": 
     # Use mpmath (http://mpmath.org/) to generate the numbers to test
     # against (i.e., assume mpmath's algorithms are correct).

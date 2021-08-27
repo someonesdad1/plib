@@ -1,4 +1,11 @@
 '''
+NOTE:  (25 Aug 2021) 
+    This module still works, but I consider it deprecated because 1) it's
+    too big (tries to cover too many situations) and 2) its needs are
+    better met by the flt and cpx objects in the f.py module.  I am slowly
+    converting the hundreds of my python scripts that used sig.py over to
+    using the f.py module.
+
 Todo, bugs:
     * sig.rtz works on fixed but not scientific
     * Add sig.rtdp to remove trailing decimal point.
