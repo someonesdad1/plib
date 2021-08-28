@@ -1,15 +1,23 @@
 ''' 
 Provides dec(Decimal) objects with custom string interpolation
-
+ 
     Note:  The infection model was implemented by using the output of 
     the Signatures() function to determine which Decimal methods returned a
     Decimal object.  These were added to the class, calling the Decimal
     method and typecasting the result to a dec.  This was ultimately
     enabled by using the signatures gotten from help(Decimal).
-
+ 
     The Decimal module follows the "General Decimal Arithmetic
     Specification", version 1.70, 25 Mar 2009 by M. Cowlishaw.
-
+ 
+    The pgm/constants_nist.py script shows that the NIST list of physical
+    constants has a mean number of significant figures of about nine.
+    Thus, for calculations with numbers derived from measurements, a
+    Decimal context with nine digits of precision should be adequate for
+    most needs.  Similar reasoning might have been why the
+    decimal.BasicContext and decimal.ExtendedContext instances used a
+    precision of nine.
+ 
 Todo:
  
     * 
@@ -68,7 +76,7 @@ class dec(decimal.Decimal):
     _high = 1e16        # When to switch to scientific notation
     _e = "e"            # Letter in scientific notation
     def __new__(cls, value="0", context=None):
-        instance = super().__new__(cls, value, context)
+        instance = super().__new__(cls, value, context=context)
         return instance
     def __str__(self):
         if self > dec._high or self < dec._low:
@@ -175,8 +183,11 @@ class dec(decimal.Decimal):
         return dec(super().__mod__(value))
     def __mul__(self, value):
         return dec(super().__mul__(value))
-    def __pow__(self, value, mod=None):
-        return dec(super().__pow__(value, mod=mod))
+    def __pow__(self, value):
+        # It appears help() for Decimal is wrong, as if you include the mod
+        # argument, you'll get a TypeError:
+        # TypeError: wrapper __pow__() takes no keyword arguments
+        return dec(super().__pow__(value))
     def __radd__(self, value):
         return dec(super().__radd__(value))
     def __rfloordiv__(self, value):
@@ -185,8 +196,11 @@ class dec(decimal.Decimal):
         return dec(super().__rmod__(value))
     def __rmul__(self, value):
         return dec(super().__rmul__(value))
-    def __rpow__(self, value, mod=None):
-        return dec(super().__rpow__(value, mod=mod))
+    def __rpow__(self, value):
+        # It appears help() for Decimal is wrong, as if you include the mod
+        # argument, you'll get a TypeError:
+        # TypeError: wrapper __rpow__() takes no keyword arguments
+        return dec(super().__rpow__(value))
     def __rsub__(self, value):
         return dec(super().__rsub__(value))
     def __rtruediv__(self, value):
@@ -222,7 +236,7 @@ class dec(decimal.Decimal):
     def next_toward(self, value, context=None):
         return dec(super().next_toward(value, context=context))
     def quantize(self, exp, rounding=None, context=None):
-        return dec(super().quantize(value, context=context))
+        return dec(super().quantize(exp, context=context))
     def remainder_near(self, value, context=None):
         return dec(super().remainder_near(value, context=context))
     def rotate(self, value, context=None):
@@ -334,7 +348,7 @@ def Signatures():
             print(i)
     '''
     The following functions return a Decimal:
-
+ 
         No arguments:
             __abs__()           exp()               normalize()
             __copy__()          ln()                radix()
@@ -343,7 +357,7 @@ def Signatures():
             conjugate()         logical_invert()    to_integral_exact()
             copy_abs()          next_minus()        to_integral_value()
             copy_negate()       next_plus()
-
+ 
         One argument:
             __add__(y)           __rsub__(y)          logical_xor(y)
             __deepcopy__(y)      __rtruediv__(y)      max(y)
@@ -357,40 +371,36 @@ def Signatures():
             __rmul__(y)          logical_and(y)       scaleb(y)
             __rpow__(y)          logical_or(y)        shift(y)
     '''
-if 1:
-    # Show the return types of decimal.Decimal's methods
-    Signatures()
-    exit()
-if 0:
-    AddMethods()
-    exit()
-if 0:
-    from lwtest import run, raises, assert_equal, Assert
-    d = dec("1.2345")
-    e = -d
-    Assert(e == dec("-1.2345"))
-    Assert(type(e) == type(dec("-1.2345")))
-    # Addition
-    e = d + d
-    Assert(e == 2*dec("1.2345"))
-    Assert(type(e) == type(d))
-    exit()
-if 0:
-    d = decimal.Decimal.__dict__
-    for i in Columnize(d.keys()):
+def DumpContext(name, ctx):
+    "Print a context's contents to stdout"
+    def F(s):
+        s = str(s).replace("<class 'decimal.", "")
+        return s.replace("'>", "")
+    indent = " "*4
+    print(f"Dump of '{name}' context:")
+    for i in "prec rounding Emin Emax capitals clamp".split():
+        print(f"{indent}{i:20s}", eval(f"ctx.{i}"))
+    print(f"{indent}flags:")
+    f = [F(i) for i in ctx.flags]
+    for i in Columnize(f, indent=indent*2):
         print(i)
-    exit()
+    print(f"{indent}traps:")
+    f = [F(i) for i in ctx.traps]
+    for i in Columnize(f, indent=indent*2):
+        print(i)
 if 0:
-    a = dec(1.23)
-    print(a)
-    print(type(-a))
+    # Note the flags and traps for the latter two don't appear to be what
+    # the documentation specifies.
+    DumpContext("decimal.DefaultContext", decimal.DefaultContext)
+    DumpContext("decimal.BasicContext", decimal.BasicContext)
+    DumpContext("decimal.ExtendedContext", decimal.ExtendedContext)
     exit(0)
+
 if __name__ == "__main__": 
     # Use mpmath (http://mpmath.org/) to generate the numbers to test
     # against (i.e., assume mpmath's algorithms are correct).
     import mpmath as mp
-    from pdb import set_trace as xx
-    from wrap import wrap, dedent, indent, Wrap
+    from fractions import Fraction
     from lwtest import run, raises, assert_equal, Assert
     getcontext = decimal.getcontext
     localcontext = decimal.localcontext
@@ -452,6 +462,51 @@ if __name__ == "__main__":
         x = d + 3
         Assert(x == dec("4.2345"))
         Assert(ii(x, dec))
+    def Test_infection():
+        'Verify that the supported operations return a dec object'
+        x = dec("1.234")
+        L1, L2 = dec("11001"), dec("11101") # Logical arguments
+        two = dec(2)
+        for y in (True, 3, 3.456, D("3.456"), dec("3.456"), Fraction(1, 2)):
+            # Zero arguments, non-logical
+            for i in '''__abs__ exp normalize __copy__ ln radix __neg__ log10
+                        sqrt __pos__ logb to_integral conjugate
+                        to_integral_exact copy_abs next_minus
+                        to_integral_value copy_negate next_plus
+                        '''.split():
+                r = eval(f"x.{i}()")
+                Assert(type(r) == type(x))
+            # Zero arguments, logical arguments
+            for i in '''logical_invert'''.split():
+                r = eval(f"L1.{i}()")
+                Assert(type(r) == type(L1))
+            # One argument, non-logical
+            for i in '''__add__ __rsub__ __deepcopy__ __rtruediv__ max
+                        __floordiv__ __sub__ max_mag __mod__ __truediv__
+                        min __mul__ compare min_mag __pow__ compare_signal
+                        next_toward __radd__ compare_total quantize
+                        __rfloordiv__ compare_total_mag remainder_near
+                        __rmod__ copy_sign __rmul__ scaleb
+                        __rpow__'''.split():
+                # Note floats and Fraction are not supported for these
+                # operations
+                if ii(y, (float, Fraction)):
+                    with raises(TypeError):
+                        r = eval(f"x.{i}()")
+                else:
+                    if i == "scaleb":
+                        r = eval(f"x.{i}(two)")
+                    else:
+                        r = eval(f"x.{i}(y)")
+                    Assert(type(r) == type(x))
+            # One argument, logical arguments
+            for i in '''logical_and logical_or logical_xor rotate
+                        shift'''.split():
+                    if i in "rotate shift".split():
+                        r = eval(f"L1.{i}(two)")
+                    else:
+                        r = eval(f"L1.{i}(L2)")
+                    Assert(type(r) == type(L1))
     mp.mp.dps = getcontext().prec
     eps = 10*dec(10)**(-dec(getcontext().prec))
     exit(run(globals())[0])
