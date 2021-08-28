@@ -100,6 +100,7 @@ def exp(x):
     with decimal.localcontext() as ctx:
         ctx.prec += precision_increment
         i, lasts, s, fact, num = 0, 0, 1, 1, 1
+        # Algorithm is Maclaurin series expansion
         while s != lasts:
             lasts = s
             i += 1
@@ -108,13 +109,13 @@ def exp(x):
             s += num/fact
     return +s  # Force rounding to current precision
 def sin(x):
-    '''Returns the sine of x; x is in radians.
-    '''
+    'Returns the sine of x; x is in radians'
     if not ii(x, Dec):
         raise ValueError("Argument is not Decimal type")
     i, lasts, s, fact, num, sign = 1, 0, x, 1, x, 1
     with decimal.localcontext() as ctx:
         ctx.prec += precision_increment
+        # Algorithm is Maclaurin series expansion
         while s != lasts:
             lasts = s
             i += 2
@@ -124,13 +125,13 @@ def sin(x):
             s += num/fact*sign
     return +s  # Force rounding to current precision
 def cos(x):
-    '''Returns the cosine of x; x is in radians.
-    '''
+    'Returns the cosine of x; x is in radians'
     if not ii(x, Dec):
         raise ValueError("Argument is not Decimal type")
     i, lasts, s, fact, num, sign = 0, 0, 1, 1, 1, 1
     with decimal.localcontext() as ctx:
         ctx.prec += precision_increment
+        # Algorithm is Maclaurin series expansion
         while s != lasts:
             lasts = s
             i += 2
