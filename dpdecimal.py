@@ -1,126 +1,19 @@
-'''
+''' 
+Provides dec(Decimal) objects with custom string interpolation
+
+    Note:  The infection model was implemented by using the output of 
+    the Signatures() function to determine which Decimal methods returned a
+    Decimal object.  These were added to the class, calling the Decimal
+    method and typecasting the result to a dec.  This was ultimately
+    enabled by using the signatures gotten from help(Decimal).
+
+    The Decimal module follows the "General Decimal Arithmetic
+    Specification", version 1.70, 25 Mar 2009 by M. Cowlishaw.
+
 Todo:
  
-    * If x is a dec, then -x returns a Decimal.  Need to have all 
-      such operations defined so that a dec is returned.
-    * Similarly, all math operations need to be defined to allow infection
-      to occur.  Maybe these can be defined as part of the script instead
-      of having to write every one of them:
- 
-__repr__           __bool__           quantize           copy_sign
-__hash__           __int__            remainder_near     same_quantum
-__str__            __float__          fma                logical_and
-__getattribute__   __floordiv__       is_canonical       logical_or
-__lt__             __rfloordiv__      is_finite          logical_xor
-__le__             __truediv__        is_infinite        rotate
-__eq__             __rtruediv__       is_nan             scaleb
-__ne__             __new__            is_qnan            shift
-__gt__             exp                is_snan            from_float
-__ge__             ln                 is_signed          as_tuple
-__add__            log10              is_zero            as_integer_ratio
-__radd__           next_minus         is_normal          __copy__
-__sub__            next_plus          is_subnormal       __deepcopy__
-__rsub__           normalize          adjusted           __format__
-__mul__            to_integral        canonical          __reduce__
-__rmul__           to_integral_exact  conjugate          __round__
-__mod__            to_integral_value  radix              __ceil__
-__rmod__           sqrt               copy_abs           __floor__
-__divmod__         compare            copy_negate        __trunc__
-__rdivmod__        compare_signal     logb               __complex__
-__pow__            max                logical_invert     __sizeof__
-__rpow__           max_mag            number_class       real
-__neg__            min                to_eng_string      imag
-__pos__            min_mag            compare_total      __doc__
-__abs__            next_toward        compare_total_mag  __module__
- 
-Signatures:
-    __abs__(self, /)
-    __add__(self, value, /)
-    __bool__(self, /)
-    __ceil__(...)
-    __complex__(...)
-    __copy__(...)
-    __deepcopy__(...)
-    __divmod__(self, value, /)
-    __eq__(self, value, /)
-    __float__(self, /)
-    __floor__(...)
-    __floordiv__(self, value, /)
-    __format__(...)
-    __ge__(self, value, /)
-    __getattribute__(self, name, /)
-    __gt__(self, value, /)
-    __hash__(self, /)
-    __int__(self, /)
-    __le__(self, value, /)
-    __lt__(self, value, /)
-    __mod__(self, value, /)
-    __mul__(self, value, /)
-    __ne__(self, value, /)
-    __neg__(self, /)
-    __pos__(self, /)
-    __pow__(self, value, mod=None, /)
-    __radd__(self, value, /)
-    __rdivmod__(self, value, /)
-    __reduce__(...)
-    __repr__(self, /)
-    __rfloordiv__(self, value, /)
-    __rmod__(self, value, /)
-    __rmul__(self, value, /)
-    __round__(...)
-    __rpow__(self, value, mod=None, /)
-    __rsub__(self, value, /)
-    __rtruediv__(self, value, /)
-    __sizeof__(...)
-    __str__(self, /)
-    __sub__(self, value, /)
-    __truediv__(self, value, /)
-    __trunc__(...)
-
-    compare(self, /, other, context=None)
-    compare_signal(self, /, other, context=None)
-    compare_total(self, /, other, context=None)
-    compare_total_mag(self, /, other, context=None)
-    conjugate(self, /)
-    copy_abs(self, /)
-    copy_negate(self, /)
-    copy_sign(self, /, other, context=None)
-    exp(self, /, context=None)
-    fma(self, /, other, third, context=None)
-    ln(self, /, context=None)
-    log10(self, /, context=None)
-    logb(self, /, context=None)
-    logical_and(self, /, other, context=None)
-    logical_invert(self, /, context=None)
-    logical_or(self, /, other, context=None)
-    logical_xor(self, /, other, context=None)
-    max(self, /, other, context=None)
-    max_mag(self, /, other, context=None)
-    min(self, /, other, context=None)
-    min_mag(self, /, other, context=None)
-    next_minus(self, /, context=None)
-    next_plus(self, /, context=None)
-    next_toward(self, /, other, context=None)
-    normalize(self, /, context=None)
-    number_class(self, /, context=None)
-    quantize(self, /, exp, rounding=None, context=None)
-    radix(self, /)
-    remainder_near(self, /, other, context=None)
-    rotate(self, /, other, context=None)
-    same_quantum(self, /, other, context=None)
-    scaleb(self, /, other, context=None)
-    shift(self, /, other, context=None)
-    sqrt(self, /, context=None)
-    to_eng_string(self, /, context=None)
-    to_integral(self, /, rounding=None, context=None)
-    to_integral_exact(self, /, rounding=None, context=None)
-    to_integral_value(self, /, rounding=None, context=None)
- 
-    Class methods:
-        from_float(f, /) from builtins.type
- 
-Provides Decimal objects with custom string interpolation
-'''
+    * 
+''' 
 if 1:  # Copyright, license
     # These "trigger strings" can be managed with trigger.py
     #∞copyright∞# Copyright (C) 2021 Don Peterson #∞copyright∞#
@@ -147,7 +40,7 @@ if 1:   # Imports
 if 1:   # Custom imports
     from wrap import dedent
     from columnize import Columnize
-    if 0:
+    if 1:   # Set to True to get color output
         from color import C
     else:
         C = None
@@ -159,9 +52,8 @@ if 1:   # Global variables
     D = decimal.Decimal
     class g: pass
     g.d = C.lgrn if C else ""
-    g.o = C.lyel if C else ""
+    g.o = C.lblu if C else ""
     g.n = C.norm if C else ""
-
 class dec(decimal.Decimal):
     '''Provides decimal.Decimal numbers with custom string interpolation.
     This class also "infects" calculations with integers, floats, and
@@ -227,10 +119,118 @@ class dec(decimal.Decimal):
             return sign + s
         # Generate the scientific notation representation
         return sign + s + dec._e + str(exponent)
+    # The following methods are implemented to allow dec to follow an
+    # infection model.  They are the methods in Decimal that return a
+    # Decimal.
+    # --------------------------- 0 arguments ----------------------------
+    def __abs__(self):
+        return dec(super().__abs__())
+    #def __copy__(...):
+    #def __deepcopy__(...):
     def __neg__(self):
         return dec(super().__neg__())
-    def __add__(self, other):
-        return dec(super().__add__(other))
+    def __pos__(self):
+        return dec(super().__pos__())
+    def conjugate(self):
+        return dec(super().conjugate())
+    def copy_abs(self):
+        return dec(super().copy_abs())
+    def copy_negate(self):
+        return dec(super().copy_negate())
+    def exp(self, context=None):
+        return dec(super().exp(context=context))
+    def ln(self, context=None):
+        return dec(super().ln(context=context))
+    def log10(self, context=None):
+        return dec(super().log10(context=context))
+    def logb(self, context=None):
+        return dec(super().logb(context=context))
+    def logical_invert(self, context=None):
+        return dec(super().logical_invert(context=context))
+    def next_minus(self, context=None):
+        return dec(super().next_minus(context=context))
+    def next_plus(self, context=None):
+        return dec(super().next_plus(context=context))
+    def normalize(self, context=None):
+        return dec(super().normalize(context=context))
+    def radix(self):
+        return dec(super().radix())
+    def sqrt(self, context=None):
+        return dec(super().sqrt(context=context))
+    def to_integral(self, rounding=None, context=None):
+        return dec(super().to_integral(context=context,
+                                       rounding=rounding))
+    def to_integral_exact(self, rounding=None, context=None):
+        return dec(super().to_integral_exact(context=context,
+                                             rounding=rounding))
+    def to_integral_value(self, rounding=None, context=None):
+        return dec(super().to_integral_value(context=context,
+                                             rounding=rounding))
+    # --------------------------- 1 argument -----------------------------
+    def __add__(self, value):
+        return dec(super().__add__(value))
+    def __floordiv__(self, value):
+        return dec(super().__floordiv__(value))
+    def __mod__(self, value):
+        return dec(super().__mod__(value))
+    def __mul__(self, value):
+        return dec(super().__mul__(value))
+    def __pow__(self, value, mod=None):
+        return dec(super().__pow__(value, mod=mod))
+    def __radd__(self, value):
+        return dec(super().__radd__(value))
+    def __rfloordiv__(self, value):
+        return dec(super().__rfloordiv__(value))
+    def __rmod__(self, value):
+        return dec(super().__rmod__(value))
+    def __rmul__(self, value):
+        return dec(super().__rmul__(value))
+    def __rpow__(self, value, mod=None):
+        return dec(super().__rpow__(value, mod=mod))
+    def __rsub__(self, value):
+        return dec(super().__rsub__(value))
+    def __rtruediv__(self, value):
+        return dec(super().__rtruediv__(value))
+    def __sub__(self, value):
+        return dec(super().__sub__(value))
+    def __truediv__(self, value):
+        return dec(super().__truediv__(value))
+    def compare(self, value, context=None):
+        return dec(super().compare(value, context=context))
+    def compare_signal(self, value, context=None):
+        return dec(super().compare_signal(value, context=context))
+    def compare_total(self, value, context=None):
+        return dec(super().compare_total(value, context=context))
+    def compare_total_mag(self, value, context=None):
+        return dec(super().compare_total_mag(value, context=context))
+    def copy_sign(self, value, context=None):
+        return dec(super().copy_sign(value, context=context))
+    def logical_and(self, value, context=None):
+        return dec(super().logical_and(value, context=context))
+    def logical_or(self, value, context=None):
+        return dec(super().logical_or(value, context=context))
+    def logical_xor(self, value, context=None):
+        return dec(super().logical_xor(value, context=context))
+    def max(self, value, context=None):
+        return dec(super().max(value, context=context))
+    def max_mag(self, value, context=None):
+        return dec(super().max_mag(value, context=context))
+    def min(self, value, context=None):
+        return dec(super().min(value, context=context))
+    def min_mag(self, value, context=None):
+        return dec(super().min_mag(value, context=context))
+    def next_toward(self, value, context=None):
+        return dec(super().next_toward(value, context=context))
+    def quantize(self, exp, rounding=None, context=None):
+        return dec(super().quantize(value, context=context))
+    def remainder_near(self, value, context=None):
+        return dec(super().remainder_near(value, context=context))
+    def rotate(self, value, context=None):
+        return dec(super().rotate(value, context=context))
+    def scaleb(self, value, context=None):
+        return dec(super().scaleb(value, context=context))
+    def shift(self, value, context=None):
+        return dec(super().shift(value, context=context))
 def Signatures():
     'Print out the types of the return values of decimal.Decimal methods'
     x, y = D("1.234"), D("3.456")
@@ -240,11 +240,14 @@ def Signatures():
     w = 25
     t = "Error:  {n:{w}s}: {e}"
     def Type(z):
+        global g
         s = str(type(z))[1:-1].replace("class", "").replace("'", "").strip()
         # Highlight the functions that return a Decimal, as these are ones
         # we need to implement
         if s == "decimal.Decimal":
             s = g.d + s + g.n
+        else:
+            s = g.o + s + g.n
         return s
     def ZeroArgs(name, x, us=""):
         n = f"x.{us}{name}{us}()"
@@ -312,7 +315,7 @@ def Signatures():
             scaleb shift
             '''.split():
             if name in '''logical_and logical_or logical_xor rotate scaleb
-                          shift'''.split():
+                        shift'''.split():
                 if name in "rotate scaleb shift".split():
                     f(name, X, D(1))
                 else:
@@ -329,30 +332,31 @@ def Signatures():
         seen = [i[2:] for i in sorted(seen)]
         for i in Columnize(seen, indent=" "*2):
             print(i)
-def AddMethods():
-    '''Routine to add the necessary methods so that dec objects infect
-    routine calculations with their type.
-    
-    https://www.oreilly.com/library/view/python-cookbook/0596001673/ch05s13.html
     '''
-    # No arguments
-    def Add(name, *args):
-        if not args:
-            f = lambda: eval(f"dec(super().__{name}__())")
-        elif len(args) ==  1:
-            f = lambda x: eval(f"dec(super().__{name}__(x))")
-        elif len(args) ==  2:
-            f = lambda x, y: eval(f"dec(super().__{name}__(x, y))")
-        elif len(args) ==  3:
-            f = lambda x, y, z: eval(f"dec(super().__{name}__(x, y, z))")
-        else:
-            raise ValueError("Too many args")
-        setattr(dec, name, f)
-    for name in '''abs copy deepcopy neg pos'''.split():
-        Add(name)
-    for name in '''add'''.split():
-        Add(name, "other")
+    The following functions return a Decimal:
 
+        No arguments:
+            __abs__()           exp()               normalize()
+            __copy__()          ln()                radix()
+            __neg__()           log10()             sqrt()
+            __pos__()           logb()              to_integral()
+            conjugate()         logical_invert()    to_integral_exact()
+            copy_abs()          next_minus()        to_integral_value()
+            copy_negate()       next_plus()
+
+        One argument:
+            __add__(y)           __rsub__(y)          logical_xor(y)
+            __deepcopy__(y)      __rtruediv__(y)      max(y)
+            __floordiv__(y)      __sub__(y)           max_mag(y)
+            __mod__(y)           __truediv__(y)       min(y)
+            __mul__(y)           compare(y)           min_mag(y)
+            __pow__(y)           compare_signal(y)    next_toward(y)
+            __radd__(y)          compare_total(y)     quantize(y)
+            __rfloordiv__(y)     compare_total_mag(y) remainder_near(y)
+            __rmod__(y)          copy_sign(y)         rotate(y)
+            __rmul__(y)          logical_and(y)       scaleb(y)
+            __rpow__(y)          logical_or(y)        shift(y)
+    '''
 if 1:
     # Show the return types of decimal.Decimal's methods
     Signatures()
