@@ -591,6 +591,7 @@ if __name__ == "__main__":
     localcontext = decimal.localcontext
     mp.mp.dps = getcontext().prec
     Pi = Dec(str(mp.pi()))  # Reference value of pi at current precision
+    pio2, pio3, pio4, pio6 = Pi/two, Pi/three, Pi/four, Pi/Dec(6)
     eps = ten*ten**(-Dec(getcontext().prec))
     AssertEqual = partial(assert_equal, reltol=eps)
     def Test_pi():
@@ -608,46 +609,46 @@ if __name__ == "__main__":
         if 1:   # Regular functions
             # sin
             AssertEqual(sin(zero), zero)
-            AssertEqual(sin(Pi/4), one/sqrt(two))
-            AssertEqual(sin(Pi/2), one)
+            AssertEqual(sin(pio4), one/sqrt(two))
+            AssertEqual(sin(pio2), one)
             # cos
             AssertEqual(cos(zero), one)
-            AssertEqual(cos(Pi/4), one/sqrt(two))
-            Assert(abs(cos(Pi/2)) < eps)
+            AssertEqual(cos(pio4), one/sqrt(two))
+            Assert(cos(pio2) == zero)
             # tan
             AssertEqual(tan(zero), zero)
-            AssertEqual(tan(Pi/4), one)
-            raises(decimal.DivisionByZero, tan, Pi/2)
+            AssertEqual(tan(pio4), one)
+            raises(decimal.DivisionByZero, tan, pio2)
         if 1:   # Inverse functions
             # asin
-            AssertEqual(asin(half),              Pi/6)
-            AssertEqual(asin(-half),            -Pi/6)
-            AssertEqual(asin(Dec(3).sqrt()/2),   Pi/3)
-            AssertEqual(asin(-Dec(3).sqrt()/2), -Pi/3)
+            AssertEqual(asin(half),              pio6)
+            AssertEqual(asin(-half),            -pio6)
+            AssertEqual(asin(three.sqrt()/two),   pio3)
+            AssertEqual(asin(-three.sqrt()/two), -pio3)
             AssertEqual(asin(zero),              zero)
-            AssertEqual(asin(one),               Pi/2)
-            AssertEqual(asin(-one),             -Pi/2)
-            raises(ValueError, asin, Dec(2))
+            AssertEqual(asin(one),               pio2)
+            AssertEqual(asin(-one),             -pio2)
+            raises(ValueError, asin, two)
             # acos
-            AssertEqual(acos(zero),             Pi/2)
-            AssertEqual(acos(half),             Pi/3)
-            AssertEqual(acos(-half),            Pi/6 + Pi/2)
-            AssertEqual(acos(Dec(3).sqrt()/2),  Pi/6)
-            AssertEqual(acos(-Dec(3).sqrt()/2), Pi - Pi/6)
+            AssertEqual(acos(zero),             pio2)
+            AssertEqual(acos(half),             pio3)
+            AssertEqual(acos(-half),            pio6 + pio2)
+            AssertEqual(acos(three.sqrt()/two),  pio6)
+            AssertEqual(acos(-three.sqrt()/two), Pi - pio6)
             AssertEqual(acos(one),              zero)
             AssertEqual(acos(-one),             Pi)
-            raises(ValueError, acos, Dec(2))
+            raises(ValueError, acos, two)
             # atan
             AssertEqual(atan(zero),            zero)
-            AssertEqual(atan(Dec(3).sqrt()),   Pi/3)
-            AssertEqual(atan(one),             Pi/4)
-            AssertEqual(atan(-one),           -Pi/4)
-            AssertEqual(atan(-Dec(3).sqrt()), -Pi/3)
+            AssertEqual(atan(three.sqrt()),    pio3)
+            AssertEqual(atan(one),             pio4)
+            AssertEqual(atan(-one),           -pio4)
+            AssertEqual(atan(-three.sqrt()),  -pio3)
             # atan2
-            AssertEqual(atan2(one, one), Pi/4)
-            AssertEqual(atan2(one, -one), 3*Pi/4)
-            AssertEqual(atan2(-one, one), -Pi/4)
-            AssertEqual(atan2(-one, -one), -3*Pi/4)
+            AssertEqual(atan2(one, one), pio4)
+            AssertEqual(atan2(one, -one), three*pio4)
+            AssertEqual(atan2(-one, one), -pio4)
+            AssertEqual(atan2(-one, -one), -three*pio4)
     def Test_log():
         s = repr(mp.log("0.5"))
         x = eval(s.replace("mpf", "decimal.Decimal"))
@@ -655,19 +656,19 @@ if __name__ == "__main__":
         AssertEqual(log(one),     zero)
         s = repr(mp.log(mp.pi()/2))
         x = eval(s.replace("mpf", "decimal.Decimal"))
-        AssertEqual(log(Pi/2), x)
+        AssertEqual(log(pio2), x)
         s = repr(mp.log(10))
         x = eval(s.replace("mpf", "decimal.Decimal"))
         AssertEqual(log(ten), x)
-        raises(ValueError, log, Dec(-1))
+        raises(ValueError, log, -one)
         # Use the Decimal instance's method
         AssertEqual(log(half), half.ln())
     def Test_log10():
         AssertEqual(log10(half), mp.log10("0.5"))
         AssertEqual(log10(one), zero)
-        AssertEqual(log10(Pi/2), mp.log10(mp.pi()/2))
+        AssertEqual(log10(pio2), mp.log10(mp.pi()/2))
         AssertEqual(log10(ten), mp.log10(10))
-        raises(ValueError, log10, Dec(-1))
+        raises(ValueError, log10, -one)
         # Use the Decimal instance's method
         AssertEqual(log10(half), half.log10())
     def Test_pow():

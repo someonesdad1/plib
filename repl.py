@@ -251,7 +251,7 @@ if 1:   # Core functionality
     def GetSymbols():
         'Return a dict of favorite symbols'
         from pprint import pprint as pp
-        from decimal import Decimal as D
+        from decimal import Decimal as D, getcontext as ctx
         from pathlib import Path as P
         from fractions import Fraction as F
         from pdb import set_trace as xx 
