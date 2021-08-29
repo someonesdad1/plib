@@ -2,6 +2,8 @@
 Elementary functions for the python Decimal library
     TODO
 
+    * Note:  a Decimal instance provides exp, ln, log10, and sqrt
+      functions.
     * Needs to handle inf and nan in arguments.  Decimal supports
       methods is_nan() and is_infinite().  If strict, then results in
       exception if arg is one of these values; otherwise return
@@ -33,6 +35,7 @@ if 1:  # Copyright, license
 if 1:   # Imports
     import decimal
     import math
+    from pdb import set_trace as xx 
 if 1:   # Custom imports
     from wrap import dedent
 if 1:   # Global variables
@@ -40,7 +43,7 @@ if 1:   # Global variables
     __all__ = '''acos asin atan atan2 cos exp ln log10 pi
         pow sin sqrt tan'''.split()
     Dec = decimal.Decimal
-    zero, one, two, three = Dec(0), Dec(1), Dec(2), Dec(3)
+    zero, one, two, three, ten = Dec(0), Dec(1), Dec(2), Dec(3), Dec(10)
     half = Dec("0.5")
     precision_increment = 4
     inf = float("inf")
@@ -79,275 +82,348 @@ if 1:   # Global variables
     mpmath (http://code.google.com/p/mpmath/) is not needed for normal
     use; it is used to provide reference values for testing.
     ''')
-def pi():
-    '''Returns pi to the current precision.
-    '''
-    with decimal.localcontext() as ctx:
-        ctx.prec += precision_increment
-        lasts, t, s, n, na, d, da = 0, three, 3, 1, 0, 0, 24
-        while s != lasts:
-            lasts = s
-            n, na = n + na, na + 8
-            d, da = d + da, da + 32
-            t = (t*n)/d
-            s += t
-    return +s  # Force rounding to current precision
-def exp(x):
-    '''Returns e raised to the power of x.
-    '''
-    if not ii(x, Dec):
-        raise ValueError("Argument is not Decimal type")
-    with decimal.localcontext() as ctx:
-        ctx.prec += precision_increment
-        i, lasts, s, fact, num = 0, 0, 1, 1, 1
-        # Algorithm is Maclaurin series expansion
-        while s != lasts:
-            lasts = s
-            i += 1
-            fact *= i
-            num *= x
-            s += num/fact
-    return +s  # Force rounding to current precision
-def sin(x):
-    'Returns the sine of x; x is in radians'
-    if not ii(x, Dec):
-        raise ValueError("Argument is not Decimal type")
-    i, lasts, s, fact, num, sign = 1, 0, x, 1, x, 1
-    with decimal.localcontext() as ctx:
-        ctx.prec += precision_increment
-        # Algorithm is Maclaurin series expansion
-        while s != lasts:
-            lasts = s
-            i += 2
-            fact *= i*(i-1)
-            num *= x*x
-            sign *= -1
-            s += num/fact*sign
-    return +s  # Force rounding to current precision
-def cos(x):
-    'Returns the cosine of x; x is in radians'
-    if not ii(x, Dec):
-        raise ValueError("Argument is not Decimal type")
-    i, lasts, s, fact, num, sign = 0, 0, 1, 1, 1, 1
-    with decimal.localcontext() as ctx:
-        ctx.prec += precision_increment
-        # Algorithm is Maclaurin series expansion
-        while s != lasts:
-            lasts = s
-            i += 2
-            fact *= i*(i-1)
-            num *= x*x
-            sign *= -1
-            s += num/fact*sign
-    return +s  # Force rounding to current precision
-def tan(x):
-    '''Returns the tangent of x; x is in radians.
-    '''
-    if not ii(x, Dec):
-        raise ValueError("Argument is not Decimal type")
-    if x == zero:
-        return zero
-    elif x == one:
-        return pi()/4
-    elif x == -one:
-        return -pi()/4
-    with decimal.localcontext() as ctx:
-        ctx.prec += 2
-        s = sin(x)/cos(x)
-    return +s  # Force rounding to current precision
-def acos(x):
-    '''Returns the inverse cosine (in radians) of x.
-    '''
-    if not ii(x, Dec):
-        raise ValueError("Argument is not Decimal type")
-    if abs(x) > 1:
-        raise ValueError("Absolute value of argument must be <= 1")
-    if x == zero:
-        return pi()/2
-    elif x == one:
-        return zero
-    elif x == -one:
-        return pi()
-    with decimal.localcontext() as ctx:
-        ctx.prec += precision_increment
-        # Get a close starting value
-        starting_value = f2d(math.acos(float(x)))
-        delta = Dec("1e-4")
-        low = starting_value*(1 - delta)
-        high = min(starting_value*(1 + delta), f2d(math.pi))
-        # Make sure we bracket the root
-        assert((math.cos(low) - float(x))*(math.cos(high) - float(x)) < 0)
-        root = FindRoot(low, high, lambda t: cos(t) - x)[0]
-    return +root  # Force rounding to current precision
-def atan(x):
-    '''Returns the inverse tangent (in radians) of x.
-    '''
-    # The algorithm uses the root finder with the tangent function as
-    # an argument.
-    if not ii(x, Dec):
-        raise ValueError("Argument is not Decimal type")
-    if x == zero:
-        return zero
-    elif float(x) == inf:
-        return pi()/2
-    elif float(-x) == -inf:
-        return -pi()/2
-    with decimal.localcontext() as ctx:
-        ctx.prec += precision_increment
-        starting_value = f2d(math.atan(float(x)))
-        delta = Dec("1e-4")
-        if starting_value > 0:
-            low = starting_value*(1 - delta)
-            high = min(starting_value*(1 + delta), f2d(math.pi/2))
-        else:
-            high = starting_value*(1 - delta)
-            low = max(starting_value*(1 + delta), f2d(-math.pi/2))
-        # Make sure we bracket the root
-        assert((math.tan(low) - float(x))*(math.tan(high) - float(x)) < 0)
-        root = FindRoot(low, high, lambda t: tan(t) - x)[0]
-    return +root  # Force rounding to current precision
-def atan2(y, x):
-    '''Returns the inverse tangent of y/x (in radians) and gets the
-    correct quadrant.
-    '''
-    if not ii(x, Dec):
-        raise ValueError("x argument is not Decimal type")
-    if not ii(y, Dec):
-        raise ValueError("y argument is not Decimal type")
-    Pi = pi()
-    if x == zero:
-        if y == zero:
-            raise ValueError("Both arguments zero:  indeterminate angle")
-        elif y < zero:
-            return -Pi/2
-        else:
-            return Pi/2
-    elif y == zero:
-        if x > zero:
+if 1:   # Utility functions
+    def IsDecimal(x):
+        if not ii(x, Dec):
+            raise ValueError(f"Argument '{x}' is not Decimal type")
+if 1:   # Constants
+    def pi():
+        'Returns pi to the current precision'
+        # Algorithm from Decimal documentation's recipes
+        with decimal.localcontext() as ctx:
+            ctx.prec += precision_increment
+            lasts, t, s, n, na, d, da = 0, three, 3, 1, 0, 0, 24
+            while s != lasts:
+                lasts = s
+                n, na = n + na, na + 8
+                d, da = d + da, da + 32
+                t = (t*n)/d
+                s += t
+        return +s  # Force rounding to current precision
+    def tau():
+        return 2*pi()
+    def e():
+        return exp(1)
+if 1:   # Trigonometric
+    def sin(x):
+        'Returns the sine of x; x is in radians'
+        IsDecimal(x)
+        i, lasts, s, fact, num, sign = 1, 0, x, 1, x, 1
+        with decimal.localcontext() as ctx:
+            ctx.prec += precision_increment
+            # Algorithm is Maclaurin series expansion
+            while s != lasts:
+                lasts = s
+                i += 2
+                fact *= i*(i-1)
+                num *= x*x
+                sign *= -1
+                s += num/fact*sign
+        return +s  # Force rounding to current precision
+    def cos(x):
+        'Returns the cosine of x; x is in radians'
+        IsDecimal(x)
+        i, lasts, s, fact, num, sign = 0, 0, 1, 1, 1, 1
+        with decimal.localcontext() as ctx:
+            ctx.prec += precision_increment
+            # Algorithm is Maclaurin series expansion
+            while s != lasts:
+                lasts = s
+                i += 2
+                fact *= i*(i-1)
+                num *= x*x
+                sign *= -1
+                s += num/fact*sign
+        return +s  # Force rounding to current precision
+    def tan(x):
+        'Returns the tangent of x; x is in radians'
+        IsDecimal(x)
+        if x == zero:
             return zero
-        else:
-            return -Pi
-    theta = atan(y/abs(x))
-    if x < zero:
-        s = 1 if y > zero else -1
-        theta = s*Pi - theta
-    return +theta
-def asin(x):
-    '''Returns the inverse sine (in radians) of x.
-    '''
-    # The algorithm uses the root finder with the sine function as
-    # an argument.
-    if not ii(x, Dec):
-        raise ValueError("Argument is not Decimal type")
-    if not (-one <= x <= one):
-        raise ValueError("Absolute value of Argument must be <= 1")
-    if x == zero:
-        return zero
-    elif x == one:
-        return pi()/2
-    elif x == -one:
-        return -pi()/2
-    with decimal.localcontext() as ctx:
-        ctx.prec += precision_increment
-        if abs(x) > 1:
-            raise ValueError("asin(x) with abs(x) > 1: " + str(x))
-        # Get a close starting value
-        starting_value = f2d(math.asin(float(x)))
-        delta = Dec("1e-4")
-        if starting_value > 0:
-            low = starting_value*(1 - delta)
-            high = min(starting_value*(1 + delta), f2d(math.pi/2))
-        else:
-            high = starting_value*(1 - delta)
-            low = min(starting_value*(1 + delta), -f2d(math.pi/2))
-        # Make sure we bracket the root
-        assert((math.sin(low) - float(x))*(math.sin(high) - float(x)) < 0)
-        root = FindRoot(low, high, lambda t: sin(t) - x)[0]
-    return +root  # Force rounding to current precision
-def log10(x):
-    '''Returns the base 10 logarithm of x.
-    '''
-    if not ii(x, Dec):
-        raise ValueError("Argument is not Decimal type")
-    if x <= zero:
-        raise ValueError("Argument must be > 0")
-    return ln(x)/ln(Dec(10))
-def ln(x):
-    '''Returns the natural logarithm of x.
-    '''
-    if not ii(x, Dec):
-        raise ValueError("Argument is not Decimal type")
-    if x == one:
-        return zero
-    elif x <= zero:
-        raise ValueError("Argument must be > 0")
-    with decimal.localcontext() as ctx:
-        ctx.prec += precision_increment
-        # If x is less than 1, we'll calculate the log of its inverse,
-        # then negate it before returning.
-        inverse = one
-        if x < one:
-            x = 1/x
-            inverse = -one
-        # Get a starting value
-        starting_value = f2d(math.log(float(x)))
-        delta = Dec("1e-4")
-        low = starting_value*(1 - delta)
-        assert low > zero
-        high = starting_value*(1 + delta)
-        # Make sure we bracket the root
-        assert((math.exp(low) - float(x))*(math.exp(high) - float(x)) < 0)
-        root = inverse*FindRoot(low, high, lambda t: exp(t) - x)[0]
-    return +root  # Force rounding to current precision
-def pow(y, x):
-    '''Returns y raised to the power x.
-    '''
-    if not ii(x, (Dec, int)):
-        raise ValueError("Argument is not Decimal or integer type")
-    if not ii(y, (Dec, int)):
-        raise ValueError("Argument is not Decimal or integer type")
-    if not y:
-        raise ValueError("Base must not be zero")
-    if x == zero:
-        return one
-    if x == one:
-        return y
-    if x == -one:
-        return 1/y
-    with decimal.localcontext() as ctx:
-        ctx.prec += precision_increment
-        if y < 0:
-            if ii(x, int) or int(x) == x:
-                y = abs(y)
-                if x % 2 == 0:
-                    # Even power
-                    if x < 0:
-                        retval = 1/exp(-x*ln(y))
-                    else:
-                        retval = exp(x*ln(y))
-                else:
-                    # Odd power
-                    if x < 0:
-                        retval = -1/exp(-x*ln(y))
-                    else:
-                        retval = -exp(x*ln(y))
+        elif x == one:
+            return pi()/4
+        elif x == -one:
+            return -pi()/4
+        with decimal.localcontext() as ctx:
+            ctx.prec += 2
+            s = sin(x)/cos(x)
+        return +s  # Force rounding to current precision
+    def asin(x):
+        'Returns the inverse sine (in radians) of x'
+        # The algorithm uses the root finder with the sine function as
+        # an argument.
+        IsDecimal(x)
+        if not (-one <= x <= one):
+            raise ValueError("Absolute value of Argument must be <= 1")
+        if x == zero:
+            return zero
+        elif x == one:
+            return pi()/2
+        elif x == -one:
+            return -pi()/2
+        with decimal.localcontext() as ctx:
+            ctx.prec += precision_increment
+            if abs(x) > 1:
+                raise ValueError("asin(x) with abs(x) > 1: " + str(x))
+            # Get a close starting value
+            starting_value = f2d(math.asin(float(x)))
+            delta = Dec("1e-4")
+            if starting_value > 0:
+                low = starting_value*(1 - delta)
+                high = min(starting_value*(1 + delta), f2d(math.pi/2))
             else:
-                raise ValueError("Negative base with noninteger exponent")
+                high = starting_value*(1 - delta)
+                low = min(starting_value*(1 + delta), -f2d(math.pi/2))
+            # Make sure we bracket the root
+            assert((math.sin(low) - float(x))*(math.sin(high) - float(x)) < 0)
+            root = FindRoot(low, high, lambda t: sin(t) - x)[0]
+        return +root  # Force rounding to current precision
+    def acos(x):
+        'Returns the inverse cosine (in radians) of x'
+        # The algorithm uses the root finder with the cosine function as
+        # an argument.
+        IsDecimal(x)
+        if abs(x) > 1:
+            raise ValueError("Absolute value of argument must be <= 1")
+        if x == zero:
+            return pi()/2
+        elif x == one:
+            return zero
+        elif x == -one:
+            return pi()
+        with decimal.localcontext() as ctx:
+            ctx.prec += precision_increment
+            # Get a close starting value
+            starting_value = f2d(math.acos(float(x)))
+            delta = Dec("1e-4")
+            low = starting_value*(1 - delta)
+            high = min(starting_value*(1 + delta), f2d(math.pi))
+            # Make sure we bracket the root
+            assert((math.cos(low) - float(x))*(math.cos(high) - float(x)) < 0)
+            root = FindRoot(low, high, lambda t: cos(t) - x)[0]
+        return +root  # Force rounding to current precision
+    def atan(x):
+        'Returns the inverse tangent (in radians) of x'
+        # The algorithm uses the root finder with the tangent function as
+        # an argument.
+        IsDecimal(x)
+        if x == zero:
+            return zero
+        elif float(x) == inf:
+            return pi()/2
+        elif float(-x) == -inf:
+            return -pi()/2
+        with decimal.localcontext() as ctx:
+            ctx.prec += precision_increment
+            starting_value = f2d(math.atan(float(x)))
+            delta = Dec("1e-4")
+            if starting_value > 0:
+                low = starting_value*(1 - delta)
+                high = min(starting_value*(1 + delta), f2d(math.pi/2))
+            else:
+                high = starting_value*(1 - delta)
+                low = max(starting_value*(1 + delta), f2d(-math.pi/2))
+            # Make sure we bracket the root
+            assert((math.tan(low) - float(x))*(math.tan(high) - float(x)) < 0)
+            root = FindRoot(low, high, lambda t: tan(t) - x)[0]
+        return +root  # Force rounding to current precision
+    def atan2(y, x):
+        '''Returns the inverse tangent of y/x (in radians) and gets the
+        correct quadrant.
+        '''
+        IsDecimal(x)
+        IsDecimal(y)
+        Pi = pi()
+        if x == zero:
+            if y == zero:
+                raise ValueError("Both arguments zero:  indeterminate angle")
+            elif y < zero:
+                return -Pi/2
+            else:
+                return Pi/2
+        elif y == zero:
+            if x > zero:
+                return zero
+            else:
+                return -Pi
+        theta = atan(y/abs(x))
+        if x < zero:
+            s = 1 if y > zero else -1
+            theta = s*Pi - theta
+        return +theta
+if 1:   # Exponential and logarithmic
+    def exp(x):
+        'Returns e raised to the power of x'
+        IsDecimal(x)
+        with decimal.localcontext() as ctx:
+            ctx.prec += precision_increment
+            i, lasts, s, fact, num = 0, 0, 1, 1, 1
+            # Algorithm is Maclaurin series expansion
+            while s != lasts:
+                lasts = s
+                i += 1
+                fact *= i
+                num *= x
+                s += num/fact
+        return +s  # Force rounding to current precision
+    def log10(x):
+        'Returns the base 10 logarithm of x'
+        IsDecimal(x)
+        if x <= zero:
+            raise ValueError("Argument must be > 0")
+        return log(x)/log(ten)
+    def log(x, base=None):
+        'Returns the logarithm of x to the indicated base (e if base is None)'
+        # The algorithm uses the root finder with the exp function as
+        # an argument.
+        IsDecimal(x)
+        if x == one:
+            return zero
+        elif x <= zero:
+            raise ValueError("x must be > 0")
+        if base is not None and base <= 0:
+            raise ValueError("base must be > 0")
+        with decimal.localcontext() as ctx:
+            ctx.prec += precision_increment
+            # If x is less than 1, we'll calculate the log of its inverse,
+            # then negate it before returning.
+            inverse = one
+            if x < one:
+                x = 1/x
+                inverse = -one
+            # Get a starting value
+            starting_value = f2d(math.log(float(x)))
+            delta = Dec("1e-4")
+            low = starting_value*(1 - delta)
+            assert low > zero
+            high = starting_value*(1 + delta)
+            # Make sure we bracket the root
+            assert((math.exp(low) - float(x))*(math.exp(high) - float(x)) < 0)
+            root = inverse*FindRoot(low, high, lambda t: exp(t) - x)[0]
+        root = +root # Force rounding to current precision
+        if base is None:
+            return root
         else:
-            retval = exp(x*ln(y))
-    return +retval  # Force rounding to current precision
-def sqrt(x):
-    '''Returns the square root of x.
-    '''
-    if not ii(x, Dec):
-        raise ValueError("Argument is not Decimal type")
-    if x < 0:
-        raise ValueError("Can't take square root of negative argument")
-    if x == 0:
-        return Dec(0)
-    if x == 1:
-        return Dec(1)
-    return pow(x, 1/Dec(2))
+            return root/log(base)
+    def pow(y, x):
+        'Returns y raised to the power x'
+        if not ii(x, (Dec, int)):
+            raise ValueError("Argument is not Decimal or integer type")
+        if not ii(y, (Dec, int)):
+            raise ValueError("Argument is not Decimal or integer type")
+        if not y:
+            raise ValueError("Base must not be zero")
+        if x == zero:
+            return one
+        if x == one:
+            return y
+        if x == -one:
+            return 1/y
+        with decimal.localcontext() as ctx:
+            ctx.prec += precision_increment
+            if y < 0:
+                if ii(x, int) or int(x) == x:
+                    y = abs(y)
+                    if x % 2 == 0:
+                        # Even power
+                        if x < 0:
+                            retval = 1/exp(-x*log(y))
+                        else:
+                            retval = exp(x*log(y))
+                    else:
+                        # Odd power
+                        if x < 0:
+                            retval = -1/exp(-x*log(y))
+                        else:
+                            retval = -exp(x*log(y))
+                else:
+                    raise ValueError("Negative base with noninteger exponent")
+            else:
+                retval = exp(x*log(y))
+        return +retval  # Force rounding to current precision
+if 1:   # Hyperbolic
+    pass
+if 1:   # Miscellaneous
+    def sqrt(x):
+        'Returns the square root of x'
+        IsDecimal(x)
+        if x < zero:
+            raise ValueError("Can't take square root of negative argument")
+        if x == zero:
+            return zero
+        if x == one:
+            return one
+        return pow(x, half)
+
+# Additional functions to implement
+def cosh(x):
+    IsDecimal(x)
+    # (exp(x) + exp(-x))/2
+def acosh(x):
+    IsDecimal(x)
+    # 2*log(sqrt((x + 1)/2) + sqrt(x - 1)/2)
+def sinh(x):
+    IsDecimal(x)
+    # (exp(x) - exp(-x))/2
+def asinh(x):
+    IsDecimal(x)
+    # log(x + xqrt(1 + x**2))
+def tanh(x):
+    IsDecimal(x)
+    # (exp(x) - exp(-x))/(exp(x) + exp(-x))
+def atanh(x):
+    IsDecimal(x)
+    # (log(1 + x) - log(1 - x))/2
+def ceil(x):
+    IsDecimal(x)
+    # Smallest integer > x
+    # Implement as x//D(1) + 1
+def copysign(x, y):
+    IsDecimal(x)
+    IsDecimal(y)
+def degrees(x):
+    IsDecimal(x)
+def expm1(x):
+    IsDecimal(x)
+def fabs(x):
+    IsDecimal(x)
+def factorial(x):
+    IsDecimal(x)
+def floor(x):
+    IsDecimal(x)
+    # Largest integer < x
+    # Implement as x//D(1)
+def fmod(x, y):
+    IsDecimal(x)
+def hypot(x, y):
+    IsDecimal(x)
+    IsDecimal(y)
+def isclose(a, b, rel_tol=1e-9, abs_tol=0.0):
+    IsDecimal(a)
+    IsDecimal(b)
+def isfinite(x):
+    IsDecimal(x)
+def isinfin(x):
+    IsDecimal(x)
+def isnan(x):
+    IsDecimal(x)
+def log1p(x):
+    IsDecimal(x)
+def log2(x):
+    IsDecimal(x)
+def modf(x):
+    IsDecimal(x)
+    # Returns (a, b), b = floor(x), a = x - b
+    # b = x//D(1)
+def radians(x):
+    IsDecimal(x)
+def remainder(x, y):
+    IsDecimal(x)
+def trunc(x):
+    IsDecimal(x)
+# Consider an object const with attributes pi, e, and tau.  They would get
+# computed each time, but look like they were constants.
+
 def f2d(x):
     '''Convert a floating point number x to a Decimal.  See the
     decimal module's documentation for warnings about doing such
@@ -397,9 +473,9 @@ def FindRoot(x0, x2, f, maxit=50):
     x1 = y0 = y1 = y2 = b = c = temp = y10 = y20 = y21 = xm = ym = zero
     # Check input
     if not ii(x0, Dec):
-        raise ValueError("Argument is not Decimal type")
+        raise ValueError("Argument x0 is not Decimal type")
     if not ii(x2, Dec):
-        raise ValueError("Argument is not Decimal type")
+        raise ValueError("Argument x2 is not Decimal type")
     if x0 >= x2:
         raise ValueError("x0 must be strictly less than x2")
     if eps <= zero:
@@ -481,6 +557,11 @@ if __name__ == "__main__":
         assert_equal(atan(one),             Pi/4, reltol=eps)
         assert_equal(atan(-one),           -Pi/4, reltol=eps)
         assert_equal(atan(-Dec(3).sqrt()), -Pi/3, reltol=eps)
+        # atan2
+        assert_equal(atan2(one, one), Pi/4, reltol=eps)
+        assert_equal(atan2(one, -one), 3*Pi/4, reltol=eps)
+        assert_equal(atan2(-one, one), -Pi/4, reltol=eps)
+        assert_equal(atan2(-one, -one), -3*Pi/4, reltol=eps)
     def Test_asin():
         assert_equal(asin(half),              Pi/6, reltol=eps)
         assert_equal(asin(-half),            -Pi/6, reltol=eps)
@@ -499,24 +580,28 @@ if __name__ == "__main__":
         assert_equal(acos(one),              zero, reltol=eps)
         assert_equal(acos(-one),             Pi, reltol=eps)
         raises(ValueError, acos, Dec(2))
-    def Test_ln():
+    def Test_log():
         s = repr(mp.log("0.5"))
         x = eval(s.replace("mpf", "decimal.Decimal"))
-        assert_equal(ln(half), x, reltol=eps)
-        assert_equal(ln(one),     zero, reltol=eps)
+        assert_equal(log(half), x, reltol=eps)
+        assert_equal(log(one),     zero, reltol=eps)
         s = repr(mp.log(mp.pi()/2))
         x = eval(s.replace("mpf", "decimal.Decimal"))
-        assert_equal(ln(Pi/2), x, reltol=eps)
+        assert_equal(log(Pi/2), x, reltol=eps)
         s = repr(mp.log(10))
         x = eval(s.replace("mpf", "decimal.Decimal"))
-        assert_equal(ln(Dec(10)), x, reltol=eps)
-        raises(ValueError, ln, Dec(-1))
+        assert_equal(log(Dec(10)), x, reltol=eps)
+        raises(ValueError, log, Dec(-1))
+        # Use the Decimal instance's method
+        assert_equal(log(half), half.ln(), reltol=eps)
     def Test_log10():
         assert_equal(log10(half), mp.log10("0.5"), reltol=eps)
         assert_equal(log10(one), zero, reltol=eps)
         assert_equal(log10(Pi/2), mp.log10(mp.pi()/2), reltol=eps)
         assert_equal(log10(Dec(10)), mp.log10(10), reltol=eps)
         raises(ValueError, log10, Dec(-1))
+        # Use the Decimal instance's method
+        assert_equal(log10(half), half.log10(), reltol=eps)
     def Test_pow():
         assert_equal(pow(Dec(4), half),    two, reltol=eps)
         assert_equal(pow(two, -two),       one/Dec(4), reltol=eps)
@@ -534,6 +619,8 @@ if __name__ == "__main__":
         x = "88.325"
         assert_equal(sqrt(Dec(x)), mp.sqrt(mp.mpf(x)), reltol=eps)
         raises(ValueError, sqrt, -two)
+        # Use the Decimal instance's method
+        assert_equal(sqrt(half), half.sqrt(), reltol=eps)
     mp.mp.dps = getcontext().prec
     Pi = Dec(str(mp.pi()))  # Reference value of pi at current precision
     eps = 10*Dec(10)**(-Dec(getcontext().prec))

@@ -25,35 +25,41 @@ Todo:
       some that require more implementation, either use mpmath to do the
       calculation or raise an exception.
 
-Math module functions
+Math module functions (* marks those I think should be implemented)
 
     acos(x, /)
         Return the arc cosine (measured in radians) of x.
-    acosh(x, /)
+ *  acosh(x, /)
         Return the inverse hyperbolic cosine of x.
+        2*log(sqrt((x + 1)/2) + sqrt(x - 1)/2)
+        Will be complex when x < 1.
     asin(x, /)
         Return the arc sine (measured in radians) of x.
-    asinh(x, /)
+ *  asinh(x, /)
         Return the inverse hyperbolic sine of x.
+        log(x + xqrt(1 + x**2))
     atan(x, /)
         Return the arc tangent (measured in radians) of x.
     atan2(y, x, /)
         Return the arc tangent (measured in radians) of y/x.
         Unlike atan(y/x), the signs of both x and y are considered.
-    atanh(x, /)
+ *  atanh(x, /)
         Return the inverse hyperbolic tangent of x.
-    ceil(x, /)
+        (log(1 + x) - log(1 - x))/2
+        Will be complex when x > 1.
+ *  ceil(x, /)
         Return the ceiling of x as an Integral.
         This is the smallest integer >= x.
-    copysign(x, y, /)
+ *  copysign(x, y, /)
         Return a float with the magnitude (absolute value) of x but the
         sign of y.  On platforms that support signed zeros, copysign(1.0,
         -0.0) returns -1.0.
     cos(x, /)
         Return the cosine of x (measured in radians).
-    cosh(x, /)
+ *  cosh(x, /)
         Return the hyperbolic cosine of x.
-    degrees(x, /)
+        (exp(x) + exp(-x))/2
+ *  degrees(x, /)
         Convert angle x from radians to degrees.
     erf(x, /)
         Error function at x.
@@ -61,19 +67,19 @@ Math module functions
         Complementary error function at x.
     exp(x, /)
         Return e raised to the power of x.
-    expm1(x, /)
+ *  expm1(x, /)
         Return exp(x)-1.
         This function avoids the loss of precision involved in the direct
         evaluation of exp(x)-1 for small x.
-    fabs(x, /)
+ *  fabs(x, /)
         Return the absolute value of the float x.
     factorial(x, /)
         Find x!.
         Raise a ValueError if x is negative or non-integral.
-    floor(x, /)
+ *  floor(x, /)
         Return the floor of x as an Integral.
         This is the largest integer <= x.
-    fmod(x, y, /)
+ *  fmod(x, y, /)
         Return fmod(x, y), according to platform C.
         x % y may differ.
     frexp(x, /)
@@ -87,9 +93,9 @@ Math module functions
         Gamma function at x.
     gcd(x, y, /)
         greatest common divisor of x and y
-    hypot(x, y, /)
+ *  hypot(x, y, /)
         Return the Euclidean distance, sqrt(x*x + y*y).
-    isclose(a, b, *, rel_tol=1e-09, abs_tol=0.0)
+ *  isclose(a, b, *, rel_tol=1e-09, abs_tol=0.0)
         Determine whether two floating point numbers are close in value.
             rel_tol:  maximum difference for being considered "close",
             relative to the magnitude of the input values
@@ -101,59 +107,61 @@ Math module functions
         -inf, inf and NaN behave similarly to the IEEE 754 Standard.  That
         is, NaN is not close to anything, even itself.  inf and -inf are
         only close to themselves.
-    isfinite(x, /)
+ *  isfinite(x, /)
         Return True if x is neither an infinity nor a NaN, and False otherwise.
-    isinf(x, /)
+ *  isinf(x, /)
         Return True if x is a positive or negative infinity, and False
         otherwise.
-    isnan(x, /)
+ *  isnan(x, /)
         Return True if x is a NaN (not a number), and False otherwise.
     ldexp(x, i, /)
         Return x * (2**i).
         This is essentially the inverse of frexp().
     lgamma(x, /)
         Natural logarithm of absolute value of Gamma function at x.
-    log(...)
+ *  log(...)
         log(x, [base=math.e])
         Return the logarithm of x to the given base.
         If the base not specified, returns the natural logarithm (base e) of x.
     log10(x, /)
         Return the base 10 logarithm of x.
-    log1p(x, /)
+ *  log1p(x, /)
         Return the natural logarithm of 1+x (base e).
         The result is computed in a way which is accurate for x near zero.
-    log2(x, /)
+ *  log2(x, /)
         Return the base 2 logarithm of x.
-    modf(x, /)
+ *  modf(x, /)
         Return the fractional and integer parts of x.
         Both results carry the sign of x and are floats.
     pow(x, y, /)
         Return x**y (x to the power of y).
-    radians(x, /)
+ *  radians(x, /)
         Convert angle x from degrees to radians.
-    remainder(x, y, /)
+ *  remainder(x, y, /)
         Difference between x and the closest integer multiple of y.
         Return x - n*y where n*y is the closest integer multiple of y.
         In the case where x is exactly halfway between two multiples of
         y, the nearest even value of n is used. The result is always exact.
     sin(x, /)
         Return the sine of x (measured in radians).
-    sinh(x, /)
+ *  sinh(x, /)
         Return the hyperbolic sine of x.
+        (exp(x) - exp(-x))/2
     sqrt(x, /)
         Return the square root of x.
     tan(x, /)
         Return the tangent of x (measured in radians).
-    tanh(x, /)
+ *  tanh(x, /)
         Return the hyperbolic tangent of x.
-    trunc(x, /)
+        (exp(x) - exp(-x))/(exp(x) + exp(-x))
+ *  trunc(x, /)
         Truncates the Real x to the nearest Integral toward 0.
         Uses the __trunc__ magic method.
-    e = 2.718281828459045
-    inf = inf
-    nan = nan
-    pi = 3.141592653589793
-    tau = 6.283185307179586
+ *  e = 2.718281828459045
+ *  inf = inf
+ *  nan = nan
+ *  pi = 3.141592653589793
+ *  tau = 6.283185307179586
 ''' 
 if 1:  # Copyright, license
     # These "trigger strings" can be managed with trigger.py
