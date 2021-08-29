@@ -112,6 +112,15 @@ if 1:   # Trigonometric
     def sin(x):
         'Returns the sine of x; x is in radians'
         IsDecimal(x)
+        if not x:
+            return zero
+        # Check for an argument proportional to pi/2
+        p = pi()/two
+        ratio = abs(x/p)
+        fp = ratio - int(ratio)
+        eps = ten**-(decimal.getcontext().prec - 1)
+        if not fp or abs(fp - 1) < eps:
+            return one
         i, lasts, s, fact, num, sign = 1, 0, x, 1, x, 1
         with decimal.localcontext() as ctx:
             ctx.prec += precision_increment
@@ -126,25 +135,34 @@ if 1:   # Trigonometric
         return +s  # Force rounding to current precision
     def cos(x):
         'Returns the cosine of x; x is in radians'
-        # Implementation note:  an argument proportional to pi/2 is
-        # problematic because the cosine of such an angle is zero.
-        # However, the power series below will give about -3.6e-28 for pi/2
-        # and -9.2e-28 for 3*pi/2.  When a tangent of pi/2 is calculated,
-        # the sine will be zero but the cosine will cause the tangent to be
-        # a large negative number near 10**28.  This gets the sign wrong
-        # for pi/2.  Thus, we'll set the cosine to zero in such cases.
+        '''
+        Implementation note:  an argument proportional to pi/2 is
+        problematic because the cosine of such an angle is zero.  However,
+        for the default precision of 28 digits, the power series below will
+        give about -3.6e-28 for pi/2 and -9.2e-28 for 3*pi/2 instead of
+        zero.  When a tangent of pi/2 is calculated, the sine will be zero
+        but the cosine will cause the tangent to be a large negative number
+        near 10**28.  This gets the sign wrong for pi/2.  Thus, we'll set
+        the cosine to zero in such cases.
+
+        A further problem is that a large integer multiplied by pi/2 should
+        also have a cosine that is zero, but this gets harder to detect
+        because the fractional part has fewer digits.
+        '''
         IsDecimal(x)
+        if not x:
+            return one
         # Check for an argument proportional to pi/2
         p = pi()/two
         ratio = abs(x/p)
-        diff = abs(x - p)
-        if yy: xx() #xx
-        if int(ratio) == ratio or not diff:
+        fp = ratio - int(ratio)
+        eps = ten**-(decimal.getcontext().prec - 1)
+        if not fp or abs(fp - 1) < eps:
             return zero
+        # Calculate Maclaurin series
         i, lasts, s, fact, num, sign = 0, 0, 1, 1, 1, 1
         with decimal.localcontext() as ctx:
             ctx.prec += precision_increment
-            # Algorithm is Maclaurin series expansion
             while s != lasts:
                 lasts = s
                 i += 2
@@ -152,20 +170,17 @@ if 1:   # Trigonometric
                 num *= x*x
                 sign *= -1
                 s += num/fact*sign
+        # If s is about eps or less, then it's also likely that the
+        # argument was a multiple of pi/2
+        if abs(s) < eps:
+            return 0
         return +s
     def tan(x):
         'Returns the tangent of x; x is in radians'
         IsDecimal(x)
         if x == zero:
             return zero
-        elif x == one:
-            return pi()/4
-        elif x == -one:
-            return -pi()/4
-        with decimal.localcontext() as ctx:
-            ctx.prec += precision_increment
-            s = sin(x)/cos(x)
-        return +s  # Force rounding to current precision
+        return sin(x)/cos(x)
     def asin(x):
         'Returns the inverse sine (in radians) of x'
         # The algorithm uses the root finder with the sine function as
@@ -269,20 +284,6 @@ if 1:   # Trigonometric
             s = 1 if y > zero else -1
             theta = s*Pi - theta
         return +theta
-    def gd(x):
-        '''Gudermannian function.  This function can relate the
-        trigonometric and hyperbolic functions without complex numbers:
-            sinh(x) = tan(gd(x))
-            cosh(x) = sec(gd(x))
-            tanh(x) = sin(gd(x))
-            tanh(x/2) = tan(gd(x)/2)
-        '''
-        IsDecimal(x)
-        return two*atan(exp(x)) - pi()/two
-    def agd(x):
-        'Inverse Gudermannian function'
-        IsDecimal(x)
-        return log(tan(x/two + pi()/four))
     def degrees(x):
         IsDecimal(x)
         return x*180/pi()
@@ -567,12 +568,13 @@ def FindRoot(x0, x2, f, maxit=50):
                 y2 = y1
     raise ValueError(f"FindRoot:  no convergence after {maxit} iterations")
 
-if 1:
+if 0:
     print(f"Starting precision = {decimal.getcontext().prec}")
-    yy = 0
-    print("cos(pi/2): ", cos(pi()/2))
     yy = 1
-    print("\ncos(3*pi/2): ", cos(3*pi()/2))
+    print("cos(pi/2): ", cos(pi()/2))
+    print("cos(3*pi/2): ", cos(3*pi()/2))
+    n = Dec("1e20")
+    print(f"cos({n}*pi/2): ", cos(n*pi()/2))
     exit()
 if __name__ == "__main__": 
     # Use mpmath (http://mpmath.org/) to generate the numbers to test
@@ -615,11 +617,7 @@ if __name__ == "__main__":
             # tan
             AssertEqual(tan(zero), zero)
             AssertEqual(tan(Pi/4), one)
-
-            global yy; yy = 1 #xx
-            print("tan(pi()/2) =", tan(Pi/2))
-            Assert(tan(Pi/2) > Dec("1e25"))
-
+            raises(decimal.DivisionByZero, tan, Pi/2)
         if 1:   # Inverse functions
             # asin
             AssertEqual(asin(half),              Pi/6)
@@ -734,19 +732,6 @@ if __name__ == "__main__":
         x = -Pi*Dec('1e20')
         Assert(floor(x) == int(x) - 1)
         Assert(ceil(x) == int(x))
-    def Test_Gudermannian():
-        '''Test the identities
-            sinh(x) = tan(gd(x))
-            cosh(x) = sec(gd(x))
-            tanh(x) = sin(gd(x))
-            tanh(x/2) = tan(gd(x)/2)
-        '''
-        # There is some roundoff error, so we need to use a higher eps
-        for x in (zero, half, one/Pi, one):
-            assert_equal(sinh(x), tan(gd(x)), reltol=eps*4)
-            assert_equal(cosh(x), one/cos(gd(x)), reltol=eps*4)
-            assert_equal(tanh(x), sin(gd(x)), reltol=eps*4)
-            assert_equal(tanh(x/2), tan(gd(x)/2), reltol=eps*4)
     def Test_copysign():
         # Check with integers
         Assert(copysign(one, 1) == one)
