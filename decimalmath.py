@@ -40,8 +40,8 @@ if 1:   # Global variables
     zero, one, two, three, four, nine, ten = [Dec(i) for i in (0, 1, 2, 3,
         4, 9, 10)]
     half = Dec("0.5")
+    inf, ninf, nan = Dec("inf"), Dec("-inf"), Dec("nan")
     precision_increment = 4
-    inf = float("inf")
     __doc__ = dedent('''
     Elementary functions for the python Decimal library.
     
@@ -78,9 +78,11 @@ if 1:   # Global variables
     use; it is used to provide reference values for testing.
     ''')
 if 1:   # Utility functions
-    def IsDecimal(x):
-        if not ii(x, Dec):
-            raise ValueError(f"Argument '{x}' is not Decimal type")
+    def IsDecimal(*x):
+        for i, val in enumerate(x):
+            if not ii(val, Dec):
+                msg = f"Argument {i + 1} '{val}' is not Decimal type"
+                raise ValueError(msg)
 if 1:   # Constants
     def pi():
         'Returns pi to the current precision'
@@ -233,9 +235,9 @@ if 1:   # Trigonometric
         IsDecimal(x)
         if x == zero:
             return zero
-        elif float(x) == inf:
+        elif x == inf:
             return pi()/2
-        elif float(-x) == -inf:
+        elif x == ninf:
             return -pi()/2
         with decimal.localcontext() as ctx:
             ctx.prec += precision_increment
@@ -255,8 +257,7 @@ if 1:   # Trigonometric
         '''Returns the inverse tangent of y/x (in radians) and gets the
         correct quadrant.
         '''
-        IsDecimal(x)
-        IsDecimal(y)
+        IsDecimal(x, y)
         Pi = pi()
         if x == zero:
             if y == zero:
@@ -281,6 +282,9 @@ if 1:   # Trigonometric
     def radians(x):
         IsDecimal(x)
         return x*pi()/180
+    def hypot(x, y):
+        IsDecimal(x, y)
+        return sqrt(x*x + y*y)
 if 1:   # Exponential and logarithmic
     def exp(x):
         'Returns e raised to the power of x'
@@ -519,31 +523,27 @@ if 1:   # Miscellaneous
         IsDecimal(x)
         return -x if x < zero else x if x > zero else zero
     def fmod(x, y):
-        IsDecimal(x)
-        IsDecimal(y)
+        '''fmod is the floating point analog of x % y.  It tells you the
+        remainder after subtracting an integer number of y's from x.
+        '''
+        IsDecimal(x, y)
         return (-1 if x < 0 else 1)*(abs(x) - int(abs(x/y))*abs(y))
+    def isinf(x):
+        IsDecimal(x)
+        return x == inf or x == ninf
+    def isnan(x):
+        IsDecimal(x)
+        ctx = getcontext()
+        return ctx.is_qnan(x) or ctx.is_snan(x)
+    def isfinite(x):
+        IsDecimal(x)
+        return not isinf(x) and not isnan(x)
+    def isclose(a, b, rel_tol=Dec('1e-9'), abs_tol=zero):
+        IsDecimal(a, b, rel_tol, abs_tol)
+        abmax = max(abs(a), abs(b))
+        return abs(a - b) <= max(rel_tol*abmax, abs_tol)
 
-if 0:
-    Y, X = '-4.3', '-64.3'
-    y, x = Dec(Y), Dec(X)
-    print("x =", x, "y =", y)
-    print("fmod(x, y) =", fmod(x, y))
-    print("math       =", math.fmod(float(X), float(Y)))
-    exit()
-    
 
-def hypot(x, y):
-    IsDecimal(x)
-    IsDecimal(y)
-def isclose(a, b, rel_tol=1e-9, abs_tol=0.0):
-    IsDecimal(a)
-    IsDecimal(b)
-def isfinite(x):
-    IsDecimal(x)
-def isinfin(x):
-    IsDecimal(x)
-def isnan(x):
-    IsDecimal(x)
 def log1p(x):
     'Returns log(1 + x) and is accurate for x near zero'
     '''
@@ -750,4 +750,45 @@ if __name__ == "__main__":
         Assert(copysign(-one, -one) == -one)
         Assert(copysign(zero, one) == zero)
         Assert(copysign(zero, -one) == -zero)
+    def Test_fabs():
+        Assert(fabs(zero) == zero)
+        Assert(fabs(one) == one)
+        Assert(fabs(-one) == one)
+    def Test_fmod():
+        'Compare to results from math.fmod'
+        def test(a, b):
+            x, y = Dec(a), Dec(b)
+            dr = fmod(x, y)
+            X, Y = float(a), float(b)
+            fr = f2d(math.fmod(X, Y))
+            Assert(isclose(dr, fr))
+            Assert(isclose(dr, x % y))
+        test(*"98.61 7.73".split())
+        test(*"98.61 -7.73".split())
+        test(*"-98.61 7.73".split())
+        test(*"-98.61 -7.73".split())
+        # Also works on integers
+        Assert(fmod(three, two) == one)
+        Assert(three % two == one)
+        # Requires Decimals
+        raises(ValueError, fmod, one, 2)
+        raises(ValueError, fmod, 1, two)
+    def Test_isinf_isnan_isfinite():
+        # isinf
+        Assert(isinf(inf))
+        Assert(isinf(ninf))
+        Assert(not isinf(nan))
+        Assert(not isinf(nan))
+        # isnan
+        Assert(isnan(nan))
+        Assert(not isnan(inf))
+        # isfinite
+        Assert(isfinite(zero))
+        Assert(isfinite(one))
+        Assert(isfinite(-one))
+        Assert(not isfinite(inf))
+        Assert(not isfinite(ninf))
+        Assert(not isfinite(nan))
+    def Test_isclose():
+        pass
     exit(run(globals())[0])
