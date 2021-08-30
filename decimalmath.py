@@ -2,19 +2,12 @@
 Elementary functions for the python Decimal library
     TODO
 
-    * Note:  a Decimal instance provides exp, ln, log10, and sqrt
-      functions.
+    * Fix __all__.
     * Needs to handle inf and nan in arguments.  Decimal supports
       methods is_nan() and is_infinite().  If strict, then results in
       exception if arg is one of these values; otherwise return
       something appropriate.  If not strict, then out-of-domain
       arguments can return nan.
-    * Add strict bool.  If True, then all arguments must be decimal.  If
-      False, then will try to convert from mpmath, float, or string.
-    * Add atan2
-    * Add hyperbolic functions?
-    * Add other trig functions (sec, csc, versine, haversine, etc.)?
-    * All loops should have counters to avoid having the program hang.
 '''
 if 1:  # Copyright, license
     # These "trigger strings" can be managed with trigger.py
@@ -26,9 +19,7 @@ if 1:  # Copyright, license
     #∞license∞#
     #∞what∞#
     # <math> Elementary math functions for the python Decimal library.
-    # The functions provided are acos, asin, atan, atan2, cos, exp, ln,
-    # log10, pi, pow, sin, sqrt, and tan.  Uses mpmath's functions for
-    # the self tests (i.e., assumes mpmath's output is correct).
+    # Provides a number of the real functions that are in the math module.
     #∞what∞#
     #∞test∞# run #∞test∞#
     pass
@@ -43,11 +34,11 @@ if 1:   # Custom imports
         debug.SetDebugger()
 if 1:   # Global variables
     ii = isinstance
-    __all__ = '''acos asin atan atan2 cos exp ln log10 pi
+    __all__ = '''acos asin atan atan2 cos exp log log10 pi
         pow sin sqrt tan'''.split()
     Dec = decimal.Decimal
     zero, one, two, three, four, nine, ten = [Dec(i) for i in (0, 1, 2, 3,
-                                              4, 9, 10)]
+        4, 9, 10)]
     half = Dec("0.5")
     precision_increment = 4
     inf = float("inf")
@@ -96,7 +87,7 @@ if 1:   # Constants
         # Algorithm from Decimal documentation's recipes
         with decimal.localcontext() as ctx:
             ctx.prec += precision_increment
-            lasts, t, s, n, na, d, da = 0, three, 3, 1, 0, 0, 24
+            lasts, t, s, n, na, d, da = 0, three, three, one, zero, zero, 24
             while s != lasts:
                 lasts = s
                 n, na = n + na, na + 8
@@ -105,9 +96,9 @@ if 1:   # Constants
                 s += t
         return +s  # Force rounding to current precision
     def tau():
-        return 2*pi()
+        return two*pi()
     def e():
-        return exp(1)
+        return exp(one)
 if 1:   # Trigonometric
     def sin(x):
         'Returns the sine of x; x is in radians'
@@ -294,27 +285,18 @@ if 1:   # Exponential and logarithmic
     def exp(x):
         'Returns e raised to the power of x'
         IsDecimal(x)
-        with decimal.localcontext() as ctx:
-            ctx.prec += precision_increment
-            i, lasts, s, fact, num = 0, 0, 1, 1, 1
-            # Algorithm is Maclaurin series expansion
-            while s != lasts:
-                lasts = s
-                i += 1
-                fact *= i
-                num *= x
-                s += num/fact
-        return +s  # Force rounding to current precision
+        return x.exp()
     def log10(x):
         'Returns the base 10 logarithm of x'
         IsDecimal(x)
         if x <= zero:
             raise ValueError("Argument must be > 0")
-        return log(x)/log(ten)
+        return x.log10()
     def log(x, base=None):
         'Returns the logarithm of x to the indicated base (e if base is None)'
-        # The algorithm uses the root finder with the exp function as
-        # an argument.
+        # Use the native method, as the old method was to use a root finder
+        # and evaluating exp(x) for large numbers like 2e100000 takes
+        # excessive time.
         IsDecimal(x)
         if x == one:
             return zero
@@ -322,28 +304,11 @@ if 1:   # Exponential and logarithmic
             raise ValueError("x must be > 0")
         if base is not None and base <= 0:
             raise ValueError("base must be > 0")
-        with decimal.localcontext() as ctx:
-            ctx.prec += precision_increment
-            # If x is less than 1, we'll calculate the log of its inverse,
-            # then negate it before returning.
-            inverse = one
-            if x < one:
-                x = 1/x
-                inverse = -one
-            # Get a starting value
-            starting_value = f2d(math.log(float(x)))
-            delta = Dec("1e-4")
-            low = starting_value*(1 - delta)
-            assert low > zero
-            high = starting_value*(1 + delta)
-            # Make sure we bracket the root
-            assert((math.exp(low) - float(x))*(math.exp(high) - float(x)) < 0)
-            root = inverse*FindRoot(low, high, lambda t: exp(t) - x)[0]
-        root = +root # Force rounding to current precision
+        ln = x.ln()
         if base is None:
-            return root
+            return ln
         else:
-            return root/log(base)
+            return ln/log(base)
     def pow(y, x):
         'Returns y raised to the power x'
         if not ii(x, (Dec, int)):
@@ -413,7 +378,7 @@ if 1:   # Miscellaneous
             return zero
         if x == one:
             return one
-        return pow(x, half)
+        return x.sqrt()
     def ceil(x):
         'Smallest integer > x'
         IsDecimal(x)
@@ -447,7 +412,23 @@ def isinfin(x):
 def isnan(x):
     IsDecimal(x)
 def log1p(x):
+    'Returns log(1 + x) and is accurate for x near zero'
+    '''
+    The Maclaurin expansion is
+        x - x**2/2 + x**3/3 - x**4/4 + x**5/5 - x**6/6 + ...
+    '''
     IsDecimal(x)
+    i, lasts, s, fact, num, sign = 0, 0, x, 1, x, 1
+    with decimal.localcontext() as ctx:
+        ctx.prec += precision_increment
+        # Algorithm is Maclaurin series expansion
+        while s != lasts:
+            lasts = s
+            i += 1
+            num *= x
+            sign *= -1
+            s += num*sign
+    return +s  # Force rounding to current precision
 def log2(x):
     IsDecimal(x)
 def modf(x):
@@ -469,12 +450,13 @@ def f2d(x):
     if not ii(x, (float, str)):
         raise ValueError("x needs to be a float or string")
     return Dec(repr(float(x)))
-def FindRoot(x0, x2, f, maxit=50):
+def FindRoot(x0, x2, f, maxit=50, show=False):
     '''Returns a tuple (root, number_of_iterations, eps) where root is the
     root of f(x) == 0.  The root must be bracketed by x0 and x2.  f is the
     function to evaluate; it takes one Decimal argument and returns a
     Decimal.  If your f(x) has more arguments, use functools.partial.  
-
+    If show is True, print out intermediate values.
+ 
     The iteration will terminate when two consecutive calculations differ
     by eps (see below) or less.
  
@@ -492,7 +474,7 @@ def FindRoot(x0, x2, f, maxit=50):
     ordinates are gotten, then a horizontally-opening parabola is fitted to
     the points.  The parabola's root's abscissa is gotten, and the
     iteration is repeated.
-
+ 
     Note:  Jack commented that this routine was written by some unknown
     genius at IBM and was in IBM's FORTRAN library code in the 1960's.
     Jack has done quite a bit of work to popularize it.
@@ -566,16 +548,16 @@ def FindRoot(x0, x2, f, maxit=50):
                 y0 = ym
                 x2 = x1
                 y2 = y1
+        if show:
+            print(xm)
     raise ValueError(f"FindRoot:  no convergence after {maxit} iterations")
-
 if 0:
-    print(f"Starting precision = {decimal.getcontext().prec}")
-    yy = 1
-    print("cos(pi/2): ", cos(pi()/2))
-    print("cos(3*pi/2): ", cos(3*pi()/2))
-    n = Dec("1e20")
-    print(f"cos({n}*pi/2): ", cos(n*pi()/2))
+    from sympy import symbols, log
+    x = symbols("x")
+    f = log(1 + x)
+    print(f.series(x, 0, 10))
     exit()
+
 if __name__ == "__main__": 
     # Use mpmath (http://mpmath.org/) to generate the numbers to test
     # against (i.e., assume mpmath's algorithms are correct).
@@ -585,19 +567,17 @@ if __name__ == "__main__":
     from wrap import wrap, dedent, indent, Wrap
     from lwtest import run, raises, assert_equal, Assert
     from functools import partial
-
-    yy = 0 #xx
     getcontext = decimal.getcontext
     localcontext = decimal.localcontext
     mp.mp.dps = getcontext().prec
     Pi = Dec(str(mp.pi()))  # Reference value of pi at current precision
     pio2, pio3, pio4, pio6 = Pi/two, Pi/three, Pi/four, Pi/Dec(6)
     eps = ten*ten**(-Dec(getcontext().prec))
-    AssertEqual = partial(assert_equal, reltol=eps)
+    AssertNearlyEqual = partial(assert_equal, reltol=eps)
     def Test_pi():
         s = repr(mp.pi())
         x = eval(s.replace("mpf", "Dec"))
-        AssertEqual(pi(), x)
+        AssertNearlyEqual(pi(), x)
         with localcontext() as ctx:
             # Value from wikipedia page on pi
             ctx.prec = 52
@@ -608,114 +588,114 @@ if __name__ == "__main__":
     def Test_trig():
         if 1:   # Regular functions
             # sin
-            AssertEqual(sin(zero), zero)
-            AssertEqual(sin(pio4), one/sqrt(two))
-            AssertEqual(sin(pio2), one)
+            AssertNearlyEqual(sin(zero), zero)
+            AssertNearlyEqual(sin(pio4), one/sqrt(two))
+            AssertNearlyEqual(sin(pio2), one)
             # cos
-            AssertEqual(cos(zero), one)
-            AssertEqual(cos(pio4), one/sqrt(two))
+            AssertNearlyEqual(cos(zero), one)
+            AssertNearlyEqual(cos(pio4), one/sqrt(two))
             Assert(cos(pio2) == zero)
             # tan
-            AssertEqual(tan(zero), zero)
-            AssertEqual(tan(pio4), one)
+            AssertNearlyEqual(tan(zero), zero)
+            AssertNearlyEqual(tan(pio4), one)
             raises(decimal.DivisionByZero, tan, pio2)
         if 1:   # Inverse functions
             # asin
-            AssertEqual(asin(half),              pio6)
-            AssertEqual(asin(-half),            -pio6)
-            AssertEqual(asin(three.sqrt()/two),   pio3)
-            AssertEqual(asin(-three.sqrt()/two), -pio3)
-            AssertEqual(asin(zero),              zero)
-            AssertEqual(asin(one),               pio2)
-            AssertEqual(asin(-one),             -pio2)
+            AssertNearlyEqual(asin(half),               pio6)
+            AssertNearlyEqual(asin(-half),             -pio6)
+            AssertNearlyEqual(asin(three.sqrt()/two),   pio3)
+            AssertNearlyEqual(asin(-three.sqrt()/two), -pio3)
+            AssertNearlyEqual(asin(zero),               zero)
+            AssertNearlyEqual(asin(one),                pio2)
+            AssertNearlyEqual(asin(-one),              -pio2)
             raises(ValueError, asin, two)
             # acos
-            AssertEqual(acos(zero),             pio2)
-            AssertEqual(acos(half),             pio3)
-            AssertEqual(acos(-half),            pio6 + pio2)
-            AssertEqual(acos(three.sqrt()/two),  pio6)
-            AssertEqual(acos(-three.sqrt()/two), Pi - pio6)
-            AssertEqual(acos(one),              zero)
-            AssertEqual(acos(-one),             Pi)
+            AssertNearlyEqual(acos(zero),               pio2)
+            AssertNearlyEqual(acos(half),               pio3)
+            AssertNearlyEqual(acos(-half),              pio6 + pio2)
+            AssertNearlyEqual(acos(three.sqrt()/two),   pio6)
+            AssertNearlyEqual(acos(-three.sqrt()/two),  Pi - pio6)
+            AssertNearlyEqual(acos(one),                zero)
+            AssertNearlyEqual(acos(-one),               Pi)
             raises(ValueError, acos, two)
             # atan
-            AssertEqual(atan(zero),            zero)
-            AssertEqual(atan(three.sqrt()),    pio3)
-            AssertEqual(atan(one),             pio4)
-            AssertEqual(atan(-one),           -pio4)
-            AssertEqual(atan(-three.sqrt()),  -pio3)
+            AssertNearlyEqual(atan(zero),               zero)
+            AssertNearlyEqual(atan(three.sqrt()),       pio3)
+            AssertNearlyEqual(atan(one),                pio4)
+            AssertNearlyEqual(atan(-one),              -pio4)
+            AssertNearlyEqual(atan(-three.sqrt()),     -pio3)
             # atan2
-            AssertEqual(atan2(one, one), pio4)
-            AssertEqual(atan2(one, -one), three*pio4)
-            AssertEqual(atan2(-one, one), -pio4)
-            AssertEqual(atan2(-one, -one), -three*pio4)
+            AssertNearlyEqual(atan2(one, one),          pio4)
+            AssertNearlyEqual(atan2(one, -one),         three*pio4)
+            AssertNearlyEqual(atan2(-one, one),        -pio4)
+            AssertNearlyEqual(atan2(-one, -one),       -three*pio4)
     def Test_log():
         s = repr(mp.log("0.5"))
         x = eval(s.replace("mpf", "decimal.Decimal"))
-        AssertEqual(log(half), x)
-        AssertEqual(log(one),     zero)
+        AssertNearlyEqual(log(half), x)
+        AssertNearlyEqual(log(one),     zero)
         s = repr(mp.log(mp.pi()/2))
         x = eval(s.replace("mpf", "decimal.Decimal"))
-        AssertEqual(log(pio2), x)
+        AssertNearlyEqual(log(pio2), x)
         s = repr(mp.log(10))
         x = eval(s.replace("mpf", "decimal.Decimal"))
-        AssertEqual(log(ten), x)
+        AssertNearlyEqual(log(ten), x)
         raises(ValueError, log, -one)
         # Use the Decimal instance's method
-        AssertEqual(log(half), half.ln())
+        AssertNearlyEqual(log(half), half.ln())
     def Test_log10():
-        AssertEqual(log10(half), mp.log10("0.5"))
-        AssertEqual(log10(one), zero)
-        AssertEqual(log10(pio2), mp.log10(mp.pi()/2))
-        AssertEqual(log10(ten), mp.log10(10))
+        AssertNearlyEqual(log10(half), mp.log10("0.5"))
+        AssertNearlyEqual(log10(one), zero)
+        AssertNearlyEqual(log10(pio2), mp.log10(mp.pi()/2))
+        AssertNearlyEqual(log10(ten), mp.log10(10))
         raises(ValueError, log10, -one)
         # Use the Decimal instance's method
-        AssertEqual(log10(half), half.log10())
+        AssertNearlyEqual(log10(half), half.log10())
     def Test_pow():
-        AssertEqual(pow(four, half),    two)
-        AssertEqual(pow(two, -two),       one/four)
-        AssertEqual(pow(-two, two),       four)
-        AssertEqual(pow(-three, two),     nine)
-        AssertEqual(pow(-three, -two),    one/nine)
-        AssertEqual(pow(-three, three),   Dec(-27))
-        AssertEqual(pow(-three, -three), -one/Dec(27))
+        AssertNearlyEqual(pow(four, half),    two)
+        AssertNearlyEqual(pow(two, -two),       one/four)
+        AssertNearlyEqual(pow(-two, two),       four)
+        AssertNearlyEqual(pow(-three, two),     nine)
+        AssertNearlyEqual(pow(-three, -two),    one/nine)
+        AssertNearlyEqual(pow(-three, three),   Dec(-27))
+        AssertNearlyEqual(pow(-three, -three), -one/Dec(27))
         raises(ValueError, pow, -two, 1/three)
     def Test_sqrt():
-        AssertEqual(sqrt(zero), zero)
-        AssertEqual(sqrt(one), one)
-        AssertEqual(sqrt(four), two)
-        AssertEqual(sqrt(nine), three)
+        AssertNearlyEqual(sqrt(zero), zero)
+        AssertNearlyEqual(sqrt(one), one)
+        AssertNearlyEqual(sqrt(four), two)
+        AssertNearlyEqual(sqrt(nine), three)
         x = "88.325"
-        AssertEqual(sqrt(Dec(x)), mp.sqrt(mp.mpf(x)))
+        AssertNearlyEqual(sqrt(Dec(x)), mp.sqrt(mp.mpf(x)))
         raises(ValueError, sqrt, -two)
         # Use the Decimal instance's method
-        AssertEqual(sqrt(half), half.sqrt())
+        AssertNearlyEqual(sqrt(half), half.sqrt())
     def Test_hyperbolic():
         if 1:   # Regular functions
             # sinh
-            AssertEqual(sinh(zero), zero)
-            AssertEqual(sinh(one), -sinh(-one))
+            AssertNearlyEqual(sinh(zero), zero)
+            AssertNearlyEqual(sinh(one), -sinh(-one))
             Assert(str(sinh(Pi)) == str(mp.sinh(str(Pi))))
             # cosh
-            AssertEqual(cosh(zero), one)
-            AssertEqual(cosh(one), cosh(-one))
+            AssertNearlyEqual(cosh(zero), one)
+            AssertNearlyEqual(cosh(one), cosh(-one))
             Assert(str(cosh(Pi)) == str(mp.cosh(str(Pi))))
             # tanh
-            AssertEqual(tanh(zero), zero)
-            AssertEqual(tanh(one), -tanh(-one))
-            AssertEqual(tanh(Pi), Dec(str(mp.tanh(str(Pi)))))
+            AssertNearlyEqual(tanh(zero), zero)
+            AssertNearlyEqual(tanh(one), -tanh(-one))
+            AssertNearlyEqual(tanh(Pi), Dec(str(mp.tanh(str(Pi)))))
         if 1:   # Inverse functions
             # asinh
-            AssertEqual(asinh(zero), zero)
+            AssertNearlyEqual(asinh(zero), zero)
             Assert(str(asinh(Pi)) == str(mp.asinh(str(Pi))))
             Assert(str(asinh(-Pi)) == str(mp.asinh(str(-Pi))))
             # acosh
-            AssertEqual(acosh(one), zero)
+            AssertNearlyEqual(acosh(one), zero)
             Assert(str(acosh(Pi)) == str(mp.acosh(str(Pi))))
             raises(ValueError, acosh, half)
             # atanh
-            AssertEqual(atanh(zero), zero)
-            AssertEqual(atanh(one/Pi), Dec(str(mp.atanh(str(one/Pi)))))
+            AssertNearlyEqual(atanh(zero), zero)
+            AssertNearlyEqual(atanh(one/Pi), Dec(str(mp.atanh(str(one/Pi)))))
             raises(decimal.DivisionByZero, atanh, one)
     def Test_floor_ceil():
         # Zero
