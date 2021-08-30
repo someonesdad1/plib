@@ -29,19 +29,28 @@ if 1:   # Imports
     from pdb import set_trace as xx 
 if 1:   # Custom imports
     from wrap import dedent
+    from color import C
     if 0:
         import debug
         debug.SetDebugger()
 if 1:   # Global variables
     ii = isinstance
-    __all__ = '''acos asin atan atan2 cos exp log log10 pi
-        pow sin sqrt tan'''.split()
+    __all__ = '''
+        acos acosh asin asinh atan atan2 atanh ceil copysign cos cosh
+        degrees e exp expm1 f2d fabs FindRoot floor fmod hypot isclose
+        IsDecimal isfinite isinf isnan log log10 log1p log2 modf pi pow
+        radians remainder sin sinh sqrt tan tanh tau trunc
+        inf ninf nan
+        '''.split()
     Dec = decimal.Decimal
     zero, one, two, three, four, nine, ten = [Dec(i) for i in (0, 1, 2, 3,
         4, 9, 10)]
     half = Dec("0.5")
     inf, ninf, nan = Dec("inf"), Dec("-inf"), Dec("nan")
     precision_increment = 4
+    class g: pass
+    g.e = C.lcyn
+    g.n = C.norm
     __doc__ = dedent('''
     Elementary functions for the python Decimal library.
     
@@ -329,6 +338,31 @@ if 1:   # Exponential and logarithmic
             return ln
         else:
             return ln/log(base)
+    def log2(x):
+        IsDecimal(x)
+        return log(x, base=two)
+    def log1p(x):
+        '''Returns log(1 + x) and is accurate when x << 1.  If x > 0.1, will
+        raise an exception because convergence is very slow.
+        '''
+        # The Maclaurin expansion is
+        #     x - x**2/2 + x**3/3 - x**4/4 + x**5/5 - x**6/6 + ...
+        IsDecimal(x)
+        if x > Dec("0.1"):
+            raise ValueError("Unacceptable convergence if x > 0.1")
+        i, lasts, s, num, sign = 1, 0, x, x, 1
+        with decimal.localcontext() as ctx:
+            ctx.prec += precision_increment
+            # Algorithm is Maclaurin series expansion
+            while s != lasts:
+                lasts = s
+                i += 1
+                num *= x
+                sign *= -1
+                term = num*sign/i
+                s += term
+                print(s)
+        return +s  # Force rounding to current precision
     def pow(y, x):
         'Returns y raised to the power x'
         if not ii(x, (Dec, int)):
@@ -538,53 +572,49 @@ if 1:   # Miscellaneous
     def isfinite(x):
         IsDecimal(x)
         return not isinf(x) and not isnan(x)
-    def isclose(a, b, rel_tol=Dec('1e-9'), abs_tol=zero):
+    def isclose(a, b, rel_tol=zero, abs_tol=zero):
+        '''Returns True of a and b are close to each other.  Note this used
+        different keyword defaults than math.isclose().
+        '''
         IsDecimal(a, b, rel_tol, abs_tol)
         abmax = max(abs(a), abs(b))
         return abs(a - b) <= max(rel_tol*abmax, abs_tol)
-
-
-def log1p(x):
-    'Returns log(1 + x) and is accurate for x near zero'
-    '''
-    The Maclaurin expansion is
-        x - x**2/2 + x**3/3 - x**4/4 + x**5/5 - x**6/6 + ...
-    '''
-    IsDecimal(x)
-    i, lasts, s, fact, num, sign = 0, 0, x, 1, x, 1
-    with decimal.localcontext() as ctx:
-        ctx.prec += precision_increment
-        # Algorithm is Maclaurin series expansion
-        while s != lasts:
-            lasts = s
-            i += 1
-            num *= x
-            sign *= -1
-            s += num*sign
-    return +s  # Force rounding to current precision
-def log2(x):
-    IsDecimal(x)
-def modf(x):
-    IsDecimal(x)
-    # Returns (a, b), b = floor(x), a = x - b
-    # b = x//D(1)
-def remainder(x, y):
-    IsDecimal(x)
-def trunc(x):
-    IsDecimal(x)
-
-if 0:
-    from sympy import symbols, exp
-    x = symbols("x")
-    f = exp(x) - 1
-    print(f.series(x, 0, 10))
-    exit()
+    def modf(x):
+        'Return (fractional_part, integer_part)'
+        IsDecimal(x)
+        ip = Dec(floor(abs(x)))
+        fp = abs(x) - ip
+        return (fp.copy_sign(x), ip.copy_sign(x))
+    def remainder(x, y):
+        '''Returns x - n*y where n is the closest integer to x/y.  If x/y is
+        halfway between two integers, it's rounded to the nearest even integer.
+        The sign is the same as the original dividend.
+ 
+        remainder() produces a number on the closed interval [-y/2, y/2].  See 
+        https://stackoverflow.com/questions/26671975/why-do-we-need-ieee-754-remainder#27378075
+        for a trigonometric example.
+        '''
+        IsDecimal(x)
+        IsDecimal(y)
+        fp, ip = modf(abs(x/y))
+        sign = -one if x < zero else one if x > zero else zero
+        if fp == half:
+            if int(ip) % 2:
+                ip += one
+        elif fp > half:
+            ip += 1
+        return sign*(abs(x) - ip*abs(y))
+    def trunc(x):
+        IsDecimal(x)
+        sign = -1 if x < 0 else 1 if x > 0 else 0
+        return sign*int(abs(x))
 
 if __name__ == "__main__": 
     # Use mpmath (http://mpmath.org/) to generate the numbers to test
     # against (i.e., assume mpmath's algorithms are correct).
     import mpmath as mp
     import math
+    from random import uniform, seed
     from pdb import set_trace as xx
     from wrap import wrap, dedent, indent, Wrap
     from lwtest import run, raises, assert_equal, Assert
@@ -761,8 +791,8 @@ if __name__ == "__main__":
             dr = fmod(x, y)
             X, Y = float(a), float(b)
             fr = f2d(math.fmod(X, Y))
-            Assert(isclose(dr, fr))
-            Assert(isclose(dr, x % y))
+            Assert(isclose(dr, fr, rel_tol=Dec("1e-9")))
+            Assert(isclose(dr, x % y, rel_tol=Dec("1e-9")))
         test(*"98.61 7.73".split())
         test(*"98.61 -7.73".split())
         test(*"-98.61 7.73".split())
@@ -790,5 +820,51 @@ if __name__ == "__main__":
         Assert(not isfinite(ninf))
         Assert(not isfinite(nan))
     def Test_isclose():
-        pass
+        a, b = one, one + Dec("1e-10")
+        # Using default values
+        Assert(isclose(a, a))
+        Assert(not isclose(a, b))
+        # Using rel_tol
+        Assert(isclose(a, b, rel_tol=Dec("1e-9")))
+        Assert(isclose(a, b, rel_tol=Dec("1e-10")))
+        Assert(not isclose(a, b, rel_tol=Dec("1e-11")))
+        # Using abs_tol
+        Assert(isclose(a, b, abs_tol=Dec("1e-10")))
+        Assert(not isclose(a, b, abs_tol=Dec("1e-11")))
+    def Test_modf():
+        with decimal.localcontext() as ctx:
+            ctx.prec = 15
+            for s in (pi(), -pi()):
+                ffp, fip = math.modf(float(s))
+                fp, ip = modf(s)
+                Assert(fp == f2d(ffp))
+                Assert(ip == f2d(fip))
+    def Test_remainder():
+        'Use randomly-generated numbers'
+        n, x = 100, 1000
+        reltol = Dec("1e-12")
+        seed(x)
+        f = partial(uniform, -x, x)
+        for i in range(n):
+            x = f()
+            y = f()
+            while not y:    # Make sure y isn't zero
+                y = f()
+            fresult = f2d(math.remainder(x, y))
+            dresult = remainder(f2d(x), f2d(y))
+            if 1 and not isclose(fresult, dresult, rel_tol=reltol):
+                print("x, y", x, y)
+                print("math module: ", fresult)
+                print("this module: ", dresult)
+                exit(1)
+            else:
+                Assert(isclose(fresult, dresult, rel_tol=reltol))
+    def Test_trunc():
+        for i in range(100):
+            x = Dec("0.1") + Dec(i)
+            t = trunc(x)
+            Assert(t == i)
+            x = -x
+            t = trunc(x)
+            Assert(t == -i)
     exit(run(globals())[0])
