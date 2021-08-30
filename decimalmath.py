@@ -1,7 +1,7 @@
 '''
 Elementary functions for the python Decimal library
     TODO
-
+ 
     * Fix __all__.
     * Needs to handle inf and nan in arguments.  Decimal supports
       methods is_nan() and is_infinite().  If strict, then results in
@@ -135,7 +135,7 @@ if 1:   # Trigonometric
         but the cosine will cause the tangent to be a large negative number
         near 10**28.  This gets the sign wrong for pi/2.  Thus, we'll set
         the cosine to zero in such cases.
-
+ 
         A further problem is that a large integer multiplied by pi/2 should
         also have a cosine that is zero, but this gets harder to detect
         because the fractional part has fewer digits.
@@ -286,6 +286,22 @@ if 1:   # Exponential and logarithmic
         'Returns e raised to the power of x'
         IsDecimal(x)
         return x.exp()
+    def expm1(x):
+        'exp(x) - 1, avoiding loss of significance for small x'
+        IsDecimal(x)
+        if not x:
+            return zero
+        i, lasts, s, fact, term = 1, 0, x, 1, x
+        with decimal.localcontext() as ctx:
+            ctx.prec += precision_increment
+            # Algorithm is Maclaurin series expansion
+            while s != lasts:
+                lasts = s
+                i += 1
+                fact *= i
+                term *= x
+                s += term/fact
+        return +s  # Force rounding to current precision
     def log10(x):
         'Returns the base 10 logarithm of x'
         IsDecimal(x)
@@ -390,15 +406,132 @@ if 1:   # Miscellaneous
     def copysign(x, y):
         IsDecimal(x)
         return x.copy_sign(y)
+    def f2d(x):
+        '''Convert a floating point number x to a Decimal.  See the
+        decimal module's documentation for warnings about doing such
+        things.
+        '''
+        if not ii(x, (float, str)):
+            raise ValueError("x needs to be a float or string")
+        return Dec(repr(float(x)))
+    def FindRoot(x0, x2, f, maxit=50, show=False):
+        '''Returns a tuple (root, number_of_iterations, eps) where root is the
+        root of f(x) == 0.  The root must be bracketed by x0 and x2.  f is the
+        function to evaluate; it takes one Decimal argument and returns a
+        Decimal.  If your f(x) has more arguments, use functools.partial.  
+        If show is True, print out intermediate values.
+    
+        The iteration will terminate when two consecutive calculations differ
+        by eps (see below) or less.
+    
+        The routine will raise a ValueError exception if the number of
+        iterations is greater than maxit.
+    
+        Reference:  "All Problems Are Simple" by Jack Crenshaw, Embedded
+        Systems Programming, May, 2002, pg 7-14.  Translated from Jack's C
+        code by myself on 20 May 2003.
+    
+        Inverse parabolic interpolation algorithm to find the roots.  Jack
+        states this routine will converge rapidly on most functions, typically
+        adding 4 digits to the solution on each iteration.  The routine works
+        by starting with x0, x2, and finding a third x1 by bisection.  The
+        ordinates are gotten, then a horizontally-opening parabola is fitted to
+        the points.  The parabola's root's abscissa is gotten, and the
+        iteration is repeated.
+    
+        Note:  Jack commented that this routine was written by some unknown
+        genius at IBM and was in IBM's FORTRAN library code in the 1960's.
+        Jack has done quite a bit of work to popularize it.
+        '''
+        # We'll find the value to a precision that is 10**(-n + 1) where
+        # n is the current number of Decimal digits.  Note:  we add 1
+        # because there are two guard digits and, if 1 wasn't added, some
+        # of the iterations won't converge (e.g., asin(-0.5)).
+        eps = Dec(10)**(-Dec(decimal.getcontext().prec) + 1)
+        # Check arithmetic
+        if 1/2 != 0.5:
+            raise ValueError("Inadequate arithmetic")
+        # Set up constants
+        xmlast = x0
+        x1 = y0 = y1 = y2 = b = c = temp = y10 = y20 = y21 = xm = ym = zero
+        # Check input
+        if not ii(x0, Dec):
+            raise ValueError("Argument x0 is not Decimal type")
+        if not ii(x2, Dec):
+            raise ValueError("Argument x2 is not Decimal type")
+        if x0 >= x2:
+            raise ValueError("x0 must be strictly less than x2")
+        if eps <= zero:
+            raise ValueError("eps must be > 0")
+        if not ii(maxit, int) or maxit < one:
+            raise ValueError("maxit must be integer > 0")
+        # Handle special cases
+        y0 = f(x0)
+        if not y0:
+            return x0, 0, eps
+        y2 = f(x2)
+        if not y2:
+            return x2, 0, eps
+        # Make sure root is bracketed
+        if y2*y0 > zero:
+            raise ValueError("x0 and x2 don't bracket a root")
+        # Iterate for root
+        for i in range(maxit):
+            x1 = (x2 + x0)/two
+            y1 = f(x1)
+            if not y1 or abs(x1 - x0) < eps:
+                return x1, i + 1, eps
+            if y1*y0 > zero:
+                temp = x0
+                x0 = x2
+                x2 = temp
+                temp = y0
+                y0 = y2
+                y2 = temp
+            y10 = y1 - y0
+            y21 = y2 - y1
+            y20 = y2 - y0
+            if y2*y20 < two*y1*y10:
+                x2 = x1
+                y2 = y1
+                if abs(xm - xmlast) < eps:
+                    return xm, i + 1, eps
+            else:
+                b = (x1 - x0)/y10
+                c = (y10 - y21)/(y21*y20)
+                xm = x0 - b*y0*(one - c*y1)
+                ym = f(xm)
+                if not ym or abs(xm - xmlast) < eps:
+                    return xm, i + 1, eps
+                xmlast = xm
+                if ym*y0 < zero:
+                    x2 = xm
+                    y2 = ym
+                else:
+                    x0 = xm
+                    y0 = ym
+                    x2 = x1
+                    y2 = y1
+            if show:
+                print(xm)
+        raise ValueError(f"FindRoot:  no convergence after {maxit} iterations")
+    def fabs(x):
+        IsDecimal(x)
+        return -x if x < zero else x if x > zero else zero
+    def fmod(x, y):
+        IsDecimal(x)
+        IsDecimal(y)
+        return (-1 if x < 0 else 1)*(abs(x) - int(abs(x/y))*abs(y))
 
-def expm1(x):
-    IsDecimal(x)
-def fabs(x):
-    IsDecimal(x)
-def factorial(x):
-    IsDecimal(x)
-def fmod(x, y):
-    IsDecimal(x)
+if 0:
+    Y, X = '-4.3', '-64.3'
+    y, x = Dec(Y), Dec(X)
+    print("x =", x, "y =", y)
+    print("fmod(x, y) =", fmod(x, y))
+    print("math       =", math.fmod(float(X), float(Y)))
+    exit()
+    
+
 def hypot(x, y):
     IsDecimal(x)
     IsDecimal(y)
@@ -439,122 +572,11 @@ def remainder(x, y):
     IsDecimal(x)
 def trunc(x):
     IsDecimal(x)
-# Consider an object const with attributes pi, e, and tau.  They would get
-# computed each time, but look like they were constants.
 
-def f2d(x):
-    '''Convert a floating point number x to a Decimal.  See the
-    decimal module's documentation for warnings about doing such
-    things.
-    '''
-    if not ii(x, (float, str)):
-        raise ValueError("x needs to be a float or string")
-    return Dec(repr(float(x)))
-def FindRoot(x0, x2, f, maxit=50, show=False):
-    '''Returns a tuple (root, number_of_iterations, eps) where root is the
-    root of f(x) == 0.  The root must be bracketed by x0 and x2.  f is the
-    function to evaluate; it takes one Decimal argument and returns a
-    Decimal.  If your f(x) has more arguments, use functools.partial.  
-    If show is True, print out intermediate values.
- 
-    The iteration will terminate when two consecutive calculations differ
-    by eps (see below) or less.
- 
-    The routine will raise a ValueError exception if the number of
-    iterations is greater than maxit.
- 
-    Reference:  "All Problems Are Simple" by Jack Crenshaw, Embedded
-    Systems Programming, May, 2002, pg 7-14.  Translated from Jack's C
-    code by myself on 20 May 2003.
- 
-    Inverse parabolic interpolation algorithm to find the roots.  Jack
-    states this routine will converge rapidly on most functions, typically
-    adding 4 digits to the solution on each iteration.  The routine works
-    by starting with x0, x2, and finding a third x1 by bisection.  The
-    ordinates are gotten, then a horizontally-opening parabola is fitted to
-    the points.  The parabola's root's abscissa is gotten, and the
-    iteration is repeated.
- 
-    Note:  Jack commented that this routine was written by some unknown
-    genius at IBM and was in IBM's FORTRAN library code in the 1960's.
-    Jack has done quite a bit of work to popularize it.
-    '''
-    # We'll find the value to a precision that is 10**(-n + 1) where
-    # n is the current number of Decimal digits.  Note:  we add 1
-    # because there are two guard digits and, if 1 wasn't added, some
-    # of the iterations won't converge (e.g., asin(-0.5)).
-    eps = Dec(10)**(-Dec(decimal.getcontext().prec) + 1)
-    # Check arithmetic
-    if 1/2 != 0.5:
-        raise ValueError("Inadequate arithmetic")
-    # Set up constants
-    xmlast = x0
-    x1 = y0 = y1 = y2 = b = c = temp = y10 = y20 = y21 = xm = ym = zero
-    # Check input
-    if not ii(x0, Dec):
-        raise ValueError("Argument x0 is not Decimal type")
-    if not ii(x2, Dec):
-        raise ValueError("Argument x2 is not Decimal type")
-    if x0 >= x2:
-        raise ValueError("x0 must be strictly less than x2")
-    if eps <= zero:
-        raise ValueError("eps must be > 0")
-    if not ii(maxit, int) or maxit < one:
-        raise ValueError("maxit must be integer > 0")
-    # Handle special cases
-    y0 = f(x0)
-    if not y0:
-        return x0, 0, eps
-    y2 = f(x2)
-    if not y2:
-        return x2, 0, eps
-    # Make sure root is bracketed
-    if y2*y0 > zero:
-        raise ValueError("x0 and x2 don't bracket a root")
-    # Iterate for root
-    for i in range(maxit):
-        x1 = (x2 + x0)/two
-        y1 = f(x1)
-        if not y1 or abs(x1 - x0) < eps:
-            return x1, i + 1, eps
-        if y1*y0 > zero:
-            temp = x0
-            x0 = x2
-            x2 = temp
-            temp = y0
-            y0 = y2
-            y2 = temp
-        y10 = y1 - y0
-        y21 = y2 - y1
-        y20 = y2 - y0
-        if y2*y20 < two*y1*y10:
-            x2 = x1
-            y2 = y1
-            if abs(xm - xmlast) < eps:
-                return xm, i + 1, eps
-        else:
-            b = (x1 - x0)/y10
-            c = (y10 - y21)/(y21*y20)
-            xm = x0 - b*y0*(one - c*y1)
-            ym = f(xm)
-            if not ym or abs(xm - xmlast) < eps:
-                return xm, i + 1, eps
-            xmlast = xm
-            if ym*y0 < zero:
-                x2 = xm
-                y2 = ym
-            else:
-                x0 = xm
-                y0 = ym
-                x2 = x1
-                y2 = y1
-        if show:
-            print(xm)
-    raise ValueError(f"FindRoot:  no convergence after {maxit} iterations")
 if 0:
-    from sympy import symbols, log
+    from sympy import symbols, exp
     x = symbols("x")
-    f = log(1 + x)
+    f = exp(x) - 1
     print(f.series(x, 0, 10))
     exit()
 
