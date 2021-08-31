@@ -1,13 +1,5 @@
 '''
 Elementary functions for the python Decimal library
-    TODO
- 
-    * Fix __all__.
-    * Needs to handle inf and nan in arguments.  Decimal supports
-      methods is_nan() and is_infinite().  If strict, then results in
-      exception if arg is one of these values; otherwise return
-      something appropriate.  If not strict, then out-of-domain
-      arguments can return nan.
 '''
 if 1:  # Copyright, license
     # These "trigger strings" can be managed with trigger.py
@@ -19,7 +11,8 @@ if 1:  # Copyright, license
     #∞license∞#
     #∞what∞#
     # <math> Elementary math functions for the python Decimal library.
-    # Provides a number of the real functions that are in the math module.
+    # Provides a number of the real-valued functions that are in the math
+    # module.
     #∞what∞#
     #∞test∞# run #∞test∞#
     pass
@@ -451,7 +444,10 @@ if 1:   # Miscellaneous
         '''
         if not ii(x, (float, str)):
             raise ValueError("x needs to be a float or string")
-        return Dec(repr(float(x)))
+        if ii(x, float):
+            return Dec("0").from_float(x)
+        else:
+            return Dec(x)
     def FindRoot(x0, x2, f, maxit=50, show=False):
         '''Returns a tuple (root, number_of_iterations, eps) where root is the
         root of f(x) == 0.  The root must be bracketed by x0 and x2.  f is the

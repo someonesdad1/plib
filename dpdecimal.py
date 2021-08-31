@@ -1,11 +1,46 @@
 ''' 
 Provides dec(Decimal) objects with custom string interpolation
  
-    Note:  The infection model was implemented by using the output of 
-    the Signatures() function to determine which Decimal methods returned a
-    Decimal object.  These were added to the class, calling the Decimal
-    method and typecasting the result to a dec.  This was ultimately
-    enabled by using the signatures gotten from help(Decimal).
+    The decimalmath.py module has a number of functions that are similar to
+    those in the math module for real-valued functions.  These are imported
+    into this module's namespace:
+ 
+        acos acosh asin asinh atan atan2 atanh ceil copysign cos cosh
+        degrees e exp expm1 f2d fabs FindRoot floor fmod hypot isclose
+        IsDecimal isfinite isinf isnan log log10 log1p log2 modf pi pow
+        radians remainder sin sinh sqrt tan tanh tau trunc
+        inf ninf nan
+ 
+    The intent of this is that you'll have a numeric type and elementary
+    functions for routine calculations.  An advantage of the dec and
+    Decimal types is that you can increase the number of digits in a
+    calculation to help look for things like roundoff error.  An advantage
+    of the dec type is that printed results to the screen aren't cluttered
+    with many uninteresting non-significant digits.
+
+    The dec class follows an "infection" model, which means that if you use
+    a dec instance in arithmetic with other types such as int and float,
+    the results of a calculation will return a dec instance. 
+ 
+        Note:  you cannot e.g. add a dec and float directly, as you'll get
+        a TypeError.  If you want to do such things, use the f2d function 
+        from decimal math to convert the float to a dec object (or
+        Decimal's constructor can do it directly).
+ 
+    Thus, the dec type infects a calculation.  The use case is where you
+    want to do a number of physical calculations and have the results all
+    display with a given number of significant figures.  I find such
+    behavior more attractive for real-world calculations, which rarely need
+    more than 4 or 5 significant figures, as the components are based on
+    physical measurements.  An advantage of deriving dec from the Decimal
+    class is that you can do your calculations to many digits, but not see
+    them all when you print things out.
+ 
+        The infection model was implemented by using the output of the
+        Signatures() function to determine which Decimal methods returned a
+        Decimal object.  These were added to the class, calling the Decimal
+        method and typecasting the result to a dec.  This was ultimately
+        enabled by using the signatures gotten from help(Decimal).
  
     The Decimal module follows the "General Decimal Arithmetic
     Specification", version 1.70, 25 Mar 2009 by M. Cowlishaw
@@ -18,150 +53,6 @@ Provides dec(Decimal) objects with custom string interpolation
     most needs.  Similar reasoning might have been why the
     decimal.BasicContext and decimal.ExtendedContext instances used a
     precision of nine.
- 
-Todo:
-
-    * Add in routines to simulate the functions in the math module.  For
-      some that require more implementation, either use mpmath to do the
-      calculation or raise an exception.
-
-Math module functions (* marks those I think should be implemented)
-
-    acos(x, /)
-        Return the arc cosine (measured in radians) of x.
- *  acosh(x, /)
-        Return the inverse hyperbolic cosine of x.
-        2*log(sqrt((x + 1)/2) + sqrt(x - 1)/2)
-        Will be complex when x < 1.
-    asin(x, /)
-        Return the arc sine (measured in radians) of x.
- *  asinh(x, /)
-        Return the inverse hyperbolic sine of x.
-        log(x + xqrt(1 + x**2))
-    atan(x, /)
-        Return the arc tangent (measured in radians) of x.
-    atan2(y, x, /)
-        Return the arc tangent (measured in radians) of y/x.
-        Unlike atan(y/x), the signs of both x and y are considered.
- *  atanh(x, /)
-        Return the inverse hyperbolic tangent of x.
-        (log(1 + x) - log(1 - x))/2
-        Will be complex when x > 1.
- *  ceil(x, /)
-        Return the ceiling of x as an Integral.
-        This is the smallest integer >= x.
- *  copysign(x, y, /)
-        Return a float with the magnitude (absolute value) of x but the
-        sign of y.  On platforms that support signed zeros, copysign(1.0,
-        -0.0) returns -1.0.
-    cos(x, /)
-        Return the cosine of x (measured in radians).
- *  cosh(x, /)
-        Return the hyperbolic cosine of x.
-        (exp(x) + exp(-x))/2
- *  degrees(x, /)
-        Convert angle x from radians to degrees.
-    erf(x, /)
-        Error function at x.
-    erfc(x, /)
-        Complementary error function at x.
-    exp(x, /)
-        Return e raised to the power of x.
- *  expm1(x, /)
-        Return exp(x)-1.
-        This function avoids the loss of precision involved in the direct
-        evaluation of exp(x)-1 for small x.
- *  fabs(x, /)
-        Return the absolute value of the float x.
-    factorial(x, /)
-        Find x!.
-        Raise a ValueError if x is negative or non-integral.
- *  floor(x, /)
-        Return the floor of x as an Integral.
-        This is the largest integer <= x.
- *  fmod(x, y, /)
-        Return fmod(x, y), according to platform C.
-        x % y may differ.
-    frexp(x, /)
-        Return the mantissa and exponent of x, as pair (m, e).
-        m is a float and e is an int, such that x = m * 2.**e.
-        If x is 0, m and e are both 0.  Else 0.5 <= abs(m) < 1.0.
-    fsum(seq, /)
-        Return an accurate floating point sum of values in the iterable seq.
-        Assumes IEEE-754 floating point arithmetic.
-    gamma(x, /)
-        Gamma function at x.
-    gcd(x, y, /)
-        greatest common divisor of x and y
- *  hypot(x, y, /)
-        Return the Euclidean distance, sqrt(x*x + y*y).
- *  isclose(a, b, *, rel_tol=1e-09, abs_tol=0.0)
-        Determine whether two floating point numbers are close in value.
-            rel_tol:  maximum difference for being considered "close",
-            relative to the magnitude of the input values
-            abs_tol: maximum difference for being considered "close",
-            regardless of the magnitude of the input values
-        Return True if a is close in value to b, and False otherwise.
-        For the values to be considered close, the difference between them
-        must be smaller than at least one of the tolerances.
-        -inf, inf and NaN behave similarly to the IEEE 754 Standard.  That
-        is, NaN is not close to anything, even itself.  inf and -inf are
-        only close to themselves.
- *  isfinite(x, /)
-        Return True if x is neither an infinity nor a NaN, and False otherwise.
- *  isinf(x, /)
-        Return True if x is a positive or negative infinity, and False
-        otherwise.
- *  isnan(x, /)
-        Return True if x is a NaN (not a number), and False otherwise.
-    ldexp(x, i, /)
-        Return x * (2**i).
-        This is essentially the inverse of frexp().
-    lgamma(x, /)
-        Natural logarithm of absolute value of Gamma function at x.
- *  log(...)
-        log(x, [base=math.e])
-        Return the logarithm of x to the given base.
-        If the base not specified, returns the natural logarithm (base e) of x.
-    log10(x, /)
-        Return the base 10 logarithm of x.
- *  log1p(x, /)
-        Return the natural logarithm of 1+x (base e).
-        The result is computed in a way which is accurate for x near zero.
- *  log2(x, /)
-        Return the base 2 logarithm of x.
- *  modf(x, /)
-        Return the fractional and integer parts of x.
-        Both results carry the sign of x and are floats.
-    pow(x, y, /)
-        Return x**y (x to the power of y).
- *  radians(x, /)
-        Convert angle x from degrees to radians.
- *  remainder(x, y, /)
-        Difference between x and the closest integer multiple of y.
-        Return x - n*y where n*y is the closest integer multiple of y.
-        In the case where x is exactly halfway between two multiples of
-        y, the nearest even value of n is used. The result is always exact.
-    sin(x, /)
-        Return the sine of x (measured in radians).
- *  sinh(x, /)
-        Return the hyperbolic sine of x.
-        (exp(x) - exp(-x))/2
-    sqrt(x, /)
-        Return the square root of x.
-    tan(x, /)
-        Return the tangent of x (measured in radians).
- *  tanh(x, /)
-        Return the hyperbolic tangent of x.
-        (exp(x) - exp(-x))/(exp(x) + exp(-x))
- *  trunc(x, /)
-        Truncates the Real x to the nearest Integral toward 0.
-        Uses the __trunc__ magic method.
- *  e = 2.718281828459045
- *  inf = inf
- *  nan = nan
- *  pi = 3.141592653589793
- *  tau = 6.283185307179586
 ''' 
 if 1:  # Copyright, license
     # These "trigger strings" can be managed with trigger.py
@@ -172,11 +63,11 @@ if 1:  # Copyright, license
     #   See http://opensource.org/licenses/OSL-3.0.
     #∞license∞#
     #∞what∞#
-    # <math> Provides a dec object that is derived from
-    # decimal.Decimal but has custom string interpolation.  It also
-    # "infects" calculations with its type, providing a number class for
-    # general-purpose calculations without the limitations of the float
-    # type.
+    # <math> Provides a dec object that is derived from decimal.Decimal but
+    # has custom string interpolation, letting you only see a few
+    # significant figures.  It also "infects" calculations with its type,
+    # providing a number class for general-purpose calculations without the
+    # limitations of the float type.
     #∞what∞#
     #∞test∞# run #∞test∞#
     pass
@@ -187,13 +78,14 @@ if 1:   # Imports
     from functools import partial
     from pdb import set_trace as xx 
 if 1:   # Custom imports
+    from decimalmath import *
     from wrap import dedent
     from columnize import Columnize
     if 1:   # Set to True to get color output
         from color import C
     else:
         C = None
-    if 1:
+    if 0:
         import debug
         debug.SetDebugger()
 if 1:   # Global variables
@@ -528,11 +420,6 @@ def DumpContext(name, ctx):
     for i in Columnize(f, indent=indent*2):
         print(i)
 if 0:
-    # Note the flags and traps for the latter two don't appear to be what
-    # the documentation specifies.
-    DumpContext("decimal.DefaultContext", decimal.DefaultContext)
-    DumpContext("decimal.BasicContext", decimal.BasicContext)
-    DumpContext("decimal.ExtendedContext", decimal.ExtendedContext)
     exit(0)
 
 if __name__ == "__main__": 
@@ -601,6 +488,9 @@ if __name__ == "__main__":
         x = d + 3
         Assert(x == dec("4.2345"))
         Assert(ii(x, dec))
+        with raises(TypeError):
+            # Can't add to a float
+            d + 3.0
     def Test_infection():
         'Verify that the supported operations return a dec object'
         x = dec("1.234")
@@ -648,4 +538,4 @@ if __name__ == "__main__":
                     Assert(type(r) == type(L1))
     mp.mp.dps = getcontext().prec
     eps = 10*dec(10)**(-dec(getcontext().prec))
-    exit(run(globals())[0])
+    exit(run(globals(), halt=1, nomsg=1))
