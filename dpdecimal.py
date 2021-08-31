@@ -31,7 +31,7 @@ Provides dec(Decimal) objects with custom string interpolation
     want to do a number of physical calculations and have the results all
     display with a given number of significant figures.  I find such
     behavior more attractive for real-world calculations, which rarely need
-    more than 4 or 5 significant figures, as the components are based on
+    more than 4 significant figures, as the components are based on
     physical measurements.  An advantage of deriving dec from the Decimal
     class is that you can do your calculations to many digits, but not see
     them all when you print things out.
@@ -39,8 +39,9 @@ Provides dec(Decimal) objects with custom string interpolation
         The infection model was implemented by using the output of the
         Signatures() function to determine which Decimal methods returned a
         Decimal object.  These were added to the class, calling the Decimal
-        method and typecasting the result to a dec.  This was ultimately
-        enabled by using the signatures gotten from help(Decimal).
+        method (i.e., the superclass) and typecasting the result to a dec.
+        This was ultimately enabled by using the signatures gotten from
+        help(Decimal).
  
     The Decimal module follows the "General Decimal Arithmetic
     Specification", version 1.70, 25 Mar 2009 by M. Cowlishaw

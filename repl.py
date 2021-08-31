@@ -1,10 +1,13 @@
 '''
 TODO
 
+* '< f' from a nonexistent file causes a FileNotFoundError that needs to be
+  trapped.
+
+* Is there a way to log all the commands so that they can be run again?
+  L would turn logging on, LL would turn it off.  Turning it on appends to
+  the log file, which is emptied on each invocation.
 * Add the ability to separate commands with ';'.
-* R file 
-    * Loads the file into a file buffer.
-    * r runs the file and reloads the buffer from the file every time.
 * e, <, and > are still used with the string buffer.  Now, x executes
   the buffer.
 
@@ -439,96 +442,105 @@ if 1:   # Core functionality
         print(*p, **kw)
         if logfile is not None:
             print(*p, **kw, file=logfile)
+    def DumpCmdLog():
+        print("Command log:")
+        print(cmdlog.getvalue())
 if 1:   # Special commands
     def Special(cmd, console):
-        first_char = cmd[0]
-        arg = "" if len(cmd) == 1 else cmd[1:].strip()
-        if first_char == "!":
-            # Shell command
-            if arg:
-                newarg = FixShellArgument(arg)
-                os.system(newarg)
-            return
-        elif first_char == "<":  
-            # Read stringbuffer
-            if arg:
-                file = g.P(arg)
-                console.stringbuffer = file.read_text()
-        elif first_char == ">":  
-            # Write stringbuffer
-            if arg:
-                file = g.P(arg)
-                file.write_text(console.stringbuffer)
-        elif cmd == "c" or cmd == "cls":
-            # Clear the screen
-            os.system("clear")
-        elif cmd == "CS":  
-            # Clear the local variables
-            console.locals.clear()
-        elif cmd == "d":  
-            # Enter debugger
-            BreakPoint()
-            breakpoint()
-        elif cmd == "e":  
-            # Edit stringbuffer
-            console.stringbuffer = EditString(console.stringbuffer, console)
-        elif cmd == "f":  
-            # Load favorite symbols
-            console.locals.update(GetSymbols())
-            Print("Loaded favorite symbols")
-        elif cmd == "h" or cmd == "?":
-            # Print help info
-            Help()
-        elif cmd == "q":  
-            t = console.time
-            Print(f"{t}")
-            exit(0)
-        elif first_char == "R":  
-            # Set or clear console.file
-            console.file = None
-            console.args = None
-            if arg:
-                args = arg.split()
-                console.file = args[0]
-                if len(args) > 1:
-                    console.args = " ".join(args[1:])
-        elif cmd in "r ri".split():  
-            # Run console.file
-            if console.file is None:
-                Print("No file set with R command")
+        cmdlog.write(cmd)
+        try:
+            first_char = cmd[0]
+            print("yy", cmd)
+            arg = "" if len(cmd) == 1 else cmd[1:].strip()
+            if first_char == "!":
+                # Shell command
+                if arg:
+                    newarg = FixShellArgument(arg)
+                    os.system(newarg)
                 return
-            # Run it as a script
-            try:
-                p = g.P(console.file).resolve()
-                if cmd == "ri":
-                    c = [sys.executable, "-i", str(p)]
+            elif first_char == "<":  
+                # Read stringbuffer
+                if arg:
+                    file = g.P(arg)
+                    console.stringbuffer = file.read_text()
+            elif first_char == ">":  
+                # Write stringbuffer
+                if arg:
+                    file = g.P(arg)
+                    file.write_text(console.stringbuffer)
+            elif cmd == "c" or cmd == "cls":
+                # Clear the screen
+                os.system("clear")
+            elif cmd == "CS":  
+                # Clear the local variables
+                console.locals.clear()
+            elif cmd == "d":  
+                # Enter debugger
+                BreakPoint()
+                breakpoint()
+            elif cmd == "e":  
+                # Edit stringbuffer
+                console.stringbuffer = EditString(console.stringbuffer, console)
+            elif cmd == "f":  
+                # Load favorite symbols
+                console.locals.update(GetSymbols())
+                Print("Loaded favorite symbols")
+            elif cmd == "h" or cmd == "?":
+                # Print help info
+                Help()
+            elif cmd == "q":  
+                t = console.time
+                Print(f"{t}")
+                DumpCmdLog()
+                exit(0)
+            elif first_char == "R":  
+                # Set or clear console.file
+                console.file = None
+                console.args = None
+                if arg:
+                    args = arg.split()
+                    console.file = args[0]
+                    if len(args) > 1:
+                        console.args = " ".join(args[1:])
+            elif cmd in "r ri".split():  
+                # Run console.file
+                if console.file is None:
+                    Print("No file set with R command")
+                    return
+                # Run it as a script
+                try:
+                    p = g.P(console.file).resolve()
+                    if cmd == "ri":
+                        c = [sys.executable, "-i", str(p)]
+                    else:
+                        c = [sys.executable, str(p)]
+                    if console.args:
+                        c.append(console.args)
+                    r = subprocess.call(' '.join(c), shell=True)
+                except Exception as e:
+                    print(f"Exception:  {e}")
                 else:
-                    c = [sys.executable, str(p)]
-                if console.args:
-                    c.append(console.args)
-                r = subprocess.call(' '.join(c), shell=True)
-            except Exception as e:
-                print(f"Exception:  {e}")
+                    print(f"Script returned {r}")
+            elif cmd == "s":  
+                # Print symbols
+                PrintSymbols(console)
+            elif cmd == "v":  
+                # Print repl.py version
+                Print(f"{sys.argv[0]} version:  {_version}   "
+                    f"[running python {g.pyversion}]")
+            elif cmd == "x":  
+                # Run stringbuffer
+                fn = "<stringbuffer>"
+                if not console.stringbuffer:
+                    Print("String buffer is empty")
+                    return
+                for line in console.stringbuffer.split("\n"):
+                    rv = console.push(line)
+                    console.ps = sys.ps2 if rv else sys.ps1
             else:
-                print(f"Script returned {r}")
-        elif cmd == "s":  
-            # Print symbols
-            PrintSymbols(console)
-        elif cmd == "v":  
-            # Print repl.py version
-            Print(f"{sys.argv[0]} version:  {_version}   "
-                  f"[running python {g.pyversion}]")
-        elif cmd == "x":  
-            # Run stringbuffer
-            fn = "<stringbuffer>"
-            if not console.stringbuffer:
-                Print("String buffer is empty")
-                return
-            for line in console.stringbuffer.split("\n"):
-                rv = console.push(line)
-                console.ps = sys.ps2 if rv else sys.ps1
-        else:
-            Print(f"{g.err}'{cmd}' not recognized{g.norm}")
+                Print(f"{g.err}'{cmd}' not recognized{g.norm}")
+        except Exception as e:
+            print(f"{g.brn}Exception in Special():\n{e}{g.norm}")
 if 1:   # class Console
     class Console(code.InteractiveConsole):
         def __init__(self, locals=None):
@@ -552,7 +564,7 @@ if 1:   # class Console
             return f"{date} {tm}"
         @property
         def msg(self):
-            return f"{self.time}"
+            return f"{self.time}   Use h for help"
         def start_message(self):
             print(self.msg)
         def write(self, data):
@@ -589,8 +601,10 @@ if 1:   # Setup
     sys.ps2 = f"{g.whtblu}{'·'*3}{g.norm} "
 if __name__ == "__main__":  # Run the console REPL
     stdout, stderr = io.StringIO(), io.StringIO()
+    cmdlog = io.StringIO()  # Used to log commands
     console = Console()
     console.ps = sys.ps1
+    nl = "\n"
     file = d["-l"] if d["-l"] is not None else "/dev/null"
     logfile = open(file, "w")
     console.start_message()
@@ -607,6 +621,7 @@ if __name__ == "__main__":  # Run the console REPL
                 # be recognized
                 s = args.pop(0).strip()
                 if s not in console.locals and IsCommand(s):
+                    cmdlog.write(s + nl)
                     Special(s, console)
             else:
                 line = console.raw_input().rstrip()
@@ -619,9 +634,13 @@ if __name__ == "__main__":  # Run the console REPL
             returnvalue = console.push(line)
         else:
             # Capture stdout & stderr to StringIO objects
-            with contextlib.redirect_stderr(stderr):
-                with contextlib.redirect_stdout(stdout):
-                    returnvalue = console.push(line)
+            try:
+                with contextlib.redirect_stderr(stderr):
+                    with contextlib.redirect_stdout(stdout):
+                        cmdlog.write(line + nl)
+                        returnvalue = console.push(line)
+            except Exception as e:
+                print("zz Got exception: ", e)
         if returnvalue:     # Need more input
             console.ps = sys.ps2
         else:               # Command finished

@@ -10,6 +10,9 @@
       decimal behavior, but gives the desired string interpolations and 
       math functions.  dpdecimal.py would infect like f.py does.
 
+* The what.py script should be able to examine a file and list the
+  dependencies on scripts.  Look at pgm/dep.py and the modulefinder module.
+
 * Copy the basic float functionality of sig.GetSigFig() to f.py.  
   Remove the uncertainty stuff, as the key need is to be able to assess
   the number of significant figures in integer, float, and Decimal
@@ -183,5 +186,4 @@ Low priority
 * 'ts.py -m' doesn't work.
 
 * /pylib/pgm/readability/indict.py looks like an interesting tool.  
-  It should use a reasonable dictionary by default and print the tokens
-  out in columns for each file.
+  It should use a reasonable dictionary by default and 
