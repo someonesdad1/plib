@@ -183,7 +183,7 @@ class dec(decimal.Decimal):
         return sign + s + dec._e + str(exponent)
     def convert(self, value, context=None):
         'Used to convert other numerical types to dec'
-        if dec.strict or ii(value, dec):
+        if dec.strict or ii(value, (int, dec)):
             return value
         if ii(value, float):
             return dec(repr(value))
@@ -242,73 +242,108 @@ class dec(decimal.Decimal):
         value = self.convert(value, context=None)
         return dec(super().__add__(value))
     def __floordiv__(self, value):
+        value = self.convert(value, context=None)
         return dec(super().__floordiv__(value))
     def __mod__(self, value):
+        value = self.convert(value, context=None)
         return dec(super().__mod__(value))
     def __mul__(self, value):
+        value = self.convert(value, context=None)
         return dec(super().__mul__(value))
     def __pow__(self, value):
         # It appears help() for Decimal is wrong, as if you include the mod
         # argument, you'll get a TypeError:
         # TypeError: wrapper __pow__() takes no keyword arguments
+        value = self.convert(value, context=None)
         return dec(super().__pow__(value))
     def __radd__(self, value):
+        value = self.convert(value, context=None)
         return dec(super().__radd__(value))
     def __rfloordiv__(self, value):
+        value = self.convert(value, context=None)
         return dec(super().__rfloordiv__(value))
     def __rmod__(self, value):
+        value = self.convert(value, context=None)
         return dec(super().__rmod__(value))
     def __rmul__(self, value):
+        value = self.convert(value, context=None)
         return dec(super().__rmul__(value))
     def __rpow__(self, value):
         # It appears help() for Decimal is wrong, as if you include the mod
         # argument, you'll get a TypeError:
         # TypeError: wrapper __rpow__() takes no keyword arguments
+        value = self.convert(value, context=None)
         return dec(super().__rpow__(value))
     def __rsub__(self, value):
+        value = self.convert(value, context=None)
         return dec(super().__rsub__(value))
     def __rtruediv__(self, value):
+        value = self.convert(value, context=None)
         return dec(super().__rtruediv__(value))
     def __sub__(self, value):
+        value = self.convert(value, context=None)
         return dec(super().__sub__(value))
     def __truediv__(self, value):
+        value = self.convert(value, context=None)
         return dec(super().__truediv__(value))
     def compare(self, value, context=None):
+        value = self.convert(value, context=None)
         return dec(super().compare(value, context=context))
     def compare_signal(self, value, context=None):
+        value = self.convert(value, context=None)
         return dec(super().compare_signal(value, context=context))
     def compare_total(self, value, context=None):
+        value = self.convert(value, context=None)
         return dec(super().compare_total(value, context=context))
     def compare_total_mag(self, value, context=None):
+        value = self.convert(value, context=None)
         return dec(super().compare_total_mag(value, context=context))
     def copy_sign(self, value, context=None):
+        value = self.convert(value, context=None)
         return dec(super().copy_sign(value, context=context))
     def logical_and(self, value, context=None):
+        value = self.convert(value, context=None)
         return dec(super().logical_and(value, context=context))
     def logical_or(self, value, context=None):
+        value = self.convert(value, context=None)
         return dec(super().logical_or(value, context=context))
     def logical_xor(self, value, context=None):
+        value = self.convert(value, context=None)
         return dec(super().logical_xor(value, context=context))
     def max(self, value, context=None):
+        value = self.convert(value, context=None)
         return dec(super().max(value, context=context))
     def max_mag(self, value, context=None):
+        value = self.convert(value, context=None)
         return dec(super().max_mag(value, context=context))
     def min(self, value, context=None):
+        value = self.convert(value, context=None)
         return dec(super().min(value, context=context))
     def min_mag(self, value, context=None):
+        value = self.convert(value, context=None)
         return dec(super().min_mag(value, context=context))
     def next_toward(self, value, context=None):
+        value = self.convert(value, context=None)
         return dec(super().next_toward(value, context=context))
-    def quantize(self, exp, rounding=None, context=None):
-        return dec(super().quantize(exp, context=context))
+    def quantize(self, value, rounding=None, context=None):
+        value = self.convert(value, context=None)
+        return dec(super().quantize(value, context=context))
     def remainder_near(self, value, context=None):
+        value = self.convert(value, context=None)
         return dec(super().remainder_near(value, context=context))
     def rotate(self, value, context=None):
+        value = self.convert(value, context=None)
         return dec(super().rotate(value, context=context))
     def scaleb(self, value, context=None):
+        value = self.convert(value, context=None)
         return dec(super().scaleb(value, context=context))
     def shift(self, value, context=None):
+        value = self.convert(value, context=None)
         return dec(super().shift(value, context=context))
+    @property
+    def full(self):
+        'Like str() but with full number of digits'
+        return repr(self).replace("dec('", "").replace("')", "")
     @property
     def strict(self):
         return bool(dec._strict)
@@ -577,18 +612,23 @@ if __name__ == "__main__":
                         r = eval(f"L1.{i}(L2)")
                     Assert(type(r) == type(L1))
     def Test_strict():
-        x = dec("1.234")
+        x = dec("1.234567890123456789")
+        s = "1.2"
         dec.strict = True
         with raises(TypeError):
-            x + 1.2
+            x + float(s)
         dec.strict = False
-        y = x + 1.2
-        Assert(y == x + dec("1.2"))
+        y = x + float(s)
+        Assert(y == x + dec(s))
         Assert(ii(y, dec))
         if _have_mpmath:
-            y = mpmath.mpf(str(decimal.Decimal(1/x)))
-            Assert(x + y == dec('2.044372771474878444084278768'))
+            z = 1/x
+            y = mpmath.mpf(z.full)
+            Assert(x + y == x + z)
             Assert(ii(x + y, dec))
+            dec.strict = True
+            with raises(TypeError):
+                x + y
     mp.mp.dps = getcontext().prec
     eps = 10*dec(10)**(-dec(getcontext().prec))
     exit(run(globals(), halt=1, nomsg=1))
