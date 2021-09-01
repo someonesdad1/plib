@@ -1,17 +1,27 @@
-* Because f.py uses Decimals to get formatting, the module should include
-  a utility routine that can format Decimal objects similarly.  This could
-  be put in decimalmath.py instead. 
+* dpdecimal.py:  This module would be more useful if float, flt, and
+  Fractions were allowed to interoperate with the dec instances, always
+  returning a dec.  A strict attribute if True disallows this, but if set
+  to False, then arithmetic operations are allowed with them.  The user
+  must be warned of the dangers of converting floats and flts with a
+  maximum of about 15 digits.  Still, such calculations are so common that
+  it's likely a useful feature.  It makes eminent sense with Fractions, as
+  they can be converted to full dec precision by dividing two dec
+  constructed from integers.
 
-    * Here's an example of the need.  In tri.py, the arithmetic and trig is
-      done with Decimals to allow arbitrary precision.  Unfortunately, if
-      you e.g. use 2 significant figures and get a result like 20 degrees
-      for an angle, the stock interpolation gives 2E+1, an ugly form.
-      Perhaps a dpdecimal.py module should be written that includes all the
-      decimal behavior, but gives the desired string interpolations and 
-      math functions.  dpdecimal.py would infect like f.py does.
+  Each of the functions like __add__(self, value) can have an added line
+    value = self.convert(value, context=None)
+  If strict is true, this just returns value unchanged, letting the user
+  see the resulting type exception in the proper place.  Otherwise, the
+  conversion is made.
+
+  I'd like to see float, flt, Fraction, and mpmath.mpf all handled
+  seamlessly.  Note the user would have to be warned about the possibility
+  of losing information or adding noise in the conversion.  The context
+  would be passed when the dec method includes a context keyword.
 
 * The what.py script should be able to examine a file and list the
   dependencies on scripts.  Look at pgm/dep.py and the modulefinder module.
+  Then what.py should only print out the non-standard modules.
 
 * Copy the basic float functionality of sig.GetSigFig() to f.py.  
   Remove the uncertainty stuff, as the key need is to be able to assess
@@ -186,4 +196,5 @@ Low priority
 * 'ts.py -m' doesn't work.
 
 * /pylib/pgm/readability/indict.py looks like an interesting tool.  
-  It should use a reasonable dictionary by default and 
+  It should use a reasonable dictionary by default and print the tokens
+  out in columns for each file.

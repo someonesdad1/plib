@@ -23,15 +23,21 @@ Provides dec(Decimal) objects with custom string interpolation
     the results of a calculation will return a dec instance. 
  
         Note:  you cannot e.g. add a dec and float directly, as you'll get
-        a TypeError.  If you want to do such things, use the f2d function 
-        from decimal math to convert the float to a dec object (or
-        Decimal's constructor can do it directly).
+        a TypeError.  If you want to do such things, there are two methods.
+        First, use the f2d function from decimal math to convert the float
+        to a dec object (or Decimal's constructor can do it directly).  
+        Second, if you want to do it regularly, set the dec.strict
+        attribute to False and you'll be able to do arithmetic with floats
+        and Fractions, both of which will be converted to dec.  Be aware
+        that numerical information can be lost or numerical noise added by
+        such conversions.  If you have the mpmath library installed, then
+        mpmath.mpf numbers will work too.
  
     Thus, the dec type infects a calculation.  The use case is where you
     want to do a number of physical calculations and have the results all
     display with a given number of significant figures.  I find such
     behavior more attractive for real-world calculations, which rarely need
-    more than 4 significant figures, as the components are based on
+    more than 4 significant figures, as the components are usually based on
     physical measurements.  An advantage of deriving dec from the Decimal
     class is that you can do your calculations to many digits, but not see
     them all when you print things out.
@@ -76,6 +82,7 @@ if 1:   # Imports
     import decimal
     import locale
     from collections import deque
+    from fractions import Fraction
     from functools import partial
     from pdb import set_trace as xx 
 if 1:   # Custom imports
@@ -89,6 +96,11 @@ if 1:   # Custom imports
     if 0:
         import debug
         debug.SetDebugger()
+    try:
+        import mpmath
+        _have_mpmath = True
+    except ImportError:
+        _have_mpmath = False
 if 1:   # Global variables
     ii = isinstance
     D = decimal.Decimal
@@ -110,6 +122,8 @@ class dec(decimal.Decimal):
     _high = 1e16        # When to switch to scientific notation
     _e = "e"            # Letter in scientific notation (note this in the
                         # context object as "capital", but I prefer it here)
+    _strict = True      # If False, allow conversion of float, etc. to dec
+                        # for arithmetic
     def __new__(cls, value="0", context=None):
         instance = super().__new__(cls, value, context=context)
         return instance
@@ -117,6 +131,9 @@ class dec(decimal.Decimal):
         if self > dec._high or self < dec._low:
             return self.sci(dec._digits)
         return self.fix(dec._digits)
+    def __repr__(self):
+        s = decimal.Decimal(self)
+        return repr(s).replace("Decimal", "dec")
     def fix(self, n):
         '''Return fixed-point form of x with n significant figures.  It
         should work for arbitrary n > 0.
@@ -164,6 +181,18 @@ class dec(decimal.Decimal):
             return sign + s
         # Generate the scientific notation representation
         return sign + s + dec._e + str(exponent)
+    def convert(self, value, context=None):
+        'Used to convert other numerical types to dec'
+        if dec.strict or ii(value, dec):
+            return value
+        if ii(value, float):
+            return dec(repr(value))
+        elif ii(value, Fraction):
+            return dec(value.numerator)/dec(value.denominator)
+        elif _have_mpmath and ii(value, mpmath.mpf):
+            return dec(str(value))
+        else:
+            raise TypeError("value is an unsupported type")
     # The following methods are implemented to allow dec to follow an
     # infection model.  They are the methods in Decimal that return a
     # Decimal.
@@ -183,6 +212,8 @@ class dec(decimal.Decimal):
     def exp(self, context=None):
         return dec(super().exp(context=context))
     def ln(self, context=None):
+        return dec(super().ln(context=context))
+    def log(self, context=None):
         return dec(super().ln(context=context))
     def log10(self, context=None):
         return dec(super().log10(context=context))
@@ -208,6 +239,7 @@ class dec(decimal.Decimal):
         return dec(super().to_integral_value(context=context, rounding=rounding))
     # --------------------------- 1 argument -----------------------------
     def __add__(self, value):
+        value = self.convert(value, context=None)
         return dec(super().__add__(value))
     def __floordiv__(self, value):
         return dec(super().__floordiv__(value))
@@ -277,8 +309,17 @@ class dec(decimal.Decimal):
         return dec(super().scaleb(value, context=context))
     def shift(self, value, context=None):
         return dec(super().shift(value, context=context))
+    @property
+    def strict(self):
+        return bool(dec._strict)
+    @strict.setter
+    def strict(self, value):
+        dec._strict = bool(value)
 def Signatures():
     'Print out the types of the return values of decimal.Decimal methods'
+    # This function was used to determine the Decimal functions that return
+    # a Decimal, as these then needed to be implemented in dec and wrapped
+    # to return a dec object.
     x, y = D("1.234"), D("3.456")
     X, Y = D("11001"), D("11101")
     show = True
@@ -288,8 +329,6 @@ def Signatures():
     def Type(z):
         global g
         s = str(type(z))[1:-1].replace("class", "").replace("'", "").strip()
-        # Highlight the functions that return a Decimal, as these are ones
-        # we need to implement
         if s == "decimal.Decimal":
             s = g.d + s + g.n
         else:
@@ -537,6 +576,19 @@ if __name__ == "__main__":
                     else:
                         r = eval(f"L1.{i}(L2)")
                     Assert(type(r) == type(L1))
+    def Test_strict():
+        x = dec("1.234")
+        dec.strict = True
+        with raises(TypeError):
+            x + 1.2
+        dec.strict = False
+        y = x + 1.2
+        Assert(y == x + dec("1.2"))
+        Assert(ii(y, dec))
+        if _have_mpmath:
+            y = mpmath.mpf(str(decimal.Decimal(1/x)))
+            Assert(x + y == dec('2.044372771474878444084278768'))
+            Assert(ii(x + y, dec))
     mp.mp.dps = getcontext().prec
     eps = 10*dec(10)**(-dec(getcontext().prec))
     exit(run(globals(), halt=1, nomsg=1))
