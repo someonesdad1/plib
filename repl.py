@@ -255,6 +255,7 @@ if 1:   # Core functionality
         'Return a dict of favorite symbols'
         from pprint import pprint as pp
         from decimal import Decimal as D, getcontext as ctx
+        from dpdecimal import dec
         from pathlib import Path as P
         from fractions import Fraction as F
         from pdb import set_trace as xx 
@@ -450,7 +451,6 @@ if 1:   # Special commands
         cmdlog.write(cmd)
         try:
             first_char = cmd[0]
-            print("yy", cmd)
             arg = "" if len(cmd) == 1 else cmd[1:].strip()
             if first_char == "!":
                 # Shell command

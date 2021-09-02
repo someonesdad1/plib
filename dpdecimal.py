@@ -2,21 +2,23 @@
 Provides dec(Decimal) objects with custom string interpolation
  
     The decimalmath.py module has a number of functions that are similar to
-    those in the math module for real-valued functions.  These are imported
-    into this module's namespace:
+    those in the math module for real-valued functions.  These functions
+    are imported into this module's namespace:
  
-        acos acosh asin asinh atan atan2 atanh ceil copysign cos cosh
-        degrees e exp expm1 f2d fabs FindRoot floor fmod hypot isclose
-        IsDecimal isfinite isinf isnan log log10 log1p log2 modf pi pow
-        radians remainder sin sinh sqrt tan tanh tau trunc
-        inf ninf nan
+        acos      ceil      expm1     inf       log       ninf      sinh
+        acosh     copysign  f2d       isclose   log10     pi        sqrt
+        asin      cos       fabs      IsDecimal log1p     pow       tan
+        asinh     cosh      FindRoot  isfinite  log2      radians   tanh
+        atan      degrees   floor     isinf     modf      remainder tau
+        atan2     e         fmod      isnan     nan       sin       trunc
+        atanh     exp       hypot
  
-    The intent of this is that you'll have a numeric type and elementary
-    functions for routine calculations.  An advantage of the dec and
-    Decimal types is that you can increase the number of digits in a
-    calculation to help look for things like roundoff error.  An advantage
-    of the dec type is that printed results to the screen aren't cluttered
-    with many uninteresting non-significant digits.
+    This means you'll have a numeric type and elementary functions for
+    routine calculations.  An advantage of the dec and Decimal types is
+    that you can increase the number of digits in a calculation to help
+    look for things like roundoff error.  An advantage of the dec type is
+    that printed results to the screen aren't cluttered with many
+    uninteresting non-significant digits.
 
     The dec class follows an "infection" model, which means that if you use
     a dec instance in arithmetic with other types such as int and float,

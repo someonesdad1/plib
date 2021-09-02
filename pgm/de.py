@@ -28,7 +28,7 @@ if 1:   # Imports
     from pdb import set_trace as xx 
 if 1:   # Custom imports
     from wrap import dedent
-    from frange import frange
+    from frange import frange, Rational
     from sig import sig
     from columnize import Columnize
     from u import u
@@ -91,34 +91,6 @@ if 1:   # Global variables
 def Error(*msg, status=1):
     print(*msg, file=sys.stderr)
     exit(status)
-def Usage(d, status=1):
-    name = sys.argv[0]
-    print(dedent(f'''
-    Usage:  {name} [options] [size [unit]]
-      Search for a given size and prints out various common & gauge sizes near
-      the given size.  Tap drills are given for common thread sizes at 75%
-      (recommended for soft metals and plastics) and 50% (for steels and cast
-      iron).  Inches are the default units; other common units are supported.
-    Example:  for a 9 mm hole, the closest drill is a T letter drill,
-              which is 1% off the needed diameter.
-    Options
-      -a    Limit the data to number & letter drills, fractional inches, AWG
-            sizes, tpi, and mm.
-      -c    Don't colorize the extended output.
-      -d n  Show the decimal inch equivalents to n digits.  4 is the default.
-      -f    Convert the fractional strings on the command line to Unicode
-            expressions.  Give mixed fractions as e.g. 1-3/16.
-      -H    Extended help information
-      -n L  Show L lines before and after the closest match when searching.  Set
-            to 0 to see all lines.
-      -s c  Sort the output by column c.  1 means sorted by diameter, 2 means
-            sorted by designator/gauge, 3 means sorted by gauge type.
-      -T    Fractions of an inch table in Unicode.
-      -t    Show fractions of an inch table.
-      -w    Show metric and inch wrench sizes
-      -x    Show extended table.
-    '''))
-    exit(status)
 def ExtendedHelp():
     print(dedent(f'''
     Expressions are allowed on the command line for the size argument and the math
@@ -153,17 +125,27 @@ def WrenchSizes(d):
     MM, out = list(range(5, 23)) + [24, 27, 30, 32, 36, 38, 41, 46, 50], []
     inch = (list(frange("3/16", "3/2", "1/16")) + 
             list(frange("3/2", "17/8", "1/8")))
-    print("    Wrench size comparisons")
+    print("Wrench size comparisons", end=" ")
+    if d["-c"]:
+        print("(color indicates interchangeability)", end=" ")
+    print()    
     # Metric columns
     out.append("mm    in    ")
+    C = color.C
+    c, N = {8: C.lred, 19: C.lmag, 27: C.lyel}, C.norm
     for mm in MM:
-        s = "{:4s} {:5.3f}".format(str(mm), mm/25.4)
+        x = c[mm] if (mm in c and d["-c"]) else ""
+        s = f"{x}{str(mm):4s} {mm/25.4:5.3f}{N}"
         out.append(s)
     # Join them
     sep = " "*12
     out[0] += sep + "in    Decimal   mm"
+    c = {Rational(5, 16): C.lred, Rational(3, 4): C.lmag, 
+         Rational(17, 16): C.lyel}
     for i, inches in enumerate(inch):
-        s = "{} {:^6s} {:6.3f} {:6.1f}".format(sep, str(inches), float(inches), inches*25.4)
+        x = c[inches] if (inches in c and d["-c"]) else ""
+        s = (f"{sep} {x}{str(inches):^6s} {float(inches):6.3f} "
+             f"{inches*25.4:6.1f}{N}")
         out[i + 1] += s
     for i in out:
         print(i)
@@ -183,14 +165,21 @@ def FmtFrac(f, indents=default_indents):
         s = "1"
     return "{0}{1:<5s} {2}".format(before, s, after)
 def PrintNormalTable(d):
-    out, denom, n = [], 64, d["-d"]
+    C = color.C
+    out, denom, n, N = [], 64, d["-d"], C.norm
     length = None
     for numer in range(1, denom + 1):
         f = Fraction(numer, denom)
-        s = FmtFrac(f)
-        s += " {:.{}f}".format(float(f), n)
+        c = ""
+        if f.denominator in (2, 4, 8):
+            c = C.lmag if d["-c"] else ""
+        elif f.denominator in (16,):
+            c = C.lyel if d["-c"] else ""
+        s = c + FmtFrac(f) + N
+        s += f" {c}{float(f):.{n}f}{N}"
         # Include mm equivalent
-        s += " {:>4.1f}".format(float(f)*25.4)
+        c = C.lcyn if d["-c"] else ""
+        s += f" {c}{float(f)*25.4:>4.1f}{N}"
         out.append(s)
     for i in Columnize(out):
         print(i)
@@ -506,6 +495,34 @@ def PrintExtendedTable(args, d):
                                  name))
             if C and d["-c"]:
                 color.normal()
+def Usage(d, status=1):
+    name = sys.argv[0]
+    print(dedent(f'''
+    Usage:  {name} [options] [size [unit]]
+      Search for a given size and prints out various common & gauge sizes near
+      the given size.  Tap drills are given for common thread sizes at 75%
+      (recommended for soft metals and plastics) and 50% (for steels and cast
+      iron).  Inches are the default units; other common units are supported.
+    Example:  for a 9 mm hole, the closest drill is a T letter drill,
+              which is 1% off the needed diameter.
+    Options
+      -a    Limit the data to number & letter drills, fractional inches, AWG
+            sizes, tpi, and mm.
+      -c    Don't colorize the extended output.
+      -d n  Show the decimal inch equivalents to n digits.  4 is the default.
+      -f    Convert the fractional strings on the command line to Unicode
+            expressions.  Give mixed fractions as e.g. 1-3/16.
+      -H    Extended help information
+      -n L  Show L lines before and after the closest match when searching.  Set
+            to 0 to see all lines. [{d["-n"]}]
+      -s c  Sort the output by column c.  1 means sorted by diameter, 2 means
+            sorted by designator/gauge, 3 means sorted by gauge type.
+      -T    Fractions of an inch table in Unicode.
+      -t    Show fractions of an inch table.
+      -w    Show metric and inch wrench sizes
+      -x    Show extended table.
+    '''))
+    exit(status)
 def ParseCommandLine(d):
     d["-a"] = True      # If True, show all gauges
     d["-c"] = True      # Colorize output
@@ -516,6 +533,7 @@ def ParseCommandLine(d):
     d["-s"] = 0         # Sorting of output
     d["-T"] = False     # Show fractions of an inch table in Unicode
     d["-t"] = False     # Show fractions of an inch table
+    d["-w"] = False     # Show wrench sizes
     d["-x"] = False     # Use extended table
     try:
         opts, args = getopt.getopt(sys.argv[1:], "acd:fHhn:s:Ttwx")

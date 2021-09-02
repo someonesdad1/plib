@@ -1,32 +1,26 @@
-* dpdecimal.py:  This module would be more useful if float, flt, and
-  Fractions were allowed to interoperate with the dec instances, always
-  returning a dec.  A strict attribute if True disallows this, but if set
-  to False, then arithmetic operations are allowed with them.  The user
-  must be warned of the dangers of converting floats and flts with a
-  maximum of about 15 digits.  Still, such calculations are so common that
-  it's likely a useful feature.  It makes eminent sense with Fractions, as
-  they can be converted to full dec precision by dividing two dec
-  constructed from integers.
+* Decimal arithmetic:  I now have f.py, dpdecimal.py, and decimalmath.py.
+  I'd like to see all this stuff coalesced into one file that provides the 
+  flt, cpx, and dec types.  The math functions would take any of these
+  arguments and return the correct type.  If mpmath is available, the math
+  functions would use mpmath's functions for the correct output.  If fact,
+  with extra work, the special functions of mpmath could also be supported
+  with the flt, cpx, and dec types too.
 
-  Each of the functions like __add__(self, value) can have an added line
-    value = self.convert(value, context=None)
-  If strict is true, this just returns value unchanged, letting the user
-  see the resulting type exception in the proper place.  Otherwise, the
-  conversion is made.
+  The units features of f.py are nice, but it would be nicer if all of it
+  could be abstracted to a mixin class.  Then flt, cpx, dec could all
+  support units.
 
-  I'd like to see float, flt, Fraction, and mpmath.mpf all handled
-  seamlessly.  Note the user would have to be warned about the possibility
-  of losing information or adding noise in the conversion.  The context
-  would be passed when the dec method includes a context keyword.
+  If this could all be gotten to work, then the repl.py script would be a 
+  handy general-purpose computational tool at the command line.  It would
+  be even nicer if there was a way to persist the state, but this is
+  non-trivial to do across multiple invocations in different processes.
+  Maybe the state would automatically update a persisted dict, but the quit
+  command could accept an optional name to persist the state too.  Then
+  later, you could load that state if desired.
 
 * The what.py script should be able to examine a file and list the
   dependencies on scripts.  Look at pgm/dep.py and the modulefinder module.
   Then what.py should only print out the non-standard modules.
-
-* Copy the basic float functionality of sig.GetSigFig() to f.py.  
-  Remove the uncertainty stuff, as the key need is to be able to assess
-  the number of significant figures in integer, float, and Decimal
-  objects.  Note it needs to use locale decimal point stuff.
 
 * fold.py:  This will change text files to have one space on blank lines or
   no spaces on blank lines.  Need to intelligently process python files?

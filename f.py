@@ -6,9 +6,9 @@
         * flt and cpx need to be hashable.
         * cpx(274-22j, "kohms") and cpx(274-22j, "ohms") result in the same
           number, meaning the k prefix is not recognized.
-
+ 
     TODO
-
+ 
     * Focus
         * fmt.py works and has tests.  Use it as the formatter.
         * Test that all needed constructors are written
@@ -165,15 +165,15 @@ __doc__ = '''
               support.
  
         * Complex numbers
-
+ 
             * The cpx type is composed of two flt types and a cpx can have
               a physical unit, which is given to both real and imaginary
               parts (otherwise, what units should abs(z) have?).  
-
+ 
             * Z = cpx(274-22j, "ohms") constructs an impedance.  I like to
               change to polar form (Z.p = True) to see it displayed as
               275.∠-4.59°. 
-
+ 
         * Unicode
  
             * Since this code is intended to be used with python 3 only,
@@ -406,7 +406,7 @@ __doc__ = '''
           flt/float objects.  For example, you can call sin(0.1) and
           sin(0.1j) and not get an exception.  Analogously, sqrt(2) and
           sqrt(-2) both work.
-
+ 
         * This use is distinct from standard python which divides things
           into math and cmath libraries and comments that users may not
           even know or care what complex numbers are.  The reason I did
@@ -414,7 +414,7 @@ __doc__ = '''
           using since 1988 when they were introduced.  I have them set up
           so that complex results are allowed.  I feel this is most
           convenient for typical scientific/engineering use.
-
+ 
         * I use the flt/cpx types in my repl.py script, which is my version
           of a python-based console calculator.  It simulates an
           interactive python session, but allows customization to provide
@@ -570,7 +570,7 @@ __doc__ = '''
         Dimensions of n = Dim("N")
         Mass of O₂ = 8.78 ft³·g·psi/J = 1.71 kg
         Volume of O₂ at 1 atm = 1290. liters
-
+ 
 '''
 if 1:  # Copyright, license
     # These "trigger strings" can be managed with trigger.py
@@ -2079,16 +2079,74 @@ if 1:   # Get math/cmath functions into our namespace
     constants = "e pi tau".split()
     for i in constants:
         exec(f"{i} = flt({i})")
-
+def GetSigFig(s, inttzsig=False):
+    '''Return the number of significant figures in the string s which
+    represents either a base 10 integer or a floating point number.  If
+    tzsig is True, then trailing zeros of are not removed, meaning they
+    are significant.
+ 
+    Trailing 0 characters on integers are ambiguous in terms of
+    significance and all, some, or none may be significant.  To avoid
+    this ambiguity, use scientific notation.
+    '''
+    e = ValueError("'{}' is an illegal number form".format(s))
+    dp = locale.localeconv()["decimal_point"]
+    def RemoveSign(str):
+        if str and str[0] in "+-":
+            return str[1:]
+        return str
+    def rtz(s):     # Remove trailing zeros from string s
+        dq = deque(s)
+        while len(dq) > 1 and dq[-1] == "0":
+            dq.pop()
+        return ''.join(dq)
+    def rlz(s):   # Remove leading zeros
+        dq = deque(s)
+        while len(dq) > 1 and dq[0] == "0" and not dq[-1] == dp:
+            dq.popleft()
+        return ''.join(dq)
+    def Canonicalize(s):
+        '''Remove any uncertainty, spaces, sign, and exponent and return
+        the significand.
+        '''
+        t = s.replace(" ", "")
+        # Remove any exponent portion
+        if "e" in t:
+            try:
+                left, right = s.split("e")
+            except ValueError:
+                raise e
+            t = left
+        if not t:
+            raise e
+        t = RemoveSign(t)
+        if t.count(dp) > 1:
+            raise e
+        return t
+    #--------------------
+    if not isinstance(s, str):
+        raise ValueError("Argument must be a string")
+    t = Canonicalize(s.lower().strip())
+    if dp not in t:
+        # It's an integer
+        t = str(int(t))
+        if inttzsig:
+            return len(t)
+        return len(rtz(t))
+    # It's a float
+    try:
+        # It's valid if it can be converted to a Decimal
+        D(t)
+    except Exception:
+        raise e
+    t = rlz(t)  # Remove leading zeros up to the first nonzero digit or "."
+    t = t.replace(dp, "")  # Remove decimal point
+    # Remove any leading zeros but only if the string is not all zeros
+    if set(t) != set("0"):
+        t = rlz(t)
+    return len(t)
 if 0:
-    a=flt(pi, "mi")
-    b = a.rnd(6)
-    print(type(b))
-    with b:
-        b.n = 8
-        print(b)
     exit()
-
 if __name__ == "__main__": 
     from lwtest import run, raises, assert_equal, Assert
     eps = 1e-15
@@ -2572,4 +2630,88 @@ if __name__ == "__main__":
                 s = x._eng()
                 Assert(s == expected)
             Assert(x(0)._eng() == "0.00e0")
+    def TestGetSigFig():
+        data = '''
+            # Various forms of 0
+            0 1
+            +0 1
+            -0 1
+            0. 1
+            0.0 1
+            00 1
+            000000 1
+            .0 1
+            .00 2
+            0.00 2
+            00.00 2
+            .000000 6
+            0.000000 6
+            00.000000 6
+        #
+            1 1
+            +1 1
+            -1 1
+            1. 1
+            .000001 1
+            0.1 1
+            .1 1
+            +.1 1
+            -.1 1
+            1.0 2
+            10 1
+            100000 1
+            12300 3
+            123.456 6
+            +123.456 6
+            -123.456 6
+            123.45600 8
+            012300 3
+            0123.456 6
+            0123.45600 8
+            0.00000000000000000000000000001 1
+            0.000000000000000000000000000010 2
+            1e4 1
+            1E4 1
+            01e4 1
+            01E4 1
+            1.e4 1
+            1.E4 1
+            01.e4 1
+            01.E4 1
+            1.0e4 2
+            1.0E4 2
+            01.0e4 2
+            01.0E4 2
+            123.456e444444 6
+            123.45600e444444 8
+            000000123.456e444444 6
+            000000123.45600e444444 8
+        '''
+        for i in data.strip().split("\n"):
+            i = i.strip()
+            if not i or i.startswith("#"):
+                continue
+            if 1:
+                print("Testing", i.strip())
+            try:
+                s, n = i.split()
+            except Exception:
+                xx()
+            a = GetSigFig(s)
+            n = int(n)
+            assert_equal(a, n)
+        # Test with inttzsig
+        assert_equal(GetSigFig("12300", inttzsig=False), 3)
+        assert_equal(GetSigFig("12300", inttzsig=True), 5)
+        # Forms that raise exceptions
+        raises(ValueError, GetSigFig, 1)
+        raises(ValueError, GetSigFig, 1.0)
+        raises(ValueError, GetSigFig, "a")
+        raises(ValueError, GetSigFig, "e2")
+        raises(ValueError, GetSigFig, "1..e2")
+        # Show that GetSigFig works with strings from Decimal objects
+        from decimal import Decimal
+        n = 50
+        x = Decimal("1." + "1"*n)
+        assert_equal(GetSigFig(str(x)), n + 1)
     failed, messages = run(globals(), regexp=r"^[Tt]est_", halt=1)
