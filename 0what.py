@@ -30,6 +30,7 @@ if 1:   # Custom imports
     from wrap import wrap, dedent, indent, Wrap
     from lwtest import run, raises, assert_equal, Assert
     import color as C
+    from columnize import Columnize
 if 1:   # Global variables
     P = pathlib.Path
     rcat = re.compile(r"<(.*?)>")  # Find category strings
@@ -49,21 +50,26 @@ if 1:   # Utility
           argument can also be a directory, in which case all python files in
           that directory are queried.
         Options:
+          -c    Show categories
+          -d    Show debug output
+          -m    Show files missing a category
           -r    Act recursively
           -s    Ignore category and sort by filename
         '''))
         exit(status)
     def ParseCommandLine(d):
+        d["-c"] = False             # Show categories
         d["-d"] = False             # Show debug output
+        d["-m"] = False             # Show missing categories
         d["-r"] = False             # Act recursively
         d["-s"] = False             # Sort by filename
         try:
-            opts, args = getopt.getopt(sys.argv[1:], "dhrs")
+            opts, args = getopt.getopt(sys.argv[1:], "cdhmrs")
         except getopt.GetoptError as e:
             print(str(e))
             exit(1)
         for o, a in opts:
-            if o[1] in list("drs"):
+            if o[1] in list("cdmrs"):
                 d[o] = not d[o]
             elif o in ("-h", "--help"):
                 Usage(d, status=0)
@@ -167,9 +173,32 @@ if 1:   # Core functionality
                 p = item.p
                 print(f"{p!s}")
                 print(wrap(item.what))
+    def ShowMissingCategory(files):
+        missing = []
+        for item in files:
+            if item.category is None:
+                missing.append(str(item.p))
+        if missing:
+            print("Files missing a category:")
+            for line in Columnize(sorted(missing), indent=" "*4):
+                print(line)
+    def ShowCategories(files):
+        categories = []
+        for item in files:
+            if item.category is not None:
+                categories.append(item.category)
+        categories = set(categories)
+        print("List of categories:")
+        for line in Columnize(sorted(categories), indent=" "*4):
+            print(line)
 if __name__ == "__main__": 
     d = {}      # Options dictionary
     import color as C
     args = ParseCommandLine(d)
     files = GetFiles(args)
-    ReportByCategory(files)
+    if d["-m"]:
+        ShowMissingCategory(files)
+    elif d["-c"]:
+        ShowCategories(files)
+    else:
+        ReportByCategory(files)

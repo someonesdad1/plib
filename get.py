@@ -198,63 +198,6 @@ def GetBinary(thing, encoded=False):
             return thing.read()
         except AttributeError:
             return open(thing, "rb").read()
-def GetNumbers(thing, numtype=None,  enc=None):
-    '''Uses GetText() to get a string, then recognizes integers, floats,
-    fractions, complex, and uncertain numbers in the string separated by
-    whitespace and returns a list of these numbers.  If numtype is
-    given, all found strings are converted to that type.
- 
-    If flt and cpx types are available (_have_f is True), then floats
-    and complex types are converted to these over float and complex, 
-    respectively.
- 
-    If the uncertainties library is present, the ufloat type can be
-    recognized.
-    '''
-    lst, dp = [], locale.localeconv()["decimal_point"]
-    for s in GetText(thing, enc=enc).split():
-        if numtype:
-            lst.append(numtype(s))
-        else:
-            if _have_unc and "+-" in s:
-                s = s.replace("+-", "+/-")
-            if _have_unc and ("+/-" in s or "(" in s or "±" in s):
-                x = ufloat_fromstr(s)
-            elif "/" in s:
-                x = Fraction(s)
-            elif "j" in s.lower():
-                x = cpx(s) if _have_f else complex(s)
-            elif dp in s or "e" in s.lower():
-                x = flt(s) if _have_f else float(s)
-            else:
-                x = int(s)
-            lst.append(x)
-    return lst
-def GetChoice(seq, default=1, indent=None, col=False):
-    '''Display the choices in seq with numbers and prompt the user for his
-    choice.  Note the numbers are 1-based as displayed to the user, but the
-    returned value of choice will be 0-based.  Return the choice_number.
- 
-    indent is a string to prepend to each line if not None.  If col is
-    True, use Columnize to print the choices (allows more dense listings
-    for a given screen space).
- 
-    '''
-    if not seq:
-        raise ValueError("seq can't be empty")
-    items, n = [], len(seq)
-    for i, item in enumerate(seq):
-        items.append("{}) {}".format(i + 1, str(item)))
-    if col:
-        for i in Columnize(items, indent=indent, sep=" "*3):
-            print(i)
-    else:
-        s = "" if indent is None else indent
-        for i in items:
-            print(s, i, sep="")
-    choice = GetNumber("Choice? ", numtype=int, default=default, 
-                       low=1, high=n) - 1
-    return (choice, seq[choice])
 def GetNumber(prompt_msg, **kw):
     '''General-purpose routine to get a number from the user with the
     prompt msg.  These are the things that can be returned:
@@ -277,10 +220,10 @@ def GetNumber(prompt_msg, **kw):
     If you wish to restrict the allowed values of the number, use the
     following keyword arguments (default values are in square brackets):
  
-        numtype     Number type [float].  Use int if you want the
-                    number to be an integer.  You can use a number type as
-                    long as it obeys the required ordering semantics and
-                    the constructor returns a number object that raises a
+        numtype     Number type [flt].  Use int if you want the number to
+                    be an integer.  You can use a number type as long as it
+                    obeys the required ordering semantics and the
+                    constructor returns a number object that raises a
                     ValueError if the initializing string is of improper
                     form.  For an example, see the use of mpmath's mpf
                     numbers in the unit tests.
@@ -377,7 +320,7 @@ def GetNumber(prompt_msg, **kw):
     '''
     outstream  = kw.get("outstream", sys.stdout)
     instream   = kw.get("instream", None)
-    numtype    = kw.get("numtype", float)
+    numtype    = kw.get("numtype", flt)
     default    = kw.get("default", None)
     low        = kw.get("low", None)
     high       = kw.get("high", None)
@@ -539,6 +482,63 @@ def GetNumber(prompt_msg, **kw):
                 return (x, unit_string)
             else:
                 return x
+def GetNumbers(thing, numtype=None,  enc=None):
+    '''Uses GetText() to get a string, then recognizes integers, floats,
+    fractions, complex, and uncertain numbers in the string separated by
+    whitespace and returns a list of these numbers.  If numtype is
+    given, all found strings are converted to that type.
+ 
+    If flt and cpx types are available (_have_f is True), then floats
+    and complex types are converted to these over float and complex, 
+    respectively.
+ 
+    If the uncertainties library is present, the ufloat type can be
+    recognized.
+    '''
+    lst, dp = [], locale.localeconv()["decimal_point"]
+    for s in GetText(thing, enc=enc).split():
+        if numtype:
+            lst.append(numtype(s))
+        else:
+            if _have_unc and "+-" in s:
+                s = s.replace("+-", "+/-")
+            if _have_unc and ("+/-" in s or "(" in s or "±" in s):
+                x = ufloat_fromstr(s)
+            elif "/" in s:
+                x = Fraction(s)
+            elif "j" in s.lower():
+                x = cpx(s) if _have_f else complex(s)
+            elif dp in s or "e" in s.lower():
+                x = flt(s) if _have_f else float(s)
+            else:
+                x = int(s)
+            lst.append(x)
+    return lst
+def GetChoice(seq, default=1, indent=None, col=False):
+    '''Display the choices in seq with numbers and prompt the user for his
+    choice.  Note the numbers are 1-based as displayed to the user, but the
+    returned value of choice will be 0-based.  Return the choice_number.
+ 
+    indent is a string to prepend to each line if not None.  If col is
+    True, use Columnize to print the choices (allows more dense listings
+    for a given screen space).
+ 
+    '''
+    if not seq:
+        raise ValueError("seq can't be empty")
+    items, n = [], len(seq)
+    for i, item in enumerate(seq):
+        items.append("{}) {}".format(i + 1, str(item)))
+    if col:
+        for i in Columnize(items, indent=indent, sep=" "*3):
+            print(i)
+    else:
+        s = "" if indent is None else indent
+        for i in items:
+            print(s, i, sep="")
+    choice = GetNumber("Choice? ", numtype=int, default=default, 
+                       low=1, high=n) - 1
+    return (choice, seq[choice])
 def GetFraction(s):
     '''Return a Fraction object if string s contains a '/' and can be
     interpreted as an improper or proper fraction; otherwise return
@@ -956,6 +956,7 @@ if __name__ == "__main__":
         n = GetNumber("", low=5, low_open=True, outstream=s_out,
                 instream=sio("6"))
         Assert(n == 6 and isinstance(n, float))
+        Assert(n == 6 and isinstance(n, flt))
         # ...----]
         s_out = sio()
         GetNumber("", high=5, outstream=s_out, instream=sio("6"))
@@ -963,6 +964,7 @@ if __name__ == "__main__":
         s_out = sio()
         n = GetNumber("", high=5, outstream=s_out, instream=sio("5"))
         Assert(n == 5 and isinstance(n, float))
+        Assert(n == 5 and isinstance(n, flt))
         # ...----)
         s_out = sio()
         GetNumber("", high=5, high_open=True, outstream=s_out,
@@ -972,6 +974,7 @@ if __name__ == "__main__":
         n = GetNumber("", high=5, high_open=True, outstream=s_out,
                 instream=sio("4"))
         Assert(n == 4 and isinstance(n, float))
+        Assert(n == 4 and isinstance(n, flt))
         # [----]
         s_out = sio()
         GetNumber("", low=2, high=5, outstream=s_out, instream=sio("6"))
@@ -984,9 +987,11 @@ if __name__ == "__main__":
         s_out = sio()
         n = GetNumber("", low=2, high=5, outstream=s_out, instream=sio("5"))
         Assert(n == 5 and isinstance(n, float))
+        Assert(n == 5 and isinstance(n, flt))
         s_out = sio()
         n = GetNumber("", low=2, high=5, outstream=s_out, instream=sio("2"))
         Assert(n == 2 and isinstance(n, float))
+        Assert(n == 2 and isinstance(n, flt))
         # [----)
         s_out = sio()
         GetNumber("", low=2, high=5, high_open=True, outstream=s_out,
@@ -1035,18 +1040,22 @@ if __name__ == "__main__":
         n = GetNumber("", low=2, high=5, low_open=True, high_open=True, invert=True,
             outstream=s_out, instream=sio("2"))
         Assert(n == 2 and isinstance(n, float))
+        Assert(n == 2 and isinstance(n, flt))
         s_out = sio()
         n = GetNumber("", low=2, high=5, low_open=True, high_open=True, invert=True,
             outstream=s_out, instream=sio("5"))
         Assert(n == 5 and isinstance(n, float))
+        Assert(n == 5 and isinstance(n, flt))
         s_out = sio()
         n = GetNumber("", low=2, high=5, low_open=True, high_open=True, invert=True,
                 outstream=s_out, instream=sio("1"))
         Assert(n == 1 and isinstance(n, float))
+        Assert(n == 1 and isinstance(n, flt))
         s_out = sio()
         n = GetNumber("", low=2, high=5, low_open=True, high_open=True, invert=True,
                 outstream=s_out, instream=sio("6"))
         Assert(n == 6 and isinstance(n, float))
+        Assert(n == 6 and isinstance(n, flt))
         # ...---[  )---...
         s_out = sio()
         GetNumber("", low=2, high=5, low_open=True, invert=True,
@@ -1060,10 +1069,11 @@ if __name__ == "__main__":
         n = GetNumber("", low=2, high=5, low_open=True, invert=True,
             outstream=s_out, instream=sio("2"))
         Assert(n == 2 and isinstance(n, float))
+        Assert(n == 2 and isinstance(n, flt))
         s_out = sio()
         n = GetNumber("", low=2, high=5, low_open=True, invert=True,
             outstream=s_out, instream=sio("1"))
-        Assert(n == 1 and isinstance(n, float))
+        Assert(n == 1 and isinstance(n, flt))
         # ...---(  ]---...
         s_out = sio()
         GetNumber("", low=2, high=5, high_open=True, invert=True,
@@ -1077,14 +1087,17 @@ if __name__ == "__main__":
         n = GetNumber("", low=2, high=5, high_open=True, invert=True,
             outstream=s_out, instream=sio("1.999999"))
         Assert(n == 1.999999 and isinstance(n, float))
+        Assert(n == 1.999999 and isinstance(n, flt))
         s_out = sio()
         n = GetNumber("", low=2, high=5, high_open=True, invert=True,
             outstream=s_out, instream=sio("5"))
         Assert(n == 5 and isinstance(n, float))
+        Assert(n == 5 and isinstance(n, flt))
         s_out = sio()
         n = GetNumber("", low=2, high=5, high_open=True, invert=True,
             outstream=s_out, instream=sio("6"))
         Assert(n == 6 and isinstance(n, float))
+        Assert(n == 6 and isinstance(n, flt))
         # ...---(  )---...
         s_out = sio()
         GetNumber("", low=2, high=5, invert=True, outstream=s_out,
@@ -1102,10 +1115,12 @@ if __name__ == "__main__":
         n = GetNumber("", low=2, high=5, invert=True, outstream=s_out,
             instream=sio("1"))
         Assert(n == 1 and isinstance(n, float))
+        Assert(n == 1 and isinstance(n, flt))
         s_out = sio()
         n = GetNumber("", low=2, high=5, invert=True, outstream=s_out,
             instream=sio("6"))
         Assert(n == 6 and isinstance(n, float))
+        Assert(n == 6 and isinstance(n, flt))
         # Show that we can evaluate things with a variables dictionary.
         from math import sin, pi
         v = {"sin":sin, "pi":pi}
@@ -1113,6 +1128,7 @@ if __name__ == "__main__":
         n = GetNumber("", low=2, high=5, invert=True, outstream=s_out,
             instream=sio("sin(pi/6)"), vars=v)
         Assert(n == sin(pi/6) and isinstance(n, float))
+        Assert(n == sin(pi/6) and isinstance(n, flt))
     def TestGetNumber_mpmath():
         # Import mpmath and use for testing if available.
         # Demonstrates that GetNumber works with ordered number types
@@ -1137,11 +1153,14 @@ if __name__ == "__main__":
         num = GetNumber("", low=2, high=5, invert=True, outstream=sio(),
                     numtype=int, default=default, instream=sio(""))
         Assert(num == default)
+        Assert(isinstance(num, int))
         # Test default value with float
         default = 3.77
         num = GetNumber("", low=2, high=5, invert=True, outstream=sio(),
                     default=default, instream=sio(""))
         Assert(num == default)
+        Assert(isinstance(num, float))
+        Assert(isinstance(num, flt))
         # Test default of None:  exception if allow_none is False and
         # returns None if allow_none is True.
         with raises(RuntimeError):
@@ -1156,26 +1175,32 @@ if __name__ == "__main__":
         n = GetNumber("", low=0, high=10, outstream=sio(), instream=sio("5"),
             use_unit=True)
         Assert(n == (5, "") and isinstance(n[0], float))
+        Assert(n == (5, "") and isinstance(n[0], flt))
         # 5 meters, cuddled
         n = GetNumber("", low=0, high=10, outstream=sio(), instream=sio("5m"),
             use_unit=True)
         Assert(n == (5, "m") and isinstance(n[0], float))
+        Assert(n == (5, "m") and isinstance(n[0], flt))
         # 5 meters
         n = GetNumber("", low=0, high=10, outstream=sio(), instream=sio("5 m"),
             use_unit=True)
         Assert(n == (5, "m") and isinstance(n[0], float))
+        Assert(n == (5, "m") and isinstance(n[0], flt))
         # millimeters, cuddled
         n = GetNumber("", low=0, high=1e100, outstream=sio(),
             instream=sio("123.456e7mm"), use_unit=True)
         Assert(n == (123.456e7, "mm") and isinstance(n[0], float))
+        Assert(n == (123.456e7, "mm") and isinstance(n[0], flt))
         # millimeters
         n = GetNumber("", low=0, high=1e100, outstream=sio(),
             instream=sio("123.456e7   mm"), use_unit=True)
         Assert(n == (123.456e7, "mm") and isinstance(n[0], float))
+        Assert(n == (123.456e7, "mm") and isinstance(n[0], flt))
         # millimeters, negative number
         n = GetNumber("", low=-1e100, high=1e100, outstream=sio(),
             instream=sio("-123.456e7   mm"), use_unit=True)
         Assert(n == (-123.456e7, "mm") and isinstance(n[0], float))
+        Assert(n == (-123.456e7, "mm") and isinstance(n[0], flt))
         #--------------------
         # Uncertainties
         #--------------------

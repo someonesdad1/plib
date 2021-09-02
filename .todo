@@ -29,12 +29,7 @@
   changes.  The intent is to get a source file where { and } can be used to
   navigate to sections you're working on.
 
-* frac (de.py):  Colorize eighths and sixteenths and show close matches in
-  mm.
-
-* get.GetNumber:  make flt the default number type.
-
-* Add <category> to all what trigger strings.
+* Add <category> to all what.py trigger strings.
 
 * Move british.py to plib and give it a function that will take a
   sentence of text and replace all the British words with English

@@ -1,13 +1,13 @@
 # plib
 
-This repository is a collection of python stuff I've written from 1998
-on.  Feel free to browse and use what suits your needs.  There are quite
-a few files, use the tools (see below) to help understand what these
-files are for.  Most of the stuff is licensed under the Open Software
-License version 3.0.
+This repository is a collection of python stuff I've written from 1998 on.
+Feel free to browse and use what suits your needs.  There are quite a few
+files, use the tools (see below) to help understand what these files are
+for.  Most of the stuff is licensed under the Open Software License version
+3.0.
 
-* The `plib` directory holds modules that are intended to be used by
-  other scripts.
+* The `plib` directory holds modules that are intended to be used by other
+  scripts.
 * The `pgm` directory holds scripts that are separate programs.
 * The `test` directory holds scripts that test the modules.
 
@@ -21,9 +21,9 @@ on building this repository in May of 2021 and my current python version is
 
 ## Coding style
 
-It is likely you will not like my coding style, as I vertically compress
-things as much as possible.  This is because screen vertical real estate is
-the most precious resource.  Because of the editor I use, I can use this
+You will probably not like my coding style, as I vertically compress things
+as much as possible.  This is because screen vertical real estate is the
+most precious resource.  Because of the editor I use, I can use this
 compressed form comfortably (it's a folding editor).  I can usually see the
 whole file's contents when it's folded into 20 to 30 lines, which makes
 navigation easy (the 'if 1:' lines cause the folding and the comments give
@@ -36,8 +36,9 @@ An advantage of this vertically compressed form is that I can insert a
 single blank line where I'm working in the file.  The editor I use has
 commands to move to the next or previous paragraph, which is an empty line.
 Thus, I can fold the text, go to another section and look at the code, then
-get back to my working spot with one key press.  It's very efficient.  To
-jump between different sections, insert blank lines as needed.
+get back to my working spot with one key press without having to e.g.
+remember a position or assign a location.  It's very efficient.  To jump
+between different sections, insert blank lines as needed.
 
 # Environment
 
@@ -56,11 +57,11 @@ The scripts are also heavily biased towards POSIX-style paths.
 
 ## 0what.py
 
-The 0what.py script can be run with the argument 'all' and you'll get
+The 0what.py script can be run with the arguments `*.py` and you'll get
 a short description of each python file.  These will be organized by 
 topical categories, such as 'programming', 'utility', 'science', 
-'math', 'shop', etc.  You can also see this description by providing the
-file name to the command line of `what.py`.
+'math', 'shop', etc.  This will help you understand the purpose of each of
+the files.
 
 ## 0test.py
 
@@ -87,13 +88,13 @@ me two months to find another group and most of that time was spent at my
 desk learning new tools because interviews were infrequent (HP management
 was really good about helping experienced senior folks find new positions).
 During that 2 months, I spent some time learning perl because I liked its
-power, but came to badly dislike its syntax.  I then tried python and
+power, but came to really dislike its syntax.  I then tried python and
 immediately liked it because it was so C-like and easy to use (I was
 writing useful scripts in an hour by reading the excellent tutorial).
 Python has been my favorite programming language since then.
 
 # Feedback
 
-If you find a bug or want to suggest an improvement, my email
-address is in each file.  Send me an email with the subject `Github
-plib repository` in the subject.
+If you find a bug or want to suggest an improvement, my email address is in
+each file.  Send me an email with the subject `Github plib repository` in
+the subject.
