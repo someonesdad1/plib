@@ -1,8 +1,9 @@
 '''
 TODO
 
-* '< f' from a nonexistent file causes a FileNotFoundError that needs to be
-  trapped.
+* Persistence would be nice.  Invocations in multiple processes will be a
+  problem; maybe a fix would be to use an easy-to-break lock that detects
+  this but lets you overwrite things if you wish.
 
 * Is there a way to log all the commands so that they can be run again?
   L would turn logging on, LL would turn it off.  Turning it on appends to

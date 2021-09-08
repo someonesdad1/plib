@@ -36,6 +36,7 @@ def TestRaisesContextManager():
     with raises(ZeroDivisionError) as x:
         assert(x is not None)
         f(0)
+    Assert(x.value == "<class 'ZeroDivisionError'>")
     try:
         with raises(ZeroDivisionError):
             f(1)

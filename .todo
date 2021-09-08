@@ -1,3 +1,62 @@
+* dpmath.py:  This would be a general-purpose module for math calculations.
+  It would contain the flt, cpx, and dec types.  The key features are:
+
+    * Try to put essential details in a _Base class, which flt, cpx, and
+      dec types are derived from.
+
+    * Should there be a dcpx type that uses two dec objects?  Should there
+      be a _Complex class that both cpx and dcpx derive from?
+
+    * String interpolation only shows a given number of decimal places.
+      Instances are context managers that allow code like
+
+        with x:
+            x.n += 3
+            print(x)
+
+      to let you change the number of digits as needed.  They would also
+      have methods to let you get fixed, scientific, and engineering forms
+      with a keyword for the number of figures desired.  In f.py, this
+      context management is done with a lock, but this needs to be thought
+      through for multithreaded code because it changes a class variable.
+      Perhaps utilizing coroutines might be better (from the wikipedia page
+      on coroutines:  
+
+        "Because threads can be rescheduled at any instant and can execute
+        concurrently, programs using threads must be careful about locking.
+        In contrast, because coroutines can only be rescheduled at specific
+        points in the program and do not execute concurrently, programs
+        using coroutines can often avoid locking entirely. This property is
+        also cited as a benefit of event-driven or asynchronous
+        programming."
+
+        Read up on coroutines:  https://realpython.com/async-io-python/
+        My key need is to ensure the context manager code is allowed to
+        change the class variable _digits of _Base for its duration.
+
+        For a higher level view on concurrency, see
+        https://realpython.com/python-concurrency/.
+
+      Make the formatting a mixin class for easy incorporation.  Then
+      provide the methods _str(), _repr(), _fix(), _sci(), _eng(), and 
+      _engsi().
+
+    * Infection:  They all interoperate with each other.  A dec
+      operation with a float or Fraction will work, but if you define a 
+      strict attribute to be True, it will result in an exception.  This is
+      because you can lose information or add noise in general
+      calculations.
+
+    * Math functions:  The math functions all support the various numerical
+      types.  For example, calling sin(x) with x being a Fraction causes it
+      to be converted to a dec.
+
+        * If mpmath is available, its mpmath.mpf type is included in the
+          allowed set of numerical types and mpmath's extensive set of
+          special functions also becomes available. 
+
+    * Units:  Try to make these a mixin.
+
 * Decimal arithmetic:  I now have f.py, dpdecimal.py, and decimalmath.py.
   I'd like to see all this stuff coalesced into one file that provides the 
   flt, cpx, and dec types.  The math functions would take any of these
@@ -27,25 +86,27 @@
   The default behavior would be to print each line with 2 lines of context
   on either side.  Then if you like what you see, use -x to make the
   changes.  The intent is to get a source file where { and } can be used to
-  navigate to sections you're working on.
+  navigate to sections you're working on.  Python files will be some work
+  because you need to leave multiline strings intact.
 
-* Add <category> to all what.py trigger strings.
+* Move british.py to plib and give it a function that will take a sentence
+  of text and replace all the British words with English words, maintaining
+  capitalization and punctuation.  This will require another function to
+  split a string into a list of words and punctuation characters.  It would
+  be nice to also maintain the spaces between the words too.  See the next
+  function, which should be in dpstr.py.
 
-* Move british.py to plib and give it a function that will take a
-  sentence of text and replace all the British words with English
-  words, maintaining capitalization and punctuation.  This will require
-  another function to split a string into a list of words and
-  punctuation characters.  It would be nice to also maintain the spaces
-  between the words too.  See the next function, which should be in
-  dpstr.py.
+* pgm/char.py:  When a line (e.g. Lower) is complete with all the allowed
+  characters, print <all> at the end to denote this state.  Also add -s
+  option, which removes the space between characters, giving a more compact
+  output.  For -c option, include summary stats.
 
-* pgm/char.py:  When a line (e.g. Lower) is complete with all the 
-  allowed characters, print <all> at the end to denote this state.
-  Also add -s option, which removes the space between characters, 
-  giving a more compact output.  For -c option, include summary 
-  stats.
+* Construct /plib/density.py for common density values.  This file would
+  then be read by /plib/pgm/density.py for its data.  Having things in a
+  module mean other apps can use it.
 
-* Construct /plib/density.py for common density values.
+    * One addition would be to provide canonical values for common
+      materials like steel, brass, iron, elements, etc.
 
 * dpstr.py
 
@@ -133,7 +194,7 @@
           whether the value used should be the SI value or the .val
           attribute, meaning exp() cannot take a flt/cpx with units.
           However, atan2 is OK if the two arguments are dimensionally
-          cosistent because it's their ratio that is used in the
+          consistent because it's their ratio that is used in the
           function.  Thus, the function is allowed with units if you get
           the same answer using either "interpretation" of the number.
           For some functions like isclose, you need the two arguments to
@@ -147,18 +208,6 @@
         b.promote = 0
         a = cpx(1+1j, units="m")
         Then in debugger, both a==b and a!=b are False
-
-* lwtest.py:  https://realpython.com/python-with-statement/#testing-for-exceptions-with-pytest
-  shows pytest's raises as a context manager.  Note
-
-    with pytest.raises(ZeroDivisionError) as exc:
-        1/0
-    assert str(exc.value) == "division by zero"
-
-  which lets you check that the exception gives the required error
-  message.  I've started the changes for this, but ran into a bug 
-  in test/lwtest_test.py caused by f.py problems, so that needs to be
-  fixed before I can test the lwtest.py changes.
 
 ----------------------------------------------------------------------
 Low priority

@@ -85,8 +85,9 @@ if 1:   # Globals
             f = lambda x: set(x)
             # Two ways to check for expected exceptions
             raises(TypeError, f, 1)
-            with raises(ZeroDivisionError):
+            with raises(ZeroDivisionError) as x:
                 1/0
+            Assert(x.value = "<class 'ZeroDivisionError'>")
             # How to compare floating point numbers
             eps = 1e-6
             a, b = 1, 1 + eps
@@ -121,10 +122,9 @@ if 1:   # Globals
         tune to my own preferences.  The other major desire was to allow
         fairly comprehensive coverage of comparing numerical results.
      
-        If you hate my vertically-compressed code, sorry:  it's because I
-        use a folding editor that makes it trivial to see the code's
-        organization -- and vertical screen space is the most precious
-        resource.  Fully folded, the file is 24 lines.
+        This tool was derived from some nice code by Raymond Hettinger 8
+        May 2008: http://code.activestate.com/recipes/572194/.  I'm
+        grateful Raymond put it out for other folks.
     ''')
     __all__ = [
         "Assert",
