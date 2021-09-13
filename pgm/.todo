@@ -1,55 +1,55 @@
-* Because f.py uses Decimals to get formatting, the module should include
-  a utility routine that can format Decimal objects similarly.  This could
-  be put in decimalmath.py instead. 
+* dpmath.py:  This would be a general-purpose module for math calculations.
+    * Types
+        * flt:  derived from float
+        * dec:  derived from Decimal
+        * cpx:  derived from complex
+        * dpx:  two Decimal instances giving a complex number
+    * Math
+        * All math/cmath functions in scope
+        * Work for all types
+        * Special function support if mpmath is available
+    * Try to put essential details in a Base class
+    * Key features
+        * String interpolation only shows a given number of significant
+          figures
+        * The instances are context managers, allowing code like
 
-    * Here's an example of the need.  In tri.py, the arithmetic and trig is
-      done with Decimals to allow arbitrary precision.  Unfortunately, if
-      you e.g. use 2 significant figures and get a result like 20 degrees
-      for an angle, the stock interpolation gives 2E+1, an ugly form.
-      Perhaps a dpdecimal.py module should be written that includes all the
-      decimal behavior, but gives the desired string interpolations and 
-      math functions.  dpdecimal.py would infect like f.py does.
+            with x:
+                x.n += 3
+                print(x)
 
-* The what.py script should be able to examine a file and list the
-  dependencies on scripts.  Look at pgm/dep.py and the modulefinder module.
+          to let you change the number of digits as needed.  Or, define a
+          __call__(self, n=None) to do this without needing a lock.
+        
+        * Infection model
+            * Need a strict attribute in Base.  If True, interoperation
+              with Fractions or floats for dec or dpx is not allowed
+              because of the chance of losing information or adding noise.
+        * Units:  It would be great to make these a mixin, but this is
+          going to be hard.
+        * REPL:  if this can be gotten to work, then the repl I wrote will
+          be a nice command line tool suitable for routine calculations.
+    * Need to coalesce f.py, dpdecimal.py, and decimalmath.py.
 
-* Copy the basic float functionality of sig.GetSigFig() to f.py.  
-  Remove the uncertainty stuff, as the key need is to be able to assess
-  the number of significant figures in integer, float, and Decimal
-  objects.  Note it needs to use locale decimal point stuff.
+* what.py
+    * Should be able to examine a file and list the dependencies on
+      scripts.  Look at pgm/dep.py and the modulefinder module.  Then
+      what.py should only print out the non-standard modules.
 
-* fold.py:  This will change text files to have one space on blank lines or
-  no spaces on blank lines.  Need to intelligently process python files?
-  The default behavior would be to print each line with 2 lines of context
-  on either side.  Then if you like what you see, use -x to make the
-  changes.  The intent is to get a source file where { and } can be used to
-  navigate to sections you're working on.
+* pgm/char.py
+    * When a line (e.g. Lower) is complete with all the allowed characters,
+      print <all> at the end to denote this state.  Also add -s option,
+      which removes the space between characters, giving a more compact
+      output.  For -c option, include summary stats.
 
-* frac (de.py):  Colorize eighths and sixteenths and show close matches in
-  mm.
-
-* get.GetNumber:  make flt the default number type.
-
-* Add <category> to all what trigger strings.
-
-* Move british.py to plib and give it a function that will take a
-  sentence of text and replace all the British words with English
-  words, maintaining capitalization and punctuation.  This will require
-  another function to split a string into a list of words and
-  punctuation characters.  It would be nice to also maintain the spaces
-  between the words too.  See the next function, which should be in
-  dpstr.py.
-
-* pgm/char.py:  When a line (e.g. Lower) is complete with all the 
-  allowed characters, print <all> at the end to denote this state.
-  Also add -s option, which removes the space between characters, 
-  giving a more compact output.  For -c option, include summary 
-  stats.
-
-* Construct /plib/density.py for common density values.
+* /plib/density.py
+    * For common density values.  This file would then be read by
+      /plib/pgm/density.py for its data.  Having things in a module mean
+      other apps can use it.
+    * One addition would be to provide canonical values for common
+      materials like steel, brass, iron, elements, etc.
 
 * dpstr.py
-
     * Tokenize(s):  split a string into a sequence S such that ''.join(S)
       == s.  The keyword wordchars is a set that contains the characters
       that should NOT be split on.  wordchars would default to
@@ -67,9 +67,9 @@
       First check if char is in string.ascii_letters because this will be
       fast.  Then check for the following set:
 
-    žŽżŻźŹŸŷŶŵŴųŲűŰůŮŭŬūŪũŨŧŦťŤţŢšŠşŞŝŜśŚřŘŗŖŕŔőŐŏŎōŌŋŊŉňŇņŅńŃłŁŀĿľĽļĻĺĹ
-    ĸķĶĵĴıİįĮĭĬīĪĩĨħĦĥĤģĢġĠğĞĝĜěĚęĘėĖĕĔēĒđĐďĎčČċĊĉĈćĆąĄăĂāĀÿþýüûúùøöõôóò
-    ñðïîíìëêéèçæåäãâáàßÞÝÜÛÚÙØÖÕÔÓÒÑÐÏÎÍÌËÊÉÈÇÆÅÄÃÂÁÀ
+        žŽżŻźŹŸŷŶŵŴųŲűŰůŮŭŬūŪũŨŧŦťŤţŢšŠşŞŝŜśŚřŘŗŖŕŔőŐŏŎōŌŋŊŉňŇņŅńŃłŁŀĿľĽļĻĺĹ
+        ĸķĶĵĴıİįĮĭĬīĪĩĨħĦĥĤģĢġĠğĞĝĜěĚęĘėĖĕĔēĒđĐďĎčČċĊĉĈćĆąĄăĂāĀÿþýüûúùøöõôóò
+        ñðïîíìëêéèçæåäãâáàßÞÝÜÛÚÙØÖÕÔÓÒÑÐÏÎÍÌËÊÉÈÇÆÅÄÃÂÁÀ
 
     * Add a TokenSplit(token, seq) function that will split a token into a
       list of subtokens.  If seq is a string, then it will be split on 
@@ -134,7 +134,7 @@
           whether the value used should be the SI value or the .val
           attribute, meaning exp() cannot take a flt/cpx with units.
           However, atan2 is OK if the two arguments are dimensionally
-          cosistent because it's their ratio that is used in the
+          consistent because it's their ratio that is used in the
           function.  Thus, the function is allowed with units if you get
           the same answer using either "interpretation" of the number.
           For some functions like isclose, you need the two arguments to
@@ -149,42 +149,52 @@
         a = cpx(1+1j, units="m")
         Then in debugger, both a==b and a!=b are False
 
-* lwtest.py:  https://realpython.com/python-with-statement/#testing-for-exceptions-with-pytest
-  shows pytest's raises as a context manager.  Note
-
-    with pytest.raises(ZeroDivisionError) as exc:
-        1/0
-    assert str(exc.value) == "division by zero"
-
-  which lets you check that the exception gives the required error
-  message.  I've started the changes for this, but ran into a bug 
-  in test/lwtest_test.py caused by f.py problems, so that needs to be
-  fixed before I can test the lwtest.py changes.
-
 ----------------------------------------------------------------------
 Low priority
 
-* geom_prim.py:  Update properties to modern syntax, utilize matrix.py
-  for determinants, as this would remove dependency on numpy.
+* fold.py
+    * This will change text files to have one space on blank lines or no
+      spaces on blank lines.  Need to intelligently process python files?
+      The default behavior would be to print each line with 2 lines of
+      context on either side.  Then if you like what you see, use -x to
+      make the changes.  The intent is to get a source file where { and }
+      can be used to navigate to sections you're working on.  Python files
+      will be some work because you need to leave multiline strings intact.
 
-* u.py and f.py:  A notation for using SI prefixes could be to use
-  something like μ(N*s/m^2).  This might not be acceptable SI syntax,
-  but it would be understandable by anyone and I should use it if the
-  tokenizer in the u.py script can be made to utilize it.  A way to do
-  this might be to simply insert the equivalent number with a
-  multiplication sign on the right when it's encountered; this should
-  evaluate OK with python's parser.
+* british.py
+    * Move to plib and give it a function that will take a sentence of text
+      and replace all the British words with English words, maintaining
+      capitalization and punctuation.  This will require another function
+      to split a string into a list of words and punctuation characters.
+      It would be nice to also maintain the spaces between the words too.
+      See the next function, which should be in dpstr.py.
 
-* module_dependencies.py:   Is it necessary?  It needs to be rewritten
-  to accommodate /plib.  The tools and programs need to be moved in
-  first.  
+* geom_prim.py
+    * Update properties to modern syntax, utilize matrix.py for
+      determinants, as this would remove dependency on numpy.
 
-* sig is a mess of code.  Is it really all needed?  Maybe it would be
-  best to move the key stuff to flt and cpx.  It can still be kept
-  around for when it's needed.
+* u.py and f.py
+    * A notation for using SI prefixes could be to use something like
+      μ(N*s/m^2).  This might not be acceptable SI syntax, but it would be
+      understandable by anyone and I should use it if the tokenizer in the
+      u.py script can be made to utilize it.  A way to do this might be to
+      simply insert the equivalent number with a multiplication sign on the
+      right when it's encountered; this should evaluate OK with python's
+      parser.
 
-* 'ts.py -m' doesn't work.
+* module_dependencies.py
+    * Is it necessary?  It needs to be rewritten to accommodate /plib.  The
+      tools and programs need to be moved in first.  
 
-* /pylib/pgm/readability/indict.py looks like an interesting tool.  
-  It should use a reasonable dictionary by default and print the tokens
-  out in columns for each file.
+* sig.py
+    * Is a mess of code.  Is it really all needed?  Maybe it would be best
+      to move the key stuff to flt and cpx.  It can still be kept around
+      for when it's needed.
+
+* ts.py
+    * 'ts.py -m' doesn't work.
+
+* /pylib/pgm/readability/indict.py
+    * Looks like an interesting tool.  It should use a reasonable
+      dictionary by default and print the tokens out in columns for each
+      file.

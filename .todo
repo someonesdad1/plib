@@ -1,115 +1,55 @@
 * dpmath.py:  This would be a general-purpose module for math calculations.
-  It would contain the flt, cpx, and dec types.  The key features are:
+    * Types
+        * flt:  derived from float
+        * dec:  derived from Decimal
+        * cpx:  derived from complex
+        * dpx:  two Decimal instances giving a complex number
+    * Math
+        * All math/cmath functions in scope
+        * Work for all types
+        * Special function support if mpmath is available
+    * Try to put essential details in a Base class
+    * Key features
+        * String interpolation only shows a given number of significant
+          figures
+        * The instances are context managers, allowing code like
 
-    * Try to put essential details in a _Base class, which flt, cpx, and
-      dec types are derived from.
+            with x:
+                x.n += 3
+                print(x)
 
-    * Should there be a dcpx type that uses two dec objects?  Should there
-      be a _Complex class that both cpx and dcpx derive from?
+          to let you change the number of digits as needed.  Or, define a
+          __call__(self, n=None) to do this without needing a lock.
+        
+        * Infection model
+            * Need a strict attribute in Base.  If True, interoperation
+              with Fractions or floats for dec or dpx is not allowed
+              because of the chance of losing information or adding noise.
+        * Units:  It would be great to make these a mixin, but this is
+          going to be hard.
+        * REPL:  if this can be gotten to work, then the repl I wrote will
+          be a nice command line tool suitable for routine calculations.
+    * Need to coalesce f.py, dpdecimal.py, and decimalmath.py.
 
-    * String interpolation only shows a given number of decimal places.
-      Instances are context managers that allow code like
+* what.py
+    * Should be able to examine a file and list the dependencies on
+      scripts.  Look at pgm/dep.py and the modulefinder module.  Then
+      what.py should only print out the non-standard modules.
 
-        with x:
-            x.n += 3
-            print(x)
+* pgm/char.py
+    * When a line (e.g. Lower) is complete with all the allowed characters,
+      print <all> at the end to denote this state.  Also add -s option,
+      which removes the space between characters, giving a more compact
+      output.  For -c option, include summary stats.
 
-      to let you change the number of digits as needed.  They would also
-      have methods to let you get fixed, scientific, and engineering forms
-      with a keyword for the number of figures desired.  In f.py, this
-      context management is done with a lock, but this needs to be thought
-      through for multithreaded code because it changes a class variable.
-      Perhaps utilizing coroutines might be better (from the wikipedia page
-      on coroutines:  
-
-        "Because threads can be rescheduled at any instant and can execute
-        concurrently, programs using threads must be careful about locking.
-        In contrast, because coroutines can only be rescheduled at specific
-        points in the program and do not execute concurrently, programs
-        using coroutines can often avoid locking entirely. This property is
-        also cited as a benefit of event-driven or asynchronous
-        programming."
-
-        Read up on coroutines:  https://realpython.com/async-io-python/
-        My key need is to ensure the context manager code is allowed to
-        change the class variable _digits of _Base for its duration.
-
-        For a higher level view on concurrency, see
-        https://realpython.com/python-concurrency/.
-
-      Make the formatting a mixin class for easy incorporation.  Then
-      provide the methods _str(), _repr(), _fix(), _sci(), _eng(), and 
-      _engsi().
-
-    * Infection:  They all interoperate with each other.  A dec
-      operation with a float or Fraction will work, but if you define a 
-      strict attribute to be True, it will result in an exception.  This is
-      because you can lose information or add noise in general
-      calculations.
-
-    * Math functions:  The math functions all support the various numerical
-      types.  For example, calling sin(x) with x being a Fraction causes it
-      to be converted to a dec.
-
-        * If mpmath is available, its mpmath.mpf type is included in the
-          allowed set of numerical types and mpmath's extensive set of
-          special functions also becomes available. 
-
-    * Units:  Try to make these a mixin.
-
-* Decimal arithmetic:  I now have f.py, dpdecimal.py, and decimalmath.py.
-  I'd like to see all this stuff coalesced into one file that provides the 
-  flt, cpx, and dec types.  The math functions would take any of these
-  arguments and return the correct type.  If mpmath is available, the math
-  functions would use mpmath's functions for the correct output.  If fact,
-  with extra work, the special functions of mpmath could also be supported
-  with the flt, cpx, and dec types too.
-
-  The units features of f.py are nice, but it would be nicer if all of it
-  could be abstracted to a mixin class.  Then flt, cpx, dec could all
-  support units.
-
-  If this could all be gotten to work, then the repl.py script would be a 
-  handy general-purpose computational tool at the command line.  It would
-  be even nicer if there was a way to persist the state, but this is
-  non-trivial to do across multiple invocations in different processes.
-  Maybe the state would automatically update a persisted dict, but the quit
-  command could accept an optional name to persist the state too.  Then
-  later, you could load that state if desired.
-
-* The what.py script should be able to examine a file and list the
-  dependencies on scripts.  Look at pgm/dep.py and the modulefinder module.
-  Then what.py should only print out the non-standard modules.
-
-* fold.py:  This will change text files to have one space on blank lines or
-  no spaces on blank lines.  Need to intelligently process python files?
-  The default behavior would be to print each line with 2 lines of context
-  on either side.  Then if you like what you see, use -x to make the
-  changes.  The intent is to get a source file where { and } can be used to
-  navigate to sections you're working on.  Python files will be some work
-  because you need to leave multiline strings intact.
-
-* Move british.py to plib and give it a function that will take a sentence
-  of text and replace all the British words with English words, maintaining
-  capitalization and punctuation.  This will require another function to
-  split a string into a list of words and punctuation characters.  It would
-  be nice to also maintain the spaces between the words too.  See the next
-  function, which should be in dpstr.py.
-
-* pgm/char.py:  When a line (e.g. Lower) is complete with all the allowed
-  characters, print <all> at the end to denote this state.  Also add -s
-  option, which removes the space between characters, giving a more compact
-  output.  For -c option, include summary stats.
-
-* Construct /plib/density.py for common density values.  This file would
-  then be read by /plib/pgm/density.py for its data.  Having things in a
-  module mean other apps can use it.
-
+* /plib/density.py
+    * For common density values.  This file would then be read by
+      /plib/pgm/density.py for its data.  Having things in a module mean
+      other apps can use it.
     * One addition would be to provide canonical values for common
       materials like steel, brass, iron, elements, etc.
 
 * dpstr.py
-
     * Tokenize(s):  split a string into a sequence S such that ''.join(S)
       == s.  The keyword wordchars is a set that contains the characters
       that should NOT be split on.  wordchars would default to
@@ -127,9 +67,9 @@
       First check if char is in string.ascii_letters because this will be
       fast.  Then check for the following set:
 
-    žŽżŻźŹŸŷŶŵŴųŲűŰůŮŭŬūŪũŨŧŦťŤţŢšŠşŞŝŜśŚřŘŗŖŕŔőŐŏŎōŌŋŊŉňŇņŅńŃłŁŀĿľĽļĻĺĹ
-    ĸķĶĵĴıİįĮĭĬīĪĩĨħĦĥĤģĢġĠğĞĝĜěĚęĘėĖĕĔēĒđĐďĎčČċĊĉĈćĆąĄăĂāĀÿþýüûúùøöõôóò
-    ñðïîíìëêéèçæåäãâáàßÞÝÜÛÚÙØÖÕÔÓÒÑÐÏÎÍÌËÊÉÈÇÆÅÄÃÂÁÀ
+        žŽżŻźŹŸŷŶŵŴųŲűŰůŮŭŬūŪũŨŧŦťŤţŢšŠşŞŝŜśŚřŘŗŖŕŔőŐŏŎōŌŋŊŉňŇņŅńŃłŁŀĿľĽļĻĺĹ
+        ĸķĶĵĴıİįĮĭĬīĪĩĨħĦĥĤģĢġĠğĞĝĜěĚęĘėĖĕĔēĒđĐďĎčČċĊĉĈćĆąĄăĂāĀÿþýüûúùøöõôóò
+        ñðïîíìëêéèçæåäãâáàßÞÝÜÛÚÙØÖÕÔÓÒÑÐÏÎÍÌËÊÉÈÇÆÅÄÃÂÁÀ
 
     * Add a TokenSplit(token, seq) function that will split a token into a
       list of subtokens.  If seq is a string, then it will be split on 
@@ -212,27 +152,49 @@
 ----------------------------------------------------------------------
 Low priority
 
-* geom_prim.py:  Update properties to modern syntax, utilize matrix.py
-  for determinants, as this would remove dependency on numpy.
+* fold.py
+    * This will change text files to have one space on blank lines or no
+      spaces on blank lines.  Need to intelligently process python files?
+      The default behavior would be to print each line with 2 lines of
+      context on either side.  Then if you like what you see, use -x to
+      make the changes.  The intent is to get a source file where { and }
+      can be used to navigate to sections you're working on.  Python files
+      will be some work because you need to leave multiline strings intact.
 
-* u.py and f.py:  A notation for using SI prefixes could be to use
-  something like μ(N*s/m^2).  This might not be acceptable SI syntax,
-  but it would be understandable by anyone and I should use it if the
-  tokenizer in the u.py script can be made to utilize it.  A way to do
-  this might be to simply insert the equivalent number with a
-  multiplication sign on the right when it's encountered; this should
-  evaluate OK with python's parser.
+* british.py
+    * Move to plib and give it a function that will take a sentence of text
+      and replace all the British words with English words, maintaining
+      capitalization and punctuation.  This will require another function
+      to split a string into a list of words and punctuation characters.
+      It would be nice to also maintain the spaces between the words too.
+      See the next function, which should be in dpstr.py.
 
-* module_dependencies.py:   Is it necessary?  It needs to be rewritten
-  to accommodate /plib.  The tools and programs need to be moved in
-  first.  
+* geom_prim.py
+    * Update properties to modern syntax, utilize matrix.py for
+      determinants, as this would remove dependency on numpy.
 
-* sig is a mess of code.  Is it really all needed?  Maybe it would be
-  best to move the key stuff to flt and cpx.  It can still be kept
-  around for when it's needed.
+* u.py and f.py
+    * A notation for using SI prefixes could be to use something like
+      μ(N*s/m^2).  This might not be acceptable SI syntax, but it would be
+      understandable by anyone and I should use it if the tokenizer in the
+      u.py script can be made to utilize it.  A way to do this might be to
+      simply insert the equivalent number with a multiplication sign on the
+      right when it's encountered; this should evaluate OK with python's
+      parser.
 
-* 'ts.py -m' doesn't work.
+* module_dependencies.py
+    * Is it necessary?  It needs to be rewritten to accommodate /plib.  The
+      tools and programs need to be moved in first.  
 
-* /pylib/pgm/readability/indict.py looks like an interesting tool.  
-  It should use a reasonable dictionary by default and print the tokens
-  out in columns for each file.
+* sig.py
+    * Is a mess of code.  Is it really all needed?  Maybe it would be best
+      to move the key stuff to flt and cpx.  It can still be kept around
+      for when it's needed.
+
+* ts.py
+    * 'ts.py -m' doesn't work.
+
+* /pylib/pgm/readability/indict.py
+    * Looks like an interesting tool.  It should use a reasonable
+      dictionary by default and print the tokens out in columns for each
+      file.
