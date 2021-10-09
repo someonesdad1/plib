@@ -1,3 +1,7 @@
+* get.py:  GetColVecs, GetRowVecs would return vectors from multiline
+  string data.  I have to do this a lot and I'm surprised I haven't written
+  such things before...
+
 * dpmath.py:  This would be a general-purpose module for math calculations.
     * Types
         * flt:  derived from float
@@ -31,6 +35,9 @@
           be a nice command line tool suitable for routine calculations.
     * Need to coalesce f.py, dpdecimal.py, and decimalmath.py.
 
+* pgm/ds.py
+    * Store every command and provide a -l option to show the history.
+      This would be useful for remembering previous commands.
 * what.py
     * Should be able to examine a file and list the dependencies on
       scripts.  Look at pgm/dep.py and the modulefinder module.  Then
@@ -102,6 +109,9 @@
         .This is a section title
         .-----------------------
       and they get left alone.
+    * print(dedent(f'''
+      This
+      ''')) chops off the 'T'.
 
 * f.py
     * Should color.c() be used in f.py?
@@ -194,7 +204,4 @@ Low priority
 * ts.py
     * 'ts.py -m' doesn't work.
 
-* /pylib/pgm/readability/indict.py
-    * Looks like an interesting tool.  It should use a reasonable
-      dictionary by default and print the tokens out in columns for each
-      file.
+* /pylib/pgm/re

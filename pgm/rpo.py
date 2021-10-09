@@ -5877,7 +5877,7 @@ def Usage(d, status=1):
       -r    Search RPO codes only
       -s    Show 2011 Suburban's RPO codes
       -t    Show 2002 Tahoe's RPO codes
-      -t    Show 2006 Yukon's RPO codes
+      -y    Show 2006 Yukon's RPO codes
     '''))
     exit(status)
 def ParseCommandLine(d):

@@ -206,7 +206,7 @@ def GetNumber(prompt_msg, **kw):
         (number, unit_string)       kw use_unit is True
         True or False               kw inspect is True
         None                        kw default = None and kw allow_none True
-
+ 
     The returned number type will be numtype.  Examples:
  
         a_float = GetNumber(prompt_msg)
@@ -514,6 +514,50 @@ def GetNumbers(thing, numtype=None,  enc=None):
                 x = int(s)
             lst.append(x)
     return lst
+def GetNumberArray(string, row=False, numtype=float):
+    '''Return a list of vectors gotten from the indicated multiline string.
+    The numbers are separated on each line by whitespace.  If row is
+    True, then the vectors are row vectors.  Lines in string matching
+    the regular expression with '^\s*#' are ignored.  If string is empty or
+    only whitespace, the [[]] is returned.  ValueError will be raised if a
+    row contains a different number of elements than the others.
+ 
+    Example:  
+        If the string is 
+            s = """
+            1 2 3
+            4 5 6
+            """
+        then GetNumberArray(s) returns [[1, 4], [2, 5], [3, 6]].
+        GetNumberArray(s, row=True) returns [[1, 2, 3], [4, 5, 6]].
+    '''
+    if not string.strip():
+        return [[]]
+    strings = []
+    # Put valid lines into strings
+    for line in string.strip().split("\n"):
+        if line.strip()[0] == "#":
+            continue
+        strings.append(line)
+    nrows = len(strings)
+    # Get number of columns and verify all rows have the same number of
+    # columns
+    cols = [i.split() for i in strings]
+    ncols = len(cols[0])
+    if not all([len(i) == ncols for i in cols]):
+        raise ValueError(f"Not all rows have {ncols} elements")
+    # Get number array
+    A = []
+    for myrow in strings:
+        a = [numtype(i) for i in myrow.split()]
+        A.append(a)
+    if row:
+        return A    # Return row vectors
+    if ncols == 1 or nrows == 1:
+        return A    # Special case of one column or row vector
+    # Use transpose to return column vectors
+    return [list(i) for i in zip(*A)]
+
 def GetChoice(seq, default=1, indent=None, col=False):
     '''Display the choices in seq with numbers and prompt the user for his
     choice.  Note the numbers are 1-based as displayed to the user, but the
@@ -543,7 +587,7 @@ def GetFraction(s):
     '''Return a Fraction object if string s contains a '/' and can be
     interpreted as an improper or proper fraction; otherwise return
     None.  The following forms are allowed:
-
+ 
         A   5/4     +5/4    -5/4
         B   1 1/4   +1 1/4  -1 1/4
         C   1-1/4   +1-1/4  -1-1/4
@@ -1266,6 +1310,53 @@ if __name__ == "__main__":
         s, a = "   ", "a"
         t = Tokenize(s + a + s)
         Assert(t == deque([s, a, s]))
+    def TestGetNumberArray():
+        s = '''
+            1 2 3
+            4 5 6
+        '''
+        # Empty string
+        a = GetNumberArray("")
+        Assert(a == [[]])
+        a = GetNumberArray(" \t\n \v\r")
+        Assert(a == [[]])
+        # Simple string
+        t = "1"
+        a = GetNumberArray(t)
+        Assert(a == [[1.0]])
+        Assert(isinstance(a[0][0], float))
+        a = GetNumberArray(t, numtype=int)
+        Assert(a == [[1]])
+        Assert(isinstance(a[0][0], int))
+        # Single column vector
+        t = '''
+            1
+            2
+        '''
+        a = GetNumberArray(t)
+        Assert(a == [[1.0], [2.0]])
+        # Single row vector
+        t = "1 2"
+        a = GetNumberArray(t)
+        Assert(a == [[1.0, 2.0]])
+        # Default gets column vector of floats
+        a = GetNumberArray(s)
+        Assert(a == [[1.0, 4.0], [2.0, 5.0], [3.0, 6.0]])
+        Assert(isinstance(a[0][0], float))
+        # Gets column vector of ints
+        a = GetNumberArray(s, numtype=int)
+        Assert(a == [[1, 4], [2, 5], [3, 6]])
+        Assert(isinstance(a[0][0], int))
+        # Get row vector of ints
+        a = GetNumberArray(s, row=True, numtype=int)
+        Assert(a == [[1, 2, 3], [4, 5, 6]])
+        # Bad data gets exception
+        s = '''
+            1 2 3
+            4 5  
+        '''
+        with raises(ValueError):
+            a = GetNumberArray(s)
     SetUp()
     status = run(globals(), halt=True)[0]
     TearDown()
