@@ -1,7 +1,3 @@
-* get.py:  GetColVecs, GetRowVecs would return vectors from multiline
-  string data.  I have to do this a lot and I'm surprised I haven't written
-  such things before...
-
 * dpmath.py:  This would be a general-purpose module for math calculations.
     * Types
         * flt:  derived from float
@@ -38,6 +34,7 @@
 * pgm/ds.py
     * Store every command and provide a -l option to show the history.
       This would be useful for remembering previous commands.
+
 * what.py
     * Should be able to examine a file and list the dependencies on
       scripts.  Look at pgm/dep.py and the modulefinder module.  Then
@@ -114,44 +111,47 @@
       ''')) chops off the 'T'.
 
 * f.py
+    * /plib/pgm/divider.py is a good example of poorer performance of the
+      f.py module.  With sig.py, it took 0.4 s.  Using flt objects instead
+      the overall time for a script increased to 4.4 s.  I changed it back
+      to use sig.py.
     * Should color.c() be used in f.py?
-    * Sometimes you want to perform calculations regardless of units.
-      This case could be handled with a property called iu that means
-      ignore the units.  Then the self.val float would be used in
-      calculations.  You'd only want to use this in a with block.
+    * Sometimes you want to perform calculations regardless of units.  This
+      case could be handled with a property called iu that means ignore the
+      units.  Then the self.val float would be used in calculations.  You'd
+      only want to use this in a with block.
     * Allow init from "3in" or "3 in".
     * Must allow some functions to have arguments with units.  Example:
       take the square root of an area.  Each of the functions' behaviors
-      need to be thought out for both real and complex arguments.  The
-      Dim class may then need to specifically allow rational exponents.
+      need to be thought out for both real and complex arguments.  The Dim
+      class may then need to specifically allow rational exponents.
         * math
             * Must be dimensionless:  acos, acosh, asin, asinh, atan,
-              atanh, exp, expm1, log, log1p, log2, log10, degrees,
-              radians, erf, erfc, gamma, lgamma
-            * Could handle units, but return value disallows:  ceil,
-              floor, gcd, trunc
+              atanh, exp, expm1, log, log1p, log2, log10, degrees, radians,
+              erf, erfc, gamma, lgamma
+            * Could handle units, but return value disallows:  ceil, floor,
+              gcd, trunc
             * Probably OK with units:  atan2, copysign, fabs, fmod (args
-              must have same units), frexp, fsum, isclose, isfinite,
-              isinf, isnan, modf, remainder, pow (first argument), sqrt,
-              hypot
+              must have same units), frexp, fsum, isclose, isfinite, isinf,
+              isnan, modf, remainder, pow (first argument), sqrt, hypot
         * cmath
             * Must be dimensionless:  exp, log, log10, acos, asin, atan,
               cos, sin, tan, acosh, asinh, atanh, cosh, sinh, tanh
-            * Probably OK with units:  phase, polar, rect, sqrt,
-              isfinite, isinf, isnan, isclose
-        * The general test should be that the function's answer should
-          be "obvious".  Thus, for exp(), I wouldn't be able to decide
-          whether the value used should be the SI value or the .val
-          attribute, meaning exp() cannot take a flt/cpx with units.
-          However, atan2 is OK if the two arguments are dimensionally
-          consistent because it's their ratio that is used in the
-          function.  Thus, the function is allowed with units if you get
-          the same answer using either "interpretation" of the number.
-          For some functions like isclose, you need the two arguments to
-          be dimensionally consistent and use the same interpretation.
+            * Probably OK with units:  phase, polar, rect, sqrt, isfinite,
+              isinf, isnan, isclose
+        * The general test should be that the function's answer should be
+          "obvious".  Thus, for exp(), I wouldn't be able to decide whether
+          the value used should be the SI value or the .val attribute,
+          meaning exp() cannot take a flt/cpx with units.  However, atan2
+          is OK if the two arguments are dimensionally consistent because
+          it's their ratio that is used in the function.  Thus, the
+          function is allowed with units if you get the same answer using
+          either "interpretation" of the number.  For some functions like
+          isclose, you need the two arguments to be dimensionally
+          consistent and use the same interpretation.
     * Test_sigcomp() fails.
-    * flt:  add the engsi feature that will print a prefix with a unit.
-      If it's a multiple unit, surround it in (...).
+    * flt:  add the engsi feature that will print a prefix with a unit.  If
+      it's a multiple unit, surround it in (...).
     * f.py:  see line 150 in test/lwtest_test.py.  
     
         b = cpx(1+1j)

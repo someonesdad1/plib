@@ -395,7 +395,7 @@ if __name__ == "__main__":
     print(dedent(f'''
     Demonstration of dp() method for decimal point alignment.  Note
     it can reduce the number of significant figures printed.  The form of
-    the function is fpformat.dp(x, width=w, dppoint=dp) where here
+    the function is fpformat.dp(x, width=w, dpoint=dp) where here
     w = {w} and dp = {dp}.  The total width is 15 spaces and the decimal
     point is at position dp, which is numbered from zero from the left.
     This leaves room for {w} - {dp} - 1 = {places} decimal places.

@@ -1,11 +1,10 @@
 '''
-
 TODO:
-
+ 
 * Change to flt variables.
 * Change -i option to use u.py library so common units can be input.
 * Finish MIL5088(gauge, ΔT) function.
-
+ 
 ----------------------------------------------------------------------
 Output a copper wire table.  Other useful things are done too (use the 
 -h option for help and -H for a manpage).
@@ -59,338 +58,339 @@ if 1:   # Global variables
     popular_sizes = {
         10: (C.lgreen, C.black),
         12: (C.yellow, C.blue),
-        14: (C.lmagenta, C.black),
-        16: (C.lred, C.black),
-        18: (C.yellow, C.lmagenta),
-        20: (C.yellow, C.black),
-        22: (C.lcyan, C.black),
-        24: (C.black, C.green),
+        14: (C.brown, C.black),
+        18: (C.lred, C.black),
+        16: (C.yellow, C.lmagenta),
+        20: (C.lmagenta, C.black),
+        24: (C.yellow, C.black),
     }
     # Used for formatting numbers
     fp = FPFormat(4)
     fp.trailing_decimal_point(False)
-if 1:   # Utility
-    def Error(msg, status=1):
-        print(msg, file=sys.stderr)
-        exit(status)
-    def Manpage():
-        rho = f"{resistivity*1e9:.5g}"
-        print(dedent(f'''
-                                  Copper Wire Table
-        
-        The properties of commercial copper wire in this table are calculated from
-        the density of copper ({density} kg/m³) and its room temperature resistivity
-        of {rho} nΩ·m.
-        
-        AWG is American Wire Gauge [1].  Given an AWG number N, the diameter of a
-        wire in inches is 92**((36 - N)/39)/200.  For 2/0, 3/0, or m/0 where m >= 2,
-        use an N of 1 - m.
-        
-        Useful approximations to memorize are that 12 gauge wire is about 2 mm in
-        diameter and 18 gauge wire is about 1 mm in diameter (if you want
-        approximate inches, multiply mm by 2 twice and divide by 100).  Changing 6
-        AWG gauge numbers changes the wire diameter by about 2.  Use the -e option
-        to see areal relationships amongst the gauge sizes.
-
-        Another useful tidbit is that a 1 foot long chunk of 10 gauge copper has a
-        resistance of about 1 mΩ.
-        
-        To estimate the electrical behavior of copper as a function of temperature,
-        you need to know:
-        
-          * The resistivity of copper as a function of absolute temperature is
-            essentially linear to about 600 K and then slightly concave upwards (a
-            power of T slightly above unity) up to the melting point of 1083 °C
-            (1356 K). [6]
-        
-            A practical resistivity estimate for copper is 0.071*(T - 50) nΩ*m where
-            T is absolute temperature in K or about 0.071*(Tc + 223) nΩ*m where Tc
-            is temperature in °C.  This is for T < 600 K or Tc < 327 °C.
-        
-          * The specific heat of copper (∂h(T, p)/∂T at constant p where h is the
-            enthalpy) is described by a Shomate equation (a cubic polynomial in
-            absolute temperature with another term of T**-2) that is approximately
-            linear from 300 K (room temperature) to 900 K with a slope of 5.4
-            mJ/(mol*K). [7]
-        
-          * The change in length of commercial copper from room temperature to the
-            melting point is about 2%.  Thus, the change in volume for instrinsic
-            specific physical quantities as a function of temperature will be about
-            6%. [8]
-        
-        Over the indicated temperature ranges, these linear relationships make
-        integrations easier.
-        
-                                      Ampacity
-        ----------------------------------------------------------------------
-        
-        Ampacity refers to the allowed current carrying ability of copper wire.  In
-        general, what is allowed physically is dependent on many things because it
-        is ultimately a heat transfer problem where the Joule heat from the current
-        in the wire needs to be removed by conduction, convection, and radiation at
-        a sufficiently rapid rate to keep the temperature of the wire below a
-        desired value.  For most practical electrical problems, convection removes
-        the most heat and the orientation and bundling of wires can be important.
-        
-        The script prints a number of ampacity values when you use the -a option.  
-        
-        Chass
-        -----
-        
-        The Chass (chassis) current is for a single wire in air (i.e., not in a
-        bundle of wires) and is probably near the maximum current you would want to
-        put through a copper wire for practical purposes.  I have tested these
-        values on 18 gauge and smaller wires and found that the wires and their
-        insulations are noticeably heated, but not hot enough to melt the
-        insulation.  From [3].  Also see [9].
-        
-          Experiment:  At a room temperature of about 20 °C, I connected an 18
-          gauge solid copper wire 80 mm long clamped between two alligator clips to
-          an HP 6033A DC power supply (supplies up to 30 A).  The current was set
-          to the Chass current of 16 A and left on for 10 minutes.  The wire was
-          comfortably warm to the fingers, but one of the steel alligator clips was
-          too hot to leave my fingers on it for more than 1 second.  My engineering
-          judgment is that this wire's temperature rise would be fine in a project
-          that wouldn't go over 35 or 40 °C ambient temperature.  At a current of
-          20 A (50% higher power dissipation), the wire's insulation was hot enough
-          that I wouldn't want to hold it for more than a second or two and one of
-          the alligator clips was too hot to touch, even for 0.2 s or so.  This
-          "finger touch test" can indicate temperatures on the order of 40 to 50
-          °C.
-        
-            More specific guidelines [5] give the continuously-held maximum
-            temperature for all materials at 43 °C (if held for < 10 s, then 55 °C
-            for metals and 65 °C for non-metals; if touched for < 1 s, then 65 °C
-            for metals and 85 °C for non-metals).  Non-metals are higher because
-            they conduct less heat to the skin per unit time.  Most of us learn we
-            can coat our finger with saliva and touch things perhaps 100 to 150 °C
-            quickly, feeling and hearing a hiss.  We're not burned because the heat
-            of vaporization of the fluid keeps the heat from conducting to our
-            skin (sometimes called the Leidenfrost effect).
-        
-          A second wire (about 21 gauge, pulled from a surplus military device) was
-          run at 9 A, which is halfway between the two nearest Chass table values.
-          It also felt fine to my fingers, but sensitivity goes down on smaller
-          wires.  I increased the current by 1.25 times to 11.25 A (increased the
-          dissipated power by 50%) and it was warmer after about 5 minutes, but not
-          objectionably so.  This excellent wire was likely more expensive than
-          regular wire, as it was stranded and appeared to be tinned with solder.
-        
-          Rigging up some kind of temperature monitoring for this experiment would
-          make it more quantitative, but measuring the temperature of a small wire
-          without influencing the heat loss mechanisms is more work that I'd want
-          to invest.  Still, the experiment provided me with enough of an
-          engineering feel (no pun :^) that these current levels would be safe
-          should I want to base a design on them.  I don't have a DC power supply
-          capable of enough current to study wires at higher DC currents.
-        
-          A 24 gauge piece of copper wire held in alligator clips with 30 A through
-          the wire will glow a faint red in a room with the curtains drawn during
-          the daytime.  This should only be done for 10 or 20 s, as the alligator
-          clips will get hot.  From past experiments with heated metals, I'd guess
-          the temperature was around 550 to 600 °C.
-        
-        Note the current densities (j in A/mm²) for these Chass ratings are not
-        constant:
-        
-                AWG  j         AWG  j          AWG  j
-                --- ---        --- ---         --- ---
-                 0  4.5         14  15          28  17
-                 2  5.4         16  17          30  17
-                 4  6.6         18  19          32  17
-                 6  7.5         20  21          34  16
-                 8  8.7         22  22          36  17
-                10   11         24  17          38  16
-                12   12         26  17          40  18
-        
-        When plotted, these data make me think someone derived these numbers from
-        an experiment.
-        
-        Pwr
-        ---
-        
-        The Pwr (power transmission) current is based on a maximum current density
-        of 2.82 A/mm² at DC conditions (this is quite conservative; compare it to
-        the Chass current densities above).
-        
-        NEC Ratings
-        -----------
-        
-        The NEC ratings are based on [2].  The values from 0 to 14 AWG are
-        specified by the NEC.  For 10, 12, and 14 gauge copper wire, note the
-        allowed currents in the table are higher than the circuit breaker rating
-        for a circuit wired with that wire, which must be 30, 20, and 15 A,
-        respectively, after corrections for ambient temperature and number of
-        conductors have been applied.
-        
-        The NEC ratings are more conservative than e.g. the Chassis current rating
-        because e.g. the wiring in a house must last for many decades and not cause
-        a fire.  When a city inspector approves an electrical installation, the
-        city (among others) is liable if that installation fails.  Thus,
-        governments will choose conservative and well-established rules for
-        construction to minimize their legal exposure.
-        
-                                     Fusing
-        ----------------------------------------------------------------------
-        
-        At high currents, enough Joule heat is generated in a wire to raise its
-        temperature; if the temperature is raised enough, the wire can melt.  To
-        calculate the current necessary to melt the wire, you have to solve for the
-        heat loss to the environment, the heat to raise the metal's temperature
-        (using the metal's specific heat (enthalpy)), and the heat to cause the
-        phase change from solid to liquid (heat of fusion).  
-        
-        Two treatments of this have been given in the literature:  Preece and
-        Onderdonk (see [4]).  Preece's experiment in the 1880's resulted in a
-        simple relationship:  the fusing current in A is proportional to the wire
-        diameter in inches to the 3/2 power.  The constant for copper is 10244.
-        
-        Who Onderdonk was is unknown, but he has an equation named after him.  This
-        equation relates the following physical quantities:
-        
-            * Fusing current
-            * Cross-sectional area of wire
-            * Time the current is applied to the wire
-            * Rise in temperature from the ambient to e.g. the melting temperature
-              of the wire
-        
-        The relevance of Onderdonk's work and the reason for the inclusion of time
-        is that power transmission designs have to carry short circuit currents for
-        a sufficient amount of time for the mechanical switching devices to open
-        the circuit to protect the conductors.
-        
-        Reference [4] gives a derivation for Onderdonk's equation by relating the
-        Joule heating of the wire to the temperature rise of the copper from the
-        Joule heat.  Key assumptions are 1) copper's resistivity increases linearly
-        with the temperature increase over ambient, 2) copper's specific heat is
-        constant to the melting point, and 3) the time involved is short enough
-        that heat losses to the environment can be ignored.  The treatment results
-        in a first order linear differental equation for the wire temperature as a
-        function of time.  The "short time" should probably no more than a few
-        seconds.  The derivation ignores the heat of fusion of the conductor, which
-        is probably reasonable, as once the conductor is at the melting point,
-        mechanical disruption is likely due to the mass of the conductor (i.e., its
-        own weight and loss of tensile strength could cause it to separate).
-        
-        If you're interested in seeing Onderdonk's equation, look at the
-        Onderdonk() function in the script.
-        
-                                   References
-        ----------------------------------------------------------------------
-        
-        [1] https://en.wikipedia.org/wiki/American_wire_gauge
-        
-        [2] NEC is the National Electrical Code for the US.  It is a publication
-            of the National Fire Protection Association and is the basic
-            standard used for describing safe electrical practices.  See
-            https://www.nfpa.org.
-        
-        [3] SAMS, Handbook of Electronics Tables and Formulas, various editions.
-            The web page https://www.powerstream.com/Wire_Size.htm quotes this
-            reference as the source for the Chassis wiring ampacity values (I don't
-            have a copy of the original book).
-        
-        [4] https://pcdandf.com/pcdesign/index.php/magazine/10179-pcb-design-1507
-        
-        [5] ECMA-287 gives table 5.2 that specifies allowable touch temperatures
-            based on time of contact and material type.  Referenced here:
-            https://www.boydcorp.com/resources/resource-center/blog/
-                237-maximum-touch-temperature.html
-        
-        [6] https://en.wikipedia.org/wiki/
-            Electrical_resistivity_and_conductivity#Metals
-        
-        [7] See the plot at https://webbook.nist.gov/cgi/
-            cbook.cgi?ID=C7440508&Units=SI&Mask=7&Type=JANAFS&Plot=on#JANAFS
-        
-        [8] "Metals Handbook", Vol. 1, 8th ed., American Society of Metals, 1961,
-            copper graphs on page 1009.
-        
-        [9] HP 6033A power supply user manual, page 37.  This document gives copper
-            wire ampacities that are fairly close to the Chas ratings in this
-            document and are derived from MIL-W-5088B.  It also references IEC
-            publication 335-1.  In MIL-W-5088L, look at Figure 3 on page 46 and 47.
-        
-            '''.rstrip()))
-        print(dedent(f'''
-
-        Other information
-        -----------------
-        
-        For copper wire with silicone rubber insulation rated to 150 to 200 °C,
-        the approximate current density in A/mm² is 9.1 for 23 ga, 15 for 21
-        ga, and 20 for 20 ga.
-        
-        Resistance per unit length is for solid copper.  Stranded wire of the
-        same size can have a resistance up to 8% higher.  Twisting wires together
-        can add 0.5% to 3% more resistance because of increased length.
-        
-        Resistivity of Cu is {rho} nΩ·m.  Factors for other materials (at 20 °C):
-        Al: 1.6, Graphite: 2-36, Constantan (55Cu-45Ni): 29.1, Fe: 5.8, Pb: 12.3,
-        Manganin (86Cu-12Mn-2Ni): 25-27.9, Pt: 6.28, Ag: 0.950, W: 3.38, Zn: 3.54,
-        Nichrome(~ 80Ni-20Cr, sometimes Fe): 58-87, Stainless steel: 40
-        
-        The 0.041" diameter stainless steel wire from Harbor Freight has a resistance
-        of 0.1 Ω per 119 mm = 8.4 mΩ/cm = 21 mΩ/inch = 0.26 Ω/ft.
-        
-        RG-58/U coax has a 0.9 mm diameter inner conductor (19 gauge) and an outside
-        diameter of 5 mm.  Capacitance is 90 ± 5 pF/m.
-        
-        1000·TCR in 1/K @ 20 °C:  annealed copper: 3.93, aluminum: 3.8, carbon:
-        -0.25, iron: 5.0, lead: 4.3, Pt: 3.8, Ag: 4.0, W: 4.5, Zn: 3.7
-        '''))
-        exit(0)
-    def ParseCommandLine(d):
-        d["-a"] = False     # Print the detailed ampacity data
-        d["-C"] = False     # Emit color escape codes even if not a tty
-        d["-c"] = False     # Emit color escape codes even if not a tty
-        d["-e"] = False     # Print an equivalence table
-        d["-i"] = False     # Interactive solution
-        d["-f"] = False     # Print an equivalence table
-        try:
-            optlist, args = getopt.getopt(sys.argv[1:], "aCcefhHi")
-        except getopt.GetoptError as e:
-            print(str(e))
-            exit(1)
-        for o, a in optlist:
-            if o[1] in list("aCcef"):
-                d[o] = not d[o]
-            elif o == "-h":
-                Usage(status=0)
-            elif o == "-H":
-                Manpage()
-            elif o == "-i":
-                Error("-i option not currently supported")
-                Interactive()
-        if args and len(args) != 2:
-            Usage()
-        if d["-c"]:
-            global isatty
-            isatty = True
-        if d["-C"]:
-            global no_color
-            no_color = True
-        return args
-    def Usage(status=1):
-        name = sys.argv[0]
-        print(dedent(f'''
-        Usage:  {name} [options] [n_awg m_awg]
-          With no arguments, print a copper wire table.  With arguments, print out
-          how many wires of n_awg are needed to be equivalent in area to m_awg
-          wires.
-        Options:
-          -a  Print detailed ampacity data
-          -C  Do not print in color
-          -c  Include escape sequences for color if std out is not a terminal
-          -e  Print out an equivalence table showing how many wires of a
-              particular gauge size are equal to another
-          -f  Print full table
-          -h  Print this help message
-          -H  Print detailed help message
-          -i  Interactively determine length, diameter, resistivity, or
-              resistance
-        '''[1:-1]))
-        exit(status)
+def Error(msg, status=1):
+    print(msg, file=sys.stderr)
+    exit(status)
+def Manpage():
+    rho = f"{resistivity*1e9:.5g}"
+    print(dedent(f'''
+                                Copper Wire Table
+    
+    The properties of commercial copper wire in this table are calculated from
+    the density of copper ({density} kg/m³) and its room temperature resistivity
+    of {rho} nΩ·m.
+    
+    AWG is American Wire Gauge [1].  Given an AWG number N, the diameter of a
+    wire in inches is 92**((36 - N)/39)/200.  For 2/0, 3/0, or m/0 where m >= 2,
+    use an N of 1 - m.
+    
+    Useful approximations to memorize are that 12 gauge wire is about 2 mm in
+    diameter and 18 gauge wire is about 1 mm in diameter (if you want
+    approximate inches, multiply mm by 2 twice and divide by 100).  Changing 6
+    AWG gauge numbers changes the wire diameter by about 2.  Use the -e option
+    to see areal relationships amongst the gauge sizes.
+ 
+    Another useful tidbit is that a 1 foot long chunk of 10 gauge copper has a
+    resistance of about 1 mΩ.
+    
+    To estimate the electrical behavior of copper as a function of temperature,
+    you need to know:
+    
+        * The resistivity of copper as a function of absolute temperature is
+        essentially linear to about 600 K and then slightly concave upwards (a
+        power of T slightly above unity) up to the melting point of 1083 °C
+        (1356 K). [6]
+    
+        A practical resistivity estimate for copper is 0.071*(T - 50) nΩ*m where
+        T is absolute temperature in K or about 0.071*(Tc + 223) nΩ*m where Tc
+        is temperature in °C.  This is for T < 600 K or Tc < 327 °C.
+    
+        * The specific heat of copper (∂h(T, p)/∂T at constant p where h is the
+        enthalpy) is described by a Shomate equation (a cubic polynomial in
+        absolute temperature with another term of T**-2) that is approximately
+        linear from 300 K (room temperature) to 900 K with a slope of 5.4
+        mJ/(mol*K). [7]
+    
+        * The change in length of commercial copper from room temperature to the
+        melting point is about 2%.  Thus, the change in volume for instrinsic
+        specific physical quantities as a function of temperature will be about
+        6%. [8]
+    
+    Over the indicated temperature ranges, these linear relationships make
+    integrations easier.
+    
+                                    Ampacity
+    ----------------------------------------------------------------------
+    
+    Ampacity refers to the allowed current carrying ability of copper wire.  In
+    general, what is allowed physically is dependent on many things because it
+    is ultimately a heat transfer problem where the Joule heat from the current
+    in the wire needs to be removed by conduction, convection, and radiation at
+    a sufficiently rapid rate to keep the temperature of the wire below a
+    desired value.  For most practical electrical problems, convection removes
+    the most heat and the orientation and bundling of wires can be important.
+    
+    The script prints a number of ampacity values when you use the -a option.  
+    
+    Chass
+    -----
+    
+    The Chass (chassis) current is for a single wire in air (i.e., not in a
+    bundle of wires) and is probably near the maximum current you would want to
+    put through a copper wire for practical purposes.  I have tested these
+    values on 18 gauge and smaller wires and found that the wires and their
+    insulations are noticeably heated, but not hot enough to melt the
+    insulation.  From [3].  Also see [9].
+    
+        Experiment:  At a room temperature of about 20 °C, I connected an 18
+        gauge solid copper wire 80 mm long clamped between two alligator clips to
+        an HP 6033A DC power supply (supplies up to 30 A).  The current was set
+        to the Chass current of 16 A and left on for 10 minutes.  The wire was
+        comfortably warm to the fingers, but one of the steel alligator clips was
+        too hot to leave my fingers on it for more than 1 second.  My engineering
+        judgment is that this wire's temperature rise would be fine in a project
+        that wouldn't go over 35 or 40 °C ambient temperature.  At a current of
+        20 A (50% higher power dissipation), the wire's insulation was hot enough
+        that I wouldn't want to hold it for more than a second or two and one of
+        the alligator clips was too hot to touch, even for 0.2 s or so.  This
+        "finger touch test" can indicate temperatures on the order of 40 to 50
+        °C.
+    
+        More specific guidelines [5] give the continuously-held maximum
+        temperature for all materials at 43 °C (if held for < 10 s, then 55 °C
+        for metals and 65 °C for non-metals; if touched for < 1 s, then 65 °C
+        for metals and 85 °C for non-metals).  Non-metals are higher because
+        they conduct less heat to the skin per unit time.  Most of us learn we
+        can coat our finger with saliva and touch things perhaps 100 to 150 °C
+        quickly, feeling and hearing a hiss.  We're not burned because the heat
+        of vaporization of the fluid keeps the heat from conducting to our
+        skin (sometimes called the Leidenfrost effect).
+    
+        A second wire (about 21 gauge, pulled from a surplus military device) was
+        run at 9 A, which is halfway between the two nearest Chass table values.
+        It also felt fine to my fingers, but sensitivity goes down on smaller
+        wires.  I increased the current by 1.25 times to 11.25 A (increased the
+        dissipated power by 50%) and it was warmer after about 5 minutes, but not
+        objectionably so.  This excellent wire was likely more expensive than
+        regular wire, as it was stranded and appeared to be tinned with solder.
+    
+        Rigging up some kind of temperature monitoring for this experiment would
+        make it more quantitative, but measuring the temperature of a small wire
+        without influencing the heat loss mechanisms is more work that I'd want
+        to invest.  Still, the experiment provided me with enough of an
+        engineering feel (no pun :^) that these current levels would be safe
+        should I want to base a design on them.  I don't have a DC power supply
+        capable of enough current to study wires at higher DC currents.
+    
+        A 24 gauge piece of copper wire held in alligator clips with 30 A through
+        the wire will glow a faint red in a room with the curtains drawn during
+        the daytime.  This should only be done for 10 or 20 s, as the alligator
+        clips will get hot.  From past experiments with heated metals, I'd guess
+        the temperature was around 550 to 600 °C.
+    
+    Note the current densities (j in A/mm²) for these Chass ratings are not
+    constant:
+    
+            AWG  j         AWG  j          AWG  j
+            --- ---        --- ---         --- ---
+                0  4.5         14  15          28  17
+                2  5.4         16  17          30  17
+                4  6.6         18  19          32  17
+                6  7.5         20  21          34  16
+                8  8.7         22  22          36  17
+            10   11         24  17          38  16
+            12   12         26  17          40  18
+    
+    When plotted, these data make me think someone derived these numbers from
+    an experiment.
+    
+    Pwr
+    ---
+    
+    The Pwr (power transmission) current is based on a maximum current density
+    of 2.82 A/mm² at DC conditions (this is quite conservative; compare it to
+    the Chass current densities above).
+    
+    NEC Ratings
+    -----------
+    
+    The NEC ratings are based on [2].  The values from 0 to 14 AWG are
+    specified by the NEC.  For 10, 12, and 14 gauge copper wire, note the
+    allowed currents in the table are higher than the circuit breaker rating
+    for a circuit wired with that wire, which must be 30, 20, and 15 A,
+    respectively, after corrections for ambient temperature and number of
+    conductors have been applied.
+    
+    The NEC ratings are more conservative than e.g. the Chassis current rating
+    because e.g. the wiring in a house must last for many decades and not cause
+    a fire.  When a city inspector approves an electrical installation, the
+    city (among others) is liable if that installation fails.  Thus,
+    governments will choose conservative and well-established rules for
+    construction to minimize their legal exposure.
+    
+                                    Fusing
+    ----------------------------------------------------------------------
+    
+    At high currents, enough Joule heat is generated in a wire to raise its
+    temperature; if the temperature is raised enough, the wire can melt.  To
+    calculate the current necessary to melt the wire, you have to solve for the
+    heat loss to the environment, the heat to raise the metal's temperature
+    (using the metal's specific heat (enthalpy)), and the heat to cause the
+    phase change from solid to liquid (heat of fusion).  
+    
+    Two treatments of this have been given in the literature:  Preece and
+    Onderdonk (see [4]).  Preece's experiment in the 1880's resulted in a
+    simple relationship:  the fusing current in A is proportional to the wire
+    diameter in inches to the 3/2 power.  The constant for copper is 10244.
+    
+    Who Onderdonk was is unknown, but he has an equation named after him.  This
+    equation relates the following physical quantities:
+    
+        * Fusing current
+        * Cross-sectional area of wire
+        * Time the current is applied to the wire
+        * Rise in temperature from the ambient to e.g. the melting temperature
+            of the wire
+    
+    The relevance of Onderdonk's work and the reason for the inclusion of time
+    is that power transmission designs have to carry short circuit currents for
+    a sufficient amount of time for the mechanical switching devices to open
+    the circuit to protect the conductors.
+    
+    Reference [4] gives a derivation for Onderdonk's equation by relating the
+    Joule heating of the wire to the temperature rise of the copper from the
+    Joule heat.  Key assumptions are 1) copper's resistivity increases linearly
+    with the temperature increase over ambient, 2) copper's specific heat is
+    constant to the melting point, and 3) the time involved is short enough
+    that heat losses to the environment can be ignored.  The treatment results
+    in a first order linear differental equation for the wire temperature as a
+    function of time.  The "short time" should probably no more than a few
+    seconds.  The derivation ignores the heat of fusion of the conductor, which
+    is probably reasonable, as once the conductor is at the melting point,
+    mechanical disruption is likely due to the mass of the conductor (i.e., its
+    own weight and loss of tensile strength could cause it to separate).
+    
+    If you're interested in seeing Onderdonk's equation, look at the
+    Onderdonk() function in the script.
+    
+                                References
+    ----------------------------------------------------------------------
+    
+    [1] https://en.wikipedia.org/wiki/American_wire_gauge
+    
+    [2] NEC is the National Electrical Code for the US.  It is a publication
+        of the National Fire Protection Association and is the basic
+        standard used for describing safe electrical practices.  See
+        https://www.nfpa.org.
+    
+    [3] SAMS, Handbook of Electronics Tables and Formulas, various editions.
+        The web page https://www.powerstream.com/Wire_Size.htm quotes this
+        reference as the source for the Chassis wiring ampacity values (I don't
+        have a copy of the original book).
+    
+    [4] https://pcdandf.com/pcdesign/index.php/magazine/10179-pcb-design-1507
+    
+    [5] ECMA-287 gives table 5.2 that specifies allowable touch temperatures
+        based on time of contact and material type.  Referenced here:
+        https://www.boydcorp.com/resources/resource-center/blog/
+            237-maximum-touch-temperature.html
+    
+    [6] https://en.wikipedia.org/wiki/
+        Electrical_resistivity_and_conductivity#Metals
+    
+    [7] See the plot at https://webbook.nist.gov/cgi/
+        cbook.cgi?ID=C7440508&Units=SI&Mask=7&Type=JANAFS&Plot=on#JANAFS
+    
+    [8] "Metals Handbook", Vol. 1, 8th ed., American Society of Metals, 1961,
+        copper graphs on page 1009.
+    
+    [9] HP 6033A power supply user manual, page 37.  This document gives copper
+        wire ampacities that are fairly close to the Chas ratings in this
+        document and are derived from MIL-W-5088B.  It also references IEC
+        publication 335-1.  In MIL-W-5088L, look at Figure 3 on page 46 and 47.
+    
+        '''.rstrip()))
+    print(dedent(f'''
+ 
+    Other information
+    -----------------
+    
+    For copper wire with silicone rubber insulation rated to 150 to 200 °C,
+    the approximate current density in A/mm² is 9.1 for 23 ga, 15 for 21
+    ga, and 20 for 20 ga.
+    
+    Resistance per unit length is for solid copper.  Stranded wire of the
+    same size can have a resistance up to 8% higher.  Twisting wires together
+    can add 0.5% to 3% more resistance because of increased length.
+    
+    Resistivity of Cu is {rho} nΩ·m.  Factors for other materials (at 20 °C):
+    Al: 1.6, Graphite: 2-36, Constantan (55Cu-45Ni): 29.1, Fe: 5.8, Pb: 12.3,
+    Manganin (86Cu-12Mn-2Ni): 25-27.9, Pt: 6.28, Ag: 0.950, W: 3.38, Zn: 3.54,
+    Nichrome(~ 80Ni-20Cr, sometimes Fe): 58-87, Stainless steel: 40
+    
+    The 0.041" diameter stainless steel wire from Harbor Freight has a resistance
+    of 0.1 Ω per 119 mm = 8.4 mΩ/cm = 21 mΩ/inch = 0.26 Ω/ft.
+    
+    RG-58/U coax has a 0.9 mm diameter inner conductor (19 gauge) and an outside
+    diameter of 5 mm.  Capacitance is 90 ± 5 pF/m.
+    
+    1000·TCR in 1/K @ 20 °C:  annealed copper: 3.93, aluminum: 3.8, carbon:
+    -0.25, iron: 5.0, lead: 4.3, Pt: 3.8, Ag: 4.0, W: 4.5, Zn: 3.7
+    '''))
+    exit(0)
+def ParseCommandLine(d):
+    d["-a"] = False     # Print the detailed ampacity data
+    d["-C"] = False     # Emit color escape codes even if not a tty
+    d["-c"] = False     # Emit color escape codes even if not a tty
+    d["-e"] = False     # Print an equivalence table
+    d["-i"] = False     # Interactive solution
+    d["-f"] = False     # Print an equivalence table
+    d["-t"] = False     # Print big equivalence table
+    try:
+        optlist, args = getopt.getopt(sys.argv[1:], "aCcefhHit")
+    except getopt.GetoptError as e:
+        print(str(e))
+        exit(1)
+    for o, a in optlist:
+        if o[1] in list("aCceft"):
+            d[o] = not d[o]
+        elif o == "-h":
+            Usage(status=0)
+        elif o == "-H":
+            Manpage()
+        elif o == "-i":
+            Error("-i option not currently supported")
+            Interactive()
+    if args and len(args) not in (1, 2):
+        Usage()
+    if d["-c"]:
+        global isatty
+        isatty = True
+    if d["-C"]:
+        global no_color
+        no_color = True
+    return args
+def Usage(status=1):
+    name = sys.argv[0]
+    print(dedent(f'''
+    Usage:  {name} [options] [n_awg m_awg]
+        With no arguments, print a copper wire table.  With one argument, 
+        print out a table of needed wires of other sizes to get equal area.
+        With two arguments, print the number of wires of the smaller wire
+        to match the area of the larger wire.
+    Options:
+        -a  Print detailed ampacity data
+        -C  Do not print in color
+        -c  Include escape sequences for color if std out is not a terminal
+        -e  Print out an equivalence table showing how many wires of a
+            particular gauge size are equal to another
+        -f  Print full table
+        -h  Print this help message
+        -H  Print detailed help message
+        -i  Interactively determine length, diameter, resistivity, or
+            resistance
+        -t  Show table for big wire equivalents
+    '''[1:-1]))
+    exit(status)
 def ShowResistivities():
     r = (
         ("Aluminum",        "1.6"),
@@ -566,7 +566,7 @@ def MaxCurrentDensity(diameter_m, temperature):
     ultimately comes from a linear regression of a log-log plot of the NEC
     allowed ampacities.  The temperature is the insulation rating of the
     wire and must be 60, 75, or 90 °C.
-
+ 
     The code is from an Open Office macro in Basic.
     '''
     slope = -0.820  # Common to each curve
@@ -725,14 +725,32 @@ def EquivalentArea(n, m):
     '''Given n ga wire, return how many m ga wires have the equivalent
     area.
     '''
-    assert(n <= m)
     D, d = [round(AWG(i), 4) for i in (n, m)]     # Diameter in inches
     ratio = flt(D/d)**2
     return D, d, ratio
+def SingleWireEquivalents(n):
+    if n > 40:
+        Error("Size must be <= 40")
+    print(f"Number of wires of different sizes to match {n} gauge in area:")
+    print(dedent(f'''
+                 Num
+    AWG         Wires
+    ---      -----------
+    '''))
+    flt(0).n = 2
+    flt(0).rtz = flt(0).rtdp = True
+    for i in range(0, 41, 2):
+        if i == n:
+            continue
+        D, d, ratio = EquivalentArea(n, i)
+        print(f"{i:3d}        {flt(ratio)!s:^6s}")
+    exit(0)
 def ShowEquivalentAreas(args, d):
     '''args is [n_awg, m_awg].  Print out how many of the smaller size wires
     are needed to equal the area of the larger wire.
     '''
+    if len(args) == 1:
+        SingleWireEquivalents(int(args[0]))
     n, m = [int(i) for i in args]
     n, m = (n, m) if n < m else (m, n) # Make n the larger AWG size
     D, d, ratio = EquivalentArea(n, m)
@@ -741,12 +759,46 @@ def ShowEquivalentAreas(args, d):
     {ratio} of {m} gauge wires = same area as one {n} gauge wire
     '''))
     exit(0)
+def PrintBigTable():
+    'This table is for getting big wires from smaller wires'
+    N = range(0, 25, 2)
+    m = 5
+    print(dedent('''
+    Number of equivalent wires for equal areas, rounded up
+    Row and column headings are AWG sizes
+
+    '''))
+    # Print row of numbers
+    print(" "*m, end="")
+    for i in N:
+        print(f"{i:^{m}d}", end="")
+    print()
+    # Print row of hyphens
+    print(" "*m, end="")
+    for i in N:
+        t = " " + "-"*(m - 2) + " "
+        print(f"{t:^{m}s}", end="")
+    print()
+    # Print table
+    for i in N:
+        print(f"{i:^{m}d}", end="")
+        for j in N:
+            D, d, ratio = EquivalentArea(i, j)
+            if ratio < 1:
+                print(f"{' ':{m}s}", end="")
+            else:
+                r = int(ratio + 0.5)
+                print(f"{r:^{m}d}", end="")
+        print()
+
 def PrintEquivalenceTable():
     '''Print out a list of gauge sizes with the number of wires of smaller
     sizes that are equivalent in area.
     '''
     print("Areal equivalence of AWG gauge numbers:  AWG gauge n is equivalent to")
     N = 10
+    flt(0).n = 2
+    flt(0).rtz = flt(0).rtdp = True
     for i in range(2, 21, 2):
         D, d, ratio = EquivalentArea(N, N + i)
         print(f"    {ratio} of (n + {i}) gauge")
@@ -903,7 +955,6 @@ def AmpacityData():
     Chass is the maximum current for a single isolated wire in air.  Pwr uses a
     current density of 2.82 A/mm².  Freq is the AC frequency where the skin
     depth equals the wire's radius.  Use the -H option for more details.'''))
-
 def MIL5088(gauge, ΔT):
     '''Return the allowed current for a wire of size AWG gauge.  The
     temperature differenct ΔT is the wire's rating minus the ambient
@@ -987,7 +1038,6 @@ def MIL5088(gauge, ΔT):
             mm = round(AWG(n)*25.4, 3)
             print(mm, intercept[n])
         exit()
-
 if __name__ == "__main__":
     d = {}      # Options dictionary
     args = ParseCommandLine(d)
@@ -995,10 +1045,12 @@ if __name__ == "__main__":
         AmpacityData()
     elif d["-e"]:
         PrintEquivalenceTable()
+    elif d["-t"]:
+        PrintBigTable()
     else:
         if args:
             ShowEquivalentAreas(args, d)
-        if d["-f"]:
+        elif d["-f"]:
             PrintTable(-3, 57, step=1)
         else:
             PrintTable(0, 41, step=2)

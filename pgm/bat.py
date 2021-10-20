@@ -71,11 +71,12 @@ Pb-acid *   2.0   1.75  CV/F 200    1        -20/65 Hi cap, mod ED
 NiMH *      1.2   1.0                               Hi ED, hi self-D
 * = secondary (rechargeable)   F = float   D = discharge   ED = energy density
                                EOL = end of life
-[Include a command line argument to see lithium coin cell data]
+Include a command line argument to see lithium coin cell data.  Use aa, aaa,
+etc. to see common battery PDF datasheets.
     '''[1:].rstrip())
 def PrintLithium():
     print(dedent(f'''
-Lithium (LiMn02 chemistry) Coin cells (3 V nom, 3.6 V open circuit)
+    Lithium (LiMn02 chemistry) Coin cells (3 V nom, 3.6 V open circuit)
       No.     Dia, mm   Thk, mm   Mass, g     mA*hr
     ------    -------   -------   -------     -----
     '''))

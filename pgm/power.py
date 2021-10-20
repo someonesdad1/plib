@@ -22,6 +22,7 @@ if 1:   # Imports
 if 1:   # Custom imports
     from wrap import dedent
     from f import flt
+    from fpformat import FPFormat
     from columnize import Columnize
     from u import u, ParseUnit
 if 1:   # Global variables
@@ -55,8 +56,6 @@ def ParseCommandLine(d):
     d["-l"] = False     # Print out lighting power too
     d["-t"] = False     # Instrument consumption
     x.n = d["-d"]
-    if len(sys.argv) < 2:
-        Usage(d)
     try:
         opts, args = getopt.getopt(sys.argv[1:], "d:hlr:t")
     except getopt.GetoptError as e:
@@ -83,9 +82,15 @@ def ParseCommandLine(d):
                 Error(msg)
         elif o in ("-h", "--help"):
             Usage(d, status=0)
+    x.n = d["-d"]
+    if d["-t"]:
+        Instruments()
+        exit(0)
+    if d["-l"]:
+        Lighting()
+        exit(0)
     if not args:
         Usage(d)
-    x.n = d["-d"]
     return args
 def F(x):
     'For flt x, if str has trailing decimal point, remove it'
@@ -105,7 +110,6 @@ def Lighting():
         # Table from https://en.wikipedia.org/wiki/Lumen_%28unit%29
         # Accessed 25 Jan 2017.
         print(dedent('''
-        
                     Lighting electrical power consumption, W
                  120 V
         lumens   incand.     CFL         LED 
@@ -160,29 +164,45 @@ def Power(power_expr):
     for i in Columnize(results):
         print(i)
 def Instruments():
-        print(dedent('''
-                    Test Instrument Power Consumption, W
-        Instrument (quiescent)                Power, W      ¢/day
-        ------------------------------        --------      -----
-        HP 3456A    Voltmeter                   21            3.3
-        B&K 9130    Power supply                20            3.1
-        HP 54601B   Oscilloscope                50            7.8
-        HP 3400A    RMS voltmeter                7            1.1
-        HP 3435A    Digital multimeter           2            0.3
-        B&K 4052    Function generator          15            2.3
-        B&K 8500    DC Load                      9            1.4
-        HP E3615A   Power supply                 7            1.1
-        HP 6033A    Power supply                38            5.9
-        HP 6038A    Power supply                34            5.3
-        B&K 2556A   Oscilloscope                20            3.1
-          All of these cost about 35¢ per day
-        '''))
+    fp= FPFormat()  # Use to line up cost decimal points
+    fp.digits(2)
+    inst = {
+        "HP 427A     Voltmeter": 0.5,
+        "HP 3435A    Digital multimeter": 2,
+        "HP 3466A    Digital multimeter": 2,
+        "HP 3400A    RMS voltmeter": 7,
+        "HP E3615A   Power supply": 7,
+        "B&K 8500    DC Load": 9,
+        "B&K 4052    Function generator": 13,
+        "B&K 2556A   Oscilloscope": 20,
+        "B&K 9130    Power supply": 20,
+        "HP 3456A    Voltmeter": 21,
+        "HP 6038A    Power supply": 34,
+        "HP 6033A    Power supply": 38,
+        "HP 54601B   Oscilloscope": 50,
+    }
+    print(dedent(f'''
+    Cost to run various instruments (power supplies in quiescent state)
+
+    Instrument                       Power, W     ¢/day     $/year
+    ------------------------------   --------     -----     ------
+    '''))
+    c = flt(1.80556e-08)     # Power cost in $/J
+    cent_day = 24*3600*100*c    # Cost of 1 W for 24 hr in cents
+    c.rtz = c.rtdp = True
+    # Number check:  1 W for 24 hr is 24*3600 J or 86400 J.  At 2.78e-7 $/J,
+    # this is a cost of $0.0240.  Thus, a 20 W instrument should cost 48
+    # cents per day or $175/year.
+    for i, pow in inst.items():
+        day = flt(pow*cent_day)
+        yr = flt(365.25*day/100)
+        p = fp.dp(pow, width=6, dpoint=3)
+        d = fp.dp(day, width=6, dpoint=3)
+        y = fp.dp(yr, width=6, dpoint=3)
+        print(f"{i:32s} {p:8s}    {d:6s}     {y:6s}")
+    print("Cost of power is 6.5¢ per kW*hr = 1.806e-8 $/J")
 if __name__ == "__main__":
     d = {}  # Options dictionary
     args = ParseCommandLine(d)
     for arg in args:
         Power(arg)
-    if d["-l"]:
-        Lighting()
-    if d["-t"]:
-        Instruments()

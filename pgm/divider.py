@@ -24,6 +24,9 @@ if 1:   # Imports
 if 1:   # Custom imports
     from wrap import dedent
     from resistors import Resistors, GetClosest
+    # Note:  leave the use of sig.py.  Changing to flt's with f.py
+    # increases the running time of a typical problem by an order of
+    # magnitude.
     from sig import sig
     from u import ParseUnit, SI_prefixes
     from fpformat import FPFormat
@@ -52,23 +55,29 @@ def Usage(d, status=1):
     
     Options
       -2        Solve the problem 2 problem
+      -r        Sort by divider resistance match [default]
+      -s        Sort by divider ratio match
       -t res    Set the minimum ratio of Rtotal/Rdesired to keep
       -T res    Set the maximum ratio of Rtotal/Rdesired to keep
     '''))
     exit(status)
 def ParseCommandLine(d):
     d["-2"] = False
+    d["-r"] = False
+    d["-s"] = False
     d["-t"] = None
     d["-T"] = None
     if len(sys.argv) < 2:
         Usage(d)
     try:
-        opts, args = getopt.getopt(sys.argv[1:], "2t:T:")
+        opts, args = getopt.getopt(sys.argv[1:], "2rst:T:")
     except getopt.GetoptError as e:
         print(str(e))
         exit(1)
     for o, a in opts:
-        if o in ("-t", "-T"):
+        if o[1] in "rs":
+            d[o] = not d[o]
+        elif o in ("-t", "-T"):
             d[o] = GetR(a)
         elif o in ("-2",):
             Problem2(args, d)
@@ -77,6 +86,8 @@ def ParseCommandLine(d):
         Usage(d)
     if len(args) == 2:
         args.append(number_limit_default)
+    if d["-r"] and d["-s"]:
+        Error("Cannot set both -r and -s")
     sig.digits = 3
     sig.rtz = True
     return args
