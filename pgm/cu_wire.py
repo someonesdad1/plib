@@ -790,7 +790,6 @@ def PrintBigTable():
                 r = int(ratio + 0.5)
                 print(f"{r:^{m}d}", end="")
         print()
-
 def PrintEquivalenceTable():
     '''Print out a list of gauge sizes with the number of wires of smaller
     sizes that are equivalent in area.
@@ -1049,7 +1048,11 @@ if __name__ == "__main__":
         PrintBigTable()
     else:
         if args:
-            ShowEquivalentAreas(args, d)
+            if args[0] == "a":
+                AmpacityData()
+                PrintBigTable()
+            else:
+                ShowEquivalentAreas(args, d)
         elif d["-f"]:
             PrintTable(-3, 57, step=1)
         else:
