@@ -31,6 +31,7 @@ def Error(*msg, status=1):
     print(*msg, file=sys.stderr)
     exit(status)
 def Usage(d, status=1):
+    flt(0).n = 3
     print(dedent(f'''
     Usage:  {sys.argv[0]} [options] power_in_W [unit]
       Prints out various period costs of electrical power (for the rate of
@@ -46,23 +47,25 @@ def Usage(d, status=1):
       -d n      Set the number of significant figures in the output [{d["-d"]}]
       -l        Print typical lighting power table
       -r C      Change the cost per kW*hr to C dollars
-      -t        Print the consumption of various instruments
+      -i        Print the consumption of various instruments
+      -t        Show some costs for typical appliances
     '''))
     exit(status)
 def ParseCommandLine(d):
     x = flt(0)
-    d["-r"] = "0.065"   # Cost of kW*hr of electrical energy in $
+    d["-r"] = "0.104"   # Cost of kW*hr of electrical energy in $
     d["-d"] = 2         # Number of significant digits
     d["-l"] = False     # Print out lighting power too
-    d["-t"] = False     # Instrument consumption
+    d["-i"] = False     # Instrument consumption
+    d["-t"] = False     # Table of typical costs
     x.n = d["-d"]
     try:
-        opts, args = getopt.getopt(sys.argv[1:], "d:hlr:t")
+        opts, args = getopt.getopt(sys.argv[1:], "d:hilr:t")
     except getopt.GetoptError as e:
         print(str(e))
         exit(1)
     for o, a in opts:
-        if o[1] in "lt":
+        if o[1] in "ilt":
             d[o] = not d[o]
         if o in ("-r",):
             try:
@@ -83,11 +86,14 @@ def ParseCommandLine(d):
         elif o in ("-h", "--help"):
             Usage(d, status=0)
     x.n = d["-d"]
-    if d["-t"]:
+    if d["-i"]:
         Instruments()
         exit(0)
-    if d["-l"]:
+    elif d["-l"]:
         Lighting()
+        exit(0)
+    elif d["-t"]:
+        TypicalAppliances()
         exit(0)
     if not args:
         Usage(d)
@@ -167,6 +173,7 @@ def Instruments():
     fp= FPFormat()  # Use to line up cost decimal points
     fp.digits(2)
     inst = {
+        # Item:  power in W
         "HP 427A     Voltmeter": 0.5,
         "HP 3435A    Digital multimeter": 2,
         "HP 3466A    Digital multimeter": 2,
@@ -187,7 +194,7 @@ def Instruments():
     Instrument                       Power, W     ¢/day     $/year
     ------------------------------   --------     -----     ------
     '''))
-    c = flt(1.80556e-08)     # Power cost in $/J
+    c = flt(2.77778e-07)*d["-r"]/100  # Power cost in $/J
     cent_day = 24*3600*100*c    # Cost of 1 W for 24 hr in cents
     c.rtz = c.rtdp = True
     # Number check:  1 W for 24 hr is 24*3600 J or 86400 J.  At 2.78e-7 $/J,
@@ -197,10 +204,120 @@ def Instruments():
         day = flt(pow*cent_day)
         yr = flt(365.25*day/100)
         p = fp.dp(pow, width=6, dpoint=3)
-        d = fp.dp(day, width=6, dpoint=3)
+        D = fp.dp(day, width=6, dpoint=3)
         y = fp.dp(yr, width=6, dpoint=3)
-        print(f"{i:32s} {p:8s}    {d:6s}     {y:6s}")
+        print(f"{i:32s} {p:8s}    {D:6s}     {y:6s}")
     print("Cost of power is 6.5¢ per kW*hr = 1.806e-8 $/J")
+def TypicalAppliances():
+    # Most of this data from https://generatorist.com/power-consumption-of-household-appliances
+    items = [
+        ("100 W light bulb", 100),
+        ("75 W light bulb", 75),
+        ("60 W light bulb", 60),
+        ("20 W LED or CFL light bulb", 20),
+        ("10 W LED light bulb", 10),
+        ("1.2 kW electric heater", 1200),
+        ("1 W LED light", 1),
+        ("Heat pump", 4700),
+        ("Electric water heater", 4000),
+        ("Tankless electric water heater", 6600),
+        ("1/2 hp well pump", 1000),
+        ("Central air conditioning", 3800),
+        ("1/3 hp furnace fan", 700),
+        ("Microwave", 1000),
+        ("Electric stove, 8 inch element", 2100),
+        ("Electric oven", 2150),
+        ("Electric clothes dryer", 5400),
+        ("Hair dryer", 1250),
+        ("Freezer", 500),
+        ("Dishwasher", 1500),
+        ("Modern refrigerator", 400),
+        ("Smart refrigerator", 500),
+        ("Washing machine", 1150),
+        ("Vacuum cleaner", 1150),
+        ("Desktop computer", 100),
+        ("Laser print (running)", 600),
+        ("Pedestal fan", 50),
+    ]
+    items = sorted([(i[1], i[0]) for i in items])
+    w = max([len(i[1]) for i in items])
+    print(f"{'Item':^{w}s}  Watts    ¢ per 8 hr")
+    print(f"{'-'*w:^{w}s}  -----    ----------")
+    c = 100*flt(2.77778e-07)*d["-r"]  # Power cost in cents/J
+    cents_day = 8*3600*c    # Cost of 1 W for 8 hr in cents
+    for item in items:
+        power_W, name = item
+        cost = cents_day*power_W
+        print(f"{name:{w}s}  {int(power_W):4d}     {cost!s:^11s}")
+def PowerCostByState():
+    '''Return a dict keyed by state with value of average cost in cents per
+    kW*hr.
+    '''
+    # Residential power costs from https://www.eia.gov/electricity/monthly/epm_table_grapher.php?t=epmt_5_6_a	
+    # Downloaded 22 Oct 2021	
+    # Average cost in cents per kW*hr	
+    data = '''
+        10.24 	Washington 
+        10.41 	Idaho 
+        10.86 	Nevada 
+        10.91 	Louisiana 
+        11.00 	Utah 
+        11.23 	Oklahoma 
+        11.26 	Tennessee 
+        11.42 	Arkansas 
+        11.49 	Oregon 
+        11.56 	North Carolina 
+        11.56 	Montana 
+        11.60 	Kentucky 
+        11.63 	Nebraska 
+        11.65 	Mississippi 
+        11.72 	Wyoming 
+        11.75 	Texas 
+        11.88 	Delaware 
+        11.89 	Florida 
+        12.11 	West Virginia 
+        12.23 	North Dakota 
+        12.64 	Arizona 
+        12.71 	Virginia 
+        12.85 	South Dakota 
+        12.90 	South Carolina 
+        12.91 	District of Columbia 
+        12.98 	Maryland 
+        13.07 	Kansas 
+        13.12 	Ohio 
+        13.21 	Missouri 
+        13.23 	Illinois 
+        13.35 	Alabama 
+        13.43 	Indiana 
+        13.44 	Colorado 
+        13.55 	Georgia 
+        13.73 	Pennsylvania 
+        13.98 	Minnesota 
+        14.39 	Iowa 
+        14.49 	New Mexico 
+        14.56 	Wisconsin 
+        16.38 	Maine 
+        16.99 	New Jersey 
+        17.79 	Michigan 
+        18.99 	Vermont 
+        19.05 	New Hampshire 
+        19.60 	New York 
+        20.50 	Rhode Island 
+        22.04 	Connecticut 
+        22.45 	California 
+        22.85 	Massachusetts 
+        23.42 	Alaska 
+        33.24 	Hawaii 
+    '''
+    pc = {}
+    for line in data.split("\n"):
+        line = line.strip()
+        if not line:
+            continue
+        cost, state = line.split("\t")
+        print(flt(cost), state)
+        pc[state] = flt(cost)
+    return pc
 if __name__ == "__main__":
     d = {}  # Options dictionary
     args = ParseCommandLine(d)
