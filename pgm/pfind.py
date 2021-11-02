@@ -31,6 +31,7 @@ if 1:   # Imports
     import subprocess
     from collections import OrderedDict as odict
     from pdb import set_trace as xx
+    from pathlib import Path as P
 if 1:   # Custom imports
     from wrap import dedent
     # Try to import the color.py module; if not available, the script
@@ -244,6 +245,7 @@ def Usage(d, status=2):
       -d        Show directories only
       -e glob   Show only files that match glob pattern (can be multiples)
       -f        Show files only
+      -F        Show files only (exclude picture files)
       -h        Show hidden files/directories that begin with '.'
       -i        Case-sensitive search
       -L        Follow directory soft links (defaults to False)
@@ -293,6 +295,7 @@ def ParseCommandLine(d):
     d["-S"] = False     # Print source code files
     d["-c"] = False     # Force color coding
     d["-d"] = False     # Show directories only
+    d["-F"] = False     # Show files only but no picture files
     d["-f"] = False     # Show files only
     d["-h"] = False     # Show hidden files/directories
     d["-i"] = False     # Case-sensitive search
@@ -308,68 +311,48 @@ def ParseCommandLine(d):
     try:
         optlist, args = getopt.getopt(
                 sys.argv[1:], 
-                "C:DLPScde:fhil:prsVx:",
+                "C:DLPScde:Ffhil:prsVx:",
                 longopts="S git hg rcs".split()
         )
     except getopt.GetoptError as str:
         msg, option = str
         print(msg)
         exit(1)
-    for opt in optlist:
-        if opt[0] == "-C":
-            d["-C"] = opt[1]
-        elif opt[0] == "-D":
-            d["-D"] = True
+    for o, a in optlist:
+        if o[1] in "DLPScdFfhiprs":
+            d[o] = not d[o]
+        if o == "-D":
             d["-e"] += documentation_files
-        elif opt[0] == "-h":
-            d["-h"] = True
-        elif opt[0] == "-i":
-            d["-i"] = True
-        elif opt[0] == "-L":
-            d["-L"] = not d["-L"]
-        elif opt[0] == "-P":
-            d["-P"] = True
+        if o == "-P":
             d["-e"] += picture_files
-        elif opt[0] == "-S":
-            d["-S"] = True
+        if o == "-S":
             d["-e"] += source_code_files
-        elif opt[0] == "-c":
-            d["-c"] = not d["-c"]
-        elif opt[0] == "-d":
-            d["-d"] = not d["-d"]
-        elif opt[0] == "-f":
-            d["-f"] = not d["-f"]
-        elif opt[0] == "-e":
-            d["-e"] += opt[1].split(d["-C"])
-        elif opt[0] == "-l":
-            n = int(opt[1])
+        if o == "-e":
+            d[o] += a.split(d["-C"])
+        if o == "-l":
+            n = int(a)
             if n < 0:
                 raise ValueError("-l option must include number >= 0")
-            d["-l"] = n
-        elif opt[0] == "-p":
-            d["-p"] = not d["-p"]
+            d[o] = n
+        if o == "-p":
             d["-e"] += ["*.py"]
-        elif opt[0] == "-r":
-            d["-r"] = not d["-r"]
-        elif opt[0] == "-s":
-            d["-s"] = not d["-s"]
-        elif opt[0] == "-V":
+        if o == "-V":
             d["-h"] = True
             d["-V"] = version_control
-        elif opt[0] == "-x":
-            s, c = opt[1], d["-C"]
-            d["-x"] += opt[1].split(d["-C"])
+        if o == "-x":
+            s, c = o, d["-C"]
+            d["-x"] += a.split(d["-C"])
         # Long options
-        elif opt[0] == "--S":
+        if o == "--S":
             d["-S"] = True
             d["-e"] += source_code_files_long
-        elif opt[0] == "--hg":
+        elif o == "--hg":
             d["-h"] = True
             d["-V"] += ["hg"]
-        elif opt[0] == "--git":
+        elif o == "--git":
             d["-h"] = True
             d["-V"] += ["git"]
-        elif opt[0] == "--rcs":
+        elif o == "--rcs":
             d["-h"] = True
             d["-V"] += ["RCS"]
     if len(args) < 1:
@@ -549,11 +532,23 @@ def Join(root, name, d, isdir=False):
     d["search"][s] = isdir
 def Find(dir, d):
     def RemoveHidden(names):
-        '''Unless d["-h"] is set, remove any name that begins with
-        '.'.
+        '''Unless d["-h"] is set, remove any name that begins with '.'.
         '''
         if not d["-h"]:
             names = [i for i in names if i[0] != "."]
+        return names
+    pics = set([i[2:] for i in picture_files])
+    def RemovePictures(names):
+        '''If d["-F"] is True, remove picture file names
+        '''
+        if d["-F"]:
+            keep = []
+            for i in names:
+                p = P(i)
+                ext = p.suffix[1:]
+                if ext not in pics:
+                    keep.append(i)
+            return keep
         return names
     contains = d["regex"].search
     J = lambda root, name: Normalize(os.path.join(root, name))
@@ -568,6 +563,7 @@ def Find(dir, d):
         if not d["-h"] and has_dot:
             continue
         files = RemoveHidden(files)
+        files = RemovePictures(files)
         dirs = RemoveHidden(dirs)
         if find_files:
             [Join(root, name, d) for name in files if contains(name)]

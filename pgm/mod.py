@@ -118,7 +118,7 @@ if 1:   # Global variables
         -l  Decorate output with time since last change
         -m  Include ignored directories (repositories, etc.)
         -n  Show files that have not changed
-        -p  Ignore picture files
+        -p  Do not ignore picture files
         -r  Do not recurse
         -t  Sort the output names by age (most-recently changed last)
         -w  Make names case insensitive (for Windows)
@@ -130,7 +130,7 @@ def ParseCommandLine(d):
     d["-l"] = False
     d["-m"] = False
     d["-n"] = False
-    d["-p"] = False
+    d["-p"] = True
     d["-r"] = False
     d["-t"] = False
     d["-w"] = False
@@ -164,26 +164,10 @@ def ParseCommandLine(d):
         print(str(e))
         sys.exit(1)
     for o, a in optlist:
-        if o == "-c":
-            d["-c"] = not d["-c"]
-        elif o == "-D":
-            d["dbg"] = True
-        elif o == "-h":
+        if o[1] in "cDlmnprtw":
+            d[o] = not d[o]
+        if o == "-h":
             Usage(d, 0)
-        elif o == "-l":
-            d["-l"] = not d["-l"]
-        elif o == "-m":
-            d["-m"] = not d["-m"]
-        elif o == "-n":
-            d["-n"] = not d["-n"]
-        elif o == "-p":
-            d["-p"] = not d["-p"]
-        elif o == "-r":
-            d["-r"] = not d["-r"]
-        elif o == "-t":
-            d["-t"] = not d["-t"]
-        elif o == "-w":
-            d["-w"] = not d["-w"]
         elif o == "-x":
             d["-x"].append(a)
     if not args:

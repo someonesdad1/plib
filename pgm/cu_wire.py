@@ -1,7 +1,8 @@
 '''
 TODO:
  
-* Change to flt variables.
+* Add -L option to specify a length.  Then table should print resistance of
+  that length.
 * Change -i option to use u.py library so common units can be input.
 * Finish MIL5088(gauge, ΔT) function.
  
@@ -323,9 +324,9 @@ def Manpage():
     can add 0.5% to 3% more resistance because of increased length.
     
     Resistivity of Cu is {rho} nΩ·m.  Factors for other materials (at 20 °C):
-    Al: 1.6, Graphite: 2-36, Constantan (55Cu-45Ni): 29.1, Fe: 5.8, Pb: 12.3,
-    Manganin (86Cu-12Mn-2Ni): 25-27.9, Pt: 6.28, Ag: 0.950, W: 3.38, Zn: 3.54,
-    Nichrome(~ 80Ni-20Cr, sometimes Fe): 58-87, Stainless steel: 40
+    Al: 1.6, Brass: 4.1, Graphite: 2-36, Constantan (55Cu-45Ni): 29.1, Fe: 5.8,
+    Pb: 12.3, Manganin (86Cu-12Mn-2Ni): 25-27.9, Pt: 6.28, Ag: 0.950, W: 3.38,
+    Zn: 3.54, Nichrome(~ 80Ni-20Cr, sometimes Fe): 58-87, Stainless steel: 40
     
     The 0.041" diameter stainless steel wire from Harbor Freight has a resistance
     of 0.1 Ω per 119 mm = 8.4 mΩ/cm = 21 mΩ/inch = 0.26 Ω/ft.
@@ -343,15 +344,16 @@ def ParseCommandLine(d):
     d["-c"] = False     # Emit color escape codes even if not a tty
     d["-e"] = False     # Print an equivalence table
     d["-i"] = False     # Interactive solution
-    d["-f"] = False     # Print an equivalence table
-    d["-t"] = False     # Print big equivalence table
+    d["-F"] = False     # Print full table
+    d["-f"] = False     # Print big stuff
+    d["-t"] = False     # Print equivalence table
     try:
-        optlist, args = getopt.getopt(sys.argv[1:], "aCcefhHit")
+        optlist, args = getopt.getopt(sys.argv[1:], "aCceFfhHit")
     except getopt.GetoptError as e:
         print(str(e))
         exit(1)
     for o, a in optlist:
-        if o[1] in list("aCceft"):
+        if o[1] in list("aCceFft"):
             d[o] = not d[o]
         elif o == "-h":
             Usage(status=0)
@@ -383,7 +385,8 @@ def Usage(status=1):
         -c  Include escape sequences for color if std out is not a terminal
         -e  Print out an equivalence table showing how many wires of a
             particular gauge size are equal to another
-        -f  Print full table
+        -f  Print table of big sizes by 1 gauge steps
+        -F  Print full table by 1 gauge steps
         -h  Print this help message
         -H  Print detailed help message
         -i  Interactively determine length, diameter, resistivity, or
@@ -837,14 +840,15 @@ def f(x):
 def g(x):
     'Cuddled eng string'
     return Strip(fp.engsic(x))
-def PrintTable(n, m, step=1):
+def PrintTable(n, m, step=1, others=[]):
     '''Print the copper wire table from AWG n to m in the indicated
     steps.'''
     print(dedent(f'''{" "*11} Diameter    Res/length    Length/mass  Area      Amps    Freq  Break
      AWG  mils    mm    Ω/ft    Ω/m   ft/lb   m/kg  mm²  Chass  Pwr   kHz   lbf
     ----  ----- ------ ------  -----  -----  ----- ----- ----- ----- ----- -----
     ''')[:-1].replace("!", " "))
-    for n in range(n, m, step):
+    sizes = sorted(set(list(range(n, m, step)) + others))
+    for n in sizes:
         PrintLine(n)
 def PrintLine(awg):
     fp.digits(3)
@@ -1053,8 +1057,10 @@ if __name__ == "__main__":
                 PrintBigTable()
             else:
                 ShowEquivalentAreas(args, d)
-        elif d["-f"]:
+        elif d["-F"]:
             PrintTable(-3, 57, step=1)
+        elif d["-f"]:
+            PrintTable(-3, 25, step=1)
         else:
-            PrintTable(0, 41, step=2)
+            PrintTable(0, 41, step=2, others=[-3, -2, -1])
 # vim: wm=5

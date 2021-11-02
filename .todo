@@ -1,3 +1,6 @@
+* notes file:  write a python replacement for agrep.  First, see if the
+  cygwin setup tool offers it.
+
 * dpmath.py:  This would be a general-purpose module for math calculations.
     * Types
         * flt:  derived from float

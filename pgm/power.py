@@ -25,6 +25,7 @@ if 1:   # Custom imports
     from fpformat import FPFormat
     from columnize import Columnize
     from u import u, ParseUnit
+    from color import C
 if 1:   # Global variables
     ii = isinstance
 def Error(*msg, status=1):
@@ -151,14 +152,15 @@ def Power(power_expr):
     else:
         pwr = "{} W".format(power_expr)
         s = "A power of {} ({} hp)".format(pwr, hp)
+    N = C.norm
     print("{} costs (at {:.1f} ¢ per kW*hr):".format(s,
           dollar_per_kW_hr*100))
     print(Money(power_W*dollar_per_joule*hour, "hour"))
-    print(Money(power_W*dollar_per_joule*eight_hour_day, "8 hour day"))
+    print(C.lgrn, Money(power_W*dollar_per_joule*eight_hour_day, "8 hour day"), N, sep="")
     print(Money(power_W*dollar_per_joule*day, "day"))
-    print(Money(power_W*dollar_per_joule*week, "week"))
+    print(C.lyel, Money(power_W*dollar_per_joule*week, " week"), N, sep="")
     print(Money(power_W*dollar_per_joule*month, "month"))
-    print(Money(power_W*dollar_per_joule*year, "year"))
+    print(C.lred, Money(power_W*dollar_per_joule*year, "year"), N, sep="")
     cpy = power_W*dollar_per_joule*year
     print("Yearly cost as a function of hours per day:")
     hr_per_day = 24
