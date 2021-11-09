@@ -38,7 +38,7 @@ if 1:   # Global variables
     # On-hand resistor values.  Change these entries to match what you have.
     on_hand = dedent('''
 
-    0.025 0.2 0.27 0.33           1 2.2 4.6 8.3
+    0.025 0.18 0.2 0.27 0.33           1 2.2 4.6 8.3
 
     10.1 12 14.7 15 17.8 22 27 28.4 30 31.6 33 35 38.4 46.3 50 55.5 61.8 67
     75 78 81

@@ -21,14 +21,34 @@ if 1:   # Imports
     import os
     import sys
     from pdb import set_trace as xx 
-if 1:   # Custom imports
-    from wrap import dedent
-    from columnize import Columnize
-if 0:   # For plotting
+if 1:   # For plotting
     # For plots
     from pylab import *
-    if 0:
-        # banggood 88 cent 10 W bright white LEDs, 12 Feb 2017:  plot i/V
+    if 1:   # banggood 5 mm LEDs
+        P = plot
+        P = semilogx
+        P = loglog
+        i = (1, 5, 10, 20, 30, 40, 50)
+        # Green
+        V = (2.31, 2.52, 2.67, 2.85, 2.96, 3.04, 3.08)
+        P(i, V, "go-", label="Green")
+        # Red
+        V = (1.79, 2.02, 2.18, 2.36, 2.52, 2.65, 2.74)
+        P(i, V, "ro-", label="Red")
+        # Blue
+        V = (2.66, 2.88, 3.05, 3.27, 3.36, 3.45, 3.53)
+        P(i, V, "bo-", label="Blue")
+        # White
+        V = (2.61, 2.84, 3.03, 3.30, 3.27, 3.70, 3.85)
+        P(i, V, "ko-", label="White")
+        title("banggood 5 mm LEDs")
+        xlabel("Current, mA")
+        ylabel("Voltage, V")
+        grid()
+        legend()
+        show()
+        exit(0)
+    if 0:   # banggood 88 cent 10 W bright white LEDs, 12 Feb 2017:  plot i/V
         i_mA = (10, 20, 50, 100, 150, 200, 250, 300, 400, 500, 600, 700, 750,
                 800, 900, 1000, 1100)
         V_V = (8.14, 8.34, 8.71, 9.25, 9.71, 10.1, 10.47, 10.77, 11.34, 11.84,
@@ -53,9 +73,7 @@ if 0:   # For plotting
         title("Banggood 88 cent LED, 10 W")
         text(100, 14.5, "Rated 10 W power attained around 800 mA")
         show()
-
-    if 0:
-        # Gossen light meter
+    if 0:   # Gossen light meter
         ev = range(-2, 17)
         lux = (1.4, 2.8, 5.5, 11, 22, 44, 88, 175, 350, 700, 1400, 2800,
             5500, 11e3, 22e3, 44e3, 88e3, 175e3, 350e3)
@@ -65,9 +83,7 @@ if 0:   # For plotting
         title("Gossen Light Meter")
         plot(ev, log(lux)/log(2))
         show()
-
-    if 0:
-        # banggood $3 white LED striplight
+    if 0:   # banggood $3 white LED striplight
         V = (7.41, 7.64, 7.86, 7.95, 8.06, 8.19, 8.29, 8.37, 8.45, 9.56, 10.65,
             12.00, 12.45, 14.18, 15.79, 17.34)
         i_mA = (0.0019, 0.0090, 0.0512, 0.1013, 0.198, 0.408, 0.601, 0.806,
@@ -78,9 +94,7 @@ if 0:   # For plotting
         ylabel("Forward voltage, V")
         title("Banggood $3 strip LED lights, 5 m, one 50 mm section")
         show()
-
-    if 0:
-        # Single LED from banggood $3 white LED striplight
+    if 0:   # Single LED from banggood $3 white LED striplight
         i_mA = array((1, 5, 10, 15, 20, 30, 40, 50, 75))
         # Relative to 2.6 EV
         EV = array((-2.5, -0.5, 0.33, 0.8, 1.15, 1.6, 1.8, 2, 2))
@@ -96,10 +110,8 @@ if 0:   # For plotting
         text(20, 40, "Model:  lux = 6.9*i^0.775")
         text(20, 32, "Valid for 1 to 50 mA")
         show()
-
-    if 0:
-        # Measure voltage across banggood $3 white LED strip's 151 ohm
-        # resistor to get section current.
+    if 0: # Measure voltage across banggood $3 white LED strip's 151 ohm
+          # resistor to get section current.
         i_mA = array((0, 50))
         R = 151
         v = i_mA*R/1000
@@ -109,8 +121,7 @@ if 0:   # For plotting
         ylabel("Current through element, mA")
         title("Banggood $3 strip LED lights, measuring current flow")
         show()
-
-    if 0:
+    if 0:   # banggood $3 white LED strip
         # Drop in current as function of section number:  banggood $3 white
         # LED strip.  (Section #40 had shorted 151 ohm resistor, so couldn't
         # estimate current.)
@@ -128,8 +139,7 @@ if 0:   # For plotting
         plot(section, exp(-section/100), "r")
         text(40, 0.83, "Red:  exp(-section/100)")
         show()
-
-    if 0:
+    if 0:   # banggood $3 white LED strip
         # Drop in voltage as function of section number:  banggood $3 white
         # LED strip.  
         section = array((0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 20, 30, 40, 50,
@@ -146,9 +156,7 @@ if 0:   # For plotting
         plot(section, 2.1*(1 - exp(-section**1.25/100)), "r")
         text(40, 0.83, "Red:  2.1*(1 - exp(-section^1.25/100))")
         show()
-
-    if 0:
-        # 42 section $3 banggood white strip.  Drop in lux as normal
+    if 0:   # 42 section $3 banggood white strip.  Drop in lux as normal
         # distance from strip increases.
         z_m = array((0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1, 1.1,
                     1.2, 1.3, 2.1))
@@ -176,9 +184,7 @@ if 0:   # For plotting
         plot(z_m, 60/z_m, "m")
         text(0.5, 250, "Magenta:  60/z, so inverse fall-off model is reasonable")
         show()
-
-    if 0:
-        # 42 section $3 banggood white strip.  Drop in lux as transverse
+    if 0:   # 42 section $3 banggood white strip.  Drop in lux as transverse
         # distance increases.  Distance from strip is 1.345 m.
         h_m = array((0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1, 1.1,
                     1.2, 1.3, 1.4, 1.5, 1.6, 1.7, 1.8, 1.9, 2, 2.1, 2.2))
@@ -194,9 +200,7 @@ if 0:   # For plotting
             "lux vs horiz distance with z = 1.345 m")
         plot((0.2, 2.2 - 0.383), (33.3, 5.5), "r")
         show()
-
-    if 0:
-        # Single section $3 banggood white strip.  EV measured as function
+    if 0:   # Single section $3 banggood white strip.  EV measured as function
         # of normal distance (note integrating sphere axis was about 5 mm
         # below the LED's normal for all but the first measurement at z = 0).
         if 1:  # Plot all
@@ -227,6 +231,9 @@ if 0:   # For plotting
         title("Banggood $3 strip LED lights:\n"
             "lux vs distance along normal")
         show()
+if 1:   # Custom imports
+    from wrap import dedent
+    from columnize import Columnize
 def LED_data():
     LEDs = dedent('''
                         LED Characteristics
@@ -345,7 +352,19 @@ def LED(color="green"):
         leds["green"].append((Int(i_mA), V_green, int(1000*V_green/i_mA)))
         leds["blue"].append((Int(i_mA), V_blue, int(1000*V_blue/i_mA)))
     return leds[color]
+def Iterate(R, V, color):
+    '''Given R in ohms and V in volts, estimate the current through the
+    given color of banggood LED.  color must be 'red', 'yel', grn', 'blu',
+    'wht'.
+    '''
+    i_mA = 1000*V/R     # Current must be less than this value
+    if i_mA > 50:
+        print("Current > 50 mA")
+        exit(1)
+
 if __name__ == "__main__": 
+    #if len(sys.argv) > 1:
+    #    Iterate(sys.argv[1:])
     LED_data()
     print()
     print(dedent('''

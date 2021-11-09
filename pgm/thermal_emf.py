@@ -1,4 +1,9 @@
 '''
+TODO
+
+    * Rewrite to use interpolate.LinearInterp() to remove the need for
+      scipy.
+
 Provides a table of thermal EMFs between two metals
 
     The data are from the 1957 AIP "Handbook of Physics", pg 4-8,

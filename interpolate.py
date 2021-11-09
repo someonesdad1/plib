@@ -16,6 +16,7 @@ if 1:  # Copyright, license
     pass
 if 1:  # Imports
     import bisect
+    from pdb import set_trace as xx
 def LagrangeInterpolation(x, X, Y, strict=False):
     '''Page 32 of Meeus, "Astronomical Algorithms", 2nd ed.  Given x, an
     abscissa, calculates the interpolated value y = f(x) where f(x) is
@@ -48,8 +49,8 @@ def LinearInterp(x, X, Y, inv=False, check=False):
     elements and X must be in sorted order.  A ValueError exception will be
     raised if there's no associated value or x is out of range.
  
-    If check is True, verify that X and Y are sorted and have an equal
-    number of elements.
+    If check is True, verify that X is sorted and that X and Y have an
+    equal number of elements.
     '''
     def find_le(a, x):
         'Return index of rightmost value less than or equal to x'
@@ -83,6 +84,24 @@ def LinearInterp(x, X, Y, inv=False, check=False):
     assert(x0 <= x < x1)
     frac = (x - x0)/(x1 - x0)
     return y0 + frac*(y1 - y0)
+def LinearInterpFunction(X, Y):
+    '''Return a function that returns the linearly-interpolated value for
+    the function Y(X).  X does not need to be sorted.
+    '''
+    # Make sure X is sorted
+    x, y = zip(*sorted(zip(X, Y)))
+    a = LinearInterp(x[0], x, y, check=True)
+    def Func(arg):
+        return LinearInterp(arg, x, y)
+    return Func
+
+if 0:
+    X = (0, 1)
+    Y = (0.5, 1.5)
+    f = LinearInterpFunction(X, Y)
+    xx()
+    exit()
+
 if __name__ == "__main__": 
     from math import pi, sin
     from lwtest import run, raises, assert_equal
@@ -145,4 +164,12 @@ if __name__ == "__main__":
         Y = [1, 2, 3]
         raises(ValueError, LinearInterp, 0.5, X, Y, inv=0, check=1)
         raises(ValueError, LinearInterp, 0.5, X, Y, inv=1, check=1)
+    def TestLinearInterpFunction():
+        X = (0, 1)
+        Y = (0.5, 1.5)
+        f = LinearInterpFunction(X, Y)
+        assert_equal(f(0), 0.5)
+        assert_equal(f(0.5), 1)
+        assert_equal(f(1), 1.5)
+        raises(ValueError, f, 1.01)
     exit(run(globals(), halt=1)[0])
