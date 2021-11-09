@@ -1,25 +1,24 @@
 '''
 TODO
-
-    * Rewrite to use interpolate.LinearInterp() to remove the need for
-      scipy.
-
+ 
+    * Check cu au as it is parabolic
+ 
 Provides a table of thermal EMFs between two metals
-
+ 
     The data are from the 1957 AIP "Handbook of Physics", pg 4-8,
     McGraw-Hill.  The table data in the AIP handbook are relative to
     platinum:
-
+ 
     "A positive sign means that in a simple thermoelectric circuit the
     resultant emf as given is in such a direction as to produce a
     current from the element to the platinum at the reference junction
     of 0 deg C.  The values below 0 deg C, in most cases, have not
     been determined on the same samples as the values above 0 deg C."
-
+ 
     The underlying reference is:  AIP, "Temperature, Its Measurement
     and Control in Science and Industry", pp 1308-1310, Reinhold
     Publishing Corp., NY, 1941.
-
+ 
     The basic method used to construct the tables is to linearly interpolate in
     the AIP handbook's data.
 '''
@@ -40,13 +39,14 @@ if 1:   # Imports
     import sys
     import getopt
     from itertools import combinations
+    from pdb import set_trace as xx 
 if 1:   # Custom imports
     from wrap import dedent
-    from scipy.interpolate import interp1d
-    import numpy as np
     from columnize import Columnize
     from tc import TC
-    from pylab import plot, xlabel, ylabel, title, legend, grid, show, savefig
+    from frange import frange
+    from interpolate import LinearInterpFunction
+    from bidict import bidict
 if 1:   # Global variables
     data = {
         # Data are (T in deg C, EMF in mV)
@@ -561,10 +561,53 @@ if 1:   # Global variables
         ),
     }
     data_list = list(sorted(data.keys()))
+    aliases = {
+        "al": 2,
+        "becu": 4,
+        "bi": 5,
+        "br": 6,
+        "cd": 8,
+        "c": 9,
+        "co": 11,
+        "cu": 13,
+        "ge": 15,
+        "au": 16,
+        "in": 18,
+        "ir": 19,
+        "fe": 20,
+        "pb": 21,
+        "mg": 22,
+        "hg": 24,
+        "mo": 25,
+        "nichrome": 26,
+        "ni": 27,
+        "pd": 29,
+        "rh": 30,
+        "si": 31,
+        "ag": 32,
+        "solder": 34,
+        "steel": 35,
+        "sst": 36,
+        "ta": 37,
+        "th": 38,
+        "sn": 39,
+        "w": 40,
+        "zn": 41,
+    }
+    alias = bidict()
+    for key, value in zip(
+        '''al becu bi br cd c co cu ge au in ir fe pb mg hg mo nichrome ni
+           pd rh si ag solder steel sst ta th sn w zn'''.split(),
+        [2, 4, 5, 6, 8, 9, 11, 13, 15, 16, 18, 19, 20, 21, 22, 24, 25, 26,
+         27, 29, 30, 31, 32, 34, 35, 36, 37, 38, 39, 40, 41]):
+        alias[key] = value
 def Plot():
     '''Predict the thermal EMF for common thermocouples and plot
     their error from the NIST polynomials.
     '''
+    from scipy.interpolate import interp1d
+    import numpy as np
+    from pylab import plot, xlabel, ylabel, title, legend, grid, show, savefig
     # Type K:  Chromel-alumel
     tc = TC("K")
     c, a = data["Chromel"], data["Alumel"]
@@ -674,10 +717,10 @@ def Usage(d, status=1):
       of 10%.  The data are from the 1957 AIP "Handbook of Physics", pg 4-8,
       McGraw-Hill.
     Options:
-      -d t  Specify the temperature scale to use with the letter ts (case
+      -d t  Specify the temperature scale to use with the letter t (case
             insensitive).  c is degrees Celsius, f is Fahrenheit, k is
             Kelvin, and R is Rankine.  c is the default.
-      -l    Print a list of the material numbers
+      -l    Print a list of the material numbers (shorthand in [])
       -p    Generate a plot showing the deviations from NIST polynomials
             for common thermocouple types.  You'll see that the predictions
             for temperatures above zero are within a few percent but poor
@@ -691,11 +734,14 @@ def Usage(d, status=1):
 def List():
     strings = []
     for i in range(len(data_list)):
-        strings.append("{:2d}.  {}".format(i + 1, data_list[i]))
+        s = data_list[i]
+        if i + 1 in alias.values():
+            s += f" [{alias(i+1)}]"
+        strings.append(f"{i + 1:2d}.  {s}")
     for i in Columnize(strings):
         print(i)
     exit()
-def ParseCommandLine(d):
+def ParseCommandLine():
     d["-s"] = True
     d["-d"] = "C"
     try:
@@ -741,24 +787,132 @@ def SelfTest(d):
         pass
     for m1, m2 in combinations(range(len(data_list)), 2):
         matl1, matl2 = data_list[m1], data_list[m2]
-        PrintTable(matl1, matl2, d, out=Dummy)
-    print("\nTests passed")
-def PrintTable(matl1, matl2, d, out=print):
-    def Title(unit):
-        s = "Thermal EMF in mV of materials for temperatures in"
-        if unit == "K":
-            out(s, "K")
+        PrintTable(matl1, matl2, Print=Dummy)
+    print("Tests passed")
+if 0:
+    def PrintTable_(matl1, matl2, d, Print=print):
+        'This version uses scipy'
+        def Title(unit):
+            s = "Thermal EMF in mV of materials for temperatures in"
+            if unit == "K":
+                Print(s, "K")
+            else:
+                Print(s, "degrees %s" % unit)
+            Print("  Material 1 =", matl1)
+            Print("  Material 2 =", matl2)
+            Print()
+        def Header(w, step=1):
+            Print("  T  ", end="")
+            for i in range(0, 10*step, step):
+                s = "{0:^{1}}".format(i, w)
+                Print(s, end="")
+            Print()
+        # Get the data for the indicated materials
+        d1, d2 = list(data[matl1]), list(data[matl2])
+        # Trim them to get equal array sizes.  Do this by comparing
+        # temperature ranges.
+        if d1[0][0] < d2[0][0]:
+            while d1[0][0] < d2[0][0]:
+                del d1[0]
+        elif d2[0][0] < d1[0][0]:
+            while d2[0][0] < d1[0][0]:
+                del d2[0]
+        if d1[-1][0] > d2[-1][0]:
+            while d1[-1][0] > d2[-1][0]:
+                del d1[-1]
+        elif d2[-1][0] > d1[-1][0]:
+            while d2[-1][0] > d1[-1][0]:
+                del d2[-1]
+        # Check that the temperature ranges match
+        assert len(d1) == len(d2)
+        assert d1[0][0] == d2[0][0]
+        assert d1[-1][0] == d2[-1][0]
+        # Create numpy arrays of the data
+        TdegC, emf1, emf2 = [], [], []
+        for i in range(len(d1)):
+            TdegC.append(d1[i][0])
+            emf1.append(d1[i][1])
+            emf2.append(d2[i][1])
+        TdegC, emf1, emf2 = [np.array(i) for i in (TdegC, emf1, emf2)]
+        if len(TdegC) < 4:
+            # This will be for situations like solder where the data only
+            # cover 0 and 100 degC.  We'll linearly interpolate to give
+            # more points.
+            def MakeNew(array, n=20):
+                a, b = array[0], array[-1]
+                dx = 1/n
+                x = np.arange(0, 1 + dx, dx)
+                return a + x*(b - a)
+            TdegC = MakeNew(TdegC)
+            emf1 = MakeNew(emf1)
+            emf2 = MakeNew(emf2)
+        # Create interpolation function
+        k = "cubic"
+        f = interp1d(TdegC, emf1 - emf2, kind=k)
+        # Get inner and outer temperature loop limits
+        Tinner, Touter = 1, 10
+        if d["-s"]:
+            Tinner, Touter = 10, 100
+        # Get temperature array in desired units.  Note we have to round
+        # the bottom up and the top down to ensure we are within the
+        # interpolation region.
+        ip = 273.15     # Ice point temperature in K
+        if d["-d"] == "C":
+            T = TdegC
+            ToDegC = lambda x: x
+        elif d["-d"] == "F":
+            T = 9*TdegC/5 + 32
+            ToDegC = lambda x: 5/9*(x - 32)
+        elif d["-d"] == "K":
+            T = TdegC + ip
+            ToDegC = lambda x: x - 273.15
+        elif d["-d"] == "R":
+            T = (TdegC + ip) + (9*ip/5 - 32)
+            ToDegC = lambda x: 5*x/9 - 273.15
         else:
-            out(s, "degrees %s" % unit)
-        out("  Material 1 =", matl1)
-        out("  Material 2 =", matl2)
-        out()
+            raise Exception("Bug:  temperature unit")
+        T0, T1 = int(T[0]), int(T[-1])
+        if d["-d"] != "C":
+            template = 100 if d["-s"] else 10
+            T0 = int(TemplateRound(T0, template, up=True))
+            T1 = int(TemplateRound(T1, template, up=False))
+        Title(d["-d"])
+        w = 6  # Width of each column
+        Header(w + 1, Tinner)
+        if T0 < 0:
+            T0 += Touter    # Avoid going out of interpolation bounds
+        for T in range(T0, T1, Touter):
+            Print("%4d " % T, end="")
+            for dT in range(0, TPrinter, Tinner):
+                t = T + dT if T >= 0 else T - dT
+                # Convert t to degC
+                Print("%6.2f " % f(ToDegC(t)), end="")
+            Print()
+            if not T and T0 < 0:
+                Print()
+                Header(w + 1, Tinner)
+                Print("%4d " % T, end="")
+                # Need to print two rows of zero if T0 is negative
+                for dT in range(0, TPrinter, Tinner):
+                    Print("%6.2f " % f(ToDegC(T + dT)), end="")
+                Print()
+def PrintTable(matl1, matl2, Print=print):
+    "This version doesn't use scipy"
+    def Title(unit):
+        s = "Thermal EMF in μV of materials for temperatures in"
+        if unit == "K":
+            Print(s, "K")
+        else:
+            Print(s, "degrees %s" % unit)
+        Print("  Material 1 =", matl1)
+        Print("  Material 2 =", matl2)
+        Print()
     def Header(w, step=1):
-        out("  T  ", end="")
+        Print("  T ", end="")
         for i in range(0, 10*step, step):
-            s = "{0:^{1}}".format(i, w)
-            out(s, end="")
-        out()
+            s = "{0:>{1}}".format(i, w)
+            Print(s, end="")
+        Print()
     # Get the data for the indicated materials
     d1, d2 = list(data[matl1]), list(data[matl2])
     # Trim them to get equal array sizes.  Do this by comparing
@@ -779,13 +933,12 @@ def PrintTable(matl1, matl2, d, out=print):
     assert len(d1) == len(d2)
     assert d1[0][0] == d2[0][0]
     assert d1[-1][0] == d2[-1][0]
-    # Create numpy arrays of the data
+    # Create lists of the data
     TdegC, emf1, emf2 = [], [], []
     for i in range(len(d1)):
         TdegC.append(d1[i][0])
         emf1.append(d1[i][1])
         emf2.append(d2[i][1])
-    TdegC, emf1, emf2 = [np.array(i) for i in (TdegC, emf1, emf2)]
     if len(TdegC) < 4:
         # This will be for situations like solder where the data only
         # cover 0 and 100 degC.  We'll linearly interpolate to give
@@ -793,18 +946,21 @@ def PrintTable(matl1, matl2, d, out=print):
         def MakeNew(array, n=20):
             a, b = array[0], array[-1]
             dx = 1/n
-            x = np.arange(0, 1 + dx, dx)
-            return a + x*(b - a)
+            #x = np.arange(0, 1 + dx, dx)
+            x = frange(0, str(1 + dx), str(dx))
+            return [a + i*(b - a) for i in x]
         TdegC = MakeNew(TdegC)
         emf1 = MakeNew(emf1)
         emf2 = MakeNew(emf2)
     # Create interpolation function
-    k = "cubic"
-    f = interp1d(TdegC, emf1 - emf2, kind=k)
-    # Get inner and outer temperature loop limits
-    Tinner, Touter = 1, 10
+    e = [i - j for i, j in zip(emf1, emf2)]
+    f = LinearInterpFunction(TdegC, e)
+    # This is in mV output.  Change it to μV to get integers.
+    F = lambda x:  int(1000*f(x))
+    # Get inner and Printer temperature loop limits
+    Tinner, TPrinter = 1, 10
     if d["-s"]:
-        Tinner, Touter = 10, 100
+        Tinner, TPrinter = 10, 100
     # Get temperature array in desired units.  Note we have to round
     # the bottom up and the top down to ensure we are within the
     # interpolation region.
@@ -813,13 +969,13 @@ def PrintTable(matl1, matl2, d, out=print):
         T = TdegC
         ToDegC = lambda x: x
     elif d["-d"] == "F":
-        T = 9*TdegC/5 + 32
+        T = [9*i/5 + 32 for i in TdegC]
         ToDegC = lambda x: 5/9*(x - 32)
     elif d["-d"] == "K":
-        T = TdegC + ip
+        T = [i + ip for i in TdegC]
         ToDegC = lambda x: x - 273.15
     elif d["-d"] == "R":
-        T = (TdegC + ip) + (9*ip/5 - 32)
+        T = [i + ip + (9*ip/5 - 32) for i in TdegC]
         ToDegC = lambda x: 5*x/9 - 273.15
     else:
         raise Exception("Bug:  temperature unit")
@@ -832,25 +988,40 @@ def PrintTable(matl1, matl2, d, out=print):
     w = 6  # Width of each column
     Header(w + 1, Tinner)
     if T0 < 0:
-        T0 += Touter    # Avoid going out of interpolation bounds
-    for T in range(T0, T1, Touter):
-        out("%4d " % T, end="")
-        for dT in range(0, Touter, Tinner):
+        T0 += TPrinter    # Avoid going out of interpolation bounds
+    for T in range(T0, T1, TPrinter):
+        Print("%4d " % T, end="")
+        for dT in range(0, TPrinter, Tinner):
             t = T + dT if T >= 0 else T - dT
             # Convert t to degC
-            out("%6.2f " % f(ToDegC(t)), end="")
-        out()
+            #Print("%6.2f " % f(ToDegC(t)), end="")
+            Print("%6d " % F(ToDegC(t)), end="")
+        Print()
         if not T and T0 < 0:
-            out()
+            Print()
             Header(w + 1, Tinner)
-            out("%4d " % T, end="")
-            # Need to print two rows of zero if T0 is negative
-            for dT in range(0, Touter, Tinner):
-                out("%6.2f " % f(ToDegC(T + dT)), end="")
-            out()
+            Print("%4d " % T, end="")
+            # Need to Print two rows of zero if T0 is negative
+            for dT in range(0, TPrinter, Tinner):
+                #Print("%6.2f " % f(ToDegC(T + dT)), end="")
+                Print("%6d " % F(ToDegC(T + dT)), end="")
+            Print()
+def GetArgs(args):
+    'Convert args to integers'
+    assert(len(args) == 2)
+    a, b = [i.lower() for i in args]
+    if a in aliases:
+        m1 = aliases[a] - 1
+    else:
+        m1 = int(args[0])
+    if b in aliases:
+        m2 = aliases[b] - 1
+    else:
+        m2 = int(args[1])
+    return m1, m2
 if __name__ == "__main__":
     d = {}  # Options dictionary
-    args = ParseCommandLine(d)
-    m1, m2 = [int(i) - 1 for i in args]
+    args = ParseCommandLine()
+    m1, m2 = GetArgs(args)
     matl1, matl2 = data_list[m1], data_list[m2]
-    PrintTable(matl1, matl2, d)
+    PrintTable(matl1, matl2)

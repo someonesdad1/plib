@@ -94,14 +94,6 @@ def LinearInterpFunction(X, Y):
     def Func(arg):
         return LinearInterp(arg, x, y)
     return Func
-
-if 0:
-    X = (0, 1)
-    Y = (0.5, 1.5)
-    f = LinearInterpFunction(X, Y)
-    xx()
-    exit()
-
 if __name__ == "__main__": 
     from math import pi, sin
     from lwtest import run, raises, assert_equal
