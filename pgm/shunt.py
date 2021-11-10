@@ -88,6 +88,7 @@ if 1:   # Core functionality
             10:  "10",
             25:  "25",
             50:  "50",
+            100:  "100",
         }
         s = f"{R} Ω"
         w = 4
@@ -101,7 +102,8 @@ if 1:   # Core functionality
             print(f"{'':{w+1}s}{g.p}{Ps:^8s}{g.n}     "
                   f"{g.i}{i!s:^12s}{g.n}    "
                   f"{g.v}{V!s:^12s}{g.n}")
-        print()
+        if len(args) > 1:
+            print()
 
 if __name__ == "__main__":
     d = {}      # Options dictionary
