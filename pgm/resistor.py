@@ -30,7 +30,7 @@ if 1:   # Custom imports
     from sig import sig
     from fpformat import FPFormat
     from columnize import Columnize
-    from color import fg, normal, yellow as highlight, lred, lgreen
+    from color import C, fg, normal, yellow as highlight, lred, lgreen
     from u import u, ParseUnit, SI_prefixes
 if 1:   # Global variables
     fp = FPFormat()
@@ -428,9 +428,7 @@ def Quotient(d, ratio):
         print("   {0:10}   {1:^10}   {2:^10}".format(pct, R1, R2))
         normal()
 def List(d):
-    print("On-hand resistors:")
-    print(on_hand)
-    print("-"*70)
+    # EIA
     print("EIA resistance series:")
     sig.rtz = True
     for n in (6, 12, 24, 48, 96):
@@ -448,6 +446,11 @@ def List(d):
           Current:  250 A max
           At line voltages:  120 VAC ==> 6.8 to 250 A, 240 VAC ==> 13.7 to 250 A
           10 A at 120 V requires 12 ohms, 15 A requires 8 ohms'''))
+    print("-"*70)
+    print(C.lmag, end="")
+    print("On-hand resistors:")
+    print(on_hand)
+    print(C.norm, end="")
 def Pairs(args, d):
     if len(args) != 4:
         Usage(d)

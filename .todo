@@ -1,7 +1,3 @@
-* Resistor design:  I'm often wondering about a shunt resistor for current
-  control.  Given a resistance value, print out the operating points for
-  1/4, 1/2, 1, 5, 10, 25, and 50 W power dissipations.
-
 * notes file:  write a python replacement for agrep.  First, see if the
   cygwin setup tool offers it.
 

@@ -158,7 +158,7 @@ def Power(power_expr):
     print(Money(power_W*dollar_per_joule*hour, "hour"))
     print(C.lgrn, Money(power_W*dollar_per_joule*eight_hour_day, "8 hour day"), N, sep="")
     print(Money(power_W*dollar_per_joule*day, "day"))
-    print(C.lyel, Money(power_W*dollar_per_joule*week, " week"), N, sep="")
+    print(C.lyel, Money(power_W*dollar_per_joule*week, "week"), N, sep="")
     print(Money(power_W*dollar_per_joule*month, "month"))
     print(C.lred, Money(power_W*dollar_per_joule*year, "year"), N, sep="")
     cpy = power_W*dollar_per_joule*year

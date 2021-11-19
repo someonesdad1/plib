@@ -58,9 +58,9 @@ def CountLines(stream, file):
     try:
         lines = stream.readlines()
         return (len(lines), file)
-    except Exception:
-        print(f"Couldn't read '{file}'", file=sys.stderr)
-        return None
+    except Exception as e:
+        print(f"Couldn't read '{file}':\n  {e}", file=sys.stderr)
+        exit(1)
 def PrintReport(results):
     '''results is [(linecount, filename), ...].  The output order will
     be as the files were given on the command line.
