@@ -1,7 +1,47 @@
 '''
-Print out colored LED properties.  If an argument is included, then it will
-perform an iterated calculation to estimate the current given a resistance,
-voltage, and 5 mm LED color.
+Print out colored LED properties.  
+
+
+I need to measure the 3 and 5 mm banggood LED properties and develop an 
+empirical model for the for about 0.1 to 20 mA currents, as these are the
+practical current levels used in almost all applications.  
+
+    https://en.wikipedia.org/wiki/Diode_modelling#Iterative_solution
+    discusses the solution of a circuit problem with a diode using the
+    Shockley diode equation.  In a python script, it would just be simpler
+    to have the empirical equation and step through all the discrete
+    current points looking for a solution (since this would be < 30 points,
+    this would be very fast).
+
+Once this diode i(V) relationship is known, it can be used iteratively to
+solve practical problems.  A typical problem is to select a series resistor 
+to allow an LED to indicate a particular voltage.  Example:  what resistor
+should I use in series with an LED to put across the 120 V line?  The
+complicating factor is that you want the dissipated power in the resistor
+to be less than or equal to the on-hand resistors' power rating.
+Therefore, the problem is stated with:
+
+    * LED size
+    * LED color
+    * Allowed maximum resistor power, W
+    * Set of on-hand resistance values
+    * Operating voltage V
+
+Then the calculation's results are:
+
+    * Selected resistor
+    * Resulting current through the LED
+
+Once this result is known, you can then interactively enter a smaller
+current and a suitable resistor will be chosen.  This lets you pick a
+desired operating current, as you can easily check the LED on the bench at
+the desired current level.
+
+Note the importance of getting the HP 6181C current source fixed, as it is
+a excellent tool for quickly testing LEDs.  It has 2.5 and 25 mA ranges
+with a 10-turn pot and analog readout.  You quickly and safely set the
+desired current level of the LED to check brightness.
+
 '''
 if 1:  # Copyright, license
     # These "trigger strings" can be managed with trigger.py
@@ -21,7 +61,7 @@ if 1:   # Imports
     import os
     import sys
     from pdb import set_trace as xx 
-if 0:   # For plotting
+if 1:   # For plotting
     # For plots
     from pylab import *
     if 1:   # banggood 5 mm LEDs
@@ -361,7 +401,6 @@ def Iterate(R, V, color):
     if i_mA > 50:
         print("Current > 50 mA")
         exit(1)
-
 if __name__ == "__main__": 
     #if len(sys.argv) > 1:
     #    Iterate(sys.argv[1:])
