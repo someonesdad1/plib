@@ -22,8 +22,15 @@ if 1:   # Custom imports
     from wrap import dedent
     from sig import sig
     from f import flt
+    from frange import frange
+    from columnize import Columnize
+    from color import C
 if 1:   # Global variables
     in2mm = flt(25.4)
+    class g: pass
+    g.n = C.norm
+    g.m = C.lcyn
+    g.i = C.lmag
 def Error(*msg, status=1):
     print(*msg, file=sys.stderr)
     exit(status)
@@ -31,15 +38,15 @@ def Usage(d, status=1):
     digits = d["-d"]
     print(dedent(f'''
     Usage:  {sys.argv[0]} [options] dist1 [dist2...]
-      Convert the arguments in inches to mm.  If -r is used, convert the arguments
-      in mm to inches.
+      Convert the arguments in inches to mm.  If -r is used, convert the 
+      arguments in mm to inches.  Use "t" for a table.
     Options:
       -d n      Number of significant figures [{d["-d"]}]
       -m        Arguments are in mm; convert to inches
     '''))
     exit(status)
 def ParseCommandLine(d):
-    d["-d"] = 4         # Number of significant digits
+    d["-d"] = 3         # Number of significant digits
     d["-m"] = False     # Convert from inches to mm
     try:
         opts, args = getopt.getopt(sys.argv[1:], "d:m")
@@ -58,12 +65,66 @@ def ParseCommandLine(d):
                 Error(msg)
         elif o == "-m":
             d[o] = not d[o]
+    x = flt(0)
+    x.n = d["-d"]
+    x.rtdp = True
     if not args:
         Usage(d)
     return args
+def Table():
+    s = f"{g.m}mm{g.n} and {g.i}inches{g.n}"
+    print(f"{' '*30:s}{s}")
+    w = 3
+    flt(0).n = 4
+    # mm to inches
+    o = []
+    for m in range(1, 101):
+        i = flt(m/25.4)
+        s = f"{g.m}{m:3d}{g.n} {g.i}{i!s:{w}s}{g.n}"
+        o.append(s)
+    for i in Columnize(o):
+        print(i)
+    print()
+    # inches to mm
+    o = []
+    for i in frange("0.1", "4.01", "0.1", return_type=flt):
+        m = flt(i)*flt(25.4)
+        s = f"{g.i}{i!s:3s}{g.n} {g.m}{m!s:{w}s}{g.n}"
+        o.append(s)
+    for i in Columnize(o):
+        print(i)
+    # mm columns
+    print(f"{' '*30:s}{g.m}mm{g.n} to {g.i}inches{g.n}")
+    f = [1000, 100, 10, 1, 0.1, 0.01]
+    print(" "*8, end="")
+    for i in f:
+        print(f"{g.m}{str(i):{w+8}s}{g.n}", end=" ")
+    print()
+    for i in range(1, 11):
+        print(f"{g.m}{i:2d}{g.n}", end=" "*3)
+        for m in f:
+            x = m*i/flt(25.4)
+            print(f"{g.i}{x!s:^{w+8}s}{g.n} ", end="")
+        print()
+    # inch columns
+    print(f"{' '*30:s}{g.i}inches{g.n} to {g.m}mm{g.n}")
+    f = [100, 10, 1, 0.1, 0.01, 0.001]
+    print(" "*8, end="")
+    for i in f:
+        print(f"{g.i}{str(i):{w+8}s}{g.n}", end=" ")
+    print()
+    for o in range(1, 11):
+        print(f"{g.i}{o:2d}{g.n}", end=" "*3)
+        for i in f:
+            x = o*i*flt(25.4)
+            print(f"{g.m}{x!s:^{w+8}s}{g.n} ", end="")
+        print()
+    exit(0)
 if __name__ == "__main__":
     d = {}      # Options dictionary
     args = ParseCommandLine(d)
+    if "t" in args:
+        Table()
     flt(0).n = d["-d"]
     for i in args:
         if d["-m"]:
