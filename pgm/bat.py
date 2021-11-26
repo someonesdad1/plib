@@ -103,8 +103,8 @@ def PrintLithium():
     CR2477 24.5x7.7 10.5 1000 3
     CR3032 30x3.2 7.1 500 3
     CR927 9.5x2.7 0.51 30 3
-'''  # From http://www.batteriesandbutter.com/coin_batttery_chart.html
-    f = "    {:7s}     {:^4s}      {:^4s}      {:^4s}       {:>4s}"
+    '''  # From http://www.batteriesandbutter.com/coin_batttery_chart.html
+    f = "{:7s}     {:^4s}      {:^4s}      {:^4s}       {:>4s}"
     for line in s.strip().split("\n"):
         name, sz, mass, mAhr, V = line.split()
         dia, h = sz.split("x")
