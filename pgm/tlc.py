@@ -29,7 +29,7 @@ if 1:   # Custom imports
     from wrap import dedent
     from color import C
 if 1:   # Global variables
-    debug = True    # Set to True to ignore presence of a log file
+    debug = False   # Set to True to ignore presence of a log file
     ii = isinstance
     P = pathlib.Path
     class g: pass
@@ -201,10 +201,12 @@ def GenerateListOfFiles(args):
 def Process(files, dirs):
     'Arguments are lists of P objects to rename'
     f = lambda x: x.upper() if d["-u"] else x.lower()
+    rename = []
     if files:
-        arrow, out = f" {g.file}-->{g.n}  ", []
+        arrow, out = f" {g.file}-->{g.n} ", []
         for file in files:
             old = str(file)
+            old = P(file)
             parts = list(file.parts)
             if d["-e"]:     # Only change extension
                 new_suffix = f(file.suffix)
@@ -222,14 +224,16 @@ def Process(files, dirs):
             if file == new:
                 continue
             out.append(f"  {old} {arrow} {new}")
+            rename.append((old, new))
         if out:
             print(f"{g.file}Files to be renamed:{g.n}")
             for i in out:
                 print(i)
     if dirs:
-        arrow, out = f" {g.dir}-->{g.n}  ", []
+        arrow, out = f" {g.dir}-->{g.n} ", []
         for dir in dirs:
             old = str(dir)
+            old = P(file)
             parts = list(dir.parts)
             parts[-1] = f(parts[-1])
             new = P('/'.join(parts))
@@ -240,6 +244,15 @@ def Process(files, dirs):
             print(f"{g.dir}Directories to be renamed:{g.n}")
             for i in out:
                 print(i)
+    # Do the renaming
+    if rename and (d["-x"] or d["-X"]):
+        for old, new in rename:
+            try:
+                old.rename(new)
+                d["log"].append((old, new))
+            except Exception as e:
+                print(f"Couldn't rename '{old}' to '{new}", file=sys.stderr)
+
 if __name__ == "__main__":
     d = {}  # Options dictionary
     args = ParseCommandLine(d)
@@ -252,7 +265,6 @@ if __name__ == "__main__":
         # Open log file for writing
         d["logfile_handle"] = open(d["logfile"], "w")
     Process(files, dirs)
-    exit()#xx
     if d["-x"] and not d["-X"]:
         WriteLogFile()
     else:
