@@ -392,6 +392,7 @@ def Usage(status=1):
         -i  Interactively determine length, diameter, resistivity, or
             resistance
         -t  Show table for big wire equivalents
+        -v  Show voltage drop table
     '''[1:-1]))
     exit(status)
 def ShowResistivities():
@@ -769,7 +770,7 @@ def PrintBigTable():
     print(dedent('''
     Number of equivalent wires for equal areas, rounded up
     Row and column headings are AWG sizes
-
+ 
     '''))
     # Print row of numbers
     print(" "*m, end="")
@@ -1041,6 +1042,22 @@ def MIL5088(gauge, ΔT):
             mm = round(AWG(n)*25.4, 3)
             print(mm, intercept[n])
         exit()
+def PrintVoltageDropTable():
+    print(dedent(f'''
+    Voltage drop table
+    Drop in V/m for given % of chassis current
+    '''))
+    sizes = sorted(set(list(range(0, 41, 2))))
+    amp_data = GetAmpacityData()
+    for n in sizes:
+        item = amp_data[str(n)]
+        d_in, i_chass = item[0:2]
+        print(n, d_in, i_chass)
+
+if 1:
+    PrintVoltageDropTable()
+    exit()
+
 if __name__ == "__main__":
     d = {}      # Options dictionary
     args = ParseCommandLine(d)
@@ -1050,6 +1067,8 @@ if __name__ == "__main__":
         PrintEquivalenceTable()
     elif d["-t"]:
         PrintBigTable()
+    elif d["-v"]:
+        PrintVoltageDropTable()
     else:
         if args:
             if args[0] == "a":
