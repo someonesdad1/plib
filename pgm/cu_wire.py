@@ -27,9 +27,9 @@ if 1:   # Imports
     import sys
     import os
     import getopt
-    import color as C
     from math import pi, log, sqrt, log10
 if 1:   # Custom imports
+    import color as C
     from wrap import dedent
     from fpformat import FPFormat
     from columnize import Columnize
@@ -347,13 +347,14 @@ def ParseCommandLine(d):
     d["-F"] = False     # Print full table
     d["-f"] = False     # Print big stuff
     d["-t"] = False     # Print equivalence table
+    d["-v"] = False     # Print voltage drop table
     try:
-        optlist, args = getopt.getopt(sys.argv[1:], "aCceFfhHit")
+        optlist, args = getopt.getopt(sys.argv[1:], "aCceFfhHitv")
     except getopt.GetoptError as e:
         print(str(e))
         exit(1)
     for o, a in optlist:
-        if o[1] in list("aCceFft"):
+        if o[1] in list("aCceFftv"):
             d[o] = not d[o]
         elif o == "-h":
             Usage(status=0)
@@ -1043,21 +1044,40 @@ def MIL5088(gauge, ΔT):
             print(mm, intercept[n])
         exit()
 def PrintVoltageDropTable():
-    print(dedent(f'''
-    Voltage drop table
-    Drop in V/m for given % of chassis current
-    '''))
+    w, wc = 79, 6
+    print(f"{'Voltage Drop Table for Copper Wire':^{w}s}")
+    print(f"{'Drop in mV/m for given % of chassis current in A':^{w}s}\n")
+    print(f"AWG    Chass ", end="")
+    pct = (5, 10, 20, 30, 40, 50, 60, 80, 100)
+    for p in pct:
+        print(f"{str(p) + '%':^{wc}s} ", end="")
+    print()
+    print(f"---    ----- ", end="")
+    for p in pct:
+        print(f"{'-'*(wc - 2):^{wc}s} ", end="")
+    print()
     sizes = sorted(set(list(range(0, 41, 2))))
     amp_data = GetAmpacityData()
+    x = flt(0)
+    x.n = 3
+    x.rtz = x.rtdp = True
     for n in sizes:
         item = amp_data[str(n)]
-        d_in, i_chass = item[0:2]
-        print(n, d_in, i_chass)
-
-if 1:
-    PrintVoltageDropTable()
-    exit()
-
+        dia_in, i_chass = item[0:2]
+        dia_m = dia_in/39.37
+        area_m2 = pi*(dia_m/2)**2
+        r_ohm_per_m = flt(resistivity/area_m2)
+        if n in popular_sizes and not d["-C"]:
+            C.fg(*popular_sizes[n])
+        print(f"{n:2d}     ", end="")
+        print(f"{flt(i_chass)!s:^5s} ", end="")
+        for p in pct:
+            i = p/100*i_chass
+            V = int(i*r_ohm_per_m*1000)
+            print(f"{V:^{wc}d} ", end="")
+        if n in popular_sizes and not d["-C"]:
+            C.normal()
+        print()
 if __name__ == "__main__":
     d = {}      # Options dictionary
     args = ParseCommandLine(d)

@@ -1,6 +1,11 @@
 * notes file:  write a python replacement for agrep.  First, see if the
   cygwin setup tool offers it.
 
+* Table printing:  It is so common to print tables, design a class that
+  will format each column correctly with a usage that makes it easy to
+  define each column and have things scale nicely for different screen
+  widths.
+
 * dpmath.py:  This would be a general-purpose module for math calculations.
     * Types
         * flt:  derived from float
