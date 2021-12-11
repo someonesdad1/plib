@@ -42,12 +42,10 @@ def Usage(d, status=1):
       arguments in mm to inches.  Use "t" for a table.
     Options:
       -d n      Number of significant figures [{d["-d"]}]
-      -m        Arguments are in mm; convert to inches
     '''))
     exit(status)
 def ParseCommandLine(d):
     d["-d"] = 3         # Number of significant digits
-    d["-m"] = False     # Convert from inches to mm
     try:
         opts, args = getopt.getopt(sys.argv[1:], "d:m")
     except getopt.GetoptError as e:
@@ -63,8 +61,6 @@ def ParseCommandLine(d):
                 msg = ("-d option's argument must be an integer between "
                        "1 and 15")
                 Error(msg)
-        elif o == "-m":
-            d[o] = not d[o]
     x = flt(0)
     x.n = d["-d"]
     x.rtdp = True
@@ -127,7 +123,5 @@ if __name__ == "__main__":
         Table()
     flt(0).n = d["-d"]
     for i in args:
-        if d["-m"]:
-            print(f"{flt(i)} mm = {flt(i)/25.4} inches")
-        else:
-            print(f"{flt(i)} inches = {flt(i)*25.4} mm")
+        print(f"{g.i}{flt(i)} inches{g.n} = {g.m}{flt(i)*25.4} mm{g.n}", end="    ")
+        print(f"{g.m}{flt(i)} mm{g.n} = {g.i}{flt(i)/25.4} inches{g.n}")

@@ -557,7 +557,6 @@ def GetNumberArray(string, row=False, numtype=float):
         return A    # Special case of one column or row vector
     # Use transpose to return column vectors
     return [list(i) for i in zip(*A)]
-
 def GetChoice(seq, default=1, indent=None, col=False):
     '''Display the choices in seq with numbers and prompt the user for his
     choice.  Note the numbers are 1-based as displayed to the user, but the

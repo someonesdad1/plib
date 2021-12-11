@@ -1,6 +1,14 @@
 * notes file:  write a python replacement for agrep.  First, see if the
   cygwin setup tool offers it.
 
+* A fundamental problem when coding is that a data structure is developed
+  and you start using it in your code.  Then you always have to stop and 
+  look around the code to figure out the structures again.  Is there a way
+  to add a utility that documents the structures so e.g. a command line
+  option will print out a succinct summary?  Ideally, this would be just a
+  few lines of code that are easy to remove when done (or, better, leave it
+  in for later maintenance).
+
 * Table printing:  It is so common to print tables, design a class that
   will format each column correctly with a usage that makes it easy to
   define each column and have things scale nicely for different screen

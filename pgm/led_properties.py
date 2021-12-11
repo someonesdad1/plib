@@ -64,7 +64,7 @@ if 1:   # Imports
 if 1:   # For plotting
     # For plots
     from pylab import *
-    if 1:   # banggood 5 mm LEDs
+    if 0:   # banggood 5 mm LEDs
         P = plot
         P = semilogx
         P = loglog

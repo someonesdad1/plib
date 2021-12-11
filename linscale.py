@@ -22,7 +22,8 @@ ToDo:
       defined; this would be easy to handle in __getattr__.
  
 This module contains the Scale object which uses the g library to draw
-linear scales with tick marks and labels.
+linear scales with tick marks and labels.  Run as a script to see a simple
+scale example.
  
 How to use:
     Get a default settings dictionary:
@@ -347,42 +348,83 @@ def SetUp(file, orientation=g.landscape, units=g.inches):
     g.setOrientation(orientation, units)
     return ofp
 if __name__ == "__main__":
-    # When run as a script, this will create an output file
-    # "linscale.ps" that contains a simple scale from 0 to 10 with
-    # middle unlabelled tick marks.
-    x0, x1 = 1, 10      # Left and right limits of scale, inches
-    y = 7               # Scale vertical location
-    # Get the default settings dictionary.  The index function needs to
-    # map the x values onto [0, 1], because that's the parameter's range
-    # for the whole scale.
-    settings = DefaultSettings(index_function=lambda x: x/10)
-    # Add some colors 
-    settings = DefaultSettings(index_function=lambda x: x/10)
-    settings["line_color"] = g.blue
-    settings["font1_color"] = g.red
+    # When run as a script, will create output files with some example
+    # scales.
 
-    SetUp("linscale.ps", orientation=g.landscape, units=g.inches)
-    # Level 1 tick marks and labels
-    values = list(range(0, 11))
-    strings = [str(i) for i in values]
-    settings["labelled1"] = [values, strings]
-    # Level 2 tick marks
-    settings["unlabelled2"] = [i + 1/2 for i in values if i < 10]
-    s = Scale(x0, y, x1, y, settings)
-    s.Draw()
-    # Add a scale label
-    x = (x0 + x1)/2
-    yl, dy = y - 2*base_font_size, 1.5*base_font_size
-    g.move(x, yl)
-    g.ctext("Sample")
-    g.move(x, yl - dy)
-    g.ctext("scale")
-    # Show that the origin is at the lower left corner
-    g.move(0, 0)
-    g.rline(1, 1)
-    g.move(1.1, 1.1)
-    g.text("Origin is at corner")
-    g.FillOn()
-    g.FillColor(g.black)
-    g.move(0, 0)
-    g.circle(0.5)
+    if 1:   # Scales in x and y directions
+        # The scale in the x direction will go from 0 to 180 and have
+        # numbers every 20 units.  The scale in the y direction will go
+        # from 0 to 100 and have numbers every 10 units.
+        #
+        if 1:
+            # x scale
+            x0, x1 = 1, 10      # Left and right limits of scale, inches
+            y = 1               # Scale vertical location
+            # Get the default settings dictionary.  The index function needs to
+            # map the x values onto [0, 1], because that's the parameter's range
+            # for the whole scale.
+            settings = DefaultSettings(index_function=lambda x: x/180)
+            SetUp("linscale1.ps", orientation=g.landscape, units=g.inches)
+            # Level 1 tick marks and labels
+            values = list(range(0, 181, 20))
+            strings = [str(i) for i in values]
+            settings["labelled1"] = [values, strings]
+            # Put the tick marks below the line
+            settings["tick_right"] = 1
+            # Level 2 tick marks
+            settings["unlabelled2"] = list(range(10, 171, 20))
+            s = Scale(x0, y, x1, y, settings)
+            s.Draw()
+        if 1:
+            # y scale
+            y0, y1 = 1, 7       # Bottom and top limits of scale, inches
+            x = 1               # Scale horizontal location
+            # Get the default settings dictionary.  The index function needs to
+            # map the x values onto [0, 1], because that's the parameter's range
+            # for the whole scale.
+            settings = DefaultSettings(index_function=lambda x: x/100)
+            # Level 1 tick marks and labels
+            values = list(range(0, 101, 10))
+            strings = [str(i) for i in values]
+            settings["labelled1"] = [values, strings]
+            # Level 2 tick marks
+            settings["unlabelled2"] = list(range(5, 101, 10))
+            s = Scale(x, y0, x, y1, settings)
+            s.Draw()
+
+    if 1:   # 0 to 10 horizontal scale in color
+        x0, x1 = 1, 10      # Left and right limits of scale, inches
+        y = 7               # Scale vertical location
+        # Get the default settings dictionary.  The index function needs to
+        # map the x values onto [0, 1], because that's the parameter's range
+        # for the whole scale.
+        settings = DefaultSettings(index_function=lambda x: x/10)
+        # Add some colors 
+        settings = DefaultSettings(index_function=lambda x: x/10)
+        settings["line_color"] = g.blue
+        settings["font1_color"] = g.red
+        SetUp("linscale.ps", orientation=g.landscape, units=g.inches)
+        # Level 1 tick marks and labels
+        values = list(range(0, 11))
+        strings = [str(i) for i in values]
+        settings["labelled1"] = [values, strings]
+        # Level 2 tick marks
+        settings["unlabelled2"] = [i + 1/2 for i in values if i < 10]
+        s = Scale(x0, y, x1, y, settings)
+        s.Draw()
+        # Add a scale label
+        x = (x0 + x1)/2
+        yl, dy = y - 2*base_font_size, 1.5*base_font_size
+        g.move(x, yl)
+        g.ctext("Sample")
+        g.move(x, yl - dy)
+        g.ctext("scale")
+        # Show that the origin is at the lower left corner
+        g.move(0, 0)
+        g.rline(1, 1)
+        g.move(1.1, 1.1)
+        g.text("Origin is at corner")
+        g.FillOn()
+        g.FillColor(g.black)
+        g.move(0, 0)
+        g.circle(0.5)

@@ -96,25 +96,26 @@ def Manpage():
     To estimate the electrical behavior of copper as a function of temperature,
     you need to know:
     
-        * The resistivity of copper as a function of absolute temperature is
-        essentially linear to about 600 K and then slightly concave upwards (a
-        power of T slightly above unity) up to the melting point of 1083 °C
-        (1356 K). [6]
+        * The resistivity of copper as a function of absolute temperature
+          is essentially linear to about 600 K and then slightly concave
+          upwards (a power of T slightly above unity) up to the melting
+          point of 1083 °C (1356 K). [6]
     
-        A practical resistivity estimate for copper is 0.071*(T - 50) nΩ*m where
-        T is absolute temperature in K or about 0.071*(Tc + 223) nΩ*m where Tc
-        is temperature in °C.  This is for T < 600 K or Tc < 327 °C.
+          A practical resistivity estimate for copper is 0.071*(T - 50)
+          nΩ*m where T is absolute temperature in K or about 0.071*(Tc +
+          223) nΩ*m where Tc is temperature in °C.  This is for T < 600 K
+          or Tc < 327 °C.
     
-        * The specific heat of copper (∂h(T, p)/∂T at constant p where h is the
-        enthalpy) is described by a Shomate equation (a cubic polynomial in
-        absolute temperature with another term of T**-2) that is approximately
-        linear from 300 K (room temperature) to 900 K with a slope of 5.4
-        mJ/(mol*K). [7]
+        * The specific heat of copper (∂h(T, p)/∂T at constant p where h is
+          the enthalpy) is described by a Shomate equation (a cubic
+          polynomial in absolute temperature with another term of T**-2)
+          that is approximately linear from 300 K (room temperature) to 900
+          K with a slope of 5.4 mJ/(mol*K). [7]
     
-        * The change in length of commercial copper from room temperature to the
-        melting point is about 2%.  Thus, the change in volume for instrinsic
-        specific physical quantities as a function of temperature will be about
-        6%. [8]
+        * The change in length of commercial copper from room temperature
+          to the melting point is about 2%.  Thus, the change in volume for
+          instrinsic specific physical quantities as a function of
+          temperature will be about 6%. [8]
     
     Over the indicated temperature ranges, these linear relationships make
     integrations easier.
@@ -193,11 +194,11 @@ def Manpage():
     
             AWG  j         AWG  j          AWG  j
             --- ---        --- ---         --- ---
-                0  4.5         14  15          28  17
-                2  5.4         16  17          30  17
-                4  6.6         18  19          32  17
-                6  7.5         20  21          34  16
-                8  8.7         22  22          36  17
+             0  4.5         14  15          28  17
+             2  5.4         16  17          30  17
+             4  6.6         18  19          32  17
+             6  7.5         20  21          34  16
+             8  8.7         22  22          36  17
             10   11         24  17          38  16
             12   12         26  17          40  18
     
@@ -1101,5 +1102,5 @@ if __name__ == "__main__":
         elif d["-f"]:
             PrintTable(-3, 25, step=1)
         else:
-            PrintTable(0, 41, step=2, others=[-3, -2, -1])
+            PrintTable(0, 31, step=2, others=[-3, -2, -1])
 # vim: wm=5
