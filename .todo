@@ -9,6 +9,9 @@
   few lines of code that are easy to remove when done (or, better, leave it
   in for later maintenance).
 
+* Since flt is essentially done, write a replacement for fpformat.py that 
+  includes its features.
+
 * Table printing:  It is so common to print tables, design a class that
   will format each column correctly with a usage that makes it easy to
   define each column and have things scale nicely for different screen

@@ -1,23 +1,6 @@
 '''
-Allows a design of LED and resistor.
-
-Method:  Use a brute-force searching technique.
-
-Output:  Print a table such as
-
-Operating voltage = X V
-LED color = X
-LED diameter = 5 mm
-
-Resistor                    Current in mA for fraction of power
-Power, W          20%      40%      60%      80%      100%
---------        -------  -------  -------  -------  -------
-  1/8
-  1/4
-  1/2
-   1
-   2
-   5
+Allows a design of LED and resistor given the power rating of the resistor
+you want to use
 '''
  
 if 1:  # Copyright, license
@@ -41,7 +24,7 @@ if 1:   # Standard imports
     from pdb import set_trace as xx
     from pprint import pprint as pp
 if 1:   # Custom imports
-    from wrap import wrap, dedent
+    from wrap import dedent
     from get import GetNumbers as GN
     from interpolate import LinearInterpFunction
     from frange import frange
@@ -70,24 +53,36 @@ if 1:   # Utility
           stated supply voltage in volts.  The script will print out the
           resistance to use to run at this voltage, giving the designs for
           every 10% of the resistor power rating.  Colors can be grn, red,
-          yel, wht, blu.
+          yel, wht, blu.  (yel, wht not supported yet)
+
+          The output table shows the %power column which is the fraction of
+          the rated power of the resistor at the indicated operating
+          current.  If a '-' is printed, it means the power is more than 
+          the power rating of the resistor.
         Options:
+            -a      Show all the current choices
+            -d n    Set number of significant figures
             -3      Use 3 mm LED data (5 mm is default)
             -h      Print LED data used
+            -p      Print tables for a range of common powers
+            -v      Include voltage drop across LED
             -w p    Resistor power in W [{d["-w"]}]
         '''))
         exit(status)
     def ParseCommandLine(d):
+        d["-a"] = False     # Show all the current choices
         d["-3"] = False     # Use 3 mm LED data
         d["-d"] = 3         # Number of significant digits
+        d["-p"] = False     # Print for range of powers
+        d["-v"] = False     # Include LED voltage drop
         d["-w"] = 0.25      # Default resistor power in W
         try:
-            opts, args = getopt.getopt(sys.argv[1:], "3d:hw:")
+            opts, args = getopt.getopt(sys.argv[1:], "3ad:hpvw:")
         except getopt.GetoptError as e:
             print(str(e))
             exit(1)
         for o, a in opts:
-            if o[1] in list("3"):
+            if o[1] in list("3apv"):
                 d[o] = not d[o]
             elif o in ("-d",):
                 try:
@@ -109,18 +104,23 @@ if 1:   # Utility
                 Usage(status=0)
         if len(args) != 2:
             Usage()
+        if d["-3"]:
+            raise ValueError("Not supported yet")
         x = flt(0)
         x.n = d["-d"]
         x.rtz = x.rtdp = True
         return args
 if 1:   # Core functionality
     def Solve(color, voltage, pwr):
-        fp = FPFormat(num_digits=d["-d"]).engsic
+        FP = FPFormat(num_digits=d["-d"])
+        fp = FP.engsi
+        FP.trailing_decimal_point(False)
         V = LED[color]
         V2i = LinearInterpFunction(V, i_mA)
         i2V = LinearInterpFunction(i_mA, V)
         I = list(frange("0.5", "1", "0.1"))
-        I.extend(range(1, 21, 1))
+        I.extend(range(1, 11, 1))
+        I.extend(range(12, 21, 2))
         I.extend(range(25, 51, 5))
         # Make an array of [i, V, voltage - V, R, pct_pwr]
         o = []
@@ -130,31 +130,40 @@ if 1:   # Core functionality
             if ΔV > 0:
                 R = FindClosest(ΔV/(i/1000))
                 if R is None:
+                    if not d["-a"]:
+                        i = 1000
+                        continue
                     o.append([i, V, voltage - V, "-", "-"])
             p = (i/1000)**2*R
             pct = flt(100*p/pwr)
             o.append([i, V, fp(R), pct])
+        #-------------------------------------------
         # Print results
-        w = 30
+        w = 40 if d["-v"] else 30
         print(f"{'LED Resistor Selection':^{w}s}")
         print(f"{'----------------------':^{w}s}")
         print()
         print(f"Operating voltage = {voltage} V")
         print(f"LED color = {color}")
         print(f"LED diameter =  mm")
-        print(f"Resistor power = {d['-w']!s:s} W")
+        print(f"Resistor power = {pwr!s:s} W")
         print()
         w = 10
         print(f"{'i, mA':^{w}s} ", end="")
-        #print(f"{'V, V':^{w}s} ", end="")
+        if d["-v"]:
+            print(f"{'V, V':^{w}s} ", end="")
         print(f"{'R, Ω':^{w}s} ", end="")
         print(f"{'%power':^{w}s} ")
         for j in o:
             i, V, R, pct = j
             print(f"{i!s:^{w}s} ", end="")
-            #print(f"{V!s:^{w}s} ", end="")
+            if d["-v"]:
+                print(f"{V!s:^{w}s} ", end="")
             print(f"{R:^{w}s} ", end="")
             if pct > 100:
+                if not d["-a"]:
+                    print()
+                    break
                 print(f"{'-':^{w}s} ")
             else:
                 print(f"{str(int(pct)):^{w}s} ")
@@ -163,5 +172,9 @@ if __name__ == "__main__":
     d = {}      # Options dictionary
     args = ParseCommandLine(d)
     color, voltage = args[0], flt(args[1])
-    pwr = d["-w"]
-    Solve(color, voltage, pwr)
+    if d["-p"]:
+        for pwr in (1/8, 1/4, 1/2, 1, 2, 5):
+            Solve(color, voltage, pwr)
+    else:
+        pwr = d["-w"]
+        Solve(color, voltage, pwr)
