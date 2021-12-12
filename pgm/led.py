@@ -31,6 +31,7 @@ if 1:   # Custom imports
     from f import flt
     from resistors import FindClosest
     from fpformat import FPFormat
+    from color import C
 if 1:   # Global variables
     P = pathlib.Path
     ii = isinstance
@@ -52,6 +53,10 @@ if 1:   # Global variables
         "blu": GN("2.62 2.67 2.74 2.86 3.00 3.10 3.16 3.21 3.25"),
         "wht": GN("2.60 2.64 2.70 2.80 2.90 2.98 3.05 3.11 3.17"),
     }
+    class g: pass
+    g.n = C.norm
+    g.a = C.yel
+    g.o = C.lgrn
 if 1:   # Utility
     def Error(*msg, status=1):
         print(*msg, file=sys.stderr)
@@ -59,16 +64,16 @@ if 1:   # Utility
     def Usage(status=1):
         print(dedent(f'''
         Usage:  {sys.argv[0]} [options] color voltage
-          The script will print out the resistance to put in series with an
-          LED to allow it to run at the given voltage at various currents.
-          Colors can be grn, red, yel, wht, blu.
+          Print the resistance to put in series with an LED to allow it to
+          run at the given voltage at various currents.  Colors can be grn,
+          red, yel, wht, blu.
         Options:
-            -a      Show all values, even if above resistor's rated power
-            -d n    Set number of significant figures
-            -3      Use 3 mm LED data (5 mm is default)
-            -h      Print more detailed help and LED data used
-            -p      Print tables for common resistor power ratings
-            -w p    Resistor rated power in W [{d["-w"]}]
+          -a      Show all values, even if above resistor's rated power
+          -d n    Set number of significant figures
+          -3      Use 3 mm LED data (5 mm is default)
+          -h      Print more detailed help and LED data used
+          -p      Print tables for common resistor power ratings
+          -w p    Resistor rated power in W [{d["-w"]}]
         '''))
         exit(status)
     def ParseCommandLine(d):
@@ -140,7 +145,7 @@ if 1:   # Core functionality
         else:
             return str(pwr)
     def PrintResults(color, operating_voltage_V, resistor_power_rating_W, o):
-        w = 60 
+        w = 70 
         print(f"{'LED Resistor Selection':^{w}s}")
         print(f"{'----------------------':^{w}s}")
         print()
@@ -152,29 +157,33 @@ if 1:   # Core functionality
         print(f"{'Resistor power':{w}s} {ResistorPower(pwr)} W")
         # Header
         w = 10
-        print(" "*53, "% Resistor")
+        print(" "*11, "---Voltage drops---")
         print(" "*13, end="")
-        print("Diode     Resistor    Actual    On-hand     rated")
+        print(f"Diode     Resistor    -----{g.a}Actual{g.n}------     "
+              f"-----{g.o}On-hand{g.n}-----")
         print(f"{'i, mA':^{w}s} {'Vd, V':^{w}s} {'Vr, V':^{w}s} ", end="")
-        print(f"{'R, Ω':^{w}s} {'Ro, Ω':^{w}s} {'power':^{w}s} ")
+        print(f"{'R, Ω':^{w}s} {'%power':^{w}s} ", end="")
+        print(f"{'Ro, Ω':^{w}s} {'%power':^{w}s}")
         h = "-"*6
-        for i in range(6):
+        for i in range(7):
             print(f"{h:^{w}s} ", end="")
         print()
         # Table
         for j in o:
-            i, Vd, Vr, R, Ro, pct = j
+            i, Vd, Vr, R, pct, Ro, pcto = j
             if pct > 100 and not d["-a"]:
                 break
             print(f"{i!s:^{w}s} ", end="")
             print(f"{Vd!s:^{w}s} ", end="")
             print(f"{Vr!s:^{w}s} ", end="")
-            print(f"{R:^{w}s} ", end="")
-            print(f"{Ro:^{w}s} ", end="")
-            print(f"{int(pct):6d}")
+            print(f"{g.a}{R:^{w}s}{g.n} ", end="")
+            print(f"{int(pct):6d}     ", end="")
+            print(f"{g.o}{Ro:^{w}s}{g.n} ", end="")
+            print(f"{int(pcto):6d}")
         if d["-p"]:
             print()
     def Solve(color, operating_voltage_V, resistor_power_rating_W):
+        P = resistor_power_rating_W
         # Formatting tool
         FP = FPFormat(num_digits=3)
         fp = FP.engsi
@@ -188,63 +197,74 @@ if 1:   # Core functionality
         i2V = LinearInterpFunction(i_mA, V)
         # Define currents to print out
         I = list(frange("0.5", "1", "0.1"))
-        I.extend(range(1, 21, 1))
+        if d["-a"]:
+            I.extend(range(1, 31, 1))
+        else:
+            I.extend(range(1, 21, 1))
         # Make an array of [i, V, voltage - V, R, Ro, pct_pwr]
         o = []
-        for i in I:
-            Vd = i2V(i)                     # Voltage drop across diode
+        for curr in I:
+            i = curr/1000                   # Current in A
+            Vd = i2V(curr)                  # Voltage drop across diode
             Vr = operating_voltage_V - Vd   # Voltage drop across resistor
             if Vr > 0:
-                R = Vr/(i/1000)
-                Ro = FindClosest(R)
-                power = (i/1000)**2*R
-                pct = flt(100*power/pwr)
+                R = Vr/i                    # Actual resistance needed
+                Ro = FindClosest(R)         # Closest on-hand resistor
+                power = i**2*R              # Actual resistor power
+                powero = i**2*Ro            # On-hand resistor power
+                pct = flt(100*power/P)      # Actual power percent
+                pcto = flt(100*powero/P)    # On-hand power percent
                 if Ro is None:
-                    o.append([i, Vd, Vr, fp(R), "-", pct])
+                    o.append([curr, Vd, Vr, fp(R), pct, "-", "-"])
                 else:
-                    o.append([i, Vd, Vr, fp(R), fp(Ro), pct])
+                    o.append([curr, Vd, Vr, fp(R), pct, fp(Ro), pcto])
         PrintResults(color, operating_voltage_V, resistor_power_rating_W, o)
 def Details():
     print(dedent('''
-    All units are SI and RMS.
+    Units are SI and values are RMS.
 
-    This script uses the measured properties of my on-hand LEDs to estimate
-    the needed series resistance for a given operating voltage across the
-    diode and resistor and current through them both.  The estimates are
-    made using linear interpolation of the table data given below.
+    The script's objective is to give you a range of operating currents for
+    the LED that let you pick a single 1/4 W resistor from the on-hand
+    values.  This is specific to my inventory of resistors, so you'll want
+    to populate the resistors.py script with your own values.
 
-    The basic objective of the script is to give you a range of operating
-    currents for the LED that let you pick a single 1/4 W resistor from the
-    on-hand values.  This is specific to my inventory of resistors, so
-    you'll want to populate the resistors.py script with your own values.
+    This task is analytically problematic because of the nonlinear nature
+    of the diode's current versus voltage characteristics (see
+    https://en.wikipedia.org/wiki/Diode_modelling for details).  However, a
+    piecewise linear model is practical and is how this script works (by
+    linear interpolation in the tables given below).
 
     The columns printed out in the script's report are:
 
       i, mA
           This is the RMS current through the resistor and diode.
-      Vd
-          Voltage drop across the diode, interpolated from the measured
+      Vd, V
+          RMS voltage drop across the diode, interpolated from the measured
           data below.
-      Vr
-          Voltage drop across the resistor.  This is for the actual
+      Vr, V
+          RMS voltage drop across the resistor.  This is for the actual
           calculated resistance value R, not the on-hand resistance Ro.
-      R
+      R, Ω
           Calculated resistance needed.
-      Ro
+      Ro, Ω
           Closest on-hand resistance to R.
       % Resistor rated power
           % of resistor's rated power if a resistor of value R was run at
-          the indicated current.  Note results will be different for the
-          on-hand resistance.  You can scale the percentage rated power
+          the indicated current.  The results will be different for the
+          on-hand resistance; you can scale the percentage rated power
           using Ro/R.
 
     Comments
     --------
 
       These are estimated values and do not reflect the stochastic
-      variability of the diodes' characteristics.  For a critical
-      application, you'll want to measure things yourself.  The script's
-      intent is to get you into the ballpark.
+      variability of the diodes' characteristics nor any measurement
+      uncertainties.  For a critical application, you'll want to measure
+      such things yourself.
+
+      I almost never run these diodes over 10 mA, which is why the normal
+      report only goes to 20 mA.  Most panel annunciator tasks work well
+      for indoor use at 1 to 5 mA.
 
       A common use case of mine is to choose a resistor for one of these
       LEDs to run at AC line voltage.  Since my line voltage is almost
@@ -254,13 +274,13 @@ def Details():
       at 1 mA or less.
 
       When fiddling with LEDs, a current source with a 10-turn pot for
-      controlling the current is very helpful for measuring and
-      characterizing.  An excellent current source can be made with an
-      LM285 voltage reference, an op amp like the LM324, a 10-turn pot,
-      suitable shunt resistors, and a MOSFET transistor like the IRF3205.
-      For the bench, use a 12 V wall wart for power.  See
-      https://someonesdad1.github.io/hobbyutil/elec/CurrentSource.pdf for
-      a battery-operated example.
+      controlling the current is helpful for measuring and characterizing.
+      An excellent current source can be made with an LM285 voltage
+      reference, an op amp like the LM324, a 10-turn pot, suitable shunt
+      resistors, and a MOSFET transistor like the IRF3205.  For the bench,
+      use a 12 V wall wart for power.  See
+      https://someonesdad1.github.io/hobbyutil/elec/CurrentSource.pdf for a
+      battery-operated example.
 
     Measured LED properties
     -----------------------
@@ -318,4 +338,3 @@ if __name__ == "__main__":
     else:
         pwr = d["-w"]
         Solve(color, voltage, pwr)
-    print("\nScale % rated power by Ro/R")
