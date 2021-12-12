@@ -1,6 +1,7 @@
 *.swo
 *.swp
 *.pdf
+*.ps
 .local_profile
 .vi
 .z

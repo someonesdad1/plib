@@ -2,12 +2,61 @@
 On-hand resistors
 '''
 
-from f import flt
+import bisect
 
-resistors = None
+# This tuple is a sorted sequence of on-hand resistors
+resistors = (
+    0.025, 0.18, 0.2, 0.27, 0.33, 1, 2.2, 4.6, 8.3, 10.1, 12, 14.7, 15,
+    17.8, 22, 27, 28.4, 30, 31.6, 33, 35, 38.4, 46.3, 50, 55.5, 61.8, 67,
+    75, 78, 81, 100, 110, 115, 121, 150, 162, 170, 178, 196, 215, 220, 237,
+    268, 270, 287, 316, 330, 349, 388, 465, 500, 513, 546, 563, 617, 680,
+    750, 808, 822, 980, 1000, 1100, 1180, 1210, 1330, 1470, 1500, 1620,
+    1780, 1960, 2160, 2200, 2370, 2610, 2720, 3000, 3160, 3300, 3470, 3820,
+    4640, 5000, 5530, 6800, 6840, 8000, 8300, 9090, 10000, 11800, 12100,
+    13300, 15000, 16200, 17800, 18000, 19500, 20000, 22000, 26200, 33000,
+    39000, 42400, 46000, 51000, 55000, 67000, 75000, 82000, 100000, 120000,
+    147000, 162000, 170000, 180000, 220000, 263000, 330000, 390000, 422000,
+    460000, 464000, 560000, 674000, 820000, 1000000, 1200000, 1500000,
+    1700000, 1900000, 2200000, 2400000, 2600000, 2800000, 3200000, 4000000,
+    4800000, 5600000, 6000000, 8700000, 10000000, 16000000, 23500000)
+
+def FindClosest(R, favor_highest=True):
+    '''Return the closest on-hand resistor.  If less than the smallest or
+    greater than the largest, None is returned.
+    '''
+    def find_le(a, x):
+        'Find rightmost value less than or equal to x'
+        i = bisect.bisect_right(a, x)
+        if i:
+            return a[i-1]
+        return None
+    def find_ge(a, x):
+        'Find leftmost item greater than or equal to x'
+        i = bisect.bisect_left(a, x)
+        if i != len(a):
+            return a[i]
+        return None
+    if R < min(resistors) or R > max(resistors):
+        return None
+    less = find_le(resistors, R)
+    more = find_ge(resistors, R)
+    if less is None and more is not None:
+        return more
+    elif less is not None and more is None:
+        return less
+    elif less is None and more is None:
+        return None
+    else:
+        # Return whichever is closer to desired R
+        l, m = abs((less - R)), abs((more - R))
+        if l == m:
+            return more if favor_highest else less
+        else:
+            return less if l <= m else more
 
 def OnHand():
     'Return a list of on-hand resistors'
+    # Use this to remake the list
     l = '''
         0.025 0.18 0.2 0.27 0.33           1 2.2 4.6 8.3
         10.1 12 14.7 15 17.8 22 27 28.4 30 31.6 33 35 38.4 46.3 50 55.5 61.8 67
@@ -25,10 +74,8 @@ def OnHand():
         10M 16M 23.5M
     '''
     o = []
-    for i in l.split():
-        i = i.replace("k", "*1000")
-        i = i.replace("M", "*1e6")
-        o.append(flt(eval(i)))
-    global resistors
-    resistors = tuple(o)
-OnHand()
+    for R in l.splRt():
+        x = float(eval(R.replace("k", "*1000").replace("M", "*1e6")))
+        o.append(int(x) if x == int(x) else x)
+    return tuple(sorted(list(set(o))))
+#print(OnHand())
