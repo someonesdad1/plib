@@ -69,6 +69,7 @@ if 1:   # Utility
           red, yel, wht, blu.
         Options:
           -a      Show all values, even if above resistor's rated power
+          -c      Don't print colors
           -d n    Set number of significant figures
           -3      Use 3 mm LED data (5 mm is default)
           -h      Print more detailed help and LED data used
@@ -78,17 +79,18 @@ if 1:   # Utility
         exit(status)
     def ParseCommandLine(d):
         d["-a"] = False     # Show all the current choices
+        d["-c"] = False     # Turn off color printing
         d["-3"] = False     # Use 3 mm LED data
         d["-d"] = 3         # Number of significant digits
         d["-p"] = False     # Print for range of powers
         d["-w"] = 0.25      # Default resistor power in W
         try:
-            opts, args = getopt.getopt(sys.argv[1:], "3ad:hpw:")
+            opts, args = getopt.getopt(sys.argv[1:], "3acd:hpw:")
         except getopt.GetoptError as e:
             print(str(e))
             exit(1)
         for o, a in opts:
-            if o[1] in list("3ap"):
+            if o[1] in list("3acp"):
                 d[o] = not d[o]
             elif o in ("-d",):
                 try:
@@ -113,6 +115,8 @@ if 1:   # Utility
         x = flt(0)
         x.n = d["-d"]
         x.rtz = x.rtdp = True
+        if d["-c"]:
+            g.n = g.a = g.o = ""
         return args
 if 1:   # Core functionality
     def GetColor(color):
@@ -148,7 +152,6 @@ if 1:   # Core functionality
         w = 70 
         print(f"{'LED Resistor Selection':^{w}s}")
         print(f"{'----------------------':^{w}s}")
-        print()
         # Problem parameters
         w = 20 
         print(f"{'Operating voltage':{w}s} {voltage} V")
@@ -157,6 +160,7 @@ if 1:   # Core functionality
         print(f"{'Resistor power':{w}s} {ResistorPower(pwr)} W")
         # Header
         w = 10
+        print()
         print(" "*11, "---Voltage drops---")
         print(" "*13, end="")
         print(f"Diode     Resistor    -----{g.a}Actual{g.n}------     "
