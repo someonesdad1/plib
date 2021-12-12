@@ -46,6 +46,8 @@ if 1:   # Custom imports
     from interpolate import LinearInterpFunction
     from frange import frange
     from f import flt
+    from resistors import FindClosest
+    from fpformat import FPFormat
 if 1:   # Global variables
     P = pathlib.Path
     ii = isinstance
@@ -113,24 +115,53 @@ if 1:   # Utility
         return args
 if 1:   # Core functionality
     def Solve(color, voltage, pwr):
+        fp = FPFormat(num_digits=d["-d"]).engsic
         V = LED[color]
         V2i = LinearInterpFunction(V, i_mA)
         i2V = LinearInterpFunction(i_mA, V)
         I = list(frange("0.5", "1", "0.1"))
-        I.extend(range(1, 51, 1))
+        I.extend(range(1, 21, 1))
+        I.extend(range(25, 51, 5))
         # Make an array of [i, V, voltage - V, R, pct_pwr]
         o = []
         for i in I:
             V = i2V(i)
-            pct = 100*(i*V/1000)/pwr
-            o.append([i, V, voltage - V, pct])
-        for i in o:
-            print(*i)
+            ΔV = voltage - V
+            if ΔV > 0:
+                R = FindClosest(ΔV/(i/1000))
+                if R is None:
+                    o.append([i, V, voltage - V, "-", "-"])
+            p = (i/1000)**2*R
+            pct = flt(100*p/pwr)
+            o.append([i, V, fp(R), pct])
+        # Print results
+        w = 30
+        print(f"{'LED Resistor Selection':^{w}s}")
+        print(f"{'----------------------':^{w}s}")
         print()
+        print(f"Operating voltage = {voltage} V")
+        print(f"LED color = {color}")
+        print(f"LED diameter =  mm")
+        print(f"Resistor power = {d['-w']!s:s} W")
+        print()
+        w = 10
+        print(f"{'i, mA':^{w}s} ", end="")
+        #print(f"{'V, V':^{w}s} ", end="")
+        print(f"{'R, Ω':^{w}s} ", end="")
+        print(f"{'%power':^{w}s} ")
+        for j in o:
+            i, V, R, pct = j
+            print(f"{i!s:^{w}s} ", end="")
+            #print(f"{V!s:^{w}s} ", end="")
+            print(f"{R:^{w}s} ", end="")
+            if pct > 100:
+                print(f"{'-':^{w}s} ")
+            else:
+                print(f"{str(int(pct)):^{w}s} ")
 
 if __name__ == "__main__":
     d = {}      # Options dictionary
     args = ParseCommandLine(d)
     color, voltage = args[0], flt(args[1])
-    for pwr in (1/8, 1/4, 1/2, 1, 2, 5):
-        Solve(color, voltage, pwr)
+    pwr = d["-w"]
+    Solve(color, voltage, pwr)
