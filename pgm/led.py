@@ -109,15 +109,16 @@ if 1:   # Utility
         return args
 if 1:   # Core functionality
     def Solve(color, voltage, pwr):
-        FP = FPFormat(num_digits=d["-d"])
+        FP = FPFormat(num_digits=3)
         fp = FP.engsi
         FP.trailing_decimal_point(False)
         V = LED[color]
         V2i = LinearInterpFunction(V, i_mA)
         i2V = LinearInterpFunction(i_mA, V)
         I = list(frange("0.5", "1", "0.1"))
-        I.extend(range(1, 11, 1))
-        I.extend(range(12, 21, 2))
+        I.extend(list(frange("1.0", "5", "0.2")))
+        I.extend(list(frange("5.0", "10.01", "0.5")))
+        I.extend(range(10, 21, 2))
         I.extend(range(25, 51, 5))
         # Make an array of [i, V, voltage - V, R, pct_pwr]
         o = []
@@ -137,16 +138,17 @@ if 1:   # Core functionality
         print(f"{'LED Resistor Selection':^{w}s}")
         print(f"{'----------------------':^{w}s}")
         print()
-        print(f"Operating voltage = {voltage} V")
-        print(f"LED color = {color}")
-        print(f"LED diameter =  mm")
-        print(f"Resistor power = {pwr!s:s} W")
+        w = 20 
+        print(f"{'Operating voltage':{w}s} {voltage} V")
+        print(f"{'LED color':{w}s} {color}")
+        print(f"{'LED diameter':{w}s} {3 if d['-3'] else 5} mm")
+        print(f"{'Resistor power':{w}s} {pwr} W")
         print()
         w = 10
-        print(f"{'i, mA':^{w}s} ", end="")
-        print(f"{'V, V':^{w}s} ", end="")
-        print(f"{'R, Ω':^{w}s} ", end="")
+        print(f"{'i, mA':^{w}s} {'V, V':^{w}s} {'R, Ω':^{w}s} ", end="")
         print(f"{'%power':^{w}s} ")
+        h = "-"*6
+        print(f"{h:^{w}s} {h:^{w}s} {h:^{w}s} {h:^{w}s} ")
         for j in o:
             i, V, R, pct = j
             if pct > 100 and not d["-a"]:
