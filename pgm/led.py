@@ -51,21 +51,19 @@ if 1:   # Utility
         Usage:  {sys.argv[0]} [options] color V
           Suppose you want to run an LED of the indicated color at the
           stated supply voltage in volts.  The script will print out the
-          resistance to use to run at this voltage, giving the designs for
-          every 10% of the resistor power rating.  Colors can be grn, red,
-          yel, wht, blu.  (yel, wht not supported yet)
+          resistance to use to run at this voltage at various currents.
+          Colors can be grn, red, yel, wht, blu.  (yel, wht not supported yet)
 
           The output table shows the %power column which is the fraction of
           the rated power of the resistor at the indicated operating
           current.  If a '-' is printed, it means the power is more than 
           the power rating of the resistor.
         Options:
-            -a      Show all the current choices
+            -a      Show all the values
             -d n    Set number of significant figures
             -3      Use 3 mm LED data (5 mm is default)
             -h      Print LED data used
             -p      Print tables for a range of common powers
-            -v      Include voltage drop across LED
             -w p    Resistor power in W [{d["-w"]}]
         '''))
         exit(status)
@@ -74,15 +72,14 @@ if 1:   # Utility
         d["-3"] = False     # Use 3 mm LED data
         d["-d"] = 3         # Number of significant digits
         d["-p"] = False     # Print for range of powers
-        d["-v"] = False     # Include LED voltage drop
         d["-w"] = 0.25      # Default resistor power in W
         try:
-            opts, args = getopt.getopt(sys.argv[1:], "3ad:hpvw:")
+            opts, args = getopt.getopt(sys.argv[1:], "3ad:hpw:")
         except getopt.GetoptError as e:
             print(str(e))
             exit(1)
         for o, a in opts:
-            if o[1] in list("3apv"):
+            if o[1] in list("3ap"):
                 d[o] = not d[o]
             elif o in ("-d",):
                 try:
@@ -130,16 +127,13 @@ if 1:   # Core functionality
             if ΔV > 0:
                 R = FindClosest(ΔV/(i/1000))
                 if R is None:
-                    if not d["-a"]:
-                        i = 1000
-                        continue
                     o.append([i, V, voltage - V, "-", "-"])
             p = (i/1000)**2*R
             pct = flt(100*p/pwr)
             o.append([i, V, fp(R), pct])
         #-------------------------------------------
         # Print results
-        w = 40 if d["-v"] else 30
+        w = 40 
         print(f"{'LED Resistor Selection':^{w}s}")
         print(f"{'----------------------':^{w}s}")
         print()
@@ -150,23 +144,17 @@ if 1:   # Core functionality
         print()
         w = 10
         print(f"{'i, mA':^{w}s} ", end="")
-        if d["-v"]:
-            print(f"{'V, V':^{w}s} ", end="")
+        print(f"{'V, V':^{w}s} ", end="")
         print(f"{'R, Ω':^{w}s} ", end="")
         print(f"{'%power':^{w}s} ")
         for j in o:
             i, V, R, pct = j
+            if pct > 100 and not d["-a"]:
+                break
             print(f"{i!s:^{w}s} ", end="")
-            if d["-v"]:
-                print(f"{V!s:^{w}s} ", end="")
+            print(f"{V!s:^{w}s} ", end="")
             print(f"{R:^{w}s} ", end="")
-            if pct > 100:
-                if not d["-a"]:
-                    print()
-                    break
-                print(f"{'-':^{w}s} ")
-            else:
-                print(f"{str(int(pct)):^{w}s} ")
+            print(f"{str(int(pct)):^{w}s} ")
 
 if __name__ == "__main__":
     d = {}      # Options dictionary
