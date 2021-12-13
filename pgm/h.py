@@ -23,7 +23,7 @@ if 1:   # Standard imports
     from collections import deque
     from pdb import set_trace as xx
 if 1:   # Custom imports
-    from wrap import wrap, dedent
+    from wrap import dedent
     from color import C
     from edit import Edit
 if 1:   # Global variables
@@ -40,7 +40,7 @@ def Usage(status=1):
     Usage:  {sys.argv[0]} [options] cmd arg
         Commands (cmd):
         e       Edit config file
-        g [n]   Get line number n (n defaults to 0) (0-based numbers)
+        [n]     Get line number n (1-based numbers)
         p d     Push directory d onto top of stack
         l       List config file's contents
         Defaults to {d["number"]}.
@@ -107,10 +107,11 @@ if __name__ == "__main__":
         Edit(d["-c"])
     elif cmd == "g":
         n = int(arg)
-        if n < 0:
-            n = 0
-        if n > len(lines) - 1:
+        if n < 1:
+            n = 1
+        if n > len(lines):
             raise ValueError(f"Line number '{n}' out of range")
+        n -= 1  # Convert to 0-based numbering
         print(lines[n])
     elif cmd == "p":
         if len(args) == 1:
@@ -122,7 +123,14 @@ if __name__ == "__main__":
         open(d["-c"], "w").write('\n'.join(lines))
     elif cmd == "l":
         for i, line in enumerate(lines):
-            print(f"{g.c}{i}:  {line}{g.n}")
+            print(f"{g.c}{i + 1}:  {line}{g.n}")
+    elif cmd == "h":
+        print(dedent(f'''
+        e       Edit the config file
+        n       Got to line n (n is an integer > 0)
+        p d     Push the directory d onto the stack
+        l       List the config file
+        '''))
     else:
         s = "\n"
         msg = f"{s}  Command line: {sys.argv}{s}  Unrecognized command"
