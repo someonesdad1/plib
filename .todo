@@ -1,13 +1,10 @@
-* notes file:  write a python replacement for agrep.  First, see if the
-  cygwin setup tool offers it.
-
 * A fundamental problem when coding is that a data structure is developed
-  and you start using it in your code.  Then you always have to stop and 
+  and you start using it in your code.  Then you always have to stop and
   look around the code to figure out the structures again.  Is there a way
   to add a utility that documents the structures so e.g. a command line
-  option will print out a succinct summary?  Ideally, this would be just a
-  few lines of code that are easy to remove when done (or, better, leave it
-  in for later maintenance).
+  option will print out a succinct summary by the code examining itself?
+  Ideally, this would be just a few lines of code that are easy to remove
+  when done (or, better, leave it in for later maintenance).
 
 * Since flt is essentially done, write a replacement for fpformat.py that 
   includes its features.
@@ -79,10 +76,10 @@
       string.ascii_letters.  A better default would be "un latin |grep -i
       letter" and limited to letters < 0x17f (this is 237 letters).
 
-      This means a sentence like "Must be one of:  exp, log." needs to be
+      This means a sentence like "Must be:  exp, log." needs to be
       parsed as
 
-        x = ["Must", " ", "be", " ", "one", "of", ":", "  ", "exp", "."]
+      ['Must', ' ', 'be', ':', '  ', 'exp', ',', 'log', '.']
  
       such that ''.join(x) reproduces the original string.  This function
       should be in dpstr.py.  Numbers in names could be an issue.
