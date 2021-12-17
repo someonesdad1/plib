@@ -115,11 +115,11 @@ def Error(msg, status=1):
 def Usage(d, status=1):
     print(dedent(f'''
     Usage:  {sys.argv[0]} [options] [cmd]
-    
-      Print out battery data for no cmd.  If cmd is aa, aaa, c, d, 9v, then open
-      the Duracell PDF for that battery.  For any other cmd, print out the lithium
-      coin cell battery data too.
-    
+      Print out battery data for no cmd.  Other commands:
+
+      aa, aaa, c, d, 9      Open Duracell PDF for that battery
+      t                     Suggested DC load testing methods
+      l                     Print lithium coin cell data too
     Options:
         -h      Print a manpage
     '''))
@@ -139,6 +139,23 @@ def Open(cmd):
     file = f"{pth}/Duracell_{cmd.upper()}_alkaline.pdf"
     st = "C:/cygwin/bin/cygstart.exe"
     subprocess.Popen([st, file])
+def TestData():
+    print(dedent(f'''
+    Suggested testing method with DC load.  This is for new alkaline batteries.
+    Measure the open circuit voltage, then the voltage with a 0.1 A load; the
+    latter should be equal to or greater than that in the third column.
+
+                           Voltage, V
+                Open circuit        Under load
+                ------------        ----------
+        AA           1.6                1.5
+        AAA        1.55-1.6             1.5
+        9V         9.4-9.5              9.0 (will drop pretty quickly)
+        C          1.55-1.6          1.45-1.5
+
+    The C battery measurements were probably with old batteries, as we rarely
+    use them.
+    '''))
 if __name__ == "__main__":
     d = {}      # Options dictionary
     args = ParseCommandLine(d)
@@ -146,8 +163,10 @@ if __name__ == "__main__":
     if not cmd:
         PrintData()
     else:
-        if cmd in "aa aaa c d 9v".split():
+        if cmd in "aa aaa c d 9".split():
             Open(cmd)
+        elif cmd == "t":
+            TestData()
         else:
             PrintData()
             PrintLithium()

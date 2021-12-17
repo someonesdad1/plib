@@ -76,25 +76,25 @@ def Manpage():
     print(dedent(f'''
                                 Copper Wire Table
     
-    The properties of commercial copper wire in this table are calculated from
-    the density of copper ({density} kg/m³) and its room temperature resistivity
-    of {rho} nΩ·m.
+    The properties of commercial copper wire in this table are calculated
+    from the density of copper ({density} kg/m³) and its room temperature
+    resistivity of {rho} nΩ·m.
     
-    AWG is American Wire Gauge [1].  Given an AWG number N, the diameter of a
-    wire in inches is 92**((36 - N)/39)/200.  For 2/0, 3/0, or m/0 where m >= 2,
-    use an N of 1 - m.
+    AWG is American Wire Gauge [1].  Given an AWG number N, the diameter of
+    a wire in inches is 92**((36 - N)/39)/200.  For 2/0, 3/0, or m/0 where
+    m >= 2, use an N of 1 - m.
     
-    Useful approximations to memorize are that 12 gauge wire is about 2 mm in
-    diameter and 18 gauge wire is about 1 mm in diameter (if you want
-    approximate inches, multiply mm by 2 twice and divide by 100).  Changing 6
-    AWG gauge numbers changes the wire diameter by about 2.  Use the -e option
-    to see areal relationships amongst the gauge sizes.
+    Useful approximations to memorize are that 12 gauge wire is about 2 mm
+    in diameter and 18 gauge wire is about 1 mm in diameter (if you want
+    approximate inches, multiply mm by 2 twice and divide by 100).
+    Changing 6 AWG gauge numbers changes the wire diameter by about 2.  Use
+    the -e option to see areal relationships amongst the gauge sizes.
  
-    Another useful tidbit is that a 1 foot long chunk of 10 gauge copper has a
-    resistance of about 1 mΩ.
+    Another useful tidbit is that a 1 foot long chunk of 10 gauge copper
+    has a resistance of about 1 mΩ.
     
-    To estimate the electrical behavior of copper as a function of temperature,
-    you need to know:
+    To estimate the electrical behavior of copper as a function of
+    temperature, you need to know:
     
         * The resistivity of copper as a function of absolute temperature
           is essentially linear to about 600 K and then slightly concave
@@ -123,13 +123,15 @@ def Manpage():
                                     Ampacity
     ----------------------------------------------------------------------
     
-    Ampacity refers to the allowed current carrying ability of copper wire.  In
-    general, what is allowed physically is dependent on many things because it
-    is ultimately a heat transfer problem where the Joule heat from the current
-    in the wire needs to be removed by conduction, convection, and radiation at
-    a sufficiently rapid rate to keep the temperature of the wire below a
-    desired value.  For most practical electrical problems, convection removes
-    the most heat and the orientation and bundling of wires can be important.
+    Ampacity refers to the allowed current carrying ability of copper wire.
+    In general, what is allowed physically is dependent on many things
+    because it is ultimately a heat transfer problem where the Joule heat
+    from the current in the wire needs to be removed by conduction,
+    convection, and radiation at a sufficiently rapid rate to keep the
+    temperature of the wire below a desired value.  For most practical
+    electrical problems, convection and conduction are the most important
+    for heat transfer and the orientation and bundling of wires can be
+    important.
     
     The script prints a number of ampacity values when you use the -a option.  
     
@@ -141,53 +143,62 @@ def Manpage():
     put through a copper wire for practical purposes.  I have tested these
     values on 18 gauge and smaller wires and found that the wires and their
     insulations are noticeably heated, but not hot enough to melt the
-    insulation.  From [3].  Also see [9].
+    insulation.  From [3].
+
+    It appears to me that these estimates often come from the military
+    standard MIL5088 [9], which covers the design of aerospace vehicles.
+    This information was derived from experiments in the 1960's.  More
+    modern comments are in [10].
     
-        Experiment:  At a room temperature of about 20 °C, I connected an 18
-        gauge solid copper wire 80 mm long clamped between two alligator clips to
-        an HP 6033A DC power supply (supplies up to 30 A).  The current was set
-        to the Chass current of 16 A and left on for 10 minutes.  The wire was
-        comfortably warm to the fingers, but one of the steel alligator clips was
-        too hot to leave my fingers on it for more than 1 second.  My engineering
-        judgment is that this wire's temperature rise would be fine in a project
-        that wouldn't go over 35 or 40 °C ambient temperature.  At a current of
-        20 A (50% higher power dissipation), the wire's insulation was hot enough
-        that I wouldn't want to hold it for more than a second or two and one of
-        the alligator clips was too hot to touch, even for 0.2 s or so.  This
-        "finger touch test" can indicate temperatures on the order of 40 to 50
-        °C.
+        Experiment:  At a room temperature of about 20 °C, I connected an
+        18 gauge solid copper wire 80 mm long clamped between two alligator
+        clips to an HP 6033A DC power supply (supplies up to 30 A).  The
+        current was set to the Chass current of 16 A and left on for 10
+        minutes.  The wire was comfortably warm to the fingers, but one of
+        the steel alligator clips was too hot to leave my fingers on it for
+        more than 1 second.  My engineering judgment is that this wire's
+        temperature rise would be fine in a project that wouldn't go over
+        35 or 40 °C ambient temperature.  At a current of 20 A (50% higher
+        power dissipation), the wire's insulation was hot enough that I
+        wouldn't want to hold it for more than a second or two and one of
+        the alligator clips was too hot to touch, even for 0.2 s or so.
+        This "finger touch test" can indicate temperatures on the order of
+        40 to 50 °C.
     
         More specific guidelines [5] give the continuously-held maximum
-        temperature for all materials at 43 °C (if held for < 10 s, then 55 °C
-        for metals and 65 °C for non-metals; if touched for < 1 s, then 65 °C
-        for metals and 85 °C for non-metals).  Non-metals are higher because
-        they conduct less heat to the skin per unit time.  Most of us learn we
-        can coat our finger with saliva and touch things perhaps 100 to 150 °C
-        quickly, feeling and hearing a hiss.  We're not burned because the heat
-        of vaporization of the fluid keeps the heat from conducting to our
-        skin (sometimes called the Leidenfrost effect).
+        temperature for all materials at 43 °C (if held for < 10 s, then 55
+        °C for metals and 65 °C for non-metals; if touched for < 1 s, then
+        65 °C for metals and 85 °C for non-metals).  Non-metals are higher
+        because they conduct less heat to the skin per unit time.  Most of
+        us learn we can coat our finger with saliva and touch things
+        perhaps 100 to 150 °C quickly, feeling and hearing a hiss.  We're
+        not burned because the heat of vaporization of the fluid keeps the
+        heat from conducting to our skin (sometimes called the Leidenfrost
+        effect).
     
-        A second wire (about 21 gauge, pulled from a surplus military device) was
-        run at 9 A, which is halfway between the two nearest Chass table values.
-        It also felt fine to my fingers, but sensitivity goes down on smaller
-        wires.  I increased the current by 1.25 times to 11.25 A (increased the
-        dissipated power by 50%) and it was warmer after about 5 minutes, but not
-        objectionably so.  This excellent wire was likely more expensive than
-        regular wire, as it was stranded and appeared to be tinned with solder.
+        A second wire (about 21 gauge, pulled from a surplus military
+        device) was run at 9 A, which is halfway between the two nearest
+        Chass table values.  It also felt fine to my fingers, but
+        sensitivity goes down on smaller wires.  I increased the current by
+        1.25 times to 11.25 A (increased the dissipated power by 50%) and
+        it was warmer after about 5 minutes, but not objectionably so.
+        This excellent wire was likely more expensive than regular wire, as
+        it was stranded and appeared to be tinned with solder.
     
-        Rigging up some kind of temperature monitoring for this experiment would
-        make it more quantitative, but measuring the temperature of a small wire
-        without influencing the heat loss mechanisms is more work that I'd want
-        to invest.  Still, the experiment provided me with enough of an
-        engineering feel (no pun :^) that these current levels would be safe
-        should I want to base a design on them.  I don't have a DC power supply
-        capable of enough current to study wires at higher DC currents.
+        Rigging up some kind of temperature monitoring for this experiment
+        would make it more quantitative, but measuring the temperature of a
+        small wire without influencing the heat loss mechanisms is more
+        work that I'd want to invest.  Still, the experiment provided me
+        with enough of an engineering feel (no pun :^) that these current
+        levels would be safe should I want to base a design on them.  I
+        don't have a DC power supply capable of enough current to study
+        wires at higher DC currents.
     
-        A 24 gauge piece of copper wire held in alligator clips with 30 A through
-        the wire will glow a faint red in a room with the curtains drawn during
-        the daytime.  This should only be done for 10 or 20 s, as the alligator
-        clips will get hot.  From past experiments with heated metals, I'd guess
-        the temperature was around 550 to 600 °C.
+        A 24 gauge piece of copper wire held in alligator clips with 30 A
+        through the wire will glow a faint red in a room with the curtains
+        drawn during the daytime.  This should only be done for 10 or 20 s,
+        as the alligator clips will get hot.  From past experiments with
+        heated metals, I'd guess the temperature was around 550 to 600 °C.
     
     Note the current densities (j in A/mm²) for these Chass ratings are not
     constant:
@@ -305,11 +316,13 @@ def Manpage():
     [8] "Metals Handbook", Vol. 1, 8th ed., American Society of Metals, 1961,
         copper graphs on page 1009.
     
-    [9] HP 6033A power supply user manual, page 37.  This document gives copper
-        wire ampacities that are fairly close to the Chas ratings in this
-        document and are derived from MIL-W-5088B.  It also references IEC
-        publication 335-1.  In MIL-W-5088L, look at Figure 3 on page 46 and 47.
-    
+    [9] MIL-W-5088L.  In particular, look at Figure 3 on page 46 and 47.
+        The Chass ratings in this script come pretty close to the numbers 
+        given in MIL-W-5088L for a ΔT of 60°C.  If you assume an ambient
+        temperature of 30°C, then this means the insulation temperature
+        will be around 90°C, a common insulation temperature rating.  
+   [10] https://www.lectromec.com/maximum-harness-ampacity and
+        https://www.lectromec.com/ampacity-improvements.
         '''.rstrip()))
     print(dedent(f'''
  
@@ -1103,4 +1116,4 @@ if __name__ == "__main__":
             PrintTable(-3, 25, step=1)
         else:
             PrintTable(0, 31, step=2, others=[-3, -2, -1])
-# vim: wm=5
+# vim: wm=1
