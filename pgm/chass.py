@@ -143,14 +143,27 @@ for i, awg in enumerate(AWG):
     exact = I
     chass = Chass[i]
     pct = flt(100*(chass - exact)/exact)
+    s = "*" if -pct > 5 else ""
     print(f"{indent}{awg}     {I:6.1f}      {Im:6.1f}       "
-          f"{Chass[i]:^6s}     {pct!s:^12s}")
+          f"{Chass[i]:^6s}     {pct!s:^12s} {s}")
 
 '''
 Results:
 
+Slope and intercept:
+    AWG       Slope      Intercept 10**b
+    ---       -----      ---------------
+    10        0.475          7.56         
+    12        0.473          5.81         
+    14        0.482          4.19         
+    16        0.483          3.12         
+    18        0.474          2.77         
+    20        0.461          2.21         
+    22        0.442          1.83         
+    24        0.447          1.35         
+    26        0.458         0.964         
     Mean slope = 0.466
-    Chassis current estimates for ΔT = 60°C
+Chassis current estimates for ΔT = 60°C
     AWG    Formula    Graph     %diff
     ---    -------    -----     -----
     10       52.8      51.3      -2.9
@@ -162,26 +175,25 @@ Results:
     22       11.2      11.0      -1.5
     24       8.45      8.60       1.7
     26       6.29      6.40       1.7
-
-    Contrasted to existing Chass currents in table:
-            Exact    Mean slope             Chass to Exact
+Compared to existing Chass currents in table
+             Exact    Mean slope             Chass to Exact
     AWG      Calc        Calc        Chass        %diff
-    10       52.8        51.0         55           4.1     
-    12       40.2        39.2         41           1.9     
-    14       30.2        28.3         32           6.1     
-    16       22.6        21.1         22           -2.6    
-    18       19.3        18.7         16           -17     
-    20       14.6        14.9         11           -25     
-    22       11.2        12.3         7            -37     
-    24        8.5         9.1        3.5           -59     
-    26        6.3         6.5        2.2           -65     
+    ---      -----    ----------     -----   --------------
+    10       52.8        51.0         55           4.1      
+    12       40.2        39.2         41           1.9      
+    14       30.2        28.3         32           6.1      
+    16       22.6        21.1         22           -2.6     
+    18       19.3        18.7         16           -17      *
+    20       14.6        14.9         11           -25      *
+    22       11.2        12.3         7            -37      *
+    24        8.5         9.1        3.5           -59      *
+    26        6.3         6.5        2.2           -65      *
 
-Because of the large %diff values for 18 AWG and below, I felt it was 
-appropriate to run some actual tests at the 'Exact Calc' values.  I suspect
-the 'Exact Calc' values may be too large.  
+Because of the large %diff values for 18 AWG and below (flagged by *), I
+felt it was appropriate to run some actual tests at the 'Exact Calc'
+values.  I suspect the 'Exact Calc' values may be too large.  
 
-The wires I have to test are:  18 ga solid Cu bell wire and 24 ga solid
-copper from some CAT5 cable.
-
+The wires I have on-hand to test are:  18 ga solid copper bell wire and 24
+ga solid copper from some CAT5 cable.
 
 '''

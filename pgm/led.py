@@ -56,6 +56,7 @@ if 1:   # Global variables
     class g: pass
     g.n = C.norm
     g.a = C.yel
+    g.p = C.lmag
     g.o = C.lgrn
 if 1:   # Utility
     def Error(*msg, status=1):
@@ -157,7 +158,7 @@ if 1:   # Core functionality
         print(f"{'Operating voltage':{w}s} {voltage} V")
         print(f"{'LED color':{w}s} {GetColor(color)}")
         print(f"{'LED diameter':{w}s} {3 if d['-3'] else 5} mm")
-        print(f"{'Resistor power':{w}s} {ResistorPower(pwr)} W")
+        print(f"{g.p}{'Resistor power':{w}s} {ResistorPower(pwr)} W{g.n}")
         # Header
         w = 10
         print()
@@ -212,17 +213,18 @@ if 1:   # Core functionality
                 R = Vr/i                    # Actual resistance needed
                 Ro = FindClosest(R)         # Closest on-hand resistor
                 power = i**2*R              # Actual resistor power
-                powero = i**2*Ro            # On-hand resistor power
                 pct = flt(100*power/P)      # Actual power percent
-                pcto = flt(100*powero/P)    # On-hand power percent
                 if Ro is None:
                     o.append([curr, Vd, Vr, fp(R), pct, "-", "-"])
                 else:
+                    powero = i**2*Ro            # On-hand resistor power
+                    pcto = flt(100*powero/P)    # On-hand power percent
                     o.append([curr, Vd, Vr, fp(R), pct, fp(Ro), pcto])
         PrintResults(color, operating_voltage_V, resistor_power_rating_W, o)
 def Details():
     print(dedent('''
-    Units are SI and values are RMS.
+    Units:  mA for current, V for volts, Ω for resistance.  All non-DC
+    values are RMS.
 
     The script's objective is to give you a range of operating currents for
     the LED that let you pick a single 1/4 W resistor from the on-hand
@@ -237,17 +239,17 @@ def Details():
 
     The columns printed out in the script's report are:
 
-      i, mA
-          This is the RMS current through the resistor and diode.
-      Vd, V
+      i
+          RMS current through the resistor and diode.
+      Vd
           RMS voltage drop across the diode, interpolated from the measured
           data below.
-      Vr, V
+      Vr
           RMS voltage drop across the resistor.  This is for the actual
           calculated resistance value R, not the on-hand resistance Ro.
-      R, Ω
+      R
           Calculated resistance needed.
-      Ro, Ω
+      Ro
           Closest on-hand resistance to R.
       %power
           % of resistor's rated power run at the indicated current.
@@ -257,22 +259,23 @@ def Details():
       The script's output contains estimated values; they do not reflect
       the stochastic variability of the diodes' characteristics nor any
       measurement uncertainties.  For a critical application, you'll want
-      to measure such things yourself.
+      to measure such things yourself.  In addition, the script's output is
+      dependent on the measured values of my supply of LEDs purchased in 
+      2017 (see below).
 
-      I virtually never run these diodes over 10 mA, which is why the
-      normal report only goes to 20 mA.  Many panel annunciator tasks work
-      for indoor use at 1 to 5 mA.
+      I rarely run these diodes over 10 mA.  Many panel annunciator tasks
+      work for indoor use at 1 to 5 mA.
 
       A common use case is to choose a resistor for one of these LEDs to
       run at AC line voltage.  Since my line voltage is 120 V RMS and I
       also design for output from one of my Variacs which can be up to 140
       V, I conservatively pick a resistor to run at 150 V RMS.  With 1/4 W
       resistors, this usually means running at 1 mA or less.  To run at 1
-      mA, the needed resistor is 147 kΩ, independent of the LED color
-      because most of the voltage is dropped across the resistor.
+      mA, the needed resistor is typically 147 kΩ, independent of the LED
+      color because most of the voltage is dropped across the resistor.
 
       A handy tool for the bench is to put five of the LEDs in series, one
-      each of the yellow, green, red, blue, and white.  If you look at the
+      each of yellow, green, red, blue, and white.  If you look at the
       table data below, you'll see these strings of LEDs will run at 11 to
       14 V.  You can hook up the strings to a DC power supply and adjust
       the voltage to see what the LEDs look like at the same current.  
@@ -285,7 +288,8 @@ def Details():
       3 mm LEDs received 21 Jul 2017, 750 pieces of yellow, green, red,
       blue, and white, 20 mA, $7.45 delivered,
       https://www.banggood.com/750-Pcs-3mm-LED-Diode-Yellow-Red-Blue-Green-White-Assortment-Light-DIY-Kit-p-1122409.html?rmmds=search
-      Measured voltage drops as function of current:
+
+        Measured voltage drops as function of current:
           mA     Yellow   Green     Red      Blue    White
           0.5     1.85     1.87     1.81     2.62     2.60
            1      1.90     1.91     1.84     2.67     2.64
@@ -300,7 +304,8 @@ def Details():
       5 mm LEDs received 21 Jul 2017, 1000 pieces of yellow, green, red,
       blue, and white, 20 mA, $12.88 delivered,
       https://www.banggood.com/1000Pcs-5-Colors-5mm-F5-Ultra-Bright-Round-LED-Diode-Kit-p-1059729.html?rmmds=search
-      Measured voltage drops as function of current:
+
+        Measured voltage drops as function of current:
           mA     Yellow   Green     Red      Blue    White
           0.5     1.85     2.28     1.76     2.61     2.61
            1      1.88     2.33     1.79     2.65     2.65
@@ -312,19 +317,18 @@ def Details():
           25      2.15     2.92     2.10     3.19     3.21
           30      2.16     2.98     2.13     3.25     3.26
       Green is surprisingly bright at 1 mA; yellow is disappointing.
-      Output in candela given as:
-          Red     2.5-3
-          Yellow  15-20
-          Blue    6-8
-          Green   15-18
-          White   6-8
+      Output in candela at 20 mA for 5 mm LEDs:
+          Red     2.5-3         600-635 nm
+          Yellow  15-20         588-590 nm
+          Blue    6-8           460-465 nm
+          Green   15-18         567-570
+          White   6-8           8 kK color temperature
       I have run these 5 mm LEDs up to 100 mA where they are too bright to
       look at directly.  Yellow should probably only be run to 80 mA.
 
       A spot check of some LEDs in my junkbox gave with a 12 V power supply
       and a 1 kohm resistor:
-        Voltage in V, current in mA
-                                        Script's prediction
+                Measured                Script's prediction
         Color   i, mA   Vd              i, mA   Vd
         grn     9.4     2.675           9       2.65
         grn *   10.1    1.994           9       2.65
@@ -337,7 +341,7 @@ def Details():
         * These appeared to be older LEDs, as they didn't have the bright
           output of the banggood LEDs.
 
-      Conclusions:  The script will probably estimate things to within 5% to
+      Conclusion:  The script will probably estimate things to within 5% to
       10%, which should be good enough for casual work.
     '''))
     exit(0)

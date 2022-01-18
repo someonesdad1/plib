@@ -9,11 +9,6 @@
 * Since flt is essentially done, write a replacement for fpformat.py that 
   includes its features.
 
-* Table printing:  It is so common to print tables, design a class that
-  will format each column correctly with a usage that makes it easy to
-  define each column and have things scale nicely for different screen
-  widths.
-
 * dpmath.py:  This would be a general-purpose module for math calculations.
     * Types
         * flt:  derived from float
@@ -174,6 +169,65 @@
         b.promote = 0
         a = cpx(1+1j, units="m")
         Then in debugger, both a==b and a!=b are False
+
+----------------------------------------------------------------------
+WaveXpress
+
+I would like to use the old python 2.6.5 code for WaveXpress and see if I
+can adapt it to a new version to run on the coming Mac.  Wayne said it was
+trivial to get a 3.8.9 python (released 2 Apr 2021) installation along with
+a g++ installation, so that may be the version to use.
+
+It appears as of mid-Jan 2022 that B&K has discontinued supporting
+WaveXpress.  I should probably ping Jorg and Jeremy about working on the
+thing, as they would probably like it as a tool to support the Sefram
+recorders also.  In fact, a business goal should be to support Windows,
+Mac, and Linux, as that would cover the majority of their customers.
+Of course, this would be a big development task.  I would therefore like to
+simplify the tasks to minimize the work:
+
+    * Don't aim at bleeding edge python releases
+    * See if things can be written without numpy, but use it as an option
+    * Use wxPython 4.1.1 if possible
+      (https://pypi.org/project/wxPython/4.1.1/#files gives wheels for 
+      python 3.6 to 3.9 for Mac)
+    * No localization
+    * Avoid one-stop packaging -- design the tool to be installed in an
+      existing python installation
+    * Minimize dependencies
+
+Windows owns about 95% of desktops
+https://en.wikipedia.org/wiki/Microsoft_Windows#Usage_share_and_device_sales
+with Mac at about 4% and Linux 1%.  From a numbers standpoint, it doesn't
+make sense to work on Mac or Linux.  However, Mac and Linux will have a
+large share of technical users (engineers and techs) and these are B&K
+customers, so some intelligent market data would be valuable.
+
+Major tasks
+
+    * Do development work on Mac
+    * Goal:  get a working version with version 3.8 of python
+    * Refactor existing code as needed
+    * Identify python and numpy versions to use
+    * Get working with latest wxPython version
+    * Figure out how to talk to at least one instrument
+
+Keep track of development time.  I am assuming that it will be possible to
+get things working OK under python 3.8.  When one instrument can be talked
+to, then it's time to contact Jorg and see if he'd be interested in funding
+more development work on WaveXpress.  The benefit would be that it could be
+made to work with all the modern instrumentation, including the recorders,
+which would be useful instead of the clunky Sefram software.
+
+If he indicated interest, I'd then work with him and Jeremy to define a 
+deliverable and a fixed cost for it.  No delivery, no pay.  This would
+cover much of my labor in doing the port.  He wouldn't need to know how
+much time it took me, although I'd probably bill it at a smaller rate such 
+as $50 per hour.
+
+Once the prototype was delivered and they were pleased with it, they would
+either do the software work to support their own stuff or I'd be happy to 
+work on it too.
 
 ----------------------------------------------------------------------
 Low priority

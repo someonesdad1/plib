@@ -9,11 +9,6 @@
 * Since flt is essentially done, write a replacement for fpformat.py that 
   includes its features.
 
-* Table printing:  It is so common to print tables, design a class that
-  will format each column correctly with a usage that makes it easy to
-  define each column and have things scale nicely for different screen
-  widths.
-
 * dpmath.py:  This would be a general-purpose module for math calculations.
     * Types
         * flt:  derived from float
@@ -176,51 +171,48 @@
         Then in debugger, both a==b and a!=b are False
 
 ----------------------------------------------------------------------
-Low priority
+WaveXpress
 
-* fold.py
-    * This will change text files to have one space on blank lines or no
-      spaces on blank lines.  Need to intelligently process python files?
-      The default behavior would be to print each line with 2 lines of
-      context on either side.  Then if you like what you see, use -x to
-      make the changes.  The intent is to get a source file where { and }
-      can be used to navigate to sections you're working on.  Python files
-      will be some work because you need to leave multiline strings intact.
+I would like to use the old python 2.6.5 code for WaveXpress and see if I
+can adapt it to a new version to run on the coming Mac.  Wayne said it was
+trivial to get a 3.8.9 python (released 2 Apr 2021) installation along with
+a g++ installation, so that may be the version to use.
 
-* british.py
-    * Move to plib and give it a function that will take a sentence of text
-      and replace all the British words with English words, maintaining
-      capitalization and punctuation.  This will require another function
-      to split a string into a list of words and punctuation characters.
-      It would be nice to also maintain the spaces between the words too.
-      See the next function, which should be in dpstr.py.
+It appears as of mid-Jan 2022 that B&K has discontinued supporting
+WaveXpress.  I should probably ping Jorg and Jeremy about working on the
+thing, as they would probably like it as a tool to support the Sefram
+recorders also.  In fact, a business goal should be to support Windows,
+Mac, and Linux, as that would cover the majority of their customers.
+Of course, this would be a big development task.  I would therefore like to
+simplify the tasks to minimize the work:
 
-* geom_prim.py
-    * Update properties to modern syntax, utilize matrix.py for
-      determinants, as this would remove dependency on numpy.
+    * Don't aim at bleeding edge python releases
+    * See if things can be written without numpy, but use it as an option
+    * Use wxPython 4.1.1 if possible
+      (https://pypi.org/project/wxPython/4.1.1/#files gives wheels for 
+      python 3.6 to 3.9 for Mac)
+    * No localization
+    * Avoid one-stop packaging -- design the tool to be installed in an
+      existing python installation
+    * Minimize dependencies
 
-* u.py and f.py
-    * A notation for using SI prefixes could be to use something like
-      μ(N*s/m^2).  This might not be acceptable SI syntax, but it would be
-      understandable by anyone and I should use it if the tokenizer in the
-      u.py script can be made to utilize it.  A way to do this might be to
-      simply insert the equivalent number with a multiplication sign on the
-      right when it's encountered; this should evaluate OK with python's
-      parser.
+Windows owns about 95% of desktops
+https://en.wikipedia.org/wiki/Microsoft_Windows#Usage_share_and_device_sales
+with Mac at about 4% and Linux 1%.  From a numbers standpoint, it doesn't
+make sense to work on Mac or Linux.  However, Mac and Linux will have a
+large share of technical users (engineers and techs) and these are B&K
+customers, so some intelligent market data would be valuable.
 
-* module_dependencies.py
-    * Is it necessary?  It needs to be rewritten to accommodate /plib.  The
-      tools and programs need to be moved in first.  
+Major tasks
 
-* sig.py
-    * Is a mess of code.  Is it really all needed?  Maybe it would be best
-      to move the key stuff to flt and cpx.  It can still be kept around
-      for when it's needed.
+    * Do development work on Mac
+    * Goal:  get a working version with version 3.8 of python
+    * Refactor existing code as needed
+    * Identify python and numpy versions to use
+    * Get working with latest wxPython version
+    * Figure out how to talk to at least one instrument
 
-* ts.py
-    * 'ts.py -m' doesn't work.
-
-* /pylib/pgm/readability/indict.py
-    * Looks like an interesting tool.  It should use a reasonable
-      dictionary by default and print the tokens out in columns for each
-      file.
+Keep track of development time.  I am assuming that it will be possible to
+get things working OK under python 3.8.  When one instrument can be talked
+to, then it's time to contact Jorg and see if he'd be interested in funding
+more development work on WaveXpress.  The benefit would be that i

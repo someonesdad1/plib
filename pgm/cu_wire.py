@@ -813,13 +813,19 @@ def PrintEquivalenceTable():
     '''Print out a list of gauge sizes with the number of wires of smaller
     sizes that are equivalent in area.
     '''
-    print("Areal equivalence of AWG gauge numbers:  AWG gauge n is equivalent to")
-    N = 10
-    flt(0).n = 2
-    flt(0).rtz = flt(0).rtdp = True
-    for i in range(2, 21, 2):
-        D, d, ratio = EquivalentArea(N, N + i)
-        print(f"    {ratio} of (n + {i}) gauge")
+    N, x, w = 10, flt(0), 12
+    x.n = 3
+    x.rtz = x.rtdp = True
+    print("Areal equivalence of AWG gauge numbers")
+    print("    Gauge n is equivalent to:")
+    print("  Gauge     Area ratio       Diameter ratio")
+    print(" -------    ----------       --------------")
+    for i in range(1, 11):
+        D, d, A_ratio = EquivalentArea(N, N + i)
+        #print(f"    {A_ratio} of (n + {i}) gauge")
+        s = f"n + {i}"
+        D_ratio = flt(D/d)
+        print(f"  {s:^6s}   {A_ratio!s:^{w}s}       {D_ratio!s:^{w}s}")
 def NEC():
     '''Return a dictionary containing NEC-allowed currents for copper
     conductors.  The three values are for 60, 75, and 90 °C rated

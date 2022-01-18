@@ -172,9 +172,13 @@ def PrintNormalTable(d):
         f = Fraction(numer, denom)
         c = ""
         if f.denominator in (2, 4, 8):
-            c = C.lmag if d["-c"] else ""
+            c = C.lred if d["-c"] else ""
         elif f.denominator in (16,):
-            c = C.lyel if d["-c"] else ""
+            c = C.lgrn if d["-c"] else ""
+        elif f.denominator in (32,):
+            c = C.yel if d["-c"] else ""
+        elif f.denominator in (64,):
+            c = C.lblu if d["-c"] else ""
         s = c + FmtFrac(f) + N
         s += f" {c}{float(f):.{n}f}{N}"
         # Include mm equivalent
