@@ -1,3 +1,6 @@
+* Two of the most common keypresses are ctrl-C and ctrl-V.  These should be
+  assigned to a single easy to access keypress.
+
 * A fundamental problem when coding is that a data structure is developed
   and you start using it in your code.  Then you always have to stop and
   look around the code to figure out the structures again.  Is there a way
@@ -50,6 +53,8 @@
     * Should be able to examine a file and list the dependencies on
       scripts.  Look at pgm/dep.py and the modulefinder module.  Then
       what.py should only print out the non-standard modules.
+
+* Move $PP/uni.py to /plib/pgm.  Remove the lookup of the PDF stuff.
 
 * pgm/char.py
     * When a line (e.g. Lower) is complete with all the allowed characters,
@@ -171,63 +176,122 @@
         Then in debugger, both a==b and a!=b are False
 
 ----------------------------------------------------------------------
+Mac stuff
+
+    Will be $2k 14" Macbook Pro with 16 GB RAM and 0.5 TB SSD
+
+    Good overview of getting started:
+        https://mackeeper.com/blog/learn-how-to-use-mac/
+
+    Display
+        * My Windows box runs at 3840x2160 resolution.  The monitor is a
+          24 inch Dell F2415Q monitor.  Wayne uses a 27 inch monitor.
+
+    Setup
+        * https://www.howtogeek.com/449715/how-to-set-up-your-new-mac/
+        * Note both Firefox and Chrome are available for the Mac.  It may
+          make sense to install both.
+        * Spotlight sounds useful, but has privacy concerns.  Read
+          https://en.wikipedia.org/wiki/Spotlight_(software) at bottom of
+          page to see how to disable the built-in sharing.
+        * https://theunarchiver.com/ for archive support better than the
+          default
+        * https://freemacsoft.net/appcleaner/ to clean up after the apps
+          you want deleted
+        * https://transmissionbt.com/ as a free and good BitTorrent client
+        * https://www.howtogeek.com/671085/how-to-switch-between-open-apps-and-windows-on-mac/
+          to switch between apps like alt-tab in Windows
+        * https://www.techrepublic.com/article/how-to-create-a-virtual-desktop-in-macos/
+          to create virtual desktops
+        * https://www.howtogeek.com/720194/how-to-turn-on-tap-to-click-on-mac/
+        * vim 
+            * https://sourabhbajaj.com/mac-setup/Vim/README.html
+            * https://www.javatpoint.com/how-to-install-vim-on-mac
+
+    Multiple monitors
+        * https://www.howtogeek.com/443460/how-to-use-multiple-monitors-on-your-mac/
+        * A core question is what monitor I should use.  Since the
+          interface from an adapter will have two HDMI connections, should
+          I assume that any monitor with HDMI should work?
+        * https://plugable.com/blogs/news/best-hub-and-docking-station-for-the-apple-m1-pro-macbook-pro-laptop
+          https://plugable.com/blogs/news/tagged/thunderbolt%E2%84%A2-4
+
+    Keyboard shortcuts
+        * https://support.apple.com/en-us/HT201236
+        * Specific app shortcuts:  https://support.apple.com/guide/mac-help/create-keyboard-shortcuts-for-apps-mchlp2271/mac
+        * Use the Windows key for Cmd if you're using a PC keyboard and alt
+          for the opt key.
+        * Spotlight cmd-space
+            * Press and hold cmd-space for Siri
+        * Set up for the most commonly-used tasks.  One keypress to copy to
+          clipboard, one keypress to paste, one keypress to paste and press
+          the Enter key.
+
+    Touch bar
+        * https://developer.apple.com/design/human-interface-guidelines/macos/touch-bar/touch-bar-overview/
+        * On the laptop, the touchbar clearly could be a powerful device.
+          However, a weakness is that it's not going to be on a keyboard
+          when the laptop is docked.  Thus, it might not be appropriate to
+          become too dependent on it.
+        * Though it's a screen, it shouldn't be a display device -- it
+          should be an extension of the keyboard.
+
+----------------------------------------------------------------------
 WaveXpress
 
-I would like to use the old python 2.6.5 code for WaveXpress and see if I
-can adapt it to a new version to run on the coming Mac.  Wayne said it was
-trivial to get a 3.8.9 python (released 2 Apr 2021) installation along with
-a g++ installation, so that may be the version to use.
+    Get WaveXpress to run in python 3.  It's available at
+    https://www.bkprecision.com/wavexpress.html.
 
-It appears as of mid-Jan 2022 that B&K has discontinued supporting
-WaveXpress.  I should probably ping Jorg and Jeremy about working on the
-thing, as they would probably like it as a tool to support the Sefram
-recorders also.  In fact, a business goal should be to support Windows,
-Mac, and Linux, as that would cover the majority of their customers.
-Of course, this would be a big development task.  I would therefore like to
-simplify the tasks to minimize the work:
+    Core question
 
-    * Don't aim at bleeding edge python releases
-    * See if things can be written without numpy, but use it as an option
-    * Use wxPython 4.1.1 if possible
-      (https://pypi.org/project/wxPython/4.1.1/#files gives wheels for 
-      python 3.6 to 3.9 for Mac)
-    * No localization
-    * Avoid one-stop packaging -- design the tool to be installed in an
-      existing python installation
-    * Minimize dependencies
+        Should it be written in python or C++?  If in C++, I'm gonna be
+        rusty, but there could be some speed and memory benefits and python
+        could be built in as a scripting language.  A nice feature of using
+        C++ is that the source code won't be available.
 
-Windows owns about 95% of desktops
-https://en.wikipedia.org/wiki/Microsoft_Windows#Usage_share_and_device_sales
-with Mac at about 4% and Linux 1%.  From a numbers standpoint, it doesn't
-make sense to work on Mac or Linux.  However, Mac and Linux will have a
-large share of technical users (engineers and techs) and these are B&K
-customers, so some intelligent market data would be valuable.
+    Desktops:  Windows 95%, Mac 4%, Linux 1%
 
-Major tasks
+    I'll split the development into two key phases:
 
-    * Do development work on Mac
-    * Goal:  get a working version with version 3.8 of python
-    * Refactor existing code as needed
-    * Identify python and numpy versions to use
-    * Get working with latest wxPython version
-    * Figure out how to talk to at least one instrument
+        Phase 1:  Construct the basic GUI for the program with numpy
+        support and the ability to plot and manipulate graphs.  The new
+        design should include the time axis.  The old features should
+        be available along with:
 
-Keep track of development time.  I am assuming that it will be possible to
-get things working OK under python 3.8.  When one instrument can be talked
-to, then it's time to contact Jorg and see if he'd be interested in funding
-more development work on WaveXpress.  The benefit would be that it could be
-made to work with all the modern instrumentation, including the recorders,
-which would be useful instead of the clunky Sefram software.
+            * More than one function can be plotted in one window.
+            * Two basic types of data:
+                * No timebase
+                * Timebase
+            * Data types from files:
+                * No time data:  one or more vectors
+                * Time data:  one or more vectors
+                * An interactive spreadsheet type display lets you define
+                  the vectors, time, and define measurement units.
+            * Convert no time data to timebase data by picking two points
+              and defining the time between them
+            * Vectors can be integer or floating point
 
-If he indicated interest, I'd then work with him and Jeremy to define a 
-deliverable and a fixed cost for it.  No delivery, no pay.  This would
-cover much of my labor in doing the port.  He wouldn't need to know how
-much time it took me, although I'd probably bill it at a smaller rate such 
-as $50 per hour.
+            * Major questions
+                * What is new architecture to support time & no time?
+                * If wxPython, how will new GUI dialogs be designed?  See
+                  https://www.tutorialspoint.com/wxpython/wxpython_gui_builder_tools.htm
+                  wxFormBuilder, wxDesigner, wxGlade, BoaConstructor,
+                  gui2py.  See https://en.wikipedia.org/wiki/WxFormBuilder
+                  for details on one; note it can generate python code.
+                  https://github.com/wxFormBuilder/wxFormBuilder says it
+                  can be installed on Mac and it looks easy.  **** OK, this
+                  looks like it might not be an issue anymore.  ***
 
-Once the prototype was delivered and they were pleased with it, they would
-either do the software work to support their own stuff or I'd be happy to 
-work on it too.
+        Phase 2:  Add support for instruments.  This is a major part, as it
+        requires serial connections, USB, and GPIB.  It also requires a
+        large NI download for GPIB support.  It would be nice to find a way
+        to talk to USB or serial devices only withing this crushing NI
+        library need.  
+
+    If phase 1 completes successfully, then I'll contact B&K and see if
+    they would be interested in paying for a new version.  If they are,
+    then I'd need help with an overall product design plan.  My guess is
+    they'd only be interested in supporting Windows platforms.
 
 ----------------------------------------------------------------------
 Low priority
@@ -246,35 +310,4 @@ Low priority
       and replace all the British words with English words, maintaining
       capitalization and punctuation.  This will require another function
       to split a string into a list of words and punctuation characters.
-      It would be nice to also maintain the spaces between the words too.
-      See the next function, which should be in dpstr.py.
-
-* geom_prim.py
-    * Update properties to modern syntax, utilize matrix.py for
-      determinants, as this would remove dependency on numpy.
-
-* u.py and f.py
-    * A notation for using SI prefixes could be to use something like
-      μ(N*s/m^2).  This might not be acceptable SI syntax, but it would be
-      understandable by anyone and I should use it if the tokenizer in the
-      u.py script can be made to utilize it.  A way to do this might be to
-      simply insert the equivalent number with a multiplication sign on the
-      right when it's encountered; this should evaluate OK with python's
-      parser.
-
-* module_dependencies.py
-    * Is it necessary?  It needs to be rewritten to accommodate /plib.  The
-      tools and programs need to be moved in first.  
-
-* sig.py
-    * Is a mess of code.  Is it really all needed?  Maybe it would be best
-      to move the key stuff to flt and cpx.  It can still be kept around
-      for when it's needed.
-
-* ts.py
-    * 'ts.py -m' doesn't work.
-
-* /pylib/pgm/readability/indict.py
-    * Looks like an interesting tool.  It should use a reasonable
-      dictionary by default and print the tokens out in columns for each
-      file.
+      
