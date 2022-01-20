@@ -179,6 +179,7 @@
 Mac stuff
 
     Will be $2k 14" Macbook Pro with 16 GB RAM and 0.5 TB SSD
+        https://www.apple.com/shop/buy-mac/macbook-pro/14-inch
 
     Good overview of getting started:
         https://mackeeper.com/blog/learn-how-to-use-mac/
@@ -207,6 +208,19 @@ Mac stuff
         * vim 
             * https://sourabhbajaj.com/mac-setup/Vim/README.html
             * https://www.javatpoint.com/how-to-install-vim-on-mac
+        * go2shell https://apps.apple.com/us/app/go2shell/id445770608?mt=12
+          Put this into the finder toolbar, press the button and you have a
+          shell window open for that directory.
+        * xcode is the default IDE/environment for Apple device programming
+          and requires a minimum of 8 GB of RAM and can take an hour or two
+          to download.  It can be installed from a terminal with 'sudo
+          xcode-select --install'.
+        * Various software suggestions are made at
+          https://codeforgeek.com/setting-up-mac-for-development-coding/
+          for a coding environment, but the website is horrible because you
+          can't copy text.
+        * Should take a look at zsh:
+          https://www.howtogeek.com/362409/what-is-zsh-and-why-should-you-use-it-instead-of-bash/
 
     Multiple monitors
         * https://www.howtogeek.com/443460/how-to-use-multiple-monitors-on-your-mac/
@@ -227,14 +241,11 @@ Mac stuff
           clipboard, one keypress to paste, one keypress to paste and press
           the Enter key.
 
-    Touch bar
-        * https://developer.apple.com/design/human-interface-guidelines/macos/touch-bar/touch-bar-overview/
-        * On the laptop, the touchbar clearly could be a powerful device.
-          However, a weakness is that it's not going to be on a keyboard
-          when the laptop is docked.  Thus, it might not be appropriate to
-          become too dependent on it.
-        * Though it's a screen, it shouldn't be a display device -- it
-          should be an extension of the keyboard.
+    Note the Macbook Pro has no touchbar.
+    https://screenrant.com/apple-2021-macbook-pro-no-touch-bar-why/
+    I liked the idea for the customizability, but the glaring weakness is
+    that it won't be available in a docked laptop because I'll probably use
+    a PC keyboard.  Then I'll want the function keys.
 
 ----------------------------------------------------------------------
 WaveXpress
@@ -294,6 +305,33 @@ WaveXpress
     they'd only be interested in supporting Windows platforms.
 
 ----------------------------------------------------------------------
+Sprinklers
+
+    The ESP32 chip with the RS485 boards (under $10 for each) would be a
+    nice way to construct a sprinkler controller.  The ESP32 would be a
+    stand-alone controller, but would allow serial communication with
+    another ESP32 chip in the house in my office; the connection could be
+    made over wifi.  This would allow modifying the stored program of the
+    controller, interrupting things, etc.  In fact, a simple approach would
+    be to provide a command line interface for controlling the remote chip
+    and to get status.
+
+    Unfortunately, it appears this chip can only be accessed from Windows,
+    as you need to download a driver for it.
+
+    I'd like to see the stand-alone processor have a switch that selects
+    automatic mode or manual mode.  In manual mode, there's a pushbutton
+    switch for each sprinkler to turn on, along with the pump.
+
+    Since these chips also support bluetooth, there should be an app to
+    control their settings via bluetooth also.  This means you could do
+    sprinkler control from your phone.
+
+    Maybe the only interface needed would be a serial connection in one of
+    the rooms.  Then you connect a computer to it for control and settings.
+    All that's needed is a 9600 baud connection for text messages.
+
+----------------------------------------------------------------------
 Low priority
 
 * fold.py
@@ -310,4 +348,35 @@ Low priority
       and replace all the British words with English words, maintaining
       capitalization and punctuation.  This will require another function
       to split a string into a list of words and punctuation characters.
-      
+      It would be nice to also maintain the spaces between the words too.
+      See the next function, which should be in dpstr.py.
+
+* geom_prim.py
+    * Update properties to modern syntax, utilize matrix.py for
+      determinants, as this would remove dependency on numpy.
+
+* u.py and f.py
+    * A notation for using SI prefixes could be to use something like
+      μ(N*s/m^2).  This might not be acceptable SI syntax, but it would be
+      understandable by anyone and I should use it if the tokenizer in the
+      u.py script can be made to utilize it.  A way to do this might be to
+      simply insert the equivalent number with a multiplication sign on the
+      right when it's encountered; this should evaluate OK with python's
+      parser.
+
+* module_dependencies.py
+    * Is it necessary?  It needs to be rewritten to accommodate /plib.  The
+      tools and programs need to be moved in first.  
+
+* sig.py
+    * Is a mess of code.  Is it really all needed?  Maybe it would be best
+      to move the key stuff to flt and cpx.  It can still be kept around
+      for when it's needed.
+
+* ts.py
+    * 'ts.py -m' doesn't work.
+
+* /pylib/pgm/readability/indict.py
+    * Looks like an interesting tool.  It should use a reasonable
+      dictionary by default and print the tokens out in columns for each
+      file.

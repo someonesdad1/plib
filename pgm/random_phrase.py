@@ -15344,12 +15344,14 @@ def Usage(d, status=1):
       The lists of nouns, verbs, adjectives, and adverbs comes from WordNet
       3.1, slightly edited.  Some of the entries contain space characters,
       meaning this script's output can contain more words than you would think
-      from the command line specification.
+      from the command line specification.  If you want this multiple-word
+      behavior, use the -u option.
     Options:
       -s s  Seed the random number generator.  Normally, it is seeded by the
             clock and is unpredictable.
       -n n  How many lines to print out (defaults to {num})
       -p    Print the list of words in each category given on the command line
+      -u    Allow words with underscores
     '''))
     exit(status)
 def CheckWordtypes(words):
@@ -15364,23 +15366,24 @@ def ParseCommandLine(d):
     d["-s"] = None      # If not None, its hash is the RNG seed
     d["-n"] = 20        # How many lines to print
     d["-p"] = False     # If True, print the lists of words
+    d["-u"] = False     # If True, allow words with underscores
     if len(sys.argv) < 2:
         Usage(d)
     try:
-        opts, args = getopt.getopt(sys.argv[1:], "n:ps:")
+        opts, args = getopt.getopt(sys.argv[1:], "n:ps:u")
     except getopt.GetoptError as e:
         print(str(e))
         exit(1)
     for o, a in opts:
-        if o in ("-n",):
+        if o[1] in "pu":
+            d[o] = not d[o]
+        elif o in ("-n",):
             try:
                 d["-n"] = int(a)
             except Exception:
                 Error("'{}' is not a valid integer".format(a))
             if d["-n"] < 1:
                 Error("-n option must be > 0")
-        elif o in ("-p",):
-            d["-p"] = not d["-p"]
         elif o in ("-s",):
             d["-s"] = a
             random.seed(a)
@@ -15396,16 +15399,6 @@ def GetWord(wordtype):
     '''
     wordlist = words[keys[wordtype]]
     return random.choice(wordlist)
-def PrintExpansion(wordtypes):
-    '''wordtypes is a list of desired wordtype abbreviations.  Print one
-    word randomly for each type.
-    '''
-    s = []
-    for wordtype in wordtypes:
-        word = GetWord(wordtype)
-        s.append(word)
-    t = ' '.join(s).replace("_", " ")
-    print(t)
 def PrintWords(wordtypes):
     '''Print the wordlist for each of the given types of words in
     wordtypes.
@@ -15424,6 +15417,18 @@ def CalculateCombinations(wordtypes):
         count *= wordcounts[i]
     m, e = f"{count:.1e}".split("e")
     print(f"Possible combinations = {count} = {m}e{int(e)}")
+def PrintExpansion(wordtypes):
+    '''wordtypes is a list of desired wordtype abbreviations.  Print one
+    word randomly for each type.
+    '''
+    s = []
+    for wordtype in wordtypes:
+        word = GetWord(wordtype)
+        while "_" in word and not d["-u"]:
+            word = GetWord(wordtype)
+        s.append(word)
+    t = ' '.join(s).replace("_", " ")
+    print(t)
 if __name__ == "__main__":
     d = {}      # Options dictionary
     wordtypes = ParseCommandLine(d)
