@@ -377,4 +377,6 @@ Low priority
     * 'ts.py -m' doesn't work.
 
 * /pylib/pgm/readability/indict.py
-    * Looks like
+    * Looks like an interesting tool.  It should use a reasonable
+      dictionary by default and print the tokens out in columns for each
+      file.
