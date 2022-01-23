@@ -185,13 +185,29 @@ Mac stuff
         https://mackeeper.com/blog/learn-how-to-use-mac/
 
     Display
-        * My Windows box runs at 3840x2160 resolution.  The monitor is a
-          24 inch Dell F2415Q monitor.  Wayne uses a 27 inch monitor.
+        * My Windows box runs at 3840x2160 resolution.  The monitor is a 24
+          inch Dell F2415Q monitor.  Wayne uses a 27 inch monitor.
+        * Fonts
+            * You can list all your monospaced fonts in the Font Book app
+              by creating a smart collection File > New Smart Collection
+              and selecting the design style as monospaced from the
+              available drop down menus.
+            * https://www.fontspace.com/category/mac?p=3 on pg 3 has a nice
+              font named Clear Sans:
+              https://www.fontspace.com/clear-sans-font-f22346
+                * Others:  Hussar 3D
+            * Fixed:
+                * https://www.1001freefonts.com:  Oxygen Mono, Onuava,
+                  Space Mono, Liberation, Amiko, 
+                * http://www.fontsaddict.com/font/category/basic-fixed-width
+                * https://www.levien.com/type/myfonts/inconsolata.html
 
     Setup
         * https://www.howtogeek.com/449715/how-to-set-up-your-new-mac/
         * Note both Firefox and Chrome are available for the Mac.  It may
           make sense to install both.
+        * vim:  Find the source and build it with the features I use a lot.
+            * brew install vim will install the latest version.
         * Spotlight sounds useful, but has privacy concerns.  Read
           https://en.wikipedia.org/wiki/Spotlight_(software) at bottom of
           page to see how to disable the built-in sharing.
@@ -229,8 +245,7 @@ Mac stuff
             * https://www.pcmag.com/picks/best-photo-editing-software-for-macs
             * Start with Apple Photos and see if it does the basics well.
               Though I like PSP, its UI is dated and painful.  Still, the
-              tools I use the most are perspective correction and
-              cropping.
+              tools I use the most are perspective correction and cropping.
             * Corel Draw package is $240/year.  If I do a lot of such work,
               it might be worth it (includes Paint Shop Pro).
         * Thunderbolt 4
@@ -241,6 +256,8 @@ Mac stuff
         * MacKeeper might be worth looking at http://mackeeper.com.  Try it
           out for $11/month and if it looks worthwhile, either buy one
           month when needed or it's $72/year.
+        * Rust:  The Mac should be a good platform to learn to use Rust.
+          https://doc.rust-lang.org/book/ch01-01-installation.html
 
     Multiple monitors
         * https://www.howtogeek.com/443460/how-to-use-multiple-monitors-on-your-mac/
@@ -249,6 +266,18 @@ Mac stuff
           I assume that any monitor with HDMI should work?
         * https://plugable.com/blogs/news/best-hub-and-docking-station-for-the-apple-m1-pro-macbook-pro-laptop
           https://plugable.com/blogs/news/tagged/thunderbolt%E2%84%A2-4
+
+    Keyboard
+        * Kinesis Advantage2 (Wayne has one) $350 and I like the features
+          and customizing, but the manual pg 10 warns that you may have 
+          problems with KVM switches.  DO NOT BUY until this is discussed
+          with the company.  $320 on Amazon, but you have to return it to
+          Amazon unless you buy from the Kinesis.
+        * Curved keyboards are typically around $50
+            * Microsoft Sculpt (don't get; it's wireless)
+        * Cloud Nine C989M $190 Cherry Brown switches.  Note that mouse
+          goes betwween the two halves.  Silly colored lighting around
+          keys.
 
     Keyboard shortcuts
         * https://support.apple.com/en-us/HT201236
@@ -260,6 +289,17 @@ Mac stuff
         * Set up for the most commonly-used tasks.  One keypress to copy to
           clipboard, one keypress to paste, one keypress to paste and press
           the Enter key.
+
+    WaveXpress development
+        * Qt:  expensive at $3600/year per developer; must pay for full
+          year.  A small business (<$250k) can purchase use for $500/yr
+          except for microprocessor use.
+        * wxWidgets may be the best approach for a new WaveXpress written
+          in C++.  A copy of the basic book can be found for $25 or so
+          used.  Note that DialogBlocks is a dialog builder available for
+          $90.  For another $50 you can get HelpBlocks, a tool for
+          generating HTML help files for your app.
+
 
     Note the Macbook Pro has no touchbar.
     https://screenrant.com/apple-2021-macbook-pro-no-touch-bar-why/

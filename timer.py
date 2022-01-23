@@ -1,9 +1,4 @@
 '''
-
-* Add lwtest that checks the three functionalities
-* Add a demo program
-
-
 Timer class that works as a context manager and decorator.
  
 See https://realpython.com/python-timer/.
@@ -59,7 +54,6 @@ class Timer(object):
         'Set the timer to the initialized state'
         self._start, self._stop = [], []
         self._state = "init"
-    # ----------------------------------------------------------------------
     # Decorator functionality
     def __call__(self, func):
         def f(*args, **kw):
@@ -68,14 +62,12 @@ class Timer(object):
             self.stop
             print(f"{str(func)} time = {self.et} s")
         return f
-    # ----------------------------------------------------------------------
     # Context manager functionality
     def __enter__(self):
         self.start
         return self
     def __exit__(self, exc_type, exc_value, exc_tb):
         self.stop
-    # ----------------------------------------------------------------------
     # Properties
     @property
     def cont(self):
@@ -123,7 +115,7 @@ class Timer(object):
         return decimal.Decimal(Timer.ns())/decimal.Decimal("1e9")*self.u
     @property
     def u(self):
-        'Return the time unit factor (1 means unit is seconds)'
+        'Set/return the time unit factor (1 = s, 1000 = ms, etc.)'
         return self._u
     @u.setter
     def u(self, value):
@@ -138,6 +130,7 @@ timer = Timer()
 if __name__ == "__main__": 
     import re
     from fmt import fmt
+    from f import sqrt
     from lwtest import run
     from textwrap import dedent
     n = 100
@@ -147,7 +140,7 @@ if __name__ == "__main__":
         mean = sum(seq)/n
         deviations = [(i - mean)**2 for i in seq]
         variance = sum(deviations)/(n - 1)
-        return mean, variance.sqrt()
+        return mean, sqrt(variance)
     # The functions are named with leading letters to control the
     # execution order because lwtest.run() alphabetizes the names.
     def A_Timer1_example():
@@ -262,4 +255,6 @@ if __name__ == "__main__":
   '''[1:])
     with Timer() as T:
         run(globals(), regexp="example$", quiet=True)
+        #run(globals(), regexp="example$", verbose=True)
+        #run(globals(), regexp="example$")
     print(f"Total time for examples = {fmt(T.et, n=2)} s")
