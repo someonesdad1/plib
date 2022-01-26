@@ -54,13 +54,16 @@ def ParseCommandLine(d):
     if not case1 and not files:
         Usage()
     return files
-def CountLines(stream, file):
+def CountLines(stream, filename):
     try:
         lines = stream.readlines()
-        return (len(lines), file)
+        return (len(lines), filename)
     except Exception as e:
-        print(f"Couldn't read '{file}':\n  {e}", file=sys.stderr)
-        exit(1)
+        #print(f"Couldn't read '{file}':\n  {e}", file=sys.stderr)
+        # Unable to read the file, so open it as binary and read the number
+        # of newline characters
+        bytes = open(filename, "rb").read()
+        return (bytes.count(0x0a), filename)
 def PrintReport(results):
     '''results is [(linecount, filename), ...].  The output order will
     be as the files were given on the command line.
@@ -119,10 +122,10 @@ if __name__ == "__main__":
         for file in files:
             try:
                 s = sys.stdin if file == "-" else open(file)
-                name = "<stdin>" if file == "-" else file
+                filename = "<stdin>" if file == "-" else file
             except Exception:
-                print(f"Couldn't open '{name}'", file=sys.stderr) 
-            result = CountLines(s, name)
+                print(f"Couldn't open '{filename}'", file=sys.stderr) 
+            result = CountLines(s, filename)
             if result is not None:
                 results.append(result)
     PrintReport(results)

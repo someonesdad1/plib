@@ -192,21 +192,36 @@ Mac stuff
               by creating a smart collection File > New Smart Collection
               and selecting the design style as monospaced from the
               available drop down menus.
-            * https://www.fontspace.com/category/mac?p=3 on pg 3 has a nice
-              font named Clear Sans:
-              https://www.fontspace.com/clear-sans-font-f22346
-                * Others:  Hussar 3D
+            * https://www.fontspace.com  Clear Sans nice for display, but
+              not for programming because you can distinguish 0 and O
+            * https://fontmeme.com/fonts/sansserif-fonts-collection/
+            * https://www.fontsquirrel.com/fonts/list/popular:  there's an
+              amazing number of sans fonts compared to a few decades ago.
+              Clearly, people have realized that sans fonts are what are
+              best for computer displays.
+                * Open Sans, Raleway, Montserrat, Roboto, Lato, Quicksand,
+                  Oswald, Source Sans Pro, League Gothic, PT Sans,
+                  Titillium, Poppins, Cooper Hewitt, Antonio, Fira Sans,
+                  League Spartan, Red Hat, Sofia Pro
+                * Monospaced
+                  https://www.fontsquirrel.com/fonts/list/classification/monospaced
+                  Lots of choices
             * Fixed:
                 * https://www.1001freefonts.com:  Oxygen Mono, Onuava,
                   Space Mono, Liberation, Amiko, 
                 * http://www.fontsaddict.com/font/category/basic-fixed-width
                 * https://www.levien.com/type/myfonts/inconsolata.html
                 * Bitstream Vers Sans Mono
+                  https://www.fontsquirrel.com/fonts/Bitstream-Vera-Sans-Mono
 
     Setup
         * https://www.howtogeek.com/449715/how-to-set-up-your-new-mac/
+        * https://www.intego.com/new-mac-user-guide Annoying popups
+          trying to sell you their products.  But there are numerous things
+          to learn about such as dock and automator.
         * Note both Firefox and Chrome are available for the Mac.  It may
           make sense to install both.
+        * https://www.intego.com/mac-security-blog/setting-up-a-new-mac-should-you-migrate-or-do-a-clean-installation/
         * vim:  Find the source and build it with the features I use a lot.
             * brew install vim will install the latest version.
         * Spotlight sounds useful, but has privacy concerns.  Read
@@ -221,6 +236,8 @@ Mac stuff
           to switch between apps like alt-tab in Windows
         * https://www.techrepublic.com/article/how-to-create-a-virtual-desktop-in-macos/
           to create virtual desktops
+            * ctrl-UpArrow gets virtual desktop manager.  ctrl-Arrow keys
+              moves between desktops.
         * https://www.howtogeek.com/720194/how-to-turn-on-tap-to-click-on-mac/
         * vim 
             * https://sourabhbajaj.com/mac-setup/Vim/README.html
@@ -259,6 +276,9 @@ Mac stuff
           month when needed or it's $72/year.
         * Rust:  The Mac should be a good platform to learn to use Rust.
           https://doc.rust-lang.org/book/ch01-01-installation.html
+        * Chrome:  should install along with vimium.  This is a fast way of
+          browsing; I'd forgotten how well it works.  It does have a
+          problem with an open gmail tab, however.
 
     Multiple monitors
         * https://www.howtogeek.com/443460/how-to-use-multiple-monitors-on-your-mac/
@@ -267,6 +287,12 @@ Mac stuff
           I assume that any monitor with HDMI should work?
         * https://plugable.com/blogs/news/best-hub-and-docking-station-for-the-apple-m1-pro-macbook-pro-laptop
           https://plugable.com/blogs/news/tagged/thunderbolt%E2%84%A2-4
+            * 60 W dock $164 https://www.amazon.com/Plugable-Display-DisplayPort-Ethernet-Vertical/dp/B08B6CZ29Q/ref=sr_1_3?crid=J3KY7EV7MMA5&keywords=plugable+TBT4-HUB3C&qid=1643042068&sprefix=plugable+tbt4-hub3c%2Caps%2C177&sr=8-3
+              Note its USB3
+        * Cable management:  https://ascrono.com/blogs/news/basic-tips-on-how-to-manage-cables-efficiently
+          Note the device that holds the laptop vertically.  This could be
+          something made from wood that hangs from under a table and gets
+          out of the way.
 
     Keyboard
         * Kinesis Advantage2 (Wayne has one) $350 and I like the features
@@ -281,7 +307,10 @@ Mac stuff
           keys.
 
     Keyboard shortcuts
-        * https://support.apple.com/en-us/HT201236
+        * Remapping:  https://www.powermax.com/how-to-remap-keys-on-your-mac/
+          You can remap both system keys and have the function keys
+          remapped for individual applications.
+        * Apple's list of mappings:  https://support.apple.com/en-us/HT201236
         * Specific app shortcuts:  https://support.apple.com/guide/mac-help/create-keyboard-shortcuts-for-apps-mchlp2271/mac
         * Use the Windows key for Cmd if you're using a PC keyboard and alt
           for the opt key.
@@ -291,22 +320,48 @@ Mac stuff
           clipboard, one keypress to paste, one keypress to paste and press
           the Enter key.
 
+    Mission control
+        * Used to control desktops, minimize apps, etc.  
+        * SysPref>MissionControl>Keyboard&Mouse Shortcuts for Mission
+          control, desktop, dashboard, & application windows.
+        * SysPref>Keyboard>TextReplacement to map shortcuts.  Example:  use
+          @em and have it expand to your email adddress.  You can also make
+          common abbreviations, such as obv being obviously, iirc being 'if
+          I remember correctly', etc.
+
+    Power
+        * https://9to5mac.com/2019/04/29/power-button-macbook/
+          The mac will power on 1) open the lid, 2) connect to a power
+          adapter while lid is open, 3) connect to a power adapter when lid
+          is closed and it's connected to a external display.
+
     WaveXpress development
         * Qt:  expensive at $3600/year per developer; must pay for full
           year.  A small business (<$250k) can purchase use for $500/yr
           except for microprocessor use.
+            * They apparently support open source projects, so it might
+              make sense to do development work if it can be gotten for
+              free.  I doubt B&K would mind paying the $3.6k/yr fee to keep
+              a developer active.
+            * On 24 Jan 2022 I left them a support question on their
+              website whether I could develop a Qt application with the
+              open source version for free, then let the customer pay for
+              the license when it comes time to build a production version.
         * wxWidgets may be the best approach for a new WaveXpress written
-          in C++.  A copy of the basic book can be found for $25 or so
-          used.  Note that DialogBlocks is a dialog builder available for
-          $90.  For another $50 you can get HelpBlocks, a tool for
-          generating HTML help files for your app.
-
-
-    Note the Macbook Pro has no touchbar.
-    https://screenrant.com/apple-2021-macbook-pro-no-touch-bar-why/
-    I liked the idea for the customizability, but the glaring weakness is
-    that it won't be available in a docked laptop because I'll probably use
-    a PC keyboard.  Then I'll want the function keys.
+          in C++.  
+            * The reason is that the python code is a wrapper, so it would
+              probably be straightforward to translate the python stuff to
+              C++ stuff.  It looks like the function names are the same in
+              python and C++.
+            * It would be worth looking at a script to convert the python
+              code to C++.
+            * A copy of the basic book can be found for $25 or so used.  On
+              26 Jan 2022 I asked Glenda to order me a copy from Amazon.
+            * DialogBlocks is a dialog builder available for $90 and I'd
+              guess would replace the tool I used.  For another $50 you can
+              get HelpBlocks, a tool for generating HTML help files for
+              your app.  From reading the web page, it only emits C++ code,
+              not python.
 
 ----------------------------------------------------------------------
 WaveXpress
