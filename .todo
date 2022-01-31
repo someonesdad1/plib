@@ -1,3 +1,69 @@
+* Backup
+    * 1 TB WD SSD is $135 from Newegg.  Also have 0.5 and 2 TB.
+    * Spinning hard disks are 1/3rd to 1/4th the price of SSD
+    * NAS info
+        * https://linuxhint.com/best-nas-software-linux/
+            * Amahi
+                * You can install Fedora or Ubuntu and run Amahi from
+                  there.  It's open source.  The faq says they had problems
+                  with ubuntu.
+                * You can use ext4 fs on both the OS and the mounted
+                  drives.
+                * faq http://www.amahi.org/faqhttp://www.amahi.org/faq
+            * Open Media Vault:  Debian-based NAS
+                * https://www.openmediavault.org/download.html
+                * Supports FTP, Samba, NFS, rsync
+                * Supports ext4
+                * Web interface
+            * TrueNAS:  https://www.truenas.com/freenas/
+                * Requires signing up to download
+            * Rockstor
+                * Cent OS Linux distribution
+                * Plug-in system
+                * Can use it as a cloud server
+        * https://gers.from-ct.com/8-best-open-source-nas-operating-systems-for-linux
+            * XigmaNAS:  non-user-friendly web interface
+            * 
+    * ZFS  File system advantageous for NAS systems
+        * https://itsfoss.com/what-is-zfs/,
+          https://en.wikipedia.org/wiki/ZFS,
+          https://www.howtogeek.com/175159/an-introduction-to-the-z-file-system-zfs-for-linux/
+            * The third link shows how to use ext4 for a root disk in
+              ubuntu, then add a zsh filesystem.
+            * This third link gives an excellent example of using the
+              features of zsh.
+                * It explains the RAID-Z setup and that a single disk drive
+                  can die; you just replace it and the system will rebuild
+                  your data.  To lose all your information, two disks have
+                  to die.
+            * https://www.howtogeek.com/272220/how-to-install-and-use-zfs-on-ubuntu-and-why-youd-want-to/https://www.howtogeek.com/272220/how-to-install-and-use-zfs-on-ubuntu-and-why-youd-want-to/
+              tells how it's enabled in ubuntu (it's not installed and
+              enabled by default, but it's officially supported).
+        * Note it's a 128 bit implementation which can manage 1e9 TB.  It
+          used to be called zetabyte file system.
+        * It combines a filesystem with a volume manager
+        * Pooled storage:  add to a pooled drive by adding a new drive
+        * Copy-on-write:  new info doesn't overwrite, it goes to a new
+          block; once finished, metadata is updated.  Result:  if system
+          crashes during write, old data is still there and there's no need
+          to run fsck after a crash.
+        * Snapshots:  allows recovering past versions of a file
+        * Data checksums:  verified on read; if no match, then
+          automatically tries to fix.
+        * RAID-Z has its own implementation, a variation of RAID5.  RAID-Z1
+          needs two disks and a parity drive, Z2 needs 2 drives and 2
+          parity drives, Z3 needs 2 drives and 3 parity.
+            * A downside is that RAID-Z can be expensive because of the
+              needed drives to add storage space
+        * See
+          https://wiki.archlinux.org/title/ZFS/Virtual_disks#Creating_and_Destroying_Zpools
+          for some examples
+        * If you want to use ZFS out of the box, install FreeBSD.
+        * Linux:  https://zfsonlinux.org/
+        * 2 TB 7200 rpm WD HDD $47
+          https://www.newegg.com/blue-wd20ezbx-2tb/p/N82E16822234469?Description=hard%20drive&cm_re=hard_drive-_-22-234-469-_-Product
+          Three of these provide a 2 GB RAID-Z1 drive.
+
 * Two of the most common keypresses are ctrl-C and ctrl-V.  These should be
   assigned to a single easy to access keypress.
 
@@ -214,6 +280,10 @@ Mac stuff
                 * Bitstream Vers Sans Mono
                   https://www.fontsquirrel.com/fonts/Bitstream-Vera-Sans-Mono
 
+    Hardware
+        * Could use a USB 3 hub, as there are always too many devices to
+          plug in
+
     Setup
         * https://www.howtogeek.com/449715/how-to-set-up-your-new-mac/
         * https://www.intego.com/new-mac-user-guide Annoying popups
@@ -330,95 +400,56 @@ Mac stuff
           I remember correctly', etc.
 
     Power
-        * https://9to5mac.com/2019/04/29/power-button-macbook/
-          The mac will power on 1) open the lid, 2) connect to a power
-          adapter while lid is open, 3) connect to a power adapter when lid
-          is closed and it's connected to a external display.
+        * https://9to5mac.com/2019/04/29/power-button-macbook/ 
+        * The mac will power on when:
+            * Open the lid
+            * Connect to a power adapter while lid is open
+            * Connect to a power adapter when lid is closed and it's
+              connected to a external display.
 
-    WaveXpress development
-        * Qt:  expensive at $3600/year per developer; must pay for full
-          year.  A small business (<$250k) can purchase use for $500/yr
-          except for microprocessor use.
-            * They apparently support open source projects, so it might
-              make sense to do development work if it can be gotten for
-              free.  I doubt B&K would mind paying the $3.6k/yr fee to keep
-              a developer active.
-            * On 24 Jan 2022 I left them a support question on their
-              website whether I could develop a Qt application with the
-              open source version for free, then let the customer pay for
-              the license when it comes time to build a production version.
-        * wxWidgets may be the best approach for a new WaveXpress written
-          in C++.  
-            * The reason is that the python code is a wrapper, so it would
-              probably be straightforward to translate the python stuff to
-              C++ stuff.  It looks like the function names are the same in
-              python and C++.
-            * It would be worth looking at a script to convert the python
-              code to C++.
-            * A copy of the basic book can be found for $25 or so used.  On
-              26 Jan 2022 I asked Glenda to order me a copy from Amazon.
-            * DialogBlocks is a dialog builder available for $90 and I'd
-              guess would replace the tool I used.  For another $50 you can
-              get HelpBlocks, a tool for generating HTML help files for
-              your app.  From reading the web page, it only emits C++ code,
-              not python.
+    Package managers
+        * brew 
+        * MacPorts:  https://www.macports.org/install.php
 
-----------------------------------------------------------------------
-WaveXpress
+    Programming
+        * gcc 11.2 current as of Apr 2021
+        * Install gcc:  http://www.edparrish.net/common/macgpp.php 
+            * Open a terminal:  cmd+space, type Terminal, return
+            * In terminal type g++
+            * You'll get an alert box that lets you install either Xcode or
+              the command line tools.  Click on Install.
+                * You can install Xcode later from the AppStore.
+            * Verify g++ is installed.
+            * Enable showing extensions
+                * Open Finder
+                * Select Preferences from menu
+                * In Advanced, click show all filename extensions
+        * Xcode
+            * Good basics:  https://www.youtube.com/watch?v=FzuDUnoNQo0
+            * Install from AppStore
+            * Version 13:  https://developer.apple.com/xcode/
+                * https://developer.apple.com/documentation/xcode
+                * Built-in support for git
+                * Works with github
+                * Code review comments inline
+                * IDE has vim editing modes
+                * Simulator:  prototype when a real device isn't available.
+                  You can simulate iOS, tvOS, or watch OS.
+                * Build universal binaries to run on both Apple Si and Intel
 
-    Get WaveXpress to run in python 3.  It's available at
-    https://www.bkprecision.com/wavexpress.html.
+    Rosetta
+        * Used on Apple silicon to run Intel code
+        * If you have a universal app with a plug in that doesn't work, you
+          can select the app in the Finder, use File>GetInfo, and set the
+          "Open using Rosetta" button to force it to use Rosetta.  This may
+          make the plug in (or extension or add-on) start working.  See
+          https://support.apple.com/en-us/HT211861.
 
-    Core question
-
-        Should it be written in python or C++?  If in C++, I'm gonna be
-        rusty, but there could be some speed and memory benefits and python
-        could be built in as a scripting language.  A nice feature of using
-        C++ is that the source code won't be available.
-
-    Desktops:  Windows 95%, Mac 4%, Linux 1%
-
-    I'll split the development into two key phases:
-
-        Phase 1:  Construct the basic GUI for the program with numpy
-        support and the ability to plot and manipulate graphs.  The new
-        design should include the time axis.  The old features should
-        be available along with:
-
-            * More than one function can be plotted in one window.
-            * Two basic types of data:
-                * No timebase
-                * Timebase
-            * Data types from files:
-                * No time data:  one or more vectors
-                * Time data:  one or more vectors
-                * An interactive spreadsheet type display lets you define
-                  the vectors, time, and define measurement units.
-            * Convert no time data to timebase data by picking two points
-              and defining the time between them
-            * Vectors can be integer or floating point
-
-            * Major questions
-                * What is new architecture to support time & no time?
-                * If wxPython, how will new GUI dialogs be designed?  See
-                  https://www.tutorialspoint.com/wxpython/wxpython_gui_builder_tools.htm
-                  wxFormBuilder, wxDesigner, wxGlade, BoaConstructor,
-                  gui2py.  See https://en.wikipedia.org/wiki/WxFormBuilder
-                  for details on one; note it can generate python code.
-                  https://github.com/wxFormBuilder/wxFormBuilder says it
-                  can be installed on Mac and it looks easy.  **** OK, this
-                  looks like it might not be an issue anymore.  ***
-
-        Phase 2:  Add support for instruments.  This is a major part, as it
-        requires serial connections, USB, and GPIB.  It also requires a
-        large NI download for GPIB support.  It would be nice to find a way
-        to talk to USB or serial devices only withing this crushing NI
-        library need.  
-
-    If phase 1 completes successfully, then I'll contact B&K and see if
-    they would be interested in paying for a new version.  If they are,
-    then I'd need help with an overall product design plan.  My guess is
-    they'd only be interested in supporting Windows platforms.
+    Windows emulation on Mac
+        * https://macpaw.com/how-to/best-windows-emulator-mac
+        * Parallels Desktop $100, 600 MB for install (explicitly says it
+          runs on M1 Pro hardware)
+        * Only run on Intel hardware:  VirtualBox, VMware Fusion
 
 ----------------------------------------------------------------------
 Sprinklers

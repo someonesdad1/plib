@@ -625,6 +625,10 @@ def Search():
                             results.append((file, linenum, line, mo))
                         elif not mo and d["-v"]:
                             results.append((file, linenum, line, mo))
+        except UnicodeDecodeError as e:
+            print(f"Can't process file '{file}' due to Unicode error",
+                file=sys.stderr) 
+            continue
         except Exception as e:
             Debug(f"Exception:  {repr(e)}")
             print(f"Can't process file '{file}[{linenum + 1}]'", 
