@@ -1,3 +1,15 @@
+* Get copy of Apple Human Interface Guidelines (referenced at
+  acknowledgments at end of Snow Crash).  Apparently, it's only a
+  simplified web page treatment, not a detailed programming manual.  There
+  was a book, but it sells used for e.g. $230; it is supposed to be an
+  in-demand classic and was written a few decades ago.
+
+    * https://developer.apple.com/design/human-interface-guidelines/
+
+* pkg.py:  Given a set of files to put into a package (zip file), analyze
+  the thing for C/C++ and python files that are dependencies and include
+  them in the zip file.  This would allow me to share things with others.
+
 * Backup
     * 1 TB WD SSD is $135 from Newegg.  Also have 0.5 and 2 TB.
     * Spinning hard disks are 1/3rd to 1/4th the price of SSD
