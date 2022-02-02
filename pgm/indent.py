@@ -119,7 +119,7 @@ if 1:   # Utility
             -f f    Use the file f as a list of files to format in addition
                     to any given on command line.  One file per line.
             -h      Show samples of the styles to stdout (and aliases)
-            -o s    String s holds extra astyle options (put in quotes)
+            -o o    String o holds extra astyle options (put in quotes)
             -t      Show testing suggestions
         '''))
         exit(status)
@@ -185,7 +185,7 @@ if 1:   # Core functionality
         formatting.  Call the command to execute the script mk.  Remember
         to include a suitable project file with extension '.proj'.
         Include a subdirectory with some source files too.
-
+ 
         I remove the leading whitespace on lines so that I can tell the
         difference between a file and its newly indented form.  First 
         indent it to your preferred style, then remove leading whitespace.
@@ -194,7 +194,7 @@ if 1:   # Core functionality
         and you should see no lines marked as changed.  Then set whitespace
         to significant and you should see the lines with different
         indentations marked.
-
+ 
         Test case:  command line invocation on files
             * Run mk
             * run 'indent *.cpp *.h'
@@ -205,12 +205,12 @@ if 1:   # Core functionality
             * run 'indent -d *.cpp *.h'
             * You should get the same results but see two colored debug
               print lines telling you the files that have been indented.
-
+ 
         Test case:  verify -C option works
             * Run 'indent -C'
             * Verify all backup files are gone in current directory but not
               in the subdirectory.
-
+ 
         Test case:  verify -f option works
             * Run mk
             * Create a file f with the names of the source files in it.  An
@@ -221,17 +221,17 @@ if 1:   # Core functionality
               case
             * Run 'indent -C' to remove backup files.  Note:  you may find
               it convenient to remove them in the mk script.
-
+ 
         Test case:  verify -h option works
             * Run 'indent -h' and verify you get a listing of the different
               indentation styles.
-
+ 
         Test case:  verify project file works
             * Run 'indent xx' where xx is the filename less the suffix of
               your project file
             * Verify the correct number of files were formatted and that
               they have the new style given in the project file
-
+ 
         Test case:  verify -C works with project file
         Test case:  verify -o option passes extra options to astyle
         '''))
@@ -295,11 +295,17 @@ if 1:   # Core functionality
         else:
             global count
             count += 1
+    def Stream():
+        'Read in stdin, process it through astyle, and send it to stdout'
+        xx()
+
 if __name__ == "__main__":
     d = {}      # Options dictionary
     files = ParseCommandLine(d)
     SetupColor()
     style = g.default_style
+    if d["-s"]:
+        Stream()
     have_project = False
     if len(files) > 1:
         # See if first one is a style
