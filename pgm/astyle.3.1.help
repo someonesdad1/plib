@@ -1,0 +1,124 @@
+Disable Formatting
+    *INDENT-OFF* and *INDENT-ON*, *NOPAD*
+Brace Style Options
+    --style=allman  OR  --style=bsd  OR  --style=break  OR  -A1
+    --style=java  OR  --style=attach  OR  -A2
+    --style=kr  OR  --style=k&r  OR  --style=k/r  OR  -A3
+    --style=stroustrup  OR  -A4
+    --style=whitesmith  OR  -A5
+    --style=vtk  OR  -A15
+    --style=ratliff  OR  --style=banner  OR  -A6
+    --style=gnu  OR  -A7
+    --style=linux  OR  --style=knf  OR  -A8
+    --style=horstmann  OR  --style=run-in  OR  -A9
+    --style=1tbs  OR  --style=otbs  OR  -A10
+    --style=google  OR  -A14
+    --style=mozilla  OR  -A16
+    --style=pico  OR  -A11
+    --style=lisp  OR  -A12
+Tab Options
+    --indent=spaces=#  OR  -s#
+    --indent=tab  OR  --indent=tab=#  OR  -t  OR  -t#
+    --indent=force-tab=#  OR  -T#
+    --indent=force-tab-x=#  OR  -xT#
+Brace Modify Options
+    --attach-namespaces  OR  -xn
+    --attach-classes  OR  -xc
+    --attach-inlines  OR  -xl
+    --attach-extern-c  OR  -xk
+    --attach-closing-while  OR  -xV
+Indentation Options
+    --indent-classes  OR  -C
+    --indent-modifiers  OR  -xG
+    --indent-switches  OR  -S
+    --indent-cases  OR  -K
+    --indent-namespaces  OR  -N
+    --indent-after-parens  OR  -xU
+    --indent-continuation=#  OR  -xt#
+    --indent-labels  OR  -L
+    --indent-preproc-block  OR  -xW
+    --indent-preproc-cond  OR  -xw
+    --indent-preproc-define  OR  -w
+    --indent-col1-comments  OR  -Y
+    --min-conditional-indent=#  OR  -m#
+    --max-continuation-indent=#  OR  -M#
+Padding Options
+    --break-blocks  OR  -f
+    --break-blocks=all  OR  -F
+    --pad-oper  OR  -p
+    --pad-comma  OR  -xg
+    --pad-paren  OR  -P
+    --pad-paren-out  OR  -d
+    --pad-first-paren-out  OR  -xd
+    --pad-paren-in  OR  -D
+    --pad-header  OR  -H
+    --unpad-paren  OR  -U
+    --delete-empty-lines  OR  -xd
+    --fill-empty-lines  OR  -E
+    --align-pointer=type    OR  -k1
+    --align-pointer=middle  OR  -k2
+    --align-pointer=name    OR  -k3
+    --align-reference=none    OR  -W0
+    --align-reference=type    OR  -W1
+    --align-reference=middle  OR  -W2
+    --align-reference=name    OR  -W3
+Formatting Options
+    --break-closing-braces  OR  -y
+    --break-elseifs  OR  -e
+    --break-one-line-headers  OR  -xb
+    --add-braces  OR  -j
+    --add-one-line-braces  OR  -J
+    --remove-braces  OR  -xj
+    --break-return-type       OR  -xB
+    --break-return-type-decl  OR  -xD
+    --attach-return-type       OR  -xf
+    --attach-return-type-decl  OR  -xh
+    --keep-one-line-blocks  OR  -O
+    --keep-one-line-statements  OR  -o
+    --convert-tabs  OR  -c
+    --close-templates  OR  -xy
+    --remove-comment-prefix  OR  -xp
+    --max-code-length=#    OR  -xC#
+    --break-after-logical  OR  -xL
+    --mode=c
+    --mode=java
+    --mode=cs
+Objective-C Options
+    --pad-method-prefix  OR  -xQ
+    --unpad-method-prefix  OR  -xR
+    --pad-return-type  OR  -xq
+    --unpad-return-type  OR  -xr
+    --pad-param-type  OR  -xS
+    --unpad-param-type  OR  -xs
+    --align-method-colon  OR  -xM
+    --pad-method-colon=none    OR  -xP
+    --pad-method-colon=all     OR  -xP1
+    --pad-method-colon=after   OR  -xP2
+    --pad-method-colon=before  OR  -xP3
+Other Options
+    --suffix=####
+    --suffix=none  OR  -n
+    --recursive  OR  -r  OR  -R
+    --dry-run
+    --exclude=####
+    --ignore-exclude-errors  OR  -i
+    --ignore-exclude-errors-x  OR  -xi
+    --errors-to-stdout  OR  -X
+    --preserve-date  OR  -Z
+    --verbose  OR  -v
+    --formatted  OR  -Q
+    --quiet  OR  -q
+    --lineend=windows  OR  -z1
+    --lineend=linux    OR  -z2
+    --lineend=macold   OR  -z3
+Command Line Only
+    --options=####, --options=none      Global options file
+    --project=####, --project=none      Project file (file only, no path)
+    --ascii  OR  -I
+    --version  OR  -V
+    --help  OR  -h  OR  -?
+    --html, OR --html=####, OR  -!
+    --stdin=####    Replacement for redirection
+    --stdout=####   Replacement for redirection
+
+

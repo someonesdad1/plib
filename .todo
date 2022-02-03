@@ -1,10 +1,15 @@
-* Get copy of Apple Human Interface Guidelines (referenced at
-  acknowledgments at end of Snow Crash).  Apparently, it's only a
-  simplified web page treatment, not a detailed programming manual.  There
-  was a book, but it sells used for e.g. $230; it is supposed to be an
-  in-demand classic and was written a few decades ago.
+* pgm/indent.py:  define a smaller set of styles.  The built-in styles
+  of astyle can still be supported, but not explicitly on the command line.  
 
-    * https://developer.apple.com/design/human-interface-guidelines/
+    * Here are some ideas for special styles:
+        * compressed:  2 space indents, python style
+        * production:  4 space indents, bsd style
+
+    * Also get it to work as a filter so '!Gindent' works in vi.  This
+      means the usage needs to be given with the -h option, so the examples
+      need to be changed to -H.
+        * This could instead be done when the script is invoked with the
+          name 'ind', which would always default to my preferred method.
 
 * pkg.py:  Given a set of files to put into a package (zip file), analyze
   the thing for C/C++ and python files that are dependencies and include
@@ -447,7 +452,27 @@ Mac stuff
                 * IDE has vim editing modes
                 * Simulator:  prototype when a real device isn't available.
                   You can simulate iOS, tvOS, or watch OS.
-                * Build universal binaries to run on both Apple Si and Intel
+                * Build universal binaries to run on both Apple Si and
+                  Intel
+        * First project:  update WaveXpress
+            * The GUI design tool I used was called wxDesigner and it is no
+              longer available, as the guy in Germany stopped supporting
+              it.  For some strange reason, I no longer have any record of
+              it in my ~/install directory.
+                * There's a $90 tool called DialogBlocks that works for C++
+                  code.  I'll purchase this if I move forward with a C++
+                  implementation, although it can be tried out in demo mode
+                  to make sure it's what you want.
+            * The first approach is to move forward to a late version of
+              python 3 and wxPython.  I would expect it should be possible
+              to get the plotting stuff working, but talking to instruments
+              won't be a priority.
+            * If I can't get things working in python, then a C++ version
+              using wxWidgets should be attempted.  I suspect the wxPython
+              bindings are thin and most of the python code should be
+              translatable into C++ code, assuming the interfaces haven't
+              changed much.  This will still be a lot of work because C++
+              is a PITA.
 
     Rosetta
         * Used on Apple silicon to run Intel code
@@ -462,6 +487,14 @@ Mac stuff
         * Parallels Desktop $100, 600 MB for install (explicitly says it
           runs on M1 Pro hardware)
         * Only run on Intel hardware:  VirtualBox, VMware Fusion
+
+    * Get copy of Apple Human Interface Guidelines (referenced at
+      acknowledgments at end of Snow Crash).  Apparently, it's only a
+      simplified web page treatment, not a detailed programming manual.
+      There was a book, but it sells used for e.g. $230; it is supposed to
+      be an in-demand classic and was written a few decades ago.
+
+        * https://developer.apple.com/design/human-interface-guidelines/
 
 ----------------------------------------------------------------------
 Sprinklers

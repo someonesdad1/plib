@@ -1,26 +1,33 @@
 '''
+TODO
+
+    * Add usage of a filter with an optional style name so this script can
+      be used from within vi.
+        * 'indent'
+        * 'indent style'
+    * The default style is to not give a style on the command line; this
+      thus uses the ~/.astylerc file by default.
+    * Do not list the built-in styles to astyle, as the user can get them
+      by 'astyle -h' or 'indent -H'.
+    * Add '-a dir' option that applies all styles to a single source file and
+      puts them into a directory named 'dir'.  Each file xx.c will be
+      renamed to xx.style.c to retain the extension.
+    * astyle screws up the permissions; make sure they're the same as the
+      original file.
+    * Important:  --remove-comment-prefix removes the annoying '*'
+      characters that many people use for comments, put in by their editor.
+    * It is recommended that you read the astyle.html page in detail, as
+      there are many settings to let you get code looking the way you
+      prefer.
+    * Define my custom set of files by using indent.xx.style files in
+      /plib/pgm.  Some styles:
+        * min       Vertically compressed with minimal braces
+        * prod      Production code style
+        * readable  Opposite of min
+        * Others as needed for special projects
+
+----------------------------------------------------------------------
 Front end to the astyle command for indenting C/C++ code.
-
-    This tool is intended to help you indent a set of C/C++ files with 
-    a particular indenting style.  There are two use cases:
-
-        * Indent a set of source files by including them on the command
-          line or in a file.
-        * Indent a set of files defined in a project file.
-
-    The first usage is documented by giving the program no arguments.
-
-    The second usage is gotten by including a single file on the command
-    line that has the extension '.proj' (you only need to include the name
-    before the .proj extension.  This file includes a single line of the
-    form 
-
-        style = xx
-
-    defining the indenting style.  The remaining lines are file names of
-    the files included in the project, one line per file.  A leading '#'
-    can be used to comment out lines.
-
 '''
 if 1:  # Copyright, license
     # These "trigger strings" can be managed with trigger.py
@@ -58,6 +65,7 @@ if 1:   # Global variables
         k/r knf kr linux lisp mozilla otbs pico ratliff run-in stroustrup
         vtk whitesmith
         '''.split()
+    g.allowed = set("c cpp h hpp m mm".split())    # Allowed extensions
     # The following styles are used for the -h option
     g.styles_list = '''
         banner bsd gnu google java kr linux mozilla otbs pico python
@@ -74,19 +82,33 @@ if 1:   # Global variables
         "otbs":    "1tbs",
         "python":  "lisp",
     }
-    g.extension = ".proj"
+    g.project_extension = ".proj"
     g.backup_ext = ".astyle.bak"
-    g.default_style = "java"
+    g.default_style = None
     g.cmd = CommandDecode(set(g.styles))
     g.sample = dedent('''
-    int Function(bool use_bar) {
-     if (use_bar) {
-      bar();
-      return 1;
-     } else
-      return 0;
+    int Function(bool use_other) {
+        if (use_other) {
+            Other();
+            return 1;
+        } else
+            return 0;
     }
     ''')
+if 1:   # Classes
+    class Styles:
+
+        '''Container for styles.  The methods/attributes are containers of
+        the various styles that can be used (.x means it's an attribute and
+        a tuple):
+
+            .core       These are astyle styles
+            aliases     Gives astyle style synonyms dictionary
+
+        '''
+        def __init__(self):
+            pass
+
 if 1:   # Utility
     def Dbg(*msg):
         if d["-d"]:
@@ -96,29 +118,39 @@ if 1:   # Utility
         print(*msg, file=sys.stderr)
         exit(status)
     def Usage(status=1):
+        e = sys.argv[0]
         print(dedent(f'''
-        Usage:  {sys.argv[0]} [options] [style] [file1 [file2 ...]]
-                {sys.argv[0]} [options] project_file
+        Usage:  {e} [options] [style] [file1 [file2 ...]]
+                {e} [options] project_file
+                {e} [options] [style]
           Indent the indicated source code files with astyle (the files
           must be C/C++/ObjC).  The first argument can optionally be one
           of the following indentation styles:
               {' '.join(g.styles_list[:11])}
               {' '.join(g.styles_list[11:])}
           You can use abbreviations for the styles as long they are unique.
-          The default style is {g.default_style}.
-
+          There is no default style except that defined in e.g. your
+          .astylerc file.
+ 
           The second usage is to give a project file with the extension
           .proj on the command line.  This is a file with the project
           files in it, one file per line.  Include a 'style = xx' in the
           project file to change the indenting style.
+ 
+          The third usage tells the script to act as a filter:  take its
+          input from stdin and send the results to stdout.
         Options:
             -c      Don't use color in output
+            -e      Allow any file extensions
             -C      Clean out *.bak files in current directory only (unless
                     you use a project file)
             -d      Show debugging output
             -f f    Use the file f as a list of files to format in addition
                     to any given on command line.  One file per line.
-            -h      Show samples of the styles to stdout (and aliases)
+            -H      Show astyle 3.1 options
+            -h      Show samples of the styles to stdout.  If there is a
+                    single source file on the command line, it is used as
+                    the example source text.
             -o o    String o holds extra astyle options (put in quotes)
             -t      Show testing suggestions
         '''))
@@ -127,17 +159,19 @@ if 1:   # Utility
         d["-c"] = True      # Use color
         d["-C"] = False     # Clean out *.bak files
         d["-d"] = False     # Show debugging output
+        d["-e"] = False     # Allow any file extensions
         d["-f"] = None      # File containing files to format
+        d["-H"] = False     # Show astyle 3.1 options
         d["-h"] = False     # Show formatting samples
         d["-o"] = ""        # Extra options for astyle
         d["-t"] = False     # Show testing suggestions
         try:
-            opts, files = getopt.getopt(sys.argv[1:], "cCdf:ho:t")
+            opts, files = getopt.getopt(sys.argv[1:], "cCdef:Hho:t")
         except getopt.GetoptError as e:
             print(str(e))
             exit(1)
         for o, a in opts:
-            if o[1] in list("cCdht"):
+            if o[1] in list("cCdeHht"):
                 d[o] = not d[o]
             elif o in ("-f",):
                 d[o] = p = P(a)
@@ -146,7 +180,9 @@ if 1:   # Utility
             elif o in ("-o",):
                 d[o] = a
         if d["-h"]:
-            ShowExamples()
+            ShowExamples(files)
+        if d["-H"]:
+            ShowAstyleOptions()
         if len(sys.argv) < 2 and not d["-f"]:
             Usage()
         if d["-f"]:     # Add -f option files to list
@@ -236,10 +272,8 @@ if 1:   # Core functionality
         Test case:  verify -o option passes extra options to astyle
         '''))
         exit(0)
-    def Example(style):
+    def Example(style, file):
         'Print the sample code to stdout with the indicated style'
-        file = "indent.data"
-        open(file, "w").write(g.sample)
         cmd = [g.astyle, f"--style={style}", "indent.data"]
         r = subprocess.run(cmd, capture_output=True)
         if r.returncode:
@@ -255,27 +289,40 @@ if 1:   # Core functionality
         print(f"style = {g.m}{style} {synonyms}{g.n}")
         print(s)
         print("-"*25)
-    def ShowExamples():
+    def ShowExamples(files):
+        '''If files contains one source code file, use it as the sample
+        code to format.
+        '''
         SetupColor()
+        custom_input_file = (files and len(files) == 1)
+        file = P("indent.data")
+        if custom_input_file:
+            input_file = P(files[0])
+            try:
+                s = open(input_file).read()
+                open(file, "w").write(s)
+            except Exception:
+                Error(f"Couldn't write file data to '{file}'")
+        else:
+            open(file, "w").write(g.sample)
         Example.counts = {}
         print(f"Styles and their aliases in {g.m}this{g.n} color\n")
         for i in g.styles_list:
-            Example(i)
+            Example(i, file)
         # Show sorted by number of lines
         s = [(j, i) for i, j in Example.counts.items()]
         print("Number of lines in sample by style:")
         for n, style in reversed(sorted(s)):
             print(f"    {style:15s} {n:2d}")
+        file.unlink()
         exit(0)
     def CheckExtensions(files):
-        'Check that extensions are allowed and that files exist'
-        allowed = set("c cpp h hpp m mm".split())
+        'Check that files have allowed extensions'
         for file in files:
-            p = P(file)
-            ext = p.suffix
+            ext = P(file).suffix
             if not ext or ext[0] != ".":
                 Error(f"'{file}' has a missing extension")
-            if ext[1:] not in allowed:
+            if ext[1:].lower() not in g.allowed:
                 Error(f"'{file}' has an illegal extension")
     def IndentFile(file, style):
         Dbg(f"Indenting '{file}'")
@@ -295,30 +342,158 @@ if 1:   # Core functionality
         else:
             global count
             count += 1
-    def Stream():
-        'Read in stdin, process it through astyle, and send it to stdout'
-        xx()
+    def ShowAstyleOptions():
+        print(dedent(f'''
+        Disable Formatting
+            *INDENT-OFF* and *INDENT-ON*, *NOPAD*
+        Brace Style Options
+            --style=allman  OR  --style=bsd  OR  --style=break  OR  -A1
+            --style=java  OR  --style=attach  OR  -A2
+            --style=kr  OR  --style=k&r  OR  --style=k/r  OR  -A3
+            --style=stroustrup  OR  -A4
+            --style=whitesmith  OR  -A5
+            --style=vtk  OR  -A15
+            --style=ratliff  OR  --style=banner  OR  -A6
+            --style=gnu  OR  -A7
+            --style=linux  OR  --style=knf  OR  -A8
+            --style=horstmann  OR  --style=run-in  OR  -A9
+            --style=1tbs  OR  --style=otbs  OR  -A10
+            --style=google  OR  -A14
+            --style=mozilla  OR  -A16
+            --style=pico  OR  -A11
+            --style=lisp  OR  -A12
+        Tab Options
+            --indent=spaces=#  OR  -s#
+            --indent=tab  OR  --indent=tab=#  OR  -t  OR  -t#
+            --indent=force-tab=#  OR  -T#
+            --indent=force-tab-x=#  OR  -xT#
+        Brace Modify Options
+            --attach-namespaces  OR  -xn
+            --attach-classes  OR  -xc
+            --attach-inlines  OR  -xl
+            --attach-extern-c  OR  -xk
+            --attach-closing-while  OR  -xV
+        Indentation Options
+            --indent-classes  OR  -C
+            --indent-modifiers  OR  -xG
+            --indent-switches  OR  -S
+            --indent-cases  OR  -K
+            --indent-namespaces  OR  -N
+            --indent-after-parens  OR  -xU
+            --indent-continuation=#  OR  -xt#
+            --indent-labels  OR  -L
+            --indent-preproc-block  OR  -xW
+            --indent-preproc-cond  OR  -xw
+            --indent-preproc-define  OR  -w
+            --indent-col1-comments  OR  -Y
+            --min-conditional-indent=#  OR  -m#
+            --max-continuation-indent=#  OR  -M#
+        Padding Options
+            --break-blocks  OR  -f
+            --break-blocks=all  OR  -F
+            --pad-oper  OR  -p
+            --pad-comma  OR  -xg
+            --pad-paren  OR  -P
+            --pad-paren-out  OR  -d
+            --pad-first-paren-out  OR  -xd
+            --pad-paren-in  OR  -D
+            --pad-header  OR  -H
+            --unpad-paren  OR  -U
+            --delete-empty-lines  OR  -xd
+            --fill-empty-lines  OR  -E
+            --align-pointer=type    OR  -k1
+            --align-pointer=middle  OR  -k2
+            --align-pointer=name    OR  -k3
+            --align-reference=none    OR  -W0
+            --align-reference=type    OR  -W1
+            --align-reference=middle  OR  -W2
+            --align-reference=name    OR  -W3
+        Formatting Options
+            --break-closing-braces  OR  -y
+            --break-elseifs  OR  -e
+            --break-one-line-headers  OR  -xb
+            --add-braces  OR  -j
+            --add-one-line-braces  OR  -J
+            --remove-braces  OR  -xj
+            --break-return-type       OR  -xB
+            --break-return-type-decl  OR  -xD
+            --attach-return-type       OR  -xf
+            --attach-return-type-decl  OR  -xh
+            --keep-one-line-blocks  OR  -O
+            --keep-one-line-statements  OR  -o
+            --convert-tabs  OR  -c
+            --close-templates  OR  -xy
+            --remove-comment-prefix  OR  -xp
+            --max-code-length=#    OR  -xC#
+            --break-after-logical  OR  -xL
+            --mode=c
+            --mode=java
+            --mode=cs
+        Objective-C Options
+            --pad-method-prefix  OR  -xQ
+            --unpad-method-prefix  OR  -xR
+            --pad-return-type  OR  -xq
+            --unpad-return-type  OR  -xr
+            --pad-param-type  OR  -xS
+            --unpad-param-type  OR  -xs
+            --align-method-colon  OR  -xM
+            --pad-method-colon=none    OR  -xP
+            --pad-method-colon=all     OR  -xP1
+            --pad-method-colon=after   OR  -xP2
+            --pad-method-colon=before  OR  -xP3
+        Other Options
+            --suffix=####
+            --suffix=none  OR  -n
+            --recursive  OR  -r  OR  -R
+            --dry-run
+            --exclude=####
+            --ignore-exclude-errors  OR  -i
+            --ignore-exclude-errors-x  OR  -xi
+            --errors-to-stdout  OR  -X
+            --preserve-date  OR  -Z
+            --verbose  OR  -v
+            --formatted  OR  -Q
+            --quiet  OR  -q
+            --lineend=windows  OR  -z1
+            --lineend=linux    OR  -z2
+            --lineend=macold   OR  -z3
+        Command Line Only
+            --options=####, --options=none      Global options file
+            --project=####, --project=none      Project file (file only, no path)
+            --ascii  OR  -I
+            --version  OR  -V
+            --help  OR  -h  OR  -?
+            --html, OR --html=####, OR  -!
+            --stdin=####    Replacement for redirection
+            --stdout=####   Replacement for redirection
+        '''))
+        exit(0)
+    def GetStyle(s):
+        lst = g.cmd(files[0])
+        if len(lst) == 1:
+            return lst[0]
+        elif len(lst) > 1:
+            Error(f"Ambiguous style:  {' '.joint(lst)}")
+        return lst[0]
 
 if __name__ == "__main__":
     d = {}      # Options dictionary
     files = ParseCommandLine(d)
     SetupColor()
     style = g.default_style
-    if d["-s"]:
-        Stream()
     have_project = False
     if len(files) > 1:
         # See if first one is a style
-        lst = g.cmd(files[0])
-        if len(lst) == 1:
-            style = lst[0]
+        s = GetStyle(files[0])
+        if s is not None:
+            style = s
             files.pop(0)
     elif len(files) == 1:
         p = P(files[0])
-        if p.suffix == g.extension:
+        if p.suffix == g.project_extension:
             have_project = True
         else:
-            p = P(files[0] + g.extension)
+            p = P(files[0] + g.project_extension)
             if p.exists():
                 have_project = True
         if have_project:   # We have a project file
@@ -354,8 +529,9 @@ if __name__ == "__main__":
             os.system("rm *.bak")
             pass
         exit(0)
+    if not d["-e"]:
+        CheckExtensions(files)
     print(f"Using style {g.m}{style}{g.n}")
-    CheckExtensions(files)
     count, failed = 0, 0
     for file in files:
         IndentFile(file, style)
