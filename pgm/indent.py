@@ -6,7 +6,7 @@ TODO
         * 'indent'
         * 'indent style'
     * The default style is to not give a style on the command line; this
-      thus uses the ~/.astylerc file by default.
+      then uses the ~/.astylerc settings by default.
     * Do not list the built-in styles to astyle, as the user can get them
       by 'astyle -h' or 'indent -H'.
     * Add '-a dir' option that applies all styles to a single source file and
@@ -24,6 +24,7 @@ TODO
         * min       Vertically compressed with minimal braces
         * prod      Production code style
         * readable  Opposite of min
+        * folding   Based on whitesmith to get minimum folding height
         * Others as needed for special projects
 
 ----------------------------------------------------------------------
@@ -153,6 +154,7 @@ if 1:   # Utility
                     the example source text.
             -o o    String o holds extra astyle options (put in quotes)
             -t      Show testing suggestions
+            --dp    Show my thoughts on indentation
         '''))
         exit(status)
     def ParseCommandLine(d):
@@ -166,7 +168,8 @@ if 1:   # Utility
         d["-o"] = ""        # Extra options for astyle
         d["-t"] = False     # Show testing suggestions
         try:
-            opts, files = getopt.getopt(sys.argv[1:], "cCdef:Hho:t")
+            opts, files = getopt.getopt(sys.argv[1:], "cCdef:Hho:t", 
+                "dp".split())
         except getopt.GetoptError as e:
             print(str(e))
             exit(1)
@@ -179,8 +182,16 @@ if 1:   # Utility
                     Error(f"'{a}' cannot be read")
             elif o in ("-o",):
                 d[o] = a
+            elif o == "--dp":
+                Comments()
         if d["-h"]:
-            ShowExamples(files)
+            if files and len(files) == 1:
+                file = files[0]
+                CheckExtensions([file])
+                ShowExamples(file)
+            else:
+                ShowExamples(None)
+            exit(0)
         if d["-H"]:
             ShowAstyleOptions()
         if len(sys.argv) < 2 and not d["-f"]:
@@ -194,6 +205,69 @@ if 1:   # Utility
             SetupColor()
         return files
 if 1:   # Core functionality
+    def Comments():
+        print(wrap(dedent(f'''
+
+        If you work on a software project with a number of people, 
+        management people may dictate an
+        indentation style.  Then this style is what you use.  
+
+        However, most of us have a favorite style with which we like to
+        edit code.  If you look at the many options and styles available in
+        astyle, it shows how much variety you'll see in real code in the
+        wild.  
+
+        One of the things this script is intended to do is to let you edit
+        code in your preferred style, then change it to a mandated style
+        before checking in.  This is most easily done with a project file.
+
+        I use multiple styles.  For production code, I'll usually use
+        something like the java or bsd style.  When using an editor,
+        however, vertical space is the most precious resource so I use a
+        style that maximizes the number of lines I'll see on the screen
+        (examples are pico and python).  If you're editting C/C++ code, the
+        python style will look pretty strange, but if you're also a python
+        programmer, it is compact and will allow for easy reading.
+
+        To deal with this lack of vertical space, I use the following
+        strategies: 
+
+            * I use a second monitor that is rotated by a right angle to
+              let me see my editor window in portrait mode.
+
+            * I'll use an astyle style (like python) that minimizes
+              vertical space.
+
+            * I delete all blank lines in the file.
+
+        Deleting all blank lines in a file is likely to be viewed to be too
+        severe by many people, especially those who were born in the last
+        30 to 40 years.  People of my generation (born in the 1940's),
+        especially technical people, often learned to deal with lots of
+        information densely printed in textbooks.  You never see such
+        things anymore, as witnessed by the low information density on web
+        pages.  Regardless, it doesn't hurt my feelings if someone doesn't
+        agree with my tastes -- and a tool like astyle makes it easier to
+        view things the way you want them to be.
+
+        Here's an interesting observation.  If you look at the line counts
+        at the end of the demo report when you use the -h option, you'll
+        see pico and python have the least number of lines and whitesmith
+        has the most number of lines.  You'd think that the whitesmith
+        style would be useless from a minimizing the number of lines in the
+        display standpoint.  However, with my folding editor, it's perfect
+        when folding by indentation and results in the most compact display
+        of all because there are no curly braces in column 1.  Viewing the
+        folded forms of a sample C++ file with 134 lines showed that the
+        banner style also did a good job at this.  With the whitesmith or
+        banner styles, the folded form of the file was 20 lines, making it
+        easy to browse to the function of interest.
+
+        Thus, my advice is that you experiment to see what works best for
+        you under a variety of conditions.
+
+        ''')))
+        exit(0)
     def SetupColor():
         '''Normally, I'd use sys.stdout.istty() to determine whether to use
         color or not.  Howver, I often want the color output of this
@@ -272,7 +346,7 @@ if 1:   # Core functionality
         Test case:  verify -o option passes extra options to astyle
         '''))
         exit(0)
-    def Example(style, file):
+    def Example(style, file, maxwidth):
         'Print the sample code to stdout with the indicated style'
         cmd = [g.astyle, f"--style={style}", "indent.data"]
         r = subprocess.run(cmd, capture_output=True)
@@ -288,16 +362,15 @@ if 1:   # Core functionality
             synonyms = g.style_aliases[style]
         print(f"style = {g.m}{style} {synonyms}{g.n}")
         print(s)
-        print("-"*25)
-    def ShowExamples(files):
-        '''If files contains one source code file, use it as the sample
-        code to format.
+        print("-"*maxwidth)
+    def ShowExamples(sourcefile):
+        '''If sourcefile is not None, use it as the sample code to format.
         '''
         SetupColor()
-        custom_input_file = (files and len(files) == 1)
+        # Fill the file to indent
         file = P("indent.data")
-        if custom_input_file:
-            input_file = P(files[0])
+        if sourcefile is not None:
+            input_file = P(sourcefile)
             try:
                 s = open(input_file).read()
                 open(file, "w").write(s)
@@ -305,11 +378,13 @@ if 1:   # Core functionality
                 Error(f"Couldn't write file data to '{file}'")
         else:
             open(file, "w").write(g.sample)
+        maxwidth = max([len(line) for line in open(file).readlines()])
+        # Generate the examples
         Example.counts = {}
         print(f"Styles and their aliases in {g.m}this{g.n} color\n")
         for i in g.styles_list:
-            Example(i, file)
-        # Show sorted by number of lines
+            Example(i, file, maxwidth)
+        # Show number of lines in each style
         s = [(j, i) for i, j in Example.counts.items()]
         print("Number of lines in sample by style:")
         for n, style in reversed(sorted(s)):
