@@ -1,6 +1,10 @@
 '''
 TODO
 
+    * Add -n for dry run (--dry-run for astyle option)
+    * Add -r that will restore either the *.orig files given
+      on the command line or all of the .orig files in current directory.
+        * This command writes a suitable shell script to stdout
     * Add usage of a filter with an optional style name so this script can
       be used from within vi.
         * 'indent'
@@ -56,6 +60,9 @@ if 1:   # Custom imports
         brown,  white, gray,  lblue, lgreen, lcyan, lred, lmagenta, yellow,
         lwhite)
     from cmddecode import CommandDecode
+    if 0:
+        import debug
+        debug.SetDebugger()
 if 1:   # Global variables
     P = pathlib.Path
     ii = isinstance
@@ -96,28 +103,65 @@ if 1:   # Global variables
             return 0;
     }
     ''')
+if 1:   # Error handling
+    def Error(*msg, status=1):
+        print(*msg, file=sys.stderr)
+        exit(status)
 if 1:   # Classes
     class Styles:
-
         '''Container for styles.  The methods/attributes are containers of
         the various styles that can be used (.x means it's an attribute and
         a tuple):
-
             .core       These are astyle styles
             aliases     Gives astyle style synonyms dictionary
-
         '''
         def __init__(self):
             pass
+    class FileList:
+        '''This is a container for the files given on the command line.
+        Globbing symbols are allowed.  This object lets all of the files
+        be passed at once to the astyle command for better performance.
+        It also allows the permissions to be restored after astyle runs, as
+        astyle screws up permissions on Windows.
+        '''
+        def __init__(self, files):
+            self.files = files
+            # Container for filenames and starting permissions
+            self.filelist = {}
+            self.resolve()
+        def resolve(self):
+            '''Expand self.files into a dict to eliminate globs and capture
+            the files' permissions
+            '''
+            if "**" in self.get_files():
+                Error("Cannot use '**' in glob expressions")
+            for file in self.files:
+                if "*" in file or "?" in file or "[" in file or "]" in file:
+                    s = P(".").glob(file)
+                    for i in s:
+                        self.filelist[i] = os.stat(i).st_mode
+                else:
+                    p = P(file)
+                    self.filelist[file] = os.stat(p).st_mode
+        def get(self):
+            'Return string for astyle command line'
+            return ' '.join(self.files)
+
+if 0:
+    f = FileList(["*.cpp", "*.h"]) #xx
+    print(f"f.files = {f.files}")
+    print()
+    for i in f.filelist:
+        print(i, f"{f.filelist[i] & 0o777:o}")
+    print()
+    print(f"List for astyle:  {f.get_files()}")
+    exit(0) #xx
 
 if 1:   # Utility
     def Dbg(*msg):
         if d["-d"]:
             for i in msg:
                 print(f"{g.d}" + i + f"{g.n}")
-    def Error(*msg, status=1):
-        print(*msg, file=sys.stderr)
-        exit(status)
     def Usage(status=1):
         e = sys.argv[0]
         print(dedent(f'''
@@ -207,20 +251,20 @@ if 1:   # Utility
 if 1:   # Core functionality
     def Comments():
         print(wrap(dedent(f'''
-
+ 
         If you work on a software project with a number of people, 
         management people may dictate an
         indentation style.  Then this style is what you use.  
-
+ 
         However, most of us have a favorite style with which we like to
         edit code.  If you look at the many options and styles available in
         astyle, it shows how much variety you'll see in real code in the
         wild.  
-
+ 
         One of the things this script is intended to do is to let you edit
         code in your preferred style, then change it to a mandated style
         before checking in.  This is most easily done with a project file.
-
+ 
         I use multiple styles.  For production code, I'll usually use
         something like the java or bsd style.  When using an editor,
         however, vertical space is the most precious resource so I use a
@@ -228,18 +272,18 @@ if 1:   # Core functionality
         (examples are pico and python).  If you're editting C/C++ code, the
         python style will look pretty strange, but if you're also a python
         programmer, it is compact and will allow for easy reading.
-
+ 
         To deal with this lack of vertical space, I use the following
         strategies: 
-
+ 
             * I use a second monitor that is rotated by a right angle to
               let me see my editor window in portrait mode.
-
+ 
             * I'll use an astyle style (like python) that minimizes
               vertical space.
-
+ 
             * I delete all blank lines in the file.
-
+ 
         Deleting all blank lines in a file is likely to be viewed to be too
         severe by many people, especially those who were born in the last
         30 to 40 years.  People of my generation (born in the 1940's),
@@ -249,7 +293,7 @@ if 1:   # Core functionality
         pages.  Regardless, it doesn't hurt my feelings if someone doesn't
         agree with my tastes -- and a tool like astyle makes it easier to
         view things the way you want them to be.
-
+ 
         Here's an interesting observation.  If you look at the line counts
         at the end of the demo report when you use the -h option, you'll
         see pico and python have the least number of lines and whitesmith
@@ -262,10 +306,10 @@ if 1:   # Core functionality
         banner style also did a good job at this.  With the whitesmith or
         banner styles, the folded form of the file was 20 lines, making it
         easy to browse to the function of interest.
-
+ 
         Thus, my advice is that you experiment to see what works best for
         you under a variety of conditions.
-
+ 
         ''')))
         exit(0)
     def SetupColor():

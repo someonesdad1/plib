@@ -645,6 +645,20 @@ if __name__ == "__main__":
         }
         low = [black, blue, green, cyan, red, magenta, brown, white]
         high = [gray, lblue, lgreen, lcyan, lred, lmagenta, yellow, lwhite]
+        # Print lines of these colors
+        lows = "black blue green cyan red magenta brown white".split()
+        highs = "gray lblue lgreen lcyan lred lmagenta yellow lwhite".split()
+        print("Foreground color comparisons:")
+        print("  low:  ", end="")
+        for name, clr in zip(lows, low):
+            print(f"{fg(clr)}{name:8s}", end=" ")
+        print()
+        normal()
+        print(" high:  ", end="")
+        for name, clr in zip(highs, high):
+            print(f"{fg(clr)}{name:8s}", end=" ")
+        print()
+        normal()
         # Print title
         fg(yellow)
         msg = ("%s Text Colors" % __file__).center(79)
