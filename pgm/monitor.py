@@ -95,14 +95,14 @@ if 1:   # Core functionality
         Br = list(range(0, 101, 10))
         P  = [14, 16, 19, 21, 24, 26, 29, 32, 34, 36, 37]
         print("Dell P2413Q monitor energy cost as")
-        print("function of brightness setting\n")
+        print("function of brightness setting")
         print(f"                                       Corr")
         print(f"             Energy,   {g.cents} per   $ per   $ per")
         print(f"Brightness     W       week    year    year")
         print(f"----------   ------    ----    ----    ----")
         f = LinearInterpFunction(Br, P)
         flt(0).rtz = flt(0).rtdp = True
-        for br in range(0, 101, 5):
+        for br in range(0, 101, 10):
             p_W = flt(f(br))
             kW = p_W/1000
             cost_week = 7*24*kW*g.dollar_per_kWhr
@@ -119,10 +119,17 @@ if 1:   # Core functionality
             print(s, end="")
             print(f"{C.norm}") if 20 <= br <= 30 else print()
         print(dedent(f'''
+ 
+        The colored rows are where I run the monitor brightness.  At night,
+        I use a brightness of 10 and when the sun is on the south window, I
+        use 25.  Thus, the power cost per year is about $13.
 
-        When Windows powers the monitor down, the power is 10 W, which
-        means a yearly cost of $9.1.  This is subtracted out in the last
-        "Corrected $/year" column.
+        $ per year is the energy cost to leave the monitor on continuously.
+        The Corr column is for the real cost.  Windows powers the monitor
+        down after 30 minutes of non-use; this means the monitor won't be
+        used for 8 to 10 hours per day or more.  The Corr column estimates
+        the real yearly cost when the monitor is powered down to 10 W for 8
+        hours per day.
         '''))
 
 if __name__ == "__main__":
