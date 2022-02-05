@@ -2,6 +2,9 @@
 TODO
 
     * Add -n for dry run (--dry-run for astyle option)
+    * Add -v option so that astyle's output is verbose.  Capture output to
+      stdout; change \ to / and remove current directory string.  Show the
+      files that were changed in green.
     * Add -r that will restore either the *.orig files given
       on the command line or all of the .orig files in current directory.
         * This command writes a suitable shell script to stdout
