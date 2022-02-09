@@ -42,8 +42,8 @@ def Debug(*msg, **kw):
 def Usage(status=1):
     print(dedent(f'''
     Usage:  {sys.argv[0]} [options] p% file1 [file2...]
-      Resize image files (uses PILLOW {pversion}) to be p% of the original size.
-      Formats that can be read and written are:
+      Resize image files to be p% of the original size.  Formats that can
+      be read and written are:
           bmp eps gif ico jpeg pcx png ppm tga tiff 
       You can also write to a PDF file.
     Options:

@@ -1,3 +1,11 @@
+* Write a script that estimates the electrical energy needed to heat up
+  a room in our house.  Focus on the shop and garage.  The primary input
+  number will be the starting temperature in °F.  An option can change
+  the final temperture, which defaults to 70 °F. 
+
+* pgm/ds.py:  Normally, the output is sorted by filename.  Add a -d option
+  that sorts by date, with most recent file last.
+
 * pgm/indent.py:  define a smaller set of styles.  The built-in styles
   of astyle can still be supported, but not explicitly on the command line.  
 
@@ -366,6 +374,9 @@ Mac stuff
         * Chrome:  should install along with vimium.  This is a fast way of
           browsing; I'd forgotten how well it works.  It does have a
           problem with an open gmail tab, however.
+        * Notes is supposed to be good.
+          https://www.houstonchronicle.com/business/article/Apple-s-Notes-app-is-all-grown-up-16827809.php
+          Note it can do OCR with the system's camera.
 
     Multiple monitors
         * https://www.howtogeek.com/443460/how-to-use-multiple-monitors-on-your-mac/
