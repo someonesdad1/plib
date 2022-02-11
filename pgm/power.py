@@ -34,16 +34,17 @@ def Error(*msg, status=1):
 def Usage(d, status=1):
     flt(0).n = 3
     print(dedent(f'''
-    Usage:  {sys.argv[0]} [options] power_in_W [unit]
-      Prints out various period costs of electrical power (for the rate of
-      {100*flt(d["-r"])}¢/(kW*hr) for a given power in watts.  You can append an optional
-      power unit such as W, hp, metric_hp, tonref, and tonrefrigeration.
-      power_in_W can be an expression that will be evaluated (the math module's
-      symbols are in scope).
+    Usage:  {sys.argv[0]} [options] p1 [p2 ...]
+      Prints out various period costs of electrical power for the rate of
+      {100*flt(d["-r"])}¢/(kW*hr) for a given power p1, p2, ... in watts.  
+
+      You can append an optional power unit to p1 with a space (put the
+      expression in quotes to escape it from shell parsing).  The powers
+      can be expressions (the math module's symbols are in scope).
     Example:
-        {sys.argv[0]} 300*cos(49*pi/180) metric_hp
-      prints out a table for a power of an apparent power of 300 metric
-      horsepower at a power factor angle of 49 degrees (power factor is 0.65).
+        {sys.argv[0]} '300*cos(49*pi/180) hp'
+      prints out a table for a power of an apparent power of 300 hp at a power
+      factor angle of 49 degrees (power factor is 0.65).
     Options:
       -d n      Set the number of significant figures in the output [{d["-d"]}]
       -l        Print typical lighting power table
@@ -129,48 +130,6 @@ def Lighting():
          3100     200 W     49-75 W       32 W
          4000     300 W    75-100 W     40.5 W
         '''))
-def Power(power_expr):
-    # Times in seconds
-    hour = flt(3600)
-    eight_hour_day = flt(8*hour)
-    day = hour*24
-    week = 7*day
-    month = flt(365.25/12*day)
-    year = flt(365.25*day)
-    # Get power and unit
-    unit = "W"
-    val, un = ParseUnit(power_expr, allow_expr=True)
-    if un:
-        unit = un
-    power_W = flt(eval(val)*u(unit))
-    dollar_per_kW_hr = flt(d["-r"])
-    dollar_per_joule = dollar_per_kW_hr/3.6e6
-    kW_per_hp = flt(745.7)
-    hp = str(power_W/kW_per_hp)
-    if un:
-        s = "A power of {} ({} W, {} hp)".format(power_expr, str(power_W), hp)
-    else:
-        pwr = "{} W".format(power_expr)
-        s = "A power of {} ({} hp)".format(pwr, hp)
-    N = C.norm
-    print("{} costs (at {:.1f} ¢ per kW*hr):".format(s,
-          dollar_per_kW_hr*100))
-    print(Money(power_W*dollar_per_joule*hour, "hour"))
-    print(C.lgrn, Money(power_W*dollar_per_joule*eight_hour_day, "8 hour day"), N, sep="")
-    print(Money(power_W*dollar_per_joule*day, "day"))
-    print(C.lyel, Money(power_W*dollar_per_joule*week, "week"), N, sep="")
-    print(Money(power_W*dollar_per_joule*month, "month"))
-    print(C.lred, Money(power_W*dollar_per_joule*year, "year"), N, sep="")
-    cpy = power_W*dollar_per_joule*year
-    print("Yearly cost as a function of hours per day:")
-    hr_per_day = 24
-    results = []
-    for i in range(1, hr_per_day + 1):
-        s = Money(cpy*i/hr_per_day, "year")
-        s = s.strip().replace(" per year", "")
-        results.append("  {:2d}:  ".format(i) + s)
-    for i in Columnize(results):
-        print(i)
 def Instruments():
     fp= FPFormat()  # Use to line up cost decimal points
     fp.digits(2)
@@ -320,6 +279,48 @@ def PowerCostByState():
         print(flt(cost), state)
         pc[state] = flt(cost)
     return pc
+def Power(power_expr):
+    # Times in seconds
+    hour = flt(3600)
+    eight_hour_day = flt(8*hour)
+    day = hour*24
+    week = 7*day
+    month = flt(365.25/12*day)
+    year = flt(365.25*day)
+    # Get power and unit
+    unit = "W"
+    val, un = ParseUnit(power_expr, allow_expr=True)
+    if un:
+        unit = un
+    power_W = flt(eval(val)*u(unit))
+    dollar_per_kW_hr = flt(d["-r"])
+    dollar_per_joule = dollar_per_kW_hr/3.6e6
+    kW_per_hp = flt(745.7)
+    hp = str(power_W/kW_per_hp)
+    if un:
+        s = "A power of {} ({} W, {} hp)".format(power_expr, str(power_W), hp)
+    else:
+        pwr = "{} W".format(power_expr)
+        s = "A power of {} ({} hp)".format(pwr, hp)
+    N = C.norm
+    print("{} costs (at {:.1f} ¢ per kW*hr):".format(s,
+          dollar_per_kW_hr*100))
+    print(Money(power_W*dollar_per_joule*hour, "hour"))
+    print(C.lgrn, Money(power_W*dollar_per_joule*eight_hour_day, "8 hour day"), N, sep="")
+    print(Money(power_W*dollar_per_joule*day, "day"))
+    print(C.lyel, Money(power_W*dollar_per_joule*week, "week"), N, sep="")
+    print(Money(power_W*dollar_per_joule*month, "month"))
+    print(C.lred, Money(power_W*dollar_per_joule*year, "year"), N, sep="")
+    cpy = power_W*dollar_per_joule*year
+    print("Yearly cost as a function of hours per day:")
+    hr_per_day = 24
+    results = []
+    for i in range(1, hr_per_day + 1):
+        s = Money(cpy*i/hr_per_day, "year")
+        s = s.strip().replace(" per year", "")
+        results.append("  {:2d}:  ".format(i) + s)
+    for i in Columnize(results):
+        print(i)
 if __name__ == "__main__":
     d = {}  # Options dictionary
     args = ParseCommandLine(d)
