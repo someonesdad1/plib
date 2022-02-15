@@ -1,5 +1,6 @@
 '''
 Month names and numbers
+    Use DaysPerMonth() to get the number of days in a month.
 '''
 if 1:  # Copyright, license
     # These "trigger strings" can be managed with trigger.py
@@ -39,7 +40,6 @@ if 1:   # Global variables
         11 : "Nov",
         12 : "Dec",
     })
-
     # The following uses upper case letters
     months_uc = bidict({
         1 : "JAN",
@@ -55,7 +55,6 @@ if 1:   # Global variables
         11 : "NOV",
         12 : "DEC",
     })
-
     # The following uses lower case letters
     months_lc = bidict({
         1 : "jan",
@@ -71,6 +70,28 @@ if 1:   # Global variables
         11 : "nov",
         12 : "dec",
     })
+if 1:   # Core functions
+    def DaysPerMonth(month, leap_year=False):
+        days_per_month = {
+            1 : 31,
+            2 : 28,
+            3 : 31,
+            4 : 30,
+            5 : 31,
+            6 : 30,
+            7 : 31,
+            8 : 31,
+            9 : 30,
+            10 : 31,
+            11 : 30,
+            12 : 31,
+        }
+        if isinstance(month, str):
+            n = months_lc(month[:3].lower())
+        elif isinstance(month, int):
+            n = month
+        return days_per_month[n] + bool(leap_year)
+
 if __name__ == "__main__": 
     from lwtest import run
     def Test():
@@ -99,4 +120,32 @@ if __name__ == "__main__":
         assert months("Oct") == 10
         assert months("Nov") == 11
         assert months("Dec") == 12
+        # Days per month
+        assert DaysPerMonth("Jan") == 31
+        assert DaysPerMonth("Feb") == 28
+        assert DaysPerMonth("Feb", leap_year=True) == 29
+        assert DaysPerMonth("Mar") == 31
+        assert DaysPerMonth("Apr") == 30
+        assert DaysPerMonth("may") == 31
+        assert DaysPerMonth("juN") == 30
+        assert DaysPerMonth("Jul") == 31
+        assert DaysPerMonth("Aug") == 31
+        assert DaysPerMonth("Sep") == 30
+        assert DaysPerMonth("oct") == 31
+        assert DaysPerMonth("nov") == 30
+        assert DaysPerMonth("dec") == 31
+
+        assert DaysPerMonth(1) == 31
+        assert DaysPerMonth(2) == 28
+        assert DaysPerMonth(2, leap_year=True) == 29
+        assert DaysPerMonth(3) == 31
+        assert DaysPerMonth(4) == 30
+        assert DaysPerMonth(5) == 31
+        assert DaysPerMonth(6) == 30
+        assert DaysPerMonth(7) == 31
+        assert DaysPerMonth(8) == 31
+        assert DaysPerMonth(9) == 30
+        assert DaysPerMonth(10) == 31
+        assert DaysPerMonth(11) == 30
+        assert DaysPerMonth(12) == 31
     exit(run(globals(), halt=1)[0])

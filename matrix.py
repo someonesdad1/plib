@@ -2269,7 +2269,7 @@ class Matrices():
     the matrix and returns a new matrix, the id() of the new matrix will
     not match the original matrix and this new matrix will replace the
     original matrix in the container.  Thus, any references to you had
-    to the original matrix will not be current.  One defence for this is
+    to the original matrix will not be current.  One defense for this is
     to make the data a string that identifies the instance in some
     useful way, as this will get transferred to the new matrix.
     '''

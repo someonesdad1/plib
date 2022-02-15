@@ -130,6 +130,10 @@ if 1:   # Core functionality
         used for 8 to 10 hours per day or more.  The Corr column estimates
         the real yearly cost when the monitor is powered down to 10 W for 8
         hours per day.
+
+        The monitor's screen is 527x295 mm, giving a diagonal of 604 mm or
+        23.8 inches.  Hence, it's called a 24 inch monitor.  I run both of
+        them at 3840x2160 pixel resolution.
         '''))
 
 if __name__ == "__main__":

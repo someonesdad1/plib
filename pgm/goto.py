@@ -1,9 +1,13 @@
 '''
-* xx Change the defaults to NOT have a default file.  This forces all
-  use to include a -f option. 
-* xx The -T option isn't really needed.  When checking, the script just
-  needs to ignore a comment line that doesn't parse correctly.
-  CheckConfigFile() is the relevant function.
+
+TODO
+    * It's OK to have an alias collision -- you just then prompt for which
+      alias to use.  
+    * Change the defaults to NOT have a default file.  This forces all use to
+      include a -f option. 
+    * The -T option isn't really needed.  When checking, the script just
+      needs to ignore a comment line that doesn't parse correctly.
+      CheckConfigFile() is the relevant function.
  
 Driver for the old shell g() function that used the _goto.py script.
 This new file includes the functionality of the g() function, so minimal
@@ -20,7 +24,8 @@ if 1:  # Copyright, license
     #   See http://opensource.org/licenses/OSL-3.0.
     #∞license∞#
     #∞what∞#
-    # Program description string
+    # Script to help 'remember' locations and files.  For example, I use it
+    # to keep track of project files and working directories.
     #∞what∞#
     #∞test∞# #∞test∞#
     pass
@@ -445,13 +450,13 @@ if 1:   # Core functionality
                     Error(f"'{arg}' isn't a valid choice")
                 ActOn(dir)
         else:       # Prompt for a choice
-            n = max([len(i) for i in aliases])
-            n = max(n, 3)
+            n = max([len(i) for i in aliases]) if aliases else 3
             # Print out choices
             for i in choices:
                 dir, name = choices[i]
                 print(f"{i:<{n}d}  {name if name else dir}")
-            print()
+            if aliases:
+                print()
             # Print out aliases
             for i in GetSortedAliases(aliases):
                 dir, name = aliases[i]

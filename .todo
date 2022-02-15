@@ -1,7 +1,7 @@
-* Write a script that estimates the electrical energy needed to heat up
-  a room in our house.  Focus on the shop and garage.  The primary input
-  number will be the starting temperature in °F.  An option can change
-  the final temperture, which defaults to 70 °F. 
+* Write a script that estimates the electrical energy and time needed to
+  heat up a room in our house.  Focus on the shop and garage.  The primary
+  input number will be the starting temperature in °F.  An option can
+  change the final temperature, which defaults to 70 °F. 
 
 * pgm/ds.py:  Normally, the output is sorted by filename.  Add a -d option
   that sorts by date, with most recent file last.
@@ -284,7 +284,7 @@ Mac stuff
               and selecting the design style as monospaced from the
               available drop down menus.
             * https://www.fontspace.com  Clear Sans nice for display, but
-              not for programming because you can distinguish 0 and O
+              not for programming because you can't distinguish 0 and O
             * https://fontmeme.com/fonts/sansserif-fonts-collection/
             * https://www.fontsquirrel.com/fonts/list/popular:  there's an
               amazing number of sans fonts compared to a few decades ago.
@@ -322,6 +322,18 @@ Mac stuff
         * Spotlight sounds useful, but has privacy concerns.  Read
           https://en.wikipedia.org/wiki/Spotlight_(software) at bottom of
           page to see how to disable the built-in sharing.
+            * 15 Feb 2022:  actual use:  going into spotlight search and
+              privacy window, the text tells you that you can:
+                * Turn off Siri Suggestions sending your information to
+                  Apple by SysPref > Spotlight and deselect Siri
+                  Suggestions.
+                * Turn off Safari Suggestions by Safari > Preferences >
+                  Search and deselecting suggestions.
+                * Location:  SysPref>Secur&Priv>Privacy, select Location
+                  services.  Click the lock, enter passwd, click Details
+                  next to SysServices, deselect Location-Based Suggestions.
+                * Disable Siri:  SysPref>AppleID>iCloud and deselect Siri
+                  in the list of Apps on this Mac using iCloud.
         * https://theunarchiver.com/ for archive support better than the
           default
         * https://freemacsoft.net/appcleaner/ to clean up after the apps
@@ -533,6 +545,63 @@ Sprinklers
     Maybe the only interface needed would be a serial connection in one of
     the rooms.  Then you connect a computer to it for control and settings.
     All that's needed is a 9600 baud connection for text messages.
+
+----------------------------------------------------------------------
+make replacement in python?
+
+    * I'd alias to a python script, which would look at the makefile.  If
+      it was a regular makefile, it would immediately call 'make -rR'.
+      However, if it was a python makefile, it would interpret that.
+
+    * It could use 'git status -s' to determine what was out of date.
+
+    * It could have an option where a build wouldn't be allowed unless
+      there were no modified files.  Then the commit hash gets appended to
+      a make log so that the repository state is known for the build.
+
+    * My use for this would be to build simple projects.  I don't mind
+      using make for more complicated stuff.
+    * I have no fundamental issues with make other than its quirky syntax.
+    * I'd want to be able to use '$token' for variable definitions, not the
+      crappy make ${...} stuff.
+    * Indenting would be key to makefile structure.
+        * Commenting out a recipe in column 1 removes subsequent indented
+          lines too.
+        * Alternately allow python if blocks to get what's actually used.
+          Can this be done by making the makefile an executable python
+          script?
+    * Can be set to run continuously and build things when a dependency
+      triggers it.
+    * Use python syntax and in-line code
+
+    Options
+        * -d    Debugging information
+        * -i    Ignore errors when remaking files
+        * -n    Dry run (show things that will be done but don't do them)
+        * -s    Do not print commands as they are executed
+        * -o f  Do not remake file f (assume it's up to date)
+        * -B    Everything out of date
+        * -f f  Specify makefile
+        * -k    Keep going to do as much as possible
+        * -t    Translate to standard makefile syntax
+
+
+    Example
+
+        This is a typical makefile for a C/C++ project
+
+            cppopts = -g -DMAIN
+            exe = z.exe
+
+            ${exe}:  array.o tokenizer.o
+                g++ -o ${exe} ${cppopts} $^
+
+            array.o: array.cpp array.h
+                g++ -c ${cppopts} $<
+            tokenizer.o: tokenizer.cpp tokenizer.h
+                g++ -c ${cppopts} $<
+            clean:
+                @rm -f ${exe} ${exe}.stackdump *.o
 
 ----------------------------------------------------------------------
 Low priority
