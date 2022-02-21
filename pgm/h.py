@@ -30,7 +30,7 @@ if 1:   # Global variables
     P = pathlib.Path
     ii = isinstance
     class g: pass
-    g.c = C.yel
+    g.c = C.lwht
     g.n = C.norm
 def Error(*msg, status=1):
     print(*msg, file=sys.stderr)
@@ -40,7 +40,7 @@ def Usage(status=1):
     Usage:  {sys.argv[0]} [options] cmd arg
         Commands (cmd):
         e       Edit config file
-        [n]     Get line number n (1-based numbers)
+        [n]     Get line number n (0-based numbers)
         p d     Push directory d onto top of stack
         l       List config file's contents
         Defaults to {d["number"]}.
@@ -107,11 +107,10 @@ if __name__ == "__main__":
         Edit(d["-c"])
     elif cmd == "g":
         n = int(arg)
-        if n < 1:
-            n = 1
-        if n > len(lines):
+        if n < 0:
+            n = 0
+        if n >= len(lines):
             raise ValueError(f"Line number '{n}' out of range")
-        n -= 1  # Convert to 0-based numbering
         print(lines[n])
     elif cmd == "p":
         if len(args) == 1:
@@ -123,11 +122,11 @@ if __name__ == "__main__":
         open(d["-c"], "w").write('\n'.join(lines))
     elif cmd == "l":
         for i, line in enumerate(lines):
-            print(f"{g.c}{i + 1}:  {line}{g.n}")
+            print(f"  {g.c}{i}:  {line}{g.n}")
     elif cmd == "h":
         print(dedent(f'''
         e       Edit the config file
-        n       Got to line n (n is an integer > 0)
+        g n     Go to line n (n is an integer >= 0)
         p d     Push the directory d onto the stack
         l       List the config file
         '''))
