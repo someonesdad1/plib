@@ -50,7 +50,6 @@ if 1:   # Custom imports
     from color import C
 if 1:   # Global variables
     P = pathlib.Path
-    ii = isinstance
 if 1:   # Utility
     def Error(*msg, status=1):
         print(*msg, file=sys.stderr)
@@ -61,18 +60,20 @@ if 1:   # Utility
           When the modification time of trigger_file changes, run the
           python script with the indicated arguments.
         Options:
+            -c      Clear the screen before running script each time
             -d      Debug output -- just print when things happen
         '''))
         exit(status)
     def ParseCommandLine(d):
-        d["-d"] = False
+        d["-c"] = False     # Clear screen before running script each time
+        d["-d"] = False     # Debugging:  only print the command to execute
         try:
-            opts, args = getopt.getopt(sys.argv[1:], "ad:h")
+            opts, args = getopt.getopt(sys.argv[1:], "cdh")
         except getopt.GetoptError as e:
             print(str(e))
             exit(1)
         for o, a in opts:
-            if o[1] in list("d"):
+            if o[1] in list("cd"):
                 d[o] = not d[o]
         if len(args) < 2:
             Usage()
@@ -80,6 +81,8 @@ if 1:   # Utility
 if 1:   # Core functionality
     def ModTime():
         return flt(trig.stat().st_mtime)
+    def ClearScreen():
+        os.system("clear")
     def Run():
         'Run the python script when trig file has been modified'
         start = flt(time.time())
@@ -88,7 +91,7 @@ if 1:   # Core functionality
         if args:
             cmd.extend(args)
         # Clear the screen
-        os.system("clear")
+        ClearScreen()
         # Infinite loop
         modtime = ModTime()
         while True:
@@ -96,9 +99,12 @@ if 1:   # Core functionality
                 time.sleep(0.3)
                 continue    # File not modified
             # Trigger file was modified, so run the python script
+            if d["-c"]:
+                ClearScreen()
             modtime = ModTime()     # Latest mod time
             subprocess.call(cmd)    # Run the command
-            print(f"{C.lcyn}{'=-'*30}{C.norm}")     # Colored separator
+            if not d["-c"]:
+                print(f"{C.lgrn}{'=-'*39}{C.norm}")     # Colored separator
 
 if __name__ == "__main__":
     d = {}      # Options dictionary
