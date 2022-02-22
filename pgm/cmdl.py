@@ -226,7 +226,7 @@ if 1:   # Global variables
     # ',' in first column denotes an informational heading
     # ';' in non-first column indicates modifying text for that topic
     # Indentation implies material associated with the heading
-    if 0:   # Use this for debugging
+    if 1:   # Use this for debugging
         data = dedent('''
         ,Mac keyboard shortcuts including modifier keys:
             Command         ⌘               Windows key
@@ -350,6 +350,7 @@ if 1:   # Core functionality
                 line = line.replace(s, "")
         return line
     def ProcessData():
+        'Return a list of the key objects'
         state = State.ignore
         keys = []
         for line in data.split("\n"):
@@ -378,10 +379,12 @@ if 1:   # Core functionality
                 continue
             key = KeyCmd(name, value)
             keys.append(key)
-        for key in keys:
-            print(key)
+        return keys
 
 if __name__ == "__main__":
     d = {}      # Options dictionary
     args = ParseCommandLine(d)
-    ProcessData()
+    keys = ProcessData()
+    # Show some output
+    for key in keys:
+        print(key)

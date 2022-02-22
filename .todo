@@ -1,21 +1,6 @@
-* Python development:  Now that I have a second monitor in portrait mode,
-  I'd like to see faster development than having to reach down to the mouse
-  to move it to another window to run the script.  While in vi, I'd execute
-  a command; this would touch a file and fire off the script. 
-
-  Note:  this isn't critical, as it's still about the same speed as working
-  the old way with two windows next to each other.
-
-    Prototype:  A script prun.py is used for this functionality.  A shell
-    alias 'pm' launches it into the background.  It is given a python
-    script file to run.  The -t <file> option specifies the trigger file to
-    use.  When the mod time of the trigger file is newer than the last
-    check, the python script is run.  When the trigger file disappears, the
-    script exits.
-
-    Issue:  For one script development at a time, this works fine.
-    However, there's a problem to develop more than one script unless the
-    vi command takes the name of the file to update from e.g. a register.
+* Update the repository:  run 0test.py, make sure all tests are up to date,
+  fix broken tests, and then check into the repository with a formal
+  revision tag.
 
 * Write a script that estimates the electrical energy and time needed to
   heat up a room in our house.  Focus on the shop and garage.  The primary

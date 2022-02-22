@@ -29,7 +29,7 @@ if 1:   # Global variables
     P = pathlib.Path
     ii = isinstance
     # These are the extensions to turn off the execute bits for -e
-    extensions = '''
+    ext = '''
         asciidoc asm atom au aux avi bak bas bmp bz2 c cc cfg chm
         commonmark conf config cpp css csv dat db dbf dbg dlock doc docx
         dvi elf eps epub f f90 faq fmt gif gitignore gvim gz h hgignore hld
@@ -42,16 +42,24 @@ if 1:   # Global variables
         sub svg tags tar tbl template tex textile tgz tif tiff tmp todo ttf
         txt vim vimrc wav wmf wmv xls xlsx xml yaml zimwiki zip
     '''
-    ext = set("*." + i for i in (extensions + extensions.upper()).split())
+    extensions = set("*." + i for i in (ext + ext.upper()).split())
     ii = isinstance
     P = pathlib.Path
-    class g: pass
-    g.err = C.lred
-    g.n = C.norm
 if 1:   # Utility
     def Error(msg, status=1):
         print(msg, file=sys.stderr)
         exit(status)
+    def Dbg(*p, **kw):
+        if d["-d"]:
+            if "cc" in kw:
+                if kw["cc"]:
+                    print(f"{kw['cc']}", end="")
+                else:
+                    print(f"{C.cyn}", end="")
+                del kw["cc"]
+            kw["end"] = ""
+            print(*p, **kw)
+            print(f"{C.norm}")
     def Usage(d, status=1):
         name = sys.argv[0]
         print(dedent(f'''
@@ -63,6 +71,7 @@ if 1:   # Utility
         If -f is not used, only turn execute permission off on files that aren't
         executables like compiled binaries or scripts that begin with "#!".
         Options:
+            -d      Show debug output
             -E      Show supported extensions
             -e      Only change files with supported extensions
             -f      Force permission changes on all files
@@ -73,19 +82,20 @@ if 1:   # Utility
         '''))
         exit(status)
     def ParseCommandLine(d):
+        d["-d"] = False         # Debug output
         d["-E"] = False         # List extensions
         d["-e"] = False         # Only files with supported extensions
         d["-f"] = False         # Force changes on all files
         d["-H"] = False         # Include hidden files
-        d["-n"] = False
-        d["-r"] = False
+        d["-n"] = False         # Dry run
+        d["-r"] = False         # Operate recursively
         try:
-            opts, dirs = getopt.getopt(sys.argv[1:], "EefHhnr")
+            opts, dirs = getopt.getopt(sys.argv[1:], "dEefHhnr")
         except getopt.GetoptError as e:
             print(str(e))
             exit(1)
         for o, a in opts:
-            if o[1] in list("EefHnr"):
+            if o[1] in list("dEefHnr"):
                 d[o] = not d[o]
             elif o in ("-h", "--help"):
                 Usage(d, status=0)
@@ -97,13 +107,12 @@ if 1:   # Utility
 if 1:   # Core functions
     def ShowExtensions():
         print("Extensions that will have execute bits turned off:")
-        e = sorted(set([i.lower().replace("*.", "") for i in ext]))
+        e = sorted(set([i.lower().replace("*.", "") for i in extensions]))
         for i in Columnize(e, indent=" "*4):
             print(i)
         exit(0)
     def IgnoreHidden(file):
-        is_hidden = file.name[0] == "."
-        if is_hidden and not d["-H"]:
+        if file.name[0] == "." and not d["-H"]:
             return True
         return False
     def IgnoreExecutable(file):
@@ -112,18 +121,27 @@ if 1:   # Core functions
         '''
         if d["-f"]:
             return False
-        ext = file.suffix.lower()
+        extension = file.suffix.lower()
         common = set(["." + i for i in "exe sh bash ksh csh tcsh zsh".split()])
-        if ext in common:
+        if extension in common:
             return True
         else:
+            if ("*" + extension) in extensions:
+                return False    # Always process known extensions
+            # See if first line starts with '#!'
             try:
                 line = open(file).readline().strip()
             except UnicodeDecodeError:
-                return True
+                # It's not a UTF-8 file
+                if d["-d"]:
+                    print(f"{C.lmag}Unicode decode error for '{file}'{C.norm}",
+                          file=sys.stderr)
+                return False
             except Exception as e:
-                print(f"{g.err}'{file}':  {e}{g.n}", file=sys.stderr)
-                return True
+                if d["-d"]:
+                    print(f"{C.lmag}Exception for '{file}':  {e}{C.norm}",
+                            file=sys.stderr)
+                return False
             if len(line) > 2:
                 return True if line[:2] == "#!" else False
     def ExecuteBitOff(file):
@@ -135,11 +153,16 @@ if 1:   # Core functions
         def clear_bit(value, n):
             return value & ~(1 << n)
         if file.is_dir():  # Do not change directory permissions
-            return
-        elif IgnoreExecutable(file) or IgnoreHidden(file):
+            Dbg(f"Ignored directory:  '{file}'", cc=C.lred)
             return
         p = file.stat().st_mode
         if execute_is_on(p):
+            if IgnoreExecutable(file):
+                Dbg(f"Ignored executable:  '{file}'", cc=C.lred)
+                return
+            if IgnoreHidden(file):
+                Dbg(f"Ignored hidden:  '{file}'", cc=C.lred)
+                return
             if d["-n"]:     # Dry run
                 print(file)
             else:
@@ -147,6 +170,7 @@ if 1:   # Core functions
                 p = clear_bit(p, 3)
                 p = clear_bit(p, 6)
                 file.chmod(p)
+                Dbg(f"'{file}' processed")
     def ProcessDirectory(p):
         s = "**/*" if d["-r"] else "*"
         for file in p.glob(s):

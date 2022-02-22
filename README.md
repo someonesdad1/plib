@@ -24,13 +24,14 @@ on building this repository in May of 2021 and my current python version is
 You will probably not like my coding style, as I vertically compress things
 as much as possible.  This is because screen vertical real estate is the
 most precious resource.  Because of the editor I use, I can use this
-compressed form comfortably (it's a folding editor).  I can usually see the
-whole file's contents when it's folded into 20 to 30 lines, which makes
-navigation easy (the 'if 1:' lines cause the folding and the comments give
-the section a name).  Since this will likely bug most people, it's not hard
-to get a code formatter to put things back to a more conventional form.
-Except for this vertical compression, I mostly follow the formatting
-guidelines of PEP-8 (see https://www.python.org/dev/peps/pep-0008/).
+compressed form comfortably (it's a folding editor and I fold on
+indentation).  I can usually see the whole file's contents when it's folded
+into 20 to 30 lines, which makes navigation easy (the 'if 1:' lines cause
+the folding and the comments give the section a name).  Since this will
+likely bug most people, it's not hard to get a code formatter to put things
+back to a more conventional form.  Except for this vertical compression, I
+mostly follow the formatting guidelines of PEP-8 (see
+https://www.python.org/dev/peps/pep-0008/).
 
 An advantage of this vertically compressed form is that I can insert a
 single blank line where I'm working in the file.  The editor I use has
@@ -78,20 +79,7 @@ run because they don't have an associated test.
 Many of the copyright strings in these files are 2014.  That was the
 year I translated many hundreds (actually, over a thousand) of my python
 scripts to python 3; many of the scripts didn't have dates in them, so
-they got copyrighted in 2014.
-
-I spent 25 years at HP as an R&D scientist.  The first half of my time at
-HP was in thin film stuff and the second half I worked as a software
-engineer (I retired from HP in 2002).  In 1998, our software team was
-disbanded and each of us needed to find another position on site.  It took
-me two months to find another group and most of that time was spent at my
-desk learning new tools because interviews were infrequent (HP management
-was really good about helping experienced senior folks find new positions).
-During that 2 months, I spent some time learning perl because I liked its
-power, but came to really dislike its syntax.  I then tried python and
-immediately liked it because it was so C-like and easy to use (I was
-writing useful scripts in an hour by reading the excellent tutorial).
-Python has been my favorite programming language since then.
+they got copyrighted in 2014.  I started using python in 1998.
 
 # Feedback
 
