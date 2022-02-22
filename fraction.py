@@ -40,11 +40,12 @@ def FormatFraction(f, improper=False):
         ip, rem = divmod(n, d)
         if ip:
             s += str(ip)
-    for i in str(rem):
-        s += _super[int(i)]
-    s += "/"
-    for i in str(d):
-        s += _sub[int(i)]
+    if rem:
+        for i in str(rem):
+            s += _super[int(i)]
+        s += "/"
+        for i in str(d):
+            s += _sub[int(i)]
     return s
 
 def FractionToUnicode(s):

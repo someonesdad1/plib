@@ -245,7 +245,7 @@ if 1:   # Global variables
             Control-Shift-Command-T: Add selected Finder item to the Dock (OS X Mavericks or later)
         .Document shortcuts
             ;The behavior of these shortcuts may vary with the app you're using.
-            Shift-Command-Down Arrow: Select the text between the insertion point and the end of the document.
+            Shift-Command-Down arrow: Select the text between the insertion point and the end of the document.
         ,Other shortcuts
             ;For more shortcuts, check the shortcut abbreviations shown in the menus of your apps. Every app can have its own shortcuts, and shortcuts that work in one app might not work in another. 
         ''')
@@ -254,11 +254,7 @@ if 1:   # Classes and types
         def __init__(self, key, descr):
             self.key = key
             self.descr = descr
-        def __str__(self):
-            return self.decorate()
-        def decorate(self):
-            "Return the name with the key's symbols"
-            d = {
+            self._sym = {
                 "Command": "⌘",
                 "Shift": "￪",
                 "Option": "⌥",
@@ -292,12 +288,24 @@ if 1:   # Classes and types
                 "Power button": "Pwr",
                 "Space bar": "Spc",
             }
-            items = [f"{self.key:40s}{' '*5}"]
+        def __str__(self):
+            #return self.symbol()
+            return self.decorate()
+        def symbol(self):
+            'Return the key name symbol'
             f = self.key.split("-")
             if self.key == "Shift-Command-Down Arrow": xx() #xx
             for item in f:
                 i = item.strip()
                 items.append(d[i] if i in d else i)
+        def decorate(self):
+            "Return the name with the key's symbols"
+            items = [f"{self.key:40s}{' '*5}"]
+            f = self.key.split("-")
+            if self.key == "Shift-Command-Down Arrow": xx() #xx
+            for item in f:
+                i = item.strip()
+                items.append(self._sym[i] if i in self._sym else i)
             return ''.join(items)
                     
     class State(enum.Enum):

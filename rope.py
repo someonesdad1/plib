@@ -1,8 +1,8 @@
 '''
 Print table of strength of Samson double braid polyester rope
 '''
-
 if 1:   # Imports
+    import sys
     from fractions import Fraction
     from pdb import set_trace as xx 
 if 1:   # Custom imports
@@ -10,8 +10,7 @@ if 1:   # Custom imports
     from f import flt
     from fraction import FormatFraction
     from get import GetFraction
-
-def GetData(metric=False, use_fractions=False):
+def GetData(metric=False, use_fractions=False, all=False):
     '''Return a list of 
     [
         diameter_inches,
@@ -31,6 +30,9 @@ def GetData(metric=False, use_fractions=False):
         average_strength_kN,
         minimum_strength_kN
     ]
+ 
+    If all is True, return all the sizes; otherwise, just return sizes up
+    to 1 inch diameter.
     '''
     dia_in = '''1/4 5/16 3/8 7/16 1/2 9/16 5/8 3/4 7/8 1 1-1/8 1-1/4 1-5/16
                 1-1/2 1-5/8 1-3/4 2 2-1/8 2-1/4 2-1/2 2-5/8 2-3/4 3 3-1/4
@@ -44,6 +46,12 @@ def GetData(metric=False, use_fractions=False):
     strength_min_klb = '''2 3.1 4.8 6.5 8.8 11.3 13.9 17.3 25.4 33.3 41 48.7 55
                           63.8 74.1 88.4 105 123 141 162 180 199 236 292
                           346 400 453 524 593'''.split()
+    if not all:
+        n = 10
+        dia_in = dia_in[:n]
+        wt_100_ft_lb = wt_100_ft_lb[:n]
+        strength_avg_klb = strength_avg_klb[:n]
+        strength_min_klb = strength_min_klb[:n]
     data = list(zip(dia_in, wt_100_ft_lb, strength_avg_klb, strength_min_klb))
     # Convert first term to a fraction
     for i, item in enumerate(data):
@@ -68,10 +76,12 @@ def GetData(metric=False, use_fractions=False):
             data[i][2] = flt(round(float(data[i][2])*4.44822, 2))
             data[i][3] = flt(round(float(data[i][3])*4.44822, 2))
     return data
-
 if __name__ == "__main__": 
-    data = GetData(use_fractions=True)
-    print("Data on uncoated Samson double-braided polyester rope\n")
+    data = GetData(use_fractions=True, all=len(sys.argv) > 1)
+    print("Data on uncoated Samson double-braided polyester rope")
+    if len(sys.argv) == 1:
+        print("  Include a command line argument to get longer table")
+    print()
     print(dedent('''
                     Weight per      Average breaking    Minimum breaking
     Dia, inches     100 ft, lb       strength, klbf      strength, klbf

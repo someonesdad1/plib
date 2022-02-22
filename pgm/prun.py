@@ -1,7 +1,11 @@
 '''
 TODO
 
-    * As much as possible, remove import dependencies.
+    * Consider capturing stdout from each invocation and having an option
+      to do a diff with a previous invocation.  Red would be deleted lines,
+      green would be added, and magenta would show inline changes.  Note
+      difflib can be used to generate HTML differences and it works pretty
+      well.
 
 
 Run a python script when a trigger file's mod time changes
@@ -70,27 +74,37 @@ if 1:   # Utility
         return t
     def Usage(status=1):
         print(dedent(f'''
-        Usage:  {sys.argv[0]} [options] pgm trig [arg1 [arg2 ...]]
-          When the modification time of the trigger file trig changes, run
+        Usage:  {sys.argv[0]} [options] pgm [arg1 [arg2 ...]]
+          When the modification time of the pgm file trig changes, run
           the python script pgm with the indicated arguments.
+
+          If it is expensive to run the pgm script, you can use the -f
+          option to define a trigger file.  The pgm script will then only
+          be changed when the trigger file's modification time changes.
         Options:
             -c      Clear the screen before running script each time
             -d      Debug:  exit after the first run
+            -t f    Define a trigger file f instead of pgm
         '''.rstrip()[1:]))
         exit(status)
     def ParseCommandLine(d):
         d["-c"] = False     # Clear screen before running script each time
         d["-d"] = False     # Debugging:  only print the command to execute
+        d["-t"] = None      # Trigger file to use
         try:
-            opts, args = getopt.getopt(sys.argv[1:], "cdh")
+            opts, args = getopt.getopt(sys.argv[1:], "cdht:")
         except getopt.GetoptError as e:
             print(str(e))
             exit(1)
         for o, a in opts:
             if o[1] in list("cd"):
                 d[o] = not d[o]
-        if len(args) < 2:
+            elif o == "-t":
+                d[o] = a
+        if not args:
             Usage()
+        if d["-t"] is None:
+            d["-t"] = args[0]   # Trigger on the pgm script
         return args
 if 1:   # Core functionality
     def ModTime():
@@ -118,12 +132,19 @@ if 1:   # Core functionality
         'Run the python script when trig file has been modified'
         count = 1
         # Build the command
-        cmd = [sys.executable, pgm]
+        cmd = [sys.executable, str(pgm)]
         if args:
             cmd.extend(args)
         # Clear the screen
         ClearScreen()
         # Print a starting message
+        print(f"{C.yel}Program invocation:{C.norm}")
+        print(f"{C.lblu}{cmd[0]}{C.norm} "
+              f"{C.lcyn}{cmd[1]}{C.norm} ", end="")
+        if len(cmd) > 2:
+            print(f"{C.lmag}{' '.join(cmd[2:])}{C.norm}")
+        else:
+            print()
         msg = f"{C.lgrn}prun.py {Dt()} {Tm()}{C.norm}"
         print(f"{msg:^{W}s}")
         # Infinite loop
@@ -149,10 +170,12 @@ if __name__ == "__main__":
     W = int(os.environ.get("COLUMNS", 80)) - 1
     py = f"{v.major}.{v.minor}.{v.micro}"
     args = ParseCommandLine(d)
-    pgm, trig = [P(i) for i in args[:2]]
+    pgm = P(args.pop(0))
+    trig = P(d["-t"])
+    args = args if args else None
     if not pgm.exists():
         Error(f"'{pgm}' doesn't exist")
     if not trig.exists():
+        xx()
         open(trig, "w").write("")
-    args = args[2:] if args else None
     Run()
