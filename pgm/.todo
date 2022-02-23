@@ -664,3 +664,13 @@ Low priority
     * Looks like an interesting tool.  It should use a reasonable
       dictionary by default and print the tokens out in columns for each
       file.
+
+----------------------------------------------------------------------
+vim outliner
+
+    This older web page discusses using vim 6 as an outliner based on
+    indentation:
+    http://www.troubleshooters.com/linux/olvim.htm
+
+
+vim: set sw=2

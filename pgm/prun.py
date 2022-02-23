@@ -91,7 +91,9 @@ if 1:   # Utility
         argument to unbuffer the streams.
 
             If your script is doing the printing to stderr, you can
-            decorate stderr's output with a function such as 
+            decorate each line of stderr's output with a leading "+" with a
+            function such as 
+
                 def err(*p, **kw):
                     print("+", end="", file=sys.stderr)
                     kw["file"] = sys.stderr
