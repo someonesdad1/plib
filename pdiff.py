@@ -20,29 +20,21 @@ if 1:   # Imports
     import getopt
     import sys
     import tempfile
-    import webbrowser
     from textwrap import dedent
     from pdb import set_trace as xx 
 if 1:   # Custom imports
-    import launch
+    from launch import Launch
+if 1:   # Global variables
+    nl = "\n"
 if 1:   # Core functionality
     def ShowDifference(old_str, new_str):
         h = difflib.HtmlDiff()
         s = h.make_file(old_str.split(nl), new_str.split(nl))
         fd, name = tempfile.mkstemp(suffix=".html", dir="/tmp/dontmp")
         open(name, "w").write(s)
-        if 1:
-            # This uses the launch.py module
-            launch.Launch(name)
-        else:
-            # This doesn't work with Firefox
-            url = f"file:///C:/cygwin{name}"
-            webbrowser.open_new_tab(url)
+        Launch(name)
         # This leaves the temporary file because there's no easy way to
-        # determine when the browser is finished looking at it.  This might
-        # be fixed by launching another browser window and waiting for it
-        # to exit, but this is more trouble than it's worth because the
-        # browser executable would have to be hard-coded in.
+        # determine when the browser is finished looking at it.
 if __name__ == "__main__":
     def Error(*msg, status=1):
         print(*msg, file=sys.stderr)
@@ -78,7 +70,6 @@ if __name__ == "__main__":
     d = {}      # Options dictionary
     file1, file2 = ParseCommandLine(d)
     old, new = GetFile(file1), GetFile(file2)
-    nl = "\n"
     if d["-i"]:
         old = old.lower()
         new = new.lower()

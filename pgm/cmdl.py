@@ -390,9 +390,12 @@ if 1:   # Core functionality
         return keys
 
 if __name__ == "__main__":
+    print("...First Error message...", file=sys.stderr) #xx
     d = {}      # Options dictionary
     args = ParseCommandLine(d)
     keys = ProcessData()
     # Show some output
     for key in keys:
         print(key)
+
+    print("...Second Error message...", file=sys.stderr) #xx
