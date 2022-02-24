@@ -1,0 +1,62 @@
+Outlining in vim
+  Folding by indentation is a powerful and fast tool with vim in a textfile.
+
+  With the modelines at the bottom of the screen, I can have things indented by two spaces
+  and thus cram a number of levels in.  However, things look better for indented lists with
+  an indent of 4.
+
+To Do lists
+    - [ ] Item 1
+    - [x] Item 2
+    - [!] Item 3
+    - [.] Item 4
+    
+    The x means done, ! means critical problem, . means currently being worked on.
+
+Indenter
+  - Indenting script
+    - It would be useful to have an indenting script that would maintain a set of lists
+      making up an outline.  This would be bound to a macro that runs the whole file through
+      the script.  It would be fast and keep things properly organized.
+    - In fact, it could be a C program.  All it has to do is look for the lines starting with
+      the bullet symbols, set the new indent state, then wrap the lines to that indent.  This
+      would keep going until the next blank line or until a new bullet line.  
+    - It probably should support .on and .off control words to allow for sections that
+      shouldn't be adjusted.
+
+
+Testing 
+  - Many Unicode characters can be used by adding them to formatlistpat in .vimrc.
+
+  ! Item
+    ! It probably should support .on and .off control words to allow for sections that
+      shouldn't be adjusted.
+  ■ Item
+    ■ It probably should support .on and .off control words to allow for sections that
+      shouldn't be adjusted.
+  | Item
+    | It probably should support .on and .off control words to allow for sections that
+      shouldn't be adjusted.
+  / Item
+    / It probably should support .on and .off control words to allow for sections that
+      shouldn't be adjusted.
+  : Item
+    : It probably should support .on and .off control words to allow for sections that
+      shouldn't be adjusted.
+  , Item
+    , It probably should support .on and .off control words to allow for sections that
+      shouldn't be adjusted.
+
+Modelines
+  * ts is tabstops
+  * sw is shiftwidth
+  * tw is textwidth (set to 0, vi defaults to 80 columns)
+  * wm is wrapmargin, which means to wrap at ($COLUMNS - wm) 
+  * formatoptions are how lists are formatted; you need 'n' to get the list formatting
+    desired in this document.
+
+  To see where a variable was set, use e.g. ':verbose set fo?'.
+
+  vi: formatoptions=tqn
+  vi: ts=2 sw=2 sts=2
+  vi: tw=0 wm=5
