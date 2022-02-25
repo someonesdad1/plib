@@ -1,6 +1,8 @@
 * Update the repository:  run 0test.py, make sure all tests are up to date,
   fix broken tests, and then check into the repository with a formal
   revision tag.
+    * Bring the ts.py script into /plib/pgm.  It should be part of the
+      release.
 
 * Write a script that estimates the electrical energy and time needed to
   heat up a room in our house.  Focus on the shop and garage.  The primary

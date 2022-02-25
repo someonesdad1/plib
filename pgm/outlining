@@ -1,62 +1,172 @@
 Outlining in vim
-  Folding by indentation is a powerful and fast tool with vim in a textfile.
+    - Folding by indentation is a powerful and fast tool with vim in a
+      textfile.
+    - With the modelines at the bottom of the screen, I can have things
+      indented by two spaces and thus cram a number of levels in.  However,
+      things look better for indented lists with an indent of 4.
 
-  With the modelines at the bottom of the screen, I can have things indented by two spaces
-  and thus cram a number of levels in.  However, things look better for indented lists with
-  an indent of 4.
+    To Do lists
+        - [ ] Item 1
+        - [x] Item 2
+        - [!] Item 3
+        - [.] Item 4
+        
+        The x means done, ! means critical problem, . means currently being
+        worked on.
 
-To Do lists
-    - [ ] Item 1
-    - [x] Item 2
-    - [!] Item 3
-    - [.] Item 4
-    
-    The x means done, ! means critical problem, . means currently being worked on.
+    Indenter
+        - Indenting script
+            - It would be useful to have an indenting script that would
+              maintain a set of lists making up an outline.  This would be
+              bound to a macro that runs the whole file through the script.
+              It would be fast and keep things properly organized.
+            - In fact, it could be a C program.  All it has to do is look for
+              the lines starting with the bullet symbols, set the new indent
+              state, then wrap the lines to that indent.  This would keep
+              going until the next blank line or until a new bullet line.  
+            - It probably should support .on and .off control words to allow
+              for sections that shouldn't be adjusted.
 
-Indenter
-  - Indenting script
-    - It would be useful to have an indenting script that would maintain a set of lists
-      making up an outline.  This would be bound to a macro that runs the whole file through
-      the script.  It would be fast and keep things properly organized.
-    - In fact, it could be a C program.  All it has to do is look for the lines starting with
-      the bullet symbols, set the new indent state, then wrap the lines to that indent.  This
-      would keep going until the next blank line or until a new bullet line.  
-    - It probably should support .on and .off control words to allow for sections that
-      shouldn't be adjusted.
+    Modelines
+        * ts is tabstops
+        * sw is shiftwidth
+        * tw is textwidth (set to 0, vi defaults to 80 columns)
+        * wm is wrapmargin, which means to wrap at ($COLUMNS - wm) 
+        * formatoptions are how lists are formatted; you need 'n' to get the
+          list formatting desired in this document.
 
+        To see where a variable was set, use e.g. ':verbose set fo?'.  Web
+        outlining
 
-Testing 
-  - Many Unicode characters can be used by adding them to formatlistpat in .vimrc.
+    Thoughts
+        - The idea is attractive as your data are available on all machines
+        - Interface won't be as slick as custom-compiled apps
+        - Worry about proprietary information stored in cloud Outlining tools
+        - https://zapier.com/blog/best-outline-software/#omnioutliner is a
+          summary of various outlining tools.
 
-  ! Item
-    ! It probably should support .on and .off control words to allow for sections that
-      shouldn't be adjusted.
-  ■ Item
-    ■ It probably should support .on and .off control words to allow for sections that
-      shouldn't be adjusted.
-  | Item
-    | It probably should support .on and .off control words to allow for sections that
-      shouldn't be adjusted.
-  / Item
-    / It probably should support .on and .off control words to allow for sections that
-      shouldn't be adjusted.
-  : Item
-    : It probably should support .on and .off control words to allow for sections that
-      shouldn't be adjusted.
-  , Item
-    , It probably should support .on and .off control words to allow for sections that
-      shouldn't be adjusted.
+    Bugs
+        - vim's folding doesn't work with pure lists.  It should.
 
-Modelines
-  * ts is tabstops
-  * sw is shiftwidth
-  * tw is textwidth (set to 0, vi defaults to 80 columns)
-  * wm is wrapmargin, which means to wrap at ($COLUMNS - wm) 
-  * formatoptions are how lists are formatted; you need 'n' to get the list formatting
-    desired in this document.
-
-  To see where a variable was set, use e.g. ':verbose set fo?'.
-
-  vi: formatoptions=tqn
-  vi: ts=2 sw=2 sts=2
-  vi: tw=0 wm=5
+Outlining tool
+    - Key desires
+        - Runs on Mac & Windows
+        - Support tree hierarchy
+        - Easy rearrangement
+        - Searching, especially amongst a bunch of files making up a project
+          or even all your stuff.
+        - Tag things with keywords for organization
+        - Ideally, let you flesh things out to a finished or nearly finished
+          form, then export to a common format.
+    - Candidates
+        - Runs on both Mac & Windows
+            - MS OneNote        $100/yr (includes Office stuff for family)
+            - Scrivener         $80     (for both Mac & Windows)
+            - Evernote          $96/yr
+            - vim
+        - Runs only on Mac
+            - Omni Outliner     $50
+            - Tree              $12
+            - Cloud Outliner    $7
+            - OutlineEdit       $5
+            - Mellel            $39
+            - MagicalPad        $10
+        - Word processors
+            - Word, Google Docs, Evernote
+        - Free
+            - Zavala (Mac only)
+            - Little Outliner (web)
+            - UV Outliner (Windows)
+            - Oak Outliner (web)
+                - I won't use it, as under Chrome it demanded you install some
+                  extension to Chrome
+            - Google Docs (iOS, Android, Web)
+    - Looks
+        - OneNote
+            - MS 365 Family:  $100/yr with 1 TB/person of cloud storage
+                - Word, Power Point, Excel, Outlook, OneNote
+                - Runs on Mac, Windows, iOS, Android
+            - Visually powerful, lots of platforms
+            - Sync to cloud
+            - Put information anywhere on page
+            - Works with a pen for drawing input on tablet
+            - Hierarchical organization, but appears visually too loose
+            - Appears aimed at collecting ideas, research, etc.
+            - Would likely work well with polishing in Word
+        - Scrivener
+            - Aimed at writers
+            - Break things down into separate files, then combine back into
+              whole
+            - The outliner is a flexible TOC you can edit
+            - https://scrivener.app/ gives a summary (it's by seller).
+              There's a 10 minute video intro.
+            - From the video (which hung after 2 minutes) and reading its
+              transcript, the features I like are outlining, synopsis, and
+              corkboard.  These are different ways of viewing your work and
+              Scrivener supports the nonlinear way that ideas and writing
+              happen.  You can easily move things around.
+            - The binder is on the left, organizing everything in the project.
+            - A synopsis is a chunk that describes what something is, giving
+              you enough detail to tell you what to write later.
+            - The Draft, Research, and Trash sections are always there (you
+              can add others).  I like this organization.
+            - When you're ready to share, use Compile to put everything into
+              an exported file (e.g. PDF, Word, ebooks).
+        - Evernote
+            - Basic is free, so could try out
+            - Aimed at data gathering
+            - Basic word processor with search
+            - Runs on iOS, Android, Mac, Windows, Web
+            - A power tool is the ability to scan things with phone pictures
+              into Evernote (business cards, manuals, etc.) and letting you
+              get rid of the paper copy
+            - Would likely be a good tool for collaborating workers
+    - Opinions
+        - What I would really like is an option for one of these tools to send
+          the editing of a bunch of text to an external program.  This would
+          e.g. let me use vim or gvim to quickly get the text down I want.
+          It could do it with some simple markup to allow basic formatting
+          when reading back in.
+        - Cost:  either $100 once or $100/year
+        - Concern
+            - Though I might like a specialized tool like Scrivener, I worry
+              about the editing process with a customer like B&K.  They would
+              want either Word or PDF for most stuff.  The common denominator
+              is Word and it can be used to share/comment/integrate.  
+                - One workflow would be to convert to Word, have them edit and
+                  comment, then I'd have to integrate their comments back into
+                  Scrivener.  Except for small changes, this could be time
+                  consuming and inefficient.  Or I take a PDF of their
+                  comments and make changes directly into Scrivener.
+                  Ultimately, it would depend on how much better Scrivener is
+                  for composition, research, and editing.  I suspect Scrivener
+                  compartmentalizes much better than Word.
+        - Though I'm concerned about sharing info on the Web, an exception
+          might be Google Docs, as B&K is willing to share their stuff there.
+          Then the app is available on all platforms at no cost, a real
+          benefit.
+            - I probably should try out Google Docs in more detail to see how
+              it works as an outlining tool. 
+                - In Chrome, edit chrome://flags and search for "force dark"
+                  and you can change to dark mode for all websites.
+                    - Alas, Google Docs still uses a white page.
+                - https://www.guidingtech.com/google-docs-dark-mode-chrome
+                  talks about some extensions.  I tried an extension from a
+                  guy in Mexico, but it didn't work in Docs.  This page talks
+                  about Dark Reader, Luna Reader.  However, there's a real
+                  risk of exploitation from Chrome extensions:  see
+                  https://www.inc.com/jason-aten/many-chrome-extensions-are-stealing-your-personal-information-heres-how-to-tell-if-youre-at-risk.html
+                  Because of this, I won't use an extension.
+    - Next step
+        - Evaluate Scrivener
+            - Sound basic architecture:  Draft, Research, and Trash
+            - Corkboard good for reorg & high level view ("index cards")
+            - Incorporate a ToDo list
+            - Hopefully it uses the MVC pattern, which will let me have
+              multiple windows open at once.
+                - This is critical for folks with two monitors, as my portrait
+                  monitor is used for seeing long sections of text and the
+                  landscape one is for high-level overviews.
+            - Installation was simple, except there's no easy way to read the
+              ridiculously long license agreement in the tiny window -- I
+              couldn't copy it to the clipboard.
