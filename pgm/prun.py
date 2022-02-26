@@ -41,7 +41,7 @@ if 1:   # Standard imports
     import time
     from textwrap import dedent
     from pdb import set_trace as xx
-    from time import strftime as ft
+    from time import strftime as ft, sleep
 if 1:   # Custom imports
     import pdiff
     try:
@@ -159,7 +159,18 @@ if 1:   # Utility
         return args
 if 1:   # Core functionality
     def ModTime():
-        return trig.stat().st_mtime
+        # This will attempt to get the mod time of the file for up to two
+        # seconds, as sometimes it fails on only one try.
+        count, n = 0, 10
+        for i in range(n):
+            try:
+                s = trig.stat().st_mtime
+            except FileNotFoundError:
+                sleep(0.2)
+                count += 1
+        if count > n:
+            raise Exception(f"Couldn't stat {trig}")
+        return s
     def ClearScreen():
         os.system("clear")
     def Time(start):

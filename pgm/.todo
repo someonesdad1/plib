@@ -4,6 +4,8 @@
     * Bring the ts.py script into /plib/pgm.  It should be part of the
       release.
 
+* gt:  git tool for listing files.  Look at the things done for hgs.py.
+
 * Write a script that estimates the electrical energy and time needed to
   heat up a room in our house.  Focus on the shop and garage.  The primary
   input number will be the starting temperature in °F.  An option can
@@ -666,13 +668,5 @@ Low priority
     * Looks like an interesting tool.  It should use a reasonable
       dictionary by default and print the tokens out in columns for each
       file.
-
-----------------------------------------------------------------------
-vim outliner
-
-    This older web page discusses using vim 6 as an outliner based on
-    indentation:
-    http://www.troubleshooters.com/linux/olvim.htm
-
 
 vim: set sw=2
