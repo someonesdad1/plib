@@ -130,7 +130,7 @@ def Columnize(seq, **kw):
         raise ValueError("indent must be a string")
     align = d[align]
     if esc:
-        # Regular expression to recognized ANSI escape sequences
+        # Regular expression to recognize ANSI escape sequences
         r = re.compile(r"(\x9B|\x1B\[)[0-?]*[ -\/]*[@-~]")
         def Len(s):
             '''Returns the length of a string s after removing the escape

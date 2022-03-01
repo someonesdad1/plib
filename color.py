@@ -4,34 +4,34 @@ Contains functions to set screen color for console applications
 
     TODO:
 
-        * PrintMatch() should allow regexp to be a string too.  If it's in the
-        target string, then colorize its locations too.  Note a regexp will
-        be of type re.Pattern.
+        - PrintMatch() should allow regexp to be a string too.  If it's in the
+          target string, then colorize its locations too.  Note a regexp will
+          be of type re.Pattern.
 
-        * The whole thing should be rewritten to be a single Color object
-        that lets you define the styles to use.  Colors would be C.lred,
-        C.yellow, etc., where C would be a default convenience instance.
-        Functions would be C.fg(), etc.  Different instantiations could
-        have different styles.
+        - The whole thing should be rewritten to be a single Color object that
+          lets you define the styles to use.  Colors would be C.lred, C.yellow,
+          etc., where C would be a default convenience instance.  Functions
+          would be C.fg(), etc.  Different instantiations could have different
+          styles.
 
-        Of course, this will mean rewriting a lot of existing code.
+          Of course, this will mean rewriting a lot of existing code.
 
-        * There should be a function that returns the style or color's
-        escape sequence.
+        - There should be a function that returns the style or color's escape
+          sequence.
 
-        * There should be a global variable that, if set, causes no escape
-        codes if stdout is not a TTY (it is set by default).  This makes
-        it easy for apps to support color without having escape codes in
-        files or pipes.
+        - There should be a global variable that, if set, causes no escape
+          codes if stdout is not a TTY (it is set by default).  This makes it
+          easy for apps to support color without having escape codes in files
+          or pipes.
 
-        * A cprint() function should allow the following syntax:
+        - A cprint() function should allow the following syntax:
 
             import color as C                                      
             C.cprint(C.lred, "Red text, ", C.normal, " plain text")
 
-        which lets you easily get colored text with one line.  The C.lred
-        object would be a Style object and you could easily define other
-        styles.  
+          which lets you easily get colored text with one line.  The C.lred
+          object would be a Style object and you could easily define other
+          styles.  
 
         Question:  would it make sense to make the Style objects derive
         from int so that older code wouldn't need to be changed?  One way
