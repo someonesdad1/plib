@@ -21,17 +21,17 @@ on building this repository in May of 2021 and my current python version is
 
 ## Coding style
 
-You will probably not like my coding style, as I vertically compress things
-as much as possible.  This is because screen vertical real estate is the
-most precious resource.  Because of the editor I use, I can use this
-compressed form comfortably (it's a folding editor and I fold on
-indentation).  I can usually see the whole file's contents when it's folded
-into 20 to 30 lines, which makes navigation easy (the 'if 1:' lines cause
-the folding and the comments give the section a name).  Since this will
-likely bug most people, it's not hard to get a code formatter to put things
-back to a more conventional form.  Except for this vertical compression, I
-mostly follow the formatting guidelines of PEP-8 (see
-https://www.python.org/dev/peps/pep-0008/).
+You will probably not like my coding style because I vertically compress
+things as much as possible by removing all blank lines.  This is because
+screen vertical real estate is the most precious resource.  Because of the
+editor I use, I can use this compressed form comfortably (it's a folding
+editor and I fold on indentation).  I can usually see the whole file's
+contents when it's folded in a few tens of lines, which makes navigation
+easy (the 'if 1:' lines cause the folding and the comments give the section
+a name).  Since this will probably bug most people, you can use a code
+formatter to put things back to a more conventional form.  Except for this
+vertical compression, I mostly follow the formatting guidelines of PEP-8
+(see https://www.python.org/dev/peps/pep-0008/).
 
 An advantage of this vertically compressed form is that I can insert a
 single blank line where I'm working in the file.  The editor I use has
@@ -39,18 +39,27 @@ commands to move to the next or previous paragraph, which is an empty line.
 Thus, I can fold the text, go to another section and look at the code, then
 get back to my working spot with one key press without having to e.g.
 remember a position or assign a location.  It's very efficient.  To jump
-between different sections, insert blank lines as needed.
+between the two sections, I insert another blank line.  This is faster than
+switching to another tab page (in my editor, the former takes one keystroke
+and switching tab pages takes two).
+
+In Feb 2022, I added a second 24 inch monitor, so now I use two 4k
+monitors.  One of these is in portrait mode, giving me a long editor window
+that has 80 to 160 lines, depending on the magnification.  This allows for
+comfortable editing sessions.  This portrait monitor is also nice for web
+browsing catalog pages.
 
 # Environment
 
-I work in a cygwin environment on a Windows computer, so most of this
-stuff is organized around a POSIX environment.  In particular, I spend
-most of my day in bash shell windows, using an editor and running python
-scripts.  Many of the scripts use the ANSI escape sequences provided by
-the color.py module.  I originally developed this on a Linux box, then
-adapted it to work under cygwin.  You may have to fiddle with things to
-get them to work under a Windows shell or other shell, but it's probably
-worth it, as the color coding of things is so useful.
+I work in a cygwin environment on a Windows computer, so most of this stuff
+is organized around a POSIX environment.  In particular, I spend most of my
+day in bash shell windows, using an editor and running python scripts.
+Many of the scripts use the ANSI escape sequences provided by the color.py
+module.  I originally developed this on a Linux box, then adapted it to
+work under cygwin.  In March 2022, I wrote the clr.py module, a replacement
+for the aging color module.  The clr.py module works with mintty under
+cygwin (an excellent 24-bit color terminal emulator) and on the Mac's
+Terminal.app, an 8-bit color emulator.
 
 The scripts are also heavily biased towards POSIX-style paths.
 
@@ -76,10 +85,10 @@ run because they don't have an associated test.
 
 # History
 
-Many of the copyright strings in these files are 2014.  That was the
-year I translated many hundreds (actually, over a thousand) of my python
-scripts to python 3; many of the scripts didn't have dates in them, so
-they got copyrighted in 2014.  I started using python in 1998.
+Many of the copyright strings in these files are 2014.  That was the year I
+translated many hundreds (actually, over a thousand) of my python scripts
+written from 1998 on to python 3; many of the scripts didn't have dates in
+them, so they got copyrighted in 2014.
 
 # Feedback
 

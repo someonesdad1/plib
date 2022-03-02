@@ -1,5 +1,53 @@
 '''
+
+This module produces ANSI escape code strings to produce colors in output
+to terminals.  If you're unfamiliar with such things, see
+https://en.wikipedia.org/wiki/ANSI_escape_code.
+
+The primary component is the Clr object.  The basic colors use 3-letter
+abbreviations: blk for black, blu for blue, grn for green, cyn for cyan,
+mag for magenta, yel for yellow, and wht for wht.  An 'l' is prepended to
+the name to get the bright form of that color.
+
+The basic use case of the module is
+
+    c = Clr()                   # Get an instance of the Clr class
+    # Error messages are bright white text on a red background
+    err = c("lwht", "red")
+    print(f"'{err}xyzzy{c.n}' is an unsupported keyword")
+
+You'll see the word xyzzy in bright white text on a red background on your
+terminal.  The c.n attribute of the Clr instance is an escape code to
+return to the normal terminal color.
+
+Instead of using variables like 'err' above, you can add instance
+attributes to the c instance
+
+    c.err = c("red")
+
+All the functionality is in the Clr.__call__ method, which returns either
+an ANSI escape sequence or the empty string:
+
+    def __call__(self, fg, bg=None, attr=None):
+
+fg and bg are strings denoting the foreground and background colors.  attr
+is an enum describing the text attributes you wish.  The TA class defines
+these attributes.  For example, setting attr to TA.italic causes the text
+to be italic.
+
+TO USE THIS MODULE
+    - Edit GetTerm() to set things up for your terminal.
+        - Terminal is determined from $TERM and $TERM_PROGRAM
+    - Set the Clr.n instance attribute to your normal color choices
+    - Modify the CN4, CN8, CN24 class definitions of colors to your tastes
  
+Run the module as a script to see example output.  Note that you'll not be
+able to see all the 24-bit color choices, but use the argument of 'all to
+see the typical XWindows' color names printed in their colors.
+
+'''
+'''
+
 TODO
     - Features needing implementation
         - Support 4, 8, and 24 bit environments
@@ -21,12 +69,13 @@ TODO
 This module is an aid for color printing in a terminal.  
     Design goals
         - Colors are defined by strings such as "red" and "#abcdef"
+            - For 8-bit terminals, colors are integers in [0, 255]
         - Terse syntax so things fit into f-strings
             - Short names for most-used colors
         - Simple for common use cases
-        - Easy to add new colors
+        - Easy to add/change colors
         - Support the terminals I use: mintty, Mac, xterm
-        - Support the styles use case
+        - Support the "styles" use case
         - Allow color decoration of regular expression matches
         - Class derivation should allow support of 4, 8, and 24 bit color
           terminals
@@ -39,65 +88,7 @@ This module is an aid for color printing in a terminal.
               default color
             - Use print()'s semantics
         - Support idea of themes for a particular look
- 
-    Overview
- 
-        This module produces ANSI escape code strings to produce colors in
-        output to terminals.  If you're unfamiliar with such things, see
-        https://en.wikipedia.org/wiki/ANSI_escape_code.
- 
-        The primary component is the Clr object.  The basic colors use 3-letter
-        abbreviations: blk for black, blu for blue, grn for green, cyn for
-        cyan, mag for magenta, yel for yellow, and wht for wht.  An 'l' is
-        prepended to the name to get the bright form of that color.
- 
-        The basic use case of the module is
- 
-            c = Clr()                   # Get an instance of the Clr class
-            # Error messages are bright white text on a red background
-            err = c("lwht", "red")
-            print(f"'{err}xyzzy{c.n}' is an unsupported keyword")
- 
-        You'll see the word xyzzy in bright white text on a red background on
-        your terminal.  The c.n attribute of the Clr instance is an escape code
-        to return to the normal terminal color.
- 
-        Instead of using variables like 'err' above, you can add instance
-        attributes to the c instance
- 
-            c.err = c("red")
- 
-        All the functionality is in the Clr.__call__ method, which returns
-        either an ANSI escape sequence or the empty string:
- 
-            def __call__(self, fg, bg=None, attr=None):
- 
-        fg and bg are strings denoting the foreground and background colors.
-        attr is an enum describing the text attributes you wish.  The TA class
-        defines these attributes.  For example, setting attr to TA.italic
-        causes the text to be italic.
- 
-        Other tidbits:
-            - c.on(False) causes all subsequent function calls and attributes
-              to return emtpy strings.  The use case for this is when the
-              output is not going to a terminal (e.g., sys.stdout.isatty() is
-              False).  Use c.on(True) to turn things on when desired.
-            - c.out and c.print are convenience functions to provide colorized
-              strings and revert to the normal color after they finish.  They
-              both support print() semantics.
-            - c.reset() removes all Clr instance attributes except for n.  This
-              lets you e.g. define a new set of styles as instance attributes.
- 
-    Instructions to use this module
- 
-        - Set it up for your terminal
-        - Set the Clr.n instance attribute to your normal color choices
- 
-        I have used this module with 1) mintty running under cygwin on a
-        Windows 10 box and 2) on a Mac using Apple's terminal program.  This
-        module will determine these two environments by using the TERM and
-        TERM_PROGRAM environment variables.  If you're using different
-        terminals, you'll have to modify the code to support your terminal.
+        - Run as a script to see colors
  
 Other stuff
     Regexp for ANSI escape sequences:
@@ -236,64 +227,25 @@ if 1:   # Handle 8-bit colors
         '''
         def __init__(self, full=False):
             'full is ignored'
-            raise Exception("Not tested yet")
-            self.dfg = {   # Foreground colors
-                "blk" : "0;30",
-                "blu" : "0;34",
-                "grn" : "0;32",
-                "cyn" : "0;36",
-                "red" : "0;31",
-                "mag" : "0;35",
-                "yel" : "0;33",
-                "wht" : "0;37",
-                "lblk": "1;30",
-                "lblu": "1;34",
-                "lgrn": "1;32",
-                "lcyn": "1;36",
-                "lred": "1;31",
-                "lmag": "1;35",
-                "lyel": "1;33",
-                "lwht": "1;37",
-            }
-            self.dbg = {   # Background colors
-                "blk" : "40m",
-                "blu" : "44m",
-                "grn" : "42m",
-                "cyn" : "46m",
-                "red" : "41m",
-                "mag" : "45m",
-                "yel" : "43m",
-                "wht" : "47m",
-                "lblk": "40m",
-                "lblu": "44m",
-                "lgrn": "42m",
-                "lcyn": "46m",
-                "lred": "41m",
-                "lmag": "45m",
-                "lyel": "43m",
-                "lwht": "47m",
-            }
             self._default()
         def _default(self):
             'Set self.n to the default color'
             a = "\033[0m"   # Normal text attribute
-            self.n = a + self.dfg("wht") + self.dbg("blk")
-        def _check(self, name):
-            msg = f"'{name}' is an unrecognized color"
-            if name not in self.dfg:
-                raise ValueError(msg)
-        def fg(self, s):
-            'Return the ANSI escape sequence for a foreground color'
-            if s is None or not s:
+            self.n = a + self.fg(7) + self.bg(0)
+        def fg(self, n=-1):
+            '''Return the ANSI escape sequence for a foreground color.  If n is
+            outside the range [0, 255], return the empty string.
+            '''
+            if n is None or not (0 <= n <= 255):
                 return ""
-            self._check(s)
-            return f"\033[{self.dfg[s]}m"
-        def bg(self, s):
-            'Return the ANSI escape sequence for a background color'
-            if s is None or not s:
+            return f"\033[38;5;{n}m"
+        def bg(self, n=-1):
+            '''Return the ANSI escape sequence for a background color.  If n is
+            outside the range [0, 255], return the empty string.
+            '''
+            if n is None or not (0 <= n <= 255):
                 return ""
-            self._check(s)
-            return f"\033[{self.dbg[s]}m"
+            return f"\033[48;5;{n}m"
 if 1:   # Handle 24-bit colors
     xw = {  # Typical XWindows color names
         "aliceblue": (239, 247, 255),
@@ -657,32 +609,6 @@ if 1:   # Handle 24-bit colors
                 self._check(s)
                 rgb = self.d[s]
             return "\033[48;2;{};{};{}m".format(*rgb)
-if 1:   # Choose color name class
-    def GetTerm(choice=None):
-        'Modify this code to handle your terminal'
-        term = os.environ.get("TERM", "")
-        termpgm = os.environ.get("TERM_PROGRAM", "")
-        pgmver = os.environ.get("TERM_PROGRAM_VERSION", "")
-        #
-        if choice is None:
-            if term == "xterm" and termpgm == "mintty":
-                return "24bit"
-            elif term == "xterm-256color" and termpgm == "Apple-Terminal":
-                return "8bit"
-            else:
-                return "4bit"
-        else:
-            if choice not in "4bit 8bit 24bit".split():
-                raise ValueError("choice must be 4bit, 8bit, or 24bit")
-            return choice
-    # Set choice to force the class to use
-    TERM = GetTerm(choice="4bit")
-    if TERM == "4bit":
-        CN = CN4
-    elif TERM == "8bit":
-        CN = CN8
-    else:
-        CN = CN24
 if 1:   # Class definitions
     class TA(Enum):
         'Text attributes'
@@ -750,26 +676,30 @@ if 1:   # Class definitions
             self.ta[TA.sup] = self.ta[TA.superscript]
             self.ta[TA.sub] = self.ta[TA.subscript]
     class Clr:
-        '''For typical use, instantiate by c = Clr().  Store "styles" by using
+        '''For typical use, instantiate with c = Clr().  Store "styles" by using
         the Clr instance's attributes:
             c.err = c("red")      # Error messages are red
         Use the styles in f-strings:
             print(f"{c.err}Error:  symbol doesn't exist{c.n}")
-        where c.n is the escape code for the standard terminal text.  The
-        previous can be a little more terse with the equivalent:
+        c.err and c.n are strings containing the ANSI  escape codes (c.n is the
+        escape code for the standard terminal text).  The previous can be a
+        little more terse with the equivalent:
             c.print(f"{c.err}Error:  symbol doesn't exist")
-        To remove all your "style" definitions, use c.reset().  To see the
-        styles you've defined, use print(c).
+        c.print() and c.out() output their strings then output the escape
+        code to return to the normal style.  To remove all your "style"
+        definitions, use c.reset().  To see the styles you've defined, use
+        print(c).
+
         '''
         def __init__(self, override=False):
             '''If override is True, always emit escape codes.  The normal
-            behavior is not to emit escape codes if stdout is not a terminal.
+            behavior is not to emit escape codes unless stdout is a terminal.
             '''
-            self._override = override
+            self._override = bool(override)
             self.reset()
         def _user(self):
             'Return a set of user-defined attribute names'
-            ignore = set('''n reset on out print _override _user _cn _st
+            ignore = set('''n reset _on out print _override _user _cn _st
                     _parse_color'''.split())
             attributes = []
             for i in dir(self):
@@ -800,11 +730,17 @@ if 1:   # Class definitions
         def __call__(self, fg, bg=None, attr=None):
             '''Return the indicated color style escape code string.  attr must
             be an enum of type TA.  fg and bg are strings like "red" or 
-            "#abcdef".
+            "#abcdef" for 24-bit terminals, numbers on [0, 255] for 8-bit
+            terminals, and short color names like "blk", "red", etc. for
+            4-bit terminals.
             '''
-            assert(ii(fg, str))
-            assert(ii(fg, str) or bg is None)
-            assert(attr is None or ii(attr, TA))
+            if TERM == "8-bit":
+                assert(ii(fg, int))
+                assert(ii(fg, int) or bg is None)
+            else:
+                assert(ii(fg, str))
+                assert(ii(fg, str) or bg is None)
+                assert(attr is None or ii(attr, TA))
             a = ""
             if attr is not None:
                 if attr not in self._st:
@@ -814,8 +750,6 @@ if 1:   # Class definitions
             f = self._cn.fg(fg)
             b = self._cn.bg(bg)
             return a + f + b
-        def _parse_color(self, fg, bg=None, attr=None):
-            pass
         # ----------------------------------------------------------------------
         # User interface
         def reset(self):
@@ -830,25 +764,51 @@ if 1:   # Class definitions
             # dict to translate TA enums to escape code numbers
             self._st = AD().ta 
             # Turn on output unless not to terminal
-            self.on = True
+            self._on = True
             if not sys.stdout.isatty() and not self._override:
-                self.on = False
-        def out(self, *p, **kw):
-            '''Print arguments with no newline, then revert to normal
-            color.
-            '''
-            k = kw.copy()
-            if "end" not in k:
-                k["end"] = ""
-            print(*p, **k)
-            print(self.n, **k)
+                self._on = False
         def print(self, *p, **kw):
             '''Print arguments with newline, reverting to normal color
             after finishing.
             '''
             self.out(*p, **kw)
             print()
- 
+        def out(self, *p, **kw):
+            'Same as print() but no newline'
+            k = kw.copy()
+            if "end" not in k:
+                k["end"] = ""
+            print(*p, **k)
+            print(self.n, **k)
+if 1:   # Choose color name class for your terminal
+    def GetTerm(choice=None):
+        'Modify this code to handle your terminal'
+        term = os.environ.get("TERM", "")
+        termpgm = os.environ.get("TERM_PROGRAM", "")
+        pgmver = os.environ.get("TERM_PROGRAM_VERSION", "")
+        #
+        if not choice:
+            if term == "xterm" and termpgm == "mintty":
+                return "24-bit"
+            elif term == "xterm-256color" and termpgm == "Apple-Terminal":
+                return "8-bit"
+            else:
+                return "4-bit"
+        else:
+            if choice not in "4-bit 8-bit 24-bit".split():
+                raise ValueError("choice must be 4bit, 8bit, or 24bit")
+            return choice
+    # Set choice to force the class to use
+    choice = None
+    if 0:
+        choice = "4-bit" if 0 else "8-bit" if 0 else "24-bit"
+    TERM = GetTerm(choice=choice)
+    if TERM == "4-bit":
+        CN = CN4
+    elif TERM == "8-bit":
+        CN = CN8
+    else:
+        CN = CN24
 #----------------------------------------------------------------------
 # Simple test cases for developing code
 if 0:
@@ -877,44 +837,64 @@ if 0:
 if __name__ == "__main__":
     # Demonstrate module's output
     c = Clr()
+    width = int(os.environ["COLUMNS"])
     def ColorTable():
-        if TERM == "24bit":
-            def H(bright=False):
-                c.out(f"{'':{w}s} ")
-                for i in T:
-                    if bright:
-                        c.out(f"{c('lwht')}{'l' + i:{w}s}{c.n} ")
-                    else:
-                        c.out(f"{c('wht')}{i:{w}s}{c.n} ")
+        def H(bright=False):
+            c.out(f"{'':{w}s} ")
+            for i in T:
+                if bright:
+                    c.out(f"{c('lwht')}{'l' + i:{w}s}{c.n} ")
+                else:
+                    c.out(f"{c('wht')}{i:{w}s}{c.n} ")
+            print()
+        def Tbl(msg, fg=False, bg=False, last=True):
+            print(f"{c('lyel')}{msg:^{W}s}{c.n}")
+            H("l" if bg else "")
+            for i in T:
+                if fg:
+                    i = "l" + i 
+                    c.out(f"{c('lwht')}{i:{w}s}{c.n} ")
+                else:
+                    c.out(f"{c('wht')}{i:{w}s}{c.n} ")
+                for j in T:
+                    j = "l" + j if bg else j
+                    c.out(f"{c(i, j)}{t}{c.n} ")
                 print()
-            def Tbl(msg, fg=False, bg=False, last=True):
-                print(f"{c('lyel')}{msg:^{W}s}{c.n}")
-                H("l" if bg else "")
-                for i in T:
-                    if fg:
-                        i = "l" + i 
-                        c.out(f"{c('lwht')}{i:{w}s}{c.n} ")
-                    else:
-                        c.out(f"{c('wht')}{i:{w}s}{c.n} ")
-                    for j in T:
-                        j = "l" + j if bg else j
-                        c.out(f"{c(i, j)}{t}{c.n} ")
-                    print()
-                if last:
-                    print()
-            T = "blk  blu grn  cyn  red  mag  yel  wht".split()
-            w, t = 4, "text"
-            W = 44
+            if last:
+                print()
+        T = "blk  blu grn  cyn  red  mag  yel  wht".split()
+        w, t = 4, "text"
+        W = 44
+        print(f"{TERM} terminal")
+        if TERM == "24-bit":
             Tbl("Dim text, dim background", False, False)
             Tbl("Bright text, dim background", True, False)
             Tbl("Dim text, bright background", False, True)
             Tbl("Bright text, bright background", True, True, last=False)
             c.out(c.n)
-        elif TERM == "4bit":
-            c.print(f"{c('red')}4-bit stuff")
-            c.print(f"{c('lwht', 'red')}4-bit stuff")
-
-            #yy Make the 4-bit table
+        elif TERM == "4-bit":
+            Tbl("Dim text", False, False)
+            Tbl("Bright text", True, False, last=False)
+        elif TERM == "8-bit":
+            T = range(256)
+            N = width//4        # Items that can fit per line
+            use_white = set([int(i) for i in '''
+                0 4 8 16 17 18 19 20 21 52 53 54 55 56 57 88 89 90 91 92 93 94
+                95 96 97 98 99 232 233 234 235 236 237 238 239
+                    '''.split()])
+            print("As foreground colors")
+            for i in T:
+                c.out(f"{c(i)}{i:^4d}")
+                if i and not ((i + 1) % N):
+                    c.print()
+            c.print()
+            print("As background colors")
+            for i in T:
+                fg = 15 if i in use_white else 0
+                c.out(f"{c(fg, i)}{i:^4d}")
+                if i and not ((i + 1) % N):
+                    c.print()
+            c.print()
     def Attributes():
         def f(a):
             return c("mintty", attr=a)
@@ -928,6 +908,8 @@ if __name__ == "__main__":
           sub{f(TA.sub)}script   {c.n}sub     super{f(TA.sup)}script  {c.n}sup
         '''.rstrip()))
     def Help():
+        if TERM != "24-bit":
+            return
         print(dedent(f'''
  
             Include one or more arguments to see other tables:
@@ -940,7 +922,7 @@ if __name__ == "__main__":
             c.out(f"{escseq}{name} ")
         print()
     args = sys.argv[1:]
-    if args:
+    if args and TERM == "24-bit":
         if "attr" in args:
             Attributes()
         if "all" in args:
@@ -948,3 +930,4 @@ if __name__ == "__main__":
     else:
         ColorTable()
         Help()
+# vim: tw=75

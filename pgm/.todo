@@ -4,6 +4,8 @@
     * Bring the ts.py script into /plib/pgm.  It should be part of the
       release.
 
+* Finish the new clr.py script and get it installed; delete the clr directory.
+
 * Write a script that estimates the electrical energy and time needed to
   heat up a room in our house.  Focus on the shop and garage.  The primary
   input number will be the starting temperature in °F.  An option can
