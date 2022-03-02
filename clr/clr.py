@@ -2,8 +2,6 @@
  
 TODO
     - Features needing implementation
-        - Optional demo:  print a demo page showing numerous mintty features
-        - Optional demo:  changing 'themes'
         - Support 4, 8, and 24 bit environments
             - Look at 'set|grep TERM' to choose setup
                 - TERM=xterm
@@ -16,6 +14,9 @@ TODO
               https://docs.microsoft.com/en-us/windows/console/char-info-str
                 - Note less doesn't handle 24-bit sequences
         - Finish instructions on how to set it up for a user's terminal
+        - Optional
+            - Print a demo page showing numerous mintty features
+            - Demo changing 'themes'
  
 This module is an aid for color printing in a terminal.  
     Design goals
@@ -159,7 +160,141 @@ if 1:   # Custom imports
 if 1:   # Global variables
     P = pathlib.Path
     ii = isinstance
-if 1:   # Names of colors
+if 1:   # Handle 4-bit colors
+    class CN4:
+        '''Encapsulate 4-bit color names.  The default set is the following
+        set of color names, functional on most terminals:
+            blk,  blu,  grn,  cyn,  red,  mag,  yel,  wht
+            lblk, lblu, lgrn, lcyn, lred, lmag, lyel, lwht
+        '''
+        def __init__(self, full=False):
+            'full is ignored'
+            self.dfg = {   # Foreground colors
+                "blk" : "0;30",
+                "blu" : "0;34",
+                "grn" : "0;32",
+                "cyn" : "0;36",
+                "red" : "0;31",
+                "mag" : "0;35",
+                "yel" : "0;33",
+                "wht" : "0;37",
+                "lblk": "1;30",
+                "lblu": "1;34",
+                "lgrn": "1;32",
+                "lcyn": "1;36",
+                "lred": "1;31",
+                "lmag": "1;35",
+                "lyel": "1;33",
+                "lwht": "1;37",
+            }
+            self.dbg = {   # Background colors
+                "blk" : "40",
+                "blu" : "44",
+                "grn" : "42",
+                "cyn" : "46",
+                "red" : "41",
+                "mag" : "45",
+                "yel" : "43",
+                "wht" : "47",
+                "lblk": "40",
+                "lblu": "44",
+                "lgrn": "42",
+                "lcyn": "46",
+                "lred": "41",
+                "lmag": "45",
+                "lyel": "43",
+                "lwht": "47",
+            }
+            self._default()
+        def _default(self):
+            'Set self.n to the default color'
+            a = "\033[0m"   # Normal text attribute
+            b = f"\033[{self.dfg['wht']};{self.dbg['blk']}m"
+            self.n = a + b
+        def _check(self, name):
+            msg = f"'{name}' is an unrecognized color"
+            if name not in self.dfg:
+                raise ValueError(msg)
+        def fg(self, s):
+            'Return the ANSI escape sequence for a foreground color'
+            if s is None or not s:
+                return ""
+            self._check(s)
+            return f"\033[{self.dfg[s]}m"
+        def bg(self, s):
+            'Return the ANSI escape sequence for a background color'
+            if s is None or not s:
+                return ""
+            self._check(s)
+            return f"\033[{self.dbg[s]}m"
+if 1:   # Handle 8-bit colors
+    class CN8:
+        '''Encapsulate 8-bit color names.  The default set is the following
+        set of color names, functional on most terminals:
+            blk,  blu,  grn,  cyn,  red,  mag,  yel,  wht
+            lblk, lblu, lgrn, lcyn, lred, lmag, lyel, lwht
+        '''
+        def __init__(self, full=False):
+            'full is ignored'
+            raise Exception("Not tested yet")
+            self.dfg = {   # Foreground colors
+                "blk" : "0;30",
+                "blu" : "0;34",
+                "grn" : "0;32",
+                "cyn" : "0;36",
+                "red" : "0;31",
+                "mag" : "0;35",
+                "yel" : "0;33",
+                "wht" : "0;37",
+                "lblk": "1;30",
+                "lblu": "1;34",
+                "lgrn": "1;32",
+                "lcyn": "1;36",
+                "lred": "1;31",
+                "lmag": "1;35",
+                "lyel": "1;33",
+                "lwht": "1;37",
+            }
+            self.dbg = {   # Background colors
+                "blk" : "40m",
+                "blu" : "44m",
+                "grn" : "42m",
+                "cyn" : "46m",
+                "red" : "41m",
+                "mag" : "45m",
+                "yel" : "43m",
+                "wht" : "47m",
+                "lblk": "40m",
+                "lblu": "44m",
+                "lgrn": "42m",
+                "lcyn": "46m",
+                "lred": "41m",
+                "lmag": "45m",
+                "lyel": "43m",
+                "lwht": "47m",
+            }
+            self._default()
+        def _default(self):
+            'Set self.n to the default color'
+            a = "\033[0m"   # Normal text attribute
+            self.n = a + self.dfg("wht") + self.dbg("blk")
+        def _check(self, name):
+            msg = f"'{name}' is an unrecognized color"
+            if name not in self.dfg:
+                raise ValueError(msg)
+        def fg(self, s):
+            'Return the ANSI escape sequence for a foreground color'
+            if s is None or not s:
+                return ""
+            self._check(s)
+            return f"\033[{self.dfg[s]}m"
+        def bg(self, s):
+            'Return the ANSI escape sequence for a background color'
+            if s is None or not s:
+                return ""
+            self._check(s)
+            return f"\033[{self.dbg[s]}m"
+if 1:   # Handle 24-bit colors
     xw = {  # Typical XWindows color names
         "aliceblue": (239, 247, 255),
         "antiquewhite": (249, 234, 214),
@@ -446,9 +581,9 @@ if 1:   # Names of colors
         "yellow4": (140, 140, 0),
         "yellowgreen": (51, 216, 56),
     }
-    class CN:
-        '''Encapsulate color names.  The default set is the following set of
-        color names, functional on most terminals:
+    class CN24:
+        '''Encapsulate 24-bit color names.  The default set is the following
+        set of color names, functional on most terminals:
             blk,  blu,  grn,  cyn,  red,  mag,  yel,  wht
             lblk, lblu, lgrn, lcyn, lred, lmag, lyel, lwht
         '''
@@ -487,18 +622,67 @@ if 1:   # Names of colors
             msg = f"'{name}' is an unrecognized color"
             if name not in self.d:
                 raise ValueError(msg)
+        def _parse_color(self, name):
+            "Handle the '#xxxxxx' form"
+            e = ValueError(f"'{name}' is not a proper color string")
+            def f(x):
+                a = int("0x" + x, 16)
+                if not 0 <= a <= 255:
+                    raise e
+                return a
+            if not ii(name, str) or len(name) != 7:
+                raise e
+            try:
+                r, g, b = f(name[1:3]), f(name[3:5]), f(name[5:])
+                return (r, g, b)
+            except Exception:
+                raise e
         def fg(self, s):
             'Return the ANSI escape sequence for a foreground color'
             if s is None or not s:
                 return ""
-            self._check(s)
-            return "\033[38;2;{};{};{}m".format(*self.d[s])
+            if s.startswith("#"):
+                rgb = self._parse_color(s)
+            else:
+                self._check(s)
+                rgb = self.d[s]
+            return "\033[38;2;{};{};{}m".format(*rgb)
         def bg(self, s):
-            'Return the ANSI escape sequence for a foreground color'
+            'Return the ANSI escape sequence for a background color'
             if s is None or not s:
                 return ""
-            self._check(s)
-            return "\033[48;2;{};{};{}m".format(*self.d[s])
+            if s.startswith("#"):
+                rgb = self._parse_color(s)
+            else:
+                self._check(s)
+                rgb = self.d[s]
+            return "\033[48;2;{};{};{}m".format(*rgb)
+if 1:   # Choose color name class
+    def GetTerm(choice=None):
+        'Modify this code to handle your terminal'
+        term = os.environ.get("TERM", "")
+        termpgm = os.environ.get("TERM_PROGRAM", "")
+        pgmver = os.environ.get("TERM_PROGRAM_VERSION", "")
+        #
+        if choice is None:
+            if term == "xterm" and termpgm == "mintty":
+                return "24bit"
+            elif term == "xterm-256color" and termpgm == "Apple-Terminal":
+                return "8bit"
+            else:
+                return "4bit"
+        else:
+            if choice not in "4bit 8bit 24bit".split():
+                raise ValueError("choice must be 4bit, 8bit, or 24bit")
+            return choice
+    # Set choice to force the class to use
+    TERM = GetTerm(choice="4bit")
+    if TERM == "4bit":
+        CN = CN4
+    elif TERM == "8bit":
+        CN = CN8
+    else:
+        CN = CN24
 if 1:   # Class definitions
     class TA(Enum):
         'Text attributes'
@@ -585,7 +769,8 @@ if 1:   # Class definitions
             self.reset()
         def _user(self):
             'Return a set of user-defined attribute names'
-            ignore = set("n reset on out print _override _user _cn _st".split())
+            ignore = set('''n reset on out print _override _user _cn _st
+                    _parse_color'''.split())
             attributes = []
             for i in dir(self):
                 if i.startswith("__") or i in ignore:
@@ -614,7 +799,8 @@ if 1:   # Class definitions
             return classname + "(" + ' '.join(out) + ")"
         def __call__(self, fg, bg=None, attr=None):
             '''Return the indicated color style escape code string.  attr must
-            be an enum of type TA.
+            be an enum of type TA.  fg and bg are strings like "red" or 
+            "#abcdef".
             '''
             assert(ii(fg, str))
             assert(ii(fg, str) or bg is None)
@@ -628,6 +814,8 @@ if 1:   # Class definitions
             f = self._cn.fg(fg)
             b = self._cn.bg(bg)
             return a + f + b
+        def _parse_color(self, fg, bg=None, attr=None):
+            pass
         # ----------------------------------------------------------------------
         # User interface
         def reset(self):
@@ -661,6 +849,19 @@ if 1:   # Class definitions
             self.out(*p, **kw)
             print()
  
+#----------------------------------------------------------------------
+# Simple test cases for developing code
+if 0:
+    # Show CN._parse_color() works
+    c = Clr()
+    cn = CN()
+    # Use "steelblue" as example
+    msg = "This is an example of steelblue color"
+    r, g, b = 84, 112, 170
+    c.print(f"{c('steelblue')}{msg}")
+    s = f"#{r:02x}{g:02x}{b:02x}"
+    c.print(f"{c(s)}{msg}")
+    exit()
 if 0:
     # Show attributes working
     c = Clr()
@@ -677,37 +878,43 @@ if __name__ == "__main__":
     # Demonstrate module's output
     c = Clr()
     def ColorTable():
-        def H(bright=False):
-            c.out(f"{'':{w}s} ")
-            for i in T:
-                if bright:
-                    c.out(f"{c('lwht')}{'l' + i:{w}s}{c.n} ")
-                else:
-                    c.out(f"{c('wht')}{i:{w}s}{c.n} ")
-            print()
-        def Tbl(msg, fg=False, bg=False, last=True):
-            print(f"{c('lyel')}{msg:^{W}s}{c.n}")
-            H("l" if bg else "")
-            for i in T:
-                if fg:
-                    i = "l" + i 
-                    c.out(f"{c('lwht')}{i:{w}s}{c.n} ")
-                else:
-                    c.out(f"{c('wht')}{i:{w}s}{c.n} ")
-                for j in T:
-                    j = "l" + j if bg else j
-                    c.out(f"{c(i, j)}{t}{c.n} ")
+        if TERM == "24bit":
+            def H(bright=False):
+                c.out(f"{'':{w}s} ")
+                for i in T:
+                    if bright:
+                        c.out(f"{c('lwht')}{'l' + i:{w}s}{c.n} ")
+                    else:
+                        c.out(f"{c('wht')}{i:{w}s}{c.n} ")
                 print()
-            if last:
-                print()
-        T = "blk  blu grn  cyn  red  mag  yel  wht".split()
-        w, t = 4, "text"
-        W = 44
-        Tbl("Dim text, dim background", False, False)
-        Tbl("Bright text, dim background", True, False)
-        Tbl("Dim text, bright background", False, True)
-        Tbl("Bright text, bright background", True, True, last=False)
-        c.out(c.n)
+            def Tbl(msg, fg=False, bg=False, last=True):
+                print(f"{c('lyel')}{msg:^{W}s}{c.n}")
+                H("l" if bg else "")
+                for i in T:
+                    if fg:
+                        i = "l" + i 
+                        c.out(f"{c('lwht')}{i:{w}s}{c.n} ")
+                    else:
+                        c.out(f"{c('wht')}{i:{w}s}{c.n} ")
+                    for j in T:
+                        j = "l" + j if bg else j
+                        c.out(f"{c(i, j)}{t}{c.n} ")
+                    print()
+                if last:
+                    print()
+            T = "blk  blu grn  cyn  red  mag  yel  wht".split()
+            w, t = 4, "text"
+            W = 44
+            Tbl("Dim text, dim background", False, False)
+            Tbl("Bright text, dim background", True, False)
+            Tbl("Dim text, bright background", False, True)
+            Tbl("Bright text, bright background", True, True, last=False)
+            c.out(c.n)
+        elif TERM == "4bit":
+            c.print(f"{c('red')}4-bit stuff")
+            c.print(f"{c('lwht', 'red')}4-bit stuff")
+
+            #yy Make the 4-bit table
     def Attributes():
         def f(a):
             return c("mintty", attr=a)
@@ -732,7 +939,6 @@ if __name__ == "__main__":
             escseq = c(name)
             c.out(f"{escseq}{name} ")
         print()
-
     args = sys.argv[1:]
     if args:
         if "attr" in args:
