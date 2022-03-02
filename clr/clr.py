@@ -2,9 +2,8 @@
  
 TODO
     - Features needing implementation
-        - Demo:  print all colors
-        - Demo:  print a demo page showing numerous mintty features
-        - Demo:  changing 'themes'
+        - Optional demo:  print a demo page showing numerous mintty features
+        - Optional demo:  changing 'themes'
         - Support 4, 8, and 24 bit environments
             - Look at 'set|grep TERM' to choose setup
                 - TERM=xterm
@@ -663,7 +662,7 @@ if 1:   # Class definitions
             print()
  
 if 0:
-    # Get attributes working
+    # Show attributes working
     c = Clr()
     c.err = c("lred")
     c.nor = c("lgrn")
@@ -674,18 +673,10 @@ if 0:
     c.reset()
     print(c)
     exit()
-if 0:
-    # Print out examples of the base theme colors
-    c = Clr()
-    for i in '''blk  blu grn  cyn  red  mag  yel  wht
-                lblk lblu lgrn lcyn lred lmag lyel lwht'''.split():
-        print(f"{c('blk', i)}{i}{c.n}")
-    c.out(f"{c.n}")
-    exit()
 if __name__ == "__main__":
     # Demonstrate module's output
+    c = Clr()
     def ColorTable():
-        c = Clr()
         def H(bright=False):
             c.out(f"{'':{w}s} ")
             for i in T:
@@ -737,7 +728,6 @@ if __name__ == "__main__":
                 attr        Attributes
         '''))
     def ShowAllColors():
-        c = Clr()
         for name in c._cn.d:
             escseq = c(name)
             c.out(f"{escseq}{name} ")
