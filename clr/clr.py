@@ -1,36 +1,51 @@
 '''
 
 TODO
-    - Change attributes to 1<<n form so they can be OR'd together
+    - Add Clr.load(file, reset=False) to load a bunch of styles
+        - Demo changing 'themes'
+    - Let __call__'s attr keyword be either a single enum or a sequence of
+      them.
+    - Print a demo page showing numerous mintty features
+        - Regex matches with italics, reversed, underlining, overlining,
+          etc.
+        - This demo can be stored as a clr.png file for users who'd like to
+          see how it works in mintty.
+    - Document the regex matchers.  Mention that flashing reversed text is
+      extremely effective in showing where matches are.
  
 This python module produces ANSI escape code strings to produce colors in
-output to terminals.  If you're unfamiliar with such things, see
-https://en.wikipedia.org/wiki/ANSI_escape_code.
+output to terminals (see https://en.wikipedia.org/wiki/ANSI_escape_code).
  
 The primary component is the Clr object.  The basic colors use 3-letter
 abbreviations: blk for black, blu for blue, grn for green, cyn for cyan,
 mag for magenta, yel for yellow, and wht for wht.  An 'l' is prepended to
 the name to get the bright form of that color.  These support the
 traditional 4-bit terminal, which is the form I use the most for day-to-day
-work, even though the terminal I use supports 24-bit color.
+work (even though the terminal I use supports 24-bit color).
  
-The basic use case of the module is
+Here's basic usage:
  
     c = Clr()                   # Get an instance of the Clr class
-    # We want error messages as bright white text on a red background
-    err = c("lwht", "red")
-    print(f"'{err}xyzzy' is an unsupported keyword{c.n}")
+    # We want red error messages
+    err = c("red")
+    print(f"{err}'xyzzy' is an unsupported keyword{c.n}")
  
 The c.n attribute of the Clr instance is an escape code to return to the
-normal terminal color.
- 
-Instead of using regular variables like 'err' above, you can add instance
-attributes to the c instance
+normal terminal color.  Instead of using regular variables like 'err'
+above, you can add instance attributes to the c instance
  
     c.err = c("red")
+
+This is handy, as print(c) will show the Clr instance with the names of
+it's style attributes in their chosen form.
+
+I call these attributes styles, as a common pattern in my scripts is to
+define a number of these styles, then use them where needed.  The
+Clr.load() method can be used to read in a number of these styles from a
+file.
  
 The functionality is in the Clr.__call__ method, which returns either an
-ANSI escape sequence or the empty string:
+ANSI escape sequence (or an empty string if output isn't to a terminal):
  
     def __call__(self, fg, bg=None, attr=None):
  
@@ -49,7 +64,7 @@ Run the module as a script to see example output.  Note that you'll not be
 able to see all the 24-bit color choices, but use the argument of 'all' to
 see typical XWindows' color names printed in their colors.
  
-My design goals:
+My design goals for this module were:
     - Colors are defined by strings or integers
     - Terse syntax so things fit into f-strings
         - Short names for most-used colors
@@ -61,10 +76,6 @@ My design goals:
  
 '''
 '''
- 
-TODO
-    - Print a demo page showing numerous mintty features
-    - Demo changing 'themes'
  
 This module is an aid for color printing in a terminal.  
  
@@ -112,8 +123,8 @@ if 1:  # Copyright, license
     #   See http://opensource.org/licenses/OSL-3.0.
     #∞license∞#
     #∞what∞#
-    # Provides the Clr object for ANSI escape sequences to get colored text in
-    # terminal applications.
+    # <programming> Provides the Clr object for ANSI escape sequences to
+    # get colored text in terminals.
     #∞what∞#
     #∞test∞# #∞test∞#
     pass
@@ -731,6 +742,19 @@ if 1:   # Class definitions
             return a + f + b
         # ----------------------------------------------------------------------
         # User interface
+        def load(self, file, reset=False, print=False):
+            '''Read style definitions from a file.  Each line is either a
+            comment (leading '#') or must contain the following fields
+            separated by whitespace:
+                
+                style_name fg_color_name bg_color_name [attr1 [attr2 ...]]
+
+            where fg_color_name and bg_color_name are either color name
+            strings or None.  attr1, etc. must be one of the TA enum
+            identifiers for attributes, such as 'TA.italic'.
+            '''
+
+        #yy
         def reset(self):
             'Sets the instance to a default state'
             # Delete all user-set attributes
