@@ -1,31 +1,13 @@
 '''
-
-Bug: Clr.load() can't set the attributes using exec because the string
-becomes <TA.rev: 23>, which is NOT the symbol needed.  This is a bug in the
-Enum implementation.  Change to the simple
-
-    class A: pass
-    A.italic = 1
-    A.it = 1
-    ... etc.
-
-    Use the same numbers that the escape code uses.  Or just make it a
-    dict.
- 
-----------------------------------------------------------------------
  
 TODO
-    - Add Clr.load(file, reset=False) to load a bunch of styles
-        - Demo changing 'themes'
-    - Let __call__'s attr keyword be either a single enum or a sequence of
-      them.
-    - Print a demo page showing numerous mintty features
+    - Demo
+        - Changing "themes" using Clr.load()
+        - Show numerous mintty features
         - Regex matches with italics, reversed, underlining, overlining,
-          etc.
-        - This demo can be stored as a clr.png file for users who'd like to
-          see how it works in mintty.
-    - Document the regex matchers.  Mention that flashing reversed text is
-      extremely effective in showing where matches are.
+            - "rv rb" is very effective to see matches
+        - This demo page can be stored as a clr.png file for users who'd
+          like to see how it works in mintty.
  
 This python module produces ANSI escape code strings to produce colors in
 output to terminals (see https://en.wikipedia.org/wiki/ANSI_escape_code).
@@ -64,9 +46,8 @@ ANSI escape sequence (or an empty string if output isn't to a terminal):
     def __call__(self, fg, bg=None, attr=None):
  
 fg and bg are strings denoting the foreground and background colors
-(integers for 8-bit terminals).  attr is an enum describing the text
-attributes you wish.  The TA class defines these attributes.  For example,
-setting attr to TA.italic causes the text to be italic.
+(integers for 8-bit terminals).  attr is a string describing the text
+attributes you wish.  Example:  "it bl" 
  
 TO USE THIS MODULE
     - Edit GetTerm() to set things up for your terminal
@@ -90,9 +71,6 @@ My design goals for this module were:
  
 '''
 '''
- 
-This module is an aid for color printing in a terminal.  
- 
 Other stuff
     Regexp for ANSI escape sequences:
         https://stackoverflow.com/questions/41708623/regular-expression-for-
@@ -157,7 +135,7 @@ if 1:   # Custom imports
 if 1:   # Global variables
     P = pathlib.Path
     ii = isinstance
-if 1:   # Handle 4-bit colors
+if 1:   # 4-bit colors
     class CN4:
         '''Encapsulate 4-bit color names.  The default set is the following
         set of color names, functional on most terminals:
@@ -224,7 +202,7 @@ if 1:   # Handle 4-bit colors
                 return ""
             self._check(s)
             return f"\033[{self.dbg[s]}m"
-if 1:   # Handle 8-bit colors
+if 1:   # 8-bit colors
     class CN8:
         '''Encapsulate 8-bit color names.  The default set is the following
         set of color names, functional on most terminals:
@@ -252,7 +230,7 @@ if 1:   # Handle 8-bit colors
             if n is None or not (0 <= n <= 255):
                 return ""
             return f"\033[48;5;{n}m"
-if 1:   # Handle 24-bit colors
+if 1:   # 24-bit colors
     xw = {  # Typical XWindows color names
         "aliceblue": (239, 247, 255),
         "antiquewhite": (249, 234, 214),
@@ -615,72 +593,41 @@ if 1:   # Handle 24-bit colors
                 self._check(s)
                 rgb = self.d[s]
             return "\033[48;2;{};{};{}m".format(*rgb)
-if 1:   # Class definitions
-    class TA(Enum):
-        'Text attributes'
-        normal          = auto()
-        bold            = auto()
-        italic          = auto()
-        underline       = auto()
-        doubleunderline = auto()
-        overline        = auto()
-        blink           = auto()
-        rapidblink      = auto()
-        reverse         = auto()
-        strikeout       = auto()
-        dim             = auto()
-        hide            = auto()
-        subscript       = auto()
-        superscript     = auto()
-        # Short aliases
-        no  = auto()    # normal
-        bo  = auto()    # bold
-        it  = auto()    # italic
-        ul  = auto()    # underline
-        dul = auto()    # doubleunderline
-        ol  = auto()    # overline
-        bl  = auto()    # blink
-        rb  = auto()    # rapidblink
-        rev = auto()    # reverse
-        so  = auto()    # strikeout
-        di  = auto()    # dim
-        hi  = auto()    # hide
-        sub = auto()    # subscript
-        sup = auto()    # superscript
-    class AD:
-        'Attribute decoding'
-        def __init__(self):
-            self.ta = {  # Translate text attribute to escape code's parameter
-                TA.normal          : 0,
-                TA.bold            : 1,
-                TA.dim             : 2,
-                TA.italic          : 3,
-                TA.underline       : 4,
-                TA.blink           : 5,
-                TA.rapidblink      : 6,
-                TA.reverse         : 7,
-                TA.hide            : 8,
-                TA.strikeout       : 9,
-                TA.doubleunderline : 21,
-                TA.overline        : 53,
-                TA.superscript     : 73,
-                TA.subscript       : 74,
-            }
-            # Short aliases
-            self.ta[TA.no]  = self.ta[TA.normal]
-            self.ta[TA.bo]  = self.ta[TA.bold]
-            self.ta[TA.di]  = self.ta[TA.dim]
-            self.ta[TA.it]  = self.ta[TA.italic]
-            self.ta[TA.ul]  = self.ta[TA.underline]
-            self.ta[TA.bl]  = self.ta[TA.blink]
-            self.ta[TA.rb]  = self.ta[TA.rapidblink]
-            self.ta[TA.rev] = self.ta[TA.reverse]
-            self.ta[TA.hi]  = self.ta[TA.hide]
-            self.ta[TA.so]  = self.ta[TA.strikeout]
-            self.ta[TA.dul] = self.ta[TA.doubleunderline]
-            self.ta[TA.ol]  = self.ta[TA.overline]
-            self.ta[TA.sup] = self.ta[TA.superscript]
-            self.ta[TA.sub] = self.ta[TA.subscript]
+if 1:   # Text attributes
+    # This dictionary is used to translate text attribute strings to the
+    # escape code's number.  See the table at
+    # https://en.wikipedia.org/wiki/ANSI_escape_code#SGR_(Select_Graphic_Rendition)_parameters
+    ta = {  # Translate text attribute to escape code's parameter
+        "normal"          : 0,
+        "no"              : 0,
+        "bold"            : 1,
+        "bo"              : 1,
+        "dim"             : 2,
+        "di"              : 2,
+        "italic"          : 3,
+        "it"              : 3,
+        "underline"       : 4,
+        "ul"              : 4,
+        "blink"           : 5,
+        "bl"              : 5,
+        "rapidblink"      : 6,
+        "rb"              : 6,
+        "reverse"         : 7,
+        "rv"              : 7,
+        "hide"            : 8,
+        "hi"              : 8,
+        "strikeout"       : 9,
+        "so"              : 9,
+        "doubleunderline" : 21,
+        "du"              : 21,
+        "overline"        : 53,
+        "ol"              : 53,
+        "superscript"     : 73,
+        "sp"              : 73,
+        "subscript"       : 74,
+        "sb"              : 74,
+    }
+if 1:   # Classes
     class Clr:
         '''For typical use, instantiate with c = Clr().  Store "styles" by using
         the Clr instance's attributes:
@@ -704,7 +651,7 @@ if 1:   # Class definitions
             self.reset()
         def _user(self):
             'Return a set of user-defined attribute names'
-            ignore = set('''n reset _on out print _override _user _cn _st
+            ignore = set('''n reset _on out print _override _user _cn 
                     _parse_color load'''.split())
             attributes = []
             for i in dir(self):
@@ -734,10 +681,11 @@ if 1:   # Class definitions
             return classname + "(" + ' '.join(out) + ")"
         def __call__(self, fg=None, bg=None, attr=None):
             '''Return the indicated color style escape code string.  attr
-            must be an enum of type TA or a sequence of TA instances.  fg
-            and bg are strings like "red" or "#abcdef" for 24-bit
-            terminals, numbers on [0, 255] for 8-bit terminals, and short
-            color names like "blk", "red", etc. for 4-bit terminals.
+            is a string of attributes (separate multiple attributes by
+            spaces).  fg and bg are strings like "red" or "#abcdef" for
+            24-bit terminals, numbers on [0, 255] for 8-bit terminals, and
+            short color names like "blk", "red", etc. for 4-bit terminals.
+
             '''
             if TERM == "8-bit":
                 assert(fg is None or ii(fg, int))
@@ -745,37 +693,48 @@ if 1:   # Class definitions
             else:
                 assert(fg is None or ii(fg, str))
                 assert(bg is None or ii(bg, str))
-            assert(attr is None or ii(attr, TA) or ii(attr, (tuple, list)))
+            assert(attr is None or ii(attr, str))
             a = ""
+            container = []
             if attr is not None:
-                if ii(attr, TA):
-                    attr = [attr]
-                while attr:
-                    container = []
-                    a = attr.pop(0)
-                    if a not in self._st:
+                attrs = attr.split()
+                while attrs:
+                    a = attrs.pop(0)
+                    if a not in ta:
                         msg = f"'{a}' is not a valid attribute"
                         raise ValueError(msg)
-                    container.append(f"\033[{self._st[a]}m")
+                    container.append(f"\033[{ta[a]}m")
             f = "" if fg is None else self._cn.fg(fg)
             b = "" if bg is None else self._cn.bg(bg)
             return f + b + ''.join(container)
         # ----------------------------------------------------------------------
         # User interface
         def load(self, file, reset=False, show=False):
-            '''Read style definitions from a file.  Each line is either a
-            comment (leading '#') or must contain the following fields
-            separated by whitespace:
+            '''Read style definitions from a file (filename string, stream,
+            or string of characters).  Each line is either a comment
+            (leading '#') or must contain the following fields separated by
+            whitespace:
                 
                 style_name fg_color_name bg_color_name [attr1 [attr2 ...]]
  
             where fg_color_name and bg_color_name are either color name
-            strings or None.  attr1, etc. must be one of the TA enum
-            identifiers for attributes, such as 'TA.italic'.
- 
+            strings or None.  These strings can also be suitable integer
+            strings (e.g., '21') and will be converted to integers.  attr1,
+            etc. are attribute strings that are in the dictionary ta.
+  
             If show is True, print this object to stdout after loading is
             finished.
             '''
+            def Convert(s):
+                'Convert color string'
+                if s == "None":
+                    return None
+                else:
+                    try:
+                        n = int(s)
+                        return n
+                    except Exception:
+                        return s
             lines = GetNumberedLines(file)
             # Remove blank lines
             lines = [i for i in lines if i[1]]
@@ -793,23 +752,24 @@ if 1:   # Class definitions
                     raise ValueError(msg)
                 name = f.pop(0)
                 s = f.pop(0)
-                fg = None if s == "None" else s
+                fg = Convert(s)
                 s = f.pop(0)
-                bg = None if s == "None" else s
+                bg = Convert(s)
                 attrs = f if f else None
                 if attrs:
-                    for i, a in enumerate(attrs):
-                        s = f"attrs[i] = {a}"
-                        exec(s)
-                print(name, fg, bg, attrs)
-                s = f"self.{name} = self(fg={fg!r}, bg={bg!r}, attr={attrs})"
-                xx()
+                    attrs = ' '.join(attrs)
+                s = f"self.{name} = self(fg={fg!r}, bg={bg!r}, attr={attrs!r})"
                 exec(s)
             if show:
-                print("Loaded Clr: ", self)
-            exit()
-
-        #yy
+                t = "string"
+                try:
+                    f = P(file)
+                    if f.exists():
+                        t = f"file '{file}'"
+                except Exception:
+                    if hasattr(file, "read"):
+                        t = "stream"
+                print(f"Clr.load() from {t}: ", self)
         def reset(self):
             'Sets the instance to a default state'
             # Delete all user-set attributes
@@ -819,8 +779,6 @@ if 1:   # Class definitions
             self._cn = CN(full=True)    # Get color info for color names
             # Reset to default color
             self.n = self._cn.n
-            # dict to translate TA enums to escape code numbers
-            self._st = AD().ta 
             # Turn on output unless not to terminal
             self._on = True
             if not sys.stdout.isatty() and not self._override:
@@ -873,8 +831,8 @@ if 1:   # Color decoration of regexp matches
         style (defaults to reversed if None) and print to the indicated
         stream.  If you wish to override the default style used when style
         is None, set PrintMatch.c to the desired escape sequence.  To see
-        matched whitespace characters, you may want to use TA.rev as
-        a style attribute.
+        matched whitespace characters more easily, you may want to use 
+        'reverse' as a style attribute.
         '''
         c = clr
         if isinstance(regexp, str):     # Convert it to a regexp
@@ -892,7 +850,7 @@ if 1:   # Color decoration of regexp matches
             if hasattr(PrintMatch, "style"):
                 style = PrintMatch.style
             else:
-                style = c(attr=TA.rev)
+                style = c(attr="reverse")
         if not mo:
             # No match, so just print text
             print(text, file=file)
@@ -948,27 +906,55 @@ if 1:   # Color decoration of regexp matches
 #----------------------------------------------------------------------
 # Test cases for developing code
 if 0:
-    # regexp testing
-    c = Clr(override=True)
-    t = open("aa").read()
-    a = [(re.compile(r"of"), c("blk", "lgrn")),
-         (re.compile(r"man"), c("blk", "lyel")),
-         (re.compile(r"so"), c("red", "lwht"))]
-    #for line in t.split("\n"):
-    PrintMatches(t, a)
     exit()
-if 1:
-    # Test Clr.load()
-    c = Clr(override=True)
-    c.load("aa", show=True)
 
-    #a = c("lwht", "red", attr=[TA.rev, TA.rb])
-    #c.print(f"{a}Wowzer!")
-    exit()
 if __name__ == "__main__":
     # Demonstrate module's output
-    c = Clr()
+    c = Clr(override=True)
     width = int(os.environ["COLUMNS"])
+    def TestCases():
+        # Not exhaustive, but will test some key features.  Tested only
+        # under mintty 3.5.2.
+        c.m = c("violetred")    # Test case headings
+        def TestLoad():
+            'Test Clr.load() from file, stream or string'
+            c.print(f"{c.m}Test of Clr.load()")
+            s = "/tmp/tmp.clr.py"
+            f = P(s)
+            open(P(s), "w").write("err lred None\n")
+            x = Clr(override=True)
+            x.load(f, show=True)            # File
+            x.load(open(f), show=True)      # Stream
+            s = "err lred None"
+            x.load(s, show=True)            # String
+            f.unlink()
+        def TestRegexpDecorate():
+            x = Clr()
+            x.of = x("blk", "lgrn")
+            x.man = x("lyel", attr="rv rb")
+            x.so = x("lred", "lblu")
+            x.Is = x(None, None, attr="ul ol")
+            c.print(dedent(f'''
+                {c.m}Test of regexp decoration
+                    'of' should be {x.of}of{x.n}{c.m}.
+                    'man' should be {x.man}man{x.n}{c.m}.
+                    'so' should be {x.so}so{x.n}{c.m}.
+                    'is' should be lined as {x.Is}is{x.n}{c.m}.
+            '''))
+            t = dedent('''
+                However little known the feelings or views of such
+                a man may be on his first entering a neighbourhood,
+                this truth is so well fixed in the minds of the 
+                surrounding families, that he is considered the rightful
+                property of some one or other of their daughters.\n
+            ''')
+            r = [(re.compile(r"of"), x.of),
+                (re.compile(r"man"), x.man),
+                (re.compile(r"so"), x.so),
+                (re.compile(r"is"), x.Is)]
+            PrintMatches(t, r)
+        TestLoad()
+        TestRegexpDecorate()
     def ColorTable():
         def H(bright=False):
             c.out(f"{'':{w}s} ")
@@ -1026,26 +1012,43 @@ if __name__ == "__main__":
                 if i and not ((i + 1) % N):
                     c.print()
             c.print()
+    def Examples():
+        # These work under mintty (https://mintty.github.io/)
+        '''
+
+        - theme example with Clr.load()
+        - regexp matches
+        - Unicode in sub/superscripts (e.g., Hz**(1/2)
+
+        '''
+        c.print(dedent(f'''
+        {c('orchid')}Demonstration of some clr.py features{c.n}
+
+        '''))
+
+    #yy
     def Attributes():
         def f(a):
-            return c("mintty", attr=a)
+            return c("wht", attr=a)
         print(dedent(f'''
         Text attributes ('hide' is to the right of 'dim')
-          {f(TA.no)}normal      no{c.n}       {f(TA.bo)}bold        bo{c.n}
-          {f(TA.it)}italic      it{c.n}       {f(TA.ul)}underline   ul{c.n}
-          {f(TA.bl)}blink       bl{c.n}       {f(TA.rb)}rapidblink  rb{c.n}
-          {f(TA.rev)}reverse     rev{c.n}      {f(TA.so)}strikeout     so{c.n}
-          {f(TA.dim)}dim         dim{c.n}     {f(TA.hi)}hide         hi{c.n}
-          sub{f(TA.sub)}script   {c.n}sub     super{f(TA.sup)}script  {c.n}sup
+          {f("no")}normal      no{c.n}       {f("bo")}bold        bo{c.n}
+          {f("it")}italic      it{c.n}       {f("ul")}underline   ul{c.n}
+          {f("bl")}blink       bl{c.n}       {f("rb")}rapidblink  rb{c.n}
+          {f("rv")}reverse     rv{c.n}       {f("so")}strikeout     so{c.n}
+          {f("di")}dim         di{c.n}       {f("hi")}hide         hi{c.n}
+          sub{f("sb")}script   {c.n}sb       super{f("sp")}script  {c.n}sp
         '''.rstrip()))
     def Help():
         if TERM != "24-bit":
             return
         print(dedent(f'''
  
-            Include one or more arguments to see other tables:
+            Include one or more arguments to see other tables/demos:
                 all         All colors
                 attr        Attributes
+                test        Run some self-tests
+                ex          Examples
         '''))
     def ShowAllColors():
         for name in c._cn.d:
@@ -1058,6 +1061,10 @@ if __name__ == "__main__":
             Attributes()
         if "all" in args:
             ShowAllColors()
+        if "test" in args:
+            TestCases()
+        if "ex" in args:
+            Examples()
     else:
         ColorTable()
         Help()
