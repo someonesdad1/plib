@@ -1,5 +1,19 @@
 '''
 
+Bug: Clr.load() can't set the attributes using exec because the string
+becomes <TA.rev: 23>, which is NOT the symbol needed.  This is a bug in the
+Enum implementation.  Change to the simple
+
+    class A: pass
+    A.italic = 1
+    A.it = 1
+    ... etc.
+
+    Use the same numbers that the escape code uses.  Or just make it a
+    dict.
+ 
+----------------------------------------------------------------------
+ 
 TODO
     - Add Clr.load(file, reset=False) to load a bunch of styles
         - Demo changing 'themes'
@@ -35,10 +49,10 @@ normal terminal color.  Instead of using regular variables like 'err'
 above, you can add instance attributes to the c instance
  
     c.err = c("red")
-
+ 
 This is handy, as print(c) will show the Clr instance with the names of
 it's style attributes in their chosen form.
-
+ 
 I call these attributes styles, as a common pattern in my scripts is to
 define a number of these styles, then use them where needed.  The
 Clr.load() method can be used to read in a number of these styles from a
@@ -139,6 +153,7 @@ if 1:   # Standard imports
     from pdb import set_trace as xx
 if 1:   # Custom imports
     from wrap import dedent
+    from get import GetNumberedLines
 if 1:   # Global variables
     P = pathlib.Path
     ii = isinstance
@@ -690,7 +705,7 @@ if 1:   # Class definitions
         def _user(self):
             'Return a set of user-defined attribute names'
             ignore = set('''n reset _on out print _override _user _cn _st
-                    _parse_color'''.split())
+                    _parse_color load'''.split())
             attributes = []
             for i in dir(self):
                 if i.startswith("__") or i in ignore:
@@ -718,11 +733,11 @@ if 1:   # Class definitions
                 classname = classname[:-2]
             return classname + "(" + ' '.join(out) + ")"
         def __call__(self, fg=None, bg=None, attr=None):
-            '''Return the indicated color style escape code string.  attr must
-            be an enum of type TA.  fg and bg are strings like "red" or 
-            "#abcdef" for 24-bit terminals, numbers on [0, 255] for 8-bit
-            terminals, and short color names like "blk", "red", etc. for
-            4-bit terminals.
+            '''Return the indicated color style escape code string.  attr
+            must be an enum of type TA or a sequence of TA instances.  fg
+            and bg are strings like "red" or "#abcdef" for 24-bit
+            terminals, numbers on [0, 255] for 8-bit terminals, and short
+            color names like "blk", "red", etc. for 4-bit terminals.
             '''
             if TERM == "8-bit":
                 assert(fg is None or ii(fg, int))
@@ -730,29 +745,69 @@ if 1:   # Class definitions
             else:
                 assert(fg is None or ii(fg, str))
                 assert(bg is None or ii(bg, str))
-            assert(attr is None or ii(attr, TA))
+            assert(attr is None or ii(attr, TA) or ii(attr, (tuple, list)))
             a = ""
             if attr is not None:
-                if attr not in self._st:
-                    msg = f"'{attr}' is not a valid attribute"
-                    raise ValueError(msg)
-                a = f"\033[{self._st[attr]}m"
+                if ii(attr, TA):
+                    attr = [attr]
+                while attr:
+                    container = []
+                    a = attr.pop(0)
+                    if a not in self._st:
+                        msg = f"'{a}' is not a valid attribute"
+                        raise ValueError(msg)
+                    container.append(f"\033[{self._st[a]}m")
             f = "" if fg is None else self._cn.fg(fg)
             b = "" if bg is None else self._cn.bg(bg)
-            return a + f + b
+            return f + b + ''.join(container)
         # ----------------------------------------------------------------------
         # User interface
-        def load(self, file, reset=False, print=False):
+        def load(self, file, reset=False, show=False):
             '''Read style definitions from a file.  Each line is either a
             comment (leading '#') or must contain the following fields
             separated by whitespace:
                 
                 style_name fg_color_name bg_color_name [attr1 [attr2 ...]]
-
+ 
             where fg_color_name and bg_color_name are either color name
             strings or None.  attr1, etc. must be one of the TA enum
             identifiers for attributes, such as 'TA.italic'.
+ 
+            If show is True, print this object to stdout after loading is
+            finished.
             '''
+            lines = GetNumberedLines(file)
+            # Remove blank lines
+            lines = [i for i in lines if i[1]]
+            # Remove leading spaces
+            lines = [(i, j.strip()) for i, j in lines]
+            # Remove comments
+            lines = [(i, j) for i, j in lines if j[0] != "#"]
+            if reset:
+                self.reset()
+            # Parse the remainder
+            for n, line in lines:
+                f = line.split()
+                if len(f) < 3:
+                    msg = f"Line {n}:  not enough fields:\n  '{line}"
+                    raise ValueError(msg)
+                name = f.pop(0)
+                s = f.pop(0)
+                fg = None if s == "None" else s
+                s = f.pop(0)
+                bg = None if s == "None" else s
+                attrs = f if f else None
+                if attrs:
+                    for i, a in enumerate(attrs):
+                        s = f"attrs[i] = {a}"
+                        exec(s)
+                print(name, fg, bg, attrs)
+                s = f"self.{name} = self(fg={fg!r}, bg={bg!r}, attr={attrs})"
+                xx()
+                exec(s)
+            if show:
+                print("Loaded Clr: ", self)
+            exit()
 
         #yy
         def reset(self):
@@ -892,7 +947,7 @@ if 1:   # Color decoration of regexp matches
                 print(file=file)    # Print a newline
 #----------------------------------------------------------------------
 # Test cases for developing code
-if 1:
+if 0:
     # regexp testing
     c = Clr(override=True)
     t = open("aa").read()
@@ -901,6 +956,14 @@ if 1:
          (re.compile(r"so"), c("red", "lwht"))]
     #for line in t.split("\n"):
     PrintMatches(t, a)
+    exit()
+if 1:
+    # Test Clr.load()
+    c = Clr(override=True)
+    c.load("aa", show=True)
+
+    #a = c("lwht", "red", attr=[TA.rev, TA.rb])
+    #c.print(f"{a}Wowzer!")
     exit()
 if __name__ == "__main__":
     # Demonstrate module's output
