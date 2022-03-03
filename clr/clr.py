@@ -911,6 +911,7 @@ if 0:
 if __name__ == "__main__":
     # Demonstrate module's output
     c = Clr(override=True)
+    c.hdr = c("orchid", attr="rv")
     width = int(os.environ["COLUMNS"])
     def TestCases():
         # Not exhaustive, but will test some key features.  Tested only
@@ -1021,16 +1022,23 @@ if __name__ == "__main__":
         '''
         def Header():
             c.print(dedent(f'''
-            {c('orchid')}Demonstration of some clr.py features{c.n}
+            {c.hdr}Demonstration of some clr.py features{c.n}
  
             '''))
-        def ThemeExample():
+        def Theme():
             x = Clr()
-            s = "This {ul}truth{n} is so well {em}fixed{n} in our minds"
+            s = "This {ul}truth{n} is well-{em}fixed{n} in our minds."
             x.print(dedent(f'''
+                {c.hdr}Themes{x.n}
                 This example shows how standardizing some style names can be used to change
                 "themes" with the Clr.load() method.  We'll use the style names 'em' and
-                'ul'. The sentence is "{s}".
+                'ul'. The sentence is "{s}"
+                The older string interpolation method of str.format() is used so that the
+                single instance of the string can be used (normally, I like to use f-strings
+                because of the brevity).
+ 
+                The first "theme" will use underlining for the ul style and 'lyel' text for
+                the em style:
             '''))
             # Load the first theme
             theme1 = dedent('''
@@ -1039,19 +1047,60 @@ if __name__ == "__main__":
             ''')
             x.load(theme1)
             d = {"ul": x.ul, "em": x.em, "n": x.n}
-            x.print("\n    First  sentence form: ", s.format(**d))
+            x.print("\n    First  style: ", s.format(**d))
             # Load the second theme
+            x.print(dedent(f'''
+ 
+                The second "theme" will use reversed 'lyel' text for the ul style and 
+                italics for the em style:
+            '''))
             theme2 = dedent('''
                 ul lyel None rv
                 em None None it
             ''')
             x.load(theme2)
             d = {"ul": x.ul, "em": x.em, "n": x.n}
-            x.print("\n    Second sentence form: ", s.format(**d))
+            x.print("\n    Second style: ", s.format(**d))
+        def Exponents():
+            n = c.n
+            e = c("lyel")
+            u = c("lyel", attr="sp")
+            b = c("lyel", attr="sb")
+            c.print(dedent(f'''
+ 
+                {c.hdr}Exponents{c.n}
+                The mintty terminal can display exponents and subscripts, even using Unicode
+                characters.
+ 
+                    SI units: kg/(m·s²)
+                        With built-in Unicode:      {e}ξ{b}λ{n}{e} = 3 kg·m⁻¹·s⁻²{c.n}
+                        With superscripts:          {e}ξ{b}λ{n}{e} = 3 kg·m{u}-1{c.n}{e}·s{u}-2{c.n}
+                        (Unicode looks better, but Unicode doesn't support 'obvious' exponent
+                        characters.  Here's an example with mintty:
+                                                    {e}ξ{b}λ{n}{e} = 3 kg·m{u}θ{c.n}{e}·s{u}μ²{c.n}
+            '''))
+        def TextEditing():
+            n, a, d = c.n, c("lgrn"), c(None, None, attr="so")
+            c.print(dedent(f'''
+ 
+                {c.hdr}Text editing{c.n}
+                Using a green color for added text and strikethrough for deleted text, you can
+                show how some text has been edited:
+        
+                    This {a}new{n} {d}old{n} text was {a}added{n} {d}deleted{n}.
+            '''))
+            d = c("lred", attr="so")
+            c.print(dedent(f'''
+ 
+                The strikethrough text can be hard to see.  A quick change adds a red color:
 
-            
+                    This {a}new{n} {d}old{n} text was {a}added{n} {d}deleted{n}.
+            '''))
+
         Header()
-        ThemeExample()
+        Theme()
+        Exponents()
+        TextEditing()
     #yy
     def Attributes():
         def f(a):
