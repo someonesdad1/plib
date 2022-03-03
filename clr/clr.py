@@ -917,7 +917,7 @@ if __name__ == "__main__":
         # under mintty 3.5.2.
         c.m = c("violetred")    # Test case headings
         def TestLoad():
-            'Test Clr.load() from file, stream or string'
+            'Test Clr.load() from file, stream and string'
             c.print(f"{c.m}Test of Clr.load()")
             s = "/tmp/tmp.clr.py"
             f = P(s)
@@ -935,7 +935,7 @@ if __name__ == "__main__":
             x.so = x("lred", "lblu")
             x.Is = x(None, None, attr="ul ol")
             c.print(dedent(f'''
-                {c.m}Test of regexp decoration
+                {c.m}Test of regular expression decoration
                     'of' should be {x.of}of{x.n}{c.m}.
                     'man' should be {x.man}man{x.n}{c.m}.
                     'so' should be {x.so}so{x.n}{c.m}.
@@ -1015,17 +1015,43 @@ if __name__ == "__main__":
     def Examples():
         # These work under mintty (https://mintty.github.io/)
         '''
-
         - theme example with Clr.load()
         - regexp matches
         - Unicode in sub/superscripts (e.g., Hz**(1/2)
-
         '''
-        c.print(dedent(f'''
-        {c('orchid')}Demonstration of some clr.py features{c.n}
+        def Header():
+            c.print(dedent(f'''
+            {c('orchid')}Demonstration of some clr.py features{c.n}
+ 
+            '''))
+        def ThemeExample():
+            x = Clr()
+            s = "This {ul}truth{n} is so well {em}fixed{n} in our minds"
+            x.print(dedent(f'''
+                This example shows how standardizing some style names can be used to change
+                "themes" with the Clr.load() method.  We'll use the style names 'em' and
+                'ul'. The sentence is "{s}".
+            '''))
+            # Load the first theme
+            theme1 = dedent('''
+                ul None None ul
+                em lyel None
+            ''')
+            x.load(theme1)
+            d = {"ul": x.ul, "em": x.em, "n": x.n}
+            x.print("\n    First  sentence form: ", s.format(**d))
+            # Load the second theme
+            theme2 = dedent('''
+                ul lyel None rv
+                em None None it
+            ''')
+            x.load(theme2)
+            d = {"ul": x.ul, "em": x.em, "n": x.n}
+            x.print("\n    Second sentence form: ", s.format(**d))
 
-        '''))
-
+            
+        Header()
+        ThemeExample()
     #yy
     def Attributes():
         def f(a):

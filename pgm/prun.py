@@ -128,6 +128,7 @@ if 1:   # Utility
             -d      Show a diff with previous run in web browser
             -e      Omit stderr (will clear the screen)
             -h      Show more detailed examples of use
+            -l      Don't display status line
             -o      Once:  exit after the first run
             -s      Omit stdout (will clear the screen)
             -t f    Define a trigger file f instead of pgm
@@ -137,16 +138,17 @@ if 1:   # Utility
         d["-c"] = False     # Clear screen before running script each time
         d["-d"] = False     # Display diff with last capture
         d["-e"] = False     # Omit stderr from capture
+        d["-l"] = False     # Don't display status line
         d["-o"] = False     # Exit after first run
         d["-s"] = False     # Omit stdout from capture
         d["-t"] = None      # Trigger file to use
         try:
-            opts, args = getopt.getopt(sys.argv[1:], "cdehost:")
+            opts, args = getopt.getopt(sys.argv[1:], "cdehlost:")
         except getopt.GetoptError as e:
             print(str(e))
             exit(1)
         for o, a in opts:
-            if o[1] in list("cdeos"):
+            if o[1] in list("cdelos"):
                 d[o] = not d[o]
             elif o == "-t":
                 d[o] = a
@@ -236,7 +238,8 @@ if 1:   # Core functionality
                                    stderr=subprocess.STDOUT, 
                                    encoding="UTF-8")
                 print(r.stdout, end="")
-            Trailer(count, start)
+            if not d["-l"]:
+                Trailer(count, start)
             stdout, stderr = r.stdout, r.stderr
             if stdout is None:
                 stdout = ""
