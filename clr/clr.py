@@ -1,94 +1,72 @@
 '''
 
-This module produces ANSI escape code strings to produce colors in output
-to terminals.  If you're unfamiliar with such things, see
+TODO
+    - Change attributes to 1<<n form so they can be OR'd together
+ 
+This python module produces ANSI escape code strings to produce colors in
+output to terminals.  If you're unfamiliar with such things, see
 https://en.wikipedia.org/wiki/ANSI_escape_code.
-
+ 
 The primary component is the Clr object.  The basic colors use 3-letter
 abbreviations: blk for black, blu for blue, grn for green, cyn for cyan,
 mag for magenta, yel for yellow, and wht for wht.  An 'l' is prepended to
-the name to get the bright form of that color.
-
+the name to get the bright form of that color.  These support the
+traditional 4-bit terminal, which is the form I use the most for day-to-day
+work, even though the terminal I use supports 24-bit color.
+ 
 The basic use case of the module is
-
+ 
     c = Clr()                   # Get an instance of the Clr class
-    # Error messages are bright white text on a red background
+    # We want error messages as bright white text on a red background
     err = c("lwht", "red")
-    print(f"'{err}xyzzy{c.n}' is an unsupported keyword")
-
-You'll see the word xyzzy in bright white text on a red background on your
-terminal.  The c.n attribute of the Clr instance is an escape code to
-return to the normal terminal color.
-
-Instead of using variables like 'err' above, you can add instance
+    print(f"'{err}xyzzy' is an unsupported keyword{c.n}")
+ 
+The c.n attribute of the Clr instance is an escape code to return to the
+normal terminal color.
+ 
+Instead of using regular variables like 'err' above, you can add instance
 attributes to the c instance
-
+ 
     c.err = c("red")
-
-All the functionality is in the Clr.__call__ method, which returns either
-an ANSI escape sequence or the empty string:
-
+ 
+The functionality is in the Clr.__call__ method, which returns either an
+ANSI escape sequence or the empty string:
+ 
     def __call__(self, fg, bg=None, attr=None):
-
-fg and bg are strings denoting the foreground and background colors.  attr
-is an enum describing the text attributes you wish.  The TA class defines
-these attributes.  For example, setting attr to TA.italic causes the text
-to be italic.
-
+ 
+fg and bg are strings denoting the foreground and background colors
+(integers for 8-bit terminals).  attr is an enum describing the text
+attributes you wish.  The TA class defines these attributes.  For example,
+setting attr to TA.italic causes the text to be italic.
+ 
 TO USE THIS MODULE
-    - Edit GetTerm() to set things up for your terminal.
+    - Edit GetTerm() to set things up for your terminal
         - Terminal is determined from $TERM and $TERM_PROGRAM
     - Set the Clr.n instance attribute to your normal color choices
     - Modify the CN4, CN8, CN24 class definitions of colors to your tastes
  
 Run the module as a script to see example output.  Note that you'll not be
-able to see all the 24-bit color choices, but use the argument of 'all to
-see the typical XWindows' color names printed in their colors.
-
+able to see all the 24-bit color choices, but use the argument of 'all' to
+see typical XWindows' color names printed in their colors.
+ 
+My design goals:
+    - Colors are defined by strings or integers
+    - Terse syntax so things fit into f-strings
+        - Short names for most-used colors
+    - Easy to add/change colors
+    - Support the terminals I use: mintty, Mac, xterm
+    - Support the "styles" pattern
+    - Allow color decoration of regular expression matches
+    - Run as a script to see colors
+ 
 '''
 '''
-
+ 
 TODO
-    - Features needing implementation
-        - Support 4, 8, and 24 bit environments
-            - Look at 'set|grep TERM' to choose setup
-                - TERM=xterm
-                - TERM_PROGRAM=mintty
-                - TERM_PROGRAM_VERSION=3.5.2
-            - xterms are typically 8-bit color
-            - 4-bit (old DOS type)
-            - less manpage references
-              https://en.wikipedia.org/wiki/ANSI_escape_code#SGR_parameters and
-              https://docs.microsoft.com/en-us/windows/console/char-info-str
-                - Note less doesn't handle 24-bit sequences
-        - Finish instructions on how to set it up for a user's terminal
-        - Optional
-            - Print a demo page showing numerous mintty features
-            - Demo changing 'themes'
+    - Print a demo page showing numerous mintty features
+    - Demo changing 'themes'
  
 This module is an aid for color printing in a terminal.  
-    Design goals
-        - Colors are defined by strings such as "red" and "#abcdef"
-            - For 8-bit terminals, colors are integers in [0, 255]
-        - Terse syntax so things fit into f-strings
-            - Short names for most-used colors
-        - Simple for common use cases
-        - Easy to add/change colors
-        - Support the terminals I use: mintty, Mac, xterm
-        - Support the "styles" use case
-        - Allow color decoration of regular expression matches
-        - Class derivation should allow support of 4, 8, and 24 bit color
-          terminals
-        - On/off control for when output stream isn't a terminal
-            - Can also be controlled by an environment variable
-        - Convenience functions
-            - Print a string in a color, no newline, then return to the
-              default color
-            - Print a string in a color, with newline, then return to the
-              default color
-            - Use print()'s semantics
-        - Support idea of themes for a particular look
-        - Run as a script to see colors
  
 Other stuff
     Regexp for ANSI escape sequences:
@@ -143,8 +121,10 @@ if 1:   # Standard imports
     import getopt
     import os
     import pathlib
+    import re
     import sys
     from enum import Enum, auto
+    from functools import partial
     from pdb import set_trace as xx
 if 1:   # Custom imports
     from wrap import dedent
@@ -689,7 +669,6 @@ if 1:   # Class definitions
         code to return to the normal style.  To remove all your "style"
         definitions, use c.reset().  To see the styles you've defined, use
         print(c).
-
         '''
         def __init__(self, override=False):
             '''If override is True, always emit escape codes.  The normal
@@ -727,7 +706,7 @@ if 1:   # Class definitions
             if classname.endswith("'>"):
                 classname = classname[:-2]
             return classname + "(" + ' '.join(out) + ")"
-        def __call__(self, fg, bg=None, attr=None):
+        def __call__(self, fg=None, bg=None, attr=None):
             '''Return the indicated color style escape code string.  attr must
             be an enum of type TA.  fg and bg are strings like "red" or 
             "#abcdef" for 24-bit terminals, numbers on [0, 255] for 8-bit
@@ -735,20 +714,20 @@ if 1:   # Class definitions
             4-bit terminals.
             '''
             if TERM == "8-bit":
-                assert(ii(fg, int))
-                assert(ii(fg, int) or bg is None)
+                assert(fg is None or ii(fg, int))
+                assert(bg is None or ii(bg, int) or bg is None)
             else:
-                assert(ii(fg, str))
-                assert(ii(fg, str) or bg is None)
-                assert(attr is None or ii(attr, TA))
+                assert(fg is None or ii(fg, str))
+                assert(bg is None or ii(bg, str))
+            assert(attr is None or ii(attr, TA))
             a = ""
             if attr is not None:
                 if attr not in self._st:
                     msg = f"'{attr}' is not a valid attribute"
                     raise ValueError(msg)
                 a = f"\033[{self._st[attr]}m"
-            f = self._cn.fg(fg)
-            b = self._cn.bg(bg)
+            f = "" if fg is None else self._cn.fg(fg)
+            b = "" if bg is None else self._cn.bg(bg)
             return a + f + b
         # ----------------------------------------------------------------------
         # User interface
@@ -809,30 +788,95 @@ if 1:   # Choose color name class for your terminal
         CN = CN8
     else:
         CN = CN24
+if 1:   # Color decoration of regexp matches
+    def PrintMatch(text, regexp, style=None, file=sys.stdout, clr=Clr()):
+        '''Decorate regexp matches in the string text with the indicated
+        style (defaults to reversed if None) and print to the indicated
+        stream.  If you wish to override the default style used when style
+        is None, set PrintMatch.c to the desired escape sequence.  To see
+        matched whitespace characters, you may want to use TA.rev as
+        a style attribute.
+        '''
+        c = clr
+        if isinstance(regexp, str):     # Convert it to a regexp
+            # Need to escape magic characters
+            magic = set("*+^$.?{}[]|()")
+            t, q = deque(regexp), deque()
+            while t:
+                u = t.popleft()
+                q.append("\\" + u if u in magic else u)
+            r = re.compile(''.join(q)) 
+        else:
+            r = regexp
+        mo = r.search(text)
+        if style is None:
+            if hasattr(PrintMatch, "style"):
+                style = PrintMatch.style
+            else:
+                style = c(attr=TA.rev)
+        if not mo:
+            # No match, so just print text
+            print(text, file=file)
+            return
+        text = mo.string
+        P = partial(print, end="", file=file)
+        while text:
+            # Print non-matching starting portion.  Assumes the current
+            # style is the default.
+            s = text[:mo.start()]
+            print(s, end="", file=file)
+            # Print the match in the indicated style
+            s = text[mo.start():mo.end()]
+            c.out(f"{style}{s}", file=file)
+            # Use the remaining substring
+            text = text[mo.end():]
+            mo = r.search(text)
+            if not mo:
+                print(text)
+                return
+    def PrintMatches(text, regexps, file=sys.stdout, clr=Clr()):
+        '''Given a string text, search for regular expression matches
+        given in the sequence of regexps, which contain pairs of regular
+        expressions and Style objects, then print the text to stdout with
+        the indicated styles.
+        '''
+        def out(s):
+            print(s, end="")
+        def GetShortestMatch(text):
+            '''Return (start, end, style) of the earliest match or (None, None,
+            None) if there were no matches.
+            '''
+            matches = []
+            for r, style in regexps:
+                mo = r.search(text)
+                if mo:
+                    matches.append([mo.start(), mo.end(), style])
+            return sorted(matches)[0] if matches else (None, None, None)
+        c = clr
+        while text:
+            start, end, style = GetShortestMatch(text)
+            if start is None:
+                # No matches, so print remainder
+                c.out(text, file=file)
+                return
+            # Print non-matching start text
+            c.out(f"{c.n}{text[:start]}", file=file)
+            # Print match in chosen style
+            c.out(f"{style}{text[start:end]}")    
+            text = text[end:]       # Use the remaining substring
+            if not text:
+                print(file=file)    # Print a newline
 #----------------------------------------------------------------------
-# Simple test cases for developing code
-if 0:
-    # Show CN._parse_color() works
-    c = Clr()
-    cn = CN()
-    # Use "steelblue" as example
-    msg = "This is an example of steelblue color"
-    r, g, b = 84, 112, 170
-    c.print(f"{c('steelblue')}{msg}")
-    s = f"#{r:02x}{g:02x}{b:02x}"
-    c.print(f"{c(s)}{msg}")
-    exit()
-if 0:
-    # Show attributes working
-    c = Clr()
-    c.err = c("lred")
-    c.nor = c("lgrn")
-    print(f"{c.err}c.err is set{c.n}")
-    c.print(f"{c.nor}c.nor is set")
-    print("User attr:", c._user())
-    print(c)
-    c.reset()
-    print(c)
+# Test cases for developing code
+if 1:
+    # regexp testing
+    c = Clr(override=True)
+    t = open("aa").read()
+    a = [(re.compile(r"of"), c("blk", "lgrn")),
+         (re.compile(r"man"), c("blk", "lyel")),
+         (re.compile(r"so"), c("red", "lwht"))]
+    #for line in t.split("\n"):
+    PrintMatches(t, a)
     exit()
 if __name__ == "__main__":
     # Demonstrate module's output

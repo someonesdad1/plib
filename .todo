@@ -4,7 +4,17 @@
     * Bring the ts.py script into /plib/pgm.  It should be part of the
       release.
 
-* Finish the new clr.py script and get it installed; delete the clr directory.
+* help:  Consolidate the help text I use into one directory.  Eliminate
+  make and the C programs; convert everything to python.  Look at
+  hierarchically organizing the access with most-used stuff first and
+  seldom-used stuff hidden.  Do partial topic matches with the invocation
+  and use a command line option to do searches of the records.  
+
+    - Look at somehow organizing things so that it can run as a project in
+      Notepad++, which will mean others are more likely to use it.
+
+* Finish the new clr.py script and get it installed; delete the clr
+  directory.
 
 * Write a script that estimates the electrical energy and time needed to
   heat up a room in our house.  Focus on the shop and garage.  The primary
