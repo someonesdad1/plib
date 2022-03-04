@@ -686,4 +686,20 @@ Low priority
       parser.
 
 * module_dependencies.py
-    * Is it necessary?  I
+    * Is it necessary?  It needs to be rewritten to accommodate /plib.  The
+      tools and programs need to be moved in first.  
+
+* sig.py
+    * Is a mess of code.  Is it really all needed?  Maybe it would be best
+      to move the key stuff to flt and cpx.  It can still be kept around
+      for when it's needed.
+
+* ts.py
+    * 'ts.py -m' doesn't work.
+
+* /pylib/pgm/readability/indict.py
+    * Looks like an interesting tool.  It should use a reasonable
+      dictionary by default and print the tokens out in columns for each
+      file.
+
+vim: set sw=2
