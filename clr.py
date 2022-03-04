@@ -574,83 +574,6 @@ if 1:   # Utility
             if choice not in "4-bit 8-bit 24-bit".split():
                 raise ValueError("choice must be 4bit, 8bit, or 24bit")
             return choice
-    def PrintMatch(text, regexp, style=None, file=sys.stdout, clr=Clr()):
-        '''Decorate regexp matches in the string text with the indicated
-        style (defaults to reversed if None) and print to the indicated
-        stream.  If you wish to override the default style used when style
-        is None, set PrintMatch.c to the desired escape sequence.  To see
-        matched whitespace characters more easily, you may want to use 
-        'reverse' as a style attribute.
-        '''
-        c = clr
-        if isinstance(regexp, str):     # Convert it to a regexp
-            # Need to escape magic characters
-            magic = set("*+^$.?{}[]|()")
-            t, q = deque(regexp), deque()
-            while t:
-                u = t.popleft()
-                q.append("\\" + u if u in magic else u)
-            r = re.compile(''.join(q)) 
-        else:
-            r = regexp
-        mo = r.search(text)
-        if style is None:
-            if hasattr(PrintMatch, "style"):
-                style = PrintMatch.style
-            else:
-                style = c(attr="reverse")
-        if not mo:
-            # No match, so just print text
-            print(text, file=file)
-            return
-        text = mo.string
-        P = partial(print, end="", file=file)
-        while text:
-            # Print non-matching starting portion.  Assumes the current
-            # style is the default.
-            s = text[:mo.start()]
-            print(s, end="", file=file)
-            # Print the match in the indicated style
-            s = text[mo.start():mo.end()]
-            c.out(f"{style}{s}", file=file)
-            # Use the remaining substring
-            text = text[mo.end():]
-            mo = r.search(text)
-            if not mo:
-                print(text)
-                return
-    def PrintMatches(text, regexps, file=sys.stdout, clr=Clr()):
-        '''Given a string text, search for regular expression matches
-        given in the sequence of regexps, which contain pairs of regular
-        expressions and Style objects, then print the text to stdout with
-        the indicated styles.
-        '''
-        def out(s):
-            print(s, end="")
-        def GetShortestMatch(text):
-            '''Return (start, end, style) of the earliest match or (None, None,
-            None) if there were no matches.
-            '''
-            matches = []
-            for r, style in regexps:
-                mo = r.search(text)
-                if mo:
-                    matches.append([mo.start(), mo.end(), style])
-            return sorted(matches)[0] if matches else (None, None, None)
-        c = clr
-        while text:
-            start, end, style = GetShortestMatch(text)
-            if start is None:
-                # No matches, so print remainder
-                c.out(text, file=file)
-                return
-            # Print non-matching start text
-            c.out(f"{c.n}{text[:start]}", file=file)
-            # Print match in chosen style
-            c.out(f"{style}{text[start:end]}")    
-            text = text[end:]       # Use the remaining substring
-            if not text:
-                print(file=file)    # Print a newline
 if 1:   # Text attributes
     # This dictionary is used to translate text attribute strings to the
     # escape code's number.  See the table at
@@ -887,6 +810,84 @@ if 1:   # Choose color name class for your terminal
         CN = CN8
     else:
         CN = CN24
+if 1:   # Printing regular expression matches
+    def PrintMatch(text, regexp, style=None, file=sys.stdout, clr=Clr()):
+        '''Decorate regexp matches in the string text with the indicated
+        style (defaults to reversed if None) and print to the indicated
+        stream.  If you wish to override the default style used when style
+        is None, set PrintMatch.c to the desired escape sequence.  To see
+        matched whitespace characters more easily, you may want to use 
+        'reverse' as a style attribute.
+        '''
+        c = clr
+        if isinstance(regexp, str):     # Convert it to a regexp
+            # Need to escape magic characters
+            magic = set("*+^$.?{}[]|()")
+            t, q = deque(regexp), deque()
+            while t:
+                u = t.popleft()
+                q.append("\\" + u if u in magic else u)
+            r = re.compile(''.join(q)) 
+        else:
+            r = regexp
+        mo = r.search(text)
+        if style is None:
+            if hasattr(PrintMatch, "style"):
+                style = PrintMatch.style
+            else:
+                style = c(attr="reverse")
+        if not mo:
+            # No match, so just print text
+            print(text, file=file)
+            return
+        text = mo.string
+        P = partial(print, end="", file=file)
+        while text:
+            # Print non-matching starting portion.  Assumes the current
+            # style is the default.
+            s = text[:mo.start()]
+            print(s, end="", file=file)
+            # Print the match in the indicated style
+            s = text[mo.start():mo.end()]
+            c.out(f"{style}{s}", file=file)
+            # Use the remaining substring
+            text = text[mo.end():]
+            mo = r.search(text)
+            if not mo:
+                print(text)
+                return
+    def PrintMatches(text, regexps, file=sys.stdout, clr=Clr()):
+        '''Given a string text, search for regular expression matches
+        given in the sequence of regexps, which contain pairs of regular
+        expressions and Style objects, then print the text to stdout with
+        the indicated styles.
+        '''
+        def out(s):
+            print(s, end="")
+        def GetShortestMatch(text):
+            '''Return (start, end, style) of the earliest match or (None, None,
+            None) if there were no matches.
+            '''
+            matches = []
+            for r, style in regexps:
+                mo = r.search(text)
+                if mo:
+                    matches.append([mo.start(), mo.end(), style])
+            return sorted(matches)[0] if matches else (None, None, None)
+        c = clr
+        while text:
+            start, end, style = GetShortestMatch(text)
+            if start is None:
+                # No matches, so print remainder
+                c.out(text, file=file)
+                return
+            # Print non-matching start text
+            c.out(f"{c.n}{text[:start]}", file=file)
+            # Print match in chosen style
+            c.out(f"{style}{text[start:end]}")    
+            text = text[end:]       # Use the remaining substring
+            if not text:
+                print(file=file)    # Print a newline
 
 if __name__ == "__main__":
     # Demonstrate module's output

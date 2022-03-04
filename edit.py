@@ -11,7 +11,7 @@ if 1:  # Copyright, license
     #   See http://opensource.org/licenses/OSL-3.0.
     #∞license∞#
     #∞what∞#
-    # Allows editing one or more files with Edit(*files).
+    # <utility> Allows editing one or more files with Edit(*files).
     #∞what∞#
     #∞test∞# #∞test∞#
     pass

@@ -10,7 +10,7 @@ if 1:  # Copyright, license
     #   See http://opensource.org/licenses/OSL-3.0.
     #∞license∞#
     #∞what∞#
-    # Module to define constants
+    # <utility> Module to define constants
     #∞what∞#
     #∞test∞# run #∞test∞#
     pass

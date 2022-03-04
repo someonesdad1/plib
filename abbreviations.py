@@ -10,8 +10,8 @@ if 1:  # Copyright, license
     #   See http://opensource.org/licenses/OSL-3.0.
     #∞license∞#
     #∞what∞#
-    # Provides the function IsAbbreviation() which will return True if the 
-    # string argument is an abbreviation.  Case is ignored.
+    # <utility> Provides the function IsAbbreviation() which will return
+    # True if the string argument is an abbreviation.  Case is ignored.
     #∞what∞#
     #∞test∞# run #∞test∞#
     pass
@@ -70,9 +70,9 @@ def IsAbbreviation(w):
             l. lab. lang. langs. lat. lb. lbf. lett. lex. libr. lit. ll.
             ln. lt. ltd.
 
-            m. m. m.d. m.p. mach. mag. magn. maj. manuf. mar. masc.
-            mass. meas. mech. med. messrs. mil. min. misc. mlle. mlles.
-            mme. mmes. mo. mon. mr. mrs. ms. mss. mssrs. mt. mtg. myth.
+            m. m.d. m.p. mach. mag. magn. maj. manuf. mar. masc.  mass.
+            meas. mech. med. messrs. mil. min. misc. mlle. mlles.  mme.
+            mmes. mo. mon. mr. mrs. ms. mss. mssrs. mt. mtg. myth.
 
             n. n.b. n.e. n.s.w. n.w. n.y. n.z. narr. nat. naut. nav.
             nec. neurol. nom. nov. nucl.

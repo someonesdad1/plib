@@ -1,15 +1,14 @@
 '''
 Root Finding Routines
-    The following functions find real roots of functions.  Note you can
+    The following functions find real roots of functions.  You can
     call them using e.g. mpmath numbers and find roots to arbitrary
     precision.  The functions QuadraticEquation, CubicEquation, and
     QuarticEquation use functions from the math and cmath library, so they
     can't be used with other floating point implementations.
  
-    Note that the fp keyword arguments let you perform these root-finding
-    calculations with any floating point type that can convert strings
-    like "1.5" to a floating point number.  Python's float type is the
-    default.
+    The fp keyword arguments let you perform these root-finding
+    calculations with any floating point type that can convert strings like
+    "1.5" to a floating point number.  Python's float type is the default.
  
     The following "prototypes" may be abbreviated; see the actual function
     definitions for details.
@@ -29,9 +28,7 @@ Root Finding Routines
         Crenshaw's C code in the RootFinder routine.  It includes a keyword
         to show progress to a stream so you can watch convergence and it
         uses slightly better convergence criteria on both x and y so that
-        sometimes it takes one less iteration.  Currently, it doesn't
-        support the ability to call the function f with other parameters or
-        keywords.
+        sometimes it takes one less iteration.  
  
     RootFinder(x0, x2, f)
         Finds a root with quadratic convergence that lies between x0 and
@@ -121,9 +118,9 @@ if 1:  # Copyright, license
     #   See http://opensource.org/licenses/OSL-3.0.
     #∞license∞#
     #∞what∞#
-    # Root finding routines
+    # <math> Root finding routines
     #∞what∞#
-    #∞test∞# #∞test∞#
+    #∞test∞# ["test/root_test.py"] #∞test∞#
     pass
 if 1:   # Imports
     import sys
@@ -153,18 +150,20 @@ if 1:   # Global variables
         "Crenshaw",
     ]
     ITMAX = 100     # Default maximum number of iterations
+ 
     # Ratio of imag/real to decide when something is a real root (or
     # real/imag to decide when something is pure imaginary).  Also used as
-    # the default tolerance for root finding.  Note it's a string because
+    # the default tolerance for root finding.  It's a string because
     # it will be converted to a floating point type inside the function
     # it's used in (some of the functions can allow other numerical types
     # besides floating point).
     epsilon = "2.5e-15"
-    # Default relative tolerance for root finding.  I've set it to 1e-6 because
-    # it is rare in working with practical stuff to need higher precisions
-    # because the problem's solution is probably limited by the uncertainties
-    # in measured parameters -- and it's rare to have more than 6 figures for
-    # measurements.
+     
+    # Default relative tolerance for root finding.  I've set it to 1e-6.
+    # It is rare in working with practical stuff to need higher precisions
+    # because the problem's solution is probably limited by the
+    # uncertainties in measured parameters -- and it's rare to have more
+    # than 6 figures for measurements.
     eps0 = 1e-6
 class NoConvergence(Exception):
     pass
@@ -199,7 +198,6 @@ def FindRoots(f, n, x1, x2, eps=eps0, itmax=ITMAX, fp=float,
         3.14159265359
         6.28318530718
         9.42477796077
-    Note these are integer multiples of pi.
     '''
     if not f:
         raise ValueError("f must be defined")
@@ -455,8 +453,8 @@ def Bisection(x1, x2, f, eps=eps0, switch=False):
     with Python" by Jaan Kiusalaas, 2nd ed.  You can get the book's
     algorithms from http://www.cambridge.org/us/download_file/202203/.
  
-    Note scipy has a bisection routine; it is probably in C/C++ and
-    will be faster.
+    scipy has a bisection routine; it is probably in C/C++ and will
+    be faster.
     '''
     f1, f2, d = f(x1), f(x2), abs(x2 - x1)
     if not f1:
@@ -884,10 +882,10 @@ def Pound(x, adjust=True, eps=float(epsilon)):
         return x.imag*1j
     return x
 def QuadraticEquation(a, b, c, adjust=True, force_real=False):
-    '''Return the two roots of a quadratic equation.  The equation is
-    a*x^2 + b*x + c = 0; the coefficients can be complex.  Note this
-    works with float types only.  Set force_real to True to force the
-    returned values to be real.
+    '''Return the two roots of a quadratic equation.  The equation is a*x^2
+    + b*x + c = 0; the coefficients can be complex.  Note this works with
+    float types only.  Set force_real to True to force the returned values
+    to be real.
  
     Here's a derivation of the method used.  Multiply by 4*a and
     complete the square to get
@@ -908,19 +906,18 @@ def QuadraticEquation(a, b, c, adjust=True, force_real=False):
         x = 2*c/(-b -/+ sqrt(b**2 - 4*a*c))             (2)
  
     Equations 1 or 2 may provide more accuracy for a particular root.
-    Note there can be loss of precision in the discriminant when a*c
-    is small compared to b**2.  This happens when the roots vary
-    greatly in absolute magnitude.  Suppose they are x1 and x2; then
-    (x - x1)*(x - x2) = x**2 - (x1 + x2)*x + x1*x2 = 0.  Here,
+    There can be loss of precision in the discriminant when a*c is small
+    compared to b**2.  This happens when the roots vary greatly in absolute
+    magnitude.  Suppose they are x1 and x2; then (x - x1)*(x - x2) = x**2 -
+    (x1 + x2)*x + x1*x2 = 0.  Here,
  
         a = 1
         b = -(x1 + x2)
         c = x1*x2
  
-    Suppose x1 = 1000 and x2 = 0.001.  Then b = -1000.001 and c = 1.
-    The square root of the discriminant is 999.999 and the subtraction
-    b - sqrt(D) results in 0.0001, with a loss of around 6 significant
-    figures.
+    Suppose x1 = 1000 and x2 = 0.001.  Then b = -1000.001 and c = 1.  The
+    square root of the discriminant is 999.999 and the subtraction b -
+    sqrt(D) results in 0.0001, with a loss of around 6 significant figures.
  
     The algorithm is to use these two equations depending on the sign
     of b (D = b**2 - 4*a*c):
@@ -984,7 +981,8 @@ def CubicEquation(a, b, c, d, adjust=True, force_real=False):
         -1.0
         -6.93889390391e-17
         -6.93889390391e-17
-    which is probably *not* what you want.
+    which is probably *not* what you want because it throws important
+    information away.
  
     ----------------------------------------------------------------------
     The following Mathematica commands were used to generate the code for

@@ -2,6 +2,8 @@
   fix broken tests, and then check into the repository with a formal
   revision tag.
 
+    - timer.py needs a what string etc.  It also has a todo item that I
+      think should be fixed, if possible.
     - '0what.py -m *.py' shows files missing a category:  8 in /plib.  Fix
       these, then run it in pgm (225 files there need work).
         - The README.md should indicate the set of files in /plib and
@@ -10,6 +12,14 @@
     - Things to bring in
         - ts.py
         - g library
+
+* mintty:  See if there's an option somewhere to choose the characters that
+  stop a selection when double clicking.  I use this feature a lot to get
+  symbol names to the clipboard, but mintty by default includes the '='
+  character, which screws things up.  The set of characters should be valid
+  C/C++/python symbol names that also include '.'.
+
+* iso.py:  Should take time arguments in either s or tm structures.
 
 * columnize.py:  write a Decolumnize() function that cat take the
   columnized output like '0what.py -m *.py' produces in /plib/pgm and

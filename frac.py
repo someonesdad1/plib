@@ -26,7 +26,7 @@ if 1:  # Copyright, license
     #   See http://opensource.org/licenses/OSL-3.0.
     #∞license∞#
     #∞what∞#
-    # Find a rational approximation to a real number
+    # <math> Find a rational approximation to a real number
     #∞what∞#
     #∞test∞# run #∞test∞#
     pass

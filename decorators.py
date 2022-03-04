@@ -14,7 +14,7 @@ if 1:  # Copyright, license
     #   See http://opensource.org/licenses/OSL-3.0.
     #∞license∞#
     #∞what∞#
-    # Various function decorators
+    # <utility> Various function decorators
     #∞what∞#
     #∞test∞# #∞test∞#
     pass

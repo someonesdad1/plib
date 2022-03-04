@@ -9,7 +9,27 @@ for.  Most of the stuff is licensed under the Open Software License version
 * The `plib` directory holds modules that are intended to be used by other
   scripts.
 * The `pgm` directory holds scripts that are separate programs.
-* The `test` directory holds scripts that test the modules.
+* The `test` directory holds scripts that test the modules in `plib`.
+
+# Most useful
+
+In this section, I'll list the items in this directory and below that I use
+a lot.
+
+* pgm/prun.py
+    - I use this to monitor a python script I'm working on and when the
+      file's modification time changes (or a trigger file's mod time when
+      you don't want to trigger on the script file itself), the script is
+      run, allowing you to see the results without leaving your editor
+      window.  
+* clr.py
+    - Generates ANSI escape codes to color text in terminal output.
+      Contains two functions to highlight matches in regular expressions,
+      which helps develop such expressions more rapidly.  Use prun.py to
+      make it even faster.
+* lwtest.py
+    - Lightweight test runner adapted from a nice tool by Raymond
+      Hettinger.  I use this for all testing of python scripts.
 
 # Conventions
 

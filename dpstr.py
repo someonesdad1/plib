@@ -26,6 +26,7 @@ String utilities
     SpellCheck       Spell check a sequence of words
     SplitOnNewlines  Split on \r, \n, or \r\n
     StringSplit      Pick out specified fields of a string
+    TimeStr          Readable string for time() in s
     WordID           Return an ID string that is somewhat pronounceable
     
     Token naming conversions:
@@ -57,6 +58,7 @@ if 1:  # Imports
     import sys
     from itertools import filterfalse
     from random import choice
+    import time
     from pdb import set_trace as xx 
 if 1:   # Custom imports
     from wrap import dedent
@@ -473,6 +475,37 @@ def SplitOnNewlines(s):
         for y in x.split(cr):
             res.extend(y.split(nl))
     return res
+def TimeStr(time_in_s=None):
+    '''Return a readable string for the indicated time in seconds.
+    If the parameter is None, the time is time.now().  Example:
+        Time(1646408691.9415808) returns '4Mar2022-084451.942am'
+    This is a convenience aimed at producing names that can be used
+    in a filename for things like timestamping.
+    '''
+    def Rm0(s):
+        if s.startswith("0"):
+            return s[1:]
+        return s
+    # The /plib/0test.py file in this file's directory uses this method to
+    # produce log files when it is run.
+    #
+    # Get t as time in seconds from the epoch (note it is local time, not
+    # GMT)
+    T = time_in_s if time_in_s else time.time()
+    # ts will contain the time structure needed by time's functions
+    ts = time.localtime(T)
+    # Date portion
+    d = Rm0(time.strftime("%d%b%Y", ts))
+    t = time.strftime("%I%M%S", ts)
+    ampm = time.strftime("%p", ts).lower()
+    # Get fractions of seconds.  Resolution is to the nearest μs because
+    # this gave what looked to be sufficient time resolution on my system
+    # to avoid generating an accidental collision, at least in the same
+    # process.
+    n = 6
+    fs = round(T - int(T), n)
+    f = Rm0(f"{fs:.{n}f}")
+    return f"{d}-{t}{f}{ampm}"
 def WordID(half_length=3, unique=None, num_tries=100):
     '''Return an ID string that is (somewhat) pronounceable.  The
     returned number of characters will be twice the half_length.  If

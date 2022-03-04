@@ -7,7 +7,6 @@ TODO
       difflib can be used to generate HTML differences and it works pretty
       well.
 
-
 Run a python script when a trigger file's mod time changes
     I use this to develop python programs.  I edit the program in my editor
     and define a macro that writes to the trigger file.  In another window
@@ -63,13 +62,12 @@ if 1:   # Utility
     def ManPage():
         print(dedent('''
         If you wish to have ANSI escape codes in your output, get the
-        library https://github.com/someonesdad1/plib/blob/main/color.py
+        library https://github.com/someonesdad1/plib/blob/main/clr.py
         and put it in your PYTHONPATH.
 
         Suppose we're developing a python script named pgm.py.
 
-        The
-        common use case for prun.py is to edit pgm.py in one terminal
+        The common use case for prun.py is to edit pgm.py in one terminal
         window and run the command 
 
             python prun.py pgm.py
@@ -117,8 +115,8 @@ if 1:   # Utility
     def Usage(status=1):
         print(dedent(f'''
         Usage:  {sys.argv[0]} [options] pgm [arg1 [arg2 ...]]
-          When the modification time of the pgm file trig changes, run
-          the python script pgm with the indicated arguments.
+          When the modification time of the pgm file changes, run the
+          python script pgm with the indicated arguments.
 
           If it is expensive to run the pgm script, you can use the -f
           option to define a trigger file.  The pgm script will then only

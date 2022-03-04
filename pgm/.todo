@@ -1,8 +1,31 @@
 * Update the repository:  run 0test.py, make sure all tests are up to date,
   fix broken tests, and then check into the repository with a formal
   revision tag.
-    * Bring the ts.py script into /plib/pgm.  It should be part of the
-      release.
+
+    - timer.py needs a what string etc.  It also has a todo item that I
+      think should be fixed, if possible.
+    - '0what.py -m *.py' shows files missing a category:  8 in /plib.  Fix
+      these, then run it in pgm (225 files there need work).
+        - The README.md should indicate the set of files in /plib and
+          /plib/pgm that I consider the most important (i.e., which means
+          they get used a lot).
+    - Things to bring in
+        - ts.py
+        - g library
+
+* mintty:  See if there's an option somewhere to choose the characters that
+  stop a selection when double clicking.  I use this feature a lot to get
+  symbol names to the clipboard, but mintty by default includes the '='
+  character, which screws things up.  The set of characters should be valid
+  C/C++/python symbol names that also include '.'.
+
+* iso.py:  Should take time arguments in either s or tm structures.
+
+* columnize.py:  write a Decolumnize() function that cat take the
+  columnized output like '0what.py -m *.py' produces in /plib/pgm and
+  converts it to a list of lines with one object per line.  For files it
+  can't figure out, add an option to show the columns where breaks should
+  be made:  -c "8,14,22,35" and use -1 for 1-based numbering.
 
 * help:  Consolidate the help text I use into one directory.  Eliminate
   make and the C programs; convert everything to python.  Look at
@@ -663,20 +686,4 @@ Low priority
       parser.
 
 * module_dependencies.py
-    * Is it necessary?  It needs to be rewritten to accommodate /plib.  The
-      tools and programs need to be moved in first.  
-
-* sig.py
-    * Is a mess of code.  Is it really all needed?  Maybe it would be best
-      to move the key stuff to flt and cpx.  It can still be kept around
-      for when it's needed.
-
-* ts.py
-    * 'ts.py -m' doesn't work.
-
-* /pylib/pgm/readability/indict.py
-    * Looks like an interesting tool.  It should use a reasonable
-      dictionary by default and print the tokens out in columns for each
-      file.
-
-vim: set sw=2
+    * Is it necessary?  I

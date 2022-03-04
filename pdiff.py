@@ -11,7 +11,8 @@ if 1:  # Copyright, license
     #   See http://opensource.org/licenses/OSL-3.0.
     #∞license∞#
     #∞what∞#
-    # Program description string
+    # <utility> Generate an HTML difference of two files and launch in
+    # browser.
     #∞what∞#
     #∞test∞# #∞test∞#
     pass

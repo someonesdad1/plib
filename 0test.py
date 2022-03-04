@@ -1,16 +1,15 @@
 '''
-
 This script will examine the test trigger strings of the python files in
 the current directory (use -r options to also search all other
 directories) and run the indicated tests.
-
+ 
 The trigger strings can be
-
+ 
 <empty>     Don't do anything
 run         Run the script directly; 0 status means passed
 --test      Run with --test option
 [a, b...]   One or more test files to run
-
+ 
 If there is no test trigger string, nothing will be done.
 '''
  
@@ -41,17 +40,19 @@ if 1:   # Custom imports
     from columnize import Columnize
     from timer import Timer
     import color as C
+    import clr
     import trigger
+    import dpstr
     if 0:
         import debug
         debug.SetDebugger()  # Start debugger on unhandled exception
 if 1:   # Global variables
-    class G: pass
-    G.red = C.fg(C.lred, s=1)
-    G.cyn = C.fg(C.lcyan, s=1)
-    G.grn = C.fg(C.lgreen, s=1)
-    G.norm = C.normal(s=1)
     P = pathlib.Path
+    # Set up for color printing
+    c = clr.Clr(bits=4, override=True)
+    c.red = c("lred")
+    c.cyn = c("lcyn")
+    c.grn = c("lgrn")
 if 1:   # Utility
     def eprint(*p, **kw):
         'Print to stderr'
@@ -60,17 +61,20 @@ if 1:   # Utility
         eprint(msg)
         exit(status)
     def Usage(d, status=1):
-        name = sys.argv[0]
+        name = P(sys.argv[0])
         print(dedent(f'''
     Usage:  {name} [options] file1 [file2...]
-      Find the python scripts with self test information in them and run
-      the self tests.  If one of the command arguments is a directory, 
+      Find the python scripts with self-test information in them and run
+      the self-tests.  If one of the command arguments is a directory, 
       all of its python files have their self tests run.
-
+ 
       The default behavior with no arguments is to run the self tests on
       the files in the current directory.
- 
+
+      All output is quietly sent to a log file {name.stem}.log.x where x is a
+      time stamp.
     Options:
+      -C    Remove all log files
       -h    Print a manpage
       -L    List the files without test trigger strings
       -l    List the files and their actions
@@ -80,6 +84,7 @@ if 1:   # Utility
     '''))
         exit(status)
     def ParseCommandLine(d):
+        d["-C"] = False     # Remove all log files
         d["-L"] = False     # List the files without trigger string
         d["-l"] = False     # List the files
         d["-r"] = False     # Recursive
@@ -98,6 +103,22 @@ if 1:   # Utility
         if not args:
             args = ["."]
         return args
+class tee:
+    '''This behaves like a stream to allow use to make sure stdout and
+    stderr go to their normal locations as well as a log file.
+    '''
+    def __init__(self, *streams):
+        self.streams = streams
+    def __del__(self):
+        for i in self.streams:
+            if i != sys.stdout and i != sys.stderr:
+                i.close()
+    def write(self, s):
+        for i in self.streams:
+            i.write(s)
+    def flush(self):
+        for i in self.streams:
+            i.flush()
 
 class TestRunner:
     def __init__(self):
@@ -131,7 +152,7 @@ class TestRunner:
             files = self.GetFiles(dir)
         # Keep only those with None for the second element
         files = [i for i in files if i[1] is None]
-        print(f"{G.cyn}Directory = {dir.resolve()}{G.norm}")
+        c.print(f"{c.cyn}Directory = {dir.resolve()}")
         out = []
         for file, trig in files:
             out.append(f"{file!s}")
@@ -148,7 +169,7 @@ class TestRunner:
         # Keep only those without None for the second element
         files = [i for i in files if i[1] is not None]
         n = max([len(str(i)) for i, j in files])
-        print(f"{G.cyn}Directory = {dir.resolve()}{G.norm}")
+        c.print(f"{c.cyn}Directory = {dir.resolve()}")
         for file, trig in files:
             print(f"  {file!s:{n}s} {trig}")
     def Run(self, file, additional=None):
@@ -164,12 +185,12 @@ class TestRunner:
                     print(r.stderr, end="")
             if r.returncode:
                 self.failed += 1
-                print(f"{G.red}{file} test failed{G.norm}")
+                c.print(f"{c.red}{file} test failed")
         else:
             status = os.system(str(file))
             if status:
                 self.failed += 1
-                print(f"{G.red}{file} test failed{G.norm}")
+                c.print(f"{c.red}{file} test failed")
     def RunTests(self, dir):
         'Only failed tests have their info printed out'
         if dir.is_file():
@@ -199,7 +220,6 @@ class TestRunner:
                 self.not_run += 1
                 if d["-V"]:
                     print(f"{file}: no test to run")
-
 if __name__ == "__main__":
     d = {}      # Options dictionary
     items = [P(i) for i in ParseCommandLine(d)]
