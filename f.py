@@ -581,14 +581,13 @@ if 1:  # Copyright, license
     #   See http://opensource.org/licenses/OSL-3.0.
     #∞license∞#
     #∞what∞#
-    # <programming> This module provides the flt/cpx types for
-    # calculations with numbers derived from measurements.  flt is
-    # derived from float and cpx from complex.  These objects can be
-    # given physical units (utilizing the u.py module).  They also
-    # display 3 significant figures by default when str() is called on
-    # them, making floating point calculations less cluttered.  I use
-    # these a lot with the repl.py script for my command line
-    # python-based calculator.
+    # <programming> This module provides the flt/cpx types for calculations
+    # with numbers derived from measurements.  flt is derived from float
+    # and cpx from complex.  These objects can be given physical units
+    # (utilizing the u.py module).  They also display 3 significant figures
+    # by default when str() is called on them, making floating point
+    # calculations less cluttered with useless digits.  I use these a lot
+    # with the repl.py script for my command line python-based calculator.
     #∞what∞#
     #∞test∞# run #∞test∞#
     pass

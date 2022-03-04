@@ -191,7 +191,8 @@ if 1:  # Copyright, license
     #   See http://opensource.org/licenses/OSL-3.0.
     #∞license∞#
     #∞what∞#
-    # <programming> Emulates mathematical intervals
+    # <programming> Emulates mathematical intervals.  Warning:  this is
+    # uncompleted code and shouldn't be used for production work.
     #∞what∞#
     #∞test∞# run #∞test∞#
     pass

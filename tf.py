@@ -132,7 +132,8 @@ if 1:  # Copyright, license
     #∞license∞#
     #∞what∞#
     # <programming> Provides a basic text formatting language for use in 
-    # formatting text for python script output to a terminal.
+    # formatting text for python script output to a terminal.  Warning:
+    # not ready for production use yet.
     #∞what∞#
     #∞test∞# --test #∞test∞#
     pass
@@ -588,7 +589,6 @@ class Wrap(Fmt):
             return '\n'.join(u)
         else:
             return '\n'.join(out)
-
 class Bullet(Fmt):
     def __init__(self, bullet="*", internalnl=None):
         '''Format with the indicated bullet string.  internalnl is the
@@ -632,7 +632,6 @@ class Bullet(Fmt):
             out.append(self.paragraph(paragraph, outsep=outsep))
         pp(out);exit() #xx
         return outsep.join(out)
-
 if 1:
     s = dedent('''
         Mrs. Gardiner's caution to Elizabeth was punctually and kindly given on

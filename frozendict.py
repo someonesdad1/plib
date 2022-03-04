@@ -19,7 +19,8 @@ Class to make frozen dictionaries
         * The copy.copy() method in Carrera's code isn't necessary, as
           it's a shallow copy which can be done by dict.copy().
         * Unit tests are in /pylib/test/frozendict_test.py.  On 10 Jun
-          2021 I moved the unit test code into this file.
+          2021 I moved the unit test code into this file (run it as a
+          script to run the tests).
 '''
 if 1:  # Copyright, license
     # These "trigger strings" can be managed with trigger.py

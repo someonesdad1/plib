@@ -78,7 +78,7 @@ if 1:  # Copyright, license
     #∞license∞#
     #∞what∞#
     # <programming> Provides the Clr object for ANSI escape sequences to
-    # get colored text in terminals.
+    # get colored text in terminals.  Replaces /plib/color.py.
     #∞what∞#
     #∞test∞# #∞test∞#
     pass

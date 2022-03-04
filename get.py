@@ -17,7 +17,7 @@ if 1:  # Copyright, license
     # streams.  An example is reading a text file, getting all the lines
     # except for those that match a sequency of regular expressions.
     # Other examples are getting all the words (tokens) from a file or a
-    # set of numbers.  # Handles a number of common programming tasks.
+    # set of numbers.  Handles a number of common programming tasks.
     #∞what∞#
     #∞test∞# run #∞test∞#
     pass

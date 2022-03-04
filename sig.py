@@ -29,6 +29,9 @@ if 1:  # Copyright, license
     # significant figures.  Handles numerous number types (including
     # complex numbers and ufloats from the python uncertainties library)
     # and sequences of them and gives you fine control over the details.
+    # I consider this module obsolete, as it's too long and complex, but a
+    # lot of code was written using it.  I prefer to use flt and cpx
+    # objects now in f.py.
     #∞what∞#
     #∞test∞# --test #∞test∞#
     pass
