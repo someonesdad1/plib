@@ -3,6 +3,11 @@ The raw data for these names came from an X-Windows rgb.txt file.  The
 conversion was done by the /pylib/g/mkrgb.py script.  This script will print
 out python code that can be inserted into a script to provide a dictionary to
 convert a color name to an RGB tuple.
+
+Lines output are of the form:
+    "aliceblue": (239, 247, 255),
+    "antiquewhite": (249, 234, 214),
+    etc.
 '''
 
 data = '''
