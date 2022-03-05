@@ -19,7 +19,7 @@ if 1:  # Copyright, license
     # hashing algorithm and enough questions to make it unfeasible for
     # someone to do a brute-force attack.  
     #∞what∞#
-    #∞test∞# #∞test∞#
+    #∞test∞# ignore #∞test∞#
     pass
 if 1:   # Imports
     import hashlib

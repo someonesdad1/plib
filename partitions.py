@@ -12,7 +12,7 @@ if 1:  # Copyright, license
     #∞what∞#
     # <math> Generate partitions of the integer n
     #∞what∞#
-    #∞test∞# #∞test∞#
+    #∞test∞# ignore #∞test∞#
     pass
 if 1:   # Imports
     import sys

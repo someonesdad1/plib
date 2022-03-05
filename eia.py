@@ -14,7 +14,7 @@ if 1:  # Copyright, license
     # <electrical> Provides EIA resistor values (based on IEC 60063
     # preferred numbers).
     #∞what∞#
-    #∞test∞# #∞test∞#
+    #∞test∞# ignore #∞test∞#
     pass
 if 1:   # Custom imports
     from roundoff import RoundOff

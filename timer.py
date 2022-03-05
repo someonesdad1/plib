@@ -14,7 +14,7 @@ if 1:  # Copyright, license
     # <programming> Provides objects that help with program timing.  Run as
     # a script to see example output.
     #∞what∞#
-    #∞test∞# #∞test∞#
+    #∞test∞# ignore #∞test∞#
     pass
 if 1:   # Standard imports
     import time

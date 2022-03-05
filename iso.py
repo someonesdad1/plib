@@ -19,7 +19,7 @@ if 1:  # Copyright, license
     # <utility> Provides the ISO object to provide current date and time
     # in standard ISO format.
     #∞what∞#
-    #∞test∞# #∞test∞#
+    #∞test∞# ignore #∞test∞#
     pass
 if 1:   # Imports
     import time

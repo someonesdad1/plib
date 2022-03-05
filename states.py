@@ -1,7 +1,7 @@
 '''
 US State abbreviations
 '''
-
+#∞test∞# ignore #∞test∞#
 name_to_two_letters = n2l = {
     "Alabama": "AL",
     "Alaska": "AK",
@@ -55,7 +55,6 @@ name_to_two_letters = n2l = {
     "Wisconsin": "WI",
     "Wyoming": "WY"
 }
-
 two_letters_to_name = l2n = {
     "AK": "Alaska",
     "AL": "Alabama",

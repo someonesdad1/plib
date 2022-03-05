@@ -80,7 +80,7 @@ if 1:  # Copyright, license
     # <programming> Provides the Clr object for ANSI escape sequences to
     # get colored text in terminals.  Replaces /plib/color.py.
     #∞what∞#
-    #∞test∞# #∞test∞#
+    #∞test∞# ignore #∞test∞#
     pass
 if 1:   # Standard imports
     import getopt

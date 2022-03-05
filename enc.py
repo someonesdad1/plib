@@ -25,7 +25,7 @@ if 1:  # Copyright, license
     # exception are possible encodings.  Also lets you change a file's
     # encoding like iconv.
     #∞what∞#
-    #∞test∞# #∞test∞#
+    #∞test∞# ignore #∞test∞#
     pass
 if 1:   # Imports
     import csv

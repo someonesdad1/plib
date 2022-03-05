@@ -1,9 +1,8 @@
 '''
 On-hand resistors
 '''
-
+#∞test∞# ignore #∞test∞#
 import bisect
-
 # This tuple is a sorted sequence of on-hand resistors
 resistors = (
     0.025, 0.18, 0.2, 0.27, 0.33, 1, 2.2, 4.6, 8.3, 10.1, 12, 14.7, 15,
@@ -19,7 +18,6 @@ resistors = (
     460000, 464000, 560000, 674000, 820000, 1000000, 1200000, 1500000,
     1700000, 1900000, 2200000, 2400000, 2600000, 2800000, 3200000, 4000000,
     4800000, 5600000, 6000000, 8700000, 10000000, 16000000, 23500000)
-
 def FindClosest(R, favor_highest=True):
     '''Return the closest on-hand resistor.  If less than the smallest or
     greater than the largest, None is returned.
@@ -53,10 +51,9 @@ def FindClosest(R, favor_highest=True):
             return more if favor_highest else less
         else:
             return less if l <= m else more
-
 def OnHand():
     'Return a list of on-hand resistors'
-    # Use this to remake the list
+    # Use this to remake the above resistors tuple
     l = '''
         0.025 0.18 0.2 0.27 0.33           1 2.2 4.6 8.3
         10.1 12 14.7 15 17.8 22 27 28.4 30 31.6 33 35 38.4 46.3 50 55.5 61.8 67
@@ -74,8 +71,9 @@ def OnHand():
         10M 16M 23.5M
     '''
     o = []
-    for R in l.splRt():
+    for R in l.split():
         x = float(eval(R.replace("k", "*1000").replace("M", "*1e6")))
         o.append(int(x) if x == int(x) else x)
     return tuple(sorted(list(set(o))))
-#print(OnHand())
+if __name__ == "__main__":  
+    print(OnHand())

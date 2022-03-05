@@ -21,7 +21,7 @@ translated to !, U+0021.  In other words, syntax and not semantic
 content is the driving force behind this transliteration, primarily
 because I am not a linguist.
 '''
-
+#∞test∞# ignore #∞test∞#
 import unicodedata as U
 import re
 import pickle

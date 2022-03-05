@@ -14,7 +14,7 @@ if 1:  # Copyright, license
     # <utility> Generate an HTML difference of two files and launch in
     # browser.
     #∞what∞#
-    #∞test∞# #∞test∞#
+    #∞test∞# ignore #∞test∞#
     pass
 if 1:   # Imports
     import difflib

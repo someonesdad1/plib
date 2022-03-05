@@ -61,7 +61,7 @@ if 1:  # License
     # <programming> Functional programming examples from D. Mertz, "Text
     # Processing in Python" (see http://gnosis.cx/TPiP).
     #∞what∞#
-    #∞test∞# #∞test∞#
+    #∞test∞# ignore #∞test∞#
     pass
 if 1:   # Imports
     import sys

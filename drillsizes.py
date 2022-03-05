@@ -2,6 +2,7 @@
 Provides dictionaries that relate US customary drill sizes to diameters
 in inches.
 '''
+#∞test∞# ignore #∞test∞#
 
 letter_drills = {
     "A": 0.234, "B": 0.238, "C": 0.242, "D": 0.246, "E": 0.250, "F": 0.257,

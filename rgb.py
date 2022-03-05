@@ -1,15 +1,16 @@
 '''
-The raw data for these names came from an X-Windows rgb.txt file.  The
-conversion was done by the /pylib/g/mkrgb.py script.  This script will print
-out python code that can be inserted into a script to provide a dictionary to
-convert a color name to an RGB tuple.
-
-Lines output are of the form:
-    "aliceblue": (239, 247, 255),
-    "antiquewhite": (249, 234, 214),
-    etc.
+Prints a list of XWindows color names for a dictionary lookup
+    The raw data for these names came from an X-Windows rgb.txt file.  The
+    conversion was done by the /pylib/g/mkrgb.py script.  This script will
+    print out python code that can be inserted into a script to provide a
+    dictionary to convert a color name to an RGB tuple.
+ 
+    Lines output are of the form:
+        "aliceblue": (239, 247, 255),
+        "antiquewhite": (249, 234, 214),
+        etc.
 '''
-
+#∞test∞# ignore #∞test∞#
 data = '''
     aliceblue            = (0.94, 0.97, 1.00)
     antiquewhite         = (0.98, 0.92, 0.84)
@@ -293,7 +294,6 @@ data = '''
     yellow4              = (0.55, 0.55, 0.00)
     yellowgreen          = (0.20, 0.85, 0.22)
 '''[1:-1]
-
 for line in data.split("\n"):
     name, t = [i.strip() for i in line.split("=")]
     r, g, b = [int(255*i) for i in eval(t)]

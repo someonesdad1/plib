@@ -44,7 +44,7 @@ if 1:  # Copyright, license
     # Derived from C code by Glenn Rhoads.  Note they are not
     # thread-safe.
     #∞what∞#
-    #∞test∞# #∞test∞#
+    #∞test∞# ignore #∞test∞#
     pass
 if 1:   # Imports
     import sys

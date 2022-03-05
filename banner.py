@@ -15,7 +15,7 @@ if 1:  # Copyright, license
     #∞what∞#
     # <utility> Print banner messages
     #∞what∞#
-    #∞test∞# #∞test∞#
+    #∞test∞# ignore #∞test∞#
     pass
 if 1:  # Imports
     import sys

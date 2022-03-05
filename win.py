@@ -1,6 +1,7 @@
 '''
 Detect when Windows-style path names are needed (on_windows is True)
 '''
+#∞test∞# ignore #∞test∞#
 import sys
 systems = {
 '3.6.1 (default, Mar 24 2017, 12:50:34) \n[GCC 5.4.0]': False,

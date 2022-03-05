@@ -13,7 +13,7 @@ if 1:  # Copyright, license
     #∞what∞#
     # <utility> Allows editing one or more files with Edit(*files).
     #∞what∞#
-    #∞test∞# #∞test∞#
+    #∞test∞# ignore #∞test∞#
     pass
 if 1:   # Standard imports
     import os

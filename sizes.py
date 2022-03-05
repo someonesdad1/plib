@@ -1,19 +1,17 @@
 '''
 Provide commonly-used sizes.
 '''
-
+#∞test∞# ignore #∞test∞#
 from columnize import Columnize
 from frange import frange
 from sig import sig
 from pdb import set_trace as xx 
-
 __all__ = (
     "negative_gauges number_drills letter_drills clausing_lathe_tpi "
     "US_Standard steel galvanized_steel stainless_steel aluminum zinc "
     "AWG hypodermic_needles stubs_iron_wire Birmingham_iron_wire "
     "Washburn_and_Moen_steel_wire music_wire stubs_steel_wire nylon_twine"
     "TranslateGauge".split())
-
 def TranslateGauge(g):
     '''If g is a negative integer, use negative_gauges to change it to a
     suitable string (e.g., -1 --> "2/0").  Otherwise, convert it to a
@@ -27,11 +25,9 @@ def TranslateGauge(g):
         return g
     else:
         return str(g)
-
 negative_gauges = {
     -1: "2/0", -2: "3/0", -3: "4/0", -4: "5/0", -5: "6/0", -6: "7/0"
 }
-
 # Number drills (HCP59:F-162)
 number_drills = {   # Key = number [1, 80], value = diameter in inches
      1: 0.228 ,    17: 0.173 ,    33: 0.113 ,    49: 0.073 ,    65: 0.035 ,
@@ -51,13 +47,11 @@ number_drills = {   # Key = number [1, 80], value = diameter in inches
     15: 0.180 ,    31: 0.120 ,    47: 0.0785,    63: 0.037 ,    79: 0.0145,
     16: 0.177 ,    32: 0.116 ,    48: 0.076 ,    64: 0.036 ,    80: 0.0135,
 }
-
 # Generate numbered thread sizes in inches by the formula 
 # dia = 0.060 + n*0.013 where n is the number size.
 numbered_threads = {}
 for n in list(range(0, 11)) + [12, 14]:
     numbered_threads[n] = round(0.060 + n*0.013, 3)
-
 letter_drills = { 
     # From:  TAD Universal Reference Calculator, TAD Products Corp., (C) 1964
     "A": 0.234, "B": 0.238, "C": 0.242, "D": 0.246, "E": 0.250, "F": 0.257,
@@ -66,15 +60,12 @@ letter_drills = {
     "S": 0.348, "T": 0.358, "U": 0.368, "V": 0.377, "W": 0.386, "X": 0.397,
     "Y": 0.404, "Z": 0.413
 }
-
 clausing_lathe_tpi = set((
     4, 4.5, 5, 5.5, 5.75, 6, 6.5, 6.75, 7, 8, 9, 10, 11, 11.5, 12, 13, 13.5, 14, 16,
     18, 20, 22, 23, 24, 26, 27, 28, 32, 36, 40, 44, 46, 48, 52, 54, 56, 64, 72, 80,
     88, 92, 96, 104, 108, 112, 128, 144, 160, 176, 184, 192, 208, 216, 224)
 )
-
 # The following were constructed by Dump()
-
 US_Standard = {
     -6: 0.5000, -5: 0.4688, -4: 0.4375, -3: 0.4063, -2: 0.3750, -1: 0.3438,
     0: 0.3125, 1: 0.2813, 2: 0.2656, 3: 0.2500, 4: 0.2344, 5: 0.2188,
@@ -85,7 +76,6 @@ US_Standard = {
     30: 0.0125, 31: 0.0109, 32: 0.0102, 33: 0.0094, 34: 0.0086, 35: 0.0078,
     36: 0.0070, 37: 0.0066, 38: 0.0063
 }
-
 steel = {
     3: 0.2391, 4: 0.2242, 5: 0.2092, 6: 0.1943, 7: 0.1793, 8: 0.1644,
     9: 0.1495, 10: 0.1345, 11: 0.1196, 12: 0.1046, 13: 0.0897, 14: 0.0747,
@@ -94,14 +84,12 @@ steel = {
     27: 0.0164, 28: 0.0149, 29: 0.0135, 30: 0.0120, 31: 0.0105, 32: 0.0097,
     33: 0.0090, 34: 0.0082, 35: 0.0075, 36: 0.0067, 37: 0.0064, 38: 0.0060
 }
-
 galvanized_steel = {
     8: 0.1681, 9: 0.1532, 10: 0.1382, 11: 0.1233, 12: 0.1084, 13: 0.0934,
     14: 0.0785, 15: 0.0710, 16: 0.0635, 17: 0.0575, 18: 0.0516, 19: 0.0456,
     20: 0.0396, 21: 0.0366, 22: 0.0336, 23: 0.0306, 24: 0.0276, 25: 0.0247,
     26: 0.0217, 27: 0.0202, 28: 0.0187, 29: 0.0172, 30: 0.0157, 31: 0.0142
 }
-
 stainless_steel = {
     7: 0.1875, 8: 0.1719, 9: 0.1563, 10: 0.1406, 11: 0.1250, 12: 0.1094,
     13: 0.0940, 14: 0.0781, 15: 0.0700, 16: 0.0625, 17: 0.0560, 18: 0.0500,
@@ -109,7 +97,6 @@ stainless_steel = {
     25: 0.0220, 26: 0.0190, 27: 0.0170, 28: 0.0160, 29: 0.0140, 30: 0.0130,
     31: 0.0110
 }
-
 aluminum = {
     6: 0.1620, 7: 0.1443, 8: 0.1285, 9: 0.1144, 10: 0.1019, 11: 0.0907,
     12: 0.0808, 13: 0.0720, 14: 0.0641, 15: 0.0570, 16: 0.0508, 17: 0.0450,
@@ -117,14 +104,12 @@ aluminum = {
     24: 0.0200, 25: 0.0180, 26: 0.0170, 27: 0.0140, 28: 0.0126, 29: 0.0113,
     30: 0.0100, 31: 0.0089
 }
-
 zinc = {
     3: 0.0060, 4: 0.0080, 5: 0.0100, 6: 0.0120, 7: 0.0140, 8: 0.0160,
     9: 0.0180, 10: 0.0200, 11: 0.0240, 12: 0.0280, 13: 0.0320, 14: 0.0360,
     15: 0.0400, 16: 0.0450, 17: 0.0500, 18: 0.0550, 19: 0.0600, 20: 0.0700,
     21: 0.0800, 22: 0.0900, 23: 0.1000, 24: 0.1250
 }
-
 AWG = {  # American Wire Gauge, also known as the Brown and Sharpe gauge
     -3: 0.46, -2: 0.4096, -1: 0.3648, 0: 0.3249, 1: 0.2893, 2: 0.2576,
     3: 0.2294, 4: 0.2043, 5: 0.1819, 6: 0.162, 7: 0.1443, 8: 0.1285, 9:
@@ -137,7 +122,6 @@ AWG = {  # American Wire Gauge, also known as the Brown and Sharpe gauge
     0.0025, 43: 0.0022, 44: 0.002, 45: 0.00176, 46: 0.00157, 47: 0.0014,
     48: 0.00124
 }
-
 hypodermic_needles = {  # OD in inches
     6: 0.2030, 7: 0.1800, 8: 0.1650, 9: 0.1480, 10: 0.1340, 11: 0.1200,
     12: 0.1090, 13: 0.0950, 14: 0.0830, 15: 0.0720, 16: 0.0650, 17:
@@ -145,7 +129,6 @@ hypodermic_needles = {  # OD in inches
     23: 0.0253, 24: 0.0223, 25: 0.0203, 26: 0.0183, 27: 0.0163, 28:
     0.0143, 29: 0.0133, 30: 0.0123, 31: 0.0103
 }
-
 stubs_iron_wire = {
     # From https://www.engineeringtoolbox.com/standard-gauges-d_1345.html
     -3: 0.454, -2: 0.425, -1: 0.38, 0: 0.34, 1: 0.3, 2: 0.284, 3: 0.259,
@@ -156,7 +139,6 @@ stubs_iron_wire = {
     29: 0.013, 30: 0.012, 31: 0.01, 32: 0.009, 33: 0.008, 34: 0.007,
     35: 0.005, 36: 0.004
 }
-
 Birmingham_iron_wire = {
     # From https://www.engineeringtoolbox.com/standard-gauges-d_1345.html
     -3: 0.454, -2: 0.425, -1: 0.38, 0: 0.34, 1: 0.3, 2: 0.284, 3: 0.259,
@@ -167,7 +149,6 @@ Birmingham_iron_wire = {
     29: 0.013, 30: 0.012, 31: 0.01, 32: 0.009, 33: 0.008, 34: 0.007,
     35: 0.005, 36: 0.004,
 }
-
 Washburn_and_Moen_steel_wire = {
     # From https://www.engineeringtoolbox.com/standard-gauges-d_1345.html
     -6: 0.49, -5: 0.462, -4: 0.431, -3: 0.394, -2: 0.363, -1: 0.331,
@@ -179,7 +160,6 @@ Washburn_and_Moen_steel_wire = {
     32: 0.013, 33: 0.012, 34: 0.01, 35: 0.0095, 36: 0.009, 37: 0.0085,
     38: 0.008, 39: 0.0075, 40: 0.007
 }
-
 music_wire = {
     # From https://www.engineeringtoolbox.com/standard-gauges-d_1345.html
     -5: 0.004, -4: 0.005, -3: 0.006, -2: 0.007, -1: 0.008, 0: 0.009,
@@ -190,7 +170,6 @@ music_wire = {
     27: 0.067, 28: 0.071, 29: 0.075, 30: 0.08, 31: 0.085, 32: 0.09,
     33: 0.095
 }
-
 stubs_steel_wire = {
     # From https://www.engineeringtoolbox.com/standard-gauges-d_1345.html
     1: 0.227, 2: 0.219, 3: 0.212, 4: 0.207, 5: 0.204, 6: 0.201, 7: 0.199,
@@ -200,7 +179,6 @@ stubs_steel_wire = {
     28: 0.139, 29: 0.134, 30: 0.127, 31: 0.12, 32: 0.115, 33: 0.112, 34: 0.11,
     35: 0.108, 36: 0.106, 37: 0.103, 38: 0.101, 39: 0.099, 40: 0.097,
 }
-
 nylon_twine = {
     # From https://l-36.com/twine_size.php
     # I've read there are at least two size series in use and there are
@@ -209,7 +187,6 @@ nylon_twine = {
     0.052, 18: 0.060, 21: 0.067, 24: 0.073, 30: 0.078, 36: 0.085, 42:
     0.092, 60: 0.116, 72: 0.125
 }
-
 def Dump():
     '''Dump the sheet metal gauges to stdout.  This is used to prepare the
     tables for inclusion in this document.  The output will be a dictionary
@@ -318,7 +295,6 @@ Dimension in inches (mm)
     Others("stainless_steel", 4)
     Others("aluminum", 5)
     Others("zinc", 6)
-
 def WrenchSizes():
     print("\n{:^70s}".format("Wrench Sizes"))
     inch_sizes = (list(frange("3/16", "17/16", "1/16", include_end=True)) +
@@ -355,7 +331,6 @@ def WrenchSizes():
     else:
         for i in Columnize(results):
             print(i)
-
 def Get(gauge):
     if isinstance(gauge, str):
         return gauge
@@ -363,7 +338,6 @@ def Get(gauge):
         return negative_gauges[gauge]
     else:
         return str(gauge)
-
 def Print(dictionary, name, nl=True, custom=None):
     header, s = "Size  inches   mm", []
     print("{:^70s}".format(name))
@@ -383,7 +357,6 @@ def Print(dictionary, name, nl=True, custom=None):
         print(i)
     if nl:
         print()
-
 if __name__ == "__main__": 
     # Dump these gauges to stdout
     print("In the following, -1 means 00, -2 means 000, etc.\n")

@@ -1,3 +1,4 @@
+#∞test∞# ignore #∞test∞#
 atomic_mass = {
     # From https://gist.github.com/Rhomboid/5994999
     # Downloaded Tue 12 Aug 2014 02:23:51 PM

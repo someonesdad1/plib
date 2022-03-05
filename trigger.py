@@ -1,41 +1,40 @@
 '''
+Finds trigger strings in text files
 
-Provides the Trigger class that will find trigger strings in text files.
-Run as a script to see an example.
+    Run as a script to see an example.
 
-The basic purpose is to provide the ability to find and update "trigger"
-strings in a file.  An example of a trigger string in a python file
-might be 
+    The basic purpose is to provide the ability to find and update
+    "trigger" strings in a file.  An example of a trigger string in a
+    python file might be 
 
-    #∞license∞#
-    # Licensed under the Open Software License version 3.0.
-    # See http://opensource.org/licenses/OSL-3.0.
-    #∞license∞#
+        #∞license∞#
+        # Licensed under the Open Software License version 3.0.
+        # See http://opensource.org/licenses/OSL-3.0.
+        #∞license∞#
 
-To find this and similar trigger strings, you'd use the following code:
+    To find this and similar trigger strings, you'd use the following code:
 
-    import pathlib
-    t = Trigger()
-    p = pathlib.Path("myscript.py")
-    t(p)
+        import pathlib
+        t = Trigger()
+        p = pathlib.Path("myscript.py")
+        t(p)  # Trigger.__call__
 
-The last statement reads the file's text in and parses the trigger
-strings.  The Trigger class is derived from dict, so the names of the
-trigger strings are the keys of the dict and the value for the key
-"license" is the text between the two occurrences of "#∞license∞#".
+    The last statement reads the file's text in and parses the trigger
+    strings.  The Trigger class is derived from dict, so the names of the
+    trigger strings are the keys of the dict and the value for the key
+    "license" is the text between the two occurrences of "#∞license∞#".
 
-You can change the text between the trigger strings:
+    You can change the text between the trigger strings:
 
-    t["license"] = new_license_text
+        t["license"] = new_license_text
 
-and call t.write() to write the information back to the file.
+    and call t.write() to write the information back to the file.
 '''
-
+#∞test∞# ignore #∞test∞#
 import pathlib
 import re
 from pdb import set_trace as xx 
 P = pathlib.Path
-
 class Trigger(dict):
     def __new__(cls, start="#∞", end="∞#", allowed="[A-Za-z0-9_]"):
         '''The trigger string will be the string X between the start and
@@ -112,19 +111,16 @@ class Trigger(dict):
             trig = f"{self.start}{trigger}{self.end}"
             repl = f"{trig}{self[trigger]}{trig}"
             self.text = r.sub(repl, self.text)
-
         #xx Need to test write functionality
         print("New text")
         pp(self.text)
         exit()
-        
     # Disable other dict methods
     def get(self, key, default=None): raise self.not_allowed
     def pop(self, key, default=None): raise self.not_allowed
     def popitem(self): raise self.not_allowed
     def setdefault(self, key, default=None): raise self.not_allowed
     def update(self, other=None): raise self.not_allowed
-
 if __name__ == "__main__": 
     from pprint import pprint as pp
     from lwtest import raises

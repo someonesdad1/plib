@@ -14,6 +14,7 @@ location of the extra spaces rather than starting at the beginning of
 the line.  Justify PNP to 79 spaces and you'll see why.
 
 '''
+#∞test∞# ignore #∞test∞#
 if 1:
     from pdb import set_trace as xx 
     from collections import deque, defaultdict

@@ -4,6 +4,7 @@
 *.ps
 *.bak
 *.orig
+*.0test
 
 .local_profile
 .p

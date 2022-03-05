@@ -1,6 +1,7 @@
 '''
 Print table of strength of Samson double braid polyester rope
 '''
+#∞test∞# ignore #∞test∞#
 if 1:   # Imports
     import sys
     from fractions import Fraction

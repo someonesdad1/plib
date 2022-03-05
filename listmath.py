@@ -2,6 +2,7 @@
 This scripts lets you look up or show all of the math functions in math
 and cmath modules.
 '''
+#∞test∞# ignore #∞test∞#
 import sys
 from columnize import Columnize
 from collections import namedtuple, defaultdict

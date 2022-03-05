@@ -16,7 +16,7 @@ if 1:  # Copyright, license
     # had to do a lot of trimming (as of Mar 2022, it's down to 386 files.
     # Still too many.  :^)
     #∞what∞#
-    #∞test∞# #∞test∞#
+    #∞test∞# ignore #∞test∞#
     pass
 if 1:   # Standard modules
     import getopt

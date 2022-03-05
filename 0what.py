@@ -13,7 +13,7 @@ if 1:  # Copyright, license
     # <utility> Show the 'what' strings for python scripts.  These are
     # the strings in each script describing the purpose of the script.
     #∞what∞#
-    #∞test∞# #∞test∞#
+    #∞test∞# ignore #∞test∞#
     pass
 if 1:   # Imports
     # Standard library modules

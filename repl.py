@@ -159,6 +159,7 @@ if 1:   # Standard imports
     # you want to see), so you don't see all the annoying digits common
     # in floating point calculations.
     #∞what∞#
+    #∞test∞# ignore #∞test∞#
     from atexit import register
     from collections import defaultdict
     import code

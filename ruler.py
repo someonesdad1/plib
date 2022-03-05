@@ -1,19 +1,13 @@
 '''
 Return a ruler for ASCII printing
-
-Run as a script for a demo.
+    Run as a script for a demo
 '''
-
+#∞test∞# ignore #∞test∞#
 # Copyright (C) 2009, 2021 Don Peterson
 # Contact:  gmail.com@someonesdad1
-
-#
 # Licensed under the Open Software License version 3.0.
 # See http://opensource.org/licenses/OSL-3.0.
-#
-
 import os
-
 class Ruler(object):
     '''Return ruler strings.  Initialize with either an integer or
     ones/tens strings.  Call the object to get a ruler string; if the
@@ -87,7 +81,6 @@ class Ruler(object):
         # Reduce so we don't get a second line because of the newline
         columns -= 1
         return columns
-
 if __name__ == "__main__":
     import sys
     r = Ruler()

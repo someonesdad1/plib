@@ -22,9 +22,8 @@ Other policies enforced by this script are:
 
     * The python files and modules must either be plain ASCII text or
       UTF-8 encoded.
-
 '''
-
+#∞test∞# ignore #∞test∞#
 if 1:   # Standard imports
     import getopt
     import io

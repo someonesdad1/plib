@@ -29,7 +29,7 @@ if 1:  # Copyright, license
     # <math> Make simple math equations from the command line using
     # Unicode.
     #∞what∞#
-    #∞test∞# #∞test∞#
+    #∞test∞# ignore #∞test∞#
     pass
 if 1:   # Imports
     import re

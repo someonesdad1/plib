@@ -83,7 +83,7 @@ if 1:  # Copyright, license
     # <programming> Draw linear scales with tick marks and labels.
     # Requires the g.py module for generating PostScript.
     #∞what∞#
-    #∞test∞# #∞test∞#
+    #∞test∞# ignore #∞test∞#
     pass
 if 1:   # Imports
     import sys

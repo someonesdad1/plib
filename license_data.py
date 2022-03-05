@@ -2,7 +2,7 @@
 This module contains the text of various software licenses.  They are
 encapsulated using the License class, which provides various features.
 '''
-
+#∞test∞# ignore #∞test∞#
 import collections
 import difflib
 import hashlib

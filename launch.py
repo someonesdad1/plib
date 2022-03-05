@@ -13,7 +13,7 @@ if 1:  # Copyright, license
     # <utility> Launch files with their registered applications.  Works
     # on cygwin/Linux/Windows.
     #∞what∞#
-    #∞test∞# #∞test∞#
+    #∞test∞# ignore #∞test∞#
     pass
 if 1:   # Imports
     import platform

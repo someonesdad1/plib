@@ -16,7 +16,7 @@ if 1:  # Copyright, license
     #∞what∞#
     # <utility> Replace license statements in files
     #∞what∞#
-    #∞test∞# #∞test∞#
+    #∞test∞# ignore #∞test∞#
     pass
 if 1:   # Imports
     from pdb import set_trace as xx
