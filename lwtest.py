@@ -248,7 +248,7 @@ if 1:   # Core functionality
                         GetTime(stop_time - start_time), 
                         python_version))
         if stream and not quiet:
-            stream.write(output + nl)
+            print(output, file=stream)
         if nomsg:
             return fail_count
         else:

@@ -15,7 +15,7 @@ if 1:  # Copyright, license
     #   See http://opensource.org/licenses/OSL-3.0.
     #∞license∞#
     #∞what∞#
-    # Estimate number of significant figures
+    # <programming> Estimate number of significant figures in a number
     #∞what∞#
     #∞test∞# run #∞test∞#
     pass

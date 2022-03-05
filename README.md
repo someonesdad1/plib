@@ -100,8 +100,8 @@ in the module file or are located in the test directory.  Each module
 file has a special string that tells 0test.py how to run its tests.
 If you run 'python 0test.py', you'll get a summary report of passes and
 failures.  Only failed tests will print out messages.  Use the -v option
-to see each test's output.  Use -V to also see the files that weren't
-run because they don't have an associated test.
+to see each test's output.  The default output tells you the files that
+fail self-tests and need to be worked on.
 
 # History
 

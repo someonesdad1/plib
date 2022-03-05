@@ -155,7 +155,9 @@ if __name__ == "__main__":
     def Test_GetDirs():
         dirs = GetDirs("/plib")
         Assert(ii(dirs, list))
-        for i in "/plib/pgm /plib/test /plib/walker".split():
+        # These two directories are present for sure.  Others may be
+        # present, but they're aren't core at the moment.
+        for i in "/plib/pgm /plib/test".split():
             assert(P(i) in dirs)
         Assert(list(sorted(set(dirs))) == dirs)     # No duplicates
     def Test_GetFiles():

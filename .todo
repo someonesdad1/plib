@@ -2,13 +2,9 @@
   fix broken tests, and then check into the repository with a formal
   revision tag.
 
-    - timer.py needs a what string etc.  It also has a todo item that I
-      think should be fixed, if possible.
-    - '0what.py -m *.py' shows files missing a category:  8 in /plib.  Fix
-      these, then run it in pgm (225 files there need work).
-        - The README.md should indicate the set of files in /plib and
-          /plib/pgm that I consider the most important (i.e., which means
-          they get used a lot).
+    - The README.md should indicate the set of files in /plib and /plib/pgm
+      that get used a lot.
+    - Use '0test -L .' to see all the files without a test trigger string.
     - Things to bring in
         - ts.py
         - g library
