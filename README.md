@@ -11,104 +11,76 @@ for.  Most of the stuff is licensed under the Open Software License version
 * The `pgm` directory holds scripts that are separate programs.
 * The `test` directory holds scripts that test the modules in `plib`.
 
-# Most useful
+# Python
 
-In this section, I'll list the items in this directory and below that I use
-a lot.
+As of this writing (March 2022), this stuff has been tested with python 3.7
+in a cygwin environment on Windows 10.  I quit supporting and using python
+2.7 about a decade ago, although many of the scripts in /plib/pgm were
+first developed as python 2 applications.
 
-* pgm/prun.py
-    - I use this to monitor a python script I'm working on and when the
-      file's modification time changes (or a trigger file's mod time when
-      you don't want to trigger on the script file itself), the script is
-      run, allowing you to see the results without leaving your editor
-      window.  
-* clr.py
-    - Generates ANSI escape codes to color text in terminal output.
-      Contains two functions to highlight matches in regular expressions,
-      which helps develop such expressions more rapidly.  Use prun.py to
-      make it even faster.
-* lwtest.py
-    - Lightweight test runner adapted from a nice tool by Raymond
-      Hettinger.  I use this for all testing of python scripts.
+In 2022, I'm tentatively planning to move to a different development
+machine (a MacBook), then upgrade the old Windows box to a late version of
+Windows 10 or 11 and load the Windows Subsystem for Linux.  Then I should
+have the ability to develop and test these python scripts on
+Mac/Windows/Linux boxes.
 
-# Conventions
-
-## Python version
-
-The python files are intended to be used with python 3.  I started working
-on building this repository in May of 2021 and my current python version is
-3.7.10, so that's what things were tested with.
-
-## Coding style
-
-You will probably not like my coding style because I vertically compress
-things as much as possible by removing all blank lines.  This is because
-screen vertical real estate is the most precious resource.  Because of the
-editor I use, I can use this compressed form comfortably (it's a folding
-editor and I fold on indentation).  I can usually see the whole file's
-contents when it's folded in a few tens of lines, which makes navigation
-easy (the 'if 1:' lines cause the folding and the comments give the section
-a name).  Since this will probably bug most people, you can use a code
-formatter to put things back to a more conventional form.  Except for this
-vertical compression, I mostly follow the formatting guidelines of PEP-8
-(see https://www.python.org/dev/peps/pep-0008/).
-
-An advantage of this vertically compressed form is that I can insert a
-single blank line where I'm working in the file.  The editor I use has
-commands to move to the next or previous paragraph, which is an empty line.
-Thus, I can fold the text, go to another section and look at the code, then
-get back to my working spot with one key press without having to e.g.
-remember a position or assign a location.  It's very efficient.  To jump
-between the two sections, I insert another blank line.  This is faster than
-switching to another tab page (in my editor, the former takes one keystroke
-and switching tab pages takes two).
-
-In Feb 2022, I added a second 24 inch monitor, so now I use two 4k
-monitors.  One of these is in portrait mode, giving me a long editor window
-that has 80 to 160 lines, depending on the magnification.  This allows for
-comfortable editing sessions.  This portrait monitor is also nice for web
-browsing catalog pages.
-
-# Environment
-
-I work in a cygwin environment on a Windows computer, so most of this stuff
-is organized around a POSIX environment.  In particular, I spend most of my
-day in bash shell windows, using an editor and running python scripts.
-Many of the scripts use the ANSI escape sequences provided by the color.py
-module.  I originally developed this on a Linux box, then adapted it to
-work under cygwin.  In March 2022, I wrote the clr.py module, a replacement
-for the aging color module.  The clr.py module works with mintty under
-cygwin (an excellent 24-bit color terminal emulator) and on the Mac's
-Terminal.app, an 8-bit color emulator.
-
-The scripts are also heavily biased towards POSIX-style paths.
+My coding style is vertically compressed; use a formatter like black
+(https://github.com/psf/black) to recover more normal vertical formatting.
+I use 'black -S -l 75' to format, followed by the script pgm/rbl.py to
+remove the blank lines.
 
 # Tools
 
 ## 0what.py
 
-The 0what.py script can be run with the arguments `*.py` and you'll get
-a short description of each python file.  These will be organized by 
-topical categories, such as 'programming', 'utility', 'science', 
-'math', 'shop', etc.  This will help you understand the purpose of each of
-the files.
+The 0what.py script can be run with the argument `.` and you'll get a short
+description of each python file in the current directory.  These will be
+organized by categories.
 
 ## 0test.py
 
-This script will run the self tests of the files.  The tests are either
-in the module file or are located in the test directory.  Each module
-file has a special string that tells 0test.py how to run its tests.
-If you run 'python 0test.py', you'll get a summary report of passes and
-failures.  Only failed tests will print out messages.  Use the -v option
-to see each test's output.  The default output tells you the files that
-fail self-tests and need to be worked on.
+This script will run the self tests of the files.  The tests are either in
+the module file or are located in the test directory.  Each module file has
+a special trigger string (see trigger.py) that tells 0test.py how to run
+its tests.  If you run 'python 0test.py', you'll get a summary report of
+passes and failures.  Only failed tests will print out messages.  Use the
+-v option to see each test's output.  The default output tells you the
+files that fail self-tests and need to be worked on.
 
-# History
+# Most useful
 
-Many of the copyright strings in these files are 2014.  That was the year I
-translated many hundreds (actually, over a thousand) of my python scripts
-written from 1998 on to python 3; many of the scripts didn't have dates in
-them, so they got copyrighted in 2014.
+This list contains the things I us a lot.
+
+* pgm/prun.py
+    - I use this to develop python scripts.  When the script's modification
+      time changes by saving the script in the editor window, the script is
+      run, allowing you to see the results without leaving your editor
+      window.  
+* clr.py
+    - Generates ANSI escape codes to color text in terminal output.
+      Contains two functions to highlight matches in regular expressions,
+      which helps develop them more quickly.  Use prun.py to make it even
+      faster.
+* lwtest.py
+    - Lightweight test runner adapted from a nice tool by Raymond
+      Hettinger.  I use this for all testing of python scripts.
+* f.py
+    - Provides flt and cpx types, derived from float and complex,
+      respectively.  Their advantage is that they only show 3 significant
+      figures by default, stopping the typical digit diarrhea with usual
+      float or complex calculations.  This file is still under development,
+      but I use the flt() objects a lot for routine calculations because
+      they are so convenient.  I'd like to get them fully functional with
+      physical units too, but this is a more challenging task.
+* repl.py
+    - A REPL (read, evaluate, print, loop) that replaces the standard
+      python REPL and is my interactive python calculator.  Uses f.py for
+      floats and complex numbers and has math and cmath symbols in scope.
+      I also import the python uncertainties library and the u.py module,
+      so physical calculations using units and uncertainties can be done.
+      In a UNIX-like environment, you have history and command line
+      completion.  flt and cpx numbers are printed out in color to help
+      identify the types.
 
 # Feedback
 

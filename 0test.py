@@ -42,7 +42,6 @@ if 1:   # Custom imports
     from wrap import wrap, dedent, indent, Wrap
     from columnize import Columnize
     from timer import Timer
-    import color as C
     import clr
     import trigger
     import dpstr
@@ -52,10 +51,12 @@ if 1:   # Custom imports
 if 1:   # Global variables
     P = pathlib.Path
     # Set up for color printing
-    c = clr.Clr(bits=4, override=True)
-    c.red = c("lred")
-    c.cyn = c("lcyn")
-    c.grn = c("lgrn")
+    c = clr.Clr(bits=24, override=True)
+    c.red = c("lred")   # For failures
+    c.cyn = c("lcyn")   # Directories
+    c.grn = c("lgrn")   # For files we'll run
+    c.yel = c("lyel")   # For files we'll run
+    c.gry = c("wht")    # For ignored files
 if 1:   # Utility
     def Error(msg, status=1):
         print(msg, file=sys.stderr)
@@ -167,8 +168,14 @@ class TestRunner:
         files = [i for i in files if i[1] is not None]
         n = max([len(str(i)) for i, j in files])
         print(f"{c.cyn}Directory = {dir.resolve()}{c.n}")
+        # We'll color code things based on trig:
+        #    Green:  run, --test, list of test/ files
+        #    Gray:   ignore
         for file, trig in files:
-            print(f"  {file!s:{n}s} {trig}")
+            if trig == "ignore":
+                print(f"  {c.gry}{file!s:{n}s} {trig}{c.n}")
+            else:
+                print(f"  {c.yel}{file!s:{n}s} {c.grn}{trig}{c.n}")
     def Run(self, file, additional=None):
         if file.suffix == ".py":
             cmd = [sys.executable, str(file)]

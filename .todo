@@ -9,6 +9,13 @@
         - ts.py
         - g library
 
+* rbl.py:  I've tried the black formatter and would like to standardize on
+  my python files being gotten with 'black -S'.  However, the only thing I
+  don't like is the blank lines between functions.  Develop an rbl.py
+  script that can read python code and remove the blank lines between
+  functions.  The key need is to avoid doing this in multiline strings.
+  Then my code can be formatted by 'black -S *.py; rbl *.py'.
+
 * mintty:  See if there's an option somewhere to choose the characters that
   stop a selection when double clicking.  I use this feature a lot to get
   symbol names to the clipboard, but mintty by default includes the '='
