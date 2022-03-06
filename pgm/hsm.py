@@ -62,7 +62,6 @@ if 1:   # Global variables
     # http://machinistindex.com/Metalworking_index_2000.txt.  MD5 hash is
     # 5e4ac70ff2eb81007e3c32b7b6fb7d57.
     # NOTE:  these links are defunct as of 6 Jul 2021.
-
     mi = dedent('''
     ! Joe Landau's Metalworking Index 2000 Edition, covering 
     ! "Home Shop Machinist" through 1999
@@ -3787,7 +3786,6 @@ if 1:   # Global variables
     Zero Set Micrometer Dial	GROSJEAN, W. C.	PiM-Jun.'90,7
     Zinc Aluminum Alloy Sleeve Bearings for a Dividing head Upgrade	CLARKE, THEODORE M	HSM'99:S/O  60
     ''')
-
     mi_key = (
         "HSM    Home Shop Machinist",
         "HTIM   Hey Tim, I gotta tell ya...",
@@ -3798,7 +3796,6 @@ if 1:   # Global variables
         "PiM    Projects in Metal",
         "TMBR   The Machinist's Bedside Reader #1, #2, or #3",
     )
-
     # File:  Machinists_Workshop_Article_Index.csv Downloaded Mon 17 Feb
     # 2020 07:49:09 PM from
     # http://www.machinistsworkshop.net/resources/article-index/.  MD5 hash
@@ -5671,7 +5668,6 @@ if 1:   # Global variables
     "Tips  & Tricks: Another Type of Threaded Rivet","Howie Grunert","Tips & Tricks","MW Vol. 33 No. 1 Feb/Mar 20","43"
     "Tips  & Tricks: Cutting a Radius","Aaron Kohler","Tips & Tricks","MW Vol. 33 No. 1 Feb/Mar 20","43"
     ''')
-
     # File:  The_Home_Shop_Machinist_Article_Index.csv Downloaded Mon 17 Feb
     # 2020 07:49:09 PM from
     # http://www.homeshopmachinist.net/resources/article-index/.  MD5 hash
@@ -8405,7 +8401,6 @@ if 1:   # Global variables
     "Making Custom Washers and Spacers","R.G. Sparber","General Machining Knowledge","HSM Vol. 39 No. 2 Mar/Apr 2020","56"
     "The Old Retired Shop Teacher: Take the Muscle Out of Lathe Chuck Handling","Roger Taylor","lathes","HSM Vol. 39 No. 2 Mar/Apr 2020","60"
     ''')
-
     '''
     Formats of different publication entries: [x] is line number in raw
     data.  This could stand some regularlizing, along with author names and

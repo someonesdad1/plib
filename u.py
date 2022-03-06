@@ -1879,7 +1879,7 @@ class U(object):
         # implied exponentiation ("m2" meaning "m**2", allowing '^' for
         # '**', and letting a sequence of space characters represent a
         # multiplication.  These shortcuts are processed by using the
-        # tokenize module to break the string expr into its tokens;
+        #2670 tokenize module to break the string expr into its tokens;
         # substitute as needed for the syntactical shortcuts, then
         # reassembling the components into the actual string to be
         # evaluated.  If strict is True, these shortcuts aren't allowed.

@@ -10,11 +10,16 @@
         - g library
 
 * rbl.py:  I've tried the black formatter and would like to standardize on
-  my python files being gotten with 'black -S'.  However, the only thing I
-  don't like is the blank lines between functions.  Develop an rbl.py
-  script that can read python code and remove the blank lines between
-  functions.  The key need is to avoid doing this in multiline strings.
-  Then my code can be formatted by 'black -S *.py; rbl *.py'.
+  my python files being gotten with 'black -S -l 75'.  However, the only
+  thing I don't like is the blank lines between functions.  Develop an
+  rbl.py script that can read python code and remove the blank lines
+  between functions.  The key need is to avoid doing this in multiline
+  strings.  Then my code can be formatted by 'black -S *.py; rbl *.py'.
+
+* get_import.py:  scans all python files to find import lines to make an
+  index file.  Then you can see a report of all files that use a particular
+  import.  The line number will be saved and an interactive mode lets you
+  launch the editor to see a particular symbol.
 
 * mintty:  See if there's an option somewhere to choose the characters that
   stop a selection when double clicking.  I use this feature a lot to get

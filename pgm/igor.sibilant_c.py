@@ -1433,7 +1433,6 @@ wretchedness wristwatch yacht yachting yachtsman yack yardstick yucca
 yuck yucky zilch zircon zirconium zodiacal zoological zucchini zwieback
 zydeco
 '''
-
 def GetCWords():
     'Print words that have "c" in middle'
     # Change punctuation to space
@@ -1447,7 +1446,6 @@ def GetCWords():
             words.append(word)
     for i in sorted(set(words)):
         print(i)
-
 def MatchCap(s, t):
     '''Return t capitalized as s is.  s and t are expected to be
     sequences of characters.  The returned sequence matches the type of
@@ -1475,5 +1473,4 @@ def MatchCap(s, t):
         else:
             out.append(t[i])
     return ''.join(out) if ii(t, str) else type(t)(out)
-
 GetCWords()
