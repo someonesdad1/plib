@@ -2,9 +2,7 @@
 Remove blank lines from python scripts
     I use this tool in combination with the black formatter to format my
     python code.  I use 'black -S -l 75' followed by this script to remove
-    the blank lines between functions/methods.  This is to get the most
-    code possible in an editor window, as vertical real estate is the most
-    precious.
+    the blank lines between functions/methods.
 '''
  
 if 1:  # Copyright, license
@@ -16,17 +14,20 @@ if 1:  # Copyright, license
     #   See http://opensource.org/licenses/OSL-3.0.
     #∞license∞#
     #∞what∞#
-    # <utility> Remove blank lines from python scripts
+    # <utility> Removes empty lines from python scripts; writes back to the
+    # file in place.
     #∞what∞#
     #∞test∞# #∞test∞#
     pass
 if 1:   # Standard imports
+    from io import BytesIO
+    from collections import deque, namedtuple
+    from token import tok_name
+    from tokenize import tokenize
     import getopt
     import os
     import pathlib
     import sys
-    import tokenize as T
-    from io import BytesIO
     from pdb import set_trace as xx
 if 1:   # Custom imports
     from wrap import wrap, dedent
@@ -40,8 +41,15 @@ if 1:   # Utility
     def Usage(status=1):
         print(dedent(f'''
         Usage:  {sys.argv[0]} [options] [file1 [file2...]]
-          Remove blank lines from python scripts.  Leaves multiline strings
-          and comments alone.  The files are modified in place.
+
+          Remove empty lines from python files.  The files are modified in
+          place.  Use "-" as a file to process stdin and print its
+          processed data to stdout.
+
+          Note:  an empty line is determined by python's tokenizer.  A line
+          containing space, tab, linefeed, return, or formfeed characters
+          is considered emtpy.
+
         Options:
             -n      Dry run:  show files that will be modified
         '''))
@@ -62,49 +70,79 @@ if 1:   # Utility
                 Usage(status=0)
         return args
 if 1:   # Core functionality
-    pass
+    class RemoveEmptyLines:
+        '''Machinery to remove empty lines from a file.  An empty line is
+        one that contains only whitespace.
+        Usage:
+            rbl = RemoveEmptyLines(file)    # Tokenizes the file 
+            bool(rbl)   --> True means there are blank lines to remove
+            rbl.fix()   --> Removes blank lines and writes file
+        '''
+        # If the following class variable is True, then any line with only
+        # whitespace on it is considered a blank line.  Thus, if
+        # remove_blank_lines is True, a line is removed if line.strip() is
+        # empty.  Otherwise, the line must be truly empty to be removed.
+        remove_blank_lines = False
+        def __init__(self, file, ws_is_empty=False):
+            '''file is either a pathlib.Path object or "-" for stdin.  If
+            ws_is_empty is True, then a line with any whitespace on it is
+            considered empty.
+            '''
+            if file != "-":
+                if not file.exists() and not file.is_file():
+                    raise ValueError(f"'{file}' is bad file")
+            self.file = file
+            self.lines = self.FindBlankLines()
+        def FindBlankLines(self):
+            '''Return a list of integers representing the line numbers s
+            that are blank (1-based numbering).  
+            '''
+            # Tokenize the file.  If you are interested in learning how
+            # this is done, first run 'python -m tokenize' on a file and
+            # see how the tokenize module does this.
+            if self.file == "-":
+                s = sys.stdin.read()            # Read stdin as a string
+                stream = BytesIO(s.encode())    # Make it a bytes stream
+                with BytesIO(s.encode()) as f:
+                    tokens = deque(tokenize(f.readline))
+            else:
+                with open(self.file, 'rb') as f:
+                    tokens = deque(tokenize(f.readline))
+            # Make container have (linenumber, token_name) entries where
+            # token_name is either ITEM or NL (for a newline).
+            Entry = namedtuple("Entry", "n name".split())
+            container = deque()
+            while tokens:
+                token = tokens.popleft()
+                n = token.start[0]  # 1-based line number
+                name = "NL" if token.type in (4, 56) else "ITEM"
+                e = Entry(n, name)
+                container.append(e)
+                #print(e) #xx
+            # Toss out ITEM/NL pairs using state machine.  Left over NL
+            # items are blank line candidates.  Later, the line is only
+            # removed if it is truly empty.
+            blanklines = deque()
+            last = None
+            candidate = False
+            while container:
+                e = container.popleft()
+                if e.name == "ITEM":
+                    last = "ITEM"
+                    candidate = False
+                    continue
+                elif e.name == "NL":
+                    if candidate:
+                        blanklines.append(e.n)  # Save line number
+                    else:
+                        if last == "ITEM":
+                            candidate = True
+                            continue
+            blanklines = list(blanklines)
+            # The list blanklines is now the list of blank lines
+            print(' '.join([str(i) for i in blanklines]))
 if __name__ == "__main__":
     d = {}      # Options dictionary
-    args = ParseCommandLine(d)
-    ''' 
-    How to do this:
-
-    Put this in a file a.py
-        if 1:   # Imports
-            import time
-
-        a = 7
-
-    Then run 'p -m tokenize a.py' and capture output.   This is what you
-    get:
-
-        0,0-0,0:            ENCODING       'utf-8'        
-        1,0-1,2:            NAME           'if'           
-        1,3-1,4:            NUMBER         '1'            
-        1,4-1,5:            OP             ':'            
-        1,8-1,17:           COMMENT        '# Imports'    
-        1,17-1,18:          NEWLINE        '\n'           
-        2,0-2,4:            INDENT         '    '         
-        2,4-2,10:           NAME           'import'       
-        2,11-2,15:          NAME           'time'         
-     *  2,15-2,16:          NEWLINE        '\n'           
-     *  3,0-3,1:            NL             '\n'           
-        4,0-4,0:            DEDENT         ''             
-        4,0-4,1:            NAME           'a'            
-        4,2-4,3:            OP             '='            
-        4,4-4,5:            NUMBER         '7'            
-        4,5-4,6:            NEWLINE        '\n'           
-        5,0-5,0:            ENDMARKER      ''             
-
-    Note the pattern NEWLINE followed by NL.  This is the clue where a
-    double line exists.  Clearly, line 3 needs to be removed.
-    '''
-
-    # See u.py for tokenizing stuff
-    lines = open(args[0]).readlines()
-    for line in lines:
-        s = BytesIO(line.encode("UTF-8")).readline
-        g = T.tokenize(s)
-        print(line, end="")
-        for toknum, tokval, _, _, _ in g:
-            print("  ", toknum, tokval)
+    files = ParseCommandLine(d)
+    for file in files:
+        rbl = RemoveEmptyLines(P(file) if file != "-" else "-")
