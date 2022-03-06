@@ -1,5 +1,10 @@
 '''
-Module to find empty lines in a stream
+Module to find empty lines in a bytes stream
+    Example of use on a python file:
+        file = "pythonfile.py"
+        bytes_stream = open(file, "rb")
+        empty_lines = GetEmptyLineList(bytes_stream)
+        print(empty_lines)
 '''
  
 if 1:  # Copyright, license
@@ -31,12 +36,11 @@ if 1:   # Global variables
     P = pathlib.Path
     ii = isinstance
 
-def GetEmptyLineList(bytes_stream, debug=False):
+def GetEmptyLineList(bytes_stream):
     '''Return a tuple of 1-based line numbers that python's tokenizer
     considers empty lines.  An empty line can contain one or more
     whitespace characters in string.whitespace except for the vertical
     tab.  Empty lines inside multiline strings are not considered empty.
-    Set debug to True to have the stream's tokens printed to stdout.
     The stream will be closed at exit.
     '''
     # Tokenize the file.  If you are interested in learning how this is
@@ -55,8 +59,6 @@ def GetEmptyLineList(bytes_stream, debug=False):
         name = nl if token.type in (4, 56) else item
         e = Entry(linenumber, name)
         container.append(e)
-        if debug:
-            print(e)
     # Toss out ITEM/NL pairs using a state machine.  Left over NL items are
     # blank line candidates.  Later, the line is only removed if it is
     # truly empty.
@@ -83,7 +85,26 @@ if 0:
     help(s)
     exit()
 if __name__ == "__main__": 
-    file = "a.py"
-    stream = open(file, "rb")
+    # Run a basic test case
+    from textwrap import dedent
+    from io import BytesIO
+    from lwtest import Assert
+    # Note the stream doesn't have to contain syntactically-correct python;
+    # it's only being tokenized.
+    s = dedent("""
+    '''
+    Arbitrary text
+    '''
+    if 1:  # A comment
+    # Comment with a blank line
+
+    # Comment with a blank line
+
+    import os
+
+    a = kjdf kdf jdkieoroj dfkuj
+    print(a)
+    """.rstrip()[1:])
+    stream = BytesIO(s.encode())
     ln = GetEmptyLineList(stream)
-    print(ln)
+    Assert(ln == (6, 8, 10))
