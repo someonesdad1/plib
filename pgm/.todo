@@ -9,6 +9,10 @@
         - ts.py
         - g library
 
+* clr.py:  Check that it uses isatty().  Also need to insert a clause to
+  use when the clr.py script is missing so that function calls are
+  swallowed.  pgm/fits.py is a good first example.
+
 * rbl.py:  I've tried the black formatter and would like to standardize on
   my python files being gotten with 'black -S -l 75'.  However, the only
   thing I don't like is the blank lines between functions.  Develop an

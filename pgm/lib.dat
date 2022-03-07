@@ -963,19 +963,40 @@ print("StringIO contains '%s'" % out.getvalue())
 
 color ; Utility ; python
 Code to swallow color module calls
-# Try to import the color.py module; if not available, the script
-# should still work (you'll just get uncolored output).
-try:
-    import color
-    have_color = True
-except ImportError:
-    # Make a dummy color object to swallow function calls
-    class Dummy:
-        def fg(self, *p, **kw): pass
-        def normal(self, *p, **kw): pass
-        def __getattr__(self, name): pass
-    color = Dummy()
-    have_color = False
+if 1:
+    # Try to import the clr.py module (more up-to-date than color.py);
+    # if not available, the script should still work (you'll just get
+    # uncolored output).
+    try:
+        import clr
+        color = clr.Clr(bits=4)
+        have_color = True
+    except ImportError:
+        # Make a dummy color object to swallow function calls
+        class Dummy:
+            def __call__(self, *p, **kw):
+                return ""
+            def __getattr__(self, name):
+                return ""
+        color = Dummy()
+        have_color = False
+else:
+    # Try to import the color.py module; if not available, the script
+    # should still work (you'll just get uncolored output).
+    try:
+        import color
+        have_color = True
+    except ImportError:
+        # Make a dummy color object to swallow function calls
+        class Dummy:
+            def fg(self, *p, **kw):
+                pass
+            def normal(self, *p, **kw):
+                pass
+            def __getattr__(self, name):
+                pass
+        color = Dummy()
+        have_color = False
 
 @@--------------------------------------------------------------------
 

@@ -744,7 +744,7 @@ class Num(flt):
         self.High values set from a and b.  Otherwise, the value is set
         from a.  Note a will be of the form e.g. '1 nm', i.e., a number and
         a length unit.
-
+ 
         The value of a Num is the length in m.  When a range is given, the
         mean of the endpoints is the value.
         '''

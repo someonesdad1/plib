@@ -99,7 +99,7 @@ def ManPage():
         This is an estimate of the current that will cause the copper wire
         to glow because it's hot enough to radiate in the visible range.
         It predicts 29 A for 24 ga copper wire, and this is pretty close,
-        as I've run such wires at 30 and they are glowing red.
+        as I've run such wires at 30 A and they are glowing red.
 
     Significant digits
         The default number of significant digits for the script is 2.  You can

@@ -57,7 +57,7 @@ if 1:  # Copyright, license
     #∞what∞#
     # Calculate shaft/hole fits
     #∞what∞#
-    #∞test∞# #∞test∞#
+    #∞test∞# ignore #∞test∞#
     pass
 if 1:   # Imports
     import sys
@@ -68,21 +68,21 @@ if 1:   # Custom imports
     from wrap import dedent
     from f import flt
     from u import u, ParseUnit
-    # Try to import the color.py module; if not available, the script
-    # should still work (you'll just get uncolored output).
+    # Try to import the clr.py module (more up-to-date than color.py);
+    # if not available, the script should still work (you'll just get
+    # uncolored output).
     try:
-        import color
+        import clr
+        c = clr.Clr(bits=4)
         have_color = True
     except ImportError:
         # Make a dummy color object to swallow function calls
         class Dummy:
-            def fg(self, *p, **kw):
-                pass
-            def normal(self, *p, **kw):
-                pass
+            def __call__(self, *p, **kw):
+                return ""
             def __getattr__(self, name):
-                pass
-        color = Dummy()
+                return ""
+        c = Dummy()
         have_color = False
 if 1:   # Global variables
     fits = (
@@ -111,7 +111,7 @@ if 1:   # Global variables
         ("Steel", flt(12e-6)),
     )
     # Colors
-    interference, clearance = color.lred, color.lgreen
+    c.int, c.cl, c.msg = c("lred"), c("lgrn"), c("lcyn")
 def Usage(d, status=1):
     name = sys.argv[0]
     print(dedent(f'''
@@ -123,14 +123,12 @@ def Usage(d, status=1):
       You can include a length unit on the command line.  The command
       line can include python expressions; the math module's symbols are
       all in scope.  
-
     Example: I have a 3/8 inch diameter steel piece I wish to be a
       tight fit into a hole so that I can subsequently cross-drill it
       for a spring pin.  I run the script with the parameters "3/8 inch"
       and choose the results for a "Drive" fit under "Shaft size is
       basic".  I have to bore the hole 0.0005 inches under 3/8 inches to
       get the desired interference.
-
     Options
       -h    Print more extensive help.
       -m n  Use material factor n (defaults to 1).
@@ -213,7 +211,7 @@ def HoleBasic(D, d):
     f = d["-m"]
     shaft_size_in = D
     shaft_size_mm = D*in2mm
-    print("Hole size is basic:")
+    print(f"{c.msg}Hole size is basic:{c.n}")
     hole_size_in = float(D)
     hole_size_mm = in2mm*D
     print('''
@@ -230,16 +228,15 @@ def HoleBasic(D, d):
         s = "  %-18s %10.4f %10.3f" % (name, shaft_size_in, shaft_size_mm)
         print(s, end=" ")
         s = "%8.1f %8.2f" % (clearance_mils, clearance_mm)
-        color.fg(interference if clearance_mm < 0 else clearance)
-        print(s)
-        color.normal()
+        t = f"{c.int if clearance_mm < 0 else c.cl}"
+        print(f"{t}{s}{c.n}")
 def ShaftBasic(D, d):
     '''D is hole size in inches.
     '''
     f = d["-m"]
     shaft_size_in = float(D)
     shaft_size_mm = in2mm*D
-    print("\nShaft size is basic:")
+    print(f"\n{c.msg}Shaft size is basic:{c.n}")
     print('''
                              Hole size          Clearance
                            in        mm        mils     mm
@@ -254,9 +251,8 @@ def ShaftBasic(D, d):
         s = "  %-18s %10.4f %10.3f" % (name, hole_size_in, hole_size_mm)
         print(s, end=" ")
         s = "%8.1f %8.2f" % (clearance_mils, clearance_mm)
-        color.fg(interference if clearance_mm < 0 else clearance)
-        print(s)
-        color.normal()
+        t = f"{c.int if clearance_mm < 0 else c.cl}"
+        print(f"{t}{s}{c.n}")
 def CalculateFit(cmdline, D, d):
     '''hole_size_inches is diameter of hole in inches.  d is the
     settings dictionary.
@@ -269,11 +265,8 @@ def CalculateFit(cmdline, D, d):
     print("         = %.3f" % Dmm, "mm")
     if have_color:
         print(" "*20, "Color coding:  ", end="  ")
-        color.fg(interference)
-        print("interference", end="  ")
-        color.fg(clearance)
-        print("clearance")
-        color.normal()
+        print(f"{c.int}interference", end="  ")
+        print(f"{c.cl}clearance{c.n}")
     else:
         print()
     HoleBasic(D, d)
@@ -291,7 +284,7 @@ def Temperatures(D, d):
     clearance_in = f*(hole_size_in - shaft_size_in)
     print(dedent(f'''
      
-    Temperature differential for shrink fit:
+    {c.msg}Temperature differential for shrink fit:{c.n}
       Material    alpha, 1/MK            °C         °F
       --------    -----------           -----      -----'''))
     for material, alpha in thermal_expansion:

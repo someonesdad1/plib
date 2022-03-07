@@ -680,6 +680,8 @@ if 1:   # Classes
             24-bit terminals, numbers on [0, 255] for 8-bit terminals, and
             short color names like "blk", "red", etc. for 4-bit terminals.
             '''
+            if not self._on:
+                return ""
             if TERM == "8-bit":
                 assert(fg is None or ii(fg, int))
                 assert(bg is None or ii(bg, int) or bg is None)
@@ -782,9 +784,9 @@ if 1:   # Classes
             # Reset to default color
             self.n = self._cn.n
             # Turn on output unless not to terminal
-            self._on = True
-            if not sys.stdout.isatty() and not self._override:
-                self._on = False
+            self._on = False
+            if sys.stdout.isatty() or self._override:
+                self._on = True
         def print(self, *p, **kw):
             '''Print arguments with newline, reverting to normal color
             after finishing.
