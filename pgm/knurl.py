@@ -80,6 +80,6 @@ if __name__ == "__main__":
     The maximum diameter increase is the estimate in inches of how much larger
     a fully-formed knurl will be over the starting diameter.  [X] is the
     integer number of knurl pitches around the circumference.
-    ''')
+    '''))
     for i in reversed(range(len(knurls))):
         PrintKnurlTable(knurls[i])

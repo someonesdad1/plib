@@ -21,6 +21,11 @@
   import.  The line number will be saved and an interactive mode lets you
   launch the editor to see a particular symbol.
 
+* black has a colored diff.  Peruse its code to see if it's liftable.
+
+* /tools:  convert the whole directory to git and put it on github.  Make
+  it public after vetting all the contents.
+
 * mintty:  See if there's an option somewhere to choose the characters that
   stop a selection when double clicking.  I use this feature a lot to get
   symbol names to the clipboard, but mintty by default includes the '='
