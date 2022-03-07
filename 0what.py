@@ -29,15 +29,16 @@ if 1:   # Custom imports
     import trigger
     from wrap import wrap, dedent, indent, Wrap
     from lwtest import run, raises, assert_equal, Assert
-    import color as C
+    import clr
     from columnize import Columnize
 if 1:   # Global variables
     P = pathlib.Path
     rcat = re.compile(r"<(.*?)>")  # Find category strings
     categories = set()
     EntryType = namedtuple("EntryType", "p what category")
-    grn = C.fg(C.lgreen, s=1)
-    norm = C.normal(s=1)
+    c = clr.Clr(24, override=True)
+    c.sep = c("lgrn")
+    c.py = c("lcyn")
 if 1:   # Utility
     def Error(msg, status=1):
         print(msg, file=sys.stderr)
@@ -162,7 +163,7 @@ if 1:   # Core functionality
         def Header(s):
             width = int(os.environ.get("COLUMNS", 79)) - 5
             h = "-"*((width - len(s) - 1)//2)
-            return f"{grn}{h} {s.capitalize()} {h}{norm}"
+            return f"{c.sep}{h} {s.capitalize()} {h}{c.n}"
         di = defaultdict(list)
         for item in files:
             di[item.category] += [item]
@@ -171,7 +172,7 @@ if 1:   # Core functionality
             print(Header(key))
             for item in di[key]:
                 p = item.p
-                print(f"{p!s}")
+                print(f"{c.py}{p!s}{c.n}")
                 print(wrap(item.what))
     def ShowMissingCategory(files):
         missing = []

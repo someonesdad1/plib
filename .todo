@@ -8,6 +8,13 @@
     - Things to bring in
         - ts.py
         - g library
+    - Failing tests
+        - test/asciify_test.py 
+        - color.py 
+        - decimalmath.py 
+        - tf.py 
+        - u.py 
+        - wire.py 
 
 * clr.py:  Check that it uses isatty().  Also need to insert a clause to
   use when the clr.py script is missing so that function calls are
@@ -714,4 +721,9 @@ Low priority
 * ts.py
     * 'ts.py -m' doesn't work.
 
-* /pylib/
+* /pylib/pgm/readability/indict.py
+    * Looks like an interesting tool.  It should use a reasonable
+      dictionary by default and print the tokens out in columns for each
+      file.
+
+vim: set sw=2

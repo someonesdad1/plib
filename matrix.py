@@ -2376,7 +2376,7 @@ class Complex(complex):
         numbers if it is not None.  I also like to see the real and
         imaginary components displayed as integers if they are equal to
         integers after rounding.  1i should be displayed as i.
-
+ 
         Note:  a matrix can have its sigdig attribute set but
         Matrix.SigDig can be None.  In such a case, the calling code can
         set the Complex instance's sigdig attribute to the number of
@@ -2597,15 +2597,15 @@ if 1: # Utility functions
             B:  vector(*[1, 2, 3])
             C:  vector([1, 2, 3])
             D:  vector("1 2 3")
-
+ 
         The following forms return the column vector [1 2 3].t
             A:  vector(1, 2, 3, c=True)
             B:  vector(*[1, 2, 3], c=True)
             C:  vector([1, 2, 3], c=True)
             D:  vector("1 2 3", c=True)
-
+ 
         vector(1) and vector(1, c=True) both return the 1x1 matrix [1].
-
+ 
         vector(2, fill=0) returns [0 0]
         '''
         LT = (list, tuple)

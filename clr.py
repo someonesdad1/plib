@@ -624,7 +624,7 @@ if 1:   # Classes
         definitions, use c.reset().  To see the styles you've defined, use
         print(c).
         '''
-        def __init__(self, bits=None, override=False):
+        def __init__(self, bits=4, override=False):
             '''If override is True, always emit escape codes.  The normal
             behavior is not to emit escape codes unless stdout is a terminal.
             bits must be None, 4, 8, or 24.  If None, the model is chosen
@@ -893,12 +893,13 @@ if 1:   # Printing regular expression matches
 
 if __name__ == "__main__":
     # Demonstrate module's output
-    c = Clr(override=True)
-    c.hdr = c("orchid", attr="rv")
+    bits = 4
+    c = Clr(bits=bits, override=True)
     width = int(os.environ["COLUMNS"])
     def TestCases():
         # Not exhaustive, but will test some key features.  Tested only
         # under mintty 3.5.2.
+        c = Clr(bits=24, override=True)
         c.m = c("violetred")    # Test case headings
         def TestLoad():
             'Test Clr.load() from file, stream and string'
@@ -966,17 +967,17 @@ if __name__ == "__main__":
         T = "blk  blu grn  cyn  red  mag  yel  wht".split()
         w, t = 4, "text"
         W = 44
-        print(f"{TERM} terminal")
-        if TERM == "24-bit":
+        print(f"Running on a {TERM} terminal")
+        if bits == 24:
             Tbl("Dim text, dim background", False, False)
             Tbl("Bright text, dim background", True, False)
             Tbl("Dim text, bright background", False, True)
             Tbl("Bright text, bright background", True, True, last=False)
             c.out(c.n)
-        elif TERM == "4-bit":
+        elif bits == 4:
             Tbl("Dim text", False, False)
             Tbl("Bright text", True, False, last=False)
-        elif TERM == "8-bit":
+        elif bits == 8:
             T = range(256)
             N = width//4        # Items that can fit per line
             use_white = set([int(i) for i in '''
@@ -1003,6 +1004,8 @@ if __name__ == "__main__":
         - regexp matches
         - Unicode in sub/superscripts (e.g., Hz**(1/2)
         '''
+        c = Clr(bits=24, override=True)
+        c.hdr = c("orchid", attr="rv")
         def Header():
             c.print(dedent(f'''
             {c.hdr}Demonstration of some clr.py features{c.n}
@@ -1096,7 +1099,7 @@ if __name__ == "__main__":
           sub{f("sb")}script   {c.n}sb       super{f("sp")}script  {c.n}sp
         '''.rstrip()))
     def Help():
-        if TERM != "24-bit":
+        if bits != 24:
             return
         print(dedent(f'''
  
@@ -1112,7 +1115,7 @@ if __name__ == "__main__":
             c.out(f"{escseq}{name} ")
         print()
     args = sys.argv[1:]
-    if args and TERM == "24-bit":
+    if args and bits == 24:
         if "attr" in args:
             Attributes()
         if "all" in args:
