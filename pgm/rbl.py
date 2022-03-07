@@ -1,4 +1,9 @@
 '''
+TODO
+    - Don't remove blank lines between comments, as black would never put
+      them back, so the test strategy used will fail.  Besides, those
+      comments were separated for a reason.
+
 Remove blank lines from python scripts
 '''
  
@@ -19,6 +24,7 @@ if 1:   # Standard imports
     from collections import deque
     from io import BytesIO
     import getopt
+    import hashlib
     import os
     import pathlib
     import subprocess
@@ -27,6 +33,9 @@ if 1:   # Standard imports
 if 1:   # Custom imports
     from wrap import wrap, dedent
     from fel import GetEmptyLines
+    if 0:
+        import debug
+        debug.SetDebugger()
 if 1:   # Global variables
     P = pathlib.Path
     ii = isinstance
@@ -70,19 +79,6 @@ if 1:   # Utility
             elif o == "--test":
                 Test()
         return args
-if 1:   # Testing code
-    def Test():
-        '''Test stratgy:  
-            - Make a copy of this file
-            - Get its hash
-            - Reformat it with black
-            - Run this script on it
-            - Reformat it again with black
-            - Get its hash
-            - Verify the two hashes match
-        This will help ensure this script didn't change the source file
-        significantly.
-        '''
 class RemoveEmptyLines:
     '''Remove empty lines from a file.  An empty line is one that
     contains only whitespace.  Usage:
@@ -96,8 +92,8 @@ class RemoveEmptyLines:
         to (line number, token name, and token string).
         '''
         self.file = file
-        if file == "-":
-            self.stdin = True
+        self.stdin = True if file == "-" else False
+        if self.stdin:
             s = sys.stdin.read()            # Read stdin as a string
             self.lines = s.split("\n")
             stream = BytesIO(s.encode())    # Make it a bytes stream
@@ -105,7 +101,6 @@ class RemoveEmptyLines:
             if not file.exists() and not file.is_file():
                 raise ValueError(f"'{file}' is bad file")
             stream = open(self.file, 'rb')
-            self.stdin = False
         self.empty_lines = GetEmptyLines(stream, debug)
     def __bool__(self):
         return bool(self.empty_lines)
@@ -145,6 +140,70 @@ class RemoveEmptyLines:
             print(s, end="")
         else:
             open(self.file, "w").write('\n'.join(lines))
+if 1:   # Testing code
+    def Test():
+        '''Test stratgy:  
+            - Make a copy of this file
+            - Reformat it with black
+            - Get its hash
+            - Run this script on it to remove blank lines
+            - Reformat it again with black
+            - Get its hash
+            - Verify the two hashes match
+        This will help ensure this script didn't change the source file
+        significantly.
+
+        Note:  this test isn't quite as trivial as it sounds.  For example,
+        if you have a python script with a blank line between two comments,
+        black won't touch this blank line but rbl.py removes it.  Then the 
+        files compared as below won't match.
+        '''
+        def Hash(file):
+            h = hashlib.sha256()
+            h.update(open(file, "rb").read())
+            return h.hexdigest()
+        script = sys.argv[0]
+        black = "c:/cygwin/bin/black"
+        this_code = open(script).read()
+        # Put this code into temporary files
+        tempfile1 = script + ".test.tmp1"     # Temporary file
+        tempfile2 = script + ".test.tmp2"     # Temporary file
+        open(tempfile1, "w").write(this_code)
+        open(tempfile2, "w").write(this_code)
+        exit()#xx
+        # Make the black commands
+        blackcmd1 = [black, "-q", "-S", "-l 75", tempfile1]
+        blackcmd2 = [black, "-q", "-S", "-l 75", tempfile2]
+        # Run black on tempfile1
+        rc = subprocess.run(blackcmd1)
+        st = rc.returncode
+        if st:
+            raise RuntimeError(f"black on tempfile1 returned {st}")
+        first_hash = Hash(tempfile1)
+        # Run black on tempfile2
+        rc = subprocess.run(blackcmd2)
+        st = rc.returncode
+        if st:
+            raise RuntimeError(f"black on tempfile2 returned {st}")
+        # Run this script on tempfile2
+        cmd = [sys.executable, script, tempfile2]
+        rc = subprocess.run(cmd)
+        st = rc.returncode
+        if st:
+            raise RuntimeError(f"{script} on tempfile2 returned {st}")
+        # Run black on tempfile2 again
+        rc = subprocess.run(blackcmd2)
+        st = rc.returncode
+        if st:
+            raise RuntimeError(f"2nd black on tempfile2 returned {st}")
+        second_hash = Hash(tempfile2)
+        # Test passes if hashes are equal
+        if second_hash != first_hash:
+            print(f"{script}'s test failed")
+            print(f" First  hash {first_hash}")
+            print(f" second hash {second_hash}")
+            exit(1)
+        os.unlink(file)
 if __name__ == "__main__":
     d = {}      # Options dictionary
     files = ParseCommandLine(d)
