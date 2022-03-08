@@ -509,7 +509,7 @@ def ChassisAmpacity(dia):
     else:
         D = flt(float(dia), "mm")
     assert(ii(D, flt))
-    Dmax = AWG(-3).to("mm") if have_flt else flt(AWG(-3), "inch").to("mm")
+    Dmax = flt(AWG(-3)*25.4, "mm")
     if D > Dmax:
         raise ValueError(f"Wire diameter must be <= {Dmax}")
     if D >= flt("1.3 mm"):
@@ -523,8 +523,6 @@ if 0:
 if __name__ == "__main__": 
     import sys
     from lwtest import run, raises, assert_equal, Assert
-    from wire import MaterialData, MaxCurrentDensity, Ampacity
-    from wire import EquivalentArea, AWG, Preece, Onderdonk
     from pdb import set_trace as xx
     x = flt(0)
     def TestMaterialData():
@@ -566,13 +564,12 @@ if __name__ == "__main__":
         dn, dm, r = EquivalentArea(12, 30)
         assert_equal(r, 65.29)
     def TestAWG():
-        f = lambda x: flt(x, units="inch") if have_flt else lambda x: x
-        assert_equal(AWG(-3), f(0.46))
-        assert_equal(AWG(12), f(0.0808))
-        assert_equal(AWG(18), f(0.0403))
-        assert_equal(AWG(24), f(0.0201))
-        assert_equal(AWG(40), f(0.00314))
-        assert_equal(AWG(56), f(0.0004919))
+        assert_equal(AWG(-3), flt(0.46))
+        assert_equal(AWG(12), flt(0.0808))
+        assert_equal(AWG(18), flt(0.0403))
+        assert_equal(AWG(24), flt(0.0201))
+        assert_equal(AWG(40), flt(0.00314))
+        assert_equal(AWG(56), flt(0.0004919))
         # Check that we get exceptions for bad values
         raises(ValueError, AWG, -4)
         raises(ValueError, AWG, 1.1)

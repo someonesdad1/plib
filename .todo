@@ -9,7 +9,6 @@
         - ts.py
         - g library
     - Failing tests
-        - u.py 
         - wire.py 
         - Might not want to fix yet
             - test/asciify_test.py 
