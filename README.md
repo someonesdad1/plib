@@ -52,9 +52,13 @@ passes and failures.  Only failed tests will print out messages.  Use the
 -v option to see each test's output.  The default output tells you the
 files that fail self-tests and need to be worked on.
 
+As of this writing (7 Mar 2022), there's one test that fails and some
+warning messages from a few other tests.  I'll eventually get around to
+fixing things, but such things aren't a priority.
+
 # Most useful
 
-This list contains the things I us a lot.
+This list a few of the modules/scripts I us a lot.
 
 * pgm/prun.py
     - I use this to develop python scripts in a terminal window .  When the
@@ -70,7 +74,10 @@ This list contains the things I us a lot.
     - Generates ANSI escape codes to color text in terminal output.
       Contains two functions to highlight matches in regular expressions,
       which helps to develop regular expressions more quickly.  Use prun.py
-      to make it even faster.
+      to make it even faster.  This is for POSIX machines like cygwin/bash,
+      MacOS, and Linux.  If you're on Windows, there's already a library to
+      help with getting colored output in DOS terminal windows (it works by
+      making calls to the Windows DLL rather than emitting escape codes).
 
 * lwtest.py
     - Lightweight test runner adapted from a nice tool by Raymond
