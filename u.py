@@ -2619,7 +2619,7 @@ if __name__ == "__main__":
     def Test_fromto():
         # We'll have slight roundoff issues 12 vs 12.000000000000002, so we
         # don't use the default eps.
-        tol = 2e-15
+        tol = 4e-15
         assert_equal(fromto(1, "ft", "in"), 12, abstol=tol)
         assert_equal(fromto(1, "in", "ft"), 1/12, abstol=tol)
     def TestParseUnit():
@@ -2888,7 +2888,7 @@ if __name__ == "__main__":
         assert_equal(screwy*recip_screwy, nodim)
     def Test_find_unit():
         L = set(u.find_unit(u.dim("m/s")))
-        M = set(["knot", "mph", "light", "fpm", "fps", "kph"])
+        M = set(['kph', 'mph', 'fpm', 'fps', 'light', 'sfpm', 'knot'])
         assert_equal(L, M)
         L = set(u.find_unit(u.dim("therm")))
         M = set(["Wh", "erg", "cal", "Whr", "CAL", "calorie", "kcal", "btu",
