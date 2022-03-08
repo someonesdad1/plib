@@ -1,5 +1,14 @@
 # plib
 
+## Status
+
+I made this repository public on 7 Mar 2022.  I'll slowly add to it over
+time and fix/maintain some of the stuff.  My intent is that this stuff will
+remain here for a few years after I've died or when I turn its maintenance
+over to a friend who said he'd be the caretaker.  By then any content of
+interest to others will probably have made its way out into the world.
+
+# Introduction
 This repository is a collection of python stuff I've written since 1998.
 Feel free to browse and use what suits your needs.  There are quite a few
 files, use the tools (see below) to help understand what these files are
