@@ -833,8 +833,8 @@ if __name__ == "__main__":
             for s in (pi(), -pi()):
                 ffp, fip = math.modf(float(s))
                 fp, ip = modf(s)
-                Assert(fp == f2d(ffp))
-                Assert(ip == f2d(fip))
+                Assert(fp == +f2d(ffp))
+                Assert(ip == +f2d(fip))
     def Test_remainder():
         'Use randomly-generated numbers'
         n, x = 100, 1000

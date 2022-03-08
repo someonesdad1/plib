@@ -3,6 +3,11 @@ import sys
 from lwtest import run, raises
 from asciify import Asciify
 from pdb import set_trace as xx 
+import clr
+
+c = clr.Clr(4)
+c.e = c("lgrn")
+c.g = c("lred")
 
 def TestAsciify1():
     '''Unfortunately, I didn't document where this set of test cases
@@ -95,7 +100,8 @@ def TestAsciify():
     p = pathlib.Path("/pylib/asciify.test")
     s = p.read_text()
     print("asciify_test.py fails on these characters:")
-    print("char:  expected, got, hex(ord(char))")
+    print(f"char:  {c.e}expected     {c.g}got{c.n}   hex(ord(char))")
+    w = 8
     for line in s.split("\n"):
         if not line.strip():
             continue
@@ -103,7 +109,7 @@ def TestAsciify():
         for i in chars:
             got = Asciify(i)
             if got != expected:
-                print(f"{i}:  {expected}, {got}, {hex(ord(i))}")
+                print(f"{i:6s}:  {c.e}{expected:^{w}s} {c.g}{got:^{w}s}{c.n} {hex(ord(i))}")
 
 if __name__ == "__main__":
     if len(sys.argv) == 1:

@@ -9,16 +9,11 @@
         - ts.py
         - g library
     - Failing tests
-        - test/asciify_test.py 
-        - color.py 
-        - decimalmath.py 
         - tf.py 
         - u.py 
         - wire.py 
-
-* clr.py:  Check that it uses isatty().  Also need to insert a clause to
-  use when the clr.py script is missing so that function calls are
-  swallowed.  pgm/fits.py is a good first example.
+        - Might not want to fix yet
+            - test/asciify_test.py 
 
 * rbl.py:  I've tried the black formatter and would like to standardize on
   my python files being gotten with 'black -S -l 75'.  However, the only
@@ -32,7 +27,8 @@
   import.  The line number will be saved and an interactive mode lets you
   launch the editor to see a particular symbol.
 
-* black has a colored diff.  Peruse its code to see if it's liftable.
+* Formatter:  I don't think black is worth keeping.  Spend some time with
+  yapf to see if it can be tuned to what I like.
 
 * /tools:  convert the whole directory to git and put it on github.  Make
   it public after vetting all the contents.

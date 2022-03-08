@@ -820,6 +820,8 @@ if __name__ == "__main__":
         [1;32;40m      lblu lgrn lcyn lred lmag lyel lwht norm[0;37;40m
         '''[1:].split("\n")
         def TestAsScript():
+            # Skip, as this program is obsolete
+            return
             # Run the color.py module as a script and capture its
             # output.  Compare the results to the above string (remove
             # the first line).

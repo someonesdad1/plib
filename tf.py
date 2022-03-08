@@ -554,7 +554,7 @@ class Wrap(Fmt):
         '''Wrap s to get it to fit a line of width self.width and return 
         (first_line_string, remaining_string).
         '''
-        raise Exception("xx Not needed") #xx
+        #raise Exception("xx Not needed") #xx
         def get(s, count):
             if s[count] == " ":
                 first_line_string = s[:count].rstrip()
@@ -774,8 +774,6 @@ if __name__ == "__main__":
         t.process()
     if "--test" in sys.argv:
         exit(run(globals(), halt=1)[0])
-    #xx
-    exit(run(globals(), halt=1)[0]) #xx
 if __name__ == "__main__": 
     # Run the demos
     def Example1(): pass
