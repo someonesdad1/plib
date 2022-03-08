@@ -1,8 +1,6 @@
 '''
 TODO:
 
-----------------------------------------------------------------------
-
 * Consider making an input datafile a chunk of executable python.  Each
   of the objects would then be instantiated with lines like 
 
@@ -51,6 +49,7 @@ TODO:
 * Add bolt, screw, washer, nut, lockwasher objects.  Have them default
   to being made from steel.
 
+----------------------------------------------------------------------
 Script to calculate the mass and volume of an object composed of basic
 geometrical shapes.  You define a datafile that describes the
 composite object; the script reads this datafile and prints out a
@@ -59,7 +58,9 @@ report giving the volume and mass of each component.
 See the mass.pdf file for documentation.
 
 The included densities are derived from the values I given in the
-density.zip package (see http://code.google.com/p/hobbyutil).
+density.zip package (see
+https://someonesdad1.github.io/hobbyutil/project_list.html).
+
 '''
 if 1:  # Copyright, license
     # These "trigger strings" can be managed with trigger.py
