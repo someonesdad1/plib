@@ -1,340 +1,358 @@
-* Update the repository:  run 0test.py, make sure all tests are up to date,
-  fix broken tests, and then check into the repository with a formal
-  revision tag.
+----------------------------------------------------------------------
+main
+    * Update the repository:  run 0test.py, make sure all tests are up to
+      date, fix broken tests, and then check into the repository with a
+      formal revision tag.
 
-    - The README.md should indicate the set of files in /plib and /plib/pgm
-      that get used a lot.
-    - Use '0test -L .' to see all the files without a test trigger string.
-    - Things to bring in
-        - ts.py
-        - g library
-    - Failing tests
-        - Might not want to fix yet
-            - test/asciify_test.py 
+        - The README.md should indicate the set of files in /plib and
+          /plib/pgm that get used a lot.
+        - Use '0test -L .' to see all the files without a test trigger
+          string.
+        - Things to bring in
+            - ts.py
+            - g library
+        - Failing tests
+            - Might not want to fix yet
+                - test/asciify_test.py 
 
-* rbl.py:  I've tried the black formatter and would like to standardize on
-  my python files being gotten with 'black -S -l 75'.  However, the only
-  thing I don't like is the blank lines between functions.  Develop an
-  rbl.py script that can read python code and remove the blank lines
-  between functions.  The key need is to avoid doing this in multiline
-  strings.  Then my code can be formatted by 'black -S *.py; rbl *.py'.
+    * rbl.py:  I've tried the black formatter and would like to standardize
+      on my python files being gotten with 'black -S -l 75'.  However, the
+      only thing I don't like is the blank lines between functions.
+      Develop an rbl.py script that can read python code and remove the
+      blank lines between functions.  The key need is to avoid doing this
+      in multiline strings.  Then my code can be formatted by 'black -S
+      *.py; rbl *.py'.
 
-* get_import.py:  scans all python files to find import lines to make an
-  index file.  Then you can see a report of all files that use a particular
-  import.  The line number will be saved and an interactive mode lets you
-  launch the editor to see a particular symbol.
+    * get_import.py:  scans all python files to find import lines to make
+      an index file.  Then you can see a report of all files that use a
+      particular import.  The line number will be saved and an interactive
+      mode lets you launch the editor to see a particular symbol.
 
-* Formatter:  I don't think black is worth keeping.  Spend some time with
-  yapf to see if it can be tuned to what I like.
+    * Formatter:  I don't think black is worth keeping.  Spend some time
+      with yapf to see if it can be tuned to what I like.
 
-* /tools:  convert the whole directory to git and put it on github.  Make
-  it public after vetting all the contents.
+    * /tools:  convert the whole directory to git and put it on github.
+      Make it public after vetting all the contents.
 
-* mintty:  See if there's an option somewhere to choose the characters that
-  stop a selection when double clicking.  I use this feature a lot to get
-  symbol names to the clipboard, but mintty by default includes the '='
-  character, which screws things up.  The set of characters should be valid
-  C/C++/python symbol names that also include '.'.
+    * mintty:  See if there's an option somewhere to choose the characters
+      that stop a selection when double clicking.  I use this feature a lot
+      to get symbol names to the clipboard, but mintty by default includes
+      the '=' character, which screws things up.  The set of characters
+      should be valid C/C++/python symbol names that also include '.'.
 
-* iso.py:  Should take time arguments in either s or tm structures.
+    * iso.py:  Should take time arguments in either s or tm structures.
 
-* columnize.py:  write a Decolumnize() function that cat take the
-  columnized output like '0what.py -m *.py' produces in /plib/pgm and
-  converts it to a list of lines with one object per line.  For files it
-  can't figure out, add an option to show the columns where breaks should
-  be made:  -c "8,14,22,35" and use -1 for 1-based numbering.
+    * columnize.py:  write a Decolumnize() function that cat take the
+      columnized output like '0what.py -m *.py' produces in /plib/pgm and
+      converts it to a list of lines with one object per line.  For files
+      it can't figure out, add an option to show the columns where breaks
+      should be made:  -c "8,14,22,35" and use -1 for 1-based numbering.
 
-* help:  Consolidate the help text I use into one directory.  Eliminate
-  make and the C programs; convert everything to python.  Look at
-  hierarchically organizing the access with most-used stuff first and
-  seldom-used stuff hidden.  Do partial topic matches with the invocation
-  and use a command line option to do searches of the records.  
+    * help:  Consolidate the help text I use into one directory.  Eliminate
+      make and the C programs; convert everything to python.  Look at
+      hierarchically organizing the access with most-used stuff first and
+      seldom-used stuff hidden.  Do partial topic matches with the
+      invocation and use a command line option to do searches of the
+      records.  
 
-    - Look at somehow organizing things so that it can run as a project in
-      Notepad++, which will mean others are more likely to use it.
+        - Look at somehow organizing things so that it can run as a project
+          in Notepad++, which will mean others are more likely to use it.
 
-* Finish the new clr.py script and get it installed; delete the clr
-  directory.
+    * Finish the new clr.py script and get it installed; delete the clr
+      directory.
 
-* Write a script that estimates the electrical energy and time needed to
-  heat up a room in our house.  Focus on the shop and garage.  The primary
-  input number will be the starting temperature in °F.  An option can
-  change the final temperature, which defaults to 70 °F. 
+    * Write a script that estimates the electrical energy and time needed
+      to heat up a room in our house.  Focus on the shop and garage.  The
+      primary input number will be the starting temperature in °F.  An
+      option can change the final temperature, which defaults to 70 °F. 
 
-* pysh:  A python shell.  This could be core C code that provides the
-  fast implementations of things a shell needs.  Then python would be
-  bundled with this as a scripting language.  This lets users write scripts
-  that do shell functionality, as the interface would be to python commands
-  with the proper syntax.
+    * pysh:  A python shell.  This could be core C code that provides the
+      fast implementations of things a shell needs.  Then python would be
+      bundled with this as a scripting language.  This lets users write
+      scripts that do shell functionality, as the interface would be to
+      python commands with the proper syntax.
 
-  https://libraries.io/pypi/pysh-lib might be worth taking a look at.
+        https://libraries.io/pypi/pysh-lib might be worth taking a look at.
 
-* pgm/ds.py:  Normally, the output is sorted by filename.  Add a -d option
-  that sorts by date, with most recent file last.
+    * pgm/ds.py:  Normally, the output is sorted by filename.  Add a -d
+      option that sorts by date, with most recent file last.
 
-* pgm/indent.py:  define a smaller set of styles.  The built-in styles
-  of astyle can still be supported, but not explicitly on the command line.  
+    * pgm/indent.py:  define a smaller set of styles.  The built-in styles
+      of astyle can still be supported, but not explicitly on the command
+      line.  
 
-    * Here are some ideas for special styles:
-        * compressed:  2 space indents, python style
-        * production:  4 space indents, bsd style
+        * Here are some ideas for special styles:
+            * compressed:  2 space indents, python style
+            * production:  4 space indents, bsd style
 
-    * Also get it to work as a filter so '!Gindent' works in vi.  This
-      means the usage needs to be given with the -h option, so the examples
-      need to be changed to -H.
-        * This could instead be done when the script is invoked with the
-          name 'ind', which would always default to my preferred method.
+        * Also get it to work as a filter so '!Gindent' works in vi.  This
+          means the usage needs to be given with the -h option, so the
+          examples need to be changed to -H.
+            * This could instead be done when the script is invoked with
+              the name 'ind', which would always default to my preferred
+              method.
 
-* pkg.py:  Given a set of files to put into a package (zip file), analyze
-  the thing for C/C++ and python files that are dependencies and include
-  them in the zip file.  This would allow me to share things with others.
+    * pkg.py:  Given a set of files to put into a package (zip file),
+      analyze the thing for C/C++ and python files that are dependencies
+      and include them in the zip file.  This would allow me to share
+      things with others.
 
-* Backup with a NAS
-    * 1 TB WD SSD is $135 from Newegg.  Also have 0.5 and 2 TB.
-    * Spinning hard disks are 1/3rd to 1/4th the price of SSD
-    * NAS info
-        * https://linuxhint.com/best-nas-software-linux/
-            * Amahi
-                * You can install Fedora or Ubuntu and run Amahi from
-                  there.  It's open source.  The faq says they had problems
-                  with ubuntu.
-                * You can use ext4 fs on both the OS and the mounted
-                  drives.
-                * faq http://www.amahi.org/faqhttp://www.amahi.org/faq
-            * Open Media Vault:  Debian-based NAS
-                * https://www.openmediavault.org/download.html
-                * Supports FTP, Samba, NFS, rsync
-                * Supports ext4
-                * Web interface
-            * TrueNAS:  https://www.truenas.com/freenas/
-                * Requires signing up to download
-            * Rockstor
-                * Cent OS Linux distribution
-                * Plug-in system
-                * Can use it as a cloud server
-        * https://gers.from-ct.com/8-best-open-source-nas-operating-systems-for-linux
-            * XigmaNAS:  non-user-friendly web interface
-            * 
-    * ZFS  File system advantageous for NAS systems
-        * https://itsfoss.com/what-is-zfs/,
-          https://en.wikipedia.org/wiki/ZFS,
-          https://www.howtogeek.com/175159/an-introduction-to-the-z-file-system-zfs-for-linux/
-            * The third link shows how to use ext4 for a root disk in
-              ubuntu, then add a zsh filesystem.
-            * This third link gives an excellent example of using the
-              features of zsh.
-                * It explains the RAID-Z setup and that a single disk drive
-                  can die; you just replace it and the system will rebuild
-                  your data.  To lose all your information, two disks have
-                  to die.
-            * https://www.howtogeek.com/272220/how-to-install-and-use-zfs-on-ubuntu-and-why-youd-want-to/https://www.howtogeek.com/272220/how-to-install-and-use-zfs-on-ubuntu-and-why-youd-want-to/
-              tells how it's enabled in ubuntu (it's not installed and
-              enabled by default, but it's officially supported).
-        * Note it's a 128 bit implementation which can manage 1e9 TB.  It
-          used to be called zetabyte file system.
-        * It combines a filesystem with a volume manager
-        * Pooled storage:  add to a pooled drive by adding a new drive
-        * Copy-on-write:  new info doesn't overwrite, it goes to a new
-          block; once finished, metadata is updated.  Result:  if system
-          crashes during write, old data is still there and there's no need
-          to run fsck after a crash.
-        * Snapshots:  allows recovering past versions of a file
-        * Data checksums:  verified on read; if no match, then
-          automatically tries to fix.
-        * RAID-Z has its own implementation, a variation of RAID5.  RAID-Z1
-          needs two disks and a parity drive, Z2 needs 2 drives and 2
-          parity drives, Z3 needs 2 drives and 3 parity.
-            * A downside is that RAID-Z can be expensive because of the
-              needed drives to add storage space
-        * See
-          https://wiki.archlinux.org/title/ZFS/Virtual_disks#Creating_and_Destroying_Zpools
-          for some examples
-        * If you want to use ZFS out of the box, install FreeBSD.
-        * Linux:  https://zfsonlinux.org/
-        * 2 TB 7200 rpm WD HDD $47
-          https://www.newegg.com/blue-wd20ezbx-2tb/p/N82E16822234469?Description=hard%20drive&cm_re=hard_drive-_-22-234-469-_-Product
-          Three of these provide a 2 GB RAID-Z1 drive.
+    * Backup with a NAS
+        * 1 TB WD SSD is $135 from Newegg.  Also have 0.5 and 2 TB.
+        * Spinning hard disks are 1/3rd to 1/4th the price of SSD
+        * NAS info
+            * https://linuxhint.com/best-nas-software-linux/
+                * Amahi
+                    * You can install Fedora or Ubuntu and run Amahi from
+                      there.  It's open source.  The faq says they had
+                      problems with ubuntu.
+                    * You can use ext4 fs on both the OS and the mounted
+                      drives.
+                    * faq http://www.amahi.org/faqhttp://www.amahi.org/faq
+                * Open Media Vault:  Debian-based NAS
+                    * https://www.openmediavault.org/download.html
+                    * Supports FTP, Samba, NFS, rsync
+                    * Supports ext4
+                    * Web interface
+                * TrueNAS:  https://www.truenas.com/freenas/
+                    * Requires signing up to download
+                * Rockstor
+                    * Cent OS Linux distribution
+                    * Plug-in system
+                    * Can use it as a cloud server
+            * https://gers.from-ct.com/8-best-open-source-nas-operating-systems-for-linux
+                * XigmaNAS:  non-user-friendly web interface
+                * 
+        * ZFS  File system advantageous for NAS systems
+            * https://itsfoss.com/what-is-zfs/,
+              https://en.wikipedia.org/wiki/ZFS,
+              https://www.howtogeek.com/175159/an-introduction-to-the-z-file-system-zfs-for-linux/
+                * The third link shows how to use ext4 for a root disk in
+                  ubuntu, then add a zsh filesystem.
+                * This third link gives an excellent example of using the
+                  features of zsh.
+                    * It explains the RAID-Z setup and that a single disk
+                      drive can die; you just replace it and the system
+                      will rebuild your data.  To lose all your
+                      information, two disks have to die.
+                * https://www.howtogeek.com/272220/how-to-install-and-use-zfs-on-ubuntu-and-why-youd-want-to/https://www.howtogeek.com/272220/how-to-install-and-use-zfs-on-ubuntu-and-why-youd-want-to/
+                  tells how it's enabled in ubuntu (it's not installed and
+                  enabled by default, but it's officially supported).
+            * Note it's a 128 bit implementation which can manage 1e9 TB.
+              It used to be called zetabyte file system.
+            * It combines a filesystem with a volume manager
+            * Pooled storage:  add to a pooled drive by adding a new drive
+            * Copy-on-write:  new info doesn't overwrite, it goes to a new
+              block; once finished, metadata is updated.  Result:  if
+              system crashes during write, old data is still there and
+              there's no need to run fsck after a crash.
+            * Snapshots:  allows recovering past versions of a file
+            * Data checksums:  verified on read; if no match, then
+              automatically tries to fix.
+            * RAID-Z has its own implementation, a variation of RAID5.
+              RAID-Z1 needs two disks and a parity drive, Z2 needs 2 drives
+              and 2 parity drives, Z3 needs 2 drives and 3 parity.
+                * A downside is that RAID-Z can be expensive because of the
+                  needed drives to add storage space
+            * See
+              https://wiki.archlinux.org/title/ZFS/Virtual_disks#Creating_and_Destroying_Zpools
+              for some examples
+            * If you want to use ZFS out of the box, install FreeBSD.
+            * Linux:  https://zfsonlinux.org/
+            * 2 TB 7200 rpm WD HDD $47
+              https://www.newegg.com/blue-wd20ezbx-2tb/p/N82E16822234469?Description=hard%20drive&cm_re=hard_drive-_-22-234-469-_-Product
+              Three of these provide a 2 GB RAID-Z1 drive.
 
-* Two of the most common keypresses are ctrl-C and ctrl-V.  These should be
-  assigned to a single easy to access keypress.
+    * Two of the most common keypresses are ctrl-C and ctrl-V.  These
+      should be assigned to a single easy to access keypress.
 
-* A fundamental problem when coding is that a data structure is developed
-  and you start using it in your code.  Then you always have to stop and
-  look around the code to figure out the structures again.  Is there a way
-  to add a utility that documents the structures so e.g. a command line
-  option will print out a succinct summary by the code examining itself?
-  Ideally, this would be just a few lines of code that are easy to remove
-  when done (or, better, leave it in for later maintenance).
+    * A fundamental problem when coding is that a data structure is
+      developed and you start using it in your code.  Then you always have
+      to stop and look around the code to figure out the structures again.
+      Is there a way to add a utility that documents the structures so e.g.
+      a command line option will print out a succinct summary by the code
+      examining itself?  Ideally, this would be just a few lines of code
+      that are easy to remove when done (or, better, leave it in for later
+      maintenance).
 
-* Since flt is essentially done, write a replacement for fpformat.py that 
-  includes its features.
+    * Since flt is essentially done, write a replacement for fpformat.py
+      that includes its features.
 
-* dpmath.py:  This would be a general-purpose module for math calculations.
-    * Types
-        * flt:  derived from float
-        * dec:  derived from Decimal
-        * cpx:  derived from complex
-        * dpx:  two Decimal instances giving a complex number
-    * Math
-        * All math/cmath functions in scope
-        * Work for all types
-        * Special function support if mpmath is available
-    * Try to put essential details in a Base class
-    * Key features
-        * String interpolation only shows a given number of significant
-          figures
-        * The instances are context managers, allowing code like
+    * dpmath.py:  This would be a general-purpose module for math
+      calculations.
+        * Types
+            * flt:  derived from float
+            * dec:  derived from Decimal
+            * cpx:  derived from complex
+            * dpx:  two Decimal instances giving a complex number
+        * Math
+            * All math/cmath functions in scope
+            * Work for all types
+            * Special function support if mpmath is available
+        * Try to put essential details in a Base class
+        * Key features
+            * String interpolation only shows a given number of significant
+              figures
+            * The instances are context managers, allowing code like
 
-            with x:
-                x.n += 3
-                print(x)
+                with x:
+                    x.n += 3
+                    print(x)
 
-          to let you change the number of digits as needed.  Or, define a
-          __call__(self, n=None) to do this without needing a lock.
-        
-        * Infection model
-            * Need a strict attribute in Base.  If True, interoperation
-              with Fractions or floats for dec or dpx is not allowed
-              because of the chance of losing information or adding noise.
-        * Units:  It would be great to make these a mixin, but this is
-          going to be hard.
-        * REPL:  if this can be gotten to work, then the repl I wrote will
-          be a nice command line tool suitable for routine calculations.
-    * Need to coalesce f.py, dpdecimal.py, and decimalmath.py.
+              to let you change the number of digits as needed.  Or, define
+              a __call__(self, n=None) to do this without needing a lock.
+            
+            * Infection model
+                * Need a strict attribute in Base.  If True, interoperation
+                  with Fractions or floats for dec or dpx is not allowed
+                  because of the chance of losing information or adding
+                  noise.
+            * Units:  It would be great to make these a mixin, but this is
+              going to be hard.
+            * REPL:  if this can be gotten to work, then the repl I wrote
+              will be a nice command line tool suitable for routine
+              calculations.
+        * Need to coalesce f.py, dpdecimal.py, and decimalmath.py.
 
-* pgm/ds.py
-    * Store every command and provide a -l option to show the history.
-      This would be useful for remembering previous commands.
+    * pgm/ds.py
+        * Store every command and provide a -l option to show the history.
+          This would be useful for remembering previous commands.
 
-* what.py
-    * Should be able to examine a file and list the dependencies on
-      scripts.  Look at pgm/dep.py and the modulefinder module.  Then
-      what.py should only print out the non-standard modules.
+    * what.py
+        * Should be able to examine a file and list the dependencies on
+          scripts.  Look at pgm/dep.py and the modulefinder module.  Then
+          what.py should only print out the non-standard modules.
 
-* Move $PP/uni.py to /plib/pgm.  Remove the lookup of the PDF stuff.
+    * Move $PP/uni.py to /plib/pgm.  Remove the lookup of the PDF stuff.
 
-* pgm/char.py
-    * When a line (e.g. Lower) is complete with all the allowed characters,
-      print <all> at the end to denote this state.  Also add -s option,
-      which removes the space between characters, giving a more compact
-      output.  For -c option, include summary stats.
+    * pgm/char.py
+        * When a line (e.g. Lower) is complete with all the allowed
+          characters, print <all> at the end to denote this state.  Also
+          add -s option, which removes the space between characters, giving
+          a more compact output.  For -c option, include summary stats.
 
-* /plib/density.py
-    * For common density values.  This file would then be read by
-      /plib/pgm/density.py for its data.  Having things in a module mean
-      other apps can use it.
-    * One addition would be to provide canonical values for common
-      materials like steel, brass, iron, elements, etc.
+    * /plib/density.py
+        * For common density values.  This file would then be read by
+          /plib/pgm/density.py for its data.  Having things in a module
+          mean other apps can use it.
+        * One addition would be to provide canonical values for common
+          materials like steel, brass, iron, elements, etc.
 
-* dpstr.py
-    * Tokenize(s):  split a string into a sequence S such that ''.join(S)
-      == s.  The keyword wordchars is a set that contains the characters
-      that should NOT be split on.  wordchars would default to
-      string.ascii_letters.  A better default would be "un latin |grep -i
-      letter" and limited to letters < 0x17f (this is 237 letters).
+    * dpstr.py
+        * Tokenize(s):  split a string into a sequence S such that
+          ''.join(S) == s.  The keyword wordchars is a set that contains
+          the characters that should NOT be split on.  wordchars would
+          default to string.ascii_letters.  A better default would be "un
+          latin |grep -i letter" and limited to letters < 0x17f (this is
+          237 letters).
 
-      This means a sentence like "Must be:  exp, log." needs to be
-      parsed as
+          This means a sentence like "Must be:  exp, log." needs to be
+          parsed as
 
-      ['Must', ' ', 'be', ':', '  ', 'exp', ',', 'log', '.']
- 
-      such that ''.join(x) reproduces the original string.  This function
-      should be in dpstr.py.  Numbers in names could be an issue.
-
-      First check if char is in string.ascii_letters because this will be
-      fast.  Then check for the following set:
-
-        žŽżŻźŹŸŷŶŵŴųŲűŰůŮŭŬūŪũŨŧŦťŤţŢšŠşŞŝŜśŚřŘŗŖŕŔőŐŏŎōŌŋŊŉňŇņŅńŃłŁŀĿľĽļĻĺĹ
-        ĸķĶĵĴıİįĮĭĬīĪĩĨħĦĥĤģĢġĠğĞĝĜěĚęĘėĖĕĔēĒđĐďĎčČċĊĉĈćĆąĄăĂāĀÿþýüûúùøöõôóò
-        ñðïîíìëêéèçæåäãâáàßÞÝÜÛÚÙØÖÕÔÓÒÑÐÏÎÍÌËÊÉÈÇÆÅÄÃÂÁÀ
-
-    * Add a TokenSplit(token, seq) function that will split a token into a
-      list of subtokens.  If seq is a string, then it will be split on 
-      any of the characters in the string.  Otherwise, str.split() will
-      have to be called with each sequence item.
-
-* wrap.py:  
-    * Look at syntax from ts.py (/pylib/pgm/ts/ts.py).  I seem to have
-      designed it as a module, so it might be the tool of choice.
-    * This really needs to be a simple text formatting language.  In
-      particular, it could be simply a Wrap object with a __call__ method
-      that gives you the functionality desired with keyword arguments.
-        * A dedent keyword would remove common whitespace from lines if
-          True; otherwise, it would be an int that tells how many spaces to
-          remove from each line.
-        * The common use case would be for Usage/manpage stuff in python
-          scripts, so tune syntax to this case.
-        * f-strings are used most frequently, but also need to handle case
-          with older '{}'.format(**locals()) type stuff.
-        * Need simple syntax for common tasks.  Maybe leading '.' is all
-          that's needed within a text string. '.^' to center, '.>' to
-          right-justify, '.' to leave untouched, etc.  
-    * Add a Block object that is like wrap, but justifies both the right
-      and left margins.
-    * Add a fold function that folds a string into a width, breaking where
-      necessary.
-    * For wrap(), it would be nice to have a simple syntax for lines that
-      should be left verbatim.  Maybe a leading '.' would do it.  This lets
-      you e.g. have header lines in a manpage like 
-        .This is a section title
-        .-----------------------
-      and they get left alone.
-    * print(dedent(f'''
-      This
-      ''')) chops off the 'T'.
-
-* f.py
-    * /plib/pgm/divider.py is a good example of poorer performance of the
-      f.py module.  With sig.py, it took 0.4 s.  Using flt objects instead
-      the overall time for a script increased to 4.4 s.  I changed it back
-      to use sig.py.
-    * Should color.c() be used in f.py?
-    * Sometimes you want to perform calculations regardless of units.  This
-      case could be handled with a property called iu that means ignore the
-      units.  Then the self.val float would be used in calculations.  You'd
-      only want to use this in a with block.
-    * Allow init from "3in" or "3 in".
-    * Must allow some functions to have arguments with units.  Example:
-      take the square root of an area.  Each of the functions' behaviors
-      need to be thought out for both real and complex arguments.  The Dim
-      class may then need to specifically allow rational exponents.
-        * math
-            * Must be dimensionless:  acos, acosh, asin, asinh, atan,
-              atanh, exp, expm1, log, log1p, log2, log10, degrees, radians,
-              erf, erfc, gamma, lgamma
-            * Could handle units, but return value disallows:  ceil, floor,
-              gcd, trunc
-            * Probably OK with units:  atan2, copysign, fabs, fmod (args
-              must have same units), frexp, fsum, isclose, isfinite, isinf,
-              isnan, modf, remainder, pow (first argument), sqrt, hypot
-        * cmath
-            * Must be dimensionless:  exp, log, log10, acos, asin, atan,
-              cos, sin, tan, acosh, asinh, atanh, cosh, sinh, tanh
-            * Probably OK with units:  phase, polar, rect, sqrt, isfinite,
-              isinf, isnan, isclose
-        * The general test should be that the function's answer should be
-          "obvious".  Thus, for exp(), I wouldn't be able to decide whether
-          the value used should be the SI value or the .val attribute,
-          meaning exp() cannot take a flt/cpx with units.  However, atan2
-          is OK if the two arguments are dimensionally consistent because
-          it's their ratio that is used in the function.  Thus, the
-          function is allowed with units if you get the same answer using
-          either "interpretation" of the number.  For some functions like
-          isclose, you need the two arguments to be dimensionally
-          consistent and use the same interpretation.
-    * Test_sigcomp() fails.
-    * flt:  add the engsi feature that will print a prefix with a unit.  If
-      it's a multiple unit, surround it in (...).
-    * f.py:  see line 150 in test/lwtest_test.py.  
+          ['Must', ' ', 'be', ':', '  ', 'exp', ',', 'log', '.']
     
-        b = cpx(1+1j)
-        b.promote = 0
-        a = cpx(1+1j, units="m")
-        Then in debugger, both a==b and a!=b are False
+          such that ''.join(x) reproduces the original string.  This
+          function should be in dpstr.py.  Numbers in names could be an
+          issue.
+
+          First check if char is in string.ascii_letters because this will
+          be fast.  Then check for the following set:
+
+            žŽżŻźŹŸŷŶŵŴųŲűŰůŮŭŬūŪũŨŧŦťŤţŢšŠşŞŝŜśŚřŘŗŖŕŔőŐŏŎōŌŋŊŉňŇņŅńŃłŁŀĿľĽļĻĺĹ
+            ĸķĶĵĴıİįĮĭĬīĪĩĨħĦĥĤģĢġĠğĞĝĜěĚęĘėĖĕĔēĒđĐďĎčČċĊĉĈćĆąĄăĂāĀÿþýüûúùøöõôóò
+            ñðïîíìëêéèçæåäãâáàßÞÝÜÛÚÙØÖÕÔÓÒÑÐÏÎÍÌËÊÉÈÇÆÅÄÃÂÁÀ
+
+        * Add a TokenSplit(token, seq) function that will split a token
+          into a list of subtokens.  If seq is a string, then it will be
+          split on any of the characters in the string.  Otherwise,
+          str.split() will have to be called with each sequence item.
+
+    * wrap.py:  
+        * Look at syntax from ts.py (/pylib/pgm/ts/ts.py).  I seem to have
+          designed it as a module, so it might be the tool of choice.
+        * This really needs to be a simple text formatting language.  In
+          particular, it could be simply a Wrap object with a __call__
+          method that gives you the functionality desired with keyword
+          arguments.
+            * A dedent keyword would remove common whitespace from lines if
+              True; otherwise, it would be an int that tells how many
+              spaces to remove from each line.
+            * The common use case would be for Usage/manpage stuff in
+              python scripts, so tune syntax to this case.
+            * f-strings are used most frequently, but also need to handle
+              case with older '{}'.format(**locals()) type stuff.
+            * Need simple syntax for common tasks.  Maybe leading '.' is
+              all that's needed within a text string. '.^' to center, '.>'
+              to right-justify, '.' to leave untouched, etc.  
+        * Add a Block object that is like wrap, but justifies both the
+          right and left margins.
+        * Add a fold function that folds a string into a width, breaking
+          where necessary.
+        * For wrap(), it would be nice to have a simple syntax for lines
+          that should be left verbatim.  Maybe a leading '.' would do it.
+          This lets you e.g. have header lines in a manpage like 
+
+            .This is a section title
+            .-----------------------
+
+          and they get left alone.
+        * print(dedent(f''' This ''')) chops off the 'T'.
+
+    * f.py
+        * /plib/pgm/divider.py is a good example of poorer performance of
+          the f.py module.  With sig.py, it took 0.4 s.  Using flt objects
+          instead the overall time for a script increased to 4.4 s.  I
+          changed it back to use sig.py.
+        * Should color.c() be used in f.py?
+        * Sometimes you want to perform calculations regardless of units.
+          This case could be handled with a property called iu that means
+          ignore the units.  Then the self.val float would be used in
+          calculations.  You'd only want to use this in a with block.
+        * Allow init from "3in" or "3 in".
+        * Must allow some functions to have arguments with units.  Example:
+          take the square root of an area.  Each of the functions'
+          behaviors need to be thought out for both real and complex
+          arguments.  The Dim class may then need to specifically allow
+          rational exponents.
+            * math
+                * Must be dimensionless:  acos, acosh, asin, asinh, atan,
+                  atanh, exp, expm1, log, log1p, log2, log10, degrees,
+                  radians, erf, erfc, gamma, lgamma
+                * Could handle units, but return value disallows:  ceil,
+                  floor, gcd, trunc
+                * Probably OK with units:  atan2, copysign, fabs, fmod
+                  (args must have same units), frexp, fsum, isclose,
+                  isfinite, isinf, isnan, modf, remainder, pow (first
+                  argument), sqrt, hypot
+            * cmath
+                * Must be dimensionless:  exp, log, log10, acos, asin,
+                  atan, cos, sin, tan, acosh, asinh, atanh, cosh, sinh,
+                  tanh
+                * Probably OK with units:  phase, polar, rect, sqrt,
+                  isfinite, isinf, isnan, isclose
+            * The general test should be that the function's answer should
+              be "obvious".  Thus, for exp(), I wouldn't be able to decide
+              whether the value used should be the SI value or the .val
+              attribute, meaning exp() cannot take a flt/cpx with units.
+              However, atan2 is OK if the two arguments are dimensionally
+              consistent because it's their ratio that is used in the
+              function.  Thus, the function is allowed with units if you
+              get the same answer using either "interpretation" of the
+              number.  For some functions like isclose, you need the two
+              arguments to be dimensionally consistent and use the same
+              interpretation.
+        * Test_sigcomp() fails.
+        * flt:  add the engsi feature that will print a prefix with a unit.
+          If it's a multiple unit, surround it in (...).
+        * f.py:  see line 150 in test/lwtest_test.py.  
+        
+            b = cpx(1+1j)
+            b.promote = 0
+            a = cpx(1+1j, units="m")
+            Then in debugger, both a==b and a!=b are False
 
 ----------------------------------------------------------------------
 Mac stuff
-
     Will be $2k 14" Macbook Pro with 16 GB RAM and 0.5 TB SSD
         https://www.apple.com/shop/buy-mac/macbook-pro/14-inch
 
@@ -587,7 +605,6 @@ Mac stuff
 
 ----------------------------------------------------------------------
 Sprinklers
-
     The ESP32 chip with the RS485 boards (under $10 for each) would be a
     nice way to construct a sprinkler controller.  The ESP32 would be a
     stand-alone controller, but would allow serial communication with
@@ -614,7 +631,6 @@ Sprinklers
 
 ----------------------------------------------------------------------
 make replacement in python?
-
     * I'd alias to a python script, which would look at the makefile.  If
       it was a regular makefile, it would immediately call 'make -rR'.
       However, if it was a python makefile, it would interpret that.
@@ -671,52 +687,58 @@ make replacement in python?
 
 ----------------------------------------------------------------------
 Low priority
+    * fold.py
+        * This will change text files to have one space on blank lines or
+          no spaces on blank lines.  Need to intelligently process python
+          files?  The default behavior would be to print each line with 2
+          lines of context on either side.  Then if you like what you see,
+          use -x to make the changes.  The intent is to get a source file
+          where { and } can be used to navigate to sections you're working
+          on.  Python files will be some work because you need to leave
+          multiline strings intact.
 
-* fold.py
-    * This will change text files to have one space on blank lines or no
-      spaces on blank lines.  Need to intelligently process python files?
-      The default behavior would be to print each line with 2 lines of
-      context on either side.  Then if you like what you see, use -x to
-      make the changes.  The intent is to get a source file where { and }
-      can be used to navigate to sections you're working on.  Python files
-      will be some work because you need to leave multiline strings intact.
+    * british.py
+        * Move to plib and give it a function that will take a sentence of
+          text and replace all the British words with English words,
+          maintaining capitalization and punctuation.  This will require
+          another function to split a string into a list of words and
+          punctuation characters.  It would be nice to also maintain the
+          spaces between the words too.  See the next function, which
+          should be in dpstr.py.
 
-* british.py
-    * Move to plib and give it a function that will take a sentence of text
-      and replace all the British words with English words, maintaining
-      capitalization and punctuation.  This will require another function
-      to split a string into a list of words and punctuation characters.
-      It would be nice to also maintain the spaces between the words too.
-      See the next function, which should be in dpstr.py.
+    * geom_prim.py
+        * Update properties to modern syntax, utilize matrix.py for
+          determinants, as this would remove dependency on numpy.
 
-* geom_prim.py
-    * Update properties to modern syntax, utilize matrix.py for
-      determinants, as this would remove dependency on numpy.
+    * u.py and f.py
+        * A notation for using SI prefixes could be to use something like
+          μ(N*s/m^2).  This might not be acceptable SI syntax, but it would
+          be understandable by anyone and I should use it if the tokenizer
+          in the u.py script can be made to utilize it.  A way to do this
+          might be to simply insert the equivalent number with a
+          multiplication sign on the right when it's encountered; this
+          should evaluate OK with python's parser.
 
-* u.py and f.py
-    * A notation for using SI prefixes could be to use something like
-      μ(N*s/m^2).  This might not be acceptable SI syntax, but it would be
-      understandable by anyone and I should use it if the tokenizer in the
-      u.py script can be made to utilize it.  A way to do this might be to
-      simply insert the equivalent number with a multiplication sign on the
-      right when it's encountered; this should evaluate OK with python's
-      parser.
+    * module_dependencies.py
+        * Is it necessary?  It needs to be rewritten to accommodate /plib.
+          The tools and programs need to be moved in first.  
 
-* module_dependencies.py
-    * Is it necessary?  It needs to be rewritten to accommodate /plib.  The
-      tools and programs need to be moved in first.  
+    * sig.py
+        * Is a mess of code.  Is it really all needed?  Maybe it would be
+          best to move the key stuff to flt and cpx.  It can still be kept
+          around for when it's needed.
 
-* sig.py
-    * Is a mess of code.  Is it really all needed?  Maybe it would be best
-      to move the key stuff to flt and cpx.  It can still be kept around
-      for when it's needed.
+    * ts.py
+        * 'ts.py -m' doesn't work.
 
-* ts.py
-    * 'ts.py -m' doesn't work.
+    * /pylib/pgm/readability/indict.py
+        * Looks like an interesting tool.  It should use a reasonable
+          dictionary by default and print the tokens out in columns for
+          each file.
 
-* /pylib/pgm/readability/indict.py
-    * Looks like an interesting tool.  It should use a reasonable
-      dictionary by default and print the tokens out in columns for each
-      file.
+----------------------------------------------------------------------
+/plib releases
+
+    * 7Mar2022 was first release after I made the repository public.
 
 vim: set sw=2
