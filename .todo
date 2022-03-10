@@ -1,5 +1,7 @@
 ----------------------------------------------------------------------
 main
+    * primes.py needs a test routine.  Also add a Unicode printout option.
+
     * Update the repository:  run 0test.py, make sure all tests are up to
       date, fix broken tests, and then check into the repository with a
       formal revision tag.
@@ -27,6 +29,10 @@ main
       an index file.  Then you can see a report of all files that use a
       particular import.  The line number will be saved and an interactive
       mode lets you launch the editor to see a particular symbol.
+
+    * pgm/power.py:  In appliance table, print in color the numbers that
+      come from actual measurements.  Measure our actual appliances where
+      possible.
 
     * Formatter:  I don't think black is worth keeping.  Spend some time
       with yapf to see if it can be tuned to what I like.

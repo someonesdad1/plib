@@ -239,9 +239,9 @@ if 1:   # Core functionality
                 a = j.relative_to(dir)
                 rr.append((i, a))
             except Exception:
+                # This means we ignore files e.g. in the parent directory
                 pass
         r = rr
-        #r = [(i, j.relative_to(dir)) for i, j in r]
         if dbg:
             Dbg(f"\nMade relative to '{dir}'")
             Dbg(r, seq=True, ind=ind)
