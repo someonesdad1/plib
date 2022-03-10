@@ -45,6 +45,17 @@ than using stored bookmarks or multiple tab pages.
 
 # Tools
 
+## PostScript drawing tool
+
+The g.py and other files in the g directory are a python wrapper over
+PostScript for making drawings.  I wrote it in 2001 because there wasn't
+anything available at the time to do such tasks.  Surprisingly, it has been
+used for thousands of tasks over that time with very few changes.  When I
+find time, I'd like to rearchitect it to have a back-end rendering plugin
+setup to allow different types of graphical files to be generated.  I'd
+also like to change to a more object-oriented implementation to allow
+easier subclassing for specialized tasks.
+
 ## 0what.py
 
 The 0what.py script can be run with the argument `.` and you'll get a short
