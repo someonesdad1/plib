@@ -2,28 +2,8 @@
 main
     * primes.py needs a test routine.  Also add a Unicode printout option.
 
-    * Update the repository:  run 0test.py, make sure all tests are up to
-      date, fix broken tests, and then check into the repository with a
-      formal revision tag.
-
-        - The README.md should indicate the set of files in /plib and
-          /plib/pgm that get used a lot.
-        - Use '0test -L .' to see all the files without a test trigger
-          string.
-        - Things to bring in
-            - ts.py
-            - g library
-        - Failing tests
-            - Might not want to fix yet
-                - test/asciify_test.py 
-
-    * rbl.py:  I've tried the black formatter and would like to standardize
-      on my python files being gotten with 'black -S -l 75'.  However, the
-      only thing I don't like is the blank lines between functions.
-      Develop an rbl.py script that can read python code and remove the
-      blank lines between functions.  The key need is to avoid doing this
-      in multiline strings.  Then my code can be formatted by 'black -S
-      *.py; rbl *.py'.
+    * Things to import
+        - /pylib/pgm/ts/ts.py
 
     * get_import.py:  scans all python files to find import lines to make
       an index file.  Then you can see a report of all files that use a
@@ -63,9 +43,6 @@ main
 
         - Look at somehow organizing things so that it can run as a project
           in Notepad++, which will mean others are more likely to use it.
-
-    * Finish the new clr.py script and get it installed; delete the clr
-      directory.
 
     * Write a script that estimates the electrical energy and time needed
       to heat up a room in our house.  Focus on the shop and garage.  The
