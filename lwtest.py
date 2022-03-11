@@ -104,9 +104,11 @@ if 1:   # Globals
         associated function objects.  Set verbose=True to see which
         functions will be executed and their execution order.
      
-        Assert() works like assert, but if you include a command line
-        argument, you'll be dropped into the debugger when the Assert fails.
-        Type 'up' to go to the line that had the problem.
+        Assert() works like python's assert statement, but if you include a
+        command line argument, you'll be dropped into the debugger when the
+        Assert fails.  Type 'up' to go to the line that had the problem.
+        Note Assert() and assert_equal() do not pay attention to __debug__,
+        unlike python's assert statement.
      
         Use the ToDoMessage() function to cause a colored message to be
         printed to stdout to remind you of something that needs to be done.
