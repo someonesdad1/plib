@@ -1,10 +1,8 @@
 ----------------------------------------------------------------------
 main
 
-    - clr.py:  Clr() needs a method on() to turn output on and off.  If
-      not on, all attribute access must return empty strings.
-        - This saves having to do a reset() and redefining everything as
-          empty.
+    - prun.py:  Allow the .py to be omitted from the first argument, as it
+      will always be a python file.
 
     - Things to import to /plib
         - /pylib/pgm/ts/ts.py
@@ -27,6 +25,10 @@ main
       converts it to a list of lines with one object per line.  For files
       it can't figure out, add an option to show the columns where breaks
       should be made:  -c "8,14,22,35" and use -1 for 1-based numbering.
+        - Also, do a 'ddiff -r /pylib /plib'.  You'll get an exception
+          because a string is too long to fit to the screen.  In this case,
+          you'd still want things printed, so maybe a too_long kw is needed
+          to ignore such things.
 
     - help:  Consolidate the help text I use into one directory.  Eliminate
       make and the C programs; convert everything to python.  Look at

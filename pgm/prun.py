@@ -265,11 +265,13 @@ if __name__ == "__main__":
     py = f"{v.major}.{v.minor}.{v.micro}"
     args = ParseCommandLine(d)
     pgm = P(args.pop(0))
-    trig = P(d["-t"])
-    args = args if args else None
     if not pgm.exists():
-        Error(f"'{pgm}' doesn't exist")
-    if not trig.exists():
-        xx()
-        open(trig, "w").write("")
+        p = P(str(pgm) + ".py")
+        if p.exists():
+            pgm = p
+        else:
+            Error(f"'{pgm}' not found")
+    trig = P(d["-t"] if d["-t"] else pgm)
+    xx()
+    args = args if args else None
     Run()

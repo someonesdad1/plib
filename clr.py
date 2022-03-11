@@ -83,6 +83,7 @@ if 1:  # Copyright, license
     #∞test∞# ignore #∞test∞#
     pass
 if 1:   # Standard imports
+    import atexit
     import getopt
     import os
     import pathlib
@@ -624,13 +625,16 @@ if 1:   # Classes
         definitions, use c.reset().  To see the styles you've defined, use
         print(c).
         '''
-        def __init__(self, bits=4, override=False):
+        def __init__(self, bits=4, override=False, cleanup=True):
             '''If override is True, always emit escape codes.  The normal
             behavior is not to emit escape codes unless stdout is a terminal.
             bits must be None, 4, 8, or 24.  If None, the model is chosen
-            from the TERM and TERM_PROGRAM environment variables.
+            from the TERM and TERM_PROGRAM environment variables.  If
+            cleanup is True, atexit is used to emit the escape code to
+            revert to normal screen display.
             '''
             self._override = bool(override)
+            self._cleanup = bool(cleanup)
             # Find the terminal type
             if bits is None:
                 terminal = GetTerm(choice=choice)
@@ -643,10 +647,11 @@ if 1:   # Classes
             else:
                 self._bits = bits
             self.reset()
+            atexit.register(self.cleanup)
         def _user(self):
             'Return a set of user-defined attribute names'
-            ignore = set('''_bits _cn _on _override _parse_color _user load n
-                out print reset'''.split())
+            ignore = set('''_bits _cn _on _override _parse_color _user
+                cleanup load n out print reset'''.split())
             attributes = []
             for i in dir(self):
                 if i.startswith("__") or i in ignore:
@@ -800,6 +805,9 @@ if 1:   # Classes
                 k["end"] = ""
             print(*p, **k)
             print(self.n, **k)
+        def cleanup(self):
+            'Used to revert to normal color at exit'
+            print(f"{self.n}", end="")
 if 1:   # Choose color name class for your terminal
     # Set choice to force the class to use
     choice = None
@@ -890,7 +898,6 @@ if 1:   # Printing regular expression matches
             text = text[end:]       # Use the remaining substring
             if not text:
                 print(file=file)    # Print a newline
-
 if __name__ == "__main__":
     # Demonstrate module's output
     bits = 4

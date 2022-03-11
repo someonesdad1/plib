@@ -27,7 +27,7 @@ if 1:   # Custom imports
     from clr import Clr
     from columnize import Columnize
     import strdiff
-    if 1:
+    if 0:
         import debug
         debug.SetDebugger()
 if 1:   # Global variables
@@ -56,8 +56,8 @@ if 1:   # Utility
         print(dedent(f'''
         Usage:  {sys.argv[0]} [options] dir1 dir2
           Compare the two directories and print out the file differences.
-          The file comparisons are first made by size, then by an SHA-256
-          hash if they are the same size.
+          The file comparisons are first made by size, then by a hash if
+          they are the same size.
  
           For files that are the same size but different, the notation
           {{n}} appended to the file name quantifies how different they
@@ -66,22 +66,28 @@ if 1:   # Utility
           different.  With no {{n}} decoration, the two files are different
           sizes.
         Options:
-            -c      Use color in printout to a terminal
+            -1      Don't print out files only in dir1
+            -2      Don't print out files only in dir2
+            -c      Don't print out common files
+            -k      Use color in printout to a terminal
             -d      Print debug information
             -r      Recursive compare
         '''))
         exit(status)
     def ParseCommandLine(d):
-        d["-c"] = False         # Use color
+        d["-1"] = True          # Print out dir1 stuff
+        d["-2"] = True          # Print out dir2 stuff
+        d["-c"] = True          # Print out common stuff
         d["-d"] = False         # Debug output
+        d["-k"] = False         # Use color
         d["-r"] = False         # Recurse
         try:
-            opts, dirs = getopt.getopt(sys.argv[1:], "cdhr")
+            opts, dirs = getopt.getopt(sys.argv[1:], "12cdhkr")
         except getopt.GetoptError as e:
             print(str(e))
             exit(1)
         for o, a in opts:
-            if o[1] in list("cdr"):
+            if o[1] in list("12cdkr"):
                 d[o] = not d[o]
             elif o in ("-h", "--help"):
                 Usage(status=0)
@@ -90,10 +96,14 @@ if 1:   # Utility
         if d["-d"]:
             global debug
             debug = True
-        if not d["-c"]:
+        if not d["-k"]:
             c.reset()
             c.l = c.r = c.d = c.dbg = c.nr = c.di = ""
         return dirs
+    def CleanUp():
+        'Make sure ANSI colors are off'
+        if d["-c"]:
+            print(f"{c.n}", end="")
 if 1:   # Core functionality
     def GetFiles(dir):
         p = P(dir)
@@ -168,11 +178,11 @@ if 1:   # Core functionality
             print(f"{c.n}", end="")
         if noread:
             P(f"{c.nr}Files that couldn't be read", noread)
-        if only_in_left:
+        if d["-1"] and only_in_left:
             P(f"{c.l}Files only in {dirleft}", only_in_left)
-        if only_in_right:
+        if d["-2"] and only_in_right:
             P(f"{c.r}Files only in {dirright}", only_in_right)
-        if diffs:
+        if d["-c"] and diffs:
             GetDecorator.color = c.d
             P(f"{c.d}Common files that differ ({{1}} to {{9}} quantify differences)",
               diffs, decorate=True)
