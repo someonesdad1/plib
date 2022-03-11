@@ -26,6 +26,7 @@ if 1:   # Custom imports
     from wrap import wrap, dedent
     from clr import Clr
     from columnize import Columnize
+    import strdiff
     if 1:
         import debug
         debug.SetDebugger()
@@ -38,6 +39,7 @@ if 1:   # Global variables
     c.d = c("lyel")     # Common, but different
     c.dbg = c("cyn")    # Debug
     c.nr = c("lmag")    # Couldn't read
+    c.di = c("lyel", "lred")  # Difference metric
     debug = False
 if 1:   # Utility
     def Debug(*p, **kw):
@@ -56,14 +58,21 @@ if 1:   # Utility
           Compare the two directories and print out the file differences.
           The file comparisons are first made by size, then by an SHA-256
           hash if they are the same size.
+ 
+          For files that are the same size but different, the notation
+          {{n}} appended to the file name quantifies how different they
+          are.  {{1}} means they are close (perhaps one to a few bytes are
+          different), whereas {{9}} means nearly all the bytes are
+          different.  With no {{n}} decoration, the two files are different
+          sizes.
         Options:
-            -c      Don't use color
+            -c      Use color in printout to a terminal
             -d      Print debug information
             -r      Recursive compare
         '''))
         exit(status)
     def ParseCommandLine(d):
-        d["-c"] = True          # Use color
+        d["-c"] = False         # Use color
         d["-d"] = False         # Debug output
         d["-r"] = False         # Recurse
         try:
@@ -83,7 +92,7 @@ if 1:   # Utility
             debug = True
         if not d["-c"]:
             c.reset()
-            c.l = c.r = c.d = ""
+            c.l = c.r = c.d = c.dbg = c.nr = c.di = ""
         return dirs
 if 1:   # Core functionality
     def GetFiles(dir):
@@ -139,11 +148,21 @@ if 1:   # Core functionality
                 Debug(f"  right:  {right_hash[:n]}")
                 diffs.append(file)
         return set(diffs), set(noread)
+    def GetDecorator(item):
+        left  = open(dirleft/item, "rb").read()
+        right = open(dirright/item, "rb").read()
+        if len(left) != len(right):
+            return ""
+        frac = strdiff.DiffFrac(left, right)
+        digit = strdiff.DiffDigit(frac, len(left))
+        return f"{{{digit}}}"
     def Report(only_in_left, only_in_right, diffs, noread):
         indent = " "*2
-        def P(title, myset):
+        def P(title, myset, decorate=False):
             print(title)
             items = sorted(list(myset))
+            if decorate:
+                items = [str(i) + GetDecorator(i) for i in items]
             for i in Columnize(items, indent=indent):
                 print(i)
             print(f"{c.n}", end="")
@@ -154,7 +173,9 @@ if 1:   # Core functionality
         if only_in_right:
             P(f"{c.r}Files only in {dirright}", only_in_right)
         if diffs:
-            P(f"{c.d}Common files that differ", diffs)
+            GetDecorator.color = c.d
+            P(f"{c.d}Common files that differ ({{1}} to {{9}} quantify differences)",
+              diffs, decorate=True)
 if __name__ == "__main__":
     d = {}      # Options dictionary
     dirleft, dirright = ParseCommandLine(d)
