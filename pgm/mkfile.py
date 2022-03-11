@@ -43,7 +43,7 @@ def InterpretSize(s):
         Error("'%s':  bad size specifier" % s)
     return size
 def ParseCommandLine(d):
-    d["-b"] = 0
+    d["-b"] = None
     d["-r"] = False
     d["-s"] = None
     d["-u"] = False
@@ -114,7 +114,7 @@ def MakeFile(size, filename, d):
         else:
             stream.write(bytearray([byte]*number_of_bytes))
     random_bytes = 3    # secrets.token_bytes() method
-    if d["-b"]:
+    if d["-b"] is not None:
         random_bytes = 0
     elif d["-r"]:
         random_bytes = 1
