@@ -741,4 +741,9 @@ Low priority
           dictionary by default and print the tokens out in columns for
           each file.
 
------------------------------------------------------------
+----------------------------------------------------------------------
+/plib releases
+
+    - 7Mar2022 was first release after I made the repository public.
+
+vim: set sw=2

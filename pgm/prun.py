@@ -272,6 +272,5 @@ if __name__ == "__main__":
         else:
             Error(f"'{pgm}' not found")
     trig = P(d["-t"] if d["-t"] else pgm)
-    xx()
     args = args if args else None
     Run()
