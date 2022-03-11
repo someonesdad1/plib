@@ -423,7 +423,8 @@ def BuildAliasDict():
     # The enc_codecs.csv file was made by importing the HTML page of the
     # python version 3.7.4 codecs documentation and copying the codecs
     # table to a spreadsheet, saving it in CSV form.
-    lines = [i.rstrip() for i in open("enc_codecs.csv").readlines()][2:]
+    file = dir.parent/"enc_codecs.csv"
+    lines = [i.rstrip() for i in open(file).readlines()][2:]
     r, aliases, primary = csv.reader(lines), {}, set()
     for row in r:
         name, other = row
@@ -501,6 +502,7 @@ def UsageHints():
         {name} -x *
     '''))
 if __name__ == "__main__":
+    dir = P(sys.argv[0])
     aliases, primary = BuildAliasDict()
     valid_encodings = set()
     valid_encodings.update(primary)

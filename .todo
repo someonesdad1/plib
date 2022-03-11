@@ -298,6 +298,23 @@ main
             Then in debugger, both a==b and a!=b are False
 
 ----------------------------------------------------------------------
+magnet game
+
+    This was an idea Wayne and I had in 2007 and we went so far as to build
+    a mechanical prototype.  See /tools/magnet_game.  While this might be a
+    mechanical toy that could sell, it would be complicated to make.  
+
+    It seems to me it would be much more interesting to simulate on a
+    computer.  I found that a Runge-Kutta solution of the EOM seemed to
+    work pretty well; a major conclusion was that the number of iterations
+    per step needed didn't dramatically increase as the number of
+    interacting dipoles increased.
+
+    This would be particularly fun in 3D with e.g. some virtual reality
+    goggles.  Or see if the MacBook could render things fast enough for a
+    stereo view.
+
+----------------------------------------------------------------------
 pgm
 
     - pgm/int.py:  Add colorizing like primes.py.

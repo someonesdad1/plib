@@ -1,60 +1,34 @@
 ----------------------------------------------------------------------
 main
-    * primes.py needs a test routine.  Also add a Unicode printout option.
 
-    * Update the repository:  run 0test.py, make sure all tests are up to
-      date, fix broken tests, and then check into the repository with a
-      formal revision tag.
+    - clr.py:  Clr() needs a method on() to turn output on and off.  If
+      not on, all attribute access must return empty strings.
+        - This saves having to do a reset() and redefining everything as
+          empty.
 
-        - The README.md should indicate the set of files in /plib and
-          /plib/pgm that get used a lot.
-        - Use '0test -L .' to see all the files without a test trigger
-          string.
-        - Things to bring in
-            - ts.py
-            - g library
-        - Failing tests
-            - Might not want to fix yet
-                - test/asciify_test.py 
+    - Things to import to /plib
+        - /pylib/pgm/ts/ts.py
 
-    * rbl.py:  I've tried the black formatter and would like to standardize
-      on my python files being gotten with 'black -S -l 75'.  However, the
-      only thing I don't like is the blank lines between functions.
-      Develop an rbl.py script that can read python code and remove the
-      blank lines between functions.  The key need is to avoid doing this
-      in multiline strings.  Then my code can be formatted by 'black -S
-      *.py; rbl *.py'.
-
-    * get_import.py:  scans all python files to find import lines to make
+    - get_import.py:  scans all python files to find import lines to make
       an index file.  Then you can see a report of all files that use a
       particular import.  The line number will be saved and an interactive
       mode lets you launch the editor to see a particular symbol.
 
-    * pgm/power.py:  In appliance table, print in color the numbers that
-      come from actual measurements.  Measure our actual appliances where
-      possible.
-
-    * Formatter:  I don't think black is worth keeping.  Spend some time
+    - Formatter:  I don't think black is worth keeping.  Spend some time
       with yapf to see if it can be tuned to what I like.
 
-    * /tools:  convert the whole directory to git and put it on github.
+    - /tools:  convert the whole directory to git and put it on github.
       Make it public after vetting all the contents.
 
-    * mintty:  See if there's an option somewhere to choose the characters
-      that stop a selection when double clicking.  I use this feature a lot
-      to get symbol names to the clipboard, but mintty by default includes
-      the '=' character, which screws things up.  The set of characters
-      should be valid C/C++/python symbol names that also include '.'.
+    - iso.py:  Should take time arguments in either s or tm structures.
 
-    * iso.py:  Should take time arguments in either s or tm structures.
-
-    * columnize.py:  write a Decolumnize() function that cat take the
+    - columnize.py:  write a Decolumnize() function that can take the
       columnized output like '0what.py -m *.py' produces in /plib/pgm and
       converts it to a list of lines with one object per line.  For files
       it can't figure out, add an option to show the columns where breaks
       should be made:  -c "8,14,22,35" and use -1 for 1-based numbering.
 
-    * help:  Consolidate the help text I use into one directory.  Eliminate
+    - help:  Consolidate the help text I use into one directory.  Eliminate
       make and the C programs; convert everything to python.  Look at
       hierarchically organizing the access with most-used stuff first and
       seldom-used stuff hidden.  Do partial topic matches with the
@@ -64,15 +38,12 @@ main
         - Look at somehow organizing things so that it can run as a project
           in Notepad++, which will mean others are more likely to use it.
 
-    * Finish the new clr.py script and get it installed; delete the clr
-      directory.
-
-    * Write a script that estimates the electrical energy and time needed
+    - Write a script that estimates the electrical energy and time needed
       to heat up a room in our house.  Focus on the shop and garage.  The
       primary input number will be the starting temperature in °F.  An
       option can change the final temperature, which defaults to 70 °F. 
 
-    * pysh:  A python shell.  This could be core C code that provides the
+    - pysh:  A python shell.  This could be core C code that provides the
       fast implementations of things a shell needs.  Then python would be
       bundled with this as a scripting language.  This lets users write
       scripts that do shell functionality, as the interface would be to
@@ -80,99 +51,80 @@ main
 
         https://libraries.io/pypi/pysh-lib might be worth taking a look at.
 
-    * pgm/ds.py:  Normally, the output is sorted by filename.  Add a -d
-      option that sorts by date, with most recent file last.
-
-    * pgm/indent.py:  define a smaller set of styles.  The built-in styles
-      of astyle can still be supported, but not explicitly on the command
-      line.  
-
-        * Here are some ideas for special styles:
-            * compressed:  2 space indents, python style
-            * production:  4 space indents, bsd style
-
-        * Also get it to work as a filter so '!Gindent' works in vi.  This
-          means the usage needs to be given with the -h option, so the
-          examples need to be changed to -H.
-            * This could instead be done when the script is invoked with
-              the name 'ind', which would always default to my preferred
-              method.
-
-    * pkg.py:  Given a set of files to put into a package (zip file),
+    - pkg.py:  Given a set of files to put into a package (zip file),
       analyze the thing for C/C++ and python files that are dependencies
       and include them in the zip file.  This would allow me to share
       things with others.
 
-    * Backup with a NAS
-        * 1 TB WD SSD is $135 from Newegg.  Also have 0.5 and 2 TB.
-        * Spinning hard disks are 1/3rd to 1/4th the price of SSD
-        * NAS info
-            * https://linuxhint.com/best-nas-software-linux/
-                * Amahi
-                    * You can install Fedora or Ubuntu and run Amahi from
+    - Backup with a NAS
+        - 1 TB WD SSD is $135 from Newegg.  Also have 0.5 and 2 TB.
+        - Spinning hard disks are 1/3rd to 1/4th the price of SSD
+        - NAS info
+            - https://linuxhint.com/best-nas-software-linux/
+                - Amahi
+                    - You can install Fedora or Ubuntu and run Amahi from
                       there.  It's open source.  The faq says they had
                       problems with ubuntu.
-                    * You can use ext4 fs on both the OS and the mounted
+                    - You can use ext4 fs on both the OS and the mounted
                       drives.
-                    * faq http://www.amahi.org/faqhttp://www.amahi.org/faq
-                * Open Media Vault:  Debian-based NAS
-                    * https://www.openmediavault.org/download.html
-                    * Supports FTP, Samba, NFS, rsync
-                    * Supports ext4
-                    * Web interface
-                * TrueNAS:  https://www.truenas.com/freenas/
-                    * Requires signing up to download
-                * Rockstor
-                    * Cent OS Linux distribution
-                    * Plug-in system
-                    * Can use it as a cloud server
-            * https://gers.from-ct.com/8-best-open-source-nas-operating-systems-for-linux
-                * XigmaNAS:  non-user-friendly web interface
-                * 
-        * ZFS  File system advantageous for NAS systems
-            * https://itsfoss.com/what-is-zfs/,
+                    - faq http://www.amahi.org/faqhttp://www.amahi.org/faq
+                - Open Media Vault:  Debian-based NAS
+                    - https://www.openmediavault.org/download.html
+                    - Supports FTP, Samba, NFS, rsync
+                    - Supports ext4
+                    - Web interface
+                - TrueNAS:  https://www.truenas.com/freenas/
+                    - Requires signing up to download
+                - Rockstor
+                    - Cent OS Linux distribution
+                    - Plug-in system
+                    - Can use it as a cloud server
+            - https://gers.from-ct.com/8-best-open-source-nas-operating-systems-for-linux
+                - XigmaNAS:  non-user-friendly web interface
+        - ZFS  File system advantageous for NAS systems
+            - https://itsfoss.com/what-is-zfs/,
               https://en.wikipedia.org/wiki/ZFS,
               https://www.howtogeek.com/175159/an-introduction-to-the-z-file-system-zfs-for-linux/
-                * The third link shows how to use ext4 for a root disk in
+                - The third link shows how to use ext4 for a root disk in
                   ubuntu, then add a zsh filesystem.
-                * This third link gives an excellent example of using the
+                - This third link gives an excellent example of using the
                   features of zsh.
-                    * It explains the RAID-Z setup and that a single disk
+                    - It explains the RAID-Z setup and that a single disk
                       drive can die; you just replace it and the system
                       will rebuild your data.  To lose all your
                       information, two disks have to die.
-                * https://www.howtogeek.com/272220/how-to-install-and-use-zfs-on-ubuntu-and-why-youd-want-to/https://www.howtogeek.com/272220/how-to-install-and-use-zfs-on-ubuntu-and-why-youd-want-to/
+                - https://www.howtogeek.com/272220/how-to-install-and-use-zfs-on-ubuntu-and-why-youd-want-to/https://www.howtogeek.com/272220/how-to-install-and-use-zfs-on-ubuntu-and-why-youd-want-to/
                   tells how it's enabled in ubuntu (it's not installed and
                   enabled by default, but it's officially supported).
-            * Note it's a 128 bit implementation which can manage 1e9 TB.
+            - Note it's a 128 bit implementation which can manage 1e9 TB.
               It used to be called zetabyte file system.
-            * It combines a filesystem with a volume manager
-            * Pooled storage:  add to a pooled drive by adding a new drive
-            * Copy-on-write:  new info doesn't overwrite, it goes to a new
+            - It combines a filesystem with a volume manager
+            - Pooled storage:  add to a pooled drive by adding a new drive
+            - Copy-on-write:  new info doesn't overwrite, it goes to a new
               block; once finished, metadata is updated.  Result:  if
               system crashes during write, old data is still there and
               there's no need to run fsck after a crash.
-            * Snapshots:  allows recovering past versions of a file
-            * Data checksums:  verified on read; if no match, then
+            - Snapshots:  allows recovering past versions of a file
+            - Data checksums:  verified on read; if no match, then
               automatically tries to fix.
-            * RAID-Z has its own implementation, a variation of RAID5.
+            - RAID-Z has its own implementation, a variation of RAID5.
               RAID-Z1 needs two disks and a parity drive, Z2 needs 2 drives
               and 2 parity drives, Z3 needs 2 drives and 3 parity.
-                * A downside is that RAID-Z can be expensive because of the
+                - A downside is that RAID-Z can be expensive because of the
                   needed drives to add storage space
-            * See
+            - See
               https://wiki.archlinux.org/title/ZFS/Virtual_disks#Creating_and_Destroying_Zpools
               for some examples
-            * If you want to use ZFS out of the box, install FreeBSD.
-            * Linux:  https://zfsonlinux.org/
-            * 2 TB 7200 rpm WD HDD $47
+            - If you want to use ZFS out of the box, install FreeBSD.
+            - Linux:  https://zfsonlinux.org/
+            - 2 TB 7200 rpm WD HDD $47
               https://www.newegg.com/blue-wd20ezbx-2tb/p/N82E16822234469?Description=hard%20drive&cm_re=hard_drive-_-22-234-469-_-Product
               Three of these provide a 2 GB RAID-Z1 drive.
 
-    * Two of the most common keypresses are ctrl-C and ctrl-V.  These
+    - Two of the most common keypresses are ctrl-C and ctrl-V.  These
       should be assigned to a single easy to access keypress.
 
-    * A fundamental problem when coding is that a data structure is
+    - A fundamental problem when coding is that a data structure is
       developed and you start using it in your code.  Then you always have
       to stop and look around the code to figure out the structures again.
       Is there a way to add a utility that documents the structures so e.g.
@@ -181,25 +133,25 @@ main
       that are easy to remove when done (or, better, leave it in for later
       maintenance).
 
-    * Since flt is essentially done, write a replacement for fpformat.py
+    - Since flt is essentially done, write a replacement for fpformat.py
       that includes its features.
 
-    * dpmath.py:  This would be a general-purpose module for math
+    - dpmath.py:  This would be a general-purpose module for math
       calculations.
-        * Types
-            * flt:  derived from float
-            * dec:  derived from Decimal
-            * cpx:  derived from complex
-            * dpx:  two Decimal instances giving a complex number
-        * Math
-            * All math/cmath functions in scope
-            * Work for all types
-            * Special function support if mpmath is available
-        * Try to put essential details in a Base class
-        * Key features
-            * String interpolation only shows a given number of significant
+        - Types
+            - flt:  derived from float
+            - dec:  derived from Decimal
+            - cpx:  derived from complex
+            - dpx:  two Decimal instances giving a complex number
+        - Math
+            - All math/cmath functions in scope
+            - Work for all types
+            - Special function support if mpmath is available
+        - Try to put essential details in a Base class
+        - Key features
+            - String interpolation only shows a given number of significant
               figures
-            * The instances are context managers, allowing code like
+            - The instances are context managers, allowing code like
 
                 with x:
                     x.n += 3
@@ -208,44 +160,32 @@ main
               to let you change the number of digits as needed.  Or, define
               a __call__(self, n=None) to do this without needing a lock.
             
-            * Infection model
-                * Need a strict attribute in Base.  If True, interoperation
+            - Infection model
+                - Need a strict attribute in Base.  If True, interoperation
                   with Fractions or floats for dec or dpx is not allowed
                   because of the chance of losing information or adding
                   noise.
-            * Units:  It would be great to make these a mixin, but this is
+            - Units:  It would be great to make these a mixin, but this is
               going to be hard.
-            * REPL:  if this can be gotten to work, then the repl I wrote
+            - REPL:  if this can be gotten to work, then the repl I wrote
               will be a nice command line tool suitable for routine
               calculations.
-        * Need to coalesce f.py, dpdecimal.py, and decimalmath.py.
+        - Need to coalesce f.py, dpdecimal.py, and decimalmath.py.
 
-    * pgm/ds.py
-        * Store every command and provide a -l option to show the history.
-          This would be useful for remembering previous commands.
-
-    * what.py
-        * Should be able to examine a file and list the dependencies on
+    - what.py
+        - Should be able to examine a file and list the dependencies on
           scripts.  Look at pgm/dep.py and the modulefinder module.  Then
           what.py should only print out the non-standard modules.
 
-    * Move $PP/uni.py to /plib/pgm.  Remove the lookup of the PDF stuff.
-
-    * pgm/char.py
-        * When a line (e.g. Lower) is complete with all the allowed
-          characters, print <all> at the end to denote this state.  Also
-          add -s option, which removes the space between characters, giving
-          a more compact output.  For -c option, include summary stats.
-
-    * /plib/density.py
-        * For common density values.  This file would then be read by
+    - /plib/density.py
+        - For common density values.  This file would then be read by
           /plib/pgm/density.py for its data.  Having things in a module
           mean other apps can use it.
-        * One addition would be to provide canonical values for common
+        - One addition would be to provide canonical values for common
           materials like steel, brass, iron, elements, etc.
 
-    * dpstr.py
-        * Tokenize(s):  split a string into a sequence S such that
+    - dpstr.py
+        - Tokenize(s):  split a string into a sequence S such that
           ''.join(S) == s.  The keyword wordchars is a set that contains
           the characters that should NOT be split on.  wordchars would
           default to string.ascii_letters.  A better default would be "un
@@ -268,33 +208,33 @@ main
             ĸķĶĵĴıİįĮĭĬīĪĩĨħĦĥĤģĢġĠğĞĝĜěĚęĘėĖĕĔēĒđĐďĎčČċĊĉĈćĆąĄăĂāĀÿþýüûúùøöõôóò
             ñðïîíìëêéèçæåäãâáàßÞÝÜÛÚÙØÖÕÔÓÒÑÐÏÎÍÌËÊÉÈÇÆÅÄÃÂÁÀ
 
-        * Add a TokenSplit(token, seq) function that will split a token
+        - Add a TokenSplit(token, seq) function that will split a token
           into a list of subtokens.  If seq is a string, then it will be
           split on any of the characters in the string.  Otherwise,
           str.split() will have to be called with each sequence item.
 
-    * wrap.py:  
-        * Look at syntax from ts.py (/pylib/pgm/ts/ts.py).  I seem to have
+    - wrap.py:  
+        - Look at syntax from ts.py (/pylib/pgm/ts/ts.py).  I seem to have
           designed it as a module, so it might be the tool of choice.
-        * This really needs to be a simple text formatting language.  In
+        - This really needs to be a simple text formatting language.  In
           particular, it could be simply a Wrap object with a __call__
           method that gives you the functionality desired with keyword
           arguments.
-            * A dedent keyword would remove common whitespace from lines if
+            - A dedent keyword would remove common whitespace from lines if
               True; otherwise, it would be an int that tells how many
               spaces to remove from each line.
-            * The common use case would be for Usage/manpage stuff in
+            - The common use case would be for Usage/manpage stuff in
               python scripts, so tune syntax to this case.
-            * f-strings are used most frequently, but also need to handle
+            - f-strings are used most frequently, but also need to handle
               case with older '{}'.format(**locals()) type stuff.
-            * Need simple syntax for common tasks.  Maybe leading '.' is
+            - Need simple syntax for common tasks.  Maybe leading '.' is
               all that's needed within a text string. '.^' to center, '.>'
               to right-justify, '.' to leave untouched, etc.  
-        * Add a Block object that is like wrap, but justifies both the
+        - Add a Block object that is like wrap, but justifies both the
           right and left margins.
-        * Add a fold function that folds a string into a width, breaking
+        - Add a fold function that folds a string into a width, breaking
           where necessary.
-        * For wrap(), it would be nice to have a simple syntax for lines
+        - For wrap(), it would be nice to have a simple syntax for lines
           that should be left verbatim.  Maybe a leading '.' would do it.
           This lets you e.g. have header lines in a manpage like 
 
@@ -302,41 +242,41 @@ main
             .-----------------------
 
           and they get left alone.
-        * print(dedent(f''' This ''')) chops off the 'T'.
+        - print(dedent(f''' This ''')) chops off the 'T'.
 
-    * f.py
-        * /plib/pgm/divider.py is a good example of poorer performance of
+    - f.py
+        - /plib/pgm/divider.py is a good example of poorer performance of
           the f.py module.  With sig.py, it took 0.4 s.  Using flt objects
           instead the overall time for a script increased to 4.4 s.  I
           changed it back to use sig.py.
-        * Should color.c() be used in f.py?
-        * Sometimes you want to perform calculations regardless of units.
+        - Should color.c() be used in f.py?
+        - Sometimes you want to perform calculations regardless of units.
           This case could be handled with a property called iu that means
           ignore the units.  Then the self.val float would be used in
           calculations.  You'd only want to use this in a with block.
-        * Allow init from "3in" or "3 in".
-        * Must allow some functions to have arguments with units.  Example:
+        - Allow init from "3in" or "3 in".
+        - Must allow some functions to have arguments with units.  Example:
           take the square root of an area.  Each of the functions'
           behaviors need to be thought out for both real and complex
           arguments.  The Dim class may then need to specifically allow
           rational exponents.
-            * math
-                * Must be dimensionless:  acos, acosh, asin, asinh, atan,
+            - math
+                - Must be dimensionless:  acos, acosh, asin, asinh, atan,
                   atanh, exp, expm1, log, log1p, log2, log10, degrees,
                   radians, erf, erfc, gamma, lgamma
-                * Could handle units, but return value disallows:  ceil,
+                - Could handle units, but return value disallows:  ceil,
                   floor, gcd, trunc
-                * Probably OK with units:  atan2, copysign, fabs, fmod
+                - Probably OK with units:  atan2, copysign, fabs, fmod
                   (args must have same units), frexp, fsum, isclose,
                   isfinite, isinf, isnan, modf, remainder, pow (first
                   argument), sqrt, hypot
-            * cmath
-                * Must be dimensionless:  exp, log, log10, acos, asin,
+            - cmath
+                - Must be dimensionless:  exp, log, log10, acos, asin,
                   atan, cos, sin, tan, acosh, asinh, atanh, cosh, sinh,
                   tanh
-                * Probably OK with units:  phase, polar, rect, sqrt,
+                - Probably OK with units:  phase, polar, rect, sqrt,
                   isfinite, isinf, isnan, isclose
-            * The general test should be that the function's answer should
+            - The general test should be that the function's answer should
               be "obvious".  Thus, for exp(), I wouldn't be able to decide
               whether the value used should be the SI value or the .val
               attribute, meaning exp() cannot take a flt/cpx with units.
@@ -347,15 +287,72 @@ main
               number.  For some functions like isclose, you need the two
               arguments to be dimensionally consistent and use the same
               interpretation.
-        * Test_sigcomp() fails.
-        * flt:  add the engsi feature that will print a prefix with a unit.
+        - Test_sigcomp() fails.
+        - flt:  add the engsi feature that will print a prefix with a unit.
           If it's a multiple unit, surround it in (...).
-        * f.py:  see line 150 in test/lwtest_test.py.  
+        - f.py:  see line 150 in test/lwtest_test.py.  
         
             b = cpx(1+1j)
             b.promote = 0
             a = cpx(1+1j, units="m")
             Then in debugger, both a==b and a!=b are False
+
+----------------------------------------------------------------------
+magnet game
+
+    This was an idea Wayne and I had in 2007 and we went so far as to build
+    a mechanical prototype.  See /tools/magnet_game.  While this might be a
+    mechanical toy that could sell, it would be complicated to make.  
+
+    It seems to me it would be much more interesting to simulate on a
+    computer.  I found that a Runge-Kutta solution of the EOM seemed to
+    work pretty well; a major conclusion was that the number of iterations
+    per step needed didn't dramatically increase as the number of
+    interacting dipoles increased.
+
+    This would be particularly fun in 3D with e.g. some virtual reality
+    goggles.  Or see if the MacBook could render things fast enough for a
+    stereo view.
+
+----------------------------------------------------------------------
+pgm
+
+    - pgm/int.py:  Add colorizing like primes.py.
+
+    - pgm/sz.py:  Add -s option to sort by size
+
+    - pgm/power.py:  In appliance table, print in color the numbers that
+      come from actual measurements.  Measure our actual appliances where
+      possible.
+
+    - pgm/ds.py:  Normally, the output is sorted by filename.  Add a -d
+      option that sorts by date, with most recent file last.
+
+    - pgm/indent.py:  define a smaller set of styles.  The built-in styles
+      of astyle can still be supported, but not explicitly on the command
+      line.  
+
+        - Here are some ideas for special styles:
+            - compressed:  2 space indents, python style
+            - production:  4 space indents, bsd style
+
+        - Also get it to work as a filter so '!Gindent' works in vi.  This
+          means the usage needs to be given with the -h option, so the
+          examples need to be changed to -H.
+            - This could instead be done when the script is invoked with
+              the name 'ind', which would always default to my preferred
+              method.
+    - pgm/ds.py
+        - Store every command and provide a -l option to show the history.
+          This would be useful for remembering previous commands.
+
+    - Move $PP/uni.py to /plib/pgm.  Remove the lookup of the PDF stuff.
+
+    - pgm/char.py
+        - When a line (e.g. Lower) is complete with all the allowed
+          characters, print <all> at the end to denote this state.  Also
+          add -s option, which removes the space between characters, giving
+          a more compact output.  For -c option, include summary stats.
 
 ----------------------------------------------------------------------
 Mac stuff
@@ -366,221 +363,221 @@ Mac stuff
         https://mackeeper.com/blog/learn-how-to-use-mac/
 
     Display
-        * My Windows box runs at 3840x2160 resolution.  The monitor is a 24
+        - My Windows box runs at 3840x2160 resolution.  The monitor is a 24
           inch Dell F2415Q monitor.  Wayne uses a 27 inch monitor.
-        * Fonts
-            * You can list all your monospaced fonts in the Font Book app
+        - Fonts
+            - You can list all your monospaced fonts in the Font Book app
               by creating a smart collection File > New Smart Collection
               and selecting the design style as monospaced from the
               available drop down menus.
-            * https://www.fontspace.com  Clear Sans nice for display, but
+            - https://www.fontspace.com  Clear Sans nice for display, but
               not for programming because you can't distinguish 0 and O
-            * https://fontmeme.com/fonts/sansserif-fonts-collection/
-            * https://www.fontsquirrel.com/fonts/list/popular:  there's an
+            - https://fontmeme.com/fonts/sansserif-fonts-collection/
+            - https://www.fontsquirrel.com/fonts/list/popular:  there's an
               amazing number of sans fonts compared to a few decades ago.
               Clearly, people have realized that sans fonts are what are
               best for computer displays.
-                * Open Sans, Raleway, Montserrat, Roboto, Lato, Quicksand,
+                - Open Sans, Raleway, Montserrat, Roboto, Lato, Quicksand,
                   Oswald, Source Sans Pro, League Gothic, PT Sans,
                   Titillium, Poppins, Cooper Hewitt, Antonio, Fira Sans,
                   League Spartan, Red Hat, Sofia Pro
-                * Monospaced
+                - Monospaced
                   https://www.fontsquirrel.com/fonts/list/classification/monospaced
                   Lots of choices
-            * Fixed:
-                * https://www.1001freefonts.com:  Oxygen Mono, Onuava,
+            - Fixed:
+                - https://www.1001freefonts.com:  Oxygen Mono, Onuava,
                   Space Mono, Liberation, Amiko, 
-                * http://www.fontsaddict.com/font/category/basic-fixed-width
-                * https://www.levien.com/type/myfonts/inconsolata.html
-                * Bitstream Vers Sans Mono
+                - http://www.fontsaddict.com/font/category/basic-fixed-width
+                - https://www.levien.com/type/myfonts/inconsolata.html
+                - Bitstream Vers Sans Mono
                   https://www.fontsquirrel.com/fonts/Bitstream-Vera-Sans-Mono
 
     Hardware
-        * Could use a USB 3 hub, as there are always too many devices to
+        - Could use a USB 3 hub, as there are always too many devices to
           plug in
 
     Setup
-        * https://www.howtogeek.com/449715/how-to-set-up-your-new-mac/
-        * https://www.intego.com/new-mac-user-guide Annoying popups
+        - https://www.howtogeek.com/449715/how-to-set-up-your-new-mac/
+        - https://www.intego.com/new-mac-user-guide Annoying popups
           trying to sell you their products.  But there are numerous things
           to learn about such as dock and automator.
-        * Note both Firefox and Chrome are available for the Mac.  It may
+        - Note both Firefox and Chrome are available for the Mac.  It may
           make sense to install both.
-        * https://www.intego.com/mac-security-blog/setting-up-a-new-mac-should-you-migrate-or-do-a-clean-installation/
-        * vim:  Find the source and build it with the features I use a lot.
-            * brew install vim will install the latest version.
-        * Spotlight sounds useful, but has privacy concerns.  Read
+        - https://www.intego.com/mac-security-blog/setting-up-a-new-mac-should-you-migrate-or-do-a-clean-installation/
+        - vim:  Find the source and build it with the features I use a lot.
+            - brew install vim will install the latest version.
+        - Spotlight sounds useful, but has privacy concerns.  Read
           https://en.wikipedia.org/wiki/Spotlight_(software) at bottom of
           page to see how to disable the built-in sharing.
-            * 15 Feb 2022:  actual use:  going into spotlight search and
+            - 15 Feb 2022:  actual use:  going into spotlight search and
               privacy window, the text tells you that you can:
-                * Turn off Siri Suggestions sending your information to
+                - Turn off Siri Suggestions sending your information to
                   Apple by SysPref > Spotlight and deselect Siri
                   Suggestions.
-                * Turn off Safari Suggestions by Safari > Preferences >
+                - Turn off Safari Suggestions by Safari > Preferences >
                   Search and deselecting suggestions.
-                * Location:  SysPref>Secur&Priv>Privacy, select Location
+                - Location:  SysPref>Secur&Priv>Privacy, select Location
                   services.  Click the lock, enter passwd, click Details
                   next to SysServices, deselect Location-Based Suggestions.
-                * Disable Siri:  SysPref>AppleID>iCloud and deselect Siri
+                - Disable Siri:  SysPref>AppleID>iCloud and deselect Siri
                   in the list of Apps on this Mac using iCloud.
-        * https://theunarchiver.com/ for archive support better than the
+        - https://theunarchiver.com/ for archive support better than the
           default
-        * https://freemacsoft.net/appcleaner/ to clean up after the apps
+        - https://freemacsoft.net/appcleaner/ to clean up after the apps
           you want deleted
-        * https://transmissionbt.com/ as a free and good BitTorrent client
-        * https://www.howtogeek.com/671085/how-to-switch-between-open-apps-and-windows-on-mac/
+        - https://transmissionbt.com/ as a free and good BitTorrent client
+        - https://www.howtogeek.com/671085/how-to-switch-between-open-apps-and-windows-on-mac/
           to switch between apps like alt-tab in Windows
-        * https://www.techrepublic.com/article/how-to-create-a-virtual-desktop-in-macos/
+        - https://www.techrepublic.com/article/how-to-create-a-virtual-desktop-in-macos/
           to create virtual desktops
-            * ctrl-UpArrow gets virtual desktop manager.  ctrl-Arrow keys
+            - ctrl-UpArrow gets virtual desktop manager.  ctrl-Arrow keys
               moves between desktops.
-        * https://www.howtogeek.com/720194/how-to-turn-on-tap-to-click-on-mac/
-        * vim 
-            * https://sourabhbajaj.com/mac-setup/Vim/README.html
-            * https://www.javatpoint.com/how-to-install-vim-on-mac
-        * go2shell https://apps.apple.com/us/app/go2shell/id445770608?mt=12
+        - https://www.howtogeek.com/720194/how-to-turn-on-tap-to-click-on-mac/
+        - vim 
+            - https://sourabhbajaj.com/mac-setup/Vim/README.html
+            - https://www.javatpoint.com/how-to-install-vim-on-mac
+        - go2shell https://apps.apple.com/us/app/go2shell/id445770608?mt=12
           Put this into the finder toolbar, press the button and you have a
           shell window open for that directory.
-        * xcode is the default IDE/environment for Apple device programming
+        - xcode is the default IDE/environment for Apple device programming
           and requires a minimum of 8 GB of RAM and can take an hour or two
           to download.  It can be installed from a terminal with 'sudo
           xcode-select --install'.
-        * Various software suggestions are made at
+        - Various software suggestions are made at
           https://codeforgeek.com/setting-up-mac-for-development-coding/
           for a coding environment, but the website is horrible because you
           can't copy text.
-        * Should take a look at zsh:
+        - Should take a look at zsh:
           https://www.howtogeek.com/362409/what-is-zsh-and-why-should-you-use-it-instead-of-bash/
-        * Video editors
+        - Video editors
           https://fixthephoto.com/best-video-editing-software-for-mac.html
-            * Deb says she uses iMovie, but people who want to go up from
+            - Deb says she uses iMovie, but people who want to go up from
               there use Final Cut Pro (but it's a $300 tool).  
-        * Photo editing
-            * https://www.pcmag.com/picks/best-photo-editing-software-for-macs
-            * Start with Apple Photos and see if it does the basics well.
+        - Photo editing
+            - https://www.pcmag.com/picks/best-photo-editing-software-for-macs
+            - Start with Apple Photos and see if it does the basics well.
               Though I like PSP, its UI is dated and painful.  Still, the
               tools I use the most are perspective correction and cropping.
-            * Corel Draw package is $240/year.  If I do a lot of such work,
+            - Corel Draw package is $240/year.  If I do a lot of such work,
               it might be worth it (includes Paint Shop Pro).
-        * Thunderbolt 4
-            * https://www.hp.com/us-en/shop/tech-takes/usb-c-vs-thunderbolt
+        - Thunderbolt 4
+            - https://www.hp.com/us-en/shop/tech-takes/usb-c-vs-thunderbolt
               is a good discussion.
-        * Printer:  HP4050 at 192.168.0.49, port number 9100
+        - Printer:  HP4050 at 192.168.0.49, port number 9100
           https://mackeeper.com/blog/add-printer-to-mac/
-        * MacKeeper might be worth looking at http://mackeeper.com.  Try it
+        - MacKeeper might be worth looking at http://mackeeper.com.  Try it
           out for $11/month and if it looks worthwhile, either buy one
           month when needed or it's $72/year.
-        * Rust:  The Mac should be a good platform to learn to use Rust.
+        - Rust:  The Mac should be a good platform to learn to use Rust.
           https://doc.rust-lang.org/book/ch01-01-installation.html
-        * Chrome:  should install along with vimium.  This is a fast way of
+        - Chrome:  should install along with vimium.  This is a fast way of
           browsing; I'd forgotten how well it works.  It does have a
           problem with an open gmail tab, however.
-        * Notes is supposed to be good.
+        - Notes is supposed to be good.
           https://www.houstonchronicle.com/business/article/Apple-s-Notes-app-is-all-grown-up-16827809.php
           Note it can do OCR with the system's camera.
 
     Multiple monitors
-        * https://www.howtogeek.com/443460/how-to-use-multiple-monitors-on-your-mac/
-        * A core question is what monitor I should use.  Since the
+        - https://www.howtogeek.com/443460/how-to-use-multiple-monitors-on-your-mac/
+        - A core question is what monitor I should use.  Since the
           interface from an adapter will have two HDMI connections, should
           I assume that any monitor with HDMI should work?
-        * https://plugable.com/blogs/news/best-hub-and-docking-station-for-the-apple-m1-pro-macbook-pro-laptop
+        - https://plugable.com/blogs/news/best-hub-and-docking-station-for-the-apple-m1-pro-macbook-pro-laptop
           https://plugable.com/blogs/news/tagged/thunderbolt%E2%84%A2-4
-            * 60 W dock $164 https://www.amazon.com/Plugable-Display-DisplayPort-Ethernet-Vertical/dp/B08B6CZ29Q/ref=sr_1_3?crid=J3KY7EV7MMA5&keywords=plugable+TBT4-HUB3C&qid=1643042068&sprefix=plugable+tbt4-hub3c%2Caps%2C177&sr=8-3
+            - 60 W dock $164 https://www.amazon.com/Plugable-Display-DisplayPort-Ethernet-Vertical/dp/B08B6CZ29Q/ref=sr_1_3?crid=J3KY7EV7MMA5&keywords=plugable+TBT4-HUB3C&qid=1643042068&sprefix=plugable+tbt4-hub3c%2Caps%2C177&sr=8-3
               Note its USB3
-        * Cable management:  https://ascrono.com/blogs/news/basic-tips-on-how-to-manage-cables-efficiently
+        - Cable management:  https://ascrono.com/blogs/news/basic-tips-on-how-to-manage-cables-efficiently
           Note the device that holds the laptop vertically.  This could be
           something made from wood that hangs from under a table and gets
           out of the way.
 
     Keyboard
-        * Kinesis Advantage2 (Wayne has one) $350 and I like the features
+        - Kinesis Advantage2 (Wayne has one) $350 and I like the features
           and customizing, but the manual pg 10 warns that you may have 
           problems with KVM switches.  DO NOT BUY until this is discussed
           with the company.  $320 on Amazon, but you have to return it to
           Amazon unless you buy from the Kinesis.
-        * Curved keyboards are typically around $50
-            * Microsoft Sculpt (don't get; it's wireless)
-        * Cloud Nine C989M $190 Cherry Brown switches.  Note that mouse
+        - Curved keyboards are typically around $50
+            - Microsoft Sculpt (don't get; it's wireless)
+        - Cloud Nine C989M $190 Cherry Brown switches.  Note that mouse
           goes betwween the two halves.  Silly colored lighting around
           keys.
 
     Keyboard shortcuts
-        * Remapping:  https://www.powermax.com/how-to-remap-keys-on-your-mac/
+        - Remapping:  https://www.powermax.com/how-to-remap-keys-on-your-mac/
           You can remap both system keys and have the function keys
           remapped for individual applications.
-        * Apple's list of mappings:  https://support.apple.com/en-us/HT201236
-        * Specific app shortcuts:  https://support.apple.com/guide/mac-help/create-keyboard-shortcuts-for-apps-mchlp2271/mac
-        * Use the Windows key for Cmd if you're using a PC keyboard and alt
+        - Apple's list of mappings:  https://support.apple.com/en-us/HT201236
+        - Specific app shortcuts:  https://support.apple.com/guide/mac-help/create-keyboard-shortcuts-for-apps-mchlp2271/mac
+        - Use the Windows key for Cmd if you're using a PC keyboard and alt
           for the opt key.
-        * Spotlight cmd-space
-            * Press and hold cmd-space for Siri
-        * Set up for the most commonly-used tasks.  One keypress to copy to
+        - Spotlight cmd-space
+            - Press and hold cmd-space for Siri
+        - Set up for the most commonly-used tasks.  One keypress to copy to
           clipboard, one keypress to paste, one keypress to paste and press
           the Enter key.
 
     Mission control
-        * Used to control desktops, minimize apps, etc.  
-        * SysPref>MissionControl>Keyboard&Mouse Shortcuts for Mission
+        - Used to control desktops, minimize apps, etc.  
+        - SysPref>MissionControl>Keyboard&Mouse Shortcuts for Mission
           control, desktop, dashboard, & application windows.
-        * SysPref>Keyboard>TextReplacement to map shortcuts.  Example:  use
+        - SysPref>Keyboard>TextReplacement to map shortcuts.  Example:  use
           @em and have it expand to your email adddress.  You can also make
           common abbreviations, such as obv being obviously, iirc being 'if
           I remember correctly', etc.
 
     Power
-        * https://9to5mac.com/2019/04/29/power-button-macbook/ 
-        * The mac will power on when:
-            * Open the lid
-            * Connect to a power adapter while lid is open
-            * Connect to a power adapter when lid is closed and it's
+        - https://9to5mac.com/2019/04/29/power-button-macbook/ 
+        - The mac will power on when:
+            - Open the lid
+            - Connect to a power adapter while lid is open
+            - Connect to a power adapter when lid is closed and it's
               connected to a external display.
 
     Package managers
-        * brew 
-        * MacPorts:  https://www.macports.org/install.php
+        - brew 
+        - MacPorts:  https://www.macports.org/install.php
 
     Programming
-        * gcc 11.2 current as of Apr 2021
-        * Install gcc:  http://www.edparrish.net/common/macgpp.php 
-            * Open a terminal:  cmd+space, type Terminal, return
-            * In terminal type g++
-            * You'll get an alert box that lets you install either Xcode or
+        - gcc 11.2 current as of Apr 2021
+        - Install gcc:  http://www.edparrish.net/common/macgpp.php 
+            - Open a terminal:  cmd+space, type Terminal, return
+            - In terminal type g++
+            - You'll get an alert box that lets you install either Xcode or
               the command line tools.  Click on Install.
-                * You can install Xcode later from the AppStore.
-            * Verify g++ is installed.
-            * Enable showing extensions
-                * Open Finder
-                * Select Preferences from menu
-                * In Advanced, click show all filename extensions
-        * Xcode
-            * Good basics:  https://www.youtube.com/watch?v=FzuDUnoNQo0
-            * Install from AppStore
-            * Version 13:  https://developer.apple.com/xcode/
-                * https://developer.apple.com/documentation/xcode
-                * Built-in support for git
-                * Works with github
-                * Code review comments inline
-                * IDE has vim editing modes
-                * Simulator:  prototype when a real device isn't available.
+                - You can install Xcode later from the AppStore.
+            - Verify g++ is installed.
+            - Enable showing extensions
+                - Open Finder
+                - Select Preferences from menu
+                - In Advanced, click show all filename extensions
+        - Xcode
+            - Good basics:  https://www.youtube.com/watch?v=FzuDUnoNQo0
+            - Install from AppStore
+            - Version 13:  https://developer.apple.com/xcode/
+                - https://developer.apple.com/documentation/xcode
+                - Built-in support for git
+                - Works with github
+                - Code review comments inline
+                - IDE has vim editing modes
+                - Simulator:  prototype when a real device isn't available.
                   You can simulate iOS, tvOS, or watch OS.
-                * Build universal binaries to run on both Apple Si and
+                - Build universal binaries to run on both Apple Si and
                   Intel
-        * First project:  update WaveXpress
-            * The GUI design tool I used was called wxDesigner and it is no
+        - First project:  update WaveXpress
+            - The GUI design tool I used was called wxDesigner and it is no
               longer available, as the guy in Germany stopped supporting
               it.  For some strange reason, I no longer have any record of
               it in my ~/install directory.
-                * There's a $90 tool called DialogBlocks that works for C++
+                - There's a $90 tool called DialogBlocks that works for C++
                   code.  I'll purchase this if I move forward with a C++
                   implementation, although it can be tried out in demo mode
                   to make sure it's what you want.
-            * The first approach is to move forward to a late version of
+            - The first approach is to move forward to a late version of
               python 3 and wxPython.  I would expect it should be possible
               to get the plotting stuff working, but talking to instruments
               won't be a priority.
-            * If I can't get things working in python, then a C++ version
+            - If I can't get things working in python, then a C++ version
               using wxWidgets should be attempted.  I suspect the wxPython
               bindings are thin and most of the python code should be
               translatable into C++ code, assuming the interfaces haven't
@@ -588,26 +585,26 @@ Mac stuff
               is a PITA.
 
     Rosetta
-        * Used on Apple silicon to run Intel code
-        * If you have a universal app with a plug in that doesn't work, you
+        - Used on Apple silicon to run Intel code
+        - If you have a universal app with a plug in that doesn't work, you
           can select the app in the Finder, use File>GetInfo, and set the
           "Open using Rosetta" button to force it to use Rosetta.  This may
           make the plug in (or extension or add-on) start working.  See
           https://support.apple.com/en-us/HT211861.
 
     Windows emulation on Mac
-        * https://macpaw.com/how-to/best-windows-emulator-mac
-        * Parallels Desktop $100, 600 MB for install (explicitly says it
+        - https://macpaw.com/how-to/best-windows-emulator-mac
+        - Parallels Desktop $100, 600 MB for install (explicitly says it
           runs on M1 Pro hardware)
-        * Only run on Intel hardware:  VirtualBox, VMware Fusion
+        - Only run on Intel hardware:  VirtualBox, VMware Fusion
 
-    * Get copy of Apple Human Interface Guidelines (referenced at
+    - Get copy of Apple Human Interface Guidelines (referenced at
       acknowledgments at end of Snow Crash).  Apparently, it's only a
       simplified web page treatment, not a detailed programming manual.
       There was a book, but it sells used for e.g. $230; it is supposed to
       be an in-demand classic and was written a few decades ago.
 
-        * https://developer.apple.com/design/human-interface-guidelines/
+        - https://developer.apple.com/design/human-interface-guidelines/
 
 ----------------------------------------------------------------------
 Sprinklers
@@ -637,30 +634,30 @@ Sprinklers
 
 ----------------------------------------------------------------------
 make replacement in python?
-    * I'd alias to a python script, which would look at the makefile.  If
+    - I'd alias to a python script, which would look at the makefile.  If
       it was a regular makefile, it would immediately call 'make -rR'.
       However, if it was a python makefile, it would interpret that.
 
-    * It could use 'git status -s' to determine what was out of date.
+    - It could use 'git status -s' to determine what was out of date.
 
-    * It could have an option where a build wouldn't be allowed unless
+    - It could have an option where a build wouldn't be allowed unless
       there were no modified files.  Then the commit hash gets appended to
       a make log so that the repository state is known for the build.
 
-    * My use for this would be to build simple projects.  I don't mind
+    - My use for this would be to build simple projects.  I don't mind
       using make for more complicated stuff.
-    * I have no fundamental issues with make other than its quirky syntax.
-    * I'd want to be able to use '$token' for variable definitions, not the
+    - I have no fundamental issues with make other than its quirky syntax.
+    - I'd want to be able to use '$token' for variable definitions, not the
       crappy make ${...} stuff.
-    * Indenting would be key to makefile structure.
-        * Commenting out a recipe in column 1 removes subsequent indented
+    - Indenting would be key to makefile structure.
+        - Commenting out a recipe in column 1 removes subsequent indented
           lines too.
-        * Alternately allow python if blocks to get what's actually used.
+        - Alternately allow python if blocks to get what's actually used.
           Can this be done by making the makefile an executable python
           script?
-    * Can be set to run continuously and build things when a dependency
+    - Can be set to run continuously and build things when a dependency
       triggers it.
-    * Use python syntax and in-line code
+    - Use python syntax and in-line code
 
     Options
         * -d    Debugging information
@@ -693,8 +690,8 @@ make replacement in python?
 
 ----------------------------------------------------------------------
 Low priority
-    * fold.py
-        * This will change text files to have one space on blank lines or
+    - fold.py
+        - This will change text files to have one space on blank lines or
           no spaces on blank lines.  Need to intelligently process python
           files?  The default behavior would be to print each line with 2
           lines of context on either side.  Then if you like what you see,
@@ -703,8 +700,8 @@ Low priority
           on.  Python files will be some work because you need to leave
           multiline strings intact.
 
-    * british.py
-        * Move to plib and give it a function that will take a sentence of
+    - british.py
+        - Move to plib and give it a function that will take a sentence of
           text and replace all the British words with English words,
           maintaining capitalization and punctuation.  This will require
           another function to split a string into a list of words and
@@ -712,12 +709,12 @@ Low priority
           spaces between the words too.  See the next function, which
           should be in dpstr.py.
 
-    * geom_prim.py
-        * Update properties to modern syntax, utilize matrix.py for
+    - geom_prim.py
+        - Update properties to modern syntax, utilize matrix.py for
           determinants, as this would remove dependency on numpy.
 
-    * u.py and f.py
-        * A notation for using SI prefixes could be to use something like
+    - u.py and f.py
+        - A notation for using SI prefixes could be to use something like
           μ(N*s/m^2).  This might not be acceptable SI syntax, but it would
           be understandable by anyone and I should use it if the tokenizer
           in the u.py script can be made to utilize it.  A way to do this
@@ -725,26 +722,26 @@ Low priority
           multiplication sign on the right when it's encountered; this
           should evaluate OK with python's parser.
 
-    * module_dependencies.py
-        * Is it necessary?  It needs to be rewritten to accommodate /plib.
+    - module_dependencies.py
+        - Is it necessary?  It needs to be rewritten to accommodate /plib.
           The tools and programs need to be moved in first.  
 
-    * sig.py
-        * Is a mess of code.  Is it really all needed?  Maybe it would be
+    - sig.py
+        - Is a mess of code.  Is it really all needed?  Maybe it would be
           best to move the key stuff to flt and cpx.  It can still be kept
           around for when it's needed.
 
-    * ts.py
-        * 'ts.py -m' doesn't work.
+    - ts.py
+        - 'ts.py -m' doesn't work.
 
-    * /pylib/pgm/readability/indict.py
-        * Looks like an interesting tool.  It should use a reasonable
+    - /pylib/pgm/readability/indict.py
+        - Looks like an interesting tool.  It should use a reasonable
           dictionary by default and print the tokens out in columns for
           each file.
 
 ----------------------------------------------------------------------
 /plib releases
 
-    * 7Mar2022 was first release after I made the repository public.
+    - 7Mar2022 was first release after I made the repository public.
 
 vim: set sw=2
