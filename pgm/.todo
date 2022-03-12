@@ -1,145 +1,89 @@
-----------------------------------------------------------------------
 main
-
-    - prun.py:  Allow the .py to be omitted from the first argument, as it
-      will always be a python file.
-
     - Things to import to /plib
         - /pylib/pgm/ts/ts.py
 
-    - get_import.py:  scans all python files to find import lines to make
-      an index file.  Then you can see a report of all files that use a
-      particular import.  The line number will be saved and an interactive
-      mode lets you launch the editor to see a particular symbol.
+    - get_import.py
+        - Scans all python files to find import lines to make an index
+          file.  Then you can see a report of all files that use a
+          particular import.  The line number will be saved and an
+          interactive mode lets you launch the editor to see a particular
+          symbol.
 
-    - Formatter:  I don't think black is worth keeping.  Spend some time
-      with yapf to see if it can be tuned to what I like.
+    - Formatter
+        - I don't think black is worth keeping.  Spend some time with yapf
+          to see if it can be tuned to what I like.
 
-    - /tools:  convert the whole directory to git and put it on github.
-      Make it public after vetting all the contents.
+    - /tools
+        - Convert the whole directory to git and put it on github.  Make it
+          public after vetting all the contents.
 
-    - iso.py:  Should take time arguments in either s or tm structures.
+    - iso.py
+        - Should take time arguments in either s or tm structures.
 
-    - columnize.py:  write a Decolumnize() function that can take the
-      columnized output like '0what.py -m *.py' produces in /plib/pgm and
-      converts it to a list of lines with one object per line.  For files
-      it can't figure out, add an option to show the columns where breaks
-      should be made:  -c "8,14,22,35" and use -1 for 1-based numbering.
+    - columnize.py
+        - Wwrite a Decolumnize() function that can take the columnized
+          output like '0what.py -m *.py' produces in /plib/pgm and converts
+          it to a list of lines with one object per line.  For files it
+          can't figure out, add an option to show the columns where breaks
+          should be made:  -c "8,14,22,35" and use -1 for 1-based
+          numbering.
         - Also, do a 'ddiff -r /pylib /plib'.  You'll get an exception
           because a string is too long to fit to the screen.  In this case,
           you'd still want things printed, so maybe a too_long kw is needed
           to ignore such things.
 
-    - help:  Consolidate the help text I use into one directory.  Eliminate
-      make and the C programs; convert everything to python.  Look at
-      hierarchically organizing the access with most-used stuff first and
-      seldom-used stuff hidden.  Do partial topic matches with the
-      invocation and use a command line option to do searches of the
-      records.  
-
+    - help
+        - Consolidate the help text I use into one directory.  Eliminate
+          make and the C programs; convert everything to python.  Look at
+          hierarchically organizing the access with most-used stuff first
+          and seldom-used stuff hidden.  Do partial topic matches with the
+          invocation and use a command line option to do searches of the
+          records.  
         - Look at somehow organizing things so that it can run as a project
           in Notepad++, which will mean others are more likely to use it.
 
-    - Write a script that estimates the electrical energy and time needed
-      to heat up a room in our house.  Focus on the shop and garage.  The
-      primary input number will be the starting temperature in °F.  An
-      option can change the final temperature, which defaults to 70 °F. 
+    - Room heating energy
+        - Write a script that estimates the electrical energy and time
+          needed to heat up a room in our house.  Focus on the shop and
+          garage.  The primary input number will be the starting
+          temperature in °F.  An option can change the final temperature,
+          which defaults to 70 °F. 
 
-    - pysh:  A python shell.  This could be core C code that provides the
-      fast implementations of things a shell needs.  Then python would be
-      bundled with this as a scripting language.  This lets users write
-      scripts that do shell functionality, as the interface would be to
-      python commands with the proper syntax.
+    - pysh
+        - A python shell.  This could be core C code that provides the fast
+          implementations of things a shell needs.  Then python would be
+          bundled with this as a scripting language.  This lets users write
+          scripts that do shell functionality, as the interface would be to
+          python commands with the proper syntax.
 
-        https://libraries.io/pypi/pysh-lib might be worth taking a look at.
+          https://libraries.io/pypi/pysh-lib might be worth taking a look at.
 
-    - pkg.py:  Given a set of files to put into a package (zip file),
-      analyze the thing for C/C++ and python files that are dependencies
-      and include them in the zip file.  This would allow me to share
-      things with others.
+    - pkg.py
+        - Given a set of files to put into a package (zip file), analyze
+          the thing for C/C++ and python files that are dependencies and
+          include them in the zip file.  This would allow me to share
+          things with others.
 
-    - Backup with a NAS
-        - 1 TB WD SSD is $135 from Newegg.  Also have 0.5 and 2 TB.
-        - Spinning hard disks are 1/3rd to 1/4th the price of SSD
-        - NAS info
-            - https://linuxhint.com/best-nas-software-linux/
-                - Amahi
-                    - You can install Fedora or Ubuntu and run Amahi from
-                      there.  It's open source.  The faq says they had
-                      problems with ubuntu.
-                    - You can use ext4 fs on both the OS and the mounted
-                      drives.
-                    - faq http://www.amahi.org/faqhttp://www.amahi.org/faq
-                - Open Media Vault:  Debian-based NAS
-                    - https://www.openmediavault.org/download.html
-                    - Supports FTP, Samba, NFS, rsync
-                    - Supports ext4
-                    - Web interface
-                - TrueNAS:  https://www.truenas.com/freenas/
-                    - Requires signing up to download
-                - Rockstor
-                    - Cent OS Linux distribution
-                    - Plug-in system
-                    - Can use it as a cloud server
-            - https://gers.from-ct.com/8-best-open-source-nas-operating-systems-for-linux
-                - XigmaNAS:  non-user-friendly web interface
-        - ZFS  File system advantageous for NAS systems
-            - https://itsfoss.com/what-is-zfs/,
-              https://en.wikipedia.org/wiki/ZFS,
-              https://www.howtogeek.com/175159/an-introduction-to-the-z-file-system-zfs-for-linux/
-                - The third link shows how to use ext4 for a root disk in
-                  ubuntu, then add a zsh filesystem.
-                - This third link gives an excellent example of using the
-                  features of zsh.
-                    - It explains the RAID-Z setup and that a single disk
-                      drive can die; you just replace it and the system
-                      will rebuild your data.  To lose all your
-                      information, two disks have to die.
-                - https://www.howtogeek.com/272220/how-to-install-and-use-zfs-on-ubuntu-and-why-youd-want-to/https://www.howtogeek.com/272220/how-to-install-and-use-zfs-on-ubuntu-and-why-youd-want-to/
-                  tells how it's enabled in ubuntu (it's not installed and
-                  enabled by default, but it's officially supported).
-            - Note it's a 128 bit implementation which can manage 1e9 TB.
-              It used to be called zetabyte file system.
-            - It combines a filesystem with a volume manager
-            - Pooled storage:  add to a pooled drive by adding a new drive
-            - Copy-on-write:  new info doesn't overwrite, it goes to a new
-              block; once finished, metadata is updated.  Result:  if
-              system crashes during write, old data is still there and
-              there's no need to run fsck after a crash.
-            - Snapshots:  allows recovering past versions of a file
-            - Data checksums:  verified on read; if no match, then
-              automatically tries to fix.
-            - RAID-Z has its own implementation, a variation of RAID5.
-              RAID-Z1 needs two disks and a parity drive, Z2 needs 2 drives
-              and 2 parity drives, Z3 needs 2 drives and 3 parity.
-                - A downside is that RAID-Z can be expensive because of the
-                  needed drives to add storage space
-            - See
-              https://wiki.archlinux.org/title/ZFS/Virtual_disks#Creating_and_Destroying_Zpools
-              for some examples
-            - If you want to use ZFS out of the box, install FreeBSD.
-            - Linux:  https://zfsonlinux.org/
-            - 2 TB 7200 rpm WD HDD $47
-              https://www.newegg.com/blue-wd20ezbx-2tb/p/N82E16822234469?Description=hard%20drive&cm_re=hard_drive-_-22-234-469-_-Product
-              Three of these provide a 2 GB RAID-Z1 drive.
+    - Common keypresses
+        - Two of the most common keypresses are ctrl-C and ctrl-V.  These
+          should be assigned to a single easy to access keypress.
 
-    - Two of the most common keypresses are ctrl-C and ctrl-V.  These
-      should be assigned to a single easy to access keypress.
+    - Remembering a structure
+        - A fundamental problem when coding is that a data structure is
+          developed and you start using it in your code.  Then you always
+          have to stop and look around the code to figure out the
+          structures again.  Is there a way to add a utility that documents
+          the structures so e.g.  a command line option will print out a
+          succinct summary by the code examining itself?  Ideally, this
+          would be just a few lines of code that are easy to remove when
+          done (or, better, leave it in for later maintenance).
 
-    - A fundamental problem when coding is that a data structure is
-      developed and you start using it in your code.  Then you always have
-      to stop and look around the code to figure out the structures again.
-      Is there a way to add a utility that documents the structures so e.g.
-      a command line option will print out a succinct summary by the code
-      examining itself?  Ideally, this would be just a few lines of code
-      that are easy to remove when done (or, better, leave it in for later
-      maintenance).
+    - flt.py
+        - Since flt is essentially done, write a replacement for
+          fpformat.py that includes its features.
 
-    - Since flt is essentially done, write a replacement for fpformat.py
-      that includes its features.
-
-    - dpmath.py:  This would be a general-purpose module for math
-      calculations.
+    - dpmath.py
+        - This would be a general-purpose module for math calculations.
         - Types
             - flt:  derived from float
             - dec:  derived from Decimal
@@ -174,7 +118,7 @@ main
               calculations.
         - Need to coalesce f.py, dpdecimal.py, and decimalmath.py.
 
-    - what.py
+    - depend.py
         - Should be able to examine a file and list the dependencies on
           scripts.  Look at pgm/dep.py and the modulefinder module.  Then
           what.py should only print out the non-standard modules.
@@ -299,26 +243,112 @@ main
             a = cpx(1+1j, units="m")
             Then in debugger, both a==b and a!=b are False
 
-----------------------------------------------------------------------
+Backup with a NAS
+
+    - Current storage
+        - Don's Windows PC
+            - 120 GB c:/ at 80% (SSD)
+            - 224 GB d:/ at 60% (SSD)
+            - 465 GB e:/ at 65% (WD USB 2 drive)
+            - TOTAL 0.8 TB
+        - Mac
+            - 0.5 TB SSD
+        - Glenda's Windows PC
+            - 229 GB c:/ at 30%
+            - 100 GB d:/ at 30%
+            - 116 GB e:/ at 40%
+            - 348 GB f:/ at 35%
+            - TOTAL 0.8 TB
+        - Conclusion
+            - Don needs 2 TB of backup
+            - Glenda needs 1 TB, but could also use 2 TB (expansion)
+    - Hardware 
+        - 1 TB WD SSD is $135 from Newegg.  Also have 0.5 and 2 TB.
+        - Spinning hard disks are 1/3rd to 1/4th the price of SSD
+        - I'd like to see a NAS with two pairs of 2 TB disks.  These would
+          be connected in RAID pairs.
+        - Newegg:
+          https://www.newegg.com/p/pl?d=hard+drive&N=50001306%208000%20600003300%20100167523
+          Blue drives 2 TB for around $50 each (5400 rpm); need 3 each for
+          a Z1 setup.  Thus our NAS box would have 6 drives.
+    - NAS info
+        - https://linuxhint.com/best-nas-software-linux/
+            - Amahi
+                - You can install Fedora or Ubuntu and run Amahi from
+                  there.  It's open source.  The faq says they had problems
+                  with ubuntu.
+                - You can use ext4 fs on both the OS and the mounted
+                  drives.
+                - faq http://www.amahi.org/faqhttp://www.amahi.org/faq
+            - Open Media Vault:  Debian-based NAS
+                - https://www.openmediavault.org/download.html
+                - Supports FTP, Samba, NFS, rsync
+                - Supports ext4
+                - Web interface
+            - TrueNAS:  https://www.truenas.com/freenas/
+                - Requires signing up to download
+            - Rockstor
+                - Cent OS Linux distribution
+                - Plug-in system
+                - Can use it as a cloud server
+        - https://gers.from-ct.com/8-best-open-source-nas-operating-systems-for-linux
+            - XigmaNAS:  non-user-friendly web interface
+    - ZFS  File system advantageous for NAS systems
+        - https://itsfoss.com/what-is-zfs/,
+          https://en.wikipedia.org/wiki/ZFS,
+          https://www.howtogeek.com/175159/an-introduction-to-the-z-file-system-zfs-for-linux/
+            - The third link shows how to use ext4 for a root disk in
+              ubuntu, then add a zsh filesystem.
+            - This third link gives an excellent example of using the
+              features of zsh.
+                - It explains the RAID-Z setup and that a single disk drive
+                  can die; you just replace it and the system will rebuild
+                  your data.  To lose all your information, two disks have
+                  to die.
+            - https://www.howtogeek.com/272220/how-to-install-and-use-zfs-on-ubuntu-and-why-youd-want-to/https://www.howtogeek.com/272220/how-to-install-and-use-zfs-on-ubuntu-and-why-youd-want-to/
+              tells how it's enabled in ubuntu (it's not installed and
+              enabled by default, but it's officially supported).
+        - Note it's a 128 bit implementation which can manage 1e9 TB.
+            - It used to be called zetabyte file system.
+        - It combines a filesystem with a volume manager
+        - Pooled storage:  add to a pooled drive by adding a new drive
+        - Copy-on-write:  new info doesn't overwrite, it goes to a new
+          block; once finished, metadata is updated.  Result:  if system
+          crashes during write, old data is still there and there's no need
+          to run fsck after a crash.
+        - Snapshots:  allows recovering past versions of a file
+        - Data checksums:  verified on read; if no match, then
+          automatically tries to fix.
+        - RAID-Z has its own implementation, a variation of RAID5.  RAID-Z1
+          needs two disks and a parity drive, Z2 needs 2 drives and 2
+          parity drives, Z3 needs 2 drives and 3 parity.
+            - A downside is that RAID-Z can be expensive because of the
+              needed drives to add storage space
+        - See
+          https://wiki.archlinux.org/title/ZFS/Virtual_disks#Creating_and_Destroying_Zpools
+          for some examples
+        - If you want to use ZFS out of the box, install FreeBSD.
+        - Linux:  https://zfsonlinux.org/
+        - 2 TB 7200 rpm WD HDD $47
+          https://www.newegg.com/blue-wd20ezbx-2tb/p/N82E16822234469?Description=hard%20drive&cm_re=hard_drive-_-22-234-469-_-Product
+          Three of these provide a 2 GB RAID-Z1 drive.
+
 magnet game
 
     This was an idea Wayne and I had in 2007 and we went so far as to build
     a mechanical prototype.  See /tools/magnet_game.  While this might be a
     mechanical toy that could sell, it would be complicated to make.  
 
-    It seems to me it would be much more interesting to simulate on a
-    computer.  I found that a Runge-Kutta solution of the EOM seemed to
-    work pretty well; a major conclusion was that the number of iterations
-    per step needed didn't dramatically increase as the number of
-    interacting dipoles increased.
+    It would be more interesting to simulate on a computer.  I found that a
+    Runge-Kutta solution of the EOM seemed to work pretty well; a major
+    conclusion was that the number of iterations per step needed didn't
+    dramatically increase as the number of interacting dipoles increased.
 
     This would be particularly fun in 3D with e.g. some virtual reality
     goggles.  Or see if the MacBook could render things fast enough for a
     stereo view.
 
-----------------------------------------------------------------------
 pgm
-
     - pgm/int.py:  Add colorizing like primes.py.
 
     - pgm/sz.py:  Add -s option to sort by size
@@ -355,16 +385,13 @@ pgm
           characters, print <all> at the end to denote this state.  Also
           add -s option, which removes the space between characters, giving
           a more compact output.  For -c option, include summary stats.
-
-----------------------------------------------------------------------
 Mac stuff
-    Will be $2k 14" Macbook Pro with 16 GB RAM and 0.5 TB SSD
-        https://www.apple.com/shop/buy-mac/macbook-pro/14-inch
 
-    Good overview of getting started:
-        https://mackeeper.com/blog/learn-how-to-use-mac/
-
-    Display
+    - Will be $2k 14" Macbook Pro with 16 GB RAM and 0.5 TB SSD
+      https://www.apple.com/shop/buy-mac/macbook-pro/14-inch
+    - Good overview of getting started:
+      https://mackeeper.com/blog/learn-how-to-use-mac/
+    - Display
         - My Windows box runs at 3840x2160 resolution.  The monitor is a 24
           inch Dell F2415Q monitor.  Wayne uses a 27 inch monitor.
         - Fonts
@@ -393,16 +420,14 @@ Mac stuff
                 - https://www.levien.com/type/myfonts/inconsolata.html
                 - Bitstream Vers Sans Mono
                   https://www.fontsquirrel.com/fonts/Bitstream-Vera-Sans-Mono
-
-    Hardware
+    - Hardware
         - Could use a USB 3 hub, as there are always too many devices to
           plug in
-
-    Setup
+    - Setup
         - https://www.howtogeek.com/449715/how-to-set-up-your-new-mac/
-        - https://www.intego.com/new-mac-user-guide Annoying popups
-          trying to sell you their products.  But there are numerous things
-          to learn about such as dock and automator.
+        - https://www.intego.com/new-mac-user-guide Annoying popups trying
+          to sell you their products.  But there are numerous things to
+          learn about such as dock and automator.
         - Note both Firefox and Chrome are available for the Mac.  It may
           make sense to install both.
         - https://www.intego.com/mac-security-blog/setting-up-a-new-mac-should-you-migrate-or-do-a-clean-installation/
@@ -478,24 +503,24 @@ Mac stuff
         - Notes is supposed to be good.
           https://www.houstonchronicle.com/business/article/Apple-s-Notes-app-is-all-grown-up-16827809.php
           Note it can do OCR with the system's camera.
-
-    Multiple monitors
+    - Multiple monitors
         - https://www.howtogeek.com/443460/how-to-use-multiple-monitors-on-your-mac/
         - A core question is what monitor I should use.  Since the
           interface from an adapter will have two HDMI connections, should
           I assume that any monitor with HDMI should work?
         - https://plugable.com/blogs/news/best-hub-and-docking-station-for-the-apple-m1-pro-macbook-pro-laptop
           https://plugable.com/blogs/news/tagged/thunderbolt%E2%84%A2-4
-            - 60 W dock $164 https://www.amazon.com/Plugable-Display-DisplayPort-Ethernet-Vertical/dp/B08B6CZ29Q/ref=sr_1_3?crid=J3KY7EV7MMA5&keywords=plugable+TBT4-HUB3C&qid=1643042068&sprefix=plugable+tbt4-hub3c%2Caps%2C177&sr=8-3
+            - 60 W dock $164
+              https://www.amazon.com/Plugable-Display-DisplayPort-Ethernet-Vertical/dp/B08B6CZ29Q/ref=sr_1_3?crid=J3KY7EV7MMA5&keywords=plugable+TBT4-HUB3C&qid=1643042068&sprefix=plugable+tbt4-hub3c%2Caps%2C177&sr=8-3
               Note its USB3
-        - Cable management:  https://ascrono.com/blogs/news/basic-tips-on-how-to-manage-cables-efficiently
+        - Cable management:
+          https://ascrono.com/blogs/news/basic-tips-on-how-to-manage-cables-efficiently
           Note the device that holds the laptop vertically.  This could be
           something made from wood that hangs from under a table and gets
           out of the way.
-
-    Keyboard
+    - Keyboard
         - Kinesis Advantage2 (Wayne has one) $350 and I like the features
-          and customizing, but the manual pg 10 warns that you may have 
+          and customizing, but the manual pg 10 warns that you may have
           problems with KVM switches.  DO NOT BUY until this is discussed
           with the company.  $320 on Amazon, but you have to return it to
           Amazon unless you buy from the Kinesis.
@@ -504,13 +529,15 @@ Mac stuff
         - Cloud Nine C989M $190 Cherry Brown switches.  Note that mouse
           goes betwween the two halves.  Silly colored lighting around
           keys.
-
-    Keyboard shortcuts
-        - Remapping:  https://www.powermax.com/how-to-remap-keys-on-your-mac/
-          You can remap both system keys and have the function keys
-          remapped for individual applications.
-        - Apple's list of mappings:  https://support.apple.com/en-us/HT201236
-        - Specific app shortcuts:  https://support.apple.com/guide/mac-help/create-keyboard-shortcuts-for-apps-mchlp2271/mac
+    - Keyboard shortcuts
+        - Remapping:
+          https://www.powermax.com/how-to-remap-keys-on-your-mac/ You can
+          remap both system keys and have the function keys remapped for
+          individual applications.
+        - Apple's list of mappings:
+          https://support.apple.com/en-us/HT201236
+        - Specific app shortcuts:
+          https://support.apple.com/guide/mac-help/create-keyboard-shortcuts-for-apps-mchlp2271/mac
         - Use the Windows key for Cmd if you're using a PC keyboard and alt
           for the opt key.
         - Spotlight cmd-space
@@ -518,8 +545,7 @@ Mac stuff
         - Set up for the most commonly-used tasks.  One keypress to copy to
           clipboard, one keypress to paste, one keypress to paste and press
           the Enter key.
-
-    Mission control
+    - Mission control
         - Used to control desktops, minimize apps, etc.  
         - SysPref>MissionControl>Keyboard&Mouse Shortcuts for Mission
           control, desktop, dashboard, & application windows.
@@ -527,20 +553,17 @@ Mac stuff
           @em and have it expand to your email adddress.  You can also make
           common abbreviations, such as obv being obviously, iirc being 'if
           I remember correctly', etc.
-
-    Power
+    - Power
         - https://9to5mac.com/2019/04/29/power-button-macbook/ 
         - The mac will power on when:
             - Open the lid
             - Connect to a power adapter while lid is open
             - Connect to a power adapter when lid is closed and it's
               connected to a external display.
-
-    Package managers
+    - Package managers
         - brew 
         - MacPorts:  https://www.macports.org/install.php
-
-    Programming
+    - Programming
         - gcc 11.2 current as of Apr 2021
         - Install gcc:  http://www.edparrish.net/common/macgpp.php 
             - Open a terminal:  cmd+space, type Terminal, return
@@ -585,67 +608,57 @@ Mac stuff
               translatable into C++ code, assuming the interfaces haven't
               changed much.  This will still be a lot of work because C++
               is a PITA.
-
-    Rosetta
+    - Rosetta
         - Used on Apple silicon to run Intel code
         - If you have a universal app with a plug in that doesn't work, you
           can select the app in the Finder, use File>GetInfo, and set the
           "Open using Rosetta" button to force it to use Rosetta.  This may
           make the plug in (or extension or add-on) start working.  See
           https://support.apple.com/en-us/HT211861.
-
-    Windows emulation on Mac
+    - Windows emulation on Mac
         - https://macpaw.com/how-to/best-windows-emulator-mac
         - Parallels Desktop $100, 600 MB for install (explicitly says it
           runs on M1 Pro hardware)
         - Only run on Intel hardware:  VirtualBox, VMware Fusion
-
     - Get copy of Apple Human Interface Guidelines (referenced at
       acknowledgments at end of Snow Crash).  Apparently, it's only a
       simplified web page treatment, not a detailed programming manual.
       There was a book, but it sells used for e.g. $230; it is supposed to
       be an in-demand classic and was written a few decades ago.
-
         - https://developer.apple.com/design/human-interface-guidelines/
 
-----------------------------------------------------------------------
 Sprinklers
-    The ESP32 chip with the RS485 boards (under $10 for each) would be a
-    nice way to construct a sprinkler controller.  The ESP32 would be a
-    stand-alone controller, but would allow serial communication with
-    another ESP32 chip in the house in my office; the connection could be
-    made over wifi.  This would allow modifying the stored program of the
-    controller, interrupting things, etc.  In fact, a simple approach would
-    be to provide a command line interface for controlling the remote chip
-    and to get status.
 
-    Unfortunately, it appears this chip can only be accessed from Windows,
-    as you need to download a driver for it.
+    - The ESP32 chip with the RS485 boards (under $10 for each) would be a
+      nice way to construct a sprinkler controller.  The ESP32 would be a
+      stand-alone controller, but would allow serial communication with
+      another ESP32 chip in the house in my office; the connection could be
+      made over wifi.  This would allow modifying the stored program of the
+      controller, interrupting things, etc.  In fact, a simple approach
+      would be to provide a command line interface for controlling the
+      remote chip and to get status.
+    - Unfortunately, it appears this chip can only be accessed from
+      Windows, as you need to download a driver for it.
+    - I'd like to see the stand-alone processor have a switch that selects
+      automatic mode or manual mode.  In manual mode, there's a pushbutton
+      switch for each sprinkler to turn on, along with the pump.
+    - Since these chips also support bluetooth, there should be an app to
+      control their settings via bluetooth also.  This means you could do
+      sprinkler control from your phone.
+    - Maybe the only interface needed would be a serial connection in one
+      of the rooms.  Then you connect a computer to it for control and
+      settings.  All that's needed is a 9600 baud connection for text
+      messages.
 
-    I'd like to see the stand-alone processor have a switch that selects
-    automatic mode or manual mode.  In manual mode, there's a pushbutton
-    switch for each sprinkler to turn on, along with the pump.
-
-    Since these chips also support bluetooth, there should be an app to
-    control their settings via bluetooth also.  This means you could do
-    sprinkler control from your phone.
-
-    Maybe the only interface needed would be a serial connection in one of
-    the rooms.  Then you connect a computer to it for control and settings.
-    All that's needed is a 9600 baud connection for text messages.
-
-----------------------------------------------------------------------
 make replacement in python?
+
     - I'd alias to a python script, which would look at the makefile.  If
       it was a regular makefile, it would immediately call 'make -rR'.
       However, if it was a python makefile, it would interpret that.
-
     - It could use 'git status -s' to determine what was out of date.
-
     - It could have an option where a build wouldn't be allowed unless
       there were no modified files.  Then the commit hash gets appended to
       a make log so that the repository state is known for the build.
-
     - My use for this would be to build simple projects.  I don't mind
       using make for more complicated stuff.
     - I have no fundamental issues with make other than its quirky syntax.
@@ -660,38 +673,33 @@ make replacement in python?
     - Can be set to run continuously and build things when a dependency
       triggers it.
     - Use python syntax and in-line code
+        - Options
+            - -d    Debugging information
+            - -i    Ignore errors when remaking files
+            - -n    Dry run (show things that will be done but don't do
+              them)
+            - -s    Do not print commands as they are executed
+            - -o f  Do not remake file f (assume it's up to date)
+            - -B    Everything out of date
+            - -f f  Specify makefile
+            - -k    Keep going to do as much as possible
+            - -t    Translate to standard makefile syntax
+    - Example
+        - This is a typical makefile for a C/C++ project
+            - cppopts = -g -DMAIN
+            - exe = z.exe
+            - ${exe}:  array.o tokenizer.o
+            -     g++ -o ${exe} ${cppopts} $^
 
-    Options
-        * -d    Debugging information
-        * -i    Ignore errors when remaking files
-        * -n    Dry run (show things that will be done but don't do them)
-        * -s    Do not print commands as they are executed
-        * -o f  Do not remake file f (assume it's up to date)
-        * -B    Everything out of date
-        * -f f  Specify makefile
-        * -k    Keep going to do as much as possible
-        * -t    Translate to standard makefile syntax
+            - array.o: array.cpp array.h
+            -     g++ -c ${cppopts} $<
+            - tokenizer.o: tokenizer.cpp tokenizer.h
+            -     g++ -c ${cppopts} $<
+            - clean:
+            -     @rm -f ${exe} ${exe}.stackdump *.o
 
-
-    Example
-
-        This is a typical makefile for a C/C++ project
-
-            cppopts = -g -DMAIN
-            exe = z.exe
-
-            ${exe}:  array.o tokenizer.o
-                g++ -o ${exe} ${cppopts} $^
-
-            array.o: array.cpp array.h
-                g++ -c ${cppopts} $<
-            tokenizer.o: tokenizer.cpp tokenizer.h
-                g++ -c ${cppopts} $<
-            clean:
-                @rm -f ${exe} ${exe}.stackdump *.o
-
-----------------------------------------------------------------------
 Low priority
+
     - fold.py
         - This will change text files to have one space on blank lines or
           no spaces on blank lines.  Need to intelligently process python
@@ -741,9 +749,6 @@ Low priority
           dictionary by default and print the tokens out in columns for
           each file.
 
-----------------------------------------------------------------------
 /plib releases
-
     - 7Mar2022 was first release after I made the repository public.
-
 vim: set sw=2
