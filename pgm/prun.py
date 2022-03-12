@@ -154,21 +154,19 @@ if 1:   # Utility
                 ManPage()
         if not args:
             Usage()
-        if d["-t"] is None:
-            d["-t"] = args[0]   # Trigger on the pgm script
         return args
 if 1:   # Core functionality
     def ModTime():
         # This will attempt to get the mod time of the file for up to two
         # seconds, as sometimes it fails on only one try.
-        count, n = 0, 10
+        count, n, s = 0, 10, None
         for i in range(n):
             try:
                 s = trig.stat().st_mtime
             except FileNotFoundError:
                 sleep(0.2)
                 count += 1
-        if count > n:
+        if count > n or s == None:
             raise Exception(f"Couldn't stat {trig}")
         return s
     def ClearScreen():
