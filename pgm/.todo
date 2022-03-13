@@ -748,4 +748,71 @@ Other
             as this is a good example that's not overly complicated.
                 - https://github.com/SCons/scons/wiki/AccumulateBuilder might
                 be a useful adjunct to look at
-            - External tools (python packages with __init__.py files) can b
+            - External tools (python packages with __init__.py files) can be
+            handled https://github.com/SCons/scons/wiki/ToolsIndex
+            - The project could use some documentation help; see
+            https://github.com/SCons/scons/wiki/HowToContribute.  I'd like to
+            see a link on the FAQ that links to a tutorial that shows a
+            conversion from a makefile build to an scons build.
+            - They have number contributed builders
+            https://github.com/SCons/scons/wiki/ContributedBuilders
+            - Suggestion:  they should run spell checkers and url checkers on
+            their web pages.
+        - AAP (by vim's author) 
+            - I downloaded aap-1.094.zip; it looks to be a python 2 project
+            because the python files are dated 2003 to 2007.
+        - Buildout
+            - I didn't like the fact that it focuses on things like building
+            python eggs and uses ini file syntax.
+        - One of the problems with these industrial-strength tools is that
+            they handle complicated cases and have a lot of syntax, meaning a
+            significant learning curve.
+        - I'd alias to a python script, which would look at the makefile.  If
+        it was a regular makefile, it would immediately call 'make -rR'.
+        However, if it was a python makefile, it would interpret that.
+        - It could use 'git status -s' to determine what was out of date.
+        - It could have an option where a build wouldn't be allowed unless
+        there were no modified files.  Then the commit hash gets appended to
+        a make log so that the repository state is known for the build.
+        - My use for this would be to build simple projects.  I don't mind
+        using make for more complicated stuff.
+        - I have no fundamental issues with make other than its quirky syntax.
+        - I'd want to be able to use '$token' for variable definitions, not the
+        crappy make ${...} stuff.
+        - Indenting would be key to makefile structure.
+            - Commenting out a recipe in column 1 removes subsequent indented
+            lines too.
+            - Alternately allow python if blocks to get what's actually used.
+            Can this be done by making the makefile an executable python
+            script?
+        - Can be set to run continuously and build things when a dependency
+        triggers it.
+        - Use python syntax and in-line code
+            - Options
+                - -d    Debugging information
+                - -i    Ignore errors when remaking files
+                - -n    Dry run (show things that will be done but don't do
+                them)
+                - -s    Do not print commands as they are executed
+                - -o f  Do not remake file f (assume it's up to date)
+                - -B    Everything out of date
+                - -f f  Specify makefile
+                - -k    Keep going to do as much as possible
+                - -t    Translate to standard makefile syntax
+        - Example
+            - This is a typical makefile for a C/C++ project
+                - cppopts = -g -DMAIN
+                - exe = z.exe
+                - ${exe}:  array.o tokenizer.o
+                -     g++ -o ${exe} ${cppopts} $^
+
+                - array.o: array.cpp array.h
+                -     g++ -c ${cppopts} $<
+                - tokenizer.o: tokenizer.cpp tokenizer.h
+                -     g++ -c ${cppopts} $<
+                - clean:
+                -     @rm -f ${exe} ${exe}.stackdump *.o
+
+/plib releases
+    - 7Mar2022 was first release after I made the repository public.
+
