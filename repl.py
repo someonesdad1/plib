@@ -1,23 +1,32 @@
 '''
 TODO
 
-* Persistence would be nice.  Invocations in multiple processes will be a
-  problem; maybe a fix would be to use an easy-to-break lock that detects
-  this but lets you overwrite things if you wish.
-
-* Is there a way to log all the commands so that they can be run again?
-  L would turn logging on, LL would turn it off.  Turning it on appends to
-  the log file, which is emptied on each invocation.
-* Add the ability to separate commands with ';'.
-* e, <, and > are still used with the string buffer.  Now, x executes
-  the buffer.
-
-* It would be nice to add the ability to load a special command package.
-  For example, 'l barstock' would load an environment that would let you
-  calculate properties of bar stock in the shop (see material.py scipt).
-  A special prompt would tell you that you're in this mode and you could
-  quit it by exit.  But the mode's state would be saved so you could
-  re-enter it as needed.
+    - It would be nicer to have a central way of adding symbols and adding
+      the special commands.  Ideally, it would be done in one function or
+      class, making it easy to see what you're getting.
+    - The help output should honor the COLUMNS setting if possible.  It does
+      this at the start, but it should do it every time it prints the help
+      message.  This is because I use it in a long terminal window of 80-150
+      lines and I like to ctrl-Scroll the mouse wheel to dynamical change the
+      size of things.
+    - Stop printing out the command log.
+    - Change from color.py to clr.py.
+    - Common math symbols should be available:  pi, e, phi.
+    - Persistence would be nice.  Invocations in multiple processes will be a
+      problem; maybe a fix would be to use an easy-to-break lock that detects
+      this but lets you overwrite things if you wish.
+    - Is there a way to log all the commands so that they can be run again?  L
+      would turn logging on, LL would turn it off.  Turning it on appends to
+      the log file, which is emptied on each invocation.
+    - Add the ability to separate commands with ';'.
+    - e, <, and > are still used with the string buffer.  Now, x executes the
+      buffer.
+    - It would be nice to add the ability to load a special command package.
+      For example, 'l barstock' would load an environment that would let you
+      calculate properties of bar stock in the shop (see material.py scipt).  A
+      special prompt would tell you that you're in this mode and you could quit
+      it by exit.  But the mode's state would be saved so you could re-enter it
+      as needed.
 
 ----------------------------------------------------------------------
 A REPL that gives an interactive python calculator.  See repl.pdf for
@@ -273,6 +282,11 @@ if 1:   # Core functionality
             from matrix import Matrix, vector
         except ImportError:
             pass
+  
+        # NOTE:  Edit Special() to change the built-in commands.  You also
+        # need to edit IsCommand() for the command to be recognized as
+        # special.
+  
         try:
             from f import acos, acosh, asin, asinh, atan, atan2, atanh
             from f import ceil, copysign, cos, cosh
@@ -284,7 +298,7 @@ if 1:   # Core functionality
             from f import pi, polar, pow, radians, rect, remainder, sin
             from f import sinh, sqrt, tan, tanh, tau, trunc
             # I comment this out because it overshadows the edit command
-            #from f import e
+            from f import e
             i = cpx(0, 1)
             i.i = True
             i.f = True
@@ -305,7 +319,7 @@ if 1:   # Core functionality
             ("CS", "Clear symbols"),
             ("c", "Clear screen"),
             ("d", "Enter debugger"),
-            ("e", "Edit buffer"),
+            ("E", "Edit buffer"),
             ("f", "Load favorite symbols (edit GetSymbols())"),
             ("H", "Shorthand to run help()"),
             ("q", "Quit"),
@@ -340,7 +354,7 @@ if 1:   # Core functionality
         if not cmd:
             return False
         if len(cmd) == 1:
-            return cmd[0] in "?cCdefHhqrsvx"
+            return cmd[0] in "?cCdEfHhqrsvx"
         else:
             return (cmd[0] in "!<>R") or (cmd in "CS ri".split())
     def BreakPoint():
@@ -480,7 +494,7 @@ if 1:   # Special commands
                 # Enter debugger
                 BreakPoint()
                 breakpoint()
-            elif cmd == "e":  
+            elif cmd == "E":  
                 # Edit stringbuffer
                 console.stringbuffer = EditString(console.stringbuffer, console)
             elif cmd == "f":  

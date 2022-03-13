@@ -33,7 +33,7 @@ if 1:  # Imports
     from pprint import pprint as pp
 if 1:   # Custom imports
     from columnize import Columnize
-    if 1:
+    if 0:
         import debug
         debug.SetDebugger()
 if 1:  # Global variables

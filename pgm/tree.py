@@ -4,7 +4,15 @@ Print a directory tree
     book published by O'Reilly.
  
     TODO:
-        * Change colors:  yellow is > 10 MB, lcyan > 100 MB, lred > 1 GB,
+        - Change colors:  yellow is > 10 MB, lcyan > 100 MB, lred > 1 GB,
+
+        - In section 3.2.1 of the book https://waf.io/book/, after "The
+          execution output will be", the output shows a 'tree -a' command.
+          This shows both directories and files.  This script should color
+          the directory names and show the files when the -a option is
+          used.  Special files can be colored like I do with ls:  lyel for
+          C/C++, lcyn for python, etc.
+
 '''
 if 1:  # Copyright, license
     # These "trigger strings" can be managed with trigger.py

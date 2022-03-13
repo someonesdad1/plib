@@ -1,4 +1,5 @@
 main
+
     - Things to import to /plib
         - /pylib/pgm/ts/ts.py
 
@@ -14,8 +15,11 @@ main
           to see if it can be tuned to what I like.
 
     - /tools
-        - Convert the whole directory to git and put it on github.  Make it
-          public after vetting all the contents.
+        - https://github.com/vonj/snippets.org is a copy of what I had
+        - It could be useful to use the will & won't compile lists (see my
+          notes file) to create a subset of the Snippets stuff that will
+          compile with a reasonably modern gcc.  This could be archived on
+          github.
 
     - iso.py
         - Should take time arguments in either s or tm structures.
@@ -243,482 +247,6 @@ main
             a = cpx(1+1j, units="m")
             Then in debugger, both a==b and a!=b are False
 
-Backup with a NAS
-
-    - Current storage
-        - Don's Windows PC
-            - 120 GB c:/ at 80% (SSD)
-            - 224 GB d:/ at 60% (SSD)
-            - 465 GB e:/ at 65% (WD USB 2 drive)
-            - TOTAL 0.8 TB
-        - Mac
-            - 0.5 TB SSD
-        - Glenda's Windows PC
-            - 229 GB c:/ at 30%
-            - 100 GB d:/ at 30%
-            - 116 GB e:/ at 40%
-            - 348 GB f:/ at 35%
-            - TOTAL 0.8 TB
-        - Conclusion
-            - Don needs 2 TB of backup
-            - Glenda needs 1 TB, but could also use 2 TB (expansion)
-    - Hardware 
-        - 1 TB WD SSD is $135 from Newegg.  Also have 0.5 and 2 TB.
-        - Spinning hard disks are 1/3rd to 1/4th the price of SSD
-        - I'd like to see a NAS with two pairs of 2 TB disks.  These would
-          be connected in RAID pairs.
-        - Newegg:
-          https://www.newegg.com/p/pl?d=hard+drive&N=50001306%208000%20600003300%20100167523
-          Blue drives 2 TB for around $50 each (5400 rpm); need 3 each for
-          a Z1 setup.  Thus our NAS box would have 6 drives.
-    - NAS info
-        - https://linuxhint.com/best-nas-software-linux/
-            - Amahi
-                - You can install Fedora or Ubuntu and run Amahi from
-                  there.  It's open source.  The faq says they had problems
-                  with ubuntu.
-                - You can use ext4 fs on both the OS and the mounted
-                  drives.
-                - faq http://www.amahi.org/faqhttp://www.amahi.org/faq
-            - Open Media Vault:  Debian-based NAS
-                - https://www.openmediavault.org/download.html
-                - Supports FTP, Samba, NFS, rsync
-                - Supports ext4
-                - Web interface
-            - TrueNAS:  https://www.truenas.com/freenas/
-                - Requires signing up to download
-            - Rockstor
-                - Cent OS Linux distribution
-                - Plug-in system
-                - Can use it as a cloud server
-        - https://gers.from-ct.com/8-best-open-source-nas-operating-systems-for-linux
-            - XigmaNAS:  non-user-friendly web interface
-    - ZFS  File system advantageous for NAS systems
-        - https://itsfoss.com/what-is-zfs/,
-          https://en.wikipedia.org/wiki/ZFS,
-          https://www.howtogeek.com/175159/an-introduction-to-the-z-file-system-zfs-for-linux/
-            - The third link shows how to use ext4 for a root disk in
-              ubuntu, then add a zsh filesystem.
-            - This third link gives an excellent example of using the
-              features of zsh.
-                - It explains the RAID-Z setup and that a single disk drive
-                  can die; you just replace it and the system will rebuild
-                  your data.  To lose all your information, two disks have
-                  to die.
-            - https://www.howtogeek.com/272220/how-to-install-and-use-zfs-on-ubuntu-and-why-youd-want-to/https://www.howtogeek.com/272220/how-to-install-and-use-zfs-on-ubuntu-and-why-youd-want-to/
-              tells how it's enabled in ubuntu (it's not installed and
-              enabled by default, but it's officially supported).
-        - Note it's a 128 bit implementation which can manage 1e9 TB.
-            - It used to be called zetabyte file system.
-        - It combines a filesystem with a volume manager
-        - Pooled storage:  add to a pooled drive by adding a new drive
-        - Copy-on-write:  new info doesn't overwrite, it goes to a new
-          block; once finished, metadata is updated.  Result:  if system
-          crashes during write, old data is still there and there's no need
-          to run fsck after a crash.
-        - Snapshots:  allows recovering past versions of a file
-        - Data checksums:  verified on read; if no match, then
-          automatically tries to fix.
-        - RAID-Z has its own implementation, a variation of RAID5.  RAID-Z1
-          needs two disks and a parity drive, Z2 needs 2 drives and 2
-          parity drives, Z3 needs 2 drives and 3 parity.
-            - A downside is that RAID-Z can be expensive because of the
-              needed drives to add storage space
-        - See
-          https://wiki.archlinux.org/title/ZFS/Virtual_disks#Creating_and_Destroying_Zpools
-          for some examples
-        - If you want to use ZFS out of the box, install FreeBSD.
-        - Linux:  https://zfsonlinux.org/
-        - 2 TB 7200 rpm WD HDD $47
-          https://www.newegg.com/blue-wd20ezbx-2tb/p/N82E16822234469?Description=hard%20drive&cm_re=hard_drive-_-22-234-469-_-Product
-          Three of these provide a 2 GB RAID-Z1 drive.
-
-magnet game
-
-    This was an idea Wayne and I had in 2007 and we went so far as to build
-    a mechanical prototype.  See /tools/magnet_game.  While this might be a
-    mechanical toy that could sell, it would be complicated to make.  
-
-    It would be more interesting to simulate on a computer.  I found that a
-    Runge-Kutta solution of the EOM seemed to work pretty well; a major
-    conclusion was that the number of iterations per step needed didn't
-    dramatically increase as the number of interacting dipoles increased.
-
-    This would be particularly fun in 3D with e.g. some virtual reality
-    goggles.  Or see if the MacBook could render things fast enough for a
-    stereo view.
-
-pgm
-    - pgm/int.py:  Add colorizing like primes.py.
-
-    - pgm/sz.py:  Add -s option to sort by size
-
-    - pgm/power.py:  In appliance table, print in color the numbers that
-      come from actual measurements.  Measure our actual appliances where
-      possible.
-
-    - pgm/ds.py:  Normally, the output is sorted by filename.  Add a -d
-      option that sorts by date, with most recent file last.
-
-    - pgm/indent.py:  define a smaller set of styles.  The built-in styles
-      of astyle can still be supported, but not explicitly on the command
-      line.  
-
-        - Here are some ideas for special styles:
-            - compressed:  2 space indents, python style
-            - production:  4 space indents, bsd style
-
-        - Also get it to work as a filter so '!Gindent' works in vi.  This
-          means the usage needs to be given with the -h option, so the
-          examples need to be changed to -H.
-            - This could instead be done when the script is invoked with
-              the name 'ind', which would always default to my preferred
-              method.
-    - pgm/ds.py
-        - Store every command and provide a -l option to show the history.
-          This would be useful for remembering previous commands.
-
-    - Move $PP/uni.py to /plib/pgm.  Remove the lookup of the PDF stuff.
-
-    - pgm/char.py
-        - When a line (e.g. Lower) is complete with all the allowed
-          characters, print <all> at the end to denote this state.  Also
-          add -s option, which removes the space between characters, giving
-          a more compact output.  For -c option, include summary stats.
-Mac stuff
-
-    - Will be $2k 14" Macbook Pro with 16 GB RAM and 0.5 TB SSD
-      https://www.apple.com/shop/buy-mac/macbook-pro/14-inch
-    - Good overview of getting started:
-      https://mackeeper.com/blog/learn-how-to-use-mac/
-    - Display
-        - My Windows box runs at 3840x2160 resolution.  The monitor is a 24
-          inch Dell F2415Q monitor.  Wayne uses a 27 inch monitor.
-        - Fonts
-            - You can list all your monospaced fonts in the Font Book app
-              by creating a smart collection File > New Smart Collection
-              and selecting the design style as monospaced from the
-              available drop down menus.
-            - https://www.fontspace.com  Clear Sans nice for display, but
-              not for programming because you can't distinguish 0 and O
-            - https://fontmeme.com/fonts/sansserif-fonts-collection/
-            - https://www.fontsquirrel.com/fonts/list/popular:  there's an
-              amazing number of sans fonts compared to a few decades ago.
-              Clearly, people have realized that sans fonts are what are
-              best for computer displays.
-                - Open Sans, Raleway, Montserrat, Roboto, Lato, Quicksand,
-                  Oswald, Source Sans Pro, League Gothic, PT Sans,
-                  Titillium, Poppins, Cooper Hewitt, Antonio, Fira Sans,
-                  League Spartan, Red Hat, Sofia Pro
-                - Monospaced
-                  https://www.fontsquirrel.com/fonts/list/classification/monospaced
-                  Lots of choices
-            - Fixed:
-                - https://www.1001freefonts.com:  Oxygen Mono, Onuava,
-                  Space Mono, Liberation, Amiko, 
-                - http://www.fontsaddict.com/font/category/basic-fixed-width
-                - https://www.levien.com/type/myfonts/inconsolata.html
-                - Bitstream Vers Sans Mono
-                  https://www.fontsquirrel.com/fonts/Bitstream-Vera-Sans-Mono
-    - Hardware
-        - Could use a USB 3 hub, as there are always too many devices to
-          plug in
-    - Setup
-        - https://www.howtogeek.com/449715/how-to-set-up-your-new-mac/
-        - https://www.intego.com/new-mac-user-guide Annoying popups trying
-          to sell you their products.  But there are numerous things to
-          learn about such as dock and automator.
-        - Note both Firefox and Chrome are available for the Mac.  It may
-          make sense to install both.
-        - https://www.intego.com/mac-security-blog/setting-up-a-new-mac-should-you-migrate-or-do-a-clean-installation/
-        - vim:  Find the source and build it with the features I use a lot.
-            - brew install vim will install the latest version.
-        - Spotlight sounds useful, but has privacy concerns.  Read
-          https://en.wikipedia.org/wiki/Spotlight_(software) at bottom of
-          page to see how to disable the built-in sharing.
-            - 15 Feb 2022:  actual use:  going into spotlight search and
-              privacy window, the text tells you that you can:
-                - Turn off Siri Suggestions sending your information to
-                  Apple by SysPref > Spotlight and deselect Siri
-                  Suggestions.
-                - Turn off Safari Suggestions by Safari > Preferences >
-                  Search and deselecting suggestions.
-                - Location:  SysPref>Secur&Priv>Privacy, select Location
-                  services.  Click the lock, enter passwd, click Details
-                  next to SysServices, deselect Location-Based Suggestions.
-                - Disable Siri:  SysPref>AppleID>iCloud and deselect Siri
-                  in the list of Apps on this Mac using iCloud.
-        - https://theunarchiver.com/ for archive support better than the
-          default
-        - https://freemacsoft.net/appcleaner/ to clean up after the apps
-          you want deleted
-        - https://transmissionbt.com/ as a free and good BitTorrent client
-        - https://www.howtogeek.com/671085/how-to-switch-between-open-apps-and-windows-on-mac/
-          to switch between apps like alt-tab in Windows
-        - https://www.techrepublic.com/article/how-to-create-a-virtual-desktop-in-macos/
-          to create virtual desktops
-            - ctrl-UpArrow gets virtual desktop manager.  ctrl-Arrow keys
-              moves between desktops.
-        - https://www.howtogeek.com/720194/how-to-turn-on-tap-to-click-on-mac/
-        - vim 
-            - https://sourabhbajaj.com/mac-setup/Vim/README.html
-            - https://www.javatpoint.com/how-to-install-vim-on-mac
-        - go2shell https://apps.apple.com/us/app/go2shell/id445770608?mt=12
-          Put this into the finder toolbar, press the button and you have a
-          shell window open for that directory.
-        - xcode is the default IDE/environment for Apple device programming
-          and requires a minimum of 8 GB of RAM and can take an hour or two
-          to download.  It can be installed from a terminal with 'sudo
-          xcode-select --install'.
-        - Various software suggestions are made at
-          https://codeforgeek.com/setting-up-mac-for-development-coding/
-          for a coding environment, but the website is horrible because you
-          can't copy text.
-        - Should take a look at zsh:
-          https://www.howtogeek.com/362409/what-is-zsh-and-why-should-you-use-it-instead-of-bash/
-        - Video editors
-          https://fixthephoto.com/best-video-editing-software-for-mac.html
-            - Deb says she uses iMovie, but people who want to go up from
-              there use Final Cut Pro (but it's a $300 tool).  
-        - Photo editing
-            - https://www.pcmag.com/picks/best-photo-editing-software-for-macs
-            - Start with Apple Photos and see if it does the basics well.
-              Though I like PSP, its UI is dated and painful.  Still, the
-              tools I use the most are perspective correction and cropping.
-            - Corel Draw package is $240/year.  If I do a lot of such work,
-              it might be worth it (includes Paint Shop Pro).
-        - Thunderbolt 4
-            - https://www.hp.com/us-en/shop/tech-takes/usb-c-vs-thunderbolt
-              is a good discussion.
-        - Printer:  HP4050 at 192.168.0.49, port number 9100
-          https://mackeeper.com/blog/add-printer-to-mac/
-        - MacKeeper might be worth looking at http://mackeeper.com.  Try it
-          out for $11/month and if it looks worthwhile, either buy one
-          month when needed or it's $72/year.
-        - Rust:  The Mac should be a good platform to learn to use Rust.
-          https://doc.rust-lang.org/book/ch01-01-installation.html
-        - Chrome:  should install along with vimium.  This is a fast way of
-          browsing; I'd forgotten how well it works.  It does have a
-          problem with an open gmail tab, however.
-        - Notes is supposed to be good.
-          https://www.houstonchronicle.com/business/article/Apple-s-Notes-app-is-all-grown-up-16827809.php
-          Note it can do OCR with the system's camera.
-    - Multiple monitors
-        - https://www.howtogeek.com/443460/how-to-use-multiple-monitors-on-your-mac/
-        - A core question is what monitor I should use.  Since the
-          interface from an adapter will have two HDMI connections, should
-          I assume that any monitor with HDMI should work?
-        - https://plugable.com/blogs/news/best-hub-and-docking-station-for-the-apple-m1-pro-macbook-pro-laptop
-          https://plugable.com/blogs/news/tagged/thunderbolt%E2%84%A2-4
-            - 60 W dock $164
-              https://www.amazon.com/Plugable-Display-DisplayPort-Ethernet-Vertical/dp/B08B6CZ29Q/ref=sr_1_3?crid=J3KY7EV7MMA5&keywords=plugable+TBT4-HUB3C&qid=1643042068&sprefix=plugable+tbt4-hub3c%2Caps%2C177&sr=8-3
-              Note its USB3
-        - Cable management:
-          https://ascrono.com/blogs/news/basic-tips-on-how-to-manage-cables-efficiently
-          Note the device that holds the laptop vertically.  This could be
-          something made from wood that hangs from under a table and gets
-          out of the way.
-    - Keyboard
-        - Kinesis Advantage2 (Wayne has one) $350 and I like the features
-          and customizing, but the manual pg 10 warns that you may have
-          problems with KVM switches.  DO NOT BUY until this is discussed
-          with the company.  $320 on Amazon, but you have to return it to
-          Amazon unless you buy from the Kinesis.
-        - Curved keyboards are typically around $50
-            - Microsoft Sculpt (don't get; it's wireless)
-        - Cloud Nine C989M $190 Cherry Brown switches.  Note that mouse
-          goes betwween the two halves.  Silly colored lighting around
-          keys.
-    - Keyboard shortcuts
-        - Remapping:
-          https://www.powermax.com/how-to-remap-keys-on-your-mac/ You can
-          remap both system keys and have the function keys remapped for
-          individual applications.
-        - Apple's list of mappings:
-          https://support.apple.com/en-us/HT201236
-        - Specific app shortcuts:
-          https://support.apple.com/guide/mac-help/create-keyboard-shortcuts-for-apps-mchlp2271/mac
-        - Use the Windows key for Cmd if you're using a PC keyboard and alt
-          for the opt key.
-        - Spotlight cmd-space
-            - Press and hold cmd-space for Siri
-        - Set up for the most commonly-used tasks.  One keypress to copy to
-          clipboard, one keypress to paste, one keypress to paste and press
-          the Enter key.
-    - Mission control
-        - Used to control desktops, minimize apps, etc.  
-        - SysPref>MissionControl>Keyboard&Mouse Shortcuts for Mission
-          control, desktop, dashboard, & application windows.
-        - SysPref>Keyboard>TextReplacement to map shortcuts.  Example:  use
-          @em and have it expand to your email adddress.  You can also make
-          common abbreviations, such as obv being obviously, iirc being 'if
-          I remember correctly', etc.
-    - Power
-        - https://9to5mac.com/2019/04/29/power-button-macbook/ 
-        - The mac will power on when:
-            - Open the lid
-            - Connect to a power adapter while lid is open
-            - Connect to a power adapter when lid is closed and it's
-              connected to a external display.
-    - Package managers
-        - brew 
-        - MacPorts:  https://www.macports.org/install.php
-    - Programming
-        - gcc 11.2 current as of Apr 2021
-        - Install gcc:  http://www.edparrish.net/common/macgpp.php 
-            - Open a terminal:  cmd+space, type Terminal, return
-            - In terminal type g++
-            - You'll get an alert box that lets you install either Xcode or
-              the command line tools.  Click on Install.
-                - You can install Xcode later from the AppStore.
-            - Verify g++ is installed.
-            - Enable showing extensions
-                - Open Finder
-                - Select Preferences from menu
-                - In Advanced, click show all filename extensions
-        - Xcode
-            - Good basics:  https://www.youtube.com/watch?v=FzuDUnoNQo0
-            - Install from AppStore
-            - Version 13:  https://developer.apple.com/xcode/
-                - https://developer.apple.com/documentation/xcode
-                - Built-in support for git
-                - Works with github
-                - Code review comments inline
-                - IDE has vim editing modes
-                - Simulator:  prototype when a real device isn't available.
-                  You can simulate iOS, tvOS, or watch OS.
-                - Build universal binaries to run on both Apple Si and
-                  Intel
-        - First project:  update WaveXpress
-            - The GUI design tool I used was called wxDesigner and it is no
-              longer available, as the guy in Germany stopped supporting
-              it.  For some strange reason, I no longer have any record of
-              it in my ~/install directory.
-                - There's a $90 tool called DialogBlocks that works for C++
-                  code.  I'll purchase this if I move forward with a C++
-                  implementation, although it can be tried out in demo mode
-                  to make sure it's what you want.
-            - The first approach is to move forward to a late version of
-              python 3 and wxPython.  I would expect it should be possible
-              to get the plotting stuff working, but talking to instruments
-              won't be a priority.
-            - If I can't get things working in python, then a C++ version
-              using wxWidgets should be attempted.  I suspect the wxPython
-              bindings are thin and most of the python code should be
-              translatable into C++ code, assuming the interfaces haven't
-              changed much.  This will still be a lot of work because C++
-              is a PITA.
-    - Rosetta
-        - Used on Apple silicon to run Intel code
-        - If you have a universal app with a plug in that doesn't work, you
-          can select the app in the Finder, use File>GetInfo, and set the
-          "Open using Rosetta" button to force it to use Rosetta.  This may
-          make the plug in (or extension or add-on) start working.  See
-          https://support.apple.com/en-us/HT211861.
-    - Windows emulation on Mac
-        - https://macpaw.com/how-to/best-windows-emulator-mac
-        - Parallels Desktop $100, 600 MB for install (explicitly says it
-          runs on M1 Pro hardware)
-        - Only run on Intel hardware:  VirtualBox, VMware Fusion
-    - Get copy of Apple Human Interface Guidelines (referenced at
-      acknowledgments at end of Snow Crash).  Apparently, it's only a
-      simplified web page treatment, not a detailed programming manual.
-      There was a book, but it sells used for e.g. $230; it is supposed to
-      be an in-demand classic and was written a few decades ago.
-        - https://developer.apple.com/design/human-interface-guidelines/
-
-Sprinklers
-
-    - The ESP32 chip with the RS485 boards (under $10 for each) would be a
-      nice way to construct a sprinkler controller.  The ESP32 would be a
-      stand-alone controller, but would allow serial communication with
-      another ESP32 chip in the house in my office; the connection could be
-      made over wifi.  This would allow modifying the stored program of the
-      controller, interrupting things, etc.  In fact, a simple approach
-      would be to provide a command line interface for controlling the
-      remote chip and to get status.
-    - Unfortunately, it appears this chip can only be accessed from
-      Windows, as you need to download a driver for it.
-    - I'd like to see the stand-alone processor have a switch that selects
-      automatic mode or manual mode.  In manual mode, there's a pushbutton
-      switch for each sprinkler to turn on, along with the pump.
-    - Since these chips also support bluetooth, there should be an app to
-      control their settings via bluetooth also.  This means you could do
-      sprinkler control from your phone.
-    - Maybe the only interface needed would be a serial connection in one
-      of the rooms.  Then you connect a computer to it for control and
-      settings.  All that's needed is a 9600 baud connection for text
-      messages.
-
-make replacement in python?
-
-    - I'd alias to a python script, which would look at the makefile.  If
-      it was a regular makefile, it would immediately call 'make -rR'.
-      However, if it was a python makefile, it would interpret that.
-    - It could use 'git status -s' to determine what was out of date.
-    - It could have an option where a build wouldn't be allowed unless
-      there were no modified files.  Then the commit hash gets appended to
-      a make log so that the repository state is known for the build.
-    - My use for this would be to build simple projects.  I don't mind
-      using make for more complicated stuff.
-    - I have no fundamental issues with make other than its quirky syntax.
-    - I'd want to be able to use '$token' for variable definitions, not the
-      crappy make ${...} stuff.
-    - Indenting would be key to makefile structure.
-        - Commenting out a recipe in column 1 removes subsequent indented
-          lines too.
-        - Alternately allow python if blocks to get what's actually used.
-          Can this be done by making the makefile an executable python
-          script?
-    - Can be set to run continuously and build things when a dependency
-      triggers it.
-    - Use python syntax and in-line code
-        - Options
-            - -d    Debugging information
-            - -i    Ignore errors when remaking files
-            - -n    Dry run (show things that will be done but don't do
-              them)
-            - -s    Do not print commands as they are executed
-            - -o f  Do not remake file f (assume it's up to date)
-            - -B    Everything out of date
-            - -f f  Specify makefile
-            - -k    Keep going to do as much as possible
-            - -t    Translate to standard makefile syntax
-    - Example
-        - This is a typical makefile for a C/C++ project
-            - cppopts = -g -DMAIN
-            - exe = z.exe
-            - ${exe}:  array.o tokenizer.o
-            -     g++ -o ${exe} ${cppopts} $^
-
-            - array.o: array.cpp array.h
-            -     g++ -c ${cppopts} $<
-            - tokenizer.o: tokenizer.cpp tokenizer.h
-            -     g++ -c ${cppopts} $<
-            - clean:
-            -     @rm -f ${exe} ${exe}.stackdump *.o
-
-Low priority
-
-    - fold.py
-        - This will change text files to have one space on blank lines or
-          no spaces on blank lines.  Need to intelligently process python
-          files?  The default behavior would be to print each line with 2
-          lines of context on either side.  Then if you like what you see,
-          use -x to make the changes.  The intent is to get a source file
-          where { and } can be used to navigate to sections you're working
-          on.  Python files will be some work because you need to leave
-          multiline strings intact.
-
-    - british.py
-        - Move to plib and give it a function that will take a sentence of
-          text and replace all the British words with English words,
-          maintaining capitalization and punctuation.  This will require
-          another function to split a string into a list of words and
-          punctuation characters.  It would be nice to also maintain the
-          spaces between the words too.  See the next function, which
-          should be in dpstr.py.
-
     - geom_prim.py
         - Update properties to modern syntax, utilize matrix.py for
           determinants, as this would remove dependency on numpy.
@@ -728,4 +256,563 @@ Low priority
           μ(N*s/m^2).  This might not be acceptable SI syntax, but it would
           be understandable by anyone and I should use it if the tokenizer
           in the u.py script can be made to utilize it.  A way to do this
-          
+          might be to simply insert the equivalent number with a
+          multiplication sign on the right when it's encountered; this
+          should evaluate OK with python's parser.
+
+    - module_dependencies.py
+        - Is it necessary?  It needs to be rewritten to accommodate /plib.  The tools and
+          programs need to be moved in first.  
+
+    - sig.py
+        - Is a mess of code.  Is it really all needed?  Maybe it would be
+          best to move the key stuff to flt and cpx.  It can still be kept
+          around for when it's needed.
+
+pgm
+
+    - disks.ksh
+        - Convert this to a python script that remembers the names of the
+          floppy disks.  Note:  I used to have a directory somewhere with the
+          zipfiles of these floppy disks.  I can't find it anymore.  If it's
+          not available, then there's not much sense in keeping such things
+          around anymore.  However, I remember this collection had Commander
+          Keen and Jill of the Jungle games, which were good and Sally will
+          remember playing them.
+
+    - H function
+        - I use this thing a lot, so figure out how to get
+            - 'H e' edits config file
+            - 'H n' goes to item n in list
+            - 'H p d' pushes dir d
+            - 'H P d' pops dir d
+            - 'H .' goes to a defined primary directory (e.g. /plib)
+            - 'H [h|?]' shows help
+        - Since the top level has to be a shell function, make it call the
+          python script and the script returns the needed command to stdout.
+
+    - tree.py
+        - See if some pypi tool exists.
+        - In section 3.2.1 of the book https://waf.io/book/, after "The
+          execution output will be", the output shows a 'tree -a' command.
+          This shows both directories and files.  This script should color
+          the directory names and show the files when the -a option is
+          used.  Special files can be colored like I do with ls.  This
+          would be handy on the portrait monitor.
+
+    - int.py
+        - Add colorizing like primes.py.
+
+    - sz.py
+        - Add -s option to sort by size
+
+    - power.py
+        - In appliance table, print in color the numbers that come from actual
+          measurements.  Measure our actual appliances where possible.
+
+    - ds.py
+        - Normally, the output is sorted by filename.  Add a -d option that
+          sorts by date, with most recent file last.
+        - Store every command and provide a -l option to show the history.
+          This would be useful for remembering previous commands.
+
+    - indent.py
+        - Define a smaller set of styles.  The built-in styles of astyle
+          can still be supported, but not explicitly on the command line.  
+        - Here are some ideas for special styles:
+            - compressed:  2 space indents, python style
+            - production:  4 space indents, bsd style
+        - Also get it to work as a filter so '!Gindent' works in vi.  This
+          means the usage needs to be given with the -h option, so the
+          examples need to be changed to -H.
+            - This could instead be done when the script is invoked with
+              the name 'ind', which would always default to my preferred
+              method.
+
+    - uni.py
+        - Move $PP/uni.py to /plib/pgm.  Remove the lookup of the PDF stuff.
+
+    - char.py
+        - When a line (e.g. Lower) is complete with all the allowed
+          characters, print <all> at the end to denote this state.  Also
+          add -s option, which removes the space between characters, giving
+          a more compact output.  For -c option, include summary stats.
+
+    - british.py
+        - Move to plib and give it a function that will take a sentence of
+          text and replace all the British words with English words,
+          maintaining capitalization and punctuation.  This will require
+          another function to split a string into a list of words and
+          punctuation characters.  It would be nice to also maintain the
+          spaces between the words too.  
+
+    - ts.py
+        - 'ts.py -m' doesn't work.
+
+    - /pylib/pgm/readability/indict.py
+        - Looks like an interesting tool.  It should use a reasonable
+          dictionary by default and print the tokens out in columns for
+          each file.
+
+Other
+    -NAS
+        - Current storage
+            - Don's Windows PC
+                - 120 GB c:/ at 80% (SSD)
+                - 224 GB d:/ at 60% (SSD)
+                - 465 GB e:/ at 65% (WD USB 2 drive)
+                - TOTAL 0.8 TB
+            - Mac
+                - 0.5 TB SSD
+            - Glenda's Windows PC
+                - 229 GB c:/ at 30%
+                - 100 GB d:/ at 30%
+                - 116 GB e:/ at 40%
+                - 348 GB f:/ at 35%
+                - TOTAL 0.8 TB
+            - Conclusion
+                - Don needs 2 TB of backup
+                - Glenda needs 1 TB, but could also use 2 TB (expansion)
+        - Hardware 
+            - 1 TB WD SSD is $135 from Newegg.  Also have 0.5 and 2 TB.
+            - Spinning hard disks are 1/3rd to 1/4th the price of SSD
+            - I'd like to see a NAS with two pairs of 2 TB disks.  These would
+              be connected in RAID pairs.
+            - Newegg:
+              https://www.newegg.com/p/pl?d=hard+drive&N=50001306%208000%20600003300%20100167523
+              Blue drives 2 TB for around $50 each (5400 rpm); need 3 each for
+              a Z1 setup.  Thus our NAS box would have 6 drives.
+        - NAS info
+            - https://linuxhint.com/best-nas-software-linux/
+                - Amahi
+                    - You can install Fedora or Ubuntu and run Amahi from
+                      there.  It's open source.  The faq says they had problems
+                      with ubuntu.
+                    - You can use ext4 fs on both the OS and the mounted
+                      drives.
+                    - faq http://www.amahi.org/faqhttp://www.amahi.org/faq
+                - Open Media Vault:  Debian-based NAS
+                    - https://www.openmediavault.org/download.html
+                    - Supports FTP, Samba, NFS, rsync
+                    - Supports ext4
+                    - Web interface
+                - TrueNAS:  https://www.truenas.com/freenas/
+                    - Requires signing up to download
+                - Rockstor
+                    - Cent OS Linux distribution
+                    - Plug-in system
+                    - Can use it as a cloud server
+            - https://gers.from-ct.com/8-best-open-source-nas-operating-systems-for-linux
+                - XigmaNAS:  non-user-friendly web interface
+        - ZFS  File system advantageous for NAS systems
+            - https://itsfoss.com/what-is-zfs/,
+              https://en.wikipedia.org/wiki/ZFS,
+              https://www.howtogeek.com/175159/an-introduction-to-the-z-file-system-zfs-for-linux/
+                - The third link shows how to use ext4 for a root disk in
+                  ubuntu, then add a zsh filesystem.
+                - This third link gives an excellent example of using the
+                  features of zsh.
+                    - It explains the RAID-Z setup and that a single disk drive
+                      can die; you just replace it and the system will rebuild
+                      your data.  To lose all your information, two disks have
+                      to die.
+                - https://www.howtogeek.com/272220/how-to-install-and-use-zfs-on-ubuntu-and-why-youd-want-to/https://www.howtogeek.com/272220/how-to-install-and-use-zfs-on-ubuntu-and-why-youd-want-to/
+                  tells how it's enabled in ubuntu (it's not installed and
+                  enabled by default, but it's officially supported).
+            - Note it's a 128 bit implementation which can manage 1e9 TB.
+                - It used to be called zetabyte file system.
+            - It combines a filesystem with a volume manager
+            - Pooled storage:  add to a pooled drive by adding a new drive
+            - Copy-on-write:  new info doesn't overwrite, it goes to a new
+              block; once finished, metadata is updated.  Result:  if system
+              crashes during write, old data is still there and there's no need
+              to run fsck after a crash.
+            - Snapshots:  allows recovering past versions of a file
+            - Data checksums:  verified on read; if no match, then
+              automatically tries to fix.
+            - RAID-Z has its own implementation, a variation of RAID5.  RAID-Z1
+              needs two disks and a parity drive, Z2 needs 2 drives and 2
+              parity drives, Z3 needs 2 drives and 3 parity.
+                - A downside is that RAID-Z can be expensive because of the
+                  needed drives to add storage space
+            - See
+              https://wiki.archlinux.org/title/ZFS/Virtual_disks#Creating_and_Destroying_Zpools
+              for some examples
+            - If you want to use ZFS out of the box, install FreeBSD.
+            - Linux:  https://zfsonlinux.org/
+            - 2 TB 7200 rpm WD HDD $47
+              https://www.newegg.com/blue-wd20ezbx-2tb/p/N82E16822234469?Description=hard%20drive&cm_re=hard_drive-_-22-234-469-_-Product
+              Three of these provide a 2 GB RAID-Z1 drive.
+
+    - Magnet game
+
+        This was an idea Wayne and I had in 2007 and we went so far as to build
+        a mechanical prototype.  See /tools/magnet_game.  While this might be a
+        mechanical toy that could sell, it would be complicated to make.  
+
+        It would be more interesting to simulate on a computer.  I found that a
+        Runge-Kutta solution of the EOM seemed to work pretty well; a major
+        conclusion was that the number of iterations per step needed didn't
+        dramatically increase as the number of interacting dipoles increased.
+
+        This would be particularly fun in 3D with e.g. some virtual reality
+        goggles.  Or see if the MacBook could render things fast enough for a
+        stereo view.
+
+    - Mac stuff
+        - Will be $2k 14" Macbook Pro with 16 GB RAM and 0.5 TB SSD
+          https://www.apple.com/shop/buy-mac/macbook-pro/14-inch
+        - Good overview of getting started:
+          https://mackeeper.com/blog/learn-how-to-use-mac/
+        - Display
+            - My Windows box runs at 3840x2160 resolution.  The monitor is a 24
+              inch Dell F2415Q monitor.  Wayne uses a 27 inch monitor.
+            - Fonts
+                - You can list all your monospaced fonts in the Font Book app
+                  by creating a smart collection File > New Smart Collection
+                  and selecting the design style as monospaced from the
+                  available drop down menus.
+                - https://www.fontspace.com  Clear Sans nice for display, but
+                  not for programming because you can't distinguish 0 and O
+                - https://fontmeme.com/fonts/sansserif-fonts-collection/
+                - https://www.fontsquirrel.com/fonts/list/popular:  there's an
+                  amazing number of sans fonts compared to a few decades ago.
+                  Clearly, people have realized that sans fonts are what are
+                  best for computer displays.
+                    - Open Sans, Raleway, Montserrat, Roboto, Lato, Quicksand,
+                      Oswald, Source Sans Pro, League Gothic, PT Sans,
+                      Titillium, Poppins, Cooper Hewitt, Antonio, Fira Sans,
+                      League Spartan, Red Hat, Sofia Pro
+                    - Monospaced
+                      https://www.fontsquirrel.com/fonts/list/classification/monospaced
+                      Lots of choices
+                - Fixed:
+                    - https://www.1001freefonts.com:  Oxygen Mono, Onuava,
+                      Space Mono, Liberation, Amiko, 
+                    - http://www.fontsaddict.com/font/category/basic-fixed-width
+                    - https://www.levien.com/type/myfonts/inconsolata.html
+                    - Bitstream Vers Sans Mono
+                      https://www.fontsquirrel.com/fonts/Bitstream-Vera-Sans-Mono
+        - Hardware
+            - Could use a USB 3 hub, as there are always too many devices to
+              plug in
+        - Setup
+            - https://www.howtogeek.com/449715/how-to-set-up-your-new-mac/
+            - https://www.intego.com/new-mac-user-guide Annoying popups trying
+              to sell you their products.  But there are numerous things to
+              learn about such as dock and automator.
+            - Note both Firefox and Chrome are available for the Mac.  It may
+              make sense to install both.
+            - https://www.intego.com/mac-security-blog/setting-up-a-new-mac-should-you-migrate-or-do-a-clean-installation/
+            - vim:  Find the source and build it with the features I use a lot.
+                - brew install vim will install the latest version.
+            - Spotlight sounds useful, but has privacy concerns.  Read
+              https://en.wikipedia.org/wiki/Spotlight_(software) at bottom of
+              page to see how to disable the built-in sharing.
+                - 15 Feb 2022:  actual use:  going into spotlight search and
+                  privacy window, the text tells you that you can:
+                    - Turn off Siri Suggestions sending your information to
+                      Apple by SysPref > Spotlight and deselect Siri
+                      Suggestions.
+                    - Turn off Safari Suggestions by Safari > Preferences >
+                      Search and deselecting suggestions.
+                    - Location:  SysPref>Secur&Priv>Privacy, select Location
+                      services.  Click the lock, enter passwd, click Details
+                      next to SysServices, deselect Location-Based Suggestions.
+                    - Disable Siri:  SysPref>AppleID>iCloud and deselect Siri
+                      in the list of Apps on this Mac using iCloud.
+            - https://theunarchiver.com/ for archive support better than the
+              default
+            - https://freemacsoft.net/appcleaner/ to clean up after the apps
+              you want deleted
+            - https://transmissionbt.com/ as a free and good BitTorrent client
+            - https://www.howtogeek.com/671085/how-to-switch-between-open-apps-and-windows-on-mac/
+              to switch between apps like alt-tab in Windows
+            - https://www.techrepublic.com/article/how-to-create-a-virtual-desktop-in-macos/
+              to create virtual desktops
+                - ctrl-UpArrow gets virtual desktop manager.  ctrl-Arrow keys
+                  moves between desktops.
+            - https://www.howtogeek.com/720194/how-to-turn-on-tap-to-click-on-mac/
+            - vim 
+                - https://sourabhbajaj.com/mac-setup/Vim/README.html
+                - https://www.javatpoint.com/how-to-install-vim-on-mac
+            - go2shell https://apps.apple.com/us/app/go2shell/id445770608?mt=12
+              Put this into the finder toolbar, press the button and you have a
+              shell window open for that directory.
+            - xcode is the default IDE/environment for Apple device programming
+              and requires a minimum of 8 GB of RAM and can take an hour or two
+              to download.  It can be installed from a terminal with 'sudo
+              xcode-select --install'.
+            - Various software suggestions are made at
+              https://codeforgeek.com/setting-up-mac-for-development-coding/
+              for a coding environment, but the website is horrible because you
+              can't copy text.
+            - Should take a look at zsh:
+              https://www.howtogeek.com/362409/what-is-zsh-and-why-should-you-use-it-instead-of-bash/
+            - Video editors
+              https://fixthephoto.com/best-video-editing-software-for-mac.html
+                - Deb says she uses iMovie, but people who want to go up from
+                  there use Final Cut Pro (but it's a $300 tool).  
+            - Photo editing
+                - https://www.pcmag.com/picks/best-photo-editing-software-for-macs
+                - Start with Apple Photos and see if it does the basics well.
+                  Though I like PSP, its UI is dated and painful.  Still, the
+                  tools I use the most are perspective correction and cropping.
+                - Corel Draw package is $240/year.  If I do a lot of such work,
+                  it might be worth it (includes Paint Shop Pro).
+            - Thunderbolt 4
+                - https://www.hp.com/us-en/shop/tech-takes/usb-c-vs-thunderbolt
+                  is a good discussion.
+            - Printer:  HP4050 at 192.168.0.49, port number 9100
+              https://mackeeper.com/blog/add-printer-to-mac/
+            - MacKeeper might be worth looking at http://mackeeper.com.  Try it
+              out for $11/month and if it looks worthwhile, either buy one
+              month when needed or it's $72/year.
+            - Rust:  The Mac should be a good platform to learn to use Rust.
+              https://doc.rust-lang.org/book/ch01-01-installation.html
+            - Chrome:  should install along with vimium.  This is a fast way of
+              browsing; I'd forgotten how well it works.  It does have a
+              problem with an open gmail tab, however.
+            - Notes is supposed to be good.
+              https://www.houstonchronicle.com/business/article/Apple-s-Notes-app-is-all-grown-up-16827809.php
+              Note it can do OCR with the system's camera.
+        - Multiple monitors
+            - https://www.howtogeek.com/443460/how-to-use-multiple-monitors-on-your-mac/
+            - A core question is what monitor I should use.  Since the
+              interface from an adapter will have two HDMI connections, should
+              I assume that any monitor with HDMI should work?
+            - https://plugable.com/blogs/news/best-hub-and-docking-station-for-the-apple-m1-pro-macbook-pro-laptop
+              https://plugable.com/blogs/news/tagged/thunderbolt%E2%84%A2-4
+                - 60 W dock $164
+                  https://www.amazon.com/Plugable-Display-DisplayPort-Ethernet-Vertical/dp/B08B6CZ29Q/ref=sr_1_3?crid=J3KY7EV7MMA5&keywords=plugable+TBT4-HUB3C&qid=1643042068&sprefix=plugable+tbt4-hub3c%2Caps%2C177&sr=8-3
+                  Note its USB3
+            - Cable management:
+              https://ascrono.com/blogs/news/basic-tips-on-how-to-manage-cables-efficiently
+              Note the device that holds the laptop vertically.  This could be
+              something made from wood that hangs from under a table and gets
+              out of the way.
+        - Keyboard shortcuts
+            - Remapping:
+              https://www.powermax.com/how-to-remap-keys-on-your-mac/ You can
+              remap both system keys and have the function keys remapped for
+              individual applications.
+            - Apple's list of mappings:
+              https://support.apple.com/en-us/HT201236
+            - Specific app shortcuts:
+              https://support.apple.com/guide/mac-help/create-keyboard-shortcuts-for-apps-mchlp2271/mac
+            - Use the Windows key for Cmd if you're using a PC keyboard and alt
+              for the opt key.
+            - Spotlight cmd-space
+                - Press and hold cmd-space for Siri
+            - Set up for the most commonly-used tasks.  One keypress to copy to
+              clipboard, one keypress to paste, one keypress to paste and press
+              the Enter key.
+        - Mission control
+            - Used to control desktops, minimize apps, etc.  
+            - SysPref>MissionControl>Keyboard&Mouse Shortcuts for Mission
+              control, desktop, dashboard, & application windows.
+            - SysPref>Keyboard>TextReplacement to map shortcuts.  Example:  use
+              @em and have it expand to your email adddress.  You can also make
+              common abbreviations, such as obv being obviously, iirc being 'if
+              I remember correctly', etc.
+        - Power
+            - https://9to5mac.com/2019/04/29/power-button-macbook/ 
+            - The mac will power on when:
+                - Open the lid
+                - Connect to a power adapter while lid is open
+                - Connect to a power adapter when lid is closed and it's
+                  connected to an external display.
+        - Package managers
+            - brew 
+            - MacPorts:  https://www.macports.org/install.php
+        - Programming
+            - gcc 11.2 current as of Apr 2021
+            - Install gcc:  http://www.edparrish.net/common/macgpp.php 
+                - Open a terminal:  cmd+space, type Terminal, return
+                - In terminal type g++
+                - You'll get an alert box that lets you install either Xcode or
+                  the command line tools.  Click on Install.
+                    - You can install Xcode later from the AppStore.
+                - Verify g++ is installed.
+                - Enable showing extensions
+                    - Open Finder
+                    - Select Preferences from menu
+                    - In Advanced, click show all filename extensions
+            - Xcode
+                - Good basics:  https://www.youtube.com/watch?v=FzuDUnoNQo0
+                - Install from AppStore
+                - Version 13:  https://developer.apple.com/xcode/
+                    - https://developer.apple.com/documentation/xcode
+                    - Built-in support for git
+                    - Works with github
+                    - Code review comments inline
+                    - IDE has vim editing modes
+                    - Simulator:  prototype when a real device isn't available.
+                      You can simulate iOS, tvOS, or watch OS.
+                    - Build universal binaries to run on both Apple Si and
+                      Intel
+            - First project:  update WaveXpress
+                - The GUI design tool I used was called wxDesigner and it is no
+                  longer available, as the guy in Germany stopped supporting
+                  it.  For some strange reason, I no longer have any record of
+                  it in my ~/install directory.
+                    - There's a $90 tool called DialogBlocks that works for C++
+                      code.  I'll purchase this if I move forward with a C++
+                      implementation, although it can be tried out in demo mode
+                      to make sure it's what you want.
+                - The first approach is to move forward to a late version of
+                  python 3 and wxPython.  I would expect it should be possible
+                  to get the plotting stuff working, but talking to instruments
+                  won't be a priority.
+                - If I can't get things working in python, then a C++ version
+                  using wxWidgets should be attempted.  I suspect the wxPython
+                  bindings are thin and most of the python code should be
+                  translatable into C++ code, assuming the interfaces haven't
+                  changed much.  This will still be a lot of work because C++
+                  is a PITA.
+        - Rosetta
+            - Used on Apple silicon to run Intel code
+            - If you have a universal app with a plug in that doesn't work, you
+              can select the app in the Finder, use File>GetInfo, and set the
+              "Open using Rosetta" button to force it to use Rosetta.  This may
+              make the plug in (or extension or add-on) start working.  See
+              https://support.apple.com/en-us/HT211861.
+        - Windows emulation on Mac
+            - https://macpaw.com/how-to/best-windows-emulator-mac
+            - Parallels Desktop $100, 600 MB for install (explicitly says it
+              runs on M1 Pro hardware)
+            - Only run on Intel hardware:  VirtualBox, VMware Fusion
+        - Get copy of Apple Human Interface Guidelines (referenced at
+          acknowledgments at end of Snow Crash).  Apparently, it's only a
+          simplified web page treatment, not a detailed programming manual.
+          There was a book, but it sells used for e.g. $230; it is supposed to
+          be an in-demand classic and was written a few decades ago.
+            - https://developer.apple.com/design/human-interface-guidelines/
+
+    - Sprinklers
+        - ESP32
+            - Use with the RS485 boards (under $10 for each) would be a nice
+              way to construct a sprinkler controller.  The ESP32 would be a
+              stand-alone controller, but would allow serial communication with
+              another ESP32 chip in the house in my office; the connection
+              could be made over wifi.  This would allow modifying the stored
+              program of the controller, interrupting things, etc.  In fact, a
+              simple approach would be to provide a command line interface for
+              controlling the remote chip and to get status.
+            - Unfortunately, it appears this chip can only be accessed from
+              Windows, as you need to download a driver for it.
+            - I'd like to see the stand-alone processor have a switch that
+              selects automatic mode or manual mode.  In manual mode, there's a
+              pushbutton switch for each sprinkler to turn on, along with the
+              pump.
+            - Since these chips also support bluetooth, there should be an app
+              to control their settings via bluetooth also.  This means you
+              could do sprinkler control from your phone.
+            - Maybe the only interface needed would be a serial connection in
+              one of the rooms.  Then you connect a computer to it for control
+              and settings.  All that's needed is a 9600 baud connection for
+              text messages.
+        - Raspberry Pi
+            - Running python could work well for this setup.  PyPi has a nice
+              FSM in python that could be made to work nicely.
+            - Build a simulator with the FSM and have it present a web page
+              interface
+
+    - make replacement
+        - https://en.wikipedia.org/wiki/List_of_build_automation_software lists
+          a lot of stuff.  Search for python to find numerous tools.
+        - Waf
+            - This runs on late python 3 versions.  This rules out aap, as it
+              would need to be run on python 2 or ported to 3, which would be
+              lots of work.
+            - Built by a guy who worked on scons but didn't like its
+              limitations.  The example wscript for a simple C++ file is
+              https://gitlab.com/ita1024/waf/-/blob/master/demos/c++/wscript I
+              like the looks of the file and this might be a model of a tool I
+              might write.
+            - Doc at htps://waf.io/book/ (the docs are a sphinx project in the
+              downloaded source)
+            - The book looks pretty good.  For basics of operation, read 3.1.2.
+            - The command 'curl -o waf https://waf.io/waf-2.0.22' downloads the
+              whole waf command.  The waf library is inside this script as a
+              compressed binary data and the waf script creates a hidden
+              .waf<version><guid> directory to hold things.  It's a clever
+              method.  Overall, waf is about 13 klines of code, which is much
+              too big a project for a casual programming task.
+        - SCons 
+            - https://www.scons.org/ could be a candidate; it's for python >=
+            3.5.  This has been developed for about 20 years and still is in
+            active development.  The primary benefit is that it's in python.
+            - It could be worthwhile to spend some time learning it.  I'd use
+            making a replacement for the hobbyutil website's python script,
+            as this is a good example that's not overly complicated.
+                - https://github.com/SCons/scons/wiki/AccumulateBuilder might
+                be a useful adjunct to look at
+            - External tools (python packages with __init__.py files) can be
+            handled https://github.com/SCons/scons/wiki/ToolsIndex
+            - The project could use some documentation help; see
+            https://github.com/SCons/scons/wiki/HowToContribute.  I'd like to
+            see a link on the FAQ that links to a tutorial that shows a
+            conversion from a makefile build to an scons build.
+            - They have number contributed builders
+            https://github.com/SCons/scons/wiki/ContributedBuilders
+            - Suggestion:  they should run spell checkers and url checkers on
+            their web pages.
+        - AAP (by vim's author) 
+            - I downloaded aap-1.094.zip; it looks to be a python 2 project
+            because the python files are dated 2003 to 2007.
+        - Buildout
+            - I didn't like the fact that it focuses on things like building
+            python eggs and uses ini file syntax.
+        - One of the problems with these industrial-strength tools is that
+            they handle complicated cases and have a lot of syntax, meaning a
+            significant learning curve.
+        - I'd alias to a python script, which would look at the makefile.  If
+        it was a regular makefile, it would immediately call 'make -rR'.
+        However, if it was a python makefile, it would interpret that.
+        - It could use 'git status -s' to determine what was out of date.
+        - It could have an option where a build wouldn't be allowed unless
+        there were no modified files.  Then the commit hash gets appended to
+        a make log so that the repository state is known for the build.
+        - My use for this would be to build simple projects.  I don't mind
+        using make for more complicated stuff.
+        - I have no fundamental issues with make other than its quirky syntax.
+        - I'd want to be able to use '$token' for variable definitions, not the
+        crappy make ${...} stuff.
+        - Indenting would be key to makefile structure.
+            - Commenting out a recipe in column 1 removes subsequent indented
+            lines too.
+            - Alternately allow python if blocks to get what's actually used.
+            Can this be done by making the makefile an executable python
+            script?
+        - Can be set to run continuously and build things when a dependency
+        triggers it.
+        - Use python syntax and in-line code
+            - Options
+                - -d    Debugging information
+                - -i    Ignore errors when remaking files
+                - -n    Dry run (show things that will be done but don't do
+                them)
+                - -s    Do not print commands as they are executed
+                - -o f  Do not remake file f (assume it's up to date)
+                - -B    Everything out of date
+                - -f f  Specify makefile
+                - -k    Keep going to do as much as possible
+                - -t    Translate to standard makefile syntax
+        - Example
+            - This is a typical makefile for a C/C++ project
+                - cppopts = -g -DMAIN
+                - exe = z.exe
+                - ${exe}:  array.o tokenizer.o
+                -     g++ -o ${exe} ${cppopts} $^
+
+                - array.o: array.cpp array.h
+                -     g++ -c ${cppopts} $<
+                - tokenizer.o: tokenizer.cpp tokenizer.h
+                -     g++ -c ${cppopts} $<
+                - clean:
+                -     @rm -f ${exe} ${exe}.stackdump *.o
+
+/plib releases
+    - 7Mar2022 was first release after I made the repository public.
+
