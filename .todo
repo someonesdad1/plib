@@ -1,5 +1,38 @@
 main
 
+    - help
+        - Convert to a git repository on github
+        - Develop, then add to /plib
+        - Add /tools to /plib
+        - Convert the help stuff to be built by scons
+        - Move everything to one directory for ease of editing
+        - Consolidate the help text I use into one directory.  Eliminate
+          make and the C programs; convert everything to python.  Look at
+          hierarchically organizing the access with most-used stuff first
+          and seldom-used stuff hidden.  Do partial topic matches with the
+          invocation and use a command line option to do searches of the
+          records.  
+        - Look at somehow organizing things so that it can run as a project
+          in Notepad++, which will mean others are more likely to use it.
+        - Could be nice to have different backends, such as rendering all to
+          PDF, HTML, or vim help files.  Look at making a project for
+          Notepad++, as this would be of interest to a number of folks.
+
+    - Outliner with vim
+        - https://github.com/vimoutliner/vimoutliner could already be this
+          tool, at least close enough
+        - Vim's folding is good, but would it be possible to build an outlining
+          tool with it that does most of what I want?
+        - An enormous advantage is that :gqap formats the current paragraph,
+          which I use constantly
+        - Could an external C program do the formatting of things?  The leader
+          for a bullet item could be e.g. a non-breaking space, then changed to
+          other values as needed for visibility.
+        - It could provide a variety of numbering methods
+        - I recently added scons.hlp to my help files and it would have been
+          nice to have a vim outlining tool for the help file.  If vimoutliner
+          works OK, I'd consider moving all my help stuff to it.
+
     - Things to import to /plib
         - /pylib/pgm/ts/ts.py
 
@@ -35,16 +68,6 @@ main
           because a string is too long to fit to the screen.  In this case,
           you'd still want things printed, so maybe a too_long kw is needed
           to ignore such things.
-
-    - help
-        - Consolidate the help text I use into one directory.  Eliminate
-          make and the C programs; convert everything to python.  Look at
-          hierarchically organizing the access with most-used stuff first
-          and seldom-used stuff hidden.  Do partial topic matches with the
-          invocation and use a command line option to do searches of the
-          records.  
-        - Look at somehow organizing things so that it can run as a project
-          in Notepad++, which will mean others are more likely to use it.
 
     - Room heating energy
         - Write a script that estimates the electrical energy and time
@@ -270,6 +293,10 @@ main
           around for when it's needed.
 
 pgm
+
+    - moon.py
+        - Add -h option and optional command line arguments for year(s) to
+          print.  Defaults to current year.
 
     - disks.ksh
         - Convert this to a python script that remembers the names of the
