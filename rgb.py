@@ -83,7 +83,7 @@ if 1:   # Custom imports
     from wrap import wrap, dedent
     from f import flt
     from clr import Clr
-    if 1:
+    if len(sys.argv) > 1:
         import debug
         debug.SetDebugger()
 if 1:   # Global variables
@@ -92,12 +92,20 @@ if 1:   # Global variables
     c = Clr()
 if 1:   # Classes
     class Color:
+        '''Container for a triple of RGB numbers representing a color.
+        Equivalent constructions are:
+            Color([3, 4, 5])
+            Color((3, 4, 5))
+            Color("#030405")
+            Color(b"\x03\x04\x05")
+            Color((3/255, 4/255, 5/255))
+            Color((0.011765, 0.015686, 0.019608))
+
+        '''
         def __init__(self, x):
+            e = ValueError(f"'{x}' is an incorrect color initializer")
             if ii(x, str):  # It's a string of the #xxyyzz form
-                e = ValueError(f"'{x}' is an incorrect color string")
-                if len(x) != 7:
-                    raise e
-                if x[0] != "#":
+                if len(x) != 7 or x[0] != "#":
                     raise e
                 try:
                     r = int(x[1:3], 16)
@@ -105,49 +113,77 @@ if 1:   # Classes
                     b = int(x[5:7], 16)
                 except Exception:
                     raise e
-            elif ii(x, (list, tuple)):  # Sequence
-                    # Note we ignore any elements beyond the third
-                    r, g, b = Color.Normalize(x[0], x[1], x[2])
+            else:
+                # Assume it's an iterable of three numbers
+                try:
+                    y = iter(x)
+                    a = next(y)
+                    b = next(y)
+                    c = next(y)
+                    r, g, b = Color.Convert(a, b, c)
+                except Exception:
+                    raise e
             self._c = bytes((r, g, b))
         @classmethod
-        def Normalize(Color, x1, x2, x3):
+        def Convert(Color, x1, x2, x3):
             '''Convert to 3-tuple with each component on [0, 255] and of
             integer value.  x1, x2, x3 must be objects that can be
             converted to integers or floats.
             '''
-            # See if we can convert to integers on [0, 255]
-            try:
-                a = [int(i) for i in (x1, x2, x3)]
-                # Check numbers are on [0, 255]
-                if not all([i >= 0 for i in a]):
-                    raise Exception()
-                if not all([i <= 255 for i in a]):
-                    raise Exception()
-                return tuple(a)
-            except Exception:
-                pass
+            e = Exception()
+            if ii(x1, int):     # Integers in [0, 255]
+                try:
+                    a = [int(i) for i in (x1, x2, x3)]
+                    if not all([i >= 0 for i in a]):
+                        raise e
+                    if not all([i <= 255 for i in a]):
+                        raise e
+                    return tuple(a)
+                except Exception:
+                    pass
+            elif ii(x1, float):   # Floats in [0, 1]
+                try:
+                    a = [float(i) for i in (x1, x2, x3)]
+                    # Check numbers are on [0, 1]
+                    if not all([i >= 0 for i in a]):
+                        raise e
+                    if not all([i <= 1 for i in a]):
+                        raise e
+                    a = [min(int(i*256), 255) for i in a]
+                    return tuple(a)
+                except Exception:
+                    pass
             # See if we can convert to floats
             e = ValueError("Each argument must convert to a float >= 0")
             try:
                 a = [float(i) for i in (x1, x2, x3)]
                 mi, mx = min(a), max(a)
-                if mi < 0:
-                    raise Exception()
+                if mi < 0:      # All must be >= 0
+                    raise e
                 if mx:
                     # Scale to [0, 1]
                     a = [i/mx for i in a]
                     # Convert to integers on [0, 255]
-                    a = [int(i*255) for i in a]
+                    a = [min(int(i*256), 255) for i in a]
                     # Check
                     if not all([i >= 0 for i in a]):
-                        raise Exception()
+                        raise e
                     if not all([i <= 255 for i in a]):
-                        raise Exception()
+                        raise e
                     return tuple(a)
                 else:
                     return (0, 0, 0)
             except Exception:
                 raise e
+        def __eq__(self, x):
+            if ii(x, Color):
+                return self._c == x._c
+            raise TypeError("x is not a Color instance")
+        def __str__(self):
+            r, g, b = [i for i in self._c]
+            return f"Color(({r}, {g}, {b}))"
+        def __repr__(self):
+            return str(self)
 
 if 1:   # Core functionality
     def hsv2rgb(h, s, v):
@@ -184,46 +220,55 @@ if 1:   # Core functionality
 
 if __name__ == "__main__":
     from lwtest import run, raises, Assert, assert_equal
-    def TestNormalize():
+    from collections import deque
+    def TestConvert():
         # Test with integers
-        x = Color.Normalize(0, 0, 0)
+        x = Color.Convert(0, 0, 0)
         Assert(ii(x, tuple) and x == (0, 0, 0))
         for a in (0, 1, 2, 254, 255):
-            x = Color.Normalize(a, 0, 0)
+            x = Color.Convert(a, 0, 0)
             Assert(ii(x, tuple) and x == (a, 0, 0))
-            x = Color.Normalize(0, a, 0)
+            x = Color.Convert(0, a, 0)
             Assert(ii(x, tuple) and x == (0, a, 0))
-            x = Color.Normalize(0, 0, a)
+            x = Color.Convert(0, 0, a)
             Assert(ii(x, tuple) and x == (0, 0, a))
-        x = Color.Normalize(256, 0, 0)
+        x = Color.Convert(256, 0, 0)
         Assert(x == (255, 0, 0))
-        x = Color.Normalize(2000, 2000, 0)
+        x = Color.Convert(2000, 2000, 0)
         Assert(x == (255, 255, 0))
-        x = Color.Normalize(2000, 2000, 2000)
+        x = Color.Convert(2000, 2000, 2000)
         Assert(x == (255, 255, 255))
-        raises(ValueError, Color.Normalize, -1, 0, 0)
-        raises(ValueError, Color.Normalize, 0, -1, 0)
-        raises(ValueError, Color.Normalize, 0, 0, -1)
+        raises(ValueError, Color.Convert, -1, 0, 0)
+        raises(ValueError, Color.Convert, 0, -1, 0)
+        raises(ValueError, Color.Convert, 0, 0, -1)
         # Test with floats
         for a in (0.0, 1.0, 2.0, 254.0, 255.0):
             b = int(a)
-            x = Color.Normalize(b, 0, 0)
+            x = Color.Convert(b, 0, 0)
             Assert(ii(x, tuple) and x == (b, 0, 0))
-            x = Color.Normalize(0, b, 0)
+            x = Color.Convert(0, b, 0)
             Assert(ii(x, tuple) and x == (0, b, 0))
-            x = Color.Normalize(0, 0, b)
+            x = Color.Convert(0, 0, b)
             Assert(ii(x, tuple) and x == (0, 0, b))
-        x = Color.Normalize(256, 0, 0)
+        x = Color.Convert(256, 0, 0)
         Assert(x == (255.0, 0, 0))
-        x = Color.Normalize(2000.0, 2000.0, 0)
+        x = Color.Convert(2000.0, 2000.0, 0)
         Assert(x == (255, 255, 0))
-        x = Color.Normalize(2000, 2000.0, 2000.0)
+        x = Color.Convert(2000, 2000.0, 2000.0)
         Assert(x == (255, 255, 255))
-        raises(ValueError, Color.Normalize, -1, 0, 0)
-        raises(ValueError, Color.Normalize, 0, -1, 0)
-        raises(ValueError, Color.Normalize, 0, 0, -1)
-    def TestColorInit():
-        x = (0, 0, 0)
-        c = Color(x)
-        Assert(c._c == bytes(x))
+        raises(ValueError, Color.Convert, -1, 0, 0)
+        raises(ValueError, Color.Convert, 0, -1, 0)
+        raises(ValueError, Color.Convert, 0, 0, -1)
+    def TestColorConstructor():
+        ref = Color((3, 4, 5))
+        for i in [[3, 4, 5], (3, 4, 5), b"\x03\x04\x05", "#030405",
+                  (3/255, 4/255, 5/255), (0.011765, 0.015686, 0.019608),
+                  deque((3, 4, 5))]:
+            Assert(Color(i) == ref)
+        raises(ValueError, Color, (-1, 0, 0))
+        raises(ValueError, Color, (0, -1, 0))
+        raises(ValueError, Color, (0, 0, -1))
+        raises(ValueError, Color, "#0g0000")
+        raises(ValueError, Color, "#000g00")
+        raises(ValueError, Color, "#00000g")
     exit(run(globals(), halt=True)[0])
