@@ -106,23 +106,9 @@ if 1:   # Classes
                 except Exception:
                     raise e
             elif ii(x, (list, tuple)):  # Sequence
-                e = ValueError(f"'{x}' is an incorrect color sequence")
-                try:
-                    r, g, b = x[0], x[1], x[2]
-                    # They must be numbers
-                    r, g, b = [float(i) for i in (r, g, b)]
-                    m = max(r, g, b)
-                    # Scale to [0, 1]
-                    r, g, b = [i/m for i in (r, g, b)]
-                    # Convert to integers on [0, 255]
-                    r, g, b = [int(i*255) for i in (r, g, b)]
-                    # Check
-                    if not all([i >= 0 for i in (r, g, b)]):
-                        raise Exception()
-                    if not all([i <= 255 for i in (r, g, b)]):
-                        raise Exception()
-                except Exception:
-                    raise e
+                    # Note we ignore any elements beyond the third
+                    r, g, b = Color.Normalize(x[0], x[1], x[2])
+            self._c = bytes((r, g, b))
         @classmethod
         def Normalize(Color, x1, x2, x3):
             '''Convert to 3-tuple with each component on [0, 255] and of
@@ -199,6 +185,7 @@ if 1:   # Core functionality
 if __name__ == "__main__":
     from lwtest import run, raises, Assert, assert_equal
     def TestNormalize():
+        # Test with integers
         x = Color.Normalize(0, 0, 0)
         Assert(ii(x, tuple) and x == (0, 0, 0))
         for a in (0, 1, 2, 254, 255):
@@ -215,4 +202,28 @@ if __name__ == "__main__":
         x = Color.Normalize(2000, 2000, 2000)
         Assert(x == (255, 255, 255))
         raises(ValueError, Color.Normalize, -1, 0, 0)
+        raises(ValueError, Color.Normalize, 0, -1, 0)
+        raises(ValueError, Color.Normalize, 0, 0, -1)
+        # Test with floats
+        for a in (0.0, 1.0, 2.0, 254.0, 255.0):
+            b = int(a)
+            x = Color.Normalize(b, 0, 0)
+            Assert(ii(x, tuple) and x == (b, 0, 0))
+            x = Color.Normalize(0, b, 0)
+            Assert(ii(x, tuple) and x == (0, b, 0))
+            x = Color.Normalize(0, 0, b)
+            Assert(ii(x, tuple) and x == (0, 0, b))
+        x = Color.Normalize(256, 0, 0)
+        Assert(x == (255.0, 0, 0))
+        x = Color.Normalize(2000.0, 2000.0, 0)
+        Assert(x == (255, 255, 0))
+        x = Color.Normalize(2000, 2000.0, 2000.0)
+        Assert(x == (255, 255, 255))
+        raises(ValueError, Color.Normalize, -1, 0, 0)
+        raises(ValueError, Color.Normalize, 0, -1, 0)
+        raises(ValueError, Color.Normalize, 0, 0, -1)
+    def TestColorInit():
+        x = (0, 0, 0)
+        c = Color(x)
+        Assert(c._c == bytes(x))
     exit(run(globals(), halt=True)[0])
