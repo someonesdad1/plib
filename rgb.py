@@ -1,7 +1,7 @@
 '''
-
+ 
 TODO
-
+ 
     - Definition of a color
         - Store internally as bytestring of length 3.
         - RGB or HSV
@@ -20,45 +20,35 @@ TODO
         - Blackbody 
             - Color in RGB to a given T[/K]
             - T[/K] to RGB
-
+ 
     - Notation
-        - x[/s] means x is a number with units string s.  The '/' means
+        - x[//s] means x is a number with units string s.  The '//' means
           'divide by s to get a dimensionless number'.  For a unit like 
           'kJ/(kg*K)' which adheres to e.g. python's arithmetical
           precedence, I'll write 'kJ//kg*K' with the implicit assumption
           that there's only a numerator and one denominator.  This is of
           course incorrect syntax unless it's defined.  I used the double
           solidus to be a clue to this notation.
-        - Hex notation:  #xxyyzz for RGB, ##xxyyzz for HSV
-        - Shorter but probably adequate
-            - Float:  0.xxyyzz using decimal digits
-            - Integer:  xxyyzz using decimal digits
-        - Single number
-            - Integer:  24-bit
-            - Float:  0.xxxyyyzzz
-
-    - All the color stuff I did in 2014 is in /pylib/pgm/colors
+ 
+    - The color stuff I did in 2014 is in /pylib/pgm/colors
         - Look at the web_data directory.  It could be convenient to
           coalesce all the data into a single text file, maybe rgbdata.py,
           that maps color names to both RGB and HSV strings.  It would
           allow for multiple values for names.
-
-    - Is 3seq of integers or floats best?  On reflection, integers are
-      probably best because of speed and 24-bit color is better than almost
-      anything we can do.
-
+ 
     - References
-        - http://www.poynton.com/PDFs/coloureq.pdf
-        - http://www.midnightkite.com/color.html
-
+        - [ford] http://poynton.ca/PDFs/coloureq.pdf "Colour Space Conversions" by
+          A. Ford and A. Roberts, 11 Aug 1998.
+        - [bruton] http://www.midnightkite.com/color.html
+ 
 Color utilities
-
-    In this library, colors are represented as 3-tuples of floating point
-    numbers, each on the closed interval of [0, 1].  These are either RGB
-    tuples (red-green-blue) or HSV tuples (hue-saturation-value).  They can
-    also be tuples of integers; if they are, the integers must be on [0,
-    255].
-
+ 
+    This library uses the Color class to contain the RGB and HSV
+    information on a color.  Internally, the color information is stored as
+    two 3-byte values, one for the RGB form and one for the HSV form.  For
+    the utility functions, the arguments are typically 3-tuples of floats
+    on [0, 1].
+ 
 ''' 
 if 1:  # Copyright, license
     # These "trigger strings" can be managed with trigger.py
@@ -74,6 +64,7 @@ if 1:  # Copyright, license
     #∞test∞# run #∞test∞#
     pass
 if 1:   # Standard imports
+    import colorsys
     import getopt
     import os
     import pathlib
@@ -93,14 +84,25 @@ if 1:   # Global variables
 if 1:   # Classes
     class Color:
         '''Container for a triple of RGB numbers representing a color.
-        Equivalent constructions are:
+        Equivalent constructor calls are:
             Color([3, 4, 5])
             Color((3, 4, 5))
+            Color(x) where x is an iterator that returns 3 numbers
             Color("#030405")
             Color(b"\x03\x04\x05")
             Color((3/255, 4/255, 5/255))
             Color((0.011765, 0.015686, 0.019608))
-
+ 
+        Warning:  str(Color((1, 0, 0))) is 'Color((1, 0, 0))' and
+        str(Color((1.0, 0, 0))) is 'Color((255, 0, 0))'.  The number type
+        of the first component is important.
+ 
+        Internally, the color is stored as six bytes, three for the RGB
+        representation and three for the HSV representation.
+  
+        The r, g, b attributes return integer values in [0, 255] for red,
+        green, or blue.  The h, s, v attributes return integer values in
+        [0, 255] for hue, saturation, and value.
         '''
         def __init__(self, x):
             e = ValueError(f"'{x}' is an incorrect color initializer")
@@ -123,15 +125,15 @@ if 1:   # Classes
                     r, g, b = Color.Convert(a, b, c)
                 except Exception:
                     raise e
-            self._c = bytes((r, g, b))
+            self._rgb = bytes((r, g, b))
         @classmethod
         def Convert(Color, x1, x2, x3):
             '''Convert to 3-tuple with each component on [0, 255] and of
-            integer value.  x1, x2, x3 must be objects that can be
+            integer type.  x1, x2, x3 must be objects that can be
             converted to integers or floats.
             '''
             e = Exception()
-            if ii(x1, int):     # Integers in [0, 255]
+            if ii(x1, int):     # Must be integers in [0, 255]
                 try:
                     a = [int(i) for i in (x1, x2, x3)]
                     if not all([i >= 0 for i in a]):
@@ -157,66 +159,69 @@ if 1:   # Classes
             e = ValueError("Each argument must convert to a float >= 0")
             try:
                 a = [float(i) for i in (x1, x2, x3)]
-                mi, mx = min(a), max(a)
-                if mi < 0:      # All must be >= 0
+                mn, mx = min(a), max(a)
+                if mn < 0:      # All must be >= 0
                     raise e
-                if mx:
-                    # Scale to [0, 1]
-                    a = [i/mx for i in a]
-                    # Convert to integers on [0, 255]
-                    a = [min(int(i*256), 255) for i in a]
-                    # Check
-                    if not all([i >= 0 for i in a]):
-                        raise e
-                    if not all([i <= 255 for i in a]):
-                        raise e
-                    return tuple(a)
-                else:
+                if not mx:
                     return (0, 0, 0)
+                # Scale to [0, 1]
+                a = [i/mx for i in a]
+                # Convert to integers on [0, 255]
+                a = [int(i*255) for i in a]
+                # Check
+                if not all([i >= 0 for i in a]):
+                    raise e
+                if not all([i <= 255 for i in a]):
+                    raise e
+                return tuple(a)
             except Exception:
                 raise e
         def __eq__(self, x):
             if ii(x, Color):
-                return self._c == x._c
+                return self._rgb == x._rgb
             raise TypeError("x is not a Color instance")
         def __str__(self):
-            r, g, b = [i for i in self._c]
+            r, g, b = [i for i in self._rgb]
             return f"Color(({r}, {g}, {b}))"
         def __repr__(self):
             return str(self)
+        @property
+        def rgb(self):
+            'Returns (red, green, blue) values on [0, 255]'
+            s = self._rgb
+            return (s[0], s[1], s[2])
+        @property
+        def hsv(self):
+            'Returns (hue, saturation, value) values on [0, 255]'
+            rgb = [i/255 for i in self.rgb]
+            hsv = colorsys.rgb_to_hsv(*rgb)
+            s = [int(i*255) for i in hsv]
+            return tuple(s)
 
 if 1:   # Core functionality
-    def hsv2rgb(h, s, v):
-        '''Convert an HSV tuple to RGB.
+    def Visible(wavelength):
+        '''Convert a wavelength in nm into a Color instance.  Adapted
+        from FORTRAN code by [bruton].
         '''
-        from math import floor
-        if H < 0 or H > 1:
-            raise Exception("Hue must be between 0 and 1")
-        if S < 0 or S > 1:
-            raise Exception("Saturation must be between 0 and 1")
-        if V < 0 or V > 1:
-            raise Exception("Value must be between 0 and 1")
-        Hex = H*6.  # Algorithm wants H in degrees, then divides by 60
-        primary_color = floor(Hex)
-        secondary_color = Hex - primary_color
-        a = (1-S)*V
-        b = (1-(S*secondary_color))*V
-        c = (1-(S*(1-secondary_color)))*V
-        if primary_color == 0 or primary_color == 6:
-            self.r, self.g, self.b = (V, c, a)
-        elif primary_color == 1:
-            self.r, self.g, self.b = (b, V, a)
-        elif primary_color == 2:
-            self.r, self.g, self.b = (a, V, c)
-        elif primary_color == 3:
-            self.r, self.g, self.b = (a, b, V)
-        elif primary_color == 4:
-            self.r, self.g, self.b = (c, a, V)
-        elif primary_color == 5:
-            self.r, self.g, self.b = (V, a, b)
+        if wavelength >= 380 and wavelength <= 440:
+            x = (float(-(wavelength - 440)/(440 - 380)), 0.0, 1.0)
+        elif wavelength >= 440 and wavelength <= 490:
+            x = (0.0, float((wavelength - 440)/(490 - 440)), 1.0)
+        elif wavelength >= 490 and wavelength <= 510:
+            x = (0.0, 1.0, float(-(wavelength - 510)/(510 - 490)))
+        elif wavelength >= 510 and wavelength <= 580:
+            x = (float((wavelength - 510)/(580 - 510)), 1.0, 0.0)
+        elif wavelength >= 580 and wavelength <= 645:
+            x = (1.0, -float((wavelength - 645)/(645 - 580)), 0.0)
+        elif wavelength >= 645 and wavelength <= 780:
+            x = (1.0, 0.0, 0.0)
         else:
-            raise Exception("Internal error:  unexpected value of primary_color")
-        self.color = (self.r, self.g, self.b)
+            raise ValueError("wavelength must be in [380, 780] nm")
+        return Color(x)
+    def IsNormalized(a, b, c):
+        'Raise a ValueError exception unless each number is a float on [0, 1]'
+        if not all(0 <= i <= 1 and ii(i, float) for i in (a, b, c)):
+            raise ValueError("Elements in tuple must be floats on [0, 1]")
 
 if __name__ == "__main__":
     from lwtest import run, raises, Assert, assert_equal
@@ -261,9 +266,15 @@ if __name__ == "__main__":
         raises(ValueError, Color.Convert, 0, 0, -1)
     def TestColorConstructor():
         ref = Color((3, 4, 5))
-        for i in [[3, 4, 5], (3, 4, 5), b"\x03\x04\x05", "#030405",
-                  (3/255, 4/255, 5/255), (0.011765, 0.015686, 0.019608),
-                  deque((3, 4, 5))]:
+        for i in [
+            [3, 4, 5], 
+            (3, 4, 5), 
+            b"\x03\x04\x05",
+            "#030405",
+            (3/255, 4/255, 5/255),
+            (0.011765, 0.015686, 0.019608),
+            deque((3, 4, 5))
+        ]:
             Assert(Color(i) == ref)
         raises(ValueError, Color, (-1, 0, 0))
         raises(ValueError, Color, (0, -1, 0))
