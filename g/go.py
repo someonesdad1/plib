@@ -206,7 +206,6 @@ if 1:   # Classes
                 return "%s, %s, %s" % tuple(map(f3, self.color))
         def __repr__(self):
             return "Color(" + self.colorName() + ")"
-
     class TextType(State):
         def __init__(self):
             self.setName("Sans")
@@ -229,7 +228,6 @@ if 1:   # Classes
                     (self.name, f(self.size))
                 self.changed = 0
             return str_
-
     class Paper:
         def __init__(self, size=paper_letter):
             self.validateSize(size)
@@ -237,7 +235,6 @@ if 1:   # Classes
         def validateSize(self, size):
             if size not in paper_sizes:
                 raise Exception("Unrecognized paper size")
-
     class Orientation(State):
         '''We initialize with the assumption that we are in PostScript's default
         units, points (otherwise, the translations will be wrong).
@@ -253,7 +250,6 @@ if 1:   # Classes
             self.s = (f(rotation), f(width), f(height))
         def update(self):
             return "%s rotation %s %s translation\n" % self.s
-
     class Line(State):
         default_width = [yes, 1]  # In points
         def __init__(self):
@@ -313,7 +309,6 @@ if 1:   # Classes
                 if self.join[g_changed] == yes:
                     out("%d setlinejoin\n" % line_joins[self.join[g_value]])
                     self.join[g_changed] = no
-
     class Fill(State):
         def __init__(self):
             self.type            = solid_fill
@@ -336,7 +331,6 @@ if 1:   # Classes
             self.line.color = color
         def setGradientColor(self, color):
             self.gradient_color = color
-
     class Font(State):
         default_size = [yes, 11]  # In points
         def __init__(self):

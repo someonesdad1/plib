@@ -98,6 +98,8 @@ if 1:   # Globals
      
         if __name__ == "__main__":
             failed, messages = run(globals())
+        or 
+            exit(run(globals(), halt=True)[0])
      
         run() will find test functions and execute them; its single
         argument must be a dictionary containing the names and their

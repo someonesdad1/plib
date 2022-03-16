@@ -5,8 +5,10 @@
 I made this repository public on 7 Mar 2022.  I'll slowly add to it over
 time and fix/maintain some of the stuff.  My intent is that this stuff will
 remain here for a few years after I've died or when I turn its maintenance
-over to a friend who said he'd be the caretaker.  By then any content of
-interest to others will probably have made its way out into the world.
+over to a friend who said he'd be the caretaker for it after I'm no longer
+able to do this.  By then any content of interest to others will probably
+have made its way out into the world and he can remove the repositor when
+he sees fit.
 
 # Introduction
 This repository is a collection of python stuff I've written since 1998.
@@ -35,7 +37,9 @@ a style formatter to to recover more normal vertical formatting if you
 wish.  I use pgm/rpl.py to remove blank lines so I can see as much as
 possible on my screen.  I use a folding editor, which folds on indentation
 and explains the use of 'if 1:  # Comment' "sections".  A completely folded
-file should be viewable in a few tens of lines.
+file should be viewable in a few tens of lines.  I also use a second 4k
+monitor in portrait mode to view 100 to 150 lines of text at once; this is
+quite convenient for coding.
 
 My editor has commands to go to the next paragraph, which is defined by a
 bare newline.  With no blank lines in a file, this lets me set up

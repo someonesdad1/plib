@@ -704,8 +704,16 @@ if 1:   # Classes
                         msg = f"'{a}' is not a valid attribute"
                         raise ValueError(msg)
                     container.append(f"\033[{ta[a]}m")
-            f = "" if fg is None else self._cn.fg(fg)
-            b = "" if bg is None else self._cn.bg(bg)
+            f = b = None
+            cn = CN24()
+            if fg is not None and fg[0] == "#":
+                f = cn.fg(fg)
+            else:
+                f = "" if fg is None else self._cn.fg(fg)
+            if bg is not None and bg[0] == "#":
+                b = cn.bg(bg)
+            else:
+                b = "" if bg is None else self._cn.bg(bg)
             return f + b + ''.join(container)
         # ----------------------------------------------------------------------
         # User interface
