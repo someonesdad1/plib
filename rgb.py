@@ -74,7 +74,7 @@ if 1:   # Custom imports
     from wrap import wrap, dedent
     from f import flt
     from clr import Clr
-    if len(sys.argv) > 1:
+    if 0 and len(sys.argv) > 1:
         import debug
         debug.SetDebugger()
 if 1:   # Global variables
@@ -182,7 +182,7 @@ if 1:   # Classes
             raise TypeError("x is not a Color instance")
         def __str__(self):
             r, g, b = [i for i in self._rgb]
-            return f"Color(({r}, {g}, {b}))"
+            return f"Color(({r:3d}, {g:3d}, {b:3d}))"
         def __repr__(self):
             return str(self)
         @property

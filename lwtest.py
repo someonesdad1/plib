@@ -74,6 +74,8 @@ if 1:   # Custom imports
             def __getattr__(self, name): pass
         color = Dummy()
         _have_color = False
+    if not sys.stdout.isatty():
+        _have_color = False
     from f import flt, cpx
     from wrap import dedent
 if 1:   # Globals

@@ -1,5 +1,10 @@
 main
 
+    -lwtest.py
+        - Change it over to use Clr() instead of color.  It's printing a
+          bunch of escape codes at the end of a test run and those
+          shouldn't be there.
+
     - rgb
         - Write an rgb.py module that supplies color functions.  See
           g/go.py for e.g. setHSV() and getHSV().  Also look at interp(),
