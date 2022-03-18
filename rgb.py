@@ -2,17 +2,22 @@
  
 TODO
  
-    - Definition of a color
-        - Store internally as bytestring of length 3.
-        - RGB or HSV
-            - 3 numbers (r, g, b), normalized to (r/x, g/x, b/x) where x is
-              max(r, g, b).  Then converted to bytes form.
-        - #xxyyzz string:  standard RGB hex form used on web
-        - ##xxyyzz string:  HSV hex form
+    - Constructor
+        - String
+            - #xxyyzz string:  RGB hex
+            - @xxyyzz string:  HSV hex
+            - $xxyyzz string:  HLS hex
+        - 3-tuple of floats, Decimals, or fractions
+            - Used as-is if all three are on [0, 1]
+            - Normalized by vector length other wise
+        - 3-tuple of integers
+            - Used as-is if all three are on [0, 255]
+            - Normalized by vector length other wise
+            
 
     - Wanted
-        - RGB to HSV
-        - HSV to RGB
+        - Use colorsys functions
+        - Allow decimal-tuple constructor
         - Color names
             - Name to RGB, HSV
             - RGB to nearest name(s)
@@ -65,6 +70,8 @@ if 1:  # Copyright, license
     pass
 if 1:   # Standard imports
     import colorsys
+    from decimal import Decimal
+    from fractions import Fraction
     import getopt
     import os
     import pathlib
@@ -82,6 +89,93 @@ if 1:   # Global variables
     ii = isinstance
     c = Clr()
 if 1:   # Classes
+    class ColorNum:
+        '''Used to identify a color and convert it to a canonical form.
+        The canonical form is an RGB tuple with three floating point
+        numbers on [0, 1].
+        '''
+        def __init__(self, x):
+            '''Allows x to be:
+            3-seq of: integers, floats, Fractions, Decimals
+            str:  #xxyyzz (RGB), @xxyyzz (HSV), $xxyyzz (HLS)
+            '''
+            e = ValueError(f"'{x}' is of improper form for class ColorNum")
+            if ii(x, str):
+                if len(x) != 7 or x[0] not in "@#$":
+                    raise e
+                # clamp to [0, 1]
+                f = lambda x:  max(0, min(int(x, 16), 255))/255
+                # Put into canonical float form
+                s = f(x[1:3]), f(x[3:5]), f(x[5:7])
+                if x[0] == "@":         # It's HSV
+                    self._rgb = colorsys.hsv_to_rgb(*s)
+                elif x[0] == "#":       # It's RGB
+                    self._rgb = s
+                elif x[0] == "$":       # It's HLS
+                    self._rgb = colorsys.hls_to_rgb(*s)
+            else:
+                # It must be an iterable of at least three numbers
+                try:
+                    y = iter(x)
+                    s = next(y), next(y), next(y)
+                except Exception:
+                    raise e
+                # They must be the same type
+                t = [type(i) for i in s]
+                if not all([type(i) == type(s[0]) for i in s]):
+                    msg = "The components of x are not the same type"
+                    raise TypeError(msg)
+                # Convert them to Decimals on [0, 1]
+                if ii(s[0], str):
+                    u = [Decimal(i) for i in s]
+                elif ii(s[0], int):
+                    u = [Decimal(i) for i in s]
+                elif ii(s[0], float):
+                    u = [Decimal(str(i)) for i in s]
+                elif ii(s[0], Fraction):
+                    u = [Decimal(i.numerator)/Decimal(i.denominator) for i in s]
+                elif ii(s[0], Decimal):
+                    u = s
+                else:
+                    msg = "x is a sequence of the improper type"
+                    raise TypeError(msg)
+                # All values must be non-negative
+                if not all([i >= 0 for i in u]):
+                    msg = "One or more components of x is negative"
+                    raise ValueError(msg)
+                # Normalize components to [0, 1] by dividing the components
+                # by the largest value
+                if not all([0 <= i <= 1 for i in u]):
+                    m = max(u)
+                    u = [i/m for i in u]
+                assert(all([0 <= i <= 1 for i in u]))
+                # Convert the numbers to floats
+                self._rgb = [float(i) for i in u]
+        def __str__(self):
+            n = 6
+            a, b, c = self._rgb
+            return f"ColorNum({a:.{n}f}, {b:.{n}f}, {c:.{n}f})"
+        def __repr__(self):
+            a, b, c = self._rgb
+            return f"ColorNum({a!r}, {b!r}, {c!r})"
+        def __eq__(self, x):
+            'Equal if on [0, 1] to 6 figures'
+            if not ii(x, ColorNum):
+                raise TypeError("'x' must be a ColorNum instance")
+            n = 6
+            me    = [round(i, n) for i in self._rgb]
+            other = [round(i, n) for i in x._rgb]
+            return bool(me == other)
+        @property
+        def hls(self):
+            return colorsys.rgb_to_hls(*self._rgb)
+        @property
+        def hsv(self):
+            return colorsys.rgb_to_hsv(*self._rgb)
+        @property
+        def rgb(self):
+            return self._rgb
+
     class Color:
         '''Container for a triple of RGB numbers representing a color.
         Equivalent constructor calls are:
@@ -306,4 +400,9 @@ if __name__ == "__main__":
         raises(ValueError, Color, "#0g0000")
         raises(ValueError, Color, "#000g00")
         raises(ValueError, Color, "#00000g")
+    def TestColorNum():
+        std = ColorNum((1, 1, 1))
+        a = ColorNum((0.9999999, 1.0000001, 1.0))   # Check rounding
+        xx()
+        assert_equal(a == std, True)
     exit(run(globals(), halt=True)[0])
