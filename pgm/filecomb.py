@@ -25,8 +25,9 @@ def Error(msg, status=1):
     print(msg, file=sys.stderr)
     exit(status)
 def Usage(d, status=1):
+    pgm = sys.argv[0]
     print(dedent(f'''
-    Usage:  {sys.argv[0]} [options] m [file]
+    Usage:  {pgm} [options] m [file]
       Generate the combinations of the lines of a file taken m at a time.
       The m items are put on one line of the output.  Input is taken from
       stdin if no file is given.  Whitespace is stripped from the trailing
@@ -36,7 +37,7 @@ def Usage(d, status=1):
         dune
         bird
         ocelot
-      Then the command 'python comb.py 3 A' produces the output
+      Then the command 'python {pgm} comb.py 3 A' produces the output
         bin dune bird
         bin dune ocelot
         bin bird ocelot
