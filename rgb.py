@@ -81,7 +81,7 @@ if 1:   # Custom imports
     from wrap import wrap, dedent
     from f import flt
     from clr import Clr
-    if 0 and len(sys.argv) > 1:
+    if 1:
         import debug
         debug.SetDebugger()
 if 1:   # Global variables
@@ -153,19 +153,21 @@ if 1:   # Classes
                 self._rgb = [float(i) for i in u]
         def __str__(self):
             n = 6
-            a, b, c = self._rgb
-            return f"ColorNum({a:.{n}f}, {b:.{n}f}, {c:.{n}f})"
+            r, g, b = self._rgb
+            return f"ColorNum({r:.{n}f}, {g:.{n}f}, {b:.{n}f})"
         def __repr__(self):
-            a, b, c = self._rgb
-            return f"ColorNum({a!r}, {b!r}, {c!r})"
-        def __eq__(self, x):
-            'Equal if on [0, 1] to 6 figures'
-            if not ii(x, ColorNum):
-                raise TypeError("'x' must be a ColorNum instance")
+            r, g, b = self._rgb
+            return f"ColorNum({r!r}, {g!r}, {b!r})"
+        def __eq__(self, other):
+            'Equal if components match to 6 decimal places'
+            # Six places seems to be a good compromise for numerical
+            # accuracy and to not to have too much useless resolution.
+            if not ii(other, ColorNum):
+                raise TypeError("'other' must be a ColorNum instance")
             n = 6
-            me    = [round(i, n) for i in self._rgb]
-            other = [round(i, n) for i in x._rgb]
-            return bool(me == other)
+            me  = [round(i, n) for i in self._rgb]
+            you = [round(i, n) for i in other._rgb]
+            return bool(me == you)
         @property
         def hls(self):
             return colorsys.rgb_to_hls(*self._rgb)
@@ -401,8 +403,35 @@ if __name__ == "__main__":
         raises(ValueError, Color, "#000g00")
         raises(ValueError, Color, "#00000g")
     def TestColorNum():
+        D, F = Decimal, Fraction
+        for x in (0, 1, "0.5"):
+            std = ColorNum((x, x, x))
+            if x == 1:
+                a = ColorNum((0.9999999, 1.0000001, 1.0))   # Check rounding
+                assert_equal(a == std, True)
+            if x == "0.5":
+                d, f = D(x), F(1, 2)
+            elif x == 0:
+                d, f = D(x), F(0, 1)
+            else:
+                d, f = D(x), F(x, x)
+            b = ColorNum((d, d, d))
+            c = ColorNum((f, f, f))
+            i = ColorNum((x, x, x))
+            t = x if ii(x, str) else str(x)
+            s = ColorNum((t, t, t))
+            for j in (b, c, i, s):
+                if j != std: xx() #xx
+                assert_equal(j == std, True)
+        # Check normalization
+        x = 7.348
+        s = ColorNum((x, x, x))
         std = ColorNum((1, 1, 1))
-        a = ColorNum((0.9999999, 1.0000001, 1.0))   # Check rounding
-        xx()
-        assert_equal(a == std, True)
+        assert_equal(s == std, True)
+        a, b, c = 4.377, 89.009, 12.2
+        s = ColorNum((a, b, c))
+        m = max(a, b, c)
+        t = ColorNum((a/m, b/m, c/m))
+        assert_equal(s == t, True)
+
     exit(run(globals(), halt=True)[0])
