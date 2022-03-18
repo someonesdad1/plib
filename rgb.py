@@ -150,7 +150,7 @@ if 1:   # Classes
                     u = [i/m for i in u]
                 assert(all([0 <= i <= 1 for i in u]))
                 # Convert the numbers to floats
-                self._rgb = [float(i) for i in u]
+                self._rgb = tuple([float(i) for i in u])
         def __str__(self):
             n = 6
             r, g, b = self._rgb
@@ -169,14 +169,41 @@ if 1:   # Classes
             you = [round(i, n) for i in other._rgb]
             return bool(me == you)
         @property
-        def hls(self):
-            return colorsys.rgb_to_hls(*self._rgb)
+        def HLS(self):  
+            'Get hls in integer form'
+            return tuple([int(i*255) for i in self.hls])
         @property
-        def hsv(self):
-            return colorsys.rgb_to_hsv(*self._rgb)
+        def hls(self):
+            'Get hls in float form'
+            return tuple(colorsys.rgb_to_hls(*self._rgb))
+        @property
+        def hlshex(self):
+            'Get hls in hex string form'
+            return "${0:02x}{1:02x}{2:02x}".format(*self.HLS)
+        @property
+        def HSV(self):
+            'Get hsv in integer form'
+            return tuple([int(i*255) for i in self.hsv])
+        @property
+        def hsv(self):  
+            'Get hsv in float form'
+            return tuple(colorsys.rgb_to_hsv(*self._rgb))
+        @property
+        def hsvhex(self):
+            'Get hsv in hex string form'
+            return "@{0:02x}{1:02x}{2:02x}".format(*self.HSV)
+        @property
+        def RGB(self):
+            'Get rgb in integer form'
+            return tuple([int(i*255) for i in self._rgb])
         @property
         def rgb(self):
-            return self._rgb
+            'Get rgb in float form'
+            return tuple(self._rgb)
+        @property
+        def rgbhex(self):
+            'Get rgb in hex string form'
+            return "#{0:02x}{1:02x}{2:02x}".format(*self.RGB)
 
     class Color:
         '''Container for a triple of RGB numbers representing a color.
@@ -433,5 +460,19 @@ if __name__ == "__main__":
         m = max(a, b, c)
         t = ColorNum((a/m, b/m, c/m))
         assert_equal(s == t, True)
+    def TestProperties():
+        x = ColorNum((1, 1, 1))
+        # Canonical floating point form
+        assert_equal(x.rgb, (1.0, 1.0, 1.0))
+        assert_equal(x.hls, (0.0, 1.0, 0.0))
+        assert_equal(x.hsv, (0.0, 0.0, 1.0))
+        # Integer form
+        assert_equal(x.RGB, (255, 255, 255))
+        assert_equal(x.HLS, (  0, 255,   0))
+        assert_equal(x.HSV, (  0,   0, 255))
+        # String form
+        assert_equal(x.rgbhex, "#ffffff")
+        assert_equal(x.hlshex, "$00ff00")
+        assert_equal(x.hsvhex, "@0000ff")
 
     exit(run(globals(), halt=True)[0])
