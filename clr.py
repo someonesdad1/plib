@@ -625,7 +625,7 @@ if 1:   # Classes
         definitions, use c.reset().  To see the styles you've defined, use
         print(c).
         '''
-        def __init__(self, bits=4, override=False, cleanup=True):
+        def __init__(self, bits=4, override=False, cleanup=False):
             '''If override is True, always emit escape codes.  The normal
             behavior is not to emit escape codes unless stdout is a terminal.
             bits must be None, 4, 8, or 24.  If None, the model is chosen
@@ -647,7 +647,8 @@ if 1:   # Classes
             else:
                 self._bits = bits
             self.reset()
-            atexit.register(self.cleanup)
+            if cleanup:
+                atexit.register(self.cleanup)
         def _user(self):
             'Return a set of user-defined attribute names'
             ignore = set('''_bits _cn _on _override _parse_color _user
@@ -906,6 +907,7 @@ if 1:   # Printing regular expression matches
             text = text[end:]       # Use the remaining substring
             if not text:
                 print(file=file)    # Print a newline
+
 if __name__ == "__main__":
     # Demonstrate module's output
     bits = 4

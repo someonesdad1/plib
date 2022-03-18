@@ -20,14 +20,13 @@ if 1:  # Copyright, license
 if 1:   # Standard imports
     import getopt
     import os
-    import pathlib
+    from pathlib import Path as P
     import sys
     from pdb import set_trace as xx
 if 1:   # Custom imports
     from wrap import wrap, dedent
     from clr import Clr
 if 1:   # Global variables
-    P = pathlib.Path
     ii = isinstance
     c = Clr()
 if 1:   # Utility
