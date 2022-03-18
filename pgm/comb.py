@@ -17,24 +17,24 @@ if 1:  # Copyright, license
     pass
 if 1:   # Standard imports
     import getopt
-    import os
     from pathlib import Path as P
     import sys
+    from math import factorial
     from itertools import combinations, permutations
     from pdb import set_trace as xx
 if 1:   # Custom imports
     from columnize import Columnize
     from wrap import wrap, dedent
-    #from clr import Clr
+    if 1:
+        import debug
+        debug.SetDebugger()
 if 1:   # Global variables
     ii = isinstance
-    #c = Clr()
 if 1:   # Utility
     def Error(*msg, status=1):
         print(*msg, file=sys.stderr)
         exit(status)
     def Usage(status=1):
-        comb = True if d["name"] == "comb" else False
         which = "combinations" if comb else "permutations"
         formula = "C(n, k)" if comb else "P(n, k)"
         k = None if comb else "n"
@@ -43,7 +43,9 @@ if 1:   # Utility
             Prints out {which} of command line arguments.  A is a
             string and if the only argument, then its letters are used as
             the elements.  Otherwise the set of n arguments (A, B, ...) is
-            used.
+            used.  If the number of the results is larger than 10!, the
+            calculation time is long, so just the numbers will be printed
+            unless -f is used.
         Notation
             n = number of letters in A or number of arguments if > 1
             k = items to take for each subset'''))
@@ -133,14 +135,60 @@ if 1:   # Core functionality
             for i in out:
                 print(i)
         print(f"{count} {name}")
+    def IntFactorial(n):
+        assert(ii(n, int) and n >= 0)
+        if n == 0:
+            return 1
+        if n > 50000:
+            Error("Number of objects is too large")
+        f = 1
+        for i in range(2, n + 1):
+            f *= i
+        return f
+    def IsLarge(objects):
+        'Return number of objects if overly large, else 0'
+        n = len(objects)
+        k = d["-k"] if d["-k"] is not None else n
+        try:
+            p = int(factorial(n)/factorial(n - k))
+        except OverflowError:
+            # Floating point calculation overflowed
+            if n > 10000:
+                Error(f"{n} objects is too large")
+            p = IntFactorial(n)//IntFactorial(n - k)
+        if comb:
+            try:
+                fk = int(factorial(k))
+            except OverflowError:
+                fk = IntFactorial(k)
+            p //= fk
+        return p if p > limit else 0
+    def Magnitude(n):
+        assert(ii(n, int) and n > 0)
+        s = str(n)
+        m, e = s[0], len(s)
+        e = len(s)
+        return f"{m}e{e}"
 
 if __name__ == "__main__":
     n, k = None, None
+    limit = int(factorial(10))
     # Options dictionary
     d = {"name": P(sys.argv[0]).name.replace(".py", "")}
+    comb = True if d["name"] == "comb" else False
     args = ParseCommandLine(d)
     objects = list(args[0]) if len(args) == 1 else args
+    large = IsLarge(objects)
+    if large:
+        e = Magnitude(large)
+    l = f"Answer too large (limit is {Magnitude(limit)}):  "
     if d["name"] == "perm":
-        Work(permutations, "permutations", objects)
+        if large:
+            print(f"{l}number of permutations = {e}")
+        else:
+            Work(permutations, "permutations", objects)
     else:
-        Work(combinations, "combinations", objects)
+        if large:
+            print(f"{l}number of combinations = {e}")
+        else:
+            Work(combinations, "combinations", objects)
