@@ -1,9 +1,10 @@
 '''
-Generate combinations and permutations of the lines of a file.
+Prints out combinations & permutations of command line arguments.
 '''
+ 
 if 1:  # Copyright, license
     # These "trigger strings" can be managed with trigger.py
-    #∞copyright∞# Copyright (C) 2014 Don Peterson #∞copyright∞#
+    #∞copyright∞# Copyright (C) 2022 Don Peterson #∞copyright∞#
     #∞contact∞# gmail.com@someonesdad1 #∞contact∞#
     #∞license∞#
     #   Licensed under the Open Software License version 3.0.
@@ -14,109 +15,71 @@ if 1:  # Copyright, license
     #∞what∞#
     #∞test∞# #∞test∞#
     pass
-if 1:   # Imports
-    import sys
-    import os
+if 1:   # Standard imports
     import getopt
+    import os
+    import pathlib
+    import sys
     from itertools import combinations, permutations
+    from pdb import set_trace as xx
 if 1:   # Custom imports
-    from wrap import dedent
-def Error(msg, status=1):
-    print(msg, file=sys.stderr)
-    exit(status)
-def Usage(d, status=1):
-    print(dedent(f'''
-    Usage:  {sys.argv[0]} [options] m [file]
-      Generate the combinations of the lines of a file taken m at a time.
-      The m items are put on one line of the output.  Input is taken from
-      stdin if no file is given.  Whitespace is stripped from the trailing
-      end of each line.
-    Example:  Suppose the file A has the following lines:
-        bin
-        dune
-        bird
-        ocelot
-      Then the command 'python comb.py 3 A' produces the output
-        bin dune bird
-        bin dune ocelot
-        bin bird ocelot
-        dune bird ocelot
-    Options:
-      -n N   The elements are the integers from 1 to N
-      -p     Generate permutations instead of combinations
-      -q     Put double quotes around each line element on the output lines
-      -Q     Same as -q, but use single quotes
-      -s     Strip whitespace from the front of each line too
-      -u     Only keep the unique lines
-      -z N   The elements are the integers from 0 to N - 1
-    '''))
-    exit(status)
-def ParseCommandLine(d):
-    d["-Q"] = False
-    d["-n"] = None
-    d["-p"] = False
-    d["-q"] = False
-    d["-s"] = False
-    d["-u"] = False
-    d["-z"] = None
-    try:
-        optlist, args = getopt.getopt(sys.argv[1:], "n:pQqsuz:")
-    except getopt.GetoptError as e:
-        msg, option = e
-        print(msg)
-        exit(1)
-    for opt in optlist:
-        if opt[0] == "-n":
-            d["-n"] = int(opt[1])
-        if opt[0] == "-p":
-            d["-p"] = True
-        if opt[0] == "-Q":
-            d["-Q"] = True
-        if opt[0] == "-q":
-            d["-q"] = True
-        if opt[0] == "-s":
-            d["-s"] = True
-        if opt[0] == "-u":
-            d["-u"] = True
-        if opt[0] == "-z":
-            d["-z"] = int(opt[1])
-    if len(args) not in (1, 2):
-        Usage(d)
-    return args
+    from wrap import wrap, dedent
+    from clr import Clr
+if 1:   # Global variables
+    P = pathlib.Path
+    ii = isinstance
+    c = Clr()
+if 1:   # Utility
+    def Error(*msg, status=1):
+        print(*msg, file=sys.stderr)
+        exit(status)
+    def Usage(status=1):
+        print(dedent(f'''
+        Usage:  {sys.argv[0]} [options] A [B...]
+            Prints out combinations & permutations of command line arguments.
+            a is a string and if the only argument, then its letters are
+            used as the elements.  Otherwise the set (A, B, ...) is used
+            as the set.
+        Notation
+            n = number of letters in a or number of arguments if > 1
+            k = items to take for each subset
+            C(n, k) = combinations of n objects taken k at a time
+            P(n, k) = all permutations of the size k subsets taken from
+                      all the n elements
+        Options (default in square brackets):
+            -h      Print a manpage
+            -k      Number of objects in C(n, k) or P(n, k)
+            -s x    Separator string for grouped items [""]
+        '''))
+        exit(status)
+    def ParseCommandLine(d):
+        d["-a"] = False
+        d["-d"] = 3         # Number of significant digits
+        if len(sys.argv) < 2:
+            Usage()
+        try:
+            opts, args = getopt.getopt(sys.argv[1:], "ad:h")
+        except getopt.GetoptError as e:
+            print(str(e))
+            exit(1)
+        for o, a in opts:
+            if o[1] in list("a"):
+                d[o] = not d[o]
+            elif o in ("-d",):
+                try:
+                    d["-d"] = int(a)
+                    if not (1 <= d["-d"] <= 15):
+                        raise ValueError()
+                except ValueError:
+                    msg = ("-d option's argument must be an integer between "
+                        "1 and 15")
+                    Error(msg)
+            elif o in ("-h", "--help"):
+                Usage(status=0)
+        return args
+if 1:   # Core functionality
+    pass
+
 if __name__ == "__main__":
     d = {}      # Options dictionary
     args = ParseCommandLine(d)
-    m = int(args[0])
-    if m < 2:
-        Error("m must be > 1")
-    if d["-n"] is not None:
-        N = int(d["-n"])
-        lines = [str(i) for i in range(1, N + 1, 1)]
-    elif d["-z"] is not None:
-        N = int(d["-z"])
-        lines = [str(i) for i in range(N)]
-    else:
-        if len(args) == 2:
-            lines = [i.rstrip() for i in open(args[1]).readlines()]
-        else:
-            lines = [i.rstrip() for i in sys.stdin.readlines()]
-    if d["-s"]:
-        # Strip leading whitespace
-        lines = [i.lstrip() for i in lines]
-    if d["-u"]:
-        # Only keep unique lines.  Keep entry order.
-        seen, keep = set(), []
-        for line in lines:
-            if line in seen:
-                continue
-            seen.add(line)
-            keep.append(line)
-        lines = keep
-    lines = tuple(lines)
-    F = permutations if d["-p"] else combinations
-    for c in F(lines, m):
-        if d["-q"]:
-            c = ['"' + i + '"' for i in c]
-        elif d["-Q"]:
-            c = ["'" + i + "'" for i in c]
-        print(' '.join(c))

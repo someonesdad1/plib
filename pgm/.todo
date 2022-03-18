@@ -1,5 +1,84 @@
 main
 
+    - Write an RGB color cube plotting function:  x = grn, y = blue, z =
+      red.  -s makes it stereoscopic.  -x, -y, -z give views down the
+      different axes (-z is default).
+
+    - comb.py
+        - Makes combinations and permutations of objects passed on the
+          command line.  Thus, 'comb -p rgb' prints out the permutations of
+          the passed-in string for one argument; with more than one
+          argument, they are used as the objects themselves.  'comb -k 2
+          rgbhsv prints out the combinations taken two at a time.  Things
+          are printed in column order with -c to conserve space.
+        - 'comb -p rgb' prints out rgb, rbg, gbr, grb, bgr, brg.
+
+    -lwtest.py
+        - Change it over to use Clr() instead of color.  It's printing a
+          bunch of escape codes at the end of a test run and those
+          shouldn't be there.
+
+    - rgb
+        - Write an rgb.py module that supplies color functions.  See
+          g/go.py for e.g. setHSV() and getHSV().  Also look at interp(),
+          which interpolates between two RGB colors.
+
+    - g.py
+        - Search the files for web links and see if they still work.  In
+          fact, this would be a useful python script to write:
+          linkcheck.py.  It would take a text file and find the URLs and
+          check that each can still be accessed.
+
+    - Writing
+        - I have an adequate spell checker.  It could be useful to develop
+          experience over time of things that needed to be looked for
+          grammatically.  Example:  I often misuse "it's" and "its" because
+          I'm so used to typing the contraction.  Other things like "bear"
+          versus "bare", their/they're/there, etc. are common mistakes.  A
+          script could find such things in text and print out 3 lines
+          before and after so you could check things in context.
+        - Of course, the first thing to do is to check the web, as
+          certainly someone has already written a similar tool.  They have,
+          but most require a java library and I don't want to download ir.
+        - This could be a tool called write that would read stdin unless
+          it's given a file; it would write it's recommendations to stdout.
+          For ease of use, use a script that pipes the output to less so
+          that color highlighting can be seen.  Optionally decorate with
+          the rule if an option is given.
+
+    - ls colors
+        - Write a general application script that can generate colors for
+          the ls command via LS_COLORS.  
+            - # 24-bit color works:  Here's a darker magenta on a pale yellow:
+                LS_COLORS='*.py=38;2;170;32;220;48;2;255;255;100'
+            - # 256 colors works: LS_COLORS='*.py=38;5;17'
+        - mintty is a 24-bit color console, so it's time I generated some
+          better colors for things.
+        - As selecting 24-bit colors will be more problematic, add to the
+          clr.py script an option to print out tables of foreground colors
+          of a given type (e.g., reds).  These could be printed in the
+          usual hex notation such as '4a31f3'.  Then each line could
+          contain 11 (6 + 1 space) or 13 (6 and no spaces) of these
+          numbers.
+        - I'd like to see similar files grouped together:
+            - OO
+            - MS Office
+            - Compressed files
+            - PDF
+            - Markdown
+            - Makefile, scons
+            - HTML
+            - Pictures
+            - C/C++/Fortran
+            - Include files
+            - Readme files
+            - Text
+            - Sound
+            - Arduino
+            - Python
+            - *~, *.bak, etc. a dark gray
+            - *.o, *.obj, *.pyc, tags, etc. a dark red
+
     - help
         - Convert to a git repository on github
         - Develop, then add to /plib
@@ -293,6 +372,10 @@ main
           around for when it's needed.
 
 pgm
+
+    - clrs.py
+        - Need to finish as a program to evaluate the gradations of color
+        for #xxyyzz where two of the three bytes are given.
 
     - moon.py
         - Add -h option and optional command line arguments for year(s) to

@@ -1,5 +1,18 @@
 main
 
+    - Write an RGB color cube plotting function:  x = grn, y = blue, z =
+      red.  -s makes it stereoscopic.  -x, -y, -z give views down the
+      different axes (-z is default).
+
+    - comb.py
+        - Makes combinations and permutations of objects passed on the
+          command line.  Thus, 'comb -p rgb' prints out the permutations of
+          the passed-in string for one argument; with more than one
+          argument, they are used as the objects themselves.  'comb -k 2
+          rgbhsv prints out the combinations taken two at a time.  Things
+          are printed in column order with -c to conserve space.
+        - 'comb -p rgb' prints out rgb, rbg, gbr, grb, bgr, brg.
+
     -lwtest.py
         - Change it over to use Clr() instead of color.  It's printing a
           bunch of escape codes at the end of a test run and those
@@ -359,6 +372,10 @@ main
           around for when it's needed.
 
 pgm
+
+    - clrs.py
+        - Need to finish as a program to evaluate the gradations of color
+        for #xxyyzz where two of the three bytes are given.
 
     - moon.py
         - Add -h option and optional command line arguments for year(s) to
@@ -899,13 +916,4 @@ Other
                 - ${exe}:  array.o tokenizer.o
                 -     g++ -o ${exe} ${cppopts} $^
 
-                - array.o: array.cpp array.h
-                -     g++ -c ${cppopts} $<
-                - tokenizer.o: tokenizer.cpp tokenizer.h
-                -     g++ -c ${cppopts} $<
-                - clean:
-                -     @rm -f ${exe} ${exe}.stackdump *.o
-
-/plib releases
-    - 7Mar2022 was first release after I made the repository public.
-
+                - array.o
