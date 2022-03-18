@@ -64,18 +64,19 @@ if 1:   # Custom imports
     # should still work (you'll just get uncolored output).  You can get the
     # module from https://someonesdad1.github.io/hobbyutil/util/color.py.
     try:
-        import color
-        _have_color = True
-    except ImportError:
         # Make a dummy color object to swallow function calls
         class Dummy:
             def fg(self, *p, **kw): pass
             def normal(self, *p, **kw): pass
             def __getattr__(self, name): pass
+        import color
+        _have_color = True
+    except ImportError:
         color = Dummy()
         _have_color = False
     if not sys.stdout.isatty():
         _have_color = False
+        color = Dummy()
     from f import flt, cpx
     from wrap import dedent
 if 1:   # Globals

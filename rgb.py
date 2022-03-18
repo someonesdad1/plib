@@ -176,6 +176,10 @@ if 1:   # Classes
                 return tuple(a)
             except Exception:
                 raise e
+        def __lt__(self, x):
+            if not ii(x, Color):
+                raise TypeError("x must be a Color instance")
+            return self.rgb < x.rgb
         def __eq__(self, x):
             if ii(x, Color):
                 return self._rgb == x._rgb
@@ -185,6 +189,26 @@ if 1:   # Classes
             return f"Color(({r:3d}, {g:3d}, {b:3d}))"
         def __repr__(self):
             return str(self)
+        def __int__(self):
+            'Returns an integer that uniquely maps to the RGB values'
+            r, g, b = self.rgb
+            return (r << 16) | (g << 8) | b
+        def __hash__(self):
+            return hash(self._rgb)
+        def __float__(self):
+            'Returns a float that uniquely maps to the HSV values'
+            h, s, v = self.hsv
+            return float((h << 16) | (s << 8) | v)
+        @property
+        def hsvhex(self):
+            'Capital letters for HSV'
+            s = self.hsv
+            return f"{s[0]:02X}{s[1]:02X}{s[2]:02X}"
+        @property
+        def hex(self):
+            'Lower case letters for HSV'
+            s = self._rgb
+            return f"{s[0]:02x}{s[1]:02x}{s[2]:02x}"
         @property
         def rgb(self):
             'Returns (red, green, blue) values on [0, 255]'
