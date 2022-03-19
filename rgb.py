@@ -81,7 +81,7 @@ if 1:   # Custom imports
     from wrap import wrap, dedent
     from f import flt
     from clr import Clr
-    if 1:
+    if 0:
         import debug
         debug.SetDebugger()
 if 1:   # Global variables
@@ -168,11 +168,13 @@ if 1:   # Classes
                 # Convert the numbers to floats
                 self._rgb = tuple([float(i) for i in u])
         def __str__(self):
+            'Show components to 3 decimal places'
             n = 6
             r, g, b = self._rgb
             return f"ColorNum({r:.{n}f}, {g:.{n}f}, {b:.{n}f})"
         def __repr__(self):
-            r, g, b = self._rgb
+            'Show components as integers on [0, 255]'
+            r, g, b = self.RGB
             return f"ColorNum({r!r}, {g!r}, {b!r})"
         def __eq__(self, other):
             'Equal if components match to 6 decimal places'
@@ -529,6 +531,9 @@ if __name__ == "__main__":
         assert_equal(new, ColorNum((1/2, 1/2, 1/2)))
         new = a.interpolate(b, 1/2, typ="hls")
         assert_equal(new, ColorNum((1/2, 1/2, 1/2)))
+        from frange import frange
+        for i in frange("0", "1", "0.1"):
+            pass
     def TestColorNumProperties():
         x = ColorNum((1, 1, 1))
         # Canonical floating point form

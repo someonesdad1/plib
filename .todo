@@ -13,9 +13,8 @@ main
             - A better approach may be to generate a 2**n color cube in the
               chosen space and get the names that are closest to the chosen
               values.
-        - Write an rgb.py module that supplies color functions.  See
-          g/go.py for e.g. setHSV() and getHSV().  Also look at interp(),
-          which interpolates between two RGB colors.
+        - Portrait screen is 2160x3840 pixels.  This would be fine for
+          displaying a master color picking app.
         - Write an RGB color cube plotting function:  x = grn, y = blue, z
           = red.  -s makes it stereoscopic.  -x, -y, -z give views down the
           different axes (-z is default).

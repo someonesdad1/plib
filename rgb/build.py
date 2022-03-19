@@ -109,7 +109,11 @@ if 1:   # Core functionality
                 #      gives the decimal values of the RGB numbers)
             '''))
             print("color_data = [")
+            last = (1, 0, 0)
             for i in data:
+                if i[0] != last[0]:     # Space after attribution number change
+                    print()
+                    last = i
                 print(f"    {i},")
             print("]")
         # Attribution data

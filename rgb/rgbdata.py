@@ -981,6 +981,7 @@ color_data = [
     (1, 'yellow3', Color((205, 205,   0))),
     (1, 'yellow4', Color((139, 139,   0))),
     (1, 'yellow green', Color(( 50, 216,  56))),
+
     (2, 'White', Color((255, 255, 255))),
     (2, 'Red', Color((255,   0,   0))),
     (2, 'Green', Color((  0, 255,   0))),
@@ -1081,6 +1082,7 @@ color_data = [
     (2, 'Violet Red', Color((204,  50, 153))),
     (2, 'Wheat', Color((216, 216, 191))),
     (2, 'Yellow Green', Color((153, 204,  50))),
+
     (3, 'Black', Color((  0,   0,   0))),
     (3, 'Navy Blue', Color((  0,   0, 128))),
     (3, 'Dark Blue', Color((  0,   0, 200))),
@@ -2647,6 +2649,7 @@ color_data = [
     (3, 'Portafino', Color((255, 255, 180))),
     (3, 'Ivory', Color((255, 255, 240))),
     (3, 'White', Color((255, 255, 255))),
+
     (4, 'snow', Color((255, 250, 250))),
     (4, 'floral white', Color((255, 250, 240))),
     (4, 'FloralWhite', Color((255, 250, 240))),
@@ -3383,6 +3386,7 @@ color_data = [
     (4, 'grey98', Color((250, 250, 250))),
     (4, 'grey99', Color((252, 252, 252))),
     (4, 'grey100', Color((255, 255, 255))),
+
     (5, 'A B Sea', Color(( 51,  80, 131))),
     (5, 'ASAP', Color((192, 187,  29))),
     (5, 'Ab Fab', Color(( 50,  27,  47))),
@@ -6682,6 +6686,7 @@ color_data = [
     (5, 'Zulu', Color(( 88,  81,  86))),
     (5, 'Zumthor', Color((205, 213, 213))),
     (5, 'Zydeco', Color(( 32,  72,  63))),
+
     (6, 'Abbey', Color(( 76,  79,  86))),
     (6, 'Acadia', Color(( 27,  20,   4))),
     (6, 'Acapulco', Color((124, 176, 161))),
@@ -8065,6 +8070,7 @@ color_data = [
     (6, 'Zuccini', Color((  4,  64,  34))),
     (6, 'Zumthor', Color((237, 246, 255))),
     (6, 'Zydeco', Color((  2,  64,  44))),
+
     (7, 'Absolute Zero', Color((  0,  72, 186))),
     (7, 'Acid green', Color((176, 191,  26))),
     (7, 'Aero', Color((124, 185, 232))),
@@ -9036,6 +9042,7 @@ color_data = [
     (7, 'YInMn Blue', Color(( 46,  80, 144))),
     (7, 'Zaffre', Color((  0,  20, 168))),
     (7, 'Zomp', Color(( 57, 167, 142))),
+
     (8, 'snow', Color((255, 250, 250))),
     (8, 'GhostWhite', Color((248, 248, 255))),
     (8, 'WhiteSmoke', Color((245, 245, 245))),
@@ -9693,6 +9700,7 @@ color_data = [
     (8, 'DarkMagenta', Color((139,   0, 139))),
     (8, 'DarkRed', Color((139,   0,   0))),
     (8, 'LightGreen', Color((144, 238, 144))),
+
     (9, 'cloudy blue', Color((172, 194, 217))),
     (9, 'dark pastel green', Color(( 86, 174,  87))),
     (9, 'dust', Color((178, 153, 110))),
