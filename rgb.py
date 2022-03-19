@@ -95,12 +95,23 @@ if 1:   # Classes
         numbers on [0, 1].
         '''
         def __init__(self, x):
-            '''Allows x to be:
+            '''Initialize in various ways:
+                ColorNum(b"\x01\x02\x03")   3-byte string
+                ColorNum("#abcdef")         RGB string
+                ColorNum("@abcdef")         HSV string
+                ColorNum("$abcdef")         HLS string
+                ColorNum((0.1, 0.2, 0.3))   Tuple of floats
+                ColorNum((1, 2, 3))         Tuple of integers
+
             3-seq of: integers, floats, Fractions, Decimals
             str:  #xxyyzz (RGB), @xxyyzz (HSV), $xxyyzz (HLS)
             '''
             e = ValueError(f"'{x}' is of improper form for class ColorNum")
-            if ii(x, str):
+            if ii(x, bytes):
+                if len(x) != 3:
+                    raise e
+                self._rgb = tuple([i/255 for i in x])
+            elif ii(x, str):
                 if len(x) != 7 or x[0] not in "@#$":
                     raise e
                 # clamp to [0, 1]
@@ -429,7 +440,7 @@ if __name__ == "__main__":
         raises(ValueError, Color, "#0g0000")
         raises(ValueError, Color, "#000g00")
         raises(ValueError, Color, "#00000g")
-    def TestColorNum():
+    def TestColorNumConstructor():
         D, F = Decimal, Fraction
         for x in (0, 1, "0.5"):
             std = ColorNum((x, x, x))
@@ -450,6 +461,11 @@ if __name__ == "__main__":
             for j in (b, c, i, s):
                 if j != std: xx() #xx
                 assert_equal(j == std, True)
+        # Check bytes
+        x = 1.0
+        std = ColorNum((x, x, x))
+        a = ColorNum(b"\xff\xff\xff")
+        assert_equal(a == std, True)
         # Check normalization
         x = 7.348
         s = ColorNum((x, x, x))
@@ -460,7 +476,7 @@ if __name__ == "__main__":
         m = max(a, b, c)
         t = ColorNum((a/m, b/m, c/m))
         assert_equal(s == t, True)
-    def TestProperties():
+    def TestColorNumProperties():
         x = ColorNum((1, 1, 1))
         # Canonical floating point form
         assert_equal(x.rgb, (1.0, 1.0, 1.0))
