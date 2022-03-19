@@ -90,9 +90,10 @@ if 1:   # Global variables
     c = Clr()
 if 1:   # Classes
     class ColorNum:
-        '''Used to identify a color and convert it to a canonical form.
-        The canonical form is an RGB tuple with three floating point
-        numbers on [0, 1].
+        '''Store the three numbers used to define a color; they are stored
+        in canonical form of as a 3-tuple of RGB floats on [0, 1].
+        Use attributes to get other forms:  HLS (hue, lightness, saturation)
+        and HSV (hue, saturation, value).
         '''
         def __init__(self, x):
             '''Initialize in various ways:
@@ -102,9 +103,10 @@ if 1:   # Classes
                 ColorNum("$abcdef")         HLS string
                 ColorNum((0.1, 0.2, 0.3))   Tuple of floats
                 ColorNum((1, 2, 3))         Tuple of integers
-
-            3-seq of: integers, floats, Fractions, Decimals
-            str:  #xxyyzz (RGB), @xxyyzz (HSV), $xxyyzz (HLS)
+                ColorNum((100, 200, 300))   Tuple of normalized integers
+            Can be initialized with any iterable of three or more numbers;
+            they will be normalized to lie on [0, 1] by dividing by the
+            maximum value.
             '''
             e = ValueError(f"'{x}' is of improper form for class ColorNum")
             if ii(x, bytes):
@@ -117,13 +119,16 @@ if 1:   # Classes
                 # clamp to [0, 1]
                 f = lambda x:  max(0, min(int(x, 16), 255))/255
                 # Put into canonical float form
-                s = f(x[1:3]), f(x[3:5]), f(x[5:7])
-                if x[0] == "@":         # It's HSV
-                    self._rgb = colorsys.hsv_to_rgb(*s)
-                elif x[0] == "#":       # It's RGB
-                    self._rgb = s
-                elif x[0] == "$":       # It's HLS
-                    self._rgb = colorsys.hls_to_rgb(*s)
+                try:
+                    s = f(x[1:3]), f(x[3:5]), f(x[5:7])
+                    if x[0] == "@":         # It's HSV
+                        self._rgb = colorsys.hsv_to_rgb(*s)
+                    elif x[0] == "#":       # It's RGB
+                        self._rgb = s
+                    elif x[0] == "$":       # It's HLS
+                        self._rgb = colorsys.hls_to_rgb(*s)
+                except Exception:
+                    raise e
             else:
                 # It must be an iterable of at least three numbers
                 try:
@@ -476,6 +481,17 @@ if __name__ == "__main__":
         m = max(a, b, c)
         t = ColorNum((a/m, b/m, c/m))
         assert_equal(s == t, True)
+        # Bad forms
+        raises(TypeError, ColorNum, ["4", 4, 4])
+        raises(TypeError, ColorNum, [D("4"), 4, 4])
+        raises(TypeError, ColorNum, [4.0, 4, 4])
+        raises(TypeError, ColorNum, [F(4, 1), 4, 4])
+        raises(ValueError, ColorNum, [-4, 4, 4])
+        raises(ValueError, ColorNum, "#0000000")
+        raises(ValueError, ColorNum, "#00000g")
+        raises(ValueError, ColorNum, "@00000g")
+        raises(ValueError, ColorNum, "$00000g")
+        raises(ValueError, ColorNum, b"xxxx")
     def TestColorNumProperties():
         x = ColorNum((1, 1, 1))
         # Canonical floating point form
