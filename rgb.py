@@ -184,6 +184,35 @@ if 1:   # Classes
             me  = [round(i, n) for i in self._rgb]
             you = [round(i, n) for i in other._rgb]
             return bool(me == you)
+        def interpolate(self, other, t, typ="rgb"):
+            '''Interpolate between two colors, self and other.  typ can be
+            "rgb", "hsv", or "hls" and controls the numbers intepolated
+            between.
+            '''
+            if not ii(other, ColorNum):
+                raise TypeError("other must be a ColorNum instance")
+            if not (0 <= t <= 1):
+                raise ValueError("t must be a float on [0, 1]")
+            if typ not in ("rgb", "hsv", "hls"):
+                raise ValueError("typ must be 'rgb', 'hsv', or 'hls'")
+            if typ == "rgb":
+                a1, a2, a3 = self._rgb
+                b1, b2, b3 = other._rgb
+                new = a1 + t*b1, a2 + t*b2, a3 + t*b3
+            elif typ == "hsv":
+                a1, a2, a3 = self.hsv
+                b1, b2, b3 = other.hsv
+            else:
+                a1, a2, a3 = self.hls
+                b1, b2, b3 = other.hls
+            new = a1 + t*b1, a2 + t*b2, a3 + t*b3
+            assert(all([0 <= i <= 1 for i in new]))
+            # Convert to rgb
+            if typ == "hsv":
+                new = colorsys.hsv_to_rgb(*new)
+            elif typ == "hls":
+                new = colorsys.hls_to_rgb(*new)
+            return ColorNum(new)
         @property
         def HLS(self):  
             'Get hls in integer form'
@@ -220,7 +249,6 @@ if 1:   # Classes
         def rgbhex(self):
             'Get rgb in hex string form'
             return "#{0:02x}{1:02x}{2:02x}".format(*self.RGB)
-
     class Color:
         '''Container for a triple of RGB numbers representing a color.
         Equivalent constructor calls are:
@@ -492,6 +520,15 @@ if __name__ == "__main__":
         raises(ValueError, ColorNum, "@00000g")
         raises(ValueError, ColorNum, "$00000g")
         raises(ValueError, ColorNum, b"xxxx")
+    def TestColorNumInterpolate():
+        a = ColorNum((0, 0, 0))
+        b = ColorNum((1, 1, 1))
+        new = a.interpolate(b, 1/2, typ="rgb")
+        assert_equal(new, ColorNum((1/2, 1/2, 1/2)))
+        new = a.interpolate(b, 1/2, typ="hsv")
+        assert_equal(new, ColorNum((1/2, 1/2, 1/2)))
+        new = a.interpolate(b, 1/2, typ="hls")
+        assert_equal(new, ColorNum((1/2, 1/2, 1/2)))
     def TestColorNumProperties():
         x = ColorNum((1, 1, 1))
         # Canonical floating point form

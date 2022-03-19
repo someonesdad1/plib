@@ -1,27 +1,29 @@
 main
 
-    - Write an RGB color cube plotting function:  x = grn, y = blue, z =
-      red.  -s makes it stereoscopic.  -x, -y, -z give views down the
-      different axes (-z is default).
-
-    - comb.py
-        - Makes combinations and permutations of objects passed on the
-          command line.  Thus, 'comb -p rgb' prints out the permutations of
-          the passed-in string for one argument; with more than one
-          argument, they are used as the objects themselves.  'comb -k 2
-          rgbhsv prints out the combinations taken two at a time.  Things
-          are printed in column order with -c to conserve space.
-        - 'comb -p rgb' prints out rgb, rbg, gbr, grb, bgr, brg.
-
-    -lwtest.py
-        - Change it over to use Clr() instead of color.  It's printing a
-          bunch of escape codes at the end of a test run and those
-          shouldn't be there.
-
-    - rgb
+    - Color
+        - Rethink the whole color approach.  I like the Color.__call__
+          approach to getting escape codes and the styles as attributes,
+          but I really like the simplicity of ColorNum.  
+            - All colors should be stored as ColorNum objects.  They can be
+              known by their name string like "red" or their ColorNum bytes
+              string.
+            - rgbdata.py can be used for names and it should be first
+              sorted by hls or hsv, then each color in that group printed
+              out and compared.
+            - A better approach may be to generate a 2**n color cube in the
+              chosen space and get the names that are closest to the chosen
+              values.
         - Write an rgb.py module that supplies color functions.  See
           g/go.py for e.g. setHSV() and getHSV().  Also look at interp(),
           which interpolates between two RGB colors.
+        - Write an RGB color cube plotting function:  x = grn, y = blue, z
+          = red.  -s makes it stereoscopic.  -x, -y, -z give views down the
+          different axes (-z is default).
+
+    - lwtest.py
+        - Change it over to use Clr() instead of color.  It's printing a
+          bunch of escape codes at the end of a test run and those
+          shouldn't be there.
 
     - g.py
         - Search the files for web links and see if they still work.  In

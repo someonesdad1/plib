@@ -611,19 +611,19 @@ if 1:   # Text attributes
     }
 if 1:   # Classes
     class Clr:
-        '''For typical use, instantiate with c = Clr().  Store "styles" by using
-        the Clr instance's attributes:
-            c.err = c("red")      # Error messages are red
-        Use the styles in f-strings:
-            print(f"{c.err}Error:  symbol doesn't exist{c.n}")
-        c.err and c.n are strings containing the ANSI  escape codes (c.n is the
-        escape code for the standard terminal text).  The previous can be a
-        little more terse with the equivalent:
-            c.print(f"{c.err}Error:  symbol doesn't exist")
-        c.print() and c.out() output their strings then output the escape
-        code to return to the normal style.  To remove all your "style"
-        definitions, use c.reset().  To see the styles you've defined, use
-        print(c).
+        '''For typical use, instantiate with c = Clr().  Store "styles" by
+            using the Clr instance's attributes:
+                c.err = c("red")      # Error messages are red
+            Use the styles in f-strings:
+                print(f"{c.err}Error:  symbol doesn't exist{c.n}")
+            c.err and c.n are strings containing the ANSI  escape codes
+            (c.n is the escape code for the standard terminal text).  The
+            previous can be a little more terse with the equivalent:
+                c.print(f"{c.err}Error:  symbol doesn't exist")
+            c.print() and c.out() output their strings then output the
+            escape code to return to the normal style.  To remove all your
+            "style" definitions, use c.reset().  To see the styles you've
+            defined, use print(c).
         '''
         def __init__(self, bits=4, override=False, cleanup=False):
             '''If override is True, always emit escape codes.  The normal
@@ -723,9 +723,7 @@ if 1:   # Classes
             or string of characters).  Each line is either a comment
             (leading '#') or must contain the following fields separated by
             whitespace:
-                
                 style_name fg_color_name bg_color_name [attr1 [attr2 ...]]
- 
             where fg_color_name and bg_color_name are either color name
             strings or None.  These strings can also be suitable integer
             strings (e.g., '21') and will be converted to integers.  attr1,
