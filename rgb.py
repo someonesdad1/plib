@@ -2,6 +2,24 @@
  
 TODO
  
+    - Attributes
+        - They should be settable, hsv, HSV, hls, HLS, rgb, RGB.  To keep
+          the object immutable (so it can be a dictionary key), return a
+          new ColorNum object when you set the attributes.
+        - Should there be two types of ColorNum objects:  mutable and
+          immutable?  For many color tasks, it would be handy to be able to
+          choose.  This could be done with a keyword to the constructor;
+          or, an attribute of immutable could be used.
+        - More and more I'm thinking the ColorNum object may be the most
+          important of all.  It's possible that it could become a single
+          Color object that handles all my color needs.  Actually, I think
+          the spec of a color via ColorNum (with the numerous ways of
+          defining colors) should stay separate from the Color object,
+          which will want both ColorNum objects and color names.  The names
+          need to be added at runtime if desired, as do styles.
+        - The wl2rgb.py script turned out to be a lab notebook of
+          experimentation to define a color naming scheme that would suit
+          me.  This needs to be packaged into an OO document.
     - Constructor
         - String
             - #xxyyzz string:  RGB hex
@@ -168,10 +186,9 @@ if 1:   # Classes
                 # Convert the numbers to floats
                 self._rgb = tuple([float(i) for i in u])
         def __str__(self):
-            'Show components to 3 decimal places'
-            n = 6
-            r, g, b = self._rgb
-            return f"ColorNum({r:.{n}f}, {g:.{n}f}, {b:.{n}f})"
+            'Show components as flt numbers'
+            r, g, b = [flt(i/255) for i in self._rgb]
+            return f"ColorNum({r}, {g}, {b})"
         def __repr__(self):
             'Show components as integers on [0, 255]'
             r, g, b = self.RGB
