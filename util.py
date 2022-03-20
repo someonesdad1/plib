@@ -9,6 +9,7 @@ Cfg                   Execute a sequence of text lines for config use
 ConvertToNumber       Convert a string to a number
 Debug                 A class that helps with debugging
 Dispatch              Class to aid polymorphism
+Distribute            Return an integer sequence equally distributed
 EBCDIC                Return string translation table ASCII <--> EBCDIC
 eng                   Convenience function for engineering format
 EditData              Edit a str or bytes object with vim
@@ -78,7 +79,7 @@ if 1:   # Imports
     import glob
     import math
     import os
-    import pathlib
+    from pathlib import Path as P
     import random
     import re
     import struct
@@ -89,8 +90,9 @@ if 1:   # Imports
 if 1:   # Custom imports
     from sig import sig
     from color import C
+    from frange import frange
 if 1:   # Global variables
-    P = pathlib.Path
+    ii = isinstance
     nl = "\n"
     # Note:  this choice of a small floating point number may be
     # wrong on a system that doesn't use IEEE floating point numbers.
@@ -1319,6 +1321,29 @@ def execfile(filename, globals=None, locals=None, use_user_env=True):
     with open(filename, "r") as fh:
         s = fh.read() + "\n"
         exec(s, globals, locals)
+def Distribute(m, n, k):
+    '''Return an integer sequence [m, ..., n] with k elements equally
+    distributed between m and n.  Return None if no solution possible.
+    '''
+    if not (ii(m, int) and ii(n, int) and ii(k, int)):
+        raise TypeError("Arguments must be integers")
+    if m >= n:
+        raise ValueError("Must have m < n")
+    if k < 2:
+        raise ValueError("k must be >= 2")
+    if k == 2:
+        return [m, n]
+    dx = (n - m)/(k + 1 - 2)
+    if dx < 1:
+        return None
+    # Algorithm is to use frange to generate the sequence using floats.
+    seq = [int(round(i, 0)) for i in frange(str(m), str(n), str(dx))]
+    if seq[-1] != n:
+        seq.append(n)
+    if len(seq) != k:
+        raise RuntimeError("Bad algorithm:  len(seq) != k + 2")
+    return seq
+
 if __name__ == "__main__": 
     # Missing tests for: Ignore Debug, Dispatch, GetString
     from io import StringIO
@@ -1747,6 +1772,25 @@ if __name__ == "__main__":
             if name not in names:
                 print(f"{name} in module not in docstring")
         exit()#xx
+    def Test_Distribute():
+        def Dist(seq):
+            'Return distances between numbers in seq'
+            out = []
+            for i in range(1, len(seq)):
+                out.append(abs(seq[i] - seq[i - 1]))
+            return out
+        m, n = 0, 255
+        for k in range(2, 256):
+            s = Distribute(m, n, k)
+            if s is None:
+                print(f"k = {k} no solution")
+                continue
+            d = list(set(Dist(s)))
+            if len(d) > 1 and k > 2:
+                assert_equal(len(d), 2)
+                assert_equal(abs(d[0] - d[1]), 1)
+        for k in range(257, 265):
+            assert_equal(Distribute(m, n, k), None)
     check_names = False
     if check_names:
         mnames, delete = set(dir()), []
