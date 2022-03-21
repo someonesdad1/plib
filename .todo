@@ -1,6 +1,10 @@
 main
 
     - Color
+        - ColorNum:  allow any iterable of numbers; take the absolute value
+          and divide by the maximum.  This allows use of negative numbers
+          and complex numbers too.
+            - Conversion to number should be float(abs(x)).
         - Rethink the whole color approach.  I like the Color.__call__
           approach to getting escape codes and the styles as attributes,
           but I really like the simplicity of ColorNum.  
@@ -18,21 +22,6 @@ main
         - Write an RGB color cube plotting function:  x = grn, y = blue, z
           = red.  -s makes it stereoscopic.  -x, -y, -z give views down the
           different axes (-z is default).
-
-    - Problem
-        - What's the best algorithm to distribute k integers across an
-          interval [m, n] where m and n are integers and m < n?  The two
-          endpoints are included, so the problem is to choose k numbers in
-          the interior of the interval such that the distance between each
-          number is as uniform as possible.
-        - The number of integers in [m, n] is n - m + 1, so the interval to
-          divide is n - m + 1 - 2 or n - m - 1.  Therefore the spacing
-          should be i = (n - m - 1)//k.
-        - Example:  m = 0, n = 10 and we want k = 4.  i = (10 - 0 - 1)//4 =
-          9//4 or 2.  We get [0, 2, 4, 6, 8, 10] and the formula works
-          well.  For k = 5, i = 1 and we get [0, 1, 2, 3, 4, 5, 6, 7, 8, 9,
-          10] and there are 9 numbers instead of 5, well off our mark.
-            - Thus, there needs to be a limit for k
 
     - lwtest.py
         - Change it over to use Clr() instead of color.  It's printing a

@@ -1324,6 +1324,9 @@ def execfile(filename, globals=None, locals=None, use_user_env=True):
 def Distribute(m, n, k):
     '''Return an integer sequence [m, ..., n] with k elements equally
     distributed between m and n.  Return None if no solution possible.
+ 
+    If you need a sequence of k floating point values, see
+    util.ParameterSequence().
     '''
     if not (ii(m, int) and ii(n, int) and ii(k, int)):
         raise TypeError("Arguments must be integers")
@@ -1343,6 +1346,42 @@ def Distribute(m, n, k):
     if len(seq) != k:
         raise RuntimeError("Bad algorithm:  len(seq) != k + 2")
     return seq
+def ParameterSequence(n, a=0, b=1, impl=float):
+    '''Generator to return n impl instances on [a, b] inclusive. A
+    common use case is an interpolation parameter on [0, 1].
+    Examples:
+        PS = ParameterSequence
+        PS(3) --> [0.0, 0.5, 1.0]
+        PS(3, 1, 2) --> [1.0, 1.5, 2.0]
+        PS(4, 1, 2, Fraction) --> [Fraction(1, 1), Fraction(4, 3),
+                                    Fraction(5, 3), Fraction(2, 1)]
+    You can use other impl types of decimal.Decimal, and f.flt.  Other
+    types that define impl()/impl() to return an impl-type floating
+    point number will also work (e.g., mpmath's mpf type).
+
+    If you need a sequence of evenly-distributed integers, see
+    util.Distribute().
+    '''
+    # Check arguments
+    msg = "n must be an integer > 1"
+    if not ii(n, int):
+        raise TypeError(msg)
+    if n < 2:
+        raise ValueError(msg)
+    if not ii(a, (int, impl)) or not ii(b, (int, impl)):
+        raise TypeError("a and b must be either an integer or impl")
+    if not (a < b):
+        raise ValueError("Must have a < b")
+    x0 = impl(a)
+    dx = impl(b) - x0
+    for i in range(n):
+        x = x0 + (impl(i)/impl(n - 1))*dx
+        # Check invariants
+        assert(a <= x <= b)
+        assert(ii(x, impl))
+        # Return value
+        yield x
+
 
 if __name__ == "__main__": 
     # Missing tests for: Ignore Debug, Dispatch, GetString
@@ -1791,6 +1830,34 @@ if __name__ == "__main__":
                 assert_equal(abs(d[0] - d[1]), 1)
         for k in range(257, 265):
             assert_equal(Distribute(m, n, k), None)
+    def TestParameterSequence():
+        PS = ParameterSequence
+        expected = [0.0, 1.0]
+        got = list(PS(2))
+        assert_equal(got, expected)
+        #
+        expected = [0.0, 0.5, 1.0]
+        got = list(PS(3))
+        assert_equal(got, expected)
+        #
+        expected = [Fraction(0, 1), Fraction(1, 2), Fraction(1, 1)]
+        got = list(PS(3, impl=Fraction))
+        assert_equal(got, expected)
+        #
+        expected = [1.0, 1.5, 2.0]
+        got = list(PS(3, a=1, b=2))
+        assert_equal(got, expected)
+        # Check type/value violations
+        with raises(TypeError) as x:
+            list(PS(1.0))
+        with raises(ValueError) as x:
+            list(PS(1))
+        with raises(TypeError) as x:
+            list(PS(2, a=""))
+        with raises(TypeError) as x:
+            list(PS(2, b=""))
+        with raises(ValueError) as x:
+            list(PS(1, a=2, b=1))
     check_names = False
     if check_names:
         mnames, delete = set(dir()), []

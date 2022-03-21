@@ -121,10 +121,10 @@ if 1:   # Classes
                 ColorNum("$abcdef")         HLS string
                 ColorNum((0.1, 0.2, 0.3))   Tuple of floats
                 ColorNum((1, 2, 3))         Tuple of integers
-                ColorNum((100, 200, 300))   Tuple of normalized integers
+                ColorNum((100, 200, 3020))  Tuple of arbitrary integers
             Can be initialized with any iterable of three or more numbers;
             they will be normalized to lie on [0, 1] by dividing by the
-            maximum value.
+            maximum of the three values.
             '''
             e = ValueError(f"'{x}' is of improper form for class ColorNum")
             if ii(x, bytes):
@@ -204,9 +204,10 @@ if 1:   # Classes
             you = [round(i, n) for i in other._rgb]
             return bool(me == you)
         def interpolate(self, other, t, typ="rgb"):
-            '''Interpolate between two colors, self and other.  typ can be
-            "rgb", "hsv", or "hls" and controls the numbers intepolated
-            between.
+            '''Interpolate between two colors, self and other.  
+            t is a parameter on [0, 1].  
+            typ can be "rgb", "hsv", or "hls" and controls the numbers
+            intepolated between.
             '''
             if not ii(other, ColorNum):
                 raise TypeError("other must be a ColorNum instance")
@@ -214,19 +215,20 @@ if 1:   # Classes
                 raise ValueError("t must be a float on [0, 1]")
             if typ not in ("rgb", "hsv", "hls"):
                 raise ValueError("typ must be 'rgb', 'hsv', or 'hls'")
+            # Get color space coordinates
             if typ == "rgb":
                 a1, a2, a3 = self._rgb
                 b1, b2, b3 = other._rgb
-                new = a1 + t*b1, a2 + t*b2, a3 + t*b3
             elif typ == "hsv":
                 a1, a2, a3 = self.hsv
                 b1, b2, b3 = other.hsv
             else:
                 a1, a2, a3 = self.hls
                 b1, b2, b3 = other.hls
+            # Interpolate in this space
             new = a1 + t*b1, a2 + t*b2, a3 + t*b3
             assert(all([0 <= i <= 1 for i in new]))
-            # Convert to rgb
+            # Convert to rgb space
             if typ == "hsv":
                 new = colorsys.hsv_to_rgb(*new)
             elif typ == "hls":
@@ -407,7 +409,6 @@ if 1:   # Classes
             hsv = colorsys.rgb_to_hsv(*rgb)
             s = [int(i*255) for i in hsv]
             return tuple(s)
-
 if 1:   # Core functionality
     def Visible(wavelength):
         '''Convert a wavelength in nm into a Color instance.  Adapted
