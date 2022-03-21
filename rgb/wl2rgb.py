@@ -360,10 +360,10 @@ if __name__ == "__main__":
     def FirstChoice(n):
         print(dedent(f'''
         Here's a printout of a set of colors, selected as shown above by an
-        algorithm.  I've chosen to use {n} levels of lightness and saturation.
-        The following will print out each chose color band color and its
-        gradations.  This will make a candidate for a color set.  The hex
-        number shown is HLS and the L value of 0xff is not shown.
+        algorithm.  I've chosen to use {n} levels of lightness and
+        saturation.  The following will print out each color band color and
+        its gradations.  This will make a candidate for a color set.  The
+        hex number shown is HLS and the L value of 0xff is not used.
 
         '''))
         R = Distribute(0, 255, n + 1)   # The 1 is added to ignore zero
@@ -429,11 +429,103 @@ if __name__ == "__main__":
         n = 12*21 + ngray
         print(dedent(f'''
 
+        These 12 grays could be added to a 'blk' color that's got the label
+        of 'k000'.
+
+        A fundamental feature of this naming scheme is that the names are
+        all 7 characters long (the same as the #xxyyzz hex notation) and
+        you can calculate the RGB values of the color from the name.
+
         Conclusions:  this isn't a bad set of colors.  The lblu, lyel,
         lcyn, and lmag colors aren't really needed, as there are ones in
         the table that are close enough.  The grays are needed and the
         brightest one can double as lwht.  There are {n} colors in this
         set.  
+
+        '''))
+    def SomeNames():
+        print(dedent(f'''
+
+        Invariably, someone will want to start giving names to colors.
+        Here are some of my desires for such naming:
+
+            - The color should be able to be computed from the name.
+            - The name should be adequately close to the perceived color.
+            - I'd want the names to be short.
+            - Case should be irrelevant.
+            - Spaces can be inserted if desired and they do.
+            - Adjectives as words or abbreviations can be moved around in
+              the name and it's still the same name.
+
+        The three groups of four columns each can be labeled "dark",
+        "medium", and "light".  The "medium" colors are really the 0x80
+        level of lightness and these are probably colors that would get
+        used pretty heavily, so the "medium" could be left off.  Then 'lt'
+        and 'dk' could be used for light and dark to keep things short.
+
+        Here's an attempt to come up with a set of short names:
+
+        '''))
+        d = {
+
+            "v380": "  uv    ultvio     purple               ",
+            "v396": "  vv    viovio     wine                 ",
+            "v412": "  bv    bluvio     plum                 ",
+            "b425": "  vb    vioblu     slate                ",
+            "b439": "  bb    blublu     blue                 ",
+            "b453": "  cb    cynblu     dodger               ",
+            "c465": "  bc    blucyn     sky                  ",
+            "c479": "  cc    cyncyn     cyan                 ",
+            "c490": "  gc    grncyn     teal                 ",
+            "g500": "  cg    cyngrn     aqua                 ",
+            "g520": "  gg    grngrn     green                ",
+            "g540": "  yg    yelgrn     lawn                 ",
+            "y550": "  gy    grnyel     spring               ",
+            "y565": "  yy    yelyel     yellow               ",
+            "y590": "  oy    ornyel     wheat                ",
+            "o600": "  yo    yelorn     gold                 ",
+            "o614": "  oo    ornorn     orange               ",
+            "o628": "  ro    redorn     brick                ",
+            "r632": "  or    ornred     tomato               ",
+            "r682": "  rr    redred     red                  ",
+            "r732": "  ir    infred     cherry               ",
+
+        }
+        indent = " "*4
+        print(f"{indent}Band   Short  Longer     Named")
+        for name in colorbands:
+            colornum = GetBaseColornum(name)
+            s = colornum.rgbhex
+            print(f"{indent}{c(s)}{name}  {d[name]}{c.n} ")
+        print(dedent(f'''
+
+        One of the features of these names is that they are all six or less
+        characters, consistent with on of the goals.  Part of the
+        motivation for this was the 6 character hex specifications, which
+        include a '@', '#', or '$' leader character identifying what the
+        numbers represent (HSV, RGB, or HLS).
+
+        These names are also pretty easy to make matches with a few
+        characters.  For r732 I first used 'blood', which worked well but
+        confused searches with the 'blu' elements.  I then chose 'cherry'
+        as an alternate.  For the vv color, I liked 'grape', but it
+        clashed with the first two letters of green, so other names like
+        wine, jam, jelly, orchid, indigo, mauve, iris, etc.  Wine won over
+        lilac because it was shorter and a typical red wine is darker than
+        our lilac plants' blooms.
+
+        Because these names are both subjective and preloaded in many
+        minds, many folks will argue with my picks.  Yet remember the goal
+        was a six letter or less name that would describe the color
+        'adequately'.  My primary goal for this project was to come up with
+        on the order of 2**8 colors that could be used for my day-to-day
+        work.  Having 2**9 would be OK, but just a little large.  Another
+        primary goal was to have names that exhibited regularity and
+        predictability.  Once working on this project I realized it would
+        be possible to calculate the color's RGB values from the name once
+        the naming scheme was regularlized.  This is nice because I am
+        often using a variety of color specifiers, such as names, hex
+        strings, RGB, HSV, and HLS.  
 
         '''))
     if len(sys.argv) > 1:
@@ -443,5 +535,5 @@ if __name__ == "__main__":
         Thoughts1()
         HueIntervals()
         HueGradations()
-    n = 4
-    FirstChoice(n)
+        FirstChoice(4)
+    SomeNames()
