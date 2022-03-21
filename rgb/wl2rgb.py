@@ -445,7 +445,6 @@ if __name__ == "__main__":
         '''))
     def SomeNames():
         print(dedent(f'''
-
         Invariably, someone will want to start giving names to colors.
         Here are some of my desires for such naming:
 
@@ -453,7 +452,8 @@ if __name__ == "__main__":
             - The name should be adequately close to the perceived color.
             - I'd want the names to be short.
             - Case should be irrelevant.
-            - Spaces can be inserted if desired and they do.
+            - Spaces can be inserted if desired and they don't change the
+              computed color since they are stripped out.
             - Adjectives as words or abbreviations can be moved around in
               the name and it's still the same name.
 
@@ -528,7 +528,7 @@ if __name__ == "__main__":
         strings, RGB, HSV, and HLS.  
 
         '''))
-    if len(sys.argv) > 1:
+    if 1 or len(sys.argv) > 1:
         Introduction()
         SteppedWavelengths(25)
         BasicColorNames()

@@ -6,10 +6,6 @@ TODO
         - They should be settable, hsv, HSV, hls, HLS, rgb, RGB.  To keep
           the object immutable (so it can be a dictionary key), return a
           new ColorNum object when you set the attributes.
-        - Should there be two types of ColorNum objects:  mutable and
-          immutable?  For many color tasks, it would be handy to be able to
-          choose.  This could be done with a keyword to the constructor;
-          or, an attribute of immutable could be used.
         - More and more I'm thinking the ColorNum object may be the most
           important of all.  It's possible that it could become a single
           Color object that handles all my color needs.  Actually, I think
@@ -21,6 +17,18 @@ TODO
           experimentation to define a color naming scheme that would suit
           me.  This needs to be packaged into an OO document.
     - Constructor
+        - I should be able to use these equivalently:
+            - ColorNum(b"\x01\x02\x03")
+            - ColorNum([b"\x01", b"\x02", b"\x03"])
+            - ColorNum("@010203")   # Not same, but gives the idea
+            - ColorNum("#010203")
+            - ColorNum("$010203")   # Not same, but gives the idea
+            - ColorNum([1, 2, 3])
+            - ColorNum((1, 2, 3))
+            - ColorNum(1, 2, 3)
+            - ColorNum([1., 2., 3.])
+            - ColorNum((1., 2., 3.))
+            - ColorNum(1., 2., 3.)
         - String
             - #xxyyzz string:  RGB hex
             - @xxyyzz string:  HSV hex
@@ -160,9 +168,11 @@ if 1:   # Classes
                     msg = "The components of x are not the same type"
                     raise TypeError(msg)
                 # Convert them to Decimals on [0, 1]
+                was_int = False
                 if ii(s[0], str):
                     u = [Decimal(i) for i in s]
                 elif ii(s[0], int):
+                    was_int = True
                     u = [Decimal(i) for i in s]
                 elif ii(s[0], float):
                     u = [Decimal(str(i)) for i in s]
@@ -177,14 +187,19 @@ if 1:   # Classes
                 if not all([i >= 0 for i in u]):
                     msg = "One or more components of x is negative"
                     raise ValueError(msg)
-                # Normalize components to [0, 1] by dividing the components
-                # by the largest value
-                if not all([0 <= i <= 1 for i in u]):
+
+                # Normalization if needed
+                if all([0 <= i <= 1 for i in u]):
+                    pass    # It's the form we want
+                elif was_int and all([0 <= i <= 255 for i in u]):
+                    u = [i/255 for i in u]
+                else:
+                    # Divide by the maximum value
                     m = max(u)
                     u = [i/m for i in u]
                 assert(all([0 <= i <= 1 for i in u]))
-                # Convert the numbers to floats
-                self._rgb = tuple([float(i) for i in u])
+                # Convert the numbers to floats to four places
+                self._rgb = tuple([round(float(i), 4) for i in u])
         def __str__(self):
             'Show components as flt numbers'
             r, g, b = [flt(i/255) for i in self._rgb]
@@ -209,6 +224,17 @@ if 1:   # Classes
             typ can be "rgb", "hsv", or "hls" and controls the numbers
             intepolated between.
             '''
+            '''
+            Here's the algorithm.  The starting point is (x0, y0) and the
+            ending point is (x1, y1).  We have x0 = 0 and x1 = 1.  The
+            slope of the line is
+                m = (y1 - y0)/(x1 - x0) = y1 - y0
+            Given the parameter t on [0, 1], the interpolated value along
+            the line is
+                y = y0 + m*t
+            Example:  y0 = 1, y1 = 0, t = 0.5.  m = 0 - 1 = -1.  Thus, the
+            interpolated value is y = 1 + (-1)*0.5 = 0.5.
+            '''
             if not ii(other, ColorNum):
                 raise TypeError("other must be a ColorNum instance")
             if not (0 <= t <= 1):
@@ -217,17 +243,19 @@ if 1:   # Classes
                 raise ValueError("typ must be 'rgb', 'hsv', or 'hls'")
             # Get color space coordinates
             if typ == "rgb":
-                a1, a2, a3 = self._rgb
-                b1, b2, b3 = other._rgb
+                a = self._rgb
+                b = other._rgb
             elif typ == "hsv":
-                a1, a2, a3 = self.hsv
-                b1, b2, b3 = other.hsv
+                a = self.hsv
+                b = other.hsv
             else:
-                a1, a2, a3 = self.hls
-                b1, b2, b3 = other.hls
+                a = self.hls
+                b = other.hls
             # Interpolate in this space from a's to b's
-            m1, m2, m3 = b1 - a1, b2 - a2, b3 - a3
-            new = a1 + m1*b1*t, a2 + m2*b2*t, a3 + m3*b3*t
+            m = [j - i for i, j in zip(a, b)]   # Slopes
+            new = [i + slope*t for i, slope in zip(a, m)]
+            # They should all be on [0, 1]
+            ok = all([0 <= i <= 1 for i in new])
             assert(all([0 <= i <= 1 for i in new]))
             # Convert to rgb space
             if typ == "hsv":
@@ -238,11 +266,12 @@ if 1:   # Classes
         @property
         def HLS(self):  
             'Get hls in integer form'
-            return tuple([int(i*255) for i in self.hls])
+            return tuple([int(round(i*255, 1)) for i in self.hls])
         @property
         def hls(self):
             'Get hls in float form'
-            return tuple(colorsys.rgb_to_hls(*self._rgb))
+            s = tuple(colorsys.rgb_to_hls(*self._rgb))
+            return tuple([round(i, 4) for i in s])
         @property
         def hlshex(self):
             'Get hls in hex string form'
@@ -250,11 +279,12 @@ if 1:   # Classes
         @property
         def HSV(self):
             'Get hsv in integer form'
-            return tuple([int(i*255) for i in self.hsv])
+            return tuple([int(round(i*255, 1)) for i in self.hsv])
         @property
         def hsv(self):  
             'Get hsv in float form'
-            return tuple(colorsys.rgb_to_hsv(*self._rgb))
+            s = tuple(colorsys.rgb_to_hsv(*self._rgb))
+            return tuple([round(i, 4) for i in s])
         @property
         def hsvhex(self):
             'Get hsv in hex string form'
@@ -262,7 +292,10 @@ if 1:   # Classes
         @property
         def RGB(self):
             'Get rgb in integer form'
-            return tuple([int(i*255) for i in self._rgb])
+            # The rounding is important, as you'll see things like 79 get
+            # converted to 78.9990 and taking the int() will be off by one
+            # unit.
+            return tuple([int(round(i*255, 1)) for i in self._rgb])
         @property
         def rgb(self):
             'Get rgb in float form'

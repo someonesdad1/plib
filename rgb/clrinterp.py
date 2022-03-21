@@ -54,7 +54,6 @@ if 1:   # Utility
             -@      hex digits represent HSV (hue, saturation, value)
             -#      hex digits represent RGB (red, green, blue) [default]
             -$      hex digits represent HLS (hue, lightness, saturation)
-            -n n    Number of interpolated colors [{d['-n']}]
         '''))
         exit(status)
     def ParseCommandLine(d):
@@ -95,9 +94,8 @@ if 1:   # Core functionality
     def Process(s1, n, s2):
         cn1 = InterpretArgument(s1)
         cn2 = InterpretArgument(s2)
-        print(f"Process('{cn1.RGB}', {n}, '{cn2.RGB}')")
+        #print(f"Process('{cn1.RGB}', {n}, '{cn2.RGB}')")
         typ = d["typ"]
-        xx()
         for t in ParameterSequence(n):
             cn3 = cn1.interpolate(cn2, t, typ)
             # Get hex string to display
@@ -110,9 +108,6 @@ if 1:   # Core functionality
             # Display this string in this color
             print(f"{c(cn3.rgbhex)}{s}{c.n} ", end="")
         print()
-
-if 0:
-    exit()
 
 if __name__ == "__main__":
     d = {}      # Options dictionary
