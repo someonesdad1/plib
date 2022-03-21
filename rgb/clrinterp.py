@@ -97,6 +97,7 @@ if 1:   # Core functionality
         cn2 = InterpretArgument(s2)
         print(f"Process('{cn1.RGB}', {n}, '{cn2.RGB}')")
         typ = d["typ"]
+        xx()
         for t in ParameterSequence(n):
             cn3 = cn1.interpolate(cn2, t, typ)
             # Get hex string to display

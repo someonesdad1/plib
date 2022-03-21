@@ -225,12 +225,9 @@ if 1:   # Classes
             else:
                 a1, a2, a3 = self.hls
                 b1, b2, b3 = other.hls
-            # Interpolate in this space
-            kdjfk  Need to use plain linear interp with the slope!
-            c1 = b1 - t*a1 if a1 < b1 else a1 + t*b1
-            c2 = b2 - t*a2 if a2 < b2 else a2 + t*b2
-            c3 = b3 - t*a3 if a3 < b3 else a3 + t*b3
-            new = c1, c2, c3
+            # Interpolate in this space from a's to b's
+            m1, m2, m3 = b1 - a1, b2 - a2, b3 - a3
+            new = a1 + m1*b1*t, a2 + m2*b2*t, a3 + m3*b3*t
             assert(all([0 <= i <= 1 for i in new]))
             # Convert to rgb space
             if typ == "hsv":

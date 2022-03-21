@@ -37,6 +37,7 @@ ReadVariables         Read variables from a file
 RemoveIndent          Remove spaces from beginning of multiline string
 SignificantFigures    Rounds to specified num of sig figs (returns float)
 SignificantFiguresS   Rounds to specified num of sig figs (returns string)
+signum                Return -1, 0, or 1 if x < 0, == 0, or > 0
 Singleton             Mix-in class to create the singleton pattern
 SpeedOfSound          Calculate the speed of sound as func of temperature
 Spinner               Console spinner to show activity
@@ -1381,7 +1382,15 @@ def ParameterSequence(n, a=0, b=1, impl=float):
         assert(ii(x, impl))
         # Return value
         yield x
-
+def signum(x):
+    try:
+        if x < 0:
+            return -1
+        elif x > 0:
+            return 1
+        return 0
+    except Exception:
+        raise TypeError(f"x = '{x}' not a suitable numerical type")
 
 if __name__ == "__main__": 
     # Missing tests for: Ignore Debug, Dispatch, GetString
@@ -1858,6 +1867,13 @@ if __name__ == "__main__":
             list(PS(2, b=""))
         with raises(ValueError) as x:
             list(PS(1, a=2, b=1))
+    def Test_signum():
+        for i in (-1, -2, -2.2, Fraction(-1, 1), Decimal("-3.7")):
+            assert_equal(signum(i), -1)
+        for i in (0, 0.0, Fraction(0, 1), Decimal(0)):
+            assert_equal(signum(i), 0)
+        for i in (1, 2, 2.2, Fraction(1, 1), Decimal("3.7")):
+            assert_equal(signum(i), 1)
     check_names = False
     if check_names:
         mnames, delete = set(dir()), []
