@@ -4,12 +4,6 @@
       as possible.  Even '138  43 226  BlueViolet' in an rgb.txt file
       should be recognized because of its three consective integer values.
 
-- Wavelength
-    - Figure out an inverse function to convert a color to a wavelength.
-      No doubt the easiest way is to get the hue do a root search for the
-      wavelength.  First see if the wl2rgb() function outputs all the 
-      hue values.
-
 - rgbdata.py
     - Put code into a directory rgbdata
     - Change Color() to ColorNum()

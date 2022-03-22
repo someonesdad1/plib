@@ -169,19 +169,16 @@ def ReadDatafile(__datafile, __d):
         __line = __line.strip()
         if not __line or __line[0] == "#":
             continue
-        if "=" in __line:
-            # An assignment statement -- put into the local namespace
-            try:
+        try:
+            if "=" in __line:
+                # An assignment statement -- put into the local namespace
                 exec(__line)
-            except Exception as __e:
-                Error(__msg % (__linenum, __line, str(__e)))
-        else:
-            # It's an expression for a diameter
-            try:
+            else:
+                # It's an expression for a diameter
                 __x = eval(__line)
                 __diameters.append(__x)
-            except Exception as __e:
-                Error(__msg % (__linenum, __line, str(__e)))
+        except Exception as __e:
+            Error(__msg % (__linenum, __line, str(__e)))
     # Get the locals dictionary, delete the items that begin with two
     # underscores, and return it.
     vars, rm = locals(), []
@@ -258,55 +255,6 @@ def SolveProblem(diameters, d):
         chord = flt(hypot(x1 - x2, y1 - y2))
         results[i][4] = chord
     return results
-def PrintReport(results, diameters, d):
-    ''
-    R = flt(d["vars"]["D"]/2)
-    print(f"Main circle diameter = {2*R}")
-    for dia in diameters:
-        r = dia/2
-        if r/R > d["warn_ratio"]:
-            print("  Warning:  large diameter circle: ", Fmt(dia, d))
-    w = 12
-    #sig.fit = w = 12
-    #sig.dp_position = sig.fit//2
-    print(" "*37, "Polar angle,", " "*12, "Angular width,")
-    s = "Dia x y degrees Chord degrees"
-    print(" "*4, end="")
-    print("{0:14}{1:14}{2:9}{3:14}{4:13}{5}".format(*s.split()))
-    print("-"*78)
-    for item in results:
-        dia, x, y, theta, chord, thetai = item
-        if 0:
-            sdia = sig(dia)
-            sx = sig(x)
-            sy = sig(y)
-            stheta = sig(theta*r2d)
-            schord = sig(chord)
-            sangle = sig(abs(thetai*r2d))
-            s = ("{sdia:{w}} {sx:{w}} {sy:{w}} {stheta:{w}} "
-                "{schord:{w}} {sangle:{w}}")
-            print(s.format(**locals()))
-        else:
-            theta = flt(degrees(theta))
-            chord = flt(chord)
-            angle = flt(abs(degrees(thetai)))
-            print(f"{dia!s:^{w}} {x!s:^{w}} {y!s:^{w}} {theta!s:^{w}} "
-                  f"{chord!s:^{w}} {angle!s:^{w}}")
-    #sig.fit, n = 0, len(diameters)
-    n = len(diameters)
-    print()
-    print("Number of circles              =", n)
-    gap = abs(d["gap"])
-    print("Gap angle between each circle  =", Fmt(degrees(gap), d), "deg",
-          "=", Fmt(gap, d), "rad")
-    tga = gap*n
-    print("Total gap angle                =", Fmt(degrees(tga), d), "deg", "=",
-          Fmt(tga, d), "rad")
-    ac = d["theta_total"]
-    print("Angle subtended by all circles =", Fmt(degrees(ac), d), "deg", "=",
-          Fmt(ac, d), "rad")
-    ta = tga + ac
-    print("Total angle", " "*20, Fmt(degrees(ta), d), "deg", "=", Fmt(ta, d), "rad")
 def Plot(results, diameters, d):
     def SetUp(file, orientation=landscape, units=inches):
         '''Convenience function to set up the drawing environment and
@@ -394,10 +342,13 @@ def LinearProblem(diameters, d):
     and x_0 = 0.
     '''
     L = d["vars"]["D"]
+    x = flt(0)
     print(dedent(f'''
     Linear hole placement problem for line 
-      L = distance between circle edges = {L}'''))
-    x = flt(0)
+      L = distance between circle edges = {L}
+      x = distance from origin (x = 0) of hole centers
+      Results to {x.n} significant figures
+    '''))
     r = [i/2 for i in diameters]
     print('''
                                                  Hole
@@ -419,11 +370,67 @@ def LinearProblem(diameters, d):
         else:
             print(f.format(i, g(x), g(div), g(dia)))
         lastx = x
-    oal = flt(sum(diameters) + L*(len(diameters) - 1))
-    print(f"  Sum of diameters = {sum(diameters)}")
-    print(f"  Number of lengths L between holes = {len(diameters) - 1}")
-    print(f"  Overall length = {oal}")
+    S = flt(sum(diameters))
+    N = len(diameters) - 1
+    oal = S + N*L
+    print(dedent(f'''
+        S = sum of diameters = {sum(diameters)}
+        L = distance between hole edges = {L}
+        N = Number of lengths L between holes = {len(diameters) - 1}
+        OAL = Overall length = S + N*L = {S} + {N}*{L} = {S + N*L}
+                       = outside distance of outermost holes
+        With a border of 2*L on either end, you'll need a chunk of material
+        that's OAL + 4*L = {oal + 4*L}.
+    '''))
     exit(0)
+def PrintReport(results, diameters, d):
+    R = flt(d["vars"]["D"]/2)
+    print(f"Main circle diameter = {2*R}")
+    for dia in diameters:
+        r = dia/2
+        if r/R > d["warn_ratio"]:
+            print("  Warning:  large diameter circle: ", Fmt(dia, d))
+    w = 12
+    #sig.fit = w = 12
+    #sig.dp_position = sig.fit//2
+    print(" "*37, "Polar angle,", " "*12, "Angular width,")
+    s = "Dia x y degrees Chord degrees"
+    print(" "*4, end="")
+    print("{0:14}{1:14}{2:9}{3:14}{4:13}{5}".format(*s.split()))
+    print("-"*78)
+    for item in results:
+        dia, x, y, theta, chord, thetai = item
+        if 0:
+            sdia = sig(dia)
+            sx = sig(x)
+            sy = sig(y)
+            stheta = sig(theta*r2d)
+            schord = sig(chord)
+            sangle = sig(abs(thetai*r2d))
+            s = ("{sdia:{w}} {sx:{w}} {sy:{w}} {stheta:{w}} "
+                "{schord:{w}} {sangle:{w}}")
+            print(s.format(**locals()))
+        else:
+            theta = flt(degrees(theta))
+            chord = flt(chord)
+            angle = flt(abs(degrees(thetai)))
+            print(f"{dia!s:^{w}} {x!s:^{w}} {y!s:^{w}} {theta!s:^{w}} "
+                  f"{chord!s:^{w}} {angle!s:^{w}}")
+    #sig.fit, n = 0, len(diameters)
+    n = len(diameters)
+    print()
+    print("Number of circles              =", n)
+    gap = abs(d["gap"])
+    print("Gap angle between each circle  =", Fmt(degrees(gap), d), "deg",
+          "=", Fmt(gap, d), "rad")
+    tga = gap*n
+    print("Total gap angle                =", Fmt(degrees(tga), d), "deg", "=",
+          Fmt(tga, d), "rad")
+    ac = d["theta_total"]
+    print("Angle subtended by all circles =", Fmt(degrees(ac), d), "deg", "=",
+          Fmt(ac, d), "rad")
+    ta = tga + ac
+    print("Total angle", " "*20, Fmt(degrees(ta), d), "deg", "=", Fmt(ta, d), "rad")
 
 if __name__ == "__main__":
     d = {}      # Options dictionary
