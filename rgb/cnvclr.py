@@ -44,15 +44,51 @@ if 1:   # Utility
         Options:
             -a      Show all report data
             -e      Show equivalent RGB, HSV, HLS data
+            -f file Read data from this file for -s option (implies -s)
+            -h      More detailed help and examples
             -i      Prompt interactively for input (implies -a)
             -m      Show matching names in rgbdata.py
             -s      c1 ... are regexps; search for them in rgbdata.py
             -w      Show estimated wavelength of light in nm
         '''))
         exit(status)
+    def Manpage():
+        n = sys.argv[0]
+        print(dedent(f'''
+        This script is a utility for dealing with typical color specifications.
+        For a simple example, run the script as
+
+            python {n} '(199, 159, 239)'
+
+        and you'll see the input string printed in the RGB color it represents.  
+
+        You can examine a number of lines in a file in the color they represent.
+        Using the rgbdata.py file which has thousands of color names defined in it,
+        we can get a colorized listing of some of the lines at the beginning of the
+        file:
+
+            head -50 rgbdata.py | python {n} -
+
+        The '-' as the single argument means to read the lines from stdin.
+
+        We can do something similar but more specific by using the -f option to
+        specify an input file.  In this case, the arguments on the command line
+        become case-insensitive regular expressions to search for in the input file;
+        when a color specification is found, it is printed out in its color.  For
+        example:
+
+            python {n} -f rgbdata.py lilac
+
+        shows the lines in rgbdata.py that use the string 'lilac' in the color.
+
+        
+        '''.rstrip()))
+        exit(0)
+
     def ParseCommandLine(d):
         d["-a"] = False     # Show all report data
         d["-e"] = False     # Show equivalent RGB, HSV, HLS data
+        d["-f"] = None      # Input file
         d["-i"] = False     # Interactive
         d["-m"] = False     # Show matching names
         d["-s"] = False     # Search for regexps
@@ -60,17 +96,21 @@ if 1:   # Utility
         if len(sys.argv) < 2:
             Usage()
         try:
-            opts, args = getopt.getopt(sys.argv[1:], "@aehimsw", "help")
+            opts, args = getopt.getopt(sys.argv[1:], "@aef:himsw", "help")
         except getopt.GetoptError as e:
             print(str(e))
             exit(1)
         for o, a in opts:
-            if o[1] in list("@aehimsw"):
+            if o[1] in list("@aeimsw"):
                 d[o] = not d[o]
+            elif o == "-f":
+                d[o] = a
             elif o in ("-h", "--help"):
-                Usage(status=0)
+                Manpage()
         if d["-a"]:
             d["-e"] = d["-m"] = d["-w"] = True
+        if d["-f"] is not None:
+            d["-s"] = True
         if d["-s"]:
             d["-e"] = d["-m"] = d["-w"] = False
         return args
@@ -93,7 +133,7 @@ if 1:   # Core functionality
             return
         w, i = 15, " "*4
         # Print the input string in the line's color
-        print(f"Input = {c(cn.rgbhex)}{s}{c.n}")
+        print(f"Input:  {c(cn.rgbhex)}{s}{c.n}")
         if d["-e"]:
             print(dedent(f'''
                 {i}RGB:  {cn.rgbhex} {cn.RGB!s:{w}s} {cn.rgb}
@@ -204,4 +244,4 @@ if __name__ == "__main__":
     else:
         for i in args:
             cn = Convert(i)
-            Report(s, cn)
+            Report(i, cn)
