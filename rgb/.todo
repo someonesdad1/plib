@@ -1,0 +1,56 @@
+- rgbdata.py
+    - Put code into a directory rgbdata
+    - Change Color() to ColorNum()
+    - Get rid of Color objects in rgb.py
+
+- clrinterp.py 
+    - Give two color specs in hex on the command line and you'll get a
+      stated number of colors printed out in text that interpolate between
+      the two given colors.
+
+- Finish view.py
+
+- ColorNum objects need settable attributes to allow the color to be changed.
+  For example, you'd want the r and R attributes to be [0, 1] and [0, 255]
+  values; setting it would change the object's color.  Unfortunately, then
+  this means the object isn't immutable anymore unless the attributes
+  return new ColorNum objects, which is probably the preferred behavior, as
+  you'd want the colors to be keys in dictionaries.  Alternatively, the
+  hash value could be the id value at creation, allowing a mutable object.
+  However, I think keeping immutability is probably best.
+    - An approach could be to have a ColorFactory object that returns
+      ColorNum objects.
+
+- Base color naming on the spectrum.  Put wavelength markers in the
+  spectrum.ppm plot in /pylib/pgm/colors.  Actually, need to use g.py to
+  generate a working plot.  Since the wavelengths go from about 400 to 700
+  nm, the nearest nm wavelength can be a fundamental starting point for a
+  color name.  Use names vio, blu, cyn, grn, yel, orn, red and pick wl
+  bounds for each color.  While wholly subjective, it allows color naming
+  with easy to recognize nomenclature.
+    - The range of Bruton's linear approximation is from 380 to 780 nm for
+      a range of 400 nm.  Let's use units of 10 nm, so the range is from 38
+      to 78.  Here are the approximate locations, range, and approximate
+      width:
+        -               Range     Width
+        - violet39      38-40       2
+        - purple41      40-42       2
+        - blue44        43-45       2
+        - cyan47        46-49       3
+        - green52       50-54       4
+        - yellow58      54-60       6
+        - orange62      61-63       2
+        - red70         64-78      14
+
+- Color cube plotting
+    - https://people.csail.mit.edu/jaffer/Color/css3-rgb.pdf shows an
+      example
+    - G and B are in front plane; G goes to right and B goes up.  R goes to
+      the back.
+        - Black is front lower left and white is rear upper right.
+    - This should be straightforward to write with the g library.
+        - Make two images for a stereoscopic projection.
+    - Make three different views so you can get an "engineering" feel for
+      where things lie.
+    - This would be a good demo for the g library.
+
