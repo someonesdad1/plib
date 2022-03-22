@@ -1,6 +1,7 @@
 '''
-Provides the function wl2rgb to convert a light wavelength in nm into an
-approximate RGB color.
+Provides the function wl2rgb() to convert a light wavelength in nm into an
+approximate RGB color.  The rgb2wl() function is (approximately) its
+inverse function.
  
 In units of nm, here are the approximate color divisions:
     violet      380-450
@@ -241,7 +242,7 @@ if __name__ == "__main__":
             s = colornum.rgbhex
             t = colornum.RGB
             u = colornum.HSV
-            print(f"    {c(s)}{name:4s} {nm:3d}  {hue:3d} {s!s:7s}   {f(t)}   {f(u)}{c.n}")
+            print(f"    {c(s)}{name:4s} {nm:3d}  {hue:3d} {s!s:7s}   {fi(t)}   {fi(u)}{c.n}")
         print(dedent(f'''
  
         These look like a good basis, although they don't appear to be the
@@ -656,6 +657,20 @@ if __name__ == "__main__":
  
         print(dedent(f'''
 
+        This looks to be identical (not suprisingly) to the simulated
+        spectrum in the file spectrum.png, which was constructed with
+        Bruton's FORTRAN algorithm to make a PPM file.  When I was a
+        student, we had access to a monochromator by Bausch & Lomb and I
+        would like to use that to compare to what I see on my screen.  That
+        monochromator used a diffraction grating to get its colors and they
+        seemed to be very pure colors when you looked at the output (and
+        the dial was calibrated in wavelength).  You might want to compare
+        the colors to those at
+        https://demonstrations.wolfram.com/ColorsOfTheVisibleSpectrum/.  I
+        don't recall seeing the purple/magenta colors in the actual
+        physical spectrum (at least not as simulated by the wl2rgb()
+        function), but that was in the 1960's and my memory is a bit hazy.
+
         Here's the relationship between color and wavelength.  The first
         column is wavelength in nm.  The second column is the hue of the
         color calculated by the wl2rgb() function.  The third column is the
@@ -695,8 +710,7 @@ if __name__ == "__main__":
         was set to zero in wl2rgb().
  
         '''))
-
-    if len(sys.argv) > 1:
+    if 1 or len(sys.argv) > 1:
         Introduction()
         SteppedWavelengths(25)
         BasicColorNames()
