@@ -1,5 +1,29 @@
 '''
-Convert color specifications
+Decorate color specifications
+    Forms that must be recognized:
+        i = integer on [0, 255], 
+        d = real on [0, 1]
+            .123
+            0.123
+
+        Hex string form @#$xxyyzz
+        Single integer on interval [0, 2**24)
+        i i i    or    i, i, i     or   i; i; i
+        d d d    or    d, d, d     or   d; d; d
+
+Need a color difference metric.  
+
+    - https://en.wikipedia.org/wiki/Color_difference
+    - http://markfairchild.org/PDFs/PAP40.pdf is an academic paper that's
+      pretty good.  However, I hate that they use a biased sample for color
+      judging (typical of all lazy academics, they used students and staff
+      members).
+    - Explore the use of wavelength.  This has the advantage over hue of
+      not wrapping around.  Empirically, I'd judge λls (wavelength,
+      lightness, saturation) as a good starting point with suitable
+      weighting factors.
+
+
 '''
  
 if 1:  # Copyright, license
@@ -11,7 +35,7 @@ if 1:  # Copyright, license
     #   See http://opensource.org/licenses/OSL-3.0.
     #∞license∞#
     #∞what∞#
-    # Convert color specifications
+    # Decorate color specifications
     #∞what∞#
     #∞test∞# #∞test∞#
     pass
@@ -36,20 +60,41 @@ if 1:   # Utility
         exit(status)
     def Usage(status=1):
         print(dedent(f'''
-        Usage:  {sys.argv[0]} [options] [c1 [c2...]]
-          Convert color specifications.  The default report is a statement
-          of the string read in the color it represents.  If '-' is the
-          only argument on the command line, read the specifications from
+
+        Change interface:
+            
+            file1 [file2 ...]
+
+        Examine lines for color specifiers.  Print out line in that color
+        if found.  '-' means read stdin.
+
+        -r regexp       regexp to search for.  Can have more than one (they
+                        are OR'd together).
+        -v regexp       Remove lines with this regexp         
+        -@, -#, -$      Force usage of this color space except for hex strings
+        -d              Print out details of color:  coordinates in various
+                        color spaces, wavelength, name matches if -n used
+        -n file         Name file to read in.  See -h for details.
+
+        -s arg          Specify sort order:  rgb, hsv, hls.  When this
+                        option is used, all lines are saved and sorted at
+                        the end, so large amounts of data might run out of
+                        memory.
+
+
+        Usage:  {sys.argv[0]} [options] file1 [file2...]
+          Search the lines of the files for color specifiers and print out
+          those lines found in the color specified.  Use '-' to read from
           stdin.
         Options:
-            -a      Show all report data
-            -e      Show equivalent RGB, HSV, HLS data
-            -f file Read data from this file for -s option (implies -s)
+            -@      Force use of HSV color space
+            -#      Force use of RGB color space [default]
+            -$      Force use of HLS color space
+            -d      Print color's details
             -h      More detailed help and examples
-            -i      Prompt interactively for input (implies -a)
-            -m      Show matching names in rgbdata.py
-            -s      c1 ... are regexps; search for them in rgbdata.py
-            -w      Show estimated wavelength of light in nm
+            -i      Prompt interactively for input lines
+            -r x    Search for regexp x in lines (-r's OR'd)
+            -s s    Sort order:  'rgb', 'hsv', or 'hls'
         '''))
         exit(status)
     def Manpage():
