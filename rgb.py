@@ -6,26 +6,26 @@
         - Color object provides
             - Storage for a 24-bit color (memory efficient)
             - Conversion amongst different color representations
-            - Can be initialized mutable for "tuning" by attributes,
-                but then can be frozen to be immutable.  If mutable, the
-                __hash__ method raises an exception.
-                - Once converted to immutable, it can't be changed back
-                    to mutable
+            - Can be initialized mutable for "tuning" by attributes, but
+              then can be frozen to be immutable.  If mutable, the __hash__
+              method raises an exception.
+                - Once converted to immutable, it can't be changed back to
+                  mutable
             - Metric methods to determine closeness in a color space
         - Clr object provides 
             - ANSI escape codes for terminal output
             - Color styles as attributes
             - Name to Color conversions
                 - Internal dict, so lookups are fast
-                - Use standard method of reducing name for lookup
-                    (e.g., lower case, no spaces or punctuation)
+                - Use standard method of reducing name for lookup (e.g.,
+                  lower case, no spaces or punctuation)
                 - Allow multiple dicts from UTF-8 text files
                     - '#' character indicates a comment
                     - Blank lines ignored
-                    - First non-comment line contains a single
-                        character defining the separation character
+                    - First non-comment line contains a single character
+                      defining the separation character
                     - All other lines are 'name_string sep_char
-                        Color_constructor_argument
+                      Color_constructor_argument
                         
 TODO
  

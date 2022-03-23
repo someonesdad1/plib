@@ -55,32 +55,33 @@ if 1:   # Utility
     def Manpage():
         n = sys.argv[0]
         print(dedent(f'''
-        This script is a utility for dealing with typical color specifications.
-        For a simple example, run the script as
-
-            python {n} '(199, 159, 239)'
-
+ 
+        This script is a utility for recognizing and printing  typical
+        color specifications.  For a simple example, run the script as
+ 
+            python {n} '(199, 159, 239) This is some sample text'
+  
         and you'll see the input string printed in the RGB color it represents.  
-
+ 
         You can examine a number of lines in a file in the color they represent.
         Using the rgbdata.py file which has thousands of color names defined in it,
         we can get a colorized listing of some of the lines at the beginning of the
         file:
-
+ 
             head -50 rgbdata.py | python {n} -
-
+ 
         The '-' as the single argument means to read the lines from stdin.
-
+ 
         We can do something similar but more specific by using the -f option to
         specify an input file.  In this case, the arguments on the command line
         become case-insensitive regular expressions to search for in the input file;
         when a color specification is found, it is printed out in its color.  For
         example:
-
+ 
             python {n} -f rgbdata.py lilac
-
+ 
         shows the lines in rgbdata.py that use the string 'lilac' in the color.
-
+ 
         
         '''.rstrip()))
         exit(0)
@@ -127,13 +128,13 @@ if 1:   # Core functionality
                 return cn
             except Exception:
                 return None
-    def Report(s, cn):
+    def Report(line, cn):
         if cn is None:
-            print(f"'{s}' unrecognized", file=sys.stderr)
+            print(f"'{line}' unrecognized", file=sys.stderr)
             return
         w, i = 15, " "*4
         # Print the input string in the line's color
-        print(f"Input:  {c(cn.rgbhex)}{s}{c.n}")
+        print(f"{c(cn.rgbhex)}{line}{c.n}")
         if d["-e"]:
             print(dedent(f'''
                 {i}RGB:  {cn.rgbhex} {cn.RGB!s:{w}s} {cn.rgb}
@@ -201,29 +202,32 @@ if 1:   # Core functionality
             if s:
                 cn = Convert(s)
                 Report(line, cn)
-
-if 0:
-    R = re.compile
-    r = R(r"([@#$][0-9a-f]{6})", re.I)  # [@#$]xxyyzz form
-    # Expression to recognize integers and floats
-    s = r"([+-]?\.\d+([eE][+-]?\d+)?|[+-]?\d+\.?\d*([eE][+-]?\d+)?)"
-    r = R(f"({s},\s*{s},\s*{s})", re.I) # Three integers or floats
-    s = "105, 216, 79"
-    s = "105, 216, 79e-3"
-    mo = r.search(s)
-    if mo:
-        print(mo.groups()[0])
-    exit()
+    def GetRegularExpressions():
+        'Return tuple of regexps to use to recognize color identifiers'
+        R = re.compile
+        # Recognize an integer or float
+        s = r'''
+                (                               # Group
+                    # First is for numbers like .234
+                    [+-]?                       # Optional sign
+                    \.\d+
+                    ([eE][+-]?\d+)?             # Optional exponent
+                  |                             # or
+                    # This is for integers or 2.3 or 2.3e4
+                    [+-]?                       # Optional sign
+                    \d+\.?\d*                   # Number:  2.345
+                    ([eE][+-]?\d+)?             # Optional exponent
+                )                               # End group
+        '''
+        regexps = (
+            R(r"([@#$][0-9a-f]{6})", re.I|re.X),     # [@#$]xxyyzz form
+            R(f"({s},\s*{s},\s*{s})", re.I|re.X),    # Three integers or floats
+        )
+        return regexps
 
 if __name__ == "__main__":
-    R = re.compile
-    s = r"([+-]?\.\d+([eE][+-]?\d+)?|[+-]?\d+\.?\d*([eE][+-]?\d+)?)"
-    # Regular expressions to help identify data in strings
-    regexps = (
-        R(r"([@#$][0-9a-f]{6})", re.I),     # [@#$]xxyyzz form
-        R(f"({s},\s*{s},\s*{s})", re.I),    # Three integers or floats
-    )
-    del s, R
+    regexps = GetRegularExpressions()
+    d = {"-e":"", "-m":""}      # Options dictionary
     if 0:  # Debugging code
         dbg = '''
         (9, 'cloudy blue', Color((172, 194, 217))),
@@ -231,7 +235,6 @@ if __name__ == "__main__":
         '''
         FromStdin(dbg=dbg)
         exit()
-    d = {}      # Options dictionary
     args = ParseCommandLine(d)
     if len(args) == 1 and args[0] == "-":
         FromStdin()
