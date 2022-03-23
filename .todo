@@ -1,24 +1,34 @@
 main
 
-    - Color
-        - ColorNum:  allow any iterable of numbers; take the absolute value
-          and divide by the maximum.  This allows use of negative numbers
-          and complex numbers too.
-            - Conversion to number should be float(abs(x)).
-        - Rethink the whole color approach.  I like the Color.__call__
-          approach to getting escape codes and the styles as attributes,
-          but I really like the simplicity of ColorNum.  
-            - All colors should be stored as ColorNum objects.  They can be
-              known by their name string like "red" or their ColorNum bytes
-              string.
-            - rgbdata.py can be used for names and it should be first
-              sorted by hls or hsv, then each color in that group printed
-              out and compared.
-            - A better approach may be to generate a 2**n color cube in the
-              chosen space and get the names that are closest to the chosen
-              values.
-        - Portrait screen is 2160x3840 pixels.  This would be fine for
-          displaying a master color picking app.
+    - rgb.py
+        - Remove rgb.Color and rename ColorNum to Color.
+        - Color:  fundamental type to represent a 24-bit color
+            - Make constructor take as wide a variety of forms as possible.
+                - Let wavelength in nm be a constructor type
+                - 3 bytes can be used
+                - Another Color instance can be used
+            - Attributes (D = floats on [0, 1], I = ints in [0, 255])
+                - rgb, hsv, hls return (D, D, D)
+                - RGB, HSV, HLS return (I, I, I)
+                - xrgb, xhsv, xhls return hex strings
+                - wl returns a wavelength in nm
+            - Add Color.n, which contains the number of decimal digits to
+              round the floats to.  Note this determines the sensitivity of
+              color equality.
+            - Change the internal representation to three bytes
+              representing the three integers for the RGB value.
+            - Keep Clr because the Clr.__call__ method is convenient, but
+              all arguments must be either string names or Color instances.
+              Actually, if a string is used, an internal dictionary is used
+              to translate it to a Color instance.
+                - Clr should have a method to initialize the name to Color
+                  dictionary mapping.
+                - The default should be something sensible.  xkcd's could
+                  be good, but it's 949 colors.  I like the naming scheme.
+                  See if it could be whittled down to a set about half the
+                  size.
+
+    - Color cube plotting in g
         - Write an RGB color cube plotting function:  x = grn, y = blue, z
           = red.  -s makes it stereoscopic.  -x, -y, -z give views down the
           different axes (-z is default).

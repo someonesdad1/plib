@@ -1,6 +1,8 @@
 '''
 TODO
 
+    - Add an ls command (it will call external ls command) with my usual
+      aliases
     - It would be nicer to have a central way of adding symbols and adding
       the special commands.  Ideally, it would be done in one function or
       class, making it easy to see what you're getting.

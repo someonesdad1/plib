@@ -42,14 +42,15 @@ if 1:   # Utility
         print(dedent(f'''
         Usage:  {sys.argv[0]} [options] c1 n c2 [m c3...]
           Interpolate n colors between c1 and c2 and print their values to
-          stdout.  
+          stdout, then for c2 m c3, etc.  
  
-          The colors can be specified by hex strings (preface with
-          '#' for RGB, '@' for HSV, or '$' for HLS).  You can also use python
+          The colors can be specified by hex strings (preface with '#' for
+          RGB, '@' for HSV, or '$' for HLS).  You can also use python
           sequences of numbers:  if they are integers in the range of 0 to
           255, they are left as integers, but all others will be converted
-          to floats and the three numbers are divided by the maximum value
-          to normalize.  The absolute value of each number is taken.
+          to floats.  If any float is not in [0, 1], the sequence is
+          normalized by dividing by the largest value.  The absolute value
+          of each number is taken.
         Options:
             -@      hex digits represent HSV (hue, saturation, value)
             -#      hex digits represent RGB (red, green, blue) [default]

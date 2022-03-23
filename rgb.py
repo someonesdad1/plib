@@ -2,21 +2,76 @@
  
 TODO
  
-    - Attributes
-        - They should be settable, hsv, HSV, hls, HLS, rgb, RGB.  To keep
-          the object immutable (so it can be a dictionary key), return a
-          new ColorNum object when you set the attributes.
-        - More and more I'm thinking the ColorNum object may be the most
-          important of all.  It's possible that it could become a single
-          Color object that handles all my color needs.  Actually, I think
-          the spec of a color via ColorNum (with the numerous ways of
-          defining colors) should stay separate from the Color object,
-          which will want both ColorNum objects and color names.  The names
-          need to be added at runtime if desired, as do styles.
-        - The wl2rgb.py script turned out to be a lab notebook of
-          experimentation to define a color naming scheme that would suit
-          me.  This needs to be packaged into an OO document.
+    - Remove rgb.Color 
+    - Rename ColorNum to Color
+    - Color:  fundamental type to represent a 24-bit color
+        - Make constructor take as wide a variety of forms as possible
+            - Color(*p)
+            - Sequence of 3 numbers or bytes
+                - If byte in [0, 255], use directly
+                - If floats on [0, 1] convert to bytes by 
+                  int(round(255*x, Color.n))
+                - Otherwise convert to Decimals
+                    - If on [0, 1], use as floats
+                    - Otherwise normalize by dividing by largest number
+                - Convert to 3 bytes for internal storage
+            - Three numbers or bytes
+                - Same as previous
+            - Single float, fraction, or Decimal on [0, 1]:  a gray with
+              black being 0 and white being 1
+            - Wavelength in nm
+            - 3 byte string
+            - Strings:  @#$xxyyzz hex form
+            - 7 characters when ''.join()'d, make a 7 byte string as
+              previous
+            - Another Color instance
+            - kw parameters
+                - rgb: bool, hsv: bool, hls: bool
+                    - These three override the hex string char @#$
+            - Internal representation is length 3 bytes string for RGB
+              components
+        - Attributes (D = floats on [0, 1], I = ints in [0, 255])
+            - rgb, hsv, hls return (D, D, D)
+            - RGB, HSV, HLS return (I, I, I)
+            - xrgb, xhsv, xhls return hex strings
+            - wl returns a wavelength in nm
+            - Mutable?
+                - This could be handy for adjusting colors, but if it's
+                  done, then the instance is mutable and can't be a
+                  dictionary key
+                - Can this mutability be controlled by constructor?  Would
+                  be a nice way, as if the item is made mutable, the
+                  __hash__ function wouldn't work.
+                - Or could be mutable attribute that could only be set to
+                  False after making it true in constructor.  This would be
+                  a nice feature, as __hash__ would cause an exception
+                  until mutable was set to False -- and it could never be
+                  set back to True.
+        - Add Color.n, which contains the number of decimal digits to
+            round the floats to.  Note this determines the sensitivity of
+            color equality.
+        - Move Color to clr.py, so all color stuff is in one file except
+          for color names.
+    - Clr
+        - Add .on attribute.  If True, escape codes are emitted from
+          __call__ and defined attributes.  Otherwise, empty strings are
+          returned.  This is really a needed feature.
+        - Keep because the Clr.__call__ method is convenient
+        - Consider putting Color inside clr.py
+        - Name to color mapping should be done by Clr
+            - Add method to load data from file
+                - String name, separation character, repr() of bytestring
+            all arguments must be either string names or Color instances.
+            Actually, if a string is used, an internal dictionary is used
+            to translate it to a Color instance.
+            - Clr should have a method to initialize the name to Color
+                dictionary mapping.
+            - The default should be something sensible.  xkcd's could
+                be good, but it's 949 colors.  I like the naming scheme.
+                See if it could be whittled down to a set about half the
+                size.
     - Constructor
+        - ColorNum(*p)
         - I should be able to use these equivalently:
             - ColorNum(b"\x01\x02\x03")
             - ColorNum([b"\x01", b"\x02", b"\x03"])
@@ -121,8 +176,10 @@ if 1:   # Classes
         Use attributes to get other forms:  HLS (hue, lightness, saturation)
         and HSV (hue, saturation, value).
         '''
+        n = 4   # Number of decimal digits to round floats to
         def __init__(self, x):
             '''Initialize in various ways:
+                ColorNum(x)                 x is ColorNum instance
                 ColorNum(b"\x01\x02\x03")   3-byte string
                 ColorNum("#abcdef")         RGB string
                 ColorNum("@abcdef")         HSV string
@@ -135,7 +192,9 @@ if 1:   # Classes
             maximum of the three values.
             '''
             e = ValueError(f"'{x}' is of improper form for class ColorNum")
-            if ii(x, bytes):
+            if ii(x, ColorNum):
+                self._rgb = x._rgb
+            elif ii(x, bytes):
                 if len(x) != 3:
                     raise e
                 self._rgb = tuple([i/255 for i in x])
@@ -167,7 +226,7 @@ if 1:   # Classes
                 if not all([type(i) == type(s[0]) for i in s]):
                     msg = "The components of x are not the same type"
                     raise TypeError(msg)
-                # Convert them to Decimals on [0, 1]
+                # Convert them to Decimals
                 was_int = False
                 if ii(s[0], str):
                     u = [Decimal(i) for i in s]
@@ -183,58 +242,54 @@ if 1:   # Classes
                 else:
                     msg = "x is a sequence of the improper type"
                     raise TypeError(msg)
-                # All values must be non-negative
-                if not all([i >= 0 for i in u]):
-                    msg = "One or more components of x is negative"
-                    raise ValueError(msg)
-
-                # Normalization if needed
-                if all([0 <= i <= 1 for i in u]):
-                    pass    # It's the form we want
-                elif was_int and all([0 <= i <= 255 for i in u]):
-                    u = [i/255 for i in u]
-                else:
-                    # Divide by the maximum value
-                    m = max(u)
-                    u = [i/m for i in u]
+                # Take absolute values
+                u = [abs(i) for i in u]
+                # Normalize if needed
+                if not all([0 <= i <= 1 for i in u]):
+                    if was_int and all([0 <= i <= 255 for i in u]):
+                        u = [i/255 for i in u]
+                    else:
+                        # Divide by the maximum value
+                        m = max(u)
+                        u = [i/m for i in u]
                 assert(all([0 <= i <= 1 for i in u]))
                 # Convert the numbers to floats to four places
-                self._rgb = tuple([round(float(i), 4) for i in u])
+                self._rgb = tuple([round(float(i), ColorNum.n) for i in u])
         def __str__(self):
-            'Show components as flt numbers'
-            r, g, b = [flt(i/255) for i in self._rgb]
-            return f"ColorNum({r}, {g}, {b})"
+            'Show components as decimal fractions'
+            r, g, b = self._rgb
+            n = ColorNum.n
+            return f"ColorNum({r:{2+n}.{n}f}, {g:{2+n}.{n}f}, {b:{2+n}.{n}f})"
         def __repr__(self):
             'Show components as integers on [0, 255]'
             r, g, b = self.RGB
-            return f"ColorNum({r!r}, {g!r}, {b!r})"
+            return f"ColorNum({r!r:3d}, {g!r:3d}, {b!r:3d})"
         def __eq__(self, other):
             'Equal if components match to 6 decimal places'
-            # Six places seems to be a good compromise for numerical
+            # Six places feels to be a good compromise for numerical
             # accuracy and to not to have too much useless resolution.
             if not ii(other, ColorNum):
                 raise TypeError("'other' must be a ColorNum instance")
-            n = 6
+            n = ColorNum.n
             me  = [round(i, n) for i in self._rgb]
             you = [round(i, n) for i in other._rgb]
             return bool(me == you)
         def interpolate(self, other, t, typ="rgb"):
-            '''Interpolate between two colors, self and other.  
-            t is a parameter on [0, 1].  
-            typ can be "rgb", "hsv", or "hls" and controls the numbers
-            intepolated between.
+            '''Interpolate between two colors:  self and other.  t is a
+            parameter on [0, 1].  If t is 0, you'll get back self and if t
+            is 1, you'll get back other.  If t is intermediate, you'll get
+            a color "between" the two.  typ can be "rgb", "hsv", or "hls"
+            and controls the numbers intepolated between.
             '''
-            '''
-            Here's the algorithm.  The starting point is (x0, y0) and the
-            ending point is (x1, y1).  We have x0 = 0 and x1 = 1.  The
-            slope of the line is
-                m = (y1 - y0)/(x1 - x0) = y1 - y0
-            Given the parameter t on [0, 1], the interpolated value along
-            the line is
-                y = y0 + m*t
-            Example:  y0 = 1, y1 = 0, t = 0.5.  m = 0 - 1 = -1.  Thus, the
-            interpolated value is y = 1 + (-1)*0.5 = 0.5.
-            '''
+            # Here's the algorithm for each component.  The starting point
+            # is (x0, y0) and the ending point is (x1, y1).  We have x0 = 0
+            # and x1 = 1.  The slope of the line is
+            #     m = (y1 - y0)/(x1 - x0) = y1 - y0
+            # Given the parameter t on [0, 1], the interpolated value along
+            # the line is
+            #     y = y0 + m*t
+            # Example:  y0 = 1, y1 = 0, t = 0.5.  m = 0 - 1 = -1.  Thus, the
+            # interpolated value is y = 1 + (-1)*0.5 = 0.5.
             if not ii(other, ColorNum):
                 raise TypeError("other must be a ColorNum instance")
             if not (0 <= t <= 1):
@@ -271,7 +326,7 @@ if 1:   # Classes
         def hls(self):
             'Get hls in float form'
             s = tuple(colorsys.rgb_to_hls(*self._rgb))
-            return tuple([round(i, 4) for i in s])
+            return tuple([round(i, ColorNum.n) for i in s])
         @property
         def hlshex(self):
             'Get hls in hex string form'
@@ -284,7 +339,7 @@ if 1:   # Classes
         def hsv(self):  
             'Get hsv in float form'
             s = tuple(colorsys.rgb_to_hsv(*self._rgb))
-            return tuple([round(i, 4) for i in s])
+            return tuple([round(i, ColorNum.n) for i in s])
         @property
         def hsvhex(self):
             'Get hsv in hex string form'
@@ -292,14 +347,14 @@ if 1:   # Classes
         @property
         def RGB(self):
             'Get rgb in integer form'
-            # The rounding is important, as you'll see things like 79 get
-            # converted to 78.9990 and taking the int() will be off by one
-            # unit.
+            # The rounding step is important, as you'll see things like 79
+            # get converted to 78.9990 and taking the int() will be off by
+            # one unit.
             return tuple([int(round(i*255, 1)) for i in self._rgb])
         @property
         def rgb(self):
             'Get rgb in float form'
-            return tuple([round(i/255, 4) for i in self._rgb])
+            return tuple(self._rgb)
         @property
         def rgbhex(self):
             'Get rgb in hex string form'
@@ -558,7 +613,7 @@ if __name__ == "__main__":
         s = ColorNum((x, x, x))
         std = ColorNum((1, 1, 1))
         assert_equal(s == std, True)
-        a, b, c = 4.377, 89.009, 12.2
+        a, b, c = 4.377, -89.009, 12.2
         s = ColorNum((a, b, c))
         m = max(a, b, c)
         t = ColorNum((a/m, b/m, c/m))
@@ -568,7 +623,6 @@ if __name__ == "__main__":
         raises(TypeError, ColorNum, [D("4"), 4, 4])
         raises(TypeError, ColorNum, [4.0, 4, 4])
         raises(TypeError, ColorNum, [F(4, 1), 4, 4])
-        raises(ValueError, ColorNum, [-4, 4, 4])
         raises(ValueError, ColorNum, "#0000000")
         raises(ValueError, ColorNum, "#00000g")
         raises(ValueError, ColorNum, "@00000g")
