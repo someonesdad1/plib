@@ -11,7 +11,15 @@
               method raises an exception.
                 - Once converted to immutable, it can't be changed back to
                   mutable
-            - Metric methods to determine closeness in a color space
+            - Metric attributes to determine closeness in a color space
+                - Makes it easy to choose the sorting key for sorting the
+                  colors in some way.
+                - Even easier:  these attributes would be
+                  mutually-exclusive booleans.  They would control how
+                  __lt__ responds.
+                - This might require a Color object container to avoid e.g.
+                  having to set a class variable.  ColorDict might be nice,
+                  as the keys could be color names.
         - Clr object provides 
             - ANSI escape codes for terminal output
             - Color styles as attributes
@@ -33,6 +41,10 @@ TODO
     - Rename ColorNum to Color
     - Color:  fundamental type to represent a 24-bit color
         - Make constructor take as wide a variety of forms as possible
+            - Class method Construct() returns a Color instance if the 
+              argument was recognized or returns None.  This allows for 
+              fast processing of lines from text files.  See rgb/cdec.py
+              for the needed regexps.
             - Color(*p)
             - Sequence of 3 numbers or bytes
                 - If byte in [0, 255], use directly

@@ -52,9 +52,9 @@ if 1:   # Utility
           normalized by dividing by the largest value.  The absolute value
           of each number is taken.
         Options:
-            -@      hex digits represent HSV (hue, saturation, value)
-            -#      hex digits represent RGB (red, green, blue) [default]
-            -$      hex digits represent HLS (hue, lightness, saturation)
+            -@      Hex digits represent HSV (hue, saturation, value)
+            -#      Hex digits represent RGB (red, green, blue) [default]
+            -$      Hex digits represent HLS (hue, lightness, saturation)
         '''))
         exit(status)
     def ParseCommandLine(d):

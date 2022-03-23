@@ -40,12 +40,13 @@ if 1:  # Copyright, license
     #∞test∞# #∞test∞#
     pass
 if 1:   # Standard imports
+    from collections import deque
+    from pathlib import Path as P
+    from pdb import set_trace as xx
     import getopt
     import os
-    from pathlib import Path as P
     import re
     import sys
-    from pdb import set_trace as xx
 if 1:   # Custom imports
     from wrap import wrap, dedent
     from clr import Clr
@@ -54,113 +55,142 @@ if 1:   # Custom imports
 if 1:   # Global variables
     ii = isinstance
     c = Clr(override=True)
+    class g: pass   # Hold global variables
+    c.dbg = c("wht", "blu")
 if 1:   # Utility
+    def Dbg(*p, **kw):
+        'Print in debug colors if d["-D"] is True'
+        if not d["-D"]:
+            return
+        print(f"{c.dbg}", end="")
+        k = kw.copy()
+        if "end" in k:
+            k["end"] += c.n
+        else:
+            k["end"] = c.n + "\n"
+        print(*p, **k)
     def Error(*msg, status=1):
         print(*msg, file=sys.stderr)
         exit(status)
     def Usage(status=1):
+        c.t = c("mag") #xx Current ToDo item
+        c.i = c("lblk") #xx Ignored for the moment
+        c.d = c("blk") #xx Done
         print(dedent(f'''
-
-        Change interface:
-            
-            file1 [file2 ...]
-
-        Examine lines for color specifiers.  Print out line in that color
-        if found.  '-' means read stdin.
-
-        -r regexp       regexp to search for.  Can have more than one (they
-                        are OR'd together).
-        -v regexp       Remove lines with this regexp         
-        -@, -#, -$      Force usage of this color space except for hex strings
-        -d              Print out details of color:  coordinates in various
-                        color spaces, wavelength, name matches if -n used
-        -n file         Name file to read in.  See -h for details.
-
-        -s arg          Specify sort order:  rgb, hsv, hls.  When this
-                        option is used, all lines are saved and sorted at
-                        the end, so large amounts of data might run out of
-                        memory.
-
-
         Usage:  {sys.argv[0]} [options] file1 [file2...]
-          Search the lines of the files for color specifiers and print out
-          those lines found in the color specified.  Use '-' to read from
-          stdin.
+          Search the lines of the file(s) for color specifiers and print matching
+          lines found in the color specified.  Use '-' to read from stdin.  Regular
+          expressions are OR's together.
         Options:
-            -@      Force use of HSV color space
-            -#      Force use of RGB color space [default]
-            -$      Force use of HLS color space
-            -d      Print color's details
-            -h      More detailed help and examples
-            -i      Prompt interactively for input lines
-            -r x    Search for regexp x in lines (-r's OR'd)
-            -s s    Sort order:  'rgb', 'hsv', or 'hls'
+            {c.i}-@      Force use of HSV color space{c.n}
+            {c.i}-#      Force use of RGB color space [default]{c.n}
+            {c.i}-$      Force use of HLS color space{c.n}
+            {c.i}-d      Print details on the color{c.n}
+            {c.d}-h      More help and examples{c.n}
+            {c.i}-i      Prompt interactively for input lines{c.n}
+            {c.t}-r x    Search for case-insensitive regexp x in lines{c.n}
+            {c.i}-R x    Search for case-sensitive regexp x in lines{c.n}
+            {c.i}-s s    How to sort output:  'rgb', 'hsv', or 'hls'.  The{c.n}
+                    default is to print in the order the lines were read.
         '''))
         exit(status)
     def Manpage():
         n = sys.argv[0]
         print(dedent(f'''
+        Basic use
+        ---------
+
+        The primary use case of this script is to browse color files in your
+        terminal program.  To examine the colors in an XWindows rgb.txt file, use
+
+            {n} rgb.txt | less
+
+        assuming your less program recognizes ANSI escape sequences and you have a
+        24-bit color terminal program.  To limit the lines to a subset, you can use
+        one or more regular expressions with the -r option.  For example, to see
+        only lines with 'lilac' or 'purple' in them, use
+
+            {n} -r lilac -r purple rgb.txt | less
  
-        This script is a utility for recognizing and printing  typical
-        color specifications.  For a simple example, run the script as
- 
-            python {n} '(199, 159, 239) This is some sample text'
-  
-        and you'll see the input string printed in the RGB color it represents.  
- 
-        You can examine a number of lines in a file in the color they represent.
-        Using the rgbdata.py file which has thousands of color names defined in it,
-        we can get a colorized listing of some of the lines at the beginning of the
-        file:
- 
-            head -50 rgbdata.py | python {n} -
- 
-        The '-' as the single argument means to read the lines from stdin.
- 
-        We can do something similar but more specific by using the -f option to
-        specify an input file.  In this case, the arguments on the command line
-        become case-insensitive regular expressions to search for in the input file;
-        when a color specification is found, it is printed out in its color.  For
-        example:
- 
-            python {n} -f rgbdata.py lilac
- 
-        shows the lines in rgbdata.py that use the string 'lilac' in the color.
- 
-        
+        How it works
+        ------------
+
+        If you want to see how the program works, use the following example.  Put
+        the following line in a file 'test':
+
+            dark pink  203 65 107
+
+        Insert a suitable breakpoint() call and invoke the program
+
+            {n} test
+
+        and the line should be printed to stdout in the color the RGB numbers that
+        (203, 65, 107) represent.
+
         '''.rstrip()))
         exit(0)
-
     def ParseCommandLine(d):
-        d["-a"] = False     # Show all report data
-        d["-e"] = False     # Show equivalent RGB, HSV, HLS data
-        d["-f"] = None      # Input file
+        d["-@"] = False     # Force use of HSV space
+        d["-#"] = True      # Force use of RGB space
+        d["-$"] = False     # Force use of HLS space
+        d["-D"] = False     # Debug printing
+        d["-d"] = False     # Show color details
         d["-i"] = False     # Interactive
-        d["-m"] = False     # Show matching names
-        d["-s"] = False     # Search for regexps
-        d["-w"] = False     # Show wavelength
+        d["-R"] = []        # Case-sensitive regexp
+        d["-r"] = []        # Case-insensitive regexp
+        d["-s"] = None      # How to sort output
         if len(sys.argv) < 2:
             Usage()
         try:
-            opts, args = getopt.getopt(sys.argv[1:], "@aef:himsw", "help")
+            opts, args = getopt.getopt(sys.argv[1:], "@#$DdiR:r:s:", "help")
         except getopt.GetoptError as e:
             print(str(e))
             exit(1)
         for o, a in opts:
-            if o[1] in list("@aeimsw"):
+            if o[1] in list("@#$Ddi"):
                 d[o] = not d[o]
-            elif o == "-f":
-                d[o] = a
+            elif o == "-R":
+                d[o] = re.compile(a)
+            elif o == "-r":
+                d[o] = re.compile(a, re.I)
+            elif o == "-s":
+                allowed = "rgb hsv hls"
+                if a not in allowed.split():
+                    Error(f"'{a}' not in {allowed.split()}")
+                d[o] = s
             elif o in ("-h", "--help"):
                 Manpage()
-        if d["-a"]:
-            d["-e"] = d["-m"] = d["-w"] = True
-        if d["-f"] is not None:
-            d["-s"] = True
-        if d["-s"]:
-            d["-e"] = d["-m"] = d["-w"] = False
+        # Color space options are exclusive
+        if d["-@"]:
+            d["-#"] = d["-$"] = False
+        elif d["-#"]:
+            d["-@"] = d["-$"] = False
+        elif d["-$"]:
+            d["-@"] = d["-#"] = False
         return args
 if 1:   # Core functionality
+    def GetColorRegexps():
+        'Return tuple of regexps to use to recognize color identifiers'
+        R = re.compile
+        # Recognize an integer or float
+        s = r'''
+                (                               # Group
+                    # First is for numbers like .234
+                    [+-]?                       # Optional sign
+                    \.\d+
+                    ([eE][+-]?\d+)?             # Optional exponent
+                  |                             # or
+                    # This is for integers or 2.3 or 2.3e4
+                    [+-]?                       # Optional sign
+                    \d+\.?\d*                   # Number:  2.345
+                    ([eE][+-]?\d+)?             # Optional exponent
+                )                               # End group
+        '''
+        regexps = (
+            R(r"([@#$][0-9a-f]{6})", re.I|re.X),     # [@#$]xxyyzz form
+            R(f"({s},\s*{s},\s*{s})", re.I|re.X),    # Three integers or floats
+        )
+        return regexps
     def Convert(s):
         try:
             cn = ColorNum(s)
@@ -173,32 +203,6 @@ if 1:   # Core functionality
                 return cn
             except Exception:
                 return None
-    def Report(line, cn):
-        if cn is None:
-            print(f"'{line}' unrecognized", file=sys.stderr)
-            return
-        w, i = 15, " "*4
-        # Print the input string in the line's color
-        print(f"{c(cn.rgbhex)}{line}{c.n}")
-        if d["-e"]:
-            print(dedent(f'''
-                {i}RGB:  {cn.rgbhex} {cn.RGB!s:{w}s} {cn.rgb}
-                {i}HSV:  {cn.hsvhex} {cn.HSV!s:{w}s} {cn.hsv}
-                {i}HLS:  {cn.hlshex} {cn.HLS!s:{w}s} {cn.hls}
-            ''', n=15))
-        # See if we can find a name match in color_data
-        if d["-m"]:
-            rgb = cn.RGB
-            matches = []
-            for attr, name, color in color_data:
-                cndata = [i for i in list(color._rgb)]
-                if tuple(cndata) == tuple(rgb):
-                    matches.append(name)
-            if matches:
-                print(f"{i}Matching color names in rgbdata.py:")
-                for m in sorted(set(matches)):
-                    print(f"{i*2}{m}")
-        return 0
     def Interactive():
         while True:
             s = input("Color specifier? ")
@@ -210,7 +214,7 @@ if 1:   # Core functionality
         exit()
     def ExamineLine(line):
         "Inspect the line; if there's a valid expression, return it"
-        for r in regexps:
+        for r in g.color_regexps:
             mo = r.search(line)
             if mo:
                 s = mo.groups()[0]
@@ -235,61 +239,57 @@ if 1:   # Core functionality
             if s:
                 cn = Convert(s)
                 Report(ln, cn)
-    def Search(s):
-        'Find s in rgbdata and print out line if found'
-        r = re.compile(r"{}".format(s), re.I)
-        lines = [i.strip() for i in open("rgbdata.py").readlines()]
-        for line in lines:
-            mo = r.search(line)
-            if not mo:
-                continue
-            s = ExamineLine(line)
-            if s:
-                cn = Convert(s)
-                Report(line, cn)
-    def GetRegularExpressions():
-        'Return tuple of regexps to use to recognize color identifiers'
-        R = re.compile
-        # Recognize an integer or float
-        s = r'''
-                (                               # Group
-                    # First is for numbers like .234
-                    [+-]?                       # Optional sign
-                    \.\d+
-                    ([eE][+-]?\d+)?             # Optional exponent
-                  |                             # or
-                    # This is for integers or 2.3 or 2.3e4
-                    [+-]?                       # Optional sign
-                    \d+\.?\d*                   # Number:  2.345
-                    ([eE][+-]?\d+)?             # Optional exponent
-                )                               # End group
+    def Search(file):
+        '''Put lines to be decorated in the deque g.out.  The structure put
+        into the deque is (line, matched_string).  The trailing whitespace
+        of the line is stripped.
         '''
-        regexps = (
-            R(r"([@#$][0-9a-f]{6})", re.I|re.X),     # [@#$]xxyyzz form
-            R(f"({s},\s*{s},\s*{s})", re.I|re.X),    # Three integers or floats
-        )
-        return regexps
+        keep = deque()
+        for line in open(file).readlines():
+            line = line.rstrip()
+            Dbg(f"Read '{line}'")
+            candidate = ''
+            for r in g.color_regexps:
+                mo = r.search(line)
+                if mo:
+                    candidate = mo.groups()[0]
+                    Dbg(f"  Matched '{candidate}'")
+                    break
+            if candidate:
+                # This line contains a color specifier
+                keep.append((line, candidate))
+        # If -R or -r given, filter out lines that don't match
+        regexps = d["-R"] + d["-r"]
+        if regexps:
+            while keep:
+                line, candidate = keep.popleft()
+                for r in regexps:
+                    found = False
+                    mo = r.search(line)
+                    if mo:
+                        found = True
+                        Dbg(f"  Matched -r or -R regexp, so keep")
+                        break
+                if found:
+                    g.out.append((line, candidate))
+                    continue
+        else:
+            g.out = keep
+    def Report():
+        for i in g.out:
+            print(i)
 
 if __name__ == "__main__":
-    regexps = GetRegularExpressions()
-    d = {"-e":"", "-m":""}      # Options dictionary
-    if 0:  # Debugging code
-        dbg = '''
-        (9, 'cloudy blue', Color((172, 194, 217))),
-        (9, 'dark pastel green', Color(( 86, 174,  87))),
-        '''
-        FromStdin(dbg=dbg)
-        exit()
-    args = ParseCommandLine(d)
-    if len(args) == 1 and args[0] == "-":
+    g.color_regexps = GetColorRegexps()
+    g.out = deque()     # Container for the lines to output
+    d = {}              # Options dictionary
+    files = ParseCommandLine(d)
+    if len(files) == 1 and files[0] == "-":
         FromStdin()
         exit(0)
     if d["-i"]:
         Interactive()
-    elif d["-s"]:
-        for i in args:
-            Search(i)
     else:
-        for i in args:
-            cn = Convert(i)
-            Report(i, cn)
+        for file in files:
+            Search(file)
+        Report()
