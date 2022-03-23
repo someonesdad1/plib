@@ -299,7 +299,7 @@ if 1:   # Classes
         @property
         def rgb(self):
             'Get rgb in float form'
-            return tuple(self._rgb)
+            return tuple([round(i/255, 4) for i in self._rgb])
         @property
         def rgbhex(self):
             'Get rgb in hex string form'

@@ -139,7 +139,7 @@ if 1:   # Core functionality
                 {i}RGB:  {cn.rgbhex} {cn.RGB!s:{w}s} {cn.rgb}
                 {i}HSV:  {cn.hsvhex} {cn.HSV!s:{w}s} {cn.hsv}
                 {i}HLS:  {cn.hlshex} {cn.HLS!s:{w}s} {cn.hls}
-            '''))
+            ''', n=15))
         # See if we can find a name match in color_data
         if d["-m"]:
             rgb = cn.RGB

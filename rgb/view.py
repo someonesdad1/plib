@@ -4,7 +4,9 @@ Dump the colors in rgbdata.py's list to stdout
     24-bit color terminal.  In a mintty terminal full-screen on cygwin with
     548 columns and 157 lines, all 6743 of these colored strings are shown
     at the same time on my 4k monitor (there are over 10000 in the
-    rgbdata.py file, but there are many duplicates.  They are sorted by HSV numbers.
+    rgbdata.py file, but there are many duplicates.  They are sorted by HSV
+    numbers.
+
 '''
  
 if 1:  # Copyright, license
