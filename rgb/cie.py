@@ -1,11 +1,33 @@
 '''
 
 Color transformations 
+    - Here, LAB means CIE's L*a*b*, not Hunter's LAB
     - References
+        - [hyperp1] http://hyperphysics.phy-astr.gsu.edu/hbase/vision/colper.html
+            - Overview of color perception
+        - [hyperp2] http://hyperphysics.phy-astr.gsu.edu/hbase/vision/cieprim.html
+            - An overview of the 1931 CIE primary XYZ tristimulus values.
+              Properties
+                - X, Y, and Z are alays positive
+                - Any color can be represented by these three numbers
+                - Equal values of X, Y, Z produce white
+                - Y determines the luminance of the color
+                - Related to sensitivity of human eye
+                - The color matching functions (CMF) let you derive X, Y, Z by
+                  multiplying the CMF at each wavelength by the 
+                  spectral power distribution (SPD, derived
+                  e.g. from a spectrophotometer), summing, and normalizing.
+                  Note z = 1 - x - y, so x and y are the relevant color
+                  coordinates.
+                - Result is x, y, and Y for the luminance.
+                - Y is luminance, which is radiant flux power weighted by
+                  the sensitivity of the human eye, giving luminous flux in
+                  lumens.
         - [poyn] Poynton's ColorFAQ.pdf.
         - [kon]
           https://sensing.konicaminolta.us/us/learning-center/color-measurement/color-spaces/
         - [wplab] https://en.wikipedia.org/wiki/CIELAB_color_space
+        - [efg] http://ultra.sdk.free.fr/docs/Image-Processing/Colors/Format/Chromaticity%20Diagrams%20Lab%20Report.htm
 
 '''
 from pdb import set_trace as xx 
@@ -34,7 +56,7 @@ if 1:   # Core functionality
         r3 = (0.019334, 0.119193, 0.950227)
         Assert(sum(r2) == 1)
         XYZ = Dot(r1, rgb), Dot(r2, rgb), Dot(r3, rgb)
-        return XYZ
+        return tuple([round(i, 6) for i in XYZ])
     def XYZ_to_rgb(XYZ):
         'XYZ is a 3-tuple of numbers'
         # [poyn] pg 10
@@ -43,9 +65,17 @@ if 1:   # Core functionality
         r2 = (-0.969256, 1.875992, 0.041556)
         r3 = (0.055648, -0.204043, 1.057311)
         rgb = Dot(r1, XYZ), Dot(r2, XYZ), Dot(r3, XYZ)
-        # Clamp to [0, 1]
+        # Clamp to [0, 1].  I'm also rounding to 6 places because that's
+        # the resolution of the transformation matrix's values.
         rgb = [float(round(Clamp(i), 6)) for i in rgb]
         return tuple(rgb)
+    def XYZ_to_xyz(XYZ):
+        # CIE 1931 xyz values
+        # [efg] under first chromaticity diagram
+        s = sum(XYZ)
+        xyz = [float(i/s) for i in XYZ]
+        Assert(sum(xyz) == 1)
+        return xyz
     def XYZ_to_xy(XYZ):
         t = sum(XYZ)
         return (XYZ[0]/t, XYZ[1]/t)
@@ -75,8 +105,52 @@ if 1:   # Core functionality
         c = (L + 16)/116
         Y = Yn*g(c)
         Z = Zn*g(c - b/200)
+    def xyz_to_uv(xyz):
+        # [efg] under 1960 CIE chromaticity diagram
+        x, y, z = xyz
+        s = -2*x + 12*y + 3
+        u = 4*x/s
+        v = 6*y/s
+        return u, v
+    def XYZ_to_uv(XYZ):
+        # [efg] under 1960 CIE chromaticity diagram
+        X, Y, Z = XYZ
+        s = X + 15*Y + 3*Z
+        u = 4*X/s
+        v = 6*Y/s
+        return u, v
+    def uv_to_xy(uv):
+        # [efg] under 1960 CIE chromaticity diagram
+        s = 2*u - 8*v + 4
+        x = 3*u/s
+        y = 2*v/s
+        return x, y
+    def u1v1_to_xyz(u1v1):
+        # [efg] under 1976 CIE u'v' chromaticity diagram
+        u1, v1 = u1v1
+        s = 6*u1 - 16*v1 + 12
+        x = 9*u1/s
+        y = 4*v1/s
+        z = (-3*u1 - 20*v1 + 12)/s
+        return x, y, z
+    def XYZ_to_u1v1(XYZ):
+        # [efg] under 1976 CIE u'v' chromaticity diagram
+        X, Y, Z = XYZ
+        s = X + 15*Y + 3*Z
+        u1 = 4*X/s
+        v1 = 9*Y/s
+        return u1, v1
+        
 
-if 1:   # Test functions
+if 0:
+    Check();exit()
+    rgb = 1.0, 1.0, 1.0
+    XYZ = rgb2XYZ(rgb)
+    RGB = XYZ2rgb(XYZ)
+    Assert(rgb == RGB)
+    exit()
+
+if __name__ == "__main__": 
     def Test_XYZ_to_rgb():
         # [poyn] pg 9
         r = XYZ_to_rgb((0.64, 0.33, 0.03))
@@ -88,14 +162,4 @@ if 1:   # Test functions
         Assert(b == (0, 0, 0.83138))
         a = 0.329
         Assert(w == (a, a, a))
-
-if 0:
-    Check();exit()
-    rgb = 1.0, 1.0, 1.0
-    XYZ = rgb2XYZ(rgb)
-    RGB = XYZ2rgb(XYZ)
-    Assert(rgb == RGB)
-    exit()
-
-if __name__ == "__main__": 
     exit(run(globals(), halt=True)[0])
