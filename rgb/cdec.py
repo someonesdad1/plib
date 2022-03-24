@@ -1,62 +1,61 @@
 '''
 Decorate color specifications
-    Forms that must be recognized:
-        i = integer on [0, 255], 
-        d = real on [0, 1]
-            .123
-            0.123
-
-        Hex string form @#$xxyyzz
-        Single integer on interval [0, 2**24)
-        i i i    or    i, i, i     or   i; i; i
-        d d d    or    d, d, d     or   d; d; d
-
-Need a color difference metric.  
-
-    - https://en.wikipedia.org/wiki/Color_difference
-    - http://markfairchild.org/PDFs/PAP40.pdf is an academic paper that's
-      pretty good.  However, I hate that they use a biased sample for color
-      judging (typical of all lazy academics, they used students and staff
-      members).
-    - Explore the use of wavelength.  This has the advantage over hue of
-      not wrapping around.  Empirically, I'd judge λls (wavelength,
-      lightness, saturation) as a good starting point with suitable
-      weighting factors.
-
+    - Forms that must be recognized:
+        - i = integer on [0, 255], 
+        - d = real on [0, 1]
+            - .123
+            - 0.123
+        - Hex string form @#$xxyyzz
+        - Single integer on interval [0, 2**24)
+            - i i i    or    i, i, i     or   i; i; i
+            - d d d    or    d, d, d     or   d; d; d
+    - Need a color difference metric  
+        - https://en.wikipedia.org/wiki/Color_difference
+        - http://markfairchild.org/PDFs/PAP40.pdf is an academic paper
+          that's pretty good.  However, I hate that they use a biased
+          sample for color judging (typical of all lazy academics, they
+          used students and staff members).
+        - Explore the use of wavelength.  This has the advantage over hue
+          of not wrapping around.  Empirically, I'd judge λls (wavelength,
+          lightness, saturation) as a good starting point with suitable
+          weighting factors.
 
 '''
  
-if 1:  # Copyright, license
-    # These "trigger strings" can be managed with trigger.py
-    #∞copyright∞# Copyright (C) 2022 Don Peterson #∞copyright∞#
-    #∞contact∞# gmail.com@someonesdad1 #∞contact∞#
-    #∞license∞#
-    #   Licensed under the Open Software License version 3.0.
-    #   See http://opensource.org/licenses/OSL-3.0.
-    #∞license∞#
-    #∞what∞#
-    # Decorate color specifications
-    #∞what∞#
-    #∞test∞# #∞test∞#
-    pass
-if 1:   # Standard imports
-    from collections import deque
-    from pathlib import Path as P
-    from pdb import set_trace as xx
-    import getopt
-    import os
-    import re
-    import sys
-if 1:   # Custom imports
-    from wrap import wrap, dedent
-    from clr import Clr
-    from rgb import ColorNum
-    from rgbdata import color_data
-if 1:   # Global variables
-    ii = isinstance
-    c = Clr(override=True)
-    class g: pass   # Hold global variables
-    c.dbg = c("wht", "blu")
+if 1:   # Header
+    if 1:   # Copyright, license
+        # These "trigger strings" can be managed with trigger.py
+        #∞copyright∞# Copyright (C) 2022 Don Peterson #∞copyright∞#
+        #∞contact∞# gmail.com@someonesdad1 #∞contact∞#
+        #∞license∞#
+        #   Licensed under the Open Software License version 3.0.
+        #   See http://opensource.org/licenses/OSL-3.0.
+        #∞license∞#
+        #∞what∞#
+        # Decorate color specifications
+        #∞what∞#
+        #∞test∞# #∞test∞#
+        pass
+    if 1:   # Standard imports
+        from collections import deque
+        from pathlib import Path as P
+        from pdb import set_trace as xx
+        import getopt
+        import os
+        import re
+        import sys
+    if 1:   # Custom imports
+        from wrap import wrap, dedent
+        from clr import Clr
+        from rgb import ColorNum
+        from rgbdata import color_data
+        from wl2rgb import rgb2wl
+    if 1:   # Global variables
+        ii = isinstance
+        c = Clr(override=True)
+        class g: pass   # Hold global variables
+        c.dbg = c("wht", "blu")
+        g.duplicates = set()
 if 1:   # Utility
     def Dbg(*p, **kw):
         'Print in debug colors if d["-D"] is True'
@@ -71,28 +70,6 @@ if 1:   # Utility
         print(*p, **k)
     def Error(*msg, status=1):
         print(*msg, file=sys.stderr)
-        exit(status)
-    def Usage(status=1):
-        c.t = c("mag") #xx Current ToDo item
-        c.i = c("lblk") #xx Ignored for the moment
-        c.d = c("blk") #xx Done
-        print(dedent(f'''
-        Usage:  {sys.argv[0]} [options] file1 [file2...]
-          Search the lines of the file(s) for color specifiers and print matching
-          lines found in the color specified.  Use '-' to read from stdin.  Regular
-          expressions are OR's together.
-        Options:
-            {c.i}-@      Force use of HSV color space{c.n}
-            {c.i}-#      Force use of RGB color space [default]{c.n}
-            {c.i}-$      Force use of HLS color space{c.n}
-            {c.i}-d      Print details on the color{c.n}
-            {c.d}-h      More help and examples{c.n}
-            {c.i}-i      Prompt interactively for input lines{c.n}
-            {c.t}-r x    Search for case-insensitive regexp x in lines{c.n}
-            {c.i}-R x    Search for case-sensitive regexp x in lines{c.n}
-            {c.i}-s s    How to sort output:  'rgb', 'hsv', or 'hls'.  The{c.n}
-                    default is to print in the order the lines were read.
-        '''))
         exit(status)
     def Manpage():
         n = sys.argv[0]
@@ -129,12 +106,35 @@ if 1:   # Utility
 
         '''.rstrip()))
         exit(0)
+    def Usage(status=1):
+        c.t = c("mag") #xx Current ToDo item
+        c.i = c("lblk") #xx Ignored for the moment
+        c.d = c("blk") #xx Done
+        print(dedent(f'''
+        Usage:  {sys.argv[0]} [options] file1 [file2...]
+          Search the lines of the file(s) for color specifiers and print matching
+          lines found in the color specified.  Use '-' to read from stdin.  Regular
+          expressions are OR'd together.
+        Options:
+            {c.i}-@      Force use of HSV color space{c.n}
+            {c.i}-#      Force use of RGB color space{c.n}
+            {c.i}-$      Force use of HLS color space{c.n}
+            {c.t}-d      Print details on the color{c.n}
+            -e      Eliminate duplicates
+            {c.d}-h      More help and examples{c.n}
+            {c.i}-i      Prompt interactively for input lines{c.n}
+            -r x    Search for case-insensitive regexp x in lines
+            -R x    Search for case-sensitive regexp x in lines
+            -s s    Sort output by 'rgb', 'hsv', or 'hls'
+        '''))
+        exit(status)
     def ParseCommandLine(d):
         d["-@"] = False     # Force use of HSV space
         d["-#"] = True      # Force use of RGB space
         d["-$"] = False     # Force use of HLS space
         d["-D"] = False     # Debug printing
         d["-d"] = False     # Show color details
+        d["-e"] = False     # Eliminate duplicates
         d["-i"] = False     # Interactive
         d["-R"] = []        # Case-sensitive regexp
         d["-r"] = []        # Case-insensitive regexp
@@ -142,22 +142,22 @@ if 1:   # Utility
         if len(sys.argv) < 2:
             Usage()
         try:
-            opts, args = getopt.getopt(sys.argv[1:], "@#$DdiR:r:s:", "help")
+            opts, args = getopt.getopt(sys.argv[1:], "@#$DdeiR:r:s:", "help")
         except getopt.GetoptError as e:
             print(str(e))
             exit(1)
         for o, a in opts:
-            if o[1] in list("@#$Ddi"):
+            if o[1] in list("@#$Ddei"):
                 d[o] = not d[o]
             elif o == "-R":
-                d[o] = re.compile(a)
+                d[o].append(re.compile(a))
             elif o == "-r":
-                d[o] = re.compile(a, re.I)
+                d[o].append(re.compile(a, re.I))
             elif o == "-s":
-                allowed = "rgb hsv hls"
+                allowed = "rgb hsv hls wl"
                 if a not in allowed.split():
                     Error(f"'{a}' not in {allowed.split()}")
-                d[o] = s
+                d[o] = a
             elif o in ("-h", "--help"):
                 Manpage()
         # Color space options are exclusive
@@ -168,6 +168,55 @@ if 1:   # Utility
         elif d["-$"]:
             d["-@"] = d["-#"] = False
         return args
+if 0:   # Not being used at the moment
+    def Convert(s):
+        try:
+            cn = ColorNum(s)
+            return cn
+        except Exception:
+            # See if it's a string form of a sequence
+            try:
+                t = eval(s)
+                cn = ColorNum(t)
+                return cn
+            except Exception:
+                return None
+    def ExamineLine(line):
+        "Inspect the line; if there's a valid expression, return it"
+        for r in g.color_regexps:
+            mo = r.search(line)
+            if mo:
+                s = mo.groups()[0]
+                if s[0] in "@#$":
+                    return s
+                else:
+                    return f"({s})"
+        return None
+    def Interactive():
+        while True:
+            s = input("Color specifier? ")
+            if s == "q":
+                exit(0)
+            cn = Convert(s)
+            Report(s, cn)
+            print()
+        exit()
+    def FromStdin(dbg=None):
+        '''Look for three integer numbers, 3 floats, or hex strings
+        beginning with @, #, or $.
+        '''
+        if dbg:
+            lines = dbg.split("\n")
+        else:
+            lines = sys.stdin.readlines()
+        for line in lines:
+            if not line:
+                continue
+            ln = line.strip()
+            s = ExamineLine(ln)
+            if s:
+                cn = Convert(s)
+                Report(ln, cn)
 if 1:   # Core functionality
     def GetColorRegexps():
         'Return tuple of regexps to use to recognize color identifiers'
@@ -191,57 +240,24 @@ if 1:   # Core functionality
             R(f"({s},\s*{s},\s*{s})", re.I|re.X),    # Three integers or floats
         )
         return regexps
-    def Convert(s):
-        try:
-            cn = ColorNum(s)
-            return cn
-        except Exception:
-            # See if it's a string form of a sequence
-            try:
-                t = eval(s)
-                cn = ColorNum(t)
-                return cn
-            except Exception:
-                return None
-    def Interactive():
-        while True:
-            s = input("Color specifier? ")
-            if s == "q":
-                exit(0)
-            cn = Convert(s)
-            Report(s, cn)
-            print()
-        exit()
-    def ExamineLine(line):
-        "Inspect the line; if there's a valid expression, return it"
-        for r in g.color_regexps:
-            mo = r.search(line)
-            if mo:
-                s = mo.groups()[0]
-                if s[0] in "@#$":
-                    return s
-                else:
-                    return f"({s})"
-        return None
-    def FromStdin(dbg=None):
-        '''Look for three integer numbers, 3 floats, or hex strings
-        beginning with @, #, or $.
-        '''
-        if dbg:
-            lines = dbg.split("\n")
+    def GetColor(match):
+        'Return a ColorNum instance for the matching string'
+        match = match.strip()
+        if match[0] in "@#$":
+            cn = ColorNum(match)
+        elif "," in match:
+            a = eval(f"({match})")
+            cn = ColorNum(a)
         else:
-            lines = sys.stdin.readlines()
-        for line in lines:
-            if not line:
-                continue
-            ln = line.strip()
-            s = ExamineLine(ln)
-            if s:
-                cn = Convert(s)
-                Report(ln, cn)
+            if "." in match:
+                a = [float(i) for i in match.split()]
+            else:
+                a = [int(i) for i in match.split()]
+            cn = ColorNum(a)
+        return cn
     def Search(file):
         '''Put lines to be decorated in the deque g.out.  The structure put
-        into the deque is (line, matched_string).  The trailing whitespace
+        into the deque is (line, ColorNum).  The trailing whitespace
         of the line is stripped.
         '''
         keep = deque()
@@ -257,7 +273,11 @@ if 1:   # Core functionality
                     break
             if candidate:
                 # This line contains a color specifier
-                keep.append((line, candidate))
+                cn = GetColor(candidate)
+                if cn.rgbhex in g.duplicates and d["-e"]:
+                    continue
+                g.duplicates.add(cn.rgbhex)
+                keep.append((line, GetColor(candidate)))
         # If -R or -r given, filter out lines that don't match
         regexps = d["-R"] + d["-r"]
         if regexps:
@@ -276,8 +296,30 @@ if 1:   # Core functionality
         else:
             g.out = keep
     def Report():
+        def F(seq):
+            if ii(seq[0], int):
+                return ', '.join([f"{i:3d}" for i in seq])
+            else:
+                n = ColorNum.n
+                return ', '.join([f"{i:{2 + n}.{n}f}" for i in seq])
+        for line, cn in g.out:
+            print(f"{c(cn.rgbhex)}{line}{c.n}")
+            if d["-d"]:
+                # Print details
+                i = " "*4
+                print(f"{i}RGB: {cn.rgbhex} ({F(cn.RGB)}) ({F(cn.rgb)})")
+                print(f"{i}HSV: {cn.hsvhex} ({F(cn.HSV)}) ({F(cn.hsv)})")
+                print(f"{i}HLS: {cn.hlshex} ({F(cn.HLS)}) ({F(cn.hls)})")
+                print(f"{i}λ = {rgb2wl(cn)} nm")
+    def Sort():
+        'Sort the data to be printed in g.out'
+        # Set the sort order for the ColorNum instances
+        if d["-s"] is None:
+            return
         for i in g.out:
-            print(i)
+            i[1].sort = d["-s"]
+        f = lambda x: x[1]
+        g.out = sorted(g.out, key=f)
 
 if __name__ == "__main__":
     g.color_regexps = GetColorRegexps()
@@ -292,4 +334,5 @@ if __name__ == "__main__":
     else:
         for file in files:
             Search(file)
+        Sort()
         Report()

@@ -215,7 +215,7 @@ if 1:   # Classes
         Use attributes to get other forms:  HLS (hue, lightness, saturation)
         and HSV (hue, saturation, value).
         '''
-        n = 4   # Number of decimal digits to round floats to
+        n = 3   # Number of decimal digits to round floats to
         def __init__(self, x):
             '''Initialize in various ways:
                 ColorNum(x)                 x is ColorNum instance
@@ -294,6 +294,7 @@ if 1:   # Classes
                 assert(all([0 <= i <= 1 for i in u]))
                 # Convert the numbers to floats to four places
                 self._rgb = tuple([round(float(i), ColorNum.n) for i in u])
+                self.sort = "hls"
         def __str__(self):
             'Show components as decimal fractions'
             r, g, b = self._rgb
@@ -305,14 +306,27 @@ if 1:   # Classes
             return f"ColorNum({r!r:3d}, {g!r:3d}, {b!r:3d})"
         def __eq__(self, other):
             'Equal if components match to 6 decimal places'
-            # Six places feels to be a good compromise for numerical
-            # accuracy and to not to have too much useless resolution.
             if not ii(other, ColorNum):
                 raise TypeError("'other' must be a ColorNum instance")
             n = ColorNum.n
             me  = [round(i, n) for i in self._rgb]
             you = [round(i, n) for i in other._rgb]
             return bool(me == you)
+        def __lt__(self, other):
+            'Compare self and other for sorting'
+            if self.sort == "hls":
+                return self.hsv < other.hsv
+            elif self.sort == "rgb":
+                return self.rgb < other.rgb
+            elif self.sort == "hsv":
+                return self.hls < other.hls
+            elif self.sort == "wl":
+                raise Exception("Not implemented yet")
+                # Need to decide on algorithm
+            else:
+                raise ValueError("self.sort not one of 'hls rgb hsv wl'")
+        def __hash__(self):
+            return id(self)
         def interpolate(self, other, t, typ="rgb"):
             '''Interpolate between two colors:  self and other.  t is a
             parameter on [0, 1].  If t is 0, you'll get back self and if t

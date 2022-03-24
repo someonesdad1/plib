@@ -1,5 +1,10 @@
 main
 
+    - hdr
+        - Change to have the copyright, imports, and globals
+          all under one 'if 1:' statement to get things a little more
+          compact.
+
     - rgb.py
         - Remove rgb.Color and rename ColorNum to Color.
         - Color:  fundamental type to represent a 24-bit color
