@@ -1,8 +1,28 @@
 '''
 
-Color transformations 
+Color coordinates and transformations 
     - Here, LAB means CIE's L*a*b*, not Hunter's LAB
+    - XYZ
+        - CIE 1930 tristimulus values representing the amount of blue,
+          green, and red gotten from an integration of the physical PSD
+          with the three human response functions for blue, green, and red
+    - xyY
+        - Transformed XYZ by x = X/s, y = Y/s, s = sum(X, Y, Z)
+        - Y represents the intensity of the light, regardless of color
+        - x, y represent the chromaticity (hue)
     - References
+        - [cie1931] https://en.wikipedia.org/wiki/CIE_1931_color_space
+            - Results from experiments in late 1920's (D. Wright, 10
+              observers; J. Guild, 7 observers).
+            - Relate wavelength of light to human-perceived color
+            - Though the samples sizes are small and they were undoubtedly
+              biased, Guild's Phil Trans paper stated "The trichromatic
+              coefficients for [Wright's] ten observers agreed so closely
+              with those of the seven observers examined at the National
+              Physical Laboratory as to indicate that both groups must give
+              results approximating more closely to 'normal' than might
+              have been expected from the size of either group."
+
         - [hyperp1] http://hyperphysics.phy-astr.gsu.edu/hbase/vision/colper.html
             - Overview of color perception
         - [hyperp2] http://hyperphysics.phy-astr.gsu.edu/hbase/vision/cieprim.html
@@ -23,7 +43,10 @@ Color transformations
                 - Y is luminance, which is radiant flux power weighted by
                   the sensitivity of the human eye, giving luminous flux in
                   lumens.
-        - [poyn] Poynton's ColorFAQ.pdf.
+        - [cmf1] https://www.sciencedirect.com/topics/engineering/color-matching-function
+        - [cmf2] http://cvrl.ioo.ucl.ac.uk/cmfs.htm  Site for
+          downloading CIE color matching functions
+        - [poyn] Poynton's ColorFAQ.pdf
         - [kon]
           https://sensing.konicaminolta.us/us/learning-center/color-measurement/color-spaces/
         - [wplab] https://en.wikipedia.org/wiki/CIELAB_color_space
@@ -82,7 +105,8 @@ if 1:   # Core functionality
     def xy_to_XYZ(xy, Y):
         return (x*Yy, Y, (1 - x - y)/y*Y)
     def D65():
-        # D65 standard illuminant
+        # D65 standard illuminant tristimulus values
+        # == blackbody at 6500 K
         return 95.0489, 100, 108.8840
     def XYZ_to_LAB(XYZ):
         # https://en.wikipedia.org/wiki/CIELAB_color_space#From_CIEXYZ_to_CIELAB

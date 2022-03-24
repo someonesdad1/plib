@@ -235,9 +235,14 @@ if 1:   # Core functionality
                     ([eE][+-]?\d+)?             # Optional exponent
                 )                               # End group
         '''
+        flags = re.I | re.X
         regexps = (
-            R(r"([@#$][0-9a-f]{6})", re.I|re.X),     # [@#$]xxyyzz form
-            R(f"({s},\s*{s},\s*{s})", re.I|re.X),    # Three integers or floats
+            # [@#$]xxyyzz form
+            R(r"([@#$][0-9a-f]{6})", flags),
+            # Three integers or floats separated by commas
+            R(f"({s},\s*{s},\s*{s})", flags),
+            # Three integers or floats separated by whitespace
+            R(f"({s}\s+{s}\s+{s})", flags),
         )
         return regexps
     def GetColor(match):
