@@ -1,0 +1,36 @@
+# Holes for 3/8 drive Sunex mid-length metric impact sockets
+# Measured sizes in mils
+#   8 mm    746
+#   9 mm    745
+#  10 mm    745
+#  11 mm    751
+#  12 mm    745
+#  13 mm    781
+#  14 mm    825
+#  15 mm    871
+#  16 mm    933
+#  17 mm    949
+#  18 mm    985
+#  19 mm    1018
+#  20 mm    1100     * Didn't exist in set, but make hole anyway
+#  21 mm    1105
+#  22 mm    1192
+#
+#  Sockets are 1.82 inches long
+
+# Design:  add 0.01 inches to diameter to get desired hole size
+0.76
+0.76
+0.76
+0.76
+0.76
+0.781
+0.825
+0.871
+0.933
+0.949
+0.985
+1.018
+1.100
+1.105
+1.192
