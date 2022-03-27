@@ -22,7 +22,10 @@ Color coordinates and transformations
               Physical Laboratory as to indicate that both groups must give
               results approximating more closely to 'normal' than might
               have been expected from the size of either group."
-
+        - [schils] http://www.color-theory-phenomena.nl/index.html.  Paul
+          Schils died in 2011, so these pages won't be updated.
+          http://www.color-theory-phenomena.nl/07.00.html is good with a
+          number of general thoughts/observations.
         - [hyperp1] http://hyperphysics.phy-astr.gsu.edu/hbase/vision/colper.html
             - Overview of color perception
         - [hyperp2] http://hyperphysics.phy-astr.gsu.edu/hbase/vision/cieprim.html
@@ -53,14 +56,16 @@ Color coordinates and transformations
         - [efg] http://ultra.sdk.free.fr/docs/Image-Processing/Colors/Format/Chromaticity%20Diagrams%20Lab%20Report.htm
 
 '''
-from pdb import set_trace as xx 
-from util import IsIterable
-from lwtest import run, raises, assert_equal, Assert
-
+if 1:   # Imports
+    from pdb import set_trace as xx 
+    from util import IsIterable
+    from lwtest import run, raises, assert_equal, Assert
 if 1:   # Utility
-    def Dot(a, b):
+    def Dot(a, b, n=None):
         'Dot product of two sequences'
         Assert(len(a) == len(b))
+        if n:
+            return sum([round(i*j, n) for i, j in zip(a, b)])
         return sum([i*j for i, j in zip(a, b)])
     def Clamp(a):
         'Clamp all values onto [0, 1]'
@@ -72,18 +77,21 @@ if 1:   # Utility
 if 1:   # Core functionality
     def rgb_to_XYZ(rgb):
         'rgb is a 3-tuple of floats on [0, 1]'
+        raise Exception("Not working")
         # [poyn] pg 10
         Assert(all([0 <= i <= 1 for i in rgb]))
         r1 = (0.412453, 0.357580, 0.180423)
         r2 = (0.212671, 0.715160, 0.072169)
         r3 = (0.019334, 0.119193, 0.950227)
         Assert(sum(r2) == 1)
-        XYZ = Dot(r1, rgb), Dot(r2, rgb), Dot(r3, rgb)
-        return tuple([round(i, 6) for i in XYZ])
+        n = 6
+        XYZ = Dot(r1, rgb, n), Dot(r2, rgb, n), Dot(r3, rgb, n)
+        return XYZ
     def XYZ_to_rgb(XYZ):
         'XYZ is a 3-tuple of numbers'
+        raise Exception("Not working")
         # [poyn] pg 10
-        f = lambda a, b: sum([i*j for i, j in zip(a, b)])
+        # Note:  this is the inverse of the matrix in rgb_to_XYZ()
         r1 = (3.240479, -1.537150, -0.498535)
         r2 = (-0.969256, 1.875992, 0.041556)
         r3 = (0.055648, -0.204043, 1.057311)
@@ -92,6 +100,38 @@ if 1:   # Core functionality
         # the resolution of the transformation matrix's values.
         rgb = [float(round(Clamp(i), 6)) for i in rgb]
         return tuple(rgb)
+    def sRGB_to_XYZ(srgb):
+        '''sRGB to CIE XYZ from 
+        https://en.wikipedia.org/wiki/SRGB#From_sRGB_to_CIE_XYZ
+        '''
+        def f(x):   # Linearization or 'gamma-expanded'
+            return x/12.92 if x <= 0.0405 else ((x + 0.055)/1.055)**2.4
+        Assert(all([0 <= i <= 1 for i in srgb]))
+        rgb = [f(i) for i in srgb]
+        r1 = (0.4124, 0.3576, 0.1805)
+        r2 = (0.2126, 0.7152, 0.0722)
+        r3 = (0.0193, 0.1192, 0.9505)
+        XYZ = Dot(r1, rgb), Dot(r2, rgb), Dot(r3, rgb)
+        return XYZ
+    def XYZ_to_sRGB(XYZ):
+        '''CIE XYZ to sRGB
+        https://en.wikipedia.org/wiki/SRGB#From_CIE_XYZ_to_sRGB
+        '''
+        def f(x):   # Linearization or 'gamma-expanded'
+            return 12.92*x if x <= 0.0031308 else 1.055*x**(1/2.4) - 0.055
+        # Note:  I've used a more significant figures in the inverse of
+        # the matrix in sRGB_to_XYZ() to reduce rounding errors.
+        r1 = (+3.2406254773200533,  -1.5372079722103187,  -0.4986285986982478)
+        r2 = (-0.9689307147293196,  +1.8757560608852415,  +0.04151752384295395)
+        r3 = (+0.05571012044551063, -0.20402105059848671, +1.0569959422543882)
+        #r1 = (+3.2406, -1.5372, -0.4986)
+        #r2 = (-0.9689, +1.8758, +0.0415)
+        #r3 = (+0.0557, -0.2040, +1.0570)
+        rgb = Dot(r1, XYZ), Dot(r2, XYZ), Dot(r3, XYZ)
+        n = 4
+        sRGB = [round(f(i), n) for i in rgb]
+        return tuple(sRGB)
+
     def XYZ_to_xyz(XYZ):
         # CIE 1931 xyz values
         # [efg] under first chromaticity diagram
@@ -104,10 +144,18 @@ if 1:   # Core functionality
         return (XYZ[0]/t, XYZ[1]/t)
     def xy_to_XYZ(xy, Y):
         return (x*Yy, Y, (1 - x - y)/y*Y)
-    def D65():
-        # D65 standard illuminant tristimulus values
-        # == blackbody at 6500 K
-        return 95.0489, 100, 108.8840
+    def D65(tristimulus=True):
+        '''D65 standard illuminant tristimulus values Ref:
+        https://en.wikipedia.org/wiki/Illuminant_D65#Definition This is
+        nominally a blackbody at 6500 K For a standard 2° observer.  If
+        tristimulus is True, returns standard X, Y, Z tristimulus values
+        with luminance (Y); otherwise, standard chromaticity coordinates x,
+        y, z are returned.
+        '''
+        if tristimulus:
+            return 95.0489, 100, 108.8840
+        else:
+            return 0.31271, 0.32902, 0.35827
     def XYZ_to_LAB(XYZ):
         # https://en.wikipedia.org/wiki/CIELAB_color_space#From_CIEXYZ_to_CIELAB
         def f(t):
@@ -144,11 +192,21 @@ if 1:   # Core functionality
         v = 6*Y/s
         return u, v
     def uv_to_xy(uv):
+        # u, v are 1960 CIE chromaticity coordinates
         # [efg] under 1960 CIE chromaticity diagram
         s = 2*u - 8*v + 4
         x = 3*u/s
         y = 2*v/s
         return x, y
+    def u1v1_to_xy(u1v1):
+        # http://www.color-theory-phenomena.nl/10.03.htm
+        # 1976 CIE u', v' to 1931 x, y
+        # The advantage of the 1976 chromaticity diagram is that the
+        # distance between the points is approximately proportional to a
+        # human's perceived color difference.
+        s = 9*u1/2 - 12*v1 + 9
+        x = (27*u1/4)/s
+        y = 3*v1/s
     def u1v1_to_xyz(u1v1):
         # [efg] under 1976 CIE u'v' chromaticity diagram
         u1, v1 = u1v1
@@ -157,6 +215,13 @@ if 1:   # Core functionality
         y = 4*v1/s
         z = (-3*u1 - 20*v1 + 12)/s
         return x, y, z
+    def uv_to_xy(uv):
+        # u, v are 1960 CIE chromaticity coordinates
+        # [efg] under 1960 CIE chromaticity diagram
+        s = 2*u - 8*v + 4
+        x = 3*u/s
+        y = 2*v/s
+        return x, y
     def XYZ_to_u1v1(XYZ):
         # [efg] under 1976 CIE u'v' chromaticity diagram
         X, Y, Z = XYZ
@@ -164,26 +229,76 @@ if 1:   # Core functionality
         u1 = 4*X/s
         v1 = 9*Y/s
         return u1, v1
-        
+    def XYZ_to_CIELUV(XYZ, u1n=0.2009, v1n=0.4610, Yn=None):
+        '''CIEL*u*v* 1976 color space which attempts perceptual uniformity.
+        https://en.wikipedia.org/wiki/CIELUV.  You must define Yn. 
+        '''
+        if Yn is None:
+            raise ValueError("Yn must be defined")
+        X, Y, Z = XYZ
+        s = X + 15*Y + 3*Z
+        u1, v1 = 4*X/s, 9*Y/s
+        t = (6/29)**3
+        a = Y/Yn
+        Lstar = t*a if a <= t else 116*a**(1/3) - 16
+        ustar = 13*Lstar*(u1 - u1n)
+        vstar = 13*Lstar*(v1 - v1n)
+        return (Lstar, ustar, vstar)
+    def CIELUV_to_XYZ(CIELUV, u1n=0.2009, v1n=0.4610, Yn=None):
+        '''Reverse transformation of XYZ_to_CIELUV.
+        https://en.wikipedia.org/wiki/CIELUV
+        '''
+        Lstar, ustar, vstar = CIELUV
+        u1 = ustar/(13*Lstar) + u1n
+        v1 = vstar/(13*Lstar) + v1n
+        Y = Yn*Lstar*(3/29)**3 if Lstar <= 8 else Yn*((Lstar + 16)/116)**3
+        X = Y*9*u1/(4*v1)
+        Z = Y*(12 - 3*u1 - 20*v1)/(4*v1)
+        return (X, Y, Z)
 
 if 0:
-    Check();exit()
-    rgb = 1.0, 1.0, 1.0
-    XYZ = rgb2XYZ(rgb)
-    RGB = XYZ2rgb(XYZ)
-    Assert(rgb == RGB)
+    a = (0,0,0)
+    print(XYZ_to_rgb(a))
+    print(rgb_to_XYZ(a))
     exit()
 
 if __name__ == "__main__": 
-    def Test_XYZ_to_rgb():
-        # [poyn] pg 9
-        r = XYZ_to_rgb((0.64, 0.33, 0.03))
-        g = XYZ_to_rgb((0.3, 0.6, 0.1))
-        b = XYZ_to_rgb((0.15, 0.06, 0.79))
-        w = XYZ_to_rgb((0.3127, 0.3290, 0.3582))
-        Assert(r == (1, 0, 0))
-        Assert(g == (0, 0.838974, 0))
-        Assert(b == (0, 0, 0.83138))
-        a = 0.329
-        Assert(w == (a, a, a))
+    def Test_RGB():
+        # Not working yet
+        return #xx
+        def Test_XYZ_to_rgb():
+            # [poyn] pg 9
+            r = XYZ_to_rgb((0.64, 0.33, 0.03))
+            Assert(r == (1, 0, 0))
+            g = XYZ_to_rgb((0.3, 0.6, 0.1))
+            Assert(g == (0, 0.838974, 0))
+            b = XYZ_to_rgb((0.15, 0.06, 0.79))
+            Assert(b == (0, 0, 0.83138))
+            w = XYZ_to_rgb((0.3127, 0.3290, 0.3582))
+            a = 0.329
+            Assert(w == (a, a, a))
+        def Test_rgb_to_XYZ():
+            r = (1, 0, 0)
+            XYZ = rgb_to_XYZ(r)
+            print(XYZ)
+            print(XYZ_to_rgb((0.64, 0.33, 0.03)))
+        Test_XYZ_to_rgb()
+        Test_rgb_to_XYZ()
+    def Test_sRGB():
+        x = (1, 0, 0)
+        XYZ = sRGB_to_XYZ(x)
+        Assert(XYZ == (0.4124, 0.2126, 0.0193))
+
+        a = XYZ_to_sRGB(XYZ)
+        print(a)
+        print(x)
+        exit()
+
+        x = (0, 1, 0)
+        XYZ = sRGB_to_XYZ(x)
+        Assert(XYZ == (0.3576, 0.7152, 0.1192))
+        x = (0, 0, 1)
+        XYZ = sRGB_to_XYZ(x)
+        Assert(XYZ == (0.1805, 0.0722, 0.9505))
+
     exit(run(globals(), halt=True)[0])

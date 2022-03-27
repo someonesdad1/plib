@@ -20,9 +20,14 @@ from pdb import set_trace as xx
 from wrap import dedent
 from math import exp
 
-if 1:
-    import debug
-    debug.SetDebugger()
+# This table is the standard method to convert from a power spectral 
+# density (PSD) function to X, Y, Z tristimulus coordinates.  The PSD is
+# integrated with these numerical functions over the wavelengths of 380 to
+# 780 nm.  These are for the 2° field of view.  The table below this one is
+# for the 1964 10° field of view.  These numbers were derived around 1930
+# from two experimental samples from roughly 20 people.  The experiments
+# were careful and have been repeated, so though the samples were clearly
+# biased, it seems they represent a large portion of humanity.
 data1 = '''
 # CIE 1931 standard colorimetric observer			
 # Columns: 

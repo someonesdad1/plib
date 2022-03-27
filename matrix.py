@@ -71,7 +71,7 @@ if 1:   # Custom imports
         except ImportError:
             pass
     from pdb import set_trace as xx
-    if 1:
+    if 0:
         import debug
         debug.SetDebugger()
 if 1:   # Global variables
@@ -192,21 +192,21 @@ class ParseComplex(object):
             return nt(s1), nt(s2)
 class Matrix:
     '''Matrix object supporting basic linear algebra operations.  Rows
-    and columns are numbered starting from 0.  The preferred methods for
-    accessing matrix elements are m[i, j] or m(i, j) where i is the row
-    and j is the column.  A matrix with one row or column is a row or
-    column vector and the indexing scheme lets you get at a vector's
-    elements with one index.
+        and columns are numbered starting from 0.  The preferred methods
+        for accessing matrix elements are m[i, j] or m(i, j) where i is the
+        row and j is the column.  A matrix with one row or column is a row
+        or column vector and the indexing scheme lets you get at a vector's
+        elements with one index.
  
-    A number of methods use the following keyword arguments:
+        A number of methods use the following keyword arguments:
  
-        c is used to indicate the operation is with respect to columns
-        rather than rows.
- 
-        ip is used to indicate the operation should be done in_place.
-        Most methods will return a new matrix object, but sometimes you
-        want the operation done on the current instance, in which case
-        set ip to True.
+            c is used to indicate the operation is with respect to columns
+            rather than rows.
+    
+            ip is used to indicate the operation should be done in_place.
+            Most methods will return a new matrix object, but sometimes you
+            want the operation done on the current instance, in which case
+            set ip to True.
     '''
     # The _str class variable is used to switch the role of __str__()
     # and __repr__() when True.  This is useful in the debugger and

@@ -1,8 +1,45 @@
+- https://www.w3.org/TR/css-color-4https://www.w3.org/TR/css-color-4 is a
+  good document on color in CSS and the specs
+
+- https://en.wikipedia.org/wiki/List_of_color_spaces_and_their_uses 
+    - The plethora of jargon revolves around two major tasks:  1) to
+      specify the differences in color based on human perception in some
+      way that represents things approximately perceptively and 2) encoding
+      video data that looks good and can be done in real time.
+
+- Chromaticity
+    - I like the 1931 and 1976 chromaticity diagrams.  Using Bruton's
+      wavelength to RGB approximation, make these plots using the g
+      library.  This plot should be made with thousands of small square
+      boxes of colors at a reasonably high resolution so that it results in
+      a seemingly continuous bitmap at lower resolutions.  I like the
+      inclusion of the Planck locus (see
+      https://en.wikipedia.org/wiki/File:PlanckianLocus.png), but it should
+      be in kK and use small dots rather than lines.  Stick on molten
+      aluminum also.
+    - Include a plot on the 1931 chromaticity diagram of the sRGB space as
+      in the picture
+      https://en.wikipedia.org/wiki/File:SRGB_chromaticity_CIE1931.svg
+      Also, https://en.wikipedia.org/wiki/SRGB gives the data for the sRGB
+      primaries in terms of xyY:
+        - red:  0.64, 0.33, 0.2126
+        - grn:  0.30, 0.60, 0.7152
+        - blu:  0.15, 0.06, 0.0722
+        - wht:  0.3127, 0.3290, 1
+        - It is not possible to represent color outside the diagram's
+          triangle, which is well inside the set of colors visible to the
+          typical human.
+    - My Dell P2415Q monitor's rating is 1.07 billion colors and the color
+      gamut is 99% of sRGB.  Viewing angle is 178 deg typical.  Output is
+      300 cd/m2 typical.
+
 - ColorNum
     - This tool has become so useful it should be the basis of everything.
       Especially get the constructor to recognize as many color specifiers
       as possible.  Even '138  43 226  BlueViolet' in an rgb.txt file
       should be recognized because of its three consective integer values.
+    - The color space transformations in colorcoord.py should be moved into
+      the ColorNum module.
 
 - cnvclr.py
     - Add an option to sort by rgb, hsv, or hls.

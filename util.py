@@ -9,7 +9,8 @@ Cfg                   Execute a sequence of text lines for config use
 ConvertToNumber       Convert a string to a number
 Debug                 A class that helps with debugging
 Dispatch              Class to aid polymorphism
-Distribute            Return an integer sequence equally distributed
+iDistribute           Return an integer sequence equally distributed
+fDistribute           Return a float sequence equally distributed
 EBCDIC                Return string translation table ASCII <--> EBCDIC
 eng                   Convenience function for engineering format
 EditData              Edit a str or bytes object with vim
@@ -1322,12 +1323,12 @@ def execfile(filename, globals=None, locals=None, use_user_env=True):
     with open(filename, "r") as fh:
         s = fh.read() + "\n"
         exec(s, globals, locals)
-def Distribute(m, n, k):
+def iDistribute(m, n, k):
     '''Return an integer sequence [m, ..., n] with k elements equally
     distributed between m and n.  Return None if no solution possible.
  
     If you need a sequence of k floating point values, see
-    util.ParameterSequence().
+    util.fDistribute().
     '''
     if not (ii(m, int) and ii(n, int) and ii(k, int)):
         raise TypeError("Arguments must be integers")
@@ -1347,11 +1348,11 @@ def Distribute(m, n, k):
     if len(seq) != k:
         raise RuntimeError("Bad algorithm:  len(seq) != k + 2")
     return seq
-def ParameterSequence(n, a=0, b=1, impl=float):
+def fDistribute(n, a=0, b=1, impl=float):
     '''Generator to return n impl instances on [a, b] inclusive. A
     common use case is an interpolation parameter on [0, 1].
     Examples:
-        PS = ParameterSequence
+        PS = fDistribute
         PS(3) --> [0.0, 0.5, 1.0]
         PS(3, 1, 2) --> [1.0, 1.5, 2.0]
         PS(4, 1, 2, Fraction) --> [Fraction(1, 1), Fraction(4, 3),
@@ -1361,7 +1362,7 @@ def ParameterSequence(n, a=0, b=1, impl=float):
     point number will also work (e.g., mpmath's mpf type).
 
     If you need a sequence of evenly-distributed integers, see
-    util.Distribute().
+    util.iDistribute().
     '''
     # Check arguments
     msg = "n must be an integer > 1"
@@ -1820,7 +1821,7 @@ if __name__ == "__main__":
             if name not in names:
                 print(f"{name} in module not in docstring")
         exit()#xx
-    def Test_Distribute():
+    def Test_iDistribute():
         def Dist(seq):
             'Return distances between numbers in seq'
             out = []
@@ -1829,7 +1830,7 @@ if __name__ == "__main__":
             return out
         m, n = 0, 255
         for k in range(2, 256):
-            s = Distribute(m, n, k)
+            s = iDistribute(m, n, k)
             if s is None:
                 print(f"k = {k} no solution")
                 continue
@@ -1838,9 +1839,9 @@ if __name__ == "__main__":
                 assert_equal(len(d), 2)
                 assert_equal(abs(d[0] - d[1]), 1)
         for k in range(257, 265):
-            assert_equal(Distribute(m, n, k), None)
+            assert_equal(iDistribute(m, n, k), None)
     def TestParameterSequence():
-        PS = ParameterSequence
+        PS = fDistribute
         expected = [0.0, 1.0]
         got = list(PS(2))
         assert_equal(got, expected)

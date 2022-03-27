@@ -11,13 +11,6 @@ In units of nm, here are the approximate color divisions:
     orange      590-620
     red         620-780
  
-Observations
-    - Monitors can't reproduce what our eyes are capable of seeing.  In the
-      1960's, I remember adjusting a Fabry-Perot interferometer that was
-      looking at a sodium lamp in a dark room.  I remember being surprised
-      by seeing the orange sodium doublet concentric rings and realizing I
-      could see that they were different shades of orange.  
- 
 '''
 import sys
 from rgb import ColorNum

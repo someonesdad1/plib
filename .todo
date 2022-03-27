@@ -32,6 +32,7 @@ main
                   be good, but it's 949 colors.  I like the naming scheme.
                   See if it could be whittled down to a set about half the
                   size.
+        - The g library needs to be converted to use ColorNum instances.
 
     - Color cube plotting in g
         - Write an RGB color cube plotting function:  x = grn, y = blue, z
