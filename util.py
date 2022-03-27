@@ -1352,10 +1352,10 @@ def fDistribute(n, a=0, b=1, impl=float):
     '''Generator to return n impl instances on [a, b] inclusive. A
     common use case is an interpolation parameter on [0, 1].
     Examples:
-        PS = fDistribute
-        PS(3) --> [0.0, 0.5, 1.0]
-        PS(3, 1, 2) --> [1.0, 1.5, 2.0]
-        PS(4, 1, 2, Fraction) --> [Fraction(1, 1), Fraction(4, 3),
+        fd = fDistribute
+        fd(3) --> [0.0, 0.5, 1.0]
+        fd(3, 1, 2) --> [1.0, 1.5, 2.0]
+        fd(4, 1, 2, Fraction) --> [Fraction(1, 1), Fraction(4, 3),
                                     Fraction(5, 3), Fraction(2, 1)]
     You can use other impl types of decimal.Decimal, and f.flt.  Other
     types that define impl()/impl() to return an impl-type floating
@@ -1841,33 +1841,33 @@ if __name__ == "__main__":
         for k in range(257, 265):
             assert_equal(iDistribute(m, n, k), None)
     def TestParameterSequence():
-        PS = fDistribute
+        fd = fDistribute
         expected = [0.0, 1.0]
-        got = list(PS(2))
+        got = list(fd(2))
         assert_equal(got, expected)
         #
         expected = [0.0, 0.5, 1.0]
-        got = list(PS(3))
+        got = list(fd(3))
         assert_equal(got, expected)
         #
         expected = [Fraction(0, 1), Fraction(1, 2), Fraction(1, 1)]
-        got = list(PS(3, impl=Fraction))
+        got = list(fd(3, impl=Fraction))
         assert_equal(got, expected)
         #
         expected = [1.0, 1.5, 2.0]
-        got = list(PS(3, a=1, b=2))
+        got = list(fd(3, a=1, b=2))
         assert_equal(got, expected)
         # Check type/value violations
         with raises(TypeError) as x:
-            list(PS(1.0))
+            list(fd(1.0))
         with raises(ValueError) as x:
-            list(PS(1))
+            list(fd(1))
         with raises(TypeError) as x:
-            list(PS(2, a=""))
+            list(fd(2, a=""))
         with raises(TypeError) as x:
-            list(PS(2, b=""))
+            list(fd(2, b=""))
         with raises(ValueError) as x:
-            list(PS(1, a=2, b=1))
+            list(fd(1, a=2, b=1))
     def Test_signum():
         for i in (-1, -2, -2.2, Fraction(-1, 1), Decimal("-3.7")):
             assert_equal(signum(i), -1)

@@ -136,6 +136,60 @@ class UnifiedThread:
         number-size thread.  abs(n) is used.
         '''
         return flt(0.06 + 0.013*abs(n))
+
+'''
+
+Machinery's Handbook 5th ed. 1919 on page 1015 gives some early formulas
+for ASME standards for machine screw threads.  The basic dimensions are the
+same as the US Standard, but with some extra limits.  I've added some
+symbols.
+
+    Dimensions in inches
+    tpi = threads per inch
+    D = basic external diameter
+    PD = basic pitch diameter
+    RD = basic root diameter
+    A = tpi + 40
+    B = 0.112/A
+
+Screws
+    Maximum external diameter = basic external diameter
+    Maximum pitch diameter    = basic pitch diameter
+    Maximum root diameter     = basic root diameter
+    Minimum external diameter = D - 0.336/A
+    Minimum pitch diameter    = PD - 0.168/A
+    Minimum root diameter     = RD - (0.10825/tpi + 0.168/A)
+Taps
+    Maximum external diameter = D + 0.10825/tpi + 0.224/A
+    Maximum pitch diameter    = PD + 0.224/A
+    Maximum root diameter     = RD + 0.336/A
+    Minimum external diameter = D + B
+    Minimum pitch diameter    = PD + B
+    Minimum root diameter     = RD + B
+    
+Let's compare these formulas with the output of this script, which gives
+the pitch diameter as 0.3287 to 0.3331.  The table on page 1000 of MH 5th
+ed. gives the PD as 0.3344.  A is 16 + 40 or 56.  Thus, the minimum pitch
+diameter of the screw is 0.3344 - 0.168/A or 0.3314.  Thus:
+    
+    MH 5th ed.:      0.3314 to 0.3344, diff = 0.0030
+    PD this script:  0.3287 to 0.3331, diff = 0.0044
+    Differences:     0.0027    0.0013
+
+The 1919 tolerances were a bit tighter and the dimensions differed by a mil
+or two.
+
+Bigger differences are in the major diameter:  
+
+    MH 5th ed.:         0.3690 to 0.3750, diff = 0.0060
+    This script:        0.3642 to 0.3737, diff = 0.0095
+    Differences:        0.0048    0.0013
+
+These differences are small and for casual work, you could still use the
+dimensions from a more than a century ago and get good work.
+
+'''
+
 if __name__ == "__main__": 
     from lwtest import run, raises, assert_equal
     def Test_asme():
