@@ -71,3 +71,12 @@ http://ultra.sdk.free.fr/docs/Image-Processing/Colors/Format/Chromaticity%20Diag
 
 1976Chromaticity.jpg is from
 http://hyperphysics.phy-astr.gsu.edu/hbase/vision/vispic/cie1976b.jpg
+    - A criticism I have of this particular plot is that the colors for the
+      wavelengths at the boundaries don't look as saturated as they would
+      if they were e.g. from a monochromator.  This was obviously
+      deliberate by the person who wrote the code for this diagram, but
+      it's not "physical" enough for my eyes.  Still, I favor this diagram
+      and coordinate system because of its spreading out of the 1931
+      chromaticity diagram.  This lets it be used as an approximate metric
+      for estimating the distance of colors in a coordinate system that is
+      approximately related to human perception.  

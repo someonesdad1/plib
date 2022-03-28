@@ -42,6 +42,7 @@ def Usage(status=1):
     exit(status)
 def ParseCommandLine():
     d["-a"] = False     # Use all hash methods
+    d["-h"] = False     # Help
     d["-n"] = None      # Truncate hash to n characters
     d["-1"] = False     # SHA1
     d["-2"] = False     # SHA224
@@ -62,7 +63,7 @@ def ParseCommandLine():
         "-8": (zlib.adler32, "ADLER32"),
     }
     try:
-        opts, files = getopt.getopt(sys.argv[1:], "12345678an:")
+        opts, files = getopt.getopt(sys.argv[1:], "12345678ahn:")
     except getopt.GetoptError as e:
         msg, option = e
         print(msg)
@@ -78,7 +79,7 @@ def ParseCommandLine():
     if d["-a"]:
         for i in L:
             d[i] = True
-    if not files:
+    if not files or d["-h"]:
         Usage()
     num = sum([d[i] for i in L])
     if not num:

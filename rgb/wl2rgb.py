@@ -14,7 +14,7 @@ In units of nm, here are the approximate color divisions:
 '''
 import sys
 from rgb import ColorNum
-from util import Distribute
+from util import iDistribute
 from interpolate import LinearInterpFunction
 from pdb import set_trace as xx 
 from f import flt
@@ -329,7 +329,7 @@ if __name__ == "__main__":
         return wl2rgb(nm)
     def HueGradations():
         def ShowHLS(k, use_hex=False):
-            R = Distribute(0, 255, k + 1)   # Count 0 as one we don't want
+            R = iDistribute(0, 255, k + 1)   # Count 0 as one we don't want
             if R[0] == 0:
                 R = R[1:]   # Remove the first element of 0
             indent = " "*4
@@ -360,7 +360,7 @@ if __name__ == "__main__":
                     print()
                 print()
         def ShowHSV(k, use_hex=False):
-            R = Distribute(0, 255, k + 1)   # Count 0 as one we don't want
+            R = iDistribute(0, 255, k + 1)   # Count 0 as one we don't want
             if R[0] == 0:
                 R = R[1:]   # Remove the first element of 0
             indent = " "*4
@@ -434,7 +434,7 @@ if __name__ == "__main__":
         hex number shown is HLS and the L value of 0xff is not used.
  
         '''))
-        R = Distribute(0, 255, n + 1)   # The 1 is added to ignore zero
+        R = iDistribute(0, 255, n + 1)   # The 1 is added to ignore zero
         if R[0] == 0:
             R = R[1:]   # Remove the first element of 0
         for name in colorbands:
@@ -487,7 +487,7 @@ if __name__ == "__main__":
  
         '''))
         count = 0
-        for i in Distribute(0, 255, ngray):
+        for i in iDistribute(0, 255, ngray):
             n = ColorNum([i/255 for i in (i, i, i)])
             count += 1
             if count == ngray//2 + 1:
