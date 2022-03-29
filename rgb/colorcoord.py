@@ -1,6 +1,13 @@
 '''
 
 Color coordinates and transformations 
+    - Your thumb at the end of your arm is 2°; your fist is 10°. 
+    - Chances are, if you get some RGB color data, it's probably in the
+      sRGB color space.  For example, the Dell monitor I'm using is stated
+      as covering 99% of the sRGB space.  Because of this, the primary
+      tools that should be used to go from a device RGB space to a
+      perceptual space such as CIEXYZ, use the functions sRGB_to_XYZ and
+      XYZ_to_sRGB below.
     - Here, LAB means CIE's L*a*b*, not Hunter's LAB
     - XYZ
         - CIE 1930 tristimulus values representing the amount of blue,
@@ -54,7 +61,23 @@ Color coordinates and transformations
           https://sensing.konicaminolta.us/us/learning-center/color-measurement/color-spaces/
         - [wplab] https://en.wikipedia.org/wiki/CIELAB_color_space
         - [efg] http://ultra.sdk.free.fr/docs/Image-Processing/Colors/Format/Chromaticity%20Diagrams%20Lab%20Report.htm
-
+        - [jw] https://www.fourmilab.ch/documents/specrend/  Explains about
+          getting XYZ coordinates and converting from xy to RGB (device)
+          color.  His table 1 shows chromaticities of primary colors for
+          various system.  Note his article is from 1996, the same year
+          that sRGB came out, so his material doesn't cover it.
+        - The Dell manual for my P2415 manual pg 10 state the color gamut
+          of the monitor is 102.28% of CIE1976 test standards and includes
+          99% of sRBG.
+        - https://getreuer.info/posts/colorspace/index.html gives some C++
+          code for color space xfm functions
+        - https://easyrgb.com/en/math.php shows the math functions for
+          their RGB calculator.  A refreshing find in the crappy world of
+          calculator boxes with no explanations.
+        - https://medium.com/hipster-color-science/a-beginners-guide-to-colorimetry-401f1830b65a
+          has some good discussions.
+        - http://www.cvrl.org/ Color & Vision Research Lab, Institute of
+          Ophthalmology, part of Univ. College London.
 '''
 if 1:   # Imports
     from pdb import set_trace as xx 
@@ -75,75 +98,70 @@ if 1:   # Utility
         else:
             return f(a)
 if 1:   # Core functionality
-    def rgb_to_XYZ(rgb):
-        'rgb is a 3-tuple of floats on [0, 1]'
-        raise Exception("Not working")
-        # [poyn] pg 10
-        Assert(all([0 <= i <= 1 for i in rgb]))
-        r1 = (0.412453, 0.357580, 0.180423)
-        r2 = (0.212671, 0.715160, 0.072169)
-        r3 = (0.019334, 0.119193, 0.950227)
-        Assert(sum(r2) == 1)
-        n = 6
-        XYZ = Dot(r1, rgb, n), Dot(r2, rgb, n), Dot(r3, rgb, n)
-        return XYZ
-    def XYZ_to_rgb(XYZ):
-        'XYZ is a 3-tuple of numbers'
-        raise Exception("Not working")
-        # [poyn] pg 10
-        # Note:  this is the inverse of the matrix in rgb_to_XYZ()
-        r1 = (3.240479, -1.537150, -0.498535)
-        r2 = (-0.969256, 1.875992, 0.041556)
-        r3 = (0.055648, -0.204043, 1.057311)
-        rgb = Dot(r1, XYZ), Dot(r2, XYZ), Dot(r3, XYZ)
-        # Clamp to [0, 1].  I'm also rounding to 6 places because that's
-        # the resolution of the transformation matrix's values.
-        rgb = [float(round(Clamp(i), 6)) for i in rgb]
-        return tuple(rgb)
+    def xy_to_sRGB(xy, Y=1):
+        def f(x):
+            return tuple([round(float(i), 4) for i in x])
+        XYZ = xy_to_XYZ(xy, Y)
+        return f(XYZ_to_sRGB(XYZ))
     def sRGB_to_XYZ(srgb):
         '''sRGB to CIE XYZ from 
         https://en.wikipedia.org/wiki/SRGB#From_sRGB_to_CIE_XYZ
+        Note that
+        https://www.image-engineering.de/library/technotes/958-how-to-convert-between-srgb-and-ciexyz
+        gives numbers with more figures, but I've stuck to the wikipedia
+        page's numbers because they come from the standard.
         '''
-        def f(x):   # Linearization or 'gamma-expanded'
-            return x/12.92 if x <= 0.0405 else ((x + 0.055)/1.055)**2.4
+        def GammaExpand(x):
+            return x/12.92 if x <= 0.04045 else ((x + 0.055)/1.055)**2.4
+        # Make sure all values are between 0 and 1
         Assert(all([0 <= i <= 1 for i in srgb]))
-        rgb = [f(i) for i in srgb]
-        r1 = (0.4124, 0.3576, 0.1805)
-        r2 = (0.2126, 0.7152, 0.0722)
-        r3 = (0.0193, 0.1192, 0.9505)
+        # "Gamma-expand" the values (the web page calls these the "linear"
+        # components)
+        rgb = [GammaExpand(i) for i in srgb]
+        # Transformation matrix to produce XYZ values wrt D65
+        if 1:
+            r1 = (0.4124, 0.3576, 0.1805)
+            r2 = (0.2126, 0.7152, 0.0722)
+            r3 = (0.0193, 0.1192, 0.9503)
+        else:
+            # More significant figures
+            r1 = (0.4124564, 0.3575761, 0.1804375)
+            r2 = (0.2126729, 0.7151522, 0.0721750)
+            r3 = (0.0193339, 0.1191920, 0.9503041)
         XYZ = Dot(r1, rgb), Dot(r2, rgb), Dot(r3, rgb)
         return XYZ
     def XYZ_to_sRGB(XYZ):
         '''CIE XYZ to sRGB
         https://en.wikipedia.org/wiki/SRGB#From_CIE_XYZ_to_sRGB
+        Note that 
+        https://www.image-engineering.de/library/technotes/958-how-to-convert-between-srgb-and-ciexyz
+        gives numbers with more figures, but I've stuck to the wikipedia
+        page's numbers because they come from the standard.
         '''
-        def f(x):   # Linearization or 'gamma-expanded'
+        def GammaCompressed(x):
             return 12.92*x if x <= 0.0031308 else 1.055*x**(1/2.4) - 0.055
-        # Note:  I've used a more significant figures in the inverse of
-        # the matrix in sRGB_to_XYZ() to reduce rounding errors.
-        r1 = (+3.2406254773200533,  -1.5372079722103187,  -0.4986285986982478)
-        r2 = (-0.9689307147293196,  +1.8757560608852415,  +0.04151752384295395)
-        r3 = (+0.05571012044551063, -0.20402105059848671, +1.0569959422543882)
-        #r1 = (+3.2406, -1.5372, -0.4986)
-        #r2 = (-0.9689, +1.8758, +0.0415)
-        #r3 = (+0.0557, -0.2040, +1.0570)
+        if 1:
+            r1 = (+3.2406, -1.5372, -0.4986)
+            r2 = (-0.9689, +1.8758, +0.0415)
+            r3 = (+0.0557, -0.2040, +1.0570)
+        else:
+            r1 = (+3.2404542, -1.5371385, -0.4985314)
+            r2 = (-0.9692660, +1.8760108, +0.0415560)
+            r3 = (+0.0556434, -0.2040259, +1.0572252)
         rgb = Dot(r1, XYZ), Dot(r2, XYZ), Dot(r3, XYZ)
+        # Round results to 4 places
         n = 4
-        sRGB = [round(f(i), n) for i in rgb]
+        sRGB = [round(GammaCompressed(i), n) for i in rgb]
+        # Clip to [0, 1]
+        g = lambda x:  min(1, max(x, 0))
+        sRGB = [g(i) for i in sRGB]
         return tuple(sRGB)
-
-    def XYZ_to_xyz(XYZ):
-        # CIE 1931 xyz values
-        # [efg] under first chromaticity diagram
-        s = sum(XYZ)
-        xyz = [float(i/s) for i in XYZ]
-        Assert(sum(xyz) == 1)
-        return xyz
     def XYZ_to_xy(XYZ):
         t = sum(XYZ)
         return (XYZ[0]/t, XYZ[1]/t)
-    def xy_to_XYZ(xy, Y):
-        return (x*Yy, Y, (1 - x - y)/y*Y)
+    def xy_to_XYZ(xy, Y=1):
+        x, y = xy
+        return ((Y/y)*x, Y, (1 - x - y)*(Y/y))
     def D65(tristimulus=True):
         '''D65 standard illuminant tristimulus values Ref:
         https://en.wikipedia.org/wiki/Illuminant_D65#Definition This is
@@ -156,6 +174,7 @@ if 1:   # Core functionality
             return 95.0489, 100, 108.8840
         else:
             return 0.31271, 0.32902, 0.35827
+if 1:   # L*a*b*
     def XYZ_to_LAB(XYZ):
         # https://en.wikipedia.org/wiki/CIELAB_color_space#From_CIEXYZ_to_CIELAB
         def f(t):
@@ -177,6 +196,66 @@ if 1:   # Core functionality
         c = (L + 16)/116
         Y = Yn*g(c)
         Z = Zn*g(c - b/200)
+if 1:   # L*u*v*
+    # CIE's 1976 space that aims at representing perceptual differences
+    # better
+    def XYZ_to_CIELUV(XYZ, u1n=0.2009, v1n=0.4610, Yn=None):
+        '''CIEL*u*v* 1976 color space which attempts perceptual uniformity.
+        https://en.wikipedia.org/wiki/CIELUV.  You must define Yn. 
+        '''
+        if Yn is None:
+            raise ValueError("Yn must be defined")
+        X, Y, Z = XYZ
+        s = X + 15*Y + 3*Z
+        u1, v1 = 4*X/s, 9*Y/s
+        t = (6/29)**3
+        a = Y/Yn
+        Lstar = t*a if a <= t else 116*a**(1/3) - 16
+        ustar = 13*Lstar*(u1 - u1n)
+        vstar = 13*Lstar*(v1 - v1n)
+        return (Lstar, ustar, vstar)
+    def CIELUV_to_XYZ(CIELUV, u1n=0.2009, v1n=0.4610, Yn=None):
+        '''Reverse transformation of XYZ_to_CIELUV.
+        https://en.wikipedia.org/wiki/CIELUV
+        '''
+        Lstar, ustar, vstar = CIELUV
+        u1 = ustar/(13*Lstar) + u1n
+        v1 = vstar/(13*Lstar) + v1n
+        Y = Yn*Lstar*(3/29)**3 if Lstar <= 8 else Yn*((Lstar + 16)/116)**3
+        X = Y*9*u1/(4*v1)
+        Z = Y*(12 - 3*u1 - 20*v1)/(4*v1)
+        return (X, Y, Z)
+if 1:   # Other functionality
+    def rgb_to_XYZ(rgb):
+        'rgb is a 3-tuple of floats on [0, 1]'
+        # [poyn] pg 10
+        Assert(all([0 <= i <= 1 for i in rgb]))
+        r1 = (0.412453, 0.357580, 0.180423)
+        r2 = (0.212671, 0.715160, 0.072169)
+        r3 = (0.019334, 0.119193, 0.950227)
+        Assert(sum(r2) == 1)
+        n = 6
+        XYZ = Dot(r1, rgb, n), Dot(r2, rgb, n), Dot(r3, rgb, n)
+        return XYZ
+    def XYZ_to_rgb(XYZ):
+        'XYZ is a 3-tuple of numbers'
+        # [poyn] pg 10
+        # Note:  this is the inverse of the matrix in rgb_to_XYZ()
+        r1 = (3.240479, -1.537150, -0.498535)
+        r2 = (-0.969256, 1.875992, 0.041556)
+        r3 = (0.055648, -0.204043, 1.057311)
+        rgb = Dot(r1, XYZ), Dot(r2, XYZ), Dot(r3, XYZ)
+        # Clamp to [0, 1].  I'm also rounding to 6 places because that's
+        # the resolution of the transformation matrix's values.
+        rgb = [float(round(Clamp(i), 5)) for i in rgb]
+        return tuple(rgb)
+    def XYZ_to_xyz(XYZ):
+        # CIE 1931 xyz values
+        # [efg] under first chromaticity diagram
+        s = sum(XYZ)
+        xyz = [float(i/s) for i in XYZ]
+        Assert(sum(xyz) == 1)
+        return xyz
     def xyz_to_uv(xyz):
         # [efg] under 1960 CIE chromaticity diagram
         x, y, z = xyz
@@ -215,13 +294,6 @@ if 1:   # Core functionality
         y = 4*v1/s
         z = (-3*u1 - 20*v1 + 12)/s
         return x, y, z
-    def uv_to_xy(uv):
-        # u, v are 1960 CIE chromaticity coordinates
-        # [efg] under 1960 CIE chromaticity diagram
-        s = 2*u - 8*v + 4
-        x = 3*u/s
-        y = 2*v/s
-        return x, y
     def XYZ_to_u1v1(XYZ):
         # [efg] under 1976 CIE u'v' chromaticity diagram
         X, Y, Z = XYZ
@@ -229,37 +301,14 @@ if 1:   # Core functionality
         u1 = 4*X/s
         v1 = 9*Y/s
         return u1, v1
-    def XYZ_to_CIELUV(XYZ, u1n=0.2009, v1n=0.4610, Yn=None):
-        '''CIEL*u*v* 1976 color space which attempts perceptual uniformity.
-        https://en.wikipedia.org/wiki/CIELUV.  You must define Yn. 
-        '''
-        if Yn is None:
-            raise ValueError("Yn must be defined")
-        X, Y, Z = XYZ
-        s = X + 15*Y + 3*Z
-        u1, v1 = 4*X/s, 9*Y/s
-        t = (6/29)**3
-        a = Y/Yn
-        Lstar = t*a if a <= t else 116*a**(1/3) - 16
-        ustar = 13*Lstar*(u1 - u1n)
-        vstar = 13*Lstar*(v1 - v1n)
-        return (Lstar, ustar, vstar)
-    def CIELUV_to_XYZ(CIELUV, u1n=0.2009, v1n=0.4610, Yn=None):
-        '''Reverse transformation of XYZ_to_CIELUV.
-        https://en.wikipedia.org/wiki/CIELUV
-        '''
-        Lstar, ustar, vstar = CIELUV
-        u1 = ustar/(13*Lstar) + u1n
-        v1 = vstar/(13*Lstar) + v1n
-        Y = Yn*Lstar*(3/29)**3 if Lstar <= 8 else Yn*((Lstar + 16)/116)**3
-        X = Y*9*u1/(4*v1)
-        Z = Y*(12 - 3*u1 - 20*v1)/(4*v1)
-        return (X, Y, Z)
 
 if 0:
-    a = (0,0,0)
-    print(XYZ_to_rgb(a))
-    print(rgb_to_XYZ(a))
+    a = (.5,.5,.5)
+    x = rgb_to_XYZ(a)
+    print(x)
+    # Can it go back?
+    b = XYZ_to_rgb(x)
+    print(b)
     exit()
 
 if __name__ == "__main__": 
