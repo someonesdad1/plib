@@ -33,9 +33,11 @@ Color coordinates and transformations
           Schils died in 2011, so these pages won't be updated.
           http://www.color-theory-phenomena.nl/07.00.html is good with a
           number of general thoughts/observations.
-        - [hyperp1] http://hyperphysics.phy-astr.gsu.edu/hbase/vision/colper.html
+        - [hyperp1]
+          http://hyperphysics.phy-astr.gsu.edu/hbase/vision/colper.html
             - Overview of color perception
-        - [hyperp2] http://hyperphysics.phy-astr.gsu.edu/hbase/vision/cieprim.html
+        - [hyperp2]
+          http://hyperphysics.phy-astr.gsu.edu/hbase/vision/cieprim.html
             - An overview of the 1931 CIE primary XYZ tristimulus values.
               Properties
                 - X, Y, and Z are alays positive
@@ -43,24 +45,25 @@ Color coordinates and transformations
                 - Equal values of X, Y, Z produce white
                 - Y determines the luminance of the color
                 - Related to sensitivity of human eye
-                - The color matching functions (CMF) let you derive X, Y, Z by
-                  multiplying the CMF at each wavelength by the 
-                  spectral power distribution (SPD, derived
-                  e.g. from a spectrophotometer), summing, and normalizing.
-                  Note z = 1 - x - y, so x and y are the relevant color
-                  coordinates.
+                - The color matching functions (CMF) let you derive X, Y, Z
+                  by multiplying the CMF at each wavelength by the spectral
+                  power distribution (SPD, derived e.g. from a
+                  spectrophotometer), summing, and normalizing.  Note z = 1
+                  - x - y, so x and y are the relevant color coordinates.
                 - Result is x, y, and Y for the luminance.
                 - Y is luminance, which is radiant flux power weighted by
                   the sensitivity of the human eye, giving luminous flux in
                   lumens.
-        - [cmf1] https://www.sciencedirect.com/topics/engineering/color-matching-function
-        - [cmf2] http://cvrl.ioo.ucl.ac.uk/cmfs.htm  Site for
-          downloading CIE color matching functions
+        - [cmf1]
+          https://www.sciencedirect.com/topics/engineering/color-matching-function
+        - [cmf2] http://cvrl.ioo.ucl.ac.uk/cmfs.htm  Site for downloading
+          CIE color matching functions
         - [poyn] Poynton's ColorFAQ.pdf
         - [kon]
           https://sensing.konicaminolta.us/us/learning-center/color-measurement/color-spaces/
         - [wplab] https://en.wikipedia.org/wiki/CIELAB_color_space
-        - [efg] http://ultra.sdk.free.fr/docs/Image-Processing/Colors/Format/Chromaticity%20Diagrams%20Lab%20Report.htm
+        - [efg]
+          http://ultra.sdk.free.fr/docs/Image-Processing/Colors/Format/Chromaticity%20Diagrams%20Lab%20Report.htm
         - [jw] https://www.fourmilab.ch/documents/specrend/  Explains about
           getting XYZ coordinates and converting from xy to RGB (device)
           color.  His table 1 shows chromaticities of primary colors for
@@ -78,6 +81,27 @@ Color coordinates and transformations
           has some good discussions.
         - http://www.cvrl.org/ Color & Vision Research Lab, Institute of
           Ophthalmology, part of Univ. College London.
+        - https://rgbcmyk.com.ar/en/emulating-the-wright-guild-experiment/
+          Web page with an "emulator" of the Wright and Guild experiments,
+          asking you to match colors like was done in the late 1920s.
+        - http://jamie-wong.com/post/color/ Pretty good discussion.  I like
+          the comment near the end "even if you're a person who understands
+          that most things are deeper than they look, color is way deeper
+          than you would reasonably expect".
+        - Grassman's Law:  if two colors are indistinguishable (metamers),
+          you can add another color equally to both of them and they will
+          still appear to be the same color.  This with the Wright and
+          Guild experiments showed that we are dealing with a linear
+          system.
+        - https://michaelbach.de/ot/col-lilacChaser/index.html Interesting
+          applet to play around with.  If I put it in my browser on the
+          right half of my first monitor and edit this text on my other
+          monitor, my peripheral vision sees the moving green dots and
+          mostly ignores the lilac colored ones.
+        - https://scholar.harvard.edu/files/schwartz/files/lecture17-color.pdf
+          Good discussion.  Makes the point on pg 7 that the point of
+          inventing XYZ is it lets us embed all perceivable colors in a
+          triangle on the chromaticity diagram.
 '''
 if 1:   # Imports
     from pdb import set_trace as xx 
