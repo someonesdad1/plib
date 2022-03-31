@@ -153,55 +153,6 @@ if 1:   # Utility
             elif o in ("-h", "--help"):
                 Manpage()
         return args
-if 0:   # Not being used at the moment
-    def Convert(s):
-        try:
-            cn = ColorNum(s)
-            return cn
-        except Exception:
-            # See if it's a string form of a sequence
-            try:
-                t = eval(s)
-                cn = ColorNum(t)
-                return cn
-            except Exception:
-                return None
-    def ExamineLine(line):
-        "Inspect the line; if there's a valid expression, return it"
-        for r in g.color_regexps:
-            mo = r.search(line)
-            if mo:
-                s = mo.groups()[0]
-                if s[0] in "@#$":
-                    return s
-                else:
-                    return f"({s})"
-        return None
-    def Interactive():
-        while True:
-            s = input("Color specifier? ")
-            if s == "q":
-                exit(0)
-            cn = Convert(s)
-            Report(s, cn)
-            print()
-        exit()
-    def FromStdin(dbg=None):
-        '''Look for three integer numbers, 3 floats, or hex strings
-        beginning with @, #, or $.
-        '''
-        if dbg:
-            lines = dbg.split("\n")
-        else:
-            lines = sys.stdin.readlines()
-        for line in lines:
-            if not line:
-                continue
-            ln = line.strip()
-            s = ExamineLine(ln)
-            if s:
-                cn = Convert(s)
-                Report(ln, cn)
 if 1:   # Core functionality
     def GetColorRegexps():
         'Return tuple of regexps to use to recognize color identifiers'
@@ -319,10 +270,7 @@ if __name__ == "__main__":
     if len(files) == 1 and files[0] == "-":
         FromStdin()
         exit(0)
-    if d["-i"]:
-        Interactive()
-    else:
-        for file in files:
-            Search(file)
-        Sort()
-        Report()
+    for file in files:
+        Search(file)
+    Sort()
+    Report()

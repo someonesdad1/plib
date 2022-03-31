@@ -26,7 +26,7 @@ if 1:   # Custom imports
     from wrap import wrap, dedent
     from clr import Clr
     from rgb import ColorNum
-    from util import ParameterSequence
+    from util import fDistribute
     if 0:
 
         import debug
@@ -97,7 +97,7 @@ if 1:   # Core functionality
         cn2 = InterpretArgument(s2)
         #print(f"Process('{cn1.RGB}', {n}, '{cn2.RGB}')")
         typ = d["typ"]
-        for t in ParameterSequence(n):
+        for t in fDistribute(n):
             cn3 = cn1.interpolate(cn2, t, typ)
             # Get hex string to display
             if typ == "rgb":

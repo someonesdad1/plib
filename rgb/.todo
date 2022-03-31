@@ -1,6 +1,14 @@
-- Use variability data
-    - Both the McAdam ellipses and the variability data in Nimeroff can be
-      used to get a sense of when things are different.
+- cinterp.py
+    - Needs to use all common forms of specifying a color.  This
+      responsibility should be passed to ColorNum.
+
+- ColorNum
+    - This tool has become so useful it should be the basis of everything.
+      Especially get the constructor to recognize as many color specifiers
+      as possible.  Even '138  43 226  BlueViolet' in an rgb.txt file
+      should be recognized because of its three consective integer values.
+    - The color space transformations in colorcoord.py should be moved into
+      the ColorNum module.
 
 - Chromaticity
     - I like the 1931 and 1976 chromaticity diagrams.  Using Bruton's
@@ -28,13 +36,6 @@
       gamut is 99% of sRGB.  Viewing angle is 178 deg typical.  Output is
       300 cd/m2 typical.
 
-- ColorNum
-    - This tool has become so useful it should be the basis of everything.
-      Especially get the constructor to recognize as many color specifiers
-      as possible.  Even '138  43 226  BlueViolet' in an rgb.txt file
-      should be recognized because of its three consective integer values.
-    - The color space transformations in colorcoord.py should be moved into
-      the ColorNum module.
 
 - cnvclr.py
     - Add an option to sort by rgb, hsv, or hls.
@@ -43,11 +44,6 @@
     - Put code into a directory rgbdata
     - Change Color() to ColorNum()
     - Get rid of Color objects in rgb.py
-
-- clrinterp.py 
-    - Give two color specs in hex on the command line and you'll get a
-      stated number of colors printed out in text that interpolate between
-      the two given colors.
 
 - Finish view.py
 
