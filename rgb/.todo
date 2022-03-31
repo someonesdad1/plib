@@ -1,11 +1,6 @@
-- https://www.w3.org/TR/css-color-4https://www.w3.org/TR/css-color-4 is a
-  good document on color in CSS and the specs
-
-- https://en.wikipedia.org/wiki/List_of_color_spaces_and_their_uses 
-    - The plethora of jargon revolves around two major tasks:  1) to
-      specify the differences in color based on human perception in some
-      way that represents things approximately perceptively and 2) encoding
-      video data that looks good and can be done in real time.
+- Use variability data
+    - Both the McAdam ellipses and the variability data in Nimeroff can be
+      used to get a sense of when things are different.
 
 - Chromaticity
     - I like the 1931 and 1976 chromaticity diagrams.  Using Bruton's

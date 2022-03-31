@@ -334,6 +334,16 @@ main
         - print(dedent(f''' This ''')) chops off the 'T'.
 
     - f.py
+        - Another use case is variable scientific data.  For example, in
+          /plib/rgb/chromaticity, the nimeroff.pdf paper in table 3 has
+          data given from 6 to 2 significant figures.  It would be handy
+          when dealing with such data if the constructor could be given a
+          keyword option to figure out how many significant figures are
+          present from the constructor's string and to save that number.
+          Then you have a choice of normal str() behavior or set the .ssf
+          attribute to always show the number to its input number of
+          significant figures.  Arithmetic results would follow the
+          conventions of significance arithmetic.
         - /plib/pgm/divider.py is a good example of poorer performance of
           the f.py module.  With sig.py, it took 0.4 s.  Using flt objects
           instead the overall time for a script increased to 4.4 s.  I

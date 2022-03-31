@@ -102,6 +102,9 @@ Color coordinates and transformations
           Good discussion.  Makes the point on pg 7 that the point of
           inventing XYZ is it lets us embed all perceivable colors in a
           triangle on the chromaticity diagram.
+        - https://www.w3.org/TR/css-color-4 is a good document on color in
+          CSS and the specs
+
 '''
 if 1:   # Imports
     from pdb import set_trace as xx 
@@ -128,12 +131,8 @@ if 1:   # Core functionality
         XYZ = xy_to_XYZ(xy, Y)
         return f(XYZ_to_sRGB(XYZ))
     def sRGB_to_XYZ(srgb):
-        '''sRGB to CIE XYZ from 
-        https://en.wikipedia.org/wiki/SRGB#From_sRGB_to_CIE_XYZ
-        Note that
-        https://www.image-engineering.de/library/technotes/958-how-to-convert-between-srgb-and-ciexyz
-        gives numbers with more figures, but I've stuck to the wikipedia
-        page's numbers because they come from the standard.
+        '''sRGB to CIE XYZ from
+        https://en.wikipedia.org/wiki/SRGB#From_sRGB_to_CIE_XYZ 
         '''
         def GammaExpand(x):
             return x/12.92 if x <= 0.04045 else ((x + 0.055)/1.055)**2.4
@@ -142,43 +141,45 @@ if 1:   # Core functionality
         # "Gamma-expand" the values (the web page calls these the "linear"
         # components)
         rgb = [GammaExpand(i) for i in srgb]
-        # Transformation matrix to produce XYZ values wrt D65
+        # Transformation matrix to produce XYZ values with respect to the
+        # D65 illumination (6500 K blackbody radiation).
         if 1:
             r1 = (0.4124, 0.3576, 0.1805)
             r2 = (0.2126, 0.7152, 0.0722)
             r3 = (0.0193, 0.1192, 0.9503)
         else:
-            # More significant figures
+            # More significant figures from
+            # https://www.image-engineering.de/library/technotes/958-how-to-convert-between-srgb-and-ciexyz
             r1 = (0.4124564, 0.3575761, 0.1804375)
             r2 = (0.2126729, 0.7151522, 0.0721750)
             r3 = (0.0193339, 0.1191920, 0.9503041)
+        # Perform the matrix transformation
         XYZ = Dot(r1, rgb), Dot(r2, rgb), Dot(r3, rgb)
         return XYZ
     def XYZ_to_sRGB(XYZ):
         '''CIE XYZ to sRGB
         https://en.wikipedia.org/wiki/SRGB#From_CIE_XYZ_to_sRGB
-        Note that 
-        https://www.image-engineering.de/library/technotes/958-how-to-convert-between-srgb-and-ciexyz
-        gives numbers with more figures, but I've stuck to the wikipedia
-        page's numbers because they come from the standard.
         '''
         def GammaCompressed(x):
             return 12.92*x if x <= 0.0031308 else 1.055*x**(1/2.4) - 0.055
         if 1:
+            n = 4
             r1 = (+3.2406, -1.5372, -0.4986)
             r2 = (-0.9689, +1.8758, +0.0415)
             r3 = (+0.0557, -0.2040, +1.0570)
         else:
+            # More significant figures from
+            # https://www.image-engineering.de/library/technotes/958-how-to-convert-between-srgb-and-ciexyz
+            n = 6
             r1 = (+3.2404542, -1.5371385, -0.4985314)
             r2 = (-0.9692660, +1.8760108, +0.0415560)
             r3 = (+0.0556434, -0.2040259, +1.0572252)
         rgb = Dot(r1, XYZ), Dot(r2, XYZ), Dot(r3, XYZ)
-        # Round results to 4 places
-        n = 4
+        # Round the results
         sRGB = [round(GammaCompressed(i), n) for i in rgb]
         # Clip to [0, 1]
-        g = lambda x:  min(1, max(x, 0))
-        sRGB = [g(i) for i in sRGB]
+        clip = lambda x:  min(1, max(x, 0))
+        sRGB = [clip(i) for i in sRGB]
         return tuple(sRGB)
     def XYZ_to_xy(XYZ):
         t = sum(XYZ)
