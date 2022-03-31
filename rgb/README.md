@@ -16,24 +16,6 @@ the latter if they don't match.
 There are 10637 colors in the list in rgbdata.py, far too many names.  Over
 3000 of them have duplicates in the file.
 
-# cdec.py
-
-This script is a 'browser' for color specifiers in a file.  For example, to
-see the colors in a typical XWindows rgb.txt file, use
-
-    python cdec.py rgb.txt | less
-
-assuming your less program recognizes ANSI escape sequences.  If not,
-you can just look at your scrollback buffer.  Requires a 24-bit color
-terminal application.  The lines of the file are printed out if they
-contain a color specifier and in the color specified.
-
-Use the -r option to provide a regular expression to search for:
-
-    python cdec.py -r lilac rgb.txt | less
-
-which print the lines with the string 'lilac' in them.
-
 # cinterp.py
 
 This script lets you supply arguments in the form 'c1 n c2 m c3 ...' where

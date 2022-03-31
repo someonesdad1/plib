@@ -32,7 +32,8 @@ if 1:   # Header
         #   See http://opensource.org/licenses/OSL-3.0.
         #∞license∞#
         #∞what∞#
-        # Decorate color specifications
+        # Decorate color specifications.  Handy tool to e.g. browse an
+        # X11 rgb.txt file.
         #∞what∞#
         #∞test∞# #∞test∞#
         pass
