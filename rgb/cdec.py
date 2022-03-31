@@ -52,7 +52,7 @@ if 1:   # Header
         from wl2rgb import rgb2wl
     if 1:   # Global variables
         ii = isinstance
-        c = Clr(override=True)
+        c = Clr(always=True)
         class g: pass   # Hold global variables
         c.dbg = c("wht", "blu")
         g.duplicates = set()
@@ -116,38 +116,30 @@ if 1:   # Utility
           lines found in the color specified.  Use '-' to read from stdin.  Regular
           expressions are OR'd together.
         Options:
-            {c.i}-@      Force use of HSV color space{c.n}
-            {c.i}-#      Force use of RGB color space{c.n}
-            {c.i}-$      Force use of HLS color space{c.n}
-            {c.t}-d      Print details on the color{c.n}
+            -d      Print details on the color
             -e      Eliminate duplicates
-            {c.d}-h      More help and examples{c.n}
-            {c.i}-i      Prompt interactively for input lines{c.n}
+            -h      More help and examples
             -r x    Search for case-insensitive regexp x in lines
             -R x    Search for case-sensitive regexp x in lines
             -s s    Sort output by 'rgb', 'hsv', or 'hls'
         '''))
         exit(status)
     def ParseCommandLine(d):
-        d["-@"] = False     # Force use of HSV space
-        d["-#"] = True      # Force use of RGB space
-        d["-$"] = False     # Force use of HLS space
         d["-D"] = False     # Debug printing
         d["-d"] = False     # Show color details
         d["-e"] = False     # Eliminate duplicates
-        d["-i"] = False     # Interactive
         d["-R"] = []        # Case-sensitive regexp
         d["-r"] = []        # Case-insensitive regexp
         d["-s"] = None      # How to sort output
         if len(sys.argv) < 2:
             Usage()
         try:
-            opts, args = getopt.getopt(sys.argv[1:], "@#$DdeiR:r:s:", "help")
+            opts, args = getopt.getopt(sys.argv[1:], "DdeR:r:s:", "help")
         except getopt.GetoptError as e:
             print(str(e))
             exit(1)
         for o, a in opts:
-            if o[1] in list("@#$Ddei"):
+            if o[1] in list("Dde"):
                 d[o] = not d[o]
             elif o == "-R":
                 d[o].append(re.compile(a))
@@ -160,13 +152,6 @@ if 1:   # Utility
                 d[o] = a
             elif o in ("-h", "--help"):
                 Manpage()
-        # Color space options are exclusive
-        if d["-@"]:
-            d["-#"] = d["-$"] = False
-        elif d["-#"]:
-            d["-@"] = d["-$"] = False
-        elif d["-$"]:
-            d["-@"] = d["-#"] = False
         return args
 if 0:   # Not being used at the moment
     def Convert(s):

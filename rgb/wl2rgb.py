@@ -19,7 +19,7 @@ from interpolate import LinearInterpFunction
 from pdb import set_trace as xx 
 from f import flt
 ii = isinstance
-if 1:
+if 0:
     import debug
     debug.SetDebugger()
  
@@ -66,13 +66,10 @@ def wl2rgb(nm, gamma=0.8):
 def rgb2wl(colornum):
     'Convert the indicated color to a wavelength in nm'  
     '''
-
     The algorithm is
-
         - Get the integer value of the hue on [0, 255]
         - If hue > 212 return 645 nm
         - Otherwise hue is in [0, 211] and use a dictionary lookup
-
     '''
     if not ii(colornum, ColorNum):
         raise TypeError("colornum must be a ColorNum instance")
@@ -108,29 +105,11 @@ def rgb2wl(colornum):
                         if i < 0:
                             raise Exception("Bad algorithm")
             rgb2wl.dict = dict
-
-
     hue = colornum.HLS[0]
     assert(ii(hue, int) and 0 <= hue <= 255)
     if hue > 212:
         return 645
     return rgb2wl.dict[hue]
-
-if 0:
-    # Print hue vs nm for every nm
-    print("Hue  nm")
-    for nm in range(380, 645):
-        cn = wl2rgb(nm, gamma=0)
-        hue = cn.HLS[0]
-        print(f"{hue:3d} {nm:3d}")
-
-    '''
-    This gives the algorithm:
-        - For hue in range 0 to 212, map per the dict from above printout.
-        - For hue from 213 to 255, return wl of 645 nm.
-        
-    '''
-    exit()
 
 if __name__ == "__main__": 
     from clr import Clr
