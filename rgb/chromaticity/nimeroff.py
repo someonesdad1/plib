@@ -1,15 +1,45 @@
-# vi: wm=0 tw=0
+# Data from I. Nimeroff, J. Rosenblatt, M. Dannemiller, "Variability of
+# Spectral Tristimulus Values", J. Research of the NBS A, 65A(6) 475-483,
+# Nov-Dec 1961.
 
-# Table 3 in Nimeroff, pg 482.  This is the proposed CIE tristimulus 
-# functions for a 10° observer with variances and covariances.
-# v(x) = variance of x
-# c(x, y) = covariance of x, y
-# x = xbar (mean)
-# y = xbar (mean)
-# z = xbar (mean)
-# This table was checked against the printed document, column by column.  
-# Around 15-20 single digit errors were found and corrected.  The raw data 
-# was copied to the clipboard from my PDF client.
+# The data from these two tables were checked against the printed document,
+# column by column.  The raw data was copied to the clipboard from my PDF
+# client and numerous transcription errors had to be corrected.  This work
+# was entered and checked by DP on 30 Mar 2022.
+
+# Observations from the paper:
+
+    # The data came from two independent investigations (Burch & Stiles
+    # 1959: sample size of 53 observers, Speranskaya 1958:  sample size of
+    # 27 observers).  The covariance data are estimated only on the basis
+    # of the Burch & Stiles paper. [pg 475]
+
+    # The standard deviations of these independent investigations are
+    # essentially the same order of magnitude and range from 10 to 20
+    # percent of the mean function. [pg 479]  As the within-observer
+    # variances are relatively small, the estimated between-observer
+    # variances are only slightly overstated.
+
+    # Figures 2, 3, and 4 are semilog plots (the y-axis is the
+    # red/green/blue primary responses and standard deviations and is the
+    # log axis; the x axis is the wavelength in nm) and allow comparison of
+    # the means and standard deviations of the two experiments.  The
+    # standard deviations are reasonably close except for the > 500 nm data
+    # for the blue primary.  The authors give two possible reasons for this
+    # discrepancy, both due to experimental methods.  The figures show
+    # interesting heteroscedastic behavior that might be clues to how the
+    # human visual system works.  I'm not a fan of their curve drawing for
+    # the within-observer standard deviations.
+
+#----------------------------------------------------------------------------
+# Table 3 in Nimeroff, pg 482.  This is the proposed CIE tristimulus
+# functions for a 10° observer with variances and covariances.  λ is
+# wavelength in nm.
+#   v(x) = variance of x (these are between observer variances)
+#   c(x, y) = covariance of x, y
+#   x = xbar (mean)
+#   y = xbar (mean)
+#   z = xbar (mean)
 
 # λ      x          y          z         v(x)         v(y)       v(z)            c(x, y)       c(x, z)          c(y, z)
 table3 = '''
@@ -48,8 +78,10 @@ table3 = '''
     720 0.00217496 0.00084619 0.000000    0.000000019 0.0000000026 0.0000000000043 +0.0000000069 +0.0000000000027 +0.0000000000051
 '''[1:-1]
 
+#----------------------------------------------------------------------------
 # Table 4 in Nimeroff, pg 483
-# Within-observer variances in xbar, ybar, zbar
+# Within-observer variances in xbar, ybar, zbar.  These are about 32 times
+# smaller than those in table 3.
 # v(x) = variance of xbar
 # v(y) = variance of ybar
 # v(z) = variance of z
@@ -92,10 +124,9 @@ table4 = '''
 from f import flt
 from pdb import set_trace as xx 
 flt(0).f = True
-col = 4
-
-print(f"Nimeroff column {col}")
 for line in table4.split("\n"):
     f = [flt(i) for i in line.split()]
     f[0] = int(f[0])
-    print(f[col-1])
+    print(f)
+
+# vi: wm=0 tw=0
