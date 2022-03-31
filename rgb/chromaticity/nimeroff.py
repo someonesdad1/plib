@@ -157,8 +157,12 @@ if __name__ == "__main__":
     from fpformat import FPFormat
     c = Clr(always=True)
     c.r, c.g, c.b = c("lred"), c("lgrn"), c("lblu")
-    fp = FPFormat(num_digits=4)
-    fp2 = FPFormat(num_digits=2)
+    FP = True
+    if FP:
+        # Use FPFormat for formatting to line up decimal places
+        N, M = 4, 2
+        fp = FPFormat(num_digits=N)
+        fp2 = FPFormat(num_digits=M)
     def wl2rgb(nm, gamma=0.8):
         '''Convert nm (light wavelength in nm) into a ColorNum object using a
         linear approximation.  The ColorNum object represents an RGB color.
@@ -198,51 +202,106 @@ if __name__ == "__main__":
         # Make sure the numbers are on [0, 1]
         assert(all([0 <= i <=1 for i in b]))
         return ColorNum(b)
-    def SummarizeTable3Line(line):
-        def S(variance, mean):
-            if mean:
-                return 100*variance**(1/2)/mean
+    def SummarizeTable3():
+        def SummarizeTable3Line(line):
+            def S(variance, mean):
+                if mean:
+                    return 100*variance**(1/2)/mean
+                else:
+                    return flt(0)
+            assert(len(line) == 10)
+            (  λ,
+            x, y, z,
+            vx, vy, vz,
+            cxy, cxz, cyz) = line
+            m = x, y, z
+            v = vx, vy, vz
+            C = cxy, cxz, cyz
+            cn = wl2rgb(λ)
+            print(f" {c(cn.rgbhex)}{λ:3d}{c.n} ", end="")
+            if FP:
+                # Use fpformat printing to line up decimal points
+                w = 10
+                f = lambda x:  fp.dp(x, width=w)
+                print(f"{c.r}{f(m[0]):{w}s}{c.n} ", end="")
+                print(f"{c.g}{f(m[1]):{w}s}{c.n} ", end="")
+                if m[2]:
+                    print(f"{c.b}{f(m[2]):{w}s}{c.n} ", end="")
+                else:
+                    print(f"{c.b}{'   0':{w}s}{c.n} ", end="")
             else:
-                return flt(0)
-        assert(len(line) == 10)
-        (  λ,
-           x, y, z,
-           vx, vy, vz,
-           cxy, cxz, cyz) = line
-        m = x, y, z
-        v = vx, vy, vz
-        C = cxy, cxz, cyz
-        cn = wl2rgb(λ)
-        print(f" {c(cn.rgbhex)}{λ:3d}{c.n} ", end="")
-        # Convert xbar etc. to %
-        m1 = [i*100 for i in m]
-        print(f"{c.r}{m1[0]:10.3f}{c.n} ", end="")
-        print(f"{c.g}{m1[1]:10.3f}{c.n} ", end="")
-        print(f"{c.b}{m1[2]:10.3f}{c.n} ", end="")
-        print(" "*6, end="")
-        # Standard deviation:  take square root of variance to get
-        # standard deviation, print to 2 figures.
-        s = [flt(i**(1/2)) for i in v]
-        with flt(0):
-            flt(0).n = 2
-            print(f"{c.r}{s[0]!s:^9s}{c.n} ", end="")
-            print(f"{c.g}{s[1]!s:^9s}{c.n} ", end="")
-            print(f"{c.b}{s[2]!s:^9s}{c.n} ", end="")
-        print()
+                # Use regular printing
+                print(f"{c.r}{m[0]:10.3f}{c.n} ", end="")
+                print(f"{c.g}{m[1]:10.3f}{c.n} ", end="")
+                print(f"{c.b}{m[2]:10.3f}{c.n} ", end="")
+            if not FP:
+                print(" "*6, end="")
+            # Standard deviation:  take square root of variance to get standard
+            # deviation, print to 2 figures.
+            s = [flt(i**(1/2)) for i in v]
+            with flt(0):
+                flt(0).n = 2
+                if FP:
+                    # Use fpformat printing to line up decimal points
+                    def F(x):
+                        try:
+                            s = fp2.dp(x, width=w, dpoint=3)
+                            if "-.-" in s:
+                                return f"{x:{w}.2g}"
+                            return s
+                        except Exception:
+                            return f"{x:{w}.2g}"
+                    w = 9
+                    print(f"{c.r}{F(s[0]):{w}s}{c.n} ", end="")
+                    print(f"{c.g}{F(s[1]):{w}s}{c.n} ", end="")
+                    print(f"{c.b}{F(s[2]):{w}s}{c.n} ", end="")
+                else:
+                    print(f"{c.r}{s[0]!s:^9s}{c.n} ", end="")
+                    print(f"{c.g}{s[1]!s:^9s}{c.n} ", end="")
+                    print(f"{c.b}{s[2]!s:^9s}{c.n} ", end="")
+            print()
+        msg1 = f"(to {N} figures)" if FP else ""
+        msg2 = f"(to {M} figures)" if FP else ""
+        print(dedent(f'''
+        Table 3:  10° CIE Color Matching Functions
+        From I. Nimeroff, J. Rosenblatt, M. Dannemiller, "Variability of
+        Spectral Tristimulus Values", J. Res. NBS A, 65A(6) 475-483, 1961
+        {c.r}x -> red   at 645.2 nm{c.n}
+        {c.g}y -> green at 526.3 nm{c.n}
+        {c.b}z -> blue  at 444.4 nm{c.n}
+        xbar, ybar, zbar are mean CMFs {msg1}
+        s = standard deviation in same units as mean {msg2}
+        Nominal d.f. approximately 80
+        '''))
+        if FP:
+            print(f"λ, nm   {c.r}xbar{c.n}       {c.g}ybar{c.n}       {c.b}zbar{c.n}        ", end="")
+            print(f"{c.r}sx{c.n}        {c.g}sy{c.n}        {c.b}sz{c.n}")
+        else:
+            print(f"λ, nm     {c.r}xbar{c.n}       {c.g}ybar{c.n}       {c.b}zbar{c.n}           ", end="")
+            print(f"{c.r}sx{c.n}       {c.g}sy{c.n}         {c.b}sz{c.n}")
+        for line in data3:
+            SummarizeTable3Line(line)
+    def SummarizeTable4():
+        print(dedent('''
 
-    print(dedent(f'''
-    Table 3:  10° CIE Color Matching Functions
-      From I. Nimeroff, J. Rosenblatt, M. Dannemiller, "Variability of
-      Spectral Tristimulus Values", J. Res. NBS A, 65A(6) 475-483, 1961
-      {c.r}x -> red   at 645.2 nm{c.n}
-      {c.g}y -> green at 526.3 nm{c.n}
-      {c.b}z -> blue  at 444.4 nm{c.n}
-      xbar, ybar, zbar are mean CMFs multiplied by 100
-      s = standard deviation in same units as mean (to 2 figures)
-      Nominal d.f. approximately 80
-
-    '''))
-    print(f"λ, nm      {c.r}xbar{c.n}       {c.g}ybar{c.n}       {c.b}zbar{c.n}          ", end="")
-    print(f"{c.r}sx{c.n}        {c.g}sy{c.n}        {c.b}sz{c.n}")
-    for line in data3:
-        SummarizeTable3Line(line)
+        Within-observer standard deviations
+        d.f. approximately 7
+ 
+        '''))
+        print(f"λ, nm", end=" "*5)
+        w = 8
+        i = " "*9
+        print(f"{c.r}sx{c.n}{i}{c.g}sy{c.n}{i}{c.b}sz{c.n}")
+        i = " "*2
+        for line in data4:
+            assert(len(line) == 4)
+            λ, vx, vy, vz = line
+            v = vx, vy, vz
+            cn = wl2rgb(λ)
+            s = [flt(i**(1/2)) for i in v]
+            print(f" {c(cn.rgbhex)}{λ:3d}{c.n}  ", end="")
+            print(f"{c.r}{s[0]:{w}.4f}{c.n} ", end=f"{i}")
+            print(f"{c.g}{s[1]:{w}.4f}{c.n} ", end=f"{i}")
+            print(f"{c.b}{s[2]:{w}.4f}{c.n} ")
+    SummarizeTable3()
+    SummarizeTable4()
