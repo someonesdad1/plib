@@ -625,15 +625,15 @@ if 1:   # Classes
             "style" definitions, use c.reset().  To see the styles you've
             defined, use print(c).
         '''
-        def __init__(self, bits=4, override=False, cleanup=False):
-            '''If override is True, always emit escape codes.  The normal
+        def __init__(self, bits=4, always=False, cleanup=False):
+            '''If always is True, always emit escape codes.  The normal
             behavior is not to emit escape codes unless stdout is a terminal.
             bits must be None, 4, 8, or 24.  If None, the model is chosen
             from the TERM and TERM_PROGRAM environment variables.  If
             cleanup is True, atexit is used to emit the escape code to
             revert to normal screen display.
             '''
-            self._override = bool(override)
+            self._always = bool(always)
             self._cleanup = bool(cleanup)
             # Find the terminal type
             if bits is None:
@@ -651,7 +651,7 @@ if 1:   # Classes
                 atexit.register(self.cleanup)
         def _user(self):
             'Return a set of user-defined attribute names'
-            ignore = set('''_bits _cn _on _override _parse_color _user
+            ignore = set('''_bits _cn _on _always _parse_color _user
                 cleanup load n out print reset'''.split())
             attributes = []
             for i in dir(self):
@@ -797,7 +797,7 @@ if 1:   # Classes
             self.n = self._cn.n
             # Turn on output unless not to terminal
             self._on = False
-            if sys.stdout.isatty() or self._override:
+            if sys.stdout.isatty() or self._always:
                 self._on = True
         def print(self, *p, **kw):
             '''Print arguments with newline, reverting to normal color

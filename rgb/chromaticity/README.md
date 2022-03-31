@@ -15,33 +15,12 @@ wavelength of light.  This led to the CIE 1931 color matching functions
 (CMFs) that are still used today (see below and
 https://en.wikipedia.org/wiki/CIE_1931_color_space).  
 
-http://hyperphysics.phy-astr.gsu.edu/hbase/vision/colper.html
-gives an overview and shows why the chromaticity diagram is such a useful
-tool.
+http://hyperphysics.phy-astr.gsu.edu/hbase/vision/colper.html gives an
+overview and shows why the chromaticity diagram is a useful tool.
 
 http://ultra.sdk.free.fr/docs/Image-Processing/Colors/Format/Chromaticity%20Diagrams%20Lab%20Report.htm
 provides some computed chromaticity diagrams.  Also see
 https://en.wikipedia.org/wiki/Chromaticity.
-
-In school in the 1960's, one morning I played around with a Fabry-Perot
-interferometer being illuminated by a sodium light in a dark room (I was
-setting the equipment up for a lab period later that afternoon).  I
-remember being surprised that my eye could apparently see a color
-difference between the two lines of the sodium doublet at 589 nm; they
-differ by 0.6 nm.  Since that was a long time ago, I can't remember whether
-my perception was that the colors were different or whether I interpreted
-them as different because one line is less intense than the other.  An
-article https://www.ncbi.nlm.nih.gov/pmc/articles/PMC2570376/ discusses
-wavelength discrimination.  From examining figure 3 in this article,
-particlarly the black squares or dots and their error bars, I conclude I
-probably could not see the color difference -- rather, I saw an intensity
-difference that led my brain to concluding that the colors were different.
-Because of the small sample size (4 "younger" people (mean 31 years) and 4
-"older" (mean 72 years)) of this well-written paper, it's not clear to me
-that the experiment detected a real difference, regardless of what the
-regressions say (look at the size of within-group standard deviations); it
-was a difficult and time consuming experiment to run.  I came away with the
-factoid that we can at best resolve color differences of a few nm.
 
 # Color matching functions (CMF)
 
@@ -75,17 +54,17 @@ color interpretation.
 1931Chromaticity.jpg and 1960Chromaticity.jpg are from
 http://ultra.sdk.free.fr/docs/Image-Processing/Colors/Format/Chromaticity%20Diagrams%20Lab%20Report_files/CIE1931.jpg
 
-1976Chromaticity.jpg
-    Taken from
-    http://hyperphysics.phy-astr.gsu.edu/hbase/vision/vispic/cie1976b.jpg,
-    although it may be due to
-    http://www.color-theory-phenomena.nl/10.03.htm.
-    - A criticism I have of this particular plot is that the colors for the
-      wavelengths at the boundaries don't look as saturated as they would
-      if they were e.g. from a monochromator.  This was obviously
-      deliberate by the person who wrote the code for this diagram, but
-      it's not "physical" enough for my eyes.  Still, I favor this diagram
-      and coordinate system because of its spreading out of the 1931
-      chromaticity diagram.  This lets it be used as an approximate metric
-      for estimating the distance of colors in a coordinate system that is
-      approximately related to human perception.  
+1976Chromaticity.jpg is taken from
+http://hyperphysics.phy-astr.gsu.edu/hbase/vision/vispic/cie1976b.jpg,
+although it may be due to http://www.color-theory-phenomena.nl/10.03.htm.
+
+# nimeroff.py
+
+This python script contains the data from the paper I. Nimeroff, J.
+Rosenblatt, M. Dannemiller, "Variability of Spectral Tristimulus Values",
+J. Research of the NBS A, 65A(6) 475-483, Nov-Dec 1961.  Table 3 of the
+paper gives the proposed CIE 10° observer color matching functions in 10 nm
+steps.  Most usefully, the estimated variances and covariances are included
+which can give you a feeling for how well the observers were able to match
+colors.  In a nutshell, the standard deviations are within about 0.1 to 0.2
+of the mean and are mostly composed of between-observer variation.
