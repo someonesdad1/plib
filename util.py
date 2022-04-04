@@ -1,4 +1,5 @@
 # TODO:  Convert Spinner to a class so the instance is thread-safe
+#   Debug class should use print()'s arguments
 '''Miscellaneous routines in python:
  
 Ampacity              Returns NEC ampacity of copper wire

@@ -1,4 +1,22 @@
 '''
+BUGS
+
+Trying to do integer conversion after a deliberate syntax error; the second
+conversion should have worked.
+
+    ▶▶▶ int("12", 60)
+    zz Got exception:  'file'
+    Traceback (most recent call last):
+    File "<console>", line 1, in <module>
+    ValueError: int() base must be >= 2 and <= 36, or 0
+    ▶▶▶ int("12", 6)
+    zz Got exception:  'file'
+    File "<console>", line 1
+        int("12", 60)
+                    ^
+    SyntaxError: multiple statements found while compiling a single statement
+
+
 TODO
 
     - Add an ls command (it will call external ls command) with my usual
@@ -307,6 +325,7 @@ if 1:   # Core functionality
             i.nz = True
             i.c = True
             one = flt(1)
+            ii = isinstance
         except ImportError:
             pass
         loc = locals().copy()
@@ -508,8 +527,8 @@ if 1:   # Special commands
                 Help()
             elif cmd == "q":  
                 t = console.time
-                Print(f"{t}")
-                DumpCmdLog()
+                Print(f"{t}")   # Print the exit time
+                #DumpCmdLog()
                 exit(0)
             elif first_char == "R":  
                 # Set or clear console.file

@@ -24,7 +24,7 @@ from rgb import ColorNum
 if len(sys.argv) > 2:
     import debug
     debug.SetDebugger()
-c = Clr(override=True)
+c = Clr(always=True)
 
 def GetCIETable():
     '''Returns a tuple of (nm, (xbar, ybar, zbar)) values to give the CIE's

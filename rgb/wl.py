@@ -6,7 +6,7 @@ from columnize import Columnize
 from wrap import dedent
 from rgb import ColorNum
 from clr import Clr
-c = Clr(override=True)
+c = Clr(always=True)
 def wl2rgb(nm, gamma=0.8):
     '''Convert nm (light wavelength in nm) into a ColorNum object using a
     linear approximation.  The ColorNum object represents an RGB color.

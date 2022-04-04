@@ -68,3 +68,25 @@ steps.  Most usefully, the estimated variances and covariances are included
 which can give you a feeling for how well the observers were able to match
 colors.  In a nutshell, the standard deviations are within about 0.1 to 0.2
 of the mean and are mostly composed of between-observer variation.
+
+# solarspectrum.jpg
+
+This picture came from
+https://solarsystem.nasa.gov/resources/390/the-solar-spectrum/, which in
+turn came from Kitt Peak Observatory, published in Nov 2017.  It shows the
+sun's spectrum from 400 to 700 nm with each of the 50 strips being 6 nm
+wide.  The dark lines are absorption lines that identify elements in
+various parts of the sun.  This provides a "fingerprint" of the elements in
+the sun and is what astronomers used to e.g. classify the age and type of a
+star.  Shortest wavelength is at bottom left and wavelength increases to
+the right.  If you magnify the image, you'll see a number of strange color
+quantification oddities in the bottom 6 or 7 lines where the violet portion
+of the spectrum resides.  It's likely these colors are out of the typical
+sRGB gamut for computer monitors.
+
+# Wavelength discrimination
+
+nihms72432_wavelength_discrimination.pdf and wavelength_discrimination.png
+show that human wavelength discrimination is, at best, around 2 nm.  The
+latter picture, though terse and useful, is disappointingly unattributed at 
+https://www.wolframalpha.com/widgets/gallery/view.jsp?id=5072e9b72faacd73c9a4e4cb36ad08d#.
