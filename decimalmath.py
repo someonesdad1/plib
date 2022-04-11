@@ -22,7 +22,7 @@ if 1:   # Imports
     from pdb import set_trace as xx 
 if 1:   # Custom imports
     from wrap import dedent
-    from color import C
+    from kolor import C
     if 0:
         import debug
         debug.SetDebugger()

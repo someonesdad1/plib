@@ -1,4 +1,10 @@
 main
+    - cdec.py
+        - It would be nice to be able to specify multiple sort parameters.
+          The -s option could take an argument:  r, g, b, h, l, s, v.  The
+          first one is the first sort parameter, then second is the next,
+          etc.  The resulting array is decorated with the indicated numbers
+          and the sort proceeds normally.
 
     - Wavelength & color
         - Bruton's wl->rgb seems OK, but I think something better might be

@@ -1,4 +1,7 @@
 '''
+TODO
+    - Use the Sort classmethod of kolor.py
+
 Decorate color specifications
     - Forms that must be recognized:
         - i = integer on [0, 255], 
@@ -203,7 +206,11 @@ if 1:   # Core functionality
         of the line is stripped.
         '''
         keep = deque()
-        for line in open(file).readlines():
+        if file == "-":
+            lines = sys.stdin.readlines()
+        else:
+            lines = open(file).readlines()
+        for line in lines:
             line = line.rstrip()
             Dbg(f"Read '{line}'")
             candidate = ''
@@ -268,9 +275,6 @@ if __name__ == "__main__":
     g.out = deque()     # Container for the lines to output
     d = {}              # Options dictionary
     files = ParseCommandLine(d)
-    if len(files) == 1 and files[0] == "-":
-        FromStdin()
-        exit(0)
     for file in files:
         Search(file)
     Sort()

@@ -59,7 +59,7 @@ if 1:   # Standard imports
     from pdb import set_trace as xx
 if 1:   # Custom imports
     from wrap import wrap, dedent
-    from color import (C, fg, black, blue,  green,  cyan,  red,  magenta,
+    from kolor import (C, fg, black, blue,  green,  cyan,  red,  magenta,
         brown,  white, gray,  lblue, lgreen, lcyan, lred, lmagenta, yellow,
         lwhite)
     from cmddecode import CommandDecode
@@ -291,7 +291,7 @@ if 1:   # Core functionality
         severe by many people, especially those who were born in the last
         30 to 40 years.  People of my generation (born in the 1940's),
         especially technical people, often learned to deal with lots of
-        information densely printed in textbooks.  You never see such
+        information in densely printed textbooks.  You never see such
         things anymore, as witnessed by the low information density on web
         pages.  Regardless, it doesn't hurt my feelings if someone doesn't
         agree with my tastes -- and a tool like astyle makes it easier to

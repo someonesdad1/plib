@@ -909,12 +909,12 @@ if 1:   # Printing regular expression matches
 if __name__ == "__main__":
     # Demonstrate module's output
     bits = 4
-    c = Clr(bits=bits, override=True)
+    c = Clr(bits=bits, always=True)
     width = int(os.environ["COLUMNS"])
     def TestCases():
         # Not exhaustive, but will test some key features.  Tested only
         # under mintty 3.5.2.
-        c = Clr(bits=24, override=True)
+        c = Clr(bits=24, always=True)
         c.m = c("violetred")    # Test case headings
         def TestLoad():
             'Test Clr.load() from file, stream and string'
@@ -922,7 +922,7 @@ if __name__ == "__main__":
             s = "/tmp/tmp.clr.py"
             f = P(s)
             open(P(s), "w").write("err lred None\n")
-            x = Clr(override=True)
+            x = Clr(always=True)
             x.load(f, show=True)            # File
             x.load(open(f), show=True)      # Stream
             s = "err lred None"
@@ -1019,7 +1019,7 @@ if __name__ == "__main__":
         - regexp matches
         - Unicode in sub/superscripts (e.g., Hz**(1/2)
         '''
-        c = Clr(bits=24, override=True)
+        c = Clr(bits=24, always=True)
         c.hdr = c("orchid", attr="rv")
         def Header():
             c.print(dedent(f'''

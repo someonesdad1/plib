@@ -60,23 +60,6 @@ if 1:   # Imports
     import traceback
     from pdb import set_trace as xx 
 if 1:   # Custom imports
-    # Try to import the color.py module; if not available, the script
-    # should still work (you'll just get uncolored output).  You can get the
-    # module from https://someonesdad1.github.io/hobbyutil/util/color.py.
-    try:
-        # Make a dummy color object to swallow function calls
-        class Dummy:
-            def fg(self, *p, **kw): pass
-            def normal(self, *p, **kw): pass
-            def __getattr__(self, name): pass
-        import color
-        _have_color = True
-    except ImportError:
-        color = Dummy()
-        _have_color = False
-    if not sys.stdout.isatty():
-        _have_color = False
-        color = Dummy()
     from f import flt, cpx
     from wrap import dedent
 if 1:   # Globals
@@ -194,9 +177,7 @@ if 1:   # Core functionality
         if broken:
             # Get the name of the file that called us
             file = traceback.extract_stack()[0][0]
-            color.fg(color.lred)
-            print("{}:  Error:  tests are broken".format(file))
-            color.normal()
+            print("! {}:  Error:  tests are broken".format(file))
             return (1, "Tests are broken")
         # Find test functions in names_dict to run.  Note we don't allow
         # "_lwtest" to end the name; this lets you use a variable like 
@@ -320,19 +301,10 @@ if 1:   # Utility
         fn, ln, method, call = traceback.extract_stack()[-2]
         vars = {"fn": fn, "ln": ln, "method": method, "msg": message,
             "prefix": prefix }
-        def trace(msg, vars):
-            if vars["method"] == "<module>":
-                print("{prefix}{fn}[{ln}]:  {msg}".format(**vars))
-            else:
-                print("{prefix}{fn}[{ln}] in {method}:  {msg}".format(**vars))
-        try:
-            # Print the message in red
-            from color import fg, lred, normal
-            fg(lred)
-            trace(message, vars)
-            normal()
-        except ImportError:
-            trace(message, vars)
+        if vars["method"] == "<module>":
+            print("{prefix}{fn}[{ln}]:  {msg}".format(**vars))
+        else:
+            print("{prefix}{fn}[{ln}] in {method}:  {msg}".format(**vars))
 if 1:   # Checking functions
     def check_flt(a, b, reltol=None, abstol=None, use_min=False):
         '''a must be a flt.  If b is not a flt, then promote it if

@@ -41,6 +41,7 @@ SignificantFigures    Rounds to specified num of sig figs (returns float)
 SignificantFiguresS   Rounds to specified num of sig figs (returns string)
 signum                Return -1, 0, or 1 if x < 0, == 0, or > 0
 Singleton             Mix-in class to create the singleton pattern
+SizeOf                Estimate memory of an object in bytes
 SpeedOfSound          Calculate the speed of sound as func of temperature
 Spinner               Console spinner to show activity
 StringToNumbers       Convert a string to a sequence of numbers
@@ -74,15 +75,16 @@ if 1:   # Imports
     from itertools import chain, combinations, islice, groupby
     from itertools import cycle, zip_longest, product
     from operator import itemgetter
+    from pathlib import Path as P
     from pdb import set_trace as xx
     from random import randint, seed
+    from reprlib import repr as Repr
     from string import ascii_letters, digits as DIGITS, punctuation
-    from dpmath import AlmostEqual, SignSignificandExponent, signum
+
     import cmath
     import glob
     import math
     import os
-    from pathlib import Path as P
     import random
     import re
     import struct
@@ -90,9 +92,11 @@ if 1:   # Imports
     import sys
     import tempfile
     import time
+
 if 1:   # Custom imports
+    from dpmath import AlmostEqual, SignSignificandExponent, signum
     from sig import sig
-    from color import C
+    from kolor import C
     from frange import frange
 if 1:   # Global variables
     ii = isinstance
@@ -1361,7 +1365,7 @@ def fDistribute(n, a=0, b=1, impl=float):
     You can use other impl types of decimal.Decimal, and f.flt.  Other
     types that define impl()/impl() to return an impl-type floating
     point number will also work (e.g., mpmath's mpf type).
-
+ 
     If you need a sequence of evenly-distributed integers, see
     util.iDistribute().
     '''
@@ -1393,7 +1397,66 @@ def signum(x):
         return 0
     except Exception:
         raise TypeError(f"x = '{x}' not a suitable numerical type")
+def SizeOf(o, handlers={}, verbose=None, full=False):
+    '''Returns the approximate memory in bytes used by an object
+ 
+    Automatically finds the contents of the following builtin containers
+    and their subclasses:  tuple, list, deque, dict, set and frozenset.  To
+    search other containers, add handlers to iterate over their contents:
+ 
+        handlers = {SomeContainerClass: iter,
+                    OtherContainerClass: OtherContainerClass.get_elements}
+ 
+    If verbose is True, send verbose data to stdout.  Verbose can also be a
+    stream, in which case the verbose information is sent there.
+ 
+    If full is True, then the default repr() is used rather than
+    reprlib.repr.
+    '''
+    '''DP 11 Apr 2022
+    This is a modified version of
+    https://code.activestate.com/recipes/577504/.  I added 
+        - The ability to make verbose a stream
+        - Indented the verbose output to see the recursion
+        - Added the full keyword so that the abbreviated Repr isn't used
+    '''
+    dict_handler = lambda d: chain.from_iterable(d.items())
+    all_handlers = { 
+        tuple: iter,
+        list: iter,
+        deque: iter,
 
+        dict: dict_handler,
+        set: iter,
+        frozenset: iter,
+    }
+    all_handlers.update(handlers)     # User handlers take precedence
+    seen = set()                      # Track objects seen
+    default_size = sys.getsizeof(0)   # Estimate size without __sizeof__
+    stream = sys.stdout if verbose else None
+    if verbose and hasattr(verbose, "write"):
+        stream = verbose 
+    Repr_local = repr if full else Repr
+    indent = 0
+    if stream:
+        print(f"SizeOf details:")
+    def sizeof(o):
+        nonlocal indent
+        indent += 2
+        if id(o) in seen:       # do not double count the same object
+            return 0
+        seen.add(id(o))
+        sz = sys.getsizeof(o, default_size)
+        if verbose:
+            i = " "*(indent - 1)
+            print(i, sz, type(o), Repr_local(o), file=stream)
+        for typ, handler in all_handlers.items():
+            if isinstance(o, typ):
+                sz += sum(map(sizeof, handler(o)))
+                break
+        indent -= 2
+        return sz
+    return sizeof(o)
 if __name__ == "__main__": 
     # Missing tests for: Ignore Debug, Dispatch, GetString
     from io import StringIO
@@ -1407,6 +1470,19 @@ if __name__ == "__main__":
     from pdb import set_trace as xx
     seed(2**64)  # Make test sequences repeatable
     show_coverage = len(sys.argv) > 1
+    def Test_SizeOf():
+        for typ, sz in (
+                # These numbers could likely be python version specific
+                (tuple, 40),
+                (list, 60),
+                (deque, 328),
+                (set, 124),
+                (frozenset, 124),
+                ):
+            x = typ((0,))
+            Assert(SizeOf(x) == sz)
+        x = {1:1}
+        Assert(SizeOf(x) == 146)
     def Test_AlmostEqual():
         Assert(AlmostEqual(0, 0))
         Assert(AlmostEqual(0, 1e-353))

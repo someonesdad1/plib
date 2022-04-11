@@ -37,7 +37,7 @@ if 1:   # Custom imports
     # Try to import the color.py module; if not available, the script
     # should still work (you'll just get uncolored output).
     try:
-        import color as C
+        import kolor as C
     except ImportError:
         # Make a dummy color object to swallow function calls
         class Dummy:

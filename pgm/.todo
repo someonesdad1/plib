@@ -1,24 +1,57 @@
 main
+    - cdec.py
+        - It would be nice to be able to specify multiple sort parameters.
+          The -s option could take an argument:  r, g, b, h, l, s, v.  The
+          first one is the first sort parameter, then second is the next,
+          etc.  The resulting array is decorated with the indicated numbers
+          and the sort proceeds normally.
 
-    - Color
-        - ColorNum:  allow any iterable of numbers; take the absolute value
-          and divide by the maximum.  This allows use of negative numbers
-          and complex numbers too.
-            - Conversion to number should be float(abs(x)).
-        - Rethink the whole color approach.  I like the Color.__call__
-          approach to getting escape codes and the styles as attributes,
-          but I really like the simplicity of ColorNum.  
-            - All colors should be stored as ColorNum objects.  They can be
-              known by their name string like "red" or their ColorNum bytes
-              string.
-            - rgbdata.py can be used for names and it should be first
-              sorted by hls or hsv, then each color in that group printed
-              out and compared.
-            - A better approach may be to generate a 2**n color cube in the
-              chosen space and get the names that are closest to the chosen
-              values.
-        - Portrait screen is 2160x3840 pixels.  This would be fine for
-          displaying a master color picking app.
+    - Wavelength & color
+        - Bruton's wl->rgb seems OK, but I think something better might be
+          done
+        - Look at using CIE CMF's to convert a delta function wavelength to
+          some RGB colors
+            - This might show a way for writing a decent inverse function
+              for RGB to wavelength, or at least wavelength and intensity
+            - Thus, using xyY might be the preferred method, as xy lets you
+              go back and forth between hue and wavelength -- as proved by
+              the chromaticity diagrams
+                - Maybe the conversion from RGB on the chromaticity diagram
+                  is to go to the nearest boundary value and strike it
+                  normally.  There would be 3 candidate values.
+            - Bruton's conversion would certainly be a test case at least
+
+    - rgb.py
+        - Remove rgb.Color and rename ColorNum to Color.
+        - Color:  fundamental type to represent a 24-bit color
+            - Make constructor take as wide a variety of forms as possible.
+                - Let wavelength in nm be a constructor type
+                - 3 bytes can be used
+                - Another Color instance can be used
+            - Attributes (D = floats on [0, 1], I = ints in [0, 255])
+                - rgb, hsv, hls return (D, D, D)
+                - RGB, HSV, HLS return (I, I, I)
+                - xrgb, xhsv, xhls return hex strings
+                - wl returns a wavelength in nm
+            - Add Color.n, which contains the number of decimal digits to
+              round the floats to.  Note this determines the sensitivity of
+              color equality.
+            - Change the internal representation to three bytes
+              representing the three integers for the RGB value.
+            - Keep Clr because the Clr.__call__ method is convenient, but
+              all arguments must be either string names or Color instances.
+              Actually, if a string is used, an internal dictionary is used
+              to translate it to a Color instance.
+                - Clr should have a method to initialize the name to Color
+                  dictionary mapping.
+                - The default should be something sensible.  xkcd's could
+                  be good, but it's 949 colors.  I like the naming scheme.
+                  See if it could be whittled down to a set about half the
+                  size.
+            - Add the numerous xfms in rgb/colorcoord.py.
+        - Convert g library to use ColorNum instances.
+
+    - Color cube plotting in g
         - Write an RGB color cube plotting function:  x = grn, y = blue, z
           = red.  -s makes it stereoscopic.  -x, -y, -z give views down the
           different axes (-z is default).
@@ -34,6 +67,10 @@ main
           linkcheck.py.  It would take a text file and find the URLs and
           check that each can still be accessed.
 
+    - linkcheck.py
+        - Utility to search a file for http links and see if they are still
+          accessible.
+
     - Writing
         - I have an adequate spell checker.  It could be useful to develop
           experience over time of things that needed to be looked for
@@ -41,12 +78,13 @@ main
           I'm so used to typing the contraction.  Other things like "bear"
           versus "bare", their/they're/there, etc. are common mistakes.  A
           script could find such things in text and print out 3 lines
-          before and after so you could check things in context.
+          before and after so you could check things in context.  Print the
+          target word in color for easy reading.
         - Of course, the first thing to do is to check the web, as
           certainly someone has already written a similar tool.  They have,
-          but most require a java library and I don't want to download ir.
+          but most require a java library and I don't want to download it.
         - This could be a tool called write that would read stdin unless
-          it's given a file; it would write it's recommendations to stdout.
+          it's given a file; it would write its recommendations to stdout.
           For ease of use, use a script that pipes the output to less so
           that color highlighting can be seen.  Optionally decorate with
           the rule if an option is given.
@@ -302,6 +340,16 @@ main
         - print(dedent(f''' This ''')) chops off the 'T'.
 
     - f.py
+        - Another use case is variable scientific data.  For example, in
+          /plib/rgb/chromaticity, the nimeroff.pdf paper in table 3 has
+          data given from 6 to 2 significant figures.  It would be handy
+          when dealing with such data if the constructor could be given a
+          keyword option to figure out how many significant figures are
+          present from the constructor's string and to save that number.
+          Then you have a choice of normal str() behavior or set the .ssf
+          attribute to always show the number to its input number of
+          significant figures.  Arithmetic results would follow the
+          conventions of significance arithmetic.
         - /plib/pgm/divider.py is a good example of poorer performance of
           the f.py module.  With sig.py, it took 0.4 s.  Using flt objects
           instead the overall time for a script increased to 4.4 s.  I

@@ -24,7 +24,7 @@ if 1:   # Standard imports
 if 1:   # Custom imports
     from columnize import Columnize
     from wrap import dedent
-    from color import C
+    from kolor import C
 if 1:   # Global variables
     P = pathlib.Path
     ii = isinstance
@@ -122,7 +122,9 @@ if 1:   # Core functions
         if d["-f"]:
             return False
         extension = file.suffix.lower()
-        common = set(["." + i for i in "exe sh bash ksh csh tcsh zsh".split()])
+        common = set(["." + i for i in '''
+                exe sh bash ksh csh tcsh zsh dll
+                '''.split()])
         if extension in common:
             return True
         else:

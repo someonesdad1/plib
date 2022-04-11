@@ -64,7 +64,7 @@ if 1:   # Imports
     from pdb import set_trace as xx 
 if 1:   # Custom imports 
     try:
-        import color as c
+        import kolor as c
     except ImportError:
         # Make c a class that will swallow all color calls/references
         class C:

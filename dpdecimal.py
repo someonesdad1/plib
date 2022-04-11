@@ -92,7 +92,7 @@ if 1:   # Custom imports
     from wrap import dedent
     from columnize import Columnize
     if 1:   # Set to True to get color output
-        from color import C
+        from kolor import C
     else:
         C = None
     if 0:

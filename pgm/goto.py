@@ -42,7 +42,7 @@ if 1:   # Standard imports
 if 1:   # Custom imports
     from wrap import wrap, dedent
     import get
-    import color as C
+    import kolor as C
 if 1:   # Global variables
     P = pathlib.Path
     ii = isinstance

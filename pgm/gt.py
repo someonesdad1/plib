@@ -1,12 +1,11 @@
 '''
 TODO
 
-    - The current behavior seems to be to show everything in the repository.
-      This could be done
+    - This doesn't show the unchanged files.  These should be shown just
+      under the ignored stuff so you see a complete listing.  The algorithm
+      should be changed to do a recursive glob on the root directory, then
+      filter out all stuff not in the directory of interest.
 
-    - Add -a to show everything at and below current location.  This seems to
-      be the default behavior anyway.
-        
 Show git repository file status for current directory
     git status:
         -u Show untracked files
@@ -81,7 +80,7 @@ if 1:   # Standard imports
 if 1:   # Custom imports
     from wrap import wrap, dedent
 
-    from color import (C, fg, normal, black, blue, green, cyan, red, magenta,
+    from kolor import (C, fg, normal, black, blue, green, cyan, red, magenta,
                        brown, white, gray, lblue, lgreen, lcyan, lred, lmagenta,
                        yellow, lwhite)
     from columnize import Columnize
@@ -102,14 +101,14 @@ if 1:   # Global variables
         IGN = auto()
     # Map state to name and color
     sc = {
-        St.IGN: ["Ignored", C.gry],     # ?
-        St.SAM: ["Unmodified", C.wht],  # ''
-        St.UNT: ["Untracked", C.cyn],   # !
-        St.UNM: ["Unmerged", C.lblu],   # u
-        St.REN: ["Renamed", C.yel],     # r
-        St.ADD: ["Added", C.mag],       # a
-        St.DEL: ["Deleted", C.red],     # d
-        St.MOD: ["Modified", C.lgrn],   # m
+        St.IGN: ["Ignored",     C.blu],     # ?
+        St.SAM: ["Unmodified",  C.wht],     # ''
+        St.UNT: ["Untracked",   C.cyn],     # !
+        St.UNM: ["Unmerged",    C.lblu],    # u
+        St.REN: ["Renamed",     C.yel],     # r
+        St.ADD: ["Added",       C.mag],     # a
+        St.DEL: ["Deleted",     C.red],     # d
+        St.MOD: ["Modified",    C.lgrn],    # m
     }
 if 1:   # Utility
     def Error(*msg, status=1):
@@ -122,6 +121,7 @@ if 1:   # Utility
           at and below dir.  dir defaults to '.'.
         Options:
             -a      Show for the whole repository
+            -d      Turn on debugging output
             -c      No color escape codes in output
             -h      Print a manpage
             -v      Show cwd & root
@@ -130,7 +130,7 @@ if 1:   # Utility
     def ParseCommandLine(d):
         d["-a"] = False     # Allow everything to be shown
         d["-d"] = False     # Turn on debugging output
-        d["-v"] = False     # Verbose
+        d["-v"] = True      # Verbose
         try:
             opts, dir = getopt.getopt(sys.argv[1:], "adhv")
         except getopt.GetoptError as e:
@@ -201,6 +201,7 @@ if 1:   # Core functionality
         # The porcelain option intends to keep the output format guaranteed
         # for uniform behavior in scripts.
         cmd = [git, "status", "-uall", "-s", "--porcelain"]
+        cmd = [git, "status", "-uall", "-s", "--porcelain", "--ignored"]
         cp = subprocess.run(cmd, capture_output=True)
         if cp.returncode == 128:
             print(f"Not in a git repository")
@@ -265,7 +266,6 @@ if 1:   # Core functionality
         # It must be relative to dir
         return str(p).startswith(str(dir))
         try:
-                
             print(f"{p}:  {x}")
             print(f"  {s}")
             return True

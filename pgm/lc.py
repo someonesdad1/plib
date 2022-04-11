@@ -20,7 +20,7 @@ if 1:   # Imports
     from pdb import set_trace as xx 
 if 1:   # Custom imports
     from wrap import dedent
-    import color as c
+    import kolor as c
 def Usage(status=1):
     print(dedent(f'''
     Usage:  {sys.argv[0]} [file1 [file2...]]
