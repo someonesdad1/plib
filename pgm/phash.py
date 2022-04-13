@@ -65,7 +65,7 @@ if 1:   # Core functionality
     def ProcessFile(file):
         hash = hashlib.md5 if d["-1"] else hashlib.sha1
         h = hash()
-        h.update(open(file).read().encode())
+        h.update(open(file, "rb").read())
         w = d["-n"]
         s = h.hexdigest()[:w].rstrip()
         w = min(w, len(s))
