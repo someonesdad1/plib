@@ -1,4 +1,51 @@
 main
+    - Disk cleanup 13 Apr 2022 Size in GB
+        - C is 110 with 94.5 used     86%
+        - D is 223 with 125 used      56%
+        - A trigger point of 85% should be about right
+        - Strategy
+            - D
+                - Delete stuff not needed
+                - Move seldom-used stuff to DVD or thumb drive
+                - Defrag the disk
+            - C
+                - Delete stuff not needed
+                - Compress any stuff that's rarely used.  Use a zip file
+                  because it's easy to access with Explorer.
+                - Move low-priority stuff to D
+            - Look at getting a NAS drive
+                - Spinning disk fine
+
+    - lookup.py
+        - This would be a module in /plib that allows you to look up words
+          programmatically.  
+        - My choice for a default wordlist would be words.x.beale.2of12inf
+          which contains the plurals, past tense, etc. of the words in
+          words.beale.2of12.  But wordnet has a good list of words too.
+        - There are times when you want all words to be lower case and
+          times you want to find proper nouns.  Both use cases need to be
+          supported.
+        - There should be a way to find exact matches and close matches.
+        - I'd like to NOT put the wordlists in the /plib tree because of
+          space.
+        - Once the location of the wordlists 
+        - The lookup function would have a keyword to select which wordlist
+          to search.
+        - The docstring would be pretty detailed about how to do things.
+
+    -lz.py
+        - I use my lz alias quite a bit ('ls -hlSr').  It would be nice to
+          have a python version of this that would color code the files
+          information by size.  Same goes for ll.  The file names could
+          still be colored as per ls, but the other information should be
+          shown in a color that gives a hint to the size.
+            - < 10k         plain
+            - 10k to 1M     grn
+            - 1M to 10M     cyn
+            - 10M to 100M   lmag
+            - 100M to 1 G   lyel
+            - > 1G          lred
+
     - cdec.py
         - It would be nice to be able to specify multiple sort parameters.
           The -s option could take an argument:  r, g, b, h, l, s, v.  The

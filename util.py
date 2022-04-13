@@ -1397,35 +1397,31 @@ def signum(x):
         return 0
     except Exception:
         raise TypeError(f"x = '{x}' not a suitable numerical type")
-def SizeOf(o, handlers={}, verbose=None, full=False):
-    '''Returns the approximate memory in bytes used by an object
- 
-    Automatically finds the contents of the following builtin containers
-    and their subclasses:  tuple, list, deque, dict, set and frozenset.  To
-    search other containers, add handlers to iterate over their contents:
- 
-        handlers = {SomeContainerClass: iter,
-                    OtherContainerClass: OtherContainerClass.get_elements}
- 
-    If verbose is True, send verbose data to stdout.  Verbose can also be a
-    stream, in which case the verbose information is sent there.
- 
-    If full is True, then the default repr() is used rather than
-    reprlib.repr.
+def SizeOf(o, handlers={}, verbose=False, full=False, title=None):
+    '''Returns a string containing the approximate memory in bytes used by
+    an object.  Recursively uses sys.getsizeof().
+
+    verbose     If True, show the details on each object.
+    full        If True, use repr() instead of reprlib.repr()
+    title       String for first line in verbose report
+    handlers    dict(Class: Handler)
+        Example handler for class:
+            def Iter(s):
+                return s.attr1, s.attr2
+            handler = {MyClass: Iter}
     '''
-    '''DP 11 Apr 2022
-    This is a modified version of
-    https://code.activestate.com/recipes/577504/.  I added 
-        - The ability to make verbose a stream
-        - Indented the verbose output to see the recursion
-        - Added the full keyword so that the abbreviated Repr isn't used
-    '''
+    # DP 11 Apr 2022
+    # This is a modified version of
+    # https://code.activestate.com/recipes/577504/.  Changes:
+    #  - The ability to make verbose a stream
+    #  - Indented the verbose output to see the recursion
+    #  - Added the full and title keywords
+    #  - Used deque to collect output
     dict_handler = lambda d: chain.from_iterable(d.items())
     all_handlers = { 
         tuple: iter,
         list: iter,
         deque: iter,
-
         dict: dict_handler,
         set: iter,
         frozenset: iter,
@@ -1433,13 +1429,10 @@ def SizeOf(o, handlers={}, verbose=None, full=False):
     all_handlers.update(handlers)     # User handlers take precedence
     seen = set()                      # Track objects seen
     default_size = sys.getsizeof(0)   # Estimate size without __sizeof__
-    stream = sys.stdout if verbose else None
-    if verbose and hasattr(verbose, "write"):
-        stream = verbose 
     Repr_local = repr if full else Repr
-    indent = 0
-    if stream:
-        print(f"SizeOf details:")
+    indent, output = 0, deque()
+    if verbose:
+        output.append(title) if title else output.append("Components:")
     def sizeof(o):
         nonlocal indent
         indent += 2
@@ -1449,14 +1442,22 @@ def SizeOf(o, handlers={}, verbose=None, full=False):
         sz = sys.getsizeof(o, default_size)
         if verbose:
             i = " "*(indent - 1)
-            print(i, sz, type(o), Repr_local(o), file=stream)
+            output.append(' '.join((i, str(sz), str(type(o)), Repr_local(o))))
         for typ, handler in all_handlers.items():
             if isinstance(o, typ):
                 sz += sum(map(sizeof, handler(o)))
                 break
         indent -= 2
         return sz
-    return sizeof(o)
+    total = sizeof(o)
+    if verbose:
+        s = output.popleft()
+        s = f"{total} {s}"
+        output.appendleft(s)
+        return '\n'.join(output)
+    else:
+        return total
+
 if __name__ == "__main__": 
     # Missing tests for: Ignore Debug, Dispatch, GetString
     from io import StringIO

@@ -46,7 +46,7 @@ if 1:   # Custom imports
     from get import GetTokens
     # The following is a non-standard python module that can be gotten from
     # https://someonesdad1.github.io/hobbyutil/project_list.html
-    import color
+    import kolor as color
 if 1:   # Global variables
     dbg = False   # Turn on for debug printing, which helps to debug the code
     # This script uses a grep-like tool to perform the searches.  The grep

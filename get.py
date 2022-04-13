@@ -3,6 +3,7 @@ Module for getting data from files, strings, and streams.
  
 TODO:  
     * Add Zn to GetNumbers
+    * Change 'ignore_regexes' keyword to 'ignore'
 '''
 if 1:  # Copyright, license
     # These "trigger strings" can be managed with trigger.py
@@ -81,13 +82,15 @@ def GetText(thing, enc=None):
     else:
         raise TypeError("Type of 'thing' not recognized")
     return s
-def GetLines(thing, enc=None, ignore_regexes=None):
+def GetLines(thing, enc=None, ignore=[], script=False, ignore_empty=False):
     '''Return a list of lines that are in thing.  See GetText for
     details on thing.
  
-    ignore_regexes:  must be None or a sequence of strings that are regular
-    expressions.  Any line that matches any of the regular expressions
-    is ignored.
+    script          If True, ignore comment lines
+    ignore_empty    If True, ignore empty (whitespace only) lines
+  
+    ignore          List of strings that are compiled to regular
+                    expressions and are lines that are ignored.
  
     Example:
         s = """# Comment
@@ -95,21 +98,25 @@ def GetLines(thing, enc=None, ignore_regexes=None):
         Line 1
             Line 2
         """
-        r = ["^ *#"]
-        lines = GetLines(s, ignore_regexes=r)
+        r = [r"^\s*#"]
+        lines = GetLines(s, ignore=r)
         print(f"lines {list(lines)}")
     outputs 
         lines ['Line 1', '    Line 2', '']
+    The call GetLines(s, script=True) does the same thing.
     '''
     def Filter(line):
-        if ignore_regexes is not None:
-            for r in ignore_regexes:
-                if re.search(r, line):
-                    return False     # Don't keep this line
+        for r in ignore:
+            if re.search(r, line):
+                return False     # Don't keep this line
         return True     # Keep this line
-    if (ignore_regexes is not None and (ii(ignore_regexes, str) or 
-        not ii(ignore_regexes, Iterable))):
-        raise TypeError("ignore_regexes must be an iterable")
+    if (ignore is not None and (ii(ignore, str) or 
+        not ii(ignore, Iterable))):
+        raise TypeError("ignore must be an iterable")
+    if script:
+        ignore.append(r"^\s*#")
+    if ignore_empty:
+        ignore.append(r"^\s*$")
     lines = GetText(thing, enc=enc).split("\n")
     lines = list(filter(Filter, lines))
     return lines
@@ -832,6 +839,7 @@ if 0:
             if prefix not in si:
                 raise ValueError("'%s' prefix not an SI prefix" % prefix)
             return (10**si[prefix], unit)
+
 if __name__ == "__main__": 
     from collections import deque
     from wrap import dedent
@@ -897,6 +905,26 @@ if __name__ == "__main__":
         # Test with file
         t = GetLines(text_file)
         Assert(t == l)
+        # Test 'script' keyword
+        s = "# xyz\n    # xyz\nabc"
+        sio = StringIO(s)
+        t = GetLines(sio, script=False)
+        Assert(t == ['# xyz', '    # xyz', 'abc'])
+        sio = StringIO(s)
+        t = GetLines(sio, script=True)
+        Assert(t == ['abc'])
+        # Test docstring example
+        s = """# Comment
+        ## Another comment
+        Line 1
+            Line 2
+        """
+        r = [r"^\s*#"]
+        lines = GetLines(s, ignore=r)
+        expected = ['        Line 1', '            Line 2', '        ']
+        Assert(lines == expected)
+        lines = GetLines(s, script=True)
+        Assert(lines == expected)
     def TestGetWords():
         sio = StringIO(S)
         l = S.split()
