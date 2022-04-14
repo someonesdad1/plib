@@ -25,7 +25,7 @@ if 1:   # Imports
     from pdb import set_trace as xx
 if 1:   # Custom imports
     from wrap import dedent
-    import color as C
+    import kolor as C
 def Error(msg, status=1):
     print(msg, file=sys.stderr)
     exit(status)

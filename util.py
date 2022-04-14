@@ -94,6 +94,7 @@ if 1:   # Imports
     import time
 
 if 1:   # Custom imports
+    from f import flt
     from dpmath import AlmostEqual, SignSignificandExponent, signum
     from sig import sig
     from kolor import C
@@ -1328,32 +1329,58 @@ def execfile(filename, globals=None, locals=None, use_user_env=True):
     with open(filename, "r") as fh:
         s = fh.read() + "\n"
         exec(s, globals, locals)
-def iDistribute(m, n, k):
-    '''Return an integer sequence [m, ..., n] with k elements equally
-    distributed between m and n.  Return None if no solution possible.
+def iDistribute(n, a, b):
+    '''Generator to return an integer sequence [a, ..., b] with n elements
+    equally distributed between a and b.  Raises ValueError if no solution
+    is possible.
  
-    If you need a sequence of k floating point values, see
+    If you need a sequence of n floating point values, see
     util.fDistribute().
     '''
-    if not (ii(m, int) and ii(n, int) and ii(k, int)):
+    if not (ii(a, int) and ii(b, int) and ii(n, int)):
         raise TypeError("Arguments must be integers")
-    if m >= n:
-        raise ValueError("Must have m < n")
-    if k < 2:
-        raise ValueError("k must be >= 2")
-    if k == 2:
-        return [m, n]
-    dx = (n - m)/(k + 1 - 2)
+    if a >= b:
+        raise ValueError("Must have a < b")
+    if n < 2:
+        raise ValueError("n must be >= 2")
+    if n == 2:
+        return [a, b]
+    dx = Fraction(b - a, n - 1)
     if dx < 1:
-        return None
-    # Algorithm is to use frange to generate the sequence using floats.
-    seq = [int(round(i, 0)) for i in frange(str(m), str(n), str(dx))]
-    if seq[-1] != n:
-        seq.append(n)
-    if len(seq) != k:
-        raise RuntimeError("Bad algorithm:  len(seq) != k + 2")
-    return seq
-def fDistribute(n, a=0, b=1, impl=float):
+        raise ValueError("No solution")
+    for i in range(n):
+        yield int(round(a + i*dx, 0))
+    if 0:
+        # Algorithm using frange
+        dx = (b - a)/(n + 1 - 2)
+        if dx < 1:
+            return None
+        seq = [int(round(i, 0)) for i in frange(str(a), str(b), str(dx))]
+        if seq[-1] != b:
+            seq.append(b)
+        if len(seq) != n:
+            raise RuntimeError("Bad algorithm:  len(seq) != n + 2")
+        return seq
+
+if 0:   # iDistribute test using Fraction impl
+    F = Fraction
+    def D(n, a, b):
+        dx = F(b - a, n - 1)
+        for i in range(n):
+            yield int(round(a + i*dx, 0))
+    count, last = 1, 0
+    print("cnt  Frac      flt    m    diff")
+    for i in D(27, 0, 100):
+        m = int(round(i, 0))
+        #diff = m - last
+        #print(f"{count:3d}) {i!s:8s} {flt(i)!s:6s} {m:3d}    {diff:2d}")
+        print(f"{count:3d}) {i}")
+        count += 1
+        last = m
+    exit()
+
+
+def fDistribute(n, a=0, b=1, impl=flt):
     '''Generator to return n impl instances on [a, b] inclusive. A
     common use case is an interpolation parameter on [0, 1].
     Examples:
@@ -1362,9 +1389,9 @@ def fDistribute(n, a=0, b=1, impl=float):
         fd(3, 1, 2) --> [1.0, 1.5, 2.0]
         fd(4, 1, 2, Fraction) --> [Fraction(1, 1), Fraction(4, 3),
                                     Fraction(5, 3), Fraction(2, 1)]
-    You can use other impl types of decimal.Decimal, and f.flt.  Other
-    types that define impl()/impl() to return an impl-type floating
-    point number will also work (e.g., mpmath's mpf type).
+    You can use other impl types like decimal.Decimal.  Other types that
+    define impl()/impl() to return an impl-type floating point number will
+    also work (e.g., mpmath's mpf type).
  
     If you need a sequence of evenly-distributed integers, see
     util.iDistribute().
@@ -1906,18 +1933,19 @@ if __name__ == "__main__":
             for i in range(1, len(seq)):
                 out.append(abs(seq[i] - seq[i - 1]))
             return out
-        m, n = 0, 255
-        for k in range(2, 256):
-            s = iDistribute(m, n, k)
-            if s is None:
-                print(f"k = {k} no solution")
-                continue
-            d = list(set(Dist(s)))
-            if len(d) > 1 and k > 2:
-                assert_equal(len(d), 2)
-                assert_equal(abs(d[0] - d[1]), 1)
-        for k in range(257, 265):
-            assert_equal(iDistribute(m, n, k), None)
+        a, b = 0, 255
+        if 1: #xx
+            for n in range(2, 256):
+                s = iDistribute(n, a, b)
+                if s is None:
+                    print(f"n = {n} no solution")
+                    continue
+                d = list(set(Dist(list(s))))
+                if len(d) > 1 and n > 2:
+                    assert_equal(len(d), 2)
+                    assert_equal(abs(d[0] - d[1]), 1)
+        for n in range(257, 265):
+            raises(ValueError, list, iDistribute(n, a, b))
     def TestParameterSequence():
         fd = fDistribute
         expected = [0.0, 1.0]

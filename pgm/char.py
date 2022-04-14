@@ -226,7 +226,7 @@ def PrintResults(d):
     res.sort()
     w = max([len(i[1]) for i in res])
     C = {
-        0 : color.white,        # Whitespace
+        0 : color.magenta,      # Whitespace
         1 : color.lblue,        # Ctrl
         2 : color.yellow,       # Lowercase
         3 : color.lcyan,        # Uppercase

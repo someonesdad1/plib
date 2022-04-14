@@ -1,4 +1,80 @@
 main
+    - Disk cleanup 13 Apr 2022 Size in GB
+        - C is 110 with 94.5 used     86%
+        - D is 223 with 125 used      56%
+        - A trigger point of 85% should be about right
+        - Strategy
+            - D
+                - Delete stuff not needed
+                - Move seldom-used stuff to DVD or thumb drive
+                - Defrag the disk
+            - C
+                - Delete stuff not needed
+                - Compress any stuff that's rarely used.  Use a zip file
+                  because it's easy to access with Explorer.
+                - Move low-priority stuff to D
+            - Look at getting a NAS drive
+                - Spinning disk fine
+        - Detail:  sizes in GB  About 30 GB total
+            - Drive C: /cygwin/
+                - /doc 3 
+                - /ebooks 10
+                - /elec 1
+                - /home 10
+                - /lib 1
+                - /math 0.5
+                - /projects 0.2
+                - /pylib 0.8
+                - /science 0.2
+                - /shop 2
+                - /tools_old 0.1
+            - Drive D
+                - Don_old 20
+                - d/ 5
+                - ebooks 20
+                - fedora35 2          *
+                - slackware 2         *
+                - movies 20
+                - pictures 40
+            - Drive C 90
+                - Recycle bin 5
+                - Program files 2
+                - Program files (x86) 4
+                - ProgramData 1
+                - Users 7
+                - Windows 20
+                - cygwin 30
+
+    - lookup.py
+        - This would be a module in /plib that allows you to look up words
+          programmatically.  
+        - My choice for a default wordlist would be words.x.beale.2of12inf
+          which contains the plurals, past tense, etc. of the words in
+          words.beale.2of12.  But wordnet has a good list of words too.
+        - There are times when you want all words to be lower case and
+          times you want to find proper nouns.  Both use cases need to be
+          supported.
+        - There should be a way to find exact matches and close matches.
+        - I'd like to NOT put the wordlists in the /plib tree because of
+          space.
+        - Once the location of the wordlists 
+        - The lookup function would have a keyword to select which wordlist
+          to search.
+        - The docstring would be pretty detailed about how to do things.
+
+    -lz.py
+        - I use my lz alias quite a bit ('ls -hlSr').  It would be nice to
+          have a python version of this that would color code the files
+          information by size.  Same goes for ll.  The file names could
+          still be colored as per ls, but the other information should be
+          shown in a color that gives a hint to the size.
+            - < 10k         plain
+            - 10k to 1M     grn
+            - 1M to 10M     cyn
+            - 10M to 100M   lmag
+            - 100M to 1 G   lyel
+            - > 1G          lred
+
     - cdec.py
         - It would be nice to be able to specify multiple sort parameters.
           The -s option could take an argument:  r, g, b, h, l, s, v.  The
@@ -963,19 +1039,4 @@ Other
                 - -k    Keep going to do as much as possible
                 - -t    Translate to standard makefile syntax
         - Example
-            - This is a typical makefile for a C/C++ project
-                - cppopts = -g -DMAIN
-                - exe = z.exe
-                - ${exe}:  array.o tokenizer.o
-                -     g++ -o ${exe} ${cppopts} $^
-
-                - array.o: array.cpp array.h
-                -     g++ -c ${cppopts} $<
-                - tokenizer.o: tokenizer.cpp tokenizer.h
-                -     g++ -c ${cppopts} $<
-                - clean:
-                -     @rm -f ${exe} ${exe}.stackdump *.o
-
-/plib releases
-    - 7Mar2022 was first release after I made the repository public.
-
+            - This is a typical makefile fo

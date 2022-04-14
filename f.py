@@ -1456,7 +1456,9 @@ class flt(Base, float):
         return flt(float(self)//float(other))
     def __mod__(self, other):   # flt
         if not ii(other, flt):
-            raise TypeError("Second operand must be a flt")
+            if not(ii(other, float) and self.u is None):
+                raise TypeError("Second operand must be a flt")
+            other = flt(other)
         if self.u is not None:
             if u.dim(other.u) != u.dim(self.u):
                 raise TypeError("Arguments must have the same unit dimensions")

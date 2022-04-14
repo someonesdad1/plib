@@ -15,6 +15,35 @@ main
                 - Move low-priority stuff to D
             - Look at getting a NAS drive
                 - Spinning disk fine
+        - Detail:  sizes in GB  About 30 GB total
+            - Drive C: /cygwin/
+                - /doc 3 
+                - /ebooks 10
+                - /elec 1
+                - /home 10
+                - /lib 1
+                - /math 0.5
+                - /projects 0.2
+                - /pylib 0.8
+                - /science 0.2
+                - /shop 2
+                - /tools_old 0.1
+            - Drive D
+                - Don_old 20
+                - d/ 5
+                - ebooks 20
+                - fedora35 2          *
+                - slackware 2         *
+                - movies 20
+                - pictures 40
+            - Drive C 90
+                - Recycle bin 5
+                - Program files 2
+                - Program files (x86) 4
+                - ProgramData 1
+                - Users 7
+                - Windows 20
+                - cygwin 30
 
     - lookup.py
         - This would be a module in /plib that allows you to look up words
