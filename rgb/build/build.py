@@ -25,10 +25,6 @@ if 1:   # Standard imports
     from pdb import set_trace as xx
 if 1:   # Custom imports
     from wrap import wrap, dedent
-    from rgb import Color
-    if 0:
-        import debug
-        debug.SetDebugger()
 if 1:   # Global variables
     ii = isinstance
 if 1:   # Utility
@@ -61,6 +57,15 @@ if 1:   # Utility
             Usage()
         return args[0]
 if 1:   # Core functionality
+    class Color:
+        def __init__(self, r, g, b):
+            self.rgb = (r, g, b)
+        def __str__(self):
+            f = lambda x: f"{x:3d}"
+            r, g, b = self.rgb
+            return f"Color({f(r)}, {f(g)}, {f(b)})"
+        def __repr__(self):
+            return str(self)
     def GetData(file):
         datafile = P(file)
         if not datafile.exists():
@@ -92,21 +97,27 @@ if 1:   # Core functionality
                 continue
             name, color = line.split(",")
             color = color.strip()
-            c = Color(color)
+            a = hex_to_int(color)
+            c = Color(*a)
             out.append((attrnum, name, c))
             #print(f"{name:20s} [{attrnum}]", color, c)
         return out, attr
+    def hex_to_int(s):
+        's is of the form #000000'
+        assert(len(s) == 7)
+        s = s[1:]
+        rgb = s[0:2], s[2:4], s[4:6]
+        return tuple(int(i, 16) for i in rgb)
     def Report(data, attrdict):
         'Write output in form of python list and dict'
         # List of colors
         if 1:
             print(dedent(f'''
-            from rgb import Color
+            from color import Color
                 # Fields are:
                 #   Attribution number (indexes into attrdict)
                 #   Text name of color
-                #   Color object holding the color data (the .rgb attribute
-                #      gives the decimal values of the RGB numbers)
+                #   Color object holding the color data 
             '''))
             print("color_data = [")
             last = (1, 0, 0)
@@ -114,14 +125,17 @@ if 1:   # Core functionality
                 if i[0] != last[0]:     # Space after attribution number change
                     print()
                     last = i
-                print(f"    {i},")
+                attr, name, c = i
+                n = f'"{name}"'
+                print(f"    ({attr:2d}, {n:44s}, {c}),")
             print("]")
         # Attribution data
         print(dedent(f'''
 
         # Attribution dictionary:  the integer key is the color name
         # attribution in the above list, the value is the attribution
-        # string.  These python scripts are in the /plib/rgb directory.
+        # string.  These python scripts are in the 
+        # /plib/rgb/build directory.
         '''))
         print("attr_data = {")
         for i in attrdict:

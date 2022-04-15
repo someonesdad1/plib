@@ -19,7 +19,6 @@ datafiles = \
 
 ${file}: ${datafiles} ${tmp} ${script}
 	${PYTHON} ${script} ${tmp} >${file}
-	rm ${tmp}
 
 ${tmp}: ${datafiles}
 	${PYTHON} g_lib_rgb.py >${tmp}
