@@ -31,6 +31,7 @@ IsIterable            Determines if you can iterate over an object
 IsTextFile            Heuristic to see if a file is a text file
 ItemCount             Summarize a sequence with counts of each item
 Paste                 Return sequence of pasted sequences
+PPSeq                 Class for formatting number sequences for pretty printing
 ProgressBar           Prints a progress bar to stdout
 randq                 Simple, fast random number generator
 randr                 Random numbers on [0,1) using randq
@@ -452,7 +453,7 @@ class Dispatch:
             raise TypeError("Don't know how to dispatch %s arguments" %
                             type(arg1))
         return apply(self._dispatch[type(arg1)], (arg1,) + args, kw)
-def IsIterable(x, exclude_strings=False):
+def IsIterable(x, ignore_strings=True):
     '''Return True if x is an iterable.  You can exclude strings from the
     things that can be iterated on if you wish.
  
@@ -464,7 +465,7 @@ def IsIterable(x, exclude_strings=False):
         except TypeError:
             return False
     '''
-    if exclude_strings and isinstance(x, str):
+    if ignore_strings and isinstance(x, str):
         return False
     return isinstance(x, Iterable)
 def SpeedOfSound(T):
@@ -1361,7 +1362,6 @@ def iDistribute(n, a, b):
         if len(seq) != n:
             raise RuntimeError("Bad algorithm:  len(seq) != n + 2")
         return seq
-
 if 0:   # iDistribute test using Fraction impl
     F = Fraction
     def D(n, a, b):
@@ -1378,8 +1378,6 @@ if 0:   # iDistribute test using Fraction impl
         count += 1
         last = m
     exit()
-
-
 def fDistribute(n, a=0, b=1, impl=flt):
     '''Generator to return n impl instances on [a, b] inclusive. A
     common use case is an interpolation parameter on [0, 1].
@@ -1427,7 +1425,7 @@ def signum(x):
 def SizeOf(o, handlers={}, verbose=False, full=False, title=None):
     '''Returns a string containing the approximate memory in bytes used by
     an object.  Recursively uses sys.getsizeof().
-
+ 
     verbose     If True, show the details on each object.
     full        If True, use repr() instead of reprlib.repr()
     title       String for first line in verbose report
@@ -1484,6 +1482,90 @@ def SizeOf(o, handlers={}, verbose=False, full=False, title=None):
         return '\n'.join(output)
     else:
         return total
+class PPSeq:
+    'Format sequences for pretty printing'
+    def __init__(self, bits_per_number=8):
+        self._bpn = bits_per_number
+    def __call__(self, seq, **kw):
+        'Return a pretty string form of seq'
+        # Get keyword arguments
+        brackets = kw.get("brackets", True)     # Enclose in brackets
+        comma = kw.get("comma", True)           # Separate with commas
+        sep = kw.get("sep", " ")                # Element separation string
+        # Get the container type and decorators
+        if ii(seq, tuple):
+            l, r = "(", ")"
+        elif ii(seq, list):
+            l, r = "[", "]"
+        elif ii(seq, set):
+            l, r = "{", "}"
+        elif ii(seq, deque):
+            l, r = "<", ">"
+        elif ii(seq, bytes):
+            l, r = "«", "»"
+        else:
+            raise TypeError("Unsupported container type")
+        x = self.get_element(seq)
+        # Must be an iterable
+        if not IsIterable(seq):
+            raise TypeError("seq isn't an iterable")
+        # Must contain a supported type
+        if not self.is_monotype(seq):
+            raise TypeError("seq doesn't contain only one numerical type")
+        # Get strings
+        if ii(x, int):
+            myseq = [self.format(i) for i in seq]
+        else:
+            myseq = [self.format(float(i)) for i in seq]
+        s = "," if comma else ""
+        s += sep
+        t = s.join(myseq)
+        if brackets:
+            t = f"{l}{t}{r}"
+        return t
+    def get_element(self, seq):
+        if ii(seq, tuple):
+            return seq[0]
+        elif ii(seq, list):
+            l, r = "[", "]"
+            return seq[0]
+        elif ii(seq, set):
+            l, r = "{", "}"
+            x = seq.pop()
+            seq.add(x)
+            return x
+        elif ii(seq, deque):
+            l, r = "<", ">"
+            x = seq.pop()
+            seq.append(x)
+            return x
+        elif ii(seq, bytes):
+            l, r = "«", "»"
+            return seq[0]
+    def format(self, x):
+        'Return the string form of number x (float or int)'
+        if ii(x, int):
+            w = len(str((2**self._bpn - 1)))
+            return f"{x:{w}d}"
+        else:
+            assert(0 <= x <= 1)
+            # Get the number of decimal places to display this float
+            w = math.ceil(-math.log10(1/(2**self._bpc - 1)))
+            return f"{x:{w + 2}.{w}f}"
+    def is_monotype(self, seq):
+        'Return True if seq contains only one supported type'
+        x = self.get_element(seq)
+        # Check the type of each element
+        typ = type(x)
+        if not all(type(i) == typ for i in seq):
+            return False
+        # Make sure they are of the allowed types
+        if not ii(x, (int, float, flt, Decimal, Fraction)):
+            try:
+                y = float(x)
+            except Exception:
+                return False
+        return True
 
 if __name__ == "__main__": 
     # Missing tests for: Ignore Debug, Dispatch, GetString
@@ -1498,6 +1580,14 @@ if __name__ == "__main__":
     from pdb import set_trace as xx
     seed(2**64)  # Make test sequences repeatable
     show_coverage = len(sys.argv) > 1
+    def Test_PPSeq():
+        pp = PPSeq()
+        x = (44, 128, 250)
+        Assert(pp(tuple(x)) == "( 44, 128, 250)")
+        Assert(pp(list(x)) == "[ 44, 128, 250]")
+        Assert(pp(set(x)) == "{128, 250,  44}")
+        Assert(pp(deque(x)) == "< 44, 128, 250>")
+        Assert(pp(bytes(x)) == "« 44, 128, 250»")
     def Test_SizeOf():
         for typ, sz in (
                 # These numbers could likely be python version specific
@@ -1571,11 +1661,12 @@ if __name__ == "__main__":
         # kkg is a illegal SI unit, but the code allows it
         Assert(eng(3456.78, unit="kg") == "3.46 kkg")
     def Test_IsIterable():
-        Assert(IsIterable("") and IsIterable([]) and IsIterable(()) )
+        Assert(IsIterable("", ignore_strings=False))
+        Assert(not IsIterable("", ignore_strings=True))
+        Assert(IsIterable([]) and IsIterable(()) )
         Assert(IsIterable({}) and IsIterable(set()))
         Assert(not IsIterable(3))
-        Assert(IsIterable("a"))
-        Assert(not IsIterable("a", exclude_strings=True))
+        Assert(not IsIterable("a"))
         Assert(IsIterable([]))
         Assert(IsIterable((0,)))
         Assert(IsIterable(iter((0,))))

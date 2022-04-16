@@ -1,4 +1,9 @@
 main
+    - dbl.py
+        - Delete blank lines in a file
+        - Default is to only remove ^$ matches
+        - -a removes ^\s*$
+
     - Disk cleanup 13 Apr 2022 Size in GB
         - C is 110 with 94.5 used     86%
         - D is 223 with 125 used      56%
