@@ -1489,6 +1489,7 @@ class PPSeq:
     def __call__(self, seq, **kw):
         'Return a pretty string form of seq'
         # Get keyword arguments
+        exp = kw.get("exp", False)              # Show bits exponent
         brackets = kw.get("brackets", True)     # Enclose in brackets
         comma = kw.get("comma", True)           # Separate with commas
         sep = kw.get("sep", " ")                # Element separation string
@@ -1522,6 +1523,9 @@ class PPSeq:
         t = s.join(myseq)
         if brackets:
             t = f"{l}{t}{r}"
+            if exp:
+                u = "⁰¹²³⁴⁵⁶⁷⁸⁹"
+                t += ''.join(u[int(i)] for i in str(self._bpn))
         return t
     def get_element(self, seq):
         if ii(seq, tuple):
@@ -1584,6 +1588,7 @@ if __name__ == "__main__":
         pp = PPSeq()
         x = (44, 128, 250)
         Assert(pp(tuple(x)) == "( 44, 128, 250)")
+        Assert(pp(tuple(x), exp=True) == "( 44, 128, 250)⁸")
         Assert(pp(list(x)) == "[ 44, 128, 250]")
         Assert(pp(set(x)) == "{128, 250,  44}")
         Assert(pp(deque(x)) == "< 44, 128, 250>")
