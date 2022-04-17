@@ -3,6 +3,7 @@ main
         - Delete blank lines in a file
         - Default is to only remove ^$ matches
         - -a removes ^\s*$
+        - Combine with pgm/rm_multiple_lines.py
 
     - Disk cleanup 13 Apr 2022 Size in GB
         - C is 110 with 94.5 used     86%
@@ -60,6 +61,7 @@ main
           times you want to find proper nouns.  Both use cases need to be
           supported.
         - There should be a way to find exact matches and close matches.
+          https://www.datacamp.com/community/tutorials/fuzzy-string-python
         - I'd like to NOT put the wordlists in the /plib tree because of
           space.
         - Once the location of the wordlists 
@@ -72,7 +74,8 @@ main
           have a python version of this that would color code the files
           information by size.  Same goes for ll.  The file names could
           still be colored as per ls, but the other information should be
-          shown in a color that gives a hint to the size.
+          shown in a color that gives a hint to the size.  The exa tool
+          does this, but it's not available on Windows.
             - < 10k         plain
             - 10k to 1M     grn
             - 1M to 10M     cyn
@@ -81,56 +84,9 @@ main
             - > 1G          lred
 
     - cdec.py
-        - It would be nice to be able to specify multiple sort parameters.
-          The -s option could take an argument:  r, g, b, h, l, s, v.  The
-          first one is the first sort parameter, then second is the next,
-          etc.  The resulting array is decorated with the indicated numbers
-          and the sort proceeds normally.
-
-    - Wavelength & color
-        - Bruton's wl->rgb seems OK, but I think something better might be
-          done
-        - Look at using CIE CMF's to convert a delta function wavelength to
-          some RGB colors
-            - This might show a way for writing a decent inverse function
-              for RGB to wavelength, or at least wavelength and intensity
-            - Thus, using xyY might be the preferred method, as xy lets you
-              go back and forth between hue and wavelength -- as proved by
-              the chromaticity diagrams
-                - Maybe the conversion from RGB on the chromaticity diagram
-                  is to go to the nearest boundary value and strike it
-                  normally.  There would be 3 candidate values.
-            - Bruton's conversion would certainly be a test case at least
-
-    - rgb.py
-        - Remove rgb.Color and rename ColorNum to Color.
-        - Color:  fundamental type to represent a 24-bit color
-            - Make constructor take as wide a variety of forms as possible.
-                - Let wavelength in nm be a constructor type
-                - 3 bytes can be used
-                - Another Color instance can be used
-            - Attributes (D = floats on [0, 1], I = ints in [0, 255])
-                - rgb, hsv, hls return (D, D, D)
-                - RGB, HSV, HLS return (I, I, I)
-                - xrgb, xhsv, xhls return hex strings
-                - wl returns a wavelength in nm
-            - Add Color.n, which contains the number of decimal digits to
-              round the floats to.  Note this determines the sensitivity of
-              color equality.
-            - Change the internal representation to three bytes
-              representing the three integers for the RGB value.
-            - Keep Clr because the Clr.__call__ method is convenient, but
-              all arguments must be either string names or Color instances.
-              Actually, if a string is used, an internal dictionary is used
-              to translate it to a Color instance.
-                - Clr should have a method to initialize the name to Color
-                  dictionary mapping.
-                - The default should be something sensible.  xkcd's could
-                  be good, but it's 949 colors.  I like the naming scheme.
-                  See if it could be whittled down to a set about half the
-                  size.
-            - Add the numerous xfms in rgb/colorcoord.py.
-        - Convert g library to use ColorNum instances.
+        - Color() has a Sort class method that can sort by letter argument.
+          Use it to change the -s option to let you specify when parameters
+          to sort by.
 
     - Color cube plotting in g
         - Write an RGB color cube plotting function:  x = grn, y = blue, z
