@@ -1,9 +1,33 @@
 main
+    - weather.py
+        - https://forecast.weather.gov/MapClick.php?lat=43.6417&lon=-116.3243&unit=0&lg=english&FcstType=text&TextType=1
+        - This is a text webpage that could be parsed and displayed in
+          short form in a terminal.  Simpler and quicker than loading a web
+          page.
+        - Color could be used
+            - Yellow:   sunny
+            - Gray:     overcast
+            - Green:    rain
+            - Red:      thunderstorms
+            - White:    snow
+            - Temperatures:  cyn:°F grn:°C 
+            - Windy
+        - Also use bars to indicate magnitude
+            - Cold would be blue, hot would be red
+            - The scale would be printed above, then the colors would
+              interpolate between the low and the high.  Nicely visual with
+              the range immediately visible.
+        - The HTML is simple; it would be easy to reduce to plain text with
+          a regexp.
+
     - dbl.py
         - Delete blank lines in a file
+        - Change multiple lines to 1:  -1
+        - Delete lines with whitespace ^\s*$ :  -s
         - Default is to only remove ^$ matches
-        - -a removes ^\s*$
         - Combine with pgm/rm_multiple_lines.py
+        - Almost always python code, so don't want to touch things inside
+          multiline strings
 
     - Disk cleanup 13 Apr 2022 Size in GB
         - C is 110 with 94.5 used     86%
@@ -52,6 +76,7 @@ main
                 - cygwin 30
 
     - lookup.py
+        - Not the same as /plib/pgm/lookup.py.
         - This would be a module in /plib that allows you to look up words
           programmatically.  
         - My choice for a default wordlist would be words.x.beale.2of12inf
@@ -99,10 +124,7 @@ main
           shouldn't be there.
 
     - g.py
-        - Search the files for web links and see if they still work.  In
-          fact, this would be a useful python script to write:
-          linkcheck.py.  It would take a text file and find the URLs and
-          check that each can still be accessed.
+        - Search the files for web links and see if they still work.  
 
     - linkcheck.py
         - Utility to search a file for http links and see if they are still
@@ -129,9 +151,9 @@ main
     - ls colors
         - Write a general application script that can generate colors for
           the ls command via LS_COLORS.  
-            - # 24-bit color works:  Here's a darker magenta on a pale yellow:
+            - 24-bit color works:  Here's a darker magenta on a pale yellow:
                 LS_COLORS='*.py=38;2;170;32;220;48;2;255;255;100'
-            - # 256 colors works: LS_COLORS='*.py=38;5;17'
+            - 256 colors works: LS_COLORS='*.py=38;5;17'
         - mintty is a 24-bit color console, so it's time I generated some
           better colors for things.
         - As selecting 24-bit colors will be more problematic, add to the
@@ -226,7 +248,8 @@ main
         - Also, do a 'ddiff -r /pylib /plib'.  You'll get an exception
           because a string is too long to fit to the screen.  In this case,
           you'd still want things printed, so maybe a too_long kw is needed
-          to ignore such things.
+          to ignore such things.  Also has error message bug leaving green
+          text on screen.
 
     - Room heating energy
         - Write a script that estimates the electrical energy and time

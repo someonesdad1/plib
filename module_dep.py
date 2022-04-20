@@ -1,6 +1,6 @@
 '''
-This module finds all the python files in /pylib, then searches all
-other directories for python files and finds those that import /pylib
+This module finds all the python files in /plib, then searches all
+other directories for python files and finds those that import /plib
 modules.
 
 This script will fail on lines like the following:

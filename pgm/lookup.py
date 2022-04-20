@@ -129,47 +129,6 @@ if 1:   # Global variables
 def Error(*msg, status=1):
     print(*msg, file=sys.stderr)
     exit(status)
-def Usage(d, status=1):
-    which = d["which_dict"]
-    print(dedent(f'''
-    Usage:  {sys.argv[0]} [options] regexp
-      Look up a regular expression in a dictionary of words (case-
-      insensitive search by default).  If you search the WordNet dictionary,
-      use an underscore for the space character (use -c to exclude them).
-      The -w option provides the ability to search the list of words from
-      WordNet and see synonyms and definitions.  
-    
-      The -s option is used to look up all the words on the command line
-      (they are plain text, not regular expressions).  Any words not (-s) or
-      are (-S) in the indicated dictionary are printed out.  Use -@ to read
-      stdin for words one line at a time (avoids shell cmalloc problems).
-    Options:  ({which} is the default dictionary)
-      -@      Read words from stdin; implies -s or -S were used
-      -0      Use a short English dictionary  (850 words)
-      -1      Use a simple dictionary         (42 kwords)
-      -2      Use a larger ubuntu dictionary  (98 kwords)
-      -3      Use a large dictionary         (274 kwords)
-      -4      Use a massive dictionary       (511 kwords)
-      -5      Use the ten-hundred dictionary   (1 kwords)
-      -h      Describe the dictionaries
-      -i      Make search case-sensitive
-      -S      Show command line words in dict
-      -s      Show command line words not in dict
-      -w      Use a dictionary from WordNet  (155 kwords)
-    WordNet search options (causes -w option to be set):
-        -a      Limit to adjectives
-        -c      Do not show compound or hyphenated words
-        -d      Show definitions/synonyms for all words that match
-        -n      Limit to nouns
-        -r      Limit to adverbs
-        -v      Limit to verbs
-    Acknowledgements for some great tools:
-      1.  Thanks to Alan Beale for his 12dicts.
-          http://wordlist.aspell.net/12dicts/
-      2.  Thanks to the folks at Princeton who provide WordNet:
-          http://wordnet.princeton.edu/.
-    '''))
-    exit(status)
 def ParseIndexLine(line):
     '''A typical index line is:
         airheaded%5:00:00:frivolous:00 02120828 1 0
@@ -380,6 +339,7 @@ def ParseCommandLine(d):
     d["-a"] = False     # Limit to adjectives
     d["-c"] = False     # Do not show compound or hyphenated words
     d["-d"] = False     # Show definitions/synonyms
+    d["-h"] = False     # Describe the dictionaries
     d["-i"] = "-i"      # Don't ignore case
     d["-n"] = False     # Limit to nouns
     d["-r"] = False     # Limit to adverbs
@@ -389,13 +349,13 @@ def ParseCommandLine(d):
     d["-w"] = False     # Use WordNet dictionary
     d["which_dict"] = 2
     try:
-        optlist, args = getopt.getopt(sys.argv[1:], "@012345acdinrsvw")
+        optlist, args = getopt.getopt(sys.argv[1:], "@012345acdhinrsvw")
     except getopt.GetoptError as str:
         msg, option = str
         print(msg)
         sys.exit(1)
     for o, a in optlist:
-        if o[1] in set("@acdnrsvw"):
+        if o[1] in set("@acdhnrsvw"):
             d[o] = not d[o]
             if o[1] in set("acdnrv"):
                 d["-w"] = True
@@ -411,6 +371,8 @@ def ParseCommandLine(d):
         # We also set -S to True because of the special case of
         # satellite adjectives.
         d["-S"] = True
+    if d["-h"]:
+        Error("-h not implemented yet")
     if d["-s"]:
         return args
     if not args:
@@ -424,6 +386,47 @@ def ParseCommandLine(d):
             return '_'.join(args)
         else:
             return args[0]
+def Usage(d, status=1):
+    which = d["which_dict"]
+    print(dedent(f'''
+    Usage:  {sys.argv[0]} [options] regexp
+      Look up a regular expression in a dictionary of words (case-
+      insensitive search by default).  If you search the WordNet dictionary,
+      use an underscore for the space character (use -c to exclude them).
+      The -w option provides the ability to search the list of words from
+      WordNet and see synonyms and definitions.  
+    
+      The -s option is used to look up all the words on the command line
+      (they are plain text, not regular expressions).  Any words not (-s) or
+      are (-S) in the indicated dictionary are printed out.  Use -@ to read
+      stdin for words one line at a time.
+    Options:  ({which} is the default dictionary)
+      -@      Read words from stdin; implies -s or -S were used
+      -0      Use a short English dictionary  (850 words)
+      -1      Use a simple dictionary         (42 kwords)
+      -2      Use a larger ubuntu dictionary  (98 kwords)
+      -3      Use a large dictionary         (274 kwords)
+      -4      Use a massive dictionary       (511 kwords)
+      -5      Use the ten-hundred dictionary   (1 kwords)
+      -h      Describe the dictionaries
+      -i      Make search case-sensitive
+      -S      Show command line words in dict
+      -s      Show command line words not in dict
+      -w      Use a dictionary from WordNet  (155 kwords)
+    WordNet search options (causes -w option to be set):
+        -a      Limit to adjectives
+        -c      Do not show compound or hyphenated words
+        -d      Show definitions/synonyms for all words that match
+        -n      Limit to nouns
+        -r      Limit to adverbs
+        -v      Limit to verbs
+    Acknowledgements for some great tools:
+      1.  Thanks to Alan Beale for his 12dicts.
+          http://wordlist.aspell.net/12dicts/
+      2.  Thanks to the folks at Princeton who provide WordNet:
+          http://wordnet.princeton.edu/.
+    '''))
+    exit(status)
 def DictionaryLookup(words, d):
     '''Print words in the list of words that aren't (d["-s"] or are
     (d["-S"]) in the indicated dictionary.

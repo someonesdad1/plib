@@ -1345,7 +1345,9 @@ def iDistribute(n, a, b):
     if n < 2:
         raise ValueError("n must be >= 2")
     if n == 2:
-        return [a, b]
+        yield a
+        yield b
+        return
     dx = Fraction(b - a, n - 1)
     if dx < 1:
         raise ValueError("No solution")

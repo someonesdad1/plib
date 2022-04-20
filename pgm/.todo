@@ -1,4 +1,34 @@
 main
+    - weather.py
+        - https://forecast.weather.gov/MapClick.php?lat=43.6417&lon=-116.3243&unit=0&lg=english&FcstType=text&TextType=1
+        - This is a text webpage that could be parsed and displayed in
+          short form in a terminal.  Simpler and quicker than loading a web
+          page.
+        - Color could be used
+            - Yellow:   sunny
+            - Gray:     overcast
+            - Green:    rain
+            - Red:      thunderstorms
+            - White:    snow
+            - Temperatures:  cyn:°F grn:°C 
+            - Windy
+        - Also use bars to indicate magnitude
+            - Cold would be blue, hot would be red
+            - The scale would be printed above, then the colors would
+              interpolate between the low and the high.  Nicely visual with
+              the range immediately visible.
+        - The HTML is simple; it would be easy to reduce to plain text with
+          a regexp.
+
+    - dbl.py
+        - Delete blank lines in a file
+        - Change multiple lines to 1:  -1
+        - Delete lines with whitespace ^\s*$ :  -s
+        - Default is to only remove ^$ matches
+        - Combine with pgm/rm_multiple_lines.py
+        - Almost always python code, so don't want to touch things inside
+          multiline strings
+
     - Disk cleanup 13 Apr 2022 Size in GB
         - C is 110 with 94.5 used     86%
         - D is 223 with 125 used      56%
@@ -46,6 +76,7 @@ main
                 - cygwin 30
 
     - lookup.py
+        - Not the same as /plib/pgm/lookup.py.
         - This would be a module in /plib that allows you to look up words
           programmatically.  
         - My choice for a default wordlist would be words.x.beale.2of12inf
@@ -55,6 +86,7 @@ main
           times you want to find proper nouns.  Both use cases need to be
           supported.
         - There should be a way to find exact matches and close matches.
+          https://www.datacamp.com/community/tutorials/fuzzy-string-python
         - I'd like to NOT put the wordlists in the /plib tree because of
           space.
         - Once the location of the wordlists 
@@ -67,7 +99,8 @@ main
           have a python version of this that would color code the files
           information by size.  Same goes for ll.  The file names could
           still be colored as per ls, but the other information should be
-          shown in a color that gives a hint to the size.
+          shown in a color that gives a hint to the size.  The exa tool
+          does this, but it's not available on Windows.
             - < 10k         plain
             - 10k to 1M     grn
             - 1M to 10M     cyn
@@ -76,56 +109,9 @@ main
             - > 1G          lred
 
     - cdec.py
-        - It would be nice to be able to specify multiple sort parameters.
-          The -s option could take an argument:  r, g, b, h, l, s, v.  The
-          first one is the first sort parameter, then second is the next,
-          etc.  The resulting array is decorated with the indicated numbers
-          and the sort proceeds normally.
-
-    - Wavelength & color
-        - Bruton's wl->rgb seems OK, but I think something better might be
-          done
-        - Look at using CIE CMF's to convert a delta function wavelength to
-          some RGB colors
-            - This might show a way for writing a decent inverse function
-              for RGB to wavelength, or at least wavelength and intensity
-            - Thus, using xyY might be the preferred method, as xy lets you
-              go back and forth between hue and wavelength -- as proved by
-              the chromaticity diagrams
-                - Maybe the conversion from RGB on the chromaticity diagram
-                  is to go to the nearest boundary value and strike it
-                  normally.  There would be 3 candidate values.
-            - Bruton's conversion would certainly be a test case at least
-
-    - rgb.py
-        - Remove rgb.Color and rename ColorNum to Color.
-        - Color:  fundamental type to represent a 24-bit color
-            - Make constructor take as wide a variety of forms as possible.
-                - Let wavelength in nm be a constructor type
-                - 3 bytes can be used
-                - Another Color instance can be used
-            - Attributes (D = floats on [0, 1], I = ints in [0, 255])
-                - rgb, hsv, hls return (D, D, D)
-                - RGB, HSV, HLS return (I, I, I)
-                - xrgb, xhsv, xhls return hex strings
-                - wl returns a wavelength in nm
-            - Add Color.n, which contains the number of decimal digits to
-              round the floats to.  Note this determines the sensitivity of
-              color equality.
-            - Change the internal representation to three bytes
-              representing the three integers for the RGB value.
-            - Keep Clr because the Clr.__call__ method is convenient, but
-              all arguments must be either string names or Color instances.
-              Actually, if a string is used, an internal dictionary is used
-              to translate it to a Color instance.
-                - Clr should have a method to initialize the name to Color
-                  dictionary mapping.
-                - The default should be something sensible.  xkcd's could
-                  be good, but it's 949 colors.  I like the naming scheme.
-                  See if it could be whittled down to a set about half the
-                  size.
-            - Add the numerous xfms in rgb/colorcoord.py.
-        - Convert g library to use ColorNum instances.
+        - Color() has a Sort class method that can sort by letter argument.
+          Use it to change the -s option to let you specify when parameters
+          to sort by.
 
     - Color cube plotting in g
         - Write an RGB color cube plotting function:  x = grn, y = blue, z
@@ -138,10 +124,7 @@ main
           shouldn't be there.
 
     - g.py
-        - Search the files for web links and see if they still work.  In
-          fact, this would be a useful python script to write:
-          linkcheck.py.  It would take a text file and find the URLs and
-          check that each can still be accessed.
+        - Search the files for web links and see if they still work.  
 
     - linkcheck.py
         - Utility to search a file for http links and see if they are still
@@ -168,9 +151,9 @@ main
     - ls colors
         - Write a general application script that can generate colors for
           the ls command via LS_COLORS.  
-            - # 24-bit color works:  Here's a darker magenta on a pale yellow:
+            - 24-bit color works:  Here's a darker magenta on a pale yellow:
                 LS_COLORS='*.py=38;2;170;32;220;48;2;255;255;100'
-            - # 256 colors works: LS_COLORS='*.py=38;5;17'
+            - 256 colors works: LS_COLORS='*.py=38;5;17'
         - mintty is a 24-bit color console, so it's time I generated some
           better colors for things.
         - As selecting 24-bit colors will be more problematic, add to the
@@ -265,7 +248,8 @@ main
         - Also, do a 'ddiff -r /pylib /plib'.  You'll get an exception
           because a string is too long to fit to the screen.  In this case,
           you'd still want things printed, so maybe a too_long kw is needed
-          to ignore such things.
+          to ignore such things.  Also has error message bug leaving green
+          text on screen.
 
     - Room heating energy
         - Write a script that estimates the electrical energy and time
@@ -1046,12 +1030,4 @@ Other
                 -     g++ -o ${exe} ${cppopts} $^
 
                 - array.o: array.cpp array.h
-                -     g++ -c ${cppopts} $<
-                - tokenizer.o: tokenizer.cpp tokenizer.h
-                -     g++ -c ${cppopts} $<
-                - clean:
-                -     @rm -f ${exe} ${exe}.stackdump *.o
-
-/plib releases
-    - 7Mar2022 was first release after I made the repository public.
-
+  
