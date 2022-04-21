@@ -7,7 +7,7 @@ time and fix/maintain some of the stuff.  My intent is that this stuff will
 remain here for a few years after I've died or when I turn its maintenance
 over to a friend who said he'd be the caretaker for it after I'm no longer
 able to do this.  By then any content of interest to others will probably
-have made its way out into the world and he can remove the repositor when
+have made its way out into the world and he can remove the repository when
 he sees fit.
 
 # Introduction
@@ -22,6 +22,11 @@ for.  Most of the stuff is licensed under the Open Software License version
 * The `pgm` directory holds scripts that are separate programs.
 * The `test` directory holds scripts that test the modules in `plib` (many
   of the modules have their test code built-in).
+* The `g` directory holds a python graphics library I wrote about 20 years
+  ago; it's a thin layer over PostScript.  It has made thousands of images
+  for me over that time.  I would have preferred SVG, but it was too
+  immature at the time.  An item on my to-do list is to write a backend for
+  it that outputs SVG.
 
 This is a work-in-progress.  Currently, a few tests fail in /plib.  Most of
 the scripts in /plib/pgm don't have suitable 'what' strings (see 0what.py

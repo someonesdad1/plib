@@ -38,3 +38,5 @@ rgb/chromaticity/cie_cmf_analytical_code.zip
 gg
 *.png
 *.jpg
+g/demofiles/out
+pgm/ds.*.index
