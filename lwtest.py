@@ -292,7 +292,7 @@ if 1:   # Utility
             return "%.2f min" % (duration_s/60)
         else:
             return "%.2f s" % (duration_s)
-    def ToDoMessage(message, prefix="+"):
+    def ToDoMessage(message, prefix="+ "):
         '''This function results in a message to stdout; it's purpose is to
         allow you to see something that needs to be done, but won't cause
         the test to fail.  The message is decorated with a leading prefix
