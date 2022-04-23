@@ -28,7 +28,7 @@ if 1:   # Imports
 if 1:   # Custom imports
     from columnize import Columnize
     from wrap import dedent, wrap
-    import color
+    import kolor as color
     from lwtest import run, raises, assert_equal, Assert
     if 0:
         import debug
