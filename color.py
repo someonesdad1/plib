@@ -1,43 +1,45 @@
 ''' 
-    - Tasks
-        - Move to /plib and start testing old color.py functionality, as
-          most native support seems to be working.
-            - Need to get rid of rgb stuff.
- 
-    - Trm
-        - Is load() necessary?  It's intended to load styles from a file.
-        - Is the effort to support 4-bit and 8-bit terminals appropriate?
-            - For 24 bit, args must be Color instances
-            - For 4 and 8 bit, args can be integers or strings
-            - Method to convert RGB numbers to 8-bit and 4-bit ANSI
-                - Note the 4-bit numbers are the first 16 of the 8-bit, so in
-                reality, only 8 and 24 bit colors need to be supported.
-                - To get 4-bit number from 8-bit, just and with 0xf.
-            - Class method to reduce 24-bit colors to ANSI 8 and 4 bit colors
- 
 Classes to help with color use in terminals
- 
     - class Color
         - Immutable class to store the three numbers used to define a color
     - class Trm
         - Outputs ANSI escape sequences to allow color use in a terminal
     - class ColorName
         - Maps string names to a Color object
+
+    - Typical usage
+
+        from color import Color, Trm
+
+        t = Trm()
+        print(f"{t('lred')}Error:  you need to fix this{t.n}")
+        print(f"{t('lblu', 'wht'} This is blue text in a white background")
+
+        # The default color names are based on the resistor color code
+        # names.  Prefix with 'l' for the lighter colors, 'd' for darker,
+        # and 'b' for light pastel background colors.  Run the color.py
+        # file as a script to see these color names and how they render on
+        # your screen.
+
+        # The Trm instance can be called with a foreground and background
+        # color (either a name or Color instance) and an optional attribute
+        # (e.g., for italics).  The t.n value means to return to the
+        # default color.  You can store escape sequences as attributes:
+
+        t.err = t("lred")
+        print(f"{t.err}Error:  you need to fix this{t.n}")
+
+        # You can use t.out and t.print to avoid having to reset to the
+        # default color.  t.out is the same as t.print but without the
+        # newline.
+
  
-    The color directory contains a number of files related to color:
-        - Mapping names to number tuples for the Color constructor
-        - Miscellaneous python scripts associated with color
-        - A color.pdf file to help explain things
-            - Instructions on how to use this file in your own environment
-            - How to tune things to your preferences
-            - Background material and references
- 
-    This file includes some deprecated functionality to support an older
-    python module I used for a couple of decades.  Over time, I expect to
-    remove the dependencies on this stuff and it will eventually be removed
-    with no warning (i.e., don't use these older features).  To disable the
-    legacy code support, define the 'klr' environment variable to be empty
-    (evaluate False as a boolean).
+    - This file includes some deprecated functionality to support an older
+      python module I used for a couple of decades.  Over time, I expect to
+      remove the dependencies on this stuff and it will eventually be
+      removed with no warning (i.e., don't use these older features).  To
+      disable the legacy code support, define the 'klr' environment
+      variable to be empty (evaluate False as a boolean).
  
     - class Color
         - This immutable class is used to store the three integers that

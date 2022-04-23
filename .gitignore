@@ -42,3 +42,16 @@ gg
 *.jpg
 g/demofiles/out
 pgm/ds.*.index
+
+get.test
+kolor/
+pgm/a.odt
+pgm/clrs.py
+pgm/disks.ksh
+pgm/fsm/
+pgm/heat.py
+rgb/chromaticity/rgbcube.py
+rgb/gsu_names
+rgb/match.py
+rgbdata.py
+transposition.py
