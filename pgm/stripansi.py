@@ -9,10 +9,10 @@
 # Licensed under the Open Software License version 3.0.
 # See http://opensource.org/licenses/OSL-3.0.
 #
-from __future__ import print_function, division
 import os
 import re
 import sys
+from get import GetLines
 
 _ansi_regexp = re.compile('\033\[((?:\d|;)*)([a-zA-Z])')
 
@@ -42,9 +42,9 @@ if __name__ == "__main__":
     if len(sys.argv) > 1:
         if sys.argv[1] == "-h":
             Usage()
-        for filename in sys.argv[1:]:
-            for line in file(filename):
-                print(StripANSIEscapeSequences(line), end="")
+        for file in sys.argv[1:]:
+            for line in GetLines(file):
+                print(StripANSIEscapeSequences(line))
     else:
         for line in sys.stdin.readlines():
                 print(StripANSIEscapeSequences(line), end="")

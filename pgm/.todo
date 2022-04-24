@@ -490,10 +490,6 @@ pgm
         - Need to finish as a program to evaluate the gradations of color
         for #xxyyzz where two of the three bytes are given.
 
-    - moon.py
-        - Add -h option and optional command line arguments for year(s) to
-          print.  Defaults to current year.
-
     - disks.ksh
         - Convert this to a python script that remembers the names of the
           floppy disks.  Note:  I used to have a directory somewhere with the

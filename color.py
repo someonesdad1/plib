@@ -1,9 +1,11 @@
 ''' 
 
 - To Do
-    - For short naming, add computed names like 'red blu' that interpolate
-      halfway between the two colors.  This adds numerous colors without 
-      having to add more data.
+    - A fundamental problem is Trm attributes defined like 't.me =
+      t("brn")' when stdout is not a tty.  Even if Trm.on is false, the
+      escape codes will wind up in the strings.  This means any attribute
+      access of Trm needs to be checked that .on is True before emitting
+      the stored string (otherwise, return "").
 
 --------------------------------------------------------------------------------
 Classes to help with color use in terminals
@@ -1006,7 +1008,7 @@ class Trm:
         return ta
     def _user(self):
         'Return a set of user-defined attribute names'
-        ignore = set('''_bits cn on _fg fg _bg bg _ta _always _user _check
+        ignore = set('''_bits cn on _fg fg _bg bg _ta _always always _user _check
             _get_code load n out print reset GetColorNames terminal_bits
             default_color'''.split())
         attributes = []
@@ -1210,11 +1212,19 @@ class Trm:
         'Sets the instance to a default state'
         # Delete all user-set attributes
         for i in self._user():
-            delattr(self, i)
+            try:
+                delattr(self, i)
+            except AttributeError as e:
+                if 0:       # Use to flag programming problems
+                    print(e)
+                    xx()
+                else:
+                    pass    # Ignore the problem
         # Reset to default colors
         self._fg, self._bg = Trm.default_color
         # Turn on output unless not to terminal
-        if sys.stdout.isatty() or self._always:
+        self.on = False
+        if sys.stdout.isatty() or self.always:
             self.on = True
     def print(self, *p, **kw):
         '''Print arguments with newline, reverting to normal color
@@ -1229,7 +1239,14 @@ class Trm:
             k["end"] = ""
         print(*p, **k)
         print(self.n, **k)
+    # Writable properties
     # Read-only properties
+    @property
+    def always(self):
+        return self._always
+    @always.setter
+    def always(self, value):
+        self._always = bool(value)
     @property
     def n(self):
         'Return escape code for normal (default) screen'

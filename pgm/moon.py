@@ -1,4 +1,7 @@
 '''
+-TODO
+    - Add colorizing of output
+
 Print moon phase times
     The year should be the single parameter passed on the command line.
     The times will be converted to your local time by the ut_offset value,
@@ -77,6 +80,12 @@ if 1:   # Imports
 if 1:   # Custom imports
     from wrap import dedent
     from meeus import IsDST
+    from color import TRM as t
+    t.yr = t("lgrn")
+    t.new = t("gry")
+    t.full = t("byel")
+    t.first = t("bcyn")
+    t.last = t("bvio")
 if 1:   # Global variables
     # The script will correct universal times to your local time zone's
     # time.  This time zone is assumed to be in the US so that the
@@ -295,22 +304,32 @@ if 1:   # Core functionality
         last = GetPhaseData(desired_year, LAST)
         FixArrays(new, first, full, last)
         ind = " "*2
-        print(f"                    Moon phases for {desired_year}")
+        print(f"                    Moon phases for {t.yr}{desired_year}{t.n}")
         print(f"           (Times are {zn} time corrected for DST)")
-        print("     New             Full          First Qtr       Last Qtr")
-        print("  ------------    ------------    ------------    ------------")
+        print(f"       {t.new}New{t.n}            {t.full}Full{t.n}", end="")
+        print(f"          {t.first}First Qtr{t.n}       {t.last}Last Qtr")
+        print(f"  {t.new}------------{t.n}    {t.full}------------{t.n}    ", end="")
+        print(f"{t.first}------------{t.n}    {t.last}------------{t.n}")
         fmt = "%-15s "
-        for i in range(len(new)):
-            print(fmt % GetItem(new[i]), end="")
-            print(fmt % GetItem(full[i]), end="")
-            print(fmt % GetItem(first[i]), end="")
-            print(fmt % GetItem(last[i]))
+        if 0:
+            for i in range(len(new)):
+                print(fmt % GetItem(new[i]), end="")
+                print(fmt % GetItem(full[i]), end="")
+                print(fmt % GetItem(first[i]), end="")
+                print(fmt % GetItem(last[i]))
+        else:
+            for i in range(len(new)):
+                print(f"{t.new}{GetItem(new[i]):15s}{t.n}", end=" ")
+                print(f"{t.full}{GetItem(full[i]):15s}{t.n}", end=" ")
+                print(f"{t.first}{GetItem(first[i]):15s}{t.n}", end=" ")
+                print(f"{t.last}{GetItem(last[i]):15s}{t.n}")
     def HandleRange(rng):
         yr1, yr2 = [int(i) for i in rng.split("-")]
         if yr1 > yr2:
             yr1, yr2 = yr2, yr1
         for yr in range(yr1, yr2 + 1):
             PrintYear(yr)
+            print()
 
 if __name__ == "__main__":
     d = {}      # Options dictionary
