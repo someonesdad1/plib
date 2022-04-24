@@ -45,20 +45,24 @@ if 1:   # Header
         from pathlib import Path as P
         from pdb import set_trace as xx
         import getopt
+        import math
         import os
         import re
         import sys
     if 1:   # Custom imports
         from wrap import wrap, dedent
-        from clr import Clr
-        from rgb import ColorNum
-        from rgbdata import color_data
-        from wl2rgb import rgb2wl
+        if 0:
+            from clr import Clr
+            from rgb import ColorNum
+            from rgbdata import color_data
+            from wl2rgb import rgb2wl
+        else:
+            from color import Color, Trm
     if 1:   # Global variables
         ii = isinstance
-        c = Clr(always=True)
+        t = Trm()
         class g: pass   # Hold global variables
-        c.dbg = c("wht", "blu")
+        t.dbg = t("wht", "blu")
         g.duplicates = set()
 if 1:   # Utility
     def Dbg(*p, **kw):
@@ -111,9 +115,6 @@ if 1:   # Utility
         '''.rstrip()))
         exit(0)
     def Usage(status=1):
-        c.t = c("mag") #xx Current ToDo item
-        c.i = c("lblk") #xx Ignored for the moment
-        c.d = c("blk") #xx Done
         print(dedent(f'''
         Usage:  {sys.argv[0]} [options] file1 [file2...]
           Search the lines of the file(s) for color specifiers and print matching
@@ -125,7 +126,7 @@ if 1:   # Utility
             -h      More help and examples
             -r x    Search for case-insensitive regexp x in lines
             -R x    Search for case-sensitive regexp x in lines
-            -s s    Sort output by 'rgb', 'hsv', or 'hls'
+            -s s    Sort output by letters s in "rgbhsvHSL"
         '''))
         exit(status)
     def ParseCommandLine(d):
@@ -150,9 +151,10 @@ if 1:   # Utility
             elif o == "-r":
                 d[o].append(re.compile(a, re.I))
             elif o == "-s":
-                allowed = "rgb hsv hls wl"
-                if a not in allowed.split():
-                    Error(f"'{a}' not in {allowed.split()}")
+                allowed = set("rgbhsvHLS")
+                for i in a:
+                    if i not in allowed:
+                        Error(f"'{i}' for -s option not in {allowed.split()}")
                 d[o] = a
             elif o in ("-h", "--help"):
                 Manpage()
@@ -186,23 +188,23 @@ if 1:   # Core functionality
         )
         return regexps
     def GetColor(match):
-        'Return a ColorNum instance for the matching string'
+        'Return a Color instance for the matching string'
         match = match.strip()
         if match[0] in "@#$":
-            cn = ColorNum(match)
+            c = Color(match)
         elif "," in match:
             a = eval(f"({match})")
-            cn = ColorNum(a)
+            c = Color(*a)
         else:
             if "." in match:
                 a = [float(i) for i in match.split()]
             else:
                 a = [int(i) for i in match.split()]
-            cn = ColorNum(a)
-        return cn
+            c = Color(*a)
+        return c
     def Search(file):
         '''Put lines to be decorated in the deque g.out.  The structure put
-        into the deque is (line, ColorNum).  The trailing whitespace
+        into the deque is (line, Color).  The trailing whitespace
         of the line is stripped.
         '''
         keep = deque()
@@ -222,10 +224,10 @@ if 1:   # Core functionality
                     break
             if candidate:
                 # This line contains a color specifier
-                cn = GetColor(candidate)
-                if cn.rgbhex in g.duplicates and d["-e"]:
+                c = GetColor(candidate)
+                if c.xrgb in g.duplicates and d["-e"]:
                     continue
-                g.duplicates.add(cn.rgbhex)
+                g.duplicates.add(c.xrgb)
                 keep.append((line, GetColor(candidate)))
         # If -R or -r given, filter out lines that don't match
         regexps = d["-R"] + d["-r"]
@@ -249,26 +251,24 @@ if 1:   # Core functionality
             if ii(seq[0], int):
                 return ', '.join([f"{i:3d}" for i in seq])
             else:
-                n = ColorNum.n
+                # Need number of decimal places to show
+                n = math.ceil(math.log10(c.N))
                 return ', '.join([f"{i:{2 + n}.{n}f}" for i in seq])
-        for line, cn in g.out:
-            print(f"{c(cn.rgbhex)}{line}{c.n}")
+        for line, c in g.out:
+            print(f"{t(c.xrgb)}{line}{t.n}")
             if d["-d"]:
                 # Print details
                 i = " "*4
-                print(f"{i}RGB: {cn.rgbhex} ({F(cn.RGB)}) ({F(cn.rgb)})")
-                print(f"{i}HSV: {cn.hsvhex} ({F(cn.HSV)}) ({F(cn.hsv)})")
-                print(f"{i}HLS: {cn.hlshex} ({F(cn.HLS)}) ({F(cn.hls)})")
-                print(f"{i}λ = {rgb2wl(cn)} nm")
+                print(f"{i}RGB: {c.xrgb} ({F(c.irgb)}) ({F(c.drgb)})")
+                print(f"{i}HSV: {c.xhsv} ({F(c.ihsv)}) ({F(c.dhsv)})")
+                print(f"{i}HLS: {c.xhls} ({F(c.ihls)}) ({F(c.dhls)})")
     def Sort():
         'Sort the data to be printed in g.out'
         # Set the sort order for the ColorNum instances
         if d["-s"] is None:
             return
-        for i in g.out:
-            i[1].sort = d["-s"]
         f = lambda x: x[1]
-        g.out = sorted(g.out, key=f)
+        g.out = Color.Sort(g.out, keys=d["-s"], get=f)
 
 if __name__ == "__main__":
     g.color_regexps = GetColorRegexps()

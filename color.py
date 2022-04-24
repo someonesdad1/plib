@@ -779,10 +779,10 @@ class Color:
             assert(all([0 <= i <=1 for i in rgb]))
             return Color(*rgb, bpc=bpc)
         @classmethod
-        def Sort(cls, seq, keys="hl", get=None):
+        def Sort(cls, seq, keys="hL", get=None):
             '''Return a sorted copy of the sequence of Color instances.
             The keys parameter determines how to sort:  each element is a
-            letter:  rgbhlsSv that is used in the rgb, hls, and hsv attributes.
+            letter:  rgbhsvHLS that is used in the rgb, hls, and hsv attributes.
             Unfortunately, the 's' is hls and hsv mean different things.
             Here, 's' means the s in 'hls' and 'S' means the s in 'hsv'.
             Though they are described by the same term "saturation", the two
@@ -799,7 +799,7 @@ class Color:
                 raise TypeError("seq is not a suitable sequence")
             if not keys:
                 raise ValueError("keys cannot be empty")
-            S = set("rgbhsvhlS")
+            S = set("rgbhsvHLS")
             for key in keys:
                 if key not in S:
                     raise TypeError(f"keys '{keys}' contains an illegal letter")
@@ -824,11 +824,11 @@ class Color:
                         k = c.irgb[2]
                     elif key == "h":
                         k = c.ihls[0]
-                    elif key == "l":
+                    elif key == "L":
                         k = c.ihls[1]
-                    elif key == "s":
-                        k = c.ihls[2]
                     elif key == "S":
+                        k = c.ihls[2]
+                    elif key == "s":
                         k = c.ihsv[1]
                     elif key == "v":
                         k = c.ihsv[2]
@@ -1085,12 +1085,17 @@ class Trm:
             ESC[38;2;<r>;<g>;<b>m      RGB foreground color
             ESC[48;2;<r>;<g>;<b>m      RGB background color
         '''
-        # If they are strings, they can be short strings from now.  In the
-        # future, there will be a ColorName object to search.
-        if ii(fg, str):
-            fg = self.cn[fg]
-        if ii(bg, str):
-            bg = self.cn[bg]
+        # If they are strings, they are either a name or a hex string.
+        if fg and ii(fg, str):
+            if fg[0] in "@#$":
+                fg = Color(fg)
+            else:
+                fg = self.cn[fg]
+        if bg and ii(bg, str):
+            if bg[0] in "@#$":
+                bg = Color(bg)
+            else:
+                bg = self.cn[bg]
         # Put the escape codes for fg, bg, and attributes in the
         # container
         container = []
