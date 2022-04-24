@@ -1,7 +1,4 @@
 '''
-TODO
-    - Use the Sort classmethod of kolor.py
-
 Decorate color specifications
     - Forms that must be recognized:
         - i = integer on [0, 255], 
@@ -51,13 +48,7 @@ if 1:   # Header
         import sys
     if 1:   # Custom imports
         from wrap import wrap, dedent
-        if 0:
-            from clr import Clr
-            from rgb import ColorNum
-            from rgbdata import color_data
-            from wl2rgb import rgb2wl
-        else:
-            from color import Color, Trm
+        from color import Color, Trm
     if 1:   # Global variables
         ii = isinstance
         t = Trm()

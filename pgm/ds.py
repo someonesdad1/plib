@@ -45,7 +45,7 @@ if 1:   # Custom imports
     # Try to import the color module
     _have_color = False
     try:
-        import kolor as c
+        import color as c
         _have_color = True
     except ImportError:
         # Dummy object that will swallow calls to the color module

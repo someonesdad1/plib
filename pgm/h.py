@@ -24,7 +24,7 @@ if 1:   # Standard imports
     from pdb import set_trace as xx
 if 1:   # Custom imports
     from wrap import dedent
-    from kolor import C
+    from color import C
     from edit import Edit
 if 1:   # Global variables
     P = pathlib.Path

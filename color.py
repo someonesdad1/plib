@@ -1329,7 +1329,7 @@ class ColorName(dict):
 
 # Define default ColorName instance
 CN = ColorName()
-CN.load("colornames0")
+CN.load("/plib/colornames0")
 
 # Define default Trm instance
 TRM = Trm()

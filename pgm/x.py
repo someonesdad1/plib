@@ -24,7 +24,7 @@ if 1:   # Standard imports
 if 1:   # Custom imports
     from columnize import Columnize
     from wrap import dedent
-    from kolor import C
+    from color import C
 if 1:   # Global variables
     P = pathlib.Path
     ii = isinstance

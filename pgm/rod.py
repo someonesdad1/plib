@@ -23,7 +23,7 @@ if 1:   # Imports
     from functools import partial
     from pdb import set_trace as xx
 if 1:   # Custom imports
-    import kolor as color
+    import color as color
     from wrap import dedent
     #from u import u, ParseUnit
     #from sig import sig

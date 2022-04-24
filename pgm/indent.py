@@ -59,7 +59,7 @@ if 1:   # Standard imports
     from pdb import set_trace as xx
 if 1:   # Custom imports
     from wrap import wrap, dedent
-    from kolor import (C, fg, black, blue,  green,  cyan,  red,  magenta,
+    from color import (C, fg, black, blue,  green,  cyan,  red,  magenta,
         brown,  white, gray,  lblue, lgreen, lcyan, lred, lmagenta, yellow,
         lwhite)
     from cmddecode import CommandDecode

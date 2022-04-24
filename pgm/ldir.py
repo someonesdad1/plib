@@ -27,7 +27,7 @@ if 1:   # Custom imports
     _no_color = True
     if sys.stdout.isatty():
         try:
-            import kolor as color
+            import color as color
             _no_color = False
         except ImportError:
             pass
