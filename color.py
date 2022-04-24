@@ -1,4 +1,11 @@
 ''' 
+
+- To Do
+    - For short naming, add computed names like 'red blu' that interpolate
+      halfway between the two colors.  This adds numerous colors without 
+      having to add more data.
+
+--------------------------------------------------------------------------------
 Classes to help with color use in terminals
     - class Color
         - Immutable class to store the three numbers used to define a color
@@ -1090,12 +1097,18 @@ class Trm:
             if fg[0] in "@#$":
                 fg = Color(fg)
             else:
-                fg = self.cn[fg]
+                new = None
+                if "@" in fg or "#" in fg or "$" in fg:     # It's a composite
+                    new = self.cn.split(fg)
+                fg = self.cn[fg] if new is None else new
         if bg and ii(bg, str):
             if bg[0] in "@#$":
                 bg = Color(bg)
             else:
-                bg = self.cn[bg]
+                new = None
+                if "@" in bg or "#" in bg or "$" in bg:     # It's a composite
+                    new = self.cn.split(bg)
+                bg = self.cn[bg] if new is None else new
         # Put the escape codes for fg, bg, and attributes in the
         # container
         container = []
@@ -1326,6 +1339,25 @@ class ColorName(dict):
                     exec(line)
                 else:
                     raise ValueError(f"Illegal line:\n'{line}'")
+    def split(self, name):
+        '''A name string can be made up of multiple names separated by one
+        of the characters '@', '#', or '$'.  The resultant color is
+        computed by taking each pair of names and interpolating halfway
+        between them.  Each component must be a valid color name.  @ means
+        to interpolate in HSV space, @ in RGB, and $ in HLS.
+ 
+        Returns a Color instance or None if it can't be calculated.
+        '''
+        if not ("@" in name or "#" in name or "$" in name):
+            return None
+        sep = "@" if "@" in name else "#" if "#" in name else "$"
+        space = "hsv" if sep == "@" else "rgb" if sep == "#" else "hls"
+        names = deque(name.split(sep))
+        old = self[names.popleft()]
+        while names:
+            new = self[names.popleft()]
+            old = old.interpolate(new, 0.5, space=space)
+        return old
 
 # Define default ColorName instance
 CN = ColorName()
@@ -2391,8 +2423,7 @@ if __name__ == "__main__":
             R = "blk brn red orn yel grn blu vio gry wht cyn mag".split()
             c = Trm()
             w = 5
-            cn = ColorName()
-            cn.load("colornames0")
+            cn = CN
             print("Grays:", end=" "*2)
             for i in range(1, 11):
                 k = Color(i/10)
