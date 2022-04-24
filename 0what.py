@@ -30,15 +30,15 @@ if 1:   # Custom imports
     from wrap import wrap, dedent, indent, Wrap
     from lwtest import run, raises, assert_equal, Assert
     import clr
+    from color import TRM as t
     from columnize import Columnize
 if 1:   # Global variables
     P = pathlib.Path
     rcat = re.compile(r"<(.*?)>")  # Find category strings
     categories = set()
     EntryType = namedtuple("EntryType", "p what category")
-    c = clr.Clr(24, override=True)
-    c.sep = c("lgrn")
-    c.py = c("lcyn")
+    t.sep = t("lyel")
+    t.py = t("grn")
 if 1:   # Utility
     def Error(msg, status=1):
         print(msg, file=sys.stderr)
@@ -155,15 +155,15 @@ if 1:   # Core functionality
                     files.append(data)
             else:
                 raise TypeError(f"'{p}' is not a file or directory")
-        t = tuple(sorted(files))
+        tu = tuple(sorted(files))
         if d["-d"]:
-            DumpFiles(t)
-        return t
+            DumpFiles(tu)
+        return tu
     def ReportByCategory(files):
         def Header(s):
             width = int(os.environ.get("COLUMNS", 79)) - 5
             h = "-"*((width - len(s) - 1)//2)
-            return f"{c.sep}{h} {s.capitalize()} {h}{c.n}"
+            return f"{t.sep}{h} {s.capitalize()} {h}{t.n}"
         di = defaultdict(list)
         for item in files:
             di[item.category] += [item]
@@ -172,7 +172,7 @@ if 1:   # Core functionality
             print(Header(key))
             for item in di[key]:
                 p = item.p
-                print(f"{c.py}{p!s}{c.n}")
+                print(f"{t.py}{p!s}{t.n}")
                 print(wrap(item.what))
     def ShowMissingCategory(files):
         missing = []

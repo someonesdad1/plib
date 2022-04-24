@@ -970,12 +970,12 @@ class Trm:
  
             Note:  4 and 8 bit not currently supported.
         '''
-        self.always = False # If True, generate escape codes even if stdout
-                            # isn't a terminal
-        self.on = True      # If True, escape codes are generated
-        self.cn = CN        # ColorNames dictionary (defaults to module's
-                            # global variable CN)
-        self._bits = bits   # Bits per color
+        self._always = False    # If True, generate escape codes even if stdout
+                                # isn't a terminal
+        self.on = True          # If True, escape codes are generated
+        self.cn = CN            # ColorNames dictionary (defaults to module's
+                                # global variable CN)
+        self._bits = bits       # Bits per color
         if self._bits is None:
             self._bits = Trm.terminal_bits
         if self._bits != 24:
@@ -1214,7 +1214,7 @@ class Trm:
         # Reset to default colors
         self._fg, self._bg = Trm.default_color
         # Turn on output unless not to terminal
-        if sys.stdout.isatty() or self.always:
+        if sys.stdout.isatty() or self._always:
             self.on = True
     def print(self, *p, **kw):
         '''Print arguments with newline, reverting to normal color

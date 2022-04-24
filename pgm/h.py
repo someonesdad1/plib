@@ -1,37 +1,34 @@
 '''
 Script to aid the H() shell function in getting the required directory.
 '''
- 
-if 1:  # Copyright, license
-    # These "trigger strings" can be managed with trigger.py
-    #∞copyright∞# Copyright (C) 2021 Don Peterson #∞copyright∞#
-    #∞contact∞# gmail.com@someonesdad1 #∞contact∞#
-    #∞license∞#
-    #   Licensed under the Open Software License version 3.0.
-    #   See http://opensource.org/licenses/OSL-3.0.
-    #∞license∞#
-    #∞what∞#
-    # Script aid for the H() shell function.
-    #∞what∞#
-    #∞test∞# #∞test∞#
-    pass
-if 1:   # Standard imports
-    import getopt
-    import os
-    import pathlib
-    import sys
-    from collections import deque
-    from pdb import set_trace as xx
-if 1:   # Custom imports
-    from wrap import dedent
-    from color import C
-    from edit import Edit
+if 1:   # Header
+    # Copyright, license
+        # These "trigger strings" can be managed with trigger.py
+        #∞copyright∞# Copyright (C) 2021 Don Peterson #∞copyright∞#
+        #∞contact∞# gmail.com@someonesdad1 #∞contact∞#
+        #∞license∞#
+        #   Licensed under the Open Software License version 3.0.
+        #   See http://opensource.org/licenses/OSL-3.0.
+        #∞license∞#
+        #∞what∞#
+        # Script aid for the H() shell function.
+        #∞what∞#
+        #∞test∞# #∞test∞#
+    # Standard imports
+        import getopt
+        import os
+        import pathlib
+        import sys
+        from collections import deque
+        from pdb import set_trace as xx
+    # Custom imports
+        from wrap import dedent
+        from color import TRM as t
+        from edit import Edit
 if 1:   # Global variables
     P = pathlib.Path
     ii = isinstance
-    class g: pass
-    g.c = C.lwht
-    g.n = C.norm
+    t.c = t("yel")
 def Error(*msg, status=1):
     print(*msg, file=sys.stderr)
     exit(status)
@@ -92,7 +89,7 @@ def GetLines():
         if line:
             keep.append(line)
     if d["-d"]:
-        DumpConfigFile(start=g.c, end=g.n)
+        DumpConfigFile(start=t.c, end=t.n)
     return keep
 if __name__ == "__main__":
     d = {}      # Options dictionary
@@ -122,7 +119,7 @@ if __name__ == "__main__":
         open(d["-c"], "w").write('\n'.join(lines))
     elif cmd == "l":
         for i, line in enumerate(lines):
-            print(f"  {g.c}{i}:  {line}{g.n}")
+            print(f"  {t.c}{i}:  {line}{t.n}")
     elif cmd == "h":
         print(dedent(f'''
         e       Edit the config file

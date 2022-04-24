@@ -15,7 +15,7 @@ https://www.tutorialspoint.com/python_penetration_testing/python_penetration_tes
 
 import os
 from time import time
-from color import C
+from color import TRM as t
 
 ip = "192.168.0."
 ping = "ping -c 1 "
@@ -27,7 +27,7 @@ for i in range(1, 255):
     addr = ip + str(i)
     s = os.popen(ping + addr).read()
     if "ttl=" in s:
-        print(f"{C.lgrn}{addr}{C.norm}", end=end)
+        print(f"{t('grn')}{addr}{t.n}", end=end)
     else:
         print(addr, end=end)
     if i % 5 == 0:
