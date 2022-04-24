@@ -25,22 +25,8 @@ if 1:   # Imports
     from pdb import set_trace as xx
 if 1:   # Custom imports
     from wrap import dedent, wrap
-    # Try to import the color.py module; if not available, the script
-    # should still work (you'll just get uncolored output).
-    try:
-        import kolor as color
-        have_color = True
-    except ImportError:
-        # Make a dummy color object to swallow function calls
-        class Dummy:
-            def fg(self, *p, **kw):
-                pass
-            def normal(self, *p, **kw):
-                pass
-            def __getattr__(self, name):
-                pass
-        color = Dummy()
-        have_color = False
+    from color import Color, Trm
+    t = Trm()
 if 1:   # Global variables
     ii = isinstance
     enc = "UTF-8"
@@ -226,26 +212,26 @@ def PrintResults(d):
     res.sort()
     w = max([len(i[1]) for i in res])
     C = {
-        0 : color.magenta,      # Whitespace
-        1 : color.lblue,        # Ctrl
-        2 : color.yellow,       # Lowercase
-        3 : color.lcyan,        # Uppercase
-        4 : color.lgreen,       # Decimal digits
-        5 : color.lwhite,       # Punctuation
-        6 : color.white,        # Remaining 7-bit characters
-        7 : color.lred,         # 8-bit with high bit set
-        8 : color.lmagenta,     # Other Unicode
+        0 : "mag",      # Whitespace
+        1 : "lblu",     # Ctrl
+        2 : "lyel",     # Lowercase
+        3 : "lcyn",     # Uppercase
+        4 : "lgrn",     # Decimal digits
+        5 : "lwht",     # Punctuation
+        6 : "wht",      # Remaining 7-bit characters
+        7 : "lred",     # 8-bit with high bit set
+        8 : "lmag",     # Other Unicode
     }
     for i, cat, chars in res:
         characters = Translate(chars)
         if d["-a"] and cat in ("Unicode", "8bit"):
             continue
         if d["-C"]:
-            color.fg(C[i])
+            print(f"{t(C[i])}", end="")
         print("{cat:{w}} ".format(**locals()), end="")
         PrintCharacters(characters, " "*w, d)
         if d["-C"]:
-            color.normal()
+            print(f"{t.n}", end="")
 def Usage(d, status=1):
     print(dedent(f'''
     Usage:  {sys.argv[0]} [options] [file1 [file2...]]

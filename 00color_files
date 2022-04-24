@@ -1,11 +1,11 @@
 # Output from 00findcolor.py, which shows the scripts dependent on the old
 # color.py implementation.
-# 79 files
+# 79 files at the start
 .:  0what.py debug.py decimalmath.py dpdecimal.py f.py frange.py
 geom_prim.py kolor.py license.py lngamma.py loo.py repl.py rgb.py u.py
 util.py 
 
-pgm:  alias.py bmi.py c2py.py cdec.py char.py chemname.py clrs.py cmdl.py
+pgm:  alias.py bmi.py c2py.py char.py chemname.py clrs.py cmdl.py
 cnt.py comb_perm_table.py concrete.py cone.py convert_temperature.py cut.py
 cu_wire.py de.py dec.py dia.py dpindent.py drill.py ds.py dup.py fhg.py
 goto.py grab.py gt.py h.py hgs.py hsm.py indent.py lc.py ldir.py led.py
