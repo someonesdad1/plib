@@ -35,7 +35,7 @@ if 1:   # Imports
     from pdb import set_trace as xx
 if 1:   # Custom imports
     import u
-    from util import AWG
+    import util
     from asciify import Asciify
     try:
         from uncertainties import ufloat, ufloat_fromstr, UFloat
@@ -739,7 +739,7 @@ def GetWireDiameter(default_unit="mm"):
         if s.endswith("ga"):
             t = s[:-2].strip()
             try:
-                dia_inches = AWG(int(t))
+                dia_inches = util.AWG(int(t))
             except ValueError:
                 print("'{}' is not a valid AWG number".format(t))
                 continue

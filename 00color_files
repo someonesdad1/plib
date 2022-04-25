@@ -1,21 +1,97 @@
 # Output from 00findcolor.py, which shows the scripts dependent on the old
 # color.py implementation.
 # 79 files at the start
-.:   debug.py decimalmath.py dpdecimal.py f.py frange.py
-geom_prim.py kolor.py license.py lngamma.py loo.py repl.py rgb.py u.py
-util.py 
 
-pgm:  alias.py bmi.py c2py.py chemname.py cmdl.py
-cnt.py comb_perm_table.py concrete.py cone.py convert_temperature.py cut.py
-cu_wire.py de.py dec.py dia.py dpindent.py drill.py ds.py dup.py fhg.py
-goto.py grab.py gt.py hgs.py hsm.py indent.py lc.py ldir.py led.py
-lib.py loc.py lookup.py lsh.py mixture.py mk.py mm.py mod.py mon.py
-monitor.py oom.py oo_color_palette.py oring.py poly.py
-power.py profit.py prun.py pulley.py pxref.py rcc.py rename.py resistor.py
-resize.py rgrep.py rod.py seg.py shunt.py size.py solder.py sqrtcoding.py
-sz.py thermistor.py thk.py tlc.py tools.py tree.py vmdivider.py x.py
-_goto.py 
+/plib
+    debug.py
+    decimalmath.py
+    dpdecimal.py
+    f.py
+    frange.py
+    geom_prim.py
+    kolor.py
+    license.py
+    lngamma.py
+    loo.py
+    rgb.py
+    u.py
+    util.py
 
-rgb:  colornames.py rgbdata.py view.py wl2cie.py 
+/plib/pgm
+    alias.py
+    bmi.py
+    c2py.py
+    chemname.py
+    cmdl.py
+    cnt.py
+    comb_perm_table.py
+    concrete.py
+    cone.py
+    convert_temperature.py
+    cut.py
+    cu_wire.py
+    de.py
+    dec.py
+    dia.py
+    dpindent.py
+    drill.py
+    ds.py
+    dup.py
+    fhg.py
+    goto.py
+    grab.py
+    gt.py
+    hgs.py
+    hsm.py
+    indent.py
+    lc.py
+    ldir.py
+    led.py
+    lib.py
+    loc.py
+    lookup.py
+    lsh.py
+    mixture.py
+    mk.py
+    mm.py
+    mod.py
+    mon.py
+    monitor.py
+    oom.py
+    oo_color_palette.py
+    oring.py
+    poly.py
+    power.py
+    profit.py
+    prun.py
+    pulley.py
+    pxref.py
+    rcc.py
+    rename.py
+    resistor.py
+    resize.py
+    rgrep.py
+    rod.py
+    seg.py
+    shunt.py
+    size.py
+    solder.py
+    sqrtcoding.py
+    sz.py
+    thermistor.py
+    thk.py
+    tlc.py
+    tools.py
+    tree.py
+    vmdivider.py
+    x.py
+    _goto.py
 
-test:  f_test.py 
+/plib/rgb
+    colornames.py
+    rgbdata.py
+    view.py
+    wl2cie.py 
+
+/plib/test
+    f_test.py 

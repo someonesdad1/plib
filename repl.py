@@ -1,24 +1,20 @@
 '''
-BUGS
-
-Trying to do integer conversion after a deliberate syntax error; the second
-conversion should have worked.
-
-    ▶▶▶ int("12", 60)
-    zz Got exception:  'file'
-    Traceback (most recent call last):
-    File "<console>", line 1, in <module>
-    ValueError: int() base must be >= 2 and <= 36, or 0
-    ▶▶▶ int("12", 6)
-    zz Got exception:  'file'
-    File "<console>", line 1
-        int("12", 60)
-                    ^
-    SyntaxError: multiple statements found while compiling a single statement
-
-
 TODO
-
+    -Trying to do integer conversion after a deliberate syntax error; the
+    second conversion should have worked.
+ 
+        ▶▶▶ int("12", 60)
+        zz Got exception:  'file'
+        Traceback (most recent call last):
+        File "<console>", line 1, in <module>
+        ValueError: int() base must be >= 2 and <= 36, or 0
+        ▶▶▶ int("12", 6)
+        zz Got exception:  'file'
+        File "<console>", line 1
+            int("12", 60)
+                        ^
+        SyntaxError: multiple statements found while compiling a single statement
+ 
     - Add an ls command (it will call external ls command) with my usual
       aliases
     - It would be nicer to have a central way of adding symbols and adding
@@ -47,189 +43,192 @@ TODO
       special prompt would tell you that you're in this mode and you could quit
       it by exit.  But the mode's state would be saved so you could re-enter it
       as needed.
-
-----------------------------------------------------------------------
-A REPL that gives an interactive python calculator.  See repl.pdf for
-documentation.
+ 
+    A REPL that gives an interactive python calculator.  See repl.pdf for
+    documentation.
 '''
-__doc__ = '''
-This module provides a REPL (read, evaluate, print, loop) construct that
-simulates the one in the python interactive interpreter.  This code is
-based on class code.InteractiveConsole in the code module.
-
-The origin of this module was my desire to be able to type 'q' to exit
-the standard python interpreter instead of 'quit()' or ctrl-D.  Once
-this was figured out, it was straightforward to add other features
-useful for a command-line calculator:
-
-  * flt/cpx numbers:  These are classes derived from float/complex in
-    the module f.py.  The module's features are:
-
-    * flt/cpx objects:
-        * The flt/cpx string interpolations show 3 significant figures. 
-        * They "infect" calculations with their types.
-        * You can instantiate flt/cpx with physical units.
-        * They are intended to be used to perform floating point
-        calculations with numbers derived from measurements.
-        * Use the h attribute on flt/cpx instances to see supported
-        attributes.
-        * The f attribute can flip the outputs of str()/repr().  This is
-        handy in the interpreter and debugger, which use repr() by default.
-        * Set the c attribute to True to get colored output, which helps to
-        identify flt/cpx types.
-    * The math/cmath symbols are in scope and can take flt/cpx
-      arguments.
-
-  * Special added commands.  Type 'h' at the prompt to get a list.  If
-    you assign a variable to the same name as a command, preface the
-    command with one or more space characters.
-
-  * User buffer (a string) that you can edit and run the code/commands
-    in it.  Note it's not intended for loading/running python scripts,
-    as the global environment will be different than the typical script.
-
-  * Show the symbols that are in scope.
-
-  * Access python's help text via help().
-
-  * If you're in a UNIX-like environment, you'll have history and
-    command completion available.  You can also send commands to the
-    shell.
-
-The physical units in the flt/cpx types are provided by the u.py module.
-
-Here's an example.  Save the text to a file, read it in with the 
-'R file' command, and run it with the 'r' command.
-
-    # Ideal gas law example calculation:  the oxygen cylinder on my
-    # torch is about 7 inches in diameter and 33 inches long.  The
-    # nominal internal volume is about 0.55 cubic feet per a table for
-    # a "BL" type cylinder.  The gauge pressure of the tank is 1200
-    # psi.  
-
-    # Questions:
-    #   1.  What is the mass of the remaining oxygen?
-    #   2.  How many liters (at 1 atm) of oxygen remain in the tank?
-
-    R = flt("8.314 J/(K*mol)")
-    R.n = 3         # Show results to 3 figures
-    R.f = False     # Don't interchange str() and repr()
-    R.c = True      # Use ANSI escape sequences to color flt/cpx
-    print(f"R = gas constant = {R}")
-
-    # Gas cylinder internal volume
-    V = flt("0.55 ft3")
-    print(f"V = volume = {V} = {V.to('m3')} = {V.to('L')}")
-
-    # This is the pressure reading from the regulator in psig
-    # (i.e., gauge pressure with respect to atmospheric pressure),
-    # which is corrected to an absolute pressure by adding 1 atm.  
-    p = flt("1200 psi") + flt("1 atm")
-    print(f"p = pressure = {p} = {p.to('MPa')}")
-
-    T = flt("293 K")
-    print(f"T = temperature = {T}")
-
-    # Number of moles of oxygen
-    n = p*V/(R*T)
-    print(f"n = {n} = {n.toSI()} = {n.to('mol')}")
-    print(f"Dimensions of n = {u.dim(n.u)}")
-
-    # Molecular mass (standard atomic mass of oxygen is 16 and it's
-    # a diatomic gas)
-    molarmass = flt("32 g/mol")
-    m = n*molarmass
-    print(f"Mass of O₂ = {m} = {m.to('kg')}")
-
-    # Since the tank volume is V, the volume Va at 1 atm is calculated
-    # from p*V = pa*Va.  Thus, Va = V*p/pa.
-    pa = flt("1 atm")
-    Va = V*p/pa
-    print(f"Volume of O₂ at 1 atm = {Va.to('liters')}")
-
-When you run the commands, you'll see the output
-
-    R = gas constant = 8.31 J/(K·mol)
-    V = volume = 0.550 ft³ = 0.0156 m³ = 15.6 L
-    p = pressure = 1210. psi = 8.38 MPa
-    T = temperature = 293. K
-    n = 0.274 ft³·mol·psi/J = 53.5 mol = 53.5 mol
-    Dimensions of n = Dim("N")
-    Mass of O₂ = 8.78 ft³·g·psi/J = 1.71 kg
-    Volume of O₂ at 1 atm = 1290. liters
-
-Note the ft³·mol·psi/J units for the number of moles.  A pressure times
-a volume is an energy, so ft³·psi/J is dimensionless, but the u.py
-module doesn't perform this calculation for you.  However, the flt/cpx
-method toSI() will convert a flt/cpx instance to another in the base SI
-units when needed.  The u.dim() method can show you the dimensional
-structure of a unit string; the next line shows n is in the dimensional
-unit "N", quantity of material.
-
-'''
-if 1:   # Standard imports
-    # These "trigger strings" can be managed with trigger.py
-    #∞version∞# 
-    _version = "2 Jun 2021"
-    #∞version∞#
-    #∞copyright∞# Copyright (C) 2021 Don Peterson #∞copyright∞#
-    #∞contact∞# gmail.com@someonesdad1 #∞contact∞#
-    #∞license∞#
-    #   Licensed under the Open Software License version 3.0.
-    #   See http://opensource.org/licenses/OSL-3.0.
-    #∞license∞#
-    #∞what∞#
-    # <utility> This provides a REPL I use for an interactive python
-    # calculator.  By default it uses flt and cpx number types from
-    # f.py, along with units from u.py, letting you do physical
-    # calculations with numbers derived from measurements.  An advantage
-    # of these types is that they by default only show 3 decimal places
-    # in their interpolated strings (you can set the number of digits
-    # you want to see), so you don't see all the annoying digits common
-    # in floating point calculations.
-    #∞what∞#
-    #∞test∞# ignore #∞test∞#
-    from atexit import register
-    from collections import defaultdict
-    import code
-    import contextlib
-    import getopt
-    import io
-    import os
-    import pathlib
-    import readline         # History and command editing
-    import rlcompleter      # Command completion
-    import subprocess
-    import sys
-    import tempfile
-    import time
-    from pdb import set_trace as xx 
-if 1:   # Custom imports
-    from wrap import wrap, dedent, indent, Wrap
-    from columnize import Columnize
-    import kolor as C
-if 1:   # Global variables
-    class G: pass   # Container for global variables
-    g = G()
-    g.P = pathlib.Path
-    # Color coding using ANSI escape codes
-    g.blu = C.fg(C.lblue, s=1)
-    g.brn = C.fg(C.brown, s=1)
-    g.grn = C.fg(C.lgreen, s=1)
-    g.cyn = C.fg(C.lcyan, s=1)
-    g.red = C.fg(C.lred, s=1)
-    g.yel = C.fg(C.yellow, s=1)
-    g.wht = C.fg(C.lwhite, s=1)
-    g.whtblu = C.fg(C.lwhite, C.blue, s=1)
-    g.err = C.fg(C.lred, s=1)
-    g.ital = C.Decorate().SetStyle("italic")
-    g.norm = C.normal(s=1)
-    g.name = g.P(sys.argv[0])
-    g.datafile = g.P(g.name.stem + ".data")
-    g.editor = os.environ["EDITOR"]
-    _ = sys.version_info
-    g.pyversion = f"{_.major}.{_.minor}.{_.micro}"
-    g.ii = isinstance
+from wrap import dedent
+__doc__ = dedent('''
+    This module provides a REPL (read, evaluate, print, loop) construct that
+    simulates the one in the python interactive interpreter.  This code is
+    based on class code.InteractiveConsole in the code module.
+    
+    The origin of this module was my desire to be able to type 'q' to exit
+    the standard python interpreter instead of 'quit()' or ctrl-D.  Once
+    this was figured out, it was straightforward to add other features
+    useful for a command-line calculator:
+    
+      * flt/cpx numbers:  These are classes derived from float/complex in
+        the module f.py.  The module's features are:
+    
+        * flt/cpx objects:
+            * The flt/cpx string interpolations show 3 significant figures. 
+            * They "infect" calculations with their types.
+            * You can instantiate flt/cpx with physical units.
+            * They are intended to be used to perform floating point
+            calculations with numbers derived from measurements.
+            * Use the h attribute on flt/cpx instances to see supported
+            attributes.
+            * The f attribute can flip the outputs of str()/repr().  This is
+            handy in the interpreter and debugger, which use repr() by default.
+            * Set the c attribute to True to get colored output, which helps to
+            identify flt/cpx types.
+        * The math/cmath symbols are in scope and can take flt/cpx
+          arguments.
+    
+      * Special added commands.  Type 'h' at the prompt to get a list.  If
+        you assign a variable to the same name as a command, preface the
+        command with one or more space characters.
+    
+      * User buffer (a string) that you can edit and run the code/commands
+        in it.  Note it's not intended for loading/running python scripts,
+        as the global environment will be different than the typical script.
+    
+      * Show the symbols that are in scope.
+    
+      * Access python's help text via help().
+    
+      * If you're in a UNIX-like environment, you'll have history and
+        command completion available.  You can also send commands to the
+        shell.
+    
+    The physical units in the flt/cpx types are provided by the u.py module.
+    
+    Here's an example.  Save the text to a file, read it in with the 
+    'R file' command, and run it with the 'r' command.
+    
+        # Ideal gas law example calculation:  the oxygen cylinder on my
+        # torch is about 7 inches in diameter and 33 inches long.  The
+        # nominal internal volume is about 0.55 cubic feet per a table for
+        # a "BL" type cylinder.  The gauge pressure of the tank is 1200
+        # psi.  
+    
+        # Questions:
+        #   1.  What is the mass of the remaining oxygen?
+        #   2.  How many liters (at 1 atm) of oxygen remain in the tank?
+    
+        R = flt("8.314 J/(K*mol)")
+        R.n = 3         # Show results to 3 figures
+        R.f = False     # Don't interchange str() and repr()
+        R.c = True      # Use ANSI escape sequences to color flt/cpx
+        print(f"R = gas constant = {R}")
+    
+        # Gas cylinder internal volume
+        V = flt("0.55 ft3")
+        print(f"V = volume = {V} = {V.to('m3')} = {V.to('L')}")
+    
+        # This is the pressure reading from the regulator in psig
+        # (i.e., gauge pressure with respect to atmospheric pressure),
+        # which is corrected to an absolute pressure by adding 1 atm.  
+        p = flt("1200 psi") + flt("1 atm")
+        print(f"p = pressure = {p} = {p.to('MPa')}")
+    
+        T = flt("293 K")
+        print(f"T = temperature = {T}")
+    
+        # Number of moles of oxygen
+        n = p*V/(R*T)
+        print(f"n = {n} = {n.toSI()} = {n.to('mol')}")
+        print(f"Dimensions of n = {u.dim(n.u)}")
+    
+        # Molecular mass (standard atomic mass of oxygen is 16 and it's
+        # a diatomic gas)
+        molarmass = flt("32 g/mol")
+        m = n*molarmass
+        print(f"Mass of O₂ = {m} = {m.to('kg')}")
+    
+        # Since the tank volume is V, the volume Va at 1 atm is calculated
+        # from p*V = pa*Va.  Thus, Va = V*p/pa.
+        pa = flt("1 atm")
+        Va = V*p/pa
+        print(f"Volume of O₂ at 1 atm = {Va.to('liters')}")
+    
+    When you run the commands, you'll see the output
+    
+        R = gas constant = 8.31 J/(K·mol)
+        V = volume = 0.550 ft³ = 0.0156 m³ = 15.6 L
+        p = pressure = 1210. psi = 8.38 MPa
+        T = temperature = 293. K
+        n = 0.274 ft³·mol·psi/J = 53.5 mol = 53.5 mol
+        Dimensions of n = Dim("N")
+        Mass of O₂ = 8.78 ft³·g·psi/J = 1.71 kg
+        Volume of O₂ at 1 atm = 1290. liters
+    
+    Note the ft³·mol·psi/J units for the number of moles.  A pressure times
+    a volume is an energy, so ft³·psi/J is dimensionless, but the u.py
+    module doesn't perform this calculation for you.  However, the flt/cpx
+    method toSI() will convert a flt/cpx instance to another in the base SI
+    units when needed.  The u.dim() method can show you the dimensional
+    structure of a unit string; the next line shows n is in the dimensional
+    unit "N", quantity of material.
+ 
+    ''')
+if 1:   # Header
+    # Copyright, trigger strings
+        # These "trigger strings" can be managed with trigger.py
+        #∞version∞# 
+        _version = "2 Jun 2021"
+        #∞version∞#
+        #∞copyright∞# Copyright (C) 2021 Don Peterson #∞copyright∞#
+        #∞contact∞# gmail.com@someonesdad1 #∞contact∞#
+        #∞license∞#
+        #   Licensed under the Open Software License version 3.0.
+        #   See http://opensource.org/licenses/OSL-3.0.
+        #∞license∞#
+        #∞what∞#
+        # <utility> This provides a REPL I use for an interactive python
+        # calculator.  By default it uses flt and cpx number types from
+        # f.py, along with units from u.py, letting you do physical
+        # calculations with numbers derived from measurements.  An advantage
+        # of these types is that they by default only show 3 decimal places
+        # in their interpolated strings (you can set the number of digits
+        # you want to see), so you don't see all the annoying digits common
+        # in floating point calculations.
+        #∞what∞#
+        #∞test∞# ignore #∞test∞#
+    # Standard imports
+        from atexit import register
+        from collections import defaultdict
+        import code
+        import contextlib
+        import getopt
+        import io
+        import os
+        import pathlib
+        import readline         # History and command editing
+        import rlcompleter      # Command completion
+        import subprocess
+        import sys
+        import tempfile
+        import time
+        from pdb import set_trace as xx 
+    # Custom imports
+        from wrap import wrap, dedent, indent, Wrap
+        from columnize import Columnize
+        #import kolor as C
+        from color import TRM as t
+    # Global variables
+        class G: pass   # Container for global variables
+        g = G()
+        g.P = pathlib.Path
+        g.name = g.P(sys.argv[0])
+        g.datafile = g.P(g.name.stem + ".data")
+        g.editor = os.environ["EDITOR"]
+        _ = sys.version_info
+        g.pyversion = f"{_.major}.{_.minor}.{_.micro}"
+        g.ii = isinstance
+        # Color coding using ANSI escape codes
+        g.blu = t("lblu")
+        g.brn = t("brn")
+        g.grn = t("lgrn")
+        g.cyn = t("lcyn")
+        g.red = t("lred")
+        g.yel = t("yel")
+        g.wht = t("lwht")
+        g.whtblu = t("lwht", "blu")
+        g.err = t("lred")
+        g.ital = t(attr="it")
+        g.n = t.n
 if 1:   # Utility
     def eprint(*p, **kw):
         'Print to stderr'
@@ -264,8 +263,8 @@ if 1:   # Utility
                 Usage(d, status=0)
         return args
     def Clean():
-        'Register a cleanup function to ensure no color for shell'
-        Print(C.normal(s=1), end="")
+        Print(t.n, end="")
+    # Make sure we have no color set at exit
     register(Clean)
 if 1:   # Core functionality
     def EditString(string, console):
@@ -383,15 +382,15 @@ if 1:   # Core functionality
         a debugger breakpoint at the input line.
         '''
         def Find(s):
-            c = [(i, t) for i, t in enumerate(lines) if t.strip() == s]
+            c = [(i, u) for i, u in enumerate(lines) if u.strip() == s]
             bp = c[-1][0] + 1
             return bp
         s = "s = input(self.ps).rstrip()"
-        t = "returnvalue = console.push(line)"
+        u = "returnvalue = console.push(line)"
         lines = g.P(sys.argv[0]).read_text().split("\n")
         Print(dedent(f'''
         Set a breakpoint at line {Find(s)} to stop before each input
-        Set a breakpoint at line {Find(t)} to stop before execution
+        Set a breakpoint at line {Find(u)} to stop before execution
         If you use the latter breakpoint, press n or c to continue
         To stop at an imported function named A, issue the command
             b console.locals["A"]
@@ -410,22 +409,22 @@ if 1:   # Core functionality
         cmd = args[0]
         if cmd in "grep egrep fgrep ls ll lll lrt lsr lz".split():
             c = args.pop(0)
-            t = "--group-directories-first"
+            u = "--group-directories-first"
             args.insert(0, "--color=auto")
             if c == "ls":
-                args.insert(0, f"ls {t}")
+                args.insert(0, f"ls {u}")
             elif c == "ll":
-                args.insert(0, f"ls -l {t}")
+                args.insert(0, f"ls -l {u}")
             elif c == "lll":
-                args.insert(0, f"ls -lh --si {t}")
+                args.insert(0, f"ls -lh --si {u}")
             elif c == "lrt":
-                args.insert(0, f"ls -lrt {t}")
+                args.insert(0, f"ls -lrt {u}")
             elif c == "lsf":
-                args.insert(0, f"ls -F  {t}")
+                args.insert(0, f"ls -F  {u}")
             elif c == "lsr":
-                args.insert(0, f"ls -R {t}")
+                args.insert(0, f"ls -R {u}")
             elif c == "lz":
-                args.insert(0, f"ls -lSr {t}")
+                args.insert(0, f"ls -lSr {u}")
             else:
                 args.insert(0, c)
         return ' '.join(args)
@@ -438,7 +437,7 @@ if 1:   # Core functionality
             return str(type(item)) == "<class 'type'>"
         from f import Delegator, flt, cpx
         Delegator._left = g.brn
-        Delegator._right = g.norm
+        Delegator._right = g.n
         d = console.locals.copy()
         for i in "__name__ __doc__ Delegator constants".split():
             if i in d:
@@ -526,8 +525,8 @@ if 1:   # Special commands
                 # Print help info
                 Help()
             elif cmd == "q":  
-                t = console.time
-                Print(f"{t}")   # Print the exit time
+                u = console.time
+                Print(f"{u}")   # Print the exit time
                 #DumpCmdLog()
                 exit(0)
             elif first_char == "R":  
@@ -575,9 +574,9 @@ if 1:   # Special commands
                     rv = console.push(line)
                     console.ps = sys.ps2 if rv else sys.ps1
             else:
-                Print(f"{g.err}'{cmd}' not recognized{g.norm}")
+                Print(f"{g.err}'{cmd}' not recognized{g.n}")
         except Exception as e:
-            print(f"{g.brn}Exception in Special():\n{e}{g.norm}")
+            print(f"{g.brn}Exception in Special():\n{e}{g.n}")
 if 1:   # class Console
     class Console(code.InteractiveConsole):
         def __init__(self, locals=None):
@@ -606,10 +605,10 @@ if 1:   # class Console
             print(self.msg)
         def write(self, data):
             'Write colorized data to stdout'
-            Print(f"{g.err}{data}{g.norm}", end="", file=sys.stderr)
+            Print(f"{g.err}{data}{g.n}", end="", file=sys.stderr)
         def raw_input(self, prompt=""):
             s = input(self.ps).rstrip()
-            Print(g.norm, end="")   # Turn off any colorizing
+            Print(g.n, end="")   # Turn off any colorizing
             if not s:
                 return s
             # Handle special commands before the interpreter sees them
@@ -634,8 +633,8 @@ if 1:   # Setup
     if 0:   # Plain
         sys.ps1 = f"{'▶'*3} "
     else:   # Colored
-        sys.ps1 = f"{g.whtblu}{'▶'*3}{g.norm} "
-    sys.ps2 = f"{g.whtblu}{'·'*3}{g.norm} "
+        sys.ps1 = f"{g.whtblu}{'▶'*3}{g.n} "
+    sys.ps2 = f"{g.whtblu}{'·'*3}{g.n} "
 if __name__ == "__main__":  # Run the console REPL
     stdout, stderr = io.StringIO(), io.StringIO()
     cmdlog = io.StringIO()  # Used to log commands
@@ -687,4 +686,4 @@ if __name__ == "__main__":  # Run the console REPL
                 Print(s, end="")
             if e:
                 # Decorate with escape codes to color 
-                Print(f"{g.err}{e}{g.norm}", end="")
+                Print(f"{g.err}{e}{g.n}", end="")

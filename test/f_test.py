@@ -1,5 +1,4 @@
 from fractions import Fraction
-from lwtest import run, raises, assert_equal
 import cmath
 import decimal
 import f
@@ -7,32 +6,24 @@ import io
 import math
 import operator as op
 import sys
+from pdb import set_trace as xx
 
+# Custom libraries
+from lwtest import run, raises, assert_equal
+from color import TRM as t
+t.r = t("lred")
 try:
     import numpy
     _have_numpy = True
 except ImportError:
     _have_numpy = False
-
-try:
-    # Let warning messages be printed to terminal in color
-    import color
-except ImportError:
-    # Make a dummy color object to swallow function calls
-    class Dummy:
-        def fg(self, *p, **kw): pass
-        def normal(self, *p, **kw): pass
-        def __getattr__(self, name): pass
-    color = Dummy()
-
-from pdb import set_trace as xx
 if len(sys.argv) > 1:
     import debug
     debug.SetDebugger()
 
 flt, cpx, Base = f.flt, f.cpx, f.Base
 filename = __file__
-p = f.pi    # Handy constant
+pi = f.pi    # Handy constant
 ii = isinstance
 
 def Assert(x):  # Because the assert statement can't be overridden
@@ -46,9 +37,9 @@ def Init(n=1):
     '''Make sure test environment is set up and return convenience
     instances.
     '''
-    x = flt(p)
+    x = flt(pi)
     if n == 2:
-        z = cpx(p, 1/p)
+        z = cpx(pi, 1/pi)
     # Set attributes of flt and cpx to known values
     x.f = False
     x.n = 3
@@ -58,7 +49,7 @@ def Init(n=1):
 
 def TestBasics():
     x = Init()
-    Assert(x == p)
+    Assert(x == pi)
     x.n = 3
     Assert(str(x) == "3.14")
     x.n = 4
@@ -76,11 +67,16 @@ def TestAttributes():
     def Test_f():   # Flips str() and repr()
         x, z = Init(2)
         x.f = False
-        P, Z = float(p), complex(z)
+        P, Z = float(pi), complex(z)
         Assert(str(x) == x.s)
         Assert(repr(x) == repr(P) == x.r)
         Assert(str(z) == z.s)
-        Assert(repr(z) == repr(Z) == z.r)
+        rz =     '3.141592653589793+0.3183098861837907j'
+        rZ =    '(3.141592653589793+0.3183098861837907j)'
+        zdotr = "'3.141592653589793+0.3183098861837907j'"
+        Assert(repr(z) == rz)
+        Assert(repr(Z) == rZ)
+        Assert(repr(z.r) == zdotr)
         x.f = True
         Assert(str(x) == x.r)
         Assert(repr(x) == x.s)
@@ -99,25 +95,32 @@ def TestAttributes():
         'Note n can be 0 or None (both imply 15 digits)'
         x = Init()
         x.n = None
-        Assert(str(x) == str(p))
+        Assert(str(x) == str(pi))
         x.n = 0
-        Assert(str(x) == str(p))
+        Assert(str(x) == str(pi))
         for i, expected in ((4, "3.142"), (8, "3.1415927")):
             x.n = i
             Assert(str(x) == expected == x.s)
-            Assert(repr(x) == repr(p) == x.r)
+            Assert(repr(x) == repr(pi) == x.r)
         # Get expected exceptions
         for i in ("3", "0.1", "0.0", 1j):
             with raises(ValueError):
                 x.n = i
     def Test_r():   # Returns repr() of the number, regardles of f attribute
         x, z = Init(2)
-        for i in (x, z):
-            expected = repr(float(i)) if ii(i, flt) else repr(complex(i))
-            i.f = False
-            Assert(i.r == expected)
-            i.f = True
-            Assert(i.r == expected)
+        expected = repr(x)
+        x.f = False
+        Assert(x.r == expected)
+        x.f = True
+        Assert(x.r == expected)
+        x.f = False
+        # The cpx repr doesn't have parentheses like complex does
+        expected = repr(z).replace("(", "").replace(")", "")
+        z.f = False
+        Assert(z.r == expected)
+        z.f = True
+        Assert(z.r == expected)
+        z.f = False
     def Test_s():   # Returns str() of the number, regardles of f attribute
         x, z = Init(2)
         x.f = False
@@ -166,18 +169,18 @@ def Test_flt_arithmetic():
     '''
     def Real():
         x = Init()
-        y = flt(1/p)
+        y = flt(1/pi)
         a = 2
         # First "direction"
-        Assert(x*a == flt(a*p))
-        Assert(x/a == flt(p/a))
-        Assert(x + a == flt(p + a))
-        Assert(x - a == flt(p - a))
+        Assert(x*a == flt(a*pi))
+        Assert(x/a == flt(pi/a))
+        Assert(x + a == flt(pi + a))
+        Assert(x - a == flt(pi - a))
         # Second "direction"
-        Assert(a*x == flt(a*p))
-        Assert(a/x == flt(a/p))
-        Assert(a + x == flt(a + p))
-        Assert(a - x == flt(a - p))
+        Assert(a*x == flt(a*pi))
+        Assert(a/x == flt(a/pi))
+        Assert(a + x == flt(a + pi))
+        Assert(a - x == flt(a - pi))
         # Check for type "infection"
         for o in (op.mul, op.truediv, op.floordiv, op.add, op.sub):
             b = o(a, x)
@@ -195,7 +198,7 @@ def Test_flt_arithmetic():
         Assert(isinstance(z, flt))
         # pow
         z = x**y
-        assert(z == flt(p**(1/p)))
+        assert(z == flt(pi**(1/pi)))
         Assert(isinstance(z, flt))
         # iadd, etc.
         z = x
@@ -235,7 +238,7 @@ def Test_cpx_arithmetic():
     a cpx for all arithmetic operations.
     '''
     Init()
-    X, Y = complex(p, 1/p), complex(1/p, p)
+    X, Y = complex(pi, 1/pi), complex(1/pi, pi)
     x, y = cpx(X), cpx(Y)
     d = decimal.Decimal("0.5")
     # Check operations wint int, float, flt, complex, cpx, Fraction, and
@@ -311,13 +314,13 @@ def TestRound():
         # Note the following statement depends on us knowing that the
         # value of x is pi and that the built-in with one less than x.n
         # will work.  It may not work in general.
-        Assert(y == round(p, x.n - 1))
+        Assert(y == round(pi, x.n - 1))
     Real()
     Complex()
 
 def TestInfection():
     'Show flt & cpx infect commutatively'
-    x, z = Init(), cpx(p, -p)
+    x, z = Init(), cpx(pi, -pi)
     f, d = Fraction(87, 232), decimal.Decimal("-87.232")
     for y in (2, 2.0, f, d):
         for o in (op.mul, op.truediv, op.add, op.sub):
@@ -328,18 +331,16 @@ def TestInfection():
 
 def Test_numpy():
     if not _have_numpy:
-        color.fg(color.lred)
-        print(f"{filename}:  ** Did not test flt/cpx with numpy **")
-        color.normal()
+        print(f"{t.r}{filename}:  ** Did not test flt/cpx with numpy **{t.n}")
         return
     Init()
-    x = flt(p)
+    x = flt(pi)
     s = 3.3
     a = numpy.array((s,))
     y = x*a[0]
     Assert(y == x*s)
     x *= a[0]
-    Assert(x == s*p)
+    Assert(x == s*pi)
 
 def TestDelegator():
     # Test that Delegator.iscomplex returns True when any argument or
@@ -357,7 +358,7 @@ def TestMathFunctions1():
     'Spot checks'
     tol = 1e-14     # Tolerance for isclose() tests
     Init()
-    x, y = flt(p/4), flt(42.3*p)
+    x, y = flt(pi/4), flt(42.3*pi)
     s, c, srt = f.sin(x), f.cos(x), f.sqrt(2)/2
     Assert(f.isclose(s, c, abs_tol=tol))
     Assert(f.isclose(s, srt, abs_tol=tol))
@@ -381,12 +382,12 @@ def TestMathFunctions1():
     a = 1e-5
     Assert(f.expm1(a) == math.expm1(a))
     Assert(f.log10(a) == math.log10(a))
-    Assert(f.degrees(p/4) == 45)
-    Assert(f.radians(45) == p/4)
+    Assert(f.degrees(pi/4) == 45)
+    Assert(f.radians(45) == pi/4)
     Assert(f.erf(1) + f.erfc(1) == 1)
     Assert(f.isclose(f.lgamma(7), f.log(720), abs_tol=tol))
     # Complex
-    w, z = cpx(p, -p), cpx(-23.17, 18)
+    w, z = cpx(pi, -pi), cpx(-23.17, 18)
     Assert(f.cos(z) == cmath.cos(z))
     Assert(f.isclose(z, f.rect(*f.polar(z)), abs_tol=tol))
     Assert(f.log(w, z) == cmath.log(w, z))
@@ -495,6 +496,10 @@ def TestMathFunctions2():
                 m = f"math.{fn}(x1)"
                 y1 = eval(s)
                 y2 = eval(m)
+            except Exception as e:
+
+                xx()
+                pass
             Assert(y1 == y2)
             Assert(ii(y1, flt))
             Assert(ii(y2, float))
@@ -539,7 +544,7 @@ def TestMathFunctions2():
             math.atan2(y, x)
             math.comb(n, k)
             math.copysign(x, y)
-            math.dist(p, q)
+            math.dist(pi, q)
             math.fmod(x, y)
             math.ldexp(x, i)
             math.nextafter(x, y)
@@ -699,10 +704,7 @@ def TestMathFunctions2():
     TestBooleans()
     if not_tested:
         s = [i.replace("math.", "") for i in not_tested]
-        color.fg(color.lred)
-        print(f"{__file__}:  math/cmath stuff not in this python version:\n"
-              f"    {' '.join(s)}")
-        color.normal()
-
+        print(f"{t.r}{__file__}:  math/cmath stuff not in this python version:\n"
+              f"    {' '.join(s)}{t.n}")
 if __name__ == "__main__":
-    run(globals(), halt=1)
+    exit(run(globals(), halt=1)[0])

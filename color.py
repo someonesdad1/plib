@@ -188,9 +188,10 @@ if 1:   # Header
         from string import hexdigits
     # Custom imports
         from wrap import wrap, dedent
-        from f import flt
-        import util
-        from get import GetLines
+        import get
+        # Don't use flt for now until import dependencies fixed
+        #from f import flt
+        flt = float
         if 0:
             import debug
             debug.SetDebugger()
@@ -201,7 +202,8 @@ if 1:   # Header
             have_mpmath = False
     # Global variables
         ii = isinstance
-        __all__ = "Color Trm ColorName RegexpDecorate".split()
+        # This is commented out until I get rid of the legacy klr stuff
+        #__all__ = "Color Trm TRM ColorName CN RegexpDecorate".split()
 class Color:
     'Storage of the three numbers used to define a color'
     bits_per_color = 8
@@ -1398,7 +1400,7 @@ class ColorName(dict):
         '''
         if clear:
             self.clear()
-        lines = GetLines(file, script=True, ignore_empty=True)
+        lines = get.GetLines(file, script=True, ignore_empty=True)
         vars = {}
         for line in lines:
             if ColorName.sep in line:

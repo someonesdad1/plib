@@ -95,7 +95,7 @@ if 1:   # Imports
     import time
 
 if 1:   # Custom imports
-    from f import flt
+    import f
     from dpmath import AlmostEqual, SignSignificandExponent, signum
     from sig import sig
     from kolor import C
@@ -1353,34 +1353,7 @@ def iDistribute(n, a, b):
         raise ValueError("No solution")
     for i in range(n):
         yield int(round(a + i*dx, 0))
-    if 0:
-        # Algorithm using frange
-        dx = (b - a)/(n + 1 - 2)
-        if dx < 1:
-            return None
-        seq = [int(round(i, 0)) for i in frange(str(a), str(b), str(dx))]
-        if seq[-1] != b:
-            seq.append(b)
-        if len(seq) != n:
-            raise RuntimeError("Bad algorithm:  len(seq) != n + 2")
-        return seq
-if 0:   # iDistribute test using Fraction impl
-    F = Fraction
-    def D(n, a, b):
-        dx = F(b - a, n - 1)
-        for i in range(n):
-            yield int(round(a + i*dx, 0))
-    count, last = 1, 0
-    print("cnt  Frac      flt    m    diff")
-    for i in D(27, 0, 100):
-        m = int(round(i, 0))
-        #diff = m - last
-        #print(f"{count:3d}) {i!s:8s} {flt(i)!s:6s} {m:3d}    {diff:2d}")
-        print(f"{count:3d}) {i}")
-        count += 1
-        last = m
-    exit()
-def fDistribute(n, a=0, b=1, impl=flt):
+def fDistribute(n, a=0, b=1, impl=f.flt):
     '''Generator to return n impl instances on [a, b] inclusive. A
     common use case is an interpolation parameter on [0, 1].
     Examples:
@@ -1566,7 +1539,7 @@ class PPSeq:
         if not all(type(i) == typ for i in seq):
             return False
         # Make sure they are of the allowed types
-        if not ii(x, (int, float, flt, Decimal, Fraction)):
+        if not ii(x, (int, float, f.flt, Decimal, Fraction)):
             try:
                 y = float(x)
             except Exception:
