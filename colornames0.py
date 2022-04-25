@@ -164,7 +164,7 @@ if 1:   # Color definition dictionaries
         "lav":  Color(140, 100, 180),
         "lil":  Color(190, 160, 255),
         "pur":  Color(110,  10, 170),
-        "roy":  Color( 70,  60, 255),
+        "roy":  Color( 80,  80, 255),
         "den":  Color( 20, 100, 190),
         "sky":  Color(130, 200, 255),
         "trq":  Color(  0, 180, 150),
@@ -220,23 +220,26 @@ if 1:   # Core functionality
             out.append(f"{i:3d}")
         s = "(" + ', '.join(out) + ")"
         return s
-    def Decorate(srt="h"):
+    def Decorate(srt="HL"):
         '''Print to stdout each color definition with rgb, hsv, and hls
         components.
         '''
         def GetNum(clr):
-            assert(ii(srt, str) and len(srt) == 1)
+            assert(ii(srt, str))
             m = {"r":0, "g":1, "b":2,
                  "h":0, "s":1, "v":2,
                  "H":0, "L":1, "S":2}
-            if srt in "rgb":
-                    return clr.irgb[m[srt]]
-            elif srt in "hsv":
-                    return clr.ihsv[m[srt]]
-            elif srt in "HLS":
-                    return clr.ihls[m[srt]]
-            else:
-                raise Exception("Bad clr")
+            out = []
+            for char in srt:
+                if char in "rgb":
+                        out.append(clr.irgb[m[char]])
+                elif char in "hsv":
+                        out.append(clr.ihsv[m[char]])
+                elif char in "HLS":
+                        out.append(clr.ihls[m[char]])
+                else:
+                    raise Exception("Bad clr")
+            return tuple(out)
 
         t.always = True
         print("Name       Color(RGB)              HSV                HLS")
