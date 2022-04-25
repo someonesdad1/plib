@@ -1064,4 +1064,10 @@ Other
                 - array.o: array.cpp array.h
                 -     g++ -c ${cppopts} $<
                 - tokenizer.o: tokenizer.cpp tokenizer.h
-                -     g++ -
+                -     g++ -c ${cppopts} $<
+                - clean:
+                -     @rm -f ${exe} ${exe}.stackdump *.o
+
+/plib releases
+    - 7Mar2022 was first release after I made the repository public.
+

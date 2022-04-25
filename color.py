@@ -20,6 +20,7 @@
     - Violet
         - lav       lavender
         - lil       lilac
+        - plm       plum
     - Blue
         - pow       powder blue
         - roy       royal blue
@@ -32,6 +33,7 @@
         - mus       mustard
         - crn       corn
         - och       ochre
+        - gld       gold
     - Red
         - pnk       pink (255, 128, 180)
         - prt       port
@@ -48,8 +50,6 @@
         - tob       tobacco
         - orc       orchid
         - pch       peach
-        - gld       gold
-        - plm       plum
         - khk       khaki
         - slm       salmon
         - brz       bronze

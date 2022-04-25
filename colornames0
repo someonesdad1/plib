@@ -4,52 +4,40 @@
 # 'mag' are added because these are common in terminal colors.  This gives
 # 12 basic colors.
 
+# I then added a few more three-letter color names.
+
 # Additional sets use single-letter prefixes:
 #   'l' for 'light'
 #   'd' for 'dark' 
 #   'b' for background (typically used as background colors with dark text)
 
-# This results in 48 colors, more than enough for the tasks I do in a
-# terminal.  For other grays, Color(x) where x is a float on [0, 1] is
-# short enough to use when needed.
-
-# If a special color is needed, it's easily gotten using the Color
-# constructor.
-
-# Constants
-T6 = 64
-T7 = 2*T6
-FFF = 2*T7 - 1
-A = 150
-B = A + 30
-C = B + 30
-ZZZ = 0
-    
-"blk":  Color(ZZZ, ZZZ, ZZZ) 
-"blu":  Color(ZZZ, ZZZ, FFF) 
-"brn":  Color(  A,  75, ZZZ) 
-"cyn":  Color(ZZZ,   A,   A) 
-"grn":  Color(ZZZ,   B, ZZZ) 
+# Basic names
+"blk":  Color(  0,   0,   0) 
+"blu":  Color(  0,   0, 255) 
+"brn":  Color(150,  75,   0) 
+"cyn":  Color(  0, 150, 150) 
+"grn":  Color(  0, 180,   0) 
 "gry":  Color(100, 100, 100) 
-"mag":  Color(  B, ZZZ,   B) 
-"orn":  Color(  C,  80, ZZZ) 
-"red":  Color(  A, ZZZ, ZZZ) 
-"vio":  Color(140, ZZZ, FFF) 
-"wht":  Color(  B,   B,   B) 
-"yel":  Color(  B,   B, ZZZ) 
+"mag":  Color(180,   0, 180) 
+"orn":  Color(210,  80,   0) 
+"red":  Color(150,   0,   0) 
+"vio":  Color(140,   0, 255) 
+"wht":  Color(180, 180, 180) 
+"yel":  Color(180, 180,   0) 
 
-"lblk": Color( T6,  T6,  T6) 
-"lblu": Color( T6, 100, FFF) 
-"lbrn": Color(226, 175,  T7) 
-"lcyn": Color(ZZZ, FFF, FFF) 
-"lgrn": Color(ZZZ, FFF, ZZZ) 
-"lgry": Color(  A,   A,   A) 
-"lmag": Color(FFF, ZZZ, FFF) 
-"lorn": Color(FFF,  T7, ZZZ) 
-"lred": Color(FFF, ZZZ, ZZZ) 
-"lvio": Color(  B, ZZZ, FFF) 
-"lwht": Color(FFF, FFF, FFF) 
-"lyel": Color(FFF, FFF, ZZZ) 
+# Light forms
+"lblk": Color( 64,  64,  64) 
+"lblu": Color( 64, 100, 255) 
+"lbrn": Color(226, 175, 128) 
+"lcyn": Color(  0, 255, 255) 
+"lgrn": Color(  0, 255,   0) 
+"lgry": Color(150, 150, 150) 
+"lmag": Color(255,   0, 255) 
+"lorn": Color(255, 128,   0) 
+"lred": Color(255,   0,   0) 
+"lvio": Color(180,   0, 255) 
+"lwht": Color(255, 255, 255) 
+"lyel": Color(255, 255,   0) 
 
 # Darker versions of these colors are occasionally useful.  Note the term
 # "self" is in scope (ColorName instance), so we can adjust the previous
@@ -67,16 +55,32 @@ ZZZ = 0
 "dwht": self["wht"].adjust(-30, comp="v")
 "dyel": self["yel"].adjust(-30, comp="v")
 
-# Lighter versions are useful for background colors
-"bblk": Color(  B,   B,   B) 
-"bblu": Color(  B,   B, FFF) 
-"bbrn": Color(230,   C,   A) 
-"bcyn": Color(  B, FFF, FFF) 
-"bgrn": Color(  B, FFF,   B) 
-"bgry": Color(  C,   C,   C) 
-"bmag": Color(FFF,   B, FFF) 
-"born": Color(FFF,   A, 100) 
-"bred": Color(FFF,   B,   B) 
-"bvio": Color(220,  T7, FFF) 
+# Even lighter versions are useful for background colors
+"bblk": Color(180, 180, 180) 
+"bblu": Color(180, 180, 255) 
+"bbrn": Color(230, 210, 150) 
+"bcyn": Color(180, 255, 255) 
+"bgrn": Color(180, 255, 180) 
+"bgry": Color(210, 210, 210) 
+"bmag": Color(255, 180, 255) 
+"born": Color(255, 150, 100) 
+"bred": Color(255, 180, 180) 
+"bvio": Color(220, 128, 255) 
 "bwht": Color(230, 230, 230) 
-"byel": Color(FFF, FFF,   A) 
+"byel": Color(255, 255, 150) 
+
+#--------------------------------------------------------------------------------
+# Additional names
+"pnk":  Color(200,  90, 128) 
+"lip":  Color(200,  30,  90)
+"lav":  Color(140, 100, 180)
+"lil":  Color(190, 160, 255)
+"pur":  Color(110,  10, 170)
+"roy":  Color( 70,  60, 255)
+"den":  Color( 20, 100, 190)
+"sky":  Color(130, 200, 255)
+"trq":  Color(  0, 180, 150) 
+"sea":  Color(130, 180, 130) 
+"lwn":  Color(120, 190,   0)
+"lim":  Color( 50, 150,  40)
+"mus":  Color(170, 140,  10)
