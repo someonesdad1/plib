@@ -1,13 +1,73 @@
 ''' 
+- Colors to add
+    - Green
+        - trq       turquoise
+        - for       forest green
+        - sea       sea green
+        - olv       olive
+        - spg       spring green
+        - aqu       aqua
+        - frn       fern
+        - asp       asparagus
+        - emr       emerald
+        - lim       lime, lima
+        - pea       pea green
+        - alg       algae
+        - mnt       mint
+        - kiw       kiwi
+        - lea       leaf
+        - pin       pine
+    - Violet
+        - lav       lavender
+        - lil       lilac
+    - Blue
+        - pow       powder blue
+        - roy       royal blue
+        - sky       sky blue
+        - den       denim
+        - ind       indigo
+        - pur       purple
+        - tpz       topaz
+    - Yellow
+        - mus       mustard
+        - crn       corn
+        - och       ochre
+    - Red
+        - pnk       pink (255, 128, 180)
+        - prt       port
+        - rub       ruby
+        - rus       rust
+        - bld       blood
+        - win       wine
+        - lav       lava
+        - lip       lipstick
+        - cop       copper
+        - rou       rouge
+        - san       sand
+        - pea       peanut
+        - tob       tobacco
+        - orc       orchid
+        - pch       peach
+        - gld       gold
+        - plm       plum
+        - khk       khaki
+        - slm       salmon
+        - brz       bronze
+        - brk       brick
+        - dst       dust
+        - fsh       flesh
+        - wod       wood
+        - jav       java (coffee)
+        - cly       clay
+        - fir       fire
 
-- To Do
-    - A fundamental problem is Trm attributes defined like 't.me =
-      t("brn")' when stdout is not a tty.  Even if Trm.on is false, the
-      escape codes will wind up in the strings.  This means any attribute
-      access of Trm needs to be checked that .on is True before emitting
-      the stored string (otherwise, return "").
+        - tea
+        - sun
+        - mud
+        - ice
+        - ash
 
---------------------------------------------------------------------------------
+
 Classes to help with color use in terminals
     - class Color
         - Immutable class to store the three numbers used to define a color
@@ -1247,6 +1307,7 @@ class Trm:
     @always.setter
     def always(self, value):
         self._always = bool(value)
+        self.on = True
     @property
     def n(self):
         'Return escape code for normal (default) screen'

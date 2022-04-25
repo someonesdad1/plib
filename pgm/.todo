@@ -486,9 +486,20 @@ main
 
 pgm
 
-    - clrs.py
-        - Need to finish as a program to evaluate the gradations of color
-        for #xxyyzz where two of the three bytes are given.
+    - sunriseset.py
+        - It should print in MST/MDT
+        - Use colors
+        - Allow an option -d n to print n days around the date on the
+          command line (today is the default)
+        - Support other locations with -l (use -L to list supported cities)
+        - Output all on one line:
+                    
+                                   -------------- Twilight ---------------
+                      Rise/set        Civil        Nautical   Astronomical
+        24 Jan 2022  hh:dd hh:dd   hh:dd hh:dd   hh:dd hh:dd   hh:dd hh:dd
+                 1         2         3         4         5         6         7
+        ····+····|····+····|····+····|····+····|····+····|····+····|····+····|
+
 
     - disks.ksh
         - Convert this to a python script that remembers the names of the

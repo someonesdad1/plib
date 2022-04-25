@@ -52,6 +52,7 @@ if 1:   # Header
     if 1:   # Global variables
         ii = isinstance
         t = Trm()
+        t.always = True
         class g: pass   # Hold global variables
         t.dbg = t("wht", "blu")
         g.duplicates = set()
@@ -114,6 +115,7 @@ if 1:   # Utility
         Options:
             -d      Print details on the color
             -e      Eliminate duplicates
+            -f      Use escape code even if terminal is not a tty
             -h      More help and examples
             -r x    Search for case-insensitive regexp x in lines
             -R x    Search for case-sensitive regexp x in lines
