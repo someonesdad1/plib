@@ -1,89 +1,80 @@
 '''
 TODO
+    - Use the -H string from /plib/pgm/goto.py as an example of the typical
+      help string found in a script.
+        - Develop a mini-language for formatting things; these get stripped
+          out of the output.
+            - Look at mp.py and ts.py and see what of them can be put into
+              a text processing module.
+            - Commands (column numbering is 1-based)
+                - If you want a line to begin with a period, escape it with
+                  a backslash.
+                - .exec s:  Execute this python line of code
+                - .{ and .}  Defines a python code block
+                - .default:  Set the default state
+                - .fmt on/off:  Turn formatted output on/off.  If it is
+                  off, the lines are output verbatim.
+                - .output on/off:  Turn output on/off.  If it is off, no
+                  lines are output until the next '.output on' is seen.
+                - .push:  Save the current state
+                - .pop:  Use the previously saved state
+                - .save x:  Save the current state to variable x
+                - .restore x:  Restore the current state from variable x
+                - .lm n:  Set left margin.  Set to 0 or 1 to have text
+                  start at column 1.
+                - .rm n:  Set right margin.  Set to 0 to make it be
+                  determined by the .width command.
+                - .width n:  0 means wrap to width from COLUMNS.  'n' means
+                  to wrap to int(n) columns.
+                - .indent n:  How many spaces to indent if n is an integer.
+                  Otherwise, n is interpreted as the indent string (it must
+                  be a valid python string usable by eval()).
+                - .empty n:  A line with no whitespace is replaced by one
+                  with n space characters.
+                - .#:  Delete this line up to and including the newline.
+                - .|   No justification or centering
+                - .< [n]:  Left justify the following n lines (if n isn't
+                  present, the setting is sticky)
+                - .> [n]:  Right justify the next n lines (sticky if n not
+                  given)
+                - .^ [n]:  Center the next n lines (sticky if n not given)
+    - For use with Usage strings in a script, in dedent, remove the first
+      and last lines with newlines if they are whitespace only.  Then
+      include an option that's True to let empty lines with no space be
+      ignored in the analysis of the number of common spaces on the line.
+    - Sometimes you want to wrap a set of things like numbers, but you want
+      a specified spacing between the numbers.  For example, consider the
+      Renard5 numbers 1 1.6 2.5 4 6.3.  I might want these to be printed
+      with the format {i:^6s}.  Add a method that allows the wrapping of
+      sequences like this such as wrap_seq(seq, format_string, width).
 
-* Use the -H string from /plib/pgm/goto.py as an example of the typical
-  help string found in a script.
+Wrap class: make text fit into a desired width with a specified indent.
+    Basic usage is
 
-    * Develop a mini-language for formatting things; these get stripped
-      out of the output.
+        w = Wrap()
+        print(w(s))
 
-        * Look at mp.py and ts.py and see what of them can be put into a
-          text processing module.
+    where s is a string you'd like to wrap.  The width is automatically
+    taken from the COLUMNS environment variable or is 79 if COLUMNS doesn't
+    exist.  You can define it by setting the w.width attribute.
 
-        * Commands (column numbering is 1-based)
-            * If you want a line to begin with a period, escape it with
-              a backslash.
-            * .exec s:  Execute this python line of code
-            * .{ and .}  Defines a python code block
-            * .default:  Set the default state
-            * .fmt on/off:  Turn formatted output on/off.  If it is off,
-              the lines are output verbatim.
-            * .output on/off:  Turn output on/off.  If it is off, no
-              lines are output until the next '.output on' is seen.
-            * .push:  Save the current state
-            * .pop:  Use the previously saved state
-            * .save x:  Save the current state to variable x
-            * .restore x:  Restore the current state from variable x
-            * .lm n:  Set left margin.  Set to 0 or 1 to have text start
-              at column 1.
-            * .rm n:  Set right margin.  Set to 0 to make it be
-              determined by the .width command.
-            * .width n:  0 means wrap to width from COLUMNS.  'n' means
-              to wrap to int(n) columns.
-            * .indent n:  How many spaces to indent if n is an integer.
-              Otherwise, n is interpreted as the indent string (it must
-              be a valid python string usable by eval()).
-            * .empty n:  A line with no whitespace is replaced by one
-              with n space characters.
-            * .#:  Delete this line up to and including the newline.
-            * .|   No justification or centering
-            * .< [n]:  Left justify the following n lines (if n isn't
-              present, the setting is sticky)
-            * .> [n]:  Right justify the next n lines (sticky if n not
-              given)
-            * .^ [n]:  Center the next n lines (sticky if n not given)
+    Instance attributes
 
-* For use with Usage strings in a script, in dedent, remove the first
-  and last lines with newlines if they are whitespace only.  Then
-  include an option that's True to let empty lines with no space be
-  ignored in the analysis of the number of common spaces on the line.
+        ends        Tuple of strings that can end a sentence
+        i           String to prepend before each line
+        ls          Line separator
+        opp         Output paragraph separator
+        pp          Paragraph separator for parsing input
+        ss          Sentence spacing ("" for one space after previous)
+        width       Maximum width of a line
 
-* Sometimes you want to wrap a set of things like numbers, but you want
-  a specified spacing between the numbers.  For example, consider the
-  Renard5 numbers 1 1.6 2.5 4 6.3.  I might want these to be printed
-  with the format {i:^6s}.  Add a method that allows the wrapping of
-  sequences like this such as wrap_seq(seq, format_string, width).
+    The basic use case is to let you write multiline program output strings
+    without regard for their appearance.  Before printing an output string
+    to stdout, you'd run it through the Wrap instance to get it looking the
+    way you want.
 
-----------------------------------------------------------------------
-
-Provides the Wrap class, which can be used to make text fit into a
-desired width with a specified indent.  Basic usage is
-
-    w = Wrap()
-    print(w(s))
-
-where s is a string you'd like to wrap.  The width is automatically
-taken from the COLUMNS environment variable or is 79 if COLUMNS doesn't
-exist.  You can define it by setting the w.width attribute.
-
-Instance attributes
-
-    ends        Tuple of strings that can end a sentence
-    i           String to prepend before each line
-    ls          Line separator
-    opp         Output paragraph separator
-    pp          Paragraph separator for parsing input
-    ss          Sentence spacing ("" for one space after previous)
-    width       Maximum width of a line
-
-The basic use case is to let you write multiline program output strings
-without regard for their appearance.  Before printing an output string
-to stdout, you'd run it through the Wrap instance to get it looking the
-way you want.
-
-Run the module as a script to see some examples.  Use the --test option
-to run the unit tests.
-
+    Run the module as a script to see some examples.  Use the --test option
+    to run the unit tests.
 '''
 if 1:  # Copyright, license
     # These "trigger strings" can be managed with trigger.py
@@ -299,11 +290,11 @@ class Wrap(Abbr):
     def width(self, value):
         self._width = int(value)
 wrap = Wrap()   # Convenience instance
-def indent(s: str, indent=""):
+def indent(s: str, sindent=""):
     'Convenience function to indent'
     if not hasattr(indent, "wrap"):
         indent.wrap = Wrap()
-    return indent.wrap.indent(s, indent)
+    return indent.wrap.indent(s, sindent)
 def dedent(s, empty=True, leading=True, trailing=True, trim=False, n=None):
     '''For the multiline string s, remove the common leading space
     characters and return the modified string.

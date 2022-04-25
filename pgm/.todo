@@ -1,4 +1,26 @@
 main
+    - dppp.py
+        - This would be a pretty printing module that would focus on
+          pretty printing top-level contents.  pprint is annoying because
+          when e.g. printing a list of strings, it will print only one
+          string per line.  The contents should be printed in compact
+          columns using Columnize.  
+        - Color can be used for type hints
+            - list:  lred
+            - tuple:  red
+            - dict:  lyel
+            - defaultdict:  lorn
+            - deque:  lmag
+            - set:  lvio
+            - str:  lcyn
+
+    - 0naming.py
+        - This would check all plib modules to make sure there was no file
+          in /usr/lib/python3.7 with the same name.
+        - Another need would be to look for circular imports, which are
+          mightily annoying.
+            - https://stackoverflow.com/questions/3739654/how-to-fix-a-circular-dependency-for-imports
+
     - weather.py
         - https://forecast.weather.gov/MapClick.php?lat=43.6417&lon=-116.3243&unit=0&lg=english&FcstType=text&TextType=1
         - This is a text webpage that could be parsed and displayed in
@@ -369,6 +391,9 @@ main
           str.split() will have to be called with each sequence item.
 
     - wrap.py:  
+        - This module sucks.  It needs to be rewritten so that it just
+          works as you'd naturally expect it to.
+            - Should be able to give an indent and right margin
         - Look at syntax from ts.py (/pylib/pgm/ts/ts.py).  I seem to have
           designed it as a module, so it might be the tool of choice.
         - This really needs to be a simple text formatting language.  In
