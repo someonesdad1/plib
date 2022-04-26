@@ -30,6 +30,7 @@ IsCygwinSymlink       Returns True if a file is a cygwin symlink
 IsIterable            Determines if you can iterate over an object
 IsTextFile            Heuristic to see if a file is a text file
 ItemCount             Summarize a sequence with counts of each item
+Now                   Time or datetime as now
 Paste                 Return sequence of pasted sequences
 PPSeq                 Class for formatting number sequences for pretty printing
 ProgressBar           Prints a progress bar to stdout
@@ -1545,6 +1546,30 @@ class PPSeq:
             except Exception:
                 return False
         return True
+class Now:
+    'Use time(), date(), cdate() methods'
+    def __init__(self):
+        self._t = t= time.localtime()
+        dy = self._rmz(time.strftime("%d", t))
+        mo = time.strftime("%b", t)
+        yr = time.strftime("%Y", t)
+        self._dt = dy, mo, yr
+    def _rmz(self, s):
+        if s[0] == "0":
+            return s[1:]
+        return s
+    def time(self):
+        t = self._t
+        hr = self._rmz(time.strftime("%I", t))
+        min = time.strftime("%M", t)
+        ampm = time.strftime("%p", t).lower()
+        return f"{hr}:{min}{ampm}"
+    def date(self):
+        dy, mo, yr = self._dt 
+        return f"{dy} {mo} {yr}"
+    def cdate(self):
+        dy, mo, yr = self._dt 
+        return f"{dy}{mo}{yr}"
 
 if __name__ == "__main__": 
     # Missing tests for: Ignore Debug, Dispatch, GetString

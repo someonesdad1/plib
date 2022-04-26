@@ -36,19 +36,18 @@ if 1:   # Header
         # Location
         lat, lon = "43.5", "-116.4"
         # Turn on debugging to avoid loading from web
-        dbg = True
+        dbg = False
 if 1:   # Utility
     def Error(*msg, stasus=1):
         print(*msg, file=sys.stderr)
         exit(status)
     def Usage(status=1):
         print(dedent(f'''
-        Usage:  {sys.argv[0]} [options] args
+        Usage:  {sys.argv[0]} [options] [s]
           Print NOAA weather forecast as plain text.  A one-line summary is
-          given for each day and night period.  Use -d to see the details
-          for each period.
+          given for each day and night period.  Include any letter in s to
+          show the details for each period.
         Options:
-            -d      Show details for each title
             -h      Print a manpage
         '''))
         exit(status)
@@ -64,10 +63,12 @@ if 1:   # Utility
                 d[o] = not d[o]
             elif o in ("-h", "--help"):
                 Usage(status=0)
+        if args:
+            d["-d"] = True
         return args
 if 1:   # Core functionality
     def Get():
-        file = "weather.data"
+        file = "/plib/pgm/weather.data"
         if dbg:
             s = open(file).read()
         else:
@@ -97,7 +98,8 @@ if 1:   # Core functionality
                 continue 
             if not u:
                 continue
-            if u.startswith("Today") or u.startswith("This "):
+            if (u.startswith("Today") or u.startswith("This ") or
+                u.startswith("Tonight")):
                 found = True
             if not found:
                 continue
@@ -181,5 +183,3 @@ if __name__ == "__main__":
     q = Get()
     lines = Select(q)
     Report(lines)
-    if args:
-        PrintKey()
