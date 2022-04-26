@@ -182,6 +182,8 @@ if 1:   # Color definition dictionaries
         def BuildAdditional():
             for i in S:
                 additional["d" + i] = additional[i].adjust(-30, comp="v")
+                additional["l" + i] = additional[i].adjust(+20, comp="L")
+                print("xx L adjust doesn't work"); exit()
         BuildAdditional()
         BuildDark()
     Build()
