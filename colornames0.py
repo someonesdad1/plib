@@ -178,11 +178,13 @@ if 1:   # Color definition dictionaries
         def BuildDark():
             for i in R:
                 k = "lblk" if i == "blk" else i
-                basic["d" + i] = basic[k].adjust(-30, comp="v")
+                basic["d" + i] = basic[i].adjust(-30, comp="v")
         def BuildAdditional():
             for i in S:
-                k = "lblk" if i == "blk" else i
-                additional["d" + i] = basic[k].adjust(-30, comp="v")
+                additional["d" + i] = additional[i].adjust(-30, comp="v")
+        BuildAdditional()
+        BuildDark()
+    Build()
 if 1:   # Utility
     def Error(*msg, status=1):
         print(*msg, file=sys.stderr)
@@ -195,23 +197,25 @@ if 1:   # Utility
           with rgb/hsv/hls tuples.
         Options:
             -h      Print a manpage
+            -w      Include whites and grays
         '''))
         exit(status)
     def ParseCommandLine(d):
         d["-a"] = False
+        d["-w"] = True      # Remove grays
         try:
-            opts, args = getopt.getopt(sys.argv[1:], "h", ["help"])
+            opts, args = getopt.getopt(sys.argv[1:], "hw", ["help"])
         except getopt.GetoptError as e:
             print(str(e))
             exit(1)
         for o, a in opts:
-            if o[1] in list(""):
+            if o[1] in list("w"):
                 d[o] = not d[o]
             elif o in ("-h", "--help"):
                 Usage(status=0)
         return args[0] if args else ""
 if 1:   # Core functionality
-    def MakeFile():
+    def MakeOutpuFile():
         raise ValueError("Need impl")
     def FT(s):
         'Format a tuple of integers'
@@ -240,7 +244,15 @@ if 1:   # Core functionality
                 else:
                     raise Exception("Bad clr")
             return tuple(out)
-
+        # Remove grays and whites if needed
+        ignore = []
+        if d["-w"]:
+            for i in basic:
+                c = basic[i]
+                r, g, b = c.irgb
+                if r == g and r == b and g == b:
+                    ignore.append(i)
+        ignore = set(ignore)
         t.always = True
         print("Name       Color(RGB)              HSV                HLS")
         s = " "*4
@@ -249,12 +261,16 @@ if 1:   # Core functionality
         out = []
         di = basic
         for k in di:
+            if k in ignore:
+                continue
             c = di[k]
             u = f"{t(c)}{k:4s}{s}{c!s}{s}{FT(c.ihsv)}{s}{FT(c.ihls)}{t.n}"
             out.append((GetNum(c), u))
         print()
         di = additional
         for k in di:
+            if k in ignore:
+                continue
             c = di[k]
             u = f"{t(c)}{k:4s}{s}{c!s}{s}{FT(c.ihsv)}{s}{FT(c.ihls)}{t.n}"
             out.append((GetNum(c), u))
