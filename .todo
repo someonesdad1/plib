@@ -1,11 +1,11 @@
 main
-    - dppp.py
-        - This would be a pretty printing module that would focus on
-          pretty printing top-level contents.  pprint is annoying because
-          when e.g. printing a list of strings, it will print only one
-          string per line.  The contents should be printed in compact
-          columns using Columnize.  
-        - Color can be used for type hints
+    - ppp.py
+        - Pretty printing module that would focus on pretty printing
+          top-level contents.  pprint is annoying because when e.g.
+          printing a list of strings, it will print only one string per
+          line.  The contents should be printed in compact columns using
+          Columnize.  
+        - Color should be used for type hints
             - list:  lred
             - tuple:  red
             - dict:  lyel

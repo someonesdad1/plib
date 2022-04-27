@@ -1,5 +1,73 @@
 '''
 Script to generate the colornames0 file
+
+    - Short names candidates
+        - Green
+            - trq       turquoise
+            - for       forest green
+            - sea       sea green
+            - olv       olive
+            - spg       spring green
+            - aqu       aqua
+            - frn       fern
+            - asp       asparagus
+            - emr       emerald
+            - lim       lime, lima
+            - pea       pea green
+            - alg       algae
+            - mnt       mint
+            - kiw       kiwi
+            - lea       leaf
+            - pin       pine
+            - tea
+        - Violet
+            - lav       lavender
+            - lil       lilac
+            - plm       plum
+        - Blue
+            - pow       powder blue
+            - roy       royal blue
+            - sky       sky blue
+            - den       denim
+            - ind       indigo
+            - pur       purple
+            - tpz       topaz
+            - ice
+        - Yellow
+            - mus       mustard
+            - crn       corn
+            - och       ochre
+            - gld       gold
+            - sun
+            - mud
+            - ash
+        - Red
+            - pnk       pink
+            - prt       port
+            - rub       ruby
+            - rus       rust
+            - bld       blood
+            - win       wine
+            - lav       lava
+            - lip       lipstick
+            - cop       copper
+            - rou       rouge
+            - san       sand
+            - pea       peanut
+            - tob       tobacco
+            - orc       orchid
+            - pch       peach
+            - khk       khaki
+            - slm       salmon
+            - brz       bronze
+            - brk       brick
+            - dst       dust
+            - fsh       flesh
+            - wod       wood
+            - jav       java (coffee)
+            - cly       clay
+            - fir       fire
+
 '''
 '''
 # 23 Apr 2022: This is my default color name file.  The three letter names
@@ -118,7 +186,7 @@ if 1:   # Header
         L = int(os.environ.get("LINES", "50"))
 if 1:   # Color definition dictionaries
     R = "blk blu brn cyn grn gry mag orn red vio wht yel".split()
-    basic = {
+    main = {
         "blk":  Color(  0,   0,   0),
         "blu":  Color(  0,   0, 255),
         "brn":  Color(150,  75,   0),
@@ -178,15 +246,211 @@ if 1:   # Color definition dictionaries
         def BuildDark():
             for i in R:
                 k = "lblk" if i == "blk" else i
-                basic["d" + i] = basic[i].adjust(-30, comp="v")
+                main["d" + i] = main[i].adjust(-30, comp="v")
         def BuildAdditional():
             for i in S:
                 additional["d" + i] = additional[i].adjust(-30, comp="v")
                 additional["l" + i] = additional[i].adjust(+20, comp="L")
-                print("xx L adjust doesn't work"); exit()
+                additional["b" + i] = additional[i].adjust(+50, comp="L")
         BuildAdditional()
         BuildDark()
+        main.update(additional)
     Build()
+if 1:   # Color definitions:  alternate method
+    # Use HSV values in hex
+    main1 = []
+    if 0:  # Primary
+        if 1:  # Grays
+            if 1:  # blk
+                main1.extend([
+                    "blk  #000000",
+                    "blkd #202020",
+                    "blkl #404040",
+                    "blkb #b4b4b4",
+                ])
+            if 1:  # gry
+                main1.extend([
+                    "gry  #646464",
+                    "gryd #464646",
+                    "gryl #969696",
+                    "gryb #d2d2d2",
+                ])
+            if 1:  # wht
+                main1.extend([
+                    "wht  #b4b4b4",
+                    "whtd #7e7e7e",
+                    "whtl #ffffff",
+                    "whtb #e6e6e6",
+                ])
+        if 1:  # blu
+            main1.extend([
+                "blu  #0000ff",
+                "blud #0000b2",
+                "blul #4064ff",
+                "blub #b4b4ff",
+            ])
+        if 1:  # brn
+            main1.extend([
+                "brn  #964b00",
+                "brnd #693400",
+                "brnl #e2af80",
+                "brnb #ffd296",
+            ])
+        if 1:  # cyn
+            main1.extend([
+                "cyn  #009696",
+                "cynd #006968",
+                "cynl #00ffff",
+                "cynb #b4ffff",
+            ])
+        if 1:  # grn
+            main1.extend([
+                "grn  #00b400",
+                "grnd #007f00",
+                "grnl #00ff00",
+                "grnb #b4ffb4",
+            ])
+        if 1:  # mag
+            main1.extend([
+                "mag  #b400b4",
+                "magd #7d007d",
+                "magl #ff00ff",
+                "magb #ffb4ff",
+            ])
+        if 1:  # orn
+            main1.extend([
+                "orn  #d25000",
+                "ornd #933700",
+                "ornl #ff8000",
+                "ornb #ff9664",
+            ])
+        if 1:  # red
+            main1.extend([
+                "red  #960000",
+                "redd #690000",
+                "redl #ff0000",
+                "redb #ffb4b4",
+            ])
+        if 1:  # vio
+            main1.extend([
+                "vio  #8c00ff",
+                "viod #6000b2",
+                "viol #b400ff",
+                "viob #dc80ff",
+            ])
+        if 1:  # yel
+            main1.extend([
+                "yel  #b4b400",
+                "yeld #7e7e00",
+                "yell #ffff00",
+                "yelb #ffff96",
+            ])
+    if 1:  # Secondary
+        if 1:  # pnk
+            main1.extend([
+
+                "pnk  $f24bff",
+                "pnkd $f234ff",
+                "pnkl $f27fff",
+                "pnkb $f2d9ff",
+            ])
+        if 1:  # lip
+            main1.extend([
+                "lip  $f04bff",
+                "lipd $f034ff",
+                "lipl $f07fff",
+                "lipb $f0d9ff",
+            ])
+        if 1:  # lav
+            main1.extend([
+                "lav  $bf4bff",
+                "lavd $bf34ff",
+                "lavl $bf7fff",
+                "lavb $bfd9ff",
+            ])
+        if 1:  # lil
+            main1.extend([
+                "lil  $b74bff",
+                "lild $b734ff",
+                "lill $b77fff",
+                "lilb $b7d9ff",
+            ])
+        if 1:  # pur
+            main1.extend([
+                "pur  $c44bff",
+                "purd $c434ff",
+                "purl $c47fff",
+                "purb $c4d9ff",
+            ])
+        if 1:  # roy
+            main1.extend([
+                "roy  $aa4bff",
+                "royd $aa34ff",
+                "royl $aa7fff",
+                "royb $aad9ff",
+            ])
+        if 1:  # den
+            main1.extend([
+                "den  $964bff",
+                "dend $9634ff",
+                "denl $967fff",
+                "denb $96d9ff",
+            ])
+        if 1:  # sky
+            main1.extend([
+                "sky  $924bff",
+                "skyd $9234ff",
+                "skyl $927fff",
+                "skyb $92d9ff",
+            ])
+        if 1:  # trq
+            main1.extend([
+                "trq  $784bff",
+                "trqd $7834ff",
+                "trql $787fff",
+                "trqb $78d9ff",
+            ])
+        if 1:  # sea
+            main1.extend([
+                "sea  $554bff",
+                "sead $5534ff",
+                "seal $557fff",
+                "seab $55d9ff",
+            ])
+        if 1:  # lwn
+            main1.extend([
+                "lwn  $3a4bff",
+                "lwnd $3a34ff",
+                "lwnl $3a7fff",
+                "lwnb $3ad9ff",
+            ])
+        if 1:  # lim
+            main1.extend([
+                "lim  $514bff",
+                "limd $5134ff",
+                "liml $517fff",
+                "limb $51d9ff",
+            ])
+        if 1:  # olv
+            main1.extend([
+                "olv  $224bff",
+                "olvd $2234ff",
+                "olvl $227fff",
+                "olvb $22d9ff",
+            ])
+
+    R = "blk blu brn cyn grn gry mag orn red vio wht yel".split()
+    S = "pnk lip lav lil pur roy den sky trq sea lwn lim olv".split()
+    from columnize import Columnize
+    out = []
+    for i in main1:
+        name, hsl = i.split()
+        c = Color(hsl)
+        print(f"{t(c)}{name:4s} {c.xhsv} {c.xrgb} {c.xhls}{t.n}")
+    exit()
+    for i in Columnize(main1):
+        print(i)
+
 if 1:   # Utility
     def Error(*msg, status=1):
         print(*msg, file=sys.stderr)
@@ -217,7 +481,7 @@ if 1:   # Utility
                 Usage(status=0)
         return args[0] if args else ""
 if 1:   # Core functionality
-    def MakeOutpuFile():
+    def MakeOutputFile():
         raise ValueError("Need impl")
     def FT(s):
         'Format a tuple of integers'
@@ -249,8 +513,8 @@ if 1:   # Core functionality
         # Remove grays and whites if needed
         ignore = []
         if d["-w"]:
-            for i in basic:
-                c = basic[i]
+            for i in main:
+                c = main[i]
                 r, g, b = c.irgb
                 if r == g and r == b and g == b:
                     ignore.append(i)
@@ -261,21 +525,16 @@ if 1:   # Core functionality
         # Build a list tuples (srt, string) where srt is the parameter
         # being sorted by and string is the output string.
         out = []
-        di = basic
-        for k in di:
+        for k in main:
             if k in ignore:
                 continue
-            c = di[k]
-            u = f"{t(c)}{k:4s}{s}{c!s}{s}{FT(c.ihsv)}{s}{FT(c.ihls)}{t.n}"
+            c = main[k]
+            if 0:   # Regular tuples
+                u = f"{t(c)}{k:4s}{s}{c!s}{s}{FT(c.ihsv)}{s}{FT(c.ihls)}{s}{c.xhls}{t.n}"
+            else:   # Hex
+                u = f"{t(c)}{k:4s}{s}{c.xrgb}{s}{c.xhsv}{s}{c.xhls}{t.n}"
             out.append((GetNum(c), u))
         print()
-        di = additional
-        for k in di:
-            if k in ignore:
-                continue
-            c = di[k]
-            u = f"{t(c)}{k:4s}{s}{c!s}{s}{FT(c.ihsv)}{s}{FT(c.ihls)}{t.n}"
-            out.append((GetNum(c), u))
         # Print the sorted strings
         for dummy, string in sorted(out):
             print(string)

@@ -1,72 +1,14 @@
 ''' 
-- Colors to add
-    - Green
-        - trq       turquoise
-        - for       forest green
-        - sea       sea green
-        - olv       olive
-        - spg       spring green
-        - aqu       aqua
-        - frn       fern
-        - asp       asparagus
-        - emr       emerald
-        - lim       lime, lima
-        - pea       pea green
-        - alg       algae
-        - mnt       mint
-        - kiw       kiwi
-        - lea       leaf
-        - pin       pine
-    - Violet
-        - lav       lavender
-        - lil       lilac
-        - plm       plum
-    - Blue
-        - pow       powder blue
-        - roy       royal blue
-        - sky       sky blue
-        - den       denim
-        - ind       indigo
-        - pur       purple
-        - tpz       topaz
-    - Yellow
-        - mus       mustard
-        - crn       corn
-        - och       ochre
-        - gld       gold
-    - Red
-        - pnk       pink (255, 128, 180)
-        - prt       port
-        - rub       ruby
-        - rus       rust
-        - bld       blood
-        - win       wine
-        - lav       lava
-        - lip       lipstick
-        - cop       copper
-        - rou       rouge
-        - san       sand
-        - pea       peanut
-        - tob       tobacco
-        - orc       orchid
-        - pch       peach
-        - khk       khaki
-        - slm       salmon
-        - brz       bronze
-        - brk       brick
-        - dst       dust
-        - fsh       flesh
-        - wod       wood
-        - jav       java (coffee)
-        - cly       clay
-        - fir       fire
-
-        - tea
-        - sun
-        - mud
-        - ice
-        - ash
-
+- Bug
+    - Needs a test case
+        - c = Color('mag')
+        - c1 = Color(c.xhls)
+        - c1 != c
+        - First check the colorsys functions for conversion inverses.  If
+          they are OK, then it could be that fractions are needed rather
+          than decimals to get proper inverse behavior.  And it might be
+          that I should be using the fractional colorsys stuff I
+          implemented.
 
 Classes to help with color use in terminals
     - class Color
