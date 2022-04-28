@@ -44,9 +44,8 @@ if 1:   # Utility
     def Usage(status=1):
         print(dedent(f'''
         Usage:  {sys.argv[0]} [options] [s]
-          Print NOAA weather forecast as plain text.  A one-line summary is
-          given for each day and night period.  Include any letter in s to
-          show the details for each period.
+          Print NOAA weather forecast as plain text.  If s is not empty, a 
+          one-line report for each period is given.
         Options:
             -h      Print a manpage
         '''))
@@ -63,7 +62,7 @@ if 1:   # Utility
                 d[o] = not d[o]
             elif o in ("-h", "--help"):
                 Usage(status=0)
-        if args:
+        if not args:
             d["-d"] = True
         return args
 if 1:   # Core functionality
@@ -116,6 +115,7 @@ if 1:   # Core functionality
         text for keywords.
         '''
         def SetColors():
+            t.title = t("orn")
             t.rain = t("lgrn")
             t.snow = t("lblu")
             t.thun = t("lred")
@@ -130,8 +130,10 @@ if 1:   # Core functionality
         windy  = True if "wind" in r or "gust" in r else False
         sunny  = True if "sunny" in r else False
         cloudy = True if "cloudy" in r else False
-        print(f"{title:16s} ", end="")
-
+        # Print title to 16 characters wide
+        n = 16 - len(title)
+        assert(n >= 0)
+        print(f"{t.title}{title:s}{t.n}", end=" "*n)
         if thund:
             print(f"{t.thun}thunderstorm{t.n} ", end="")
         if snow:
