@@ -61,6 +61,9 @@ if 1:   # Header
         from f import flt
         float = flt
         from u import u, to, fromto, ParseUnit
+        if len(sys.argv) > 1:
+            import debug
+            debug.SetDebugger()
 if 1:   # Global variables
     # The following variable, if True, causes the data from reference sim to
     # be ignored.  I added this feature after examining the output sorted by
@@ -2851,18 +2854,29 @@ if 1:   # Generate output
             self.pg = None
             if len(f) > 1:
                 self.pg = f[1]
+        def __lt__(self, other):
+            assert(ii(other, Ref))
+            return self.key < other.key
+        def __eq__(self, other):
+            assert(ii(other, Ref))
+            return self.key == other.key
+        def __repr__(self):
+            return str(self)
         def __str__(self):
-            if self.pg:
-                return f"{self.key}[{self.pg}]"
-            return f"{self.key}"
+            s = f"{self.key} {self.pg}" if self.pg else self.key
+            return repr(s)
     class Den:
-        maxlen = 48     # Maximum length of name string
-        def __init__(self, line):
+        maxlen = 50     # Maximum length of name string
+        def __init__(self, line, category):
             self._line = line
             f = line.split(";")
+            self.category = category
             self.name = f[0].strip()
             self.rho = self.get_rho(f[1])
-            self.ref = f[2]
+            self.ref = Ref(f[2])
+        def __str__(self):
+            s = f"{self.name!r},"
+            return f"({s:{Den.maxlen}s} {self.rho!s:10s}, {self.ref!r}),"
         def get_rho(self, s):
             if "-" in s:
                 low, high = [1000*flt(i) for i in s.split("-")]
@@ -2870,13 +2884,19 @@ if 1:   # Generate output
                 return (low + high)/2
             else:
                 return 1000*flt(s)
-    x = flt(0)
-    x.n = 3
-    x.rtz = x.rtdp = True
-    maxlen, i = 0, ""
-    for line in data.split("\n"):
-        line = line.strip()
-        if not line or line.startswith("#") or line.startswith("category"):
-            continue
-        d = Den(line)
-        print(f"{d.name:{Den.maxlen}s}", f"{d.rho!s:10s}", Ref(d.ref))
+    def OutputDict():
+        x = flt(0)
+        x.n = 3
+        x.rtz = x.rtdp = True
+        maxlen, i = 0, ""
+        for line in data.split("\n"):
+            line = line.strip()
+            if line.startswith("category"):
+                category = line.split("=")[1].strip()
+                continue
+            if not line or line.startswith("#"):
+                continue
+            d = Den(line, category)
+            print(d)
+if __name__ == "__main__": 
+    OutputDict()

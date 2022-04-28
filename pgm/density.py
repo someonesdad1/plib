@@ -2106,7 +2106,8 @@ if 1:   # Global variables
         "pvc" : dedent('''
                 http://www.pvc.org/en/p/specific-gravity-density
                 (accessed 13 Nov 2018)'''),
-        "pwdrh": dedent('''https://www.powderhandling.com.au/bulk-density-chart,
+        "pwdrh": dedent('''
+                https://www.powderhandling.com.au/bulk-density-chart,
                 (accessed 2 Jul 2021)'''),
         "sim" : dedent('''
                 http://www.simetric.co.uk/si_materials.htm

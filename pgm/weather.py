@@ -37,6 +37,9 @@ if 1:   # Header
         lat, lon = "43.5", "-116.4"
         # Turn on debugging to avoid loading from web
         dbg = False
+        # Global holder
+        class g: pass
+        g.update = ""
 if 1:   # Utility
     def Error(*msg, stasus=1):
         print(*msg, file=sys.stderr)
@@ -45,7 +48,8 @@ if 1:   # Utility
         print(dedent(f'''
         Usage:  {sys.argv[0]} [options] [s]
           Print NOAA weather forecast as plain text.  If s is not empty, a 
-          one-line report for each period is given.
+          one-line report for each period is given unless it's 'd', in
+          which case the raw NOAA text is printed.
         Options:
             -h      Print a manpage
         '''))
@@ -97,6 +101,11 @@ if 1:   # Core functionality
                 continue 
             if not u:
                 continue
+            if u.startswith("Last Update:"):
+                loc = u.find("</td>")
+                s = u[:loc]
+                g.update = s.replace("</a>", "")
+                continue
             if (u.startswith("Today") or u.startswith("This ") or
                 u.startswith("Tonight")):
                 found = True
@@ -109,7 +118,6 @@ if 1:   # Core functionality
             exit()
         assert(lines)
         return lines
-        xx()
     def PrintTitle(title, line):
         '''Print the title with color coding.  To do this, search line
         text for keywords.
@@ -178,10 +186,16 @@ if 1:   # Core functionality
             PrintTitle(title, details)
             if d["-d"]:
                 Wrap(details)
+        print(g.update, "\nNow: ", end="")
+        os.system("date")
 
 if __name__ == "__main__": 
     d = {}      # Options dictionary
     args = ParseCommandLine(d)
     q = Get()
+    if args and args[0] == "d":
+        for line in q:
+            print(line.rstrip())
+        exit(0)
     lines = Select(q)
     Report(lines)
