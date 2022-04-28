@@ -510,8 +510,8 @@ if 1:   # Global variables
     Acetone                                        ; 0.79        ; pht
     Acetone 25 °C                                   ; .7846       ; sim
     Acetonitrile 20 °C                              ; .7822       ; sim
-    Acid, acetic (CH3COOH)                         ; 1.05        ; pht
-    Acid, sulfuric (H2SO4)                         ; 1.39        ; pht
+    Acid, acetic (CH₃COOH)                         ; 1.05        ; pht
+    Acid, sulfuric (H₂SO₄)                         ; 1.39        ; pht
     Air (liquid, bp = 79 K)                        ; .875        ; aes 97
     Alcohol, butyl                                 ; .81         ; aes 353
     Alcohol, denatured (methanol)                  ; .79         ; aes 353
@@ -945,9 +945,9 @@ if 1:   # Global variables
     Beeswax                                        ; .961        ; sim
     Beets                                          ; .72         ; glo 390
     Beets                                          ; .721        ; sim
-    Bicarbonate of soda (NaHCO3)                   ; .689        ; sim
-    Bicarbonate of soda (NaHCO3)                   ; .69         ; glo 390
-    Black powder (KNO3, charcoal, S)               ; 1.74        ; aes 399
+    Bicarbonate of soda (NaHCO₃)                   ; .689        ; sim
+    Bicarbonate of soda (NaHCO₃)                   ; .69         ; glo 390
+    Black powder (KNO₃, charcoal, S)               ; 1.74        ; aes 399
     Blood                                          ; 1.06        ; web
     Body fat                                       ; 0.918       ; pht
     Bone                                           ; 1.7-2.0     ; aes 178
@@ -981,9 +981,9 @@ if 1:   # Global variables
     Butter                                         ; .87         ; glo 390
     Butter                                         ; 0.911       ; pht
     Calamime                                       ; 4.1-4.5     ; aes 178
-    Calcium carbide (CaC2)                         ; 1.20        ; glo 390
-    Calcium carbide (CaC2)                         ; 1.201       ; sim
-    Calcium carbide (CaC2)                         ; 2.22        ; aes 183
+    Calcium carbide (CaC₂)                         ; 1.20        ; glo 390
+    Calcium carbide (CaC₂)                         ; 1.201       ; sim
+    Calcium carbide (CaC₂)                         ; 2.22        ; aes 183
     Camel hair                                     ; 1.32        ; aes 172
     Camphor                                        ; .99         ; aes 178
     Carbon                                         ; 2.25        ; pht
@@ -1017,8 +1017,8 @@ if 1:   # Global variables
     Charcoal, wood                                 ; .4          ; aes 177
     Chocolate, powder                              ; .64         ; glo 390
     Chocolate, powder                              ; .641        ; sim
-    Chrome carbide (Cr3C2)                         ; 6.7         ; aes 183
-    Chrome carbide (Cr7C3)                         ; 6.92        ; aes 183
+    Chrome carbide (Cr₃C₂)                         ; 6.7         ; aes 183
+    Chrome carbide (Cr7C₃)                         ; 6.92        ; aes 183
     Chromic acid, flake                            ; 1.201       ; sim
     Cinders, Coal, ash                             ; .641        ; sim
     Cinders, coal, ash                             ; .64         ; glo 390
@@ -1226,7 +1226,7 @@ if 1:   # Global variables
     Ice, crushed                                   ; .593        ; sim
     Ice, solid                                     ; .919        ; sim
     Ice, solid                                     ; .92         ; glo 390
-    Iron carbide (Fe3C)                            ; 7.69        ; aes 183
+    Iron carbide (Fe₃C)                            ; 7.69        ; aes 183
     Iron oxide pigment                             ; .4          ; glo 390
     Iron oxide pigment                             ; .4          ; sim
     Iron sulphate - pickling tank - dry            ; 1.2         ; sim
@@ -1241,23 +1241,23 @@ if 1:   # Global variables
     Lanolin, refined                               ; .94         ; aes 159
     Lard                                           ; .919        ; pht
     Lead azide (explosive)                         ; 3.8         ; aes 399
-    Lead, red (Pb3O4 or 2 PbO*PbO2)                ; 3.684       ; sim
-    Lead, red (Pb3O4 or 2 PbO*PbO2)                ; 3.69        ; glo 390
-    Lead, white pigment ((PbCO3)2*Pb(OH)2)         ; 4.085       ; sim
-    Lead, white pigment ((PbCO3)2*Pb(OH)2)         ; 4.09        ; glo 390
+    Lead, red (Pb₃O₄ or 2 PbO*PbO₂)                ; 3.684       ; sim
+    Lead, red (Pb₃O₄ or 2 PbO*PbO₂)                ; 3.69        ; glo 390
+    Lead, white pigment ((PbCO₃)2*Pb(OH)₂)         ; 4.085       ; sim
+    Lead, white pigment ((PbCO₃)2*Pb(OH)₂)         ; 4.09        ; glo 390
     Leather                                        ; .86-1.02    ; mar 6-7
     Leather                                        ; .945        ; sim
     Leather                                        ; .95         ; glo 390
     Leather, dry                                   ; .86         ; aes 178
     Leather, dry                                   ; .9          ; aes 177
     Lignite, dry (fuel between coal and peat)      ; .801        ; sim
-    Lime, hydrated (Ca(OH)2)                       ; .48         ; glo 390
-    Lime, hydrated (Ca(OH)2)                       ; .481        ; sim
+    Lime, hydrated (Ca(OH)₂)                       ; .48         ; glo 390
+    Lime, hydrated (Ca(OH)₂)                       ; .481        ; sim
     Lime, quick, fine (CaO)                        ; 1.20        ; glo 390
     Lime, quick, fine (CaO)                        ; 1.201       ; sim
     Lime, quick, lump (CaO)                        ; .849        ; sim
     Lime, quick, lump (CaO)                        ; .85         ; glo 390
-    Lime, slaked (Ca(OH)2)                         ; 1.3-1.4     ; aes 178
+    Lime, slaked (Ca(OH)₂)                         ; 1.3-1.4     ; aes 178
     Lime, stone, large                             ; 2.69        ; glo 390
     Lime, stone, lump                              ; 1.54        ; glo 390
     Lime, wet or mortar                            ; 1.54        ; sim
@@ -1289,7 +1289,7 @@ if 1:   # Global variables
     Milk, powdered                                 ; .45         ; glo 390
     Mineral wool blanket                           ; .1          ; aes 177
     Mohair (hair of Angora goat)                   ; 1.32        ; aes 172
-    Molybdenum carbide (Mo2C)                      ; 9.0         ; aes 183
+    Molybdenum carbide (Mo₂C)                      ; 9.0         ; aes 183
     Molybdenum carbide (MoC)                       ; 8.2         ; aes 183
     Monosodium glutamate                           ; 1.62        ; pht
     Mortar, Portland cement                        ; 2.08-2.25   ; mar 6-7
@@ -1332,7 +1332,7 @@ if 1:   # Global variables
     Peat, moist                                    ; .801        ; sim
     Peat, wet                                      ; 1.12        ; glo 390
     Peat, wet                                      ; 1.121       ; sim
-    Phenol (carbolic acid C6H5OH)                  ; 1.071       ; aes 90
+    Phenol (carbolic acid C₆H₅OH)                  ; 1.071       ; aes 90
     Phosphorus                                     ; 2.339       ; sim
     Phosphorus                                     ; 2.34        ; glo 390
     Plaster                                        ; .849        ; sim
@@ -1398,9 +1398,9 @@ if 1:   # Global variables
     Salt, coarse (NaCl)                            ; .80         ; glo 390
     Salt, fine (NaCl)                              ; 1.2         ; glo 390
     Salt, granulated, piled (NaCl)                 ; .77         ; mar 6-7
-    Saltpeter (KNO3)                               ; 1.2         ; glo 390
-    Saltpeter (KNO3)                               ; 1.201       ; sim
-    Saltpeter (KNO3)                               ; 2.11        ; mar 6-7
+    Saltpeter (KNO₃)                               ; 1.2         ; glo 390
+    Saltpeter (KNO₃)                               ; 1.201       ; sim
+    Saltpeter (KNO₃)                               ; 2.11        ; mar 6-7
     Sand, silica, 20 grains per inch, +/-0.05 g/cc ; 1.31        ; dp
     Sand and gravel, dry                           ; 1.73        ; glo 390
     Sand and gravel, wet                           ; 2.0         ; glo 390
@@ -1456,18 +1456,18 @@ if 1:   # Global variables
     Soap, powdered                                 ; .368        ; sim
     Soap, solid                                    ; .8          ; glo 390
     Soap, solid                                    ; .801        ; sim
-    Soda ash, heavy (Na2CO3, washing soda)         ; .96         ; glo 390
-    Soda ash, heavy (Na2CO3, washing soda)         ; 1.08        ; sim
-    Soda ash, light (Na2CO3, washing soda)         ; .43         ; glo 390
-    Soda ash, light (Na2CO3, washing soda)         ; .432        ; sim
+    Soda ash, heavy (Na₂CO₃, washing soda)         ; .96         ; glo 390
+    Soda ash, heavy (Na₂CO₃, washing soda)         ; 1.08        ; sim
+    Soda ash, light (Na₂CO₃, washing soda)         ; .43         ; glo 390
+    Soda ash, light (Na₂CO₃, washing soda)         ; .432        ; sim
     Sodium aluminate, ground                       ; 1.153       ; sim
     Sodium bicarbonate                             ; 2.2         ; pht
-    Sodium bicarbonate (baking soda) NaHCO3        ; 2.2         ; wp
-    Sodium carbonate (washing soda) Na2CO3         ; 2.25-2.54   ; wp
-    Sodium carbonate (washing soda) Na2CO3*10H2O   ; 1.44        ; hcp B165
-    Sodium nitrate, ground (NaNO3)                 ; 1.20        ; glo 390
-    Sodium nitrate, ground (NaNO3)                 ; 1.201       ; sim
-    Sodium thiosulfate (hypo) Na2S2O3              ; 1.667       ; web
+    Sodium bicarbonate (baking soda) NaHCO₃        ; 2.2         ; wp
+    Sodium carbonate (washing soda) Na₂CO₃         ; 2.25-2.54   ; wp
+    Sodium carbonate (washing soda) Na₂CO₃*10H₂O   ; 1.44        ; hcp B165
+    Sodium nitrate, ground (NaNO₃)                 ; 1.20        ; glo 390
+    Sodium nitrate, ground (NaNO₃)                 ; 1.201       ; sim
+    Sodium thiosulfate (hypo) Na₂S₂O₃              ; 1.667       ; web
     Soy beans, whole                               ; .753        ; sim
     Soybeans, whole                                ; .75         ; glo 390
     Spermaceti (wax from sperm whale's head)       ; .95         ; aes 178
@@ -1504,12 +1504,12 @@ if 1:   # Global variables
     Tar                                            ; 1.153       ; sim
     Thermofelt (felted jute and asbestos fibers)   ; .125-.16    ; hcp E5
     Thermofill, powdered gypsum                    ; .42-.54     ; hcp E5
-    Titania TiO2 (rutile)                          ; 4.0         ; aes 262
+    Titania TiO₂ (rutile)                          ; 4.0         ; aes 262
     Titanium carbide (TiC)                         ; 4.9         ; aes 183
     Tobacco                                        ; .32         ; glo 390
     Tobacco                                        ; .32         ; sim
     Torpex (explosive)                             ; 1.7         ; aes 399
-    Tungsten carbide (W2C)                         ; 17.3        ; aes 183
+    Tungsten carbide (W₂C)                         ; 17.3        ; aes 183
     Tungsten carbide (WC)                          ; 15.2        ; aes 183
     Turf (lawn)                                    ; .4          ; sim
     Turf (lawn)                                    ; .40         ; glo 390
@@ -1759,15 +1759,15 @@ if 1:   # Global variables
 
     category = mineral
     Agate                                          ; 2.5-2.7     ; aes 178
-    Alumina Al2O3                                  ; 3.68        ; aes 193
-    Alumina, 99.7% Al2O3                           ; 3.9         ; aes 262
+    Alumina Al₂O₃                                  ; 3.68        ; aes 193
+    Alumina, 99.7% Al₂O₃                           ; 3.9         ; aes 262
     Aluminum oxide                                 ; 1.52        ; glo 390
     Aluminum oxide                                 ; 1.522       ; sim
     Andesite, solid                                ; 2.771       ; sim
     Asbestos                                       ; 2.1-2.8     ; mar 6-7
-    Barite, crushed (BaSO4)                        ; 2.883       ; sim
+    Barite, crushed (BaSO₄)                        ; 2.883       ; sim
     Barium titanate                                ; 5.5         ; aes 262
-    Baryte (BaSO4, barite)                         ; 4.5         ; mar 6-7
+    Baryte (BaSO₄, barite)                         ; 4.5         ; mar 6-7
     Basalt (igneous rock)                          ; 2.7-3.2     ; mar 6-7
     Basalt, broken (igneous rock)                  ; 1.954       ; sim
     Basalt, broken (igneous rock)                  ; 1.96        ; glo 390
@@ -1780,21 +1780,21 @@ if 1:   # Global variables
     Bentonite (type of clay)                       ; .593        ; sim
     Beryllia BeO (beryllium oxide)                 ; 3.08        ; aes 262
     Beryllium oxide BeO                            ; 3.04        ; aes 193
-    Borax (hydrated Na2B4O7)                       ; 1.7-1.8     ; mar 6-7
-    Borax, fine (hydrated Na2B4O7)                 ; .849        ; sim
-    Borax, fine (hydrated Na2B4O7)                 ; .85         ; glo 390
+    Borax (hydrated Na₂B₄O₇)                       ; 1.7-1.8     ; mar 6-7
+    Borax, fine (hydrated Na₂B₄O₇)                 ; .849        ; sim
+    Borax, fine (hydrated Na₂B₄O₇)                 ; .85         ; glo 390
     Calcium oxide CaO                              ; 3.20        ; aes 193
-    Calcspar (calcite CaCO3)                       ; 2.6-2.8     ; aes 178
+    Calcspar (calcite CaCO₃)                       ; 2.6-2.8     ; aes 178
     Caliche (deposit of calcium carbonate)         ; 1.442       ; sim
-    Chalk (sedimentary rock, CaCO3)                ; 1.8-2.8     ; mar 6-7
-    Chalk (sedimentary rock, CaCO3)                ; 1.9-2.8     ; aes 178
-    Chalk (sedimentary rock, CaCO3)                ; 2.0         ; aes 177
-    Chalk, fine (sedimentary rock, CaCO3)          ; 1.12        ; glo 390
-    Chalk, fine (sedimentary rock, CaCO3)          ; 1.121       ; sim
-    Chalk, lumpy (sedimentary rock, CaCO3)         ; 1.44        ; glo 390
-    Chalk, lumpy (sedimentary rock, CaCO3)         ; 1.442       ; sim
-    Chalk, solid (sedimentary rock, CaCO3)         ; 2.499       ; sim
-    Chalk, solid (sedimentary rock, CaCO3)         ; 2.5         ; glo 390
+    Chalk (sedimentary rock, CaCO₃)                ; 1.8-2.8     ; mar 6-7
+    Chalk (sedimentary rock, CaCO₃)                ; 1.9-2.8     ; aes 178
+    Chalk (sedimentary rock, CaCO₃)                ; 2.0         ; aes 177
+    Chalk, fine (sedimentary rock, CaCO₃)          ; 1.12        ; glo 390
+    Chalk, fine (sedimentary rock, CaCO₃)          ; 1.121       ; sim
+    Chalk, lumpy (sedimentary rock, CaCO₃)         ; 1.44        ; glo 390
+    Chalk, lumpy (sedimentary rock, CaCO₃)         ; 1.442       ; sim
+    Chalk, solid (sedimentary rock, CaCO₃)         ; 2.499       ; sim
+    Chalk, solid (sedimentary rock, CaCO₃)         ; 2.5         ; glo 390
     Chromium ore                                   ; 2.162       ; sim
     Cinnabar (mercury ore, HgS)                    ; 8.12        ; aes 178
     Coal, anthracite                               ; 1.4-1.8     ; mar 6-7
@@ -1805,24 +1805,24 @@ if 1:   # Global variables
     Coal, bituminous, solid                        ; 1.346       ; sim
     Cobaltite (CoAsS + Fe, Ni)                     ; 6.295       ; sim
     Copper ore                                     ; 1.94-2.59   ; sim
-    Corundum (crystalline Al2O3)                   ; 3.9-4.0     ; aes 178
-    Corundum, 90% Al2O3                            ; 3.20        ; aes 193
-    Cryolite (Na3AlF6)                             ; 1.6         ; glo 390
-    Cryolite (Na3AlF6)                             ; 1.602       ; sim
+    Corundum (crystalline Al2O₃)                   ; 3.9-4.0     ; aes 178
+    Corundum, 90% Al2O₃                            ; 3.20        ; aes 193
+    Cryolite (Na₃AlF6)                             ; 1.6         ; glo 390
+    Cryolite (Na₃AlF6)                             ; 1.602       ; sim
     Cullet (scraps of broken glass)                ; 1.602       ; sim
     Culm (waste from coal preparation)             ; .753        ; sim
     Diamond (allotrope of carbon)                  ; 3.01-3.52   ; aes 178
-    Dolomite (CaMg(C)3)2)                          ; 2.84        ; aes 178
-    Dolomite (CaMg(C)3)2)                          ; 2.9         ; mar 6-7
-    Dolomite, lumpy (CaMg(C)3)2)                   ; 1.52        ; glo 390
-    Dolomite, lumpy (CaMg(C)3)2)                   ; 1.522       ; sim
-    Dolomite, pulverized (CaMg(C)3)2)              ; .737        ; sim
-    Dolomite, pulverized (CaMg(C)3)2)              ; .74         ; glo 390
-    Dolomite, solid (CaMg(C)3)2)                   ; 2.899       ; sim
-    Dolomite, solid (CaMg(C)3)2)                   ; 2.9         ; glo 390
-    Emery (usually mostly Al2O3)                   ; 4.0         ; aes 178
-    Emery (usually mostly Al2O3)                   ; 4.005       ; sim
-    Emery (usually mostly Al2O3)                   ; 4.01        ; glo 390
+    Dolomite (CaMg(C)₃)₂)                          ; 2.84        ; aes 178
+    Dolomite (CaMg(C)₃)₂)                          ; 2.9         ; mar 6-7
+    Dolomite, lumpy (CaMg(C)₃)₂)                   ; 1.52        ; glo 390
+    Dolomite, lumpy (CaMg(C)₃)₂)                   ; 1.522       ; sim
+    Dolomite, pulverized (CaMg(C)₃)₂)              ; .737        ; sim
+    Dolomite, pulverized (CaMg(C)₃)₂)              ; .74         ; glo 390
+    Dolomite, solid (CaMg(C)₃)₂)                   ; 2.899       ; sim
+    Dolomite, solid (CaMg(C)₃)₂)                   ; 2.9         ; glo 390
+    Emery (usually mostly Al2O₃)                   ; 4.0         ; aes 178
+    Emery (usually mostly Al2O₃)                   ; 4.005       ; sim
+    Emery (usually mostly Al2O₃)                   ; 4.01        ; glo 390
     Feldspar (common crustal rock)                 ; 2.55-2.75   ; aes 178
     Feldspar, pulverized (common crustal rock)     ; 1.23        ; glo 390
     Feldspar, pulverized (common crustal rock)     ; 1.233       ; sim
@@ -1831,14 +1831,14 @@ if 1:   # Global variables
     Ferrofluids                                    ; .9-1.7      ; aes 312
     Flint                                          ; 2.63        ; aes 178
     Flint, silica                                  ; 1.39        ; sim
-    Fluorite (CaF2)                                ; 3.18        ; aes 178
-    Fluorspar, lumps (CaF2)                        ; 1.6         ; glo 390
-    Fluorspar, lumps (CaF2)                        ; 1.602       ; sim
-    Fluorspar, pulverized (CaF2)                   ; 1.44        ; glo 390
-    Fluorspar, pulverized (CaF2)                   ; 1.442       ; sim
-    Fluorspar, solid (CaF2)                        ; 3.204       ; sim
-    Fluorspar, solid (CaF2)                        ; 3.21        ; glo 390
-    Forsterite 2MgO*SiO2                           ; 2.56        ; aes 193
+    Fluorite (CaF₂)                                ; 3.18        ; aes 178
+    Fluorspar, lumps (CaF₂)                        ; 1.6         ; glo 390
+    Fluorspar, lumps (CaF₂)                        ; 1.602       ; sim
+    Fluorspar, pulverized (CaF₂)                   ; 1.44        ; glo 390
+    Fluorspar, pulverized (CaF₂)                   ; 1.442       ; sim
+    Fluorspar, solid (CaF₂)                        ; 3.204       ; sim
+    Fluorspar, solid (CaF₂)                        ; 3.21        ; glo 390
+    Forsterite 2MgO*SiO₂                           ; 2.56        ; aes 193
     Galena (lead ore) PbS                          ; 7.3-7.6     ; aes 178
     Galena (lead ore) PbS                          ; 7.4-7.6     ; sim
     Garnet (variety of silicate minerals)          ; 3.15-4.3    ; aes 178
@@ -1852,8 +1852,8 @@ if 1:   # Global variables
     Granite, solid (igneous rock)                  ; 2.691       ; sim
     Graphite (carbon allotrope)                    ; 1.64-2.7    ; mar 6-7
     Gummite (uranium ore)                          ; 3.89-6.4    ; sim
-    Gypsum CaSO4*2H20                              ; 2.30-2.37   ; hcp B222
-    Gypsum CaSO4*2H20                              ; 2.31-2.33   ; aes 178
+    Gypsum CaSO₄*2H₂0                              ; 2.30-2.37   ; hcp B222
+    Gypsum CaSO₄*2H₂0                              ; 2.31-2.33   ; aes 178
     Gypsum, broken                                 ; 1.29-1.6    ; sim
     Gypsum, broken                                 ; 1.81        ; glo 390
     Gypsum, crushed                                ; 1.60        ; glo 390
@@ -1871,33 +1871,33 @@ if 1:   # Global variables
     Hematite (iron ore), solid                     ; 4.90        ; glo 390
     Hemimorphite (zinc ore)                        ; 3.395-3.49  ; sim
     Hornblende (complex series of minerals)        ; 3.0         ; aes 178
-    Ilmenite (FeTiO3)                              ; 2.307       ; sim
+    Ilmenite (FeTiO₃)                              ; 2.307       ; sim
     Iron ore, crushed                              ; 2.1-2.9     ; sim
-    Iron pyrite (FeS2)                             ; 2.4         ; sim
-    Kaolin, green crushed (Al2Si2O5(OH)4)          ; 1.025       ; sim
-    Kaolin, pulverized (Al2Si2O5(OH)4)             ; .352        ; sim
+    Iron pyrite (FeS₂)                             ; 2.4         ; sim
+    Kaolin, green crushed (Al₂Si₂O₅(OH)₄)          ; 1.025       ; sim
+    Kaolin, pulverized (Al₂Si₂O₅(OH)₄)             ; .352        ; sim
     Lime, stone, large                             ; 2.691       ; sim
     Lime, stone, lump                              ; 1.538       ; sim
-    Limestone (sedimentary rock CaCO3)             ; 2.1-2.86    ; mar 6-7
-    Limestone (sedimentary rock CaCO3)             ; 2.5         ; aes 177
-    Limestone (sedimentary rock CaCO3)             ; 2.68-2.76   ; aes 178
-    Limestone, broken (sedimentary rock CaCO3)     ; 1.55        ; glo 390
-    Limestone, broken (sedimentary rock CaCO3)     ; 1.554       ; sim
-    Limestone, pulverized (sedimentary rock CaCO3) ; 1.394       ; sim
-    Limestone, pulverized (sedimentary rock CaCO3) ; 1.55        ; glo 390
-    Limestone, solid (sedimentary rock CaCO3)      ; 2.61        ; glo 390
-    Limestone, solid (sedimentary rock CaCO3)      ; 2.611       ; sim
+    Limestone (sedimentary rock CaCO₃)             ; 2.1-2.86    ; mar 6-7
+    Limestone (sedimentary rock CaCO₃)             ; 2.5         ; aes 177
+    Limestone (sedimentary rock CaCO₃)             ; 2.68-2.76   ; aes 178
+    Limestone, broken (sedimentary rock CaCO₃)     ; 1.55        ; glo 390
+    Limestone, broken (sedimentary rock CaCO₃)     ; 1.554       ; sim
+    Limestone, pulverized (sedimentary rock CaCO₃) ; 1.394       ; sim
+    Limestone, pulverized (sedimentary rock CaCO₃) ; 1.55        ; glo 390
+    Limestone, solid (sedimentary rock CaCO₃)      ; 2.61        ; glo 390
+    Limestone, solid (sedimentary rock CaCO₃)      ; 2.611       ; sim
     Limonite (iron ore)                            ; 2.467       ; mar 6-7
     Limonite (iron ore), broken                    ; 2.467       ; sim
     Limonite (iron ore), solid                     ; 3.796       ; sim
     Magnesia (85%)                                 ; .25         ; aes 177
     Magnesia MgO                                   ; 3.36        ; aes 193
-    Magnesite (MgCO3)                              ; 3.0         ; mar 6-7
-    Magnesite, solid (MgCO3)                       ; 3.011       ; sim
+    Magnesite (MgCO₃)                              ; 3.0         ; mar 6-7
+    Magnesite, solid (MgCO₃)                       ; 3.011       ; sim
     Magnesium oxide MgO                            ; 2.80        ; aes 193
-    Magnetite (Fe3O4), broken                      ; 3.284       ; sim
-    Magnetite (Fe3O4), solid                       ; 5.046       ; sim
-    Magnetite Fe3O4                                ; 4.9-5.2     ; aes 178
+    Magnetite (Fe₃O₄), broken                      ; 3.284       ; sim
+    Magnetite (Fe₃O₄), solid                       ; 5.046       ; sim
+    Magnetite Fe₃O₄                                ; 4.9-5.2     ; aes 178
     Malachite (copper ore)                         ; 3.7-4.1     ; aes 178
     Malachite (copper ore)                         ; 3.75-3.96   ; sim
     Marble (metamorphic rock)                      ; 2.6         ; aes 177
@@ -1917,7 +1917,7 @@ if 1:   # Global variables
     Mica, solid                                    ; 2.88        ; glo 390
     Mica, solid                                    ; 2.883       ; sim
     Molybdenum ore                                 ; 1.6         ; sim
-    Mullite 3Al2O3*SiO2                            ; 2.56        ; aes 193
+    Mullite 3Al₂O₃*SiO₂                            ; 2.56        ; aes 193
     Muscovite (common mica, isinglass)             ; 2.76-3.00   ; aes 178
     Nickel ore                                     ; 1.6         ; sim
     Opal                                           ; 2.2         ; aes 178
@@ -1932,22 +1932,22 @@ if 1:   # Global variables
     Pumice stone (volcanic rock)                   ; .64         ; glo 390
     Pumice stone (volcanic rock)                   ; .641        ; sim
     Pumice, natural (volcanic rock)                ; .37-.9      ; mar 6-7
-    Pyrite (fool's gold, FeS2)                     ; 2.4-5.015   ; sim
-    Pyrite (fool's gold, FeS2)                     ; 4.95-5.1    ; aes 178
-    Quartz (SiO2)                                  ; 2.65        ; aes 178
-    Quartz sand (SiO2)                             ; 1.201       ; sim
-    Quartz whisker (SiO2)                          ; 2.65        ; aes 182
-    Quartz, clear fused (SiO2)                     ; 2.2         ; aes 187
+    Pyrite (fool's gold, FeS₂)                     ; 2.4-5.015   ; sim
+    Pyrite (fool's gold, FeS₂)                     ; 4.95-5.1    ; aes 178
+    Quartz (SiO₂)                                  ; 2.65        ; aes 178
+    Quartz sand (SiO₂)                             ; 1.201       ; sim
+    Quartz whisker (SiO₂)                          ; 2.65        ; aes 182
+    Quartz, clear fused (SiO₂)                     ; 2.2         ; aes 187
     Quartz, flint                                  ; 2.5-2.8     ; mar 6-7
-    Quartz, lump (SiO2)                            ; 1.55        ; glo 390
-    Quartz, lump (SiO2)                            ; 1.554       ; sim
-    Quartz, sand (SiO2)                            ; 1.20        ; glo 390
-    Quartz, solid (SiO2)                           ; 2.64        ; glo 390
-    Quartz, solid (SiO2)                           ; 2.643       ; sim
+    Quartz, lump (SiO₂)                            ; 1.55        ; glo 390
+    Quartz, lump (SiO₂)                            ; 1.554       ; sim
+    Quartz, sand (SiO₂)                            ; 1.20        ; glo 390
+    Quartz, solid (SiO₂)                           ; 2.64        ; glo 390
+    Quartz, solid (SiO₂)                           ; 2.643       ; sim
     Road mix (sand, dirt, small rocks)             ; 1.57        ; dp
     Rock salt (NaCl, halide)                       ; 2.18        ; aes 178
     Rock, soft, dug with shovel                    ; 1.6-1.78    ; sim
-    Salt cake (Na2SO4)                             ; 1.442       ; sim
+    Salt cake (Na₂SO₄)                             ; 1.442       ; sim
     Salt, coarse (NaCl, halide)                    ; .801        ; sim
     Salt, fine (NaCl, halide)                      ; 1.201       ; sim
     Salt, table                                    ; 2.17        ; wp
@@ -1958,15 +1958,15 @@ if 1:   # Global variables
     Sandstone, broken (sedimentary rock)           ; 1.51        ; glo 390
     Sandstone, solid (sedimentary rock)            ; 2.32        ; glo 390
     Sandstone, solid (sedimentary rock)            ; 2.323       ; sim
-    Sapphire or Al203 whisker                      ; 4.0         ; aes 182
+    Sapphire or Al₂0₃ whisker                      ; 4.0         ; aes 182
     Shale, broken (sedimentary rock)               ; 1.586       ; sim
     Shale, broken (sedimentary rock)               ; 1.59        ; glo 390
     Shale, slate (sedimentary rock)                ; 2.6-2.9     ; mar 6-7
     Shale, solid (sedimentary rock)                ; 2.675       ; sim
     Shale, solid (sedimentary rock)                ; 2.68        ; glo 390
-    Silica SiO2                                    ; 1.76        ; aes 193
-    Silica, fused translucent (SiO2)               ; 2.07        ; aes 178
-    Silica, fused transparent (SiO2)               ; 2.21        ; aes 178
+    Silica SiO₂                                    ; 1.76        ; aes 193
+    Silica, fused translucent (SiO₂)               ; 2.07        ; aes 178
+    Silica, fused transparent (SiO₂)               ; 2.21        ; aes 178
     Silicon carbide SiC                            ; 2.72        ; aes 193
     Silicon dioxide (quartz)                       ; 2.6         ; pht
     Slate (metamorphic rock)                       ; 2.6-3.3     ; aes 178
@@ -1980,9 +1980,9 @@ if 1:   # Global variables
     Soapstone (steatite, metamorphic rock)         ; 2.6-2.8     ; aes 178
     Soapstone, talc (steatite, metamorphic rock)   ; 2.4         ; sim
     Soapstone, talc (steatite, metamorphic rock)   ; 2.6-2.8     ; mar 6-7
-    Sodium silicate (Na2SiO3)                      ; 2.61        ; wp
-    Spinel MgAl2O4                                 ; 3.6-4.1     ; wp
-    Spinel MgO*Al2O3                               ; 3.52        ; aes 193
+    Sodium silicate (Na₂SiO₃)                      ; 2.61        ; wp
+    Spinel MgAl₂O₄                                 ; 3.6-4.1     ; wp
+    Spinel MgO*Al₂O₃                               ; 3.52        ; aes 193
     Stone (common, generic)                        ; 2.515       ; sim
     Stone, crushed                                 ; 1.6         ; glo 390
     Stone, crushed                                 ; 1.602       ; sim
@@ -1996,17 +1996,17 @@ if 1:   # Global variables
     Talc, solid (magnesium silicate)               ; 2.69        ; glo 390
     Talc, solid (magnesium silicate)               ; 2.691       ; sim
     Tar, bituminous                                ; 1.2         ; mar 6-7
-    Titanium oxide TiO2                            ; 4.17        ; aes 193
+    Titanium oxide TiO₂                            ; 4.17        ; aes 193
     Topaz (silicate mineral)                       ; 3.5-3.6     ; aes 178
     Tourmaline (boron silicate mineral)            ; 3.0-3.2     ; aes 178
     Trap rock (e.g. basalt), broken                ; 1.746       ; sim
     Trap rock (e.g. basalt), solid                 ; 2.883       ; sim
     Vermiculite (hydrated phyllosilicate)          ; .13         ; aes 177
-    Zircon ZrO2*SiO2                               ; 3.52        ; aes 193
-    Zirconium oxide ZrO2                           ; 5.77        ; aes 193
+    Zircon ZrO₂*SiO₂                               ; 3.52        ; aes 193
+    Zirconium oxide ZrO₂                           ; 5.77        ; aes 193
 
     category = gas
-    Acetylene C2H2 (20 °C & 1 atm)                  ; 0.001084    ; aes 38
+    Acetylene C₂H₂ (20 °C & 1 atm)                  ; 0.001084    ; aes 38
     Air (20 °C & 1 atm)                             ; 0.001204    ; aes 38
     Air, 100 K & 1 atm                             ; 0.003556    ; pht
     Air, 1000 K & 1 atm                            ; 0.000340    ; pht
@@ -2014,7 +2014,7 @@ if 1:   # Global variables
     Air, 293 K & 1 atm                             ; 0.001207    ; pht
     Air, 300 K & 1 atm                             ; 0.001161    ; pht
     Air, 500 K & 1 atm                             ; 0.000696    ; pht
-    Ammonia, anhydrous NH3 (20 °C & 1 atm)          ; 0.0007104   ; aes 38
+    Ammonia, anhydrous NH₃ (20 °C & 1 atm)          ; 0.0007104   ; aes 38
     Argon (20 °C & 1 atm)                           ; 0.0007104   ; aes 38
     Argon, gas, ~300 K                             ; 0.001449    ; pht
     Argon, liquid, 87 K                            ; 0.00143     ; pht
@@ -2027,40 +2027,41 @@ if 1:   # Global variables
     Chlorine (20 °C & 1 atm)                        ; 0.00295     ; aes 38
     Ethane (20 °C & 1 atm)                          ; 0.001252    ; aes 38
     Fluorine (20 °C & 1 atm)                        ; 0.001577    ; aes 38
-    Fluorocarbon CCl3F, Refrig. 11 (20 °C & 1 atm)  ; 0.005707    ; aes 38
+    Fluorocarbon CCl₃F, Refrig. 11 (20 °C & 1 atm)  ; 0.005707    ; aes 38
     Freon 12, vapor                                ; 0.003683    ; pht
     Helium (20 °C & 1 atm)                          ; 0.0001662   ; aes 38
     Helium, gas, ~300 K                            ; 0.000164    ; pht
     Hydrogen (20 °C & 1 atm)                        ; 0.00008429  ; aes 38
-    Hydrogen (H2), gas, 300 K                      ; 0.000082    ; pht
+    Hydrogen (H₂), gas, 300 K                      ; 0.000082    ; pht
     Hydrogen chloride (20 °C & 1 atm)               ; 0.001517    ; aes 38
     Hydrogen sulfide (20 °C & 1 atm)                ; 0.001421    ; aes 38
     Krypton (20 °C & 1 atm)                         ; 0.00348     ; aes 38
-    Laughing gas N2O (20 °C & 1 atm)                ; 0.00183     ; aes 38
+    Laughing gas N₂O (20 °C & 1 atm)                ; 0.00183     ; aes 38
     Methane (20 °C & 1 atm)                         ; 0.0006671   ; aes 38
     Methyl chloride (20 °C & 1 atm)                 ; 0.002095    ; aes 38
     Natural gas (16% methane) (20 °C & 1 atm)       ; 0.000722    ; aes 389
     Neon (20 °C & 1 atm)                            ; 0.0008393   ; aes 38
     Nitric oxide NO (20 °C & 1 atm)                 ; 0.001252    ; aes 38
     Nitrogen (20 °C & 1 atm)                        ; 0.001164    ; aes 38
-    Nitrogen (N2), gas, ~300 K                     ; 0.001145    ; pht
+    Nitrogen (N₂), gas, ~300 K                     ; 0.001145    ; pht
     Oxygen (20 °C & 1 atm)                          ; 0.001331    ; aes 38
     Oxygen, gas, ~300 K                            ; 0.001308    ; pht
     Ozone (20 °C & 1 atm)                           ; 0.001999    ; aes 38
     Propane (20 °C & 1 atm)                         ; 0.00183     ; aes 38
-    Steam (H2O) saturated (0 °C & 0.00603 atm)      ; 0.000004847 ; aes 18
-    Steam (H2O) saturated (100 °C & 1 atm)          ; 0.0005977   ; aes 18
-    Steam (H2O) saturated (150 °C & 4.70 atm)       ; 0.002548    ; aes 18
-    Steam (H2O) saturated (20 °C & 0.023 atm)       ; 0.00001729  ; aes 18
-    Steam (H2O) saturated (200 °C & 15.34 atm)      ; 0.007864    ; aes 18
-    Steam (H2O) saturated (250 °C & 39.25 atm)      ; 0.02000     ; aes 18
-    Steam (H2O) saturated (300 °C & 84.80 atm)      ; 0.04619     ; aes 18
-    Steam (H2O) saturated (350 °C & 163.19 atm)     ; 0.1136      ; aes 18
-    Steam (H2O) saturated (50 °C & 0.123 atm)       ; 0.00008302  ; aes 18
+    Steam (H₂O) saturated (0 °C & 0.00603 atm)      ; 0.000004847 ; aes 18
+    Steam (H₂O) saturated (100 °C & 1 atm)          ; 0.0005977   ; aes 18
+    Steam (H₂O) saturated (150 °C & 4.70 atm)       ; 0.002548    ; aes 18
+    Steam (H₂O) saturated (20 °C & 0.023 atm)       ; 0.00001729  ; aes 18
+    Steam (H₂O) saturated (200 °C & 15.34 atm)      ; 0.007864    ; aes 18
+    Steam (H₂O) saturated (250 °C & 39.25 atm)      ; 0.02000     ; aes 18
+    Steam (H₂O) saturated (300 °C & 84.80 atm)      ; 0.04619     ; aes 18
+    Steam (H₂O) saturated (350 °C & 163.19 atm)     ; 0.1136      ; aes 18
+    Steam (H₂O) saturated (50 °C & 0.123 atm)       ; 0.00008302  ; aes 18
     Sulfur dioxide (20 °C & 1 atm)                  ; 0.002661    ; aes 38
     Tungsten hexafluoride                          ; 0.0124      ; wp
     Xenon (20 °C & 1 atm)                           ; 0.005455    ; aes 38
     '''
+
     references = {
         "aes" : dedent('''
                 Bolz & Tuve, "Handbook of Tables for Applied Engineering
