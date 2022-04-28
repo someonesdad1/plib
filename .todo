@@ -21,27 +21,6 @@ main
           mightily annoying.
             - https://stackoverflow.com/questions/3739654/how-to-fix-a-circular-dependency-for-imports
 
-    - weather.py
-        - https://forecast.weather.gov/MapClick.php?lat=43.6417&lon=-116.3243&unit=0&lg=english&FcstType=text&TextType=1
-        - This is a text webpage that could be parsed and displayed in
-          short form in a terminal.  Simpler and quicker than loading a web
-          page.
-        - Color could be used
-            - Yellow:   sunny
-            - Gray:     overcast
-            - Green:    rain
-            - Red:      thunderstorms
-            - White:    snow
-            - Temperatures:  cyn:°F grn:°C 
-            - Windy
-        - Also use bars to indicate magnitude
-            - Cold would be blue, hot would be red
-            - The scale would be printed above, then the colors would
-              interpolate between the low and the high.  Nicely visual with
-              the range immediately visible.
-        - The HTML is simple; it would be easy to reduce to plain text with
-          a regexp.
-
     - dbl.py
         - Delete blank lines in a file
         - Change multiple lines to 1:  -1
@@ -300,7 +279,7 @@ main
           should be assigned to a single easy to access keypress.
 
     - Remembering a structure
-        - A fundamental problem when coding is that a data structure is
+        - A problem when coding is that a data structure is
           developed and you start using it in your code.  Then you always
           have to stop and look around the code to figure out the
           structures again.  Is there a way to add a utility that documents
@@ -308,6 +287,8 @@ main
           succinct summary by the code examining itself?  Ideally, this
           would be just a few lines of code that are easy to remove when
           done (or, better, leave it in for later maintenance).
+        - One possibility would be to derive all classes from a base class 
+          that would know how to introspect itself.
 
     - flt.py
         - Since flt is essentially done, write a replacement for
@@ -357,7 +338,7 @@ main
     - /plib/density.py
         - For common density values.  This file would then be read by
           /plib/pgm/density.py for its data.  Having things in a module
-          mean other apps can use it.
+          means other apps can use it.
         - One addition would be to provide canonical values for common
           materials like steel, brass, iron, elements, etc.
 
