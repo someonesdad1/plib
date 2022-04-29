@@ -65,8 +65,7 @@ def SigFigFloat(x, strict=False, maxsigfig=16):
     strict is not True.  Also works on a flt, but uses the actual float
     value, not the n attribute.
  
-    Note that trailing zero digits are removed and are not considered
-    significant.  
+    Trailing zero digits are removed and are not considered significant.  
     '''
     # Algorithm:  Change the float x to a significand with maxsigfig
     # digits.  Remove trailing zeros to find the number of significant

@@ -15,7 +15,6 @@
         - Divide up into sets by reference
         - All entries are attributed
         - Include documentation
-        - Things like sims and glo are disabled by default
         - Density class?
             - Derive from float or flt
             - Nominal value is middle of range
@@ -28,10 +27,9 @@
               structure is then a tuple of density instances.
 
     - Notes
-        - The references dictionary keys are strings like 'asm', 'aes', etc.
-        These are primary reference materials I used in compiling these data.
-            - 'sim' and 'glo' are not primary references
-        - Data
+        - The references dictionary keys are strings like 'asm', 'aes',
+          etc.  These are the reference materials I used in compiling these
+          data.
 
 '''
 
@@ -59,25 +57,20 @@ if 1:   # Header
     # Custom imports
         from wrap import dedent, wrap
         from f import flt
+        from bidict import bidict
         float = flt
         from u import u, to, fromto, ParseUnit
         if len(sys.argv) > 1:
             import debug
             debug.SetDebugger()
 if 1:   # Global variables
-    # The following variable, if True, causes the data from reference sim to
-    # be ignored.  I added this feature after examining the output sorted by
-    # density, which leads me to believe that most of the data from
-    # reference sim was probably copied from reference glo.  Ignoring
-    # reference sim's data will remove about 550 densities.
-    ignore_ref_sim = True
-    # If True, ignore the powderhandling data
-    ignore_pwdrh = False
+    ii = isinstance
+    class g:  pass      # Convenience to hold globals
 if 1:   # Density information
     # The following density information came from a variety of sources.
     # See the material following this table for the details on the
     # references.
-    data = '''
+    g.raw_data = '''
     # Name                                           g/cc          Ref
 
     category = metal
@@ -2085,18 +2078,7 @@ if 1:   # Density information
     Xenon (20 °C & 1 atm)                           ; 0.005455    ; aes 38
     '''
 
-    categories = (
-        "all",
-        "gas",
-        "liquid",
-        "metal",
-        "mineral",
-        "misc",
-        "plastic",
-        "wood",
-    )
-
-    quick_list = dedent('''
+    g.quick_list = dedent('''
         Aluminum                                       ; 2.70        ; aes 117
         Brass, leaded free-machining                   ; 8.50        ; asm 52
         Bronze, phosphor                               ; 8.88        ; mar 6-7
@@ -2174,11 +2156,11 @@ if 1:   # Density information
  
         Basalt (igneous rock)                          ; 2.7-3.2     ; mar 6-7
         Bentonite (type of clay)                       ; .59         ; glo 390
-        Chalk, solid (sedimentary rock, CaCO3)         ; 2.5         ; glo 390
+        Chalk, solid (sedimentary rock, CaCO₃)         ; 2.5         ; glo 390
         Granite, solid (igneous rock)                  ; 2.69        ; glo 390
         Marble, solid (metamorphic rock)               ; 2.56        ; glo 390
         Pumice stone (volcanic rock)                   ; .64         ; glo 390
-        Quartz (SiO2)                                  ; 2.65        ; aes 178
+        Quartz (SiO₂)                                  ; 2.65        ; aes 178
         Sandstone (sedimentary rock)                   ; 2.14-2.36   ; aes 178
         Shale, solid (sedimentary rock)                ; 2.68        ; glo 390
         Slate, solid (metamorphic rock)                ; 2.69        ; glo 390
@@ -2193,15 +2175,14 @@ if 1:   # Density information
         Nitrogen (20 °C & 1 atm)                       ; 0.001164    ; aes 38
         Oxygen (20 °C & 1 atm)                         ; 0.001331    ; aes 38
         Propane (20 °C & 1 atm)                        ; 0.00183     ; aes 38
-        Steam (H2O) saturated (100 °C & 1 atm)         ; 0.0005977   ; aes 18
+        Steam (H₂O) saturated (100 °C & 1 atm)         ; 0.0005977   ; aes 18
     ''')
-
 if 1:   # PowderHandling data
     # From https://www.powderhandling.com.au/bulk-density-chart/
     # Downloaded Thu 28 Apr 2022 09:42:56 AM
     # Fixed a few spelling mistakes and converted to US English
     # Units are kg/m3
-    pwdrh_data = dedent('''
+    g.pwdrh_data = dedent('''
         Abrasive compound                              ; 2371        ; pwdrh
         Abrasive mix                                   ; 2451        ; pwdrh
         Acetate                                        ; 561         ; pwdrh
@@ -2768,43 +2749,61 @@ if 1:   # PowderHandling data
     ''')
 if 1:   # References
     refdoc = dedent('''
+ 
+        This set of data was culled from numerous sources and took a
+        number of years to compile.  Some things I learned from this
+        exercise (done around 2013) are:
+            - There's a lot of copying of data on the web, so finding all
+              the sites you can and coalescing their data just leads to a
+              bunch of incestuous data.  This is a waste of your time.
+            - You need to be careful of errors, both published and in
+              transcribing.
+            - It's a lot of work.
+            - My goal was to include data that I could attribute.  This has
+              been handy, as a few times I wondered about the number I was
+              using and referring back to the original source showed I had
+              made a mistake transcribing it.
+            - If you're making an important decision based on some density
+              data, search out the primary sources of this information,
+              which will probably be in some chemical or physical journal.
+              Supplement it with basic measurements of your own -- you
+              should be able to work to 1% to 0.1% levels without a fancy
+              lab.
 
         I divide these references up into two categories:  primary and
         secondary.  Primary references are those published books that tend
         to be standard references and which are probably held to higher
         scholarship standards because of numerous editions and careful
         editing.  Secondary standards are those that are either on the web
-        or are more popular books that may not have the
-        scholarship/attribution levels of primary references.
-
+        or are books that may not have the scholarship/attribution levels
+        of primary references.
+ 
         My primary references are: aes asm ceh el hcp hep mar mh
-
+ 
         Marks' and Machinery's Handbook are references that originated in
         the early 1900's and have been reviewed and used by many eyes.
         Marks' dates to at least as early as 1916 and Machinery's Handbook
         was on its 5th edition in 1919.
-
+ 
         The others are secondary references.  
-
+ 
         Glover's "Pocket Reference" is a handy little book, but lacks
         detailed attribution and my first edition has a few mistakes in it.
         Over the years, I've sorted quite a few density listings found on
-        the web and often these incestuous web lists seem to derive
-        themselves from Glover's book.  I would hazard a guess that
-        Glover's book took much of its material from Marks' and Machinery's
-        Handbook.
-
-        hep is a wonderful little book I found in a bookstore in Palo Alto,
+        the web and often these web lists seem to derive themselves from
+        Glover's book.  I would hazard a guess that Glover's book took much
+        of its material from Marks' and Machinery's Handbook, both which it
+        references.
+ 
+        hep is a little book I found in a bookstore in Palo Alto,
         California in 1978 when I was working in Silicon Valley.  It was
-        published by MIR Publishers in Russia and this publisher sold its
-        books probably at or below cost.  I recall paying a few dollars for
-        this book and it became one of my most used reference books because
-        it was so small and packed in a suitcase nicely for trips.  A year
-        later I bought Yavorsky & Detlaf's book "Handbook of Physics" (2nd
-        ed.) for $9 at the same bookstore; it's an excellent reference.
-
+        published by MIR Publishers in Russia; the publishing costs were
+        funded by the state.  I recall paying a few dollars for this book
+        and it became one of my favorite reference books because it was
+        brief and small.
+ 
     ''')
-    references = {
+    g.references = {
         "aes" : dedent('''
                 Bolz & Tuve, "Handbook of Tables for Applied Engineering
                 Science", 2nd ed., CRC Press, 1973.'''),
@@ -2846,7 +2845,47 @@ if 1:   # References
                 Wikipedia http://en.wikipedia.org, accessed various
                 pages on various dates.'''),
     }
+    g.categories = bidict()
+    g.categories.update(
+        {
+            'all':      0,
+            'gas':      1,
+            'liquid':   2,
+            'metal':    3,
+            'mineral':  4,
+            'misc':     5,
+            'plastic':  6,
+            'wood':     7,
+        }
+    )
 if 1:   # Generate output
+    def GetNum(s):
+        '''s is a density in g/cc or a range of such densities.  Change it
+        to a float, convert it to kg/m3, and round it to the number of
+        significant figures in the original string.  If it's a range with
+        two numbers, use the smaller of the two significant figures.
+        Return it as a string representing a density in kg/m3 or a range of
+        densities.
+        '''
+        from roundoff import RoundOff, SigFig
+        maxfig = 6  # Max from data is 5 figures
+        if "-" in s:
+            x = [float(i) for i in s.split("-")]
+            nlow, nhigh = [SigFig(i) for i in x]
+            n = min(nlow, nhigh)
+            xx()
+            return '-'.join(str(RoundOff(1000*i, digits=n)) for i in x)
+        else:
+            x = float(s)
+            n = SigFig(x)
+            return str(RoundOff(1000*x, digits=n))
+
+if 1:
+    s = "0.00485-.0081"
+    print(GetNum(s))
+    exit()
+
+if 1:
     class Ref:
         def __init__(self, s):
             f = s.split()
@@ -2854,6 +2893,9 @@ if 1:   # Generate output
             self.pg = None
             if len(f) > 1:
                 self.pg = f[1]
+            # Make sure it's in g.references
+            if self.key not in g.references:
+                raise ValueError(f"'{self.key}' not in g.references")
         def __lt__(self, other):
             assert(ii(other, Ref))
             return self.key < other.key
@@ -2875,6 +2917,7 @@ if 1:   # Generate output
             self.rho = self.get_rho(f[1])
             self.ref = Ref(f[2])
         def __str__(self):
+            'Print in form suitable for a sequence'
             s = f"{self.name!r},"
             return f"({s:{Den.maxlen}s} {self.rho!s:10s}, {self.ref!r}),"
         def get_rho(self, s):
@@ -2884,12 +2927,12 @@ if 1:   # Generate output
                 return (low + high)/2
             else:
                 return 1000*flt(s)
-    def OutputDict():
+    def GenerateOutput():
         x = flt(0)
-        x.n = 3
+        x.n = 4
         x.rtz = x.rtdp = True
         maxlen, i = 0, ""
-        for line in data.split("\n"):
+        for line in g.raw_data.split("\n"):
             line = line.strip()
             if line.startswith("category"):
                 category = line.split("=")[1].strip()
@@ -2899,4 +2942,4 @@ if 1:   # Generate output
             d = Den(line, category)
             print(d)
 if __name__ == "__main__": 
-    OutputDict()
+    GenerateOutput()

@@ -1,5 +1,29 @@
 '''
 A dictionary that is an invertible function
+    Keys and values must be unique in "both directions".  Call the instance
+    as if it were a function to go in the reverse direction.
+ 
+    Here's how to initialize from a dict:
+        categories = bidict()
+        categories.update(
+            {
+                'all':      0,
+                'gas':      1,
+                'liquid':   2,
+                'metal':    3,
+                'mineral':  4,
+                'misc':     5,
+                'plastic':  6,
+                'wood':     7,
+            }
+        )
+ 
+    Then
+        categories["metal"] returns 3
+        categories(3) returns "metal"
+ 
+    Use categories.invert() to get a new bidict object where the inverse
+    mapping is the "forward" mapping.
 '''
 if 1:  # Copyright, license
     # These "trigger strings" can be managed with trigger.py
@@ -18,21 +42,6 @@ if 1:  # Copyright, license
     #∞test∞# run #∞test∞#
     pass
 class bidict(dict):
-    '''A bidict is a dictionary that is an invertible function (a
-    discrete bijective function).
- 
-    Typical use:
-        >>> b = bidict()
-        >>> b[1] = 2
-        >>> b[2] = 3
-        >>> print(b[2]) # Normal dictionary access
-        3
-        >>> print(b(2)) # Consider values as keys ("go in other direction")
-        1
- 
-    Use b.invert() to get a new bidict object where the inverse mapping
-    is the "forward" mapping.
-    '''
     def __init__(self, *p, **kw):
         # Implementation:  keep the inverse mapping in self._inv.
         self.super = super(bidict, self)

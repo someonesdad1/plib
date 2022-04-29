@@ -134,14 +134,18 @@ def SigFig(x):
     '''Return the number of significant figures in the float x (x must
     be anything that can be converted to a float).  This is done by
     rounding to 12 figures, the default for RoundOff().  Note you won't
-    get more than 12 figures, even if the number has them.
+    get more than 12 figures, even if the number has them.  The reason for
+    this is that essentially no practical measured data ever has 12
+    figures.  
  
     Note that trailing '0' digits are removed, so a number like 30000
     will have 1 significant figure, as will 30000.00.
     '''
+    if x == 0:
+        return 1
     radix = ".,"
     def RemoveTrailingZeroes(s):
-        while s[-1] == "0" and s[-1] not in radix:
+        while s[-1] == "0":
             s = s[:-1]
         return s
     def RemoveRadix(s):
@@ -149,14 +153,18 @@ def SigFig(x):
             s = s.replace(i, "")
         return s
     y = RoundOff(float(x))
-    s = str(y)
-    if "e" in s:
-        s = s.split("e")[0]
-    s = RemoveRadix(s)
-    s = RemoveTrailingZeroes(s)
-    return len(s)
+    # Algorithm is to convert to scientific notation, parse out the
+    # significand, remove the radix, and counts its digits.
+    s = f"{y:.12e}"
+    m, e = s.split("e")
+    t = str(float(m))
+    t = RemoveRadix(t)
+    t = RemoveTrailingZeroes(t)
+    return len(t)
+
 if __name__ == "__main__":
     from math import pi
+    from wrap import dedent
     from lwtest import run, raises, assert_equal, Assert
     def Test_RoundOff():
         Assert(RoundOff(745.6998719999999) == 745.699872)
@@ -172,6 +180,12 @@ if __name__ == "__main__":
         for n in range(1, 14):
             y = RoundOff(x, n)
             Assert(SigFig(y) == min(n, 12))
+        x = 0.00081
+        Assert(SigFig(x) == 2)
+        x = 0.0001
+        Assert(SigFig(x) == 1)
+        x = 0.0000
+        Assert(SigFig(x) == 1)
     if len(sys.argv) > 1 and sys.argv[1] == "--test":
         exit(run(globals(), halt=True)[0])
     else:
@@ -180,6 +194,18 @@ if __name__ == "__main__":
             print("  RoundOff({}) = {}".format(i, RoundOff(i)))
         x = pi*1e8
         print("pi*1e8 rounded to indicated number of digits:")
-        for i in range(1, 15):
+        print(f"pi*1e8 = {x}")
+        for i in range(1, 17):
             y = RoundOff(x, digits=i)
             print("  {:2d} {} [sigfig = {}]".format(i, y, SigFig(y)))
+        print(dedent('''
+        sigfig is reported as 12, but the number printed has more digits.
+        This is deliberate and is based on the assumption that these
+        numbers represent a physical quantity.
+
+        Ignore the old convention of e.g. stating that 310000000.0 has 10 
+        significant figures.  It has the number of significant figures that
+        you rounded it to.  If you want to properly show the number of
+        significant figures in a floating point number, give its interpolated
+        string in scientific notation.
+        '''))

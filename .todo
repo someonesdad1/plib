@@ -506,7 +506,6 @@ pgm
                  1         2         3         4         5         6         7
         ····+····|····+····|····+····|····+····|····+····|····+····|····+····|
 
-
     - disks.ksh
         - Convert this to a python script that remembers the names of the
           floppy disks.  Note:  I used to have a directory somewhere with the
@@ -590,6 +589,10 @@ pgm
           dictionary by default and print the tokens out in columns for
           each file.
 
+    - Elements
+        - The wikipedia pages has useful information on the elements.  It
+          would be nice if this information is regular enough to allow
+          scraping to get a database.
 Other
     -NAS
         - Current storage
