@@ -58,14 +58,14 @@ if 1:   # Header
         from wrap import dedent, wrap
         from f import flt
         from bidict import bidict
-        float = flt
         from u import u, to, fromto, ParseUnit
         if len(sys.argv) > 1:
             import debug
             debug.SetDebugger()
-if 1:   # Global variables
-    ii = isinstance
-    class g:  pass      # Convenience to hold globals
+        from get import GetLines
+    # Global variables
+        ii = isinstance
+        class g:  pass      # Convenience to hold globals
 if 1:   # Density information
     # The following density information came from a variety of sources.
     # See the material following this table for the details on the
@@ -77,10 +77,10 @@ if 1:   # Density information
     Alnico                                         ; 6.9-7.2     ; aes 308
     Alnico I                                       ; 6.89        ; asm 52
     Aluminum                                       ; 2.64        ; glo 390
-    Aluminum                                       ; 2.698       ; el
+    Aluminum                                       ; 2.698       ; tel 12
     Aluminum                                       ; 2.7         ; pht
     Aluminum                                       ; 2.70        ; aes 117
-    Aluminum                                       ; 2.70        ; mh 2270
+    Aluminum                                       ; 2.70        ; mhb 2270
     Aluminum bronze (3-10% Al)                     ; 7.7-8.7     ; sim
     Aluminum foil                                  ; 2.7-2.75    ; sim
     Aluminum, 2024 alloy                           ; 2.77        ; asm 52
@@ -89,39 +89,39 @@ if 1:   # Density information
     Aluminum, 99.996%                              ; 2.6989      ; asm 52
     Aluminum, liquid at melting point              ; 2.39        ; hcp B263
     Aluminum, melted                               ; 2.56-2.64   ; sim
-    Antimony                                       ; 6.618       ; mh 2270
+    Antimony                                       ; 6.618       ; mhb 2270
     Antimony                                       ; 6.62        ; asm 52
     Antimony                                       ; 6.69        ; aes 117
-    Antimony                                       ; 6.691       ; el
+    Antimony                                       ; 6.691       ; tel 16
     Antimony, cast                                 ; 6.696       ; sim
     Antimony, cast                                 ; 6.7         ; glo 390
     Babbitt                                        ; 7.272       ; sim
     Babbitt                                        ; 7.28        ; glo 390
     Babbitt, lead-based, SAE 13                    ; 10.24       ; asm 52
-    Barium                                         ; 3.594       ; el
+    Barium                                         ; 3.594       ; tel 24
     Barium                                         ; 3.78        ; glo 390
-    Barium                                         ; 3.78        ; mh 2270
+    Barium                                         ; 3.78        ; mhb 2270
     Barium                                         ; 3.78        ; sim
     Beryllium                                      ; 1.84        ; sim
-    Beryllium                                      ; 1.8477      ; el
+    Beryllium                                      ; 1.8477      ; tel 28
     Beryllium                                      ; 1.848       ; asm 52
     Beryllium                                      ; 1.85        ; aes 117
     Beryllium copper                               ; 8.1-8.25    ; sim
     Beryllium copper                               ; 8.25        ; aes 118
     Beryllium wire                                 ; 1.85        ; aes 182
     Beryllium-copper                               ; 8.23        ; asm 52
-    Bismuth                                        ; 9.747       ; el
+    Bismuth                                        ; 9.747       ; tel 30
     Bismuth                                        ; 9.75        ; aes 117
-    Bismuth                                        ; 9.781       ; mh 2270
+    Bismuth                                        ; 9.781       ; mhb 2270
     Bismuth                                        ; 9.787       ; sim
     Bismuth                                        ; 9.79        ; glo 390
     Bismuth                                        ; 9.80        ; asm 52
-    Boron                                          ; 2.535       ; mh 2270
+    Boron                                          ; 2.535       ; mhb 2270
     Brass                                          ; 8.56        ; glo 390
-    Brass, 50 Cu, 50 Zn                            ; 8.20        ; mh 2270
-    Brass, 60 Cu, 40 Zn                            ; 8.36        ; mh 2270
-    Brass, 70 Cu, 30 Zn                            ; 8.44        ; mh 2270
-    Brass, 80 Cu, 20 Zn                            ; 8.60        ; mh 2270
+    Brass, 50 Cu, 50 Zn                            ; 8.20        ; mhb 2270
+    Brass, 60 Cu, 40 Zn                            ; 8.36        ; mhb 2270
+    Brass, 70 Cu, 30 Zn                            ; 8.44        ; mhb 2270
+    Brass, 80 Cu, 20 Zn                            ; 8.60        ; mhb 2270
     Brass, cartridge 70%                           ; 8.53        ; asm 52
     Brass, cast                                    ; 8.4-8.7     ; sim
     Brass, leaded free-machining                   ; 8.50        ; asm 52
@@ -132,52 +132,52 @@ if 1:   # Density information
     Brass, yellow (high brass)                     ; 8.47        ; aes 118
     Bronze                                         ; 8.16        ; glo 390
     Bronze (8-14% tin)                             ; 7.4-8.9     ; sim
-    Bronze, 90 Cu, 10 Sn                           ; 8.78        ; mh 2270
+    Bronze, 90 Cu, 10 Sn                           ; 8.78        ; mhb 2270
     Bronze, lead                                   ; 7.7-8.7     ; sim
     Bronze, phosphor                               ; 8.88        ; mar 6-7
     Bronze, phosphor, 8%                           ; 8.80        ; asm 52
     Bronze, phosphorous                            ; 8.78-8.92   ; sim
-    Cadmium                                        ; 8.648       ; mh 2270
+    Cadmium                                        ; 8.648       ; mhb 2270
     Cadmium                                        ; 8.65        ; aes 117
     Cadmium                                        ; 8.65        ; asm 52
     Cadmium                                        ; 8.65        ; glo 390
     Cadmium                                        ; 8.65        ; sim
-    Cadmium                                        ; 8.650       ; el
-    Calcium                                        ; 1.54        ; mh 2270
+    Cadmium                                        ; 8.650       ; tel 36
+    Calcium                                        ; 1.54        ; mhb 2270
     Calcium                                        ; 1.55        ; asm 52
-    Calcium                                        ; 1.550       ; el
+    Calcium                                        ; 1.550       ; tel 40
     Cerium                                         ; 6.771       ; aes 129
-    Cerium (alpha)                                 ; 8.240       ; el
-    Cerium (beta)                                  ; 6.749       ; el
-    Cerium (delta)                                 ; 6.700       ; el
-    Cerium (gamma)                                 ; 6.773       ; el
-    Cesium                                         ; 1.873       ; el
+    Cerium (alpha)                                 ; 8.240       ; tel 46
+    Cerium (beta)                                  ; 6.749       ; tel 46
+    Cerium (delta)                                 ; 6.700       ; tel 46
+    Cerium (gamma)                                 ; 6.773       ; tel 46
+    Cesium                                         ; 1.873       ; tel 38
     Cesium                                         ; 1.903       ; asm 52
     Chrome, liquid at melting point                ; 6.46        ; hcp B263
-    Chromel (90Ni-10Cr)                            ; 8.5         ; wp
+    Chromel (90Ni-10Cr)                            ; 8.5         ; wkp
     Chromium                                       ; 6.856       ; sim
     Chromium                                       ; 6.86        ; glo 390
-    Chromium                                       ; 6.93        ; mh 2270
+    Chromium                                       ; 6.93        ; mhb 2270
     Chromium                                       ; 7.19        ; asm 52
-    Chromium                                       ; 7.190       ; el
+    Chromium                                       ; 7.190       ; tel 50
     Chromium                                       ; 7.2         ; aes 117
     Chromium                                       ; 7.20        ; aes 120
-    Cobalt                                         ; 8.71        ; mh 2270
+    Cobalt                                         ; 8.71        ; mhb 2270
     Cobalt                                         ; 8.746       ; sim
     Cobalt                                         ; 8.75        ; glo 390
     Cobalt                                         ; 8.85        ; asm 52
     Cobalt                                         ; 8.9         ; aes 117
     Cobalt                                         ; 8.9         ; aes 120
-    Cobalt                                         ; 8.900       ; el
+    Cobalt                                         ; 8.900       ; tel 52
     Cobalt, liquid at melting point                ; 7.67        ; hcp B263
     Constantan                                     ; 8.9         ; asm 52
     Constantan (cupronickel 55-45)                 ; 8.9         ; aes 118
-    Copper                                         ; 8.89        ; mh 2270
+    Copper                                         ; 8.89        ; mhb 2270
     Copper                                         ; 8.91        ; aes 118
     Copper                                         ; 8.93        ; sim
     Copper                                         ; 8.96        ; aes 117
     Copper                                         ; 8.96        ; pht
-    Copper                                         ; 8.960       ; el
+    Copper                                         ; 8.960       ; tel 54
     Copper ore, pyrites                            ; 4.1-4.3     ; mar 6-7
     Copper, OFHC (oxygen-free high conductivity)   ; 8.94        ; web
     Copper, cast                                   ; 8.69        ; glo 390
@@ -185,55 +185,55 @@ if 1:   # Density information
     Copper, liquid at melting point                ; 7.94        ; hcp B263
     Copper, pure                                   ; 8.96        ; asm 52
     Copper, rolled                                 ; 8.91        ; glo 390
-    Curium                                         ; 13.300      ; el
+    Curium                                         ; 13.300      ; tel 56
     Delta metal (brass alloy:  55 Cu, 42 Zn, 2 Fe) ; 8.6         ; sim
     Dysprosium                                     ; 8.540       ; aes 129
-    Dysprosium                                     ; 8.550       ; el
+    Dysprosium                                     ; 8.550       ; tel 58
     Electrum (40-50% gold, balance mostly silver)  ; 8.4-8.9     ; sim
     Erbium                                         ; 9.045       ; aes 129
-    Erbium                                         ; 9.066       ; el
-    Europium                                       ; 5.243       ; el
+    Erbium                                         ; 9.066       ; tel 62
+    Europium                                       ; 5.243       ; tel 64
     Europium                                       ; 5.253       ; aes 129
     Gadolinium                                     ; 7.898       ; aes 129
-    Gadolinium                                     ; 7.9004      ; el
+    Gadolinium                                     ; 7.9004      ; tel 72
     Galena (lead ore, PbS)                         ; 7.3-7.6     ; mar 6-7
     Gallium                                        ; 5.907       ; asm 52
-    Gallium                                        ; 5.907       ; el
+    Gallium                                        ; 5.907       ; tel 74
     German silver (nickel silver)                  ; 8.58        ; mar 6-7
     Germanium                                      ; 5.323       ; asm 52
-    Gold                                           ; 19.3        ; mh 2270
+    Gold                                           ; 19.3        ; mhb 2270
     Gold                                           ; 19.3        ; pht
     Gold                                           ; 19.32       ; aes 117
     Gold                                           ; 19.32       ; asm 52
     Gold                                           ; 19.32       ; sim
-    Gold                                           ; 19.320      ; el
+    Gold                                           ; 19.320      ; tel 78
     Gold coin, US                                  ; 17.18-17.2  ; mar 6-7
     Gold, liquid at melting point                  ; 17.3        ; hcp B263
     Gold, pure                                     ; 19.29       ; glo 390
     Hafnium                                        ; 13.1        ; asm 52
     Hafnium                                        ; 13.3        ; aes 120
-    Hafnium                                        ; 13.310      ; el
+    Hafnium                                        ; 13.310      ; tel 80
     Holmium                                        ; 8.781       ; aes 129
-    Holmium                                        ; 8.795       ; el
+    Holmium                                        ; 8.795       ; tel 84
     Inconel X (Ni-Cr-Fe alloy)                     ; 8.30        ; asm 52
     Inconel(Ni-Cr-Fe alloy)                        ; 8.51        ; asm 52
     Indium                                         ; 7.31        ; asm 52
-    Indium                                         ; 7.310       ; el
+    Indium                                         ; 7.310       ; tel 88
     Iridium                                        ; 22.15       ; sim
     Iridium                                        ; 22.16       ; glo 390
     Iridium                                        ; 22.4        ; aes 120
     Iridium                                        ; 22.4        ; pht
     Iridium                                        ; 22.42       ; aes 117
-    Iridium                                        ; 22.42       ; mh 2270
-    Iridium                                        ; 22.420      ; el
+    Iridium                                        ; 22.42       ; mhb 2270
+    Iridium                                        ; 22.420      ; tel 82
     Iridium                                        ; 22.5        ; asm 52
     Iron                                           ; 7.85        ; sim
     Iron                                           ; 7.87        ; aes 117
     Iron                                           ; 7.87        ; aes 120
     Iron                                           ; 7.87        ; pht
-    Iron                                           ; 7.874       ; el
+    Iron                                           ; 7.874       ; tel 84
     Iron, cast                                     ; 6.8-7.8     ; sim
-    Iron, cast                                     ; 7.03-7.73   ; mh 2270
+    Iron, cast                                     ; 7.03-7.73   ; mhb 2270
     Iron, cast                                     ; 7.2         ; aes 118
     Iron, cast                                     ; 7.21        ; glo 390
     Iron, cast gray                                ; 6.95-7.35   ; asm 52
@@ -244,16 +244,16 @@ if 1:   # Density information
     Iron, malleable                                ; 7.32        ; aes 118
     Iron, pure                                     ; 7.874       ; asm 52
     Iron, wrought                                  ; 7.77        ; glo 390
-    Iron, wrought                                  ; 7.80-7.90   ; mh 2270
+    Iron, wrought                                  ; 7.80-7.90   ; mhb 2270
     Kovar (29% Ni, 17% Co, bal. Fe)                ; 8.36        ; hcp F159
-    Lanthanum                                      ; 6.145       ; el
+    Lanthanum                                      ; 6.145       ; tel 98
     Lanthanum                                      ; 6.166       ; aes 129
     Lead                                           ; 11.34       ; mar 6-7
     Lead                                           ; 11.34       ; sim
-    Lead                                           ; 11.342      ; mh 2270
+    Lead                                           ; 11.342      ; mhb 2270
     Lead                                           ; 11.35       ; aes 117
     Lead                                           ; 11.35       ; pht
-    Lead                                           ; 11.350      ; el
+    Lead                                           ; 11.350      ; tel 102
     Lead 99.9%                                     ; 11.34       ; asm 52
     Lead, antimonial (hard)                        ; 10.9        ; aes 118
     Lead, cast                                     ; 11.35       ; glo 390
@@ -265,27 +265,27 @@ if 1:   # Density information
     Lead, liquid at melting point                  ; 10.678      ; hcp B263
     Lead, rolled                                   ; 11.39       ; glo 390
     Lead, rolled                                   ; 11.39       ; sim
-    Lithium                                        ; .534        ; el
+    Lithium                                        ; .534        ; tel 104
     Lithium                                        ; 0.534       ; asm 52
     Lithium                                        ; 0.534       ; pht
     Lutetium                                       ; 9.835       ; aes 129
-    Lutetium                                       ; 9.840       ; el
-    Magnesium                                      ; 1.738       ; el
+    Lutetium                                       ; 9.840       ; tel 106
+    Magnesium                                      ; 1.738       ; tel 108
     Magnesium                                      ; 1.738       ; sim
     Magnesium                                      ; 1.74        ; aes 117
-    Magnesium                                      ; 1.741       ; mh 2270
+    Magnesium                                      ; 1.741       ; mhb 2270
     Magnesium                                      ; 1.75        ; glo 390
     Magnesium, liquid at melting point             ; 1.57        ; hcp B263
-    Manganese                                      ; 7.3         ; mh 2270
+    Manganese                                      ; 7.3         ; mhb 2270
     Manganese                                      ; 7.42        ; mar 6-7
     Manganese                                      ; 7.43        ; asm 52
-    Manganese                                      ; 7.440       ; el
+    Manganese                                      ; 7.440       ; tel 110
     Manganese                                      ; 7.609       ; sim
     Manganese                                      ; 7.61        ; glo 390
     Manganese (3 allotropes)                       ; 7.21-7.44   ; aes 117
     Mercury                                        ; 13.546      ; aes 117
     Mercury                                        ; 13.546      ; asm 52
-    Mercury                                        ; 13.546      ; el
+    Mercury                                        ; 13.546      ; tel 114
     Mercury                                        ; 13.59       ; sim
     Mercury                                        ; 13.594      ; pht
     Mercury (-10 °C)                               ; 13.6202     ; hcp F4
@@ -303,16 +303,16 @@ if 1:   # Density information
     Mercury (35 °C)                                ; 13.5095     ; hcp F4
     Mercury (40 °C)                                ; 13.4973     ; hcp F4
     Mercury (50 °C)                                ; 13.4729     ; hcp F4
-    Mercury (68 F)                                 ; 13.546      ; mh 2270
+    Mercury (68 F)                                 ; 13.546      ; mhb 2270
     Mercury 20 °C                                  ; 13.5462     ; hcp F4
     Mercury 25 °C                                  ; 13.633      ; aes 90
     Mercury at 0 deg °C                            ; 13.61       ; glo 390
     Molybdenum                                     ; 10.19       ; glo 390
     Molybdenum                                     ; 10.19       ; sim
-    Molybdenum                                     ; 10.2        ; mh 2270
+    Molybdenum                                     ; 10.2        ; mhb 2270
     Molybdenum                                     ; 10.22       ; aes 117
     Molybdenum                                     ; 10.22       ; asm 52
-    Molybdenum                                     ; 10.220      ; el
+    Molybdenum                                     ; 10.220      ; tel 116
     Molybdenum, liquid at melting point            ; 9.33        ; hcp B263
     Molydenum                                      ; 10.2        ; aes 120
     Monel (Ni-Cu alloy)                            ; 8.36-8.84   ; sim
@@ -322,16 +322,16 @@ if 1:   # Density information
     Monel, rolled                                  ; 8.97        ; mar 6-7
     Mu metal (high-permeability alloy)             ; 8.58        ; hcp E121
     Neodymium                                      ; 7.003       ; aes 129
-    Neodymium                                      ; 7.007       ; el
+    Neodymium                                      ; 7.007       ; tel 118
     Nichrome, 80 Ni, 20 Cr, 108 uohm-cm            ; 8.4         ; asm 52
-    Nickel                                         ; 8.8         ; mh 2270
+    Nickel                                         ; 8.8         ; mhb 2270
     Nickel                                         ; 8.8         ; sim
     Nickel                                         ; 8.89        ; aes 118
     Nickel                                         ; 8.9         ; aes 120
     Nickel                                         ; 8.9         ; mar 6-7
     Nickel                                         ; 8.9         ; pht
     Nickel                                         ; 8.90        ; aes 117
-    Nickel                                         ; 8.902       ; el
+    Nickel                                         ; 8.902       ; tel 124
     Nickel silver                                  ; 8.4-8.9     ; sim
     Nickel silver                                  ; 8.442       ; sim
     Nickel silver                                  ; 8.45        ; glo 390
@@ -346,22 +346,22 @@ if 1:   # Density information
     Niobium                                        ; 8.57        ; aes 120
     Niobium                                        ; 8.57        ; asm 52
     Niobium                                        ; 8.57        ; web
-    Niobium                                        ; 8.570       ; el
+    Niobium                                        ; 8.570       ; tel 126
     Osmium                                         ; 22.5        ; pht
     Osmium                                         ; 22.57       ; aes 117
     Osmium                                         ; 22.583      ; asm 52
-    Osmium                                         ; 22.590      ; el
+    Osmium                                         ; 22.590      ; tel 132
     Osmium                                         ; 22.6        ; aes 120
     Palladium                                      ; 12.0        ; aes 120
     Palladium                                      ; 12.02       ; asm 52
-    Palladium                                      ; 12.020      ; el
+    Palladium                                      ; 12.020      ; tel 136
     Permalloy 45 (high-permeability alloy)         ; 8.17        ; hcp E121
-    Platinum                                       ; 21.37       ; mh 2270
+    Platinum                                       ; 21.37       ; mhb 2270
     Platinum                                       ; 21.4        ; sim
     Platinum                                       ; 21.45       ; aes 117
     Platinum                                       ; 21.45       ; asm 52
     Platinum                                       ; 21.45       ; pht
-    Platinum                                       ; 21.450      ; el
+    Platinum                                       ; 21.450      ; tel 140
     Platinum                                       ; 21.5        ; aes 120
     Platinum                                       ; 21.51       ; glo 390
     Platinum - 10% Rh (thermocouple material)      ; 19.97       ; asm 52
@@ -369,57 +369,57 @@ if 1:   # Density information
     Plutonium                                      ; 19.8        ; sim
     Plutonium                                      ; 19.84       ; aes 117
     Plutonium                                      ; 19.84       ; asm 52
-    Plutonium                                      ; 19.840      ; el
+    Plutonium                                      ; 19.840      ; tel 142
     Plutonium, alpha                               ; 19.86       ; pht
     Potassium                                      ; .86         ; aes 117
-    Potassium                                      ; .862        ; el
-    Potassium                                      ; .870        ; mh 2270
+    Potassium                                      ; .862        ; tel 146
+    Potassium                                      ; .870        ; mhb 2270
     Potassium                                      ; 0.86        ; asm 52
     Praseodymium                                   ; 6.772       ; aes 129
-    Praseodymium                                   ; 6.773       ; el
+    Praseodymium                                   ; 6.773       ; tel 148
     Rhenium                                        ; 21.0        ; aes 120
-    Rhenium                                        ; 21.020      ; el
+    Rhenium                                        ; 21.020      ; tel 158
     Rhenium                                        ; 21.04       ; asm 52
     Rhodium                                        ; 12.4        ; aes 120
     Rhodium                                        ; 12.41       ; aes 117
-    Rhodium                                        ; 12.410      ; el
+    Rhodium                                        ; 12.410      ; tel 160
     Rhodium                                        ; 12.44       ; asm 52
-    Rubidium                                       ; 1.532       ; el
+    Rubidium                                       ; 1.532       ; tel 162
     Ruthenium                                      ; 12.2        ; asm 52
-    Ruthenium                                      ; 12.370      ; el
+    Ruthenium                                      ; 12.370      ; tel 164
     Ruthenium                                      ; 12.4        ; aes 120
-    Samarium                                       ; 7.520       ; el
+    Samarium                                       ; 7.520       ; tel 166
     Samarium                                       ; 7.537       ; aes 129
     Scandium                                       ; 2.989       ; aes 129
-    Scandium                                       ; 2.989       ; el
+    Scandium                                       ; 2.989       ; tel 168
     Selenium                                       ; 4.79        ; asm 52
-    Selenium                                       ; 4.790       ; el
+    Selenium                                       ; 4.790       ; tel 170
     Selenium                                       ; 4.8         ; aes 117
-    Silicon                                        ; 2.329       ; el
+    Silicon                                        ; 2.329       ; tel 172
     Silicon                                        ; 2.33        ; aes 117
     Silicon                                        ; 2.33        ; asm 52
     Silicon, liquid at melting point               ; 2.52        ; hcp B263
-    Silver                                         ; 10.42-10.53 ; mh 2270
+    Silver                                         ; 10.42-10.53 ; mhb 2270
     Silver                                         ; 10.46       ; glo 390
     Silver                                         ; 10.49       ; asm 52
     Silver                                         ; 10.49       ; pht
     Silver                                         ; 10.49       ; sim
     Silver                                         ; 10.50       ; aes 117
-    Silver                                         ; 10.500      ; el
+    Silver                                         ; 10.500      ; tel 174
     Silver, liquid at melting point                ; 9.33        ; hcp B263
     Sodium                                         ; .97         ; aes 117
-    Sodium                                         ; .971        ; el
-    Sodium                                         ; .9712       ; mh 2270
+    Sodium                                         ; .971        ; tel 176
+    Sodium                                         ; .9712       ; mhb 2270
     Sodium                                         ; .977        ; sim
     Sodium                                         ; .98         ; glo 390
     Sodium                                         ; 0.97        ; asm 52
     Sodium, liquid at melting point                ; .938        ; hcp B263
-    Solder, 35 Sn, 65 Pb                           ; 9.50        ; mh 2196
-    Solder, 50 Sn, 50 Pb                           ; 8.85        ; mh 2196
+    Solder, 35 Sn, 65 Pb                           ; 9.50        ; mhb 2196
+    Solder, 50 Sn, 50 Pb                           ; 8.85        ; mhb 2196
     Solder, 50-50                                  ; 8.89        ; aes 118
     Solder, 63 Pb, 37 Sn eutectic                  ; 8.42        ; asm 52
-    Solder, 63 Pb, 37 Sn eutectic                  ; 8.40        ; mh 2196
-    Solder, 70 Sn, 30 Pb                           ; 8.32        ; mh 2196
+    Solder, 63 Pb, 37 Sn eutectic                  ; 8.40        ; mhb 2196
+    Solder, 70 Sn, 30 Pb                           ; 8.32        ; mhb 2196
     Steel, 304 stainless                           ; 8.02        ; aes 118
     Steel, cast                                    ; 7.85        ; glo 390
     Steel, low-carbon Cr-Mo                        ; 7.86        ; asm 52
@@ -432,69 +432,69 @@ if 1:   # Density information
     Steel, stainless, 316                          ; 8.0         ; asm 52
     Steel, stainless, 440                          ; 7.7         ; asm 52
     Steel, tool, M2 (high-speed steel)             ; 8.16        ; asm 52
-    Strontium                                      ; 2.540       ; el
+    Strontium                                      ; 2.540       ; tel 178
     Tantalum                                       ; 16.6        ; aes 117
     Tantalum                                       ; 16.6        ; aes 120
     Tantalum                                       ; 16.6        ; asm 52
-    Tantalum                                       ; 16.6        ; mh 2270
-    Tantalum                                       ; 16.654      ; el
-    Tellurium                                      ; 6.240       ; el
-    Tellurium                                      ; 6.25        ; mh 2270
-    Terbium                                        ; 8.229       ; el
+    Tantalum                                       ; 16.6        ; mhb 2270
+    Tantalum                                       ; 16.654      ; tel 182
+    Tellurium                                      ; 6.240       ; tel 186
+    Tellurium                                      ; 6.25        ; mhb 2270
+    Terbium                                        ; 8.229       ; tel 188
     Terbium                                        ; 8.234       ; aes 129
     Thallium                                       ; 11.85       ; asm 52
-    Thallium                                       ; 11.850      ; el
+    Thallium                                       ; 11.850      ; tel 190
     Thorium                                        ; 11.7        ; aes 117
     Thorium                                        ; 11.7        ; aes 120
     Thorium                                        ; 11.72       ; asm 52
-    Thorium                                        ; 11.720      ; el
+    Thorium                                        ; 11.720      ; tel 182
     Thulium                                        ; 9.314       ; aes 129
-    Thulium                                        ; 9.321       ; el
+    Thulium                                        ; 9.321       ; tel 194
     Tin                                            ; 7.28        ; sim
-    Tin                                            ; 7.29        ; mh 2270
+    Tin                                            ; 7.29        ; mhb 2270
     Tin                                            ; 7.31        ; aes 117
-    Tin (alpha)                                    ; 5.750       ; el
-    Tin (beta) (common form)                       ; 7.310       ; el
+    Tin (alpha)                                    ; 5.750       ; tel 196
+    Tin (beta) (common form)                       ; 7.310       ; tel 196
     Tin, cast                                      ; 7.36        ; glo 390
     Tin, liquid at melting point                   ; 7.0         ; hcp B263
     Tin, pure                                      ; 7.3         ; asm 52
-    Titanium                                       ; 4.5         ; mh 2270
+    Titanium                                       ; 4.5         ; mhb 2270
     Titanium                                       ; 4.5         ; pht
     Titanium                                       ; 4.5         ; sim
     Titanium                                       ; 4.54        ; aes 117
     Titanium                                       ; 4.54        ; aes 120
-    Titanium                                       ; 4.540       ; el
+    Titanium                                       ; 4.540       ; tel 198
     Titanium, 99.9%                                ; 4.507       ; asm 52
     Titanium, commercial                           ; 5.          ; aes 118
-    Tungsten                                       ; 18.6-19.1   ; mh 2270
+    Tungsten                                       ; 18.6-19.1   ; mhb 2270
     Tungsten                                       ; 19.3        ; aes 117
     Tungsten                                       ; 19.3        ; aes 120
     Tungsten                                       ; 19.3        ; asm 52
     Tungsten                                       ; 19.3        ; pht
-    Tungsten                                       ; 19.300      ; el
+    Tungsten                                       ; 19.300      ; tel 200
     Tungsten                                       ; 19.6        ; sim
     Tungsten                                       ; 19.62       ; glo 390
     Tungsten, filament                             ; 19.3        ; aes 182
-    Uranium                                        ; 18.7        ; mh 2270
+    Uranium                                        ; 18.7        ; mhb 2270
     Uranium                                        ; 18.8        ; aes 117
     Uranium                                        ; 18.9        ; sim
-    Uranium                                        ; 18.950      ; el
+    Uranium                                        ; 18.950      ; tel 202
     Uranium                                        ; 19.05       ; pht
     Uranium                                        ; 19.07       ; asm 52
     Vanadium                                       ; 5.494       ; sim
     Vanadium                                       ; 5.50        ; glo 390
-    Vanadium                                       ; 5.6         ; mh 2270
+    Vanadium                                       ; 5.6         ; mhb 2270
     Vanadium                                       ; 6.1         ; aes 117
     Vanadium                                       ; 6.1         ; aes 120
     Vanadium                                       ; 6.1         ; asm 52
-    Vanadium                                       ; 6.110       ; el
-    Ytterbium                                      ; 6.965       ; el
+    Vanadium                                       ; 6.110       ; tel 204
+    Ytterbium                                      ; 6.965       ; tel 208
     Ytterbium                                      ; 6.972       ; aes 129
     Yttrium                                        ; 4.457       ; aes 129
-    Yttrium                                        ; 4.469       ; el
+    Yttrium                                        ; 4.469       ; tel 210
     Zinc                                           ; 7           ; aes 117
-    Zinc                                           ; 7.04-7.16   ; mh 2270
-    Zinc                                           ; 7.133       ; el
+    Zinc                                           ; 7.04-7.16   ; mhb 2270
+    Zinc                                           ; 7.133       ; tel 212
     Zinc                                           ; 7.135       ; sim
     Zinc                                           ; 7.14        ; aes 118
     Zinc                                           ; 7.14        ; pht
@@ -503,7 +503,7 @@ if 1:   # Density information
     Zinc, liquid at melting point                  ; 6.64        ; hcp B263
     Zinc, pure                                     ; 7.133       ; asm 52
     Zirconium                                      ; 6.5         ; asm 52
-    Zirconium                                      ; 6.506       ; el
+    Zirconium                                      ; 6.506       ; tel 214
     Zirconium                                      ; 6.53        ; aes 120
     Zirconium, commercial                          ; 6.5         ; aes 118
 
@@ -639,7 +639,7 @@ if 1:   # Density information
     Furforol 25 °C                                  ; 1.155       ; sim
     Gas oils 60 F                                  ; .89         ; sim
     Gasoline                                       ; .68-.72     ; hep 43
-    Gasoline                                       ; .71-.77     ; wp
+    Gasoline                                       ; .71-.77     ; wkp
     Gasoline                                       ; 0.803       ; pht
     Gasoline, natural 60 F                         ; .7112       ; sim
     Gasoline, vehicle 60 F                         ; .7372       ; sim
@@ -668,7 +668,7 @@ if 1:   # Density information
     Hydrochloric acid, 8%                          ; 1.0395      ; aes 370
     Hydrogen (H2), liquid, 17 K                    ; 0.071       ; pht
     Hydrogen (liquid, bp = 20 K)                   ; .071        ; aes 97
-    Hydrogen (solid < 14 K)                        ; .086        ; wp
+    Hydrogen (solid < 14 K)                        ; .086        ; wkp
     Iodine 25 °C                                    ; 4.927       ; sim
     Ionene 25 °C                                    ; .9323       ; sim
     Iso-octane 20 °C                                ; .6919       ; sim
@@ -903,7 +903,7 @@ if 1:   # Density information
     o-Dichlorobenzene 20 °C                         ; 1.306       ; sim
 
     category = misc
-    Aerographite                                   ; .00018      ; wp
+    Aerographite                                   ; .00018      ; wkp
     Aerogel, silica                                ; .11         ; aes 177
     Alabaster, carbonate                           ; 2.69-2.78   ; aes 178
     Alabaster, sulfate                             ; 2.26-2.32   ; aes 178
@@ -1080,7 +1080,7 @@ if 1:   # Density information
     Coke                                           ; .42         ; glo 390
     Coke                                           ; .57-.65     ; sim
     Coke                                           ; 1.0-1.7     ; aes 178
-    Comets                                         ; 0.3-0.6     ; wp
+    Comets                                         ; 0.3-0.6     ; wkp
     Concrete, dry                                  ; 1.6         ; hep 45
     Concrete, gravel                               ; 2.40        ; glo 390
     Concrete, gravel                               ; 2.403       ; sim
@@ -1146,7 +1146,7 @@ if 1:   # Density information
     Earth (dirt), soft, loose mud                  ; 1.73        ; glo 390
     Earth (dirt), wet, excavated                   ; 1.60        ; glo 390
     Earth (dirt), wet, excavated                   ; 1.602       ; sim
-    Earth (planet), mean density                   ; 5.514       ; wp
+    Earth (planet), mean density                   ; 5.514       ; wkp
     Earth, Fuller's, raw                           ; .67         ; glo 390
     Earth, Fuller's, raw                           ; .673        ; sim
     Ebonite                                        ; 1.15        ; aes 178
@@ -1251,7 +1251,7 @@ if 1:   # Density information
     Ivory                                          ; 1.83-1.92   ; aes 178
     Ivory                                          ; 1.84        ; glo 390
     Ivory                                          ; 1.842       ; sim
-    Jupiter (planet), mean density                 ; 1.326       ; wp
+    Jupiter (planet), mean density                 ; 1.326       ; wkp
     Jute (vegetable fiber)                         ; 1.5         ; aes 172
     Kapok between burlap or paper                  ; .016-.032   ; hcp E5
     Lanolin, refined                               ; .94         ; aes 159
@@ -1296,11 +1296,11 @@ if 1:   # Density information
     Manure                                         ; .4          ; glo 390
     Manure                                         ; .4          ; sim
     Marl, wet, excavated                           ; 2.24        ; glo 390
-    Mars (planet), mean density                    ; 3.933       ; wp
+    Mars (planet), mean density                    ; 3.933       ; wkp
     Mayonnaise, light                              ; 1.0         ; pht
     Mayonnaise, traditional                        ; 0.91        ; pht
     Meerschaum (hydrated magnesium silicate)       ; .99-1.28    ; aes 178
-    Mercury (planet), mean density                 ; 5.427       ; wp
+    Mercury (planet), mean density                 ; 5.427       ; wkp
     Milk, powdered                                 ; .449        ; sim
     Milk, powdered                                 ; .45         ; glo 390
     Mineral wool blanket                           ; .1          ; aes 177
@@ -1315,7 +1315,7 @@ if 1:   # Density information
     Mud, fluid                                     ; 1.73        ; sim
     Mud, packed                                    ; 1.906       ; sim
     Mud, packed                                    ; 1.91        ; glo 390
-    Neptune (planet), mean density                 ; 1.638       ; wp
+    Neptune (planet), mean density                 ; 1.638       ; wkp
     Oats                                           ; .43         ; glo 390
     Oats                                           ; .432        ; sim
     Oats, bulk                                     ; .41         ; mar 6-7
@@ -1417,7 +1417,7 @@ if 1:   # Density information
     Saltpeter (KNO₃)                               ; 1.2         ; glo 390
     Saltpeter (KNO₃)                               ; 1.201       ; sim
     Saltpeter (KNO₃)                               ; 2.11        ; mar 6-7
-    Sand, silica, 20 grains per inch, +/-0.05 g/cc ; 1.31        ; dp
+    Sand, silica, 20 grains per inch, +/-0.05 g/cc ; 1.31        ; msa
     Sand and gravel, dry                           ; 1.73        ; glo 390
     Sand and gravel, wet                           ; 2.0         ; glo 390
     Sand with gravel, dry                          ; 1.65        ; sim
@@ -1437,7 +1437,7 @@ if 1:   # Density information
     Sand, wet                                      ; 1.922       ; sim
     Sand, wet, packed                              ; 2.08        ; glo 390
     Sand, wet, packed                              ; 2.082       ; sim
-    Saturn (planet), mean density                  ; 0.687       ; wp
+    Saturn (planet), mean density                  ; 0.687       ; wkp
     Sawdust                                        ; .15         ; aes 177
     Sawdust                                        ; .21         ; sim
     Sawdust                                        ; .27         ; glo 390
@@ -1478,8 +1478,8 @@ if 1:   # Density information
     Soda ash, light (Na₂CO₃, washing soda)         ; .432        ; sim
     Sodium aluminate, ground                       ; 1.153       ; sim
     Sodium bicarbonate                             ; 2.2         ; pht
-    Sodium bicarbonate (baking soda) NaHCO₃        ; 2.2         ; wp
-    Sodium carbonate (washing soda) Na₂CO₃         ; 2.25-2.54   ; wp
+    Sodium bicarbonate (baking soda) NaHCO₃        ; 2.2         ; wkp
+    Sodium carbonate (washing soda) Na₂CO₃         ; 2.25-2.54   ; wkp
     Sodium carbonate (washing soda) Na₂CO₃*10H₂O   ; 1.44        ; hcp B165
     Sodium nitrate, ground (NaNO₃)                 ; 1.20        ; glo 390
     Sodium nitrate, ground (NaNO₃)                 ; 1.201       ; sim
@@ -1529,10 +1529,10 @@ if 1:   # Density information
     Tungsten carbide (WC)                          ; 15.2        ; aes 183
     Turf (lawn)                                    ; .4          ; sim
     Turf (lawn)                                    ; .40         ; glo 390
-    Uranus (planet), mean density                  ; 1.27        ; wp
+    Uranus (planet), mean density                  ; 1.27        ; wkp
     Vaseline                                       ; 0.9         ; web
     Vanadium carbide (VC)                          ; 5.8         ; aes 183
-    Venus (planet), mean density                   ; 5.243       ; wp
+    Venus (planet), mean density                   ; 5.243       ; wkp
     Water, fresh-fallen snow                       ; .125        ; mar 6-7
     Water, ice, -100 °C                             ; 0.927       ; pht
     Water, ice, -50 °C                              ; 0.922       ; pht
@@ -1590,7 +1590,7 @@ if 1:   # Density information
     Polyester                                      ; 1.5-2.1     ; aes 137
     Polyester w/45% wt chopped glass strands       ; 1.6         ; aes 149
     Polyester w/65% by wt glass cloth              ; 1.8         ; aes 149
-    PET, polyester terephthalate                   ; 1.38        ; wp
+    PET, polyester terephthalate                   ; 1.38        ; wkp
     Polyethylene                                   ; .93         ; aes 152
     Polyethylene, high density                     ; .941-.965   ; aes 137
     Polyethylene, low density                      ; .91-.925    ; aes 137
@@ -1598,12 +1598,12 @@ if 1:   # Density information
     Polypropylene                                  ; .90         ; aes 137
     Polypropylene                                  ; .905        ; aes 152
     Polystyrene                                    ; 1.04-1.08   ; aes 137
-    Polystyrene foam (Styrofoam)                   ; .04         ; wp
+    Polystyrene foam (Styrofoam)                   ; .04         ; wkp
     Polystyrene-acrylonitrile                      ; 1.05-1.1    ; aes 137
     Polytetrafluoroethylene (Teflon)               ; 2.1-2.3     ; aes 137
     Polytrifluorochloroethylene                    ; 2.1-2.3     ; aes 137
     Silicones                                      ; 1.8-2.8     ; aes 137
-    Stryofoam                                      ; .04         ; wp
+    Stryofoam                                      ; .04         ; wkp
     Teflon, FEP                                    ; 2.15        ; aes 152
     Teflon, FEP w/glass cloth                      ; 2.2         ; aes 152
     Teflon, TFE                                    ; 2.15        ; aes 152
@@ -1637,7 +1637,7 @@ if 1:   # Density information
     Beech (wood)                                   ; .70-.90     ; aes 178
     Birch (wood)                                   ; .51-.77     ; aes 178
     Birch (British)                                ; .67         ; sim
-    Birch plywood, 1/4" thick                      ; .345        ; dp
+    Birch plywood, 1/4" thick                      ; .345        ; msa
     Birch, sweet, yellow                           ; .71-.72     ; mar 6-7
     Birch, yellow                                  ; .71         ; glo 390
     Blue gum (wood)                                ; 1.0         ; aes 178
@@ -1655,7 +1655,7 @@ if 1:   # Density information
     # Measured chopped blue spruce branches 8 Sep 2016:  107 g in about 600
     # ml cup.  I rounded up from 0.18 because there was a group of needles
     # that hadn't been chopped up in the cup.
-    Chopped pine/spruce branches                   ; .2          ; dp
+    Chopped pine/spruce branches                   ; .2          ; msa
     Cottonwood                                     ; .42         ; glo 390
     Cypress (wood)                                 ; .51         ; glo 390
     Cypress (wood)                                 ; .45-.48     ; mar 6-7
@@ -1672,12 +1672,12 @@ if 1:   # Density information
     Elm (Wych)                                     ; .69         ; sim
     Elm, white                                     ; .56         ; mar 6-7
     Fiberboard, light                              ; .24         ; aes 177
-    Fiberboard, medium density (MDF)               ; .5-1        ; wp
+    Fiberboard, medium density (MDF)               ; .5-1        ; wkp
     Fir, Douglas                                   ; .53         ; glo 390
     Fir, Douglas                                   ; .48-.55     ; mar 6-7
     Fir, balsam                                    ; .4          ; mar 6-7
     Hardboard, fiber                               ; 1.1         ; aes 177
-    Hardboard, high density (e.g. Masonite)        ; .8-1.04     ; wp
+    Hardboard, high density (e.g. Masonite)        ; .8-1.04     ; wkp
     Hemlock (wood)                                 ; .4          ; glo 390
     Hemlock (wood)                                 ; .45-.5      ; mar 6-7
     Hickory (wood)                                 ; .60-.93     ; aes 178
@@ -1937,8 +1937,8 @@ if 1:   # Density information
     Muscovite (common mica, isinglass)             ; 2.76-3.00   ; aes 178
     Nickel ore                                     ; 1.6         ; sim
     Opal                                           ; 2.2         ; aes 178
-    Perlite (Home Depot bag Sep 2016)              ; .09         ; dp
-    Perlite (hydrated phyllosilicate)              ; .03-.15     ; wp
+    Perlite (Home Depot bag Sep 2016)              ; .09         ; msa
+    Perlite (hydrated phyllosilicate)              ; .03-.15     ; wkp
     Phosphate rock, broken                         ; 1.762       ; sim
     Platinum ore                                   ; 2.6         ; sim
     Porphyry (low-grade copper ore)                ; 2.6-2.9     ; mar 6-7
@@ -1960,13 +1960,13 @@ if 1:   # Density information
     Quartz, sand (SiO₂)                            ; 1.20        ; glo 390
     Quartz, solid (SiO₂)                           ; 2.64        ; glo 390
     Quartz, solid (SiO₂)                           ; 2.643       ; sim
-    Road mix (sand, dirt, small rocks)             ; 1.57        ; dp
+    Road mix (sand, dirt, small rocks)             ; 1.57        ; msa
     Rock salt (NaCl, halide)                       ; 2.18        ; aes 178
     Rock, soft, dug with shovel                    ; 1.6-1.78    ; sim
     Salt cake (Na₂SO₄)                             ; 1.442       ; sim
     Salt, coarse (NaCl, halide)                    ; .801        ; sim
     Salt, fine (NaCl, halide)                      ; 1.201       ; sim
-    Salt, table                                    ; 2.17        ; wp
+    Salt, table                                    ; 2.17        ; wkp
     Sandstone (sedimentary rock)                   ; 2-2.5       ; mar 6-7
     Sandstone (sedimentary rock)                   ; 2.14-2.36   ; aes 178
     Sandstone (sedimentary rock)                   ; 2.3         ; aes 177
@@ -1996,8 +1996,8 @@ if 1:   # Density information
     Soapstone (steatite, metamorphic rock)         ; 2.6-2.8     ; aes 178
     Soapstone, talc (steatite, metamorphic rock)   ; 2.4         ; sim
     Soapstone, talc (steatite, metamorphic rock)   ; 2.6-2.8     ; mar 6-7
-    Sodium silicate (Na₂SiO₃)                      ; 2.61        ; wp
-    Spinel MgAl₂O₄                                 ; 3.6-4.1     ; wp
+    Sodium silicate (Na₂SiO₃)                      ; 2.61        ; wkp
+    Spinel MgAl₂O₄                                 ; 3.6-4.1     ; wkp
     Spinel MgO*Al₂O₃                               ; 3.52        ; aes 193
     Stone (common, generic)                        ; 2.515       ; sim
     Stone, crushed                                 ; 1.6         ; glo 390
@@ -2074,10 +2074,10 @@ if 1:   # Density information
     Steam (H₂O) saturated (350 °C & 163.19 atm)     ; 0.1136      ; aes 18
     Steam (H₂O) saturated (50 °C & 0.123 atm)       ; 0.00008302  ; aes 18
     Sulfur dioxide (20 °C & 1 atm)                  ; 0.002661    ; aes 38
-    Tungsten hexafluoride                          ; 0.0124      ; wp
+    Tungsten hexafluoride                          ; 0.0124      ; wkp
     Xenon (20 °C & 1 atm)                           ; 0.005455    ; aes 38
     '''
-
+if 1:   # Quick list
     g.quick_list = dedent('''
         Aluminum                                       ; 2.70        ; aes 117
         Brass, leaded free-machining                   ; 8.50        ; asm 52
@@ -2104,7 +2104,7 @@ if 1:   # Density information
         Diesel oil, #2                                 ; .920        ; aes 389
         Ether                                          ; .715        ; aes 90
         Ethylene glycol                                ; 1.100       ; aes 90
-        Gasoline                                       ; .71-.77     ; wp
+        Gasoline                                       ; .71-.77     ; wkp
         Kerosene                                       ; .825        ; aes 389
         Mineral spirits (Stoddard solvent)             ; .66         ; aes 353
         Oil, SAE30, 15 °C                              ; 0.891       ; aes 624
@@ -2146,7 +2146,7 @@ if 1:   # Density information
         Teflon, TFE                                    ; 2.15        ; aes 152
  
         Fir, Douglas                                   ; .53         ; glo 390
-        Hardboard, high density (e.g. Masonite)        ; .8-1.04     ; wp
+        Hardboard, high density (e.g. Masonite)        ; .8-1.04     ; wkp
         Maple, sugar (wood)                            ; .68         ; mar 6-7
         Oak (wood)                                     ; .60-.90     ; aes 178
         Particle board, medium density                 ; .55-.7      ; web
@@ -2180,582 +2180,582 @@ if 1:   # Density information
 if 1:   # PowderHandling data
     # From https://www.powderhandling.com.au/bulk-density-chart/
     # Downloaded Thu 28 Apr 2022 09:42:56 AM
-    # Fixed a few spelling mistakes and converted to US English
+    # Fixed a few spelling mistakes and converted to US English.
     # Units are kg/m3
-    g.pwdrh_data = dedent('''
-        Abrasive compound                              ; 2371        ; pwdrh
-        Abrasive mix                                   ; 2451        ; pwdrh
-        Acetate                                        ; 561         ; pwdrh
-        Acetate flakes                                 ; 336         ; pwdrh
-        Acrylic fibers                                 ; 144         ; pwdrh
-        Acrylic resin                                  ; 513         ; pwdrh
-        Activated aluminum                             ; 240         ; pwdrh
-        Activated carbon                               ; 320         ; pwdrh
-        Adipic acid                                    ; 641         ; pwdrh
-        Alcanol                                        ; 625         ; pwdrh
-        Alfalfa leaf meal                              ; 240         ; pwdrh
-        Alfalfa meal                                   ; 272         ; pwdrh
-        Alfalfa meal, fine ground                      ; 304         ; pwdrh
-        Alfalfa pellets                                ; 673         ; pwdrh
-        Alfalfa seed                                   ; 737         ; pwdrh
-        Alumina                                        ; 641         ; pwdrh
-        Alumina powder                                 ; 288         ; pwdrh
-        Alumina, activated                             ; 769         ; pwdrh
-        Alumina, calcined                              ; 1009        ; pwdrh
-        Alumina, metal grade                           ; 1073        ; pwdrh
-        Aluminum flake                                 ; 2403        ; pwdrh
-        Aluminum fluoride                              ; 881         ; pwdrh
-        Aluminum magnesium silicate                    ; 336         ; pwdrh
-        Aluminum oxide                                 ; 1282        ; pwdrh
-        Aluminum powder                                ; 705         ; pwdrh
-        Aluminum silicate                              ; 529         ; pwdrh
-        Aluminum sulfate                               ; 1041        ; pwdrh
-        Ammonium bromide                               ; 1218        ; pwdrh
-        Ammonium chloride                              ; 609         ; pwdrh
-        Ammonium nitrate                               ; 785         ; pwdrh
-        Ammonium nitrate pills                         ; 609         ; pwdrh
-        Ammonium perchloride                           ; 993         ; pwdrh
-        Ammonium phosphate                             ; 881         ; pwdrh
-        Ammonium sulfate                               ; 1105        ; pwdrh
-        Amorphous silica                               ; 176         ; pwdrh
-        Anthracite, powdered                           ; 561         ; pwdrh
-        Antimony oxide                                 ; 705         ; pwdrh
-        Antioxidant (granules)                         ; 657         ; pwdrh
-        Antioxidant (powder)                           ; 449         ; pwdrh
-        Apple slices diced                             ; 240         ; pwdrh
-        Aquafloc                                       ; 160         ; pwdrh
-        Arsenic trioxide                               ; 657         ; pwdrh
-        Asbestos                                       ; 352         ; pwdrh
-        Asbestos fiber                                 ; 320         ; pwdrh
-        Asbestos powder                                ; 449         ; pwdrh
-        Ascorbic acid (coarse)                         ; 721         ; pwdrh
-        Ascorbic acid (fine)                           ; 513         ; pwdrh
-        Ash, ground                                    ; 1682        ; pwdrh
-        Ashes, dry loose                               ; 609         ; pwdrh
-        Ashes, wet loose                               ; 753         ; pwdrh
-        Baking powder                                  ; 897         ; pwdrh
-        Barbasco root                                  ; 529         ; pwdrh
-        Barites                                        ; 1922        ; pwdrh
-        Barium carbonate                               ; 881         ; pwdrh
-        Barium oxide                                   ; 1009        ; pwdrh
-        Barium stearate                                ; 208         ; pwdrh
-        Barium sulfate                                 ; 961         ; pwdrh
-        Barley (whole)                                 ; 641         ; pwdrh
-        Barley meal                                    ; 449         ; pwdrh
-        Barley, fine ground                            ; 737         ; pwdrh
-        Barley, ground                                 ; 400         ; pwdrh
-        Barley, malted                                 ; 481         ; pwdrh
-        Barley, rolled                                 ; 368         ; pwdrh
-        Barley, scoured                                ; 657         ; pwdrh
-        Bauxite                                        ; 721         ; pwdrh
-        Beans (soya)                                   ; 737         ; pwdrh
-        Beans, white                                   ; 721         ; pwdrh
-        Beet pulp                                      ; 288         ; pwdrh
-        Bentonite                                      ; 801         ; pwdrh
-        Bicarbonate of soda                            ; 993         ; pwdrh
-        Bleach compound                                ; 961         ; pwdrh
-        Blood flour                                    ; 481         ; pwdrh
-        Blood meal                                     ; 617         ; pwdrh
-        Bone meal loose                                ; 881         ; pwdrh
-        Bone, ground dry                               ; 1202        ; pwdrh
-        Borax                                          ; 961         ; pwdrh
-        Boric acid                                     ; 865         ; pwdrh
-        Bran                                           ; 561         ; pwdrh
-        Brass powder                                   ; 1602        ; pwdrh
-        Bread crumbs                                   ; 96          ; pwdrh
-        Brewers grains (dry)                           ; 256         ; pwdrh
-        Bronze powder                                  ; 1250        ; pwdrh
-        Buckwheat (whole)                              ; 609         ; pwdrh
-        Buckwheat bran                                 ; 256         ; pwdrh
-        Buckwheat flour                                ; 657         ; pwdrh
-        Buckwheat hulls                                ; 208         ; pwdrh
-        Buckwheat middlings                            ; 352         ; pwdrh
-        Buttermilk dried                               ; 497         ; pwdrh
-        Cake mix                                       ; 705         ; pwdrh
-        Calcium                                        ; 481         ; pwdrh
-        Calcium borate                                 ; 977         ; pwdrh
-        Calcium carbide, crushed                       ; 1282        ; pwdrh
-        Calcium carbonate                              ; 705         ; pwdrh
-        Calcium chloride                               ; 961         ; pwdrh
-        Calcium fluoride                               ; 1634        ; pwdrh
-        Calcium hydroxide                              ; 641         ; pwdrh
-        Calcium phosphate                              ; 769         ; pwdrh
-        Calcium silicate                               ; 160         ; pwdrh
-        Calcium stearate                               ; 320         ; pwdrh
-        Calcium sulfate                                ; 721         ; pwdrh
-        Cane seed                                      ; 657         ; pwdrh
-        Carbon (pelletized)                            ; 673         ; pwdrh
-        Carbon activated                               ; 272         ; pwdrh
-        Carbon black                                   ; 561         ; pwdrh
-        Carbon black (beads)                           ; 304         ; pwdrh
-        Carbon black (pelletized)                      ; 352         ; pwdrh
-        Carbon black graphite                          ; 721         ; pwdrh
-        Carbon crystallized                            ; 929         ; pwdrh
-        Carbon dust                                    ; 609         ; pwdrh
-        Carbon granules                                ; 945         ; pwdrh
-        Casein                                         ; 577         ; pwdrh
-        Caustic soda                                   ; 497         ; pwdrh
-        Cellulose acetate                              ; 160         ; pwdrh
-        Cement                                         ; 1362        ; pwdrh
-        Cement (Portland)                              ; 1506        ; pwdrh
-        Cement (Portland) clinker                      ; 1522        ; pwdrh
-        Cement dust                                    ; 801         ; pwdrh
-        Ceramic compound                               ; 1362        ; pwdrh
-        Cereal mix                                     ; 689         ; pwdrh
-        Charcoal (powder)                              ; 384         ; pwdrh
-        Chemco burnishing compound                     ; 561         ; pwdrh
-        Chicory                                        ; 545         ; pwdrh
-        Chicory (powder)                               ; 481         ; pwdrh
-        Chili spice                                    ; 721         ; pwdrh
-        Chlorine compound                              ; 449         ; pwdrh
-        Chlorine powder                                ; 577         ; pwdrh
-        Chocolate drink mix                            ; 417         ; pwdrh
-        Chromic acid powder                            ; 1602        ; pwdrh
-        Cinders, blast furnace                         ; 913         ; pwdrh
-        Cinders, coal, ashes & clinker                 ; 641         ; pwdrh
-        Cinnamon powder                                ; 561         ; pwdrh
-        Citric acid                                    ; 769         ; pwdrh
-        Clay                                           ; 801         ; pwdrh
-        Clay (bentonite)                               ; 801         ; pwdrh
-        Clay (calcined)                                ; 481         ; pwdrh
-        Clay (fine)                                    ; 993         ; pwdrh
-        Clay (fines)                                   ; 1121        ; pwdrh
-        Clay (granite)                                 ; 513         ; pwdrh
-        Clay (kaolin)                                  ; 769         ; pwdrh
-        Clinker dust                                   ; 1442        ; pwdrh
-        Clover seed                                    ; 769         ; pwdrh
-        Coagulant                                      ; 577         ; pwdrh
-        Coal (granules)                                ; 833         ; pwdrh
-        Coal (pulverized)                              ; 561         ; pwdrh
-        Coal anthracite                                ; 929         ; pwdrh
-        Coal bituminous                                ; 641         ; pwdrh
-        Coal dust                                      ; 561         ; pwdrh
-        Coal powder                                    ; 641         ; pwdrh
-        Cobalt carbonate                               ; 961         ; pwdrh
-        Cobalt fines                                   ; 4101        ; pwdrh
-        Cocoa                                          ; 561         ; pwdrh
-        Cocoa flavoring                                ; 881         ; pwdrh
-        Cocoa shells                                   ; 481         ; pwdrh
-        Coconut chips                                  ; 609         ; pwdrh
-        Coffee (instant)                               ; 304         ; pwdrh
-        Coffee, green (beans)                          ; 609         ; pwdrh
-        Coffee, roasted (beans)                        ; 368         ; pwdrh
-        Coke (granules)                                ; 833         ; pwdrh
-        Coke dust                                      ; 240         ; pwdrh
-        Coke fines                                     ; 625         ; pwdrh
-        Coke, calcined (course)                        ; 897         ; pwdrh
-        Coke, calcined (fines)                         ; 945         ; pwdrh
-        Coke, calcined (intermediate)                  ; 945         ; pwdrh
-        Coke, pulverized                               ; 721         ; pwdrh
-        Copper (fines)                                 ; 1618        ; pwdrh
-        Copper hydroxide                               ; 400         ; pwdrh
-        Copper sulfate                                 ; 833         ; pwdrh
-        Copra meal, loose                              ; 433         ; pwdrh
-        Cork, solid                                    ; 240         ; pwdrh
-        Corn bran                                      ; 208         ; pwdrh
-        Corn flour                                     ; 817         ; pwdrh
-        Corn germ meal                                 ; 561         ; pwdrh
-        Corn gluten feed                               ; 465         ; pwdrh
-        Corn gluten meal                               ; 593         ; pwdrh
-        Corn grits                                     ; 673         ; pwdrh
-        Corn mash                                      ; 721         ; pwdrh
-        Corn meal                                      ; 641         ; pwdrh
-        Corn oil meal                                  ; 545         ; pwdrh
-        Corn starch                                    ; 673         ; pwdrh
-        Corn, (whole shelled)                          ; 721         ; pwdrh
-        Corn, chops (coarse)                           ; 673         ; pwdrh
-        Corn, chops (fine)                             ; 609         ; pwdrh
-        Corn, chops (medium)                           ; 641         ; pwdrh
-        Corn, cracked (coarse)                         ; 641         ; pwdrh
-        Corn, ground                                   ; 561         ; pwdrh
-        Corn, hominy feed                              ; 433         ; pwdrh
-        Corn, kibbled                                  ; 336         ; pwdrh
-        Cottonseed cake                                ; 673         ; pwdrh
-        Cottonseed delinted                            ; 481         ; pwdrh
-        Cottonseed flour                               ; 897         ; pwdrh
-        Cottonseed hulls                               ; 192         ; pwdrh
-        Cottonseed meats                               ; 641         ; pwdrh
-        Cryolite                                       ; 1378        ; pwdrh
-        Detergent (flake)                              ; 513         ; pwdrh
-        Detergent (powder)                             ; 609         ; pwdrh
-        Dextrose                                       ; 577         ; pwdrh
-        Diammonium phosphate                           ; 801         ; pwdrh
-        Diatomaceous earth                             ; 256         ; pwdrh
-        Diatomite                                      ; 224         ; pwdrh
-        Dicalite                                       ; 192         ; pwdrh
-        Dielectric compound                            ; 721         ; pwdrh
-        Distillers grains                              ; 288         ; pwdrh
-        Dolomite                                       ; 865         ; pwdrh
-        Dolomite lime                                  ; 737         ; pwdrh
-        Egg yoke powder                                ; 368         ; pwdrh
-        Eggs (powdered)                                ; 352         ; pwdrh
-        Electrolyte                                    ; 961         ; pwdrh
-        Epoxy powder                                   ; 785         ; pwdrh
-        Ferric chloride                                ; 689         ; pwdrh
-        Ferric sulfate                                 ; 977         ; pwdrh
-        Ferro silicate                                 ; 1250        ; pwdrh
-        Ferro silicon                                  ; 1394        ; pwdrh
-        Ferrous carbonate                              ; 1394        ; pwdrh
-        Fiberglass                                     ; 352         ; pwdrh
-        Filter cake (centrifuge)                       ; 641         ; pwdrh
-        Fish meal                                      ; 609         ; pwdrh
-        Flaxseed                                       ; 705         ; pwdrh
-        Flint                                          ; 1554        ; pwdrh
-        Floc                                           ; 208         ; pwdrh
-        Floc (solka)                                   ; 144         ; pwdrh
-        Flour                                          ; 769         ; pwdrh
-        Flour (barley malt)                            ; 721         ; pwdrh
-        Flour (barley)                                 ; 609         ; pwdrh
-        Flour (corn)                                   ; 625         ; pwdrh
-        Flour (rye)                                    ; 673         ; pwdrh
-        Flour (soy)                                    ; 705         ; pwdrh
-        Flour (soya)                                   ; 641         ; pwdrh
-        Flour (wheat)                                  ; 673         ; pwdrh
-        Fluorite                                       ; 1250        ; pwdrh
-        Fluorspar                                      ; 1794        ; pwdrh
-        Flux                                           ; 2323        ; pwdrh
-        Fly ash                                        ; 1041        ; pwdrh
-        Fullers earth                                  ; 561         ; pwdrh
-        Fumaric acid                                   ; 641         ; pwdrh
-        Garlic (flakes)                                ; 352         ; pwdrh
-        Garlic (powder)                                ; 320         ; pwdrh
-        Gelatine                                       ; 721         ; pwdrh
-        Glass (ground)                                 ; 1650        ; pwdrh
-        Glass (powder)                                 ; 1650        ; pwdrh
-        Glass beads                                    ; 1602        ; pwdrh
-        Glass microspheres                             ; 993         ; pwdrh
-        Gold powder                                    ; 849         ; pwdrh
-        Grain                                          ; 577         ; pwdrh
-        Granite, crushed                               ; 1554        ; pwdrh
-        Graphite                                       ; 769         ; pwdrh
-        Graphite (flakes)                              ; 673         ; pwdrh
-        Graphite (granules)                            ; 1089        ; pwdrh
-        Graphite (powder)                              ; 561         ; pwdrh
-        Graphite (pulverized)                          ; 352         ; pwdrh
-        Gravel                                         ; 1762        ; pwdrh
-        Grinding compound                              ; 1586        ; pwdrh
-        Ground bone                                    ; 801         ; pwdrh
-        Gum base                                       ; 673         ; pwdrh
-        Gum granules                                   ; 577         ; pwdrh
-        Gum resin                                      ; 513         ; pwdrh
-        Gypsum                                         ; 865         ; pwdrh
-        Gypsum (calcined)                              ; 881         ; pwdrh
-        Gypsum (ground)                                ; 673         ; pwdrh
-        Ice, crushed                                   ; 641         ; pwdrh
-        Iron chromite                                  ; 1826        ; pwdrh
-        Iron fillings                                  ; 2884        ; pwdrh
-        Iron ore                                       ; 2595        ; pwdrh
-        Iron oxide                                     ; 1282        ; pwdrh
-        Iron oxide (black)                             ; 2579        ; pwdrh
-        Iron oxide (red)                               ; 1105        ; pwdrh
-        Iron powder                                    ; 2804        ; pwdrh
-        Iron sulfate                                   ; 1282        ; pwdrh
-        Kaolin                                         ; 785         ; pwdrh
-        Kaolin clay                                    ; 801         ; pwdrh
-        Latex powder                                   ; 1426        ; pwdrh
-        Lead arsenate                                  ; 1442        ; pwdrh
-        Lead carbonate                                 ; 1298        ; pwdrh
-        Lead chloride crystals                         ; 1153        ; pwdrh
-        Lead oxide                                     ; 1009        ; pwdrh
-        Lead stabilizer                                ; 689         ; pwdrh
-        Ligno sulfinate                                ; 481         ; pwdrh
-        Lignone                                        ; 577         ; pwdrh
-        Lignosol                                       ; 384         ; pwdrh
-        Lime                                           ; 561         ; pwdrh
-        Lime (dolomitic)                               ; 673         ; pwdrh
-        Lime (granular)                                ; 1282        ; pwdrh
-        Lime (hydrated)                                ; 641         ; pwdrh
-        Lime (pebble)                                  ; 721         ; pwdrh
-        Lime (pulverized quick)                        ; 961         ; pwdrh
-        Lime (quick)                                   ; 881         ; pwdrh
-        Limestone                                      ; 961         ; pwdrh
-        Limestone (ground)                             ; 945         ; pwdrh
-        Limestone (pulverized)                         ; 1089        ; pwdrh
-        Limestone dust                                 ; 1105        ; pwdrh
-        Limestone filler                               ; 1009        ; pwdrh
-        Limestone flour                                ; 1105        ; pwdrh
-        Linseed meal                                   ; 400         ; pwdrh
-        Liquorice powder                               ; 449         ; pwdrh
-        Magnesia                                       ; 1250        ; pwdrh
-        Magnesite                                      ; 433         ; pwdrh
-        Magnesite light                                ; 641         ; pwdrh
-        Magnesium carbonate                            ; 192         ; pwdrh
-        Magnesium chips                                ; 961         ; pwdrh
-        Magnesium chloride                             ; 192         ; pwdrh
-        Magnesium hydroxide                            ; 625         ; pwdrh
-        Magnesium oxide                                ; 1041        ; pwdrh
-        Magnesium silicate                             ; 929         ; pwdrh
-        Magnesium stearate                             ; 336         ; pwdrh
-        Magnesium sulfate                              ; 833         ; pwdrh
-        Magnetite                                      ; 2643        ; pwdrh
-        Malted barley flour                            ; 641         ; pwdrh
-        Malted wheat flour                             ; 657         ; pwdrh
-        Manganese dioxide                              ; 1121        ; pwdrh
-        Manganese ore                                  ; 1762        ; pwdrh
-        Mannitol                                       ; 609         ; pwdrh
-        Marble (granular)                              ; 1282        ; pwdrh
-        Marble (ground)                                ; 1490        ; pwdrh
-        Meat meal                                      ; 593         ; pwdrh
-        Melamine                                       ; 721         ; pwdrh
-        Melamine powder                                ; 513         ; pwdrh
-        Metallic flakes                                ; 561         ; pwdrh
-        Metallic powder                                ; 2643        ; pwdrh
-        Metasol                                        ; 609         ; pwdrh
-        Mica (flakes)                                  ; 160         ; pwdrh
-        Mica (powder)                                  ; 657         ; pwdrh
-        Milk (powdered whole)                          ; 561         ; pwdrh
-        Milk (powdered)                                ; 208         ; pwdrh
-        Milk (whole)                                   ; 513         ; pwdrh
-        Millet                                         ; 641         ; pwdrh
-        Milo, ground                                   ; 545         ; pwdrh
-        Molasses feed                                  ; 352         ; pwdrh
-        Molding sand                                   ; 1202        ; pwdrh
-        Molybdenum disulfide                           ; 705         ; pwdrh
-        Molybdenum oxide                               ; 1570        ; pwdrh
-        Molybdi oxide                                  ; 256         ; pwdrh
-        Monosodium phosphate                           ; 881         ; pwdrh
-        Naphthalene flakes                             ; 577         ; pwdrh
-        Natrosol                                       ; 449         ; pwdrh
-        Nickel                                         ; 961         ; pwdrh
-        Nickel oxide                                   ; 449         ; pwdrh
-        Nickel powder                                  ; 1202        ; pwdrh
-        Nuts (almond)                                  ; 465         ; pwdrh
-        Nuts (cashews)                                 ; 497         ; pwdrh
-        Nuts (peanuts)                                 ; 529         ; pwdrh
-        Nylon fibers                                   ; 160         ; pwdrh
-        Nylon flakes                                   ; 513         ; pwdrh
-        Nylon pellets (1/8")                           ; 561         ; pwdrh
-        Nylon powder                                   ; 625         ; pwdrh
-        Oat flour                                      ; 529         ; pwdrh
-        Oat middlings                                  ; 609         ; pwdrh
-        Oats                                           ; 433         ; pwdrh
-        Oats (ground)                                  ; 465         ; pwdrh
-        Oats (rolled)                                  ; 352         ; pwdrh
-        Oats groats (whole)                            ; 745         ; pwdrh
-        Oats, hulls                                    ; 128         ; pwdrh
-        Onions (chopped)                               ; 224         ; pwdrh
-        Onions (minced)                                ; 128         ; pwdrh
-        Onions (powdered)                              ; 400         ; pwdrh
-        Oxalic acid                                    ; 833         ; pwdrh
-        Oxychloride                                    ; 577         ; pwdrh
-        Oyster shell (ground, about 1/2")              ; 849         ; pwdrh
-        Peanut brittle                                 ; 577         ; pwdrh
-        Peanut meal                                    ; 449         ; pwdrh
-        Peanuts (shelled)                              ; 689         ; pwdrh
-        Peanuts (unshelled)                            ; 336         ; pwdrh
-        Peat moss                                      ; 160         ; pwdrh
-        Peppermint powder                              ; 545         ; pwdrh
-        Peppers (chopped)                              ; 336         ; pwdrh
-        Peppers (whole)                                ; 256         ; pwdrh
-        Perlite                                        ; 240         ; pwdrh
-        Perlite filter aid                             ; 128         ; pwdrh
-        Perlite ore                                    ; 1041        ; pwdrh
-        Petroleum coke                                 ; 881         ; pwdrh
-        Petroleum coke dust                            ; 400         ; pwdrh
-        Phenofil                                       ; 481         ; pwdrh
-        Phenol formaldehyde                            ; 481         ; pwdrh
-        Phenolic powder                                ; 513         ; pwdrh
-        Phosphate                                      ; 1282        ; pwdrh
-        Phosphate rock crushed                         ; 1105        ; pwdrh
-        Phosphate rock dust                            ; 1442        ; pwdrh
-        Phosphate rock ground                          ; 1121        ; pwdrh
-        Plaster of paris                               ; 785         ; pwdrh
-        Plastic (beads)                                ; 737         ; pwdrh
-        Plastic (cubes)                                ; 609         ; pwdrh
-        Plastic (flakes)                               ; 769         ; pwdrh
-        Plastic (pellets)                              ; 721         ; pwdrh
-        Plastic powder                                 ; 673         ; pwdrh
-        Plastic resin                                  ; 641         ; pwdrh
-        Polyamide resin                                ; 497         ; pwdrh
-        Polycarbonate resin                            ; 705         ; pwdrh
-        Polyester adhesive powder                      ; 481         ; pwdrh
-        Polyester flakes                               ; 433         ; pwdrh
-        Polyester resin                                ; 545         ; pwdrh
-        Polyethylene                                   ; 689         ; pwdrh
-        Polyethylene beads                             ; 673         ; pwdrh
-        Polyethylene film                              ; 128         ; pwdrh
-        Polyethylene flakes                            ; 96          ; pwdrh
-        Polyethylene granular                          ; 481         ; pwdrh
-        Polyethylene pellets                           ; 561         ; pwdrh
-        Polyethylene powder                            ; 561         ; pwdrh
-        Polyhedral alcohol                             ; 593         ; pwdrh
-        Polymer                                        ; 320         ; pwdrh
-        Polymer reagent                                ; 625         ; pwdrh
-        Polymer resin                                  ; 609         ; pwdrh
-        Polypropylene                                  ; 481         ; pwdrh
-        Polypropylene pellets                          ; 513         ; pwdrh
-        Polypropylene powder                           ; 529         ; pwdrh
-        Polypropylene flakes                           ; 352         ; pwdrh
-        Polystyrene beads                              ; 641         ; pwdrh
-        Polystyrene pellets                            ; 609         ; pwdrh
-        Polystyrene powder                             ; 529         ; pwdrh
-        Polyurethane pellets                           ; 721         ; pwdrh
-        Polyvinyl acetate                              ; 625         ; pwdrh
-        Polyvinyl alcohol                              ; 625         ; pwdrh
-        Polyvinyl chloride                             ; 657         ; pwdrh
-        Polyvinyl chloride pellets                     ; 625         ; pwdrh
-        Potassium bromide (5% moist)                   ; 1826        ; pwdrh
-        Potassium carbonate (potash)                   ; 1185        ; pwdrh
-        Potassium chloride                             ; 961         ; pwdrh
-        Potassium iodate                               ; 2067        ; pwdrh
-        Potassium muriate                              ; 1057        ; pwdrh
-        Potassium sulfate                              ; 1442        ; pwdrh
-        Potatoes (flakes)                              ; 208         ; pwdrh
-        Potatoes (powdered)                            ; 769         ; pwdrh
-        Potting soil                                   ; 256         ; pwdrh
-        Poultry meal                                   ; 577         ; pwdrh
-        Powdered sugar                                 ; 561         ; pwdrh
-        Pumice powder                                  ; 625         ; pwdrh
-        PVC chips                                      ; 865         ; pwdrh
-        PVC resin                                      ; 513         ; pwdrh
-        Raisins (moist)                                ; 609         ; pwdrh
-        Rapeseed                                       ; 774         ; pwdrh
-        Red lead                                       ; 2643        ; pwdrh
-        Red oxide pigment                              ; 1153        ; pwdrh
-        Rice                                           ; 721         ; pwdrh
-        Rice (puffed)                                  ; 96          ; pwdrh
-        Rice bran                                      ; 417         ; pwdrh
-        Rock salt                                      ; 1089        ; pwdrh
-        Rubber (granules)                              ; 449         ; pwdrh
-        Rubber composition powder                      ; 545         ; pwdrh
-        Rubber compound                                ; 609         ; pwdrh
-        Rubber crumb                                   ; 352         ; pwdrh
-        Rubber foam (chopped)                          ; 48          ; pwdrh
-        Rubber powder                                  ; 529         ; pwdrh
-        Rye bran                                       ; 288         ; pwdrh
-        Rye feed                                       ; 529         ; pwdrh
-        Rye, malted                                    ; 513         ; pwdrh
-        Rye, middlings                                 ; 673         ; pwdrh
-        Rye, shorts                                    ; 529         ; pwdrh
-        Rye, whole                                     ; 705         ; pwdrh
-        Salt, fine table                               ; 1378        ; pwdrh
-        Salt, granulated                               ; 1282        ; pwdrh
-        Sand                                           ; 1586        ; pwdrh
-        Sand (dry)                                     ; 1762        ; pwdrh
-        Sand (fine)                                    ; 2002        ; pwdrh
-        Sand (foundry)                                 ; 1602        ; pwdrh
-        Sand (moist)                                   ; 2083        ; pwdrh
-        Sand (molding)                                 ; 1250        ; pwdrh
-        Sand foundry, coarse                           ; 1538        ; pwdrh
-        Sand foundry, fine                             ; 1666        ; pwdrh
-        Sawdust (coarse)                               ; 400         ; pwdrh
-        Sawdust (fine)                                 ; 288         ; pwdrh
-        Sawdust (moist)                                ; 449         ; pwdrh
-        Seed (grass)                                   ; 641         ; pwdrh
-        Shellac resin                                  ; 1298        ; pwdrh
-        Silica flour                                   ; 1282        ; pwdrh
-        Silica gel                                     ; 673         ; pwdrh
-        Silica sand                                    ; 1298        ; pwdrh
-        Silicon carbide                                ; 721         ; pwdrh
-        Silicon dioxide                                ; 48          ; pwdrh
-        Silver (powder)                                ; 1105        ; pwdrh
-        Slate (crushed)                                ; 1602        ; pwdrh
-        Soap flakes                                    ; 465         ; pwdrh
-        Soap powder                                    ; 577         ; pwdrh
-        Soapstone                                      ; 753         ; pwdrh
-        Soda ash                                       ; 865         ; pwdrh
-        Soda ash-iron chromite                         ; 1234        ; pwdrh
-        Sodium aluminate                               ; 977         ; pwdrh
-        Sodium benzoate                                ; 753         ; pwdrh
-        Sodium bicarbonate                             ; 801         ; pwdrh
-        Sodium bisulfate                               ; 1442        ; pwdrh
-        Sodium borate                                  ; 1234        ; pwdrh
-        Sodium caseinate                               ; 336         ; pwdrh
-        Sodium chloride                                ; 1282        ; pwdrh
-        Sodium chloride                                ; 1330        ; pwdrh
-        Sodium hydrosulfate                            ; 1121        ; pwdrh
-        Sodium hydrosulfite                            ; 1169        ; pwdrh
-        Sodium hydroxide                               ; 961         ; pwdrh
-        Sodium metasilicate                            ; 1121        ; pwdrh
-        Sodium naptholine sulfate                      ; 433         ; pwdrh
-        Sodium nitrate                                 ; 1346        ; pwdrh
-        Sodium perborate                               ; 849         ; pwdrh
-        Sodium pyrophosphate                           ; 1009        ; pwdrh
-        Sodium silicate                                ; 513         ; pwdrh
-        Sodium sulfate                                 ; 1362        ; pwdrh
-        Sodium sulfite                                 ; 1634        ; pwdrh
-        Sodium thiosulfate                             ; 881         ; pwdrh
-        Sodium tripolyphosphate                        ; 961         ; pwdrh
-        Soybean flakes                                 ; 577         ; pwdrh
-        Soybean hulls                                  ; 400         ; pwdrh
-        Soybean meal                                   ; 641         ; pwdrh
-        Starch (corn)                                  ; 689         ; pwdrh
-        Stearic acid (flakes)                          ; 513         ; pwdrh
-        Stearic acid (powder)                          ; 577         ; pwdrh
-        Styrene beads                                  ; 721         ; pwdrh
-        Sucrose                                        ; 849         ; pwdrh
-        Sucrose octoacetate                            ; 529         ; pwdrh
-        Sugar (beet)                                   ; 801         ; pwdrh
-        Sugar (dextrose)                               ; 625         ; pwdrh
-        Sugar (granulated)                             ; 705         ; pwdrh
-        Sugar (powdered)                               ; 561         ; pwdrh
-        Sulfur                                         ; 721         ; pwdrh
-        Sulfur (granular)                              ; 1121        ; pwdrh
-        Sunflower seed                                 ; 609         ; pwdrh
-        Talcum powder                                  ; 881         ; pwdrh
-        Tantalum powder                                ; 641         ; pwdrh
-        Tea                                            ; 433         ; pwdrh
-        Tea (flakes)                                   ; 384         ; pwdrh
-        Tea (powdered)                                 ; 433         ; pwdrh
-        Teflon (fiber)                                 ; 481         ; pwdrh
-        Teflon (granules)                              ; 577         ; pwdrh
-        Teflon (powdered)                              ; 465         ; pwdrh
-        Teflon pellets                                 ; 961         ; pwdrh
-        Terepthalic acid                               ; 481         ; pwdrh
-        Thiamine                                       ; 753         ; pwdrh
-        Thionex                                        ; 481         ; pwdrh
-        Thorium oxide                                  ; 993         ; pwdrh
-        Titanium dioxide                               ; 769         ; pwdrh
-        Tobacco (cigarette)                            ; 192         ; pwdrh
-        Tobacco (powdered)                             ; 449         ; pwdrh
-        Tricalcium phosphate                           ; 561         ; pwdrh
-        Trichicrocyanuric acid                         ; 801         ; pwdrh
-        Tripolyphosphate                               ; 1282        ; pwdrh
-        Trisodium phosphate                            ; 801         ; pwdrh
-        Tumaric (acid fines)                           ; 817         ; pwdrh
-        Tungsten carbide                               ; 4005        ; pwdrh
-        Uranium (compound)                             ; 3060        ; pwdrh
-        Uranium (granules)                             ; 2948        ; pwdrh
-        Uranium oxide                                  ; 1730        ; pwdrh
-        Urea                                           ; 673         ; pwdrh
-        Urea formaldehyde                              ; 577         ; pwdrh
-        Urea powder                                    ; 625         ; pwdrh
-        Urea prills                                    ; 721         ; pwdrh
-        Vermiculite                                    ; 993         ; pwdrh
-        Vinyl acetate                                  ; 577         ; pwdrh
-        Vinyl chips (irregular)                        ; 320         ; pwdrh
-        Vinyl compound                                 ; 577         ; pwdrh
-        Vinyl powder                                   ; 545         ; pwdrh
-        Vinyl resin                                    ; 577         ; pwdrh
-        Wax (flake)                                    ; 801         ; pwdrh
-        Wax (powder)                                   ; 609         ; pwdrh
-        Wheat (hulls)                                  ; 705         ; pwdrh
-        Wheat (shaved)                                 ; 545         ; pwdrh
-        Wheat flour                                    ; 481         ; pwdrh
-        Wheat gluten                                   ; 689         ; pwdrh
-        Wheat middling                                 ; 240         ; pwdrh
-        Wheat, cracked                                 ; 561         ; pwdrh
-        Wheat, whole                                   ; 785         ; pwdrh
-        Whey                                           ; 561         ; pwdrh
-        White lead                                     ; 1362        ; pwdrh
-        Wood chips                                     ; 481         ; pwdrh
-        Wood flour                                     ; 320         ; pwdrh
-        Wood shavings                                  ; 160         ; pwdrh
-        Yeast                                          ; 945         ; pwdrh
-        Zinc ammonium chloride                         ; 1057        ; pwdrh
-        Zinc carbonate                                 ; 561         ; pwdrh
-        Zinc oxide                                     ; 881         ; pwdrh
-        Zinc powder                                    ; 3364        ; pwdrh
+    g.pwd_data = dedent('''
+        Abrasive compound                              ; 2371        ; pwd
+        Abrasive mix                                   ; 2451        ; pwd
+        Acetate                                        ; 561         ; pwd
+        Acetate flakes                                 ; 336         ; pwd
+        Acrylic fibers                                 ; 144         ; pwd
+        Acrylic resin                                  ; 513         ; pwd
+        Activated aluminum                             ; 240         ; pwd
+        Activated carbon                               ; 320         ; pwd
+        Adipic acid                                    ; 641         ; pwd
+        Alcanol                                        ; 625         ; pwd
+        Alfalfa leaf meal                              ; 240         ; pwd
+        Alfalfa meal                                   ; 272         ; pwd
+        Alfalfa meal, fine ground                      ; 304         ; pwd
+        Alfalfa pellets                                ; 673         ; pwd
+        Alfalfa seed                                   ; 737         ; pwd
+        Alumina                                        ; 641         ; pwd
+        Alumina powder                                 ; 288         ; pwd
+        Alumina, activated                             ; 769         ; pwd
+        Alumina, calcined                              ; 1009        ; pwd
+        Alumina, metal grade                           ; 1073        ; pwd
+        Aluminum flake                                 ; 2403        ; pwd
+        Aluminum fluoride                              ; 881         ; pwd
+        Aluminum magnesium silicate                    ; 336         ; pwd
+        Aluminum oxide                                 ; 1282        ; pwd
+        Aluminum powder                                ; 705         ; pwd
+        Aluminum silicate                              ; 529         ; pwd
+        Aluminum sulfate                               ; 1041        ; pwd
+        Ammonium bromide                               ; 1218        ; pwd
+        Ammonium chloride                              ; 609         ; pwd
+        Ammonium nitrate                               ; 785         ; pwd
+        Ammonium nitrate pills                         ; 609         ; pwd
+        Ammonium perchloride                           ; 993         ; pwd
+        Ammonium phosphate                             ; 881         ; pwd
+        Ammonium sulfate                               ; 1105        ; pwd
+        Amorphous silica                               ; 176         ; pwd
+        Anthracite, powdered                           ; 561         ; pwd
+        Antimony oxide                                 ; 705         ; pwd
+        Antioxidant (granules)                         ; 657         ; pwd
+        Antioxidant (powder)                           ; 449         ; pwd
+        Apple slices diced                             ; 240         ; pwd
+        Aquafloc                                       ; 160         ; pwd
+        Arsenic trioxide                               ; 657         ; pwd
+        Asbestos                                       ; 352         ; pwd
+        Asbestos fiber                                 ; 320         ; pwd
+        Asbestos powder                                ; 449         ; pwd
+        Ascorbic acid (coarse)                         ; 721         ; pwd
+        Ascorbic acid (fine)                           ; 513         ; pwd
+        Ash, ground                                    ; 1682        ; pwd
+        Ashes, dry loose                               ; 609         ; pwd
+        Ashes, wet loose                               ; 753         ; pwd
+        Baking powder                                  ; 897         ; pwd
+        Barbasco root                                  ; 529         ; pwd
+        Barites                                        ; 1922        ; pwd
+        Barium carbonate                               ; 881         ; pwd
+        Barium oxide                                   ; 1009        ; pwd
+        Barium stearate                                ; 208         ; pwd
+        Barium sulfate                                 ; 961         ; pwd
+        Barley (whole)                                 ; 641         ; pwd
+        Barley meal                                    ; 449         ; pwd
+        Barley, fine ground                            ; 737         ; pwd
+        Barley, ground                                 ; 400         ; pwd
+        Barley, malted                                 ; 481         ; pwd
+        Barley, rolled                                 ; 368         ; pwd
+        Barley, scoured                                ; 657         ; pwd
+        Bauxite                                        ; 721         ; pwd
+        Beans (soya)                                   ; 737         ; pwd
+        Beans, white                                   ; 721         ; pwd
+        Beet pulp                                      ; 288         ; pwd
+        Bentonite                                      ; 801         ; pwd
+        Bicarbonate of soda                            ; 993         ; pwd
+        Bleach compound                                ; 961         ; pwd
+        Blood flour                                    ; 481         ; pwd
+        Blood meal                                     ; 617         ; pwd
+        Bone meal loose                                ; 881         ; pwd
+        Bone, ground dry                               ; 1202        ; pwd
+        Borax                                          ; 961         ; pwd
+        Boric acid                                     ; 865         ; pwd
+        Bran                                           ; 561         ; pwd
+        Brass powder                                   ; 1602        ; pwd
+        Bread crumbs                                   ; 96          ; pwd
+        Brewers grains (dry)                           ; 256         ; pwd
+        Bronze powder                                  ; 1250        ; pwd
+        Buckwheat (whole)                              ; 609         ; pwd
+        Buckwheat bran                                 ; 256         ; pwd
+        Buckwheat flour                                ; 657         ; pwd
+        Buckwheat hulls                                ; 208         ; pwd
+        Buckwheat middlings                            ; 352         ; pwd
+        Buttermilk dried                               ; 497         ; pwd
+        Cake mix                                       ; 705         ; pwd
+        Calcium                                        ; 481         ; pwd
+        Calcium borate                                 ; 977         ; pwd
+        Calcium carbide, crushed                       ; 1282        ; pwd
+        Calcium carbonate                              ; 705         ; pwd
+        Calcium chloride                               ; 961         ; pwd
+        Calcium fluoride                               ; 1634        ; pwd
+        Calcium hydroxide                              ; 641         ; pwd
+        Calcium phosphate                              ; 769         ; pwd
+        Calcium silicate                               ; 160         ; pwd
+        Calcium stearate                               ; 320         ; pwd
+        Calcium sulfate                                ; 721         ; pwd
+        Cane seed                                      ; 657         ; pwd
+        Carbon (pelletized)                            ; 673         ; pwd
+        Carbon activated                               ; 272         ; pwd
+        Carbon black                                   ; 561         ; pwd
+        Carbon black (beads)                           ; 304         ; pwd
+        Carbon black (pelletized)                      ; 352         ; pwd
+        Carbon black graphite                          ; 721         ; pwd
+        Carbon crystallized                            ; 929         ; pwd
+        Carbon dust                                    ; 609         ; pwd
+        Carbon granules                                ; 945         ; pwd
+        Casein                                         ; 577         ; pwd
+        Caustic soda                                   ; 497         ; pwd
+        Cellulose acetate                              ; 160         ; pwd
+        Cement                                         ; 1362        ; pwd
+        Cement (Portland)                              ; 1506        ; pwd
+        Cement (Portland) clinker                      ; 1522        ; pwd
+        Cement dust                                    ; 801         ; pwd
+        Ceramic compound                               ; 1362        ; pwd
+        Cereal mix                                     ; 689         ; pwd
+        Charcoal (powder)                              ; 384         ; pwd
+        Chemco burnishing compound                     ; 561         ; pwd
+        Chicory                                        ; 545         ; pwd
+        Chicory (powder)                               ; 481         ; pwd
+        Chili spice                                    ; 721         ; pwd
+        Chlorine compound                              ; 449         ; pwd
+        Chlorine powder                                ; 577         ; pwd
+        Chocolate drink mix                            ; 417         ; pwd
+        Chromic acid powder                            ; 1602        ; pwd
+        Cinders, blast furnace                         ; 913         ; pwd
+        Cinders, coal, ashes & clinker                 ; 641         ; pwd
+        Cinnamon powder                                ; 561         ; pwd
+        Citric acid                                    ; 769         ; pwd
+        Clay                                           ; 801         ; pwd
+        Clay (bentonite)                               ; 801         ; pwd
+        Clay (calcined)                                ; 481         ; pwd
+        Clay (fine)                                    ; 993         ; pwd
+        Clay (fines)                                   ; 1121        ; pwd
+        Clay (granite)                                 ; 513         ; pwd
+        Clay (kaolin)                                  ; 769         ; pwd
+        Clinker dust                                   ; 1442        ; pwd
+        Clover seed                                    ; 769         ; pwd
+        Coagulant                                      ; 577         ; pwd
+        Coal (granules)                                ; 833         ; pwd
+        Coal (pulverized)                              ; 561         ; pwd
+        Coal anthracite                                ; 929         ; pwd
+        Coal bituminous                                ; 641         ; pwd
+        Coal dust                                      ; 561         ; pwd
+        Coal powder                                    ; 641         ; pwd
+        Cobalt carbonate                               ; 961         ; pwd
+        Cobalt fines                                   ; 4101        ; pwd
+        Cocoa                                          ; 561         ; pwd
+        Cocoa flavoring                                ; 881         ; pwd
+        Cocoa shells                                   ; 481         ; pwd
+        Coconut chips                                  ; 609         ; pwd
+        Coffee (instant)                               ; 304         ; pwd
+        Coffee, green (beans)                          ; 609         ; pwd
+        Coffee, roasted (beans)                        ; 368         ; pwd
+        Coke (granules)                                ; 833         ; pwd
+        Coke dust                                      ; 240         ; pwd
+        Coke fines                                     ; 625         ; pwd
+        Coke, calcined (course)                        ; 897         ; pwd
+        Coke, calcined (fines)                         ; 945         ; pwd
+        Coke, calcined (intermediate)                  ; 945         ; pwd
+        Coke, pulverized                               ; 721         ; pwd
+        Copper (fines)                                 ; 1618        ; pwd
+        Copper hydroxide                               ; 400         ; pwd
+        Copper sulfate                                 ; 833         ; pwd
+        Copra meal, loose                              ; 433         ; pwd
+        Cork, solid                                    ; 240         ; pwd
+        Corn bran                                      ; 208         ; pwd
+        Corn flour                                     ; 817         ; pwd
+        Corn germ meal                                 ; 561         ; pwd
+        Corn gluten feed                               ; 465         ; pwd
+        Corn gluten meal                               ; 593         ; pwd
+        Corn grits                                     ; 673         ; pwd
+        Corn mash                                      ; 721         ; pwd
+        Corn meal                                      ; 641         ; pwd
+        Corn oil meal                                  ; 545         ; pwd
+        Corn starch                                    ; 673         ; pwd
+        Corn, (whole shelled)                          ; 721         ; pwd
+        Corn, chops (coarse)                           ; 673         ; pwd
+        Corn, chops (fine)                             ; 609         ; pwd
+        Corn, chops (medium)                           ; 641         ; pwd
+        Corn, cracked (coarse)                         ; 641         ; pwd
+        Corn, ground                                   ; 561         ; pwd
+        Corn, hominy feed                              ; 433         ; pwd
+        Corn, kibbled                                  ; 336         ; pwd
+        Cottonseed cake                                ; 673         ; pwd
+        Cottonseed delinted                            ; 481         ; pwd
+        Cottonseed flour                               ; 897         ; pwd
+        Cottonseed hulls                               ; 192         ; pwd
+        Cottonseed meats                               ; 641         ; pwd
+        Cryolite                                       ; 1378        ; pwd
+        Detergent (flake)                              ; 513         ; pwd
+        Detergent (powder)                             ; 609         ; pwd
+        Dextrose                                       ; 577         ; pwd
+        Diammonium phosphate                           ; 801         ; pwd
+        Diatomaceous earth                             ; 256         ; pwd
+        Diatomite                                      ; 224         ; pwd
+        Dicalite                                       ; 192         ; pwd
+        Dielectric compound                            ; 721         ; pwd
+        Distillers grains                              ; 288         ; pwd
+        Dolomite                                       ; 865         ; pwd
+        Dolomite lime                                  ; 737         ; pwd
+        Egg yoke powder                                ; 368         ; pwd
+        Eggs (powdered)                                ; 352         ; pwd
+        Electrolyte                                    ; 961         ; pwd
+        Epoxy powder                                   ; 785         ; pwd
+        Ferric chloride                                ; 689         ; pwd
+        Ferric sulfate                                 ; 977         ; pwd
+        Ferro silicate                                 ; 1250        ; pwd
+        Ferro silicon                                  ; 1394        ; pwd
+        Ferrous carbonate                              ; 1394        ; pwd
+        Fiberglass                                     ; 352         ; pwd
+        Filter cake (centrifuge)                       ; 641         ; pwd
+        Fish meal                                      ; 609         ; pwd
+        Flaxseed                                       ; 705         ; pwd
+        Flint                                          ; 1554        ; pwd
+        Floc                                           ; 208         ; pwd
+        Floc (solka)                                   ; 144         ; pwd
+        Flour                                          ; 769         ; pwd
+        Flour (barley malt)                            ; 721         ; pwd
+        Flour (barley)                                 ; 609         ; pwd
+        Flour (corn)                                   ; 625         ; pwd
+        Flour (rye)                                    ; 673         ; pwd
+        Flour (soy)                                    ; 705         ; pwd
+        Flour (soya)                                   ; 641         ; pwd
+        Flour (wheat)                                  ; 673         ; pwd
+        Fluorite                                       ; 1250        ; pwd
+        Fluorspar                                      ; 1794        ; pwd
+        Flux                                           ; 2323        ; pwd
+        Fly ash                                        ; 1041        ; pwd
+        Fullers earth                                  ; 561         ; pwd
+        Fumaric acid                                   ; 641         ; pwd
+        Garlic (flakes)                                ; 352         ; pwd
+        Garlic (powder)                                ; 320         ; pwd
+        Gelatine                                       ; 721         ; pwd
+        Glass (ground)                                 ; 1650        ; pwd
+        Glass (powder)                                 ; 1650        ; pwd
+        Glass beads                                    ; 1602        ; pwd
+        Glass microspheres                             ; 993         ; pwd
+        Gold powder                                    ; 849         ; pwd
+        Grain                                          ; 577         ; pwd
+        Granite, crushed                               ; 1554        ; pwd
+        Graphite                                       ; 769         ; pwd
+        Graphite (flakes)                              ; 673         ; pwd
+        Graphite (granules)                            ; 1089        ; pwd
+        Graphite (powder)                              ; 561         ; pwd
+        Graphite (pulverized)                          ; 352         ; pwd
+        Gravel                                         ; 1762        ; pwd
+        Grinding compound                              ; 1586        ; pwd
+        Ground bone                                    ; 801         ; pwd
+        Gum base                                       ; 673         ; pwd
+        Gum granules                                   ; 577         ; pwd
+        Gum resin                                      ; 513         ; pwd
+        Gypsum                                         ; 865         ; pwd
+        Gypsum (calcined)                              ; 881         ; pwd
+        Gypsum (ground)                                ; 673         ; pwd
+        Ice, crushed                                   ; 641         ; pwd
+        Iron chromite                                  ; 1826        ; pwd
+        Iron fillings                                  ; 2884        ; pwd
+        Iron ore                                       ; 2595        ; pwd
+        Iron oxide                                     ; 1282        ; pwd
+        Iron oxide (black)                             ; 2579        ; pwd
+        Iron oxide (red)                               ; 1105        ; pwd
+        Iron powder                                    ; 2804        ; pwd
+        Iron sulfate                                   ; 1282        ; pwd
+        Kaolin                                         ; 785         ; pwd
+        Kaolin clay                                    ; 801         ; pwd
+        Latex powder                                   ; 1426        ; pwd
+        Lead arsenate                                  ; 1442        ; pwd
+        Lead carbonate                                 ; 1298        ; pwd
+        Lead chloride crystals                         ; 1153        ; pwd
+        Lead oxide                                     ; 1009        ; pwd
+        Lead stabilizer                                ; 689         ; pwd
+        Ligno sulfinate                                ; 481         ; pwd
+        Lignone                                        ; 577         ; pwd
+        Lignosol                                       ; 384         ; pwd
+        Lime                                           ; 561         ; pwd
+        Lime (dolomitic)                               ; 673         ; pwd
+        Lime (granular)                                ; 1282        ; pwd
+        Lime (hydrated)                                ; 641         ; pwd
+        Lime (pebble)                                  ; 721         ; pwd
+        Lime (pulverized quick)                        ; 961         ; pwd
+        Lime (quick)                                   ; 881         ; pwd
+        Limestone                                      ; 961         ; pwd
+        Limestone (ground)                             ; 945         ; pwd
+        Limestone (pulverized)                         ; 1089        ; pwd
+        Limestone dust                                 ; 1105        ; pwd
+        Limestone filler                               ; 1009        ; pwd
+        Limestone flour                                ; 1105        ; pwd
+        Linseed meal                                   ; 400         ; pwd
+        Liquorice powder                               ; 449         ; pwd
+        Magnesia                                       ; 1250        ; pwd
+        Magnesite                                      ; 433         ; pwd
+        Magnesite light                                ; 641         ; pwd
+        Magnesium carbonate                            ; 192         ; pwd
+        Magnesium chips                                ; 961         ; pwd
+        Magnesium chloride                             ; 192         ; pwd
+        Magnesium hydroxide                            ; 625         ; pwd
+        Magnesium oxide                                ; 1041        ; pwd
+        Magnesium silicate                             ; 929         ; pwd
+        Magnesium stearate                             ; 336         ; pwd
+        Magnesium sulfate                              ; 833         ; pwd
+        Magnetite                                      ; 2643        ; pwd
+        Malted barley flour                            ; 641         ; pwd
+        Malted wheat flour                             ; 657         ; pwd
+        Manganese dioxide                              ; 1121        ; pwd
+        Manganese ore                                  ; 1762        ; pwd
+        Mannitol                                       ; 609         ; pwd
+        Marble (granular)                              ; 1282        ; pwd
+        Marble (ground)                                ; 1490        ; pwd
+        Meat meal                                      ; 593         ; pwd
+        Melamine                                       ; 721         ; pwd
+        Melamine powder                                ; 513         ; pwd
+        Metallic flakes                                ; 561         ; pwd
+        Metallic powder                                ; 2643        ; pwd
+        Metasol                                        ; 609         ; pwd
+        Mica (flakes)                                  ; 160         ; pwd
+        Mica (powder)                                  ; 657         ; pwd
+        Milk (powdered whole)                          ; 561         ; pwd
+        Milk (powdered)                                ; 208         ; pwd
+        Milk (whole)                                   ; 513         ; pwd
+        Millet                                         ; 641         ; pwd
+        Milo, ground                                   ; 545         ; pwd
+        Molasses feed                                  ; 352         ; pwd
+        Molding sand                                   ; 1202        ; pwd
+        Molybdenum disulfide                           ; 705         ; pwd
+        Molybdenum oxide                               ; 1570        ; pwd
+        Molybdi oxide                                  ; 256         ; pwd
+        Monosodium phosphate                           ; 881         ; pwd
+        Naphthalene flakes                             ; 577         ; pwd
+        Natrosol                                       ; 449         ; pwd
+        Nickel                                         ; 961         ; pwd
+        Nickel oxide                                   ; 449         ; pwd
+        Nickel powder                                  ; 1202        ; pwd
+        Nuts (almond)                                  ; 465         ; pwd
+        Nuts (cashews)                                 ; 497         ; pwd
+        Nuts (peanuts)                                 ; 529         ; pwd
+        Nylon fibers                                   ; 160         ; pwd
+        Nylon flakes                                   ; 513         ; pwd
+        Nylon pellets (1/8")                           ; 561         ; pwd
+        Nylon powder                                   ; 625         ; pwd
+        Oat flour                                      ; 529         ; pwd
+        Oat middlings                                  ; 609         ; pwd
+        Oats                                           ; 433         ; pwd
+        Oats (ground)                                  ; 465         ; pwd
+        Oats (rolled)                                  ; 352         ; pwd
+        Oats groats (whole)                            ; 745         ; pwd
+        Oats, hulls                                    ; 128         ; pwd
+        Onions (chopped)                               ; 224         ; pwd
+        Onions (minced)                                ; 128         ; pwd
+        Onions (powdered)                              ; 400         ; pwd
+        Oxalic acid                                    ; 833         ; pwd
+        Oxychloride                                    ; 577         ; pwd
+        Oyster shell (ground, about 1/2")              ; 849         ; pwd
+        Peanut brittle                                 ; 577         ; pwd
+        Peanut meal                                    ; 449         ; pwd
+        Peanuts (shelled)                              ; 689         ; pwd
+        Peanuts (unshelled)                            ; 336         ; pwd
+        Peat moss                                      ; 160         ; pwd
+        Peppermint powder                              ; 545         ; pwd
+        Peppers (chopped)                              ; 336         ; pwd
+        Peppers (whole)                                ; 256         ; pwd
+        Perlite                                        ; 240         ; pwd
+        Perlite filter aid                             ; 128         ; pwd
+        Perlite ore                                    ; 1041        ; pwd
+        Petroleum coke                                 ; 881         ; pwd
+        Petroleum coke dust                            ; 400         ; pwd
+        Phenofil                                       ; 481         ; pwd
+        Phenol formaldehyde                            ; 481         ; pwd
+        Phenolic powder                                ; 513         ; pwd
+        Phosphate                                      ; 1282        ; pwd
+        Phosphate rock crushed                         ; 1105        ; pwd
+        Phosphate rock dust                            ; 1442        ; pwd
+        Phosphate rock ground                          ; 1121        ; pwd
+        Plaster of paris                               ; 785         ; pwd
+        Plastic (beads)                                ; 737         ; pwd
+        Plastic (cubes)                                ; 609         ; pwd
+        Plastic (flakes)                               ; 769         ; pwd
+        Plastic (pellets)                              ; 721         ; pwd
+        Plastic powder                                 ; 673         ; pwd
+        Plastic resin                                  ; 641         ; pwd
+        Polyamide resin                                ; 497         ; pwd
+        Polycarbonate resin                            ; 705         ; pwd
+        Polyester adhesive powder                      ; 481         ; pwd
+        Polyester flakes                               ; 433         ; pwd
+        Polyester resin                                ; 545         ; pwd
+        Polyethylene                                   ; 689         ; pwd
+        Polyethylene beads                             ; 673         ; pwd
+        Polyethylene film                              ; 128         ; pwd
+        Polyethylene flakes                            ; 96          ; pwd
+        Polyethylene granular                          ; 481         ; pwd
+        Polyethylene pellets                           ; 561         ; pwd
+        Polyethylene powder                            ; 561         ; pwd
+        Polyhedral alcohol                             ; 593         ; pwd
+        Polymer                                        ; 320         ; pwd
+        Polymer reagent                                ; 625         ; pwd
+        Polymer resin                                  ; 609         ; pwd
+        Polypropylene                                  ; 481         ; pwd
+        Polypropylene pellets                          ; 513         ; pwd
+        Polypropylene powder                           ; 529         ; pwd
+        Polypropylene flakes                           ; 352         ; pwd
+        Polystyrene beads                              ; 641         ; pwd
+        Polystyrene pellets                            ; 609         ; pwd
+        Polystyrene powder                             ; 529         ; pwd
+        Polyurethane pellets                           ; 721         ; pwd
+        Polyvinyl acetate                              ; 625         ; pwd
+        Polyvinyl alcohol                              ; 625         ; pwd
+        Polyvinyl chloride                             ; 657         ; pwd
+        Polyvinyl chloride pellets                     ; 625         ; pwd
+        Potassium bromide (5% moist)                   ; 1826        ; pwd
+        Potassium carbonate (potash)                   ; 1185        ; pwd
+        Potassium chloride                             ; 961         ; pwd
+        Potassium iodate                               ; 2067        ; pwd
+        Potassium muriate                              ; 1057        ; pwd
+        Potassium sulfate                              ; 1442        ; pwd
+        Potatoes (flakes)                              ; 208         ; pwd
+        Potatoes (powdered)                            ; 769         ; pwd
+        Potting soil                                   ; 256         ; pwd
+        Poultry meal                                   ; 577         ; pwd
+        Powdered sugar                                 ; 561         ; pwd
+        Pumice powder                                  ; 625         ; pwd
+        PVC chips                                      ; 865         ; pwd
+        PVC resin                                      ; 513         ; pwd
+        Raisins (moist)                                ; 609         ; pwd
+        Rapeseed                                       ; 774         ; pwd
+        Red lead                                       ; 2643        ; pwd
+        Red oxide pigment                              ; 1153        ; pwd
+        Rice                                           ; 721         ; pwd
+        Rice (puffed)                                  ; 96          ; pwd
+        Rice bran                                      ; 417         ; pwd
+        Rock salt                                      ; 1089        ; pwd
+        Rubber (granules)                              ; 449         ; pwd
+        Rubber composition powder                      ; 545         ; pwd
+        Rubber compound                                ; 609         ; pwd
+        Rubber crumb                                   ; 352         ; pwd
+        Rubber foam (chopped)                          ; 48          ; pwd
+        Rubber powder                                  ; 529         ; pwd
+        Rye bran                                       ; 288         ; pwd
+        Rye feed                                       ; 529         ; pwd
+        Rye, malted                                    ; 513         ; pwd
+        Rye, middlings                                 ; 673         ; pwd
+        Rye, shorts                                    ; 529         ; pwd
+        Rye, whole                                     ; 705         ; pwd
+        Salt, fine table                               ; 1378        ; pwd
+        Salt, granulated                               ; 1282        ; pwd
+        Sand                                           ; 1586        ; pwd
+        Sand (dry)                                     ; 1762        ; pwd
+        Sand (fine)                                    ; 2002        ; pwd
+        Sand (foundry)                                 ; 1602        ; pwd
+        Sand (moist)                                   ; 2083        ; pwd
+        Sand (molding)                                 ; 1250        ; pwd
+        Sand foundry, coarse                           ; 1538        ; pwd
+        Sand foundry, fine                             ; 1666        ; pwd
+        Sawdust (coarse)                               ; 400         ; pwd
+        Sawdust (fine)                                 ; 288         ; pwd
+        Sawdust (moist)                                ; 449         ; pwd
+        Seed (grass)                                   ; 641         ; pwd
+        Shellac resin                                  ; 1298        ; pwd
+        Silica flour                                   ; 1282        ; pwd
+        Silica gel                                     ; 673         ; pwd
+        Silica sand                                    ; 1298        ; pwd
+        Silicon carbide                                ; 721         ; pwd
+        Silicon dioxide                                ; 48          ; pwd
+        Silver (powder)                                ; 1105        ; pwd
+        Slate (crushed)                                ; 1602        ; pwd
+        Soap flakes                                    ; 465         ; pwd
+        Soap powder                                    ; 577         ; pwd
+        Soapstone                                      ; 753         ; pwd
+        Soda ash                                       ; 865         ; pwd
+        Soda ash-iron chromite                         ; 1234        ; pwd
+        Sodium aluminate                               ; 977         ; pwd
+        Sodium benzoate                                ; 753         ; pwd
+        Sodium bicarbonate                             ; 801         ; pwd
+        Sodium bisulfate                               ; 1442        ; pwd
+        Sodium borate                                  ; 1234        ; pwd
+        Sodium caseinate                               ; 336         ; pwd
+        Sodium chloride                                ; 1282        ; pwd
+        Sodium chloride                                ; 1330        ; pwd
+        Sodium hydrosulfate                            ; 1121        ; pwd
+        Sodium hydrosulfite                            ; 1169        ; pwd
+        Sodium hydroxide                               ; 961         ; pwd
+        Sodium metasilicate                            ; 1121        ; pwd
+        Sodium naptholine sulfate                      ; 433         ; pwd
+        Sodium nitrate                                 ; 1346        ; pwd
+        Sodium perborate                               ; 849         ; pwd
+        Sodium pyrophosphate                           ; 1009        ; pwd
+        Sodium silicate                                ; 513         ; pwd
+        Sodium sulfate                                 ; 1362        ; pwd
+        Sodium sulfite                                 ; 1634        ; pwd
+        Sodium thiosulfate                             ; 881         ; pwd
+        Sodium tripolyphosphate                        ; 961         ; pwd
+        Soybean flakes                                 ; 577         ; pwd
+        Soybean hulls                                  ; 400         ; pwd
+        Soybean meal                                   ; 641         ; pwd
+        Starch (corn)                                  ; 689         ; pwd
+        Stearic acid (flakes)                          ; 513         ; pwd
+        Stearic acid (powder)                          ; 577         ; pwd
+        Styrene beads                                  ; 721         ; pwd
+        Sucrose                                        ; 849         ; pwd
+        Sucrose octoacetate                            ; 529         ; pwd
+        Sugar (beet)                                   ; 801         ; pwd
+        Sugar (dextrose)                               ; 625         ; pwd
+        Sugar (granulated)                             ; 705         ; pwd
+        Sugar (powdered)                               ; 561         ; pwd
+        Sulfur                                         ; 721         ; pwd
+        Sulfur (granular)                              ; 1121        ; pwd
+        Sunflower seed                                 ; 609         ; pwd
+        Talcum powder                                  ; 881         ; pwd
+        Tantalum powder                                ; 641         ; pwd
+        Tea                                            ; 433         ; pwd
+        Tea (flakes)                                   ; 384         ; pwd
+        Tea (powdered)                                 ; 433         ; pwd
+        Teflon (fiber)                                 ; 481         ; pwd
+        Teflon (granules)                              ; 577         ; pwd
+        Teflon (powdered)                              ; 465         ; pwd
+        Teflon pellets                                 ; 961         ; pwd
+        Terepthalic acid                               ; 481         ; pwd
+        Thiamine                                       ; 753         ; pwd
+        Thionex                                        ; 481         ; pwd
+        Thorium oxide                                  ; 993         ; pwd
+        Titanium dioxide                               ; 769         ; pwd
+        Tobacco (cigarette)                            ; 192         ; pwd
+        Tobacco (powdered)                             ; 449         ; pwd
+        Tricalcium phosphate                           ; 561         ; pwd
+        Trichicrocyanuric acid                         ; 801         ; pwd
+        Tripolyphosphate                               ; 1282        ; pwd
+        Trisodium phosphate                            ; 801         ; pwd
+        Tumaric (acid fines)                           ; 817         ; pwd
+        Tungsten carbide                               ; 4005        ; pwd
+        Uranium (compound)                             ; 3060        ; pwd
+        Uranium (granules)                             ; 2948        ; pwd
+        Uranium oxide                                  ; 1730        ; pwd
+        Urea                                           ; 673         ; pwd
+        Urea formaldehyde                              ; 577         ; pwd
+        Urea powder                                    ; 625         ; pwd
+        Urea prills                                    ; 721         ; pwd
+        Vermiculite                                    ; 993         ; pwd
+        Vinyl acetate                                  ; 577         ; pwd
+        Vinyl chips (irregular)                        ; 320         ; pwd
+        Vinyl compound                                 ; 577         ; pwd
+        Vinyl powder                                   ; 545         ; pwd
+        Vinyl resin                                    ; 577         ; pwd
+        Wax (flake)                                    ; 801         ; pwd
+        Wax (powder)                                   ; 609         ; pwd
+        Wheat (hulls)                                  ; 705         ; pwd
+        Wheat (shaved)                                 ; 545         ; pwd
+        Wheat flour                                    ; 481         ; pwd
+        Wheat gluten                                   ; 689         ; pwd
+        Wheat middling                                 ; 240         ; pwd
+        Wheat, cracked                                 ; 561         ; pwd
+        Wheat, whole                                   ; 785         ; pwd
+        Whey                                           ; 561         ; pwd
+        White lead                                     ; 1362        ; pwd
+        Wood chips                                     ; 481         ; pwd
+        Wood flour                                     ; 320         ; pwd
+        Wood shavings                                  ; 160         ; pwd
+        Yeast                                          ; 945         ; pwd
+        Zinc ammonium chloride                         ; 1057        ; pwd
+        Zinc carbonate                                 ; 561         ; pwd
+        Zinc oxide                                     ; 881         ; pwd
+        Zinc powder                                    ; 3364        ; pwd
     ''')
 if 1:   # References
     refdoc = dedent('''
  
-        This set of data was culled from numerous sources and took a
-        number of years to compile.  Some things I learned from this
-        exercise (done around 2013) are:
+        This set of data was culled from numerous sources and took a number
+        of years to compile.  Some things I learned from this exercise
+        (done around 2013) are:
             - There's a lot of copying of data on the web, so finding all
               the sites you can and coalescing their data just leads to a
-              bunch of incestuous data.  This is a waste of your time.
+              bunch of incestuous data and is a waste of your time.
             - You need to be careful of errors, both published and in
               transcribing.
             - It's a lot of work.
@@ -2763,47 +2763,65 @@ if 1:   # References
               been handy, as a few times I wondered about the number I was
               using and referring back to the original source showed I had
               made a mistake transcribing it.
-            - If you're making an important decision based on some density
-              data, search out the primary sources of this information,
-              which will probably be in some chemical or physical journal.
-              Supplement it with basic measurements of your own -- you
-              should be able to work to 1% to 0.1% levels without a fancy
-              lab.
+            - Do not make any assumptions about the uncertainty of a
+              given number based on the number of significant figures it
+              has.  Rigorous uncertainty information is not available in
+              any of the references consulted.  
 
         I divide these references up into two categories:  primary and
         secondary.  Primary references are those published books that tend
         to be standard references and which are probably held to higher
         scholarship standards because of numerous editions and careful
-        editing.  Secondary standards are those that are either on the web
-        or are books that may not have the scholarship/attribution levels
-        of primary references.
+        editing.  Secondary references are those that are either on the web
+        or are books that probably don't have the scholarship/attribution
+        levels of primary references.
  
-        My primary references are: aes asm ceh el hcp hep mar mh
+        My primary references are: aes asm ceh tel hcp hep mar mhb.  The
+        oters are secondary references.  
+
+            mar and mhb are references that originated in the early 1900's
+            and have been reviewed and used by many eyes.  mar dates to at
+            least as early as 1916 and mhb was on its 5th edition in 1919.
+
+            tel is a 1989 book that contains no attributions for its data,
+            yet is a careful compilation by a chemist at King's College,
+            London.  It represents his long collection of notes on the
+            properties of the elements.  To me, it appears to be
+            meticulously edited and stands up to modern notations and
+            proper SI unit use.  While lacking attributions, my sense tells
+            me this author would have carefully researched all the
+            fundamental data and cross-checked it in the literature,
+            primarily because his name was going to be on the work.  It
+            probably represents a lifetime of work.  It reached a second
+            edition, but appears to be out of print.  You can find used
+            copies on Amazon for under $10 as of Apr 2022.
  
-        Marks' and Machinery's Handbook are references that originated in
-        the early 1900's and have been reviewed and used by many eyes.
-        Marks' dates to at least as early as 1916 and Machinery's Handbook
-        was on its 5th edition in 1919.
- 
-        The others are secondary references.  
- 
-        Glover's "Pocket Reference" is a handy little book, but lacks
-        detailed attribution and my first edition has a few mistakes in it.
-        Over the years, I've sorted quite a few density listings found on
-        the web and often these web lists seem to derive themselves from
-        Glover's book.  I would hazard a guess that Glover's book took much
-        of its material from Marks' and Machinery's Handbook, both which it
-        references.
- 
-        hep is a little book I found in a bookstore in Palo Alto,
-        California in 1978 when I was working in Silicon Valley.  It was
-        published by MIR Publishers in Russia; the publishing costs were
-        funded by the state.  I recall paying a few dollars for this book
-        and it became one of my favorite reference books because it was
-        brief and small.
+        I make no judgment regarding the veracity of all of these numbers,
+        as my "built-in doubter" suspects all of them, even those from the
+        primary references.  
+
+        If you're making an important decision based on some density data,
+        search out the primary sources of this information, which will
+        probably be in some chemical or physical journal.  Supplement it
+        with basic measurements of your own -- you should be able to work
+        to at least 1% levels without a fancy lab.
+
+        Example:  suppose we want the density of aluminum.  You'll get the
+        following values in kg/m3 from the above data
+            2640    glo 390
+            2698    tel 12
+            2700    pht
+            2700    aes 117
+            2700    mhb 2270
+            2770    asm 52 (2024 alloy)
+            2680    asm 52 (5052 alloy)
+            2700    asm 52 (6061 alloy)
+            2698.9  asm 52 (99.995%)
+
  
     ''')
     g.references = {
+        # All references are indexed by 3-letter strings
         "aes" : dedent('''
                 Bolz & Tuve, "Handbook of Tables for Applied Engineering
                 Science", 2nd ed., CRC Press, 1973.'''),
@@ -2813,7 +2831,7 @@ if 1:   # References
         "ceh" : dedent('''
                 Perry (ed.), "Chemical Engineers' Handbook", 5th ed.,
                 McGraw-Hill, 1973.'''),
-        "el"  : dedent('''Emsley, "The Elements", Oxford, 1989.'''),
+        "tel"  : dedent('''Emsley, "The Elements", Oxford, 1989.'''),
         "glo" : dedent('''Glover, "Pocket Ref", Sequoia Publishing, 16th
                 printing, 1993.'''),
         "hcp" : dedent('''
@@ -2825,8 +2843,8 @@ if 1:   # References
         "mar" : dedent('''
                 Marks, "Standard Handbook for Mechanical Engineers",
                 7th ed., McGraw-Hill, 1967.'''),
-        "dp" : "Measured by script author",
-        "mh" : dedent('''
+        "msa" : "Measured by script author",
+        "mhb" : dedent('''
                 Oberg, Jones, Horton, "Machinery's Handbook", 21st
                 ed. (1979), 19th ed. (1972), Industrial Press, 1979.'''),
         "pht" : dedent('''
@@ -2835,20 +2853,20 @@ if 1:   # References
         "pvc" : dedent('''
                 http://www.pvc.org/en/p/specific-gravity-density
                 (accessed 13 Nov 2018)'''),
-        "pwdrh": dedent('''https://www.powderhandling.com.au/bulk-density-chart,
+        "pwd" : dedent('''https://www.powderhandling.com.au/bulk-density-chart,
                 (accessed 2 Jul 2021)'''),
         "sim" : dedent('''
                 http://www.simetric.co.uk/si_materials.htm
                 (accessed 27 Jan 2013)'''),
         "web" : "From web, location and date not noted.",
-        "wp"  : dedent('''
+        "wkp" : dedent('''
                 Wikipedia http://en.wikipedia.org, accessed various
                 pages on various dates.'''),
     }
     g.categories = bidict()
     g.categories.update(
         {
-            'all':      0,
+            'None':     0,
             'gas':      1,
             'liquid':   2,
             'metal':    3,
@@ -2873,6 +2891,7 @@ if 1:   # Generate output
             x = [float(i) for i in s.split("-")]
             nlow, nhigh = [SigFig(i) for i in x]
             n = min(nlow, nhigh)
+            x = [flt(i) for i in x]
             # The components in x are flt instances, so we'll get their
             # strings to the requisite number of figures
             with x[0]:
@@ -2889,7 +2908,7 @@ if 1:   # Generate output
             y = flt(x)
             with y:
                 y.n = n
-                x.rtz = x.rtdp = True
+                y.rtz = y.rtdp = True
                 return str(1000*y)
 
 if 1:
@@ -2938,8 +2957,12 @@ if 1:
         x = flt(0)
         x.n = 4
         x.rtz = x.rtdp = True
-        maxlen, i = 0, ""
-        for line in g.raw_data.split("\n"):
+        if 0:
+            lines = g.raw_data.split("\n")
+            lines = lines[:5]
+        else:
+            lines = GetLines(g.raw_data, script=True, ignore_empty=True)
+        for line in lines:
             line = line.strip()
             if line.startswith("category"):
                 category = line.split("=")[1].strip()

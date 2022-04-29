@@ -5,58 +5,58 @@ TODO:
     * Add Zn to GetNumbers
     * Change 'ignore_regexes' keyword to 'ignore'
 '''
-if 1:  # Copyright, license
-    # These "trigger strings" can be managed with trigger.py
-    #∞copyright∞# Copyright (C) 2019 Don Peterson #∞copyright∞#
-    #∞contact∞# gmail.com@someonesdad1 #∞contact∞#
-    #∞license∞#
-    #   Licensed under the Open Software License version 3.0.
-    #   See http://opensource.org/licenses/OSL-3.0.
-    #∞license∞#
-    #∞what∞#
-    # <programming> Module for getting data from files, strings, and
-    # streams.  An example is reading a text file, getting all the lines
-    # except for those that match a sequency of regular expressions.
-    # Other examples are getting all the words (tokens) from a file or a
-    # set of numbers.  Handles a number of common programming tasks.
-    #∞what∞#
-    #∞test∞# run #∞test∞#
-    pass
-if 1:   # Imports
-    import locale
-    import pathlib
-    import re
-    import string
-    import sys
-    from collections import defaultdict, deque
-    from collections.abc import Iterable
-    from io import StringIO
-    from fractions import Fraction
-    from pdb import set_trace as xx
-if 1:   # Custom imports
-    import u
-    import util
-    from asciify import Asciify
-    try:
-        from uncertainties import ufloat, ufloat_fromstr, UFloat
-        _have_unc = True
-    except ImportError:
-        _have_unc = False
-    try:
-        from f import flt, cpx
-        _have_f = True
-    except ImportError:
-        _have_f = False
-if 1:   # Global variables
-    P = pathlib.Path
-    ii = isinstance
-    # For Tokenize
-    letters = set(string.ascii_letters)
-    others = set(
-        "žŽżŻźŹŸŷŶŵŴųŲűŰůŮŭŬūŪũŨŧŦťŤţŢšŠşŞŝŜśŚřŘŗŖŕŔőŐŏŎōŌŋŊŉňŇņŅńŃ"
-        "łŁŀĿľĽļĻĺĹĸķĶĵĴıİįĮĭĬīĪĩĨħĦĥĤģĢġĠğĞĝĜěĚęĘėĖĕĔēĒđĐďĎčČċĊĉĈć"
-        "ĆąĄăĂāĀÿþýüûúùøöõôóòñðïîíìëêéèçæåäãâáàßÞÝÜÛÚÙØÖÕÔÓÒÑÐÏÎÍÌË"
-        "ÊÉÈÇÆÅÄÃÂÁÀ")
+if 1:  # Header
+    # Copyright, license
+        # These "trigger strings" can be managed with trigger.py
+        #∞copyright∞# Copyright (C) 2019 Don Peterson #∞copyright∞#
+        #∞contact∞# gmail.com@someonesdad1 #∞contact∞#
+        #∞license∞#
+        #   Licensed under the Open Software License version 3.0.
+        #   See http://opensource.org/licenses/OSL-3.0.
+        #∞license∞#
+        #∞what∞#
+        # <programming> Module for getting data from files, strings, and
+        # streams.  An example is reading a text file, getting all the lines
+        # except for those that match a sequency of regular expressions.
+        # Other examples are getting all the words (tokens) from a file or a
+        # set of numbers.  Handles a number of common programming tasks.
+        #∞what∞#
+        #∞test∞# run #∞test∞#
+    # Standard imports
+        import locale
+        import pathlib
+        import re
+        import string
+        import sys
+        from collections import defaultdict, deque
+        from collections.abc import Iterable
+        from io import StringIO
+        from fractions import Fraction
+        from pdb import set_trace as xx
+    # Custom imports
+        import u
+        import util
+        from asciify import Asciify
+        try:
+            from uncertainties import ufloat, ufloat_fromstr, UFloat
+            _have_unc = True
+        except ImportError:
+            _have_unc = False
+        try:
+            from f import flt, cpx
+            _have_f = True
+        except ImportError:
+            _have_f = False
+    # Global variables
+        P = pathlib.Path
+        ii = isinstance
+        # For Tokenize
+        letters = set(string.ascii_letters)
+        others = set(
+            "žŽżŻźŹŸŷŶŵŴųŲűŰůŮŭŬūŪũŨŧŦťŤţŢšŠşŞŝŜśŚřŘŗŖŕŔőŐŏŎōŌŋŊŉňŇņŅńŃ"
+            "łŁŀĿľĽļĻĺĹĸķĶĵĴıİįĮĭĬīĪĩĨħĦĥĤģĢġĠğĞĝĜěĚęĘėĖĕĔēĒđĐďĎčČċĊĉĈć"
+            "ĆąĄăĂāĀÿþýüûúùøöõôóòñðïîíìëêéèçæåäãâáàßÞÝÜÛÚÙØÖÕÔÓÒÑÐÏÎÍÌË"
+            "ÊÉÈÇÆÅÄÃÂÁÀ")
 def GetText(thing, enc=None):
     '''Return the text from thing, which can be a string, bytes,
     or stream.  If thing is a string, it's assumed to be a file name;
@@ -69,15 +69,16 @@ def GetText(thing, enc=None):
     if ii(thing, bytes):
         # Bytes
         s = thing.decode(encoding="UTF-8" if enc is None else enc)
-    elif ii(thing, (str, pathlib.Path)):
-        # File name
-        p = pathlib.Path(thing)
+    elif ii(thing, pathlib.Path):
+        # It's a path, so read its text
+        s = p.read_text(encoding=enc) if enc else p.read_text()
+    elif ii(thing, str):    # It's a file name or string
         try:
+            p = pathlib.Path(thing)
             s = p.read_text(encoding=enc) if enc else p.read_text()
-        except FileNotFoundError:
-            s = thing
-    elif hasattr(thing, "read"):
-        # Stream
+        except Exception:
+            s = thing   # It's a string
+    elif hasattr(thing, "read"):    # It's a stream
         s = thing.read()
     else:
         raise TypeError("Type of 'thing' not recognized")
