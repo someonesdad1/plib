@@ -2865,7 +2865,7 @@ if 1:   # Generate output
         significant figures in the original string.  If it's a range with
         two numbers, use the smaller of the two significant figures.
         Return it as a string representing a density in kg/m3 or a range of
-        densities.
+        densities in kg/m3.
         '''
         from roundoff import RoundOff, SigFig
         maxfig = 6  # Max from data is 5 figures
@@ -2873,17 +2873,24 @@ if 1:   # Generate output
             x = [float(i) for i in s.split("-")]
             nlow, nhigh = [SigFig(i) for i in x]
             n = min(nlow, nhigh)
-            xx()
-            return '-'.join(str(RoundOff(1000*i, digits=n)) for i in x)
+            # The components in x are flt instances, so we'll get their
+            # strings to the requisite number of figures
+            with x[0]:
+                x[0].n = n
+                x[0].rtz = x[0].rtdp = True
+                a, b = [str(1000*flt(i)) for i in x]
+                if a == b:
+                    return a
+                else:
+                    return '-'.join((a, b))
         else:
             x = float(s)
             n = SigFig(x)
-            return str(RoundOff(1000*x, digits=n))
-
-if 1:
-    s = "0.00485-.0081"
-    print(GetNum(s))
-    exit()
+            y = flt(x)
+            with y:
+                y.n = n
+                x.rtz = x.rtdp = True
+                return str(1000*y)
 
 if 1:
     class Ref:
@@ -2914,12 +2921,12 @@ if 1:
             f = line.split(";")
             self.category = category
             self.name = f[0].strip()
-            self.rho = self.get_rho(f[1])
+            self.rho = GetNum(f[1])
             self.ref = Ref(f[2])
         def __str__(self):
             'Print in form suitable for a sequence'
             s = f"{self.name!r},"
-            return f"({s:{Den.maxlen}s} {self.rho!s:10s}, {self.ref!r}),"
+            return f"({s:{Den.maxlen}s} {self.rho!s:12s}, {self.ref!r}),"
         def get_rho(self, s):
             if "-" in s:
                 low, high = [1000*flt(i) for i in s.split("-")]

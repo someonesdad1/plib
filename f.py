@@ -1,57 +1,64 @@
 '''
     BUGS
-        * v=flt("15 mi/hr"); v.to("mi/minute") fails
-        * _sci() and other stuff need to handle inf.  flt('inf') should
+        - v=flt("15 mi/hr"); v.to("mi/minute") fails
+        - _sci() and other stuff need to handle inf.  flt('inf') should
           work.
-        * flt and cpx need to be hashable.
-        * cpx(274-22j, "kohms") and cpx(274-22j, "ohms") result in the same
+        - flt and cpx need to be hashable.
+        - cpx(274-22j, "kohms") and cpx(274-22j, "ohms") result in the same
           number, meaning the k prefix is not recognized.
+
+        - The .n attribute when changed changes the class variable of Base.
+          After using this class for a while, I'm not so sure this is the
+          proper use.  Sometimes you might want a number to display with 5
+          figures when the others in your problem display with 3.  The
+          original use case was that it lets you uniformly work to a given 
+          number of figures, but not all data are created equal.  Maybe the 
+          instance can be changed by setting n, then a reset() method would
+          set the instance back to the class' value.
  
     TODO
  
-    * Focus
-        * fmt.py works and has tests.  Use it as the formatter.
-        * Test that all needed constructors are written
-        * Get arithmetic with units working
-        * Get comprehensive unit tests for arithmetic written
-    * Add .rdp attribute to allow removal of decimal point if it is
+    - Focus
+        - fmt.py works and has tests.  Use it as the formatter.
+        - Test that all needed constructors are written
+        - Get arithmetic with units working
+        - Get comprehensive unit tests for arithmetic written
+    - Add .rdp attribute to allow removal of decimal point if it is
       trailing. 
-    * Add attribute to remove leading zero like sig.lead_zero.  Convenient
+    - Add attribute to remove leading zero like sig.lead_zero.  Convenient
       to minimize length in tables.
-    * Try to duplicate fpformat's engsi and engsic formatting for flt
+    - Try to duplicate fpformat's engsi and engsic formatting for flt
       objects.
-        * A common use case is in vmdivider.py.  A calculated resistance is
+        - A common use case is in vmdivider.py.  A calculated resistance is
           e.g. 9k, but it gets displayed as '9.000k'.  It would be nice to
-          see it as '9k', as that's easiest to read.  Attributes are
-          needed to suppress the unit string but leave the SI prefix as a
-          suffix.
-    * one = flt(1); one("1 mi/hr") does not work.  Should it?
-    * Add si method or attribute to Base?  This would return the number
-      in base SI units.  A use case is the gas law calculation:  the
-      number of moles results in units of 0.274 ft³·mol·psi/J.  Since
-      p*V is energy, the resulting unit is mol, but you don't see that
-      unless you know it.  si would fix this.
-        * There's no easy way to use SI prefixes with the unit string
-          unless you put the prefix in a numerator object with unity
-          power.
-        * Thus, the output should be in scientific notation if it's
-          beyond the fixed point limits.
-    * Need to remove Base.sci, etc.  Add these attributes to flt and
-      cpx.
-    * Need to fix cpx radd, etc. (search for xx)
-    * Tests need to cover all formatting options.
-        * An invariant for divmod is that 'divmod(x,y)[0]*y + x % y' be
-          very close to x (in REPL, type help() and * and look at
-          footnote 2 to the precedence table).
-    * Uncertainties:  It would be nice if the uncertainties library
-      could be supported, as these are needed for physical calculations
-      too.  A distinct disadvantage of the uncertainties ufloat is that
-      it's not a class instance.  See if:
-        * A suitable class can be defined.
-        * The umath functions can also be in scope for such objects.
-        * Can the flt object take a ufloat in the constructor and also
-          use it otherwise as normal?  It should support the
-          construction strings of 'a+-b', 'a+/-b', 'a±b', and 'a(b)'.
+          see it as '9k', as that's easiest to read.  Attributes are needed
+          to suppress the unit string but leave the SI prefix as a suffix.
+    - one = flt(1); one("1 mi/hr") does not work.  Should it?
+    - Add si method or attribute to Base?  This would return the number in
+      base SI units.  A use case is the gas law calculation:  the number of
+      moles results in units of 0.274 ft³·mol·psi/J.  Since p*V is energy,
+      the resulting unit is mol, but you don't see that unless you know it.
+      si would fix this.
+        - There's no easy way to use SI prefixes with the unit string
+          unless you put the prefix in a numerator object with unity power.
+        - Thus, the output should be in scientific notation if it's beyond
+          the fixed point limits.
+    - Need to remove Base.sci, etc.  Add these attributes to flt and cpx.
+    - Need to fix cpx radd, etc. (search for xx)
+    - Tests need to cover all formatting options.
+        - An invariant for divmod is that 'divmod(x,y)[0]*y + x % y' be
+          very close to x (in REPL, type help() and * and look at footnote
+          2 to the precedence table).
+    - Uncertainties:  It would be nice if the uncertainties library could
+      be supported, as these are needed for physical calculations too.  A
+      distinct disadvantage of the uncertainties ufloat is that it's not a
+      class instance.  See if:
+        - A suitable class can be defined.
+        - The umath functions can also be in scope for such objects.
+        - Can the flt object take a ufloat in the constructor and also use
+          it otherwise as normal?  It should support the construction
+          strings of 'a+-b', 'a+/-b', 'a±b', and 'a(b)'.
+
 '''
 __doc__ = '''
     This module is for routine calculations with real and complex
