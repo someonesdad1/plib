@@ -1,16 +1,27 @@
 '''
 
 - TODO
-    - Use data from AIP Handbook
-    - Provide page numbers for el and other references that are missing
-      page numbers.
-    - Make sure that categories can be gotten by typing in any suitable
-      abbreviation of the string
+    - Use data from AIP Handbook, primarily pg 2_17.
+    - Add a function to get water and air density as a function of
+      temperature, as these are needed a lot.
 
     ----------------------------------------------------------------------
     Module to provide density data
 
     - Design goals
+        - All data are in the global variable 'densities'
+            - This is a tuple of (name, rho, category, ref) where
+                - name is a string identifying the material
+                - rho is the density in kg/m3 or a range indicated by a
+                  hyphen
+                - category is an integer indicating the type of material (0
+                  means it's not categorized)
+                - ref is a 3-letter string indicating the reference it came
+                  from followed by an optional indicator of the page
+                  number.
+            - GetDensities() can be used to get a subset; its argument is a
+              space-separated string of the references whose data you want
+              to include
         - Default units kg/m3
         - Divide up into sets by reference
         - All entries are attributed
@@ -2750,6 +2761,13 @@ if 1:   # PowderHandling data
 if 1:   # References
     refdoc = dedent('''
  
+        Some books use page numbering of a section number, hyphen, and page
+        number in that section.  This conflicts with this document's use
+        where the hyphen indicates a range.  I use an underscore character
+        in place of a hyphen in this case.  For example, page 2-17 (Density
+        of Solids chapter) in aip is changed to 2_17 and a range of these
+        page numbers might be 2_17-2_19..
+
         This set of data was culled from numerous sources and took a number
         of years to compile.  Some things I learned from this exercise
         (done around 2013) are:
@@ -2767,7 +2785,7 @@ if 1:   # References
               given number based on the number of significant figures it
               has.  Rigorous uncertainty information is not available in
               any of the references consulted.  
-
+ 
         I divide these references up into two categories:  primary and
         secondary.  Primary references are those published books that tend
         to be standard references and which are probably held to higher
@@ -2776,48 +2794,26 @@ if 1:   # References
         or are books that probably don't have the scholarship/attribution
         levels of primary references.
  
-        My primary references are: aes asm ceh tel hcp hep mar mhb.  The
-        oters are secondary references.  
-
-            mar and mhb are references that originated in the early 1900's
-            and have been reviewed and used by many eyes.  mar dates to at
-            least as early as 1916 and mhb was on its 5th edition in 1919.
-
+        My primary references are: aes aip asm ceh tel hcp hep mar mhb.  The
+        others are secondary references.  
+ 
+            hcp, mar, and mhb are references that originated in the early 1900's
+            and have been reviewed and used by many eyes.  All three have
+            origins before 1920.
+ 
             tel is a 1989 book that contains no attributions for its data,
             yet is a careful compilation by a chemist at King's College,
-            London.  It represents his long collection of notes on the
-            properties of the elements.  To me, it appears to be
-            meticulously edited and stands up to modern notations and
-            proper SI unit use.  While lacking attributions, my sense tells
-            me this author would have carefully researched all the
-            fundamental data and cross-checked it in the literature,
-            primarily because his name was going to be on the work.  It
-            probably represents a lifetime of work.  It reached a second
-            edition, but appears to be out of print.  You can find used
-            copies on Amazon for under $10 as of Apr 2022.
+            London.  It appears to be meticulously edited and stands up to
+            modern notations and proper SI unit use.  While lacking
+            attributions, I sense this author would have carefully
+            researched all the fundamental data and heavily cross-checked
+            it in the primary literature.
  
-        I make no judgment regarding the veracity of all of these numbers,
-        as my "built-in doubter" suspects all of them, even those from the
-        primary references.  
-
-        If you're making an important decision based on some density data,
+        If you're making an important decision based on density data,
         search out the primary sources of this information, which will
         probably be in some chemical or physical journal.  Supplement it
         with basic measurements of your own -- you should be able to work
         to at least 1% levels without a fancy lab.
-
-        Example:  suppose we want the density of aluminum.  You'll get the
-        following values in kg/m3 from the above data
-            2640    glo 390
-            2698    tel 12
-            2700    pht
-            2700    aes 117
-            2700    mhb 2270
-            2770    asm 52 (2024 alloy)
-            2680    asm 52 (5052 alloy)
-            2700    asm 52 (6061 alloy)
-            2698.9  asm 52 (99.995%)
-
  
     ''')
     g.references = {
@@ -2825,6 +2821,10 @@ if 1:   # References
         "aes" : dedent('''
                 Bolz & Tuve, "Handbook of Tables for Applied Engineering
                 Science", 2nd ed., CRC Press, 1973.'''),
+        "aip" : dedent('''
+                Gray (ed.), "American Institute of Physics Handbook",
+                McGraw-Hill, 1957.
+                '''),
         "asm" : dedent('''
                 American Society of Metals, "Metals Handbook", Vol. 1,
                 8th ed., 1961 (9th printing, Aug 1977).'''),
@@ -2863,19 +2863,6 @@ if 1:   # References
                 Wikipedia http://en.wikipedia.org, accessed various
                 pages on various dates.'''),
     }
-    g.categories = bidict()
-    g.categories.update(
-        {
-            'None':     0,
-            'gas':      1,
-            'liquid':   2,
-            'metal':    3,
-            'mineral':  4,
-            'misc':     5,
-            'plastic':  6,
-            'wood':     7,
-        }
-    )
 if 1:   # Generate output
     def GetNum(s):
         '''s is a density in g/cc or a range of such densities.  Change it
@@ -2912,9 +2899,29 @@ if 1:   # Generate output
                 return str(1000*y)
 
 if 1:
+    g.categories = bidict()
+    g.categories.update(
+        {
+            '':         0,
+            'gas':      1,
+            'liquid':   2,
+            'metal':    3,
+            'mineral':  4,
+            'misc':     5,
+            'plastic':  6,
+            'wood':     7,
+        }
+    )
     class Ref:
+        '''This class holds the reference 'pointer' to a density number.
+        It must be a 3-letter string followed by an optional space and page
+        reference.
+ 
+        Example:  'aes 308' means page 308 of reference 'aes'.
+        '''
         def __init__(self, s):
             f = s.split()
+            assert(len(f) in (1, 2))
             self.key = f[0]
             self.pg = None
             if len(f) > 1:
@@ -2922,6 +2929,10 @@ if 1:
             # Make sure it's in g.references
             if self.key not in g.references:
                 raise ValueError(f"'{self.key}' not in g.references")
+            # It's OK if the page number is a range, but there should only
+            # be one hyphen
+            if self.pg is not None:
+                assert(self.pg.count("-") in (0, 1))
         def __lt__(self, other):
             assert(ii(other, Ref))
             return self.key < other.key
@@ -2934,14 +2945,25 @@ if 1:
             s = f"{self.key} {self.pg}" if self.pg else self.key
             return repr(s)
     class Den:
+        '''Contain a density entry.  The incoming string must contain three
+        fields separated by ";".  category must be a string.
+        '''
         maxlen = 50     # Maximum length of name string
-        def __init__(self, line, category):
+        def __init__(self, line, category=""):
             self._line = line
             f = line.split(";")
-            self.category = category
+            # Change category string to a number
+            self.category = g.categories[category]
             self.name = f[0].strip()
             self.rho = GetNum(f[1])
             self.ref = Ref(f[2])
+            self._check()
+        def _check(self):
+            'Check consistency'
+            assert(ii(self.name, str) and self.name)
+            assert(ii(self.category, int) and self.category >= 0)
+            assert(ii(self.rho, str))
+            assert(ii(self.ref, Ref))
         def __str__(self):
             'Print in form suitable for a sequence'
             s = f"{self.name!r},"
@@ -2954,6 +2976,26 @@ if 1:
             else:
                 return 1000*flt(s)
     def GenerateOutput():
+        '''
+        All the information should be the density around 20 °C unless a
+        temperature is given in the name.
+
+        Desired output format:
+
+        Be a python sequence that can be read in quickly.  The fields
+        should be
+
+            Name
+            Density in kg/m3
+            Category number
+            Reference
+
+        Sort the data by density.
+
+        Question:  is it faster to just load an already-constructed tuple
+        or is it acceptable to parse carefully-formatted raw data?
+
+        '''
         x = flt(0)
         x.n = 4
         x.rtz = x.rtdp = True
@@ -2970,6 +3012,6 @@ if 1:
             if not line or line.startswith("#"):
                 continue
             d = Den(line, category)
-            print(d)
+            #print(d)
 if __name__ == "__main__": 
     GenerateOutput()
