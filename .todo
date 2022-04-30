@@ -1,4 +1,15 @@
 main
+    - git
+        - I would like to get rid of Mercurial on my system and change
+          everything over to git.
+        - Experiment:  see if I can take a long-term hg directory and put a
+          git directory next to it and migrate the revision history.  
+            - If I can, great -- then just delete the hg directory.
+            - If not, then I have to choose whether to remove the old hg
+              history.  Regardless, I'm tired of messing with Mercurial,
+              especially because it's a pain when you forget and move
+              something with mv.  Git figures this out; Mercurial doesn't.
+
     - ppp.py
         - Pretty printing module that would focus on pretty printing
           top-level contents.  pprint is annoying because when e.g.

@@ -1,5 +1,4 @@
 '''
-
 Color coordinates and transformations 
     - Your thumb at the end of your arm is 2°; your fist is 10°. 
     - Chances are, if you get some RGB color data, it's probably in the
@@ -130,52 +129,79 @@ if 1:   # Core functionality
             return tuple([round(float(i), 4) for i in x])
         XYZ = xy_to_XYZ(xy, Y)
         return f(XYZ_to_sRGB(XYZ))
-    def sRGB_to_XYZ(srgb):
-        '''sRGB to CIE XYZ from
-        https://en.wikipedia.org/wiki/SRGB#From_sRGB_to_CIE_XYZ 
+    def sRGB_to_XYZ(srgb, hires=False):
+        '''Returns a tuple of XYZ values for an sRGB tuple.  All values in
+        srgb must be on [0, 1].
+        sRGB to CIE XYZ from https://en.wikipedia.org/wiki/SRGB#From_sRGB_to_CIE_XYZ 
+        
+        - srgb components must be on [0, 1].  If 8-bit numbers, divide by
+          255 to put on this range.
+        - Use "gamma-expanded" values if the component is > 0.04; otherwise
+          divide the component by 12.92.
+        - Transform to XYZ space with a matrix transformation.
+ 
+        Test values:  Let sRGB = (0.2, 0.5, 0.8).  Transform each component
+        x to be ((x + 0.055)/1.055)**2.4, giving 
+        (0.033104766570885055, 0.21404114048223255, 0.6038273388553378) = (a, b, c).
+        The matrix multiplication is 
+ 
+        X = 0.4124*a + 0.3576*b + 0.1805*c
+        Y = 0.2126*a + 0.7152*b + 0.0722*c
+        Z = 0.0193*a + 0.1192*b + 0.9505*c
+ 
+        giving (0.19918435223366782, 0.20371663091121825, 0.6000905115222988).
+        The routine rounds this off to 4 figures.
+ 
         '''
         def GammaExpand(x):
             return x/12.92 if x <= 0.04045 else ((x + 0.055)/1.055)**2.4
         # Make sure all values are between 0 and 1
         Assert(all([0 <= i <= 1 for i in srgb]))
-        # "Gamma-expand" the values (the web page calls these the "linear"
-        # components)
-        rgb = [GammaExpand(i) for i in srgb]
         # Transformation matrix to produce XYZ values with respect to the
         # D65 illumination (6500 K blackbody radiation).
-        if 1:
-            r1 = (0.4124, 0.3576, 0.1805)
-            r2 = (0.2126, 0.7152, 0.0722)
-            r3 = (0.0193, 0.1192, 0.9503)
-        else:
+        if hires:
             # More significant figures from
             # https://www.image-engineering.de/library/technotes/958-how-to-convert-between-srgb-and-ciexyz
+            n = 7
             r1 = (0.4124564, 0.3575761, 0.1804375)
             r2 = (0.2126729, 0.7151522, 0.0721750)
             r3 = (0.0193339, 0.1191920, 0.9503041)
+        else:
+            n = 4
+            r1 = (0.4124, 0.3576, 0.1805)
+            r2 = (0.2126, 0.7152, 0.0722)
+            r3 = (0.0193, 0.1192, 0.9505)
+        # "Gamma-expand" the values (the web page calls these the "linear"
+        # components).
+        rgb = [GammaExpand(i) for i in srgb]
         # Perform the matrix transformation
         XYZ = Dot(r1, rgb), Dot(r2, rgb), Dot(r3, rgb)
+        # Round the results
+        XYZ = tuple(round(i, n) for i in XYZ)
         return XYZ
-    def XYZ_to_sRGB(XYZ):
+    def XYZ_to_sRGB(XYZ, hires=False):
         '''CIE XYZ to sRGB
         https://en.wikipedia.org/wiki/SRGB#From_CIE_XYZ_to_sRGB
+
+        The test case for sRGB_to_XYZ will result in the original sRGB
+        values when operated on with XYZ_to_sRGB().
         '''
         def GammaCompressed(x):
             return 12.92*x if x <= 0.0031308 else 1.055*x**(1/2.4) - 0.055
-        if 1:
+        if hires:
+            # More significant figures from
+            # https://www.image-engineering.de/library/technotes/958-how-to-convert-between-srgb-and-ciexyz
+            n = 7
+            r1 = (+3.2404542, -1.5371385, -0.4985314)
+            r2 = (-0.9692660, +1.8760108, +0.0415560)
+            r3 = (+0.0556434, -0.2040259, +1.0572252)
+        else:
             n = 4
             r1 = (+3.2406, -1.5372, -0.4986)
             r2 = (-0.9689, +1.8758, +0.0415)
             r3 = (+0.0557, -0.2040, +1.0570)
-        else:
-            # More significant figures from
-            # https://www.image-engineering.de/library/technotes/958-how-to-convert-between-srgb-and-ciexyz
-            n = 6
-            r1 = (+3.2404542, -1.5371385, -0.4985314)
-            r2 = (-0.9692660, +1.8760108, +0.0415560)
-            r3 = (+0.0556434, -0.2040259, +1.0572252)
         rgb = Dot(r1, XYZ), Dot(r2, XYZ), Dot(r3, XYZ)
-        # Round the results
+        # Round the results and gamma compress
         sRGB = [round(GammaCompressed(i), n) for i in rgb]
         # Clip to [0, 1]
         clip = lambda x:  min(1, max(x, 0))
@@ -327,15 +353,6 @@ if 1:   # Other functionality
         v1 = 9*Y/s
         return u1, v1
 
-if 0:
-    a = (.5,.5,.5)
-    x = rgb_to_XYZ(a)
-    print(x)
-    # Can it go back?
-    b = XYZ_to_rgb(x)
-    print(b)
-    exit()
-
 if __name__ == "__main__": 
     def Test_RGB():
         # Not working yet
@@ -358,21 +375,64 @@ if __name__ == "__main__":
             print(XYZ_to_rgb((0.64, 0.33, 0.03)))
         Test_XYZ_to_rgb()
         Test_rgb_to_XYZ()
-    def Test_sRGB():
-        x = (1, 0, 0)
-        XYZ = sRGB_to_XYZ(x)
-        Assert(XYZ == (0.4124, 0.2126, 0.0193))
-
-        a = XYZ_to_sRGB(XYZ)
-        print(a)
-        print(x)
-        exit()
-
-        x = (0, 1, 0)
-        XYZ = sRGB_to_XYZ(x)
-        Assert(XYZ == (0.3576, 0.7152, 0.1192))
-        x = (0, 0, 1)
-        XYZ = sRGB_to_XYZ(x)
-        Assert(XYZ == (0.1805, 0.0722, 0.9505))
-
+    def Test_sRGB_to_XYZ():
+        if 1:
+            # This is the example given in the docstring of sRGB_to_XYZ and was
+            # manually calculated in the python REPL.
+            sRGB = (0.2, 0.5, 0.8)
+            XYZ = sRGB_to_XYZ(sRGB, hires=False)
+            Assert(XYZ == (0.1992, 0.2037, 0.6001))
+            srgb = XYZ_to_sRGB(XYZ, hires=False)
+            #
+            XYZ = sRGB_to_XYZ(sRGB, hires=True)
+            Assert(XYZ == (0.1991434, 0.2036937, 0.5999716))
+            # Test inverse
+            srgb = XYZ_to_sRGB(XYZ, hires=True)
+            Assert(srgb == (0.2000006, 0.4999999, 0.8))
+        # The following are easily calculated results, as they just pick
+        # out the matrix columns
+        if 1:
+            hr = False
+            sRGB = (1, 0, 0)
+            XYZ = sRGB_to_XYZ(sRGB, hires=hr)
+            expected = (0.4124, 0.2126, 0.0193)
+            Assert(XYZ == expected)
+            srgb = XYZ_to_sRGB(XYZ, hires=hr)
+            Assert(srgb == (1, 0.0003, 0.0))
+            #
+            sRGB = (0, 1, 0)
+            XYZ = sRGB_to_XYZ(sRGB, hires=hr)
+            expected = (0.3576, 0.7152, 0.1192)
+            Assert(XYZ == expected)
+            srgb = XYZ_to_sRGB(XYZ, hires=hr)
+            Assert(srgb == (0, 1, 0.0002))
+            #
+            sRGB = (0, 0, 1)
+            XYZ = sRGB_to_XYZ(sRGB, hires=hr)
+            expected = (0.1805, 0.0722, 0.9505)
+            Assert(XYZ == expected)
+            srgb = XYZ_to_sRGB(XYZ, hires=hr)
+            Assert(srgb == (0.0003, 0, 1))
+        if 1:
+            hr = True
+            sRGB = (1, 0, 0)
+            XYZ = sRGB_to_XYZ(sRGB, hires=hr)
+            expected = (0.4124564, 0.2126729, 0.0193339)
+            Assert(XYZ == expected)
+            srgb = XYZ_to_sRGB(XYZ, hires=hr)
+            Assert(srgb == (0.9999999, 1.7e-06, 0))
+            #
+            sRGB = (0, 1, 0)
+            XYZ = sRGB_to_XYZ(sRGB, hires=hr)
+            expected = (0.3575761, 0.7151522, 0.119192)
+            Assert(XYZ == expected)
+            srgb = XYZ_to_sRGB(XYZ, hires=hr)
+            Assert(srgb == (5e-07, 1, 0))
+            #
+            sRGB = (0, 0, 1)
+            XYZ = sRGB_to_XYZ(sRGB, hires=hr)
+            expected = (0.1804375, 0.072175, 0.9503041)
+            Assert(XYZ == expected)
+            srgb = XYZ_to_sRGB(XYZ, hires=hr)
+            Assert(srgb == (6e-07, 0, 1))
     exit(run(globals(), halt=True)[0])

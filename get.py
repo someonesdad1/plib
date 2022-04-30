@@ -71,7 +71,7 @@ def GetText(thing, enc=None):
         s = thing.decode(encoding="UTF-8" if enc is None else enc)
     elif ii(thing, pathlib.Path):
         # It's a path, so read its text
-        s = p.read_text(encoding=enc) if enc else p.read_text()
+        s = thing.read_text(encoding=enc) if enc else thing.read_text()
     elif ii(thing, str):    # It's a file name or string
         try:
             p = pathlib.Path(thing)

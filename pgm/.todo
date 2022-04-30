@@ -1,11 +1,22 @@
 main
-    - dppp.py
-        - This would be a pretty printing module that would focus on
-          pretty printing top-level contents.  pprint is annoying because
-          when e.g. printing a list of strings, it will print only one
-          string per line.  The contents should be printed in compact
-          columns using Columnize.  
-        - Color can be used for type hints
+    - git
+        - I would like to get rid of Mercurial on my system and change
+          everything over to git.
+        - Experiment:  see if I can take a long-term hg directory and put a
+          git directory next to it and migrate the revision history.  
+            - If I can, great -- then just delete the hg directory.
+            - If not, then I have to choose whether to remove the old hg
+              history.  Regardless, I'm tired of messing with Mercurial,
+              especially because it's a pain when you forget and move
+              something with mv.  Git figures this out; Mercurial doesn't.
+
+    - ppp.py
+        - Pretty printing module that would focus on pretty printing
+          top-level contents.  pprint is annoying because when e.g.
+          printing a list of strings, it will print only one string per
+          line.  The contents should be printed in compact columns using
+          Columnize.  
+        - Color should be used for type hints
             - list:  lred
             - tuple:  red
             - dict:  lyel
@@ -20,27 +31,6 @@ main
         - Another need would be to look for circular imports, which are
           mightily annoying.
             - https://stackoverflow.com/questions/3739654/how-to-fix-a-circular-dependency-for-imports
-
-    - weather.py
-        - https://forecast.weather.gov/MapClick.php?lat=43.6417&lon=-116.3243&unit=0&lg=english&FcstType=text&TextType=1
-        - This is a text webpage that could be parsed and displayed in
-          short form in a terminal.  Simpler and quicker than loading a web
-          page.
-        - Color could be used
-            - Yellow:   sunny
-            - Gray:     overcast
-            - Green:    rain
-            - Red:      thunderstorms
-            - White:    snow
-            - Temperatures:  cyn:°F grn:°C 
-            - Windy
-        - Also use bars to indicate magnitude
-            - Cold would be blue, hot would be red
-            - The scale would be printed above, then the colors would
-              interpolate between the low and the high.  Nicely visual with
-              the range immediately visible.
-        - The HTML is simple; it would be easy to reduce to plain text with
-          a regexp.
 
     - dbl.py
         - Delete blank lines in a file
@@ -300,7 +290,7 @@ main
           should be assigned to a single easy to access keypress.
 
     - Remembering a structure
-        - A fundamental problem when coding is that a data structure is
+        - A problem when coding is that a data structure is
           developed and you start using it in your code.  Then you always
           have to stop and look around the code to figure out the
           structures again.  Is there a way to add a utility that documents
@@ -308,6 +298,8 @@ main
           succinct summary by the code examining itself?  Ideally, this
           would be just a few lines of code that are easy to remove when
           done (or, better, leave it in for later maintenance).
+        - One possibility would be to derive all classes from a base class 
+          that would know how to introspect itself.
 
     - flt.py
         - Since flt is essentially done, write a replacement for
@@ -357,7 +349,7 @@ main
     - /plib/density.py
         - For common density values.  This file would then be read by
           /plib/pgm/density.py for its data.  Having things in a module
-          mean other apps can use it.
+          means other apps can use it.
         - One addition would be to provide canonical values for common
           materials like steel, brass, iron, elements, etc.
 
@@ -525,7 +517,6 @@ pgm
                  1         2         3         4         5         6         7
         ····+····|····+····|····+····|····+····|····+····|····+····|····+····|
 
-
     - disks.ksh
         - Convert this to a python script that remembers the names of the
           floppy disks.  Note:  I used to have a directory somewhere with the
@@ -609,6 +600,10 @@ pgm
           dictionary by default and print the tokens out in columns for
           each file.
 
+    - Elements
+        - The wikipedia pages has useful information on the elements.  It
+          would be nice if this information is regular enough to allow
+          scraping to get a database.
 Other
     -NAS
         - Current storage

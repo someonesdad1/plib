@@ -189,7 +189,7 @@ if 1:   # Glob patterns and file extensions
     '''
     source_code_files = GetSet(data_short, extra=["[Mm]akefile"])
     # Glob patterns for documentation files
-    documentation_files = GetSet("doc odg ods odt pdf xls")
+    documentation_files = GetSet("doc odg ods odt xls")
     # Glob patterns for picture files
     picture_files = GetSet('''
         bmp clp dib emf eps gif img jpeg jpg pbm pcx pgm png ppm ps psd psp
