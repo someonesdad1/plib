@@ -2,29 +2,33 @@
 Provides a sequence of density instances
 
     densities is a tuple of Density instances, which are derived from
-    floats.  If d is an instance of a Density object, then 
+    floats.  If d is an instance of a Density object, then:
 
-    - It's value (a float) is the density of that material in kg/m3
-    - d.name is the string naming the material
-    - d.rho is the string representing the density, which is either a
-      number or a range:  two numbers separated by a hyphen.
-        - If d.rho is a range, then d.rng is the tuple of the low and high
-          values of the range
-    - d.reference is a string containing 3 letters identifying the
-      reference this number came from with optional following letters for
-      the page number(s).
-    - d.category is an integer for the materials category (e.g., metal,
-      mineral, wood, etc.).  0 means no category was assigned.
+        - Its value (a float) is the density of that material in kg/m3
+        - d.name is the string naming the material
+        - d.rho is the string representing the density, which is either a
+          number or a range:  two numbers separated by a hyphen.
+            - If d.rho is a range, then d.rng is the tuple of the low and
+              high values of the range
+        - d.reference is a string containing 3 letters identifying the
+          reference this number came from with optional following letters
+          for the page number(s).
+        - d.category is an integer for the materials category (e.g., metal,
+          mineral, wood, etc.).  0 means no category was assigned.
 
     This set of data was culled from numerous sources and took a number of
     years to compile.  Some things I learned from this exercise (done
-    around 2013) are:
+    around 2013 and updated in 2022) are:
 
     - There's a lot of copying of data on the web, so finding all the sites
       you can and coalescing their data just leads to a bunch of incestuous
-      data, is a waste of your time, and will contain numerous errors.
-      Since no one usefully attributes their data on the web, you can't
-      check things.
+      data, will contain numerous errors, and is likely a waste of your
+      time.  Since no one usefully attributes their data on the web, you
+      can't check things.  
+    - UK, American, and Australian English are continually diverging over
+      time and web pages may contain data with subtle semantic differences
+      that might help you make an error if you're unaware of the source.
+      This is another benefit of attribution for each item.
     - You need to be careful of errors, both published and in your
       transcribing.
     - It's a lot of work.
@@ -33,44 +37,47 @@ Provides a sequence of density instances
       referring back to the original source showed I had made a mistake
       transcribing it.
     - Do not make any assumptions about the uncertainty of a given number
-      based on the number of significant figures it has.  Rigorous
-      uncertainty information is not available in any of the references
-      consulted (you'll need to go to the research literature for that).  
+      based on its number of significant figures.  Rigorous uncertainty
+      information is not available in any of the references consulted
+      (you'll need to go to the research literature for that).  In general,
+      I trust the numbers in this table to about 2 significant figures at
+      best.
 
     - Primary references
-        - These are published books that tend to be standard references and
-          which are probably held to higher standards because of numerous
-          editions, careful editing, and many users over the decades.  
+        - These are published books that are regarded as standard
+          references.  These are probably held to higher quality standards
+          because of numerous editions, careful editing, and inspection
+          from many users' eyes over the decades.  
         - My primary references are: aes aip asm ceh tel hcp hep mar mhb.
             - hcp, mar, and mhb are references that originated in the early
               1900's and have been reviewed and used by many eyes.  All
               three have origins before 1920.
-            - asm is also an old book that has gone through numerous
-              revisions and includes attributions to the literature.
+            - asm is also an older book that has gone through numerous
+              revisions and includes attributions to the research
+              literature.
             - tel is a 1989 book that contains no attributions for its
               data, yet appears to be a careful compilation by a chemist at
               King's College, London.  I sense this author would have
               carefully researched all the fundamental data and heavily
-              cross-checked it in the primary literature.  I trust its
+              cross-checked it in the primary literature (a benefit of
+              being at a university with a good library).  I trust its
               numbers to at least 3 figures, maybe 4.
 
     - Secondary references are those that are either web pages or books
-      that likely don't have the editorial status of the primary
-      references.
-
-    - A good example of the problem with web data is the Powder Handling
-      handling data (pwd).  I liked the contents of their web page because
-      it contains density information for powders and granular things.
-      However, it had a density of 961 kg/m3 for nickel, which must be an
-      error (it should be around 8900).  Or, the person compiling the list
-      left out some important information.  Such things tend to lower the
-      credibility of a list, even if the rest of it is pretty good.
+      that likely don't have the editorial care of the primary references.  
+        - I consider web pages to be about the lowest quality of density
+          information, yet some web pages may contain useful information.
 
     - If you're making an important decision based on density data, search
       out the primary sources of this information, which will probably be
       in some chemical or physical journal.  Supplement it with basic
-      measurements of your own -- you should be able to work to at least 1%
-      levels without a fancy lab.
+      measurements of your own -- with care, you should be able to work to
+      nearly 0.1% levels without a fancy lab.
+
+    - Use cases
+
+        - Identifying a material
+        - Making design estimates
 
 '''
 if 1:   # Header
