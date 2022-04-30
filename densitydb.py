@@ -2802,13 +2802,28 @@ if 1:   # Filter the density data
             if i.ref in refs:
                 new_densities.append(i)
         return tuple(new_densities)
-    densities = FilterDensities("hcp")
-    xx()
+    primary_references = "aes aip asm ceh tel hcp hep mar mhb"
+    densities = FilterDensities(primary_references)
 if __name__ == "__main__":
     from lwtest import run, raises, assert_equal, Assert
     def Test():
         '''There's little that can be tested if the densities tuple is
         constructed.  Do a couple of spot checks.
         '''
+    print(dedent('''
+
+    - Todo
+        - Tests
+            - Spot checks of some values
+            - Show that str(i) gives a float and repr(i) gives a suitable
+              instantiation string where i is a Density instance.
+        - Verify FilterDensities() gives desired sets
+        - Write some test cases that verify data
+        - Vetting function
+            - Looks for suspicious things
+            - Perhaps build a keyword dictionary to stratify things first
+            - Example:  pwd had Nickel with density of 961, less than water
+        
+    '''))
     exit(run(globals(), halt=1)[0])
 
