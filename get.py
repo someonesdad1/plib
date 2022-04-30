@@ -83,11 +83,12 @@ def GetText(thing, enc=None):
     else:
         raise TypeError("Type of 'thing' not recognized")
     return s
-def GetLines(thing, enc=None, ignore=[], script=False, ignore_empty=False):
+def GetLines(thing, enc=None, ignore=[], script=False, ignore_empty=False, strip=False):
     '''Return a list of lines that are in thing.  See GetText for
     details on thing.
  
     script          If True, ignore comment lines
+    strip           If True, strip off whitespace from each line
     ignore_empty    If True, ignore empty (whitespace only) lines
   
     ignore          List of strings that are compiled to regular
@@ -120,7 +121,19 @@ def GetLines(thing, enc=None, ignore=[], script=False, ignore_empty=False):
         ignore.append(r"^\s*$")
     lines = GetText(thing, enc=enc).split("\n")
     lines = list(filter(Filter, lines))
+    if strip:
+        lines = [i.strip() for i in lines]
     return lines
+def GetTextLines(thing):
+    '''This is a convenience instance of GetLines with the keywords:
+    script = True
+    ignore_empty = True
+    strip = True
+    
+    This is because a common use case in a script is a multi-line string
+    containing a data table that's e.g. tab-separated.
+    '''
+    return GetLines(thing, script=True, ignore_empty=True, strip=True)
 def GetLine(thing, enc=None):
     '''Similar to GetLines, but is a generator so it gets a line at a time.
     thing can be a string, bytes, or a stream.  If it is a string, it's
