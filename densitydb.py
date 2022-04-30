@@ -173,11 +173,13 @@ class Density(float):
         '''
         mean_density, rng = Density.GetRho(rho)
         instance = super().__new__(cls, mean_density)
+        instance.rho = rho
         instance.name = name
         instance.range = rng
         instance.category = category
         instance.reference = Density.CheckReference(reference)
         instance._check()
+        return instance
     def _check(self):
         'Check consistency'
         assert(ii(self.name, str) and self.name)
@@ -197,6 +199,12 @@ class Density(float):
         'Allow sorting by the density value'
         assert(ii(other, Density))
         return self.get_rho() < other.get_rho()
+    @property
+    def ref(self):
+        'Returns 3-letter reference string'
+        if " " in self.reference:
+            return self.reference.split()[0]
+        return self.reference
     @classmethod
     def CheckReference(cls, s: str):
         'Validate a reference string'
@@ -223,7 +231,8 @@ class Density(float):
         else:
             x = RoundOff(float(s), digits=digits)
             return (x, None)
-if 1:   # Density data:  tuple of Density instances
+if 1:   # Density data:  list of Density instances
+
     densities = (
     Density('Steam (H₂O) saturated (0 °C & 0.00603 atm)',      '0.004847',  1,    'aes 18'),
     Density('Steam (H₂O) saturated (20 °C & 0.023 atm)',       '0.01729',   1,    'aes 18'),
@@ -2775,11 +2784,26 @@ if 1:   # Density data:  tuple of Density instances
     Density('Osmium',                                          '22590',     3,    'tel 132'),
     Density('Osmium',                                          '22600',     3,    'aes 120'),
     )
-if 1:   # Filter the density data
-    def FilterDensity(ref_strings):
-        '''This function will 
 
+if 1:   # Filter the density data
+    def FilterDensities(ref_strings):
+        '''This function will rebuild the densities tuple so that it only
+        contains the references in the ref_strings argument.  Separate the
+        3-letter reference name strings with whitespace.
         '''
+        refs = set(ref_strings.split())
+        if not refs:
+            raise ValueError("No references given")
+        for i in refs:
+            if i not in references:
+                raise ValueError(f"'{i}' not in references")
+        new_densities = []
+        for i in densities:
+            if i.ref in refs:
+                new_densities.append(i)
+        return tuple(new_densities)
+    densities = FilterDensities("hcp")
+    xx()
 if __name__ == "__main__":
     from lwtest import run, raises, assert_equal, Assert
     def Test():
