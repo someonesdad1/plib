@@ -2436,13 +2436,14 @@ if __name__ == "__main__":
             '''The default set of color names comes from the colorname0
             file.  The 12 basic names are the 10 resistor color code names
             of blk, brn, red, orn, yel, grn, blu, vio, gry, wht and the
-            added colors cyn for cyan and mag for magenta.  Then the three
-            prefixes give 12 more colors each:  'l' for 'light', 'd' for
-            'dark', and 'b' for background.  Each of these colors is
-            printed out with foreground and background text to show their
-            effect.
+            added colors cyn for cyan and mag for magenta.  Three suffixes
+            give 12 more colors each:  'l' for 'light', 'd' for 'dark', and
+            'b' for background.  An auxiliary 12 more colors are also
+            defined.  Each of these colors is printed out with foreground
+            and background text to show their effect.
             '''
-            R = "blk brn red orn yel grn blu vio gry wht cyn mag".split()
+            R = '''blk brn red orn yel grn blu vio gry wht cyn mag
+                   pnk lip lav lil pur roy den sky trq sea lwn olv'''.split()
             c = Trm()
             w = 5
             cn = CN
@@ -2452,37 +2453,23 @@ if __name__ == "__main__":
                 s = str(i/10)
                 print(f"{c(k)}{s:{w}s}{c.n}", end=" ")
             print()
-            if 0:
-                print(" "*3, end="")
-                for i in R:
-                    k = Color(i)
-                    print(f"{c(k)}{i}", end="  ")
-                print(f"{c.n}")
-                print(" "*3, end="")
-                for i in R:
-                    i = "l" + i
-                    k = Color(i)
-                    print(f"{c(k)}{i}{c.n}", end=" ")
-                print(f"{c.n}")
-            elif 1:
-                # Print out one color per line
-                
-                w, sp, a = 4, 2, "ul it"
-                print(f"{' '*12}{c('lwht', attr=a)}Foregrounds{c.n}", end="")
-                print(f"{' '*12}{c('lwht', attr=a)}Backgrounds{c.n}")
-                for i in R:
-                    # Foregrounds
-                    print(f"{i:{w}s}", end=" "*3)
-                    print(f"{c(cn[i])}{i:{w}s}{c.n}", end=" "*sp)
-                    for j in "ldb":
-                        k = j + i
-                        print(f"{c(cn[k])}{k:{w}s}{c.n}", end=" "*sp)
-                    # Backgrounds
-                    print(f"{c('blk', cn[i])}{i:{w}s}{c.n}", end=" "*sp)
-                    for j in "ldb":
-                        k = j + i
-                        print(f"{c('blk', cn[k])}{k:{w}s}{c.n}", end=" "*sp)
-                    print()
+            # Print out one color per line
+            w, sp, a = 4, 2, "ul it"
+            print(f"{' '*12}{c('whtl', attr=a)}Foregrounds{c.n}", end="")
+            print(f"{' '*12}{c('whtl', attr=a)}Backgrounds{c.n}")
+            for i in R:
+                # Foregrounds
+                print(f"{i:{w}s}", end=" "*3)
+                print(f"{c(cn[i])}{i:{w}s}{c.n}", end=" "*sp)
+                for j in "ldb":
+                    k = i + j
+                    print(f"{c(cn[k])}{k:{w}s}{c.n}", end=" "*sp)
+                # Backgrounds
+                print(f"{c('blk', cn[i])}{i:{w}s}{c.n}", end=" "*sp)
+                for j in "ldb":
+                    k = i + j
+                    print(f"{c('blk', cn[k])}{k:{w}s}{c.n}", end=" "*sp)
+                print()
     def Error(*msg, status=1):
         print(*msg, file=sys.stderr)
         exit(status)
