@@ -1,6 +1,10 @@
-'''
-TODO
-    * Columnize(['a'], indent=" "*4) has an exception
+''' TODO
+    - Columnize(['a'], indent=" "*4) has an exception
+    - Columnize raises a ValueError exception when something is too long.
+      There should be an option to just print this line anyway and
+      continue, as it often breaks some application and you can't see your
+      output.  Typical message is "ValueError: Cannot fit longest string
+      (118 characters) on screen"
 
 Function to turn a sequence into columns
 
@@ -143,7 +147,7 @@ def Columnize(seq, **kw):
     sseq = [str(i) for i in seq]
     n, maxlen, lsep = len(sseq), max([Len(i) for i in sseq]), len(sep)
     # Pick reasonable defaults if width and columns not given
-    if not width :
+    if not width:
         if not columns:
             width = int(os.environ.get("COLUMNS", 80)) - 1
             columns = width//(maxlen + len(sep))

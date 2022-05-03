@@ -348,92 +348,92 @@ if 1:   # Color definitions:  alternate method
     if 1:  # Secondary
         if 1:  # pnk
             main1.extend([
-
-                "pnk  $f24bff",
+                "pnk  (207,100,120)",
                 "pnkd $f234ff",
                 "pnkl $f27fff",
                 "pnkb $f2d9ff",
             ])
         if 1:  # lip
             main1.extend([
-                "lip  $f04bff",
+
+                "lip  (213,23,78)",
                 "lipd $f034ff",
                 "lipl $f07fff",
                 "lipb $f0d9ff",
             ])
         if 1:  # lav
             main1.extend([
-                "lav  $bf4bff",
+                "lav  (181,126,220)",
                 "lavd $bf34ff",
                 "lavl $bf7fff",
                 "lavb $bfd9ff",
             ])
         if 1:  # lil
             main1.extend([
-                "lil  $b74bff",
+                "lil  (206,162,253)",
                 "lild $b734ff",
                 "lill $b77fff",
                 "lilb $b7d9ff",
             ])
         if 1:  # pur
             main1.extend([
-                "pur  $c44bff",
+                "pur  (126,30,156)",
                 "purd $c434ff",
                 "purl $c47fff",
                 "purb $c4d9ff",
             ])
         if 1:  # roy
             main1.extend([
-                "roy  $aa4bff",
+                "roy  (65,105,225)",
                 "royd $aa34ff",
                 "royl $aa7fff",
                 "royb $aad9ff",
             ])
         if 1:  # den
             main1.extend([
-                "den  $964bff",
+                "den  (21,96,189)",
                 "dend $9634ff",
                 "denl $967fff",
                 "denb $96d9ff",
             ])
         if 1:  # sky
             main1.extend([
-                "sky  $924bff",
+                "sky  (135,206,255)",
                 "skyd $9234ff",
                 "skyl $927fff",
                 "skyb $92d9ff",
             ])
         if 1:  # trq
             main1.extend([
-                "trq  $784bff",
+                "trq  (0,250,180)",
                 "trqd $7834ff",
                 "trql $787fff",
                 "trqb $78d9ff",
             ])
         if 1:  # sea
             main1.extend([
-                "sea  $554bff",
+                "sea  (60,179,113)",
                 "sead $5534ff",
                 "seal $557fff",
                 "seab $55d9ff",
             ])
         if 1:  # lwn
             main1.extend([
-                "lwn  $3a4bff",
+                "lwn  (77,164,9)",
                 "lwnd $3a34ff",
                 "lwnl $3a7fff",
                 "lwnb $3ad9ff",
             ])
         if 1:  # lim
             main1.extend([
-                "lim  $514bff",
+                "lim  (50,205,50)",
                 "limd $5134ff",
                 "liml $517fff",
                 "limb $51d9ff",
             ])
         if 1:  # olv
             main1.extend([
-                "olv  $224bff",
+                "olv  (107,142,35)",
                 "olvd $2234ff",
                 "olvl $227fff",
                 "olvb $22d9ff",
@@ -444,10 +444,20 @@ if 1:   # Color definitions:  alternate method
     from columnize import Columnize
     out = []
     for i in main1:
-        name, hsl = i.split()
-        c = Color(hsl)
+        name, cn = i.split()
+        if cn.startswith("("):
+            c = Color(*eval(cn))
+        elif cn.startswith("#"):
+            c = Color(cn)
+        elif cn.startswith("@"):
+            c = Color(cn, hsv=True)
+        else:
+            c = Color(cn, hls=True)
+        if len(name) > 8:
+            continue
         print(f"{t(c)}{name:4s} {c.xhsv} {c.xrgb} {c.xhls}{t.n}")
     exit()
+
     for i in Columnize(main1):
         print(i)
 

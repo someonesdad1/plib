@@ -1,29 +1,59 @@
 main
-    - git
-        - I would like to get rid of Mercurial on my system and change
-          everything over to git.
-        - Experiment:  see if I can take a long-term hg directory and put a
-          git directory next to it and migrate the revision history.  
-            - If I can, great -- then just delete the hg directory.
-            - If not, then I have to choose whether to remove the old hg
-              history.  Regardless, I'm tired of messing with Mercurial,
-              especially because it's a pain when you forget and move
-              something with mv.  Git figures this out; Mercurial doesn't.
+
+    - Disk cleanup 13 Apr 2022
+        - Detail:  sizes in GB  About 30 GB total
+            - Drive C:  110 GB with 94.5 GB used, 86%
+                - cygwin                30
+                    - /ebooks               10
+                    - /home                 10
+                    - /doc                  3 
+                    - /shop                 2
+                    - /elec                 1
+                    - /lib                  1
+                    - /math                 0.5
+                    - /projects             0.2
+                    - /pylib                0.8
+                    - /science              0.2
+                    - /tools_old            0.1
+                - Windows               20
+                - Users                 7
+                - Recycle bin           5
+                - Program files (x86)   4
+                - Program files         2
+                - ProgramData           1
+            - Drive D:  223 GB with 125 GB used, 56%
+                - pictures          40
+                - movies            20
+                - Don_old           20
+                - ebooks            20
+                - d/                5
+        - Strategy
+            - D
+                - Delete stuff not needed
+                - Move seldom-used stuff to DVD or thumb drive
+                - Defrag the disk
+            - C
+                - Delete stuff not needed
+                - Compress any stuff that's rarely used.  Use a zip file
+                  because it's easy to access with Explorer.
+                - Move low-priority stuff to D
+            - Look at getting a NAS drive
+                - Spinning disk is fine
 
     - ppp.py
         - Pretty printing module that would focus on pretty printing
           top-level contents.  pprint is annoying because when e.g.
           printing a list of strings, it will print only one string per
-          line.  The contents should be printed in compact columns using
-          Columnize.  
+          line (you have to give it the compact keyword to fix this).  The
+          contents should be printed in compact columns using Columnize.  
         - Color should be used for type hints
-            - list:  lred
+            - list:  grn
             - tuple:  red
-            - dict:  lyel
-            - defaultdict:  lorn
-            - deque:  lmag
-            - set:  lvio
-            - str:  lcyn
+            - dict:  yel
+            - defaultdict:  orn
+            - deque:  mag
+            - set:  vio
+            - str:  cyn
 
     - 0naming.py
         - This would check all plib modules to make sure there was no file
@@ -40,52 +70,6 @@ main
         - Combine with pgm/rm_multiple_lines.py
         - Almost always python code, so don't want to touch things inside
           multiline strings
-
-    - Disk cleanup 13 Apr 2022 Size in GB
-        - C is 110 with 94.5 used     86%
-        - D is 223 with 125 used      56%
-        - A trigger point of 85% should be about right
-        - Strategy
-            - D
-                - Delete stuff not needed
-                - Move seldom-used stuff to DVD or thumb drive
-                - Defrag the disk
-            - C
-                - Delete stuff not needed
-                - Compress any stuff that's rarely used.  Use a zip file
-                  because it's easy to access with Explorer.
-                - Move low-priority stuff to D
-            - Look at getting a NAS drive
-                - Spinning disk fine
-        - Detail:  sizes in GB  About 30 GB total
-            - Drive C: /cygwin/
-                - /doc 3 
-                - /ebooks 10
-                - /elec 1
-                - /home 10
-                - /lib 1
-                - /math 0.5
-                - /projects 0.2
-                - /pylib 0.8
-                - /science 0.2
-                - /shop 2
-                - /tools_old 0.1
-            - Drive D
-                - Don_old 20
-                - d/ 5
-                - ebooks 20
-                - fedora35 2          *
-                - slackware 2         *
-                - movies 20
-                - pictures 40
-            - Drive C 90
-                - Recycle bin 5
-                - Program files 2
-                - Program files (x86) 4
-                - ProgramData 1
-                - Users 7
-                - Windows 20
-                - cygwin 30
 
     - lookup.py
         - Not the same as /plib/pgm/lookup.py.
@@ -500,6 +484,23 @@ main
         - Is a mess of code.  Is it really all needed?  Maybe it would be
           best to move the key stuff to flt and cpx.  It can still be kept
           around for when it's needed.
+
+    - git
+        - 187 Mercurial repositories on my system
+        - I would like to get rid of Mercurial on my system and change
+          everything over to git.
+        - On reflection, this is unrealistic as there are too many
+          Mercurial repositories and the majority are static.
+        - Here's process if needed
+            - Go to Mercurial directory
+            - 'git init'
+            - Make sure all Mercurial stuff is checked in
+            - 'lsh >a'
+            - 'git add $(cat a); git commit -m""'
+            - This copies the stuff to the git repository, but doesn't
+              include any previous history.
+        - The fast-import python code required too much work and a failed
+          PyPi service didn't work, so I gave up on it.
 
 pgm
 

@@ -125,7 +125,7 @@ if 1:   # Core functionality
         def SetColors():
             t.title = t("orn")
             t.rain = t("lgrn")
-            t.snow = t("lblu")
+            t.snow = t("lmag")
             t.thun = t("lred")
             t.wind = t("lcyn")
             t.sun  = t("lyel")

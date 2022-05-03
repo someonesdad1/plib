@@ -25,8 +25,8 @@ if 1:   # Imports
     from pprint import pprint as pp
 if 1:   # Custom imports
     from wrap import dedent
-    from color import fg, normal, SetStyle, lblue, lcyan, lgreen, lred, red
-    from color import white, yellow
+    from kolor import fg, normal, SetStyle, lblue, lcyan, lgreen, lred, red
+    from kolor import white, yellow
     from columnize import Columnize
 if 1:   # Global variables
     # Mercurial installation

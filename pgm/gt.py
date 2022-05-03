@@ -84,6 +84,9 @@ if 1:   # Custom imports
                        brown, white, gray, lblue, lgreen, lcyan, lred, lmagenta,
                        yellow, lwhite)
     from columnize import Columnize
+    if 0:
+        import debug
+        debug.SetDebugger()
 if 1:   # Global variables
     P = pathlib.Path
     ii = isinstance
@@ -320,8 +323,15 @@ if 1:   # Core functionality
                     continue
                 name, clr = sc[key]
                 print(f"{clr}{name}")
-                for i in Columnize(di[key], indent=" "*2):
-                    print(i)
+                try:
+                    for i in Columnize(di[key], indent=" "*2):
+                        print(i)
+                except ValueError:
+                    # It's probably a line too long problem, so just
+                    # dump the strings; not pretty, but at least it works.
+                    for i in di[key]:
+                        print(i, end=" ")
+                    print()
                 print(f"{C.norm}", end="")
 if __name__ == "__main__":
     d = {}      # Options dictionary
