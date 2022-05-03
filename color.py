@@ -238,7 +238,7 @@ class Color:
             elif first_char == "#":
                 rgbdec= dec
             elif first_char == "$":
-                rgbdec = colorsys.hsv_to_rgb(*dec)
+                rgbdec = colorsys.hls_to_rgb(*dec)
             else:
                 raise ValueError(f"'{first_char}' is an illegal first character")
             rgb = tuple(int(round(i*N, 1)) for i in rgbdec)

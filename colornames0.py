@@ -259,7 +259,7 @@ if 1:   # Color definition dictionaries
 if 1:   # Color definitions:  alternate method
     # Use HSV values in hex
     main1 = []
-    if 0:  # Primary
+    if 1:  # Primary
         if 1:  # Grays
             if 1:  # blk
                 main1.extend([
@@ -346,97 +346,91 @@ if 1:   # Color definitions:  alternate method
                 "yelb #ffff96",
             ])
     if 1:  # Secondary
-        if 1:  # pnk
+        a = bool(len(sys.argv) > 1)
+        a = 1
+        if a:  # pnk
             main1.extend([
-                "pnk  (207,100,120)",
-                "pnkd $f234ff",
-                "pnkl $f27fff",
-                "pnkb $f2d9ff",
+                "pnk  $f79986",
+                "pnkd $f76070",
+                "pnkl $f7d0ff",
+                "pnkb $f7db63",
             ])
-        if 1:  # lip
+        if a:  # lip
             main1.extend([
-
-                "lip  (213,23,78)",
-                "lipd $f034ff",
-                "lipl $f07fff",
-                "lipb $f0d9ff",
+                "lip  $ef6bf3",
+                "lipd $ef40ff",
+                "lipl $efc0ff",
+                "lipb $efe0ff",
             ])
-        if 1:  # lav
+        if a:  # lav
             main1.extend([
-                "lav  (181,126,220)",
-                "lavd $bf34ff",
-                "lavl $bf7fff",
-                "lavb $bfd9ff",
+                "lav  $c2a092",
+                "lavd $c24892",
+                "lavl $c2c892",
+                "lavb $c2e092",
             ])
-        if 1:  # lil
+        if a:  # lil
             main1.extend([
-                "lil  (206,162,253)",
-                "lild $b734ff",
-                "lill $b77fff",
-                "lilb $b7d9ff",
+                "lil  $bac0b0",
+                "lild $ba60b0",
+                "lill $bad0b0",
+                "lilb $bae0b0",
             ])
-        if 1:  # pur
+        if a:  # pur
             main1.extend([
-                "pur  (126,30,156)",
-                "purd $c434ff",
-                "purl $c47fff",
-                "purb $c4d9ff",
+                "pur  $c660c0",
+                "purd $c640c0",
+                "purl $c6b0c0",
+                "purb $c6e0c0",
             ])
-        if 1:  # roy
+        if a:  # roy
             main1.extend([
-                "roy  (65,105,225)",
-                "royd $aa34ff",
-                "royl $aa7fff",
-                "royb $aad9ff",
+                "roy  $9fa0c0",
+                "royd $9f50c0",
+                "royl $9fb1c0",
+                "royb $9fe0c0",
             ])
-        if 1:  # den
+        if a:  # den
             main1.extend([
-                "den  (21,96,189)",
-                "dend $9634ff",
-                "denl $967fff",
-                "denb $96d9ff",
+                "den  $9770c0",
+                "dend $9740c0",
+                "denl $97b1c0",
+                "denb $97e0c0",
             ])
-        if 1:  # sky
+        if a:  # sky
             main1.extend([
-                "sky  (135,206,255)",
-                "skyd $9234ff",
-                "skyl $927fff",
-                "skyb $92d9ff",
+                "sky  $90c3ff",
+                "skyd $9040ff",
+                "skyl $90d7ff",
+                "skyb $90e0ff",
             ])
-        if 1:  # trq
+        if a:  # trq
             main1.extend([
-                "trq  (0,250,180)",
-                "trqd $7834ff",
-                "trql $787fff",
-                "trqb $78d9ff",
+                "trq  $7370ff",
+                "trqd $7340ff",
+                "trql $73b0ff",
+                "trqb $73e0ff",
             ])
-        if 1:  # sea
+        if a:  # sea
             main1.extend([
-                "sea  (60,179,113)",
-                "sead $5534ff",
-                "seal $557fff",
-                "seab $55d9ff",
+                "sea  $67807f",
+                "sead $67407f",
+                "seal $67b07f",
+                "seab $67e07f",
             ])
-        if 1:  # lwn
+        if a:  # lwn
             main1.extend([
-                "lwn  (77,164,9)",
-                "lwnd $3a34ff",
-                "lwnl $3a7fff",
-                "lwnb $3ad9ff",
+                "lwn  $4260e4",
+                "lwnd $4240e4",
+                "lwnl $42a1e4",
+                "lwnb $42e0e4",
             ])
-        if 1:  # lim
+        if a:  # olv
             main1.extend([
-                "lim  (50,205,50)",
-                "limd $5134ff",
-                "liml $517fff",
-                "limb $51d9ff",
-            ])
-        if 1:  # olv
-            main1.extend([
-                "olv  (107,142,35)",
-                "olvd $2234ff",
-                "olvl $227fff",
-                "olvb $22d9ff",
+                "olv  $38609a",
+                "olvd $38409a",
+                "olvl $38b09a",
+                "olvb $38e09a",
             ])
 
     R = "blk blu brn cyn grn gry mag orn red vio wht yel".split()
@@ -444,18 +438,20 @@ if 1:   # Color definitions:  alternate method
     from columnize import Columnize
     out = []
     for i in main1:
-        name, cn = i.split()
-        if cn.startswith("("):
-            c = Color(*eval(cn))
-        elif cn.startswith("#"):
-            c = Color(cn)
-        elif cn.startswith("@"):
-            c = Color(cn, hsv=True)
+        if "(" in i:
+            name, cn = i.split("(")
+            s = eval("(" + cn)
+            c = Color(*s)
         else:
-            c = Color(cn, hls=True)
-        if len(name) > 8:
-            continue
-        print(f"{t(c)}{name:4s} {c.xhsv} {c.xrgb} {c.xhls}{t.n}")
+            name, cn = i.split()
+            if cn.startswith("#"):
+                c = Color(cn)
+            elif cn.startswith("@"):
+                c = Color(cn, hsv=True)
+            else:
+                c = Color(cn, hls=True)
+        #if len(name) > 3: continue #xx
+        print(f"{t(c)}{name:4s} {c.xhsv} {c.xrgb} {c.xhls} {c}{t.n}")
     exit()
 
     for i in Columnize(main1):
