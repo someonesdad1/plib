@@ -1,72 +1,32 @@
 '''
 Script to generate the colornames0 file
 
-    - Short names candidates
-        - Green
-            - trq       turquoise
-            - for       forest green
-            - sea       sea green
-            - olv       olive
-            - spg       spring green
-            - aqu       aqua
-            - frn       fern
-            - asp       asparagus
-            - emr       emerald
-            - lim       lime, lima
-            - pea       pea green
-            - alg       algae
-            - mnt       mint
-            - kiw       kiwi
-            - lea       leaf
-            - pin       pine
-            - tea
-        - Violet
-            - lav       lavender
-            - lil       lilac
-            - plm       plum
-        - Blue
-            - pow       powder blue
-            - roy       royal blue
-            - sky       sky blue
-            - den       denim
-            - ind       indigo
-            - pur       purple
-            - tpz       topaz
-            - ice
-        - Yellow
-            - mus       mustard
-            - crn       corn
-            - och       ochre
-            - gld       gold
-            - sun
-            - mud
-            - ash
-        - Red
-            - pnk       pink
-            - prt       port
-            - rub       ruby
-            - rus       rust
-            - bld       blood
-            - win       wine
-            - lav       lava
-            - lip       lipstick
-            - cop       copper
-            - rou       rouge
-            - san       sand
-            - pea       peanut
-            - tob       tobacco
-            - orc       orchid
-            - pch       peach
-            - khk       khaki
-            - slm       salmon
-            - brz       bronze
-            - brk       brick
-            - dst       dust
-            - fsh       flesh
-            - wod       wood
-            - jav       java (coffee)
-            - cly       clay
-            - fir       fire
+    - Primary names
+        - blk   Black
+        - gry   Gray
+        - wht   White
+        - blu   Blue
+        - brn   Brown
+        - cyn   Cyan
+        - grn   Green
+        - mag   Magenta
+        - orn   Orange
+        - red   Red
+        - vio   Violet
+        - yel   Yellow
+    - Secondary names
+        - pnk   Pink
+        - lip   Lipstick
+        - lav   Lavender
+        - lil   Lilac
+        - pur   Purple
+        - roy   Royal blue
+        - den   Denim
+        - sky   Sky blue
+        - trq   Turquoise
+        - sea   Sea green
+        - lwn   Lawn
+        - olv   Olive
 
 '''
 '''
@@ -184,7 +144,7 @@ if 1:   # Header
         ii = isinstance
         W = int(os.environ.get("COLUMNS", "80")) - 1
         L = int(os.environ.get("LINES", "50"))
-if 1:   # Color definition dictionaries
+if 0:   # Color definition dictionaries
     R = "blk blu brn cyn grn gry mag orn red vio wht yel".split()
     main = {
         "blk":  Color(  0,   0,   0),
@@ -284,148 +244,146 @@ if 1:   # Color definitions:  alternate method
                 ])
         if 1:  # blu
             main1.extend([
-                "blu  #0000ff",
-                "blud #0000b2",
-                "blul #4064ff",
-                "blub #b4b4ff",
+                "blu  $aa80ff",
+                "blud $aa40ff",
+                "blul $aaa0ff",
+                "blub $aae0ff",
             ])
         if 1:  # brn
             main1.extend([
-                "brn  #964b00",
-                "brnd #693400",
-                "brnl #e2af80",
-                "brnb #ffd296",
+                "brn  $154bff",
+                "brnd $1534ff",
+                "brnl $15b0ff",
+                "brnb $15e0ff",
             ])
         if 1:  # cyn
             main1.extend([
-                "cyn  #009696",
-                "cynd #006968",
-                "cynl #00ffff",
-                "cynb #b4ffff",
+                "cyn  $7f4cff",
+                "cynd $7f35ff",
+                "cynl $7f80ff",
+                "cynb $7fd9ff",
             ])
         if 1:  # grn
             main1.extend([
-                "grn  #00b400",
-                "grnd #007f00",
-                "grnl #00ff00",
-                "grnb #b4ffb4",
+                "grn  $555aff",
+                "grnd $5540ff",
+                "grnl $5580ff",
+                "grnb $55e0ff",
             ])
         if 1:  # mag
             main1.extend([
-                "mag  #b400b4",
-                "magd #7d007d",
-                "magl #ff00ff",
-                "magb #ffb4ff",
+                "mag  $d450ff",
+                "magd $d43eff",
+                "magl $d480ff",
+                "magb $d4e0ff",
             ])
         if 1:  # orn
             main1.extend([
-                "orn  #d25000",
-                "ornd #933700",
-                "ornl #ff8000",
-                "ornb #ff9664",
+                "orn  $1060ff",
+                "ornd $1040ff",
+                "ornl $1090ff",
+                "ornb $10e0ff",
             ])
         if 1:  # red
             main1.extend([
-                "red  #960000",
-                "redd #690000",
-                "redl #ff0000",
-                "redb #ffb4b4",
+                "red  $0050ff",
+                "redd $0034ff",
+                "redl $0080ff",
+                "redb $00e0ff",
             ])
         if 1:  # vio
             main1.extend([
-                "vio  #8c00ff",
-                "viod #6000b2",
-                "viol #b400ff",
-                "viob #dc80ff",
+                "vio  $c180ff",
+                "viod $c140ff",
+                "viol $c1a0ff",
+                "viob $c1e0ff",
             ])
         if 1:  # yel
             main1.extend([
-                "yel  #b4b400",
-                "yeld #7e7e00",
-                "yell #ffff00",
-                "yelb #ffff96",
+                "yel  $2a60ff",
+                "yeld $2a40ff",
+                "yell $2a80ff",
+                "yelb $2ae0ff",
             ])
     if 1:  # Secondary
-        a = bool(len(sys.argv) > 1)
-        a = 1
-        if a:  # pnk
+        if 1:  # pnk
             main1.extend([
                 "pnk  $f79986",
                 "pnkd $f76070",
                 "pnkl $f7d0ff",
                 "pnkb $f7db63",
             ])
-        if a:  # lip
+        if 1:  # lip
             main1.extend([
                 "lip  $ef6bf3",
                 "lipd $ef40ff",
                 "lipl $efc0ff",
                 "lipb $efe0ff",
             ])
-        if a:  # lav
+        if 1:  # lav
             main1.extend([
                 "lav  $c2a092",
                 "lavd $c24892",
                 "lavl $c2c892",
                 "lavb $c2e092",
             ])
-        if a:  # lil
+        if 1:  # lil
             main1.extend([
                 "lil  $bac0b0",
                 "lild $ba60b0",
                 "lill $bad0b0",
                 "lilb $bae0b0",
             ])
-        if a:  # pur
+        if 1:  # pur
             main1.extend([
                 "pur  $c660c0",
                 "purd $c640c0",
                 "purl $c6b0c0",
                 "purb $c6e0c0",
             ])
-        if a:  # roy
+        if 1:  # roy
             main1.extend([
                 "roy  $9fa0c0",
                 "royd $9f50c0",
                 "royl $9fb1c0",
                 "royb $9fe0c0",
             ])
-        if a:  # den
+        if 1:  # den
             main1.extend([
                 "den  $9770c0",
                 "dend $9740c0",
                 "denl $97b1c0",
                 "denb $97e0c0",
             ])
-        if a:  # sky
+        if 1:  # sky
             main1.extend([
                 "sky  $90c3ff",
                 "skyd $9040ff",
                 "skyl $90d7ff",
                 "skyb $90e0ff",
             ])
-        if a:  # trq
+        if 1:  # trq
             main1.extend([
                 "trq  $7370ff",
                 "trqd $7340ff",
                 "trql $73b0ff",
                 "trqb $73e0ff",
             ])
-        if a:  # sea
+        if 1:  # sea
             main1.extend([
                 "sea  $67807f",
                 "sead $67407f",
                 "seal $67b07f",
                 "seab $67e07f",
             ])
-        if a:  # lwn
+        if 1:  # lwn
             main1.extend([
                 "lwn  $4260e4",
                 "lwnd $4240e4",
                 "lwnl $42a1e4",
                 "lwnb $42e0e4",
             ])
-        if a:  # olv
+        if 1:  # olv
             main1.extend([
                 "olv  $38609a",
                 "olvd $38409a",
@@ -434,7 +392,7 @@ if 1:   # Color definitions:  alternate method
             ])
 
     R = "blk blu brn cyn grn gry mag orn red vio wht yel".split()
-    S = "pnk lip lav lil pur roy den sky trq sea lwn lim olv".split()
+    S = "pnk lip lav lil pur roy den sky trq sea lwn olv".split()
     from columnize import Columnize
     out = []
     for i in main1:
