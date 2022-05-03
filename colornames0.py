@@ -1,43 +1,42 @@
-'''
-Name strings to Color instance mapping
-
-    This file is my basic set of colors for use in terminal programs with the
-    color.py module.
-
-    The first set of 12 colors were motivated by the resistor color code: blk
-    brn red orn yel grn blu vio gry wht.  I added cyn and mag because these
-    two colors are used a lot.  Suffixes of "d" for "dark", "l" for "light",
-    and "b" for "background" were added.  Most of these are gotten by
-    changing the L parameter in the hue, lightness, saturation coordinates.
-    Note that small inconsistencies exist in the hex strings for these HLS
-    definitions because of float rounding characteristics of the python
-    colorsys module's functions.
-
-    The second set of color names added the following names, trying to stick
-    with a 3-letter naming scheme:
-
-        - pnk   Pink
-        - lip   Lipstick
-        - lav   Lavender
-        - lil   Lilac
-        - pur   Purple
-        - roy   Royal blue
-        - den   Denim
-        - sky   Sky blue
-        - trq   Turquoise
-        - sea   Sea green
-        - lwn   Lawn
-        - olv   Olive
-    
-    A basic naming goal was that the name should evoke that color in my mind.
-    This, of course, is subjective, so feel free to define things to your
-    needs.
-
-    Note these definitions rely on an 8-bit color environment.
-
-    For a preview of the colors, run the script /plib/pgm/cdec.py with this
-    filename as its argument.
-'''
+# Name strings to Color instance mapping 3 May 2022
+#
+#    This file is my basic set of colors for use in terminal programs with the
+#    color.py module.
+#
+#    The first set of 12 colors were motivated by the resistor color code: blk
+#    brn red orn yel grn blu vio gry wht.  I added cyn and mag because these
+#    two colors are used a lot.  Suffixes of "d" for "dark", "l" for "light"
+#    and "b" for "background" were added.  Most of these are gotten by
+#    changing the L parameter in the hue, lightness, saturation coordinates.
+#    Note that small inconsistencies exist in the hex strings for these HLS
+#    definitions because of float rounding characteristics of the python
+#    colorsys module's functions.
+#
+#    The second set of color names added the following names, trying to stick
+#    with a 3-letter naming scheme:
+#
+#        - pnk   Pink
+#        - lip   Lipstick
+#        - lav   Lavender
+#        - lil   Lilac
+#        - pur   Purple
+#        - roy   Royal blue
+#        - den   Denim
+#        - sky   Sky blue
+#        - trq   Turquoise
+#        - sea   Sea green
+#        - lwn   Lawn
+#        - olv   Olive
+#    
+#    A basic naming goal was that the name should evoke that color in my mind.
+#    This, of course, is subjective, so feel free to define things to your
+#    needs.
+#
+#    Note these definitions rely on an 8-bit color environment.
+#
+#    For a preview of the colors, run the script /plib/pgm/cdec.py with this
+#    filename as its argument.
+#
 # Copyright, license
     # These "trigger strings" can be managed with trigger.py
     #∞copyright∞# Copyright © 2022 Don Peterson #∞copyright∞#
@@ -51,103 +50,99 @@ Name strings to Color instance mapping
     #∞what∞#
     #∞test∞# #∞test∞#
 
-from color import Color
-
-colornames = {
-    'blk' :  Color('$000000', bpc=8),
-    'blkd':  Color('$001e00', bpc=8),
-    'blkl':  Color('$003c00', bpc=8),
-    'blkb':  Color('$00b400', bpc=8),
-    'gry' :  Color('$006400', bpc=8),
-    'gryd':  Color('$005000', bpc=8),
-    'gryl':  Color('$009600', bpc=8),
-    'gryb':  Color('$00d200', bpc=8),
-    'wht' :  Color('$00b400', bpc=8),
-    'whtd':  Color('$008200', bpc=8),
-    'whtl':  Color('$00ff00', bpc=8),
-    'whtb':  Color('$00e600', bpc=8),
-    'blu' :  Color('$aa80ff', bpc=8),
-    'blud':  Color('$aa40ff', bpc=8),
-    'blul':  Color('$aaa0ff', bpc=8),
-    'blub':  Color('$aae0ff', bpc=8),
-    'brn' :  Color('$154bff', bpc=8),
-    'brnd':  Color('$1434ff', bpc=8),
-    'brnl':  Color('$15b0ff', bpc=8),
-    'brnb':  Color('$14e0ff', bpc=8),
-    'cyn' :  Color('$7e4cff', bpc=8),
-    'cynd':  Color('$7e35ff', bpc=8),
-    'cynl':  Color('$7f80ff', bpc=8),
-    'cynb':  Color('$7ed9ff', bpc=8),
-    'grn' :  Color('$555aff', bpc=8),
-    'grnd':  Color('$5540ff', bpc=8),
-    'grnl':  Color('$5580ff', bpc=8),
-    'grnb':  Color('$55e0ff', bpc=8),
-    'mag' :  Color('$d450ff', bpc=8),
-    'magd':  Color('$d33eff', bpc=8),
-    'magl':  Color('$d480ff', bpc=8),
-    'magb':  Color('$d3e0ff', bpc=8),
-    'orn' :  Color('$0f60ff', bpc=8),
-    'ornd':  Color('$0f40ff', bpc=8),
-    'ornl':  Color('$0f90ff', bpc=8),
-    'ornb':  Color('$0fe0ff', bpc=8),
-    'red' :  Color('$0050ff', bpc=8),
-    'redd':  Color('$0034ff', bpc=8),
-    'redl':  Color('$0080ff', bpc=8),
-    'redb':  Color('$00e0ff', bpc=8),
-    'vio' :  Color('$c080ff', bpc=8),
-    'viod':  Color('$c040ff', bpc=8),
-    'viol':  Color('$c0a0ff', bpc=8),
-    'viob':  Color('$c0e0ff', bpc=8),
-    'yel' :  Color('$2960ff', bpc=8),
-    'yeld':  Color('$2940ff', bpc=8),
-    'yell':  Color('$2a80ff', bpc=8),
-    'yelb':  Color('$29e0ff', bpc=8),
-    'pnk' :  Color('$f79885', bpc=8),
-    'pnkd':  Color('$f75f71', bpc=8),
-    'pnkl':  Color('$f7d0ff', bpc=8),
-    'pnkb':  Color('$f7db63', bpc=8),
-    'lip' :  Color('$ef6bf3', bpc=8),
-    'lipd':  Color('$ef40ff', bpc=8),
-    'lipl':  Color('$efc0ff', bpc=8),
-    'lipb':  Color('$efe0ff', bpc=8),
-    'lav' :  Color('$c29f91', bpc=8),
-    'lavd':  Color('$c24794', bpc=8),
-    'lavl':  Color('$c2c790', bpc=8),
-    'lavb':  Color('$c2df8d', bpc=8),
-    'lil' :  Color('$babfae', bpc=8),
-    'lild':  Color('$ba5fb1', bpc=8),
-    'lill':  Color('$bacfae', bpc=8),
-    'lilb':  Color('$b9dfae', bpc=8),
-    'pur' :  Color('$c65fc1', bpc=8),
-    'purd':  Color('$c63fc2', bpc=8),
-    'purl':  Color('$c5afbe', bpc=8),
-    'purb':  Color('$c6dfbe', bpc=8),
-    'roy' :  Color('$9f9fbe', bpc=8),
-    'royd':  Color('$9f4fc2', bpc=8),
-    'royl':  Color('$9fb0be', bpc=8),
-    'royb':  Color('$9fdfbe', bpc=8),
-    'den' :  Color('$966fc1', bpc=8),
-    'dend':  Color('$973fc2', bpc=8),
-    'denl':  Color('$97b0be', bpc=8),
-    'denb':  Color('$97dfbe', bpc=8),
-    'sky' :  Color('$90c3ff', bpc=8),
-    'skyd':  Color('$9040ff', bpc=8),
-    'skyl':  Color('$90d7ff', bpc=8),
-    'skyb':  Color('$90e0ff', bpc=8),
-    'trq' :  Color('$7370ff', bpc=8),
-    'trqd':  Color('$7240ff', bpc=8),
-    'trql':  Color('$72b0ff', bpc=8),
-    'trqb':  Color('$72e0ff', bpc=8),
-    'sea' :  Color('$677f7f', bpc=8),
-    'sead':  Color('$673f7e', bpc=8),
-    'seal':  Color('$67af7e', bpc=8),
-    'seab':  Color('$66df7d', bpc=8),
-    'lwn' :  Color('$425fe4', bpc=8),
-    'lwnd':  Color('$423fe6', bpc=8),
-    'lwnl':  Color('$42a1e3', bpc=8),
-    'lwnb':  Color('$41dfde', bpc=8),
-    'olv' :  Color('$38609a', bpc=8),
-    'olvd':  Color('$373f9a', bpc=8),
-    'olvl':  Color('$37af98', bpc=8),
-    'olvb':  Color('$38df95', bpc=8),
-}
+'blk' :  Color('$000000', bpc=8)
+'blkd':  Color('$001e00', bpc=8)
+'blkl':  Color('$003c00', bpc=8)
+'blkb':  Color('$00b400', bpc=8)
+'gry' :  Color('$006400', bpc=8)
+'gryd':  Color('$005000', bpc=8)
+'gryl':  Color('$009600', bpc=8)
+'gryb':  Color('$00d200', bpc=8)
+'wht' :  Color('$00b400', bpc=8)
+'whtd':  Color('$008200', bpc=8)
+'whtl':  Color('$00ff00', bpc=8)
+'whtb':  Color('$00e600', bpc=8)
+'blu' :  Color('$aa80ff', bpc=8)
+'blud':  Color('$aa40ff', bpc=8)
+'blul':  Color('$aaa0ff', bpc=8)
+'blub':  Color('$aae0ff', bpc=8)
+'brn' :  Color('$154bff', bpc=8)
+'brnd':  Color('$1434ff', bpc=8)
+'brnl':  Color('$15b0ff', bpc=8)
+'brnb':  Color('$14e0ff', bpc=8)
+'cyn' :  Color('$7e4cff', bpc=8)
+'cynd':  Color('$7e35ff', bpc=8)
+'cynl':  Color('$7f80ff', bpc=8)
+'cynb':  Color('$7ed9ff', bpc=8)
+'grn' :  Color('$555aff', bpc=8)
+'grnd':  Color('$5540ff', bpc=8)
+'grnl':  Color('$5580ff', bpc=8)
+'grnb':  Color('$55e0ff', bpc=8)
+'mag' :  Color('$d450ff', bpc=8)
+'magd':  Color('$d33eff', bpc=8)
+'magl':  Color('$d480ff', bpc=8)
+'magb':  Color('$d3e0ff', bpc=8)
+'orn' :  Color('$0f60ff', bpc=8)
+'ornd':  Color('$0f40ff', bpc=8)
+'ornl':  Color('$0f90ff', bpc=8)
+'ornb':  Color('$0fe0ff', bpc=8)
+'red' :  Color('$0050ff', bpc=8)
+'redd':  Color('$0034ff', bpc=8)
+'redl':  Color('$0080ff', bpc=8)
+'redb':  Color('$00e0ff', bpc=8)
+'vio' :  Color('$c080ff', bpc=8)
+'viod':  Color('$c040ff', bpc=8)
+'viol':  Color('$c0a0ff', bpc=8)
+'viob':  Color('$c0e0ff', bpc=8)
+'yel' :  Color('$2960ff', bpc=8)
+'yeld':  Color('$2940ff', bpc=8)
+'yell':  Color('$2a80ff', bpc=8)
+'yelb':  Color('$29e0ff', bpc=8)
+'pnk' :  Color('$f79885', bpc=8)
+'pnkd':  Color('$f75f71', bpc=8)
+'pnkl':  Color('$f7d0ff', bpc=8)
+'pnkb':  Color('$f7db63', bpc=8)
+'lip' :  Color('$ef6bf3', bpc=8)
+'lipd':  Color('$ef40ff', bpc=8)
+'lipl':  Color('$efc0ff', bpc=8)
+'lipb':  Color('$efe0ff', bpc=8)
+'lav' :  Color('$c29f91', bpc=8)
+'lavd':  Color('$c24794', bpc=8)
+'lavl':  Color('$c2c790', bpc=8)
+'lavb':  Color('$c2df8d', bpc=8)
+'lil' :  Color('$babfae', bpc=8)
+'lild':  Color('$ba5fb1', bpc=8)
+'lill':  Color('$bacfae', bpc=8)
+'lilb':  Color('$b9dfae', bpc=8)
+'pur' :  Color('$c65fc1', bpc=8)
+'purd':  Color('$c63fc2', bpc=8)
+'purl':  Color('$c5afbe', bpc=8)
+'purb':  Color('$c6dfbe', bpc=8)
+'roy' :  Color('$9f9fbe', bpc=8)
+'royd':  Color('$9f4fc2', bpc=8)
+'royl':  Color('$9fb0be', bpc=8)
+'royb':  Color('$9fdfbe', bpc=8)
+'den' :  Color('$966fc1', bpc=8)
+'dend':  Color('$973fc2', bpc=8)
+'denl':  Color('$97b0be', bpc=8)
+'denb':  Color('$97dfbe', bpc=8)
+'sky' :  Color('$90c3ff', bpc=8)
+'skyd':  Color('$9040ff', bpc=8)
+'skyl':  Color('$90d7ff', bpc=8)
+'skyb':  Color('$90e0ff', bpc=8)
+'trq' :  Color('$7370ff', bpc=8)
+'trqd':  Color('$7240ff', bpc=8)
+'trql':  Color('$72b0ff', bpc=8)
+'trqb':  Color('$72e0ff', bpc=8)
+'sea' :  Color('$677f7f', bpc=8)
+'sead':  Color('$673f7e', bpc=8)
+'seal':  Color('$67af7e', bpc=8)
+'seab':  Color('$66df7d', bpc=8)
+'lwn' :  Color('$425fe4', bpc=8)
+'lwnd':  Color('$423fe6', bpc=8)
+'lwnl':  Color('$42a1e3', bpc=8)
+'lwnb':  Color('$41dfde', bpc=8)
+'olv' :  Color('$38609a', bpc=8)
+'olvd':  Color('$373f9a', bpc=8)
+'olvl':  Color('$37af98', bpc=8)
+'olvb':  Color('$38df95', bpc=8)
