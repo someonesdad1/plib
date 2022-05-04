@@ -1,6 +1,12 @@
 main
 
     - Disk cleanup 13 Apr 2022
+        - Tasks
+            - mv ~/work stuff to d:/work
+        - Done
+            - cp /ebooks to d:, delete /ebooks, make softlink  C:/ dropped
+              10 GB
+
         - Detail:  sizes in GB  About 30 GB total
             - Drive C:  110 GB with 94.5 GB used, 86%
                 - cygwin                30

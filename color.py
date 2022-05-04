@@ -1,5 +1,6 @@
 ''' 
-- Bug
+- Bugs
+    - TRM needs a method to set all the attributes to empty strings.
     - Needs a test case
         - c = Color('mag')
         - c1 = Color(c.xhls)
@@ -978,7 +979,7 @@ class Trm:
         '''
         self._always = False    # If True, generate escape codes even if stdout
                                 # isn't a terminal
-        self.on = True          # If True, escape codes are generated
+        self._on = True         # If True, escape codes are generated
         self.cn = CN            # ColorNames dictionary (defaults to module's
                                 # global variable CN)
         self._bits = bits       # Bits per color
@@ -1060,7 +1061,7 @@ class Trm:
             raise ValueError(msg.format("bg"))
         if attr is not None and not ii(attr, str):
             raise ValueError("attr must be None or a string")
-        if not self.on:
+        if not self._on:
             return ""
         '''
         Primer on ANSI escape sequences
@@ -1227,9 +1228,9 @@ class Trm:
         # Reset to default colors
         self._fg, self._bg = Trm.default_color
         # Turn on output unless not to terminal
-        self.on = False
+        self._on = False
         if sys.stdout.isatty() or self.always:
-            self.on = True
+            self._on = True
     def print(self, *p, **kw):
         '''Print arguments with newline, reverting to normal color
         after finishing.
@@ -1244,17 +1245,25 @@ class Trm:
         print(*p, **k)
         print(self.n, **k)
     # Writable properties
-    # Read-only properties
+    @property
+    def on(self):
+        return self._on
+    @on.setter
+    def on(self, value):
+        self._on = bool(value)
     @property
     def always(self):
         return self._always
     @always.setter
     def always(self, value):
         self._always = bool(value)
-        self.on = True
+        self._on = True
+    # Read-only properties
     @property
     def n(self):
         'Return escape code for normal (default) screen'
+        if not self._on:
+            return ""
         s = []
         s.append(self._get_code(self._fg, bg=False))
         s.append(self._get_code(self._bg, bg=True))
@@ -1262,9 +1271,15 @@ class Trm:
         return ''.join(s)
     @property
     def fg(self):
+        'Returns default foreground color'
+        if not self._on:
+            return ""
         return self._fg
     @property
     def bg(self):
+        'Returns default background color'
+        if not self._on:
+            return ""
         return self._bg
 
 class ColorName(dict):

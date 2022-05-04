@@ -36,7 +36,7 @@ if 1:   # Header
         from pathlib import Path as P
     # Custom imports
         from wrap import dedent
-        from color import Color, Trm
+        from color import Color, TRM as t
 if 1:   # Global variables
     nl = "\n"
     # If you're using cygwin, set the following variable to point to the
@@ -56,12 +56,9 @@ if 1:   # Global variables
     rm_dir_tag = False
     #
     # Colorizing 
-    t = Trm()
-    c_dir = t.dir = t("redl")
-    # This is the highlighting color that I've used for a long time
-    c_match = t.match = t("yell")
-    c_norm = t.n
-    c_plain = t.n
+    t.dir = t("redl")
+    t.match = t("yell")
+    t.end = t.n
 if 1:   # Glob patterns and file extensions
     # Glob patterns for source code files
     def GetSet(data, extra=None):
@@ -200,10 +197,10 @@ if 1:   # Utility
         Finds files using python regular expressions.  If no directories are
         given on the command line, searches at and below the current
         directory.  Color-coding is used if output is to a TTY.  Use -c
-        to force color-coding.
+        to turn off color-coding.
         Options:
         -C str    Globbing pattern separation string (defaults to space)
-        -c        Color code the output even if it's not a TTY
+        -c        Turn off color coding
         -D        Show documentation files
         -d        Show directories only
         -e glob   Show only files that match glob pattern (can be multiples)
@@ -256,7 +253,7 @@ if 1:   # Utility
         d["-L"] = False     # Follow directory soft links
         d["-P"] = False     # Print picture files
         d["-S"] = False     # Print source code files
-        d["-c"] = False     # Force color coding
+        d["-c"] = True      # Turn off color coding
         d["-d"] = False     # Show directories only
         d["-F"] = False     # Show files only but no picture files
         d["-f"] = False     # Show files only
@@ -331,6 +328,11 @@ if 1:   # Utility
         d["search"] = odict()
         # Normalize -V option
         d["-V"] = list(sorted(list(set(d["-V"]))))
+        if not d["-c"] or not sys.stdout.isatty():
+            # No color is wanted, so turn off escape sequences
+            t.dir = t.match = t.end = ""
+            # Eventually, the following will work instead
+            #t.on = False
         return args
 if 1:   # Core functionality
     def Normalize(x):
@@ -398,7 +400,7 @@ if 1:   # Core functionality
         if isdir:
             print(f"{t.dir}", end="")
         else:
-            print(f"{t.n}", end="")
+            print(f"{t.end}", end="")
     def PrintMatches(s, d, isdir=False):
         '''Print the string s and show the matches in appropriate
         colors.  Note that s can end in '/' if it's a directory.
@@ -423,7 +425,7 @@ if 1:   # Core functionality
                 # to make it easier to see directories.
                 if s[-1] == "/":
                     print(s[:-1], end="")
-                    print(f"{t.dir}/{t.n}", end="")
+                    print(f"{t.dir}/{t.end}", end="")
                 else:
                     try:
                         print(s, end="")
@@ -541,7 +543,7 @@ if 1:   # Core functionality
                     dirs.append(i)
                 else:
                     files.append(i)
-            print(f"{t.n}", end="")
+            print(f"{t.end}", end="")
             dirs.sort()
             files.sort()
             if not d["-d"] and not d["-f"]:
@@ -563,7 +565,7 @@ if 1:   # Core functionality
                 if (d["-f"] and D[i]) or (d["-d"] and not D[i]):
                     continue
                 PrintMatches(i + "/" if D[i] else i, d, isdir=D[i])
-        print(f"{t.n}", end="")
+        print(f"{t.end}", end="")
 if __name__ == "__main__":
     d = {}  # Settings dictionary
     directories = ParseCommandLine(d)

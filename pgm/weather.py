@@ -124,11 +124,11 @@ if 1:   # Core functionality
         '''
         def SetColors():
             t.title = t("orn")
-            t.rain = t("lgrn")
-            t.snow = t("lmag")
-            t.thun = t("lred")
-            t.wind = t("lcyn")
-            t.sun  = t("lyel")
+            t.rain = t("grnl")
+            t.snow = t("magl")
+            t.thun = t("redl")
+            t.wind = t("cynl")
+            t.sun  = t("yell")
             t.cloud = t("gry")
         SetColors()
         r = line.lower()
