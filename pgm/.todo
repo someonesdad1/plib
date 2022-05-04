@@ -1071,4 +1071,5 @@ Other
                 -     @rm -f ${exe} ${exe}.stackdump *.o
 
 /plib releases
-    - 7Mar2022 was fir
+    - 7Mar2022 was first release after I made the repository public.
+

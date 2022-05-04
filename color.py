@@ -1,6 +1,8 @@
 ''' 
 - Bugs
-    - TRM needs a method to set all the attributes to empty strings.
+    - TRM needs a method to set all the attributes to empty strings when
+      the .on attribute is False.  This is important to applications to
+      make it easy to turn off escape codes.
     - Needs a test case
         - c = Color('mag')
         - c1 = Color(c.xhls)
@@ -937,7 +939,7 @@ class Color:
             else:
                 return Find(s)
 
-class Trm:
+class Trm(Attr):
     '''This class is used to generate terminal escape codes
         For typical use, instantiate with t = Trm().  Store "styles" by
         using the Trm instance's attributes:
@@ -1751,11 +1753,6 @@ if klr:   # Legacy code support
         norm = normal(s=1)
 
 if 0:   # Prototyping area
-    # Color.adjust()
-    c = Color('grn')
-    print(c.sr)
-    print(c.sh)
-    print(c.sl)
     exit()
 
 if __name__ == "__main__":
