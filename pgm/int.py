@@ -24,20 +24,35 @@ if 1:   # Imports
     import getopt
     import random
     from functools import reduce
+    from pdb import set_trace as xx 
 if 1:   # Custom imports
     from wrap import dedent
+    from color import TRM as t
     import primes as P
 if 1:   # Global variables
-    max_num_to_use = 100  # For sum of squares and cubes
-    # Dictionary used for command line options
-    d = {}
+    class g: pass
+    g.max_num_to_use = 100  # For sum of squares and cubes
     # The following variable holds a list of primes
-    primes = None
+    g.primes = None
     # The following variable determines how large of a number we can factor;
     # this number will be the square of the largest prime less than max_prime.
-    max_prime = int(1e6)
+    g.max_prime = int(1e6)
+
+def GetColors():
+    # Colors for printing
+    if d["-c"]:
+        g.w = g.n = g.pr = g.fa = g.f = g.lg = g.b = g.r = ""
+    else:
+        g.w  = t("whtl")    # General label
+        g.n  = t("yell")    # Number
+        g.pr = t("lip")     # Is a prime
+        g.fa = t("grnl")    # Factors
+        g.f  = t("magl")    # Factorization
+        g.lg = t("royl")    # Logarithms
+        g.b  = t("trq")     # Bases
+        g.r  = t("pnk")     # Roots
 def Search(n, k):
-    N = max_num_to_use
+    N = g.max_num_to_use
     def Find(n, power):
         m = power
         for i in range(1, N+1):
@@ -51,25 +66,25 @@ def Search(n, k):
         Find(n, i)
 def GetPrimeFactors(n):
     '''Get the prime factors of n.  The items returned are:
-        * A boolean; if True, the number was factorable (it will be false
+        - A boolean; if True, the number was factorable (it will be false
           if n is too large to factor).
-        * A boolean; if True, the number is prime.
-        * A string representing the prime factorization.
-        * A list of the actual factors (will be empty if n is prime).
+        - A boolean; if True, the number is prime.
+        - A string representing the prime factorization.
+        - A list of the actual factors (will be empty if n is prime).
     Note:  we use int around elements from the prime array because it's
     possible that they're numpy integers and we want python integers.
     '''
-    num, msg, factorable, is_prime = n, "  Prime factorization:", True, False
+    num, msg, factorable, is_prime = n, f"  {g.w}Prime factorization:{t.n}", True, False
     if P.IsPrime(n):
-        return True, True, "  Is a prime number", []
+        return True, True, f"  {g.pr}Is a prime number{t.n}", []
     factor_dict = P.Factor(n)
     factors = []
     for factor in factor_dict:
         factors += [factor]*factor_dict[factor]
     s = P.FormatFactors(n, factor_dict=factor_dict).split(":")[1]
     s = " * ".join(s.split())
-    msg += " " + s
-    return factorable, is_prime, msg, factors
+    msg += f" {g.f}" + s + f"{t.n}"
+    return (factorable, is_prime, msg, factors)
 def AllFactors(n, factors):
     '''Construct a string representing all the factors of n, given the
     prime factors of n in the list factors.
@@ -85,6 +100,8 @@ def AllFactors(n, factors):
     numbers.sort()
     msg = "  All factors [%d]:  " % len(all_factors) + \
           str(numbers).replace("[", "").replace("]", "")
+    m = ' '.join(str(i) for i in numbers)
+    msg = f"  {g.w}All Factors [{len(all_factors)}]:  {g.fa}{m}{t.n}"
     return msg
 def Factors(n):
     '''Print out the prime and non-prime factors of n.
@@ -96,7 +113,7 @@ def Factors(n):
         print(str(AllFactors(n, factors)).replace("L", ""))
 def Logarithms(n):
     l, ln, l2 = math.log10(n), math.log(n), math.log(n)/math.log(2)
-    print("  Logarithms:  log = %.10f, ln = %.10f, log2 = %.10f" % (l, ln, l2))
+    print(f"  {g.lg}Logarithms:  log = %.10f, ln = %.10f, log2 = %.10f{t.n}" % (l, ln, l2))
 def DecimalToBase(num, base):
     '''Convert a decimal integer num to a string in base base.  Tested with
     random integers from 10 to 10,000 digits in bases 2 to 36 inclusive.
@@ -118,14 +135,14 @@ def DecimalToBase(num, base):
     return sign + in_base
 def Bases(n):
     bases = (2, 3, 8, 12, 16, 36)
-    print("  Bases:  ", end="")
+    print(f"  {g.b}Bases:  ", end="")
     for base in bases:
         base_str = DecimalToBase(n, base)
         assert int(base_str, base) == n
         print("%d:%s " % (base, base_str), end="")
-    print()
+    print(f"{t.n}")
 def Search(n, max_number_to_use=100):
-    N = max_num_to_use
+    N = g.max_num_to_use
     def Find(n, power):
         m = power
         for i in range(1, N+1):
@@ -172,10 +189,10 @@ def Sums(n):
             print(msg)
             print(''.join(s).rstrip())
 def Roots(n):
-    print("  Roots:  ", end="")
+    print(f"  {g.r}Roots:  ", end="")
     for i in range(2, 10):
         print("%d:%.3f " % (i, math.pow(n, 1/i)), end="")
-    print()
+    print(f"{t.n}")
 def Factorial(n):
     '''When n > 50, we'll print a floating point approximation.
     '''
@@ -197,7 +214,7 @@ def Factorial(n):
         else:
             print(f, " log = ", math.log10(float(f)))
 def PrintProperties(n):
-    print(n)
+    print(f"{g.n}{n}{t.n}")
     Bases(n)
     Logarithms(n)
     Factors(n)
@@ -206,12 +223,13 @@ def PrintProperties(n):
     if d["-s"]:
         Sums(n)
 def Usage(status):
-    print(dedent('''
-    Usage:  %s [options] num1 [num2 ...]
+    print(dedent(f'''
+    Usage:  {sys.argv[0]} [options] num1 [num2 ...]
       Prints out information on the integers num1, num2, ...
     Options
         -a n    Print the data out for the numbers 2 to n.  The other numbers
                 on the command line are ignored.
+        -c      Don't use colors
         -o      Print the sum of squares and cubes on one line.
         -s n    Calculates sums of squares and cubes that are equal to the
                 number.  n is the maximum number to use.  The computation time
@@ -220,34 +238,34 @@ def Usage(status):
     '''))
     exit(status)
 def ParseCommandLine():
-    global d
     d["-a"] = None
+    d["-c"] = False
     d["-o"] = False
     d["-s"] = None
     d["-t"] = False
     if len(sys.argv) < 2:
         Usage(1)
     try:
-        optlist, args = getopt.getopt(sys.argv[1:], "a:os:t")
+        optlist, args = getopt.getopt(sys.argv[1:], "a:cos:t")
     except getopt.GetoptError as str:
         msg, option = str
         print(msg)
         sys.exit(1)
     for o, a in optlist:
-        if o == "-a":
+        if o[1] in "cot":
+            d[o] = not d[o]
+        elif o == "-a":
             d["-a"] = int(a)
-        elif o == "-o":
-            d["-o"] = True
         elif o == "-s":
             d["-s"] = int(a)
-        elif o == "-t":
-            d["-t"] = True
     if not args and d["-a"] is None:
         Usage()
+    GetColors()
     return args
 if __name__ == "__main__": 
+    d = {} # Dictionary for command line options
     numbers = ParseCommandLine()
-    primes = P.Primes(max_prime)
+    g.primes = P.Primes(g.max_prime)
     if d["-a"] is not None:
         for n in range(2, d["-a"] + 1):
             PrintProperties(n)
