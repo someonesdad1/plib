@@ -1,6 +1,7 @@
 '''
 TODO
 
+    - Update to use /plib/color.py and 8-bit color names.
     - This doesn't show the unchanged files.  These should be shown just
       under the ignored stuff so you see a complete listing.  The algorithm
       should be changed to do a recursive glob on the root directory, then
@@ -25,7 +26,7 @@ Show git repository file status for current directory
     
         X          Y     Meaning
         -------------------------------------------------
-                [AMD]   not updated
+                 [AMD]   not updated
         M        [ MTD]  updated in index
         T        [ MTD]  type changed in index
         A        [ MTD]  added to index

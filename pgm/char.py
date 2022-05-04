@@ -212,15 +212,15 @@ def PrintResults(d):
     res.sort()
     w = max([len(i[1]) for i in res])
     C = {
-        0 : "mag",      # Whitespace
-        1 : "lblu",     # Ctrl
-        2 : "lyel",     # Lowercase
-        3 : "lcyn",     # Uppercase
-        4 : "lgrn",     # Decimal digits
-        5 : "lwht",     # Punctuation
+        0 : "trq",      # Whitespace
+        1 : "roy",      # Ctrl
+        2 : "cynl",     # Lowercase
+        3 : "ornl",     # Uppercase
+        4 : "lwnl",     # Decimal digits
+        5 : "magl",     # Punctuation
         6 : "wht",      # Remaining 7-bit characters
-        7 : "lred",     # 8-bit with high bit set
-        8 : "lmag",     # Other Unicode
+        7 : "yell",     # 8-bit with high bit set
+        8 : "purl",     # Other Unicode
     }
     for i, cat, chars in res:
         characters = Translate(chars)

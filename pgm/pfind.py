@@ -57,14 +57,9 @@ if 1:   # Global variables
     #
     # Colorizing 
     t = Trm()
-    c_dir = t.dir = t("lred")
-    if 0:
-        # This is a very visible red text on a fluorescent yellow-green
-        # background.
-        c_match = t.match = t("lred", "lorn@lgrn")
-    else:
-        # This is the highlighting color that I've used for a long time
-        c_match = t.match = t("lyel")
+    c_dir = t.dir = t("redl")
+    # This is the highlighting color that I've used for a long time
+    c_match = t.match = t("yell")
     c_norm = t.n
     c_plain = t.n
 if 1:   # Glob patterns and file extensions
