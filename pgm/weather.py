@@ -4,6 +4,11 @@ Get daily text form of weather forecast
         - Parse contents and convert to very short output
         - Use color to flag important stuff like winds, rain,
           thunderstorms, snow
+            - The color.RegexpDecorate object can now decorate individual
+              matches in lines, so an easier solution is to just set up all
+              the regexps to match and let RegexpDecorate print the
+              keywords in color, like rain, wind, thunderstorm, cloudy,
+              etc.
 '''
 if 1:   # Header
     # Copyright, license

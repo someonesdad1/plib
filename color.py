@@ -1406,163 +1406,152 @@ CN.load("/plib/colornames0")
 TRM = Trm()
 TRM.cn = CN
 
-if 1:   # Other stuff:  RegexpDecorate
-    class RegexpDecorate:
-        '''Decorate regular expression matches with color
-    
-        The styles attribute is a dictionary that contains the styles to apply
-        for each regexp's match (key is the compiled regexp).  The style is a
-        tuple of 1 to 3 values:  fg color, bg color, and text attributes.  None
-        means to use the default.
-    
-        Example use:
-    
-            rd = RegexpDecorate()
-            r = re.compile(r"[Mm]adison")
-            fg = Color("lyel")
-            rd.register(r, fg, None)    # Print matches in light yellow
-    
-            for line in open(file).readlines():
-                rd(line)    # Lines with matches are printed to stdout
-    
-        The previous can also be done with
-            rd(open(file))
-    
-        multiline = """
-            Here's a multiline string that
-            might contain madison or Madison.
-        """
-        rd(multiline)
-    
-        Suppose the string pnp contains the text of "Pride and Prejudice".  You
-        could print out all the lines with the string "Elizabeth" or "Lizzy"
-        with
-            rd = RegexpDecorate()
-            r = re.compile(r"Elizabeth|Lizzy", re.I)
-            rd.register(r, Color("lyel"))
-            rd(pnp)
-    
-        Suppose you have python files in a directory "mydir" and you're
-        interested in knowing how many lines contain the string "MySymbol".
-        This can be done with
-            rd = RegexpDecorate()
-            r = re.compile(r"MySymbol")
-            files = pathlib.Path("mydir").glob("*.py")
-            rd.register(r, Color("lyel"))
-            rd(*files)
-    
-        Of course, a command line tool like grep is capabile of more precise
-        searching including file names and line numbers.
-    
+class RegexpDecorate:
+    '''Decorate regular expression matches with color
+
+    The styles attribute is a dictionary that contains the styles to apply
+    for each regexp's match (key is the compiled regexp).  The style is a
+    tuple of 1 to 3 values:  fg color, bg color, and text attributes.  None
+    means to use the default.
+
+    Example use:
+
+        rd = RegexpDecorate()
+        r = re.compile(r"[Mm]adison")
+        fg = Color("lyel")
+        rd.register(r, fg, None)    # Print matches in light yellow
+
+        for line in open(file).readlines():
+            rd(line)    # Lines with matches are printed to stdout
+
+    The previous can also be done with
+        rd(open(file))
+
+    multiline = """
+        Here's a multiline string that
+        might contain madison or Madison.
+    """
+    rd(multiline)
+
+    Suppose the string pnp contains the text of "Pride and Prejudice".  You
+    could print out all the lines with the string "Elizabeth" or "Lizzy"
+    with
+        rd = RegexpDecorate()
+        r = re.compile(r"Elizabeth|Lizzy", re.I)
+        rd.register(r, Color("lyel"))
+        rd(pnp)
+
+    Suppose you have python files in a directory "mydir" and you're
+    interested in knowing how many lines contain the string "MySymbol".
+    This can be done with
+        rd = RegexpDecorate()
+        r = re.compile(r"MySymbol")
+        files = pathlib.Path("mydir").glob("*.py")
+        rd.register(r, Color("lyel"))
+        rd(*files)
+
+    Of course, a command line tool like grep is capabile of more precise
+    searching including file names and line numbers.
+
+    '''
+    def __init__(self):
+        self._styles = {}
+    def register(self, r, fg, bg=None, attr=None):
+        '''This is how you register regexps and their styles.  fg and
+        bg are Color instances, string names of colors, or None; None
+        means to use the default.  attr is a string with things like
+        "it bd" meaning italics and bold.  See the documentation on
+        class Trm for details.
         '''
-        def __init__(self):
-            self.styles = {}
-        def register(self, r, fg, bg=None, style=None):
-            '''This is how you register regexps and their styles.  fg and
-            bg are Color instances or None; None means to use the default.
-            style is a string with things like "it bd" meaning italics and
-            bold.  See the documentation on class Trm for details.
-            '''
-            assert(ii(r, re.Pattern))
-            for i in (fg, bg):
-                assert(i is None or ii(i, Color))
-            assert(style is None or ii(style, str))
-            self.styles[r] = fg, bg, style
-        def unregister(self, r):
-            assert(ii(r, re.Pattern))
-            if r in self.styles:
-                del self.styles[r]
-        def __call__(self, *p, file=sys.stdout):
-            '''Decorate a set of strings p to a stream, one string per line.
-            A p object can also be a stream or pathlib.Path object; their
-            lines are read similarly and decorated in the same fashion.
-            '''
-            def Process(lines):
-                for line in lines:
+        assert(ii(r, re.Pattern))
+        for i in (fg, bg):
+            assert(i is None or ii(i, (Color, str)))
+        assert(attr is None or ii(attr, str))
+        if ii(fg, str):
+            fore = Color(fg)
+        else:
+            fore = fg
+        if ii(bg, str):
+            back = Color(bg)
+        else:
+            back = bg
+        for x in (fore, back):
+            assert(x is None or ii(x, Color))
+        # Test that these work with TRM; if not, an exception will be
+        # raised.
+        TRM(fore, back, attr)
+        self._styles[r] = fore, back, attr
+    def unregister(self, r):
+        assert(ii(r, re.Pattern))
+        if r in self._styles:
+            del self._styles[r]
+    def __str__(self):
+        return f"RegexpDecorate(<styles={len(self._styles)}>)"
+    def __repr__(self):
+        return str(self)
+    def __call__(self, *p, file=sys.stdout, nonl=True):
+        '''Decorate a set of objects p to a stream 'file', one object
+        per line.  The p objects can be any one of string, stream, or
+        path (pathlib.Path object).  Their lines are read similarly and
+        decorated in the same fashion.  If nonl is True, trailing
+        whitespace from each line is stripped.
+
+        Example:  to decorate all the lines of a file, use
+            lines = open(file).readlines()
+            rd(*lines)
+        where rd is the previously-initialized instance of RegexpDecorate.
+        '''
+        def Process(lines):
+            for line in lines:
+                if nonl:
                     line = line.rstrip()
-                    self.Decorate(line, file=file)
-            for item in p:
-                if ii(item, str):
-                    if "\n" in item:
-                        Process(item.split("\n"))
-                    else:
-                        self.Decorate(item, file=file)
-                elif hasattr(item, "readlines"):
-                    Process(item.readlines())
-                elif ii(item, pathlib.Path):
-                    Process(open(item).readlines())
-        def Decorate(self, line, file=sys.stdout):
-            raise Exception("Need to implement")
-        if 0:   # Regular expression decoration
-            from color import normal, Style, yellow, black
-            def PrintMatch(text, regexp, style=Style(yellow, black)):
-                # Change to fg and bg keywords that are Color objects.  Defaults:
-                # fg = Color("lyel"), bg = Color("blk")
-                '''Print the indicated text in normal colors if there are no
-                matches to the regular expression.  If there are matches, print each
-                of them in the indicated style.  text can be a multiline string.
-            
-                regexp can also be a plain text string that occurs in text and it will
-                also printed via highlighting by converting it to a regexp.
-                '''
-                raise Exception("Need to have Trm")
-                if isinstance(regexp, str):
-                    # Need to escape magic characters
-                    magic = set("*+^$.?{}[]|()")
-                    t, q = deque(regexp), deque()
-                    while t:
-                        c = t.popleft()
-                        q.append("\\" + c if c in magic else c)
-                    r = re.compile(''.join(q)) 
+                self.Decorate(line, file=file)
+        for item in p:
+            if ii(item, str):
+                if "\n" in item:
+                    Process(item.split("\n"))
                 else:
-                    r = regexp
-                mo = r.search(text)
-                if not mo:
-                    normal()
-                    print(text)
-                    return
-                text = mo.string
-                while text:
-                    style.clear()
-                    print(text[:mo.start()], end="")      # Print non-matching start stuff
-                    style.set()
-                    print(text[mo.start():mo.end()], end="")  # Print the match in color
-                    style.clear()
-                    # Use the remaining substring
-                    text = text[mo.end():]
-                    mo = r.search(text)
-                    if not mo:
-                        print(text)
-                        return
-            def PrintMatches(line, regexps):
-                '''Given a line of text, search for regular expression matches
-                given in the sequence of regexps, which contain pairs of regular
-                expressions and Style objects, then print the line to stdout with
-                the indicated styles.
-                '''
-                def out(s):
-                    print(s, end="")
-                def GetShortestMatch(text):
-                    '''Return (start, end, style) of the earliest match or (None, None,
-                    None) if there were no matches.
-                    '''
-                    matches = []
-                    for r, style in regexps:
-                        mo = r.search(line)
-                        if mo:
-                            matches.append([mo.start(), mo.end(), style])
-                    return sorted(matches)[0] if matches else (None, None, None)
-                while line:
-                    start, end, style = GetShortestMatch(line)
-                    if start is None:
-                        out(line)           # No matches so print remainder
-                        return
-                    style.clear()
-                    out(line[:start])       # Print non-matching start stuff
-                    style.set()
-                    out(line[start:end])    # Print match in chosen style
-                    style.clear()
-                    line = line[end:]       # Use the remaining substring
+                    self.Decorate(item, file=file)
+            elif hasattr(item, "readlines"):
+                Process(item.readlines())
+            elif ii(item, pathlib.Path):
+                Process(open(item).readlines())
+    def Decorate(self, line, file=sys.stdout):
+        '''The string line is decorated by the first regexp that
+        matches it; if no match, it is printed to the indicated stream
+        without modification.
+        '''
+        assert(ii(line, str))
+        if not line:
+            print(file=file)
+            return
+        while line:
+            # Find regexp match closest to beginning of line
+            shortest = []
+            for r in self._styles:
+                mo = r.search(line)
+                if mo:
+                    shortest.append((mo.start(), mo, r))
+            if not shortest:
+                # No matches at all
+                print(line, file=file)
+                return
+            # Sort shortest to find the first match
+            location, mo, r = sorted(shortest, key=lambda x: x[0])[0]
+            # Print non-matching start stuff
+            print(line[:location], end="", file=file)
+            # Print the match in color
+            fg, bg, attr = self._styles[r]
+            esc = TRM(fg, bg, attr)
+            match = line[mo.start():mo.end()]
+            print(f"{esc}{match}{TRM.n}", file=file, end="")
+            # Trim the line and search again
+            line = line[mo.end():]
+            if not line:
+                # Matched to last character of line, so need to print
+                # newline.
+                print(file=file)
+                return
 
 # Legacy color.py support:  define the environment variable 'klr' to be a
 # nonempty string to enable this section (this is done by
