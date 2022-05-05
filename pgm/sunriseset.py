@@ -56,12 +56,12 @@ if 1:   # Header
         W = int(os.environ.get("COLUMNS", "80")) - 1
         L = int(os.environ.get("LINES", "50"))
         # Colors
-        t.rise = t("lorn")
-        t.set = t("lred")
-        t.civ = t("bvio")
-        t.naut = t("bblu")
-        t.astro = t("bgrn")
-        t.hyp = t("lwht")
+        t.rise = t("ornl")
+        t.set = t("redl")
+        t.civ = t("viob")
+        t.naut = t("blub")
+        t.astro = t("grnb")
+        t.hyp = t("whtl")
 if 1:   # Location data
         # Boise, ID
         latitude = 43.64        # degrees
@@ -427,7 +427,7 @@ if 1:   # Core functionality
         today = date.today()
         s = ""
         if today.year == year and today.month == month and today.day == day:
-            s = t("lgrn")
+            s = t("grnl")
         T = f"{day:2d} {months[month]} {year}"
         out = [f"{s}{dow} {T}{t.n} "]
         times = S.sunRiseSet(year, month, day, longitude, latitude)

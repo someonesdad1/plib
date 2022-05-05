@@ -1,51 +1,5 @@
 main
 
-    - Disk cleanup 13 Apr 2022
-        - Tasks
-            - mv ~/work stuff to d:/work
-        - Done
-            - cp /ebooks to d:, delete /ebooks, make softlink  C:/ dropped
-              10 GB
-
-        - Detail:  sizes in GB  About 30 GB total
-            - Drive C:  110 GB with 94.5 GB used, 86%
-                - cygwin                30
-                    - /ebooks               10
-                    - /home                 10
-                    - /doc                  3 
-                    - /shop                 2
-                    - /elec                 1
-                    - /lib                  1
-                    - /math                 0.5
-                    - /projects             0.2
-                    - /pylib                0.8
-                    - /science              0.2
-                    - /tools_old            0.1
-                - Windows               20
-                - Users                 7
-                - Recycle bin           5
-                - Program files (x86)   4
-                - Program files         2
-                - ProgramData           1
-            - Drive D:  223 GB with 125 GB used, 56%
-                - pictures          40
-                - movies            20
-                - Don_old           20
-                - ebooks            20
-                - d/                5
-        - Strategy
-            - D
-                - Delete stuff not needed
-                - Move seldom-used stuff to DVD or thumb drive
-                - Defrag the disk
-            - C
-                - Delete stuff not needed
-                - Compress any stuff that's rarely used.  Use a zip file
-                  because it's easy to access with Explorer.
-                - Move low-priority stuff to D
-            - Look at getting a NAS drive
-                - Spinning disk is fine
-
     - ppp.py
         - Pretty printing module that would focus on pretty printing
           top-level contents.  pprint is annoying because when e.g.
@@ -507,6 +461,11 @@ main
               include any previous history.
         - The fast-import python code required too much work and a failed
           PyPi service didn't work, so I gave up on it.
+
+    - Disk cleanup 4 May 2022
+        - Moved 30 GB of stuff or so from c:/ to d:/
+        - C:  110 GB, 72 used, 39 free 65%
+        - D:  223 GB, 129 used, 93 free 58%
 
 pgm
 

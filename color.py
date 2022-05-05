@@ -939,7 +939,7 @@ class Color:
             else:
                 return Find(s)
 
-class Trm(Attr):
+class Trm:
     '''This class is used to generate terminal escape codes
         For typical use, instantiate with t = Trm().  Store "styles" by
         using the Trm instance's attributes:

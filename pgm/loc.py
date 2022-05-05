@@ -359,7 +359,6 @@ if __name__ == "__main__":
         "directories_to_search": [
             "/d",
             "/doc",
-            "/ebooks",
             "/elec",
             "/help",
             "/home/Don",
@@ -379,7 +378,8 @@ if __name__ == "__main__":
             "/cygdrive/d/Don_old",
             "/cygdrive/d/movies",
             "/cygdrive/d/pictures",
-            "/cygdrive/d/uecide-0.11.0-beta-3",
+            "/cygdrive/work",
+            "/cygdrive/ebooks",
         ])
     MakeSuffixes(d)
     ParseCommandLine(d)
