@@ -24,7 +24,7 @@ if 1:   # Header
     # Custom imports
         from wrap import wrap, dedent
         from color import Color, TRM as t, RegexpDecorate
-        from get import GetTextLines
+        from get import GetLines
     # Global variables
         ii = isinstance
         W = int(os.environ.get("COLUMNS", "80")) - 1
@@ -274,13 +274,24 @@ if 1:   # Core functionality
     def Search(regexp):
         r = re.compile(regexp, re.I) if d["-i"] else re.compile(regexp)
         rd.register(r, Color("yell"), None)
-        for line in lines:
-            rd(line)
+        rd(*lines)
+        rd.unregister(r)
 
 if __name__ == "__main__":
     d = {}      # Options dictionary
     regexps = ParseCommandLine(d)
     rd = RegexpDecorate()
-    lines = GetTextLines(data)
+    data = '''
+            3   353 354     Jill of the Jungle, Xargon, Kiloblaster
+            3   355 358     Sound Blaster software
+            3   359         Lemmings (came w/Sound Blaster)
+            3   360         Indianapolis 500 (came w/Sound Blaster)
+            3   361         Numerical Recipes in C (2nd ed.) v2.02
+
+    '''
+    xx()
+    lines = GetLines(data, ignore_empty=True)
+    from pprint import pprint as pp
+    pp(lines)
     for regexp in regexps:
         Search(regexp)

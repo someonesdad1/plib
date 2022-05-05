@@ -1489,40 +1489,43 @@ class RegexpDecorate:
         return f"RegexpDecorate(<styles={len(self._styles)}>)"
     def __repr__(self):
         return str(self)
-    def __call__(self, *p, file=sys.stdout, nonl=True):
+    def __call__(self, *p, file=sys.stdout, all=False):
         '''Decorate a set of objects p to a stream 'file', one object
         per line.  The p objects can be any one of string, stream, or
         path (pathlib.Path object).  Their lines are read similarly and
-        decorated in the same fashion.  If nonl is True, trailing
-        whitespace from each line is stripped.
+        decorated in the same fashion.  
+
+        all (bool)
+            If True, all lines are printed.  If False, only lines with
+            matches are printed.
 
         Example:  to decorate all the lines of a file, use
             lines = open(file).readlines()
-            rd(*lines)
+            rd(*lines, all=True)
         where rd is the previously-initialized instance of RegexpDecorate.
         '''
         def Process(lines):
             for line in lines:
-                if nonl:
-                    line = line.rstrip()
-                self.Decorate(line, file=file)
+                self.Decorate(line, file=file, all=all)
         for item in p:
             if ii(item, str):
                 if "\n" in item:
                     Process(item.split("\n"))
                 else:
-                    self.Decorate(item, file=file)
+                    self.Decorate(item, file=file, all=all)
             elif hasattr(item, "readlines"):
                 Process(item.readlines())
             elif ii(item, pathlib.Path):
                 Process(open(item).readlines())
-    def Decorate(self, line, file=sys.stdout):
+    def Decorate(self, line, file=sys.stdout, all=False):
         '''The string line is decorated by the first regexp that
         matches it; if no match, it is printed to the indicated stream
         without modification.
+ 
+        The lines are assumed to have ending newlines.
         '''
         assert(ii(line, str))
-        if not line:
+        if line == "\n":
             print(file=file)
             return
         while line:
@@ -1533,8 +1536,9 @@ class RegexpDecorate:
                 if mo:
                     shortest.append((mo.start(), mo, r))
             if not shortest:
-                # No matches at all
-                print(line, file=file)
+                # No matches
+                if all:
+                    print(line, file=file, end="")
                 return
             # Sort shortest to find the first match
             location, mo, r = sorted(shortest, key=lambda x: x[0])[0]
@@ -1547,11 +1551,6 @@ class RegexpDecorate:
             print(f"{esc}{match}{TRM.n}", file=file, end="")
             # Trim the line and search again
             line = line[mo.end():]
-            if not line:
-                # Matched to last character of line, so need to print
-                # newline.
-                print(file=file)
-                return
 
 # Legacy color.py support:  define the environment variable 'klr' to be a
 # nonempty string to enable this section (this is done by

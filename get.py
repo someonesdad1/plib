@@ -83,12 +83,16 @@ def GetText(thing, enc=None):
     else:
         raise TypeError("Type of 'thing' not recognized")
     return s
-def GetLines(thing, enc=None, ignore=[], script=False, ignore_empty=False, strip=False):
+def GetLines(thing, enc=None, ignore=[], script=False, ignore_empty=False, 
+             strip=False, nonl=False):
     '''Return a list of lines that are in thing.  See GetText for
     details on thing.
  
+    nonl            If True, remove trailing newline
     script          If True, ignore comment lines
-    strip           If True, strip off whitespace from each line
+    strip           If True, strip off whitespace from each line.  If strip
+                    is True, it also implies nonl is True, even if it is
+                    set False.
     ignore_empty    If True, ignore empty (whitespace only) lines
   
     ignore          List of strings that are compiled to regular
@@ -120,20 +124,22 @@ def GetLines(thing, enc=None, ignore=[], script=False, ignore_empty=False, strip
     if ignore_empty:
         ignore.append(r"^\s*$")
     lines = GetText(thing, enc=enc).split("\n")
+    if not nonl:
+        lines = [i + "\n" for i in lines]   # Add back newlines to each line
     lines = list(filter(Filter, lines))
     if strip:
         lines = [i.strip() for i in lines]
     return lines
 def GetTextLines(thing):
     '''This is a convenience instance of GetLines with the keywords:
-    script = True
-    ignore_empty = True
-    strip = True
-    
+        script = True
+        ignore_empty = True
+        strip = True
+        nonl = True
     This is because a common use case in a script is a multi-line string
     containing a data table that's e.g. tab-separated.
     '''
-    return GetLines(thing, script=True, ignore_empty=True, strip=True)
+    return GetLines(thing, script=True, ignore_empty=True, strip=True, nonl=True)
 def GetLine(thing, enc=None):
     '''Similar to GetLines, but is a generator so it gets a line at a time.
     thing can be a string, bytes, or a stream.  If it is a string, it's
@@ -167,13 +173,13 @@ def GetNumberedLines(thing, enc=None):
     '''
     lines = GetText(thing, enc=enc).split("\n")
     return tuple((i + 1, j) for i, j in enumerate(lines))
-def GetWords(thing, sep=None, enc=None, ignore_regexes=None):
+def GetWords(thing, sep=None, enc=None, ignore=[]):
     '''Return a list of words separated by the string sep from the thing
     (see details for GetLines).  If sep is None, then the data are split
     on whitespace; otherwise, the newlines are replaced by sep, then the
     data are split on sep.  
     '''
-    lines = GetLines(thing, ignore_regexes=ignore_regexes)
+    lines = GetLines(thing, ignore=ignore, nonl=True)
     if sep is not None:
         s = sep.join(lines)
         return sep.join(lines).split(sep)
@@ -893,7 +899,7 @@ if __name__ == "__main__":
         Line 1
           Line 2''')
         r = ("^ *#",)
-        lines = GetLines(s, ignore_regexes=r)
+        lines = GetLines(s, ignore=r, nonl=True)
         Assert(lines == ['Line 1', '  Line 2'])
     def TestGetLine():
         # Test with stream
@@ -911,21 +917,25 @@ if __name__ == "__main__":
         # Test with stream
         sio = StringIO(S)
         l = S.split() + [""]
-        t = GetLines(sio)
+        t = GetLines(sio, nonl=True)
         Assert(t == l)
+        sio = StringIO(S)
+        t = GetLines(sio, nonl=False)
+        m = [i + "\n" for i in l]
+        Assert(t == m)
         # Test with string
-        t = GetLines(S)
+        t = GetLines(S, nonl=True)
         Assert(t == l)
         # Test with file
-        t = GetLines(text_file)
+        t = GetLines(text_file, nonl=True)
         Assert(t == l)
         # Test 'script' keyword
         s = "# xyz\n    # xyz\nabc"
         sio = StringIO(s)
-        t = GetLines(sio, script=False)
+        t = GetLines(sio, script=False, nonl=True)
         Assert(t == ['# xyz', '    # xyz', 'abc'])
         sio = StringIO(s)
-        t = GetLines(sio, script=True)
+        t = GetLines(sio, script=True, nonl=True)
         Assert(t == ['abc'])
         # Test docstring example
         s = """# Comment
@@ -934,10 +944,10 @@ if __name__ == "__main__":
             Line 2
         """
         r = [r"^\s*#"]
-        lines = GetLines(s, ignore=r)
+        lines = GetLines(s, ignore=r, nonl=True)
         expected = ['        Line 1', '            Line 2', '        ']
         Assert(lines == expected)
-        lines = GetLines(s, script=True)
+        lines = GetLines(s, script=True, nonl=True)
         Assert(lines == expected)
     def TestGetWords():
         sio = StringIO(S)
