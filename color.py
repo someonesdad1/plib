@@ -1462,6 +1462,9 @@ class RegexpDecorate:
         means to use the default.  attr is a string with things like
         "it bd" meaning italics and bold.  See the documentation on
         class Trm for details.
+ 
+        Note: if fg, bg, and attr are None, then the strings are still
+        printed on a match except there is no color highlighting.
         '''
         assert(ii(r, re.Pattern))
         for i in (fg, bg):
@@ -1489,45 +1492,19 @@ class RegexpDecorate:
         return f"RegexpDecorate(<styles={len(self._styles)}>)"
     def __repr__(self):
         return str(self)
-    def __call__(self, *p, file=sys.stdout, all=False):
-        '''Decorate a set of objects p to a stream 'file', one object
-        per line.  The p objects can be any one of string, stream, or
-        path (pathlib.Path object).  Their lines are read similarly and
-        decorated in the same fashion.  
-
-        all (bool)
-            If True, all lines are printed.  If False, only lines with
-            matches are printed.
-
-        Example:  to decorate all the lines of a file, use
-            lines = open(file).readlines()
-            rd(*lines, all=True)
-        where rd is the previously-initialized instance of RegexpDecorate.
-        '''
-        def Process(lines):
-            for line in lines:
-                self.Decorate(line, file=file, all=all)
-        for item in p:
-            if ii(item, str):
-                if "\n" in item:
-                    Process(item.split("\n"))
-                else:
-                    self.Decorate(item, file=file, all=all)
-            elif hasattr(item, "readlines"):
-                Process(item.readlines())
-            elif ii(item, pathlib.Path):
-                Process(open(item).readlines())
-    def Decorate(self, line, file=sys.stdout, all=False):
-        '''The string line is decorated by the first regexp that
-        matches it; if no match, it is printed to the indicated stream
-        without modification.
+    def __call__(self, line, file=sys.stdout, insert_nl=False):
+        '''Check line for a match to one of the registered regexps and if
+        there's a match, print the decorated line to the indicated stream.
+        Returns True if there was a match, False otherwise.
  
-        The lines are assumed to have ending newlines.
+        If insert_nl is True, print a newline if line doesn't end with a
+        newline.
         '''
         assert(ii(line, str))
-        if line == "\n":
-            print(file=file)
+        if not line:
             return
+        has_nl = line.endswith("\n")
+        had_match = False
         while line:
             # Find regexp match closest to beginning of line
             shortest = []
@@ -1535,22 +1512,34 @@ class RegexpDecorate:
                 mo = r.search(line)
                 if mo:
                     shortest.append((mo.start(), mo, r))
+                    had_match = True
             if not shortest:
-                # No matches
-                if all:
-                    print(line, file=file, end="")
-                return
+                # No more matches
+                if line and had_match:
+                    if not has_nl and insert_nl:
+                        print(line, file=file)
+                    else:
+                        print(line, end="", file=file)
+                return had_match
             # Sort shortest to find the first match
             location, mo, r = sorted(shortest, key=lambda x: x[0])[0]
             # Print non-matching start stuff
             print(line[:location], end="", file=file)
             # Print the match in color
             fg, bg, attr = self._styles[r]
-            esc = TRM(fg, bg, attr)
+            if all(i is None for i in (fg, bg, attr)):
+                # Print with no highlighting
+                esc = end = ""
+            else:
+                esc = TRM(fg, bg, attr)
+                end = TRM.n
             match = line[mo.start():mo.end()]
-            print(f"{esc}{match}{TRM.n}", file=file, end="")
+            print(f"{esc}{match}{end}", file=file, end="")
             # Trim the line and search again
             line = line[mo.end():]
+        if not line and had_match and not has_nl and insert_nl:
+            print(file=file)
+        return True
 
 # Legacy color.py support:  define the environment variable 'klr' to be a
 # nonempty string to enable this section (this is done by

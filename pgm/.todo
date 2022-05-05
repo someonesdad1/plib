@@ -1,9 +1,5 @@
 active
 
-    - color.py
-        - The pgm/floppies.py file is using Decorate() of RegexpDecorate.
-          Need to implement.
-
     - floppies.py
         - Data in d:/d/floppies/
         - Convert this to a python script that remembers the names of the

@@ -25,6 +25,10 @@ if 1:   # Header
         from wrap import wrap, dedent
         from color import Color, TRM as t, RegexpDecorate
         from get import GetLines
+        from columnize import Columnize
+        if 1:
+            import debug
+            debug.SetDebugger()
     # Global variables
         ii = isinstance
         W = int(os.environ.get("COLUMNS", "80")) - 1
@@ -112,6 +116,7 @@ if 1:   # Header
             5   223         Retire spreadsheet by Greg Hite
             5   224         Happy Games
             5   225 233     Codename -- Iceman
+
             3   234 237     Codename -- Iceman
             3   238 240     PC Tools deluxe
             3   241 244     King's Quest 4
@@ -241,6 +246,22 @@ if 1:   # Header
             3   506         vim 5.3 source
             3   507 511     Turbo C++ 3.0 for DOS
         '''
+        # These are the floppy numbers I have.  I suspect the a, b etc. suffix
+        # means that these were extra floppies made as backups, as even back
+        # then things were sometimes unreadable.
+        floppies = '''
+            245 246 261 262 263 268 269 270 271 275 288 293 294 295 304 304a
+            305 305a 306 307 308 309 310 311 312 319 320 321 322b 323 324 325
+            334 347 353 355 356 357 358 359 360 361 362 363 364 365 370 371 374
+            375 376 377 378 379 380 401 402 407 408 409 410 411 412 413 414 415
+            416 417 418 422 423 424 425 427 428 429 430 431 432 433 434 435 436
+            437 438 439 441 442 445 446 447 448 449 450 451 452 456 457 458 459
+            463 463a 464 465 466 467 468 469 470 471 472 473 474 475 476 477
+            478 479 480 481 482 483 484 485 486 487 488 489 490 491 492 493 494
+            495 496 497 498 499 500 503 504 506 507 508 509 510 511
+        '''.split()
+        # floppies will be a set of integers 
+        floppies = set(int(i[:3]) for i in floppies)
 if 1:   # Utility
     def Error(*msg, status=1):
         print(*msg, file=sys.stderr)
@@ -251,47 +272,66 @@ if 1:   # Utility
           Search for the indicated regular expressions in the names of old
           floppy disks.
         Options:
+            -c      Don't color code
             -h      Print a manpage
             -i      Don't ignore case
+            -o      Only search the on-hand floppies
         '''))
         exit(status)
     def ParseCommandLine(d):
+        d["-c"] = False     # Don't color code
         d["-i"] = True      # Ignore case
+        d["-o"] = False     # Show on-hand disks
         if len(sys.argv) < 2:
             Usage()
         try:
-            opts, args = getopt.getopt(sys.argv[1:], "hi", ["help"])
+            opts, args = getopt.getopt(sys.argv[1:], "chio", ["help"])
         except getopt.GetoptError as e:
             print(str(e))
             exit(1)
         for o, a in opts:
-            if o[1] in list("i"):
+            if o[1] in list("cio"):
                 d[o] = not d[o]
             elif o in ("-h", "--help"):
                 Usage(status=0)
         return args
 if 1:   # Core functionality
-    def Search(regexp):
-        r = re.compile(regexp, re.I) if d["-i"] else re.compile(regexp)
-        rd.register(r, Color("yell"), None)
-        rd(*lines)
-        rd.unregister(r)
-
+    def OnHand():
+        'Return a list of the disks on-hand'
+        out = []
+        for line in lines:
+            try:
+                f = [int(i) for i in line[1:15].split()]
+            except Exception:
+                continue
+            if len(f) == 1:
+                if f[0] in floppies:
+                    out.append(line)
+            else:
+                all_there = True
+                for i in range(f[0], f[1] + 1):
+                    if i not in floppies:
+                        all_there = False
+                        break
+                if all_there:
+                    out.append(line)
+        return out
+            
 if __name__ == "__main__":
     d = {}      # Options dictionary
     regexps = ParseCommandLine(d)
     rd = RegexpDecorate()
-    data = '''
-            3   353 354     Jill of the Jungle, Xargon, Kiloblaster
-            3   355 358     Sound Blaster software
-            3   359         Lemmings (came w/Sound Blaster)
-            3   360         Indianapolis 500 (came w/Sound Blaster)
-            3   361         Numerical Recipes in C (2nd ed.) v2.02
-
-    '''
-    xx()
-    lines = GetLines(data, ignore_empty=True)
-    from pprint import pprint as pp
-    pp(lines)
-    for regexp in regexps:
-        Search(regexp)
+    lines = GetLines(data, ignore_empty=True, strip=True)
+    if d["-o"]:
+        lines = OnHand()
+    colors = '''yell grnl ornl redl viol cynl magl lip lav pur roy den
+                trq'''.split()
+    n = len(colors)
+    for i, regexp in enumerate(regexps):
+        r = re.compile(regexp, re.I) if d["-i"] else re.compile(regexp)
+        if d["-c"]:
+            rd.register(r, None, None, None)
+        else:
+            rd.register(r, Color(colors[i % n]), None, "ul")
+    for line in lines:
+        rd(line, insert_nl=True)
