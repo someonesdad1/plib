@@ -1417,13 +1417,13 @@ if 1:   # Other stuff:  RegexpDecorate
     
         Example use:
     
-        rd = RegexpDecorate()
-        r = re.compile(r"[Mm]adison")
-        fg = Color("lyel")
-        rd.register(r, fg, None)    # Print matches in light yellow
+            rd = RegexpDecorate()
+            r = re.compile(r"[Mm]adison")
+            fg = Color("lyel")
+            rd.register(r, fg, None)    # Print matches in light yellow
     
-        for line in open(file).readlines():
-            rd(line)    # Lines with matches are printed to stdout
+            for line in open(file).readlines():
+                rd(line)    # Lines with matches are printed to stdout
     
         The previous can also be done with
             rd(open(file))
