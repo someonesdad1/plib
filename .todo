@@ -1,4 +1,79 @@
-main
+active
+
+    - color.py
+        - The pgm/floppies.py file is using Decorate() of RegexpDecorate.
+          Need to implement.
+
+    - floppies.py
+        - Data in d:/d/floppies/
+        - Convert this to a python script that remembers the names of the
+          floppy disks.  
+
+    - pgm/tree.py
+        - See if some pypi tool exists.
+        - In section 3.2.1 of the book https://waf.io/book/, after "The
+          execution output will be", the output shows a 'tree -a' command.
+          This shows both directories and files.  This script should color
+          the directory names and show the files when the -a option is
+          used.  Special files can be colored like I do with ls.  This
+          would be handy on the portrait monitor.
+    
+    - cdec.py
+        - Color() has a Sort class method that can sort by letter argument.
+          Use it to change the -s option to let you specify when parameters
+          to sort by.
+
+    - help
+        - Convert to a git repository on github
+        - Develop, then add to /plib
+        - Add /tools to /plib
+        - Convert the help stuff to be built by scons
+        - Move everything to one directory for ease of editing
+        - Consolidate the help text I use into one directory.  Eliminate
+          make and the C programs; convert everything to python.  Look at
+          hierarchically organizing the access with most-used stuff first
+          and seldom-used stuff hidden.  Do partial topic matches with the
+          invocation and use a command line option to do searches of the
+          records.  
+        - Look at somehow organizing things so that it can run as a project
+          in Notepad++, which will mean others are more likely to use it.
+        - Could be nice to have different backends, such as rendering all
+          to PDF, HTML, or vim help files.  Look at making a project for
+          Notepad++, as this would be of interest to a number of folks.
+
+want
+
+    - /pylib/pgm/ts/ts.py
+        - Import to /plib
+
+    - dbl.py
+        - Delete blank lines in a file
+        - Change multiple lines to 1:  -1
+        - Delete lines with whitespace ^\s*$ :  -s
+        - Default is to only remove ^$ matches
+        - Combine with pgm/rm_multiple_lines.py
+        - Almost always python code, so don't want to touch things inside
+          multiline strings
+
+    - /tools
+        - https://github.com/vonj/snippets.org is a copy of what I had
+        - It could be useful to use the will & won't compile lists (see my
+          notes file) to create a subset of the Snippets stuff that will
+          compile with a reasonably modern gcc.  This could be archived on
+          github.
+
+    - columnize.py
+        - Wwrite a Decolumnize() function that can take the columnized
+          output like '0what.py -m *.py' produces in /plib/pgm and converts
+          it to a list of lines with one object per line.  For files it
+          can't figure out, add an option to show the columns where breaks
+          should be made:  -c "8,14,22,35" and use -1 for 1-based
+          numbering.
+        - Also, do a 'ddiff -r /pylib /plib'.  You'll get an exception
+          because a string is too long to fit to the screen.  In this case,
+          you'd still want things printed, so maybe a too_long kw is needed
+          to ignore such things.  Also has error message bug leaving green
+          text on screen.
 
     - ppp.py
         - Pretty printing module that would focus on pretty printing
@@ -21,15 +96,6 @@ main
         - Another need would be to look for circular imports, which are
           mightily annoying.
             - https://stackoverflow.com/questions/3739654/how-to-fix-a-circular-dependency-for-imports
-
-    - dbl.py
-        - Delete blank lines in a file
-        - Change multiple lines to 1:  -1
-        - Delete lines with whitespace ^\s*$ :  -s
-        - Default is to only remove ^$ matches
-        - Combine with pgm/rm_multiple_lines.py
-        - Almost always python code, so don't want to touch things inside
-          multiline strings
 
     - lookup.py
         - Not the same as /plib/pgm/lookup.py.
@@ -63,11 +129,6 @@ main
             - 10M to 100M   lmag
             - 100M to 1 G   lyel
             - > 1G          lred
-
-    - cdec.py
-        - Color() has a Sort class method that can sort by letter argument.
-          Use it to change the -s option to let you specify when parameters
-          to sort by.
 
     - Color cube plotting in g
         - Write an RGB color cube plotting function:  x = grn, y = blue, z
@@ -104,57 +165,6 @@ main
           that color highlighting can be seen.  Optionally decorate with
           the rule if an option is given.
 
-    - ls colors
-        - Write a general application script that can generate colors for
-          the ls command via LS_COLORS.  
-            - 24-bit color works:  Here's a darker magenta on a pale yellow:
-                LS_COLORS='*.py=38;2;170;32;220;48;2;255;255;100'
-            - 256 colors works: LS_COLORS='*.py=38;5;17'
-        - mintty is a 24-bit color console, so it's time I generated some
-          better colors for things.
-        - As selecting 24-bit colors will be more problematic, add to the
-          clr.py script an option to print out tables of foreground colors
-          of a given type (e.g., reds).  These could be printed in the
-          usual hex notation such as '4a31f3'.  Then each line could
-          contain 11 (6 + 1 space) or 13 (6 and no spaces) of these
-          numbers.
-        - I'd like to see similar files grouped together:
-            - OO
-            - MS Office
-            - Compressed files
-            - PDF
-            - Markdown
-            - Makefile, scons
-            - HTML
-            - Pictures
-            - C/C++/Fortran
-            - Include files
-            - Readme files
-            - Text
-            - Sound
-            - Arduino
-            - Python
-            - *~, *.bak, etc. a dark gray
-            - *.o, *.obj, *.pyc, tags, etc. a dark red
-
-    - help
-        - Convert to a git repository on github
-        - Develop, then add to /plib
-        - Add /tools to /plib
-        - Convert the help stuff to be built by scons
-        - Move everything to one directory for ease of editing
-        - Consolidate the help text I use into one directory.  Eliminate
-          make and the C programs; convert everything to python.  Look at
-          hierarchically organizing the access with most-used stuff first
-          and seldom-used stuff hidden.  Do partial topic matches with the
-          invocation and use a command line option to do searches of the
-          records.  
-        - Look at somehow organizing things so that it can run as a project
-          in Notepad++, which will mean others are more likely to use it.
-        - Could be nice to have different backends, such as rendering all to
-          PDF, HTML, or vim help files.  Look at making a project for
-          Notepad++, as this would be of interest to a number of folks.
-
     - Outliner with vim
         - https://github.com/vimoutliner/vimoutliner could already be this
           tool, at least close enough
@@ -170,9 +180,6 @@ main
           nice to have a vim outlining tool for the help file.  If vimoutliner
           works OK, I'd consider moving all my help stuff to it.
 
-    - Things to import to /plib
-        - /pylib/pgm/ts/ts.py
-
     - get_import.py
         - Scans all python files to find import lines to make an index
           file.  Then you can see a report of all files that use a
@@ -184,28 +191,8 @@ main
         - I don't think black is worth keeping.  Spend some time with yapf
           to see if it can be tuned to what I like.
 
-    - /tools
-        - https://github.com/vonj/snippets.org is a copy of what I had
-        - It could be useful to use the will & won't compile lists (see my
-          notes file) to create a subset of the Snippets stuff that will
-          compile with a reasonably modern gcc.  This could be archived on
-          github.
-
     - iso.py
         - Should take time arguments in either s or tm structures.
-
-    - columnize.py
-        - Wwrite a Decolumnize() function that can take the columnized
-          output like '0what.py -m *.py' produces in /plib/pgm and converts
-          it to a list of lines with one object per line.  For files it
-          can't figure out, add an option to show the columns where breaks
-          should be made:  -c "8,14,22,35" and use -1 for 1-based
-          numbering.
-        - Also, do a 'ddiff -r /pylib /plib'.  You'll get an exception
-          because a string is too long to fit to the screen.  In this case,
-          you'd still want things printed, so maybe a too_long kw is needed
-          to ignore such things.  Also has error message bug leaving green
-          text on screen.
 
     - Room heating energy
         - Write a script that estimates the electrical energy and time
@@ -467,17 +454,6 @@ main
         - C:  110 GB, 72 used, 39 free 65%
         - D:  223 GB, 129 used, 93 free 58%
 
-pgm
-
-    - disks.ksh
-        - Convert this to a python script that remembers the names of the
-          floppy disks.  Note:  I used to have a directory somewhere with the
-          zipfiles of these floppy disks.  I can't find it anymore.  If it's
-          not available, then there's not much sense in keeping such things
-          around anymore.  However, I remember this collection had Commander
-          Keen and Jill of the Jungle games, which were good and Sally will
-          remember playing them.
-
     - H function
         - I use this thing a lot, so figure out how to get
             - 'H e' edits config file
@@ -488,18 +464,6 @@ pgm
             - 'H [h|?]' shows help
         - Since the top level has to be a shell function, make it call the
           python script and the script returns the needed command to stdout.
-
-    - tree.py
-        - See if some pypi tool exists.
-        - In section 3.2.1 of the book https://waf.io/book/, after "The
-          execution output will be", the output shows a 'tree -a' command.
-          This shows both directories and files.  This script should color
-          the directory names and show the files when the -a option is
-          used.  Special files can be colored like I do with ls.  This
-          would be handy on the portrait monitor.
-
-    - int.py
-        - Add colorizing like primes.py.
 
     - sz.py
         - Add -s option to sort by size
@@ -556,6 +520,8 @@ pgm
         - The wikipedia pages has useful information on the elements.  It
           would be nice if this information is regular enough to allow
           scraping to get a database.
+
+--------------------------------------------------------------------------------
 Other
     -NAS
         - Current storage
@@ -1014,7 +980,4 @@ Other
                 -     g++ -c ${cppopts} $<
                 - clean:
                 -     @rm -f ${exe} ${exe}.stackdump *.o
-
-/plib releases
-    - 7Mar2022 was first release after I made the repository public.
 
