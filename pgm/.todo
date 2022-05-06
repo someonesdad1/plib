@@ -1,10 +1,5 @@
 active
 
-    - floppies.py
-        - Data in d:/d/floppies/
-        - Convert this to a python script that remembers the names of the
-          floppy disks.  
-
     - pgm/tree.py
         - See if some pypi tool exists.
         - In section 3.2.1 of the book https://waf.io/book/, after "The
@@ -14,6 +9,11 @@ active
           used.  Special files can be colored like I do with ls.  This
           would be handy on the portrait monitor.
     
+    - color.py
+        - Additional way of getting a color with a string:  "1" gives brn,
+          "2" gives red, etc. per resistor color code.  Useful for color
+          coding the power of 10.  Use "-1" for brnl, "-2" for redl, etc.
+
     - cdec.py
         - Color() has a Sort class method that can sort by letter argument.
           Use it to change the -s option to let you specify when parameters
