@@ -1,65 +1,18 @@
 '''
-Print a directory tree
-    The original idea came from a script in the original "UNIX Power Tools"
-    book published by O'Reilly in the early 1990's.
 
-    - Need to store (level, name_string, strlen) for each item to print,
-      then use the largest strlen value to position the directory size.
-      This lines up all the sizes.  Format them so the SI prefix lines
-      up.
-
-    5 May 2022 redesign
-        - Options
-            - Bug:  -l option doesn't work
-            - -a option to show files
-            - -h to include hidden directories
-            - -H to only show hidden directories
-            - -v to include VC directories
-            - -V to only show VC directories
-            - -c for compact file display
-            - -L to follow soft links
-            - -d n  Tree depth limit
-            - -s Include size of each file
-            - -p glob only show these files, can have more than one
-            - -x glob exclude these files
-        - Use modern color.py
-            - Directories are red
-            - Color files same as LS_COLORS
-            - Resolve soft links
-            - For directory listing, put size in MB in green and num files
-              in yellow
-            - Consider using attributes
-                - Exponents for size numbers to make them less obtrusive
-                    - Use 1 to 3 digits with SI prefix
-                - Rapid blink for large directories (threshold with -t, 1
-                  GB default)
-                - Use resistor color code for multiplier and give 1 sig
-                  figure for the size
-                    - brn:1, red:2, orn:3, yel:4, grn:5, blu:6, vio:7,
-                      gry:8, wht:9 and above.  Instead of gry and wht,
-                      could use cyn and mag.
-        - Use Unicode box drawing characters:
-
-            │   │   └── gnome-applications.menu
-            │   ├── systemd
-            │   │   └── user -> ../../systemd/user
-            │   ├── user-dirs.conf
-            │   ├─
-            Others:  ┋ ┇ ┃ ━ ┗ 
-
-            - Consider making each of the vertical columns of | characters
-              different colors to make it easier to trace them
-        - Include count of directories and files
- 
-    TODO:
-        - Change colors:  yellow is > 10 MB, lcyan > 100 MB, lred > 1 GB,
-
-        - In section 3.2.1 of the book https://waf.io/book/, after "The
-          execution output will be", the output shows a 'tree -a' command.
-          This shows both directories and files.  This script should color
-          the directory names and show the files when the -a option is
-          used.  Special files can be colored like I do with ls:  lyel for
-          C/C++, lcyn for python, etc.
+Print a directory tree in hierarchical form
+    - Options to consider
+        - -a option to show files
+        - -h to include hidden directories
+        - -H to only show hidden directories
+        - -v to include VC directories
+        - -V to only show VC directories
+        - -c for compact file display
+        - -L to follow soft links
+        - -p glob only show these files, can have more than one
+        - -x glob exclude these files
+    - Consider making each of the vertical columns of | characters
+        different colors to make it easier to trace them
 
 '''
 if 1:  # Header
