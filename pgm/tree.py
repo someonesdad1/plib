@@ -1,7 +1,12 @@
 '''
 Print a directory tree
     The original idea came from a script in the original "UNIX Power Tools"
-    book published by O'Reilly.
+    book published by O'Reilly in the early 1990's.
+
+    - Need to store (level, name_string, strlen) for each item to print,
+      then use the largest strlen value to position the directory size.
+      This lines up all the sizes.  Format them so the SI prefix lines
+      up.
 
     5 May 2022 redesign
         - Options
@@ -80,68 +85,51 @@ if 1:  # Header
     # Custom imports
         from wrap import dedent
         from dppath import IsVCDir
+        from color import Color, TRM as t
         if 0:
-            try:
-                import color as Co
-                _have_color = True
-            except ImportError:
-                # Make a dummy color object to swallow function calls
-                class Dummy:
-                    def fg(self, *p, **kw): pass
-                    def normal(self, *p, **kw): pass
-                    def __getattr__(self, name): pass
-                Co = Dummy()
-                _have_color = False
-        else:
-            from color import TRM as t
+            import debug
+            debug.SetDebugger()
     # Global variables
         ii = isinstance
+        w = int(os.environ.get("COLUMNS", "80")) - 1
 if 1:   # Utility
     def Usage(status=1):
         name = sys.argv[0]
-        char = d["-l"]
-        size = d["-t"]
         print(dedent(f'''
         Usage:  {sys.argv[0]} [options] dir1 [dir2...]
-        Print a directory tree for each directory given on the command line.
-        The colored numbers after the directory name are the size of the files
-        in that directory in MB.
+          Print a directory tree for each directory given on the command line.
+ 
+          The -s option is useful to show the log of the size of the
+          directory (large numbers will blink).  
         Options:
-        -l x    Indentation string for level.  [{d["-l"]!r}]
-                On a dense listing, '|' can help your eye with alignment
-        -d n    Limit tree depth to n (default is to show all of tree)
-        -t n    Don't print dir size if < n MB  [{d["-t"]} MB]
-        -v      Include version control directories (they are ignored by default)
+          -c      Toggle colorizing
+          -l x    Indentation string for level.  [{d["-l"]!r}]
+                  On a dense listing, '|' can help your eye with alignment
+          -d n    Limit tree depth to n (default is to show all of tree)
+          -s      Decorate name with log size (lack may mean permission error)
+          -v      Include version control directories (they are ignored by default)
         '''))
         exit(status)
     def ParseCommandLine():
+        d["-c"] = False     # Enable colorizing
         d["-d"] = 0         # Depth limit
         d["-l"] = "|   "    # Indentation string
-        d["-t"] = 1         # Threshold in MB for printing size
+        d["-s"] = False     # Decorate directory names with log(size)
         d["-v"] = False     # Include version control directories
-        if len(sys.argv) < 2:
-            Usage()
         try:
-            optlist, args = getopt.getopt(sys.argv[1:], "d:hl:vt:")
+            optlist, args = getopt.getopt(sys.argv[1:], "cd:hl:sv")
         except getopt.GetoptError as msg:
             print(msg)
             exit(1)
         for o, a in optlist:
-            if o == "-d":
-                d["-d"] = int(a)
+            if o[1] in "csv":
+                d[o] = not d[o]
+            elif o == "-d":
+                d[o] = int(a)
             elif o == "-h":
                 Usage(0)
             elif o == "-l":
-                d["-l"] = a
-            elif o == "-t":
-                try:
-                    d["-t"] = float(a)
-                except ValueError:
-                    print(f"'{a}' is not a valid floating point number",
-                        file=sys.stderr)
-                    exit(1)
-            elif o == "-v":
-                d["-v"] = True
+                d[o] = a
         if not len(args):
             Usage()
         return args
@@ -156,36 +144,6 @@ if 1:   # Core functionality
             if i in IsVCDir.vc:
                 return True
         return False
-    def GetFileSize(file):
-        assert(ii(file, P))
-    def GetDirSize(dir):
-        'Return size of files in bytes'
-        assert(ii(dir, P))
-        size = 0
-        for item in os.scandir(dir):
-            size += os.path.getsize(item)
-        return size
-    def Tree(dir):
-        Tree.size = 0
-        out, limit = [str(dir)], d["-d"]
-        for p in sorted(dir.rglob("*")):
-            if p.is_dir():
-                if IsVCDir(p) and not d["-v"]:
-                    # It's a version control directory; ignore unless -v was set
-                    continue
-                depth = len(p.relative_to(dir).parts)
-                if not limit or (limit and depth <= limit):
-                    sz = GetDirSize(p)
-                    Tree.size += sz if sz else 0
-                    if sz:
-                        # Color the size number
-                        z = f"\t\t{sz}" if sz else ""
-                        z = ShortSize(sz)
-                        u = f"{'|   '*depth}"
-                        out.append(f"{u}{t('ornl')}{p.name}{t.n} {t('yell', attr='sp')}{z}{t.n}")
-                    else:
-                        out.append(f"{u}{t('ornl')}{p.name}")
-        return out
     def ShortSize(b):
         '''b is number of bytes.  Return a shortened version with an SI
         prefix as a suffix.
@@ -202,23 +160,114 @@ if 1:   # Core functionality
         u = round(float(digits), rem)
         v = str(u).replace(".", "")
         return v[:rem + 1] + ltr
+    def GetFileSize(file):
+        assert(ii(file, P))
+    def GetDirSize(dir):
+        'Return size of files in bytes'
+        assert(ii(dir, P))
+        size = 0
+        for item in os.scandir(dir):
+            size += os.path.getsize(item)
+        return size
+    def ColorSize(s: int):
+        '''Return the colorized integer giving the characteristic of the
+        size.  The empty string is returned for s < 10.
+        '''
+        i = int(round(math.log10(s), 0)) if s else 0
+        if not i:
+            return ""
+        elif i in (1, 2):
+            return f"{t.c1}{i}{t.n}"
+        elif i in (3, 4, 5):
+            return f"{t.c3}{i}{t.n}"
+        elif i in (6,):
+            return f"{t.c6}{i}{t.n}"
+        elif i in (7,):
+            return f"{t.c7}{i}{t.n}"
+        elif i in (8,):
+            return f"{t.c8}{i}{t.n}"
+        elif i in (9,):
+            return f"{t.c9}{i}{t.n}"
+        else:
+            return f"{t.c10}{i}{t.n}"
+    def Logsize(size_in_bytes):
+        if size_in_bytes:
+            return len(str(int(round(math.log10(size_in_bytes), 0))))
+        else:
+            return 0
+    def Tree(dir):
+        '''Return (maxsz, out) where maxsz is the longest directory string
+        to print and out is a tuple of (decorated_str, sz, decorated_sz)
+        elements  where decorated_str is the colorized string to print and
+        decorated_sz is the colorized size number to print justified on the
+        right.  sz is the length of the uncolored header + directory name,
+        which allows the decorated_sz string to be positioned so that it
+        lines up on the right.
+        '''
+        Tree.size = 0
+        out, limit, maxsz = [], d["-d"], 0
+        # Build the first element of out, which will be the directory for
+        # Tree()'s argument
+        s1 = f"{t.d}{dir}{t.n}"
+        size_in_bytes = GetDirSize(dir)
+        logsize = Logsize(size_in_bytes)
+        s2 = ""
+        sz = len(str(dir))
+        n = w - sz - logsize
+        if n > 1 and d["-s"]:
+            # Can fit in the colored logsize number
+            s2 = f"{ColorSize(size_in_bytes)}{t.n}"
+        out.append((s1, sz, s2))
+        for p in sorted(dir.rglob("*")):
+            if p.is_dir():
+                if IsVCDir(p) and not d["-v"]:
+                    # It's a version control directory; ignore unless -v was set
+                    continue
+                depth = len(p.relative_to(dir).parts)
+                if not limit or (limit and depth <= limit):
+                    try:
+                        size_in_bytes = GetDirSize(p)
+                    except PermissionError:
+                        continue
+                    Tree.size += size_in_bytes 
+                    hdr = f"{d['-l']*depth}"
+                    # Get the characteristic of the size in bytes
+                    logsize = Logsize(size_in_bytes)
+                    maxsz = max(maxsz, len(hdr) + len(p.name) + logsize)
+                    s1 = f"{hdr}{t.d}{p.name}{t.n}"
+                    sz = len(hdr) + len(p.name)     # Size of first string
+                    s2 = ""
+                    n = w - len(hdr) - len(p.name) - logsize
+                    if n > 1 and d["-s"]:
+                        # Can fit in the colored logsize number
+                        s2 = f"{ColorSize(size_in_bytes)}{t.n}"
+                    out.append((s1, sz, s2))
+        return maxsz, tuple(out)
+    def GetColors():
+        t.on = d["-c"]
+        t.d = t(Color(255, 64, 64))     # Directories (same red as ls)
+        # Colors for sizes
+        t.c1 = t("gryd")
+        t.c3 = t("wht")
+        t.c6 = t("grn")
+        t.c7 = t("roy")
+        t.c8 = t("yell", None, "rb")
+        t.c9 = t("magl", None, "rb")
+        t.c10 = t("redl", None, "rb")
 
-if 0:   # Test area
-    b = 19478
-    print(ShortSize(b))
-    exit()
-if 0:   # Test area
-    # Demo getting size and printing exponents
-    t.d = t("lip")
-    t.e = t(None, None, "sp")
-    t.s = t(None, None, "sb")
-    print(f"{t.d}circular_imports{t.n}{t.e}23k{t.n}/{t.s}67{t.n}")
+if 0:   # Test area xx
+    d={"-c":0}
+    GetColors()
+    for i in range(12):
+        print(ColorSize(10**i))
     exit()
 
 if __name__ == "__main__":
     d = {}   # Options dictionary
     dirs = [P(i) for i in ParseCommandLine()]
+    GetColors()
     for dir in dirs:
-        for dir in Tree(dir):
-            print(dir)
-        print(f"Size of files in above tree = {Tree.size} MB")
+        n, out = Tree(dir)  # n is maximum width of 1st str in out
+        for s1, sz, s2 in out:
+            s = " "*(n - sz) if sz else ""
+            print(f"{s1}{s}{s2}")
