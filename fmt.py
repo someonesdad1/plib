@@ -72,12 +72,8 @@ if 1:  # Header
     # Global variables
         D = Decimal = decimal.Decimal
         ii = isinstance
-        __all__ = [
-            "Fmt",  # The Fmt class
-            "D",    # decimal.Decimal abbreviation
-            "fmt"   # Convenience instance of Fmt
-        ]
-class Fmt(object):
+        __all__ = "D Fmt fmt".split()
+class Fmt:
     # Key to _SI_prefixes is exponent/3
     _SI_prefixes = dict(zip(range(-8, 9), list("yzafpnμm.kMGTPEZY")))
     _superscripts = dict(zip("-+0123456789", "⁻⁺⁰¹²³⁴⁵⁶⁷⁸⁹"))
