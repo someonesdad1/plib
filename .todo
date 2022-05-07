@@ -1,9 +1,52 @@
-active
+Active
+
+    - fmt.py
+        - This should be vetted and tests checked.  If it's sound, it
+          should be a replacement for fpformat.py.
+        - Write a decent help message for 'pd fmt', as pydoc stupidly
+          sticks in all the Decimal documentation.
+
+    - iso.py
+        - Should take time arguments in either s or tm structures.
+        - Should let you get either local time or UTC time
 
     - lwtest.py
         - Change it over to use modern color.py.  It's printing a
           bunch of escape codes at the end of a test run and those
           shouldn't be there.
+
+    - dpstr.py
+        - Tokenize(s):  split a string into a sequence S such that
+          ''.join(S) == s.  The keyword wordchars is a set that contains
+          the characters that should NOT be split on.  wordchars would
+          default to string.ascii_letters.  A better default would be "un
+          latin |grep -i letter" and limited to letters < 0x17f (this is
+          237 letters).
+
+          This means a sentence like "Must be:  exp, log." needs to be
+          parsed as
+
+          ['Must', ' ', 'be', ':', '  ', 'exp', ',', 'log', '.']
+    
+          such that ''.join(x) reproduces the original string.  This
+          function should be in dpstr.py.  Numbers in names could be an
+          issue.
+
+          First check if char is in string.ascii_letters because this will
+          be fast.  Then check for the following set:
+
+            žŽżŻźŹŸŷŶŵŴųŲűŰůŮŭŬūŪũŨŧŦťŤţŢšŠşŞŝŜśŚřŘŗŖŕŔőŐŏŎōŌŋŊŉňŇņŅńŃłŁŀĿľĽļĻĺĹ
+            ĸķĶĵĴıİįĮĭĬīĪĩĨħĦĥĤģĢġĠğĞĝĜěĚęĘėĖĕĔēĒđĐďĎčČċĊĉĈćĆąĄăĂāĀÿþýüûúùøöõôóò
+            ñðïîíìëêéèçæåäãâáàßÞÝÜÛÚÙØÖÕÔÓÒÑÐÏÎÍÌËÊÉÈÇÆÅÄÃÂÁÀ
+
+        - Add a TokenSplit(token, seq) function that will split a token
+          into a list of subtokens.  If seq is a string, then it will be
+          split on any of the characters in the string.  Otherwise,
+          str.split() will have to be called with each sequence item.
+
+    - linkcheck.py
+        - Utility to search a file for http links and see if they are still
+          accessible.
 
     - help
         - Convert to a git repository on github
@@ -23,7 +66,7 @@ active
           to PDF, HTML, or vim help files.  Look at making a project for
           Notepad++, as this would be of interest to a number of folks.
 
-want
+Want
 
     - /pylib/pgm/ts/ts.py
         - Import to /plib
@@ -117,13 +160,6 @@ want
           = red.  -s makes it stereoscopic.  -x, -y, -z give views down the
           different axes (-z is default).
 
-    - g.py
-        - Search the files for web links and see if they still work.  
-
-    - linkcheck.py
-        - Utility to search a file for http links and see if they are still
-          accessible.
-
     - Writing
         - I have an adequate spell checker.  It could be useful to develop
           experience over time of things that needed to be looked for
@@ -168,9 +204,6 @@ want
         - I don't think black is worth keeping.  Spend some time with yapf
           to see if it can be tuned to what I like.
 
-    - iso.py
-        - Should take time arguments in either s or tm structures.
-
     - Room heating energy
         - Write a script that estimates the electrical energy and time
           needed to heat up a room in our house.  Focus on the shop and
@@ -184,8 +217,7 @@ want
           bundled with this as a scripting language.  This lets users write
           scripts that do shell functionality, as the interface would be to
           python commands with the proper syntax.
-
-          https://libraries.io/pypi/pysh-lib might be worth taking a look at.
+        - https://libraries.io/pypi/pysh-lib might be worth taking a look at.
 
     - pkg.py
         - Given a set of files to put into a package (zip file), analyze
@@ -208,10 +240,6 @@ want
           done (or, better, leave it in for later maintenance).
         - One possibility would be to derive all classes from a base class 
           that would know how to introspect itself.
-
-    - flt.py
-        - Since flt is essentially done, write a replacement for
-          fpformat.py that includes its features.
 
     - dpmath.py
         - This would be a general-purpose module for math calculations.
@@ -253,42 +281,6 @@ want
         - Should be able to examine a file and list the dependencies on
           scripts.  Look at pgm/dep.py and the modulefinder module.  Then
           what.py should only print out the non-standard modules.
-
-    - /plib/density.py
-        - For common density values.  This file would then be read by
-          /plib/pgm/density.py for its data.  Having things in a module
-          means other apps can use it.
-        - One addition would be to provide canonical values for common
-          materials like steel, brass, iron, elements, etc.
-
-    - dpstr.py
-        - Tokenize(s):  split a string into a sequence S such that
-          ''.join(S) == s.  The keyword wordchars is a set that contains
-          the characters that should NOT be split on.  wordchars would
-          default to string.ascii_letters.  A better default would be "un
-          latin |grep -i letter" and limited to letters < 0x17f (this is
-          237 letters).
-
-          This means a sentence like "Must be:  exp, log." needs to be
-          parsed as
-
-          ['Must', ' ', 'be', ':', '  ', 'exp', ',', 'log', '.']
-    
-          such that ''.join(x) reproduces the original string.  This
-          function should be in dpstr.py.  Numbers in names could be an
-          issue.
-
-          First check if char is in string.ascii_letters because this will
-          be fast.  Then check for the following set:
-
-            žŽżŻźŹŸŷŶŵŴųŲűŰůŮŭŬūŪũŨŧŦťŤţŢšŠşŞŝŜśŚřŘŗŖŕŔőŐŏŎōŌŋŊŉňŇņŅńŃłŁŀĿľĽļĻĺĹ
-            ĸķĶĵĴıİįĮĭĬīĪĩĨħĦĥĤģĢġĠğĞĝĜěĚęĘėĖĕĔēĒđĐďĎčČċĊĉĈćĆąĄăĂāĀÿþýüûúùøöõôóò
-            ñðïîíìëêéèçæåäãâáàßÞÝÜÛÚÙØÖÕÔÓÒÑÐÏÎÍÌËÊÉÈÇÆÅÄÃÂÁÀ
-
-        - Add a TokenSplit(token, seq) function that will split a token
-          into a list of subtokens.  If seq is a string, then it will be
-          split on any of the characters in the string.  Otherwise,
-          str.split() will have to be called with each sequence item.
 
     - wrap.py:  
         - This module sucks.  It needs to be rewritten so that it just
