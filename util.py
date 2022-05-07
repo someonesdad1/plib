@@ -883,7 +883,7 @@ def ConvertToNumber(s, handle_i=True):
     for a string if it is possible.  The basic logic is:
         * If it contains 'j' or 'J', it's complex
         * If it contains '/', it's a fraction
-        * If it contains '.', 'E', or 'e', it's a float
+        * If it contains ',', '.', 'E', or 'e', it's a float
         * Otherwise it's interpreted to be an integer
     Since I prefer to use 'i' for complex numbers, we'll also allow an 'i'
     in the number unless handle_i is False.
@@ -893,7 +893,7 @@ def ConvertToNumber(s, handle_i=True):
         s = s.replace("i", "j")
     if 'j' in s:
         return complex(s)
-    elif '.' in s or 'e' in s:
+    elif '.' in s or 'e' in s or ',' in s:
         return float(s)
     elif '/' in s:
         return Fraction(s)

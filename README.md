@@ -38,19 +38,25 @@ As of this writing (March 2022), this stuff has been tested with python
 3.7.12 in a cygwin environment on Windows 10.
 
 My coding style is vertically compressed which most folks won't like.  Use
-a style formatter to to recover more normal vertical formatting if you
-wish.  I use pgm/rpl.py to remove blank lines so I can see as much as
-possible on my screen.  I use a folding editor, which folds on indentation
-and explains the use of 'if 1:  # Comment' "sections".  A completely folded
-file should be viewable in a few tens of lines.  I also use a second 4k
-monitor in portrait mode to view 100 to 150 lines of text at once; this is
-quite convenient for coding.
+a style formatter (e.g., black) to to recover more normal vertical
+formatting if you wish.  I use pgm/rbl.py to remove blank lines so I can
+see as much as possible on my screen.  I use a folding editor, which folds
+on indentation and explains the use of 'if 1:  # Comment' "sections".  A
+completely folded file should be viewable in a few tens of lines.  I also
+use a second 4k monitor in portrait mode to view 100 to 150 lines of text
+at once; this is quite convenient for coding.
 
 My editor has commands to go to the next paragraph, which is defined by a
 bare newline.  With no blank lines in a file, this lets me set up
 "bookmarks" by inserting an empty line.  I can then jump between two areas
 in a file with one key press, which is fast and efficient.  It's faster
 than using stored bookmarks or multiple tab pages.
+
+You'll find 'git log' pretty useless, as my development model is similar to
+how I used RCS at home for a few decades.  I'm the only developer and I
+make check-ins when I've gotten far enough where I don't want to lose
+something, so I check it in and push it to github.  I also rarely make
+branches.  I'll occasionally mark an event with a tag. 
 
 # Tools
 
@@ -87,10 +93,17 @@ fixing things, but such things aren't a priority.
 
 # Most useful
 
-This list a few of the modules/scripts I us a lot.
+Here are a few of the modules/scripts I use a lot.
+
+* get.py
+    - Get text, lines, tokens, words, binary content, etc. from files.  I
+      use GetLines and GetTextLines the most.
+
+* util.py
+    - Numerous utility functions.
 
 * pgm/prun.py
-    - I use this to develop python scripts in a terminal window .  When the
+    - I use this to develop python scripts in a terminal window.  When the
       script's modification time changes by saving the script in the editor
       window (a diffent terminal window), the script is run, allowing you
       to see the results without leaving your editor window.  This is handy
@@ -99,14 +112,24 @@ This list a few of the modules/scripts I us a lot.
       browser showing you a diff of the previous and latest outputs so you
       can see what changed.
 
-* clr.py
-    - Generates ANSI escape codes to color text in terminal output.
-      Contains two functions to highlight matches in regular expressions,
-      which helps to develop regular expressions more quickly.  Use prun.py
-      to make it even faster.  This is for POSIX machines like cygwin/bash,
-      MacOS, and Linux.  If you're on Windows, there's already a library to
-      help with getting colored output in DOS terminal windows (it works by
-      making calls to the Windows DLL rather than emitting escape codes).
+* color.py
+    - Contains three key classes (Color, Trm, and ColorName) to deal with
+      color definitions and generating escape codes for using color in text
+      in output to a terminal.  This file went through a large revision in
+      March/April 2022, as I changed the design from something I had been
+      using for a couple of decades (it was renamed kolor.py and will
+      eventually be removed).  I included support for the old design, as it
+      was used in about 80 files in this directory tree.  I'll slowly
+      convert things over to the new file and delete the legacy stuff.  
+    - A handy utility that uses color.py is pgm/cdec.py, which will
+      decorate lines of a file with color specifiers, so you see the line
+      in its color.  Try 'cdec colornames0' and you'll see a demo.  The
+      colornames0 is my default set of colors with naming based on the 3
+      letter names of the resistor color code.  Run color.py as a script to
+      see the colors and add the 'a' argument to see the styles.  I use
+      this in the mintty terminal under cygwin and it's a powerful terminal
+      program with 24-bit color support and numerous styles, including
+      subscripts and superscripts.
 
 * lwtest.py
     - Lightweight test runner adapted from a nice tool by Raymond
@@ -118,13 +141,12 @@ This list a few of the modules/scripts I us a lot.
       figures by default, stopping the typical digit diarrhea with the
       usual float or complex calculations.  This file is still under
       development -- but I use the flt() objects a lot for routine
-      calculations because they are so convenient.  I'd like to get them
-      fully functional with physical units too, but this is a more
-      challenging task.  See them used in pgm/repl.py, a REPL (read,
-      evaluate, print, loop) that replaces the standard python REPL and is
-      my interactive python calculator.  Uses f.py for floats and complex
-      numbers and has math and cmath symbols in scope.  flt and cpx numbers
-      are printed out in color to help identify the types.
+      calculations because they are so convenient for calculating things
+      based on measurements.  
+    - flt and cpx currently support physical units too (kind of, but there
+      are testing and corner case errors), but this is a lot of extra code
+      and I have a to-do item to remove unit support, as I don't feel it's
+      worth the coding and testing effort.
 
 # Feedback
 
