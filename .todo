@@ -1,5 +1,10 @@
 active
 
+    - lwtest.py
+        - Change it over to use modern color.py.  It's printing a
+          bunch of escape codes at the end of a test run and those
+          shouldn't be there.
+
     - help
         - Convert to a git repository on github
         - Develop, then add to /plib
@@ -111,11 +116,6 @@ want
         - Write an RGB color cube plotting function:  x = grn, y = blue, z
           = red.  -s makes it stereoscopic.  -x, -y, -z give views down the
           different axes (-z is default).
-
-    - lwtest.py
-        - Change it over to use Clr() instead of color.  It's printing a
-          bunch of escape codes at the end of a test run and those
-          shouldn't be there.
 
     - g.py
         - Search the files for web links and see if they still work.  

@@ -90,7 +90,7 @@ if 1:   # Classes
         0 and 1.  The RGB-HSV transformations are from "Colour Space Conversions" 
         by Ford and Roberts, 11 Aug 1998, which can be gotten from
         http://www.poynton.com/PDFs/coloureq.pdf.  Also see
-        http://www.efg2.com/Lab/Library/Color/.
+        http://www.efg2.com/Lab/Library/Color/ (defunct as of May 2022).
         '''
         def __init__(self, color):
             '''color is expected to be a 3-tuple of RGB values.  For

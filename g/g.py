@@ -897,6 +897,11 @@ if 1:   # Dealing with bitmaps via the Python Imaging Library
      
         If you don't have the Python Imaging library (PIL), you can get an
         open-source version from http://www.pythonware.com/products/pil/.
+
+            Update May 2022:  the PIL went defunct around 2011; you can 
+            check out https://python-pillow.org for a replacement.  Sadly,
+            Fredrik Lundh, a long-time python contributor, passed away in
+            Nov 2021.
         '''
         try:
             from PIL import Image, PSDraw
