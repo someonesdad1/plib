@@ -23,7 +23,7 @@ want
     - /pylib/pgm/ts/ts.py
         - Import to /plib
 
-    - dbl.py
+    - dbl.py (pgm/rbl.py)
         - Delete blank lines in a file
         - Change multiple lines to 1:  -1
         - Delete lines with whitespace ^\s*$ :  -s

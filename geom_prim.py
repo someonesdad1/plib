@@ -34,7 +34,6 @@ if 1:  # Copyright, license
 if 1:   # Imports
     import sys
     import traceback
-    from math import *
     from pdb import set_trace as xx
 if 1:   # Custom imports
     from sig import SigFig

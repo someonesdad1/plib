@@ -1,11 +1,12 @@
 '''
 TODO
 
-    - Update to use /plib/color.py and 8-bit color names.
     - This doesn't show the unchanged files.  These should be shown just
       under the ignored stuff so you see a complete listing.  The algorithm
       should be changed to do a recursive glob on the root directory, then
       filter out all stuff not in the directory of interest.
+    - Options should let you choose which files to see:  untracked,
+      ignored, changed, etc.
 
 Show git repository file status for current directory
     git status:
@@ -81,9 +82,13 @@ if 1:   # Standard imports
 if 1:   # Custom imports
     from wrap import wrap, dedent
 
-    from color import (C, fg, normal, black, blue, green, cyan, red, magenta,
-                       brown, white, gray, lblue, lgreen, lcyan, lred, lmagenta,
-                       yellow, lwhite)
+    old_color= 0
+    if old_color:
+        from color import (C, fg, normal, black, blue, green, cyan, red, magenta,
+                        brown, white, gray, lblue, lgreen, lcyan, lred, lmagenta,
+                        yellow, lwhite)
+    else:
+        from color import TRM as t
     from columnize import Columnize
     if 0:
         import debug
@@ -104,16 +109,28 @@ if 1:   # Global variables
         UNT = auto()
         IGN = auto()
     # Map state to name and color
-    sc = {
-        St.IGN: ["Ignored",     C.blu],     # ?
-        St.SAM: ["Unmodified",  C.wht],     # ''
-        St.UNT: ["Untracked",   C.cyn],     # !
-        St.UNM: ["Unmerged",    C.lblu],    # u
-        St.REN: ["Renamed",     C.yel],     # r
-        St.ADD: ["Added",       C.mag],     # a
-        St.DEL: ["Deleted",     C.red],     # d
-        St.MOD: ["Modified",    C.lgrn],    # m
-    }
+    if old_color:
+        sc = {
+            St.IGN: ["Ignored",     C.blu],     # ?
+            St.SAM: ["Unmodified",  C.wht],     # ''
+            St.UNT: ["Untracked",   C.cyn],     # !
+            St.UNM: ["Unmerged",    C.lblu],    # u
+            St.REN: ["Renamed",     C.yel],     # r
+            St.ADD: ["Added",       C.mag],     # a
+            St.DEL: ["Deleted",     C.red],     # d
+            St.MOD: ["Modified",    C.lgrn],    # m
+        }
+    else:
+        sc = {
+            St.IGN: ["Ignored",     t("roy")],     # ?
+            St.SAM: ["Unmodified",  t("wht")],     # ''
+            St.UNT: ["Untracked",   t("cyn")],     # !
+            St.UNM: ["Unmerged",    t("blul")],    # u
+            St.REN: ["Renamed",     t("yel")],     # r
+            St.ADD: ["Added",       t("mag")],     # a
+            St.DEL: ["Deleted",     t("red")],     # d
+            St.MOD: ["Modified",    t("grnl")],    # m
+        }
 if 1:   # Utility
     def Error(*msg, status=1):
         print(*msg, file=sys.stderr)
@@ -131,17 +148,30 @@ if 1:   # Utility
             -v      Show cwd & root
         '''))
         exit(status)
+    def NoColor():
+        global sc
+        sc = {
+            St.IGN: ["Ignored",     ""],    # ?
+            St.SAM: ["Unmodified",  ""],    # ''
+            St.UNT: ["Untracked",   ""],    # !
+            St.UNM: ["Unmerged",    ""],    # u
+            St.REN: ["Renamed",     ""],    # r
+            St.ADD: ["Added",       ""],    # a
+            St.DEL: ["Deleted",     ""],    # d
+            St.MOD: ["Modified",    ""],    # m
+        }
     def ParseCommandLine(d):
         d["-a"] = False     # Allow everything to be shown
+        d["-c"] = True      # Color
         d["-d"] = False     # Turn on debugging output
         d["-v"] = True      # Verbose
         try:
-            opts, dir = getopt.getopt(sys.argv[1:], "adhv")
+            opts, dir = getopt.getopt(sys.argv[1:], "acdhv")
         except getopt.GetoptError as e:
             print(str(e))
             exit(1)
         for o, a in opts:
-            if o[1] in list("adv"):
+            if o[1] in list("acdv"):
                 d[o] = not d[o]
             elif o in ("-h", "--help"):
                 Usage(status=0)
@@ -149,6 +179,8 @@ if 1:   # Utility
             global dbg
             dbg = True
         dir = dir if dir else "."
+        if not d["-c"]:
+            NoColor()
         return dir
     def Dbg(*p, **kw):
         if not dbg:
@@ -159,14 +191,23 @@ if 1:   # Utility
             del kw["ind"]
         if seq:
             for i in p[0]:
-                print(f"{ind}{C.cyn}{i}{C.norm}")
+                if old_color:
+                    print(f"{ind}{C.cyn}{i}{C.norm}")
+                else:
+                    print(f"{ind}{t('cyn')}{i}{t.n}")
         else:
-            print(f"{C.cyn}", end="")
+            if old_color:
+                print(f"{C.cyn}", end="")
+            else:
+                print(f"{t('cyn')}", end="")
             if "end" not in kw:
                 kw["end"] = ""
             print(ind, end="")
             print(*p, **kw)
-            print(f"{C.norm}")
+            if old_color:
+                print(f"{C.norm}")
+            else:
+                print(f"{t.n}")
 if 1:   # Core functionality
     def GetGitRoot():
         'Return the root of the repository or None'
@@ -333,7 +374,10 @@ if 1:   # Core functionality
                     for i in di[key]:
                         print(i, end=" ")
                     print()
-                print(f"{C.norm}", end="")
+                if old_color:
+                    print(f"{C.norm}", end="")
+                else:
+                    print(f"{t.n}", end="")
 if __name__ == "__main__":
     d = {}      # Options dictionary
     args = ParseCommandLine(d)
@@ -346,14 +390,30 @@ if __name__ == "__main__":
         # Show the repository root and current directory in color
         w = 20
         print(f"{'Repository root:':{w}s}", end="")
-        fg(lwhite, blue)
+        if old_color:
+            fg(lwhite, blue)
+        else:
+            if d["-c"]:
+                print(f"{t('whtl', 'blu')}", end="")
         print(GetGitRoot(), end="")
-        normal()
+        if old_color:
+            normal()
+        else:
+            if d["-c"]:
+                print(f"{t.n}", end="")
         print()
         print(f"{'Current directory:':{w}s}", end="")
-        fg(lwhite, red)
+        if old_color:
+            fg(lwhite, red)
+        else:
+            if d["-c"]:
+                print(f"{t('whtl', 'red')}", end="")
         print(dir.relative_to(root), end="")
-        normal()
+        if old_color:
+            normal()
+        else:
+            if d["-c"]:
+                print(f"{t.n}", end="")
         print()
     Dbg(f"dir = {dir}")
     r = GetData(dir)
