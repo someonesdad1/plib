@@ -1,5 +1,6 @@
 '''
 Decorate color specifications
+    - Consider adding hex decorators to each line for convenience
     - Forms that must be recognized:
         - i = integer on [0, 255], 
         - d = real on [0, 1]
@@ -71,55 +72,20 @@ if 1:   # Utility
     def Error(*msg, status=1):
         print(*msg, file=sys.stderr)
         exit(status)
-    def Manpage():
-        n = sys.argv[0]
-        print(dedent(f'''
-        Basic use
-        ---------
-
-        The primary use case of this script is to browse color files in your
-        terminal program.  To examine the colors in an XWindows rgb.txt file, use
-
-            {n} rgb.txt | less
-
-        assuming your less program recognizes ANSI escape sequences and you have a
-        24-bit color terminal program.  To limit the lines to a subset, you can use
-        one or more regular expressions with the -r option.  For example, to see
-        only lines with 'lilac' or 'purple' in them, use
-
-            {n} -r lilac -r purple rgb.txt | less
- 
-        How it works
-        ------------
-
-        If you want to see how the program works, use the following example.  Put
-        the following line in a file 'test':
-
-            dark pink  203 65 107
-
-        Insert a suitable breakpoint() call and invoke the program
-
-            {n} test
-
-        and the line should be printed to stdout in the color the RGB numbers that
-        (203, 65, 107) represent.
-
-        '''.rstrip()))
-        exit(0)
     def Usage(status=1):
         print(dedent(f'''
         Usage:  {sys.argv[0]} [options] file1 [file2...]
           Search the lines of the file(s) for color specifiers and print matching
           lines found in the color specified.  Use '-' to read from stdin.  Regular
-          expressions are OR'd together.
+          expressions (-r or -R) are OR'd together.
         Options:
             -d      Print details on the color
             -e      Eliminate duplicates
             -f      Use escape code even if terminal is not a tty
-            -h      More help and examples
             -r x    Search for case-insensitive regexp x in lines
             -R x    Search for case-sensitive regexp x in lines
             -s s    Sort output by letters s in "rgbhsvHSL"
+            -x      Decorate each line with hex color notations
         '''))
         exit(status)
     def ParseCommandLine(d):
@@ -129,15 +95,16 @@ if 1:   # Utility
         d["-R"] = []        # Case-sensitive regexp
         d["-r"] = []        # Case-insensitive regexp
         d["-s"] = None      # How to sort output
+        d["-x"] = False     # Decorate lines with hex values
         if len(sys.argv) < 2:
             Usage()
         try:
-            opts, args = getopt.getopt(sys.argv[1:], "DdeR:r:s:", "help")
+            opts, args = getopt.getopt(sys.argv[1:], "DdeR:r:s:x", "help")
         except getopt.GetoptError as e:
             print(str(e))
             exit(1)
         for o, a in opts:
-            if o[1] in list("Dde"):
+            if o[1] in list("Ddex"):
                 d[o] = not d[o]
             elif o == "-R":
                 d[o].append(re.compile(a))
@@ -150,7 +117,7 @@ if 1:   # Utility
                         Error(f"'{i}' for -s option not in {allowed.split()}")
                 d[o] = a
             elif o in ("-h", "--help"):
-                Manpage()
+                Usage()
         return args
 if 1:   # Core functionality
     def GetColorRegexps():
@@ -248,7 +215,10 @@ if 1:   # Core functionality
                 n = math.ceil(math.log10(c.N))
                 return ', '.join([f"{i:{2 + n}.{n}f}" for i in seq])
         for line, c in g.out:
-            print(f"{t(c.xrgb)}{line}{t.n}")
+            s = ""
+            if d["-x"]:
+                s = ' '.join([c.xrgb, c.xhsv, c.xhls])
+            print(f"{t(c.xrgb)}{line} {s}{t.n}")
             if d["-d"]:
                 # Print details
                 i = " "*4
