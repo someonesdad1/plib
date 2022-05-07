@@ -1,51 +1,82 @@
 '''
-Format Decimal numbers
+ 
+Format floating point numbers
+    Run the module as a script to see example output.
+
+    This module provides string interpolation ("formatting") for floating
+    point number types.  If x is float(math.pi), str(x) or repr(x) return
+    '3.141592653589793', which contains too many digits for casual
+    interpretation.  This module's convenience instance fmt will format pi
+    as fmt(math.pi) = '3.14', which allows easier interpretation.
+ 
     The Fmt class will format any number/string accepted by Decimal's
     constructor into a string with the desired number of significant
-    figures.  Run the module as a script to see example output.
+    figures.  
+ 
+    The read-write attributes of a Fmt instance provide more control over
+    the formatting:
 
-    Use 'from fmt import fmt' to get fmt as a convenience instance of
-    Fmt.
+    n       Sets the number of significant figures to use.
+
+    dp      Sets the radix to either "." or ",".
+
+    low     Numbers below this value are displayed with scientific
+            notation.  Set to None to always have small numbers displayed
+            in fixed point.
+
+    high    Numbers above this value are displayed with scientific
+            notation.  Set to None to always have large numbers displayed
+            in fixed point.
+
+    u       If True, display scientific and engineering notations with
+            Unicode exponents.
+
+    rtz     If True, remove trailing zero digits, even if they are
+            significant.
+
+    rtdp    If True, remove the trailing radix if it ends the string.
+
 '''
-if 1:  # Copyright, license
-    # These "trigger strings" can be managed with trigger.py
-    #∞copyright∞# Copyright (C) 2008, 2012, 2021 Don Peterson #∞copyright∞#
-    #∞contact∞# gmail.com@someonesdad1 #∞contact∞#
-    #∞license∞#
-    #   Licensed under the Open Software License version 3.0.
-    #   See http://opensource.org/licenses/OSL-3.0.
-    #∞license∞#
-    #∞what∞#
-    # <programming> Format Decimal numbers with the Fmt class.  Provides
-    # fixed point, scientific, and engineering formats.  You can control
-    # the points at which fixed point switches to scientific notation
-    # (or set them to None, which means you always get fixed point
-    # notation).  Scientific and engineering notation can use Unicode
-    # characters for exponents, such as 3.14✕10⁶ and 314✕10⁻⁹.  Since
-    # the implementation is in Decimal numbers, you can work with
-    # arbitrarily large numbers and arbitrary number of decimal places.
-    #∞what∞#
-    #∞test∞# --test #∞test∞#
-    pass
-if 1:   # Imports
-    import decimal
-    import collections 
-    import locale 
-    from fraction import Fraction
-if 1:   # Custom imports
-    try:
-        import mpmath
-        have_mpmath = True
-    except ImportError:
-        have_mpmath = False
-if 1:   # Global variables
-    D = decimal.Decimal
-    ii = isinstance
-    __all__ = [
-        "Fmt",  # The Fmt class
-        "D",    # decimal.Decimal abbreviation
-        "fmt"   # Convenience instance of Fmt
-    ]
+if 1:  # Header
+    # Copyright, license
+        # These "trigger strings" can be managed with trigger.py
+        #∞copyright∞# Copyright (C) 2008, 2012, 2021 Don Peterson #∞copyright∞#
+        #∞contact∞# gmail.com@someonesdad1 #∞contact∞#
+        #∞license∞#
+        #   Licensed under the Open Software License version 3.0.
+        #   See http://opensource.org/licenses/OSL-3.0.
+        #∞license∞#
+        #∞what∞#
+        # <programming> Format Decimal numbers with the Fmt class.  Provides
+        # fixed point, scientific, and engineering formats.  You can control
+        # the points at which fixed point switches to scientific notation
+        # (or set them to None, which means you always get fixed point
+        # notation).  Scientific and engineering notation can use Unicode
+        # characters for exponents, such as 3.14✕10⁶ and 314✕10⁻⁹.  Since
+        # the implementation is in Decimal numbers, you can work with
+        # arbitrarily large numbers and arbitrary number of decimal places.
+        #∞what∞#
+        #∞test∞# --test #∞test∞#
+    # Standard imports
+        import decimal
+        import collections 
+        import locale 
+        from fraction import Fraction
+        from pdb import set_trace as xx 
+    # Custom imports
+        try:
+            import mpmath
+            have_mpmath = True
+        except ImportError:
+            have_mpmath = False
+    # Global variables
+        D = Decimal = decimal.Decimal
+        ii = isinstance
+        __all__ = [
+            "Fmt",  # The Fmt class
+            "D",    # decimal.Decimal abbreviation
+            "fmt"   # Convenience instance of Fmt
+        ]
 class Fmt(object):
     # Key to _SI_prefixes is exponent/3
     _SI_prefixes = dict(zip(range(-8, 9), list("yzafpnμm.kMGTPEZY")))
@@ -57,24 +88,15 @@ class Fmt(object):
         low and high can be None, which disables them; if disabled, then
         fixed point interpolation is used by default.
         '''
-        '''Implementation:  a number to format is first converted to a
-        Decimal object D, then D is converted to a string with the
-        desired number of significant figures using python's string
-        interpolation f"{x:e}" with appropriate parameters.  This
-        returns a string of the form sD.DDeD, which can be picked apart
-        into the sign, significand, radix, and exponent.  These are then
-        manipulated into the string form desired.  We assume python's
-        string interpolation works for numbers with an arbitrary number
-        of digits.  I've tested it up to numbers with nearly a million
-        digits and it appears to work.
-        '''
         Fmt._SI_prefixes[0] = ""    # Need empty string
-        self._n = n
-        self._u = False
-        self._low = self.toD(low)
-        self._high = self.toD(high)
-    # Methods
-    def toD(self, value):
+        self._dp = locale.localeconv()["decimal_point"] # Radix
+        self._n = n                     # Number of significant figures
+        self._u = False                 # Use Unicode symbols for exponents
+        self._low = self.toD(low)       # Use sci if x < this value
+        self._high = self.toD(high)     # Use sci if x > this value
+        self._rtz = False               # Remove trailing zeros if True
+        self._rtdp = False              # Remove trailing radix if True
+    def toD(self, value) -> Decimal:
         '''Convert value to a Decimal object.  Supported types are int,
         float, Fraction, Decimal, str, mpmath.mpf, and any other type
         that gives a value from str(value)
@@ -95,13 +117,13 @@ class Fmt(object):
             return D(str(value))
         else:
             return D(str(value))
-    def _take_apart(self, x, n=None):
+    def _take_apart(self, x, n=None) -> collections.namedtuple:
         '''Take the Decimal number x apart into its sign, digits,
         decimal point, and exponent.  Return the named tuple 
         Apart(sign, ld, dp, other, e) where:
             ld + dp + other is the significand: 
             ld is the leading digit
-            dp is the locale's decimal point
+            dp is the locale's radix (decimal point)
             other is the string of digits after the decimal point
             e is the integer exponent
         n overrides self.n if it is not None.
@@ -114,6 +136,8 @@ class Fmt(object):
         if N < 1:
             raise ValueError("n must be > 0")
         xs = f"{abs(x):.{N - 1}e}"
+        if self.dp == ",":
+            xs = xs.replace(".", ",")
         sign = "-" if x < 0 else ""
         significand, e = xs.split("e")
         exponent = int(e) if x else 0
@@ -126,12 +150,21 @@ class Fmt(object):
             ld, other = significand.split(dp)
         assert(len(ld) + len(other) == N)     # N figures is an invariant
         return Apart(sign, ld, dp, other, int(exponent))
-    def _get_data(self, value, n=None):
+    def _get_data(self, value, n=None) -> tuple:
         x = D(str(value))
         parts = self._take_apart(x, n)
         return (parts, collections.deque(parts.ld) + 
             collections.deque(parts.other), "0")
-    def fix(self, value, n=None):
+    def _tz_and_dp(self, d):
+        'Implement rtz and rtdp for significand d in deque'
+        assert(ii(d, collections.deque))
+        if self._rtz and self._dp in d:
+            while d and d[-1] == "0":
+                d.pop()
+        if self._rtdp and d and d[-1] == self._dp:
+            d.pop()
+        return d
+    def fix(self, value, n=None) -> str:
         'Return a fixed point representation'
         x = self.toD(value)
         parts, d, z = self._get_data(x, n)
@@ -147,8 +180,9 @@ class Fmt(object):
             d.appendleft(self.dp)
             d.appendleft(z)
         d.appendleft(parts.sign)
+        d = self._tz_and_dp(d)
         return ''.join(d)
-    def sci(self, value, n=None):
+    def sci(self, value, n=None) -> str:
         'Return a scientific format representation'
         x = self.toD(value)
         parts, d, z = self._get_data(x, n)
@@ -156,6 +190,7 @@ class Fmt(object):
         d.appendleft(parts.sign)
         if d[-1] == self.dp:
             del d[-1]
+        d = self._tz_and_dp(d)
         if self.u:
             # Use Unicode characters for power of 10
             o = ["✕10"]
@@ -165,12 +200,14 @@ class Fmt(object):
         else:
             d.extend(["e", str(parts.e)])
         return ''.join(d)
-    def eng(self, value, fmt="eng", n=None):
+    def eng(self, value, fmt="eng", n=None) -> str:
         '''Return an engineering format representation.  Suppose value
         is 31415.9 and n is 3.  Then fmt can be:
             "eng"    returns "31.4e3"
             "engsi"  returns "31.4 k"
             "engsic" returns "31.4k" (the SI prefix is cuddled)
+        Note:  cuddling is illegal SI syntax, but it's sometimes useful in
+        program output.
         '''
         x = self.toD(value)
         fmt = fmt.strip().lower()
@@ -184,6 +221,7 @@ class Fmt(object):
         if d[-1] == self.dp:
             del d[-1]
         d.appendleft(parts.sign)
+        d = self._tz_and_dp(d)
         exponent = ["e", f"{eng_step*div}"]
         try:
             prefix = Fmt._SI_prefixes[div]
@@ -204,7 +242,7 @@ class Fmt(object):
         else:
             raise ValueError(f"'{fmt}' is an unrecognized format")
         return ''.join(d)
-    def __call__(self, value, fmt="fix", n=None):
+    def __call__(self, value, fmt="fix", n=None) -> str:
         '''Format value with the default "fix" formatter.  n overrides
         self.n significant figures.  fmt can be "fix", "sci", "eng", 
         "engsi", or "engsic".
@@ -222,139 +260,191 @@ class Fmt(object):
             return self.sci(x, n)
         else:
             return self.eng(x, n=n, fmt=fmt)
-    # Properties
-    @property
-    def dp(self):
-        'Read-only decimal point string'
-        return locale.localeconv()["decimal_point"]
-    @property
-    def high(self):
-        'Use "sci" format if abs(x) is > high and not None'
-        return self._high
-    @high.setter
-    def high(self, value):
-        self._high = None if value is None else abs(D(str(value)))
-    @property
-    def low(self):
-        'Use "sci" format if abs(x) is < low and not None'
-        return self._low
-    @low.setter
-    def low(self, value):
-        self._low = None if value is None else abs(D(str(value)))
-    @property
-    def n(self):
-        'Number of significant figures (integer > 0)'
-        return self._n
-    @n.setter
-    def n(self, value):
-        self._n = int(value)
-        if self._n <= 0:
-            raise ValueError("n must be > 0")
-    @property
-    def u(self):
-        '(bool) Use Unicode in "sci" and "eng" formats if True'
-        return self._u
-    @u.setter
-    def u(self, value):
-        self._u = bool(value)
+    if 1:   # Read-write properties
+        @property
+        def dp(self) -> str:
+            'Decimal point string'
+            return self._dp
+        @dp.setter
+        def dp(self, value):
+            if not ii(value, str) or len(value) > 1 or value not in ".,":
+                raise TypeError("value must be either '.' or ','")
+            self._dp = value
+        @property
+        def high(self):
+            'Use "sci" format if abs(x) is > high and not None'
+            return self._high
+        @high.setter
+        def high(self, value):
+            self._high = None if value is None else abs(D(str(value)))
+        @property
+        def low(self):
+            'Use "sci" format if abs(x) is < low and not None'
+            return self._low
+        @low.setter
+        def low(self, value):
+            self._low = None if value is None else abs(D(str(value)))
+        @property
+        def n(self) -> int:
+            'Number of significant figures (integer > 0)'
+            return self._n
+        @n.setter
+        def n(self, value):
+            n = abs(int(value))
+            self._n = max(n, 1)
+        @property
+        def u(self) -> bool:
+            '(bool) Use Unicode in "sci" and "eng" formats if True'
+            return self._u
+        @u.setter
+        def u(self, value):
+            self._u = bool(value)
+
+        #xx under development
+        @property
+        def rtz(self) -> bool:
+            '(bool) Remove trailing zeros after radix if True'
+            return self._rtz
+        @rtz.setter
+        def rtz(self, value):
+            self._rtz = bool(value)
+        @property
+        def rtdp(self) -> bool:
+            '(bool) Remove trailing radix if True'
+            return self._rtdp
+        @rtdp.setter
+        def rtdp(self, value):
+            self._rtdp = bool(value)
 fmt = Fmt()     # Convenience instance
 if __name__ == "__main__": 
-    if 1:   # Imports
-        from collections import deque
-        from decimal import localcontext
-        from math import pi
-        from pdb import set_trace as xx
-        import getopt
-        import os
-        import pathlib
-        import sys
-    if 1:   # Custom modules
-        from fpformat import FPFormat
-        from lwtest import run, raises, Assert
-        from wrap import dedent
-        import decimalmath
-    if 1:   # Global variables
-        P = pathlib.Path
-        d = {}      # Options dictionary
+    if 1:   # Header
+        # Standard imports
+            from collections import deque
+            from decimal import localcontext
+            from math import pi
+            from pdb import set_trace as xx
+            import getopt
+            import os
+            import pathlib
+            import sys
+        # Custom imports
+            from fpformat import FPFormat
+            from lwtest import run, raises, Assert
+            from wrap import dedent
+            import decimalmath
+            from color import Color, TRM as t
+        # Global variables
+            P = pathlib.Path
+            d = {}      # Options dictionary
+            # Set up colors for demo
+            u = use_colors = bool(os.environ.get("DPRC", False))
+            t.t   = t()       if u else ""   # Title
+            t.u   = t("ornl") if u else ""   # Normal float formatting
+            t.f   = t("sky")  if u else ""   # Feature being demonstrated
+            t.fix = t("whtl") if u else ""   # Fixed point
+            t.sci = t("yell") if u else ""   # Scientific notation
+            t.eng = t("grnl") if u else ""   # Engineering notation
+            t.si  = t("magl") if u else ""   # Engsi notation
     if 1:   # Example code 
         def Demo():
             f = fmt
-            print("Demonstration of Fmt class features:  f = Fmt()\n")
+            t.print(dedent(f'''
+            {t.t}Demonstration of Fmt class features:  f = Fmt()
+              Formatting (string interpolation) is gotten by calling the Fmt instance as a
+              function:  {t.f}f(number){t.n}.  number can be anything that can be converted to a python
+              Decimal instance, such as integer, float, Fraction, string, mpmath mpf type, etc.
+ 
+            '''))
             s = "pi*1e5"
             x = eval(s)
             # Standard formatting
-            print(f"x = {s} = {repr(x)}")
-            print(f"Standard fixed point formatting:")
-            print(f"  f(x) = {f(x)} (defaults to {f.n} significant figures)")
+            print(dedent(f'''
+            {t.t}Usual float formatting:{t.n}  x = {s}
+              repr(x) = {t.u}{x!r}{t.n}, str(x) = {t.u}{x!s}{t.n}
+              Though accurate, we're overwhelmed with too many digits.  The Fmt class defaults
+              to showing {f.n} significant figures:  {t.f}f(x){t.n} = {t.fix}{f(x)}{t.n}  The trailing radix helps you
+              identify that it's a floating point number.
+ 
+            '''))
+            t.print(f"{t.t}Fmt fixed point formatting:")
+            print(f"  {t.f}f(x){t.n} = {t.fix}{f(x)}{t.n} (defaults to {f.n} significant figures)")
             # 2 figures
-            print(f"Set to 2 significant figures:  f.n = 2")
+            t.print(f"{t.t}Set to 2 significant figures:  {t.f}f.n = 2")
             f.n = 2
-            print(f"  f(x) = {f(x)}")
-            print(f"Override f.n significant figures:")
-            print(f"  f(x, n=5) = {f(x, n=5)}")
+            t.print(f"  f(x) = {t.fix}{f(x)}")
+            t.print(f"{t.t}Override f.n significant figures:")
+            t.print(f"  {t.f}f(x, n=5){t.n} = {t.fix}{f(x, n=5)}")
             f.n = 3
-            # Change where we switch to scientific notation
-            print(f"Change transition thresholds to scientific notation")
+            # Change scientific notation thresholds
+            t.print(f"{t.t}Change transition thresholds to scientific notation")
             f.high = 1e6
             f.low = 1e-6
-            print(f"  f.high = {f.sci(f.high, n=1)}")
-            print(f"  f.low  = {f.sci(f.low, n=1)}")
-            print(" ", f(pi*1e5), "  < f.high so use fix")
-            print(" ", f(pi*1e6), "    > f.high so use sci")
-            print(" ", f(pi*1e-6), "> f.low so use fix")
-            print(" ", f(pi*1e-7), "   < f.low so use sci")
+            t.print(f"  {t.f}f.high{t.n} = {t.sci}{f.sci(f.high, n=1)}")
+            t.print(f"  {t.f}f.low{t.n}  = {t.sci}{f.sci(f.low, n=1)}")
+            print(f"  {t.fix}{f(pi*1e5)}{t.n} < f.high so use fix")
+            print(f"  {t.sci}{f(pi*1e6)}{t.n} > f.high so use sci")
+            print(f"  {t.fix}{f(pi*1e-6)}{t.n} > f.low so use fix")
+            print(f"  {t.sci}{f(pi*1e-7)}{t.n} < f.low so use sci")
             # Get scientific and engineering notations
-            print("Force use of scientific and engineering notation")
-            print(f"  sci:  f.sci(pi*1e-7)        = {f.sci(pi*1e-7)}")
-            print(f"        f(pi*1e-7, fmt='sci') = {f(pi*1e-7, fmt='sci')}")
-            print(f"  eng:  f.eng(pi*1e-7)        = {f.eng(pi*1e-7)}")
-            print(f"        f(pi*1e-7, fmt='eng') = {f(pi*1e-7, fmt='eng')}")
+            t.print(f"{t.t}Force use of scientific and engineering notation")
+            t.print(f"  sci:  {t.f}f.sci(pi*1e-7){t.n}        = {t.sci}{f.sci(pi*1e-7)}")
+            t.print(f"        {t.f}f(pi*1e-7, fmt='sci'){t.n} = {t.sci}{f(pi*1e-7, fmt='sci')}")
+            t.print(f"  eng:  {t.f}f.eng(pi*1e-7){t.n}        = {t.eng}{f.eng(pi*1e-7)}")
+            t.print(f"        {t.f}f(pi*1e-7, fmt='eng'){t.n} = {t.eng}{f(pi*1e-7, fmt='eng')}")
             # Use Unicode characters for scientific notation
             f.u = True
-            print("Set f.u to True to use Unicode characters in sci and eng")
-            print(f"  f.sci(pi*1e6)) = {f.sci(pi*1e6)}")
-            print(f"  f.eng(pi*1e-7) = {f.eng(pi*1e-7)}")
+            t.print(f"{t.t}Set f.u to True to use Unicode characters in sci and eng exponents:")
+            t.print(f"  {t.f}f.sci(pi*1e6)){t.n} = {t.sci}{f.sci(pi*1e6)}")
+            t.print(f"  {t.f}f.eng(pi*1e-7){t.n} = {t.eng}{f.eng(pi*1e-7)}")
             f.u = False
             # Set low & high to None to always get fixed point
             f.low = f.high = None
-            print("Setting f.low and f.high to None gets fixed point always:")
-            print(f"  f(pi*1e-27) = {f(pi*1e-27)}")
-            print(f"  f(pi*1e57) = {f(pi*1e57)}")
+            t.print(f"{t.t}Setting f.low and f.high to None always results in fixed point:")
+            t.print(f"  {t.f}f(pi*1e-27){t.n} = {t.fix}{f(pi*1e-27)}")
+            t.print(f"  {t.f}f(pi*1e57){t.n} = {t.fix}{f(pi*1e57)}")
             f.high = 1e6
             f.low = 1e-6
             # Big exponents
-            print(dedent('''
-            Fixed point, scientific, and engineering formatting should work for
-            numbers of arbitrary magnitudes as long as a Decimal exception isn't 
-            encountered.  The default Decimal context allows exponents up to an
-            absolute value of (1e6 - 1).
+            print(dedent(f'''
+            {t.t}Fixed point, scientific, and engineering formatting should work for numbers of
+            arbitrary magnitudes as long as a Decimal exception isn't encountered.  The default
+            Decimal context allows exponents up to an absolute value of (1e6 - 1).
             '''))
-            print(f"  f(D('1e999999')) = {f(D('1e999999'))}")
-            print(f"  f(D('1e-999999')) = {f(D('1e-999999'))}")
+            t.print(f"  {t.f}f(D('1e999999')){t.n} = {t.sci}{f(D('1e999999'))}")
+            t.print(f"  {t.f}f(D('1e-999999')){t.n} = {t.sci}{f(D('1e-999999'))}")
             try:
                 f(D("1e1000000"))
             except decimal.Overflow:
-                print('  f(D("1e1000000"))', "results in overflow")
-            print('  f(D("1e-100000000"))', "underflow that gives 0")
+                t.print(f'  {t.f}f(D("1e1000000")){t.n}', "results in overflow")
+            t.print(f'  {t.f}f(D("1e-100000000")){t.n}', "underflow that gives 0")
             # Decimals with lots of digits
-            print(dedent('''
-            Arguments of the formatting functions can be Decimal numbers or any
-            number type that can be converted to Decimal.  This means you can
-            format with arbitrary numbers of significant digits up to the
-            capacity of the Decimal context.
+            t.print(dedent(f'''
+            {t.t}Arguments of the formatting functions can be Decimal numbers or any number type
+            that can be converted to Decimal.  This means you can format with an arbitrary number
+            of significant digits up to the capacity of the Decimal context.
             '''))
             with decimal.localcontext() as ctx:
                 ctx.prec = 30
                 x = 100000*decimalmath.sin(decimalmath.pi()/4)
-                print(f"  x = 100000*sin(pi/4) to 30 places = {x}")
-                print(f"  sci    to 20 places = {f(x, 'sci', n=20)}")
-                print(f"  eng    to 20 places = {f(x, 'eng', n=20)}")
-                print(f"  engsi  to 20 places = {f(x, 'engsi', n=20)}")
-                print(f"  engsic to 20 places = {f(x, 'engsic', n=20)}")
+                t.print(f"  x = 100000*sin(pi/4) to 30 digits = {t.fix}{x}")
+                n = 4
+                t.print(f"  sci    to {n} digits = {t.sci}{f(x, 'sci', n=n)}")
+                n = 5
+                t.print(f"  eng    to {n} digits = {t.eng}{f(x, 'eng', n=n)}")
+                n = 6
+                t.print(f"  engsi  to {n} digits = {t.si}{f(x, 'engsi', n=n)}")
+                n = 7
+                t.print(f"  engsic to {n} digits = {t.si}{f(x, 'engsic', n=n)}")
+            t.print(dedent(f'''
+            {t.t}Engineering SI notation means to append an SI prefix to indicate the number's
+            magnitude.  This lets you conveniently append a physical unit string.
+            ''', n=8))
     if 1:   # Test code 
         def Init():
             'Make sure test environment is set up in a repeatable fashion'
-            return Fmt(3)
+            f = Fmt(3)
+            f.rtz = f.rtdp = False
+            return f
         def Test_Basics():
             f = Init()
             s = f(pi)
@@ -447,6 +537,31 @@ if __name__ == "__main__":
                     ctx.prec = n
                     Assert(f(x) == D(2)**D(1/2))
         def Test_Fix():
+            def TestRTZ():
+                f = Init()
+                x = 31.41
+                f.n = 6
+                f.rtz = 0
+                Assert(f(x, fmt="fix") == "31.4100")
+                Assert(f(x, fmt="sci") == "3.14100e1")
+                Assert(f(x, fmt="eng") == "31.4100e0")
+                f.rtz = 1
+                Assert(f(x, fmt="fix") == "31.41")
+                Assert(f(x, fmt="sci") == "3.141e1")
+                Assert(f(x, fmt="eng") == "31.41e0")
+                # Remove decimal point
+                f.rtdp = 1
+                f.n = 2
+                Assert(f(x, fmt="fix") == "31")
+                Assert(f(x, fmt="sci") == "3.1e1")
+                Assert(f(x, fmt="eng") == "31e0")
+                # Use alternate string for decimal point
+                f = Init()
+                x = 31.41
+                f.dp = ","
+                Assert(f(x) == "31,4")
+                with raises(TypeError) as y:
+                    f.dp = "q"
             def TestHuge(n, digits=3):
                 f = Init()
                 f.n = digits
@@ -502,10 +617,11 @@ if __name__ == "__main__":
                 TestTiny(n)
                 TestHuge(n)
                 TestLotsOfDigits(n)
+                TestRTZ()
             TestBigInteger(100)
         def Test_Eng():
             '''Compare to fpformat's results.  Only go up to 15 digits because
-            fpformat uses floats
+            fpformat uses floats.
             '''
             s, numdigits = "1.2345678901234567890", 15
             x = D(s)
