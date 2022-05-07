@@ -25,8 +25,12 @@ if 1:   # Imports
     from pprint import pprint as pp
 if 1:   # Custom imports
     from wrap import dedent
-    from kolor import fg, normal, SetStyle, lblue, lcyan, lgreen, lred, red
-    from kolor import white, yellow
+    old_color = 0
+    if old_color:
+        from kolor import fg, normal, SetStyle, lblue, lcyan, lgreen, lred, red
+        from kolor import white, yellow
+    else:
+        from color import TRM as t
     from columnize import Columnize
 if 1:   # Global variables
     # Mercurial installation
@@ -37,15 +41,26 @@ if 1:   # Global variables
         hg = "c:/bin/mercurial/hg.exe"
         ls = "c:/cygwin/bin/ls.exe"
     # Colors for status type
-    colors = {
-        "M" : yellow,
-        "A" : lgreen,
-        "R" : red,
-        "C" : white,
-        "!" : lred,
-        "?" : lcyan,
-        "I" : lblue,
-    }
+    if old_color:
+        colors = {
+            "M" : yellow,
+            "A" : lgreen,
+            "R" : red,
+            "C" : white,
+            "!" : lred,
+            "?" : lcyan,
+            "I" : lblue,
+        }
+    else:
+        colors = {
+            "M" : "yell",
+            "A" : "grnl",
+            "R" : "red",
+            "C" : "wht",
+            "!" : "redl",
+            "?" : "cynl",
+            "I" : "blul",
+        }
     status_name = {
         "M" : "Modified:",
         "A" : "Added:",
@@ -107,8 +122,8 @@ def GetFiles(d):
     GetRoot(pth, d)
     s = subprocess.Popen([hg, "st", "-A", "."], stdout=subprocess.PIPE,
                             stderr=subprocess.DEVNULL)
-    t = [i.decode("utf8") for i in s.stdout.readlines()]
-    files = [os.path.abspath(i.rstrip()) for i in t]
+    u = [i.decode("utf8") for i in s.stdout.readlines()]
+    files = [os.path.abspath(i.rstrip()) for i in u]
     curdir = os.getcwd()
     # Keep the files in the indicated directory
     keep = []
@@ -135,7 +150,10 @@ def Print(results, key, d):
     if key == "I" and not d["-i"]:
         return
     if sys.stdout.isatty():
-        fg(colors[key])
+        if old_color:
+            fg(colors[key])
+        else:
+            print(f"{t(colors[key])}", end="")
     print(status_name[key])
     # Check to see if we can use Columnize without an exception
     can_use_columnize = True
@@ -151,13 +169,22 @@ def Print(results, key, d):
         for i in results[key]:
             print(indent, i, sep="")
     if sys.stdout.isatty():
-        normal()
+        if old_color:
+            normal()
+        else:
+            print(t.n, end="")
 def PrintResults(files, d):
     if sys.stdout.isatty():
-        SetStyle("underline")
+        if old_color:
+            SetStyle("underline")
+        else:
+            print(f"{t(None, None, 'ul')}", end="")
     print("Repository root", end=" ")
     if sys.stdout.isatty():
-        SetStyle("normal")
+        if old_color:
+            SetStyle("normal")
+        else:
+            print(t.n, end="")
     print("=", d["root"])
     results = defaultdict(list)
     for file, status in files:

@@ -1,10 +1,5 @@
 active
 
-    - cdec.py
-        - Color() has a Sort class method that can sort by letter argument.
-          Use it to change the -s option to let you specify when parameters
-          to sort by.
-
     - help
         - Convert to a git repository on github
         - Develop, then add to /plib
