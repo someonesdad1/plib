@@ -1,11 +1,5 @@
 Active
 
-    - fmt.py
-        - This should be vetted and tests checked.  If it's sound, it
-          should be a replacement for fpformat.py.
-        - Write a decent help message for 'pd fmt', as pydoc stupidly
-          sticks in all the Decimal documentation.
-
     - iso.py
         - Should take time arguments in either s or tm structures.
         - Should let you get either local time or UTC time
