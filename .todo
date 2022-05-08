@@ -1,9 +1,10 @@
 Active
 
+    - /pylib/pgm/ts/ts.py
+        - Import to /plib
+
     - lwtest.py
-        - Change it over to use modern color.py.  It's printing a
-          bunch of escape codes at the end of a test run and those
-          shouldn't be there.
+        - Items to change in file
 
     - dpstr.py
         - Tokenize(s):  split a string into a sequence S such that
@@ -57,9 +58,9 @@ Active
           Notepad++, as this would be of interest to a number of folks.
 
 Want
-
-    - /pylib/pgm/ts/ts.py
-        - Import to /plib
+    
+    - Write a script that recursively finds broken soft links (links that
+      don't point to a valid file).
 
     - dbl.py (pgm/rbl.py)
         - Delete blank lines in a file

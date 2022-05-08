@@ -1,39 +1,63 @@
 '''
+
+- To do
+    - Options
+        - Option to get a diameter, meaning output only sockets, bushings,
+        - Need an option to get rid of the more esoteric sizes.  Things I
+          won't use much are:  Birmingham Gauge, Stub's, knitting needle,
+          Brit Std wire, Mfr's gauge, Washburn & Moen, music wire gauge,
+          Galvanized sheet gauge, Zinc sheet gauge
+        - -r for regex search
+    - Update sockets with newer impact socket sizes
+    - Use flt, get rid of sig drills, etc.
+    - Include dimensionless numbers too
+    - Instead of tolerance, shoot for getting e.g. 20 numbers on either
+      side of the target value.
+    - Update color
+        - Change the printout to show negative deviations in red and
+          positive deviations in green
+
 General-purpose diameter/length finding utility.
 '''
-if 1:  # Copyright, license
-    # These "trigger strings" can be managed with trigger.py
-    #∞copyright∞# Copyright (C) 2014 Don Peterson #∞copyright∞#
-    #∞contact∞# gmail.com@someonesdad1 #∞contact∞#
-    #∞license∞#
-    #   Licensed under the Open Software License version 3.0.
-    #   See http://opensource.org/licenses/OSL-3.0.
-    #∞license∞#
-    #∞what∞#
-    # Program description string
-    #∞what∞#
-    #∞test∞# #∞test∞#
-    pass
-if 1:   # Imports
-    import sys
-    import getopt
-    import re
-    from fractions import Fraction
-    from math import *
-    from decimal import Decimal
-    from pdb import set_trace as xx 
-if 1:   # Custom imports
-    from wrap import dedent
-    from u import u, ParseUnit
-    from frange import frange, Sequence
-    from sig import sig
-    try:
-        import color as c
-        have_color = True
-    except ImportError:
-        have_color = False
-if 1:   # Global variables
-    ii = isinstance
+if 1:  # Header
+    # Copyright, license
+        # These "trigger strings" can be managed with trigger.py
+        #∞copyright∞# Copyright (C) 2014 Don Peterson #∞copyright∞#
+        #∞contact∞# gmail.com@someonesdad1 #∞contact∞#
+        #∞license∞#
+        #   Licensed under the Open Software License version 3.0.
+        #   See http://opensource.org/licenses/OSL-3.0.
+        #∞license∞#
+        #∞what∞#
+        # Program description string
+        #∞what∞#
+        #∞test∞# #∞test∞#
+    # Standard imports
+        import sys
+        import getopt
+        import re
+        from fractions import Fraction
+        from math import *
+        from decimal import Decimal
+        from pdb import set_trace as xx 
+    # Custom imports
+        from wrap import dedent
+        from u import u, ParseUnit
+        from frange import frange, Sequence
+        from sig import sig
+        from f import flt
+        if 1:
+            have_color = True
+            from color import Color, TRM as t
+            t.always = True
+        else:
+            try:
+                import color as c
+                have_color = True
+            except ImportError:
+                have_color = False
+    # Global variables
+        ii = isinstance
 if 1:   # Utility
     def Error(*msg, status=1):
         print(*msg, file=sys.stderr)
@@ -78,79 +102,60 @@ if 1:   # Utility
         '''))
         exit(0)
     def Usage(d, status=1):
-        name = sys.argv[0]
-        digits = d["-n"]
-        tol = d["-t"]
-        default_unit = d["-u"]
+        name, tol = sys.argv[0], d["-t"]
         print(dedent(f'''
         Usage:  {name} [options] diameter [unit]
-        Identifies dimensions that might be close to some "standard" size, such
-        as fractions of an inch, numbered drills, millimeters, various gauge
-        systems, or on-hand socket sizes.
+          Identifies dimensions that might be close to some "standard" size, such as
+          fractions of an inch, numbered drills, millimeters, or on-hand socket sizes.
+          Use -f to include the full set of different size systems.
         
-        'diameter' is a length and may contain an optional trailing unit (size is
-        in {default_unit} if no unit is given).  Expressions for the diameter are
-        allowed and the math module's symbols are in scope.
-        
+          'diameter' is a length and may contain an optional trailing unit (size is
+          in {d['-u']} if no unit is given).  Expressions for the diameter are
+          allowed and the math module's symbols are in scope.
         Examples:
-        {name} 1
+          {name} 1
             Show things within {tol}% of 1 inch in diameter.
-        {name} pi/10 mm
+          {name} pi/10 mm
             Show things that are within {tol}% of pi/10 mm in diameter.  Note
             output diameters are in mm.
-        
         Options:
-            -a
-                Show all of the dimensions stored in the script.
-            -c
-                Don't show results in color.
-            -d
-                The diameter is a dimensionless number; show numbers such as
-                Renard, E series, etc. that are close to it.
-            -h
-                Show more detailed help.
-            -k
-                Show a list of on-hand sockets.
-            -n digits
-                Give the output to the specified number of significant digits.
-                [{digits}]
-            -o unit
-                Specify the output unit to use.  The default is the same unit as
-                used for the input.
-            -s percent
-                Specify a spring-back percentage.  The diameter used will be
-                reduced by the indicated percentage.
-            -t pct
-                Specify the tolerance in % for searching.  [{tol}]
-            -u unit
-                Specify the default measurement unit to use. [{default_unit}]
+            -a      Show all of the dimensions stored in the script
+            -c      Don't show results in color
+            -d      The diameter is a dimensionless number; show numbers such as
+                    Renard, E series, etc. that are close to it.
+            -f      Include full set of sizes
+            -h      More detailed help
+            -k      List of on-hand sockets
+            -n n    Number of significant digits [{d['-n']}]
+            -o u    Output unit (default is same unit as used for input)
+            -s p    Spring-back percentage.  The diameter used will be reduced by the indicated
+                    percentage.
+            -t p    Tolerance in % for searching [{tol}]
+            -u u    Default measurement unit [{d['-u']}]
         '''))
         exit(status)
     def ParseCommandLine(d):
         d["-a"] = False     # Show all dimensions
         d["-c"] = True      # Show results in color
         d["-d"] = False     # Dimensionless
+        d["-f"] = False     # Use full set of sizes
         d["-k"] = False     # Show sockets
-        d["-n"] = 6         # Significant digits
+        d["-n"] = 4         # Significant digits
         d["-o"] = None      # Output unit
         d["-s"] = 0         # Spring-back percentage
-        d["-t"] = 1         # Tolerance in %
+        d["-t"] = 5         # Tolerance in %
         d["-u"] = "inches"  # Default unit
         if len(sys.argv) < 2:
             Usage(d)
         try:
-            opts, args = getopt.getopt(sys.argv[1:], "acdhkn:o:s:t:u:")
+            opts, args = getopt.getopt(sys.argv[1:], "acdfhkn:o:s:t:u:")
         except getopt.GetoptError as e:
             print(str(e))
             exit(1)
         msg = "'{}' is an unrecognized unit"
         for o, a in opts:
-            if o in ("-a",):
-                d["-a"] = not d["-a"]
-            elif o in ("-c",):
-                d["-c"] = not d["-c"]
-            elif o in ("-d",):
-                d["-d"] = not d["-d"]
+            if o[1] in "acdfk":
+                d[o] = not d[o]
             elif o in ("-h",):
                 Help(d)
             elif o in ("-n",):
@@ -165,8 +170,6 @@ if 1:   # Utility
                 _, dim = u(a, dim=True)
                 if dim is None:
                     Error(msg.format(a))
-            elif o in ("-k",):
-                d["-k"] = not d["-k"]
             elif o in ("-s",):
                 try:
                     d["-s"] = float(a)
@@ -310,13 +313,22 @@ class Size(object):
     def color(self):
         '''Set a color to use for printing out.
         '''
-        if Size.colors is not None:
-            if " skt" in self._category:
-                c.fg(Size.colors["socket"])
-            elif self._category in Size.colors:
-                c.fg(Size.colors[self._category])
-            else:
-                c.normal()
+        if 1:
+            if Size.colors is not None:
+                if " skt" in self._category:
+                    print(Size.colors["socket"], end="")
+                elif self._category in Size.colors:
+                    print(Size.colors[self._category], end="")
+                else:
+                    print(t.n, end="")
+        else:
+            if Size.colors is not None:
+                if " skt" in self._category:
+                    c.fg(Size.colors["socket"])
+                elif self._category in Size.colors:
+                    c.fg(Size.colors[self._category])
+                else:
+                    c.normal()
     @property
     def category(self):
         return self._category
@@ -357,8 +369,8 @@ class Size(object):
         '''Return True if x is within the set tolerance of this object's
         diameter.
         '''
-        t = Size.tolerance_pct/100
-        low, high = (1 - t)*self._dia, (1 + t)*self._dia
+        tol = Size.tolerance_pct/100
+        low, high = (1 - tol)*self._dia, (1 + tol)*self._dia
         return low <= x <= high
 def Renard(s):
     '''Return the Renard series for s.  See
@@ -397,9 +409,9 @@ def Renard(s):
                  1.1, 1.4, 1.8, 2.2, 2.8, 3.6, 4.5, 5.6, 7.1, 9,
                  1.2, 1.5, 1.9, 2.4, 3, 3.8, 4.8, 6, 7.5, 9.5],
     }
-    t = d[s]
-    t.sort()
-    return t
+    u = d[s]
+    u.sort()
+    return u
 def E_Series(n):
     e24 = [10, 12, 15, 18, 22, 27, 33, 39, 47, 56, 68, 82,
            11, 13, 16, 20, 24, 30, 36, 43, 51, 62, 75, 91]
@@ -467,20 +479,38 @@ def Check(seq, neg_slope=True):
                 raise ValueError(msg)
     return seq
 def GetData(opts):
-    '''Create a list of Size objects and put in opts["sizes"].
-    '''
+    'Create a list of Size objects and put in opts["sizes"]'
     # MH = Machinery's Handbook, 19th ed.
     if opts["-c"]:
-        Size.colors = {
-            "Millimeters": c.lblue,
-            "Number drill": c.lred,
-            "AWG": c.brown,
-            "Fractions": c.lgreen,
-            "US pipe": c.yellow,
-            "Sheet steel gauge": c.lmagenta,
-            "Number-sized machine screw": c.lcyan,
-            "socket": c.lwhite,
-        }
+        if 1:
+            Size.colors = {
+                "Millimeters": t("royl"),
+                "Number drill": t("yel"),
+                "AWG": t("brnl"),
+                "Fractions": t("orn"),
+                "US pipe": t("magl"),
+                "Sheet steel gauge": t("purl"),
+                "Number-sized machine screw": t("cynl"),
+                "socket": t("lipl"),
+                "SPI pin gauge (inches)": t("sea"),
+                "SHCS head diameter": t("sky"),
+                "SHCS head height": t("sky"),
+                "SHCS Allen wrench size": t("sky"),
+                "Hex nut wrench size": t("ornl"),
+                "HF bushing": t("olv"),
+                "HF bending fixture dies": t("olv"),
+            }
+        else:
+            Size.colors = {
+                "Millimeters": c.lblue,
+                "Number drill": c.lred,
+                "AWG": c.brown,
+                "Fractions": c.lgreen,
+                "US pipe": c.yellow,
+                "Sheet steel gauge": c.lmagenta,
+                "Number-sized machine screw": c.lcyan,
+                "socket": c.lwhite,
+            }
     else:
         Size.colors = None
     d = []                  # List of Size objects
@@ -538,8 +568,9 @@ def GetData(opts):
     for i, sz in enumerate(sizes):
         dia_m = RoundOff(1e-4*sz*u("inches"))
         s = Size(name, str(i), dia_m)
-        d.append(s)
-    if 1:
+        if full:
+            d.append(s)
+    if full:
         # Extra gauge numbers
         dia_m = RoundOff(0.49*u("inches"))
         d.append(Size(name, "7/0", dia_m))
@@ -564,7 +595,8 @@ def GetData(opts):
             continue
         dia_m = RoundOff(1e-4*sz*u("inches"))
         s = Size("Sheet steel gauge", str(i), dia_m)
-        d.append(s)
+        if full:
+            d.append(s)
     # Birmingham Gauge [MH pg 463, 464] (aka Stub's Iron Wire Gauge; do not
     # confuse with Stub's Steel Wire Gauge).
     sizes = Check((
@@ -576,8 +608,9 @@ def GetData(opts):
     for i, sz in enumerate(sizes):
         dia_m = RoundOff(1e-4*sz*u("inches"))
         s = Size(name, str(i), dia_m)
-        d.append(s)
-    if 1:
+        if full:
+            d.append(s)
+    if full:
         # Extra gauge numbers
         dia_m = RoundOff(0.5*u("inches"))
         d.append(Size(name, "5/0", dia_m))
@@ -600,7 +633,8 @@ def GetData(opts):
     for i, sz in enumerate(sizes):
         dia_m = RoundOff(1e-3*sz*u("inches"))
         s = Size(name, str(i), dia_m)
-        d.append(s)
+        if full:
+            d.append(s)
     # Music Wire Gauge [MH pg 464] (also known as Piano Wire Gauge)
     sizes = Check((
         9, 10, 11, 12, 13, 14, 16, 18, 20, 22, 24, 26, 29, 31, 33, 35, 37,
@@ -611,8 +645,9 @@ def GetData(opts):
     for i, sz in enumerate(sizes):
         dia_m = RoundOff(1e-3*sz*u("inches"))
         s = Size(name, str(i), dia_m)
-        d.append(s)
-    if 1:
+        if full:
+            d.append(s)
+    if full:
         # Extra gauge numbers
         dia_m = RoundOff(0.004*u("inches"))
         d.append(Size(name, "6/0", dia_m))
@@ -637,7 +672,8 @@ def GetData(opts):
             continue
         dia_m = RoundOff(1e-4*sz*u("inches"))
         s = Size(name, str(i), dia_m)
-        d.append(s)
+        if full:
+            d.append(s)
     # Galvanized sheet gauge [MH pg 466]
     sizes = Check((
         0, 0, 0, 0, 0, 0, 0, 1681, 1532, 1382, 1233, 1084, 934, 785,
@@ -650,7 +686,8 @@ def GetData(opts):
             continue
         dia_m = RoundOff(1e-4*sz*u("inches"))
         s = Size(name, str(i), dia_m)
-        d.append(s)
+        if full:
+            d.append(s)
     # Zinc sheet gauge [MH pg 466]
     sizes = Check((
         0, 0, 0, 6, 8, 10, 12, 14, 16, 18, 20, 24, 28, 32, 36, 40, 45,
@@ -662,7 +699,8 @@ def GetData(opts):
             continue
         dia_m = RoundOff(1e-3*sz*u("inches"))
         s = Size(name, str(i), dia_m)
-        d.append(s)
+        if full:
+            d.append(s)
     # British standard wire gauge [MH pg 464]
     sizes = Check((
         3240, 3000, 2760, 2520, 2320, 2120, 1920, 1760, 1600, 1440, 1280,
@@ -674,8 +712,9 @@ def GetData(opts):
     for i, sz in enumerate(sizes):
         dia_m = RoundOff(1e-4*sz*u("inches"))
         s = Size(name, str(i), dia_m)
-        d.append(s)
-    if 1:
+        if full:
+            d.append(s)
+    if full:
         # Extra gauge numbers
         dia_m = RoundOff(0.5*u("inches"))
         d.append(Size(name, "7/0", dia_m))
@@ -701,7 +740,8 @@ def GetData(opts):
     for i, sz in enumerate(sizes):
         dia_m = RoundOff(sz*u("inches"))
         s = Size(name, str(i + 7), dia_m)
-        d.append(s)
+        if full:
+            d.append(s)
     # US knitting needles (sizes in mm).  From
     # https://en.wikipedia.org/wiki/Knitting_needle#Needle_sizes_and_conversions
     for sz, mm in {
@@ -712,7 +752,8 @@ def GetData(opts):
             "19": 16.0, "35": 19.0, "50": 25.0}.items():
         dia_m = RoundOff(mm*u("mm"))
         s = Size("US knitting needle", sz, dia_m)
-        d.append(s)
+        if full:
+            d.append(s)
     # British knitting needles (sizes in mm).  From
     # https://en.wikipedia.org/wiki/Knitting_needle#Needle_sizes_and_conversions
     for sz, mm in {
@@ -722,7 +763,8 @@ def GetData(opts):
             10.0}.items():
         dia_m = RoundOff(mm*u("mm"))
         s = Size("UK knitting needle", sz, dia_m)
-        d.append(s)
+        if full:
+            d.append(s)
     # Japanese knitting needles (sizes in mm) From
     # https://en.wikipedia.org/wiki/Knitting_needle#Needle_sizes_and_conversions
     for sz, mm in {
@@ -731,7 +773,8 @@ def GetData(opts):
             5.4, "12": 5.7, "13": 6.0, "14": 6.3, "15": 6.6}.items():
         dia_m = RoundOff(mm*u("mm"))
         s = Size("Japanese knitting needle", sz, dia_m)
-        d.append(s)
+        if full:
+            d.append(s)
     # Fractions of an inch
     for i in Sequence("1/64:1:1/64 17/16:2:1/16 17/8:3:1/8 13/4:6:1/4"):
         dia_m = RoundOff(float(i)*u("in"))
@@ -870,8 +913,8 @@ def Dimensionless(value, d):
     '''value is a dimensionless number.  Get its exponent and significand
     and print dimensionless numbers that are close to it.
     '''
-    t = "{:.15e}".format(abs(value))
-    s, e = t.split("e")
+    u = "{:.15e}".format(abs(value))
+    s, e = u.split("e")
     exponent = int(e)
     significand = RoundOff(float(s))
     assert(1 <= significand <= 10)
@@ -913,7 +956,7 @@ def Report(value, unit, d):
         print("  Output units are", d["-o"])
         to_output_units = 1/u(d["-o"])
         print("  Size =", RoundOff(dia_in_m*to_output_units), d["-o"])
-    print("Matches within {}%:".format(d["-t"]))
+    print(f"Matches within {d['-t']}%:")
     # Get maximum size of size strings
     maxsz = 0
     for item in found:
@@ -930,14 +973,19 @@ def Report(value, unit, d):
         pct_deviation *= sgn
         sz = StringForm(item.dia*to_output_units, d)
         item.color()
-        print("  ", "{0:{1}}".format(sz, maxsz), end=" "*4)
+        print(f"  {sz:{maxsz}s}", end=" "*4)
         print(" " if pct_deviation else "*", end=" ")
         print(item.category, item.size, end=" ")
         if pct_deviation:
-            print("[{}%]".format(sig(pct_deviation, 2)))
+            c = t("redl") if pct_deviation < 0 else t("grnl")
+            s = sig(pct_deviation, 2)
+            print(f"{c}[{s}%]")
         else:
             print()
-        c.normal()
+        if 1:
+            print(t.n, end="")
+        else:
+            c.normal()
 def ShowAll(d):
     if d["-d"]:
         # Show the dimensionless numbers
@@ -963,7 +1011,10 @@ def ShowAll(d):
             print("  {0:{1}} {2} {3}".format(dia, maxsz,
                   item.category, item.size))
             if d["-c"]:
-                c.normal()
+                if 1:
+                    print(t.n, end="")
+                else:
+                    c.normal()
 def StringForm(number, d):
     '''Return the string form of the number rounded to the indicated number
     of significant figures.
@@ -1043,7 +1094,7 @@ def Sockets(opts):
     # calipers, Fowler 6" electronic calipers, and Mitutoyo 12" vernier
     # height gauge).
     nn = "(? brand)"
-    if 0:
+    if 1:
         # Longer names
         so, ch, ma, cr = "Snap-On", "Challenger", "Mac", "Craftsman"
         th, wr, wm, mt, sk = "Thorsen", "Wright", "Williams", "Matco", "SK"
@@ -1057,6 +1108,7 @@ def Sockets(opts):
         du = "Du"
     st, dp = "std skt", "deep skt"
     sti, dpi = "std impact skt", "deep impact skt"
+    # Number after 'sq' is size in 1/8 inches
     sq2, sq3, sq4, sq6 = [i + " sq dr" for i in
                           ("1/4", "3/8", "1/2", "3/4")]
     s = " socket"
@@ -1339,10 +1391,14 @@ def ShowSockets(d):
         if " skt" in sz.category:
             print("  {:<25} {} {}".format(dia, sz.category, sz.size))
         if d["-c"]:
-            c.normal()
+            if 1:
+                print(t.n, end="")
+            else:
+                c.normal()
 if __name__ == "__main__":
     d = {}   # Options dictionary
     args = ParseCommandLine(d)
+    full = d["-f"]
     GetData(d)
     if d["-a"]:
         ShowAll(d)
