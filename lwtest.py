@@ -1,144 +1,145 @@
-if 1:  # Copyright, license
-    # These "trigger strings" can be managed with trigger.py
-    #∞copyright∞# Copyright (C) 2014 Don Peterson #∞copyright∞#
-    #∞contact∞# gmail.com@someonesdad1 #∞contact∞#
-    #∞license∞#
-    #   Licensed under the Open Software License version 3.0.
-    #   See http://opensource.org/licenses/OSL-3.0.
-    #∞license∞#
-    #∞what∞#
-    # <programming> Lightweight test runner.  I use this tool to run all
-    # my python module's regression tests, as I was dissatisfied with
-    # python's unittest and I've never liked doctest.
-    #∞what∞#
-    #∞test∞# ["test/lwtest_test.py"] #∞test∞#
-    pass
-    # Derived from some nice code by Raymond Hettinger 8 May 2008:
-    # http://code.activestate.com/recipes/572194/.  Downloaded 27 Jul
-    # 2014.  The ActiveState web page appears to state Hettinger's code
-    # was released under the PSF (Python Software Foundation) License.
-    # Hettinger's code includes a search for test functions that are
-    # generators; if such functionality is important to you, you might
-    # want to add it to this file.
-    #
-    # The raises context() manager functionality was inspired by pytest's
-    # implementation (see https://docs.pytest.org/en/latest/).
-if 1:   # Enhancement ideas
-    '''
-    TODO:
- 
-        * If an argument passed on the command line is a directory,
-          search it recursively for all files that appear to be test
-          scripts and run them.
- 
-            - If a file is passed on the command line, search it for
-              suitable test functions and run them, even if there's no
-              run() call in the script.  Options to provide run()'s
-              features:  -h to halt at first failure, -r for regexp to
-              identify a test function, -R for regexp's options, -v for
-              verbose
- 
-        * assert_equal:  add a dict keyword so that when dictionaries
-          are compared, both keys and values are compared.  Consider
-          adding sets to the function too.
- 
-        * Add a verbose keyword to run() which prints the file name and
-          the function/class to be executed, like 'nosetests -v' does.
-          Another thing to consider would be to let run look at sys.argv
-          and process options there in lieu of keywords (this would be
-          handy for command line work, as the command line options would
-          overrule the keywords).
-    '''
-if 1:   # Imports
-    from collections.abc import Iterable
-    from decimal import Decimal
-    from math import isnan, isinf, copysign
-    from time import time
-    import os
-    import re
-    import sys
-    import traceback
-    from pdb import set_trace as xx 
-if 1:   # Custom imports
-    from f import flt, cpx
-    from wrap import dedent
-if 1:   # Globals
-    __doc__ = dedent('''
-    Lightweight testrunner framework
-        from lwtest import run, raises, assert_equal, Assert
-     
-        def TestExample():
-            f = lambda x: set(x)
-            # Two ways to check for expected exceptions
-            raises(TypeError, f, 1)
-            with raises(ZeroDivisionError) as x:
-                1/0
-            Assert(x.value = "<class 'ZeroDivisionError'>")
-            # How to compare floating point numbers
-            eps = 1e-6
-            a, b = 1, 1 + eps
-            assert_equal(a, b, abstol=eps)
-            # Assert() allows you to start debugger with command line
-            # argument; type 'up' to go to the offending line.
-            Assert(a == b)
-     
-        if __name__ == "__main__":
-            failed, messages = run(globals())
-        or 
-            exit(run(globals(), halt=True)[0])
-     
-        run() will find test functions and execute them; its single
-        argument must be a dictionary containing the names and their
-        associated function objects.  Set verbose=True to see which
-        functions will be executed and their execution order.
-     
-        Assert() works like python's assert statement, but if you include a
-        command line argument, you'll be dropped into the debugger when the
-        Assert fails.  Type 'up' to go to the line that had the problem.
-        Note Assert() and assert_equal() do not pay attention to __debug__,
-        unlike python's assert statement.
-     
-        Use the ToDoMessage() function to cause a colored message to be
-        printed to stdout to remind you of something that needs to be done.
-     
-        My motivation for generating this lightweight testrunner framework
-        was my frustration with the unittest module in conjunction with the
-        way I develop code.  I write my unit tests before or during code
-        development and often need to drop into the debugger or add a print
-        statement to see what's going wrong.  The unittest module traps
-        stdout and makes this painful to do.  I liked some of the available
-        testrunners like nose or pytest, but I decided that if I was going
-        to add a new dependency, it might as well be a dependency I could
-        tune to my own preferences.  The other major desire was to allow
-        fairly comprehensive coverage of comparing numerical results.
-     
-        This tool was derived from some nice code by Raymond Hettinger 8
-        May 2008: http://code.activestate.com/recipes/572194/.  I'm
-        grateful Raymond put it out for other folks.
-    ''')
-    __all__ = [
-        "Assert",
-        "ToDoMessage",
-        "assert_equal",
-        "raises",
-        "run",
-        "test_function_regexp",
-    ]
-    ii = isinstance
-    python_version = '.'.join([str(i) for i in sys.version_info[:3]])
-    # Regular expression to identify test functions
-    test_function_regexp = "^_*test|test$"
-if 1:   # Optional imports
-    try:
-        import numpy
-        have_numpy = True
-    except ImportError:
-        have_numpy = False
-    try:
-        import mpmath
-        have_mpmath = True
-    except ImportError:
-        have_mpmath = False
+'''
+TODO:
+
+    - If an argument passed on the command line is a directory,
+        search it recursively for all files that appear to be test
+        scripts and run them.
+
+        - If a file is passed on the command line, search it for
+            suitable test functions and run them, even if there's no
+            run() call in the script.  Options to provide run()'s
+            features:  -h to halt at first failure, -r for regexp to
+            identify a test function, -R for regexp's options, -v for
+            verbose
+
+    - assert_equal:  add a dict keyword so that when dictionaries
+        are compared, both keys and values are compared.  Consider
+        adding sets to the function too.
+
+    - Add a verbose keyword to run() which prints the file name and
+        the function/class to be executed, like 'nosetests -v' does.
+        Another thing to consider would be to let run look at sys.argv
+        and process options there in lieu of keywords (this would be
+        handy for command line work, as the command line options would
+        overrule the keywords).
+'''
+if 1:  # Header
+    # Copyright, license
+        # These "trigger strings" can be managed with trigger.py
+        #∞copyright∞# Copyright (C) 2014 Don Peterson #∞copyright∞#
+        #∞contact∞# gmail.com@someonesdad1 #∞contact∞#
+        #∞license∞#
+        #   Licensed under the Open Software License version 3.0.
+        #   See http://opensource.org/licenses/OSL-3.0.
+        #∞license∞#
+        #∞what∞#
+        # <programming> Lightweight test runner.  I use this tool to run all
+        # my python module's regression tests, as I was dissatisfied with
+        # python's unittest and I've never liked doctest.
+        #∞what∞#
+        #∞test∞# ["test/lwtest_test.py"] #∞test∞#
+    # Origin
+        # Derived from some nice code by Raymond Hettinger 8 May 2008:
+        # http://code.activestate.com/recipes/572194/.  Downloaded 27 Jul
+        # 2014.  The ActiveState web page appears to state Hettinger's code
+        # was released under the PSF (Python Software Foundation) License.
+        # Hettinger's code includes a search for test functions that are
+        # generators; if such functionality is important to you, you might
+        # want to add it to this file.
+        #
+        # The raises context() manager functionality was inspired by pytest's
+        # implementation (see https://docs.pytest.org/en/latest/).
+    # Standard imports
+        from collections.abc import Iterable
+        from decimal import Decimal
+        from math import isnan, isinf, copysign
+        from time import time
+        import os
+        import re
+        import sys
+        import traceback
+        from pdb import set_trace as xx 
+    # Custom imports
+        from f import flt, cpx
+        from wrap import dedent
+        from color import Color, TRM as t
+    # Optional imports
+        try:
+            import numpy
+            have_numpy = True
+        except ImportError:
+            have_numpy = False
+        try:
+            import mpmath
+            have_mpmath = True
+        except ImportError:
+            have_mpmath = False
+    # Global variables
+        __doc__ = dedent('''
+        Lightweight testrunner framework
+            from lwtest import run, raises, assert_equal, Assert
+        
+            def TestExample():
+                f = lambda x: set(x)
+                # Two ways to check for expected exceptions
+                raises(TypeError, f, 1)
+                with raises(ZeroDivisionError) as x:
+                    1/0
+                Assert(x.value = "<class 'ZeroDivisionError'>")
+                # How to compare floating point numbers
+                eps = 1e-6
+                a, b = 1, 1 + eps
+                assert_equal(a, b, abstol=eps)
+                # Assert() allows you to start debugger with command line
+                # argument; type 'up' to go to the offending line.
+                Assert(a == b)
+        
+            if __name__ == "__main__":
+                failed, messages = run(globals())
+            or 
+                exit(run(globals(), halt=True)[0])
+        
+            run() will find test functions and execute them; its single
+            argument must be a dictionary containing the names and their
+            associated function objects.  Set verbose=True to see which
+            functions will be executed and their execution order.
+        
+            Assert() works like python's assert statement, but if you include a
+            command line argument, you'll be dropped into the debugger when the
+            Assert fails.  Type 'up' to go to the line that had the problem.
+            Note Assert() and assert_equal() do not pay attention to __debug__,
+            unlike python's assert statement.
+        
+            Use the ToDoMessage() function to cause a colored message to be
+            printed to stdout to remind you of something that needs to be done.
+        
+            My motivation for generating this lightweight testrunner framework
+            was my frustration with the unittest module in conjunction with the
+            way I develop code.  I write my unit tests before or during code
+            development and often need to drop into the debugger or add a print
+            statement to see what's going wrong.  The unittest module traps
+            stdout and makes this painful to do.  I liked some of the available
+            testrunners like nose or pytest, but I decided that if I was going
+            to add a new dependency, it might as well be a dependency I could
+            tune to my own preferences.  The other major desire was to allow
+            fairly comprehensive coverage of comparing numerical results.
+        
+            This tool was derived from some nice code by Raymond Hettinger 8
+            May 2008: http://code.activestate.com/recipes/572194/.  I'm
+            grateful Raymond put it out there for other folks.
+        ''')
+        __all__ = [
+            "Assert",
+            "ToDoMessage",
+            "assert_equal",
+            "raises",
+            "run",
+            "test_function_regexp",
+        ]
+        ii = isinstance
+        python_version = '.'.join([str(i) for i in sys.version_info[:3]])
+        # Regular expression to identify test functions
+        test_function_regexp = "^_*test|test$"
 if 1:   # Core functionality
     def run(names_dict, **kw):
         '''Discover and run the test functions in the names_dict
@@ -292,19 +293,28 @@ if 1:   # Utility
             return "%.2f min" % (duration_s/60)
         else:
             return "%.2f s" % (duration_s)
-    def ToDoMessage(message, prefix="+ "):
+    def ToDoMessage(message, prefix="+ ", color=None):
         '''This function results in a message to stdout; it's purpose is to
         allow you to see something that needs to be done, but won't cause
         the test to fail.  The message is decorated with a leading prefix
-        string and the file and line number.
+        string and the file and line number.  If color is not None, then it
+        must either be a string naming a color (see color.py) or a Color
+        class instance.  The message is printed in this color.
         '''
         fn, ln, method, call = traceback.extract_stack()[-2]
+        c = t(color) if color is not None else ""
         vars = {"fn": fn, "ln": ln, "method": method, "msg": message,
-            "prefix": prefix }
+            "prefix": prefix, "c": c, "n": t.n }
         if vars["method"] == "<module>":
-            print("{prefix}{fn}[{ln}]:  {msg}".format(**vars))
+            if color is None:
+                print("{prefix}{fn}[{ln}]:  {msg}".format(**vars))
+            else:
+                print("{c}{prefix}{fn}[{ln}]:  {msg}{n}".format(**vars))
         else:
-            print("{prefix}{fn}[{ln}] in {method}:  {msg}".format(**vars))
+            if color is None:
+                print("{prefix}{fn}[{ln}] in {method}:  {msg}".format(**vars))
+            else:
+                print("{c}{prefix}{fn}[{ln}] in {method}:  {msg}{n}".format(**vars))
 if 1:   # Checking functions
     def check_flt(a, b, reltol=None, abstol=None, use_min=False):
         '''a must be a flt.  If b is not a flt, then promote it if
@@ -615,16 +625,17 @@ if 1:   # Checking functions
             else:
                 raise AssertionError
 if __name__ == "__main__":
-    from textwrap import dedent
+    #from textwrap import dedent
     print(dedent(f'''
     lwtest:  Lightweight test framework -- typical usage:
         from lwtest import run, assert_equal, raises
+        # Name your test functions e.g. "def Test_*()"
         if __name__ == "__main__":
             failed, messages = run(globals())
     
-    run()'s kw arguments (default value in square brackets):
+    run()'s keyword arguments (default value in square brackets):
         broken:   If True, testing is acknowledged to be broken and a warning
-                  message to this effect is printed.
+                  message to this effect is printed. [False]
         verbose:  Print the function names as they are executed. [False]
         halt:     Stop at the first failure.  [False]
         regexp:   Regular expression that identifies a test function.

@@ -1,9 +1,5 @@
 Active
 
-    - iso.py
-        - Should take time arguments in either s or tm structures.
-        - Should let you get either local time or UTC time
-
     - lwtest.py
         - Change it over to use modern color.py.  It's printing a
           bunch of escape codes at the end of a test run and those

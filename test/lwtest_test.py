@@ -1,5 +1,5 @@
 import sys
-from lwtest import run, raises, assert_equal, Assert
+from lwtest import run, raises, assert_equal, Assert, ToDoMessage
 from decimal import Decimal
 from io import StringIO
 from pdb import set_trace as xx
@@ -176,5 +176,8 @@ def TestRun():
     s = st.getvalue().strip().split(nl)
     assert(s[0] == "testA failed:  ValueError()")
     assert(m1 not in messages and m2 not in messages)
+def TestToDoMessage():
+    ToDoMessage("Simulated to-do message")
+    ToDoMessage("Simulated to-do message in color", color="yell")
 if __name__ == "__main__":
     exit(run(globals(), halt=1)[0])
