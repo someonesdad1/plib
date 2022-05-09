@@ -10,6 +10,15 @@ able to do this.  By then any content of interest to others will probably
 have made its way out into the world and he can remove the repository when
 he sees fit.
 
+## Caution
+
+The set of files in this directory are a core set of python modules and
+scripts I've written over the years.  There's some good functionality in
+here, but I must warn you it's fairly tightly coupled.  By this, I mean if
+you find a script you like and want to move it somewhere else, you'll
+probably find that it's dependent on a number of other modules.  This will
+be annoying and possibly a lot of work to fix.
+
 # Introduction
 This repository is a collection of python stuff I've written since 1998.
 Feel free to browse and use what suits your needs.  There are quite a few
@@ -57,6 +66,7 @@ how I used RCS at home for a few decades.  I'm the only developer and I
 make check-ins when I've gotten far enough where I don't want to lose
 something, so I check it in and push it to github.  I also rarely make
 branches.  I'll occasionally mark an event with a tag. 
+
 
 # Tools
 

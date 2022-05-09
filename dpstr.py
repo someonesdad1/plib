@@ -14,6 +14,7 @@ String utilities
     Keep             Return items in sequence that are in keep sequence
     KeepFilter       Returns a function that will keep a character set
     KeepOnlyLetters  Replace all non-word characters with spaces
+    Len              Length of string with ANSI escape sequences removed
     ListInColumns    Obsolete (use columnize.py)
     MatchCap         Match string capitalization
     MultipleReplace  Replace multiple patterns in a string
@@ -21,6 +22,7 @@ String utilities
     Remove           Return items from sequence not in the remove sequence
     RemoveComment    Remove '#.*$' from a string
     RemoveFilter     Functional form of Remove (it's a closure)
+    RmEsc            Remove ANSI escape strings
     soundex          Return 4-character soundex value for a string
     SoundSimilar     Return True if two strings sound similar
     SpellCheck       Spell check a sequence of words
@@ -669,22 +671,37 @@ def ReadData(data, structure, **kw):
             thisline.append(structure[i](fields[i]))
         out.append(thisline)
     return out
-
-if 0:
-    data = """
-                9 , 680  ,  2100  , 0  ,    750
-                10,  680  ,  2100  , 250    ,750
-    """
-    o = ReadData(data, structure=[str, int, int, int, int], sep=",")
-    from pprint import pprint as pp
-    pp(o)
-    exit()
+def Len(s):
+    'Return len(s) with ANSI escape sequences removed'
+    return len(RmEsc(s))
+def RmEsc(s):
+    'Remove ANSI escape strings'
+    # Note:  this is aimed at dealing primarily with strings that are
+    # decorated with ANSI 24-bit coloring escape codes, so it may fail on
+    # other valid ANSI escape codes.  I didn't make a note where the regexp
+    # originally came from (I used it in columnize.py).
+    assert(ii(s, str))
+    if not hasattr(RmEsc, "r"):
+        RmEsc.r = re.compile(r"(\x9B|\x1B\[)[0-?]*[ -\/]*[@-~]")
+    return RmEsc.r.sub("", s)
 
 if __name__ == "__main__": 
     from lwtest import run, raises, assert_equal, Assert
     import math
     import os
     from sig import sig
+    from color import TRM as t
+    def Test_Len():
+        s = "simple string"
+        Assert(len(s) == Len(s))
+        Assert(RmEsc(s) == s)
+        s = dedent(f'''
+        This is some multiline
+        text with {t("purl")}some
+        escape codes.{t.n}
+        ''')
+        u = RmEsc(s)
+        Assert(Len(s) == len(u))
     def Test_ReadData():
         data = '''
                     #

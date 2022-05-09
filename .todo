@@ -1,5 +1,9 @@
 Active
 
+    - util.py
+        - Add a Len() function that does the same as len() for strings, but
+          first removes ANSI escape sequences.
+
     - /pylib/pgm/ts/ts.py
         - Import to /plib
 
