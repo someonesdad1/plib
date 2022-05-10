@@ -42,6 +42,7 @@ if 1:   # Header
         lat, lon = "43.5", "-116.4"
         # Turn on debugging to avoid loading from web
         dbg = False
+        dbg = 0
         # Global holder
         class g: pass
         g.update = ""
@@ -78,10 +79,12 @@ if 1:   # Core functionality
     def Get():
         file = "/plib/pgm/weather.data"
         if dbg:
+            print("weather.py is in debug mode")
             s = open(file).read()
         else:
             url = (f"https://forecast.weather.gov/MapClick.php?lat={lat}&lon={lon}&"
                    f"unit=0&lg=english&FcstType=text&TextType=1")
+            url = "https://forecast.weather.gov/MapClick.php?lat=43.6339&lon=-116.3256&unit=0&lg=english&FcstType=text&TextType=1"
             u = requests.get(url)
             s = u.content.decode()
             s = s.replace("<br>", "\n")
@@ -91,6 +94,10 @@ if 1:   # Core functionality
                 open(file, "w").write(s)
                 exit()
         q = deque(s.split("\n"))
+        # Do some preliminary processing to remove the header stuff
+        ln = q.popleft()
+        while ln.strip() != "</style>":
+            ln = q.popleft()
         return q
     def Select(q):
         'Return a list of the lines to be printed'
@@ -145,7 +152,7 @@ if 1:   # Core functionality
         cloudy = True if "cloudy" in r else False
         # Print title to 16 characters wide
         n = 16 - len(title)
-        assert(n >= 0)
+        #assert(n >= 0)
         print(f"{t.title}{title:s}{t.n}", end=" "*n)
         if thund:
             print(f"{t.thun}thunderstorm{t.n} ", end="")

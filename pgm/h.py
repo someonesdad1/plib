@@ -25,10 +25,10 @@ if 1:   # Header
         from wrap import dedent
         from color import TRM as t
         from edit import Edit
-if 1:   # Global variables
-    P = pathlib.Path
-    ii = isinstance
-    t.c = t("yel")
+    # Global variables
+        P = pathlib.Path
+        ii = isinstance
+        t.c = t("lavl")
 def Error(*msg, status=1):
     print(*msg, file=sys.stderr)
     exit(status)
@@ -119,7 +119,7 @@ if __name__ == "__main__":
         open(d["-c"], "w").write('\n'.join(lines))
     elif cmd == "l":
         for i, line in enumerate(lines):
-            print(f"  {t.c}{i}:  {line}{t.n}")
+            t.print(f"  {t.c}{i}:  {line}")
     elif cmd == "h":
         print(dedent(f'''
         e       Edit the config file

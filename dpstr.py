@@ -14,7 +14,6 @@ String utilities
     Keep             Return items in sequence that are in keep sequence
     KeepFilter       Returns a function that will keep a character set
     KeepOnlyLetters  Replace all non-word characters with spaces
-    Len              Length of string with ANSI escape sequences removed
     ListInColumns    Obsolete (use columnize.py)
     MatchCap         Match string capitalization
     MultipleReplace  Replace multiple patterns in a string
@@ -22,7 +21,6 @@ String utilities
     Remove           Return items from sequence not in the remove sequence
     RemoveComment    Remove '#.*$' from a string
     RemoveFilter     Functional form of Remove (it's a closure)
-    RmEsc            Remove ANSI escape strings
     soundex          Return 4-character soundex value for a string
     SoundSimilar     Return True if two strings sound similar
     SpellCheck       Spell check a sequence of words
@@ -30,14 +28,17 @@ String utilities
     StringSplit      Pick out specified fields of a string
     TimeStr          Readable string for time() in s
     WordID           Return an ID string that is somewhat pronounceable
-    
-    Token naming conversions:
-    cw2mc
-    cw2us
-    mc2cw
-    mc2us
-    us2cw
-    us2mc
+Ignore ANSI escape sequences
+    Len              Length of string with ANSI escape sequences removed
+    Str              String class that ignores ANSI escape codes in len()
+    RmEsc            Remove ANSI escape strings from string arguments
+Token naming conversions:
+    cw2mc            Cap-words to mixed-case
+    cw2us            Cap-words to underscore
+    mc2cw            Mixed-case to cap-words
+    mc2us            Mixed-case to underscore
+    us2cw            Underscore to cap-words
+    us2mc            Underscore to mixed-case
 '''
 if 1:  # Copyright, license
     # These "trigger strings" can be managed with trigger.py
@@ -611,16 +612,16 @@ def ReadData(data, structure, **kw):
     '''Read data from a multiline string data.  structure is a list of the 
     field types.  Any line starting with optional whitespace and the
     comment string is ignored, as is any line with only whitespace.
-
+ 
     Keywords:
-
+ 
         comment     Ignore lines that start with this string and optional
                     whitespace.  Can also be a compiled regular expression.
         sep         Separator string for fields.  Defaults to whitespace.
                     Can be a compiled regular expression.
-
+ 
     Example:  For the string
-
+ 
         data = """
              9   680     2100    0       750
             10   680     2100    250     750
@@ -629,7 +630,7 @@ def ReadData(data, structure, **kw):
     the list
         [["9", 680, 2100, 0, 750],
         ["10", 680, 2100, 250, 750]]
-
+ 
     If an error occurs, the 1-based line number of the offending string
     will be printed along with the problem.
     '''
@@ -671,19 +672,51 @@ def ReadData(data, structure, **kw):
             thisline.append(structure[i](fields[i]))
         out.append(thisline)
     return out
-def Len(s):
-    'Return len(s) with ANSI escape sequences removed'
-    return len(RmEsc(s))
-def RmEsc(s):
-    'Remove ANSI escape strings'
-    # Note:  this is aimed at dealing primarily with strings that are
-    # decorated with ANSI 24-bit coloring escape codes, so it may fail on
-    # other valid ANSI escape codes.  I didn't make a note where the regexp
-    # originally came from (I used it in columnize.py).
+def Len(s) -> int:
+    '''Same as built-in len(), except if the argument is a str, the ANSI
+    escape sequences are stripped out.
+    '''
+    if not hasattr(Len, "len"):
+        # Cache the built-in len in case someone redefines it
+        Len.len = len
+    if ii(s, str):
+        return Len.len(RmEsc(s))
+    return Len.len(s)
+def RmEsc(s: str, on=True) -> str:
+    'Remove ANSI escape strings if on is True; otherwise just return s'
+    # The primary use case is to remove colorizing ANSI escape strings from
+    # a string s.  Not all ANSI escape strings are supported, just the ones
+    # that contain a CSI sequence.
+    if not on:
+        # Note it's deliberate that we don't check the type of s if on is
+        # False; this makes this the identity function for any type.
+        return s
     assert(ii(s, str))
     if not hasattr(RmEsc, "r"):
-        RmEsc.r = re.compile(r"(\x9B|\x1B\[)[0-?]*[ -\/]*[@-~]")
+        # This regexp was constructed from the information given on the
+        # page https://en.wikipedia.org/wiki/ANSI_escape_code#CSI_(Control_Sequence_Introducer)_sequences
+        # This is:
+        #   ESC [
+        # then "parameter bytes":    zero or more bytes 0x30-0x3f       [0-?]
+        # then "intermediate bytes": zero or more bytes 0x20-0x2f       [ -/]
+        # then "single byte":        one byte in range of 0x40-0x7e     [@-~]
+        RmEsc.r = re.compile(r"\x1b\[[0-?]*[ -\/]*[@-~]")
     return RmEsc.r.sub("", s)
+class Str(str):
+    '''This is a str object except that its len() method ignores any ANSI
+    escape sequences.  The basic use case is to allow embedded colorizing
+    escape sequences in the string without the escape sequences contributing
+    to the string's length.
+ 
+    You can turn off this behavior by setting the .on attribute to False.
+    '''
+    __slots__ = ("on",)
+    def __new__(cls, s):
+        instance = super(cls, Str).__new__(cls, s)
+        instance.on = True
+        return instance
+    def __len__(self):
+        return Len(self) if bool(self.on) else super().__len__()
 
 if __name__ == "__main__": 
     from lwtest import run, raises, assert_equal, Assert
@@ -691,6 +724,12 @@ if __name__ == "__main__":
     import os
     from sig import sig
     from color import TRM as t
+    def Test_Str():
+        a, b, c = f"{t('wht')}", "mystr", t.n
+        s = Str(a + b + c)
+        Assert(len(s) == len(b))
+        s.on = False
+        Assert(len(s) == len(a + b + c))
     def Test_Len():
         s = "simple string"
         Assert(len(s) == Len(s))

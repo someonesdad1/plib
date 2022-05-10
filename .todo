@@ -1,8 +1,17 @@
 Active
 
-    - util.py
-        - Add a Len() function that does the same as len() for strings, but
-          first removes ANSI escape sequences.
+    - github has broken their github pages interface
+        - hobbyutil's main html page used to work fine to get you to the
+          other html pages for the project list, but now neither work --
+          they just take you to an html document.
+
+    - Strings with escape codes
+        - The textwrap module probably is OK for wrapping things if I could
+          subclass it to use dpstr:Len() to calculate string lengths.  This
+          would allow use of escape codes for colorizing.
+            - A simple test would be to change len to a function Len which
+              calls dpstr.Len if argument is a str and the regular len
+              otherwise.
 
     - /pylib/pgm/ts/ts.py
         - Import to /plib
