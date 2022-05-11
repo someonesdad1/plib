@@ -838,7 +838,7 @@ class Color:
                         k = c.irgb[1]
                     elif key == "b":
                         k = c.irgb[2]
-                    elif key == "h":
+                    elif key == "h" or key == "H":
                         k = c.ihls[0]
                     elif key == "L":
                         k = c.ihls[1]

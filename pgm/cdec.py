@@ -22,7 +22,6 @@ Decorate color specifications
           weighting factors.
 
 '''
- 
 if 1:   # Header
     if 1:   # Copyright, license
         # These "trigger strings" can be managed with trigger.py
@@ -90,6 +89,7 @@ if 1:   # Utility
         exit(status)
     def ParseCommandLine(d):
         d["-D"] = False     # Debug printing
+        d["-b"] = False     # Browse hues
         d["-d"] = False     # Show color details
         d["-e"] = False     # Eliminate duplicates
         d["-R"] = []        # Case-sensitive regexp
@@ -99,12 +99,12 @@ if 1:   # Utility
         if len(sys.argv) < 2:
             Usage()
         try:
-            opts, args = getopt.getopt(sys.argv[1:], "DdeR:r:s:x", "help")
+            opts, args = getopt.getopt(sys.argv[1:], "bDdeR:r:s:x", "help")
         except getopt.GetoptError as e:
             print(str(e))
             exit(1)
         for o, a in opts:
-            if o[1] in list("Ddex"):
+            if o[1] in list("bDdex"):
                 d[o] = not d[o]
             elif o == "-R":
                 d[o].append(re.compile(a))
@@ -119,6 +119,94 @@ if 1:   # Utility
             elif o in ("-h", "--help"):
                 Usage()
         return args
+if 0:   # Nonworking Browse function (broken because less is broken)
+    def Browse():
+        '''This was an attempt to add a browsing feature, but it fails
+        because of limitations of the less pager, which I need to view to
+        decorated data.  The less display fails for terminal escape codes
+        when it is called from subprocess() or os.system().
+
+        The workaround would be to use a shell script with a directory of
+        the subfiles somewhere already sorted.  Then a cdec|less call
+        would work.
+        '''
+        import subprocess
+        import tempfile
+        from colorhues import colorhues
+        from cmddecode import CommandDecode
+        c, prompt = CommandDecode(colorhues.keys()), "> "
+        print(". to list hue choices, q to exit")
+        letters = "rgbhsvHSL"
+        dl = "LHS"
+        hue = "red"
+        def GetInfo():
+            nonlocal hue
+            while True:
+                cmd = input(f"Enter hue [{hue}]: ").strip()
+                if cmd == "q":
+                    exit(0)
+                elif cmd == ".":
+                    for i in sorted(c.commands):
+                        print(i, end=" ")
+                    print()
+                    continue
+                else:
+                    if not cmd:
+                        cmd = hue
+                    x = c(cmd)
+                    if not x:
+                        print(f"'{cmd}' unrecognized")
+                        continue
+                    elif len(x) == 1:
+                        hue = x[0]
+                    else:
+                        x.sort()
+                        print(f"'{cmd}' is ambiguous:  {x}")
+                        continue
+                sl = input(f"Enter sorting letters [{dl!r}]: ").strip()
+                if not sl:
+                    sl = dl
+                else:
+                    for i in sl:
+                        if i not in letters:
+                            print(f"'{i}' is not a valid letter")
+                            continue
+                return hue, sl
+        def Display(lst):
+            '''lst is a list of colorized strings.  Store them in a temporary
+            file and browse them with less.
+            '''
+            # This use of less doesn't work, as the escape codes don't
+            # result in colors with less in a pipe
+            try:
+                tmp = P(tempfile.mkstemp(prefix="cdec.", suffix=".tmp")[1]).resolve()
+                f = open(tmp, "w")
+                for line in lst:
+                    f.write(line + "\n")
+                f.close()
+                less = "c:/cygwin/bin/less.exe"
+                cmd = [less, "--use-color", tmp]
+                #subprocess.run(cmd)
+                os.system(f"c:/cygwin/bin/less.exe {tmp}")
+            finally:
+                tmp.unlink()
+        try:
+            while 0 and True:
+                hue, sl = GetInfo()
+                print(hue, sl)
+            di = colorhues["red"]
+            for name in di:
+                c = Color(di[name])
+                s = f"{t(c)}{name:42s} {c.xrgb} {c.xhsv} {c.xhls}"
+                g.out.append((s, c))
+            f = lambda x: x[1]
+            g.out = Color.Sort(g.out, keys=dl, get=f)
+            lst = [i[0] for i in g.out]
+            Display(lst)
+            #for i, j in g.out:
+            #    print(i)
+        finally:
+            t.out()
 if 1:   # Core functionality
     def GetColorRegexps():
         'Return tuple of regexps to use to recognize color identifiers'
@@ -238,7 +326,10 @@ if __name__ == "__main__":
     g.out = deque()     # Container for the lines to output
     d = {}              # Options dictionary
     files = ParseCommandLine(d)
-    for file in files:
-        Search(file)
-    Sort()
-    Report()
+    if d["-b"]:
+        Browse()
+    else:
+        for file in files:
+            Search(file)
+        Sort()
+        Report()

@@ -13,7 +13,26 @@ you wish.
 Example usage:
  
     s = set(("one", "two", "three"))
-    c = CommandDecode(s)
+    c, prompt = CommandDecode(s), "> "
+    print(". to list choices, q to exit")
+    while True:
+        cmd = input(prompt)
+        if cmd == "q":
+            break
+        elif cmd == ".":
+            for i in c.commands:
+                print(i, end=" ")
+            print()
+        else:
+            x = c(cmd)
+            if not x:
+                print(f"'{cmd}' unrecognized")
+            elif len(x) == 1:
+                print(f"'{cmd}' was an exact match to '{x[0]}'")
+            else:
+                x.sort()
+                print(f"'{cmd}' is ambiguous:  {x}")
+
     # Results for different user inputs:
     c("o") --> gives ["one"]
     c("t") --> gives ["two", "three"]
