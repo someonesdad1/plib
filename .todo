@@ -1,17 +1,17 @@
 Active
 
+    - Need to finish updating hu and get it to a released state.
+
     - github has broken their github pages interface
         - hobbyutil's main html page used to work fine to get you to the
           other html pages for the project list, but now neither work --
           they just take you to an html document.
 
-    - Strings with escape codes
-        - The textwrap module probably is OK for wrapping things if I could
-          subclass it to use dpstr:Len() to calculate string lengths.  This
-          would allow use of escape codes for colorizing.
-            - A simple test would be to change len to a function Len which
-              calls dpstr.Len if argument is a str and the regular len
-              otherwise.
+    - cdec
+        - Add -b option to browse the kolor/names/names stuff interactively
+        - It would prompt for a hue and sorting method, then show you that
+          data using less.  Press esc to get back to prompt and again to
+          exit.
 
     - /pylib/pgm/ts/ts.py
         - Import to /plib
@@ -32,9 +32,11 @@ Active
 
           ['Must', ' ', 'be', ':', '  ', 'exp', ',', 'log', '.']
     
-          such that ''.join(x) reproduces the original string.  This
-          function should be in dpstr.py.  Numbers in names could be an
-          issue.
+          such that ''.join(x) reproduces the original string (i.e., it's
+          an invariant).  This function should be in dpstr.py.  Numbers in
+          names could be an issue.  Look at line 71 in python's textwrap.py
+          for a regex that is used for splitting things up into words; this
+          might be a good place to start.
 
           First check if char is in string.ascii_letters because this will
           be fast.  Then check for the following set:

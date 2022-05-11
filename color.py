@@ -1260,7 +1260,7 @@ class Trm:
         after finishing.
         '''
         self.out(*p, **kw)
-        print()
+        print(**kw)
     def out(self, *p, **kw):
         'Same as print() but no newline'
         k = kw.copy()
