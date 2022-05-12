@@ -1,17 +1,10 @@
 Active
 
     - Need to finish updating hu and get it to a released state.
-
-    - github has broken their github pages interface
+        - github has broken their github pages interface
         - hobbyutil's main html page used to work fine to get you to the
           other html pages for the project list, but now neither work --
           they just take you to an html document.
-
-    - cdec
-        - Add -b option to browse the kolor/names/names stuff interactively
-        - It would prompt for a hue and sorting method, then show you that
-          data using less.  Press esc to get back to prompt and again to
-          exit.
 
     - /pylib/pgm/ts/ts.py
         - Import to /plib

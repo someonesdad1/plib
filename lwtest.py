@@ -195,7 +195,7 @@ if 1:   # Core functionality
             # indicate it might not be the correct file (e.g., the user
             # manually invoked run() with a hand-crafted dictionary and
             # forgot to add a "__file__" key).
-            filename = "<%s ?>" % __file__
+            filename = f"<__file__ ?>"
         pass_count = fail_count = 0
         fail_messages = []
         if verbose:
@@ -219,7 +219,7 @@ if 1:   # Core functionality
                 if dbg:
                     raise
                 fail_count += 1
-                lines = ["%s failed:  %s" % (name, repr(e))]
+                lines = [f"{name} failed:  {e!r}"]
                 # Append an indented stack trace
                 for line in traceback.format_exc().split(nl):
                     lines.append("  " + line)
@@ -288,11 +288,11 @@ if 1:   # Core functionality
 if 1:   # Utility
     def GetTime(duration_s):
         if duration_s > 3600:
-            return "%.3f hr" % (duration_s/3600)
+            return f"{duration_s/3600:.3f} hr"
         elif duration_s > 60:
-            return "%.2f min" % (duration_s/60)
+            return f"{duration_s/60:.2f} min"
         else:
-            return "%.2f s" % (duration_s)
+            return f"{duration_s:.2f} s"
     def ToDoMessage(message, prefix="+ ", color=None):
         '''This function results in a message to stdout; it's purpose is to
         allow you to see something that needs to be done, but won't cause
@@ -401,12 +401,12 @@ if 1:   # Checking functions
                     tolerance = minmax(abstol, reltol*abs(b))
                 if absdiff > tolerance:
                     fail = [
-                        "Unacceptable numerical difference:",
-                        "  abstol     = %s" % abstol,
-                        "  reltol     = %s" % reltol,
-                        "  tolerance  = %s" % tolerance,
-                        "  difference = %s" % absdiff,
-                        "  difference - tolerance = %s" % (absdiff - tolerance),
+                         "Unacceptable numerical difference:",
+                        f"  abstol     = {abstol}",
+                        f"  reltol     = {reltol}",
+                        f"  tolerance  = {tolerance}",
+                        f"  difference = {absdiff}",
+                        f"  difference - tolerance = {absdiff - tolerance}",
                     ]
         return fail
     def check_decimal(a, b, reltol=None, abstol=None, use_min=False):
@@ -449,12 +449,12 @@ if 1:   # Checking functions
                     tolerance = minmax(abstol, reltol*abs(b))
                 if absdiff > tolerance:
                     fail = [
-                        "Numerical difference",
-                        "  abstol     = %s" % abstol,
-                        "  reltol     = %s" % reltol,
-                        "  tolerance  = %s" % tolerance,
-                        "  difference = %s" % absdiff,
-                        "  difference - tolerance = %s" % (absdiff - tolerance),
+                         "Numerical difference",
+                        f"  abstol     = {abstol}" % abstol,
+                        f"  reltol     = {reltol}" % reltol,
+                        f"  tolerance  = {tolerance}" % tolerance,
+                        f"  difference = {absdiff}" % absdiff,
+                        f"  difference - tolerance = {absdiff - tolerance}",
                     ]
         return fail
     def check_complex(a, b, reltol=None, abstol=None, use_min=False):
@@ -496,7 +496,7 @@ if 1:   # Checking functions
             elif have_mpmath and ii(a, mpmath.mpc):
                 fail = check_complex(a, b, reltol=R, abstol=A, use_min=U)
             else:
-                raise RuntimeError("a is unrecognized type '%s'" % type(a))
+                raise RuntimeError(f"a is unrecognized type '{type(a)}'")
         else:
             # Object comparison
             if ii(a, str):
@@ -577,8 +577,8 @@ if 1:   # Checking functions
                     # Should work for any other objects
                     fail += [
                         arg_not_eq,
-                        "  1st  = %s" % repr(a),
-                        "  2nd  = %s" % repr(b),
+                        f"  1st  = {a!r}",
+                        f"  2nd  = {b!r}",
                     ]
                 else:
                     try:
@@ -591,20 +591,20 @@ if 1:   # Checking functions
                         rel_diff_arg2 = None
                     fail += [
                         arg_not_eq,
-                        "  arg1 = %s" % repr(a),
-                        "  arg2 = %s" % repr(b),
-                        "  diff = %s" % repr(diff),
+                        f"  arg1 = {a!r}",
+                        f"  arg2 = {b!r}",
+                        f"  diff = {diff!r}",
                     ]
                     if rel_diff_arg1 is not None:
-                        fail += ["  diff/arg1 = %s" % repr(rel_diff_arg1)]
+                        fail += [f"  diff/arg1 = {rel_diff_arg1!r}"]
                     if rel_diff_arg2 is not None:
-                        fail += ["  diff/arg2 = %s" % repr(rel_diff_arg2)]
+                        fail += [f"  diff/arg2 = {rel_diff_arg2!r}"]
             else:
                 fail += [
                     arg_not_eq,
-                    "  arg1 = %s" % repr(a),
-                    "  arg2 = %s" % repr(b),
-                    "  diff = %s" % repr(diff),
+                    f"  arg1 = {a!r}",
+                    f"  arg2 = {b!r}",
+                    f"  diff = {diff!r}",
                 ]
         if msg:
             fail.append(msg)
