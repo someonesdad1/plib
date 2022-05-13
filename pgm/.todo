@@ -38,6 +38,12 @@ Active
 
 Want
     
+    - pgm/ddiff.py needs to be converted to use color.py
+
+    - /pylib/pgm/xyz.py
+        - This is a significant enough script that it should be tested and
+          moved into /plib/pgm if it warrants.  Then add back to hu.
+
     - parse_complex.py in PP needs to be looked at again.  With some work
       and generation of tests, it could be useful.  Then it could become
       part of f.py.
@@ -80,9 +86,17 @@ Want
     - Modify pdb to become dpdb, letting me have a debugger that works the
       way I want it to.  This would let me add color output and change some
       annoying behaviors.
+        - The pdb.py python module states the debugger isn't directly
+          programmable aside from aliases, but since it's a class, you can
+          derive your own class and make it as fancy as you want.
+        - The interact command uses the REPL from code.  I'd like to see
+          my REPL get finished and be used instead.
+        - Current line printed in color, which would be enormously helpful
         - File and line numbers in backtraces could be printed in color
+            - The current location in the backtrace is printed in color
         - Flag to choose !s or !r on p command usage
         - .c turns on color, .f flips !s/!r behavior. 
+        - Easy to add new commands
         - Note it would be important not to change the basic commands so
           that I wouldn't be crippled when having to use the standard pdb
 
@@ -963,4 +977,8 @@ Other
 
                 - array.o: array.cpp array.h
                 -     g++ -c ${cppopts} $<
-               
+                - tokenizer.o: tokenizer.cpp tokenizer.h
+                -     g++ -c ${cppopts} $<
+                - clean:
+                -     @rm -f ${exe} ${exe}.stackdump *.o
+

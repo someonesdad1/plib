@@ -217,7 +217,7 @@ def PrintResults(d):
 if __name__ == "__main__":
     d = {}
     ParseCommandLine(d)
-    if 0:
+    if True:
         GetInfo(d)
     else:
         # Debugging:  5 inch diameter, 1/4 inch diameter drill, 0.1 inches
