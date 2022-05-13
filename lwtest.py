@@ -12,10 +12,6 @@ TODO:
             identify a test function, -R for regexp's options, -v for
             verbose
 
-    - assert_equal:  add a dict keyword so that when dictionaries
-        are compared, both keys and values are compared.  Consider
-        adding sets to the function too.
-
     - Add a verbose keyword to run() which prints the file name and
         the function/class to be executed, like 'nosetests -v' does.
         Another thing to consider would be to let run look at sys.argv
@@ -89,10 +85,12 @@ if 1:  # Header
                 # How to compare floating point numbers
                 eps = 1e-6
                 a, b = 1, 1 + eps
-                assert_equal(a, b, abstol=eps)
+                # In following, debug=True means debugger will start on !=
+                assert_equal(a, b, abstol=eps, debug=True)
                 # Assert() allows you to start debugger with command line
-                # argument; type 'up' to go to the offending line.
-                Assert(a == b)
+                # argument; type 'up' to go to the offending line.  You can
+                # also use the debug keyword:
+                Assert(a == b, debug=True)
         
             if __name__ == "__main__":
                 failed, messages = run(globals())
@@ -104,11 +102,12 @@ if 1:  # Header
             associated function objects.  Set verbose=True to see which
             functions will be executed and their execution order.
         
-            Assert() works like python's assert statement, but if you include a
-            command line argument, you'll be dropped into the debugger when the
-            Assert fails.  Type 'up' to go to the line that had the problem.
-            Note Assert() and assert_equal() do not pay attention to __debug__,
-            unlike python's assert statement.
+            Assert() works like python's assert statement, but if you
+            include a command line argument or the debug keyword, you'll be
+            dropped into the debugger when the Assert fails.  Type 'up' to
+            go to the line that had the problem.  Note Assert() and
+            assert_equal() do not pay attention to __debug__, unlike
+            python's assert statement.
         
             Use the ToDoMessage() function to cause a colored message to be
             printed to stdout to remind you of something that needs to be done.
@@ -294,7 +293,7 @@ if 1:   # Utility
         else:
             return f"{duration_s:.2f} s"
     def ToDoMessage(message, prefix="+ ", color=None):
-        '''This function results in a message to stdout; it's purpose is to
+        '''This function results in a message to stdout; its purpose is to
         allow you to see something that needs to be done, but won't cause
         the test to fail.  The message is decorated with a leading prefix
         string and the file and line number.  If color is not None, then it
@@ -510,9 +509,9 @@ if 1:   # Checking functions
                     msg="", halt=True, debug=False):
         '''Raise an AssertionError if a != b.  a and b can be objects,
         numbers, or sequences of numbers (sequence elements are compared
-        pairwise).  reltol and abstol are the relative and absolute
-        tolerances.  No exception will be raised if for each number
-        element (if a is zero, reltol*b is used instead)
+        pairwise), or dictionaries.  reltol and abstol are the relative and
+        absolute tolerances.  No exception will be raised if for each
+        number element (if a is zero, reltol*b is used instead)
                 abs(a - b) <= reltol*a
         or
                 abs(a - b) <= abstol
@@ -545,9 +544,8 @@ if 1:   # Checking functions
                         fail = []
             else:
                 # Sequences:  compare each corresponding element.  Note
-                # dictionaries are sequences too, but this may not give
-                # you the comparison semantics you want because the
-                # dictionaries' values are ignored.
+                # dictionaries are sequences too and will be equal iff
+                # they have the same key and value pairs.
                 try:
                     for i, j in zip(a, b):
                         f = check_equal(i, j, reltol=reltol, abstol=abstol,
@@ -614,18 +612,17 @@ if 1:   # Checking functions
             breakpoint()
         else:
             print(fail, file=sys.stderr)
-    def Assert(cond):
+    def Assert(cond, debug=False):
         '''Same as assert, but you'll be dropped into the debugger on an
-        exception if you include a command line argument.
+        exception if you include a command line argument or debug is True.
         '''
         if not cond:
-            if len(sys.argv) > 1:
+            if len(sys.argv) > 1 or debug:
                 print("Type 'up' to go to line that failed", file=sys.stderr)
                 breakpoint()
             else:
                 raise AssertionError
 if __name__ == "__main__":
-    #from textwrap import dedent
     print(dedent(f'''
     lwtest:  Lightweight test framework -- typical usage:
         from lwtest import run, assert_equal, raises
@@ -652,7 +649,8 @@ if __name__ == "__main__":
             with raises(exception_object):
                 <code that must raise an exception>
         Send a colored reminder message to stdout:
-            ToDoMessage(message, prefix="+")
+            ToDoMessage(message, prefix="+", color="yel")
         Like assert, but puts you into the debugger with cmd line arg:
             Assert(condition)
+        Both assert_equal and Assert also include a debug keyword argument
     '''[1:].rstrip()))

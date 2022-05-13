@@ -1,59 +1,25 @@
 Active
 
-    - github has broken their github pages interface
+    - Need to finish updating hu and get it to a released state.
+        - github has broken their github pages interface
         - hobbyutil's main html page used to work fine to get you to the
           other html pages for the project list, but now neither work --
           they just take you to an html document.
 
-    - Strings with escape codes
-        - The textwrap module probably is OK for wrapping things if I could
-          subclass it to use dpstr:Len() to calculate string lengths.  This
-          would allow use of escape codes for colorizing.
-            - A simple test would be to change len to a function Len which
-              calls dpstr.Len if argument is a str and the regular len
-              otherwise.
+    - color.py
+        - Rather serious bug:  c = Color('mag'); c1 = Color(c.xhls); C !=
+          c1.  This should be an invariant for all the hex strings.  It may
+          indicate that computation of color functions must be done with
+          fractions rather than how the colorsys module does them.
+        - TRM needs a way to ensure all attribute access returns "" when
+          .on is False.
 
     - /pylib/pgm/ts/ts.py
         - Import to /plib
 
-    - lwtest.py
-        - Items to change in file
-
-    - dpstr.py
-        - Tokenize(s):  split a string into a sequence S such that
-          ''.join(S) == s.  The keyword wordchars is a set that contains
-          the characters that should NOT be split on.  wordchars would
-          default to string.ascii_letters.  A better default would be "un
-          latin |grep -i letter" and limited to letters < 0x17f (this is
-          237 letters).
-
-          This means a sentence like "Must be:  exp, log." needs to be
-          parsed as
-
-          ['Must', ' ', 'be', ':', '  ', 'exp', ',', 'log', '.']
-    
-          such that ''.join(x) reproduces the original string.  This
-          function should be in dpstr.py.  Numbers in names could be an
-          issue.
-
-          First check if char is in string.ascii_letters because this will
-          be fast.  Then check for the following set:
-
-            žŽżŻźŹŸŷŶŵŴųŲűŰůŮŭŬūŪũŨŧŦťŤţŢšŠşŞŝŜśŚřŘŗŖŕŔőŐŏŎōŌŋŊŉňŇņŅńŃłŁŀĿľĽļĻĺĹ
-            ĸķĶĵĴıİįĮĭĬīĪĩĨħĦĥĤģĢġĠğĞĝĜěĚęĘėĖĕĔēĒđĐďĎčČċĊĉĈćĆąĄăĂāĀÿþýüûúùøöõôóò
-            ñðïîíìëêéèçæåäãâáàßÞÝÜÛÚÙØÖÕÔÓÒÑÐÏÎÍÌËÊÉÈÇÆÅÄÃÂÁÀ
-
-        - Add a TokenSplit(token, seq) function that will split a token
-          into a list of subtokens.  If seq is a string, then it will be
-          split on any of the characters in the string.  Otherwise,
-          str.split() will have to be called with each sequence item.
-
-    - linkcheck.py
-        - Utility to search a file for http links and see if they are still
-          accessible.
-
     - help
         - Convert to a git repository on github
+            - Content is on the order of 10 MB
         - Develop, then add to /plib
         - Add /tools to /plib
         - Convert the help stuff to be built by scons
@@ -72,6 +38,54 @@ Active
 
 Want
     
+    - parse_complex.py in PP needs to be looked at again.  With some work
+      and generation of tests, it could be useful.  Then it could become
+      part of f.py.
+
+    - dpstr.py
+        - Tokenize(s):  split a string into a sequence S such that
+          ''.join(S) == s.  The keyword wordchars is a set that contains
+          the characters that should NOT be split on.  wordchars would
+          default to string.ascii_letters.  A better default would be "un
+          latin |grep -i letter" and limited to letters < 0x17f (this is
+          237 letters).
+
+          This means a sentence like "Must be:  exp, log." needs to be
+          parsed as
+
+          ['Must', ' ', 'be', ':', '  ', 'exp', ',', 'log', '.']
+    
+          such that ''.join(x) reproduces the original string (i.e., it's
+          an invariant).  This function should be in dpstr.py.  Numbers in
+          names could be an issue.  Look at line 71 in python's textwrap.py
+          for a regex that is used for splitting things up into words; this
+          might be a good place to start.
+
+          First check if char is in string.ascii_letters because this will
+          be fast.  Then check for the following set:
+
+            žŽżŻźŹŸŷŶŵŴųŲűŰůŮŭŬūŪũŨŧŦťŤţŢšŠşŞŝŜśŚřŘŗŖŕŔőŐŏŎōŌŋŊŉňŇņŅńŃłŁŀĿľĽļĻĺĹ
+            ĸķĶĵĴıİįĮĭĬīĪĩĨħĦĥĤģĢġĠğĞĝĜěĚęĘėĖĕĔēĒđĐďĎčČċĊĉĈćĆąĄăĂāĀÿþýüûúùøöõôóò
+            ñðïîíìëêéèçæåäãâáàßÞÝÜÛÚÙØÖÕÔÓÒÑÐÏÎÍÌËÊÉÈÇÆÅÄÃÂÁÀ
+
+        - Add a TokenSplit(token, seq) function that will split a token
+          into a list of subtokens.  If seq is a string, then it will be
+          split on any of the characters in the string.  Otherwise,
+          str.split() will have to be called with each sequence item.
+
+    - linkcheck.py
+        - Utility to search a file for http links and see if they are still
+          accessible.
+
+    - Modify pdb to become dpdb, letting me have a debugger that works the
+      way I want it to.  This would let me add color output and change some
+      annoying behaviors.
+        - File and line numbers in backtraces could be printed in color
+        - Flag to choose !s or !r on p command usage
+        - .c turns on color, .f flips !s/!r behavior. 
+        - Note it would be important not to change the basic commands so
+          that I wouldn't be crippled when having to use the standard pdb
+
     - Write a script that recursively finds broken soft links (links that
       don't point to a valid file).
 
@@ -949,8 +963,4 @@ Other
 
                 - array.o: array.cpp array.h
                 -     g++ -c ${cppopts} $<
-                - tokenizer.o: tokenizer.cpp tokenizer.h
-                -     g++ -c ${cppopts} $<
-                - clean:
-                -     @rm -f ${exe} ${exe}.stackdump *.o
-
+               

@@ -6,11 +6,41 @@ Active
           other html pages for the project list, but now neither work --
           they just take you to an html document.
 
+    - color.py
+        - Rather serious bug:  c = Color('mag'); c1 = Color(c.xhls); C !=
+          c1.  This should be an invariant for all the hex strings.  It may
+          indicate that computation of color functions must be done with
+          fractions rather than how the colorsys module does them.
+        - TRM needs a way to ensure all attribute access returns "" when
+          .on is False.
+
     - /pylib/pgm/ts/ts.py
         - Import to /plib
 
-    - lwtest.py
-        - Items to change in file
+    - help
+        - Convert to a git repository on github
+            - Content is on the order of 10 MB
+        - Develop, then add to /plib
+        - Add /tools to /plib
+        - Convert the help stuff to be built by scons
+        - Move everything to one directory for ease of editing
+        - Consolidate the help text I use into one directory.  Eliminate
+          make and the C programs; convert everything to python.  Look at
+          hierarchically organizing the access with most-used stuff first
+          and seldom-used stuff hidden.  Do partial topic matches with the
+          invocation and use a command line option to do searches of the
+          records.  
+        - Look at somehow organizing things so that it can run as a project
+          in Notepad++, which will mean others are more likely to use it.
+        - Could be nice to have different backends, such as rendering all
+          to PDF, HTML, or vim help files.  Look at making a project for
+          Notepad++, as this would be of interest to a number of folks.
+
+Want
+    
+    - parse_complex.py in PP needs to be looked at again.  With some work
+      and generation of tests, it could be useful.  Then it could become
+      part of f.py.
 
     - dpstr.py
         - Tokenize(s):  split a string into a sequence S such that
@@ -47,26 +77,15 @@ Active
         - Utility to search a file for http links and see if they are still
           accessible.
 
-    - help
-        - Convert to a git repository on github
-        - Develop, then add to /plib
-        - Add /tools to /plib
-        - Convert the help stuff to be built by scons
-        - Move everything to one directory for ease of editing
-        - Consolidate the help text I use into one directory.  Eliminate
-          make and the C programs; convert everything to python.  Look at
-          hierarchically organizing the access with most-used stuff first
-          and seldom-used stuff hidden.  Do partial topic matches with the
-          invocation and use a command line option to do searches of the
-          records.  
-        - Look at somehow organizing things so that it can run as a project
-          in Notepad++, which will mean others are more likely to use it.
-        - Could be nice to have different backends, such as rendering all
-          to PDF, HTML, or vim help files.  Look at making a project for
-          Notepad++, as this would be of interest to a number of folks.
+    - Modify pdb to become dpdb, letting me have a debugger that works the
+      way I want it to.  This would let me add color output and change some
+      annoying behaviors.
+        - File and line numbers in backtraces could be printed in color
+        - Flag to choose !s or !r on p command usage
+        - .c turns on color, .f flips !s/!r behavior. 
+        - Note it would be important not to change the basic commands so
+          that I wouldn't be crippled when having to use the standard pdb
 
-Want
-    
     - Write a script that recursively finds broken soft links (links that
       don't point to a valid file).
 

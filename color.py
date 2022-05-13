@@ -3,7 +3,11 @@
     - TRM needs a method to set all the attributes to empty strings when
       the .on attribute is False.  This is important to applications to
       make it easy to turn off escape codes.
-    - Needs a test case
+        - Of course, this is a bad idea when the user wants to set .on to
+          True again.  Best is to make sure all attributes are properties
+          and their return value is set to "" if .on is False.
+    - Needs a test case -- this should be an invariant for all the hex
+      strings:
         - c = Color('mag')
         - c1 = Color(c.xhls)
         - c1 != c
