@@ -1,31 +1,63 @@
 '''
+    - Bugs
+        - 
 
-This module is what I use to colorize parts of the python debugger output
-using the color.py module.  Features:
+    - Todo
+        - Make sure a deep backtrace is readable
+        - See if r vs s behavior can be changed or toggled
 
-    - The 'clr' command can be used to choose the colorizing colors or turn
-      them off.
-    - The three colorizations are:
+
+This module colorizes parts of the python debugger output using the
+color.py module.  Features:
+    - Added the 'cls' command to clear the screen
+    - The three colorizations I wanted were:
         - The current line in a list command
-        - Colorize the current line, highlighting the file name, line
-          number and function name
+        - Colorize the line number in the current line
         - Error messages 
-
-    My universal use of the debugger has always been to set the variable 
-    xx to pdb.set_trace.  When inserted in a chunk of code as xx(), the
-    code stops in the debugger at that point.  Later python 3 versions used
-    the reserved word 'breakpoint' for this.
-
-    In any code I want to debug, I insert the line
+        - The 'clr' command can be used to choose the colorizing colors or turn
+        them off.
+ 
+    To use this to debug my code, I insert the line
+ 
         from dpdb import set_trace as xx 
-    and get the requisite behavior.
+ 
+    in the code, then put 'xx()' where I want to debug (later python
+    versions use 'breakpoint' for this).
+ 
+    To avoid having to go too deep in the pdb/bdb code, I chose to use
+    regular expressions to find the lines I wanted to colorize in the 
+    Pdb.message() method, so I overrode it with the definition here.
+    There may be some corner cases where it doesn't work right yet.
+
+    Tips on the python debugger (pdb.py)
+        - You can provide command aliases in a ~/.pdbrc or ./.pdbrc file to
+          help with custom commands.  Example:  'alias i interact' lets you
+          type 'i' to jump into the python REPL.
+        - Aliases won't get explained when you use help.  Thus, 'h i' for
+          the previous alias shows nothing (type 'alias' to see a list).  
+        - You can edit the pdb.py file to add commands.  For example, I use
+          tbreak a lot and like to use tb for this like gdb works.  Go to
+          the pdb source code and find 'def do_tbreak()'.  After the method
+          ends, add 'do_tb = do_tbreak' and now tb works and will be part
+          of the built-in commands.
+            - Caution:  it's easy to go hog-wild adding new stuff.  You're
+              then creating a mental dependency and you'll suffer if you
+              have to debug on another system that doesn't have your added
+              stuff.
+        - Learn what all the debugger commands do by typing 'help cmd'.  To
+          get a more readable listing, start the python REPL, type 'import
+          pdb', and type 'help(pdb)'.
+        - I use terminal windows with lots of lines (50-100) and the 11
+          lines displayed by the pdb debugger are not enough.  See the code
+          below for how to change do_list() to show more lines.
 '''
 from pdb import Pdb
 import linecache
 import re
+import os
 import sys
 from wrap import dedent
-from color import TRM as t
+from color import Color, TRM as t, RegexpDecorate
 from pathlib import Path
 if 1:   # Functions to set up colorizing strings
     def All():
@@ -35,7 +67,8 @@ if 1:   # Functions to set up colorizing strings
         t.filename = t("trq")
         t.linenum = t("yell")
         t.function = t("lavl")
-        t.error = t("ornl")
+        t.error = t("redl")
+        t.ret = t("viol")
     def LineNumOnly():
         'Minimal set of colors'
         t.current_line = t("cynl")
@@ -43,7 +76,8 @@ if 1:   # Functions to set up colorizing strings
         t.filename = t("wht")
         t.linenum = t("grnl")
         t.function = t("wht")
-        t.error = t("ornl")
+        t.error = t("redl")
+        t.ret = t("viol")
     def NoColors():
         t.current_line = ""
         t.directory = ""
@@ -51,35 +85,61 @@ if 1:   # Functions to set up colorizing strings
         t.linenum = ""
         t.function = ""
         t.error = ""
+        t.ret = ""
     color_choice = LineNumOnly
     color_choice()
+# Set to True to see each line's repr() string
+dbg = len(sys.argv) > 1
+dbg = 0
 if 1:   # Regular expressions
-    # Identify current line in list command
-    t.list = re.compile(r"^(\d+)(\s+->\s.*)$")
+    # Identify current line in list command.  'B' can be in the string
+    # if the line is a breakpoint.  Pdb.do_list() indicates '>>' can be
+    # used to indicate a line where an exception was raised if it differs
+    # from the current line.
+    rlist = re.compile(r"^\s*(\d+)(\s+[B]?[->]>\s*.*)$")
     # Identify current line when stepping
-    t.curr = re.compile(r'''
+    rcurr = re.compile(r'''
         ^>\s        # Beginning of line is '> '
         ([^(]*?)    # Match up to parentheses for dir/filename
         \((.*?)\)   # Get text in parentheses for line number
         ([^\n]*)    # Get text up to newline for function name
         (\n.*)$     # String to end of line for current line
         ''', re.M|re.X)
+    # Identify a (simple) return
+    rret = re.compile(r"--Return--")
+    # Regular expression decorator
+    rd = RegexpDecorate()
+    rd.register(rret, Color("viol"))
+
 class DPdb(Pdb):
     if 1:   # Overridden Pdb methods
         def message(self, msg):
-            # Look for a current line being printed with the list command.
-            # This will be a line number followed by '->'.
-            mo = t.list.match(msg)
-            if mo:
-                linenum, remainder = mo.groups()
-                self.current_listing_line(linenum, remainder)
-                return
-            # Look for the current stopped line
-            mo = t.curr.match(msg)
-            if mo:
-                file, linenum, func, remainder = mo.groups()
-                self.current_stopped_line(file, linenum, func, remainder)
-                return
+            if dbg:   # Print line for debugging
+                t.print(f"{t('brnl')}{msg!r}")
+            try:
+                # Current line being printed by list command
+                mo = rlist.match(msg)
+                if mo:
+                    linenum, remainder = mo.groups()
+                    self.current_listing_line(linenum, remainder)
+                    return
+                # Current stopped line
+                mo = rcurr.match(msg)
+                if mo:
+                    file, linenum, func, remainder = mo.groups()
+                    self.current_stopped_line(file, linenum, func, remainder)
+                    return
+                # A return
+                mo = rret.match(msg)
+                if mo:
+                    #t.print(f"{t.ret}{msg}")
+                    rd(msg, insert_nl=True)
+                    return
+            except TypeError:
+                # This exception will occur when the 'whatis' command
+                # returns a type and re.match expects a string or bytes
+                pass
+            # Nothing special found, so print line as normal
             print(f"{msg}")
         def error(self, msg):
             print(f"{t.error}", end="")
@@ -87,20 +147,20 @@ class DPdb(Pdb):
         # This method is changed to allow more than 11 lines to be shown
         def do_list(self, arg):
             '''l(ist) [first [,last] | .]
-
+ 
             List source code for the current file.  Without arguments,
             list 11 lines around the current line or continue the previous
             listing.  With . as argument, list 11 lines around the current
             line.  With one argument, list 11 lines starting at that line.
             With two arguments, list the given range; if the second
             argument is less than the first, it is a count.
-
+ 
             The current line in the current frame is indicated by "->".
             If an exception is being debugged, the line where the
             exception was originally raised or propagated is indicated by
             ">>", if it differs from the current line.
             '''
-            numlines = 30       # DP
+            numlines = 50       # DP
             half = numlines//2  # DP
             self.lastcmd = 'list'
             last = None
@@ -167,8 +227,27 @@ class DPdb(Pdb):
                 All()
             else:
                 print("value must be 0 (no color), 1 (line number), or 2 (all)")
+        def do_cls(self, arg):
+            'Clear the screen'
+            print("\x1b[H\x1b[2J\x1b[3J")
 def set_trace(*, header=None):
     pdb = DPdb()
     if header is not None:
         pdb.message(header)
     pdb.set_trace(sys._getframe().f_back)
+# The following two functions are needed by debug.py to let DPdb be used
+# by debug.TraceInfo(). 
+def post_mortem(t=None):
+    # handling the default
+    if t is None:
+        # sys.exc_info() returns (type, value, traceback) if an exception is
+        # being handled, otherwise it returns None
+        t = sys.exc_info()[2]
+    if t is None:
+        raise ValueError("A valid traceback must be passed if no "
+                         "exception is being handled")
+    p = DPdb()
+    p.reset()
+    p.interaction(None, t)
+def pm():
+    post_mortem(sys.last_traceback)
