@@ -28,15 +28,34 @@ from wrap import dedent
 from color import TRM as t
 from pathlib import Path
 if 1:   # Colorizing strings
-    t.current_line = t("cynl")
-    t.directory = t("brnl")
-    t.filename = t("trq")
-    t.linenum = t("yell")
-    t.function = t("lavl")
-    t.error = t("ornl")
+    def Fancy():
+        'Fancier set of colors'
+        t.current_line = t("cynl")
+        t.directory = t("brnl")
+        t.filename = t("trq")
+        t.linenum = t("yell")
+        t.function = t("lavl")
+        t.error = t("ornl")
+    def Plain():
+        'Minimal set of colors'
+        t.current_line = t("cynl")
+        t.directory = t("wht")
+        t.filename = t("wht")
+        t.linenum = t("grnl")
+        t.function = t("wht")
+        t.error = t("ornl")
+    def NoColors():
+        t.current_line = ""
+        t.directory = ""
+        t.filename = ""
+        t.linenum = ""
+        t.function = ""
+        t.error = ""
+    color_choice = Plain
+    color_choice()
 if 1:   # Regular expressions
     # Identify current line in list command
-    t.list = re.compile(r"^\d+\s->\s.*$")
+    t.list = re.compile(r"^(\d+)(\s->\s.*)$")
     # Identify current line when stepping
     t.curr = re.compile(r'''
         ^>\s        # Beginning of line is '> '
@@ -56,32 +75,30 @@ class DPdb(Pdb):
         print(f"{t.linenum}{linenum}{t.n} ", end="")
         print(f"{t.function}{func}{t.n}", end="")
         print(f"{remainder}")
+    def current_listing_line(self, linenum, remainder):
+        print(f"{t.linenum}{linenum}", end="")
+        t.print(f"{t.current_line}{remainder}")
     def message(self, msg):
         # Look for a current line being printed with the list command.
         # This will be a line number followed by '->'.
-        dec = ""
         mo = t.list.match(msg)
         if mo:
-            dec = f"{t.current_line}"
+            linenum, remainder = mo.groups()
+            self.current_listing_line(linenum, remainder)
+            return
         # Look for the current stopped line
         mo = t.curr.match(msg)
         if mo:
             file, linenum, func, remainder = mo.groups()
             self.current_stopped_line(file, linenum, func, remainder)
-        else:
-            t.print(f"{dec}{msg}")
+            return
+        print(f"{msg}")
     def error(self, msg):
         print(f"{t.error}", end="")
         t.print('***', msg, file=self.stdout)
     def do_clr(self, var):
         'Toggle colorizing'
-        a = bool(var)
-        t.current_line = t("cynl") if a else ""
-        t.directory = t("brnl") if a else ""
-        t.filename = t("trq") if a else ""
-        t.linenum = t("yell") if a else ""
-        t.function = t("lavl") if a else ""
-        t.error = t("ornl") if a else ""
+        color_choice() if var else NoColors()
 
 def set_trace(*, header=None):
     pdb = DPdb()
