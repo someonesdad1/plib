@@ -97,8 +97,19 @@ class DPdb(Pdb):
         print(f"{t.error}", end="")
         t.print('***', msg, file=self.stdout)
     def do_clr(self, var):
-        'Toggle colorizing'
-        color_choice() if var else NoColors()
+        'Set colorizing:  0 = None, 1 = Plain, 2 = Fancy'
+        try:
+            value = int(var)
+        except Exception:
+            value = 1
+        if value == 0:
+            NoColors()
+        elif value == 1:
+            Plain()
+        elif value == 2:
+            Fancy()
+        else:
+            print("value must be 0 (no color), 1 (plain), or 2 (fancy)")
 
 def set_trace(*, header=None):
     pdb = DPdb()
