@@ -38,11 +38,9 @@ if 1:   # Global variables
 
     manual = dedent('''
     NAME
-        fld -- manipulate fields of a text stream
-
+        fld -- manipulate fields of stdin
     SYNOPSIS
         fld [options] [X1 [X2 ...]]
-
     DESCRIPTION
         This program will print selected fields from an input text stream.
         The fields' order can be rearranged from the original stream's
@@ -71,8 +69,8 @@ if 1:   # Global variables
 
         Any referenced fields that are not present are ignored.
 
-        Note that the default field separator is whitespace.  This means a line
-        such as
+        Note that the default field separator is whitespace.  This means a
+        line such as
 
             "This    \\t   is  \\t a line"
 
@@ -83,52 +81,51 @@ if 1:   # Global variables
         If that is not the behavior you want, then you'll want to use the -i
         option to specify a python regular expression to use to delimit the
         fields.
-
     OPTIONS
-    -i regexp
-        Specifies an input field separator regular expression that
-        overrides the default of whitespace("[ \t]+").  The regular
-        expression syntax is that of python's re module.
-    -I
-        Make the -i option's regular expressions case-insensitive.
-    -l string
-        Trims any characters in string from the left side of each field.
-    -n string
-        Fields are fixed-width and string contains a list of the starting
-        column numbers (1-based).  Any non-numeric characters can separate
-        the column numbers.  This can be used to change a fixed-width data
-        file to a string-separated form.  Trailing whitespace will be
-        stripped from the fields.  The field numbers will be sorted, so
-        they can be supplied in any order.
-    -m string
-        The output will be in fixed-width form; the field widths are given
-        in the same format as in the column numbers in the -n option.  If
-        you don't specify enough field widths, the remaining fields will
-        not be printed, even though they were specified on the command
-        line.  If a field won't fit into the stated space, it will be
-        truncated; if you want to know about this condition, use the -t
-        option.  Fields that are shorter than the corresponding length
-        will be padded with space characters.
-    -M
-        The output will be in fixed-width form; the field widths will be
-        determined by the largest fields.
-    -o string
-        Specifies the output field separator string.  The default is the
-        tab character.
-    -r string
-        Trims any characters in string from the right side of each field.
-    -R
-        Reverses the sense of all fields printed.
-    -s
-        Cause a fatal error if all the input records are not of the same
-        length (i.e., the length of field 1 doesn't need to match field 2,
-        but the first field on all lines must be the same length).
-    -t
-        If the -m option was used and any fields needed to be truncated,
-        print the line numbers that were truncated to stderr when finished.
-    -w
-        Strips whitespace from both ends of each line read before parsing.
-
+        -i regexp
+            Specifies an input field separator regular expression that
+            overrides the default of whitespace("[ \t]+").  The regular
+            expression syntax is that of python's re module.
+        -I
+            Make the -i option's regular expressions case-insensitive.
+        -l string
+            Trims any characters in string from the left side of each field.
+        -n string
+            Fields are fixed-width and string contains a list of the
+            starting column numbers (1-based).  Any non-numeric characters
+            can separate the column numbers.  This can be used to change a
+            fixed-width data file to a string-separated form.  Trailing
+            whitespace will be stripped from the fields.  The field numbers
+            will be sorted, so they can be supplied in any order.
+        -m string
+            The output will be in fixed-width form; the field widths are
+            given in the same format as in the column numbers in the -n
+            option.  If you don't specify enough field widths, the
+            remaining fields will not be printed, even though they were
+            specified on the command line.  If a field won't fit into the
+            stated space, it will be truncated; if you want to know about
+            this condition, use the -t option.  Fields that are shorter
+            than the corresponding length will be padded with space
+            characters.
+        -M
+            The output will be in fixed-width form; the field widths will be
+            determined by the largest fields.
+        -o string
+            Specifies the output field separator string.  The default is the
+            tab character.
+        -r string
+            Trims any characters in string from the right side of each field.
+        -R
+            Reverses the sense of all fields printed.
+        -s
+            Cause a fatal error if all the input records are not of the same
+            length (i.e., the length of field 1 doesn't need to match field 2,
+            but the first field on all lines must be the same length).
+        -t
+            If the -m option was used and any fields needed to be truncated,
+            print the line numbers that were truncated to stderr when finished.
+        -w
+            Strips whitespace from both ends of each line read before parsing.
     EXAMPLES
         * Delimited files
             Suppose you have the single input line
@@ -157,7 +154,6 @@ if 1:   # Global variables
             Note that the last specified field #1 would not be printed.  If
             this is not what you want, read the comments in PrintOutputLine
             and comment out the line that does the truncation.
-
     DIAGNOSTICS
         0  Successful completion.
         1  Failure.
@@ -172,8 +168,13 @@ def Usage(status=1):
     name = sys.argv[0]
     print(dedent(f'''
     Usage:  {name} [options] field-specifiers
-      Use -h to get a more detailed manual printed to stdout.
-      Use -f file to specify the file to input from.  Use '-' for stdin.
+      Pick out 1-based number fields of a stream.  Example:
+        fld -f - 3 1 
+      gets fields 3 and 1 from stdin and sends them to stdout.
+      Fields are split by default on python's re whitespace.
+      -f is to specify the file to read; '-' means stdin.  Use
+      -i to specifiy a regexp to split the fields.
+      Use -h to get a more detailed manual.
       '''))
     exit(status)
 def GetFieldWidthNumbers(field_width_specs):
@@ -467,7 +468,7 @@ def GetLines(settings):
     return lines
 if __name__ == "__main__": 
     settings = {
-        "file"                      : "",           # -f
+        "file"                      : "-",          # -f
         "input regexp"              : "[ \t]+",     # -i
         "case sensitivity"          : True,         # -I
         "trim left"                 : "",           # -l
@@ -495,3 +496,4 @@ if __name__ == "__main__":
     for line in output:
         PrintOutputLine(line, settings)
     PrintTruncation(settings)
+    D

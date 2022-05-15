@@ -1,13 +1,11 @@
 Active
     
-    - debug.py
-        - Write a function that does a color dump of stack() to stdout.
-          This would be handy to get a detailed picture of a current state.
-
     - dpdb.py
         - In some lwtest tests, I've seen the Assert function fail to allow
           the debugger to start.  Maybe this is a symptom of the same
           problem and could be similarly fixed.
+        - Add the o command which will dump the locals in a function.
+          Color code the types.
 
     - color.py
         - Rather serious bug:  c = Color('mag'); c1 = Color(c.xhls); C !=

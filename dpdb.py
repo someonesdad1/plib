@@ -3,6 +3,7 @@
         - 
 
     - Todo
+        - o command:  dump local variables
         - Make sure a deep backtrace is readable
         - See if r vs s behavior can be changed or toggled
 
@@ -56,9 +57,13 @@ import linecache
 import re
 import os
 import sys
+import inspect
 from wrap import dedent
-from color import Color, TRM as t, RegexpDecorate
+from color import Color, Trm, TRM as t, RegexpDecorate
 from pathlib import Path
+from collections import deque
+from f import flt, cpx
+from decimal import Decimal
 if 1:   # Functions to set up colorizing strings
     def All():
         'Fancier set of colors'
@@ -86,11 +91,13 @@ if 1:   # Functions to set up colorizing strings
         t.function = ""
         t.error = ""
         t.ret = ""
+if 1:   # Global variables
     color_choice = LineNumOnly
     color_choice()
-# Set to True to see each line's repr() string
-dbg = len(sys.argv) > 1
-dbg = 0
+    # Set to True to see each line's repr() string
+    dbg = len(sys.argv) > 1
+    dbg = 0
+    ii = isinstance
 if 1:   # Regular expressions
     # Identify current line in list command.  'B' can be in the string
     # if the line is a breakpoint.  Pdb.do_list() indicates '>>' can be
@@ -215,21 +222,97 @@ class DPdb(Pdb):
             t.print(f"{t.current_line}{remainder}")
         def do_clr(self, var):
             'Set colorizing:  0 = None, 1 = line number, 2 = all'
+            global color_choice
             try:
                 value = int(var)
             except Exception:
                 value = 1
             if value == 0:
                 NoColors()
+                color_choice = NoColors
             elif value == 1:
                 LineNumOnly()
+                color_choice = LineNumOnly
             elif value == 2:
                 All()
+                color_choice = All
             else:
                 print("value must be 0 (no color), 1 (line number), or 2 (all)")
         def do_cls(self, arg):
             'Clear the screen'
             print("\x1b[H\x1b[2J\x1b[3J")
+        def do_o(self, arg):
+            'Dump local variables'
+            # Define our own colors
+            t = Trm()
+            c = color_choice != NoColors
+            t.title = t("whtl") if c else ""
+            t.bool = t("lipl") if c else ""
+            t.float = t("ornl") if c else ""
+            t.flt = t("yell") if c else ""
+            t.cpx = t("royl") if c else ""
+            t.int = t("grnl") if c else ""
+            t.Decimal = t("magl") if c else ""
+            t.string = t("sky") if c else ""
+            t.bytes = t("trq") if c else ""
+            t.bytearray = t("lwnl") if c else ""
+            t.N = t.n if c else ""
+            # Get list of FrameInfo objects
+            st = inspect.stack()
+            # Pop off items until we see a frame from bdb.py
+            fi = st.pop()
+            curr = st.pop()
+            while curr.function != "trace_dispatch":
+                fi = curr
+                curr = st.pop()
+            # Get stack frame into fr
+            fr = fi.frame
+            # Get the local variable dictionary
+            di = fr.f_locals
+            if not di:
+                print("No local variables")
+                return
+            print(f"{t.title}Local variables:{t.N}")
+            # Get length of longest name
+            w = max(len(i) for i in di)
+            # Print the variables
+            for name in sorted(di):
+                self.Decorate(name, di[name], t, w)
+            breakpoint()
+            # Print a key
+            if c:
+                t.print(f"Color coding:  ", end="")
+                print(f"{t.int}int{t.N} "
+                      f"{t.float}float{t.N} "
+                      f"{t.flt}flt{t.N} "
+                      f"{t.cpx}cpx{t.N} "
+                      f"{t.Decimal}Decimal{t.N} "
+                      f"{t.string}str{t.N} "
+                      f"{t.bool}bool{t.N} "
+                      f"{t.bytes}bytes{t.N} "
+                      f"{t.bytearray}bytearray{t.N} "
+                     )
+        def Decorate(self, name, val, t, w):
+                c = ""
+                if ii(val, bool):
+                    c = t.bool
+                elif ii(val, int):
+                    c = t.int
+                elif ii(val, flt):
+                    c = t.flt
+                elif ii(val, cpx):
+                    c = t.cpx
+                elif ii(val, float):
+                    c = t.float
+                elif ii(val, Decimal):
+                    c = t.Decimal
+                elif ii(val, str):
+                    c = t.string
+                elif ii(val, bytes):
+                    c = t.bytes
+                elif ii(val, bytearray):
+                    c = t.bytearray
+                print(f"  {c}{name:{w}s} = {val}{t.N}")
 def set_trace(*, header=None):
     pdb = DPdb()
     if header is not None:
