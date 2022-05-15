@@ -1,7 +1,13 @@
 '''
+
+- Look at making AutoIndent a context manager.  Then something like
+    with AutoIndent() as f:
+        do stuff
+  and reconnection of stdout would be automatic.
+
 Debugging tools
     Set debug.on to True to debug.
-
+ 
     Trace
         Function decorator to show function calls with their parameters.
     
@@ -62,9 +68,12 @@ if 1:   # Header
         import bdb
         import pdb
         from inspect import stack
+        from collections import deque
         from pdb import set_trace as xx 
     # Custom imports 
         from util import IsIterable
+        from wrap import dedent
+        from color import Color, Trm, TRM as t
         try:
             import dpdb
             have_dpdb = True
@@ -72,21 +81,6 @@ if 1:   # Header
         except ImportError:
             have_dpdb = False
             xx = pdb.set_trace
-        if 1:
-            from color import Color, TRM as t
-        else:
-            try:
-                import kolor as c
-            except ImportError:
-                # Make c a class that will swallow all color calls/references
-                class C:
-                    def __getattr__(self, x):
-                        pass
-                    def fg(self, *p, **kw):
-                        pass
-                    def normal(self):
-                        pass
-                c = C()
     # Global variables
         # dash_O_on = True  ==> Use python -O to turn debugging on.
         # dash_O_on = False ==> Use python -O to turn debugging off.
@@ -465,39 +459,18 @@ class AutoIndent(object):
         sys.stdout = AutoIndent()
         print(msg)
     which sends the printed messages through the AutoIndent object to
-    be indented based on the stack depth.
- 
-    The code:
-        def i():
-            print("Entered i()")
-            print("Do some things...")
-            print("Leaving i()")
-        def h():
-            print("Entered h()")
-            i()
-            print("Leaving h()")
-        def g():
-            print("Entered g()")
-            h()
-            print("Leaving g()")
-        sys.stdout = AutoIndent()
-        print("Beginning level")
-        g()
-    will result in the following output
-        Beginning level
-        Entered g()
-            Entered h()
-                Entered i()
-                Do some things...
-                Leaving i()
-            Leaving h()
-        Leaving g()
+    be indented based on the stack depth.  Run this file as a script to see
+    the example.
     '''
     def __init__(self, stream=sys.stdout, indent=4, ansi=False):
         '''stream is where you want the information to be sent.
         indent is either the number of spaces or a string to use for
         each indent level.  If ansi is True, then handle incoming
         strings with ANSI escape sequences for color specially.
+         
+        A handy value for indent is e.g. '|   ', as the vertical bar
+        symbols will help you line up the indent levels.  This can be
+        helpful for deeply-nested programs.
         '''
         self.stream = stream
         self.depth = len(stack())
@@ -523,6 +496,33 @@ class AutoIndent(object):
         self.stream.write(data)
     def flush(self):
         self.stream.flush()
+def DumpStack(stream=sys.stdout):
+    'Print a colorized version of the stack to a stream'
+    def DumpFrameInfo(framenum, fi, t):
+        parens = "" if fi.function.startswith("<") else "()"
+        print(f"{t.frame}Frame {framenum}{t.n} "
+            f"{t.filename}{fi.filename}{t.n}:"
+            f"{t.lineno}{fi.lineno}{t.n} "
+            f"{t.function}{fi.function}{parens}{t.n}")
+        print(f"  Code:  {t.code}{fi.code_context[0].strip()!r}{t.n}")
+    t = Trm()
+    t.always = True
+    t.title = t("purl")
+    t.frame = t("whtl")
+    t.filename = t("yell")
+    t.lineno = t("magl")
+    t.function = t("cynl")
+    t.code = t("sky")
+    stk = deque(stack())
+    n = len(stk) - 1
+    print(f"{t.title}Stack dump{t.n}")
+    # Get rid of this function's frame
+    stk.popleft()
+    count = 1
+    while stk:
+        fi = stk.popleft()
+        DumpFrameInfo(n - count, fi, t)
+        count += 1
 
 if __name__ == "__main__":
     from wrap import dedent
@@ -541,7 +541,7 @@ if __name__ == "__main__":
             # 'data' in blue.
             hl = {"thing": "yell", "data": "roy"}
             DumpException(fr_ignore=[0], hl=hl)
-
+ 
     # Print samples to stdout.  After seeing the behavior, set the global
     # variable on to False (uncomment the next line) to see the debug
     # printing turned off.
@@ -553,7 +553,7 @@ if __name__ == "__main__":
     if 1:   # watch and trace
         print(dedent(f'''
         {t.ti}watch() and trace(){t.n}
-
+ 
         These function calls can be put inside functions to allow you to
         watch how objects change their values.  Note the convenience of
         colorizing the output (you could add logic that changed the color
@@ -575,24 +575,24 @@ if __name__ == "__main__":
     if 1:   # Demonstrate an unhandled exception
         print(dedent(f'''
         {t.ti}Demonstrate an unhandled exception{t.n}
-
+ 
         This example shows how DumpException() prints a backtrace followed by
         printing the local variables for each of the stack frames.  If you have
         the color.py module, you'll see the variables 'data' and 'thing'
         highlighted in color.
-
+ 
         '''))
         TestDump()
         Sep()
     if 1:   # Demonstrate tracing to a stream
         print(dedent(f'''
         {t.ti}Demonstrate tracing to a stream{t.n}
-
+ 
         This example shows how @ShowFunctionCall decorates a function to allow
-        function calls and their return values to be documented.  If the global
+        function calls and their return values to be monitored.  If the global
         variable enable_tracing is False, there's no output and little overhead
         is added.
-
+ 
         '''))
         enable_tracing = True
         debug_log = sys.stdout
@@ -605,6 +605,19 @@ if __name__ == "__main__":
             Square_x_and_add_y(4, y=5)
         enable_tracing = False
         Sep()
+    if 1:   # DumpArgs function
+        print(dedent(f'''
+        {t.ti}DumpArgs function demo{t.n}
+ 
+        The following code demonstrates the DumpArgs function, a
+        decorator that will dump a function's arguments.
+ 
+        '''))
+        @DumpArgs
+        def func(a, b):
+            print("  Inside func:  a =", a)
+            print("  Inside func:  b =", b)
+        func(2, 3)
     if 1:   # Demonstrate auto indenting
         print(dedent(f'''
         {t.ti}Autoindent example{t.n}
@@ -614,19 +627,23 @@ if __name__ == "__main__":
         going to that stream.  Then strings sent to stdout are indented
         based on the current stack frame depth.  If you're able to see
         color, note one of the messages is in color; this is helpul to
-        focus your attention on a particular function.
+        focus your attention on a particular function.  Also note there's a
+        call to StackDump() in the function C().
         
-        An advantage of using Autoindent is that you only need to make the
-        call shown in the first line; thereafter, all text going to stdout
-        is indented by the stack frame's depth.  Make sure to un-redirect
-        stdout when you're finished or the subsequent code will be messed
-        up.
+        An advantage of using Autoindent is that you only need two lines
+
+            Disconnect stdout:
+                sys.stdout = AutoIndent(indent="|   ")
+            Reconnect stdout:
+                sys.stdout = sys.__stdout__
+
+        Thereafter, all text going to stdout is indented by the stack
+        frame's depth.
         
         Autoindent isn't affected by debug.on.
-
+ 
         '''))
-        old_stdout = sys.stdout
-        sys.stdout = AutoIndent(indent="|   ")
+        sys.stdout = AutoIndent(indent=f"{t('sky')}|{t.n}   ")
         def A():
             print("Entered A()")
             print("Do something...")
@@ -640,21 +657,9 @@ if __name__ == "__main__":
         def C():
             print("Entered C()")
             print(f"{t('grnl')}Do something...{t.n}")
+            DumpStack()
             print("Leaving C()")
         A()
         # Remember to reconnect old stream
-        sys.stdout = old_stdout
+        sys.stdout = sys.__stdout__
         Sep()
-    if 1:   # DumpArgs function
-        print(dedent(f'''
-        {t.ti}DumpArgs function demo{t.n}
-
-        The following code demonstrates the DumpArgs function, a
-        decorator that will dump a function's arguments.
-
-        '''))
-        @DumpArgs
-        def func(a, b):
-            print("  Inside func:  a =", a)
-            print("  Inside func:  b =", b)
-        func(2, 3)

@@ -1,4 +1,13 @@
 Active
+    
+    - debug.py
+        - Write a function that does a color dump of stack() to stdout.
+          This would be handy to get a detailed picture of a current state.
+
+    - dpdb.py
+        - In some lwtest tests, I've seen the Assert function fail to allow
+          the debugger to start.  Maybe this is a symptom of the same
+          problem and could be similarly fixed.
 
     - color.py
         - Rather serious bug:  c = Color('mag'); c1 = Color(c.xhls); C !=
@@ -32,27 +41,6 @@ Active
 
 Want
     
-    - debug.py
-        - AutoIndent
-            - Fix handling of esc sequences.  Then user code could be
-              colorized to help with visualization.  
-            - Maybe no handling is needed, at least for indentation.
-            - Could be nice to have graphical help like tree does so you
-              can trace indentation levels.
-        - Experiment to see if there's some way of forcing things to work
-          when things like unittest capture the standard streams.  Note
-          that sys.__stdout__ etc. contain the original values at the start
-          of the program.  If they are not None, this could be a way to fix
-          the issues.
-        - Maybe SetDebugger() can contain a keyword argument called force
-          that forces redefinition of the standard streams back to their
-          defaults.
-        - In some lwtest tests, I've seen the Assert function fail to allow
-          the debugger to start.  Maybe this is a symptom of the same
-          problem and could be similarly fixed.
-        - Write a function that does a color dump of stack() to stdout.
-          This would be handy to get a detailed picture of a current state.
-
     - pgm/ddiff.py needs to be converted to use color.py
 
     - /pylib/pgm/xyz.py
