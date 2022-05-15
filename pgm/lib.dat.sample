@@ -1,0 +1,48 @@
+remove ; Text ; python
+Returns a function that will removed given characters from a string
+Python 2:
+    def remove(chars):
+        '''Returns a function that will remove the indicated characters from
+        a string.
+        '''
+        return lambda x:  x.translate(None, chars)
+Python 3:
+    def remove(chars, di={}, replace=False):
+        '''Returns a function that will remove the indicated characters from
+        a string.  You can pass in the dictionary di, which will be updated
+        to include all the characters from chars each call.  If replace is
+        True, then a space character replaces the letters to be removed
+        (this is useful when e.g. parsing code for its words).
+ 
+        Example to remove vowels and punctuation:
+            d, vowels = {}, "aeiou"
+            remove(vowels, di=d)
+            remove(vowels.upper(), di=d)
+            f = remove(string.punctuation, di=d)
+        '''
+        # Note:  this implementation is about 20% faster than using
+        # re.sub as is done in the keep() function.
+        #
+        # Another approach:  
+        #    f = lambda x: x not in set(chars_to_remove)
+        #    ''.join(itertools.filterfalse(f, chars))
+        for i in set(chars):
+            # str.translate takes dict with ordinals as keys; None => delete
+            di[ord(i)] = None
+        return lambda x: x.translate(di)
+
+@@--------------------------------------------------------------------
+
+repl ; Text ; python
+Replace patterns with dictionary entries
+import re
+
+def MultipleReplace(string, d):
+    '''Performs multiple replacements of given patterns in a chunk 
+    of text.  The patterns are the keys to the dictionary d and the
+    values are the replacement text.  page 88 of Python Cookbook.
+    '''
+    # Regexp from all keys
+    r = re.compile("|".join(map(re.escape, d.keys())))
+    # For each match, look up the corresponding value in the dict.
+    return r.sub(lambda match: d[match.group(0)], string)

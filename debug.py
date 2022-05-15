@@ -57,12 +57,14 @@ if 1:   # Header
         import types
         import sys
         import traceback as TB
+        import os
         import re
         import bdb
         import pdb
         from inspect import stack
         from pdb import set_trace as xx 
     # Custom imports 
+        from util import IsIterable
         try:
             import dpdb
             have_dpdb = True
@@ -70,18 +72,21 @@ if 1:   # Header
         except ImportError:
             have_dpdb = False
             xx = pdb.set_trace
-        try:
-            import kolor as c
-        except ImportError:
-            # Make c a class that will swallow all color calls/references
-            class C:
-                def __getattr__(self, x):
-                    pass
-                def fg(self, *p, **kw):
-                    pass
-                def normal(self):
-                    pass
-            c = C()
+        if 1:
+            from color import Color, TRM as t
+        else:
+            try:
+                import kolor as c
+            except ImportError:
+                # Make c a class that will swallow all color calls/references
+                class C:
+                    def __getattr__(self, x):
+                        pass
+                    def fg(self, *p, **kw):
+                        pass
+                    def normal(self):
+                        pass
+                c = C()
     # Global variables
         # dash_O_on = True  ==> Use python -O to turn debugging on.
         # dash_O_on = False ==> Use python -O to turn debugging off.
@@ -90,6 +95,8 @@ if 1:   # Header
         enable_tracing = False
         if enable_tracing:
             debug_log = open("debug.log", "wb")
+        ii = isinstance
+        w = int(os.environ.get("COLUMNS", "80")) - 1
 class Trace:
     '''Function decorator to print the entry and exit of function calls
     to a stream.  Each nested call results in indentation to help you
@@ -139,7 +146,6 @@ class Trace:
             return self.func(*p, **kw)
 def watch(variables, color=None, stream=sys.stdout):
     '''Watch a variable; variables must be a sequence of variable names.
-    You can set the color if the color.py module has been loaded.
     Example:
         def test1():
             x = 17
@@ -148,34 +154,71 @@ def watch(variables, color=None, stream=sys.stdout):
     will print e.g.
         debug.py[384] in test1:  x <int> = 17
     Keywords:
-        color  = color.py module's color to print message in
+        color  = None, a string that either names a color or is an ANSI escape
+                 string, or a Color instance.
         stream = stream to print the information to
+ 
+    See http://code.activestate.com/recipes/52314; also
+    pg 427 of Python Cookbook.
     '''
-    # See http://code.activestate.com/recipes/52314; also
-    # pg 427 of Python Cookbook.
+    assert(IsIterable(variables)) 
+    assert(color is None or ii(color, str) or ii(color, Color))
+    assert(hasattr(stream, "write"))
     def GetVariableNames(s):
-        '''s is a string of the form 'watch(x, y, color=c.lgreen)'.
+        '''s is a string of the form 'watch([x, y], color=c)'.
         Extract the names of the nonkeyword parameters and return as a
         list of strings.
+ 
+        Some possible forms of s are
+            'watch((x,))'
+            'watch((x,), color="xxx")'
+            'watch([x,])'
+            'watch([x,], color="xxx")'
+            'watch((x, y))'
+            'watch((x, y), color="xxx")'
+            'watch([x, y])'
+            'watch([x, y], color="xxx")'
+        The first four forms need to return ("x",) or ["x"]; the second
+        four need to return ("x", "y") or ["x", "y"].
         '''
-        lparen = s.find("(")
-        t = s[lparen + 1:]
-        rparen = t.find(")")
-        u = t[:rparen]
-        return [i.strip() for i in u.split(",") if "=" not in i]
+        # Remove 'watch(' and trailing ')'
+        u = s[6:-1]
+        # Get rid of 'color' part
+        if '=' in u:
+            u = u.split("=")[0].rstrip()
+            assert(u.endswith("color"))
+            u = u[:-5].rstrip()
+            assert(u[-1] == ",")
+            u = u[:-1]
+        u = u.strip()
+        # Now u is the string of a tuple or list.  Remove the first and
+        # last characters and we have a comma-separated list of variable
+        # names.
+        u = u[1:-1]
+        v = [i.strip() for i in u.split(",") if i.strip()]
+        return v
     if (((__debug__ and not dash_O_on) or
             (not __debug__ and dash_O_on)) and on):
         fn, ln, method, call = TB.extract_stack()[-2:][0]
         names = GetVariableNames(call)
-        fmt = "{fn}[{ln}] in {method}:  {name} <{vartype}> = {value}\n"
         if stream == sys.stdout and color is not None:
-            c.fg(color)
+            if ii(color, str):
+                # It's a color name or hex string or an ANSI escape sequence
+                if "\x1b" in color:
+                    print(color, end="")
+                else:
+                    print(t(color), end="")
+            elif ii(color, Color):
+                print(f"t(color)", end="")
+            else:
+                raise TypeError(f"'{color}' is not a string or Color instance")
         for name, value in zip(names, variables):
             vartype = str(type(value))[8:-2]
             value = repr(value)
-            stream.write(fmt.format(**locals()))
+            s = f"{fn}[{ln}] in {method}:  {name} <{vartype}> = {value}\n"
+            stream.write(s)
         if stream == sys.stdout and color is not None:
-            c.normal()
+            print(f"{t.n}", end="")
 def trace(msg, color=None, stream=sys.stdout):
     '''Print a trace message.  You can set the color if the color.py
     module has been loaded.  Example:
@@ -205,7 +248,7 @@ def DumpException(fr_include=None, fr_ignore=None,
     used in a try/except block to print the details of an unhandled
     exception.  The keyword parameters give control over what is
     printed and how it's displayed.
-
+ 
     Note it always works, regardless of debug.on's value.
  
     num_levels
@@ -240,7 +283,7 @@ def DumpException(fr_include=None, fr_ignore=None,
         - To see levels 1, 2, and 3 only, use 'include=range(1, 4)'.
         - To see levels 1 and 3 only, use 'include=(1, 3)'.
         - To see any variables named 'alpha' in yellow on black, set
-          hl={"alpha" : (c.yellow, c.black)}.
+          hl={"alpha" : (Color("yel"), Color("blk"))}.
     '''
     # Derived from Bryn Keller's 7 Mar 2001 post at
     # http://code.activestate.com/recipes/52215.  Also see pg 431 of
@@ -248,10 +291,10 @@ def DumpException(fr_include=None, fr_ignore=None,
     #
     # Dump the exception
     if stream == sys.stdout:
-        c.fg(c.lred, c.black)
+        print(f"{t('redl', 'blk')}", end="")
     print("Unhandled exception:", file=stream)
     if stream == sys.stdout:
-        c.normal()
+        print(f"{t.n}", end="")
     for line in TB.format_exc().split("\n"):
         print(" ", line, file=stream)  # Indent the stack trace
     # Get the needed traceback info
@@ -278,19 +321,19 @@ def DumpException(fr_include=None, fr_ignore=None,
     if ((fr_include is not None and len(fr_include)) or
             (fr_ignore is not None and len(fr_ignore)) or num_levels):
         if stream == sys.stdout:
-            c.fg(c.lred, c.black)
+            print(f"{t('redl', 'blk')}", end="")
         print(m1, end="", file=stream)
         if stream == sys.stdout:
-            c.normal()
+            print(f"{t.n}", end="")
         print(m2 % "stack frames", file=stream)
     # Print a note if not all locals are shown
     if ((var_include is not None and len(var_include)) or
             (var_ignore is not None and len(var_ignore)) or num_levels):
         if stream == sys.stdout:
-            c.fg(c.lred, c.black)
+            print(f"{t('redl', 'blk')}", end="")
         print(m1, end="", file=stream)
         if stream == sys.stdout:
-            c.normal()
+            print(f"{t.n}", end="")
         print(m2 % "local variables", file=stream)
     levels_printed = 0
     for i, frame in enumerate(frames):
@@ -314,8 +357,11 @@ def DumpException(fr_include=None, fr_ignore=None,
             try:  # Catch any new errors
                 print("  ", end="", file=stream)
                 if key in hl:
+                    # hl is dict like {'thing': 'yell', 'data': 'blul'}.
+                    # Values can also be Color instances.
                     if stream == sys.stdout:
-                        c.fg(hl[key])
+                        c = hl[key]
+                        print(f"{t(c)}", end="")
                 # We handle a variable named 'buffer' specially, as it
                 # could contain binary data that hangs a shell window.
                 if key.lower() in ("buf", "buff", "buffer"):
@@ -328,28 +374,13 @@ def DumpException(fr_include=None, fr_ignore=None,
                 else:
                     print("%s = %s" % (key, str(value)), file=stream)
                 if stream == sys.stdout:
-                    c.normal()
+                    print(f"{t.n}", end="")
             except Exception as e:
                 print("<Error '%s' while printing value for '%s'>" %
                       (str(e), key), file=stream)
         levels_printed += 1
         if num_levels and levels_printed >= num_levels:
             break
-def TestDump():
-    data = ["1", "2", 3, "4"]
-    def pad4(seq):
-        return_value = []
-        for thing in seq:
-            # Will get exception on third element
-            return_value.append("0" * (4 - len(thing)) + thing)
-        return return_value
-    try:
-        pad4(data)
-    except Exception:
-        # Highlight the variable 'thing' in yellow and the variable
-        # 'data' in blue.
-        hl = {"thing": c.yellow, "data": c.lblue}
-        DumpException(fr_ignore=[0], hl=hl)
 def TraceInfo(type, value, traceback):
     '''Start the debugger after an uncaught exception.  From Thomas
     Heller's post on 22 Jun 2001 http://code.activestate.com/recipes/65287
@@ -386,7 +417,7 @@ def DumpArgs(func):
     '''Decorator to dump a function's arguments to show how the function
     was called.  From
     http://wiki.python.org/moin/PythonDecoratorLibrary.
-
+ 
     Note the global variable must not be None and contain a stream
     for this to work.
     '''
@@ -462,14 +493,13 @@ class AutoIndent(object):
             Leaving h()
         Leaving g()
     '''
-    def __init__(self, stream=sys.stdout, indent=4, ansi=True):
+    def __init__(self, stream=sys.stdout, indent=4, ansi=False):
         '''stream is where you want the information to be sent.
         indent is either the number of spaces or a string to use for
         each indent level.  If ansi is True, then handle incoming
         strings with ANSI escape sequences for color specially.
         '''
         self.stream = stream
-        xx()
         self.depth = len(stack())
         self.indent = " "*indent if isinstance(indent, int) else indent
         self.ansi = False
@@ -482,7 +512,7 @@ class AutoIndent(object):
     def write(self, data):
         # Note we intercept ANSI escape codes when data is a string
         # and send them on unindented.
-        if isinstance(data, str) and self.ansi:
+        if 0 and isinstance(data, str) and self.ansi:
             mo = self.ansi.search(data)
             if mo:
                 self.stream.write(data)
@@ -493,34 +523,59 @@ class AutoIndent(object):
         self.stream.write(data)
     def flush(self):
         self.stream.flush()
+
 if __name__ == "__main__":
     from wrap import dedent
-    # Print samples to stdout.  Set the global variable on to False to
-    # see the debug printing turned off.
+    def TestDump():
+        data = ["1", "2", 3, "4"]
+        def pad4(seq):
+            return_value = []
+            for thing in seq:
+                # Will get exception on third element
+                return_value.append("0" * (4 - len(thing)) + thing)
+            return return_value
+        try:
+            pad4(data)
+        except Exception:
+            # Highlight the variable 'thing' in yellow and the variable
+            # 'data' in blue.
+            hl = {"thing": "yell", "data": "roy"}
+            DumpException(fr_ignore=[0], hl=hl)
+
+    # Print samples to stdout.  After seeing the behavior, set the global
+    # variable on to False (uncomment the next line) to see the debug
+    # printing turned off.
     #on = False
-    sep = "="*70
-    if 1:   # Watch and trace
-        print(dedent('''
-        Watch and trace functions:  these function calls can be put inside
-        functions to allow you to watch how objects change their values.
-        Note the convenience of colorizing the output (you could add logic
-        that changed the color if a certain condition was true).
+    def Sep():
+        t.print(f"{t('purl')}{'='*(w - 10)}")
+    t.ti = t("brnl")
+    Sep()
+    if 1:   # watch and trace
+        print(dedent(f'''
+        {t.ti}watch() and trace(){t.n}
+
+        These function calls can be put inside functions to allow you to
+        watch how objects change their values.  Note the convenience of
+        colorizing the output (you could add logic that changed the color
+        if a certain condition was true).
         
         '''))
         def test1():
             x, y = 17, -44.3
-            watch([x, y], color=c.lgreen)
+            watch((x, y), color="grnl")
             trace("Trace message")
         class A:
             def f(self):
                 s = "a string"
-                watch(s, color=c.lmagenta)
+                watch((s,), color="magl")
         test1()
         a = A()
         a.f()
-        print(sep)
+        Sep()
     if 1:   # Demonstrate an unhandled exception
-        print(dedent('''
+        print(dedent(f'''
+        {t.ti}Demonstrate an unhandled exception{t.n}
+
         This example shows how DumpException() prints a backtrace followed by
         printing the local variables for each of the stack frames.  If you have
         the color.py module, you'll see the variables 'data' and 'thing'
@@ -528,9 +583,11 @@ if __name__ == "__main__":
 
         '''))
         TestDump()
-        print(sep)
+        Sep()
     if 1:   # Demonstrate tracing to a stream
-        print(dedent('''
+        print(dedent(f'''
+        {t.ti}Demonstrate tracing to a stream{t.n}
+
         This example shows how @ShowFunctionCall decorates a function to allow
         function calls and their return values to be documented.  If the global
         variable enable_tracing is False, there's no output and little overhead
@@ -547,9 +604,10 @@ if __name__ == "__main__":
             Square_x_and_add_y(4, 5)
             Square_x_and_add_y(4, y=5)
         enable_tracing = False
-        print(sep)
+        Sep()
     if 1:   # Demonstrate auto indenting
-        print(dedent('''    Autoindent example
+        print(dedent(f'''
+        {t.ti}Autoindent example{t.n}
         
         This example demonstrates the use of the AutoIndent object.  The
         object is used to replace sys.stdout and, thus, intercepts calls
@@ -568,7 +626,7 @@ if __name__ == "__main__":
 
         '''))
         old_stdout = sys.stdout
-        sys.stdout = AutoIndent()
+        sys.stdout = AutoIndent(indent="|   ")
         def A():
             print("Entered A()")
             print("Do something...")
@@ -581,15 +639,16 @@ if __name__ == "__main__":
             print("Leaving B()")
         def C():
             print("Entered C()")
-            c.fg(c.lgreen)
-            print("Do something...")
-            c.normal()
+            print(f"{t('grnl')}Do something...{t.n}")
             print("Leaving C()")
         A()
-        print(sep)
+        # Remember to reconnect old stream
         sys.stdout = old_stdout
-    if 1:   # Demonstrate an unhandled exception
-        print(dedent('''
+        Sep()
+    if 1:   # DumpArgs function
+        print(dedent(f'''
+        {t.ti}DumpArgs function demo{t.n}
+
         The following code demonstrates the DumpArgs function, a
         decorator that will dump a function's arguments.
 
