@@ -1,29 +1,26 @@
 '''
-    - Bugs
-        - 
-
     - Todo
-        - o command:  dump local variables
-        - Make sure a deep backtrace is readable
         - See if r vs s behavior can be changed or toggled
-
 
 This module colorizes parts of the python debugger output using the
 color.py module.  Features:
     - Added the 'cls' command to clear the screen
-    - The three colorizations I wanted were:
+    - Added the 'o' command to dump local variables and colorize the types.
+      Things like lists, sets, dicts, etc. are not colorized because their
+      type is obvious from their display.
+    - The colorizations I wanted were:
         - The current line in a list command
         - Colorize the line number in the current line
         - Error messages 
-        - The 'clr' command can be used to choose the colorizing colors or turn
-        them off.
+        - The 'clr' command can be used to choose the colorizing colors or
+          turn them off.
  
     To use this to debug my code, I insert the line
  
         from dpdb import set_trace as xx 
  
-    in the code, then put 'xx()' where I want to debug (later python
-    versions use 'breakpoint' for this).
+    in the code, then put 'xx()' where I want to debug (python 3.7 and
+    later use 'breakpoint' for this).
  
     To avoid having to go too deep in the pdb/bdb code, I chose to use
     regular expressions to find the lines I wanted to colorize in the 
@@ -39,7 +36,7 @@ color.py module.  Features:
         - You can edit the pdb.py file to add commands.  For example, I use
           tbreak a lot and like to use tb for this like gdb works.  Go to
           the pdb source code and find 'def do_tbreak()'.  After the method
-          ends, add 'do_tb = do_tbreak' and now tb works and will be part
+          ends, add 'do_tb = do_tbreak' and now 'tb' works and will be part
           of the built-in commands.
             - Caution:  it's easy to go hog-wild adding new stuff.  You're
               then creating a mental dependency and you'll suffer if you
