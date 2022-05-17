@@ -1,6 +1,9 @@
 '''
     - Todo
         - See if r vs s behavior can be changed or toggled
+        - inspect has a number of functions that could be useful for a
+          command that's used to inspect an object:  it's source, docs,
+          etc.  Call the built-in pager to do this.
 
 This module colorizes parts of the python debugger output using the
 color.py module.  Features:
@@ -65,16 +68,16 @@ if 1:   # Functions to set up colorizing strings
     def All():
         'Fancier set of colors'
         t.current_line = t("cynl")
-        t.directory = t("brnl")
+        t.directory = t("gry")
         t.filename = t("trq")
-        t.linenum = t("yell")
+        t.linenum = t("grnl")
         t.function = t("lavl")
         t.error = t("redl")
         t.ret = t("viol")
     def LineNumOnly():
         'Minimal set of colors'
         t.current_line = t("cynl")
-        t.directory = t("wht")
+        t.directory = t("gry")
         t.filename = t("wht")
         t.linenum = t("grnl")
         t.function = t("wht")
@@ -89,7 +92,7 @@ if 1:   # Functions to set up colorizing strings
         t.error = ""
         t.ret = ""
 if 1:   # Global variables
-    color_choice = LineNumOnly
+    color_choice = All
     color_choice()
     # Set to True to see each line's repr() string
     dbg = len(sys.argv) > 1
@@ -259,9 +262,17 @@ class DPdb(Pdb):
             # Pop off items until we see a frame from bdb.py
             fi = st.pop()
             curr = st.pop()
+            nolocals = False
             while curr.function != "trace_dispatch":
                 fi = curr
-                curr = st.pop()
+                if st:
+                    curr = st.pop()
+                else:
+                    nolocals = True
+                    break
+            if nolocals:
+                print("No locals (probably had an exception)")
+                return
             # Get stack frame into fr
             fr = fi.frame
             # Get the local variable dictionary
@@ -277,7 +288,7 @@ class DPdb(Pdb):
                 self.Decorate(name, di[name], t, w)
             breakpoint()
             # Print a key
-            if c:
+            if arg and c:
                 t.print(f"Color coding:  ", end="")
                 print(f"{t.int}int{t.N} "
                       f"{t.float}float{t.N} "

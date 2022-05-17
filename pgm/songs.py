@@ -6,9 +6,9 @@ favorites = '''
 
 2nd movement Beethoven's 9th (written 1824)|iwIvS4yIThU|Genius
 Bad Romance|VCTOpdlZJ8U|PMJ & tap dancing (Sarah Reich) (singer is Telly Savalas' daughter)
-Catharsis (2013)|h3hlFAVV6aI|My beloved Sa-Sa|  Sally went to a fiddle camp in WA and learned this song.  When she returned, she said she knew I'd like.  She was right, as it's my favorite fiddle song.
+Catharsis (2013)|h3hlFAVV6aI|My beloved Sa-Sa|  Sally went to a fiddle camp in WA and learned this song.  When she returned, she said she knew I'd like it.  She was right, as it's my favorite fiddle song.
 Crazy (1961)|MbnrdCS57d0||Nobody sings it like Patsy Cline.
-Diamonds and Rust (1975)|2MSwBM_CbyY|Baez's best|  In the early to mid 1970's, I listened to KNBR every morning while working on my thesis (I did 1000 pages of hand calculations).  Frank and Mike were the entertaining DJs and this song often played.
+Diamonds and Rust (1975)|2MSwBM_CbyY|Baez's best
 Don't Cry For Me Argentina (1977)|_n8mq7sedP4|A masterpiece
 I'll Never Find Another You (1963)|KmactMIhrRM|How I feel about Glenda
 Midnight In Moscow (1961)|o744d4mwOgQ|Dixieland from England
@@ -95,6 +95,7 @@ I Am A Man Of Constant Sorrow|OdYGnAFaeHU|
 I Left My Heart in San Francisco|SC73kdOL5hk
 I Will Survive|ARt9HV9T0w8|
 I love the flower girl|dZMc0-ZAUeY|
+I was Born Under a Wandering Star|NTymtAbaG08
 I'm Still Standing|Ye9hGotPPVk|
 Ievan Polkka|4om1rQKPijI|A masterpiece of a capella -- I love the scat singing of the girl in the red dress around 1:30
 In The Year 2525|yesyhQkYrQM|
@@ -261,4 +262,4 @@ if __name__ == "__main__":
     print(f"<p>Others:</p>")
     Print(songs)
  
-# vim: wm=0
+# vim: tw=0 wm=0

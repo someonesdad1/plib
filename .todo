@@ -4,8 +4,6 @@ Active
         - In some lwtest tests, I've seen the Assert function fail to allow
           the debugger to start.  Maybe this is a symptom of the same
           problem and could be similarly fixed.
-        - Add the o command which will dump the locals in a function.
-          Color code the types.
 
     - color.py
         - Rather serious bug:  c = Color('mag'); c1 = Color(c.xhls); C !=
@@ -37,8 +35,56 @@ Active
           to PDF, HTML, or vim help files.  Look at making a project for
           Notepad++, as this would be of interest to a number of folks.
 
+    - Static attribute access
+        - A common problem when writing some classes is that all attribute
+          access generates code and recursion is inevitable and causes code
+          failure.  inspect.getattr_static() may be able to short circuit
+          this behavior and e.g. let you get to self._my_private_value
+          without calling getattr().  The stated purpose is to retrieve
+          attributes without triggering dynamic lookup.
+
+    - inspect.getcomments() on an object returns the comments before the
+      object.  Since I never put comments before my functions, this could
+      be a good way to mark python files with todo tasks.  Would it work on
+      nested functions (no, the symbol isn't visible)?  Still, you'd just
+      search for '^\s*def +[A-Za-z_]()' and call the inspect function; if
+      you don't get an exception, there's your result.  Then a td command
+      could be used to print out the todo items for a group of files.
+
 Want
     
+    - pgm/thd.py 
+        - Colorizing would make the report easier to read
+        - Allow metric sizes by e.g. 'M6 1' arguments
+        - Change to mil units, report to nearest integer (setting -d option
+          to digits would choose significant figures instead)
+        - Keep original report as optional, but make a more collapsed
+          report standard; here's a possibility in mils
+
+            Thread size:  5/16-24
+                Dia     tpi     LOE     Seller's    Class   Pitch   VDD    Allowance
+                312      24     512       17.4        2      41.7    72       1.1
+            Tensile area = 0.0517 in² = 33.4 mm²
+            External thread diameters           Max     Min     Tol
+                Major                           311     304     7.2
+                Pitch                           284     281     3.6
+                Minor (vee thread), nom.        240
+            Internal thread diameters
+                Minor                           277     267     9.7
+                Pitch                           290     285     4.7
+                Major (vee thread), nom.        340
+            Measurements over wires       Wire ⌀      MOW-Max     MOW-Min
+                                            24          320         317
+            Tap drills      65%             75%             85%
+                            277 (J)         272 (I)         266 (H)
+            Sharp V thread with National Form flat on OD, compound at 29°
+                Double depth = 7*A/8                               63    
+                Compound feed = A = sqrt(3)*p                      72
+            Unified thread, compound at 29° (cos(29°) = 7/8)
+                Flat on form tool                                  5.2    
+                Double depth                                        54    
+                Compound feed, DD/cos(29°)                          62
+
     - pgm/ddiff.py needs to be converted to use color.py
 
     - /pylib/pgm/xyz.py

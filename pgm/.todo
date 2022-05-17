@@ -1,10 +1,9 @@
 Active
-
-    - Need to finish updating hu and get it to a released state.
-        - github has broken their github pages interface
-        - hobbyutil's main html page used to work fine to get you to the
-          other html pages for the project list, but now neither work --
-          they just take you to an html document.
+    
+    - dpdb.py
+        - In some lwtest tests, I've seen the Assert function fail to allow
+          the debugger to start.  Maybe this is a symptom of the same
+          problem and could be similarly fixed.
 
     - color.py
         - Rather serious bug:  c = Color('mag'); c1 = Color(c.xhls); C !=
@@ -36,8 +35,56 @@ Active
           to PDF, HTML, or vim help files.  Look at making a project for
           Notepad++, as this would be of interest to a number of folks.
 
+    - Static attribute access
+        - A common problem when writing some classes is that all attribute
+          access generates code and recursion is inevitable and causes code
+          failure.  inspect.getattr_static() may be able to short circuit
+          this behavior and e.g. let you get to self._my_private_value
+          without calling getattr().  The stated purpose is to retrieve
+          attributes without triggering dynamic lookup.
+
+    - inspect.getcomments() on an object returns the comments before the
+      object.  Since I never put comments before my functions, this could
+      be a good way to mark python files with todo tasks.  Would it work on
+      nested functions (no, the symbol isn't visible)?  Still, you'd just
+      search for '^\s*def +[A-Za-z_]()' and call the inspect function; if
+      you don't get an exception, there's your result.  Then a td command
+      could be used to print out the todo items for a group of files.
+
 Want
     
+    - pgm/thd.py 
+        - Colorizing would make the report easier to read
+        - Allow metric sizes by e.g. 'M6 1' arguments
+        - Change to mil units, report to nearest integer (setting -d option
+          to digits would choose significant figures instead)
+        - Keep original report as optional, but make a more collapsed
+          report standard; here's a possibility in mils
+
+            Thread size:  5/16-24
+                Dia     tpi     LOE     Seller's    Class   Pitch   VDD    Allowance
+                312      24     512       17.4        2      41.7    72       1.1
+            Tensile area = 0.0517 in² = 33.4 mm²
+            External thread diameters           Max     Min     Tol
+                Major                           311     304     7.2
+                Pitch                           284     281     3.6
+                Minor (vee thread), nom.        240
+            Internal thread diameters
+                Minor                           277     267     9.7
+                Pitch                           290     285     4.7
+                Major (vee thread), nom.        340
+            Measurements over wires       Wire ⌀      MOW-Max     MOW-Min
+                                            24          320         317
+            Tap drills      65%             75%             85%
+                            277 (J)         272 (I)         266 (H)
+            Sharp V thread with National Form flat on OD, compound at 29°
+                Double depth = 7*A/8                               63    
+                Compound feed = A = sqrt(3)*p                      72
+            Unified thread, compound at 29° (cos(29°) = 7/8)
+                Flat on form tool                                  5.2    
+                Double depth                                        54    
+                Compound feed, DD/cos(29°)                          62
+
     - pgm/ddiff.py needs to be converted to use color.py
 
     - /pylib/pgm/xyz.py
@@ -82,23 +129,6 @@ Want
     - linkcheck.py
         - Utility to search a file for http links and see if they are still
           accessible.
-
-    - Modify pdb to become dpdb, letting me have a debugger that works the
-      way I want it to.  This would let me add color output and change some
-      annoying behaviors.
-        - The pdb.py python module states the debugger isn't directly
-          programmable aside from aliases, but since it's a class, you can
-          derive your own class and make it as fancy as you want.
-        - The interact command uses the REPL from code.  I'd like to see
-          my REPL get finished and be used instead.
-        - Current line printed in color, which would be enormously helpful
-        - File and line numbers in backtraces could be printed in color
-            - The current location in the backtrace is printed in color
-        - Flag to choose !s or !r on p command usage
-        - .c turns on color, .f flips !s/!r behavior. 
-        - Easy to add new commands
-        - Note it would be important not to change the basic commands so
-          that I wouldn't be crippled when having to use the standard pdb
 
     - Write a script that recursively finds broken soft links (links that
       don't point to a valid file).
@@ -959,26 +989,4 @@ Other
         - Use python syntax and in-line code
             - Options
                 - -d    Debugging information
-                - -i    Ignore errors when remaking files
-                - -n    Dry run (show things that will be done but don't do
-                them)
-                - -s    Do not print commands as they are executed
-                - -o f  Do not remake file f (assume it's up to date)
-                - -B    Everything out of date
-                - -f f  Specify makefile
-                - -k    Keep going to do as much as possible
-                - -t    Translate to standard makefile syntax
-        - Example
-            - This is a typical makefile for a C/C++ project
-                - cppopts = -g -DMAIN
-                - exe = z.exe
-                - ${exe}:  array.o tokenizer.o
-                -     g++ -o ${exe} ${cppopts} $^
-
-                - array.o: array.cpp array.h
-                -     g++ -c ${cppopts} $<
-                - tokenizer.o: tokenizer.cpp tokenizer.h
-                -     g++ -c ${cppopts} $<
-                - clean:
-                -     @rm -f ${exe} ${exe}.stackdump *.o
-
+                - -i    Ignore errors when remaki

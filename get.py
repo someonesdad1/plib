@@ -83,35 +83,41 @@ def GetText(thing, enc=None):
     else:
         raise TypeError("Type of 'thing' not recognized")
     return s
-def GetLines(thing, enc=None, ignore=[], script=False, ignore_empty=False, 
+def GetLines(thing, enc=None, ignore=None, script=False, ignore_empty=False, 
              strip=False, nonl=False):
     '''Return a list of lines that are in thing.  See GetText for
-    details on thing.
+        details on thing.
+    
+        nonl            If True, remove trailing newline
+        script          If True, ignore comment lines
+        strip           If True, strip off whitespace from each line.  If strip
+                        is True, it also implies nonl is True, even if it is
+                        set False.
+        ignore_empty    If True, ignore empty (whitespace only) lines
+    
+        ignore          Either None or a sequence of strings that are 
+                        compiled to regular expressions and are lines
+                        that are to be ignored.
+    
+        If you want to use strip or script as True, then you must also set
+        ignore to the empty list.
  
-    nonl            If True, remove trailing newline
-    script          If True, ignore comment lines
-    strip           If True, strip off whitespace from each line.  If strip
-                    is True, it also implies nonl is True, even if it is
-                    set False.
-    ignore_empty    If True, ignore empty (whitespace only) lines
-  
-    ignore          List of strings that are compiled to regular
-                    expressions and are lines that are ignored.
- 
-    Example:
-        s = """# Comment
-        ## Another comment
-        Line 1
-            Line 2
-        """
-        r = [r"^\s*#"]
-        lines = GetLines(s, ignore=r)
-        print(f"lines {list(lines)}")
-    outputs 
-        lines ['Line 1', '    Line 2', '']
-    The call GetLines(s, script=True) does the same thing.
+        Example:
+            s = """# Comment
+            ## Another comment
+            Line 1
+                Line 2
+            """
+            r = [r"^\s*#"]
+            lines = GetLines(s, ignore=r)
+            print(f"lines {list(lines)}")
+        outputs 
+            lines ['Line 1', '    Line 2', '']
+        The call GetLines(s, script=True) does the same thing.
     '''
     def Filter(line):
+        if ignore is None:
+            return True
         for r in ignore:
             if re.search(r, line):
                 return False     # Don't keep this line
@@ -119,9 +125,9 @@ def GetLines(thing, enc=None, ignore=[], script=False, ignore_empty=False,
     if (ignore is not None and (ii(ignore, str) or 
         not ii(ignore, Iterable))):
         raise TypeError("ignore must be an iterable")
-    if script:
+    if script and ignore is not None:
         ignore.append(r"^\s*#")
-    if ignore_empty:
+    if ignore_empty and ignore is not None:
         ignore.append(r"^\s*$")
     lines = GetText(thing, enc=enc).split("\n")
     if not nonl:
@@ -935,7 +941,7 @@ if __name__ == "__main__":
         t = GetLines(sio, script=False, nonl=True)
         Assert(t == ['# xyz', '    # xyz', 'abc'])
         sio = StringIO(s)
-        t = GetLines(sio, script=True, nonl=True)
+        t = GetLines(sio, ignore=[], script=True, nonl=True)
         Assert(t == ['abc'])
         # Test docstring example
         s = """# Comment
@@ -947,7 +953,7 @@ if __name__ == "__main__":
         lines = GetLines(s, ignore=r, nonl=True)
         expected = ['        Line 1', '            Line 2', '        ']
         Assert(lines == expected)
-        lines = GetLines(s, script=True, nonl=True)
+        lines = GetLines(s, ignore=[], script=True, nonl=True)
         Assert(lines == expected)
     def TestGetWords():
         sio = StringIO(S)

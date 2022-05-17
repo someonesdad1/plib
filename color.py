@@ -1386,7 +1386,7 @@ class ColorName(dict):
         '''
         if clear:
             self.clear()
-        lines = get.GetLines(file, script=True, ignore_empty=True)
+        lines = get.GetLines(file, ignore=[], script=True, ignore_empty=True)
         vars = {}
         for line in lines:
             if ColorName.sep in line:

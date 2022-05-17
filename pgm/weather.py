@@ -43,8 +43,9 @@ if 1:   # Header
         # Turn on debugging to avoid loading from web
         dbg = False
         dbg = 0
-        # Global holder
-        class g: pass
+        class g: 
+            # Global variable holder
+            pass
         g.update = ""
 if 1:   # Utility
     def Error(*msg, stasus=1):
@@ -168,14 +169,17 @@ if 1:   # Core functionality
             print(f"{t.cloud}cloudy{t.n} ", end="")
         print()
     if 1:   # Functions to return string describing the weather feature
-        # Return empty string if nothing of interest
         def AnalyzeRain(line):
+            'Return empty string if nothing of interest'
             return ""
         def AnalyzeWind(line):
+            'Return empty string if nothing of interest'
             return ""
         def AnalyzeThun(line):
+            'Return empty string if nothing of interest'
             return ""
         def AnalyzeSnow(line):
+            'Return empty string if nothing of interest'
             return ""
     def Wrap(line):
         'Print the line wrapped as needed'
