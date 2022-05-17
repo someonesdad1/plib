@@ -1086,9 +1086,10 @@ def BraceExpansion(s, glob=False):
     * BraceExpansion(r"{,,a}/{c,d}") returns
         ['/c', '/d', '/c', '/d', 'a/c', 'a/d']
     '''
-    # Algorithm from http://rosettacode.org/wiki/Brace_expansion#Python
-    # The web page's content is available under the GNU Free
-    # Documentation license 1.2.
+    '''Algorithm from http://rosettacode.org/wiki/Brace_expansion#Python
+    The web page's content is available under the GNU Free
+    Documentation license 1.2.
+    '''
     def getitem(s, depth=0):
         out = [""]
         while s:

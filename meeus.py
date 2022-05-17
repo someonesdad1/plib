@@ -24,8 +24,8 @@ if 1:   # Imports
     from math import fabs, fmod, radians, degrees, ceil, log10
 if 1:   # Global variables
     reduce = functools.reduce
-    # Constants
-    class Global:  pass
+    class Global: # Constants
+        pass
     G = Global()
     G.earth_equatorial_radius_km = 6378.14
     G.earth_flattening = f = 1/298.257

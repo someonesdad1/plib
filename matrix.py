@@ -1226,7 +1226,7 @@ class Matrix:
                     if j <= i:
                         m[i, j] = fill
         return None if ip else m
-    # ---------------------- Private methods ----------------------------
+    ## ---------------------- Private methods ----------------------------
     def _check_frozen(self):
         if self.frozen:
             raise TypeError("Cannot modify a frozen matrix or vector")
@@ -4483,9 +4483,9 @@ if __name__ == "__main__":
                 m = matrix("1 2 \n2.01 1")
                 Assert(not m.is_pos_def)
             with Testing():
-                # The Cholesky decomposition of a Pascal upper-triangular
-                # matrix is the identity matrix.  Code from
-                # http://rosettacode.org/wiki/Pascal_matrix_generation#Python.
+                ## The Cholesky decomposition of a Pascal upper-triangular
+                ## matrix is the identity matrix.  Code from
+                ## http://rosettacode.org/wiki/Pascal_matrix_generation#Python.
                 def C(n, k):
                     result = 1
                     for i in range(1, k+1):

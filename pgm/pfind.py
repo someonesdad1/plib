@@ -60,8 +60,8 @@ if 1:   # Global variables
     t.match = t("yell")
     t.end = t.n
 if 1:   # Glob patterns and file extensions
-    # Glob patterns for source code files
     def GetSet(data, extra=None):
+        # Glob patterns for source code files
         s = ["*." + i for i in data.replace("\n", " ").split()]
         t = list(sorted(list(set(s))))
         if extra is not None:

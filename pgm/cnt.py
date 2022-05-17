@@ -219,8 +219,8 @@ def ParseCommandLine(d):
         if o[1] in "CDdfLlNnoPpRrsuvXx":
             d[o] = not d[o]
         elif o == "-c":
-            # Specify character class
             def ProcessCharacterClass(cls):
+                # Specify character class
                 if cls not in d["char_classes"]:
                     s = (f"'{cls}' is an unrecognized character class.  "
                          f"Choose from:")

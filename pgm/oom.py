@@ -727,9 +727,11 @@ class Num(flt):
     '''Encapsulate a number so "closeness" can be determined by the ==
     operator.  A list of Num objects will sort numerically by size.
     '''
-    # Note:  since I changed this to derive from flt, I had to change the
-    # low and high attributes of Num to Low and High to avoid the collision
-    # with flt's attributes.
+    '''
+    Note:  since I changed this to derive from flt, I had to change the
+    low and high attributes of Num to Low and High to avoid the collision
+    with flt's attributes.
+    '''
     def __new__(cls, s, descr):
         '''descr is a string describing this number.
  
@@ -786,10 +788,6 @@ class Num(flt):
         assert(ii(other, Num))
         # This depends on the floating point value being in m
         return float(self) < float(other)
-    #def __str__(self):
-    #    return self.str
-    #def __expr__(self):
-    #    return self.str
 def Error(msg, status=1):
     print(msg, file=sys.stderr)
     exit(status)

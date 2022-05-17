@@ -47,7 +47,7 @@ if 1:   # Custom imports
         import color    # Used to get ANSI terminal escape codes
         C = color.C
     except ImportError:
-        # Make a dummy color object to swallow function calls
+        'Make a dummy color object to swallow function calls'
         class Dummy:
             def fg(self, *p, **kw): pass
             def normal(self, *p, **kw): pass

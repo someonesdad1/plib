@@ -8433,8 +8433,8 @@ def GetData():
         if not line or line[0] == "!":
             continue
         seq.append(NT(*line.split("\t")))
-    # Process Village Press indexes
     def ProcessVP(raw_data):
+        # Process Village Press indexes
         VP = namedtuple("VP", "title author subject issue page")
         sio = StringIO(Regularlize(raw_data))
         c = csv.reader(sio)

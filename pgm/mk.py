@@ -24,8 +24,7 @@ if 1:   # Custom imports
     try:
         import color as c
     except ImportError:
-        # Dummy object that will swallow calls to the color module
-        class C:
+        class C: # Dummy object that will swallow calls to the color module
             def __setattr__(self, attr, x):
                 pass
             def __getattr__(self, attr):

@@ -115,7 +115,7 @@ class Trigger(dict):
         print("New text")
         pp(self.text)
         exit()
-    # Disable other dict methods
+    ## Disable other dict methods
     def get(self, key, default=None): raise self.not_allowed
     def pop(self, key, default=None): raise self.not_allowed
     def popitem(self): raise self.not_allowed

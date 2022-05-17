@@ -98,8 +98,8 @@ if 1:   # Global variables
     ii = isinstance
     git = "c:/bin/git_2_35_1_2/bin/git.exe"
     dbg = False
-    # States for git status -s forms
     class St(Enum):
+        # States for git status -s forms
         SAM = auto()
         MOD = auto()
         ADD = auto()

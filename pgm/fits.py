@@ -76,8 +76,7 @@ if 1:   # Custom imports
         c = clr.Clr(bits=4)
         have_color = True
     except ImportError:
-        # Make a dummy color object to swallow function calls
-        class Dummy:
+        class Dummy: # Make a dummy color object to swallow function calls
             def __call__(self, *p, **kw):
                 return ""
             def __getattr__(self, name):

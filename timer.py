@@ -74,15 +74,15 @@ if 1:   # Classes
         def __init__(self):
             self.clear()
             self._u = decimal.Decimal(1)
-            # The timer has the following states:
-            #   "init"  Waiting to be started
-            #   "run"   Start has been called
-            #   "stop"  Stop was called; can be continued
+            ## The timer has the following states:
+            ##   "init"  Waiting to be started
+            ##   "run"   Start has been called
+            ##   "stop"  Stop was called; can be continued
         def clear(self):
             'Set the timer to the initialized state'
             self._start, self._stop = [], []
             self._state = "init"
-        # Decorator functionality
+        ## Decorator functionality
         def __call__(self, func):
             def f(*args, **kw):
                 self.start
@@ -90,7 +90,7 @@ if 1:   # Classes
                 self.stop
                 print(f"{str(func)} time = {self.et} s")
             return f
-        # Context manager functionality
+        ## Context manager functionality
         def __enter__(self):
             self.start
             return self
@@ -167,8 +167,8 @@ if __name__ == "__main__":
         deviations = [(i - mean)**2 for i in seq]
         variance = sum(deviations)/(n - 1)
         return mean, sqrt(variance)
-    # The functions are named with leading letters to control the
-    # execution order because lwtest.run() alphabetizes the names.
+    ## The functions are named with leading letters to control the
+    ## execution order because lwtest.run() alphabetizes the names.
     def A_Timer1_example():
         title = "Timer using seconds"
         units, multiplier = "s", 1

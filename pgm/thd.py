@@ -1457,8 +1457,9 @@ if 1:   # Core functionality
                 tpi = "{:.1f}".format(1/float(closest))
             print("{:5s}   {:6.1f}     {:6.1f}      {:6s}  {}".format(
                    pitch, p_in*1000, feed*1000, tpi, pct_dev))
-            #print("%5s   %6.4f      %-8s  %s" %
-            #      (pitch, float(pitch)/25.4, closest, pct_dev))
+            if 0:
+                print("%5s   %6.4f      %-8s  %s" %
+                    (pitch, float(pitch)/25.4, closest, pct_dev))
     def WireSizeLimits(pitch):
         'Return the minimum and maximum wire diameters.'
         H = sqrt(3)/2*pitch

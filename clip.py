@@ -88,7 +88,7 @@ def _executable_exists(name):
     return subprocess.call([WHICH_CMD, name],
                            stdout=subprocess.PIPE, stderr=subprocess.PIPE) == 0
 
-# Exceptions
+## Exceptions
 class PyperclipException(RuntimeError):
     pass
 
@@ -293,7 +293,7 @@ def init_no_clipboard():
                 return False
 
     return ClipboardUnavailable(), ClipboardUnavailable()
-# Windows-related clipboard functions:
+## Windows-related clipboard functions:
 class CheckedCall(object):
     def __init__(self, f):
         super(CheckedCall, self).__setattr__("f", f)
@@ -459,7 +459,8 @@ def init_wsl_clipboard():
         return stdout[:-2].decode(ENCODING)
 
     return copy_wsl, paste_wsl
-# Automatic detection of clipboard mechanisms and importing is done in deteremine_clipboard():
+# Automatic detection of clipboard mechanisms and importing is done in
+## deteremine_clipboard():
 def determine_clipboard():
     '''
     Determine the OS/platform and set the copy() and paste() functions

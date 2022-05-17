@@ -22,7 +22,6 @@ if 1:   # Custom imports
         # Used to generate PostScript output
         import g
     except ImportError:
-        # Put in dummies to swallow the library calls
         def g(*p):
             pass
         g.portrait, g.inches = None, None

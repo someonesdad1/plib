@@ -1647,7 +1647,7 @@ class flt(Base, float):
           val       Value in given units
              * means the attribute affects all flt and cps instances'''[1:]))
     # ----------------------------------------------------------------------
-    # Arithmetic functions
+    ## Arithmetic functions
     def _do_op(self, other, op):  # flt
         other_units = hasattr(other, "u") and bool(other.u)
         self_units = bool(self.u)
@@ -2067,7 +2067,7 @@ class cpx(Base, complex):
           t       * Date and time
           val       Value in given units
              * means these attributes affect all cpx instances'''[1:]))
-    # Arithmetic functions
+    ## Arithmetic functions
     def _do_op(self, other, op):    # cpx
         other_units = hasattr(other, "u") and bool(other.u)
         self_units = bool(self.u)
@@ -2731,7 +2731,7 @@ if __name__ == "__main__":
             print(f"xx Promotion for cpx doesn't work") #xx
             print(f"  NOTE:  Assert is commented out") #xx
             #Assert(z != w)
-            #xx promotion for cpx doesn't work
+            ##xx promotion for cpx doesn't work
     def Test_sigcomp_flt():
         '''The flt/cpx sigcomp attribute is an integer that forces
         comparisons to be made to the indicated number of significant

@@ -216,7 +216,7 @@ def _IsProperType(x, need_complex=False):
         raise TypeError("'%s' is an improper type" % str(x))
 
 if 1:   # Math functions to mirror those in cmath
-    # All except # phase(), polar(), and rect() return a cufloat object.
+    ## All except # phase(), polar(), and rect() return a cufloat object.
     def phase(x):
         _IsProperType(x, need_complex=True)
         return um.atan2(x.imag, x.real)

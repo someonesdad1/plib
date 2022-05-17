@@ -124,7 +124,7 @@ if 1:   # Core functionality
             (which is equal to 1999 Dec 31, 0h UT)
             '''
             return (367*(y)-((7*((y)+(((m)+9)/12)))/4)+((275*(m))/9)+(d)-730530)
-        # The trigonometric functions in degrees
+        'The trigonometric functions in degrees'
         def sind(self, x):
             return math.sin(math.radians(x))
         def cosd(self, x):
@@ -133,10 +133,11 @@ if 1:   # Core functionality
             return math.degrees(math.acos(x))
         def atan2d(self, y, x):
             return math.degrees(math.atan2(y, x))
-        # Following are some functions around the "workhorse" function __daylen__
-        # They mainly fill in the desired values for the reference altitude
-        # below the horizon, and also selects whether this altitude should
-        # refer to the Sun's center or its upper limb.
+        '''Following are some functions around the "workhorse" function __daylen__
+        They mainly fill in the desired values for the reference altitude
+        below the horizon, and also selects whether this altitude should
+        refer to the Sun's center or its upper limb.
+        '''
         def dayLength(self, year, month, day, lon, lat):
             '''Returns the length of the day, from sunrise to sunset.
             Sunrise/set is considered to occur when the Sun's upper limb is
@@ -187,8 +188,8 @@ if 1:   # Core functionality
             below the horizon.
             '''
             return self.__sunriset__(year, month, day, lon, lat, -18, 0)
-        # The "workhorse" function for sun rise/set times
         def __sunriset__(self, year, month, day, lon, lat, altit, upper_limb):
+            # The "workhorse" function for sun rise/set times
             '''
             Note: year,month,date = calendar date, 1801-2099 only.
                 Eastern longitude positive, Western longitude negative

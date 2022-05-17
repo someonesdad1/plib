@@ -131,7 +131,7 @@ Contains functions to set screen color for console applications
         import color
         _have_color = True
     except ImportError:
-        # Make a dummy color object to swallow function calls
+        ## Make a dummy color object to swallow function calls
         class Dummy:
             def fg(self, *p, **kw): pass
             def normal(self, *p, **kw): pass
@@ -287,7 +287,7 @@ if 1:   # Utility
     def _GetNibbles(c):
         assert 0 <= c < 256
         return (0x0f & c, (0xf0 & c) >> 4)
-# Core functionality
+## Core functionality
 def normal(*p, **kw):
     '''If the argument is None, set the foreground and background
     colors to their default values.  Otherwise, use the argument to

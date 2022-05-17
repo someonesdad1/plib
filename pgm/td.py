@@ -1,4 +1,25 @@
 '''
+TODO
+    - Another problem:  comments will be found in multiline strings
+    - Sometimes comments are needed in the code.  Let these be indicated by
+      the string "##".
+    - Ignore empty comments or ones with only hyphens or '='
+    - Use inspect to get comments, as the comments need to be associated
+      with the function.  Just using a regexp finds situations like
+
+                def A():
+                    pass
+                    # This is a comment in A
+        def B()
+            pass
+
+      and the comment will be falsely coupled with B().
+
+      clean.py:161 showed this problem.
+
+      However, this is nontrivial if the found function/class is in a
+      nested scope.
+
 Highlights todo items in python scripts
 
     My standard way of composing python scripts is to never put comments
@@ -48,24 +69,29 @@ if 1:   # Utility
           Print out comments before functions and classes in python
           scripts, as they are interpreted as todo items.  If a file item
           is a directory, all python files in that directory are searched.
+          Note:  A line beginning with '##' is NOT interpreted as a
+          todo-comment, as sometimes source files need such lines and I
+          don't want them to be marked as a todo item.
         Options:
             -c      Colorize the output
+            -l      List files with todo items
             -s      Strip leading whitespace off the todo items
         '''))
         exit(status)
     def ParseCommandLine(d):
         d["-c"] = False
+        d["-l"] = False
         d["-s"] = False
         if len(sys.argv) < 2:
             Usage()
         try:
-            opts, args = getopt.getopt(sys.argv[1:], "chs", 
+            opts, args = getopt.getopt(sys.argv[1:], "chls", 
                     ["help", "debug"])
         except getopt.GetoptError as e:
             print(str(e))
             exit(1)
         for o, a in opts:
-            if o[1] in list("cs"):
+            if o[1] in list("cls"):
                 d[o] = not d[o]
             elif o in ("-h", "--help"):
                 Usage(status=0)
@@ -98,13 +124,23 @@ if 1:   # Core functionality
                 return match
         return ""
     def IsComment(line):
+        '''The line is declared to be a comment if it begins with a single
+        '#' character.  Because sometimes comments are wanted in source and
+        I don't want them to be interpreted as a todo-comment, they will be
+        introduced with '##' and will be ignored.
+        '''
         s = line.lstrip()
+        if s.startswith("##"):
+            return False
         return s and s[0] == "#"
     def DumpLines(file, name, linenum, out):
         '''file is the file being processed, name is the class or function
         name that matched, linenum is the 1-based line number of the line
         in the file, and out is the set of comment lines.
         '''
+        if d["-l"]:
+            print(file)
+            return
         # Print header line
         print(f"{t.file}{file}:"
               f"{t.linenum}{linenum}  ", end="")
@@ -124,10 +160,13 @@ if 1:   # Core functionality
         # Decorate with line numbers
         lines = [(i + 1, s) for i, s in enumerate(lines)]
         lines = deque(reversed(lines))
+        # found will be a list of tuples of the form
+        # (file, name, linenum, reversed(out)).  These are saved so they
+        # can be sorted by line number before printing to stdout.
+        found = []
         while lines:
             linenum, line = lines.popleft()
-            if dbg:
-                # Show the line read in
+            if dbg: # Show the line read in
                t.print(f"{t('gry')}{line!r}")
             name = IsMatch(line)
             if name:
@@ -140,7 +179,11 @@ if 1:   # Core functionality
                     else:
                         out.append(lines.popleft()[1])
                 if out:
-                    DumpLines(file, name, linenum, reversed(out))
+                    found.append((file, name, linenum, reversed(out)))
+        # Sort by line number
+        f = lambda x: x[2]
+        for item in sorted(found, key=f):
+            DumpLines(*item)
 
 if __name__ == "__main__":
     dbg = False

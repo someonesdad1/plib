@@ -77,7 +77,7 @@ if 1:   # Polynomial utilities
     # in the file WPark_recipes_in_python.html.  This URL is now defunct.
  
     # coef is a sequence of the polynomial's coefficients; coef[0] is the
-    # constant term and coef[-1] is the highest term; x is a number.
+    ## constant term and coef[-1] is the highest term; x is a number.
     def polyeval(coef, x):
         '''Evaluate a polynomial with the stated coefficients.  Returns 
         coef[0] + x(coef[1] + x(coef[2] +...+ x(coef[n-1] + coef[n]x)...)
@@ -1127,7 +1127,7 @@ if __name__ == "__main__":
         assert_equal(estL2, exact_length, reltol=tol)
         # In the above, L = 4710.8, estL = 4715.5, and the exact length
         # is 4712.4.  Note the exact length is between the two
-        # estimates.
+        ## estimates.
     def Test_Archimedean_toilet_paper_roll():
         '''A roll of toilet paper has an ID of 42 mm, an OD of 130 mm,
         and a thickness of about 0.125 mm.  Each sheet is 101x96 mm with

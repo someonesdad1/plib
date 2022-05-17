@@ -596,9 +596,10 @@ class _Stock(object):
     def __str__(self):
         return "<{}:{}:{}>".format(self._length, self._original_length,
                                    str(tuple(self._cuts)))
-    # Comparisons:  The first comparison is on the original stock length;
-    # then number of cuts, then amount of scrap.  These two comparisons
-    # allow sorting of sequences of _Stock objects.
+    '''Comparisons:  The first comparison is on the original stock length;
+    then number of cuts, then amount of scrap.  These two comparisons
+    allow sorting of sequences of _Stock objects.
+    '''
     def __lt__(self, other):
         if not ii(other, _Stock):
             raise ValueError("other item must be a _Stock object")

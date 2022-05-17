@@ -545,7 +545,7 @@ if __name__ == "__main__":
     # Print samples to stdout.  After seeing the behavior, set the global
     # variable on to False (uncomment the next line) to see the debug
     # printing turned off.
-    #on = False
+    ##on = False
     def Sep():
         t.print(f"{t('purl')}{'='*(w - 10)}")
     t.ti = t("brnl")

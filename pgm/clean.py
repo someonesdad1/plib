@@ -154,10 +154,11 @@ def ProcessFiles(dir, settings):
                 except WindowsError:
                     # File is probably in use or read-only
                     err("'%s' can't be removed" % file)
-                # Note:  add more catches to handle removal problems on
-                # other OS's.  It's considered bad programming to just use
-                # an except with no exception type, as that can hide
-                # programming errors.
+                '''Note:  add more catches to handle removal problems on
+                other OS's.  It's considered bad programming to just use
+                an except with no exception type, as that can hide
+                programming errors.
+                '''
 def ProcessDirectory(dir, settings):
     if debug:
         dbg("Processing directory " + dir)

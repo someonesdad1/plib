@@ -208,13 +208,14 @@ if 1:   # Header
         #import kolor as C
         from color import TRM as t
     # Global variables
-        class G: pass   # Container for global variables
+        _ = sys.version_info
+        class G: # Container for global variables
+            pass
         g = G()
         g.P = pathlib.Path
         g.name = g.P(sys.argv[0])
         g.datafile = g.P(g.name.stem + ".data")
         g.editor = os.environ["EDITOR"]
-        _ = sys.version_info
         g.pyversion = f"{_.major}.{_.minor}.{_.micro}"
         g.ii = isinstance
         # Color coding using ANSI escape codes

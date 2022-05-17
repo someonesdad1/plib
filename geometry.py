@@ -95,8 +95,8 @@ def TriangleInscribedCircle(p1, p2, p3):
     cx = RoundOff((a*x1 + b*x2 + c*x3)/s)
     cy = RoundOff((a*y1 + b*y2 + c*y3)/s)
     return radius, (cx, cy)
-# For some quadrilateral formulas, see
-# http://www.geometryatlas.com/categories/Quadrilaterals-General
+## For some quadrilateral formulas, see
+## http://www.geometryatlas.com/categories/Quadrilaterals-General
 def Quadrilateral(p1, p2, p3, p4):
     '''For a convex quadrilateral, return a dictionary containing the
     following keys:

@@ -1520,9 +1520,9 @@ def LL1minus(x0, y0, x1, y1):
     print("LL/1 ", end=" ")
 def AreaCircle(x0, y0, x1, y1):
     Log10inch(x0, y0, x1, y1)
-    # Label the scales
     def Inverse(y):
         return math.sqrt(4 * y/math.pi)
+    # Label the scales
     push()
     settings = DefaultSettings(math.log10)
     settings["label_right"] = 1
@@ -1582,9 +1582,9 @@ def AreaCircle(x0, y0, x1, y1):
     print("CirArea ", end=" ")
 def VolumeSphere(x0, y0, x1, y1):
     Log10inch(x0, y0, x1, y1)
-    # Label the scales
     def Inverse(y):
         return pow(3*y/(4*math.pi), 1/3)
+    # Label the scales
     push()
     settings = DefaultSettings(math.log10)
     settings["label_right"] = 1
@@ -1642,9 +1642,9 @@ def VolumeSphere(x0, y0, x1, y1):
     print("VolSph ", end=" ")
 def AreaSphere(x0, y0, x1, y1):
     Log10inch(x0, y0, x1, y1)
-    # Label the scales
     def Inverse(y):
         return math.sqrt(y/(4*math.pi))
+    # Label the scales
     push()
     settings = DefaultSettings(math.log10)
     settings["label_right"] = 1
@@ -1714,9 +1714,9 @@ def AreaSphere(x0, y0, x1, y1):
     print("AreaSph ", end=" ")
 def Pi(x0, y0, x1, y1):
     Log10inch(x0, y0, x1, y1)
-    # Label the scales
     def Inverse(y):
         return y/math.pi
+    # Label the scales
     push()
     settings = DefaultSettings(math.log10)
     settings["label_right"] = 1
@@ -2283,7 +2283,6 @@ def Drills(x0, y0, x1, y1):
     print("Drills ", end=" ")
 def SFPM(x0, y0, x1, y1):
     Log10inch(x0, y0, x1, y1, scale=1/10)
-    # Scale for RPM to get 100 SFPM
     def D(rpm):
         s = 1200/(math.pi*rpm)
         return s
@@ -2294,6 +2293,7 @@ def SFPM(x0, y0, x1, y1):
         diam = D(rpm)
         assert(0.1 <= diam <= 1)
         return -math.log10(diam)
+    # Scale for RPM to get 100 SFPM
     settings = DefaultSettings()
     settings["index_function"] = Identity
     settings["label_angle"] = 180

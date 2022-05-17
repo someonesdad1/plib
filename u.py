@@ -2153,7 +2153,6 @@ class U(object):
     @strict.setter
     def strict(self, strict):
         self._strict = bool(strict)
-    # ----------------------------------------------------------------------
     def getop(self, a, b, op):
         '''Given the operation op, which will be one of the strings in
         '+ - * / **', and unit strings a and b, calculate the resultant

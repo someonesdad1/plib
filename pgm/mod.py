@@ -64,8 +64,7 @@ if 1:   # Custom imports
         import color
         _have_color = True
     except ImportError:
-        # Make a dummy color object to swallow function calls
-        class Dummy:
+        class Dummy: # Make a dummy color object to swallow function calls
             def fg(self, *p, **kw):
                 pass
             def normal(self, *p, **kw):

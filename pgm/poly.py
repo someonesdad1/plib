@@ -33,7 +33,7 @@ if 1:   # Custom imports
         import color
         have_color = True
     except ImportError:
-        # Make a dummy color object to swallow function calls
+        'Make a dummy color object to swallow function calls'
         class Dummy:
             def fg(self, *p, **kw):
                 pass

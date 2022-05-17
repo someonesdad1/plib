@@ -218,65 +218,64 @@ def SectorArea_r_s(r, s, segment=False):
     if segment:
         area -= r**2*sin(theta)/2
     return area
-# ----------------------------------------------------------------------
-# Unit-test functions
-def TestSectorArea():
-    # Radius, angle
-    r, theta = 1, 2*pi      # Unit circle
-    for n in range(1, 11):
-        assert_equal(SectorArea_r_theta(r, theta/n), pi/n)
-    # Radius, arc length
-    r, b = 1, 2*pi
-    assert_equal(SectorArea_r_b(r, b), pi*r**2)
-    # Radius, width
-    r, s = 1, 2     # Unit circle, on diameter
-    assert_equal(SectorArea_r_s(r, s), pi*r**2/2)
-def TestSegmentArea():
-    # Radius, angle
-    r, theta = 1, pi/2
-    A = (theta - 1)/2
-    assert_equal(SectorArea_r_theta(r, theta, segment=True), A)
-    # Radius, arc length
-    r, b = 1, 2*pi
-    assert_equal(SectorArea_r_b(r, b, segment=True), pi*r**2)
-    r, b = 1, pi/2
-    assert_equal(SectorArea_r_b(r, b, segment=True), A)
-    # Radius, width
-    r, s = 1, 2     # Unit circle, on diameter
-    assert_equal(SectorArea_r_s(r, s, segment=True), pi*r**2/2)
-    r, s = 1, sqrt(2)     # Unit circle, 90 degrees
-    assert_equal(SectorArea_r_s(r, s, segment=True), A, abstol=1e-15)
-def TestCircleThroughThreePoints():
-    # Unit circle at origin
-    x, y, r = Circ3Pts((1, 0), (0, 1), (-1, 0))
-    assert_equal(x, 0)
-    assert_equal(y, 0)
-    assert_equal(r, 1)
-def TestTangentCenters():
-    # Equilateral triangle with base of length 2 centered on x axis;
-    # each circle will be a unit circle.
-    p1, p2, p3 = (-1, 0), (1, 0), (0, sqrt(3))
-    for i in TangentCenters(p1, p2, p3):
-        assert_equal(i, 1, reltol=1e-15)
-def TestGetPoint():
-    x, y = GetPoint("", test="0 0")
-    assert(not x and not y)
-    x, y = GetPoint("", test="1 0")
-    assert(x == 1 and not y)
-    x, y = GetPoint("", test="1 2")
-    assert(x == 1 and y == 2)
-    x, y = GetPoint("", test="1 sqrt(3)")
-    assert(x == 1 and y == sqrt(3))
-def TestDet():
-    d = Det(((1, 0, 0), (0, 1, 0), (0, 0, 1)))
-    assert_equal(d, 1)
-    d = Det(((-1, 0, 0), (0, -1, 0), (0, 0, -1)))
-    assert_equal(d, -1)
-    # 3x3 Hilbert matrix
-    d = Det(((1, 1/2, 1/3), (1/2, 1/3, 1/4), (1/3, 1/4, 1/5)))
-    f = lambda x: Fraction(1, x)
-    ans = f(15) - f(16) - f(20) + f(12) - f(27)
-    assert_equal(d, float(ans), reltol=1e-13)
+if 1:   # Unit-test functions
+    def TestSectorArea():
+        # Radius, angle
+        r, theta = 1, 2*pi      # Unit circle
+        for n in range(1, 11):
+            assert_equal(SectorArea_r_theta(r, theta/n), pi/n)
+        # Radius, arc length
+        r, b = 1, 2*pi
+        assert_equal(SectorArea_r_b(r, b), pi*r**2)
+        # Radius, width
+        r, s = 1, 2     # Unit circle, on diameter
+        assert_equal(SectorArea_r_s(r, s), pi*r**2/2)
+    def TestSegmentArea():
+        # Radius, angle
+        r, theta = 1, pi/2
+        A = (theta - 1)/2
+        assert_equal(SectorArea_r_theta(r, theta, segment=True), A)
+        # Radius, arc length
+        r, b = 1, 2*pi
+        assert_equal(SectorArea_r_b(r, b, segment=True), pi*r**2)
+        r, b = 1, pi/2
+        assert_equal(SectorArea_r_b(r, b, segment=True), A)
+        # Radius, width
+        r, s = 1, 2     # Unit circle, on diameter
+        assert_equal(SectorArea_r_s(r, s, segment=True), pi*r**2/2)
+        r, s = 1, sqrt(2)     # Unit circle, 90 degrees
+        assert_equal(SectorArea_r_s(r, s, segment=True), A, abstol=1e-15)
+    def TestCircleThroughThreePoints():
+        # Unit circle at origin
+        x, y, r = Circ3Pts((1, 0), (0, 1), (-1, 0))
+        assert_equal(x, 0)
+        assert_equal(y, 0)
+        assert_equal(r, 1)
+    def TestTangentCenters():
+        # Equilateral triangle with base of length 2 centered on x axis;
+        # each circle will be a unit circle.
+        p1, p2, p3 = (-1, 0), (1, 0), (0, sqrt(3))
+        for i in TangentCenters(p1, p2, p3):
+            assert_equal(i, 1, reltol=1e-15)
+    def TestGetPoint():
+        x, y = GetPoint("", test="0 0")
+        assert(not x and not y)
+        x, y = GetPoint("", test="1 0")
+        assert(x == 1 and not y)
+        x, y = GetPoint("", test="1 2")
+        assert(x == 1 and y == 2)
+        x, y = GetPoint("", test="1 sqrt(3)")
+        assert(x == 1 and y == sqrt(3))
+    def TestDet():
+        d = Det(((1, 0, 0), (0, 1, 0), (0, 0, 1)))
+        assert_equal(d, 1)
+        d = Det(((-1, 0, 0), (0, -1, 0), (0, 0, -1)))
+        assert_equal(d, -1)
+        # 3x3 Hilbert matrix
+        d = Det(((1, 1/2, 1/3), (1/2, 1/3, 1/4), (1/3, 1/4, 1/5)))
+        f = lambda x: Fraction(1, x)
+        ans = f(15) - f(16) - f(20) + f(12) - f(27)
+        assert_equal(d, float(ans), reltol=1e-13)
 if __name__ == "__main__":
     problems = (
         ("Circle through three points", Circle3Points),

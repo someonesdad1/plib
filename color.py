@@ -152,7 +152,7 @@ if 1:   # Header
     # Global variables
         ii = isinstance
         # This is commented out until I get rid of the legacy klr stuff
-        #__all__ = "Color Trm TRM ColorName CN RegexpDecorate".split()
+        ##__all__ = "Color Trm TRM ColorName CN RegexpDecorate".split()
 class Color:
     'Storage of the three numbers used to define a color'
     bits_per_color = 8
@@ -1808,7 +1808,7 @@ if __name__ == "__main__":
                 (re.compile(r"is"), x.Is)]
             PrintMatches(s, r)
         #TestLoad()             # Themes not working yet
-        #TestRegexpDecorate()   # Not working yet
+        ##TestRegexpDecorate()   # Not working yet
     def TestColor():
         def Test_adjust():
             Reset()
@@ -1868,6 +1868,7 @@ if __name__ == "__main__":
             c2 = Color(88, 233, 73, bpc=n)
             n1, n2 = Color.downshift(c1, c2)
             Assert(n1.bpc == n and n2.bpc == n)
+        #xx Need to test with space = "hsv", "hls"
         def Test_dist():
             n = 8
             m = 2**n - 1
@@ -1876,7 +1877,6 @@ if __name__ == "__main__":
             x = Color.dist(c1, c2)
             Assert(Color.dist(c1, c2) == 1)
             Assert(Color.dist(c1, c2, taxicab=True) == 1)
-            #xx Need to test with space = "hsv", "hls"
         def TestEquality():
             Reset()
             if 1:   # Integers in constructor

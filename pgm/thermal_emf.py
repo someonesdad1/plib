@@ -835,9 +835,10 @@ if 0:
             emf2.append(d2[i][1])
         TdegC, emf1, emf2 = [np.array(i) for i in (TdegC, emf1, emf2)]
         if len(TdegC) < 4:
-            # This will be for situations like solder where the data only
-            # cover 0 and 100 degC.  We'll linearly interpolate to give
-            # more points.
+            '''This will be for situations like solder where the data only
+            cover 0 and 100 degC.  We'll linearly interpolate to give
+            more points.
+            '''
             def MakeNew(array, n=20):
                 a, b = array[0], array[-1]
                 dx = 1/n
@@ -940,9 +941,10 @@ def PrintTable(matl1, matl2, Print=print):
         emf1.append(d1[i][1])
         emf2.append(d2[i][1])
     if len(TdegC) < 4:
-        # This will be for situations like solder where the data only
-        # cover 0 and 100 degC.  We'll linearly interpolate to give
-        # more points.
+        '''This will be for situations like solder where the data only
+        cover 0 and 100 degC.  We'll linearly interpolate to give
+        more points.
+        '''
         def MakeNew(array, n=20):
             a, b = array[0], array[-1]
             dx = 1/n

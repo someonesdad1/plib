@@ -369,7 +369,7 @@ class CircularScale:
 #        pop()
 #---------------------------------------------------------------------------
 if __name__ == "__main__":
-    # Run unit tests
+    'Run unit tests'
     def SetUp(file, orientation=landscape, units=mm):
         '''Convenience function to set up the drawing environment and
         return a file object to the output stream.

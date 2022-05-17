@@ -440,7 +440,7 @@ def Interactive():
     rhoCu = PN(str(resistivity) + " ohm*m")  # Resistivity of copper
     PN.dimensions[u.dim("Ω")] = "Ω"
     PN.dimensions[u.dim("Ω*m")] = "nΩ*m"
-    # Utility functions
+    'Utility functions'
     def Report(R, d, L, rho):
         r = rho*rhoCu
         print('''Results:

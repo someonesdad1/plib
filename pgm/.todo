@@ -989,4 +989,26 @@ Other
         - Use python syntax and in-line code
             - Options
                 - -d    Debugging information
-                - -i    Ignore errors when remaki
+                - -i    Ignore errors when remaking files
+                - -n    Dry run (show things that will be done but don't do
+                them)
+                - -s    Do not print commands as they are executed
+                - -o f  Do not remake file f (assume it's up to date)
+                - -B    Everything out of date
+                - -f f  Specify makefile
+                - -k    Keep going to do as much as possible
+                - -t    Translate to standard makefile syntax
+        - Example
+            - This is a typical makefile for a C/C++ project
+                - cppopts = -g -DMAIN
+                - exe = z.exe
+                - ${exe}:  array.o tokenizer.o
+                -     g++ -o ${exe} ${cppopts} $^
+
+                - array.o: array.cpp array.h
+                -     g++ -c ${cppopts} $<
+                - tokenizer.o: tokenizer.cpp tokenizer.h
+                -     g++ -c ${cppopts} $<
+                - clean:
+                -     @rm -f ${exe} ${exe}.stackdump *.o
+
