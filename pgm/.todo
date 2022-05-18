@@ -1,6 +1,8 @@
 Active
     
     - dpdb.py
+        - Add a command dr that calls dir() on the arg and Columnizes the
+          output.
         - In some lwtest tests, I've seen the Assert function fail to allow
           the debugger to start.  Maybe this is a symptom of the same
           problem and could be similarly fixed.
@@ -50,6 +52,21 @@ Active
       search for '^\s*def +[A-Za-z_]()' and call the inspect function; if
       you don't get an exception, there's your result.  Then a td command
       could be used to print out the todo items for a group of files.
+
+    - EDN PDF files:  see if they can be indexed with PyPDF2.
+      I first installed PyPDF3, but there was no documentation, as the
+      links were broken.  Not a good sign.  https://github.com/sfneal/PyPDF3
+      Then I installed PyPDF2 1.27.12 using pip:  pip install PyPDF2.
+      Documentation at https://pypdf2.readthedocs.io/en/latest/.
+      Alas, the documentation is dated 2006-2008, so things may be old and
+      brittle.
+        - Text extraction:  
+            from PyPDF2 import PdfFileReader
+            reader = PdfFileReader("example.pdf")
+            page = reader.pages[0]
+            print(page.extractText())
+        - But text extraction is hard and it may be not an easy thing to
+          do.
 
 Want
     

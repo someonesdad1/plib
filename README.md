@@ -1,23 +1,6 @@
 # plib
 
-## Status
-
-I made this repository public on 7 Mar 2022.  I'll slowly add to it over
-time and fix/maintain some of the stuff.  My intent is that this stuff will
-remain here for a few years after I've died or when I turn its maintenance
-over to a friend who said he'd be the caretaker for it after I'm no longer
-able to do this.  By then any content of interest to others will probably
-have made its way out into the world and he can remove the repository when
-he sees fit.
-
-## Caution
-
-The set of files in this directory are a core set of python modules and
-scripts I've written over the years.  There's some good functionality in
-here, but I must warn you it's fairly tightly coupled.  By this, I mean if
-you find a script you like and want to move it somewhere else, you'll
-probably find that it's dependent on a number of other modules.  This will
-be annoying and possibly a lot of work to fix.
+Last updated 18 May 2022 
 
 # Introduction
 This repository is a collection of python stuff I've written since 1998.
@@ -46,27 +29,51 @@ what all this stuff does myself.
 As of this writing (March 2022), this stuff has been tested with python
 3.7.12 in a cygwin environment on Windows 10.
 
-My coding style is vertically compressed which most folks won't like.  Use
-a style formatter (e.g., black) to to recover more normal vertical
-formatting if you wish.  I use pgm/rbl.py to remove blank lines so I can
-see as much as possible on my screen.  I use a folding editor, which folds
-on indentation and explains the use of 'if 1:  # Comment' "sections".  A
-completely folded file should be viewable in a few tens of lines.  I also
-use a second 4k monitor in portrait mode to view 100 to 150 lines of text
-at once; this is quite convenient for coding.
+## Coding style
+
+My coding style is vertically compressed which most folks won't like.  You
+can use a style formatter (e.g., black) to to recover more normal vertical
+formatting.  I use pgm/rbl.py to remove blank lines so I can see as much as
+possible on my screen.  
+
+I use a folding editor, which folds on indentation and explains the
+frequent use of 'if 1:' element, which I use to divide the code up into
+viewable chunks.  A completely folded file should be viewable in a few tens
+of lines.  I also use a second 4k monitor in portrait mode to view 100 to
+150 lines of text at once; this is quite convenient for coding.
 
 My editor has commands to go to the next paragraph, which is defined by a
 bare newline.  With no blank lines in a file, this lets me set up
 "bookmarks" by inserting an empty line.  I can then jump between two areas
-in a file with one key press, which is fast and efficient.  It's faster
-than using stored bookmarks or multiple tab pages.
+in a file with one key press, which is fast and efficient.  It's much
+faster than using stored bookmarks or multiple tab pages.
 
 You'll find 'git log' pretty useless, as my development model is similar to
 how I used RCS at home for a few decades.  I'm the only developer and I
 make check-ins when I've gotten far enough where I don't want to lose
-something, so I check it in and push it to github.  I also rarely make
-branches.  I'll occasionally mark an event with a tag. 
+something, so I check it in with no comment (when I worked in industry,
+such behavior would have gotten me put on the 'atomiser', if you've read
+"Broken Angels") and push it to github.  I also rarely make branches.  I'll
+occasionally mark a notable event with a tag. 
 
+## Status
+
+I made this repository public on 7 Mar 2022.  I'll slowly add to it over
+time and fix/maintain some of the stuff.  My intent is that this stuff will
+remain here for a few years after I've died or when I turn its maintenance
+over to a friend who said he'd be the caretaker for it after I'm no longer
+able to do this.  By then any content of interest to others will probably
+have made its way out into the world; he can remove the repository when he
+sees fit.
+
+## Caution
+
+The set of files in this directory are a core set of python modules and
+scripts I've written over the years for my own use.  There's some useful
+functionality in here, but I must warn you it's fairly tightly coupled.  By
+this, I mean if you find a script you like and want to move it somewhere
+else, you'll probably find that it's dependent on a number of other
+modules.  This will be annoying and possibly a lot of work to fix.
 
 # Tools
 
@@ -133,17 +140,17 @@ Here are a few of the modules/scripts I use a lot.
       convert things over to the new file and delete the legacy stuff.  
     - A handy utility that uses color.py is pgm/cdec.py, which will
       decorate lines of a file with color specifiers, so you see the line
-      in its color.  Try 'cdec colornames0' and you'll see a demo.  The
-      colornames0 is my default set of colors with naming based on the 3
-      letter names of the resistor color code.  Run color.py as a script to
-      see the colors and add the 'a' argument to see the styles.  I use
-      this in the mintty terminal under cygwin and it's a powerful terminal
-      program with 24-bit color support and numerous styles, including
-      subscripts and superscripts.
+      in its specified color.  Try 'cdec colornames0' and you'll see a
+      demo.  The colornames0 is my default set of colors with naming based
+      on the 3 letter names of the resistor color code.  Run color.py as a
+      script to see the colors and add the 'a' argument to see the styles.
+      I use this in a mintty terminal under cygwin and it's a powerful
+      terminal program with 24-bit color support and numerous styles,
+      including subscripts and superscripts.
 
 * lwtest.py
     - Lightweight test runner adapted from a nice tool by Raymond
-      Hettinger.  I use this for all testing of python scripts.
+      Hettinger.  I use this testing of my python modules.
 
 * f.py
     - Provides flt and cpx types, derived from float and complex,
@@ -158,8 +165,3 @@ Here are a few of the modules/scripts I use a lot.
       and I have a to-do item to remove unit support, as I don't feel it's
       worth the coding and testing effort.
 
-# Feedback
-
-If you find a bug or want to suggest an improvement, my email address is in
-each file.  Send me an email with the subject `Github plib repository` in
-the subject.

@@ -82,8 +82,6 @@ if 1:   # Utility
         d["-c"] = False
         d["-l"] = False
         d["-s"] = False
-        if len(sys.argv) < 2:
-            Usage()
         try:
             opts, args = getopt.getopt(sys.argv[1:], "chls", 
                     ["help", "debug"])
@@ -102,6 +100,8 @@ if 1:   # Utility
                 debug.SetDebugger()
                 global dbg
                 dbg = True
+        if not args:
+            Usage()
         return args
 if 1:   # Core functionality
     def Colorize():
