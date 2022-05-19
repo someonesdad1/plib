@@ -1079,7 +1079,7 @@ if 1:   # Utility
             {n} -m 6 1      (metric threads in mm)
         Options
           -A          Show all threads
-          -B          Show brief report
+          -B          Show brief report in mils only
           -b          Show best thread matches
           -a frac     Min & max wire sizes for this thread (use -h for details)
           -b          Show lathe threads closest to metric pitches
@@ -1889,7 +1889,7 @@ if 1:   # Core functionality
             UNDD = f"{f(2*A1)}"
             UNCF = f"{f(2*A1/C1)}"
         # Now output the report
-        print(f"Command line:  {d['cmdline']}        Dimensions in mils")
+        T.print(f"Command line:  {d['cmdline']}        {T('yell')}Dimensions in mils")
         print(f"    Dia     tpi     LOE     Seller's    Class   Pitch   VDD Allowance")
         print(f"    {DIA:6s}  "
               f"{TPI:6s}  "
@@ -1903,14 +1903,14 @@ if 1:   # Core functionality
         print(f"Tensile area = {TA_IN2} in² = {TA_MM2} mm²")
         print(dedent(f'''
         External thread diameters           Max     Min     Tol
-            Major {' '*25} {EXTDMAX:6s}  {EXTDMIN:6s}  {1000*(A.Dmax() - A.Dmin()):.1f}
-            Pitch {' '*25} {EXTPDMAX:6s}  {EXTPDMIN:6s}  {1000*(A.Emax() - A.Emin()):.1f}
+            Major {' '*25} {EXTDMAX:6s}  {EXTDMIN:6s}{1000*(A.Dmax() - A.Dmin()):6.1f}
+            Pitch {' '*25} {EXTPDMAX:6s}  {EXTPDMIN:6s}{1000*(A.Emax() - A.Emin()):6.1f}
             Minor (vee thread), nom. {' '*7}{EXTdNOM} 
         '''))
         print(dedent(f'''
         Internal thread diameters
-            Minor {' '*25} {INTdMAX:6s} {INTdMIN:6s}  {1000*(A.dmax() - A.dmin()):.1f}
-            Pitch {' '*25} {INTPDMAX:6s} {INTPDMIN:6s}   {1000*(A.emax() - A.emin()):.1f}
+            Minor {' '*25} {INTdMAX:6s}  {INTdMIN:6s}{1000*(A.dmax() - A.dmin()):6.1f}
+            Pitch {' '*25} {INTPDMAX:6s}  {INTPDMIN:6s}{1000*(A.emax() - A.emin()):6.1f}
             Major (vee thread), nom. {' '*7}{INTDNOM} 
         '''))
         td65 = f"{TD65} ({TDS65})"
@@ -1930,19 +1930,19 @@ if 1:   # Core functionality
             Compound feed, DD/cos(29°)                     {UNCF} 
         '''))
         # Print short instructions for lathe cutting
-        T.print(f"\n{T('magl')}Lathe cutting summary for vee thread:")
+        T.print(f"\n{T('magl')}Lathe cutting summary for vee thread at MMC")
         print(f"{T('purl')}", end="")
-        print(f"  External thread")
+        print(f"  External thread with NF flat on OD")
         OD = 1000*A.Dmax() - flt(FRMTOOLFLT)
         print(f"     Turn OD to           {int(OD):5d} mils")
         print(f"     Compound feed        {int(VNFCF):5d} mils")
         print(f"{T('royl')}", end="")
-        ID = 1000*A.dmax() + flt(FRMTOOLFLT)
+        ID = 1000*A.dmin()
         cf = -int(200 - flt(VNFCF))
         print(f"  Internal thread")
         print(f"     Bore ID to           {int(ID):5d} mils")
         print(f"     Compound feed        {cf:5d} mils")
-        T.print(f"     Note:  start CF from 0 reading")
+        T.print(f"     Note:  start CF from 200 mils reading")
 
 if __name__ == "__main__":
     d = {}  # Options dictionary
