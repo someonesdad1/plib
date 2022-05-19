@@ -623,13 +623,16 @@ if 1:   # Checking functions
             print(fail, file=sys.stderr)
     def Assert(cond, debug=False):
         '''Same as assert, but you'll be dropped into the debugger on an
-        exception if you include a command line argument, debug is True, 
-        Assert.debug is True, or 'Assert' is a nonempty environment string.
+        exception if debug is True, Assert.debug is True, or 'Assert' is
+        a nonempty environment string.
         '''
         if not cond:
-            cmd = len(sys.argv) > 1
+            # I used to use any command line arguments too, but this gets
+            # in the way of scripts that use --test to run their self
+            # tests.
+            #cmd = len(sys.argv) > 1
             env = os.environ.get("Assert", "")
-            if cmd or debug or Assert.debug or env:
+            if debug or Assert.debug or env:
                 print("Type 'up' to go to line that failed", file=sys.stderr)
                 breakpoint()
             else:

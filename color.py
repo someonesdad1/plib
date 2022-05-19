@@ -6,16 +6,9 @@
         - Of course, this is a bad idea when the user wants to set .on to
           True again.  Best is to make sure all attributes are properties
           and their return value is set to "" if .on is False.
-    - Needs a test case -- this should be an invariant for all the hex
-      strings:
-        - c = Color('mag')
-        - c1 = Color(c.xhls)
-        - c1 != c
-        - First check the colorsys functions for conversion inverses.  If
-          they are OK, then it could be that fractions are needed rather
-          than decimals to get proper inverse behavior.  And it might be
-          that I should be using the fractional colorsys stuff I
-          implemented.
+    - TestInvariants() is made to pass, but I'd like to see the conversion
+      work exactly.  It could be a problem with decimal roundoff in the
+      colorsys module.
 
 Classes to help with color use in terminals
     - class Color
@@ -947,19 +940,19 @@ class Trm:
     '''This class is used to generate terminal escape codes
         For typical use, instantiate with t = Trm().  Store "styles" by
         using the Trm instance's attributes:
-
+ 
             t.err = t("red")      # Error messages are red
-
+ 
         Use the styles in f-strings:
-
+ 
             print(f"{t.err}Error:  symbol doesn't exist{t.n}")
-
+ 
         t.err and t.n are strings containing the ANSI escape codes
         (t.n is the escape code for the standard terminal text).  The
         previous can be a little more terse with the equivalent:
-
+ 
             t.print(f"{t.err}Error:  symbol doesn't exist")
-
+ 
         t.print() and t.out() output their strings then output the
         escape code to return to the normal style.  To remove all your
         "style" definitions, use t.reset().  To see the styles you've
@@ -977,19 +970,19 @@ class Trm:
         your terminal and monitor.  Most modern terminals are 24 bits.
         You'll also want to define Trm.default_color as a tuple of two
         Color instances for your default foreground and background colors.
-
+ 
         A common use case in an application is a command line option is
         used to enable or disable colorizing.  Suppose this option is
         encoded in the Boolean variable use_colorizing.  I recommend the
         following pattern near the beginning of your program (t is the Trm
         instance):
-
+ 
             def SetColors(t):
                 t.on = use_colorizing
                 t.a = t("red")
                 t.b = t("brn")
                 t.c = t("grn")
-
+ 
         This ensures that the t instance's attributes will either have the
         correct escape code strings or be empty strings if colorizing
         wasn't wanted.
@@ -1284,7 +1277,7 @@ class Trm:
     def always(self):
         return self._always
     @always.setter
-    def always(self, value):
+    def alway(self, value):
         self._always = bool(value)
         self._on = True
     # Read-only properties
@@ -1757,12 +1750,34 @@ if klr:   # Legacy code support
         norm = normal(s=1)
 
 if 0:   # Prototyping area
+    # This fails by not being an invariant
+    c = Color('orn')
+    c1 = Color(c.xrgb)
+    print("rgb", c, c1)
+    c1 = Color(c.xhls)
+    print("hls", c, c1)
+    c1 = Color(c.xhsv)
+    print("hsv", c, c1)
     exit()
 
 if __name__ == "__main__":
     import getopt
     from lwtest import run, raises, Assert, assert_equal
     from collections import deque
+    def GetShortNames(all=False):
+        '''Return a tuple of the short names.  If all is True, then
+        also append the letters d, l, and b to get all of the basic
+        colors.
+        '''
+        R = '''blk brn red orn yel grn blu vio gry wht cyn mag
+                pnk lip lav lil pur roy den sky trq sea lwn olv'''.split()
+        if all:
+            others = []
+            others.extend(i + "d" for i in R)
+            others.extend(i + "l" for i in R)
+            others.extend(i + "b" for i in R)
+            R.extend(others)
+        return tuple(R)
     def Reset():
         Color.bits_per_color = 8
     def TestTrm():
@@ -1823,14 +1838,10 @@ if __name__ == "__main__":
             Assert(c1.irgb == (0, 0, 0))
         def Test_short_color_names():
             # This just sees that the names are recognized.
-            colors = "blk blu brn cyn grn gry mag orn red vio wht yel".split()
-            for i in colors:
+            R = GetShortNames(all=True)
+            for i in R:
                 c = Color(i, bpc=8)
                 c = Color(i, bpc=10)
-                for j in "ldb":
-                    k = j + i
-                    c = Color(k, bpc=8)
-                    c = Color(k, bpc=10)
         def Test_change_bpc():
             Reset()
             a = (15, 3, 7)
@@ -1973,18 +1984,18 @@ if __name__ == "__main__":
                 # Sort on b
                 seq1 = Color.Sort(seq, keys="b")
                 Assert(seq1 == (b, c, a))
-                # Sort on l
-                seq1 = Color.Sort(seq, keys="l")
+                # Sort on L
+                seq1 = Color.Sort(seq, keys="L")
                 Assert(seq == seq1)
                 # Sort on h
                 seq1 = Color.Sort(seq, keys="h")
                 Assert(seq1 == (c, b, a))
                 # Sort on s
                 seq1 = Color.Sort(seq, keys="s")
-                Assert(seq1 == (a, c, b))
+                Assert(seq1 == (c, a, b))
                 # Sort on S
                 seq1 = Color.Sort(seq, keys="S")
-                Assert(seq1 == (c, a, b))
+                Assert(seq1 == (a, c, b))
             if 1:   # Test with predicate 
                 a = Color( 12,   6, 247)
                 b = Color(168, 255,   4)
@@ -2129,7 +2140,7 @@ if __name__ == "__main__":
                 Assert(c.ihsv == (128, 129, 128))
                 Assert(c.ihls == (128, 95, 86))
                 c = Color(f"$010203")
-                Assert(c.ihls == (0, 3, 0))
+                Assert(c.ihls == (0, 2, 0))
             if 1:   # Single number:  wavelength in nm or gray
                 # Wavelengths
                 c = Color(589)  # About sodium yellow-orange
@@ -2262,6 +2273,30 @@ if __name__ == "__main__":
             got = hash(c)
             expected = hash((a, bpc))
             Assert(got == expected)
+        def TestInvariants():
+            '''Make sure things like
+                c = Color('mag')
+                c1 = Color(c.xhls)
+                assert(c == c1)
+            are true.
+            '''
+            from f import flt
+            distances = [] 
+            for i in GetShortNames(all=True):
+                c = Color(i)
+                c1 = Color(c.xhls)
+                if c != c1:
+                    dist = flt(Color.dist(c, c1))
+                    distances.append(dist)
+                    Assert(dist < 0.014)
+                    #print(f"Failed for {i}:  {c} {c1} dist={dist}")
+            if 0 and distances:
+                # Note max possible distance value is 1.  Max is 0.0136 for
+                # vio.  So, it's either ignore any dist < 0.014 or see if the
+                # calculations with Fractions produces better conversions.
+                print(f"Max dist = {max(distances)}")
+                print("Tests failed")
+                exit(1)
         if 1:
             Test_short_color_names()
             Test_change_bpc()
@@ -2281,6 +2316,7 @@ if __name__ == "__main__":
             Test_int_to_hex()
             TestHash()
             Test_adjust()
+            TestInvariants()
     if 1:   # Example stuff
         def ShowAttributes():
             c = Trm()
@@ -2458,8 +2494,7 @@ if __name__ == "__main__":
             defined.  Each of these colors is printed out with foreground
             and background text to show their effect.
             '''
-            R = '''blk brn red orn yel grn blu vio gry wht cyn mag
-                   pnk lip lav lil pur roy den sky trq sea lwn olv'''.split()
+            R = GetShortNames()
             c = Trm()
             w = 5
             cn = CN
