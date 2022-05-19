@@ -1,4 +1,8 @@
 '''
+TODO
+    - Change {1} to <1> to quantify differences
+    - Mute the colors a bit
+
 Compare the contents of two directories
 '''
  
@@ -24,7 +28,7 @@ if 1:   # Standard imports
     from pdb import set_trace as xx
 if 1:   # Custom imports
     from wrap import wrap, dedent
-    from clr import Clr
+    from color import Color, TRM as t
     from columnize import Columnize
     import strdiff
     if 0:
@@ -33,22 +37,21 @@ if 1:   # Custom imports
 if 1:   # Global variables
     P = pathlib.Path
     ii = isinstance
-    c = Clr()
-    c.l = c("lgrn")     # Only in left directory
-    c.r = c("lred")     # Only in right directory
-    c.d = c("lyel")     # Common, but different
-    c.dbg = c("cyn")    # Debug
-    c.nr = c("lmag")    # Couldn't read
-    c.di = c("lyel", "lred")  # Difference metric
+    t.l = t("purl")     # Only in left directory
+    t.r = t("cynl")     # Only in right directory
+    t.d = t("yel")      # Common, but different
+    t.dbg = t("brnl")   # Debug
+    t.nr = t("magl")    # Couldn't read
+    t.di = t("lip")     # Difference metric
     debug = False
 if 1:   # Utility
     def Debug(*p, **kw):
         if debug:
             k = kw.copy()
             k["end"] = ""
-            print(f"{c.dbg}", **k)
+            print(f"{t.dbg}", **k)
             print(*p, **kw)
-            print(f"{c.n}", **k)
+            print(f"{t.n}", **k)
     def Error(*p, status=1):
         print(*p, file=sys.stderr)
         exit(status)
@@ -60,16 +63,16 @@ if 1:   # Utility
           they are the same size.
  
           For files that are the same size but different, the notation
-          {{n}} appended to the file name quantifies how different they
-          are.  {{1}} means they are close (perhaps one to a few bytes are
-          different), whereas {{9}} means nearly all the bytes are
-          different.  With no {{n}} decoration, the two files are different
+          <n> appended to the file name quantifies how different they
+          are.  <1> means they are close (perhaps one to a few bytes are
+          different), whereas <9> means nearly all the bytes are
+          different.  With no <n> decoration, the two files are different
           sizes.
         Options:
             -1      Don't print out files only in dir1
             -2      Don't print out files only in dir2
             -c      Don't print out common files
-            -k      Use color in printout to a terminal
+            -k      Don't use color in printout to a terminal
             -d      Print debug information
             -r      Recursive compare
         '''))
@@ -79,7 +82,7 @@ if 1:   # Utility
         d["-2"] = True          # Print out dir2 stuff
         d["-c"] = True          # Print out common stuff
         d["-d"] = False         # Debug output
-        d["-k"] = False         # Use color
+        d["-k"] = True          # Use color
         d["-r"] = False         # Recurse
         try:
             opts, dirs = getopt.getopt(sys.argv[1:], "12cdhkr")
@@ -97,13 +100,12 @@ if 1:   # Utility
             global debug
             debug = True
         if not d["-k"]:
-            c.reset()
-            c.l = c.r = c.d = c.dbg = c.nr = c.di = ""
+            t.l = t.r = t.d = t.dbg = t.nr = t.di = ""
         return dirs
     def CleanUp():
         'Make sure ANSI colors are off'
-        if d["-c"]:
-            print(f"{c.n}", end="")
+        if d["-k"]:
+            print(f"{t.n}", end="")
 if 1:   # Core functionality
     def GetFiles(dir):
         p = P(dir)
@@ -165,7 +167,7 @@ if 1:   # Core functionality
             return ""
         frac = strdiff.DiffFrac(left, right)
         digit = strdiff.DiffDigit(frac, len(left))
-        return f"{{{digit}}}"
+        return f"{t.di}<{digit}>{t.n}"
     def Report(only_in_left, only_in_right, diffs, noread):
         indent = " "*2
         def P(title, myset, decorate=False):
@@ -175,16 +177,17 @@ if 1:   # Core functionality
                 items = [str(i) + GetDecorator(i) for i in items]
             for i in Columnize(items, indent=indent):
                 print(i)
-            print(f"{c.n}", end="")
+            print(f"{t.n}", end="")
         if noread:
-            P(f"{c.nr}Files that couldn't be read", noread)
+            P(f"{t.nr}Files that couldn't be read", noread)
         if d["-1"] and only_in_left:
-            P(f"{c.l}Files only in {dirleft}", only_in_left)
+            P(f"{t.l}Files only in {dirleft}", only_in_left)
         if d["-2"] and only_in_right:
-            P(f"{c.r}Files only in {dirright}", only_in_right)
+            P(f"{t.r}Files only in {dirright}", only_in_right)
         if d["-c"] and diffs:
-            GetDecorator.color = c.d
-            P(f"{c.d}Common files that differ ({{1}} to {{9}} quantify differences)",
+            GetDecorator.color = t.d
+            P(f"{t.d}Common files that differ ({t.di}<1>{t.d} to "
+              f"{t.di}<9>{t.d} quantify differences)",
               diffs, decorate=True)
 if __name__ == "__main__":
     d = {}      # Options dictionary

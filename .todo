@@ -58,39 +58,9 @@ Want
         - Would be nice to have an index though
             - Title, author, page, document
 
-    - pgm/thd.py 
-        - Colorizing would make the report easier to read
-        - Allow metric sizes by e.g. 'M6 1' arguments
-        - Change to mil units, report to nearest integer (setting -d option
-          to digits would choose significant figures instead)
-        - Keep original report as optional, but make a more collapsed
-          report standard; here's a possibility in mils
-
-            Thread size:  5/16-24
-                Dia     tpi     LOE     Seller's    Class   Pitch   VDD    Allowance
-                312      24     512       17.4        2      41.7    72       1.1
-            Tensile area = 0.0517 in² = 33.4 mm²
-            External thread diameters           Max     Min     Tol
-                Major                           311     304     7.2
-                Pitch                           284     281     3.6
-                Minor (vee thread), nom.        240
-            Internal thread diameters
-                Minor                           277     267     9.7
-                Pitch                           290     285     4.7
-                Major (vee thread), nom.        340
-            Measurements over wires       Wire ⌀      MOW-Max     MOW-Min
-                                            24          320         317
-            Tap drills      65%             75%             85%
-                            277 (J)         272 (I)         266 (H)
-            Sharp V thread with National Form flat on OD, compound at 29°
-                Double depth = 7*A/8                               63    
-                Compound feed = A = sqrt(3)*p                      72
-            Unified thread, compound at 29° (cos(29°) = 7/8)
-                Flat on form tool                                  5.2    
-                Double depth                                        54    
-                Compound feed, DD/cos(29°)                          62
-
-    - pgm/ddiff.py needs to be converted to use color.py
+    - pgm/ddiff.py
+        - Use color.py
+        - Use filecmp module for efficient comparisons
 
     - /pylib/pgm/xyz.py
         - This is a significant enough script that it should be tested and
