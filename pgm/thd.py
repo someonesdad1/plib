@@ -33,7 +33,7 @@ if 1:  # Header
         from columnize import Columnize
         from f import flt
         from f import cos, tan, sin, atan, pi, sqrt, radians
-        from color import Color, TRM as t
+        from color import Color, TRM as T
     # Global variables
         float = flt
         mm_per_in = 25.4    # in to mm
@@ -1181,6 +1181,7 @@ if 1:   # Utility
         x = flt(0)
         x.n = d["-d"]
         x.rtz = x.rtdp = True
+        d["cmdline"] = ' '.join(sys.argv[1:])
         # If any elements contain a '-', increase the number of arguments
         # by parsing on the '-'.
         new_args = []
@@ -1793,30 +1794,33 @@ if 1:   # Core functionality
                             length_of_engagement=d["-L"])
         p = 1/tpi
         H = p*sqrt(3)/2
-        print(f"{'':{g.w}s} {'inches':^{g.iw}s} {'mm':^{g.mw}s}")
-        print(f"{'':{g.w}s} {'-'*(g.iw - 2):^{g.iw}s} {'-'*(g.mw - 2):^{g.mw}s}")
-        Print("Nominal diameter", diameter)
-        Print("Threads per inch or mm", tpi, tpi/mm_per_in)
         loe = diameter*d["-L"]
-        Print("Length of engagement", loe)
         # Sellers' recommended tpi given the diameter
         p = 0.24*sqrt(diameter + 5/8) - 0.175
         if diameter < 1/4:
             p *= 0.23/0.24
-        Print("Sellers' recommended tpi", 1/p, nomm=True)
-        print(f"{'Thread class':{g.w}s} {thread_class:^{g.iw}d}")
-        Print("Pitch = p", 1/tpi)
-        Print("H = sqrt(3)/2*p", H)
-        Print("Vee thread double depth = 2*H", 2*H)
         with H:
             H.n = max(d["-d"] - 2, 1)
-            Print("Allowance", A.Allowance())
         # Thread tensile strength area (ASME 1989, Appendix B)
         a = diameter - 0.9743*p
         AS = pi/4*a*a
         with H:
             H.n = max(d["-d"] - 1, 1)
-            Print("Tensile area, in^2 or mm^2", AS, AS*mm_per_in*mm_per_in)
+        if 1:   # Output strings
+            f = lambda x: int(round(1000*x, 0))
+            DIA = f"{f(diameter)}"
+            TPI = f"{tpi}"
+            LOE = f"{f(loe)}"
+            SELLER = f"{1/p}"
+            CLASS = f"{thread_class}"
+            PITCH = f"{1000/tpi:.1f}"
+            VDD = f"{f(2*H)}"
+            ALLOW = f"{1000*A.Allowance():.1f}"
+            with AS:
+                AS.n = 3
+                TA_IN2 = f"{AS}"
+                TA_MM2 = f"{AS*mm_per_in**2}"
+
         # Thread shear area
         # xx Note:  this prints out values that cannot be right.
         if 0:
@@ -1825,48 +1829,30 @@ if 1:   # Core functionality
             ASs = pi/p*A.dmax()*(p/2 + 0.57735*(A.Emin() - A.dmax()))
             print(fmt % ("    External thread", ASs, ASs*mm_per_in*mm_per_in))
             print(fmt % ("    Internal thread", ASn, ASn*mm_per_in*mm_per_in))
-        print()
         #
-        print("External thread")
-        print("    Major diameter")
-        Print("        Max", A.Dmax())
-        Print("        Min", A.Dmin())
         with H:
             H.n = max(d["-d"] - 2, 1)
-            Print("        Tolerance", A.Dmax()-A.Dmin())
-        print("    Pitch diameter")
-        Print("        Max", A.Emax())
-        Print("        Min", A.Emin())
-        Print("        Tolerance", A.Emax()-A.Emin())
-        print("    Minor diameter, vee thread")
+        EXTDMAX = f"{f(A.Dmax())}"
+        EXTDMIN = f"{f(A.Dmin())}"
+        EXTPDMAX = f"{f(A.Emax())}"
+        EXTPDMIN = f"{f(A.Emin())}"
         md = 0.5*(A.Dmax() - 2*H + A.Dmin() - 2*H)
         with H:
             H.n = max(d["-d"] - 2, 1)
-            Print("        Nominal", md)
-        print()
+            EXTdNOM = f"{f(md)}"
         #
-        print("Internal thread")
-        print("    Minor diameter")
-        Print("        Max", A.dmax())
-        Print("        Min", A.dmin())
-        Print("        Tolerance", A.dmax()-A.dmin())
-        print("    Pitch diameter")
-        Print("        Max", A.emax())
-        Print("        Min", A.emin())
-        Print("        Tolerance", A.emax()-A.emin())
-        print("    Major diameter, vee thread")
+        INTdMAX = f"{f(A.dmax())}"
+        INTdMIN = f"{f(A.dmin())}"
+        INTPDMAX = f"{f(A.emax())}"
+        INTPDMIN = f"{f(A.emin())}"
         md = 0.5*(A.dmax() + 2*H + A.dmin() + 2*H)
         with H:
             H.n = max(d["-d"] - 2, 1)
-            Print("        Nominal", md)
-        print()
+            INTDNOM = f"{f(md)}"
         #
-        PrintBestWire(1/tpi)
         best_wire_size = 1/(2*tpi*cos(radians(30)))
         mow_max = MOW(A.Emax(), tpi, best_wire_size)
         mow_min = MOW(A.Emin(), tpi, best_wire_size)
-        Print("        Meas. over best wires, max", mow_max)
-        Print("        Meas. over best wires, min", mow_min)
         if d["-w"]:
             W = d["-w"]  # Wire diameter
             s = "User-specified wire diameter"
@@ -1875,19 +1861,88 @@ if 1:   # Core functionality
             W = FindClosestWire(best_wire_size)
             s = "    On-hand wire size"
         if W:
-            Print(s, W)
             mow_max = MOW(A.Emax(), tpi, W)
             mow_min = MOW(A.Emin(), tpi, W)
-            Print("        Meas. over wires, max", mow_max)
-            Print("        Meas. over wires, min", mow_min)
-            print()
-        print("Tap drills")
-        fmtf = fmt + "    %s"
+            MOWWD = f"{f(W)}" if W else "N/A"
+            MOWMAX = f"{f(MOW(A.Emax(), tpi, W))}" if W else "N/A"
+            MOWMIN = f"{f(MOW(A.Emin(), tpi, W))}" if W else "N/A"
+        D, F = TapDrill(diameter, 65, 1/tpi)
+        TD65 = f"{f(D)}"
+        TDS65 = f"{F}"
+        D, F = TapDrill(diameter, 75, 1/tpi)
+        TD75 = f"{f(D)}"
+        TDS75 = f"{F}"
+        D, F = TapDrill(diameter, 85, 1/tpi)
+        TD85 = f"{f(D)}"
+        TDS85 = f"{F}"
         for percent in range(50, 101, 5):
             D, F = TapDrill(diameter, percent, 1/tpi)
-            Print(f"    {percent:3d}% thread      Drill = {F}", D)
-        print()
-        ThreadDepths(H)
+        if 1:
+            # Thread depths (see ThreadDepths function)
+            pitch = 2*H/sqrt(3)
+            A1 = 3*sqrt(3)*pitch/8
+            B1 = 7*sqrt(3)*pitch/16
+            C1 = cos(radians(29))
+            VNFDD = f"{f(2*B1)}"
+            VNFCF = f"{f(round(2*B1/C1, 4))}"
+            FRMTOOLFLT = f"{1000*pitch/8:.1f}"
+            UNDD = f"{f(2*A1)}"
+            UNCF = f"{f(2*A1/C1)}"
+        # Now output the report
+        print(f"Command line:  {d['cmdline']}        Dimensions in mils")
+        print(f"    Dia     tpi     LOE     Seller's    Class   Pitch   VDD Allowance")
+        print(f"    {DIA:6s}  "
+              f"{TPI:6s}  "
+              f"{LOE:6s}    "
+              f"{SELLER:6s}      "
+              f"{CLASS:6s} "
+              f"{PITCH:6s}  "
+              f"{VDD:6s}"
+              f"{ALLOW:6s}"
+             )
+        print(f"Tensile area = {TA_IN2} in² = {TA_MM2} mm²")
+        print(dedent(f'''
+        External thread diameters           Max     Min     Tol
+            Major {' '*25} {EXTDMAX:6s}  {EXTDMIN:6s}  {1000*(A.Dmax() - A.Dmin()):.1f}
+            Pitch {' '*25} {EXTPDMAX:6s}  {EXTPDMIN:6s}  {1000*(A.Emax() - A.Emin()):.1f}
+            Minor (vee thread), nom. {' '*7}{EXTdNOM} 
+        '''))
+        print(dedent(f'''
+        Internal thread diameters
+            Minor {' '*25} {INTdMAX:6s} {INTdMIN:6s}  {1000*(A.dmax() - A.dmin()):.1f}
+            Pitch {' '*25} {INTPDMAX:6s} {INTPDMIN:6s}   {1000*(A.emax() - A.emin()):.1f}
+            Major (vee thread), nom. {' '*7}{INTDNOM} 
+        '''))
+        td65 = f"{TD65} ({TDS65})"
+        td75 = f"{TD75} ({TDS75})"
+        td85 = f"{TD85} ({TDS85})"
+        print(dedent(f'''
+        Measurements over wires       Wire ⌀      MOW-Max     MOW-Min
+        {' '*33}{MOWWD}         {MOWMAX}         {MOWMIN}
+        Tap drills      65%             75%             85%
+        {' '*10}{td65:^15s} {td75:^15s} {td85:^15s}
+        Sharp V thread with National Form flat on OD, compound at 29°
+            Double depth = 7*A/8                           {VNFDD}   
+            Compound feed = A = sqrt(3)*p                  {VNFCF}
+        Unified thread, compound at 29° (cos(29°) = 7/8)
+            Flat on form tool                              {FRMTOOLFLT}
+            Double depth                                   {UNDD}     
+            Compound feed, DD/cos(29°)                     {UNCF} 
+        '''))
+        # Print short instructions for lathe cutting
+        T.print(f"\n{T('magl')}Lathe cutting summary for vee thread:")
+        print(f"{T('purl')}", end="")
+        print(f"  External thread")
+        OD = 1000*A.Dmax() - flt(FRMTOOLFLT)
+        print(f"     Turn OD to           {int(OD):5d} mils")
+        print(f"     Compound feed        {int(VNFCF):5d} mils")
+        print(f"{T('royl')}", end="")
+        ID = 1000*A.dmax() + flt(FRMTOOLFLT)
+        cf = -int(200 - flt(VNFCF))
+        print(f"  Internal thread")
+        print(f"     Bore ID to           {int(ID):5d} mils")
+        print(f"     Compound feed        {cf:5d} mils")
+        T.print(f"     Note:  start CF from 0 reading")
 
 if __name__ == "__main__":
     d = {}  # Options dictionary
@@ -1912,7 +1967,7 @@ if __name__ == "__main__":
         numerator, denominator = map(float, args[1].split("/"))
         diameter_inches = float(args[0]) + numerator/denominator
         tpi = float(args[2])
-    if d["-b"]:
+    if d["-B"]:
         PrintBriefResults(diameter_inches, tpi)
     else:
         PrintResults(diameter_inches, tpi)

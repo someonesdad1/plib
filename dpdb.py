@@ -235,6 +235,7 @@ class DPdb(Pdb):
         def Decorate(self, name, val, t, w):
             'Print name and value in indicated color'
             c = ""
+            is_str = False
             if ii(val, bool):
                 c = t.bool
             elif ii(val, int):
@@ -249,11 +250,16 @@ class DPdb(Pdb):
                 c = t.Decimal
             elif ii(val, str):
                 c = t.string
+                is_str = True
             elif ii(val, bytes):
                 c = t.bytes
             elif ii(val, bytearray):
                 c = t.bytearray
-            print(f"  {c}{name:{w}s} = {val}{t.N}")
+            if is_str:
+                # Strings get shown by repr()
+                print(f"  {c}{name:{w}s} = {val!r}{t.N}")
+            else:
+                print(f"  {c}{name:{w}s} = {val}{t.N}")
         def get_frame_of_interest(self):
             '''Return the stack frame that's current in the thing being
             debugged.
@@ -324,7 +330,7 @@ class DPdb(Pdb):
                 t.cpx = t("royl") if c else ""
                 t.int = t("grnl") if c else ""
                 t.Decimal = t("magl") if c else ""
-                t.string = t("sky") if c else ""
+                t.string = t("cynl") if c else ""
                 t.bytes = t("trq") if c else ""
                 t.bytearray = t("lwnl") if c else ""
                 t.N = t.n if c else ""
