@@ -73,7 +73,7 @@ if 1:  # Header
     # Global variables
         __doc__ = dedent('''
         Lightweight testrunner framework
-            from lwtest import run, raises, assert_equal, Assert
+            from lwtest import run, raises, assert_equal, Assert, Debugger
         
             def TestExample():
                 f = lambda x: set(x)
@@ -85,32 +85,41 @@ if 1:  # Header
                 # How to compare floating point numbers
                 eps = 1e-6
                 a, b = 1, 1 + eps
-                # In following, debug=True means debugger will start on !=
+
+                # In following, debug=True starts debugger if a != b
                 assert_equal(a, b, abstol=eps, debug=True)
-                # Assert() allows you to start debugger with command line
-                # argument; type 'up' to go to the offending line.  You can
-                # also use the debug keyword:
-                Assert(a == b, debug=True)
+                # Set Assert.debug to True to always drop into debugger
         
             if __name__ == "__main__":
                 failed, messages = run(globals())
             or 
                 exit(run(globals(), halt=True)[0])
         
-            run() will find test functions and execute them; its single
-            argument must be a dictionary containing the names and their
-            associated function objects.  Set verbose=True to see which
-            functions will be executed and their execution order.
+            run()
+                Finds test functions and execute them.  Its single argument
+                must be a dictionary containing the names and their
+                associated function objects.  Set verbose=True to see which
+                functions will be executed and their execution order.
         
-            Assert() works like python's assert statement, but if you
-            include a command line argument or the debug keyword, you'll be
-            dropped into the debugger when the Assert fails.  Type 'up' to
-            go to the line that had the problem.  Note Assert() and
-            assert_equal() do not pay attention to __debug__, unlike
-            python's assert statement.
+            Assert() 
+
+                Works like python's assert statement, but can drop you into
+                the debugger if so instructed.  Type 'up' to go to the
+                failed Assert() line.  Since dropping into the debugger is
+                a common need, there are multiple ways:
+
+                    - Set the debug keyword to True
+                    - Include a command line argument
+                    - Set Assert.debug to True
+                    - Set the environment variable 'Assert' to the nonempty
+                      string
+
+                Note Assert() and assert_equal() do not pay attention to
+                __debug__, unlike python's assert statement.
         
-            Use the ToDoMessage() function to cause a colored message to be
-            printed to stdout to remind you of something that needs to be done.
+            ToDoMessage()
+                Causes a colored message to be printed to stdout to remind
+                you of something that needs to be done.
         
             My motivation for generating this lightweight testrunner framework
             was my frustration with the unittest module in conjunction with the
@@ -614,14 +623,18 @@ if 1:   # Checking functions
             print(fail, file=sys.stderr)
     def Assert(cond, debug=False):
         '''Same as assert, but you'll be dropped into the debugger on an
-        exception if you include a command line argument or debug is True.
+        exception if you include a command line argument, debug is True, 
+        Assert.debug is True, or 'Assert' is a nonempty environment string.
         '''
         if not cond:
-            if len(sys.argv) > 1 or debug:
+            cmd = len(sys.argv) > 1
+            env = os.environ.get("Assert", "")
+            if cmd or debug or Assert.debug or env:
                 print("Type 'up' to go to line that failed", file=sys.stderr)
                 breakpoint()
             else:
                 raise AssertionError
+    Assert.debug = False
 if __name__ == "__main__":
     print(dedent(f'''
     lwtest:  Lightweight test framework -- typical usage:

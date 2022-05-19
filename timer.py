@@ -37,7 +37,8 @@ if 1:   # Classes
             return flt(time.time() - self.start)
     class Timer(object):
         '''Use an instance of this object to time events in code.  
-        Ideas from https://realpython.com/python-timer/.
+        Ideas from https://realpython.com/python-timer/ and 
+        https://realpython.com/python-with-statement/#measuring-execution-time
     
         Usage patterns are:
     

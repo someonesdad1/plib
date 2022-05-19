@@ -827,7 +827,6 @@ if 1:  # Header
         from collections import deque
         from collections.abc import Iterable
         from fractions import Fraction
-        from pdb import set_trace as xx
         import cmath
         import decimal
         import locale
@@ -2237,6 +2236,7 @@ if 1:   # Get math/cmath functions into our namespace
             # search for a complex function, which doesn't exist.  This
             # could be fixed with more code (e.g., knowing erf is only in
             # math), but I don't think it's worth the extra effort.
+            result = None
             try:
                 result = eval(s)
             except AttributeError as err:
@@ -2253,11 +2253,12 @@ if 1:   # Get math/cmath functions into our namespace
                         result = eval("c" + s)
                 else:
                     raise
+            except OverflowError as err:
+                raise
             except Exception as err:
-
-                print(f"Unhandled exception:\n  '{err!r}'")
+                print(f"Unhandled exception in f.py's Delegator:\n  '{err!r}'")
                 print("Dropping into debugger")
-                xx()
+                breakpoint() #xx
                 pass
             if ii(result, int):
                 return result
@@ -2924,8 +2925,10 @@ if __name__ == "__main__":
                 print("Testing", i.strip())
             try:
                 s, n = i.split()
-            except Exception:
-                xx()
+            except Exception as e:
+                print(f"Unhandled exception:  '{e}'")
+                print(f"Dropping into debugger")
+                breakpoint() #xx
             a = GetSigFig(s)
             n = int(n)
             assert_equal(a, n)

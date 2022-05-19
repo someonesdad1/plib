@@ -6,12 +6,11 @@ import io
 import math
 import operator as op
 import sys
-from pdb import set_trace as xx
 
 # Custom libraries
 from lwtest import run, raises, assert_equal
 from color import TRM as t
-t.r = t("lred")
+t.r = t("redl")
 try:
     import numpy
     _have_numpy = True
@@ -497,9 +496,10 @@ def TestMathFunctions2():
                 y1 = eval(s)
                 y2 = eval(m)
             except Exception as e:
-
-                xx()
-                pass
+                print(f"Unhandled exception:  '{e}'")
+                print(f"Dropping into debugger")
+                raise
+                breakpoint() #xx
             Assert(y1 == y2)
             Assert(ii(y1, flt))
             Assert(ii(y2, float))

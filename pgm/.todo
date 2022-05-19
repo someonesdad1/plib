@@ -1,8 +1,6 @@
 Active
     
     - dpdb.py
-        - Add a command dr that calls dir() on the arg and Columnizes the
-          output.
         - In some lwtest tests, I've seen the Assert function fail to allow
           the debugger to start.  Maybe this is a symptom of the same
           problem and could be similarly fixed.

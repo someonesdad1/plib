@@ -83,6 +83,7 @@ if __name__ == "__main__":
     failed = []
     if not files and d["-a"]:
         for file in p.glob("*_test.py"):
+            print(f"Running {file}")
             RunFile(file, failed)
     else:
         for file in files:
