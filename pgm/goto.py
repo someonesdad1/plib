@@ -642,6 +642,13 @@ class Line:
         elif len(lst) == 3:
             self.name, self.alias, self.loc = lst
         else:
+            # xx Problem:  How to make a commented-out first field?  The
+            # only reasonable solution is to read each line in and look to
+            # see if it's a comment.  If so, then remove the "#" and parse
+            # as a line, but add a kw to say that it's inactive.
+            # Otherwise, make the line an StringIO object and pass it to
+            # reader() to be converted.
+            xx()
             Error(f"{file}:{linenum} is bad line:  too many fields")
         if self.loc[0] == "#":
             self.loc = self.loc[1:]
@@ -689,27 +696,13 @@ if 0:
     '''))
     Convert(s)
     exit()
-if 0:   # Test CSV
+if 1:   # Test CSV
     # Show can load from file
     lines = ReadCSVFile("aa")
-    for line in lines:
-        print([i.strip() for i in lines])
+    for linenum, lst in enumerate(lines):
+        Line(lst, linenum + 1, "aa")
     exit()
-
-    s = StringIO(dedent(f'''
-        # Comment
-        # Inactive
-        /doc/a
-        Name   , /doc/b
-
-        "Name with , comma"  , /doc/c
-        "name", abc, /doc/d
-        "name", @bc, /doc/d
-    '''))
-    for i in reader(s):
-        print(i)
-    exit()
-if 1:   # Test of Line class
+if 0:   # Test of Line class
     g.debug = True
     Line(["a"], 88, "fakefile")
     Line(["goto.py"], 88, "fakefile")
