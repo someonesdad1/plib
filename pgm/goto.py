@@ -82,7 +82,6 @@ if 1:  # Header
         t.cfg = t("cynl")       # Config line bad
         t.dup = t("redl")       # Duplicate alias
         t.bad = t("redl")       # Bad line
-
         # Debug printing colors
         t.dbg_linenum = t("orn")
         t.dbg_name = t("grn")
@@ -90,19 +89,19 @@ if 1:  # Header
         t.dbg_alias_silent = t("yell")
         t.dbg_loc = t("royl")
         t.dbg_loc_bad = t("lip")
-
-        # Regular expressions describing configuration file lines that
-        # should be ignored
-        g.ignore = (
-            re.compile(r"^\s*##"),
-            re.compile(r"^\s*#[《》]"),     # vim folding markers
-            re.compile(r"^\s*#<<|^\s#>>"),  # vim folding markers
-        )
+        if 0:
+            # Regular expressions describing configuration file lines that
+            # should be ignored
+            g.ignore = (
+                re.compile(r"^\s*##"),
+                re.compile(r"^\s*#[《》]"),     # vim folding markers
+                re.compile(r"^\s*#<<|^\s#>>"),  # vim folding markers
+            )
 if 1:   # Utility
     def Error(msg, status=1):
         print(msg, file=sys.stderr)
         exit(status)
-    def Usage(d, status=1):
+    def Usage(status=1):
         print(dedent(f'''
         Usage:  {g.name} [options] arguments
           Script to save/choose file or directory names.  When run, the
@@ -112,17 +111,21 @@ if 1:   # Utility
           directory or launch the file.
         Arguments are:
             a       Adds current directory to top of configuration file
+            c       Check all paths in configuration file
             e       Edits the configuration file
             n       Goes directly to the nth directory.  n can also be an
                     alias string.
+            s       Search configuration file lines for a regex
+            S       Search all configuration file lines for a regex
         Options are:
             -a      Read and check all configuration file lines, then exit
             -c      Convert old-style config file to new CSV form to stdout
             -d      Debug printing:  show data file contents
-            -e f    Write result to file f
+            -D      Same as -d, but show inactive lines too
             -f f    Set the name of the configuration file
             -H      Explains details of the configuration file syntax
             -l      Launch the file(s) with the registered application
+            -o f    Write result to file f
             -q      Print silent alias names (prefaced with {g.at})
             -S      Search all lines in the config file for a regex
             -s      Search the non-commented lines in the config file for a regex
@@ -132,7 +135,8 @@ if 1:   # Utility
         d["-a"] = False
         d["-c"] = False
         d["-d"] = False
-        d["-e"] = None
+        d["-D"] = False
+        d["-o"] = None
         d["-f"] = None
         d["-H"] = False
         d["-l"] = False
@@ -140,21 +144,21 @@ if 1:   # Utility
         d["-S"] = False
         d["-s"] = False
         try:
-            opts, args = getopt.getopt(sys.argv[1:], "acde:f:HhlqSs")
+            opts, args = getopt.getopt(sys.argv[1:], "acDde:f:HhlqSs")
         except getopt.GetoptError as e:
             print(str(e))
             exit(1)
         for o, a in opts:
-            if o[1] in list("acdlqSs"):
+            if o[1] in list("acDdlqSs"):
                 d[o] = not d[o]
-            elif o == "-e":
-                d["-e"] = a
+            elif o == "-o":
+                d["-o"] = a
             elif o == "-f":
                 g.config = d["-f"] = P(a)
                 if not g.config.is_file():
                     Error(f"'{a}' is not a valid configuration file")
             elif o in ("-h", "--help"):
-                Usage(d, 0)
+                Usage(0)
             elif o == "-H":
                 Manpage()
         if d["-c"]:
@@ -167,7 +171,12 @@ if 1:   # Utility
             Error(f"Must use -f option to specify a configuration file")
         if not g.backup.exists() or not g.backup.is_dir():
             Error(f"Must define a backup directory in g.backup")
-        return args
+        if not args:
+            cmd, other = "", []
+        else:
+            cmd = args[0]
+            other = args[1:] if len(args) > 1 else []
+        return cmd, other
     def Manpage():
         print(dedent(f'''
         This script is for "remembering" directories and project files.
@@ -256,7 +265,99 @@ if 1:   # Utility
         command line and you won't be prompted.
         '''))
         exit(0)
-if 1:   # Core functionality
+if 1:   # Classes
+    class Line:
+        def __init__(self, line, file, delimiter=";"):
+            '''line will be a tuple of (linenum, contents).  linenum is the
+            1-based line number in the file and contents is the string of that
+            line, including leading whitespace.  A valid contents string will
+            have its fields separated by the indicated delimiter string.  If
+            contents begins with a "#", it will still be parsed but declared to
+            be an inactive element.
+            '''
+            # Stash initialization data
+            self.linenum, self.linestr = line
+            self.file = file
+            self.delimiter = delimiter
+            items = self.linestr.split(delimiter)
+            if len(items) not in (1, 2, 3):
+                print(f"Bad line:\n  {self.linestr!r}")
+                exit(1)
+            # Parse out line's information
+            self.alias = self._name = ""
+            self.inactive = False
+            if len(items) == 1:
+                self.loc = items[0].strip()
+            elif len(items) == 2:
+                self._name, self.loc = items
+            elif len(items) == 3:
+                self._name, self.alias, self.loc = items
+            else:
+                Error(f"{file}:{linenum} is bad line - too many fields:\n"
+                    f"  {self.linestr!r}")
+            # Strip whitespace
+            self._name = self._name.strip()
+            self.alias = self.alias.strip()
+            self.loc = self.loc.strip()
+            if self.linestr.strip().startswith("#"):
+                self.inactive = True
+            if self.loc[0] == "#":  # Fix single field entry so path is good
+                self.loc = self.loc[1:]
+            # Convert self.loc to a Path instance
+            self.loc = P(self.loc.strip())
+            # Validate
+            self.ok = self.loc.exists()
+            if g.debug:
+                self._dbg()
+        def __str__(self):
+            return f"Line({self.linestr!r})"
+        def __repr__(self):
+            return str(self)
+        def _dbg(self):
+            'Print components to help with debugging'
+            if self.inactive:
+                if g.debug > 1:
+                    if not self.loc.exists():
+                        print(
+                                f"{t('gry')}"
+                                f"Line {self.linenum} "
+                                f"{self.name!r} "
+                                f"{self.alias!r} "
+                                f"{t.dbg_loc_bad}{self.loc!r} "
+                                f"{t.n}"
+                            )
+                    else:
+                        print(
+                                f"{t('gry')}"
+                                f"Line {self.linenum} "
+                                f"{self.name!r} "
+                                f"{self.alias!r} "
+                                f"{self.loc!r} "
+                                f"{t.n}"
+                            )
+            else:
+                a = f"{t.dbg_alias}"
+                # Show silent aliases in different color
+                if self.alias and self.alias.startswith("@"):
+                    a = f"{t.dbg_alias_silent}"
+                # Show locations that don't exist in different color
+                b = f"{t.dbg_loc}"
+                if not self.loc.exists():
+                    b = f"{t.dbg_loc_bad}"
+                print(
+                        f"{t.dbg_linenum}Line {self.linenum} "
+                        f"{t.dbg_name}{self.name!r} "
+                        f"{a}{self.alias!r} "
+                        f"{b}{self.loc!r} "
+                        f"{t.n}"
+                    )
+        @property
+        def name(self):
+            '''Return self._name or self.loc if self._name is empty.  This
+            allows the Line instance to be put into a dict.
+            '''
+            return self._name if self._name else str(self.loc)
+if 0:   # Old core functionality
     def Ignore(line):
         'Return True if this configuration file line should be ignored'
         for r in g.ignore:
@@ -539,19 +640,6 @@ if 1:   # Core functionality
             rd.register(r, c)
         for linenum, line in lines:
             rd(f"{linenum}: {line}")
-    def ExecuteCommand(cmd, args):
-        if cmd == "a":
-            AddCurrentDirectory(args)
-        elif cmd == "e":
-            EditFile()
-        elif d["-s"] or d["-S"]:
-            a = [cmd]
-            if args:
-                a.extend(args)
-            SearchLines(a)
-        else:
-            # cmd will be a number or alias
-            GoTo(cmd)
     def LeadingWS(s):
         'Return the leading whitespace of string s'
         r = re.compile(r"^( *)")
@@ -605,152 +693,62 @@ if 1:   # Core functionality
                     spc = LeadingWS(name)
                     alias = f'{spc}"{alias.strip()}"'
                 print(f"{name}, {alias}, {loc}")
-class Line:
-    def __init__(self, line, file, delimiter=";"):
-        '''line will be a tuple of (linenum, contents).  linenum is the
-        1-based line number in the file and contents is the string of that
-        line, including leading whitespace.  A valid contents string will
-        have its fields separated by the indicated delimiter string.  If
-        contents begins with a "#", it will still be parsed but declared to
-        be an inactive element.
+if 1:   # New functionality
+    def ReadDataFile(file, delimiter=";"):
+        '''Return a default dict of Line instances.  The keys are the name
+        associated with the line; the defaultdict(list) lets there be more than
+        one Line instance with the same name; these get resolved by an
+        interactive prompt.
+    
+        The datafile structure is controlled by the following regexps
+            
+            Comments:  any blank line or line starting with '^\s*##'
+            Commented entries:  any line '^\s*#'
+            Regular entry:  any other line
+    
+        The commented entries are read in and put into Line instances but are
+        marked 'inactive'.  This lets them still have their file locations
+        validated.
+    
+        A deque of lines is read in, as this enables efficient processing with
+        one data structure and a sentinel.
         '''
-        # Stash initialization data
-        self.linenum, self.linestr = line
-        self.file = file
-        self.delimiter = delimiter
-        items = self.linestr.split(delimiter)
-        if len(items) not in (1, 2, 3):
-            print(f"Bad line:\n  {self.linestr!r}")
-            exit(1)
-        # Parse out line's information
-        self.alias = self._name = ""
-        self.inactive = False
-        if len(items) == 1:
-            self.loc = items[0].strip()
-        elif len(items) == 2:
-            self._name, self.loc = items
-        elif len(items) == 3:
-            self._name, self.alias, self.loc = items
-        else:
-            Error(f"{file}:{linenum} is bad line - too many fields:\n"
-                  f"  {self.linestr!r}")
-        # Strip whitespace
-        self._name = self._name.strip()
-        self.alias = self.alias.strip()
-        self.loc = self.loc.strip()
-        if self.linestr.strip().startswith("#"):
-            self.inactive = True
-        if self.loc[0] == "#":  # Fix single field entry so path is good
-            self.loc = self.loc[1:]
-        # Convert self.loc to a Path instance
-        self.loc = P(self.loc.strip())
-        # Validate
-        self.ok = self.loc.exists()
-        if g.debug:
-            self._dbg()
-    def __str__(self):
-        return f"Line({self.linestr!r})"
-    def __repr__(self):
-        return str(self)
-    def _dbg(self):
-        'Print components to help with debugging'
-        if self.inactive:
-            if g.debug > 1:
-                if not self.loc.exists():
-                    print(
-                            f"{t('gry')}"
-                            f"Line {self.linenum} "
-                            f"{self.name!r} "
-                            f"{self.alias!r} "
-                            f"{t.dbg_loc_bad}{self.loc!r} "
-                            f"{t.n}"
-                        )
-                else:
-                    print(
-                            f"{t('gry')}"
-                            f"Line {self.linenum} "
-                            f"{self.name!r} "
-                            f"{self.alias!r} "
-                            f"{self.loc!r} "
-                            f"{t.n}"
-                        )
-        else:
-            a = f"{t.dbg_alias}"
-            # Show silent aliases in different color
-            if self.alias and self.alias.startswith("@"):
-                a = f"{t.dbg_alias_silent}"
-            # Show locations that don't exist in different color
-            b = f"{t.dbg_loc}"
-            if not self.loc.exists():
-                b = f"{t.dbg_loc_bad}"
-            print(
-                    f"{t.dbg_linenum}Line {self.linenum} "
-                    f"{t.dbg_name}{self.name!r} "
-                    f"{a}{self.alias!r} "
-                    f"{b}{self.loc!r} "
-                    f"{t.n}"
-                 )
-    @property
-    def name(self):
-        '''Return self._name or self.loc if self._name is empty.  This
-        allows the Line instance to be put into a dict.
-        '''
-        return self._name if self._name else str(self.loc)
-def ReadDataFile(file, delimiter=","):
-    '''Return a default dict of Line instances.  The keys are the name
-    associated with the line; the defaultdict(list) lets there be more than
-    one Line instance with the same name; these get resolved by an
-    interactive prompt.
-
-    The datafile structure is controlled by the following regexps
-        
-        Comments:  any blank line or line starting with '^\s*##'
-        Commented entries:  any line '^\s*#'
-        Regular entry:  any other line
-
-    The commented entries are read in and put into Line instances but are
-    marked 'inactive'.  This lets them still have their file locations
-    validated.
-
-    A deque of lines is read in, as this enables efficient processing with
-    one data structure and a sentinel.
-    '''
-    # The sentinel indicating end of the lines sequence will be the one
-    # with line number 0 and a string that won't be encountered in the data
-    # file.
-    sentinel = (0, "\x11")
-    # Read in lines from file, removing newlines
-    lines = [i.rstrip() for i in open(file).readlines()]
-    # Number the lines
-    lines = [(i + 1, j) for i, j in enumerate(lines)]
-    # Convert to a deque with sentinel element
-    lines = deque(lines)
-    lines.append(sentinel)
-    # Throw out blank lines and comments; convert remaining to Line
-    # instances
-    item = None
-    if d["-d"] or d["-D"]:     # Debug print the datafile
-        g.debug = 2 if d["-D"] else 1
-        t.print(f"{t('magl')}Debug print of datafile {file!r}")
-    while item != sentinel:
-        item = lines.popleft()
-        if not item[1] or item[1].startswith("##"):
-            pass    # Ignore this item
-        else:
-            if item != sentinel:
-                lines.append(Line(item, file))
+        # The sentinel indicating end of the lines sequence will be the one
+        # with line number 0 and a string that won't be encountered in the data
+        # file.
+        sentinel = (0, "\x11")
+        # Read in lines from file, removing newlines
+        lines = [i.rstrip() for i in open(file).readlines()]
+        # Number the lines
+        lines = [(i + 1, j) for i, j in enumerate(lines)]
+        # Convert to a deque with sentinel element
+        lines = deque(lines)
+        lines.append(sentinel)
+        # Throw out blank lines and comments; convert remaining to Line
+        # instances
+        item = None
+        if d["-d"] or d["-D"]:     # Debug print the datafile
+            g.debug = 2 if d["-D"] else 1
+            t.print(f"{t('magl')}Debug print of datafile {file!r}")
+        while item != sentinel:
+            item = lines.popleft()
+            if not item[1] or item[1].startswith("##"):
+                pass    # Ignore this item
             else:
-                lines.append(sentinel)
-    assert(lines[-1] == sentinel)
-    # Remove sentinel
-    lines.pop()
-    # Construct dict
-    di = defaultdict(list)
-    for i in lines:
-        di[i.name].append(i)
-    return di
+                if item != sentinel:
+                    lines.append(Line(item, file))
+                else:
+                    lines.append(sentinel)
+        assert(lines[-1] == sentinel)
+        # Remove sentinel
+        lines.pop()
+        # Construct dict
+        di = defaultdict(list)
+        for i in lines:
+            di[i.name].append(i)
+        return di
 
-if 1:   # Test reading from datafile
+if 0:   # Test reading from datafile
     # Show can load from file
     d = {"-d": True, "-D": False }
     #lines = ReadDataFile("ab")
@@ -777,11 +775,22 @@ if 0:   # Test of Line class
     exit()
 if __name__ == "__main__":
     d = {}      # Options dictionary
-    args = ParseCommandLine(d)
-    if not args:
-        cmd, other = "", []
-    elif len(args) == 1:
-        cmd, other = args[0], []
+    cmd, other = ParseCommandLine(d)
+    # d["lines"] is a defaultdict(list) of Line instances that have the
+    # same dict key.  This allows for duplicate aliases; when encountered,
+    # the user will be prompted to resolve them.
+    d["lines"] = ReadDataFile(d["-f"])
+    # Execute the command
+    if cmd == "a":
+        AddCurrentDirectory(args)
+    elif cmd == "c":
+        CheckConfigFile()
+    elif cmd == "e":
+        EditFile()
+    elif cmd == "s":
+        SearchLines(other)
+    elif cmd == "S":
+        SearchLines(other, all=True)
     else:
-        cmd, other = args[0], args[1:]
-    ExecuteCommand(cmd, other)
+        # cmd will be empty, a number, or alias
+        GoTo(cmd)
