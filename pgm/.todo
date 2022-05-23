@@ -3,11 +3,7 @@ Active
     - color.py
         - TRM needs a way to ensure all attribute access returns "" when
           .on is False.
-        - Add support to g.py
-
-    - pgm/goto.py
-        - Add a 4th field to the data file which is a color to print the
-          line to help highlight it.
+        - Add new color support to g.py
 
     - Decimal equivalents
         - I use the /shop/cheat_sheets/pdf/decimal_equivalents.pdf pages so
@@ -50,6 +46,7 @@ Active
               the electrical layer would show known cables.  The sprinkler
               layer would show valves, sprinklers, pump, wires.  Etc.
         - This survey would get archived on github so it can't be lost
+        - Write a g.py file that plots the data
 
 
     - /pylib/pgm/ts/ts.py
@@ -92,8 +89,20 @@ Active
 
 Want
     
+    - pgm/xyz.py
+        - This is still in /pylib
+        - Should me brought forward and put on hu
+        - Use colorization in printing results
+
     - pgm/cal.py
         - Update with newer colors
+            - Past in brnl, current month in wht, future in sky
+        - Show current week in italics
+        - Focus change:  show notable dates
+        - Need regexp search
+        - cal 2020 should figure out to show the year
+        - Data file
+            - Need to be able to include number of days after a date
 
     - pgm/mass.py
         - The report could benefit from color

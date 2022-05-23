@@ -102,7 +102,6 @@ if 1:  # Header
                 functions will be executed and their execution order.
         
             Assert() 
-
                 Works like python's assert statement, but can drop you into
                 the debugger if so instructed.  Type 'up' to go to the
                 failed Assert() line.  Since dropping into the debugger is
@@ -630,7 +629,6 @@ if 1:   # Checking functions
             # I used to use any command line arguments too, but this gets
             # in the way of scripts that use --test to run their self
             # tests.
-            #cmd = len(sys.argv) > 1
             env = os.environ.get("Assert", "")
             if debug or Assert.debug or env:
                 print("Type 'up' to go to line that failed", file=sys.stderr)
