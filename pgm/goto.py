@@ -27,85 +27,77 @@ TODO
       needs to ignore a comment line that doesn't parse correctly.
       CheckConfigFile() is the relevant function.
  
-Driver for the old shell g() function that used the _goto.py script.
-This new file includes the functionality of the g() function, so minimal
-shell function support is needed to use it.  This gets around the need
-for writing ugly shell syntax stuff.
+This script is used to manage a list of file/directory names.  When run
+normally, you'll be prompted for these names in a list and when you enter
+your choice, the chosen name is printed to stdout.  I use this in a shell
+function to choose a remembered directory to go to.  It's also the basis of
+numerous other commands, as it can launch chosen files.
 '''
  
-if 1:  # Copyright, license
-    # These "trigger strings" can be managed with trigger.py
-    #∞copyright∞# Copyright (C) 2021 Don Peterson #∞copyright∞#
-    #∞contact∞# gmail.com@someonesdad1 #∞contact∞#
-    #∞license∞#
-    #   Licensed under the Open Software License version 3.0.
-    #   See http://opensource.org/licenses/OSL-3.0.
-    #∞license∞#
-    #∞what∞#
-    # Script to help 'remember' locations and files.  For example, I use it
-    # to keep track of project files and working directories.
-    #∞what∞#
-    #∞test∞# #∞test∞#
-    pass
-if 1:   # Standard imports
-    from pprint import pprint as pp
-    import getopt
-    import os
-    from pathlib import Path as P
-    import platform
-    import re
-    import subprocess
-    import sys
-    from csv import reader
-if 1:   # Custom imports
-    from color import Color, TRM as t, RegexpDecorate
-    from dpdb import set_trace as xx
-    from wrap import wrap, dedent
-    import color as C
-    import get
-if 1:   # Global variables
-    ii = isinstance
-    class g: pass
-    g.debug = False
-    g.name = sys.argv[0]
-    g.config = None             # Configuration file
-    g.backup = P("C:/cygwin/home/Don/.bup") # Backup directory
-    g.sep = ";"                 # Field separator for config file
-    g.at = "@"                  # Designates a silent alias
-    g.editor = os.environ["EDITOR"]
-    # Colors for terminal printing
-    if 0:
-        g.C = C.C.lcyn
-        g.y = C.C.yel
-        g.Y = C.C.lyel
-        g.r = C.C.red
-        g.R = C.C.lred
-        g.g = C.C.grn
-        g.G = C.C.lgrn
-        g.W = C.C.lwht
-        g.N = C.C.norm
+if 1:  # Header
+    # Copyright, license
+        # These "trigger strings" can be managed with trigger.py
+        #∞copyright∞# Copyright (C) 2021 Don Peterson #∞copyright∞#
+        #∞contact∞# gmail.com@someonesdad1 #∞contact∞#
+        #∞license∞#
+        #   Licensed under the Open Software License version 3.0.
+        #   See http://opensource.org/licenses/OSL-3.0.
+        #∞license∞#
+        #∞what∞#
+        # Script to help 'remember' locations and files.  For example, I use it
+        # to keep track of project files and working directories.
+        #∞what∞#
+        #∞test∞# #∞test∞#
+    # Standard imports
+        from collections import deque, defaultdict
+        from csv import reader
+        from pathlib import Path as P
+        from pprint import pprint as pp
+        import getopt
+        from io import StringIO
+        import os
+        import platform
+        import re
+        import subprocess
+        import sys
+    # Custom imports
+        from color import Color, TRM as t, RegexpDecorate
+        from dpdb import set_trace as xx
+        from wrap import wrap, dedent
+        import color as C
+        import get
+    # Global variables
+        ii = isinstance
+        class g: pass
+        g.debug = False
+        g.name = sys.argv[0]
+        g.config = None             # Configuration file
+        g.backup = P("C:/cygwin/home/Don/.bup") # Backup directory
+        g.sep = ";"                 # Field separator for config file
+        g.at = "@"                  # Designates a silent alias
+        g.editor = os.environ["EDITOR"]
+        # Colors for terminal printing
+        t.dump = t("purl")      # Dump all
+        t.alias = t("brnl")     # Alias
+        t.cfg = t("cynl")       # Config line bad
+        t.dup = t("redl")       # Duplicate alias
+        t.bad = t("redl")       # Bad line
 
-    t.dump = t("purl")      # Dump all
-    t.alias = t("brnl")     # Alias
-    t.cfg = t("cynl")       # Config line bad
-    t.dup = t("redl")       # Duplicate alias
-    t.bad = t("redl")       # Bad line
+        # Debug printing colors
+        t.dbg_linenum = t("orn")
+        t.dbg_name = t("grn")
+        t.dbg_alias = t("viol")
+        t.dbg_alias_silent = t("yell")
+        t.dbg_loc = t("royl")
+        t.dbg_loc_bad = t("lip")
 
-    # Debug printing colors
-    t.dbg_linenum = t("orn")
-    t.dbg_name = t("grn")
-    t.dbg_alias = t("viol")
-    t.dbg_alias_silent = t("yell")
-    t.dbg_loc = t("royl")
-    t.dbg_loc_bad = t("lip")
-
-    # Regular expressions describing configuration file lines that
-    # should be ignored
-    g.ignore = (
-        re.compile(r"^\s*##"),
-        re.compile(r"^\s*#[《》]"),     # vim folding markers
-        re.compile(r"^\s*#<<|^\s#>>"),  # vim folding markers
-    )
+        # Regular expressions describing configuration file lines that
+        # should be ignored
+        g.ignore = (
+            re.compile(r"^\s*##"),
+            re.compile(r"^\s*#[《》]"),     # vim folding markers
+            re.compile(r"^\s*#<<|^\s#>>"),  # vim folding markers
+        )
 if 1:   # Utility
     def Error(msg, status=1):
         print(msg, file=sys.stderr)
@@ -613,64 +605,75 @@ if 1:   # Core functionality
                     spc = LeadingWS(name)
                     alias = f'{spc}"{alias.strip()}"'
                 print(f"{name}, {alias}, {loc}")
-    def ReadCSVFile(file):
-        'Return a list of Line instances'
-        lines = list(reader(open(file)))
-        out = []
-        for linenum, linelist in enumerate(lines):
-            if not linelist:
-                continue
-            if len(linelist) == 1 and linelist[0] == "#":
-                continue
-            out.append(Line(linelist, linenum, file))
-        print(len(out))
-        xx()
-
 class Line:
-    def __init__(self, lst, linenum, file):
-        '''lst is a list of 0 to 3 items, linenum and file are where they
-        came from in the file.
+    def __init__(self, line, file, delimiter=";"):
+        '''line will be a tuple of (linenum, contents).  linenum is the
+        1-based line number in the file and contents is the string of that
+        line, including leading whitespace.  A valid contents string will
+        have its fields separated by the indicated delimiter string.  If
+        contents begins with a "#", it will still be parsed but declared to
+        be an inactive element.
         '''
-        self.alias = self.name = ""
-        self.inactive = False
-        self.linenum = linenum
+        # Stash initialization data
+        self.linenum, self.linestr = line
         self.file = file
-        if len(lst) == 1:
-            self.loc = lst[0]
-        elif len(lst) == 2:
-            self.name, self.loc = lst
-        elif len(lst) == 3:
-            self.name, self.alias, self.loc = lst
+        self.delimiter = delimiter
+        items = self.linestr.split(delimiter)
+        if len(items) not in (1, 2, 3):
+            print(f"Bad line:\n  {self.linestr!r}")
+            exit(1)
+        # Parse out line's information
+        self.alias = self._name = ""
+        self.inactive = False
+        if len(items) == 1:
+            self.loc = items[0].strip()
+        elif len(items) == 2:
+            self._name, self.loc = items
+        elif len(items) == 3:
+            self._name, self.alias, self.loc = items
         else:
-            # xx Problem:  How to make a commented-out first field?  The
-            # only reasonable solution is to read each line in and look to
-            # see if it's a comment.  If so, then remove the "#" and parse
-            # as a line, but add a kw to say that it's inactive.
-            # Otherwise, make the line an StringIO object and pass it to
-            # reader() to be converted.
-            xx()
-            Error(f"{file}:{linenum} is bad line:  too many fields")
-        if self.loc[0] == "#":
-            self.loc = self.loc[1:]
+            Error(f"{file}:{linenum} is bad line - too many fields:\n"
+                  f"  {self.linestr!r}")
+        # Strip whitespace
+        self._name = self._name.strip()
+        self.alias = self.alias.strip()
+        self.loc = self.loc.strip()
+        if self.linestr.strip().startswith("#"):
             self.inactive = True
-        self.loc = P(self.loc)
+        if self.loc[0] == "#":  # Fix single field entry so path is good
+            self.loc = self.loc[1:]
+        # Convert self.loc to a Path instance
+        self.loc = P(self.loc.strip())
         # Validate
-        self.ok = False
-        if self.loc.exists():
-            self.ok = True
-        self._dbg()
+        self.ok = self.loc.exists()
+        if g.debug:
+            self._dbg()
+    def __str__(self):
+        return f"Line({self.linestr!r})"
+    def __repr__(self):
+        return str(self)
     def _dbg(self):
-        'Print debugging info for line'
-        if not g.debug:
-            return
+        'Print components to help with debugging'
         if self.inactive:
-            print(f"{t('gry')}"
-                f"Line {self.linenum} "
-                f"{self.name!r} "
-                f"{self.alias!r} "
-                f"{self.loc!r} "
-                f"{t.n}"
-                )
+            if g.debug > 1:
+                if not self.loc.exists():
+                    print(
+                            f"{t('gry')}"
+                            f"Line {self.linenum} "
+                            f"{self.name!r} "
+                            f"{self.alias!r} "
+                            f"{t.dbg_loc_bad}{self.loc!r} "
+                            f"{t.n}"
+                        )
+                else:
+                    print(
+                            f"{t('gry')}"
+                            f"Line {self.linenum} "
+                            f"{self.name!r} "
+                            f"{self.alias!r} "
+                            f"{self.loc!r} "
+                            f"{t.n}"
+                        )
         else:
             a = f"{t.dbg_alias}"
             # Show silent aliases in different color
@@ -680,27 +683,80 @@ class Line:
             b = f"{t.dbg_loc}"
             if not self.loc.exists():
                 b = f"{t.dbg_loc_bad}"
-            t.print(
-                f"{t.dbg_linenum}Line {self.linenum} "
-                f"{t.dbg_name}{self.name!r} "
-                f"{a}{self.alias!r} "
-                f"{b}{self.loc!r} "
-                f"{t.n}"
-                )
+            print(
+                    f"{t.dbg_linenum}Line {self.linenum} "
+                    f"{t.dbg_name}{self.name!r} "
+                    f"{a}{self.alias!r} "
+                    f"{b}{self.loc!r} "
+                    f"{t.n}"
+                 )
+    @property
+    def name(self):
+        '''Return self._name or self.loc if self._name is empty.  This
+        allows the Line instance to be put into a dict.
+        '''
+        return self._name if self._name else str(self.loc)
+def ReadDataFile(file, delimiter=","):
+    '''Return a default dict of Line instances.  The keys are the name
+    associated with the line; the defaultdict(list) lets there be more than
+    one Line instance with the same name; these get resolved by an
+    interactive prompt.
 
-if 0: 
-    from io import StringIO
-    s = StringIO(dedent('''
-    #Averages, etc.;/elec/average.odt
+    The datafile structure is controlled by the following regexps
+        
+        Comments:  any blank line or line starting with '^\s*##'
+        Commented entries:  any line '^\s*#'
+        Regular entry:  any other line
 
-    '''))
-    Convert(s)
-    exit()
-if 1:   # Test CSV
+    The commented entries are read in and put into Line instances but are
+    marked 'inactive'.  This lets them still have their file locations
+    validated.
+
+    A deque of lines is read in, as this enables efficient processing with
+    one data structure and a sentinel.
+    '''
+    # The sentinel indicating end of the lines sequence will be the one
+    # with line number 0 and a string that won't be encountered in the data
+    # file.
+    sentinel = (0, "\x11")
+    # Read in lines from file, removing newlines
+    lines = [i.rstrip() for i in open(file).readlines()]
+    # Number the lines
+    lines = [(i + 1, j) for i, j in enumerate(lines)]
+    # Convert to a deque with sentinel element
+    lines = deque(lines)
+    lines.append(sentinel)
+    # Throw out blank lines and comments; convert remaining to Line
+    # instances
+    item = None
+    if d["-d"] or d["-D"]:     # Debug print the datafile
+        g.debug = 2 if d["-D"] else 1
+        t.print(f"{t('magl')}Debug print of datafile {file!r}")
+    while item != sentinel:
+        item = lines.popleft()
+        if not item[1] or item[1].startswith("##"):
+            pass    # Ignore this item
+        else:
+            if item != sentinel:
+                lines.append(Line(item, file))
+            else:
+                lines.append(sentinel)
+    assert(lines[-1] == sentinel)
+    # Remove sentinel
+    lines.pop()
+    # Construct dict
+    di = defaultdict(list)
+    for i in lines:
+        di[i.name].append(i)
+    return di
+
+if 1:   # Test reading from datafile
     # Show can load from file
-    lines = ReadCSVFile("aa")
-    for linenum, lst in enumerate(lines):
-        Line(lst, linenum + 1, "aa")
+    d = {"-d": True, "-D": False }
+    #lines = ReadDataFile("ab")
+    lines = ReadDataFile("/home/Don/.gotorc")
+    print("-"*70)
+    lines = ReadDataFile("/home/Don/.projectrc")
     exit()
 if 0:   # Test of Line class
     g.debug = True

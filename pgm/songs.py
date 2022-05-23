@@ -1,6 +1,10 @@
+from get import GetTextLines
 import sys
 import time
 from pdb import set_trace as xx 
+if 1:
+    import debug
+    debug.SetDebugger()
  
 favorites = '''
 
@@ -13,7 +17,7 @@ Don't Cry For Me Argentina (1977)|_n8mq7sedP4|A masterpiece
 I'll Never Find Another You (1963)|KmactMIhrRM|How I feel about Glenda
 Midnight In Moscow (1961)|o744d4mwOgQ|Dixieland from England
 Potato Head Blues (1927)|EfGZB78R7uw|Famous trumpet solo
-Scheherezade (1st movement, written 1888)|6dDk6aft4JU|von Karajan on Deutsche Grammophone (I bought this record in about 1970 and was mesmerized by it)
+Scheherezade (1st movement, written 1888)|6dDk6aft4JU|von Karajan on Deutsche Grammophone (I bought this record in around 1970 and was mesmerized by it)
 Stairway to Heaven (1971)|QkF3oxziUI4|
 The Moldau (written 1875)|l6kqu2mk-Kw|Such accomplished young musicians
 
@@ -38,17 +42,17 @@ Bay Of Mexico|-16OczraVi4|
 Beat It|oRdxUFDoQe0||When this song came out, I bought the record and loved playing it loud on my stereo.
 Big John|KnnHprUGKF0|
 Blowin' in the Wind|Ld6fAO4idaI|
-Bolero|8KsXPq3nedY||My thesis adviser's wife always laughed when I pronounced the composer's name with the accent on the first syllable (I didn't know any better).
+Bolero|8KsXPq3nedY|
 Boogie Woogie Bugle Boy|8of3uhG1tCI|
 Both Sides Now|8L1UngfqojI|
 Bucket drummer|FqJdzYY_Fas|
 Bus Stop|It75wQ0JypA|
-Cincinnati Kid|rfn1YrwG2Oc||My roommate in freshman year from college had a 1965 Chevelle SS we'd ride around in and he'd play the album from this movie.  I've always liked this song.
-Classical Gas|PRZkc88uNXo||This guitar song was quite a hit when it came out.
-Country Roads|1vrEljMfXYo|John Denver|  Every time I hear this, it saddens me that John Denver was killed in the crash of a plane he was piloting.  He was a wonderful talent.
+Cincinnati Kid|rfn1YrwG2Oc|
+Classical Gas|PRZkc88uNXo||This guitar song was quite a hit when it came out
+Country Roads|1vrEljMfXYo|John Denver
 Country Roads|qap9Qm-Q894|Petersens
 Crocodile Rock|75r0nQu-hMs|
-Different Drum|w9qsDgA1q8Y||This was by the Stone Ponies in the 1960's and everyone knew what a fox Linda Rondstat was.
+Different Drum|w9qsDgA1q8Y|
 Doc Severinsen and Arturo Sandoval|s53B0PyAEOE|Great trumpets & guitar, but the violin is best
 Downtown|Zx06XNfDvk0|
 Dream Lover|wVHAQX5sSaU||Bobby Darin -- always makes me think of 'Mack the Knife'.
@@ -57,11 +61,11 @@ Drive My Car|kfSQkZuIx84|
 Dueling Banjos|myhnAZFR1po||In the dorm in freshman year in college.  A guy down the hall (we called him Penguin) had this on a 45 record and he was forced to play it hundreds of times, as everyone loved it.
 Dust in the Wind|tH2w6Oxx0kQ||Good song by Kansas.
 Early In The Morning|9hN9YRo7y1s||I played this a lot on a stereo/phono/8-track thingy I bought from my Dad's store in the 1960's.
-Easy Lover|2aJ2Vh_e2dQ||This always reminds me of a winter camping trip cross-country skiing into the Steens mountains.  We hear this song on the radio in my Land Cruiser a few times while driving over there.
+Easy Lover|2aJ2Vh_e2dQ||This always reminds me of a winter camping trip cross-country skiing into the Steens mountains.  We heard this song on the radio in my 1984 Land Cruiser a few times while driving over there.
 El Condor Pasa|pey29CLID3I|
 El Paso|-zBzZJd-nfw|
 Eli's coming|1A2eet1bttY|Also look up writer's Laura Nyro's version.
-Ella Fitzgerald scat singing|9CbVy1NnB4g||She was a master at scat singing.  Debbie and I got to see her once at a theater in Oakland, CA.
+Ella Fitzgerald scat singing|9CbVy1NnB4g||She was a master at scat singing.  Debbie and I got to see her once at a theater in Oakland, CA in the 1960's.
 End of the World|sonLd-32ns4|
 Everybody's Somebody's Fool|ECOthzFvUXY|
 Exodus|xhXZ3eXJIFc|
@@ -85,17 +89,17 @@ Hawaii 50 Theme|AepyGm9Me6w||In the 1960's, we always watched Hawaii 50.  My roo
 Heart Full of Soul|pM1qZBFiOLU||The Yardbirds played at our high school once.
 Heart of Gold|X3IA6pIVank|
 Hey Jude|mQER0A0ej0M|
-Hit the Road Jack|OfUDsHtSv88|Becca Krueger (skip first 20 seconds) | This is Ray Charles' song, but Becca and the group do an amazing job at it.
+Hit the Road Jack|OfUDsHtSv88|Becca Krueger (skip first 20 seconds) | This is Ray Charles' song, but Krueger and the group do an amazing job at it.
 Hit the Road Jack|SrnWp5O0DEs|
 Hot Rod Lincoln|3R7l7nDuj1o|
 Hotel California|811QZGDysx0|
 House Of The Rising Sun|MJkr0DWbhTk||I loved this song in high school.
 How Blue Can You Get?|LWLAAzOBoBI|A masterpiece
 I Am A Man Of Constant Sorrow|OdYGnAFaeHU|
-I Left My Heart in San Francisco|SC73kdOL5hk
+I Left My Heart in San Francisco|SC73kdOL5hk|
 I Will Survive|ARt9HV9T0w8|
 I love the flower girl|dZMc0-ZAUeY|
-I was Born Under a Wandering Star|NTymtAbaG08
+I was Born Under a Wandering Star|NTymtAbaG08|
 I'm Still Standing|Ye9hGotPPVk|
 Ievan Polkka|4om1rQKPijI|A masterpiece of a capella -- I love the scat singing of the girl in the red dress around 1:30
 In The Year 2525|yesyhQkYrQM|
@@ -112,10 +116,10 @@ Korobushka|Pr3ZgN8onRA|Mikhail Smirnov
 Korobushka|vvC2vjtmUX8|Bond live at Albert Hall
 Lady Bird|FIPQVpw-zkk|
 Land Down Under|8jHXu86O01w|
-Light My Fire|LY1l8T2Lcl0||This always reminds me of a friend's apartment in 1967 in college, as this record was always playing there.
+Light My Fire|LY1l8T2Lcl0||This always reminds me of a friend's apartment in 1967 in college, as this album was always playing there.
 Listen To Your Heart|yCC_b5WHLX0|
 Long Cool Woman|X3sU_q1GH-4|
-Love Me With All Your Heart|k3nfqH4YDDM||My sister remembers this at our high school dances.
+Love Me With All Your Heart|k3nfqH4YDDM||Debbie remembers this at our high school dances.
 Love is Blue|YYf_hb-jsGo|
 MTA|MbtkL5_f6-4|
 MacArthur Park|iplpKwxFH2I|
@@ -147,7 +151,11 @@ New World Symphony and The Moldau|Qut5e3OfCvg|Slovak Philharmonic
 North to Alaska (1960)|RO6IU9RpjS8|
 Nothing Else Matters|8KK0-9Moz5Q| Hammered dulcimer
 Nothing Else Matters|KSSa0-oAnIo| PMJ:  15 year old girl singer
-Nothing Else Matters|tAGnKpE4NCI|
+Nothing Else Matters|tAGnKpE4NCI| Metallica
+Nothing Else Matters|32v8ARqaBas| Hardpan
+Nothing Else Matters|pxoW-00Zyho| Guitar & cello
+Nothing Else Matters|DmL12NRE4hQ| Piano
+Nothing Else Matters|KMX2bmtS_TE| Harp
 Old Man|rAtDrFdomN4|
 One|UiKcd7yPLdU|
 Paint It Black|O4irXQhgMqg|
@@ -161,7 +169,7 @@ People|fPlQ6EtArSc||Streisand's first big hit in the early 1960's
 Pirates of the Caribbean|27mB8verLK8|
 Pirates of the Caribbean|6zTc2hD2npA|Auckland Symphony
 Popcorn Song|DBYjZTdrJlA|
-Purple People Eater|Rx47qrH1GRs||I remember hearing this in my mom's car in the 1950's
+Purple People Eater|Rx47qrH1GRs|I remember hearing this on the radio in my mom's car in the 1950's
 Push It To The Limit|9D-QD_HIfjA|
 Question|tmOZFAYeurY|
 Rainy Days and Monday|PjFoQxjgbrs|
@@ -223,7 +231,7 @@ Unforgettable|Fy_JRGjc1To|
 Unsquare Dance|lbdEzRfbeH4||Try to keep the beat with this.
 Victory|j3nBuwOPu8A&list=RDE5NByiEIbD8| Bond
 Volga Boatmen (1866)|qsovBF4N27Q|
-Volga Boatmen|0tw3g88JtWA|Leonid Kharitonov 1965 | He was an incredible baritone.
+Volga Boatmen|0tw3g88JtWA|Leonid Kharitonov 1965 
 Walk On the Wild Side|5O82y59h7MI||I bought this album in the 1960's and always wait for a particular 2 second phrase near the end.
 Washington Square|ihenbyTzQ2A|
 White Rabbit|EUY2kJE0AZE||In 1966, I bought a $5 transistor radio from a friend in high school and remember hearing this song on it numerous times.
@@ -233,10 +241,22 @@ Woman in Love|hQLGCX8D-1Y|
 Yesterday when I was young|GQIAcztYjbc||Great song
 You Only Live Twice|XgFtQPgHyek||This was a theme from one of the James Bond movies
 You Were On My Mind|c7YSANg8vgw|
-You're So Vain|cleCtBP0o5Y||A long mystery is who was this song referring to.
+You're So Vain|cleCtBP0o5Y||A long mystery is who was this song referring to
 
 '''
 
+def Vet():
+    'Check that all the lines have the proper form'
+    def Check(line):
+        f = line.split("|")
+        if len(f) not in (3, 4):
+            print(f"Bad line:\n{line!r}")
+            exit(1)
+    for item in (favorites, songs):
+        for line in GetTextLines(item):
+            if not line:
+                continue
+            Check(line)
 def Print(s):
     link = "https://www.youtube.com/watch?v="
     song_list = []
@@ -252,10 +272,10 @@ def Print(s):
     for f in sorted(song_list):
         descr, link = f[0], f[1]
         extra = ' '.join(f[2:]) if long else f[2]
-        #print(f"[{f[0]}]({f[1]}) {s} <br>")
         print(f"<a href=\"{link}\">{descr}</a> {extra} <br>")
 
 if __name__ == "__main__": 
+    Vet()
     long = len(sys.argv) > 1
     print(f"<p>{time.asctime()}</p><p>Favorites:</p>")
     Print(favorites)

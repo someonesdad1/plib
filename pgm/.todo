@@ -1,12 +1,56 @@
 Active
     
     - color.py
-        - Rather serious bug:  c = Color('mag'); c1 = Color(c.xhls); C !=
-          c1.  This should be an invariant for all the hex strings.  It may
-          indicate that computation of color functions must be done with
-          fractions rather than how the colorsys module does them.
         - TRM needs a way to ensure all attribute access returns "" when
           .on is False.
+        - Add support to g.py
+
+    - pgm/goto.py
+        - Add a 4th field to the data file which is a color to print the
+          line to help highlight it.
+
+    - Decimal equivalents
+        - I use the /shop/cheat_sheets/pdf/decimal_equivalents.pdf pages so
+          much in the shop that this should be something made with the g
+          library that could be taken to a printer and printed in color on
+          some heavy plastic.  I'd want at least two of these, one for over
+          the toolboxes and one for over the lathe; and maybe one for my
+          office.
+
+    - Shamrock survey
+        - Establish yard benchmarks and survey our property
+        - Layout of lawn
+        - Location of sprinklers
+        - Building location
+        - Reference to BM in Shamrock/Edna intersection
+            - BM1:  NW corner of driveway concrete next to gate to mailbox
+            - BM2:  Metal pole at entrance of driveway on Edna
+            - Note these benchmarks can be moved out to the street edges
+              and the accurate length of the property can be measured to
+              within an inch or two
+            - Then secondary benchmarks are fence posts on west and south
+              fences
+        - Use sighting compass to take magnetic bearings of things.
+            - Calibrate compass by dropping a vertical from the north star
+            - As of 2022, Polaris' mean declination is 89.35 degrees, so
+              calibration of the compass will be better than 1 degree
+            - This will be done with two strings on plumb bobs, one
+              adjustable.  Then the next day the compass will be sighted
+              along the two strings and adjusted to read true north.  Then
+              it will be calibrated for the current magnetic declination.
+        - This will be worth a reference document explaining techniques.
+          The resulting python script could be turned into a library module
+          based on g.py that allows people to plot their own surveys.  Some
+          key graphic components would be
+            - Benchmarks, primary and secondary
+            - Buildings
+            - Cement pads
+            - Plants, fence posts, sprinklers
+            - Layers could be used for different features.  For example,
+              the electrical layer would show known cables.  The sprinkler
+              layer would show valves, sprinklers, pump, wires.  Etc.
+        - This survey would get archived on github so it can't be lost
+
 
     - /pylib/pgm/ts/ts.py
         - Import to /plib
@@ -48,6 +92,37 @@ Active
 
 Want
     
+    - pgm/mass.py
+        - The report could benefit from color
+
+    - pgm/j.py
+        - Allows you to calculate a maximum current for a wire.  Base
+          things on the current densities in the Chassis data, which
+          probably came from MIL-STD-5088, which derived its numbers
+          experimentally in the 1960's.
+        - Now that I have a transformer capable of hundreds of RMS A, I can
+          finally do experiments at room temperature that quantify the
+          allowed temperature rise of various wires as a function of
+          current density.
+            - This could be done with solid copper conductors with no
+              insulation.  
+                - Ratings for various insulations could be calculated by
+                  the thermal properties and allowed maximum temperature.
+            - Measuring the actual current will be a bit of a task.  My
+              primary tools will be the Aneng clamp on ammeter and the two
+              Weston analog ammeters I have.
+            - The wire temperature can be estimated from a small TC welded
+              to the wire's surface.
+            - Need to explore the difference between DC measurements and 60
+              Hz measurements.  This should be done by comparing a 30 A
+              measurement from the 6033A supply to a 30 A RMS measurement.
+
+    - bd.py
+        - Replace the C program, as python is more than fast enough
+        - Colorize output
+        - Allow binary or text comparisons
+        - Try to use a heuristic to determine if text or binary
+
     - EDN PDF files
         - Looks too difficult to index with script
         - Would be nice to have an index though
@@ -61,9 +136,9 @@ Want
         - This is a significant enough script that it should be tested and
           moved into /plib/pgm if it warrants.  Then add back to hu.
 
-    - parse_complex.py in PP needs to be looked at again.  With some work
-      and generation of tests, it could be useful.  Then it could become
-      part of f.py.
+    - pgm/parse_complex.py
+        - Needs to be looked at again.  With some work and generation of
+          tests, it could be useful.  Then it could become part of f.py.
 
     - dpstr.py
         - Tokenize(s):  split a string into a sequence S such that
@@ -82,19 +157,43 @@ Want
           an invariant).  This function should be in dpstr.py.  Numbers in
           names could be an issue.  Look at line 71 in python's textwrap.py
           for a regex that is used for splitting things up into words; this
-          might be a good place to start.
+          might be a good place to start.  Actually, string.punctuation is 
+          probably the set of characters to use.
+
+          The algorithm could be (this is tested):  
+                import string
+                import sys
+                S = set(string.ascii_letters + string.digits)
+                out, word = [], []
+                s = open("pnp").read()
+                for c in s:
+                    if c in S:
+                        word.append(c)
+                    else:
+                        out.append(''.join(word))
+                        out.append(c)
+                        word = []
+                if ''.join(out) != s:
+                    print("NOT EQUAL")
+
+                    
+          token in 
 
           First check if char is in string.ascii_letters because this will
           be fast.  Then check for the following set:
 
-            žŽżŻźŹŸŷŶŵŴųŲűŰůŮŭŬūŪũŨŧŦťŤţŢšŠşŞŝŜśŚřŘŗŖŕŔőŐŏŎōŌŋŊŉňŇņŅńŃłŁŀĿľĽļĻĺĹ
-            ĸķĶĵĴıİįĮĭĬīĪĩĨħĦĥĤģĢġĠğĞĝĜěĚęĘėĖĕĔēĒđĐďĎčČċĊĉĈćĆąĄăĂāĀÿþýüûúùøöõôóò
-            ñðïîíìëêéèçæåäãâáàßÞÝÜÛÚÙØÖÕÔÓÒÑÐÏÎÍÌËÊÉÈÇÆÅÄÃÂÁÀ
+            žŽżŻźŹŸŷŶŵŴųŲűŰůŮŭŬūŪũŨŧŦťŤţŢšŠşŞŝŜśŚřŘŗŖŕŔőŐŏŎōŌŋŊŉňŇņŅńŃł
+            ŁŀĿľĽļĻĺĹĸķĶĵĴıİįĮĭĬīĪĩĨħĦĥĤģĢġĠğĞĝĜěĚęĘėĖĕĔēĒđĐďĎčČċĊĉĈćĆą
+            ĄăĂāĀÿþýüûúùøöõôóò ñðïîíìëêéèçæåäãâáàßÞÝÜÛÚÙØÖÕÔÓÒÑÐÏÎÍÌËÊÉ
+            ÈÇÆÅÄÃÂÁÀ
 
         - Add a TokenSplit(token, seq) function that will split a token
           into a list of subtokens.  If seq is a string, then it will be
           split on any of the characters in the string.  Otherwise,
           str.split() will have to be called with each sequence item.
+        - Add functions GetLeadingWhitespace() and GetTrailingWhitespace().
+          Allow a kw to let you define whitespace character set (default to
+          string.whitespace).
 
     - linkcheck.py
         - Utility to search a file for http links and see if they are still
