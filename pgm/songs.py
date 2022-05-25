@@ -26,7 +26,6 @@ The Moldau (written 1875)|l6kqu2mk-Kw|Such accomplished young musicians
 songs = '''
 
 16 Tons|jIfu2A0ezq0|
-1812 Overture (1888)|QUpuAvQQrC0|Real cannons & church bells|  I used to listen to this on an 8-track tape I got from my parents.  I'd lay on the floor of my apartment between the small stereo speakers and enjoy it.
 25 Or 6 To 4|iUAYeN3Rp2E|Great horns and guitar|This reminds me of visiting a friend in Chicago in the early 1970's and he took me to a place where this band played, although they weren't there.
 2nd movement Beethoven's 9th|p5favl2Qtx0|Player-piano type visual
 A Horse With No Name|mSZXWdKSQNM|
@@ -42,7 +41,6 @@ Bay Of Mexico|-16OczraVi4|
 Beat It|oRdxUFDoQe0||When this song came out, I bought the record and loved playing it loud on my stereo.
 Big John|KnnHprUGKF0|
 Blowin' in the Wind|Ld6fAO4idaI|
-Bolero|8KsXPq3nedY|
 Boogie Woogie Bugle Boy|8of3uhG1tCI|
 Both Sides Now|8L1UngfqojI|
 Bucket drummer|FqJdzYY_Fas|
@@ -146,8 +144,6 @@ Morningtown Ride|wqdaCOt51Dk|2014
 Mr. Roboto|51ybp_YFo7I|
 Mrs. Robinson|_C2vqI9FVwg|
 My Sweet Lord|AR4lpQWcT5g|
-New World Symphony (Dvorak's 9th 1893)|VuaTY3zHO8Q|London Symphony Orchestra
-New World Symphony and The Moldau|Qut5e3OfCvg|Slovak Philharmonic
 North to Alaska (1960)|RO6IU9RpjS8|
 Nothing Else Matters|8KK0-9Moz5Q| Hammered dulcimer
 Nothing Else Matters|KSSa0-oAnIo| PMJ:  15 year old girl singer
@@ -169,7 +165,7 @@ People|fPlQ6EtArSc||Streisand's first big hit in the early 1960's
 Pirates of the Caribbean|27mB8verLK8|
 Pirates of the Caribbean|6zTc2hD2npA|Auckland Symphony
 Popcorn Song|DBYjZTdrJlA|
-Purple People Eater|Rx47qrH1GRs|I remember hearing this on the radio in my mom's car in the 1950's
+Purple People Eater|Rx47qrH1GRs|
 Push It To The Limit|9D-QD_HIfjA|
 Question|tmOZFAYeurY|
 Rainy Days and Monday|PjFoQxjgbrs|
@@ -198,7 +194,7 @@ Sweet Dreams|qeMFqkcPYcg|
 Take Five|vmDDOFXSgAs||Great; also listen to 'Unsquare Dance' on this album.
 The Ballad Of Cat Ballou|Sw16X_9XtuE|
 The Boxer|C1VUWDcp5Sg|
-The Crystal Ship|bU1sLx1tjPY||This was on the flip side of the "Light My Fire" 45.
+The Crystal Ship|bU1sLx1tjPY|This was on the flip side of the "Light My Fire" 45
 The Little Nash Rambler|enqNl7tdLR4|
 The Night They Drove Old Dixie Down|wanJQC5KAfo|
 The Night the Lights Went Out in Georgia|wMD5nBcPrCk|
@@ -207,20 +203,11 @@ The Voice|-umqM9R8cnI|
 The Wreck of the Edmund Fitzgerald|9vST6hVRj2A|
 Theme From Shaft|Q429AOpL_ds|
 These Boots Are Made for Walkin'|rypT2qMO1RY|
-They Call the Wind Mariah|ByqYEzugleE|Harve Presnell|From the movie 'Paint Your Wagon'.
+They Call the Wind Mariah|ByqYEzugleE|Harve Presnell, from the movie 'Paint Your Wagon'.
 This is a Man's World|mPimt0Zu_To|PMJ with woman singer
 This is a Man's World|wd1-HM234DE|James Brown 1960's
 Those Were The Days|y3KEhWTnWvE|
 Time Won't Let Me|3yQERVphWhY|
-Toccata and Fugue in D Minor|JL0PCLMSQms|Violin
-Toccata and Fugue in D Minor|_Cst9lV5PPg|Brass
-Toccata and Fugue in D Minor|eDFFUIGoBUc|Accordion
-Toccata and Fugue in D Minor|ho9rZjlsyYY|Organ
-Toccata and Fugue in D Minor|i9UQ61EbdO0|Orchestra
-Toccata and Fugue in D Minor|ipzR9bhei_o|Organ with bar graph score
-Toccata and Fugue in D Minor|oPmKRtWta4E|Harp (a masterpiece)
-Toccata and Fugue in D Minor|ojBYW3ycVTE|Guitar
-Toccata and Fugue in D Minor|zhH53UODLEM|Piano with visual score
 Today (1964)|3cELsUMcQdc||I listened to this many, many times
 Torn Between Two Lovers|TzGbvTl4mpg||This always reminds me driving back to college in my 6 cylinder Mustang late at night.  I had removed the dash and replaced the bulbs with some painted with red nail polish, so my dash lights were red.
 Total Eclipse of the Heart|lcOxhH8N3Bo|
@@ -228,7 +215,7 @@ Tuxedo Junction|iBTYcqtaOjg|
 Two Faces Have I|w05w1XbZTG8|
 Unchained Melody|zrK5u5W8afc|
 Unforgettable|Fy_JRGjc1To|
-Unsquare Dance|lbdEzRfbeH4||Try to keep the beat with this.
+Unsquare Dance|lbdEzRfbeH4|Try to keep the beat with this.
 Victory|j3nBuwOPu8A&list=RDE5NByiEIbD8| Bond
 Volga Boatmen (1866)|qsovBF4N27Q|
 Volga Boatmen|0tw3g88JtWA|Leonid Kharitonov 1965 
@@ -242,6 +229,26 @@ Yesterday when I was young|GQIAcztYjbc||Great song
 You Only Live Twice|XgFtQPgHyek||This was a theme from one of the James Bond movies
 You Were On My Mind|c7YSANg8vgw|
 You're So Vain|cleCtBP0o5Y||A long mystery is who was this song referring to
+
+Bolero|8KsXPq3nedY|
+Für Elise|_mVW8tgGY_w|
+Moonlight Sonata|4Tr0otuiQuU|
+Beethoven's 9th|fRZaX6-dsn8|
+Beethoven's 5th|1lHOYvIhLxo|
+Beethoven's 7th|W5NsPOgyALI|
+Beethoven's 7th, 2nd movement|sv2QnrCJNk0|
+New World Symphony (Dvorak's 9th 1893)|VuaTY3zHO8Q|London Symphony Orchestra
+New World Symphony and The Moldau|Qut5e3OfCvg|Slovak Philharmonic
+1812 Overture (1888)|QUpuAvQQrC0|Real cannons & church bells|  I used to listen to this on an 8-track tape I got from my parents.  I'd lay on the floor of my apartment between the small stereo speakers and enjoy it.
+Toccata and Fugue in D Minor|JL0PCLMSQms|Violin
+Toccata and Fugue in D Minor|_Cst9lV5PPg|Brass
+Toccata and Fugue in D Minor|eDFFUIGoBUc|Accordion
+Toccata and Fugue in D Minor|ho9rZjlsyYY|Organ
+Toccata and Fugue in D Minor|i9UQ61EbdO0|Orchestra
+Toccata and Fugue in D Minor|ipzR9bhei_o|Organ with bar graph score
+Toccata and Fugue in D Minor|oPmKRtWta4E|Harp (a masterpiece)
+Toccata and Fugue in D Minor|ojBYW3ycVTE|Guitar
+Toccata and Fugue in D Minor|zhH53UODLEM|Piano with visual score
 
 '''
 

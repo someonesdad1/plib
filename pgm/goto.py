@@ -15,68 +15,60 @@ shell function support is needed to use it.  This gets around the need
 for writing ugly shell syntax stuff.
 '''
  
-if 1:  # Copyright, license
-    # These "trigger strings" can be managed with trigger.py
-    #∞copyright∞# Copyright (C) 2021 Don Peterson #∞copyright∞#
-    #∞contact∞# gmail.com@someonesdad1 #∞contact∞#
-    #∞license∞#
-    #   Licensed under the Open Software License version 3.0.
-    #   See http://opensource.org/licenses/OSL-3.0.
-    #∞license∞#
-    #∞what∞#
-    # Script to help 'remember' locations and files.  For example, I use it
-    # to keep track of project files and working directories.
-    #∞what∞#
-    #∞test∞# #∞test∞#
-    pass
-if 1:   # Standard imports
-    from pdb import set_trace as xx
-    from pprint import pprint as pp
-    import getopt
-    import os
-    import pathlib
-    import platform
-    import re
-    import subprocess
-    import sys
-if 1:   # Custom imports
-    from wrap import wrap, dedent
-    import get
-    import color as C
-if 1:   # Global variables
-    P = pathlib.Path
-    ii = isinstance
-    class G: pass
-    G.name = sys.argv[0]
-    G.config = None             # Configuration file
-    G.backup = P("C:/cygwin/home/Don/.bup") # Backup directory
-    G.sep = ";"                 # Field separator for config file
-    G.at = "@"                  # Designates a silent alias
-    G.editor = os.environ["EDITOR"]
-    # Colors for terminal printing
-    G.C = C.C.lcyn
-    G.y = C.C.yel
-    G.Y = C.C.lyel
-    G.r = C.C.red
-    G.R = C.C.lred
-    G.g = C.C.grn
-    G.G = C.C.lgrn
-    G.W = C.C.lwht
-    G.N = C.C.norm
-    # Regular expressions describing configuration file lines that
-    # should be ignored
-    G.ignore = (
-        re.compile(r"^\s*##"),
-        re.compile(r"^\s*#[《》]"),     # vim folding markers
-        re.compile(r"^\s*#<<|^\s#>>"),  # vim folding markers
-    )
+if 1:  # Header
+    # Copyright, license
+        # These "trigger strings" can be managed with trigger.py
+        #∞copyright∞# Copyright (C) 2021 Don Peterson #∞copyright∞#
+        #∞contact∞# gmail.com@someonesdad1 #∞contact∞#
+        #∞license∞#
+        #   Licensed under the Open Software License version 3.0.
+        #   See http://opensource.org/licenses/OSL-3.0.
+        #∞license∞#
+        #∞what∞#
+        # Script to help 'remember' locations and files.  For example, I use it
+        # to keep track of project files and working directories.
+        #∞what∞#
+        #∞test∞# #∞test∞#
+    # Standard imports
+        from pdb import set_trace as xx
+        from pprint import pprint as pp
+        import getopt
+        import os
+        import pathlib
+        import platform
+        import re
+        import subprocess
+        import sys
+    # Custom imports
+        from wrap import wrap, dedent
+        import get
+        from color import TRM as t
+    # Global variables
+        P = pathlib.Path
+        ii = isinstance
+        class g: pass
+        g.name = sys.argv[0]
+        g.config = None             # Configuration file
+        g.backup = P("C:/cygwin/home/Don/.bup") # Backup directory
+        g.sep = ";"                 # Field separator for config file
+        g.at = "@"                  # Designates a silent alias
+        g.editor = os.environ["EDITOR"]
+        # Colors for terminal printing
+        t.C = t("cynl")
+        t.R = t("redl")
+        t.y = t("yell")
+        # Regular expressions describing configuration file lines that
+        # should be ignored
+        g.ignore = (
+            re.compile(r"^\s*##"),
+        )
 if 1:   # Utility
     def Error(msg, status=1):
         print(msg, file=sys.stderr)
         exit(status)
     def Usage(d, status=1):
         print(dedent(f'''
-    Usage:  {G.name} [options] arguments
+    Usage:  {g.name} [options] arguments
       Script to save/choose file or directory names.  When run, the
       configuration file is read (change it with the -f option) and you
       are prompted for a choice.  The file/directory you choose is
@@ -95,7 +87,7 @@ if 1:   # Utility
         -f f    Set the name of the configuration file
         -H      Explains details of the configuration file syntax
         -l      Launch the file(s) with the registered application
-        -q      Print silent alias names (prefaced with {G.at})
+        -q      Print silent alias names (prefaced with {g.at})
         -S      Search all lines in the config file for a regex
         -s      Search the non-commented lines in the config file for a regex
     '''))
@@ -121,18 +113,18 @@ if 1:   # Utility
             elif o == "-e":
                 d["-e"] = a
             elif o == "-f":
-                G.config = P(a)
-                if not G.config.is_file():
+                g.config = P(a)
+                if not g.config.is_file():
                     Error(f"'{a}' is not a valid configuration file")
             elif o in ("-h", "--help"):
                 Usage(d, 0)
             elif o == "-H":
                 Manpage()
         args = d["args"] = [i.strip() for i in args]
-        if G.config is None:
+        if g.config is None:
             Error(f"Must use -f option to specify a configuration file")
-        if not G.backup.exists() or not G.backup.is_dir():
-            Error(f"Must define a backup directory in G.backup")
+        if not g.backup.exists() or not g.backup.is_dir():
+            Error(f"Must define a backup directory in g.backup")
         return args
     def Manpage():
         print(dedent(f'''
@@ -168,7 +160,7 @@ if 1:   # Utility
         
         The alias is a string that you can give on the command line
         instead of the number you're prompted for in case of the 1 or 2
-        string case.  The alias can have a leading '{G.at}' character,
+        string case.  The alias can have a leading '{g.at}' character,
         which means it's a silent alias and not printed unless the -q
         option was used.  These silent aliases are for things you use a
         lot and don't need to see in a listing.
@@ -192,7 +184,7 @@ if 1:   # Utility
         will be interpreted as files and opened with their registered
         application.
         
-        Example:  'python {G.name} -l *.pdf' will launch all the PDF files
+        Example:  'python {g.name} -l *.pdf' will launch all the PDF files
         in the current directory.
         
                         Use in a POSIX environment
@@ -225,7 +217,7 @@ if 1:   # Utility
 if 1:   # Core functionality
     def Ignore(line):
         'Return True if this configuration file line should be ignored'
-        for r in G.ignore:
+        for r in g.ignore:
             if r.search(line):
                 return True
         return False
@@ -233,9 +225,9 @@ if 1:   # Core functionality
         'For each line, verify the file exists'
         def BadLine(ln, line, msg):
             print(dedent(f'''
-            {G.C}Line {ln} in configuration file is bad:
+            {t.C}Line {ln} in configuration file is bad:
                 Line:     '{line}'
-                Problem:  {G.R}{msg}{G.C}
+                Problem:  {t.R}{msg}{t.C}
             '''))
             BadLine.bad = True
         BadLine.bad = False
@@ -247,25 +239,25 @@ if 1:   # Core functionality
                 continue
             elif Ignore(line):
                 continue
-            f = [i.strip() for i in line.split(G.sep)]
+            f = [i.strip() for i in line.split(g.sep)]
             if len(f) not in (1, 2, 3):
                 BadLine(ln, line, "Doesn't have three fields")
                 continue
+            # No empty fields
             if any([not i for i in f]):
                 BadLine(ln, line, "Has an empty field")
                 continue
+            # Check that file exists
             file = P(f[-1])
             fs = str(file)
             if fs[0] == "#":
                 if fs[1] == "-":    # Line of hyphens
                     continue
-                file = P(fs[1].strip())
+                file = P(fs[1:].strip())
             if not file.exists():
                 BadLine(ln, line, "File/directory doesn't exist")
         if BadLine.bad:
-            print(f"{G.C}Configuration file is '{G.config}{G.N}'")
-            if d["-a"]:
-                exit(1)
+            print(f"{t.C}Configuration file is '{g.config}{t.n}'")
         if d["-a"]:
             exit(0)
     def ReadConfigFile():
@@ -273,7 +265,7 @@ if 1:   # Core functionality
         # Note:  we have to sequentially filter to ensure the lines list
         # has the correct line numbers.
         lines = [(linenum + 1, line) for linenum, line in
-                 enumerate(get.GetLines(G.config))]
+                 enumerate(get.GetLines(g.config))]
         # Filter out blank lines
         lines = [(ln, line) for ln, line in lines if line.strip()]
         # Filter out comments
@@ -284,18 +276,18 @@ if 1:   # Core functionality
         return lines
     def BackUpConfigFile():
         '''The configuration file is about to be modified, so save a
-        copy of it in the G.backup directory.
+        copy of it in the g.backup directory.
  
         Note we check that the -f option must be used if the script
         name doesn't contain 'goto' to avoid overwriting the default
-        configuration file in G.config.
+        configuration file in g.config.
         '''
-        script = P(G.name).resolve()
+        script = P(g.name).resolve()
         needs_dash_f = script.stem != "goto"
         if needs_dash_f and d["-f"] is None:
             Error("Won't backup to default config file unless script is goto.py")
-        bup = G.backup/f"{script.name}.{os.getpid()}"
-        s = open(d["-f"]).read() if d["-f"] else open(G.config).read()
+        bup = g.backup/f"{script.name}.{os.getpid()}"
+        s = open(d["-f"]).read() if d["-f"] else open(g.config).read()
         open(bup, "w").write(s)
     def AddCurrentDirectory(args):
         '''If args is empty, then add the current directory to the
@@ -312,14 +304,14 @@ if 1:   # Core functionality
                 out.append(str(p))
         else:
             out = [str(P(".").resolve())]
-        out.append(open(G.config).read())
-        open(G.config, "w").write('\n'.join(out))
+        out.append(open(g.config).read())
+        open(g.config, "w").write('\n'.join(out))
     def EditFile():
-        subprocess.call([G.editor, str(G.config)])
+        subprocess.call([g.editor, str(g.config)])
     def CheckAlias(alias):
         "No spaces; optional leading '@'"
-        if G.at in alias and alias[0] != G.at:
-            Error(f"'{alias}' alias has '{G.at}' in wrong position")
+        if g.at in alias and alias[0] != g.at:
+            Error(f"'{alias}' alias has '{g.at}' in wrong position")
         return alias.replace(" ", "")
     def GetChoicesAndAliases(lines):
         '''Return (choices, aliases) where choices is a dict of the
@@ -333,11 +325,11 @@ if 1:   # Core functionality
         choices, aliases = {}, {}
         tmp = []
         for ln, line in lines:
-            f = line.strip().split(G.sep)
+            f = line.strip().split(g.sep)
             if len(f) == 3:         # This line has an alias
                 name, alias, dir = [i.strip() for i in f]
                 alias = CheckAlias(alias)
-                alias1 = f"{G.at}{alias}"
+                alias1 = f"{g.at}{alias}"
                 if alias in aliases or alias1 in aliases:
                     try:
                         dir, name = aliases[alias]
@@ -346,7 +338,7 @@ if 1:   # Core functionality
                         dir, name = aliases[alias1]
                         al = alias1
                     m = dedent(f'''
-                    {G.R}Duplicate alias '{al}' on line {ln}{G.N}
+                    {t.R}Duplicate alias '{al}' on line {ln}{t.n}
                       Previous definition:
                         name:      {name}
                         file/dir:  {dir}
@@ -370,7 +362,7 @@ if 1:   # Core functionality
             return
         i = " "*2
         # Options
-        print(f"{G.y}Options dictionary:")
+        print(f"{t.y}Options dictionary:")
         for key in d:
             print(f"{i}{key}:  {d[key]}")
         # Command line arguments
@@ -393,7 +385,7 @@ if 1:   # Core functionality
         n = max([len(i) for i in aliases])
         for key in GetSortedAliases(aliases):
             print(f"{i}{key:{n}s}:  {', '.join(aliases[key])}")
-        print(f"{G.N}")
+        print(f"{t.n}")
     def ActOn(dir):
         '''dir is a directory or file.  Write it to stdout or the output
         file if -e option was used.  If -l was used, launch dir with the
@@ -419,10 +411,10 @@ if 1:   # Core functionality
         sorted so that aliases like '@abc' and 'abc' sort next to each
         other.
         '''
-        at = G.at
-        f, g = lambda x:  x[1:] + at, lambda x:  at + x[:-1]
-        tmp = sorted([f(k) if k[0] == at else k for k in aliases.keys()])
-        for key in [g(k) if k[-1] == at else k for k in tmp]:
+        at = g.at
+        a, b = lambda x:  x[1:] + at, lambda x:  at + x[:-1]
+        tmp = sorted([a(k) if k[0] == at else k for k in aliases.keys()])
+        for key in [b(k) if k[-1] == at else k for k in tmp]:
             yield key
     def GoTo(arg):
         'Print the path string the user selects'
@@ -441,8 +433,8 @@ if 1:   # Core functionality
                 # See if it's an alias
                 if arg in aliases:
                     dir, name = aliases[arg]
-                elif G.at + arg in aliases:
-                    dir, name = aliases[G.at + arg]
+                elif g.at + arg in aliases:
+                    dir, name = aliases[g.at + arg]
                 elif d["-l"]:
                     # Assume it's a file; open it with registered application.
                     dir = arg
@@ -460,10 +452,10 @@ if 1:   # Core functionality
             # Print out aliases
             for i in GetSortedAliases(aliases):
                 dir, name = aliases[i]
-                if not d["-q"] and i.startswith(G.at):
+                if not d["-q"] and i.startswith(g.at):
                     continue
-                if i.startswith(G.at):
-                    print(f"{G.y}{i:{n}s}  {name if name else dir}{G.N}")
+                if i.startswith(g.at):
+                    print(f"{t.y}{i:{n}s}  {name if name else dir}{t.n}")
                 else:
                     print(f"{i:{n}s}  {name if name else dir}")
             while True:
@@ -482,8 +474,8 @@ if 1:   # Core functionality
                         dir, name = aliases[s]
                         ActOn(dir)
                         return
-                    elif G.at + s in aliases:
-                        dir, name = aliases[G.at + s]
+                    elif g.at + s in aliases:
+                        dir, name = aliases[g.at + s]
                         ActOn(dir)
                         return
                     else:

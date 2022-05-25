@@ -1,13 +1,11 @@
+xmd Markdown notes
+
 Active
     
     - color.py
         - TRM needs a way to ensure all attribute access returns "" when
           .on is False.
         - Add support to g.py
-
-    - pgm/goto.py
-        - Add a 4th field to the data file which is a color to print the
-          line to help highlight it.
 
     - Decimal equivalents
         - I use the /shop/cheat_sheets/pdf/decimal_equivalents.pdf pages so
@@ -26,8 +24,8 @@ Active
             - BM1:  NW corner of driveway concrete next to gate to mailbox
             - BM2:  Metal pole at entrance of driveway on Edna
             - Note these benchmarks can be moved out to the street edges
-              and the accurate length of the property can be measured to
-              within an inch or two
+              and the size of the property can be measured to
+              within a few inches.
             - Then secondary benchmarks are fence posts on west and south
               fences
         - Use sighting compass to take magnetic bearings of things.
@@ -51,7 +49,6 @@ Active
               layer would show valves, sprinklers, pump, wires.  Etc.
         - This survey would get archived on github so it can't be lost
 
-
     - /pylib/pgm/ts/ts.py
         - Import to /plib
 
@@ -60,7 +57,6 @@ Active
             - Content is on the order of 10 MB
         - Develop, then add to /plib
         - Add /tools to /plib
-        - Convert the help stuff to be built by scons
         - Move everything to one directory for ease of editing
         - Consolidate the help text I use into one directory.  Eliminate
           make and the C programs; convert everything to python.  Look at
@@ -1023,3 +1019,33 @@ Other
                 - clean:
                 -     @rm -f ${exe} ${exe}.stackdump *.o
 
+--------------------------------------------------------------------------------
+xmd Markdown
+
+Markdown is a useful concept, but I find all of the markdown syntaxes
+annoying and badly inconsistent (everyone writes their own syntax with
+relatively small changes from others').  Should I write my own syntax,
+falling prey to the same inconsistency desires?  My motivation would be tht
+I get to define my own syntax to do the tasks I do a lot.
+
+- Strategic
+    - What are fundamental use cases?
+    - What are output file types?
+    - What are needed formatting structures?
+
+- All markup will be in 'fenced' areas, meaning a beginning and ending
+  string identify the fence.  
+    - Example:  The strings "≪" and "≫" provide left and right fences.
+    - A fundamental rule is that these strings ALWAYS mean a fence and
+      escaping them with a backslash has no special meaning.
+        - This is convenient for processing, as all markup can be found by
+          searching for these characters.
+            - regexp is re.compile(r"(≪.*≫)", re.M)
+        - A simple FSM can be had by reading each character.  When you
+          encounter ≪, you're in interpret_markup mode and when you
+          encounter ≫, you're in regular_text mode.
+    - If you want to use these character strings verbatim in your text, you
+      must define an alias for them.
+- A fenced area starts with a keyword
+    - sub defines a substitution (it can call a python function if desired)
+    - '{' and '}' define python code blocks
