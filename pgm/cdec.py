@@ -52,7 +52,7 @@ if 1:   # Header
     if 1:   # Global variables
         ii = isinstance
         t = Trm()
-        t.always = True
+        t.on = True
         class g: pass   # Hold global variables
         t.dbg = t("wht", "blu")
         g.duplicates = set()

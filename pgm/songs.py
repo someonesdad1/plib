@@ -1,6 +1,7 @@
 from get import GetTextLines
 import sys
 import time
+import iso
 from pdb import set_trace as xx 
 if 1:
     import debug
@@ -8,7 +9,8 @@ if 1:
  
 favorites = '''
 
-2nd movement Beethoven's 9th (written 1824)|iwIvS4yIThU|Genius
+Beethoven's 7th, 2nd movement|sv2QnrCJNk0|
+Beethoven's 9th, 2nd movement (1824)|iwIvS4yIThU|Genius
 Bad Romance|VCTOpdlZJ8U|PMJ & tap dancing (Sarah Reich) (singer is Telly Savalas' daughter)
 Catharsis (2013)|h3hlFAVV6aI|My beloved Sa-Sa|  Sally went to a fiddle camp in WA and learned this song.  When she returned, she said she knew I'd like it.  She was right, as it's my favorite fiddle song.
 Crazy (1961)|MbnrdCS57d0||Nobody sings it like Patsy Cline.
@@ -17,9 +19,9 @@ Don't Cry For Me Argentina (1977)|_n8mq7sedP4|A masterpiece
 I'll Never Find Another You (1963)|KmactMIhrRM|How I feel about Glenda
 Midnight In Moscow (1961)|o744d4mwOgQ|Dixieland from England
 Potato Head Blues (1927)|EfGZB78R7uw|Famous trumpet solo
-Scheherezade (1st movement, written 1888)|6dDk6aft4JU|von Karajan on Deutsche Grammophone (I bought this record in around 1970 and was mesmerized by it)
+Scheherezade (1st movement, written 1888)|6dDk6aft4JU|von Karajan on Deutsche Grammophone
 Stairway to Heaven (1971)|QkF3oxziUI4|
-The Moldau (written 1875)|l6kqu2mk-Kw|Such accomplished young musicians
+Vltava (The Moldau) (1875)|l6kqu2mk-Kw|Smetana (he was deaf when he wrote this)
 
 '''
 
@@ -31,11 +33,19 @@ songs = '''
 A Horse With No Name|mSZXWdKSQNM|
 A World of our Own|PSxwqBJLU8A|
 Africa|qDLJ3pUZm9A|
+
+Air Supply:  All Out of Love|https://www.youtube.com/watch?v=tH2w6Oxx0kQ|
+Air Supply:  Making Love Out of Nothing at All|https://www.youtube.com/watch?v=JMKi9qVrGWM|
+Air Supply:  Even the Nights Are Better|https://www.youtube.com/watch?v=BRx58DgOxeg|
+It's a Heartache|https://www.youtube.com/watch?v=bEOl38y8Nj8|
+Angel of the Morning|https://www.youtube.com/watch?v=HTzGMEfbnAw|
+Queen of Hearts|https://www.youtube.com/watch?v=P0DK-0fIKCw|
+The Gambler|https://www.youtube.com/watch?v=7hx4gdlfamo|
+
 American Pie|iX_TFkut1PM|
 Angie|S7sigwbqEj8||Always one of my favorite songs from the Stones along with Jumpin' Jack Flash.
 Aquarius|oPK7ZF6jfJE&t=8|
 Bad Bad Leroy Brown|CIiVindRSTA|
-Barber of Seville (1821)|OloXRhesab0||Most of us probably heard this first by watching Saturday morning cartoons.
 Barracuda|PeMvMNpvB5M|
 Bay Of Mexico|-16OczraVi4|
 Beat It|oRdxUFDoQe0||When this song came out, I bought the record and loved playing it loud on my stereo.
@@ -68,8 +78,8 @@ End of the World|sonLd-32ns4|
 Everybody's Somebody's Fool|ECOthzFvUXY|
 Exodus|xhXZ3eXJIFc|
 Eye Of The Tiger|btPJPFnesV4|
-Fast Freight|Oy_NkJOwRqE||This has always been a favorite Kingston Trio song of mine.  I used to mentally sing it in my mind many times when driving back from fiddle contests when Sally was young.
-Fast Freight|Sin3FeAQAws| Eliza Gilkyson (song writer's daughter)
+Fast Freight:  Kingston Trio|Oy_NkJOwRqE||This has always been a favorite Kingston Trio song of mine.  I used to mentally sing it in my mind many times when driving back from fiddle contests when Sally was young.
+Fast Freight:  Eliza Gilkyson|Sin3FeAQAws| Eliza Gilkyson (song writer's daughter)
 Fever|JGb5IweiYG8|
 Flight of the Condor|66KVAhNE_rQ|1982| This was a BBC TV show and had great pan pipe music from South America.
 Foggy Mountain Breakdown|z_Y3mnj-8lA|| College friends used to rave about Flatt & Scruggs.
@@ -90,7 +100,7 @@ Hey Jude|mQER0A0ej0M|
 Hit the Road Jack|OfUDsHtSv88|Becca Krueger (skip first 20 seconds) | This is Ray Charles' song, but Krueger and the group do an amazing job at it.
 Hit the Road Jack|SrnWp5O0DEs|
 Hot Rod Lincoln|3R7l7nDuj1o|
-Hotel California|811QZGDysx0|
+Hotel California|https://www.youtube.com/watch?v=BciS5krYL80|
 House Of The Rising Sun|MJkr0DWbhTk||I loved this song in high school.
 How Blue Can You Get?|LWLAAzOBoBI|A masterpiece
 I Am A Man Of Constant Sorrow|OdYGnAFaeHU|
@@ -99,11 +109,11 @@ I Will Survive|ARt9HV9T0w8|
 I love the flower girl|dZMc0-ZAUeY|
 I was Born Under a Wandering Star|NTymtAbaG08|
 I'm Still Standing|Ye9hGotPPVk|
-Ievan Polkka|4om1rQKPijI|A masterpiece of a capella -- I love the scat singing of the girl in the red dress around 1:30
+Ievan Polkka|4om1rQKPijI|A masterpiece of a capella
 In The Year 2525|yesyhQkYrQM|
 Indian Lake|3Xup3HSZLIQ|Bubble rock
 It Was A Very Good Year|CJARjwzmceg||This always reminds me of a particular girlfriend in college and being at a drive-in theater with her, when I somehow went in and used the girl's bathroom -- she laughed and teased me about it afterwords, as she was in another stall.  I remember wondering why there were no urinals.
-Journey to Kilimanjaro|e0DpZ3WVowY|1994 Nova show.  Melodically simple but haunting music:  1:20, 4:15, 8:10, 12:03, 19:40, 22:08, 36:50, 38:46, *39:34, 44:58, 51:57, 54:15 (credits)
+#Journey to Kilimanjaro|e0DpZ3WVowY|1994 Nova show.  Melodically simple but haunting music:  1:20, 4:15, 8:10, 12:03, 19:40, 22:08, 36:50, 38:46, *39:34, 44:58, 51:57, 54:15 (credits)
 Judy Blue Eyes|XWvw_uZPGDA|2012
 Judy Blue Eyes|cMJug2iz3NA|1969
 Jumpin' Jack Flash|-rIG2POqtV8|
@@ -184,6 +194,7 @@ She's Got You|7nXPQbKZBbw|Petersens
 Silver Threads and Golden Needles|uz6HB9HYQz4|Dusty Springfield
 Sounds of Silence|4zLfCnGVeL4|
 Stairway to Heaven|2cZ_EFAmj08| Heart at Kennedy Center; great production
+Stairway to Heaven (concert)|https://www.youtube.com/watch?v=BciS5krYL80e|
 Struttin' With Some Barbecue|yl-2R_Pb7dk|
 Summer Wine|Ib_eW9VSUwM|
 Sunrise, Sunset (Mantovani)|EzEHI1alPZ8|
@@ -208,35 +219,35 @@ This is a Man's World|mPimt0Zu_To|PMJ with woman singer
 This is a Man's World|wd1-HM234DE|James Brown 1960's
 Those Were The Days|y3KEhWTnWvE|
 Time Won't Let Me|3yQERVphWhY|
-Today (1964)|3cELsUMcQdc||I listened to this many, many times
-Torn Between Two Lovers|TzGbvTl4mpg||This always reminds me driving back to college in my 6 cylinder Mustang late at night.  I had removed the dash and replaced the bulbs with some painted with red nail polish, so my dash lights were red.
+Today (1964)|3cELsUMcQdc|
+Torn Between Two Lovers|TzGbvTl4mpg|
 Total Eclipse of the Heart|lcOxhH8N3Bo|
 Tuxedo Junction|iBTYcqtaOjg|
 Two Faces Have I|w05w1XbZTG8|
 Unchained Melody|zrK5u5W8afc|
 Unforgettable|Fy_JRGjc1To|
 Unsquare Dance|lbdEzRfbeH4|Try to keep the beat with this.
-Victory|j3nBuwOPu8A&list=RDE5NByiEIbD8| Bond
+Bond: Victory|j3nBuwOPu8A&list=RDE5NByiEIbD8|
 Volga Boatmen (1866)|qsovBF4N27Q|
-Volga Boatmen|0tw3g88JtWA|Leonid Kharitonov 1965 
-Walk On the Wild Side|5O82y59h7MI||I bought this album in the 1960's and always wait for a particular 2 second phrase near the end.
+Volga Boatmen|0tw3g88JtWA|Baritone L. Kharitonov 1965 
+Walk On the Wild Side|5O82y59h7MI|
 Washington Square|ihenbyTzQ2A|
-White Rabbit|EUY2kJE0AZE||In 1966, I bought a $5 transistor radio from a friend in high school and remember hearing this song on it numerous times.
+White Rabbit|EUY2kJE0AZE|
 White Silver Sands|mOqbjENGN7s|First 45 rpm record I ever bought in 1957
 Who's on First|kTcRRaXV-fg|Genius comedy
 Woman in Love|hQLGCX8D-1Y|
-Yesterday when I was young|GQIAcztYjbc||Great song
-You Only Live Twice|XgFtQPgHyek||This was a theme from one of the James Bond movies
+Yesterday when I was young|GQIAcztYjbc|
+You Only Live Twice|XgFtQPgHyek|
 You Were On My Mind|c7YSANg8vgw|
-You're So Vain|cleCtBP0o5Y||A long mystery is who was this song referring to
+You're So Vain|cleCtBP0o5Y|
 
+Barber of Seville (1821)|OloXRhesab0||Most of us probably heard this first by watching Saturday morning cartoons.
 Bolero|8KsXPq3nedY|
 Für Elise|_mVW8tgGY_w|
 Moonlight Sonata|4Tr0otuiQuU|
 Beethoven's 9th|fRZaX6-dsn8|
 Beethoven's 5th|1lHOYvIhLxo|
 Beethoven's 7th|W5NsPOgyALI|
-Beethoven's 7th, 2nd movement|sv2QnrCJNk0|
 New World Symphony (Dvorak's 9th 1893)|VuaTY3zHO8Q|London Symphony Orchestra
 New World Symphony and The Moldau|Qut5e3OfCvg|Slovak Philharmonic
 1812 Overture (1888)|QUpuAvQQrC0|Real cannons & church bells|  I used to listen to this on an 8-track tape I got from my parents.  I'd lay on the floor of my apartment between the small stereo speakers and enjoy it.
@@ -252,7 +263,7 @@ Toccata and Fugue in D Minor|zhH53UODLEM|Piano with visual score
 
 '''
 
-def Vet():
+def Inspect():
     'Check that all the lines have the proper form'
     def Check(line):
         f = line.split("|")
@@ -261,7 +272,7 @@ def Vet():
             exit(1)
     for item in (favorites, songs):
         for line in GetTextLines(item):
-            if not line:
+            if not line or line[0] == "#":
                 continue
             Check(line)
 def Print(s):
@@ -273,20 +284,26 @@ def Print(s):
         if not line or line[0] == "#":
             continue
         f = [i.strip() for i in line.split("|")]
-        f[1] = link + f[1]
+        if not f[1].startswith("https://"):
+            f[1] = link + f[1]
         song_list.append(f)
     # Output the HTML data
     for f in sorted(song_list):
         descr, link = f[0], f[1]
         extra = ' '.join(f[2:]) if long else f[2]
         print(f"<a href=\"{link}\">{descr}</a> {extra} <br>")
+def Notation():
+    print(dedent('''
+    '''))
 
 if __name__ == "__main__": 
-    Vet()
+    now = iso.ISO()
+    Inspect()
     long = len(sys.argv) > 1
-    print(f"<p>{time.asctime()}</p><p>Favorites:</p>")
+    print(f"Favorites:</p>")
     Print(favorites)
     print(f"<p>Others:</p>")
     Print(songs)
+    print(f"<p>{now.date}<p>")
  
 # vim: tw=0 wm=0

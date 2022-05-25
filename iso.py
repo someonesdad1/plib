@@ -34,6 +34,15 @@ class ISO(object):
             raise TypeError("tm must be a time.struct_time instance")
         self._tm = tm
     @property
+    def date(self):
+        '''This returns the date in the form I use the most; e.g. 
+        '12 Aug 2019'.
+        '''
+        s = strftime("%d %b %Y", self._tm)
+        if self._rm0 and s[0] == "0":
+            s = s[1:]
+        return s
+    @property
     def dt(self):
         return self.d + " " + self.t
     @property
@@ -50,6 +59,7 @@ class ISO(object):
         return h + strftime(":%M:%S %p", self._tm).lower()
 if __name__ == "__main__": 
     from collections import namedtuple
+    from wrap import dedent
     def P(t, iso):
         print(t)
         print("  Date and time: ", iso)
@@ -58,12 +68,21 @@ if __name__ == "__main__":
     t = time()
     iso = ISO()
     iso.set(localtime(t))
-    P("Local time now:", iso)
+    P("Local time now: (str(iso_instance))", iso)
     iso1 = ISO(zulu=True)
-    P("GMT time now:", iso1)
+    P("GMT time now: (zulu=True in constructor)", iso1)
     # Change to about 5 years before
     sec_per_year = 31556925.9746784     # From GNU units
     empirical_correction = 5*3600 + 4*60
     tm = localtime(t - 5*sec_per_year + empirical_correction)
     iso.set(tm)
     P("About 5 years before now:", iso)
+    # 
+    print(dedent(f'''
+    ISO instance's properties (for current time):
+      str(iso)        {iso}
+      iso.date        {iso.date}
+      iso.d           {iso.d}
+      iso.dt          {iso.dt}
+      iso.t           {iso.t}
+    '''))
