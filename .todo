@@ -17,6 +17,13 @@ Active
 
 Want
 
+    - Need a transpose.py script
+        - This would read in a text file's strings as a matrix, remove
+          comment lines, and then print the transpose.  I often need this
+          to plot numerical data.  Or, the xfmpy/plot.py command could have
+          an option that would generate this transpose for you (also needed
+          for the regression script).
+
     - Need to write a regression.py module that doesn't need numpy or
       scipy.  Base it on the stuff in /pylib/regression.py and test it with
       the NIST corner cases.  Input variables should be Decimal objects.

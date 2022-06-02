@@ -175,10 +175,10 @@ def PrintNormalTable(d):
             c = C.lred if d["-c"] else ""
         elif f.denominator in (16,):
             c = C.lgrn if d["-c"] else ""
-        elif f.denominator in (32,):
-            c = C.yel if d["-c"] else ""
-        elif f.denominator in (64,):
-            c = C.lblu if d["-c"] else ""
+        #elif f.denominator in (32,):
+        #    c = C.yel if d["-c"] else ""
+        #elif f.denominator in (64,):
+        #    c = C.lblu if d["-c"] else ""
         s = c + FmtFrac(f) + N
         s += f" {c}{float(f):.{n}f}{N}"
         # Include mm equivalent
