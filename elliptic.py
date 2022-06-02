@@ -12,6 +12,8 @@ Complete elliptic functions
 
     The series algorithm comes from
     http://electronbunker.sasktelwebsite.net/DL/KelvinEllipticCalcs.pdf
+
+    As of May 2022, the above URLs are defunct.
 '''
 if 1:  # Copyright, license
     # These "trigger strings" can be managed with trigger.py
@@ -331,6 +333,4 @@ if __name__ == "__main__":
     def Test():
         TestUsingPycephes()
         TestUsingScipy()
-
-    if __name__ == "__main__":
-        exit(run(globals())[0])
+    exit(run(globals())[0])

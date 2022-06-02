@@ -496,12 +496,10 @@ def DumpContext(name, ctx):
     f = [F(i) for i in ctx.traps]
     for i in Columnize(f, indent=indent*2):
         print(i)
-if 0:
-    exit(0)
 
 if __name__ == "__main__": 
     # Use mpmath (http://mpmath.org/) to generate the numbers to test
-    # against (i.e., assume mpmath's algorithms are correct).
+    # against.  Assume mpmath's algorithms are correct.
     import mpmath as mp
     from fractions import Fraction
     from lwtest import run, raises, assert_equal, Assert

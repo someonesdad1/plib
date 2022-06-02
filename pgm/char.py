@@ -102,7 +102,7 @@ def GetEncoding(encoding):
 def Error(msg, status=1):
     print(msg, file=sys.stderr)
     exit(status)
-def GetCharacterCounts(d):
+def GetCharacterCounts():
     '''Read in all the characters and construct a dictionary that
     contains the Unicode codepoint values as keys and counts as values.
     '''
@@ -135,7 +135,7 @@ def GetCharacterCounts(d):
             d["char_counts"][char] += 1
         else:
             d["char_counts"][ord(char)] += 1
-def Categorize(d):
+def Categorize():
     '''Compute a dictionary d["cat"] containing the category number
     of each of the characters in the string d["characters"].
     '''
@@ -163,7 +163,7 @@ def Categorize(d):
                 cat[7].add(char)
             else:
                 cat[8].add(char)
-def PrintCounts(d):
+def PrintCounts():
     C, D = d["char_counts"], d["ctrl"]
     chars = list(C.keys())
     chars.sort()
@@ -186,7 +186,7 @@ def Translate(chars):
         else:
             out.append(c)
     return ' '.join(out)
-def PrintCharacters(characters, indent, d):
+def PrintCharacters(characters, indent):
     '''Fit the characters in the existing line width; wrap to the next
     lines if needed.  indent is the number of spaces to indent.
     '''
@@ -202,7 +202,7 @@ def PrintCharacters(characters, indent, d):
             s = ""
     if s:
         print(s)
-def PrintResults(d):
+def PrintResults():
     res = []
     for key, val in d["cat"].items():
         cat = d["categories"][key]
@@ -229,10 +229,10 @@ def PrintResults(d):
         if d["-C"]:
             print(f"{t(C[i])}", end="")
         print("{cat:{w}} ".format(**locals()), end="")
-        PrintCharacters(characters, " "*w, d)
+        PrintCharacters(characters, " "*w)
         if d["-C"]:
             print(f"{t.n}", end="")
-def Usage(d, status=1):
+def Usage(status=1):
     print(dedent(f'''
     Usage:  {sys.argv[0]} [options] [file1 [file2...]]
       Lists the characters used in the indicated files.  Use - as a file
@@ -251,7 +251,7 @@ def Usage(d, status=1):
                 be removed.  Defaults to {d["-e"]}.
     '''))
     exit(status)
-def ParseCommandLine(d):
+def ParseCommandLine():
     d["-a"] = False
     d["-b"] = False
     d["-C"] = True
@@ -301,14 +301,14 @@ def ParseCommandLine(d):
             if d["-e"] is None:
                 Error("'{0}' encoding not recognized".format(a))
     if not args:
-        Usage(d)
+        Usage()
     return args
 if __name__ == "__main__":
     d = {}  # Options dictionary
-    d["files"] = ParseCommandLine(d)
-    GetCharacterCounts(d)
+    d["files"] = ParseCommandLine()
+    GetCharacterCounts()
     if d["-c"]:
-        PrintCounts(d)
+        PrintCounts()
     else:
-        Categorize(d)
-        PrintResults(d)
+        Categorize()
+        PrintResults()

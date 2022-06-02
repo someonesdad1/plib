@@ -19,7 +19,8 @@ if 1:   # Imports
     from io import StringIO, BytesIO
     from pdb import set_trace as xx
 if 1:   # Global variables
-    class G: # Global variable convenience container
+    # Global variable convenience container
+    class G:
         bytes_per_line = 16
         nonprintable_char = ord(".")
         ii = isinstance

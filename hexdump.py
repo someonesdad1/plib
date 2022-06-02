@@ -1,9 +1,9 @@
 '''
 TODO
     * obj can be a pathlib.Path
-
+ 
 Python 3 hexdump module
-
+ 
 hexdump("abc") produces
     "00000000: 6162 63                                  abc\n"
 hexdump("abc", asc=False) produces
@@ -51,26 +51,27 @@ def hexdump(obj, offset=0, length=0, asc=True, out=None, encoding="UTF-8"):
     hex dump of a 5.5 MB file.
     '''
     if not hasattr(hexdump, "tt"):
+        # Make translation table to convert bytes to ASCII characters
         From, To = bytes(range(256)), bytearray(range(256))
         for i in range(32):
             To[i] = ord(".")
         for i in range(0x7f, 0x100):
             To[i] = ord(".")
-        # Translation table to convert bytes to ASCII characters
         hexdump.tt = bytes.maketrans(From, To)
     o = out if out else io.StringIO()
     # Make the input a stream of bytes
-    msg = f"obj is an unsupported type = '{type(obj)}'"
+    e = TypeError(f"obj is an unsupported type = '{type(obj)}'")
     if isinstance(obj, str):
         in_stream = io.BytesIO(obj.encode(encoding))
     elif isinstance(obj, (bytes, bytearray)):
         in_stream = io.BytesIO(obj)
     elif hasattr(obj, "read"):
         if not isinstance(obj, (io.BytesIO, io.BufferedReader)):
-            raise TypeError(msg)
+            raise e
         in_stream = obj
     else:
-        raise TypeError(msg)
+        raise e
+    # Set our variables
     bytes_read = 0
     bytes_printed = 0
     line_address = 0
@@ -109,7 +110,7 @@ def hexdump(obj, offset=0, length=0, asc=True, out=None, encoding="UTF-8"):
         if length and bytes_printed >= length:
             break
         data = in_stream.read(bytes_per_line)   # Next line
-    # We're done
+    # We're done.  Return a string if the output stream was None.
     if out is None:
         return o.getvalue()
 if __name__ == "__main__": 
@@ -117,25 +118,21 @@ if __name__ == "__main__":
     from io import StringIO
     from pdb import set_trace as xx 
     def Test():
+        hd = hexdump
         s = "abc"
-        t = hexdump(s)
         e = "00000000: 6162 63                                  abc\n"
-        assert(t == e)
+        assert(hd(s) == e)
         # Test out
         o = StringIO()
-        t = hexdump(s, out=o)
-        u = o.getvalue()
-        assert(u == e)
+        hd(s, out=o)
+        assert(o.getvalue() == e)
         # Test offset
-        t = hexdump(s, offset=1)
         e = "00000001: 6263                                     bc\n"
-        assert(t == e)
+        assert(hd(s, offset=1) == e)
         # Test length
-        t = hexdump(s, length=2)
         e = "00000000: 6162                                     ab\n"
-        assert(t == e)
+        assert(hd(s, length=2) == e)
         # Test asc
-        t = hexdump(s, asc=False)
         e = "00000000: 6162 63\n"
-        assert(t == e)
+        assert(hd(s, asc=False) == e)
     exit(run(globals(), halt=1)[0])

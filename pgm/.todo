@@ -1,7 +1,8 @@
 Active
     
-    - songs.py
-        - Put full URL in and it is left alone
+    - pgm/bd.py
+        - Write basic functionality
+        - Use color
 
     - color.py
         - TRM needs a way to ensure all attribute access returns "" when

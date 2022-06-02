@@ -219,15 +219,15 @@ if 1:   # Header
         g.pyversion = f"{_.major}.{_.minor}.{_.micro}"
         g.ii = isinstance
         # Color coding using ANSI escape codes
-        g.blu = t("lblu")
+        g.blu = t("blul")
         g.brn = t("brn")
-        g.grn = t("lgrn")
-        g.cyn = t("lcyn")
-        g.red = t("lred")
+        g.grn = t("grnl")
+        g.cyn = t("cynl")
+        g.red = t("redl")
         g.yel = t("yel")
-        g.wht = t("lwht")
-        g.whtblu = t("lwht", "blu")
-        g.err = t("lred")
+        g.wht = t("whtl")
+        g.whtblu = t("whtl", "blu")
+        g.err = t("redl")
         g.ital = t(attr="it")
         g.n = t.n
 if 1:   # Utility

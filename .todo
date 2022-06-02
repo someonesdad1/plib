@@ -2,10 +2,10 @@ xmd Markdown notes
 
 Active
     
-    - color.py
-        - TRM needs a way to ensure all attribute access returns "" when
-          .on is False.
-        - Add support to g.py
+    - decimalmath.py
+        - Add a complex Decimal number and modify the elementary functions
+          to take either real or complex arguments.  The tests should
+          duplicate the math/cmath functions' behaviors to e.g. 15 figures.
 
     - Decimal equivalents
         - I use the /shop/cheat_sheets/pdf/decimal_equivalents.pdf pages so
@@ -14,6 +14,23 @@ Active
           some heavy plastic.  I'd want at least two of these, one for over
           the toolboxes and one for over the lathe; and maybe one for my
           office.
+
+Want
+
+    - Need to write a regression.py module that doesn't need numpy or
+      scipy.  Base it on the stuff in /pylib/regression.py and test it with
+      the NIST corner cases.  Input variables should be Decimal objects.
+
+    - bd.py
+        - Replace the C program, as python is more than fast enough
+        - Colorize output
+        - Allow binary or text comparisons
+        - Try to use a heuristic to determine if text or binary
+
+    - color.py
+        - TRM needs a way to ensure all attribute access returns "" when
+          .on is False.
+        - Add support to g.py
 
     - Shamrock survey
         - Establish yard benchmarks and survey our property
@@ -53,41 +70,10 @@ Active
         - Import to /plib
 
     - help
-        - Convert to a git repository on github
-            - Content is on the order of 10 MB
         - Develop, then add to /plib
         - Add /tools to /plib
         - Move everything to one directory for ease of editing
-        - Consolidate the help text I use into one directory.  Eliminate
-          make and the C programs; convert everything to python.  Look at
-          hierarchically organizing the access with most-used stuff first
-          and seldom-used stuff hidden.  Do partial topic matches with the
-          invocation and use a command line option to do searches of the
-          records.  
-        - Look at somehow organizing things so that it can run as a project
-          in Notepad++, which will mean others are more likely to use it.
-        - Could be nice to have different backends, such as rendering all
-          to PDF, HTML, or vim help files.  Look at making a project for
-          Notepad++, as this would be of interest to a number of folks.
 
-    - Static attribute access
-        - A common problem when writing some classes is that all attribute
-          access generates code and recursion is inevitable and causes code
-          failure.  inspect.getattr_static() may be able to short circuit
-          this behavior and e.g. let you get to self._my_private_value
-          without calling getattr().  The stated purpose is to retrieve
-          attributes without triggering dynamic lookup.
-
-    - inspect.getcomments() on an object returns the comments before the
-      object.  Since I never put comments before my functions, this could
-      be a good way to mark python files with todo tasks.  Would it work on
-      nested functions (no, the symbol isn't visible)?  Still, you'd just
-      search for '^\s*def +[A-Za-z_]()' and call the inspect function; if
-      you don't get an exception, there's your result.  Then a td command
-      could be used to print out the todo items for a group of files.
-
-Want
-    
     - pgm/j.py
         - Allows you to calculate a maximum current for a wire.  Base
           things on the current densities in the Chassis data, which
@@ -110,12 +96,6 @@ Want
               Hz measurements.  This should be done by comparing a 30 A
               measurement from the 6033A supply to a 30 A RMS measurement.
 
-    - bd.py
-        - Replace the C program, as python is more than fast enough
-        - Colorize output
-        - Allow binary or text comparisons
-        - Try to use a heuristic to determine if text or binary
-
     - EDN PDF files
         - Looks too difficult to index with script
         - Would be nice to have an index though
@@ -124,6 +104,22 @@ Want
     - pgm/ddiff.py
         - Use color.py
         - Use filecmp module for efficient comparisons
+
+    - Static attribute access
+        - A common problem when writing some classes is that all attribute
+          access generates code and recursion is inevitable and causes code
+          failure.  inspect.getattr_static() may be able to short circuit
+          this behavior and e.g. let you get to self._my_private_value
+          without calling getattr().  The stated purpose is to retrieve
+          attributes without triggering dynamic lookup.
+
+    - inspect.getcomments() on an object returns the comments before the
+      object.  Since I never put comments before my functions, this could
+      be a good way to mark python files with todo tasks.  Would it work on
+      nested functions (no, the symbol isn't visible)?  Still, you'd just
+      search for '^\s*def +[A-Za-z_]()' and call the inspect function; if
+      you don't get an exception, there's your result.  Then a td command
+      could be used to print out the todo items for a group of files.
 
     - /pylib/pgm/xyz.py
         - This is a significant enough script that it should be tested and

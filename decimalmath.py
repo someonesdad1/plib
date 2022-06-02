@@ -1,84 +1,123 @@
 '''
+
+- To Do
+    - Convert to modern color.py
+    - Add a complex Decimal number and modify the elementary functions to
+      take either real or complex arguments.  The tests should duplicate
+      the math/cmath functions' behaviors to e.g. 15 figures.
+    - Here are the functions in cmath that need to be support complex
+      numbers
+        - Trig
+            - acos(x)
+            - asin(x)
+            - atan(x)
+            - cos(x)
+            - sin(x)
+            - tan(x)
+            - phase(x)
+            - polar(x)
+            - rect(r, phi)
+        - Hyperbolic
+            - acosh(x)
+            - asinh(x)
+            - atanh(x)
+            - cosh(x)
+            - sinh(x)
+            - tanh(x)
+        - Exponential, logarithmic
+            - exp(x)
+            - log(x[, base])
+            - log10(x)
+        - Other
+            - sqrt(x)
+            - isfinite(x)
+            - isinf(x)
+            - isnan(x)
+            - isclose(a, b, *, rel_tol=1e-09, abs_tol=0.0)
+            - pi
+            - e
+            - tau
+            - inf
+            - infj
+            - nan
+            - nanj
+
 Elementary functions for the python Decimal library
 '''
-if 1:  # Copyright, license
-    # These "trigger strings" can be managed with trigger.py
-    #∞copyright∞# Copyright (C) 2006, 2012 Don Peterson #∞copyright∞#
-    #∞contact∞# gmail.com@someonesdad1 #∞contact∞#
-    #∞license∞#
-    #   Licensed under the Open Software License version 3.0.
-    #   See http://opensource.org/licenses/OSL-3.0.
-    #∞license∞#
-    #∞what∞#
-    # <math> Elementary math functions for the python Decimal library.
-    # Provides a number of the real-valued functions that are in the math
-    # module.
-    #∞what∞#
-    #∞test∞# run #∞test∞#
-    pass
-if 1:   # Imports
-    import decimal
-    import math
-    from pdb import set_trace as xx 
-if 1:   # Custom imports
-    from wrap import dedent
-    from kolor import C
-    if 0:
-        import debug
-        debug.SetDebugger()
-if 1:   # Global variables
-    ii = isinstance
-    __all__ = '''
-        acos acosh asin asinh atan atan2 atanh ceil copysign cos cosh
-        degrees e exp expm1 f2d fabs FindRoot floor fmod hypot isclose
-        IsDecimal isfinite isinf isnan log log10 log1p log2 modf pi pow
-        radians remainder sin sinh sqrt tan tanh tau trunc
-        inf ninf nan
-        '''.split()
-    Dec = decimal.Decimal
-    zero, one, two, three, four, nine, ten = [Dec(i) for i in (0, 1, 2, 3,
-        4, 9, 10)]
-    half = Dec("0.5")
-    inf, ninf, nan = Dec("inf"), Dec("-inf"), Dec("nan")
-    precision_increment = 4
-    class g: pass
-    g.e = C.lcyn
-    g.n = C.norm
-    __doc__ = dedent('''
-    Elementary functions for the python Decimal library.
-    
-    Function      Domain            Range
-    --------      ------            -----
-    acos        -1 to 1           0 to pi
-    asin        -1 to 1           -pi/2 to pi/2
-    atan        -oo to oo         -pi/2 to pi/2
-    atan2       Two arguments     -pi to pi
-    cos         Any real          -1 to 1
-    exp         Any real          (0, oo]
-    ln          Any real > 0      -oo to oo
-    log10       Any real > 0      -oo to oo
-    pi          --                --
-    pow         Two arguments     -oo to oo
-    sin         Any real          -1 to 1
-    sqrt        Any real > 0      Real > 0
-    tan         Any real          -oo to oo
-    
-    The calculation strategy of this module is to calculate pi, exp, sin,
-    and cos by power series; the code for these is taken from examples in
-    the Decimal documentation.  The remaining functions can be calculated
-    from these core functions using a root-finding function.
-    
-    This module has been tested with:
-    
-        python 2.6.5 with mpmath 0.12
-        python 3.2.2 with mpmath 0.17
-        Python 2.7.16 cygwin with mpmath 1.0.0
-        Python 3.7.4 cygwin with mpmath 1.1.0
-        Python 3.7.10 cygwin with mpmath 1.1.0
-    
-    mpmath (http://code.google.com/p/mpmath/) is not needed for normal
-    use; it is used to provide reference values for testing.
-    ''')
+
+if 1:  # Header
+    # Copyright, license
+        # These "trigger strings" can be managed with trigger.py
+        #∞copyright∞# Copyright (C) 2006, 2012 Don Peterson #∞copyright∞#
+        #∞contact∞# gmail.com@someonesdad1 #∞contact∞#
+        #∞license∞#
+        #   Licensed under the Open Software License version 3.0.
+        #   See http://opensource.org/licenses/OSL-3.0.
+        #∞license∞#
+        #∞what∞#
+        # <math> Elementary math functions for the python Decimal library.
+        # Provides a number of the real-valued functions that are in the math
+        # module.
+        #∞what∞#
+        #∞test∞# run #∞test∞#
+    # Imports
+        import decimal
+        import math
+    # Custom imports
+        from wrap import dedent
+        if 0:
+            import debug
+            debug.SetDebugger()
+    # Global variables
+        ii = isinstance
+        __all__ = '''
+            acos acosh asin asinh atan atan2 atanh ceil copysign cos cosh
+            degrees e exp expm1 f2d fabs FindRoot floor fmod hypot isclose
+            IsDecimal isfinite isinf isnan log log10 log1p log2 modf pi pow
+            radians remainder sin sinh sqrt tan tanh tau trunc
+            inf ninf nan Dec, CDec
+            '''.split()
+        Dec = decimal.Decimal
+        zero, one, two, three, four, nine, ten = [Dec(i) for i in (0, 1, 2, 3,
+            4, 9, 10)]
+        half = Dec("0.5")
+        inf, ninf, nan = Dec("inf"), Dec("-inf"), Dec("nan")
+        precision_increment = 4
+        __doc__ = dedent('''
+        Elementary functions for the python Decimal library.
+        
+        Function      Domain            Range
+        --------      ------            -----
+        acos        -1 to 1           0 to pi
+        asin        -1 to 1           -pi/2 to pi/2
+        atan        -oo to oo         -pi/2 to pi/2
+        atan2       Two arguments     -pi to pi
+        cos         Any real          -1 to 1
+        exp         Any real          (0, oo]
+        ln          Any real > 0      -oo to oo
+        log10       Any real > 0      -oo to oo
+        pi          --                --
+        pow         Two arguments     -oo to oo
+        sin         Any real          -1 to 1
+        sqrt        Any real > 0      Real > 0
+        tan         Any real          -oo to oo
+        
+        The calculation strategy of this module is to calculate pi, exp, sin,
+        and cos by power series; the code for these is taken from examples in
+        the Decimal documentation.  The remaining functions can be calculated
+        from these core functions using a root-finding function.
+        
+        This module has been tested with:
+        
+            python 2.6.5 with mpmath 0.12
+            python 3.2.2 with mpmath 0.17
+            Python 2.7.16 cygwin with mpmath 1.0.0
+            Python 3.7.4 cygwin with mpmath 1.1.0
+            Python 3.7.10 cygwin with mpmath 1.1.0
+        
+        mpmath (http://code.google.com/p/mpmath/) is not needed for normal
+        use; it is used to provide reference values for testing.
+        ''')
 if 1:   # Utility functions
     def IsDecimal(*x):
         for i, val in enumerate(x):
@@ -449,29 +488,30 @@ if 1:   # Miscellaneous
         else:
             return Dec(x)
     def FindRoot(x0, x2, f, maxit=50, show=False):
-        '''Returns a tuple (root, number_of_iterations, eps) where root is the
-        root of f(x) == 0.  The root must be bracketed by x0 and x2.  f is the
-        function to evaluate; it takes one Decimal argument and returns a
-        Decimal.  If your f(x) has more arguments, use functools.partial.  
-        If show is True, print out intermediate values.
-    
-        The iteration will terminate when two consecutive calculations differ
-        by eps (see below) or less.
-    
-        The routine will raise a ValueError exception if the number of
-        iterations is greater than maxit.
-    
+        '''Returns (root, n, eps)
+        root    Root of f(x) == 0 where x0 <= root <= x2
+        n       Number of iterations to converge
+        eps     Estimated precision of answer.  The iteration terminates if
+                two successive roots differ by eps or less.
+        f       Univariate function to evaluate. f's argument is a Decimal and
+                it must return a Decimal.  If your f(x) has more arguments,
+                use functools.partial.
+        maxit   Maximum number of iterations.  Raises a ValueError
+                exception if maxit is exceeded.
+        show    If True, print out intermediate values.
+ 
         Reference:  "All Problems Are Simple" by Jack Crenshaw, Embedded
         Systems Programming, May, 2002, pg 7-14.  Translated from Jack's C
-        code by myself on 20 May 2003.
+        code on 20 May 2003.
     
-        Inverse parabolic interpolation algorithm to find the roots.  Jack
-        states this routine will converge rapidly on most functions, typically
-        adding 4 digits to the solution on each iteration.  The routine works
-        by starting with x0, x2, and finding a third x1 by bisection.  The
-        ordinates are gotten, then a horizontally-opening parabola is fitted to
-        the points.  The parabola's root's abscissa is gotten, and the
-        iteration is repeated.
+        Algorithm:  Inverse parabolic interpolation algorithm to find the
+        roots.  Jack states this routine will converge rapidly on most
+        functions, typically adding 4 digits to the solution on each
+        iteration.  The routine works by starting with x0, x2, and finding
+        a third x1 by bisection.  The ordinates are gotten, then a
+        horizontally-opening parabola is fitted to the points.  The
+        parabola's root's abscissa is gotten, and the iteration is
+        repeated.
     
         Note:  Jack commented that this routine was written by some unknown
         genius at IBM and was in IBM's FORTRAN library code in the 1960's.
@@ -863,4 +903,12 @@ if __name__ == "__main__":
             x = -x
             t = trunc(x)
             Assert(t == -i)
+    def Test_FindRoot():
+        with decimal.localcontext() as ctx:
+            ctx.prec = 100
+            two = Dec(2)
+            def f(x):
+                return x**two - two
+            root, n, eps = FindRoot(Dec("1.4"), Dec("1.5"), f)
+            Assert(root**two - two <= eps)
     exit(run(globals())[0])
