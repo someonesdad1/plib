@@ -150,5 +150,26 @@ if __name__ == "__main__":
         v = [1, "2"]
         with raises(TypeError):
             Transpose(v, homogeneous=True)
-            
+    def TestInversion():
+        # Use lists so that they'll compare equal
+        import time
+        import math
+        from f import flt
+        from decimal import Decimal
+        # Vector
+        v = ["a", 1, 2, 3-3j, Decimal(math.pi)]
+        w = Transpose(v)
+        Assert(Transpose(w) == v)
+        # Matrix
+        start = time.time()
+        class g:
+            def __init__(self):
+                self.x = 1e6*flt(time.time() - start)
+            def __str__(self):
+                return f"g({self.x})"
+            def __repr__(self):
+                return repr(str(self))
+        m = [["a", 1, 2., g()], [1-1j, g(), g(), "glorp"]]
+        w = Transpose(m)
+        Assert(Transpose(w) == m)
     exit(run(globals(), halt=True)[0])
