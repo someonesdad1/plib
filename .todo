@@ -2,6 +2,15 @@ xmd Markdown notes
 
 Active
     
+    - transpose.py
+        - Add --test option and make it a command line too for text files.
+        - Default splitting of lines for fields is str.split()
+        - Options
+            - -c specifies the starting string
+            - --csv Parse as a CSV file
+            - -s Specify string to split on
+            - -r Specify regexp to split on
+
     - decimalmath.py
         - Add a complex Decimal number and modify the elementary functions
           to take either real or complex arguments.  The tests should
@@ -17,12 +26,12 @@ Active
 
 Want
 
-    - Need a transpose.py script
-        - This would read in a text file's strings as a matrix, remove
-          comment lines, and then print the transpose.  I often need this
-          to plot numerical data.  Or, the xfmpy/plot.py command could have
-          an option that would generate this transpose for you (also needed
-          for the regression script).
+    - get.py
+        - For ignore keyword, let it be either a string or a compiled
+          regular expression.  This lets you choose the options you want,
+          such as to ignore case.
+        - Since I use GetLines the most, include the explanation of what
+          thing means also.
 
     - Need to write a regression.py module that doesn't need numpy or
       scipy.  Base it on the stuff in /pylib/regression.py and test it with
