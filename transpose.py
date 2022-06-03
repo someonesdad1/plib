@@ -24,17 +24,16 @@ if 1:   # Header
     # Global variables
         ii = isinstance
         __all__ = ["Transpose"]
+        class g: pass
+        g.type = None
+        g.homogenous = False
 if 1:   # Core functionality
-    def Transpose(seq, homogeneous=False):
-        '''seq must be a nested list or tuple of objects.  The transpose of
-        the sequence seq is returned as a nested list.  If homogeneous is
-        True, then each element must be of the same type.
+    def Transpose(seq, homogenous=False):
+        '''seq must be 1) a list or tuple of objects (.e., a vector) or 2)
+        a nested list or nested tuple of objects (a rectangular matrix).
+        The transpose of the sequence seq is returned as a nested list.  If
+        homogenous is True, then each element must be of the same type.
         '''
-        def IsHomogeneous(x):
-            if not homogeneous:
-                return
-            if type(x) != Transpose.type:
-                raise TypeError(f"{x!r} is not of type {Transpose.type}")
         if not ii(seq, (list, tuple)):
             raise TypeError("seq must be a list or tuple")
         nrows, ncols = Size(seq)
@@ -44,11 +43,12 @@ if 1:   # Core functionality
         if nrows == 1 and ncols == 1:
             return list(seq)
         # Get the required type for testing homogeneity
-        if homogeneous:
+        g.homogenous = homogenous
+        if homogenous:
             item0 = seq[0]
             if ii(item0, (list, tuple)):
                 item0 = item0[0]
-            Transpose.type = type(item0)
+            g.type = type(item0)
         # Set up the return matrix
         out, row_vector, col_vector = [], 0, 0
         if nrows == 1 and ncols != 1:       # seq was row vector
@@ -69,17 +69,17 @@ if 1:   # Core functionality
         if col_vector:
             for i in range(col_vector):
                 j = seq[i][0] if IsIterable(seq[i]) else seq[i]
-                IsHomogeneous(j)
+                IsHomogenous(j)
                 out[i][0] = j
         elif row_vector:
             for i in range(row_vector):
                 j = seq[i][0] if IsIterable(seq[i]) else seq[i]
-                IsHomogeneous(j)
+                IsHomogenous(j)
                 out[i] = j
         else:
             for i in range(nrows):
                 for j in range(ncols):
-                    IsHomogeneous(seq[i][j])
+                    IsHomogenous(seq[i][j])
                     out[j][i] = seq[i][j]
         if 0:
             # Show the details
@@ -88,25 +88,28 @@ if 1:   # Core functionality
             print(f"  Size = ({nrows}, {ncols}])")
             print("  out sequence:")
             pp(out)
+        g.homogenous = False
         return out
-    def IsHomogeneous(m):
+    def IsRectangular(m):
         ''' Return True if each row has the same number of columns as
         determined by Len().
         '''
         rows = Len(m)
         columns = Len(m[0])
         return all(Len(row) == columns for row in m)
-    def Size(item):
-        'Return (rows, columns) for item'
-        rows = Len(item)
+    def IsHomogenous(x):
+        if not g.homogenous:
+            return
+        if type(x) != g.type:
+            raise TypeError(f"{x!r} is not of type {g.type}")
+    def Size(m):
+        'Return (rows, columns) for m'
+        rows = Len(m)
         if not rows:
             return (0, 0)
-        columns = Len(item[0])
-        if IsHomogeneous(item):
-            if columns:
-                return (rows, Len(item[0]))
-            else:
-                return (1, rows)    # It's a row vector
+        columns = Len(m[0])
+        if IsRectangular(m):
+            return (rows, columns) if columns else (1, rows)
         else:
             return (rows, 1)        # It's a column vector
     def Len(item):
@@ -117,12 +120,6 @@ if 1:   # Core functionality
 
 if __name__ == "__main__":
     from lwtest import run, raises, assert_equal, Assert
-    '''
-    Identity:  Transpose(Transpose(x)) = x
-    Test cases:
-        ["a", "b", "c"] --> [["a"], ["b"], ["c"]
-        [["a"], ["b"], ["c"] --> ["a", "b", "c"]
-    '''
     def TestEmpty():
         for i in ([], ()):
             Assert(Transpose(i) == [])
@@ -146,10 +143,10 @@ if __name__ == "__main__":
     def TestHomogeneity():
         v = [1, 2]
         expected = [[1], [2]]
-        Assert(Transpose(v, homogeneous=True) == expected)
+        Assert(Transpose(v, homogenous=True) == expected)
         v = [1, "2"]
         with raises(TypeError):
-            Transpose(v, homogeneous=True)
+            Transpose(v, homogenous=True)
     def TestInversion():
         # Use lists so that they'll compare equal
         import time
