@@ -24,7 +24,58 @@ Active
           the toolboxes and one for over the lathe; and maybe one for my
           office.
 
+    - wrap.py
+        - A very common need is to dedent help text.  Add a function 
+          printwrap(*s) that takes each string s, removes leading and
+          trailing whitespace, dedents the text, and prints it wrapped to 1
+          minus the current number of columns.  Embedded control lines can
+          be things like '.on', '.off', '.indent = n', etc.  The overall
+          state is remembered until '.reset' is seen or the keyword reset
+          is True.  'paragraph_sep' keyword defaults to '\n\n'.
 Want
+
+    - Sequence value comparisons
+        - An arbitrary sequence can be a sequence of sequences.  Since [1,
+          [2]] != (1, [2]) because one is a tuple and one is a list, it
+          would be nice to have a recursive function that would convert all
+          the sequences to lists so that the comparison would be a true
+          element-by-element comparison.  A deeply nested sequence of 1000
+          calls results in an exception, but this would be an unusual
+          sequence.  Use sys.getrecursionlimit() and
+          sys.setrecursionlimit() to set things as you wish.
+        - A similar function would let you determine the nesting depth of a
+          sequence.
+        - The following code shows the maximum recursion limit of 5881
+          found for my system with python 3.7.10 (any larger value results
+          in a segmentation fault):
+
+            import atexit
+            import sys
+            sys.setrecursionlimit(5881)
+            print("Recursion limit =", sys.getrecursionlimit())
+            count = 2  # Nonzero value makes the count match the recursion limit
+            def F():
+                global count
+                count += 1
+            def R():
+                F();R()
+            def P():
+                print("count =", count)
+            atexit.register(P)
+            R()
+
+    - lwtest.py
+        - In ToDoMessage, add a keyword offset that lets you designate the
+          line that needs the fix.  
+        - Consider a keyword for colorizing the message too to make it
+          easier to see.  I like ornl, magl, or purl for visible colors.
+
+    - asc.py
+        - Colorize some key items.  Use colors similar to char.
+        - Show hex and decimal in different colors.
+        - Fix the annoying display hiccup at 0x7f.
+
+    - Fix pl command (missing modules)
 
     - get.py
         - For ignore keyword, let it be either a string or a compiled
@@ -1034,30 +1085,30 @@ Other
 --------------------------------------------------------------------------------
 xmd Markdown
 
-Markdown is a useful concept, but I find all of the markdown syntaxes
-annoying and badly inconsistent (everyone writes their own syntax with
-relatively small changes from others').  Should I write my own syntax,
-falling prey to the same inconsistency desires?  My motivation would be tht
-I get to define my own syntax to do the tasks I do a lot.
+    Markdown is a useful concept, but I find all of the markdown syntaxes
+    annoying and badly inconsistent (everyone writes their own syntax with
+    relatively small changes from others').  Should I write my own syntax,
+    falling prey to the same inconsistency desires?  My motivation would be tht
+    I get to define my own syntax to do the tasks I do a lot.
 
-- Strategic
-    - What are fundamental use cases?
-    - What are output file types?
-    - What are needed formatting structures?
+    - Strategic
+        - What are fundamental use cases?
+        - What are output file types?
+        - What are needed formatting structures?
 
-- All markup will be in 'fenced' areas, meaning a beginning and ending
-  string identify the fence.  
-    - Example:  The strings "≪" and "≫" provide left and right fences.
-    - A fundamental rule is that these strings ALWAYS mean a fence and
-      escaping them with a backslash has no special meaning.
-        - This is convenient for processing, as all markup can be found by
-          searching for these characters.
-            - regexp is re.compile(r"(≪.*≫)", re.M)
-        - A simple FSM can be had by reading each character.  When you
-          encounter ≪, you're in interpret_markup mode and when you
-          encounter ≫, you're in regular_text mode.
-    - If you want to use these character strings verbatim in your text, you
-      must define an alias for them.
-- A fenced area starts with a keyword
-    - sub defines a substitution (it can call a python function if desired)
-    - '{' and '}' define python code blocks
+    - All markup will be in 'fenced' areas, meaning a beginning and ending
+    string identify the fence.  
+        - Example:  The strings "≪" and "≫" provide left and right fences.
+        - A fundamental rule is that these strings ALWAYS mean a fence and
+        escaping them with a backslash has no special meaning.
+            - This is convenient for processing, as all markup can be found by
+            searching for these characters.
+                - regexp is re.compile(r"(≪.*≫)", re.M)
+            - A simple FSM can be had by reading each character.  When you
+            encounter ≪, you're in interpret_markup mode and when you
+            encounter ≫, you're in regular_text mode.
+        - If you want to use these character strings verbatim in your text, you
+        must define an alias for them.
+    - A fenced area starts with a keyword
+        - sub defines a substitution (it can call a python function if desired)
+        - '{' and '}' define python code blocks
