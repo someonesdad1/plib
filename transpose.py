@@ -1,7 +1,4 @@
 '''
-- Need to write a test for IsRectangular() that includes strings and
-  objects in each row whose Len is zero.  I suspect it will break under
-  such conditions.
 - Write & test --csv option.  Needs to write transpose in CSV too.
  
 Generate the transpose of a nested list (matrix or vector) of objects
@@ -42,10 +39,10 @@ if 1:   # Core functionality
         if type(x) != g.type:
             raise TypeError(f"{x!r} is not of type {g.type}")
     def IsIterable(s):
-        '''Return True if s is an acceptable iterable.  Strings and dicts 
-        are iterables, but not acceptable here.
+        '''Return True if s is an acceptable iterable.  Strings, dicts, 
+        and ranges are iterables, but not acceptable here.
         '''
-        if ii(s, (dict, str)):
+        if ii(s, (dict, str, range)):
             return False
         try:
             iter(s)
@@ -171,16 +168,20 @@ if 0:
 if __name__ == "__main__":
     if 1:   # Test code
         def TestEmpty():
-            for i in ([], ()):
+            for i in ([], tuple()):
                 Assert(Transpose(i) == [])
+            Assert(Transpose([[]]) == [[]])
+            Assert(Transpose(((),)) == [()])
         def TestRowVector():
-            v = ["abc", 1]
-            expected = [["abc"], [1]]
-            Assert(Transpose(v) == expected)
             # One element
             for v in (["abc"], ("abc",), [44], [44.]):
                 Assert(Transpose(v) == list(v))
+            # Two elements
+            v = ["abc", 1]
+            expected = [["abc"], [1]]
+            Assert(Transpose(v) == expected)
         def TestColumnVector():
+            # One element
             v = [["abc"], [1]]
             expected = ["abc", 1]
             Assert(Transpose(v) == expected)
@@ -192,11 +193,12 @@ if __name__ == "__main__":
             Assert(Transpose(m) == expected)
             # Improper size
             raises(TypeError, Transpose, [[1, 2], 3])
-            # 
-            m = [[1, 2, 3, 4], [5, 6, 7, 8]]
-            expected = [[1, 5], [2, 6], [3, 7], [4, 8]]
+            # Common matrix with numbers
+            m = [[1, 2, 3, 4], [5, 6, 7., 8]]
+            expected = [[1, 5], [2, 6], [3, 7.], [4, 8]]
             Assert(Transpose(m) == expected)
-            m = ((1, 2, 3, 4), (5, 6, 7, 8))
+            # Works for tuples
+            m = tuple(tuple(i) for i in m)
             Assert(Transpose(m) == expected)
         def TestHomogeneity():
             v = [1, 2]
@@ -233,12 +235,9 @@ if __name__ == "__main__":
             ]
             Assert(inv(m))
         def TestSize():
-            for m in ([], (), range(0)):
+            for m in ([], tuple()):
                 Assert(Size(m) == (0, 0))
-            for m in (
-                [1], tuple([1]), range(1),
-                [[1]], tuple(tuple([1])), [range(1)],
-                    ):
+            for m in ([1], tuple([1]), [[1]], tuple(tuple([1])), [range(1)]):
                 Assert(Size(m) == (1, 1))
             Assert(not Size(""))
             # Must get an exception if array not rectangular
@@ -252,13 +251,11 @@ if __name__ == "__main__":
             II = IsIterable
             # Things that are not iterables
             class c: pass
-            for i in (None, {}, "", c()):
+            for i in (None, {}, "", c(), range(1)):
                 Assert(not II(i))
             # Things that are iterables
-            for i in (tuple(), [], range(1)):
+            for i in (tuple(), []):
                 Assert(II(i))
-        def TestIsRectangular():
-            raises(TypeError, Transpose, [[1, 2], 3])
         def RunSelfTests():
             exit(run(globals(), halt=True)[0])
     if 1:   # Script
