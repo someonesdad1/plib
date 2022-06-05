@@ -1,8 +1,7 @@
 Active
     
-    - pgm/bd.py
-        - Write basic functionality
-        - Use color
+    - get.py
+        - Add GetInput() routine for interactive scripts to get user input.
 
     - color.py
         - TRM needs a way to ensure all attribute access returns "" when
@@ -93,6 +92,10 @@ Active
 
 Want
     
+    - pgm/bd.py
+        - Write basic functionality
+        - Use color
+
     - pgm/xyz.py
         - This is still in /pylib
         - Should me brought forward and put on hu
