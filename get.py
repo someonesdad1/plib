@@ -300,10 +300,6 @@ if 1:   # Getting numbers
     
             vars        Dictionary to use as locals to evaluate expressions.
     
-        For programming ease, any errors in the keyword values will cause a
-        SyntaxError exception.  Other exceptions are probably caused by my
-        programming mistakes.
-    
         Note:  if you call
     
             GetNumber("", low=a, high=b)
@@ -540,7 +536,7 @@ if 1:   # Getting numbers
         The numbers are separated on each line by whitespace.  If row is
         True, then the vectors are row vectors.  Lines in string matching
         the regular expression with '^\s*#' are ignored.  If string is empty or
-        only whitespace, the [[]] is returned.  ValueError will be raised if a
+        only whitespace, then [[]] is returned.  ValueError will be raised if a
         row contains a different number of elements than the others.
     
         Example:  

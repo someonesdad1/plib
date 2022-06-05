@@ -1,42 +1,79 @@
 '''
-Interactive utility to calculate profit and markup
 
-c = cost of an item
-s = selling price of an item
-p = profit as a fraction of the selling price
-m = markup as a fraction of the cost
+Interactive utility to calculate profit and markup
+    - The basic use case is to estimate the order of magnitude of the
+      profitability of a project.
+
+Problem variables (number in [] is default)
+    c = cost = L + F
+        L = labor cost = H*h            [0]
+            H = $/hr of labor           [20]
+            h = hours of labor          [0]
+        F = cost of parts & supplies    [0]
+    s = selling price
+    p = profit as a fraction of s
+    m = markup as a fraction of c
+    u = multiplier = s/c
+
+Commands
+    - ?             Help
+    - ??            Detailed help
+    - q or quit     Quit, writing registers to disk
+    - QUIT          Force quit without rewriting to disk
+    - reset         Set to default state
+    - > 'name'      Save state to register 'name'
+    - < 'name'      Restore state to register name
+    - del name      Delete a variable
+    - del 'name'    Delete a register
+    - ls            Show listing of register names
+    - k             Toggle colorizing
+    - #             Enter editor for project's comments
+    = ! cmd         Execute a python command
+
+    At exit (but not if QUIT was used), the current state of the script is always saved in register
+    'LAST' and this state will be restored at the next invocation.
+
+Local variables
+
+    Any line input with '=' in it sets a variable.  Any variable that is
+    not a problem variable is considered a local variable.
+    
+Registers
+    
+    All registers are stored in an internal dictionary that is written to
+    disk at exit.  A lockfile prevents another process from writing to this
+    file if another process has it open.
 
 Equations
-    c = s*(1 - p)
+    c = s*(1 - p) = L + F
     s = c*(1 + m)
-    p = m/(1 + m) = 1 - 1/p
-    m = p/(1 - p)
-    μ = 1/(1 - p) = multiplier
-    m = p*μ
+    p = m/(1 + m) = 1 - 1/u
+    m = s/c = p/(1 - p)
+    u = 1/(1 - p) = multiplier
+    m = p*u
 
-
-Prompt for c, s, p, m.  Leave one of them blank.  Calculate results with:
-
-    csp:  m = p/(1 - p)
-    csm:  p = m/(1 + m)
-    cpm:  s = c*(1 + m)
-    spm:  c = s*(1 - p)
+The above variables are printed out when you start the program.  If they
+are not defined, the value is None.  Then you enter commands like 'c = 10'.
+When there are enough variables, all None variables are calculated and you
+can continue entering changes.  Expressions are allowed.
 
 This should also include the ability to let you enter '.' when
 you are prompted for cost.  You're then prompted for $/hr for labor (enter
 '.' to use a default value), number of hours labor, and parts cost.  This
 gives you a total cost and lets you put a cost on your time.
 
-An example of use is to estimate the actual profit on a project. 
 
-The output report can report in color, with the color designating the
-goodness of a result:  
-                p                 m
-    red      < 0.25           < 0.3
-    wht    0.25 - 0.5           0.3 - 1
-    yell   0.5 - 0.66          1 - 2
-    ornl   0.66 - 0.8          2 - 4
-    magl   0.8 - 0.83          4 - 5
+Desired interface
+    - Message prompts for 3 of c, s, p, m, or u
+        - Need to solve given csp csm csu cpm cpu cmu spm spu smu pmu
+    - Once got requisite set, it prints report in color
+    - Then prompts you to enter changes to the variables such as
+      'c *= .9'.  These are expressions that are evaluated with the
+      above local variables.  You can also enter any other variables
+      you want.  
+    - Entering 'ns = "name"' defines a namespace and this problem's
+      variables are saved under this name.  You can't overwrite an existing
+      namespace without using 'del "name"'.
 
 '''
 if 1:   # Header
@@ -56,15 +93,24 @@ if 1:   # Header
         import getopt
         import os
         from pathlib import Path as P
+        from pprint import pprint as pp
         import sys
-        from pdb import set_trace as xx
+        import readline         # History and command editing
+        import rlcompleter      # Command completion
     # Custom imports
         from wrap import wrap, dedent
         from color import Color, TRM as t
+        from f import *
     # Global variables
         ii = isinstance
         W = int(os.environ.get("COLUMNS", "80")) - 1
         L = int(os.environ.get("LINES", "50"))
+        # Colors
+        t.prompt = t("magl")
+        t.cmdline = t("cynl")
+        t.dbg = t("ornl")
+        t.err = t("redl")
+        prompt = f"{t.prompt}>> {t.n}"
 if 1:   # Utility
     def Error(*msg, status=1):
         print(*msg, file=sys.stderr)
@@ -80,8 +126,6 @@ if 1:   # Utility
     def ParseCommandLine(d):
         d["-a"] = False
         d["-d"] = 3         # Number of significant digits
-        if len(sys.argv) < 2:
-            Usage()
         try:
             opts, args = getopt.getopt(sys.argv[1:], "ad:h", 
                     ["help", "debug"])
@@ -108,9 +152,56 @@ if 1:   # Utility
                 import debug
                 debug.SetDebugger()
         return args
+    def Dbg(*p, **kw):
+        if g.dbg:
+            print(f"{t.dbg}", end="")
+            print(*p, **kw)
+            print(f"{t.n}", end="")
+    def Err(e):
+        t.print(f"{t.err}Error:  {e}")
 if 1:   # Core functionality
-    pass
+    def Variable(s):
+        name, value = [i.strip() for i in s.split("=", 1)]
+        try:
+            val = eval(value, globals(), g.vars)
+            g.vars[name] = val
+            Dbg(f"name = {name!r}, value = {val}")
+        except Exception as e:
+            Err(e)
+    def Command(s):
+        if s == "du":
+            print(g.vars)
+        elif s == "dbg":
+            g.dbg = not g.dbg
+        elif s.startswith("!"):
+            cmd = s[1:].strip()
+            try:
+                exec(cmd, globals(), g.vars)
+            except Exception as e:
+                Err(e)
+                
+if 1:   # Command loop
+    def CommandLoop():
+        quit = False
+        while not quit:
+            print(prompt, end="")
+            s = input().strip()
+            t.out()     # Turn off prompt colorizing
+            if s in "q quit".split():
+                quit = True
+            elif "=" in s:
+                Variable(s)
+            elif s:
+                Command(s)
+            if 1:
+                print(f"{t('cyn')}vars:")
+                pp(g.vars, compact=1)
+                print(f"{t.n}", end="")
 
 if __name__ == "__main__":
-    d = {}      # Options dictionary
+    class g: pass
+    g.dbg = True
+    g.vars = {}     # Dictionary for variables
+    d = {}          # Options dictionary
     args = ParseCommandLine(d)
+    CommandLoop()
