@@ -142,7 +142,11 @@ if 1:   # Core functionality
             t.thun = t("redl")
             t.wind = t("cynl")
             t.sun  = t("yell")
-            t.cloud = t("gry")
+            t.cloud = t("vio")
+            t.low = t("wht", "royd")
+            t.high = t("wht", "lipd")
+            t.low = t("sky")
+            t.high = t("lipl")
         SetColors()
         r = line.lower()
         rain   = True if "rain" in r or "shower" in r else False
@@ -151,10 +155,17 @@ if 1:   # Core functionality
         windy  = True if "wind" in r or "gust" in r else False
         sunny  = True if "sunny" in r else False
         cloudy = True if "cloudy" in r else False
+        # Get high and low temperatures
+        mo = re.search(r"high near (-?\d{1,3})", line, re.I)
+        high = mo.groups()[0] if mo else ""
+        mo = re.search(r"low around (-?\d{1,3})", line, re.I)
+        low = mo.groups()[0] if mo else ""
+        temp = f"{t.low}{low}{t.n}{t.high}{high}{t.n}"
         # Print title to 16 characters wide
         n = 16 - len(title)
         #assert(n >= 0)
         print(f"{t.title}{title:s}{t.n}", end=" "*n)
+        print(f"{temp}", end=" "*4)
         if thund:
             print(f"{t.thun}thunderstorm{t.n} ", end="")
         if snow:
