@@ -449,6 +449,10 @@ Want
         - print(dedent(f''' This ''')) chops off the 'T'.
 
     - f.py
+        - Add __call__(n) which returns str() but with the .n attribute
+          temporarily changed to n.  This would be a handy shortcut, as the
+          majority of the time str() is needed and it avoids using a with
+          statement.
         - Another use case is variable scientific data.  For example, in
           /plib/rgb/chromaticity, the nimeroff.pdf paper in table 3 has
           data given from 6 to 2 significant figures.  It would be handy

@@ -1,9 +1,4 @@
 Active
-    
-    - pgm/rope.py
-        - Add viewing /shop/projects/pictures/rope/brk_rel_nylon.png
-          when command line argument included
-        - Add Samson Stable Braid to the brk_rel_nylon.ods file
         
     - color.py
         - TRM needs a way to ensure all attribute access returns "" when
@@ -94,6 +89,15 @@ Active
 
 Want
     
+    - pgm/pfind.py
+        - Add -X option that ignores regex in directory portion
+
+    - tbl.py
+        - transpose.py is useful, but a better tool would be a module to
+          handle rectangular arrays of heterogeneous data.  The general use
+          case would be to handle tabular data of strings by using nested
+          lists.
+
     - pgm/bd.py
         - Write basic functionality
         - Use color

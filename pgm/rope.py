@@ -1,5 +1,5 @@
 '''
-Print table of strength of Samson double braid polyester rope
+Print rope data
 '''
 #∞test∞# ignore #∞test∞#
 if 1:   # Header
@@ -12,11 +12,11 @@ if 1:   # Header
         from get import GetFraction
         from color import TRM as t
     # Global variables
-        t.title = t("yel")
-        t.d25 = t("pnk")
-        t.d38 = t("grn")
-        t.d5 = t("yel")
-        t.d75 = t("mag")
+        t.title = t("trq")
+        t.d25 = t("purl")
+        t.d38 = t("yell")
+        t.d5 = t("magl")
+        t.d75 = t("ornl")
 if 1:   # Samson data
     def GetSamsonData(metric=False, use_fractions=False, all=False):
         '''Return a list of 
@@ -189,11 +189,9 @@ if 1:   # Generic data
                             c = t.d75
                         print(f"{c}{x:^{w}s}", end=" "*2)
                     print(f"{t.n if c else ''}")
-
 if __name__ == "__main__": 
     data = GetSamsonData(use_fractions=True)
     PrintSamsonTable(data)
     print()
     data = GetGenericData()
     PrintGenericTable(data)
-# vim: tw=83
