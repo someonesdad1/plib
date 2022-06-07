@@ -1,8 +1,10 @@
 Active
     
-    - get.py
-        - Add GetInput() routine for interactive scripts to get user input.
-
+    - pgm/rope.py
+        - Add viewing /shop/projects/pictures/rope/brk_rel_nylon.png
+          when command line argument included
+        - Add Samson Stable Braid to the brk_rel_nylon.ods file
+        
     - color.py
         - TRM needs a way to ensure all attribute access returns "" when
           .on is False.
