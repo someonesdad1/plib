@@ -12,7 +12,7 @@ if 1:   # Header
         from get import GetFraction
         from color import TRM as t
     # Global variables
-        t.title = t("yell")
+        t.title = t("yel")
         t.d25 = t("pnk")
         t.d38 = t("grn")
         t.d5 = t("yel")
