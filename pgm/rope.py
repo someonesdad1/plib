@@ -11,6 +11,12 @@ if 1:   # Header
         from f import flt
         from get import GetFraction
         from color import TRM as t
+    # Global variables
+        t.title = t("yell")
+        t.d25 = t("pnk")
+        t.d38 = t("grn")
+        t.d5 = t("yel")
+        t.d75 = t("mag")
 if 1:   # Samson data
     def GetSamsonData(metric=False, use_fractions=False, all=False):
         '''Return a list of 
@@ -82,7 +88,7 @@ if 1:   # Samson data
         lbf2N = 4.44822
         lb2kg = 0.453592
         data = GetSamsonData(use_fractions=True)
-        t.print(f"{t('yell')}Samson double-braided polyester rope")
+        t.print(f"{t.title}Samson double-braided polyester rope")
         print(dedent('''
                       Linear mass density
           Diameter      per 100 ft or m      Minimum breaking strength
@@ -98,7 +104,14 @@ if 1:   # Samson data
                 dm.n = 2
                 Dm = f"{dm}"
             c = ""  # Color for most-used
-            c = t("yell") if Di in ("3/8", "1/2", "3/4") else ""
+            if Di == "1/4":
+                c = t.d25
+            elif Di == "3/8":
+                c = t.d38
+            elif Di == "1/2":
+                c = t.d5
+            elif Di == "3/4":
+                c = t.d75
             print(f"{c}{Di:^5s} {Dm:>5s}", end=" "*4)
             # Linear mass density
             si = wt
@@ -139,29 +152,43 @@ if 1:   # Generic data
             data.append(item)
         return data
     def PrintGenericTable(data):
-        print(f"Generic rope data breaking strength in klb and diameter in inches")
+        t.print(f"{t.title}Generic rope data breaking strength")
+        print(f"  Strength in klb and diameter in inches")
         print(f"  Source:  U.S. Naval Institute and Wall Rope Works, NY")
         print(f"  PE = polyethylene, PP = polypropylene, PEst = polyester")
         print()
-        n, m, w = 8, 12, 6
-        for i in range(m):
-            item = data[i]
-            if not i:
-                # Header row
-                for j in range(n):
-                    k = 0 if j == n - 1 else 2
-                    print(f"{item[j]:^{w}s}", end=" "*k)
-                print()
-                for j in range(n):
-                    k = 0 if j == n - 1 else 2
-                    print(f"{'-'*w:^{w}s}", end=" "*k)
-                print()
-            else:
-                out = [FormatFraction(item[0])]
-                out += [str(i) for i in item[1:]]
-                for i, x in enumerate(out):
-                    print(f"{x:^{w}s}", end=" "*2)
-                print()
+        x = flt(0)
+        with x:
+            x.n = 2
+            n, m, w = 8, 12, 6
+            for i in range(m):
+                item = data[i]
+                if not i:
+                    # Header row
+                    for j in range(n):
+                        k = 0 if j == n - 1 else 2
+                        print(f"{item[j]:^{w}s}", end=" "*k)
+                    print()
+                    for j in range(n):
+                        k = 0 if j == n - 1 else 2
+                        print(f"{'-'*w:^{w}s}", end=" "*k)
+                    print()
+                else:
+                    out = [FormatFraction(item[0])]
+                    Di = out[0]
+                    out += [str(i) for i in item[1:]]
+                    for i, x in enumerate(out):
+                        c = ""  # Color for most-used
+                        if Di == "1/4":
+                            c = t.d25
+                        elif Di == "3/8":
+                            c = t.d38
+                        elif Di == "1/2":
+                            c = t.d5
+                        elif Di == "3/4":
+                            c = t.d75
+                        print(f"{c}{x:^{w}s}", end=" "*2)
+                    print(f"{t.n if c else ''}")
 
 if __name__ == "__main__": 
     data = GetSamsonData(use_fractions=True)
