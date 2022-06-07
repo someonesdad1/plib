@@ -2,15 +2,15 @@
 Print table of strength of Samson double braid polyester rope
 '''
 #∞test∞# ignore #∞test∞#
-if 1:   # Imports
-    import sys
-    from fractions import Fraction
-    from pdb import set_trace as xx 
-if 1:   # Custom imports
-    from wrap import dedent
-    from f import flt
-    from fraction import FormatFraction
-    from get import GetFraction
+if 1:   # Header
+    # Standard imports
+        import sys
+        from fractions import Fraction
+    # Custom imports
+        from wrap import dedent
+        from f import flt
+        from get import GetFraction
+        from color import TRM as t
 def GetData(metric=False, use_fractions=False, all=False):
     '''Return a list of 
     [
@@ -50,9 +50,9 @@ def GetData(metric=False, use_fractions=False, all=False):
     if not all:
         n = 10
         dia_in = dia_in[:n]
-        wt_100_ft_lb = wt_100_ft_lb[:n]
-        strength_avg_klb = strength_avg_klb[:n]
-        strength_min_klb = strength_min_klb[:n]
+        wt_100_ft_lb = [flt(i) for i in wt_100_ft_lb[:n]]
+        strength_avg_klb = [flt(i) for i in strength_avg_klb[:n]]
+        strength_min_klb = [flt(i) for i in strength_min_klb[:n]]
     data = list(zip(dia_in, wt_100_ft_lb, strength_avg_klb, strength_min_klb))
     # Convert first term to a fraction
     for i, item in enumerate(data):
@@ -77,18 +77,40 @@ def GetData(metric=False, use_fractions=False, all=False):
             data[i][2] = flt(round(float(data[i][2])*4.44822, 2))
             data[i][3] = flt(round(float(data[i][3])*4.44822, 2))
     return data
-if __name__ == "__main__": 
-    data = GetData(use_fractions=True, all=len(sys.argv) > 1)
-    print("Data on uncoated Samson double-braided polyester rope")
-    if len(sys.argv) == 1:
-        print("  Include a command line argument to get longer table")
-    print()
+def PrintTable(data):
+    lbf2N = 4.44822
+    lb2kg = 0.453592
+    data = GetData(use_fractions=True)
+    t.print(f"{t('yell')}Samson double-braided polyester rope")
     print(dedent('''
-                    Weight per      Average breaking    Minimum breaking
-    Dia, inches     100 ft, lb       strength, klbf      strength, klbf
-    -----------     ----------      ----------------    ----------------'''))
+                  Linear mass density
+      Diameter      per 100 ft or m      Minimum breaking strength
+    inch     mm       lb      kg            klbf   kN    kgf
+    -----------     -----   -----           ----  ----  -----'''))
     for line in data:
         dia, wt, avg, min = line
-        d = FormatFraction(dia)
-        print(f"{d:^11s}      {wt!s:^10s}      {avg!s:^16s}         "
-              f"{min!s:18s}")
+        di = flt(dia)    # Diameter in inches
+        # Diameter
+        Di = f"{dia.numerator}/{dia.denominator}"
+        dm = di*25.4
+        with dm:
+            dm.n = 2
+            Dm = f"{dm}"
+        c = ""  # Color for most-used
+        c = t("yell") if Di in ("3/8", "1/2", "3/4") else ""
+        print(f"{c}{Di:^5s} {Dm:>5s}", end=" "*4)
+        # Linear mass density
+        si = wt
+        sm = wt*lb2kg
+        w = 6
+        print(f" {si!s:^{w}s}  {sm!s:^{w}s}", end=" "*10)
+        # Minimum breaking strength
+        bi = min
+        bm = bi*lbf2N
+        bk = bi*lb2kg
+        w = 5
+        print(f"{bi!s:^{w}s} {bm!s:^{w}s} {bk!s:^{w}s}{t.n if c else ''}")
+if __name__ == "__main__": 
+    data = GetData(use_fractions=True)
+    PrintTable(data)
+# vim: tw=83

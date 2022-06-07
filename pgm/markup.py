@@ -147,6 +147,7 @@ if 1:   # Command loop
             sol.m = f"{100*m}%" if m else notyet
             sol.p = f"{100*p}%" if p else notyet
             sol.u = str(u) if u else notyet
+        def e0(): return (s - c)/s
         def e1(): return c*(1 + m)
         def e2(): return s*(1 - p)
         def e3(): return p/(1 - p)
@@ -158,11 +159,13 @@ if 1:   # Command loop
             NotYet()
         elif g.last_changed == "c":
             if s:
-                pass
+                p, m, u = e6(), e3(), e5()
             elif p:
-                m, s = e3(), e1()
+                m, s, u = e3(), e1(), e5()
             elif m:
+                s, p, u = e1(), e6(), e5()
             elif u:
+                s, p, m = 
             else:
                 NotYet()
         elif g.last_changed == "s":
