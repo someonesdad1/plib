@@ -124,6 +124,9 @@ if 1:   # Classes
             self._p = None
             self._m = None
             self._u = None
+            self._last_changed = None
+            self._inf = float('inf')
+            self._nan = float('nan')
         def getval(self, value):
             '''Return the indicated value.  If it is nan, return nan.  If
             it is float('inf'), return this.  Otherwise, convert it to a 
@@ -131,42 +134,142 @@ if 1:   # Classes
             '''
             if isnan(value):
                 return float(nan)
-            elif value == float('inf'):
-                return float('inf')
-            elif value == float('-inf'):
-                return float('-inf')
+            elif value == self._inf:
+                return self._inf
+            elif value == -self._inf:
+                return -self._inf
             else:
                 return flt(value)
+        def update(self):
+            "Calculate the current model's values"
+            if (self._c is not None and self._s is not None) and self._.last_changed is None:
+                found_solution = True
+                self._p = self.e0(); self._m = self.e3(); self._u = self.e5()    # Case 1
+            elif (not self._c and not self._s) or self._last_changed is None:
+                found_solution = False
+            elif self._last_changed == "c":
+                if self._s:     # Case 1
+                    self._p = self.e0()
+                    self._m = self.e3()
+                    self._u = self.e5()
+                elif self._m:   # Case 2
+                    self._s = self.e1()
+                    self._p = self.e4()
+                    self._u = self.e5()
+                elif self._p:   # Case 3
+                    self._m = self.e3()
+                    self._s = self.e1()
+                    self._u = self.e5()
+                elif self._u:   # Case 4
+                    self._s = self.e6()
+                    self._p = self.e0()
+                    self._m = self.e3()
+                else:
+                    found_solution = False
+            elif self._last_changed == "s":
+                if self._c:     # Case 1
+                    self._p = self.e0()
+                    self._m = self.e3()
+                    self._u = self.e5()
+                elif self._m:   # Case 5
+                    self._p = self.e4()
+                    self._c = self.e2()
+                    self._u = self.e6()
+                elif self._p:   # Case 6
+                    self._c = self.e2()
+                    self._m = self.e3()
+                    self._u = self.e6()
+                elif self._u:   # Case 7
+                    self._c = self.e7()
+                    self._p = self.e0()
+                    self._m = self.e3()
+                else:
+                    found_solution = False
+            elif self._last_changed == "m":
+                # Assume c is fixed
+                self._s = self.e1()
+                self._p = self.e4()
+                self._u = self.e5()
+            elif self._last_changed == "p":
+                # Assume s is fixed
+                self._m = self.e3()
+                self._s = self.e1()
+                self._u = self.e5()
+            elif self._last_changed == "u":
+                # Assume c is fixed
+                self._s = self.e6()
+                self._p = self.e0()
+                self._m = self.e3()
+            else:
+                raise Exception(f"{self._last_changed!r} is bad value for self._last_changed")
+        if 1:   # Functions for solution
+            def e0(self): 
+                try:
+                    return flt((self._s - self._c)/self._s)
+                except ZeroDivisionError:
+                    return self._inf
+            def e1(self):
+                return flt(self._c*(1 + self._m))
+            def e2(self):
+                return flt(self._s*(1 - self._p))
+            def e3(self):
+                try:
+                    return flt(self._p/(1 - self._p))
+                except ZeroDivisionError:
+                    return self._inf
+            def e4(self): 
+                try:
+                    return flt(self._m/(1 + self._m))
+                except ZeroDivisionError:
+                    return self._inf
+            def e5(self):
+                try:
+                    return flt(self._s/self._c)
+                except ZeroDivisionError:
+                    return self._inf
+            def e6(self):
+                return flt(self._u*self._c)
+            def e7(self):
+                try:
+                    return flt(self._s/self._u)
+                except ZeroDivisionError:
+                    return self._inf
+        # Properties
         @property
         def c(self):
             return self._c
         @c.setter
         def c(self, value):
             self._c = self.getval(value)
+            self._last_changed = "c"
         @property
         def s(self):
             return self._s
         @s.setter
         def s(self, value):
             self._s = self.getval(value)
+            self._last_changed = "s"
         @property
         def p(self):
             return self._p
         @p.setter
         def p(self, value):
             self._p = self.getval(value)
+            self._last_changed = "p"
         @property
         def m(self):
             return self._m
         @m.setter
         def m(self, value):
             self._m = self.getval(value)
+            self._last_changed = "m"
         @property
         def u(self):
             return self._u
         @u.setter
         def u(self, value):
             self._u = self.getval(value)
+            self._last_changed = "u"
 
     m = Model()
     exit()
@@ -483,3 +586,4 @@ if __name__ == "__main__":
         c = 2500
         s = 6500
     CommandLoop()
+# vim: tw=100
