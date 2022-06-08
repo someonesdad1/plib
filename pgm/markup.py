@@ -6,12 +6,15 @@ To Do
 
 Interactive utility to calculate the profit of a project
 
-    Problem variables
-        c = cost 
-        s = selling price
-        p = profit as a fraction of s
-        m = markup as a fraction of c
-        u = multiplier = s/c
+    Basic operation
+        - Program starts with all variables set to 0
+        - You enter cost by a command such as 'c3'.  You can use
+          expressions too, such as 'c 33*1.25'.
+        - You can define local variables with 'x = expr'.  This works for
+          any x that's not one of the basic names of 'c s p m u'.
+        - As soon as the problem can be solved, you'll see the solution.
+        - Enter a changed variable to see a new solution.
+        - The state is remembered on exit.
 
     Commands
         x expr      Enter a variable where x is a variable name
@@ -21,34 +24,37 @@ Interactive utility to calculate the profit of a project
         ! expr      Evaluate expression
         clr         Reset to starting state
  
-    Equations
-        e1      s = c*(1 + m)
-        e2      c = s*(1 - p)
-        e3      m = p/(1 - p)
-        e4      p = m/(1 + m)
-        e5      u = s/c
- 
-    Basic operation
-        - Program starts with all variables set to None
-        - As soon as you define one of the 5 variables, the others are
-          shown in terms of that variable.  You'll get a numerical solution
-          when either c or s are defined numerically.  Otherwise, you'll
-          get two lines, one in terms of c and one in terms of s.
+    Problem variables
+        c = cost 
+        s = selling price
+        p = profit as a fraction of s
+        m = markup as a fraction of c
+        u = multiplier = s/c
 
+    Equations
+        e0:  p = (s - c)/s
+        e1:  s = c*(1 + m)
+        e2:  c = s*(1 - p)
+        e3:  m = p/(1 - p)
+        e4:  p = m/(1 + m)
+        e5:  u = s/c
+        e6:  s = u*c
+        e7:  c = s/u
+ 
     Solutions
         To solve the problem, you must have either c or s and one of any of
         the other variables.
 
-        Have        Solution
-        ----        --------
-        c, s        m from e3, p from e4
-        c, m        s from e1
-        c, p        m from e3, s from e1
-        c, u        s from e5
-        s, m        p from e4, c from e2
-        s, p        m from e3, c from e2
-        s, u        c from e5
- 
+        Case    Have   Need       Solution
+        ----    ----   ----       --------
+        1     c s    p m u      p = e0, m = e3, u = e5
+        2     c m    s p u      s = e1, p = e4, u = e5
+        3     c p    m s u      m = e3, s = e1, u = e5
+        4     c u    s p m      s = e6, p = e0, m = e3
+
+        5     s m    p c u      p = e4, c = e2, u = e6
+        6     s p    c m u      c = e2, m = e3, u = e6
+        7     s u    c p m      c = e7, p = e0, m = e3
 '''
 if 1:   # Header
     # Copyright, license
@@ -140,6 +146,7 @@ if 1:   # Utility
         t.print(f"{t.err}Error:  {e}")
 if 1:   # Command loop
     def PrintSolution():
+        global c, s, p, m, u
         notyet = "-"
         def NotYet():
             sol.c = str(c) if c else notyet
@@ -152,26 +159,43 @@ if 1:   # Command loop
         def e2(): return s*(1 - p)
         def e3(): return p/(1 - p)
         def e4(): return m/(1 + m)
-        def e5(): return s/c
-            
+        def e5(): return u/c
+        def e6(): return u*c
+        def e7(): return s/u
         # Get the solution strings
         if (not c and not s) or g.last_changed is None:
             NotYet()
         elif g.last_changed == "c":
             if s:
-                p, m, u = e6(), e3(), e5()
+                p, m, u = e0(), e3(), e5()
+            elif m:
+                s, p, u = e1(), e4(), e5()
             elif p:
                 m, s, u = e3(), e1(), e5()
-            elif m:
-                s, p, u = e1(), e6(), e5()
             elif u:
-                s, p, m = 
+                s, p, m = e6(), e0(), e3()
             else:
                 NotYet()
         elif g.last_changed == "s":
+            if c:
+                p, m, u = e0(), e3(), e5()
+            elif m:
+                p, c, u = e4(), e2(), e6()
+            elif p:
+                c, m, u = e2(), e3(), e6()
+            elif u:
+                c, p, m = e7(), e0(), e3()
+            else:
+                NotYet()
         elif g.last_changed == "m":
+            # Assume c is fixed
+            s, p, u = e1(), e4(), e5()
         elif g.last_changed == "p":
+            # Assume s is fixed
+            m, s, u = e3(), e1(), e5()
         elif g.last_changed == "u":
+            # Assume c is fixed
+            s, p, m = e6(), e0(), e3()
         else:
             raise Exception(f"{g.last_changed!r} is bad value for g.last_changed")
 
