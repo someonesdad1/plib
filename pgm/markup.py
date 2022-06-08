@@ -1,9 +1,14 @@
 '''
 Todo
-    - Allow the variables to have 1, 2, or 3 values entered, which lets you
-      print a table.  Very handy to see the effects of a change.
-        - 2 numbers:  start and end with default increment of 1
-        - 3 numbers:  start and end with increment 
+    - Try changing to an MVC architecture; it may make more sense.
+    - Allow the problem variables to have 1, 2, or 3 values, which lets you
+      print a table.
+    - Goals:  add -p and -m options to set profit goals.  When the goal is
+      reached, the associated variable's column prints in green.
+    - Colorizing
+        - Show ∞ and errors in red
+        - Green u or p when desired goal is reached
+        - If no u goal specified, it will print in purl when >= 2
 
 Interactive utility to calculate the profit of a project
  
@@ -15,14 +20,19 @@ Interactive utility to calculate the profit of a project
         u = multiplier = s/c
 
     Equations
-        e0:  p = (s - c)/s
-        e1:  s = c*(1 + m)
-        e2:  c = s*(1 - p)
-        e3:  m = p/(1 - p)
-        e4:  p = m/(1 + m)
-        e5:  u = s/c
-        e6:  s = u*c
-        e7:  c = s/u
+        e0:  p(s, c) = (s - c)/s
+        e1:  s(c, m) = c*(1 + m)
+        e2:  c(s, p) = s*(1 - p)
+        e3:  m(p)    = p/(1 - p)
+        e4:  p(m)    = m/(1 + m)
+        e5:  u(s, c) = s/c
+        e6:  s(c, u) = u*c
+        e7:  c(s, u) = s/u
+
+        Other equations:
+            u = 1/(1 - p) = 1 + m
+            p = 1 - 1/u
+            m = u - 1
  
     Solutions
         To solve the problem, you must have either c or s and one of any of
@@ -58,7 +68,6 @@ if 1:   # Header
         from pprint import pprint as pp
         import sys
         import readline         # History and command editing
-        import rlcompleter      # Command completion
     # Custom imports
         from wrap import wrap, dedent
         from color import Color, TRM as t
@@ -74,13 +83,105 @@ if 1:   # Header
         g.dbg = False
         g.w = int(os.environ.get("COLUMNS", "80")) - 1
         g.last_changed = None
-        prompt = ">> "
+        prompt = "mkup> "
         # Problem's variables
         c, s, p, m, u = [None]*5
+        names = "c s p m u".split()
         # User's local variables
         vars = {}
-        # Hold solution strings
-        class sol: pass
+        # Colors
+        t.err = t("redl")
+if 1:   # Classes
+    '''
+    MVC Thoughts
+
+    Model
+        - Attributes are c, s, p, m, u.  Values returned are None, nan, ∞, or a
+        calculated flt value.
+        - When you enter c or s, the absolute value is always taken.
+        - set(name, value) for locals
+
+    View
+        - __call__(c, s, p, m, u, w=None) returns a suitable formatted string.  w is
+        the desired width of the field.  When w is None, then the basic
+        string with no padding is returned.  Since the returned strings can
+        contain escape sequences, using Len() on them is necessary.
+
+    Controller
+        - Has a model and view
+        - Gets user input in command loop, sends data to model, then prints
+        results.
+
+    '''
+    class Model:
+        '''Contains the financial model's code.
+        '''
+        def __init__(self):
+            self.reset()
+        def reset(self):
+            self._c = None
+            self._s = None
+            self._p = None
+            self._m = None
+            self._u = None
+        def getval(self, value):
+            '''Return the indicated value.  If it is nan, return nan.  If
+            it is float('inf'), return this.  Otherwise, convert it to a 
+            flt instance.
+            '''
+            if isnan(value):
+                return float(nan)
+            elif value == float('inf'):
+                return float('inf')
+            elif value == float('-inf'):
+                return float('-inf')
+            else:
+                return flt(value)
+        @property
+        def c(self):
+            return self._c
+        @c.setter
+        def c(self, value):
+            self._c = self.getval(value)
+        @property
+        def s(self):
+            return self._s
+        @s.setter
+        def s(self, value):
+            self._s = self.getval(value)
+        @property
+        def p(self):
+            return self._p
+        @p.setter
+        def p(self, value):
+            self._p = self.getval(value)
+        @property
+        def m(self):
+            return self._m
+        @m.setter
+        def m(self, value):
+            self._m = self.getval(value)
+        @property
+        def u(self):
+            return self._u
+        @u.setter
+        def u(self, value):
+            self._u = self.getval(value)
+
+    m = Model()
+    exit()
+
+
+    class View:
+        '''Determines how the model's information is to be displayed.
+        '''
+        def __init__(self):
+            pass
+    class Controller:
+        '''Has a model and view instance.
+        '''
+        def __init__(self):
+            pass
 if 1:   # Utility
     def Error(*msg, status=1):
         print(*msg, file=sys.stderr)
@@ -226,7 +327,7 @@ if 1:   # Command loop
             M = ToStr(m, pct=True)
             U = ToStr(u)
             # Construct each column of the table
-            out = [["S", S], ["C", C], ["P%", P], ["M%", M], ["U", U]]
+            out = [["S", S], ["C", C], ["P,%", P], ["M,%", M], ["U", U]]
             # Format each column width to the width of the widest member
             # and with n spaces on either side
             n = 1
@@ -235,10 +336,17 @@ if 1:   # Command loop
                 out[i] = [f"{' '*n}{j:^{cw}s}{' '*n}" for j in item]
             for i in Transpose(out):
                 print(''.join(i))
+    def PrintLocals(vars):
+        if not vars:
+            return
+        w = max(len(i) for i in vars)
+        print("Local variables:")
+        for i in vars:
+            print(f"  {i:{w}s} = {vars[i]}")
     def Variable(name, value):
         global c, s, m, p, u
-        class Oops(Exception): pass
-        try:
+        if name in "c s m p u".split():
+            g.last_changed = name
             if name == "c":
                 c = flt(eval(value, globals(), vars))
                 if c < 0:
@@ -255,18 +363,16 @@ if 1:   # Command loop
             elif name == "p":
                 p = flt(eval(value, globals(), vars))
                 p /= 100    # Convert from % to fraction
-            elif name == "u":
+            else:
                 u = flt(eval(value, globals(), vars))
                 if u < 0:
                     print("Absolute value for multiplier was used")
                     u = abs(u)
-            else:
-                raise Oops("Programming bug")
-        except Oops:
-            raise
-        except Exception as e:
-            print(f"{e}")
-        g.last_changed = name
+        else:
+            try:
+                vars[name] = eval(value, globals(), vars)
+            except Exception as e:
+                Err(e)
     def Expression(cmd):
         try:
             print(exec(cmd, globals(), vars))
@@ -293,8 +399,8 @@ if 1:   # Command loop
                 c1
                 s2
             You'll get the result
-             S  C  P%  M%   U
-             2  1  50  100  2
+             S  C  P %  M %   U
+             2  1  50   100  2
         The default number of significant figures shown is {sf}.  This means your
         answers will be to about {q}.
         '''))
@@ -307,7 +413,7 @@ if 1:   # Command loop
         ..          Show defined variables
         : n         Set number of significant figures to n
         ! expr      Evaluate expression
-        clr         Reset to starting state
+        /           Reset to starting state
         ?           Commands
         ??          Help
         '''))
@@ -318,13 +424,14 @@ if 1:   # Command loop
         'Return True if results should be printed'
         if x == ".":        # Show results again
             return True
+        elif x == "..":     # Show defined variables
+            PrintLocals(vars)
         elif x == "?":      # Help
             Help()
         elif x == "??":     # More detailed help
             DetailedHelp()
-        elif x == "..":     # Show defined variables
-            if vars:
-                pp(vars)
+        elif x == "/":      # Reset problem variables
+            Reset()
         elif x == "dbg":    # Toggle verbose mode
             g.dbg = not g.dbg
             print(f"Verbose turned {'on' if g.dbg else 'off'}")
@@ -338,9 +445,9 @@ if 1:   # Command loop
             try:
                 n = int(x[1:])
                 flt(0).n = min(15, max(1, n))
+                return True
             except Exception:
                 print("You must enter an integer between 1 and 15")
-            return True
         return False
     def CommandLoop():
         while True:
@@ -351,7 +458,14 @@ if 1:   # Command loop
                 remainder = s[1:] if len(s) > 1 else ""
                 if first_character == "q":
                     break
-                elif first_character in "cspmu":
+                elif "=" in s:
+                    # Local variable assignment
+                    name, value = s.split("=", 1)
+                    if name in names:
+                        print("Cannot assign to primary variables")
+                    else:
+                        Variable(name, value)
+                elif first_character in "cspmu" or "=" in s:
                     if not remainder:
                         print("Must include a value")
                         continue
