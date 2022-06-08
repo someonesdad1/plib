@@ -1,5 +1,15 @@
 Active
         
+    - transpose.py (also see tbl.py below)
+        - This needs to be documented as a tool to help you format tabular
+          data.  You start with the columns of your table as rows of data.
+          Then format each row item to the same width.  Print out the
+          transpose.  
+        - This is such a general tool it should be called PrintTable().
+            - It should have a keyword to define a function to use to
+              calculate the string length (by default, use dpstr.Len()
+              to ignore ANSI escape stuff).
+
     - color.py
         - TRM needs a way to ensure all attribute access returns "" when
           .on is False.

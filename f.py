@@ -1,5 +1,6 @@
 '''
     BUGS
+        - flt('inf') needs to work
         - v=flt("15 mi/hr"); v.to("mi/minute") fails
         - _sci() and other stuff need to handle inf.  flt('inf') should
           work.
