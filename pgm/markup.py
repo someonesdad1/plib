@@ -141,7 +141,11 @@ if 1:   # Classes
     class Model:
         "Financial model's code"
         def __init__(self):
+            x = flt(0)
+            x.n = 3
+            x.rtz = x.rtdp = True
             self.reset()
+            self.vars = {}
         def reset(self):
             self._c = None
             self._s = None
@@ -316,13 +320,14 @@ if 1:   # Classes
             M = self.ToStr(m, pct=True)
             U = self.ToStr(u)
             # Get the output line
-            out = (C, S, P, M, U))
+            out = [C, S, P, M, U]
             if not width:
                 # Column width is the width of the widest member
                 w = max(Len(i) for i in out)
             sp = " "*n
             for i, item in enumerate(out):
                 out[i] = f"{sp}{item:^{w}s}{sp}"
+            breakpoint() #xx
             return ''.join(out)
         def header(self, width):
             'Return the table header'
@@ -341,15 +346,14 @@ if 1:   # Classes
             else:
                 return "-"
     class Controller:
-        '''Has a model and view instance.
-        '''
+        'Has a model and view instance'
         def __init__(self):
             self.model = Model()
             self.view = View(self.model)
             self.Loop()
         def Loop(self):
             while True:
-                show_results = False
+                show = False
                 s = input(prompt).strip()
                 if s:
                     first_character = s[0]
@@ -367,41 +371,54 @@ if 1:   # Classes
                         if not remainder:
                             print("Must include a value")
                             continue
-                        self.Variable(first_character, remainder)
-                        show_results = True
+                        sequence = self.Variable(first_character, remainder)
+                        if sequence:
+                            # Output a sequence of the lines to make a table
+                            breakpoint() #xx 
+                        show = True
                     else:
-                        show_results = self.Command(s)
-                    if show_results:
-                        self.view.PrintSolution()
+                        show = self.Command(s)
+                    if show:
+                        breakpoint() #xx
+                        print(self.view())
         def Variable(self, name, value):
+            '''name will be one of the primary variables.  value is a
+            string that can be one two three expressions separated by
+            whitespace.  With one expression, evaluate the variable and
+            return None.  With two or three, return a sequence of other 
+            values to evaluate at; this lets the user get table.  With
+            2 expressions, the interval is 1.  With three, the numbers
+            are start, stop, and step.  The last value of stop is included,
+            unlike range().
+            '''
             mdl = self.model
             vars = mdl.vars
             if name in "c s m p u".split():
                 g.last_changed = name
                 if name == "c":
-                    c = flt(eval(value, globals(), vars))
-                    if c < 0:
+                    mdl.c = flt(eval(value, globals(), vars))
+                    if mdl.c < 0:
                         print("Absolute value for cost was used")
-                        c = abs(c)
+                        mdl.c = abs(mdl.c)
                 elif name == "s":
-                    s = flt(eval(value, globals(), vars))
-                    if s < 0:
+                    mdl.s = flt(eval(value, globals(), vars))
+                    if mdl.s < 0:
                         print("Absolute value for selling price was used")
-                        s = abs(s)
+                        mdl.s = abs(mdl.s)
                 elif name == "m":
-                    m = flt(eval(value, globals(), vars))
-                    m /= 100    # Convert from % to fraction
+                    mdl.m = flt(eval(value, globals(), vars))
+                    mdl.m /= 100    # Convert from % to fraction
                 elif name == "p":
-                    p = flt(eval(value, globals(), vars))
-                    p /= 100    # Convert from % to fraction
+                    mdl.p = flt(eval(value, globals(), vars))
+                    mdl.p /= 100    # Convert from % to fraction
                 else:
-                    u = flt(eval(value, globals(), vars))
-                    if u < 0:
+                    mdl.u = flt(eval(value, globals(), vars))
+                    if mdl.u < 0:
                         print("Absolute value for multiplier was used")
-                        u = abs(u)
+                        mdl.u = abs(mdl.u)
             else:
                 try:
-                    vars[name] = eval(value, globals(), vars)
+                    mdl.vars[name] = eval(value, globals(), vars)
                 except Exception as e:
                     self.view.Err(e)
         def Command(self, x):
@@ -489,7 +506,6 @@ if 1:   # Classes
             self.model.reset()
 
     a = Controller()
-    breakpoint() #xx 
     exit()
 if 1:   # Command loop
     def ToStr(val, pct=False):
