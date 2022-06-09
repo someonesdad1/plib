@@ -1,15 +1,12 @@
 '''
 Todo
-    - Try changing to an MVC architecture; it may make more sense.
-    - Allow the problem variables to have 1, 2, or 3 values, which lets you
-      print a table.
-    - Goals:  add -p and -m options to set profit goals.  When the goal is
-      reached, the associated variable's column prints in green.
+    - g.last_changed should be in Model instance
+    - Regular prints should be delegated to View instance
     - Colorizing
         - Show ∞ and errors in red
         - Green u or p when desired goal is reached
         - If no u goal specified, it will print in purl when >= 2
-
+ 
 Interactive utility to calculate the profit of a project
  
     Problem variables
@@ -18,7 +15,7 @@ Interactive utility to calculate the profit of a project
         p = profit as a fraction of s
         m = markup as a fraction of c
         u = multiplier = s/c
-
+ 
     Equations
         e0:  p(s, c) = (s - c)/s
         e1:  s(c, m) = c*(1 + m)
@@ -28,7 +25,7 @@ Interactive utility to calculate the profit of a project
         e5:  u(s, c) = s/c
         e6:  s(c, u) = u*c
         e7:  c(s, u) = s/u
-
+ 
         Other equations:
             u = 1/(1 - p) = 1 + m
             p = 1 - 1/u
@@ -37,7 +34,7 @@ Interactive utility to calculate the profit of a project
     Solutions
         To solve the problem, you must have either c or s and one of any of
         the other variables.
-
+ 
         Case    Have   Need       Solution
         ----    ----   ----       --------
           1     c s    p m u      p = e0(); m = e3(); u = e5()
@@ -68,6 +65,7 @@ if 1:   # Header
         from pprint import pprint as pp
         import sys
         import readline         # History and command editing
+        from pdb import set_trace as xx 
     # Custom imports
         from wrap import wrap, dedent
         from color import Color, TRM as t
@@ -138,6 +136,7 @@ if 1:   # Utility
     def Err(e):
         t.print(f"{t.err}Error:  {e}")
 if 1:   # Classes
+    class BadNumberOfExpressions(Exception): pass
     class Model:
         "Financial model's code"
         def __init__(self):
@@ -303,16 +302,15 @@ if 1:   # Classes
         '''
         def __init__(self, model):
             self.model = model
-        def __call__(self, width=None, n=1):
-            '''Returns a suitably formatted line for the solution.  width is
-            the desired width each field.  When width is None, then the basic
-            string with no padding is returned.  Since the returned strings can
-            contain escape sequences, using Len() on them is necessary.
+        def __call__(self, n=1, width=None, hdr=False):
+            '''Prints a formatted line for the model's solution.
+              n         Number of spaces to print between columns
+              width     Width of each column
+              hdr       Print header if True
             '''
             M, w = self.model, width
+            # Financial variables to be displayed from model
             c, s, p, m, u = M.c, M.s, M.p, M.m, M.u
-            inf = float('inf')
-            inft = "∞"
             # Generate the results string
             C = self.ToStr(c)
             S = self.ToStr(s)
@@ -321,106 +319,161 @@ if 1:   # Classes
             U = self.ToStr(u)
             # Get the output line
             out = [C, S, P, M, U]
-            if not width:
-                # Column width is the width of the widest member
-                w = max(Len(i) for i in out)
+            # Column width is the width of the widest member if not
+            # argument.  Len() is used in case colorizing escape sequences
+            # are present.
+            w = width if width else max(Len(i) for i in out) 
             sp = " "*n
             for i, item in enumerate(out):
                 out[i] = f"{sp}{item:^{w}s}{sp}"
             breakpoint() #xx
             return ''.join(out)
         def header(self, width):
-            'Return the table header'
+            'Return the tabe header'
+            breakpoint() #xx
         def Err(self, e):
             t.print(f"{t.err}Error:  {e}")
         def ToStr(self, val, pct=False):
-            'Always return a string suitable for display'
-            if val is not None:
-                if val == inf or isnan(val):
-                    return infs
-                else:
-                    try:
-                        return str(100*val) if pct else str(val)
-                    except Exception:
-                        breakpoint() #xx
-            else:
+            'Return a string suitable for display'
+            if val is None:
                 return "-"
+            if val == float('inf'):
+                return "∞"
+            elif val == -float('inf'):
+                return "-∞"
+            elif isnan(val):
+                return "nan"
+            else:
+                try:
+                    return str(100*val) if pct else str(val)
+                except Exception:
+                    t.print(f"{t('lip')}Unexpected exception!")
+                    breakpoint() #xx
     class Controller:
         'Has a model and view instance'
         def __init__(self):
             self.model = Model()
             self.view = View(self.model)
             self.Loop()
+        def Variable(self, name: str, value: str):
+            '''name contains a financial variable name and value this
+            variable's value.  Return either None or a sequence of strings.
+ 
+            value is a string that can be 1 to 3 expressions separated by
+            whitespace.  With one expression, evaluate the variable and
+            return None.  
+ 
+            With two or three, return a sequence of other 
+            values to evaluate at; this lets the user get table.  With
+            2 expressions, the interval is 1.  With three, the numbers
+            are start, stop, and step.  The last value of stop is always
+            included in the sequence unlike range().
+            '''
+            mdl = self.model
+            vars = mdl.vars
+            if 1:   # See if value is more than one expression
+                values = value.split()
+                seq, start, stop, step = None, None, None, None
+                if len(values) not in (1, 2, 3):
+                    raise BadNumberOfExpressions("Must have 1 to 3 expressions")
+                start = flt(eval(values[0], globals(), vars))
+                if len(values) > 1:
+                    stop = flt(eval(values[1], globals(), vars))
+                    step = flt(1)
+                if len(values) == 3:
+                    step = flt(eval(values[2], globals(), vars))
+                if len(values) > 1:     # Get sequence
+                    e = ValueError
+                    if stop < start:
+                        raise e("stop is less than start")
+                    if step <= 0:
+                        raise e("step must be greater than zero")
+                    elif stop == start:
+                        pass     # Single sequence already in model instance
+                    else:
+                        n = (stop - start)/step
+                        if n > 1:
+                            # Start with next element from start, as start
+                            # is already in model instance
+                            seq = [start + step]
+                            while seq[-1] + step <= stop:
+                                seq.append(seq[-1] + step)
+            if 1:   # Evaluate variables at start
+                if name in "c s m p u".split():
+                    self.Eval(name, start)
+                else:
+                    try:
+                        mdl.vars[name] = eval(value, globals(), vars)
+                    except Exception as e:
+                        self.view.Err(e)
+            # Convert sequence elements to strings
+            return [str(i) for i in seq]
+        def EvalModelVariable(self, name, value):
+            'Evaluate model variable (one of c s m p u)'
+            assert(name in "c s m p u".split())
+            assert(ii(value, flt))
+            mdl = self.model
+            g.last_changed = name
+            if name == "c":
+                mdl.c = value
+                if mdl.c < 0:
+                    print("Absolute value for cost was used")
+                    mdl.c = abs(mdl.c)
+            elif name == "s":
+                mdl.s = value
+                if mdl.s < 0:
+                    print("Absolute value for selling price was used")
+                    mdl.s = abs(mdl.s)
+            elif name == "m":
+                mdl.m = value
+                mdl.m /= 100    # Convert from % to fraction
+            elif name == "p":
+                mdl.p = value
+                mdl.p /= 100    # Convert from % to fraction
+            else:
+                mdl.u = value
+                if mdl.u < 0:
+                    print("Absolute value for multiplier was used")
+                    mdl.u = abs(mdl.u)
+
         def Loop(self):
             while True:
                 show = False
                 s = input(prompt).strip()
-                if s:
-                    first_character = s[0]
-                    remainder = s[1:] if len(s) > 1 else ""
-                    if first_character == "q":
-                        break
-                    elif "=" in s:
-                        # Local variable assignment
-                        name, value = s.split("=", 1)
-                        if name in names:
-                            print("Cannot assign to primary variables")
-                        else:
-                            self.Variable(name, value)
-                    elif first_character in "cspmu" or "=" in s:
-                        if not remainder:
-                            print("Must include a value")
-                            continue
-                        sequence = self.Variable(first_character, remainder)
-                        if sequence:
-                            # Output a sequence of the lines to make a table
-                            breakpoint() #xx 
-                        show = True
+                if not s:
+                    continue
+                first_character = s[0]
+                remainder = s[1:] if len(s) > 1 else ""
+                if first_character == "q":
+                    break
+                elif "=" in s: # Local variable assignment
+                    name, value = s.split("=", 1)
+                    if name in names:
+                        print("Cannot assign to primary variables")
                     else:
-                        show = self.Command(s)
-                    if show:
-                        breakpoint() #xx
+                        self.Variable(name, value)
+                elif first_character in "cspmu": # Financial variable assignment
+                    if not remainder:
+                        print("Must include a value")
+                        continue
+                    try:
+                        seq = self.Variable(first_character, remainder)
+                    except Exception as e:
+                        print(e)
+                        continue
+                    if seq:
+                        print(self.hdr())
                         print(self.view())
-        def Variable(self, name, value):
-            '''name will be one of the primary variables.  value is a
-            string that can be one two three expressions separated by
-            whitespace.  With one expression, evaluate the variable and
-            return None.  With two or three, return a sequence of other 
-            values to evaluate at; this lets the user get table.  With
-            2 expressions, the interval is 1.  With three, the numbers
-            are start, stop, and step.  The last value of stop is included,
-            unlike range().
-            '''
-            mdl = self.model
-            vars = mdl.vars
-            if name in "c s m p u".split():
-                g.last_changed = name
-                if name == "c":
-                    mdl.c = flt(eval(value, globals(), vars))
-                    if mdl.c < 0:
-                        print("Absolute value for cost was used")
-                        mdl.c = abs(mdl.c)
-                elif name == "s":
-                    mdl.s = flt(eval(value, globals(), vars))
-                    if mdl.s < 0:
-                        print("Absolute value for selling price was used")
-                        mdl.s = abs(mdl.s)
-                elif name == "m":
-                    mdl.m = flt(eval(value, globals(), vars))
-                    mdl.m /= 100    # Convert from % to fraction
-                elif name == "p":
-                    mdl.p = flt(eval(value, globals(), vars))
-                    mdl.p /= 100    # Convert from % to fraction
-                else:
-                    mdl.u = flt(eval(value, globals(), vars))
-                    if mdl.u < 0:
-                        print("Absolute value for multiplier was used")
-                        mdl.u = abs(mdl.u)
-            else:
-                try:
-                    mdl.vars[name] = eval(value, globals(), vars)
-                except Exception as e:
-                    self.view.Err(e)
+                        for i in seq:
+                            xx() #xx
+
+                        # Output a sequence of the lines to make a table
+                        breakpoint() #xx 
+                    show = True
+                else:   # It must be a command
+                    show = self.Command(s)
+                if show:    # Print the output
+                    print(self.view())
         def Command(self, x):
             'Return True if results should be printed'
             if x == ".":        # Show results again
@@ -622,36 +675,6 @@ if 1:   # Command loop
         print("Local variables:")
         for i in vars:
             print(f"  {i:{w}s} = {vars[i]}")
-    def Variable(name, value):
-        global c, s, m, p, u
-        if name in "c s m p u".split():
-            g.last_changed = name
-            if name == "c":
-                c = flt(eval(value, globals(), vars))
-                if c < 0:
-                    print("Absolute value for cost was used")
-                    c = abs(c)
-            elif name == "s":
-                s = flt(eval(value, globals(), vars))
-                if s < 0:
-                    print("Absolute value for selling price was used")
-                    s = abs(s)
-            elif name == "m":
-                m = flt(eval(value, globals(), vars))
-                m /= 100    # Convert from % to fraction
-            elif name == "p":
-                p = flt(eval(value, globals(), vars))
-                p /= 100    # Convert from % to fraction
-            else:
-                u = flt(eval(value, globals(), vars))
-                if u < 0:
-                    print("Absolute value for multiplier was used")
-                    u = abs(u)
-        else:
-            try:
-                vars[name] = eval(value, globals(), vars)
-            except Exception as e:
-                Err(e)
     def Expression(cmd):
         try:
             print(exec(cmd, globals(), vars))
@@ -728,6 +751,36 @@ if 1:   # Command loop
             except Exception:
                 print("You must enter an integer between 1 and 15")
         return False
+    def Variable(name, value):
+        global c, s, m, p, u
+        if name in "c s m p u".split():
+            g.last_changed = name
+            if name == "c":
+                c = flt(eval(value, globals(), vars))
+                if c < 0:
+                    print("Absolute value for cost was used")
+                    c = abs(c)
+            elif name == "s":
+                s = flt(eval(value, globals(), vars))
+                if s < 0:
+                    print("Absolute value for selling price was used")
+                    s = abs(s)
+            elif name == "m":
+                m = flt(eval(value, globals(), vars))
+                m /= 100    # Convert from % to fraction
+            elif name == "p":
+                p = flt(eval(value, globals(), vars))
+                p /= 100    # Convert from % to fraction
+            else:
+                u = flt(eval(value, globals(), vars))
+                if u < 0:
+                    print("Absolute value for multiplier was used")
+                    u = abs(u)
+        else:
+            try:
+                vars[name] = eval(value, globals(), vars)
+            except Exception as e:
+                Err(e)
     def CommandLoop():
         while True:
             show_results = False

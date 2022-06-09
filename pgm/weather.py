@@ -62,19 +62,20 @@ if 1:   # Utility
         '''))
         exit(status)
     def ParseCommandLine(d):
-        d["-d"] = False
+        d["-b"] = bool(brief)     # Brief output (one line)
         try:
-            opts, args = getopt.getopt(sys.argv[1:], "dh", ["help"])
+            opts, args = getopt.getopt(sys.argv[1:], "bh", ["help"])
         except getopt.GetoptError as e:
             print(str(e))
             exit(1)
         for o, a in opts:
-            if o[1] in list("d"):
+            if o[1] in list("b"):
                 d[o] = not d[o]
             elif o in ("-h", "--help"):
                 Usage(status=0)
+        # One or more command line arguments toggles the -b setting
         if not args:
-            d["-d"] = True
+            d["-b"] = not d["-b"]
         return args
 if 1:   # Core functionality
     def Get():
@@ -147,6 +148,19 @@ if 1:   # Core functionality
             t.high = t("wht", "lipd")
             t.low = t("sky")
             t.high = t("lipl")
+
+            t.title = t("brnl")
+            t.rain = t("grnl")
+            t.snow = t("magl")
+            t.thun = t("magl")
+            t.wind = t("cynl")
+            t.sun  = t("yell")
+            t.cloud = t("viol")
+            t.low = t("wht", "royd")
+            t.high = t("wht", "lipd")
+            t.low = t("sky")
+            t.high = t("redl")
+
         SetColors()
         r = line.lower()
         rain   = True if "rain" in r or "shower" in r else False
@@ -211,18 +225,24 @@ if 1:   # Core functionality
             title = line[:loc]
             details = line[loc + 1:].strip()
             PrintTitle(title, details)
-            if d["-d"]:
+            if d["-b"]:
                 Wrap(details)
         print(g.update, "\nNow: ", end="")
         os.system("date")
 
 if __name__ == "__main__": 
+    # If brief is True, the one line report is printed; a command line
+    # argument then gives you the full report.
+    brief = 1
     d = {}      # Options dictionary
     args = ParseCommandLine(d)
     q = Get()
     if args and args[0] == "d":
+        # Show raw html
         for line in q:
-            print(line.rstrip())
+            l = line.rstrip()
+            if l:
+                print(l)
         exit(0)
     lines = Select(q)
     Report(lines)
