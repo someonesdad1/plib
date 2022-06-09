@@ -91,31 +91,55 @@ if 1:   # Header
         vars = {}
         # Colors
         t.err = t("redl")
+if 1:   # Utility
+    def Error(*msg, status=1):
+        print(*msg, file=sys.stderr)
+        exit(status)
+    def Usage(status=1):
+        print(dedent(f'''
+        Need to write Usage statement
+        '''))
+        exit(status)
+    def ParseCommandLine(d):
+        d["-d"] = sf        # Number of significant digits
+        d["-v"] = False     # Verbose/debug printing
+        try:
+            opts, args = getopt.getopt(sys.argv[1:], "d:hv") 
+        except getopt.GetoptError as e:
+            print(str(e))
+            exit(1)
+        for o, a in opts:
+            if o[1] in list("v"):
+                d[o] = not d[o]
+            elif o in ("-d",):
+                try:
+                    d["-d"] = int(a)
+                    if not (1 <= d["-d"] <= 15):
+                        raise ValueError()
+                except ValueError:
+                    msg = ("-d option's argument must be an integer between "
+                        "1 and 15")
+                    Error(msg)
+            elif o in ("-h", "--help"):
+                Usage(status=0)
+        g.dbg = d["-v"]
+        if 1:   # Set up flt characteristics
+            x = flt(0)
+            x.n = d["-d"]
+            x.rtz = x.rtdp = True
+            # Where to switch to scientific notation
+            x.high, x.low = 1e3, 1e-3
+        return args
+    def Dbg(*p, **kw):
+        if g.dbg:
+            print(f"{t.dbg}", end="")
+            print(*p, **kw)
+            print(f"{t.n}", end="")
+    def Err(e):
+        t.print(f"{t.err}Error:  {e}")
 if 1:   # Classes
-    '''
-    MVC Thoughts
-
-    Model
-        - Attributes are c, s, p, m, u.  Values returned are None, nan, ∞, or a
-        calculated flt value.
-        - When you enter c or s, the absolute value is always taken.
-        - set(name, value) for locals
-
-    View
-        - __call__(c, s, p, m, u, w=None) returns a suitable formatted string.  w is
-        the desired width of the field.  When w is None, then the basic
-        string with no padding is returned.  Since the returned strings can
-        contain escape sequences, using Len() on them is necessary.
-
-    Controller
-        - Has a model and view
-        - Gets user input in command loop, sends data to model, then prints
-        results.
-
-    '''
     class Model:
-        '''Contains the financial model's code.
-        '''
+        "Financial model's code"
         def __init__(self):
             self.reset()
         def reset(self):
@@ -234,103 +258,239 @@ if 1:   # Classes
                     return flt(self._s/self._u)
                 except ZeroDivisionError:
                     return self._inf
-        # Properties
-        @property
-        def c(self):
-            return self._c
-        @c.setter
-        def c(self, value):
-            self._c = self.getval(value)
-            self._last_changed = "c"
-        @property
-        def s(self):
-            return self._s
-        @s.setter
-        def s(self, value):
-            self._s = self.getval(value)
-            self._last_changed = "s"
-        @property
-        def p(self):
-            return self._p
-        @p.setter
-        def p(self, value):
-            self._p = self.getval(value)
-            self._last_changed = "p"
-        @property
-        def m(self):
-            return self._m
-        @m.setter
-        def m(self, value):
-            self._m = self.getval(value)
-            self._last_changed = "m"
-        @property
-        def u(self):
-            return self._u
-        @u.setter
-        def u(self, value):
-            self._u = self.getval(value)
-            self._last_changed = "u"
-
-    m = Model()
-    exit()
-
-
+        if 1:   # Properties
+            @property
+            def c(self):
+                return self._c
+            @c.setter
+            def c(self, value):
+                self._c = self.getval(value)
+                self._last_changed = "c"
+            @property
+            def s(self):
+                return self._s
+            @s.setter
+            def s(self, value):
+                self._s = self.getval(value)
+                self._last_changed = "s"
+            @property
+            def p(self):
+                return self._p
+            @p.setter
+            def p(self, value):
+                self._p = self.getval(value)
+                self._last_changed = "p"
+            @property
+            def m(self):
+                return self._m
+            @m.setter
+            def m(self, value):
+                self._m = self.getval(value)
+                self._last_changed = "m"
+            @property
+            def u(self):
+                return self._u
+            @u.setter
+            def u(self, value):
+                self._u = self.getval(value)
+                self._last_changed = "u"
     class View:
         '''Determines how the model's information is to be displayed.
         '''
-        def __init__(self):
-            pass
+        def __init__(self, model):
+            self.model = model
+        def __call__(self, width=None, n=1):
+            '''Returns a suitably formatted line for the solution.  width is
+            the desired width each field.  When width is None, then the basic
+            string with no padding is returned.  Since the returned strings can
+            contain escape sequences, using Len() on them is necessary.
+            '''
+            M, w = self.model, width
+            c, s, p, m, u = M.c, M.s, M.p, M.m, M.u
+            inf = float('inf')
+            inft = "∞"
+            # Generate the results string
+            C = self.ToStr(c)
+            S = self.ToStr(s)
+            P = self.ToStr(p, pct=True)
+            M = self.ToStr(m, pct=True)
+            U = self.ToStr(u)
+            # Get the output line
+            out = (C, S, P, M, U))
+            if not width:
+                # Column width is the width of the widest member
+                w = max(Len(i) for i in out)
+            sp = " "*n
+            for i, item in enumerate(out):
+                out[i] = f"{sp}{item:^{w}s}{sp}"
+            return ''.join(out)
+        def header(self, width):
+            'Return the table header'
+        def Err(self, e):
+            t.print(f"{t.err}Error:  {e}")
+        def ToStr(self, val, pct=False):
+            'Always return a string suitable for display'
+            if val is not None:
+                if val == inf or isnan(val):
+                    return infs
+                else:
+                    try:
+                        return str(100*val) if pct else str(val)
+                    except Exception:
+                        breakpoint() #xx
+            else:
+                return "-"
     class Controller:
         '''Has a model and view instance.
         '''
         def __init__(self):
-            pass
-if 1:   # Utility
-    def Error(*msg, status=1):
-        print(*msg, file=sys.stderr)
-        exit(status)
-    def Usage(status=1):
-        print(dedent(f'''
-        Need to write Usage statement
-        '''))
-        exit(status)
-    def ParseCommandLine(d):
-        d["-d"] = sf        # Number of significant digits
-        d["-v"] = False     # Verbose/debug printing
-        try:
-            opts, args = getopt.getopt(sys.argv[1:], "d:hv") 
-        except getopt.GetoptError as e:
-            print(str(e))
-            exit(1)
-        for o, a in opts:
-            if o[1] in list("v"):
-                d[o] = not d[o]
-            elif o in ("-d",):
+            self.model = Model()
+            self.view = View(self.model)
+            self.Loop()
+        def Loop(self):
+            while True:
+                show_results = False
+                s = input(prompt).strip()
+                if s:
+                    first_character = s[0]
+                    remainder = s[1:] if len(s) > 1 else ""
+                    if first_character == "q":
+                        break
+                    elif "=" in s:
+                        # Local variable assignment
+                        name, value = s.split("=", 1)
+                        if name in names:
+                            print("Cannot assign to primary variables")
+                        else:
+                            self.Variable(name, value)
+                    elif first_character in "cspmu" or "=" in s:
+                        if not remainder:
+                            print("Must include a value")
+                            continue
+                        self.Variable(first_character, remainder)
+                        show_results = True
+                    else:
+                        show_results = self.Command(s)
+                    if show_results:
+                        self.view.PrintSolution()
+        def Variable(self, name, value):
+            mdl = self.model
+            vars = mdl.vars
+            if name in "c s m p u".split():
+                g.last_changed = name
+                if name == "c":
+                    c = flt(eval(value, globals(), vars))
+                    if c < 0:
+                        print("Absolute value for cost was used")
+                        c = abs(c)
+                elif name == "s":
+                    s = flt(eval(value, globals(), vars))
+                    if s < 0:
+                        print("Absolute value for selling price was used")
+                        s = abs(s)
+                elif name == "m":
+                    m = flt(eval(value, globals(), vars))
+                    m /= 100    # Convert from % to fraction
+                elif name == "p":
+                    p = flt(eval(value, globals(), vars))
+                    p /= 100    # Convert from % to fraction
+                else:
+                    u = flt(eval(value, globals(), vars))
+                    if u < 0:
+                        print("Absolute value for multiplier was used")
+                        u = abs(u)
+            else:
                 try:
-                    d["-d"] = int(a)
-                    if not (1 <= d["-d"] <= 15):
-                        raise ValueError()
-                except ValueError:
-                    msg = ("-d option's argument must be an integer between "
-                        "1 and 15")
-                    Error(msg)
-            elif o in ("-h", "--help"):
-                Usage(status=0)
-        g.dbg = d["-v"]
-        if 1:   # Set up flt characteristics
-            x = flt(0)
-            x.n = d["-d"]
-            x.rtz = x.rtdp = True
-            # Where to switch to scientific notation
-            x.high, x.low = 1e3, 1e-3
-        return args
-    def Dbg(*p, **kw):
-        if g.dbg:
-            print(f"{t.dbg}", end="")
-            print(*p, **kw)
-            print(f"{t.n}", end="")
-    def Err(e):
-        t.print(f"{t.err}Error:  {e}")
+                    vars[name] = eval(value, globals(), vars)
+                except Exception as e:
+                    self.view.Err(e)
+        def Command(self, x):
+            'Return True if results should be printed'
+            if x == ".":        # Show results again
+                return True
+            elif x == "..":     # Show defined variables
+                self.PrintLocals(vars)
+            elif x == "?":      # Help
+                self.Help()
+            elif x == "??":     # More detailed help
+                self.DetailedHelp()
+            elif x == "/":      # Reset problem variables
+                self.Reset()
+            elif x == "dbg":    # Toggle verbose mode
+                g.dbg = not g.dbg
+                print(f"Verbose turned {'on' if g.dbg else 'off'}")
+            elif x.startswith("!"):     # Return an expression
+                cmd = x[1:].strip()
+                self.Expression(cmd)
+            elif x == "reset":  # Reset variables to 0
+                self.Reset()
+                return True
+            elif x.startswith(":"):     # Set number of significant figures
+                try:
+                    n = int(x[1:])
+                    flt(0).n = min(15, max(1, n))
+                    return True
+                except Exception:
+                    print("You must enter an integer between 1 and 15")
+            return False
+        def PrintLocals(self):
+            vars = self.model.vars
+            if not vars:
+                return
+            w = max(len(i) for i in vars)
+            print("Local variables:")
+            for i in vars:
+                print(f"  {i:{w}s} = {vars[i]}")
+        def Expression(self, cmd):
+            try:
+                print(exec(cmd, globals(), vars))
+            except Exception as e:
+                print(e)
+        def DetailedHelp(self):
+            p = flt(10**(2 - sf))
+            with p:
+                p.n = 1
+                q = f"{p}%"
+            print(dedent(f'''
+                            Cost/selling price calculator
+            Variables and equations
+                c = cost
+                s = selling price
+                p = profit in % based on selling price
+                = 100*(s - c)/s
+                m = markup in % based on cost
+                = 100*(s - c)/m
+                u = multiplier
+                = s/c
+            Example:  
+                Type the following commands followed by the Enter key:
+                    c1
+                    s2
+                You'll get the result
+                S  C  P %  M %   U
+                2  1  50   100  2
+            The default number of significant figures shown is {sf}.  This means your
+            answers will be to about {q}.
+            '''))
+        def Help(self):
+            print(dedent(f'''
+            v expr      Enter a problem variable where v is c, s, p, m, or u
+            x = expr    Define a local variable named x
+            q           Quit
+            .           Show results again
+            ..          Show defined variables
+            : n         Set number of significant figures to n
+            ! expr      Evaluate expression
+            /           Reset to starting state
+            ?           Commands
+            ??          Help
+            '''))
+        def Reset(self):
+            self.model.reset()
+
+    a = Controller()
+    breakpoint() #xx 
+    exit()
 if 1:   # Command loop
     def ToStr(val, pct=False):
         'Always return a string suitable for display'
