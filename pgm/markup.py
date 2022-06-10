@@ -1,6 +1,23 @@
 '''
 Todo
-    - g.last_changed should be in Model instance
+
+    - Note:  this has become overly complicated.  Consider a) leaving out
+      u, as it's the same as m + 1 and then there are just 4 variables; b)
+      removing the sequence behavior (if you need it, write a script).  I
+      would like to see the model's values and locals persisted to a file
+      (~/.mrkup.rc).  Then the problem has a solution if you have two
+      variables and one of them is s or c.  
+        - Actually, the current code should be simplified this way, as if
+          you enter u, it means you've really just entered m.  
+
+    - c=1, s=-0.1, get p=1100%.  The math is correct from (s-c)s, but this
+      will be confusing to folks.  One option is to raise an exception when
+      a negative number is entered if no_negative is True or just take the
+      absolute value.
+    - Set s=2, m=200, get problem in Model.update at line 223 because it
+      assumes c is fixed.  There has to be a check to make sure both
+      s and c are defined; if only onem then use it.
+    - Get seq working
     - Regular prints should be delegated to View instance
     - Colorizing
         - Show ∞ and errors in red
@@ -76,7 +93,7 @@ if 1:   # Header
         ii = isinstance
         inf = float('inf')
         infs = "∞" 
-        sf = 2  # Default number of significant figures
+        sf = 3  # Default number of significant figures
         class g: pass
         g.dbg = False
         g.w = int(os.environ.get("COLUMNS", "80")) - 1
@@ -146,7 +163,7 @@ if 1:   # Classes
             self.reset()
             self.vars = {}
         def __str__(self):
-            return (f"Model(c={self._c}, s={self._s}, p={self._p},"
+            return (f"Model(c={self._c}, s={self._s}, p={self._p}, "
                     f"m={self._m}, u={self._u})")
         def __repr__(self):
             return str(self)
@@ -336,9 +353,6 @@ if 1:   # Classes
             for i, item in enumerate(results):
                 results[i] = f"{sp}{item:^{w}s}{sp}"
             print(''.join(results))
-        def header(self, width):
-            'Return the table header'
-            breakpoint() #xx
         def Err(self, e):
             t.print(f"{t.err}Error:  {e}")
         def ToStr(self, val, pct=False):
@@ -372,16 +386,20 @@ if 1:   # Classes
             assert(ii(value, flt))
             m = self.model
             m._last_changed = name
+            # Set to True to disallows some negative numbers
+            no_negative = False
             if name == "c":
                 m.c = value
-                if m.c < 0:
-                    print("Absolute value for cost was used")
-                    m.c = abs(m.c)
+                if no_negative:
+                    if m.c < 0:
+                        print("Absolute value for cost was used")
+                        m.c = abs(m.c)
             elif name == "s":
                 m.s = value
-                if m.s < 0:
-                    print("Absolute value for selling price was used")
-                    m.s = abs(m.s)
+                if no_negative:
+                    if m.s < 0:
+                        print("Absolute value for selling price was used")
+                        m.s = abs(m.s)
             elif name == "m":
                 m.m = value
                 m.m /= 100    # Convert from % to fraction
@@ -390,9 +408,10 @@ if 1:   # Classes
                 m.p /= 100    # Convert from % to fraction
             else:
                 m.u = value
-                if m.u < 0:
-                    print("Absolute value for multiplier was used")
-                    m.u = abs(m.u)
+                if no_negative:
+                    if m.u < 0:
+                        print("Absolute value for multiplier was used")
+                        m.u = abs(m.u)
         def PrintLocals(self, vars):
             if not vars:
                 print("No local variables")
@@ -407,30 +426,32 @@ if 1:   # Classes
             except Exception as e:
                 print(e)
         def DetailedHelp(self):
-            p = flt(10**(2 - sf))
-            with p:
-                p.n = 1
-                q = f"{p}%"
             print(dedent(f'''
                             Cost/selling price calculator
-            Variables and equations
+            Variables
                 c = cost
                 s = selling price
                 p = profit in % based on selling price
-                = 100*(s - c)/s
+                  = 100*(s - c)/s
                 m = markup in % based on cost
-                = 100*(s - c)/m
+                  = 100*(s - c)/m
                 u = multiplier
-                = s/c
+                  = s/c
+            Equations
+                c = s*(1 - p)       c = s/u
+                s = c*(1 + m)       s = u*c
+                p = (s - c)/s       p = 1 - 1/u         p = m/(1 + m)
+                m = p/(1 - p)       m = u - 1
+                u = s/c             u = 1/(1 - p)       u = 1 + m
             Example:  
                 Type the following commands followed by the Enter key:
                     c1
                     s2
                 You'll get the result
-                S  C  P %  M %   U
-                2  1  50   100  2
-            The default number of significant figures shown is {sf}.  This means your
-            answers will be to about {q}.
+                     S           C           P           M           U
+                     2           1          50%         100%         2
+            The percentages P and M are only shown to two signicant
+            figures.
             '''))
         def Help(self):
             print(dedent(f'''
@@ -542,7 +563,7 @@ if 1:   # Classes
                 except Exception as e:
                     self.view.Err(e)
         def Loop(self):
-            if 1:   # xx debug testing
+            if 0:   # xx debug testing
                 self.model._c = flt(112.8)
                 self.model._s = flt(200.1)
                 self.model._last_changed = "s"
@@ -569,6 +590,7 @@ if 1:   # Classes
                         continue
                     try:
                         seq = self.Variable(first_character, remainder)
+                        self.model.update()
                     except Exception as e:
                         print(e)
                         continue
@@ -583,6 +605,7 @@ if 1:   # Classes
     if 1: #xx
         a = Controller()
         exit()
+
 if 0:   # Command loop #xx
     def ToStr(val, pct=False):
         'Always return a string suitable for display'
@@ -780,14 +803,16 @@ if 0:   # Command loop #xx
             g.last_changed = name
             if name == "c":
                 c = flt(eval(value, globals(), vars))
-                if c < 0:
-                    print("Absolute value for cost was used")
-                    c = abs(c)
+                if 0:  # Enable to disallow negative numbers
+                    if c < 0:
+                        print("Absolute value for cost was used")
+                        c = abs(c)
             elif name == "s":
                 s = flt(eval(value, globals(), vars))
-                if s < 0:
-                    print("Absolute value for selling price was used")
-                    s = abs(s)
+                if 0:  # Enable to disallow negative numbers
+                    if s < 0:
+                        print("Absolute value for selling price was used")
+                        s = abs(s)
             elif name == "m":
                 m = flt(eval(value, globals(), vars))
                 m /= 100    # Convert from % to fraction
@@ -796,9 +821,10 @@ if 0:   # Command loop #xx
                 p /= 100    # Convert from % to fraction
             else:
                 u = flt(eval(value, globals(), vars))
-                if u < 0:
-                    print("Absolute value for multiplier was used")
-                    u = abs(u)
+                if 0:  # Enable to disallow negative numbers
+                    if u < 0:
+                        print("Absolute value for multiplier was used")
+                        u = abs(u)
         else:
             try:
                 vars[name] = eval(value, globals(), vars)
@@ -831,12 +857,6 @@ if 0:   # Command loop #xx
                 #if show_results:
                 if 1 or show_results: #xx
                     PrintSolution()
-
-if 0: #xx
-    a, b = flt(sqrt(pi)), flt(1e-8*sin(pi/7))
-    print(f"a = {a}")
-    print(f"b = {b}")
-    exit()
 
 if __name__ == "__main__":
     d = {}          # Options dictionary

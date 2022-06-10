@@ -165,6 +165,7 @@ Neil Young:  Old Man|rAtDrFdomN4|
 Neil Young: Heart of Gold|X3IA6pIVank|
 Nothing Else Matters: Banjo & Mandolin|3JFb_aOn6rc|
 Nothing Else Matters: Guitar & cello|pxoW-00Zyho|
+Nothing Else Matters: Guitar|WlGiOiRQNhI|
 Nothing Else Matters: Hammered dulcimer|8KK0-9Moz5Q|
 Nothing Else Matters: Hardpan|32v8ARqaBas|
 Nothing Else Matters: Harp|KMX2bmtS_TE|
