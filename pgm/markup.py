@@ -307,26 +307,26 @@ if 1:   # Classes
         '''
         def __init__(self, model):
             self.model = model
+            # The following number is added to flt.n to get the width of
+            # a column.  The offset allows for the decimal point and
+            # switching to scientific notation.
+            self.width_offset = 7
+            self.column_width = flt(0).n + self.width_offset
         def __call__(self, n=1, width=None, hdr=False):
             '''Prints a formatted line for the model's solution.
               n         Number of spaces to print between columns
-              width     Width of each column
+              width     Width of each column (overrides self.column_width)
               hdr       Print header if True
             '''
-            mdl, w = self.model, width
-            # Financial variables to be displayed from model
-            c, s, p, m, u = mdl.c, mdl.s, mdl.p, mdl.m, mdl.u
+            mdl = self.model
             # Generate the results string
-            C = self.ToStr(c)
-            S = self.ToStr(s)
-            P = self.ToStr(p, deltan=1, pct=True)
-            M = self.ToStr(m, deltan=1, pct=True)
-            U = self.ToStr(u)
+            C = self.ToStr(mdl.c)
+            S = self.ToStr(mdl.s)
+            P = self.ToStr(mdl.p, pct=True)
+            M = self.ToStr(mdl.m, pct=True)
+            U = self.ToStr(mdl.u)
             results = [S, C, P, M, U]
-            # Column width is the width of the widest member if it is not
-            # given as an argument.  Len() is used in case colorizing
-            # escape sequences are present.
-            w = width if width else max(Len(i) for i in results) 
+            w = width if width else self.column_width
             sp = " "*n
             if hdr:
                 out = "S C P M U".split()
@@ -341,10 +341,9 @@ if 1:   # Classes
             breakpoint() #xx
         def Err(self, e):
             t.print(f"{t.err}Error:  {e}")
-        def ToStr(self, val, deltan=0, pct=False):
-            '''Return a string suitable for display.  deltan is used to
-            reduct the number of significant figures.  If pct is True,
-            display as a percent.
+        def ToStr(self, val, pct=False):
+            '''Return a string suitable for display.  If pct is True,
+            display as an integer percent.
             '''
             if val is None:
                 return "-"
@@ -355,15 +354,12 @@ if 1:   # Classes
             elif isnan(val):
                 return "nan"
             else:
-                with val:
-                    if deltan:
-                        val.n = max(1, val.n - deltan)
-                    try:
-                        return str(100*val) + "%" if pct else str(val)
-                    except Exception as e:
-                        t.print(f"{t('lip')}Unexpected exception!")
-                        t.print(f"{t('lip')}  {e}")
-                        breakpoint() #xx
+                try:
+                    return str(flt(round(100*val, 0))) + "%" if pct else str(val)
+                except Exception as e:
+                    t.print(f"{t('lip')}Unexpected exception!")
+                    t.print(f"{t('lip')}  {e}")
+                    breakpoint() #xx
     class Controller:
         'Has a model and view instance'
         def __init__(self):
@@ -466,12 +462,23 @@ if 1:   # Classes
             elif x == "dbg":    # Toggle verbose mode
                 g.dbg = not g.dbg
                 print(f"Verbose turned {'on' if g.dbg else 'off'}")
-            elif x.startswith("!"):     # Return an expression
+            elif x[0] == "!":   # Return an expression
                 cmd = x[1:].strip()
                 self.Expression(cmd)
             elif x == "reset":  # Reset variables to 0
                 self.Reset()
                 return True
+            elif x[0] == "n":  # Set the number of significant digits
+                try:
+                    n = int(x[1:])
+                    if not (1 <= n <= 15):
+                        print("Must be between 1 and 15")
+                        return False
+                    flt(0).n = n
+                    return True
+                except Exception:
+                    print(f"{x!r} is not a proper integer")
+                    return False
             elif x.startswith(":"):     # Set number of significant figures
                 try:
                     n = int(x[1:])
@@ -540,7 +547,7 @@ if 1:   # Classes
                 self.model._s = flt(200.1)
                 self.model._last_changed = "s"
                 self.model.update()
-
+ 
             while True:
                 show, seq = False, []
                 s = input(prompt).strip()
@@ -573,9 +580,10 @@ if 1:   # Classes
                     if seq:
                         breakpoint() #xx
 
-    a = Controller()
-    exit()
-if 1:   # Command loop
+    if 1: #xx
+        a = Controller()
+        exit()
+if 0:   # Command loop #xx
     def ToStr(val, pct=False):
         'Always return a string suitable for display'
         if val is not None:
@@ -823,6 +831,12 @@ if 1:   # Command loop
                 #if show_results:
                 if 1 or show_results: #xx
                     PrintSolution()
+
+if 0: #xx
+    a, b = flt(sqrt(pi)), flt(1e-8*sin(pi/7))
+    print(f"a = {a}")
+    print(f"b = {b}")
+    exit()
 
 if __name__ == "__main__":
     d = {}          # Options dictionary
