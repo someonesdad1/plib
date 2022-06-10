@@ -1,5 +1,52 @@
 '''
+
+This financial model has two basic equations:
+    
+    e1(c, s, p) = 0
+    e2(c, s, m) = 0
+
+We can set e1 = e2 and derive a third function e3(p, m) = 0 because
+fortunately c and s cancel out.  We see there are really only 3 independent
+variables.  We'll choose c, s, and p as our independent variables for the
+model.
+
+Here's the reasoning for this.  When you look at making money from some
+action, it all boils down to how much something costs you and how much you
+can sell it for.  You want to adhere to the old maxim of "buy low and sell
+high".  The "goodness" of an action is quantified by the profit, which is
+the fraction of the selling price that exceeds your cost.  Thus, we get the
+fundamental equation, the definition of profit, as
+    
+    p = (s - c)/s = 1 - c/s = 1 - 1/u
+
+Here are the equations
+
+    c = s*(1 - p)   [e1]
+    s = c*(1 + m)   [e2]
+
+Divide them to get
+
+    p = m/(1 + m)   [e3]
+    m = p/(1 - p)   [e4]
+
+Choose c, s, and p for the problem's independent variables.  Then you can
+be give u or m, but either of these get converted to p by
+        
+    p = m/(1 + m)   [e5]
+    p = 1 - 1/u     [e6]
+        
+
+
 Todo
+    - New approach
+        - If u is entered, it is really just a change to m because u is the
+          same as m + 1.
+        - Remove u from the model, although it can be printed out
+        - Remove sequence behavior
+        - Each printout of results should have title and numbers and be as
+          narrow as possible, as this is easiest to read.
+        - Disallow negative values of s and c, as these are confusing and
+          don't have a clear meaning
 
     - Note:  this has become overly complicated.  Consider a) leaving out
       u, as it's the same as m + 1 and then there are just 4 variables; b)
@@ -10,7 +57,7 @@ Todo
         - Actually, the current code should be simplified this way, as if
           you enter u, it means you've really just entered m.  
 
-    - c=1, s=-0.1, get p=1100%.  The math is correct from (s-c)s, but this
+    - c=1, s=-0.1, get p=1100%.  The math is correct from (s-c)/s, but this
       will be confusing to folks.  One option is to raise an exception when
       a negative number is entered if no_negative is True or just take the
       absolute value.
@@ -23,7 +70,7 @@ Todo
         - Show ∞ and errors in red
         - Green u or p when desired goal is reached
         - If no u goal specified, it will print in purl when >= 2
- 
+
 Interactive utility to calculate the profit of a project
  
     Problem variables
@@ -33,20 +80,19 @@ Interactive utility to calculate the profit of a project
         m = markup as a fraction of c
         u = multiplier = s/c
  
-    Equations
-        e0:  p(s, c) = (s - c)/s
-        e1:  s(c, m) = c*(1 + m)
-        e2:  c(s, p) = s*(1 - p)
-        e3:  m(p)    = p/(1 - p)
-        e4:  p(m)    = m/(1 + m)
-        e5:  u(s, c) = s/c
-        e6:  s(c, u) = u*c
-        e7:  c(s, u) = s/u
+    Equations                   Functional
+        e0:  p = (s - c)/s        p(s, c)
+        e1:  s = c*(1 + m)        s(c, m)
+        e2:  c = s*(1 - p)        c(s, p)
+        e3:  m = p/(1 - p)        m(p)
+        e4:  p = m/(1 + m)        p(m)
+        e5:  u = s/c              u(s, c)
+        e6:  s = u*c              s(c, u)
+        e7:  c = s/u              c(s, u)
  
-        Other equations:
-            u = 1/(1 - p) = 1 + m
-            p = 1 - 1/u
-            m = u - 1
+        u = 1/(1 - p) = 1 + m
+        p = 1 - 1/u
+        m = u - 1
  
     Solutions
         To solve the problem, you must have either c or s and one of any of
@@ -61,6 +107,8 @@ Interactive utility to calculate the profit of a project
           5     s m    p c u      p = e4(); c = e2(); u = e6()
           6     s p    c m u      c = e2(); m = e3(); u = e6()
           7     s u    c p m      c = e7(); p = e0(); m = e3()
+
+
 '''
 if 1:   # Header
     # Copyright, license
@@ -865,4 +913,4 @@ if __name__ == "__main__":
         c = 2500
         s = 6500
     CommandLoop()
-# vim: tw=100
+# vim: tw=75
