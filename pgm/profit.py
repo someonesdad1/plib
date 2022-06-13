@@ -1,9 +1,9 @@
 '''
 
-Current task:  fixing following bug.  Root cause seems to be that the
-current value of u is not correct at line 185 (it's 2, not 3).
-
-- Start with -d.  Then set u from 2 to 3.  Display not right.
+- Set 'c1;m200;k'.  Then set u to 4 and you'll get a model not valid yet
+  when you press '.'.  This makes sense, but it shows that the colorizing
+  of the last entered variable is not enough.  You really need to see the 
+  second-to-last variable too.  I like trq for 1st and ornl for 2nd.
 
 Interactive utility to calculate the profit of a project
     Type ? for help at prompt
@@ -200,6 +200,9 @@ if 1:   # Classes
                 elif have == set("cu"):
                     p = 1 - 1/u
                     m = p/(1 - p)
+                else:   # cp
+                    u = 1/(1 - p)
+                    m = p*u
                 s = flt(c/(1 - p))
             elif have in (set("sp"), set("sm"), set("su")):  # Get c
                 if have == set("sm"):
@@ -208,6 +211,9 @@ if 1:   # Classes
                 elif have == set("su"):
                     p = 1 - 1/u
                     m = p/(1 - p)
+                else:   # sp
+                    u = 1/(1 - p)
+                    m = p*u
                 c = flt(s*(1 - p))
             self.c, self.s, self.p, self.m, self.u = c, s, p, m, u 
             self.ok = True
@@ -605,8 +611,9 @@ if 1:   # Core functionality
         if choice == 1:
             cmds = dedent('''
             /
+            k
             c1
-            s2
+            m200
             ''')
         for i in cmds.split("\n"):
             t.print(f"{t('magl')}>>> {i}")
