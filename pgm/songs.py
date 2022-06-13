@@ -20,6 +20,7 @@ I'll Never Find Another You (1963)|KmactMIhrRM|How I feel about Glenda
 Midnight In Moscow (1961)|o744d4mwOgQ|Dixieland from England
 Potato Head Blues (1927)|EfGZB78R7uw|Famous trumpet solo
 Scheherezade (1st movement, written 1888)|6dDk6aft4JU|von Karajan on Deutsche Grammophone
+Scheherezade|1i6TsIVKByM|Youth orchestra with stunning sound (same orchestra does Vltava below)
 Stairway to Heaven (1971)|QkF3oxziUI4|
 Vltava (The Moldau) (1875)|l6kqu2mk-Kw|Smetana (he was deaf when he wrote this)
 

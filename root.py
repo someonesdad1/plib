@@ -706,6 +706,13 @@ def Crenshaw(x1, x3, f, eps=eps0, itmax=ITMAX, dbg=None, p=4):
         the convergence status is returned in a Boolean variable.  You'll
         find this method gets the root to the desired precision and does it
         in fewer steps than the original algorithm.
+ 
+        Note:  Jack has mentioned numerous times that this algorithm was
+        from some unknown genius at IBM in the 1960's and was part of their
+        FORTRAN library code.  Jack studied the algorithm and wrote
+        articles in "Embedded Systems Development" to popularize it.  The
+        method is inverse parabolic interpolation with bisection and it
+        converges quadratically.
         '''
         args = list(args)
         x = args[0]

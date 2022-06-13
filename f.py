@@ -1,38 +1,36 @@
-'''
-    BUGS
-        - flt('inf') needs to work
-        - v=flt("15 mi/hr"); v.to("mi/minute") fails
-        - _sci() and other stuff need to handle inf.  flt('inf') should
-          work.
-        - flt and cpx need to be hashable.
+''' 
+
+    BUGS and key things to do
+        - Remove units; it just makes a big mess
+            - The fundamental benefits of the flt class are 1) string
+              interpolation is pleasant and 2) math stuff is in scope.
+            - The addition of units made the class too clumsy and bloated.
+            - My overwhelming use case is to just see things to 3 figures.  
+        - flt('inf') and flt('nan') need to work
+            - _sci() and other stuff need to handle inf
+        - Needs a rlz attribute to remove leading zero
+        - Needs __all__, as there's lots of crap in the global namespace
+        - flt and cpx need to be hashable
         - cpx needs to be initialized from a polar form too, so maybe add
           pol as a keyword to the constructor. 
             - Make sure angles are measured in radians by default, as this
               is too confusing if it's not True.  It's ok to have a cpx
               class variable that makes the string display in degrees.
-        - cpx(274-22j, "kohms") and cpx(274-22j, "ohms") result in the same
-          number, meaning the k prefix is not recognized.
 
-        - The .n attribute when changed changes the class variable of Base.
-          After using this class for a while, I'm not so sure this is the
-          proper use.  Sometimes you might want a number to display with 5
-          figures when the others in your problem display with 3.  The
-          original use case was that it lets you uniformly work to a given 
-          number of figures, but not all data are created equal.  Maybe the 
-          instance can be changed by setting n, then a reset() method would
-          set the instance back to the class' value.
-            - When in a context manager, the .n attribute could be changed,
-              but then it would revert to its previous setting.  This would
-              be handy for special situations.
+        - Number of significant figures
+            - The .n attribute when changed changes the class variable of
+              Base.
+            - After using this class for a while, I'm not so sure this is
+              the proper use.  Sometimes you might want a number to display
+              with 5 figures when the others in your problem display with
+              3.  The original use case was that it lets you uniformly work
+              to a given number of figures, but not all data are created
+              equal.  Maybe the instance can be changed by setting n, then
+              a reset() method would set the instance back to the class'
+              value.
+            - The context manager behavior is useful for special situations
             - What should happen with arithmetic?  Probably the result
               should have min(x1.n, x2.n).
-
-        - I suspect the addition of units made the class too clumsy and
-          bloated.  I think it should be removed, leaving the primary use
-          case of a flt or cpx being a float or complex with desirable
-          string interpolation features.  Forget including uncertainties
-          too.  My overwhelming use case is to just see things to 3
-          figures.  
  
     TODO
     

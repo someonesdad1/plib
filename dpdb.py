@@ -1,5 +1,6 @@
 '''
     - Todo
+        - Add a command to change the number of lines displayed
         - po command:
             - Columnize dir() output.  First arg is object to dir, remaining
             args are regexps to search for.
@@ -168,7 +169,7 @@ class DPdb(Pdb):
             exception was originally raised or propagated is indicated by
             ">>", if it differs from the current line.
             '''
-            numlines = 50       # DP
+            numlines = 20       # DP
             half = numlines//2  # DP
             self.lastcmd = 'list'
             last = None

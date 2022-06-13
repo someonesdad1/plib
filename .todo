@@ -163,6 +163,32 @@ Want
               Hz measurements.  This should be done by comparing a 30 A
               measurement from the 6033A supply to a 30 A RMS measurement.
 
+    - pgm/profit.py
+        - Registers
+            - Let you save state
+            - '>name' saves state to a register
+            - '<name' recalls state
+            - '>' goes to register management mode
+                - 'e name' edits a register
+                - 'l' lists register names
+                - '! name' deletes a register
+                - 'q' goes back to calculator
+                - 'qq' quits script
+            - Need a comment field, which could just be gotten by a vi
+              edit.  This lets you see what the register was used for.
+            - The register just needs to contain what you see in the
+              debugger when you type 'pp mdl.__dict__'.  And that could be
+              used to recreate the object if the floating point things get
+              changed to flt.  Thus, the register should just be a dict of
+              dicts.
+                - A Register object would be a dict that would make sure
+                  any of its entries that were floats were changed to flt.
+            - Danger:  changing the script can invalidate a persisted file,
+              losing a bunch of work.
+            - Instead of registers, '>file' and '<file' just persist to a
+              file.  This is a lot simpler and can reuse the Load and Save
+              functions.
+        
     - EDN PDF files
         - Looks too difficult to index with script
         - Would be nice to have an index though
