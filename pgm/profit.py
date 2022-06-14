@@ -3,7 +3,7 @@
 - Set 'c1;m200;k'.  Then set u to 4 and you'll get a model not valid yet
   when you press '.'.  This makes sense, but it shows that the colorizing
   of the last entered variable is not enough.  You really need to see the 
-  second-to-last variable too.  I like trq for 1st and ornl for 2nd.
+  second-to-last variable too.  I like trq for 2nt and ornl for 1st.
 
 Interactive utility to calculate the profit of a project
     Type ? for help at prompt
@@ -247,32 +247,44 @@ if 1:   # Classes
                 (f"M{pct}", M),
                 ("U", U)
             )
-            last = self.dq[1].upper() if len(self.dq) == 2 else None
-            for i in O:
-                letter = i[0][0]
-                w = max(len(i[1]), minw)
-                a = f"{i[0]:^{w}s}"
-                b = f"{i[1]:^{w}s}"
+            # Get first and second variables to colorize
+            first, second = None, None
+            if len(self.dq) == 2:
+                second, first = self.dq
+            elif len(self.dq) == 1:
+                first = self.dq[0]
+            for heading, value in O:
+                letter = heading[0].lower()
+                w = max(len(value), minw)
+                # Format them centered to indicated column width
+                if not self.ok and heading in ("S", "C"):
+                    hdr = f"{heading:^{w}s}"
+                    val = f"{'-':^{w}s}"
+                else:
+                    hdr = f"{heading:^{w}s}"
+                    val = f"{value:^{w}s}"
                 # If P or M are negative, colorize them
                 if letter in ("P", "M"):
-                    if flt(b) < 0:
-                        b = f"{t.neg}{b}{t.nn}"
+                    if flt(val) < 0:
+                        val = f"{t.neg}{val}{t.nn}"
                 elif letter == "U":
                     if U != "0/0":
-                        tmp = b
+                        tmp = val
                         if u >= 2:
-                            tmp = f"{t.u2}{b}{t.nn}"
+                            tmp = f"{t.u2}{val}{t.nn}"
                         if u >= 3:
-                            tmp = f"{t.u3}{b}{t.nn}"
+                            tmp = f"{t.u3}{val}{t.nn}"
                         if u >= 4:
-                            tmp = f"{t.u4}{b}{t.nn}"
+                            tmp = f"{t.u4}{val}{t.nn}"
                         if u >= 5:
-                            tmp = f"{t.u5}{b}{t.nn}"
-                        b = tmp
+                            tmp = f"{t.u5}{val}{t.nn}"
+                        val = tmp
                 # Colorize last changed
-                if last is not None and last == letter:
-                    a = f"{t.last}{a}{t.nn}"
-                out.append([a, b])
+                if first == letter:
+                    hdr = f"{t.first}{hdr}{t.nn}"
+                elif second == letter:
+                    hdr = f"{t.second}{hdr}{t.nn}"
+                out.append([hdr, val])
             # Transpose the out array to the two output lines
             o = Transpose(out)
             me = ' '.join(o[0]) + "\n"
@@ -381,7 +393,8 @@ if 1:   # Core functionality
         none = ""
         t.msg  = t("yelb")  if on else none
         t.neg  = t("redl") if on else none
-        t.last = t("trq")  if on else none
+        t.first = t("ornl")  if on else none
+        t.second = t("trq")  if on else none
         t.u2   = t('grnl') if on else none
         t.u3   = t('yell') if on else none
         t.u4   = t('ornl') if on else none
@@ -635,7 +648,7 @@ if __name__ == "__main__":
         mdl = Load(modelfile)
         if mdl is None:
             mdl = Model()
-    if 1:
+    if 0:
         Loop(setup=True)
     else:
         Loop()
