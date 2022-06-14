@@ -1,4 +1,13 @@
 '''
+
+- A reset should change colorizing.
+- Add a command which lets you scale c and s to different units.  Example:
+  suppose I'm working on a car sale that costs me 13845 and I'd like to
+  sell things for around 27000.  It's more convenient to switch to units of
+  thousands to see the numbers as integers 27 and 14.  
+- A handy command would be '..', which would be the same as '.' except
+  increase the significant figures by 2 for each extra '.'.
+
 Interactive utility to calculate the profit of a project
     Type ? for help at prompt
  
@@ -85,6 +94,8 @@ if 1:   # Classes
     class Model(object):
         'Contains the model for the equation p = 1 - c/s'
         def __init__(self):
+            # We put colorizing here so that it isn't affected by a reset.
+            self.color = False      # If True, use colors in output
             self.reset(hard=True)
         def reset(self, hard=False):
             self.names = set("cspmu")   # Names of model variables
@@ -101,7 +112,6 @@ if 1:   # Classes
             self.n = z.n            # Number of significant figures
             self.ok = False         # If True, self.update() returned valid numbers
             self.pct = True         # If True, show m and p in %
-            self.color = False      # If True, use colors in output
             # When to use scientific notation
             self.low = 1e-3
             self.high = 1e6
@@ -283,7 +293,7 @@ if 1:   # Classes
             me = ' '.join(o[0]) + "\n"
             me += ' '.join(o[1])
             if not self.ok:
-                me += f"\n Model values are not valid yet"
+                me += f"\n The values are not sufficient for a unique solution"
             return me
         def test(self):
             'Verify basic numerical correctness and functionality'
@@ -432,6 +442,7 @@ if 1:   # Core functionality
         q       Quit
         .       Print the results again
         C       Clear the screen
+        e       Show equations
         k       Use colorized text [{mdl.color}]
         l       List local variables
         n num   Set the number of significant figures [{mdl.n}]
@@ -443,6 +454,14 @@ if 1:   # Core functionality
         //      Reset and clear all local variables
         '''))
         print(f"{t.nn}", end="")
+    def ShowEquations():
+        print(dedent(f'''
+        p = 1 - c/s     = m/(1 + m)    = 1 - 1/u
+        s = c/(1 - p)   = u*c
+        c = s*(1 - p)   = s/u
+        m = p/(1 - p)   = u - 1
+        u = s/c         = m + 1        = 1/(1 - p)
+        '''))
     def GetN(s):
         'Return int(s) between 1 and 15 or None if problem'
         try:
@@ -475,6 +494,8 @@ if 1:   # Core functionality
             breakpoint()
         elif cmd == "C":
             os.system("clear")
+        elif cmd == "e":
+            ShowEquations()
         elif cmd == "k":
             mdl.color = not mdl.color
             print(mdl)
@@ -484,7 +505,8 @@ if 1:   # Core functionality
             print(f"{t.msg}Local variables:")
             if mdl.vars:
                 for i in mdl.vars:
-                    print(f"  {i} = {mdl.vars[i]}")
+                    if i not in mdl.names:
+                        print(f"  {i} = {mdl.vars[i]}")
             print(f"{t.nn}", end="")
         elif cmd[0] == "n":
             if not cmd[1:]:
@@ -552,6 +574,7 @@ if 1:   # Core functionality
         elif "=" in cmd:
             # Local variable assignment
             name, value = cmd.split("=", 1)
+            name = name.strip()
             try:
                 x = eval(value, globals(), mdl.vars)
             except Exception as e:
