@@ -1,13 +1,7 @@
 '''
-
-- Set 'c1;m200;k'.  Then set u to 4 and you'll get a model not valid yet
-  when you press '.'.  This makes sense, but it shows that the colorizing
-  of the last entered variable is not enough.  You really need to see the 
-  second-to-last variable too.  I like trq for 2nt and ornl for 1st.
-
 Interactive utility to calculate the profit of a project
     Type ? for help at prompt
-
+ 
     Equations
         p = 1 - c/s     = m/(1 + m) = 1 - 1/u
         s = c/(1 - p)   = u*c
@@ -15,7 +9,6 @@ Interactive utility to calculate the profit of a project
  
         m = p/(1 - p)   = u - 1
         u = s/c         = m + 1 = 1/(1 - p)
- 
 '''
 if 1:   # Header
     # Copyright, license
@@ -391,7 +384,7 @@ if 1:   # Core functionality
         codes wind up in the output.
         '''
         none = ""
-        t.msg  = t("yelb")  if on else none
+        t.msg  = t("wht")  if on else none
         t.neg  = t("redl") if on else none
         t.first = t("ornl")  if on else none
         t.second = t("trq")  if on else none
