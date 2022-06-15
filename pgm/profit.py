@@ -285,7 +285,7 @@ if 1:   # Classes
             me = ' '.join(o[0]) + "\n"
             me += ' '.join(o[1])
             if not self.ok:
-                me += f"\n The values are not sufficient for a unique solution"
+                me += f"\n Not enough information for a solution"
             return me
         def test(self):
             'Verify basic numerical correctness and functionality'
@@ -434,8 +434,8 @@ if 1:   # Core functionality
         < file  Load state from a file
         * x     Multiply s and c by x
         / x     Divide s and c by x
-        R       Reset model
-        R!      Reset and clear all local variables
+        '       Reset model
+        ''      Reset and clear all local variables
         '''))
         print(f"{t.nn}", end="")
     def ShowEquations():
@@ -573,9 +573,9 @@ if 1:   # Core functionality
         elif cmd == "%":
             mdl.pct = not mdl.pct
             print(mdl)
-        elif cmd == "R":
+        elif cmd == "'":
             mdl.reset()
-        elif cmd == "R!":
+        elif cmd == "'!":
             mdl.reset(hard=True)
         else:
             t.print(f"{t.msg}{cmd!r} is an unrecognized command")
@@ -636,6 +636,8 @@ if 1:   # Core functionality
         finished = False 
         if setup:
             SetUp()
+        if mdl.ok:
+            print(mdl)
         while not finished:
             e = input(f"> ").strip()
             if not e:
