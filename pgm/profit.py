@@ -1,12 +1,8 @@
 '''
 
-- A reset should change colorizing.
-- Add a command which lets you scale c and s to different units.  Example:
-  suppose I'm working on a car sale that costs me 13845 and I'd like to
-  sell things for around 27000.  It's more convenient to switch to units of
-  thousands to see the numbers as integers 27 and 14.  
-- A handy command would be '..', which would be the same as '.' except
-  increase the significant figures by 2 for each extra '.'.
+- Scaling
+    - New commands * and / let you scale c and s by expressions
+    - Need new reset commands
 
 Interactive utility to calculate the profit of a project
     Type ? for help at prompt
@@ -440,7 +436,7 @@ if 1:   # Core functionality
         selling price, c for cost, and p for profit followed by the desired
         value.  Use -h on command line for introductory help.
         q       Quit
-        .       Print the results again
+        .       Print the results again (another . adds 2 significant figures)
         C       Clear the screen
         e       Show equations
         k       Use colorized text [{mdl.color}]
@@ -450,8 +446,10 @@ if 1:   # Core functionality
         > file  Save state to a file (won't overwrite existing file)
         >> file Save state to a file (overwrites existing file)
         < file  Load state from a file
-        /       Reset model
-        //      Reset and clear all local variables
+        * x     Multiply s and c by x
+        / x     Divide s and c by x
+        R       Reset model
+        R!      Reset and clear all local variables
         '''))
         print(f"{t.nn}", end="")
     def ShowEquations():
@@ -477,7 +475,7 @@ if 1:   # Core functionality
             return s
         loc = s.find("#")
         return s[:loc].trim()
-    def Command(cmd):
+    def DoCommand(cmd):
         '''Return values:
             0   Command completed successfully
             1   Command failed
@@ -489,7 +487,18 @@ if 1:   # Core functionality
                 Save(modelfile)
             return 2
         elif cmd[0] == ".":
-            print(mdl)
+            x = flt(0)
+            if set(cmd) != set("."):
+                t.print(f"{t.msg}'.' command can only be composed of '.' characters")
+                return 1
+            numdots = len(cmd)
+            if numdots == 1:
+                print(mdl)
+            else:
+                with x:
+                    x.n += 2
+                    mdl.update()
+                    print(mdl)
         elif cmd == "b":
             breakpoint()
         elif cmd == "C":
@@ -517,6 +526,30 @@ if 1:   # Core functionality
                 return 1
             x = flt(0)
             x.n = sf
+            print(mdl)
+        elif cmd[0] == "*":
+            if len(cmd) == 1:
+                t.print(f"{t.msg}Need an argument for * command")
+            try:
+                x = eval(cmd[1:], globals(), mdl.vars)
+            except Exeption as e:
+                t.print(f"{t.msg}[{Lineno()}] * command exception: {e}")
+                return 2
+            mdl.c *= x
+            mdl.s *= x
+            mdl.update()
+            print(mdl)
+        elif cmd[0] == "/":
+            if len(cmd) == 1:
+                t.print(f"{t.msg}Need an argument for / command")
+            try:
+                x = eval(cmd[1:], globals(), mdl.vars)
+            except Exeption as e:
+                t.print(f"{t.msg}[{Lineno()}] / command exception: {e}")
+                return 2
+            mdl.c /= x
+            mdl.s /= x
+            mdl.update()
             print(mdl)
         elif cmd[0] == ">":
             if len(cmd) == 1:
@@ -552,9 +585,9 @@ if 1:   # Core functionality
         elif cmd == "%":
             mdl.pct = not mdl.pct
             print(mdl)
-        elif cmd == "/":
+        elif cmd == "R":
             mdl.reset()
-        elif cmd == "//":
+        elif cmd == "R!":
             mdl.reset(hard=True)
         elif cmd == "?":
             Help()
@@ -601,7 +634,7 @@ if 1:   # Core functionality
         else:
             # It must be a command
             try:
-                retval = Command(cmd)
+                retval = DoCommand(cmd)
                 if retval == 2:
                     return 2
             except Exception as e:
