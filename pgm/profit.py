@@ -1,9 +1,5 @@
 '''
 
-- Scaling
-    - New commands * and / let you scale c and s by expressions
-    - Need new reset commands
-
 Interactive utility to calculate the profit of a project
     Type ? for help at prompt
  
@@ -400,43 +396,33 @@ if 1:   # Core functionality
         t.u5   = t('magl') if on else none
         t.nn   = t.n       if on else none
     def Intro():
-        print(f"{t.msg}", end="")
         print(dedent(f'''
-        Interactive utility to calculate a project's profit.  Use ? for commands.
-        Variables are:
-            c = cost
-            s = selling price
-            p = profit in % based on selling price
-            m = markup in % based on cost
-            u = multiplier = s/c
+        Interactive utility to calculate a project's profit.  Use h for list of 
+        commands.  Variables are:
+            c = cost                                = s*(1 - p)
+            s = selling price                       = c/(1 - p)
+            p = profit based on selling price       = 1 - s/c
+            m = markup based on cost                = p/(1 - p)
+            u = multiplier                          = s/c
         Enter a variable's value after its letter.  Expressions are allowed and
-        the math module is in scope.  Responses like "a = 3" will be
-        assignments to local variables.  You can assign to local variables with
-        the same name as the above five primary variables, but they will be
-        overwritten when the model's values are calculated (this is necessary
-        to allow you to use the variables in expressions).
- 
-        Note:  if you don't like seeing p and m in percentages, use the %
-        command to change to regular decimal fractions.  Then you also
-        enter them as decimal fractions.
-    
-        Example:
+        the math module is in scope.  Example:
             > a = 1     # Local variable assigment
             > c a       # cost is now equal to 1
             > s 2       # Selling price is 2
         will print
             S    C    P%   M%   U
             2    1    50  100   2
+        Profit and markup can be in either % or decimal fractions (use the %
+        command to switch between them).
         '''))
-        print(f"{t.nn}", end="")
     def Help():
         print(f"{t.msg}", end="")
         print(dedent(f'''
         Interactive utility to calculate a project's profit.  Enter s for
         selling price, c for cost, and p for profit followed by the desired
-        value.  Use -h on command line for introductory help.
+        value.  Use -h on command line for introductory help.  Commands:
         q       Quit
-        .       Print the results again (another . adds 2 significant figures)
+        .       Print the results again (.. adds 2 significant figures)
         C       Clear the screen
         e       Show equations
         k       Use colorized text [{mdl.color}]
@@ -486,6 +472,8 @@ if 1:   # Core functionality
             if not d["-i"]:
                 Save(modelfile)
             return 2
+        elif cmd == "h":
+            Help()
         elif cmd[0] == ".":
             x = flt(0)
             if set(cmd) != set("."):
@@ -589,8 +577,6 @@ if 1:   # Core functionality
             mdl.reset()
         elif cmd == "R!":
             mdl.reset(hard=True)
-        elif cmd == "?":
-            Help()
         else:
             t.print(f"{t.msg}{cmd!r} is an unrecognized command")
         return 0
