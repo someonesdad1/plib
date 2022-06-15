@@ -110,23 +110,26 @@ def GetCharacterCounts():
     # To accumulate data, use a bytearray for binary data; list of
     # strings otherwise.
     characters = bytearray() if d["-b"] else []
-    for file in d["files"]:
-        if file == "-":  # Read stdin
-            characters = sys.stdin.read()
-            if d["-b"]:
-                characters = bytearray(characters, d["-e"])
-        else:
-            try:
-                if d["-b"]:     # Read as plain binary data
-                    characters += open(file, "rb").read()
-                else:           # Read as encoded Unicode
-                    characters.append(open(file, "r",
-                                    encoding=d["-e"]).read())
-            except UnicodeError:
-                msg = ("'{0}' is not a valid {1} text file".
-                    format(file, d["-e"]))
-                print(msg, file=sys.stderr)
-                exit(1)
+    if d["-8"]:
+        characters = [chr(i) for i in range(256)]
+    else:
+        for file in d["files"]:
+            if file == "-":  # Read stdin
+                characters = sys.stdin.read()
+                if d["-b"]:
+                    characters = bytearray(characters, d["-e"])
+            else:
+                try:
+                    if d["-b"]:     # Read as plain binary data
+                        characters += open(file, "rb").read()
+                    else:           # Read as encoded Unicode
+                        characters.append(open(file, "r",
+                                        encoding=d["-e"]).read())
+                except UnicodeError:
+                    msg = ("'{0}' is not a valid {1} text file".
+                        format(file, d["-e"]))
+                    print(msg, file=sys.stderr)
+                    exit(1)
     if not d["-b"]:
         characters = ''.join(characters)
     d["characters"] = characters
@@ -238,8 +241,8 @@ def Usage(status=1):
       Lists the characters used in the indicated files.  Use - as a file
       name to read stdin.  Assumes text files are encoded in {enc}; use -b
       option to read the files in binary.
-     
     Options:
+        -8      Show all of the 8-bit characters
         -a      Limit printout to 7-bit ASCII characters
         -b      Read files as binary
         -C      Don't use colorized printing
@@ -252,6 +255,7 @@ def Usage(status=1):
     '''))
     exit(status)
 def ParseCommandLine():
+    d["-8"] = False
     d["-a"] = False
     d["-b"] = False
     d["-C"] = True
@@ -284,12 +288,12 @@ def ParseCommandLine():
     else:
         d["width"] = 79
     try:
-        opts, args = getopt.getopt(sys.argv[1:], "abCcEe:")
+        opts, args = getopt.getopt(sys.argv[1:], "8abCcEe:h")
     except getopt.GetoptError as e:
         print(str(e))
         exit(1)
     for o, a in opts:
-        if o[1] in list("abCc"):
+        if o[1] in list("8abCc"):
             d[o] = not d[o]
         elif o in ("-E",):
             print(dedent(f'''
@@ -300,7 +304,9 @@ def ParseCommandLine():
             d["-e"] = GetEncoding(a)
             if d["-e"] is None:
                 Error("'{0}' encoding not recognized".format(a))
-    if not args:
+        elif o in ("-h",):
+            Usage()
+    if not args and not d["-8"]:
         Usage()
     return args
 if __name__ == "__main__":
