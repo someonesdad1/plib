@@ -660,13 +660,16 @@ def kbrent(a, b, f, eps=eps0, itmax=ITMAX):
         x3 = x
     raise NoConvergence("No convergence in kbrent()")
 def Crenshaw(x1, x3, f, eps=eps0, itmax=ITMAX, dbg=None, p=4):
-    '''Returns (root, number_of_iterations).  x1 and x3 are the initial
-    estimates of the root and must bracket it.  f is the function f(x) to
-    call to evaluate.  eps is the relative change used to determine when
-    the algorithm has converged.  itmax is the maximum number of iterations
-    to use.  If dbg is not None, it must be a stream; the function prints
-    out intermediate values to this stream so you can watch convergence.  p
-    is the number of significant digits to print in the debug stuff.
+    '''Returns (root, number_of_iterations).
+      x1, x3        Initial estimates of the root and must bracket it.
+      f             Function f(x) to call to evaluate.
+      eps           Relative change used to determine when the algorithm
+                    has converged.
+      itmax         Maximum number of iterations to use.
+      dbg           If not None, it must be a stream; the function prints
+                    intermediate values to this stream so you can watch
+                    convergence.
+      p             Number of significant digits to print to dbg stream.
     '''
     d = {
         "p"     : p,
@@ -688,11 +691,11 @@ def Crenshaw(x1, x3, f, eps=eps0, itmax=ITMAX, dbg=None, p=4):
  
         This is a wrapper function that calls f(x) given a dictionary d
         that contains the following keys:
-        ymin        Minimum y value encountered
-        ymax        Maximum y value encountered
-        eps         Desired convergence radius, relative
-        converged   Will be True when the current y value is less than
-                    eps*(ymax - ymin).
+          ymin        Minimum y value encountered
+          ymax        Maximum y value encountered
+          eps         Desired convergence radius, relative
+          converged   Will be True when the current y value is less than
+                      eps*(ymax - ymin).
         This is per Jack Crenshaw's follow-up article on 13 Apr 2004
         entitled "A root-finding algorithm" in "Embedded Systems
         Development".  Jack's realization was that the original algorithm

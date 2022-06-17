@@ -1,6 +1,11 @@
 Active
         
-    - transpose.py (also see tbl.py below)
+    - dev/tvm/tvm.py
+        - https://www.thecalculator.co/finance/Time-Value-of-Money-Calculator-380.html
+        - This would be a handy calculator and should include the profit.py
+          script's abilities.
+
+    - transpose.py
         - This needs to be documented as a tool to help you format tabular
           data.  You start with the columns of your table as rows of data.
           Then format each row item to the same width.  Print out the
@@ -101,12 +106,6 @@ Want
     
     - pgm/pfind.py
         - Add -X option that ignores regex in directory portion
-
-    - tbl.py
-        - transpose.py is useful, but a better tool would be a module to
-          handle rectangular arrays of heterogeneous data.  The general use
-          case would be to handle tabular data of strings by using nested
-          lists.
 
     - pgm/bd.py
         - Write basic functionality
