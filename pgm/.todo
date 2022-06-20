@@ -1,24 +1,22 @@
+xmd Markdown notes
+
 Active
-        
-    - dev/tvm/tvm.py
-        - https://www.thecalculator.co/finance/Time-Value-of-Money-Calculator-380.html
-        - This would be a handy calculator and should include the profit.py
-          script's abilities.
-
+    
     - transpose.py
-        - This needs to be documented as a tool to help you format tabular
-          data.  You start with the columns of your table as rows of data.
-          Then format each row item to the same width.  Print out the
-          transpose.  
-        - This is such a general tool it should be called PrintTable().
-            - It should have a keyword to define a function to use to
-              calculate the string length (by default, use dpstr.Len()
-              to ignore ANSI escape stuff).
+        - This may be the basis of a text table tool along with wrap.py
+          below to get things wrapped to a specific width.
+        - Add --test option and make it a command line tool for text files.
+        - Default splitting of lines for fields is str.split()
+        - Options
+            - -c specifies the starting string
+            - --csv Parse as a CSV file
+            - -s Specify string to split on
+            - -r Specify regexp to split on
 
-    - color.py
-        - TRM needs a way to ensure all attribute access returns "" when
-          .on is False.
-        - Add new color support to g.py
+    - decimalmath.py
+        - Add a complex Decimal number and modify the elementary functions
+          to take either real or complex arguments.  The tests should
+          duplicate the math/cmath functions' behaviors to e.g. 15 figures.
 
     - Decimal equivalents
         - I use the /shop/cheat_sheets/pdf/decimal_equivalents.pdf pages so
@@ -27,6 +25,85 @@ Active
           some heavy plastic.  I'd want at least two of these, one for over
           the toolboxes and one for over the lathe; and maybe one for my
           office.
+
+    - wrap.py
+        - A very common need is to dedent help text.  Add a function 
+          printwrap(*s) that takes each string s, removes leading and
+          trailing whitespace, dedents the text, and prints it wrapped to 1
+          minus the current number of columns.  Embedded control lines can
+          be things like '.on', '.off', '.indent = n', etc.  The overall
+          state is remembered until '.reset' is seen or the keyword reset
+          is True.  'paragraph_sep' keyword defaults to '\n\n'.
+Want
+
+    - pgm/profit.py
+        - Add a container for comments describing the model.  These get
+          edited with $EDITOR.
+        
+    - Sequence value comparisons
+        - An arbitrary sequence can be a sequence of sequences.  Since [1,
+          [2]] != (1, [2]) because one is a tuple and one is a list, it
+          would be nice to have a recursive function that would convert all
+          the sequences to lists so that the comparison would be a true
+          element-by-element comparison.  A deeply nested sequence of 1000
+          calls results in an exception, but this would be an unusual
+          sequence.  Use sys.getrecursionlimit() and
+          sys.setrecursionlimit() to set things as you wish.
+        - A similar function would let you determine the nesting depth of a
+          sequence.
+        - The following code shows the maximum recursion limit of 5881
+          found for my system with python 3.7.10 (any larger value results
+          in a segmentation fault):
+
+            import atexit
+            import sys
+            sys.setrecursionlimit(5881)
+            print("Recursion limit =", sys.getrecursionlimit())
+            count = 2  # Nonzero value makes the count match the recursion limit
+            def F():
+                global count
+                count += 1
+            def R():
+                F();R()
+            def P():
+                print("count =", count)
+            atexit.register(P)
+            R()
+
+    - lwtest.py
+        - In ToDoMessage, add a keyword offset that lets you designate the
+          line that needs the fix.  
+        - Consider a keyword for colorizing the message too to make it
+          easier to see.  I like ornl, magl, or purl for visible colors.
+
+    - asc.py
+        - Colorize some key items.  Use colors similar to char.
+        - Show hex and decimal in different colors.
+        - Fix the annoying display hiccup at 0x7f.
+
+    - Fix pl command (missing modules)
+
+    - get.py
+        - For ignore keyword, let it be either a string or a compiled
+          regular expression.  This lets you choose the options you want,
+          such as to ignore case.
+        - Since I use GetLines the most, include the explanation of what
+          thing means also.
+
+    - Need to write a regression.py module that doesn't need numpy or
+      scipy.  Base it on the stuff in /pylib/regression.py and test it with
+      the NIST corner cases.  Input variables should be Decimal objects.
+
+    - bd.py
+        - Replace the C program, as python is more than fast enough
+        - Colorize output
+        - Allow binary or text comparisons
+        - Try to use a heuristic to determine if text or binary
+
+    - color.py
+        - TRM needs a way to ensure all attribute access returns "" when
+          .on is False.
+        - Add support to g.py
 
     - Shamrock survey
         - Establish yard benchmarks and survey our property
@@ -37,8 +114,8 @@ Active
             - BM1:  NW corner of driveway concrete next to gate to mailbox
             - BM2:  Metal pole at entrance of driveway on Edna
             - Note these benchmarks can be moved out to the street edges
-              and the accurate length of the property can be measured to
-              within an inch or two
+              and the size of the property can be measured to
+              within a few inches.
             - Then secondary benchmarks are fence posts on west and south
               fences
         - Use sighting compass to take magnetic bearings of things.
@@ -61,73 +138,14 @@ Active
               the electrical layer would show known cables.  The sprinkler
               layer would show valves, sprinklers, pump, wires.  Etc.
         - This survey would get archived on github so it can't be lost
-        - Write a g.py file that plots the data
-
 
     - /pylib/pgm/ts/ts.py
         - Import to /plib
 
     - help
-        - Convert to a git repository on github
-            - Content is on the order of 10 MB
         - Develop, then add to /plib
         - Add /tools to /plib
-        - Convert the help stuff to be built by scons
         - Move everything to one directory for ease of editing
-        - Consolidate the help text I use into one directory.  Eliminate
-          make and the C programs; convert everything to python.  Look at
-          hierarchically organizing the access with most-used stuff first
-          and seldom-used stuff hidden.  Do partial topic matches with the
-          invocation and use a command line option to do searches of the
-          records.  
-        - Look at somehow organizing things so that it can run as a project
-          in Notepad++, which will mean others are more likely to use it.
-        - Could be nice to have different backends, such as rendering all
-          to PDF, HTML, or vim help files.  Look at making a project for
-          Notepad++, as this would be of interest to a number of folks.
-
-    - Static attribute access
-        - A common problem when writing some classes is that all attribute
-          access generates code and recursion is inevitable and causes code
-          failure.  inspect.getattr_static() may be able to short circuit
-          this behavior and e.g. let you get to self._my_private_value
-          without calling getattr().  The stated purpose is to retrieve
-          attributes without triggering dynamic lookup.
-
-    - inspect.getcomments() on an object returns the comments before the
-      object.  Since I never put comments before my functions, this could
-      be a good way to mark python files with todo tasks.  Would it work on
-      nested functions (no, the symbol isn't visible)?  Still, you'd just
-      search for '^\s*def +[A-Za-z_]()' and call the inspect function; if
-      you don't get an exception, there's your result.  Then a td command
-      could be used to print out the todo items for a group of files.
-
-Want
-    
-    - pgm/pfind.py
-        - Add -X option that ignores regex in directory portion
-
-    - pgm/bd.py
-        - Write basic functionality
-        - Use color
-
-    - pgm/xyz.py
-        - This is still in /pylib
-        - Should me brought forward and put on hu
-        - Use colorization in printing results
-
-    - pgm/cal.py
-        - Update with newer colors
-            - Past in brnl, current month in wht, future in sky
-        - Show current week in italics
-        - Focus change:  show notable dates
-        - Need regexp search
-        - cal 2020 should figure out to show the year
-        - Data file
-            - Need to be able to include number of days after a date
-
-    - pgm/mass.py
-        - The report could benefit from color
 
     - pgm/j.py
         - Allows you to calculate a maximum current for a wire.  Base
@@ -151,12 +169,6 @@ Want
               Hz measurements.  This should be done by comparing a 30 A
               measurement from the 6033A supply to a 30 A RMS measurement.
 
-    - bd.py
-        - Replace the C program, as python is more than fast enough
-        - Colorize output
-        - Allow binary or text comparisons
-        - Try to use a heuristic to determine if text or binary
-
     - EDN PDF files
         - Looks too difficult to index with script
         - Would be nice to have an index though
@@ -166,6 +178,22 @@ Want
         - Use color.py
         - Use filecmp module for efficient comparisons
 
+    - Static attribute access
+        - A common problem when writing some classes is that all attribute
+          access generates code and recursion is inevitable and causes code
+          failure.  inspect.getattr_static() may be able to short circuit
+          this behavior and e.g. let you get to self._my_private_value
+          without calling getattr().  The stated purpose is to retrieve
+          attributes without triggering dynamic lookup.
+
+    - inspect.getcomments() on an object returns the comments before the
+      object.  Since I never put comments before my functions, this could
+      be a good way to mark python files with todo tasks.  Would it work on
+      nested functions (no, the symbol isn't visible)?  Still, you'd just
+      search for '^\s*def +[A-Za-z_]()' and call the inspect function; if
+      you don't get an exception, there's your result.  Then a td command
+      could be used to print out the todo items for a group of files.
+
     - /pylib/pgm/xyz.py
         - This is a significant enough script that it should be tested and
           moved into /plib/pgm if it warrants.  Then add back to hu.
@@ -173,61 +201,6 @@ Want
     - pgm/parse_complex.py
         - Needs to be looked at again.  With some work and generation of
           tests, it could be useful.  Then it could become part of f.py.
-
-    - dpstr.py
-        - Tokenize(s):  split a string into a sequence S such that
-          ''.join(S) == s.  The keyword wordchars is a set that contains
-          the characters that should NOT be split on.  wordchars would
-          default to string.ascii_letters.  A better default would be "un
-          latin |grep -i letter" and limited to letters < 0x17f (this is
-          237 letters).
-
-          This means a sentence like "Must be:  exp, log." needs to be
-          parsed as
-
-          ['Must', ' ', 'be', ':', '  ', 'exp', ',', 'log', '.']
-    
-          such that ''.join(x) reproduces the original string (i.e., it's
-          an invariant).  This function should be in dpstr.py.  Numbers in
-          names could be an issue.  Look at line 71 in python's textwrap.py
-          for a regex that is used for splitting things up into words; this
-          might be a good place to start.  Actually, string.punctuation is 
-          probably the set of characters to use.
-
-          The algorithm could be (this is tested):  
-                import string
-                import sys
-                S = set(string.ascii_letters + string.digits)
-                out, word = [], []
-                s = open("pnp").read()
-                for c in s:
-                    if c in S:
-                        word.append(c)
-                    else:
-                        out.append(''.join(word))
-                        out.append(c)
-                        word = []
-                if ''.join(out) != s:
-                    print("NOT EQUAL")
-
-                    
-          token in 
-
-          First check if char is in string.ascii_letters because this will
-          be fast.  Then check for the following set:
-
-            žŽżŻźŹŸŷŶŵŴųŲűŰůŮŭŬūŪũŨŧŦťŤţŢšŠşŞŝŜśŚřŘŗŖŕŔőŐŏŎōŌŋŊŉňŇņŅńŃł
-            ŁŀĿľĽļĻĺĹĸķĶĵĴıİįĮĭĬīĪĩĨħĦĥĤģĢġĠğĞĝĜěĚęĘėĖĕĔēĒđĐďĎčČċĊĉĈćĆą
-            ĄăĂāĀÿþýüûúùøöõôóò ñðïîíìëêéèçæåäãâáàßÞÝÜÛÚÙØÖÕÔÓÒÑÐÏÎÍÌËÊÉ
-            ÈÇÆÅÄÃÂÁÀ
-
-        - Add a TokenSplit(token, seq) function that will split a token
-          into a list of subtokens.  If seq is a string, then it will be
-          split on any of the characters in the string.  Otherwise,
-          str.split() will have to be called with each sequence item.
-        - Add functions GetLeadingWhitespace() and GetTrailingWhitespace().
-          Allow a kw to let you define whitespace character set (default to
-          string.whitespace).
 
     - linkcheck.py
         - Utility to search a file for http links and see if they are still
@@ -482,6 +455,10 @@ Want
         - print(dedent(f''' This ''')) chops off the 'T'.
 
     - f.py
+        - Add __call__(n) which returns str() but with the .n attribute
+          temporarily changed to n.  This would be a handy shortcut, as the
+          majority of the time str() is needed and it avoids using a with
+          statement.
         - Another use case is variable scientific data.  For example, in
           /plib/rgb/chromaticity, the nimeroff.pdf paper in table 3 has
           data given from 6 to 2 significant figures.  It would be handy
@@ -1115,3 +1092,33 @@ Other
                 - clean:
                 -     @rm -f ${exe} ${exe}.stackdump *.o
 
+--------------------------------------------------------------------------------
+xmd Markdown
+
+    Markdown is a useful concept, but I find all of the markdown syntaxes
+    annoying and badly inconsistent (everyone writes their own syntax with
+    relatively small changes from others').  Should I write my own syntax,
+    falling prey to the same inconsistency desires?  My motivation would be tht
+    I get to define my own syntax to do the tasks I do a lot.
+
+    - Strategic
+        - What are fundamental use cases?
+        - What are output file types?
+        - What are needed formatting structures?
+
+    - All markup will be in 'fenced' areas, meaning a beginning and ending
+    string identify the fence.  
+        - Example:  The strings "≪" and "≫" provide left and right fences.
+        - A fundamental rule is that these strings ALWAYS mean a fence and
+        escaping them with a backslash has no special meaning.
+            - This is convenient for processing, as all markup can be found by
+            searching for these characters.
+                - regexp is re.compile(r"(≪.*≫)", re.M)
+            - A simple FSM can be had by reading each character.  When you
+            encounter ≪, you're in interpret_markup mode and when you
+            encounter ≫, you're in regular_text mode.
+        - If you want to use these character strings verbatim in your text, you
+        must define an alias for them.
+    - A fenced area starts with a keyword
+        - sub defines a substitution (it can call a python function if desired)
+        - '{' and '}' define python code blocks

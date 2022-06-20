@@ -17,31 +17,32 @@ HP Journal index constructed from the textual data at
     types of errors, it was clearly a manual process.
 
 '''
-if 1:  # Copyright, license
-    # These "trigger strings" can be managed with trigger.py
-    #∞copyright∞# Copyright (C) 2020 Don Peterson #∞copyright∞#
-    #∞contact∞# gmail.com@someonesdad1 #∞contact∞#
-    #∞license∞#
-    #   Licensed under the Open Software License version 3.0.
-    #   See http://opensource.org/licenses/OSL-3.0.
-    #∞license∞#
-    #∞what∞#
-    # HP Journal index
-    #∞what∞#
-    #∞test∞# #∞test∞#
-    pass
-if 1:   # Imports
-    import getopt
-    import os
-    import re
-    import subprocess
-    import sys
-    import textwrap
-    from collections import defaultdict, namedtuple
-    from pdb import set_trace as xx
-if 1:   # Custom imports
-    from wrap import dedent
-if 1:   # Global variables
+if 1:  
+    # Copyright, license
+        # These "trigger strings" can be managed with trigger.py
+        #∞copyright∞# Copyright (C) 2020 Don Peterson #∞copyright∞#
+        #∞contact∞# gmail.com@someonesdad1 #∞contact∞#
+        #∞license∞#
+        #   Licensed under the Open Software License version 3.0.
+        #   See http://opensource.org/licenses/OSL-3.0.
+        #∞license∞#
+        #∞what∞#
+        # HP Journal index
+        #∞what∞#
+        #∞test∞# #∞test∞#
+    # Imports
+        import getopt
+        import os
+        import re
+        import subprocess
+        import sys
+        import textwrap
+        from collections import defaultdict, namedtuple
+        from pdb import set_trace as xx
+    # Custom imports
+        from wrap import dedent
+        from color import TRM as t
+if 1:   # Data
     # Constructed by lines.py script Sun Nov  1 20:30:02 2020
     Article = namedtuple('Article', 'year month title subtitle authors pages volume number')
     data = [
@@ -3034,189 +3035,197 @@ if 1:   # Global variables
     Article('1949', '11', 'Design Notes on the Resistance-Capacity Oscillator Circuit (Part I)', '', ['Brunton Bauer'], '1-4', '1', '3'),
     Article('1949', '12', 'Design Notes on the Resistance-Capacity Oscillator Circuit (Part II)', '', ['Brunton Bauer'], '1-4', '1', '4'),
     ]
-def Error(*msg, status=1):
-    print(*msg, file=sys.stderr)
-    exit(status)
-def Usage(d, status=1):
-    print(dedent(f'''
-    Usage:  {sys.argv[0]} [options] [regex1 [regex2 ...]]
-      Search the HP Journal article information.  Use the options to
-      restrict the things to search.  One article is printed per line.
-    Options:
-      -a      Search author names only
-      -b      Brief report:  date and title only
-      -d      Dump all the data
-      -i      Don't ignore case in search
-      -l n    Limit the number of PDFs opened [default = {d["-l"]}]
-      -o      Open the PDFs matched by the search
-      -P      Print the estimated number of pages sorted by page count
-      -p      Print the estimated number of pages per issue (sorted by date)
-      -s      Search subtitles only
-      -t      Search titles only
-      -y n    Limit to years <= n
-      -Y n    Limit to years >= n
-    '''))
-    exit(status)
-def ParseCommandLine(d):
-    d["-a"] = False     # Search author names only
-    d["-b"] = False     # Brief report 
-    d["-d"] = False     # Dump all the data
-    d["-i"] = True      # Ignore case in search
-    d["-l"] = 5         # Limit number of PDFs to open
-    d["-o"] = False     # Open matched PDFs
-    d["-P"] = False     # Same as -p but sort by page count
-    d["-p"] = False     # Print the number of pages per issue and total
-    d["-s"] = False     # Search subtitles only
-    d["-t"] = False     # Search titles only
-    d["-w"] = False     # Wide output:  separated issues by blank line
-    d["-y"] = None      # Limit to years <= n
-    d["-Y"] = None      # Limit to years >= n
-    global data
-    if len(sys.argv) < 2:
-        Usage(d)
-    try:
-        opts, args = getopt.getopt(sys.argv[1:], "abdil:oPpstwy:Y:")
-    except getopt.GetoptError as e:
-        print(str(e))
-        exit(1)
-    for o, a in opts:
-        if o[1] in list("abdioPpstw"):
-            d[o] = not d[o]
-        elif o == "-l":
-            try:
-                d["-l"] = int(a)
-                if d["-l"] < 1:
-                    raise Exception()
-            except Exception:
-                Error(f"'{a}' must be integer > 0")
-        elif o == "-y":
-            d["-y"] = int(a)
-            if not (1949 <= d["-y"] <= 1998):
-                Error(f"'{a}' must be in [1949, 1998]")
-            # Filter out the unwanted dates
-            keep = []
-            for a in data:
-                if int(a.year) <= d["-y"]:
-                    keep.append(a)
-            data = keep
-        elif o == "-Y":
-            d["-Y"] = int(a)
-            if not (1949 <= d["-Y"] <= 1998):
-                Error(f"'{a}' must be in [1949, 1998]")
-            # Filter out the unwanted dates
-            keep = []
-            for a in data:
-                if int(a.year) >= d["-Y"]:
-                    keep.append(a)
-            data = keep
-        elif o in ("-h", "--help"):
-            Usage(d, status=0)
-    return args
-def GetArticleString(a):
-    y, m = int(a.year), int(a.month)
-    s = []
-    s.append(f"{y:4d}-{m:02d} ")
-    if a.title.startswith("Cover:"):
-        s.append(f"{a.title} ")
-    else:
-        s.append(f'"{a.title}", ')
-        if a.subtitle:
-            s.append(f"'{a.subtitle}', ")
-        if a.authors[0]:
-            s.append(f"by {', '.join(a.authors)}, ")
-        s.append(f"pg {a.pages.strip()}")
-    return ''.join(s)
-def GetPageCount(s):
-    '''s is a string of the forms '8', '8-10', '8-10:12', etc.  Parse it
-    into the individual numbers and return the highest number.
-    '''
-    if not s:
-        return 0
-    nums = [int(i) for i in s.replace("-", " ").replace(":", " ").split()]
-    return max(nums)
-def DumpPageCount(*articles):
-    '''Page count is gotten by finding the largest page number in the 
-    article's 'page' attribute.  The number of actual text pages will be
-    less because of the cover, table of contents, editor's comments,
-    etc. -- but it will be accurate enough to estimate the number of
-    pages that need to be indexed in that issue.
-    '''
-    issues = defaultdict(list)
-    print('''HP Journal page counts per issue
-    These counts are approximately the number of actual journal pages with
-    technical content; for later years, you'd want to remove the cover,
-    table of contents, etc.  But it should be a reasonable approximation.''')
-    # Fill dictionary with page counts per issue
-    for a in articles:
+if 1:   # Utility
+    def Error(*msg, status=1):
+        print(*msg, file=sys.stderr)
+        exit(status)
+    def Usage(d, status=1):
+        print(dedent(f'''
+        Usage:  {sys.argv[0]} [options] [regex1 [regex2 ...]]
+        Search the HP Journal article information.  Use the options to
+        restrict the things to search.  One article is printed per line.
+        Options:
+        -a      Search author names only
+        -b      Brief report:  date and title only
+        -d      Dump all the data
+        -i      Don't ignore case in search
+        -l n    Limit the number of PDFs opened [default = {d["-l"]}]
+        -o      Open the PDFs matched by the search
+        -P      Print the estimated number of pages sorted by page count
+        -p      Print the estimated number of pages per issue (sorted by date)
+        -s      Search subtitles only
+        -t      Search titles only
+        -y n    Limit to years <= n
+        -Y n    Limit to years >= n
+        '''))
+        exit(status)
+    def ParseCommandLine(d):
+        d["-a"] = False     # Search author names only
+        d["-b"] = False     # Brief report 
+        d["-c"] = False     # Use color in output
+        d["-d"] = False     # Dump all the data
+        d["-i"] = True      # Ignore case in search
+        d["-l"] = 5         # Limit number of PDFs to open
+        d["-o"] = False     # Open matched PDFs
+        d["-P"] = False     # Same as -p but sort by page count
+        d["-p"] = False     # Print the number of pages per issue and total
+        d["-s"] = False     # Search subtitles only
+        d["-t"] = False     # Search titles only
+        d["-w"] = False     # Wide output:  separated issues by blank line
+        d["-y"] = None      # Limit to years <= n
+        d["-Y"] = None      # Limit to years >= n
+        global data
+        if len(sys.argv) < 2:
+            Usage(d)
+        try:
+            opts, args = getopt.getopt(sys.argv[1:], "abcdil:oPpstwy:Y:")
+        except getopt.GetoptError as e:
+            print(str(e))
+            exit(1)
+        for o, a in opts:
+            if o[1] in list("abcdioPpstw"):
+                d[o] = not d[o]
+            elif o == "-l":
+                try:
+                    d["-l"] = int(a)
+                    if d["-l"] < 1:
+                        raise Exception()
+                except Exception:
+                    Error(f"'{a}' must be integer > 0")
+            elif o == "-y":
+                d["-y"] = int(a)
+                if not (1949 <= d["-y"] <= 1998):
+                    Error(f"'{a}' must be in [1949, 1998]")
+                # Filter out the unwanted dates
+                keep = []
+                for a in data:
+                    if int(a.year) <= d["-y"]:
+                        keep.append(a)
+                data = keep
+            elif o == "-Y":
+                d["-Y"] = int(a)
+                if not (1949 <= d["-Y"] <= 1998):
+                    Error(f"'{a}' must be in [1949, 1998]")
+                # Filter out the unwanted dates
+                keep = []
+                for a in data:
+                    if int(a.year) >= d["-Y"]:
+                        keep.append(a)
+                data = keep
+            elif o in ("-h", "--help"):
+                Usage(d, status=0)
+        # Set up colors
+        t.dt = t("yell") if d["-c"] else ""
+        t.ti = t("grnl") if d["-c"] else ""
+        t.au = t("magl") if d["-c"] else ""
+        t.nn = t.n if d["-c"] else ""
+        return args
+if 1:   # Core functionality
+    def GetArticleString(a):
         y, m = int(a.year), int(a.month)
-        key = f"{y:4d}-{m:02d}"
-        page_count = GetPageCount(a.pages)
-        issues[key].append(page_count)
-    # Make list of (date, page_count)
-    out = []
-    for i in issues.keys():
-        count = max(issues[i])
-        out.append((i, count))
-    if d["-P"]:
-        # Sort by page count
-        f = lambda x: x[1]
-        out = sorted(out, key=f)
-    else:
-        # Sort by date
-        out = sorted(out)
-    for dt, count in out:
-        print(f"{dt:7s} {count:3d}")
-    pages = sorted(list(set([i[1] for i in out])))
-    print(f"Total = {sum([i[1] for i in out])} pages")
-    print("Different page counts:")
-    s = textwrap.wrap(' '.join([str(i) for i in pages]), width=60)
-    for i in s:
-        print(f"    {i}")
-def Search(regex, results):
-    '''Return in the list results the integer index into data that has a
-    match to the regular expression regex.
-    '''
-    r = re.compile(regex, re.I) if d["-i"] else re.compile(regex)
-    for i, a in enumerate(data):
-        found = False
-        authors = ' '.join(a.authors)
-        if d["-a"]:
-            if r.search(authors):
-                results.append(i)
-                continue
-        elif d["-s"]:
-            if r.search(a.subtitle):
-                results.append(i)
-                continue
-        elif d["-t"]:
-            if r.search(a.title):
-                results.append(i)
-                continue
+        s = []
+        s.append(f"{y:4d}-{m:02d} ")
+        if a.title.startswith("Cover:"):
+            s.append(f"{a.title} ")
         else:
-            if r.search(' '.join((a.title, a.subtitle, authors))):
-                results.append(i)
-    return results
-def OpenArticles():
-    'Open the articles given by the dates in OpenArticles.list.'
-    dir = "d:/ebooks/hpj/"
-    for i in OpenArticles.list:
-        sp = subprocess.Popen(["app.exe", dir + i])
-OpenArticles.list = []  # Keeps track of files to open
-def PrintArticle(i):
-    s, a = [], data[i]
-    dt = f"{int(a.year):4d}-{int(a.month):02d}"
-    s.append(dt)
-    s.append(a.title)
-    if not d["-b"]:
-        if a.subtitle and not d["-t"]:
-            s.append("[" + a.subtitle + "]")
-        authors = ', '.join(a.authors)
-        if authors:
-            s.append("by " + authors)
-        s.append("pg " + a.pages)
-    print(', '.join(s))
-    if d["-w"]:
-        print()
+            s.append(f'"{a.title}", ')
+            if a.subtitle:
+                s.append(f"'{a.subtitle}', ")
+            if a.authors[0]:
+                s.append(f"by {', '.join(a.authors)}, ")
+            s.append(f"pg {a.pages.strip()}")
+        return ''.join(s)
+    def GetPageCount(s):
+        '''s is a string of the forms '8', '8-10', '8-10:12', etc.  Parse it
+        into the individual numbers and return the highest number.
+        '''
+        if not s:
+            return 0
+        nums = [int(i) for i in s.replace("-", " ").replace(":", " ").split()]
+        return max(nums)
+    def DumpPageCount(*articles):
+        '''Page count is gotten by finding the largest page number in the 
+        article's 'page' attribute.  The number of actual text pages will be
+        less because of the cover, table of contents, editor's comments,
+        etc. -- but it will be accurate enough to estimate the number of
+        pages that need to be indexed in that issue.
+        '''
+        issues = defaultdict(list)
+        print('''HP Journal page counts per issue
+        These counts are approximately the number of actual journal pages with
+        technical content; for later years, you'd want to remove the cover,
+        table of contents, etc.  But it should be a reasonable approximation.''')
+        # Fill dictionary with page counts per issue
+        for a in articles:
+            y, m = int(a.year), int(a.month)
+            key = f"{y:4d}-{m:02d}"
+            page_count = GetPageCount(a.pages)
+            issues[key].append(page_count)
+        # Make list of (date, page_count)
+        out = []
+        for i in issues.keys():
+            count = max(issues[i])
+            out.append((i, count))
+        if d["-P"]:
+            # Sort by page count
+            f = lambda x: x[1]
+            out = sorted(out, key=f)
+        else:
+            # Sort by date
+            out = sorted(out)
+        for dt, count in out:
+            print(f"{dt:7s} {count:3d}")
+        pages = sorted(list(set([i[1] for i in out])))
+        print(f"Total = {sum([i[1] for i in out])} pages")
+        print("Different page counts:")
+        s = textwrap.wrap(' '.join([str(i) for i in pages]), width=60)
+        for i in s:
+            print(f"    {i}")
+    def Search(regex, results):
+        '''Return in the list results the integer index into data that has a
+        match to the regular expression regex.
+        '''
+        r = re.compile(regex, re.I) if d["-i"] else re.compile(regex)
+        for i, a in enumerate(data):
+            found = False
+            authors = ' '.join(a.authors)
+            if d["-a"]:
+                if r.search(authors):
+                    results.append(i)
+                    continue
+            elif d["-s"]:
+                if r.search(a.subtitle):
+                    results.append(i)
+                    continue
+            elif d["-t"]:
+                if r.search(a.title):
+                    results.append(i)
+                    continue
+            else:
+                if r.search(' '.join((a.title, a.subtitle, authors))):
+                    results.append(i)
+        return results
+    def OpenArticles():
+        'Open the articles given by the dates in OpenArticles.list.'
+        dir = "d:/ebooks/hpj/"
+        for i in OpenArticles.list:
+            sp = subprocess.Popen(["app.exe", dir + i])
+    OpenArticles.list = []  # Keeps track of files to open
+    def PrintArticle(i):
+        s, a = [], data[i]
+        dt = f"{int(a.year):4d}-{int(a.month):02d}"
+        s.append(t.dt + dt + t.nn)
+        s.append(t.ti + a.title + t.nn)
+        if not d["-b"]:
+            if a.subtitle and not d["-t"]:
+                s.append("[" + a.subtitle + "]")
+            authors = ', '.join(a.authors)
+            if authors:
+                s.append("by " + t.au + authors + t.nn)
+            s.append("pg " + a.pages)
+        print(', '.join(s))
+        if d["-w"]:
+            print()
 if __name__ == "__main__":
     d = {}      # Options dictionary
     regexps = ParseCommandLine(d)

@@ -9,7 +9,7 @@ if 1:
  
 favorites = '''
 
-Beethoven's 7th, 2nd movement|sv2QnrCJNk0|
+Beethoven's 7th|Rw-KtQLdRT4|Bernstein & NY Philharmonic
 Beethoven's 9th, 2nd movement (1824)|iwIvS4yIThU|Genius
 Bad Romance|VCTOpdlZJ8U|PMJ & tap dancing (Sarah Reich) (singer is Telly Savalas' daughter)
 Catharsis (2013)|h3hlFAVV6aI|My beloved Sa-Sa|  Sally went to a fiddle camp in WA and learned this song.  When she returned, she said she knew I'd like it.  She was right, as it's my favorite fiddle song.
@@ -254,6 +254,7 @@ Beethoven: Für Elise|_mVW8tgGY_w|
 Beethoven: Moonlight Sonata|4Tr0otuiQuU|
 Beethoven's 9th|fRZaX6-dsn8|
 Beethoven's 5th|1lHOYvIhLxo|
+Beethoven's 5th|Zev0ran0iuU|NY Philharmonic
 Beethoven's 7th|W5NsPOgyALI|
 Dvorak:  New World Symphony (Dvorak's 9th 1893)|VuaTY3zHO8Q|London Symphony Orchestra
 New World Symphony and The Moldau|Qut5e3OfCvg|Slovak Philharmonic
