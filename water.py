@@ -249,7 +249,7 @@ if 1:   # Core functionality
               GetQuantity("1.2(1) in")
         '''
         try:
-            t, unit = ParseUnit(s)
+            q, unit = ParseUnit(s)
             conv = 1
             if unit:
                 conv = u(unit)
@@ -263,10 +263,10 @@ if 1:   # Core functionality
                         raise
                     except Exception:
                         raise ValueError("The unit in {s!r} is not recognized")
-            if isinstance(t, str):
-                return F.flt(t)*conv
+            if isinstance(q, str):
+                return F.flt(q)*conv
             else:
-                return t*conv       # t is a ufloat
+                return q*conv       # q is a ufloat
         except TypeError:
             raise
         except Exception:
@@ -422,13 +422,13 @@ if 1:   # Core functionality
         full pipe.  The input variables are:
             D   = hydraulic diameter.  For round pipe, it's the inside
                   diameter. (length units)
-            Re  = Reynolds number (dimensionless); must be >= 4000
+            Re  = Reynolds number (dimensionless)
             eps = pipe's roughness (length units)
         Examples:
             FrictionFactor(1, 1e6, 0.01) = 0.038
             FrictionFactor(1, 1e4, 0.1) = 0.10
         '''
-        assert(Re >= 4000)
+        assert(Re > 0)
         assert(D > 0)
         assert(rel_diff > 0)
         assert(eps >= 0)
