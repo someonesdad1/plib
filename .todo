@@ -51,24 +51,6 @@ Want
           sys.setrecursionlimit() to set things as you wish.
         - A similar function would let you determine the nesting depth of a
           sequence.
-        - The following code shows the maximum recursion limit of 5881
-          found for my system with python 3.7.10 (any larger value results
-          in a segmentation fault):
-
-            import atexit
-            import sys
-            sys.setrecursionlimit(5881)
-            print("Recursion limit =", sys.getrecursionlimit())
-            count = 2  # Nonzero value makes the count match the recursion limit
-            def F():
-                global count
-                count += 1
-            def R():
-                F();R()
-            def P():
-                print("count =", count)
-            atexit.register(P)
-            R()
 
     - lwtest.py
         - In ToDoMessage, add a keyword offset that lets you designate the

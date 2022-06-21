@@ -22,6 +22,7 @@ if 1:   # Header
         import re
         from pathlib import Path as P
         import sys
+        import threading
     # Custom imports
         from wrap import wrap, dedent
         from lwtest import run, raises, Assert, ToDoMessage
@@ -32,6 +33,7 @@ if 1:   # Header
         class g: pass
         g.type = None
         g.homogenous = False
+        g.lock = threading.Lock()
 if 1:   # Core functionality
     def IsHomogenous(x):
         if not g.homogenous:
@@ -115,6 +117,7 @@ if 1:   # Core functionality
         # Get the required type for testing homogeneity
         g.homogenous = homogenous
         if homogenous:
+            g.lock.acquire()
             item0 = seq[0]
             if ii(item0, (list, tuple)):
                 item0 = item0[0]
@@ -160,10 +163,10 @@ if 1:   # Core functionality
             print("  output sequence:")
             pp(output)
         # Reset the global variable
+        if homogenous:
+            g.lock.release()
         g.homogenous = False
         return output
-if 0:
-    exit()
 
 if __name__ == "__main__":
     if 1:   # Test code
@@ -181,7 +184,6 @@ if __name__ == "__main__":
             expected = [["abc"], [1]]
             Assert(Transpose(v) == expected)
         def TestColumnVector():
-            # One element
             v = [["abc"], [1]]
             expected = ["abc", 1]
             Assert(Transpose(v) == expected)
@@ -197,7 +199,7 @@ if __name__ == "__main__":
             m = [[1, 2, 3, 4], [5, 6, 7., 8]]
             expected = [[1, 5], [2, 6], [3, 7.], [4, 8]]
             Assert(Transpose(m) == expected)
-            # Works for tuples
+            # Also works for tuples
             m = tuple(tuple(i) for i in m)
             Assert(Transpose(m) == expected)
         def TestHomogeneity():
@@ -212,14 +214,16 @@ if __name__ == "__main__":
             # Note:  we use only lists because things like
             # [1, 2, [3]] != [1, 2, tuple([3])] even though they are equal 
             # from an element by element value comparison.
+            #
+            # Use a variety of types that would be typical of things seen in the real
+            # world
             import time
             import math
             from f import flt
             from decimal import Decimal
-            inv = lambda x: Transpose(Transpose(x)) == x
             # Vector
-            v = ["a", 1, 2, 3-3j, Decimal(math.pi)]
-            Assert(inv(v))
+            x = ["a", 1, 2, 3-3j, Decimal(math.pi)]
+            Assert(Transpose(Transpose(x)) == x)
             # Matrix
             start = time.time()
             class g:
@@ -229,11 +233,11 @@ if __name__ == "__main__":
                     return f"g({self.x})"
                 def __repr__(self):
                     return repr(str(self))
-            m = [
+            x = [
                 ["a", 1, 2., g()],
                 [1-1j, g(), g(), "glorp"]
             ]
-            Assert(inv(m))
+            Assert(Transpose(Transpose(x)) == x)
         def TestSize():
             for m in ([], tuple()):
                 Assert(Size(m) == (0, 0))
@@ -241,21 +245,20 @@ if __name__ == "__main__":
                 Assert(Size(m) == (1, 1))
             Assert(not Size(""))
             # Must get an exception if array not rectangular
-            m = [[1, tuple([1]), 3], 1]
+            m = [[1, tuple([1]), 3], 7]
             raises(TypeError, Size, m)
             m[1] = (4, 5, 6)
             Assert(Size(m) == (2, 3))
             # Transpose of a row vector is a column vector
             Assert(Transpose(Size(m)) == [[2], [3]])
         def TestIsIterable():
-            II = IsIterable
             # Things that are not iterables
             class c: pass
             for i in (None, {}, "", c(), range(1)):
-                Assert(not II(i))
+                Assert(not IsIterable(i))
             # Things that are iterables
             for i in (tuple(), []):
-                Assert(II(i))
+                Assert(IsIterable(i))
         def RunSelfTests():
             exit(run(globals(), halt=True)[0])
     if 1:   # Script

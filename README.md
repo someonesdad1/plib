@@ -122,7 +122,7 @@ Here are a few of the modules/scripts I use a lot.
 * pgm/prun.py
     - I use this to develop python scripts in a terminal window.  When the
       script's modification time changes by saving the script in the editor
-      window (a diffent terminal window), the script is run, allowing you
+      window (a different terminal window), the script is run, allowing you
       to see the results without leaving your editor window.  This is handy
       when using short output messages when debugging functionality, as you
       can see everything on the screen.  It also has an option to launch a
