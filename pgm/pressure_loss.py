@@ -1,6 +1,5 @@
 '''
-Print tables for the pressure drop and velocity through standard US pipe
-sizes for PVC and steel pipes.
+Print table for the pressure drops through pipes
 
 Quick validation 21 Jun 2022
     Table at https://www.irrigationtutorials.com/pipe-and-tube-pressure-loss-tables/
@@ -36,13 +35,14 @@ if 1:  # Header
         import math
     # Custom imports
         from wrap import dedent
-        from u import u
+        from color import TRM as q
+        from u import u, ParseUnit
         from f import flt
-        use_sig = False
-        if use_sig:
-            from sig import sig
         from water import FrictionFactor, WaterDensity, WaterDynamicViscosity
         from water import GetQuantity
+        if 0:
+            import debug
+            debug.SetDebugger()
     # Global variables
         # Allowed fluid velocities in m/s
         velocities = [flt(round(flt(x), 3)) for x in '''
@@ -79,6 +79,11 @@ if 1:  # Header
             "20": 18820,
             "24": 22620,
         }
+        # Colors
+        con = sys.stdout.isatty()
+        q.ti = q("ornl") if con else ""
+        q.hi = q("trq") if con else ""
+        q.nn = q.n if con else ""
 if 1:   # Utility
     def InterpretFraction(s):
         '''Interprets the string s as a fraction.  The following are
@@ -113,101 +118,99 @@ if 1:   # Utility
     def Error(*msg, status=1):
         print(*msg, file=sys.stderr)
         exit(status)
-    def Usage(d, status=1):
+    def Usage(status=1):
         name = sys.argv[0]
         degC = d["-t"]
         punit = d["-p"]
         l = d["-l"]
         print(dedent(f'''
         Usage:  {name} [options] size
-        Prints a table of pressure loss due to friction for a pipe full of
-        fluid (defaults to water) flowing at the indicated velocity.  The pipe
-        size is the conventional inch-sized US pipe size such as 3/4, 1,
-        1-1/4, etc.  If size does not designate a US inch-sized pipe, then the
-        size is interpreted in inches unless a unit is given.
-        
-        You can include commonly-used units with numbers; for example, specify
-        the pipe length as 100 feet by -l '100 ft'.
-        
-        The output columns are for the following roughnesses in um:
-            PVC (plastic, brass, copper, glass, etc.)       5
-            Steel                                          45
-            Galvanized steel                              150
-            Corroded steel                               1000
+          Prints a table of pressure loss due to friction for a pipe full of
+          fluid (defaults to water) flowing at the indicated velocity.  The pipe
+          size is the conventional inch-sized US pipe size such as 3/4, 1,
+          1-1/4, etc.  If size does not designate a US inch-sized pipe, then the
+          size is interpreted in inches unless a unit is given.
+          
+          You can include commonly-used units with numbers; for example, specify
+          the pipe length as 100 feet by -l '100 ft'.
+          
+          The output columns are for the following roughnesses in μm:
+              PVC (plastic, brass, copper, glass, etc.)       5
+              Steel                                          45
+              Galvanized steel                              150
+              Corroded steel                               1000
         Examples:
-            {name} 1
-                prints data for US 1 inch pipe (1.049 inches ID)
-            {name} 1 inch
-                prints data for a pipe with 1 inch ID
+            {name} 1-1/14
+                prints data for US 1¼ inch pipe (1.38 inches ID)
+            {name} 4.2 cm
+                prints data for a pipe with 4.2 cm ID
         Options:
           -d d  Specify the fluid's density (default units are kg/m3).  Must
                 be used with -v option.
-          -f    Show a larger range of fluid velocities (the default is the most
-                common design range).
-          -i    size is the pipe inside diameter in inches (i.e., don't interpret
-                in terms of standard US pipe sizes).
-          -l l  Specify the length of the pipe to calculate the pressure 
-                drop.  [Default = {l}]
-          -m    size is the pipe inside diameter in mm
-          -n n  Number of significant figures
-          -p p  Specify the pressure unit to use for output.  The default
-                is {punit}.
-          -t C  Water temperature in degrees C. [Default = {degC}]
+          -f    Show 0.1-10 m/s
+          -F    Show 0.1-100 m/s
+          -l l  Length of pipe [{l}]
+          -n n  Number of significant figures [{d['-n']}]
+          -p p  Specify the pressure unit to use for output [{punit}]
+          -t C  Water temperature in degrees C. [{degC}]
           -v v  Specify the fluid's viscosity (default units are Pa*s).  Must
                   be used with -d option.
         '''))
         exit(status)
-    def ParseCommandLine(d):
+    def ParseCommandLine():
+        # Set up flt string interpolation
+        x = flt(0)
+        x.n = 2
+        x.rtz = x.rtdp = True
+        x.low = 1e-3
+        x.high = 1e4
         d["-d"] = None      # Fluid density in kg/m3
-        d["-F"] = False     # Show double velocity range
-        d["-f"] = False     # Show full velocity range
-        d["-i"] = False     # Interpret arg[0] as ID in inches
+        d["-F"] = False     # Show 0.1-100 m/s velocity range
+        d["-f"] = False     # Show 0.1-10 m/s velocity range
         d["-l"] = "100 m"   # Length of pipe
-        d["-m"] = False     # Metric size
         d["-n"] = 2         # Number of significant figures
         d["-p"] = "kPa"     # Pressure units
-        d["-s"] = False     # Limit velocities
-        # Note:  the following temperature for water was chosen as it is the
-        # measured temperature of the water from my home's faucets.
-        d["-t"] = flt(13)   # Water temperature in degrees C
+        # Note:  the following temperature for water is approximately our
+        # tap water and ditch water temperature
+        d["-t"] = flt(15)   # Water temperature in degrees C
         d["-v"] = None      # Fluid dynamic viscosity in Pa*m
         d["special"] = False    # Flags special density & viscosity
         if len(sys.argv) < 2:
-            Usage(d)
+            Usage()
         try:
-            opts, args = getopt.getopt(sys.argv[1:], "d:Ffil:mn:p:t:v:")
+            opts, args = getopt.getopt(sys.argv[1:], "d:Ffl:n:p:t:v:")
         except getopt.GetoptError as e:
             print(str(e))
             exit(1)
         for o, a in opts:
-            if o[1] in "Ffims":
+            if o[1] in "Ff":
                 d[o] = not d[o]
-            if o in ("-d",):
+            if o == "-d":
                 try:
                     err = "'{}' isn't a valid density"
                     d["-d"] = GetQuantity(a, err, dim=u.dim("kg/m3"))
                     d["special"] = True
                 except Exception as e:
                     Error(str(e))
-            elif o in ("-l",):
+            elif o == "-l":
                 d["-l"] = a
-            elif o in ("-p",):
+            elif o == "-p":
                 d["-p"] = a
-            elif o in ("-n",):
+            elif o == "-n":
                 try:
                     d["-n"] = int(a)
                 except Exception:
                     Error(f"'{a}' is not a valid integer")
                 if not (1 <= d["-n"] <= 15):
                     Error("-n option must be between 1 and 15")
-            elif o in ("-t",):
+            elif o == "-t":
                 try:
                     d["-t"] = flt(a)
                 except Exception:
                     Error(f"'{a}' is not a valid temperature in deg C")
                 if not (0 <= d["-t"] <= 100):
                     Error("Temperature must be between 0 and 100 deg C")
-            if o in ("-v",):
+            if o == "-v":
                 try:
                     err = "'{}' isn't a valid dynamic viscosity"
                     d["-v"] = GetQuantity(a, err, dim=u.dim("Pa*s"))
@@ -223,21 +226,29 @@ if 1:   # Utility
             d["-v"] = flt(WaterDynamicViscosity(d["-t"]))
         SetFluidVelocities(d)
         if len(args) < 1:
-            Usage(d)
+            Usage()
+        x.n = d["-n"]
         return ' '.join(args)
 if 1:   # Core functionality
-    def GetDiameter(dia, d):
+    def GetSI(s, units="inches"):
+        'Return argument in SI units'
+        x, un = ParseUnit(s)
+        val = flt(x)
+        try:
+            val *= u(un) if un else u(units)
+        except TypeError:
+            Error(f"{un!r} is an unrecognized unit")
+        return val
+    def GetDiameter(dia):
         '''Return the pipe inside diameter in m.  
         '''
         if dia in US_pipe_sizes:
             return flt(ID_steel_sch_40[dia]/1000*0.0254)
         else:
-            # The default unit is inches; see if we can convert to a flt.
-            try:
-                d = flt(dia)
-                return d*u("inches")
-            except ValueError:
-                return flt(GetQuantity(dia, dim="m"))
+            d = GetSI(dia)
+            if d < 0.001:
+                Error("Inside diameter needs to be 1 mm or larger")
+            return d
     def SetFluidVelocities(d):
         '''The normal range of fluid velocities for practical problems is
         about 0.5 to 3 m/s.  Using the -f option extends this to 0.1 to 10
@@ -259,6 +270,7 @@ if 1:   # Core functionality
         rho, mu, l = d["-d"], d["-v"], d["-l"]
         L = GetQuantity(l)
         pressure_unit = d["-p"]
+        highlight = (0.5, 1, 1.5, 2)
         print(dedent(f'''
                  Volumetric     Mass         Pressure drop, {pressure_unit}/{l}
          Vel       flow         flow               --------- Steel ----------
@@ -268,70 +280,57 @@ if 1:   # Core functionality
         for v in velocities:
             D, Q = flt(diameter_m), flt(A*v)
             Re = flt(rho*v*diameter_m/mu)       # Reynolds number
-            if use_sig:
-                v_mps = sig(v)
-                Q_Lps = sig(A*v/u("L/s"))
-                Q_gpm = sig(A*v/u("gpm"))
-                m_kgps = sig(A*v*rho)
-            else:
-                v_mps = str(v)
-                Q_Lps = str(A*v/u("L/s"))
-                Q_gpm = str(A*v/u("gpm"))
-                m_kgps = str(A*v*rho)
+            v_mps = str(v)
+            Q_Lps = str(A*v/u("L/s"))
+            Q_gpm = str(A*v/u("gpm"))
+            m_kgps = str(A*v*rho)
             n = 7
-            print(f"{v_mps:^6s} {Q_Lps:^{n}s} {Q_gpm:^{n}s} {m_kgps:^{n}s}", end="")
+            a = q.hi if v in highlight else ""
+            b = q.nn if v in highlight else ""
+            print(f"{a}{v_mps:^6s} {Q_Lps:^{n}s} {Q_gpm:^{n}s} {m_kgps:^{n}s}", end="")
             f_pvc = FrictionFactor(D, Re, 5*u("um"))          # PVC 
             f_steel = FrictionFactor(D, Re, 45*u("um"))
             f_galv = FrictionFactor(D, Re, 150*u("um"))       # Galvanized steel
             f_corroded = FrictionFactor(D, Re, 1000*u("um"))  # Corroded steel
             # Calculate pressure loss in Pa per 100 m of length
-            digits = 2      # Two significant figures reflect the uncertainties
             dp = flt(0.5*(L/D)*rho*v**2)
-            if use_sig:
-                dp_pvc = sig(f_pvc*dp/u(pressure_unit), digits)
-                dp_steel = sig(f_steel*dp/u(pressure_unit), digits)
-                dp_galv = sig(f_galv*dp/u(pressure_unit), digits)
-                dp_corroded = sig(f_corroded*dp/u(pressure_unit), digits)
-            else:
-                dp_pvc = str(f_pvc*dp/u(pressure_unit))
-                dp_steel = str(f_steel*dp/u(pressure_unit))
-                dp_galv = str(f_galv*dp/u(pressure_unit))
-                dp_corroded = str(f_corroded*dp/u(pressure_unit))
+            dp_pvc = str(f_pvc*dp/u(pressure_unit))
+            dp_steel = str(f_steel*dp/u(pressure_unit))
+            dp_galv = str(f_galv*dp/u(pressure_unit))
+            dp_corroded = str(f_corroded*dp/u(pressure_unit))
             n = 7
             print(f"  {dp_pvc:^{n}s}   {dp_steel:^{n}s}   {dp_galv:^{n}s}   "
-                  f"{dp_corroded:^{n}s}")
+                  f"{dp_corroded:^{n}s}{b}")
         print(dedent('''
         Conversions:
-          m/s = 3.28 ft/s       kg/s = 2.20 lbm/s       kPa = 0.145 psi
-          1 m water = 9.81 kPa = 1.42 psi   1 ft water = 0.434 psi = 2.99 kPa'''))
+          m/s = 3.3 ft/s       kg/s = 2.2 lbm/s       kPa = 0.14 psi
+          1 m water = 9.8 kPa = 1.4 psi   1 ft water = 0.43 psi = 3.0 kPa
+        Recommended velocities in m/s:
+          Tap water:  1-2.5 (0.5-0.7 for low noise), Cooling water:  1.5-2.5
+          Heating water:  1-3,  Irrigation water:  1.5
+        '''))
+          
+    def PrintReport(diameter_m):
+        title = f"{q.ti}Friction pressure drops for"
+        if dia in US_pipe_sizes:
+            print("{} {} inch US pipe ({:.3f} inches ID){}".format(
+                title, dia, ID_steel_sch_40[dia]/1000, q.nn))
+        else:
+            if diameter_m >= 1:
+                print(f"{title} {dia} ID pipe (= {diameter_m} m){q.nn}")
+            else:
+                print(f"{title} {dia} ID pipe (= {1000*diameter_m} mm){q.nn}")
+        name = "Fluid"
+        if not d["special"]:
+            print(f"Water at {d['-t']} deg C = {d['-t']*1.8 + 32} deg F")
+            name = " "
+        x = flt(0)
+        with x:
+            x.n = 4
+            print(f"{name} density = {d['-d']} kg/m3, dynamic viscosity = {1000*d['-v']} mPa*s\n")
+        PrintTable(diameter_m, d)
 if __name__ == "__main__":
     d = {}      # Options dictionary
-    dia = ParseCommandLine(d)
-    if use_sig:
-        sig.rtz = sig.rlz = sig.rdp = True
-        sig.low = 1e-3
-    else:
-        x = flt(0)
-        x.n = d["-n"]
-        x.rtz = x.rtdp = True
-    diameter_m = flt(GetDiameter(dia, d))
-    title = "Friction pressure drops for"
-    if dia in US_pipe_sizes:
-        print("{} {} inch US pipe ({:.3f} inches ID)".format(
-            title, dia, ID_steel_sch_40[dia]/1000))
-    else:
-        print("{} {} ID pipe".format(title, dia))
-    name = "Fluid"
-    if not d["special"]:
-        if use_sig:
-            print("Water at {} deg C = {} deg F".format(sig(d["-t"]),
-                sig(d["-t"]*1.8 + 32)))
-        else:
-            print(f"Water at {d['-t']} deg C = {d['-t']*1.8 + 32} deg F")
-        name = " "
-    if use_sig:
-        print("{} density = {} kg/m3, dynamic viscosity = {} mPa*s\n".format(
-            name, sig(d["-d"], 6), sig(1000*d["-v"], 4)))
-    else:
-        print(f"{name} density = {d['-d']} kg/m3, dynamic viscosity = {1000*d['-v']} mPa*s\n")
-    PrintTable(diameter_m, d)
+    dia = ParseCommandLine()
+    diameter_m = flt(GetDiameter(dia))
+    PrintReport(diameter_m)

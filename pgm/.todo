@@ -7,6 +7,7 @@ Active
           below to get things wrapped to a specific width.
         - Add --test option and make it a command line tool for text files.
         - Default splitting of lines for fields is str.split()
+        - Need to handle cases like table in pl program's output
         - Options
             - -c specifies the starting string
             - --csv Parse as a CSV file
@@ -62,8 +63,6 @@ Want
         - Colorize some key items.  Use colors similar to char.
         - Show hex and decimal in different colors.
         - Fix the annoying display hiccup at 0x7f.
-
-    - Fix pl command (missing modules)
 
     - get.py
         - For ignore keyword, let it be either a string or a compiled
@@ -515,6 +514,9 @@ Want
           might be to simply insert the equivalent number with a
           multiplication sign on the right when it's encountered; this
           should evaluate OK with python's parser.
+        - The u.py script should handle pressure units like inh2o or inH2O
+          because they are used fairly often.  It will need some special
+          handling because the strings contain digits.
 
     - module_dependencies.py
         - Is it necessary?  It needs to be rewritten to accommodate /plib.  The tools and

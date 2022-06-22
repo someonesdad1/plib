@@ -389,9 +389,9 @@ if 1:   # Core functionality
 
         The Colebrook equation is an implicit phenomenological equation
         that fits the experimental data of turbulent flow in pipes.  Its
-        _form_ is 
+        functional form is 
 
-            a = -2*log(eps/D + a/Re)
+            a = log(eps/D + a/Re)
 
         where a is 1/sqrt(f), D is the hydraulic diameter, and Re is the
         Reynolds number, assumed > 4000.  Note numerical constants were
@@ -413,7 +413,8 @@ if 1:   # Core functionality
             count += 1
             f = F.flt(0.25/(F.log10(eps/(3.7*D) + 2.51/(Re*F.sqrt(f0))))**2)
             if abs((f - f0)/f0) < rel_diff:
-                assert 0.001 <= f <= 1, "f = " + str(f)   # Practical bounds
+                if not (0.001 <= f <= 1):
+                    raise ValueError(f"Friction factor of {f} is outside practical bounds")
                 return f
             f0 = f
         raise ValueError("Exceeded allowed number of iterations")
@@ -433,7 +434,7 @@ if 1:   # Core functionality
         assert(rel_diff > 0)
         assert(eps >= 0)
         if eps > D:
-            raise ValueError(f"eps = {eps} m is larger than pipe diameter")
+            raise ValueError(f"eps = {F.flt(eps)} m is larger than pipe diameter")
         re1, re2, lam = 2300, 4000, lambda Re: 64/Re
         if Re < re1:                # Laminar flow
             return F.flt(lam(Re))
