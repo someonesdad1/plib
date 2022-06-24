@@ -6,6 +6,8 @@
               interpolation is pleasant and 2) math stuff is in scope.
             - The addition of units made the class too clumsy and bloated.
             - My overwhelming use case is to just see things to 3 figures.  
+        - Why is performance an order of magnitude worse than sig.py?  See
+          note in .todo.
         - flt('inf') and flt('nan') need to work
             - _sci() and other stuff need to handle inf
         - Needs a rlz attribute to remove leading zero
@@ -31,6 +33,8 @@
             - The context manager behavior is useful for special situations
             - What should happen with arithmetic?  Probably the result
               should have min(x1.n, x2.n).
+            - Possible:  let .N change the class variable, let .n change
+              only the instance variable.
  
     TODO
     

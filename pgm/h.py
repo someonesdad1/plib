@@ -1,4 +1,8 @@
 '''
+ToDo
+    - 'H P d' removes d from list
+    - 'H .' goes to a constant directory (probably /plib)
+
 Script to aid the H() shell function in getting the required directory.
 '''
 if 1:   # Header
@@ -50,7 +54,6 @@ def Usage(status=1):
 def ParseCommandLine(d):
     d["-c"] = P("/home/Don/.curdir")
     d["-d"] = False
-    d["-e"] = False
     d["number"] = 1
     try:
         opts, args = getopt.getopt(sys.argv[1:], "c:deh")
@@ -70,6 +73,7 @@ def ParseCommandLine(d):
         Usage()
     return args
 def DumpConfigFile(start=None, end=None):
+    'start and end can be colorizing strings'
     if start is not None:
         print(start, end="")
     if lines:
@@ -91,6 +95,7 @@ def GetLines():
     if d["-d"]:
         DumpConfigFile(start=t.c, end=t.n)
     return keep
+
 if __name__ == "__main__":
     d = {}      # Options dictionary
     args = ParseCommandLine(d)
@@ -100,16 +105,21 @@ if __name__ == "__main__":
     if not lines and cmd != "p":
         print(f"Config file '{d['-c']}' is empty")
         exit(1)
-    if cmd == "e":
+    if cmd == "e":      # Edit config file
         Edit(d["-c"])
-    elif cmd == "g":
-        n = int(arg)
-        if n < 0:
-            n = 0
-        if n >= len(lines):
-            raise ValueError(f"Line number '{n}' out of range")
-        print(lines[n])
-    elif cmd == "p":
+    elif cmd == "g":    # Show line n (0-based)
+        if arg == ".":
+            print("/plib")
+        elif arg == "..":
+            print("/plib/pgm")
+        else:
+            n = int(arg)
+            if n < 0:
+                n = 0
+            if n >= len(lines):
+                raise ValueError(f"Line number '{n}' out of range")
+            print(lines[n])
+    elif cmd == "p":    # Push the arg into the directory stack
         if len(args) == 1:
             raise ValueError("Need a directory")
         dir, p = arg, P(arg)
@@ -117,10 +127,10 @@ if __name__ == "__main__":
             raise ValueError("'{p}' doesn't exist")
         lines.insert(0, str(p.resolve()))
         open(d["-c"], "w").write('\n'.join(lines))
-    elif cmd == "l":
+    elif cmd == "l":    # List the config file
         for i, line in enumerate(lines):
             t.print(f"  {t.c}{i}:  {line}")
-    elif cmd == "h":
+    elif cmd == "h":    # Help
         print(dedent(f'''
         e       Edit the config file
         g n     Go to line n (n is an integer >= 0)

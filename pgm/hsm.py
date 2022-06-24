@@ -106,7 +106,7 @@ if 1:   # Global variables
     ! HTIM-"Hey Tim, I gotta tell ya..."
     ! TMBR#n-The Machinist's Bedside Reader #1, 2, or 3
     !************************************************************************************************
-    
+
     "Floating" End Mill Sharpener Part 1, 2	DUCLOS, PHILIP	HSM'87:S/O20,N/D38
     "Quickie" Reamer, A	HOFF, MIKE 	MW Jun. 99, 41
     "Slow Poke" Small Keyway Broach	DUCLOS, PHILIP	HSM'85:S/O22
@@ -2655,7 +2655,7 @@ if 1:   # Global variables
     Ram Tailstock, A	CLARKE, THEODORE M.	PiM-Dec.'88,11
     Ramming the Mold for a Metal Casting	LEWIS, JAMES R.	HSM'84:S/O46
     Random Orbital Sander	CROW, ARTHUR	PiM Dec. '97 26
-    Rapid Machine Tapping Drillpress	ROUBAL, WM. T. (TED}, Ph.D.	HSM'84:M/J20
+    Rapid Machine Tapping Drillpress	ROUBAL, WM. T. (TED), Ph.D.	HSM'84:M/J20
     Reaching the Unreachable		PiM-Dec.'91,24
     Reader Survey Report	HALL	MEW#20,62
     Reader Survey Report	HALL	MEW#9,18
@@ -3796,6 +3796,7 @@ if 1:   # Global variables
         "PiM    Projects in Metal",
         "TMBR   The Machinist's Bedside Reader #1, #2, or #3",
     )
+
     # File:  Machinists_Workshop_Article_Index.csv Downloaded Mon 17 Feb
     # 2020 07:49:09 PM from
     # http://www.machinistsworkshop.net/resources/article-index/.  MD5 hash
@@ -8452,7 +8453,8 @@ def GetData():
     ProcessVP(vp2)
     return seq
 def Usage(d, status=1):
-    print(dedent('''
+    name = sys.argv[0]
+    print(dedent(f'''
     Usage:  {name} [options] [regex1 [regex2 ...]]
       Search metalworking titles for regular expressions.  Note the datasets
       have overlap, so you'll see multiple references to the same article.

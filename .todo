@@ -1,12 +1,14 @@
-xmd Markdown notes
-
 Active
+
+xxy tabulate
     
     - transpose.py
         - This may be the basis of a text table tool along with wrap.py
           below to get things wrapped to a specific width.
         - Add --test option and make it a command line tool for text files.
         - Default splitting of lines for fields is str.split()
+        - Need to handle cases like table in pl program's output where one
+          row spans multiple columns.
         - Options
             - -c specifies the starting string
             - --csv Parse as a CSV file
@@ -63,8 +65,6 @@ Want
         - Show hex and decimal in different colors.
         - Fix the annoying display hiccup at 0x7f.
 
-    - Fix pl command (missing modules)
-
     - get.py
         - For ignore keyword, let it be either a string or a compiled
           regular expression.  This lets you choose the options you want,
@@ -72,9 +72,11 @@ Want
         - Since I use GetLines the most, include the explanation of what
           thing means also.
 
-    - Need to write a regression.py module that doesn't need numpy or
-      scipy.  Base it on the stuff in /pylib/regression.py and test it with
-      the NIST corner cases.  Input variables should be Decimal objects.
+    - regression.py
+        - Need to write a regression.py module that doesn't need numpy or
+          scipy.  Base it on the stuff in /pylib/regression.py and test it
+          with the NIST corner cases.  Input variables should be Decimal
+          objects.
 
     - bd.py
         - Replace the C program, as python is more than fast enough
@@ -121,7 +123,7 @@ Want
               layer would show valves, sprinklers, pump, wires.  Etc.
         - This survey would get archived on github so it can't be lost
 
-    - /pylib/pgm/ts/ts.py
+    - ts.py
         - Import to /plib
 
     - help
@@ -168,14 +170,6 @@ Want
           without calling getattr().  The stated purpose is to retrieve
           attributes without triggering dynamic lookup.
 
-    - inspect.getcomments() on an object returns the comments before the
-      object.  Since I never put comments before my functions, this could
-      be a good way to mark python files with todo tasks.  Would it work on
-      nested functions (no, the symbol isn't visible)?  Still, you'd just
-      search for '^\s*def +[A-Za-z_]()' and call the inspect function; if
-      you don't get an exception, there's your result.  Then a td command
-      could be used to print out the todo items for a group of files.
-
     - /pylib/pgm/xyz.py
         - This is a significant enough script that it should be tested and
           moved into /plib/pgm if it warrants.  Then add back to hu.
@@ -187,9 +181,6 @@ Want
     - linkcheck.py
         - Utility to search a file for http links and see if they are still
           accessible.
-
-    - Write a script that recursively finds broken soft links (links that
-      don't point to a valid file).
 
     - dbl.py (pgm/rbl.py)
         - Delete blank lines in a file
@@ -331,20 +322,6 @@ Want
           temperature in °F.  An option can change the final temperature,
           which defaults to 70 °F. 
 
-    - pysh
-        - A python shell.  This could be core C code that provides the fast
-          implementations of things a shell needs.  Then python would be
-          bundled with this as a scripting language.  This lets users write
-          scripts that do shell functionality, as the interface would be to
-          python commands with the proper syntax.
-        - https://libraries.io/pypi/pysh-lib might be worth taking a look at.
-
-    - pkg.py
-        - Given a set of files to put into a package (zip file), analyze
-          the thing for C/C++ and python files that are dependencies and
-          include them in the zip file.  This would allow me to share
-          things with others.
-
     - Common keypresses
         - Two of the most common keypresses are ctrl-C and ctrl-V.  These
           should be assigned to a single easy to access keypress.
@@ -377,14 +354,11 @@ Want
             - String interpolation only shows a given number of significant
               figures
             - The instances are context managers, allowing code like
-
-                with x:
-                    x.n += 3
-                    print(x)
-
-              to let you change the number of digits as needed.  Or, define
+                - with x:
+                    - x.n += 3
+                    - print(x)
+                - to let you change the number of digits as needed.  Or, define
               a __call__(self, n=None) to do this without needing a lock.
-            
             - Infection model
                 - Need a strict attribute in Base.  If True, interoperation
                   with Fractions or floats for dec or dpx is not allowed
@@ -429,11 +403,9 @@ Want
         - For wrap(), it would be nice to have a simple syntax for lines
           that should be left verbatim.  Maybe a leading '.' would do it.
           This lets you e.g. have header lines in a manpage like 
-
-            .This is a section title
-            .-----------------------
-
-          and they get left alone.
+            - .This is a section title
+            - .-----------------------
+            - and they get left alone.
         - print(dedent(f''' This ''')) chops off the 'T'.
 
     - f.py
@@ -503,27 +475,18 @@ Want
             a = cpx(1+1j, units="m")
             Then in debugger, both a==b and a!=b are False
 
+    - u.py
+        - The u.py script should handle pressure units like inh2o or inH2O
+          because they are used fairly often.  It will need some special
+          handling because the strings contain digits.
+
     - geom_prim.py
         - Update properties to modern syntax, utilize matrix.py for
           determinants, as this would remove dependency on numpy.
 
-    - u.py and f.py
-        - A notation for using SI prefixes could be to use something like
-          μ(N*s/m^2).  This might not be acceptable SI syntax, but it would
-          be understandable by anyone and I should use it if the tokenizer
-          in the u.py script can be made to utilize it.  A way to do this
-          might be to simply insert the equivalent number with a
-          multiplication sign on the right when it's encountered; this
-          should evaluate OK with python's parser.
-
     - module_dependencies.py
         - Is it necessary?  It needs to be rewritten to accommodate /plib.  The tools and
           programs need to be moved in first.  
-
-    - sig.py
-        - Is a mess of code.  Is it really all needed?  Maybe it would be
-          best to move the key stuff to flt and cpx.  It can still be kept
-          around for when it's needed.
 
     - git
         - 187 Mercurial repositories on my system
@@ -546,17 +509,6 @@ Want
         - Moved 30 GB of stuff or so from c:/ to d:/
         - C:  110 GB, 72 used, 39 free 65%
         - D:  223 GB, 129 used, 93 free 58%
-
-    - H function
-        - I use this thing a lot, so figure out how to get
-            - 'H e' edits config file
-            - 'H n' goes to item n in list
-            - 'H p d' pushes dir d
-            - 'H P d' pops dir d
-            - 'H .' goes to a defined primary directory (e.g. /plib)
-            - 'H [h|?]' shows help
-        - Since the top level has to be a shell function, make it call the
-          python script and the script returns the needed command to stdout.
 
     - sz.py
         - Add -s option to sort by size
@@ -614,7 +566,6 @@ Want
           would be nice if this information is regular enough to allow
           scraping to get a database.
 
---------------------------------------------------------------------------------
 Other
     -NAS
         - Current storage
@@ -706,19 +657,18 @@ Other
               Three of these provide a 2 GB RAID-Z1 drive.
 
     - Magnet game
-
-        This was an idea Wayne and I had in 2007 and we went so far as to build
-        a mechanical prototype.  See /tools/magnet_game.  While this might be a
-        mechanical toy that could sell, it would be complicated to make.  
-
-        It would be more interesting to simulate on a computer.  I found that a
-        Runge-Kutta solution of the EOM seemed to work pretty well; a major
-        conclusion was that the number of iterations per step needed didn't
-        dramatically increase as the number of interacting dipoles increased.
-
-        This would be particularly fun in 3D with e.g. some virtual reality
-        goggles.  Or see if the MacBook could render things fast enough for a
-        stereo view.
+        - This was an idea Wayne and I had in 2007 and we went so far as to
+          build a mechanical prototype.  See /tools/magnet_game.  While
+          this might be a mechanical toy that could sell, it would be
+          complicated to make.  
+        - It would be more interesting to simulate on a computer.  I found
+          that a Runge-Kutta solution of the EOM seemed to work pretty
+          well; a major conclusion was that the number of iterations per
+          step needed didn't dramatically increase as the number of
+          interacting dipoles increased.
+        - This would be particularly fun in 3D with e.g. some virtual
+          reality goggles.  Or see if the MacBook could render things fast
+          enough for a stereo view.
 
     - Mac stuff
         - Will be $2k 14" Macbook Pro with 16 GB RAM and 0.5 TB SSD
@@ -938,11 +888,6 @@ Other
               "Open using Rosetta" button to force it to use Rosetta.  This may
               make the plug in (or extension or add-on) start working.  See
               https://support.apple.com/en-us/HT211861.
-        - Windows emulation on Mac
-            - https://macpaw.com/how-to/best-windows-emulator-mac
-            - Parallels Desktop $100, 600 MB for install (explicitly says it
-              runs on M1 Pro hardware)
-            - Only run on Intel hardware:  VirtualBox, VMware Fusion
         - Get copy of Apple Human Interface Guidelines (referenced at
           acknowledgments at end of Snow Crash).  Apparently, it's only a
           simplified web page treatment, not a detailed programming manual.
@@ -979,128 +924,69 @@ Other
             - Build a simulator with the FSM and have it present a web page
               interface
 
-    - make replacement
-        - https://en.wikipedia.org/wiki/List_of_build_automation_software lists
-          a lot of stuff.  Search for python to find numerous tools.
-        - Waf
-            - This runs on late python 3 versions.  This rules out aap, as it
-              would need to be run on python 2 or ported to 3, which would be
-              lots of work.
-            - Built by a guy who worked on scons but didn't like its
-              limitations.  The example wscript for a simple C++ file is
-              https://gitlab.com/ita1024/waf/-/blob/master/demos/c++/wscript I
-              like the looks of the file and this might be a model of a tool I
-              might write.
-            - Doc at htps://waf.io/book/ (the docs are a sphinx project in the
-              downloaded source)
-            - The book looks pretty good.  For basics of operation, read 3.1.2.
-            - The command 'curl -o waf https://waf.io/waf-2.0.22' downloads the
-              whole waf command.  The waf library is inside this script as a
-              compressed binary data and the waf script creates a hidden
-              .waf<version><guid> directory to hold things.  It's a clever
-              method.  Overall, waf is about 13 klines of code, which is much
-              too big a project for a casual programming task.
-        - SCons 
-            - https://www.scons.org/ could be a candidate; it's for python >=
-            3.5.  This has been developed for about 20 years and still is in
-            active development.  The primary benefit is that it's in python.
-            - It could be worthwhile to spend some time learning it.  I'd use
-            making a replacement for the hobbyutil website's python script,
-            as this is a good example that's not overly complicated.
-                - https://github.com/SCons/scons/wiki/AccumulateBuilder might
-                be a useful adjunct to look at
-            - External tools (python packages with __init__.py files) can be
-            handled https://github.com/SCons/scons/wiki/ToolsIndex
-            - The project could use some documentation help; see
-            https://github.com/SCons/scons/wiki/HowToContribute.  I'd like to
-            see a link on the FAQ that links to a tutorial that shows a
-            conversion from a makefile build to an scons build.
-            - They have number contributed builders
-            https://github.com/SCons/scons/wiki/ContributedBuilders
-            - Suggestion:  they should run spell checkers and url checkers on
-            their web pages.
-        - AAP (by vim's author) 
-            - I downloaded aap-1.094.zip; it looks to be a python 2 project
-            because the python files are dated 2003 to 2007.
-        - Buildout
-            - I didn't like the fact that it focuses on things like building
-            python eggs and uses ini file syntax.
-        - One of the problems with these industrial-strength tools is that
-            they handle complicated cases and have a lot of syntax, meaning a
-            significant learning curve.
-        - I'd alias to a python script, which would look at the makefile.  If
-        it was a regular makefile, it would immediately call 'make -rR'.
-        However, if it was a python makefile, it would interpret that.
-        - It could use 'git status -s' to determine what was out of date.
-        - It could have an option where a build wouldn't be allowed unless
-        there were no modified files.  Then the commit hash gets appended to
-        a make log so that the repository state is known for the build.
-        - My use for this would be to build simple projects.  I don't mind
-        using make for more complicated stuff.
-        - I have no fundamental issues with make other than its quirky syntax.
-        - I'd want to be able to use '$token' for variable definitions, not the
-        crappy make ${...} stuff.
-        - Indenting would be key to makefile structure.
-            - Commenting out a recipe in column 1 removes subsequent indented
-            lines too.
-            - Alternately allow python if blocks to get what's actually used.
-            Can this be done by making the makefile an executable python
-            script?
-        - Can be set to run continuously and build things when a dependency
-        triggers it.
-        - Use python syntax and in-line code
-            - Options
-                - -d    Debugging information
-                - -i    Ignore errors when remaking files
-                - -n    Dry run (show things that will be done but don't do
-                them)
-                - -s    Do not print commands as they are executed
-                - -o f  Do not remake file f (assume it's up to date)
-                - -B    Everything out of date
-                - -f f  Specify makefile
-                - -k    Keep going to do as much as possible
-                - -t    Translate to standard makefile syntax
-        - Example
-            - This is a typical makefile for a C/C++ project
-                - cppopts = -g -DMAIN
-                - exe = z.exe
-                - ${exe}:  array.o tokenizer.o
-                -     g++ -o ${exe} ${cppopts} $^
-
-                - array.o: array.cpp array.h
-                -     g++ -c ${cppopts} $<
-                - tokenizer.o: tokenizer.cpp tokenizer.h
-                -     g++ -c ${cppopts} $<
-                - clean:
-                -     @rm -f ${exe} ${exe}.stackdump *.o
+    - Markdown 
+        - Useful concept, but I find all of the markdown syntaxes annoying
+          and badly inconsistent (everyone writes their own syntax with
+          relatively small changes from others').  Should I write my own
+          syntax, falling prey to the same inconsistency desires?  My
+          motivation would be tht I get to define my own syntax to do the
+          tasks I do a lot.
+        - Strategic
+            - What are fundamental use cases?
+            - What are output file types?
+            - What are needed formatting structures?
+        - All markup will be in 'fenced' areas, meaning a beginning and
+          ending string identify the fence.  
+            - Example:  The strings "≪" and "≫" provide left and right
+              fences.
+            - A fundamental rule is that these strings ALWAYS mean a fence
+              and escaping them with a backslash has no special meaning.
+                - This is convenient for processing, as all markup can be
+                  found by searching for these characters.
+                    - regexp is re.compile(r"(≪.*≫)", re.M)
+                - A simple FSM can be had by reading each character.  When
+                  you encounter ≪, you're in interpret_markup mode and when
+                  you encounter ≫, you're in regular_text mode.
+            - If you want to use these character strings verbatim in your
+              text, you must define an alias for them.
+        - A fenced area starts with a keyword
+            - sub defines a substitution (it can call a python function if
+              desired)
+            - '{' and '}' define python code blocks
 
 --------------------------------------------------------------------------------
-xmd Markdown
+xxy     Tabulation tool
 
-    Markdown is a useful concept, but I find all of the markdown syntaxes
-    annoying and badly inconsistent (everyone writes their own syntax with
-    relatively small changes from others').  Should I write my own syntax,
-    falling prey to the same inconsistency desires?  My motivation would be tht
-    I get to define my own syntax to do the tasks I do a lot.
+- This is a module that is used to produce tabular data reports.
+- The basic interface is that it's fed a list of row vectors that you want
+  to be column vectors.  It prints out the transpose after adjusting things
+  to your tastes.
+- It uses Len to ignore escape sequences for colorizing.
+- Would be nice to be able to address the attributes of each column.
+    - col[0].width = 12
+    - col[0].just = "c"     # Justification
+    - col[0].fill = "-"     # Separation from header
+- Need to specify header
 
-    - Strategic
-        - What are fundamental use cases?
-        - What are output file types?
-        - What are needed formatting structures?
+Simple use case
 
-    - All markup will be in 'fenced' areas, meaning a beginning and ending
-    string identify the fence.  
-        - Example:  The strings "≪" and "≫" provide left and right fences.
-        - A fundamental rule is that these strings ALWAYS mean a fence and
-        escaping them with a backslash has no special meaning.
-            - This is convenient for processing, as all markup can be found by
-            searching for these characters.
-                - regexp is re.compile(r"(≪.*≫)", re.M)
-            - A simple FSM can be had by reading each character.  When you
-            encounter ≪, you're in interpret_markup mode and when you
-            encounter ≫, you're in regular_text mode.
-        - If you want to use these character strings verbatim in your text, you
-        must define an alias for them.
-    - A fenced area starts with a keyword
-        - sub defines a substitution (it can call a python function if desired)
-        - '{' and '}' define python code blocks
+    col0 = ["Sides", "4", 5"]
+    col1 = ["d", "1.000", "1.000"]
+    col2 = ["D", "1.414", "1.236"]
+    col3 = ["a", "1.000", "0.7265"]
+    col4 = ["Area", "1.000", "0.9082"]
+
+    Results in the report:
+
+    Sides     d       D       a     Area
+    4     1.000   1.414   1.000   1.000
+    5     1.000   1.236  0.7265  0.9082
+
+Desired features
+    - Specify spacings between columns (either fixed or irregular)
+    - Specify strings between columns for borders (they can be considered
+      another column)
+    - Fill to a given screen width, truncate columns to fit, or raise
+      exception that it won't fit
+    - Line up decimal points for reports
+    - Coalesced columns?
