@@ -59,6 +59,10 @@ Want
           line that needs the fix.  
         - Consider a keyword for colorizing the message too to make it
           easier to see.  I like ornl, magl, or purl for visible colors.
+        - For easier writing/grouping of test cases, it would be nice to be
+          able to nest testing functions and have them found and executed
+          rather than having to call each nested function.  This shouldn't
+          be on by default, but turned on by a keyword to run().
 
     - asc.py
         - Colorize some key items.  Use colors similar to char.
@@ -957,36 +961,36 @@ Other
 --------------------------------------------------------------------------------
 xxy     Tabulation tool
 
-- This is a module that is used to produce tabular data reports.
-- The basic interface is that it's fed a list of row vectors that you want
-  to be column vectors.  It prints out the transpose after adjusting things
-  to your tastes.
-- It uses Len to ignore escape sequences for colorizing.
-- Would be nice to be able to address the attributes of each column.
-    - col[0].width = 12
-    - col[0].just = "c"     # Justification
-    - col[0].fill = "-"     # Separation from header
-- Need to specify header
+    - This is a module that is used to produce tabular data reports.
+    - The basic interface is that it's fed a list of row vectors that you want
+    to be column vectors.  It prints out the transpose after adjusting things
+    to your tastes.
+    - It uses Len to ignore escape sequences for colorizing.
+    - Would be nice to be able to address the attributes of each column.
+        - col[0].width = 12
+        - col[0].just = "c"     # Justification
+        - col[0].fill = "-"     # Separation from header
+    - Need to specify header
 
-Simple use case
+    Simple use case
 
-    col0 = ["Sides", "4", 5"]
-    col1 = ["d", "1.000", "1.000"]
-    col2 = ["D", "1.414", "1.236"]
-    col3 = ["a", "1.000", "0.7265"]
-    col4 = ["Area", "1.000", "0.9082"]
+        col0 = ["Sides", "4", 5"]
+        col1 = ["d", "1.000", "1.000"]
+        col2 = ["D", "1.414", "1.236"]
+        col3 = ["a", "1.000", "0.7265"]
+        col4 = ["Area", "1.000", "0.9082"]
 
-    Results in the report:
+        Results in the report:
 
-    Sides     d       D       a     Area
-    4     1.000   1.414   1.000   1.000
-    5     1.000   1.236  0.7265  0.9082
+        Sides     d       D       a     Area
+        4     1.000   1.414   1.000   1.000
+        5     1.000   1.236  0.7265  0.9082
 
-Desired features
-    - Specify spacings between columns (either fixed or irregular)
-    - Specify strings between columns for borders (they can be considered
-      another column)
-    - Fill to a given screen width, truncate columns to fit, or raise
-      exception that it won't fit
-    - Line up decimal points for reports
-    - Coalesced columns?
+    Desired features
+        - Specify spacings between columns (either fixed or irregular)
+        - Specify strings between columns for borders (they can be considered
+        another column)
+        - Fill to a given screen width, truncate columns to fit, or raise
+        exception that it won't fit
+        - Line up decimal points for reports
+        - Coalesced columns?

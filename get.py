@@ -36,7 +36,6 @@ if 1:   # Header
         from pdb import set_trace as xx
     # Custom imports
         import u
-        import util
         from asciify import Asciify
         try:
             from uncertainties import ufloat, ufloat_fromstr, UFloat
@@ -614,7 +613,7 @@ if 1:   # Getting numbers
         unit may be cuddled against the number.
         '''
         if " " in s:
-            f = s.split()
+            f = tuple(i.strip() for i in s.split())
             if len(f) != 2:
                 raise ValueError("'%s' must have only two fields" % s)
             return f
@@ -834,6 +833,13 @@ if 1:   # Miscellaneous
         by one or more spaces) or ' ga' to denote AWG.  The number portion of
         the input can be a valid python expression.
         '''
+        def AWG(n):
+            if n < -3 or n > 56:
+                raise ValueError("AWG argument out of range")
+            diameter = 92.**((36 - n)/39)/200
+            if n <= 44:
+                return round(diameter, 4)
+            return round(diameter, 5)
         msg = "Enter wire diameter (use 'ga' suffix for AWG): "
         while True:
             if GetWireDiameter.input is not None:
@@ -847,7 +853,7 @@ if 1:   # Miscellaneous
             if s.endswith("ga"):
                 t = s[:-2].strip()
                 try:
-                    dia_inches = util.AWG(int(t))
+                    dia_inches = AWG(int(t))
                 except ValueError:
                     print("'{}' is not a valid AWG number".format(t))
                     continue
