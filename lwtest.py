@@ -185,7 +185,7 @@ if 1:   # Core functionality
         if broken:
             # Get the name of the file that called us
             file = traceback.extract_stack()[0][0]
-            print("! {}:  Error:  tests are broken".format(file))
+            print(f"{t('ornl')}! {file}:  Error:  tests are broken{t.n}")
             return (1, "Tests are broken")
         # Find test functions in names_dict to run.  Note we don't allow
         # "_lwtest" to end the name; this lets you use a variable like 

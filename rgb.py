@@ -200,6 +200,7 @@ if 1:   # Standard imports
 if 1:   # Custom imports
     from wrap import wrap, dedent
     from f import flt
+    raise Exception("This file shouldn't be used")
     from clr import Clr
     if 0:
         import debug

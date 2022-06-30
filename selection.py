@@ -15,7 +15,7 @@ if 1:   # Header
         # Provides Select(), a function to help a user specify a set of
         # integers.
         #∞what∞#
-        #∞test∞# run #∞test∞#
+        #∞test∞# ignore #∞test∞#
     # Standard imports
         from collections import deque
     # Custom imports

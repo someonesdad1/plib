@@ -17,6 +17,7 @@ if 1:  # Copyright, license
     pass
 if 1:   # Standard imports
     import sys
+
 def Print(*p, **kw):
     '''Print like the builtin print() and then print to any streams in
     Print.streams.  Here's a typical use case:  we want a script's
@@ -58,6 +59,7 @@ def Print(*p, **kw):
         k["file"] = stream
         Print.print(*p, **k)
 Print.print = print     # Make sure print() is stored away
+
 class Tee:
     '''This behaves like an output stream object.  Run this file as a
     script to see an example.
@@ -80,25 +82,24 @@ class Tee:
     def flush(self):
         for i in self.streams:
             i.flush()
+
 if 1:   # Demo code
     def SetUp():
         # Colorize the output to the streams to identify them.
-        global c
-        c = clr.Clr(override=True)  # Used to color output to terminal
-        c.s = c("lgrn")     # Things sent to stdout are green
-        c.e = c("lred")     # Things sent to stderr are red
-        c.o = c("lcyn")     # The 'other' messages are cyan
+        t.s = t("grnl")     # Things sent to stdout are green
+        t.e = t("redl")     # Things sent to stderr are red
+        t.o = t("cynl")     # The 'other' messages are cyan
         # This is the file where we'll send the data
-        c.file = "tee.test"
+        g.file = "tee.test"
     def DemoPrint():
         SetUp()
         # Hook up plumbing
-        stream = open(c.file, "w")
+        stream = open(g.file, "w")
         Print.streams = [stream]
         print = Print 
         # Send our data to the screen and the file
-        print(f"{c.s}Message to stdout{c.n}")
-        print(f"{c.e}Message to stderr{c.n}", file=sys.stderr)
+        print(f"{t.s}Message to stdout{t.n}")
+        print(f"{t.e}Message to stderr{t.n}", file=sys.stderr)
         # Now should have green and red lines on screen and in the file.
         # Hook the plumbing back the way it was.
         Print.streams.clear()
@@ -106,8 +107,8 @@ if 1:   # Demo code
         print = Print.print
         # These messages should not show up in the file, demonstrating the tees
         # have been disconnected.
-        print(f"{c.o}Last message to stdout{c.n}")
-        print(f"{c.o}+ Last message to stderr{c.n}", file=sys.stderr)
+        print(f"{t.o}Last message to stdout{t.n}")
+        print(f"{t.o}+ Last message to stderr{t.n}", file=sys.stderr)
     def DemoTee():
         SetUp()
         # Save the original streams
@@ -122,8 +123,8 @@ if 1:   # Demo code
         sys.stderr = tee_stderr
         # Now the script' output is sent to these Tee instances by normal use
         # of the print() method.
-        print(f"{c.s}Message to stdout{c.n}")
-        print(f"{c.e}Message to stderr{c.n}", file=sys.stderr)
+        print(f"{t.s}Message to stdout{t.n}")
+        print(f"{t.e}Message to stderr{t.n}", file=sys.stderr)
         # We're done with output to the file.  Hook up the original plumbing
         # and make sure the tees aren't around.
         sys.stdout, sys.stderr = saved
@@ -137,25 +138,25 @@ if 1:   # Demo code
             pass
         # These messages should not show up in the file, demonstrating the tees
         # have been disconnected.
-        print(f"{c.o}Last message to stdout{c.n}")
-        print(f"{c.o}+ Last message to stderr{c.n}", file=sys.stderr)
+        print(f"{t.o}Last message to stdout{t.n}")
+        print(f"{t.o}+ Last message to stderr{t.n}", file=sys.stderr)
     def ShowFileResults():
         # Print the contents of the file to stdout to show we captured what was
         # intended.
         print("-"*40)
         print("Contents of the file that captured the data:")
-        print(open(c.file).read(), end="")
-        os.unlink(c.file)     # Delete the file
+        print(open(g.file).read(), end="")
+        os.unlink(g.file)     # Delete the file
 
 if __name__ == "__main__": 
     # Tee test
     import os
-    import clr
+    from color import TRM as t
     import tempfile
     from lwtest import run, raises, Assert
     from io import StringIO
     from pdb import set_trace as xx 
-    c = None    # Needed global
+    class g: pass
     ## Note:  I haven't written a test for the Tee class because I prefer to
     ## use the Print function.
     def TestPrint():
