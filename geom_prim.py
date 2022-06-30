@@ -1,22 +1,22 @@
 '''
-TODO/issues:
+TODO:
  
-    * What about movement?  An object could be given a constant velocity
+    - Utilize flt to get rid of SigFig
+    - Fully integrate matrix.py and change CTM etc. to real matrices.
+    - What about movement?  An object could be given a constant velocity
       and its position at a later time would be calculated.  Even
       better, allow the initial velocity and constant acceleration to be
       defined.  This logically extends to letting the acceleration or
       force for an object with mass be defined by a function of time;
       the script would have to integrate the equations of motion to
       get the position at later times.
- 
-    * Update properties to more modern syntax
-
-    * Use matrix.py for determinants (gets rid of numpy dependence)
+    - Update properties to more modern syntax
 
 ----------------------------------------------------------------------
  
 Models points, lines, and planes and their transformations.  See the
 documentation xyz.pdf for details.
+
 '''
 if 1:  # Header
     # Copyright, license
@@ -37,9 +37,12 @@ if 1:  # Header
         from math import pi, e
         from pdb import set_trace as xx
     # Custom imports
-        from sig import SigFig
+        use_sig = True
+        if use_sig:
+            from sig import SigFig
+        from f import flt
         import matrix
-        Numbers = [int, float]
+        Numbers = [int, float, flt]
         # Uncertainties library
         try:
             # Note these will replace all of math's symbols except pi and e
@@ -58,21 +61,21 @@ if 1:  # Header
         if use_numpy:
             import numpy as np
             from numpy.linalg import det as npdet
-if 1:   # Global variables
-    __all__ = [
-        "Ctm",
-        "V",
-        "Point",
-        "Line",
-        "Plane",
-        "UseUnicode",
-        "Det3",
-        "Det4",
-    ]
-    ii = isinstance
-    Numbers = tuple(Numbers)
-    # If True, use Unicode symbols in string representations
-    _use_unicode = False
+    # Global variables
+        __all__ = [
+            "Ctm",
+            "V",
+            "Point",
+            "Line",
+            "Plane",
+            "UseUnicode",
+            "Det3",
+            "Det4",
+        ]
+        ii = isinstance
+        Numbers = tuple(Numbers)
+        # If True, use Unicode symbols in string representations
+        _use_unicode = False
 def UseUnicode(s=True):
     global _use_unicode
     _use_unicode = True if s else False
@@ -255,7 +258,7 @@ class Ctm(object):
             raise ValueError("Need sequence of 16 parameters for CTM")
         Ctm._CTM = list(ctm[:])
         # Verify all the matrix elements are numbers
-        allowed = [int, float]
+        allowed = [int, float, flt]
         if have_unc:
             allowed += [UFloat]
         allowed = tuple(allowed)
@@ -429,7 +432,7 @@ class Ctm(object):
                 x = ufloat(mean, 0)
             elif abs(mean) < Ctm.eps:
                 x = ufloat(0, s)
-        elif ii(x, (float, int)):
+        elif ii(x, (float, flt, int)):
             if abs(x) < Ctm.eps:
                 x = 0
             # Convert to integer if appropriate
@@ -1844,8 +1847,6 @@ class Plane(Line):
             # The line and plane definitely intersect at one point.
             # Method from [an:82].
             rl, nl = V(other.p.rect), V(other.dc)
-
-            # xx Need to replace dot product
             rp, np = V(self.p.rect), V(self.dc)
             G = np.dot(rp - rl)/nl.dot(np)
             ri = rl + G*nl
@@ -1967,29 +1968,28 @@ def Det4(matrix):
             c*Det3((e, f, h, i, j, l, m, n, p)) +
             -d*Det3((e, f, g, i, j, k, m, n, o)))
 if __name__ == "__main__": 
-    if 1:   # Imports
-        import math
-    if 1:   # Custom imports
-        from lwtest import run, assert_equal, raises, Assert
-        import color as C
-    if 1:   # Global variables
-        # The following is a "random" matrix that I made up; it has no
-        # other significance.
-        rm = [  1,    -7,      3,   17, 
-            -47.5,   0.002,  1,   -1, 
-            -0.2, -10,     -3.3,  4, 
-                1,     0.1,   -0.2,  0.3]
-        identity = [1, 0, 0, 0,
-                    0, 1, 0, 0,
-                    0, 0, 1, 0,
-                    0, 0, 0, 1]
-        # Make sure we test with Ctm angle measurements in radians
-        Ctm._angle = 1
-        Ctm._angle_name = "rad"
-        # Tolerance for floating point stuff
-        eps = 1e-15
-        # Color for warnings
-        yel, norm = C.fg(C.yellow, s=1), C.normal(s=1)
+    if 1:   # Setup
+        # Standard imports
+            import math
+        # Custom imports
+            from f import flt
+            from lwtest import *
+        # Global variables
+            # The following is a "random" matrix that I made up; it has no
+            # other significance.
+            rm = [  1,    -7,      3,   17, 
+                -47.5,   0.002,  1,   -1, 
+                -0.2, -10,     -3.3,  4, 
+                    1,     0.1,   -0.2,  0.3]
+            identity = [1, 0, 0, 0,
+                        0, 1, 0, 0,
+                        0, 0, 1, 0,
+                        0, 0, 0, 1]
+            # Make sure we test with Ctm angle measurements in radians
+            Ctm._angle = 1
+            Ctm._angle_name = "rad"
+            # Tolerance for floating point stuff
+            eps = 1e-15
     def Test_Ctm():
         # We'll test some of the basic capabilities of Ctm.  We can't
         # test the transformations, as that would use one of the methods
@@ -2574,4 +2574,9 @@ if __name__ == "__main__":
             assert_equal(xy.dist(pl), 1)
             pl = Plane(O, i, j)
             assert_equal(xy.dist(pl), 0)
+    Test_Ctm()
+    Test_Vector()
+    Test_Point()
+    Test_Line()
+    Test_Plane()
     exit(run(globals(), halt=True)[0])

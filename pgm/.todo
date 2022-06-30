@@ -1,6 +1,10 @@
 Active
 
 xxy tabulate
+
+    - 0testing.py
+        - Needs to be working
+        - Remove numpy from as many modules as possible
     
     - transpose.py
         - This may be the basis of a text table tool along with wrap.py
@@ -37,6 +41,11 @@ xxy tabulate
           state is remembered until '.reset' is seen or the keyword reset
           is True.  'paragraph_sep' keyword defaults to '\n\n'.
 Want
+
+    - xyz.py
+        - Update to use flt
+        - Change printout to use Unicode symbols
+        - Use color for coordinate systems
 
     - pgm/profit.py
         - Add a container for comments describing the model.  These get
@@ -962,9 +971,9 @@ Other
 xxy     Tabulation tool
 
     - This is a module that is used to produce tabular data reports.
-    - The basic interface is that it's fed a list of row vectors that you want
-    to be column vectors.  It prints out the transpose after adjusting things
-    to your tastes.
+    - The basic interface is that it's fed a list of row vectors that you
+      want to be column vectors.  It prints out the transpose after
+      adjusting things to your tastes.
     - It uses Len to ignore escape sequences for colorizing.
     - Would be nice to be able to address the attributes of each column.
         - col[0].width = 12
@@ -980,17 +989,17 @@ xxy     Tabulation tool
         col3 = ["a", "1.000", "0.7265"]
         col4 = ["Area", "1.000", "0.9082"]
 
-        Results in the report:
+        Results in the report (centering is default):
 
         Sides     d       D       a     Area
-        4     1.000   1.414   1.000   1.000
-        5     1.000   1.236  0.7265  0.9082
+          4     1.000   1.414   1.000   1.000
+          5     1.000   1.236  0.7265  0.9082
 
     Desired features
         - Specify spacings between columns (either fixed or irregular)
-        - Specify strings between columns for borders (they can be considered
-        another column)
+        - Specify strings between columns for borders (they can be
+          considered another column)
         - Fill to a given screen width, truncate columns to fit, or raise
-        exception that it won't fit
+          exception that it won't fit
         - Line up decimal points for reports
         - Coalesced columns?
