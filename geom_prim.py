@@ -18,45 +18,46 @@ TODO/issues:
 Models points, lines, and planes and their transformations.  See the
 documentation xyz.pdf for details.
 '''
-if 1:  # Copyright, license
-    # These "trigger strings" can be managed with trigger.py
-    #∞copyright∞# Copyright (C) 2013 Don Peterson #∞copyright∞#
-    #∞contact∞# gmail.com@someonesdad1 #∞contact∞#
-    #∞license∞#
-    #   Licensed under the Open Software License version 3.0.
-    #   See http://opensource.org/licenses/OSL-3.0.
-    #∞license∞#
-    #∞what∞#
-    # <math> Models points, lines, and planes and their transformations
-    #∞what∞#
-    #∞test∞# run #∞test∞#
-    pass
-if 1:   # Imports
-    import sys
-    import traceback
-    from math import pi
-    from pdb import set_trace as xx
-if 1:   # Custom imports
-    from sig import SigFig
-    Numbers = [int, float]
-    try:
-        # Note these will replace all of math's symbols except pi and e
-        from uncertainties.umath import (
-            acos, acosh, asin, asinh, atan, atan2, atanh, ceil, copysign, cos,
-            cosh, degrees, exp, fabs, factorial, floor, fmod, frexp, fsum,
-            hypot, isinf, isnan, ldexp, log, log10, log1p, modf, pow,
-            radians, sin, sinh, sqrt, tan, tanh, trunc)
-        from uncertainties import ufloat, UFloat
-        have_unc = True
-        Numbers += [UFloat]
-    except ImportError:
-        have_unc = False
-    try:
-        import numpy as np
-        from numpy.linalg import det as npdet
-        have_numpy = True
-    except ImportError:
-        have_numpy = False
+if 1:  # Header
+    # Copyright, license
+        # These "trigger strings" can be managed with trigger.py
+        #∞copyright∞# Copyright (C) 2013 Don Peterson #∞copyright∞#
+        #∞contact∞# gmail.com@someonesdad1 #∞contact∞#
+        #∞license∞#
+        #   Licensed under the Open Software License version 3.0.
+        #   See http://opensource.org/licenses/OSL-3.0.
+        #∞license∞#
+        #∞what∞#
+        # <math> Models points, lines, and planes and their transformations
+        #∞what∞#
+        #∞test∞# run #∞test∞#
+    # Standard imports
+        import sys
+        import traceback
+        from math import pi, e
+        from pdb import set_trace as xx
+    # Custom imports
+        from sig import SigFig
+        import matrix
+        Numbers = [int, float]
+        # Uncertainties library
+        try:
+            # Note these will replace all of math's symbols except pi and e
+            from uncertainties.umath import (
+                acos, acosh, asin, asinh, atan, atan2, atanh, ceil, copysign, cos,
+                cosh, degrees, exp, fabs, factorial, floor, fmod, frexp, fsum,
+                hypot, isinf, isnan, ldexp, log, log10, log1p, modf, pow,
+                radians, sin, sinh, sqrt, tan, tanh, trunc)
+            from uncertainties import ufloat, UFloat
+            have_unc = True
+            Numbers += [UFloat]
+        except ImportError:
+            have_unc = False
+        # Numpy support must be enabled manually
+        use_numpy = False
+        if use_numpy:
+            import numpy as np
+            from numpy.linalg import det as npdet
 if 1:   # Global variables
     __all__ = [
         "Ctm",
@@ -1843,6 +1844,8 @@ class Plane(Line):
             # The line and plane definitely intersect at one point.
             # Method from [an:82].
             rl, nl = V(other.p.rect), V(other.dc)
+
+            # xx Need to replace dot product
             rp, np = V(self.p.rect), V(self.dc)
             G = np.dot(rp - rl)/nl.dot(np)
             ri = rl + G*nl
@@ -2018,41 +2021,57 @@ if __name__ == "__main__":
         # If reset() is not used here, later tests will fail
         c.reset()
         assert_equal(c.GetCTM(), identity[:])
-    def Test_MatrixInverse():
-        # This test uses numpy's matrix inversion as a standard.
-        if not have_numpy:
-            msg = (f"{yel}geom_prim_test.py:  Warning:  Ctm matrix inverse "
-                   f"not tested (need numpy){norm}")
-            print(msg, file=sys.stderr)
-            return
-        def MakeMatrix(lst):
-            A = np.array(lst)
-            A.shape = (4, 4)
-            return np.matrix(A)
-        c, p = Ctm(), Point(0, 0, 0)
-        c.SetCTM(rm[:])
-        P, n = MakeMatrix(c.GetCTM())*MakeMatrix(c.GetICTM()), 4
-        # P should be the identity matrix
-        for i in range(n):
-            for j in range(n):
-                if i == j:
-                    assert_equal(p.Rnd(P[i, j] - 1), 0)
-                else:
-                    assert_equal(p.Rnd(P[i, j]), 0)
-        c.reset()
-    def Test_Det():
-        # Determinant.  Check Det4, as it depends on Det3 and Det2.
-        # numpy provides the standard determinant.
-        if have_numpy:
+    if use_numpy:
+        def Test_MatrixInverse():
+            # This test uses numpy's matrix inversion as a standard.
+            def MakeMatrix(lst):
+                A = np.array(lst)
+                A.shape = (4, 4)
+                return np.matrix(A)
+            c, p = Ctm(), Point(0, 0, 0)
+            c.SetCTM(rm[:])
+            P, n = MakeMatrix(c.GetCTM())*MakeMatrix(c.GetICTM()), 4
+            # P should be the identity matrix
+            for i in range(n):
+                for j in range(n):
+                    if i == j:
+                        assert_equal(p.Rnd(P[i, j] - 1), 0)
+                    else:
+                        assert_equal(p.Rnd(P[i, j]), 0)
+            c.reset()
+        def Test_Det():
+            # Determinant.  Check Det4, as it depends on Det3 and Det2.
+            # numpy provides the standard determinant.
             A = np.array(rm)
             A.shape = (4, 4)
             A = np.matrix(A)
             p = Point(0, 0, 0)
             assert_equal(p.Rnd(Det4(rm) - npdet(A)), 0)
-        else:
-            msg = (f"{yel}geom_prim_test.py:  Warning:  determinants not "
-                   f"tested (need numpy){norm}")
-            print(msg, file=sys.stderr)
+    else:
+        # This uses matrix.py's features
+        def Test_MatrixInverse():
+            def MakeMatrix(lst):
+                # Make the list a 4x4 matrix
+                A = matrix.matrix(lst, size=(4, 4))
+                return A
+            c, p = Ctm(), Point(0, 0, 0)
+            c.SetCTM(rm[:])
+            P, n = MakeMatrix(c.GetCTM())*MakeMatrix(c.GetICTM()), 4
+            # P should be the identity matrix
+            for i in range(n):
+                for j in range(n):
+                    if i == j:
+                        assert_equal(p.Rnd(P[i, j] - 1), 0)
+                    else:
+                        assert_equal(p.Rnd(P[i, j]), 0)
+            c.reset()
+        def Test_Det():
+            # Check Det4, as it depends on Det3 and Det2.
+            A = matrix.matrix(rm, size=(4, 4))
+            expected = A.det
+            got = Det4(rm)
+            p = Point(0, 0, 0)
+            assert_equal(p.Rnd(got - expected), 0)
     def Test_Vector():
         Ctm._compass = False
         Ctm._neg = False

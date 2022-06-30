@@ -49,6 +49,7 @@ This module extends the python debugger pdb.py Features:
               python version.  That's why I try to make my changes in this
               file.
 '''
+#∞test∞# none #∞test∞#
 from pdb import Pdb
 import code
 import linecache

@@ -62,16 +62,11 @@ if 1:   # Imports
     from numbers import Integral
     from fractions import Fraction
 if 1:   # Custom imports
-    try:
-        from roundoff import RoundOff
-        has_RoundOff = True
-    except ImportError:
-        has_RoundOff = False
-    try:
-        numpy_available = True
+    from roundoff import RoundOff
+    # You must manually enable numpy support
+    have_numpy = False
+    if have_numpy:
         import numpy
-    except ImportError:
-        numpy_available = False
 if 1:   # Global variables
     __all__ = "frange ifrange lrange Rational Sequence".split()
     # Regular expression to split strings on whitespace
@@ -195,11 +190,10 @@ def frange(start, stop=None, step=None, return_type=float, impl=Decimal,
                     raise
                 yield return_type(str(start))
             start += step
-def lrange(start_decade, end_decade, dx=1, x=1, mantissas=None,
-           use_numpy=False):
+def lrange(start_decade, end_decade, dx=1, x=1, mantissas=None):
     '''Provides a logarithmic analog to the frange function.  Returns a
-    list of values with logarithmic spacing (if use_numpy is True, will
-    return a numpy array).
+    list of values with logarithmic spacing (if the global have_numpy is
+    True, will return a numpy array).
  
     Example:  lrange(0, 2, mantissas=[1, 2, 5]) returns
     [1, 2, 5, 10, 20, 50].
@@ -222,7 +216,7 @@ def lrange(start_decade, end_decade, dx=1, x=1, mantissas=None,
     values = []
     for exp in range(start_decade, end_decade):
         values += [i*10**exp for i in mantissas]
-    if use_numpy and numpy_available:
+    if have_numpy:
         return numpy.array(values)
     return values
 def Sequence(s):
@@ -271,8 +265,6 @@ def ifrange(start, stop, step=1):
     should rely on no more than 12 significant figures in the returned
     numbers.
     '''
-    if not has_RoundOff:
-        raise RuntimeError("roundoff module not available")
     for i in itertools.count(start, step):
         x = RoundOff(i)
         if x >= stop:
@@ -411,27 +403,23 @@ if __name__ == "__main__":
                 expected = [mpf(i) for i in s.split()]
                 Assert(got == expected)
         def Test_numpy():
-            try:
-                import numpy
-            except ImportError:
-                print(f"{yel}{__file__}:  Warning:  numpy not tested{norm}",
-                    file=sys.stderr)
-            else:
-                # Things work OK for the following case
-                got = numpy.array(list(frange(str(n))))
-                expected = numpy.arange(0, n, float(1))
-                Assert(list(got) == list(expected))
-                # However, the following test case won't work with the default
-                # frange implementation using Decimal numbers; the Decimal
-                # implementation will return 9 numbers, but both numpy and
-                # frange(impl=float) will return 10 numbers.  This is the
-                # "hazard" of computing with floats and their roundoff
-                # problems.  But we get things to "work" (i.e., frange
-                # duplicates the output of numpy's arange) by using impl=float.
-                start, stop, step = 9.6001, 9.601, 0.0001
-                got = frange(start, stop, step, impl=float)
-                expected = numpy.arange(start, stop, step)
-                Assert(list(got) == list(expected))
+            if not have_numpy:
+                return
+            # Things work OK for the following case
+            got = numpy.array(list(frange(str(n))))
+            expected = numpy.arange(0, n, float(1))
+            Assert(list(got) == list(expected))
+            # However, the following test case won't work with the default
+            # frange implementation using Decimal numbers; the Decimal
+            # implementation will return 9 numbers, but both numpy and
+            # frange(impl=float) will return 10 numbers.  This is the
+            # "hazard" of computing with floats and their roundoff
+            # problems.  But we get things to "work" (i.e., frange
+            # duplicates the output of numpy's arange) by using impl=float.
+            start, stop, step = 9.6001, 9.601, 0.0001
+            got = frange(start, stop, step, impl=float)
+            expected = numpy.arange(start, stop, step)
+            Assert(list(got) == list(expected))
         def Test_fractions():
             # The following test case shows that frange can be used with a
             # rational number class to return a sequence of rational numbers by

@@ -32,7 +32,7 @@ if 1:  # Header
         #   "--test"    Run script with the '--test' option.
         #   A list of strings specifies one or more test files to run.
         #∞what∞#
-        #∞test∞# ignore #∞test∞#
+        #∞test∞# none #∞test∞#
     # Standard imports
         import getopt
         import os
@@ -44,7 +44,7 @@ if 1:  # Header
         from tee import Print
         from wrap import wrap, dedent, indent, Wrap
         from columnize import Columnize
-        from timer import Timer
+        from timer import Timer, fnt
         from color import TRM as t
         import trigger
         import dpstr
@@ -54,13 +54,13 @@ if 1:  # Header
     # Global variables
         P = pathlib.Path
         # Set up for color printing
-        t.red = t("redl")   # For failures
-        t.dbg = t("royl")   # Debug output
-        t.dbg = t("gryd")   # Debug output
+        t.fail = t("redl")
+        t.ok = t("grnl")
+        t.ign = t("roy")
+        t.dbg = t("purl")
         t.cyn = t("cynl")   # Directories
         t.grn = t("grnl")   # For files we'll run
         t.yel = t("yell")   # For files we'll run
-        t.gry = t("gryl")   # For ignored files
 
 if 1:   # Utility
     def Error(msg, status=1):
@@ -77,11 +77,13 @@ if 1:   # Utility
           directory.
         Options:
           -C    Remove all log files
+          -d    Debug print:  show what will be done
           -h    Print a manpage
           -L    List the files without test trigger strings
           -l    List the files and their actions
           -r    Search for all python files recursively
           -q    Quiet mode:  only show failures and summary
+          -v    Verbose mode:  show ignored files
         '''))
         exit(status)
     def ParseCommandLine(d):
@@ -90,13 +92,14 @@ if 1:   # Utility
         d["-l"] = False     # List the files
         d["-q"] = False     # Quiet mode
         d["-r"] = False     # Recursive
+        d["-v"] = False     # Verbose:  show ignored
         try:
-            opts, args = getopt.getopt(sys.argv[1:], "dhLlrq")
+            opts, args = getopt.getopt(sys.argv[1:], "dhLlrqv")
         except getopt.GetoptError as e:
             print(str(e))
             exit(1)
         for o, a in opts:
-            if o[1] in list("dLlrvV"):
+            if o[1] in list("dLlrv"):
                 d[o] = not d[o]
             elif o in ("-h", "--help"):
                 Usage(status=0)
@@ -106,24 +109,10 @@ if 1:   # Utility
             Dbg("Debugging turned on")
         return args
     def GetLogFile():
-        '''Search the current directory for the set of files that end in
-        '.0test'.  Get the largest integer counter and return one larger.
+        '''Return a file name that ends in .0test that contains the current
+        time to the microsecond.
         '''
-        def GetNum(s):
-            if s.endswith(".0test"):
-                try:
-                    n = int(s[:-5])
-                    return n
-                except ValueError:
-                    return None
-            return None
-        n = 1
-        for i in P(".").glob("*.0test"):
-            m = GetNum(str(i))
-            if m is not None:
-                if m > n:
-                    n = m
-        return P(str(n + 1) + ".0test")
+        return fnt() + ".0test"
 class TestRunner:
     def __init__(self):
         self.total = 0
@@ -189,26 +178,26 @@ class TestRunner:
                 cmd.extend(additional)
             r = subprocess.run(cmd, capture_output=True, text=True)
             if not d["-q"]:
-                if r.stdout:
+                if d["-v"] and r.stdout:
                     print(r.stdout, end="")
                 if r.stderr:
                     print(r.stderr, end="")
             if r.returncode:
                 # Always show a test failure
                 self.failed += 1
-                print(f"{t.red}{file} test failed{t.n}")
+                print(f"{t.fail}{file} test failed{t.n}")
         else:
             status = os.system(str(file))
             if status:
                 self.failed += 1
-                print(f"{t.red}{file} test failed{t.n}")
+                print(f"{t.fail}{file} test failed{t.n}")
     def RunTests(self, dir):
         'Only failed tests have their info printed out'
         if dir.is_file():
             t = self.GetTestTrigger(dir)
             if t is None:
                 self.not_run += 1
-                if not d["-q"]:
+                if d["-v"]:
                     print(f"{file}: no test to run")
                 return
             files = [t]
@@ -218,21 +207,24 @@ class TestRunner:
             self.total += 1
             if trig is None or trig == "ignore":
                 self.not_run += 1
-                if not d["-q"]:
+                if d["-v"]:
                     if trig is None:
                         print(f"{file}: no test to run")
                     else:
                         print(f"{file}: testing is ignored for this file")
             elif trig == "run":
+                # Run as script
                 self.Run(P(file))
             elif trig == "--test":
+                # Test option
                 self.Run(P(file), additional=[trig])
             elif trig and trig[0] == "[":
+                # List of files
                 for testfile in eval(trig):
                     self.Run(P(testfile))
             else:
                 self.not_run += 1
-                if not d["-q"]:
+                if d["-v"]:
                     print(f"{file}: no test to run")
 
 def Dbg(*p, **kw):
@@ -266,7 +258,11 @@ def ShowWhatWillBeDone(tr, items):
             for p, action in files:
                 Categorize(p, action)
         else:
-            Categorize(*tr.GetTestTrigger(item))
+            trig = tr.GetTestTrigger(item)
+            if trig:
+                Categorize(*trig)
+            else:
+                Categorize(item, "none")
     # Print results
     Show("Trigger string is 'none':", none)
     Show("Empty trigger string (probably needs a test written):", empty)
@@ -288,35 +284,23 @@ if __name__ == "__main__":
     tr = TestRunner()
     if d["-d"]:
         ShowWhatWillBeDone(tr, items)
-    timer = Timer()
-    timer.start
     if 1:   # Run the tests
+        timer = Timer()
+        timer.start
         for item in items:
-            if d["-l"]:
-                if item.is_dir():
-                    print("Python files with a test trigger string:")
-                tr.ListFiles(item)
-            elif d["-L"]:
-                if item.is_dir():
-                    print("Python files without a test trigger string:")
-                tr.ListFilesWithoutTrigger(item)
-            else:
-                tr.RunTests(item)
+            tr.RunTests(item)
         timer.stop
-        t, f, n = tr.total, tr.failed, tr.not_run
     if 1:   # Report
-        if f or t:
+        if tr.total:
             tm = timer.et
             tm.n = 2
-            s = f"(took {tm/60} minutes)" if tm > 60 else f"(took {tm} seconds)"
-            print(f"Test summary {s}:")
-            passed = t - f - n
-            print(f"  {passed} python file{'s' if passed != 1 else ''} tested OK")
-            print(f"  {f} python file{'s' if f != 1 else ''} failed")
-            print(f"  {n} python file{'s' if n != 1 else ''} "
-                f"{'were' if n != 1 else 'was'} not tested")
-    if d["-d"]:
-        print(f"{t.n}")
+            s = f"(test time = {tm/60} minutes)" if tm > 60 else f"(took {tm} seconds)"
+            print(f"{t('lav')}Test results {s}:")
+            T, F, N = tr.total, tr.failed, tr.not_run
+            ok = T - F - N
+            print(f'''  {t.ok}{ok} OK{t.n}, '''
+                  f'''{t.fail}{F} failed{t.n}, '''
+                  f'''{t.ign}{N} not tested{t.n}''')
     logfile_stream.close()
     Print.streams.clear()
     print = Print.print

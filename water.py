@@ -30,7 +30,7 @@ if 1:   # Header
         from u import u, fromto
         from wrap import wrap, dedent
         from color import Color, TRM as t
-        import f as F
+        from f import flt, log10, sqrt
         # Import the python uncertainties library if it is available.
         _have_unc = False
         try:
@@ -119,7 +119,7 @@ if 1:   # Utility
 if 1:   # Core functionality
     def _ParseUnit(s, allow_unc=False):
         '''Separate a number string followed by a unit string and return them
-        as a tuple (F.flt, unit_string).  If the uncertainties library is
+        as a tuple (flt, unit_string).  If the uncertainties library is
         present and s contains '+/-', '+-', or '(' and ')' (indicating a
         short form uncertainty), then s will be a UFloat object.
         
@@ -154,7 +154,7 @@ if 1:   # Core functionality
             mo = num_regexp.search(s)
             if mo:
                 x, unit = s[:mo.end()].rstrip(), s[mo.end():].lstrip()
-                y = F.flt(x)
+                y = flt(x)
                 return (y, unit)
             return None
     if _have_unc:
@@ -235,7 +235,7 @@ if 1:   # Core functionality
           6           6.625    6.065   0.280   8         0.1250       6.446
     '''[1:-1]))
     def GetQuantity(s, err="'{}' isn't a number with optional unit", dim=None):
-        '''From the string s, return either a F.flt or ufloat converted
+        '''From the string s, return either a flt or ufloat converted
         to base SI units.  err is used to provide an error message.  If dim
         is given, it must be a unit string; the unit parsed from s must have
         the same dimensions.
@@ -264,7 +264,7 @@ if 1:   # Core functionality
                     except Exception:
                         raise ValueError("The unit in {s!r} is not recognized")
             if isinstance(q, str):
-                return F.flt(q)*conv
+                return flt(q)*conv
             else:
                 return q*conv       # q is a ufloat
         except TypeError:
@@ -318,7 +318,7 @@ if 1:   # Core functionality
         if not (0 <= T_C <= 100):
             raise ValueError(f"'{T_C}' is an out-of-range temperature")
         if T_C == 100:
-            return F.flt(A[100]*scl)
+            return flt(A[100]*scl)
         else:
             try:
                 i = int(T_C)
@@ -326,8 +326,8 @@ if 1:   # Core functionality
                 i = int(T_C.nominal_value)
             a0, a1 = A[i], A[i + 1]
             if T_C == i:
-                return F.flt(a0*scl)
-            return F.flt((a0 + (T_C - i)*(a1 - a0))*scl)
+                return flt(a0*scl)
+            return flt((a0 + (T_C - i)*(a1 - a0))*scl)
     def WaterDensity(T_C):
         '''Return the water density in kg/m3 for water at a temperature of
         T_C degrees C.  Data from http://webbook.nist.gov/chemistry/fluid,
@@ -401,17 +401,17 @@ if 1:   # Core functionality
         practical problems will take 2 to 5 iterations.  Stop iterating when
         the relative difference is less than rel_diff.  It doesn't make
         practical sense to try for more than 2 significant figures in f.
-        Because of this, the F.flt type is used for calculations from the
+        Because of this, the flt type is used for calculations from the
         /plib/f.py module and these numbers use 3 significant figures by
         default for string interpolation.
         '''
         assert(Re >= 4000)
         # Initial estimate from the Haaland equation
-        f0 = F.flt(1/(-1.8*F.log10((eps/(3.7*D))**1.11 + 6.9/Re))**2)
+        f0 = flt(1/(-1.8*log10((eps/(3.7*D))**1.11 + 6.9/Re))**2)
         count = 0
         while count <= 50:
             count += 1
-            f = F.flt(0.25/(F.log10(eps/(3.7*D) + 2.51/(Re*F.sqrt(f0))))**2)
+            f = flt(0.25/(log10(eps/(3.7*D) + 2.51/(Re*sqrt(f0))))**2)
             if abs((f - f0)/f0) < rel_diff:
                 if not (0.001 <= f <= 1):
                     raise ValueError(f"Friction factor of {f} is outside practical bounds")
@@ -434,38 +434,37 @@ if 1:   # Core functionality
         assert(rel_diff > 0)
         assert(eps >= 0)
         if eps > D:
-            raise ValueError(f"eps = {F.flt(eps)} m is larger than pipe diameter")
+            raise ValueError(f"eps = {flt(eps)} m is larger than pipe diameter")
         re1, re2, lam = 2300, 4000, lambda Re: 64/Re
         if Re < re1:                # Laminar flow
-            return F.flt(lam(Re))
+            return flt(lam(Re))
         elif re1 <= Re < re2:       # Transition flow
             # Linearly interpolate between the laminar and turbulent flow
             # values using Re as the independent variable.
             f1, f2 = lam(re1), Colebrook(D, re2, eps, rel_diff=rel_diff)
-            return F.flt((f2 - f1)*(Re - re1)/(re2 - re1) + f1)
+            return flt((f2 - f1)*(Re - re1)/(re2 - re1) + f1)
         else:                       # Turbulent flow
-            return F.flt(Colebrook(D, Re, eps))
+            return flt(Colebrook(D, Re, eps))
 if __name__ == "__main__":
     from lwtest import run, raises, assert_equal, Assert
     def TestFrictionFactor():
-        x = F.flt(0)
-        x.n = 2
+        x = flt(0)
         Assert(str(FrictionFactor(1, 1e6, 0.01)) == "0.038")
-        Assert(str(FrictionFactor(1, 1e4, 0.1)) == "0.10")
+        Assert(str(FrictionFactor(1, 1e4, 0.1)) == "0.103")
     def TestParseUnit():
         # No unit
         x, u = ParseUnit("0")
         Assert(x == 0)
-        Assert(ii(x, F.flt))
+        Assert(ii(x, flt))
         Assert(u == "")
         # With float
         a = 4.73e-87, 'm/s'
         b = ParseUnit("47.3e-88m/s")
         Assert(a == b)
-        Assert(ii(b[0], F.flt))
+        Assert(ii(b[0], flt))
         b = ParseUnit("47.3e-88 m/s")
         Assert(a == b)
-        Assert(ii(b[0], F.flt))
+        Assert(ii(b[0], flt))
         # With uncertainties
         if _have_unc:
             a = "4.73(2) m/s"
@@ -476,10 +475,10 @@ if __name__ == "__main__":
     def TestGetQuantity():
         x = GetQuantity("1.2")
         Assert(x == 1.2)
-        Assert(ii(x, F.flt))
+        Assert(ii(x, flt))
         x = GetQuantity("1.2 in")
         Assert(x == 0.030479999999999997)
-        Assert(ii(x, F.flt))
+        Assert(ii(x, flt))
         # With uncertainties
         if _have_unc:
             s = "0.0305+/-0.0025"
@@ -492,15 +491,15 @@ if __name__ == "__main__":
     def TestWaterDensity():
         a = WaterDensity(0)
         Assert(a == 999.868)
-        Assert(ii(a, F.flt))
+        Assert(ii(a, flt))
         #
         a = WaterDensity(4)
         Assert(a == 999.975)
-        Assert(ii(a, F.flt))
+        Assert(ii(a, flt))
         #
         a = WaterDensity(100)
         Assert(a == 958.380)
-        Assert(ii(a, F.flt))
+        Assert(ii(a, flt))
         #
         raises(ValueError, WaterDensity, -0.001)
         raises(ValueError, WaterDensity, 100.001)
@@ -508,15 +507,15 @@ if __name__ == "__main__":
         a = WaterDynamicViscosity(0)
         c = 1e-8
         Assert(a == 178700*c)
-        Assert(ii(a, F.flt))
+        Assert(ii(a, flt))
         #
         a = WaterDynamicViscosity(4)
         Assert(a == 156720*c)
-        Assert(ii(a, F.flt))
+        Assert(ii(a, flt))
         #
         a = WaterDynamicViscosity(100)
         Assert(a == 28219*c)
-        Assert(ii(a, F.flt))
+        Assert(ii(a, flt))
         #
         raises(ValueError, WaterDynamicViscosity, -0.001)
         raises(ValueError, WaterDynamicViscosity, 100.001)

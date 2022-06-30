@@ -1,28 +1,31 @@
 '''
-Stopwatch class:  For elapsed times
-Timer class:  Tool that works as a context manager and decorator
+Time-related tools:
+    Stopwatch class:  For elapsed times
+    Timer class:  Tool that works as a context manager and decorator
+    FTime class:  Get a filename with a time in it
 '''
-if 1:  # Copyright, license
-    # These "trigger strings" can be managed with trigger.py
-    #∞copyright∞# Copyright (C) 2022 Don Peterson #∞copyright∞#
-    #∞contact∞# gmail.com@someonesdad1 #∞contact∞#
-    #∞license∞#
-    #   Licensed under the Open Software License version 3.0.
-    #   See http://opensource.org/licenses/OSL-3.0.
-    #∞license∞#
-    #∞what∞#
-    # <programming> Provides objects that help with program timing.  Run as
-    # a script to see example output.
-    #∞what∞#
-    #∞test∞# ignore #∞test∞#
-    pass
-if 1:   # Standard imports
-    import time
-    import decimal
-    from textwrap import dedent
-    from pdb import set_trace as xx 
-if 1:   # Custom imports
-    from f import flt
+if 1:  # Header
+    # Copyright, license
+        # These "trigger strings" can be managed with trigger.py
+        #∞copyright∞# Copyright (C) 2022 Don Peterson #∞copyright∞#
+        #∞contact∞# gmail.com@someonesdad1 #∞contact∞#
+        #∞license∞#
+        #   Licensed under the Open Software License version 3.0.
+        #   See http://opensource.org/licenses/OSL-3.0.
+        #∞license∞#
+        #∞what∞#
+        # <programming> Provides objects that help with program timing.  Run as
+        # a script to see example output.
+        #∞what∞#
+        #∞test∞# ignore #∞test∞#
+    # Standard imports
+        import datetime
+        import time
+        import decimal
+        from textwrap import dedent
+        from pdb import set_trace as xx 
+    # Custom imports
+        from f import flt
 if 1:   # Classes 
     class Stopwatch(object):
         '''Timer that returns the elapsed time in seconds from when it was
@@ -152,8 +155,22 @@ if 1:   # Classes
             if self._state != "init":
                 raise ValueError("Use self.clear() before setting u")
             self._u = decimal.Decimal(value)
-if 1:   # Convenience instance
+    class FNTime(object):
+        def __init__(self):
+            pass
+        def __call__(self):
+            '''Return a string containing the time now that is suitable
+            for a filename.
+            '''
+            d = datetime.datetime.now()
+            s = (f"{d.year:04d}{d.month:02d}{d.day:02d}_"
+                 f"{d.hour:02d}{d.minute:02d}{d.second:02d}."
+                 f"{d.microsecond:06d}")
+            return s
+if 1:   # Convenience instances
     timer = Timer()
+    fnt = FNTime()
+
 if __name__ == "__main__": 
     import re
     from fmt import fmt
@@ -277,8 +294,8 @@ if __name__ == "__main__":
         
         When you get the elapsed time of a Timer object (et attribute), it
         will be a flt instance from f.py.  This will cause the elapsed time to
-        be printed to 3 significant figures, the default.  Change Timer.et.n
-        to a larger number for more significant figures.
+        be printed to 3 digits, the default.  Change Timer.et.n to a larger
+        number for more digits.
         '''[1:].rstrip()))
     with Timer() as T:
         run(globals(), regexp="example$", quiet=True)

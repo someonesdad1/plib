@@ -13,8 +13,7 @@ if 1:   # Header
         #∞what∞#
         # Program description string
         #∞what∞#
-        #∞test∞# #∞test∞#
-        pass
+        #∞test∞# none #∞test∞#
     # Standard imports
         import getopt
         import os
@@ -25,10 +24,8 @@ if 1:   # Header
     # Custom imports
         from get import GetLines
         from wrap import wrap, dedent
-        from clr import Clr
     # Global variables
         ii = isinstance
-        c = Clr()
 if 1:   # Utility
     def Error(*msg, status=1):
         print(*msg, file=sys.stderr)
@@ -58,6 +55,9 @@ if 1:   # Core functionality
     r = re.compile(r"from\s+color\s+import|"
                     r"from\s+kolor\s+import|"
                     r"import\s.*color|"
+                    r"import\s.*kolor")
+    print("Looking for 'kolor' only")
+    r = re.compile(r"from\s+kolor\s+import|"
                     r"import\s.*kolor")
     def ProcessFile(file):
         'Return True if it has the regexp'

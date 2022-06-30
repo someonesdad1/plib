@@ -1,8 +1,6 @@
 '''
 Provides the function wl2rgb() to convert a light wavelength in nm into an
-approximate RGB color.  The rgb2wl() function is (approximately) its
-inverse function.  The inverse only works reasonably over the range of 380
-to 645 nm.
+approximate RGB color.
 '''
 if 1:   # Header
     # Copyright, license
@@ -16,16 +14,15 @@ if 1:   # Header
         #∞what∞#
         # Convert between RGB and light wavelength in nm
         #∞what∞#
-        #∞test∞# run #∞test∞#
-        pass
+        #∞test∞# ignore #∞test∞#
     # Standard imports
     # Custom imports
-        from rgb import ColorNum
+        from color import Color
     # Global variables
         ii = isinstance
 def wl2rgb(nm, gamma=0.8):
-    '''Convert nm (light wavelength in nm) into a ColorNum object using a
-    linear approximation.  The ColorNum object represents an RGB color.
+    '''Convert nm (light wavelength in nm) into a Color object using a
+    linear approximation.  The Color object represents an RGB color.
     gamma is used for a gamma adjustment.  nm must be on [380, 780].
     '''
     # Translation of Dan Bruton's FORTRAN code from
@@ -61,55 +58,58 @@ def wl2rgb(nm, gamma=0.8):
         b = [float(i) for i in a]
     # Make sure the numbers are on [0, 1]
     assert(all([0 <= i <=1 for i in b]))
-    return ColorNum(b)
-def rgb2wl(colornum):
-    'Convert the indicated color to a wavelength in nm'  
-    '''
-    The algorithm is
-        - Get the integer value of the hue on [0, 255]
-        - If hue > 212 return 645 nm
-        - Otherwise hue is in [0, 211] and use a dictionary lookup
-    '''
-    if not ii(colornum, ColorNum):
-        raise TypeError("colornum must be a ColorNum instance")
-    if not hasattr(rgb2wl, "dict"):
-        # Cache a dictionary to convert integer hue on [0, 211] to integer
-        # wavelength in nm.
-        dict = {}
-        if 0:
-            for nm in range(380, 645):
-                cn = wl2rgb(nm, gamma=0)
-                hue = cn.HLS[0]
-                dict[hue] = nm
-            rgb2wl.dict = dict
-            # Fix missing values
-            for i in set(range(0, 212)) - set(dict):
-                dict[i] = dict[i - 1]
-        else:
-            for nm in range(380, 781):
-                cn = wl2rgb(nm, gamma=0)
-                hue = cn.HLS[0]
-                if hue > 212:
-                    dict[hue] = 645
-                else:
+    return Color(*b)
+if 0:
+    # This was an approximate inverse function before color.py was
+    # rewritten.
+    def rgb2wl(colornum):
+        'Convert the indicated color to a wavelength in nm'  
+        '''
+        The algorithm is
+            - Get the integer value of the hue on [0, 255]
+            - If hue > 212 return 645 nm
+            - Otherwise hue is in [0, 211] and use a dictionary lookup
+        '''
+        if not ii(colornum, Color):
+            raise TypeError("colornum must be a Colorinstance")
+        if not hasattr(rgb2wl, "dict"):
+            # Cache a dictionary to convert integer hue on [0, 211] to integer
+            # wavelength in nm.
+            dict = {}
+            if 0:
+                for nm in range(380, 645):
+                    cn = wl2rgb(nm, gamma=0)
+                    hue = cn.dhls[0]
                     dict[hue] = nm
-            # Fill in missing values
-            for hue in range(256):
-                i = hue
-                while hue not in dict:
-                    i -= 1
-                    try:
-                        dict[hue] = dict[i]
-                    except KeyError:
-                        if i < 0:
-                            raise Exception("Bad algorithm")
-            rgb2wl.dict = dict
-    hue = colornum.HLS[0]
-    assert(ii(hue, int) and 0 <= hue <= 255)
-    if hue > 212:
-        return 645
-    return rgb2wl.dict[hue]
-if __name__ == "__main__": 
+                rgb2wl.dict = dict
+                # Fix missing values
+                for i in set(range(0, 212)) - set(dict):
+                    dict[i] = dict[i - 1]
+            else:
+                for nm in range(380, 781):
+                    cn = wl2rgb(nm, gamma=0)
+                    hue = cn.dhls[0]
+                    if hue > 212:
+                        dict[hue] = 645
+                    else:
+                        dict[hue] = nm
+                # Fill in missing values
+                for hue in range(256):
+                    i = hue
+                    while hue not in dict:
+                        i -= 1
+                        try:
+                            dict[hue] = dict[i]
+                        except KeyError:
+                            if i < 0:
+                                raise Exception("Bad algorithm")
+                rgb2wl.dict = dict
+        hue = colornum.ihls[0]
+        assert(ii(hue, int) and 0 <= hue <= 255)
+        if hue > 212:
+            return 645
+        return rgb2wl.dict[hue]
+if 0 and __name__ == "__main__": 
     from lwtest import run, Assert
     def Test():
         diffs = []
@@ -120,4 +120,4 @@ if __name__ == "__main__":
         diffs = set(diffs)
         Assert(min(diffs) == -7)
         Assert(max(diffs) == 6)
-    exit(run(globals(), halt=True)[0])
+    exit(run(globals(), halt=True, broken=True)[0])

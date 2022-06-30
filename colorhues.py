@@ -3,6 +3,7 @@ Produced by /plib/kolor/names/names/namedict.py script
 11 May 2022 Wed 11:41:20 am
 6976 total colors
 '''
+#∞test∞# none #∞test∞#
 
 colorhues = {
   'blu': {
