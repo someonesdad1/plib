@@ -324,47 +324,19 @@ if 1:   # Utility
                 print("{c}{prefix}{fn}[{ln}] in {method}:  {msg}{n}".format(**vars))
 if 1:   # Checking functions
     def check_flt(a, b, reltol=None, abstol=None, use_min=False):
-        '''a must be a flt.  If b is not a flt, then promote it if
+        '''a must be a flt.  If b is not a flt, then convert it if
         possible.
         '''
         assert(ii(a, flt))
-        if ii(b, flt):
-            if a.u != b.u:
-                fail = [f"a ('{a.u}') and b ('{b.u}') do not have the same units"]
-            else:
-                check_float(float(a), float(b), reltol=reltol,
-                            abstol=abstol, use_min=use_min)
-        else:
-            if a.u is not None:
-                if a.promote:
-                    check_float(float(a), float(a(float(b))), reltol=reltol,
-                                abstol=abstol, use_min=use_min)
-                else:
-                    fail = ["a has units, but b does not"]
-            else:
-                check_float(float(a), float(b), reltol=reltol,
-                            abstol=abstol, use_min=use_min)
+        check_float(float(a), float(b), reltol=reltol,
+                    abstol=abstol, use_min=use_min)
     def check_cpx(a, b, reltol=None, abstol=None, use_min=False):
-        '''a must be a cpx.  If b is not a cpx, then promote it if
+        '''a must be a cpx.  If b is not a cpx, then convert it if
         possible.
         '''
         assert(ii(a, cpx))
-        if ii(b, cpx):
-            if a.u != b.u:
-                fail = [f"a ('{a.u}') and b ('{b.u}') do not have the same units"]
-            else:
-                check_complex(complex(a), complex(b), reltol=reltol,
-                            abstol=abstol, use_min=use_min)
-        else:
-            if a.u is not None:
-                if a.promote:
-                    check_complex(complex(a), complex(a(complex(b))), reltol=reltol,
-                                abstol=abstol, use_min=use_min)
-                else:
-                    fail = ["a has units, but b does not"]
-            else:
-                check_complex(complex(a), complex(b), reltol=reltol,
-                            abstol=abstol, use_min=use_min)
+        check_complex(complex(a), complex(b), reltol=reltol,
+                      abstol=abstol, use_min=use_min)
     def check_float(a, b, reltol=None, abstol=None, use_min=False):
         '''Some of these checks were patterned after the checks in
         Lib/test/test_cmath.py in the python distribution (probably

@@ -19,11 +19,7 @@ if 1:  # Copyright, license
 if 1:   # Imports
     from pdb import set_trace as xx 
 if 1:   # Custom imports
-    try:
-        from f import flt
-        have_flt = True
-    except ImportError:
-        have_flt = False
+    from f import flt
 if 1:   # Global variables
     __all__ = "gauges GetGauge WireGauge".split()
     gauges, urls = {}, {}
@@ -53,13 +49,11 @@ def WireGauge(num, mm=False):
         if num < 1 or num > 80:
             raise ValueError("num must be between 1 and 80 inclusive")
         if mm:
-            return flt(units*sizes[num]*25.4, "mm")
+            return flt(units*sizes[num]*25.4)
         else:
-            return flt(units*sizes[num], "inch")
+            return flt(units*sizes[num])
     elif isinstance(num, (flt, float)):
-        if isinstance(num, flt):
-            if num.u is not None:
-                num = float(num.to("inch").val)
+        num = float(num)
         # num is now a float in either inches or mm
         if mm:
             num /= 25.4  # Convert to inches
@@ -105,16 +99,10 @@ def Convert(text):
         if not item:
             continue
         n, dia = item.split()
-        try:
-            if have_flt:
-                d[int(n)] = flt(dia, units="inches")
-            else:
-                d[int(n)] = float(dia)
-        except Exception:
-            if have_flt:
-                d[n] = flt(dia, units="inches")
-            else:
-                d[n] = float(dia)
+        if isinstance(n, str):
+            d[n] = flt(dia)
+        else:
+            d[int(n)] = flt(dia)
     gauges[key] = d
     urls[key] = url
 def GetGauge(gauge):
@@ -515,10 +503,9 @@ if __name__ == "__main__":
     print(sep)
     print("-1 means 00 or 1/0, -2 means 000 or 2/0, etc.")
     print("Trailing 0 digits are removed from the dimensions in inches")
-    if have_flt:
-        x = flt(0)
-        x.n = 4         # Print numbers to 4 significant figures
-        x.rtz = True    # Remove trailing 0 digits
+    x = flt(0)
+    x.n = 4         # Print numbers to 4 significant figures
+    x.rtz = True    # Remove trailing 0 digits
     for gauge in gauges:
         data = gauges[gauge]
         print(sep)
@@ -526,6 +513,6 @@ if __name__ == "__main__":
         print(urls[gauge])
         o = []
         for key, value in data.items():
-            o.append(f"{str(key):4s} {value.val}")
+            o.append(f"{str(key):4s} {value}")
         for line in Columnize(o, col_width=16):
             print(line)

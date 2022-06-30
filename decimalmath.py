@@ -75,7 +75,7 @@ if 1:  # Header
             degrees e exp expm1 f2d fabs FindRoot floor fmod hypot isclose
             IsDecimal isfinite isinf isnan log log10 log1p log2 modf pi pow
             radians remainder sin sinh sqrt tan tanh tau trunc
-            inf ninf nan Dec, CDec
+            inf ninf nan Dec
             '''.split()
         Dec = decimal.Decimal
         zero, one, two, three, four, nine, ten = [Dec(i) for i in (0, 1, 2, 3,

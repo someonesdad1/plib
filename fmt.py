@@ -297,8 +297,6 @@ class Fmt:
         @u.setter
         def u(self, value):
             self._u = bool(value)
-
-        #xx under development
         @property
         def rtz(self) -> bool:
             '(bool) Remove trailing zeros after radix if True'

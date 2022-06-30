@@ -114,7 +114,7 @@ if 1:   # Header
         #∞what∞#
         # The Color class is used to hold the definition of a color.
         #∞what∞#
-        #∞test∞# run #∞test∞#
+        #∞test∞# --test #∞test∞#
     # Standard imports
         import colorsys
         from decimal import Decimal
@@ -130,7 +130,6 @@ if 1:   # Header
         from string import hexdigits
     # Custom imports
         from wrap import wrap, dedent
-        import get
         # Don't use flt for now until import dependencies fixed
         #from f import flt
         flt = float
@@ -1379,7 +1378,8 @@ class ColorName(dict):
         '''
         if clear:
             self.clear()
-        lines = get.GetLines(file, ignore=[], script=True, ignore_empty=True)
+        from get import GetLines
+        lines = GetLines(file, ignore=[], script=True, ignore_empty=True)
         vars = {}
         for line in lines:
             if ColorName.sep in line:

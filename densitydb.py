@@ -2627,8 +2627,6 @@ if 1:   # Filter the density data
     primary_references = "aes aip asm ceh tel hcp hep mar mhb"
     densities = FilterDensities(primary_references)
 
-    for i in densities: print(i) #xx
-
 if __name__ == "__main__":
     from lwtest import run, raises, assert_equal, Assert
     def Test():

@@ -156,13 +156,7 @@ def atm(altitude_km):
         }
     The values returned will be floating point numbers.
     '''
-    if ii(altitude_km, flt):
-        if altitude_km.u is not None:
-            z_km = altitude_km.val
-        else:
-            z_km = float(altitude_km)
-    else:
-        z_km = float(altitude_km)
+    z_km = float(altitude_km)
     if not (-5 <= z_km < 86):
         raise ValueError("altitude_km must be between -5 and 86 km")
     results = {}
@@ -607,17 +601,14 @@ if __name__ == "__main__":
             if not l or l[0] == "#":
                 continue
             f = l.split()
-            Z = flt(f[0], "m")
-            T = flt(f[1], "K")
-            P = flt(f[2], "mbar").to("Pa")
-            ρ = flt(f[3], "kg/m3")
-            d = atm(Z.to("km"))
-            Td = flt(d["temperature"], "K")
-            Pd = flt(d["pressure"], "Pa")
-            ρd = flt(d["density"], "kg/m3")
-            if 0:
-                print(f"{Z.to('km')}   T {rd(Td, T)}%, "
-                      f"P {rd(Pd, P)}%, ρ {rd(ρd, ρ)}%")
+            Z = flt(f[0])  # m
+            T = flt(f[1])  # K
+            P = flt(f[2])*100   # Pa (f[2] in mbar)
+            ρ = flt(f[3])  # kg/m3
+            d = atm(Z/1000) # atm arg is in km
+            Td = flt(d["temperature"]) # K
+            Pd = flt(d["pressure"]) # Pa
+            ρd = flt(d["density"]) # kg/m3
             o.extend([rd(Td, T), rd(Pd, P), rd(ρd, ρ)])
             Assert(rd(Pd, P) < 0.01)
             Assert(rd(ρd, ρ) < 0.01)

@@ -31,13 +31,12 @@ if 1:   # Standard imports
     from pdb import set_trace as xx
 if 1:   # Custom imports
     from wrap import dedent
-    from clr import Clr
+    from color import TRM as t
 if 1:   # Global variables
     P = pathlib.Path
     ii = isinstance
-    c = Clr()
-    c.p = c("lred")
-    c.N = c("lgrn")
+    t.p = t("redl")
+    t.N = t("grnl")
     nl = "\n"
     __all__ = '''AllFactors Factor FactorList FormatFactors IsPrime
                  PrimeList PrimeNumberSieve Primes factor_gen
@@ -188,9 +187,9 @@ def FormatFactors(n, plain=False, factor_dict=None):
     else:
         D = Factor(n)
     if not D:
-        return f"{c.p}{n}{c.n}" if d["-c"] else f"{n}"
+        return f"{t.p}{n}{t.n}" if d["-c"] else f"{n}"
     keys = sorted(list(D.keys()))
-    N, s = f"{c.N}{n}{c.n}: ", []
+    N, s = f"{t.N}{n}{t.n}: ", []
     for key in keys:
         if D[key] > 1:
             if plain:
@@ -360,8 +359,7 @@ if __name__ == "__main__":
                 elif o == "--test":
                     exit(run(globals(), halt=True)[0])
             if not d["-c"]:
-                c.reset()
-                c.p = c.n = c.N = ""
+                t.p = t.n = t.N = ""
             return args
     if 1:
         d = {}      # Options dictionary

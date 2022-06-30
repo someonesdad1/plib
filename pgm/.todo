@@ -987,4 +987,10 @@ xxy     Tabulation tool
         5     1.000   1.236  0.7265  0.9082
 
     Desired features
-        - Specify spacings between columns (either fixed or irregul
+        - Specify spacings between columns (either fixed or irregular)
+        - Specify strings between columns for borders (they can be considered
+        another column)
+        - Fill to a given screen width, truncate columns to fit, or raise
+        exception that it won't fit
+        - Line up decimal points for reports
+        - Coalesced columns?

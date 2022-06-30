@@ -186,7 +186,7 @@ if 1:  # Copyright, license
     #∞what∞#
     # Color conversion utilities
     #∞what∞#
-    #∞test∞# run #∞test∞#
+    #∞test∞# ignore #∞test∞#
     pass
 if 1:   # Standard imports
     import colorsys

@@ -879,8 +879,6 @@ if __name__ == "__main__":
     from wrap import dedent
     from lwtest import run, raises, Assert
     from io import StringIO
-    if _have_f:
-        from get import flt, cpx
     text_file, S = None, None
     def SetUp():
         global text_file, S

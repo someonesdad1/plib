@@ -135,26 +135,13 @@ def Test_flt_cpx():
     with x:
         a, b = flt(1), flt(1)
         assert_equal(a, b)
-        a = flt(1, "m")
-        raises(AssertionError, assert_equal, a, b)
-        a.promote = 1
-        assert_equal(a, b)
         b = 1.0
         assert_equal(a, b)
-        a.promote = 0
-        raises(AssertionError, assert_equal, a, b)
     with z:
         a, b = cpx(1+1j), cpx(1+1j)
         assert_equal(a, b)
-        a = cpx(1+1j, units="m")
-        raises(AssertionError, assert_equal, a, b)
-        a.promote = 1
-        a == b
-        assert_equal(a, b)
         b = 1+1j
         assert_equal(a, b)
-        a.promote = 0
-        raises(AssertionError, assert_equal, a, b)
 def TestRun():
     def TestA(): raise ValueError()
     def TestB(): raise ValueError()

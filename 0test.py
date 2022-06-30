@@ -14,54 +14,53 @@ run         Run the script directly; 0 status means passed
 If there is no test trigger string, nothing will be done.
 '''
  
-if 1:  # Copyright, license
-    # These "trigger strings" can be managed with trigger.py
-    #∞copyright∞# Copyright (C) 2021 Don Peterson #∞copyright∞#
-    #∞contact∞# gmail.com@someonesdad1 #∞contact∞#
-    #∞license∞#
-    #   Licensed under the Open Software License version 3.0.
-    #   See http://opensource.org/licenses/OSL-3.0.
-    #∞license∞#
-    #∞what∞#
-    # <utility> Run self tests of python scripts with a test trigger
-    # string.  A trigger string of "run" means run the script directly.
-    # "--test" means run it with this option.  A list of strings
-    # specifies one or more test files to run.
-    #∞what∞#
-    #∞test∞# ignore #∞test∞#
-    pass
-if 1:   # Standard imports
-    import getopt
-    import os
-    import pathlib
-    import subprocess
-    import sys
-    from pdb import set_trace as xx
-if 1:   # Custom imports
-    from tee import Print
-    from wrap import wrap, dedent, indent, Wrap
-    from columnize import Columnize
-    from timer import Timer
-    import clr
-    import trigger
-    import dpstr
-    if 0:
-        import debug
-        debug.SetDebugger()  # Start debugger on unhandled exception
-if 1:   # Global variables
-    P = pathlib.Path
-    # Set up for color printing
-    c = clr.Clr(bits=24, override=True)
-    c.red = c("lred")   # For failures
-    c.cyn = c("lcyn")   # Directories
-    c.grn = c("lgrn")   # For files we'll run
-    c.yel = c("lyel")   # For files we'll run
-    c.gry = c("wht")    # For ignored files
+if 1:  # Header
+    # Copyright, license
+        # These "trigger strings" can be managed with trigger.py
+        #∞copyright∞# Copyright (C) 2021 Don Peterson #∞copyright∞#
+        #∞contact∞# gmail.com@someonesdad1 #∞contact∞#
+        #∞license∞#
+        #   Licensed under the Open Software License version 3.0.
+        #   See http://opensource.org/licenses/OSL-3.0.
+        #∞license∞#
+        #∞what∞#
+        # <utility> Run self tests of python scripts with a test trigger
+        # string.  A trigger string of "run" means run the script directly.
+        # "--test" means run it with this option.  A list of strings
+        # specifies one or more test files to run.
+        #∞what∞#
+        #∞test∞# ignore #∞test∞#
+    # Standard imports
+        import getopt
+        import os
+        import pathlib
+        import subprocess
+        import sys
+        from pdb import set_trace as xx
+    # Custom imports
+        from tee import Print
+        from wrap import wrap, dedent, indent, Wrap
+        from columnize import Columnize
+        from timer import Timer
+        from color import TRM as t
+        import trigger
+        import dpstr
+        if 0:
+            import debug
+            debug.SetDebugger()  # Start debugger on unhandled exception
+    # Global variables
+        P = pathlib.Path
+        # Set up for color printing
+        t.red = t("redl")   # For failures
+        t.cyn = t("cynl")   # Directories
+        t.grn = t("grnl")   # For files we'll run
+        t.yel = t("yell")   # For files we'll run
+        t.gry = t("gryl")   # For ignored files
 if 1:   # Utility
     def Error(msg, status=1):
         print(msg, file=sys.stderr)
         exit(status)
-    def Usage(d, status=1):
+    def Usage(status=1):
         name = P(sys.argv[0])
         print(dedent(f'''
         Usage:  {name} [options] file1 [file2...]
@@ -95,9 +94,9 @@ if 1:   # Utility
             if o[1] in list("LlrvV"):
                 d[o] = not d[o]
             elif o in ("-h", "--help"):
-                Usage(d, status=0)
+                Usage(status=0)
         if not args:
-            args = ["."]
+           Usage()
         return args
     def GetLogFile():
         '''Search the current directory for the set of files that end in
@@ -150,7 +149,7 @@ class TestRunner:
             files = self.GetFiles(dir)
         # Keep only those with None for the second element
         files = [i for i in files if i[1] is None]
-        print(f"{c.cyn}Directory = {dir.resolve()}{c.n}")
+        print(f"{t.cyn}Directory = {dir.resolve()}{t.n}")
         out = []
         for file, trig in files:
             out.append(f"{file!s}")
@@ -158,24 +157,24 @@ class TestRunner:
             print(line)
     def ListFiles(self, dir):
         if dir.is_file():
-            t = self.GetTestTrigger(dir)
-            if t is None:
+            T = self.GetTestTrigger(dir)
+            if T is None:
                 return
-            files = [t]
+            files = [T]
         else:
             files = self.GetFiles(dir)
         # Keep only those without None for the second element
         files = [i for i in files if i[1] is not None]
         n = max([len(str(i)) for i, j in files])
-        print(f"{c.cyn}Directory = {dir.resolve()}{c.n}")
+        print(f"{t.cyn}Directory = {dir.resolve()}{t.n}")
         # We'll color code things based on trig:
         #    Green:  run, --test, list of test/ files
         #    Gray:   ignore
         for file, trig in files:
             if trig == "ignore":
-                print(f"  {c.gry}{file!s:{n}s} {trig}{c.n}")
+                print(f"  {t.gry}{file!s:{n}s} {trig}{t.n}")
             else:
-                print(f"  {c.yel}{file!s:{n}s} {c.grn}{trig}{c.n}")
+                print(f"  {t.yel}{file!s:{n}s} {t.grn}{trig}{t.n}")
     def Run(self, file, additional=None):
         if file.suffix == ".py":
             cmd = [sys.executable, str(file)]
@@ -189,12 +188,12 @@ class TestRunner:
                     print(r.stderr, end="")
             if r.returncode:
                 self.failed += 1
-                print(f"{c.red}{file} test failed{c.n}")
+                print(f"{t.red}{file} test failed{t.n}")
         else:
             status = os.system(str(file))
             if status:
                 self.failed += 1
-                print(f"{c.red}{file} test failed{c.n}")
+                print(f"{t.red}{file} test failed{t.n}")
     def RunTests(self, dir):
         'Only failed tests have their info printed out'
         if dir.is_file():
@@ -233,6 +232,7 @@ if __name__ == "__main__":
     items = [P(i) for i in ParseCommandLine(d)]
     # Hook up a tee to cause output to go to a log file
     logfile = GetLogFile()
+    print("Testing logfile is", logfile)
     logfile_stream = open(logfile, "w")
     saved = sys.stderr
     sys.stderr = logfile_stream
@@ -264,7 +264,6 @@ if __name__ == "__main__":
         print(f"  {f} python file{'s' if f != 1 else ''} failed")
         print(f"  {n} python file{'s' if n != 1 else ''} "
               f"{'were' if n != 1 else 'was'} not tested")
-    print("Testing logfile is", logfile)
     logfile_stream.close()
     Print.streams.clear()
     print = Print.print

@@ -479,6 +479,7 @@ if __name__ == "__main__":
         os.rmdir(dir)
     def Test_get_directories():
         os.chdir(Setup.cwd)     # Go back to starting directory
+        assert(Setup.cwd == "/plib")
         a = Dirfiles(".", clear=True, getdirs=True)
         a.add("*")
         if a.size == 1:
@@ -490,12 +491,12 @@ if __name__ == "__main__":
         a = Dirfiles(".", clear=True, getdirs=True, ignore_repo=False)
         a.add("**/*")
         assert(P("ts") in a.files)
-        assert(P("ts/.hg") in a.files)
+        assert(P("ts/.git") in a.files)
         # Check we have recursion and that repos are not seen
         a = Dirfiles(".", clear=True, getdirs=True, ignore_repo=True)
         a.add("**/*")
         assert(P("ts") in a.files)
-        assert(P("ts/.hg") not in a.files)
+        assert(P("ts/.git") not in a.files)
         # Go back to starting directory
         os.chdir(Setup.cwd)
     Setup()

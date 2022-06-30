@@ -62,7 +62,6 @@ if 1:   # Imports
     from numbers import Integral
     from fractions import Fraction
 if 1:   # Custom imports
-    from f import flt
     try:
         from roundoff import RoundOff
         has_RoundOff = True

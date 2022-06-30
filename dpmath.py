@@ -322,7 +322,7 @@ def ApproximateSpiralArcLength(ID, OD, thickness):
     the roll.  The three parameters must be measured in the same units
     and the returned number will be in the same units.
  
-    The smaller thickness(OD - ID) is, the better the approximation.
+    The smaller thickness*(OD - ID) is, the better the approximation.
     '''
     # Approximation:  for a large diameter circle, one revolution of a
     # fine-pitch spiral should be nearly equal to the circumference.
@@ -680,29 +680,20 @@ def Percentile(seq, fraction):
     else:
         y = seq[0]
     return y
-def LengthOfRopeOnDrum(dia, width, flange_dia, barrel_dia, output_units="m"):
+def LengthOfRopeOnDrum(dia, width, flange_dia, barrel_dia):
     '''Return the length of rope of diameter dia that will fit on a
     winch drum of diameter barrel_dia.  The width of winding area is
     width and the maximum diameter of the drum's flange is flange_dia.
-    These variables must be flt instances with dimensionss of length.
+    These variables are in inches and the output length is in ft.
     '''
     # Formula from Sampson Rope Users Manual pg. 28.  Note the formula
     # is for all input variables in inches and output length in feet.
-    if not ii(dia, flt):
-        raise TypeError("dia must be a flt from f.py")
-    if not ii(width, flt):
-        raise TypeError("width must be a flt from f.py")
-    if not ii(flange_dia, flt):
-        raise TypeError("flange_dia must be a flt from f.py")
-    if not ii(barrel_dia, flt):
-        raise TypeError("barrel_dia must be a flt from f.py")
-    # Convert dimensions to inches
-    A = width.val
-    B = flange_dia.val
-    C = barrel_dia.val
-    rope_dia = dia.val
-    L = flt(A*(B**2 - C**2)/(15.3*rope_dia**2), "ft")
-    return L.to(output_units)
+    A = width
+    B = flange_dia
+    C = barrel_dia
+    rope_dia = dia
+    L = flt(A*(B**2 - C**2)/(15.3*rope_dia**2))
+    return L
     '''Here's a post on math.stackexchange that discusses this problem
     https://math.stackexchange.com/questions/3853557/how-to-calculate-the-length-of-cable-on-a-winch-given-the-rotations-of-the-drum
  
@@ -1140,7 +1131,7 @@ if __name__ == "__main__":
         correct.  Use flt for calculations.
         '''
         num_rolls = 18
-        mm = flt("1 mm")
+        mm = flt("1") # mm
         mm.n = 4
         ID, OD = mm(60), mm(130)
         fudge = 3.942
@@ -1148,20 +1139,19 @@ if __name__ == "__main__":
         pitch = 2*thickness
         length_actual = 425*mm(101)
         a = pitch/tau
-        # Have to use ID.val because frange barfs on a flt
-        f = lambda x:  float(x.val)
+        # Have to use float because frange barfs on a flt
+        f = lambda x:  float(x)
         # Since we know the stated length, use the approximate formula
         # to calculate what the thickness must be.
-        length = mm(ApproximateSpiralArcLength(f(ID), f(OD),
-                        f(thickness)))
-        length_ft = length.to("ft")
+        length = mm(ApproximateSpiralArcLength(f(ID), f(OD), f(thickness)))
+        length_ft = length*0.00328084
         # The area per roll is the exact_length times the 101 mm
         # dimension
         area_per_roll = length*width
-        area_per_roll_ft2 = area_per_roll.to("ft2")
+        area_per_roll_ft2 = area_per_roll*1.07639e-05
         total_area = num_rolls*area_per_roll
-        A_calc_ft2 = total_area.to('ft2')
-        A_exact_ft2 = flt("815 ft2")
+        A_calc_ft2 = total_area*1.07639e-05
+        A_exact_ft2 = flt("815")
         assert_equal(A_calc_ft2, A_exact_ft2, reltol=0.01)
         if 0:   # Dump the variables
             d = locals()
@@ -1349,10 +1339,9 @@ if __name__ == "__main__":
         Assert(round(Percentile(s, 1.1), 4) == 95.1990)
         raises(ValueError, Percentile, [1], 0.5)
     def TestLengthOfRopeOnDrum():
-        a, b, c, d = 72, 48, 12, 1
-        A = flt(a, "inch")
-        B, C, dia = A(b), A(c), A(d)
-        expected = (a*(b**2 - c**2)/(15.3*d**2))
-        got = LengthOfRopeOnDrum(dia, A, B, C, output_units="ft")
+        # All dimensions in inches
+        A, B, C, dia = 72, 48, 12, 1
+        expected = (A*(B**2 - C**2)/(15.3*dia**2))
+        got = LengthOfRopeOnDrum(dia, A, B, C)
         assert_equal(got, expected, reltol=1e-10)
     exit(run(globals(), halt=1)[0])

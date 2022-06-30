@@ -96,10 +96,8 @@ if 1:   # Imports
     import time
 
 if 1:   # Custom imports
-    from f import flt
     from dpmath import AlmostEqual, SignSignificandExponent, signum
     from sig import sig
-    from kolor import C
     from frange import frange
 if 1:   # Global variables
     ii = isinstance
@@ -1355,7 +1353,7 @@ def iDistribute(n, a, b):
         raise ValueError("No solution")
     for i in range(n):
         yield int(round(a + i*dx, 0))
-def fDistribute(n, a=0, b=1, impl=flt):
+def fDistribute(n, a=0, b=1, impl=float):
     '''Generator to return n impl instances on [a, b] inclusive. A
     common use case is an interpolation parameter on [0, 1].
     Examples:
@@ -1541,7 +1539,7 @@ class PPSeq:
         if not all(type(i) == typ for i in seq):
             return False
         # Make sure they are of the allowed types
-        if not ii(x, (int, float, flt, Decimal, Fraction)):
+        if not ii(x, (int, float, Decimal, Fraction)):
             try:
                 y = float(x)
             except Exception:
