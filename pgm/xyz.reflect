@@ -1,0 +1,20 @@
+# Example of using reflections
+ijk
+
+# Make the first point 
+. 1, 1, a
+
+# Make a copy, then reflect it about the origin
+b = a.copy
+reflect o, b
+
+# Reflect b about the x axis to get the third point
+c = b.copy
+reflect i, c
+
+# Reflect b about the y axis to get the fourth point
+d = b.copy
+reflect j, d
+
+# Show the four points
+print a, b, c, d
