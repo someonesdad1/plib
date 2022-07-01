@@ -19,7 +19,7 @@ if 1:   # Header
         #∞what∞#
         # Water properties, Darcy friction factor
         #∞what∞#
-        #∞test∞# #∞test∞#
+        #∞test∞# run #∞test∞#
     # Standard imports
         import getopt
         import sys

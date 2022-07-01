@@ -43,7 +43,9 @@ xxy tabulate
 Want
 
     - xyz.py
-        - Move in from PP
+        - Update to use flt
+        - Change printout to use Unicode symbols
+        - Use color for coordinate systems
 
     - pgm/profit.py
         - Add a container for comments describing the model.  These get

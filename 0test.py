@@ -76,8 +76,7 @@ if 1:   # Utility
           an argument of '.' runs the tests on all the files in the current
           directory.
         Options:
-          -C    Remove all log files
-          -d    Debug print:  show what will be done
+          -d    Print what will be done
           -h    Print a manpage
           -L    List the files without test trigger strings
           -l    List the files and their actions
@@ -105,8 +104,6 @@ if 1:   # Utility
                 Usage(status=0)
         if not args:
            Usage()
-        if d["-d"]:
-            Dbg("Debugging turned on")
         return args
     def GetLogFile():
         '''Return a file name that ends in .0test that contains the current
@@ -249,9 +246,9 @@ def ShowWhatWillBeDone(tr, items):
             run.append(p)
     def Show(title, seq):
         if seq:
-            Dbg(title)
+            print(title)
             for i in Columnize(sorted(seq), indent=" "*4):
-                Dbg(i)
+                print(i)
     for item in items:
         if item.is_dir():
             files = tr.GetFiles(item)
@@ -264,15 +261,20 @@ def ShowWhatWillBeDone(tr, items):
             else:
                 Categorize(item, "none")
     # Print results
+    print(f"{t('gry')}", end="")
     Show("Trigger string is 'none':", none)
+    print(f"{t('ornl')}", end="")
     Show("Empty trigger string (probably needs a test written):", empty)
+    print(f"{t('lil')}", end="")
     Show("Ignored:", ignore)
+    print(f"{t('grn')}", end="")
     Show("Files with tests to run:", run)
+    t.out()
 
 if __name__ == "__main__":
     d = {}      # Options dictionary
     items = [P(i) for i in ParseCommandLine(d)]
-    if 1: # Hook up a tee to cause output to go to a log file
+    if not d["-d"]:     # Hook up a tee to cause output to go to a log file
         logfile = GetLogFile()
         print("Testing logfile is", logfile)
         logfile_stream = open(logfile, "w")
@@ -284,6 +286,7 @@ if __name__ == "__main__":
     tr = TestRunner()
     if d["-d"]:
         ShowWhatWillBeDone(tr, items)
+        exit(0)
     if 1:   # Run the tests
         timer = Timer()
         timer.start

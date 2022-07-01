@@ -105,72 +105,59 @@ class Ctm(object):
              0, 0, 1, 0,
              0, 0, 0, 1]
   
-    # The following variable is used to detect when the absolute value
-    # of a number is close to zero.
+        # The following variable is used to detect when the absolute value
+        # of a number is close to zero.
     eps = 5e-15
- 
-    # The following Boolean is used to flag when only rotation
-    # transformations have been used.  This then allows us to find the
-    # rotation axis if desired.
+        # The following Boolean is used to flag when only rotation
+        # transformations have been used.  This then allows us to find the
+        # rotation axis if desired.
     _rotations_only = True
- 
-    # The following object is used to convert numbers to strings.
+        # The following object is used to convert numbers to strings.
     _sig = SigFig()
- 
-    # Only initialize ourself once
+        # Only initialize ourself once
     _initialized = False
- 
-    # The _coord_sys string identifies the coordinate system to use to
-    # display a geometric object in the __str__ method.  The value can
-    # be "rect", "cyl", or "sph" for rectangular, cylindrical, and
-    # spherical, respectively.
+        # The _coord_sys string identifies the coordinate system to use to
+        # display a geometric object in the __str__ method.  The value can
+        # be "rect", "cyl", or "sph" for rectangular, cylindrical, and
+        # spherical, respectively.
     _coord_sys = "rect"
- 
-    # _compass indicates that the polar angle theta should be measured
-    # clockwise from the +y axis instead of the usual polar angle
-    # measured counterclockwise from the +x axis.
+        # _compass indicates that the polar angle theta should be measured
+        # clockwise from the +y axis instead of the usual polar angle
+        # measured counterclockwise from the +x axis.
     _compass = False
- 
-    # _elev indicates that the spherical angle phi should instead be
-    # presented as the elevation above the xy plane.  Thus, this means
-    # the complement of phi is given.  It will range from -pi/2 to
-    # pi/2.
+        # _elev indicates that the spherical angle phi should instead be
+        # presented as the elevation above the xy plane.  Thus, this means
+        # the complement of phi is given.  It will range from -pi/2 to
+        # pi/2.
     _elev = False
- 
-    # _neg indicates that the angle should increase in the opposite
-    # direction than is customary.  Thus, if True, for polar angles,
-    # the azimuth angle should increase when moving clockwise.  For
-    # compass angles, the azimuth should increase when moving
-    # counterclockwise.  The variable has no effect on the spherical
-    # phi angle.
+        # _neg indicates that the angle should increase in the opposite
+        # direction than is customary.  Thus, if True, for polar angles,
+        # the azimuth angle should increase when moving clockwise.  For
+        # compass angles, the azimuth should increase when moving
+        # counterclockwise.  The variable has no effect on the spherical
+        # phi angle.
     _neg = False
- 
-    # _suppress_z, if True, causes the z component of an object to be
-    # suppressed in the __str__ method if the z component is zero.
-    # Thus, the third coordinate (z in rect/cyl or phi in sph) will be
-    # suppressed if the point lies in the xy plane.  The intent is to
-    # let geometry problems in the plane look like two-dimensional
-    # problems.
+        # _suppress_z, if True, causes the z component of an object to be
+        # suppressed in the __str__ method if the z component is zero.
+        # Thus, the third coordinate (z in rect/cyl or phi in sph) will be
+        # suppressed if the point lies in the xy plane.  The intent is to
+        # let geometry problems in the plane look like two-dimensional
+        # problems.
     _suppress_z = True
- 
-    # Multiply angles in radians by _angle to convert angles from
-    # radians to the desired angular unit.  For example, to make
-    # degrees the default angular measure, set this to 180/pi.
+        # Multiply angles in radians by _angle to convert angles from
+        # radians to the desired angular unit.  For example, to make
+        # degrees the default angular measure, set this to 180/pi.
     _angle = 1
- 
-    # _angle_name is a string used to identify the angular unit.
+        # _angle_name is a string used to identify the angular unit.
     _angle_name = "rad"
- 
-    # If _eye is not None, then it must be a Point object and
-    # projection is done using this point as the eye point, resulting
-    # in projective transformations.  If None, then the projections
-    # are done from infinity, resulting in orthogonal projections.
+        # If _eye is not None, then it must be a Point object and
+        # projection is done using this point as the eye point, resulting
+        # in projective transformations.  If None, then the projections
+        # are done from infinity, resulting in orthogonal projections.
     _eye = None
- 
-    # The _stack variable holds a copy of the CTM for push and pop
-    # operations.
+        # The _stack variable holds a copy of the CTM for push and pop
+        # operations.
     _stack = []
- 
     def __init__(self):
         if not Ctm._initialized:
             # Note:  do not set sig.rtz to True, as you'll get
@@ -186,7 +173,7 @@ class Ctm(object):
         '''
         Ctm._stack.append(self.GetCTM())
         if ctm:
-            assert len(ctm) == 16
+            assert(len(ctm) == 16)
             self.SetCTM(ctm)
     def pop(self):
         '''Pop the last-pushed CTM from the stack and set it as the
@@ -255,7 +242,7 @@ class Ctm(object):
         PostScript.
         '''
         if len(ctm) != 16:
-            raise ValueError("Need sequence of 16 parameters for CTM")
+            raise ValueError("Need sequence of 16 numbers for CTM")
         Ctm._CTM = list(ctm[:])
         # Verify all the matrix elements are numbers
         allowed = [int, float, flt]
