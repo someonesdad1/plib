@@ -151,8 +151,8 @@ def ConstructEncodingData():
         ISO-8859-9           0.1%           iso8859_9
         ISO-8859-15          0.1%           iso8859_15
  
-    In my experience, the only other encoding I encounter on a regular
-    basis is ISO-8859-1 (Latin-1).
+    In my experience, the only other encoding I encounter besides UTF-8 on
+    a regular basis is ISO-8859-1 (Latin-1).
  
     The following encodings are used in less than 0.1%:
  

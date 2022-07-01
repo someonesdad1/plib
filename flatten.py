@@ -1,7 +1,7 @@
 # Written by Kevin L. Sitze on 2010-11-25.  From
 # http://code.activestate.com/recipes/577470-fast-flatten-with-depth-control-and-oversight-over/?in=lang-python
 # This code may be used pursuant to the MIT License.
-#∞test∞# ignore #∞test∞#
+#∞test∞# run #∞test∞#
 '''This module contains four flatten() functions for generating either
 a sequence or an iterator.  The goal is to "flatten" a tree (typically
 comprised of lists and tuples) by slicing the elements in each

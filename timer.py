@@ -2,7 +2,7 @@
 Time-related tools:
     Stopwatch class:  For elapsed times
     Timer class:  Tool that works as a context manager and decorator
-    FTime class:  Get a filename with a time in it
+    FNTime class:  Get a filename with a time in it
 '''
 if 1:  # Header
     # Copyright, license
@@ -158,14 +158,21 @@ if 1:   # Classes
     class FNTime(object):
         def __init__(self):
             pass
-        def __call__(self):
+        def __call__(self, short=False):
             '''Return a string containing the time now that is suitable
-            for a filename.
+            for a filename.  The string will contain the time to the
+            nearest microsecond, so will almost certainly be unique but
+            long.  Set short to True to get a short string like '5Jun'.
             '''
             d = datetime.datetime.now()
-            s = (f"{d.year:04d}{d.month:02d}{d.day:02d}_"
-                 f"{d.hour:02d}{d.minute:02d}{d.second:02d}."
-                 f"{d.microsecond:06d}")
+            if short:
+                from months import months
+                m = months[d.month]
+                s = f"{d.day}{months[d.month]}"
+            else:
+                s = (f"{d.year:04d}{d.month:02d}{d.day:02d}_"
+                    f"{d.hour:02d}{d.minute:02d}{d.second:02d}."
+                    f"{d.microsecond:06d}")
             return s
 if 1:   # Convenience instances
     timer = Timer()

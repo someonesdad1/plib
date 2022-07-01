@@ -1,8 +1,12 @@
 '''
 Hashes the string answers to a set of questions.  This is intended to allow
 me to have a secure hash that is nearly certain that no one else would be
-able to guess, even if given this script.  This is because no one would
-know all the answers to the questions below.
+able to guess, even if given this script.  This is because no one but
+myself would know all the answers to the questions below.
+
+Update 1 Jul 2022:  Prints out the hashes using the guaranteed hash
+algorithms in the python version used.
+
 '''
 if 1:  # Copyright, license
     # These "trigger strings" can be managed with trigger.py
@@ -95,13 +99,51 @@ def ID_Hash(questions, remws=True, lc=True, visible=False,
         answer = None
     return (answer, hash_string)
 
-if __name__ == "__main__":
+def AnswerQuestions(questions, remws=True, lc=True, visible=False, test=None):
+    '''Return the answer string by prompting the user for each question in
+    the sequence questions.  If remws is True, remove all whitespace of the
+    answers.  If lc is True, change to lowercase.  If visible is True, echo
+    the answers to the screen.  If test is not None, return the test string
+    as the result, processing remws and lc as appropriate.
+    '''
+    answers = []
+    if test:
+        answers = [test]
+    else:
+        for question in questions:
+            print(question)
+            answer = input() if visible else getpass("")
+            answers.append(answer)
+    answer = ''.join(answers)
+    if remws:
+        for i in " \t\n\r":
+            answer = answer.replace(i, "")
+    if lc:
+        answer = answer.lower()
+    return answer
+
+def HashAnswer(hash, answer, truncate=None, passes=2):
+    hash_string = answer
+    for i in range(passes):
+        m = eval("hashlib.{}()".format(hash))
+        m.update(hash_string.encode("utf8"))
+        hash_string = m.hexdigest()
+    if truncate is not None:
+        hash_string = hash_string[:truncate]
+    if not show:
+        answer = None
+    return (answer, hash_string)
+
+
+if 0 and __name__ == "__main__":
+    from wrap import dedent
     # Answer 'a' to every question and you should get the hash
     # 3aa25c07b73e196ecda364043a270ee9bb8143e2 
     # (on system with python 3.7.10)
-    print('''Enter the answers to the following questions.  Whitespace
-and case are ignored; backspace erases characters.
-''')
+    print(dedent('''
+    Enter the answers to the following questions.  Whitespace
+    and case are ignored; backspace erases characters.
+    '''))
     q = [
         "Vernon's phone number",
         "DLN of Zazu's youngest daughter?",
@@ -119,3 +161,8 @@ and case are ignored; backspace erases characters.
     print("Using", hashfunc, "hash")
     print("Hash =", hash)
     print("Orig = 7512c8ea046f930c6cb8c805ecf5c988f44ea9ad")
+
+if __name__ == "__main__":
+    breakpoint() #xx
+    s = AnswerQuestions([], test="aaaa")
+    print(repr(s))

@@ -62,6 +62,10 @@ if 1:  # Header
         t.grn = t("grnl")   # For files we'll run
         t.yel = t("yell")   # For files we'll run
 
+        # Files to ignore
+        ignore = set((
+            P("/plib/trigger.py"),
+        ))
 if 1:   # Utility
     def Error(msg, status=1):
         print(msg, file=sys.stderr)
@@ -74,42 +78,32 @@ if 1:   # Utility
           the self-tests.  If one of the command arguments is a directory, 
           all of its python files have their self tests run.  Example:
           an argument of '.' runs the tests on all the files in the current
-          directory.
+          directory.  Normally, only test failures cause output; use -v to
+          show each of the files that is being run.
         Options:
-          -d    Print what will be done
-          -h    Print a manpage
-          -L    List the files without test trigger strings
-          -l    List the files and their actions
-          -r    Search for all python files recursively
-          -q    Quiet mode:  only show failures and summary
-          -v    Verbose mode:  show ignored files
+          -d    Show what will be done and exit
+          -v    Verbose mode:  show what's being tested
         '''))
         exit(status)
     def ParseCommandLine(d):
         d["-d"] = False     # Debug output
-        d["-L"] = False     # List the files without trigger string
-        d["-l"] = False     # List the files
-        d["-q"] = False     # Quiet mode
         d["-r"] = False     # Recursive
         d["-v"] = False     # Verbose:  show ignored
         try:
-            opts, args = getopt.getopt(sys.argv[1:], "dhLlrqv")
+            opts, args = getopt.getopt(sys.argv[1:], "drv")
         except getopt.GetoptError as e:
             print(str(e))
             exit(1)
         for o, a in opts:
-            if o[1] in list("dLlrv"):
+            if o[1] in list("drv"):
                 d[o] = not d[o]
-            elif o in ("-h", "--help"):
-                Usage(status=0)
         if not args:
            Usage()
         return args
     def GetLogFile():
-        '''Return a file name that ends in .0test that contains the current
-        time to the microsecond.
-        '''
-        return fnt() + ".0test"
+        'Return a log file name that ends in .0test'
+        suffix = fnt() + ".0test"
+        return P(".testlog")/suffix
 class TestRunner:
     def __init__(self):
         self.total = 0
@@ -125,6 +119,8 @@ class TestRunner:
         'Return a sorted list of (files, trigger)'
         p, glb, o = P(dir), "*.py", []
         for file in p.rglob(glb) if d["-r"] else p.glob(glb):
+            if file.resolve() in ignore:
+                continue
             triggers = self.trigger(file)
             if (triggers is not None and "test" in triggers and 
                 triggers["test"].strip()):
@@ -132,42 +128,43 @@ class TestRunner:
             else:
                 o.append((file, None))
         return list(sorted(o))
-    def ListFilesWithoutTrigger(self, dir):
-        if dir.is_file():
-            t = self.GetTestTrigger(dir)
-            if t is not None:
-                return
-            files = [t]
-        else:
-            files = self.GetFiles(dir)
-        # Keep only those with None for the second element
-        files = [i for i in files if i[1] is None]
-        print(f"{t.cyn}Directory = {dir.resolve()}{t.n}")
-        out = []
-        for file, trig in files:
-            out.append(f"{file!s}")
-        for line in Columnize(out, indent=" "*2):
-            print(line)
-    def ListFiles(self, dir):
-        if dir.is_file():
-            T = self.GetTestTrigger(dir)
-            if T is None:
-                return
-            files = [T]
-        else:
-            files = self.GetFiles(dir)
-        # Keep only those without None for the second element
-        files = [i for i in files if i[1] is not None]
-        n = max([len(str(i)) for i, j in files])
-        print(f"{t.cyn}Directory = {dir.resolve()}{t.n}")
-        # We'll color code things based on trig:
-        #    Green:  run, --test, list of test/ files
-        #    Gray:   ignore
-        for file, trig in files:
-            if trig == "ignore":
-                print(f"  {t.gry}{file!s:{n}s} {trig}{t.n}")
+    if 0:   # Functionality not being used
+        def ListFilesWithoutTrigger(self, dir):
+            if dir.is_file():
+                t = self.GetTestTrigger(dir)
+                if t is not None:
+                    return
+                files = [t]
             else:
-                print(f"  {t.yel}{file!s:{n}s} {t.grn}{trig}{t.n}")
+                files = self.GetFiles(dir)
+            # Keep only those with None for the second element
+            files = [i for i in files if i[1] is None]
+            print(f"{t.cyn}Directory = {dir.resolve()}{t.n}")
+            out = []
+            for file, trig in files:
+                out.append(f"{file!s}")
+            for line in Columnize(out, indent=" "*2):
+                print(line)
+        def ListFiles(self, dir):
+            if dir.is_file():
+                T = self.GetTestTrigger(dir)
+                if T is None:
+                    return
+                files = [T]
+            else:
+                files = self.GetFiles(dir)
+            # Keep only those without None for the second element
+            files = [i for i in files if i[1] is not None]
+            n = max([len(str(i)) for i, j in files])
+            print(f"{t.cyn}Directory = {dir.resolve()}{t.n}")
+            # We'll color code things based on trig:
+            #    Green:  run, --test, list of test/ files
+            #    Gray:   ignore
+            for file, trig in files:
+                if trig == "ignore":
+                    print(f"  {t.gry}{file!s:{n}s} {trig}{t.n}")
+                else:
+                    print(f"  {t.yel}{file!s:{n}s} {t.grn}{trig}{t.n}")
     def Run(self, file, additional=None):
         if file.suffix == ".py":
             cmd = [sys.executable, str(file)]

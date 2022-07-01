@@ -30,7 +30,6 @@ Finds trigger strings in text files
 
     and call t.write() to write the information back to the file.
 '''
-#∞test∞# none #∞test∞#
 import pathlib
 import re
 from pdb import set_trace as xx 

@@ -29,7 +29,6 @@ if 1:   # Custom imports
     import trigger
     from wrap import wrap, dedent, indent, Wrap
     from lwtest import run, raises, assert_equal, Assert
-    import clr
     from color import TRM as t
     from columnize import Columnize
 if 1:   # Global variables
@@ -37,7 +36,7 @@ if 1:   # Global variables
     rcat = re.compile(r"<(.*?)>")  # Find category strings
     categories = set()
     EntryType = namedtuple("EntryType", "p what category")
-    t.sep = t("lyel")
+    t.sep = t("yell")
     t.py = t("grn")
 if 1:   # Utility
     def Error(msg, status=1):

@@ -1,5 +1,5 @@
 '''
-Find the molecular weight of a chemical formula
+Calculate the molecular weight of a chemical formula
 '''
 if 1:   # Header
     # Copyright, license
@@ -9,7 +9,7 @@ if 1:   # Header
         # None
         #∞license∞#
         #∞what∞#
-        # Find the molecular weight of a chemical formula.  Taken from
+        # Calculate the molecular weight of a chemical formula.  Taken from
         # https://gist.github.com/Rhomboid/5994999.
         #∞what∞#
         #∞test∞# --test #∞test∞#
@@ -142,7 +142,6 @@ if 1:   # Header
             "Zn": flt(65.39),
             "Zr": flt(91.224),
         }
-
 if 1:   # Utility
     def Error(*msg, status=1):
         print(*msg, file=sys.stderr)
@@ -199,7 +198,7 @@ if 1:   # Utility
         m = CalculateMass("Ca(C2H3O2)2")
         Assert(m == 158.1654)
         # Single formula of all elements.  This is a checksum of the
-        # atomic_mass dict's elements.
+        # atomic_mass dictonary's elements.
         a = ("AcAgAlAmArAsAtAuBBaBeBhBiBkBrCCaCdCeCfClCmCoCrCsCuDbDyErEsEu"
             "FFeFmFrGaGdGeHHeHfHgHoHsIInIrKKrLaLiLrLuMdMgMnMoMtNNaNbNdNe"
             "NiNoNpOOsPPaPbPdPmPoPrPtPuRaRbReRfRhRnRuSSbScSeSgSiSmSnSrTa"

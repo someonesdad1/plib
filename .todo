@@ -2,9 +2,8 @@ Active
 
 xxy tabulate
 
-    - 0testing.py
-        - Needs to be working
-        - Remove numpy from as many modules as possible
+    - format_numbers.py and fraction.py
+        - Move to fmt.py
     
     - transpose.py
         - This may be the basis of a text table tool along with wrap.py

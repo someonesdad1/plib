@@ -25,8 +25,8 @@ TODO
     Note 20 Sep 2010:  The routines in this module are obsoleted by the
     combinations() and permutations() methods of the itertools module.
     Also note the URLs given below do not work anymore; I had last
-    accessed them when solving the "Einstein" fish puzzle in February of
-    2002.
+    accessed them when solving the fish puzzle in February of 2002.
+    See pgm/fish.py.
 
     A quick comparison of comb(100, 4) with GetCombination() versus
     itertools.combinations() shows itertools is about 23 times faster.
