@@ -1,7 +1,5 @@
 Active
 
-xxy tabulate
-
     - format_numbers.py and fraction.py
         - Move to fmt.py
     
@@ -39,6 +37,7 @@ xxy tabulate
           be things like '.on', '.off', '.indent = n', etc.  The overall
           state is remembered until '.reset' is seen or the keyword reset
           is True.  'paragraph_sep' keyword defaults to '\n\n'.
+
 Want
 
     - xyz.py
@@ -967,9 +966,15 @@ Other
             - '{' and '}' define python code blocks
 
 --------------------------------------------------------------------------------
-xxy     Tabulation tool
+Tabulation tool
 
-    - This is a module that is used to produce tabular data reports.
+    - https://pypi.org/project/tabulate/ has some ideas.  Basically, it
+      takes a nested list and tabulates it.  headers kw can be used for
+      column titles.  tablefmt kw describes formatting to use.  Default is
+      to use pandoc's simple_tables:
+      https://pandoc.org/MANUAL.html#tables.  There's also a
+      multiline_tables format.
+    - Want a module that is used to produce tabular data reports.
     - The basic interface is that it's fed a list of row vectors that you
       want to be column vectors.  It prints out the transpose after
       adjusting things to your tastes.
@@ -977,8 +982,15 @@ xxy     Tabulation tool
     - Would be nice to be able to address the attributes of each column.
         - col[0].width = 12
         - col[0].just = "c"     # Justification
-        - col[0].fill = "-"     # Separation from header
-    - Need to specify header
+        - col[0].hfill = "-"    # Separation from header
+        - col[0].tfill = "-"    # Separation from trailer
+    - You could also use a syntax like col.width = 12 to set the defaults
+      for each of the columns.  Then col[0].width = 13 would override the
+      default.
+    - Should each tabulation instance be a matrix?  Then has some machinery
+      behind the needs.  Most useful is that you can address individual
+      elements.  And it can't be a matrix without being a properly-formed
+      nested list.
 
     Simple use case
 
@@ -1001,4 +1013,5 @@ xxy     Tabulation tool
         - Fill to a given screen width, truncate columns to fit, or raise
           exception that it won't fit
         - Line up decimal points for reports
-        - Coalesced columns?
+        - Coalesced columns?  Complicated; other formatters like pandoc
+          often don't support.

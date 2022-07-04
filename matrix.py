@@ -234,6 +234,7 @@ class Matrix:
             raise TypeError("rows and cols must be integers")
         self._r = rows
         self._c = cols
+        # The basic data structure is a nested list for the elements
         self._grid = [[fill for i in range(cols)] for j in range(rows)]
         self._numtype = None
         self._frozen = False
