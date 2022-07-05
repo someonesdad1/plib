@@ -3,6 +3,9 @@ TODO:
     - Convert to using f.py?
         - Get rid of Complex
         - Move ParseComplex to f.py?
+        - Should it also support the iy+x and yi+x forms?
+        - This could mean Matrices container is obsolete and can be
+          removed.
     - Update matrix.odt
         - Need a matrix helper that can be called from the command line.
           Could be done by calling the module; then the self-tests get run
@@ -10,11 +13,6 @@ TODO:
         - Also need a cookbook
             - Linear regression example
     - Test sum attribute
-    - Consider getting rid of Complex and importing flt/cpx
-        - This could mean Matrices container is obsolete and can be
-          removed.
-    - Move ParseComplex to f.py?
-        - Should it also support the iy+x and yi+x forms?
  
 Matrix module (python 3 only)
 '''
@@ -51,6 +49,8 @@ if 1:  # Header
         import sys
         import textwrap
     # Custom imports
+        from f import flt, cpx, ParseComplex
+        PC = ParseComplex()
         # You can decide here whether you want this module to support
         # mpmath, the python uncertainties library, or sympy.
         # Alternately, you can define the environment variables
@@ -85,121 +85,12 @@ if 1:  # Header
             import debug
             debug.SetDebugger()
     # Global variables
-        __version__ = "10Jun2021"
+        __version__ = "5Jul2022"
         __all__ = '''
-            Complex cross dot Flatten have_mpmath have_sympy have_unc
+            cross dot Flatten have_mpmath have_sympy have_unc
             Matrices Matrix matrix MatrixContext random_matrix RoundOff
             vector'''.split()
         ii = isinstance
-class ParseComplex(object):
-    '''Parses complex numbers in the ways humans like to write them.
-    Instantiate the object, then call it with the string to parse; the
-    real and imaginary parts are returned as a tuple.  You can pass in a
-    number type to the constructor (you can also use fractions.Fraction)
-    and the returned tuple will be composed of that type of number.
-    '''
-    _cre = r'''
-        %s                          # Match at beginning
-        ([+-])%s                    # Optional leading sign
-        %s                          # Placeholder for imaginary unit
-        (\.\d+|\d+\.?|\d+\.\d+)     # Required digits and opt. decimal point
-        (e[+-]?\d+)?                # Optional exponent
-        %s                          # Match at end
-    '''
-    # Pure imaginary, xi or ix
-    _I1 = _cre % ("^", "?", "", "[ij]$")
-    _I2 = _cre % ("^", "?", "[ij]", "$")
-    # Reals
-    _R = _cre % ("^", "?", "", "$")
-    # Complex number:  x+iy
-    _C1 = (_cre % ("^", "?", "", "")) + (_cre % ("", "", "", "[ij]$"))
-    # Complex number:  x+yi
-    _C2 = (_cre % ("^", "?", "", "")) + (_cre % ("", "", "[ij]", "$"))
-    # Complex number:  iy+x
-    _C3 = (_cre % ("^", "?", "[ij]", "")) + (_cre % ("", "?", "", "$"))
-    # Complex number:  yi+x
-    _C4 = (_cre % ("^", "?", "", "[ij]")) + (_cre % ("", "?", "", "$"))
-    # Regular expressions (flags:  re.I ignores case, re.X allows verbose)
-    _imag1 = re.compile(_I1, re.X | re.I)
-    _imag2 = re.compile(_I2, re.X | re.I)
-    _real = re.compile(_R, re.X | re.I)
-    _complex1 = re.compile(_C1, re.X | re.I)
-    _complex2 = re.compile(_C2, re.X | re.I)
-    _complex3 = re.compile(_C3, re.X | re.I)
-    _complex4 = re.compile(_C4, re.X | re.I)
-    def __init__(self, number_type=float):
-        self.number_type = number_type
-    def __call__(self, s):
-        '''Return a tuple of two real numbers representing the real
-        and imaginary parts of the complex number represented by
-        s.  The allowed forms are (x and y are real numbers):
-            Real:               x
-            Pure imaginary      iy, yi
-            Complex             x+iy, x+yi
-        Space characters are allowed in the s (they are removed before
-        processing).
-        '''
-        nt = self.number_type
-        # Remove any whitespace, use lowercase, and change 'j' to 'i'
-        s = re.sub(r"\s+", "", s).lower().replace("j", "i")
-        # Imaginary unit is a special case
-        if s in ("i", "+i"):
-            return nt(0), nt(1)
-        elif s in ("-i",):
-            return nt(0), nt(-1)
-        # "-i+3", "i+3" are special cases
-        if s.startswith("i") or s.startswith("-i") or s.startswith("+i"):
-            li = s.find("i")
-            if s[li + 1] == "+" or s[li + 1] == "-":
-                rp = nt(s[li + 1:])
-                ip = -nt(1) if s[0] == "-" else nt(1)
-                return rp, ip
-        # "n+i", "n-i" are special cases
-        if s.endswith("+i") or s.endswith("-i"):
-            if s.endswith("+i"):
-                return nt(s[:-2]), 1
-            else:
-                return nt(s[:-2]), -1
-        # Parse with regexps
-        mo = ParseComplex._imag1.match(s)
-        if mo:
-            return nt(0), self._one(mo.groups())
-        mo = ParseComplex._imag2.match(s)
-        if mo:
-            return nt(0), self._one(mo.groups())
-        mo = ParseComplex._real.match(s)
-        if mo:
-            return self._one(mo.groups()), nt(0)
-        mo = ParseComplex._complex1.match(s)
-        if mo:
-            return self._two(mo.groups())
-        mo = ParseComplex._complex2.match(s)
-        if mo:
-            return self._two(mo.groups())
-        mo = ParseComplex._complex3.match(s)
-        if mo:
-            return self._two(mo.groups(), flip=True)
-        mo = ParseComplex._complex4.match(s)
-        if mo:
-            return self._two(mo.groups(), flip=True)
-        raise ValueError("'%s' is not a proper complex number" % s)
-    def _one(self, groups):
-        s = ""
-        for i in range(3):
-            if groups[i]:
-                s += groups[i]
-        return self.number_type(s)
-    def _two(self, groups, flip=False):
-        nt = self.number_type
-        s1 = self._one(groups)
-        s2 = ""
-        for i in range(3, 6):
-            if groups[i]:
-                s2 += groups[i]
-        if flip:
-            return nt(s2), nt(s1)
-        else:
-            return nt(s1), nt(s2)
 class Matrix:
     '''Matrix object supporting basic linear algebra operations.  Rows
         and columns are numbered starting from 0.  The preferred methods
@@ -224,15 +115,6 @@ class Matrix:
     # Each Matrix instance can change this class variable through its s
     # attribute.
     _str = False
- 
-    # The Matrix.PC object is used to parse complex numbers.
-    PC = ParseComplex()
- 
-    # If Matrix.use_Complex is True, complex numbers are instantiated in
-    # getnum using the Complex class (see below), allowing customized
-    # input and formatting of complex number forms.  If
-    # Matrix.use_Complex is False, python's complex numbers are used.
-    use_Complex = False
  
     # The EqDigits class variable is used to define how many digits to use
     # when comparing matrix elements for equality.  If not None, it will
@@ -584,12 +466,14 @@ class Matrix:
             def ch(x):
                 if ii(x, complex):
                     return complex(f(x.real), f(x.imag))
-                elif ii(x, Complex):
-                    return Complex(f(x.real), f(x.imag))
+                elif ii(x, cpx):
+                    return cpx(f(x.real), f(x.imag))
                 elif have_mpmath and ii(x, mpmath.mpc):
                     return mpmath.mpc(f(x.real), f(x.imag))
                 elif ii(x, float):
-                    return f(x)
+                    return float(f(x))
+                elif ii(x, flt):
+                    return flt(f(x))
                 elif have_mpmath and ii(x, mpmath.mpf):
                     return f(x)
                 elif have_unc and ii(x, UFloat):
@@ -1285,7 +1169,7 @@ class Matrix:
             a short explanation.
             '''
             return OrderedDict((
-                ('©', 'Complex'),
+                ('©', 'cpx'),
                 ('ℂ', 'complex'),
                 ('D', 'Decimal'),
                 ('ℝ', 'Float'),
@@ -1308,7 +1192,7 @@ class Matrix:
                 ))
         def _string(self):
             '''Return the string form of the matrix.  If self.digits is not
-            zero, then floats, Decimals, complex, and Complex numbers will
+            zero, then floats, Decimals, complex, and cpx numbers will
             be rounded off to the indicated number of digits.  The returned
             string is formatted to print to the console compactly.
     
@@ -1327,20 +1211,13 @@ class Matrix:
                 if digits:
                     if ii(x, (float, Decimal)):
                         return str(RoundOff(float(x), digits))
-                    elif ii(x, Complex):
-                        # This is a bit of a hack to get self's sigdig
-                        # setting to the Complex instance (but it works).
-                        x.sigdig = digits
-                        return str(x)
                     elif ii(x, complex):
-                        if Matrix.use_Complex:
-                            return str(Complex(RoundOff(x, digits)))
                         return str(RoundOff(x, digits))
                     else:
                         return str(x)
                 else:
-                    if ii(x, complex) and Matrix.use_Complex:
-                        return str(Complex(x))
+                    if ii(x, complex):
+                        return str(cpx(x))
                     return str(x)
             with Flatten(self): 
                 maxlen = max(len(Rnd(i)) for i in self._grid)
@@ -1487,15 +1364,12 @@ class Matrix:
                 # Assume it's already some form of number
                 return x
             # It's a string, so see if we can identify it
-            if (("complex" in x or "Complex" in x or "Fraction" in x or
+            if (("complex" in x or "cpx" in x or "Fraction" in x or
                 "Decimal" in x) and ")" in x):
                 return eval(x)
             elif "i" in x.lower() or "j" in x.lower():
-                re, im = Matrix.PC(x)
-                if Matrix.use_Complex:
-                    return Complex(re, im)
-                else:
-                    return complex(re, im)
+                re, im = PC(x)
+                return cpx(re, im)
             elif have_mpmath and ("mpf" in x or "mpc" in x):
                 return eval(x)
             elif have_unc and ("(" in x or "+/-" in x or "+-" in x or "±" in x):
@@ -1639,7 +1513,7 @@ class Matrix:
             state.
             '''
             Matrix._str = False
-            Matrix.PC = ParseComplex()
+            #Matrix.PC = ParseComplex()     # xx
             Matrix.use_Complex = False
             Matrix.EqDigits = None
         @classmethod
@@ -2146,7 +2020,7 @@ class Matrix:
                     "decimal.Decimal": "D",
                     "fractions.Fraction": "ℚ",
                     "complex": "ℂ",
-                    "matrix.Complex": "ℂ",
+                    "cpx": "ℂ",
                     "uncertainties.core.Variable": "±",
                     "list": "]",
                     "tuple": ")",
@@ -2196,7 +2070,7 @@ class Matrix:
             return m
 class MatrixContext:
     '''Context manager to save the class variable state of Matrix and
-    Complex and restore them on exit.
+    restore it on exit.
  
     Example of use:  Suppose you're in the middle of a calculation with
     the class variable settings you want, but you're interrupted with
@@ -2206,8 +2080,8 @@ class MatrixContext:
         with MatrixContext():
             <do calculations>
  
-    Whatever settings you make to Matrix and Complex class variables
-    within the with block are forgotten after the block is finished.
+    Whatever settings you make to the Matrix class variables within the
+    with block are forgotten after the block is finished.
  
     Note __enter__ returns None, so that 'with MatrixContext() as c' is
     acceptable syntax, but the c variable is None.  This was deliberate
@@ -2216,10 +2090,8 @@ class MatrixContext:
     '''
     def __enter__(self):
         self.Matrix = Matrix.get_state()
-        self.Complex = Complex.get_state()
     def __exit__(self, type, value, traceback):
         Matrix.set_state(self.Matrix)
-        Complex.set_state(self.Complex)
 class Flatten:
     '''Context manager to convert the Matrix object's internal storage
     for elements to a flattened list to facilitate processing, then back
@@ -2331,182 +2203,6 @@ class Matrices():
     @property
     def len(self):
         return len(self._d)
-class Complex(complex):
-    '''A convenience class class based on python's complex number class,
-    but adds:
-        * More instantiations from strings
-        * Choice of imaginary unit
- 
-    The Matrix.EqDigits class variable will be used to round the
-    __str__form to the indicated number of digits.
-    '''
-    imaginary_unit = "i"
-    # The following class variables are used to change how all Complex
-    # objects display.
-    _Tuple = False          # Use (real,imag) form.
-    _Polar = False          # Use mag∠phase form
-    _Degrees = False        # Use degrees in polar form
-    _Wide = False           # Use x + yi form rather than x+yi
-    def __new__(cls, real, imag=None):
-        '''Initialize a new Complex instance.  real can be a string or
-        number.  If present, imag can be a string or number
-        '''
-        re, im = 0, 0
-        if ii(real, (int, float, Fraction, Decimal)):
-            re = float(real)
-        elif ii(real, (complex, Complex)):
-            re, im = real.real, real.imag
-        elif ii(real, str):
-            if imag is not None:
-                raise TypeError("imag not allowed if real is string")
-            re, im = Matrix.PC(real)
-        else:
-            raise TypeError("real must be a string or number")
-        if imag is not None:
-            if ii(imag, (int, float, Fraction, Decimal)):
-                im = float(imag)
-            else:
-                raise TypeError("imag must be a number")
-        instance = super(Complex, cls).__new__(cls, re, im)
-        return instance
-    def __str__(self):
-        '''This method lets you display complex numbers as you prefer.
-        If you wish to use python's complex number default, just return
-        'super(Complex, self.cls).__str__(self)'.
- 
-        My preference is that a complex number should be displayed as
-        real or pure imaginary when that's the case -- and I prefer to
-        use 'i' as the imaginary unit.
- 
-        The Matrix.EqDigits setting is used to round floating point
-        numbers if it is not None.  I also like to see the real and
-        imaginary components displayed as integers if they are equal to
-        integers after rounding.  1i should be displayed as i.
- 
-        Note:  a matrix can have its sigdig attribute set but
-        Matrix.SigDig can be None.  In such a case, the calling code can
-        set the Complex instance's sigdig attribute to the number of
-        digits desired.  It's a hack, but it works.
-        '''
-        if Matrix.EqDigits is not None:
-            real = RoundOff(self.real, Matrix.EqDigits)
-            imag = RoundOff(self.imag, Matrix.EqDigits)
-        elif hasattr(self, "sigdig"):
-            real = RoundOff(self.real, self.sigdig)
-            imag = RoundOff(self.imag, self.sigdig)
-        else:
-            real = self.real
-            imag = self.imag
-        if self.t:
-            s = "({}, {})" if self.wide else "({},{})"
-            return s.format(real, imag)
-        elif self.polar:
-            theta = math.atan2(self.imag, self.real)
-            mag = math.hypot(self.real, self.imag)
-            if self.deg:   
-                theta *= 180/math.pi
-            t = "°" if self.deg else ""
-            if Matrix.EqDigits is not None:
-                theta = RoundOff(theta, Matrix.EqDigits)
-                mag = RoundOff(mag, Matrix.EqDigits)
-            sep = " ∠ " if self.wide else "∠"
-            return "{}{}{}{}".format(mag, sep, theta, t)
-        else:
-            if real == int(real):
-                real = int(real)
-            if imag == int(imag):
-                imag = int(imag)
-            if real and not imag:
-                return str(real)
-            elif not real and not imag:
-                return "0"
-            elif not real and imag:
-                if imag == 1:
-                    return Complex.imaginary_unit
-                elif imag == -1:
-                    return "-" + Complex.imaginary_unit
-                return str(imag) + Complex.imaginary_unit
-            else:
-                # Both real and imag not zero
-                if self.wide:
-                    sgn = " - " if imag < 0 else " + "
-                    return sgn.join([str(real), str(abs(imag)) +
-                        Complex.imaginary_unit])
-                else:
-                    sgn = "" if imag < 0 else "+"
-                    if imag in (1, -1):
-                        sgn = "-" if imag == -1 else sgn
-                        return sgn.join([str(real), Complex.imaginary_unit])
-                    else:
-                        return sgn.join([str(real), str(imag) +
-                            Complex.imaginary_unit])
-    def __repr__(self):
-        'Display to full precision'
-        real = self.real
-        imag = self.imag
-        sgn = "" if imag < 0 else "+"
-        return sgn.join([str(real), str(imag) + Complex.imaginary_unit])
-    @classmethod
-    def set_default_state(cls):
-        Complex.imaginary_unit = "i"
-        Complex._Tuple = False
-        Complex._Polar = False
-        Complex._Degrees = False
-        Complex._Wide = False
-    @property
-    def t(self):
-        'Return True if the current display method is a tuple'
-        return Complex._Tuple
-    @t.setter
-    def t(self, value):
-        'Set the current display method to tuple:  str(z) --> (re, im)'
-        Complex._Tuple = bool(value)
-        Complex._Polar = False
-    @property
-    def polar(self):
-        'Return True if the current display method is polar'
-        return Complex._Polar
-    @polar.setter
-    def polar(self, value):
-        'Set the current display method to polar:  str(z) --> mag∠angle'
-        Complex._Polar = bool(value)
-        Complex._Tuple = False
-    @property
-    def deg(self):
-        'Return True if the polar angle is displayed in degrees'
-        return Complex._Degrees
-    @deg.setter
-    def deg(self, value):
-        'If True, the polar angle is displayed in degrees'
-        Complex._Degrees = bool(value)
-    @property
-    def wide(self):
-        '''Return True if a space character separates the connecting sign 
-        in the Cartesian representation.
-        '''
-        return Complex._Wide
-    @wide.setter
-    def wide(self, value):
-        'Set the Cartesian representation to wide'
-        Complex._Wide = bool(value)
-    @classmethod
-    def get_state(cls):
-        'Save the class variables in a dictionary'
-        d = {}
-        d["imaginary_unit"] = Complex.imaginary_unit
-        d["_Tuple"] = Complex._Tuple
-        d["_Polar"] = Complex._Polar
-        d["_Degrees"] = Complex._Degrees
-        d["_Wide"] = Complex._Wide
-        return d
-    @classmethod
-    def set_state(cls, state_dict):
-        '''Restore the class variables from a dictionary (used by the 
-        MatrixContext context manager to save/restore Complex and Matrix
-        class state).
-        '''
-        for key, value in state_dict.items():
-            exec("Complex.{} = value".format(key))
 if 1: # Utility functions
     def matrix(*p, **kw):
         '''Convenience function for instantiating Matrix objects.  Examples:
@@ -2668,7 +2364,7 @@ if 1: # Utility functions
             if cmplx:
                 real = [random.randint(a, b) for i in range(n)]
                 imag = [random.randint(a, b) for i in range(n)]
-                m._grid = [Complex(i, j) for i, j in zip(real, imag)]
+                m._grid = [cpx(i, j) for i, j in zip(real, imag)]
             else:
                 m._grid = [random.randint(a, b) for i in range(n)]
         elif normal is not None:
@@ -2680,7 +2376,7 @@ if 1: # Utility functions
             if cmplx:
                 real = [random.gauss(mu, s) for i in range(n)]
                 imag = [random.gauss(mu, s) for i in range(n)]
-                m._grid = [Complex(i, j) for i, j in zip(real, imag)]
+                m._grid = [cpx(i, j) for i, j in zip(real, imag)]
             else:
                 m._grid = [random.gauss(mu, s) for i in range(n)]
         elif uniform is not None:
@@ -2692,14 +2388,14 @@ if 1: # Utility functions
             if cmplx:
                 real = [random.uniform(a, b) for i in range(n)]
                 imag = [random.uniform(a, b) for i in range(n)]
-                m._grid = [Complex(i, j) for i, j in zip(real, imag)]
+                m._grid = [cpx(i, j) for i, j in zip(real, imag)]
             else:
                 m._grid = [random.uniform(a, b) for i in range(n)]
         else:
             if cmplx:
                 real = [random.random() for i in range(n)]
                 imag = [random.random() for i in range(n)]
-                m._grid = [Complex(i, j) for i, j in zip(real, imag)]
+                m._grid = [cpx(i, j) for i, j in zip(real, imag)]
             else:
                 m._grid = [random.random() for i in range(n)]
         m._nested()
@@ -2934,14 +2630,13 @@ if __name__ == "__main__":
         "<class 'int'>": "int",
         "<class 'float'>": "float",
         "<class 'complex'>": "complex",
-        "<class 'Complex'>": "Complex",
         "<class 'fractions.Fraction'>": "Fraction",
         "<class 'decimal.Decimal'>": "Decimal",
     }
     if have_mpmath:
         Type.d["<class 'mpmath.ctx_mp_python.mpf'>"] = "mpf"
     class Testing:
-        '''Context manager to ensure a consistent Matrix and Complex class
+        '''Context manager to ensure a consistent Matrix class
         state before and after entry.  This helps ensure tests are isolated,
         as changing a class variable in one test function can cause side
         effects in other tests.
@@ -2949,7 +2644,6 @@ if __name__ == "__main__":
         def set_state(self):
             SetupGlobalTestData()
             Matrix.set_default_state()
-            Complex.set_default_state()
         def __enter__(self):
             self.set_state()
         def __exit__(self, type, value, traceback):
@@ -3705,10 +3399,6 @@ if __name__ == "__main__":
                     m.numtype = complex
                     Assert(m.numtype == complex)
                     Assert(all([type(i) == complex for i in m.l]))
-                    # Also test Complex, which is a subclass of complex
-                    m.numtype = Complex
-                    Assert(m.numtype == Complex)
-                    Assert(all([type(i) == Complex for i in m.l]))
                 # Hermitian
                 h = matrix("2 2+1j 4\n2-1j 3 0+1j\n4 0-1j 1")
                 Assert(h.is_hermitian)
@@ -3738,7 +3428,7 @@ if __name__ == "__main__":
                 Assert(m.is_symmetric)
             # is_hermitian
             with Testing():
-                for cmplx_t in (complex, Complex):
+                for cmplx_t in (complex, cpx):
                     Matrix.EqDigits = None
                     m, e = matrix("1 1+1j\n1-1j 1"), 1e-3
                     Assert(m.is_hermitian)
@@ -3799,7 +3489,6 @@ if __name__ == "__main__":
             # is_unitary
             with Testing():
                 s = 1/sqrt(2)
-                Matrix.use_Complex = True
                 m = matrix("s s 0\n-s*1j s*1j 0\n0 0 1j", expr=({}, locals()))
                 m.eqdigits = 15
                 Assert(not m.is_unitary)
@@ -3839,7 +3528,7 @@ if __name__ == "__main__":
                         Assert(x == 1 and type(x) == t)
                     Matrix.use_Complex = True
                     for s, t in (("1", int), ("1.", float), ("1e0", float),
-                                ("1+0j", Complex), ("1/1", Fraction),
+                                ("1+0j", cpx), ("1/1", Fraction),
                                 ("Decimal(1)", Decimal)):
                         x = gn(s)
                         Assert(x == 1 and type(x) == t)
@@ -3935,23 +3624,13 @@ if __name__ == "__main__":
         def test_getnum():
             with Testing():
                 Mg = Matrix.getnum
-                for t in (int, float, complex, Complex, Decimal, Fraction):
+                for t in (int, float, complex, cpx, Decimal, Fraction):
                     Assert(type(Mg(1, numtype=t)) == t)
                 if 1:
-                    Matrix.use_Complex = False
                     for s, t, x in (("1", int, 1),
                                 ("1.", float, 1.0),
                                 ("1+0j", complex, 1+0j),
                                 ("1+0i", complex, 1+0j),
-                                ("Decimal(1)", Decimal, Decimal(1)),
-                                ("1/2", Fraction, Fraction(1, 2))):
-                        Assert(type(Mg(s)) == t)
-                        Assert(Mg(s) == x)
-                    Matrix.use_Complex = True
-                    for s, t, x in (("1", int, 1),
-                                ("1.", float, 1.0),
-                                ("1+0j", Complex, 1+0j),
-                                ("1+0i", Complex, 1+0j),
                                 ("Decimal(1)", Decimal, Decimal(1)),
                                 ("1/2", Fraction, Fraction(1, 2))):
                         Assert(type(Mg(s)) == t)
@@ -4222,101 +3901,62 @@ if __name__ == "__main__":
                 m = matrix("1 2\n3 4")
                 m.grid = [[5, 6], [7, 8]]
                 Assert(m == matrix("5 6\n7 8"))
-        def test_Testing():
-            '''Verify the Testing context manager sets the class variables'
-            states to the defaults at entry and back to the defaults at exit.
-            '''
-            # Set things to nonsense, then show that the state is correct
-            # after entering the context manager.
-            Matrix.EqDigits =          \
-                Matrix._str =        \
-                Matrix.use_Complex = \
-                Complex.imaginary_unit =       \
-                Complex._Tuple =     \
-                Complex._Polar =     \
-                Complex._Degrees =   \
-                Complex._Wide = "nonsense"
-            with Testing():
-                Assert(Matrix._str == False and
-                    Matrix.use_Complex == False and
-                    Matrix.EqDigits == None and
-                    Complex.imaginary_unit == "i" and
-                    Complex._Tuple == False and
-                    Complex._Polar == False and
-                    Complex._Degrees == False and
-                    Complex._Wide == False)
-            # Set things to nonsense inside the context manager and show that
-            # the state is correct after leaving the context manager.
-            with Testing():
-                Matrix.EqDigits =          \
-                    Matrix._str =        \
-                    Matrix.use_Complex = \
-                    Complex.imaginary_unit =       \
-                    Complex._Tuple =     \
-                    Complex._Polar =     \
-                    Complex._Degrees =   \
-                    Complex._Wide = "nonsense"
-            Assert(Matrix._str == False and
-                Matrix.use_Complex == False and
-                Matrix.EqDigits == None and
-                Complex.imaginary_unit == "i" and
-                Complex._Tuple == False and
-                Complex._Polar == False and
-                Complex._Degrees == False and
-                Complex._Wide == False)
         def test_Complex_formatting():
-            with Testing():
-                Matrix.EqDigits = 3
-                z = Complex(1, -1/3)
-                # Normal display
-                Assert(str(z) == "1-0.333i")
-                z.wide = True
-                Assert(str(z) == "1 - 0.333i")
-                z.wide = False
-                # Tuple display
-                z.t = True
-                z.wide = False
-                Assert(str(z) == "(1.0,-0.333)")
-                z.wide = True
-                Assert(str(z) == "(1.0, -0.333)")
-                z.wide = False
-                # Polar display with radians
-                z.polar = True
-                Assert(str(z) == "1.05∠-0.322")
-                z.wide = True
-                Assert(str(z) == "1.05 ∠ -0.322")
-                z.wide = False
-                # Polar display with degrees
-                z.deg = True
-                Assert(str(z) == "1.05∠-18.4°")
-                z.wide = True
-                Assert(str(z) == "1.05 ∠ -18.4°")
-                z.wide = False
-            with Testing():
-                # Special forms
-                Matrix.EqDigits = 3
-                z = Complex(1, -1)
-                Assert(str(z) == "1-i")
-                z = Complex(1, 1)
-                Assert(str(z) == "1+i")
-                z = Complex(0, -1)
-                Assert(str(z) == "-i")
-                z = Complex(0, 1)
-                Assert(str(z) == "i")
-                z = Complex(1)
-                Assert(str(z) == "1")
-                z = Complex(2)
-                Assert(str(z) == "2")
-                z = Complex(-1)
-                Assert(str(z) == "-1")
-                z = Complex(-2)
-                Assert(str(z) == "-2")
-                z = Complex(0, 0)
-                Assert(str(z) == "0")
-                z = Complex(1/3)
-                Assert(str(z) == "0.333")
-                z = Complex(-1/3)
-                Assert(str(z) == "-0.333")
+            if 0: #xx
+                with Testing():
+                    Matrix.EqDigits = 3
+                    z = complex(1, -1/3)
+                    # Normal display
+                    Assert(str(z) == "1-0.333i")
+                    z.wide = True
+                    Assert(str(z) == "1 - 0.333i")
+                    z.wide = False
+                    # Tuple display
+                    z.t = True
+                    z.wide = False
+                    Assert(str(z) == "(1.0,-0.333)")
+                    z.wide = True
+                    Assert(str(z) == "(1.0, -0.333)")
+                    z.wide = False
+                    # Polar display with radians
+                    z.polar = True
+                    Assert(str(z) == "1.05∠-0.322")
+                    z.wide = True
+                    Assert(str(z) == "1.05 ∠ -0.322")
+                    z.wide = False
+                    # Polar display with degrees
+                    z.deg = True
+                    Assert(str(z) == "1.05∠-18.4°")
+                    z.wide = True
+                    Assert(str(z) == "1.05 ∠ -18.4°")
+                    z.wide = False
+            if 1:
+                with Testing():
+                    # Special forms
+                    Matrix.EqDigits = 3
+                    z = cpx(1, -1)
+                    print("Bug:  repr(z) is ", repr(z)) #xx
+                    Assert(str(z) == "1-i")
+                    z = cpx(1, 1)
+                    Assert(str(z) == "1+i")
+                    z = cpx(0, -1)
+                    Assert(str(z) == "-i")
+                    z = cpx(0, 1)
+                    Assert(str(z) == "i")
+                    z = cpx(1)
+                    Assert(str(z) == "1")
+                    z = cpx(2)
+                    Assert(str(z) == "2")
+                    z = cpx(-1)
+                    Assert(str(z) == "-1")
+                    z = cpx(-2)
+                    Assert(str(z) == "-2")
+                    z = cpx(0, 0)
+                    Assert(str(z) == "0")
+                    z = cpx(1/3)
+                    Assert(str(z) == "0.333")
+                    z = cpx(-1/3)
+                    Assert(str(z) == "-0.333")
         def test_lower_upper():
             with Testing():
                 m = matrix("1 2\n3 4")
@@ -4336,15 +3976,6 @@ if __name__ == "__main__":
                 Assert(n == matrix("1 2\n0 4"))
                 n.upper(ip=True, incl_diag=False)
                 Assert(n == matrix("0 2\n0 0"))
-        def test_MatrixContext():
-            with Testing():
-                sf = 3
-                Matrix.EqDigits = sf
-                Complex.imaginary_unit = sf
-                with MatrixContext():
-                    Matrix.EqDigits = "a string setting"
-                Assert(Matrix.EqDigits == sf)
-                Assert(Complex.imaginary_unit == sf)
         def test_mpmath_sympy():
             '''Show we can convert a simple matrix.Matrix to mpmath and
             sympy matrices and back.
@@ -4596,133 +4227,134 @@ if __name__ == "__main__":
             TestFraction()
             TestDecimal()
             Test_ufloat()
-        def TestParseComplex():
-            test_cases = {
-                # Pure imaginaries
-                1j : (
-                    "i", "j", "1i", "i1", "1j", "j1", "1 j", "j 1",
-                    "I", "J", "1I", "I1", "1J", "J1", "1 i", "i 1",
-                ),
-                -1j : (
-                    "-i", "-j", " - \t\n\r\v\f j",
-                    "-I", "-J", " - \t\n\r\v\f J",
-                ),
-                3j : (
-                    "3i", "+3i", "3.i", "+3.i", "3.0i", "+3.0i", "3.0e0i", "+3.0e0i",
-                    "i3", "+i3", "i3.", "+i3.", "i3.0", "+i3.0", "i3.0e0", "+i3.0e0",
-                    "3.000i", "i3.000", "3.000E0i", "i3.000E0",
-                    "3.000e-0i", "i3.000e-0", "3.000e+0i", "i3.000e+0",
-        
-                    "3I", "+3I", "3.I", "+3.I", "3.0I", "+3.0I", "3.0e0I", "+3.0e0I",
-                    "I3", "+I3", "I3.", "+I3.", "I3.0", "+I3.0", "I3.0e0", "+I3.0e0",
-                    "3.000I", "I3.000", "3.000E0I", "I3.000E0",
-                    "3.000e-0I", "I3.000e-0", "3.000e+0I", "I3.000e+0",
-        
-                    "3j", "+3j", "3.j", "+3.j", "3.0j", "+3.0j", "3.0e0j", "+3.0e0j",
-                    "j3", "+j3", "j3.", "+j3.", "j3.0", "+j3.0", "j3.0e0", "+j3.0e0",
-                    "3.000j", "j3.000", "3.000E0j", "j3.000E0",
-                    "3.000e-0j", "j3.000e-0", "3.000e+0j", "j3.000e+0",
-        
-                    "3J", "+3J", "3.J", "+3.J", "3.0J", "+3.0J", "3.0e0J", "+3.0e0J",
-                    "J3", "+J3", "J3.", "+J3.", "J3.0", "+J3.0", "J3.0e0", "+J3.0e0",
-                    "3.000J", "J3.000", "3.000E0J", "J3.000E0",
-                    "3.000e-0J", "J3.000e-0", "3.000e+0J", "J3.000e+0",
-                ),
-                -8j : (
-                    "-8i", "-8.i", "-8.0i", "-8.0e0i",
-                    "-i8", "-i8.", "-i8.0", "-i8.0E0",
-        
-                    "-8I", "-8.I", "-8.0I", "-8.0e0I",
-                    "-I8", "-I8.", "-I8.0", "-I8.0E0",
-        
-                    "-8j", "-8.j", "-8.0j", "-8.0e0j",
-                    "-j8", "-j8.", "-j8.0", "-j8.0E0",
-        
-                    "-8J", "-8.J", "-8.0J", "-8.0e0J",
-                    "-J8", "-J8.", "-J8.0", "-J8.0E0",
-                ),
-                # Reals
-                0 : (
-                    "0", "+0", "-0", "0.0", "+0.0", "-0.0"
-                    "000", "+000", "-000", "000.000", "+000.000", "-000.000",
-                    "0+0i", "0-0i", "0i+0", "0i-0", "+0i+0", "+0i-0", "i0+0",
-                    "i0-0", "+i0+0", "+i0-0", "-i0+0", "-i0-0",
-                ),
-                1 : (
-                    "1", "+1", "1.", "+1.", "1.0", "+1.0", "1.0e0", "+1.0e0",
-                                                        "1.0E0", "+1.0E0",
-                    "1+0i", "1-0i",
-                    "0i+1", "+0i+1", "-0i+1", "i0+1", "+i0+1", "-i0+1",
-                ),
-                -1 : (
-                    "-1", "-1+0i", "-1-0i", "0i-1", "+0i-1", "-0i-1",
-                    "i0-1", "+i0-1", "-i0-1",
-                ),
-                -2 : (
-                    "-2", "-2.", "-2.0", "-2.0e0",
-                ),
-                -2.3 : (
-                    "-2.3", "-2.30", "-2.3000", "-2.3e0", "-2300e-3", "-0.0023e3",
-                    "-.23E1",
-                ),
-                2.345e-7 : (
-                    "2.345e-7", "2345e-10", "0.00000002345E+1", "0.0000002345",
-                ),
-                # Complex numbers
-                1+1j: ("1+i", "1+1i", "i+1", "1i+1", "i1+1"),
-                1-1j: ("1-i", "1-1i", "-i+1", "-1i+1", "-i1+1"),
-                -1-1j: ("-1-i", "-1-1i", "-i-1", "-1i-1", "-i1-1"),
-                1-2j : (
-                    "1-2i", "1-2.i", "1.-2i", "1.-2.i",
-                    "1-j2", "1-j2.", "1.-j2", "1.-j2.",
-                    "1.00-2.00I", "1.00-I2.00", "1000e-3-200000e-5I",
-                    "1.00-J2.00", "1000E-3-J200000E-5",
-                    "-2i+1", "-i2 + \n1",
-                    "-i2+1",
-                ),
-                -1+2j : (
-                    "2i-1", "i2-1",
-                    "+2i-1", "+i2-1",
-                ),
-                -12.3+4.56e-7j : (
-                    "-12.3+4.56e-7j",
-                    "-12.3 + 4.56e-7j",
-                    "- 1 2 . 3 + 4 . 5 6 e - 7 j",
-                    "-1.23e1+456e-9i",
-                    "-0.123e2+0.000000456i",
-                ),
-            }
-            c = ParseComplex()
-            for number in test_cases:
-                for numstr in test_cases[number]:
-                    real, imag = c(numstr)
-                    num = complex(real, imag)
-                    assert_equal(num, number)
-            # Test that we can get Decimal types back
-            c = ParseComplex(Decimal)
-            a, b = c("1+3i")
-            Assert(isinstance(a, Decimal) and isinstance(b, Decimal))
-            Assert(a == 1 and b == 3)
-            a, b = c("-1.2-3.4i")
-            Assert(isinstance(a, Decimal) and isinstance(b, Decimal))
-            Assert(a == Decimal("-1.2") and b == Decimal("-3.4"))
-            # Test that we can get rational number components back
-            c = ParseComplex(Fraction)
-            a, b = c("-1.2-3.4i")
-            Assert(isinstance(a, Fraction) and isinstance(b, Fraction))
-            Assert(a == Fraction(-6, 5) and b == Fraction(-17, 5))
-            # Show that numbers with higher resolutions than floats can be used
-            c = ParseComplex(Decimal)
-            rp = "0.333333333333333333333333333333333"
-            ip = "3.44444444444444444444444444444"
-            r, i = c(rp + "\n-i" + ip)  # Note inclusion of a newline
-            Assert(r == Decimal(rp))
-            Assert(i == Decimal("-" + ip))
-            # Test that mpmath mpf numbers can be used
-            if have_mpmath:
-                c = ParseComplex(mpf)
-                a, b = c("1.1 - 3.2i")
-                Assert(isinstance(a, mpf) and isinstance(b, mpf))
-                Assert(a == mpf("1.1") and b == mpf("-3.2"))
+        if 0: #xx
+            def TestParseComplex():
+                test_cases = {
+                    # Pure imaginaries
+                    1j : (
+                        "i", "j", "1i", "i1", "1j", "j1", "1 j", "j 1",
+                        "I", "J", "1I", "I1", "1J", "J1", "1 i", "i 1",
+                    ),
+                    -1j : (
+                        "-i", "-j", " - \t\n\r\v\f j",
+                        "-I", "-J", " - \t\n\r\v\f J",
+                    ),
+                    3j : (
+                        "3i", "+3i", "3.i", "+3.i", "3.0i", "+3.0i", "3.0e0i", "+3.0e0i",
+                        "i3", "+i3", "i3.", "+i3.", "i3.0", "+i3.0", "i3.0e0", "+i3.0e0",
+                        "3.000i", "i3.000", "3.000E0i", "i3.000E0",
+                        "3.000e-0i", "i3.000e-0", "3.000e+0i", "i3.000e+0",
+            
+                        "3I", "+3I", "3.I", "+3.I", "3.0I", "+3.0I", "3.0e0I", "+3.0e0I",
+                        "I3", "+I3", "I3.", "+I3.", "I3.0", "+I3.0", "I3.0e0", "+I3.0e0",
+                        "3.000I", "I3.000", "3.000E0I", "I3.000E0",
+                        "3.000e-0I", "I3.000e-0", "3.000e+0I", "I3.000e+0",
+            
+                        "3j", "+3j", "3.j", "+3.j", "3.0j", "+3.0j", "3.0e0j", "+3.0e0j",
+                        "j3", "+j3", "j3.", "+j3.", "j3.0", "+j3.0", "j3.0e0", "+j3.0e0",
+                        "3.000j", "j3.000", "3.000E0j", "j3.000E0",
+                        "3.000e-0j", "j3.000e-0", "3.000e+0j", "j3.000e+0",
+            
+                        "3J", "+3J", "3.J", "+3.J", "3.0J", "+3.0J", "3.0e0J", "+3.0e0J",
+                        "J3", "+J3", "J3.", "+J3.", "J3.0", "+J3.0", "J3.0e0", "+J3.0e0",
+                        "3.000J", "J3.000", "3.000E0J", "J3.000E0",
+                        "3.000e-0J", "J3.000e-0", "3.000e+0J", "J3.000e+0",
+                    ),
+                    -8j : (
+                        "-8i", "-8.i", "-8.0i", "-8.0e0i",
+                        "-i8", "-i8.", "-i8.0", "-i8.0E0",
+            
+                        "-8I", "-8.I", "-8.0I", "-8.0e0I",
+                        "-I8", "-I8.", "-I8.0", "-I8.0E0",
+            
+                        "-8j", "-8.j", "-8.0j", "-8.0e0j",
+                        "-j8", "-j8.", "-j8.0", "-j8.0E0",
+            
+                        "-8J", "-8.J", "-8.0J", "-8.0e0J",
+                        "-J8", "-J8.", "-J8.0", "-J8.0E0",
+                    ),
+                    # Reals
+                    0 : (
+                        "0", "+0", "-0", "0.0", "+0.0", "-0.0"
+                        "000", "+000", "-000", "000.000", "+000.000", "-000.000",
+                        "0+0i", "0-0i", "0i+0", "0i-0", "+0i+0", "+0i-0", "i0+0",
+                        "i0-0", "+i0+0", "+i0-0", "-i0+0", "-i0-0",
+                    ),
+                    1 : (
+                        "1", "+1", "1.", "+1.", "1.0", "+1.0", "1.0e0", "+1.0e0",
+                                                            "1.0E0", "+1.0E0",
+                        "1+0i", "1-0i",
+                        "0i+1", "+0i+1", "-0i+1", "i0+1", "+i0+1", "-i0+1",
+                    ),
+                    -1 : (
+                        "-1", "-1+0i", "-1-0i", "0i-1", "+0i-1", "-0i-1",
+                        "i0-1", "+i0-1", "-i0-1",
+                    ),
+                    -2 : (
+                        "-2", "-2.", "-2.0", "-2.0e0",
+                    ),
+                    -2.3 : (
+                        "-2.3", "-2.30", "-2.3000", "-2.3e0", "-2300e-3", "-0.0023e3",
+                        "-.23E1",
+                    ),
+                    2.345e-7 : (
+                        "2.345e-7", "2345e-10", "0.00000002345E+1", "0.0000002345",
+                    ),
+                    # Complex numbers
+                    1+1j: ("1+i", "1+1i", "i+1", "1i+1", "i1+1"),
+                    1-1j: ("1-i", "1-1i", "-i+1", "-1i+1", "-i1+1"),
+                    -1-1j: ("-1-i", "-1-1i", "-i-1", "-1i-1", "-i1-1"),
+                    1-2j : (
+                        "1-2i", "1-2.i", "1.-2i", "1.-2.i",
+                        "1-j2", "1-j2.", "1.-j2", "1.-j2.",
+                        "1.00-2.00I", "1.00-I2.00", "1000e-3-200000e-5I",
+                        "1.00-J2.00", "1000E-3-J200000E-5",
+                        "-2i+1", "-i2 + \n1",
+                        "-i2+1",
+                    ),
+                    -1+2j : (
+                        "2i-1", "i2-1",
+                        "+2i-1", "+i2-1",
+                    ),
+                    -12.3+4.56e-7j : (
+                        "-12.3+4.56e-7j",
+                        "-12.3 + 4.56e-7j",
+                        "- 1 2 . 3 + 4 . 5 6 e - 7 j",
+                        "-1.23e1+456e-9i",
+                        "-0.123e2+0.000000456i",
+                    ),
+                }
+                c = ParseComplex()
+                for number in test_cases:
+                    for numstr in test_cases[number]:
+                        real, imag = c(numstr)
+                        num = complex(real, imag)
+                        assert_equal(num, number)
+                # Test that we can get Decimal types back
+                c = ParseComplex(Decimal)
+                a, b = c("1+3i")
+                Assert(isinstance(a, Decimal) and isinstance(b, Decimal))
+                Assert(a == 1 and b == 3)
+                a, b = c("-1.2-3.4i")
+                Assert(isinstance(a, Decimal) and isinstance(b, Decimal))
+                Assert(a == Decimal("-1.2") and b == Decimal("-3.4"))
+                # Test that we can get rational number components back
+                c = ParseComplex(Fraction)
+                a, b = c("-1.2-3.4i")
+                Assert(isinstance(a, Fraction) and isinstance(b, Fraction))
+                Assert(a == Fraction(-6, 5) and b == Fraction(-17, 5))
+                # Show that numbers with higher resolutions than floats can be used
+                c = ParseComplex(Decimal)
+                rp = "0.333333333333333333333333333333333"
+                ip = "3.44444444444444444444444444444"
+                r, i = c(rp + "\n-i" + ip)  # Note inclusion of a newline
+                Assert(r == Decimal(rp))
+                Assert(i == Decimal("-" + ip))
+                # Test that mpmath mpf numbers can be used
+                if have_mpmath:
+                    c = ParseComplex(mpf)
+                    a, b = c("1.1 - 3.2i")
+                    Assert(isinstance(a, mpf) and isinstance(b, mpf))
+                    Assert(a == mpf("1.1") and b == mpf("-3.2"))
     SetupGlobalTestData()
     exit(run(globals(), halt=True)[0])
