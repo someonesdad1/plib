@@ -727,6 +727,116 @@ class flt(Base, float):
             'Return a string formatted in scientific notation'
             return self._s(fmt="sci")
 
+class ParseComplex(object):
+    '''Parses complex numbers in the ways humans like to write them.
+    Instantiate the object, then call it with the string to parse; the
+    real and imaginary parts are returned as a tuple.  You can pass in a
+    number type to the constructor (you can also use fractions.Fraction)
+    and the returned tuple will be composed of that type of number.
+    '''
+    _cre = r'''
+        %s                          # Match at beginning
+        ([+-])%s                    # Optional leading sign
+        %s                          # Placeholder for imaginary unit
+        (\.\d+|\d+\.?|\d+\.\d+)     # Required digits and opt. decimal point
+        (e[+-]?\d+)?                # Optional exponent
+        %s                          # Match at end
+    '''
+    # Pure imaginary, xi or ix
+    _I1 = _cre % ("^", "?", "", "[ij]$")
+    _I2 = _cre % ("^", "?", "[ij]", "$")
+    # Reals
+    _R = _cre % ("^", "?", "", "$")
+    # Complex number:  x+iy
+    _C1 = (_cre % ("^", "?", "", "")) + (_cre % ("", "", "", "[ij]$"))
+    # Complex number:  x+yi
+    _C2 = (_cre % ("^", "?", "", "")) + (_cre % ("", "", "[ij]", "$"))
+    # Complex number:  iy+x
+    _C3 = (_cre % ("^", "?", "[ij]", "")) + (_cre % ("", "?", "", "$"))
+    # Complex number:  yi+x
+    _C4 = (_cre % ("^", "?", "", "[ij]")) + (_cre % ("", "?", "", "$"))
+    # Regular expressions (flags:  re.I ignores case, re.X allows verbose)
+    _imag1 = re.compile(_I1, re.X | re.I)
+    _imag2 = re.compile(_I2, re.X | re.I)
+    _real = re.compile(_R, re.X | re.I)
+    _complex1 = re.compile(_C1, re.X | re.I)
+    _complex2 = re.compile(_C2, re.X | re.I)
+    _complex3 = re.compile(_C3, re.X | re.I)
+    _complex4 = re.compile(_C4, re.X | re.I)
+    def __init__(self, number_type=float):
+        self.number_type = number_type
+    def __call__(self, s):
+        '''Return a tuple of two real numbers representing the real
+        and imaginary parts of the complex number represented by
+        s.  The allowed forms are (x and y are real numbers):
+            Real:               x
+            Pure imaginary      iy, yi
+            Complex             x+iy, x+yi
+        Space characters are allowed in the s (they are removed before
+        processing).
+        '''
+        nt = self.number_type
+        # Remove any whitespace, use lowercase, and change 'j' to 'i'
+        s = re.sub(r"\s+", "", s).lower().replace("j", "i")
+        # Imaginary unit is a special case
+        if s in ("i", "+i"):
+            return nt(0), nt(1)
+        elif s in ("-i",):
+            return nt(0), nt(-1)
+        # "-i+3", "i+3" are special cases
+        if s.startswith("i") or s.startswith("-i") or s.startswith("+i"):
+            li = s.find("i")
+            if s[li + 1] == "+" or s[li + 1] == "-":
+                rp = nt(s[li + 1:])
+                ip = -nt(1) if s[0] == "-" else nt(1)
+                return rp, ip
+        # "n+i", "n-i" are special cases
+        if s.endswith("+i") or s.endswith("-i"):
+            if s.endswith("+i"):
+                return nt(s[:-2]), 1
+            else:
+                return nt(s[:-2]), -1
+        # Parse with regexps
+        mo = ParseComplex._imag1.match(s)
+        if mo:
+            return nt(0), self._one(mo.groups())
+        mo = ParseComplex._imag2.match(s)
+        if mo:
+            return nt(0), self._one(mo.groups())
+        mo = ParseComplex._real.match(s)
+        if mo:
+            return self._one(mo.groups()), nt(0)
+        mo = ParseComplex._complex1.match(s)
+        if mo:
+            return self._two(mo.groups())
+        mo = ParseComplex._complex2.match(s)
+        if mo:
+            return self._two(mo.groups())
+        mo = ParseComplex._complex3.match(s)
+        if mo:
+            return self._two(mo.groups(), flip=True)
+        mo = ParseComplex._complex4.match(s)
+        if mo:
+            return self._two(mo.groups(), flip=True)
+        raise ValueError("'%s' is not a proper complex number" % s)
+    def _one(self, groups):
+        s = ""
+        for i in range(3):
+            if groups[i]:
+                s += groups[i]
+        return self.number_type(s)
+    def _two(self, groups, flip=False):
+        nt = self.number_type
+        s1 = self._one(groups)
+        s2 = ""
+        for i in range(3, 6):
+            if groups[i]:
+                s2 += groups[i]
+        if flip:
+            return nt(s2), nt(s1)
+        else:
+            return nt(s1), nt(s2)
+
 class cpx(Base, complex):
     '''The cpx class is a complex except that its components are flt
     numbers.
@@ -735,6 +845,7 @@ class cpx(Base, complex):
     _p = False      # If True, use polar representation in str()
     _rad = False    # If True, use radians for angle measurement (degrees if False)
     _nz = False     # If True, don't print out zero components
+    _PC = ParseComplex()
     def __new__(cls, real, imag=0):
         'real can be a number type, a cpx, or a complex.'
         f = lambda x:  D(x) if x else D(0)
@@ -755,8 +866,8 @@ class cpx(Base, complex):
                 if ii(imag, str):
                     raise ValueError("Can't use 'i' or 'j' and give imag number")
                 else:
-                    z = complex(real)
-                    re, im = z.real, z.imag
+                    # Use ParseComplex to recognize the complex string
+                    re, im = cpx._PC(real)
                     instance = super().__new__(cls, re, im)
             else:
                 re, im = float(real), float(imag)
@@ -1148,7 +1259,6 @@ if 1:   # Other
         if set(t) != set("0"):
             t = rlz(t)
         return len(t)
-
 if 0:
    exit()
 
@@ -1722,4 +1832,135 @@ if __name__ == "__main__":
         if 1:   # trunc
             Assert(type(trunc(x)) == ti)
             raises(TypeError, trunc, i)
+    def Test_ParseComplex():
+        test_cases = {
+            # Pure imaginaries
+            1j : (
+                "i", "j", "1i", "i1", "1j", "j1", "1 j", "j 1",
+                "I", "J", "1I", "I1", "1J", "J1", "1 i", "i 1",
+            ),
+            -1j : (
+                "-i", "-j", " - \t\n\r\v\f j",
+                "-I", "-J", " - \t\n\r\v\f J",
+            ),
+            3j : (
+                "3i", "+3i", "3.i", "+3.i", "3.0i", "+3.0i", "3.0e0i", "+3.0e0i",
+                "i3", "+i3", "i3.", "+i3.", "i3.0", "+i3.0", "i3.0e0", "+i3.0e0",
+                "3.000i", "i3.000", "3.000E0i", "i3.000E0",
+                "3.000e-0i", "i3.000e-0", "3.000e+0i", "i3.000e+0",
+    
+                "3I", "+3I", "3.I", "+3.I", "3.0I", "+3.0I", "3.0e0I", "+3.0e0I",
+                "I3", "+I3", "I3.", "+I3.", "I3.0", "+I3.0", "I3.0e0", "+I3.0e0",
+                "3.000I", "I3.000", "3.000E0I", "I3.000E0",
+                "3.000e-0I", "I3.000e-0", "3.000e+0I", "I3.000e+0",
+    
+                "3j", "+3j", "3.j", "+3.j", "3.0j", "+3.0j", "3.0e0j", "+3.0e0j",
+                "j3", "+j3", "j3.", "+j3.", "j3.0", "+j3.0", "j3.0e0", "+j3.0e0",
+                "3.000j", "j3.000", "3.000E0j", "j3.000E0",
+                "3.000e-0j", "j3.000e-0", "3.000e+0j", "j3.000e+0",
+    
+                "3J", "+3J", "3.J", "+3.J", "3.0J", "+3.0J", "3.0e0J", "+3.0e0J",
+                "J3", "+J3", "J3.", "+J3.", "J3.0", "+J3.0", "J3.0e0", "+J3.0e0",
+                "3.000J", "J3.000", "3.000E0J", "J3.000E0",
+                "3.000e-0J", "J3.000e-0", "3.000e+0J", "J3.000e+0",
+            ),
+            -8j : (
+                "-8i", "-8.i", "-8.0i", "-8.0e0i",
+                "-i8", "-i8.", "-i8.0", "-i8.0E0",
+    
+                "-8I", "-8.I", "-8.0I", "-8.0e0I",
+                "-I8", "-I8.", "-I8.0", "-I8.0E0",
+    
+                "-8j", "-8.j", "-8.0j", "-8.0e0j",
+                "-j8", "-j8.", "-j8.0", "-j8.0E0",
+    
+                "-8J", "-8.J", "-8.0J", "-8.0e0J",
+                "-J8", "-J8.", "-J8.0", "-J8.0E0",
+            ),
+            # Reals
+            0 : (
+                "0", "+0", "-0", "0.0", "+0.0", "-0.0"
+                "000", "+000", "-000", "000.000", "+000.000", "-000.000",
+                "0+0i", "0-0i", "0i+0", "0i-0", "+0i+0", "+0i-0", "i0+0",
+                "i0-0", "+i0+0", "+i0-0", "-i0+0", "-i0-0",
+            ),
+            1 : (
+                "1", "+1", "1.", "+1.", "1.0", "+1.0", "1.0e0", "+1.0e0",
+                                                    "1.0E0", "+1.0E0",
+                "1+0i", "1-0i",
+                "0i+1", "+0i+1", "-0i+1", "i0+1", "+i0+1", "-i0+1",
+            ),
+            -1 : (
+                "-1", "-1+0i", "-1-0i", "0i-1", "+0i-1", "-0i-1",
+                "i0-1", "+i0-1", "-i0-1",
+            ),
+            -2 : (
+                "-2", "-2.", "-2.0", "-2.0e0",
+            ),
+            -2.3 : (
+                "-2.3", "-2.30", "-2.3000", "-2.3e0", "-2300e-3", "-0.0023e3",
+                "-.23E1",
+            ),
+            2.345e-7 : (
+                "2.345e-7", "2345e-10", "0.00000002345E+1", "0.0000002345",
+            ),
+            # Complex numbers
+            1+1j: ("1+i", "1+1i", "i+1", "1i+1", "i1+1"),
+            1-1j: ("1-i", "1-1i", "-i+1", "-1i+1", "-i1+1"),
+            -1-1j: ("-1-i", "-1-1i", "-i-1", "-1i-1", "-i1-1"),
+            1-2j : (
+                "1-2i", "1-2.i", "1.-2i", "1.-2.i",
+                "1-j2", "1-j2.", "1.-j2", "1.-j2.",
+                "1.00-2.00I", "1.00-I2.00", "1000e-3-200000e-5I",
+                "1.00-J2.00", "1000E-3-J200000E-5",
+                "-2i+1", "-i2 + \n1",
+                "-i2+1",
+            ),
+            -1+2j : (
+                "2i-1", "i2-1",
+                "+2i-1", "+i2-1",
+            ),
+            -12.3+4.56e-7j : (
+                "-12.3+4.56e-7j",
+                "-12.3 + 4.56e-7j",
+                "- 1 2 . 3 + 4 . 5 6 e - 7 j",
+                "-1.23e1+456e-9i",
+                "-0.123e2+0.000000456i",
+            ),
+        }
+        c = ParseComplex()
+        for number in test_cases:
+            for numstr in test_cases[number]:
+                real, imag = c(numstr)
+                num = complex(real, imag)
+                assert_equal(num, number)
+        # Test that we can get Decimal == D types back
+        c = ParseComplex(D)
+        a, b = c("1+3i")
+        Assert(isinstance(a, D) and isinstance(b, D))
+        Assert(a == 1 and b == 3)
+        a, b = c("-1.2-3.4i")
+        Assert(isinstance(a, D) and isinstance(b, D))
+        Assert(a == D("-1.2") and b == D("-3.4"))
+        # Test that we can get rational number components back
+        c = ParseComplex(Fraction)
+        a, b = c("-1.2-3.4i")
+        Assert(isinstance(a, Fraction) and isinstance(b, Fraction))
+        Assert(a == Fraction(-6, 5) and b == Fraction(-17, 5))
+        # Show that numbers with higher resolutions than floats can be used
+        c = ParseComplex(D)
+        rp = "0.333333333333333333333333333333333"
+        ip = "3.44444444444444444444444444444"
+        r, i = c(rp + "\n-i" + ip)  # Note inclusion of a newline
+        Assert(r == D(rp))
+        Assert(i == D("-" + ip))
+        # Test that mpmath mpf numbers can be used
+        try:
+            from mpmath import mpf
+            c = ParseComplex(mpf)
+            a, b = c("1.1 - 3.2i")
+            Assert(isinstance(a, mpf) and isinstance(b, mpf))
+            Assert(a == mpf("1.1") and b == mpf("-3.2"))
+        except ImportError:
+            pass
     failed, messages = run(globals(), regexp=r"^[Tt]est_", halt=1, verbose=0)

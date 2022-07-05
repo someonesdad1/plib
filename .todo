@@ -2,6 +2,8 @@ Active
 
     - format_numbers.py and fraction.py
         - Move to fmt.py
+
+    - matrix.py (see module's todo list)
     
     - transpose.py
         - This may be the basis of a text table tool along with wrap.py
