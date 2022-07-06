@@ -1757,6 +1757,7 @@ if __name__ == "__main__":
             z.p = False
             z.i = True
             Assert(z.s == "-1.23-7.65i")
+            # Spcial case of 0
             z = cpx(-0, -0)
             Assert(z.s == "0+0i")
             z.nz = True
@@ -1765,7 +1766,7 @@ if __name__ == "__main__":
     def Test_functions():
         '''Test the functions using python 3.7.12.  The focus is that the
         correct types are returned, as the numerical values will have been
-        vetted well with python's tests.
+        tested well with python's tests.
         '''
         x = flt(3.389) 
         y = flt(1.412) 
