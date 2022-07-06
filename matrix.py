@@ -2546,7 +2546,7 @@ if __name__ == "__main__":
             self.set_state()
         def __exit__(self, type, value, traceback):
             self.set_state()
-    if 1:  # Test data
+    if 1:   # Test data
         def SetupGlobalTestData():
             global a, b, c, d, a_transpose, a_cofactors, a_inverse, a_negated
             global a_plus_b, a_minus_b, a_mul_b, a_mul_c, a_mul_2, d_pow_4
@@ -2576,13 +2576,13 @@ if __name__ == "__main__":
             v = matrix('4 5 6').t
             w = matrix('-3 6 -3').t
             x = matrix('0 3 4').t
-    if 1:    # Helper functions for testing
+    if 1:   # Helper functions for testing
         def assert_false(x):
             Assert(not x)
         def assertAlmostEqual(a, b):
             'Implements the default unittest method'
             Assert(abs(round(a, 7) - round(b, 7)) == 0)
-    if 1:    # Initialization tests
+    if 1:   # Initialization tests
         def test_init():
             with Testing():
                 expected = matrix([[0, 0, 0], [0, 0, 0], [0, 0, 0]])
@@ -2662,7 +2662,7 @@ if __name__ == "__main__":
                 Assert(m == n)
                 with raises(ValueError):
                     vector(f)   # f is an empty stream
-    if 1:    # Algebra tests
+    if 1:   # Algebra tests
         def test_equality():
             with Testing():
                 Assert(a == a)
@@ -2763,7 +2763,7 @@ if __name__ == "__main__":
                 Assert((m**-3).equals(1/(m*m*m), tol=e))
                 Assert((m**-2).equals(1/(m*m), tol=e))
                 Assert((m**-1).equals(1/m, tol=e))
-    if 1:    # Matrix operation tests
+    if 1:   # Matrix operation tests
         def test_transpose():
             with Testing():
                 assert_equal(a.t, a_transpose)
@@ -3103,7 +3103,7 @@ if __name__ == "__main__":
                 # They're not equal if one more digit is added
                 Matrix.EqDigits = 4
                 Assert(n != m)
-    if 1:    # vector operation tests
+    if 1:   # Vector operation tests
         def test_dot():
             with Testing():
                 assert_equal(dot(u, v), 32)
@@ -3230,7 +3230,7 @@ if __name__ == "__main__":
                 Assert(m.is_diagonal())
                 m = matrix("1 0.01\n0 4")
                 Assert(m.is_diagonal(tol=0.01))
-    if 1:    # Test attributes
+    if 1:   # Test attributes
         def test_attributes():
             with Testing():
                 F = Fraction
@@ -3410,7 +3410,7 @@ if __name__ == "__main__":
                 Assert(m.is_skew)
                 m[0, 0] = 1
                 Assert(not m.is_skew)
-    if 1:    # Miscellaneous
+    if 1:   # Miscellaneous
         def test_getnum():
             with Testing():
                 gn = Matrix.getnum
@@ -4065,134 +4065,9 @@ if __name__ == "__main__":
             TestFraction()
             TestDecimal()
             Test_ufloat()
-        if 0: #xx
-            def TestParseComplex():
-                test_cases = {
-                    # Pure imaginaries
-                    1j : (
-                        "i", "j", "1i", "i1", "1j", "j1", "1 j", "j 1",
-                        "I", "J", "1I", "I1", "1J", "J1", "1 i", "i 1",
-                    ),
-                    -1j : (
-                        "-i", "-j", " - \t\n\r\v\f j",
-                        "-I", "-J", " - \t\n\r\v\f J",
-                    ),
-                    3j : (
-                        "3i", "+3i", "3.i", "+3.i", "3.0i", "+3.0i", "3.0e0i", "+3.0e0i",
-                        "i3", "+i3", "i3.", "+i3.", "i3.0", "+i3.0", "i3.0e0", "+i3.0e0",
-                        "3.000i", "i3.000", "3.000E0i", "i3.000E0",
-                        "3.000e-0i", "i3.000e-0", "3.000e+0i", "i3.000e+0",
-            
-                        "3I", "+3I", "3.I", "+3.I", "3.0I", "+3.0I", "3.0e0I", "+3.0e0I",
-                        "I3", "+I3", "I3.", "+I3.", "I3.0", "+I3.0", "I3.0e0", "+I3.0e0",
-                        "3.000I", "I3.000", "3.000E0I", "I3.000E0",
-                        "3.000e-0I", "I3.000e-0", "3.000e+0I", "I3.000e+0",
-            
-                        "3j", "+3j", "3.j", "+3.j", "3.0j", "+3.0j", "3.0e0j", "+3.0e0j",
-                        "j3", "+j3", "j3.", "+j3.", "j3.0", "+j3.0", "j3.0e0", "+j3.0e0",
-                        "3.000j", "j3.000", "3.000E0j", "j3.000E0",
-                        "3.000e-0j", "j3.000e-0", "3.000e+0j", "j3.000e+0",
-            
-                        "3J", "+3J", "3.J", "+3.J", "3.0J", "+3.0J", "3.0e0J", "+3.0e0J",
-                        "J3", "+J3", "J3.", "+J3.", "J3.0", "+J3.0", "J3.0e0", "+J3.0e0",
-                        "3.000J", "J3.000", "3.000E0J", "J3.000E0",
-                        "3.000e-0J", "J3.000e-0", "3.000e+0J", "J3.000e+0",
-                    ),
-                    -8j : (
-                        "-8i", "-8.i", "-8.0i", "-8.0e0i",
-                        "-i8", "-i8.", "-i8.0", "-i8.0E0",
-            
-                        "-8I", "-8.I", "-8.0I", "-8.0e0I",
-                        "-I8", "-I8.", "-I8.0", "-I8.0E0",
-            
-                        "-8j", "-8.j", "-8.0j", "-8.0e0j",
-                        "-j8", "-j8.", "-j8.0", "-j8.0E0",
-            
-                        "-8J", "-8.J", "-8.0J", "-8.0e0J",
-                        "-J8", "-J8.", "-J8.0", "-J8.0E0",
-                    ),
-                    # Reals
-                    0 : (
-                        "0", "+0", "-0", "0.0", "+0.0", "-0.0"
-                        "000", "+000", "-000", "000.000", "+000.000", "-000.000",
-                        "0+0i", "0-0i", "0i+0", "0i-0", "+0i+0", "+0i-0", "i0+0",
-                        "i0-0", "+i0+0", "+i0-0", "-i0+0", "-i0-0",
-                    ),
-                    1 : (
-                        "1", "+1", "1.", "+1.", "1.0", "+1.0", "1.0e0", "+1.0e0",
-                                                            "1.0E0", "+1.0E0",
-                        "1+0i", "1-0i",
-                        "0i+1", "+0i+1", "-0i+1", "i0+1", "+i0+1", "-i0+1",
-                    ),
-                    -1 : (
-                        "-1", "-1+0i", "-1-0i", "0i-1", "+0i-1", "-0i-1",
-                        "i0-1", "+i0-1", "-i0-1",
-                    ),
-                    -2 : (
-                        "-2", "-2.", "-2.0", "-2.0e0",
-                    ),
-                    -2.3 : (
-                        "-2.3", "-2.30", "-2.3000", "-2.3e0", "-2300e-3", "-0.0023e3",
-                        "-.23E1",
-                    ),
-                    2.345e-7 : (
-                        "2.345e-7", "2345e-10", "0.00000002345E+1", "0.0000002345",
-                    ),
-                    # Complex numbers
-                    1+1j: ("1+i", "1+1i", "i+1", "1i+1", "i1+1"),
-                    1-1j: ("1-i", "1-1i", "-i+1", "-1i+1", "-i1+1"),
-                    -1-1j: ("-1-i", "-1-1i", "-i-1", "-1i-1", "-i1-1"),
-                    1-2j : (
-                        "1-2i", "1-2.i", "1.-2i", "1.-2.i",
-                        "1-j2", "1-j2.", "1.-j2", "1.-j2.",
-                        "1.00-2.00I", "1.00-I2.00", "1000e-3-200000e-5I",
-                        "1.00-J2.00", "1000E-3-J200000E-5",
-                        "-2i+1", "-i2 + \n1",
-                        "-i2+1",
-                    ),
-                    -1+2j : (
-                        "2i-1", "i2-1",
-                        "+2i-1", "+i2-1",
-                    ),
-                    -12.3+4.56e-7j : (
-                        "-12.3+4.56e-7j",
-                        "-12.3 + 4.56e-7j",
-                        "- 1 2 . 3 + 4 . 5 6 e - 7 j",
-                        "-1.23e1+456e-9i",
-                        "-0.123e2+0.000000456i",
-                    ),
-                }
-                c = ParseComplex()
-                for number in test_cases:
-                    for numstr in test_cases[number]:
-                        real, imag = c(numstr)
-                        num = complex(real, imag)
-                        assert_equal(num, number)
-                # Test that we can get Decimal types back
-                c = ParseComplex(Decimal)
-                a, b = c("1+3i")
-                Assert(isinstance(a, Decimal) and isinstance(b, Decimal))
-                Assert(a == 1 and b == 3)
-                a, b = c("-1.2-3.4i")
-                Assert(isinstance(a, Decimal) and isinstance(b, Decimal))
-                Assert(a == Decimal("-1.2") and b == Decimal("-3.4"))
-                # Test that we can get rational number components back
-                c = ParseComplex(Fraction)
-                a, b = c("-1.2-3.4i")
-                Assert(isinstance(a, Fraction) and isinstance(b, Fraction))
-                Assert(a == Fraction(-6, 5) and b == Fraction(-17, 5))
-                # Show that numbers with higher resolutions than floats can be used
-                c = ParseComplex(Decimal)
-                rp = "0.333333333333333333333333333333333"
-                ip = "3.44444444444444444444444444444"
-                r, i = c(rp + "\n-i" + ip)  # Note inclusion of a newline
-                Assert(r == Decimal(rp))
-                Assert(i == Decimal("-" + ip))
-                # Test that mpmath mpf numbers can be used
-                if have_mpmath:
-                    c = ParseComplex(mpf)
-                    a, b = c("1.1 - 3.2i")
-                    Assert(isinstance(a, mpf) and isinstance(b, mpf))
-                    Assert(a == mpf("1.1") and b == mpf("-3.2"))
+        def test_sum():
+            with Testing():
+                m = matrix("1 2\n3 4")
+                Assert(m.sum == 10)
     SetupGlobalTestData()
     exit(run(globals(), halt=True)[0])
