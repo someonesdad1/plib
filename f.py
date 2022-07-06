@@ -1,10 +1,11 @@
 ''' 
  
 TODO
-    - An invariant for divmod is that 'divmod(x,y)[0]*y + x % y' be
-          very close to x (in REPL, type help() and * and look at footnote
-          2 to the precedence table).
-        - Test arithmetic operations carefully
+    - cpx:
+        - .t property:  tuple display.  z=cpx(1,1) --> "(1,1)".  Use wide
+      attribute .w for "(1, 1)".  .w also gets "1 + i" form.
+        - .w property:  wide display
+        - Special forms:  1+i, i, -i, etc.
  
 Module for calculations with real and complex numbers 
 
@@ -508,7 +509,7 @@ class flt(Base, float):
     number of digits for a flt instance by changing the n attribute.  Set 
     it to 0 to return to the Base class behavior.
     '''
-    def __new__(cls, value):    # flt
+    def __new__(cls, value):
         if ii(value, str) and "∞" in value:
             value = value.replace("∞", "inf")
         instance = super().__new__(cls, value)
@@ -564,7 +565,7 @@ class flt(Base, float):
         else:
             raise Exception("Software bug")
         return decorate(s)
-    def _r(self, no_color=False):  # flt
+    def _r(self, no_color=False):
         'Return the repr string representation'
         self._check()
         f = lambda x: x if no_color else Base.wrap(x, self, force=flt)
@@ -572,13 +573,13 @@ class flt(Base, float):
         if no_color:
             return s
         return f(s)
-    def __str__(self):  # flt
+    def __str__(self):
         return self._r() if Base._flip else self._s()
-    def __repr__(self): # flt
+    def __repr__(self):
         return self._s() if Base._flip else self._r()
-    def __hash__(self): # flt
+    def __hash__(self):
         return hash(float(self._r()))
-    def rnd(self, n=None): # flt
+    def rnd(self, n=None):
         '''Return a flt that is rounded to the current number of digits 
         or n digits if n is not None.
         '''
@@ -588,11 +589,11 @@ class flt(Base, float):
                     raise ValueError("n must be an integer between 1 and 15")
                 self.N = n
             return flt(self.s)
-    def copy(self): # flt
+    def copy(self):
         'Returns a copy of self'
         cp = flt(float(self))
         return cp
-    def help(self): # flt
+    def help(self):
         print(dedent('''
         The flt class is derived from float and has the following attributes:
           c       * ANSI color escape codes in str() and repr()
@@ -614,22 +615,22 @@ class flt(Base, float):
           u       * Use Unicode characters in eng/sci string interpolation
              * means the attribute's state affects all flt and cps instances'''[1:]))
     if 1:   # Arithmetic functions
-        def _do_op(self, other, op):  # flt
+        def _do_op(self, other, op):
             if ii(other, complex):
                 return cpx(op(float(self), other))
             return flt(op(float(self), float(other)))
-        def __floordiv__(self, other):  # flt
+        def __floordiv__(self, other):
             if ii(other, complex):
                 raise TypeError("can't take floor of complex number")
             return self._do_op(other, operator.floordiv)
-        def __mod__(self, other):   # flt
+        def __mod__(self, other):
             if not ii(other, flt):
                 raise TypeError("Second operand must be a flt")
             rem = abs(float(self) % float(other))
             assert(0 <= rem <= abs(other))
             rem *= -1 if other < 0 else 1
             return rem
-        def __divmod__(self, other):    # flt
+        def __divmod__(self, other):
             '''Return (q, rem) where q is how many integer units of other are in
             self and rem is a flt giving the remainder.
             '''
@@ -639,40 +640,40 @@ class flt(Base, float):
             q = math.floor(float(self)/float(other))
             rem = self % other
             return q, flt(rem)
-        def __pow__(self, other):   # flt
+        def __pow__(self, other):
             'self**other'
             return self._do_op(other, operator.pow)
-        def __radd__(self, other):  # flt
+        def __radd__(self, other):
             'other + self'
             return self + other
-        def __rsub__(self, other):  # flt
+        def __rsub__(self, other):
             'other - self'
             if ii(other, (flt, cpx)):
                 return other.__add__(-self)
             return -self + other
-        def __rmul__(self, other):  # flt
+        def __rmul__(self, other):
             'other*self'
             return self*other
-        def __rtruediv__(self, other):  # flt
+        def __rtruediv__(self, other):
             'other/self'
             return operator.truediv(flt(1), self)*other
-        def __rfloordiv__(self, other): # flt
+        def __rfloordiv__(self, other):
             'other//self'
             return flt(floor((flt(1)/self)*other))
-        def __rmod__(self, other):  # flt
+        def __rmod__(self, other):
             'other % self'
             return self.__mod__(other, self)
-        def __rdivmod__(self, other):   # flt
+        def __rdivmod__(self, other):
             'divmod(other, self)'
             return self.__divmod__(other, self)
-        def __rpow__(self, other):  # flt
+        def __rpow__(self, other):
             'Calculate other**self'
             return pow(other, self)
-        def __abs__(self):  # flt
+        def __abs__(self):
             return flt(abs(float(self)))
-        def __ne__(self, other):    # flt
+        def __ne__(self, other):
             return not (self == other)
-        def __eq__(self, other):    # flt
+        def __eq__(self, other):
             '''To be equal, two flt objects must be numerically equal.
             If the sigcomp attribute is defined, it defines the number of
             digits involved in the comparison.
@@ -680,11 +681,11 @@ class flt(Base, float):
             n = self.sigcomp if self.sigcomp is not None else 15
             b = flt(float(other))
             return Base.sig_equal(self, b, n=n)
-        def __lt__(self, other):    # flt
+        def __lt__(self, other):
             if ii(other, complex):
                 raise ValueError("Complex numbers are not ordered")
             return float(self) < float(other)
-        def __call__(self, x):    # flt
+        def __call__(self, x):
             '''Factory function for a flt.  If x is a flt and has the n
             attribute set to nonzero, the returned flt has the same value
             of n.
@@ -707,23 +708,23 @@ class flt(Base, float):
             self._n = value
     if 1:   # Formatting properties
         @property
-        def eng(self):  # flt
+        def eng(self):
             'Return a string formatted in engineering notation'
             return self._s(fmt="eng")
         @property
-        def engsi(self):   # flt
+        def engsi(self):
             '''Return a string formatted in engineering notation with SI
             prefix appended with a space character.
             '''
             return self._s(fmt="engsi")
         @property
-        def engsic(self):  # flt
+        def engsic(self):
             '''Return a string formatted in engineering notation with SI
             prefix appended with no space character.
             '''
             return self._s(fmt="engsic")
         @property
-        def sci(self):  # flt
+        def sci(self):
             'Return a string formatted in scientific notation'
             return self._s(fmt="sci")
 
@@ -763,12 +764,13 @@ class ParseComplex(object):
     _complex2 = re.compile(_C2, re.X | re.I)
     _complex3 = re.compile(_C3, re.X | re.I)
     _complex4 = re.compile(_C4, re.X | re.I)
-    def __init__(self, number_type=float):
+    def __init__(self, number_type=flt):
         self.number_type = number_type
     def __call__(self, s):
         '''Return a tuple of two real numbers representing the real
         and imaginary parts of the complex number represented by
-        s.  The allowed forms are (x and y are real numbers):
+        the strings.  The allowed forms are (x and y are real 
+        numbers):
             Real:               x
             Pure imaginary      iy, yi
             Complex             x+iy, x+yi
@@ -846,6 +848,8 @@ class cpx(Base, complex):
     _rad = False    # If True, use radians for angle measurement (degrees if False)
     _nz = False     # If True, don't print out zero components
     _PC = ParseComplex()
+    _t = False      # If True, use tuple display:  1+2i -> "(1,2)"
+    _w = False      # If True, use wide display:  1+2i -> "1 + 2i"
     def __new__(cls, real, imag=0):
         'real can be a number type, a cpx, or a complex.'
         f = lambda x:  D(x) if x else D(0)
@@ -882,19 +886,22 @@ class cpx(Base, complex):
         'Set things to a known state (primarily for self tests)'
         super()._reset()
         cpx._i = False
+        cpx._nz = False
         cpx._p = False
         cpx._rad = False
-        cpx._nz = False
+        cpx._t = False
+        cpx._w = False
     def _pol(self, repr=False):
         'Return polar form'
         f = lambda x:  Base.wrap(x, self)
         r, theta = [flt(i) for i in polar(self)]
         theta *= 1 if self.rad else 180/pi
         deg = "" if self.rad else "°"
+        sp = " " if self.w else ""
         if repr:
-            s = f"{r._r(no_color=True)}∠{theta._r(no_color=True)}{deg}"
+            s = f"{r._r(no_color=True)}{sp}∠{sp}{theta._r(no_color=True)}{deg}"
         else:
-            s = f"{r._s(no_color=True)}∠{theta._s(no_color=True)}{deg}"
+            s = f"{r._s(no_color=True)}{sp}∠{sp}{theta._s(no_color=True)}{deg}"
         t = f(s) if self.i else f("(" + s + ")")
         return f(t)
     def _s(self, fmt="fix"):   
@@ -906,9 +913,16 @@ class cpx(Base, complex):
         if fmt not in set("fix eng sci engsi engsic".split()):
             raise ValueError("fmt must be one of:  fix, eng, sci, engsi, engsic")
         f = lambda x:  Base.wrap(x, self)
-        if self.p:   # Polar coordinates
+        if self.p:      # Polar coordinates
             return self._pol()
-        else:        # Rectangular coordinates
+        elif self.t:    # Tuple form
+            r, i = self._real, self._imag
+            re = r._s(fmt=fmt, no_color=True)
+            im = i._s(fmt=fmt, no_color=True)
+            sp = " " if self.w else ""
+            s = f"({re},{sp}{im})"
+            return f(s)
+        else:           # Rectangular coordinates
             r, i = self._real, self._imag
             re = r._s(fmt=fmt, no_color=True)
             im = i._s(fmt=fmt, no_color=True)
@@ -917,9 +931,17 @@ class cpx(Base, complex):
                     s = f"{re}" if cpx._i else f"({re})"
                 else:
                     s = f"{im}i" if cpx._i else f"({im}j)"
+            elif self.nz and not r and not i:
+                s = "0"
             else:
-                im = "+" + im if im[0] != "-" else im
-                s = f"{re}{im}i" if cpx._i else f"({re}{im}j)"
+                iu = "i" if cpx._i else "j"
+                sp = " " if self.w else ""
+                sgn = f"{sp}-{sp}" if i < 0 else f"{sp}+{sp}"
+                im = abs(i)._s(fmt=fmt, no_color=True)
+                if cpx._i:
+                    s = f"{re}{sgn}{im}{iu}"
+                else:
+                    s = f"({re}{sgn}{im}{iu})"
             return f(s)
     def _r(self):  
         'Return the full representation string'
@@ -943,7 +965,7 @@ class cpx(Base, complex):
             else:
                 r = f"{float(self._real)!r}"
                 i = f"{float(self._imag)!r}"
-                sgn = "+" if self._imag >= 0 else "-"
+                sgn = "+" if self._imag >= 0 else ""
                 s = f"{r}{sgn}{i}{I}"
         return f(s)
     def __str__(self): 
@@ -1041,6 +1063,20 @@ class cpx(Base, complex):
         @rad.setter
         def rad(self, value):  
             cpx._rad = bool(value)
+        @property
+        def t(self): 
+            'If True, use tuple display form 1+3i --> "(1,3)"'
+            return cpx._t
+        @t.setter
+        def t(self, value):  
+            cpx._t = bool(value)
+        @property
+        def w(self): 
+            'If True, use wide display form 1+3i --> "1 + 3i"'
+            return cpx._w
+        @w.setter
+        def w(self, value):  
+            cpx._w = bool(value)
     if 1:   # Formatting properties
         @property
         def eng(self): 
@@ -1259,8 +1295,14 @@ if 1:   # Other
         if set(t) != set("0"):
             t = rlz(t)
         return len(t)
+
 if 0:
-   exit()
+    z = cpx(1.234, 7.654)
+    z._reset()
+    print(z)
+    z.i = 1
+    print(z)
+    exit()
 
 if __name__ == "__main__": 
     from lwtest import run, raises, assert_equal, Assert
@@ -1586,7 +1628,6 @@ if __name__ == "__main__":
         n = 50
         x = D("1." + "1"*n)
         assert_equal(GetNumDigits(str(x)), n + 1)
-    # Base stuff
     def Test_rnd():
         x = flt(pi)
         for n, s in (
@@ -1610,71 +1651,117 @@ if __name__ == "__main__":
             y = flt(s)
             Assert(repr(y) == s)
     def Test_fmt():
-        # flt
-        x = flt(10*pi)
-        x._reset()
-        y = flt(10*pi)
-        Assert(str(x) == str(y) == "31.4")
-        # Show context manager works to allow a change to Base.N; also show
-        # that an instance's change to self.n isn't affected by the context
-        # manager.
-        with x:
-            x.N = 8
-            Assert(str(x) == str(y) == "31.415927")
-            y.n = 8
-        Assert(str(x) == "31.4")
-        # y still uses 8 digits but x doesn't
-        Assert(str(y) == "31.415927")
-        # Test eng, sci, etc.
-        x = flt(1e5*pi)
-        Assert(x.s == "314000")
-        Assert(x.eng == "314e3")
-        Assert(x.engsi == "314 k")
-        Assert(x.engsic == "314k")
-        Assert(x.sci == "3.14e5")
-        x.u = True
-        Assert(x.eng == "314✕10³")
-        Assert(x.sci == "3.14✕10⁵")
-        # Eng/sci with Unicode
-        # rtz, rtdp, rlz
-        x = flt(1.1)
-        x._reset()
-        with x:
-            x.N = 4
-            Assert(x.s == "1.1")
-            x.rtz = False
-            Assert(x.s == "1.100")
-        x = flt(31)
-        x.rtz = x.rtdp = False
-        Assert(x.s == "31.0")
-        x.rtz = True
-        Assert(x.s == "31.")
-        x.rtdp = True
-        Assert(x.s == "31")
-        x = flt(1/4)
-        x._reset()
-        Assert(x.s == "0.25")
-        x.rlz = True
-        Assert(x.s == ".25")
-        # cpx
-        # Need to test i, p, rad, nz properties
-        z = cpx(-1.234, 7.654)
-        z._reset()
-        Assert(z.s == "(-1.23+7.65j)")
-        z.p = True
-        Assert(z.s == "(7.75∠99.2°)")
-        z.i = True
-        Assert(z.s == "7.75∠99.2°")
-        z.rad = True
-        Assert(z.s == "7.75∠1.73")
-        z.rad = False
-        z.p = False
-        Assert(z.s == "-1.23+7.65i")
-        z = cpx(0, 7.654)
-        Assert(z.s == "0+7.65i")
-        z.nz = True
-        Assert(z.s == "7.65i")
-        z._reset()
+        if 1:   # flt
+            x = flt(10*pi)
+            x._reset()
+            y = flt(10*pi)
+            Assert(str(x) == str(y) == "31.4")
+            # Show context manager works to allow a change to Base.N; also show
+            # that an instance's change to self.n isn't affected by the context
+            # manager.
+            with x:
+                x.N = 8
+                Assert(str(x) == str(y) == "31.415927")
+                y.n = 8
+            Assert(str(x) == "31.4")
+            # y still uses 8 digits but x doesn't
+            Assert(str(y) == "31.415927")
+            # Test eng, sci, etc.
+            x = flt(1e5*pi)
+            Assert(x.s == "314000")
+            Assert(x.eng == "314e3")
+            Assert(x.engsi == "314 k")
+            Assert(x.engsic == "314k")
+            Assert(x.sci == "3.14e5")
+            x.u = True
+            Assert(x.eng == "314✕10³")
+            Assert(x.sci == "3.14✕10⁵")
+            # Eng/sci with Unicode
+            # rtz, rtdp, rlz
+            x = flt(1.1)
+            x._reset()
+            with x:
+                x.N = 4
+                Assert(x.s == "1.1")
+                x.rtz = False
+                Assert(x.s == "1.100")
+            x = flt(31)
+            x.rtz = x.rtdp = False
+            Assert(x.s == "31.0")
+            x.rtz = True
+            Assert(x.s == "31.")
+            x.rtdp = True
+            Assert(x.s == "31")
+            x = flt(1/4)
+            x._reset()
+            Assert(x.s == "0.25")
+            x.rlz = True
+            Assert(x.s == ".25")
+        if 1:   # cpx
+            # Quadrant 1
+            z = cpx(1.234, 7.654)
+            z._reset()
+            Assert(z.s == "(1.23+7.65j)")
+            z.p = True
+            Assert(z.s == "(7.75∠80.8°)")
+            z.i = True
+            Assert(z.s == "7.75∠80.8°")
+            z.rad = True
+            Assert(z.s == "7.75∠1.41")
+            z.rad = False
+            z.p = False
+            Assert(z.s == "1.23+7.65i")
+            z.t = True
+            Assert(z.s == "(1.23,7.65)")
+            z.w = True
+            Assert(z.s == "(1.23, 7.65)")
+            z = cpx(0, 7.654)
+            Assert(z.s == "(0, 7.65)")
+            z.t = False
+            Assert(z.s == "0 + 7.65i")
+            z.nz = True
+            Assert(z.s == "7.65i")
+            # Quadrant 2
+            z = cpx(-1.234, 7.654)
+            z._reset()
+            Assert(z.s == "(-1.23+7.65j)")
+            z.i = True
+            Assert(z.s == "-1.23+7.65i")
+            z.p = True
+            Assert(z.s == "7.75∠99.2°")
+            z.i = False
+            Assert(z.s == "(7.75∠99.2°)")
+            z.rad = True
+            Assert(z.s == "(7.75∠1.73)")
+            z.rad = False
+            z.p = False
+            z.i = True
+            Assert(z.s == "-1.23+7.65i")
+            z = cpx(-1.234, 0)
+            Assert(z.s == "-1.23+0i")
+            z.nz = True
+            Assert(z.s == "-1.23")
+            # Quadrant 3
+            z = cpx(-1.234, -7.654)
+            z._reset()
+            Assert(z.s == "(-1.23-7.65j)")
+            z.i = True
+            Assert(z.s == "-1.23-7.65i")
+            z.p = True
+            Assert(z.s == "7.75∠-99.2°")
+            z.i = False
+            Assert(z.s == "(7.75∠-99.2°)")
+            z.rad = True
+            Assert(z.s == "(7.75∠-1.73)")
+            z.rad = False
+            z.p = False
+            z.i = True
+            Assert(z.s == "-1.23-7.65i")
+            z = cpx(-0, -0)
+            Assert(z.s == "0+0i")
+            z.nz = True
+            Assert(z.s == "0")
+            z._reset()
     def Test_functions():
         '''Test the functions using python 3.7.12.  The focus is that the
         correct types are returned, as the numerical values will have been
@@ -1928,37 +2015,37 @@ if __name__ == "__main__":
                 "-0.123e2+0.000000456i",
             ),
         }
-        c = ParseComplex()
+        PC = ParseComplex()
         for number in test_cases:
             for numstr in test_cases[number]:
-                real, imag = c(numstr)
-                num = complex(real, imag)
+                real, imag = PC(numstr)
+                num = cpx(real, imag)
                 assert_equal(num, number)
         # Test that we can get Decimal == D types back
-        c = ParseComplex(D)
-        a, b = c("1+3i")
+        PC = ParseComplex(D)
+        a, b = PC("1+3i")
         Assert(isinstance(a, D) and isinstance(b, D))
         Assert(a == 1 and b == 3)
-        a, b = c("-1.2-3.4i")
+        a, b = PC("-1.2-3.4i")
         Assert(isinstance(a, D) and isinstance(b, D))
         Assert(a == D("-1.2") and b == D("-3.4"))
         # Test that we can get rational number components back
-        c = ParseComplex(Fraction)
-        a, b = c("-1.2-3.4i")
+        PC = ParseComplex(Fraction)
+        a, b = PC("-1.2-3.4i")
         Assert(isinstance(a, Fraction) and isinstance(b, Fraction))
         Assert(a == Fraction(-6, 5) and b == Fraction(-17, 5))
         # Show that numbers with higher resolutions than floats can be used
-        c = ParseComplex(D)
+        PC = ParseComplex(D)
         rp = "0.333333333333333333333333333333333"
         ip = "3.44444444444444444444444444444"
-        r, i = c(rp + "\n-i" + ip)  # Note inclusion of a newline
+        r, i = PC(rp + "\n-i" + ip)  # Note inclusion of a newline
         Assert(r == D(rp))
         Assert(i == D("-" + ip))
         # Test that mpmath mpf numbers can be used
         try:
             from mpmath import mpf
-            c = ParseComplex(mpf)
-            a, b = c("1.1 - 3.2i")
+            PC = ParseComplex(mpf)
+            a, b = PC("1.1 - 3.2i")
             Assert(isinstance(a, mpf) and isinstance(b, mpf))
             Assert(a == mpf("1.1") and b == mpf("-3.2"))
         except ImportError:
