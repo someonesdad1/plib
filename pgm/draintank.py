@@ -89,6 +89,16 @@ if 1:   # Core functionality
 if __name__ == "__main__":
     d = {}      # Options dictionary
     args = ParseCommandLine(d)
+    print(dedent('''
+    You'll be asked for a tank volume in m3, a height in m, and a drain
+    hole diameter in m.  If you want to use other units, append them to the
+    number you type in.
+
+    The discharge coefficient is the fraction of the ideal mass flow
+    capable through the hole; it's a fraction of ρ*dV/dt with typical
+    values for sharp holes around 0.6 to 0.65.
+
+    '''))
     # All units are SI
     if 1:
         Vs, V = GetNumber("What is volume? ", "m3")
