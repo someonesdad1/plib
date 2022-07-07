@@ -3,8 +3,6 @@ Active
     - format_numbers.py and fraction.py
         - Move to fmt.py
 
-    - matrix.py (see module's todo list)
-    
     - transpose.py
         - This may be the basis of a text table tool along with wrap.py
           below to get things wrapped to a specific width.
@@ -47,10 +45,6 @@ Want
         - Change printout to use Unicode symbols
         - Use color for coordinate systems
 
-    - pgm/profit.py
-        - Add a container for comments describing the model.  These get
-          edited with $EDITOR.
-        
     - Sequence value comparisons
         - An arbitrary sequence can be a sequence of sequences.  Since [1,
           [2]] != (1, [2]) because one is a tuple and one is a list, it
@@ -64,10 +58,6 @@ Want
           sequence.
 
     - lwtest.py
-        - In ToDoMessage, add a keyword offset that lets you designate the
-          line that needs the fix.  
-        - Consider a keyword for colorizing the message too to make it
-          easier to see.  I like ornl, magl, or purl for visible colors.
         - For easier writing/grouping of test cases, it would be nice to be
           able to nest testing functions and have them found and executed
           rather than having to call each nested function.  This shouldn't

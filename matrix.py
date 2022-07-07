@@ -7,7 +7,6 @@ TODO:
         - Better?  Add a matrix entry to my help docs.
         - Also need a cookbook
             - Linear regression example
-    - Test sum attribute
  
 Matrix module (python 3 only)
 '''

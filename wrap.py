@@ -38,6 +38,9 @@ TODO
                 - .> [n]:  Right justify the next n lines (sticky if n not
                   given)
                 - .^ [n]:  Center the next n lines (sticky if n not given)
+        - Template strings:  a = string.Template(s) is used to replace things
+          like $name by another string defined in a dict.  Then
+          a.substitute(dict) gets the replacements.
     - For use with Usage strings in a script, in dedent, remove the first
       and last lines with newlines if they are whitespace only.  Then
       include an option that's True to let empty lines with no space be

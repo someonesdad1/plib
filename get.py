@@ -222,10 +222,10 @@ if 1:   # Getting numbers
         '''General-purpose routine to get a number from the user with the
         prompt msg.  These are the things that can be returned:
             
-            number                      kw use_unit is False
-            (number, unit_string)       kw use_unit is True
-            True or False               kw inspect is True
-            None                        kw default = None and kw allow_none True
+            number                      use_unit is False
+            (number, unit_string)       use_unit is True
+            True or False               inspect is True
+            None                        default = None and allow_none = True
     
         The returned number type will be numtype.  Examples:
     
@@ -251,7 +251,10 @@ if 1:   # Getting numbers
             default     Default value.  This value will be returned if
                         the user just presses the return key when prompted.
                         Note the default value of None will cause an exception
-                        unless allow_none is True.  [None]
+                        unless the keyword allow_none is True.  [None]
+
+            allow_none  If True, allows None to be returned as the default.
+                        [False]
     
             low         Lowest allowed value.  [None]
     
@@ -608,7 +611,7 @@ if 1:   # Getting numbers
         unit and prefix and return the tuple (num, unit).  Note that two
         methods are used.  First, if the string contains one or more space
         characters, the string is split on the space and the two parts are
-        returned immediately; an exception is thrown if there are more
+        returned immediately; an exception is raised if there are more
         than two portions.  The other method covers the case where the
         unit may be cuddled against the number.
         '''
@@ -617,9 +620,10 @@ if 1:   # Getting numbers
             if len(f) != 2:
                 raise ValueError("'%s' must have only two fields" % s)
             return f
-        # The second method is done by reversing the string and looking for
-        # unit characters until a character that must be in the number is
-        # found.  Note this means that digit characters cannot be in the unit.
+        # The second method reverses the string and looks for unit
+        # characters until a character that must be in the number is found.
+        # This means that digit characters cannot be in the unit, so a unit
+        # like "mmH2O" is not allowed.
         unit, num, num_chars, done = [], [], set("1234567890."), False
         for i in reversed(s):
             if done:
@@ -637,12 +641,17 @@ if 1:   # Getting numbers
         found in x and unit is one of the allowed_units strings.
         allowed_units must be an iterable container.  Note things are
         case-sensitive.  prefix will either be a float or an integer.
+ 
+        Example:
+            u = ["m", "in", "ft"]
+            s = "mm"
+            Then ParseUnitString(s, u) returns (0.001, "m").
     
-        The typical use case is where ParseUnit() has been used to
-        separate a number and unit.  Then ParseUnitString() can be used to
-        parse the returned unit string to get the SI prefix actual unit
-        string.  Note parsing of composite units (such as m/s) must take
-        place outside this function.
+        The typical use case is where ParseUnit() has been used to separate
+        a number and unit.  Then ParseUnitString() can be used to parse the
+        returned unit string to get the SI prefix actual unit string.
+        Parsing of composite units (such as m/s) must take place outside
+        this function.
     
         If strict is True, then one of the strings in allowed_units must
         be anchored at the right end of x.  If strict is False, then the
@@ -651,7 +660,7 @@ if 1:   # Getting numbers
         '''
         # Define the allowed SI prefixes
         si = {"y":  -24, "z": -21, "a": -18, "f": -15, "p": -12, "n": -9,
-            "u": -6, "m": -3, "c": -2, "d": -1, "": 0, "da": 1, "h": 2,
+            "u": -6, "μ": -6, "m": -3, "c": -2, "d": -1, "": 0, "da": 1, "h": 2,
             "k":  3, "M":  6, "G":  9, "T": 12, "P": 15, "E": 18, "Z": 21,
             "Y": 24}
         s = x.strip()  # Remove any leading/trailing whitespace
@@ -669,7 +678,7 @@ if 1:   # Getting numbers
                 break
         if not unit:
             if strict:
-                raise ValueError("'%s' did not contain an allowed unit" % x)
+                raise ValueError(f"'{x}' did not contain an allowed unit")
             else:
                 return (1, "")
         else:
@@ -679,18 +688,21 @@ if 1:   # Getting numbers
                 raise Exception("Bug in ParseUnitString() routine")
             prefix = s[:index]
             if prefix not in si:
-                raise ValueError("'%s' prefix not an SI prefix" % prefix)
+                raise ValueError(f"'{prefix}' is not an SI prefix")
             return (10**si[prefix], unit)
 if 1:   # Getting choices
-    def GetChoice(seq, default=1, indent=None, col=False):
+    def GetChoice(seq, default=1, indent=None, col=False, instream=None,
+                  outstream=None):
         '''Display the choices in seq with numbers and prompt the user for his
         choice.  Note the numbers are 1-based as displayed to the user, but the
         returned value of choice will be 0-based.  Return the choice_number.
-    
-        indent is a string to prepend to each line if not None.  If col is
-        True, use Columnize to print the choices (allows more dense listings
-        for a given screen space).
-    
+ 
+        default     Default choice
+        indent      String to indent printed choices
+        col         If True, use Columnize to print the choices
+ 
+        instream and outstream are used for testing and are passed to
+        GetNumber().
         '''
         if not seq:
             raise ValueError("seq can't be empty")
@@ -699,13 +711,17 @@ if 1:   # Getting choices
             items.append("{}) {}".format(i + 1, str(item)))
         if col:
             for i in Columnize(items, indent=indent, sep=" "*3):
-                print(i)
+                print(i, file=outstream)
         else:
             s = "" if indent is None else indent
             for i in items:
-                print(s, i, sep="")
+                print(s, i, sep="", file=outstream)
         choice = GetNumber("Choice? ", numtype=int, default=default, 
-                        low=1, high=n) - 1
+                        low=1, high=n, instream=instream,
+                        outstream=outstream)
+        if choice is None:
+            return (None, "")
+        choice = int(choice) - 1
         return (choice, seq[choice])
 if 1:   # Tokenizing
     def GetWords(thing, sep=None, enc=None, ignore=[]):
@@ -836,7 +852,7 @@ if 1:   # Miscellaneous
         def AWG(n):
             if n < -3 or n > 56:
                 raise ValueError("AWG argument out of range")
-            diameter = 92.**((36 - n)/39)/200
+            diameter = 92**((36 - n)/39)/200
             if n <= 44:
                 return round(diameter, 4)
             return round(diameter, 5)
@@ -875,551 +891,595 @@ if 1:   # Miscellaneous
     GetWireDiameter.input = None    # Used for self tests
 
 if __name__ == "__main__": 
-    from collections import deque
-    from wrap import dedent
-    from lwtest import run, raises, Assert
-    from io import StringIO
-    text_file, S = None, None
-    def SetUp():
-        global text_file, S
-        text_file = P("get.test")
-        S = "Some\ntext\n"
-        text_file.write_text(S)
-    def TearDown():
-        if text_file.exists():
-            text_file.unlink()
-    def TestGetText():
-        sio = StringIO(S)
-        t = GetText(sio)
-        Assert(t == S)
-        t = GetText(S)
-        Assert(t == S)
-        t = GetText(text_file)
-        Assert(t == S)
-        # Test with bytes
-        b = b"Some\ntext\n"
-        t = GetText(b)
-        Assert(t == S)
-        t = GetText(b, enc="ISO-8859-1")
-        Assert(t == S)
-        t = GetText(b"\xb5", enc="ISO-8859-1")
-        Assert(t == "µ")
-        # Test with regexp
-        s = dedent('''
-        # Comment
-        ## Another comment
-        Line 1
-          Line 2''')
-        r = ("^ *#",)
-        lines = GetLines(s, ignore=r, nonl=True)
-        Assert(lines == ['Line 1', '  Line 2'])
-    def TestGetLine():
-        # Test with stream
-        sio = StringIO(S)
-        lines = ["Some\n", "text\n"]
-        for i, line in enumerate(GetLine(sio)):
-            Assert(line == lines[i])
-        # Test with string
-        for i, line in enumerate(GetLine(S)):
-            Assert(line == lines[i])
-        # Test with file
-        for i, line in enumerate(GetLine(text_file)):
-            Assert(line == lines[i])
-    def TestGetLines():
-        # Test with stream
-        sio = StringIO(S)
-        l = S.split() + [""]
-        t = GetLines(sio, nonl=True)
-        Assert(t == l)
-        sio = StringIO(S)
-        t = GetLines(sio, nonl=False)
-        m = [i + "\n" for i in l]
-        Assert(t == m)
-        # Test with string
-        t = GetLines(S, nonl=True)
-        Assert(t == l)
-        # Test with file
-        t = GetLines(text_file, nonl=True)
-        Assert(t == l)
-        # Test 'script' keyword
-        s = "# xyz\n    # xyz\nabc"
-        sio = StringIO(s)
-        t = GetLines(sio, script=False, nonl=True)
-        Assert(t == ['# xyz', '    # xyz', 'abc'])
-        sio = StringIO(s)
-        t = GetLines(sio, ignore=[], script=True, nonl=True)
-        Assert(t == ['abc'])
-        # Test docstring example
-        s = """# Comment
-        ## Another comment
-        Line 1
-            Line 2
-        """
-        r = [r"^\s*#"]
-        lines = GetLines(s, ignore=r, nonl=True)
-        expected = ['        Line 1', '            Line 2', '        ']
-        Assert(lines == expected)
-        lines = GetLines(s, ignore=[], script=True, nonl=True)
-        Assert(lines == expected)
-    def TestGetWords():
-        sio = StringIO(S)
-        l = S.split()
-        t = GetWords(sio)
-        Assert(t == l)
-        t = GetWords(S)
-        Assert(t == l)
-        t = GetWords(text_file)
-        Assert(t == l)
-    def TestGetTokens():
-        s = "1 2 3\n4 5 6\n"
-        l = list(GetTokens(s))
-        Assert(l == "1 2 3 4 5 6".split())
-    def TestGetBinary():
-        enc = "iso-8859-1"
-        open(text_file, "wb").write(S.encode(enc))
-        t = GetBinary(text_file)
-        Assert(t == S.encode("ascii"))
-    def TestGetNumberedLines():
-        expected = ((1, "Some"), (2, "text"), (3, ""))
-        sio = StringIO(S)
-        t = GetNumberedLines(sio)
-        Assert(t == expected)
-        t = GetNumberedLines(S)
-        Assert(t == expected)
-        t = GetNumberedLines(text_file)
-        Assert(t == expected)
-    def sio(*s):
-        'Allows StringIO to be used for input or output'
-        if not s:
-            return StringIO()
-        return StringIO(s[0])
-    def TestGetNumbers():
-        # Check general python numerical types
-        s = "1 1.2 3/4 3+1j"
-        l = GetNumbers(s)
-        Assert(l == [1, 1.2, Fraction(3, 4), (3+1j)])
-        # Check f.py types flt and cpx
-        if _have_f:
-            s = "1.2 3+1j"
-            x, z = GetNumbers(s)
-            Assert(ii(x, flt) and ii(z, cpx))
-            Assert(x == flt(1.2))
-            Assert(z == cpx(3+1j))
-        # Check uncertainties library forms
-        if _have_unc:
-            s = "3±4 3+-4 3+/-4 3(4)"
-            for u in GetNumbers(s):
-                Assert(u.nominal_value == 3)
-                Assert(u.std_dev == 4)
-        # Test with a float type
-        s = "1 1.2"
-        l = GetNumbers(s, numtype=float)
-        Assert(l == [1.0, 1.2])
-        Assert(all([ii(i, float) for i in l]))
-        l = GetNumbers(s, numtype=flt)
-        Assert(l == [flt(1.0), flt(1.2)])
-        Assert(all([ii(i, flt) for i in l]))
-        # Test with a complex type
-        s = "1 1.2 3+4j"
-        l = GetNumbers(s, numtype=complex)
-        Assert(l == [1+0j, 1.2+0j, 3+4j])
-        l = GetNumbers(s, numtype=cpx)
-        Assert(all([ii(i, cpx) for i in l]))
-        Assert(l == [cpx(1+0j), cpx(1.2+0j), cpx(3+4j)])
-        # Test Fraction
-        s = "3/8 7/16 1/2"
-        l = GetNumbers(s)
-        Assert(all([ii(i, Fraction) for i in l]))
-        Assert(l == [Fraction(3, 8), Fraction(7, 16), Fraction(1, 2)])
-    def TestGetNumberExceptionalCases():
-        # low > high
-        raises(ValueError, GetNumber, "", low=1, high=0, instream=sio("0"))
-        # Invert True without low or high
-        raises(ValueError, GetNumber, "", invert=True, instream=sio("0"))
-    def TestGetNumberAll():
-        msg = "Error:  must have "
-        # Note:  the test case comment is a picture of the allowed interval;
-        # '(' and ')' mean open, '[' and ']' mean closed.
-        #
-        # [----...
-        s_out = sio()
-        GetNumber("", numtype=int, low=5, outstream=s_out, instream=sio("4"))
-        Assert(s_out.getvalue() == msg + "number >= 5\n")
-        s_out = sio()
-        n = GetNumber("", numtype=int, low=5, outstream=s_out, instream=sio("5"))
-        Assert(n == 5 and isinstance(n, int))
-        s_out = sio()  # Test we can get a float like this too
-        GetNumber("", numtype=float, low=5, outstream=s_out, instream=sio("4"))
-        Assert(s_out.getvalue() == msg + "number >= 5\n")
-        n = GetNumber("", numtype=float, low=5, outstream=sio(), instream=sio("5"))
-        Assert(n == 5 and isinstance(n, float))
-        # The remaining tests will be done implicitly with floats
-        # (----...
-        s_out = sio()
-        GetNumber("", low=5, low_open=True, outstream=s_out,
-            instream=sio("4"))
-        Assert(s_out.getvalue() == msg + "number > 5\n")
-        s_out = sio()
-        n = GetNumber("", low=5, low_open=True, outstream=s_out,
-                instream=sio("6"))
-        Assert(n == 6 and isinstance(n, float))
-        Assert(n == 6 and isinstance(n, flt))
-        # ...----]
-        s_out = sio()
-        GetNumber("", high=5, outstream=s_out, instream=sio("6"))
-        Assert(s_out.getvalue() == msg + "number <= 5\n")
-        s_out = sio()
-        n = GetNumber("", high=5, outstream=s_out, instream=sio("5"))
-        Assert(n == 5 and isinstance(n, float))
-        Assert(n == 5 and isinstance(n, flt))
-        # ...----)
-        s_out = sio()
-        GetNumber("", high=5, high_open=True, outstream=s_out,
-            instream=sio("5"))
-        Assert(s_out.getvalue() == msg + "number < 5\n")
-        s_out = sio()
-        n = GetNumber("", high=5, high_open=True, outstream=s_out,
+    # Regression tests
+    if 1:   # Initialization
+        from collections import deque
+        from wrap import dedent
+        from lwtest import run, raises, Assert
+        from io import StringIO
+        text_file, S = None, None
+        def SetUp():
+            global text_file, S
+            text_file = P("get.test")
+            S = "Some\ntext\n"
+            text_file.write_text(S)
+        def TearDown():
+            if text_file.exists():
+                text_file.unlink()
+        def sio(*s):
+            'Allows StringIO to be used for input or output'
+            if not s:
+                return StringIO()
+            return StringIO(s[0])
+    if 1:   # Getting text, tokens, lines, bytes
+        def TestGetText():
+            sio = StringIO(S)
+            t = GetText(sio)
+            Assert(t == S)
+            t = GetText(S)
+            Assert(t == S)
+            t = GetText(text_file)
+            Assert(t == S)
+            # Test with bytes
+            b = b"Some\ntext\n"
+            t = GetText(b)
+            Assert(t == S)
+            t = GetText(b, enc="ISO-8859-1")
+            Assert(t == S)
+            t = GetText(b"\xb5", enc="ISO-8859-1")
+            Assert(t == "µ")
+            # Test with regexp
+            s = dedent('''
+            # Comment
+            ## Another comment
+            Line 1
+              Line 2''')
+            r = ("^ *#",)
+            lines = GetLines(s, ignore=r, nonl=True)
+            Assert(lines == ['Line 1', '  Line 2'])
+        def TestGetLines():
+            # Test with stream
+            sio = StringIO(S)
+            l = S.split() + [""]
+            t = GetLines(sio, nonl=True)
+            Assert(t == l)
+            sio = StringIO(S)
+            t = GetLines(sio, nonl=False)
+            m = [i + "\n" for i in l]
+            Assert(t == m)
+            # Test with string
+            t = GetLines(S, nonl=True)
+            Assert(t == l)
+            # Test with file
+            t = GetLines(text_file, nonl=True)
+            Assert(t == l)
+            # Test 'script' keyword
+            s = "# xyz\n    # xyz\nabc"
+            sio = StringIO(s)
+            t = GetLines(sio, script=False, nonl=True)
+            Assert(t == ['# xyz', '    # xyz', 'abc'])
+            sio = StringIO(s)
+            t = GetLines(sio, ignore=[], script=True, nonl=True)
+            Assert(t == ['abc'])
+            # Test docstring example
+            s = """# Comment
+            ## Another comment
+            Line 1
+                Line 2
+            """
+            r = [r"^\s*#"]
+            lines = GetLines(s, ignore=r, nonl=True)
+            if 0:
+                print("Got:")
+                for i in lines:
+                    print(repr(i))
+            expected = ['            Line 1', '                Line 2', '            ']
+            if 0:
+                print("Expected:")
+                for i in expected:
+                    print(repr(i))
+            Assert(lines == expected)
+            lines = GetLines(s, ignore=[], script=True, nonl=True)
+            Assert(lines == expected)
+        def TestGetLine():
+            # Test with stream
+            sio = StringIO(S)
+            lines = ["Some\n", "text\n"]
+            for i, line in enumerate(GetLine(sio)):
+                Assert(line == lines[i])
+            # Test with string
+            for i, line in enumerate(GetLine(S)):
+                Assert(line == lines[i])
+            # Test with file
+            for i, line in enumerate(GetLine(text_file)):
+                Assert(line == lines[i])
+        def TestGetNumberedLines():
+            expected = ((1, "Some"), (2, "text"), (3, ""))
+            sio = StringIO(S)
+            t = GetNumberedLines(sio)
+            Assert(t == expected)
+            t = GetNumberedLines(S)
+            Assert(t == expected)
+            t = GetNumberedLines(text_file)
+            Assert(t == expected)
+        def TestGetBinary():
+            enc = "iso-8859-1"
+            open(text_file, "wb").write(S.encode(enc))
+            t = GetBinary(text_file)
+            Assert(t == S.encode("ascii"))
+    if 1:   # Getting numbers
+        def TestGetNumber():
+            msg = "Error:  must have "
+            # Note:  the test case comment is a picture of the allowed interval;
+            # '(' and ')' mean open, '[' and ']' mean closed.
+            #
+            # [----...
+            s_out = sio()
+            GetNumber("", numtype=int, low=5, outstream=s_out, instream=sio("4"))
+            Assert(s_out.getvalue() == msg + "number >= 5\n")
+            s_out = sio()
+            n = GetNumber("", numtype=int, low=5, outstream=s_out, instream=sio("5"))
+            Assert(n == 5 and isinstance(n, int))
+            s_out = sio()  # Test we can get a float like this too
+            GetNumber("", numtype=float, low=5, outstream=s_out, instream=sio("4"))
+            Assert(s_out.getvalue() == msg + "number >= 5\n")
+            n = GetNumber("", numtype=float, low=5, outstream=sio(), instream=sio("5"))
+            Assert(n == 5 and isinstance(n, float))
+            # The remaining tests will be done implicitly with floats
+            # (----...
+            s_out = sio()
+            GetNumber("", low=5, low_open=True, outstream=s_out,
                 instream=sio("4"))
-        Assert(n == 4 and isinstance(n, float))
-        Assert(n == 4 and isinstance(n, flt))
-        # [----]
-        s_out = sio()
-        GetNumber("", low=2, high=5, outstream=s_out, instream=sio("6"))
-        Assert(s_out.getvalue() == msg + "2 <= number <= 5\n")
-        s_out = sio()
-        GetNumber("", low=2, high=5, outstream=s_out, instream=sio("1"))
-        Assert(s_out.getvalue() == msg + "2 <= number <= 5\n")
-        # Also test at boundaries because this is probably the most important
-        # case.
-        s_out = sio()
-        n = GetNumber("", low=2, high=5, outstream=s_out, instream=sio("5"))
-        Assert(n == 5 and isinstance(n, float))
-        Assert(n == 5 and isinstance(n, flt))
-        s_out = sio()
-        n = GetNumber("", low=2, high=5, outstream=s_out, instream=sio("2"))
-        Assert(n == 2 and isinstance(n, float))
-        Assert(n == 2 and isinstance(n, flt))
-        # [----)
-        s_out = sio()
-        GetNumber("", low=2, high=5, high_open=True, outstream=s_out,
-            instream=sio("5"))
-        Assert(s_out.getvalue() == msg + "2 <= number < 5\n")
-        s_out = sio()
-        n = GetNumber("", low=2, high=5, high_open=True, outstream=s_out,
-                instream=sio("4.999999999999"))
-        Assert(n == 4.999999999999)
-        s_out = sio()
-        GetNumber("", low=2, high=5, high_open=True, outstream=s_out,
-            instream=sio("1"))
-        Assert(s_out.getvalue() == msg + "2 <= number < 5\n")
-        # (----]
-        s_out = sio()
-        GetNumber("", low=2, high=5, low_open=True, outstream=s_out,
-            instream=sio("2"))
-        Assert(s_out.getvalue() == msg + "2 < number <= 5\n")
-        s_out = sio()
-        n = GetNumber("", low=2, high=5, low_open=True, outstream=s_out,
-                instream=sio("2.0000000000001"))
-        Assert(n == 2.0000000000001)
-        # (----)
-        s_out = sio()
-        GetNumber("", low=2, high=5, low_open=True, high_open=True,
-            outstream=s_out, instream=sio("5"))
-        Assert(s_out.getvalue() == msg + "2 < number < 5\n")
-        s_out = sio()
-        n = GetNumber("", low=2, high=5, low_open=True, high_open=True,
-                outstream=s_out, instream=sio("4.999999999999"))
-        Assert(n == 4.999999999999 )
-        s_out = sio()
-        GetNumber("", low=2, high=5, low_open=True, high_open=True,
-            outstream=s_out, instream=sio("2"))
-        Assert(s_out.getvalue() == msg + "2 < number < 5\n")
-        s_out = sio()
-        n = GetNumber("", low=2, high=5, low_open=True, high_open=True,
-                outstream=s_out, instream=sio("2.0000000000001"))
-        Assert(n == 2.0000000000001)
-        # ...---[  ]---...
-        s_out = sio()
-        GetNumber("", low=2, high=5, low_open=True, high_open=True, invert=True,
-            outstream=s_out, instream=sio("2.0000000000001"))
-        Assert(s_out.getvalue() == msg + "number <= 2 or number >= 5\n")
-        s_out = sio()
-        n = GetNumber("", low=2, high=5, low_open=True, high_open=True, invert=True,
-            outstream=s_out, instream=sio("2"))
-        Assert(n == 2 and isinstance(n, float))
-        Assert(n == 2 and isinstance(n, flt))
-        s_out = sio()
-        n = GetNumber("", low=2, high=5, low_open=True, high_open=True, invert=True,
-            outstream=s_out, instream=sio("5"))
-        Assert(n == 5 and isinstance(n, float))
-        Assert(n == 5 and isinstance(n, flt))
-        s_out = sio()
-        n = GetNumber("", low=2, high=5, low_open=True, high_open=True, invert=True,
-                outstream=s_out, instream=sio("1"))
-        Assert(n == 1 and isinstance(n, float))
-        Assert(n == 1 and isinstance(n, flt))
-        s_out = sio()
-        n = GetNumber("", low=2, high=5, low_open=True, high_open=True, invert=True,
-                outstream=s_out, instream=sio("6"))
-        Assert(n == 6 and isinstance(n, float))
-        Assert(n == 6 and isinstance(n, flt))
-        # ...---[  )---...
-        s_out = sio()
-        GetNumber("", low=2, high=5, low_open=True, invert=True,
-            outstream=s_out, instream=sio("5"))
-        Assert(s_out.getvalue() == msg + "number <= 2 or number > 5\n")
-        s_out = sio()
-        GetNumber("", low=2, high=5, low_open=True, invert=True,
-            outstream=s_out, instream=sio("4"))
-        Assert(s_out.getvalue() == msg + "number <= 2 or number > 5\n")
-        s_out = sio()
-        n = GetNumber("", low=2, high=5, low_open=True, invert=True,
-            outstream=s_out, instream=sio("2"))
-        Assert(n == 2 and isinstance(n, float))
-        Assert(n == 2 and isinstance(n, flt))
-        s_out = sio()
-        n = GetNumber("", low=2, high=5, low_open=True, invert=True,
-            outstream=s_out, instream=sio("1"))
-        Assert(n == 1 and isinstance(n, flt))
-        # ...---(  ]---...
-        s_out = sio()
-        GetNumber("", low=2, high=5, high_open=True, invert=True,
-            outstream=s_out, instream=sio("2"))
-        Assert(s_out.getvalue() == msg + "number < 2 or number >= 5\n")
-        s_out = sio()
-        GetNumber("", low=2, high=5, high_open=True, invert=True,
-            outstream=s_out, instream=sio("4"))
-        Assert(s_out.getvalue() == msg + "number < 2 or number >= 5\n")
-        s_out = sio()
-        n = GetNumber("", low=2, high=5, high_open=True, invert=True,
-            outstream=s_out, instream=sio("1.999999"))
-        Assert(n == 1.999999 and isinstance(n, float))
-        Assert(n == 1.999999 and isinstance(n, flt))
-        s_out = sio()
-        n = GetNumber("", low=2, high=5, high_open=True, invert=True,
-            outstream=s_out, instream=sio("5"))
-        Assert(n == 5 and isinstance(n, float))
-        Assert(n == 5 and isinstance(n, flt))
-        s_out = sio()
-        n = GetNumber("", low=2, high=5, high_open=True, invert=True,
-            outstream=s_out, instream=sio("6"))
-        Assert(n == 6 and isinstance(n, float))
-        Assert(n == 6 and isinstance(n, flt))
-        # ...---(  )---...
-        s_out = sio()
-        GetNumber("", low=2, high=5, invert=True, outstream=s_out,
-            instream=sio("2"))
-        Assert(s_out.getvalue() == msg + "number < 2 or number > 5\n")
-        s_out = sio()
-        GetNumber("", low=2, high=5, invert=True, outstream=s_out,
-            instream=sio("5"))
-        Assert(s_out.getvalue() == msg + "number < 2 or number > 5\n")
-        s_out = sio()
-        GetNumber("", low=2, high=5, invert=True, outstream=s_out,
-            instream=sio("3"))
-        Assert(s_out.getvalue() == msg + "number < 2 or number > 5\n")
-        s_out = sio()
-        n = GetNumber("", low=2, high=5, invert=True, outstream=s_out,
-            instream=sio("1"))
-        Assert(n == 1 and isinstance(n, float))
-        Assert(n == 1 and isinstance(n, flt))
-        s_out = sio()
-        n = GetNumber("", low=2, high=5, invert=True, outstream=s_out,
-            instream=sio("6"))
-        Assert(n == 6 and isinstance(n, float))
-        Assert(n == 6 and isinstance(n, flt))
-        # Show that we can evaluate things with a variables dictionary.
-        from math import sin, pi
-        v = {"sin":sin, "pi":pi}
-        s_out = sio()
-        n = GetNumber("", low=2, high=5, invert=True, outstream=s_out,
-            instream=sio("sin(pi/6)"), vars=v)
-        Assert(n == sin(pi/6) and isinstance(n, float))
-        Assert(n == sin(pi/6) and isinstance(n, flt))
-    def TestGetNumber_mpmath():
-        # Import mpmath and use for testing if available.
-        # Demonstrates that GetNumber works with ordered number types
-        # other than int and float.
-        try:
-            import mpmath
-        except ImportError:
-            print("** mpmath not tested in getnumber_test.py", file=err)
-        else:
-            # [----
-            n = GetNumber("", numtype=mpmath.mpf, low=2, outstream=sio(),
+            Assert(s_out.getvalue() == msg + "number > 5\n")
+            s_out = sio()
+            n = GetNumber("", low=5, low_open=True, outstream=s_out,
+                    instream=sio("6"))
+            Assert(n == 6 and isinstance(n, float))
+            Assert(n == 6 and isinstance(n, flt))
+            # ...----]
+            s_out = sio()
+            GetNumber("", high=5, outstream=s_out, instream=sio("6"))
+            Assert(s_out.getvalue() == msg + "number <= 5\n")
+            s_out = sio()
+            n = GetNumber("", high=5, outstream=s_out, instream=sio("5"))
+            Assert(n == 5 and isinstance(n, float))
+            Assert(n == 5 and isinstance(n, flt))
+            # ...----)
+            s_out = sio()
+            GetNumber("", high=5, high_open=True, outstream=s_out,
+                instream=sio("5"))
+            Assert(s_out.getvalue() == msg + "number < 5\n")
+            s_out = sio()
+            n = GetNumber("", high=5, high_open=True, outstream=s_out,
                     instream=sio("4"))
-            Assert(n == 4 and isinstance(n, mpmath.mpf))
-    def TestGetNumberDefaultValue():
-        # See that we get an exception when the default is not between low
-        # and high.
-        with raises(ValueError):
-            GetNumber("", low=2, high=5, invert=True, outstream=sio(),
-                      default=1, instream=sio(""))
-        # Test default value with int
-        default = 2
-        num = GetNumber("", low=2, high=5, invert=True, outstream=sio(),
-                    numtype=int, default=default, instream=sio(""))
-        Assert(num == default)
-        Assert(isinstance(num, int))
-        # Test default value with float
-        default = 3.77
-        num = GetNumber("", low=2, high=5, invert=True, outstream=sio(),
-                    default=default, instream=sio(""))
-        Assert(num == default)
-        Assert(isinstance(num, float))
-        Assert(isinstance(num, flt))
-        # Test default of None:  exception if allow_none is False and
-        # returns None if allow_none is True.
-        with raises(RuntimeError):
-            GetNumber("", low=2, high=5, invert=True, outstream=sio(),
-                      default=None, instream=sio(""))
-        n = GetNumber("", low=2, high=5, invert=True, outstream=sio(),
-                      default=None, instream=sio(""), allow_none=True)
-        Assert(n is None)
-    def TestGetNumberNumberWithUnit():
-        # Show that we can return numbers with units
-        # 5 with no unit string
-        n = GetNumber("", low=0, high=10, outstream=sio(), instream=sio("5"),
-            use_unit=True)
-        Assert(n == (5, "") and isinstance(n[0], float))
-        Assert(n == (5, "") and isinstance(n[0], flt))
-        # 5 meters, cuddled
-        n = GetNumber("", low=0, high=10, outstream=sio(), instream=sio("5m"),
-            use_unit=True)
-        Assert(n == (5, "m") and isinstance(n[0], float))
-        Assert(n == (5, "m") and isinstance(n[0], flt))
-        # 5 meters
-        n = GetNumber("", low=0, high=10, outstream=sio(), instream=sio("5 m"),
-            use_unit=True)
-        Assert(n == (5, "m") and isinstance(n[0], float))
-        Assert(n == (5, "m") and isinstance(n[0], flt))
-        # millimeters, cuddled
-        n = GetNumber("", low=0, high=1e100, outstream=sio(),
-            instream=sio("123.456e7mm"), use_unit=True)
-        Assert(n == (123.456e7, "mm") and isinstance(n[0], float))
-        Assert(n == (123.456e7, "mm") and isinstance(n[0], flt))
-        # millimeters
-        n = GetNumber("", low=0, high=1e100, outstream=sio(),
-            instream=sio("123.456e7   mm"), use_unit=True)
-        Assert(n == (123.456e7, "mm") and isinstance(n[0], float))
-        Assert(n == (123.456e7, "mm") and isinstance(n[0], flt))
-        # millimeters, negative number
-        n = GetNumber("", low=-1e100, high=1e100, outstream=sio(),
-            instream=sio("-123.456e7   mm"), use_unit=True)
-        Assert(n == (-123.456e7, "mm") and isinstance(n[0], float))
-        Assert(n == (-123.456e7, "mm") and isinstance(n[0], flt))
-        #--------------------
-        # Uncertainties
-        #--------------------
-        for t in ("8 mm", "8+-1 mm", "8+/-1 mm", "8(1) mm"):
+            Assert(n == 4 and isinstance(n, float))
+            Assert(n == 4 and isinstance(n, flt))
+            # [----]
+            s_out = sio()
+            GetNumber("", low=2, high=5, outstream=s_out, instream=sio("6"))
+            Assert(s_out.getvalue() == msg + "2 <= number <= 5\n")
+            s_out = sio()
+            GetNumber("", low=2, high=5, outstream=s_out, instream=sio("1"))
+            Assert(s_out.getvalue() == msg + "2 <= number <= 5\n")
+            # Also test at boundaries because this is probably the most important
+            # case.
+            s_out = sio()
+            n = GetNumber("", low=2, high=5, outstream=s_out, instream=sio("5"))
+            Assert(n == 5 and isinstance(n, float))
+            Assert(n == 5 and isinstance(n, flt))
+            s_out = sio()
+            n = GetNumber("", low=2, high=5, outstream=s_out, instream=sio("2"))
+            Assert(n == 2 and isinstance(n, float))
+            Assert(n == 2 and isinstance(n, flt))
+            # [----)
+            s_out = sio()
+            GetNumber("", low=2, high=5, high_open=True, outstream=s_out,
+                instream=sio("5"))
+            Assert(s_out.getvalue() == msg + "2 <= number < 5\n")
+            s_out = sio()
+            n = GetNumber("", low=2, high=5, high_open=True, outstream=s_out,
+                    instream=sio("4.999999999999"))
+            Assert(n == 4.999999999999)
+            s_out = sio()
+            GetNumber("", low=2, high=5, high_open=True, outstream=s_out,
+                instream=sio("1"))
+            Assert(s_out.getvalue() == msg + "2 <= number < 5\n")
+            # (----]
+            s_out = sio()
+            GetNumber("", low=2, high=5, low_open=True, outstream=s_out,
+                instream=sio("2"))
+            Assert(s_out.getvalue() == msg + "2 < number <= 5\n")
+            s_out = sio()
+            n = GetNumber("", low=2, high=5, low_open=True, outstream=s_out,
+                    instream=sio("2.0000000000001"))
+            Assert(n == 2.0000000000001)
+            # (----)
+            s_out = sio()
+            GetNumber("", low=2, high=5, low_open=True, high_open=True,
+                outstream=s_out, instream=sio("5"))
+            Assert(s_out.getvalue() == msg + "2 < number < 5\n")
+            s_out = sio()
+            n = GetNumber("", low=2, high=5, low_open=True, high_open=True,
+                    outstream=s_out, instream=sio("4.999999999999"))
+            Assert(n == 4.999999999999 )
+            s_out = sio()
+            GetNumber("", low=2, high=5, low_open=True, high_open=True,
+                outstream=s_out, instream=sio("2"))
+            Assert(s_out.getvalue() == msg + "2 < number < 5\n")
+            s_out = sio()
+            n = GetNumber("", low=2, high=5, low_open=True, high_open=True,
+                    outstream=s_out, instream=sio("2.0000000000001"))
+            Assert(n == 2.0000000000001)
+            # ...---[  ]---...
+            s_out = sio()
+            GetNumber("", low=2, high=5, low_open=True, high_open=True, invert=True,
+                outstream=s_out, instream=sio("2.0000000000001"))
+            Assert(s_out.getvalue() == msg + "number <= 2 or number >= 5\n")
+            s_out = sio()
+            n = GetNumber("", low=2, high=5, low_open=True, high_open=True, invert=True,
+                outstream=s_out, instream=sio("2"))
+            Assert(n == 2 and isinstance(n, float))
+            Assert(n == 2 and isinstance(n, flt))
+            s_out = sio()
+            n = GetNumber("", low=2, high=5, low_open=True, high_open=True, invert=True,
+                outstream=s_out, instream=sio("5"))
+            Assert(n == 5 and isinstance(n, float))
+            Assert(n == 5 and isinstance(n, flt))
+            s_out = sio()
+            n = GetNumber("", low=2, high=5, low_open=True, high_open=True, invert=True,
+                    outstream=s_out, instream=sio("1"))
+            Assert(n == 1 and isinstance(n, float))
+            Assert(n == 1 and isinstance(n, flt))
+            s_out = sio()
+            n = GetNumber("", low=2, high=5, low_open=True, high_open=True, invert=True,
+                    outstream=s_out, instream=sio("6"))
+            Assert(n == 6 and isinstance(n, float))
+            Assert(n == 6 and isinstance(n, flt))
+            # ...---[  )---...
+            s_out = sio()
+            GetNumber("", low=2, high=5, low_open=True, invert=True,
+                outstream=s_out, instream=sio("5"))
+            Assert(s_out.getvalue() == msg + "number <= 2 or number > 5\n")
+            s_out = sio()
+            GetNumber("", low=2, high=5, low_open=True, invert=True,
+                outstream=s_out, instream=sio("4"))
+            Assert(s_out.getvalue() == msg + "number <= 2 or number > 5\n")
+            s_out = sio()
+            n = GetNumber("", low=2, high=5, low_open=True, invert=True,
+                outstream=s_out, instream=sio("2"))
+            Assert(n == 2 and isinstance(n, float))
+            Assert(n == 2 and isinstance(n, flt))
+            s_out = sio()
+            n = GetNumber("", low=2, high=5, low_open=True, invert=True,
+                outstream=s_out, instream=sio("1"))
+            Assert(n == 1 and isinstance(n, flt))
+            # ...---(  ]---...
+            s_out = sio()
+            GetNumber("", low=2, high=5, high_open=True, invert=True,
+                outstream=s_out, instream=sio("2"))
+            Assert(s_out.getvalue() == msg + "number < 2 or number >= 5\n")
+            s_out = sio()
+            GetNumber("", low=2, high=5, high_open=True, invert=True,
+                outstream=s_out, instream=sio("4"))
+            Assert(s_out.getvalue() == msg + "number < 2 or number >= 5\n")
+            s_out = sio()
+            n = GetNumber("", low=2, high=5, high_open=True, invert=True,
+                outstream=s_out, instream=sio("1.999999"))
+            Assert(n == 1.999999 and isinstance(n, float))
+            Assert(n == 1.999999 and isinstance(n, flt))
+            s_out = sio()
+            n = GetNumber("", low=2, high=5, high_open=True, invert=True,
+                outstream=s_out, instream=sio("5"))
+            Assert(n == 5 and isinstance(n, float))
+            Assert(n == 5 and isinstance(n, flt))
+            s_out = sio()
+            n = GetNumber("", low=2, high=5, high_open=True, invert=True,
+                outstream=s_out, instream=sio("6"))
+            Assert(n == 6 and isinstance(n, float))
+            Assert(n == 6 and isinstance(n, flt))
+            # ...---(  )---...
+            s_out = sio()
+            GetNumber("", low=2, high=5, invert=True, outstream=s_out,
+                instream=sio("2"))
+            Assert(s_out.getvalue() == msg + "number < 2 or number > 5\n")
+            s_out = sio()
+            GetNumber("", low=2, high=5, invert=True, outstream=s_out,
+                instream=sio("5"))
+            Assert(s_out.getvalue() == msg + "number < 2 or number > 5\n")
+            s_out = sio()
+            GetNumber("", low=2, high=5, invert=True, outstream=s_out,
+                instream=sio("3"))
+            Assert(s_out.getvalue() == msg + "number < 2 or number > 5\n")
+            s_out = sio()
+            n = GetNumber("", low=2, high=5, invert=True, outstream=s_out,
+                instream=sio("1"))
+            Assert(n == 1 and isinstance(n, float))
+            Assert(n == 1 and isinstance(n, flt))
+            s_out = sio()
+            n = GetNumber("", low=2, high=5, invert=True, outstream=s_out,
+                instream=sio("6"))
+            Assert(n == 6 and isinstance(n, float))
+            Assert(n == 6 and isinstance(n, flt))
+            # Show that we can evaluate things with a variables dictionary.
+            from math import sin, pi
+            v = {"sin":sin, "pi":pi}
+            s_out = sio()
+            n = GetNumber("", low=2, high=5, invert=True, outstream=s_out,
+                instream=sio("sin(pi/6)"), vars=v)
+            Assert(n == sin(pi/6) and isinstance(n, float))
+            Assert(n == sin(pi/6) and isinstance(n, flt))
+        def TestGetNumberExceptionalCases():
+            # low > high
+            raises(ValueError, GetNumber, "", low=1, high=0, instream=sio("0"))
+            # Invert True without low or high
+            raises(ValueError, GetNumber, "", invert=True, instream=sio("0"))
+        def TestGetNumber_mpmath():
+            # Import mpmath and use for testing if available.
+            # Demonstrates that GetNumber works with ordered number types
+            # other than int and float.
+            try:
+                import mpmath
+            except ImportError:
+                print("** mpmath not tested in getnumber_test.py", file=err)
+            else:
+                # [----
+                n = GetNumber("", numtype=mpmath.mpf, low=2, outstream=sio(),
+                        instream=sio("4"))
+                Assert(n == 4 and isinstance(n, mpmath.mpf))
+        def TestGetNumberDefaultValue():
+            # See that we get an exception when the default is not between low
+            # and high.
+            with raises(ValueError):
+                GetNumber("", low=2, high=5, invert=True, outstream=sio(),
+                        default=1, instream=sio(""))
+            # Test default value with int
+            default = 2
+            num = GetNumber("", low=2, high=5, invert=True, outstream=sio(),
+                        numtype=int, default=default, instream=sio(""))
+            Assert(num == default)
+            Assert(isinstance(num, int))
+            # Test default value with float
+            default = 3.77
+            num = GetNumber("", low=2, high=5, invert=True, outstream=sio(),
+                        default=default, instream=sio(""))
+            Assert(num == default)
+            Assert(isinstance(num, float))
+            Assert(isinstance(num, flt))
+            # Test default of None:  exception if allow_none is False and
+            # returns None if allow_none is True.
+            with raises(RuntimeError):
+                GetNumber("", low=2, high=5, invert=True, outstream=sio(),
+                        default=None, instream=sio(""))
+            n = GetNumber("", low=2, high=5, invert=True, outstream=sio(),
+                        default=None, instream=sio(""), allow_none=True)
+            Assert(n is None)
+        def TestGetNumberNumberWithUnit():
+            # Show that we can return numbers with units
+            # 5 with no unit string
+            n = GetNumber("", low=0, high=10, outstream=sio(), instream=sio("5"),
+                use_unit=True)
+            Assert(n == (5, "") and isinstance(n[0], float))
+            Assert(n == (5, "") and isinstance(n[0], flt))
+            # 5 meters, cuddled
+            n = GetNumber("", low=0, high=10, outstream=sio(), instream=sio("5m"),
+                use_unit=True)
+            Assert(n == (5, "m") and isinstance(n[0], float))
+            Assert(n == (5, "m") and isinstance(n[0], flt))
+            # 5 meters
+            n = GetNumber("", low=0, high=10, outstream=sio(), instream=sio("5 m"),
+                use_unit=True)
+            Assert(n == (5, "m") and isinstance(n[0], float))
+            Assert(n == (5, "m") and isinstance(n[0], flt))
+            # millimeters, cuddled
+            n = GetNumber("", low=0, high=1e100, outstream=sio(),
+                instream=sio("123.456e7mm"), use_unit=True)
+            Assert(n == (123.456e7, "mm") and isinstance(n[0], float))
+            Assert(n == (123.456e7, "mm") and isinstance(n[0], flt))
+            # millimeters
+            n = GetNumber("", low=0, high=1e100, outstream=sio(),
+                instream=sio("123.456e7   mm"), use_unit=True)
+            Assert(n == (123.456e7, "mm") and isinstance(n[0], float))
+            Assert(n == (123.456e7, "mm") and isinstance(n[0], flt))
+            # millimeters, negative number
             n = GetNumber("", low=-1e100, high=1e100, outstream=sio(),
-                        instream=sio(t), use_unit=True, use_unc=True)
-            Assert(isinstance(n[0], UFloat))
-            Assert(n[0].nominal_value == 8)
-            Assert(n[0].std_dev == 1)
-            Assert(n[1] == "mm")
-    def TestGetNumberInspect():
-        # Test that 2 isn't in the first interval, but is in the second.
-        Assert(GetNumber("", low=0, high=1, inspect="2") == False)
-        Assert(GetNumber("", low=0, high=3, inspect="2") == True)
-        # If inspect is not a string, get exception
-        raises(ValueError, GetNumber, "", inspect=1)
-    def TestGetFraction():
-        e = Fraction(5, 4)
-        for i in ("5/4", "+5/4", " -5/4", "1   1/4", "+1 1/4", "  -1 1/4",
-            "1-1/4", "+1-1/4", "-1-1/4", "1+1/4", "+1+1/4", "-1+1/4"):
-            i = i.strip()
-            neg = -1 if i[0] == "-" else 1
-            Assert(GetFraction(i) == neg*e)
-    def TestIsPunctuation():
-        other_punc = ''.join([chr(i) for i in 
-            (0x00ab, 0x00bb, 0x2012, 0x2013, 0x2014, 0x2015, 0x2018,
-             0x2019, 0x201a, 0x201b, 0x201c, 0x201d, 0x201e, 0x201f,
-             0x2039, 0x203a, 0x2053, 0x229d, 0x2448, 0x2449, 0x2504,
-             0x2505, 0x2508, 0x2509, 0x254c, 0x254d, 0x275b, 0x275c,
-             0x275d, 0x275e, 0x275f, 0x2760, 0x276e, 0x276f, 0x2e3a,
-             0x2e3b, 0x301c, 0x301d, 0x301e, 0x301f, 0x3030, 0xff02)])
-        s = set(string.punctuation + other_punc)
-        Assert(IsPunctuation(s))
-        s.add("s")
-        Assert(not IsPunctuation(s))
-    def TestGetWordlist():
-        t = "Aa Bb cC"
-        s = f'''# Comment
-        # Another comment
-        {t}
-                    {t}
- 
-        '''
-        wl = GetWordlist(s, case=None)
-        Assert(wl == set(t.split()))
-        wl = GetWordlist(s, case="lower")
-        Assert(wl == set(t.lower().split()))
-        wl = GetWordlist(s, case="upper")
-        Assert(wl == set(t.upper().split()))
-    def TestTokenize():
-        s = "To be, or not to be:"
-        t = list(Tokenize(s))
-        Assert(t == ['To', ' ', 'be', ', ', 'or', ' ', 'not', ' ', 'to', ' ',
-           'be', ':'])
-        for i in (0, 2, 4, 6, 8, 10):
-            Assert(ii(t[i], wrd))
-            Assert(ii(t[i + 1], pnc))
-        # Handles empty string
-        s = ""
-        t = Tokenize(s)
-        Assert(t == deque())
-        # Handles string of spaces
-        s, a = "   ", "a"
-        t = Tokenize(s + a + s)
-        Assert(t == deque([s, a, s]))
-    def TestGetNumberArray():
-        s = '''
-            1 2 3
-            4 5 6
-        '''
-        # Empty string
-        a = GetNumberArray("")
-        Assert(a == [[]])
-        a = GetNumberArray(" \t\n \v\r")
-        Assert(a == [[]])
-        # Simple string
-        t = "1"
-        a = GetNumberArray(t)
-        Assert(a == [[1.0]])
-        Assert(isinstance(a[0][0], float))
-        a = GetNumberArray(t, numtype=int)
-        Assert(a == [[1]])
-        Assert(isinstance(a[0][0], int))
-        # Single column vector
-        t = '''
-            1
-            2
-        '''
-        a = GetNumberArray(t)
-        Assert(a == [[1.0], [2.0]])
-        # Single row vector
-        t = "1 2"
-        a = GetNumberArray(t)
-        Assert(a == [[1.0, 2.0]])
-        # Default gets column vector of floats
-        a = GetNumberArray(s)
-        Assert(a == [[1.0, 4.0], [2.0, 5.0], [3.0, 6.0]])
-        Assert(isinstance(a[0][0], float))
-        # Gets column vector of ints
-        a = GetNumberArray(s, numtype=int)
-        Assert(a == [[1, 4], [2, 5], [3, 6]])
-        Assert(isinstance(a[0][0], int))
-        # Get row vector of ints
-        a = GetNumberArray(s, row=True, numtype=int)
-        Assert(a == [[1, 2, 3], [4, 5, 6]])
-        # Bad data gets exception
-        s = '''
-            1 2 3
-            4 5  
-        '''
-        with raises(ValueError):
+                instream=sio("-123.456e7   mm"), use_unit=True)
+            Assert(n == (-123.456e7, "mm") and isinstance(n[0], float))
+            Assert(n == (-123.456e7, "mm") and isinstance(n[0], flt))
+            #--------------------
+            # Uncertainties
+            #--------------------
+            for t in ("8 mm", "8+-1 mm", "8+/-1 mm", "8(1) mm"):
+                n = GetNumber("", low=-1e100, high=1e100, outstream=sio(),
+                            instream=sio(t), use_unit=True, use_unc=True)
+                Assert(isinstance(n[0], UFloat))
+                Assert(n[0].nominal_value == 8)
+                Assert(n[0].std_dev == 1)
+                Assert(n[1] == "mm")
+        def TestGetNumberInspect():
+            # Test that 2 isn't in the first interval, but is in the second.
+            Assert(GetNumber("", low=0, high=1, inspect="2") == False)
+            Assert(GetNumber("", low=0, high=3, inspect="2") == True)
+            # If inspect is not a string, get exception
+            raises(ValueError, GetNumber, "", inspect=1)
+        def TestGetNumbers():
+            # Check general python numerical types
+            s = "1 1.2 3/4 3+1j"
+            l = GetNumbers(s)
+            Assert(l == [1, 1.2, Fraction(3, 4), (3+1j)])
+            # Check f.py types flt and cpx
+            if _have_f:
+                s = "1.2 3+1j"
+                x, z = GetNumbers(s)
+                Assert(ii(x, flt) and ii(z, cpx))
+                Assert(x == flt(1.2))
+                Assert(z == cpx(3+1j))
+            # Check uncertainties library forms
+            if _have_unc:
+                s = "3±4 3+-4 3+/-4 3(4)"
+                for u in GetNumbers(s):
+                    Assert(u.nominal_value == 3)
+                    Assert(u.std_dev == 4)
+            # Test with a float type
+            s = "1 1.2"
+            l = GetNumbers(s, numtype=float)
+            Assert(l == [1.0, 1.2])
+            Assert(all([ii(i, float) for i in l]))
+            l = GetNumbers(s, numtype=flt)
+            Assert(l == [flt(1.0), flt(1.2)])
+            Assert(all([ii(i, flt) for i in l]))
+            # Test with a complex type
+            s = "1 1.2 3+4j"
+            l = GetNumbers(s, numtype=complex)
+            Assert(l == [1+0j, 1.2+0j, 3+4j])
+            l = GetNumbers(s, numtype=cpx)
+            Assert(all([ii(i, cpx) for i in l]))
+            Assert(l == [cpx(1+0j), cpx(1.2+0j), cpx(3+4j)])
+            # Test Fraction
+            s = "3/8 7/16 1/2"
+            l = GetNumbers(s)
+            Assert(all([ii(i, Fraction) for i in l]))
+            Assert(l == [Fraction(3, 8), Fraction(7, 16), Fraction(1, 2)])
+        def TestGetNumberArray():
+            s = '''
+                1 2 3
+                4 5 6
+            '''
+            # Empty string
+            a = GetNumberArray("")
+            Assert(a == [[]])
+            a = GetNumberArray(" \t\n \v\r")
+            Assert(a == [[]])
+            # Simple string
+            t = "1"
+            a = GetNumberArray(t)
+            Assert(a == [[1.0]])
+            Assert(isinstance(a[0][0], float))
+            a = GetNumberArray(t, numtype=int)
+            Assert(a == [[1]])
+            Assert(isinstance(a[0][0], int))
+            # Single column vector
+            t = '''
+                1
+                2
+            '''
+            a = GetNumberArray(t)
+            Assert(a == [[1.0], [2.0]])
+            # Single row vector
+            t = "1 2"
+            a = GetNumberArray(t)
+            Assert(a == [[1.0, 2.0]])
+            # Default gets column vector of floats
             a = GetNumberArray(s)
+            Assert(a == [[1.0, 4.0], [2.0, 5.0], [3.0, 6.0]])
+            Assert(isinstance(a[0][0], float))
+            # Gets column vector of ints
+            a = GetNumberArray(s, numtype=int)
+            Assert(a == [[1, 4], [2, 5], [3, 6]])
+            Assert(isinstance(a[0][0], int))
+            # Get row vector of ints
+            a = GetNumberArray(s, row=True, numtype=int)
+            Assert(a == [[1, 2, 3], [4, 5, 6]])
+            # Bad data gets exception
+            s = '''
+                1 2 3
+                4 5  
+            '''
+            with raises(ValueError):
+                a = GetNumberArray(s)
+        def TestGetFraction():
+            e = Fraction(5, 4)
+            for i in ("5/4", "+5/4", " -5/4", "1   1/4", "+1 1/4", "  -1 1/4",
+                "1-1/4", "+1-1/4", "-1-1/4", "1+1/4", "+1+1/4", "-1+1/4"):
+                i = i.strip()
+                neg = -1 if i[0] == "-" else 1
+                Assert(GetFraction(i) == neg*e)
+        def TestParseUnitString():
+            u = ["m", "in", "ft"]
+            s = "mm"
+            a, b = ParseUnitString(s, u)
+            Assert(a == 0.001 and b == "m")
+            s = "ym"
+            a, b = ParseUnitString(s, u)
+            Assert(a == 1e-24 and b == "m")
+            # Missing an allowed string
+            raises(ValueError, ParseUnitString, "yd", u)
+            # Incorrect SI prefix
+            raises(ValueError, ParseUnitString, "qm", u)
+            # strict is False
+            a, b = ParseUnitString("", [], strict=False)
+            Assert(a == 1 and b == "")
+            a, b = ParseUnitString("μ", [], strict=False)
+            Assert(a == 1 and b == "")
+    if 1:   # Getting choices
+        def TestGetChoice():
+            seq = ["a", "b", "c"]
+            i, o = sio("1"), sio()
+            n, choice = GetChoice(seq, instream=i, outstream=o)
+            Assert(n == 0 and choice == "a")
+            i, o = sio("2"), sio()
+            n, choice = GetChoice(seq, instream=i, outstream=o)
+            Assert(n == 1 and choice == "b")
+            # Get None for out-of-band choice
+            i, o = sio("88"), sio()
+            n, choice = GetChoice(seq, instream=i, outstream=o)
+            Assert(n is None and choice == "")
+    if 1:   # Tokenizing
+        def TestGetWords():
+            sio = StringIO(S)
+            l = S.split()
+            t = GetWords(sio)
+            Assert(t == l)
+            t = GetWords(S)
+            Assert(t == l)
+            t = GetWords(text_file)
+            Assert(t == l)
+        def TestGetTokens():
+            s = "1 2 3\n4 5 6\n"
+            l = list(GetTokens(s))
+            Assert(l == "1 2 3 4 5 6".split())
+        def TestGetWordlist():
+            t = "Aa Bb cC"
+            s = f'''# Comment
+            # Another comment
+            {t}
+                        {t}
+    
+            '''
+            wl = GetWordlist(s, case=None)
+            Assert(wl == set(t.split()))
+            wl = GetWordlist(s, case="lower")
+            Assert(wl == set(t.lower().split()))
+            wl = GetWordlist(s, case="upper")
+            Assert(wl == set(t.upper().split()))
+        def TestTokenize():
+            s = "To be, or not to be:"
+            t = list(Tokenize(s))
+            Assert(t == ['To', ' ', 'be', ', ', 'or', ' ', 'not', ' ', 'to', ' ',
+            'be', ':'])
+            for i in (0, 2, 4, 6, 8, 10):
+                Assert(ii(t[i], wrd))
+                Assert(ii(t[i + 1], pnc))
+            # Handles empty string
+            s = ""
+            t = Tokenize(s)
+            Assert(t == deque())
+            # Handles string of spaces
+            s, a = "   ", "a"
+            t = Tokenize(s + a + s)
+            Assert(t == deque([s, a, s]))
+    if 1:   # Miscellaneous
+        def TestIsPunctuation():
+            other_punc = ''.join([chr(i) for i in 
+                (0x00ab, 0x00bb, 0x2012, 0x2013, 0x2014, 0x2015, 0x2018,
+                0x2019, 0x201a, 0x201b, 0x201c, 0x201d, 0x201e, 0x201f,
+                0x2039, 0x203a, 0x2053, 0x229d, 0x2448, 0x2449, 0x2504,
+                0x2505, 0x2508, 0x2509, 0x254c, 0x254d, 0x275b, 0x275c,
+                0x275d, 0x275e, 0x275f, 0x2760, 0x276e, 0x276f, 0x2e3a,
+                0x2e3b, 0x301c, 0x301d, 0x301e, 0x301f, 0x3030, 0xff02)])
+            s = set(string.punctuation + other_punc)
+            Assert(IsPunctuation(s))
+            s.add("s")
+            Assert(not IsPunctuation(s))
     SetUp()
     status = run(globals(), halt=True)[0]
     TearDown()
