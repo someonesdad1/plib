@@ -1,11 +1,8 @@
 Active
 
-xxy tabulate
+    - format_numbers.py and fraction.py
+        - Move to fmt.py
 
-    - 0testing.py
-        - Needs to be working
-        - Remove numpy from as many modules as possible
-    
     - transpose.py
         - This may be the basis of a text table tool along with wrap.py
           below to get things wrapped to a specific width.
@@ -40,17 +37,14 @@ xxy tabulate
           be things like '.on', '.off', '.indent = n', etc.  The overall
           state is remembered until '.reset' is seen or the keyword reset
           is True.  'paragraph_sep' keyword defaults to '\n\n'.
-Want
+
+Other
 
     - xyz.py
         - Update to use flt
         - Change printout to use Unicode symbols
         - Use color for coordinate systems
 
-    - pgm/profit.py
-        - Add a container for comments describing the model.  These get
-          edited with $EDITOR.
-        
     - Sequence value comparisons
         - An arbitrary sequence can be a sequence of sequences.  Since [1,
           [2]] != (1, [2]) because one is a tuple and one is a list, it
@@ -64,10 +58,6 @@ Want
           sequence.
 
     - lwtest.py
-        - In ToDoMessage, add a keyword offset that lets you designate the
-          line that needs the fix.  
-        - Consider a keyword for colorizing the message too to make it
-          easier to see.  I like ornl, magl, or purl for visible colors.
         - For easier writing/grouping of test cases, it would be nice to be
           able to nest testing functions and have them found and executed
           rather than having to call each nested function.  This shouldn't
@@ -78,13 +68,6 @@ Want
         - Show hex and decimal in different colors.
         - Fix the annoying display hiccup at 0x7f.
 
-    - get.py
-        - For ignore keyword, let it be either a string or a compiled
-          regular expression.  This lets you choose the options you want,
-          such as to ignore case.
-        - Since I use GetLines the most, include the explanation of what
-          thing means also.
-
     - regression.py
         - Need to write a regression.py module that doesn't need numpy or
           scipy.  Base it on the stuff in /pylib/regression.py and test it
@@ -92,7 +75,7 @@ Want
           objects.
 
     - bd.py
-        - Replace the C program, as python is more than fast enough
+        - Replace the C program, as python is fast enough
         - Colorize output
         - Allow binary or text comparisons
         - Try to use a heuristic to determine if text or binary
@@ -101,40 +84,6 @@ Want
         - TRM needs a way to ensure all attribute access returns "" when
           .on is False.
         - Add support to g.py
-
-    - Shamrock survey
-        - Establish yard benchmarks and survey our property
-        - Layout of lawn
-        - Location of sprinklers
-        - Building location
-        - Reference to BM in Shamrock/Edna intersection
-            - BM1:  NW corner of driveway concrete next to gate to mailbox
-            - BM2:  Metal pole at entrance of driveway on Edna
-            - Note these benchmarks can be moved out to the street edges
-              and the size of the property can be measured to
-              within a few inches.
-            - Then secondary benchmarks are fence posts on west and south
-              fences
-        - Use sighting compass to take magnetic bearings of things.
-            - Calibrate compass by dropping a vertical from the north star
-            - As of 2022, Polaris' mean declination is 89.35 degrees, so
-              calibration of the compass will be better than 1 degree
-            - This will be done with two strings on plumb bobs, one
-              adjustable.  Then the next day the compass will be sighted
-              along the two strings and adjusted to read true north.  Then
-              it will be calibrated for the current magnetic declination.
-        - This will be worth a reference document explaining techniques.
-          The resulting python script could be turned into a library module
-          based on g.py that allows people to plot their own surveys.  Some
-          key graphic components would be
-            - Benchmarks, primary and secondary
-            - Buildings
-            - Cement pads
-            - Plants, fence posts, sprinklers
-            - Layers could be used for different features.  For example,
-              the electrical layer would show known cables.  The sprinkler
-              layer would show valves, sprinklers, pump, wires.  Etc.
-        - This survey would get archived on github so it can't be lost
 
     - ts.py
         - Import to /plib
@@ -307,15 +256,12 @@ Want
           tool, at least close enough
         - Vim's folding is good, but would it be possible to build an outlining
           tool with it that does most of what I want?
-        - An enormous advantage is that :gqap formats the current paragraph,
+        - An advantage is that :gqap formats the current paragraph,
           which I use constantly
         - Could an external C program do the formatting of things?  The leader
           for a bullet item could be e.g. a non-breaking space, then changed to
           other values as needed for visibility.
         - It could provide a variety of numbering methods
-        - I recently added scons.hlp to my help files and it would have been
-          nice to have a vim outlining tool for the help file.  If vimoutliner
-          works OK, I'd consider moving all my help stuff to it.
 
     - get_import.py
         - Scans all python files to find import lines to make an index
@@ -579,8 +525,7 @@ Want
           would be nice if this information is regular enough to allow
           scraping to get a database.
 
-Other
-    -NAS
+    - NAS
         - Current storage
             - Don's Windows PC
                 - 120 GB c:/ at 80% (SSD)
@@ -932,8 +877,8 @@ Other
               and settings.  All that's needed is a 9600 baud connection for
               text messages.
         - Raspberry Pi
-            - Running python could work well for this setup.  PyPi has a nice
-              FSM in python that could be made to work nicely.
+            - Running python could work well for this setup.  PyPi has a 
+              FSM in that could be made to work.
             - Build a simulator with the FSM and have it present a web page
               interface
 
@@ -968,9 +913,15 @@ Other
             - '{' and '}' define python code blocks
 
 --------------------------------------------------------------------------------
-xxy     Tabulation tool
+Tabulation tool
 
-    - This is a module that is used to produce tabular data reports.
+    - https://pypi.org/project/tabulate/ has some ideas.  Basically, it
+      takes a nested list and tabulates it.  headers kw can be used for
+      column titles.  tablefmt kw describes formatting to use.  Default is
+      to use pandoc's simple_tables:
+      https://pandoc.org/MANUAL.html#tables.  There's also a
+      multiline_tables format.
+    - Want a module that is used to produce tabular data reports.
     - The basic interface is that it's fed a list of row vectors that you
       want to be column vectors.  It prints out the transpose after
       adjusting things to your tastes.
@@ -978,8 +929,15 @@ xxy     Tabulation tool
     - Would be nice to be able to address the attributes of each column.
         - col[0].width = 12
         - col[0].just = "c"     # Justification
-        - col[0].fill = "-"     # Separation from header
-    - Need to specify header
+        - col[0].hfill = "-"    # Separation from header
+        - col[0].tfill = "-"    # Separation from trailer
+    - You could also use a syntax like col.width = 12 to set the defaults
+      for each of the columns.  Then col[0].width = 13 would override the
+      default.
+    - Should each tabulation instance be a matrix?  Then has some machinery
+      behind the needs.  Most useful is that you can address individual
+      elements.  And it can't be a matrix without being a properly-formed
+      nested list.
 
     Simple use case
 
@@ -1002,4 +960,47 @@ xxy     Tabulation tool
         - Fill to a given screen width, truncate columns to fit, or raise
           exception that it won't fit
         - Line up decimal points for reports
-        - Coalesced columns?
+        - Coalesced columns?  Complicated; other formatters like pandoc
+          often don't support.
+
+--------------------------------------------------------------------------------
+Shamrock survey
+
+    - Benchmarks
+        - BMP = Primary = in center of Edna/Shamrock intersection
+        - Secondary
+            - BMS1 = center of well
+            - BMS2 = Entrance to driveway on Edna
+            - BMS3 = Gate pole on west side
+            - BMS4 = Farthest east fence post on south side
+            - BMS4a = Street sign near BM4
+            - BMS5 = Farthest northwest fence post
+            - BMS5a = Street sign next to fence post
+        - Tertiary
+            - BMT1 = SW corner of gray building foundation
+            - BMT2 = SW corner of cement slab
+            - BMT3 = NW corner of patio
+    - Layout of lawn
+    - Location of sprinklers
+    - Building location
+    - Use sighting compass to take magnetic bearings of things.
+        - Calibrate compass by dropping a vertical from the north star
+        - As of 2022, Polaris' mean declination is 89.35 degrees, so
+          calibration of the compass will be better than 1 degree
+        - This will be done with two strings on plumb bobs, one adjustable.
+          Then the next day the compass will be sighted along the two
+          strings and adjusted to read true north.  Then it will be
+          calibrated for the current magnetic declination.
+    - This will be worth a reference document explaining techniques.  The
+      resulting python script could be turned into a library module based
+      on g.py that allows people to plot their own surveys.  Some key
+      graphic components would be
+        - Benchmarks, primary and secondary
+        - Buildings
+        - Cement pads
+        - Plants, fence posts, sprinklers
+        - Layers could be used for different features.  For example, the
+          electrical layer would show known cables.  The sprinkler layer
+          would show valves, sprinklers, pump, wires.  Etc.
+    - This survey would get archived on github so it can't be lost
+
