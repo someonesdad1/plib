@@ -74,13 +74,14 @@ if 1:   # Header
         from util import IsIterable
         from wrap import dedent
         from color import Color, Trm, TRM as t
-        try:
-            import dpdb
-            have_dpdb = True
-            xx = dpdb.set_trace
-        except ImportError:
-            have_dpdb = False
-            xx = pdb.set_trace
+        if 0:
+            try:
+                import dpdb
+                have_dpdb = True
+                xx = dpdb.set_trace
+            except ImportError:
+                have_dpdb = False
+                xx = pdb.set_trace
     # Global variables
         # dash_O_on = True  ==> Use python -O to turn debugging on.
         # dash_O_on = False ==> Use python -O to turn debugging off.

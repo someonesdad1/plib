@@ -1420,7 +1420,7 @@ class ColorName(dict):
 
 # Define default ColorName instance
 CN = ColorName()
-CN.load("/plib/colornames0")
+CN.load("c:/cygwin/plib/colornames0")
 
 # Define default Trm instance
 TRM = Trm()

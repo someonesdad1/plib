@@ -1,5 +1,7 @@
 '''
 TODO:
+    - mpmath has a matrix library and this should be used for both
+      identifying needed functionality and providing unit test standards.
     - Update matrix.odt
         - Need a matrix helper that can be called from the command line.
           Could be done by calling the module; then the self-tests get run
@@ -33,6 +35,7 @@ if 1:  # Header
         from fractions import Fraction
         from functools import reduce, partial
         from itertools import zip_longest, starmap
+        from threading import Lock
         from os import environ
         from pdb import set_trace as xx
         import locale
@@ -74,12 +77,8 @@ if 1:  # Header
                 have_sympy = True
             except ImportError:
                 pass
-        from pdb import set_trace as xx
-        if 0:
-            import debug
-            debug.SetDebugger()
     # Global variables
-        __version__ = "5Jul2022"
+        __version__ = "8Jul2022"
         __all__ = '''
             cross dot Flatten have_mpmath have_sympy have_unc
             Matrices Matrix matrix MatrixContext random_matrix RoundOff
@@ -95,26 +94,16 @@ class Matrix:
  
         A number of methods use the following keyword arguments:
  
-            c is used to indicate the operation is with respect to columns
-            rather than rows.
+            bool(c) is used to indicate the operation is with respect to
+            columns rather than rows.
     
-            ip is used to indicate the operation should be done in_place.
-            Most methods will return a new matrix object, but sometimes you
-            want the operation done on the current instance, in which case
-            set ip to True.
+            bool(ip) is used to indicate the operation should be done
+            in_place.  Most methods will return a new matrix object, but
+            sometimes you want the operation done on the current instance,
+            in which case set ip to True.
     '''
-    # The _str class variable is used to switch the role of __str__()
-    # and __repr__() when True.  This is useful in the debugger and
-    # interactive python to see the elements of a matrix more easily.
-    # Each Matrix instance can change this class variable through its s
-    # attribute.
-    _str = False
- 
-    # The EqDigits class variable is used to define how many digits to use
-    # when comparing matrix elements for equality.  If not None, it will
-    # override any eqdigits attributes of instances.
-    EqDigits = None
- 
+    _str = False    # If True, switch role of str() and repr()
+    EqDigits = None # Num digits for == comparison (overrides eqdigits)
     def __init__(self, rows, cols, fill=0):
         if not ii(rows, int) or not ii(cols, int):
             raise TypeError("rows and cols must be integers")
@@ -1508,16 +1497,12 @@ class Matrix:
             state.
             '''
             Matrix._str = False
-            #Matrix.PC = ParseComplex()     # xx
-            Matrix.use_Complex = False
             Matrix.EqDigits = None
         @classmethod
         def get_state(cls):
             'Save the class variables in a dictionary and return it.'
             d = {}
             d["_str"] = Matrix._str
-            d["PC"] = Matrix.PC
-            d["use_Complex"] = Matrix.use_Complex
             d["EqDigits"] = Matrix.EqDigits
             return d
         @classmethod
@@ -1646,6 +1631,12 @@ class Matrix:
         @f.setter
         def f(self, value): 
             Matrix._str = bool(value)
+        @property
+        def flat(self): 
+            'Returns a flattened list of a copy of the matrix elements'
+            m = self.copy
+            with Flatten(m):
+                return list(m._grid)
         @property
         def frozen(self): 
             '''The frozen attribute lets you make a matrix read-only by
@@ -2064,8 +2055,8 @@ class Matrix:
             m._copy_attr(self)
             return m
 class MatrixContext:
-    '''Context manager to save the class variable state of Matrix and
-    restore it on exit.
+    '''Thread-safe context manager to save the class variable state of
+    Matrix and restore it on exit.
  
     Example of use:  Suppose you're in the middle of a calculation with
     the class variable settings you want, but you're interrupted with
@@ -2076,17 +2067,24 @@ class MatrixContext:
             <do calculations>
  
     Whatever settings you make to the Matrix class variables within the
-    with block are forgotten after the block is finished.
+    with block are forgotten after the block is finished.  A threading
+    module Lock object is used and will cause another thread to block
+    indefinitely until the lock can be acquired; because of this, you
+    should make the context block as short as you can.
  
     Note __enter__ returns None, so that 'with MatrixContext() as c' is
     acceptable syntax, but the c variable is None.  This was deliberate
     to avoid having a reference to the isolated class variables' values
     before the with block was entered.
     '''
+    def __init__(self):
+        self.lock = Lock()
     def __enter__(self):
-        self.Matrix = Matrix.get_state()
+        self.lock.acquire()
+        self.state = Matrix.get_state()
     def __exit__(self, type, value, traceback):
-        Matrix.set_state(self.Matrix)
+        Matrix.set_state(self.state)
+        self.lock.release()
 class Flatten:
     '''Context manager to convert the Matrix object's internal storage
     for elements to a flattened list to facilitate processing, then back
@@ -2781,6 +2779,10 @@ if __name__ == "__main__":
                 assert_equal(a.i, a_inverse)
                 # Inverse from adjugate = (transpose of cofactors)/det
                 assert_equal(a.i, a.adjugate/a.det)
+                # Simple check of identity
+                z = matrix("1 0\n0 1")
+                assert_equal(z.i, z)
+                assert_equal(z.i*z, z)
         def test_inverse_non_invertible():
             with Testing():
                 with raises(TypeError):
@@ -3242,6 +3244,7 @@ if __name__ == "__main__":
                 s = matrix("1 2\n2 1")
                 v = matrix("1 2")
                 rr = matrix("1 0\n0 1")
+                Assert(m.flat == [1, 2, 3, 4])
                 Assert(m.r == 2)
                 Assert(m.c == 2)
                 Assert(m.det == -2)
@@ -4068,5 +4071,14 @@ if __name__ == "__main__":
             with Testing():
                 m = matrix("1 2\n3 4")
                 Assert(m.sum == 10)
+        def test_MatrixContext():
+            before = Matrix.EqDigits
+            value = 1
+            while value == before:
+                value += 1
+            with MatrixContext():
+                Matrix.EqDigits = value
+                Assert(Matrix.EqDigits != before)
+            Assert(Matrix.EqDigits == before)
     SetupGlobalTestData()
     exit(run(globals(), halt=True)[0])
