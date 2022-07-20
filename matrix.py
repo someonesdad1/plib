@@ -1,5 +1,10 @@
 '''
 TODO:
+    - Need a PrintMatrix() function for general-purpose printing.
+    - Add a function to augment a matrix.  Typical use is to add a column
+      of 1's for a linear regression problem (the basic geometrical need is
+      to have affine xfms (rotations & translations) on a space, but
+      matrices never change the origin, meaning they can't translate).
     - mpmath has a matrix library and this should be used for both
       identifying needed functionality and providing unit test standards.
     - Update matrix.odt
@@ -1859,6 +1864,10 @@ class Matrix:
         def l(self): 
             "Return a flattened list of the matrix's elements"
             return Matrix._Flatten(self.copy._grid)
+        @property
+        def list(self): 
+            'Synonym for self.flat'
+            return self.flat
         @property
         def mag(self): 
             'Returns the Euclidean length of the vector'

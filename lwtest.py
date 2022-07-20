@@ -429,10 +429,10 @@ if 1:   # Checking functions
                 if absdiff > tolerance:
                     fail = [
                          "Numerical difference",
-                        f"  abstol     = {abstol}" % abstol,
-                        f"  reltol     = {reltol}" % reltol,
-                        f"  tolerance  = {tolerance}" % tolerance,
-                        f"  difference = {absdiff}" % absdiff,
+                        f"  abstol     = {abstol}",
+                        f"  reltol     = {reltol}",
+                        f"  tolerance  = {tolerance}",
+                        f"  difference = {absdiff}",
                         f"  difference - tolerance = {absdiff - tolerance}",
                     ]
         return fail

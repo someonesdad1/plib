@@ -110,7 +110,8 @@ fixing things, but such things aren't a priority.
 
 # Most useful
 
-Here are a few of the modules/scripts I use a lot.
+Here are a few of the modules/scripts I use a lot or provide useful
+techniques.
 
 * get.py
     - Get text, lines, tokens, words, binary content, etc. from files.  I
@@ -150,18 +151,20 @@ Here are a few of the modules/scripts I use a lot.
 
 * lwtest.py
     - Lightweight test runner adapted from a nice tool by Raymond
-      Hettinger.  I use this testing of my python modules.
+      Hettinger.  I use this for testing of my python modules.
 
 * f.py
     - Provides flt and cpx types, derived from float and complex,
       respectively.  Their advantage is that they only show 3 significant
-      figures by default, stopping the typical digit diarrhea with the
-      usual float or complex calculations.  This file is still under
-      development -- but I use the flt() objects a lot for routine
-      calculations because they are so convenient for calculating things
-      based on measurements.  
-    - flt and cpx currently support physical units too (kind of, but there
-      are testing and corner case errors), but this is a lot of extra code
-      and I have a to-do item to remove unit support, as I don't feel it's
-      worth the coding and testing effort.
+      figures by default, stopping digit diarrhea with the usual float or
+      complex calculations.  This file is still under development -- but I
+      use the flt() objects a lot for routine calculations because they are
+      so convenient for calculating things based on measurements.  
+
+* prob.py
+    - Provides cumulative distribution functions and their inverses for
+      common statistical tests.  This module calls into a DLL made from S.
+      Moshier's cephes library functions in C for the mathematical
+      functions using the ctypes module.  This is a simple technique to
+      access functions written in C.
 
