@@ -38,5 +38,6 @@ clean:
 	rm -f *.o tags
 realclean:  clean
 	rm -f $(DLL)
+	# Note the DLL in /plib is not removed
 
 # vim: noet
