@@ -69,10 +69,10 @@ double a, y0;
 {
 double x0, x1, x, yl, yh, y, d, lgm, dithresh;
 int i, dir;
-
+#if 0
  if( y0 > 0.5)
  	mtherr( "igami", PLOSS );
-
+# endif
 /* bound the solution */
 x0 = MAXNUM;
 yl = 0;

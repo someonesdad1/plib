@@ -34,49 +34,50 @@ Provides probability functions used in basic statistics
         https://netlib.org/cephes (the double precision library). 
 
         Other distributions and special functions can be added by editing
-        the construction of the cephes.dll DLL in the cephes/makefile, then
-        adding calling support in this module.
+        the construction of the cephes.dll DLL in cephes/makefile, then
+        adding calling support in this module.  The DLL build is specific
+        to cygwin and cygwin's python 3.7; other environments will need
+        different tools.
 
-        Method overview:  ctypes.cdll.LoadLibrary is used to get a handle
-        to the DLL.  This is used in each of the classes derived from Prob
-        to access the needed compiled C functions in cephes.dll.  It's
-        important to specify the C types of the C function's input
+        Method overview:  ctypes.cdll.LoadLibrary() is used to get a handle
+        to the DLL.  This is used in each of the classes derived from the
+        Prob class to access the needed compiled C functions in cephes.dll.
+        It's important to specify the C types of the C function's input
         parameters (the .argtypes attribute) and the C function's return
         type (the .restype attribute), otherwise things will seem to work
-        but the numbers will be wrong.  This DLL stuff is specific to
-        cygwin and cygwin's python 3.7; other environments will need
-        different tools.
+        but the numbers will be wrong.  
 
         Testing:  run this module with the --test option to run the
         self-tests.  These tests include a TestUsing_mpmath() function that
         will compare Moshier's functions' output to those of mpmath.
-        mpmath provides lots of special functions; here, mpmath's ncdf,
-        incomplete gamma, and incomplete beta functions provide
-        arbitrary-precision checks of Moshier's functions and results
-        agree to around 2e-16, which is typical IEEE floating point
+        mpmath's ncdf, incomplete gamma, and incomplete beta functions
+        provide arbitrary-precision checks of Moshier's functions and
+        results agree to around 2e-16, which is typical IEEE floating point
         precision levels.
 
         Precision:  Moshier's documentation indicates worst-case conditions
-        from his domain tests should give at least about 9 digits of
-        precision in terms of relative error and usually 14 or more.  Even
-        9 digits is far beyond what is needed for practical work, which
-        most of the time only needs two or three digits.  For making
-        important decisions where the cost of a mistake is significant, I'd
-        recommend backing up this module's results with a calculation by
-        mpmath AND looking up things in a trusted printed reference.
-        Mistakes are often caused by lack of standardization.  For example,
-        that table you're using might be for one-sided tests, but the
-        authors decided to make it a double-sided test -- and they don't
-        label their assumptions or give you a picture of the integrand's
-        graph being evaluated.  Another example is the significance level
-        is in % but you assumed it wasn't or vice versa.  In the 1970's and
-        1980's when I did a fair bit of experimental work, my favorite
-        statistics reference was Crow, "Statistics Manual", republished by
-        Dover, because it was both terse and carefully labeled.  Biometrika
-        Tables by Pearson and Hartley is also good, but you'll want to make
-        sketches of the functions being integrated on the tables you're
-        using.  Humans are superb at "not invented here" (i.e., my way is
-        better than yours).
+        from his domain tests should give around 9 digits of precision in
+        terms of relative error and usually 14 or more.  Even 9 digits is
+        well beyond what is needed for practical work, which most of the
+        time only needs two or three digits.  
+
+        For making important decisions where the cost of a mistake is
+        significant, I'd recommend backing up this module's results with a
+        calculation by mpmath AND looking up things in a trusted printed
+        reference.  Then get a coworker to check your results.  Mistakes
+        are often caused by lack of standardization and documentation
+        (stuff found on the web is often particularly crappy).  For
+        example, that table you're using might be for one-sided tests, but
+        the authors decided to make it a double-sided test -- and they
+        don't label their assumptions or give you a picture of the
+        integrand's graph being evaluated.  Another example is the
+        significance level is in % but you assumed it wasn't or vice versa.
+        In the 70's and 80's when I did a fair bit of experimental work, my
+        favorite statistics reference was Crow, "Statistics Manual"
+        (republished by Dover) because it was both terse and carefully
+        labeled.  Biometrika Tables by Pearson and Hartley is also good,
+        but you'll want to make sketches of the functions being integrated
+        on the tables you're using.
 
 '''
 if 1:   # Header
@@ -132,7 +133,7 @@ if 1:   # Utility
         print(dedent(f'''
         Usage:  {sys.argv[0]} [options] dist
           Print basic statistics tables.  dist should be:  normal,
-          chisq, F, binomial, t, or poisson.
+          chisq, or t.
         Options:
             -h      Print a manpage
             -i      Print inverse CDF.
