@@ -12,6 +12,8 @@ CC = gcc
 CFLAGS = -g -O2 -fno-builtin
 DLL = cephes.dll
 
+.PHONY: $(DLL)	# Always build the DLL
+
 # The core distributions supported are:
 # 	binomial (bdtr.c), chisq (chdtr.c), F (fdtr.c), normal (ndtr.c,
 # 	ndtri.c), poisson (pdtr.c), t (stdtr.c)
@@ -22,6 +24,7 @@ SRC = bdtr.c chdtr.c fdtr.c ndtr.c ndtri.c pdtr.c stdtr.c \
 
 all: $(DLL) tags
 	gcc -shared -o $(DLL) $(SRC:c=o)
+	cp $(DLL) /plib		# Deploy to /plib
 
 $(DLL): $(SRC:c=o)
 

@@ -1,0 +1,86 @@
+Wed 20 Jul 2022 
+
+The files in this directory are from http://www.moshier.net/double.zip.
+These are S. Moshier's cephes library files in double precision, dated 23
+Dec 2018.  The MD5 hash of the copy of this file I downloaded on 20 Jul
+2022 is 18e00691a500e7458bb8a628b7968aa0.
+
+A subset of these C files is used to construct cephes.dll, a DLL that is
+used by the prob.py module for the cumulative distribution functions
+commonly used in basic statistics.  The only change I've made is to rename
+Mosher's makefile to makefile.orig and substitute another makefile that is
+specific to cygwin's python 3.7, which is the python distribution I use.  I
+invoke GNU make with the -Rr options to avoid the builtin ruls, which
+explains the need for the "%.o: %.c" target.
+
+--------------------------------------------------------------------------------
+Alternate source of Moshier's files
+
+    The preferred location for Moshier's files is the above link to the
+    double.zip file, but Moshier's site may disappear someday.  An
+    alternate location is https://netlib.org/cephes.  Download the
+    following .tgz packages from the netlib link and combine them to
+    approximately duplicate the files in this directory: cmath, bessel,
+    cprob, ellf, misc, polyn.  
+
+--------------------------------------------------------------------------------
+How to build a DLL for python 3.7 under cygwin
+
+Simplest example (see https://cygwin.com/cygwin-ug-net/dll.html)
+    This will be the DLL:
+        mydll.c:
+            #include <stdio.h>
+            int hello() {
+                printf ("Hello World!\n");
+            }
+    Driver program to show it works:
+        a.c:
+            int hello();
+            int main() {
+                hello();
+            }
+    Build DLL:
+        gcc -c mydll.c
+        gcc -shared -o mydll.dll mydll.o
+    Build executable:
+        gcc -o a.exe a.c -L./ -lmydll
+    Run a.exe and you'll see the "Hello World!" message.
+
+    Call it from python:
+        import ctypes
+        f = ctypes.cdll.LoadLibrary("mydll.dll")
+        f.hello()
+    When run, you'll see "Hello World!".
+
+Example using normal distribution inverse ndtri.c (this could be used to
+e.g. print a percentage point table):
+    Build DLL
+        gcc -c ndtri.c
+        gcc -shared -o cephes.dll ndtri.o mtherr.o const.o isnan.o polevl.o
+    a.c:  used to demonstrate that the C function works
+        #include <stdio.h>
+        extern double tan(double);
+        int main(int argc, char **argv) {
+            double x = 0.51;
+            printf("ndtri(%f) = %f\n", x, ndtri(x));
+            return 0;
+        }
+    Demonstrate it works
+        gcc -o a.exe a.c -L./ -lcephes
+        Running a.exe should produce
+            ndtri(0.510000) = 0.025069
+        This is about right, as 0.5 will return 0, so 0.51 should return a
+        number just above 0.  A standard normal CDF table shows the number
+        should be between 0.02 and 0.03.
+    Python script
+        from ctypes import cdll, c_double
+        import ctypes
+        f = ctypes.cdll.LoadLibrary("cephes.dll")
+        f.ndtri.argtypes = [ctypes.c_double]
+        f.ndtri.restype = ctypes.c_double
+        y = f.ndtri(0.51)
+        print(y)
+    The python script prints out 0.02506890825871106.  A key step was
+    realizing that the restype argument had to be given; if this isn't
+    done, a large integer is returned, as int is assumed to be the default
+    return type.

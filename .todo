@@ -1,21 +1,13 @@
 Active
 
-    - cephes library ~/cephes
-        - This is a C library of mathematical functions.  Get it to compile
-          and run any regression tests.
-        - Build things into e.g. a DLL that can be called into by a python
-          library.  Put all access in terms of flt/cpx numbers.
-            - This gives a library for common special functions that
-              doesn't need access to a gigantic tool like scipy.
-            - Base it on the doubldoc
-        - Include Moshier's documentation of the tested accuracies
-        - Repackage things into a single directory of stuff that will build
-          and compile without errors.  The single biggest annoying thing of
-          such libraries is they have no way to guarantee successful builds
-          and something always breaks because there are so many
-          incompatible platforms.
-        - Unfortunately, Moshier's book is out-of-print and I can't find a
-          used form seller on Amazon.
+    - Moshier's stuff:  http://www.moshier.net/
+        - http://www.moshier.net/steam.zip gives thermodynamic data for
+          water.  This could be a valuable python library.
+        - http://www.moshier.net/rtd.zip  RTD programs
+        - http://www.moshier.net/planck.zip  Black body radiation
+        - http://www.moshier.net/osc-0.2.zip Audio oscillator
+        - http://www.moshier.net/pinknoise.zip Pink noise generator
+        - http://www.moshier.net/flutter.zip FM modulated tones
 
     - format_numbers.py and fraction.py
         - Move to fmt.py
