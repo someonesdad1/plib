@@ -12,21 +12,22 @@ commonly used in basic statistics.  Changes I have made to Moshier's code:
     - I renamed makefile to makefile.orig and substituted my own makefile
       that is specific to cygwin's python 3.7, which is the python
       distribution I use.  I invoke GNU make with the -Rr options to avoid
-      the builtin ruls, which explains the need for the "%.o: %.c" target.
+      the builtin rules, which explains the need for the "%.o: %.c" target.
     - The igami.c file from netlib below differs from the above double.zip
-      file (they are labeled internally as the same revision).  The latter
-      version added a loss of precision message in the function when the
-      second argument was above 0.5.  I have commented this warning out, as
-      it was producing warning messages for TestChisq() and TestPoisson().
-      I haven't explored these functions numerically, but note the icdf
-      functions that use the igami.c file invert the probability properly
-      to python float precision.
+      file (though they are labeled internally as the same revision).  The
+      latter version added a loss of precision message in the function when
+      the second argument was above 0.5.  I have commented this warning
+      out, as it was producing warning messages for TestChisq() and
+      TestPoisson().  I haven't explored these functions numerically, but
+      note the icdf functions that use the igami.c file invert the
+      probability properly to python float precision.
+    - I used astyle to reformat each of the *.c files.
 
 --------------------------------------------------------------------------------
 Alternate source of Moshier's files
 
     The preferred location for Moshier's files is the above link to the
-    double.zip file, but Moshier's site may disappear someday.  An
+    double.zip file, but Moshier's site will disappear someday.  An
     alternate location is https://netlib.org/cephes.  Download the
     following .tgz packages from the netlib link and combine them to
     approximately duplicate the files in this directory: cmath, bessel,

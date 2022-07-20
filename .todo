@@ -9,6 +9,10 @@ Active
         - http://www.moshier.net/pinknoise.zip Pink noise generator
         - http://www.moshier.net/flutter.zip FM modulated tones
 
+    - prob.py
+        - Add classes for statistical tests:  confidence intervals for
+          means & standard deviations, comparisons, and ANOVA significance.
+
     - format_numbers.py and fraction.py
         - Move to fmt.py
 
