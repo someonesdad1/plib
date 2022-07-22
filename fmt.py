@@ -17,7 +17,7 @@ Format floating point numbers
 
     n       Sets the number of digits to use.
 
-    dp      Sets the radix to either "." or ",".
+    dp      Sets the radix (decimal point) to either "." or ",".
 
     low     Numbers below this value are displayed with scientific
             notation.  Set to None to always have small numbers displayed
@@ -29,6 +29,9 @@ Format floating point numbers
 
     u       If True, display scientific and engineering notations with
             Unicode exponents.
+
+    rlz     If True, remove leading zero digit in fixed point strings.
+            Example:  -0.284 is "-0.284" if False, "-.284" if True.
 
     rtz     If True, remove trailing zero digits.
 
@@ -176,7 +179,8 @@ class Fmt:
                 dq.appendleft(z)
                 ne += 1
             dq.appendleft(self.dp)
-            dq.appendleft(z)
+            if not self._rlz:
+                dq.appendleft(z)
         if parts.sign:
             dq.appendleft(parts.sign)
         dq = self._trim(dq)
@@ -265,6 +269,7 @@ class Fmt:
             return self._dp
         @dp.setter
         def dp(self, value):
+            'Only "." or "," allowed for decimal point'
             if not ii(value, str) or len(value) > 1 or value not in ".,":
                 raise TypeError("value must be either '.' or ','")
             self._dp = value
@@ -449,7 +454,7 @@ if __name__ == "__main__":
     def Init():
         'Make sure test environment is set up in a repeatable fashion'
         f = Fmt(3)
-        f.rtz = f.rtdp = False
+        f.rlz = f.rtz = f.rtdp = False
         return f
     def Test_Basics():
         f = Init()
@@ -626,6 +631,22 @@ if __name__ == "__main__":
             f.high = None
             t = f(x, fmt="fix")
             Assert(len(t) == n*len(s) + 1)
+        def Test_rlz():
+            f = Init()
+            x = 0.2846
+            s = f.fix(x)
+            Assert(s == "0.285")
+            x *= -1
+            s = f.fix(x)
+            Assert(s == "-0.285")
+            x *= -1
+            # Turn on rlz
+            f.rlz = True
+            s = f.fix(x)
+            Assert(s == ".285")
+            x *= -1
+            s = f.fix(x)
+            Assert(s == "-.285")
         for n in (999999,  # Largest exponent allowed by default Decimal context
                 100, 20, 3):
             TestTiny(n)
@@ -633,6 +654,7 @@ if __name__ == "__main__":
             TestLotsOfDigits(n)
         TestTrimming()
         TestBigInteger(100)
+        Test_rlz()
     def Test_Eng():
         '''Compare to fpformat's results.  Only go up to 15 digits because
         fpformat uses floats.

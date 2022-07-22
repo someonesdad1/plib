@@ -73,11 +73,11 @@ Provides probability functions used in basic statistics
         integrand's graph being evaluated.  Another example is the
         significance level is in % but you assumed it wasn't or vice versa.
         In the 70's and 80's when I did a fair bit of experimental work, my
-        favorite statistics reference was Crow, "Statistics Manual"
-        (republished by Dover) because it was both terse and carefully
-        labeled.  Biometrika Tables by Pearson and Hartley is also good,
-        but you'll want to make sketches of the functions being integrated
-        on the tables you're using.
+        favorite statistics reference was Crow, "Statistics Manual", 1955
+        (republished by Dover in 1960) because it was both terse and
+        carefully labeled.  Biometrika Tables by Pearson and Hartley is
+        also good, but you'll want to make sketches of the functions being
+        integrated on the tables you're using.
 
 '''
 if 1:   # Header
@@ -313,7 +313,7 @@ if 1:   # Classes
             self.check_p(p)
             return flt(self._icdf(k, p))
 if 1:   # Convenience class instances
-    _dll = cdll.LoadLibrary("cephes.dll")
+    _dll = cdll.LoadLibrary("/plib/cephes.dll")
     normal = Normal(_dll)
     chisq = Chisq(_dll)
     F = Fdist(_dll)

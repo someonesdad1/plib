@@ -1,8 +1,7 @@
 Active
 
     - Moshier's stuff:  http://www.moshier.net/
-        - http://www.moshier.net/steam.zip gives thermodynamic data for
-          water.  This could be a valuable python library.
+        - http://www.moshier.net/steam.zip Thermodynamic data for water
         - http://www.moshier.net/rtd.zip  RTD programs
         - http://www.moshier.net/planck.zip  Black body radiation
         - http://www.moshier.net/osc-0.2.zip Audio oscillator
@@ -12,6 +11,11 @@ Active
     - prob.py
         - Add classes for statistical tests:  confidence intervals for
           means & standard deviations, comparisons, and ANOVA significance.
+
+    - special.py
+        - Add special functions to cephes.dll:  mostly Bessel and elliptic
+          functions.
+        - Provide a python module interface to them
 
     - format_numbers.py and fraction.py
         - Move to fmt.py

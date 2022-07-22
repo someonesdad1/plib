@@ -1,6 +1,10 @@
 '''
 TODO:
     - Need a PrintMatrix() function for general-purpose printing.
+    - Add lt and ut attributes that return the lower and upper triangular
+      matrices.  These should have variables in the opposite slots that
+      print out to the empty string so you only see the interesting
+      elements.
     - Add a function to augment a matrix.  Typical use is to add a column
       of 1's for a linear regression problem (the basic geometrical need is
       to have affine xfms (rotations & translations) on a space, but
@@ -1414,6 +1418,10 @@ class Matrix:
                 if have_unc and ii(x, UFloat):
                     return complex(x.nominal_value, 0)  #**
                 return complex(x, 0)                    #**
+            elif ii(x, flt):
+                if T is Decimal or T is Fraction:
+                    return T(x.r)
+                return T(x)
             elif ii(x, float):
                 if T is Decimal or T is Fraction:
                     return T(str(x))

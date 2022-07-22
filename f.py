@@ -1,6 +1,8 @@
 ''' 
  
 TODO
+    -flt
+        - rlz doesn't remove 0 for negative numbers
     - cpx:
         - .t property:  tuple display.  z=cpx(1,1) --> "(1,1)".  Use wide
       attribute .w for "(1, 1)".  .w also gets "1 + i" form.
@@ -1297,11 +1299,9 @@ if 1:   # Other
         return len(t)
 
 if 0:
-    z = cpx(1.234, 7.654)
-    z._reset()
-    print(z)
-    z.i = 1
-    print(z)
+    x = flt(-0.234)
+    x.rlz = 1
+    print(x)
     exit()
 
 if __name__ == "__main__": 
