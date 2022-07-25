@@ -1,5 +1,7 @@
 '''
 TODO:
+    - Matrix.replace(self, n, vector, c=False) doesn't work right.  These
+      utility routines need careful testing, replace() particularly.
     - Need a PrintMatrix() function for general-purpose printing.
     - Add lt and ut attributes that return the lower and upper triangular
       matrices.  These should have variables in the opposite slots that
@@ -86,6 +88,9 @@ if 1:  # Header
                 have_sympy = True
             except ImportError:
                 pass
+        if len(sys.argv) > 1:
+            import debug
+            debug.SetDebugger()
     # Global variables
         __version__ = "8Jul2022"
         __all__ = '''
@@ -865,6 +870,22 @@ class Matrix:
                 return m
             else:
                 raise TypeError("n must be an integer or sequence")
+        def maprow(self, func, n=None, ip=False):
+            'Syntactic sugar to map a univariate function to row(s)'
+            if ip:
+                self.map(func, n, ip=True)
+            return self.map(func, n, ip=False)
+        def mapcol(self, func, n=None, ip=False):
+            'Syntactic sugar to map a univariate function to row(s)'
+            if ip:
+                self.map(func, n, c=True, ip=True)
+            return self.map(func, n, c=True, ip=False)
+        def maprowip(self, func, n=None):
+            'Syntactic sugar to in-place map a univariate function to row(s)'
+            self.map(func, n, ip=True)
+        def mapcolip(self, func, n=None):
+            'Syntactic sugar to map a univariate function to column(s)'
+            self.map(func, n, c=True, ip=True)
         def minor(self, row, col):
             '''Returns the minor, which is the determinant of the matrix with
             the indicated row and column deleted.
@@ -878,18 +899,32 @@ class Matrix:
         def replace(self, n, vector, c=False):
             'Replace row or column n with the given vector'
             self._check_frozen()
+            # t is number of columns if c is True else it's number of rows
             t = self.c if c else self.r
-            n = n + t if n < 0 else n
+            # q is the number of elements that vector must have
+            q = self.r if c else self.c
+            # If n is negative, we're counting from the rightmost for a
+            # column vector or from the bottom for a row vector.
+            n1 = n + t if n < 0 else n
+            # Make sure n1 is a valid row or column number
+            if not (0 <= n1 <= (self.c if c else self.r)):
+                raise ValueError(f"{n} is not a valid column reference")
             if not vector.is_vector:
                 raise TypeError("vector must be a vector")
-            if vector.len != t:
-                raise TypeError("vector must have {} elements".format(t))
-            if not (0 <= n < t):
-                raise ValueError("n must be between 0 and {}".format(t - 1))
+            if vector.len != q:
+                raise TypeError(f"vector must have {q} elements")
             if c:
-                self.t._grid[n] = vector.l
+                if 1:
+                    a = self.t
+                    a._grid[n1] = vector.flat
+                    self._grid = a._grid
+                else:
+                    # Do this by indexing
+                    for i in range(vector.len):
+                        pass
             else:
-                self._grid[n] = vector.l
+                # Replacing a row is easy, as the whole list can be done
+                self._grid[n1] = vector.flat
         def resize(self, r, c, fill=0):
             '''Resize this matrix in-place to have r rows and c columns.  New
             elements will have the value fill.  If size is reduced, some
@@ -2124,25 +2159,26 @@ class Flatten:
 if 1: # Utility functions
     def matrix(*p, **kw):
         '''Convenience function for instantiating Matrix objects.  Examples:
-        Integer
-          matrix(4):  Return an identity matrix of size 4
-          matrix(4, fill=x):  Return size 4 square matrix filled with x
-        String
-          matrix("1 2\\n3 4")
-        List
-          Nested list:  A single argument is a list [L1, L2, ..., Ln]
-            where each of the L's is a sequence of length m.  This will
-            result in a matrix of n rows and m columns.
-          Flat list:
-            matrix([1, 2, 3, 4], size=(2, 2))
-            matrix(1, 2, 3, 4, size=(2, 2))
-          Flat list with no size
-            matrix(1, 2, 3, 4) returns a row vector
-        Stream
-          Reads the stream; use the string form in the stream.
+            Integer
+              matrix(4):  Return an identity matrix of size 4
+              matrix(4, fill=x):  Return size 4 square matrix filled with x
+            String
+              matrix("1 2\\n3 4")
+            List
+              Nested list:  A single argument is a list [L1, L2, ..., Ln]
+                where each of the L's is a sequence of length m.  This will
+                result in a matrix of n rows and m columns.
+              Flat list:
+                matrix([1, 2, 3, 4], size=(2, 2))
+                matrix(1, 2, 3, 4, size=(2, 2))
+              Flat list with no size
+                matrix(1, 2, 3, 4) returns a row vector
+            Stream
+              Reads the stream; use the string form in the stream.
         '''
         size = kw.get("size", None)
         fill = kw.get("fill", 0)
+        m = None
         if size is not None:
             r, c = size
             m = Matrix(r, c)
