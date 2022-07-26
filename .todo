@@ -1,4 +1,46 @@
+
 Active
+    
+    - 0test.py
+        - Failures under 3.9
+
+    - lsg
+        - Need a tool for git that lists files like lsh
+            - Key states
+                - Clean
+                - Modified
+                    - Staged
+                    - Not staged 
+                - Ignored
+                - Not tracked
+        - Also use output of 'git shortlog -sn' for repository names
+        - Primary use cases
+            - Show the untracked files
+            - Short listing of types:  M (modified), T (type changed), A
+              (added), D (deleted), R (renamed), C (copied), U (updated but
+              unmerged)
+                - XY table:  M in X position means modified and staged for
+                  commit (in index); in Y means changed and not in index
+        - Root location of repository shown (must be in a subdirectory of
+          the directory holding the repository .git directory)
+        - 'git status -u --porcelain' shows untracked files and directories
+        - 'git status --ignored --porcelain' shows ignored stuff
+        - Use --branch to get current branch headers in porcelain format 2
+        - Color code the different states
+            - red:   deleted
+            - orn:   untracked
+            - grn:   tracked, unchanged
+            - mag:   tracked, changed
+            - gryl:  ignored
+        - Options
+            - -i    Show ignored
+            - -c    Show unchanged but tracked
+
+    - VCS
+        - It could be handy to keep 64-bit versions of Mercurial, Bazaar,
+          and fossil under the 64-bit system.  This would be useful for
+          occasional testing/learning and keeping a hand in on other VCS
+          systems.
 
     - matrix.py
         - The important function replace() doesn't work right.
@@ -19,23 +61,18 @@ Active
                   rows(*n)
 
     - GSL
-        - Surprisingly, this built perfectly on my system (I fully expected
-          compilation problems).
-        - With this working, it might make sense to make specialized DLLs
-          that can be used for special python modules.
-        - A big motivator is that I could return flt objects and these
-          could include an attribute called .err (or whatever) that is an
-          estimate of the roundoff error.
-        - Examples:
-            - prob.py using cephes can be replaced by the GSL because
-              there's support for erf, incomplete gamma, and incomplete
-              beta functions, so all the basic CDFs and their inverses
-              are calculatable.  The inverses would require root finding.
-            - One advantage of cephes is that the inverse CDFs are supplied
-              too.
-            - Linear and nonlinear regression can be done with doubles.
-        - Python bindings:  https://github.com/pygsl/pygsl.  Alas, it needs
-          numpy.
+        - Surprisingly, this built perfectly on the 32 bit cygwin system (I
+          fully expected compilation problems).
+            - I'm trying it on the 64-bit system.
+        - Python bindings:  https://github.com/pygsl/pygsl.  It needs
+          numpy, but that's OK now with 3.9.
+        - Specialized python modules
+            - Subsets of GSL could be used for the modules
+            - Use the DLL method like done for prob.py/cephes, as it works
+              quite well.
+            - Nice features
+                - Return flt objects for easy use.
+                - flt.err can contain estimated error
 
     - Moshier's stuff:  http://www.moshier.net/
         - The GSL (GNU scientific library) is a more recent collection
@@ -977,7 +1014,6 @@ Other
               desired)
             - '{' and '}' define python code blocks
 
---------------------------------------------------------------------------------
 Tabulation tool
 
     - https://pypi.org/project/tabulate/ has some ideas.  Basically, it
@@ -1028,23 +1064,25 @@ Tabulation tool
         - Coalesced columns?  Complicated; other formatters like pandoc
           often don't support.
 
---------------------------------------------------------------------------------
 Shamrock survey
 
     - Benchmarks
-        - BMP = Primary = in center of Edna/Shamrock intersection
+        - bma = Primary = in center of Edna/Shamrock intersection
         - Secondary
-            - BMS1 = center of well
-            - BMS2 = Entrance to driveway on Edna
-            - BMS3 = Gate pole on west side
-            - BMS4 = Farthest east fence post on south side
-            - BMS4a = Street sign near BM4
-            - BMS5 = Farthest northwest fence post
-            - BMS5a = Street sign next to fence post
+            - bmb0 = center of well
+            - bmb1 = Entrance to driveway on Edna
+                - Need photo of spot on concrete
+            - bmb2 = Southernmost metal gate pole on west side
+            - bmb3 = Farthest east wooden fence post on south side
+            - bmb4 = Street sign near bmb3
+            - bmb5 = Farthest northwest wooden fence post
+            - bmb6 = Street sign next to bmb5
+            - bmb7 = Southeasternmost corner of fence gate cement pad
         - Tertiary
-            - BMT1 = SW corner of gray building foundation
-            - BMT2 = SW corner of cement slab
-            - BMT3 = NW corner of patio
+            - bmt1 = SW corner of gray building foundation
+            - bmt2 = NW corner of cement slab
+            - bmt3 = NW corner of patio
+            - Corners of house foundation
     - Layout of lawn
     - Location of sprinklers
     - Building location

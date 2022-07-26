@@ -1583,6 +1583,9 @@ if __name__ == "__main__":
     from pdb import set_trace as xx
     seed(2**64)  # Make test sequences repeatable
     show_coverage = len(sys.argv) > 1
+    # Need to have version, as SizeOf stuff changed between 3.7 and 3.9
+    vi = sys.version_info
+    ver = f"{vi[0]}.{vi[1]}"
     def Test_PPSeq():
         pp = PPSeq()
         x = (44, 128, 250)
@@ -1593,18 +1596,31 @@ if __name__ == "__main__":
         Assert(pp(deque(x)) == "< 44, 128, 250>")
         Assert(pp(bytes(x)) == "« 44, 128, 250»")
     def Test_SizeOf():
-        for typ, sz in (
-                # These numbers could likely be python version specific
+        data = (
+                # These numbers worked for python 3.7
                 (tuple, 40),
                 (list, 60),
                 (deque, 328),
                 (set, 124),
                 (frozenset, 124),
-                ):
+                )
+        if ver == "3.9":
+            data = (
+                    (tuple, 72),
+                    (list, 88),
+                    (deque, 648),
+                    (set, 240),
+                    (frozenset, 240),
+                    )
+        for typ, sz in data:
             x = typ((0,))
             Assert(SizeOf(x) == sz)
+        # Size of dict
         x = {1:1}
-        Assert(SizeOf(x) == 146)
+        if ver == "3.9":
+            Assert(SizeOf(x) == 260)
+        else:
+            Assert(SizeOf(x) == 146) # For python 3.7
     def Test_AlmostEqual():
         Assert(AlmostEqual(0, 0))
         Assert(AlmostEqual(0, 1e-353))

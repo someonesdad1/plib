@@ -2629,12 +2629,13 @@ if 1:   # Filter the density data
 
 if __name__ == "__main__":
     from lwtest import run, raises, assert_equal, Assert
+    from color import TRM as t
     def Test():
         '''There's little that can be tested if the densities tuple is
         constructed.  Do a couple of spot checks.
         '''
-    print(dedent('''
-
+    t.print(dedent(f'''
+    {t('purl')}Comments from densitydb.py:
     - Todo
         - Tests
             - Spot checks of some values
@@ -2646,7 +2647,6 @@ if __name__ == "__main__":
             - Looks for suspicious things
             - Perhaps build a keyword dictionary to stratify things first
             - Example:  pwd had Nickel with density of 961, less than water
-        
     '''))
     exit(run(globals(), halt=1)[0])
 

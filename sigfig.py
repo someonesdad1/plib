@@ -30,7 +30,7 @@ if 1:   # Custom imports
         import mpmath
         _have_mpmath = True
     except ImportError:
-        _have_mpmath = false
+        _have_mpmath = False
 if 1:   # Global variables
     ii = isinstance
 def SigFig(x, rtz=False):

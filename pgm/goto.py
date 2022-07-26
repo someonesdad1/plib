@@ -226,7 +226,7 @@ if 1:   # Core functionality
         def BadLine(ln, line, msg):
             print(dedent(f'''
             {t.C}Line {ln} in configuration file is bad:
-                Line:     '{line}'
+                Line:     '{t.y}{line}{t.C}'
                 Problem:  {t.R}{msg}{t.C}
             '''))
             BadLine.bad = True

@@ -6,14 +6,13 @@
     - Ignore means the file is ignored for testing purposes
     - O
 - Log file should have date-time in name.
-
+ 
 Testing automation tool
     This script will examine the test trigger strings of the indicated
     files and run their indicated tests.  See the description of these
     strings below.
 
 '''
- 
 if 1:  # Header
     # Copyright, license
         # These "trigger strings" can be managed with trigger.py
@@ -61,7 +60,6 @@ if 1:  # Header
         t.cyn = t("cynl")   # Directories
         t.grn = t("grnl")   # For files we'll run
         t.yel = t("yell")   # For files we'll run
-
         # Files to ignore
         ignore = set((
             P("/plib/trigger.py"),
@@ -87,15 +85,16 @@ if 1:   # Utility
         exit(status)
     def ParseCommandLine(d):
         d["-d"] = False     # Debug output
+        d["-q"] = False     # Quiet
         d["-r"] = False     # Recursive
         d["-v"] = False     # Verbose:  show ignored
         try:
-            opts, args = getopt.getopt(sys.argv[1:], "drv")
+            opts, args = getopt.getopt(sys.argv[1:], "dqrv")
         except getopt.GetoptError as e:
             print(str(e))
             exit(1)
         for o, a in opts:
-            if o[1] in list("drv"):
+            if o[1] in list("dqrv"):
                 d[o] = not d[o]
         if not args:
            Usage()
@@ -220,7 +219,6 @@ class TestRunner:
                 self.not_run += 1
                 if d["-v"]:
                     print(f"{file}: no test to run")
-
 def Dbg(*p, **kw):
     if not d["-d"]:
         return
