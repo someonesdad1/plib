@@ -37,11 +37,10 @@ Provides a sequence of density instances
       referring back to the original source showed I had made a mistake
       transcribing it.
     - Do not make any assumptions about the uncertainty of a given number
-      based on its number of significant figures.  Rigorous uncertainty
+      based on the number of digits given.  Rigorous uncertainty
       information is not available in any of the references consulted
       (you'll need to go to the research literature for that).  In general,
-      I trust the numbers in this table to about 2 significant figures at
-      best.
+      I trust the numbers in this table to about 2 figures at best.
 
     - Primary references
         - These are published books that are regarded as standard
@@ -2634,19 +2633,12 @@ if __name__ == "__main__":
         '''There's little that can be tested if the densities tuple is
         constructed.  Do a couple of spot checks.
         '''
-    t.print(dedent(f'''
-    {t('purl')}Comments from densitydb.py:
-    - Todo
-        - Tests
-            - Spot checks of some values
-            - Show that str(i) gives a float and repr(i) gives a suitable
-              instantiation string where i is a Density instance.
-        - Verify FilterDensities() gives desired sets
-        - Write some test cases that verify data
-        - Vetting function
-            - Looks for suspicious things
-            - Perhaps build a keyword dictionary to stratify things first
-            - Example:  pwd had Nickel with density of 961, less than water
-    '''))
+        def Get(s):
+            for i in densities:
+                if i.name == s:
+                    return i
+            raise ValueError(f"{s!r} not found")
+        i = Get("Water, (100 °C & 1 atm)")
+        Assert(i.rho == "958.4")
     exit(run(globals(), halt=1)[0])
 
