@@ -1,4 +1,6 @@
+
 Active
+    
 
     - matrix.py
         - The important function replace() doesn't work right.
@@ -19,42 +21,18 @@ Active
                   rows(*n)
 
     - GSL
-        - Surprisingly, this built perfectly on my system (I fully expected
-          compilation problems).
-        - With this working, it might make sense to make specialized DLLs
-          that can be used for special python modules.
-        - A big motivator is that I could return flt objects and these
-          could include an attribute called .err (or whatever) that is an
-          estimate of the roundoff error.
-        - Examples:
-            - prob.py using cephes can be replaced by the GSL because
-              there's support for erf, incomplete gamma, and incomplete
-              beta functions, so all the basic CDFs and their inverses
-              are calculatable.  The inverses would require root finding.
-            - One advantage of cephes is that the inverse CDFs are supplied
-              too.
-            - Linear and nonlinear regression can be done with doubles.
-        - Python bindings:  https://github.com/pygsl/pygsl.  Alas, it needs
-          numpy.
-
-    - Moshier's stuff:  http://www.moshier.net/
-        - The GSL (GNU scientific library) is a more recent collection
-          of special function routines.
-            - The PDF documentation notes that the special functions also
-              computes an estimate of the numerical error in the calculated
-              value.  The gsl_sf_result struct is two doubles of the
-              computed value and the error.
-                - The "natural form" of the function doesn't include the
-                  error estimate; a second form's call includes a reference
-                  to the gsl_sf_result struct.
-            - The GSL could be a good checking tool for the linear
-              regression code in python.
-        - http://www.moshier.net/steam.zip Thermodynamic data for water
-        - http://www.moshier.net/rtd.zip  RTD programs
-        - http://www.moshier.net/planck.zip  Black body radiation
-        - http://www.moshier.net/osc-0.2.zip Audio oscillator
-        - http://www.moshier.net/pinknoise.zip Pink noise generator
-        - http://www.moshier.net/flutter.zip FM modulated tones
+        - Surprisingly, this built perfectly on both the 32 bit and 64 bit
+          cygwin systems (I expected compilation problems).
+        - Python bindings:  https://github.com/pygsl/pygsl.  It needs
+          numpy, but that's OK now with 3.9.
+        - Specialized python modules
+            - Subsets of GSL could be used for the modules
+            - Use the DLL method like done for prob.py/cephes, as it works
+              quite well.
+            - Nice features
+                - Return flt objects for easy use.
+                - flt.err can contain estimated error, as GSL functions
+                  make an estimate.
 
     - prob.py
         - Add classes for statistical tests:  confidence intervals for
@@ -85,6 +63,11 @@ Active
         - Add a complex Decimal number and modify the elementary functions
           to take either real or complex arguments.  The tests should
           duplicate the math/cmath functions' behaviors to e.g. 15 figures.
+          This would complement f.py; maybe it should be called d.py; maybe
+          it should be part of f.py:  dflt, dcpx.
+        - The vision would be to let you do math calculations and use the
+          elementary functions that would work on flt, cpx, dflt, dcpx
+          without breaking.
 
     - Decimal equivalents
         - I use the /shop/cheat_sheets/pdf/decimal_equivalents.pdf pages so
@@ -103,7 +86,23 @@ Active
           state is remembered until '.reset' is seen or the keyword reset
           is True.  'paragraph_sep' keyword defaults to '\n\n'.
 
+    - gg
+        - Project to look at rewriting the g library to output in SVG
+        - Benefits
+            - Most browsers support SVG
+            - SVG is more powerful than PS
+        - I'd like to see if the original could be refactored to use a back
+          end for rendering in either PS or SVG.  If this is done, then it
+          would probably be possible to render in PNG too.  It also
+          shouldn't be hard to render to PDF too.
+
 Other
+
+    - VCS
+        - It might be handy to keep 64-bit versions of Mercurial, Bazaar,
+          and fossil under the 64-bit system.  This would be useful for
+          occasional testing/learning and keeping a hand in on other VCS
+          systems.
 
     - xyz.py
         - Update to use flt
@@ -977,7 +976,6 @@ Other
               desired)
             - '{' and '}' define python code blocks
 
---------------------------------------------------------------------------------
 Tabulation tool
 
     - https://pypi.org/project/tabulate/ has some ideas.  Basically, it
@@ -1028,23 +1026,25 @@ Tabulation tool
         - Coalesced columns?  Complicated; other formatters like pandoc
           often don't support.
 
---------------------------------------------------------------------------------
 Shamrock survey
 
     - Benchmarks
-        - BMP = Primary = in center of Edna/Shamrock intersection
+        - bma = Primary = in center of Edna/Shamrock intersection
         - Secondary
-            - BMS1 = center of well
-            - BMS2 = Entrance to driveway on Edna
-            - BMS3 = Gate pole on west side
-            - BMS4 = Farthest east fence post on south side
-            - BMS4a = Street sign near BM4
-            - BMS5 = Farthest northwest fence post
-            - BMS5a = Street sign next to fence post
+            - bmb0 = center of well
+            - bmb1 = Entrance to driveway on Edna
+                - Need photo of spot on concrete
+            - bmb2 = Southernmost metal gate pole on west side
+            - bmb3 = Farthest east wooden fence post on south side
+            - bmb4 = Street sign near bmb3
+            - bmb5 = Farthest northwest wooden fence post
+            - bmb6 = Street sign next to bmb5
+            - bmb7 = Southeasternmost corner of fence gate cement pad
         - Tertiary
-            - BMT1 = SW corner of gray building foundation
-            - BMT2 = SW corner of cement slab
-            - BMT3 = NW corner of patio
+            - bmt1 = SW corner of gray building foundation
+            - bmt2 = NW corner of cement slab
+            - bmt3 = NW corner of patio
+            - Corners of house foundation
     - Layout of lawn
     - Location of sprinklers
     - Building location

@@ -1,45 +1,6 @@
 
 Active
     
-    - 0test.py
-        - Failures under 3.9
-            - geom_prim.py
-
-    - lsg
-        - Need a tool for git that lists files like lsh
-            - Key states
-                - Clean
-                - Modified
-                    - Staged
-                    - Not staged 
-                - Ignored
-                - Not tracked
-        - Also use output of 'git shortlog -sn' for repository names
-        - Primary use cases
-            - Show the untracked files
-            - Show directories that have no repository files (one of the
-              easiest ways to do this is to put a .git directory in that
-              directory; this also makes it trivial to find that it's not
-              part of the parent repository).
-            - Short listing of types:  M (modified), T (type changed), A
-              (added), D (deleted), R (renamed), C (copied), U (updated but
-              unmerged)
-                - XY table:  M in X position means modified and staged for
-                  commit (in index); in Y means changed and not in index
-        - Root location of repository shown (must be in a subdirectory of
-          the directory holding the repository .git directory)
-        - 'git status -u --porcelain' shows untracked files and directories
-        - 'git status --ignored --porcelain' shows ignored stuff
-        - Use --branch to get current branch headers in porcelain format 2
-        - Color code the different states
-            - red:   deleted
-            - orn:   untracked
-            - grn:   tracked, unchanged
-            - mag:   tracked, changed
-            - gryl:  ignored
-        - Options
-            - -i    Show ignored
-            - -c    Show unchanged but tracked
 
     - matrix.py
         - The important function replace() doesn't work right.
@@ -60,9 +21,8 @@ Active
                   rows(*n)
 
     - GSL
-        - Surprisingly, this built perfectly on the 32 bit cygwin system (I
-          fully expected compilation problems).
-            - I'm trying it on the 64-bit system.
+        - Surprisingly, this built perfectly on both the 32 bit and 64 bit
+          cygwin systems (I expected compilation problems).
         - Python bindings:  https://github.com/pygsl/pygsl.  It needs
           numpy, but that's OK now with 3.9.
         - Specialized python modules
@@ -71,26 +31,8 @@ Active
               quite well.
             - Nice features
                 - Return flt objects for easy use.
-                - flt.err can contain estimated error
-
-    - Moshier's stuff:  http://www.moshier.net/
-        - The GSL (GNU scientific library) is a more recent collection
-          of special function routines.
-            - The PDF documentation notes that the special functions also
-              computes an estimate of the numerical error in the calculated
-              value.  The gsl_sf_result struct is two doubles of the
-              computed value and the error.
-                - The "natural form" of the function doesn't include the
-                  error estimate; a second form's call includes a reference
-                  to the gsl_sf_result struct.
-            - The GSL could be a good checking tool for the linear
-              regression code in python.
-        - http://www.moshier.net/steam.zip Thermodynamic data for water
-        - http://www.moshier.net/rtd.zip  RTD programs
-        - http://www.moshier.net/planck.zip  Black body radiation
-        - http://www.moshier.net/osc-0.2.zip Audio oscillator
-        - http://www.moshier.net/pinknoise.zip Pink noise generator
-        - http://www.moshier.net/flutter.zip FM modulated tones
+                - flt.err can contain estimated error, as GSL functions
+                  make an estimate.
 
     - prob.py
         - Add classes for statistical tests:  confidence intervals for
