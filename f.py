@@ -1832,7 +1832,9 @@ if __name__ == "__main__":
         if 1:   # factorial
             Assert(factorial(3) == 6)
             raises(ValueError, factorial, -1)
-            raises(ValueError, factorial, x)
+            # The following line is commented out because using factorial()
+            # with floats is deprecated.
+            # raises(ValueError, factorial, x)
             raises(TypeError, factorial, i)
         if 1:   # floor
             Assert(type(floor(x)) == ti)

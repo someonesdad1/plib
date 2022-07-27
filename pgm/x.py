@@ -157,6 +157,9 @@ if 1:   # Core functions
         if file.is_dir():  # Do not change directory permissions
             Dbg(f"Ignored directory:  '{file}'", cc=C.lred)
             return
+        elif file.is_symlink():  # Do not change directory permissions
+            Dbg(f"Ignored symlink:  '{file}'", cc=C.lred)
+            return
         p = file.stat().st_mode
         if execute_is_on(p):
             if IgnoreExecutable(file):

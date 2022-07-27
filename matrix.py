@@ -1,5 +1,5 @@
 '''
-TODO:
+Possible tasks:
     - Matrix.replace(self, n, vector, c=False) doesn't work right.  These
       utility routines need careful testing, replace() particularly.
     - Need a PrintMatrix() function for general-purpose printing.
@@ -38,6 +38,8 @@ if 1:  # Header
         # https://github.com/dmulholl/pymatrix.git.
         #∞what∞#
         #∞test∞# run #∞test∞#
+    # Attribution:  This module is derived from Darren Mulholland's
+    # Pymatrix, which he put into the public domain.
     # Standard imports
         from cmath import sqrt as csqrt
         from collections import OrderedDict

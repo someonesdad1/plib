@@ -1515,9 +1515,24 @@ class SigFig(object):
             return str(sign*int(abs(x)/T + Dec("0.5"))*T)
     def Interpret(self, S, fp_type=float,
                   glo=None, loc=None, strict=True):
-        '''This is a general routine to interpret a string S as a
-        number or an assignment.  Examples of the allowed forms for S
-        are:
+        '''This is a general routine to interpret a string S as a number or
+        an assignment.  The routine returns a tuple (x, u) where
+  
+            1.  x is an int, u is unit
+            2.  x is an fp_type, u is unit
+            3.  x is a ufloat, u is unit
+            4.  x is assigned name, u is value
+            5.  x is None, u is an error message
+ 
+        Parameters are:
+            fp_type         Number type converted to if S can't be
+                            interpreted as an integer.
+            glo             Dictionary for globals for evaluation
+            glo             Dictionary for locals for evaluation
+            strict          Assignment can be made only to valid python
+                            identifiers.
+ 
+        Examples of the allowed forms for S are:
  
             34 u            Integer
             3.4u            Floating point
@@ -1549,14 +1564,6 @@ class SigFig(object):
         interpret the whole string.  No units are allowed in
         assignments or expressions because they are evaluated by the
         python interpreter.
- 
-        The routine returns a tuple (x, u) where
- 
-            1.  x is an int, u is unit
-            2.  x is an fp_type, u is unit
-            3.  x is a ufloat, u is unit
-            4.  x is assigned name, u is value
-            5.  x is None, u is an error message
  
         The assignment is interpreted and if the loc dictionary is not
         None, this assignment is put into that dictionary.  If strict
@@ -2328,6 +2335,7 @@ def Examples():
     '''
         for i in msg.strip().split("\n"):
             P(i.strip())
+
 if __name__ == "__main__":
     import sys
     import traceback as tb
@@ -2336,7 +2344,7 @@ if __name__ == "__main__":
     if len(sys.argv) == 1:
         Examples()
         exit(0)
-    if sys.argv[1] != "--test":
+    elif len(sys.argv) == 2 and sys.argv[1] != "--test":
         print("Use --test to run self tests")
         exit(1)
     def Init():
@@ -3099,7 +3107,7 @@ if __name__ == "__main__":
         # round the uncertainty before formatting it).
         check(sig(U(51.4, 0.099)), "51.4(1)")
         check(sig(U(51.4, 0.99)), "51.(1)")
-    def TestGetSigFig():
+    def Test_GetSigFig():
         data = '''
             # Various forms of 0
             0 1
@@ -3367,6 +3375,14 @@ if __name__ == "__main__":
                 ("1.234[0.45u]", (U(1.234, 0.45*1.234/1e6), "")),
             )
             for s, expected in test_cases:
+                # In python 3.9, the '0[0]' form gets an annoying warning
+                # telling you that you can't subscript an integer, as do
+                # two other forms.  You can turn these off by setting
+                # PYTHONWARNINGS=ignore in the environment.
+                #
+                # Because of this, it might make sense to put in a
+                # conditional that doesn't use the "a[b]" syntax by
+                # default.
                 got = sig.Interpret(s)
                 # If result is a ufloat, pick it apart into components.
                 # This is because of the semantics of ufloat comparisons

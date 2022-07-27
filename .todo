@@ -1,8 +1,24 @@
 
 Active
     
+    - /custom
+        - Use this directory for custom apps that I have to compile, one
+          directory for each app. 
+
+    - units.exe
+        - Need to get latest version and compile it
+            - 64-bit cygwin version is 2.21 w/ readline
+            - Uses /usr/share/units/definitions.units
+        - Add 'q' to quit
+
+
+    - pylib/pgm/uni.py and ucd.py with datafiles
+        - Update and move to plib/pgm, as I use these all the time
+        - Drop support for looking at PDF files
+
     - 0test.py
         - Failures under 3.9
+            - geom_prim.py
 
     - lsg
         - Need a tool for git that lists files like lsh
@@ -16,6 +32,10 @@ Active
         - Also use output of 'git shortlog -sn' for repository names
         - Primary use cases
             - Show the untracked files
+            - Show directories that have no repository files (one of the
+              easiest ways to do this is to put a .git directory in that
+              directory; this also makes it trivial to find that it's not
+              part of the parent repository).
             - Short listing of types:  M (modified), T (type changed), A
               (added), D (deleted), R (renamed), C (copied), U (updated but
               unmerged)
@@ -35,12 +55,6 @@ Active
         - Options
             - -i    Show ignored
             - -c    Show unchanged but tracked
-
-    - VCS
-        - It could be handy to keep 64-bit versions of Mercurial, Bazaar,
-          and fossil under the 64-bit system.  This would be useful for
-          occasional testing/learning and keeping a hand in on other VCS
-          systems.
 
     - matrix.py
         - The important function replace() doesn't work right.
@@ -122,6 +136,11 @@ Active
         - Add a complex Decimal number and modify the elementary functions
           to take either real or complex arguments.  The tests should
           duplicate the math/cmath functions' behaviors to e.g. 15 figures.
+          This would complement f.py; maybe it should be called d.py; maybe
+          it should be part of f.py:  dflt, dcpx.
+        - The vision would be to let you do math calculations and use the
+          elementary functions that would work on flt, cpx, dflt, dcpx
+          without breaking.
 
     - Decimal equivalents
         - I use the /shop/cheat_sheets/pdf/decimal_equivalents.pdf pages so
@@ -140,7 +159,23 @@ Active
           state is remembered until '.reset' is seen or the keyword reset
           is True.  'paragraph_sep' keyword defaults to '\n\n'.
 
+    - gg
+        - Project to look at rewriting the g library to output in SVG
+        - Benefits
+            - Most browsers support SVG
+            - SVG is more powerful than PS
+        - I'd like to see if the original could be refactored to use a back
+          end for rendering in either PS or SVG.  If this is done, then it
+          would probably be possible to render in PNG too.  It also
+          shouldn't be hard to render to PDF too.
+
 Other
+
+    - VCS
+        - It might be handy to keep 64-bit versions of Mercurial, Bazaar,
+          and fossil under the 64-bit system.  This would be useful for
+          occasional testing/learning and keeping a hand in on other VCS
+          systems.
 
     - xyz.py
         - Update to use flt

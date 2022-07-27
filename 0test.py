@@ -80,7 +80,9 @@ if 1:   # Utility
           show each of the files that is being run.
         Options:
           -d    Show what will be done and exit
+          -r    Recursively search for files
           -v    Verbose mode:  show what's being tested
+          -w    Don't filter out nuisance warnings
         '''))
         exit(status)
     def ParseCommandLine(d):
@@ -88,13 +90,14 @@ if 1:   # Utility
         d["-q"] = False     # Quiet
         d["-r"] = False     # Recursive
         d["-v"] = False     # Verbose:  show ignored
+        d["-w"] = False     # Don't filter out warnings
         try:
-            opts, args = getopt.getopt(sys.argv[1:], "dqrv")
+            opts, args = getopt.getopt(sys.argv[1:], "dqrvw")
         except getopt.GetoptError as e:
             print(str(e))
             exit(1)
         for o, a in opts:
-            if o[1] in list("dqrv"):
+            if o[1] in list("dqrvw"):
                 d[o] = not d[o]
         if not args:
            Usage()
@@ -174,7 +177,26 @@ class TestRunner:
                 if d["-v"] and r.stdout:
                     print(r.stdout, end="")
                 if r.stderr:
-                    print(r.stderr, end="")
+                    if d["-w"]:
+                        print(r.stderr, end="")
+                    else:
+                        # Filter out nuisance warnings
+                        ignore = (
+                            # The following occurs in sig.py when "0[0]" is
+                            # sent to eval() (also happens with "0(0)" and
+                            # subscripting a float).  These are valid
+                            # expressions for the sig.py module's function,
+                            # however.
+                            "<string>:1: SyntaxWarning:",
+                        )
+                        for line in r.stderr.split("\n"):
+                            show = True
+                            for i in ignore:
+                                if i in line:
+                                    show = True
+                                    break
+                                if show:
+                                    print(line, file=sys.stderr)
             if r.returncode:
                 # Always show a test failure
                 self.failed += 1
