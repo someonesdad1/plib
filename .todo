@@ -1,21 +1,6 @@
 
 Active
     
-    - /custom
-        - Use this directory for custom apps that I have to compile, one
-          directory for each app. 
-
-    - units.exe
-        - Need to get latest version and compile it
-            - 64-bit cygwin version is 2.21 w/ readline
-            - Uses /usr/share/units/definitions.units
-        - Add 'q' to quit
-
-
-    - pylib/pgm/uni.py and ucd.py with datafiles
-        - Update and move to plib/pgm, as I use these all the time
-        - Drop support for looking at PDF files
-
     - 0test.py
         - Failures under 3.9
             - geom_prim.py

@@ -141,12 +141,12 @@ if 1:  # Header
             "assert_equal",
             "raises",
             "run",
-            "test_function_regexp",
+            "id_test_function_regexp",
         ]
         ii = isinstance
         python_version = '.'.join([str(i) for i in sys.version_info[:3]])
         # Regular expression to identify test functions
-        test_function_regexp = "^_*test|test$"
+        id_test_function_regexp = "^_*test|test$"
 if 1:   # Core functionality
     def run(names_dict, **kw):
         '''Discover and run the test functions in the names_dict
@@ -166,7 +166,7 @@ if 1:   # Core functionality
             halt:       Stop at the first failure.  [False]
             quiet:      If True, no output.  [False]
             regexp:     Regular expression that identifies a test function.
-                        Default is in global variable test_function_regexp.
+                        Default is in global variable id_test_function_regexp.
             reopts:     Regular expression's options. [re.I]
             stream:     Where to send output [stdout].  None = no output.
             nomsg       If True, return only the integer 'failed'.
@@ -178,7 +178,7 @@ if 1:   # Core functionality
         halt = bool(kw.get("halt", False))
         quiet = kw.get("quiet", False)
         reopts = kw.get("reopts", re.I)
-        regexp = kw.get("regexp", test_function_regexp)
+        regexp = kw.get("regexp", id_test_function_regexp)
         stream = kw.get("stream", sys.stdout)
         nomsg = kw.get("nomsg", False)
         # If broken, print error message and return
@@ -618,7 +618,7 @@ if __name__ == "__main__":
         verbose:  Print the function names as they are executed. [False]
         halt:     Stop at the first failure.  [False]
         regexp:   Regular expression that identifies a test function.
-                  ["{test_function_regexp}"]
+                  ["{id_test_function_regexp}"]
         reopts:   Regular expression's options. [re.I]
         stream:   Where to send output [stdout].  None = no output.
     

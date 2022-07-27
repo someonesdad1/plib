@@ -61,6 +61,9 @@ if 1:  # Header
         if use_numpy:
             import numpy as np
             from numpy.linalg import det as npdet
+        if len(sys.argv) > 1:
+            import debug
+            debug.SetDebugger()
     # Global variables
         __all__ = [
             "Ctm",
@@ -257,10 +260,10 @@ class Ctm(object):
         s = "Ctm("
         f = "%s, %s, %s, %s"
         g = "    " + f
-        s += (f % tuple([Ctm.sig(i) for i in Ctm._CTM[0:4]])) + ",\n"
-        s += (g % tuple([Ctm.sig(i) for i in Ctm._CTM[4:8]])) + ",\n"
-        s += (g % tuple([Ctm.sig(i) for i in Ctm._CTM[8:12]])) + ",\n"
-        s += (g % tuple([Ctm.sig(i) for i in Ctm._CTM[12:]])) + ")"
+        s += (f % tuple([self.sig(i) for i in self._CTM[0:4]])) + ",\n"
+        s += (g % tuple([self.sig(i) for i in self._CTM[4:8]])) + ",\n"
+        s += (g % tuple([self.sig(i) for i in self._CTM[8:12]])) + ",\n"
+        s += (g % tuple([self.sig(i) for i in self._CTM[12:]])) + ")"
         return s
     def rotate(self, theta, u):
         '''Rotate the current coordinate system about an axis defined
@@ -1992,7 +1995,10 @@ if __name__ == "__main__":
         # Verify identity matrices at instantiation
         c = Ctm()
         got = c.GetCTM()
-        assert_equal(got, identity[:])
+        if 0:
+            print("got     ", got)
+            print("identity", identity)
+        assert(got == identity)
         got = c.GetICTM()
         assert_equal(got, identity[:])
         # Check Rnd
@@ -2561,9 +2567,4 @@ if __name__ == "__main__":
             assert_equal(xy.dist(pl), 1)
             pl = Plane(O, i, j)
             assert_equal(xy.dist(pl), 0)
-    Test_Ctm()
-    Test_Vector()
-    Test_Point()
-    Test_Line()
-    Test_Plane()
     exit(run(globals(), halt=True)[0])
