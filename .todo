@@ -1,6 +1,11 @@
-
 Active
     
+    - chk.py
+        - Simple utility to check that a python script uses no tab
+          characters for indentation and that every line is < 80
+          characters.
+        - pep8.py used to be the tool; now it's 'pycodestyle'.  I aliased
+          it to 'chk'.
 
     - matrix.py
         - The important function replace() doesn't work right.
@@ -34,14 +39,19 @@ Active
                 - flt.err can contain estimated error, as GSL functions
                   make an estimate.
 
+Other
+
+    - Physical problems
+        - Use python scripts to solve elementary physical problems.
+        - Example:  Newton's law of cooling
+            - dQ/dt = h*A*ΔT where Q is the energy leaving the body per
+              unit time (power) in W, h is the average heat transfer
+              coefficient in W/(m2*K), A is the surface area in m2, and
+              ΔT = (T(t) - Tenvironment) in K.
+
     - prob.py
         - Add classes for statistical tests:  confidence intervals for
           means & standard deviations, comparisons, and ANOVA significance.
-
-    - special.py
-        - Add special functions to cephes.dll:  mostly Bessel and elliptic
-          functions.
-        - Provide a python module interface to them
 
     - format_numbers.py and fraction.py
         - Move to fmt.py
@@ -95,8 +105,6 @@ Active
           end for rendering in either PS or SVG.  If this is done, then it
           would probably be possible to render in PNG too.  It also
           shouldn't be hard to render to PDF too.
-
-Other
 
     - VCS
         - It might be handy to keep 64-bit versions of Mercurial, Bazaar,

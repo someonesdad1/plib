@@ -84,8 +84,8 @@ if 1:   # Getting text, tokens, lines, bytes
         else:
             raise TypeError("Type of 'thing' not recognized")
         return s
-    def GetLines(thing, enc=None, ignore=None, script=False, ignore_empty=False, 
-                strip=False, nonl=False):
+    def GetLines(thing, enc=None, ignore=None, script=False, ignore_empty=False,
+                 strip=False, nonl=False):
         '''Return text from thing, which is
             string      It's a file name.  If read exception , then use string
                         itself for the text.
@@ -96,9 +96,9 @@ if 1:   # Getting text, tokens, lines, bytes
         
             nonl          b If True, remove trailing newline
             script        b If True, ignore comment lines
-            strip         b If True, strip off whitespace from each line.  If strip
-                            is True, it also implies nonl is True, even if it is
-                            set False.
+            strip         b If True, strip off whitespace from each line.  If
+                          strip is True, it also implies nonl is True, even if
+                          it is set False.
             ignore_empty  b If True, ignore empty (whitespace only) lines
         
             ignore          Either None or a sequence of strings that are 
@@ -135,7 +135,13 @@ if 1:   # Getting text, tokens, lines, bytes
             ignore.append(r"^\s*#")
         if ignore_empty and ignore is not None:
             ignore.append(r"^\s*$")
-        lines = GetText(thing, enc=enc).split("\n")
+        got = GetText(thing, enc=enc)
+        if type(got) == type(b"0"):
+            lines = got.decode(enc).split("\n")
+        elif type(got) == type("0"):
+            lines = got.split("\n")
+        else:
+            raise TypeError("GetText() didn't return bytes or string")
         if not nonl:
             lines = [i + "\n" for i in lines]   # Add back newlines to each line
         lines = list(filter(Filter, lines))
@@ -151,7 +157,8 @@ if 1:   # Getting text, tokens, lines, bytes
         This is because a common use case in a script is a multi-line string
         containing a data table that's e.g. tab-separated.
         '''
-        return GetLines(thing, script=True, ignore_empty=True, strip=True, nonl=True)
+        return GetLines(thing, script=True, ignore_empty=True, strip=True,
+                        nonl=True)
     def GetLine(thing, enc=None):
         '''Similar to GetLines, but is a generator so it gets a line at a time.
         thing can be a string, bytes, or a stream.  If it is a string, it's
@@ -234,8 +241,8 @@ if 1:   # Getting numbers
             a_flt = GetNumber(prompt_msg, numtype=flt)
             a_UFloat = GetNumber(prompt_msg, use_unc=True)
     
-        The user can utilize python expressions in the input; the math library's
-        functions are in scope.
+        The user can utilize python expressions in the input; the math 
+        library's functions are in scope.
     
         If you wish to restrict the allowed values of the number, use the
         following keyword arguments (default values are in square brackets):

@@ -592,17 +592,20 @@ if 1:   # Checking functions
             breakpoint()
         else:
             print(fail, file=sys.stderr)
-    def Assert(cond, debug=False):
+    def Assert(cond, debug=False, msg=""):
         '''Similar to assert, but you'll be dropped into the debugger on an
         exception if debug is True, Assert.debug is True, or 'Assert' is
-        a nonempty environment string.
+        a nonempty environment string.  If msg is not empty, it's printed
+        out.
         '''
         if not cond:
             if debug or Assert.debug or os.environ.get("Assert", ""):
+                if msg:
+                    print(msg, file=sys.stderr)
                 print("Type 'up' to go to line that failed", file=sys.stderr)
                 breakpoint()
             else:
-                raise AssertionError
+                raise AssertionError(msg)
     Assert.debug = False
 if __name__ == "__main__":
     print(dedent(f'''
