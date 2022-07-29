@@ -74,19 +74,22 @@ def rect(r, theta, deg=False):
 if 1:   # Polynomial utilities
     # These routines were originally from 
     # http://www.physics.rutgers.edu/~masud/computing/
-    # in the file WPark_recipes_in_python.html.  This URL is now defunct.
+    # in the file WPark_recipes_in_python.html.  This URL is defunct.
  
     # coef is a sequence of the polynomial's coefficients; coef[0] is the
-    ## constant term and coef[-1] is the highest term; x is a number.
-    def polyeval(coef, x):
+    # constant term and coef[-1] is the highest term; x is a number.
+    def polyeval(coef, x, lowest_first=True):
         '''Evaluate a polynomial with the stated coefficients.  Returns 
         coef[0] + x(coef[1] + x(coef[2] +...+ x(coef[n-1] + coef[n]x)...)
-        This is Horner's method.
+        This is Horner's method.  If lowest_first is False, then the
+        coefficients are in the opposite order with the highest degree
+        coefficient first.
      
         Example: polyeval((3, 2, 1), 6) = 3 + 2(6) + 1(6)**2 = 51
         '''
+        f = reversed if lowest_first else lambda x: x
         p = 0
-        for i in reversed(coef):
+        for i in f(coef):
             p = p*x + i
         return p
     def polyderiv(coef):
@@ -927,6 +930,17 @@ if __name__ == "__main__":
     eps = 1e-15
     def Test_polyeval():
         Assert(polyeval((3, 2, 1), 6) == 51)
+        Assert(polyeval((1, 2, 3), 6, lowest_first=False) == 51)
+        # Test with only constant
+        Assert(polyeval((3,), 6) == 3)
+        Assert(polyeval((3,), 8) == 3)
+        Assert(polyeval((3,), 6, lowest_first=False) == 3)
+        Assert(polyeval((3,), 8, lowest_first=False) == 3)
+        # Test linear case
+        Assert(polyeval((3, 1), 6) == 9)
+        Assert(polyeval((3, 1), 8) == 11)
+        Assert(polyeval((3, 1), 6, lowest_first=False) == 19)
+        Assert(polyeval((3, 1), 8, lowest_first=False) == 25)
     def Test_polyderiv():
         Assert(polyderiv((3, 2, 1)) == [2, 2])
     def Test_polyreduce():

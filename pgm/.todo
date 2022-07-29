@@ -1,5 +1,27 @@
 Active
     
+    - Repositories
+        - /doc needs to be converted to git.  Note the damn thing is 0.6
+          GB, so it may make most sense to start fresh.
+
+    - pprint extension
+        - I need a tool that will display the attributes of a class
+          instance.  The majority of the time you want it to display
+          "normal" attributes like self.variable and have it ignore the
+          ones like self.__str__.
+        - You'd register a class type with it and it would have methods to
+          include and exclude the things you want to see.  Then at a
+          breakpoint you'd do something like qq(myvar) and it would produce
+          a pretty-printed dump of the attributes.
+
+    - pudb.py
+        - pip3 install pudb
+        - Curses-based debugger started 2009
+        - https://pypi.org/project/pudb/
+        - You can get the git development version at bottom of page
+        - A real advantage is that it would fit nicely on my landscape
+          monitor, giving you the whole screen for working.
+
     - chk.py
         - Simple utility to check that a python script uses no tab
           characters for indentation and that every line is < 80
@@ -1058,9 +1080,4 @@ Shamrock survey
     - Building location
     - Use sighting compass to take magnetic bearings of things.
         - Calibrate compass by dropping a vertical from the north star
-        - As of 2022, Polaris' mean declination is 89.35 degrees, so
-          calibration of the compass will be better than 1 degree
-        - This will be done with two strings on plumb bobs, one adjustable.
-          Then the next day the compass will be sighted along the two
-          strings and adjusted to read true north.  Then it will be
-          calibrated for the current magnetic
+        - As of 2022, Polaris' mean declination
