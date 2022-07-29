@@ -1,9 +1,21 @@
 Active
     
+    - WaveXpress
+        - I now have python 3.9 installed with numpy.  This should be
+          enough to do development to bring WaveXpress to python 3.
+          I should do the development work and keep track of my time, with
+          substantial detail on what needed to be done.  I'm going to guess
+          it would be $5k to $10 worth of time and if I keep excellent
+          details, someone like Jeremy could look at them and judge whether
+          all the work seems reasonable.  If I could keep it to $2k to $4k,
+          then there's a good chance Jorg would jump at it and there would
+          be more work porting things to work with new instrumentation,
+          especially recorders.
+
     - Repositories
         - /doc needs to be converted to git.  Note the damn thing is 0.6
           GB, so it may make most sense to start fresh.
-
+    
     - pprint extension
         - I need a tool that will display the attributes of a class
           instance.  The majority of the time you want it to display
@@ -62,6 +74,37 @@ Active
                   make an estimate.
 
 Other
+
+    - Current python libraries that might be worth looking at
+        - reportlab module 3.6.3 in python 3.9.10
+            - This is a PDF module that clearly builds on the PS language
+            - Intro at https://pythonassets.com/posts/create-pdf-documents-in-python-with-reportlab/
+            - Docs https://docs.reportlab.com/
+                - https://docs.reportlab.com/reportlab/userguide/ch2_graphics/
+            - I was going to delete this, but it's a python library for
+            producing PDF files.  It might make sense to use it as a back end
+            for the g library.
+            - It uses Pillow to insert images.
+            - Handy grid() function to make grids.
+        - prompt_toolkit
+            - Can replace readline
+            - https://pypi.org/project/prompt-toolkit/
+        - Running parallel python installations
+            - Opinion:  start with virtualenv, as it may be adequate.
+              However, pyenv resonates with me as a UNIX user because it
+              doesn't depend on python.
+            - virtualenv
+                - https://virtualenv.pypa.io/en/latest/
+                    - See tutorials at bottom
+                - Need to study & try, as it may be something worth using.  On
+                Mac, a web page on brew recommended using pyenv.
+            - pyenv
+                - https://github.com/pyenv/pyenv
+                - Note it doesn't depend on python, as it's written in shell
+                scripts
+                - Intercepts python commands and works with shim executables
+                (things injected at the beginning of PATH) to send your
+                commands to the correct python installation.
 
     - Physical problems
         - Use python scripts to solve elementary physical problems.
@@ -1048,36 +1091,4 @@ Tabulation tool
 
     Desired features
         - Specify spacings between columns (either fixed or irregular)
-        - Specify strings between columns for borders (they can be
-          considered another column)
-        - Fill to a given screen width, truncate columns to fit, or raise
-          exception that it won't fit
-        - Line up decimal points for reports
-        - Coalesced columns?  Complicated; other formatters like pandoc
-          often don't support.
-
-Shamrock survey
-
-    - Benchmarks
-        - bma = Primary = in center of Edna/Shamrock intersection
-        - Secondary
-            - bmb0 = center of well
-            - bmb1 = Entrance to driveway on Edna
-                - Need photo of spot on concrete
-            - bmb2 = Southernmost metal gate pole on west side
-            - bmb3 = Farthest east wooden fence post on south side
-            - bmb4 = Street sign near bmb3
-            - bmb5 = Farthest northwest wooden fence post
-            - bmb6 = Street sign next to bmb5
-            - bmb7 = Southeasternmost corner of fence gate cement pad
-        - Tertiary
-            - bmt1 = SW corner of gray building foundation
-            - bmt2 = NW corner of cement slab
-            - bmt3 = NW corner of patio
-            - Corners of house foundation
-    - Layout of lawn
-    - Location of sprinklers
-    - Building location
-    - Use sighting compass to take magnetic bearings of things.
-        - Calibrate compass by dropping a vertical from the north star
-        - As of 2022, Polaris' mean declination
+        - Specify strings between columns

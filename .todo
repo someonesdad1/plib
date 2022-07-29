@@ -1,9 +1,21 @@
 Active
     
+    - WaveXpress
+        - I now have python 3.9 installed with numpy.  This should be
+          enough to do development to bring WaveXpress to python 3.
+          I should do the development work and keep track of my time, with
+          substantial detail on what needed to be done.  I'm going to guess
+          it would be $5k to $10 worth of time and if I keep excellent
+          details, someone like Jeremy could look at them and judge whether
+          all the work seems reasonable.  If I could keep it to $2k to $4k,
+          then there's a good chance Jorg would jump at it and there would
+          be more work porting things to work with new instrumentation,
+          especially recorders.
+
     - Repositories
         - /doc needs to be converted to git.  Note the damn thing is 0.6
           GB, so it may make most sense to start fresh.
-
+    
     - pprint extension
         - I need a tool that will display the attributes of a class
           instance.  The majority of the time you want it to display
@@ -62,6 +74,37 @@ Active
                   make an estimate.
 
 Other
+
+    - Current python libraries that might be worth looking at
+        - reportlab module 3.6.3 in python 3.9.10
+            - This is a PDF module that clearly builds on the PS language
+            - Intro at https://pythonassets.com/posts/create-pdf-documents-in-python-with-reportlab/
+            - Docs https://docs.reportlab.com/
+                - https://docs.reportlab.com/reportlab/userguide/ch2_graphics/
+            - I was going to delete this, but it's a python library for
+            producing PDF files.  It might make sense to use it as a back end
+            for the g library.
+            - It uses Pillow to insert images.
+            - Handy grid() function to make grids.
+        - prompt_toolkit
+            - Can replace readline
+            - https://pypi.org/project/prompt-toolkit/
+        - Running parallel python installations
+            - Opinion:  start with virtualenv, as it may be adequate.
+              However, pyenv resonates with me as a UNIX user because it
+              doesn't depend on python.
+            - virtualenv
+                - https://virtualenv.pypa.io/en/latest/
+                    - See tutorials at bottom
+                - Need to study & try, as it may be something worth using.  On
+                Mac, a web page on brew recommended using pyenv.
+            - pyenv
+                - https://github.com/pyenv/pyenv
+                - Note it doesn't depend on python, as it's written in shell
+                scripts
+                - Intercepts python commands and works with shim executables
+                (things injected at the beginning of PATH) to send your
+                commands to the correct python installation.
 
     - Physical problems
         - Use python scripts to solve elementary physical problems.
