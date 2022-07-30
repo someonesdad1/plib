@@ -1,16 +1,14 @@
 Active
     
     - WaveXpress
-        - I now have python 3.9 installed with numpy.  This should be
-          enough to do development to bring WaveXpress to python 3.
-          I should do the development work and keep track of my time, with
-          substantial detail on what needed to be done.  I'm going to guess
-          it would be $5k to $10 worth of time and if I keep excellent
-          details, someone like Jeremy could look at them and judge whether
-          all the work seems reasonable.  If I could keep it to $2k to $4k,
-          then there's a good chance Jorg would jump at it and there would
-          be more work porting things to work with new instrumentation,
-          especially recorders.
+        - Try to port to python 3
+        - Keep track of time
+        - Two strategies
+            - Convert to python 3.10
+                - No dialog tool
+            - Convert to C++ (wxWidgets)
+                - Has dialog tool
+                - Probably no dependencies
 
     - Repositories
         - /doc needs to be converted to git.  Note the damn thing is 0.6
@@ -105,6 +103,14 @@ Other
                 - Intercepts python commands and works with shim executables
                 (things injected at the beginning of PATH) to send your
                 commands to the correct python installation.
+        - pyenv is a tool to install various python versions and switch to 
+          them, using the PATH shim method like virtualenv.  
+            - https://learnpython.com/blog/change-python-versions/ is an
+              intro
+            - A key is to see if pyenv and virtualenv are independent and
+              compatible.
+            - If this works, then I'd like to have 3.7, 3.9, and the latest
+              3.10 on my system.
 
     - Physical problems
         - Use python scripts to solve elementary physical problems.
@@ -1091,4 +1097,53 @@ Tabulation tool
 
     Desired features
         - Specify spacings between columns (either fixed or irregular)
-        - Specify strings between columns
+        - Specify strings between columns for borders (they can be
+          considered another column)
+        - Fill to a given screen width, truncate columns to fit, or raise
+          exception that it won't fit
+        - Line up decimal points for reports
+        - Coalesced columns?  Complicated; other formatters like pandoc
+          often don't support.
+
+Shamrock survey
+
+    - Benchmarks
+        - bma = Primary = in center of Edna/Shamrock intersection
+        - Secondary
+            - bmb0 = center of well
+            - bmb1 = Entrance to driveway on Edna
+                - Need photo of spot on concrete
+            - bmb2 = Southernmost metal gate pole on west side
+            - bmb3 = Farthest east wooden fence post on south side
+            - bmb4 = Street sign near bmb3
+            - bmb5 = Farthest northwest wooden fence post
+            - bmb6 = Street sign next to bmb5
+            - bmb7 = Southeasternmost corner of fence gate cement pad
+        - Tertiary
+            - bmt1 = SW corner of gray building foundation
+            - bmt2 = NW corner of cement slab
+            - bmt3 = NW corner of patio
+            - Corners of house foundation
+    - Layout of lawn
+    - Location of sprinklers
+    - Building location
+    - Use sighting compass to take magnetic bearings of things.
+        - Calibrate compass by dropping a vertical from the north star
+        - As of 2022, Polaris' mean declination is 89.35 degrees, so
+          calibration of the compass will be better than 1 degree
+        - This will be done with two strings on plumb bobs, one adjustable.
+          Then the next day the compass will be sighted along the two
+          strings and adjusted to read true north.  Then it will be
+          calibrated for the current magnetic declination.
+    - This will be worth a reference document explaining techniques.  The
+      resulting python script could be turned into a library module based
+      on g.py that allows people to plot their own surveys.  Some key
+      graphic components would be
+        - Benchmarks, primary and secondary
+        - Buildings
+        - Cement pads
+        - Plants, fence posts, sprinklers
+        - Layers could be used for different features.  For example, the
+          electrical layer would show known cables.  The sprinkler layer
+          would show valves, sprinklers, pump, wires.  Etc.
+    - This survey would get archived on git

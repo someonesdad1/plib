@@ -1,16 +1,14 @@
 Active
     
     - WaveXpress
-        - I now have python 3.9 installed with numpy.  This should be
-          enough to do development to bring WaveXpress to python 3.
-          I should do the development work and keep track of my time, with
-          substantial detail on what needed to be done.  I'm going to guess
-          it would be $5k to $10 worth of time and if I keep excellent
-          details, someone like Jeremy could look at them and judge whether
-          all the work seems reasonable.  If I could keep it to $2k to $4k,
-          then there's a good chance Jorg would jump at it and there would
-          be more work porting things to work with new instrumentation,
-          especially recorders.
+        - Try to port to python 3
+        - Keep track of time
+        - Two strategies
+            - Convert to python 3.10
+                - No dialog tool
+            - Convert to C++ (wxWidgets)
+                - Has dialog tool
+                - Probably no dependencies
 
     - Repositories
         - /doc needs to be converted to git.  Note the damn thing is 0.6
@@ -105,6 +103,14 @@ Other
                 - Intercepts python commands and works with shim executables
                 (things injected at the beginning of PATH) to send your
                 commands to the correct python installation.
+        - pyenv is a tool to install various python versions and switch to 
+          them, using the PATH shim method like virtualenv.  
+            - https://learnpython.com/blog/change-python-versions/ is an
+              intro
+            - A key is to see if pyenv and virtualenv are independent and
+              compatible.
+            - If this works, then I'd like to have 3.7, 3.9, and the latest
+              3.10 on my system.
 
     - Physical problems
         - Use python scripts to solve elementary physical problems.

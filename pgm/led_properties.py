@@ -61,10 +61,10 @@ if 1:   # Imports
     import os
     import sys
     from pdb import set_trace as xx 
-if 0:   # For plotting
+if 1:   # For plotting
     # For plots
     from pylab import *
-    if 0:   # banggood 5 mm LEDs
+    if 1:   # banggood 5 mm LEDs
         P = plot
         P = semilogx
         P = loglog

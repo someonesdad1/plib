@@ -144,7 +144,7 @@ if 1:   # Header
     # Global variables
         ii = isinstance
         # This is commented out until I get rid of the legacy klr stuff
-        ##__all__ = "Color Trm TRM ColorName CN RegexpDecorate".split()
+        #__all__ = "Color Trm TRM t ColorName CN RegexpDecorate".split()
 class Color:
     'Storage of the three numbers used to define a color'
     bits_per_color = 8
@@ -1424,6 +1424,7 @@ CN.load("c:/cygwin/plib/colornames0")
 
 # Define default Trm instance
 TRM = Trm()
+t = TRM     # I use 't' so much it should be defined
 TRM.cn = CN
 
 class RegexpDecorate:
