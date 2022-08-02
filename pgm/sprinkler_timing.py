@@ -79,7 +79,6 @@ if 1:   # Utility
                 debug.SetDebugger()
         return args
 if 1:   # Core functionality
-
     class Sprinklers:
         def __init__(self, budget=100):
             self.budget = budget
@@ -93,31 +92,48 @@ if 1:   # Core functionality
             self.circuit_on_index = self.CircuitOn()
             self.Report()
         def GetTiming(self):
-            'Return tuple of cumulative timings in hours'
+            '''Return tuple of sprinkler timing
+                (ckt_name, time_min, adj_time_hr, cumul_time_hr)
+            '''
             b, adj = 70, self.budget/100
-            a = (
-                # (Circuit identifier, time in minutes)
-                ("1 & 3", adj*b),
-                ("2", adj*b),
-                ("4", adj*(b + 10)),
-                ("5", adj*(b + 10)),
-                ("6", adj*(b + 10)),
-                ("7 & 8", adj*b),
-                ("9", adj*(b + 10)),
-            )
-            out = []
+            a = [
+                # (ckt_name, time_min, adj_time_hr, cumul_time_hr)
+                ["1 & 3", adj*b       , 0, 0],
+                ["2",     adj*b       , 0, 0],
+                ["4",     adj*(b + 10), 0, 0],
+                ["5",     adj*(b + 10), 0, 0],
+                ["6",     adj*(b + 10), 0, 0],
+                ["7 & 8", adj*(b + 20), 0, 0],
+                ["9",     adj*(b + 10), 0, 0],
+            ]
+            # Fill in last two columns
             for i in range(len(a)):
-                ckt = a[i][0]
+                ckt_name, time_min, adj_time_hr, cumul_time_hr = a[i]
+                adj_time_hr = flt(time_min/60)
+                a[i] = [ckt_name, time_min, adj_time_hr, cumul_time_hr]
                 csum = 0
                 for j in range(i):
-                    csum += a[j][1]
-                out.append((ckt, flt(csum/60)))
+                    csum += a[j][2]
+                a[i][3] = csum
+            for i in range(len(a)):
+                a[i] = tuple(a[i])
+            a = tuple(a)
             if 1:
-                flt(0).f = 1
-                print("Cumulative timings:")
-                pp(out)
-                flt(0).f = 0
-            return out
+                print("Timing data:")
+                ind, w = " "*4, 12
+                # Print header
+                print(f"{ind}", end="")
+                print(f"{'Circuit':^{w}s}", end="")
+                print(f"{'Minutes':^{w}s}", end="")
+                print(f"{'Hr':^{w}s}", end="")
+                print(f"{'CumulHr':^{w}s}")
+                # Print data
+                for i in range(len(a)):
+                    print(f"{ind}", end="")
+                    for j in range(len(a[i])):
+                        print(f"{a[i][j]!s:^{w}s}", end="")
+                    print()
+            return a
         def CircuitOn(self):
             '''Return the circuit index that's on.  on_hour and current_time are
             decimal hours.  If no circuit is on, return -1.
@@ -145,11 +161,10 @@ if 1:   # Core functionality
             }
         def Report(self):
             'Print schedule.  If a sprinkler is on, color highlight it.'
-            if 0 and self.day in schedule:
-                # The sprinklers might be on today.  Get the current time in hours.
-                if circuit_on:
-                    print(f"Circuit {circuit_on} is on")
-            breakpoint() #xx
+            on_index = self.CircuitOn()
+            if on_index != -1:
+                print("on_index =", on_index)
+            exit() #xx
             
 if __name__ == "__main__":
     bset = list(range(10, 101, 10))  # Allowed budget settings
