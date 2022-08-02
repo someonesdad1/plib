@@ -1,12 +1,50 @@
 Active
 
+    - Getting a working python environment
+        - Most of my tools require a POSIX-type scripting behavior from
+          python, meaning they need to recognize paths like /doc/t.py.
+        - The past approach has been to define PYTHON, PYTHONLIB, etc. on
+          each change of the python interpreter.  This doesn't work for
+          using WinPython because of fundamental pathlib.Path problems.
+            - One fix could be to always make paths of the form
+              d:/cygwin64/doc/t.py instead of the above.  This works, but
+              means many changes in functions, scripts, etc.
+            - Another fix would be to define PYTHONcyg and PYTHONwp.
+              PYTHONcyg would always be a late-model cygwin python 3
+              version and would be the tool to run all the utility scripts.  
+                - PYTHONcyg=/usr/bin/python
+                - PYTHONwp=d:/bin/winpython64/WPy64-31040
+        - Sourcing py3 in ~/bin scripts works well, as nearly all of these
+          use cygwin python.  The remaining issue is in my functions and
+          aliases.  For example, the g function breaks when python is set
+          to WinPython.  
+
+    - Running my apps under WinPython
+        - Fundamental problem is translating e.g. "/home/Don/.gotorc" to
+          the needed "d:/cygwin64//home/Don/.gotorc".  Things work when
+          this translation is made and PYTHONLIB is set to
+          "d:/cygwin64/plib".
+        - Can some kind of impedance matching be done for WinPython such
+          that this is done automatically by e.g. something in
+          ~/.pythonstart?
+        - Ideally, this would only need to modify the Path constructor.  If
+          it saw "/" at the beginning of a path string, it would change it
+          to "d:/cygwin64".
+
+    - Late python versions
+        - WinPython is 3.10.4
+        - cygwin is 3.8.12
+        - In h file for pathlib, update to 3.8.12.  Note 3.10.4 has
+          additional stuff over 3.8.12.
+
     - numpy/scipy/matplotlib app
         - Write a script that proves that these three tools are installed
           and running correctly.
         - Running /plib/pgm/thermal_emf.py is one good test
         - I'd like to see an example that compares the thermocouple
           polynomials to a linear interpolation using scipy for all the
-          tabulated TC data.
+          tabulated TC data.  These would be scatter plots of the reference
+          tables to the polynomial predictors.
 
     - Class attribute printer mixin
         - I need a tool that will display the attributes of a class
@@ -1143,4 +1181,3 @@ Shamrock survey
           would show valves, sprinklers, pump, wires.  Etc.
     - This survey would get archived on github so it can't be lost
 
-                                                                                                                                                                                                                
