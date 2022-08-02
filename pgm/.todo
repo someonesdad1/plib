@@ -1,20 +1,14 @@
 Active
-    
-    - WaveXpress
-        - Try to port to python 3
-        - Keep track of time
-        - Two strategies
-            - Convert to python 3.10
-                - No dialog tool
-            - Convert to C++ (wxWidgets)
-                - Has dialog tool
-                - Probably no dependencies
 
-    - Repositories
-        - /doc needs to be converted to git.  Note the damn thing is 0.6
-          GB, so it may make most sense to start fresh.
-    
-    - pprint extension
+    - numpy/scipy/matplotlib app
+        - Write a script that proves that these three tools are installed
+          and running correctly.
+        - Running /plib/pgm/thermal_emf.py is one good test
+        - I'd like to see an example that compares the thermocouple
+          polynomials to a linear interpolation using scipy for all the
+          tabulated TC data.
+
+    - Class attribute printer mixin
         - I need a tool that will display the attributes of a class
           instance.  The majority of the time you want it to display
           "normal" attributes like self.variable and have it ignore the
@@ -23,14 +17,6 @@ Active
           include and exclude the things you want to see.  Then at a
           breakpoint you'd do something like qq(myvar) and it would produce
           a pretty-printed dump of the attributes.
-
-    - pudb.py
-        - pip3 install pudb
-        - Curses-based debugger started 2009
-        - https://pypi.org/project/pudb/
-        - You can get the git development version at bottom of page
-        - A real advantage is that it would fit nicely on my landscape
-          monitor, giving you the whole screen for working.
 
     - chk.py
         - Simple utility to check that a python script uses no tab
@@ -57,31 +43,32 @@ Active
                 - Move existing col(*n) to columns(*n) and row(*n) to
                   rows(*n)
 
-    - GSL
-        - Surprisingly, this built perfectly on both the 32 bit and 64 bit
-          cygwin systems (I expected compilation problems).
-        - Python bindings:  https://github.com/pygsl/pygsl.  It needs
-          numpy, but that's OK now with 3.9.
-        - Specialized python modules
-            - Subsets of GSL could be used for the modules
-            - Use the DLL method like done for prob.py/cephes, as it works
-              quite well.
-            - Nice features
-                - Return flt objects for easy use.
-                - flt.err can contain estimated error, as GSL functions
-                  make an estimate.
-
 Other
+
+    - WaveXpress
+        - Try to port to python 3
+        - Keep track of time
+        - Two strategies
+            - Convert to late python 3 version
+                - Severe problem:  no dialog tool
+            - Convert to C++ (wxWidgets)
+                - Has dialog tool
+                - Probably no dependencies
+                - A quick study showed wxPython and wxWidget calls have the
+                  same name, so most of the work will be in 1) updating 10
+                  year old stuff and 2) converting to C++ data structures.
 
     - Current python libraries that might be worth looking at
         - reportlab module 3.6.3 in python 3.9.10
-            - This is a PDF module that clearly builds on the PS language
-            - Intro at https://pythonassets.com/posts/create-pdf-documents-in-python-with-reportlab/
+            - This is a PDF module that looks like it builds on the PS
+              language
+            - Intro at
+              https://pythonassets.com/posts/create-pdf-documents-in-python-with-reportlab/
             - Docs https://docs.reportlab.com/
                 - https://docs.reportlab.com/reportlab/userguide/ch2_graphics/
             - I was going to delete this, but it's a python library for
-            producing PDF files.  It might make sense to use it as a back end
-            for the g library.
+              producing PDF files.  It might make sense to use it as a back
+              end for the g library.
             - It uses Pillow to insert images.
             - Handy grid() function to make grids.
         - prompt_toolkit
@@ -93,24 +80,22 @@ Other
               doesn't depend on python.
             - virtualenv
                 - https://virtualenv.pypa.io/en/latest/
-                    - See tutorials at bottom
-                - Need to study & try, as it may be something worth using.  On
-                Mac, a web page on brew recommended using pyenv.
+                - Primary use case is to let a project have a python set of
+                  modules customized for that project.  Pretty lightweight
+                  and easy to use.
             - pyenv
                 - https://github.com/pyenv/pyenv
-                - Note it doesn't depend on python, as it's written in shell
-                scripts
-                - Intercepts python commands and works with shim executables
-                (things injected at the beginning of PATH) to send your
-                commands to the correct python installation.
-        - pyenv is a tool to install various python versions and switch to 
-          them, using the PATH shim method like virtualenv.  
-            - https://learnpython.com/blog/change-python-versions/ is an
-              intro
-            - A key is to see if pyenv and virtualenv are independent and
-              compatible.
-            - If this works, then I'd like to have 3.7, 3.9, and the latest
-              3.10 on my system.
+                - Primary use case is to manage multiple installations of
+                  python.
+                - pyenv is a tool to install various python versions and
+                  switch to them, using the PATH shim method like
+                  virtualenv.  
+                - https://learnpython.com/blog/change-python-versions/ is
+                  an intro
+                - A key is to see if pyenv and virtualenv are independent
+                  and compatible.
+                - If this works, then I'd like to have 3.7, 3.9, and the
+                  latest 3.10 on my system.
 
     - Physical problems
         - Use python scripts to solve elementary physical problems.
@@ -1055,6 +1040,16 @@ Other
               desired)
             - '{' and '}' define python code blocks
 
+Computing goals
+
+    - Interface
+        - I want a UNIX-like environment to work in, as I spend most of my
+          time in a bash/vim environment.
+        - cygwin is at the end of its life and it has always been a niche
+          application.  With WSL available, it's even a tinier niche.
+        - I'd prefer to have one hardware box running
+        - My choice at the moment is either WSL2 or a VM
+
 Tabulation tool
 
     - https://pypi.org/project/tabulate/ has some ideas.  Basically, it
@@ -1146,4 +1141,6 @@ Shamrock survey
         - Layers could be used for different features.  For example, the
           electrical layer would show known cables.  The sprinkler layer
           would show valves, sprinklers, pump, wires.  Etc.
-    - This survey would get archived on git
+    - This survey would get archived on github so it can't be lost
+
+                                                                                                                                                                                                                

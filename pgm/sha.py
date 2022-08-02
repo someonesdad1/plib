@@ -29,9 +29,9 @@ def Usage(status=1):
       Calculate the hash of the given files.  Use '-' for stdin.  If a
       command line argument is a directory, it's silently ignored.
     Options:                        Bits in hash
-        -1      SHA-1 (default)            160
+        -1      SHA-1                      160
         -2      SHA-224                    224
-        -3      SHA-256                    256
+        -3      SHA-256 (default)          256
         -4      SHA-384                    384
         -5      SHA-512                    512
         -6      MD5                        128
@@ -83,7 +83,7 @@ def ParseCommandLine():
         Usage()
     num = sum([d[i] for i in L])
     if not num:
-        d["-1"] = True      # Use SHA1 by default
+        d["-3"] = True      # Use SHA256 by default
     d["more_than_one"] = num > 1
     return files
 def GetHash(Bytes, method):

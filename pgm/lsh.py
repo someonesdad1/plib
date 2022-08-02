@@ -26,12 +26,11 @@ if 1:   # Imports
 if 1:   # Custom imports
     from wrap import dedent
     old_color = 0
-    if old_color:
-        from kolor import fg, normal, SetStyle, lblue, lcyan, lgreen, lred, red
-        from kolor import white, yellow
-    else:
-        from color import TRM as t
+    from color import TRM as t
     from columnize import Columnize
+    if 0:
+        import debug
+        debug.SetDebugger()
 if 1:   # Global variables
     # Mercurial installation
     if 0:
