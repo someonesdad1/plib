@@ -1,29 +1,24 @@
 Active
 
-    - Ghostview is here:  https://www.itl.nist.gov/div898/software/dataplot/ftp/win_vista/homepage.htm
-        - This may be the long-lost version I loved.
-        - It also needs Ghostscript, also on that page.
+    - chk organizer
+        - This runs pycodestyle on python scripts.  It's thorough and
+          helpful, but the output is verbose.
+        - Process each line and index it by the error/warning number.  Then
+          print out the report by listing the line:column numbers where the
+          problem is after the number.
+
+    - numpy
+        - Now that I have working numpy/scipy installations, run the MLR
+          code on the NIST test cases to see how badly they perform.
+
+    - pgm/ds.py
+        - Needs to have a mechanism to ignore a set of files or directories
+          in the project root directory.  This is amply illustrated by
+          installing the HTML files for scipy, which now gives a list of
+          nearly 5000 files when you search for scipy.
+            - Model this on .gitignore 
 
     - /pylib/xfmpy needs to port to /plib
-        
-
-    - Running my apps under WinPython
-        - Fundamental problem is translating e.g. "/home/Don/.gotorc" to
-          the needed "d:/cygwin64//home/Don/.gotorc".  Things work when
-          this translation is made and PYTHONLIB is set to
-          "d:/cygwin64/plib".
-        - Can some kind of impedance matching be done for WinPython such
-          that this is done automatically by e.g. something in
-          ~/.pythonstart?
-        - Ideally, this would only need to modify the Path constructor.  If
-          it saw "/" at the beginning of a path string, it would change it
-          to "d:/cygwin64".
-
-    - Late python versions
-        - WinPython is 3.10.4
-        - cygwin is 3.8.12
-        - In h file for pathlib, update to 3.8.12.  Note 3.10.4 has
-          additional stuff over 3.8.12.
 
     - numpy/scipy/matplotlib app
         - Write a script that proves that these three tools are installed
@@ -33,6 +28,10 @@ Active
           polynomials to a linear interpolation using scipy for all the
           tabulated TC data.  These would be scatter plots of the reference
           tables to the polynomial predictors.
+        - On the Mac, using miniconda was a dream to install these apps.
+          This is now my preferred method, but alas it won't interoperate
+          with cygwin.  This is a fundamental driver to update Windows to
+          11 and switch to WSL2.
 
     - Class attribute printer mixin
         - I need a tool that will display the attributes of a class
@@ -130,6 +129,16 @@ Other
               unit time (power) in W, h is the average heat transfer
               coefficient in W/(m2*K), A is the surface area in m2, and
               ΔT = (T(t) - Tenvironment) in K.
+
+    - Ghostview is here:  https://www.itl.nist.gov/div898/software/dataplot/ftp/win_vista/homepage.htm
+        - This may be the long-lost version I liked.
+        - It also needs Ghostscript, also on that page.
+        - Unfortunately, the Ghostscript install is 64 bit, but Ghostview
+          looks for a 32 bit DLL.  Also, it requires registration to
+          eliminate an annoying nag screen.
+            - Maybe the binary can be hacked to change the DLL name, but it
+              will probably crash.
+            - Next option is to look for a 32 bit Ghostscript.
 
     - prob.py
         - Add classes for statistical tests:  confidence intervals for

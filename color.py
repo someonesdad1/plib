@@ -235,7 +235,7 @@ class Color:
             if first_char == "@":
                 rgbdec = colorsys.hsv_to_rgb(*dec)
             elif first_char == "#":
-                rgbdec= dec
+                rgbdec = dec
             elif first_char == "$":
                 rgbdec = colorsys.hls_to_rgb(*dec)
             else:
@@ -718,7 +718,7 @@ class Color:
                     return Color(a, a, a)
                 r = g = b = 0.0
                 # Red component
-                if nm >=  400 and nm < 410:
+                if nm >= 400 and nm < 410:
                     t = (nm - 400)/(410 - 400)
                     r = 0.33*t - 0.2*t*t
                 elif nm >= 410 and nm < 475: 
@@ -726,7 +726,7 @@ class Color:
                     r = 0.14 - 0.13*t*t
                 elif nm >= 545 and nm < 595: 
                     t = (nm - 545)/(595 - 545)
-                    r =  1.98*t - t*t
+                    r = 1.98*t - t*t
                 elif nm >= 595 and nm < 650:
                     t = (nm - 595)/(650 - 595)
                     r = 0.98 + 0.06*t - 0.4*t*t
