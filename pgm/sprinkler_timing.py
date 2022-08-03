@@ -34,7 +34,7 @@ if 1:   # Header
         W = int(os.environ.get("COLUMNS", "80")) - 1
         L = int(os.environ.get("LINES", "50"))
         from color import t
-        t.budget = t("purl")
+        t.timing = t("lavl")
 if 1:   # Utility
     def Error(*msg, status=1):
         print(*msg, file=sys.stderr)
@@ -53,14 +53,15 @@ if 1:   # Utility
         exit(status)
     def ParseCommandLine(d):
         d["-b"] = 100       # Budget setting in % (10% units)
+        d["-v"] = False     # Verbose
         try:
-            opts, args = getopt.getopt(sys.argv[1:], "b:h", 
+            opts, args = getopt.getopt(sys.argv[1:], "b:hv", 
                     ["help", "debug"])
         except getopt.GetoptError as e:
             print(str(e))
             exit(1)
         for o, a in opts:
-            if o[1] in list(""):
+            if o[1] in list("v"):
                 d[o] = not d[o]
             elif o in ("-b",):
                 try:
@@ -88,7 +89,10 @@ if 1:   # Core functionality
             now_tt = now.timetuple()
             self.current_time = now_tt.tm_hour + now_tt.tm_min/60 + now_tt.tm_sec/3600
             self.day = now_tt.tm_wday        # Monday == 1
-            self.on_hour = self.schedule[self.day]
+            try:
+                self.on_hour = self.schedule[self.day]
+            except KeyError:
+                self.on_hour = None
             self.circuit_on_index = self.CircuitOn()
             self.Report()
         def GetTiming(self):
@@ -118,8 +122,8 @@ if 1:   # Core functionality
             for i in range(len(a)):
                 a[i] = tuple(a[i])
             a = tuple(a)
-            if 1:
-                print("Timing data:")
+            if d["-v"]:
+                print(f"{t.timing}Sprinkler timing data:")
                 ind, w = " "*4, 12
                 # Print header
                 print(f"{ind}", end="")
@@ -133,6 +137,7 @@ if 1:   # Core functionality
                     for j in range(len(a[i])):
                         print(f"{a[i][j]!s:^{w}s}", end="")
                     print()
+                t.out("")
             return a
         def CircuitOn(self):
             '''Return the circuit index that's on.  on_hour and current_time are

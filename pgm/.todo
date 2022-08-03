@@ -1,23 +1,11 @@
 Active
 
-    - Getting a working python environment
-        - Most of my tools require a POSIX-type scripting behavior from
-          python, meaning they need to recognize paths like /doc/t.py.
-        - The past approach has been to define PYTHON, PYTHONLIB, etc. on
-          each change of the python interpreter.  This doesn't work for
-          using WinPython because of fundamental pathlib.Path problems.
-            - One fix could be to always make paths of the form
-              d:/cygwin64/doc/t.py instead of the above.  This works, but
-              means many changes in functions, scripts, etc.
-            - Another fix would be to define PYTHONcyg and PYTHONwp.
-              PYTHONcyg would always be a late-model cygwin python 3
-              version and would be the tool to run all the utility scripts.  
-                - PYTHONcyg=/usr/bin/python
-                - PYTHONwp=d:/bin/winpython64/WPy64-31040
-        - Sourcing py3 in ~/bin scripts works well, as nearly all of these
-          use cygwin python.  The remaining issue is in my functions and
-          aliases.  For example, the g function breaks when python is set
-          to WinPython.  
+    - Ghostview is here:  https://www.itl.nist.gov/div898/software/dataplot/ftp/win_vista/homepage.htm
+        - This may be the long-lost version I loved.
+        - It also needs Ghostscript, also on that page.
+
+    - /pylib/xfmpy needs to port to /plib
+        
 
     - Running my apps under WinPython
         - Fundamental problem is translating e.g. "/home/Don/.gotorc" to
@@ -1176,8 +1164,4 @@ Shamrock survey
         - Buildings
         - Cement pads
         - Plants, fence posts, sprinklers
-        - Layers could be used for different features.  For example, the
-          electrical layer would show known cables.  The sprinkler layer
-          would show valves, sprinklers, pump, wires.  Etc.
-    - This survey would get archived on github so it can't be lost
-
+        - Layers could be used for different feature
