@@ -20,6 +20,8 @@ if 1:   # Header
         from pathlib import Path as P
         import sys
         from pdb import set_trace as xx
+        from pprint import pprint as pp
+        from collections import defaultdict
     # Custom imports
         from get import GetLines
         from wrap import wrap, dedent
@@ -29,6 +31,11 @@ if 1:   # Header
         ii = isinstance
         W = int(os.environ.get("COLUMNS", "80")) - 1
         L = int(os.environ.get("LINES", "50"))
+        # List of colors to use for filenames to make them easier to
+        # distinguish
+        C = sorted('''brnl redl ornl yell grnl blul viol whtl cynl magl pnkl
+               lipl lavl lill purl royl denl skyl trql seal
+               olvl'''.split())
 if 1:   # Utility
     def Error(*msg, status=1):
         print(*msg, file=sys.stderr)
@@ -65,7 +72,8 @@ if 1:   # Utility
 if 1:   # Core functionality
     def ProcessLines(lines):
         'Return a dict of the lines keyed by error/warning number'
-        di = {}
+        global names
+        di = defaultdict(list)
         for line in lines:
             line = line.strip()
             if not line:
@@ -73,16 +81,39 @@ if 1:   # Core functionality
             f = line.split(":")
             Assert(len(f) in (4, 5))
             file = f[0]
-            if d["-c"]:
-                linenum = f"{int(f[1])}:{int(f[2])}"
-            else:
-                linenum = f"{int(f[1])}"
+            linenum = f"{int(f[1])}:{int(f[2])}"
             # Get error/warning and description
             g = ''.join(f[3:]).strip().split()
-            errn = g[0]
+            errn = g[0].strip()
             descr = ' '.join(g[1:]).strip()
-            if 1:
+            names[errn] = descr
+            if 0:
                 print(file, linenum, errn, repr(descr))
+            # Add to dict
+            di[errn].append((file, linenum, descr))
+        # Get rid of duplicates by making each entry a set
+        for i in di:
+            di[i] = tuple(set(di[i]))
+        # Collapse data so that each errnum has a dict keyed by filename
+        # and a list of line numbers the error was on
+        for i in di:
+            tup = di[i]
+            di[i] = {}
+            linenums = []
+            for j in tup:
+                file, linenum = j[0], j[1]
+                linenums.append(linenum)
+            linenums = tuple(set(linenums))
+            di[i][file] = linenums
+        if 0:
+            pp(di, compact=1)
+        return di
+    def Report(di):
+        for err in sorted(di):
+            print(f"{err} {names[err]}")
+            for i in di[err]:
+                print(f"  {i}:  {' '.join(di[err][i])}")
+                # xx Need to print only line numbers unless -c given
 
 if __name__ == "__main__":
     d = {}      # Options dictionary
@@ -97,4 +128,7 @@ if __name__ == "__main__":
     if 0:
         for i in lines:
             print(i)
+    # Dict for error/warning num: description
+    names = {}
     di = ProcessLines(lines)
+    Report(di)

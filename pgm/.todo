@@ -1171,4 +1171,10 @@ Shamrock survey
       graphic components would be
         - Benchmarks, primary and secondary
         - Buildings
-        - 
+        - Cement pads
+        - Plants, fence posts, sprinklers
+        - Layers could be used for different features.  For example, the
+          electrical layer would show known cables.  The sprinkler layer
+          would show valves, sprinklers, pump, wires.  Etc.
+    - This survey would get archived on github so it can't be lost
+
