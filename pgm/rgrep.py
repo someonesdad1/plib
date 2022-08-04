@@ -436,7 +436,7 @@ def ListFiles():
                     mo_list = LineMatch(line, d["cmd_regexps"])
                     if mo_list:
                         matches.append((file, len(mo_list)))
-                        break;
+                        break
             except Exception as e:
                 Debug(f"Exception:  {repr(e)}")
                 print(f"Can't process file '{file}':", file=sys.stderr)

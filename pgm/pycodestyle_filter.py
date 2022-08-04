@@ -1,4 +1,14 @@
 '''
+
+TODO
+    - Colorize the egregiousness of the various errors
+        - Errors
+            - Important (redl): 401 402 701 702 703 704 722 901 902 
+            - Notable (ornl): 711 712 713 714 731 741 742 743 
+        - Warnings
+            - Important (purl): 191
+            - Notable (sky): 601-606
+
 Filter output of pycodestyle to a more compact representation
 '''
 if 1:   # Header
@@ -24,34 +34,43 @@ if 1:   # Header
         from collections import defaultdict
     # Custom imports
         from get import GetLines
-        from wrap import wrap, dedent
+        from wrap import wrap, dedent, HangingIndent
         from lwtest import Assert
         from color import Color, TRM as t
     # Global variables
         ii = isinstance
         W = int(os.environ.get("COLUMNS", "80")) - 1
         L = int(os.environ.get("LINES", "50"))
-        # List of colors to use for filenames to make them easier to
-        # distinguish
-        C = sorted('''brnl redl ornl yell grnl blul viol whtl cynl magl pnkl
-               lipl lavl lill purl royl denl skyl trql seal
-               olvl'''.split())
+        # Colorizing errors & warnings
+        errors_important = set("E401 E402 E701 E702 E704 E722 E901 E902".split())
+        errors_notable = set("E703 E711 E712 E713 E714 E731 E741 E742 E743".split())
+        warnings_important = set("W191".split())
+        warnings_notable = set("W601 W602 W603 W604 W605 W606".split())
+        # Make a dict of errors/warnings that need colorizing
+        clr = {}
+        for i in errors_important:
+            clr[i] = t("redl")
+        for i in errors_notable:
+            clr[i] = t("ornl")
+        for i in warnings_important:
+            clr[i] = t("purl")
+        for i in warnings_notable:
+            clr[i] = t("royl")
 if 1:   # Utility
     def Error(*msg, status=1):
         print(*msg, file=sys.stderr)
         exit(status)
     def Usage(status=1):
         print(dedent(f'''
-        Usage:  {sys.argv[0]} [options] etc.
-          Explanations...
+        Usage:  {sys.argv[0]} [options] [files]
+          Filter the output of pycodestyle to make it more compact.
+          Use '-' to filter stdin.
         Options:
-            -h      Print a manpage
+            -c      Include the column numbers in the output lines
         '''))
         exit(status)
     def ParseCommandLine(d):
         d["-c"] = False     # Include column numbers
-        #if len(sys.argv) < 2:
-        #    Usage()
         try:
             opts, args = getopt.getopt(sys.argv[1:], "ch", 
                     ["help", "debug"])
@@ -79,7 +98,7 @@ if 1:   # Core functionality
             if not line:
                 continue
             f = line.split(":")
-            Assert(len(f) in (4, 5))
+            Assert(len(f) > 3)
             file = f[0]
             linenum = f"{int(f[1])}:{int(f[2])}"
             # Get error/warning and description
@@ -92,28 +111,50 @@ if 1:   # Core functionality
             # Add to dict
             di[errn].append((file, linenum, descr))
         # Get rid of duplicates by making each entry a set
-        for i in di:
-            di[i] = tuple(set(di[i]))
+        for errn in di:
+            di[errn] = list(set(di[errn]))
         # Collapse data so that each errnum has a dict keyed by filename
         # and a list of line numbers the error was on
-        for i in di:
-            tup = di[i]
-            di[i] = {}
+        for errn in di:
+            tup = di[errn]
+            di[errn] = defaultdict(list)
             linenums = []
-            for j in tup:
-                file, linenum = j[0], j[1]
-                linenums.append(linenum)
-            linenums = tuple(set(linenums))
-            di[i][file] = linenums
+            for i in tup:
+                file, linenum = i[0], i[1]
+                di[errn][file].append(linenum)
         if 0:
             pp(di, compact=1)
         return di
     def Report(di):
+        def RemoveColumnNumbers(lst, uniq=False):
+            for i, item in enumerate(lst):
+                if ":" in item:
+                    lst[i] = item.split(":")[0]
+            if uniq:
+                lst = list(sorted(set(lst)))
+            return lst
+        fl_ind = " "*2
         for err in sorted(di):
+            if err in clr:
+                print(f"{clr[err]}", end="")
+            else:
+                print(f"{t('skyl')}", end="")
             print(f"{err} {names[err]}")
+            t.out()
             for i in di[err]:
-                print(f"  {i}:  {' '.join(di[err][i])}")
-                # xx Need to print only line numbers unless -c given
+                if d["-c"]:
+                    # Include the column number
+                    f = lambda x: int(x.split(":")[0])
+                    items = list(sorted(di[err][i], key=f))
+                else:
+                    f = lambda x: int(x)
+                    items = list(sorted(RemoveColumnNumbers(di[err][i], 
+                                               uniq=True), key=f))
+                hdr = f"{fl_ind}{i}:  "
+                line = f"{hdr}{' '.join(items)}"
+                ind = len(hdr)
+                s = HangingIndent(line, indent=" "*ind, first_line_indent=" "*2)
+                print(s)
 
 if __name__ == "__main__":
     d = {}      # Options dictionary

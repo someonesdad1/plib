@@ -1,11 +1,21 @@
 Active
 
+    - Move notes, password db, etc. to .0rc because it's backed up to the
+      cloud
+
     - chk organizer
         - This runs pycodestyle on python scripts.  It's thorough and
           helpful, but the output is verbose.
         - Process each line and index it by the error/warning number.  Then
           print out the report by listing the line:column numbers where the
           problem is after the number.
+        - pgm/pycodestyle_filter.py is nearing completion and this will be
+          an excellent tool to vet a bunch of files.
+            - First use should be on /plib.  Goal:  get all files
+              conforming at least to my default set of guidelines.
+            - Write a script which downloads and outputs the latest list of
+              error codes from
+              https://pycodestyle.pycqa.org/en/latest/intro.html#error-codes
 
     - numpy
         - Now that I have working numpy/scipy installations, run the MLR

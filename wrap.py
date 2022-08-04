@@ -98,7 +98,6 @@ if 1:  # Copyright, license
 if 1:   # Imports
     from collections import deque
     import os
-    from pdb import set_trace as xx 
 if 1:   # Global variables
     all = '''Abbr Wrap dedent indent wrap'''.split()
 class Abbr:
@@ -352,6 +351,26 @@ def dedent(s, empty=True, leading=True, trailing=True, trim=False, n=None):
     if n:
         lines = [i[n:] for i in lines]
     return nl.join(lines)
+def HangingIndent(s, indent="", first_line_indent=""):
+    '''Return the string s wrapped so that the first line has the indicated
+    indent with the remaining lines indented uniformly.
+    '''
+    w = Wrap(indent=first_line_indent)
+    out = []
+    lines = w(s).split("\n")
+    out.append(lines[0])
+    lines.pop(0)
+    if len(lines):
+        t = '\n'.join(lines)
+        w = Wrap(indent=indent)
+        out.extend(w(t).split("\n"))
+    return '\n'.join(out)
+
+if 0:
+    s = "Return the string s wrapped so that the first line has the indicated indent with the remaining lines indented uniformly."
+    print(HangingIndent(s, indent=" "*4, first_line_indent=" "*2))
+    exit()
+
 if __name__ == "__main__": 
     # Run the selftests
     from lwtest import run, Assert
@@ -450,61 +469,67 @@ if __name__ == "__main__":
         t = w(s)
         u = "This is a:  test."
         Assert(u == t)
+    # Run the demos
+    def Demos():
+        s = '''
+            It is a truth universally acknowledged, that a single man in
+            possession of a good fortune, must be in want of a wife.
+            However little known the feelings or views of such a man may be
+            on his first entering a neighbourhood, this truth is so well
+            fixed in the minds of the surrounding families, that he is
+            considered the rightful property of some one or other of their
+            daughters.
+    
+            "My dear Mr. Bennet," said his lady to him one day, "have you
+            heard that Netherfield Park is let at last?" Mr. Bennet replied
+            that he had not.  "But it is," returned she; "for Mrs. Long has
+            just been here, and she told me all about it." "Oh!  Single, my
+            dear, to be sure!  A single man of large fortune; four or five
+            thousand a year.  What a fine thing for our girls!"  Mr. Bennet
+            was quiet.'''[1:]
+        def Sep():
+            print("-"*(wrap.width - 1))
+        def Example1():
+            print("Original text:")
+            print(s)
+        def Example2():
+            Sep()
+            w = Wrap()
+            print("Wrapped to screen width with no indent:")
+            print(w(s))
+        def Example3():
+            Sep()
+            w = Wrap()
+            print("Wrapped to width 50 with an indent of 10 (text width = 40):")
+            w.indent = " "*(10 - 1)
+            w.width = 50
+            print('''
+            1         2         3         4         5         6         7 
+    ....+....|....+....|....+....|....+....|....+....|....+....|....+....|....+....
+    '''[1:].rstrip())
+            print(w(s))
+        def Example4():
+            Sep()
+            w = Wrap()
+            print("Single space between sentences:")
+            w.indent = " "*2
+            w.ss = ""
+            w.opp = "\n"*4
+            print(w(s))
+        def Example5():
+            Sep()
+            w = Wrap()
+            print("Double line spacing, quadruple space between paragraphs:")
+            w.indent = " "*2
+            w.opp = "\n"*5
+            w.ls = "\n"*2
+            print(w(s))
+        Example1()
+        Example2()
+        Example3()
+        Example4()
+        Example5()
     if "--test" in sys.argv:
         exit(run(globals(), halt=1)[0])
-if __name__ == "__main__": 
-    # Run the demos
-    s = '''
-        It is a truth universally acknowledged, that a single man in
-        possession of a good fortune, must be in want of a wife.
-        However little known the feelings or views of such a man may be
-        on his first entering a neighbourhood, this truth is so well
-        fixed in the minds of the surrounding families, that he is
-        considered the rightful property of some one or other of their
-        daughters.
- 
-        "My dear Mr. Bennet," said his lady to him one day, "have you
-        heard that Netherfield Park is let at last?" Mr. Bennet replied
-        that he had not.  "But it is," returned she; "for Mrs. Long has
-        just been here, and she told me all about it." "Oh!  Single, my
-        dear, to be sure!  A single man of large fortune; four or five
-        thousand a year.  What a fine thing for our girls!"  Mr. Bennet
-        was quiet.'''[1:]
-    def Sep():
-        print("-"*(wrap.width - 1))
-    def Example1():
-        print("Original text:")
-        print(s)
-    def Example2():
-        Sep()
-        w = Wrap()
-        print("Wrapped to screen width with no indent:")
-        print(w(s))
-    def Example3():
-        Sep()
-        w = Wrap()
-        print("Wrapped to width 50 with an indent of 10 (text width = 40):")
-        w.indent = " "*(10 - 1)
-        w.width = 50
-        print('''
-         1         2         3         4         5         6         7 
-....+....|....+....|....+....|....+....|....+....|....+....|....+....|....+....
-'''[1:].rstrip())
-        print(w(s))
-    def Example4():
-        Sep()
-        w = Wrap()
-        print("Single space between sentences:")
-        w.indent = " "*2
-        w.ss = ""
-        w.opp = "\n"*4
-        print(w(s))
-    def Example5():
-        Sep()
-        w = Wrap()
-        print("Double line spacing, quadruple space between paragraphs:")
-        w.indent = " "*2
-        w.opp = "\n"*5
-        w.ls = "\n"*2
-        print(w(s))
-    run(globals(), regexp=r"^Example\d\d?", quiet=True)
+    else:
+        Demos()

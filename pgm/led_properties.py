@@ -150,8 +150,8 @@ if 1:   # For plotting
         text(20, 40, "Model:  lux = 6.9*i^0.775")
         text(20, 32, "Valid for 1 to 50 mA")
         show()
-    if 0: # Measure voltage across banggood $3 white LED strip's 151 ohm
-          # resistor to get section current.
+    if 0:   # Measure voltage across banggood $3 white LED strip's 151 ohm
+            # resistor to get section current.
         i_mA = array((0, 50))
         R = 151
         v = i_mA*R/1000
