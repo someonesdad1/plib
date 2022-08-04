@@ -131,8 +131,8 @@ if 1:   # Global variables
 
     BARYC = 0
     HELIOC = 1
-##----------------------------------------------------------------------
-## Added utility functions
+#----------------------------------------------------------------------
+# Added utility functions
 def mag3vec(x):
     return x[0]*x[0] + x[1]*x[1] + x[2]*x[2]
 def DumpLocals(msg, vars, names=[]):
@@ -340,8 +340,8 @@ def sun_eph(jd, ra, dec, dis):
     ra[0] = ra[0]/15.0
     dec[0] = asin(sin(emean)*sin_lon)*RAD2DEG
     return
-##----------------------------------------------------------------------
-## The remainder of the file came from the novas.c file translation.
+#----------------------------------------------------------------------
+# The remainder of the file came from the novas.c file translation.
 def app_star(tjd, earth, star, ra, dec):
     error = 0
     tdb = [0.0]

@@ -1132,7 +1132,7 @@ if __name__ == "__main__":
         assert_equal(estL2, exact_length, reltol=tol)
         # In the above, L = 4710.8, estL = 4715.5, and the exact length
         # is 4712.4.  Note the exact length is between the two
-        ## estimates.
+        # estimates.
     def Test_Archimedean_toilet_paper_roll():
         '''A roll of toilet paper has an ID of 42 mm, an OD of 130 mm,
         and a thickness of about 0.125 mm.  Each sheet is 101x96 mm with

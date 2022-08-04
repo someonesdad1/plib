@@ -125,7 +125,7 @@ class dec(decimal.Decimal):
     _e = "e"            # Letter in scientific notation (note this in the
                         # context object as "capital", but I prefer it here)
     _strict = True      # If False, allow conversion of float, etc. to dec
-                        ## for arithmetic
+                        # for arithmetic
     def __new__(cls, value="0", context=None):
         instance = super().__new__(cls, value, context=context)
         return instance
@@ -198,7 +198,7 @@ class dec(decimal.Decimal):
     # The following methods are implemented to allow dec to follow an
     # infection model.  They are the methods in Decimal that return a
     # Decimal.
-    ## --------------------------- 0 arguments ----------------------------
+    # --------------------------- 0 arguments ----------------------------
     def __abs__(self):
         return dec(super().__abs__())
     def __neg__(self):
@@ -239,7 +239,7 @@ class dec(decimal.Decimal):
         return dec(super().to_integral_exact(context=context, rounding=rounding))
     def to_integral_value(self, rounding=None, context=None):
         return dec(super().to_integral_value(context=context, rounding=rounding))
-    ## --------------------------- 1 argument -----------------------------
+    # --------------------------- 1 argument -----------------------------
     def __add__(self, value):
         value = self.convert(value, context=None)
         return dec(super().__add__(value))

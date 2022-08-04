@@ -105,7 +105,7 @@ class Stack(deque):
         homogeneous.
         '''
         return self._type
-    ## Disable unused deque methods
+    # Disable unused deque methods
     def append(self, x):                        raise self.NI
     def appendleft(self, x):                    raise self.NI
     def count(self, x):                         raise self.NI

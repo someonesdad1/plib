@@ -473,7 +473,7 @@ if 1:   # Handling the codepoints
                     print(cp, chr(cp), U.name(chr(cp)))
             else:
                 keep["oe"] = set((0xa7f9,))
-                ## I've chosen to ignore the ligatures 128624 to 128627
+                # I've chosen to ignore the ligatures 128624 to 128627
         def MultipleLetters():
             if show_orig:
                 get = ["letter [A-Z]{2,2} |letter [A-Z]{2,2}$", "digraph"]

@@ -64,7 +64,7 @@ class Tee:
     '''This behaves like an output stream object.  Run this file as a
     script to see an example.
     '''
-    ## Idea from https://shallowsky.com/blog/programming/python-tee.html
+    # Idea from https://shallowsky.com/blog/programming/python-tee.html
     def __init__(self, *streams):
         self.streams = streams
         # Check for needed methods
@@ -157,8 +157,8 @@ if __name__ == "__main__":
     from io import StringIO
     from pdb import set_trace as xx 
     class g: pass
-    ## Note:  I haven't written a test for the Tee class because I prefer to
-    ## use the Print function.
+    # Note:  I haven't written a test for the Tee class because I prefer to
+    # use the Print function.
     def TestPrint():
         '''Send output to both a file and a StringIO object and verify 
         they are the same.

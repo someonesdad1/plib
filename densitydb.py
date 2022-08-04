@@ -239,7 +239,7 @@ class Density(float):
         except Exception:
             raise ValueError(f"'{s}' is not a valid reference string")
     @classmethod
-    def GetRho(cls, s:str):
+    def GetRho(cls, s: str):
         '''s is a density string in kg/m3 or a range of such densities.  Return
         (nominal_value: float, low_high) where low_high is either None or a
         tuple of floats giving the density's range.
@@ -252,9 +252,8 @@ class Density(float):
         else:
             x = RoundOff(float(s), digits=digits)
             return (x, None)
-if 1:   # Density data:  list of Density instances
-
-    densities = [
+# Density data:  list of Density instances
+densities = [
     Density('Steam (H₂O) saturated (0 °C & 0.00603 atm)',      '0.004847',  1,    'aes 18'),
     Density('Steam (H₂O) saturated (20 °C & 0.023 atm)',       '0.01729',   1,    'aes 18'),
     Density('Hydrogen (H₂), gas, 300 K',                       '0.082',     1,    'pht'),
@@ -2252,20 +2251,20 @@ if 1:   # Density data:  list of Density instances
     Density('Osmium',                                          '22583',     3,    'asm 52'),
     Density('Osmium',                                          '22590',     3,    'tel 132'),
     Density('Osmium',                                          '22600',     3,    'aes 120'),
-    ]
+]
 
-    # These data came from https://www.simetric.co.uk/si_materials.htm
-    # downloaded 30 Apr 2022.  I made the following changes to the data:
-    #   - Density values rounded to 2 places (except for sea water)
-    #   - Spelling changed to US
-    #   - Regularized case
-    #   - Removed gasses, as state not specified
-    #   - Edited some descriptions
-    # These data are typical unattributed web material and the author
-    # probably copied a lot of its data from glo (easy to see when you
-    # print things sorted by density).  Still, there are some useful values
-    # that aren't seen elsewhere.
-    densities.extend([
+# These data came from https://www.simetric.co.uk/si_materials.htm
+# downloaded 30 Apr 2022.  I made the following changes to the data:
+#   - Density values rounded to 2 places (except for sea water)
+#   - Spelling changed to US
+#   - Regularized case
+#   - Removed gasses, as state not specified
+#   - Edited some descriptions
+# These data are typical unattributed web material and the author
+# probably copied a lot of its data from glo (easy to see when you
+# print things sorted by density).  Still, there are some useful values
+# that aren't seen elsewhere.
+densities.extend([
     Density('Alfalfa, ground',                                 '260',       0,    'sim'),
     Density('Alum, lumpy',                                     '880',       0,    'sim'),
     Density('Alum, pulverized',                                '750',       0,    'sim'),
@@ -2641,4 +2640,3 @@ if __name__ == "__main__":
         i = Get("Water, (100 °C & 1 atm)")
         Assert(i.rho == "958.4")
     exit(run(globals(), halt=1)[0])
-

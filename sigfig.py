@@ -67,11 +67,11 @@ def SigFigFloat(x, strict=False, maxsigfig=16):
  
     Trailing zero digits are removed and are not considered significant.  
     '''
-    ## Algorithm:  Change the float x to a significand with maxsigfig
-    ## digits.  Remove trailing zeros to find the number of significant
-    ## figures in the number; this assumes trailing zeros are not
-    ## significant.  Secondly, remove the last digit and then remove all
-    ## 9's or all 0's, rounding appropriately.
+    # Algorithm:  Change the float x to a significand with maxsigfig
+    # digits.  Remove trailing zeros to find the number of significant
+    # figures in the number; this assumes trailing zeros are not
+    # significant.  Secondly, remove the last digit and then remove all
+    # 9's or all 0's, rounding appropriately.
     def RemoveTrailingDigit(i, digit="0"):
         assert(ii(i, int) and i >= 0)
         s = str(i)

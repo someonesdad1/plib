@@ -154,7 +154,7 @@ class DPdb(Pdb):
         def error(self, msg):
             print(f"{t.error}", end="")
             t.print('***', msg, file=self.stdout)
-        ## This method is changed to allow more than 11 lines to be shown
+        # This method is changed to allow more than 11 lines to be shown
         def do_list(self, arg):
             '''l(ist) [first [,last] | .]
  
@@ -392,7 +392,7 @@ def set_trace(*, header=None):
         pdb.message(header)
     pdb.set_trace(sys._getframe().f_back)
 # The following two functions are needed by debug.py to let DPdb be used
-## by debug.TraceInfo(). 
+# by debug.TraceInfo(). 
 def post_mortem(t=None):
     # handling the default
     if t is None:

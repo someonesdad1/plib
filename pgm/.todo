@@ -17,6 +17,12 @@ Active
               error codes from
               https://pycodestyle.pycqa.org/en/latest/intro.html#error-codes
 
+        - https://pycodestyle.pycqa.org/en/latest/advanced.html#automated-tests
+          comments that you can build in style conformance into your
+          regression tests.  Basic method is to import pycodestyle,
+          create a style = pycodestyle.StyleGuide(quiet=True), then 
+          run style.check_files(['file1.py', 'file2.py']).
+
     - numpy
         - Now that I have working numpy/scipy installations, run the MLR
           code on the NIST test cases to see how badly they perform.

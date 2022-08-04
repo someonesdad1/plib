@@ -330,7 +330,7 @@ def dedent(s, empty=True, leading=True, trailing=True, trim=False, n=None):
     if not t:
         return ""
     if trim:
-       s = s.rstrip()
+        s = s.rstrip()
     lines = s.split(nl)   # Splitting on a newline always returns a list
     if len(lines) == 1:
         return s.lstrip()

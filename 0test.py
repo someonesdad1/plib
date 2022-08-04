@@ -100,7 +100,7 @@ if 1:   # Utility
             if o[1] in list("dqrvw"):
                 d[o] = not d[o]
         if not args:
-           Usage()
+            Usage()
         return args
     def GetLogFile():
         'Return a log file name that ends in .0test'

@@ -107,7 +107,7 @@ def _CheckParameters(f, a, b, n, neven=False):
         raise ValueError("Must have a < b")
 if __name__ == "__main__": 
     from lwtest import run, assert_equal, raises
-    ## Integrate x**2 from 0 to 3:  exact answer is 9
+    # Integrate x**2 from 0 to 3:  exact answer is 9
     def f(x):
         return x**2
     N = [10**i for i in range(1, 6)]

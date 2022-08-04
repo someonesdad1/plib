@@ -1824,7 +1824,7 @@ if __name__ == "__main__":
                 (re.compile(r"is"), x.Is)]
             PrintMatches(s, r)
         #TestLoad()             # Themes not working yet
-        ##TestRegexpDecorate()   # Not working yet
+        #TestRegexpDecorate()   # Not working yet
     def TestColor():
         def Test_adjust():
             Reset()

@@ -101,8 +101,8 @@ class Trace:
         def MyFunction():
     '''
     increment = 2           # Increment for indenting
-    indent = -increment     # How many spaces to indent.  It's negative
-                            # the increment so it starts at 0.
+    indent = -increment     # How many spaces to indent.  It's the negative
+                            # of the increment so it starts at 0.
     stream = sys.stdout     # Stream that receives the printed output
     on = False              # Set to True to get tracing output
     prefix = "+ "
@@ -535,7 +535,7 @@ if __name__ == "__main__":
     # Print samples to stdout.  After seeing the behavior, set the global
     # variable on to False (uncomment the next line) to see the debug
     # printing turned off.
-    ##on = False
+    # on = False
     def Sep():
         t.print(f"{t('purl')}{'='*(w - 10)}")
     t.ti = t("brnl")
