@@ -32,7 +32,7 @@ if 1:   # Imports
     from pdb import set_trace as xx
 if 1:   # Custom imports
     from wrap import dedent
-    from resistors import Resistors, GetClosest
+    from resistors import resistors, FindClosest
     from fpformat import FPFormat
     from f import *
     from color import C
@@ -68,7 +68,6 @@ def Usage(d, status=1):
         -E e    Use an EIA resistor set
         -h      Print a manpage (more detailed documentation)
     '''))
-    print(s)
     exit(status)
 def Manpage():
     print(dedent(f'''
@@ -303,7 +302,7 @@ def GetResistors():
         f = GetEIA()
         d["resistors"] = Resistors(EIA=f[0], powers_of_10=f[1:])
     else:
-        d["resistors"] = Resistors()  # On-hand set
+        d["resistors"] = resistors  # On-hand set
 def Fix(x):
     'Format with fpformat.fix and remove trailing zeros'
     fp = d["fp"]
@@ -352,7 +351,7 @@ def SolveSystem():
     Rclosest = []
     try:
         for r in R:
-            Rclosest.append(GetClosest(r, resistors=d["resistors"],
+            Rclosest.append(FindClosest(r, resistors=d["resistors"],
                                     series=True, parallel=True))
     except Exception:
         print(f"{g.err}The needed resistor {F(r)} is not in the resistor set{g.norm}")
@@ -425,8 +424,8 @@ def Problem2(args):
     R1 = R*(V - V1)/(V1 - V2)
     R2 = R*V2/(V1 - V2)
     try:
-        R1c = GetClosest(R1)
-        R2c = GetClosest(R2)
+        R1c = FindClosest(R1)
+        R2c = FindClosest(R2)
     except ValueError as e:
         print(str(e))
         exit(1)
