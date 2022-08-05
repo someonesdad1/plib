@@ -156,7 +156,8 @@ if __name__ == "__main__":
     from lwtest import run, raises, Assert
     from io import StringIO
     from pdb import set_trace as xx 
-    class g: pass
+    class g:
+        pass
     # Note:  I haven't written a test for the Tee class because I prefer to
     # use the Print function.
     def TestPrint():

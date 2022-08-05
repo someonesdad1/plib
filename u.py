@@ -2625,9 +2625,9 @@ if __name__ == "__main__":
         Initialize()
         # Empty string returns None (remember leading/trailing
         # whitespace is stripped off first)
-        assert(ParseUnit("   ") == None)
+        assert(ParseUnit("   ") is None)
         # A missing number also returns None
-        assert(ParseUnit("a") == None)
+        assert(ParseUnit("a") is None)
         # But include a number and you'll get it and the unit
         assert(ParseUnit("1a") == ("1", "a"))
         # You can also have it evaluated as an expression

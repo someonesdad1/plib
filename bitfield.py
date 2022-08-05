@@ -202,7 +202,7 @@ class sbitfield(object):
         tmp = self.num_bytes_in_row*self.num_rows
         try:
             retval = int(tmp)
-        except:
+        except ValueError:
             retval = tmp
         return retval
     def __eq__(self, o):

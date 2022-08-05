@@ -147,7 +147,7 @@ def DumpLocals(msg, vars, names=[]):
     for var in names:
         try:
             print("   ", var, "=", vars[var])
-        except:
+        except KeyError:
             print("   ", var, "=", g[var])
     print()
 #----------------------------------------------------------------------

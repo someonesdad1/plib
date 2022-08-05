@@ -3000,7 +3000,9 @@ if __name__ == "__main__":
         '''
         if not _have_mpmath:
             return
-        import sys, mpmath as mp, random
+        import sys
+        import mpmath as mp
+        import random
         digits, rnd_range = 20, 1000
         prec = 10*(D(10)**D(-digits)) # Relative precision decision limit
         a = rnd_range

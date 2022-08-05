@@ -30,7 +30,8 @@ if 1:   # Header
     # Global variables
         ii = isinstance
         __all__ = ["Transpose"]
-        class g: pass
+        class g:
+            pass
         g.type = None
         g.homogenous = False
         g.lock = threading.Lock()
@@ -253,7 +254,8 @@ if __name__ == "__main__":
             Assert(Transpose(Size(m)) == [[2], [3]])
         def TestIsIterable():
             # Things that are not iterables
-            class c: pass
+            class c:
+                pass
             for i in (None, {}, "", c(), range(1)):
                 Assert(not IsIterable(i))
             # Things that are iterables

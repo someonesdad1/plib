@@ -315,11 +315,16 @@ if __name__ == "__main__":
             return x[0] - 1
         Assert(list(iter_except(f, Exception)) == Range(m))
     def Test_IterSubclasses():
-        class A(object): pass
-        class B(A): pass
-        class C(A): pass
-        class D(B, C): pass
-        class E(D): pass
+        class A(object):
+            pass
+        class B(A):
+            pass
+        class C(A):
+            pass
+        class D(B, C):
+            pass
+        class E(D):
+            pass
         r = IterSubclasses(A)
         Assert(''.join([i.__name__ for i in r]) == "BDEC")
     exit(run(globals(), halt=1)[0])

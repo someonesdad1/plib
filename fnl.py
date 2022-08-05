@@ -297,7 +297,7 @@ if __name__ == "__main__":
         From pg 12 of mertz.odt.  Boolean higher order functions.
         '''
         s = list(range(1, 6))
-        #print("s =", s)
+        ##print("s =", s)
         def apply(f, p, kw={}):
             '''Apply the function with the arguments of p and keywords in kw.
             '''
@@ -397,4 +397,5 @@ if __name__ == "__main__":
         from math import cos
         for i, val in enumerate(iterate(cos, 1)):
             print(i, val)
-            if i > 100: break
+            if i > 100:
+                break

@@ -1,6 +1,6 @@
 # plib
 
-Last updated 26 Jul 2022 
+Last updated 4 Aug 2022 
 
 # Introduction
 This repository is a collection of python stuff I've written since 1998.
@@ -58,6 +58,13 @@ want to lose something, so I check it in with no comment (when I worked in
 industry, such behavior would have gotten one put on the 'atomiser', if
 you've read "Broken Angels") and push it to github.  I also rarely make
 branches.  I'll occasionally mark a notable event with a tag. 
+
+I use pycodestyle (a python PEP8 style checker) to check my code's style,
+but dislike the verbose output, so I pipe it to pgm/pycodestyle_filter.py,
+which 1) condenses the output, 2) color codes the error/warning number and
+description, and 3) only outputs the more important stuff unless the -a
+option is used.  While I don't follow all the recommendations, I try to
+correct the egregious problems.
 
 ## Status
 

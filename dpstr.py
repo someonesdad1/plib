@@ -982,7 +982,7 @@ if __name__ == "__main__":
         names = set(("one", "two", "three", "thrifty"))
         Assert(GetChoice("o", names) == "one")
         Assert(set(GetChoice("th", names)) == set(["three", "thrifty"]))
-        Assert(GetChoice("z", names) == None)
+        Assert(GetChoice("z", names) is None)
     def TestKeepOnlyLetters():
         s = "\t\n\xf8abcABC123_"
         # digits True

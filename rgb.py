@@ -262,7 +262,6 @@ if 1:   # Classes
                 except Exception:
                     raise e
                 # They must be the same type
-                t = [type(i) for i in s]
                 if not all([type(i) == type(s[0]) for i in s]):
                     msg = "The components of x are not the same type"
                     raise TypeError(msg)
@@ -310,7 +309,7 @@ if 1:   # Classes
             if not ii(other, ColorNum):
                 raise TypeError("'other' must be a ColorNum instance")
             n = ColorNum.n
-            me  = [round(i, n) for i in self._rgb]
+            me = [round(i, n) for i in self._rgb]
             you = [round(i, n) for i in other._rgb]
             return bool(me == you)
         def __lt__(self, other):
@@ -655,7 +654,8 @@ if __name__ == "__main__":
             t = x if ii(x, str) else str(x)
             s = ColorNum((t, t, t))
             for j in (b, c, i, s):
-                if j != std: xx() #xx
+                if j != std:
+                    xx() 
                 assert_equal(j == std, True)
         # Check bytes
         x = 1.0

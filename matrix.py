@@ -648,7 +648,7 @@ class Matrix:
             physical measurements).
             '''
             found = []
-            if tol == None and reltol == None:
+            if tol is None and reltol is None:
                 for row, col, x in self:
                     for item in items:
                         if x == item:
@@ -3318,10 +3318,10 @@ if __name__ == "__main__":
                     if i == 1:
                         Assert(str(r) == "3 4")
                 Assert(m.len == 4)
-                Assert(m.is_square == True)
-                Assert(m.is_invertible == True)
-                Assert(m.is_symmetric == False)
-                Assert(s.is_symmetric == True)
+                Assert(m.is_square)
+                Assert(m.is_invertible)
+                Assert(not m.is_symmetric)
+                Assert(s.is_symmetric)
                 Assert(list(m.elements) == m.l)
                 Assert(m.nl == m.grid)
                 Assert(v.is_vector)
@@ -3344,7 +3344,7 @@ if __name__ == "__main__":
                 Assert(c == [[1, 3], [2, 4]])
                 # numtype 
                 if 1:
-                    Assert(m.numtype == None)
+                    Assert(m.numtype is None)
                     m.numtype = int
                     Assert(m.numtype == int)
                     Assert(all([type(i) == int for i in m.l]))
@@ -3524,15 +3524,22 @@ if __name__ == "__main__":
                     for j in range(2):
                         Assert(type(m[i, j]) == complex)
                 # Test the supported conversions
-                m.numtype = int; Assert(all([type(i) == int for i in m.l]))
-                m.numtype = float; Assert(all([type(i) == float for i in m.l]))
-                m.numtype = complex; Assert(all([type(i) == complex for i in m.l]))
-                m.numtype = Fraction; Assert(all([type(i) == Fraction for i in m.l]))
-                m.numtype = Decimal; Assert(all([type(i) == Decimal for i in m.l]))
+                m.numtype = int
+                Assert(all([type(i) == int for i in m.l]))
+                m.numtype = float
+                Assert(all([type(i) == float for i in m.l]))
+                m.numtype = complex
+                Assert(all([type(i) == complex for i in m.l]))
+                m.numtype = Fraction
+                Assert(all([type(i) == Fraction for i in m.l]))
+                m.numtype = Decimal
+                Assert(all([type(i) == Decimal for i in m.l]))
                 if have_unc:
-                    m.numtype = ufloat; Assert(all([type(i) == ufloat_t for i in m.l]))
+                    m.numtype = ufloat
+                    Assert(all([type(i) == ufloat_t for i in m.l]))
                 if have_mpmath:
-                    m.numtype = mpf; Assert(all([type(i) == mpf for i in m.l]))
+                    m.numtype = mpf
+                    Assert(all([type(i) == mpf for i in m.l]))
         def test_contains():
             with Testing():
                 for i in (-1, 0, 1, 2, 3, 4, 6):

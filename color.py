@@ -676,7 +676,8 @@ class Color:
             r2 = (-0.9689, +1.8758, +0.0415)
             r3 = (+0.0557, -0.2040, +1.0570)
             rgb = Color.Dot(r1, XYZ), Color.Dot(r2, XYZ), Color.Dot(r3, XYZ)
-            clip = lambda x:  min(1.0, max(x, 0.0))
+            def clip(x):
+                return min(1.0, max(x, 0.0))
             return tuple(clip(GammaCompressed(i)) for i in rgb)
         @classmethod
         def wl2rgb(cls, nm, sunlight=True, gamma=0.0, bpc=None):
@@ -935,6 +936,10 @@ class Color:
             else:
                 return Find(s)
 
+c = Color(1, 2, 3)
+c.Construct("a")
+exit()
+
 class Trm:
     '''This class is used to generate terminal escape codes
         For typical use, instantiate with t = Trm().  Store "styles" by
@@ -997,11 +1002,11 @@ class Trm:
  
             Note:  4 and 8 bit not currently supported.
         '''
-        self._always = False    # If True, generate escape codes even if stdout
-                                # isn't a terminal
+        # If True, generate escape codes even if stdout isn't a terminal
+        self._always = False
         self._on = True         # If True, escape codes are generated
-        self.cn = CN            # ColorNames dictionary (defaults to module's
-                                # global variable CN)
+        # ColorNames dictionary (defaults to module's global variable CN)
+        self.cn = CN
         self._bits = bits       # Bits per color
         if self._bits is None:
             self._bits = Trm.terminal_bits
@@ -1276,7 +1281,7 @@ class Trm:
     def always(self):
         return self._always
     @always.setter
-    def alway(self, value):
+    def always(self, value):
         self._always = bool(value)
         self._on = True
     # Read-only properties
@@ -1922,7 +1927,8 @@ if __name__ == "__main__":
             Assert(got == expected)
         def TestConstruct():
             Reset()
-            f = lambda x:  tuple(round(i, 3) for i in x)
+            def f(x):
+                return tuple(round(i, 3) for i in x)
             # No color specifier gets None
             s = "kldjfkdj"
             c = Color.Construct(Color, s)

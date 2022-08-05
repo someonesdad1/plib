@@ -261,7 +261,6 @@ def PrintHeight(args, opts):
         'Return 100*a/prop0[b] in %'
         return sig(100*a/prop0[b], 3) + "%"
     digits = opts["-d"]
-    fmt = lambda x, digits: ("%%.%dg" % digits) % x
     e = fp.engsi
     # Height
     z_km = GetHeight_km(args)
@@ -500,7 +499,8 @@ if 1:   # Another properties function
         return (T, p, ρ)
     def Compare_atm2_to_atm():
         dev = ["Height      kFeet      Temp_dev%      Press_dev%    Density_dev%"]
-        f = lambda x, y:  str(flt(100*(x - y)/y))
+        def f(x, y):
+            str(flt(100*(x - y)/y))
         for km in range(0, 85, 2):
             Z = flt(km, "km")
             z = flt(km*1000, "m")
@@ -597,10 +597,10 @@ if __name__ == "__main__":
         rd = RelDiffPct
         o = []
         for line in data.split("\n"):
-            l = line.strip()
-            if not l or l[0] == "#":
+            L = line.strip()
+            if not L or L[0] == "#":
                 continue
-            f = l.split()
+            f = L.split()
             Z = flt(f[0])  # m
             T = flt(f[1])  # K
             P = flt(f[2])*100   # Pa (f[2] in mbar)

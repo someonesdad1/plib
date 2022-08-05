@@ -1304,8 +1304,8 @@ if __name__ == "__main__":
                 Assert(n[1] == "mm")
         def TestGetNumberInspect():
             # Test that 2 isn't in the first interval, but is in the second.
-            Assert(GetNumber("", low=0, high=1, inspect="2") == False)
-            Assert(GetNumber("", low=0, high=3, inspect="2") == True)
+            Assert(not GetNumber("", low=0, high=1, inspect="2"))
+            Assert(GetNumber("", low=0, high=3, inspect="2"))
             # If inspect is not a string, get exception
             raises(ValueError, GetNumber, "", inspect=1)
         def TestGetNumbers():

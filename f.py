@@ -1179,7 +1179,7 @@ if 1:   # Get math/cmath functions into this namespace
             except Exception as err:
                 print(f"Unhandled exception in f.py's Delegator:\n  '{err!r}'")
                 print("Dropping into debugger")
-                breakpoint() #xx
+                breakpoint()    #xx
                 pass
             if ii(result, int):
                 return result
@@ -1609,7 +1609,7 @@ if __name__ == "__main__":
             except Exception as e:
                 print(f"Unhandled exception:  '{e}'")
                 print(f"Dropping into debugger")
-                breakpoint() #xx
+                breakpoint()    #xx
             got = GetNumDigits(s)
             expected = int(expected)
             assert_equal(got, expected)

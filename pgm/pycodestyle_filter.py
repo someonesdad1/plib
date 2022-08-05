@@ -1,15 +1,12 @@
 '''
 
 TODO
-    - Colorize the egregiousness of the various errors
-        - Errors
-            - Important (redl): 401 402 701 702 703 704 722 901 902 
-            - Notable (ornl): 711 712 713 714 731 741 742 743 
-        - Warnings
-            - Important (purl): 191
-            - Notable (sky): 601-606
+    - Add -a option to see all issues, not just important or notable.
 
-Filter output of pycodestyle to a more compact representation
+Filter output of pycodestyle to a more compact representation.  
+    Note the color coding is always done, even if stdout is not a TTY.
+    This lets you capture the results to a file and view it e.g. with less
+    in color.
 '''
 if 1:   # Header
     # Copyright, license
@@ -30,13 +27,15 @@ if 1:   # Header
         from pathlib import Path as P
         import sys
         from pdb import set_trace as xx
-        from pprint import pprint as pp
+        xx()
+        #from pprint import pprint as pp
         from collections import defaultdict
     # Custom imports
         from get import GetLines
         from wrap import wrap, dedent, HangingIndent
         from lwtest import Assert
         from color import Color, TRM as t
+        t.always = True
     # Global variables
         ii = isinstance
         W = int(os.environ.get("COLUMNS", "80")) - 1
@@ -66,19 +65,21 @@ if 1:   # Utility
           Filter the output of pycodestyle to make it more compact.
           Use '-' to filter stdin.
         Options:
+            -a      Show all issues
             -c      Include the column numbers in the output lines
         '''))
         exit(status)
     def ParseCommandLine(d):
+        d["-a"] = False     # Show all issues
         d["-c"] = False     # Include column numbers
         try:
-            opts, args = getopt.getopt(sys.argv[1:], "ch", 
+            opts, args = getopt.getopt(sys.argv[1:], "ach", 
                     ["help", "debug"])
         except getopt.GetoptError as e:
             print(str(e))
             exit(1)
         for o, a in opts:
-            if o[1] in list("c"):
+            if o[1] in list("ac"):
                 d[o] = not d[o]
             elif o in ("-h", "--help"):
                 Usage(status=0)
@@ -137,11 +138,13 @@ if 1:   # Core functionality
         for err in sorted(di):
             if err in clr:
                 print(f"{clr[err]}", end="")
-            else:
+            elif d["-a"]:
                 print(f"{t('skyl')}", end="")
+            else:
+                continue
             print(f"{err} {names[err]}")
             t.out()
-            for i in di[err]:
+            for i in sorted(di[err]):
                 if d["-c"]:
                     # Include the column number
                     f = lambda x: int(x.split(":")[0])

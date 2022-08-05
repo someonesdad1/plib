@@ -106,7 +106,8 @@ if 1:   # Custom imports
 if 1:   # Global variables
     ii = isinstance
     D = decimal.Decimal
-    class g: pass
+    class g:
+        pass
     g.d = C.lgrn if C else ""
     g.o = C.lblu if C else ""
     g.n = C.norm if C else ""

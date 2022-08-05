@@ -101,8 +101,9 @@ class Trace:
         def MyFunction():
     '''
     increment = 2           # Increment for indenting
-    indent = -increment     # How many spaces to indent.  It's the negative
-                            # of the increment so it starts at 0.
+    # How many spaces to indent.  It's the negative of the increment so it
+    # starts at 0.
+    indent = -increment
     stream = sys.stdout     # Stream that receives the printed output
     on = False              # Set to True to get tracing output
     prefix = "+ "
@@ -374,7 +375,7 @@ def TraceInfo(type, value, traceback):
     Also see page 435 of "Python Cookbook".
     '''
     # Updated first test logic from https://gist.github.com/rctay/3169104
-    if  (
+    if (
             hasattr(sys, 'ps1')           or
             not sys.stderr.isatty()       or
             not sys.stdout.isatty()       or
@@ -481,7 +482,8 @@ class AutoIndent(object):
                 self.stream.write(data)
                 return
         indentation = self.indent*self._indent_level()
-        f = lambda x: indentation + x if x else x
+        def f(x):
+            indentation + x if x else x
         data = '\n'.join([f(line) for line in data.split('\n')])
         self.stream.write(data)
     def flush(self):

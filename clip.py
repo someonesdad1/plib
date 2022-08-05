@@ -88,7 +88,7 @@ def _executable_exists(name):
     return subprocess.call([WHICH_CMD, name],
                            stdout=subprocess.PIPE, stderr=subprocess.PIPE) == 0
 
-## Exceptions
+# Exceptions
 class PyperclipException(RuntimeError):
     pass
 
@@ -164,10 +164,10 @@ def init_qt_clipboard():
     # Try to import from qtpy, but if that fails try PyQt5 then PyQt4
     try:
         from qtpy.QtWidgets import QApplication
-    except:
+    except ImportError:
         try:
             from PyQt5.QtWidgets import QApplication
-        except:
+        except ImportError:
             from PyQt4.QtGui import QApplication
 
     app = QApplication.instance()
@@ -293,7 +293,7 @@ def init_no_clipboard():
                 return False
 
     return ClipboardUnavailable(), ClipboardUnavailable()
-## Windows-related clipboard functions:
+# Windows-related clipboard functions:
 class CheckedCall(object):
     def __init__(self, f):
         super(CheckedCall, self).__setattr__("f", f)
@@ -460,7 +460,7 @@ def init_wsl_clipboard():
 
     return copy_wsl, paste_wsl
 # Automatic detection of clipboard mechanisms and importing is done in
-## deteremine_clipboard():
+# deteremine_clipboard():
 def determine_clipboard():
     '''
     Determine the OS/platform and set the copy() and paste() functions
