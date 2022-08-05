@@ -88,6 +88,35 @@ repository on my system is /plib and my PYTHONPATH variable is
 "/plib:/plib/g", so this repository is the only code I use outside of
 what's in the python distribution. 
 
+# Software lesson
+
+Recently I needed to execute some code buried in a function inside of a
+function in /plib/color.py because running some code showed an exception in
+this code.  I rashly stuck in three lines in the middle of the file like
+
+> c = Color(args)
+> Call the offending method
+> exit()
+
+I then got distracted by something else and I didn't get back to using my
+system the next day, as I used another computer in the living room in the
+evening.  Next morning I went to use my Windows system and something had
+happened to the system (maybe an update), as all the files in my /plib had
+the execute bit on, which I hate because an ls listing shows everything
+green.  I ran my script /plib/pgm/x.py which fixes this quickly, but it
+didn't work.  Then I tried to use my command I use to go to another
+directory (the /plib/pgm/goto.py script) and it didn't work.  I couldn't
+get **any** python stuff to work and it started to make me panic.  I ran
+cygwin's setup again to reinstall python and rebooted the computer.  No
+change.  Then I finally stuck a debugger breakpoint at the beginning of the
+x.py script and stepped through the initial imports at the beginning of the
+file and saw an exception when color.py was imported.  Calling that file up
+in vim positioned me on the rashly inserted code and I knew what the
+problem was:  idiot in the pilot's seat.  There are 85 files that import
+color.py, so it's used quite a bit.  The key lesson is that such lines
+should always be in a block that begins with 'if __name__ == "__main__":'
+to help avoid such problems.
+
 # Tools
 
 ## PostScript drawing tool

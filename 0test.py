@@ -1,10 +1,11 @@
 '''
 
+- Look at adding style tests via
+  https://pycodestyle.pycqa.org/en/latest/advanced.html#automated-tests
 - Trigger string policy
     - None means the file has no testing and shouldn't be listed
     - Empty means its missing and probably needs something
     - Ignore means the file is ignored for testing purposes
-    - O
 - Log file should have date-time in name.
  
 Testing automation tool
@@ -50,6 +51,11 @@ if 1:  # Header
         if 0:
             import debug
             debug.SetDebugger()  # Start debugger on unhandled exception
+        try:
+            import pycodestyle
+            have_pycodestyle = True
+        except ImportError:
+            have_pycodestyle = False
     # Global variables
         P = pathlib.Path
         # Set up for color printing
@@ -60,6 +66,7 @@ if 1:  # Header
         t.cyn = t("cynl")   # Directories
         t.grn = t("grnl")   # For files we'll run
         t.yel = t("yell")   # For files we'll run
+        t.sty = t("ornl")   # Style errors/warnings
         # Files to ignore
         ignore = set((
             P("/plib/trigger.py"),
@@ -81,6 +88,8 @@ if 1:   # Utility
         Options:
           -d    Show what will be done and exit
           -r    Recursively search for files
+          -s    Include style tests (pycodestyle module needed)
+          -S    Like -s, but print the style errors
           -v    Verbose mode:  show what's being tested
           -w    Don't filter out nuisance warnings
         '''))
@@ -89,18 +98,22 @@ if 1:   # Utility
         d["-d"] = False     # Debug output
         d["-q"] = False     # Quiet
         d["-r"] = False     # Recursive
+        d["-s"] = False     # Style tests
+        d["-S"] = False     # Style tests, verbose
         d["-v"] = False     # Verbose:  show ignored
         d["-w"] = False     # Don't filter out warnings
         try:
-            opts, args = getopt.getopt(sys.argv[1:], "dqrvw")
+            opts, args = getopt.getopt(sys.argv[1:], "dqrsSvw")
         except getopt.GetoptError as e:
             print(str(e))
             exit(1)
         for o, a in opts:
-            if o[1] in list("dqrvw"):
+            if o[1] in list("dqrSsvw"):
                 d[o] = not d[o]
         if not args:
             Usage()
+        if (d["-s"] or d["-S"]) and not have_pycodestyle:
+            print("Warning:  pycodestyle not installed", file=sys.stderr)
         return args
     def GetLogFile():
         'Return a log file name that ends in .0test'
@@ -172,6 +185,7 @@ class TestRunner:
             cmd = [sys.executable, str(file)]
             if additional is not None:
                 cmd.extend(additional)
+            # Run the script's test
             r = subprocess.run(cmd, capture_output=True, text=True)
             if not d["-q"]:
                 if d["-v"] and r.stdout:
@@ -197,6 +211,16 @@ class TestRunner:
                                     break
                                 if show:
                                     print(line, file=sys.stderr)
+            if (d["-s"] or d["-S"]) and have_pycodestyle:
+                # Run style test
+                ignore = '''E1 E2 E3 E5 W2'''.split()
+                if d["-S"]:
+                    style = pycodestyle.StyleGuide(quiet=False, ignore=ignore)
+                else:
+                    style = pycodestyle.StyleGuide(quiet=True, ignore=ignore)
+                result = style.check_files([file])
+                if result.total_errors:
+                    print(f"{t.sty}Style errors in", file)
             if r.returncode:
                 # Always show a test failure
                 self.failed += 1

@@ -17,6 +17,13 @@ Active
               error codes from
               https://pycodestyle.pycqa.org/en/latest/intro.html#error-codes
 
+        - https://pycodestyle.pycqa.org/en/latest/advanced.html#automated-tests
+          comments that you can build in style conformance into your
+          regression tests.  Basic method is to import pycodestyle,
+          create a style = pycodestyle.StyleGuide(quiet=True), then 
+          run style.check_files(['file1.py', 'file2.py']).  Add as an
+          option to lwtest.
+
     - numpy
         - Now that I have working numpy/scipy installations, run the MLR
           code on the NIST test cases to see how badly they perform.
@@ -257,6 +264,9 @@ Other
         - TRM needs a way to ensure all attribute access returns "" when
           .on is False.
         - Add support to g.py
+        - pycodestyle gives error:  color.py:895:41: W605 invalid escape
+          sequence '\s'.  Need to investigate this, as the regexp may be
+          wrong.
 
     - ts.py
         - Import to /plib

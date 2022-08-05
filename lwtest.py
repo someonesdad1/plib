@@ -1,23 +1,26 @@
 '''
 TODO:
 
-    - If an argument passed on the command line is a directory,
-        search it recursively for all files that appear to be test
-        scripts and run them.
+    - https://pycodestyle.pycqa.org/en/latest/advanced.html#automated-tests
+      tells how to add automated code style testing for conformance.  Add
+      it to the self tests as an option to run.
 
-        - If a file is passed on the command line, search it for
-            suitable test functions and run them, even if there's no
-            run() call in the script.  Options to provide run()'s
-            features:  -h to halt at first failure, -r for regexp to
-            identify a test function, -R for regexp's options, -v for
-            verbose
+    - If an argument passed on the command line is a directory, search it
+      recursively for all files that appear to be test scripts and run
+      them.
 
-    - Add a verbose keyword to run() which prints the file name and
-        the function/class to be executed, like 'nosetests -v' does.
-        Another thing to consider would be to let run look at sys.argv
-        and process options there in lieu of keywords (this would be
-        handy for command line work, as the command line options would
-        overrule the keywords).
+        - If a file is passed on the command line, search it for suitable
+          test functions and run them, even if there's no run() call in the
+          script.  Options to provide run()'s features:  -h to halt at
+          first failure, -r for regexp to identify a test function, -R for
+          regexp's options, -v for verbose
+
+    - Add a verbose keyword to run() which prints the file name and the
+      function/class to be executed, like 'nosetests -v' does.  Another
+      thing to consider would be to let run look at sys.argv and process
+      options there in lieu of keywords (this would be handy for command
+      line work, as the command line options would overrule the keywords).
+
 '''
 if 1:  # Header
     # Copyright, license

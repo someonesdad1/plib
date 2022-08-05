@@ -892,9 +892,9 @@ class Color:
                     # [@#$]xxyyzz form
                     ("hex", R(r"([@#$][0-9a-f]{6})", flags)),
                     # Three integers or floats separated by commas
-                    ("fcomma", R(f"({s},\s*{s},\s*{s})", flags)),
+                    ("fcomma", R(rf"({s},\s*{s},\s*{s})", flags)),
                     # Three integers or floats separated by whitespace
-                    ("fspace", R(f"({s}\s+{s}\s+{s})", flags)),
+                    ("fspace", R(rf"({s}\s+{s}\s+{s})", flags)),
                 )
                 return regexps
             def Decode(match, name):
@@ -935,11 +935,6 @@ class Color:
                 return keep if keep else None
             else:
                 return Find(s)
-
-c = Color(1, 2, 3)
-c.Construct("a")
-exit()
-
 class Trm:
     '''This class is used to generate terminal escape codes
         For typical use, instantiate with t = Trm().  Store "styles" by
