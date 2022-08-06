@@ -36,7 +36,8 @@ def JustifyParagraph(s, L):
     # show up when you test at corner cases like L == 1.  Also added
     # extra stuff for end of sentence and colon.
     # From https://medium.com/@dimko1/text-justification-63f4cda29375
-    f = lambda x, y: x.endswith(y)
+    def f(x, y):
+        return x.endswith(y)
     out, line, num_of_letters = [], [], 0
     for w in s.split():
         if (not IsAbbreviation(w) and 
