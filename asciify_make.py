@@ -263,24 +263,24 @@ if 1:   # Handling the codepoints
         def GetLessThan():
             get = ["less-than"]
             remove = ["equal", "with", "and", "or", "not", "above",
-                "nested", "arc", "closed", "lap", "double", "beside", "arrow" ]
+                "nested", "arc", "closed", "lap", "double", "beside", "arrow"]
             Extract(cpset, keep, get, remove, "<", verbose="Less-than")
         def GetGreaterThan():
             get = ["greater-than"]
             remove = ["equal", "with", "and", "or", "not", "above",
-                "nested", "arc", "closed", "lap", "double", "beside", "arrow" ]
+                "nested", "arc", "closed", "lap", "double", "beside", "arrow"]
             Extract(cpset, keep, get, remove, ">", verbose="Greater-than")
         def GetLeftBracket():
             get = ["bracket"]
             remove = ["right", "curly", "hook", "extension", "top",
                 "vertical", "paraphrase", "angle", "substitution",
-                "transposition", "omission", "letter", "arc", "z notation",]
+                "transposition", "omission", "letter", "arc", "z notation"]
             Extract(cpset, keep, get, remove, "[", verbose="Left bracket")
         def GetRightBracket():
             get = ["bracket"]
             remove = ["left", "curly", "hook", "extension", "top",
                 "vertical", "paraphrase", "angle", "substitution",
-                "transposition", "omission", "letter", "arc", "z notation",]
+                "transposition", "omission", "letter", "arc", "z notation"]
             Extract(cpset, keep, get, remove, "]", verbose="Right bracket")
         def GetLeftCurly():
             get = ["curly"]
@@ -358,7 +358,7 @@ if 1:   # Handling the codepoints
             Extract(cpset, keep, get, remove, "/", verbose="Slash")
         def GetBackslash():
             get = ["reverse solidus", "backslash"]
-            remove = ["set",]
+            remove = ["set"]
             Extract(cpset, keep, get, remove, "\\", verbose="Backslash")
         def GetVerticalLine():
             get = ["vertical line"]
@@ -477,7 +477,7 @@ if 1:   # Handling the codepoints
         def MultipleLetters():
             if show_orig:
                 get = ["letter [A-Z]{2,2} |letter [A-Z]{2,2}$", "digraph"]
-                remove = ["old italic",]
+                remove = ["old italic"]
                 Extract(cpset, keep, get, remove, "xxMultiple_letters", verbose="Multiple letters")
             else:
                 s = '''
@@ -862,11 +862,11 @@ if 1:   # Make the files
         print(f"Wrote '{file}'", file=sys.stderr)
 
 if __name__ == "__main__": 
-    d = {}      # Options dictionary
+    d = {}          # Options dictionary
     args = ParseCommandLine(d)
-    decomp = {} # Codepoints that could be decomposed
-    trans = {}  # Contains the final translate dictionary
-    fmt = "  {:30s} {:8d}" # Used for debug printing to stderr
+    decomp = {}     # Codepoints that could be decomposed
+    trans = {}      # Contains the final translate dictionary
+    fmt = "  {:30s} {:8d}"  # Used for debug printing to stderr
     # If select is True, only do the tasks currently being worked on
     select = True if d["-s"] else False
     # Set to 0 for no debug output, 1 for only title & result, 2 for all

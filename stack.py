@@ -18,6 +18,8 @@ if 1:   # Header
         from collections import deque
         from multiprocessing import Lock as MLock
         from threading import Lock as TLock
+    # Global variables
+        ii = isinstance
 class StackLock:
     'This is a context manager for the needed locks'
     def __init__(self):
@@ -60,7 +62,7 @@ class Stack(deque):
         '''
         self._lock = StackLock()
         self.NI = NotImplementedError("Operation not allowed for Stack")
-        self._type = None if homogeneous is None else type(homogeneous)
+        self._type = homogeneous
         if iterable is None:
             super(Stack, self).__init__([], maxlen=maxlen)
         else:
@@ -106,20 +108,30 @@ class Stack(deque):
         '''
         return self._type
     # Disable unused deque methods
-    def append(self, x):                        raise self.NI
-    def appendleft(self, x):                    raise self.NI
-    def count(self, x):                         raise self.NI
-    def extend(self, iterable):                 raise self.NI
-    def extendleft(self, iterable):             raise self.NI
-    def index(self, x, start=None, stop=None):  raise self.NI
-    def insert(self, i, x):                     raise self.NI
-    def popleft(self):                          raise self.NI
-    def remove(self, x):                        raise self.NI
-    def reverse(self, x):                       raise self.NI
+    def append(self, x):
+        raise self.NI
+    def appendleft(self, x):
+        raise self.NI
+    def count(self, x):
+        raise self.NI
+    def extend(self, iterable):
+        raise self.NI
+    def extendleft(self, iterable):
+        raise self.NI
+    def index(self, x, start=None, stop=None):
+        raise self.NI
+    def insert(self, i, x):
+        raise self.NI
+    def popleft(self):
+        raise self.NI
+    def remove(self, x):
+        raise self.NI
+    def reverse(self, x):
+        raise self.NI
 
 if __name__ == "__main__": 
     import sys
-    from lwtest import run, raises
+    from lwtest import run, raises, Assert
     n = 5
     def init():
         'Make a stack with n integers'
@@ -129,15 +141,15 @@ if __name__ == "__main__":
         return st
     def TestLen():
         st = init()
-        assert(len(st) == n)
+        Assert(len(st) == n)
     def TestPop():
         st = init()
         R = list(st)
         for i in R:
-            assert(st.pop() == i)
+            Assert(st.pop() == i)
         # Make sure empty stack raises exception when popped
-        assert(len(st) == 0)
-        assert(not st)
+        Assert(len(st) == 0)
+        Assert(not st)
         with raises(IndexError):
             st.pop()
     def TestPush():
@@ -146,11 +158,11 @@ if __name__ == "__main__":
         R = list(reversed(r))
         for i in r:
             st.push(i)
-        assert(list(st) == R)
+        Assert(list(st) == R)
         for i in R:
-            assert(st.pop() == i)
-        assert(len(st) == 0)
-        assert(not st)
+            Assert(st.pop() == i)
+        Assert(len(st) == 0)
+        Assert(not st)
     def TestCopy():
         'The copy() method appeared in python 3.5.'
         v = sys.version_info
@@ -158,16 +170,16 @@ if __name__ == "__main__":
             return
         st = init()
         s = st.copy()
-        assert(st == s)
-        assert(id(st) != id(s))
+        Assert(st == s)
+        Assert(id(st) != id(s))
     def TestClear():
         st = init()
-        assert(len(st) == n)
+        Assert(len(st) == n)
         st.clear()
-        assert(len(st) == 0)
+        Assert(len(st) == 0)
     def TestHomogeneity():
-        st = Stack(['a', 'b'], homogeneous='a')
-        assert(st.homogeneous and st.homogeneous == type('a'))
+        st = Stack(['a', 'b'], homogeneous=str)
+        Assert(st.homogeneous and st.homogeneous == str)
         raises(TypeError, st.push, 1)
         st.push("b")
         # Standard stack is non-homogeneous
@@ -176,6 +188,6 @@ if __name__ == "__main__":
     def TestMaxlen():
         st = Stack([1, 2], maxlen=2)
         st.push(3)
-        assert(list(st) == [3, 1])
-        assert(st.maxlen == 2)
+        Assert(list(st) == [3, 1])
+        Assert(st.maxlen == 2)
     exit(run(globals())[0])

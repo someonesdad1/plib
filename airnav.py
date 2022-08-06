@@ -84,7 +84,7 @@ if __name__ == "__main__":
     from lwtest import run
     tol = 1e-15
     two_pi = 2*pi
-    pi_4   = pi/4
+    pi_4 = pi/4
     def TestTrueCourseAndDistance():
         # Test TrueCourseAndDistance()
         deg2rad = pi/180

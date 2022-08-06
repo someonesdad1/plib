@@ -472,7 +472,7 @@ if 1:   # Core functionality
         for file in di:
             di[file] = sorted(di[file])
         # Print items by file
-        for file in di:
+        for file in sorted(di.keys()):
             if HasItemsToPrint(file):
                 t.print(f"{t.file}{file}")
             else:
