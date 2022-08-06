@@ -202,18 +202,30 @@ def inverse_normal_cdf(p):
     # Rational approximation for lower region:
     if p < plow:
         q = math.sqrt(-2*math.log(p))
-        return ((((((c[0]*q+c[1])*q+c[2])*q+c[3])*q+c[4])*q+c[5]) /
-               ((((d[0]*q+d[1])*q+d[2])*q+d[3])*q+1))
+        num = ((((c[0]*q + c[1])*q + c[2])*q + c[3])*q + c[4])*q + c[5]
+        den = (((d[0]*q+d[1])*q+d[2])*q+d[3])*q+1
+        return num/den
+        # Original code:
+        # return ((((((c[0]*q+c[1])*q+c[2])*q+c[3])*q+c[4])*q+c[5]) /
+        #        ((((d[0]*q+d[1])*q+d[2])*q+d[3])*q+1))
     # Rational approximation for upper region:
     if phigh < p:
         q = math.sqrt(-2*math.log(1-p))
-        return -((((((c[0]*q+c[1])*q+c[2])*q+c[3])*q+c[4])*q+c[5]) /
-                ((((d[0]*q+d[1])*q+d[2])*q+d[3])*q+1))
+        num = ((((c[0]*q + c[1])*q + c[2])*q + c[3])*q + c[4])*q + c[5]
+        den = (((d[0]*q + d[1])*q + d[2])*q + d[3])*q + 1
+        return num/den
+        # Original code:
+        # return -((((((c[0]*q+c[1])*q+c[2])*q+c[3])*q+c[4])*q+c[5]) /
+        #         ((((d[0]*q+d[1])*q+d[2])*q+d[3])*q+1))
     # Rational approximation for central region:
     q = p - 0.5
     r = q*q
-    return ((((((a[0]*r+a[1])*r+a[2])*r+a[3])*r+a[4])*r+a[5])*q /
-           (((((b[0]*r+b[1])*r+b[2])*r+b[3])*r+b[4])*r+1))
+    num = (((((a[0]*r + a[1])*r + a[2])*r + a[3])*r + a[4])*r + a[5])*q
+    den = ((((b[0]*r + b[1])*r + b[2])*r + b[3])*r + b[4])*r + 1
+    return num/den
+    # Original code:
+    # return ((((((a[0]*r+a[1])*r+a[2])*r+a[3])*r+a[4])*r+a[5])*q /
+    #        (((((b[0]*r+b[1])*r+b[2])*r+b[3])*r+b[4])*r+1))
 def invnormal_as(p):
     '''26.2.22 from Abramowitz and Stegun; absolute error is < 3e-3.
     '''
@@ -404,8 +416,8 @@ def int2base(x, base):
     Modified slightly by DP.
     '''
     if not hasattr(int2base, "digits"):
-        int2base.digits = (string.digits + string.ascii_letters +
-                           string.punctuation)
+        a = string.digits + string.ascii_letters
+        int2base.digits = a + string.punctuation
     if not ii(base, int):
         raise TypeError(f"base must be an integer")
     if not (2 <= base <= len(int2base.digits)):
@@ -429,8 +441,8 @@ def base2int(x, base):
     to a base 10 integer.  base may be from 2 to 94.
     '''
     if not hasattr(base2int, "digits"):
-        base2int.digits = (string.digits + string.ascii_letters +
-                           string.punctuation)
+        a = string.digits + string.ascii_letters
+        base2int.digits = a + string.punctuation
     if not ii(base, int):
         raise TypeError(f"base must be an integer")
     if not (2 <= base <= len(base2int.digits)):
@@ -1100,8 +1112,7 @@ if __name__ == "__main__":
         # fine-pitch spiral should be nearly equal to the circumference.
         a, n_revolutions = 1, 10000
         theta = n_revolutions*math.tau
-        arc_len = (SpiralArcLength(a, theta) -
-                   SpiralArcLength(a, theta - math.tau))
+        arc_len = SpiralArcLength(a, theta) - SpiralArcLength(a, theta - math.tau)
         L_D = SpiralArcLength(a, n_revolutions*math.tau)
         L_d = SpiralArcLength(a, (n_revolutions - 1)*math.tau)
         arc_length = L_D - L_d
