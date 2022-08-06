@@ -1,13 +1,10 @@
 '''
 Runs pycodestyle and summarizes results
-    
-    The basic goal is to classify the severity of the pycodestyle
-    error/warning numbers into the following severity levels:
 
-        0   Important and must be fixed
-        1   Notable and should be fixed
-        2   Low-priority fixes
-        3   Ignored 
+    The rankings used in this script are subjective.  Change the function
+    GetErrorRankDict() to your tastes.  The script's purpose is to classify
+    the severity of the pycodestyle error/warning numbers into: important,
+    notable, low-priority, and ignored.
 
 '''
 if 1:   # Header
@@ -33,7 +30,7 @@ if 1:   # Header
         from collections import defaultdict, namedtuple
         from pprint import pprint as pp
     # Custom imports
-        from wrap import wrap, dedent
+        from wrap import wrap, dedent, HangingIndent
         from color import Color, TRM as t
         from get import GetLines
         from lwtest import Assert
@@ -71,6 +68,13 @@ if 1:   # Header
         # Dictionary to map errors to their rank 0 to 3 with 0 most
         # important.
         error_ranks = {}
+        # Dictionary for error colors
+        error_colors = {
+            0: t("sky"),
+            1: t("roy"),
+            2: t("ornl"),
+            3: t("redl"),
+        }
 if 1:   # Utility
     def Error(*msg, status=1):
         print(*msg, file=sys.stderr)
@@ -79,24 +83,34 @@ if 1:   # Utility
         print(dedent(f'''
         Usage:  {sys.argv[0]} [options] file1 [file2 ...]
           Run pycodestyle on the indicated files and present the summarized
-          results.
+          results.  Normal behavior is to only print -2 and -3 error and
+          warning messages.
         Options:
+            -0      Print ignored items [default off]
+            -1      Print low-priority items [default off]
+            -2      Print notable items [default on]
+            -3      Print important items [default on]
+            -c      Include column information with line numbers
             -v      Debug output (more than one for more verbosity)
         '''))
         exit(status)
     def ParseCommandLine(d):
-        d["-a"] = False
-        d["-v"] = 0     # Show debug output
+        d["-0"] = False     # Show ignored items
+        d["-1"] = False     # Show low-priority items
+        d["-2"] = True      # Show notable items
+        d["-3"] = True      # Show important items
+        d["-c"] = False     # Include column numbers
+        d["-v"] = 0         # Show debug output
         if len(sys.argv) < 2:
             Usage()
         try:
-            opts, args = getopt.getopt(sys.argv[1:], "ahv", 
+            opts, args = getopt.getopt(sys.argv[1:], "0123chv", 
                     ["help", "debug"])
         except getopt.GetoptError as e:
             print(str(e))
             exit(1)
         for o, a in opts:
-            if o[1] in list("ad"):
+            if o[1] in list("0123c"):
                 d[o] = not d[o]
             elif o in ("-h", "--help"):
                 Usage(status=0)
@@ -122,10 +136,10 @@ if 1:   # Rankings of error/warning types
     def GetErrorRankDict():
         '''Return a dict keyed by error/warning numbers like "E305" and
         values of integers on [0, 3]:
-            0   Important and must be fixed
-            1   Notable and should be fixed
-            2   Low-priority fixes
-            3   Ignored 
+            0   Ignored 
+            1   Low-priority fixes
+            2   Notable and should be fixed
+            3   Important and must be fixed
         '''
         global error_ranks
         for line in GetErrorRankDict.data.split("\n"):
@@ -140,93 +154,118 @@ if 1:   # Rankings of error/warning types
     # Downloaded from https://pycodestyle.pycqa.org/en/latest/intro.html#error-codes
     # on 05 Aug 2022 06:58:55 PM
     GetErrorRankDict.data = '''
-        0   E101 indentation contains mixed spaces and tabs
-        0   E111 indentation is not a multiple of four
-        2   E112 expected an indented block
-        2   E113 unexpected indentation
-        0   E114 indentation is not a multiple of four (comment)
-        2   E115 expected an indented block (comment)
-        2   E116 unexpected indentation (comment)
-        2   E117 over-indented
-        3   E121 continuation line under-indented for hanging indent
-        2   E122 continuation line missing indentation or outdented
-        3   E123 closing bracket does not match indentation of opening bracket’s line
-        2   E124 closing bracket does not match visual indentation
-        2   E125 continuation line with same indent as next logical line
-        3   E126 continuation line over-indented for hanging indent
-        2   E127 continuation line over-indented for visual indent
-        2   E128 continuation line under-indented for visual indent
-        2   E129 visually indented line with same indent as next logical line
-        2   E131 continuation line unaligned for hanging indent
-        1   E133 closing bracket is missing indentation
-        1   E201 whitespace after ‘(’
-        1   E202 whitespace before ‘)’
-        1   E203 whitespace before ‘,’, ‘;’, or ‘:’
-        1   E211 whitespace before ‘(’
-        1   E221 multiple spaces before operator
-        1   E222 multiple spaces after operator
-        0   E223 tab before operator
-        0   E224 tab after operator
-        2   E225 missing whitespace around operator
-        2   E226 missing whitespace around arithmetic operator
-        1   E227 missing whitespace around bitwise or shift operator
-        1   E228 missing whitespace around modulo operator
-        1   E231 missing whitespace after ‘,’, ‘;’, or ‘:’
-        1   E241 multiple spaces after ‘,’
-        0   E242 tab after ‘,’
-        1   E251 unexpected spaces around keyword / parameter equals
-        1   E261 at least two spaces before inline comment
-        1   E262 inline comment should start with ‘# ‘
-        1   E265 block comment should start with ‘# ‘
-        1   E266 too many leading ‘#’ for block comment
-        1   E271 multiple spaces after keyword
-        1   E272 multiple spaces before keyword
-        0   E273 tab after keyword
-        0   E274 tab before keyword
-        1   E275 missing whitespace after keyword
-        3   E301 expected 1 blank line, found 0
-        3   E302 expected 2 blank lines, found 0
-        1   E303 too many blank lines (3)
-        1   E304 blank lines found after function decorator
-        3   E305 expected 2 blank lines after end of function or class
-        3   E306 expected 1 blank line before a nested definition
-        0   E401 multiple imports on one line
-        0   E402 module level import not at top of file
-        3   E501 line too long (82 > 79 characters)
-        1   E502 the backslash is redundant between brackets
-        0   E701 multiple statements on one line (colon)
-        0   E702 multiple statements on one line (semicolon)
-        1   E703 statement ends with a semicolon
-        0   E704 multiple statements on one line (def)
-        0   E711 comparison to None should be ‘if cond is None:’
-        0   E712 comparison to True should be ‘if cond is True:’ or ‘if cond:’
-        1   E713 test for membership should be ‘not in’
-        1   E714 test for object identity should be ‘is not’
-        1   E721 do not compare types, use ‘isinstance()’
-        0   E722 do not use bare except, specify exception instead
-        1   E731 do not assign a lambda expression, use a def
-        2   E741 do not use variables named ‘l’, ‘O’, or ‘I’
-        2   E742 do not define classes named ‘l’, ‘O’, or ‘I’
-        2   E743 do not define functions named ‘l’, ‘O’, or ‘I’
-        0   E901 SyntaxError or IndentationError
-        0   E902 IOError
-        0   W191 indentation contains tabs
-        3   W291 trailing whitespace
-        2   W292 no newline at end of file
-        3   W293 blank line contains whitespace
-        2   W391 blank line at end of file
-        3   W503 line break before binary operator
-        3   W504 line break after binary operator
-        2   W505 doc line too long (82 > 79 characters)
-        0   W601 .has_key() is deprecated, use ‘in’
-        0   W602 deprecated form of raising exception
-        0   W603 ‘<>’ is deprecated, use ‘!=’
-        0   W604 backticks are deprecated, use ‘repr()’
-        0   W605 invalid escape sequence ‘x’
-        0   W606 ‘async’ and ‘await’ are reserved keywords starting with Python 3.7
+        3   E101 indentation contains mixed spaces and tabs
+        3   E111 indentation is not a multiple of four
+        1   E112 expected an indented block
+        1   E113 unexpected indentation
+        3   E114 indentation is not a multiple of four (comment)
+        1   E115 expected an indented block (comment)
+        1   E116 unexpected indentation (comment)
+        1   E117 over-indented
+        0   E121 continuation line under-indented for hanging indent
+        1   E122 continuation line missing indentation or outdented
+        0   E123 closing bracket does not match indentation of opening bracket’s line
+        1   E124 closing bracket does not match visual indentation
+        1   E125 continuation line with same indent as next logical line
+        0   E126 continuation line over-indented for hanging indent
+        1   E127 continuation line over-indented for visual indent
+        1   E128 continuation line under-indented for visual indent
+        1   E129 visually indented line with same indent as next logical line
+        1   E131 continuation line unaligned for hanging indent
+        2   E133 closing bracket is missing indentation
+        2   E201 whitespace after ‘(’
+        2   E202 whitespace before ‘)’
+        2   E203 whitespace before ‘,’, ‘;’, or ‘:’
+        2   E211 whitespace before ‘(’
+        2   E221 multiple spaces before operator
+        2   E222 multiple spaces after operator
+        3   E223 tab before operator
+        3   E224 tab after operator
+        1   E225 missing whitespace around operator
+        1   E226 missing whitespace around arithmetic operator
+        2   E227 missing whitespace around bitwise or shift operator
+        2   E228 missing whitespace around modulo operator
+        2   E231 missing whitespace after ‘,’, ‘;’, or ‘:’
+        2   E241 multiple spaces after ‘,’
+        3   E242 tab after ‘,’
+        2   E251 unexpected spaces around keyword / parameter equals
+        2   E261 at least two spaces before inline comment
+        2   E262 inline comment should start with ‘# ‘
+        2   E265 block comment should start with ‘# ‘
+        2   E266 too many leading ‘#’ for block comment
+        2   E271 multiple spaces after keyword
+        2   E272 multiple spaces before keyword
+        3   E273 tab after keyword
+        3   E274 tab before keyword
+        2   E275 missing whitespace after keyword
+        0   E301 expected 1 blank line, found 0
+        0   E302 expected 2 blank lines, found 0
+        2   E303 too many blank lines (3)
+        2   E304 blank lines found after function decorator
+        0   E305 expected 2 blank lines after end of function or class
+        0   E306 expected 1 blank line before a nested definition
+        3   E401 multiple imports on one line
+        3   E402 module level import not at top of file
+        0   E501 line too long (82 > 79 characters)
+        2   E502 the backslash is redundant between brackets
+        3   E701 multiple statements on one line (colon)
+        3   E702 multiple statements on one line (semicolon)
+        2   E703 statement ends with a semicolon
+        3   E704 multiple statements on one line (def)
+        3   E711 comparison to None should be ‘if cond is None:’
+        3   E712 comparison to True should be ‘if cond is True:’ or ‘if cond:’
+        2   E713 test for membership should be ‘not in’
+        2   E714 test for object identity should be ‘is not’
+        2   E721 do not compare types, use ‘isinstance()’
+        3   E722 do not use bare except, specify exception instead
+        2   E731 do not assign a lambda expression, use a def
+        1   E741 do not use variables named ‘l’, ‘O’, or ‘I’
+        1   E742 do not define classes named ‘l’, ‘O’, or ‘I’
+        1   E743 do not define functions named ‘l’, ‘O’, or ‘I’
+        3   E901 SyntaxError or IndentationError
+        3   E902 IOError
+        3   W191 indentation contains tabs
+        0   W291 trailing whitespace
+        1   W292 no newline at end of file
+        0   W293 blank line contains whitespace
+        1   W391 blank line at end of file
+        0   W503 line break before binary operator
+        0   W504 line break after binary operator
+        1   W505 doc line too long (82 > 79 characters)
+        3   W601 .has_key() is deprecated, use ‘in’
+        3   W602 deprecated form of raising exception
+        3   W603 ‘<>’ is deprecated, use ‘!=’
+        3   W604 backticks are deprecated, use ‘repr()’
+        3   W605 invalid escape sequence ‘x’
+        3   W606 ‘async’ and ‘await’ are reserved keywords starting with Python 3.7
     '''
-    GetErrorRankDict()
-
+if 1:   # Classes
+    class Item:
+        '''An item holds the following data:
+            Error number (e.g. "E225")
+            File name
+            List of line numbers where error occurred
+            List of associated column numbers where error occurred
+        The __str__ method allows printing the item to stdout.
+        '''
+        def __init__(self, errnum, file, linenums, colnums):
+            self.errnum = errnum
+            self.file = file
+            self.linenums = linenums
+            self.colnums = colnums
+            Assert(linenums and colnums)
+            Assert(len(linenums) == len(colnums))
+        def __str__(self):
+            '''Return a string that gives the filename, a ":", and the list
+            of line numbers with one space between them.  Wrap things so
+            that the line numbers are easy to read.
+            '''
+            if d["-c"]:
+                q = ["{i}:{j}" for i, j in zip(self.linenums, self.colnums)]
+            else:
+                q = self.linenums
+            s = f"{self.file}: {' '.join(str(i) for i in q)}"
+            return HangingIndent(s, indent=" "*4, first_line_indent=" "*2)
 if 1:   # Core functionality
     def ProcessFile(file, di):
         '''For the indicated python file, run pycodestyle in it and capture
@@ -265,8 +304,8 @@ if 1:   # Core functionality
         dict with the following structure
         {
             "E501": {
-                "file1.py": [set of T tuples],
-                "file2.py": [set of T tuples ],
+                "file1.py": set of T tuples,
+                "file2.py": set of T tuples,
                 etc.
             },
         }
@@ -286,12 +325,68 @@ if 1:   # Core functionality
             print(f"{t.dbg}", end="")
             pp(di)
             t.out()
-                
-    def Report(di):
-        pass
+        return di
+    def Report(data):
+        '''Print the condensed data.  data is a dict with the structure
+        {
+            "E501": {
+                "file1.py": set of T tuples,
+                "file2.py": set of T tuples,
+                etc.
+            },
+        }
+        where T tuples are (linenum, colnum); both entries are integers.
+        '''
+        def Print(rank, r):
+            '''rank is an integer to select color, r is a dict keyed by
+            error numbers with values of list of Item instances.
+            '''
+            for errnum, items in r.items():
+                c = error_colors[rank]
+                t.print(f"{c}{errors[errnum]}")
+                for item in items:
+                    print(item)
+        # Change the set of T tuples into an Item instance
+        for errnum in data:
+            for file in data[errnum]:
+                T = data[errnum][file]
+                linenums, colnums = [], []
+                for linenum, colnum in T:
+                    linenums.append(linenum)
+                    colnums.append(colnum)
+                item = Item(errnum, file, linenums, colnums)
+                data[errnum][file] = item
+        # Divide up into ranked groups
+        r0 = defaultdict(list)
+        r1 = defaultdict(list)
+        r2 = defaultdict(list)
+        r3 = defaultdict(list)
+        for errnum in data:
+            for file in data[errnum]:
+                rank = error_ranks[errnum]
+                item = data[errnum][file]
+                if rank == 3:
+                    r3[errnum].append(item)
+                elif rank == 2:
+                    r2[errnum].append(item)
+                elif rank == 1:
+                    r1[errnum].append(item)
+                else:
+                    r0[errnum].append(item)
+        # Print data to stdout.  Notable and important items are printed
+        # last so they are the easiest to see.
+        if d["-0"]:
+            Print(0, r0)
+        if d["-1"]:
+            Print(1, r1)
+        if d["-2"]:
+            Print(2, r2)
+        if d["-3"]:
+            Print(3, r3)
 
 if __name__ == "__main__":
     d = {}      # Options dictionary
+    GetErrorRankDict()
     files = ParseCommandLine(d)
     di = defaultdict(dict)
     entries = []
@@ -300,4 +395,3 @@ if __name__ == "__main__":
         entries.extend(lines)
     di = ProcessData(entries)
     Report(di)
-
