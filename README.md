@@ -1,6 +1,6 @@
 # plib
 
-Last updated 4 Aug 2022 
+Last updated 5 Aug 2022 
 
 # Introduction
 This repository is a collection of python stuff I've written since 1998.
@@ -18,26 +18,25 @@ for.  Most of the stuff is licensed under the Open Software License version
   thin layer over PostScript.
 
 This is a work-in-progress.  Currently, a few tests fail in /plib.  Most of
-the scripts in `plib/pgm` don't have suitable 'what' strings (see 0what.py
-below), so you'll have to look at their code to see what they do.
-Eventually, all the 'what' strings will be filled out, as I can't remember
-what all this stuff does myself.
+the scripts in `plib/pgm` don't have suitable 'what' strings (see
+`0what.py` below), so you'll have to look at their code to see what they
+do.  Eventually, all the `what` strings will be filled out, as I can't
+remember what all this stuff does myself.
 
 Some repository tags are:
-    * Creation_7Mar2022:  date the repository was created
-    * Python_3.9_testing_26Jul2022:  I started using python 3.9 (I had been
-      using 3.7 for a number of years).  The command 'python 0test.py .'
-      passes for all the tested python modules except for geom_prim.py.
 
-As of this writing (Jul 2022), this stuff has been tested with python
-3.9.10 in a cygwin environment on Windows 10.  
+* Creation_7Mar2022:  date the repository was created
+* Python_3.9_testing_26Jul2022:  I started using python 3.9 (I had been
+  using 3.7 for a number of years).  The command `python 0test.py .`
+  tests all the python modules in `/plib` that have self-tests.  Most of
+  them pass their tests.
 
 ## Coding style
 
 My coding style is vertically compressed which most folks won't like.  You
 can use a style formatter (e.g., black) to to recover more normal vertical
-formatting.  I use pgm/rbl.py to remove blank lines so I can see as much as
-possible on my screen.  
+formatting.  I use `pgm/rbl.py` to remove blank lines so I can see as much
+as possible on my screen.  
 
 I use a folding editor, which folds on indentation and explains the
 frequent use of 'if 1:' element, which I use to divide the code up into
@@ -48,23 +47,21 @@ lines.  I also use a second 4k monitor in portrait mode to view 100 to
 My editor has commands to go to the next paragraph, which is defined by a
 bare newline.  With no blank lines in a file, this lets me set up
 "bookmarks" by inserting an empty line.  I can then jump between two areas
-in a file with one key press, which is fast and efficient.  It's much
-faster than using stored bookmarks or multiple tab pages.
+in a file with one key press.  It's much faster than using stored bookmarks
+or multiple tab pages.
 
 You'll find 'git log' pretty useless in this repository, as my development
 model is similar to how I used RCS at home for a few decades.  I'm the only
 developer and I make check-ins when I've gotten far enough where I don't
-want to lose something, so I check it in with no comment (when I worked in
-industry, such behavior would have gotten one put on the 'atomiser', if
-you've read "Broken Angels") and push it to github.  I also rarely make
-branches.  I'll occasionally mark a notable event with a tag. 
+want to lose something, so I check it in with no comment and push it to
+github.  I rarely make branches.  I'll occasionally mark a notable event
+with a tag.  The latest revision on main is the file you'll want.
 
 I use pycodestyle (a python PEP8 style checker) to check my code's style,
-but dislike the verbose output, so I pipe it to pgm/pycodestyle_filter.py,
-which 1) condenses the output, 2) color codes the error/warning number and
-description, and 3) only outputs the more important stuff unless the -a
-option is used.  While I don't follow all the recommendations, I try to
-correct the egregious problems.
+but I run it from a script `pgm/pcs.py` to 1) condense the output 2)
+color code the error number and message, and 3) only output what I consider
+are the most important things to fix.  It's easily tuned to your tastes, as
+style guidelines can be subjective.
 
 ## Status
 
@@ -72,26 +69,26 @@ I made this repository public on 7 Mar 2022.  I'll slowly add to it over
 time and fix/maintain some of the stuff.  My intent is that this stuff will
 remain here for a few years after I've died or when I turn its maintenance
 over to a friend who said he'd be the caretaker for it after I'm no longer
-able to maintain things.  By then any content of interest to others will probably
-have made its way out into the world; he can remove the repository when he
-sees fit.
+able to maintain things.  By then any content of interest to others will
+probably have made its way out into the world; he can remove the repository
+when he sees fit.
 
 ## Caution
 
 The set of files in this directory are a core set of python modules and
 scripts I've written over the years for my own use.  There's some useful
-functionality in here, but I must warn you it's fairly tightly coupled.  By
-this, I mean if you find a script you like and want to move it somewhere
-else, you'll probably find that it's dependent on a number of other
+functionality in here, but I must warn you it's fairly tightly coupled.
+This means if you find a script you like and want to move it somewhere
+else, you may find that it's dependent on a number of other
 modules.  This will be annoying and possibly a lot of work to fix.  This
-repository on my system is /plib and my PYTHONPATH variable is
-"/plib:/plib/g", so this repository is the only code I use outside of
+repository on my system is `/plib` and my `PYTHONPATH` variable is
+`"/plib:/plib/g"`, so this repository is the only code I use outside of
 what's in the python distribution. 
 
 # Software lesson
 
 Recently I needed to execute some code buried in a function inside of a
-function in /plib/color.py because running some code showed an exception in
+function in `/plib/color.py` because running some code showed an exception in
 this code.  I rashly stuck in three lines in the middle of the file like
 
 > c = Color(args)
@@ -103,19 +100,21 @@ system the next day, as I used another computer in the living room in the
 evening.  Next morning I went to use my Windows system and something had
 happened to the system (maybe an update), as all the files in my /plib had
 the execute bit on, which I hate because an ls listing shows everything
-green.  I ran my script /plib/pgm/x.py which fixes this quickly, but it
+green.  I ran my script `/plib/pgm/x.py` which fixes this quickly, but it
 didn't work.  Then I tried to use my command I use to go to another
-directory (the /plib/pgm/goto.py script) and it didn't work.  I couldn't
-get **any** python stuff to work and it started to make me panic.  I ran
-cygwin's setup again to reinstall python and rebooted the computer.  No
-change.  Then I finally stuck a debugger breakpoint at the beginning of the
-x.py script and stepped through the initial imports at the beginning of the
-file and saw an exception when color.py was imported.  Calling that file up
-in vim positioned me on the rashly inserted code and I knew what the
-problem was:  idiot in the pilot's seat.  There are 85 files that import
-color.py, so it's used quite a bit.  The key lesson is that such lines
-should always be in a block that begins with 'if __name__ == "__main__":'
-to help avoid such problems.
+directory (the `/plib/pgm/goto.py` script) and it didn't work.  I couldn't
+get **any** python stuff to work and it started to make me panic, as I
+thought either the update screwed up the system or my rlogin from the other
+computer did something nasty.  I ran cygwin's setup again to reinstall
+python and rebooted the computer.  No change.  Then I finally stuck a
+debugger breakpoint at the beginning of the `x.py` script and stepped
+through the initial imports at the beginning of the file and saw an
+exception when `color.py` was imported.  Calling that file up in vim
+positioned me on the rashly inserted code and I knew what the root cause
+was:  idiot in the pilot's seat.  There are 85 files that import `color.py`,
+so it's used quite a bit.  The key lesson is that such lines should always
+be in a block that begins with 'if __name__ == "__main__":' to help avoid
+such problems.
 
 # Tools
 
@@ -136,8 +135,8 @@ organized by categories.
 
 This script will run the self tests of the files.  The tests are either in
 the module's file or are located in the test directory.  Each module file has
-a special trigger string (see trigger.py) that tells 0test.py how to run
-its tests.  If you run 'python 0test.py', you'll get a summary report of
+a special trigger string (see `trigger.py`) that tells `0test.py` how to run
+its tests.  If you run `python 0test.py`, you'll get a summary report of
 passes and failures.  Only failed tests will print out messages.  Use the
 -v option to see each test's output.  The default output tells you the
 files that fail self-tests and need to be worked on.
@@ -169,16 +168,16 @@ techniques.
       color definitions and generating escape codes for using color in text
       in output to a terminal.  This file went through a large revision in
       March/April 2022, as I changed the design from something I had been
-      using for a couple of decades (it was renamed kolor.py and will
+      using for a couple of decades (it was renamed `kolor.py` and will
       eventually be removed).  I included support for the old design, as it
       was used in about 80 files in this directory tree.  I'll slowly
       convert things over to the new file and delete the legacy stuff.  
-    - A handy utility that uses color.py is pgm/cdec.py, which will
+    - A handy utility that uses `color.py` is `pgm/cdec.py`, which will
       decorate lines of a file with color specifiers, so you see the line
       in its specified color.  Try 'cdec colornames0' and you'll see a
       demo.  The colornames0 is my default set of colors with naming based
-      on the 3 letter names of the resistor color code.  Run color.py as a
-      script to see the colors and add the 'a' argument to see the styles.
+      on the 3 letter names of the resistor color code.  Run `color.py` as a
+      script to see the colors and add the `a` argument to see the styles.
 
 * lwtest.py
     - Lightweight test runner adapted from a nice tool by Raymond
@@ -200,7 +199,7 @@ techniques.
 
 * matrix.py
     - While numpy provides matrices, it's occasionally nice to have a
-      pure-python module to deal with matrices.  The matrix.py module is
+      pure-python module to deal with matrices.  The `matrix.py` module is
       derived from a public domain lightweight matrix module (version 3.0.0
       of pymatrix gotten on 15 Jul 2019).  The module lets you put into a
       matrix anything that can be put into a list (the implementation uses
@@ -223,4 +222,6 @@ techniques.
       datafile used for the projects, directories, etc. can be commented
       out, meaning you'll be able to remember where they are.  My computer
       has many hundreds of thousands of files and it's nearly impossible to
-      remember where everything is.
+      remember where everything is.  I wrote this before I retired a couple
+      of  decades ago and a number of friends at work told me they couldn't
+      live without the script.  I use it constantly at the command line.
