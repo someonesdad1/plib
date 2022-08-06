@@ -48,7 +48,7 @@ if 1:   # Custom imports
         import color as c
         _have_color = True
     except ImportError:
-        class _C: # Dummy object that will swallow calls to the color module
+        class _C:  # Dummy object that will swallow calls to the color module
             def __setattr__(self, attr, x):
                 pass
             def __getattr__(self, attr):
@@ -64,7 +64,7 @@ if 1:   # Global variables
     unix = False
     if unix:
         app = "/usr/bin/exo-open"       # Linux
-    else: # Windows
+    else:                               # Windows
         #app = "<dir>/app.exe"
         app = "c:/cygwin/bin/cygstart.exe" 
 if 1:   # Colors for output; colors available are:
@@ -247,7 +247,8 @@ def GetMatches(regexp, d):
             matches.append((i, mo))
     # Sort the matches so that they always appear in the same order (not
     # doing this will sometimes give different orders.
-    f = lambda i: str(i[0])     # Get the path string
+    def f(i):
+        str(i[0])     # Get the path string
     matches = list(sorted(matches, key=f))
     return matches
 def PrintChoices(matches, d):

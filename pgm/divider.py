@@ -146,7 +146,8 @@ def FindResistors(Rtotal, desired_ratio, number_limit, d):
     comb = Combinations(Resistors())
     n = len(resistor_set)
     N = len(comb)
-    f = lambda x, y:  round(abs(x/y - 1), 4)
+    def f(x, y):
+        round(abs(x/y - 1), 4)
     for R1, R2 in comb:
         rtotal = R1 + R2
         ratio = R1/rtotal

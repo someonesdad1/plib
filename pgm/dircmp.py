@@ -27,7 +27,8 @@ if 1:   # Header
         from color import Color, TRM as t
     # Global variables
         ii = isinstance
-        class g: pass
+        class g:
+            pass
         g.dir1 = None
         g.dir2 = None
         t.first = t("grnl")

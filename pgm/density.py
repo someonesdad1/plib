@@ -2076,44 +2076,44 @@ if 1:   # Global variables
     '''
 
     references = {
-        "aes" : dedent('''
+        "aes": dedent('''
                 Bolz & Tuve, "Handbook of Tables for Applied Engineering
                 Science", 2nd ed., CRC Press, 1973.'''),
-        "asm" : dedent('''
+        "asm": dedent('''
                 American Society of Metals, "Metals Handbook", Vol. 1,
                 8th ed., 1961 (9th printing, Aug 1977).'''),
-        "ceh" : dedent('''
+        "ceh": dedent('''
                 Perry (ed.), "Chemical Engineers' Handbook", 5th ed.,
                 McGraw-Hill, 1973.'''),
-        "el"  : dedent('''Emsley, "The Elements", Oxford, 1989.'''),
-        "glo" : dedent('''Glover, "Pocket Ref", Sequoia Publishing, 1993.'''),
-        "hcp" : dedent('''
+        "el": dedent('''Emsley, "The Elements", Oxford, 1989.'''),
+        "glo": dedent('''Glover, "Pocket Ref", Sequoia Publishing, 1993.'''),
+        "hcp": dedent('''
                 Weast (ed.), "CRC Handbook of Chemistry and Physics",
                 CRC, 59th ed., 1978.'''),
-        "hep" : dedent('''
+        "hep": dedent('''
                 Koshkin & Shirkevich, "Handbook of Elementary Physics",
                 3rd ed., MIR Publishers, 1977.'''),
-        "mar" : dedent('''
+        "mar": dedent('''
                 Marks, "Standard Handbook for Mechanical Engineers",
                 7th ed., McGraw-Hill, 1967.'''),
-        "dp" : "Measured by script author",
-        "mh" : dedent('''
+        "dp": "Measured by script author",
+        "mh": dedent('''
                 Oberg, Jones, Horton, "Machinery's Handbook", 21st
                 ed., Industrial Press, 1979.'''),
-        "pht" : dedent('''
+        "pht": dedent('''
                 "Physics Hypertextbook", http://physics.info/density
                 (various pages accessed on various dates)'''),
-        "pvc" : dedent('''
+        "pvc": dedent('''
                 http://www.pvc.org/en/p/specific-gravity-density
                 (accessed 13 Nov 2018)'''),
         "pwdrh": dedent('''
                 https://www.powderhandling.com.au/bulk-density-chart,
                 (accessed 2 Jul 2021)'''),
-        "sim" : dedent('''
+        "sim": dedent('''
                 http://www.simetric.co.uk/si_materials.htm
                 (accessed 27 Jan 2013)'''),
-        "web" : "From web, location and date not noted.",
-        "wp"  : dedent('''
+        "web": "From web, location and date not noted.",
+        "wp": dedent('''
                 Wikipedia http://en.wikipedia.org, accessed various
                 pages on various dates.'''),
     }

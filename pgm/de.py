@@ -39,13 +39,13 @@ if 1:   # Global variables
     # How much to indent a fraction to have pleasing offsets to make the
     # table easier to read.
     default_indents = {
-        1 : 0,
-        2 : 0,
-        4 : 0,
-        8 : 0,
-        16 : 0,
-        32 : 4,
-        64 : 9,
+        1: 0,
+        2: 0,
+        4: 0,
+        8: 0,
+        16: 0,
+        32: 4,
+        64: 9,
     }
     max_indent = max(default_indents.values())
     # This color is used to indicate a match in the extended listing that has
@@ -207,15 +207,16 @@ def TapDrills(d):
     '''
     from asme import UnifiedThread as UT
     # Number thread major diameter in inches
-    nt = lambda n:  round(0.06 + 0.013*n, 4)
+    def nt(n):
+        round(0.06 + 0.013*n, 4)
     t = []
     # ----------------------------------------------------------------------
     # Inch-based threads
     T = { 
-        "C": # UNC coarse numbered sizes
+        "C":  # UNC coarse numbered sizes
         ((1, 64), (2, 56), (3, 48), (4, 40), (5, 40),
         (6, 32), (8, 32), (10, 24), (12, 24)),
-        "F": # UNF fine numbered sizes
+        "F":  # UNF fine numbered sizes
         ((0, 80), (1, 72), (2, 64), (3, 48), (4, 48),
         (5, 44), (6, 40), (8, 36), (10, 32), (12, 28)),
     }
@@ -232,10 +233,10 @@ def TapDrills(d):
             td = thd.TapDrill(50)
             t.append([td, "#{}-{}{}".format(n, tpi, U), GN["tap50"]])
     T = { 
-        "C": # UNC coarse fractional sizes
+        "C":  # UNC coarse fractional sizes
         (("1/4", 20), ("5/16", 18), ("3/8", 16), ("7/16", 14), ("1/2", 13),
         ("9/16", 12), ("5/8", 11), ("3/4", 10), ("7/8", 8), ("1", 8)),
-        "F": # UNF fine fractional sizes
+        "F":  # UNF fine fractional sizes
         (("1/4", 28), ("5/16", 24), ("3/8", 24), ("7/16", 20), ("1/2", 20),
         ("9/16", 18), ("5/8", 18), ("3/4", 16), ("7/8", 14), ("1", 12)),
     }
@@ -274,12 +275,12 @@ def TapDrills(d):
     # ----------------------------------------------------------------------
     # Metric threads
     T = { 
-        "C": # Metric coarse threads
+        "C":  # Metric coarse threads
             ("M1×0.25 M1.2×0.25 M1.4×0.3 M1.6×0.35 M1.7×0.35 M1.8×0.35 "
             "M2×0.4 M2.2×0.45 M2.5×0.45 M3×0.5 M3.5×0.6 M4×0.7 M4.5×0.75 "
             "M5×0.8 M6×1 M7×1 M8×1.25 M9×1.25 M10×1.5 M11×1.5 M12×1.75 "
             "M14×2 M16×2 M18×2.5 M20×2.5 M22×2.5 M24×3"),
-        "F": # Metric fine threads
+        "F":  # Metric fine threads
             ("M1×0.2 M1.2×0.2 M1.4×0.2 M1.6×0.2 M1.8×0.2 M2×0.25 "
             "M2.5×0.35 M3×0.35 M3.5×0.35 "
             "M4×0.5 M5×0.5 M6×0.5 M6×0.75 M7×0.75 M8×0.75 M8×1 M10×1 "

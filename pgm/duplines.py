@@ -28,9 +28,9 @@ if 1:   # Global variables
     out = sys.stdout.write
     nl = "\n"
     return_status = {
-        "no duplicates" : 0,
-        "duplicates"    : 1,
-        "bad command"   : 2,
+        "no duplicates": 0,
+        "duplicates": 1,
+        "bad command": 2,
     }
     # Set these to True if you want them enabled by default; False for off by
     # default.
@@ -55,7 +55,7 @@ if 1:   # Global variables
     # Compiled regular expressions we will ignore
     regular_expressions = []
     canned_expressions = {
-        "float"   : re.compile(r'''
+        "float": re.compile(r'''
             [+-]?               # Optional sign
             \d*\.\d+            # Mandatory decimal point and following digit
             ([eE][+-]?\d+)?     # Optional exponent
@@ -68,10 +68,10 @@ if 1:   # Global variables
             \d+                 # Leading digits, but no decimal point
             [eE][+-]?\d+        # Mandatory exponent
         ''', re.VERBOSE),
-        "integer" : re.compile(r"[+-]?\d+(?!\.)"),
-        "hex"     : re.compile(r"0x[\da-f]+", re.IGNORECASE),
+        "integer": re.compile(r"[+-]?\d+(?!\.)"),
+        "hex": re.compile(r"0x[\da-f]+", re.IGNORECASE),
     }
-    whitespace = re.compile("\s+")
+    whitespace = re.compile(r"\s+")
 def Error(*msg, status=1):
     print(*msg, file=sys.stderr)
     exit(status)

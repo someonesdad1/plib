@@ -161,7 +161,7 @@ if 1:   # Core functionality
                 diffs.append(file)
         return set(diffs), set(noread)
     def GetDecorator(item):
-        left  = open(dirleft/item, "rb").read()
+        left = open(dirleft/item, "rb").read()
         right = open(dirright/item, "rb").read()
         if len(left) != len(right):
             return ""

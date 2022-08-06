@@ -211,7 +211,8 @@ def ProcessDir(dirnum, dir, d):
         if ".git" in dir_fields and not d["-g"]:
             Debug("Ignoring git directory:  ", root)
             continue    # Ignore Mercurial directories
-        dotted = lambda x:  x.startswith(".") and x != "."
+        def dotted(x):
+            x.startswith(".") and x != "."
         if any([dotted(i) for i in dir_fields]) and not d["-h"]:
             Debug("Ignoring hidden directory:  ", root)
             continue    # Ignore hidden directories

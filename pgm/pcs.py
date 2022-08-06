@@ -35,27 +35,15 @@ if 1:   # Header
         from get import GetLines
         from lwtest import Assert
         from color import Color, TRM as t
-        t.always = True
+        if 1:
+            import debug
+            debug.SetDebugger()
     # Global variables
+        t.always = True
         dbg = False
         ii = isinstance
         W = int(os.environ.get("COLUMNS", "80")) - 1
         L = int(os.environ.get("LINES", "50"))
-        # Important and notable errors/warnings
-        errors_important = set("E401 E402 E701 E702 E704 E722 E901 E902".split())
-        errors_notable = set("E703 E711 E712 E713 E714 E731 E741 E742 E743".split())
-        warnings_important = set("W191".split())
-        warnings_notable = set("W601 W602 W603 W604 W605 W606".split())
-        # Make a dict of errors/warnings that need colorizing
-        clr = {}
-        for i in errors_important:
-            clr[i] = t("redl")
-        for i in errors_notable:
-            clr[i] = t("ornl")
-        for i in warnings_important:
-            clr[i] = t("purl")
-        for i in warnings_notable:
-            clr[i] = t("royl")
         # Colors
         t.dbg = t("lill")
         t.err = t("lip")
@@ -86,6 +74,7 @@ if 1:   # Utility
           results.  Normal behavior is to only print -2 and -3 error and
           warning messages.
         Options:
+            -a      Show all errors/warnings
             -0      Print ignored items [default off]
             -1      Print low-priority items [default off]
             -2      Print notable items [default on]
@@ -95,6 +84,7 @@ if 1:   # Utility
         '''))
         exit(status)
     def ParseCommandLine(d):
+        d["-a"] = False     # Show all errors/warnings
         d["-0"] = False     # Show ignored items
         d["-1"] = False     # Show low-priority items
         d["-2"] = True      # Show notable items
@@ -103,14 +93,14 @@ if 1:   # Utility
         d["-v"] = 0         # Show debug output
         if len(sys.argv) < 2:
             Usage()
+        a = ["help", "debug"]
         try:
-            opts, args = getopt.getopt(sys.argv[1:], "0123chv", 
-                    ["help", "debug"])
+            opts, args = getopt.getopt(sys.argv[1:], "0123achv", a)
         except getopt.GetoptError as e:
             print(str(e))
             exit(1)
         for o, a in opts:
-            if o[1] in list("0123c"):
+            if o[1] in list("0123ac"):
                 d[o] = not d[o]
             elif o in ("-h", "--help"):
                 Usage(status=0)
@@ -121,6 +111,8 @@ if 1:   # Utility
                 # unhandled exception
                 import debug
                 debug.SetDebugger()
+        if d["-a"]:
+            d["-0"] = d["-1"] = d["-2"] = d["-3"] = True
         if d["-v"]:
             global dbg
             dbg = d["-v"]
@@ -136,7 +128,7 @@ if 1:   # Rankings of error/warning types
     def GetErrorRankDict():
         '''Return a dict keyed by error/warning numbers like "E305" and
         values of integers on [0, 3]:
-            0   Ignored 
+            0   Ignored
             1   Low-priority fixes
             2   Notable and should be fixed
             3   Important and must be fixed
@@ -151,7 +143,8 @@ if 1:   # Rankings of error/warning types
             Assert(rank in range(4))
             errnum = f[1]
             error_ranks[errnum] = rank
-    # Downloaded from https://pycodestyle.pycqa.org/en/latest/intro.html#error-codes
+    # Downloaded from
+    # https://pycodestyle.pycqa.org/en/latest/intro.html#error-codes
     # on 05 Aug 2022 06:58:55 PM
     GetErrorRankDict.data = '''
         3   E101 indentation contains mixed spaces and tabs
@@ -191,7 +184,7 @@ if 1:   # Rankings of error/warning types
         2   E251 unexpected spaces around keyword / parameter equals
         2   E261 at least two spaces before inline comment
         2   E262 inline comment should start with ‘# ‘
-        2   E265 block comment should start with ‘# ‘
+        1   E265 block comment should start with ‘# ‘
         2   E266 too many leading ‘#’ for block comment
         2   E271 multiple spaces after keyword
         2   E272 multiple spaces before keyword
@@ -244,24 +237,28 @@ if 1:   # Classes
         '''An item holds the following data:
             Error number (e.g. "E225")
             File name
-            List of line numbers where error occurred
-            List of associated column numbers where error occurred
+            line_col = tuple of (line, column) where error was
         The __str__ method allows printing the item to stdout.
         '''
-        def __init__(self, errnum, file, linenums, colnums):
+        def __init__(self, errnum, file, line_col):
             self.errnum = errnum
             self.file = file
-            self.linenums = linenums
-            self.colnums = colnums
-            Assert(linenums and colnums)
-            Assert(len(linenums) == len(colnums))
+            self.line_col = line_col
+            Assert(line_col)
+            # Separate into line numbers and column numbers
+            self.linenums, self.colnums = [], []
+            for linenum, colnum in self.line_col:
+                self.linenums.append(linenum)
+                self.colnums.append(colnum)
+            self.linenums = sorted(self.linenums)
+            self.colnums = sorted(self.colnums)
         def __str__(self):
             '''Return a string that gives the filename, a ":", and the list
             of line numbers with one space between them.  Wrap things so
             that the line numbers are easy to read.
             '''
             if d["-c"]:
-                q = ["{i}:{j}" for i, j in zip(self.linenums, self.colnums)]
+                q = [f"{i}:{j}" for i, j in zip(self.linenums, self.colnums)]
             else:
                 q = self.linenums
             s = f"{self.file}: {' '.join(str(i) for i in q)}"
@@ -289,7 +286,12 @@ if 1:   # Core functionality
             line = line.strip()
             if not line:
                 continue
-            file, linenum, colnum, msg = line.split(":", maxsplit=4)
+            f = line.split(":", maxsplit=4)
+            if len(f) == 4:
+                file, linenum, colnum, msg = f
+            else:
+                file, linenum, colnum, msg, remainder = f
+                msg = msg + ":" + remainder
             linenum = int(linenum)
             colnum = int(colnum)
             msg = msg.strip()
@@ -331,7 +333,7 @@ if 1:   # Core functionality
         {
             "E501": {
                 "file1.py": set of T tuples,
-                "file2.py": set of T tuples,
+                "file2.py": set of T tuple des,
                 etc.
             },
         }
@@ -350,11 +352,7 @@ if 1:   # Core functionality
         for errnum in data:
             for file in data[errnum]:
                 T = data[errnum][file]
-                linenums, colnums = [], []
-                for linenum, colnum in T:
-                    linenums.append(linenum)
-                    colnums.append(colnum)
-                item = Item(errnum, file, linenums, colnums)
+                item = Item(errnum, file, T)
                 data[errnum][file] = item
         # Divide up into ranked groups
         r0 = defaultdict(list)

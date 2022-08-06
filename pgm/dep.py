@@ -225,12 +225,12 @@ if 1:   # Core functionality
             "not_found": not_found,
         }
     def ProcessFile(file, d):
-        '''For the given file, find the lines that match the regular
+        r'''For the given file, find the lines that match the regular
         expressions '^\s*from\s+ .* import .*' or 'import .*$'.
         '''
         modules = []    # Find the modules imported by this file
         # Use regular expressions to find the import statements
-        r1 = re.compile("^\s*import\s+(.*)$")
+        r1 = re.compile(r"^\s*import\s+(.*)$")
         r2 = re.compile(r"^\s*from\s+(\w+)\s+import\s+.*$")
         for line in open(file):
             s = line.strip()
