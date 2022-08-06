@@ -46,15 +46,15 @@ def FindClosest(R, favor_highest=True):
         return None
     else:
         # Return whichever is closer to desired R
-        l, m = abs((less - R)), abs((more - R))
-        if l == m:
+        L, m = abs((less - R)), abs((more - R))
+        if L == m:
             return more if favor_highest else less
         else:
-            return less if l <= m else more
+            return less if L <= m else more
 def OnHand():
     'Return a list of on-hand resistors'
     # Use this to remake the above resistors tuple
-    l = '''
+    L = '''
         0.025 0.18 0.2 0.27 0.33           1 2.2 4.6 8.3
         10.1 12 14.7 15 17.8 22 27 28.4 30 31.6 33 35 38.4 46.3 50 55.5 61.8 67
         75 78 81
@@ -71,7 +71,7 @@ def OnHand():
         10M 16M 23.5M
     '''
     o = []
-    for R in l.split():
+    for R in L.split():
         x = float(eval(R.replace("k", "*1000").replace("M", "*1e6")))
         o.append(int(x) if x == int(x) else x)
     return tuple(sorted(list(set(o))))

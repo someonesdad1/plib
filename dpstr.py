@@ -202,7 +202,8 @@ if 1:   # Core functionality
             soundex.m = dict(zip("ABCDEFGHIJKLMNOPQRSTUVWXYZ",
                                  "01230120022455012623010202"))
         # Function to map lower-case letters to soundex number
-        getnum = lambda x: [soundex.m[i] for i in x]
+        def getnum(x):
+            return [soundex.m[i] for i in x]
         t = s.upper()
         num, keep = getnum(t), []
         # Step 0 (and step 3):  keep only those letters that don't map to
@@ -240,7 +241,8 @@ if 1:   # Core functionality
         '''
         # Method:  reverse each string in seq, find their common prefix, then
         # reverse the result.
-        f = lambda lst:  ''.join(lst)   # Convert the list back to a string
+        def f(lst):
+            return ''.join(lst)   # Convert the list back to a string
         def rev(s):     # Reverse the string s
             return f([f(list(i)) for i in reversed(s)])
         return rev(CommonPrefix([rev(i) for i in seq]))
@@ -249,10 +251,8 @@ if 1:   # Core functionality
         are in keep.
         '''
         k = set(keep)
-        if 0:
-            f = lambda x: x not in k
-            ret = filterfalse(f, s)
-        f = lambda x: x in k
+        def f(x):
+            return x in k
         ret = filter(f, s)
         return ''.join(ret) if isinstance(s, str) else list(ret)
     def KeepFilter(keep):
@@ -265,7 +265,8 @@ if 1:   # Core functionality
     def Remove(s, remove):
         'Return a sequence of the items in s that are not in remove'
         r = set(remove)
-        f = lambda x: x in r
+        def f(x):
+            return x in r
         ret = filterfalse(f, s)
         return ''.join(ret) if isinstance(s, str) else type(s)(ret)
     def RemoveFilter(remove):
@@ -756,7 +757,7 @@ if 1:   # Core functionality
         '''Return the string defining the leading whitespace in the string
         s.  If ws is not None, use it as the set of characters defining
         whitespace.  If ws is not given, whitespace characters are defined
-        by the re module's '\s' metacharacters.
+        by the re module's '\\s' metacharacters.
  
         You can define the set ws to be any set of characters and the
         returned string will be the string of those characters that are at
@@ -778,7 +779,7 @@ if 1:   # Core functionality
         '''Return the string defining the trailing whitespace in the string
         s.  If ws is not None, use it as the set of characters defining
         whitespace.  If ws is not given, whitespace characters are defined
-        by the re module's '\s' metacharacters.
+        by the re module's '\\s' metacharacters.
  
         You can define the set ws to be any set of characters and the
         returned string will be the string of those characters that are at
@@ -881,15 +882,15 @@ if __name__ == "__main__":
         Assert(o == e)
     def Test_Chop():
         s = "10f6b8a"
-        l = Chop(s, 2)
-        Assert(l == ['10', 'f6', 'b8', 'a'])
+        L = Chop(s, 2)
+        Assert(L == ['10', 'f6', 'b8', 'a'])
         s = ""
-        l = Chop(s, 2)
-        Assert(l == [])
+        L = Chop(s, 2)
+        Assert(L == [])
         # Works with sequences
         s = (1, 2, 3, 4, 5)
-        l = Chop(s, 2)
-        Assert(l == [(1, 2), (3, 4), (5,)])
+        L = Chop(s, 2)
+        Assert(L == [(1, 2), (3, 4), (5,)])
     def Test_MatchCap():
         t = "AbCdEf"
         # s needs to have as many characters as t
@@ -1001,7 +1002,8 @@ if __name__ == "__main__":
         s = "hello there"
         Assert(StringSplit([4, 7], s) == ['hell', 'o t', 'here'])
         t = "3s 3x 4s"
-        f = lambda x: bytes(x, encoding="ascii")
+        def f(x):
+            return bytes(x, encoding="ascii")
         q = [f('hel'), f('ther'), f('e')]
         Assert(StringSplit(t, s, remainder=True) == q)
         Assert(StringSplit(t, s, remainder=False) == q[:-1])

@@ -947,19 +947,19 @@ if __name__ == "__main__":
         def TestGetLines():
             # Test with stream
             sio = StringIO(S)
-            l = S.split() + [""]
+            L = S.split() + [""]
             t = GetLines(sio, nonl=True)
-            Assert(t == l)
+            Assert(t == L)
             sio = StringIO(S)
             t = GetLines(sio, nonl=False)
-            m = [i + "\n" for i in l]
+            m = [i + "\n" for i in L]
             Assert(t == m)
             # Test with string
             t = GetLines(S, nonl=True)
-            Assert(t == l)
+            Assert(t == L)
             # Test with file
             t = GetLines(text_file, nonl=True)
-            Assert(t == l)
+            Assert(t == L)
             # Test 'script' keyword
             s = "# xyz\n    # xyz\nabc"
             sio = StringIO(s)
@@ -1311,8 +1311,8 @@ if __name__ == "__main__":
         def TestGetNumbers():
             # Check general python numerical types
             s = "1 1.2 3/4 3+1j"
-            l = GetNumbers(s)
-            Assert(l == [1, 1.2, Fraction(3, 4), (3+1j)])
+            L = GetNumbers(s)
+            Assert(L == [1, 1.2, Fraction(3, 4), (3+1j)])
             # Check f.py types flt and cpx
             if _have_f:
                 s = "1.2 3+1j"
@@ -1328,24 +1328,24 @@ if __name__ == "__main__":
                     Assert(u.std_dev == 4)
             # Test with a float type
             s = "1 1.2"
-            l = GetNumbers(s, numtype=float)
-            Assert(l == [1.0, 1.2])
-            Assert(all([ii(i, float) for i in l]))
-            l = GetNumbers(s, numtype=flt)
-            Assert(l == [flt(1.0), flt(1.2)])
-            Assert(all([ii(i, flt) for i in l]))
+            L = GetNumbers(s, numtype=float)
+            Assert(L == [1.0, 1.2])
+            Assert(all([ii(i, float) for i in L]))
+            L = GetNumbers(s, numtype=flt)
+            Assert(L == [flt(1.0), flt(1.2)])
+            Assert(all([ii(i, flt) for i in L]))
             # Test with a complex type
             s = "1 1.2 3+4j"
-            l = GetNumbers(s, numtype=complex)
-            Assert(l == [1+0j, 1.2+0j, 3+4j])
-            l = GetNumbers(s, numtype=cpx)
-            Assert(all([ii(i, cpx) for i in l]))
-            Assert(l == [cpx(1+0j), cpx(1.2+0j), cpx(3+4j)])
+            L = GetNumbers(s, numtype=complex)
+            Assert(L == [1+0j, 1.2+0j, 3+4j])
+            L = GetNumbers(s, numtype=cpx)
+            Assert(all([ii(i, cpx) for i in L]))
+            Assert(L == [cpx(1+0j), cpx(1.2+0j), cpx(3+4j)])
             # Test Fraction
             s = "3/8 7/16 1/2"
-            l = GetNumbers(s)
-            Assert(all([ii(i, Fraction) for i in l]))
-            Assert(l == [Fraction(3, 8), Fraction(7, 16), Fraction(1, 2)])
+            L = GetNumbers(s)
+            Assert(all([ii(i, Fraction) for i in L]))
+            Assert(L == [Fraction(3, 8), Fraction(7, 16), Fraction(1, 2)])
         def TestGetNumberArray():
             s = '''
                 1 2 3
@@ -1433,17 +1433,17 @@ if __name__ == "__main__":
     if 1:   # Tokenizing
         def TestGetWords():
             sio = StringIO(S)
-            l = S.split()
+            L = S.split()
             t = GetWords(sio)
-            Assert(t == l)
+            Assert(t == L)
             t = GetWords(S)
-            Assert(t == l)
+            Assert(t == L)
             t = GetWords(text_file)
-            Assert(t == l)
+            Assert(t == L)
         def TestGetTokens():
             s = "1 2 3\n4 5 6\n"
-            l = list(GetTokens(s))
-            Assert(l == "1 2 3 4 5 6".split())
+            L = list(GetTokens(s))
+            Assert(L == "1 2 3 4 5 6".split())
         def TestGetWordlist():
             t = "Aa Bb cC"
             s = f'''# Comment

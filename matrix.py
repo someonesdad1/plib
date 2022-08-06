@@ -1906,10 +1906,6 @@ class Matrix:
             'Returns the number of elements in the matrix'
             return self.r*self.c
         @property
-        def l(self): 
-            "Return a flattened list of the matrix's elements"
-            return Matrix._Flatten(self.copy._grid)
-        @property
         def list(self): 
             'Synonym for self.flat'
             return self.flat
@@ -1934,9 +1930,9 @@ class Matrix:
             and the norm of the matrix.
             '''
             try:
-                return math.sqrt(sum(i*i for i in self.l))
+                return math.sqrt(sum(i*i for i in self.list))
             except TypeError as e:
-                return csqrt(sum(i*i for i in self.l))
+                return csqrt(sum(i*i for i in self.list))
         @property
         def numtype(self): 
             '''Returns the numerical type of the elements or None if it is not
@@ -2043,7 +2039,7 @@ class Matrix:
         @property
         def trace(self): 
             'Returns the sum of the diagonal elements'
-            return sum(self.diag.l)
+            return sum(self.diag.list)
         @property
         def type(self): 
             '''Returns a matrix containing strings representing the types of
@@ -2096,10 +2092,10 @@ class Matrix:
             element types.  Use this string to help you understand the
             symbols shown when you use the .type attribute on a matrix.
             '''
-            d, l = self._get_type_dict(), ["Type decorations:"]
+            d, L = self._get_type_dict(), ["Type decorations:"]
             for k, v in d.items():
-                l.append("    {}    {}".format(k, v))
-            return '\n'.join(l)
+                L.append("    {}    {}".format(k, v))
+            return '\n'.join(L)
         @property
         def uvec(self): 
             'Returns a unit vector in the same direction.'
@@ -2652,7 +2648,7 @@ if __name__ == "__main__":
                 vals = [[1, 2, 4], [1, 3, 6], [-1, 0, 1]]
                 m = matrix(vals)
                 Assert(m.size == (3, 3))
-                Assert(Fl(vals) == m.l)
+                Assert(Fl(vals) == m.list)
                 # From default format string
                 expected = matrix([[1, 2, 4], [1, 3, 6], [-1, 0, 1]])
                 s = '1 2 4\n1 3 6\n-1 0 1'
@@ -2851,7 +2847,7 @@ if __name__ == "__main__":
                 Assert(s[2] == (1, 0, 3))
                 Assert(s[3] == (1, 1, 4))
                 # Also test list attribute
-                Assert(m.l == [1, 2, 3, 4])
+                Assert(m.list == [1, 2, 3, 4])
         def test_equals():
             with Testing():
                 m = matrix("1 2\n3 4")
@@ -3098,15 +3094,15 @@ if __name__ == "__main__":
                 m = matrix("1 2\n3 4")
                 p = matrix("1 2\n3 4")
                 m.join(p)
-                Assert(m[0:].l == [1, 2, 1, 2])
-                Assert(m[1:].l == [3, 4, 3, 4])
+                Assert(m[0:].list == [1, 2, 1, 2])
+                Assert(m[1:].list == [3, 4, 3, 4])
                 # Columns
                 m = matrix("1 2\n3 4")
                 m.join(p, c=True)
-                Assert(m[0:].l == [1, 2])
-                Assert(m[1:].l == [3, 4])
-                Assert(m[2:].l == [1, 2])
-                Assert(m[3:].l == [3, 4])
+                Assert(m[0:].list == [1, 2])
+                Assert(m[1:].list == [3, 4])
+                Assert(m[2:].list == [1, 2])
+                Assert(m[3:].list == [3, 4])
         def test_rotate():
             with Testing():
                 # Rotate rows
@@ -3218,30 +3214,30 @@ if __name__ == "__main__":
                 if True:  # Row vectors
                     v = vector(n, fill=0)
                     Assert(v.is_row_vector)
-                    Assert(v.l == [0]*n)
+                    Assert(v.list == [0]*n)
                     # From string
                     v = vector("1 2 3")
                     Assert(v.is_row_vector)
-                    Assert(v.l == [1, 2, 3])
+                    Assert(v.list == [1, 2, 3])
                     vector("1 2\n3")
                     Assert(v.is_row_vector)
-                    Assert(v.l == [1, 2, 3])
+                    Assert(v.list == [1, 2, 3])
                     # From list
                     v = vector([[1, 2, 3]])
                     Assert(v.is_row_vector)
-                    Assert(v.l == [1, 2, 3])
+                    Assert(v.list == [1, 2, 3])
                 if True:  # Column vectors
                     v = vector(n, c=True, fill=0)
                     Assert(v.is_col_vector)
-                    Assert(v.l == [0]*n)
+                    Assert(v.list == [0]*n)
                     # From string
                     v = vector("1\n2\n3", c=True)
                     Assert(v.is_col_vector)
-                    Assert(v.l == [1, 2, 3])
+                    Assert(v.list == [1, 2, 3])
                     # From list
                     v = vector([[1], [2], [3]], c=True)
                     Assert(v.is_col_vector)
-                    Assert(v.l == [1, 2, 3])
+                    Assert(v.list == [1, 2, 3])
         def test_row_and_col():
             with Testing():
                 m = matrix("1 2\n3 4")
@@ -3322,7 +3318,7 @@ if __name__ == "__main__":
                 Assert(m.is_invertible)
                 Assert(not m.is_symmetric)
                 Assert(s.is_symmetric)
-                Assert(list(m.elements) == m.l)
+                Assert(list(m.elements) == m.list)
                 Assert(m.nl == m.grid)
                 Assert(v.is_vector)
                 Assert(not m.is_vector)
@@ -3338,22 +3334,22 @@ if __name__ == "__main__":
                 m.f = False
                 Assert(not m.f)
                 # rows & cols
-                r = [i.l for i in m.rows]
+                r = [i.list for i in m.rows]
                 Assert(r == [[1, 2], [3, 4]])
-                c = [i.l for i in m.cols]
+                c = [i.list for i in m.cols]
                 Assert(c == [[1, 3], [2, 4]])
                 # numtype 
                 if 1:
                     Assert(m.numtype is None)
                     m.numtype = int
                     Assert(m.numtype == int)
-                    Assert(all([type(i) == int for i in m.l]))
+                    Assert(all([type(i) == int for i in m.list]))
                     m.numtype = float
                     Assert(m.numtype == float)
-                    Assert(all([type(i) == float for i in m.l]))
+                    Assert(all([type(i) == float for i in m.list]))
                     m.numtype = complex
                     Assert(m.numtype == complex)
-                    Assert(all([type(i) == complex for i in m.l]))
+                    Assert(all([type(i) == complex for i in m.list]))
                 # Hermitian
                 h = matrix("2 2+1j 4\n2-1j 3 0+1j\n4 0-1j 1")
                 Assert(h.is_hermitian)
@@ -3517,29 +3513,29 @@ if __name__ == "__main__":
                     1+1j 3/4'''
                 m = matrix("1 2.\n1+1j 3/4")
                 m.numtype = complex  # All complex
-                Assert(m[0:].l == [1+0j, 2+0j])
-                Assert(m[1:].l == [1+1j, 0.75+0j])
+                Assert(m[0:].list == [1+0j, 2+0j])
+                Assert(m[1:].list == [1+1j, 0.75+0j])
                 # Note we also need to check type because 1 == 1+0j
                 for i in range(2):
                     for j in range(2):
                         Assert(type(m[i, j]) == complex)
                 # Test the supported conversions
                 m.numtype = int
-                Assert(all([type(i) == int for i in m.l]))
+                Assert(all([type(i) == int for i in m.list]))
                 m.numtype = float
-                Assert(all([type(i) == float for i in m.l]))
+                Assert(all([type(i) == float for i in m.list]))
                 m.numtype = complex
-                Assert(all([type(i) == complex for i in m.l]))
+                Assert(all([type(i) == complex for i in m.list]))
                 m.numtype = Fraction
-                Assert(all([type(i) == Fraction for i in m.l]))
+                Assert(all([type(i) == Fraction for i in m.list]))
                 m.numtype = Decimal
-                Assert(all([type(i) == Decimal for i in m.l]))
+                Assert(all([type(i) == Decimal for i in m.list]))
                 if have_unc:
                     m.numtype = ufloat
-                    Assert(all([type(i) == ufloat_t for i in m.l]))
+                    Assert(all([type(i) == ufloat_t for i in m.list]))
                 if have_mpmath:
                     m.numtype = mpf
-                    Assert(all([type(i) == mpf for i in m.l]))
+                    Assert(all([type(i) == mpf for i in m.list]))
         def test_contains():
             with Testing():
                 for i in (-1, 0, 1, 2, 3, 4, 6):
@@ -3579,7 +3575,7 @@ if __name__ == "__main__":
         def test_static():
             with Testing():
                 m = Matrix.identity(2)
-                assert_equal(m.l, [1, 0, 0, 1])
+                assert_equal(m.list, [1, 0, 0, 1])
                 # hilbert
                 m = Matrix.hilbert(2)
                 Assert(m == matrix("1 1/2\n1/2 1/3"))
@@ -3653,12 +3649,12 @@ if __name__ == "__main__":
                 # Return copy
                 n = m.int()
                 Assert(n == matrix("1 2\n3 4"))
-                Assert(all([isinstance(i, int) for i in n.l]))
+                Assert(all([isinstance(i, int) for i in n.list]))
                 # Do in-place
                 r = m.int(ip=True)
                 Assert(r is None)
                 Assert(m == matrix("1 2\n3 4"))
-                Assert(all([isinstance(i, int) for i in m.l]))
+                Assert(all([isinstance(i, int) for i in m.list]))
         def test_resize():
             with Testing():
                 m = matrix("1 2\n3 4")
@@ -3676,10 +3672,10 @@ if __name__ == "__main__":
                 m = matrix("1 2\n3 4")
                 m.numtype = float
                 Assert(m == matrix("1. 2.\n3. 4."))
-                Assert(all(ii(i, float) for i in m.l))
+                Assert(all(ii(i, float) for i in m.list))
                 m.resize(2, 3)
                 Assert(m == matrix("1. 2. 3.\n4. 0. 0."))
-                Assert(all(ii(i, float) for i in m.l))
+                Assert(all(ii(i, float) for i in m.list))
                 # Exception on bad data
                 raises(TypeError, m.resize, 1, 1.)
                 raises(TypeError, m.resize, 1., 1)
@@ -3722,13 +3718,13 @@ if __name__ == "__main__":
                 m1, m2 = m.split(0)
                 Assert(m1 == matrix("1 2"))
                 Assert(m2 == matrix("3 4"))
-                Assert(all(ii(i, float) for i in m1.l))
-                Assert(all(ii(i, float) for i in m2.l))
+                Assert(all(ii(i, float) for i in m1.list))
+                Assert(all(ii(i, float) for i in m2.list))
                 m1, m2 = m.split(0, c=True)
                 Assert(m1 == matrix("1\n3"))
                 Assert(m2 == matrix("2\n4"))
-                Assert(all(ii(i, float) for i in m1.l))
-                Assert(all(ii(i, float) for i in m2.l))
+                Assert(all(ii(i, float) for i in m1.list))
+                Assert(all(ii(i, float) for i in m2.list))
                 # Check exceptions
                 raises(TypeError, m.split, 0.)
                 raises(ValueError, m.split, -1)

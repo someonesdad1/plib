@@ -141,5 +141,5 @@ class IntervalContainer(object):
                 raise ValueError(msg % (i - 1, prev, i, curr))
 
 if __name__ == "__main__":  
-    I = Interval([(48, 57), (65, 90), 95])
-    I = Interval(["a", "d", "c"])
+    II = Interval([(48, 57), (65, 90), 95])
+    II = Interval(["a", "d", "c"])

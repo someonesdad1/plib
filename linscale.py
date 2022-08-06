@@ -232,11 +232,11 @@ class Scale:
                 raise Exception("'" + key + "' key not in settings")
     def DrawTick(self, number):
         values = []
-        l = "labelled%d" % number
-        if self.s[l]:
-            values += self.s[l][0]
-        if self.s["un" + l]:
-            values += self.s["un" + l]
+        L = "labelled%d" % number
+        if self.s[L]:
+            values += self.s[L][0]
+        if self.s["un" + L]:
+            values += self.s["un" + L]
         if len(values) == 0:
             return
         t = "tick%d" % number
@@ -266,7 +266,7 @@ class Scale:
             return
         f = "font%d" % number
         t = "tick%d" % number
-        l = "label%d" % number
+        L = "label%d" % number
         g.push()
         tick_length = self.s["tick1_length"]
         if number != 1:
@@ -298,8 +298,8 @@ class Scale:
             y *= tick_right
             g.translate(x, y)
             g.rotate(self.s["label_angle"])
-            x = self.s[l + "_x"]
-            y = self.s[l + "_y"] + font_height/10
+            x = self.s[L + "_x"]
+            y = self.s[L + "_y"] + font_height/10
             y *= label_right
             g.move(x, y)
             g.ctext(label)

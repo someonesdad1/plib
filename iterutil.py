@@ -276,8 +276,8 @@ if __name__ == "__main__":
     def TestDotProduct():
         Assert(dotproduct(Range(n), Range(n)) == sum(i*i for i in Range(n)))
     def TestFlatten():
-        l = ["ABC", "DEF"]
-        lst = list(flatten(l))
+        L = ["ABC", "DEF"]
+        lst = list(flatten(L))
         assert_equal(lst, list("ABCDEF"))
     def TestRepeatFunc():
         def f(n):

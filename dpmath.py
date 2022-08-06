@@ -74,8 +74,9 @@ def rect(r, theta, deg=False):
 if 1:   # Polynomial utilities
     # These routines were originally from 
     # http://www.physics.rutgers.edu/~masud/computing/
-    # in the file WPark_recipes_in_python.html.  This URL is defunct.
- 
+    # in the file WPark_recipes_in_python.html; I probably downloaded them
+    # before 2000.  This URL is defunct.
+    # 
     # coef is a sequence of the polynomial's coefficients; coef[0] is the
     # constant term and coef[-1] is the highest term; x is a number.
     def polyeval(coef, x, lowest_first=True):
@@ -351,7 +352,7 @@ def CountBits(num):
     if not isinstance(num, int):
         raise ValueError("num must be an integer")
     s = list(bin(num)[2:])
-    on  = sum([i == "1" for i in s])
+    on = sum([i == "1" for i in s])
     off = sum([i == "0" for i in s])
     return (on, off)
 def DecimalToBase(num, base, check_result=False):
@@ -600,18 +601,18 @@ def significand(x, digits=6):
     return round(s, digits - 1)
 def SignSignificandExponent(x, digits=15):
     '''Returns a tuple (sign, significand, exponent) of a floating point
-    number x.
+    number x.  sign is -1 or 1, significand is a float, and exponent is an
+    integer.
     '''
     s = ("%%.%de" % digits) % abs(float(x))
     return (1 - 2*(x < 0), float(s[0:digits + 2]), int(s[digits + 3:]))
-def signum(x, ret_type=int):
-    '''Return a number -1, 0, or 1 representing the sign of x.
-    '''
+def signum(x, return_type=int):
+    'Return a number -1, 0, or 1 representing the sign of x'
     if x < 0:
-        return ret_type(-1)
+        return return_type(-1)
     elif x > 0:
-        return ret_type(1)
-    return ret_type(0)
+        return return_type(1)
+    return return_type(0)
 def Percentile(seq, fraction):
     '''Return the indicated fraction of a sequence seq of sorted
     values.  fraction will be converted to be in [0, 1].
@@ -1145,7 +1146,7 @@ if __name__ == "__main__":
         correct.  Use flt for calculations.
         '''
         num_rolls = 18
-        mm = flt("1") # mm
+        mm = flt("1")   # mm
         mm.n = 4
         ID, OD = mm(60), mm(130)
         fudge = 3.942
@@ -1154,7 +1155,8 @@ if __name__ == "__main__":
         length_actual = 425*mm(101)
         a = pitch/tau
         # Have to use float because frange barfs on a flt
-        f = lambda x:  float(x)
+        def f(x):
+            return float(x)
         # Since we know the stated length, use the approximate formula
         # to calculate what the thickness must be.
         length = mm(ApproximateSpiralArcLength(f(ID), f(OD), f(thickness)))
@@ -1219,7 +1221,7 @@ if __name__ == "__main__":
         Assert(base2int(s, 94) == int("255" + str(2**64)))
     def Test_int2bin():
         Assert(int2bin(-33, 8) == "11011111")
-        Assert(int2bin( 33, 8) == "00100001")
+        Assert(int2bin(33, 8) == "00100001")
     def TestBinary():
         d = '''
         -1000 -1111101000

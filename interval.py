@@ -1191,8 +1191,8 @@ if __name__ == "__main__":
         s, eps, a, b, k = 0.01, 1e-14, 1, 2, 2
         u1, u2 = U.ufloat(a, s), U.ufloat(b, s)
         R = Rng(u1, u2)
-        I = Interval(R.copy())
-        for r in (R, I):
+        II = Interval(R.copy())
+        for r in (R, II):
             Assert(a in r)
             Assert(a + eps in r)
             Assert(a - eps not in r)
@@ -1204,10 +1204,10 @@ if __name__ == "__main__":
         Assert(a - k*s in R)
         Assert(b + k*s in R)
         # Check Interval's expand()
-        I.expand(k)
-        Assert(a - k*s in I)
-        Assert(b + k*s in I)
-        r = I.ranges[0]
+        II.expand(k)
+        Assert(a - k*s in II)
+        Assert(b + k*s in II)
+        r = II.ranges[0]
         Assert(isinstance(r.a, float))
         Assert(isinstance(r.b, float))
     def TestEps():
@@ -1859,7 +1859,7 @@ if __name__ == "__main__":
         for i in range(size):
             b = -a + 2*i
             d.append((b, b + 1))
-        I = Interval(*d)
+        II = Interval(*d)
         # Number of lookups
         n = 10**5
         # Generate a sequence of random numbers to search for
@@ -1867,9 +1867,9 @@ if __name__ == "__main__":
         # Now do lookups
         start = time()
         for num in d:
-            num in I
+            num in II
         print("Time in s = %.2f" % (time() - start))
-        print("size of Interval = %d" % len(I.ranges))
+        print("size of Interval = %d" % len(II.ranges))
         print("Number of lookups = %d" % n)
         exit()
     exit(run(globals(), halt=0)[0])

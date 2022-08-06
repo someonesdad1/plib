@@ -680,11 +680,11 @@ def TimeOfMoonPhase(year, quarter=0):
     F = (160.7108 + 390.67050284*k - 0.0016118*T*T - 2.27e-6*T*T*T +
          1.1e-8*T*T*T*T)     # Moon's argument of latitude
     # Longitude of the ascending node of the lunar orbit
-    O = 124.7746 - 1.56375588*k + 0.0020672*T*T + 2.15e-6*T*T*T
+    OO = 124.7746 - 1.56375588*k + 0.0020672*T*T + 2.15e-6*T*T*T
     # Normalize
-    M, M1, F, O = [norm(i) for i in (M, M1, F, O)]
+    M, M1, F, OO = [norm(i) for i in (M, M1, F, OO)]
     # Convert to radians
-    M, M1, F, O = [radians(i) for i in (M, M1, F, O)]
+    M, M1, F, OO = [radians(i) for i in (M, M1, F, OO)]
     A = (
         # Planetary arguments in radians p 351
         radians(299.77 + 0.107408*k - 0.009173*T*T),
@@ -706,7 +706,7 @@ def TimeOfMoonPhase(year, quarter=0):
             -0.00057*sin(M1 + 2*F), +0.00056*E*sin(2*M1 + M),
             -0.00042*sin(3*M1), +0.00042*E*sin(M + 2*F),
             +0.00038*E*sin(M - 2*F), -0.00024*E*sin(2*M1 - M),
-            -0.00017*sin(O), -0.00007*sin(M1 + 2*M), +0.00004*sin(2*M1 - 2*F),
+            -0.00017*sin(OO), -0.00007*sin(M1 + 2*M), +0.00004*sin(2*M1 - 2*F),
             +0.00004*sin(3*M), +0.00003*sin(M1 + M - 2*F),
             +0.00003*sin(2*M1 + 2*F), -0.00003*sin(M1 + M + 2*F),
             +0.00003*sin(M1 - M + 2*F), -0.00002*sin(M1 - M - 2*F),
@@ -721,7 +721,7 @@ def TimeOfMoonPhase(year, quarter=0):
             -0.00057*sin(M1 + 2*F), +0.00056*E*sin(2*M1 + M),
             -0.00042*sin(3*M1), +0.00042*E*sin(M + 2*F),
             +0.00038*E*sin(M - 2*F), -0.00024*E*sin(2*M1 - M),
-            -0.00017*sin(O), -0.00007*sin(M1 + 2*M), +0.00004*sin(2*M1 - 2*F),
+            -0.00017*sin(OO), -0.00007*sin(M1 + 2*M), +0.00004*sin(2*M1 - 2*F),
             +0.00004*sin(3*M), +0.00003*sin(M1 + M - 2*F),
             +0.00003*sin(2*M1 + 2*F), -0.00003*sin(M1 + M + 2*F),
             +0.00003*sin(M1 - M + 2*F), -0.00002*sin(M1 - M - 2*F),
@@ -737,7 +737,7 @@ def TimeOfMoonPhase(year, quarter=0):
             -0.00070*sin(M1 + 2*F), -0.00040*sin(3*M1),
             -0.00034*E*sin(2*M1 - M), +0.00032*E*sin(M + 2*F),
             +0.00032*E*sin(M - 2*F), -0.00028*E*E*sin(M1 + 2*M),
-            +0.00027*E*sin(2*M1 + M), -0.00017*sin(O),
+            +0.00027*E*sin(2*M1 + M), -0.00017*sin(OO),
             -0.00005*sin(M1 - M - 2*F), +0.00004*sin(2*M1 + 2*F),
             -0.00004*sin(M1 + M + 2*F), +0.00004*sin(M1 - 2*M),
             +0.00003*sin(M1 + M - 2*F), +0.00003*sin(3*M),
@@ -765,7 +765,7 @@ def TimeOfMoonPhase(year, quarter=0):
         print("  M                                :  %.6f rad" % M)
         print("  M'                               :  %.6f rad" % M1)
         print("  F                                :  %.6f rad" % F)
-        print("  O                                :  %.6f rad" % O)
+        print("  OO                               :  %.6f rad" % OO)
         print("  Correction with harmonics (corr1):  %.5f" % periodic1)
         print("  Correction with A's (corr2)      :  %.5f" % periodic2)
         print("  W                                :  %.5f" % W)

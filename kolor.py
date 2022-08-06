@@ -616,9 +616,9 @@ def c(x, colors=clrdict):
             return sgn + ld + dp + ''.join(o) + E + exp
         else:
             ld, rd = s.split(dp)
-            l = Colorize(ld)
+            L = Colorize(ld)
             r = Colorize(rd, rev=True)
-            return sgn + ''.join(l) + dp + ''.join(r)
+            return sgn + ''.join(L) + dp + ''.join(r)
 if __name__ == "__main__": 
     from lwtest import run, Assert
     from wrap import dedent

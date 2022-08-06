@@ -952,7 +952,7 @@ class cpx(Base, complex):
             s = self._pol(repr=True)
         else:
             re, im = float(self._real), float(self._imag)
-            I = "i" if self.i else "j"
+            II = "i" if self.i else "j"
             if self.nz:
                 s = []
                 if re:
@@ -961,14 +961,14 @@ class cpx(Base, complex):
                     if s:
                         s.append("+" if im > 0 else "")
                     s.append(f"{im!r}")
-                    s.append(I)
+                    s.append(II)
                 t = f"{''.join(s)}"
                 s = t
             else:
                 r = f"{float(self._real)!r}"
                 i = f"{float(self._imag)!r}"
                 sgn = "+" if self._imag >= 0 else ""
-                s = f"{r}{sgn}{i}{I}"
+                s = f"{r}{sgn}{i}{II}"
         return f(s)
     def __str__(self): 
         return self._r() if Base._flip else self._s()

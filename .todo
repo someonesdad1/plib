@@ -264,9 +264,6 @@ Other
         - TRM needs a way to ensure all attribute access returns "" when
           .on is False.
         - Add support to g.py
-        - pycodestyle gives error:  color.py:895:41: W605 invalid escape
-          sequence '\s'.  Need to investigate this, as the regexp may be
-          wrong.
 
     - ts.py
         - Import to /plib

@@ -1551,18 +1551,18 @@ def tdb2tdt(tdb, tdtjd, secdiff):
     rev = 1296000.0
     tdays = [0.0]
     m = [0.0]
-    l = [0.0]
+    L = [0.0]
     lj = [0.0]
     e = [0.0]
     tdays = tdb - T0
     m = (357.51716 + 0.985599987*tdays)*3600.0
-    l = (280.46435 + 0.985609100*tdays)*3600.0
+    L = (280.46435 + 0.985609100*tdays)*3600.0
     lj = (34.40438 + 0.083086762*tdays)*3600.0
     m = fmod(m, rev)/RAD2SEC
-    l = fmod(l, rev)/RAD2SEC
+    L = fmod(L, rev)/RAD2SEC
     lj = fmod(lj, rev)/RAD2SEC
     e = m + ecc*sin(m) + 0.5*ecc*ecc*sin(2.0*m)
-    secdiff[0] = 1.658e-3*sin(e) + 20.73e-6*sin(l - lj)
+    secdiff[0] = 1.658e-3*sin(e) + 20.73e-6*sin(L - lj)
     tdtjd[0] = tdb - secdiff[0]/86400.0
     return
 def set_body(Type, number, name, cel_obj):

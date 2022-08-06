@@ -74,11 +74,11 @@ class TextWrapper(TextWrapperOrig):
             if self.drop_whitespace and chunks[-1].strip() == '' and lines:
                 del chunks[-1]
             while chunks:
-                l = Len(chunks[-1])
+                L = Len(chunks[-1])
                 # Can at least squeeze this chunk onto the current line.
-                if cur_len + l <= width:
+                if cur_len + L <= width:
                     cur_line.append(chunks.pop())
-                    cur_len += l
+                    cur_len += L
                 # Nope, this line is full.
                 else:
                     break

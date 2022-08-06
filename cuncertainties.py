@@ -240,8 +240,8 @@ if 1:   # Math functions to mirror those in cmath
     def log(x, base=math.e):
         _IsProperType(x)
         r, t = polar(x)
-        l = um.log(r)/um.log(base)
-        return cufloat(l.nominal_value, l.std_dev, t.nominal_value, t.std_dev)
+        L = um.log(r)/um.log(base)
+        return cufloat(L.nominal_value, L.std_dev, t.nominal_value, t.std_dev)
     def log10(x):
         _IsProperType(x)
         return log(x, 10)

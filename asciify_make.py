@@ -122,8 +122,8 @@ def GetWorkingSet(file="asciify_make.pickle", build=False):
             element emoji face input integral person recycling
             shorthand sideways signwriting symbol
         '''.upper().split())
-        l = [rf"\b{i}\b" for i in languages]  # Add word boundaries
-        ignore = re.compile('|'.join(l))
+        L = [rf"\b{i}\b" for i in languages]  # Add word boundaries
+        ignore = re.compile('|'.join(L))
         remove = set()
         # Japanese special characters
         remove.update(set(range(0x3300, 0x3358)))

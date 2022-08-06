@@ -336,7 +336,6 @@ def PrintTable(args, d):
       km     kg/m3          Pa          K            m/s2         m/s
     ''')
     print(header)
-    #for z_km in range(-5, 87):
     for z_km in range(-5, 31):
         prop = atm(z_km)
         d = e(prop["density"])

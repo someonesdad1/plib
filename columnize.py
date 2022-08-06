@@ -208,7 +208,7 @@ def Columnize(seq, **kw):
         print("num_in_column = ", num_in_column)
         print()
     s, fmt = [], "{0:" + align + str(col_width) + "}"
-    I = indent if indent is not None else ""
+    II = indent if indent is not None else ""
     if horiz:
         for i, item in enumerate(sseq):
             row, col = divmod(i, columns)
@@ -224,7 +224,7 @@ def Columnize(seq, **kw):
                 srow = []
         if srow:
             s.append(sep.join(srow))
-        s = [I + i for i in s]
+        s = [II + i for i in s]
     else:
         # Construct each column.  We use a correction to account for
         # columns that don't require the full number of rows; this
@@ -260,7 +260,7 @@ def Columnize(seq, **kw):
                 mat[row][col] = cols[col][row]
         # Now build an array of the row strings
         for i in mat:
-            s.append(I + sep.join(i))
+            s.append(II + sep.join(i))
     # Remove trailing spaces
     for i, x in enumerate(s):
         s[i] = x.rstrip()

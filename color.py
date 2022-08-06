@@ -374,10 +374,10 @@ class Color:
             if comp == "h":
                 h = x if set else Clamp(h*x)
             elif comp == "l":
-                l = x if set else Clamp(l*x)
+                L = x if set else Clamp(l*x)
             else:
                 s = x if set else Clamp(s*x)
-            rgb = Color(h, l, s, hls=True)._rgb
+            rgb = Color(h, L, s, hls=True)._rgb
         # Make a copy of our instance
         c = Color(self)
         c._rgb = rgb
@@ -1953,7 +1953,8 @@ if __name__ == "__main__":
             b = 101, 171, 124
             c1 = Color(*a)
             c2 = Color(*b)
-            f = lambda x, y: (sum((i - j)**2 for i, j in zip(x, y))/3)**(1/2)
+            def f(x, y):
+                return (sum((i - j)**2 for i, j in zip(x, y))/3)**(1/2)
             # rgb
             d1 = f(c1.drgb, c2.drgb)
             d2 = Color.dist(c1, c2, space="rgb")
@@ -2005,7 +2006,8 @@ if __name__ == "__main__":
                     ("bob", b),
                     ("alice", a),
                 )
-                f = lambda x: x[1]
+                def f(x):
+                    return x[1]
                 seq1 = Color.Sort(seq, keys="r", get=f)
                 Assert(seq1[0] == ("alice", a))
                 Assert(seq1[1] == ("bob", b))
@@ -2068,7 +2070,8 @@ if __name__ == "__main__":
                 r2 = sum((-0.9689, +1.8758, +0.0415))
                 r3 = sum((+0.0557, -0.2040, +1.0570))
                 expected = (r1, r2, r3)
-                clip = lambda x:  min(1.0, max(x, 0.0))
+                def clip(x):
+                    return min(1.0, max(x, 0.0))
                 expected = tuple(clip(GammaCompressed(i)) for i in expected)
                 Assert(got == expected)
             if 1:   # wl2rgb

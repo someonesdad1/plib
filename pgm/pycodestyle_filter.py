@@ -27,8 +27,7 @@ if 1:   # Header
         from pathlib import Path as P
         import sys
         from pdb import set_trace as xx
-        xx()
-        #from pprint import pprint as pp
+        from pprint import pprint as pp
         from collections import defaultdict
     # Custom imports
         from get import GetLines

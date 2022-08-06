@@ -64,10 +64,10 @@ def _GetSymbols():
     '''
     S, symbols, s = Interpret, {}, []
     for line in _symbols.split("\n"):
-        l = line.strip()
-        if not l or l[0] == "#":
+        L = line.strip()
+        if not L or L[0] == "#":
             continue
-        s.append(l)
+        s.append(L)
     s = ' '.join(s)
     s.replace("\n", " ")
     for i in s.split(","):
