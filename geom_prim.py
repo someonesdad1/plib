@@ -462,7 +462,7 @@ class Ctm(object):
         (R11, R12, R13, t,
          R21, R22, R23, u,
          R31, R32, R33, v,
-         J,   K,   L,   M) = self.GetCTM()
+         J, K, L, M) = self.GetCTM()
         # The angle of rotation is related to the trace of the
         # rotation matrix.
         theta = acos((R11 + R22 + R33 - 1)/2)
@@ -1967,10 +1967,8 @@ if __name__ == "__main__":
         # Global variables
             # The following is a "random" matrix that I made up; it has no
             # other significance.
-            rm = [  1,    -7,      3,   17, 
-                -47.5,   0.002,  1,   -1, 
-                -0.2, -10,     -3.3,  4, 
-                    1,     0.1,   -0.2,  0.3]
+            rm = [1, -7, 3, 17, -47.5, 0.002, 1, -1, -0.2, -10, -3.3, 4, 
+                  1, 0.1, -0.2, 0.3]
             identity = [1, 0, 0, 0,
                         0, 1, 0, 0,
                         0, 0, 1, 0,
@@ -2354,7 +2352,7 @@ if __name__ == "__main__":
         px = Point(1, 0, 0)
         py = Point(0, 1, 0)
         pz = Point(0, 0, 1)
-        p  = Point(1, 1, 1)
+        p = Point(1, 1, 1)
         # Initialization 
         if True:
             # Use 2 points
@@ -2395,7 +2393,7 @@ if __name__ == "__main__":
             # Line and line
             L1 = Line(px, p0)   # Line along x axis
             a = math.sqrt(5)
-            L2 = Line(Point(0, 0, a), Point(0, 1, a)) # Along y at z = a
+            L2 = Line(Point(0, 0, a), Point(0, 1, a))  # Along y at z = a
             assert_equal(L1.dist(L2), a)
         # Negation
         L = Line(Point(0, 0, 0), Point(1, 1, 1))
@@ -2500,7 +2498,7 @@ if __name__ == "__main__":
         o = Point(0, 0, 0)
         xy = Plane(o, Line(o, Point(0, 0, 1)))
         ln1 = Line(o, Point(1, 0, 0))   # In i direction
-        ln2 = Line(Point(0, 0, 1), Point(0, 1, 1)) # In j direction
+        ln2 = Line(Point(0, 0, 1), Point(0, 1, 1))  # In j direction
         pl = Plane(ln1, ln2)
         assert_equal(pl, xy)
         # Copy
@@ -2549,7 +2547,7 @@ if __name__ == "__main__":
                 # Parallel planes, equal
                 assert_equal(pl1.intersect(pl1), pl1)
                 # Parallel planes, don't intersect
-                pl1 = Plane(O, i, j) # xy plane
+                pl1 = Plane(O, i, j)  # xy plane
                 pl2 = Plane(Point(0, 0, 1), Point(1, 0, 1), Point(0, 1, 1))
                 assert_equal(pl1.intersect(pl2), None)
         # dist

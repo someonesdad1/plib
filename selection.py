@@ -63,7 +63,7 @@ if 1:   # Helper functions
             start, stop, step = [int(i) for i in (start, stop, step)]
         except Exception as e:
             raise ValueError(f"{string!r}:  got exception:\n {e}")
-        if not step :
+        if not step:
             raise ValueError(f"{string!r}:  step is zero")
         if start > stop and step > 0:
             raise ValueError(f"{string!r}:  positive step won't terminate sequence")

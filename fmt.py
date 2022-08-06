@@ -86,7 +86,7 @@ class Fmt:
         fixed point interpolation is used by default.
         '''
         Fmt._SI_prefixes[0] = ""    # Need empty string
-        self._dp = locale.localeconv()["decimal_point"] # Radix
+        self._dp = locale.localeconv()["decimal_point"]  # Radix
         self._n = n                     # Number of digits
         self._u = False                 # Use Unicode symbols for exponents
         self._low = self.toD(low)       # Use sci if x < this value
@@ -347,13 +347,13 @@ if __name__ == "__main__":
             d = {}      # Options dictionary
             # Set up colors for demo
             u = use_colors = bool(os.environ.get("DPRC", False))
-            t.t   = t()       if u else ""   # Title
-            t.u   = t("ornl") if u else ""   # Normal float formatting
-            t.f   = t("sky")  if u else ""   # Feature being demonstrated
-            t.fix = t("whtl") if u else ""   # Fixed point
-            t.sci = t("yell") if u else ""   # Scientific notation
-            t.eng = t("grnl") if u else ""   # Engineering notation
-            t.si  = t("magl") if u else ""   # Engsi notation
+            t.t = t() if u else ""          # Title
+            t.u = t("ornl") if u else ""    # Normal float formatting
+            t.f = t("sky") if u else ""     # Feature being demonstrated
+            t.fix = t("whtl") if u else ""  # Fixed point
+            t.sci = t("yell") if u else ""  # Scientific notation
+            t.eng = t("grnl") if u else ""  # Engineering notation
+            t.si = t("magl") if u else ""   # Engsi notation
     def Demo():
         f = fmt
         t.print(dedent(f'''
@@ -625,7 +625,7 @@ if __name__ == "__main__":
                     Assert(t == begin + end)
             # Here's a second test with somewhat more random digits.
             s = "305834907503304830840485408347390568489537430834"
-            n = int(1e6/len(s)) # How many before we reach a million digits
+            n = int(1e6/len(s))  # How many before we reach a million digits
             x = D(s*n)
             f = Init()
             f.high = None

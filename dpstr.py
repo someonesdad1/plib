@@ -84,7 +84,7 @@ if 1:   # Classes
             '''Cap-words to underscore:
                 ALotOfFuss --> a_lot_of_fuss
             '''
-            if not x:   
+            if not x:
                 return x
             return re.sub(r"(?<=[a-z])[A-Z]|(?<!^)[A-Z](?=[a-z])",
                         r"_\g<0>", x).lower()
@@ -92,21 +92,21 @@ if 1:   # Classes
             '''Cap-words to mixed-case:
                 ALotOfFuss --> aLotOfFuss
             '''
-            if not x:   
+            if not x:
                 return x
             return x[0].lower() + x[1:]
         def us2mc(self, x):
             '''Underscore to mixed-case:
                 a_lot_of_fuss --> aLotOfFuss
             '''
-            if not x:   
+            if not x:
                 return x
             return re.sub(r"_([a-z])", lambda m: (m.group(1).upper()), x)
         def us2cw(self, x):
             '''Underscore to cap-words:
                 a_lot_of_fuss --> ALotOfFuss
             '''
-            if not x:   
+            if not x:
                 return x
             s = self.us2mc(x)
             return s[0].upper() + s[1:]
@@ -114,14 +114,14 @@ if 1:   # Classes
             '''Mixed-case to underscore:
                 aLotOfFuss --> a_lot_of_fuss
             '''
-            if not x:   
+            if not x:
                 return x
             return self.cw2us(x)
         def mc2cw(self, x):
             '''Mixed-case to cap-words:
                 aLotOfFuss --> ALotOfFuss
             '''
-            if not x:   
+            if not x:
                 return x
             return x[0].upper() + x[1:]
     class Str(str):
@@ -181,12 +181,12 @@ if 1:   # Core functionality
                of a, e, h, i, o, u, w, y in other positions.
             2. Assign the following numbers to the remaining letters
                after the first:
-                1:  b, f, p, v
-                2:  c, g, j, k, q, s, x, z
-                3:  d, t
-                4:  l
-                5:  m, n
-                6:  r
+                1: b, f, p, v
+                2: c, g, j, k, q, s, x, z
+                3: d, t
+                4: l
+                5: m, n
+                6: r
             3. If two or more letters with the same code were adjacent in
                the original name (before step 1), omit all but the first.
             4. Convert to the form "letter, digit, digit, digit" by adding
@@ -206,7 +206,7 @@ if 1:   # Core functionality
             return [soundex.m[i] for i in x]
         t = s.upper()
         num, keep = getnum(t), []
-        # Step 0 (and step 3):  keep only those letters that don't map to
+        # Step 0 (and step 3): keep only those letters that don't map to
         # the same number as the previous letter.
         for i, code in enumerate(num):
             if not i:
@@ -214,14 +214,14 @@ if 1:   # Core functionality
             else:
                 if code != num[i - 1]:
                     keep.append(t[i])
-        # Step 1:  remove vowels, etc.
+        # Step 1: remove vowels, etc.
         first_letter = keep[0]
         ignore, process = set("AEHIOUWY"), []
         process += [i for i in keep[1:] if i not in ignore]
-        # Step 2:  assign numbers for remaining letters
+        # Step 2: assign numbers for remaining letters
         code = first_letter + ''.join(getnum(''.join(process)))
-        # Step 3:  same as step 0
-        # Step 4:  adjust length
+        # Step 3: same as step 0
+        # Step 4: adjust length
         if len(code) > 4:
             code = code[:4]
         while len(code) < 4:
@@ -239,7 +239,7 @@ if 1:   # Core functionality
         '''Return the largest string that is a suffix of all the strings in
         seq.
         '''
-        # Method:  reverse each string in seq, find their common prefix, then
+        # Method: reverse each string in seq, find their common prefix, then
         # reverse the result.
         def f(lst):
             return ''.join(lst)   # Convert the list back to a string
@@ -284,7 +284,7 @@ if 1:   # Core functionality
         if len(remove) != len(replacements):
             raise ValueError("remove and replacements must be the same length")
         T = ''.maketrans(dict(zip(remove, replacements)))
-        return lambda s:  s.translate(T)
+        return lambda s: s.translate(T)
     def FindDiff(s1, s2, ignore_empty=False, equal_length=False):
         '''Returns the integer index of where the strings s1 and s2 first
         differ.  The number returned is the index where the first
@@ -337,7 +337,7 @@ if 1:   # Core functionality
         if ignore_case:
             allowed_values = [i.lower() for i in allowed_values]
         while True:
-            msg = prompt_msg + " [" + default + "]:  "
+            msg = prompt_msg + " [" + default + "]: "
             response = input(msg)
             s = response.strip()
             if not s:
@@ -400,7 +400,7 @@ if 1:   # Core functionality
      
         fields is a sequence of numbers
             The numbers specify cutting the string at the indicated
-            columns (numbering is 0-based).  Example:  for the input string
+            columns (numbering is 0-based).  Example: for the input string
             "hello there", using the fields of [3, 7] will return the tuple
             of strings ("hel", "lo t", "here").
                 "hello there"
@@ -441,9 +441,9 @@ if 1:   # Core functionality
         by finding the length of the largest element so that it is not
         truncated.
      
-        Caveat:  if there are a small number of elements in the list, you
+        Caveat: if there are a small number of elements in the list, you
         may not get what you expect.  For example, try a list size of 1 to
-        10 with num_columns equal to 4:  for lists of 1, 2, 3, 5, 6, and 9,
+        10 with num_columns equal to 4: for lists of 1, 2, 3, 5, 6, and 9,
         you'll get fewer than four columns.
      
         This function is obsolete; instead, use Columnize in columnize.py.
@@ -487,7 +487,7 @@ if 1:   # Core functionality
                         if truncate:
                             s += str(alist[i])[:col_width] + " "*space_betw
                         else:
-                            raise ValueError("Error:  element %d too long" % i)
+                            raise ValueError("Error: element %d too long" % i)
                     else:
                         s += (str(alist[i]) + " " * (col_width -
                               len(str(alist[i]))) + " " * space_betw)
@@ -647,7 +647,7 @@ if 1:   # Core functionality
             sep         Separator string for fields.  Defaults to whitespace.
                         Can be a compiled regular expression.
      
-        Example:  For the string
+        Example: For the string
      
             data = """
                  9   680     2100    0       750
@@ -913,16 +913,16 @@ if __name__ == "__main__":
         Assert(MatchCap("matchcap", t) == "abcdef")
     def Test_soundex():
         test_cases = (
-            ("Euler",       "E460"),
-            ("Gauss",       "G200"),
-            ("Hilbert",     "H416"),
-            ("Knuth",       "K530"),
-            ("Lloyd",       "L300"),
+            ("Euler", "E460"),
+            ("Gauss", "G200"),
+            ("Hilbert", "H416"),
+            ("Knuth", "K530"),
+            ("Lloyd", "L300"),
             ("Lukasiewicz", "L222"),
-            ("chute",       "C300"),
-            ("shoot",       "S300"),
-            ("a",           "A000"),
-            ("A",           "A000"),
+            ("chute", "C300"),
+            ("shoot", "S300"),
+            ("a", "A000"),
+            ("A", "A000"),
         )
         for s, expected in test_cases:
             Assert(soundex(s) == expected)
@@ -1072,7 +1072,7 @@ if __name__ == "__main__":
             pass
     def TestSpellCheck():
         input_list = ("dog", "cAt", "hurse")
-        word_dictionary = {"dog":"", "cat":"", "horse":"", "chicken":""}
+        word_dictionary = {"dog": "", "cat": "", "horse": "", "chicken": ""}
         s = SpellCheck(input_list, word_dictionary, ignore_case=True)
         Assert(len(s) == 1 and "hurse" in s)
         s = SpellCheck(input_list, word_dictionary, ignore_case=False)

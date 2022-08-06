@@ -376,10 +376,10 @@ def TraceInfo(type, value, traceback):
     '''
     # Updated first test logic from https://gist.github.com/rctay/3169104
     if (
-            hasattr(sys, 'ps1')           or
-            not sys.stderr.isatty()       or
-            not sys.stdout.isatty()       or
-            not sys.stdin.isatty()        or
+            hasattr(sys, 'ps1') or
+            not sys.stderr.isatty() or
+            not sys.stdout.isatty() or
+            not sys.stdin.isatty() or
             issubclass(type, bdb.BdbQuit) or
             issubclass(type, SyntaxError)
         ):

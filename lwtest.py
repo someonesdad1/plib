@@ -314,7 +314,7 @@ if 1:   # Utility
         fn, ln, method, call = traceback.extract_stack()[-2]
         c = t(color) if color is not None else ""
         vars = {"fn": fn, "ln": ln, "method": method, "msg": message,
-            "prefix": prefix, "c": c, "n": t.n }
+            "prefix": prefix, "c": c, "n": t.n}
         if vars["method"] == "<module>":
             if color is None:
                 print("{prefix}{fn}[{ln}]:  {msg}".format(**vars))

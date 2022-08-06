@@ -104,6 +104,7 @@ Classes to help with color use in terminals
 ''' 
 if 1:   # Header
     # Copyright, license
+    if 1:
         # These "trigger strings" can be managed with trigger.py
         #∞copyright∞# Copyright (C) 2022 Don Peterson #∞copyright∞#
         #∞contact∞# gmail.com@someonesdad1 #∞contact∞#
@@ -115,7 +116,9 @@ if 1:   # Header
         # The Color class is used to hold the definition of a color.
         #∞what∞#
         #∞test∞# --test #∞test∞#
+        pass
     # Standard imports
+    if 1:
         import colorsys
         from decimal import Decimal
         from fractions import Fraction
@@ -129,6 +132,7 @@ if 1:   # Header
         from collections import deque
         from string import hexdigits
     # Custom imports
+    if 1:
         from wrap import wrap, dedent
         # Don't use flt for now until import dependencies fixed
         #from f import flt
@@ -142,6 +146,7 @@ if 1:   # Header
         except ImportError:
             have_mpmath = False
     # Global variables
+    if 1:
         ii = isinstance
         # This is commented out until I get rid of the legacy klr stuff
         #__all__ = "Color Trm TRM t ColorName CN RegexpDecorate".split()
@@ -166,8 +171,8 @@ class Color:
             # Check type
             t1 = type(p[0])
             if type(p[1]) != t1 or type(p[2]) != t1:
-                    msg = f"'{p}' components are not all the same type"
-                    raise TypeError(msg)
+                msg = f"'{p}' components are not all the same type"
+                raise TypeError(msg)
             if all(ii(i, int) for i in p):  # 3 integers
                 rgb = tuple(i & self.n for i in p)
             else:   # Convert to floats
@@ -789,7 +794,7 @@ class Color:
             if gamma:
                 rgb = [i**gamma for i in rgb]
             # Make sure the numbers are on [0, 1]
-            assert(all([0 <= i <=1 for i in rgb]))
+            assert(all([0 <= i <= 1 for i in rgb]))
             return Color(*rgb, bpc=bpc)
         @classmethod
         def Sort(cls, seq, keys="hL", get=None):
@@ -1632,47 +1637,47 @@ if klr:   # Legacy code support
             return s
     # Foreground colors; shift left by 4 bits to get a background color.
     (
-        black, blue,  green,  cyan,  red,  magenta,  brown,  white,
-        gray,  lblue, lgreen, lcyan, lred, lmagenta, yellow, lwhite
+        black, blue, green, cyan, red, magenta, brown, white,
+        gray, lblue, lgreen, lcyan, lred, lmagenta, yellow, lwhite
     ) = [Colors(i) for i in range(16)]
     # Set the default_colors global variable to be the defaults for your system
     default_colors = (white, black)
     # Dictionary to translate between color numbers/names and escape sequence
     _cfg = {
-        black    : "0;30",
-        blue     : "0;34",
-        green    : "0;32",
-        cyan     : "0;36",
-        red      : "0;31",
-        magenta  : "0;35",
-        brown    : "0;33",
-        white    : "0;37",
-        gray     : "1;30",
-        lblue    : "1;34",
-        lgreen   : "1;32",
-        lcyan    : "1;36",
-        lred     : "1;31",
-        lmagenta : "1;35",
-        yellow   : "1;33",
-        lwhite   : "1;37",
+        black: "0;30",
+        blue: "0;34",
+        green: "0;32",
+        cyan: "0;36",
+        red: "0;31",
+        magenta: "0;35",
+        brown: "0;33",
+        white: "0;37",
+        gray: "1;30",
+        lblue: "1;34",
+        lgreen: "1;32",
+        lcyan: "1;36",
+        lred: "1;31",
+        lmagenta: "1;35",
+        yellow: "1;33",
+        lwhite: "1;37",
     }
     _cbg = {
-        black    : "40m",
-        blue     : "44m",
-        green    : "42m",
-        cyan     : "46m",
-        red      : "41m",
-        magenta  : "45m",
-        brown    : "43m",
-        white    : "47m",
-        gray     : "40m",
-        lblue    : "44m",
-        lgreen   : "42m",
-        lcyan    : "46m",
-        lred     : "41m",
-        lmagenta : "45m",
-        yellow   : "43m",
-        lwhite   : "47m",
+        black: "40m",
+        blue: "44m",
+        green: "42m",
+        cyan: "46m",
+        red: "41m",
+        magenta: "45m",
+        brown: "43m",
+        white: "47m",
+        gray: "40m",
+        lblue: "44m",
+        lgreen: "42m",
+        lcyan: "46m",
+        lred: "41m",
+        lmagenta: "45m",
+        yellow: "43m",
+        lwhite: "47m",
     }
     def normal(*p, **kw):
         '''If the argument is None, set the foreground and background
@@ -1819,9 +1824,9 @@ if __name__ == "__main__":
                 property of some one or other of their daughters.\n
             ''')
             r = [(re.compile(r"of"), x.of),
-                (re.compile(r"man"), x.man),
-                (re.compile(r"so"), x.so),
-                (re.compile(r"is"), x.Is)]
+                 (re.compile(r"man"), x.man),
+                 (re.compile(r"so"), x.so),
+                 (re.compile(r"is"), x.Is)]
             PrintMatches(s, r)
         #TestLoad()             # Themes not working yet
         #TestRegexpDecorate()   # Not working yet
@@ -1915,8 +1920,8 @@ if __name__ == "__main__":
                 Assert(c1 == c2)
         def TestInterpolate():
             Reset()
-            c1 = Color(210, 105,  30)  # chocolate    
-            c2 = Color(205,  41, 144)  # maroon3
+            c1 = Color(210, 105, 30)  # chocolate    
+            c2 = Color(205, 41, 144)  # maroon3
             got = c1.interpolate(c2, 0.65)
             expected = Color(206, 63, 104)
             Assert(got == expected)
@@ -1974,8 +1979,8 @@ if __name__ == "__main__":
         def TestSort():
             Reset()
             if 1:   # Sorting
-                a = Color( 12,   6, 247)
-                b = Color(168, 255,   4)
+                a = Color(12, 6, 247)
+                b = Color(168, 255, 4)
                 c = Color(252, 252, 129)
                 seq = (a, b, c)
                 # Sort on r; sequence should be unchanged
@@ -2000,8 +2005,8 @@ if __name__ == "__main__":
                 seq1 = Color.Sort(seq, keys="S")
                 Assert(seq1 == (a, c, b))
             if 1:   # Test with predicate 
-                a = Color( 12,   6, 247)
-                b = Color(168, 255,   4)
+                a = Color(12, 6, 247)
+                b = Color(168, 255, 4)
                 seq = (
                     ("bob", b),
                     ("alice", a),

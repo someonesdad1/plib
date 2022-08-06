@@ -142,9 +142,9 @@ if 1:   # Global variables
     _defaults = {
         # If you want sig to support the associated library, set these to
         # True.  If you don't have them installed, set them to False.
-        "use_numpy"  : True,
-        "use_mpmath" : False,
-        "use_uncertainties" : True,
+        "use_numpy": True,
+        "use_mpmath": False,
+        "use_uncertainties": True,
     }
     Dec = decimal.Decimal
 if 1:   # Custom imports
@@ -173,53 +173,53 @@ class SigFig(object):
     '''Default settings for the class.  For Boolean settings, the
     description is for when the setting is True.
     '''
-    _digits         = 3         # Significant figures (see doc)
-    _dp             = locale.localeconv()["decimal_point"]
-    _dp_position    = 0         # Decimal point position (need sig.fit too)
-    _echar          = "e"       # Exponent character
-    _edigits        = 1         # Exponent number of digits
-    _esign          = False     # Include exponent sign even if +
-    _fit            = 0         # Width to fit returned string into and justify
-    _high           = "1e6"     # Above this value use scientific notation
-    _idp            = False     # Show decimal point after integers
-    _ignore_none    = False     # An x value of None results in zero
-    _integer        = 0         # If > 0, format as int, not float
-    _lead_zero      = True      # Include 0 before dp for abs(x) < 1
-    _low            = "1e-3"    # Below this value use scientific notation
-    _mixed          = True      # Template round to mixed fraction
-    _rtz            = False     # Remove trailing zeros
-    _separator      = ", "      # Separates sequence elements
-    _sign           = False     # Include sign even if +
-    _unicode        = False     # Use Unicode for scientific/polar/+-
-    _zero_limit     = 0         # Threshold to call a number zero
+    _digits = 3             # Significant figures (see doc)
+    _dp = locale.localeconv()["decimal_point"]
+    _dp_position = 0        # Decimal point position (need sig.fit too)
+    _echar = "e"            # Exponent character
+    _edigits = 1            # Exponent number of digits
+    _esign = False          # Include exponent sign even if +
+    _fit = 0                # Width to fit returned string into and justify
+    _high = "1e6"           # Above this value use scientific notation
+    _idp = False            # Show decimal point after integers
+    _ignore_none = False    # An x value of None results in zero
+    _integer = 0            # If > 0, format as int, not float
+    _lead_zero = True       # Include 0 before dp for abs(x) < 1
+    _low = "1e-3"           # Below this value use scientific notation
+    _mixed = True           # Template round to mixed fraction
+    _rtz = False            # Remove trailing zeros
+    _separator = ", "       # Separates sequence elements
+    _sign = False           # Include sign even if +
+    _unicode = False        # Use Unicode for scientific/polar/+-
+    _zero_limit = 0         # Threshold to call a number zero
     # Complex number options
-    _imag_before    = False     # True: 3.0-i8.4, False:  3.0-8.4i
-    _imag_deg       = True      # Display angle in degrees
-    _imag_deg_sym   = "*"       # Denotes angle in degrees
-    _imag_full      = True      # Show as x+iy even if component is 0
-    _imag_limit     = 0         # Threshold to call Im zero
-    _imag_polar     = False     # Display in polar form 3.0/_8.4*
-    _imag_polar_sep = "/_"      # Polar form separator
-    _imag_post      = ""        # String immediately before abs(Im)
-    _imag_pre       = ""        # String immediately after Re
-    _imag_sep       = ""        # String to separate unit from Im
-    _imag_unit      = "i"       # String for imaginary unit
+    _imag_before = False    # True: 3.0-i8.4, False:  3.0-8.4i
+    _imag_deg = True        # Display angle in degrees
+    _imag_deg_sym = "*"     # Denotes angle in degrees
+    _imag_full = True       # Show as x+iy even if component is 0
+    _imag_limit = 0         # Threshold to call Im zero
+    _imag_polar = False     # Display in polar form 3.0/_8.4*
+    _imag_polar_sep = "/_"  # Polar form separator
+    _imag_post = ""         # String immediately before abs(Im)
+    _imag_pre = ""          # String immediately after Re
+    _imag_sep = ""          # String to separate unit from Im
+    _imag_unit = "i"        # String for imaginary unit
     # The following are for displaying complex numbers as pairs of
     # numbers.  The usual convention is (x, y), but this wouldn't be
     # distinguishable from a tuple, so some alternative method is
     # necessary.  The form of the complex number x+iy will be
     # _imag_pair_left + sig(x) + _imag_pair_sep + sig(y) + _imag_pair_right
-    _imag_pair      = False     # If True, use this pair display
-    _imag_pair_sep  = "|"
+    _imag_pair = False     # If True, use this pair display
+    _imag_pair_sep = "|"
     _imag_pair_left = "<"
     _imag_pair_right = ">"
     # The following are for uncertainties and determine the string
     # that surrounds the uncertainty after the significand.
-    _unc_short      = True      # Use 1.23(4) form; otherwise 1.23+-0.04
-    _unc_digits     = 1         # Default sig fig in uncertainty
-    _unc_sep        = "+/-"     # Separator for long form
-    _unc_pre        = "("       # Left separator for short form
-    _unc_post       = ")"       # Right separator for short form
+    _unc_short = True       # Use 1.23(4) form; otherwise 1.23+-0.04
+    _unc_digits = 1         # Default sig fig in uncertainty
+    _unc_sep = "+/-"        # Separator for long form
+    _unc_pre = "("          # Left separator for short form
+    _unc_post = ")"         # Right separator for short form
     def __init__(self):
         '''Set our instance attributes from the class attributes.
         '''
@@ -272,48 +272,48 @@ class SigFig(object):
         '''
         # The attributes that begin with underscores are properties
         # (i.e., they have getters and setters).
-        self._digits         = SigFig._digits
-        self.dp              = SigFig._dp
-        self.dp_position     = SigFig._dp_position
-        self.echar           = SigFig._echar
-        self.edigits         = SigFig._edigits
-        self.esign           = SigFig._esign
-        self._fit            = SigFig._fit
-        self._high           = SigFig._high
-        self.idp             = SigFig._idp
-        self.ignore_none     = SigFig._ignore_none
-        self.integer         = SigFig._integer
-        self.lead_zero       = SigFig._lead_zero
-        self._low            = SigFig._low
-        self.mixed           = SigFig._mixed
-        self.rtz             = SigFig._rtz
-        self.separator       = SigFig._separator
-        self.sign            = SigFig._sign
-        self._unicode        = SigFig._unicode
-        self.zero_limit      = SigFig._zero_limit
+        self._digits = SigFig._digits
+        self.dp = SigFig._dp
+        self.dp_position = SigFig._dp_position
+        self.echar = SigFig._echar
+        self.edigits = SigFig._edigits
+        self.esign = SigFig._esign
+        self._fit = SigFig._fit
+        self._high = SigFig._high
+        self.idp = SigFig._idp
+        self.ignore_none = SigFig._ignore_none
+        self.integer = SigFig._integer
+        self.lead_zero = SigFig._lead_zero
+        self._low = SigFig._low
+        self.mixed = SigFig._mixed
+        self.rtz = SigFig._rtz
+        self.separator = SigFig._separator
+        self.sign = SigFig._sign
+        self._unicode = SigFig._unicode
+        self.zero_limit = SigFig._zero_limit
         # Complex number attributes
-        self.imag_before     = SigFig._imag_before
-        self.imag_deg        = SigFig._imag_deg
-        self.imag_deg_sym    = SigFig._imag_deg_sym
-        self.imag_full       = SigFig._imag_full
-        self.imag_limit      = SigFig._imag_limit
-        self.imag_polar      = SigFig._imag_polar
-        self.imag_polar_sep  = SigFig._imag_polar_sep
-        self.imag_post       = SigFig._imag_post
-        self.imag_pre        = SigFig._imag_pre
-        self.imag_sep        = SigFig._imag_sep
-        self.imag_unit       = SigFig._imag_unit
+        self.imag_before = SigFig._imag_before
+        self.imag_deg = SigFig._imag_deg
+        self.imag_deg_sym = SigFig._imag_deg_sym
+        self.imag_full = SigFig._imag_full
+        self.imag_limit = SigFig._imag_limit
+        self.imag_polar = SigFig._imag_polar
+        self.imag_polar_sep = SigFig._imag_polar_sep
+        self.imag_post = SigFig._imag_post
+        self.imag_pre = SigFig._imag_pre
+        self.imag_sep = SigFig._imag_sep
+        self.imag_unit = SigFig._imag_unit
         # Complex number pair form
-        self.imag_pair       = SigFig._imag_pair
-        self.imag_pair_sep   = SigFig._imag_pair_sep
-        self.imag_pair_left  = SigFig._imag_pair_left
+        self.imag_pair = SigFig._imag_pair
+        self.imag_pair_sep = SigFig._imag_pair_sep
+        self.imag_pair_left = SigFig._imag_pair_left
         self.imag_pair_right = SigFig._imag_pair_right
         # Uncertainties
-        self.unc_short       = SigFig._unc_short
-        self.unc_digits      = SigFig._unc_digits
-        self.unc_sep         = SigFig._unc_sep
-        self.unc_pre         = SigFig._unc_pre
-        self.unc_post        = SigFig._unc_post
+        self.unc_short = SigFig._unc_short
+        self.unc_digits = SigFig._unc_digits
+        self.unc_sep = SigFig._unc_sep
+        self.unc_pre = SigFig._unc_pre
+        self.unc_post = SigFig._unc_post
         self.check()
     def __call__(self, *par):
         '''This method is the user's primary interface with the
@@ -826,10 +826,10 @@ class SigFig(object):
                     s += chr(0x207b)  # Superscript - sign
                     exp = exp[1:]
                 # Integer exponent symbols
-                d = {"0" : 0x2070, "1" : 0x00b9, "2" : 0x00b2, 
-                     "3" : 0x00b3, "4" : 0x2074, "5" : 0x2075,
-                     "6" : 0x2076, "7" : 0x2077, "8" : 0x2078,
-                     "9" : 0x2079}
+                d = {"0": 0x2070, "1": 0x00b9, "2": 0x00b2, 
+                     "3": 0x00b3, "4": 0x2074, "5": 0x2075,
+                     "6": 0x2076, "7": 0x2077, "8": 0x2078,
+                     "9": 0x2079}
                 for i in exp:
                     s += chr(d[i])
             else:
@@ -1082,9 +1082,9 @@ class SigFig(object):
                 raise TypeError(msg)
         # Floats
         for var, name, none_allowed in (
-            (self._digits,    "digits",     False),
-            (self._high,      "high",       False),
-            (self._low,       "low",        False),
+            (self._digits, "digits", False),
+            (self._high, "high", False),
+            (self._low, "low", False),
             (self.zero_limit, "zero_limit", False),
             (self.imag_limit, "imag_limit", True),
         ):
@@ -1092,49 +1092,49 @@ class SigFig(object):
         # Integers
         for var, name in (
             (self.dp_position, "dp_position"),
-            (self.edigits,     "edigits"),
-            (self._fit,        "fit"),
-            (self._integer,    "integer"),
-            (self.unc_digits,  "unc_digits"),
+            (self.edigits, "edigits"),
+            (self._fit, "fit"),
+            (self._integer, "integer"),
+            (self.unc_digits, "unc_digits"),
         ):
             if not isinstance(var, int):
                 msg = "{0} attribute is not an integer".format(name)
                 raise TypeError(msg)
         # Booleans
         for var, name in (
-            (self.esign,       "esign"),
-            (self.idp,         "idp"),
+            (self.esign, "esign"),
+            (self.idp, "idp"),
             (self.ignore_none, "ignore_none"),
-            (self.lead_zero,   "lead_zero"),
+            (self.lead_zero, "lead_zero"),
             (self.imag_before, "imag_before"),
-            (self.imag_polar,  "imag_polar"),
-            (self.imag_deg,    "imag_deg"),
-            (self.imag_pair,   "imag_pair"),
-            (self.mixed,       "mixed"),
-            (self.rtz,         "rtz"),
-            (self.unc_short,   "unc_short"),
-            (self.unicode,     "unicode"),
+            (self.imag_polar, "imag_polar"),
+            (self.imag_deg, "imag_deg"),
+            (self.imag_pair, "imag_pair"),
+            (self.mixed, "mixed"),
+            (self.rtz, "rtz"),
+            (self.unc_short, "unc_short"),
+            (self.unicode, "unicode"),
         ):
             if not isinstance(var, bool):
                 msg = "{0} attribute is not a Boolean".format(name)
                 raise TypeError(msg)
         # Strings
         for var, name in (
-            (self.dp,              "dp"),
-            (self.echar,           "echar"),
-            (self.imag_deg_sym,    "imag_deg_sym"),
-            (self.imag_pair_left,  "imag_pair_left"),
+            (self.dp, "dp"),
+            (self.echar, "echar"),
+            (self.imag_deg_sym, "imag_deg_sym"),
+            (self.imag_pair_left, "imag_pair_left"),
             (self.imag_pair_right, "imag_pair_right"),
-            (self.imag_pair_sep,   "imag_pair_sep"),
-            (self.imag_polar_sep,  "imag_polar_sep"),
-            (self.imag_post,       "imag_post"),
-            (self.imag_pre,        "imag_pre"),
-            (self.imag_sep,        "imag_sep"),
-            (self.imag_unit,       "imag_unit"),
-            (self.separator,       "separator"),
-            (self.unc_sep,         "unc_sep"),
-            (self.unc_pre,         "unc_pre"),
-            (self.unc_post,        "unc_post"),
+            (self.imag_pair_sep, "imag_pair_sep"),
+            (self.imag_polar_sep, "imag_polar_sep"),
+            (self.imag_post, "imag_post"),
+            (self.imag_pre, "imag_pre"),
+            (self.imag_sep, "imag_sep"),
+            (self.imag_unit, "imag_unit"),
+            (self.separator, "separator"),
+            (self.unc_sep, "unc_sep"),
+            (self.unc_pre, "unc_pre"),
+            (self.unc_post, "unc_post"),
         ):
             if not isinstance(var, str):
                 msg = "{0} attribute is not a string".format(name)
@@ -1156,41 +1156,41 @@ class SigFig(object):
         #---------------------------------------------------------
         # Final inspection
         # Booleans
-        assert isinstance(self.esign,       bool)
-        assert isinstance(self.idp,         bool)
+        assert isinstance(self.esign, bool)
+        assert isinstance(self.idp, bool)
         assert isinstance(self.ignore_none, bool)
-        assert isinstance(self.lead_zero,   bool)
-        assert isinstance(self.mixed,       bool)
-        assert isinstance(self.rtz,         bool)
-        assert isinstance(self.sign,        bool)
-        assert isinstance(self.unc_short,   bool)
-        assert isinstance(self.unicode,     bool)
+        assert isinstance(self.lead_zero, bool)
+        assert isinstance(self.mixed, bool)
+        assert isinstance(self.rtz, bool)
+        assert isinstance(self.sign, bool)
+        assert isinstance(self.unc_short, bool)
+        assert isinstance(self.unicode, bool)
         # Floats, Fractions, or integers
         flt = [float, Dec, Fraction, int]
         if _have_mpmath:
             flt += [mp.mpf]
         flt = tuple(flt)
-        assert isinstance(self._digits,     flt)
-        assert isinstance(self._high,       flt)
-        assert isinstance(self._low,        flt)
-        assert isinstance(self.imag_limit,  flt)
-        assert isinstance(self.zero_limit,  flt)
+        assert isinstance(self._digits, flt)
+        assert isinstance(self._high, flt)
+        assert isinstance(self._low, flt)
+        assert isinstance(self.imag_limit, flt)
+        assert isinstance(self.zero_limit, flt)
         # Integers
-        assert isinstance(self.edigits,     int)
-        assert isinstance(self._fit,        int)
-        assert isinstance(self._integer,    int)
-        assert isinstance(self.unc_digits,  int)
+        assert isinstance(self.edigits, int)
+        assert isinstance(self._fit, int)
+        assert isinstance(self._integer, int)
+        assert isinstance(self.unc_digits, int)
         # Strings
-        assert isinstance(self.dp,          str)
-        assert isinstance(self.echar,       str)
-        assert isinstance(self.imag_post,   str)
-        assert isinstance(self.imag_pre,    str)
-        assert isinstance(self.imag_sep,    str)
-        assert isinstance(self.imag_unit,   str)
-        assert isinstance(self.separator,   str)
-        assert isinstance(self.unc_sep,     str)
-        assert isinstance(self.unc_pre,     str)
-        assert isinstance(self.unc_post,    str)
+        assert isinstance(self.dp, str)
+        assert isinstance(self.echar, str)
+        assert isinstance(self.imag_post, str)
+        assert isinstance(self.imag_pre, str)
+        assert isinstance(self.imag_sep, str)
+        assert isinstance(self.imag_unit, str)
+        assert isinstance(self.separator, str)
+        assert isinstance(self.unc_sep, str)
+        assert isinstance(self.unc_pre, str)
+        assert isinstance(self.unc_post, str)
     def _is_iterable(self, x):
         '''Identify an iterable by its behavior.  Note:  we define a
         string as a non-iterable because it's not a container of number
@@ -1649,13 +1649,13 @@ class SigFig(object):
                 g = list(mo.groups())
                 if not g[1]:
                     g[1] = "0"
-                sgn    = -1 if g[0] == "-" else 1
-                lead   = g[1]
-                dp     = g[2]
-                trail  = g[3]
+                sgn = -1 if g[0] == "-" else 1
+                lead = g[1]
+                dp = g[2]
+                trail = g[3]
                 uncert = g[4].replace("(", "").replace(")", "")
-                expon  = g[5][1:] if g[5] is not None else "0"
-                unit   = g[6]
+                expon = g[5][1:] if g[5] is not None else "0"
+                unit = g[6]
                 if 0:
                     # The older method was to pick apart the incoming
                     # string.  I've replaced this with the algorithm
@@ -2076,8 +2076,8 @@ if 1:   # atan for Decimal numbers
     The following identities have been used:
  
       arctan(-x) = -arctan(x)
-      arctan(x)  = Pi/2 - arctan(1/x)
-      arctan(x)  = Pi/6 + arctan(y)    //see note 1
+      arctan(x) = Pi/2 - arctan(1/x)
+      arctan(x) = Pi/6 + arctan(y)    //see note 1
                      where  y = (x*sqrt(3)-1) / (sqrt(3)+x) and abs(x) < 1
     References:
      The above formulas and identity were taken from:
@@ -2105,7 +2105,7 @@ if 1:   # atan for Decimal numbers
      atan(x) [+-] atan(y) = atan(t) [+-]pi , where t = (x[+-]y)/(1[-+]x*y)
  
      Rearranging:
-     atan(x) = atan(y) + atan(t) ,  where t = (x-y)/(1+x*y)
+     atan(x) = atan(y) + atan(t) , where t = (x-y)/(1+x*y)
  
      Assume:
      pi/6 = atan(y)
@@ -2152,7 +2152,7 @@ def _atan(x):
                     retval = fourthPi if isNegative else -fourthPi
                 elif temp > _one:
                     isLargerThenOne = True
-                    temp  = _one/temp
+                    temp = _one/temp
                 temp = (temp*_three.sqrt() - _one)/(temp + _three.sqrt())
                 a, d1 = _one, _one
                 counter = int((1.0 +
@@ -2351,43 +2351,43 @@ if __name__ == "__main__":
         '''We set the SigFig class variables here so that the default
         settings the user chooses won't affect the tests.
         '''
-        SigFig._digits          = 3
-        SigFig._dp              = "."
-        SigFig._edigits         = 1
-        SigFig._esign           = True
-        SigFig._fit             = 0
-        SigFig._fractions       = True
-        SigFig._high            = "1e5"
-        SigFig._idp             = True
-        SigFig._ignore_none     = False
-        SigFig._lead_zero       = True
-        SigFig._low             = "1e-3"
-        SigFig._separator       = " "
-        SigFig._sign            = False
-        SigFig._zero_limit      = 0
+        SigFig._digits = 3
+        SigFig._dp = "."
+        SigFig._edigits = 1
+        SigFig._esign = True
+        SigFig._fit = 0
+        SigFig._fractions = True
+        SigFig._high = "1e5"
+        SigFig._idp = True
+        SigFig._ignore_none = False
+        SigFig._lead_zero = True
+        SigFig._low = "1e-3"
+        SigFig._separator = " "
+        SigFig._sign = False
+        SigFig._zero_limit = 0
         # Complex stuff
-        SigFig._imag_before     = False
-        SigFig._imag_deg        = True
-        SigFig._imag_deg_sym    = "*"
-        SigFig._imag_limit      = 0
-        SigFig._imag_polar      = False
-        SigFig._imag_polar_sep  = "/_"
-        SigFig._imag_post       = ""
-        SigFig._imag_pre        = ""
-        SigFig._imag_sep        = ""
-        SigFig._imag_full       = False
-        SigFig._imag_pair       = False
-        SigFig._imag_pair_sep   = "|"
-        SigFig._imag_pair_left  = "<"
+        SigFig._imag_before = False
+        SigFig._imag_deg = True
+        SigFig._imag_deg_sym = "*"
+        SigFig._imag_limit = 0
+        SigFig._imag_polar = False
+        SigFig._imag_polar_sep = "/_"
+        SigFig._imag_post = ""
+        SigFig._imag_pre = ""
+        SigFig._imag_sep = ""
+        SigFig._imag_full = False
+        SigFig._imag_pair = False
+        SigFig._imag_pair_sep = "|"
+        SigFig._imag_pair_left = "<"
         SigFig._imag_pair_right = ">"
         # Uncertainties stuff
-        SigFig._unc_short       = True
-        SigFig._unc_digits      = 1
-        SigFig._unc_sep         = "+/-"
-        SigFig._unc_pre         = "("
-        SigFig._unc_post        = ")"
+        SigFig._unc_short = True
+        SigFig._unc_digits = 1
+        SigFig._unc_sep = "+/-"
+        SigFig._unc_pre = "("
+        SigFig._unc_post = ")"
         global sig
-        sig = SigFig() # Uses our settings
+        sig = SigFig()  # Uses our settings
     def check(got, expected):
         if got != expected:
             # Print the line number that failed and continue
@@ -2445,7 +2445,7 @@ if __name__ == "__main__":
             # work with python 3, as range is an iterator there).
             v = mp.matrix(list(range(5)))
             check(sig._is_iterable(mp.matrix(list(range(5)))), True)
-            check(sig._is_iterable(mp.matrix(3,2)), True)
+            check(sig._is_iterable(mp.matrix(3, 2)), True)
     def Test_format_zero():
         sig.reset()
         # Can format 0 correctly
@@ -2559,32 +2559,32 @@ if __name__ == "__main__":
         sig.fit = 3
         check(sig(0, 2), "0.0")
         sig.fit = -3
-        check(sig(0,  2), "0.0")
+        check(sig(0, 2), "0.0")
         sig.fit = 4
-        check(sig(0,  2), " 0.0")
+        check(sig(0, 2), " 0.0")
         sig.fit = -4
-        check(sig(0,  2), "0.0 ")
+        check(sig(0, 2), "0.0 ")
         sig.fit = 8
-        check(sig(0,  4), "   0.000")
+        check(sig(0, 4), "   0.000")
         sig.fit = -8
-        check(sig(0,  4), "0.000   ")
+        check(sig(0, 4), "0.000   ")
         sig.fit = 6
-        check(sig(x,  2), "  120.")
+        check(sig(x, 2), "  120.")
         check(sig(-x, 2), " -120.")
         sig.idp = False
-        check(sig(x,  2), "   120")
+        check(sig(x, 2), "   120")
         check(sig(-x, 2), "  -120")
         sig.idp = True
         sig.fit = 2
-        check(sig(0,  3), "0.")
+        check(sig(0, 3), "0.")
         sig.fit = 1
-        check(sig(0,  3), "N")
+        check(sig(0, 3), "N")
         sig.fit = 4
-        check(sig(x,  2), "120.")
+        check(sig(x, 2), "120.")
         sig.fit = 3
-        check(sig(x,  2), "Non")
+        check(sig(x, 2), "Non")
         sig.idp = False
-        check(sig(x,  2), "120")
+        check(sig(x, 2), "120")
         sig.idp = True
         sig.fit = 5
         check(sig(-x, 2), "-120.")
@@ -2593,17 +2593,17 @@ if __name__ == "__main__":
         x = 1.23e8
         sig.high = 10
         sig.fit = 5
-        check(sig(x,  2), " 1e+8")
+        check(sig(x, 2), " 1e+8")
         sig.fit = 6
-        check(sig(x,  2), "1.2e+8")
+        check(sig(x, 2), "1.2e+8")
         sig.fit = 7
-        check(sig(x,  2), " 1.2e+8")
+        check(sig(x, 2), " 1.2e+8")
         sig.fit = -7
-        check(sig(x,  2), "1.2e+8 ")
+        check(sig(x, 2), "1.2e+8 ")
         sig.fit = 8
-        check(sig(x,  2), "  1.2e+8")
+        check(sig(x, 2), "  1.2e+8")
         sig.fit = -8
-        check(sig(x,  2), "1.2e+8  ")
+        check(sig(x, 2), "1.2e+8  ")
         sig.fit = 6
         check(sig(-x, 2), " -1e+8")
         sig.fit = 7
@@ -2611,9 +2611,9 @@ if __name__ == "__main__":
         x = 1.23e-8
         sig.low = 1e-1
         sig.fit = 5
-        check(sig(x,  2), " 1e-8")
+        check(sig(x, 2), " 1e-8")
         sig.fit = 6
-        check(sig(x,  2), "1.2e-8")
+        check(sig(x, 2), "1.2e-8")
         check(sig(-x, 2), " -1e-8")
         sig.fit = 7
         check(sig(-x, 2), "-1.2e-8")
@@ -2624,16 +2624,16 @@ if __name__ == "__main__":
     def Test_sign_feature():
         sig.reset()
         sig.sign = True
-        check(sig(0,  1), "+0.")
-        check(sig(1,  1), "+1.")
+        check(sig(0, 1), "+0.")
+        check(sig(1, 1), "+1.")
         check(sig(-1, 1), "-1.")
         sig.idp = False
-        check(sig(1,  1), "+1")
+        check(sig(1, 1), "+1")
         check(sig(-1, 1), "-1")
         sig.sign = False
         sig.idp = True
-        check(sig(0,  1), "0.")
-        check(sig(1,  1), "1.")
+        check(sig(0, 1), "0.")
+        check(sig(1, 1), "1.")
         sig.reset()
     def Test_rtz_feature():
         sig.reset()
@@ -2793,7 +2793,7 @@ if __name__ == "__main__":
     def Test_string_array():
         sig.reset()
         s = '''1.2345 1-1/4 3-4i -12.222j
-        -2-1/8;3,                       4;5
+        -2-1/8;3, 4;5
         -12234.355
         '''
         r = "[1.2 1.2 3.0-4.0i -12.i -2.1 3.0 4.0 5.0 -12000.]"
@@ -2803,23 +2803,23 @@ if __name__ == "__main__":
         x, xs, ts, r, rs, rf = 1.234, "1.234", "1.25", 0.05, "0.05", "1/20"
         f = sig._TemplateRound
         sig.digits = 4
-        check(Dec(sig(f(x, r))),              Dec(ts))
-        check(Dec(sig(f(-x, r))),             Dec("-" + ts))
-        check(Dec(sig(f(x, rs))),             Dec(ts))
-        check(Dec(sig(f(-x, rs))),            Dec("-" + ts))
-        check(Dec(sig(f(x, rf))),             Dec(ts))
-        check(Dec(sig(f(-x, rf))),            Dec("-" + ts))
-        check(Dec(sig(f(xs, r))),             Dec(ts))
-        check(Dec(sig(f(xs, rs))),            Dec(ts))
-        check(Dec(sig(f(xs, rf))),            Dec(ts))
-        check(Dec(sig(f(1, r))),              Dec(1))
-        check(Dec(sig(f(1, rs))),             Dec(1))
-        check(Dec(sig(f(1, rf))),             Dec(1))
+        check(Dec(sig(f(x, r))), Dec(ts))
+        check(Dec(sig(f(-x, r))), Dec("-" + ts))
+        check(Dec(sig(f(x, rs))), Dec(ts))
+        check(Dec(sig(f(-x, rs))), Dec("-" + ts))
+        check(Dec(sig(f(x, rf))), Dec(ts))
+        check(Dec(sig(f(-x, rf))), Dec("-" + ts))
+        check(Dec(sig(f(xs, r))), Dec(ts))
+        check(Dec(sig(f(xs, rs))), Dec(ts))
+        check(Dec(sig(f(xs, rf))), Dec(ts))
+        check(Dec(sig(f(1, r))), Dec(1))
+        check(Dec(sig(f(1, rs))), Dec(1))
+        check(Dec(sig(f(1, rf))), Dec(1))
         if _have_mpmath:
             x = mp.mpf(xs)
-            check(Dec(sig(f(x, r))),          Dec(ts))
-            check(Dec(sig(f(x, rs))),         Dec(ts))
-            check(Dec(sig(f(x, rf))),         Dec(ts))
+            check(Dec(sig(f(x, r))), Dec(ts))
+            check(Dec(sig(f(x, rs))), Dec(ts))
+            check(Dec(sig(f(x, rf))), Dec(ts))
             check(Dec(sig(f(x, mp.mpf(rs)))), Dec(ts))
         # Check that we can round to fractions
         x = Dec("3.456789")
@@ -3004,7 +3004,7 @@ if __name__ == "__main__":
         import mpmath as mp
         import random
         digits, rnd_range = 20, 1000
-        prec = 10*(D(10)**D(-digits)) # Relative precision decision limit
+        prec = 10*(D(10)**D(-digits))   # Relative precision decision limit
         a = rnd_range
         if _have_mpmath:
             # Check against mpmath if available
@@ -3012,10 +3012,11 @@ if __name__ == "__main__":
             decimal.getcontext().prec = mp.mp.dps = digits
             def check(got, expected):
                 if abs(got - expected) > prec:
-                    s = "Test failure\nGot      = {0}\nExpected = {1}"
+                    s = "Test failure\nGot = {0}\nExpected = {1}"
                     s = s.format(str(got), str(expected))
                     assert 1 == 0, s
-            mp2d = lambda x: D(str(x))
+            def mp2d(x):
+                return D(str(x))
             random.seed(123)
             for i in range(100):
                 xs, ys = str(random.uniform(-a, a)), str(random.uniform(-a, a))
@@ -3076,7 +3077,7 @@ if __name__ == "__main__":
             # it will take some debugging to figure out the cause (I'm
             # betting it's some kind of race condition.
             
-            #(4, "12350+/-60000"),  # Overflows to standard display
+            #(4, "12350+/-60000"), # Overflows to standard display
         )
         for i, expected in T:
             check(sig(U(1.23456789e4, 6*10**i)), expected)
@@ -3092,7 +3093,7 @@ if __name__ == "__main__":
             (2, "12300.(600)"),
             (3, "12000.(6000)"),
             # See similar comment above for why this is commented out.
-            #(4, "12350.+/-60000."),  # Overflows to standard display
+            #(4, "12350.+/-60000."), # Overflows to standard display
         )
         for i, expected in T:
             check(sig(U(1.23456789e4, 6*10**i)), expected)
@@ -3254,15 +3255,15 @@ if __name__ == "__main__":
         sig.digits = 3
         num, ten, r, w, p = Dec("3.1415926"), Dec(10), 4, 8, 4
         expected = {
-            4 : "   -.-  ",
-            3 : "3140.   ",
-            2 : " 314.   ",
-            1 : "  31.4  ",
-            0 : "   3.14 ",
-            -1 : "   0.314",
-            -2 : "   0.031",
-            -3 : "   0.003",
-            -4 : "   -.-  ",
+            4: "   -.-  ",
+            3: "3140.   ",
+            2: " 314.   ",
+            1: "  31.4  ",
+            0: "   3.14 ",
+            -1: "   0.314",
+            -2: "   0.031",
+            -3: "   0.003",
+            -4: "   -.-  ",
         }
         # Fit using the function call
         for i in range(r, -r - 1, -1):
@@ -3278,7 +3279,7 @@ if __name__ == "__main__":
             check(got, expected[i])
     def Test_InterpretNumber():
         bad = (None, "")
-        test_cases = ( # String, expected return value
+        test_cases = (  # String, expected return value
             # Weird/wrong input
             ("", bad),
             ("   ", bad),
@@ -3322,9 +3323,9 @@ if __name__ == "__main__":
             else:
                 check(got, expected)
         # Expressions
-        got = sig.Interpret("a*b/c", loc={"a":2.5, "b":4, "c":10})
+        got = sig.Interpret("a*b/c", loc={"a": 2.5, "b": 4, "c": 10})
         check(got[0], 1)
-        got = sig.Interpret("a*b/c", glo={}, loc={"a":2.5, "b":4, "c":10})
+        got = sig.Interpret("a*b/c", glo={}, loc={"a": 2.5, "b": 4, "c": 10})
         check(got[0], 1)
         # Assignments
         loc, n = {}, 17
@@ -3339,7 +3340,7 @@ if __name__ == "__main__":
         # Now test with uncertainty stuff
         if _have_uncertainties:
             U = unc.ufloat
-            test_cases = ( # String, expected return value
+            test_cases = (  # String, expected return value
                 # Integers 
                 ("0[0]", (U(0, 0), "")),
                 ("0[0] m/s", (U(0, 0), "m/s")),

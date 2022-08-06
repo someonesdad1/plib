@@ -7,11 +7,16 @@ Runs pycodestyle and summarizes results
     notable, low-priority, and ignored.
 
     For my python files, I will fix anything that is labeled a priority 3
-    error.  Such things include any use of tabs, indentation that is not a
-    multiple of 4 spaces, multiple imports or imports not at beginning of
-    file, multiple statements on one line, no bare 'except' usage, or
-    deprecated usage.  Most (if not all) of the priority 2 errors will be
-    fixed.  When the priority 2 and 3 errors are fixed, I'll look at the
+    error.  Such things include 
+
+        - Any use of tab characters
+        - Indentation that is not a multiple of 4 spaces
+        - Multiple imports or imports not at beginning of file
+        - Multiple statements on one line
+        - No bare 'except' usage
+        - Deprecated usage.  
+
+    Most of the priority 2 errors will be fixed.  I'll look at the
     remaining stuff and decide what needs fixing. 
 
 '''
@@ -79,26 +84,23 @@ if 1:   # Utility
     def Usage(status=1):
         print(dedent(f'''
         Usage:  {sys.argv[0]} [options] file1 [file2 ...]
-          Run pycodestyle on the indicated files and present the summarized
-          results.  Normal behavior is to only print -2 and -3 error and
-          warning messages.  Returned status is 0 for nothing printed, 1
-          for one or more messages printed.  Output is organized by
-          error/warning type; use the -f option to see the output organized
-          by file.
+          Run pycodestyle on the indicated files and summarize the results.
+          Returned status is 0 for nothing printed, 1 for one or more
+          messages printed.  
         Options:
-            -a      Show all errors/warnings
-            -f      Organize output by file
-            -0      Print ignored items [default off]
-            -1      Print low-priority items [default off]
-            -2      Print notable items [default on]
-            -3      Print important items [default on]
+            -a      Show all errors/warnings [{d['-a']}]
+            -f      Organize output by file  [{d['-f']}]
+            -0      Print ignored items      [{d['-0']}]
+            -1      Print low-priority items [{d['-1']}]
+            -2      Print notable items      [{d['-2']}]
+            -3      Print important items    [{d['-3']}]
             -c      Include column information with line numbers
             -v      Debug output (more than one for more verbosity)
         '''))
         exit(status)
     def ParseCommandLine(d):
         d["-a"] = False     # Show all errors/warnings
-        d["-f"] = False     # Organize output by file
+        d["-f"] = True      # Organize output by file
         d["-0"] = False     # Show ignored items
         d["-1"] = False     # Show low-priority items
         d["-2"] = True      # Show notable items
@@ -254,6 +256,8 @@ if 1:   # Classes
             line_col = tuple of (line, column) where error was
         The __str__ method allows printing the item to stdout.
         '''
+        # The default way of returning a string interpolation
+        by_file = True
         def __init__(self, errnum, file, line_col):
             self.errnum = errnum
             self.file = file
@@ -272,12 +276,21 @@ if 1:   # Classes
             of line numbers with one space between them.  Wrap things so
             that the line numbers are easy to read.
             '''
-            if d["-c"]:
-                q = [f"{i}:{j}" for i, j in zip(self.linenums, self.colnums)]
+            if Item.by_file:
+                if d["-c"]:
+                    q = [f"{i}:{j}" for i, j in zip(self.linenums, self.colnums)]
+                else:
+                    q = self.linenums
+                s = f"{' '.join(str(i) for i in q)}"
+                i = " "*4
+                return HangingIndent(s, indent=i, first_line_indent=i)
             else:
-                q = self.linenums
-            s = f"{self.file}: {' '.join(str(i) for i in q)}"
-            return HangingIndent(s, indent=" "*4, first_line_indent=" "*2)
+                if d["-c"]:
+                    q = [f"{i}:{j}" for i, j in zip(self.linenums, self.colnums)]
+                else:
+                    q = self.linenums
+                s = f"{self.file}: {' '.join(str(i) for i in q)}"
+                return HangingIndent(s, indent=" "*4, first_line_indent=" "*2)
         def __repr__(self):
             'String for debugging'
             return f"Item({self.errnum}, {len(self.line_col)} lines)"
@@ -365,6 +378,7 @@ if 1:   # Core functionality
             },
         }
         '''
+        Item.by_file = False
         count = 0  # Count number of items
         def Print(r):
             '''r is a dict keyed by error numbers with values of list of
@@ -416,6 +430,7 @@ if 1:   # Core functionality
             },
         }
         '''
+        Item.by_file = True
         # Make a dictionary keyed by file name with values being that
         # file's Item instances.
         di = defaultdict(list)

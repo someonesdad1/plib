@@ -86,7 +86,7 @@ if 1:   # Getting text, tokens, lines, bytes
         return s
     def GetLines(thing, enc=None, ignore=None, script=False, ignore_empty=False,
                  strip=False, nonl=False):
-        '''Return text from thing, which is
+        r'''Return text from thing, which is
             string      It's a file name.  If read exception , then use string
                         itself for the text.
             bytes       
@@ -136,9 +136,9 @@ if 1:   # Getting text, tokens, lines, bytes
         if ignore_empty and ignore is not None:
             ignore.append(r"^\s*$")
         got = GetText(thing, enc=enc)
-        if type(got) == type(b"0"):
+        if ii(got, bytes):
             lines = got.decode(enc).split("\n")
-        elif type(got) == type("0"):
+        elif ii(got, str):
             lines = got.split("\n")
         else:
             raise TypeError("GetText() didn't return bytes or string")
@@ -168,16 +168,16 @@ if 1:   # Getting text, tokens, lines, bytes
         If it is a bytes object, then the indicated encoding is used to
         decode it, then it's read a line at a time.
         '''
-        if ii(thing, bytes): # Bytes
+        if ii(thing, bytes):  # Bytes
             s = thing.decode(encoding="UTF-8" if enc is None else enc)
             stream = StringIO(s)
-        elif ii(thing, (str, pathlib.Path)): # File name
+        elif ii(thing, (str, pathlib.Path)):  # File name
             p = pathlib.Path(thing)
             try:
                 stream = open(p)
             except Exception:
                 stream = StringIO(thing)
-        elif hasattr(thing, "read"): # Stream
+        elif hasattr(thing, "read"):  # Stream
             stream = thing
         else:
             raise TypeError("Type of 'thing' not recognized")
@@ -344,23 +344,23 @@ if 1:   # Getting numbers
         this could be done by subclassing rather than changing the
         function.  But the convenience of a simple function won out.)
         '''
-        outstream  = kw.get("outstream", sys.stdout)
-        instream   = kw.get("instream", None)
-        numtype    = kw.get("numtype", flt)
-        default    = kw.get("default", None)
-        low        = kw.get("low", None)
-        high       = kw.get("high", None)
-        low_open   = kw.get("low_open", False)
-        high_open  = kw.get("high_open", False)
-        inspect    = kw.get("inspect", None)
-        invert     = kw.get("invert", False)
-        prefix     = kw.get("prefix", "Error:  must have ")
-        use_unc    = kw.get("use_unc", False)
-        use_unit   = kw.get("use_unit", False)
+        outstream = kw.get("outstream", sys.stdout)
+        instream = kw.get("instream", None)
+        numtype = kw.get("numtype", flt)
+        default = kw.get("default", None)
+        low = kw.get("low", None)
+        high = kw.get("high", None)
+        low_open = kw.get("low_open", False)
+        high_open = kw.get("high_open", False)
+        inspect = kw.get("inspect", None)
+        invert = kw.get("invert", False)
+        prefix = kw.get("prefix", "Error:  must have ")
+        use_unc = kw.get("use_unc", False)
+        use_unit = kw.get("use_unit", False)
         allow_quit = kw.get("allow_quit", True)
         allow_none = kw.get("allow_none", False)
-        vars       = kw.get("vars", {})
-        Debug      = kw.get("Debug", None)
+        vars = kw.get("vars", {})
+        Debug = kw.get("Debug", None)
         # If the variable Debug is defined and True, then we
         # automatically return the default value.
         if Debug:
@@ -383,22 +383,22 @@ if 1:   # Getting numbers
         # to the user.
         conditionals = {
             # low     high   low_open  high_open  invert
-            (True,  False, False,    False,     False): "x >= low",
-            (True,  False, True,     False,     False): "x > low",
-            (True,  False, False,    False,     True):  "x < low",
-            (True,  False, True,     False,     True):  "x <= low",
-            (False, True,  False,    False,     False): "x <= high",
-            (False, True,  False,    True,      False): "x < high",
-            (False, True,  False,    False,     True):  "x > high",
-            (False, True,  False,    True,      True):  "x >= high",
-            (True,  True,  False,    False,     False): "low <= x <= high",
-            (True,  True,  True,     False,     False): "low < x <= high",
-            (True,  True,  False,    True,      False): "low <= x < high",
-            (True,  True,  True,     True,      False): "low < x < high",
-            (True,  True,  False,    False,     True):  "x < low or x > high",
-            (True,  True,  True,     False,     True):  "x <= low or x > high",
-            (True,  True,  False,    True,      True):  "x < low or x >= high",
-            (True,  True,  True,     True,      True):  "x <= low or x >= high",
+            (True, False, False, False, False): "x >= low",
+            (True, False, True, False, False): "x > low",
+            (True, False, False, False, True): "x < low",
+            (True, False, True, False, True): "x <= low",
+            (False, True, False, False, False): "x <= high",
+            (False, True, False, True, False): "x < high",
+            (False, True, False, False, True): "x > high",
+            (False, True, False, True, True): "x >= high",
+            (True, True, False, False, False): "low <= x <= high",
+            (True, True, True, False, False): "low < x <= high",
+            (True, True, False, True, False): "low <= x < high",
+            (True, True, True, True, False): "low < x < high",
+            (True, True, False, False, True): "x < low or x > high",
+            (True, True, True, False, True): "x <= low or x > high",
+            (True, True, False, True, True): "x < low or x >= high",
+            (True, True, True, True, True): "x <= low or x >= high",
         }
         unit_string = ""
         while True:
@@ -508,7 +508,7 @@ if 1:   # Getting numbers
                     return (x, unit_string)
                 else:
                     return x
-    def GetNumbers(thing, numtype=None,  enc=None):
+    def GetNumbers(thing, numtype=None, enc=None):
         '''Uses GetText() to get a string, then recognizes integers, floats,
         fractions, complex, and uncertain numbers in the string separated by
         whitespace and returns a list of these numbers.  If numtype is
@@ -541,7 +541,7 @@ if 1:   # Getting numbers
                 lst.append(x)
         return lst
     def GetNumberArray(string, row=False, numtype=float):
-        '''Return a list of vectors gotten from the indicated multiline string.
+        r'''Return a list of vectors gotten from the indicated multiline string.
         The numbers are separated on each line by whitespace.  If row is
         True, then the vectors are row vectors.  Lines in string matching
         the regular expression with '^\s*#' are ignored.  If string is empty or
@@ -666,9 +666,9 @@ if 1:   # Getting numbers
         case, (1, "") will be returned.
         '''
         # Define the allowed SI prefixes
-        si = {"y":  -24, "z": -21, "a": -18, "f": -15, "p": -12, "n": -9,
+        si = {"y": -24, "z": -21, "a": -18, "f": -15, "p": -12, "n": -9,
             "u": -6, "μ": -6, "m": -3, "c": -2, "d": -1, "": 0, "da": 1, "h": 2,
-            "k":  3, "M":  6, "G":  9, "T": 12, "P": 15, "E": 18, "Z": 21,
+            "k": 3, "M": 6, "G": 9, "T": 12, "P": 15, "E": 18, "Z": 21,
             "Y": 24}
         s = x.strip()  # Remove any leading/trailing whitespace
         # See if s ends with one of the strings in allowed_units
@@ -1108,7 +1108,7 @@ if __name__ == "__main__":
             s_out = sio()
             n = GetNumber("", low=2, high=5, low_open=True, high_open=True,
                     outstream=s_out, instream=sio("4.999999999999"))
-            Assert(n == 4.999999999999 )
+            Assert(n == 4.999999999999)
             s_out = sio()
             GetNumber("", low=2, high=5, low_open=True, high_open=True,
                 outstream=s_out, instream=sio("2"))
@@ -1209,7 +1209,7 @@ if __name__ == "__main__":
             Assert(n == 6 and isinstance(n, flt))
             # Show that we can evaluate things with a variables dictionary.
             from math import sin, pi
-            v = {"sin":sin, "pi":pi}
+            v = {"sin": sin, "pi": pi}
             s_out = sio()
             n = GetNumber("", low=2, high=5, invert=True, outstream=s_out,
                 instream=sio("sin(pi/6)"), vars=v)

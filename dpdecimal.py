@@ -570,7 +570,7 @@ if __name__ == "__main__":
     def Test_infection():
         'Verify that the supported operations return a dec object'
         x = dec("1.234")
-        L1, L2 = dec("11001"), dec("11101") # Logical arguments
+        L1, L2 = dec("11001"), dec("11101")  # Logical arguments
         two = dec(2)
         for y in (True, 3, 3.456, D("3.456"), dec("3.456"), Fraction(1, 2)):
             # Zero arguments, non-logical

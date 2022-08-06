@@ -1,5 +1,12 @@
 Active
 
+    - trigger.py
+        - Change default trigger strings to '# ∞' and ' ∞#', as this will
+          stop error messages from pycodestyle.  This also has the benefit
+          of making the string a little easier to read.  
+        - Write a script to modify all the files in the current directory
+          and identify all the trigger strings first.
+
     - Move notes, password db, etc. to .0rc because it's backed up to the
       cloud
 

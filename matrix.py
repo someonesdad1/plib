@@ -118,8 +118,8 @@ class Matrix:
             sometimes you want the operation done on the current instance,
             in which case set ip to True.
     '''
-    _str = False    # If True, switch role of str() and repr()
-    EqDigits = None # Num digits for == comparison (overrides eqdigits)
+    _str = False     # If True, switch role of str() and repr()
+    EqDigits = None  # Num digits for == comparison (overrides eqdigits)
     def __init__(self, rows, cols, fill=0):
         if not ii(rows, int) or not ii(cols, int):
             raise TypeError("rows and cols must be integers")
@@ -358,7 +358,7 @@ class Matrix:
                 else:
                     msg = "value must be a {{}} with {} elements".format(self.c)
                     if ii(value, Matrix):
-                        if not value.is_vector and value.len != self.c :
+                        if not value.is_vector and value.len != self.c:
                             raise TypeError(msg.format("vector"))
                         v = value.l
                     else:
@@ -461,7 +461,8 @@ class Matrix:
     
             Note this method works in-place on the current matrix.
             '''
-            f = lambda x: 0 if abs(x) <= tol else x
+            def f(x):
+                return 0 if abs(x) <= tol else x
             def ch(x):
                 if ii(x, complex):
                     return complex(f(x.real), f(x.imag))
@@ -621,7 +622,8 @@ class Matrix:
             # Get the value of eqdigits to use
             eqdigits = self._get_eqdigits(other)
             if eqdigits is not None:
-                f = lambda x: RoundOff(x, digits=eqdigits)
+                def f(x):
+                    return RoundOff(x, digits=eqdigits)
                 return all([f(i) == f(j) for i, j in zip(s, o)])
             else:
                 # Simple equality test
@@ -769,7 +771,7 @@ class Matrix:
             if ip:
                 self._check_frozen()
             m = self if ip else self.copy
-            m.map(lambda x:  Int(x) if Int(x) == x else x, ip=True)
+            m.map(lambda x: Int(x) if Int(x) == x else x, ip=True)
             return None if ip else m
         def is_diagonal(self, tol=None): 
             '''Return True if the matrix is a diagonal matrix.  If tol is
@@ -777,7 +779,7 @@ class Matrix:
             abs(x) <= tol to return True.  If tol is None, then each
             off-diagonal element x must satisfy x == 0 to return True.
             '''
-            f = (lambda x:  x != 0) if tol is None else (lambda x:  abs(x) > tol)
+            f = (lambda x: x != 0) if tol is None else (lambda x: abs(x) > tol)
             m = self.lower(incl_diag=False)
             nonzero = any([f(i) for i in m.l])
             if nonzero:
@@ -1265,7 +1267,7 @@ class Matrix:
         # instance of the Matrix class.
         @staticmethod
         def condition_string(s):
-            '''If s is a multiline string, remove all lines of the form
+            r'''If s is a multiline string, remove all lines of the form
             ^\w*#.*$.  This allows a data string to contain python-style 
             comments, which is handy for documentation.
     
@@ -1323,7 +1325,7 @@ class Matrix:
             numtype = kw.get("numtype", None)
             if size is None:    # Form A or B
                 assert(ii(p, (list, tuple)))
-                if ii(p[0], (list, tuple)): # Form A (nested list)
+                if ii(p[0], (list, tuple)):  # Form A (nested list)
                     r, c = len(p), len(p[0])
                     if not all([len(i) == c for i in p]):
                         raise TypeError(f"Not all rows have {c} elements")
@@ -1438,23 +1440,23 @@ class Matrix:
         def NumberConvert(x, T):
             'Convert the number x to the type T'
             # Note some conversions will lose numerical information; these
-            # are marked with #** in case you'd like to change them.
+            # are marked with '# **' in case you'd like to change them.
             def extract(s):
                 'Return the portion of s between single quotes'
                 s = s[s.find("'") + 1:]
                 return s[:s.find("'")]
             if have_unc and T == ufloat:
                 if ii(x, complex):
-                    return ufloat(x.real, 0)            #**
+                    return ufloat(x.real, 0)            # **
                 elif ii(x, (Fraction, Decimal)):
-                    return ufloat(float(x), 0)          #**
+                    return ufloat(float(x), 0)          # **
                 elif ii(x, UFloat):
                     return x
                 return ufloat(x, 0)
             elif T is complex:
                 if have_unc and ii(x, UFloat):
-                    return complex(x.nominal_value, 0)  #**
-                return complex(x, 0)                    #**
+                    return complex(x.nominal_value, 0)  # **
+                return complex(x, 0)                    # **
             elif ii(x, flt):
                 if T is Decimal or T is Fraction:
                     return T(x.r)
@@ -1465,8 +1467,8 @@ class Matrix:
                 return T(x)
             elif ii(x, complex):
                 if T is Decimal or T is Fraction:
-                    return T(str(x.real))               #**
-                return T(x.real)                        #**
+                    return T(str(x.real))               # **
+                return T(x.real)                        # **
             elif ii(x, Fraction):
                 if T is Decimal:
                     return Decimal(x.numerator)/Decimal(x.denominator)
@@ -1483,10 +1485,10 @@ class Matrix:
                     return Decimal(extract(str(x)))
             elif have_unc and ii(x, UFloat):
                 if T is complex:
-                    return complex(x.nominal_value, 0)  #**
+                    return complex(x.nominal_value, 0)  # **
                 if T is Fraction or T is Decimal:
-                    return T(str(x.nominal_value))      #**
-                return T(x.nominal_value)               #**
+                    return T(str(x.nominal_value))      # **
+                return T(x.nominal_value)               # **
             try:
                 return T(x)
             except Exception:
@@ -1885,7 +1887,8 @@ class Matrix:
                 t = self.t.lower(incl_diag=False).l
                 eqdigits = self._get_eqdigits()
                 if eqdigits is not None:
-                    f = lambda x: RoundOff(x, digits=eqdigits)
+                    def f(x):
+                        return RoundOff(x, digits=eqdigits)
                     return all([f(i) == f(j) for i, j in zip(s, t)])
                 else:
                     return all([i == j for i, j in zip(s, t)])
@@ -2154,7 +2157,7 @@ class Flatten:
         self.m._flatten()
     def __exit__(self, type, value, traceback):
         self.m._nested()
-if 1: # Utility functions
+if 1:   # Utility functions
     def matrix(*p, **kw):
         '''Convenience function for instantiating Matrix objects.  Examples:
             Integer
@@ -2410,7 +2413,7 @@ if 1: # Utility functions
             if matrix[top_row, col] != 1:
                 multiplier = 1/matrix[top_row, col]
                 matrix.scale(top_row, multiplier)
-                matrix[top_row, col] = 1 # assign directly in case of rounding errors
+                matrix[top_row, col] = 1    # assign directly in case of rounding errors
                 det_multiplier *= multiplier
                 if mirror:
                     mirror.scale(top_row, multiplier)
@@ -3082,7 +3085,7 @@ if __name__ == "__main__":
                     assert_equal(v, vector("3\n6\n9", c=True))
         def test_replace():
             with Testing():
-                for N in (0, 2): # N = 2 tests negative indexes
+                for N in (0, 2):    # N = 2 tests negative indexes
                     m = matrix("1 2\n3 4")
                     v = matrix("5 6")
                     m.replace(0 - N, v)
@@ -3862,7 +3865,7 @@ if __name__ == "__main__":
                 m.grid = [[5, 6], [7, 8]]
                 Assert(m == matrix("5 6\n7 8"))
         def test_Complex_formatting():
-            if 1: #xx
+            if 1:   # xx
                 with Testing():
                     Matrix.EqDigits = 3
                     z = cpx(1, -1/3)
@@ -3895,7 +3898,7 @@ if __name__ == "__main__":
                         z.wide = True
                         Assert(str(z) == "1.05 ∠ -18.4°")
                         z.wide = False
-            if 0: #xx
+            if 0:   # xx
                 with Testing():
                     # Special forms
                     Matrix.EqDigits = 3
@@ -3948,10 +3951,10 @@ if __name__ == "__main__":
                 with Testing():
                     m = matrix("1 2\n3 4")
                     M = Matrix.to_mpmath(m)
-                    Assert(M[0,0] == 1)
-                    Assert(M[0,1] == 2)
-                    Assert(M[1,0] == 3)
-                    Assert(M[1,1] == 4)
+                    Assert(M[0, 0] == 1)
+                    Assert(M[0, 1] == 2)
+                    Assert(M[1, 0] == 3)
+                    Assert(M[1, 1] == 4)
                     for i in range(2):
                         for j in range(2):
                             Assert(M[i, j] == m[i, j])
@@ -4083,9 +4086,9 @@ if __name__ == "__main__":
                 # Show we can round to a few digits
                 const = 1e8
                 for x, val in (
-                    (pi,         3.142),
-                    (pi*const,   3.142*const),
-                    (pi/const,   3.142/const),
+                    (pi, 3.142),
+                    (pi*const, 3.142*const),
+                    (pi/const, 3.142/const),
                 ):
                     assert_equal(RoundOff(x, digits=4), val)
                     assert_equal(RoundOff(-x, digits=4), -val)

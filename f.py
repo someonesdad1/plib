@@ -462,7 +462,7 @@ class Base(object):
             Base._digits = value
             assert(min_value <= Base._digits <= max_value)
         @property
-        def rtdp(self): # Remove trailing decimal point if True
+        def rtdp(self):  # Remove trailing decimal point if True
             'Remove trailing decimal point if True'
             return Base._rtdp
         @rtdp.setter
@@ -528,7 +528,8 @@ class flt(Base, float):
         self._check()
         if not Base._digits:
             return str(float(self))
-        decorate = lambda x: x if no_color else Base.wrap(x, self)
+        def decorate(x):
+            return x if no_color else Base.wrap(x, self)
         x = D(self)
         n = self._n if self._n else Base._digits 
         if n is None:
@@ -570,7 +571,8 @@ class flt(Base, float):
     def _r(self, no_color=False):
         'Return the repr string representation'
         self._check()
-        f = lambda x: x if no_color else Base.wrap(x, self, force=flt)
+        def f(x):
+            return x if no_color else Base.wrap(x, self, force=flt)
         s = f"{repr(float(self))}"
         if no_color:
             return s
@@ -854,7 +856,8 @@ class cpx(Base, complex):
     _w = False      # If True, use wide display:  1+2i -> "1 + 2i"
     def __new__(cls, real, imag=0):
         'real can be a number type, a cpx, or a complex.'
-        f = lambda x:  D(x) if x else D(0)
+        def f(x):
+            return D(x) if x else D(0)
         if ii(real, (int, float, flt, D)):
             imag = 0 if imag is None else imag
             re, im = float(real), float(imag)
@@ -895,7 +898,8 @@ class cpx(Base, complex):
         cpx._w = False
     def _pol(self, repr=False):
         'Return polar form'
-        f = lambda x:  Base.wrap(x, self)
+        def f(x):
+            return Base.wrap(x, self)
         r, theta = [flt(i) for i in polar(self)]
         theta *= 1 if self.rad else 180/pi
         deg = "" if self.rad else "°"
@@ -914,7 +918,8 @@ class cpx(Base, complex):
         '''
         if fmt not in set("fix eng sci engsi engsic".split()):
             raise ValueError("fmt must be one of:  fix, eng, sci, engsi, engsic")
-        f = lambda x:  Base.wrap(x, self)
+        def f(x):
+            return Base.wrap(x, self)
         if self.p:      # Polar coordinates
             return self._pol()
         elif self.t:    # Tuple form
@@ -947,7 +952,8 @@ class cpx(Base, complex):
             return f(s)
     def _r(self):  
         'Return the full representation string'
-        f = lambda x:  Base.wrap(x, self, force=cpx)
+        def f(x):
+            return Base.wrap(x, self, force=cpx)
         if self.p:
             s = self._pol(repr=True)
         else:
@@ -1179,7 +1185,7 @@ if 1:   # Get math/cmath functions into this namespace
             except Exception as err:
                 print(f"Unhandled exception in f.py's Delegator:\n  '{err!r}'")
                 print("Dropping into debugger")
-                breakpoint()    #xx
+                breakpoint()    # xx
                 pass
             if ii(result, int):
                 return result
@@ -1202,7 +1208,8 @@ if 1:   # Get math/cmath functions into this namespace
             numbers in it.
             '''
             C = (complex, cpx)
-            cc = lambda x: any([ii(i, C) for i in x])
+            def cc(x):
+                return any([ii(i, C) for i in x])
             if cc(list(args) + list(kw.values())):
                 return True
             if len(args) == 1:
@@ -1609,7 +1616,7 @@ if __name__ == "__main__":
             except Exception as e:
                 print(f"Unhandled exception:  '{e}'")
                 print(f"Dropping into debugger")
-                breakpoint()    #xx
+                breakpoint()    # xx
             got = GetNumDigits(s)
             expected = int(expected)
             assert_equal(got, expected)
@@ -1631,15 +1638,15 @@ if __name__ == "__main__":
     def Test_rnd():
         x = flt(pi)
         for n, s in (
-                (1,  "3.0"),
-                (2,  "3.1"),
-                (3,  "3.14"),
-                (4,  "3.142"),
-                (5,  "3.1416"),
-                (6,  "3.14159"),
-                (7,  "3.141593"),
-                (8,  "3.1415927"),
-                (9,  "3.14159265"),
+                (1, "3.0"),
+                (2, "3.1"),
+                (3, "3.14"),
+                (4, "3.142"),
+                (5, "3.1416"),
+                (6, "3.14159"),
+                (7, "3.141593"),
+                (8, "3.1415927"),
+                (9, "3.14159265"),
                 (10, "3.141592654"),
                 (11, "3.1415926536"),
                 (12, "3.14159265359"),
@@ -1925,15 +1932,15 @@ if __name__ == "__main__":
     def Test_ParseComplex():
         test_cases = {
             # Pure imaginaries
-            1j : (
+            1j: (
                 "i", "j", "1i", "i1", "1j", "j1", "1 j", "j 1",
                 "I", "J", "1I", "I1", "1J", "J1", "1 i", "i 1",
             ),
-            -1j : (
+            -1j: (
                 "-i", "-j", " - \t\n\r\v\f j",
                 "-I", "-J", " - \t\n\r\v\f J",
             ),
-            3j : (
+            3j: (
                 "3i", "+3i", "3.i", "+3.i", "3.0i", "+3.0i", "3.0e0i", "+3.0e0i",
                 "i3", "+i3", "i3.", "+i3.", "i3.0", "+i3.0", "i3.0e0", "+i3.0e0",
                 "3.000i", "i3.000", "3.000E0i", "i3.000E0",
@@ -1954,7 +1961,7 @@ if __name__ == "__main__":
                 "3.000J", "J3.000", "3.000E0J", "J3.000E0",
                 "3.000e-0J", "J3.000e-0", "3.000e+0J", "J3.000e+0",
             ),
-            -8j : (
+            -8j: (
                 "-8i", "-8.i", "-8.0i", "-8.0e0i",
                 "-i8", "-i8.", "-i8.0", "-i8.0E0",
     
@@ -1968,37 +1975,37 @@ if __name__ == "__main__":
                 "-J8", "-J8.", "-J8.0", "-J8.0E0",
             ),
             # Reals
-            0 : (
+            0: (
                 "0", "+0", "-0", "0.0", "+0.0", "-0.0"
                 "000", "+000", "-000", "000.000", "+000.000", "-000.000",
                 "0+0i", "0-0i", "0i+0", "0i-0", "+0i+0", "+0i-0", "i0+0",
                 "i0-0", "+i0+0", "+i0-0", "-i0+0", "-i0-0",
             ),
-            1 : (
+            1: (
                 "1", "+1", "1.", "+1.", "1.0", "+1.0", "1.0e0", "+1.0e0",
                                                     "1.0E0", "+1.0E0",
                 "1+0i", "1-0i",
                 "0i+1", "+0i+1", "-0i+1", "i0+1", "+i0+1", "-i0+1",
             ),
-            -1 : (
+            -1: (
                 "-1", "-1+0i", "-1-0i", "0i-1", "+0i-1", "-0i-1",
                 "i0-1", "+i0-1", "-i0-1",
             ),
-            -2 : (
+            -2: (
                 "-2", "-2.", "-2.0", "-2.0e0",
             ),
-            -2.3 : (
+            -2.3: (
                 "-2.3", "-2.30", "-2.3000", "-2.3e0", "-2300e-3", "-0.0023e3",
                 "-.23E1",
             ),
-            2.345e-7 : (
+            2.345e-7: (
                 "2.345e-7", "2345e-10", "0.00000002345E+1", "0.0000002345",
             ),
             # Complex numbers
             1+1j: ("1+i", "1+1i", "i+1", "1i+1", "i1+1"),
             1-1j: ("1-i", "1-1i", "-i+1", "-1i+1", "-i1+1"),
             -1-1j: ("-1-i", "-1-1i", "-i-1", "-1i-1", "-i1-1"),
-            1-2j : (
+            1-2j: (
                 "1-2i", "1-2.i", "1.-2i", "1.-2.i",
                 "1-j2", "1-j2.", "1.-j2", "1.-j2.",
                 "1.00-2.00I", "1.00-I2.00", "1000e-3-200000e-5I",
@@ -2006,11 +2013,11 @@ if __name__ == "__main__":
                 "-2i+1", "-i2 + \n1",
                 "-i2+1",
             ),
-            -1+2j : (
+            -1+2j: (
                 "2i-1", "i2-1",
                 "+2i-1", "+i2-1",
             ),
-            -12.3+4.56e-7j : (
+            -12.3+4.56e-7j: (
                 "-12.3+4.56e-7j",
                 "-12.3 + 4.56e-7j",
                 "- 1 2 . 3 + 4 . 5 6 e - 7 j",

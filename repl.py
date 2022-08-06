@@ -209,7 +209,7 @@ if 1:   # Header
         from color import TRM as t
     # Global variables
         _ = sys.version_info
-        class G: # Container for global variables
+        class G:    # Container for global variables
             pass
         g = G()
         g.P = pathlib.Path
