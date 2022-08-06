@@ -119,7 +119,8 @@ if 1:   # Core functionality
         if not x:
             return 1
         y = float(x) if ii(x, int) else x
-        Len = lambda x:  len(str(x))
+        def Len(x):
+            return len(str(x))
         # Turn significand into an integer
         s = int(f"{abs(y):.{maxsigfig}e}".split("e")[0].replace(".", ""))
         ns = Len(s)
@@ -290,7 +291,7 @@ if 1:   # Core functionality
         m10, m11 = 0, 1
         y, sign = abs(x), -1 if x < 0 else 1
         ai = int(y)
-        while (m10*ai + m11) <= max_denom: # Loop until denom gets too big
+        while (m10*ai + m11) <= max_denom:  # Loop until denom gets too big
             # Multiply these matrices:
             #    (m00 m01) and (ai 1)
             #    (m10 m11)     (1  0)
@@ -447,8 +448,8 @@ if __name__ == "__main__":
                 (2e-5, (104348, 33215)),
                 (1e-5, (312689, 99532)),
                 (1e-6, (3126535, 995207)),
-                (1e-10, (19870569874, 6324998835)),         # **
-                (1e-14, (130161051938194, 41431549628009)), # **
+                (1e-10, (19870569874, 6324998835)),             # **
+                (1e-14, (130161051938194, 41431549628009)),     # **
                 # ** better (smaller denom) approximation than RationalApprox
             ):
             g = f(pi, max_denom=p[1])

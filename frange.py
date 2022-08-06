@@ -164,7 +164,8 @@ def frange(start, stop=None, step=None, return_type=float, impl=Decimal,
         return (-1 if x < 0 else 1)*i
     if isinstance(start, str) and "/" in start:
         impl = return_type = Rational
-    init = lambda x: (impl(repr(x)) if isinstance(x, float) else impl(x))
+    def init(x):
+        return (impl(repr(x)) if isinstance(x, float) else impl(x))
     start = init(start)
     if stop is not None:
         stop = init(stop)

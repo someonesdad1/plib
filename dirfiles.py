@@ -26,7 +26,7 @@ if 1:   # Imports
     import pathlib
     import re
 class Dirfiles(object):
-    '''Construct a set with file names or directory names from one or
+    r'''Construct a set with file names or directory names from one or
     more directory trees.  The methods add(), keep(), keepext(), rm(),
     and rmr() are used to modify the set of files local to the instance.
     When the instance is finished processing, use the update() method to

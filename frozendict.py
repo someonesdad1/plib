@@ -92,17 +92,17 @@ if __name__ == "__main__":
     if 1:   # Custom imports
         from lwtest import run, assert_equal, raises, Assert
     if 1:   # Global variables
-        mydict = {"a" : [1, 2], "b" : {1:2, 2:[3, 4]}}
+        mydict = {"a": [1, 2], "b": {1: 2, 2: [3, 4]}}
         d = frozendict(mydict)
         hashvalue = hash(d)
     def Test_Hashable():
         # Check that a dict with two mutable objects can still be used
         # to construct a frozendict.
-        mydict = {"a" : [1, 2], "b" : {1:2, 2:[3, 4]}}
+        mydict = {"a": [1, 2], "b": {1: 2, 2: [3, 4]}}
         d = frozendict(mydict)
         assert(d == d)
         assert(d["a"] == (1, 2))
-        assert(d["b"] == {1:2, 2:(3, 4)})
+        assert(d["b"] == {1: 2, 2: (3, 4)})
         assert(hash(d) == hashvalue)
     def Test_CannotBeModified():
         d = frozendict({})
@@ -113,7 +113,7 @@ if __name__ == "__main__":
             pass
         raises(AttributeError, d.__setitem__, 1, 1)
     def Test_BlockedMethods():
-        d = frozendict({1:1})
+        d = frozendict({1: 1})
         raises(AttributeError, d.__delitem__, 1)
         raises(AttributeError, d.clear)
         raises(AttributeError, d.pop)

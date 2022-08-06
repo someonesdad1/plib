@@ -7,7 +7,7 @@ xx A number like 3.14e-34 needs to be changed to a power of 10
 Module to format numbers using Unicode characters to make them easier
 to read.
 '''
-#∞test∞# ignore #∞test∞#
+#∞test∞# ["test/format_numbers_test.py"] #∞test∞#
 
 from decimal import Decimal
 from fpformat import FPFormat
@@ -16,6 +16,7 @@ from math import pi
 from sig import sig
 from string import ascii_letters
 from uncertainties import ufloat
+from uncertainties.core import Variable
 from roundoff import RoundOff
 
 from pdb import set_trace as xx
@@ -25,21 +26,23 @@ if 0:
 
 # Dictionary to translate exponents to Unicode characters
 tt = {
-    "0" : "⁰",
-    "1" : "¹",
-    "2" : "²",
-    "3" : "³",
-    "4" : "⁴",
-    "5" : "⁵",
-    "6" : "⁶",
-    "7" : "⁷",
-    "8" : "⁸",
-    "9" : "⁹",
-    "+" : "",
-    "-" : "⁻",
-    " " : "·",
-    "^" : "",
+    "0": "⁰",
+    "1": "¹",
+    "2": "²",
+    "3": "³",
+    "4": "⁴",
+    "5": "⁵",
+    "6": "⁶",
+    "7": "⁷",
+    "8": "⁸",
+    "9": "⁹",
+    "+": "",
+    "-": "⁻",
+    " ": "·",
+    "^": "",
 }
+
+ii = isinstance
 
 def FormatUnits(unit, solidus=False):
     '''unit is a string of the form e.g. 'm2 s-2'.  The returned string
@@ -163,7 +166,9 @@ def FormatNumber(num, units=None, digits=None, sci=False, eng=False,
                     else ff(sig(num)) + un))
     elif isinstance(num, Fraction):
         return F(FormatFraction(num, improper=improper) + un)
-    elif type(num) == type(ufloat(1, 0)):
+    elif ii(num, Variable):
+        # Old method:  comparing types, but pycodestyle complains
+        #elif type(num) == type(ufloat(1, 0)):
         return F(ff(sig(num)) + un)
     else:
         return F(str(num) + un)

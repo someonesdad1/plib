@@ -333,8 +333,8 @@ if __name__ == "__main__":
         size = int(size)
         if ii(cls, sbitfield):
             a = sbitfield(size)
-            b = sbitfield(size, init_with_ones = 0)
-            ones = sbitfield(size, init_with_ones = 1)
+            b = sbitfield(size, init_with_ones=0)
+            ones = sbitfield(size, init_with_ones=1)
         else:
             a = bitfield(size)
             b = bitfield(size)  # All zeroes

@@ -485,12 +485,12 @@ if __name__ == "__main__":
         msg = "Can't fit the requested information"
         assert cw > 0, msg
         kw = {
-            "align"     : d["-a"],
-            "col_width" : cw,
-            "esc"       : d["-e"],
-            "sep"       : separator,
-            "trunc"     : True,
-            "width"     : width,
+            "align": d["-a"],
+            "col_width": cw,
+            "esc": d["-e"],
+            "sep": separator,
+            "trunc": True,
+            "width": width,
         }
         s = Columnize(lines, **kw)
         while len(s) > length:
@@ -510,23 +510,23 @@ if __name__ == "__main__":
     else:
         if d["-c"]:
             kw = {
-                "align"     : d["-a"],
-                "col_width" : d["-w"],
-                "columns"   : d["-c"],
-                "esc"       : d["-e"],
-                "indent"    : d["-i"],
-                "sep"       : d["-s"],
-                "trunc"     : d["-t"],
+                "align": d["-a"],
+                "col_width": d["-w"],
+                "columns": d["-c"],
+                "esc": d["-e"],
+                "indent": d["-i"],
+                "sep": d["-s"],
+                "trunc": d["-t"],
             }
         else:
             kw = {
-                "align"     : d["-a"],
-                "col_width" : d["-w"],
-                "esc"       : d["-e"],
-                "indent"    : d["-i"],
-                "sep"       : d["-s"],
-                "trunc"     : d["-t"],
-                "width"     : int(os.environ["COLUMNS"]) - 1,
+                "align": d["-a"],
+                "col_width": d["-w"],
+                "esc": d["-e"],
+                "indent": d["-i"],
+                "sep": d["-s"],
+                "trunc": d["-t"],
+                "width": int(os.environ["COLUMNS"]) - 1,
             }
         s = Columnize(lines, **kw)
         for i in s:

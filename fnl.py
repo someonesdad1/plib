@@ -15,7 +15,7 @@ functionality.
 Example from Mertz's book (search for '#*------ Boolean algebra of
 composed functions ------#'):
 
-    Suppose you had four functions that process a line of text:  f1, f2,
+    Suppose you had four functions that process a line of text: f1, f2,
     f3, and f4.  These functions return Boolean values.  You want each
     line x of your input text to have (f1(x) or f2(x) be true along with
     (f3(x) or f4(x)) also true.  This could be done as follows:
@@ -24,10 +24,10 @@ composed functions ------#'):
     or the last line could be the more readable
         selected = [line in lines if satisfied(line)]
 '''
-if 1:  # License
+if 1:   # License
     # These "trigger strings" can be managed with trigger.py
     #∞license∞#
-    # Note:  David Mertz's site https://gnosis.cx/TPiP/ appears to state
+    # Note: David Mertz's site https://gnosis.cx/TPiP/ appears to state
     # (downloaded on 10 Jun 2021) that the book's copyright is owned by
     # Addison-Wesley, but the code samples are released into the public
     # domain.  Because of this, the following license text is deemed
@@ -63,7 +63,7 @@ if 1:  # License
     #∞what∞#
     #∞test∞# ignore #∞test∞#
     pass
-if 1:   # Imports
+if 1:  # Imports
     import sys
     from operator import mul, add
     from functools import reduce
@@ -120,7 +120,8 @@ def compose(*functions):
     '''For a sequence of univariate functions <f0, f1, ...>, return
     the function composition ...f2(f1(f0(x))).
     '''
-    compose2 = lambda f0, f1: lambda x: f0(f1(x))
+    def compose2(f0, f1):
+        return f0(f1(x))
     return reduce(compose2, functions)
 def and_f(functions, x):
     '''Same as all_f except short-circuit evaluation is used:
@@ -133,14 +134,18 @@ def and_f(functions, x):
     generally be faster.  Use all_f when you want all of the functions
     to be evaluated (e.g., they have some desired side effect).
     '''
+    def g(y):
+        return False
     if not functions:
-        return lambda y: False
+        return g
     flag = True
     for f in functions:
         flag &= bool(f(x))
         if not flag:
-            return lambda y: False
-    return lambda y: True
+            return g
+    def h(y):
+        True
+    return h
 def or_f(functions, x):
     '''Same as any_f except short-circuit evaluation is used:
     returns f0(x) or f1(x) or f2(x) or ...  Short-circuit evaluation
@@ -173,7 +178,7 @@ def Test_apply_each():
     This higher-order function returns a function that applies each
     of a list of functions to a set of arguments; each function must
     take the same number of arguments.  Here, we'll define two
-    functions:  A sums the arguments and B returns their product:
+    functions: A sums the arguments and B returns their product:
         def A(a, b, c): return a + b + c
         def B(a, b, c): return a * b * c
     Then
@@ -220,8 +225,8 @@ def Test_compose():
     x = {x} is {result}.
     '''[:-4].format(**locals()))
 def Test_all_f():
-    has_a = lambda x:  "a" in x
-    has_b = lambda x:  "b" in x
+    has_a = lambda x: "a" in x
+    has_b = lambda x: "b" in x
     result = all_f((has_a, has_b), ["abc"])
     print('''all_f(functions, arguments=[]):
     Returns True or False, representing the Boolean product of each
@@ -229,14 +234,14 @@ def Test_all_f():
     <f0, f1, f2, ...>, the returned value is
         f(x) = bool(f0(arguments))*bool(f1(arguments))*...
     Suppose we have the two functions
-        has_a = lambda x:  "a" in x
-        has_b = lambda x:  "b" in x
+        has_a = lambda x: "a" in x
+        has_b = lambda x: "b" in x
     Then all_f((has_a, has_b), ["abc"]) returns {result} because 'a'
     and 'b' are both in the string argument.
     '''[:-4].format(**locals()))
 def Test_any_f():
-    has_a = lambda x:  "a" in x
-    has_d = lambda x:  "d" in x
+    has_a = lambda x: "a" in x
+    has_d = lambda x: "d" in x
     result = any_f((has_a, has_d), ["abc"])
     print('''any_f(functions, arguments=[]):
     Returns True or False, representing the Boolean product of each
@@ -244,14 +249,14 @@ def Test_any_f():
     <f0, f1, f2, ...>, the returned value is
         f(x) = bool(f0(arguments))*bool(f1(arguments))*...
     Suppose we have the two functions
-        has_a = lambda x:  "a" in x
-        has_d = lambda x:  "d" in x
+        has_a = lambda x: "a" in x
+        has_d = lambda x: "d" in x
     Then any_f((has_a, has_d), ["abc"]) returns {result} because 'a'
     and 'b' are both in the string argument.
     '''[:-4].format(**locals()))
 def Test_and_f():
-    has_a = lambda x:  "a" in x
-    has_b = lambda x:  "b" in x
+    has_a = lambda x: "a" in x
+    has_b = lambda x: "b" in x
     result = and_F((has_a, has_b), ["abc"])
     print('''and_F(functions, arguments=[]):
     Same as all_f except short-circuit evaluation is used.
@@ -260,14 +265,14 @@ def Test_and_f():
     <f0, f1, f2, ...>, the returned value is
         f(x) = bool(f0(arguments))*bool(f1(arguments))*...
     Suppose we have the two functions
-        has_a = lambda x:  "a" in x
-        has_b = lambda x:  "b" in x
+        has_a = lambda x: "a" in x
+        has_b = lambda x: "b" in x
     Then conjoin((has_a, has_b), ["abc"]) returns {result} because 'a'
     and 'b' are both in the string argument.
     '''[:-4].format(**locals()))
 def Test_or_f():
-    has_a = lambda x:  "a" in x
-    has_d = lambda x:  "d" in x
+    has_a = lambda x: "a" in x
+    has_d = lambda x: "d" in x
     result = or_f((has_a, has_d), set("abc"))
     print('''or_f(functions, arguments=[]):
     Same as any_f except short-circuit evaluation is used.
@@ -276,17 +281,17 @@ def Test_or_f():
     <f0, f1, f2, ...>, the returned value is
         f(x) = bool(f0(arguments))*bool(f1(arguments))*...
     Suppose we have the two functions
-        has_a = lambda x:  "a" in x
-        has_d = lambda x:  "d" in x
+        has_a = lambda x: "a" in x
+        has_d = lambda x: "d" in x
     Then or_f((has_a, has_d), set("abc")) returns {result} because 'a'
     is in the string argument.
     '''[:-4].format(**locals()))
 if __name__ == "__main__": 
     lines = ["{}".format(i) for i in range(20)]
-    f1 = lambda x:  int(x) % 2 == 0
-    f2 = lambda x:  int(x) % 3 == 0
-    f3 = lambda x:  int(x) % 4 == 0
-    f4 = lambda x:  int(x) % 5 == 0
+    f1 = lambda x: int(x) % 2 == 0
+    f2 = lambda x: int(x) % 3 == 0
+    f3 = lambda x: int(x) % 4 == 0
+    f4 = lambda x: int(x) % 5 == 0
     if 0:
         satisfied = all(any_f(f1, f2), any_f(f3, f4))
         selected = [line for line in lines if satisfied(line)]

@@ -195,7 +195,7 @@ if __name__ == "__main__":
     pi = math.pi
     # Routines from pycephes (python translation of Moshier's elliptic
     # functions).
-    MACHEP   = 1.11022302462515654042E-16           # 2**(-53)
+    MACHEP = 1.11022302462515654042E-16           # 2**(-53)
     P = (1.37982864606273237150E-4, 2.28025724005875567385E-3,
         7.97404013220415179367E-3, 9.85821379021226008714E-3,
         6.87489687449949877925E-3, 6.18901033637687613229E-3,
@@ -208,7 +208,7 @@ if __name__ == "__main__":
         3.73774314173823228969E-2, 4.88280347570998239232E-2,
         7.03124996963957469739E-2, 1.24999999999870820058E-1,
         4.99999999999999999821E-1)
-    C1 = 1.3862943611198906188E0 # log(4)
+    C1 = 1.3862943611198906188E0    # log(4)
     Pe = (1.53552577301013293365E-4, 2.50888492163602060990E-3,
         8.68786816565889628429E-3, 1.07350949056076193403E-2,
         7.77395492516787092951E-3, 7.58395289413514708519E-3,
@@ -322,7 +322,8 @@ if __name__ == "__main__":
         EllipticTest(EllipticE, ellpe, use_series_imp=False)
         EllipticTest(EllipticE, ellpe, use_series_imp=True)
         # Compare Paul Bourke's python implementation to Weaver's
-        E = lambda a, b:  EllipseCircumference(a, b)/(2*a)
+        def E(a, b):
+            return EllipseCircumference(a, b)/(2*a)
         a = 1
         for i in range(101):
             b = i/100

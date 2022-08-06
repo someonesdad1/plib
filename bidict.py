@@ -143,7 +143,7 @@ if __name__ == "__main__":
     from lwtest import run, assert_equal, raises
     from pdb import set_trace as xx
     def init():
-        keys, values   = ["jan", "feb"], [1, 2]
+        keys, values = ["jan", "feb"], [1, 2]
         d = dict(zip(keys, values))
         bd = bidict(d)
         Check(bd, keys, values)
@@ -186,7 +186,7 @@ if __name__ == "__main__":
         assert(bd.get("xyz", 88) == 88)
         assert(bd.get("jan", None) == 1)
         b2 = bd.copy()
-        assert(bd == b2) # Can be tested for equality
+        assert(bd == b2)    # Can be tested for equality
         b2.clear()
         assert(not len(b2))
         b2 = bd.copy()
@@ -220,7 +220,7 @@ if __name__ == "__main__":
     def TestUpdate():
         keys, values, bd = init()
         # Update with dict
-        d = {"new":24}
+        d = {"new": 24}
         bd.update(d)
         assert(bd["new"] == 24)
         assert(bd(24) == "new")
@@ -237,7 +237,7 @@ if __name__ == "__main__":
         assert(bd(24) == "new")
         # TypeError if update with mutable
         keys, values, bd = init()
-        d = {"new" : [1, 2]}
+        d = {"new": [1, 2]}
         raises(TypeError, bd.update, d)
     def TestFrozen():
         keys, values, bd = init()

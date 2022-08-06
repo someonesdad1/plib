@@ -461,22 +461,22 @@ if 1:   # Another properties function
             θ = 1 - h/145442
             δ = (1 - h/145442)**5.255876
             σ = (1 - h/145442)**4.255876 
-        elif 36089 < h <= 65617: # Isothermal
+        elif 36089 < h <= 65617:    # Isothermal
             θ = 0.751865
             δ = 0.223361*exp(-(h - 36089)/20806)
             σ = 0.297076*exp(-(h - 36089)/20806)
-        elif 65617 < h <= 104987: # Inversion
+        elif 65617 < h <= 104987:   # Inversion
             θ = 0.682457 + h/945374
             δ = (0.988626 + h/652600)**(-34.16320)
             σ = (0.978261 + h/659515)**(-35.16320)
-        elif 104987< h <= 154199: # Inversion
+        elif 104987< h <= 154199:   # Inversion
             θ = 0.482561 + h/337634
             δ = (0.898309 + h/181373)**(-12.20114)
             σ = (0.857003 + h/190115)**(-13.20114)
-        elif 154199 < h <= 167323: # Isothermal
+        elif 154199 < h <= 167323:  # Isothermal
             θ = 0.939268
             δ = 0.00109456*exp(-(h - 154199)/25992)
-            σ = 0.00116533*exp(-(h - 154199)/25992 )
+            σ = 0.00116533*exp(-(h - 154199)/25992)
         elif 167323 < h <= 232940:
             θ = 1.434843 - h/337634
             δ = (0.838263 - h/577922)**12.20114
@@ -600,14 +600,14 @@ if __name__ == "__main__":
             if not L or L[0] == "#":
                 continue
             f = L.split()
-            Z = flt(f[0])  # m
-            T = flt(f[1])  # K
-            P = flt(f[2])*100   # Pa (f[2] in mbar)
-            ρ = flt(f[3])  # kg/m3
-            d = atm(Z/1000) # atm arg is in km
-            Td = flt(d["temperature"]) # K
-            Pd = flt(d["pressure"]) # Pa
-            ρd = flt(d["density"]) # kg/m3
+            Z = flt(f[0])               # m
+            T = flt(f[1])               # K
+            P = flt(f[2])*100           # Pa (f[2] in mbar)
+            ρ = flt(f[3])               # kg/m3
+            d = atm(Z/1000)             # atm arg is in km
+            Td = flt(d["temperature"])  # K
+            Pd = flt(d["pressure"])     # Pa
+            ρd = flt(d["density"])      # kg/m3
             o.extend([rd(Td, T), rd(Pd, P), rd(ρd, ρ)])
             Assert(rd(Pd, P) < 0.01)
             Assert(rd(ρd, ρ) < 0.01)

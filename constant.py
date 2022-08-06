@@ -78,7 +78,7 @@ if __name__ == "__main__":
         c = Init()
         c.strict = False 
         c.x = [1]
-        c.y = {1:1}
+        c.y = {1: 1}
         c.z = set([1])
         # Note we can change contents
         c.x[0] = 2

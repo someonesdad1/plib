@@ -74,7 +74,8 @@ EXCEPT_MSG = """
 
 PY2 = sys.version_info[0] == 2
 
-STR_OR_UNICODE = unicode if PY2 else str # For paste(): Python 3 uses str, Python 2 uses unicode.
+# For paste(): Python 3 uses str, Python 2 uses unicode.
+STR_OR_UNICODE = unicode if PY2 else str 
 
 ENCODING = 'utf-8'
 
@@ -108,7 +109,7 @@ def _stringifyText(text):
     return STR_OR_UNICODE(text)
 def init_osx_pbcopy_clipboard():
     def copy_osx_pbcopy(text):
-        text = _stringifyText(text) # Converts non-str values to str.
+        text = _stringifyText(text)     # Converts non-str values to str.
         p = subprocess.Popen(['pbcopy', 'w'],
                              stdin=subprocess.PIPE, close_fds=True)
         p.communicate(input=text.encode(ENCODING))
@@ -123,7 +124,7 @@ def init_osx_pbcopy_clipboard():
 def init_osx_pyobjc_clipboard():
     def copy_osx_pyobjc(text):
         '''Copy string argument to clipboard'''
-        text = _stringifyText(text) # Converts non-str values to str.
+        text = _stringifyText(text)     # Converts non-str values to str.
         newStr = Foundation.NSString.stringWithString_(text).nsstring()
         newData = newStr.dataUsingEncoding_(Foundation.NSUTF8StringEncoding)
         board = AppKit.NSPasteboard.generalPasteboard()
@@ -143,7 +144,7 @@ def init_gtk_clipboard():
 
     def copy_gtk(text):
         global cb
-        text = _stringifyText(text) # Converts non-str values to str.
+        text = _stringifyText(text)     # Converts non-str values to str.
         cb = gtk.Clipboard()
         cb.set_text(text)
         cb.store()
@@ -175,7 +176,7 @@ def init_qt_clipboard():
         app = QApplication([])
 
     def copy_qt(text):
-        text = _stringifyText(text) # Converts non-str values to str.
+        text = _stringifyText(text)     # Converts non-str values to str.
         cb = app.clipboard()
         cb.setText(text)
 
@@ -189,7 +190,7 @@ def init_xclip_clipboard():
     PRIMARY_SELECTION='p'
 
     def copy_xclip(text, primary=False):
-        text = _stringifyText(text) # Converts non-str values to str.
+        text = _stringifyText(text)     # Converts non-str values to str.
         selection=DEFAULT_SELECTION
         if primary:
             selection=PRIMARY_SELECTION
@@ -215,7 +216,7 @@ def init_xsel_clipboard():
     PRIMARY_SELECTION='-p'
 
     def copy_xsel(text, primary=False):
-        text = _stringifyText(text) # Converts non-str values to str.
+        text = _stringifyText(text)     # Converts non-str values to str.
         selection_flag = DEFAULT_SELECTION
         if primary:
             selection_flag = PRIMARY_SELECTION
@@ -235,7 +236,7 @@ def init_xsel_clipboard():
     return copy_xsel, paste_xsel
 def init_klipper_clipboard():
     def copy_klipper(text):
-        text = _stringifyText(text) # Converts non-str values to str.
+        text = _stringifyText(text)     # Converts non-str values to str.
         p = subprocess.Popen(
             ['qdbus', 'org.kde.klipper', '/klipper', 'setClipboardContents',
              text.encode(ENCODING)],
@@ -262,7 +263,7 @@ def init_klipper_clipboard():
     return copy_klipper, paste_klipper
 def init_dev_clipboard_clipboard():
     def copy_dev_clipboard(text):
-        text = _stringifyText(text) # Converts non-str values to str.
+        text = _stringifyText(text)     # Converts non-str values to str.
         if text == '':
             warnings.warn('Pyperclip cannot copy a blank string to the clipboard on Cygwin. This is effectively a no-op.')
         if '\r' in text:
@@ -404,7 +405,7 @@ def init_windows_clipboard():
         # This function is heavily based on
         # http://msdn.com/ms649016#_win32_Copying_Information_to_the_Clipboard
 
-        text = _stringifyText(text) # Converts non-str values to str.
+        text = _stringifyText(text)     # Converts non-str values to str.
 
         with window() as hwnd:
             # http://msdn.com/ms649048
@@ -444,7 +445,7 @@ def init_windows_clipboard():
     return copy_windows, paste_windows
 def init_wsl_clipboard():
     def copy_wsl(text):
-        text = _stringifyText(text) # Converts non-str values to str.
+        text = _stringifyText(text)     # Converts non-str values to str.
         p = subprocess.Popen(['clip.exe'],
                              stdin=subprocess.PIPE, close_fds=True)
         p.communicate(input=text.encode(ENCODING))
@@ -470,7 +471,7 @@ def determine_clipboard():
     global Foundation, AppKit, gtk, qtpy, PyQt4, PyQt5
 
     # Setup for the CYGWIN platform:
-    if 'cygwin' in platform.system().lower(): # Cygwin has a variety of values returned by platform.system(), such as 'CYGWIN_NT-6.1'
+    if 'cygwin' in platform.system().lower():   # Cygwin has a variety of values returned by platform.system(), such as 'CYGWIN_NT-6.1'
         # FIXME: pyperclip currently does not support Cygwin,
         # see https://github.com/asweigart/pyperclip/issues/55
         if os.path.exists('/dev/clipboard'):
@@ -489,7 +490,7 @@ def determine_clipboard():
     # Setup for the MAC OS X platform:
     if os.name == 'mac' or platform.system() == 'Darwin':
         try:
-            import Foundation  # check if pyobjc is installed
+            import Foundation   # check if pyobjc is installed
             import AppKit
         except ImportError:
             return init_osx_pbcopy_clipboard()
@@ -499,9 +500,9 @@ def determine_clipboard():
     # Setup for the LINUX platform:
     if HAS_DISPLAY:
         try:
-            import gtk  # check if gtk is installed
+            import gtk      # check if gtk is installed
         except ImportError:
-            pass # We want to fail fast for all non-ImportError exceptions.
+            pass    # We want to fail fast for all non-ImportError exceptions.
         else:
             return init_gtk_clipboard()
 
@@ -515,24 +516,22 @@ def determine_clipboard():
         try:
             # qtpy is a small abstraction layer that lets you write applications using a single api call to either PyQt or PySide.
             # https://pypi.python.org/pypi/QtPy
-            import qtpy  # check if qtpy is installed
+            import qtpy     # check if qtpy is installed
         except ImportError:
             # If qtpy isn't installed, fall back on importing PyQt4.
             try:
-                import PyQt5  # check if PyQt5 is installed
+                import PyQt5    # check if PyQt5 is installed
             except ImportError:
                 try:
-                    import PyQt4  # check if PyQt4 is installed
+                    import PyQt4    # check if PyQt4 is installed
                 except ImportError:
-                    pass # We want to fail fast for all non-ImportError exceptions.
+                    pass    # We want to fail fast for all non-ImportError exceptions.
                 else:
                     return init_qt_clipboard()
             else:
                 return init_qt_clipboard()
         else:
             return init_qt_clipboard()
-
-
     return init_no_clipboard()
 def set_clipboard(clipboard):
     '''
@@ -554,7 +553,7 @@ def set_clipboard(clipboard):
     clipboard_types = {'pbcopy': init_osx_pbcopy_clipboard,
                        'pyobjc': init_osx_pyobjc_clipboard,
                        'gtk': init_gtk_clipboard,
-                       'qt': init_qt_clipboard, # TODO - split this into 'qtpy', 'pyqt4', and 'pyqt5'
+                       'qt': init_qt_clipboard,     # TODO - split this into 'qtpy', 'pyqt4', and 'pyqt5'
                        'xclip': init_xclip_clipboard,
                        'xsel': init_xsel_clipboard,
                        'klipper': init_klipper_clipboard,

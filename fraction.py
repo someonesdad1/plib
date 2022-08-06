@@ -15,7 +15,7 @@ ToFraction
   Convert a string to a Fraction.  '19/16', '1 3/16', '1-3/16', and
   '1+3/16' all give the same fraction.
 '''
-#∞test∞# ignore #∞test∞#
+#∞test∞# ["test/fraction_test.py"] #∞test∞#
 
 import re
 from fractions import Fraction
@@ -96,8 +96,8 @@ def FractionFromUnicode(s, sep="-"):
  
     Example:  '1³/₁₆' will become '1-3/16'.
     '''
-    sup = {"⁰":0, "¹":1, "²":2, "³":3, "⁴":4, "⁵":5, "⁶":6, "⁷":7, "⁸":8, "⁹":9}
-    sub = {"₀":0, "₁":1, "₂":2, "₃":3, "₄":4, "₅":5, "₆":6, "₇":7, "₈":8, "₉":9}
+    sup = {"⁰": 0, "¹": 1, "²": 2, "³": 3, "⁴": 4, "⁵": 5, "⁶": 6, "⁷": 7, "⁸": 8, "⁹": 9}
+    sub = {"₀": 0, "₁": 1, "₂": 2, "₃": 3, "₄": 4, "₅": 5, "₆": 6, "₇": 7, "₈": 8, "₉": 9}
     # Mixed fractions
     t = r"(\d+)([" + ''.join(_super) + "]+)/([" + ''.join(_sub) + "]+)"
     r = re.compile(t)
