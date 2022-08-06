@@ -227,12 +227,12 @@ if __name__ == "__main__":
     def TestTriangleCircumscribedCircle():
         '''Unit circle with center at origin.
         '''
-        p  = ((-1, 0), (0, 1), (1, 0))
+        p = ((-1, 0), (0, 1), (1, 0))
         r, c = TriangleCircumscribedCircle(*p)
         assert_equal(r, 1)
         assert_equal(c[0], 0)
         assert_equal(c[1], 0)
-        p  = ((0, 1), (1, 0), (-1, 0))
+        p = ((0, 1), (1, 0), (-1, 0))
         r, c = TriangleCircumscribedCircle(*p)
         assert_equal(r, 1)
         assert_equal(c[0], 0)

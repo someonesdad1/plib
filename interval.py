@@ -323,7 +323,7 @@ class Infinity(object):
     def is_infinite(self, x):
         return x in (self, -self)
 if 1:  # Convenience instance of infinity
-    oo = inf = Infinity() # Convenience instance
+    oo = inf = Infinity()   # Convenience instance
 class Rng(object):
     ''' Holds two orderable objects that define a range (I'll also call
     it an interval).  If the constructor's integer keyword is True,
@@ -600,7 +600,7 @@ class Rng(object):
                         return False if value > self.b else True
     def __repr__(self):
         infinity = "oo"     # Unicode infinity symbol is \u221e
-        l, r = "(" if self.lopen else "[",  ")" if self.ropen else "]"
+        l, r = "(" if self.lopen else "[", ")" if self.ropen else "]"
         a, b = self.a, self.b
         a = "-" + infinity if a == -inf else self.a
         b = infinity if b == inf else self.b
@@ -1829,8 +1829,10 @@ if __name__ == "__main__":
             Assert(len(i.ranges) == 1 and Rng(a, b) == i.ranges[0])
         # Union or intersection not allowed
         p1, p2 = Partition(0, 1, 2), Partition(1, 2, 3)
-        f = lambda: p1 + p2
-        g = lambda: p1*p2
+        def f():
+            return p1 + p2
+        def g():
+            return p1*p2
         raises(SyntaxError, f)
         raises(SyntaxError, g)
     def IntervalPerformance():

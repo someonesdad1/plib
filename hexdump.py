@@ -75,7 +75,7 @@ def hexdump(obj, offset=0, length=0, asc=True, out=None, encoding="UTF-8"):
     bytes_read = 0
     bytes_printed = 0
     line_address = 0
-    bytes_per_line, line_length  = 16, 41
+    bytes_per_line, line_length = 16, 41
     Print = partial(print, file=o, end="")
     # Correct for the offset
     if offset:
