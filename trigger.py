@@ -115,11 +115,16 @@ class Trigger(dict):
         pp(self.text)
         exit()
     # Disable other dict methods
-    def get(self, key, default=None): raise self.not_allowed
-    def pop(self, key, default=None): raise self.not_allowed
-    def popitem(self): raise self.not_allowed
-    def setdefault(self, key, default=None): raise self.not_allowed
-    def update(self, other=None): raise self.not_allowed
+    def get(self, key, default=None):
+        raise self.not_allowed
+    def pop(self, key, default=None):
+        raise self.not_allowed
+    def popitem(self):
+        raise self.not_allowed
+    def setdefault(self, key, default=None):
+        raise self.not_allowed
+    def update(self, other=None):
+        raise self.not_allowed
 if __name__ == "__main__": 
     from pprint import pprint as pp
     from lwtest import raises

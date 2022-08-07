@@ -271,51 +271,51 @@ if 1:   # Global variables
     # The SI_prefixes dictionary contains the SI prefixes as keys; the
     # values are the conversion factors as strings.
     SI_prefixes = {
-        "y"  : "1e-24",
-        "z"  : "1e-21",
-        "a"  : "1e-18",
-        "f"  : "1e-15",
-        "p"  : "1e-12",
-        "n"  : "1e-9",
-        "u"  : "1e-6",
-        "μ"  : "1e-6",
-        "m"  : "1e-3",
-        "c"  : "1e-2",
-        "d"  : "1e-1",
-        "da" : "1e1",
-        "h"  : "1e2",
-        "k"  : "1e3",
-        "M"  : "1e6",
-        "G"  : "1e9",
-        "T"  : "1e12",
-        "P"  : "1e15",
-        "E"  : "1e18",
-        "Z"  : "1e21",
-        "Y"  : "1e24",
+        "y": "1e-24",
+        "z": "1e-21",
+        "a": "1e-18",
+        "f": "1e-15",
+        "p": "1e-12",
+        "n": "1e-9",
+        "u": "1e-6",
+        "μ": "1e-6",
+        "m": "1e-3",
+        "c": "1e-2",
+        "d": "1e-1",
+        "da": "1e1",
+        "h": "1e2",
+        "k": "1e3",
+        "M": "1e6",
+        "G": "1e9",
+        "T": "1e12",
+        "P": "1e15",
+        "E": "1e18",
+        "Z": "1e21",
+        "Y": "1e24",
     }
     if 0:   # Set to 1 if you also want the following
         SI_additional = {
-            "yocto"  : "1e-24",
-            "zepto"  : "1e-21",
-            "atto"   : "1e-18",
-            "femto"  : "1e-15",
-            "pico"   : "1e-12",
-            "nano"   : "1e-9",
-            "micro"  : "1e-6",
-            "milli"  : "1e-3",
-            "centi"  : "1e-2",
-            "deci"   : "1e-1",
-            "deca"   : "1e1",
-            "deka"   : "1e1",
-            "hecto"  : "1e2",
-            "kilo"   : "1e3",
-            "mega"   : "1e6",
-            "giga"   : "1e9",
-            "tera"   : "1e12",
-            "peta"   : "1e15",
-            "eta"    : "1e18",
-            "zetta"  : "1e21",
-            "yotta"  : "1e24",
+            "yocto": "1e-24",
+            "zepto": "1e-21",
+            "atto": "1e-18",
+            "femto": "1e-15",
+            "pico": "1e-12",
+            "nano": "1e-9",
+            "micro": "1e-6",
+            "milli": "1e-3",
+            "centi": "1e-2",
+            "deci": "1e-1",
+            "deca": "1e1",
+            "deka": "1e1",
+            "hecto": "1e2",
+            "kilo": "1e3",
+            "mega": "1e6",
+            "giga": "1e9",
+            "tera": "1e12",
+            "peta": "1e15",
+            "eta": "1e18",
+            "zetta": "1e21",
+            "yotta": "1e24",
         }
         SI_prefixes.update(SI_additional)
 if 1:   # Parsing
@@ -428,9 +428,9 @@ if 1:   # Parsing
         case, (1, "") will be returned.
         '''
         # Define the allowed SI prefixes
-        si = {"y":  -24, "z": -21, "a": -18, "f": -15, "p": -12, "n": -9,
+        si = {"y": -24, "z": -21, "a": -18, "f": -15, "p": -12, "n": -9,
             "u": -6, "m": -3, "c": -2, "d": -1, "": 0, "da": 1, "h": 2,
-            "k":  3, "M":  6, "G":  9, "T": 12, "P": 15, "E": 18, "Z": 21,
+            "k": 3, "M": 6, "G": 9, "T": 12, "P": 15, "E": 18, "Z": 21,
             "Y": 24}
         s = x.strip()  # Remove any leading/trailing whitespace
         # See if s ends with one of the strings in allowed_units
@@ -584,22 +584,22 @@ if 1:   # Utilities
         if t_from == "r" and T < -Tr:
             raise ValueError("Temperature in deg F must be >= 491.67")
         f = {
-            "kk" : lambda T: T,
-            "kc" : lambda T: T - T0,
-            "kf" : lambda T: 9./5*T - Tr,
-            "kr" : lambda T: 9./5*T,
-            "ck" : lambda T: T + T0,
-            "cc" : lambda T: T,
-            "cf" : lambda T: 9./5*T + 32,
-            "cr" : lambda T: (T + T0)*9/5.,
-            "fk" : lambda T: (T + Tr)*5/9.,
-            "fc" : lambda T: (T - 32)*5/9.,
-            "ff" : lambda T: T,
-            "fr" : lambda T: T + Tr,
-            "rk" : lambda T: 5/9*T,
-            "rc" : lambda T: (T - Tr - 32)*5/9,
-            "rf" : lambda T: T - Tr,
-            "rr" : lambda T: T,
+            "kk": lambda T: T,
+            "kc": lambda T: T - T0,
+            "kf": lambda T: 9./5*T - Tr,
+            "kr": lambda T: 9./5*T,
+            "ck": lambda T: T + T0,
+            "cc": lambda T: T,
+            "cf": lambda T: 9./5*T + 32,
+            "cr": lambda T: (T + T0)*9/5.,
+            "fk": lambda T: (T + Tr)*5/9.,
+            "fc": lambda T: (T - 32)*5/9.,
+            "ff": lambda T: T,
+            "fr": lambda T: T + Tr,
+            "rk": lambda T: 5/9*T,
+            "rc": lambda T: (T - Tr - 32)*5/9,
+            "rf": lambda T: T - Tr,
+            "rr": lambda T: T,
         }
         return f[t_from + t_to](T)
     def NeedUncertainties():
@@ -655,7 +655,8 @@ if 1:   # Utilities
         if not hasattr(R, "numbers_used"):
             R.numbers_used = set()  # Keep track of random numbers used so far
         if randomize:
-            udrn = lambda: 10**random.uniform(-1, 1)
+            def udrn():
+                return 10**random.uniform(-1, 1)
             num = udrn()
             while not num or num in R.numbers_used:  # Not zero not allowed
                 num = udrn()
@@ -728,7 +729,7 @@ def DefaultUnitData(level=-1, randomize=False, angles_have_dim=False):
         more units that are included.
     '''
     DefaultUnits = [
-        ["R" if angles_have_dim else "", [      "Angles",
+        ["R" if angles_have_dim else "", ["Angles",
             # Form is [lvl, expression_string]; lvl is an integer used to
             # determine the level of that particular unit; if level <= lvl,
             # then the unit is included in the resulting set of units.
@@ -759,7 +760,7 @@ def DefaultUnitData(level=-1, randomize=False, angles_have_dim=False):
             [2, "gradian = grad"],
             [2, "gradians = grad"],
         ]],
-        ["S" if angles_have_dim else "", [  "Solid angles",
+        ["S" if angles_have_dim else "", ["Solid angles",
             [1, "sr = 1.0"],
             [1, "steradian = sr"],
             [2, "steradians = sr"],
@@ -767,7 +768,7 @@ def DefaultUnitData(level=-1, randomize=False, angles_have_dim=False):
             [2, "sd = deg**2"],
             [2, "squaredegree = sd"],
         ]],
-        ["L", [     "Lengths",
+        ["L", ["Lengths",
             [0, "inch = 0.0254*m"],
             [0, "ft = 12*inch"],
             [0, "mi = 5280*ft"],
@@ -834,7 +835,7 @@ def DefaultUnitData(level=-1, randomize=False, angles_have_dim=False):
             [2, "dquarter = 0.955*inches"],
             [2, "dhalf = 1.205*inches"],
         ]],
-        ["L2", [    "Area",
+        ["L2", ["Area",
             [0, "acre = 4046.87260987425*m**2"],
             [1, "hectare = 1e4*m**2"],
             [1, "barn = 1e-28*m**2"],
@@ -850,7 +851,7 @@ def DefaultUnitData(level=-1, randomize=False, angles_have_dim=False):
             [2, "moonarea = 4*pi*moonradius**2"],
             [2, "sunarea = 4*pi*sunradius**2"],
         ]],
-        ["L3", [    "Volume",
+        ["L3", ["Volume",
             [0, "l = 1e-3*m**3"],  # Note liter is not an SI unit
             [0, "gal = 231*inch**3"],
             [0, "cc = 1e-6*m**3"],
@@ -920,7 +921,7 @@ def DefaultUnitData(level=-1, randomize=False, angles_have_dim=False):
             [2, "winebottle = 3/4*L"],
             [2, "wineglass = 4*floz"],
         ]],
-        ["T", [     "Time",
+        ["T", ["Time",
             [0, "sec = s"],
             [0, "min = 60*s"],
             [0, "hr = 3600*s"],
@@ -977,7 +978,7 @@ def DefaultUnitData(level=-1, randomize=False, angles_have_dim=False):
             [2, "neptuneyear = 164.79132*julianyear"],
             [2, "plutoyear   = 247.92065*julianyear"],
         ]],
-        ["L T-1", [    "Velocity",
+        ["L T-1", ["Velocity",
             [0, "mph = mi/hr"],
             [1, "kph = 1000*m/hr"],
             [1, "fps = ft/s"],
@@ -986,13 +987,13 @@ def DefaultUnitData(level=-1, randomize=False, angles_have_dim=False):
             [1, "knot = 1852*m/hr"],
             [2, "light = c*m/s"],
         ]],
-        ["T-1", [   "Frequency",
+        ["T-1", ["Frequency",
             [0, "Hz = 1/s"],
             [1, "rpm = 1/min"],
             [2, "hertz = Hz"],
             [2, "rps = Hz"],
         ]],
-        ["M", [     "Mass",
+        ["M", ["Mass",
             [0, "g = kg/1000"],
             [0, "lb = 0.45359237*kg"],
             [1, "electron_m = 9.109384e-31*kg"],
@@ -1056,7 +1057,7 @@ def DefaultUnitData(level=-1, randomize=False, angles_have_dim=False):
             [2, "neptunemass = 102.78e24*kg"],
             [2, "plutomass = 0.015e24*kg"],
         ]],
-        ["M L2 T-2", [  "Energy",
+        ["M L2 T-2", ["Energy",
             [0, "J = kg*m**2/s**2"],
             [0, "btu = 1055.056*J"],
             [1, "eV = 1.602176565e-19*J"],
@@ -1071,14 +1072,14 @@ def DefaultUnitData(level=-1, randomize=False, angles_have_dim=False):
             [2, "therm = 1.054804e8*J"],  # Unit of natural gas energy
             [2, "BTU = btu"],
         ]],
-        ["N", [     "Quantity",
+        ["N", ["Quantity",
             [1, "mole = mol"],
             [1, "molar = mol/L"],
         ]],
-        ["N-1", [    "Avogadro's number",
+        ["N-1", ["Avogadro's number",
             [0, "NA = 6.02214129e23/mol"],
         ]],
-        ["M L T-2", [   "Force",
+        ["M L T-2", ["Force",
             [0, "N = kg*m/s**2"],
             [0, "lbf = 4.4482216152605*N"],
             [1, "kgf = kg*gravity"],
@@ -1090,7 +1091,7 @@ def DefaultUnitData(level=-1, randomize=False, angles_have_dim=False):
             [2, "slugf = slug*gravity"],
             [2, "tonf = ton*gravity"],
         ]],
-        ["M L-1 T-2", [     "Pressure",
+        ["M L-1 T-2", ["Pressure",
             [0, "Pa = N/m**2"],
             [0, "psi = lbf/inch**2"],
             [1, "atm = 101325*Pa"],
@@ -1113,15 +1114,15 @@ def DefaultUnitData(level=-1, randomize=False, angles_have_dim=False):
             [2, "mmHg = m*Hg/1000"],
             [2, "mmhg = m*Hg/1000"],
         ]],
-        ["M L-1 T-1", [     "Dynamic viscosity",
+        ["M L-1 T-1", ["Dynamic viscosity",
             [1, "P = 0.1*Pa*s"],        # The poise is the cgs unit
             [1, "poise = 0.1*Pa*s"],
         ]],
-        ["L2 T-1", [        "Kinematic viscosity",
+        ["L2 T-1", ["Kinematic viscosity",
             [1, "stoke = 1e-4*m**2/s"],
             [1, "stokes = 1e-4*m**2/s"],
         ]],
-        ["L3 T-1", [    "Flow",
+        ["L3 T-1", ["Flow",
             [1, "gph = gallon/hr"],
             [1, "gpm = gallon/min"],
             [1, "gps = gallon/s"],
@@ -1134,7 +1135,7 @@ def DefaultUnitData(level=-1, randomize=False, angles_have_dim=False):
             # Note the definition of a miner's inch is location-dependent
             [2, "minersinch = 0.566*lps"],  # For northwest US
         ]],
-        ["M L2 T-3", [  "Power",
+        ["M L2 T-3", ["Power",
             [0, "W = J/s"],
             [0, "hp = 550.*ft*lb*gravity/s"],
             [0, "HP = 550.*ft*lb*gravity/s"],
@@ -1148,18 +1149,18 @@ def DefaultUnitData(level=-1, randomize=False, angles_have_dim=False):
             [2, "slpm = atm*lpm"],          # Gas flow
             [2, "slph = atm*lph"],          # Gas flow
         ]],
-        ["K", [     "Temperature",
+        ["K", ["Temperature",
             [1, "degC = K"],
             [1, "degF = 5/9*K"],
         ]],
-        ["A", [     "Current",
+        ["A", ["Current",
             [1, "amp = A"],
             [1, "ampere = A"],
             [2, "abamp = 10*A"],    # cgs emu
             [2, "abampere = abamp"],
             [2, "biot = abamp"],
         ]],
-        ["A T", [   "Charge",
+        ["A T", ["Charge",
             [0, "coul = A/s"],
             [0, "electron_q = 1.602176634e-19*coul"],
             [1, "Ahr = 3600*coul"],
@@ -1168,44 +1169,44 @@ def DefaultUnitData(level=-1, randomize=False, angles_have_dim=False):
             [2, "C = coul"],
             [2, "abcoul = abamp/s"],
         ]],
-        ["M L2 A-1 T-3", [  "Voltage",
+        ["M L2 A-1 T-3", ["Voltage",
             [0, "V = J/coul"],
             [1, "volt = V"],
             [2, "abvolt = dyne*(m/100)/(abamp*s)"],
         ]],
-        ["M L2 A-2 T-3", [  "Resistance",
+        ["M L2 A-2 T-3", ["Resistance",
             # The capital omega symbol is added below if we're using python 3
             [0, "ohm = V/A"],
             [2, "abohm = abvolt/abamp"],
         ]],
-        ["M-1 L-2 A2 T3", [     "Conductivity",
+        ["M-1 L-2 A2 T3", ["Conductivity",
             [1, "S = A/V"],
             [1, "siemens = S"],
             [2, "mho = A/V"],
             [2, "abmho = abamp/abvolt"],
         ]],
-        ["M L2 A-1 T-2", [  "Magnetic flux",
+        ["M L2 A-1 T-2", ["Magnetic flux",
             [1, "Wb  = J/A"],
             [1, "Oe  = 1000/(4*pi)*A/m"],
             [1, "oersted  = 1000/(4*pi)*A/m"],
             [2, "Maxwell  = abvolt*s"],
             [2, "unitpole  = 4*pi*Maxwell"],
         ]],
-        ["M A-1 T-2", [     "Magnetic flux density",
+        ["M A-1 T-2", ["Magnetic flux density",
             [1, "T = Wb/m**2"],
             [1, "Tesla = T"],
             [1, "tesla = T"],
             [1, "gauss = T/10000"],
         ]],
-        ["M-1 L-2 A2 T4", [     "Capacitance",
+        ["M-1 L-2 A2 T4", ["Capacitance",
             [0, "F  = coul/V"],
             [2, "abfarad  = abamp*s/abvolt"],
         ]],
-        ["M L2 A-2 T-2", [  "Inductance",
+        ["M L2 A-2 T-2", ["Inductance",
             [0, "H  = m**2*kg/coul**2"],
             [2, "abhenry  = abvolt*s/abamp"],
         ]],
-        ["C", [     "Luminous intensity/flux",
+        ["C", ["Luminous intensity/flux",
             [1, "candela = cd"],
             [2, "candle = 1.02*cd"],
             # Since the steradian is dimensionless, the lumen has the
@@ -1213,15 +1214,15 @@ def DefaultUnitData(level=-1, randomize=False, angles_have_dim=False):
             [1, "lm = cd*sr"],
             [2, "lumen = lm"],
         ]],
-        ["L-2 C", [     "Illuminance (luminous flux per unit area)",
+        ["L-2 C", ["Illuminance (luminous flux per unit area)",
             [1, "lux = lm/m**2"],
             [1, "footcandle = lm/ft**2"],
             [2, "phot = 1e4*lux"],
         ]],
-        ["L-1", [   "Reciprocal focal length",
+        ["L-1", ["Reciprocal focal length",
             [2, "diopter = 1/m"],
         ]],
-        ["ↀ", [   "Cost",
+        ["ↀ", ["Cost",
             [1, "dollar = dol"],
             [1, "cent = dol/100"],
             [2, "buck = dol"],
@@ -1233,14 +1234,14 @@ def DefaultUnitData(level=-1, randomize=False, angles_have_dim=False):
     # be an integer 1; derived units with conversion factors of unity will
     # have floating point 1.0.
     BaseUnits = [
-        ["m",   [R(randomize=randomize), Dim("L")]],
-        ["kg",  [R(randomize=randomize), Dim("M")]],
-        ["s",   [R(randomize=randomize), Dim("T")]],
-        ["A",   [R(randomize=randomize), Dim("A")]],
-        ["cd",  [R(randomize=randomize), Dim("C")]],
+        ["m", [R(randomize=randomize), Dim("L")]],
+        ["kg", [R(randomize=randomize), Dim("M")]],
+        ["s", [R(randomize=randomize), Dim("T")]],
+        ["A", [R(randomize=randomize), Dim("A")]],
+        ["cd", [R(randomize=randomize), Dim("C")]],
         ["mol", [R(randomize=randomize), Dim("N")]],
-        ["K",   [R(randomize=randomize), Dim("K")]],
-        ["dol",   [R(randomize=randomize), Dim("ↀ")]],
+        ["K", [R(randomize=randomize), Dim("K")]],
+        ["dol", [R(randomize=randomize), Dim("ↀ")]],
     ]
     # Add the capital omega for resistance and construct our description
     # to dimensions dictionary.
@@ -1314,8 +1315,8 @@ def GetUnits(GetUnitData=DefaultUnitData, level=-1, show=False,
     # units will contain the unit name strings as keys; the value is
     # the conversion factor to the quantity in base SI units.
     units = {
-        "c" : 299792458,        # Speed of light in m/s
-        "gravity" : 9.80665,    # Standard acceleration of gravity in m/s**2
+        "c": 299792458,        # Speed of light in m/s
+        "gravity": 9.80665,    # Standard acceleration of gravity in m/s**2
     }
     # Construct the dimensions dictionary, which relates the unit name
     # string to its Dim object.  Also store the base units' conversion
@@ -1664,7 +1665,7 @@ class Dim(object):
         if not numer and not denom:
             assert(not e)
             return None
-        assert(u(e, dim=1)[1] == self) # Converted == original
+        assert(u(e, dim=1)[1] == self)  # Converted == original
         return e
     @property
     def dims(self):
@@ -2063,7 +2064,7 @@ class U(object):
         # Translate superscripts to digits and middle dot & no-break
         # spaces to space characters
         _from = "⁰¹²³⁴⁵⁶⁷⁸⁹⁻⁺· "
-        _to   = "0123456789-+  "
+        _to = "0123456789-+  "
         s = expr.strip().translate(''.maketrans(dict(zip(_from, _to))))
         # Process the string 
         expression = self._expand_units(s, strict=strict)
@@ -2401,7 +2402,8 @@ def PrintSupportedUnits():
         dimobj = Dim(dimensions)
         print(f'{name}       {dimstr}')
         # Find those unit names in dims that have dimstr as their value
-        IsDim = lambda x:  str(dims[x]) == str(dimobj)
+        def IsDim(x):
+            return str(dims[x]) == str(dimobj)
         o = []
         for item in filter(IsDim, dims):
             o.append(item)
@@ -2479,7 +2481,7 @@ if __name__ == "__main__":
     def Initialize(randomize=False):
         global u
         units, dims = GetUnits(randomize=randomize)
-        u = U(units, dims, SI_prefixes, {"in":"inches"})
+        u = U(units, dims, SI_prefixes, {"in": "inches"})
     def TestEmptyString():
         Initialize()
         assert(u("") == 1)
@@ -2634,21 +2636,21 @@ if __name__ == "__main__":
         assert(ParseUnit("a", allow_expr=True) == ("a", ""))
         # Common forms
         s = ("47.3e-88", "m/s")
-        assert(ParseUnit("47.3e-88m/s")   == s)
-        assert(ParseUnit("47.3e-88 m/s")  == s)
-        assert(ParseUnit("47.3e-88  m/s") == s)
+        assert(ParseUnit("47.3e-88m/s") == s)
+        assert(ParseUnit("47.3e-88 m/s") == s)
+        assert(ParseUnit("47.3e-88 m/s") == s)
         # Pure numbers can be used
-        assert(ParseUnit("4")          == ("4", ""))
-        assert(ParseUnit("4 ")         == ("4", ""))
-        assert(ParseUnit("4.1")        == ("4.1", ""))
-        assert(ParseUnit("4.1 ")       == ("4.1", ""))
-        assert(ParseUnit("47.3e-88")   == ("47.3e-88", ""))
-        assert(ParseUnit("47.3e-88 ")  == ("47.3e-88", ""))
-        assert(ParseUnit(" 4")         == ("4", ""))
-        assert(ParseUnit(" 4 ")        == ("4", ""))
-        assert(ParseUnit(" 4.1")       == ("4.1", ""))
-        assert(ParseUnit(" 4.1 ")      == ("4.1", ""))
-        assert(ParseUnit(" 47.3e-88")  == ("47.3e-88", ""))
+        assert(ParseUnit("4") == ("4", ""))
+        assert(ParseUnit("4 ") == ("4", ""))
+        assert(ParseUnit("4.1") == ("4.1", ""))
+        assert(ParseUnit("4.1 ") == ("4.1", ""))
+        assert(ParseUnit("47.3e-88") == ("47.3e-88", ""))
+        assert(ParseUnit("47.3e-88 ") == ("47.3e-88", ""))
+        assert(ParseUnit(" 4") == ("4", ""))
+        assert(ParseUnit(" 4 ") == ("4", ""))
+        assert(ParseUnit(" 4.1") == ("4.1", ""))
+        assert(ParseUnit(" 4.1 ") == ("4.1", ""))
+        assert(ParseUnit(" 47.3e-88") == ("47.3e-88", ""))
         assert(ParseUnit(" 47.3e-88 ") == ("47.3e-88", ""))
         # An example of an ill-formed number that results in still
         # being interpreted as a number and a unit.
@@ -2673,8 +2675,9 @@ if __name__ == "__main__":
         # value and standard deviation to determine the equality of
         # their distributions.
         if G.have_uncertainties:
-            ueq = lambda a, b: (a.nominal_value == b.nominal_value and
-                a.std_dev == b.std_dev)
+            def ueq(a, b):
+                return (a.nominal_value == b.nominal_value and
+                        a.std_dev == b.std_dev)
             y = ufloat(4, 1)
             for s in ("4+/-1", "4+-1", "4(1)"):
                 x, un = ParseUnit(s, allow_unc=True)
@@ -2792,7 +2795,7 @@ if __name__ == "__main__":
             food_per_dog = {food_per_dog}
             food_per_cat = {food_per_cat}'''))
             # Number of animals
-            n_dogs =  7*u("dog")
+            n_dogs = 7*u("dog")
             n_cats = 12*u("cat")
             print(dedent(f'''
             number of dogs = {n_dogs}
@@ -2824,7 +2827,7 @@ if __name__ == "__main__":
                 food_per_dog = {food_per_dog}
                 food_per_cat = {food_per_cat}'''))
             # Number of animals
-            n_dogs =  7*u("dog")
+            n_dogs = 7*u("dog")
             n_cats = 12*u("cat")
             print(dedent(f'''
                 number of dogs = {n_dogs}
