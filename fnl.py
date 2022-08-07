@@ -225,8 +225,10 @@ def Test_compose():
     x = {x} is {result}.
     '''[:-4].format(**locals()))
 def Test_all_f():
-    has_a = lambda x: "a" in x
-    has_b = lambda x: "b" in x
+    def has_a(x):
+        return "a" in x
+    def has_b(x):
+        return "b" in x
     result = all_f((has_a, has_b), ["abc"])
     print('''all_f(functions, arguments=[]):
     Returns True or False, representing the Boolean product of each
@@ -234,14 +236,18 @@ def Test_all_f():
     <f0, f1, f2, ...>, the returned value is
         f(x) = bool(f0(arguments))*bool(f1(arguments))*...
     Suppose we have the two functions
-        has_a = lambda x: "a" in x
-        has_b = lambda x: "b" in x
+        def has_a(x):
+            return "a" in x
+        def has_b(x):
+            return "b" in x
     Then all_f((has_a, has_b), ["abc"]) returns {result} because 'a'
     and 'b' are both in the string argument.
     '''[:-4].format(**locals()))
 def Test_any_f():
-    has_a = lambda x: "a" in x
-    has_d = lambda x: "d" in x
+    def has_a(x):
+        return "a" in x
+    def has_d(x):
+        return "d" in x
     result = any_f((has_a, has_d), ["abc"])
     print('''any_f(functions, arguments=[]):
     Returns True or False, representing the Boolean product of each
@@ -249,14 +255,18 @@ def Test_any_f():
     <f0, f1, f2, ...>, the returned value is
         f(x) = bool(f0(arguments))*bool(f1(arguments))*...
     Suppose we have the two functions
-        has_a = lambda x: "a" in x
-        has_d = lambda x: "d" in x
+        def has_a(x):
+            return "a" in x
+        def has_d(x):
+            return "d" in x
     Then any_f((has_a, has_d), ["abc"]) returns {result} because 'a'
     and 'b' are both in the string argument.
     '''[:-4].format(**locals()))
 def Test_and_f():
-    has_a = lambda x: "a" in x
-    has_b = lambda x: "b" in x
+    def has_a(x):
+        return "a" in x
+    def has_b(x):
+        return "b" in x
     result = and_F((has_a, has_b), ["abc"])
     print('''and_F(functions, arguments=[]):
     Same as all_f except short-circuit evaluation is used.
@@ -265,14 +275,18 @@ def Test_and_f():
     <f0, f1, f2, ...>, the returned value is
         f(x) = bool(f0(arguments))*bool(f1(arguments))*...
     Suppose we have the two functions
-        has_a = lambda x: "a" in x
-        has_b = lambda x: "b" in x
+        def has_a(x):
+            return "a" in x
+        def has_b(x):
+            return "b" in x
     Then conjoin((has_a, has_b), ["abc"]) returns {result} because 'a'
     and 'b' are both in the string argument.
     '''[:-4].format(**locals()))
 def Test_or_f():
-    has_a = lambda x: "a" in x
-    has_d = lambda x: "d" in x
+    def has_a(x):
+        return "a" in x
+    def has_d(x):
+        return "d" in x
     result = or_f((has_a, has_d), set("abc"))
     print('''or_f(functions, arguments=[]):
     Same as any_f except short-circuit evaluation is used.
@@ -281,17 +295,23 @@ def Test_or_f():
     <f0, f1, f2, ...>, the returned value is
         f(x) = bool(f0(arguments))*bool(f1(arguments))*...
     Suppose we have the two functions
-        has_a = lambda x: "a" in x
-        has_d = lambda x: "d" in x
+        def has_a(x):
+            return "a" in x
+        def has_d(x):
+            return "d" in x
     Then or_f((has_a, has_d), set("abc")) returns {result} because 'a'
     is in the string argument.
     '''[:-4].format(**locals()))
 if __name__ == "__main__": 
     lines = ["{}".format(i) for i in range(20)]
-    f1 = lambda x: int(x) % 2 == 0
-    f2 = lambda x: int(x) % 3 == 0
-    f3 = lambda x: int(x) % 4 == 0
-    f4 = lambda x: int(x) % 5 == 0
+    def f1(x):
+        return int(x) % 2 == 0
+    def f2(x):
+        return int(x) % 3 == 0
+    def f3(x):
+        return int(x) % 4 == 0
+    def f4(x):
+        return int(x) % 5 == 0
     if 0:
         satisfied = all(any_f(f1, f2), any_f(f3, f4))
         selected = [line for line in lines if satisfied(line)]
@@ -312,8 +332,10 @@ if __name__ == "__main__":
             arguments in args.
 
             Example:
-                f = lambda x, y: x*y
-                g = lambda x, y: x+y
+                def f(x),
+                    return y: x*y
+                def g(x),
+                    return y: x+y
                 t = list(apply_each((f, g), [3, 4]))
                 print(t)
             prints
@@ -334,8 +356,10 @@ if __name__ == "__main__":
             arguments in args and calling Bool on the resulting sequence.
 
             Example:
-                f = lambda x, y: x*y
-                g = lambda x, y: x+y
+                def f(x),
+                    return y: x*y
+                def g(x),
+                    return y: x+y
                 t = list(bool_each((f, g), [3, 4]))
                 print(t)
             prints
@@ -346,23 +370,37 @@ if __name__ == "__main__":
         def conjoin(fns, args=[]):
             return reduce(mul, bool_each(fns, args))
 
-        f = lambda x, y: x*y
-        g = lambda x, y: x+y
+        def f(x, y):
+            return x*y
+        def g(x, y):
+            return x+y
         print(list(conjoin((f, g), [3, 4])))
         exit()
 
-        conjoin = lambda fns, args=[]: reduce(mul, bool_each(fns, args))
-        all_ = lambda fns: lambda arg, fns=fns: conjoin(fns, (arg,))
-        both = lambda f, g: all_((f, g))
-        all3 = lambda f, g, h: all_((f, g, h))
-        and_ = lambda f, g: lambda x, f=f, g=g: f(x) and g(x)
-        disjoin = lambda fns, args=[]: reduce(add, bool_each(fns, args))
-        some = lambda fns: lambda arg, fns=fns: disjoin(fns, (arg,))
-        either = lambda f, g: some((f, g))
-        anyof3 = lambda f, g, h: some((f, g, h))
-        compose = lambda f, g: lambda x, f=f, g=g: f(g(x))
-        compose3 = lambda f, g, h: lambda x, f=f, g=g, h=h: f(g(h(x)))
-        ident = lambda x: x
+        def conjoin(fns, args=[]):
+            return reduce(mul, bool_each(fns, args))
+        def all_(fns):
+            return lambda arg, fns=fns: conjoin(fns, (arg,))
+        def both(f, g):
+            return all_((f, g))
+        def all3(f, g, h):
+            return all_((f, g, h))
+        def and_(f, g):
+            return lambda x, f=f, g=g: f(x) and g(x)
+        def disjoin(fns, args=[]):
+            return reduce(add, bool_each(fns, args))
+        def some(fns):
+            return lambda arg, fns=fns: disjoin(fns, (arg,))
+        def either(f, g):
+            return some((f, g))
+        def anyof3(f, g, h):
+            return some((f, g, h))
+        def compose(f, g):
+            return lambda x, f=f, g=g: f(g(x))
+        def compose3(f, g, h):
+            return lambda x, f=f, g=g, h=h: f(g(h(x)))
+        def ident(x):
+            return x
         satisfied = both(either(f1, f2), either(f3, f4))
         if 0:
             # The satisfied function should select numbers that are (divisible
@@ -391,7 +429,8 @@ if __name__ == "__main__":
         print(Dictify(len, A))
         print(groupby(len, A))
         print()
-        iseven = lambda n: n % 2 == 0
+        def iseven(n):
+            return n % 2 == 0
         B = range(1, 8)
         print(Dictify(iseven, B))
         print(groupby(iseven, B))
