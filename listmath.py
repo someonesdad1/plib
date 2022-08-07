@@ -16,7 +16,7 @@ if 1:
         # Num_args, function signature
         # * = list of args
         # i = one iterable
-        "3.7.4 math" : '''
+        "3.7.4 math": '''
             1 math.ceil(x)
             2 math.copysign(x, y)
             1 math.fabs(x)
@@ -282,7 +282,8 @@ if __name__ == "__main__":
     print(sep)
 
     # Print all names
-    uniq = lambda x:  list(sorted(list(set(x)))) 
+    def uniq(x):
+        return list(sorted(list(set(x)))) 
     all_names = uniq([i.name for i in d394])
     print(f"All math/cmath names for {v394} (count = {len(all_names)}):")
     PrintCols(all_names)
@@ -329,7 +330,6 @@ if __name__ == "__main__":
     a = set(all)
     o = set(i.name for i in d394)
     assert(a == o)
-
     def P(title, container):
         print(f"\n{title}")
         for i in sorted(container, key=kf):
@@ -339,13 +339,13 @@ if __name__ == "__main__":
     # Now print argument syntax for non-univariate functions
     print(sep)
     print("Argument syntax for functions")
-    kf = lambda x: x.name
+    def kf(x):
+        return x.name
     P("Univariate", univariate)
     P("Bivariate", bivariate)
     P("Iterator", iterator)
     P("List of arguments", list_of_args)
     P("Other", other)
-
     if 0:
         # Show a data element
         print(math394[0])

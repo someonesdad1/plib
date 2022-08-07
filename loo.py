@@ -45,10 +45,13 @@ if 1:   # Custom imports
         import color as c
         _have_color = True
     except ImportError:
-        class Dummy: # Make a dummy color object to swallow function calls
-            def fg(self, *p, **kw): pass
-            def normal(self, *p, **kw): pass
-            def __getattr__(self, name): pass
+        class Dummy:    # Make a dummy color object to swallow function calls
+            def fg(self, *p, **kw):
+                pass
+            def normal(self, *p, **kw):
+                pass
+            def __getattr__(self, name):
+                pass
         c = Dummy()
 if 1:   # Global variables
     out = sys.stdout.write
@@ -326,9 +329,9 @@ def ProcessFile(oofile, d):
         err("'%s' is not a file%s" % (oofile, nl))
         return
     colors = {
-        "missing"  : (c.lwhite, c.red),
-        "notrel"   : (c.lwhite, c.magenta),
-        "embedded" : c.lgreen,
+        "missing": (c.lwhite, c.red),
+        "notrel": (c.lwhite, c.magenta),
+        "embedded": c.lgreen,
     }
     image_files = GetImages(oofile, ignore_embedded=not d["-e"])
     if not image_files and not d["-m"]:

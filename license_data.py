@@ -18,6 +18,8 @@ if len(sys.argv) > 1:
     debug.SetDebugger()
 from textcompare import TextCompare
 
+ii = isinstance
+
 class License:
     'Container for license text'
     def __init__(self, header, text=None, url=None):
@@ -34,7 +36,9 @@ class License:
             raise ValueError("No url given")
         r = requests.get(self.url)
         new_text = r.content
-        if type(new_text) == type(b''):
+        if ii(new_text, bytes):
+            # Old method that pycodestyle complains about
+            # if type(new_text) == type(b''):
             new_text = new_text.decode()
         c = TextCompare(self.text, new_text)
         return c.equal
@@ -63,7 +67,8 @@ urls = {
 # Fill licenses from the licenses directory
 P = pathlib.Path
 p = P("/pylib/licenses")
-get = lambda x: open(x).read()
+def get(x):
+    return open(x).read()
 for h in p.glob("*.header"):
     header = get(h)
     f = P(str(h).replace(".header", ""))

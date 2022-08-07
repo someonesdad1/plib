@@ -24,7 +24,7 @@ if 1:   # Imports
     from math import fabs, fmod, radians, degrees, ceil, log10
 if 1:   # Global variables
     reduce = functools.reduce
-    class Global: # Constants
+    class Global:   # Constants
         pass
     G = Global()
     G.earth_equatorial_radius_km = 6378.14
@@ -852,9 +852,9 @@ if __name__ == "__main__":
     from pdb import set_trace as xx
     def TestAngularSeparation():
         # Page 110:  Angular separation
-        ra1  = radians(213.9154)
+        ra1 = radians(213.9154)
         dec1 = radians(19.1825)
-        ra2  = radians(201.2983)
+        ra2 = radians(201.2983)
         dec2 = radians(-11.1614)
         d = AngularSeparation(ra1, dec1, ra2, dec2)
         assert(fabs(degrees(d) - 32.7930) < 1e-4)
@@ -885,9 +885,9 @@ if __name__ == "__main__":
         max_year = datetime.MAXYEAR
         raises(ValueError, CheckIntegerDate, 1, 1, max_year + 1)
         # OK date
-        CheckIntegerDate( 1,  1, 2000)
+        CheckIntegerDate(1, 1, 2000)
         CheckIntegerDate(12, 31, 2000)
-        CheckIntegerDate( 1,  1.1, 2000, decimal_day=True)
+        CheckIntegerDate(1, 1.1, 2000, decimal_day=True)
         CheckIntegerDate(12, 30.1, 2000, decimal_day=True)
     def TestDayOfYear2MDY():
         # Page 65:  Day of the year
@@ -896,9 +896,9 @@ if __name__ == "__main__":
     def TestEarthSurfaceDistance():
         # Page 85:  Distance between points in France & USNO
         long1 = dms2rad(-2, 20, 14)
-        lat1  = dms2rad(48, 50, 11)
-        long2 = dms2rad(77,  3, 56)
-        lat2  = dms2rad(38, 55, 17)
+        lat1 = dms2rad(48, 50, 11)
+        long2 = dms2rad(77, 3, 56)
+        lat2 = dms2rad(38, 55, 17)
         d = EarthSurfaceDistance(lat1, long1, lat2, long2)
         assert(fabs(d - 6181.63) <= .05)
     def TestLongitudinalDistance():
@@ -931,8 +931,8 @@ if __name__ == "__main__":
         # Page 40:  Linear regression
         x = (73, 38, 35, 42, 78, 68, 74, 42, 52, 54, 39,
             61, 42, 49, 50, 62, 44, 39, 43, 54, 44, 37)
-        y = (90.4, 125.3, 161.8, 143.4,  52.5,  50.8,  71.5, 152.8,
-            131.3,  98.5, 144.8, 78.1,  89.5,  63.9, 112.1,  82.0, 119.8,
+        y = (90.4, 125.3, 161.8, 143.4, 52.5, 50.8, 71.5, 152.8,
+            131.3, 98.5, 144.8, 78.1, 89.5, 63.9, 112.1, 82.0, 119.8,
             161.2, 208.4, 111.6, 167.1, 162.1)
         slope, intercept, r = LinearRegression(x, y)
         assert(fabs(slope + 2.49) < .01)
@@ -944,9 +944,9 @@ if __name__ == "__main__":
         assert(JulianAstro(1, 27.5, 333) == 1842713.0)
         assert(JulianAstro(1, 1.5, -4712) == 0.0)
         assert(DayOfWeek(11, 13, 1949) == 0)
-        assert(DayOfWeek( 5, 30, 1998) == 6)
+        assert(DayOfWeek(5, 30, 1998) == 6)
         assert(DayOfYear(11, 14, 1978) == 318)
-        assert(DayOfYear( 4, 22, 1980) == 113)
+        assert(DayOfYear(4, 22, 1980) == 113)
         month, day, year = JulianToMonthDayYear(2436116.31)
         assert(month == 10)
         assert(year == 1957)
@@ -959,27 +959,27 @@ if __name__ == "__main__":
         assert(month == 5)
         assert(year == -584)
         assert(abs(day - 28.63) < 0.00001)
-        assert(NumDaysInMonth( 1, 1999) == 31)
-        assert(NumDaysInMonth( 2, 1999) == 28)
-        assert(NumDaysInMonth( 3, 1999) == 31)
-        assert(NumDaysInMonth( 4, 1999) == 30)
-        assert(NumDaysInMonth( 5, 1999) == 31)
-        assert(NumDaysInMonth( 6, 1999) == 30)
-        assert(NumDaysInMonth( 7, 1999) == 31)
-        assert(NumDaysInMonth( 8, 1999) == 31)
-        assert(NumDaysInMonth( 9, 1999) == 30)
+        assert(NumDaysInMonth(1, 1999) == 31)
+        assert(NumDaysInMonth(2, 1999) == 28)
+        assert(NumDaysInMonth(3, 1999) == 31)
+        assert(NumDaysInMonth(4, 1999) == 30)
+        assert(NumDaysInMonth(5, 1999) == 31)
+        assert(NumDaysInMonth(6, 1999) == 30)
+        assert(NumDaysInMonth(7, 1999) == 31)
+        assert(NumDaysInMonth(8, 1999) == 31)
+        assert(NumDaysInMonth(9, 1999) == 30)
         assert(NumDaysInMonth(10, 1999) == 31)
         assert(NumDaysInMonth(11, 1999) == 30)
         assert(NumDaysInMonth(12, 1999) == 31)
-        assert(NumDaysInMonth( 1, 2000) == 31)
-        assert(NumDaysInMonth( 2, 2000) == 29)
-        assert(NumDaysInMonth( 3, 2000) == 31)
-        assert(NumDaysInMonth( 4, 2000) == 30)
-        assert(NumDaysInMonth( 5, 2000) == 31)
-        assert(NumDaysInMonth( 6, 2000) == 30)
-        assert(NumDaysInMonth( 7, 2000) == 31)
-        assert(NumDaysInMonth( 8, 2000) == 31)
-        assert(NumDaysInMonth( 9, 2000) == 30)
+        assert(NumDaysInMonth(1, 2000) == 31)
+        assert(NumDaysInMonth(2, 2000) == 29)
+        assert(NumDaysInMonth(3, 2000) == 31)
+        assert(NumDaysInMonth(4, 2000) == 30)
+        assert(NumDaysInMonth(5, 2000) == 31)
+        assert(NumDaysInMonth(6, 2000) == 30)
+        assert(NumDaysInMonth(7, 2000) == 31)
+        assert(NumDaysInMonth(8, 2000) == 31)
+        assert(NumDaysInMonth(9, 2000) == 30)
         assert(NumDaysInMonth(10, 2000) == 31)
         assert(NumDaysInMonth(11, 2000) == 30)
         assert(NumDaysInMonth(12, 2000) == 31)
@@ -1078,7 +1078,7 @@ if __name__ == "__main__":
         # Results should be sunrise = 7:16 am, sunset = 4:50 pm.
         offset = -8
         rise += offset
-        set  += offset
+        set += offset
         if rise < 0:
             rise += 24
         if set < 0:
@@ -1117,13 +1117,13 @@ if __name__ == "__main__":
         M, D, Y = 11, 3, 2013
         assert(not IsDST(M, D, Y))
         assert(IsDST(M, D-1, Y))
-        M, D, Y = 3,  9, 2014
+        M, D, Y = 3, 9, 2014
         assert(IsDST(M, D, Y))
         assert(not IsDST(M, D-1, Y))
         M, D, Y = 11, 2, 2014
         assert(not IsDST(M, D, Y))
         assert(IsDST(M, D-1, Y))
-        M, D, Y = 3,  8, 2015
+        M, D, Y = 3, 8, 2015
         assert(IsDST(M, D, Y))
         assert(not IsDST(M, D-1, Y))
         M, D, Y = 11, 1, 2015
@@ -1190,16 +1190,16 @@ if __name__ == "__main__":
     def Test_SGN():
         assert(SGN(-5) == -1)
         assert(SGN(-1) == -1)
-        assert(SGN( 0) ==  0)
-        assert(SGN( 1) ==  1)
-        assert(SGN( 5) ==  1)
+        assert(SGN(0) == 0)
+        assert(SGN(1) == 1)
+        assert(SGN(5) == 1)
         assert(SGN(-5.) == -1)
         assert(SGN(-1.) == -1)
-        assert(SGN( 0.) ==  0)
-        assert(SGN( 1.) ==  1)
-        assert(SGN( 5.) ==  1)
+        assert(SGN(0.) == 0)
+        assert(SGN(1.) == 1)
+        assert(SGN(5.) == 1)
     def Test_JD():
-        D = ( # jd, m, d for 2000 (a leap year)
+        D = (   # jd, m, d for 2000 (a leap year)
             (1, 1, 1), (2, 1, 2), (3, 1, 3), (4, 1, 4), (5, 1, 5), (6, 1, 6),
             (7, 1, 7), (8, 1, 8), (9, 1, 9), (10, 1, 10), (11, 1, 11),
             (12, 1, 12), (13, 1, 13), (14, 1, 14), (15, 1, 15), (16, 1, 16),

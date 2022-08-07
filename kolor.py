@@ -212,47 +212,47 @@ if 1:   # Global variables
             return s
     # Foreground colors; shift left by 4 bits to get a background color.
     (
-        black, blue,  green,  cyan,  red,  magenta,  brown,  white,
-        gray,  lblue, lgreen, lcyan, lred, lmagenta, yellow, lwhite
+        black, blue, green, cyan, red, magenta, brown, white,
+        gray, lblue, lgreen, lcyan, lred, lmagenta, yellow, lwhite
     ) = [Colors(i) for i in range(16)]
     # Set the default_colors global variable to be the defaults for your system
     default_colors = (white, black)
     # Dictionary to translate between color numbers/names and escape sequence
     _cfg = {
-        black    : "0;30",
-        blue     : "0;34",
-        green    : "0;32",
-        cyan     : "0;36",
-        red      : "0;31",
-        magenta  : "0;35",
-        brown    : "0;33",
-        white    : "0;37",
-        gray     : "1;30",
-        lblue    : "1;34",
-        lgreen   : "1;32",
-        lcyan    : "1;36",
-        lred     : "1;31",
-        lmagenta : "1;35",
-        yellow   : "1;33",
-        lwhite   : "1;37",
+        black: "0;30",
+        blue: "0;34",
+        green: "0;32",
+        cyan: "0;36",
+        red: "0;31",
+        magenta: "0;35",
+        brown: "0;33",
+        white: "0;37",
+        gray: "1;30",
+        lblue: "1;34",
+        lgreen: "1;32",
+        lcyan: "1;36",
+        lred: "1;31",
+        lmagenta: "1;35",
+        yellow: "1;33",
+        lwhite: "1;37",
     }
     _cbg = {
-        black    : "40m",
-        blue     : "44m",
-        green    : "42m",
-        cyan     : "46m",
-        red      : "41m",
-        magenta  : "45m",
-        brown    : "43m",
-        white    : "47m",
-        gray     : "40m",
-        lblue    : "44m",
-        lgreen   : "42m",
-        lcyan    : "46m",
-        lred     : "41m",
-        lmagenta : "45m",
-        yellow   : "43m",
-        lwhite   : "47m",
+        black: "40m",
+        blue: "44m",
+        green: "42m",
+        cyan: "46m",
+        red: "41m",
+        magenta: "45m",
+        brown: "43m",
+        white: "47m",
+        gray: "40m",
+        lblue: "44m",
+        lgreen: "42m",
+        lcyan: "46m",
+        lred: "41m",
+        lmagenta: "45m",
+        yellow: "43m",
+        lwhite: "47m",
     }
     # Handle to call into Windows DLL
     STD_OUTPUT_HANDLE = -11
@@ -351,8 +351,8 @@ def SetStyle(style, **kw):
     if _win:
         return
     st = {
-        "normal" : 0, "bold" : 1, "italic" : 3, "underline" : 4,
-        "blink" : 5, "reverse" : 7,
+        "normal": 0, "bold": 1, "italic": 3, "underline": 4,
+        "blink": 5, "reverse": 7,
     }[style]
     if ret_string:
         return "\x1b[%sm" % st
@@ -553,7 +553,7 @@ def c(x, colors=clrdict):
     dp = locale.localeconv()["decimal_point"]
     sgn = "-" if x < 0 else ""
     N = len(colors)
-    print("x =", x) #xx
+    print("x =", x)  # xx
     def Colorize(s, rev=False):
         '''Colorize the string of digits in s.  If rev is True, then the
         set of digits in s are considered to be the digits in a floating
@@ -626,22 +626,22 @@ if __name__ == "__main__":
     def DisplayTable():
         # Display a table of the color combinations
         names = {
-            black    : "black",
-            blue     : "blue",
-            green    : "green",
-            cyan     : "cyan",
-            red      : "red",
-            magenta  : "magenta",
-            brown    : "brown",
-            gray     : "gray",
-            white    : "white",
-            lblue    : "lblue",
-            lgreen   : "lgreen",
-            lcyan    : "lcyan",
-            lred     : "lred",
-            lmagenta : "lmagenta",
-            yellow   : "yellow",
-            lwhite   : "lwhite",
+            black: "black",
+            blue: "blue",
+            green: "green",
+            cyan: "cyan",
+            red: "red",
+            magenta: "magenta",
+            brown: "brown",
+            gray: "gray",
+            white: "white",
+            lblue: "lblue",
+            lgreen: "lgreen",
+            lcyan: "lcyan",
+            lred: "lred",
+            lmagenta: "lmagenta",
+            yellow: "yellow",
+            lwhite: "lwhite",
         }
         low = [black, blue, green, cyan, red, magenta, brown, white]
         high = [gray, lblue, lgreen, lcyan, lred, lmagenta, yellow, lwhite]

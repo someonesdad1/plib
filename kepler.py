@@ -42,7 +42,8 @@ if 1:   # Global variables
     d2r = math.pi/180
     twopi = 2*math.pi
     pio2 = math.pi/2
-    signum = lambda x: 0 if not x else -1 if x < 0 else 1
+def signum(x): 
+    return 0 if not x else -1 if x < 0 else 1
 def Kepler(m, e, abstol=1e-8, algorithm=3):
     '''Call one of the Kepler equation solving methods.  Return the
     value of E (eccentric anomaly) and the number of iterations
@@ -147,7 +148,8 @@ def Kepler(m, e, abstol=1e-8, algorithm=3):
         an older IBM FORTRAN routine that uses inverse parabolic
         interpolation.
         '''
-        f = lambda E: m + e*math.sin(E) - E
+        def f(E):
+            return m + e*math.sin(E) - E
         # Need to find a reliable way to bracket the root
         root, count = RootFinder(m/2, m, f, eps=abstol)
         return root

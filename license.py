@@ -42,20 +42,20 @@ if 1:   # Global variables
     backup_extension = ".bak"
     nl = "\n"
     descr = {
-        "rem":     "  Remove any existing license text",
-        "afl3":    "  Academic Free License 3.0",
+        "rem": "  Remove any existing license text",
+        "afl3": "  Academic Free License 3.0",
         "apache2": "  Apache License 2.0",
-        "bsd3":    "  BSD 3-clause license",
-        "ccsa4":   "* Creative Commons Attribution-ShareAlike 4.0",
-        "gpl2":    "* GNU Public License version 2",
-        "gpl3":    "* GNU Public License version 3",
-        "lgpl2":   "- Lesser GNU Public License version 2.1",
-        "lgpl3":   "- Lesser GNU Public License version 3",
-        "mit":     "  MIT License",
-        "nposl3":  "* Non-Profit Open Software License 3.0",
-        "osl3":    "* Open Software License 3.0",
-        "pd":      "  Public domain release",
-        "wol":     "  Wide-open License",
+        "bsd3": "  BSD 3-clause license",
+        "ccsa4": "* Creative Commons Attribution-ShareAlike 4.0",
+        "gpl2": "* GNU Public License version 2",
+        "gpl3": "* GNU Public License version 3",
+        "lgpl2": "- Lesser GNU Public License version 2.1",
+        "lgpl3": "- Lesser GNU Public License version 3",
+        "mit": "  MIT License",
+        "nposl3": "* Non-Profit Open Software License 3.0",
+        "osl3": "* Open Software License 3.0",
+        "pd": "  Public domain release",
+        "wol": "  Wide-open License",
     }
     analysis = None
 def eprint(*p, **kw):

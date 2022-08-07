@@ -97,53 +97,53 @@ if 1:   # Global variables
     d2r = math.pi/180
     # For applying a number to a scale on the RHS
     scale_count = 1
-    scale_count_offset_x =  0.15
+    scale_count_offset_x = 0.15
     scale_count_offset_y = -0.05
     # Font sizes are all relative to the base font size
-    base_font_size      = 8/72.27
-    footer_font_size    = 1
-    title_font_size     = 1
-    exponent_font       = 0.8
-    line_width          = 0.005
-    tick_length         = 0.1
-    line_label_offset   = 0.25
-    base_font           = g.Sans
-    base_font_bold      = g.SansBold
+    base_font_size = 8/72.27
+    footer_font_size = 1
+    title_font_size = 1
+    exponent_font = 0.8
+    line_width = 0.005
+    tick_length = 0.1
+    line_label_offset = 0.25
+    base_font = g.Sans
+    base_font_bold = g.SansBold
     # Whether we should print the slide rule scale name to the right
     print_slide_rule_scale = 0
     slide_rule_scale_x_offset = 1.0  # Fraction of base font size
     slide_rule_scale_y_offset = 0.4  # Fraction of base font size
     #
     if in_color:
-        page_background_color  = g.black
+        page_background_color = g.black
         table_background_color = g.black
-        title_color            = g.red
-        entry_color            = g.green
-        bounding_box_color     = g.blue
+        title_color = g.red
+        entry_color = g.green
+        bounding_box_color = g.blue
         bounding_box_thickness = 0.02
-        table_line_thickness   = 0.005
-        line_color             = g.black
-        grid_color             = g.cyan
-        major_tick_color       = g.red
-        medium_tick_color      = g.magenta
-        minor_tick_color       = g.black
-        number_color           = g.blue
-        footer_color           = g.black
+        table_line_thickness = 0.005
+        line_color = g.black
+        grid_color = g.cyan
+        major_tick_color = g.red
+        medium_tick_color = g.magenta
+        minor_tick_color = g.black
+        number_color = g.blue
+        footer_color = g.black
     else:
-        page_background_color  = g.white
+        page_background_color = g.white
         table_background_color = g.white
-        title_color            = g.black
-        entry_color            = g.black
-        bounding_box_color     = g.black
+        title_color = g.black
+        entry_color = g.black
+        bounding_box_color = g.black
         bounding_box_thickness = 0.02
-        table_line_thickness   = 0.005
-        line_color             = g.black
-        grid_color             = g.black
-        major_tick_color       = g.black
-        medium_tick_color      = g.black
-        minor_tick_color       = g.black
-        number_color           = g.black
-        footer_color           = g.black
+        table_line_thickness = 0.005
+        line_color = g.black
+        grid_color = g.black
+        major_tick_color = g.black
+        medium_tick_color = g.black
+        minor_tick_color = g.black
+        number_color = g.black
+        footer_color = g.black
     # The following variable is used to correct a base 10 log to the
     # interval [0, 1].
     log_correction = 0
@@ -157,17 +157,17 @@ class Scale:
         self.x0, self.y0, self.x1, self.y1 = x0, y0, x1, y1
         # Set the default settings.
         self.s = {}
-        self.s["label_angle"]              = 0
-        self.s["label_color"]              = None
-        self.s["label_right"]              = 0
-        self.s["label_height_above_tick"]  = 0
-        self.s["tick_right"]               = 0
-        self.s["line_width"]               = None
-        self.s["line_color"]               = None
-        self.s["draw_line"]                = 1
-        self.s["omit_first_label"]         = 0
-        self.s["omit_last_label"]          = 0
-        self.s["index_function"]           = None
+        self.s["label_angle"] = 0
+        self.s["label_color"] = None
+        self.s["label_right"] = 0
+        self.s["label_height_above_tick"] = 0
+        self.s["tick_right"] = 0
+        self.s["line_width"] = None
+        self.s["line_color"] = None
+        self.s["draw_line"] = 1
+        self.s["omit_first_label"] = 0
+        self.s["omit_last_label"] = 0
+        self.s["index_function"] = None
         # Containers that describe labels and ticks to draw.  A
         # labelled container is a sequence of two sequences.  The
         # first is the values where a label/tick is and the second is
@@ -176,14 +176,14 @@ class Scale:
         # values to put ticks at.
         self.N = 6  # Number of containers for labels and ticks
         for n in range(1, self.N+1):
-            self.s["labelled%d" % n]          = None
-            self.s["unlabelled%d" % n]        = None
-            self.s["label%d_x" % n]           = 0
-            self.s["label%d_y" % n]           = 0
-            self.s["font%d_color" % n]        = None
-            self.s["tick%d_color" % n]        = None
-            self.s["tick%d_width" % n]        = None
-            self.s["tick%d_line_type" % n]    = None
+            self.s["labelled%d" % n] = None
+            self.s["unlabelled%d" % n] = None
+            self.s["label%d_x" % n] = 0
+            self.s["label%d_y" % n] = 0
+            self.s["font%d_color" % n] = None
+            self.s["tick%d_color" % n] = None
+            self.s["tick%d_width" % n] = None
+            self.s["tick%d_line_type" % n] = None
             self.s["tick%d_start_offset" % n] = 0
         # We'll set default Font sizes
         self.s["font1_size"] = None   # User must pass in
@@ -193,8 +193,8 @@ class Scale:
         self.s["font5_size"] = 0.4
         self.s["font6_size"] = 0.3
         # Tick data
-        self.s["tick1_length"] = None # User must pass in
-        self.s["tick2_length"] = 0.9  # All are relative to tick1 length
+        self.s["tick1_length"] = None   # User must pass in
+        self.s["tick2_length"] = 0.9    # All are relative to tick1 length
         self.s["tick3_length"] = 0.8
         self.s["tick4_length"] = 0.6
         self.s["tick5_length"] = 0.45
@@ -216,8 +216,8 @@ class Scale:
             if len(container[0]) != len(container[1]):
                 raise Exception("Labelled container %d improper" % num)
         # Get length and angle
-        self.length =      Distance(self.x0, self.y0, self.x1, self.y1)
-        self.angle_degrees  = Angle(self.x0, self.y0, self.x1, self.y1)
+        self.length = Distance(self.x0, self.y0, self.x1, self.y1)
+        self.angle_degrees = Angle(self.x0, self.y0, self.x1, self.y1)
     def Settings(self, settings):
         if debug:
             print("Settings:")
@@ -278,7 +278,7 @@ class Scale:
         fc = self.s["font{}_color".format(number)]
         if fc is not None:
             g.TextColor(fc)
-        tick_right  = 1
+        tick_right = 1
         label_right = 1
         if self.s["tick_right"]:
             tick_right = -1
@@ -331,13 +331,13 @@ def Angle(x0, y0, x1, y1):
     return math.atan2(y1 - y0, x1 - x0)/d2r
 def DefaultSettings(index_function=None):
     return {
-        "line_width" : line_width,
-        "font1_size" : base_font_size,
-        "tick1_length" : tick_length,
-        "index_function" : index_function,
-        "tick2_length" : 1,
-        "tick3_length" : 0.7,
-        "tick4_length" : 0.4,
+        "line_width": line_width,
+        "font1_size": base_font_size,
+        "tick1_length": tick_length,
+        "index_function": index_function,
+        "tick2_length": 1,
+        "tick3_length": 0.7,
+        "tick4_length": 0.4,
     }
 def SetUp(file, orientation=g.landscape, units=g.inches):
     '''Convenience function to set up the drawing environment and return a
