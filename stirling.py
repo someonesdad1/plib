@@ -106,7 +106,7 @@ if __name__ == "__main__":
         for k in range(1, n):   
             Assert(s(n, k) == expected[k])
         n = 8
-        expected = (0, -5040, 13068, -13132, 6769, -1960, 322, -28,  1)
+        expected = (0, -5040, 13068, -13132, 6769, -1960, 322, -28, 1)
         for k in range(1, n):   
             Assert(s(n, k) == expected[k])
     def Test_second_kind():

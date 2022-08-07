@@ -242,7 +242,8 @@ if 1:   # Classes
                 if len(x) != 7 or x[0] not in "@#$":
                     raise e
                 # clamp to [0, 1]
-                f = lambda x:  max(0, min(int(x, 16), 255))/255
+                def f(x):
+                    return max(0, min(int(x, 16), 255))/255
                 # Put into canonical float form
                 try:
                     s = f(x[1:3]), f(x[3:5]), f(x[5:7])
@@ -702,8 +703,8 @@ if __name__ == "__main__":
         assert_equal(x.hsv, (0.0, 0.0, 1.0))
         # Integer form
         assert_equal(x.RGB, (255, 255, 255))
-        assert_equal(x.HLS, (  0, 255,   0))
-        assert_equal(x.HSV, (  0,   0, 255))
+        assert_equal(x.HLS, (0, 255, 0))
+        assert_equal(x.HSV, (0, 0, 255))
         # String form
         assert_equal(x.rgbhex, "#ffffff")
         assert_equal(x.hlshex, "$00ff00")

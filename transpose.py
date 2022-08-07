@@ -59,7 +59,7 @@ if 1:   # Core functionality
         '''
         if not IsIterable(m):   # m is not a sequence
             return None
-        if not m: # Corner case:  empty sequence
+        if not m:   # Corner case:  empty sequence
             return (0, 0)
         rows = Len(m)
         # Get the number of columns
@@ -71,7 +71,7 @@ if 1:   # Core functionality
                 n = len(m)
             except TypeError:
                 # Probably an unsubscriptable object
-                breakpoint() #xx
+                breakpoint()    # xx
                 n = 0
             if n == 1:
                 return (1, 1)   # Corner case:  single element
@@ -333,7 +333,7 @@ if __name__ == "__main__":
             '''))
             exit(status)
         def ParseCommandLine(d):
-            d["-c"] = "^\s*#"   # Regexp to mark line as a comment
+            d["-c"] = r"^\s*#"  # Regexp to mark line as a comment
             d["--csv"] = False  # Parse lines for objects as CSV file
             d["-h"] = False     # Manpage
             d["-i"] = []        # Regexps for lines to ignore
@@ -389,7 +389,7 @@ if __name__ == "__main__":
             for i in seq:
                 print(d["-j"].join(i))
         def ProcessFile(file):
-            lines = GetLines(file, ignore=d["-i"], ignore_empty=True, strip= True) 
+            lines = GetLines(file, ignore=d["-i"], ignore_empty=True, strip=True) 
             # Build array
             input = []
             for line in lines:

@@ -27,6 +27,7 @@ if 1:   # Custom imports
     from launch import Launch
 if 1:   # Global variables
     nl = "\n"
+    ii = isinstance
 if 1:   # Core functionality
     def ShowDifference(old_str, new_str):
         h = difflib.HtmlDiff()
@@ -64,7 +65,7 @@ if __name__ == "__main__":
         return args
     def GetFile(file):
         s = open(file, "rb").read()
-        if type(s) == type(b""):
+        if ii(s, bytes):
             s = s.decode()
         assert(isinstance(s, str))
         return s

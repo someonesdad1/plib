@@ -82,9 +82,7 @@ def Primes(n, show=False):
         # will all be done in C code.  The RHS is the tricky part -- it's
         # the remaining number of items in the Boolean array.
         if sieve[i // 2]:
-            sieve[i * i // 2 :: i] = [False] * (
-                (n - i * i - 1) // (2 * i) + 1
-            )
+            sieve[i*i//2::i] = [False] * ((n - i*i - 1)//(2*i) + 1)
             if show:
                 Show(i, sieve)
     return [2] + [2 * i + 1 for i in range(1, n // 2) if sieve[i]]
@@ -318,7 +316,7 @@ if __name__ == "__main__":
             exit(status)
         def Usage():
             name = sys.argv[0]
-            print(dedent(f'''
+            print(dedent(rf'''
             Usage:  {name} n [m]
               Prints primes and factors for numbers <= n or between n and m.  Each
               number is printed on a separate line with its factors; if it is prime,
@@ -376,7 +374,7 @@ if __name__ == "__main__":
             if i == n:
                 end = ""
             s = FormatFactors(i) if d["-u"] else FormatFactors(i, plain=True)
-            if d["-p"]: # Primes only
+            if d["-p"]:     # Primes only
                 if ":" in s:
                     continue
             print(s, end=end)

@@ -17,14 +17,14 @@ class Ruler(object):
     '''
     # You can define your own choices here
     choices = (
-        "····+····|", # 0
-        "----+----|", # 1
-        "┰┰┰┰┴┰┰┰┰┋", # 2
-        "1234·67890", # 3
-        "         |", # 4
-        "    +    |", # 5
-        "    ·    |", # 6
-        "====+====█", # 7
+        "····+····|",   # 0
+        "----+----|",   # 1
+        "┰┰┰┰┴┰┰┰┰┋",   # 2
+        "1234·67890",   # 3
+        "         |",   # 4
+        "    +    |",   # 5
+        "    ·    |",   # 6
+        "====+====█",   # 7
     )
     def __init__(self, num=None, ones=None, tens=True, zb=False):
         '''If num is not None, then it must be a number that indicates

@@ -672,11 +672,11 @@ def Crenshaw(x1, x3, f, eps=eps0, itmax=ITMAX, dbg=None, p=4):
       p             Number of significant digits to print to dbg stream.
     '''
     d = {
-        "p"     : p,
-        "xlast" : None,
-        "ymin"  : 1e308,
-        "ymax"  : -1e308,
-        "eps"   : eps,
+        "p": p,
+        "xlast": None,
+        "ymin": 1e308,
+        "ymax": -1e308,
+        "eps": eps,
     }
     def Dbg(s, end="\n"):
         if dbg:

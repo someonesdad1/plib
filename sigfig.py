@@ -86,7 +86,8 @@ def SigFigFloat(x, strict=False, maxsigfig=16):
     if not x:
         return 1
     y = float(x) if ii(x, int) else x
-    Len = lambda x:  len(str(x))
+    def Len(x):
+        return len(str(x))
     # Turn significand into an integer
     s = int(f"{abs(y):.{maxsigfig}e}".split("e")[0].replace(".", ""))
     ns = Len(s)

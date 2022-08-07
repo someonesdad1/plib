@@ -106,7 +106,8 @@ if 1:   # Core functionality
             regress/wesley_phoa/mathutil.py
         '''.split()])
         # Ignore files in these directories
-        f = lambda x: P(x).rglob("*.py")
+        def f(x):
+            return P(x).rglob("*.py")
         ignore.update(f("crenshaw"))
         ignore.update(f("g/demo"))
         ignore.update(f("g/gnew/demo"))

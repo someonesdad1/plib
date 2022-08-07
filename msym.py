@@ -79,10 +79,10 @@ def _GetSymbols():
         symbols["%" + name] = sym
     S.symbols = symbols
     # These are the characters allowed by Unicode
-    superscripts  = r"+-0123456789in\(\)"
-    superscripts1 =  "⁺⁻⁰¹²³⁴⁵⁶⁷⁸⁹ⁱⁿ⁽⁾"
-    subscripts  = r"+-0123456789jtspnmlkhxoeavuri\(\)"
-    subscripts1 =  "₊₋₀₁₂₃₄₅₆₇₈₉ⱼₜₛₚₙₘₗₖₕₓₒₑₐᵥᵤᵣᵢ₍₎"
+    superscripts = r"+-0123456789in\(\)"
+    superscripts1 = "⁺⁻⁰¹²³⁴⁵⁶⁷⁸⁹ⁱⁿ⁽⁾"
+    subscripts = r"+-0123456789jtspnmlkhxoeavuri\(\)"
+    subscripts1 = "₊₋₀₁₂₃₄₅₆₇₈₉ⱼₜₛₚₙₘₗₖₕₓₒₑₐᵥᵤᵣᵢ₍₎"
     S.supersub = {}
     for i, char in enumerate(superscripts.replace("\\", "")):
         S.supersub[char] = superscripts1[i]

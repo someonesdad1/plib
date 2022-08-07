@@ -84,7 +84,7 @@ def RoundOff(number, digits=12, convert=False):
     if isinstance(number, complex):
         re = RoundOff(number.real, digits=digits)
         im = RoundOff(number.imag, digits=digits)
-        return type(number)(re, im) # Handles classes derived from complex
+        return type(number)(re, im)     # Handles classes derived from complex
     can_convert = False
     if convert and not isinstance(number, Decimal):
         try:

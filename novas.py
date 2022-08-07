@@ -74,9 +74,9 @@ if 1:   # Global variables
     #                       For 'type' = 1: minor planet number
     #   name              = name of the body (limited to 99 characters)
     body = {
-        "type"   : 0,
-        "number" : 0,
-        "name"   : "",
+        "type": 0,
+        "number": 0,
+        "name": "",
     }
     #   site_info: data for the observer's location.  The atmospheric
     #                     parameters are used only by the refraction
@@ -91,11 +91,11 @@ if 1:   # Global variables
     #   temperature        = temperature (degrees Celsius).
     #   pressure           = atmospheric pressure (millibars)
     site_info = {
-        "latitude"    : 0.0,
-        "longitude"   : 0.0,
-        "height"      : 0.0,
-        "temperature" : 0.0,
-        "pressure"    : 0.0,
+        "latitude": 0.0,
+        "longitude": 0.0,
+        "height": 0.0,
+        "temperature": 0.0,
+        "pressure": 0.0,
     }
     #
     #   cat_entry: the astrometric catalog data for a star; equator
@@ -118,17 +118,16 @@ if 1:   # Global variables
     #   parallax           = parallax [arcseconds].
     #   radialvelocity     = radial velocity [kilometers per second].
     cat_entry = {
-        "catalog"        : "",
-        "starname"       : "",
-        "starnumber"     : 0,
-        "ra"             : 0.0,
-        "dec"            : 0.0,
-        "promora"        : 0.0,
-        "promodec"       : 0.0,
-        "parallax"       : 0.0,
-        "radialvelocity" : 0.0,
+        "catalog": "",
+        "starname": "",
+        "starnumber": 0,
+        "ra": 0.0,
+        "dec": 0.0,
+        "promora": 0.0,
+        "promodec": 0.0,
+        "parallax": 0.0,
+        "radialvelocity": 0.0,
     }
-
     BARYC = 0
     HELIOC = 1
 #----------------------------------------------------------------------
@@ -867,15 +866,15 @@ def mean_star(tjd, earth, ra, dec, mra, mdec):
     deltara = [0.0]
     deltadec = [0.0]
     tempstar = {
-        "catalog"        : "CAT",
-        "starname"       : "dummy",
-        "starnumber"     : 0,
-        "ra"             : 0.0,
-        "dec"            : 0.0,
-        "promora"        : 0.0,
-        "promodec"       : 0.0,
-        "parallax"       : 0.0,
-        "radialvelocity" : 0.0,
+        "catalog": "CAT",
+        "starname": "dummy",
+        "starnumber": 0,
+        "ra": 0.0,
+        "dec": 0.0,
+        "promora": 0.0,
+        "promodec": 0.0,
+        "parallax": 0.0,
+        "radialvelocity": 0.0,
     }
     newmra = fmod(ra, 24.0)
     if newmra < 0.0:
@@ -1643,15 +1642,15 @@ def transform_hip(hipparcos, fk5):
     epoch_hip = 2448349.0625
     epoch_fk5 = 2451545.0000
     scratch = {  # Create an empty catalog entry
-        "catalog"        : "",
-        "starname"       : "",
-        "starnumber"     : 0,
-        "ra"             : 0.0,
-        "dec"            : 0.0,
-        "promora"        : 0.0,
-        "promodec"       : 0.0,
-        "parallax"       : 0.0,
-        "radialvelocity" : 0.0,
+        "catalog": "",
+        "starname": "",
+        "starnumber": 0,
+        "ra": 0.0,
+        "dec": 0.0,
+        "promora": 0.0,
+        "promodec": 0.0,
+        "parallax": 0.0,
+        "radialvelocity": 0.0,
     }
     scratch["starname"] = hipparcos["starname"]
     scratch["starnumber"] = hipparcos["starnumber"]
@@ -1916,50 +1915,50 @@ if __name__ == "__main__":
         dec = [0.0]
         stars = [
             {
-                "catalog"        : "FK5",
-                "starname"       : "POLARIS",
-                "starnumber"     : 0,
-                "ra"             : 2.5301955556,
-                "dec"            : 89.2640888889,
-                "promora"        : 19.8770,
-                "promodec"       : -1.520,
-                "parallax"       : 0.0070,
-                "radialvelocity" : -17.0,
+                "catalog": "FK5",
+                "starname": "POLARIS",
+                "starnumber": 0,
+                "ra": 2.5301955556,
+                "dec": 89.2640888889,
+                "promora": 19.8770,
+                "promodec": -1.520,
+                "parallax": 0.0070,
+                "radialvelocity": -17.0,
             },
             {
-                "catalog"        : "FK5",
-                "starname"       : "Delta ORI",
-                "starnumber"     : 1,
-                "ra"             : 5.5334438889,
-                "dec"            : -0.2991333333,
-                "promora"        : 0.0100,
-                "promodec"       : -0.220,
-                "parallax"       : 0.0140,
-                "radialvelocity" : 16.0,
+                "catalog": "FK5",
+                "starname": "Delta ORI",
+                "starnumber": 1,
+                "ra": 5.5334438889,
+                "dec": -0.2991333333,
+                "promora": 0.0100,
+                "promodec": -0.220,
+                "parallax": 0.0140,
+                "radialvelocity": 16.0,
             },
             {
-                "catalog"        : "FK5",
-                "starname"       : "Theta CAR",
-                "starnumber"     : 2,
-                "ra"             : 10.7159355556,
-                "dec"            : -64.3944666667,
-                "promora"        : -0.3480,
-                "promodec"       : 1.000,
-                "parallax"       : 0.0000,
-                "radialvelocity" : 24.0,
+                "catalog": "FK5",
+                "starname": "Theta CAR",
+                "starnumber": 2,
+                "ra": 10.7159355556,
+                "dec": -64.3944666667,
+                "promora": -0.3480,
+                "promodec": 1.000,
+                "parallax": 0.0000,
+                "radialvelocity": 24.0,
             },
         ]
         geo_loc = {
-            "latitude"    : 45.0,
-            "longitude"   : -75.0,
-            "height"      : 0.0,
-            "temperature" : 10.0,
-            "pressure"    : 1010.0,
+            "latitude": 45.0,
+            "longitude": -75.0,
+            "height": 0.0,
+            "temperature": 10.0,
+            "pressure": 1010.0,
         }
         earth = {
-            "type"   : 0,
-            "number" : 0,
-            "name"   : "",
+            "type": 0,
+            "number": 0,
+            "name": "",
         }
         error = set_body(0, 3, "Earth", earth)
         if error:

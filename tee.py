@@ -48,7 +48,7 @@ def Print(*p, **kw):
     unsupported keywords will result in an exception.
     '''
     Print.print(*p, **kw)
-    k = kw.copy() if Print.streams else None # Don't mess up caller's kw
+    k = kw.copy() if Print.streams else None    # Don't mess up caller's kw
     if True:
         if not hasattr(Print, "allowed"):
             Print.allowed = set("sep end file flush".split())
