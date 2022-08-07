@@ -219,7 +219,8 @@ class Wrap(Abbr):
         # results contains the paragraph's tokens with sentence ending
         # markers, so we can now construct the wrapped paragraph.
         lines, line, space = [], deque(), " "
-        Len = lambda x: len(''.join(x))
+        def Len(x):
+            return len(''.join(x))
         W = self._width - self._rmargin
         while results:
             token = results.popleft()
@@ -257,7 +258,8 @@ class Wrap(Abbr):
             s = fmt.format(i)
             tokens.append(s)
         # Construct the individual lines
-        Len = lambda x: len(''.join(x))
+        def Len(x):
+            return len(''.join(x))
         W = self._width - self._rmargin
         while tokens:
             token = tokens.popleft()

@@ -768,18 +768,18 @@ def IdealGas(P=0, v=0, T=0, MW=28.9):
     weight in daltons (1 Da = 1 g/mol).
     '''
     gas_molar_mass = {
-        "air"      : 28.9,
-        "ammonia"  : 17.03,
-        "argon"    : 39.95,
-        "co2"      : 44.0099,
-        "helium"   : 4.003,
-        "hydrogen" : 2.01594,
-        "methane"  : 16.04298,
-        "nitrogen" : 28.0134,
-        "oxygen"   : 31.9988,
-        "propane"  : 26.03814,
-        "water"    : 18.01534,
-        "xenon"    : 131.30,
+        "air": 28.9,
+        "ammonia": 17.03,
+        "argon": 39.95,
+        "co2": 44.0099,
+        "helium": 4.003,
+        "hydrogen": 2.01594,
+        "methane": 16.04298,
+        "nitrogen": 28.0134,
+        "oxygen": 31.9988,
+        "propane": 26.03814,
+        "water": 18.01534,
+        "xenon": 131.30,
     }
     if isinstance(MW, str):
         MW = gas_molar_mass[MW.lower()]
@@ -814,13 +814,16 @@ def Flatten(L, max_depth=None, ltypes=(list, tuple)):
     Flatten() function works more generally.
     '''
     if max_depth is None:
-        make_flat = lambda x: True
+        def make_flat(x):
+            return True
     else:
-        make_flat = lambda x: max_depth > len(x)
+        def make_flat(x):
+            return max_depth > len(x)
     if callable(ltypes):
         is_sequence = ltypes
     else:
-        is_sequence = lambda x: isinstance(x, ltypes)
+        def is_sequence(x):
+            return isinstance(x, ltypes)
     r, s = [], []
     s.append((0, L))
     while s:
@@ -857,18 +860,18 @@ def TempConvert(t, in_unit, to_unit):
     if inu == tou:
         return t
     d = {
-        "cf" : lambda t: a*t + b,
-        "ck" : lambda t: t + k,
-        "cr" : lambda t: a*(t + k),
-        "fc" : lambda t: (t - b)/a,
-        "fk" : lambda t: (t - b)/a + k,
-        "fr" : lambda t: t + r,
-        "kc" : lambda t: t - k,
-        "kf" : lambda t: a*(t - k) + b,
-        "kr" : lambda t: a*t,
-        "rc" : lambda t: (t - r - b)/a,
-        "rf" : lambda t: t - r,
-        "rk" : lambda t: t/a,
+        "cf": lambda t: a*t + b,
+        "ck": lambda t: t + k,
+        "cr": lambda t: a*(t + k),
+        "fc": lambda t: (t - b)/a,
+        "fk": lambda t: (t - b)/a + k,
+        "fr": lambda t: t + r,
+        "kc": lambda t: t - k,
+        "kf": lambda t: a*(t - k) + b,
+        "kr": lambda t: a*t,
+        "rc": lambda t: (t - r - b)/a,
+        "rf": lambda t: t - r,
+        "rk": lambda t: t/a,
     }
     T = d[inu + tou](t)
     e = ValueError("Converted temperature is too low")

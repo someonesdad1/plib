@@ -378,7 +378,7 @@ def GetAmpacityData(dbg=False):
             f_kHz = flt((0.066/δ)**2/1000)
             # Check that calculated and table values are close
             alpha = 0.07
-            alpha = 0.5  #xx Temp to see table
+            alpha = 0.5     # xx Temp to see table
             if not (1 - alpha < freq/f_kHz < 1 + alpha):
                 print(freq/f_kHz, awg)
                 exit()
