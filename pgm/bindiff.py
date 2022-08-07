@@ -90,10 +90,10 @@ def CheckSizes():
     size2 = os.stat(file2G)[stat.ST_SIZE]
     if size1 == 0:
         print("File %s has zero size" % file1G)
-        sys.exit(2)
+        exit(2)
     if size2 == 0:
         print("File %s has zero size" % file2G)
-        sys.exit(2)
+        exit(2)
     Debug("size of %s = %d" % (file1G, size1))
     Debug("size of %s = %d" % (file2G, size2))
     if size1 < size2:
@@ -104,7 +104,7 @@ def CheckSizes():
 def Usage():
     print("Usage:  %s file1 file2" % sys.argv[0])
     print("  Performs a binary file comparison between two files")
-    sys.exit(1)
+    exit(1)
 def FixContiguousRanges(ranges):
     '''Go through the list of ranges and collapse contiguous ranges
     into one range.
@@ -181,11 +181,11 @@ def CompareChunk(str1, str2, chunk):
         try:
             Debug("Offset = %d, str1 = %c, str2 = %c" %
                   (offset, str1[i], str2[i]))
-        except:
+        except Exception:
             print("i =", i)
             print("len(str1) =", len(str1))
             print("len(str2) =", len(str2))
-            sys.exit(1)
+            exit(1)
         equal = (str1[i] == str2[i])
         Debug("  equal = %d" % equal)
         if old_state == START:
@@ -398,7 +398,7 @@ if __name__ == "__main__":
     filesize, size1, size2 = CheckSizes()
     difflist = CompareBytes(ifp1, ifp2, filesize)
     if len(difflist) == 0:
-        sys.exit(0)  # Files are equal, so return 0 status
+        exit(0)  # Files are equal, so return 0 status
     PrintHeader(size1, size2)
     ifp1.seek(0)
     ifp2.seek(0)
@@ -406,4 +406,4 @@ if __name__ == "__main__":
         for diff in difflist:
             PrintDifference(ifp1, ifp2, diff)
         print(sepG)
-    sys.exit(1)  # Files are not equal, so return 1 status
+    exit(1)  # Files are not equal, so return 1 status

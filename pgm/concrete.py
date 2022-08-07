@@ -34,7 +34,7 @@ if 1:   # Global variables
     gal_per_L = 0.264172
     in_per_m = 39.37
     ft_per_m = 12/in_per_m
-if 1: # Component mixing info 
+if 1:   # Component mixing info 
     # Note:  in the following, specific gravities are always given in
     # g/cc units.  Multiply by 1000 to get kg/m3.
     #
@@ -114,16 +114,16 @@ if 1:   # Other info
     # Allowed length units.  The values convert the unit to m.
     default_unit = "inches"
     allowed_length_units = {
-        "" : 1,
-        "m" : 1,
-        "in" : 1/in_per_m,
-        "inch" : 1/in_per_m,
-        "inches" : 1/in_per_m,
-        "foot" : 12/in_per_m,
-        "feet" : 12/in_per_m,
-        "ft" : 12/in_per_m,
-        "yard" : 36/in_per_m,
-        "yd" : 36/in_per_m,
+        "": 1,
+        "m": 1,
+        "in": 1/in_per_m,
+        "inch": 1/in_per_m,
+        "inches": 1/in_per_m,
+        "foot": 12/in_per_m,
+        "feet": 12/in_per_m,
+        "ft": 12/in_per_m,
+        "yard": 36/in_per_m,
+        "yd": 36/in_per_m,
     }
     allowed_length_units[""] = allowed_length_units[default_unit]
 
@@ -333,10 +333,10 @@ def GetLength(prompt):
 def GetFormGeometry():
     default = 1
     form = {
-        1 : Slab(),
-        2 : Cylinder(),
-        3 : HorizontalCylinder(),
-        4 : Sphere(),
+        1: Slab(),
+        2: Cylinder(),
+        3: HorizontalCylinder(),
+        4: Sphere(),
     }
     while True:
         print(dedent(f'''

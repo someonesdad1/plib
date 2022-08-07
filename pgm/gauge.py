@@ -68,10 +68,10 @@ if 1:   # Global variables
     # error.
     gauge_block_sets = {
         # units, resolution, block_sizes_sequence
-        "user" : ("in", "0.0001", [
+        "user": ("in", "0.0001", [
             # This gauge block set is a used set I bought in 2005 and had
             # some missing blocks.
-            250,  350,  490,  500, 1000, 1003, 1004, 1005, 1006, 1007,
+            250, 350, 490, 500, 1000, 1003, 1004, 1005, 1006, 1007,
             1008, 1009, 1040, 1050, 1060, 1070, 1080, 1090, 1110, 1120,
             1140, 1160, 1170, 1180, 1190, 1210, 1220, 1230, 1250, 1260,
             1270, 1290, 1300, 1310, 1320, 1330, 1340, 1350, 1370, 1380,
@@ -79,7 +79,7 @@ if 1:   # Global variables
             3500, 4500, 5500, 6000, 6500, 7000, 7500, 8000, 8500, 9000,
             9500, 20000, 30000, 40000]
         ),
-        "metric" : ("mm", "0.001", [
+        "metric": ("mm", "0.001", [
             1001, 1002, 1003, 1004, 1005, 1006, 1007, 1008, 1009, 1010,
             1020, 1030, 1040, 1050, 1060, 1070, 1080, 1090, 1100, 1110,
             1120, 1130, 1140, 1150, 1160, 1170, 1180, 1190, 1200, 1210,
@@ -90,13 +90,13 @@ if 1:   # Global variables
             7000, 7500, 8000, 8500, 9000, 9500, 10000, 20000, 30000,
             40000, 50000, 60000, 70000, 80000, 90000, 100000]
         ),
-        "inch36" : ("in", "0.0001", [
+        "inch36": ("in", "0.0001", [
             500, 1001, 1002, 1003, 1004, 1005, 1006, 1007, 1008, 1009,
             1010, 1020, 1030, 1040, 1050, 1060, 1070, 1080, 1090, 1100,
             1200, 1300, 1400, 1500, 1600, 1700, 1800, 1900, 1000, 2000,
             3000, 4000, 5000, 10000, 20000, 40000]
         ),
-        "inch81" : ("in", "0.0001", [
+        "inch81": ("in", "0.0001", [
             500, 1001, 1002, 1003, 1004, 1005, 1006, 1007, 1008, 1009,
             1010, 1020, 1030, 1040, 1050, 1060, 1070, 1080, 1090, 1100,
             1110, 1120, 1130, 1140, 1150, 1160, 1170, 1180, 1190, 1200,
@@ -107,7 +107,7 @@ if 1:   # Global variables
             6500, 7000, 7500, 8000, 8500, 9000, 9500, 10000, 20000, 30000,
             40000]
         ),
-        "space" : ("in", "0.0005", [
+        "space": ("in", "0.0005", [
             # This is a "Space Blocks" set I bought in the early 1970's.  I
             # remember paying around $70 for it and the same sets are
             # available today for around the same price.  They're cylinders
@@ -123,9 +123,9 @@ if 1:   # Global variables
     # Dictionary used to get the format string needed to print out the
     # sizes.
     formats = {
-        "0.001"  : "%.3f",
-        "0.0001" : "%.4f",
-        "0.0005" : "%.4f",
+        "0.001": "%.3f",
+        "0.0001": "%.4f",
+        "0.0005": "%.4f",
     }
     # Check to make sure we don't have a new resolution to handle
     for name in gauge_block_sets:
@@ -348,7 +348,8 @@ def GaugeSizes(sizes, d, all=False):
                     s.append((tol, sz, sz_inches, gauge))
         if s:
             # Sort by first item, which is tolerance in %
-            f = lambda x: x[0]
+            def f(x):
+                return x[0]
             for tol, sz, sz_inches, gauge in sorted(s, key=f):
                 print("  {:2s}   {:.4f}   {:6.1f}%   {}".format(str(sz),
                             sz_inches, tol, gauge))

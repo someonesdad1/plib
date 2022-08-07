@@ -82,8 +82,8 @@ if 1:   # Utility
         return dirs
 if 1:   # Core functionality
     def ProcessDirectory(dir):
-        msg = lambda action, dest: print(f"Couldn't {action} '{dest}'",
-                                   file=sys.stderr)
+        def msg(action, dest):
+            print(f"Couldn't {action} '{dest}'", file=sys.stderr)
         if d["-n"] is not None:
             file = d["-n"]
         else:

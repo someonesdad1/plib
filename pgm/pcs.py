@@ -48,7 +48,7 @@ if 1:   # Header
         from get import GetLines
         from lwtest import Assert
         from color import Color, TRM as t
-        if 1:
+        if 0:
             import debug
             debug.SetDebugger()
     # Global variables

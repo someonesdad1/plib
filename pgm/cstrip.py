@@ -19,11 +19,11 @@ if 1:   # Imports
 if 1:   # Custom imports
     from wrap import dedent
 if 1:   # Global variables
-    start_C_comment = re.compile("^.*(/\*.*$)")
-    end_C_comment = re.compile("^(.*\*/).*$")
-    one_line_C_comment = re.compile(".*(/\*.*\*/).*$")
-    cpp_comment = re.compile(".*(//.*$)")
-    include = re.compile("^\s*#\s*include\s+.*$")
+    start_C_comment = re.compile(r"^.*(/\*.*$)")
+    end_C_comment = re.compile(r"^(.*\*/).*$")
+    one_line_C_comment = re.compile(r".*(/\*.*\*/).*$")
+    cpp_comment = re.compile(r".*(//.*$)")
+    include = re.compile(r"^\s*#\s*include\s+.*$")
 def Usage():
     print(dedent(f'''
     Usage:  {sys.argv[0]} file1 [file2 ...]

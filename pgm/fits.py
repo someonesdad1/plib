@@ -68,38 +68,24 @@ if 1:   # Custom imports
     from wrap import dedent
     from f import flt
     from u import u, ParseUnit
-    # Try to import the clr.py module (more up-to-date than color.py);
-    # if not available, the script should still work (you'll just get
-    # uncolored output).
-    try:
-        import clr
-        c = clr.Clr(bits=4)
-        have_color = True
-    except ImportError:
-        class Dummy: # Make a dummy color object to swallow function calls
-            def __call__(self, *p, **kw):
-                return ""
-            def __getattr__(self, name):
-                return ""
-        c = Dummy()
-        have_color = False
+    from color import t
 if 1:   # Global variables
     fits = (
         # Class of fit, c (in mils), m (in mils/inch)
         # For a given hole diameter d, machine the shaft diameter D to d - x
         # where x = (m/1000)*d + c/1000.
-        ("Shrink",             flt(0.5),   flt(1.5)),
-        ("Force",              flt(0.5),   flt(0.75)),
-        ("Drive",              flt(0.3),   flt(0.45)),
-        ("Wheel keying",       flt(0),     flt(0)),
-        ("Push",              flt(-0.15), flt(-0.35)),
-        ("Slide",             flt(-0.3),  flt(-0.45)),
-        ("Precision running", flt(-0.5),  flt(-0.65)),
-        ("Close running",     flt(-0.6),  flt(-0.8)),
-        ("Normal running",    flt(-1.0),  flt(-1.5)),
-        ("Easy running",      flt(-1.5),  flt(-2.25)),
-        ("Small clearance",   flt(-2.0),  flt(-3.0)),
-        ("Large clearance",   flt(-3.0),  flt(-5.0)),
+        ("Shrink", flt(0.5), flt(1.5)),
+        ("Force", flt(0.5), flt(0.75)),
+        ("Drive", flt(0.3), flt(0.45)),
+        ("Wheel keying", flt(0), flt(0)),
+        ("Push", flt(-0.15), flt(-0.35)),
+        ("Slide", flt(-0.3), flt(-0.45)),
+        ("Precision running", flt(-0.5), flt(-0.65)),
+        ("Close running", flt(-0.6), flt(-0.8)),
+        ("Normal running", flt(-1.0), flt(-1.5)),
+        ("Easy running", flt(-1.5), flt(-2.25)),
+        ("Small clearance", flt(-2.0), flt(-3.0)),
+        ("Large clearance", flt(-3.0), flt(-5.0)),
     )
     in2mm = u("inches")/u("mm")
     thermal_expansion = (   # Units are 1/K
@@ -110,7 +96,7 @@ if 1:   # Global variables
         ("Steel", flt(12e-6)),
     )
     # Colors
-    c.int, c.cl, c.msg = c("lred"), c("lgrn"), c("lcyn")
+    t.int, t.cl, t.msg = t("redl"), t("grnl"), t("cynl")
 def Usage(d, status=1):
     name = sys.argv[0]
     print(dedent(f'''
@@ -210,7 +196,7 @@ def HoleBasic(D, d):
     f = d["-m"]
     shaft_size_in = D
     shaft_size_mm = D*in2mm
-    print(f"{c.msg}Hole size is basic:{c.n}")
+    print(f"{t.msg}Hole size is basic:{t.n}")
     hole_size_in = float(D)
     hole_size_mm = in2mm*D
     print('''
@@ -227,15 +213,15 @@ def HoleBasic(D, d):
         s = "  %-18s %10.4f %10.3f" % (name, shaft_size_in, shaft_size_mm)
         print(s, end=" ")
         s = "%8.1f %8.2f" % (clearance_mils, clearance_mm)
-        t = f"{c.int if clearance_mm < 0 else c.cl}"
-        print(f"{t}{s}{c.n}")
+        q = f"{t.int if clearance_mm < 0 else t.cl}"
+        print(f"{q}{s}{t.n}")
 def ShaftBasic(D, d):
     '''D is hole size in inches.
     '''
     f = d["-m"]
     shaft_size_in = float(D)
     shaft_size_mm = in2mm*D
-    print(f"\n{c.msg}Shaft size is basic:{c.n}")
+    print(f"\n{t.msg}Shaft size is basic:{t.n}")
     print('''
                              Hole size          Clearance
                            in        mm        mils     mm
@@ -250,8 +236,8 @@ def ShaftBasic(D, d):
         s = "  %-18s %10.4f %10.3f" % (name, hole_size_in, hole_size_mm)
         print(s, end=" ")
         s = "%8.1f %8.2f" % (clearance_mils, clearance_mm)
-        t = f"{c.int if clearance_mm < 0 else c.cl}"
-        print(f"{t}{s}{c.n}")
+        q = f"{t.int if clearance_mm < 0 else t.cl}"
+        print(f"{q}{s}{t.n}")
 def CalculateFit(cmdline, D, d):
     '''hole_size_inches is diameter of hole in inches.  d is the
     settings dictionary.
@@ -262,12 +248,9 @@ def CalculateFit(cmdline, D, d):
     print("Diameter = " + cmdline)
     print("         = %.4f" % D, "inches")
     print("         = %.3f" % Dmm, "mm")
-    if have_color:
-        print(" "*20, "Color coding:  ", end="  ")
-        print(f"{c.int}interference", end="  ")
-        print(f"{c.cl}clearance{c.n}")
-    else:
-        print()
+    print(" "*20, "Color coding:  ", end="  ")
+    print(f"{t.int}interference", end="  ")
+    print(f"{t.cl}clearance{t.n}")
     HoleBasic(D, d)
     ShaftBasic(D, d)
 def Temperatures(D, d):
@@ -283,7 +266,7 @@ def Temperatures(D, d):
     clearance_in = f*(hole_size_in - shaft_size_in)
     print(dedent(f'''
      
-    {c.msg}Temperature differential for shrink fit:{c.n}
+    {t.msg}Temperature differential for shrink fit:{t.n}
       Material    alpha, 1/MK            °C         °F
       --------    -----------           -----      -----'''))
     for material, alpha in thermal_expansion:

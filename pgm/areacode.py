@@ -337,22 +337,22 @@ if 1:   # Global variables
         911;other;Emergency;15
     '''
     timezones = {
-        0 : "Aleutian & Alaskans",
-        1 : "Atlantic",
-        2 : "Central & Eastern",
-        3 : "Central & Mountain",
-        4 : "Central & Mountain",
-        5 : "Central",
-        6 : "Eastern",
-        7 : "Hawaiian",
-        8 : "Mountain & Central",
-        9 : "Mountain & Pacific",
-        10 : "Mountain",
-        11 : "Newfoundland",
-        12 : "Pacific",
-        13 : "Pacific through the Atlantic",
-        14 : "Pacific Guam",
-        15 : "None",
+        0: "Aleutian & Alaskans",
+        1: "Atlantic",
+        2: "Central & Eastern",
+        3: "Central & Mountain",
+        4: "Central & Mountain",
+        5: "Central",
+        6: "Eastern",
+        7: "Hawaiian",
+        8: "Mountain & Central",
+        9: "Mountain & Pacific",
+        10: "Mountain",
+        11: "Newfoundland",
+        12: "Pacific",
+        13: "Pacific through the Atlantic",
+        14: "Pacific Guam",
+        15: "None",
     }
 
     # From https://area-codes.org/areacode.htm downloaded 27 Jun 2021

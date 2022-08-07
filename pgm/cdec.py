@@ -53,7 +53,8 @@ if 1:   # Header
         ii = isinstance
         t = Trm()
         t.on = True
-        class g: pass   # Hold global variables
+        class g:
+            pass   # Hold global variables
         t.dbg = t("wht", "blu")
         g.duplicates = set()
 if 1:   # Utility
@@ -199,7 +200,8 @@ if 0:   # Nonworking Browse function (broken because less is broken)
                 c = Color(di[name])
                 s = f"{t(c)}{name:42s} {c.xrgb} {c.xhsv} {c.xhls}"
                 g.out.append((s, c))
-            f = lambda x: x[1]
+            def f(x):
+                return x[1]
             g.out = Color.Sort(g.out, keys=dl, get=f)
             lst = [i[0] for i in g.out]
             Display(lst)
@@ -230,9 +232,9 @@ if 1:   # Core functionality
             # [@#$]xxyyzz form
             R(r"([@#$][0-9a-f]{6})", flags),
             # Three integers or floats separated by commas
-            R(f"({s},\s*{s},\s*{s})", flags),
+            R(rf"({s},\s*{s},\s*{s})", flags),
             # Three integers or floats separated by whitespace
-            R(f"({s}\s+{s}\s+{s})", flags),
+            R(rf"({s}\s+{s}\s+{s})", flags),
         )
         return regexps
     def GetColor(match):
@@ -318,7 +320,8 @@ if 1:   # Core functionality
         # Set the sort order for the ColorNum instances
         if d["-s"] is None:
             return
-        f = lambda x: x[1]
+        def f(x):
+            return x[1]
         g.out = Color.Sort(g.out, keys=d["-s"], get=f)
 
 if __name__ == "__main__":

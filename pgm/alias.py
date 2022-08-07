@@ -72,7 +72,7 @@ if 1:   # Core functionality
             line = line.strip()
             if not line:
                 continue
-            line = line[6:] # Get rid of leading 'alias '
+            line = line[6:]     # Get rid of leading 'alias '
             loc = line.find("=")
             key, value = line[:loc], line[loc:]
             aliases[key] = value

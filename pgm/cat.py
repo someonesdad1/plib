@@ -73,7 +73,7 @@ def ProcessHashFile():
     '''
     try:
         lines = open(hash_file).readlines()[1:]
-    except:
+    except Exception:
         print("Hash file couldn't be read or it is improper", file=sys.stderr)
         exit(1)
     if len(lines) < 2:

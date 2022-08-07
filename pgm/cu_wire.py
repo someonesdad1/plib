@@ -416,17 +416,17 @@ def Usage(status=1):
     exit(status)
 def ShowResistivities():
     r = (
-        ("Aluminum",        "1.6"),
-        ("Graphite",        "2 to 36"),
-        ("Constantan",      "29"),
-        ("Iron",            "5.8"),
-        ("Lead",            "12.3"),
-        ("Manganin",        "25 to 28"),
-        ("Platinum",        "6.3"),
-        ("Silver",          "0.95"),
-        ("Tungsten",        "3.4"),
-        ("Zinc",            "3.5"),
-        ("Nichrome",        "58 to 87"),
+        ("Aluminum", "1.6"),
+        ("Graphite", "2 to 36"),
+        ("Constantan", "29"),
+        ("Iron", "5.8"),
+        ("Lead", "12.3"),
+        ("Manganin", "25 to 28"),
+        ("Platinum", "6.3"),
+        ("Silver", "0.95"),
+        ("Tungsten", "3.4"),
+        ("Zinc", "3.5"),
+        ("Nichrome", "58 to 87"),
         ("St. steel", "40"),
     )
     print("Resistivities relative to copper at 20 °C:")
@@ -775,7 +775,7 @@ def ShowEquivalentAreas(args, d):
     if len(args) == 1:
         SingleWireEquivalents(int(args[0]))
     n, m = [int(i) for i in args]
-    n, m = (n, m) if n < m else (m, n) # Make n the larger AWG size
+    n, m = (n, m) if n < m else (m, n)  # Make n the larger AWG size
     D, d, ratio = EquivalentArea(n, m)
     print(dedent(f'''    Larger  = {n} AWG      Diameter = {D} inches
     Smaller = {m} AWG      Diameter = {d} inches

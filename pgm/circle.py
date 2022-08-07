@@ -49,7 +49,8 @@ def Circ3Pts(p1, p2, p3):
     x1, y1 = p1
     x2, y2 = p2
     x3, y3 = p3
-    hyp = lambda a, b:  a*a + b*b
+    def hyp(a, b):
+        return a*a + b*b
     h1, h2, h3 = hyp(x1, y1), hyp(x2, y2), hyp(x3, y3)
     a = Det(((x1, y1, 1), (x2, y2, 1), (x3, y3, 1)))
     d = -Det(((h1, y1, 1), (h2, y2, 1), (h3, y3, 1)))
@@ -57,7 +58,8 @@ def Circ3Pts(p1, p2, p3):
     f = -Det(((h1, x1, y1), (h2, x2, y2), (h3, x3, y3)))
     if not a:
         raise ValueError("Points are collinear")
-    IfNearZero = lambda x:  0 if abs(x) < 1e-15 else x
+    def IfNearZero(x):
+        return 0 if abs(x) < 1e-15 else x
     x = RoundOff(-d/(2*a))
     y = RoundOff(-e/(2*a))
     r = RoundOff((d*d + e*e)/(4*a*a) - f/a)
@@ -273,7 +275,8 @@ if 1:   # Unit-test functions
         assert_equal(d, -1)
         # 3x3 Hilbert matrix
         d = Det(((1, 1/2, 1/3), (1/2, 1/3, 1/4), (1/3, 1/4, 1/5)))
-        f = lambda x: Fraction(1, x)
+        def f(x):
+            return Fraction(1, x)
         ans = f(15) - f(16) - f(20) + f(12) - f(27)
         assert_equal(d, float(ans), reltol=1e-13)
 if __name__ == "__main__":

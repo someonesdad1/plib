@@ -60,7 +60,8 @@ def BoltCircle():
     s = "-"*(w - 4)
     print(f"Hole {'x':^{w}} {'y':^{w}} {'theta, deg':^{w}}")
     print(f"---- {s:^{w}} {s:^{w}} {s:^{w}}")
-    g = lambda x: f"{x!s:^{w}}" if abs(x) >= eps else f"{flt(0)!s:{w}}"
+    def g(x):
+        return f"{x!s:^{w}}" if abs(x) >= eps else f"{flt(0)!s:{w}}"
     for i in range(N):
         theta = 2*pi*i/N + radians(theta_offset)
         X, Y = r*cos(theta) + X0, r*sin(theta) + Y0

@@ -39,18 +39,30 @@ if 1:   # Global variables
     uR = " °R"
     # Conversions
     p0, c0, k0, r0 = 9/5, 32, 273.15, 459.67
-    f2c = lambda t: (t - c0)/p0
-    k2c = lambda t: t - k0
-    r2c = lambda t: r2f(f2c(t))
-    c2f = lambda t: p0*t + c0
-    k2f = lambda t: c2f(k2c(t))
-    r2f = lambda t: t - r0
-    c2k = lambda t: t + k0
-    f2k = lambda t: c2k(f2c(t))
-    r2k = lambda t: t/p0
-    f2r = lambda t: c2r(f2c(t))
-    k2r = lambda t: p0*t
-    c2r = lambda t: c2f(t) + r0
+def f2c(t):
+    return (t - c0)/p0
+def k2c(t):
+    return t - k0
+def r2c(t):
+    return r2f(f2c(t))
+def c2f(t):
+    return p0*t + c0
+def k2f(t):
+    return c2f(k2c(t))
+def r2f(t):
+    return t - r0
+def c2k(t):
+    return t + k0
+def f2k(t):
+    return c2k(f2c(t))
+def r2k(t):
+    return t/p0
+def f2r(t):
+    return c2r(f2c(t))
+def k2r(t):
+    return p0*t
+def c2r(t):
+    return c2f(t) + r0
 def Error(msg, status=1):
     print(msg, file=sys.stderr)
     exit(status)
@@ -105,34 +117,78 @@ def Report(t, include_nl=False):
     sig.rtz = True
     # It's °F
     if T >= -r0:
-        K("f"); P(f"{T}{uF}"); K()
-        P("="); K("c"); P(f"{sig(f2c(T))}{uC}"); K()
-        P("="); K("k"); P(f"{sig(f2k(T))}{uK}"); K()
+        K("f")
+        P(f"{T}{uF}")
+        K()
+        P("=")
+        K("c")
+        P(f"{sig(f2c(T))}{uC}")
+        K()
+        P("=")
+        K("k")
+        P(f"{sig(f2k(T))}{uK}")
+        K()
         if d["-r"]:
-            P("="); K("r"); P(f"{sig(f2r(T))}{uR}"); K()
+            P("=")
+            K("r")
+            P(f"{sig(f2r(T))}{uR}")
+            K()
         print()
     # It's °C
     if T >= -k0:
-        K("c"); P(f"{T}{uC}"); K()
-        P("="); K("f"); P(f"{sig(c2f(T))}{uF}"); K()
-        P("="); K("k"); P(f"{sig(c2k(T))}{uK}"); K()
+        K("c")
+        P(f"{T}{uC}")
+        K()
+        P("=")
+        K("f")
+        P(f"{sig(c2f(T))}{uF}")
+        K()
+        P("=")
+        K("k")
+        P(f"{sig(c2k(T))}{uK}")
+        K()
         if d["-r"]:
-            P("="); K("r"); P(f"{sig(c2r(T))}{uR}"); K()
+            P("=")
+            K("r")
+            P(f"{sig(c2r(T))}{uR}")
+            K()
         print()
     # It's K
     if T >= 0:
-        K("k"); P(f"{T}{uK}"); K()
-        P("="); K("f"); P(f"{sig(k2f(T))}{uF}"); K()
-        P("="); K("c"); P(f"{sig(k2c(T))}{uC}"); K()
+        K("k")
+        P(f"{T}{uK}")
+        K()
+        P("=")
+        K("f")
+        P(f"{sig(k2f(T))}{uF}")
+        K()
+        P("=")
+        K("c")
+        P(f"{sig(k2c(T))}{uC}")
+        K()
         if d["-r"]:
-            P("="); K("r"); P(f"{sig(k2r(T))}{uR}"); K()
+            P("=")
+            K("r")
+            P(f"{sig(k2r(T))}{uR}")
+            K()
         print()
     # It's R
     if T >= 0 and d["-r"]:
-        K("r"); P(f"{T}{uR}"); K()
-        P("="); K("f"); P(f"{sig(r2f(T))}{uF}"); K()
-        P("="); K("c"); P(f"{sig(r2c(T))}{uC}"); K()
-        P("="); K("k"); P(f"{sig(r2k(T))}{uK}"); K()
+        K("r")
+        P(f"{T}{uR}")
+        K()
+        P("=")
+        K("f")
+        P(f"{sig(r2f(T))}{uF}")
+        K()
+        P("=")
+        K("c")
+        P(f"{sig(r2c(T))}{uC}")
+        K()
+        P("=")
+        K("k")
+        P(f"{sig(r2k(T))}{uK}")
+        K()
         print()
     if include_nl:
         print()

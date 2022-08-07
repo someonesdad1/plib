@@ -1,12 +1,10 @@
 '''
 TODO
 
-    - This doesn't show the unchanged files.  These should be shown just
-      under the ignored stuff so you see a complete listing.  The algorithm
-      should be changed to do a recursive glob on the root directory, then
-      filter out all stuff not in the directory of interest.
-    - Options should let you choose which files to see:  untracked,
-      ignored, changed, etc.
+- Want
+    - Show untracked, changed, deleted, and added files by default
+    - -i  Show ignored files
+    - -u  Show unchanged files
 
 Show git repository file status for current directory
     git status:
@@ -82,13 +80,7 @@ if 1:   # Standard imports
 if 1:   # Custom imports
     from wrap import wrap, dedent
 
-    old_color= 0
-    if old_color:
-        from color import (C, fg, normal, black, blue, green, cyan, red, magenta,
-                        brown, white, gray, lblue, lgreen, lcyan, lred, lmagenta,
-                        yellow, lwhite)
-    else:
-        from color import TRM as t
+    from color import TRM as t
     from columnize import Columnize
     if 0:
         import debug
@@ -100,38 +92,38 @@ if 1:   # Global variables
     dbg = False
     class St(Enum):
         # States for git status -s forms
-        SAM = auto()
-        MOD = auto()
-        ADD = auto()
-        DEL = auto()
-        REN = auto()
-        UNM = auto()
-        UNT = auto()
-        IGN = auto()
+        unmodified = auto()
+        modified = auto()
+        added = auto()
+        deleted = auto()
+        renamed = auto()
+        unmerged = auto()
+        untracked = auto()
+        ignored = auto()
     # Map state to name and color
-    if old_color:
-        sc = {
-            St.IGN: ["Ignored",     C.blu],     # ?
-            St.SAM: ["Unmodified",  C.wht],     # ''
-            St.UNT: ["Untracked",   C.cyn],     # !
-            St.UNM: ["Unmerged",    C.lblu],    # u
-            St.REN: ["Renamed",     C.yel],     # r
-            St.ADD: ["Added",       C.mag],     # a
-            St.DEL: ["Deleted",     C.red],     # d
-            St.MOD: ["Modified",    C.lgrn],    # m
-        }
-    else:
-        sc = {
-            St.IGN: ["Ignored",     t("roy")],     # ?
-            St.SAM: ["Unmodified",  t("wht")],     # ''
-            St.UNT: ["Untracked",   t("cyn")],     # !
-            St.UNM: ["Unmerged",    t("blul")],    # u
-            St.REN: ["Renamed",     t("yel")],     # r
-            St.ADD: ["Added",       t("mag")],     # a
-            St.DEL: ["Deleted",     t("red")],     # d
-            St.MOD: ["Modified",    t("grnl")],    # m
-        }
+    sc = {
+        St.ignored: ["Ignored", t("gry")],          # ?
+        St.unmodified: ["Unmodified", t("wht")],    # ''
+        St.untracked: ["Untracked", t("ornl")],     # !
+        St.unmerged: ["Unmerged", t("cynl")],       # u
+        St.renamed: ["Renamed", t("yel")],          # r
+        St.added: ["Added", t("mag")],              # a
+        St.deleted: ["Deleted", t("lip")],          # d
+        St.modified: ["Modified", t("grnl")],        # m
+    }
 if 1:   # Utility
+    def NoColor():
+        global sc
+        sc = {
+            St.ignored: ["Ignored", ""],            # ?
+            St.unmodified: ["Unmodified", ""],      # ''
+            St.untracked: ["Untracked", ""],        # !
+            St.unmerged: ["Unmerged", ""],          # u
+            St.renamed: ["Renamed", ""],            # r
+            St.added: ["Added", ""],                # a
+            St.deleted: ["Deleted", ""],            # d
+            St.modified: ["Modified", ""],          # m
+        }
     def Error(*msg, status=1):
         print(*msg, file=sys.stderr)
         exit(status)
@@ -145,33 +137,23 @@ if 1:   # Utility
             -d      Turn on debugging output
             -c      No color escape codes in output
             -h      Print a manpage
-            -v      Show cwd & root
+            -i      Show ignored files
+            -v      Don't show cwd & root
         '''))
         exit(status)
-    def NoColor():
-        global sc
-        sc = {
-            St.IGN: ["Ignored",     ""],    # ?
-            St.SAM: ["Unmodified",  ""],    # ''
-            St.UNT: ["Untracked",   ""],    # !
-            St.UNM: ["Unmerged",    ""],    # u
-            St.REN: ["Renamed",     ""],    # r
-            St.ADD: ["Added",       ""],    # a
-            St.DEL: ["Deleted",     ""],    # d
-            St.MOD: ["Modified",    ""],    # m
-        }
     def ParseCommandLine(d):
         d["-a"] = False     # Allow everything to be shown
         d["-c"] = True      # Color
         d["-d"] = False     # Turn on debugging output
+        d["-i"] = False     # Show ignored files
         d["-v"] = True      # Verbose
         try:
-            opts, dir = getopt.getopt(sys.argv[1:], "acdhv")
+            opts, dir = getopt.getopt(sys.argv[1:], "acdhiv")
         except getopt.GetoptError as e:
             print(str(e))
             exit(1)
         for o, a in opts:
-            if o[1] in list("acdv"):
+            if o[1] in list("acdiv"):
                 d[o] = not d[o]
             elif o in ("-h", "--help"):
                 Usage(status=0)
@@ -191,23 +173,14 @@ if 1:   # Utility
             del kw["ind"]
         if seq:
             for i in p[0]:
-                if old_color:
-                    print(f"{ind}{C.cyn}{i}{C.norm}")
-                else:
-                    print(f"{ind}{t('cyn')}{i}{t.n}")
+                print(f"{ind}{t('cyn')}{i}{t.n}")
         else:
-            if old_color:
-                print(f"{C.cyn}", end="")
-            else:
-                print(f"{t('cyn')}", end="")
+            print(f"{t('cyn')}", end="")
             if "end" not in kw:
                 kw["end"] = ""
             print(ind, end="")
             print(*p, **kw)
-            if old_color:
-                print(f"{C.norm}")
-            else:
-                print(f"{t.n}")
+            print(f"{t.n}")
 if 1:   # Core functionality
     def GetGitRoot():
         'Return the root of the repository or None'
@@ -236,7 +209,7 @@ if 1:   # Core functionality
                 'xy name' where x and y are letters or space characters.
             '''
             return s[:2], P(s[2:].strip()).resolve()
-        # Change our director to the repository root so that x.resolve() works
+        # Change our directory to the repository root so that x.resolve() works
         root = GetGitRoot()
         cwd = os.getcwd()
         os.chdir(root)
@@ -310,15 +283,10 @@ if 1:   # Core functionality
             return True
         # It must be relative to dir
         return str(p).startswith(str(dir))
-        try:
-            print(f"{p}:  {x}")
-            print(f"  {s}")
-            return True
-        except ValueError:
-            return False
     def ProcessData(r):
         '''r will be tuples of ("XY", "name").  Return a dict of the changed
-        data (each will be a sequence of file names) keyed by the state.
+        data.  Keys will be the lowercase change code (e.g. "m" for
+        modified) and values will be the list of file names.
         '''
         # Put into dict by type
         di = defaultdict(list)
@@ -332,36 +300,56 @@ if 1:   # Core functionality
         n, remove = {}, []
         for key, val in di.items():
             if not key:
-                n[St.SAM] = val
+                n[St.unmodified] = val
             elif key[0] == "?":
-                n[St.UNT] = val
+                n[St.untracked] = val
             elif key[0] == "m":
-                n[St.MOD] = val
+                n[St.modified] = val
             elif key[0] == "a":
-                n[St.ADD] = val
+                n[St.added] = val
             elif key[0] == "d":
-                n[St.DEL] = val
+                n[St.deleted] = val
             elif key[0] == "r":
-                n[St.REN] = val
+                n[St.renamed] = val
             elif key[0] == "u":
-                n[St.UNM] = val
+                n[St.unmerged] = val
             elif key[0] == "!":
-                n[St.IGN] = val
+                n[St.ignored] = val
             remove.append(key)
         for i in remove:
             del di[i]
         # Make sure we've processed all elements
         assert(not di)
-        if 1:
+        if 0:
             Dbg("\nContents of n")
             for i in n:
-                Dbg(i, n[i])
+                print(i)
+                pp(n[i])
             Dbg()
         return n
+    def ShowRoot():
+        'Show the repository root and current directory in color'
+        w = 20
+        print(f"{'Repository root:':{w}s}", end="")
+        if d["-c"]:
+            print(f"{t('whtl', 'blu')}", end="")
+        print(GetGitRoot(), end="")
+        if d["-c"]:
+            print(f"{t.n}", end="")
+        print()
+        print(f"{'Current directory:':{w}s}", end="")
+        if d["-c"]:
+            print(f"{t('whtl', 'red')}", end="")
+        print(dir.relative_to(root), end="")
+        if d["-c"]:
+            print(f"{t.n}", end="")
+        print()
     def PrintReport(di):
         for key in sc:  # This gets us the print order we want
             if key in di and len(di[key]):
                 if len(di[key]) == 1 and not di[key][0]:
+                    continue
+                if key == St.ignored and not d["-i"]:
                     continue
                 name, clr = sc[key]
                 print(f"{clr}{name}")
@@ -374,48 +362,19 @@ if 1:   # Core functionality
                     for i in di[key]:
                         print(i, end=" ")
                     print()
-                if old_color:
-                    print(f"{C.norm}", end="")
-                else:
-                    print(f"{t.n}", end="")
+                print(f"{t.n}", end="")
 if __name__ == "__main__":
     d = {}      # Options dictionary
-    args = ParseCommandLine(d)
-    dir = P(args[0]).resolve()
-    root = GetGitRoot()
-    if root is None:
-        print("Not in git repository")
-        exit(1)
-    if d["-v"]:
-        # Show the repository root and current directory in color
-        w = 20
-        print(f"{'Repository root:':{w}s}", end="")
-        if old_color:
-            fg(lwhite, blue)
-        else:
-            if d["-c"]:
-                print(f"{t('whtl', 'blu')}", end="")
-        print(GetGitRoot(), end="")
-        if old_color:
-            normal()
-        else:
-            if d["-c"]:
-                print(f"{t.n}", end="")
-        print()
-        print(f"{'Current directory:':{w}s}", end="")
-        if old_color:
-            fg(lwhite, red)
-        else:
-            if d["-c"]:
-                print(f"{t('whtl', 'red')}", end="")
-        print(dir.relative_to(root), end="")
-        if old_color:
-            normal()
-        else:
-            if d["-c"]:
-                print(f"{t.n}", end="")
-        print()
-    Dbg(f"dir = {dir}")
+    if 1:   # Setup
+        args = ParseCommandLine(d)
+        dir = P(args[0]).resolve()  # First argument on command line (default '.')
+        root = GetGitRoot()
+        if root is None:
+            print("Not in git repository")
+            exit(1)
+        if d["-v"]:
+            ShowRoot()
+        Dbg(f"dir = {dir}")
     r = GetData(dir)
     di = ProcessData(r)
     PrintReport(di)

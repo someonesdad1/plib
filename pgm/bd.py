@@ -79,7 +79,8 @@ if 1:   # Header
             from hd import hexdump
     # Global variables
         ii = isinstance
-        class g: pass
+        class g:
+            pass
         g.columns = int(os.environ.get("COLUMNS", "80")) - 1
         g.lines = int(os.environ.get("LINES", "50"))
         g.block_size = 2**16

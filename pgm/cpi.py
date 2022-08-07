@@ -25,7 +25,7 @@ if 1:   # Custom imports
     from columnize import Columnize
 if 1:   # Global variables
     # The following CPI data came from the cpi_data.py script.
-    CPI = { # Integers need to be divided by 1000 to get CPI
+    CPI = {     # Integers need to be divided by 1000 to get CPI
         2021: 265144, 2020: 258810, 2019: 255657, 2018: 251107, 2017:
         245120, 2016: 240008, 2015: 237017, 2014: 236736, 2013: 232957,
         2012: 229594, 2011: 224939, 2010: 218056, 2009: 214537, 2008:

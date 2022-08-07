@@ -409,9 +409,9 @@ def ReadDataFile(opts):
     of integer counts.
     '''
     variables = {
-        "significant_digits" : 3,
-        "kerf" : 0,
-        "resolution" : 1,
+        "significant_digits": 3,
+        "kerf": 0,
+        "resolution": 1,
     }
     needed_keys = variables.keys()
     Exec(opts, variables)
@@ -860,7 +860,8 @@ def Test2():
     '''
     _Stock.kerf = 0
     d = {}
-    cl = lambda x: len(x)
+    def cl(x):
+        return len(x)
     d["resolution"] = 1
     d["stock"] = [_Stock(10), _Stock(10), _Stock(10), _Stock(10)]
     d["stock"].sort(key=cl)
@@ -984,11 +985,12 @@ def PrintReport(opts):
     _Stock.physical = True      # Make sure output is in physical units
     fmt = MakeProperFraction if ii(resolution, Fraction) else Z
     num_cuts = 0
-    f = lambda x: len([j for j in x._cuts if j <= 0])
+    def f(x):
+        return len([j for j in x._cuts if j <= 0])
     opts["plot"] = plot = {     # Stores data for plotting
-        "uncut" : [],
-        "used_up" : OrderedDict(),
-        "partial" : OrderedDict(),
+        "uncut": [],
+        "used_up": OrderedDict(),
+        "partial": OrderedDict(),
     }
     if uncut:
         if _have_color:

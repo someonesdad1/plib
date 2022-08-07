@@ -35,38 +35,38 @@ def GetDefaultSettings(tick_levels_supported=6):
     settings = {
         # If out is true, the tick starts from the arc and goes
         # outwards.
-        "out" : True,
+        "out": True,
         # draw_baseline True means the circular arc making up the scale
         # is drawn.
-        "draw_baseline" : False,
+        "draw_baseline": False,
         # This is the color of the arc's baseline if it is drawn
-        "line_color" : black,
+        "line_color": black,
         # This is the width of the line the arc is drawn with; if it is
         # None, then the default linewidth is used.
-        "line_width" : None,
+        "line_width": None,
         # The normal direction of increasing angle is counterclockwise,
         # just as in the polar coordinate angle.  Set clockwise to True to
         # reverse the direction.  Example:  if clockwise is True, then an
         # angle of 45 degrees will be at the normal 315 degrees in the
         # fourth quadrant.
-        "clockwise" : False,
+        "clockwise": False,
         # polar_angle_offset sets the location of the zero angle.  If it's
         # zero, then it's along the horizontal x axis as in the polar
         # coordinate angle.  If it's 90 degrees, then it's pointing
         # north like a compass rose.
-        "polar_angle_offset" : 0,
+        "polar_angle_offset": 0,
         # draw_center, if nonzero, means to draw two crossed lines at
         # the center of the scale; the line length from the origin to
         # the tip is draw_center.
-        "draw_center" : 0.02,
+        "draw_center": 0.02,
         #
-        "tick_color" :      [black]*n,
-        "tick_line_type" :  [solid_line]*n,
-        "tick_line_cap" :   [cap_butt]*n,
-        "font_color" :      [black]*n,
-        "fill_color" :      [black]*n,
-        "font_name"  :      [Sans]*n,
-        "cross_linewidth" : 0.001,  # Fraction of D
+        "tick_color": [black]*n,
+        "tick_line_type": [solid_line]*n,
+        "tick_line_cap": [cap_butt]*n,
+        "font_color": [black]*n,
+        "fill_color": [black]*n,
+        "font_name": [Sans]*n,
+        "cross_linewidth": 0.001,  # Fraction of D
         #----------------------------------------------------------
         # The following settings are such that the first element is a
         # fraction of the scale diameter D and the subsequent settings are
@@ -75,22 +75,22 @@ def GetDefaultSettings(tick_levels_supported=6):
         # as many tick levels as you need.
         #
         # This ensures the whole drawing can be scaled to any size.
-        "tick_length"       : [0.03, 0.8, 0.4, 0.2],
-        "tick_linewidth"    : [0.002, 0.8, 0.7, 0.6],
-        "font_size"         : [0.03, 0.8, 0.6, 0.4],
+        "tick_length": [0.03, 0.8, 0.4, 0.2],
+        "tick_linewidth": [0.002, 0.8, 0.7, 0.6],
+        "font_size": [0.03, 0.8, 0.6, 0.4],
         # radial_offset determines the radial offset of the label from its
         # calculated position (this is for fine tuning the position).
-        "radial_offset" :    [0.0, 1, 1, 1],
+        "radial_offset": [0.0, 1, 1, 1],
         # angle_offset determines the angular offset of the label from its
         # calculated position (this is for fine tuning things).  Note these
         # are NOT relative values, but just angles.
-        "angle_offset" :    [0]*n,
+        "angle_offset": [0]*n,
         # Arrows are drawn in a radial direction.  The tip style controls
         # the size and type of arrow tip.
         # xx Arrows are not working yet
-        "arrow_linewidth"   : [0.01, 0.8, 0.7, 0.6],
-        "arrow_color"       : [black]*n,
-        "arrow_tip_style"   : [0]*n,
+        "arrow_linewidth": [0.01, 0.8, 0.7, 0.6],
+        "arrow_color": [black]*n,
+        "arrow_tip_style": [0]*n,
     }
     return settings
 class CircularScale:

@@ -77,7 +77,7 @@ def ReadFile(file):
     else:
         try:
             lines = open(file).readlines()
-        except:
+        except Exception:
             print(f"Could not read file '{file}'", file=sys.stderr)
             exit(1)
     return [line.rstrip("\n") for line in lines]

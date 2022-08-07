@@ -23,14 +23,15 @@ if 1:   # Header
         from color import Color, TRM as t
     # Global variables
         ii = isinstance
-        class g: pass
+        class g:
+            pass
         g.symbols = {}
         nl = "\n"
         # Regular expressions
         g.valid_symbol = re.compile(r"^[A-Za-z][A-Za-z0-9_]*$")
-        g.c_comment    = re.compile(r"/\*.*?\*/", re.S)
-        g.cpp_comment  = re.compile(r"//.*?\n", re.S)
-        g.string       = re.compile(r"\"[^\n]*\"")
+        g.c_comment = re.compile(r"/\*.*?\*/", re.S)
+        g.cpp_comment = re.compile(r"//.*?\n", re.S)
+        g.string = re.compile(r"\"[^\n]*\"")
         #g.punctuation  = re.compile(r"~|!|@|#|\$|\%|\^|&|\*|(|)|-|\+|=|{|}|\[|\]|\||:|;|'|<|>|,|.|\?|/")
         g.punctuation  = r"~!@#\$%^&*()-+={}[]:;'<>,.?/|"
         # From Harbison and Steele; ANSI C only.
@@ -146,5 +147,5 @@ if __name__ == "__main__":
     d = {}
     args = ParseCommandLine()
     for file in args:
-       ProcessFile(file)
+        ProcessFile(file)
     PrintResults()

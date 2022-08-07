@@ -24,7 +24,7 @@ if 1:   # Custom imports
 if 1:   # Global variables
     stdin = "stdin"
     # regexp to convert all 7-bit punctuation to spaces
-    punct = re.compile("[~`!@#$%\^&*()\-+={}\[\]\\\;:\"'\|,\.<>\?/]+")
+    punct = re.compile(r"[~`!@#$%\^&*()\-+={}\[\]\\\;:\"'\|,\.<>\?/]+")
     words = '''
         # From http://www.tysto.com/uk-us-spelling-list.html
         # UK                      US

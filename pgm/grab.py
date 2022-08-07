@@ -5,7 +5,7 @@ originally written for the B&K daq project so I could capture the VNC
 screenshots to a file for documentation.  
  
 This won't work under the cygwin python installation, but it will if you
-use the Winpython 3.6.6 installation.
+use a Winpython installation.
 '''
 if 1:  # Copyright, license
     # These "trigger strings" can be managed with trigger.py
@@ -35,10 +35,13 @@ if 1:   # Custom imports
         import color as C
         _have_color = True
     except ImportError:
-        class Dummy: # Make a dummy color object to swallow function calls
-            def fg(self, *p, **kw): pass
-            def normal(self, *p, **kw): pass
-            def __getattr__(self, name): pass
+        class Dummy:    # Make a dummy color object to swallow function calls
+            def fg(self, *p, **kw):
+                pass
+            def normal(self, *p, **kw):
+                pass
+            def __getattr__(self, name):
+                pass
         C = Dummy()
         _have_color = False
 if 1:   # Global variables
@@ -55,7 +58,7 @@ def Usage(d, status=1):
     Usage:  {sys.argv[0]} [options] c1 [c2 c3 ... ext]
       Assumes an image has been copied to the clipbard.  Copies the image to
       the indicated file.  The file name to be copied to is constructed from
-      the elements on the command line.
+      the c? and ext elements on the command line.
     Options:
       -B      Same as -b but causes script to exit without writing file
       -b      For B&K DAQ project:  prints a warning message if the image

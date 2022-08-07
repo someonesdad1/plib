@@ -46,10 +46,11 @@ if 1:  # Header
     # Global variables
         P = pathlib.Path
         ii = isinstance
-        class g: pass
+        class g:
+            pass
         g.name = sys.argv[0]
         g.config = None             # Configuration file
-        g.backup = P("C:/cygwin/home/Don/.bup") # Backup directory
+        g.backup = P("C:/cygwin/home/Don/.bup")     # Backup directory
         g.sep = ";"                 # Field separator for config file
         g.at = "@"                  # Designates a silent alias
         g.editor = os.environ["EDITOR"]
@@ -412,7 +413,7 @@ if 1:   # Core functionality
         other.
         '''
         at = g.at
-        a, b = lambda x:  x[1:] + at, lambda x:  at + x[:-1]
+        a, b = lambda x: x[1:] + at, lambda x: at + x[:-1]
         tmp = sorted([a(k) if k[0] == at else k for k in aliases.keys()])
         for key in [b(k) if k[-1] == at else k for k in tmp]:
             yield key

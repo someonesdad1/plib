@@ -26,8 +26,8 @@ if 1:   # Custom imports
 if 1:   # Global variables
     debug = False
     ext = {
-        "-c" : [],      # Used to add extensions/files at runtime
-        "-d" : [
+        "-c": [],      # Used to add extensions/files at runtime
+        "-d": [
             "*.i",
             "*.obj",
             "*.o",
@@ -38,21 +38,21 @@ if 1:   # Global variables
             "*.class",
             "*.stackdump",
         ],
-        "-g" : [  # gcov
+        "-g": [  # gcov
             "*.bb",
             "*.bbg",
             "*.da",
             "*.gcov",
         ],
-        "-l" : [
+        "-l": [
             "log",
             "*.log",
         ],
-        "-p" : [  # python
+        "-p": [  # python
             "*.pyc",
             "*.pyo",
         ],
-        "-t" : ["tags"],
+        "-t": ["tags"],
     }
     nl = "\n"
     manual = dedent(f'''
@@ -84,9 +84,9 @@ def PrintManual():
     sys.exit(0)
 def ParseCommandLine():
     settings = {
-        "-f force"         : False,
-        "-n don't execute" : False,
-        "-r recursive"     : False,
+        "-f force": False,
+        "-n don't execute": False,
+        "-r recursive": False,
     }
     try:
         optlist, args = getopt.getopt(sys.argv[1:], "c:dfghlnprt")

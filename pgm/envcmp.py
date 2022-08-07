@@ -31,8 +31,8 @@ if 1:   # Global variables
     wdiff = None
     wdiff = "d:/bin/winmerge/WinMergeU.exe"
     # Regular expressions 
-    bash_func = re.compile("^.* \(\)$")
-    bash_env = re.compile("^.*=.*$")
+    bash_func = re.compile(r"^.* \(\)$")
+    bash_env = re.compile(r"^.*=.*$")
     # The following string is used to identify the functions dictionary
     # in the dictionary containing the environment variables.  It is a
     # string that is not allowed as a shell variable name.

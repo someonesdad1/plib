@@ -468,23 +468,23 @@ def GetLines(settings):
     return lines
 if __name__ == "__main__": 
     settings = {
-        "file"                      : "-",          # -f
-        "input regexp"              : "[ \t]+",     # -i
-        "case sensitivity"          : True,         # -I
-        "trim left"                 : "",           # -l
-        "trim right"                : "",           # -r
-        "fixed width"               : None,         # -n
-        "output fixed width"        : None,         # -m
-        "output fixed max width"    : False,        # -M
-        "max field widths"          : {},
-        "output separator"          : "\t",         # -o
-        "reverse sense"             : False,        # -R
-        "same size records"         : False,        # -s
-        "record size"               : 0,            # -s
-        "show truncated lines"      : False,        # -t
-        "truncated lines"           : {},
-        "strip whitespace"          : False,        # -w
-        "line number"               : 0,
+        "file": "-",                            # -f
+        "input regexp": "[ \t]+",               # -i
+        "case sensitivity": True,               # -I
+        "trim left": "",                        # -l
+        "trim right": "",                       # -r
+        "fixed width": None,                    # -n
+        "output fixed width": None,             # -m
+        "output fixed max width": False,        # -M
+        "max field widths": {}
+        "output separator": "\t",               # -o
+        "reverse sense": False,                 # -R
+        "same size records": False,             # -s
+        "record size": 0,                       # -s
+        "show truncated lines": False,          # -t
+        "truncated lines": {},
+        "strip whitespace": False,              # -w
+        "line number": 0,
     }
     args = ParseCommandLine(settings)
     ProcessFieldSpecs(args, settings)

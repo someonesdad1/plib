@@ -1,3 +1,5 @@
+from sig import GetSigFig
+from collections import defaultdict, deque
 '''
 Sat 28 Aug 2021 08:24:20 AM
 from https://physics.nist.gov/cuu/Constants/Table/allascii.txt
@@ -371,8 +373,6 @@ Wien frequency displacement law constant                    5.878 925 757... e10
 Wien wavelength displacement law constant                   2.897 771 955... e-3     (exact)                  m K
 W to Z mass ratio                                           0.881 53                 0.000 17                 
 '''
-from sig import GetSigFig
-from collections import defaultdict, deque
 d = defaultdict(int)
 count, U = 0, []
 for line in data.split("\n"):

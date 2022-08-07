@@ -376,10 +376,10 @@ def ReportLongForm(d):
     used_dot = False
     lines = []
     # Sort data
-    if d["-s"]: # Sort by count values
+    if d["-s"]:     # Sort by count values
         t = sorted([(j, i) for i, j in counts.items()])
         items = [j for i, j in reversed(t)]
-    else:       # Sort by byte value
+    else:           # Sort by byte value
         items = sorted(counts)
     # Get screen width
     c, E = "COLUMNS", os.environ
@@ -389,7 +389,7 @@ def ReportLongForm(d):
         print("Byte percentages:")
     else:
         print("Byte counts:")
-    W = w - 3 - 1 - 2 - 1 - 3 - numplaces - 1 - 2 # Room left for *'s
+    W = w - 3 - 1 - 2 - 1 - 3 - numplaces - 1 - 2   # Room left for *'s
     for i in items:
         a = "*"*int(W*counts[i]/max_count)
         printed_color = False
@@ -494,10 +494,10 @@ def PrintReport(d):
         counts, e = d["counts"], d["encoding"]
         max_count = max(len(str(max(counts.values()))), 5)
         # Sort data
-        if d["-s"]: # Sort by count values
+        if d["-s"]:     # Sort by count values
             t = sorted([(j, i) for i, j in counts.items()])
             items = [j for i, j in reversed(t)]
-        else:       # Sort by byte value
+        else:           # Sort by byte value
             items = sorted(counts)
         # If -X option used, filter out the non-wanted characters
         if d["-X"]:
@@ -552,7 +552,8 @@ def PrintReport(d):
             data = d["chi_square_terms"]
             if d["-s"]:
                 # Sort the data by the size of the terms
-                k = lambda x: x[2]
+                def k(x):
+                    return x[2]
                 data = sorted(data, key=k, reverse=True)
             s = []
             terms = [k for i, j, k in data]
@@ -582,10 +583,10 @@ def PrintReport(d):
     used_dot = False
     lines = []
     # Sort data
-    if d["-s"]: # Sort by count values
+    if d["-s"]:     # Sort by count values
         t = sorted([(j, i) for i, j in counts.items()])
         items = [j for i, j in reversed(t)]
-    else:       # Sort by byte value
+    else:           # Sort by byte value
         items = sorted(counts)
     # Print counts
     for i in items:

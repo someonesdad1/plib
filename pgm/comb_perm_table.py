@@ -35,8 +35,10 @@ if __name__ == "__main__":
     limit = fac(28)
     max_number = 100
     d = defaultdict(list)
-    perm = lambda x: int(mp.fac(x))
-    comb = lambda n, m:  int(mp.fac(n)/(mp.fac(n - m)*mp.fac(m)))
+    def perm(x):
+        return int(mp.fac(x))
+    def comb(n, m):
+        return int(mp.fac(n)/(mp.fac(n - m)*mp.fac(m)))
     for n in range(max_number + 1):
         d[perm(n)].append(f"{P}[{n}]{N}")
         for m in range(1, n//2):

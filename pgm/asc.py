@@ -23,7 +23,8 @@ if 1:   # Imports
 if 1:   # Custom imports
     from columnize import Columnize
 if 1:   # Global variables
-    class Global: pass
+    class Global:
+        pass
     g = Global()
     g.decimal = False
     g.octal = False

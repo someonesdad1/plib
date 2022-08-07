@@ -294,7 +294,8 @@ if 1:   # Classes and types
         def symbol(self):
             'Return the key name symbol'
             f = self.key.split("-")
-            if self.key == "Shift-Command-Down Arrow": xx() #xx
+            if self.key == "Shift-Command-Down Arrow":
+                xx()  # xx
             for item in f:
                 i = item.strip()
                 items.append(d[i] if i in d else i)
@@ -302,7 +303,8 @@ if 1:   # Classes and types
             "Return the name with the key's symbols"
             items = [f"{self.key:40s}{' '*5}"]
             f = self.key.split("-")
-            if self.key == "Shift-Command-Down Arrow": xx() #xx
+            if self.key == "Shift-Command-Down Arrow":
+                xx()  # xx
             for item in f:
                 i = item.strip()
                 items.append(self._sym[i] if i in self._sym else i)

@@ -31,13 +31,15 @@ if 1:   # Global variables
     tr = {}
     for i in string.printable:
         tr[ord(i)] = None
-    TR = lambda x: x.translate(tr)
     # The following dictionary will turn control characters into capital
     # letters by adding 0x40 to the ordinal value.
     ct = {}
     for i in range(0x20):
         ct[i] = i + 0x40
-    CTRL = lambda x: x.translate(ct)
+def CTRL(x):
+    return x.translate(ct)
+def TR(x):
+    return x.translate(tr)
 def Error(msg, status=1):
     print(msg, file=sys.stderr)
     exit(status)
@@ -103,7 +105,7 @@ def Summary():
         for i in Columnize(out):
             print(i)
 if __name__ == "__main__":
-    d = {"chars":set()}      # Options dictionary
+    d = {"chars": set()}      # Options dictionary
     files = ParseCommandLine()
     for file in files:
         lines = GetLines(file)

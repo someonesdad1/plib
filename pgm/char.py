@@ -73,9 +73,12 @@ if 1:   # Global variables
     # Construct a dictionary containing the encodings we'll allow and their
     # standard names.
     allowed = {}
-    replace1 = lambda x: x.replace("_", "")
-    replace2 = lambda x: x.replace("-", "")
-    replace = lambda x: replace1(replace2(x))
+    def replace1(x):
+        return x.replace("_", "")
+    def replace2(x):
+        return x.replace("-", "")
+    def replace(x): 
+        return replace1(replace2(x))
     for word in encodings.lower().split():
         try:
             ' '.encode(word)
@@ -215,15 +218,15 @@ def PrintResults():
     res.sort()
     w = max([len(i[1]) for i in res])
     C = {
-        0 : "trq",      # Whitespace
-        1 : "roy",      # Ctrl
-        2 : "cynl",     # Lowercase
-        3 : "ornl",     # Uppercase
-        4 : "lwnl",     # Decimal digits
-        5 : "magl",     # Punctuation
-        6 : "wht",      # Remaining 7-bit characters
-        7 : "yell",     # 8-bit with high bit set
-        8 : "purl",     # Other Unicode
+        0: "trq",      # Whitespace
+        1: "roy",      # Ctrl
+        2: "cynl",     # Lowercase
+        3: "ornl",     # Uppercase
+        4: "lwnl",     # Decimal digits
+        5: "magl",     # Punctuation
+        6: "wht",      # Remaining 7-bit characters
+        7: "yell",     # 8-bit with high bit set
+        8: "purl",     # Other Unicode
     }
     for i, cat, chars in res:
         characters = Translate(chars)

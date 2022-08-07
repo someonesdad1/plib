@@ -29,13 +29,13 @@ if 1:   # Global variables
     hg = "/cygdrive/c/bin/mercurial/hg.exe"
     # Colors used to indicate various Mercurial states
     states = {
-        "M" : yellow,           # Modified
-        "A" : lgreen,           # Added
-        "R" : (lwhite, red),    # Removed
-        "!" : lcyan,            # Missing
-        "?" : lmagenta,         # Not tracked
-        "dirty" : lred,
-        "clean" : (white, black),
+        "M": yellow,           # Modified
+        "A": lgreen,           # Added
+        "R": (lwhite, red),    # Removed
+        "!": lcyan,            # Missing
+        "?": lmagenta,         # Not tracked
+        "dirty": lred,
+        "clean": (white, black),
     }
 def Usage(status=0):
     name = sys.argv[0]
