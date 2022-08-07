@@ -359,12 +359,12 @@ if 1:   # Utility
             i            x         Dividers        Diameter
         --------      --------     --------        --------'''[1:])
         f = "     {:^8d}      {:^8s}     {:^8s}        {:^8s}"
-        g = lambda x, n: "{:^8.{}f}".format(x, n)
-        g = lambda x: f"{x!s:^8}"
+        def g(x):
+            return f"{x!s:^8}"
         lastx = x
         for i, dia in enumerate(diameters):
             if i:
-                x +=  r[i-1] + L + r[i]
+                x += r[i-1] + L + r[i]
             div = x - lastx
             if 0:
                 if n is not None:

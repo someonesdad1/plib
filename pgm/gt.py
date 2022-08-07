@@ -109,7 +109,7 @@ if 1:   # Global variables
         St.renamed: ["Renamed", t("yel")],          # r
         St.added: ["Added", t("mag")],              # a
         St.deleted: ["Deleted", t("lip")],          # d
-        St.modified: ["Modified", t("grnl")],        # m
+        St.modified: ["Modified", t("grnl")],       # m
     }
 if 1:   # Utility
     def NoColor():

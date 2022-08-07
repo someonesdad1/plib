@@ -122,14 +122,14 @@ if 1:   # Global variables
     T0_K = 273.15   # 0 degC in K
     temperature_units = {
         # The function converts the indicated unit to K.
-        "C" : lambda C: flt(C + T0_K),
-        "c" : lambda C: flt(C + T0_K),
-        "K" : lambda K: flt(K),
-        "k" : lambda K: flt(K),
-        "F" : lambda F: flt(5*(F - 32)/9 + T0_K),
-        "f" : lambda F: flt(5*(F - 32)/9 + T0_K),
-        "R" : lambda R: flt(5/9*R),
-        "r" : lambda R: flt(5/9*R),
+        "C": lambda C: flt(C + T0_K),
+        "c": lambda C: flt(C + T0_K),
+        "K": lambda K: flt(K),
+        "k": lambda K: flt(K),
+        "F": lambda F: flt(5*(F - 32)/9 + T0_K),
+        "f": lambda F: flt(5*(F - 32)/9 + T0_K),
+        "R": lambda R: flt(5/9*R),
+        "r": lambda R: flt(5/9*R),
     }
     # Table of gas critical temperatures and pressures, page F-90, CRC Handbook
     # of Chemistry and Physics, 59th ed., 1978.
@@ -164,34 +164,34 @@ if 1:   # Global variables
         # Tc = critical temperature, °C
         # MW = molecular weight, g/mol
         # w = acentric factor (mostly from wikipedia page)
-        #                            Pc       Tc       MW            w
-        ["Air",                     37.2,   -140,     28.9,          0],
-        ["Acetylene (C2H2)",        61.6,     35.5,   2*C+2*H,       0.187],
-        ["Ammonia (NH3)",          112.5,    132.5,   N+3*H,         0.252],
-        ["Argon (Ar)",              48,     -122.3,   Ar,            0],
-        ["Carbon dioxide (CO2)",    72.9,     31,     C+2*O,         0.228],
-        ["Carbon monoxide (CO)",    34.5,   -140,     C+O,           0],
-        ["Chlorine (Cl2)",          76.1,    144,     2*Cl,          0],
-        ["Ethane (C2H6)",           48.2,     32.2,   2*C+6*H,       0.008],
-        ["Fluorine (F2)",           55,     -129,     2*F,           0],
-        ["Freon (CCl2F2)",          39.6,    111.5,   C+2*Cl+2*F,    0],
-        ["Helium (He)",              2.26,  -267.9,   He,           -0.390],
-        ["Hydrogen (H2)",           12.8,   -239.9,   2*H,          -0.22],
-        ["Hydrogen cyanide (HCN)",  48.9,    183.5,   H+C+N,         0],
-        ["Hydrogen sulfide (H2S)",  48.9,    183.5,   2*H+S,         0],
-        ["Iodine (I2)",            116,      512,     2*126.904,     0],
-        ["Isopr. alcohol (C3H8O)",  47,      235,     3*C+8*H+O,     0],
-        ["Krypton (Kr)",            54.3,    -63.8,   Kr,            0],
-        ["Methane (CH4)",           45.8,    -82.1,   C+4*H,         0.008],
-        ["Neon (Ne)",               26.9,   -228.7,   Ne,            0],
-        ["Nitrogen (N2)",           33.5,   -147,     2*N,           0.04],
-        ["Oxygen (O2)",             50.1,   -118.4,   2*O,           0.022],
-        ["Ozone (O3)",              67,       -5.16,  3*O,           0],
-        ["Propane (C2H2)",          42,       96.8,   2*C+2*H,       0.008],
-        ["Sulfur dioxide (SO2)",    77.7,    157.8,   S+2*O,         0],
-        ["Toluene (C7H8)",          41.6,    320.8,   7*C+8*H,       0],
-        ["Water (H2O)",            218.3,    374.1,   2*H+O,         0],
-        ["Xenon (Kr)",              58,       16.6,   Xe,            0],
+        # Pc, Tc, MW, w
+        ["Air", 37.2, -140, 28.9, 0],
+        ["Acetylene (C2H2)", 61.6, 35.5, 2*C+2*H, 0.187],
+        ["Ammonia (NH3)", 112.5, 132.5, N+3*H, 0.252],
+        ["Argon (Ar)", 48, -122.3, Ar, 0],
+        ["Carbon dioxide (CO2)", 72.9, 31, C+2*O, 0.228],
+        ["Carbon monoxide (CO)", 34.5, -140, C+O, 0],
+        ["Chlorine (Cl2)", 76.1, 144, 2*Cl, 0],
+        ["Ethane (C2H6)", 48.2, 32.2, 2*C+6*H, 0.008],
+        ["Fluorine (F2)", 55, -129, 2*F, 0],
+        ["Freon (CCl2F2)", 39.6, 111.5, C+2*Cl+2*F, 0],
+        ["Helium (He)", 2.26, -267.9, He, -0.390],
+        ["Hydrogen (H2)", 12.8, -239.9, 2*H, -0.22],
+        ["Hydrogen cyanide (HCN)", 48.9, 183.5, H+C+N, 0],
+        ["Hydrogen sulfide (H2S)", 48.9, 183.5, 2*H+S, 0],
+        ["Iodine (I2)", 116, 512, 2*126.904, 0],
+        ["Isopr. alcohol (C3H8O)", 47, 235, 3*C+8*H+O, 0],
+        ["Krypton (Kr)", 54.3, -63.8, Kr, 0],
+        ["Methane (CH4)", 45.8, -82.1, C+4*H, 0.008],
+        ["Neon (Ne)", 26.9, -228.7, Ne, 0],
+        ["Nitrogen (N2)", 33.5, -147, 2*N, 0.04],
+        ["Oxygen (O2)", 50.1, -118.4, 2*O, 0.022],
+        ["Ozone (O3)", 67, -5.16, 3*O, 0],
+        ["Propane (C2H2)", 42, 96.8, 2*C+2*H, 0.008],
+        ["Sulfur dioxide (SO2)", 77.7, 157.8, S+2*O, 0],
+        ["Toluene (C7H8)", 41.6, 320.8, 7*C+8*H, 0],
+        ["Water (H2O)", 218.3, 374.1, 2*H+O, 0],
+        ["Xenon (Kr)", 58, 16.6, Xe, 0],
     ]
     del H, C, O, N, Cl, F, S, Ar, He, Ne, Xe, Kr
     # Convert critical temperature & pressure to SI units
@@ -315,7 +315,7 @@ def OutputVariable(var, label, units, indent=" "*4):
     print()
     print(label)
     for unit in units.split():
-        s.append(indent + str(var.to(unit))) # + " " + unit)
+        s.append(indent + str(var.to(unit)))    # + " " + unit)
     for i in Columnize(s, sep=" "):
         print(i)
 def OutputTemperature(T_K, indent=" "*4):
@@ -390,10 +390,10 @@ def GetRequirements(d):
     gases = []
     entered = {    # Keep track of what user enters
         # (value, unit)
-        "Pressure"    : (0, ""),
-        "Volume"      : (0, ""),
-        "Mass"        : (0, ""),
-        "Temperature" : (0, ""),
+        "Pressure": (0, ""),
+        "Volume": (0, ""),
+        "Mass": (0, ""),
+        "Temperature": (0, ""),
     }
     if not d["-t"]:
         # Show gases
@@ -424,7 +424,8 @@ def GetRequirements(d):
             n = 1000*m/mw    # Convert mass to moles
             T = GetValue("Temperature (default units are K)", entered, is_temperature=True)
             # Check that we only have one zero variable
-            f = lambda a, b: not a and not b
+            def f(a, b):
+                return not a and not b
             if f(P, V) or f(P, n) or f(P, T) or f(V, n) or f(V, T) or f(n, T):
                 print("Must have only one zero variable\nStart over...\n")
             else:

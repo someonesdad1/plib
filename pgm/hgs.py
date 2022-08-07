@@ -278,12 +278,12 @@ def PrintResults(files, d):
     assert len(files) > 0
     normal = (white, black)
     names = {
-        "A": ("Added files:",     (lgreen, black)),
-        "C": ("Clean files:",     (white, black)),
-        "I": ("Ignored files:",   (cyan, black)),
-        "M": ("Modified files:",  (yellow, black)),
-        "R": ("Removed files:",   (lwhite, red)),
-        "!": ("Missing files:",   (lmagenta, black)),
+        "A": ("Added files:", (lgreen, black)),
+        "C": ("Clean files:", (white, black)),
+        "I": ("Ignored files:", (cyan, black)),
+        "M": ("Modified files:", (yellow, black)),
+        "R": ("Removed files:", (lwhite, red)),
+        "!": ("Missing files:", (lmagenta, black)),
         "?": ("Untracked files:", (lred, black)),
     }
     for key in "ICRAM!?":

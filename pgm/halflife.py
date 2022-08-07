@@ -30,183 +30,184 @@ if 1:   # Custom imports
     from wrap import dedent
     from f import flt
     from sig import sig
-    if 1:
+    if 0:
         import debug
         debug.SetDebugger()
 if 1:   # Global variables
+    ndigits = 3     # For rounding
     # Dictionary to convert element symbols to names.  Note these are only
     # those elements that are in the halflife dictionary.
     elements = {
-        "Ac" : "Actinium",
-        "Ag" : "Silver",
-        "Am" : "Americium",
-        "Ar" : "Argon",
-        "At" : "Astatine",
-        "Au" : "Gold",
-        "Ba" : "Barium",
-        "Be" : "Beryllium",
-        "Bi" : "Bismuth",
-        "Bk" : "Berkelium",
-        "Br" : "Bromine",
-        "C"  : "Carbon",
-        "Ca" : "Calcium",
-        "Cd" : "Cadmium",
-        "Ce" : "Cerium",
-        "Cf" : "Californium",
-        "Cl" : "Chlorine",
-        "Cm" : "Curium",
-        "Co" : "Cobalt",
-        "Cr" : "Chromium",
-        "Cs" : "Cesium",
-        "Cu" : "Copper",
-        "Eu" : "Europium",
-        "F"  : "Fluorine",
-        "Fe" : "Iron",
-        "Fr" : "Francium",
-        "Ga" : "Gallium",
-        "Gd" : "Gadolinium",
-        "H"  : "Hydrogen",
-        "Hg" : "Mercury",
-        "Ho" : "Holmium",
-        "I"  : "Iodine",
-        "In" : "Indium",
-        "Ir" : "Iridium",
-        "K"  : "Potassium",
-        "Kr" : "Krypton",
-        "La" : "Lanthanum",
-        "Mn" : "Manganese",
-        "Mo" : "Molybdenum",
-        "N"  : "Nitrogen",
-        "Na" : "Sodium",
-        "Nb" : "Niobium",
-        "Nd" : "Neodymium",
-        "Ni" : "Nickel",
-        "Np" : "Neptunium",
-        "O"  : "Oxygen",
-        "P"  : "Phosphorus",
-        "Pa" : "Protactinium",
-        "Pb" : "Lead",
-        "Pd" : "Palladium",
-        "Pm" : "Promethium",
-        "Po" : "Polonium",
-        "Pr" : "Praseodymium",
-        "Pu" : "Plutonium",
-        "Ra" : "Radium",
-        "Rb" : "Rubidium",
-        "Re" : "Rhenium",
-        "Rh" : "Rhodium",
-        "Rn" : "Radon",
-        "Ru" : "Ruthenium",
-        "S"  : "Sulfur",
-        "Sb" : "Antimony",
-        "Sc" : "Scandium",
-        "Se" : "Selenium",
-        "Sm" : "Samarium",
-        "Sn" : "Tin",
-        "Sr" : "Strontium",
-        "Tb" : "Terbium",
-        "Tc" : "Technetium",
-        "Te" : "Tellurium",
-        "Th" : "Thorium",
-        "Tl" : "Thallium",
-        "U"  : "Uranium",
-        "V"  : "Vanadium",
-        "W"  : "Tungsten",
-        "Xe" : "Xenon",
-        "Y"  : "Yttrium",
-        "Yb" : "Ytterbium",
-        "Zn" : "Zinc",
-        "Zr" : "Zirconium"
+        "Ac": "Actinium",
+        "Ag": "Silver",
+        "Am": "Americium",
+        "Ar": "Argon",
+        "At": "Astatine",
+        "Au": "Gold",
+        "Ba": "Barium",
+        "Be": "Beryllium",
+        "Bi": "Bismuth",
+        "Bk": "Berkelium",
+        "Br": "Bromine",
+        "C": "Carbon",
+        "Ca": "Calcium",
+        "Cd": "Cadmium",
+        "Ce": "Cerium",
+        "Cf": "Californium",
+        "Cl": "Chlorine",
+        "Cm": "Curium",
+        "Co": "Cobalt",
+        "Cr": "Chromium",
+        "Cs": "Cesium",
+        "Cu": "Copper",
+        "Eu": "Europium",
+        "F": "Fluorine",
+        "Fe": "Iron",
+        "Fr": "Francium",
+        "Ga": "Gallium",
+        "Gd": "Gadolinium",
+        "H": "Hydrogen",
+        "Hg": "Mercury",
+        "Ho": "Holmium",
+        "I": "Iodine",
+        "In": "Indium",
+        "Ir": "Iridium",
+        "K": "Potassium",
+        "Kr": "Krypton",
+        "La": "Lanthanum",
+        "Mn": "Manganese",
+        "Mo": "Molybdenum",
+        "N": "Nitrogen",
+        "Na": "Sodium",
+        "Nb": "Niobium",
+        "Nd": "Neodymium",
+        "Ni": "Nickel",
+        "Np": "Neptunium",
+        "O": "Oxygen",
+        "P": "Phosphorus",
+        "Pa": "Protactinium",
+        "Pb": "Lead",
+        "Pd": "Palladium",
+        "Pm": "Promethium",
+        "Po": "Polonium",
+        "Pr": "Praseodymium",
+        "Pu": "Plutonium",
+        "Ra": "Radium",
+        "Rb": "Rubidium",
+        "Re": "Rhenium",
+        "Rh": "Rhodium",
+        "Rn": "Radon",
+        "Ru": "Ruthenium",
+        "S": "Sulfur",
+        "Sb": "Antimony",
+        "Sc": "Scandium",
+        "Se": "Selenium",
+        "Sm": "Samarium",
+        "Sn": "Tin",
+        "Sr": "Strontium",
+        "Tb": "Terbium",
+        "Tc": "Technetium",
+        "Te": "Tellurium",
+        "Th": "Thorium",
+        "Tl": "Thallium",
+        "U": "Uranium",
+        "V": "Vanadium",
+        "W": "Tungsten",
+        "Xe": "Xenon",
+        "Y": "Yttrium",
+        "Yb": "Ytterbium",
+        "Zn": "Zinc",
+        "Zr": "Zirconium"
     }
     # Dictionary to convert element names to symbols.
     Elements = {
-        "Actinium"     : "Ac",
-        "Americium"    : "Am",
-        "Antimony"     : "Sb",
-        "Argon"        : "Ar",
-        "Astatine"     : "At",
-        "Barium"       : "Ba",
-        "Berkelium"    : "Bk",
-        "Beryllium"    : "Be",
-        "Bismuth"      : "Bi",
-        "Bromine"      : "Br",
-        "Cadmium"      : "Cd",
-        "Calcium"      : "Ca",
-        "Californium"  : "Cf",
-        "Carbon"       : "C",
-        "Cerium"       : "Ce",
-        "Cesium"       : "Cs",
-        "Chromium"     : "Cr",
-        "Chlorine"     : "Cl",
-        "Cobalt"       : "Co",
-        "Copper"       : "Cu",
-        "Curium"       : "Cm",
-        "Europium"     : "Eu",
-        "Fluorine"     : "F",
-        "Francium"     : "Fr",
-        "Gadolinium"   : "Gd",
-        "Gallium"      : "Ga",
-        "Gold"         : "Au",
-        "Holmium"      : "Ho",
-        "Hydrogen"     : "H",
-        "Indium"       : "In",
-        "Iodine"       : "I",
-        "Iridium"      : "Ir",
-        "Iron"         : "Fe",
-        "Krypton"      : "Kr",
-        "Lanthanum"    : "La",
-        "Lead"         : "Pb",
-        "Manganese"    : "Mn",
-        "Mercury"      : "Hg",
-        "Molybdenum"   : "Mo",
-        "Neodymium"    : "Nd",
-        "Neptunium"    : "Np",
-        "Nickel"       : "Ni",
-        "Niobium"      : "Nb",
-        "Nitrogen"     : "N",
-        "Oxygen"       : "O",
-        "Palladium"    : "Pd",
-        "Phosphorus"   : "P",
-        "Plutonium"    : "Pu",
-        "Polonium"     : "Po",
-        "Potassium"    : "K",
-        "Praseodymium" : "Pr",
-        "Promethium"   : "Pm",
-        "Protactinium" : "Pa",
-        "Radium"       : "Ra",
-        "Radon"        : "Rn",
-        "Rhenium"      : "Re",
-        "Rhodium"      : "Rh",
-        "Rubidium"     : "Rb",
-        "Ruthenium"    : "Ru",
-        "Samarium"     : "Sm",
-        "Scandium"     : "Sc",
-        "Selenium"     : "Se",
-        "Silver"       : "Ag",
-        "Sodium"       : "Na",
-        "Strontium"    : "Sr",
-        "Sulfur"       : "S",
-        "Technetium"   : "Tc",
-        "Tellurium"    : "Te",
-        "Terbium"      : "Tb",
-        "Thallium"     : "Tl",
-        "Thorium"      : "Th",
-        "Tin"          : "Sn",
-        "Tungsten"     : "W",
-        "Uranium"      : "U",
-        "Vanadium"     : "V",
-        "Xenon"        : "Xe",
-        "Ytterbium"    : "Yb",
-        "Yttrium"      : "Y",
-        "Zinc"         : "Zn",
-        "Zirconium"    : "Zr",
-        "Aluminum"     : "Al",
-        "Dysprosium"   : "Dy",
-        "Hafnium"      : "Hf",
-        "Lutetium"     : "Lu",
-        "Platinum"     : "Pt",
-        "Osmium"       : "Os",
-        "Tantalum"     : "Ta",
+        "Actinium": "Ac",
+        "Americium": "Am",
+        "Antimony": "Sb",
+        "Argon": "Ar",
+        "Astatine": "At",
+        "Barium": "Ba",
+        "Berkelium": "Bk",
+        "Beryllium": "Be",
+        "Bismuth": "Bi",
+        "Bromine": "Br",
+        "Cadmium": "Cd",
+        "Calcium": "Ca",
+        "Californium": "Cf",
+        "Carbon": "C",
+        "Cerium": "Ce",
+        "Cesium": "Cs",
+        "Chromium": "Cr",
+        "Chlorine": "Cl",
+        "Cobalt": "Co",
+        "Copper": "Cu",
+        "Curium": "Cm",
+        "Europium": "Eu",
+        "Fluorine": "F",
+        "Francium": "Fr",
+        "Gadolinium": "Gd",
+        "Gallium": "Ga",
+        "Gold": "Au",
+        "Holmium": "Ho",
+        "Hydrogen": "H",
+        "Indium": "In",
+        "Iodine": "I",
+        "Iridium": "Ir",
+        "Iron": "Fe",
+        "Krypton": "Kr",
+        "Lanthanum": "La",
+        "Lead": "Pb",
+        "Manganese": "Mn",
+        "Mercury": "Hg",
+        "Molybdenum": "Mo",
+        "Neodymium": "Nd",
+        "Neptunium": "Np",
+        "Nickel": "Ni",
+        "Niobium": "Nb",
+        "Nitrogen": "N",
+        "Oxygen": "O",
+        "Palladium": "Pd",
+        "Phosphorus": "P",
+        "Plutonium": "Pu",
+        "Polonium": "Po",
+        "Potassium": "K",
+        "Praseodymium": "Pr",
+        "Promethium": "Pm",
+        "Protactinium": "Pa",
+        "Radium": "Ra",
+        "Radon": "Rn",
+        "Rhenium": "Re",
+        "Rhodium": "Rh",
+        "Rubidium": "Rb",
+        "Ruthenium": "Ru",
+        "Samarium": "Sm",
+        "Scandium": "Sc",
+        "Selenium": "Se",
+        "Silver": "Ag",
+        "Sodium": "Na",
+        "Strontium": "Sr",
+        "Sulfur": "S",
+        "Technetium": "Tc",
+        "Tellurium": "Te",
+        "Terbium": "Tb",
+        "Thallium": "Tl",
+        "Thorium": "Th",
+        "Tin": "Sn",
+        "Tungsten": "W",
+        "Uranium": "U",
+        "Vanadium": "V",
+        "Xenon": "Xe",
+        "Ytterbium": "Yb",
+        "Yttrium": "Y",
+        "Zinc": "Zn",
+        "Zirconium": "Zr",
+        "Aluminum": "Al",
+        "Dysprosium": "Dy",
+        "Hafnium": "Hf",
+        "Lutetium": "Lu",
+        "Platinum": "Pt",
+        "Osmium": "Os",
+        "Tantalum": "Ta",
     }
     data1 = '''
         Ac-225, 10.0 days
@@ -591,17 +592,17 @@ def ProcessData():
     seconds indexed by the isotope number.
     '''
     t = {
-        "seconds"  : 1,
-        "days"  : 24*3600,
-        "years"  : 31556925.97,
-        "hours"  : 3600,
-        "microseconds"  : 1e6,
-        "minutes"  : 60,
+        "seconds": 1,
+        "days": 24*3600,
+        "years": 31556925.97,
+        "hours": 3600,
+        "microseconds": 1e6,
+        "minutes": 60,
     }
     d, x = {}, flt(0)
     x.n = 4         # Assume half-life's to 4 figures
     x.rtz = True    # Remove trailing zeros
-    for line in data1.split("\n") :
+    for line in data1.split("\n"):
         if not line.strip():
             continue
         name, halflife = line.strip().split(",")
@@ -609,9 +610,9 @@ def ProcessData():
         num, unit = halflife.split()
         if unit == "microseconds":
             unit = "us"
-        if element not in d :
+        if element not in d:
             d[element] = {}
-        d[element][isotope] = flt(num, units=unit)
+        d[element][isotope] = flt(num)
     return d
 def Another1():
     '''From
@@ -842,33 +843,29 @@ def Time(tm):
     t, spd, spy = float(tm), 24*3600, 31556925.97
     if t < 1:
         if t < 1e-3:
-            s = sig(t*1e6, _ndigits) + " us"
+            s = sig(t*1e6, ndigits) + " us"
         else:
-            s = sig(t*1e3, _ndigits) + " ms"
+            s = sig(t*1e3, ndigits) + " ms"
     else:
         if t < 60:
-            s = sig(t, _ndigits) + " s"
+            s = sig(t, ndigits) + " s"
         elif t < 60*60:
-            s = sig(t/60, _ndigits) + " min"
+            s = sig(t/60, ndigits) + " min"
         elif t < spd:
-            s = sig(t/3600, _ndigits) + " hr"
+            s = sig(t/3600, ndigits) + " hr"
         elif t < spy:
-            s = sig(t/spd, _ndigits) + " day"
+            s = sig(t/spd, ndigits) + " day"
         else:
-            s = sig(t/spy, _ndigits) + " yr"
+            s = sig(t/spy, ndigits) + " yr"
     return s
 if __name__ == "__main__":
     halflife = ProcessData()
     # Print out a table of half-lives
-    usesci = flt(10000, units="year")
+    print("Half-lives in s")
     for symbol in sorted(halflife):
         atno, atwt = atomic_data[symbol]
         name = elements[symbol]
         print(f"{symbol} ({name}, {atno} protons, {atwt} g/mol)")
         for isotope in sorted(halflife[symbol]):
             t = halflife[symbol][isotope]
-            if t.val > usesci.val:
-                x = flt(t.val)
-                print(f"  {isotope:4s}    {x._sci(n=3)} years")
-            else:
-                print(f"  {isotope:4s}    {t}")
+            print(f"  {isotope:4s}    {Time(t)}")

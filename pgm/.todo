@@ -1,27 +1,18 @@
 Active
 
+    - pcs.py
+        - /plib is finished.  Now run on /plib/pgm.  This repairs most
+          priority 2 and 3 errors.
+
+    - trigger.py
+        - Change default trigger strings to '# ∞' and ' ∞#', as this will
+          stop error messages from pycodestyle.  This also has the benefit
+          of making the string a little easier to read.  
+        - Write a script to modify all the files in the current directory
+          and identify all the trigger strings first.
+
     - Move notes, password db, etc. to .0rc because it's backed up to the
       cloud
-
-    - chk organizer
-        - This runs pycodestyle on python scripts.  It's thorough and
-          helpful, but the output is verbose.
-        - Process each line and index it by the error/warning number.  Then
-          print out the report by listing the line:column numbers where the
-          problem is after the number.
-        - pgm/pycodestyle_filter.py is nearing completion and this will be
-          an excellent tool to vet a bunch of files.
-            - First use should be on /plib.  Goal:  get all files
-              conforming at least to my default set of guidelines.
-            - Write a script which downloads and outputs the latest list of
-              error codes from
-              https://pycodestyle.pycqa.org/en/latest/intro.html#error-codes
-
-        - https://pycodestyle.pycqa.org/en/latest/advanced.html#automated-tests
-          comments that you can build in style conformance into your
-          regression tests.  Basic method is to import pycodestyle,
-          create a style = pycodestyle.StyleGuide(quiet=True), then 
-          run style.check_files(['file1.py', 'file2.py']).
 
     - numpy
         - Now that I have working numpy/scipy installations, run the MLR

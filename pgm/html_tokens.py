@@ -28,7 +28,7 @@ class MyHTMLParser(HTMLParser):
         return s
     def handle_data(self, data):
         global all_words
-        numbers = re.compile("\d+")
+        numbers = re.compile(r"\d+")
         for word in self.remove_punctuation(data).split():
             if not numbers.match(word):
                 all_words[word.lower()] = 0

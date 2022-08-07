@@ -3168,7 +3168,8 @@ if 1:   # Core functionality
             out.append((i, count))
         if d["-P"]:
             # Sort by page count
-            f = lambda x: x[1]
+            def f(x):
+                return x[1]
             out = sorted(out, key=f)
         else:
             # Sort by date
