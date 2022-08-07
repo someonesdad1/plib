@@ -56,7 +56,7 @@ if 1:   # Custom imports
         import color as c
         have_color = True
     except ImportError:
-        class C: # Dummy object that will swallow calls to the color module
+        class C:    # Dummy object that will swallow calls to the color module
             def __setattr__(self, attr, x):
                 pass
             def __getattr__(self, attr):
@@ -73,16 +73,16 @@ if 1:   # Global variables
     # Define colors for language types.  Languages not in this list won't
     # be highlighted.
     language_colors = {  # Color, name to display
-    #"algorithm"     : ((c.lwhite, c.lblue), "Algorithm"),
-    #"awk"           : (c.red, "awk"),
-    "c"             : (c.yellow, "C"),
-    #"c++"           : (c.lred, "C++"),
-    #"java"          : (c.cyan, "Java"),
-    "normal"        : ((c.white, c.black), ""),
-    #"perl"          : (c.magenta, "Perl"),
-    "python"        : (c.lcyan, "python"),
-    "sh"            : (c.lgreen, "sh"),
-    "text"          : (c.white, "text"),
+        #"algorithm": ((c.lwhite, c.lblue), "Algorithm"),
+        #"awk": (c.red, "awk"),
+        "c": (c.yellow, "C"),
+        #"c++": (c.lred, "C++"),
+        #"java": (c.cyan, "Java"),
+        "normal": ((c.white, c.black), ""),
+        #"perl": (c.magenta, "Perl"),
+        "python": (c.lcyan, "python"),
+        "sh": (c.lgreen, "sh"),
+        "text": (c.white, "text"),
     }
 class Record(object):
     '''Holds the data from one record.

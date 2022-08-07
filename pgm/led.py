@@ -53,7 +53,8 @@ if 1:   # Global variables
         "blu": GN("2.62 2.67 2.74 2.86 3.00 3.10 3.16 3.21 3.25"),
         "wht": GN("2.60 2.64 2.70 2.80 2.90 2.98 3.05 3.11 3.17"),
     }
-    class g: pass
+    class g:
+        pass
     g.n = C.norm
     g.a = C.yel
     g.p = C.lmag

@@ -140,7 +140,8 @@ def GetFilesAndDirectories(dir):
     '''Return two sets containing the file names and directory that are
     under the indicated directory.
     '''
-    J = lambda root, name:  os.path.join(root, name)
+    def J(root, name):
+        return os.path.join(root, name)
     Dirs, Files = set(), set()
     for root, dirs, files in os.walk(dir):
         f = [J(root, i) for i in files]

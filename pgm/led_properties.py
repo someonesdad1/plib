@@ -382,7 +382,8 @@ def LED(color="green"):
     '''Returns a sequence of (i, V, R) values for the 5 mm LEDs that I use.
     '''
     leds = {"red": [], "green": [], "blue": []}
-    Int = lambda x:  int(x) if int(x) == x else x
+    def Int(x):
+        return int(x) if int(x) == x else x
     data = '''
         # i_mA  V_red   V_green V_blue
         0.5     1.71    2.18    2.42

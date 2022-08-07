@@ -71,7 +71,7 @@ def ParseCommandLine(d):
         Usage(d)
     return args
 if __name__ == "__main__":
-    d = {} # Options dictionary
+    d = {}  # Options dictionary
     args = ParseCommandLine(d)
     if d["-@"]:
         ShuffleStdin()

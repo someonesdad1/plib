@@ -1,4 +1,4 @@
-'''
+r'''
 TODO
 
     * Add -n for dry run (--dry-run for astyle option)
@@ -59,8 +59,8 @@ if 1:   # Standard imports
     from pdb import set_trace as xx
 if 1:   # Custom imports
     from wrap import wrap, dedent
-    from color import (C, fg, black, blue,  green,  cyan,  red,  magenta,
-        brown,  white, gray,  lblue, lgreen, lcyan, lred, lmagenta, yellow,
+    from color import (C, fg, black, blue, green, cyan, red, magenta,
+        brown, white, gray, lblue, lgreen, lcyan, lred, lmagenta, yellow,
         lwhite)
     from cmddecode import CommandDecode
     if 0:
@@ -69,7 +69,8 @@ if 1:   # Custom imports
 if 1:   # Global variables
     P = pathlib.Path
     ii = isinstance
-    class g: pass
+    class g:
+        pass
     g.astyle = "c:/cygwin/home/Don/bin/astyle.exe"
     g.styles = '''
         1tbs allman attach banner break bsd gnu google horstmann java k&r
@@ -84,14 +85,14 @@ if 1:   # Global variables
     '''.split()
     g.style_aliases = {
         # Use to show synonyms in -h option
-        "bsd":     "allman break",
-        "java":    "attach",
-        "kr":      "k&r k/r",
-        "banner":  "ratliff",
-        "linux":   "knf",
-        "run-in":  "horstmann",
-        "otbs":    "1tbs",
-        "python":  "lisp",
+        "bsd": "allman break",
+        "java": "attach",
+        "kr": "k&r k/r",
+        "banner": "ratliff",
+        "linux": "knf",
+        "run-in": "horstmann",
+        "otbs": "1tbs",
+        "python": "lisp",
     }
     g.project_extension = ".proj"
     g.backup_ext = ".astyle.bak"
@@ -149,16 +150,6 @@ if 1:   # Classes
         def get(self):
             'Return string for astyle command line'
             return ' '.join(self.files)
-
-if 0:
-    f = FileList(["*.cpp", "*.h"]) #xx
-    print(f"f.files = {f.files}")
-    print()
-    for i in f.filelist:
-        print(i, f"{f.filelist[i] & 0o777:o}")
-    print()
-    print(f"List for astyle:  {f.get_files()}")
-    exit(0) #xx
 
 if 1:   # Utility
     def Dbg(*msg):
@@ -325,8 +316,8 @@ if 1:   # Core functionality
         if d["-c"]:
             g.err = C.lred
             g.d = C.cyn
-            g.b = fg(lwhite, blue, s=1) # Brace color
-            g.m = fg(yellow, s=1)  # Message color showing style
+            g.b = fg(lwhite, blue, s=1)     # Brace color
+            g.m = fg(yellow, s=1)           # Message color showing style
             g.n = C.norm
         else:
             g.err = ""

@@ -85,7 +85,7 @@ def Interpret(s):
     prefix = {
         "y": -24, "z": -21, "a": -18, "f": -15, "p": -12, "n": -9, "u":
         -6, "m": -3, "c": -2, "d": -1, "h": 2, "k": 3, "M": 6, "G": 9,
-        "T": 12, "P": 15, "E": 18, "Z": 21, "Y":24}
+        "T": 12, "P": 15, "E": 18, "Z": 21, "Y": 24}
     if not s:
         raise ValueError("Empty string in Interpret()")
     m = 1
@@ -94,7 +94,7 @@ def Interpret(s):
         s = s[:-1]
     return flt(s)*m
 if __name__ == "__main__":
-    d = {} # Options dictionary
+    d = {}  # Options dictionary
     z, theta_d = ParseCommandLine(d)
     fp = FPFormat(d["-d"])
     inf = flt(float("inf"))
@@ -141,7 +141,7 @@ if __name__ == "__main__":
         X = Z*sin(theta)
         print("  Rs = ", E(Rs), "ohm = ESR", sep="")
         print("  Rp = ", E(Rp), "ohm", sep="")
-        print("  X  = ", E(X),  "ohm", sep="")
+        print("  X  = ", E(X), "ohm", sep="")
         if isinf(Cs):
             print("  Cs = inf")
         else:

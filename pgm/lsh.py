@@ -42,32 +42,32 @@ if 1:   # Global variables
     # Colors for status type
     if old_color:
         colors = {
-            "M" : yellow,
-            "A" : lgreen,
-            "R" : red,
-            "C" : white,
-            "!" : lred,
-            "?" : lcyan,
-            "I" : lblue,
+            "M": yellow,
+            "A": lgreen,
+            "R": red,
+            "C": white,
+            "!": lred,
+            "?": lcyan,
+            "I": lblue,
         }
     else:
         colors = {
-            "M" : "yell",
-            "A" : "grnl",
-            "R" : "red",
-            "C" : "wht",
-            "!" : "redl",
-            "?" : "cynl",
-            "I" : "blul",
+            "M": "yell",
+            "A": "grnl",
+            "R": "red",
+            "C": "wht",
+            "!": "redl",
+            "?": "cynl",
+            "I": "blul",
         }
     status_name = {
-        "M" : "Modified:",
-        "A" : "Added:",
-        "R" : "Removed:",
-        "C" : "Clean:",
-        "!" : "Deleted:",
-        "?" : "Not tracked:",
-        "I" : "Ignored:",
+        "M": "Modified:",
+        "A": "Added:",
+        "R": "Removed:",
+        "C": "Clean:",
+        "!": "Deleted:",
+        "?": "Not tracked:",
+        "I": "Ignored:",
     }
 def Error(*msg, status=1):
     print(*msg, file=sys.stderr)

@@ -73,7 +73,8 @@ def PrintReport(results):
     elif d["-Z"]:
         results = list(reversed(sorted(results)))
     elif d["-n"]:
-        f = lambda x: x[1]
+        def f(x):
+            return x[1]
         results = list(sorted(results, key=f))
     # Get largest number in results array
     counts = [i[0] for i in results]

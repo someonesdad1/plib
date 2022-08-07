@@ -30,7 +30,8 @@ if 1:   # Custom imports
     from color import TRM as t
     import primes as P
 if 1:   # Global variables
-    class g: pass
+    class g:
+        pass
     g.max_num_to_use = 100  # For sum of squares and cubes
     # The following variable holds a list of primes
     g.primes = None
@@ -43,14 +44,14 @@ def GetColors():
     if d["-c"]:
         g.w = g.n = g.pr = g.fa = g.f = g.lg = g.b = g.r = ""
     else:
-        g.w  = t("whtl")    # General label
-        g.n  = t("yell")    # Number
+        g.w = t("whtl")    # General label
+        g.n = t("yell")    # Number
         g.pr = t("lip")     # Is a prime
         g.fa = t("grnl")    # Factors
-        g.f  = t("magl")    # Factorization
+        g.f = t("magl")    # Factorization
         g.lg = t("royl")    # Logarithms
-        g.b  = t("trq")     # Bases
-        g.r  = t("pnk")     # Roots
+        g.b = t("trq")     # Bases
+        g.r = t("pnk")     # Roots
 def Search(n, k):
     N = g.max_num_to_use
     def Find(n, power):
@@ -263,7 +264,7 @@ def ParseCommandLine():
     GetColors()
     return args
 if __name__ == "__main__": 
-    d = {} # Dictionary for command line options
+    d = {}  # Dictionary for command line options
     numbers = ParseCommandLine()
     g.primes = P.Primes(g.max_prime)
     if d["-a"] is not None:

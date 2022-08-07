@@ -17,7 +17,8 @@ def Print_tpi():
     for i in tpi_data.strip().split("\n"):
         for j in i.split():
             tpi.append(float(j))
-    f = lambda x: int(x) if int(x) == x else x
+    def f(x):
+        return int(x) if int(x) == x else x
     tpi = list(sorted(f(i) for i in tpi))
     print("Threading tpi:")
     for line in Columnize([str(i) for i in tpi], col_width=8, indent=" "*4):

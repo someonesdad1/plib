@@ -18,10 +18,14 @@ from glob import glob
 from collections import Counter
 from pdb import set_trace as xx 
 
-try: reduce
-except: from functools import reduce
-try:    raw_input
-except: raw_input = input
+try:
+    reduce
+except Exception:
+    from functools import reduce
+try:
+    raw_input
+except Exception:
+    raw_input = input
 
 def parsetexts(fileglob='t*.txt'):
     '''Returns (texts, words) where texts is a dictionary with filename
@@ -36,7 +40,7 @@ def parsetexts(fileglob='t*.txt'):
             texts[txtfile.split('\\')[-1]] = txt
     return texts, words
 
-def termsearch(terms): # Searches simple inverted index
+def termsearch(terms):  # Searches simple inverted index
 
     '''reduce(func, iterable, [initializer]) applies a function of two
     arguments cumulatively to items of the sequence.  If initializer is
@@ -48,14 +52,14 @@ def termsearch(terms): # Searches simple inverted index
                   (invindex[term] for term in terms),
                   set(texts.keys()))
 
-def fulltermsearch(terms): # Searches full inverted index
+def fulltermsearch(terms):  # Searches full inverted index
     if not set(terms).issubset(words):
         return set()
     return reduce(set.intersection,
                   (set(x[0] for x in txtindx)
                    for term, txtindx in finvindex.items()
                    if term in terms),
-                  set(texts.keys()) )
+                   set(texts.keys()))
 
 def phrasesearch(phrase):
     wordsinphrase = phrase.strip().strip('"').split()
@@ -66,11 +70,11 @@ def phrasesearch(phrase):
     found = []
     for txt in termsearch(wordsinphrase):
         # Possible text files
-        for firstindx in (indx for t,indx in finvindex[firstword]
+        for firstindx in (indx for t, indx in finvindex[firstword]
                           if t == txt):
             # Over all positions of the first word of the phrase in this txt
-            if all( (txt, firstindx+1 + otherindx) in finvindex[otherword]
-                    for otherindx, otherword in enumerate(otherwords) ):
+            if all((txt, firstindx+1 + otherindx) in finvindex[otherword]
+                    for otherindx, otherword in enumerate(otherwords)):
                 found.append(txt)
     return found
 
@@ -93,23 +97,23 @@ if __name__ == "__main__":
         pp(texts)
         print('\nWords')
         pp(sorted(words))
-        invindex = {word:set(txt for txt, wrds in texts.items() if word in wrds)
+        invindex = {word: set(txt for txt, wrds in texts.items() if word in wrds)
                     for word in words}
         print('\nInverted Index')
-        pp({k:sorted(v) for k,v in invindex.items()})
+        pp({k: sorted(v) for k, v in invindex.items()})
         terms = ["what", "is", "it"]
         print('\nTerm Search for: ' + repr(terms))
         pp(sorted(termsearch(terms)))
         print("-"*70)
 
         # Full inverted index example
-        finvindex = {word:set((txt, wrdindx)
+        finvindex = {word: set((txt, wrdindx)
                             for txt, wrds in texts.items()
-                            for wrdindx in (i for i,w in enumerate(wrds) if word==w)
+                            for wrdindx in (i for i, w in enumerate(wrds) if word==w)
                             if word in wrds)
                     for word in words}
         print('\nFull Inverted Index')
-        pp({k:sorted(v) for k,v in finvindex.items()})
+        pp({k: sorted(v) for k, v in finvindex.items()})
 
         print('\nTerm Search on full inverted index for: ' + repr(terms))
         pp(sorted(fulltermsearch(terms)))

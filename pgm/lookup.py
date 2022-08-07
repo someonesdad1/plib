@@ -62,12 +62,12 @@ if 1:   # Global variables
     dir, W = "/pylib/", "types_of_words/WordNet/"
     Join = os.path.join
     wordnet_files = {
-        "index" : Join(dir, W, "index.sense"),
-        "adj"   : Join(dir, W, "data.adj"),
-        "adv"   : Join(dir, W, "data.adv"),
-        "noun"  : Join(dir, W, "data.noun"),
-        "verb"  : Join(dir, W, "data.verb"),
-        "dict"  : Join(dir, "pgm", "words.wordnet"),
+        "index": Join(dir, W, "index.sense"),
+        "adj": Join(dir, W, "data.adj"),
+        "adv": Join(dir, W, "data.adv"),
+        "noun": Join(dir, W, "data.noun"),
+        "verb": Join(dir, W, "data.verb"),
+        "dict": Join(dir, "pgm", "words.wordnet"),
     }
     # Make the following dictionary point to the dictionary files you wish
     # to use.
@@ -87,10 +87,10 @@ if 1:   # Global variables
     # The following dictionary contains the open streams to the WordNet
     # data files.
     streams = {
-        "a" : open(wordnet_files["adj"]),
-        "r" : open(wordnet_files["adv"]),
-        "n" : open(wordnet_files["noun"]),
-        "v" : open(wordnet_files["verb"]),
+        "a": open(wordnet_files["adj"]),
+        "r": open(wordnet_files["adv"]),
+        "n": open(wordnet_files["noun"]),
+        "v": open(wordnet_files["verb"]),
     }
     streams["s"] = streams["a"]
     # Get the number of screen columns
@@ -120,11 +120,11 @@ if 1:   # Global variables
     # conventional abbreviations.  This also allows us to set the color
     # for these types of words.
     abbr = {
-        "a" : ("adj.", yellow),
-        "s" : ("adj.", yellow),
-        "n" : ("n.",   lwhite),
-        "v" : ("v.",   lgreen),
-        "r" : ("adv.", lmagenta),
+        "a": ("adj.", yellow),
+        "s": ("adj.", yellow),
+        "n": ("n.", lwhite),
+        "v": ("v.", lgreen),
+        "r": ("adv.", lmagenta),
     }
 def Error(*msg, status=1):
     print(*msg, file=sys.stderr)
@@ -432,7 +432,8 @@ def DictionaryLookup(words, d):
     (d["-S"]) in the indicated dictionary.
     '''
     # Get dictionary
-    convert = lambda x: x if d["-i"] else lambda x: x.lower()
+    def convert(x):
+        return x if d["-i"] else lambda x: x.lower()
     tokens = set(GetTokens(d["dict"][d["which_dict"]], convert=convert))
     if d["-@"]:
         # Read lines of words from stdin
