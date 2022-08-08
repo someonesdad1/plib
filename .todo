@@ -1,5 +1,44 @@
 Active
 
+    - gdir.py
+        - Can filter out the files, directories, or extensions from a 'git status'
+          command and return them as a set.
+        - Use case is looking at a large directory structure that is being
+          turned into a git repository.
+        - gitcandidates.py
+            - This would get all the files from the indicated directory
+              (defaults to '.') and suggest that these are the ones that
+              should be put under repository control.
+                - Finds important stuff like *.py, *.c, *.cpp, *.h,
+                  makefiles, etc., but ignores typical stuff in a
+                  .gitignore file.
+
+    - fp.py
+        - Like 'pfind.py -pc .', but finds python files with no color
+          coding.
+        - Desired options
+            - List subdirectories that contain one or more python files.
+              Follow by [n] to indicate file count.
+            - Compact listing:  like previous, but columnize files under
+              the directory name
+            - Extra compact listing:  same, but names truncated to get
+              numerous columns
+
+    - pcs.py
+        - The /plib tree is done for priority 2 and 3 errors.
+        - Do for:  /math, /science, /elec, /shop
+
+    - color.py
+        - TRM needs a way to ensure all attribute access returns "" when
+          .on is False.
+        - Add support to g.py
+        - Use "grep -l '\<fg\>' *.py" to identify all files in /plib tree
+          that use the old style color.py calls and update them to the
+          modern form.
+        - Obsolete rgb.py and any other old color stuff
+        - Change /plib/rgb to /plib/color and edit the contents to provide
+          useful background/reference stuff to /plib/color.py.
+
     - trigger.py
         - Change default trigger strings to '# ∞' and ' ∞#', as this will
           stop error messages from pycodestyle.  This also has the benefit
@@ -72,6 +111,18 @@ Active
                   rows(*n)
 
 Other
+
+    - manning.py
+        - Consider fixing /science/pipe_flow/manning.py and moving it to
+          /plib/pgm
+        - Can the pnumber.py module be revived?  Note I tried to do similar
+          things in f.py and eventually wound up removing the
+          functionality.  This floating point number and combined units
+          desire seems pretty doomed unless someone eventually has the
+          insight to add it to the language itself.
+        - Instead of pnumber of flt with units, this manning.py calculation
+          tool can proceed with assuming all the units are in base SI
+          units.  Conversion to the user's units can be done at the end.
 
     - WaveXpress
         - Try to port to python 3
@@ -245,11 +296,6 @@ Other
         - Colorize output
         - Allow binary or text comparisons
         - Try to use a heuristic to determine if text or binary
-
-    - color.py
-        - TRM needs a way to ensure all attribute access returns "" when
-          .on is False.
-        - Add support to g.py
 
     - ts.py
         - Import to /plib
