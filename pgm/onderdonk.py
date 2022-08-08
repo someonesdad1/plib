@@ -227,10 +227,10 @@ def GetVariables(args):
             Error("Second argument can't also be a diameter")
         elif arg1[1] == "s":
             t = flt(arg1[0])
-            T   = f"Time     = '{args[1]}' = {t} s"
+            T = f"Time     = '{args[1]}' = {t} s"
         else:
             i = flt(arg1[0])
-            I   = f"Current  = '{args[1]}' = {i} A"
+            I = f"Current  = '{args[1]}' = {i} A"
     elif arg0[1] == "s":
         t = flt(arg0[0])
         T = f"Time     = '{args[0]}' = {t} s"
@@ -250,7 +250,7 @@ def GetVariables(args):
             DIA = f"Diameter = '{args[1]}' = {dia} m"
         elif arg1[1] == "s":
             t = flt(arg1[0])
-            T   = f"Time     = '{args[1]}' = {t} s"
+            T = f"Time     = '{args[1]}' = {t} s"
         else:
             Error("Second argument can't also be a current")
     return ((dia, t, i), (DIA, T, I))
@@ -258,7 +258,7 @@ def Test():
     # Basic test case is 12 ga wire for 1 s should give around 950 A.
     DIA, T, I = 2.052e-3, 1, 947.0422770650215
     global d
-    d = {"-a": 40, "-d":8,}
+    d = {"-a": 40, "-d": 8}
     flt(0).n = d["-d"]
     # Wire diameter and time
     a, b = CalculateResults([f"{DIA}m", f"{T}s"])

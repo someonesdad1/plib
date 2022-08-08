@@ -28,7 +28,8 @@ if 1:   # Custom imports
     from color import C
 if 1:   # Global variables
     Get = partial(GetNumber, num_type=flt, low=0)
-    class g: pass
+    class g:
+        pass
     g.VolA = flt(0)
     g.VolB = flt(0)
     g.VolMixture = flt(0)

@@ -29,7 +29,8 @@ if 1:   # Custom imports
 if 1:   # Global variables
     P = pathlib.Path
     ii = isinstance
-    class g: pass
+    class g:
+        pass
     g.dollar_per_kWhr = 0.104
     g.cents = "¢"
 if 1:   # Utility
@@ -93,7 +94,7 @@ if 1:   # Core functionality
         model = "P2413Q"
         off = 10
         Br = list(range(0, 101, 10))
-        P  = [14, 16, 19, 21, 24, 26, 29, 32, 34, 36, 37]
+        P = [14, 16, 19, 21, 24, 26, 29, 32, 34, 36, 37]
         print("Dell P2413Q monitor energy cost as")
         print("function of brightness setting")
         print(f"                                       Corr")

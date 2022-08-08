@@ -360,18 +360,18 @@ def BuildSpecialMacros():
     import time
     tm = time.localtime(time.time())
     settings = [
-        ["mp_NowDateDMY",    "%d %b %Y"],
-        ["mp_NowDateDD",     "%d"],
-        ["mp_NowDateMM",     "%m"],
-        ["mp_NowDateMONTH",  "%b"],
-        ["mp_NowDateYY",     "%y"],
-        ["mp_NowDateYEAR",   "%Y"],
-        ["mp_NowTimeHMS",    "%H:%M:%S"],
-        ["mp_NowTimeHH",     "%H"],
-        ["mp_NowTime12HH",   "%I"],
-        ["mp_NowTimeMM",     "%M"],
-        ["mp_NowTimeSS",     "%S"],
-        ["mp_NowTimeAMPM",   "%p"],
+        ["mp_NowDateDMY", "%d %b %Y"],
+        ["mp_NowDateDD", "%d"],
+        ["mp_NowDateMM", "%m"],
+        ["mp_NowDateMONTH", "%b"],
+        ["mp_NowDateYY", "%y"],
+        ["mp_NowDateYEAR", "%Y"],
+        ["mp_NowTimeHMS", "%H:%M:%S"],
+        ["mp_NowTimeHH", "%H"],
+        ["mp_NowTime12HH", "%I"],
+        ["mp_NowTimeMM", "%M"],
+        ["mp_NowTimeSS", "%S"],
+        ["mp_NowTimeAMPM", "%p"],
     ]
     for setting in settings:
         key = setting[0]
@@ -380,7 +380,7 @@ def BuildSpecialMacros():
         if verbose:
             Log("%-20s %s\n" % (key, value))
     # Add the GPL macros.
-    macros["mp_GPL_txt"] = [GPL_txt,  0, ""]
+    macros["mp_GPL_txt"] = [GPL_txt, 0, ""]
     macros["mp_GPL_html"] = [GPL_html, 0, ""]
     macro_names = macros.keys()
     SortMacroNames()

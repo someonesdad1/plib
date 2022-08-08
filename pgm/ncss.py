@@ -22,11 +22,12 @@ if 1:   # Custom imports
     from wrap import dedent
     from f import flt
 if 1:   # Global variables
-    class g: pass
-    g.start_C_comment = re.compile("^.*(/\*.*$)")
-    g.end_C_comment = re.compile("^(.*\*/).*$")
-    g.one_line_C_comment = re.compile(".*(/\*.*\*/).*$")
-    g.cpp_comment = re.compile(".*(//.*$)")
+    class g:
+        pass
+    g.start_C_comment = re.compile(r"^.*(/\*.*$)")
+    g.end_C_comment = re.compile(r"^(.*\*/).*$")
+    g.one_line_C_comment = re.compile(r".*(/\*.*\*/).*$")
+    g.cpp_comment = re.compile(r".*(//.*$)")
     g.total_lines = 0
 def Usage():
     print(dedent(f'''

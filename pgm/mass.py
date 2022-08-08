@@ -104,7 +104,7 @@ if 1:   # Global variables
     # all lowercase letters.  Note the density must be in g/cc (grams per
     # cubic centimeter).
     _materials = {
-        "Metals" : (
+        "Metals": (
             # Level, ShortID, name, density in g/cc
             (1, "al", "Aluminum", 2.7),
             (1, "brass", "Brass", 8.47),
@@ -150,7 +150,7 @@ if 1:   # Global variables
             (3, "zr", "Zirconium", 6.5),
             (3, "gsilv", "German silver Cu, Ni, Zn", 8.45),
         ),
-        "Woods" : (
+        "Woods": (
             # The value for fir from my references was 0.48.  I adjusted
             # it upwards a bit to make an 8' 2x4 have a mass of about 9.5
             # pounds.  Clearly, this is an approximation, as I have
@@ -182,7 +182,7 @@ if 1:   # Global variables
             (3, "sugar maple, green", "Sugar maple, green", 1.0),
             (3, "willow, green", "Willow, green", 0.87),
         ),
-        "Plastics" : (
+        "Plastics": (
             (1, "acrylic", "Acrylic", 1.19),
             (1, "nylon", "Nylon", 1.14),
             (1, "poly", "Polyethylene", 0.93),
@@ -205,7 +205,7 @@ if 1:   # Global variables
             (3, "mylar", "Mylar", 1.395),
             (3, "phenolic", "Phenolic", 1.9),
         ),
-        "Stone, ceramics, glass, etc." : (
+        "Stone, ceramics, glass, etc.": (
             (1, "brick", "Brick", 1.8),
             (1, "rconcrete", "Concrete, reinforced", 2.2),
             (1, "concrete", "Concrete, gravel", 2.5),
@@ -233,7 +233,7 @@ if 1:   # Global variables
             (3, "mgo", "Magnesium oxide", 2.8),
             (3, "sic", "Silicon carbide", 2.72),
         ),
-        "Other" : (
+        "Other": (
             (1, "card", "Cardboard", 0.7),
             (1, "paper", "Paper", 0.9),
             (1, "rubber", "Rubber, hard", 1.2),
@@ -273,7 +273,7 @@ if 1:   # Global variables
             (3, "verm", "Vermiculite", 0.13),
             (3, "viton", "Rubber, Viton", 1.85),
         ),
-        "Liquids" : (
+        "Liquids": (
             (1, "gas", "Gasoline", 0.7),
             (1, "oil", "Machine oil", 0.9),
             (1, "water", "Water", 1),
@@ -305,7 +305,7 @@ if 1:   # Global variables
             (3, "turp", "Turpentine", 0.87),
             (3, "xylene", "Xylene", 0.89),
         ),
-        "Gases" : (
+        "Gases": (
             (1, "air", "Dry air 20 C, 1 atm", _air_density),
             (1, "h2", "Hydrogen (gas)", 0.070*_air_density),
             (1, "n2", "Nitrogen (gas)", 0.967*_air_density),
@@ -2008,7 +2008,7 @@ def GetLinearDimension(msg, d, allow_zero=False):
             print("Couldn't parse number and unit; try again.")
 def PrintObjectSummary(d):
     print("Object summary:")
-    kw = {"rho":1, "un":"in", "L":1, "a":1}
+    kw = {"rho": 1, "un": "in", "L": 1, "a": 1}
     for i in ("L a b c w h t t1 t2 r R A d D h1 h2 theta A1 A2 s "
               "theta_ac theta_ab theta_bc nsides n V".split()):
         kw[i] = 1

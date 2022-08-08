@@ -29,7 +29,8 @@ if 1:   # Global variables
     P = pathlib.Path
     ii = isinstance
     c = Clr()
-    class g:  pass
+    class g:
+        pass
     g.mpg = flt(18)     # mpg of your default car
     g.tank = flt(26)    # Tank volume in gallons of your car
     g.name = "2011 Suburban"  # Name of default car

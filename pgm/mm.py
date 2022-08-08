@@ -27,7 +27,8 @@ if 1:   # Custom imports
     from color import C
 if 1:   # Global variables
     in2mm = flt(25.4)
-    class g: pass
+    class g:
+        pass
     g.n = C.norm
     g.m = C.lcyn
     g.i = C.lmag

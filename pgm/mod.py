@@ -64,7 +64,7 @@ if 1:   # Custom imports
         import color
         _have_color = True
     except ImportError:
-        class Dummy: # Make a dummy color object to swallow function calls
+        class Dummy:    # Make a dummy color object to swallow function calls
             def fg(self, *p, **kw):
                 pass
             def normal(self, *p, **kw):
@@ -224,14 +224,14 @@ def GetTime(age):
     if not age:
         Usage()
     suffixes = {
-        "s" : 1, "S" : 1,
-        "M" : 60,
-        "h" : s_per_hr, "H" : s_per_hr,
-        "d" : s_per_day, "D" : s_per_day,
-        "w" : 7*s_per_day, "W" : 7*s_per_day,
-        "m" : days_per_year/12*s_per_day,
-        "y" : days_per_year*s_per_day, "Y" : days_per_year*s_per_day,
-        "i" : inf, "Y" : inf,
+        "s": 1, "S" : 1,
+        "M": 60,
+        "h": s_per_hr, "H" : s_per_hr,
+        "d": s_per_day, "D" : s_per_day,
+        "w": 7*s_per_day, "W" : 7*s_per_day,
+        "m": days_per_year/12*s_per_day,
+        "y": days_per_year*s_per_day, "Y" : days_per_year*s_per_day,
+        "i": inf, "Y" : inf,
     }
     fmt = "'{}' is a bad age specification"
     def Translate(a):

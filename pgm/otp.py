@@ -50,7 +50,8 @@ class OneTimePad:
         trailing '=' characters from the returned string.
         '''
         s, n = self.binary(num_bytes), 0x7f - 0x20
-        f = lambda x: chr(0x20 + (x % n))
+        def f(x):
+            return chr(0x20 + (x % n))
         return ''.join([f(i) for i in s])
     def hex(self, num_bytes):
         s = self.binary(num_bytes)

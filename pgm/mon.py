@@ -53,18 +53,21 @@ if 1:   # Custom imports
         import color as C
         have_color = True
     except ImportError:
-        class Dummy: # Make a dummy color object to swallow function calls
-            def fg(self, *p, **kw): pass
-            def normal(self, *p, **kw): pass
-            def __getattr__(self, name): pass
+        class Dummy:    # Make a dummy color object to swallow function calls
+            def fg(self, *p, **kw):
+                pass
+            def normal(self, *p, **kw):
+                pass
+            def __getattr__(self, name):
+                pass
         C = Dummy()
         have_color = False
 if 1:   # Global variables
     # Colors used
-    c_ascii   = C.lgreen        # For what came back from serial port
-    c_input   = C.white         # User's input
-    c_quit    = C.lmagenta      # When monitor exits
-    c_count   = C.white         # Character count returned
+    c_ascii = C.lgreen        # For what came back from serial port
+    c_input = C.white         # User's input
+    c_quit = C.lmagenta      # When monitor exits
+    c_count = C.white         # Character count returned
     # Other constants
     timeout_default = 1
 def Lines(input_file):

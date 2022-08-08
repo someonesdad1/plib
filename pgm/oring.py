@@ -183,7 +183,8 @@ def ShowTable():
     elif d["-s"] == "t":
         k = 2
     orings = GetData()
-    f = lambda x: x[k]
+    def f(x):
+        return x[k]
     orings = sorted(orings, key=f, reverse=d["-r"])
     i = "Inside Diameter"
     o = "Outside Diameter"
@@ -240,7 +241,7 @@ def ShowMatches(dia):
         id, od, thickness, name = item
         i, o, t = id.inches - D, od.inches - D, thickness.inches - D
         ID.append((abs(i), i, item))
-        OD.append((abs(o), o, item) )
+        OD.append((abs(o), o, item))
         T.append((abs(t), t, item))
     ID = KeepSmallest(ID)
     OD = KeepSmallest(OD)
