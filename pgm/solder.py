@@ -31,7 +31,8 @@ LEAD-FREE
 '''[1:-1]
 
 if __name__ == "__main__": 
-    c2f = lambda x: 1.8*x + 32
+    def c2f(x):
+        return 1.8*x + 32
     print("Solder melting point ranges\n")
     for i, line in enumerate(data.split("\n")):
         if not i:

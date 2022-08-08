@@ -178,8 +178,8 @@ if 1:   # Global variables
         2.0.1 Jun 22 2001
         ''')
     months = bidict({
-        1 : "Jan", 2 : "Feb", 3 : "Mar", 4 : "Apr", 5 : "May", 6 : "Jun",
-        7 : "Jul", 8 : "Aug", 9 : "Sep", 10 : "Oct", 11 : "Nov", 12 : "Dec"})
+        1: "Jan", 2: "Feb", 3: "Mar", 4: "Apr", 5: "May", 6: "Jun",
+        7: "Jul", 8: "Aug", 9: "Sep", 10: "Oct", 11: "Nov", 12: "Dec"})
 if __name__ == "__main__": 
     byrev, bydate = [], []
     for i, item in enumerate(data.split("\n")):

@@ -206,7 +206,7 @@ if __name__ == "__main__":
                 ofp = open("/pylib/pgm/real.history", "a")
                 ofp.write(' '.join(s))
                 ofp.close()
-            except RuntimeError:#Exception:
+            except RuntimeError:    # Exception
                 print("'{}' couldn't be evaluated".format(arg),
                       file=sys.stderr)
 '''

@@ -28,8 +28,8 @@ if 1:   # Global variables
     wrap.i = " "*4
 def W(s):
     if 0:
-        tw = textwrap.wrap(str(s), width=76 - n,  initial_indent="",
-                        subsequent_indent=" "*(n + 3))
+        tw = textwrap.wrap(str(s), width=76 - n, initial_indent="",
+                           subsequent_indent=" "*(n + 3))
         for i in tw:
             print(i)
     else:

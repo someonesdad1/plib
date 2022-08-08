@@ -30,7 +30,8 @@ if 1:   # Custom imports
     from lwtest import run, raises, assert_equal, Assert
 if 1:   # Global variables
     ii = isinstance
-    class g: pass
+    class g:
+        pass
     g.err = C.lred
     g.calc = C.lwht
     g.have = C.wht
@@ -198,7 +199,7 @@ def TestPracticalCase():
     Solve()
     v = opts["vars"]
     L = v["L"]
-    Assert(L == 28.958417504819245) # This is from an exact formula
+    Assert(L == 28.958417504819245)     # This is from an exact formula
     # Solve for d
     MakeVars(None, D, C, L)
     Solve()
@@ -313,7 +314,7 @@ def Solve(round=True):
         opts["vars"]["C"] = C.rnd(5) if round else C
     elif L is None:
         r, R = d/2, D/2
-        θ  = 2*acos(abs(R - r)/C)
+        θ = 2*acos(abs(R - r)/C)
         opts["vars"]["L"] = 2*C*sin(θ/2) + R*(2*pi - θ) + r*θ
     else:
         raise RuntimeError("No variables were None")

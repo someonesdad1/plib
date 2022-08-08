@@ -106,8 +106,8 @@ if 1:   # Core functionality
             return "0"
         characteristic = int(math.log10(b))
         n, rem = divmod(characteristic, 3)
-        ltr = {0:"", 1:"k", 2:"M", 3:"G", 4:"T", 5:"P", 6:"E",
-               7:"Z", 8:"Y"}[n]
+        ltr = {0: "", 1: "k", 2: "M", 3: "G", 4: "T", 5: "P", 6: "E",
+               7: "Z", 8: "Y"}[n]
         s = f"{b:.6e}" 
         digits = s.split("e")[0]
         u = round(float(digits), rem)
@@ -209,7 +209,7 @@ if 1:   # Core functionality
         t.c10 = t("redl", None, "rb")
 
 if 0:   # Test area xx
-    d={"-c":0}
+    d = {"-c": 0}
     GetColors()
     for i in range(12):
         print(ColorSize(10**i))

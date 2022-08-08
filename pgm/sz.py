@@ -74,11 +74,11 @@ def Eng(n):
     because of the minimum disk block size.
     '''
     clr = {
-        1:C.white, 2:C.white, 3:C.white, 4:C.white, 5:C.white,
-        6:C.white, 7:C.yellow, 8:C.yellow, 9:C.lgreen, 10:C.lred,
-        11:C.lmagenta,
+        1: C.white, 2: C.white, 3: C.white, 4: C.white, 5: C.white,
+        6: C.white, 7: C.yellow, 8: C.yellow, 9: C.lgreen, 10: C.lred,
+        11: C.lmagenta,
     }
-    prefix = {0:" ", 3:"k", 6:"M", 9:"G", 12:"T"}
+    prefix = {0: " ", 3: "k", 6: "M", 9: "G", 12: "T"}
     l = int(log10(n))
     div, rem = divmod(l, 3)
     # Build engineering string
@@ -141,7 +141,7 @@ if __name__ == "__main__":
         ProcessDir(dir, d)
     if d["total"]:
         s, clr = Eng(d["total"])
-        print("\nTotal =", end = " ")
+        print("\nTotal =", end=" ")
         if d["-c"]:
             C.fg(clr)
         print(s.strip(), end="")

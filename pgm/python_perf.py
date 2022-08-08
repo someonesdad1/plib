@@ -54,7 +54,7 @@ if 1:   # Global variables
     mp = "from mpmath import mpf, mpc, "
     #
     expressions = {
-        "arithmetic" : (
+        "arithmetic": (
             ("Arithmetic", "", "", N),
             ("  Integer addition", "3 + 4", "", N),
             ("  Integer subtraction", "3 - 4", "", N),
@@ -77,7 +77,7 @@ if 1:   # Global variables
             ("  Complex division", "(1. + 2.j)/(3. + 4.j)", "", N),
         ),
 
-        "real_functions" : (
+        "real_functions": (
             ("Elementary real functions", "", "", N),
             ("  sin", "sin(1.)", m + "sin", N),
             ("  cos", "cos(1.)", m + "cos", N),
@@ -112,7 +112,7 @@ if 1:   # Global variables
             ("  radians", "radians(10.1)", m + "radians", N),
         ),
 
-        "complex_functions" : (
+        "complex_functions": (
             ("Elementary complex functions", "", "", N),
             ("  sin", "sin(1.j)", c + "sin", N),
             ("  cos", "cos(1.j)", c + "cos", N),
@@ -136,7 +136,7 @@ if 1:   # Global variables
             ("  rect", "rect(1., 2.)", c + "rect", N),
         ),
 
-        "mpmath_functions" : (
+        "mpmath_functions": (
             ("mpmath functions (N//%d)" % (N//Nmp), "", "", N),
             ("  sqrt", "sqrt(mpf(1.))", mp + "sqrt", Nmp),
             ("  sqrt", "sqrt(mpc(1.j))", mp + "sqrt", Nmp),
@@ -222,7 +222,7 @@ def P(s, val, size=35):
     fmt = "%%-%ds %%s" % size
     try:
         v = eval(val)
-    except:
+    except Exception:
         return
     print(fmt % (s, v))
 def Numbers():
@@ -284,6 +284,8 @@ if __name__ == "__main__":
     System()
     print("\nTotal time to execute = %.2f s" % (time.time() - t))
 
+# ---------------------------------------------------------------------------
+# Results Feb 2011 python 2.6.5     16.2 s
 '''
 For new PC Jimmy built for me Feb 2011:
 
@@ -465,6 +467,7 @@ System information
 
 Total time to execute = 16.17 s
 '''
+# Results Jul 2021 python 3.7.5     4.8 s
 '''
 This computer was built around 2016
 
@@ -644,4 +647,182 @@ System information
   log2(maximum container size)      31.00
 
 Total time to execute = 4.80 s
+'''
+# Results Aug 2022 python 3.9.10    4.1 s
+'''
+          Python performance measures Mon Aug  8 07:25:38 2022
+          -----------------------------------------------------
+                            log10(N) = 5
+                                                                         Time
+  Operation               Expression                                     in ns
+  ---------------------   -----------------------------------------      ----- 
+
+Arithmetic
+  Integer addition        3 + 4                                              5
+  Integer subtraction     3 - 4                                              5
+  Integer multiplication  3*4                                                5
+  Integer division        3//4                                               5
+  Long addition           30000000000000000 + 40000000000000000              5
+  Long subtraction        30000000000000000 - 40000000000000000              6
+  Long multiplication     30000000000000000*40000000000000000                5
+  Long division           30000000000000000//40000000000000000               5
+  Float addition          3. + 4.                                            5
+  Float subtraction       3. - 4.                                            5
+  Float multiplication    3.*4.                                              5
+  Float division          3./4.                                              5
+  Complex addition        (1. + 2.j) + (3. + 4.j)                            5
+  Complex subtraction     (1. + 2.j) - (3. + 4.j)                            5
+  Complex multiplication  (1. + 2.j)*(3. + 4.j)                              5
+  Complex division        (1. + 2.j)/(3. + 4.j)                              5
+
+Elementary real functions
+  sin                     sin(1.)                                           44
+  cos                     cos(1.)                                           44
+  tan                     tan(1.)                                           58
+  asin                    asin(1.)                                          38
+  acos                    acos(1.)                                          37
+  atan                    atan(1.)                                          45
+  atan2                   atan2(1., 2.)                                     58
+  hypot                   hypot(1., 2.)                                     42
+  sinh                    sinh(1.)                                          62
+  cosh                    cosh(1.)                                          44
+  tanh                    tanh(1.)                                          65
+  asinh                   asinh(1.)                                        130
+  acosh                   acosh(1.)                                         39
+  atanh                   atan(1.)                                          44
+  fabs                    fabs(-1.2)                                        35
+  factorial(10)           factorial(10)                                     40
+  factorial(100)          factorial(100)                                 1,600
+  floor                   floor(-1.2)                                       28
+  fmod                    fmod(10.1, 0.2)                                   47
+  frexp                   frexp(10.1)                                      110
+  ldexp                   ldexp(10.1, 2)                                    43
+  modf                    modf(10.1)                                       120
+  trunc                   trunc(10.1)                                       24
+  exp                     exp(10.1)                                         36
+  log                     log(10.1)                                         74
+  log1p                   log1p(10.1)                                       50
+  log10                   log10(10.1)                                       45
+  pow                     pow(10.1, 2)                                      69
+  sqrt                    sqrt(10.1)                                        96
+  degrees                 degrees(10.1)                                     26
+  radians                 radians(10.1)                                     27
+
+Elementary complex functions
+  sin                     sin(1.j)                                          91
+  cos                     cos(1.j)                                          91
+  tan                     tan(1.j)                                          96
+  asin                    asin(1.j)                                        340
+  acos                    acos(1.j)                                        350
+  atan                    atan(0.5j)                                        91
+  atan                    atan(0.5)                                         88
+  sinh                    sinh(1.j)                                         82
+  cosh                    cosh(1.j)                                         78
+  tanh                    tanh(1.j)                                         85
+  asinh                   asinh(1.j)                                        71
+  acosh                   acosh(1.j)                                       350
+  atanh                   atan(0.5j)                                        91
+  exp                     exp(1.j)                                          64
+  log                     log(1.j)                                          57
+  log10                   log10(1.j)                                        59
+  sqrt                    sqrt(1.j)                                         58
+  phase                   phase(1.j)                                        40
+  polar                   polar(1.j)                                       120
+  rect                    rect(1., 2.)                                      58
+
+mpmath functions (N//100)
+  sqrt                    sqrt(mpf(1.))                                  4,500
+  sqrt                    sqrt(mpc(1.j))                                19,000
+  hypot                   hypot(mpf(1.), mpf(2.))                       13,000
+  exp                     exp(mpf(1.))                                   9,200
+  exp                     exp(mpc(1.j))                                 13,000
+  ln                      ln(mpf(11.))                                   7,500
+  ln                      ln(mpc(11.j))                                 14,000
+  log10                   log10(mpf(11.))                               17,000
+  log10                   log10(mpc(11.j))                              27,000
+
+  sin                     sin(mpf(1.))                                   8,200
+  sin                     sin(mpc(1.j))                                 15,000
+  cos                     cos(mpf(1.))                                   8,000
+  cos                     cos(mpc(1.j))                                 15,000
+  tan                     tan(mpf(1.))                                  11,000
+  tan                     tan(mpc(1.j))                                 14,000
+  asin                    asin(mpf(1.))                                 12,000
+  asin                    asin(mpc(1.j))                                55,000
+  acos                    acos(mpf(1.))                                  7,300
+  acos                    acos(mpc(1.j))                                62,000
+  atan                    atan(mpf(1.))                                  8,200
+  atan                    atan(mpc(1.j))                                15,000
+  sinh                    sinh(mpf(1.))                                 12,000
+  sinh                    sinh(mpc(1.j))                                11,000
+  cosh                    cosh(mpf(1.))                                 12,000
+  cosh                    cosh(mpc(1.j))                                12,000
+  tanh                    tanh(mpf(1.))                                 11,000
+  tanh                    tanh(mpc(1.j))                                14,000
+  asinh                   asinh(mpf(1.))                                17,000
+  asinh                   asinh(mpc(1.j))                               17,000
+  acosh                   acosh(mpf(1.))                                 6,400
+  acosh                   acosh(mpc(1.j))                               62,000
+  atanh                   atanh(mpf(1.))                                 4,100
+  atanh                   atanh(mpc(1.j))                               40,000
+  sinc                    sinc(mpf(1.))                                 17,000
+  sincpi                  sincpi(mpf(1.))                               14,000
+  degrees                 degrees(mpf(1.))                               8,400
+  radians                 radians(mpf(1.))                               8,100
+
+  factorial               factorial(10)                                  1,800
+  factorial               factorial(100)                                 2,300
+  factorial               factorial(1000)                               23,000
+  factorial               factorial(100000)                             22,000
+  gamma                   gamma(mpf(100))                                2,800
+  loggamma                loggamma(mpf(100))                             6,900
+  beta                    beta(10, 11)                                  21,000
+  harmonic                harmonic(mpf(10))                             31,000
+  harmonic                harmonic(mpf(100))                            23,000
+  harmonic                harmonic(mpc(10j))                           410,000
+  harmonic                harmonic(mpc(100j))                          260,000
+  incomplete gamma        gammainc(10, 1, 2)                           260,000
+  incomplete gamma        gammainc(100, 1, 2)                          350,000
+  exponential integral    ei(mpf(10))                                   33,000
+  exponential integral    ei(mpf(100))                                  19,000
+  logarithmic integral    li(mpf(10))                                   34,000
+  logarithmic integral    li(mpf(100))                                  38,000
+  error function          erf(mpf(10))                                   3,100
+  inverse error function  erfinv(mpf(0.1))                             330,000
+
+  Bessel function 1       besselj(10, mpf(2))                           20,000
+  Bessel function 2       bessely(10, mpf(2))                          570,000
+  Legendre                legendre(10, mpf(2))                          41,000
+  zeta                    zeta(10)                                       3,200
+  zeta                    zeta(mpc(10j))                               450,000
+
+Number information
+  Floating point info:
+    Number of digits                15
+    Mantissa digits                 53
+    Exponent radix                  2
+    Maximum floating point number   1.7976931348623157e+308
+    Minimum floating point number   2.2250738585072014e-308
+    Maximum exponent for radix      1024
+    Maximum exponent for 10         308
+    Minimum exponent for radix      -1021
+    Minimum exponent for 10         -307
+    (First number > 1) - 1          2.220446049250313e-16
+    Addition rounds                 1
+
+System information
+   3.9.10 (main, Jan 20 2022, 21:37:52) 
+[GCC 11.2.0]
+  flags                             sys.flags(debug=0, inspect=0, interactive=0, optimize=0, dont_write_bytecode=0, no_user_site=0, no_site=0, ignore_environment=0, verbose=0, bytes_warning=0, quiet=0, hash_randomization=1, isolated=0, dev_mode=False, utf8_mode=0)
+  Platform                          CYGWIN_NT-10.0-17134-3.3.5-341.x86_64-x86_64-64bit-WindowsPE
+                                    cygwin
+  Python implementation             CPython
+  API version                       1013
+  Java version                      ('', '', ('', '', ''), ('', '', ''))
+  Win32 version                     ('', '', '', '')
+  Mac version                       ('', ('', '', ''), '')
+  libc version                      ('', '')
+  log2(maximum container size)      63.00
+
+Total time to execute = 4.13 s
 '''

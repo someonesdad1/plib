@@ -38,7 +38,8 @@ if 1:   # Custom imports
     from color import C
     import u
 if 1:   # Global variables
-    class g: pass
+    class g:
+        pass
     g.exact = C.lcyn
     g.ser = C.yel
     g.par = C.grn
@@ -188,7 +189,7 @@ def Manpage():
 
     '''))
     ColorCoding()
-    print(dedent(f'''
+    print(dedent(rf'''
 
     Problem 2
         The -2 option solves the following problem:

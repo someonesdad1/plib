@@ -123,7 +123,7 @@ class RemoveEmptyLines:
             backup_file = P(str(self.file) + ".bak")
             n = 0
             while backup_file.exists():
-                backup_file =  P(newname + str(n))
+                backup_file = P(newname + str(n))
             open(backup_file, "w").write('\n'.join(lines))
         # Insert an empty line so that our list of line numbers to be
         # removed can be used directly
@@ -170,7 +170,7 @@ if 1:   # Testing code
         tempfile2 = script + ".test.tmp2"     # Temporary file
         open(tempfile1, "w").write(this_code)
         open(tempfile2, "w").write(this_code)
-        exit()#xx
+        exit()  # xx
         # Make the black commands
         blackcmd1 = [black, "-q", "-S", "-l 75", tempfile1]
         blackcmd2 = [black, "-q", "-S", "-l 75", tempfile2]

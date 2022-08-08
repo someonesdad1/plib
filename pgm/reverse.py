@@ -52,12 +52,14 @@ def ParseCommandLine(d):
 def Rev(line):
     return ''.join(list(reversed(line)))
 def GetData(files):
-    r = lambda x: Rev(x) if d["-c"] else x
-    f = lambda x: [r(i.rstrip("\n")) for i in x]
+    def r(x):
+        return Rev(x) if d["-c"] else x
+    def f(x):
+        return [r(i.rstrip("\n")) for i in x]
     lines = []
     for file in files:
         if file == "-":
-            lines +=  f(sys.stdin.readlines())
+            lines += f(sys.stdin.readlines())
         else:
             lines += f(open(file).readlines())
     return lines
@@ -65,6 +67,7 @@ if __name__ == "__main__":
     d = {}  # Options dictionary
     args = ParseCommandLine(d)
     lines = GetData(args)
-    f = lambda x: x if d["-o"] else reversed(x)
+    def f(x):
+        return x if d["-o"] else reversed(x)
     for line in f(lines):
         print(line)

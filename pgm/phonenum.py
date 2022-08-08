@@ -107,7 +107,7 @@ def SearchNumbers(nums, d):
         for line in open(word_dict):
             line = line.strip()
             if not line or line[0] == "#":
-                 continue
+                continue
             words.append(line.lower())
         words = set(words)
         new_results = []

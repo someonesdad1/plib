@@ -35,7 +35,7 @@ if 1:   # Global variables
     # to copy intelligently), lack of careful attribution, and of course the
     # basic laziness of humans.
     wordstrings = {
-        "adjective" : '''
+        "adjective": '''
 
         dabbled dacitic dactylic daedal dagger-like daily dainty daisylike
         damaged damaging damascene damask damn damnable damnatory damp
@@ -1621,7 +1621,7 @@ if 1:   # Global variables
         zodiacal zoic zonal zoological zoonotic zygodactyl zygomatic
         zygomorphic zygotic zymoid zymotic''',
 
-        "adverb" : '''
+        "adverb": '''
 
         ASAP God_knows_how a_bit a_cappella a_fortiori a_la_carte a_la_mode
         a_lot a_posteriori a_priori aback abaxially abeam abed abjectly
@@ -15270,7 +15270,7 @@ if 1:   # Global variables
         yield yield_up yodel yoke yowl zap zero zest zigzag zinc zip_by zip_up
         zone zonk_out zoom zoom_in''',
 
-        "preposition" : '''
+        "preposition": '''
 
         about above absent across after against along alongside amid amidst
         among anti around as at atop before behind below beneath beside besides
@@ -15281,7 +15281,7 @@ if 1:   # Global variables
         till times to toward towards under underneath unlike until up upon
         versus via with withaboard within without ''',
 
-        "pronoun" : '''
+        "pronoun": '''
 
         all another any anybody anyone anything both each each other either
         everybody everyone everything few he her hers herself him himself his I

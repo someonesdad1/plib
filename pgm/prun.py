@@ -49,9 +49,12 @@ if 1:   # Custom imports
     except ImportError:
         'Make a dummy color object to swallow function calls'
         class Dummy:
-            def fg(self, *p, **kw): pass
-            def normal(self, *p, **kw): pass
-            def __getattr__(self, name): return ""
+            def fg(self, *p, **kw):
+                pass
+            def normal(self, *p, **kw):
+                pass
+            def __getattr__(self, name):
+                return ""
         C = Dummy()
     if 0:
         import debug
@@ -166,7 +169,7 @@ if 1:   # Core functionality
             except FileNotFoundError:
                 sleep(0.2)
                 count += 1
-        if count > n or s == None:
+        if count > n or s is None:
             raise Exception(f"Couldn't stat {trig}")
         return s
     def ClearScreen():

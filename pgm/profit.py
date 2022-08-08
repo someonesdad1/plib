@@ -386,15 +386,15 @@ if 1:   # Core functionality
         codes wind up in the output.
         '''
         none = ""
-        t.msg  = t("wht")  if on else none
-        t.neg  = t("redl") if on else none
-        t.first = t("ornl")  if on else none
-        t.second = t("trq")  if on else none
-        t.u2   = t('grnl') if on else none
-        t.u3   = t('yell') if on else none
-        t.u4   = t('ornl') if on else none
-        t.u5   = t('magl') if on else none
-        t.nn   = t.n       if on else none
+        t.msg = t("wht") if on else none
+        t.neg = t("redl") if on else none
+        t.first = t("ornl") if on else none
+        t.second = t("trq") if on else none
+        t.u2 = t('grnl') if on else none
+        t.u3 = t('yell') if on else none
+        t.u4 = t('ornl') if on else none
+        t.u5 = t('magl') if on else none
+        t.nn = t.n if on else none
     def Intro():
         print(dedent(f'''
         Interactive utility to calculate a project's profit.  Use h for list of 

@@ -1,7 +1,8 @@
 # Resistor color code
 
 from color import C, fg, black, white
-class g: pass
+class g:
+    pass
 g.red = C.lred
 g.yel = C.lyel
 g.grn = C.lgrn

@@ -28,7 +28,8 @@ if 1:   # Custom imports
         import debug
         debug.SetDebugger()
 if 1:   # Global variables
-    class g: pass
+    class g:
+        pass
     g.width = int(os.environ.get("COLUMNS", 80)) - 1
     ii = isinstance
     # Downloaded Sun 18 Jul 2021 11:37:14 AM

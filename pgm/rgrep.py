@@ -36,7 +36,8 @@ if 1:   # Custom imports
 if 1:   # Global variables
     P = pathlib.Path
     ii = isinstance
-    class g: pass   # Global variable container
+    class g:    # Global variable container
+        pass
     # If stdout is a TTY
     g.istty = sys.stdout.isatty()
     # Identify when we're on a Windows file system
@@ -58,14 +59,17 @@ def EnableColor(state=0):
     S = color.Style(color.lred, color.black)
     g.PrintMatch = partial(color.PrintMatch, style=S)
     if state == 0:      # Color if stdout is a TTY
-        f = lambda x:  x if g.istty else ""
+        def f(x):
+            return x if g.istty else ""
         if not g.istty:
-            g.PrintMatch = lambda x, y:  print(x)
+            g.PrintMatch = lambda x, y: print(x)
     elif state == 1:    # Color always
-        f = lambda x:  x 
+        def f(x):
+            return x 
     elif state == 2:    # Color off
-        f = lambda x:  "" 
-        g.PrintMatch = lambda x, y:  print(x)
+        def f(x):
+            return "" 
+        g.PrintMatch = lambda x, y: print(x)
     else:
         raise ValueError("Programming bug:  state has bad value")
     g.fn = f(C.lwht)    # Match filename color
@@ -74,7 +78,7 @@ def EnableColor(state=0):
     g.ma = f(C.lyel)    # Match color
     g.ba = f(C.blk)     # Background color
     g.dbg = f(C.cyn)    # Debug information color
-    g.n  = f(C.norm)    # Normal printing
+    g.n = f(C.norm)     # Normal printing
 def Error(msg, status=1):
     print(msg, file=sys.stderr)
     exit(status)
@@ -493,7 +497,8 @@ def CompileRegularExpressions():
     d["-x"] = [re.compile(i, g.I) for i in d["-x"]]
     if d["-f"]:
         r = open(d["-f"]).read().split("\n")
-        f = lambda x: x if d["-F"] else x.strip()
+        def f(x):
+            return x if d["-F"] else x.strip()
         d["cmd_regexps"] = [re.compile(f(i), g.I) for i in r]
     # Python files
     d["python_regexps"] = [re.compile(r"\.py$", re.I)]

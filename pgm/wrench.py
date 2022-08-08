@@ -63,7 +63,8 @@ if 1:   # Core functionality
         '''
         d = []
         # Rounding an inch dimension in mils to the nearest mil
-        rnd = lambda x: int(round(x, 0))
+        def rnd(x):
+            return int(round(x, 0))
         if sizes == "inch":
             # Inch sizes are in 32nds
             inches = list(range(4, 13)) + list(range(14, 33, 2))

@@ -50,7 +50,7 @@ if __name__ == "__main__":
         Usage()
     try:
         chunk_size_in_bytes = int(float(sys.argv[1])*1e6)
-    except:
+    except Exception:
         Error("size_in_MB improper")
         exit(1)
     prefix, input_file = sys.argv[2:]

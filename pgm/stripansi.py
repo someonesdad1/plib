@@ -14,7 +14,7 @@ import re
 import sys
 from get import GetLines
 
-_ansi_regexp = re.compile('\033\[((?:\d|;)*)([a-zA-Z])')
+_ansi_regexp = re.compile(r'\033\[((?:\d|;)*)([a-zA-Z])')
 
 def StripANSIEscapeSequences(string):
     '''Remove ANSI escape sequences from string and return the result.

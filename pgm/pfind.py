@@ -504,7 +504,8 @@ if 1:   # Core functionality
                 return keep
             return names
         contains = d["regex"].search
-        J = lambda root, name: Normalize(os.path.join(root, name))
+        def J(root, name):
+            return Normalize(os.path.join(root, name))
         find_files = d["-f"] & ~ d["-d"]
         find_dirs = d["-d"] & ~ d["-f"]
         follow_links = d["-L"]

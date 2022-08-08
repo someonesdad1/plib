@@ -56,7 +56,8 @@ def BuildTranslate(d):
 def Usage(d, status=1):
     wl = "-" + str(default_wordlist)
     # Get names of wordlists
-    P = lambda p: pathlib.Path(p).name
+    def P(p):
+        return pathlib.Path(p).name
     print(dedent(f'''
     Usage:  {sys.argv[0]} [options] file1 [file2 ...]
       Spell check the indicated files by replacing non-letters with space

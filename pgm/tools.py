@@ -155,14 +155,11 @@ def _Concatv():
     {result}
 '''[1:-1].format(**locals()))
 
-if 0:
-    _Concatv()
-    exit()
-
 if __name__ == "__main__": 
     # Run the functions that begin with '_' followed by a capital letter.
     f, s = [], set("ABCDEFGHIJKLMNOPQRSTUVWXYZ")
-    pred = lambda x: not(x[0] == "_" and x[1] in s)
+    def pred(x):
+        return not(x[0] == "_" and x[1] in s)
     f = itertools.filterfalse(pred, sorted(globals()))
     for i in f:
         exec("{}()".format(i))

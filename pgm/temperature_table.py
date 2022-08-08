@@ -50,10 +50,10 @@ def GetTemp(s):
     except ValueError:
         return float(s)
 def ParseCommandLine(d):
-    d["-u"] = "C"       # Primary unit (C, F, R, K)
-    d["-d"] = 3         # Number of significant digits
+    d["-u"] = "C"           # Primary unit (C, F, R, K)
+    d["-d"] = 3             # Number of significant digits
     d["units"] = frozenset("CFRK")
-    d["range"] = frange # Iterator for input temperatures
+    d["range"] = frange     # Iterator for input temperatures
     if len(sys.argv) < 2:
             Usage(d)
     try:

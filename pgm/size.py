@@ -38,14 +38,14 @@ if 1:   # Global variables
     P = pathlib.Path
     flt(0).n = 3
     colors = {
-        ""   : c.white,
-        "kB" : c.lgreen,
-        "MB" : c.lmagenta,
-        "GB" : c.lred,
+        "": c.white,
+        "kB": c.lgreen,
+        "MB": c.lmagenta,
+        "GB": c.lred,
     }
 def Usage():
     name = sys.argv[0]
-    print(dedent(f'''
+    print(dedent(rf'''
     {name} [options] p1 [p2...]
       List the sizes for all files that match patterns p1, p2,...  given on
       the command line.  These patterns can also be directories to be

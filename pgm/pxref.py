@@ -1,4 +1,7 @@
 '''
+TODO
+    - Update names to 3.9 or 3.10.
+
 Index tokens in python files and spell check them
 '''
 if 1:  # Copyright, license
@@ -562,7 +565,7 @@ def CalculateStatistics():
     # T is {"tokname": [(filenum, line), (filenum, line), ...], etc.}
     max_refs, name = 0, None
     # Token with the maximum number of references
-    bysize = defaultdict(list) # T find longest tokens
+    bysize = defaultdict(list)  # T find longest tokens
     mean_length = 0
     for t in T:
         mean_length += len(t)

@@ -78,10 +78,10 @@ _geom_obj = Point()
 
 # Colors used in printing
 colors = {
-    "cartesian" : color.lcyan,
-    "cylindrical" : color.lmagenta,
-    "spherical" : color.lred,
-    "dbg" : color.lblue,
+    "cartesian": color.lcyan,
+    "cylindrical": color.lmagenta,
+    "spherical": color.lred,
+    "dbg": color.lblue,
 }
 
 def Rnd(x):
@@ -1228,7 +1228,8 @@ def Circ3(linenum, line, kw, args, D):
     R = c.Rnd
     if R(z1) or R(z2) or R(z3):
         Bad(linenum, line, "One or more points not in xy plane", D)
-    h = lambda x, y:  x**2 + y**2
+    def h(x, y):
+        return x**2 + y**2
     h1, h2, h3 = h(x1, y1), h(x2, y2), h(x3, y3)
     a = Det3((x1, y1, 1, x2, y2, 1, x3, y3, 1))
     d = -Det3((h1, y1, 1, h2, y2, 1, h3, y3, 1))
@@ -1344,7 +1345,7 @@ def Trace(linenum, line, kw, args, d):
         if not ii(o, Point):
             Bad(linenum, line, "Projection angles only defined for points", d)
         x, y, z = o.rect
-        a, b, c = atan2(z, x)*m , atan2(z, y)*m, atan2(z, hypot(x, y))*m
+        a, b, c = atan2(z, x)*m, atan2(z, y)*m, atan2(z, hypot(x, y))*m
         results.append((a, b, c))
         sa, sb, sc = Sig(o.Rnd(a)), Sig(o.Rnd(b)), Sig(o.Rnd(c))
         if _debug:
@@ -1971,67 +1972,67 @@ def ProcessLines(d):
     # Set up a dispatch function for each command
     d["dispatch"] = {
         # Define geometrical objects
-        "."             : PointRect,
-        "<"             : PointCyl,
-        "<<"            : PointSph,
-        "|"             : GetLine,
-        "intersect"     : Intersect,
-        "length"        : Length,
-        "perp"          : Perp,
-        "plane"         : GetPlane,
-        "ijk"           : Ijk,
+        ".": PointRect,
+        "<": PointCyl,
+        "<<": PointSph,
+        "|": GetLine,
+        "intersect": Intersect,
+        "length": Length,
+        "perp": Perp,
+        "plane": GetPlane,
+        "ijk": Ijk,
         # Transformations
-        "pop"           : Pop,
-        "push"          : Push,
-        "reset"         : Reset,
-        "rotate"        : Rotate,
-        "scale"         : Scale,
-        "translate"     : Translate,
-        "xy"            : XY,
-        "xz"            : XY,
-        "yz"            : XY,
+        "pop": Pop,
+        "push": Push,
+        "reset": Reset,
+        "rotate": Rotate,
+        "scale": Scale,
+        "translate": Translate,
+        "xy": XY,
+        "xz": XY,
+        "yz": XY,
         # Calculated things
-        "angle"         : Angle,
-        "area"          : Area,
-        "centroid"      : Centroid,
-        "circ3"         : Circ3,
-        "cross"         : Cross,
-        "dc"            : Dc,
-        "dist"          : Dist,
-        "dot"           : Dot,
-        "trace"         : Trace,
-        "project"       : Project,
-        "reflect"       : Reflect,
-        "rotaxis"       : Rotaxis,
-        "length"        : Length,
-        "locate"        : Locate,
-        "stp"           : Stp,
-        "vtp"           : Vtp,
+        "angle": Angle,
+        "area": Area,
+        "centroid": Centroid,
+        "circ3": Circ3,
+        "cross": Cross,
+        "dc": Dc,
+        "dist": Dist,
+        "dot": Dot,
+        "trace": Trace,
+        "project": Project,
+        "reflect": Reflect,
+        "rotaxis": Rotaxis,
+        "length": Length,
+        "locate": Locate,
+        "stp": Stp,
+        "vtp": Vtp,
         # Utility or state-changing
-        "2D"            : TwoD,
-        "alphabetical"  : Alphabetical,
-        "angunit"       : Angunit,
-        "compass"       : Compass,
-        "cyl"           : Cyl,
-        "date"          : Date,
-        "deg"           : Deg,
-        "del"           : Del,
-        "digits"        : Digits,
-        "elev"          : Elev,
-        "eps"           : Eps,
-        "exit"          : Exit,
-        "eye"           : Eye,
-        "indent"        : Indent,
-        "neg"           : Neg,
-        "polar"         : Cyl,
-        "print"         : Print,
-        "rad"           : Rad,
-        "rect"          : Rect,
-        "rev"           : Rev,
-        "sph"           : Sph,
-        "state"         : State,
+        "2D": TwoD,
+        "alphabetical": Alphabetical,
+        "angunit": Angunit,
+        "compass": Compass,
+        "cyl": Cyl,
+        "date": Date,
+        "deg": Deg,
+        "del": Del,
+        "digits": Digits,
+        "elev": Elev,
+        "eps": Eps,
+        "exit": Exit,
+        "eye": Eye,
+        "indent": Indent,
+        "neg": Neg,
+        "polar": Cyl,
+        "print": Print,
+        "rad": Rad,
+        "rect": Rect,
+        "rev": Rev,
+        "sph": Sph,
+        "state": State,
         # Undocumented commands
-        "ctm"           : CTM,  # Print the CTM
+        "ctm": CTM,  # Print the CTM
     }
     # Note all lines have trailing whitespace stripped, but may have
     # leading whitespace, which we'll remove if we're not in a code

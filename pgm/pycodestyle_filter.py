@@ -146,10 +146,12 @@ if 1:   # Core functionality
             for i in sorted(di[err]):
                 if d["-c"]:
                     # Include the column number
-                    f = lambda x: int(x.split(":")[0])
+                    def f(x):
+                        return int(x.split(":")[0])
                     items = list(sorted(di[err][i], key=f))
                 else:
-                    f = lambda x: int(x)
+                    def f(x):
+                        return int(x)
                     items = list(sorted(RemoveColumnNumbers(di[err][i], 
                                                uniq=True), key=f))
                 hdr = f"{fl_ind}{i}:  "

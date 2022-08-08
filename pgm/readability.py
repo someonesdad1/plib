@@ -275,7 +275,7 @@ if 1:   # Custom imports
     # per word.  See the docstring.
     try:
         from words_syllables import syllables as S, multiple_syllables as MS
-    except:
+    except ImportError:
         pass
 if 1:   # Global variables
     P = pathlib.Path
@@ -362,7 +362,7 @@ if 1:   # Core functionality
                         'sia$', '.ely$', 'ea.', 'oa.', 'enced$']
         add_syl = ['ia', 'riet', 'dien', 'iu', 'io', 'ii', '[aeiouym]bl$',
                 '[aeiou]{3}', '^mc', 'ism$', '([^aeiouy])\1l$',
-                '[^l]lien', '^coa[dglx].',  '[^gq]ua[^auieo]', 'dnt$']
+                '[^l]lien', '^coa[dglx].', '[^gq]ua[^auieo]', 'dnt$']
         word = word.lower()
         word = word.replace("'", "")    # fold contractions
         word = word.replace('"', "")    # remove quotes from around word

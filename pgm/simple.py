@@ -191,7 +191,7 @@ def GetWords(lines):
         words = set(out)
     return words
 if __name__ == "__main__": 
-    d = {} # Options dictionary
+    d = {}  # Options dictionary
     files = ParseCommandLine(d)
     lines = GetLines(files)
     words = GetWords(lines)

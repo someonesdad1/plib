@@ -30,7 +30,8 @@ if 1:   # Custom imports
     from f import flt
     from color import C
 if 1:   # Global variables
-    class g: pass
+    class g:
+        pass
     g.i = C.lyel    # Used to flag an inexact metric conversion
     g.n = C.norm
     # The leaves are the following thicknesses in units of 0.1 mils:

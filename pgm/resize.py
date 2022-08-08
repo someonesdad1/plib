@@ -24,7 +24,8 @@ if 1:   # Custom imports
     from PIL import Image, __version__ as pversion
     from color import C
 if 1:   # Global variables
-    class g: pass
+    class g:
+        pass
     P = pathlib.Path
     g.err = C.lred
     g.n = C.norm

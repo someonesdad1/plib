@@ -23,7 +23,8 @@ if 1:   # Header
         from color import TRM as t
         from f import flt, pi, sqrt, sin, cos, tan
     # Global variables
-        class g: pass
+        class g:
+            pass
         g.width = int(os.environ.get("COLUMNS", 80)) - 1
         ii = isinstance
         isatty = sys.stdout.isatty()
@@ -139,7 +140,8 @@ if 1:   # Core functionality
         w = len(s)
         # Use new printing methods with flt and Unicode.  There are 9
         # columns for flt and we want to fit into g.width if possible.
-        f = lambda x: 4 + 9*x + 3
+        def f(x):
+            return 4 + 9*x + 3
         while True:
             if f(w + 1) < g.width:
                 w += 1

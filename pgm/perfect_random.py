@@ -14,4 +14,4 @@ if len(sys.argv) != 3:
 b, n = b'', int(sys.argv[1])
 for c in range(256):
     b += bytes([c]*n)
- open(sys.argv[2], "wb").write(b)
+open(sys.argv[2], "wb").write(b)

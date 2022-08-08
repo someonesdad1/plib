@@ -41,8 +41,7 @@ if 1:   # Global variables
         r"^(static\s+procedure\s+([_A-Za-z][A-Za-z0-9_]*)\s*\(.*\)\s*)$"
         r"^(static\s+procedure\s+([_A-Za-z][A-Za-z0-9_]*)\s*)$"
         r"^(static\s+proc\s+([_A-Za-z][A-Za-z0-9_]*)\s*\(.*\)\s*)$"
-        r"^(static\s+proc\s+([_A-Za-z][A-Za-z0-9_]*)\s*)$"
-        , re.I)
+        r"^(static\s+proc\s+([_A-Za-z][A-Za-z0-9_]*)\s*)$", re.I)
     basic = re.compile(
         r"^(def\s+([A-Za-z][A-Za-z0-9_]*)\s*\(.*\)\s*)$|" +            # def =
         r"^(\d+\s+def\s+([A-Za-z][A-Za-z0-9_]*)\s*\(.*\)\s*)$|" +      # def = w/line num
@@ -51,8 +50,7 @@ if 1:   # Global variables
         r"^(sub\s+([_A-Za-z][A-Za-z0-9_]*)\s*\(.*\)\s*)$|" +
         r"^(\d+\s+sub\s+([_A-Za-z][A-Za-z0-9_]*)\s*\(.*\)\s*)$|" +
         r"^(sub\s+([_A-Za-z][A-Za-z0-9_]*)\s*\(.*\)\s+static\s*)$|" +
-        r"^(\d+\s+sub\s+([_A-Za-z][A-Za-z0-9_]*)\s*\(.*\)\s*static\s*)$"
-        , re.I)
+        r"^(\d+\s+sub\s+([_A-Za-z][A-Za-z0-9_]*)\s*\(.*\)\s*static\s*)$", re.I)
 def Usage():
     print(dedent(f'''
     Usage:  {sys.argv[0]} [options] file1 [file2...]

@@ -30,7 +30,8 @@ if 1:   # Global variables
     ii = isinstance
     P = pathlib.Path
     PosixPath = pathlib.PosixPath
-    class g: pass
+    class g:
+        pass
     g.name = P(sys.argv[0])
     g.err = C.lred
     g.dir = C.lcyn

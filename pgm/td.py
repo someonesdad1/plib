@@ -166,8 +166,8 @@ if 1:   # Core functionality
         found = []
         while lines:
             linenum, line = lines.popleft()
-            if dbg: # Show the line read in
-               t.print(f"{t('gry')}{line!r}")
+            if dbg:     # Show the line read in
+                t.print(f"{t('gry')}{line!r}")
             name = IsMatch(line)
             if name:
                 if dbg:
@@ -181,7 +181,8 @@ if 1:   # Core functionality
                 if out:
                     found.append((file, name, linenum, reversed(out)))
         # Sort by line number
-        f = lambda x: x[2]
+        def f(x):
+            return x[2]
         for item in sorted(found, key=f):
             DumpLines(*item)
 

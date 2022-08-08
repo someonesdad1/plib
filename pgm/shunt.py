@@ -29,7 +29,8 @@ if 1:   # Custom imports
 if 1:   # Global variables
     P = pathlib.Path
     ii = isinstance
-    class g: pass
+    class g:
+        pass
     g.r = C.lgrn
     g.p = C.lmag
     g.i = C.lred
@@ -79,16 +80,16 @@ if 1:   # Utility
 if 1:   # Core functionality
     def PrintR(R):
         powers = {
-            1/8:  "1/8",
-            1/4:  "1/4",
-            1/2:  "1/2",
-            1:  "1",
-            2.5:  "2.5",
-            5:  "5",
-            10:  "10",
-            25:  "25",
-            50:  "50",
-            100:  "100",
+            1/8: "1/8",
+            1/4: "1/4",
+            1/2: "1/2",
+            1: "1",
+            2.5: "2.5",
+            5: "5",
+            10: "10",
+            25: "25",
+            50: "50",
+            100: "100",
         }
         s = f"{R} Ω"
         w = 4

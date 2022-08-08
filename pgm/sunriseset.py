@@ -73,7 +73,7 @@ if 1:   # Location data
         # 2022, but will be wrong otherwise.
         yr = 2022
         dst_start = datetime(yr, 3, 13)
-        dst_end   = datetime(yr, 11, 6)
+        dst_end = datetime(yr, 11, 6)
         today = datetime.today()
         if dst_start.year != today.year:
             raise ValueError(f"{sys.argv[0]}:  Year wrong for DST calculations")

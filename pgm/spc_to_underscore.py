@@ -80,6 +80,6 @@ def ProcessItem(item):
         print(f"Item '{item}' not recognized", file=sys.stderr)
 if __name__ == "__main__":
     sp, us = " ", "_"
-    d = {"visited_directories" : set()}
+    d = {"visited_directories": set()}
     for item in ParseCommandLine():
         ProcessItem(item)

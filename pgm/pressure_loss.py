@@ -259,10 +259,12 @@ if 1:   # Core functionality
         if d["-f"]:     # Full range of velocities
             return
         elif d["-F"]:
-            pred = lambda x: 10 < x <= 100
+            def pred(x):
+                return 10 < x <= 100
             velocities += list(filter(pred, [round(100*i, 1) for i in velocities]))
         else:
-            pred = lambda x: 0.1 <= x <= 3
+            def pred(x):
+                return 0.1 <= x <= 3
             velocities = list(filter(pred, velocities))
     def PrintTable(diameter_m, d):
         A = flt(math.pi*diameter_m**2/4)

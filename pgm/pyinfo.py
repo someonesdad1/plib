@@ -115,8 +115,10 @@ def Python3():
             i = i.strip()
             if i:
                 print(ind, i)
-        try: print(f"DLL handle = {sys.dllhandle}")
-        except Exception: pass
+        try:
+            print(f"DLL handle = {sys.dllhandle}")
+        except Exception:
+            pass
         print(f"Don't write bytecode = {sys.dont_write_bytecode}")
         print(f"exec_prefix = {sys.exec_prefix}")
         print(f"executable = {sys.executable}")
@@ -128,7 +130,8 @@ def Python3():
             try:
                 s = eval(f"bool(f.{i})")
                 print(f"{ind}{i:19s} = {s}")
-            except Exception: pass
+            except Exception:
+                pass
         print(f"Float information:")
         f = sys.float_info
         for i in '''max max_exp max_10_exp min min_exp min_10_exp
@@ -138,21 +141,29 @@ def Python3():
         print(f"float_repr_style = {sys.float_repr_style}")
         print(f"getallocatedblocks = {sys.getallocatedblocks()}")
         print(f"getdefaultencoding = {sys.getdefaultencoding()}")
-        try: print(f"getdlopenflags = {sys.getdlopenflags()}")
-        except Exception: pass
+        try:
+            print(f"getdlopenflags = {sys.getdlopenflags()}")
+        except Exception:
+            pass
         print(f"getfilesystemencoding = {sys.getfilesystemencoding()}")
         print(f"getfilesystemencodeerrors = {sys.getfilesystemencodeerrors()}")
         print(f"getrecursionlimit = {sys.getrecursionlimit()}")
         print(f"getswitchinterval = {sys.getswitchinterval()} s")
         print(f"getprofile = {sys.getprofile()}")
         print(f"gettrace = {sys.gettrace()}")
-        try: print(f"getwindowsversion = {sys.getwindowsversion()}")
-        except Exception: pass
+        try:
+            print(f"getwindowsversion = {sys.getwindowsversion()}")
+        except Exception:
+            pass
         print(f"get_asyncgen_hooks = {sys.get_asyncgen_hooks()}")
-        try: print(f"get_coroutine_origin_tracking_depth = {sys.get_coroutine_origin_tracking_depth()}")
-        except Exception: pass
-        try: print(f"get_coroutine_wrapper = {sys.get_coroutine_wrapper()}")
-        except Exception: pass
+        try:
+            print(f"get_coroutine_origin_tracking_depth = {sys.get_coroutine_origin_tracking_depth()}")
+        except Exception:
+            pass
+        try:
+            print(f"get_coroutine_wrapper = {sys.get_coroutine_wrapper()}")
+        except Exception:
+            pass
         f = sys.hash_info
         print(f"Hash information:")
         for i in '''
@@ -176,13 +187,16 @@ def Python3():
         print(f"platform: {sys.platform}")
         print(f"prefix: {sys.prefix}")
         print(f"thread_info: {sys.thread_info}")
-        try: print(f"tracebacklimit: {sys.tracebacklimit}")
-        except Exception: pass
+        try:
+            print(f"tracebacklimit: {sys.tracebacklimit}")
+        except Exception:
+            pass
         print(f"warnoptions: {sys.warnoptions}")
-        try: print(f"winver: {sys.winver}")
-        except Exception: pass
+        try:
+            print(f"winver: {sys.winver}")
+        except Exception:
+            pass
         print(f"_xoptions: {sys._xoptions}")
-        #xx()
     print("Python Information")
     print("------------------")
     print("")

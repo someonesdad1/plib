@@ -50,7 +50,7 @@ if 1:   # Custom imports
 if 1:   # Global variables
     data = {
         # Data are (T in deg C, EMF in mV)
-        "Chromel" : (
+        "Chromel": (
             (-200, -3.36),
             (-100, -2.20),
             (0, 0),
@@ -69,7 +69,7 @@ if 1:   # Global variables
             (1300, 41.35),
             (1400, 44.04),
         ),
-        "Alumel" : (
+        "Alumel": (
             (-200, 2.39),
             (-100, 1.29),
             (0, 0),
@@ -88,7 +88,7 @@ if 1:   # Global variables
             (1300, -11.06),
             (1400, -11.77),
         ),
-        "Copper" : (
+        "Copper": (
             (-200, -0.19),
             (-100, -0.37),
             (0, 0),
@@ -107,7 +107,7 @@ if 1:   # Global variables
         # Note neither of the two tables with Constantan produce anything
         # anywhere near the accuracy of the other thermocouples.  This
         # information needs to be verified.
-        "Iron" : (
+        "Iron": (
             (-200, -2.92),
             (-100, -1.84),
             (0, 0),
@@ -123,7 +123,7 @@ if 1:   # Global variables
             (1000, 14.30),
         ),
         # Data from pg 4-7 (may be incorrect)
-        #    "Iron" : (
+        #    "Iron": (
         #        (-200, -3.10),
         #        (-100, -1.94),
         #        (0, 0),
@@ -138,7 +138,7 @@ if 1:   # Global variables
         #        (900, 13.10),
         #        (1000, 14.64),
         #    ),
-        "Constantan" : (
+        "Constantan": (
             (-200, 5.35),
             (-100, 2.98),
             (0, 0),
@@ -153,7 +153,7 @@ if 1:   # Global variables
             (900, -39.45),
             (1000, -43.92),
         ),
-        "Manganin" : (
+        "Manganin": (
             (0, 0),
             (100, 0.61),
             (200, 1.55),
@@ -162,14 +162,14 @@ if 1:   # Global variables
             (500, 5.95),
             (600, 7.84),
         ),
-        "Beryllium-copper" : (
+        "Beryllium-copper": (
             (0, 0),
             (100, 0.67),
             (200, 1.62),
             (300, 2.81),
             (400, 4.19),
         ),
-        "Brass" : (
+        "Brass": (
             (0, 0),
             (100, 0.60),
             (200, 1.49),
@@ -178,7 +178,7 @@ if 1:   # Global variables
             (500, 5.30),
             (600, 6.96),
         ),
-        "Bronze" : (
+        "Bronze": (
             (0, 0),
             (100, 0.55),
             (200, 1.34),
@@ -187,11 +187,11 @@ if 1:   # Global variables
             (500, 4.81),
             (600, 6.30),
         ),
-        "Solder 50Sn-50Pb" : (
+        "Solder 50Sn-50Pb": (
             (0, 0),
             (100, 0.46),
         ),
-        "Stainless steel" : (
+        "Stainless steel": (
             (0, 0),
             (100, 0.44),
             (200, 1.04),
@@ -203,7 +203,7 @@ if 1:   # Global variables
             (800, 7.37),
             (900, 8.99),
         ),
-        "Spring steel" : (
+        "Spring steel": (
             (0, 0),
             (100, 1.32),
             (200, 2.63),
@@ -212,7 +212,7 @@ if 1:   # Global variables
             (500, 5.80),
             (600, 6.86),
         ),
-        "Nichrome (80Ni-20Cr)" : (
+        "Nichrome (80Ni-20Cr)": (
             (0, 0),
             (100, 1.14),
             (200, 2.62),
@@ -225,7 +225,7 @@ if 1:   # Global variables
             (900, 18.11),
             (1000, 20.91),
         ),
-        "Inconel (60Ni-24Fe-16Cr)" : (
+        "Inconel (60Ni-24Fe-16Cr)": (
             (0, 0),
             (100, 0.85),
             (200, 2.01),
@@ -238,7 +238,7 @@ if 1:   # Global variables
             (900, 15.50),
             (1000, 18.10),
         ),
-        "Copper coin (95Cu-4Sn-1Zn)" : (
+        "Copper coin (95Cu-4Sn-1Zn)": (
             (0, 0),
             (100, 0.60),
             (200, 1.48),
@@ -247,7 +247,7 @@ if 1:   # Global variables
             (500, 5.44),
             (600, 7.14),
         ),
-        "Nickel coin (75Cu-25Ni)" : (
+        "Nickel coin (75Cu-25Ni)": (
             (0, 0),
             (100, -2.76),
             (200, -6.01),
@@ -256,7 +256,7 @@ if 1:   # Global variables
             (500, -18.10),
             (600, -22.59),
         ),
-        "Silver coin (90Ag-10Cu)" : (
+        "Silver coin (90Ag-10Cu)": (
             (0, 0),
             (100, 0.80),
             (200, 1.90),
@@ -265,14 +265,14 @@ if 1:   # Global variables
             (500, 6.59),
             (600, 8.64),
         ),
-        "Magnesium" : (
+        "Magnesium": (
             (-200, 0.37),
             (-100, -0.09),
             (0, 0),
             (100, 0.44),
             (200, 1.10),
         ),
-        "Zinc" : (
+        "Zinc": (
             (-200, -0.07),
             (-100, -0.33),
             (0, 0),
@@ -281,7 +281,7 @@ if 1:   # Global variables
             (300, 3.42),
             (400, 5.29),
         ),
-        "Cadmium" : (
+        "Cadmium": (
             (-200, -0.04),
             (-100, -0.31),
             (0, 0),
@@ -289,16 +289,16 @@ if 1:   # Global variables
             (200, 2.35),
             (300, 4.24),
         ),
-        "Mercury" : (
+        "Mercury": (
             (0, 0),
             (100, -0.60),
             (200, -1.33),
         ),
-        "Indium" : (
+        "Indium": (
             (0, 0),
             (100, 0.69),
         ),
-        "Aluminum" : (
+        "Aluminum": (
             (-200, 0.45),
             (-100, -0.06),
             (0, 0),
@@ -309,7 +309,7 @@ if 1:   # Global variables
             (500, 3.93),
             (600, 5.15),
         ),
-        "Carbon" : (
+        "Carbon": (
             (0, 0),
             (100, 0.70),
             (200, 1.54),
@@ -323,7 +323,7 @@ if 1:   # Global variables
             (1000, 16.51),
             (1100, 19.49),
         ),
-        "Silicon" : (
+        "Silicon": (
             (-200, 63.13),
             (-100, 32.17),
             (0, 0),
@@ -331,7 +331,7 @@ if 1:   # Global variables
             (200, -80.58),
             (300, -110.09),
         ),
-        "Germanium" : (
+        "Germanium": (
             (-200, -46.00),
             (-100, -26.62),
             (0, 0),
@@ -343,14 +343,14 @@ if 1:   # Global variables
             (600, 43.9),
             (700, 27.9),
         ),
-        "Tin" : (
+        "Tin": (
             (-200, 0.26),
             (-100, -0.12),
             (0, 0),
             (100, 0.42),
             (200, 1.07),
         ),
-        "Lead" : (
+        "Lead": (
             (-200, 0.24),
             (-100, -0.13),
             (0, 0),
@@ -358,7 +358,7 @@ if 1:   # Global variables
             (200, 1.09),
             (300, 1.91),
         ),
-        "Antimony" : (
+        "Antimony": (
             (0, 0),
             (100, 4.89),
             (200, 10.14),
@@ -367,14 +367,14 @@ if 1:   # Global variables
             (500, 25.10),
             (600, 28.88),
         ),
-        "Bismuth" : (
+        "Bismuth": (
             (-200, 12.39),
             (-100, 7.54),
             (0, 0),
             (100, -7.34),
             (200, -13.57),
         ),
-        "Silver" : (
+        "Silver": (
             (-200, -0.21),
             (-100, -0.39),
             (0, 0),
@@ -388,7 +388,7 @@ if 1:   # Global variables
             (800, 13.36),
             (900, 16.20),
         ),
-        "Gold" : (
+        "Gold": (
             (-200, -0.20),
             (-100, -0.39),
             (0, 0),
@@ -403,7 +403,7 @@ if 1:   # Global variables
             (900, 14.61),
             (1000, 17.09),
         ),
-        "Cobalt" : (
+        "Cobalt": (
             (0, 0),
             (100, -1.33),
             (200, -3.08),
@@ -418,7 +418,7 @@ if 1:   # Global variables
             (1100, -12.98),
             (1200, -10.68),
         ),
-        "Nickel" : (
+        "Nickel": (
             (-200, 2.28),
             (-100, 1.22),
             (0, 0),
@@ -434,7 +434,7 @@ if 1:   # Global variables
             (1000, -12.13),
             (1100, -13.62),
         ),
-        "Iridium" : (
+        "Iridium": (
             (-200, -0.25),
             (-100, -0.35),
             (0, 0),
@@ -454,7 +454,7 @@ if 1:   # Global variables
             (1400, 20.48),
             (1500, 22.50),
         ),
-        "Rhodium" : (
+        "Rhodium": (
             (-200, -0.20),
             (-100, -0.34),
             (0, 0),
@@ -474,7 +474,7 @@ if 1:   # Global variables
             (1400, 23.00),
             (1500, 25.35),
         ),
-        "Palladium" : (
+        "Palladium": (
             (-200, 0.81),
             (-100, 0.48),
             (0, 0),
@@ -494,7 +494,7 @@ if 1:   # Global variables
             (1400, -20.41),
             (1500, -22.74),
         ),
-        "Molybdenum" : (
+        "Molybdenum": (
             (0, 0),
             (100, 1.45),
             (200, 3.19),
@@ -509,7 +509,7 @@ if 1:   # Global variables
             (1100, 32.21),
             (1200, 36.91),
         ),
-        "Tungsten" : (
+        "Tungsten": (
             (-200, 0.43),
             (-100, -0.15),
             (0, 0),
@@ -526,7 +526,7 @@ if 1:   # Global variables
             (1100, 32.60),
             (1200, 37.78),
         ),
-        "Tantalum" : (
+        "Tantalum": (
             (-200, 0.21),
             (-100, -0.10),
             (0, 0),
@@ -543,7 +543,7 @@ if 1:   # Global variables
             (1100, 18.17),
             (1200, 21.41),
         ),
-        "Thorium" : (
+        "Thorium": (
             (0, 0),
             (100, -0.13),
             (200, -0.26),
@@ -860,16 +860,20 @@ if 0:
         ip = 273.15     # Ice point temperature in K
         if d["-d"] == "C":
             T = TdegC
-            ToDegC = lambda x: x
+            def ToDegC(x):
+                return x
         elif d["-d"] == "F":
             T = 9*TdegC/5 + 32
-            ToDegC = lambda x: 5/9*(x - 32)
+            def ToDegC(x):
+                return 5/9*(x - 32)
         elif d["-d"] == "K":
             T = TdegC + ip
-            ToDegC = lambda x: x - 273.15
+            def ToDegC(x):
+                return x - 273.15
         elif d["-d"] == "R":
             T = (TdegC + ip) + (9*ip/5 - 32)
-            ToDegC = lambda x: 5*x/9 - 273.15
+            def ToDegC(x):
+                return 5*x/9 - 273.15
         else:
             raise Exception("Bug:  temperature unit")
         T0, T1 = int(T[0]), int(T[-1])
@@ -958,7 +962,8 @@ def PrintTable(matl1, matl2, Print=print):
     e = [i - j for i, j in zip(emf1, emf2)]
     f = LinearInterpFunction(TdegC, e)
     # This is in mV output.  Change it to μV to get integers.
-    F = lambda x:  int(1000*f(x))
+    def F(x):
+        return int(1000*f(x))
     # Get inner and Printer temperature loop limits
     Tinner, TPrinter = 1, 10
     if d["-s"]:
@@ -969,16 +974,20 @@ def PrintTable(matl1, matl2, Print=print):
     ip = 273.15     # Ice point temperature in K
     if d["-d"] == "C":
         T = TdegC
-        ToDegC = lambda x: x
+        def ToDegC(x):
+            return x
     elif d["-d"] == "F":
         T = [9*i/5 + 32 for i in TdegC]
-        ToDegC = lambda x: 5/9*(x - 32)
+        def ToDegC(x):
+            return 5/9*(x - 32)
     elif d["-d"] == "K":
         T = [i + ip for i in TdegC]
-        ToDegC = lambda x: x - 273.15
+        def ToDegC(x):
+            return x - 273.15
     elif d["-d"] == "R":
         T = [i + ip + (9*ip/5 - 32) for i in TdegC]
-        ToDegC = lambda x: 5*x/9 - 273.15
+        def ToDegC(x):
+            return 5*x/9 - 273.15
     else:
         raise Exception("Bug:  temperature unit")
     T0, T1 = int(T[0]), int(T[-1])

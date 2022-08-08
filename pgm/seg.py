@@ -47,7 +47,8 @@ if 1:   # Custom imports
         import debug
         debug.SetDebugger()
 if 1:   # Global variables
-    class g: pass
+    class g:
+        pass
     g.E = Exception("Not implemented")
     g.prompt = C.lred
     g.n = C.norm
@@ -163,7 +164,8 @@ if 1:   # Solve the problems
         Get_theta_h()
         g.vars.update(locals())
 def Help():
-    f = lambda x: f"[{g.vars[x]}]" if x in g.vars else ""
+    def f(x):
+        return f"[{g.vars[x]}]" if x in g.vars else ""
     print(dedent(f'''
     Enter two variables needed to solve for the properties of the sector of a
     circle.  The variables are (all lengths must be in the same units):

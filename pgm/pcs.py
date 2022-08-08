@@ -1,4 +1,9 @@
 '''
+
+TODO
+    - Add an option that just shows lines with problems and condenses
+      ranges to a-b form.  Colorize the numbers with their rank color.
+
 Runs pycodestyle and summarizes results
 
     The rankings used in this script are subjective.  Change the function
@@ -88,24 +93,24 @@ if 1:   # Utility
           Returned status is 0 for nothing printed, 1 for one or more
           messages printed.  
         Options:
-            -a      Show all errors/warnings [{d['-a']}]
-            -f      Organize output by file  [{d['-f']}]
             -0      Print ignored items      [{d['-0']}]
             -1      Print low-priority items [{d['-1']}]
             -2      Print notable items      [{d['-2']}]
             -3      Print important items    [{d['-3']}]
+            -a      Show all errors/warnings [{d['-a']}]
             -c      Include column information with line numbers
+            -f      Organize output by file  [{d['-f']}]
             -v      Debug output (more than one for more verbosity)
         '''))
         exit(status)
     def ParseCommandLine(d):
-        d["-a"] = False     # Show all errors/warnings
-        d["-f"] = True      # Organize output by file
         d["-0"] = False     # Show ignored items
         d["-1"] = False     # Show low-priority items
         d["-2"] = True      # Show notable items
         d["-3"] = True      # Show important items
+        d["-a"] = False     # Show all errors/warnings
         d["-c"] = False     # Include column numbers
+        d["-f"] = True      # Organize output by file
         d["-v"] = 0         # Show debug output
         if len(sys.argv) < 2:
             Usage()

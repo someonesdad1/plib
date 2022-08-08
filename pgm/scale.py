@@ -81,7 +81,8 @@ if 1:   # Global variables
     in_color = 0
     d2r = math.pi/180
     # The following is needed to work in python 3
-    MP = lambda x, y: list(map(x, y))
+    def MP(x, y):
+        return list(map(x, y))
     # For applying a number to a scale on the RHS
     scale_count = 1
     scale_count_offset_x = 0.15
@@ -209,10 +210,10 @@ def Trim0(s):
     return s
 def DefaultSettings(index_function=None):
     return {
-        "line_width" : line_width,
-        "font1_size" : base_font_size,
-        "tick1_length" : tick_length,
-        "index_function" : index_function,
+        "line_width": line_width,
+        "font1_size": base_font_size,
+        "tick1_length": tick_length,
+        "index_function": index_function,
     }
 def Dump(sequence, n=3):
     fmt = "%%.%df" % n
@@ -344,7 +345,7 @@ class Scale:
                     continue
                 if len(container[0]) != len(container[1]):
                     raise ""
-            except:
+            except Exception:
                     raise "Labelled container %d improper" % num
         # Get length and angle
         self.length = Distance(self.x0, self.y0, self.x1, self.y1)
@@ -1856,7 +1857,7 @@ def Loggamma1(x0, y0, x1, y1):
         lineFill(135, separation, phase=1.0)
         rectangle(width, height)
     pop()
-    print("Lngamma1 ",  end=" ")
+    print("Lngamma1 ", end=" ")
 def Loggamma2(x0, y0, x1, y1):
     Log10inch(x0, y0, x1, y1, scale=10)
     push()

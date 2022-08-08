@@ -264,9 +264,11 @@ if __name__ == "__main__":
         ShowExamples(d)
     n, m, inc = GetParameters(args, d)
     # fp identifies a floating point string
-    fp = lambda s:  s.find(".") != -1 or s.lower().find("e") != -1
+    def fp(s):
+        return s.find(".") != -1 or s.lower().find("e") != -1
     # fr identifies a fraction string
-    fr = lambda s:  s.find("/") != -1
+    def fr(s):
+        return s.find("/") != -1
     if any([fr(s) for s in (n, m, inc)]):       # Fractions
         Fractions(n, m, inc, d)
     elif any([fp(s) for s in (n, m, inc)]):     # Floating point

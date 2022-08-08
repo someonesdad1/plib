@@ -142,7 +142,7 @@ if 1:   # Core functionality
             t.snow = t("magl")
             t.thun = t("redl")
             t.wind = t("cynl")
-            t.sun  = t("yell")
+            t.sun = t("yell")
             t.cloud = t("vio")
             t.low = t("wht", "royd")
             t.high = t("wht", "lipd")
@@ -154,7 +154,7 @@ if 1:   # Core functionality
             t.snow = t("magl")
             t.thun = t("magl")
             t.wind = t("cynl")
-            t.sun  = t("yell")
+            t.sun = t("yell")
             t.cloud = t("viol")
             t.low = t("wht", "royd")
             t.high = t("wht", "lipd")
@@ -163,11 +163,11 @@ if 1:   # Core functionality
 
         SetColors()
         r = line.lower()
-        rain   = True if "rain" in r or "shower" in r else False
-        snow   = True if "snow" in r else False
-        thund  = True if "thunderstorm" in r else False
-        windy  = True if "wind" in r or "gust" in r else False
-        sunny  = True if "sunny" in r else False
+        rain = True if "rain" in r or "shower" in r else False
+        snow = True if "snow" in r else False
+        thund = True if "thunderstorm" in r else False
+        windy = True if "wind" in r or "gust" in r else False
+        sunny = True if "sunny" in r else False
         cloudy = True if "cloudy" in r else False
         # Get high and low temperatures
         mo = re.search(r"high near (-?\d{1,3})", line, re.I)
@@ -216,7 +216,7 @@ if 1:   # Core functionality
             if l + used > w:
                 print(f"\n{' '*n}", end="")
                 used = n
-            print(word, end = " ")
+            print(word, end=" ")
             used += l
         print()
     def Report(lines):

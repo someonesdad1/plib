@@ -216,9 +216,11 @@ if 0:   # Core functionality
             t = PN("0.1 mm")
         a = t/(2*pi)
         # We need to find a root for theta; use Newton-Raphson.
-        f = lambda x: (a/2*(x*sqrt(x*x + 1) + log(x + sqrt(x*x + 1))) - L)
-        fd = lambda x: (a/2*(sqrt(x*x+1) + 2*x*x/sqrt(x*x+1) +
-                        (1 + 2*x/sqrt(x*x+1))/(x + sqrt(x*x+1))))
+        def f(x):
+            return (a/2*(x*sqrt(x*x + 1) + log(x + sqrt(x*x + 1))) - L)
+        def fd(x):
+            return (a/2*(sqrt(x*x+1) + 2*x*x/sqrt(x*x+1) +
+                    (1 + 2*x/sqrt(x*x+1))/(x + sqrt(x*x+1))))
         # Initial guess
         theta = sqrt(float(L/(2*a)))
         theta = NewtonRaphson(f, fd, theta)
@@ -392,9 +394,11 @@ class Spiral(object):
         '''
         di = {"D": None, "d": None, "t": None, "n": None, "L": None}
         # Functions to use Newton-Raphson to find θ given a and L
-        f = lambda x: (a/2*(x*sqrt(x*x + 1) + log(x + sqrt(x*x + 1))) - L)
-        fd = lambda x: (a/2*(sqrt(x*x+1) + 2*x*x/sqrt(x*x+1) +
-                        (1 + 2*x/sqrt(x*x+1))/(x + sqrt(x*x+1))))
+        def f(x):
+            return (a/2*(x*sqrt(x*x + 1) + log(x + sqrt(x*x + 1))) - L)
+        def fd(x):
+            return (a/2*(sqrt(x*x+1) + 2*x*x/sqrt(x*x+1) +
+                    (1 + 2*x/sqrt(x*x+1))/(x + sqrt(x*x+1))))
         if problem == 1:
             # Given D, d, t
             if not self.is_solvable(problem):
@@ -454,7 +458,8 @@ class Spiral(object):
             assert i in di and di[i] is not None, f"'{i}' is missing"
         return di
     def is_solvable(self, problem):
-        f = lambda x: True if x is not None else False
+        def f(x):
+            return True if x is not None else False
         if problem == 1:
             return f(self._D) and f(self._d) and f(self._t)
         elif problem == 2:

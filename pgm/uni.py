@@ -286,7 +286,7 @@ Data on codepoint U+{cp:0X} = character {c}
         for b in chr(cp).encode(enc):
             print(f"{b:02x} ", end="")
         print()
-    PrintUCDData(cp, d) # Print data from Unicode Character Database
+    PrintUCDData(cp, d)     # Print data from Unicode Character Database
     if d["-v"] and not (0 <= cp < 0x20):
         # Print extra data from unicodedata
         s, n = " "*4, 18
@@ -531,12 +531,12 @@ def PrintCP(cp, regex=None, indent="", decomp=False):
             descr = U.name(c)
         except ValueError:
             descr = "<no name for U+{cp:04X}>"
-    if d["-d"]:     # Use decimal numbers
-        if d["-a"]: # Full set of codepoints
+    if d["-d"]:         # Use decimal numbers
+        if d["-a"]:     # Full set of codepoints
             print(f"{indent} {cp:6d} {c:^5s}", end=" ")
         else:
             print(f"{indent} {cp:5d} {c:^5s}", end=" ")
-    else:           # Use U+ (hex) notation 
+    else:               # Use U+ (hex) notation 
         if d["-a"]:
             print(f"{indent}U+{cp:05X} {c:^5s}", end=" ")
         else:
@@ -580,7 +580,8 @@ def LookUp(expr, d):
     '''
     if not expr:
         return
-    Int = lambda x: int(x) if d["-d"] else int(x, 16)
+    def Int(x):
+        return int(x) if d["-d"] else int(x, 16)
     # If expr contains a '-' character, see if it can be interpreted as
     # a range of integers.
     if len(expr) > 1 and "-" in expr and not d["-t"]:
@@ -590,7 +591,7 @@ def LookUp(expr, d):
                 start, end = end, start
             for cp in reversed(range(start, end + 1)):
                 if cp in cpset or (0 <= cp < 0x20):
-                     PrintCP(cp, None)
+                    PrintCP(cp, None)
             return
         except Exception:
             pass
@@ -601,7 +602,7 @@ def LookUp(expr, d):
             start, num = [Int(i) for i in expr.split(":")]
             for cp in reversed(range(start, start + num)):
                 if cp in cpset or (0 <= cp < 0x20):
-                     PrintCP(cp, None)
+                    PrintCP(cp, None)
             return
         except Exception:
             pass

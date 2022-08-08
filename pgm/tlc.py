@@ -32,13 +32,14 @@ if 1:   # Global variables
     debug = False   # Set to True to ignore presence of a log file
     ii = isinstance
     P = pathlib.Path
-    class g: pass
+    class g:
+        pass
 def UseColor(use=True):
     g.dir = C.lgrn if use else ""
     g.file = C.lmag if use else ""
     g.err = C.lred if use else ""
     g.warn = C.yel if use else ""
-    g.n   = C.norm if use else ""
+    g.n = C.norm if use else ""
 def Expand(filespec):
     "Glob the files in the list filespec and return a flat list"
     list = []
@@ -196,11 +197,13 @@ def GenerateListOfFiles(args):
         f = file.resolve().parent
         if f in resolved:
             Error(f"{g.err}'{file}' affected by directory rename{g.n}")
-    f = lambda x: list(sorted(x))
+    def f(x):
+        return list(sorted(x))
     return f(files), f(dirs)
 def Process(files, dirs):
     'Arguments are lists of P objects to rename'
-    f = lambda x: x.upper() if d["-u"] else x.lower()
+    def f(x):
+        return x.upper() if d["-u"] else x.lower()
     rename = []
     if files:
         arrow, out = f" {g.file}-->{g.n} ", []
