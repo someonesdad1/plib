@@ -32,8 +32,7 @@ if 1:   # Header
         g.c_comment = re.compile(r"/\*.*?\*/", re.S)
         g.cpp_comment = re.compile(r"//.*?\n", re.S)
         g.string = re.compile(r"\"[^\n]*\"")
-        #g.punctuation  = re.compile(r"~|!|@|#|\$|\%|\^|&|\*|(|)|-|\+|=|{|}|\[|\]|\||:|;|'|<|>|,|.|\?|/")
-        g.punctuation  = r"~!@#\$%^&*()-+={}[]:;'<>,.?/|"
+        g.punctuation = r"~!@#\$%^&*()-+={}[]:;'<>,.?/|"
         # From Harbison and Steele; ANSI C only.
         c_keywords = (
             "ifdef", "ifndef", "define", "endif", "include", "auto",

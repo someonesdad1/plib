@@ -224,14 +224,20 @@ def GetTime(age):
     if not age:
         Usage()
     suffixes = {
-        "s": 1, "S" : 1,
+        "s": 1,
+        "S": 1,
         "M": 60,
-        "h": s_per_hr, "H" : s_per_hr,
-        "d": s_per_day, "D" : s_per_day,
-        "w": 7*s_per_day, "W" : 7*s_per_day,
+        "h": s_per_hr,
+        "H": s_per_hr,
+        "d": s_per_day,
+        "D": s_per_day,
+        "w": 7*s_per_day,
+        "W": 7*s_per_day,
         "m": days_per_year/12*s_per_day,
-        "y": days_per_year*s_per_day, "Y" : days_per_year*s_per_day,
-        "i": inf, "Y" : inf,
+        "y": days_per_year*s_per_day,
+        "Y": days_per_year*s_per_day,
+        "i": inf,
+        "I": inf,
     }
     fmt = "'{}' is a bad age specification"
     def Translate(a):

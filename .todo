@@ -1,9 +1,5 @@
 Active
 
-    - pcs.py
-        - /plib is finished.  Now run on /plib/pgm.  This repairs most
-          priority 2 and 3 errors.
-
     - trigger.py
         - Change default trigger strings to '# ∞' and ' ∞#', as this will
           stop error messages from pycodestyle.  This also has the benefit
