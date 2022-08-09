@@ -1,17 +1,9 @@
 Active
 
-    - gdir.py
-        - Can filter out the files, directories, or extensions from a 'git status'
-          command and return them as a set.
-        - Use case is looking at a large directory structure that is being
-          turned into a git repository.
-        - gitcandidates.py
-            - This would get all the files from the indicated directory
-              (defaults to '.') and suggest that these are the ones that
-              should be put under repository control.
-                - Finds important stuff like *.py, *.c, *.cpp, *.h,
-                  makefiles, etc., but ignores typical stuff in a
-                  .gitignore file.
+    - pgm/pfind.py bug
+        - I can't search for files that begin with 'ra'.  The regex is 
+          '^ra.*$' but this doesn't work.  The task simply needs to do 
+          a search on Path.name and it should be easy.
 
     - fp.py
         - Like 'pfind.py -pc .', but finds python files with no color
