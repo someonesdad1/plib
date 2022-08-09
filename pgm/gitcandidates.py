@@ -35,12 +35,7 @@ if 1:   # Header
     # Global variables
     if 1:
         ii = isinstance
-        W = int(os.environ.get("COLUMNS", "80")) - 1
-        L = int(os.environ.get("LINES", "50"))
-        # Set up debug printing
-        dbg.dbg = True
-        Dbg = dbg.GetDbg()
-        Dbgr = dbg.GetDbg("lipl")
+        Dbg = None
 if 1:   # Utility
     def Error(*msg, status=1):
         print(*msg, file=sys.stderr)
@@ -61,16 +56,17 @@ if 1:   # Utility
         d["-d"] = []        # Directories to ignore
         d["-e"] = []        # Extensions to ignore
         d["-f"] = []        # File name regex to ignore
+        d["-v"] = False     # Turn on debug printing
         if len(sys.argv) < 2:
             Usage()
         try:
-            opts, args = getopt.getopt(sys.argv[1:], "d:e:f:h", 
+            opts, args = getopt.getopt(sys.argv[1:], "d:e:f:hv", 
                     ["help", "debug"])
         except getopt.GetoptError as e:
             print(str(e))
             exit(1)
         for o, a in opts:
-            if o[1] in list(""):
+            if o[1] in list("v"):
                 d[o] = not d[o]
             elif o == "-d":
                 d[o].append(a)
@@ -89,8 +85,16 @@ if 1:   # Utility
                 debug.SetDebugger()
         if len(args) != 1:
             Usage()
+        if d["-v"]:
+            # Set up debug printing
+            global Dbg
+            dbg.dbg = True
+            Dbg = dbg.GetDbg()
         Dbg("Option dict:", d)
         return args[0]
+    def Dummy(*p, **kw):
+        pass
+    Dbg = Dummy
 if 1:   # Core functionality
     def GetFiles(dir):
         p = P(dir)
@@ -116,7 +120,7 @@ if 1:   # Core functionality
                 'x is a Path instance'
                 y = x.resolve()
                 return True if y.suffix in ignore_extensions else False
-            files = remove(RemoveThisExtension, files)
+            files = list(remove(RemoveThisExtension, files))
         if True:
             names = set('''.vi .z a b z tags'''.split())
             # Filter out unwanted name strings
@@ -126,7 +130,7 @@ if 1:   # Core functionality
                 if str(y.name) in names:
                     return True
                 return False
-            files = remove(RemoveThisName, files)
+            files = list(remove(RemoveThisName, files))
         if d["-d"]:
             # Filter out ignored directories
             def RemoveThisDir(x):
@@ -137,25 +141,28 @@ if 1:   # Core functionality
                 return any(r.search(i) for i in parent.parts)
             for regex in d["-d"]:
                 r = re.compile(regex)
-                files = remove(RemoveThisDir, files)
+                files = list(remove(RemoveThisDir, files))
         if d["-f"]:
             # Filter out ignored files
-            def RemoveThisDir(x):
+            def RemoveThisFile(x):
                 'x is a Path instance'
-                Dbgr(f"{' '*20}{x.name}:  {bool(r.search(x.name))}")
+                # Show the name and True if we had a match
+                r = RemoveThisFile.r
+                match = bool(r.search(x.name))
+                c = t("redl") if match else t("grnl")
+                Dbg(f"{' '*20}{x.name}:  {bool(r.search(x.name))} {r}", color=c)
                 return bool(r.search(x.name))
             for regex in d["-f"]:
-                r = re.compile(regex)
-                files = remove(RemoveThisDir, files)
+                RemoveThisFile.r = re.compile(regex)
+                Dbg(f"{' '*10}", regex, color=t('lip'))
+                files = list(remove(RemoveThisFile, files))
         return files
-    def DumpFiles(files):
-        Dbg("List of files")
+    def PrintFiles(files):
         for i in files:
-            Dbg(f"{' '*4}{i}")
+            print(i)
 if __name__ == "__main__":
     d = {}      # Options dictionary
     dir = ParseCommandLine(d)
     files = GetFiles(dir)
     files = FilterFiles(files)
-    if dbg:
-        DumpFiles(files)
+    PrintFiles(files)

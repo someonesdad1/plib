@@ -31,6 +31,7 @@ if 1:   # Header
         from color import Color, TRM as t
     # Global variables
     if 1:
+        ii = isinstance
         dbg = False
         __all__ = "GetDbg dbg".split()
 if 1:   # Core functionality
@@ -45,13 +46,23 @@ if 1:   # Core functionality
             self.color = t(fg, bg, attr)   # Generates needed escape codes
         def __call__(self, *p, **kw):
             '''Print to the debug stream if the dbg global variable is
-            True.  The syntax is the same as print().
+            True.  The syntax is the same as print() except there's an
+            additional keyword 'color' which must be a color instance; if
+            it's present, it changes the color printed.
             '''
             if not dbg:
                 return
-            print(f"{self.esc}", file=self.file, end="")
+            kwc = kw.copy()
+            clr = self.esc
+            # If user passed in a color keyword, it must be an escape
+            # string.
+            if "color" in kwc:
+                clr = kwc["color"]
+                assert(ii(clr, str))
+                del kwc["color"]
+            print(f"{clr}", file=self.file, end="")
             print(self.leader, file=self.file, end="")
-            print(*p, **kw)
+            print(*p, **kwc)
             print(f"{t.n}", file=self.file, end="")
 
     def GetDbg(fg="lill", bg=None, attr=None, leader="", file=sys.stdout):

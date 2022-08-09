@@ -112,6 +112,10 @@ Active
 
 Other
 
+    - python code spell checker
+        - This would use the parser to find strings and spell check the
+          strings in a script.
+
     - manning.py
         - Consider fixing /science/pipe_flow/manning.py and moving it to
           /plib/pgm
