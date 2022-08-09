@@ -24,24 +24,43 @@ if 1:   # Header
         pass
     # Standard imports
     if 1:
-        import getopt
-        import os
         from pathlib import Path as P
         import sys
-        from pdb import set_trace as xx
     # Custom imports
     if 1:
-        from wrap import wrap, dedent
         from color import Color, TRM as t
     # Global variables
     if 1:
         dbg = False
         __all__ = "GetDbg dbg".split()
 if 1:   # Core functionality
-    def GetDbg(color=["skyl", None, None], leader="", file=sys.stdout):
+    class Debug:
+        def __init__(self, fg="lill", bg=None, attr=None, leader="", file=sys.stdout):
+            self.fg = fg
+            self.bg = bg
+            self.attr = attr
+            self.leader = leader
+            self.file = file
+            self.esc = t(fg, bg, attr)
+            self.color = t(fg, bg, attr)   # Generates needed escape codes
+        def __call__(self, *p, **kw):
+            '''Print to the debug stream if the dbg global variable is
+            True.  The syntax is the same as print().
+            '''
+            if not dbg:
+                return
+            print(f"{self.esc}", file=self.file, end="")
+            print(self.leader, file=self.file, end="")
+            print(*p, **kw)
+            print(f"{t.n}", file=self.file, end="")
+
+    def GetDbg(fg="lill", bg=None, attr=None, leader="", file=sys.stdout):
         '''Call this function to set up the printing style you want for the
-        Dbg() calls.   The function returned is the debug printing
-        function.  The parameters are:
+        Dbg() calls.   A Debug instance is returned.
+        The parameters are:
+            fg      String to identify foreground color
+            bg      String to identify background color
+            attr    String to identify printing attributes
             color   List of three strings to define a color & style using 
                     the color.t instance of color.TRM.
             leader  Leading string of debug printing
@@ -54,10 +73,8 @@ if 1:   # Core functionality
             ul      Underline
             rv      Reverse
         '''
-        Dbg.color = t(*color)   # Generates needed escape codes
-        Dbg.file = file
-        Dbg.leader = leader
-        return Dbg
+        debug = Debug(fg=fg, bg=bg, attr=attr, leader=leader, file=file)
+        return debug
     def Dbg(*p, **kw):
         '''Print to the debug stream (set with GetDbg) if the dbg global
         variable is True.  The syntax is the same as print().

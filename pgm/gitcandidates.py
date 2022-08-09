@@ -22,6 +22,7 @@ if 1:   # Header
         import getopt
         import os
         from pathlib import Path as P
+        from itertools import filterfalse as remove
         import re
         import sys
         from pdb import set_trace as xx
@@ -39,6 +40,7 @@ if 1:   # Header
         # Set up debug printing
         dbg.dbg = True
         Dbg = dbg.GetDbg()
+        Dbgr = dbg.GetDbg("lipl")
 if 1:   # Utility
     def Error(*msg, status=1):
         print(*msg, file=sys.stderr)
@@ -51,7 +53,7 @@ if 1:   # Utility
         Options:
             -d r        Ignore any directories that match this regexp
             -e ext      Ignore this extension (no leading '.')
-            -f r        Ingore files whose names match this regexp
+            -f r        Ignore files whose names match this regexp
         '''))
         exit(status)
     def ParseCommandLine(d):
@@ -62,7 +64,7 @@ if 1:   # Utility
         if len(sys.argv) < 2:
             Usage()
         try:
-            opts, args = getopt.getopt(sys.argv[1:], "e:h", 
+            opts, args = getopt.getopt(sys.argv[1:], "d:e:f:h", 
                     ["help", "debug"])
         except getopt.GetoptError as e:
             print(str(e))
@@ -70,10 +72,14 @@ if 1:   # Utility
         for o, a in opts:
             if o[1] in list(""):
                 d[o] = not d[o]
+            elif o == "-d":
+                d[o].append(a)
             elif o == "-e":
                 if a.startswith("."):
                     Error(f"-e option {a!r} must not start with '.'")
                 d[o].append("." + a)
+            elif o == "-f":
+                d[o].append(a)
             elif o in ("-h", "--help"):
                 Usage(status=0)
             elif o in ("--debug",):
@@ -83,51 +89,73 @@ if 1:   # Utility
                 debug.SetDebugger()
         if len(args) != 1:
             Usage()
+        Dbg("Option dict:", d)
         return args[0]
 if 1:   # Core functionality
     def GetFiles(dir):
         p = P(dir)
         out = []
-        for i in p.rglob("*"):
-            out.append(i)
+        for i in p.glob("**/*"):
+            if i.is_file():
+                out.append(i)
+        if 0: #xx
+            pp(out);exit() #xx
         return out
     def FilterFiles(files):
-        # Filter out unwanted extensions
-        ignore_extensions = '''
-            .bak .bmp .exe .gif .jpg .obj .o .orig .pdf .png .ps .swo
-            .swp .zip .py .a .lib .dll
-        '''.split()
-        ignore_extensions.extend(d["-e"])
-        ignore_extensions = set(ignore_extensions)
-        breakpoint() #xx
-        Dbg("Ignored extensions:")
-        Dbg(ignore_extensions)
-        exit() #xx
-
-        def KeepThisExtension(x):
-            'x is a Path instance'
-            return False if x.suffix in ignore_extensions else True
-        def KeepThisName(x):
-            'x is a Path instance'
-            if ".~lock" in str(x.name):
+        if True:
+            # Filter out unwanted extensions
+            ignore_extensions = '''
+                .bak .bmp .exe .gif .jpg .obj .o .orig .pdf .png .ps .swo
+                .swp .zip .a .lib .dll
+            '''.split()
+            ignore_extensions.extend(d["-e"])
+            ignore_extensions = set(ignore_extensions)
+            Dbg("Ignored extensions:")
+            Dbg(ignore_extensions)
+            def RemoveThisExtension(x):
+                'x is a Path instance'
+                y = x.resolve()
+                return True if y.suffix in ignore_extensions else False
+            files = remove(RemoveThisExtension, files)
+        if True:
+            names = set('''.vi .z a b z tags'''.split())
+            # Filter out unwanted name strings
+            def RemoveThisName(x):
+                'x is a Path instance'
+                y = x.resolve()
+                if str(y.name) in names:
+                    return True
                 return False
-            return True
-        files = filter(KeepThisExtension, files)
-        # Filter out unwanted name strings
-        files = filter(KeepThisName, files)
-        # Filter out ignored directories
-
-        pp(list(files))
-
-
-        startswith = '''.~lock'''.split()
-        ignore = ".local_profile .vi .z a a.py aa b bb log tags z".split()
-
-
-
-
+            files = remove(RemoveThisName, files)
+        if d["-d"]:
+            # Filter out ignored directories
+            def RemoveThisDir(x):
+                'x is a Path instance'
+                nonlocal r
+                y = x.resolve()
+                parent = y.parent
+                return any(r.search(i) for i in parent.parts)
+            for regex in d["-d"]:
+                r = re.compile(regex)
+                files = remove(RemoveThisDir, files)
+        if d["-f"]:
+            # Filter out ignored files
+            def RemoveThisDir(x):
+                'x is a Path instance'
+                Dbgr(f"{' '*20}{x.name}:  {bool(r.search(x.name))}")
+                return bool(r.search(x.name))
+            for regex in d["-f"]:
+                r = re.compile(regex)
+                files = remove(RemoveThisDir, files)
+        return files
+    def DumpFiles(files):
+        Dbg("List of files")
+        for i in files:
+            Dbg(f"{' '*4}{i}")
 if __name__ == "__main__":
     d = {}      # Options dictionary
     dir = ParseCommandLine(d)
     files = GetFiles(dir)
     files = FilterFiles(files)
+    if dbg:
+        DumpFiles(files)

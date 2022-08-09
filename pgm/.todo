@@ -112,6 +112,10 @@ Active
 
 Other
 
+    - python code spell checker
+        - This would use the parser to find strings and spell check the
+          strings in a script.
+
     - manning.py
         - Consider fixing /science/pipe_flow/manning.py and moving it to
           /plib/pgm
@@ -1201,4 +1205,29 @@ Shamrock survey
         - Tertiary
             - bmt1 = SW corner of gray building foundation
             - bmt2 = NW corner of cement slab
-            - bmt3 = NW corner of pati
+            - bmt3 = NW corner of patio
+            - Corners of house foundation
+    - Layout of lawn
+    - Location of sprinklers
+    - Building location
+    - Use sighting compass to take magnetic bearings of things.
+        - Calibrate compass by dropping a vertical from the north star
+        - As of 2022, Polaris' mean declination is 89.35 degrees, so
+          calibration of the compass will be better than 1 degree
+        - This will be done with two strings on plumb bobs, one adjustable.
+          Then the next day the compass will be sighted along the two
+          strings and adjusted to read true north.  Then it will be
+          calibrated for the current magnetic declination.
+    - This will be worth a reference document explaining techniques.  The
+      resulting python script could be turned into a library module based
+      on g.py that allows people to plot their own surveys.  Some key
+      graphic components would be
+        - Benchmarks, primary and secondary
+        - Buildings
+        - Cement pads
+        - Plants, fence posts, sprinklers
+        - Layers could be used for different features.  For example, the
+          electrical layer would show known cables.  The sprinkler layer
+          would show valves, sprinklers, pump, wires.  Etc.
+    - This survey would get archived on github so it can't be lost
+
