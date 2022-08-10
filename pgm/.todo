@@ -4,6 +4,9 @@ Active
         - I can't search for files that begin with 'ra'.  The regex is 
           '^ra.*$' but this doesn't work.  The task simply needs to do 
           a search on Path.name and it should be easy.
+        - Add a -k option to print in columns
+        - Remove --rcs
+        - --S crashes
 
     - fp.py
         - Like 'pfind.py -pc .', but finds python files with no color
