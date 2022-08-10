@@ -117,6 +117,7 @@ if 1:   # Utility
         print(dedent(f'''
         Sorting is used to make the directories come first in a listing.
         '''))
+        exit(0)
     def Usage(status=2):
         d["name"] = os.path.split(sys.argv[0])[1]
         d["-s"] = "Don't sort" if d["-s"] else "Sort"
@@ -184,6 +185,7 @@ if 1:   # Utility
         d["-d"] = False     # Show directories only
         d["-F"] = False     # Show files only but no picture files
         d["-f"] = False     # Show files only
+        d["-h"] = False     # Help
         d["-i"] = False     # Case-sensitive search
         d["-e"] = []        # Only list files with these glob patterns
         d["-l"] = -1        # Limit to this number of levels (-1 is no limit)
@@ -192,8 +194,6 @@ if 1:   # Utility
         d["-s"] = False     # Sort the output directories and files
         d["-x"] = []        # Ignore files with these glob patterns
         d["-V"] = []        # Revision control directories to include
-        if len(sys.argv) < 2:
-            Usage()
         try:
             optlist, args = getopt.getopt(
                     sys.argv[1:], 
@@ -223,29 +223,27 @@ if 1:   # Utility
             if o == "-p":
                 d["-e"] += ["*.py"]
             if o == "-V":
-                d["-h"] = True
+                d["-."] = True
                 d["-V"] = version_control
             if o == "-x":
                 s, c = o, d["-C"]
                 d["-x"] += a.split(d["-C"])
             # Long options
             elif o == "--hg":
-                d["-h"] = True
+                d["-."] = True
                 d["-V"] += ["hg"]
             elif o == "--git":
-                d["-h"] = True
+                d["-."] = True
                 d["-V"] += ["git"]
-        if len(args) < 1:
-            Usage()
         if d["-h"]:
             Help()
+        if not args:
+            Usage()
         if d["-i"]:
             d["regex"] = re.compile(args[0])
         else:
             d["regex"] = re.compile(args[0], re.I)
         args = args[1:]
-        if len(args) == 0:
-            args = ["."]
         # Store search information in order it was found
         d["search"] = odict()
         # Normalize -V option
