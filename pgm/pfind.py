@@ -38,8 +38,6 @@ File finding utility
     Similar to UNIX find, but less powerful.  It's not especially fast, but
     the usage is more convenient than find and the output is colorized to
     see the matches unless it's not going to a TTY.
- 
- 
 '''
 if 1:   # Header
     # Copyright, license
@@ -123,54 +121,54 @@ if 1:   # Utility
         d["-s"] = "Don't sort" if d["-s"] else "Sort"
         usage = r'''
         Usage:  {name} [options] regex [dir1 [dir2...]]
-          Finds files using python regular expressions.  If no directories are
-          given on the command line, searches at and below the current
-          directory.  Color-coding is used if output is to a TTY.  Use -c
-          to turn off color-coding.
+            Finds files using python regular expressions.  If no directories are
+            given on the command line, searches at and below the current
+            directory.  Color-coding is used if output is to a TTY.  Use -c
+            to turn off color-coding.
         Options:
-          -C str    Globbing pattern separation string (defaults to space)
-          -c        Turn off color coding
-          -D        Show documentation files
-          -d        Show directories only
-          -e glob   Show only files that match glob pattern (can be multiples)
-          -f        Show files only
-          -F        Show files only (exclude picture files)
-          -h        Show hidden files/directories that begin with '.'
-          -i        Case-sensitive search
-          -L        Follow directory soft links (defaults to False)
-          -l n      Limit recursion depth to n levels
-          -P        Show picture files
-          -p        Show python files
-          -r        Not recursive; search indicated directories only
-          -S        Show source code files excluding python
-          -s        {-s} the output directories and files
-          -x glob   Ignore files that match glob pattern (can be multiples)
-          -V        Include revision control directories
-          --git     Include git directories only
-          --hg      Include Mercurial directories only
+            -C str    Globbing pattern separation string (defaults to space)
+            -c        Turn off color coding
+            -D        Show documentation files
+            -d        Show directories only
+            -e glob   Show only files that match glob pattern (can be multiples)
+            -f        Show files only
+            -F        Show files only (exclude picture files)
+            -h        Show hidden files/directories that begin with '.'
+            -i        Case-sensitive search
+            -L        Follow directory soft links (defaults to False)
+            -l n      Limit recursion depth to n levels
+            -P        Show picture files
+            -p        Show python files
+            -r        Not recursive; search indicated directories only
+            -S        Show source code files excluding python
+            -s        {-s} the output directories and files
+            -x glob   Ignore files that match glob pattern (can be multiples)
+            -V        Include revision control directories
+            --git     Include git directories only
+            --hg      Include Mercurial directories only
         Note:  
-          regex on the command line is a python regular expression.
-          Globbing patterns in the -e and -x options are the standard file
-          globbing patterns in python's glob module.  The -e and -x options
-          can contain spaces if you define a different separation string
-          with the -C option
+            regex on the command line is a python regular expression.
+            Globbing patterns in the -e and -x options are the standard file
+            globbing patterns in python's glob module.  The -e and -x options
+            can contain spaces if you define a different separation string
+            with the -C option
         Examples:
-          - Find all python scripts at and below the current directory:
-                  python {name} -p 
-          - Find files at and below the current directory containing the string
-              "rational" (case-insensitive search) excluding *.bak and *.o:
-                  python {name} -C "," -f -x "*.bak,*.o" rational
-          - Find any directories named TMP (case-sensitive search) in or below
-              the current directory, but exclude any with 'cygwin' in the name:
-                  python {name} -d -i -x "*cygwin*" TMP
-          - Find all documentation and source code files starting with 't' in
-              the directory foo
-                  python {name} -DS /t foo
-              This will also find files in directories that begin with 't' also.
-          - Delete backup files at and below .; the '-u' for invoking python
-              causes unbuffered output, allowing xargs use:
-                  python -u {name} -f bak\$ | xargs rm
-              Omit the 'rm' to have xargs echo what will be removed.
+            - Find all python scripts at and below the current directory:
+                    python {name} -p 
+            - Find files at and below the current directory containing the string
+                "rational" (case-insensitive search) excluding *.bak and *.o:
+                    python {name} -C "," -f -x "*.bak,*.o" rational
+            - Find any directories named TMP (case-sensitive search) in or below
+                the current directory, but exclude any with 'cygwin' in the name:
+                    python {name} -d -i -x "*cygwin*" TMP
+            - Find all documentation and source code files starting with 't' in
+                the directory foo
+                    python {name} -DS /t foo
+                This will also find files in directories that begin with 't' also.
+            - Delete backup files at and below .; the '-u' for invoking python
+                causes unbuffered output, allowing xargs use:
+                    python -u {name} -f bak\$ | xargs rm
+                Omit the 'rm' to have xargs echo what will be removed.
         '''[1:].rstrip()
         print(dedent(usage).format(**d))
         exit(status)
@@ -272,7 +270,7 @@ if 1:   # Core functionality
             path = path.replace("\\", "/")
         msg = ["Could not translate path '%s'" % path]
         s = subprocess.Popen((cygwin, direction, path),
-                             stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+                                stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         errlines = s.stderr.readlines()
         if errlines:
             # Had an error, so raise an exception with the error details
