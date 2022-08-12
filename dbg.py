@@ -36,7 +36,7 @@ if 1:   # Header
         __all__ = "GetDbg dbg".split()
 if 1:   # Core functionality
     class Debug:
-        def __init__(self, fg="lill", bg=None, attr=None, leader="", file=sys.stdout):
+        def __init__(self, fg="cyn", bg=None, attr=None, leader="", file=sys.stdout):
             self.fg = fg
             self.bg = bg
             self.attr = attr

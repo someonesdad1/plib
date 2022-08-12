@@ -1123,6 +1123,47 @@ Other
               desired)
             - '{' and '}' define python code blocks
 
+hc.py
+    
+    - Objectives
+        - Run on python >= 3.7
+        - Design it to use one number type:  hcn
+            - Behind the scenes the following types are used (+ means
+              optional; i.e., get working if possible, leave out if a pain):
+                - mpf
+                - mpc
+                - ufloat    +
+                - Fraction
+                - Integers
+                    - Fixed-size    +
+                    - Python's built-in integers
+            - mpmath latest is 1.2.0 1 Feb 2021.
+            - Since have scipy and numpy, can e.g. use interpolated
+              functions.  This could be handy for numerical data.
+            - Support physical models?  For example, load an ideal gas
+              module and do physical calculations.  Such things could be 
+              in namespaces and let you get to those of other namespaces.
+        - hcn numbers can have a physical unit
+            - Number is always displayed in the defining unit.  Internally,
+              the value is in SI.
+            - Parsing on whitespace is important, so numbers with units
+              must be entered as '4.3m/s' or '4.3_m/s'.  Another possible
+              notation is '4.3 m/s;', where the ';' forces a unit
+              interpretation.
+            - Evaluation
+                - Strict 
+                    - sin(x) must have x with no dimensions
+                - Relaxed 
+                    - In sin(x), x can have dimensions; the value used is
+                      in the defining units and the units are ignored.
+                      This is definitely bug-prone.
+                - nodim
+                    'x nodim' strips off the units of x and leaves x with
+                    the defining numerical value.
+        - mpmath's special functions supported.  The user can construct a
+          config file list of the desired functions.
+        - Commands are easy to alias to get the interface you want.
+
 Computing goals
 
     - Interface

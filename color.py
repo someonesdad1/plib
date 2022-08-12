@@ -1,5 +1,12 @@
 ''' 
 - Bugs
+    - RegexpDecorate.register() needs to change to an argument list of 
+      (r, match_style, nomatch_style) where the latter two elements are
+      escape codes used to define how things should be printed.  The use
+      case is pfind.py where I want to see directories printed in red with
+      the sky color for the match; plain files are printed with the default
+      text style but matches with sky.  Thus, the default for nomatch_style
+      should be None, meaning the default text style.
     - TRM needs a method to set all the attributes to empty strings when
       the .on attribute is False.  This is important to applications to
       make it easy to turn off escape codes.
@@ -43,7 +50,6 @@ Classes to help with color use in terminals
         # You can use t.out and t.print to avoid having to reset to the
         # default color.  t.out is the same as t.print but without the
         # newline.
-
  
     - This file includes some deprecated functionality to support an older
       python module I used for a couple of decades.  Over time, I expect to
@@ -127,7 +133,7 @@ if 1:   # Header
         import re
         import sys
         from pathlib import Path as P
-        #from pdb import set_trace as xx
+        from pdb import set_trace as xx
         from collections.abc import Iterable
         from collections import deque
         from string import hexdigits
@@ -940,8 +946,10 @@ class Color:
                 return keep if keep else None
             else:
                 return Find(s)
+
 class Trm:
     '''This class is used to generate terminal escape codes
+        Ref:  https://en.wikipedia.org/wiki/ANSI_escape_code#24-bit
         For typical use, instantiate with t = Trm().  Store "styles" by
         using the Trm instance's attributes:
  
@@ -1433,85 +1441,64 @@ t = TRM     # I use 't' so much it should be defined
 TRM.cn = CN
 
 class RegexpDecorate:
-    '''Decorate regular expression matches with color
-
-    The styles attribute is a dictionary that contains the styles to apply
-    for each regexp's match (key is the compiled regexp).  The style is a
-    tuple of 1 to 3 values:  fg color, bg color, and text attributes.  None
-    means to use the default.
-
-    Example use:
-
-        rd = RegexpDecorate()
-        r = re.compile(r"[Mm]adison")
-        fg = Color("lyel")
-        rd.register(r, fg, None)    # Print matches in light yellow
-
-        for line in open(file).readlines():
-            rd(line)    # Lines with matches are printed to stdout
-
-    The previous can also be done with
-        rd(open(file))
-
-    multiline = """
-        Here's a multiline string that
-        might contain madison or Madison.
-    """
-    rd(multiline)
-
-    Suppose the string pnp contains the text of "Pride and Prejudice".  You
-    could print out all the lines with the string "Elizabeth" or "Lizzy"
-    with
-        rd = RegexpDecorate()
-        r = re.compile(r"Elizabeth|Lizzy", re.I)
-        rd.register(r, Color("lyel"))
-        rd(pnp)
-
-    Suppose you have python files in a directory "mydir" and you're
-    interested in knowing how many lines contain the string "MySymbol".
-    This can be done with
-        rd = RegexpDecorate()
-        r = re.compile(r"MySymbol")
-        files = pathlib.Path("mydir").glob("*.py")
-        rd.register(r, Color("lyel"))
-        rd(*files)
-
-    Of course, a command line tool like grep is capabile of more precise
-    searching including file names and line numbers.
-
+    '''Decorate regular expression matches with color.
+        The styles attribute is a dictionary that contains the styles to
+        apply for each regexp's match (key is the compiled regexp).  The
+        style is a tuple of 1 to 3 values:  fg color, bg color, and text
+        attributes.  None means to use the default.
+    
+        Example use:
+    
+            rd = RegexpDecorate()
+            r = re.compile(r"[Mm]adison")
+            fg = Color("lyel")
+            rd.register(r, fg, None)    # Print matches in light yellow
+    
+            for line in open(file).readlines():
+                rd(line)    # Lines with matches are printed to stdout
+    
+        The previous can also be done with
+            rd(open(file))
+    
+        multiline = """
+            Here's a multiline string that
+            might contain madison or Madison.
+        """
+        rd(multiline)
+    
+        Suppose the string pnp contains the text of "Pride and Prejudice".  You
+        could print out all the lines with the string "Elizabeth" or "Lizzy"
+        with
+            rd = RegexpDecorate()
+            r = re.compile(r"Elizabeth|Lizzy", re.I)
+            rd.register(r, Color("lyel"))
+            rd(pnp)
+    
+        Suppose you have python files in a directory "mydir" and you're
+        interested in knowing how many lines contain the string "MySymbol".
+        This can be done with
+            rd = RegexpDecorate()
+            r = re.compile(r"MySymbol")
+            files = pathlib.Path("mydir").glob("*.py")
+            rd.register(r, Color("lyel"))
+            rd(*files)
+    
+        A command line tool like grep is capabile of more precise searching
+        including file names and line numbers.
     '''
     def __init__(self):
         self._styles = {}
-    def register(self, r, fg, bg=None, attr=None):
-        '''This is how you register regexps and their styles.  fg and
-        bg are Color instances, string names of colors, or None; None
-        means to use the default.  attr is a string with things like
-        "it bd" meaning italics and bold.  See the documentation on
-        class Trm for details.
- 
-        Note: if fg, bg, and attr are None, then the strings are still
-        printed on a match except there is no color highlighting.
+    def register(self, r, match_style, nomatch_style=""):
+        '''Register a regexp and its styles.  
+            match_style is the escape code to print before a match and
+            nomatch_style is the escape code to print before a nonmatching
+            string.  You can generate these escape codes with a TRM
+            instance.
         '''
         assert(ii(r, re.Pattern))
-        for i in (fg, bg):
-            assert(i is None or ii(i, (Color, str)))
-        assert(attr is None or ii(attr, str))
-        if ii(fg, str):
-            fore = Color(fg)
-        else:
-            fore = fg
-        if ii(bg, str):
-            back = Color(bg)
-        else:
-            back = bg
-        for x in (fore, back):
-            assert(x is None or ii(x, Color))
-        # Test that these work with TRM; if not, an exception will be
-        # raised.
-        TRM(fore, back, attr)
-        self._styles[r] = fore, back, attr
+        self._styles[r] = (match_style, nomatch_style)
     def unregister(self, r):
-        assert(ii(r, re.Pattern))
+        'Remove regexp r from our styles dict'
         if r in self._styles:
             del self._styles[r]
     def __str__(self):
@@ -1519,18 +1506,26 @@ class RegexpDecorate:
     def __repr__(self):
         return str(self)
     def __call__(self, line, file=sys.stdout, insert_nl=False):
-        '''Check line for a match to one of the registered regexps and if
-        there's a match, print the decorated line to the indicated stream.
-        Returns True if there was a match, False otherwise.
+        '''Print the decorated line to the stream.
+            Check line for a match to one of the registered regexps and if
+            there's a match, print the decorated line to the indicated
+            stream.  Returns True if there was a match, False otherwise.
  
-        If insert_nl is True, print a newline if line doesn't end with a
-        newline.
+            If insert_nl is True, print a newline if line doesn't end with
+            a newline.
+ 
+            Note:  if your escape code for match_style includes an
+            attribute, you'll want to include
+            the 'no' attribute for normal text in your nomatch_style.
+            Otherwise, the remaining text will continue to be printed in
+            the match_style's attribute.
         '''
         assert(ii(line, str))
         if not line:
             return
         has_nl = line.endswith("\n")
         had_match = False
+        match_style, nomatch_style = "", t.n
         while line:
             # Find regexp match closest to beginning of line
             shortest = []
@@ -1543,28 +1538,31 @@ class RegexpDecorate:
                 # No more matches
                 if line and had_match:
                     if not has_nl and insert_nl:
-                        print(line, file=file)
+                        print(f"{line}{nomatch_style}", file=file)
                     else:
-                        print(line, end="", file=file)
+                        print(f"{line}{nomatch_style}", end="", file=file)
+                elif line:
+                    # Print rest of line
+                    if not has_nl and insert_nl:
+                        print(f"{nomatch_style}{line}{t.n}", file=file)
+                    else:
+                        print(f"{nomatch_style}{line}{t.n}", end="", file=file)
                 return had_match
             # Sort shortest to find the first match
             location, mo, r = sorted(shortest, key=lambda x: x[0])[0]
-            # Print non-matching start stuff
-            print(line[:location], end="", file=file)
-            # Print the match in color
-            fg, bg, attr = self._styles[r]
-            if all(i is None for i in (fg, bg, attr)):
-                # Print with no highlighting
-                esc = end = ""
-            else:
-                esc = TRM(fg, bg, attr)
-                end = TRM.n
+            match_style, nomatch_style = self._styles[r]
+            # Print non-matching start stuff in nomatch_style
+            print(f"{nomatch_style}{line[:location]}", end="", file=file)
+            # Print the match in match_style, then the escape code to
+            # switch back to the default print style (t.n).
             match = line[mo.start():mo.end()]
-            print(f"{esc}{match}{end}", file=file, end="")
+            print(f"{match_style}{match}{nomatch_style}", file=file, end="")
             # Trim the line and search again
             line = line[mo.end():]
-        if not line and had_match and not has_nl and insert_nl:
-            print(file=file)
+        if had_match:
+            print(f"{t.n}", end="")     # Default text style
+            if not line and not has_nl and insert_nl:
+                print(file=file)
         return True
 
 # Legacy color.py support:  define the environment variable 'klr' to be a
@@ -1756,14 +1754,14 @@ if klr:   # Legacy code support
         norm = normal(s=1)
 
 if 0:   # Prototyping area
-    # This fails by not being an invariant
-    c = Color('orn')
-    c1 = Color(c.xrgb)
-    print("rgb", c, c1)
-    c1 = Color(c.xhls)
-    print("hls", c, c1)
-    c1 = Color(c.xhsv)
-    print("hsv", c, c1)
+    # Develop new escape-code styles for RegexpDecorate.register()
+    s = "Hello world"
+    r = re.compile("llo ")
+    rd = RegexpDecorate()
+    match_style = t("skyl")
+    nomatch_style = t.n
+    rd.register(r, match_style, nomatch_style)
+    rd(s, insert_nl=True)
     exit()
 
 if __name__ == "__main__":
