@@ -247,9 +247,13 @@ def GetMatches(regexp, d):
             matches.append((i, mo))
     # Sort the matches so that they always appear in the same order (not
     # doing this will sometimes give different orders.
-    def f(i):
-        str(i[0])     # Get the path string
-    matches = list(sorted(matches, key=f))
+    if matches:
+        def f(i):
+            str(i[0])     # Get the path string
+        try:
+            matches = list(sorted(matches, key=f))
+        except Exception:
+            pass
     return matches
 def PrintChoices(matches, d):
     print("Choose which file(s) to open:")

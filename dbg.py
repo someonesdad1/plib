@@ -1,11 +1,16 @@
 '''
-Provides a debug printing function Dbg that is called like print()
+Provides a debug printing class Debug that is called like print()
     Typical usage:
-        import dbg
-        dbg.dbg = True          # Enable debug printing
-        Dbg = dbg.GetDbg()      # Get the default Dbg function
+        from dbg import Debug
+        Dbg = Debug()       # Get a class instance
+        Debug.dbg = True    # Enable debug printing
         Dbg("This is a debugging message")
+        # Debug print in a different color
+        Dbg("In a different color", color=t("grn"))
     Run this script for a demo.
+ 
+    Since Debug is a class, you can have multiple instances that can
+    print messages in different colors:
 '''
 if 1:   # Header
     # Copyright, license
@@ -31,11 +36,10 @@ if 1:   # Header
         from color import Color, TRM as t
     # Global variables
     if 1:
-        ii = isinstance
-        dbg = False
-        __all__ = "GetDbg dbg".split()
+        __all__ = "Debug".split()
 if 1:   # Core functionality
     class Debug:
+        dbg = False     # Debug printing is off by default
         def __init__(self, fg="cyn", bg=None, attr=None, leader="", file=sys.stdout):
             self.fg = fg
             self.bg = bg
@@ -45,64 +49,33 @@ if 1:   # Core functionality
             self.esc = t(fg, bg, attr)
             self.color = t(fg, bg, attr)   # Generates needed escape codes
         def __call__(self, *p, **kw):
-            '''Print to the debug stream if the dbg global variable is
+            '''Print to the debug stream if the Debug.dbg class variable is
             True.  The syntax is the same as print() except there's an
             additional keyword 'color' which must be a color instance; if
             it's present, it changes the color printed.
             '''
-            if not dbg:
+            if not Debug.dbg:
                 return
+            # Make a copy of kw so we don't change user's copy
             kwc = kw.copy()
             clr = self.esc
             # If user passed in a color keyword, it must be an escape
             # string.
             if "color" in kwc:
                 clr = kwc["color"]
-                assert(ii(clr, str))
+                assert(isinstance(clr, str))
                 del kwc["color"]
             print(f"{clr}", file=self.file, end="")
             print(self.leader, file=self.file, end="")
             print(*p, **kwc)
             print(f"{t.n}", file=self.file, end="")
 
-    def GetDbg(fg="lill", bg=None, attr=None, leader="", file=sys.stdout):
-        '''Call this function to set up the printing style you want for the
-        Dbg() calls.   A Debug instance is returned.
-        The parameters are:
-            fg      String to identify foreground color
-            bg      String to identify background color
-            attr    String to identify printing attributes
-            color   List of three strings to define a color & style using 
-                    the color.t instance of color.TRM.
-            leader  Leading string of debug printing
-            file    Stream to send the output from Dbg
-        Some style strings are:
-            it      Italic
-            bl      Blink
-            rb      Rapid blink
-            bo      Bold
-            ul      Underline
-            rv      Reverse
-        '''
-        debug = Debug(fg=fg, bg=bg, attr=attr, leader=leader, file=file)
-        return debug
-    def Dbg(*p, **kw):
-        '''Print to the debug stream (set with GetDbg) if the dbg global
-        variable is True.  The syntax is the same as print().
-        '''
-        if not dbg:
-            return
-        print(Dbg.color, file=Dbg.file, end="")
-        print(Dbg.leader, file=Dbg.file, end="")
-        print(*p, **kw)
-        print(f"{t.n}", file=Dbg.file, end="")
-
 if __name__ == "__main__":
     # Dbg demo
-    D = GetDbg()
-    dbg = False
-    D("You shouldn't see this")
-    dbg = True
-    D("You should see this")
-    D = GetDbg(["ornl", None, "it"])
+    D = Debug()
+    Debug.dbg = False
+    D("You shouldn't see this message")
+    Debug.dbg = True
+    D("You should see this message")
+    D = Debug("ornl", None, "it")
     D("This should be in orange italics")

@@ -14,14 +14,16 @@ Beethoven's 9th, 2nd movement (1824)|iwIvS4yIThU|Genius
 Bad Romance|VCTOpdlZJ8U|PMJ & tap dancing (Sarah Reich) (singer is Telly Savalas' daughter)
 Catharsis (2013)|h3hlFAVV6aI|My beloved Sa-Sa|  Sally went to a fiddle camp in WA and learned this song.  When she returned, she said she knew I'd like it.  She was right, as it's my favorite fiddle song.
 Crazy (1961)|MbnrdCS57d0||Nobody sings it like Patsy Cline.
-Diamonds and Rust (1975)|2MSwBM_CbyY|Baez's best
+Diamonds and Rust (1975)|IrVD0bP_ybg|Baez's best
 Don't Cry For Me Argentina (1977)|_n8mq7sedP4|A masterpiece
+Ievan Polkka|4om1rQKPijI|A masterpiece of a capella
 I'll Never Find Another You (1963)|KmactMIhrRM|How I feel about Glenda
 Midnight In Moscow (1961)|o744d4mwOgQ|Dixieland from England
+Papillon: Waltz arrangement|FKrmozFh5ww|
 Potato Head Blues (1927)|EfGZB78R7uw|Famous trumpet solo
 Scheherezade (1st movement, written 1888)|6dDk6aft4JU|von Karajan on Deutsche Grammophone
 Stairway to Heaven (1971)|QkF3oxziUI4|
-Vltava (The Moldau) (1875)|l6kqu2mk-Kw|Smetana (he was deaf when he wrote this)
+Vltava (The Moldau) (1875)|l6kqu2mk-Kw|Smetana
 
 '''
 
@@ -33,9 +35,9 @@ songs = '''
 #Journey to Kilimanjaro|e0DpZ3WVowY|1994 Nova show.  Melodically simple but haunting music:  1:20, 4:15, 8:10, 12:03, 19:40, 22:08, 36:50, 38:46, *39:34, 44:58, 51:57, 54:15 (credits)
 
 The Dead South:  In Hell I'll be in Good Company|B9FzVhw8_bY|
-The Dead South:  People Are Strange|4YQJ6KuWvQ|
-The Dead South:  You Are My Sunshine|4YQJ6KuWvQ|
-The Dead South:  House of the Rising Sun|4YQJ6KuWvQ|
+#The Dead South:  People Are Strange|4YQJ6KuWvQ|
+#The Dead South:  You Are My Sunshine|4YQJ6KuWvQ|
+#The Dead South:  House of the Rising Sun|4YQJ6KuWvQ|
 5th Dimension:  Aquarius|oPK7ZF6jfJE&t=8|
 A Horse With No Name|mSZXWdKSQNM|
 Abbott and Costello: Who's on First|kTcRRaXV-fg|Genius comedy
@@ -116,7 +118,6 @@ Hollies:  Long Cool Woman|X3sU_q1GH-4|
 Hollies: Bus Stop|It75wQ0JypA|
 I Am A Man Of Constant Sorrow|OdYGnAFaeHU|
 I Will Survive|ARt9HV9T0w8|
-Ievan Polkka|4om1rQKPijI|A masterpiece of a capella
 It's a Heartache|https://www.youtube.com/watch?v=bEOl38y8Nj8|
 Jimmy Rodgers:  Kisses Sweeter Than Wine|iulmZAz8XfY|
 Jimmy Smith:  Walk On the Wild Side|5O82y59h7MI|
@@ -173,7 +174,6 @@ Nothing Else Matters: Metallica|tAGnKpE4NCI|
 Nothing Else Matters: PMJ:  15 year old girl singer|KSSa0-oAnIo|
 Nothing Else Matters: Piano|DmL12NRE4hQ|
 Papillon: Movie theme|Js69DkyaDVQ|
-Papillon: Waltz arrangement|https://www.youtube.com/watch?v=FKrmozFh5ww|
 Patricia: Perez Prado|rTXIXkeWnEo|
 Paul McCartney carpool karaoke|QjvzCTqkBDQ|
 Paul Muriat: Love is Blue|YYf_hb-jsGo|
@@ -216,7 +216,7 @@ Stone Ponies:  Different Drum|w9qsDgA1q8Y|
 Streisand: People|fPlQ6EtArSc|
 Streisand: Woman in Love|hQLGCX8D-1Y|
 Styx:  Mr. Roboto|51ybp_YFo7I|
-Sunrise, Sunset|lRsciuPOWW4|
+Sunrise, Sunset|03rzUoyq9K0|
 Survivor:  Eye Of The Tiger|btPJPFnesV4|
 Temptations:  Papa Was a Rollin' Stone|71l85z2bXAs|
 Tennessee Ernie Ford:  16 Tons|jIfu2A0ezq0|
