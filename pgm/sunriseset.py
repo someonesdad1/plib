@@ -31,7 +31,7 @@ if 1:   # Header
         #   See http://opensource.org/licenses/OSL-3.0.
         #∞license∞#
         #∞what∞#
-        # Program description string
+        # Computes sunrise and sunset
         #∞what∞#
         #∞test∞# #∞test∞#
     # Imports
@@ -58,9 +58,9 @@ if 1:   # Header
         # Colors
         t.rise = t("ornl")
         t.set = t("redl")
-        t.civ = t("viob")
-        t.naut = t("blub")
-        t.astro = t("grnb")
+        t.civ = t("purl")
+        t.naut = t("roy")
+        t.astro = t("trq")
         t.hyp = t("whtl")
 if 1:   # Location data
         # Boise, ID
@@ -68,12 +68,18 @@ if 1:   # Location data
         longitude = -116.32     # degrees
         GMT_offset = -7         # Hours, to correct GMT to local time
         # These two definitions are the approximate dates DST starts and
-        # end.  Python's datetime class documentation is abstruse and I
-        # just wanted something simple.  These numbers are correct for
-        # 2022, but will be wrong otherwise.
-        yr = 2022
-        dst_start = datetime(yr, 3, 13)
-        dst_end = datetime(yr, 11, 6)
+        # end.  Python's datetime class documentation is confusing and I
+        # just wanted something simple. 
+        if 1:
+            # From Google calendar
+            yr = 2022
+            dst_start = datetime(yr, 3, 13)
+            dst_end = datetime(yr, 11, 6)
+        if 0:
+            # From Google calendar
+            yr = 2023
+            dst_start = datetime(yr, 3, 12)
+            dst_end = datetime(yr, 11, 5)
         today = datetime.today()
         if dst_start.year != today.year:
             raise ValueError(f"{sys.argv[0]}:  Year wrong for DST calculations")

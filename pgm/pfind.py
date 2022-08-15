@@ -1,492 +1,327 @@
 '''
 
 - TODO
-    - Architectural
-        - From inspecting the code, it's not obvious how things work.  In
-          particular, I can't see how Find() works.  Needs comments and a
-          simpler implementation.
-        - Uses os.walk:  switch to pathlib glob.  Depth can be found by
-          counting items in p.parents.
-        - TranslatePath shouldn't be needed -- this can be done by pathlib
-        - Utilize the regex colorizing functions of color.py.
-        - Use filter() and filterfalse() to more compactly do the required
-          filtering.
-        - Files with spaces in the names need to be quoted to allow
-          downstream tools to work with them.
-            - Look at -0 option to terminate strings with nulls so can work
-              with xargs -0.
-            - Also look at what character escapes are needed for the shell
-    - Speed considerations
-        - Avoid calling functions/lambdas written in python in inner loops.
-          In-lining the loop can save a lot of time.
-        - Locals are faster than globals.  If you need a global in a
-          function, copy it to a local.  Function names(global or built-in)
-          are also global constants.
-        - map() with a built-in function beats a for loop
-    - Other
-        - Add -k to print in columns
-        - Shorten the help.  Use -h for more complete explanations and more
-          arcane options.
-        - Change -h to -H
-    - Bugs
-        - f -d gsl doesn't show gsl-2.7/ in ~.
-        - It should be able to find files that begin with 'r' by using the
-        regex '^r.*$'.  Note that currently you have to use '/r' and it
-        doesn't color the r of the files in the current directory.
+    - Add -t for type
 
 File finding utility
-    Similar to UNIX find, but less powerful.  It's not especially fast, but
-    the usage is more convenient than find and the output is colorized to
-    see the matches unless it's not going to a TTY.
+    Similar to UNIX find, but slower.  Easier to use and the matches are
+    colorized.
+
 '''
 if 1:   # Header
     # Copyright, license
+    if 1:
         # These "trigger strings" can be managed with trigger.py
-        #∞copyright∞# Copyright (C) 2008, 2012 Don Peterson #∞copyright∞#
+        #∞copyright∞# Copyright (C) 2022 Don Peterson #∞copyright∞#
         #∞contact∞# gmail.com@someonesdad1 #∞contact∞#
         #∞license∞#
         #   Licensed under the Open Software License version 3.0.
         #   See http://opensource.org/licenses/OSL-3.0.
         #∞license∞#
         #∞what∞#
-        # File finding utility
+        # Program description string
         #∞what∞#
         #∞test∞# #∞test∞#
-    # Imports
-        import sys
-        import re
+        pass
+    # Standard imports
+    if 1:
         import getopt
         import os
-        import fnmatch
-        import subprocess
-        from collections import OrderedDict as odict
-        from pdb import set_trace as xx
         from pathlib import Path as P
+        import re
+        import sys
+        from pdb import set_trace as xx
+        from pprint import pprint as pp
+        from itertools import filterfalse as remove
     # Custom imports
-        from wrap import dedent
-        from color import Color, TRM as t
-if 1:   # Global variables
-    nl = "\n"
-    # If you're using cygwin, set the following variable to point to the
-    # cygpath utility.  Otherwise, set it to None or the empty string.
-    # This tool allows UNIX-style path conversions so that command line
-    # directory arguments like /home/myname work correctly.
-    cygwin = "c:/cygwin/bin/cygpath.exe"
-    #
-    # The following variable, if True, causes a leading './' to be removed
-    # from found files and directories.  This shortens things up a bit.
-    # However, when the -s option is used, leaving rm_dir_tag False causes
-    # the current directory's entries to be printed last and sorted in
-    # alphabetical order.  This is how I prefer to see things, as
-    # sometimes the matches can be quite long and scroll off the top of
-    # the page.  Usually, I'm only interested in stuff in the current
-    # directory.
-    rm_dir_tag = False
-    #
-    # Colorizing 
-    t.dir = t("redl")
-    t.match = t("sky")
-    t.end = t.n
-if 1:   # Glob patterns and file extensions
-    def GetSet(data, extra=None):
-        # Glob patterns for source code files
-        s = ["*." + i for i in data.split()]
-        t = list(sorted(set(s)))
-        if extra is not None:
-            t.extend(extra)
-        return t
-    data_short = '''
-        a asm awk bas bash bat bsh c c++ cc cpp cxx f f77
-        f90 f95 gcode h hh hxx ino jav java json ksh
-        l lex lib m m4 mk pas perl php pl rb
-        re sh tcl tex tk vim yacc yaml
-    '''
-    source_code_files = GetSet(data_short, extra=["[Mm]akefile"])
-    # Glob patterns for documentation files
-    documentation_files = GetSet("doc docx odg ods odt xls xlsx")
-    # Glob patterns for picture files
-    picture_files = GetSet('''
-        bmp clp dib emf eps gif img jpeg jpg pbm pcx pgm png ppm ps psd psp
-        pspimage raw tga tif tiff wmf xbm xpm''')
-    # Names of version control directories
-    version_control = "git hg".split()
+    if 1:
+        from wrap import wrap, dedent
+        from color import Color, TRM as t, RegexpDecorate
+        from dbg import Debug
+    # Global variables
+    if 1:
+        #dbg.dbg = True
+        Dbg = Debug()
+        ii = isinstance
 if 1:   # Utility
-    def Help():
+    def Error(*msg, status=1):
+        print(f"{t.n}", end="", file=sys.stderr)
+        print(*msg, file=sys.stderr)
+        exit(status)
+    def Usage(status=1):
         print(dedent(f'''
-        Sorting is used to make the directories come first in a listing.
-        '''))
-        exit(0)
-    def Usage(status=2):
-        d["name"] = os.path.split(sys.argv[0])[1]
-        d["-s"] = "Don't sort" if d["-s"] else "Sort"
-        usage = r'''
-        Usage:  {name} [options] regex [dir1 [dir2...]]
-            Finds files using python regular expressions.  If no directories are
-            given on the command line, searches at and below the current
-            directory.  Color-coding is used if output is to a TTY.  Use -c
-            to turn off color-coding.
+        Usage:  {sys.argv[0]} [options] regex [dir1 [dir2...]]
+          Finds files using python regular expressions.  If no directories
+          are given on the command line, searches at and below the current
+          directory.
         Options:
-            -C str    Globbing pattern separation string (defaults to space)
-            -c        Turn off color coding
-            -D        Show documentation files
-            -d        Show directories only
-            -e glob   Show only files that match glob pattern (can be multiples)
-            -f        Show files only
-            -F        Show files only (exclude picture files)
-            -h        Show hidden files/directories that begin with '.'
-            -i        Case-sensitive search
-            -L        Follow directory soft links (defaults to False)
-            -l n      Limit recursion depth to n levels
-            -P        Show picture files
-            -p        Show python files
-            -r        Not recursive; search indicated directories only
-            -S        Show source code files excluding python
-            -s        {-s} the output directories and files
-            -x glob   Ignore files that match glob pattern (can be multiples)
-            -V        Include revision control directories
-            --git     Include git directories only
-            --hg      Include Mercurial directories only
-        Note:  
-            regex on the command line is a python regular expression.
-            Globbing patterns in the -e and -x options are the standard file
-            globbing patterns in python's glob module.  The -e and -x options
-            can contain spaces if you define a different separation string
-            with the -C option
-        Examples:
-            - Find all python scripts at and below the current directory:
-                    python {name} -p 
-            - Find files at and below the current directory containing the string
-                "rational" (case-insensitive search) excluding *.bak and *.o:
-                    python {name} -C "," -f -x "*.bak,*.o" rational
-            - Find any directories named TMP (case-sensitive search) in or below
-                the current directory, but exclude any with 'cygwin' in the name:
-                    python {name} -d -i -x "*cygwin*" TMP
-            - Find all documentation and source code files starting with 't' in
-                the directory foo
-                    python {name} -DS /t foo
-                This will also find files in directories that begin with 't' also.
-            - Delete backup files at and below .; the '-u' for invoking python
-                causes unbuffered output, allowing xargs use:
-                    python -u {name} -f bak\$ | xargs rm
-                Omit the 'rm' to have xargs echo what will be removed.
-        '''[1:].rstrip()
-        print(dedent(usage).format(**d))
+            -c      Turn on color-coding
+            -d      Search for directories only
+            -f      Search for files only
+            -i      Make regex search case-sensitive
+            -l n    Limit depth of search to n levels
+            -r      Do not do a recursive search
+            -t typ  Show indicated type of files (see below)
+            --git   Include .git directories
+            --hg    Include .hg directories
+            --nohiddendirs
+                    Remove hidden directories
+            --nohiddenfiles
+                    Remove hidden files
+        File types (more than one -t option allowed)
+          doc       Documentation files
+          pdf       PDF files
+          pic       Picture files
+          py        Python source files
+          src       Source code files
+          zip       Compressed archives
+        '''))
         exit(status)
     def ParseCommandLine():
-        d["-."] = False     # Show hidden files/directories
-        d["-C"] = " "       # Separation string for glob patterns
-        d["-D"] = False     # Print documentation files
-        d["-L"] = False     # Follow directory soft links
-        d["-P"] = False     # Print picture files
-        d["-S"] = False     # Print source code files
-        d["-c"] = True      # Turn off color coding
+        d["-c"] = False     # Use color coding
         d["-d"] = False     # Show directories only
-        d["-F"] = False     # Show files only but no picture files
         d["-f"] = False     # Show files only
-        d["-h"] = False     # Help
-        d["-i"] = False     # Case-sensitive search
-        d["-e"] = []        # Only list files with these glob patterns
+        d["-i"] = True      # Ignore case in searches
         d["-l"] = -1        # Limit to this number of levels (-1 is no limit)
-        d["-p"] = False     # Show python files
         d["-r"] = False     # Don't recurse into directories
-        d["-s"] = False     # Sort the output directories and files
-        d["-x"] = []        # Ignore files with these glob patterns
-        d["-V"] = []        # Revision control directories to include
-        try:
-            optlist, args = getopt.getopt(
-                    sys.argv[1:], 
-                    ".C:DLPScde:Ffhil:prsVx:",
-                    longopts="git hg".split()
-            )
-        except getopt.GetoptError as str:
-            msg, option = str
-            print(msg)
-            exit(1)
-        for o, a in optlist:
-            if o[1] in ".DLPScdFfhiprs":
-                d[o] = not d[o]
-            if o == "-D":
-                d["-e"] += documentation_files
-            if o == "-P":
-                d["-e"] += picture_files
-            if o == "-S":
-                d["-e"] += source_code_files
-            if o == "-e":
-                d[o] += a.split(d["-C"])
-            if o == "-l":
-                n = int(a)
-                if n < 0:
-                    raise ValueError("-l option must include number >= 0")
-                d[o] = n
-            if o == "-p":
-                d["-e"] += ["*.py"]
-            if o == "-V":
-                d["-."] = True
-                d["-V"] = version_control
-            if o == "-x":
-                s, c = o, d["-C"]
-                d["-x"] += a.split(d["-C"])
-            # Long options
-            elif o == "--hg":
-                d["-."] = True
-                d["-V"] += ["hg"]
-            elif o == "--git":
-                d["-."] = True
-                d["-V"] += ["git"]
-        if d["-h"]:
-            Help()
-        if not args:
+        d["-t"] = []        # Type(s) to select
+        # Long options
+        d["--git"] = False  # Include .git directories
+        d["--hg"] = False   # Include .hg directories
+        d["--nohiddendirs"] = False
+        d["--nohiddenfiles"] = False
+        if len(sys.argv) < 2:
             Usage()
-        if d["-i"]:
-            d["regex"] = re.compile(args[0])
+        longopts = '''git hg nohiddenfiles nohiddendirs'''.split()
+        longnames = ["--" + i for i in longopts]
+        try:
+            opts, dirs = getopt.getopt(sys.argv[1:], "cdfil:rt:", longopts)
+        except getopt.GetoptError as e:
+            print(str(e))
+            exit(1)
+        for o, a in opts:
+            if o[1] in list("cdfi"):
+                d[o] = not d[o]
+            if o in longnames:
+                d[o] = not d[o]
+            elif o == "-l":
+                d[o] = n = int(a)
+                if n <= 0:
+                    if n != -1:
+                        Error('d["-l"] option must be > 0')
+            elif o == "-t":
+                allowed = "doc pdf pic py src zip".split()
+                if a in allowed:
+                    d[o].append(a)
+                else:
+                    Error(f"{a!r} is not a recognized type")
+        if d["-t"]:
+            # If the -t option is given, no regex is required
+            regex = None
+            dirs = dirs if dirs else ["."]
         else:
-            d["regex"] = re.compile(args[0], re.I)
-        args = args[1:]
-        # Store search information in order it was found
-        d["search"] = odict()
-        # Normalize -V option
-        d["-V"] = list(sorted(list(set(d["-V"]))))
-        if not d["-c"] or not sys.stdout.isatty():
-            # No color is wanted, so turn off escape sequences
-            t.dir = t.match = t.end = ""
-            # Eventually, the following will work instead
-            #t.on = False
-        return args
+            if not dirs:
+                Usage()
+            regex = dirs.pop(0)
+            if not dirs:
+                dirs = ["."]
+        # Debug dump of d
+        Dbg("Options dictionary:")
+        for i in d:
+            Dbg(f"    d[{i}] = {d[i]}")
+        return regex, dirs
 if 1:   # Core functionality
-    def Normalize(x):
-        return x.replace("\\", "/")
-    def TranslatePath(path, to_DOS=True):
-        '''Translates an absolute cygwin (a UNIX-style path on Windows) to
-        an absolute DOS path with forward slashes and returns it.  Use
-        to_DOS set to True to translate from cygwin to DOS; set it to
-        False to translate the other direction.
+    def ColorCoding():
+        'Set up color coding escape sequences'
+        cc = d["-c"]
+        t.norm = t.n if cc else ""
+        e = "\x1b[01;31m"   # This will match grep & ls color for directories
+        t.dirs = e if cc else ""
+        t.files = t("whtl", "blu") if cc else ""
+    def GetDirectories(dir):
+        '''Return a list of direcctories as Path instances at and below dir.
+            Filter out the things indicated by the options in d.
         '''
-        direction = "-w" if to_DOS else "-u"
-        if to_DOS and path[0] != "/":
-            raise ValueError("path is not an absolute cygwin path")
-        if "\\" in path:
-            # Normalize path (cypath works with either form, but let's not
-            # borrow trouble).
-            path = path.replace("\\", "/")
-        msg = ["Could not translate path '%s'" % path]
-        s = subprocess.Popen((cygwin, direction, path),
-                                stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        errlines = s.stderr.readlines()
-        if errlines:
-            # Had an error, so raise an exception with the error details
-            msg.append("  Error message sent to stderr:")
-            for i in errlines:
-                msg.append("  " + i)
-            raise ValueError(nl.join(msg))
-        lines = [i.strip() for i in s.stdout.readlines()]
-        if len(lines) != 1:
-            msg.append("  More than one line returned by cygpath command")
-            raise ValueError(nl.join(msg))
-        return lines[0].replace("\\", "/")
-    def Ignored(s):
-        '''s is a file name.  If s matches any of the glob patterns in
-        d["-x"], return True.
+        Dbg(f"GetDirectories({dir!r})")
+        p = P(dir)
+        if not p.exists():
+            Error(f"Directory {dir!r} doesn't exist")
+        # Get the directories as a sequence of Path instances
+        dirs = [i for i in p.rglob("*") if i.is_dir()]
+        if 1:   # Filter out unwanted stuff
+            if not d["--git"]:
+                # Remove .git directories
+                def HasGit(item):
+                    return ".git" in item.parts
+                dirs = remove(HasGit, dirs)
+            if not d["--hg"]:
+                # Remove .hg directories
+                def HasHg(item):
+                    return ".hg" in item.parts
+                dirs = remove(HasHg, dirs)
+            if d["--nohiddendirs"]:
+                # Remove hidden directories
+                def IsHiddenDir(item):
+                    return any(i.startswith(".") for i in item.resolve().parts)
+                dirs = remove(IsHiddenDir, dirs)
+            if d["-l"] != -1:
+                # If only a certain level is wanted, prune out the deeper ones
+                N = len(p.parents)
+                def TooDeep(item):
+                    return len(item.parts) - N > d["-l"]
+                dirs = remove(TooDeep, dirs)
+        return dirs
+    def GetFiles(dir):
+        '''Return a list of files as Path instances at and below dir.
+            Filter out the things indicated by the options in d.
         '''
-        for pattern in d["-x"]:
-            if d["-i"]:
-                if fnmatchcase(s, pattern):
-                    return True
-            else:
-                if fnmatch.fnmatch(s, pattern):
-                    return True
-        return False
-    def Included(s):
-        '''s is a file name.  If s matches any of the glob patterns in
-        d["-e"], return True.
+        Dbg(f"GetFiles({dir!r})")
+        p = P(dir)
+        if not p.exists():
+            Error(f"Directory {dir!r} doesn't exist")
+        # Get the files as a sequence of Path instances
+        files = p.glob("*") if d["-r"] else p.rglob("*")
+        files = [i for i in files if i.is_file()]
+        if 1:   # Filter out unwanted stuff
+            if not d["--git"]:
+                # Remove .git directories
+                def HasGit(item):
+                    return ".git" in item.parent.parts
+                files = remove(HasGit, files)
+            if not d["--hg"]:
+                # Remove .hg directories
+                def HasHg(item):
+                    return ".hg" in item.parent.parts
+                files = remove(HasHg, files)
+            if d["--nohiddendirs"]:
+                # Remove hidden directories
+                def IsHiddenDir(item):
+                    return any(i.startswith(".") for i in item.resolve().parent.parts)
+                files = remove(IsHiddenDir, files)
+            if d["--nohiddenfiles"]:
+                # Remove hidden files
+                def IsHiddenFile(item):
+                    return item.name.startswith(".")
+                files = remove(IsHiddenFile, files)
+            if d["-l"] != -1:
+                # If only a certain level is wanted, prune out the deeper ones
+                N = len(p.parents)
+                def TooDeep(item):
+                    return len(item.parents) - N > d["-l"]
+                files = remove(TooDeep, files)
+        if 0:
+            # Dump the files found
+            for i in files:
+                print(f"+ {i}")
+        return list(files)
+    def ApplyRegexToFiles(files, regex, keep=True):
+        '''Apply the compiled regular expression in regex to the files and
+        return them as a list if keep is True; otherwise, remove those
+        files and return a list of the remainder.  The original list is not
+        modified.
         '''
-        for pattern in d["-e"]:
-            if d["-i"]:
-                if fnmatch.fnmatchcase(s, pattern):
-                    return True
-            else:
-                if fnmatch.fnmatch(s, pattern):
-                    return True
-        return False
-    def PrintMatch(s, start, end, isdir=False):
-        'For the match in s, print things out in the appropriate colors'
-        if isdir:
-            print(f"{t.dir}{s[:start]}", end="")
-        else:
-            print(s[:start], end="")
-        print(f"{t.match}{s[start:end]}", end="")
-        if isdir:
-            print(f"{t.dir}", end="")
-        else:
-            print(f"{t.end}", end="")
-    def PrintMatches(s, isdir=False):
-        '''Print the string s and show the matches in appropriate
-        colors.  Note that s can end in '/' if it's a directory.
+        if d["-d"]:     # Only operating on directories
+            return []
+        def IsMatchedFile(file):
+            return bool(regex.search(file.name))
+        action = filter if keep else remove
+        files = list(action(IsMatchedFile, files))
+        return files
+    def ApplyRegexToDirectories(dirs, regex, keep=True):
+        '''Apply the compiled regular expression in regex to the
+        directories in dirs and return them as a list if keep is True;
+        otherwise, remove those directories and return the list of the
+        remainder.  The original list is not modified.
         '''
-        if d["-f"] and not d["-d"]:
-            # Files only -- don't print any matches in directory
-            dir, file = os.path.split(s)
-            print(dir, end="")
-            if dir and dir[:-1] != "/":
-                print("/", end="")
-            s = file
-        while s:
-            if isdir and s[-1] == "/":
-                mo = d["regex"].search(s[:-1])
-            else:
-                mo = d["regex"].search(s)
-            if mo:
-                PrintMatch(s, mo.start(), mo.end(), isdir=isdir)
-                s = s[mo.end():]
-            else:
-                # If the last character is a '/', we'll print it in color
-                # to make it easier to see directories.
-                if s[-1] == "/":
-                    print(s[:-1], end="")
-                    print(f"{t.dir}/{t.end}", end="")
-                else:
-                    try:
-                        print(s, end="")
-                    except IOError:
-                        # Caused by broken pipe error when used with less
-                        exit(0)
-                s = ""
-        print()
-    def Join(root, name, isdir=False):
-        '''Join the given root directory and the file name and store
-        appropriately in the d["search"] odict.  isdir will be True if
-        this is a directory.  Note we use UNIX notation for the file
-        system's files, regardless of what system we're on.
-        '''
-        # Note we check both the path and the filename with the glob
-        # patterns to see if they should be included or excluded.
-        is_ignored = Ignored(name) or Ignored(root)
-        is_included = Included(name) or Included(root)
-        if is_ignored:
+        if d["-f"]:     # Only operating on files
+            return []
+        def IsMatchedDir(dir):
+            return bool(regex.search(str(dir)))
+        action = filter if keep else remove
+        dirs = list(action(IsMatchedDir, dirs))
+        return dirs
+    def PrintDirectories(dirs):
+        if not dirs:
             return
-        if d["-e"] and not is_included:
+        rd = RegexpDecorate()
+        rd.register(d["regex"], t.dirs, t.norm) 
+        for i in dirs:
+            rd(str(i), insert_nl=True)
+    def PrintFiles(files):
+        if not files:
             return
-        root, name = Normalize(root), Normalize(name)
-        if d["-V"]:         # Ignore version control directories
-            # git
-            if "git" not in d["-V"]:
-                r = re.compile("/.git$|/.git/")
-                mo = r.search(root)
-                if mo or name == ".git":
-                    return
-            # Mercurial
-            if "hg" not in d["-V"]:
-                r = re.compile("/.hg$|/.hg/")
-                mo = r.search(root)
-                if mo or name == ".hg":
-                    return
-            # RCS
-            if "RCS" not in d["-V"]:
-                r = re.compile("/RCS$|/RCS/")
-                mo = r.search(root)
-                if mo or name == "RCS":
-                    return
-        # Check if we're too many levels deep.  We do this by counting '/'
-        # characters.  If root starts with '.', then that's the number of
-        # levels deep; otherwise, subtract 1.  Note if isdir is True, then
-        # name is another directory name, so we add 1 for that.
-        lvl = root.count("/") + isdir
-        if root[0] == ".":
-            lvl -= 1
-        if d["-l"] != -1 and lvl >= d["-l"]:
-            return
-        if root == ".":
-            root = ""
-        elif rm_dir_tag and len(root) > 2 and root[:2] == "./":
-            root = root[2:]
-        s = Normalize(os.path.join(root, name))
-        d["search"][s] = isdir
-    def Find(dir):
-        def RemoveHidden(names):
-            '''Unless d["-h"] is set, remove any name that begins with '.'.
-            '''
-            if not d["-h"]:
-                names = [i for i in names if i[0] != "."]
-            return names
-        pics = set([i[2:] for i in picture_files])
-        def RemovePictures(names):
-            '''If d["-F"] is True, remove picture file names
-            '''
-            if d["-F"]:
-                keep = []
-                for i in names:
-                    p = P(i)
-                    ext = p.suffix[1:]
-                    if ext not in pics:
-                        keep.append(i)
-                return keep
-            return names
-        contains = d["regex"].search
-        def J(root, name):
-            return Normalize(os.path.join(root, name))
-        find_files = d["-f"] & ~ d["-d"]
-        find_dirs = d["-d"] & ~ d["-f"]
-        follow_links = d["-L"]
-        for root, dirs, files in os.walk(dir, followlinks=follow_links):
-            # If any component of root begins with '.' and it's not '..',
-            # ignore unless d["-h"] is set.
-            has_dot = any([i.startswith(".") and len(i) > 1 and i != ".."
-                        for i in root.split("/")])
-            if not d["-h"] and has_dot:
-                continue
-            files = RemoveHidden(files)
-            files = RemovePictures(files)
-            dirs = RemoveHidden(dirs)
-            if find_files:
-                [Join(root, name) for name in files if contains(name)]
-            elif find_dirs:
-                [Join(root, dir) for dir in dirs
-                    if contains(J(root, dir))]
+        rd = RegexpDecorate()
+        rd.register(d["regex"], t.files, t.norm) 
+        for i in files:
+            q = '"' if " " in str(i) else ""
+            # Don't print files in current directory with leading './'
+            if str(i.parent) != ".":
+                print(q + str(i.parent) + "/", end="")
+            rd(i.name, insert_nl=False)
+            print(q)
+    def SelectItems(dirs, files):
+        '''Select the desired files and directories as indicated by the
+        options and return (dirs, files) where the two items are lists.
+        '''
+        if not d["-t"]:
+            # Simple selection by one regex
+            out_dirs = ApplyRegexToDirectories(dirs, d["regex"], keep=True)
+            out_files = ApplyRegexToFiles(files, d["regex"], keep=True)
+            return out_dirs, out_files
+        # Get the relevant file extensions
+        ext = []
+        for typ in d["-t"]:
+            if typ == "py":
+                ext.extend("py".split())
+            elif typ == "pdf":
+                ext.extend("pdf".split())
+            elif typ == "pic":
+                ext.extend('''bmp clp dib emf eps gif img jpeg jpg pbm pcx pgm
+                            png ppm ps psd psp pspimage raw tga tif tiff wmf
+                            xbm xpm'''.split())
+            elif typ == "doc":
+                ext.extend("doc docx odg ods odt xls xlsx".split())
+            elif typ == "src":
+                ext.extend('''asm awk bas bash bat bsh c c++ cc cpp cxx f f77
+                            f90 f95 gcode h hh hxx ino jav java json ksh l lex
+                            lib m m4 mk pas perl php pl rb re sh tcl tex tk
+                            vim yacc yaml'''.split())
+            elif typ == "zip":
+                ext.extend("zip rar gz gzip tgz 7z bz bz2 tar.gz".split())
             else:
-                [Join(root, name, isdir=True) for name in dirs
-                    if contains(J(root, name))]
-                [Join(root, name) for name in files if contains(J(root, name))]
-            if d["-r"]:  # Not recursive
-                # This works because the search is top-down
-                break
-    def PrintReport():
-        'Note we put a "/" after directories to flag them as such'
-        D = d["search"]
-        if d["-s"]:
-            # Print things in sorted form, directories first.
-            dirs, files = [], []
-            # Organize by directories and files.  Note you need to use keys()
-            # to get the original insertion order
-            for i in D.keys():
-                if D[i]:
-                    dirs.append(i)
-                else:
-                    files.append(i)
-            print(f"{t.end}", end="")
-            dirs.sort()
-            files.sort()
-            if not d["-d"] and not d["-f"]:
-                # Both directories and files
-                for i in dirs:
-                    PrintMatches(i + "/",isdir=True)
-                for i in files:
-                    PrintMatches(i)
-            else:
-                if d["-d"]:  # Directories only
-                    for i in dirs:
-                        PrintMatches(i + "/", isdir=True)
-                else:  # Files only
-                    for i in files:
-                        PrintMatches(i)
-        else:
-            # Print things as encountered by os.walk
-            for i in D.keys():
-                if (d["-f"] and D[i]) or (d["-d"] and not D[i]):
-                    continue
-                PrintMatches(i + "/" if D[i] else i, isdir=D[i])
-        print(f"{t.end}", end="")
+                raise Exception(f"{typ!r} is a bug:  not allowed for -t option")
+        # Create regex for these file types
+        ext = [r"\." + i + "$" for i in ext]
+        s = '|'.join(ext)
+        s = s.replace("+", r"\+")
+        if "src" in d["-t"]:
+            # Also show makefiles
+            s += r"|[mM]akefile$"
+        d["regex"] = regex = re.compile(s) if d["-i"] else re.compile(s, re.I)
+        # We'll keep only files
+        out_dirs = []
+        out_files = ApplyRegexToFiles(files, regex, keep=True)
+        return out_dirs, out_files
+
+if 0:
+    exit()
+
 if __name__ == "__main__":
     d = {}  # Settings dictionary
-    directories = ParseCommandLine()
+    regex, directories = ParseCommandLine()
+    ColorCoding()
+    re_flag = re.I if d["-i"] else 0
+    if regex is not None:
+        d["regex"] = re.compile(regex, re_flag)
+        Dbg(f"regex = {d['regex']!r}")
+    dirs, files = [], []
     for dir in directories:
-        Find(dir)
-    PrintReport()
+        # Get files
+        filelist = GetFiles(dir)
+        files.extend(filelist)
+        # Get directories
+        dirlist = GetDirectories(dir)
+        dirs.extend(dirlist)
+    dirs, files = SelectItems(dirs, files)
+    PrintDirectories(dirs)
+    PrintFiles(files)

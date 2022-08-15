@@ -1,24 +1,5 @@
 Active
 
-    - pgm/pfind.py bug
-        - I can't search for files that begin with 'ra'.  The regex is 
-          '^ra.*$' but this doesn't work.  The task simply needs to do 
-          a search on Path.name and it should be easy.
-        - Add a -k option to print in columns
-        - Remove --rcs
-        - --S crashes
-
-    - fp.py
-        - Like 'pfind.py -pc .', but finds python files with no color
-          coding.
-        - Desired options
-            - List subdirectories that contain one or more python files.
-              Follow by [n] to indicate file count.
-            - Compact listing:  like previous, but columnize files under
-              the directory name
-            - Extra compact listing:  same, but names truncated to get
-              numerous columns
-
     - pcs.py
         - The /plib tree is done for priority 2 and 3 errors.
         - Do for:  /math, /science, /elec, /shop
