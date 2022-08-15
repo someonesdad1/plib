@@ -30,6 +30,7 @@ if 1:   # Header
         from pathlib import Path as P
         import re
         import sys
+        from io import StringIO
         from pdb import set_trace as xx
         from pprint import pprint as pp
         from itertools import filterfalse as remove
@@ -37,6 +38,7 @@ if 1:   # Header
     if 1:
         from wrap import wrap, dedent
         from color import Color, TRM as t, RegexpDecorate
+        from columnize import Columnize
         from dbg import Debug
     # Global variables
     if 1:
@@ -59,6 +61,7 @@ if 1:   # Utility
             -d      Search for directories only
             -f      Search for files only
             -i      Make regex search case-sensitive
+            -k      Output items in columns
             -l n    Limit depth of search to n levels
             -r      Do not do a recursive search
             -t typ  Show indicated type of files (see below)
@@ -82,6 +85,7 @@ if 1:   # Utility
         d["-d"] = False     # Show directories only
         d["-f"] = False     # Show files only
         d["-i"] = True      # Ignore case in searches
+        d["-k"] = False     # Output items in columns
         d["-l"] = -1        # Limit to this number of levels (-1 is no limit)
         d["-r"] = False     # Don't recurse into directories
         d["-t"] = []        # Type(s) to select
@@ -95,12 +99,12 @@ if 1:   # Utility
         longopts = '''git hg nohiddenfiles nohiddendirs'''.split()
         longnames = ["--" + i for i in longopts]
         try:
-            opts, dirs = getopt.getopt(sys.argv[1:], "cdfil:rt:", longopts)
+            opts, dirs = getopt.getopt(sys.argv[1:], "cdfikl:rt:", longopts)
         except getopt.GetoptError as e:
             print(str(e))
             exit(1)
         for o, a in opts:
-            if o[1] in list("cdfi"):
+            if o[1] in list("cdfik"):
                 d[o] = not d[o]
             if o in longnames:
                 d[o] = not d[o]
@@ -244,21 +248,49 @@ if 1:   # Core functionality
         if not dirs:
             return
         rd = RegexpDecorate()
+        def Stringize(i):
+            'Capture and return the string from rd(str(i))'
+            io = StringIO()
+            rd(str(i), file=io, insert_nl=False)
+            return io.getvalue()
         rd.register(d["regex"], t.dirs, t.norm) 
-        for i in dirs:
-            rd(str(i), insert_nl=True)
+        if d["-k"]:
+            out = []
+            for i in dirs:
+                s = Stringize(i)
+                out.append(s)
+            for i in Columnize(out):
+                print(i)
+        else:
+            for i in dirs:
+                rd(str(i), insert_nl=True)
     def PrintFiles(files):
         if not files:
             return
         rd = RegexpDecorate()
+        def Stringize(i):
+            'Capture and return the string from rd(i.name)'
+            io = StringIO()
+            rd(i.name, file=io, insert_nl=False)
+            return io.getvalue()
         rd.register(d["regex"], t.files, t.norm) 
-        for i in files:
-            q = '"' if " " in str(i) else ""
-            # Don't print files in current directory with leading './'
-            if str(i.parent) != ".":
-                print(q + str(i.parent) + "/", end="")
-            rd(i.name, insert_nl=False)
-            print(q)
+        if d["-k"]:
+            out = []
+            for i in files:
+                q = '"' if " " in str(i) else ""
+                # Don't print files in current directory with leading './'
+                s = q + str(i.parent) + "/" if str(i.parent) != "." else ""
+                out.append(s + Stringize(i))
+            for i in Columnize(out):
+                print(i)
+        else:
+            for i in files:
+                q = '"' if " " in str(i) else ""
+                # Don't print files in current directory with leading './'
+                if str(i.parent) != ".":
+                    print(q + str(i.parent) + "/", end="")
+                rd(i.name, insert_nl=False)
+                print(q)
     def SelectItems(dirs, files):
         '''Select the desired files and directories as indicated by the
         options and return (dirs, files) where the two items are lists.
