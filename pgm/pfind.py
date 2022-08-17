@@ -1,7 +1,7 @@
 '''
 
 - TODO
-    - Add -t for type
+    - See if -k can be used automatically unless output isn't to a TTY.
 
 File finding utility
     Similar to UNIX find, but slower.  Easier to use and the matches are
@@ -55,7 +55,8 @@ if 1:   # Utility
         Usage:  {sys.argv[0]} [options] regex [dir1 [dir2...]]
           Finds files using python regular expressions.  If no directories
           are given on the command line, searches at and below the current
-          directory.
+          directory.  If output is to a TTY, the -k option is set
+          automatically.
         Options:
             -c      Turn on color-coding
             -d      Search for directories only
@@ -129,6 +130,9 @@ if 1:   # Utility
             regex = dirs.pop(0)
             if not dirs:
                 dirs = ["."]
+        # If output is to a TTY, enable -k automatically
+        if not d["-k"] and sys.stdout.isatty():
+            d["-k"] = True
         # Debug dump of d
         Dbg("Options dictionary:")
         for i in d:
@@ -251,7 +255,7 @@ if 1:   # Core functionality
         def Stringize(i):
             'Capture and return the string from rd(str(i))'
             io = StringIO()
-            rd(str(i), file=io, insert_nl=False)
+            rd(str(i), file=io, insert_nl=True)
             return io.getvalue()
         rd.register(d["regex"], t.dirs, t.norm) 
         if d["-k"]:
@@ -294,12 +298,16 @@ if 1:   # Core functionality
     def SelectItems(dirs, files):
         '''Select the desired files and directories as indicated by the
         options and return (dirs, files) where the two items are lists.
+        Make sure the items in the list only appear once.
         '''
+        def Unique(lst):
+            'Return a unique list of sorted items'
+            return list(sorted(set(lst)))
         if not d["-t"]:
             # Simple selection by one regex
             out_dirs = ApplyRegexToDirectories(dirs, d["regex"], keep=True)
             out_files = ApplyRegexToFiles(files, d["regex"], keep=True)
-            return out_dirs, out_files
+            return Unique(out_dirs), Unique(out_files)
         # Get the relevant file extensions
         ext = []
         for typ in d["-t"]:
@@ -333,10 +341,7 @@ if 1:   # Core functionality
         # We'll keep only files
         out_dirs = []
         out_files = ApplyRegexToFiles(files, regex, keep=True)
-        return out_dirs, out_files
-
-if 0:
-    exit()
+        return Unique(out_dirs), Unique(out_files)
 
 if __name__ == "__main__":
     d = {}  # Settings dictionary

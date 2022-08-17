@@ -4,6 +4,7 @@ Print rope data
 #∞test∞# ignore #∞test∞#
 if 1:   # Header
     # Standard imports
+        import getopt
         import sys
         from fractions import Fraction
     # Custom imports
@@ -17,6 +18,33 @@ if 1:   # Header
         t.d38 = t("yell")
         t.d5 = t("magl")
         t.d75 = t("ornl")
+if 1:   # Utility
+    def Error(*msg, status=1):
+        print(*msg, file=sys.stderr)
+        exit(status)
+    def Usage(status=1):
+        print(dedent(f'''
+        Usage:  {sys.argv[0]} [options] [arg]
+          If arg is empty, print strength data.  If arg is given, plot the
+          rope strength as a function of nylon's strength.
+        Options:
+            -h      Print a manpage
+        '''))
+        exit(status)
+    def ParseCommandLine(d):
+        d["-a"] = False
+        try:
+            opts, args = getopt.getopt(sys.argv[1:], "h", 
+                    ["help", "debug"])
+        except getopt.GetoptError as e:
+            print(str(e))
+            exit(1)
+        for o, a in opts:
+            if o[1] in list(""):
+                d[o] = not d[o]
+            elif o in ("-h", "--help"):
+                Usage(status=0)
+        return args
 if 1:   # Samson data
     def GetSamsonData(metric=False, use_fractions=False, all=False):
         '''Return a list of 
@@ -189,9 +217,101 @@ if 1:   # Generic data
                             c = t.d75
                         print(f"{c}{x:^{w}s}", end=" "*2)
                     print(f"{t.n if c else ''}")
+    def PlotData():
+        '''Fields are:
+            Dia, inches
+            Manila
+            Sisal
+            Nylon
+            Dacron
+            Polyethylene
+            Polypropylene
+            Polyester
+        The numbers are breaking strength in klbf.
+        '''
+        data = '''
+            0.188  0.45   0.36  1    0.85  0.7   0.8  0.72
+            0.25   0.6    0.48  1.5  1.38  1.2   1.2  1.15
+            0.312  1      0.8   2.5  2.15  1.75  2.1  1.75
+            0.375  1.35   1.08  3.5  3     2.5   3.1  2.45
+            0.412  1.75   1.4   4.8  4.5   3.4   3.7  3.4
+            0.5    2.65   2.12  6.2  5.5   4.1   4.2  4.4
+            0.562  3.45   2.76  8.3  7.3   4.6   5.1  5.7
+            0.625  4.4    3.52  10.5 9.5   5.2   5.8  7.3
+            0.75   5.4    4.32  14   12.5  7.4   8.2  9.5
+            0.875  7.7    5.7   20   17.5  10.4  11.5 13.5
+            1      9      7.2   24   20    12.6  14   16.5
+        '''
+        dia, manila, sisal, nylon, dacron, polye, polyp, polyester = ([], [], 
+            [], [], [], [], [], []) 
+        o = []
+        for line in data.strip().split("\n"):
+            line = line.strip()
+            if not line:
+                continue
+            d, m, s, n, da, pe, pp, py = [float(i) for i in line.split()]
+            dia.append(d)
+            manila.append(m)
+            sisal.append(s)
+            nylon.append(n)
+            dacron.append(da)
+            polye.append(pe)
+            polyp.append(pp)
+            polyester.append(py)
+        from numpy import array
+        from pylab import plot, show, grid, legend, clf
+        from pylab import title, xlabel, ylabel, savefig
+        dia = array(dia)
+        manila = array(manila)
+        sisal = array(sisal)
+        nylon = array(nylon)
+        dacron = array(dacron)
+        polye = array(polye)
+        polyp = array(polyp)
+        polyester = array(polyester)
+        # Plot breaking strengths
+        plot(dia, nylon, ".-", label="Nylon")
+        plot(dia, dacron, ".-", label="Dacron")
+        plot(dia, polyester, ".-", label="Polyester")
+        plot(dia, polyp, ".-", label="Polypropylene")
+        plot(dia, polye, ".-", label="Polyethylene")
+        plot(dia, manila, ".-", label="Manila")
+        plot(dia, sisal, ".-", label="Sisal")
+        title("Rope Breaking Strengths")
+        xlabel("Diameter, inches")
+        ylabel("Breaking strength, klbf")
+        grid()
+        legend()
+        if 0:
+            show()
+        else:
+            savefig("rope_strength.png")
+        # Plot breaking strengths relative to nylon
+        clf()
+        plot(dia, dacron/nylon, ".-", label="Dacron")
+        plot(dia, polyester/nylon, ".-", label="Polyester")
+        plot(dia, polyp/nylon, ".-", label="Polypropylene")
+        plot(dia, polye/nylon, ".-", label="Polyethylene")
+        plot(dia, manila/nylon, ".-", label="Manila")
+        plot(dia, sisal/nylon, ".-", label="Sisal")
+        title("Rope Breaking Strengths Relative to Nylon")
+        xlabel("Diameter, inches")
+        ylabel("Relative breaking strength")
+        grid()
+        legend()
+        if 0:
+            show()
+        else:
+            savefig("rope_str_rel_nylon.png")
+            
 if __name__ == "__main__": 
-    data = GetSamsonData(use_fractions=True)
-    PrintSamsonTable(data)
-    print()
-    data = GetGenericData()
-    PrintGenericTable(data)
+    d = {}      # Options dictionary
+    args = ParseCommandLine(d)
+    if args:
+        PlotData()
+    else:
+        data = GetSamsonData(use_fractions=True)
+        PrintSamsonTable(data)
+        print()
+        data = GetGenericData()
+        PrintGenericTable(data)

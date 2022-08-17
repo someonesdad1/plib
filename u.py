@@ -145,8 +145,9 @@ if 1:  # Module docstring
     
     The unit 'm/s/s' is ambiguous in normal scientific usage and thus not
     allowed by SI rules.  Since this module uses python's expression parser
-    to evaluate expressions, it means (m/s)/s to the parser, so is
-    acceptable to this module.
+    to evaluate expressions, it means (m/s)/s to the parser (because
+    division has left-associative division), so is acceptable to this
+    module.
     
     Dimensional checking
     --------------------
@@ -175,13 +176,9 @@ if 1:  # Module docstring
     conversion factors is interesting, I've found in practice that I don't
     use it.  Instead, I pay careful attention to the code I write and use
     the u() function in this module to make sure every physical number has
-    the appropriate unit.  In 2021, I wrote the f.py module which endows
-    floats and complex numbers with units (using the u.py module), so
-    there's even less need for dimensional testing with random numbers in my
-    code.  But Byrnes (the author of numericalunits) points out that the
-    feature is usable to test code you don't have the source to or is
-    compiled library code.  This is an important point and if I was doing
-    such work, the randomization tool would probably be in my toolbox.
+    the appropriate unit.  Byrnes (the author of numericalunits) points out
+    that the feature is usable to test code you don't have the source to or
+    is compiled library code.
     
     Dimensional arithmetic
     ----------------------
