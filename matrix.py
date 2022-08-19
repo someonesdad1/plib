@@ -1,5 +1,6 @@
 '''
-Possible tasks:
+
+ToDo
     - Matrix.replace(self, n, vector, c=False) doesn't work right.  These
       utility routines need careful testing, replace() particularly.
     - Need a PrintMatrix() function for general-purpose printing.
@@ -11,8 +12,8 @@ Possible tasks:
       of 1's for a linear regression problem (the basic geometrical need is
       to have affine xfms (rotations & translations) on a space, but
       matrices never change the origin, meaning they can't translate).
-    - mpmath has a matrix library and this should be used for both
-      identifying needed functionality and providing unit test standards.
+    - mpmath has a matrix library and this could be used for identifying
+      needed functionality and providing unit test standards.
     - Update matrix.odt
         - Need a matrix helper that can be called from the command line.
           Could be done by calling the module; then the self-tests get run
@@ -21,7 +22,7 @@ Possible tasks:
         - Also need a cookbook
             - Linear regression example
  
-Matrix module (python 3 only)
+Matrix module
 '''
 if 1:  # Header
     # Copyright, license

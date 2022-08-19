@@ -3042,27 +3042,30 @@ if 1:   # Utility
     def Usage(d, status=1):
         print(dedent(f'''
         Usage:  {sys.argv[0]} [options] [regex1 [regex2 ...]]
-        Search the HP Journal article information.  Use the options to
-        restrict the things to search.  One article is printed per line.
+          Search the HP Journal article information.  Use the options to
+          restrict the things to search.  One article is printed per line.
         Options:
-        -a      Search author names only
-        -b      Brief report:  date and title only
-        -d      Dump all the data
-        -i      Don't ignore case in search
-        -l n    Limit the number of PDFs opened [default = {d["-l"]}]
-        -o      Open the PDFs matched by the search
-        -P      Print the estimated number of pages sorted by page count
-        -p      Print the estimated number of pages per issue (sorted by date)
-        -s      Search subtitles only
-        -t      Search titles only
-        -y n    Limit to years <= n
-        -Y n    Limit to years >= n
+          -a      Search author names only
+          -b      Brief report:  date and title only
+          -C      Use color decoration
+          -c      Use color decoration even if not to TTY
+          -d      Dump all the data
+          -i      Don't ignore case in search
+          -l n    Limit the number of PDFs opened [default = {d["-l"]}]
+          -o      Open the PDFs matched by the search
+          -P      Print the estimated number of pages sorted by page count
+          -p      Print the estimated number of pages per issue (sorted by date)
+          -s      Search subtitles only
+          -t      Search titles only
+          -y n    Limit to years <= n
+          -Y n    Limit to years >= n
         '''))
         exit(status)
     def ParseCommandLine(d):
         d["-a"] = False     # Search author names only
         d["-b"] = False     # Brief report 
-        d["-c"] = False     # Use color in output
+        d["-c"] = False     # Use color even if not to TTY
+        d["-C"] = False     # Use color in output
         d["-d"] = False     # Dump all the data
         d["-i"] = True      # Ignore case in search
         d["-l"] = 5         # Limit number of PDFs to open
@@ -3078,12 +3081,12 @@ if 1:   # Utility
         if len(sys.argv) < 2:
             Usage(d)
         try:
-            opts, args = getopt.getopt(sys.argv[1:], "abcdil:oPpstwy:Y:")
+            opts, args = getopt.getopt(sys.argv[1:], "abCcdhil:oPpstwy:Y:")
         except getopt.GetoptError as e:
             print(str(e))
             exit(1)
         for o, a in opts:
-            if o[1] in list("abcdioPpstw"):
+            if o[1] in list("abCcdioPpstw"):
                 d[o] = not d[o]
             elif o == "-l":
                 try:
@@ -3115,10 +3118,12 @@ if 1:   # Utility
             elif o in ("-h", "--help"):
                 Usage(d, status=0)
         # Set up colors
-        t.dt = t("yell") if d["-c"] else ""
-        t.ti = t("grnl") if d["-c"] else ""
-        t.au = t("magl") if d["-c"] else ""
-        t.nn = t.n if d["-c"] else ""
+        if d["-c"]:
+            t.always = True
+        t.dt = t("yell") if d["-C"] else ""
+        t.ti = t("grnl") if d["-C"] else ""
+        t.au = t("magl") if d["-C"] else ""
+        t.nn = t.n if d["-C"] else ""
         return args
 if 1:   # Core functionality
     def GetArticleString(a):
