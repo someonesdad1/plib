@@ -18,6 +18,7 @@ Diamonds and Rust (1975)|IrVD0bP_ybg|Baez's best
 Don't Cry For Me Argentina (1977)|_n8mq7sedP4|A masterpiece
 Ievan Polkka|4om1rQKPijI|A masterpiece of a capella
 I'll Never Find Another You (1963)|KmactMIhrRM|How I feel about Glenda
+Korobushka|Pr3ZgN8onRA|
 Midnight In Moscow (1961)|o744d4mwOgQ|Dixieland from England
 Papillon: Waltz arrangement|FKrmozFh5ww|
 Potato Head Blues (1927)|EfGZB78R7uw|Famous trumpet solo
@@ -130,7 +131,6 @@ Kingston Trio:  Bay Of Mexico|-16OczraVi4|
 Kingston Trio: MTA|MbtkL5_f6-4|
 Korobushka: Bond Live at Albert Hall|E5NByiEIbD8|
 Korobushka: Bond Live at Albert Hall|vvC2vjtmUX8|
-Korobushka: Mikhail Smirnov|Pr3ZgN8onRA|Mikhail Smirnov
 Lee Marvin: I was Born Under a Wandering Star|NTymtAbaG08|
 Listen To Your Heart|yCC_b5WHLX0|
 Lou Christie:  Two Faces Have I|w05w1XbZTG8|

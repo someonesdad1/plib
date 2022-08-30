@@ -131,8 +131,9 @@ if 1:   # Utility
             if not dirs:
                 dirs = ["."]
         # If output is to a TTY, enable -k automatically
-        if not d["-k"] and sys.stdout.isatty():
-            d["-k"] = True
+        if 0:
+            if not d["-k"] and sys.stdout.isatty():
+                d["-k"] = True
         # Debug dump of d
         Dbg("Options dictionary:")
         for i in d:
@@ -151,6 +152,8 @@ if 1:   # Core functionality
             Filter out the things indicated by the options in d.
         '''
         Dbg(f"GetDirectories({dir!r})")
+        if d["-f"]:
+            return []
         p = P(dir)
         if not p.exists():
             Error(f"Directory {dir!r} doesn't exist")
@@ -184,6 +187,8 @@ if 1:   # Core functionality
             Filter out the things indicated by the options in d.
         '''
         Dbg(f"GetFiles({dir!r})")
+        if d["-d"]:
+            return []
         p = P(dir)
         if not p.exists():
             Error(f"Directory {dir!r} doesn't exist")
@@ -263,7 +268,7 @@ if 1:   # Core functionality
             for i in dirs:
                 s = Stringize(i)
                 out.append(s)
-            for i in Columnize(out):
+            for i in Columnize(out, esc=True):
                 print(i)
         else:
             for i in dirs:
