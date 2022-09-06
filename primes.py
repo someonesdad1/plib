@@ -41,6 +41,7 @@ if 1:   # Global variables
     __all__ = '''AllFactors Factor FactorList FormatFactors IsPrime
                  PrimeList PrimeNumberSieve Primes factor_gen
               '''.split()
+    d = {"-c": False}
 def IsPositiveInteger(n, msg):
     if n < 1 or not ii(n, int):
         raise ValueError(msg)

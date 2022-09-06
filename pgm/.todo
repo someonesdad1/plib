@@ -1,5 +1,27 @@
 Active
 
+    - matrix.py
+        - The important function replace() doesn't work right.
+        - In applications, replacing rows/columns is particularly
+          important, so make sure the needed functionality is there.
+        - Syntactic sugar
+            - Style 1
+                - m.col(i) returns column i as a column vector
+                - m.col(i, cv) puts the vector cv into column i
+                - m.row(r, x) would do the same for rows
+                - Move existing col(*n) to columns(*n) and row(*n) to
+                  rows(*n)
+            - Style 2
+                - m.col[i] returns column i as a column vector
+                - m.col[i] = cv puts the vector cv into column i
+                - I suspect this syntax isn't possible
+        - Testing:  now that numpy is available again, use its matrix
+          features in the self tests.
+
+    - /plib/dev/units
+        - Utility to parse GNU units data file
+        - Could be useful to use to define a set of units for u.py
+
     - pcs.py
         - The /plib tree is done for priority 2 and 3 errors.
         - Do for:  /math, /science, /elec, /shop
@@ -16,7 +38,7 @@ Active
           useful background/reference stuff to /plib/color.py.
 
     - trigger.py
-        - Change default trigger strings to '# ∞' and ' ∞#', as this will
+        - Change default trigger strings to '# ∞' and '∞ #', as this will
           stop error messages from pycodestyle.  This also has the benefit
           of making the string a little easier to read.  
         - Write a script to modify all the files in the current directory
@@ -60,31 +82,6 @@ Active
           include and exclude the things you want to see.  Then at a
           breakpoint you'd do something like qq(myvar) and it would produce
           a pretty-printed dump of the attributes.
-
-    - chk.py
-        - Simple utility to check that a python script uses no tab
-          characters for indentation and that every line is < 80
-          characters.
-        - pep8.py used to be the tool; now it's 'pycodestyle'.  I aliased
-          it to 'chk'.
-
-    - matrix.py
-        - The important function replace() doesn't work right.
-        - In applications, replacing rows/columns is particularly
-          important, so make sure the needed functionality is there.
-            - A useful syntactic sugar would be the attribute m.col
-              which would let you index into it like a vector.
-                - m.col(c, i) would do the same thing when i is an int
-                  (returns row i of column c)
-                - m.col(c) would return column c as a column vector.
-                  Because of the implementation, the vector is inherently a
-                  list that is a copy of the column's elements.  Thus, if
-                  you change the column vector, the original matrix doesn't
-                  change.
-                - m.col(c, cv) puts it back when cv is a column vector
-                - m.row(r, x) would do the same for rows
-                - Move existing col(*n) to columns(*n) and row(*n) to
-                  rows(*n)
 
 Other
 

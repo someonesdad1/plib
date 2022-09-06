@@ -15,6 +15,8 @@ Active
                 - m.col[i] returns column i as a column vector
                 - m.col[i] = cv puts the vector cv into column i
                 - I suspect this syntax isn't possible
+        - Testing:  now that numpy is available again, use its matrix
+          features in the self tests.
 
     - /plib/dev/units
         - Utility to parse GNU units data file
