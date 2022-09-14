@@ -21,19 +21,15 @@ if 1:   # Imports
     import time
 if 1:   # Custom imports
     from wrap import dedent
-    try:
-        import color as c
-    except ImportError:
-        class C:    # Dummy object that will swallow calls to the color module
-            def __setattr__(self, attr, x):
-                pass
-            def __getattr__(self, attr):
-                return None
-            def fg(self, *p):
-                pass
-            def normal(self):
-                pass
-        c = C()
+    from color import TRM as t
+    if 0:
+        import debug
+        debug.SetDebugger()
+if 1:   # Global variables
+    t.err = t("ornl")
+    t.bld = t("grnl")
+    t.nz = t("redl")
+    t.dry = t("sky")
 def Error(*msg, status=1):
     print(*msg, file=sys.stderr)
     exit(status)
@@ -56,9 +52,12 @@ def Usage(d, status=1):
       '.py' removed and '.mk' substituted; this file is looked for in the
       current directory and used if it is found.
     Use case
-      I use this script when working on documentation that uses restructured
-      text that gets converted to an HTML file.  It works well when you can set
-      your browser up to automatically reload a file when it changes.
+      I use this script when working on a LaTeX project with multiple *.tex
+      files.  A makefile runs pdflatex on the *.tex files when one of the
+      source files changes.  I use the very nice SumatraPDF client which
+      reloads the PDF when the it changes and it maintains your position in
+      the file.  Thus, you can make a change in the editor, save the file,
+      and see the changes in the PDF in a second or so.
     Example
         # Example kfile to construct an HTML file when a restructured
         # text file or CSS file change their contents.
@@ -68,33 +67,37 @@ def Usage(d, status=1):
       are newer than project.html.
     Options
       -h    Print this message
-      -n    Echo the commands that would be executed but don't call
-            them.
+      -n    Dry run:  echo the commands that would be executed but don't
+            call them.
+      -q    Quiet mode:  don't show stdout of commands.  For long builds,
+            this can speed things up by not having to scroll a lot of text
+            in the terminal window.
       -s t  Sleep time t in s between checking file times.  t can be a
             floating point number.  Default is {st} seconds.
     '''))
     exit(status)
 def ParseCommandLine(d):
     d["-n"] = False     # Dry run
+    d["-q"] = False     # Quiet mode
     d["-s"] = 1.0       # Default sleep time in s
     try:
-        optlist, filename = getopt.getopt(sys.argv[1:], "hns:")
+        optlist, filename = getopt.getopt(sys.argv[1:], "hnqs:")
     except getopt.GetoptError as e:
         msg, option = e
         print(msg)
         exit(1)
-    for opt in optlist:
-        if opt[0] == "-n":
-            d["-n"] = True
-        if opt[0] == "-s":
+    for o, a in optlist:
+        if o[1] in "nq":
+            d[o] = not d[o]
+        if o == "-s":
             try:
-                d["-s"] = float(opt[1])
+                d["-s"] = float(a)
                 if d["-s"] < 0:
                     raise ValueError()
             except ValueError:
                 msg = "-s option's argument must be a number >= 0"
                 Error(msg)
-        if opt[0] == "-h":
+        if o == "-h":
             Usage(d, status=0)
     if not filename:
         # Construct a default mk file and see if it exists in the
@@ -104,6 +107,8 @@ def ParseCommandLine(d):
         filename = name + ".mk"
         if not os.path.isfile(filename):
             Usage(d)
+    else:
+        filename = filename[0]
     return filename
 def GetLines(filename, d):
     '''Read in the lines from filename, strip out comments, and build
@@ -116,7 +121,7 @@ def GetLines(filename, d):
             continue
         fields = [i.strip() for i in s.split(",", 2)]
         if len(fields) != 3:
-            msg = "Improper number of fields on line {linenum+1}:\n  {line}"
+            msg = f"Improper number of fields on line {linenum+1}:\n {line!r}"
             Error(msg)
         # Parse the commands
         fields[2] = tuple([i.strip() for i in fields[2].split(";")])
@@ -138,28 +143,36 @@ def Execute(cmd, d):
     '''
     src, dest, cmdlist = cmd
     # Get last modification times
+    no_src, no_dest = False, False
     try:
         tm_src = os.stat(src).st_mtime
+    except Exception as e:
+        #t.print(f"{t.err}Couldn't get modification times for {src!r} or {dest!r}")
+        tm_src = 0
+        no_src = True
+    try:
         tm_dest = os.stat(dest).st_mtime
     except Exception as e:
-        msg = "Couldn't get modification times for '%s' or '%s'"
-        c.fg(c.yellow)
-        print(msg % (src, dest))
-        c.normal()
-        return
-    if tm_src <= tm_dest:
-        return
+        #t.print(f"{t.err}Couldn't get modification times for {src!r} or {dest!r}")
+        tm_dest = -1
+        no_dest = True
+    if no_dest or no_src:
+        # Always rebuild when times can't be gotten
+        pass
+    else:
+        if tm_src <= tm_dest:
+            return
     # Execute commands because source is newer than destination
-    print("'%s' is newer than '%s' [%s]" % (src, dest, GetTime(d)))
+    t.print(f"{t.bld}{src!r} is newer than {dest!r} [{GetTime(d)}]")
     for cmd in cmdlist:
         if d["-n"]:
-            print("Dry run: ", cmd, "[%s]" % GetTime(d))
+            t.print(f"{t.sky}Dry run:  {cmd!r} [{GetTime(d)}]")
         else:
+            if d["-q"]:
+                cmd += " >/dev/null"
             status = os.system(cmd)
             if status:
-                c.fg(lred)
-                print("'%s' returned nonzero status" % cmd)
-                c.normal()
+                t.print(f"{t.nz}{cmd!r} returned nonzero status")
 if __name__ == "__main__":
     d = {}  # Options dictionary
     d["start"] = time.time()

@@ -208,6 +208,25 @@ def PrintCharacters(characters, indent):
             s = ""
     if s:
         print(s)
+def PrintUnicode(results):
+    found = False
+    for i, cat, chars in results:
+        if cat == "Unicode":
+            found = True
+            break
+    if not found:
+        return
+    for c in Translate(chars).split():
+        n = ord(c)
+        if n == 0xfeff:    # No break space
+            print(f"{'nbs':4s}", end=" ")
+        else:
+            print(f"{c:4s}", end=" ")
+        sep = " "*4
+        print(f"U+{n:05x}", end=sep)
+        print(f"  {n: 6d}", end=sep)
+        print(f"0o{n:07o}")
+        # Print hex, decimal, octal
 def PrintResults():
     res = []
     for key, val in d["cat"].items():
@@ -216,6 +235,9 @@ def PrintResults():
         chars.sort()
         res.append((key, cat, ''.join(chars)))
     res.sort()
+    if d["-u"]:
+        PrintUnicode(res)
+        return
     w = max([len(i[1]) for i in res])
     C = {
         0: "trq",      # Whitespace
@@ -255,15 +277,17 @@ def Usage(status=1):
                 encoding method supported by your python version.  Case is
                 not important and hyphens and underscores in the name can
                 be removed.  Defaults to {d["-e"]}.
+        -u      Only print out the Unicode characters with their codepoints
     '''))
     exit(status)
 def ParseCommandLine():
-    d["-8"] = False
-    d["-a"] = False
-    d["-b"] = False
-    d["-C"] = True
-    d["-c"] = False
-    d["-e"] = "UTF-8"
+    d["-8"] = False     # Show all of the 8-bit characters
+    d["-a"] = False     # Limit printout to 7-bit ASCII characters
+    d["-b"] = False     # Read files as binary
+    d["-C"] = True      # Don't use colorized printing
+    d["-c"] = False     # Print out counts
+    d["-e"] = "UTF-8"   # Set the encoding
+    d["-u"] = False     # Only print out the Unicode characters with their codepoints
     d["7-bit clean"] = True
     d["char_counts"] = defaultdict(int)
     d["ctrl"] = {   # ASCII control code names
@@ -291,12 +315,12 @@ def ParseCommandLine():
     else:
         d["width"] = 79
     try:
-        opts, args = getopt.getopt(sys.argv[1:], "8abCcEe:h")
+        opts, args = getopt.getopt(sys.argv[1:], "8abCcEe:hu")
     except getopt.GetoptError as e:
         print(str(e))
         exit(1)
     for o, a in opts:
-        if o[1] in list("8abCc"):
+        if o[1] in list("8abCcu"):
             d[o] = not d[o]
         elif o in ("-E",):
             print(dedent(f'''

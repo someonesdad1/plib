@@ -244,16 +244,11 @@ def GetMatches(regexp, d):
         dir, file = split(i)
         mo = r.search(file)
         if mo:
-            matches.append((i, mo))
-    # Sort the matches so that they always appear in the same order (not
-    # doing this will sometimes give different orders.
+            # Decorate with string first for sorting output
+            matches.append([str(i), i, mo])
     if matches:
-        def f(i):
-            str(i[0])     # Get the path string
-        try:
-            matches = list(sorted(matches, key=f))
-        except Exception:
-            pass
+        # Sort by whole path name (first element), then toss out first element
+        matches = [(i[1], i[2]) for i in list(sorted(matches))]
     return matches
 def PrintChoices(matches, d):
     print("Choose which file(s) to open:")

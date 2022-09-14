@@ -1,5 +1,22 @@
 Active
 
+    - Tips
+        - These should be converted to latex for easier maintenance.
+
+    - Text substitution
+        - Need fast simple text substitution tool
+        - .on, .off with an optional variable (bool) argument
+        - .def var = str 
+            - when 'var' is encountered in a line, 'str' is substituted
+              and line is processed until there are no more defined
+              variables
+        - .undef var1 var2 ... 
+        - Could use lua for scripting blocks
+
+    - rattle.py
+        - Utility to help with roll and pitch rattle measurements.  It
+          prompts you for the needed details.
+
     - matrix.py
         - The important function replace() doesn't work right.
         - In applications, replacing rows/columns is particularly

@@ -349,13 +349,13 @@ def ParseCommandLine(d):
     d["-w"] = False     # Use WordNet dictionary
     d["which_dict"] = 2
     try:
-        optlist, args = getopt.getopt(sys.argv[1:], "@012345acdhinrsvw")
+        optlist, args = getopt.getopt(sys.argv[1:], "@012345acdHhinrsvw")
     except getopt.GetoptError as str:
         msg, option = str
         print(msg)
         sys.exit(1)
     for o, a in optlist:
-        if o[1] in set("@acdhnrsvw"):
+        if o[1] in set("@acdHnrsvw"):
             d[o] = not d[o]
             if o[1] in set("acdnrv"):
                 d["-w"] = True
@@ -363,6 +363,8 @@ def ParseCommandLine(d):
             d["which_dict"] = int(o[1])
         if o == "-i":
             d[o] = ""
+        elif o == "-h":
+            Usage(d, status=0)
     if d["-@"]:
         d["-s"] = True
     if d["-w"]:
@@ -371,8 +373,8 @@ def ParseCommandLine(d):
         # We also set -S to True because of the special case of
         # satellite adjectives.
         d["-S"] = True
-    if d["-h"]:
-        Error("-h not implemented yet")
+    if d["-H"]:
+        Error("-H not implemented yet")
     if d["-s"]:
         return args
     if not args:
@@ -408,7 +410,7 @@ def Usage(d, status=1):
       -3      Use a large dictionary         (274 kwords)
       -4      Use a massive dictionary       (511 kwords)
       -5      Use the ten-hundred dictionary   (1 kwords)
-      -h      Describe the dictionaries
+      -H      Describe the dictionaries
       -i      Make search case-sensitive
       -S      Show command line words in dict
       -s      Show command line words not in dict

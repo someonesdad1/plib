@@ -137,7 +137,10 @@ if 1:   # Getting text, tokens, lines, bytes
             ignore.append(r"^\s*$")
         got = GetText(thing, enc=enc)
         if ii(got, bytes):
-            lines = got.decode(enc).split("\n")
+            if enc:
+                lines = got.decode(enc).split("\n")
+            else:
+                lines = got.decode().split("\n")
         elif ii(got, str):
             lines = got.split("\n")
         else:
