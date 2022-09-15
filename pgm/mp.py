@@ -1,8 +1,19 @@
 '''
 Todo
-    - Use -d for debugging with color output for debug code and plain white
-      for normal output
-    - No longer works, so fix
+
+    - Consider changing the macro definitions so that they become entries
+      in a dict.  This allows them to be used in expressions with eval and
+      exec; this also forces them to be valid python identifiers.  Then can
+      use things like '.off expr', letting the operation be based on a bool
+      expression.
+    - Commands could be '.x()', allowing them to be delegated to a
+      function.  This allows keywords for modifying behavior.
+    - Need self tests to validate behavior
+    - Add .ononff(expr) to toggle on/off state?
+    - Error messages must include the line number and file being processed
+      at the moment
+    - Need and .undef command
+    - Allow code blocks to be indented
 
 
 A text substitution tool
@@ -22,7 +33,6 @@ if 1:  # Copyright, license
     #∞test∞# #∞test∞#
     pass
 if 1:   # Imports
-    import string
     import sys
     import os
     import re
@@ -70,7 +80,7 @@ if 1:   # Global variables
     # Colors
     t.log = t("trql")
     t.cmd = t("ornl")
-    t.line = t("lill")
+    t.line= t("lill")
     t.code = t("magl")
 def ManPage():
     name = sys.argv[0]
@@ -124,9 +134,14 @@ def ManPage():
             specified with the -I option are searched sequentially
             and the first match is used.  More than one -I option
             can be given.
+        -v
+            Show the processing that's happening in colored text to stderr.
+            The script's normal output is in plain text.  Different colors
+            are used for 1) regular debug information, 2) command lines,
+            3) regular input lines, and 4) embedded python code lines.
     
     Command lines
-        Command lines to the macro processor have a '.' character in the
+        Command lines for the macro processor have a '.' character in the
         first column.  You can edit the IsCommandLine() function in the
         script if you'd like to change this syntax.
     
