@@ -10,6 +10,7 @@ This file is used to test the output of the /plib/pgm/tsub.py script.
 .)
 .
 .
+.# ---------------------------------------------------------------------------
 ---------- Basic substitution using .def
 .# Note the space between '.' and 'def':  shouldn't matter
 .     def tsub_h = Hello
@@ -20,6 +21,7 @@ tsub_h
 .)
 .
 .
+.# ---------------------------------------------------------------------------
 ---------- Basic substitution using ..def
 The following should have no leading space
 ..def tsub_h =Hello
@@ -34,11 +36,62 @@ The text to be substituted is '44 888'.  We'll replace it with 'xx'.
 .(
     t.print(f"{purl}xx", file=e)
 .)
+.# ---------------------------------------------------------------------------
 ---------- Include a file with .include
----------- .on and .off
-
-
-The following line should be empty
+.include tsub.test1 once
+.(
+    s = open("tsub.test1").read().rstrip()
+    t.print(f"{purl}{s}", file=e)
+.)
+Next line should fail when uncommented
+.#.include tsub.test1 
+---------- Include a nonexistent file with .sinclude
+.(
+    t.print(f"{purl}You should see this message", file=e)
+.)
+.sinclude tsub.wepoirtj3orn
+.# ---------------------------------------------------------------------------
+---------- Test .on and .off
+.off
+Illegal message #1
+.(
+    m = "Illegal message #1"
+    t.print(f"{purl}You shouldn't see {m!r}", file=e)
+.)
+.on
+You should see this #1
+.# Now use a conditional
+.(
+    x = 0
+.)
+.off
+.on x
+Illegal message #2
+.(
+    m = "Illegal message #2"
+    t.print(f"{purl}You shouldn't see {m!r}", file=e)
+    x = 1
+.)
+.on x
+You should see this #2
+.off x
+You shouldn't see this #3
+Illegal message #3
+.(
+    m = "Illegal message #3"
+    t.print(f"{purl}You shouldn't see {m!r}", file=e)
+.)
+.on
+.# ---------------------------------------------------------------------------
+---------- Test block comment
+.{
+    This is a block
+    comment.  You should
+    see no output.
+.}
+.(
+    print(f"{purl}You should see no message from this test.", file=e)
+.)
 .(
     print(f"{purl}End of test", file=e)
 .)

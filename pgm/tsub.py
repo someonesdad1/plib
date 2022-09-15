@@ -89,6 +89,7 @@ if 1:  # Header
         output_on = 1
         current_file = ""
         current_line = 0
+        in_comment_block = False    # If True, we're in a comment block
         macros = {}
         macro_names = []
         start_dir = os.getcwd()
@@ -270,7 +271,10 @@ if 1:  # Utility
                 once.  This is intended to be used where the include file
                 has python code/endcode chunks that you only want executed
                 once.
-        
+
+                Because of the way the script works, you can't include
+                a file that has a space in its name.
+
             .sinclude file [once]
                 Same as include, except it's not an error if the file cannot
                 be found.
@@ -408,7 +412,6 @@ if 1:  # Utility
         if q[-1] != "\n":
             q += "\n"
         return q
-
     def Usage():
         print(dedent(f'''
         Usage:  {sys.argv[0]} [options] file1 [file2...]
@@ -469,7 +472,7 @@ if 1:  # Core functionality
         it.  If we're in code mode, the line is appended to the current_code
         string.
         '''
-        global output_on, macros, macro_names
+        global output_on, macros, macro_names, in_comment_block
         global code_mode, current_code, codes_names
         original_line = line
         # Note:  we don't remove the newline, as this is needed to separate
@@ -496,6 +499,8 @@ if 1:  # Core functionality
             return
         # Get the command
         cmd = fields[0]
+        if in_comment_block and cmd != "}":
+            return
         if cmd == "def":
             # Resplit this line by first removing 'def', then splitting on
             # the '=' character
@@ -586,23 +591,30 @@ if 1:  # Core functionality
         elif cmd == "cd":
             if len(fields) > 1:
                 os.chdir(fields[1])
+                Log(f"chdir to {fields[1]!r}")
             else:
                 os.chdir(start_dir)
-        elif cmd[0] == "#":
-            # It's a comment - ignore it
-            pass
+                Log(f"chdir to {start_dir!r}")
+        elif cmd[0] == "#":     # It's a comment - ignore it
+            Log(f"Got a comment line")
+        elif cmd[0] == "{":     # It's the start of a comment block
+            in_comment_block = True
+            Log(f"Entered a comment block")
+        elif cmd[0] == "}":     # It's the end of a comment block
+            in_comment_block = False
+            Log(f"Exited a comment block")
         elif cmd == "on":
             try:
                 if len(fields) > 1:  # Argument given
-                    output_on = bool(eval(fields[1]))
+                    output_on = bool(eval(fields[1], globals(), localvars))
                 else:
                     output_on = True
-            except Exception:
-                Error("Bad expression in line %d of file '%s'" %
-                    (current_line, current_file))
+            except Exception as e:
+                breakpoint() #xx
+                Error(f"Bad expression in line {current_line} of file {current_file!r}'\n  {e}")
         elif cmd == "off":
             if len(fields) > 1:  # Argument given
-                output_on = not bool(eval(fields[1]))
+                output_on = not bool(eval(fields[1], globals(), localvars))
             else:
                 output_on = False
         elif cmd == "include":
@@ -611,22 +623,19 @@ if 1:  # Core functionality
                     (current_line, current_file))
             file = FindIncludeFile(fields[1])
             if len(fields) > 2:
-                once = 1
+                once = True
                 if fields[2] != "once":
                     Error("Bad include in line %d of file '%s':  third "
-                        "token must be 'once'" %
-                        (current_line, current_file))
+                        "token must be 'once'" % (current_line, current_file))
             else:
-                once = 0
+                once = False
             if file == "":
                 Error("Error:  include file '%s' in line %d of file '%s' "
-                    "not found" %
-                    (fields[1], current_line, current_file))
-            if once:
-                if file not in included_files:
-                    ProcessFile(file, 0, current_line, current_file)
-            else:
-                ProcessFile(file, 0, current_line, current_file)
+                    "not found" % (fields[1], current_line, current_file))
+            if file in included_files:
+                Error("Error:  include file '%s' in line %d of file '%s' "
+                    "already included" % (fields[1], current_line, current_file))
+            ProcessFile(file, 0, current_line, current_file)
             included_files[file] = 0
         elif cmd == "sinclude":
             if len(fields) != 2:
@@ -697,7 +706,7 @@ if 1:  # Core functionality
             Log(f"{t.ln}[{linenum}]{t.cmd} {line}", t.cmd)
             ProcessCommandLine(line)
         else:
-            if output_on:
+            if output_on and not in_comment_block:
                 Log(f"{t.ln}[{linenum}]{t.line} {line}", t.line)
                 Output(line)
     def Output(line):
