@@ -1,0 +1,44 @@
+This file is used to test the output of the /plib/pgm/tsub.py script.
+.(
+    e = sys.stderr
+    purl = t("purl")
+    print(f"{purl}", file=e, end="")
+    print("Messages in this color are sent to stderr and will show what", file=e)
+    print("the output text should look like.  Each test passes if the", file=e)
+    t.print("colored text and plain text match.", file=e)
+    x = 34.3
+.)
+.
+.
+---------- Basic substitution using .def
+.# Note the space between '.' and 'def':  shouldn't matter
+.     def tsub_h = Hello
+Both 'Hello' should have a leading space:
+tsub_h
+.(
+    t.print(f"{purl} Hello", file=e)
+.)
+.
+.
+---------- Basic substitution using ..def
+The following should have no leading space
+..def tsub_h =Hello
+tsub_h
+.(
+    t.print(f"{purl}Hello", file=e)
+.)
+---------- Substitution of a string containing a space
+The text to be substituted is '44 888'.  We'll replace it with 'xx'.
+.def 44 888 =xx
+44 888
+.(
+    t.print(f"{purl}xx", file=e)
+.)
+---------- Include a file with .include
+---------- .on and .off
+
+
+The following line should be empty
+.(
+    print(f"{purl}End of test", file=e)
+.)
