@@ -59,7 +59,14 @@ def ParseCommandLine(d):
         if o[1] in "ru":
             d[o] = not d[o]
         if o == "-b":
-            d["-b"] = int(a)
+            if a.lower().startswith("0x"):
+                d["-b"] = int(a, 16)
+            elif a.lower().startswith("0b"):
+                d["-b"] = int(a, 2)
+            elif a.lower().startswith("0o"):
+                d["-b"] = int(a, 8)
+            else:
+                d["-b"] = int(a)
             if not 0 <= d["-b"] < 256:
                 Error("-b option must be an integer between 0 and 255")
         elif o == "-s":

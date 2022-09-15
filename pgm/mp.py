@@ -1,4 +1,10 @@
 '''
+Todo
+    - Use -d for debugging with color output for debug code and plain white
+      for normal output
+    - No longer works, so fix
+
+
 Bugs
 
     * .define 44 888 =xxxxx
@@ -32,6 +38,7 @@ if 1:   # Imports
     from pdb import set_trace as xx 
 if 1:   # Custom imports
     from wrap import dedent
+    from color import TRM as t
 if 1:   # Global variables
     script = os.path.split(sys.argv[0])[1]
     verbose = 0                 # Log to stderr if true
@@ -68,69 +75,9 @@ if 1:   # Global variables
     mp_NowTimeMM      Is the current time's minute (00-59)
     mp_NowTimeSS      Is the current time's second (00-59)
     mp_NowTimeAMPM    Is the current time's AM or PM designator
-    mp_GPL_txt        The GNU General Public License Notice (text)
-    mp_GPL_html       The GNU General Public License Notice (html)'''[1:]
-
-    GPL_txt = dedent('''This program is free software; you can redistribute it and/or
-    modify it under the terms of the GNU General Public License as
-    published by the Free Software Foundation; either version 2 of
-    the License, or (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public
-    License along with this program; if not, write to the Free
-    Software Foundation, Inc., 59 Temple Place, Suite 330, Boston,
-    MA  02111-1307  USA
-
-    See http://www.gnu.org/licenses/licenses.html for more details.''')
-    gnu_url = "http://www.gnu.org/licenses/licenses.html"
-    GPL_html = dedent(f'''
-    This program is free software; you can redistribute it and/or
-    modify it under the terms of the GNU General Public License as
-    published by the Free Software Foundation; either version 2 of
-    the License, or (at your option) any later version.<p>
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.<p>
-
-    You should have received a copy of the GNU General Public
-    License along with this program; if not, write to the Free
-    Software Foundation, Inc., 59 Temple Place, Suite 330, Boston,
-    MA  02111-1307  USA<p>
-
-    See <a href="{gnu_url}">{gnu_url}</a> for more details.
-    ''')
-    del gnu_url
-def Usage():
-    print(dedent(f'''
-    Usage:  {sys.argv[0]} [options] file1 [file2...]
-      General-purpose macro processor (really, a text substitution tool).
-    Options
-      -d      Print list of macro definitions found in files
-      -h      Print a man page
-      -I dir  Define an include directory
-    Command lines have the form (whitespace after '.' optional):
-        .  command [parameters]
-        .. command [parameters]       Macros not expanded in line
-    Commands:
-        define Macro = Value          Define a new macro
-        #                             This line is a comment
-        on                            Turn output on
-        off                           Turn output off
-        code [name]                   Define a [named] section of python code
-        endcode                       End of python code section
-        include                       Insert a file; error if not found
-        sinclude                      Insert a file; no error if not found
-        cd [dir]                      Change the current directory
-    Special macros'''))
-    for i in special_macros.split("\n"):
-        print(i)
+    '''.rstrip()[1:]
+    # Colors
+    t.log = t("trql")
 def ManPage():
     name = sys.argv[0]
     print(dedent(f'''
@@ -321,7 +268,32 @@ def ManPage():
     '''))
 def Log(st):
     if verbose:
-        print("+ " + st, file=sys.stderr)
+        t.print(f"{t.log}{RmNl(st)}", file=sys.stderr)
+def Usage():
+    print(dedent(f'''
+    Usage:  {sys.argv[0]} [options] file1 [file2...]
+      General-purpose macro processor (really, a text substitution tool).
+    Options
+      -d      Print list of macro definitions found in files
+      -h      Print a man page
+      -I dir  Define an include directory
+      -v      Verbose output to show what's going on
+    Command lines have the form (whitespace after '.' optional):
+        .  command [parameters]
+        .. command [parameters]       Macros not expanded in line
+    Commands:
+        define Macro = Value          Define a new macro
+        #                             This line is a comment
+        on                            Turn output on
+        off                           Turn output off
+        code [name]                   Define a [named] section of python code
+        endcode                       End of python code section
+        include                       Insert a file; error if not found
+        sinclude                      Insert a file; no error if not found
+        cd [dir]                      Change the current directory
+    Special macros'''))
+    for i in special_macros.split("\n"):
+        print(i)
 def Initialize():
     global files_to_process
     import getopt
@@ -346,10 +318,10 @@ def Initialize():
     files_to_process = args
     if len(files_to_process) == 0:
         Usage()
-    Log("dump_macros        = %d\n" % dump_macros)
-    Log("verbose            = %d\n" % verbose)
-    Log("files_to_process   = %s\n" % str(files_to_process))
-    Log("-" * 70 + "\n")
+    Log("dump_macros        = %d" % dump_macros)
+    Log("verbose            = %d" % verbose)
+    Log("files_to_process   = %s" % str(files_to_process))
+    Log("-" * 70)
     BuildSpecialMacros()
     assert(len(cmd_char) == 1)
 def BuildSpecialMacros():
@@ -378,10 +350,7 @@ def BuildSpecialMacros():
         value = [time.strftime(setting[1], tm), 0, ""]
         macros[key] = value
         if verbose:
-            Log("%-20s %s\n" % (key, value))
-    # Add the GPL macros.
-    macros["mp_GPL_txt"] = [GPL_txt, 0, ""]
-    macros["mp_GPL_html"] = [GPL_html, 0, ""]
+            Log("%-20s %s" % (key, value))
     macro_names = macros.keys()
     SortMacroNames()
 def SortMacroNames():
@@ -413,10 +382,12 @@ def ProcessCommandLine(line):
         Log("Code line: " + line)
         current_code = current_code + line
         return
-    st = string.strip(line[1:])
+    #OLD st = string.strip(line[1:])
+    st = line[1:].strip()
     if len(st) == 0:
         return
-    fields = string.split(st)
+    #OLD fields = string.split(st)
+    fields = st.split()
     Log("Command line: " + line)
     if len(fields) == 0:
         return
@@ -426,7 +397,8 @@ def ProcessCommandLine(line):
             Error("Too few fields in line %d of file '%s'\n" %
                   (current_line, current_file))
         macro_name = fields[1]
-        loc_eq = string.find(line, "=")
+        #OLD loc_eq = string.find(line, "=")
+        loc_eq = line.find("=")
         if loc_eq < 0:
             Error("Missing '=' in line %d of file '%s'\n" %
                   (current_line, current_file))
@@ -446,7 +418,7 @@ def ProcessCommandLine(line):
         macros[macro_name] = [macro_value, current_line, current_file]
         macro_names = macros.keys()
         SortMacroNames()
-        Log("Defined %s to '%s'\n" % (macro_name, macro_value))
+        Log("Defined %s to '%s'" % (macro_name, macro_value))
     elif cmd == "code":
         # Beginning of a code section.  If it's got a name, let's make
         # sure it hasn't been executed before.
@@ -567,13 +539,15 @@ def ExpandMacros(line):
     while not done:
         found = 0  # Flags finding at least one macro
         for macro in macro_names:
-            pos = string.find(line, macro)
+            #OLD pos = string.find(line, macro)
+            pos = line.find(macro)
             if pos != -1:
                 # Found a macro name in the line
                 found = 1
                 old_value = macro
                 new_value = macros[macro][0]
-                line = string.replace(line, old_value, new_value)
+                #OLD line = string.replace(line, old_value, new_value)
+                line = line.replace(old_value, new_value)
                 break
         if found == 0:
             done = 1
@@ -597,6 +571,11 @@ def ProcessLine(line):
     else:
         if output_on and not dump_macros:
             Output(line)
+def RmNl(line):
+    'Remove the newline if it has one'
+    if line and line[-1] == "\n":
+        return line[:-1]
+    return line
 def Output(line):
     '''Send the line to the output stream.  First, expand all the macros
     in the line.  Then check the character before the trailing newline:
@@ -604,7 +583,7 @@ def Output(line):
     before that is another '\', in which case substitute '\' for the
     '\\' and keep the newline.
     '''
-    line = ExpandMacros(line)
+    line = RmNl(ExpandMacros(line))
     if len(line) < 2:
         print(line)
         return
@@ -641,8 +620,8 @@ def ProcessFile(file, ignore_failure_to_open=0, restore_line=0,
         if ignore_failure_to_open:
             return
         else:
-            Error("Couldn't open file '%s' for reading\n" % file)
-    st = "\n\n===== %s processing file '%s' =====\n\n"
+            Error("Couldn't open file '%s' for reading" % file)
+    st = "===== %s processing file '%s' ====="
     Log(st % ("Started", file))
     line = ifp.readline()
     current_file = file
