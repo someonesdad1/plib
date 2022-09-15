@@ -5,15 +5,6 @@ Todo
     - No longer works, so fix
 
 
-Bugs
-
-    * .define 44 888 =xxxxx
-    44888
-        produces the output
-    xxxxx888
-    The space in the name should be an error or the whole thing should
-    be used.
-
 A text substitution tool
     Print the man page (mp.py -h) for details.
 '''
@@ -78,6 +69,9 @@ if 1:   # Global variables
     '''.rstrip()[1:]
     # Colors
     t.log = t("trql")
+    t.cmd = t("ornl")
+    t.line = t("lill")
+    t.code = t("magl")
 def ManPage():
     name = sys.argv[0]
     print(dedent(f'''
@@ -158,7 +152,8 @@ def ManPage():
         .define macro = value
             Defines the value of a macro.  All characters after the '='
             character become part of the macro's value, except for the
-            newline.
+            newline.  A macro name can contain any character except a
+            newline and cannot begin or end with a space character.
     
         .cd dir
             Set the current directory of the macro processor to dir.
@@ -266,14 +261,15 @@ def ManPage():
         Note:  any global variables and functions you define in your code
         will be put into the {name} script's global namespace.
     '''))
-def Log(st):
+def Log(st, color=t.log):
     if verbose:
-        t.print(f"{t.log}{RmNl(st)}", file=sys.stderr)
+        t.print(f"{color}+ {RmNl(st)}", file=sys.stderr)
 def Usage():
     print(dedent(f'''
     Usage:  {sys.argv[0]} [options] file1 [file2...]
       General-purpose macro processor (really, a text substitution tool).
     Options
+      -c      Force color output even if not to a TTY
       -d      Print list of macro definitions found in files
       -h      Print a man page
       -I dir  Define an include directory
@@ -294,25 +290,30 @@ def Usage():
     Special macros'''))
     for i in special_macros.split("\n"):
         print(i)
+def SetUpColors():
+    pass
 def Initialize():
     global files_to_process
     import getopt
     try:
-        optlist, args = getopt.getopt(sys.argv[1:], "dhI:v")
+        optlist, args = getopt.getopt(sys.argv[1:], "cdhI:v")
     except getopt.error as st:
         print("getopt error:  %s\n" % st)
-        sys.exit(1)
-    for opt in optlist:
-        if opt[0] == "-d":
+        exit(1)
+    for o, a in optlist:
+        if o == "-c":
+            global t
+            t.always = True
+        elif o == "-d":
             global dump_macros
             dump_macros = 1
-        if opt[0] == "-v":
+        elif o == "-v":
             global verbose
             verbose = 1
-        if opt[0] == "-h":
+        elif o == "-h":
             ManPage()
-            sys.exit(0)
-        if opt[0] == "-I":
+            exit(0)
+        elif o == "-I":
             global include_dirs
             include_dirs.append(opt[1])
     files_to_process = args
@@ -364,7 +365,7 @@ def SortMacroNames():
     macro_names = [i[1] for i in list(reversed(s))]
 def Error(msg):
     print(msg, file=sys.stderr)
-    sys.exit(1)
+    exit(1)
 def ProcessCommandLine(line):
     '''The line is a command line, so parse out the command and execute
     it.  If we're in code mode, the line is appended to the current_code
@@ -372,6 +373,7 @@ def ProcessCommandLine(line):
     '''
     global output_on, macros, macro_names
     global code_mode, current_code, codes_names
+    original_line = line
     if len(line) > 2 and line[:2] != "..":
         line = ExpandMacros(line)
     else:
@@ -379,33 +381,26 @@ def ProcessCommandLine(line):
     # If we're in code mode, just append the line to current_code and return
     # (unless we're at the code end).
     if code_mode and line[0] != cmd_char:
-        Log("Code line: " + line)
+        Log("Code line: " + line, color=t.code)
         current_code = current_code + line
         return
-    #OLD st = string.strip(line[1:])
     st = line[1:].strip()
     if len(st) == 0:
         return
-    #OLD fields = string.split(st)
     fields = st.split()
-    Log("Command line: " + line)
     if len(fields) == 0:
         return
     cmd = fields[0]
     if cmd == "define":
-        if len(fields) < 3:
-            Error("Too few fields in line %d of file '%s'\n" %
-                  (current_line, current_file))
-        macro_name = fields[1]
-        #OLD loc_eq = string.find(line, "=")
-        loc_eq = line.find("=")
-        if loc_eq < 0:
-            Error("Missing '=' in line %d of file '%s'\n" %
-                  (current_line, current_file))
-        macro_value = line[loc_eq+1:]
+        # Resplit this line by first removing 'define', then splitting on
+        # the '=' character
+        st = st[6:].strip()
+        f = st.split("=")
+        if len(f) != 2:
+            Error(f"{original_line!r} is a bad .define line (missing '='?)")
+        macro_name = f[0].strip()
+        macro_value = RmNl(f[1])
         # Remove the trailing newline if it is present
-        if macro_value[-1] == "\n":
-            macro_value = macro_value[:-1]
         if dump_macros:
             print("%s = '%s'\n" % (macro_name, macro_value))
         if macro_name in macros:
@@ -539,14 +534,12 @@ def ExpandMacros(line):
     while not done:
         found = 0  # Flags finding at least one macro
         for macro in macro_names:
-            #OLD pos = string.find(line, macro)
             pos = line.find(macro)
             if pos != -1:
                 # Found a macro name in the line
                 found = 1
                 old_value = macro
                 new_value = macros[macro][0]
-                #OLD line = string.replace(line, old_value, new_value)
                 line = line.replace(old_value, new_value)
                 break
         if found == 0:
@@ -561,15 +554,17 @@ def ExpandMacros(line):
         if mo:
             line = line % globals()
     return line
-def ProcessLine(line):
+def ProcessLine(line, linenum):
     '''Determine if the line is a command line or not.  If it is, process
     it with ProcessCommandLine().  Otherwise, expand the macros in the
     line and print it to stdout.
     '''
     if IsCommandLine(line):
+        Log(f"[{linenum}] {line}", t.cmd)
         ProcessCommandLine(line)
     else:
         if output_on and not dump_macros:
+            Log(f"[{linenum}] {line}", t.line)
             Output(line)
 def RmNl(line):
     'Remove the newline if it has one'
@@ -627,7 +622,7 @@ def ProcessFile(file, ignore_failure_to_open=0, restore_line=0,
     current_file = file
     current_line = 1
     while line:
-        ProcessLine(line)
+        ProcessLine(line, current_line)
         line = ifp.readline()
         current_line = current_line + 1
     ifp.close()
