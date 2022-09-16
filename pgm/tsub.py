@@ -1,43 +1,8 @@
 '''
-Todo
-    - Change globals to g.x
-    - Change things to f-strings
-    - Remove the special macros.  This will speed up performance, as then
-      no lines have to be searched if there are no definitions.
-    - Allow macro redefinitions, but print a warning in red when -v is
-      used.
-    - If -v is used, print a color key to explain what they mean
 
-    - I will call the text substitutions "macros", even though they're not
-      really used this way.
-        - There will be two types:  1) those that are valid python identifiers
-          and 2) those that are not.  The type 1 macros can be used in
-          expressions.
-        - Change to the following .def syntax
-            - '.def a b = text
-                - Allows a name to contain a space
-            - Valid python assignments
-                - '.def xy = "text"
-                - '.def xy = 44
-                - '.def xy = 44+6j
-    - Change the text substitutions to a class so they can have their file
-      name and line number associated with them.  Also define __call__() to
-      perform the substitution on a string.
-
-    - Consider changing the macro definitions so that they become entries
-      in a dict.  This allows them to be used in expressions with eval and
-      exec; this also forces them to be valid python identifiers.  Then can
-      use things like '.off expr', letting the operation be based on a bool
-      expression.
-    - Commands could be '.x()', allowing them to be delegated to a
-      function.  This allows keywords for modifying behavior.
-    - Need self tests to validate behavior
-    - Add .ononff(expr) to toggle on/off state?
-    - Error messages must include the line number and file being processed
-      at the moment
-    - Need and .undef command
-    - Allow code blocks to be indented
-
+TODO
+    - Change from Initialize to ParseCommandLine
+    - Switch os.path stuff to pathlib
 
 A text substitution tool
 
@@ -67,9 +32,10 @@ if 1:  # Header
         import os
         import re
         import sys
+        from pathlib import Path as P
         from pprint import PrettyPrinter
-        P = PrettyPrinter(width=180)
-        pp = P.pprint
+        PP = PrettyPrinter(width=180)
+        pp = PP.pprint
         if 0:
             import debug
             debug.SetDebugger()
@@ -80,12 +46,10 @@ if 1:  # Header
         dbg = True  # If True, use breakpoints for debugging
         t.log = None
         script = os.path.split(sys.argv[0])[1]
-        verbose = 0                 # Log to stderr if true
         localvars = {}              # Dict for local variables
         # Character that starts a command line.  Note that it actually can
         # be a string of more than one character.
         cmd_char = "."              
-        files_to_process = None
         output_on = 1
         current_file = ""
         current_line = 0
@@ -94,7 +58,6 @@ if 1:  # Header
         macro_names = []
         start_dir = os.getcwd()
         cmd_char = "."              # Character that denotes a command line
-        include_dirs = []           # Where to search for include files
         included_files = {}         # Which files have already been included
         # Globals to help with evaluating chunks of code
         code_mode = 0               # If true, we're in a code section
@@ -115,6 +78,17 @@ if 1:  # Header
         t.redef = t("lip")      # Warning of a redefinition
         t.undef = t("viol")     # Undefining a substitution
 if 1:  # Utility
+    def NoColorCoding():
+        t.always = False
+        t.err = ""              # Error message
+        t.ln = ""               # Line number
+        t.fn = ""               # File name
+        t.log = ""              # Routine debug (-v on) message
+        t.cmd = ""              # Command line
+        t.line= ""              # Non-command line from input file
+        t.code = ""             # Line from code block
+        t.redef = ""            # Warning of a redefinition
+        t.undef = ""            # Undefining a substitution
     def ManPage():
         name = sys.argv[0]
         print(dedent(f'''
@@ -171,6 +145,9 @@ if 1:  # Utility
                 Escape codes for colorizing are emitted even if the output
                 isn't a TTY; if you don't want this behavior, find the line
                 't.always = True' in the code and make it False.
+
+                This is a handy option to see what's happening with your
+                input file.  It will show all of the input lines.
         
         Command lines
             Command lines for the macro processor have a '.' character in
@@ -226,6 +203,13 @@ if 1:  # Utility
                 missing, the current directory is set to what it was at the
                 start of the script.
         
+            .{{ 
+            .}}
+
+                Comment block.  This is an easy way to comment out a block
+                of text.  When the -v option is used, lines inside a
+                comment block won't be printed.
+
             .( [code_section_name]
             .)
 
@@ -346,10 +330,10 @@ if 1:  # Utility
             return line[:-1]
         return line
     def Log(st, color=t.log):
-        if verbose:
+        if d["-v"]:
             t.print(f"{color}+ {RmNl(st)}", file=sys.stderr)
     def PrintColorCoding():
-        if not verbose: 
+        if not d["-v"]: 
             return
         f = sys.stderr
         print("Color coding:", file=f)
@@ -417,6 +401,7 @@ if 1:  # Utility
         Usage:  {sys.argv[0]} [options] file1 [file2...]
           Text substitution tool.
         Options
+          -c      Turn off color coding
           -h      Print a man page
           -I dir  Define an include directory
           -v      Verbose output
@@ -439,26 +424,37 @@ if 1:  # Utility
           .cd [dir]                     Change the current directory
         '''))
     def ParseCommandLine(d):
-        d["-a"] = False
+        d["-c"] = False     # If True, no color coding for -v
+        d["-I"] = []        # Directories to search for include files
+        d["-v"] = False     # Verbose debugging mode
         if len(sys.argv) < 2:
             Usage()
         try:
-            opts, args = getopt.getopt(sys.argv[1:], "ad:h", 
+            opts, files = getopt.getopt(sys.argv[1:], "aI:hv", 
                     ["help", "debug"])
         except getopt.GetoptError as e:
             print(str(e))
             exit(1)
         for o, a in opts:
-            if o[1] in list("a"):
+            if o[1] in list("cv"):
                 d[o] = not d[o]
-            elif o in ("-h", "--help"):
-                Usage(status=0)
-        return args
+            elif o == "-h":
+                Manpage()
+            elif o == "-I":
+                p = P(a)
+                if not (p.exists() and p.is_file()):
+                    Error(f"-I:  {a!r} doesn't exist or isn't a file")
+                d["-I"].append(p)
+        if d["-c"]:
+            NoColorCoding()
+        if d["-v"] and not d["-c"]:
+            PrintColorCoding()
+        return files
 if 1:  # Core functionality
     def SortMacroNames():
-        '''Decorate and sort the macro names so that the longest macros
-        are first.  This lets macros like 'mp_MyMacro4' get substituted
-        before 'mp_MyMacro', giving the behavior most of us would expect.
+        '''Sort the macro names so that the longest macros are first.  This
+        lets macros like 'mp_MyMacro4' get substituted before 'mp_MyMacro',
+        giving the behavior most of us would expect.
         '''
         global macro_names
         s = [(len(i), i) for i in macro_names]
@@ -492,15 +488,15 @@ if 1:  # Core functionality
         st = line.replace(cmd_char, "", 1).strip()
         if len(st) == 0:
             # We ignore a command line with no useful input
+            Log(f"{t.ln}[{current_line}]{t.log} Command line with no input")
             return
         fields = st.split()
         if len(fields) == 0:
             # We ignore a command line with no useful input
+            Log(f"{t.ln}[{current_line}]{t.log} Command line with no input")
             return
         # Get the command
         cmd = fields[0]
-        if in_comment_block and cmd != "}":
-            return
         if cmd == "def":
             # Resplit this line by first removing 'def', then splitting on
             # the '=' character
@@ -511,7 +507,7 @@ if 1:  # Core functionality
                 Error(m)
             macro_name = f[0].strip()
             macro_value = RmNl(f[1])
-            if macro_name in macros and verbose:
+            if macro_name in macros and d["-v"]:
                 m = [f"{t.redef}Warning:  redefining definition '%s' in line {t.ln}%d{t.redef} "
                     f"of file {t.fn}'%s'{t.redef}\n" % (macro_name, current_line, current_file)]
                 m += [f"          {t.redef}Previous definition at line {t.ln}%d{t.redef} "
@@ -647,22 +643,17 @@ if 1:  # Core functionality
             Error("Command '%s' on line %d of file '%s' not recognized" %
                 (cmd, current_line, current_file))
     def FindIncludeFile(file):
-        '''Search for the indicated file.  If it is an absolute path, just
-        return it.  If it is a relative path, first try the current directory,
-        then the directories in the include_dirs list.  If it is not found,
-        return an empty string.  Otherwise return the full path name.
+        '''Search for the indicated file to include and return it; if not
+        found, return None.
         '''
-        import os
-        if os.path.isfile(file):
-            path = os.path.normcase(os.path.abspath(file))
-            return path
-        # Didn't find it, so search include_dirs
-        for dir in include_dirs:
-            path = os.path.normcase(os.path.join(dir, file))
-            if os.path.isfile(path):
-                return os.path.abspath(path)
-        # Couldn't find it, so return empty string
-        return ""
+        p = P(file)
+        if p.is_file():
+            return p.resolve()
+        for dir in d["-I"]:     # Search include directories
+            p = P(dir)/file
+            if p.is_file():
+                return p.resolve()
+        return None
     def IsCommandLine(line):
         'This function returns True if the line is a command line'
         # Note if we're in code mode, the line is also considered a
@@ -673,26 +664,26 @@ if 1:  # Core functionality
         replaced, then we start the search over again so we don't miss
         any macros within macros.
         '''
-        done = 0
+        done = False
         while not done:
-            found = 0  # Flags finding at least one macro
+            found = False  # Flags finding at least one macro
             for macro in macro_names:
                 pos = line.find(macro)
                 if pos != -1:
                     # Found a macro name in the line
-                    found = 1
+                    found = True
                     old_value = macro
                     new_value = macros[macro][0]
                     line = line.replace(old_value, new_value)
                     break
-            if found == 0:
-                done = 1
+            if not found:
+                done = True
         # If current_code is not the null string, we've had at least one
         # code section, so evaluate using the global variables.  We'll only
         # do this if the line has at least one formatting string of the
         # form %(varname)X, where varname is the name of a global variable
         # and X is s, d, etc.
-        if len(current_code) > 0:
+        if current_code:
             mo = need_global_expansion.search(line)
             if mo:
                 line = line % globals()
@@ -706,9 +697,12 @@ if 1:  # Core functionality
             Log(f"{t.ln}[{linenum}]{t.cmd} {line}", t.cmd)
             ProcessCommandLine(line)
         else:
-            if output_on and not in_comment_block:
-                Log(f"{t.ln}[{linenum}]{t.line} {line}", t.line)
-                Output(line)
+            if output_on:
+                if not in_comment_block:
+                    Log(f"{t.ln}[{linenum}]{t.line} {line}", t.line)
+                    Output(line)
+                else:
+                    Log(f"{t.ln}[{linenum}]{t.line} In comment block: {line!r}", t.line)
     def Output(line):
         '''Send the line to the output stream.  First, expand all the macros
         in the line.  Then check the character before the trailing newline:
@@ -771,8 +765,7 @@ if 1:  # Core functionality
         Log(st % ("Finished", file))
 if __name__ == "__main__":
     d = {}      # Options dictionary
-    #files_to_process = ParseCommandLine(d)
-    Initialize()
+    files_to_process = ParseCommandLine(d)
+    #Initialize()
     for file in files_to_process:
         ProcessFile(file)
-    exit(0)

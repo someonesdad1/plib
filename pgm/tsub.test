@@ -10,8 +10,8 @@ This file is used to test the output of the /plib/pgm/tsub.py script.
 .)
 .
 .
-.# ---------------------------------------------------------------------------
----------- Basic substitution using .def
+.
+========== Basic substitution using .def
 .# Note the space between '.' and 'def':  shouldn't matter
 .     def tsub_h = Hello
 Both 'Hello' should have a leading space:
@@ -21,23 +21,28 @@ tsub_h
 .)
 .
 .
-.# ---------------------------------------------------------------------------
----------- Basic substitution using ..def
+.
+========== Basic substitution using ..def
 The following should have no leading space
 ..def tsub_h =Hello
 tsub_h
 .(
     t.print(f"{purl}Hello", file=e)
 .)
----------- Substitution of a string containing a space
+.
+.
+.
+========== Substitution of a string containing a space
 The text to be substituted is '44 888'.  We'll replace it with 'xx'.
 .def 44 888 =xx
 44 888
 .(
     t.print(f"{purl}xx", file=e)
 .)
-.# ---------------------------------------------------------------------------
----------- Include a file with .include
+.
+.
+.
+========== Include a file with .include
 .include tsub.test1 once
 .(
     s = open("tsub.test1").read().rstrip()
@@ -45,13 +50,18 @@ The text to be substituted is '44 888'.  We'll replace it with 'xx'.
 .)
 Next line should fail when uncommented
 .#.include tsub.test1 
----------- Include a nonexistent file with .sinclude
+.
+.
+.
+========== Include a nonexistent file with .sinclude
 .(
     t.print(f"{purl}You should see this message", file=e)
 .)
 .sinclude tsub.wepoirtj3orn
-.# ---------------------------------------------------------------------------
----------- Test .on and .off
+.
+.
+.
+========== Test .on and .off
 .off
 Illegal message #1
 .(
@@ -82,8 +92,10 @@ Illegal message #3
     t.print(f"{purl}You shouldn't see {m!r}", file=e)
 .)
 .on
-.# ---------------------------------------------------------------------------
----------- Test block comment
+.
+.
+.
+========== Test block comment
 .{
     This is a block
     comment.  You should
