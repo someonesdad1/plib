@@ -1,16 +1,19 @@
 Active
 
-    - Tips
-        - These should be converted to latex for easier maintenance.
+    - pgm/mp.py
+        - Needs the ability to define multiline macros without needing to
+          use a .include command 
+        - Add -b option to change r'\\n' on a line to remove the newline.
+          This needs to be an option as it's now the default behavior and
+          this screws up things like r'\\' in LaTeX tables.
+        - .def var = str 
+            - If var is a python symbol, then put it into the localvars
+              dict so it can also be used in code.
+        - .undef var1 var2 ... 
 
     - Text substitution
         - Need fast simple text substitution tool
         - .on, .off with an optional variable (bool) argument
-        - .def var = str 
-            - when 'var' is encountered in a line, 'str' is substituted
-              and line is processed until there are no more defined
-              variables
-        - .undef var1 var2 ... 
         - Could use lua for scripting blocks
 
     - rattle.py

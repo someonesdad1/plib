@@ -27,7 +27,7 @@ Use case:
 
         autocmd BufRead *.man map q :q!<cr>:unmap q
 
-    This tool allows me to put custom manpages in by ~/bin/man.d
+    This tool allows me to put custom manpages in my ~/bin/man.d
     directory.  These are manpages to tools that I don't want to
     "pollute" the main system manpage directories with.  The rule for
     them to be found and opened is that a) the file name must begin
@@ -59,7 +59,7 @@ if 1:   # Global variables
     # UNIX man command location
     man = "/usr/bin/man"
     # Where special manpages are located
-    mandir = "/home/donp/bin/man.d"
+    mandir = "/home/Don/bin/man.d"
     # Options to be passed to man
     manopts = "--nj"    # --nj is no justification ==> ragged right margins
 def Usage(status=1):

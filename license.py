@@ -208,7 +208,7 @@ def ProcessFile(choice, file, d):
         s = headers[choice]
     # Prepend comment string d["-c"] to each line.  Remember s is a
     # tuple of (short descr, license header).
-    if choice is "rem":
+    if choice == "rem":
         lines = s[1].split(nl)
     else:
         lines = [d["-c"] + i for i in s[1].split(nl)]

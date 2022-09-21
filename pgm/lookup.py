@@ -339,6 +339,7 @@ def ParseCommandLine(d):
     d["-a"] = False     # Limit to adjectives
     d["-c"] = False     # Do not show compound or hyphenated words
     d["-d"] = False     # Show definitions/synonyms
+    d["-H"] = False     # 
     d["-h"] = False     # Describe the dictionaries
     d["-i"] = "-i"      # Don't ignore case
     d["-n"] = False     # Limit to nouns
