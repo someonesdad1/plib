@@ -2,6 +2,9 @@
 This script will use the PIL (Python Imaging Library) to get an image
 from the clipboard and save it to a file whose name is given on the
 command line. 
+
+    Under cygwin, this needs to be run by Winpython, as cygwin
+    python's PIL doesn't have the ImageGrab.grabclipboard method.
 '''
 if 1:   # Header
     if 1:   # Copyright, license
@@ -21,6 +24,7 @@ if 1:   # Header
         import getopt
         import os
         from pathlib import Path as P
+        import subprocess
         import sys
         from pdb import set_trace as xx
     if 1:   # Custom imports
@@ -45,21 +49,23 @@ if 1:   # Utility
             -l      Capture only the landscape monitor image
             -p      Capture only the portrait monitor image
             -r p    Resize image to p% of original
+            -s      Open the saved image
         '''))
         exit(status)
     def ParseCommandLine(d):
         d["-l"] = False     # Capture only the landscape screen
         d["-p"] = False     # Capture only the portrait screen
         d["-r"] = 1         # Resize fraction
+        d["-s"] = False     # Open the saved image
         if len(sys.argv) < 2:
             Usage(d)
         try:
-            opts, args = getopt.getopt(sys.argv[1:], "hlpr:")
+            opts, args = getopt.getopt(sys.argv[1:], "hlpr:s")
         except getopt.GetoptError as e:
             print(str(e))
             exit(1)
         for o, a in opts:
-            if o[1] in list("lp"):
+            if o[1] in list("lps"):
                 d[o] = not d[o]
             if o == "-r":
                 d[o] = abs(flt(a)/100)
@@ -78,10 +84,12 @@ if 1:   # Core functionality
         im = ImageGrab.grabclipboard()
         if not isinstance(im, Image.Image):
             Error("No image in clipboard")
-        # Make sure it's 6000x3840; otherwise, the cropping options won't work
-        w, h = im.size
-        if w != 6000 or h != 3840:
-            Error("Clipboard image isn't 6000x3840 pixels")
+        if d["-l"] or d["-p"]:
+            # To get the landscape or portrait screens, we must have the
+            # full image size of 6000x3840 pixels to crop properly
+            w, h = im.size
+            if w != 6000 or h != 3840:
+                Error("Clipboard image isn't 6000x3840 pixels")
         return im
     def ResizeImage(im, size_fraction):
         r = abs(d["-r"])
@@ -124,3 +132,7 @@ if __name__ == "__main__":
     # Save the file
     print(f"Image size = {im.size}, mode = {im.mode}")
     im.save(p)
+    if d["-s"]:
+        # Open the saved image
+        cmd = ["D:/cygwin64/bin/cygstart.exe", str(p)]
+        subprocess.call(cmd)
