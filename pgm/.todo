@@ -1,5 +1,11 @@
 Active
 
+    - tools/tp.c
+        - This is the world's simplest text processor.  It reads characters
+          in one at a time.  When "\n.on" is found, output is turned on.
+          When "\n.off" is found, output is turned off.
+        - The use case is fast processing for working on LaTeX files.
+
     - pgm/mp.py
         - Needs the ability to define multiline macros without needing to
           use a .include command 
