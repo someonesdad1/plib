@@ -158,6 +158,20 @@ if 1:   # Core functionality
         print(f"{t.mm}Common coarse metric threads")
         for i in Columnize(metric.split(), columns=4, col_width=12, indent=" "*4):
             print(i)
+        # Page 23 of Colvin & Stanley's "Screw Thread Kinks", Hill
+        # Publishing, 1908, gives a trick for small pitch adjustments:  use
+        # the taper attachment to set things over and use a tailstock
+        # setover to null this out.  The feed then has to go a bit further,
+        # changing the pitch.  You can change the pitch by the cosine of
+        # the angle wrt the centerline.  The Clausing taper attachment has
+        # up to 10° off the centerline, meaning up to ±1.5% adjustments of
+        # pitch.  Desired metric pitches from above are:  0.4, 0.5, 0.7,
+        # 0.8, 1, 1.25, 1.5, 1.75, 2, 2.5, 3.  
+        #
+        # xx Need to print out a table summarizing how to use this method
+        # to cut an approximate metric thread on the Clausing lathe.
+        # Particularly for short engagements like a nut, this can be a
+        # useful method.
 if __name__ == "__main__": 
     d = {}      # Options dictionary
     args = ParseCommandLine(d)
@@ -165,7 +179,9 @@ if __name__ == "__main__":
     {t('ornl')}Clausing 5914 12x36 lathe{t.n}
 
     Swing over bed = {t.inch}6.08 inches{t.n} = {t.mm}154 mm{t.n}
+        Maximum diameter = {t.inch}12.16 inches{t.n} = {t.mm}308 mm{t.n}
     Swing over cross slide = {t.inch}3.72 inches{t.n} = {t.mm}94 mm{t.n}
+        Maximum diameter = {t.inch}7.44 inches{t.n} = {t.mm}188 mm{t.n}
     '''[1:]))
     if d["-m"]:
         Threading_tpi()
