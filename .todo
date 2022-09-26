@@ -1,5 +1,7 @@
 Active
 
+    - /shop has no repository!  Needs fixing!
+
     - tools/tp.c
         - This is the world's simplest text processor.  It reads characters
           in one at a time.  When "\n.on" is found, output is turned on.

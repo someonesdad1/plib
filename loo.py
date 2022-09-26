@@ -37,22 +37,27 @@ if 1:   # Imports
     from pdb import set_trace as xx
 if 1:   # Custom imports
     from wrap import dedent
-    # Try to import the color.py module to allow highlighting missing
-    # files in color to make them easier to see.  If you don't have the
-    # module, it won't be an error (you'll just get uncolored output).
-    _have_color = False
-    try:
-        import color as c
-        _have_color = True
-    except ImportError:
-        class Dummy:    # Make a dummy color object to swallow function calls
-            def fg(self, *p, **kw):
-                pass
-            def normal(self, *p, **kw):
-                pass
-            def __getattr__(self, name):
-                pass
-        c = Dummy()
+    from color import TRM as t
+    if 0:
+        # Try to import the color.py module to allow highlighting missing
+        # files in color to make them easier to see.  If you don't have the
+        # module, it won't be an error (you'll just get uncolored output).
+        _have_color = False
+        try:
+            import color as c
+            _have_color = True
+        except ImportError:
+            class Dummy:    # Make a dummy color object to swallow function calls
+                def fg(self, *p, **kw):
+                    pass
+                def normal(self, *p, **kw):
+                    pass
+                def __getattr__(self, name):
+                    pass
+            c = Dummy()
+    t.missing = t("whtl", "redl")
+    t.notrel = t("whtl", "magl")
+    t.embedded = t("grnl")
 if 1:   # Global variables
     out = sys.stdout.write
     err = sys.stderr.write
@@ -87,6 +92,9 @@ if 1:   # Global variables
     ))
 class ZipfileError(Exception):
     pass
+def Error(*msg, status=1):
+        print(*msg, file=sys.stderr)
+        exit(status)
 def Usage(d, status=1):
     name = sys.argv[0]
     shortname = os.path.split(sys.argv[0])[1]
@@ -147,7 +155,7 @@ def ParseCommandLine(d):
         optlist, args = getopt.getopt(sys.argv[1:], "elmr")
     except getopt.GetoptError as e:
         msg, option = e
-        out(msg)
+        Error(msg)
         exit(1)
     for opt in optlist:
         if opt[0] == "-e":
@@ -163,8 +171,7 @@ def ParseCommandLine(d):
         if not args:
             args = ["."]
     elif not args:
-        out("Need at least one Open Office file" + nl)
-        Usage(d)
+        Error("Need at least one Open Office file")
     return args
 def _Extract(filename, s):
     '''_Extract the image tag at the beginning of the string s.
@@ -328,15 +335,16 @@ def ProcessFile(oofile, d):
     if not os.path.isfile(oofile):
         err("'%s' is not a file%s" % (oofile, nl))
         return
-    colors = {
-        "missing": (c.lwhite, c.red),
-        "notrel": (c.lwhite, c.magenta),
-        "embedded": c.lgreen,
-    }
+    if 0: #xx
+        colors = {
+            "missing": (c.lwhite, c.red),
+            "notrel": (c.lwhite, c.magenta),
+            "embedded": c.lgreen,
+        }
     image_files = GetImages(oofile, ignore_embedded=not d["-e"])
     if not image_files and not d["-m"]:
         # List the file
-        out("%s%s" % (oofile, nl))
+        print(oofile)
         return
     some_missing = any([i[1] == "missing" for i in image_files])
     some_notrel = any([i[1] == "notrel" for i in image_files])
@@ -351,14 +359,15 @@ def ProcessFile(oofile, d):
         # takes precedence over "notrel" and both take precedence over
         # "embedded".
         if some_embedded:
-            c.fg(colors["embedded"])
+            # c.fg(colors["embedded"]) #xx
+            s = t.embedded
         if some_notrel:
-            c.fg(colors["notrel"])
+            # c.fg(colors["notrel"]) #xx
+            s = t.notrel
         if some_missing:
-            c.fg(colors["missing"])
-        out(oofile)
-        c.normal()
-        out(nl)
+            # c.fg(colors["missing"]) #xx
+            s = t.missing
+        t.print(oofile)
         return
     if d["-m"]:
         # image_files can be empty or only contain embedded files, in
@@ -367,22 +376,21 @@ def ProcessFile(oofile, d):
             return
         if all([IsEmbeddedImage(i[0]) for i in image_files]):
             return
-    c.normal()
-    out(oofile)
-    out(nl)
+    print(oofile)
     for name, state in image_files:
         if IsEmbeddedImage(name) and not d["-e"]:
             continue
         if d["-m"] and not state:
             continue
-        out(" "*4)
-        out(name)
-        out(" ")
-        if state in ("missing", "notrel", "embedded"):
-            c.fg(colors[state])
-            out("[%s]" % state)
-            c.normal()
-        out(nl)
+        print(" "*4, name, end=" ")
+        if state == "missing":
+            t.print(f"{t.missing}[{state}]")
+        elif state == "notrel":
+            t.print(f"{t.notrel}[{state}]")
+        elif state == "embedded":
+            t.print(f"{t.embedded}[{state}]")
+        else:
+            print(f"[{state}]")
 def ProcessDirectory(directory, d):
     if not os.path.isdir(directory):
         err("'%s' is not a directory%s" % (directory, nl))

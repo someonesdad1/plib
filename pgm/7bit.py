@@ -49,20 +49,22 @@ if 1:   # Utility
         Options
             -c  Show column numbers too with line_number:column_number format.
             -l  Just print out the file name if a non-ASCII character is found.
+            -u  Read lines as UTF8-encoded text and show the non-7bit characters
             -w  Wrap lines to make easier to read.
         '''))
         exit(status)
     def ParseCommandLine(d):
         d["-c"] = False     # Use linenum:col format
         d["-l"] = False     # Only print the filename
+        d["-u"] = False     # Read as UTF8 text
         d["-w"] = False     # Wrap lines
         try:
-            optlist, args = getopt.getopt(sys.argv[1:], "chlw")
+            optlist, args = getopt.getopt(sys.argv[1:], "chluw")
         except getopt.GetoptError as str:
             msg, option = str
             Error(msg)
         for o, a in optlist:
-            if o[1] in list("clw"):
+            if o[1] in list("cluw"):
                 d[o] = not d[o]
             elif o == "-h":
                 Usage(0)
@@ -76,11 +78,55 @@ if 1:   # Core functionality
         '''
         h = f"U+{c:05x}:" if c > 0xffff else f"U+{c:04x}:"
         return f"{h:9s}"
-    def RemoveASCII(s):
+    def HeaderBinary(c):
+        '''c is an integer from 0 to 255.  Return a header string of the
+        form e.g.
+            ' ±  0xb1:'
+             --- ----
+              a    b
+        where a is the 3-character string representing the non-ASCII
+        character (either it's a byte or it's a 3 letter string like 'esc'
+        for the escape character) and b is the Unicode codepoint form.
+        '''
+        char = control_chars[c] if c in control_chars else chr(c)
+        return f"  {char:^3s} 0x{c:02x}: "
+    def HeaderText(c):
+        '''c is a Unicode character.  Return a header string of the
+        form e.g.
+            ' ±  U+00b1:'
+             --- ------
+              a    b
+        where a is the string representing the non-ASCII and b is the
+        Unicode codepoint form.
+        '''
+        return f"  {c:^3s} U+{ord(c):04x}: "
+    def GetLinesText(file):
+        '''Read the text in from the file as UTF8.  Split on newlines and
+        return the list of byte strings representing each line.
+        '''
+        return open(file, "r").read().split('\n')
+    def GetLinesBinary(file):
+        '''Read the data in from the file as binary.  Split on newlines and
+        return the list of byte strings representing each line.
+        '''
+        return open(file, "rb").read().split(b'\n')
+    def ProcessLineBinary(line, file, linenum, nonascii):
+        '''For the line of the indicated file (line is a bytes object),
+        find any bytes that are not 7-bit ASCII characters and put them
+        into the dict nonascii.  nonascii is keyed by the non-7-bit
+        character and each value is a list of the file and line number
+        where the offending byte was found.
+        '''
+        for i, c in enumerate(line):
+            if not (0x20 <= c < 0x80):
+                # d["-c"] means to show column numbers too
+                value = f"{linenum}:{i + 1}" if d["-c"] else f"{linenum}"
+                nonascii[c].append(value)
+    def RemoveASCIIBytes(s):
         'Return True if the string of bytes s has a non-ASCII character in it'
-        # Create a str.translate tool in RemoveASCII.func to remove the
+        # Create a str.translate tool in RemoveASCIIBytes.func to remove the
         # ASCII characters in a string.
-        if not hasattr(RemoveASCII, "func"):
+        if not hasattr(RemoveASCIIBytes, "func"):
             delete = ""
             for i in range(0x20, 0x80):
                 delete += f"{i:02x}"
@@ -88,69 +134,86 @@ if 1:   # Core functionality
             for i in (9, 10, 11, 12, 13):
                 delete += f"{i:02x}"
             delete = bytes.fromhex(delete)
-            RemoveASCII.func = lambda s: s.translate(None, delete)
-        return bool(RemoveASCII.func(s))
-    def Header(c):
-
-        '''c is an integer from 0 to 255.  Return a header string of the
-        form e.g.
-            ' ∞  U+221e:'
-            --- ------
-            a    b
-        where a is the 3-character string representing the non-ASCII
-        character (either the Unicode character or e.g. 'esc' for the escape
-        character) and b is the Unicode codepoint form.
-        '''
-        char = control_chars[c] if c in control_chars else chr(c)
-        cp = Codepoint(c)
-        return f"  {char:^3s} {cp}"
-    def GetLines(file):
-        '''Read the data in from the file as binary.  Split on newlines and
-        return the list of byte strings representing each line.
-        '''
-        return open(file, "rb").read().split(b'\n')
-    def ProcessLine(line, file, linenum, nonascii):
-
-        '''For the line of the indicated file (line is a bytes object),
-        find any bytes that are not 7-bit ASCII characters and put them
+            RemoveASCIIBytes.func = lambda s: s.translate(None, delete)
+        return bool(RemoveASCIIBytes.func(s))
+    def RemoveASCIICharacters(s):
+        'Return True if the string of Unicode characters s has a non-ASCII character in it'
+        # Create a str.translate tool in RemoveASCIICharacters.table to remove the
+        # ASCII characters in a string.
+        di = {}
+        if not hasattr(RemoveASCIICharacters, "table"):
+            for i in range(0x20, 0x80):
+                di[chr(i)] = None
+            # Also remove whitespace characters
+            for i in (9, 10, 11, 12, 13):
+                di[chr(i)] = None
+            RemoveASCIICharacters.table = str.maketrans(di)
+        return bool(s.translate(RemoveASCIICharacters.table))
+    def ProcessLineText(line, file, linenum, nonascii):
+        '''For the line of the indicated file (line is a str object), find
+        any characters that are not 7-bit ASCII characters and put them
         into the dict nonascii.  nonascii is keyed by the non-7-bit
         character and each value is a list of the file and line number
-        where the offending byte was found.
-
+        where the offending character was found.
         '''
         for i, c in enumerate(line):
-            if not (0x20 <= c < 0x80):
+            if not (0x20 <= ord(c) < 0x80):
                 # d["-c"] means to show column numbers too
                 value = f"{linenum}:{i + 1}" if d["-c"] else f"{linenum}"
                 nonascii[c].append(value)
     def ProcessFile(file, d):
         # Dictionary to keep track of non-ASCII bytes found
         nonascii = defaultdict(list)
-        for linenum, line in enumerate(GetLines(file)):
-            if RemoveASCII(line):
-                if d["-l"]: 
-                    print(file)
-                    return
-                ProcessLine(line, file, linenum + 1, nonascii)
-        if nonascii:
-            print(file)
-            for c in sorted(nonascii):
-                header = Header(c)
-                linenumbers = ' '.join(nonascii[c])
-                if d["-w"]:
-                    # Wrap line numbers so they are easily readable.
-                    # The lines must be indented 16 characters.
-                    cols = int(os.environ["COLUMNS"])
-                    width = cols - 16 - 1
-                    lines = textwrap.wrap(linenumbers, width=width)
-                    print(f"{Header(c)}", end="")
-                    for i, line in enumerate(lines):
-                        if i:
-                            print(f"{' '*15}{line}")
-                        else:
-                            print(line)
-                else:
-                    print(f"{Header(c)}{linenumbers}")
+        if d["-u"]:     # Show Unicode characters 
+            for linenum, line in enumerate(GetLinesText(file)):
+                if RemoveASCIICharacters(line):
+                    if d["-l"]: 
+                        print(file)
+                        return
+                    ProcessLineText(line, file, linenum + 1, nonascii)
+            if nonascii:
+                print(file)
+                for c in sorted(nonascii):
+                    linenumbers = ' '.join(nonascii[c])
+                    if d["-w"]:
+                        # Wrap line numbers so they are easily readable.
+                        # The lines must be indented 15 characters.
+                        cols = int(os.environ["COLUMNS"])
+                        width = cols - 15 - 1
+                        lines = textwrap.wrap(linenumbers, width=width)
+                        print(f"{HeaderText(c)}", end="")
+                        for i, line in enumerate(lines):
+                            if i:
+                                print(f"{' '*14}{line}")
+                            else:
+                                print(line)
+                    else:
+                        print(f"{HeaderText(c)}{linenumbers}")
+        else:           # Show non-7-bit bytes
+            for linenum, line in enumerate(GetLinesBinary(file)):
+                if RemoveASCIIBytes(line):
+                    if d["-l"]: 
+                        print(file)
+                        return
+                    ProcessLineBinary(line, file, linenum + 1, nonascii)
+            if nonascii:
+                print(file)
+                for c in sorted(nonascii):
+                    linenumbers = ' '.join(nonascii[c])
+                    if d["-w"]:
+                        # Wrap line numbers so they are easily readable.
+                        # The lines must be indented 13 characters.
+                        cols = int(os.environ["COLUMNS"])
+                        width = cols - 13 - 1
+                        lines = textwrap.wrap(linenumbers, width=width)
+                        print(f"{HeaderBinary(c)}", end="")
+                        for i, line in enumerate(lines):
+                            if i:
+                                print(f"{' '*12}{line}")
+                            else:
+                                print(line)
+                    else:
+                        print(f"{HeaderBinary(c)}{linenumbers}")
 if __name__ == "__main__":
     d = {}
     files = ParseCommandLine(d)
