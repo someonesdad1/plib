@@ -1,4 +1,12 @@
 '''
+TODO
+
+    - Add formulas from density_of_water_NIST.pdf and compare to existing
+      density output.
+        - Utilize the correction for density as a function of atmospheric
+          pressure (see eq 6)
+
+
 - Water properties (density and dynamic viscosity as functions of
   temperature).
 - Colebrook correlation

@@ -178,11 +178,14 @@ def PrintMatch(num, path, start, end, d):
     c.fg(c_plain)
     print(file[end:])
 def GenerateIndexFiles(d):
-    '''Generate all of the index files at once.
-    '''
+    'Generate all of the index files at once'
     # ebooks
     df = Dirfiles("/ebooks", clear=True)
     df.add("**/*")
+    if 1:
+        # Filter out stuff not wanted
+        df.rm("wxPython")
+        df.rm("programming/scipy")
     with open(index_files["eb"], "wb") as fp:
         pickle.dump(df.files, fp)
     # Datasheets
@@ -202,8 +205,7 @@ def GenerateIndexFiles(d):
         pickle.dump(df.files, fp)
     exit(0)
 def ReadIndexFile(d):
-    '''Read the index file keyed by d["--exec"].
-    '''
+    'Read the index file keyed by d["--exec"]'
     key = d["--exec"]
     with open(index_files[key], "rb") as fp:
         d["files"] = pickle.load(fp)

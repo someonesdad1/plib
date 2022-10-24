@@ -43,13 +43,13 @@ if 1:   # Utility
         name = sys.argv[0]
         print(dedent(f'''
         Usage:  {name} [options] filename
-        Copies the bitmap in the clipboard to the indicated file.  If you don't
-        include an extension on the filename, it will default to '.png'. 
+          Copies the bitmap in the clipboard to the indicated file.  If you don't
+          include an extension on the filename, it will default to '.png'. 
         Options:
-            -l      Capture only the landscape monitor image
-            -p      Capture only the portrait monitor image
-            -r p    Resize image to p% of original
-            -s      Open the saved image
+          -l      Capture only the landscape monitor image
+          -p      Capture only the portrait monitor image
+          -r p    Resize image to p% of original
+          -s      Open the saved image
         '''))
         exit(status)
     def ParseCommandLine(d):

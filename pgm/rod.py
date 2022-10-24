@@ -19,21 +19,20 @@ if 1:   # Imports
     import getopt
     import os
     import sys
-    #from math import *
-    from functools import partial
     from pdb import set_trace as xx
 if 1:   # Custom imports
     import color as color
     from wrap import dedent
-    #from u import u, ParseUnit
-    #from sig import sig
-    from f import *
-    from u import ParseUnit
+    from f import flt, pi
+    from u import u, ParseUnit
+    if 0:
+        import debug
+        debug.SetDebugger()
 if 1:   # Global variables
     # Metal ultimate strengths from Machinery's Handbook, 19th
     # ed., page 444.  Ranges are given.
-    f = partial(flt, units="kpsi")
-    materials = (  # Stress units are kpsi
+    f = flt
+    materials = (
         # Fields are:
         #   0  Material name & state
         #   1  Ultimate tensile strength in kpsi
@@ -94,14 +93,18 @@ if 1:   # Global variables
         ("Steel, 302 stainless", 
             (f(85), f(125)), 
             (f(85), f(125)), 
-            (None, None),
+            # Following from https://www.makeitfrom.com/material-properties/AISI-302-S30200-Stainless-Steel
+            # which gave 400 to 830 MPa
+            (f(58), f(120)),
             (f(35), f(95)),
             1000*f(28),
             0.45,
         ),
         ("Aluminum alloy, sand cast", 
             (f(19), f(35)), 
-            (None, None),
+            # I have approximated the compressive strength as equal to 3/4
+            # of the tensile strength
+            (f(19*3/4), f(35*3/4)),
             (f(14), f(26)),
             (f(8), f(25)),
             1000*f(10.3),
@@ -255,14 +258,12 @@ def Area(dia):
     else:           # Area of a circle
         return pi/4*dia**2
 def PrintReport(dia):
-    '''dia is a flt gotten from the diameter expression and units on the
-    command line.
+    '''dia is a flt gotten from the diameter expression and optional units on the
+    command line.  It will be a flt in units of m.
     '''
-    # Diameter
-    if dia.u in ("in", "inch", "inches"):
-        print(f"Diameter = {dia}")
-    else:
-        print(f"Diameter = {dia} = {dia.to('inches')}")
+    # Convert diameter to inches
+    dia /= u("inches")
+    print(f"Diameter = {dia} inches = {dia*25.4} mm")
     # Shape
     n = d["-p"]
     print("Shape =", end=" ")
@@ -282,7 +283,7 @@ def PrintReport(dia):
         print("round")
     # Area
     A = Area(dia)
-    print(f"Area = {A.to('inch2')} = {A.to('mm2')}")
+    print(f"Area = {A} in2 = {A/u('mm2')} mm2")
     # Force data
     sp = 15
     indent = " "*35
@@ -302,34 +303,34 @@ def PrintReport(dia):
     NA = "--"
     for item in materials:
         name = item[0]
-        uts_low, uts_high = item[1]     # Ultimate tensile strength range
-        ucs_low, ucs_high = item[2]     # Ultimate compr. str.
-        uss_low, uss_high = item[3]     # Ultimate shear str.
-        yp_low, yp_high = item[4]       # Yield point (0.2% offset)
-        E_tension = item[5]             # Modulus of elasticity
-        if item[6] is not None:
+        uts_low, uts_high = [1000*i for i in item[1]]   # Ultimate tensile strength range
+        ucs_low, ucs_high = [1000*i for i in item[2]]   # Ultimate compr. str.
+        uss_low, uss_high = [1000*i for i in item[3]]   # Ultimate shear str.
+        yp_low, yp_high = [1000*i for i in item[4]]     # Yield point (0.2% offset)
+        if item[5] is not None and item[6] is not None:
+            E_tension = item[5]                             # Modulus of elasticity
             E_shear = item[6]*E_tension     # Shear modulus
         # Shear
         if uss_low is not None:
             f = uss_low*A/fos
-            sh = str(f.to(d["-o"]).val) + "-"
+            sh = str(f/u(d["-o"])) + "-"
             f = uss_high*A/fos
-            sh += str(f.to(d["-o"]).val)
+            sh += str(f/u(d["-o"]))
         else:
             sh = NA
         # Compression
         if ucs_low is not None:
             f = ucs_low*A/fos
-            comp = str(f.to(d["-o"]).val) + "-"
+            comp = str(f/u(d["-o"])) + "-"
             f = ucs_high*A/fos
-            comp += str(f.to(d["-o"]).val)
+            comp += str(f/u(d["-o"]))
         else:
             comp = NA
         # Tension
         f = uts_low*A/fos
-        tens = str(f.to(d["-o"]).val) + "-"
+        tens = str(f/u(d["-o"])) + "-"
         f = uts_high*A/fos
-        tens += str(f.to(d["-o"]).val)
+        tens += str(f/u(d["-o"]))
         # Print results
         if name == "Steel, structural (common)":
             color.fg(color.lred)
@@ -340,5 +341,5 @@ if __name__ == "__main__":
     args = ParseCommandLine()
     dia = eval(args[0], globals())
     dia_units = args[1] if len(args) > 1 else "inches"
-    dia = flt(dia, units=dia_units)
+    dia = flt(dia)*u(dia_units)  # Converts to m
     PrintReport(dia)

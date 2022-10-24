@@ -282,7 +282,7 @@ if 1:   # Generic data
         ylabel("Breaking strength, klbf")
         grid()
         legend()
-        if 0:
+        if 1:
             show()
         else:
             savefig("rope_strength.png")
@@ -299,11 +299,35 @@ if 1:   # Generic data
         ylabel("Relative breaking strength")
         grid()
         legend()
-        if 0:
+        if 1:
             show()
         else:
             savefig("rope_str_rel_nylon.png")
-            
+    def PrintTypeTable():
+        '''These data came from
+        https://atlanticbraids.com/double-braid-versus-3-strand-twisted-rope/
+        '''
+        w = 8
+        print(dedent(f'''
+        Minimum tensile strength ratio for db/3str where db means double
+        braided rope and 3str means three-strand:
+                       Nylon              Polyester
+            1/4"        {flt(21/17)!s:{w}s}            {flt(24/11.2)!s:{w}s}
+            1/2"        {flt(83/59.5)!s:{w}s}            {flt(90/36.5)!s:{w}s}
+            1"          {flt(31/22)!s:{w}s}            {flt(34/12.6)!s:{w}s}
+            2"          {flt(118/81.4)!s:{w}s}            {flt(106/48.6)!s:{w}s}
+        '''))
+    def Notes():
+        print(dedent(f'''
+        Notes:
+            - Published rope tensile strength data easily varies by 20% or
+              more and the typical web author doesn't 1) attribute their data
+              nor 2) specify the manufacturer/material/construction.  
+            - Most web pages are written by amateurs who do not have a
+              technical background, so vet their data carefully (or,
+              better, don't use it).
+        '''))
+
 if __name__ == "__main__": 
     d = {}      # Options dictionary
     args = ParseCommandLine(d)
@@ -315,3 +339,7 @@ if __name__ == "__main__":
         print()
         data = GetGenericData()
         PrintGenericTable(data)
+        print()
+        PrintTypeTable()
+        print()
+        Notes()

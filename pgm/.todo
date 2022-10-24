@@ -1,10 +1,14 @@
 Active
 
-    - tools/tp.c
-        - This is the world's simplest text processor.  It reads characters
-          in one at a time.  When "\n.on" is found, output is turned on.
-          When "\n.off" is found, output is turned off.
-        - The use case is fast processing for working on LaTeX files.
+    - tp.c
+        - This needs a conditional switch based on a defined variable or
+          environment value.  A use case is the formulas in the AG
+          document.  Specifically, see the "Hand calculation formulas"
+          section.  A variable SHOW_PROOFS could turn on the LaTeX stuff
+          that either proved the formula or gave a reference to its
+          derivation.
+            - Similarly SHOW_ATTRIBUTIONS could be used to show detailed
+              attributions, which probably aren't wanted by most folks.
 
     - pgm/mp.py
         - Needs the ability to define multiline macros without needing to
@@ -16,11 +20,6 @@ Active
             - If var is a python symbol, then put it into the localvars
               dict so it can also be used in code.
         - .undef var1 var2 ... 
-
-    - Text substitution
-        - Need fast simple text substitution tool
-        - .on, .off with an optional variable (bool) argument
-        - Could use lua for scripting blocks
 
     - rattle.py
         - Utility to help with roll and pitch rattle measurements.  It
