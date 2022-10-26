@@ -1,6 +1,10 @@
 '''
 Examines a directory recursively and suggests the files that should be
 included to construct a git repository.
+
+To be more useful, this needs to ignore those files that are already in the
+repository.
+
 '''
 if 1:   # Header
     # Copyright, license
@@ -53,7 +57,7 @@ if 1:   # Utility
         exit(status)
     def ParseCommandLine(d):
         d["-a"] = False
-        d["-d"] = []        # Directories to ignore
+        d["-d"] = [".git", ".hg"]  # Directories to ignore
         d["-e"] = []        # Extensions to ignore
         d["-f"] = []        # File name regex to ignore
         d["-v"] = False     # Turn on debug printing

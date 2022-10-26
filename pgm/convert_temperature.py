@@ -21,7 +21,12 @@ if 1:   # Imports
     from pdb import set_trace as xx
 if 1:   # Custom imports
     from u import ParseUnit
-    from sig import sig, GetSigFig
+    useflt = True
+    from sig import GetSigFig
+    if useflt:
+        from f import flt
+    else:
+        from sig import sig
     import color as C
     from wrap import dedent
 if 1:   # Global variables
@@ -40,29 +45,29 @@ if 1:   # Global variables
     # Conversions
     p0, c0, k0, r0 = 9/5, 32, 273.15, 459.67
 def f2c(t):
-    return (t - c0)/p0
+    return flt((t - c0)/p0)
 def k2c(t):
-    return t - k0
+    return flt(t - k0)
 def r2c(t):
-    return r2f(f2c(t))
+    return flt(r2f(f2c(t)))
 def c2f(t):
-    return p0*t + c0
+    return flt(p0*t + c0)
 def k2f(t):
-    return c2f(k2c(t))
+    return flt(c2f(k2c(t)))
 def r2f(t):
-    return t - r0
+    return flt(t - r0)
 def c2k(t):
-    return t + k0
+    return flt(t + k0)
 def f2k(t):
-    return c2k(f2c(t))
+    return flt(c2k(f2c(t)))
 def r2k(t):
-    return t/p0
+    return flt(t/p0)
 def f2r(t):
-    return c2r(f2c(t))
+    return flt(c2r(f2c(t)))
 def k2r(t):
-    return p0*t
+    return flt(p0*t)
 def c2r(t):
-    return c2f(t) + r0
+    return flt(c2f(t) + r0)
 def Error(msg, status=1):
     print(msg, file=sys.stderr)
     exit(status)
@@ -73,27 +78,36 @@ def NumberOfFigures(s):
 def Usage(d):
     print(dedent(f'''
     Usage:  {sys.argv[0]} temperature1 [temperature2 ...]
-      Utility to convert between common temperatures.
-     
+      Utility to convert between common temperatures.  The number of digits
+      in the conversions is determined from the number of significant
+      figures in the command line arguments (will be 3 or more) if the -d
+      option isn't used.
     Options:
         -c      Don't use color in output
+        -d n    Set number of signifcant figures
         -f      Show the formulas
         -r      Include Rankine temperatures
     '''))
     exit(0)
 def ParseCommandLine(d):
     d["-c"] = True      # Use color in output
+    d["-d"] = None      # Manually set sig figs
     d["-r"] = False     # Include Rankine in output
     if len(sys.argv) < 2:
         Usage(d)
     try:
-        opts, args = getopt.getopt(sys.argv[1:], "cr")
+        opts, args = getopt.getopt(sys.argv[1:], "cd:r")
     except getopt.GetoptError as e:
         print(str(e))
         exit(1)
     for o, a in opts:
         if o[1] in list("cr"):
             d[o] = not d[o]
+        elif o == "-d":
+            try:
+                d[o] = int(a)
+            except Exception:
+                Error("-d argument must be integer > 0")
     return args
 def P(s):
     'Print with no newline'
@@ -109,12 +123,19 @@ def ShowFormulas():
         °F = 9/5*(°C + 32) 
         °R = °F + 459.67'''))
 def Report(t, include_nl=False):
+    n = d["-d"]
     try:
         T = int(t)
     except Exception:
-        T = float(t)
-    sig.digits = NumberOfFigures(t)
-    sig.rtz = True
+        T = flt(t)
+    if useflt:
+        z = flt(0)
+        z.N = n if n else NumberOfFigures(t)
+        z.rtz = True
+        z.rtdp = True
+    else:
+        sig.digits = n if n else NumberOfFigures(t)
+        sig.rtz = True
     # It's °F
     if T >= -r0:
         K("f")
@@ -122,16 +143,25 @@ def Report(t, include_nl=False):
         K()
         P("=")
         K("c")
-        P(f"{sig(f2c(T))}{uC}")
+        if useflt:
+            P(f"{f2c(T)}{uC}")
+        else:
+            P(f"{sig(f2c(T))}{uC}")
         K()
         P("=")
         K("k")
-        P(f"{sig(f2k(T))}{uK}")
+        if useflt:
+            P(f"{f2k(T)}{uK}")
+        else:
+            P(f"{sig(f2k(T))}{uK}")
         K()
         if d["-r"]:
             P("=")
             K("r")
-            P(f"{sig(f2r(T))}{uR}")
+            if useflt:
+                P(f"{f2r(T)}{uR}")
+            else:
+                P(f"{sig(f2r(T))}{uR}")
             K()
         print()
     # It's °C
@@ -141,16 +171,25 @@ def Report(t, include_nl=False):
         K()
         P("=")
         K("f")
-        P(f"{sig(c2f(T))}{uF}")
+        if useflt:
+            P(f"{c2f(T)}{uF}")
+        else:
+            P(f"{sig(c2f(T))}{uF}")
         K()
         P("=")
         K("k")
-        P(f"{sig(c2k(T))}{uK}")
+        if useflt:
+            P(f"{c2k(T)}{uK}")
+        else:
+            P(f"{sig(c2k(T))}{uK}")
         K()
         if d["-r"]:
             P("=")
             K("r")
-            P(f"{sig(c2r(T))}{uR}")
+            if useflt:
+                P(f"{c2r(T)}{uR}")
+            else:
+                P(f"{sig(c2r(T))}{uR}")
             K()
         print()
     # It's K
@@ -160,16 +199,25 @@ def Report(t, include_nl=False):
         K()
         P("=")
         K("f")
-        P(f"{sig(k2f(T))}{uF}")
+        if useflt:
+            P(f"{k2f(T)}{uF}")
+        else:
+            P(f"{sig(k2f(T))}{uF}")
         K()
         P("=")
         K("c")
-        P(f"{sig(k2c(T))}{uC}")
+        if useflt:
+            P(f"{k2c(T)}{uC}")
+        else:
+            P(f"{sig(k2c(T))}{uC}")
         K()
         if d["-r"]:
             P("=")
             K("r")
-            P(f"{sig(k2r(T))}{uR}")
+            if useflt:
+                P(f"{k2r(T)}{uR}")
+            else:
+                P(f"{sig(k2r(T))}{uR}")
             K()
         print()
     # It's R
@@ -179,15 +227,24 @@ def Report(t, include_nl=False):
         K()
         P("=")
         K("f")
-        P(f"{sig(r2f(T))}{uF}")
+        if useflt:
+            P(f"{r2f(T)}{uF}")
+        else:
+            P(f"{sig(r2f(T))}{uF}")
         K()
         P("=")
         K("c")
-        P(f"{sig(r2c(T))}{uC}")
+        if useflt:
+            P(f"{r2c(T)}{uC}")
+        else:
+            P(f"{sig(r2c(T))}{uC}")
         K()
         P("=")
         K("k")
-        P(f"{sig(r2k(T))}{uK}")
+        if useflt:
+            P(f"{r2k(T)}{uK}")
+        else:
+            P(f"{sig(r2k(T))}{uK}")
         K()
         print()
     if include_nl:
