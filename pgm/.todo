@@ -9,6 +9,11 @@ Active
           derivation.
             - Similarly SHOW_ATTRIBUTIONS could be used to show detailed
               attributions, which probably aren't wanted by most folks.
+        - In the tp.c code, the added syntax could be regexps such as 
+          "\n.[A-Za-z0-9_]+[+-]".  For example, "\nSHOW_PROOFS+" would 
+          turn output on if SHOW_PROOFS was true and be ignored otherwise.
+          "\nSHOW_PROOFS-" would turn output off if SHOW_PROOFS was true
+          and be ignored otherwise.  This should be pretty easy to add.
 
     - pgm/mp.py
         - Needs the ability to define multiline macros without needing to

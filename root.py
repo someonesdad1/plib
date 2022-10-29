@@ -34,7 +34,7 @@ Root Finding Routines
         Finds a root with quadratic convergence that lies between x0 and
         x2.  x0 and x2 must bracket the root.  The function whose root is
         being found is f(x).  The root is found when successive estimates
-        differ by less than eps.  The routine will throw an exception if
+        differ by less than eps.  The routine will raise an exception if
         the number of iterations exceeds itmax.  The returned value is the
         root.
  
@@ -230,7 +230,7 @@ def RootFinder(x0, x2, f, eps=eps0, itmax=ITMAX, fp=float, args=[], kw={}):
     sequence of any extra arguments that need to be passed to f; kw is a
     dictionary of keywords that will be passed to f.
  
-    The routine will throw an exception if it receives bad input data or it
+    The routine will raise an exception if it receives bad input data or it
     doesn't converge.
  
     ----------------------------------------------------------------

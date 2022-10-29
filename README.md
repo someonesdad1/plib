@@ -141,6 +141,15 @@ passes and failures.  Only failed tests will print out messages.  Use the
 -v option to see each test's output.  The default output tells you the
 files that fail self-tests and need to be worked on.
 
+## Assert()
+
+I use this function in lwtest.py a lot while writing code because I set the
+Assert environment variable to a nonempty string, causing this function to
+drop into the debugger when its argument is False.  I use it to evaluate
+incoming parameters or invariants in a function.  When the debugger is
+called, you enter "up" to go to the line that had the problem, letting you
+figure out what went wrong.
+
 # Most useful
 
 Here are a few of the modules/scripts I use a lot or provide useful

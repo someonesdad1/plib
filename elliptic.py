@@ -178,7 +178,8 @@ def EllipseCircumference(A, B, debug=False):
     Downloaded Mon 26 May 2014 from
     http://paulbourke.net/geometry/ellipsecirc/python.code; also see the
     page http://paulbourke.net/geometry/ellipsecirc/.  This series
-    converges quadratically and was first proposed by J. Ivory in 1798.
+    converges quadratically and was first proposed by J. Ivory in 1798 (see
+    https://en.wikipedia.org/wiki/James_Ivory_(mathematician)).
 
     The formula for the circumference of an ellipse is 2*a*E(e) where a is
     the major semidiameter, e is the eccentricity, and E is the complete
@@ -213,7 +214,6 @@ if __name__ == "__main__":
     '''
     Testing strategy: There are three basic methods used to validate the
     complete elliptic integrals of the first and second kinds:
-
             * Compare to elliptic functions from pycephes
             * Compare to elliptic functions from scipy
             * Compare to elliptic functions from mpmath
