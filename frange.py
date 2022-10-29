@@ -63,6 +63,10 @@ if 1:   # Imports
     from fractions import Fraction
 if 1:   # Custom imports
     from roundoff import RoundOff
+    from f import flt
+    # For convenience, frange will return a flt by default.  Change this to
+    # float if you really want a float (note a flt is derived from float).
+    ret_type = flt
     # You must manually enable numpy support
     have_numpy = False
     if have_numpy:
@@ -86,7 +90,7 @@ class Rational(Fraction):
                 s.extend([str(ip), "-"])
             s.extend([str(remainder), "/", str(d)])
         return ''.join(s)
-def frange(start, stop=None, step=None, return_type=float, impl=Decimal,
+def frange(start, stop=None, step=None, return_type=ret_type, impl=Decimal,
            strict=True, include_end=False):
     '''A floating point generator analog of range.  start, stop, and step
         are either python floats, integers, or strings representing floating
