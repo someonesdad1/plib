@@ -12,6 +12,7 @@ Debug                 A class that helps with debugging
 Dispatch              Class to aid polymorphism
 iDistribute           Return an integer sequence equally distributed
 fDistribute           Return a float sequence equally distributed
+DoubleFactorial       Compute the double factorial of an integer
 EBCDIC                Return string translation table ASCII <--> EBCDIC
 eng                   Convenience function for engineering format
 EditData              Edit a str or bytes object with vim
@@ -1569,6 +1570,20 @@ class Now:
     def cdate(self):
         dy, mo, yr = self._dt 
         return f"{dy}{mo}{yr}"
+def DoubleFactorial(n):
+    '''Returns n!! which is defined to be the product from k = 0 to k =
+    int(n/2) - 1 of (n - 2*k).  Since we ensure that n is an integer, this
+    function should never fail, but of course it will take a long time for
+    big integers.
+    '''
+    if not isinstance(n, int):
+        raise TypeError("n must be an integer")
+    if n < 0:
+        raise ValueError("n must not be negative")
+    product = 1
+    for i in range(n, 0, -2):
+        product *= i
+    return product
 
 if __name__ == "__main__": 
     # Missing tests for: Ignore Debug, Dispatch, GetString
@@ -1586,6 +1601,23 @@ if __name__ == "__main__":
     # Need to have version, as SizeOf stuff changed between 3.7 and 3.9
     vi = sys.version_info
     ver = f"{vi[0]}.{vi[1]}"
+    def Test_DoubleFactorial():
+        df = DoubleFactorial
+        Assert(df(0) == 1)
+        Assert(df(1) == 1)
+        Assert(df(2) == 2)
+        Assert(df(3) == 3)
+        Assert(df(4) == 8)
+        Assert(df(5) == 15)
+        Assert(df(6) == 48)
+        Assert(df(7) == 105)
+        Assert(df(8) == 384)
+        Assert(df(9) == 945)
+        Assert(df(10) == 3840)
+        Assert(df(11) == 10395)
+        Assert(df(12) == 46080)
+        Assert(df(13) == 135135)
+        Assert(df(14) == 645120)
     def Test_PPSeq():
         pp = PPSeq()
         x = (44, 128, 250)
