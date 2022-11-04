@@ -190,8 +190,8 @@ def EllipseCircumference(A, B, debug=False):
     much as Weaver's EllipticE.  Since they agree in the tests to
     floating point precision, this method is preferred.
     '''
-    if A <= 0 or B <= 0:
-        raise ValueError("A and B must be greater than zero")
+    if A < 0 or B < 0:
+        raise ValueError("A and B must be >= 0")
     # Note the original formula is in terms of the 'semi-axes';
     # hence the division by 2.
     a, b = A/2, B/2

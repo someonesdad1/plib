@@ -118,10 +118,10 @@ if 1:   # Samson data
         data = GetSamsonData(use_fractions=True)
         t.print(f"{t.title}Samson double-braided polyester rope")
         print(dedent('''
-                      Linear mass density
-          Diameter      per 100 ft or m      Minimum breaking strength
-        inch     mm       lb      kg            klbf   kN    kgf
-        -----------     -----   -----           ----  ----  -----'''))
+                                                    Linear mass density
+          Diameter      Minimum breaking strength     lb/       
+        inch     mm        klbf   kN    kgf          100 ft    kg/m
+        -----------        ----  ----  -----          -----    -----'''))
         for line in data:
             dia, wt, avg, min = line
             di = flt(dia)    # Diameter in inches
@@ -140,18 +140,19 @@ if 1:   # Samson data
                 c = t.d5
             elif Di == "3/4":
                 c = t.d75
-            print(f"{c}{Di:^5s} {Dm:>5s}", end=" "*4)
-            # Linear mass density
-            si = wt
-            sm = wt*lb2kg
-            w = 6
-            print(f" {si!s:^{w}s}  {sm!s:^{w}s}", end=" "*10)
+            print(f"{c}{Di:^5s} {Dm:>5s}", end=" "*8)
             # Minimum breaking strength
             bi = min
             bm = bi*lbf2N
             bk = bi*lb2kg
             w = 5
-            print(f"{bi!s:^{w}s} {bm!s:^{w}s} {bk!s:^{w}s}{t.n if c else ''}")
+            print(f"{bi!s:^{w}s} {bm!s:^{w}s} {bk!s:^{w}s}{t.n if c else ''}",
+                end=" "*10)
+            # Linear mass density
+            si = wt
+            sm = wt*lb2kg
+            w = 6
+            print(f" {si!s:^{w}s}  {sm!s:^{w}s}")
     def FormatFraction(x):
         assert(x <= 1)
         return "1" if x == 1 else f"{x.numerator}/{x.denominator}"

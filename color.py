@@ -30,7 +30,7 @@ Classes to help with color use in terminals
         from color import Color, Trm
 
         t = Trm()
-        print(f"{t('lred')}Error:  you need to fix this{t.n}")
+        print(f"{t('redl')}Error:  you need to fix this{t.n}")
         print(f"{t('lblu', 'wht'} This is blue text in a white background")
 
         # The default color names are based on the resistor color code
@@ -44,7 +44,7 @@ Classes to help with color use in terminals
         # (e.g., for italics).  The t.n value means to return to the
         # default color.  You can store escape sequences as attributes:
 
-        t.err = t("lred")
+        t.err = t("redl")
         print(f"{t.err}Error:  you need to fix this{t.n}")
 
         # You can use t.out and t.print to avoid having to reset to the
@@ -1113,14 +1113,14 @@ class Trm:
             35  45  Magenta                     mag
             36  46  Cyan                        cyn
             37  47  White                       wht
-            90 100  Bright black (gray)         lblk        
-            91 101  Bright red                  lred
-            92 102  Bright green                lgrn
-            93 103  Bright yellow               lyel
-            94 104  Bright blue                 lblu
-            95 105  Bright magenta              lmag
-            96 106  Bright cyan                 lcyn
-            97 107  Bright white                lwht
+            90 100  Bright black (gray)         blkl
+            91 101  Bright red                  redl
+            92 102  Bright green                grnl
+            93 103  Bright yellow               yell
+            94 104  Bright blue                 blul
+            95 105  Bright magenta              magl
+            96 106  Bright cyan                 cynl
+            97 107  Bright white                whtl
         8-bit color
             ESC[38;5;<n>m      Foreground color
             ESC[48;5;<n>m      Background color
@@ -1451,7 +1451,7 @@ class RegexpDecorate:
     
             rd = RegexpDecorate()
             r = re.compile(r"[Mm]adison")
-            fg = Color("lyel")
+            fg = Color("yell")
             rd.register(r, fg, None)    # Print matches in light yellow
     
             for line in open(file).readlines():
@@ -1471,7 +1471,7 @@ class RegexpDecorate:
         with
             rd = RegexpDecorate()
             r = re.compile(r"Elizabeth|Lizzy", re.I)
-            rd.register(r, Color("lyel"))
+            rd.register(r, Color("yell"))
             rd(pnp)
     
         Suppose you have python files in a directory "mydir" and you're
@@ -1480,7 +1480,7 @@ class RegexpDecorate:
             rd = RegexpDecorate()
             r = re.compile(r"MySymbol")
             files = pathlib.Path("mydir").glob("*.py")
-            rd.register(r, Color("lyel"))
+            rd.register(r, Color("yell"))
             rd(*files)
     
         A command line tool like grep is capabile of more precise searching
@@ -1633,7 +1633,7 @@ if klr:   # Legacy code support
             f, b = Colors._cfg[cfg], Colors._cbg[cbg]
             s = "\x1b[%s;%s" % (f, b)
             return s
-    # Foreground colors; shift left by 4 bits to get a background color.
+    # Legacy foreground colors; shift left by 4 bits to get a background color.
     (
         black, blue, green, cyan, red, magenta, brown, white,
         gray, lblue, lgreen, lcyan, lred, lmagenta, yellow, lwhite
@@ -1651,6 +1651,7 @@ if klr:   # Legacy code support
         brown: "0;33",
         white: "0;37",
         gray: "1;30",
+        # Note legacy names
         lblue: "1;34",
         lgreen: "1;32",
         lcyan: "1;36",
@@ -1669,6 +1670,7 @@ if klr:   # Legacy code support
         brown: "43m",
         white: "47m",
         gray: "40m",
+        # Note legacy names
         lblue: "44m",
         lgreen: "42m",
         lcyan: "46m",
@@ -1744,6 +1746,8 @@ if klr:   # Legacy code support
         yel = fg(brown, s=1)
         wht = fg(white, s=1)
         gry = fg(gray, s=1)
+        # Note these are legacy color support, so the bright names begin
+        # with 'l', not end with 'l'.
         lblu = fg(lblue, s=1)
         lgrn = fg(lgreen, s=1)
         lcyn = fg(lcyan, s=1)
@@ -1794,18 +1798,18 @@ if __name__ == "__main__":
             t.print(f"{t.m}Test of Trm.load()")
             s = "/tmp/tmp.clr.py"
             f = P(s)
-            open(P(s), "w").write("err lred None\n")
+            open(P(s), "w").write("err redl None\n")
             x = Trm()
             x.load(f, show=True)            # File
             x.load(open(f), show=True)      # Stream
-            s = "err lred None"
+            s = "err redl None"
             x.load(s, show=True)            # String
             f.unlink()
         def TestRegexpDecorate():
             x = Trm()
-            x.of = x(Color("blk"), Color("lgrn"))
-            x.man = x(Color("lyel"), attr="rv rb")
-            x.so = x(Color("lred"), Color("lblu"))
+            x.of = x(Color("blk"), Color("grnl"))
+            x.man = x(Color("yell"), attr="rv rb")
+            x.so = x(Color("redl"), Color("blul"))
             x.Is = x(None, None, attr="ul ol")
             t.print(dedent(f'''
                 {t.m}Test of regular expression decoration{t.n}
@@ -2351,7 +2355,7 @@ if __name__ == "__main__":
                         c.out(f"{c('wht')}{i:{w}s}{c.n} ")
                 print()
             def Tbl(msg, fg=False, bg=False, last=True):
-                print(f"{c('lyel')}{msg:^{W}s}{c.n}")
+                print(f"{c('yell')}{msg:^{W}s}{c.n}")
                 H("l" if bg else "")
                 for i in T:
                     if fg:
@@ -2425,13 +2429,13 @@ if __name__ == "__main__":
                     single instance of the string can be used (normally, I like to use f-strings
                     because of the brevity).
  
-                    The first "theme" will use underlining for the ul style and 'lyel' text for
+                    The first "theme" will use underlining for the ul style and 'yell' text for
                     the em style:
                 '''))
                 # Load the first theme
                 theme1 = dedent('''
                     ul None None ul
-                    em lyel None
+                    em yell None
                 ''')
                 x.load(theme1)
                 d = {"ul": x.ul, "em": x.em, "n": x.n}
@@ -2439,11 +2443,11 @@ if __name__ == "__main__":
                 # Load the second theme
                 x.print(dedent(f'''
  
-                    The second "theme" will use reversed 'lyel' text for the ul style and 
+                    The second "theme" will use reversed 'yell' text for the ul style and 
                     italics for the em style:
                 '''))
                 theme2 = dedent('''
-                    ul lyel None rv
+                    ul yell None rv
                     em None None it
                 ''')
                 x.load(theme2)
@@ -2451,7 +2455,7 @@ if __name__ == "__main__":
                 x.print("\n    Second style: ", s.format(**d))
             def Exponents():
                 n = c.n
-                cl = Color("lyel")
+                cl = Color("yell")
                 e = c(cl)
                 u = c(cl, attr="sp")
                 b = c(cl, attr="sb")
@@ -2469,7 +2473,7 @@ if __name__ == "__main__":
                                                         {e}ξ{b}λ{n}{e} = 3 kg·m{u}θ{c.n}{e}·s{u}μ²{c.n}
                 '''))
             def TextEditing():
-                cl = Color("lgrn")
+                cl = Color("grnl")
                 n, a, d = c.n, c(cl), c(None, None, attr="so")
                 c.print(dedent(f'''
  
@@ -2479,7 +2483,7 @@ if __name__ == "__main__":
             
                         This {a}new{n} {d}old{n} text was {a}added{n} {d}deleted{n}.
                 '''))
-                cl = Color("lred")
+                cl = Color("redl")
                 d = c(cl, attr="so")
                 c.print(dedent(f'''
  
@@ -2529,6 +2533,87 @@ if __name__ == "__main__":
                     k = i + j
                     print(f"{c('blk', cn[k])}{k:{w}s}{c.n}", end=" "*sp)
                 print()
+    def Int(s):
+        'Convert s to an integer; 0x33 and 0o33 forms allowed'
+        s = s.strip()
+        if s.startswith("0x"):
+            return int(s, 16)
+        elif s.startswith("0o"):
+            return int(s, 8)
+        elif s.startswith("0b"):
+            return int(s, 2)
+        else:
+            return int(s)
+    def ConvertSpecifiers(args):
+        '''args will be a list of strings, each to be converted to a color.
+        Allowed forms are
+            1.  One of the short names such as 'ornl'
+            2.  #xxxxxx, @xxxxxx, and $xxxxxx hex forms
+            3.  "a b c" where the letters represent integers
+            4.  "a, b, c" where the letters represent integers
+        '''
+        for arg in args:
+            x = arg.strip()
+            if not x:
+                continue
+            # Replace nearly all delimiters
+            for i in "~!%^&*()_-+=|{}[}:;\"'<>,?/":
+                x = x.replace(i, " ")
+            while "  " in x:
+                x = x.replace("  ", " ")
+            # Set the variable rgb to a tuple of 3 base 10 integers
+            if len(x) in (3, 4):
+                # Short name form
+                try:
+                    c = CN[x]
+                    rgb = c.irgb
+                except Exception:
+                    Error(f"'{x}' not recognized as a color name")
+            elif x[0] in "@#$":
+                c = Color(x)
+                rgb = c.irgb
+            else:
+                # Must be 3 RGB numbers separated by white space (either
+                # integers or floats)
+                if "." in x or "e" in x:
+                    # Interpret as floats
+                    rgb = [Int(255*float(i)) for i in x.split()]
+                else:
+                    # Interpret as ints
+                    rgb = [Int(i) for i in x.split()]
+            if len(rgb) != 3:
+                Error(f"'{x!s}' doesn't represent three numbers")
+            PrintRGB(arg, x, rgb)
+    def PrintRGB(orig, x, rgb):
+        'Show the color in various forms'
+        q = "({:3d}, {:3d}, {:3d})"
+        def dec(c):
+            'c is a Color instance; return decimal string form'
+            Assert(ii(c, Color))
+            s = c.drgb
+            t = tuple(f"{i:5.3f}" for i in c.drgb)
+            return f"({', '.join(t)})"
+        def P(x, name):
+            'x is an integer tuple and name is RGB, HSV, or HLS'
+            if name == "RGB":
+                s = q.format(*c.irgb)
+                print(f"  {name} = {s} = {dec(Color(*x))} = {c.xrgb!s}")
+            elif name == "HSV":
+                s = q.format(*c.ihsv)
+                print(f"  {name} = {s} = {dec(Color(*x))} = {c.xhsv!s}")
+            elif name == "HLS":
+                s = q.format(*c.ihls)
+                print(f"  {name} = {s} = {dec(Color(*x))} = {c.xhls!s}")
+            else:
+                Error(f"'{name}' is bad")
+        # Check that it's a 3-tuple of integers
+        Assert(len(rgb) == 3)
+        Assert(all([ii(i, int) for i in rgb]))
+        c = Color(*rgb)
+        t.print(f"Input string = '{orig}' = {t(c)}{x.strip()}")
+        P(c.irgb, "RGB")
+        P(c.ihsv, "HSV")
+        P(c.ihls, "HLS")
     def Error(*msg, status=1):
         print(*msg, file=sys.stderr)
         exit(status)
@@ -2538,6 +2623,10 @@ if __name__ == "__main__":
           cmd
           None   Show short color names
            a     Attributes
+           c     Convert color specifier on command line to various
+                 representations in RGB, HSV, and HLS.  Argument can be
+                 e.g. 'ornl', '128 64 32', '0x80 0o100 0b100000', '#804020',
+                 '@0ebf80' '$0e5099' forms (',' and ';' removed).
            d     Demo
            4     4 bit color table
            8     8 bit color table
@@ -2560,6 +2649,9 @@ if __name__ == "__main__":
                 Usage(status=0)
             elif o in ("-t", "--test"):
                 exit(run(globals(), halt=True)[0])
+        d["args"] = []
+        if len(args) > 1:
+            d["args"] = args[1:]
         return args[0] if args else None
     d = {}      # Options dictionary
     cmd = ParseCommandLine(d)
@@ -2567,6 +2659,8 @@ if __name__ == "__main__":
         Examples()
     elif cmd == "a":
         ShowAttributes()
+    elif cmd == "c":
+        ConvertSpecifiers(d["args"])
     elif cmd in ("4", "8", "24"):
         ColorTable(int(cmd))
     else:

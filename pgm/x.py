@@ -64,12 +64,12 @@ if 1:   # Utility
         name = sys.argv[0]
         print(dedent(f'''
         Usage:  {name} [options] [item1 [item2 ...]]
-        Turn execute permission off on files (never directories).  If item is a
-        directory, do it for the files in that directory; otherwise, it's a
-        single file.  Defaults to current directory.
+          Turn execute permission off on files (never directories).  If item is a
+          directory, do it for the files in that directory; otherwise, it's a
+          single file.  Defaults to current directory.
 
-        If -f is not used, only turn execute permission off on files that aren't
-        executables like compiled binaries or scripts that begin with "#!".
+          If -f is not used, only turn execute permission off on files that aren't
+          executables like compiled binaries or scripts that begin with "#!".
         Options:
             -d      Show debug output
             -E      Show supported extensions
