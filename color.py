@@ -143,9 +143,9 @@ if 1:   # Header
         # Don't use flt for now until import dependencies fixed
         #from f import flt
         flt = float
-        if 0:
-            import debug
-            debug.SetDebugger()
+        if 1:
+            import debugg
+            debugg.SetDebugger()
         try:
             import mpmath
             have_mpmath = True
@@ -2359,12 +2359,12 @@ if __name__ == "__main__":
                 H("l" if bg else "")
                 for i in T:
                     if fg:
-                        i = "l" + i 
+                        i = i + "l"
                         c.out(f"{c('lwht')}{i:{w}s}{c.n} ")
                     else:
                         c.out(f"{c('wht')}{i:{w}s}{c.n} ")
                     for j in T:
-                        j = "l" + j if bg else j
+                        j = j + "l" if bg else j
                         c.out(f"{c(i, j)}{t}{c.n} ")
                     print()
                 if last:
