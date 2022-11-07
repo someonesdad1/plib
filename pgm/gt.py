@@ -52,8 +52,52 @@ Show git repository file status for current directory
         -------------------------------------------------
     ?? means untracked
     !! means ignored
+
+---------------------------------------------------------------------------
+Notes from lsg.py outline:
+
+    Script to list status of git repository's files
+
+    - Need a tool for git that lists files like lsh
+        - Key states:  clean, modified (staged, not stages), ignored, not
+        tracked, deleted, added but not checked in 
+        - Color codes the states
+        - Default report shows staged, not staged in current directory
+            - Need -r to see at and below current directory
+        - Branch and root of repository always shown at end
+    - Options
+
+        - -a    Show all
+        - -i    Show ignored
+        - -c    Show unchanged but tracked
+        - -r    Recursive
+        - -w    Show whole repository state
+
+    - Also use output of 'git shortlog -sn' for repository names
+    - Primary use cases
+        - Show the untracked files
+        - Show directories that have no repository files (one of the
+            easiest ways to do this is to put a .git directory in that
+            directory; this also makes it trivial to find that it's not
+            part of the parent repository).
+        - Short listing of types:  M (modified), T (type changed), A
+            (added), D (deleted), R (renamed), C (copied), U (updated but
+            unmerged)
+            - XY table:  M in X position means modified and staged for
+                commit (in index); in Y means changed and not in index
+    - Root location of repository shown (must be in a subdirectory of
+        the directory holding the repository .git directory)
+    - 'git status -u --porcelain' shows untracked files and directories
+    - 'git status --ignored --porcelain' shows ignored stuff
+    - Use --branch to get current branch headers in porcelain format 2
+    - Color code the different states
+        - red:   deleted
+        - orn:   untracked
+        - grn:   tracked, unchanged
+        - mag:   tracked, changed
+        - gryl:  ignored
 '''
- 
+
 if 1:  # Copyright, license
     # These "trigger strings" can be managed with trigger.py
     #∞copyright∞# Copyright (C) 2022 Don Peterson #∞copyright∞#
@@ -79,7 +123,6 @@ if 1:   # Standard imports
     from pprint import pprint as pp 
 if 1:   # Custom imports
     from wrap import wrap, dedent
-
     from color import TRM as t
     from columnize import Columnize
     if 0:

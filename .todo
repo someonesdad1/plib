@@ -1,5 +1,15 @@
 Active
 
+    - lsg:  Find a suitable script to list the contents of a git repository
+      in a directory and name the thing lsg.  I know I've written such a
+      thing and I can never remember the name.  The goal is to see the
+      root, unchanged files, changed files, ignored files, and files that
+      are not in the repository.
+
+    - /plib/pgm/cu_wire.py
+        - Add -l option that lets you specify a length (defaults to m) and
+          the script prints out the resistance of this length of wire.
+
     - tp.c
         - This needs a conditional switch based on a defined variable or
           environment value.  A use case is the formulas in the AG
