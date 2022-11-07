@@ -1,5 +1,9 @@
 Active
 
+    - /plib/pgm/cu_wire.py
+        - Add -l option that lets you specify a length (defaults to m) and
+          the script prints out the resistance of this length of wire.
+
     - tp.c
         - This needs a conditional switch based on a defined variable or
           environment value.  A use case is the formulas in the AG

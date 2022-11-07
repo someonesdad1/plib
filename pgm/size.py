@@ -1,11 +1,4 @@
 '''
-TODO
-
-    * Normal behavior is to use glob patterns.  Change to use pathlib for
-      this.
-    * Add -g option which lets you use python regular expressions to find
-      the files.  Can take longer, but lets you be more specific.
-
 List sizes for files/patterns specified on the command line
 '''
 if 1:  # Copyright, license
@@ -17,7 +10,7 @@ if 1:  # Copyright, license
     #   See http://opensource.org/licenses/OSL-3.0.
     #∞license∞#
     #∞what∞#
-    # List sizes for files/patterns specified on the command line
+    # List sizes for files/patterns specified on the command line.
     #∞what∞#
     #∞test∞# #∞test∞#
     pass
@@ -34,32 +27,33 @@ if 1:   # Custom imports
     from wrap import dedent
     from f import flt
     import color as c
+    from color import t
 if 1:   # Global variables
     P = pathlib.Path
-    flt(0).n = 3
+    flt(0).N = 2    # Number of significant figures for sizes with SI suffix
     colors = {
-        "": c.white,
-        "kB": c.lgreen,
-        "MB": c.lmagenta,
-        "GB": c.lred,
+        "": t("wht"),
+        "kB": t("grnl"),
+        "MB": t("magl"),
+        "GB": t("redl"),
     }
 def Usage():
     name = sys.argv[0]
     print(dedent(rf'''
     {name} [options] p1 [p2...]
-      List the sizes for all files that match patterns p1, p2,...  given on
-      the command line.  These patterns can also be directories to be
-      searched.  Patterns and directories can be mixed.  If no directories
-      are given on the command line, the current directory is processed.
+        List the sizes for all files that match globbing patterns p1, p2,... given
+        on the command line.  These patterns can also be directories to be
+        searched.  If no directories are given on the command line, the current
+        directory is processed.
     Examples:
-      To see the size of all files in current directory:
-          {name} \*
-      To see size of all python files at and below the current directory:
-          {name} -r . \*.py
+        To see the size of all files in current directory:
+            {name} \*
+        To see size of all python files at and below the current directory:
+            {name} -r . \*.py
     Options:
-      -g    The patterns are python regular expressions, not globbing patterns
-      -r    Recurse into directories
-      -v    Include version control directories
+        -g    The patterns are python regular expressions, not globbing patterns
+        -r    Recurse into directories
+        -v    Include version control directories
     '''))
     exit(0)
 def Error(*msg):
@@ -72,56 +66,19 @@ def ParseCommandLine():
     if len(sys.argv) < 2:
         Usage()
     try:
-        optlist, args = getopt.getopt(sys.argv[1:], "grv")
+        optlist, args = getopt.getopt(sys.argv[1:], "hgrv")
     except getopt.GetoptError as str:
         msg, option = str
         print(msg)
-        sys.exit(1)
+        exit(1)
     for o, a in optlist:
         if o[1] in "grv":
             d[o] = not d[o]
+        elif o == "-h":
+            Usage()
     if not args:
         Usage()
     return args
-def Collapse(size):
-    'size is number of bytes.  Collapse into a string in kB, MB, or GB'
-    size = flt(size)
-    if size < 10**3:
-        return str(size), ""
-    elif size < 10**6:
-        return str(size/10**3), "kB"
-    elif size < 10**9:
-        return str(size/10**6), "MB"
-    else:
-        return str(size/10**9), "GB"
-def PrintResults(directories, patterns):
-    print("Directories processed", end="")
-    if d["-r"]:
-        print(" recursively", end="")
-    print(":\n  ", end="")
-    c.fg(c.lred)
-    for i in directories:
-        print(f"{i} ", end="")
-    c.normal()
-    print("\n")
-    if not patterns:
-        return
-    print(dedent('''
-    Size, bytes                Pattern
-    ------------               -------'''))
-    total_size = 0
-    for pattern, size in patterns:
-        print(f"{size:12d} = ", end="")
-        num, ext = Collapse(size)
-        c.fg(colors[ext])
-        print(f"{num + ' ' + ext:12s}", end="")
-        c.normal()
-        print(f"{pattern}")
-        total_size += size
-    print(f"Total bytes = {total_size} = ", end="")
-    num, ext = Collapse(total_size)
-    c.fg(colors[ext])
-    print(f"{num} {ext}{c.normal()}")
 def GetPatterns(args):
     '''Return [patterns, directories] where patterns is a list of
     the form
@@ -190,6 +147,42 @@ def ProcessDirectory(patterns, directory):
     for pattern in patterns:
         bytes = ProcessPattern(pattern[0], directory)
         pattern[1] += bytes
+def Collapse(size):
+    'Return (size_str, x) where x is kB, MB, or GB.  size is number of bytes.'
+    size = flt(size)
+    if size < 10**3:
+        return str(size), ""
+    elif size < 10**6:
+        return str(size/10**3), "kB"
+    elif size < 10**9:
+        return str(size/10**6), "MB"
+    else:
+        return str(size/10**9), "GB"
+def PrintResults(directories, patterns):
+    print("Directories processed", end="")
+    if d["-r"]:
+        print(" recursively", end="")
+    print(":\n  ", end="")
+    print(f"{t('lipl')}", end="")
+    for i in directories:
+        print(f"{i} ", end="")
+    print(f"{t.n}")
+    if not patterns:
+        return
+    print(dedent('''
+    Size, bytes                Pattern
+    ------------               -------'''))
+    total_size = 0
+    for pattern, size in patterns:
+        print(f"{size:12d} = ", end="")
+        num, ext = Collapse(size)
+        print(f"{colors[ext]}{num + ' ' + ext:12s}{t.n}", end="")
+        print(f"{pattern}")
+        total_size += size
+    print(f"Total bytes = {total_size} = ", end="")
+    num, ext = Collapse(total_size)
+    t.print(f"{colors[ext]}{num} {ext}")
+
 if __name__ == "__main__": 
     d = {}  # Options dictionary
     args = ParseCommandLine()

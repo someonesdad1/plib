@@ -143,7 +143,7 @@ if 1:   # Header
         # Don't use flt for now until import dependencies fixed
         #from f import flt
         flt = float
-        if 1:
+        if 0:
             import debugg
             debugg.SetDebugger()
         try:
@@ -2350,7 +2350,7 @@ if __name__ == "__main__":
                 c.out(f"{'':{w}s} ")
                 for i in T:
                     if bright:
-                        c.out(f"{c('lwht')}{'l' + i:{w}s}{c.n} ")
+                        c.out(f"{c('whtl')}{'l' + i:{w}s}{c.n} ")
                     else:
                         c.out(f"{c('wht')}{i:{w}s}{c.n} ")
                 print()
@@ -2360,7 +2360,7 @@ if __name__ == "__main__":
                 for i in T:
                     if fg:
                         i = i + "l"
-                        c.out(f"{c('lwht')}{i:{w}s}{c.n} ")
+                        c.out(f"{c('whtl')}{i:{w}s}{c.n} ")
                     else:
                         c.out(f"{c('wht')}{i:{w}s}{c.n} ")
                     for j in T:
@@ -2384,25 +2384,27 @@ if __name__ == "__main__":
                 Tbl("Dim text", False, False)
                 Tbl("Bright text", True, False, last=False)
             elif bits == 8:
-                T = range(256)
-                N = width//4        # Items that can fit per line
-                use_white = set([int(i) for i in '''
-                    0 4 8 16 17 18 19 20 21 52 53 54 55 56 57 88 89 90 91 92 93 94
-                    95 96 97 98 99 232 233 234 235 236 237 238 239
-                        '''.split()])
-                print("As foreground colors")
-                for i in T:
-                    c.out(f"{c(i)}{i:^4d}")
-                    if i and not ((i + 1) % N):
-                        c.print()
-                c.print()
-                print("As background colors")
-                for i in T:
-                    fg = 15 if i in use_white else 0
-                    c.out(f"{c(fg, i)}{i:^4d}")
-                    if i and not ((i + 1) % N):
-                        c.print()
-                c.print()
+                print("8 bit not working yet")
+                if 0:
+                    T = range(256)
+                    N = width//4        # Items that can fit per line
+                    use_white = set([int(i) for i in '''
+                        0 4 8 16 17 18 19 20 21 52 53 54 55 56 57 88 89 90 91 92 93 94
+                        95 96 97 98 99 232 233 234 235 236 237 238 239
+                            '''.split()])
+                    print("As foreground colors")
+                    for i in T:
+                        c.out(f"{c(i)}{i:^4d}")
+                        if i and not ((i + 1) % N):
+                            c.print()
+                    c.print()
+                    print("As background colors")
+                    for i in T:
+                        fg = 15 if i in use_white else 0
+                        c.out(f"{c(fg, i)}{i:^4d}")
+                        if i and not ((i + 1) % N):
+                            c.print()
+                    c.print()
         def Examples():
             # These work under mintty (https://mintty.github.io/)
             '''
@@ -2460,7 +2462,6 @@ if __name__ == "__main__":
                 u = c(cl, attr="sp")
                 b = c(cl, attr="sb")
                 c.print(dedent(f'''
- 
                     {c.hdr}Exponents{c.n}
                     The mintty terminal can display exponents and subscripts, even using Unicode
                     characters.
@@ -2544,47 +2545,74 @@ if __name__ == "__main__":
             return int(s, 2)
         else:
             return int(s)
-    def ConvertSpecifiers(args):
-        '''args will be a list of strings, each to be converted to a color.
-        Allowed forms are
+    def InterpretColorSpecifier(s):
+        '''s will be a string of one of the following forms:
             1.  One of the short names such as 'ornl'
             2.  #xxxxxx, @xxxxxx, and $xxxxxx hex forms
             3.  "a b c" where the letters represent integers
-            4.  "a, b, c" where the letters represent integers
+        Instead of space characters, nearly any characters can be used as
+        delimiters, as they are replaced by spaces.
         '''
-        for arg in args:
-            x = arg.strip()
-            if not x:
-                continue
-            # Replace nearly all delimiters
-            for i in "~!%^&*()_-+=|{}[}:;\"'<>,?/":
-                x = x.replace(i, " ")
-            while "  " in x:
-                x = x.replace("  ", " ")
-            # Set the variable rgb to a tuple of 3 base 10 integers
-            if len(x) in (3, 4):
-                # Short name form
-                try:
-                    c = CN[x]
-                    rgb = c.irgb
-                except Exception:
-                    Error(f"'{x}' not recognized as a color name")
-            elif x[0] in "@#$":
-                c = Color(x)
+        x = s.strip()
+        if not x:
+            return
+        # Replace nearly all delimiters
+        for i in "~!%^&*()_-+=|{}[}:;\"'<>,?/":
+            x = x.replace(i, " ")
+        while "  " in x:
+            x = x.replace("  ", " ")
+        # Set the variable rgb to a tuple of 3 base 10 integers
+        if len(x) in (3, 4):
+            # Short name form
+            try:
+                c = CN[x]
                 rgb = c.irgb
+            except Exception:
+                Error(f"'{x}' not recognized as a color name")
+            t.print(f"Color name '{x}'    {t(c)}Represents this color")
+            ShowRepresentations(c)
+            return
+        elif x[0] in "@#$":
+            c = Color(x)
+            rgb = c.irgb
+        else:
+            # Must be 3 RGB numbers separated by white space (either
+            # integers or floats)
+            if "." in x or "e" in x:
+                # Interpret as floats
+                rgb = [Int(255*float(i)) for i in x.split()]
             else:
-                # Must be 3 RGB numbers separated by white space (either
-                # integers or floats)
-                if "." in x or "e" in x:
-                    # Interpret as floats
-                    rgb = [Int(255*float(i)) for i in x.split()]
-                else:
-                    # Interpret as ints
-                    rgb = [Int(i) for i in x.split()]
-            if len(rgb) != 3:
-                Error(f"'{x!s}' doesn't represent three numbers")
-            PrintRGB(arg, x, rgb)
-    def PrintRGB(orig, x, rgb):
+                # Interpret as ints
+                rgb = [Int(i) for i in x.split()]
+        if len(rgb) != 3:
+            Error(f"'{x!s}' doesn't represent three numbers")
+        PrintRGB(s, x, rgb)
+    def ShowRepresentations(c):
+        'Show the Color instance c in various representations'
+        q = "({:3d}, {:3d}, {:3d})"
+        def dec(c):
+            'c is a Color instance; return decimal string form'
+            Assert(ii(c, Color))
+            s = c.drgb
+            t = tuple(f"{i:5.3f}" for i in c.drgb)
+            return f"({', '.join(t)})"
+        def P(x, name):
+            'x is an integer tuple and name is RGB, HSV, or HLS'
+            if name == "RGB":
+                s = q.format(*c.irgb)
+                print(f"  {name} = {s} = {dec(Color(*x))} = {c.xrgb!s}")
+            elif name == "HSV":
+                s = q.format(*c.ihsv)
+                print(f"  {name} = {s} = {dec(Color(*x))} = {c.xhsv!s}")
+            elif name == "HLS":
+                s = q.format(*c.ihls)
+                print(f"  {name} = {s} = {dec(Color(*x))} = {c.xhls!s}")
+            else:
+                Error(f"'{name}' is bad")
+        P(c.irgb, "RGB")
+        P(c.ihsv, "HSV")
+        P(c.ihls, "HLS")
+    def _PrintRGB(orig, x, rgb):
         'Show the color in various forms'
         q = "({:3d}, {:3d}, {:3d})"
         def dec(c):
@@ -2621,16 +2649,16 @@ if __name__ == "__main__":
         print(dedent(f'''
         Usage:  {sys.argv[0]} [options] [cmd]
           cmd
-          None   Show short color names
+           s     Show short color names
            a     Attributes
-           c     Convert color specifier on command line to various
+          None   Convert color specifier on command line to various
                  representations in RGB, HSV, and HLS.  Argument can be
                  e.g. 'ornl', '128 64 32', '0x80 0o100 0b100000', '#804020',
                  '@0ebf80' '$0e5099' forms (',' and ';' removed).
            d     Demo
-           4     4 bit color table
-           8     8 bit color table
-          24     24 bit color table
+           t4    4 bit color table
+           t8    8 bit color table
+           t24   24 bit color table
         Options:
           -h      Print this help
         '''))
@@ -2649,19 +2677,20 @@ if __name__ == "__main__":
                 Usage(status=0)
             elif o in ("-t", "--test"):
                 exit(run(globals(), halt=True)[0])
-        d["args"] = []
-        if len(args) > 1:
-            d["args"] = args[1:]
-        return args[0] if args else None
+        if not args:
+            return ["s"]
+        return args
     d = {}      # Options dictionary
-    cmd = ParseCommandLine(d)
-    if cmd == "d":
+    cmds = ParseCommandLine(d)
+    first_char = cmds[0][0]
+    if first_char == "d":
         Examples()
-    elif cmd == "a":
+    elif first_char == "a":
         ShowAttributes()
-    elif cmd == "c":
-        ConvertSpecifiers(d["args"])
-    elif cmd in ("4", "8", "24"):
-        ColorTable(int(cmd))
-    else:
+    elif first_char == "s":
         ShortNames()
+    elif first_char == "t":
+        ColorTable(int(cmds[0][1:]))
+    else:
+        for i in cmds:
+            InterpretColorSpecifier(i)
