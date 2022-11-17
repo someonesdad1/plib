@@ -9,7 +9,9 @@
       should be None, meaning the default text style.
     - TRM needs a method to set all the attributes to empty strings when
       the .on attribute is False.  This is important to applications to
-      make it easy to turn off escape codes.
+      make it easy to turn off escape codes.  (A good example where this
+      isn't working is dev/ts/ts.py).  Need to handle t.print and t.out
+      too.
         - Of course, this is a bad idea when the user wants to set .on to
           True again.  Best is to make sure all attributes are properties
           and their return value is set to "" if .on is False.
@@ -2509,6 +2511,9 @@ if __name__ == "__main__":
             '''
             R = GetShortNames()
             c = Trm()
+            # Make escape codes always be printed so that capturing to a
+            # file lets you grab the escape codes easily.
+            c.always = True
             w = 5
             cn = CN
             print("Grays:", end=" "*2)

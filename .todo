@@ -1,10 +1,29 @@
 Active
 
-    - lsg:  Find a suitable script to list the contents of a git repository
-      in a directory and name the thing lsg.  I know I've written such a
-      thing and I can never remember the name.  The goal is to see the
-      root, unchanged files, changed files, ignored files, and files that
-      are not in the repository.
+    - gawk & mawk
+        - HU could use an article on this while I'm relearning awk for the
+          family history project.
+        - gawk in particular has a number of powerful features over and
+          above the classic awk
+        - Speed on my machine is 16 times faster than a C program that
+          processes things by bytes (admittedly inefficent, but simple to
+          write a state machine).
+
+    - Parker Jotter
+        - The Pentel Energel (0.7 or 1.0) almost fits the Jotter barrel.
+          Could it be machined to fit?
+        - If not, could the Parker's plastic barrel be bored out?
+
+    - Death:
+        - Plan for my death  Outside of disposing of
+        - Disposition of any property
+        - Send email to certain friends
+        - Identifying scars/characteristics 
+
+    - Time:  I like the time calculation feature in hc.  Often, I'd like to
+      be able to do something like enter a data 7Nov2022 and subtract off 
+      12 years.  It would be nice to have a specialized script to do this.
+      Or add to hc the ability to include the time unit with the number.
 
     - /plib/pgm/cu_wire.py
         - Add -l option that lets you specify a length (defaults to m) and
@@ -24,6 +43,12 @@ Active
           turn output on if SHOW_PROOFS was true and be ignored otherwise.
           "\nSHOW_PROOFS-" would turn output off if SHOW_PROOFS was true
           and be ignored otherwise.  This should be pretty easy to add.
+
+    - Chemical names
+        - https://someonesdad1.github.io/hobbyutil/science/chemical_names.pdf
+        - Might make sense to convert to LaTeX
+        - Could be useful to have a script to look things up and position 
+          at the right PDF page.
 
     - pgm/mp.py
         - Needs the ability to define multiline macros without needing to

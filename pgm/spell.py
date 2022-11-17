@@ -105,13 +105,13 @@ def ParseCommandLine(d):
 def GetWordlists(d):
     regex, xfm = r"^\s*#", [str.lower]
     wl = set()
-    wl.update(get.GetWords(wordlist["additional"], ignore_regexes=[regex]))
+    wl.update(get.GetWords(wordlist["additional"], ignore=[regex]))
     if d["-0"]:
-        wl.update(get.GetWords(wordlist[0], ignore_regexes=[regex]))
+        wl.update(get.GetWords(wordlist[0], ignore=[regex]))
     if d["-1"]:
-        wl.update(get.GetWords(wordlist[1], ignore_regexes=[regex]))
+        wl.update(get.GetWords(wordlist[1], ignore=[regex]))
     if d["-2"]:
-        wl.update(get.GetWords(wordlist[2], ignore_regexes=[regex]))
+        wl.update(get.GetWords(wordlist[2], ignore=[regex]))
     d["words"] = wl
     if d["-i"]:
         wl = set([i.lower() for i in wl])

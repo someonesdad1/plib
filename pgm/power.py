@@ -87,7 +87,7 @@ def ParseCommandLine(d):
                 Error(msg)
         elif o in ("-h", "--help"):
             Usage(d, status=0)
-    x.n = d["-d"]
+    x.N = d["-d"]
     if d["-i"]:
         Instruments()
         exit(0)
