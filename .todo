@@ -4,7 +4,7 @@ Active
         - HU could use an article on this while I'm relearning awk for the
           family history project.
         - gawk in particular has a number of powerful features over and
-          above the classic awk
+          above the classic awk.  The debugger is particularly helpful.
         - Speed on my machine is 16 times faster than a C program that
           processes things by bytes (admittedly inefficent, but simple to
           write a state machine).
@@ -15,7 +15,7 @@ Active
         - If not, could the Parker's plastic barrel be bored out?
 
     - Death:
-        - Plan for my death  Outside of disposing of
+        - Plan for my death
         - Disposition of any property
         - Send email to certain friends
         - Identifying scars/characteristics 
@@ -147,6 +147,53 @@ Active
           include and exclude the things you want to see.  Then at a
           breakpoint you'd do something like qq(myvar) and it would produce
           a pretty-printed dump of the attributes.
+
+Text processor
+
+    I find I do a lot of text processing.  Tools like gawk/mawk are almost
+    adequate and they have power and are very efficient.  But they have
+    archaic 40-year old semantics.  I've never liked the design of m4
+    though it is powerful.  The following would be features I would want:
+
+    - Easy to comment out large blocks of text
+        - Even better if this can be done conditionally on environment
+          variables or programming variables
+    - Allow condition constructs of if/else and allow them to be
+      arbitrarily nested
+    - ts.py and tp.awk use control lines of '^\.x' form.  Relax this to
+      allow them to have arbitrary leading whitespace.
+    - Need to define text replacements that are either plain text or
+      regexps
+    - Need numerical evaluations, both integer and floating point
+    - Use standard function notation like f(*p, **kw)
+    - Namespaces or control over scope
+    - Needs to be both byte-oriented and able to handle UTF8
+    - Supports iteration
+
+    My feeling is that this needs a careful design, then should be
+    implemented in C/C++ or modern tools like Go or Rust.  
+
+    There are two fundamental design choices:  line-oriented or
+    token-oriented.  
+
+    - Token-oriented could be acceptable, but whitespace would have to be
+      conserved to be useful for text processing.  
+    - A token oriented design is desirable from a flexibility standpoint
+      and a standard functional form like ∞funcname(*p, **kw) could be used
+      where ∞ is a special trigger character to alert to a control
+      sequence.
+    - Token problems
+        - When you want to e.g.  format lines of text, such as dedenting or
+          indenting.
+        - How do you handle line-oriented regexps (which get used a lot)?
+
+    Another idea would be to write in C/C++ and use an embedded python 
+    interpreter.
+
+    Though C requires painful manual memory management, most text files do
+    not have overly huge input lines.  A large line buffer on a modern
+    machine could be 100k to 1M and be able to handle any typical text file
+    I'd throw at it.  
 
 Other
 
