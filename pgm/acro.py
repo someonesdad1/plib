@@ -19,6 +19,7 @@ if 1:   # Header
         import getopt
         import os
         from pathlib import Path as P
+        import string
         import sys
         from pdb import set_trace as xx
     if 1:   # Custom imports
@@ -41,19 +42,21 @@ if 1:   # Utility
           they are found and duplicates are allowed.
         Options:
             -h      Print a manpage
+            -m m    Define the minimum length of an acronym [{d['-m']}]
             -n n    Define the maximum length of an acronym [{d['-n']}]
             -s      Print the tokens in sorted form (also implies -u)
             -u      Print the unique tokens
         '''))
         exit(status)
     def ParseCommandLine(d):
+        d["-m"] = 2
         d["-n"] = 5
         d["-s"] = False
         d["-u"] = False
         if len(sys.argv) < 2:
             Usage()
         try:
-            opts, files = getopt.getopt(sys.argv[1:], "hn:su") 
+            opts, files = getopt.getopt(sys.argv[1:], "hm:n:su") 
         except getopt.GetoptError as e:
             print(str(e))
             exit(1)
@@ -64,16 +67,33 @@ if 1:   # Utility
                 d["-n"] = n = int(a)
                 if n < 1:
                     Error("-n option must be > 0")
+            if o == "-m":
+                d["-m"] = m = int(a)
+                if n < 1:
+                    Error("-m option must be > 0")
             elif o == "-h":
                 Usage(status=0)
+        if d["-m"] > d["-n"]:
+            d["-m"], d["-n"] = d["-n"], d["-m"] 
         return files
 if 1:   # Core functionality
+    def IsToken(s):
+        'Must be all uppercase letters and numbers'
+        for i in set(s):
+            if i not in IsToken.characters:
+                return False
+        return True
+    # Make IsToken container for allowed characters
+    uc, dig = string.ascii_uppercase, string.digits
+    IsToken.characters = set(uc + dig)
     def PrintTokens(stream):
         found = set()
         for token in GetTokens(stream):
+            if not IsToken(token) or token[0] not in uc:
+                continue
+            if not (d["-m"] <= len(token) <= d["-n"]):
+                continue
             if token.upper() == token:
-                if len(token) > d["-n"]:
-                    continue
                 if d["-u"] or d["-s"]:
                     if token not in found:
                         if not d["-s"]:
