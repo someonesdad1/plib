@@ -39,13 +39,15 @@ if 1:   # Utility
         Usage:  {sys.argv[0]} [options] [file1 [file2 ...]]
           Print out acronyms found in the files on the command line.  Use
           '-' to read from stdin.  The tokens are printed out in the order
-          they are found and duplicates are allowed.
+          they are found.
+
+          An acronym is defined as a sequence of capital letters and
+          digits.  Use -m and -n to specify the length.
         Options:
-            -h      Print a manpage
             -m m    Define the minimum length of an acronym [{d['-m']}]
             -n n    Define the maximum length of an acronym [{d['-n']}]
-            -s      Print the tokens in sorted form (also implies -u)
-            -u      Print the unique tokens
+            -s      Print the tokens in sorted order (also implies -u)
+            -u      Print the unique tokens in the order they are found
         '''))
         exit(status)
     def ParseCommandLine(d):
