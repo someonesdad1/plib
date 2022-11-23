@@ -9,22 +9,28 @@ if 1:
  
 favorites = '''
 
+Angie (Rolling Stones)|S7sigwbqEj8|
 Beethoven's 7th|Rw-KtQLdRT4|Bernstein & NY Philharmonic
 Beethoven's 9th, 2nd movement (1824)|iwIvS4yIThU|Genius
 Bad Romance|VCTOpdlZJ8U|PMJ & tap dancing (Sarah Reich) (singer is Telly Savalas' daughter)
-Catharsis (2013)|h3hlFAVV6aI|My beloved Sa-Sa|  Sally went to a fiddle camp in WA and learned this song.  When she returned, she said she knew I'd like it.  She was right, as it's my favorite fiddle song.
-Crazy (1961)|MbnrdCS57d0||Nobody sings it like Patsy Cline.
-Diamonds and Rust (1975)|IrVD0bP_ybg|Baez's best
-Don't Cry For Me Argentina (1977)|_n8mq7sedP4|A masterpiece
+Catharsis (Sa Sa 2013)|h3hlFAVV6aI|My favorite fiddle song
+Crazy (Patsy Cline 1961)|MbnrdCS57d0||Nobody sings it like Patsy Cline.
+Diamonds and Rust (Joan Baez 1975)|IrVD0bP_ybg|Baez's best
+Don't Cry For Me Argentina (Karen Carpenter 1977)|_n8mq7sedP4|A masterpiece
+Fast Freight:  Eliza Gilkyson|Sin3FeAQAws| Haunting, singer is song writer's daughter
+Hit the Road Jack (Becca Krueger)|OfUDsHtSv88|(skip first 20 seconds)
 Ievan Polkka|4om1rQKPijI|A masterpiece of a capella
-I'll Never Find Another You (1963)|KmactMIhrRM|How I feel about Glenda
+I'll Never Find Another You (Seekers 1963)|KmactMIhrRM|How I feel about Glenda
 Korobushka|Pr3ZgN8onRA|
 Midnight In Moscow (1961)|o744d4mwOgQ|Dixieland from England
 Papillon: Waltz arrangement|FKrmozFh5ww|
-Potato Head Blues (1927)|EfGZB78R7uw|Famous trumpet solo
-Scheherezade (1st movement, written 1888)|6dDk6aft4JU|von Karajan on Deutsche Grammophone
-Stairway to Heaven (1971)|QkF3oxziUI4|
-Vltava (The Moldau) (1875)|l6kqu2mk-Kw|Smetana
+Potato Head Blues (Louis Armstrong 1927)|EfGZB78R7uw|Famous trumpet solo
+Scheherezade (1st movement, Rimsky-Korsakov 1888)|6dDk6aft4JU|von Karajan on Deutsche Grammophone
+Stairway to Heaven (Led Zeppelin 1971)|QkF3oxziUI4|
+This is a Man's World (PMJ, Morgan James)|mPimt0Zu_To|
+Vltava (The Moldau) (Smetana, 1875)|l6kqu2mk-Kw|
+Volga Boatmen (1866)|qsovBF4N27Q|This has nothing to do with the movie, but I also like music of this scene from the movie.
+Woman in Love (Barbra Streisand)|hQLGCX8D-1Y|
 
 '''
 
@@ -66,7 +72,7 @@ Buffalo Springfield:  For What It's Worth|gp5JCrSXkJY|
 Carly Simon: You're So Vain|cleCtBP0o5Y|
 Carpenters:  Rainy Days and Monday|PjFoQxjgbrs|
 Carpenters: Superstar|SJmmaIGiGBg|
-Chicago:  25 Or 6 To 4|iUAYeN3Rp2E|Great horns and guitar|This reminds me of visiting a friend in Chicago in the early 1970's and he took me to a place where this band played, although they weren't there.
+Chicago:  25 Or 6 To 4|iUAYeN3Rp2E|Great horns and guitar
 Christy Minstrels: Today (1964)|3cELsUMcQdc|
 Connie Francis:  Everybody's Somebody's Fool|ECOthzFvUXY|
 Country Roads:  John Denver|1vrEljMfXYo|
@@ -87,6 +93,7 @@ Don Rondo: White Silver Sands|mOqbjENGN7s|
 Doors:  Light My Fire|LY1l8T2Lcl0|
 Doors:  The Crystal Ship|bU1sLx1tjPY|
 Dueling Banjos|myhnAZFR1po|
+Dust in the Wind|tH2w6Oxx0kQ|
 Dusty Springfield: Silver Threads and Golden Needles|uz6HB9HYQz4|
 Eagles: Hotel California|https://www.youtube.com/watch?v=BciS5krYL80|
 El Condor Pasa|pey29CLID3I|
@@ -95,8 +102,7 @@ Elton John:  Crocodile Rock|75r0nQu-hMs|
 Elton John: I'm Still Standing|Ye9hGotPPVk|
 Elton John: Rocket Man|BdEe5SpdIuo|
 Eurythmics: Sweet Dreams|qeMFqkcPYcg|
-Fast Freight:  Eliza Gilkyson|Sin3FeAQAws| Eliza Gilkyson (song writer's daughter)
-Fast Freight:  Kingston Trio|Oy_NkJOwRqE||This has always been a favorite Kingston Trio song of mine.  I used to mentally sing it in my mind many times when driving back from fiddle contests when Sally was young.
+Fast Freight:  Kingston Trio|Oy_NkJOwRqE||
 Ferrante & Teicher:  Exodus|xhXZ3eXJIFc|
 Flatt & Scruggs:  Foggy Mountain Breakdown|z_Y3mnj-8lA|
 Fleetwood Mac:  Dreams|O5ugW4-BstE|
@@ -113,7 +119,6 @@ Hang 'Em High Movie Theme|0gscut1p4kY|
 Harve Presnell: They Call the Wind Mariah|ByqYEzugleE|
 Hawaii 50 Theme|AepyGm9Me6w|
 Heart:  Barracuda|PeMvMNpvB5M|
-Hit the Road Jack: Becca Krueger|OfUDsHtSv88|(skip first 20 seconds)
 Hit the Road Jack: Ray Charles|SrnWp5O0DEs|
 Hollies:  Long Cool Woman|X3sU_q1GH-4|
 Hollies: Bus Stop|It75wQ0JypA|
@@ -125,7 +130,6 @@ Jimmy Smith:  Walk On the Wild Side|5O82y59h7MI|
 Joan Baez: The Night They Drove Old Dixie Down|wanJQC5KAfo|
 Johnny Horton: North to Alaska (1960)|RO6IU9RpjS8|
 Judy Collins:  Both Sides Now|8L1UngfqojI|
-Kansas:  Dust in the Wind|tH2w6Oxx0kQ|
 Kenny Rogers:  The Gambler|https://www.youtube.com/watch?v=7hx4gdlfamo|
 Kingston Trio:  Bay Of Mexico|-16OczraVi4|
 Kingston Trio: MTA|MbtkL5_f6-4|
@@ -192,7 +196,6 @@ Rawhide|_EjbzCX3enA|
 Ray Charles Singers:  Love Me With All Your Heart|k3nfqH4YDDM|
 Ray Charles:  Cincinnati Kid|rfn1YrwG2Oc|
 Ray Charles:  Georgia On My Mind|QL3EZwSJAh0|
-Rolling Stones:  Angie|S7sigwbqEj8|
 Rolling Stones:  Jumpin' Jack Flash|-rIG2POqtV8|
 Rolling Stones:  Paint It Black|O4irXQhgMqg|
 Rosemary Clooney: Mambo Italiano|9prJXEhNhPA|
@@ -214,7 +217,6 @@ Stairway to Heaven: Heart|2cZ_EFAmj08|
 Stairway to Heaven: Led Zeppelin (concert)|https://www.youtube.com/watch?v=BciS5krYL80e|
 Stone Ponies:  Different Drum|w9qsDgA1q8Y|
 Streisand: People|fPlQ6EtArSc|
-Streisand: Woman in Love|hQLGCX8D-1Y|
 Styx:  Mr. Roboto|51ybp_YFo7I|
 Sunrise, Sunset|03rzUoyq9K0|
 Survivor:  Eye Of The Tiger|btPJPFnesV4|
@@ -225,7 +227,6 @@ The Little Nash Rambler|enqNl7tdLR4|
 The Night the Lights Went Out in Georgia|wMD5nBcPrCk|
 Theme From Shaft|Q429AOpL_ds|
 This is a Man's World: James Brown|wd1-HM234DE|
-This is a Man's World: PMJ|mPimt0Zu_To|
 Three Dog Night:  Eli's coming|1A2eet1bttY|Also look up writer's Laura Nyro's version.
 Three Dog Night:  One|UiKcd7yPLdU|
 Time Won't Let Me|3yQERVphWhY|
@@ -237,9 +238,8 @@ Unchained Melody|zrK5u5W8afc|
 Unforgettable|Fy_JRGjc1To|
 Vanity Fare:  Early In The Morning|9hN9YRo7y1s||I played this a lot on a stereo/phono/8-track thingy I bought from my Dad's store in the 1960's.
 Village Stompers: Washington Square|ihenbyTzQ2A|
-Volga Boatmen (1866)|qsovBF4N27Q|
 Volga Boatmen|0tw3g88JtWA|Baritone L. Kharitonov 1965 
-Walking in the Air|upH1QZU4Z0Y|Movie theme by a 13 year old choirboy
+Walking in the Air|upH1QZU4Z0Y|Movie theme sung by a 13 year old choirboy
 We Five: You Were On My Mind|c7YSANg8vgw|
 Yardbirds:  Heart Full of Soul|pM1qZBFiOLU|
 Zager and Evans:  In The Year 2525|yesyhQkYrQM|
@@ -312,6 +312,6 @@ if __name__ == "__main__":
     Print(favorites)
     print(f"<p>Others:</p>")
     Print(songs)
-    print(f"<p>{now.date}<p>")
+    print(f"<p>Updated {now.date}<p>")
  
 # vim: tw=0 wm=0
