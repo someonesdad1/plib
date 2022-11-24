@@ -12,7 +12,7 @@ favorites = '''
 Angie (Rolling Stones)|S7sigwbqEj8|
 Beethoven's 7th|Rw-KtQLdRT4|Bernstein & NY Philharmonic
 Beethoven's 9th, 2nd movement (1824)|iwIvS4yIThU|Genius
-Bad Romance|VCTOpdlZJ8U|PMJ & tap dancing (Sarah Reich) (singer is Telly Savalas' daughter)
+Bad Romance|VCTOpdlZJ8U|PMJ & Sarah Reich tap dancing (singer is Telly Savalas' daughter)
 Catharsis (Sa Sa 2013)|h3hlFAVV6aI|My favorite fiddle song
 Crazy (Patsy Cline 1961)|MbnrdCS57d0||Nobody sings it like Patsy Cline.
 Diamonds and Rust (Joan Baez 1975)|IrVD0bP_ybg|Baez's best
@@ -22,7 +22,7 @@ Hit the Road Jack (Becca Krueger)|OfUDsHtSv88|(skip first 20 seconds)
 Ievan Polkka|4om1rQKPijI|A masterpiece of a capella
 I'll Never Find Another You (Seekers 1963)|KmactMIhrRM|How I feel about Glenda
 Korobushka|Pr3ZgN8onRA|
-Midnight In Moscow (1961)|o744d4mwOgQ|Dixieland from England
+Midnight In Moscow (Kenny Ball 1961)|o744d4mwOgQ|Dixieland from England
 Papillon: Waltz arrangement|FKrmozFh5ww|
 Potato Head Blues (Louis Armstrong 1927)|EfGZB78R7uw|Famous trumpet solo
 Scheherezade (1st movement, Rimsky-Korsakov 1888)|6dDk6aft4JU|von Karajan on Deutsche Grammophone
@@ -172,7 +172,7 @@ Nothing Else Matters: Banjo & Mandolin|3JFb_aOn6rc|
 Nothing Else Matters: Guitar & cello|pxoW-00Zyho|
 Nothing Else Matters: Guitar|WlGiOiRQNhI|
 Nothing Else Matters: Hammered dulcimer|8KK0-9Moz5Q|
-Nothing Else Matters: Hardpan|32v8ARqaBas|
+Nothing Else Matters: Hardpan|32v8ARqaBas|She makes it look easy
 Nothing Else Matters: Harp|KMX2bmtS_TE|
 Nothing Else Matters: Metallica|tAGnKpE4NCI|
 Nothing Else Matters: PMJ:  15 year old girl singer|KSSa0-oAnIo|

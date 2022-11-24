@@ -33,20 +33,10 @@ Active
         - Add -l option that lets you specify a length (defaults to m) and
           the script prints out the resistance of this length of wire.
 
-    - tp.c
-        - This needs a conditional switch based on a defined variable or
-          environment value.  A use case is the formulas in the AG
-          document.  Specifically, see the "Hand calculation formulas"
-          section.  A variable SHOW_PROOFS could turn on the LaTeX stuff
-          that either proved the formula or gave a reference to its
-          derivation.
-            - Similarly SHOW_ATTRIBUTIONS could be used to show detailed
-              attributions, which probably aren't wanted by most folks.
-        - In the tp.c code, the added syntax could be regexps such as 
-          "\n.[A-Za-z0-9_]+[+-]".  For example, "\nSHOW_PROOFS+" would 
-          turn output on if SHOW_PROOFS was true and be ignored otherwise.
-          "\nSHOW_PROOFS-" would turn output off if SHOW_PROOFS was true
-          and be ignored otherwise.  This should be pretty easy to add.
+    - tp.awk
+        - Conditionals
+            - '.on x' and '.on !x' use env var x
+            - '.if x', '.else', '.endif'
 
     - Chemical names
         - https://someonesdad1.github.io/hobbyutil/science/chemical_names.pdf
