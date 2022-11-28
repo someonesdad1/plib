@@ -1,17 +1,21 @@
 '''
 
 TODO
-    - Change from Initialize to ParseCommandLine
+    - Change behavior to allow the command line to have arbitrary
+      whitespace in front of the '.'
+        - Add -s to force strict behavior ('.' in first column)
     - Switch os.path stuff to pathlib
+    - .off should also have an optional [expr]
+    - Check to see that defined variables really wind up in the global
+      namespace or are put into a variables dict.
+    - Change comment block to .[, .] to agree with ts.py?
+    - Use f-strings instead of clumsy %%(name)s formatting.
+    - It could be nice to allow things like {F(x)} to be found and executed
+      as a code short-hand.  Or use '.{F(x).}'.
+    - Virtually all input text will be UTF8.  Does there need to be an
+      option to handle other encodings?
 
 A text substitution tool
-
-    Performance:  a 1.2 million line file with each line of about 60
-    characters had one substitution at the end.  Took 0.58 s to process.
-    Then the file was changed to 11 MB with 2971 substitution strings
-    evenly spread throughout it; this took 0.67 s to process.  This isn't
-    raw compiled C code speed, but it should be fast enough for many
-    projects.
 
 '''
 if 1:  # Header
@@ -43,91 +47,72 @@ if 1:  # Header
         from wrap import dedent
         from color import TRM as t
     # Global variables
-        dbg = True  # If True, use breakpoints for debugging
-        t.log = None
-        script = os.path.split(sys.argv[0])[1]
-        localvars = {}              # Dict for local variables
-        # Character that starts a command line.  Note that it actually can
-        # be a string of more than one character.
-        cmd_char = "."              
-        output_on = 1
-        current_file = ""
-        current_line = 0
-        in_comment_block = False    # If True, we're in a comment block
-        macros = {}
-        macro_names = []
-        start_dir = os.getcwd()
-        cmd_char = "."              # Character that denotes a command line
-        included_files = {}         # Which files have already been included
+        class g: pass
+        g.dbg = True  # If True, use breakpoints for debugging
+        #script = os.path.split(sys.argv[0])[1]
+        g.localvars = {}              # Dict for local variables
+        g.cmd_char = "."              # String that denotes a command line
+        g.output_on = 1
+        g.current_file = ""
+        g.current_line = 0
+        g.in_comment_block = False    # If True, we're in a comment block
+        g.macros = {}
+        g.macro_names = []
+        g.start_dir = os.getcwd()
+        g.included_files = {}         # Which files have already been included
         # Globals to help with evaluating chunks of code
-        code_mode = 0               # If true, we're in a code section
-        current_code = ""           # String to hold the code lines
-        code_names = {}             # Keep track of named sections of code
+        g.code_mode = 0               # If true, we're in a code section
+        g.current_code = ""           # String to hold the code lines
+        g.code_names = {}             # Keep track of named sections of code
         # The following regular expression is used to identify lines that contain
         # formatting strings that need to be expanded with the global dictionary.
-        need_global_expansion = re.compile(r"%\(([a-zA-Z][a-zA-Z_]*)\)")
-        # Colors
-        t.always = True
-        t.err = t("redl")       # Error message
-        t.ln = t("grnl")        # Line number
-        t.fn = t("yell")        # File name
-        t.log = t("trql")       # Routine debug (-v on) message
-        t.cmd = t("ornl")       # Command line
-        t.line= t("lill")       # Non-command line from input file
-        t.code = t("magl")      # Line from code block
-        t.redef = t("lip")      # Warning of a redefinition
-        t.undef = t("viol")     # Undefining a substitution
+        g.need_global_expansion = re.compile(r"%\(([a-zA-Z][a-zA-Z_]*)\)")
 if 1:  # Utility
-    def NoColorCoding():
-        t.always = False
-        t.err = ""              # Error message
-        t.ln = ""               # Line number
-        t.fn = ""               # File name
-        t.log = ""              # Routine debug (-v on) message
-        t.cmd = ""              # Command line
-        t.line= ""              # Non-command line from input file
-        t.code = ""             # Line from code block
-        t.redef = ""            # Warning of a redefinition
-        t.undef = ""            # Undefining a substitution
-    def ManPage():
-        name = sys.argv[0]
+    def ColorCoding(on=False):
+        t.err = t("redl") if on else ""     # Error message
+        t.ln = t("grnl") if on else ""      # Line number
+        t.fn = t("yell") if on else ""      # File name
+        t.log = t("trql") if on else ""     # Routine debug (-v on) message
+        t.cmd = t("ornl") if on else ""     # Command line
+        t.line= t("lill") if on else ""     # Non-command line from input file
+        t.code = t("magl") if on else ""    # Line from code block
+        t.redef = t("lipl") if on else ""   # Warning of a redefinition
+        t.undef = t("viol") if on else ""   # Undefining a substitution
+        t.N = t.n if on else ""             # Default normal mode
+    def Manpage():
+        name = P(sys.argv[0])
+        sname = name.name
         print(dedent(f'''
         NAME
             {name} - Text substitution tool
 
         SYNOPSIS
-            {name} [options] file1 [file2...]
+            {sname} [options] file1 [file2...]
         
         DESCRIPTION
         
-            {name} script is intended to be used to make text substitutions.
-            It also allows arbitrary python code in your text files to compute
+            The {sname} script is intended to make text substitutions and
+            allow arbitrary python code in your text files to compute
             things needed.
 
-            Text substitutions are 
-        
-            {name} replaces strings in the input files, then prints them
+            {sname} replaces strings in the input files, then prints them
             to stdout.  It knows nothing about things like identifiers or
             tokens in programming languages.  It's a dumb text substitution
-            program.  For each line of input, it searches to see if a macro
-            name occurs on that line; if it does, then the text is replaced.
-            The search starts with the longest macro names and goes to the
-            shorter names.  This lets you have two macros named 'mp_MyMacro4'
-            and 'mp_MyMacro' and not have mp_MyMacro's value replaced when the
-            macro name mp_MyMacro4 occurs in text.
+            program.  For each line of input, it searches to see if a
+            "macro" name occurs on that line; if it does, then the text is
+            replaced.  The search starts with the longest macro names and
+            goes to the shorter names.  This lets you have two macros named
+            'mp_MyMacro4' and 'mp_MyMacro' and not have mp_MyMacro's value
+            replaced when the macro name mp_MyMacro4 occurs in text.
             
-            Thus, you must make sure your macro names will not be found in
-            text except where you deliberately put them in.  One possible way
-            to accomplish this is to name all your macros with a prefix such
-            as "mp_".
+            You'll want to make sure your macro names will not be found in
+            text except where you deliberately put them in.  One way is to
+            name all your macros with a prefix such as "mp_".
         
             Programmers probably expect macro names and other things to be
             processed in tokens like other macro tools such as m4.  The
-            {name} script doesn't behave this way; it's just no-brainer 
-            text substitution.
-        
-            You can add built-in macros to the script by editting the
-            BuildSpecialMacros() function.
+            {sname} script doesn't behave this way; it uses simple text
+            substitution.
         
         Options
             -h
@@ -163,7 +148,7 @@ if 1:  # Utility
             There can be optional whitespace between the '.' character and
             the characters of the token.
         
-            Note that command lines have embedded macros expanded in them.
+            Note that command lines can have embedded macros expanded in them.
             This e.g. allows you to write
         
                 .def mp_MY_FILE =abc
@@ -220,7 +205,7 @@ if 1:  # Utility
                 variable expansions in lines.  See the Examples section
                 below for details.  However, arbitrary processing can be
                 done.  Any variables that you define in your code section
-                are added to the localvars dictionary, which is in the
+                are added to the g.localvars dictionary, which is in the
                 global namespace.
 
                 IMPORTANT:  the code section is executed using exec() and
@@ -233,7 +218,7 @@ if 1:  # Utility
                 once while processing, otherwise an error will occur and
                 processing stops.  You can use this feature to avoid
                 accidentally including files multiple times (if your code
-                in the included file has a name, the {name} script will
+                in the included file has a name, the {sname} script will
                 stop executing the second time it is included).
 
                 If an error in the code occurs, you'll get an exception.
@@ -269,7 +254,8 @@ if 1:  # Utility
                 once.
         
             .#
-                This line is a comment and is discarded.
+                This line is a comment and is discarded.  You can omit the
+                '#' and the effect is the same.
         
             .on [expr]
                 Turns substitution on if expr is True.  Ignored if it is
@@ -295,22 +281,22 @@ if 1:  # Utility
             allowing a set of files to have unique numbers.
         
             File 1 contains:
-                .code
+                .(
                 sn = 100 # Starting serial number
                 def IncrementSerialNumber():
                     global sn
                     sn += 1
-                .endcode
+                .)
                 This is file 1.  The serial number is %%(sn)d.
-                .code
+                .(
                 IncrementSerialNumber()
-                .endcode
+                .)
             
             File 2 contains:
                 This is file 2.  The serial number is %%(sn)d.
-                .code
+                .(
                 IncrementSerialNumber()
-                .endcode
+                .)
         
             Running the command
         
@@ -322,16 +308,17 @@ if 1:  # Utility
                 This is file 2.  The serial number is 101.
         
             Note:  any global variables and functions you define in your code
-            will be put into the {name} script's global namespace.
+            will be put into the {sname} script's global namespace.
         '''))
     def RmNl(line):
         'Remove the newline if it has one'
         if line and line[-1] == "\n":
             return line[:-1]
         return line
-    def Log(st, color=t.log):
+    def Log(s, color=None):
         if d["-v"]:
-            t.print(f"{color}+ {RmNl(st)}", file=sys.stderr)
+            color = "" if color is None else color
+            print(f"{color}+ {RmNl(s)}{t.N}", file=sys.stderr)
     def PrintColorCoding():
         if not d["-v"]: 
             return
@@ -346,32 +333,6 @@ if 1:  # Utility
         t.print(f"    {t.redef}Warning of a redefinition", file=f)
         t.print(f"    {t.undef}Undefinining a substitution", file=f)
         print(file=f)
-    def Initialize():
-        global files_to_process
-        import getopt
-        try:
-            optlist, args = getopt.getopt(sys.argv[1:], "dhI:v")
-        except getopt.error as st:
-            print("getopt error:  %s\n" % st)
-            exit(1)
-        for o, a in optlist:
-            if o == "-v":
-                global verbose
-                verbose = 1
-            elif o == "-h":
-                ManPage()
-                exit(0)
-            elif o == "-I":
-                global include_dirs
-                include_dirs.append(opt[1])
-        files_to_process = args
-        if len(files_to_process) == 0:
-            Usage()
-        if verbose:
-            PrintColorCoding()
-        Log("verbose            = %d" % verbose)
-        Log("files_to_process   = %s" % str(files_to_process))
-        assert(len(cmd_char) == 1)
     def Dedent(s):
         's is a code string; remove any common indenting and return it'
         def CntWS(s):
@@ -430,13 +391,13 @@ if 1:  # Utility
         if len(sys.argv) < 2:
             Usage()
         try:
-            opts, files = getopt.getopt(sys.argv[1:], "aI:hv", 
+            opts, files = getopt.getopt(sys.argv[1:], "cI:hv", 
                     ["help", "debug"])
         except getopt.GetoptError as e:
             print(str(e))
             exit(1)
         for o, a in opts:
-            if o[1] in list("cv"):
+            if o[1] in "cv":
                 d[o] = not d[o]
             elif o == "-h":
                 Manpage()
@@ -445,9 +406,8 @@ if 1:  # Utility
                 if not (p.exists() and p.is_file()):
                     Error(f"-I:  {a!r} doesn't exist or isn't a file")
                 d["-I"].append(p)
-        if d["-c"]:
-            NoColorCoding()
-        if d["-v"] and not d["-c"]:
+        ColorCoding(False if d["-c"] else True)
+        if d["-v"]:
             PrintColorCoding()
         return files
 if 1:  # Core functionality
@@ -456,44 +416,41 @@ if 1:  # Core functionality
         lets macros like 'mp_MyMacro4' get substituted before 'mp_MyMacro',
         giving the behavior most of us would expect.
         '''
-        global macro_names
-        s = [(len(i), i) for i in macro_names]
+        s = [(len(i), i) for i in g.macro_names]
         s.sort()
-        macro_names = [i[1] for i in list(reversed(s))]
+        g.macro_names = [i[1] for i in list(reversed(s))]
     def Error(msg):
         print(msg, file=sys.stderr)
         exit(1)
     def ProcessCommandLine(line):
         '''The line is a command line, so parse out the command and execute
-        it.  If we're in code mode, the line is appended to the current_code
+        it.  If we're in code mode, the line is appended to the g.current_code
         string.
         '''
-        global output_on, macros, macro_names, in_comment_block
-        global code_mode, current_code, codes_names
         original_line = line
         # Note:  we don't remove the newline, as this is needed to separate
         # code lines.
-        if not line.startswith(cmd_char*2):
+        if not line.startswith(g.cmd_char*2):
             line = ExpandMacros(line)
-        elif line.startswith(cmd_char*2):
-            # Remove one cmd_char string
-            line = line.replace(cmd_char, "", 1)
-        # If we're in code mode, just append the line to the current_code
+        elif line.startswith(g.cmd_char*2):
+            # Remove one g.cmd_char string
+            line = line.replace(g.cmd_char, "", 1)
+        # If we're in code mode, just append the line to the g.current_code
         # string and return # (unless we're at the code end).
-        if code_mode and not line.startswith(cmd_char):
+        if g.code_mode and not line.startswith(g.cmd_char):
             Log("Code line: " + line, color=t.code)
-            current_code = current_code + line
+            g.current_code = g.current_code + line
             return
-        # Remove the cmd_char string
-        st = line.replace(cmd_char, "", 1).strip()
+        # Remove the g.cmd_char string
+        st = line.replace(g.cmd_char, "", 1).strip()
         if len(st) == 0:
             # We ignore a command line with no useful input
-            Log(f"{t.ln}[{current_line}]{t.log} Command line with no input")
+            Log(f"{t.ln}[{g.current_line}]{t.log} Command line with no input")
             return
         fields = st.split()
         if len(fields) == 0:
             # We ignore a command line with no useful input
-            Log(f"{t.ln}[{current_line}]{t.log} Command line with no input")
+            Log(f"{t.ln}[{g.current_line}]{t.log} Command line with no input")
             return
         # Get the command
         cmd = fields[0]
@@ -507,14 +464,14 @@ if 1:  # Core functionality
                 Error(m)
             macro_name = f[0].strip()
             macro_value = RmNl(f[1])
-            if macro_name in macros and d["-v"]:
+            if macro_name in g.macros and d["-v"]:
                 m = [f"{t.redef}Warning:  redefining definition '%s' in line {t.ln}%d{t.redef} "
-                    f"of file {t.fn}'%s'{t.redef}\n" % (macro_name, current_line, current_file)]
+                    f"of file {t.fn}'%s'{t.redef}\n" % (macro_name, g.current_line, g.current_file)]
                 m += [f"          {t.redef}Previous definition at line {t.ln}%d{t.redef} "
-                      f"of file {t.fn}'%s'{t.n}" % (macros[macro_name][1], macros[macro_name][2])]
+                      f"of file {t.fn}'%s'{t.N}" % (g.macros[macro_name][1], g.macros[macro_name][2])]
                 print(''.join(m), file=sys.stderr)
-            macros[macro_name] = [macro_value, current_line, current_file]
-            macro_names = macros.keys()
+            g.macros[macro_name] = [macro_value, g.current_line, g.current_file]
+            g.macro_names = g.macros.keys()
             SortMacroNames()
             Log("Defined %s to '%s'" % (macro_name, macro_value))
         elif cmd == "(":
@@ -523,57 +480,57 @@ if 1:  # Core functionality
             if len(fields) > 1:
                 # It's got a name
                 code_name = fields[1]
-                if code_name in code_names:
+                if code_name in g.code_names:
                     m = ["Error:  code section named '%s' at line %d of file "
                         "'%s' already defined" %
                         (code_name, curr_line, curr_file)]
                     m += ["Previous definition line %d in file '%s'" %
-                        (code_names[code_name][0], code_names[code_name][1])]
+                        (g.code_names[code_name][0], g.code_names[code_name][1])]
                     Error('\n'.join(m))
                 else:
                     # Add it to the dictionary
-                    code_names[code_name] = [curr_line, curr_file]
+                    g.code_names[code_name] = [curr_line, curr_file]
             # Flag that we're now reading code
-            code_mode = 1
+            g.code_mode = 1
         elif cmd == ")":
             # End of a code section.  Compile and execute the code.
-            if not code_mode:
+            if not g.code_mode:
                 Error("Error:  '.)' at line %d of file '%s' missing "
                     "a matching previous '.(' command" %
                     (curr_line, curr_file))
-            code_mode = 0
+            g.code_mode = 0
             # Remove any common indent from the code lines.  This allows
             # users to indent their code to make it easier to read.
             if 0:
                 print("current_code after dedent:")
-                pp(current_code)
+                pp(g.current_code)
                 print()
-            current_code = Dedent(current_code)
+            g.current_code = Dedent(g.current_code)
             if 0:
                 print("current_code after dedent:")
-                pp(current_code)
+                pp(g.current_code)
                 print()
             # Compile and execute.  If we get an exception, the user will
             # know about where the problem is because the file and line
             # number of the endcode statement will be in the traceback.
-            loc = "[%s:%d]" % (current_file, current_line)
+            loc = "[%s:%d]" % (current_file, g.current_line)
             try:
-                co = compile(current_code, loc, "exec")
+                co = compile(g.current_code, loc, "exec")
             except Exception as e:
-                if dbg:
+                if g.dbg:
                     print(f"Got compile exception:\n  {e!r}")
                     breakpoint()
                 else:
                     raise
             try:
-                exec(co, globals(), localvars)
+                exec(co, globals(), g.localvars)
             except Exception as e:
-                if dbg:
+                if g.dbg:
                     print(f"Got exec exception:\n  {e!r}")
                     breakpoint() 
                 else:
                     raise
-            current_code = ""   # Reset for next code block
+            g.current_code = ""   # Reset for next code block
             # Save our variables in the global namespace, but remove this
             # function's locals.
             code_variables = locals()
@@ -589,59 +546,59 @@ if 1:  # Core functionality
                 os.chdir(fields[1])
                 Log(f"chdir to {fields[1]!r}")
             else:
-                os.chdir(start_dir)
-                Log(f"chdir to {start_dir!r}")
+                os.chdir(g.start_dir)
+                Log(f"chdir to {g.start_dir!r}")
         elif cmd[0] == "#":     # It's a comment - ignore it
             Log(f"Got a comment line")
         elif cmd[0] == "{":     # It's the start of a comment block
-            in_comment_block = True
+            g.in_comment_block = True
             Log(f"Entered a comment block")
         elif cmd[0] == "}":     # It's the end of a comment block
-            in_comment_block = False
+            g.in_comment_block = False
             Log(f"Exited a comment block")
         elif cmd == "on":
             try:
                 if len(fields) > 1:  # Argument given
-                    output_on = bool(eval(fields[1], globals(), localvars))
+                    g.output_on = bool(eval(fields[1], globals(), g.localvars))
                 else:
-                    output_on = True
+                    g.output_on = True
             except Exception as e:
                 breakpoint() #xx
-                Error(f"Bad expression in line {current_line} of file {current_file!r}'\n  {e}")
+                Error(f"Bad expression in line {g.current_line} of file {g.current_file!r}'\n  {e}")
         elif cmd == "off":
             if len(fields) > 1:  # Argument given
-                output_on = not bool(eval(fields[1], globals(), localvars))
+                g.output_on = not bool(eval(fields[1], globals(), g.localvars))
             else:
-                output_on = False
+                g.output_on = False
         elif cmd == "include":
             if len(fields) < 2:
                 Error("Bad include in line %d of file '%s':  missing file" %
-                    (current_line, current_file))
+                    (g.current_line, g.current_file))
             file = FindIncludeFile(fields[1])
             if len(fields) > 2:
                 once = True
                 if fields[2] != "once":
                     Error("Bad include in line %d of file '%s':  third "
-                        "token must be 'once'" % (current_line, current_file))
+                        "token must be 'once'" % (g.current_line, g.current_file))
             else:
                 once = False
             if file == "":
                 Error("Error:  include file '%s' in line %d of file '%s' "
-                    "not found" % (fields[1], current_line, current_file))
-            if file in included_files:
+                    "not found" % (fields[1], g.current_line, g.current_file))
+            if file in g.included_files:
                 Error("Error:  include file '%s' in line %d of file '%s' "
-                    "already included" % (fields[1], current_line, current_file))
-            ProcessFile(file, 0, current_line, current_file)
-            included_files[file] = 0
+                    "already included" % (fields[1], g.current_line, g.current_file))
+            ProcessFile(file, 0, g.current_line, g.current_file)
+            g.included_files[file] = 0
         elif cmd == "sinclude":
             if len(fields) != 2:
                 Error("Bad sinclude in line %d of file '%s'" %
-                    (current_line, current_file))
+                    (g.current_line, g.current_file))
             file = FindIncludeFile(fields[1])
-            ProcessFile(file, 1, current_line, current_file)
+            ProcessFile(file, 1, g.current_line, g.current_file)
         else:
             Error("Command '%s' on line %d of file '%s' not recognized" %
-                (cmd, current_line, current_file))
+                (cmd, g.current_line, g.current_file))
     def FindIncludeFile(file):
         '''Search for the indicated file to include and return it; if not
         found, return None.
@@ -658,7 +615,7 @@ if 1:  # Core functionality
         'This function returns True if the line is a command line'
         # Note if we're in code mode, the line is also considered a
         # command.  Commands aren't printed to the output stream.
-        return True if line[0] == cmd_char or code_mode else False
+        return True if line[0] == g.cmd_char or g.code_mode else False
     def ExpandMacros(line):
         '''We look for any macro name matches.  Any that are found are
         replaced, then we start the search over again so we don't miss
@@ -667,24 +624,24 @@ if 1:  # Core functionality
         done = False
         while not done:
             found = False  # Flags finding at least one macro
-            for macro in macro_names:
+            for macro in g.macro_names:
                 pos = line.find(macro)
                 if pos != -1:
                     # Found a macro name in the line
                     found = True
                     old_value = macro
-                    new_value = macros[macro][0]
+                    new_value = g.macros[macro][0]
                     line = line.replace(old_value, new_value)
                     break
             if not found:
                 done = True
-        # If current_code is not the null string, we've had at least one
+        # If g.current_code is not the null string, we've had at least one
         # code section, so evaluate using the global variables.  We'll only
         # do this if the line has at least one formatting string of the
         # form %(varname)X, where varname is the name of a global variable
         # and X is s, d, etc.
-        if current_code:
-            mo = need_global_expansion.search(line)
+        if g.current_code:
+            mo = g.need_global_expansion.search(line)
             if mo:
                 line = line % globals()
         return line
@@ -697,8 +654,8 @@ if 1:  # Core functionality
             Log(f"{t.ln}[{linenum}]{t.cmd} {line}", t.cmd)
             ProcessCommandLine(line)
         else:
-            if output_on:
-                if not in_comment_block:
+            if g.output_on:
+                if not g.in_comment_block:
                     Log(f"{t.ln}[{linenum}]{t.line} {line}", t.line)
                     Output(line)
                 else:
@@ -736,11 +693,9 @@ if 1:  # Core functionality
         when a file is missing or can't be opened.
 
         If present, restore_line and restore_file are used to reset the
-        current_line and current_file global variables, since we're in a
+        g.current_line and g.current_file global variables, since we're in a
         recursive call from include or sinclude commands.
         '''
-        global current_file
-        global current_line
         try:
             ifp = open(file)
         except Exception:
@@ -748,24 +703,23 @@ if 1:  # Core functionality
                 return
             else:
                 Error("Couldn't open file '%s' for reading" % file)
-        st = f"===== %s processing file {t.fn}'%s'{t.n} ====="
-        Log(st % ("Started", file))
+        Log(f"===== Started processing file {t.fn}{file!r}{t.N} =====")
         line = ifp.readline()
-        current_file = file
-        current_line = 1
+        g.current_file = file
+        g.current_line = 1
         while line:
-            ProcessLine(line, current_line)
+            ProcessLine(line, g.current_line)
             line = ifp.readline()
-            current_line = current_line + 1
+            g.current_line = g.current_line + 1
         ifp.close()
         if restore_line:
-            current_line = restore_line
+            g.current_line = restore_line
         if restore_file:
-            current_file = restore_file
-        Log(st % ("Finished", file))
+            g.current_file = restore_file
+        Log(f"===== Finished processing file {t.fn}{file!r}{t.N} =====")
 if __name__ == "__main__":
     d = {}      # Options dictionary
-    files_to_process = ParseCommandLine(d)
-    #Initialize()
-    for file in files_to_process:
+    ColorCoding()   # Make sure t's attributes are defined
+    files = ParseCommandLine(d)
+    for file in files:
         ProcessFile(file)

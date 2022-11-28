@@ -1,6 +1,6 @@
 Active
 
-    -
+    - pgm/cnt.c broken wrt color.py (no Decorate())
 
     - gawk & mawk
         - HU could use an article on this while I'm relearning awk for the
