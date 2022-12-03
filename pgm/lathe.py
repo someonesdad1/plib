@@ -175,13 +175,14 @@ if 1:   # Core functionality
 if __name__ == "__main__": 
     d = {}      # Options dictionary
     args = ParseCommandLine(d)
+    m = 25.4
     print(dedent(f'''
     {t('ornl')}Clausing 5914 12x36 lathe{t.n}
 
-    Swing over bed = {t.inch}6.08 inches{t.n} = {t.mm}154 mm{t.n}
-        Maximum diameter = {t.inch}12.16 inches{t.n} = {t.mm}308 mm{t.n}
-    Swing over cross slide = {t.inch}3.72 inches{t.n} = {t.mm}94 mm{t.n}
-        Maximum diameter = {t.inch}7.44 inches{t.n} = {t.mm}188 mm{t.n}
+    Swing over bed              {t.inch} 6.08 in{t.n} {t.mm}    {6.08*m:5.1f} mm{t.n}
+        Maximum diameter        {t.inch}12.16 in{t.n} {t.mm}    {12.16*m:5.1f} mm{t.n}
+    Swing over cross slide      {t.inch} 3.72 in{t.n} {t.mm}    {3.72*m:5.1f} mm{t.n}
+        Maximum diameter        {t.inch} 7.44 in{t.n} {t.mm}    {7.44*m:5.1f} mm{t.n}
     '''[1:]))
     if d["-m"]:
         Threading_tpi()
