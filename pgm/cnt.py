@@ -46,17 +46,18 @@ if 1:   # Custom imports
     from columnize import Columnize
     from fpformat import FPFormat
     from roundoff import RoundOff
-    import color as C
+    from color import TRM as T
     from pdb import set_trace as xx
     if 0:
         import debug
         debug.SetDebugger()
 if 1:   # Global variables
     # Colors
-    C.max = C.lgreen
-    C.median = C.lcyan
-    C.min = C.lred
-    C.filtered = C.yellow
+    # Regular expression decoration
+    T.max = T("grnl")
+    T.median = T("cynl")
+    T.min = T("redl")
+    T.filtered = T("yell")
 def ProcessFile(file, d):
     ''' Read in the bytes from the file and add them to the
     d["counts"] dictionary.
@@ -209,7 +210,7 @@ def ParseCommandLine(d):
     if not sys.argv[1:]:
         Usage(d)
     try:
-        s = "Cc:DdfLlNnoPpRrS:suvXx"
+        s = "Cc:DdfhLlNnoPpRrS:suvXx"
         optlist, args = getopt.getopt(sys.argv[1:], s)
     except getopt.GetoptError as str:
         msg, option = str
@@ -234,6 +235,8 @@ def ParseCommandLine(d):
                     ProcessCharacterClass(cls)
             else:
                 ProcessCharacterClass(a)
+        elif o == "-h":
+            Usage(d, 0)
         elif o == "-S":
             # Specify character set to count
             d["-S"] |= set([ord(i) for i in a])
@@ -365,7 +368,6 @@ def ReportLongForm(d):
         Relative percentage
         Histogram of relative percentage using '*' characters
     '''
-    dec = C.Decorate()
     # Get needed data
     stats, counts, e = d["statistics"], d["counts"], d["encoding"]
     max_count = stats["highest_count"]
@@ -395,20 +397,19 @@ def ReportLongForm(d):
         printed_color = False
         if i in highest and d["-C"]:
             printed_color = True
-            print(dec.fg(C.max), end="")
+            print(T.max, end="")
         elif i in lowest and d["-C"]:
             printed_color = True
-            print(dec.fg(C.min), end="")
+            print(T.min, end="")
         elif i in median and d["-C"]:
             printed_color = True
-            print(dec.fg(C.median), end="")
+            print(T.median, end="")
         print(f"{i:3d} {i:02x} {e[i]:^3s} {counts[i]:{numplaces}d} {a}", end="")
         if printed_color:
-            print(dec.normal())
+            print(T.n)
         else:
             print()
 def PrintStatistics(d):
-    dec = C.Decorate()
     def F(x, flag, name):
         # flag:  0 = normal, 1 = max, 2 = min, 3 = median
         if isinstance(x, (list, tuple)):
@@ -421,8 +422,8 @@ def PrintStatistics(d):
                     s += [' '.join([f"0o{i:03o}" for i in x])]
                 t = ' ≡ '.join(s)
                 if d["-C"]:
-                    c = C.max if flag == 1 else C.min if flag == 2 else C.median
-                    t = dec.fg(c) + t + dec.normal()
+                    c = T.max if flag == 1 else T.min if flag == 2 else T.median
+                    t = c + t + T.n
                 return t
             else:
                 return ' '.join([str(i) for i in x])
@@ -455,7 +456,7 @@ def PrintStatistics(d):
             if not filtered:
                 continue
             if d["-C"]:
-                print(f"   {dec.fg(C.filtered)}{i:{n}s}= True{dec.normal()}")
+                print(f"   {T.filtered}{i:{n}s}= True{T.n}")
             else:
                 print(f"   {i:{n}s}= True")
             continue
@@ -482,7 +483,6 @@ def PrintStatistics(d):
 def PrintReport(d):
     ''' Show the collected counts.
     '''
-    dec = C.Decorate()
     PrintFiles(d)
     if d["-u"]:     # Interpret files as UTF-8 encoded text files
         # Used to align decimal points in percentage
@@ -615,11 +615,11 @@ def PrintReport(d):
         line = s1 + s2
         # Colorize min, max, median
         if max_count and counts[i] == max_count and d["-C"]:
-            line = dec.fg(C.max) + line + dec.normal()
+            line = T.max + line + T.n
         if min_count and counts[i] == min_count and d["-C"]:
-            line = dec.fg(C.min) + line + dec.normal()
+            line = T.min + line + T.n
         if median and i in median and d["-C"]:
-            line = dec.fg(C.median) + line + dec.normal()
+            line = T.median + line + T.n
         lines.append(line)
     if d["-n"]:
         b = set(range(256)) - set(items)
