@@ -17,7 +17,6 @@ if 1:  # Copyright, license
     pass
 if 1:   # Imports
     from collections import namedtuple
-    from pdb import set_trace as xx
 if 1:   # Custom imports
     from roundoff import RoundOff
     from f import flt, pi, sqrt, log10, log
@@ -492,7 +491,6 @@ if 0:
 if __name__ == "__main__": 
     import sys
     from lwtest import run, raises, assert_equal, Assert
-    from pdb import set_trace as xx
     x = flt(0)
     def TestMaterialData():
         d, x = MaterialData(material="copper"), flt(0)

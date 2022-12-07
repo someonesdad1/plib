@@ -71,7 +71,7 @@ if 1:   # Core functionality
                 n = len(m)
             except TypeError:
                 # Probably an unsubscriptable object
-                breakpoint()    # xx
+                breakpoint()
                 n = 0
             if n == 1:
                 return (1, 1)   # Corner case:  single element

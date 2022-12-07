@@ -161,7 +161,6 @@ if 1:   # Imports
     import sys
     from collections import deque
     from collections.abc import Iterable
-    from pdb import set_trace as xx
 if 1:   # Custom imports
     from wrap import dedent
     try:
@@ -553,7 +552,7 @@ def c(x, colors=clrdict):
     dp = locale.localeconv()["decimal_point"]
     sgn = "-" if x < 0 else ""
     N = len(colors)
-    print("x =", x)  # xx
+    print("x =", x) 
     def Colorize(s, rev=False):
         '''Colorize the string of digits in s.  If rev is True, then the
         set of digits in s are considered to be the digits in a floating
@@ -723,7 +722,6 @@ if __name__ == "__main__":
         import os
         import pathlib
         import sys
-        from pdb import set_trace as xx
     if 1:   # Custom modules
         from wrap import wrap, dedent, indent, Wrap
         from globalcontainer import Global, Variable, Constant
@@ -768,7 +766,7 @@ if __name__ == "__main__":
             if not cond:
                 if args:
                     print("Type 'up' to go to line that failed")
-                    xx()
+                    breakpoint()
                 else:
                     raise AssertionError
         expected_lines = '''

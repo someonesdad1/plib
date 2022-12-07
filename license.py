@@ -19,7 +19,6 @@ if 1:  # Copyright, license
     #∞test∞# ignore #∞test∞#
     pass
 if 1:   # Imports
-    from pdb import set_trace as xx
     import getopt
     import os
     import pathlib

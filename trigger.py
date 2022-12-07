@@ -32,7 +32,6 @@ Finds trigger strings in text files
 '''
 import pathlib
 import re
-from pdb import set_trace as xx 
 P = pathlib.Path
 class Trigger(dict):
     def __new__(cls, start="#∞", end="∞#", allowed="[A-Za-z0-9_]"):

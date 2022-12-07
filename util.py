@@ -79,7 +79,6 @@ if 1:   # Imports
     from itertools import cycle, zip_longest, product
     from operator import itemgetter
     from pathlib import Path as P
-    from pdb import set_trace as xx
     from random import randint, seed
     from reprlib import repr as Repr
     from string import ascii_letters, digits as DIGITS, punctuation
@@ -1595,7 +1594,6 @@ if __name__ == "__main__":
     import math
     import sys
     from itertools import zip_longest
-    from pdb import set_trace as xx
     seed(2**64)  # Make test sequences repeatable
     show_coverage = len(sys.argv) > 1
     # Need to have version, as SizeOf stuff changed between 3.7 and 3.9

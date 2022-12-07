@@ -34,7 +34,6 @@ if 1:   # Imports
     import zipfile
     from re import sub
     from string import whitespace
-    from pdb import set_trace as xx
 if 1:   # Custom imports
     from wrap import dedent
     from color import TRM as t
@@ -335,7 +334,7 @@ def ProcessFile(oofile, d):
     if not os.path.isfile(oofile):
         err("'%s' is not a file%s" % (oofile, nl))
         return
-    if 0: #xx
+    if 0:
         colors = {
             "missing": (c.lwhite, c.red),
             "notrel": (c.lwhite, c.magenta),
@@ -359,13 +358,10 @@ def ProcessFile(oofile, d):
         # takes precedence over "notrel" and both take precedence over
         # "embedded".
         if some_embedded:
-            # c.fg(colors["embedded"]) #xx
             s = t.embedded
         if some_notrel:
-            # c.fg(colors["notrel"]) #xx
             s = t.notrel
         if some_missing:
-            # c.fg(colors["missing"]) #xx
             s = t.missing
         t.print(oofile)
         return

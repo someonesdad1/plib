@@ -51,7 +51,6 @@ if 1:  # Header
         from itertools import zip_longest, starmap
         from threading import Lock
         from os import environ
-        from pdb import set_trace as xx
         import locale
         import math
         import operator
@@ -2541,7 +2540,6 @@ if __name__ == "__main__":
     from decimal import Decimal
     from math import log10, sin, cos, pi, exp, sqrt
     from textwrap import dedent
-    from pdb import set_trace as xx 
     import sys
     import os
     import io

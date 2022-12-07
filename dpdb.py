@@ -25,11 +25,7 @@ This module extends the python debugger pdb.py Features:
     To use this module to debug my code, I set the environment variable
     PYTHONBREAKPOINT to 'dpdb.set_trace' and insert 'breakpoint()' where I
     want to drop into the debugger (this is available in python 3.7 and
-    later).  Another method is to put the following line in your code
- 
-        from dpdb import set_trace as xx 
- 
-    then put 'xx()' where you want to drop into the debugger.
+    later).
  
     To avoid having to go too deep in the pdb/bdb code, I chose to use
     regular expressions to find the lines I wanted to colorize in the 

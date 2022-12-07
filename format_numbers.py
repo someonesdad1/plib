@@ -19,7 +19,6 @@ from uncertainties import ufloat
 from uncertainties.core import Variable
 from roundoff import RoundOff
 
-from pdb import set_trace as xx
 if 0:
     import debug
     debug.SetDebugger()

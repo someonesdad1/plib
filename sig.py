@@ -37,7 +37,6 @@ if 1:  # Copyright, license
     pass
 if 1:   # Imports
     from fractions import Fraction
-    from pdb import set_trace as xx
     from pprint import pprint as pp
     import decimal
     import locale
@@ -410,7 +409,7 @@ class SigFig(object):
             # can cause the wrong output.
             uni = sig.unicode
             sig.unicode = False
-            S = float(self._sig(float(S), digits))      # xx
+            S = float(self._sig(float(S), digits))
             sig.unicode = uni
             u_significand, u_exponent = ("%.*e" % (nd, S)).split("e")
             u_exponent = int(u_exponent)
@@ -2340,7 +2339,6 @@ if __name__ == "__main__":
     import sys
     import traceback as tb
     from lwtest import run, assert_equal, raises, Assert
-    from pdb import set_trace as xx
     if len(sys.argv) == 1:
         Examples()
         exit(0)
@@ -3212,7 +3210,8 @@ if __name__ == "__main__":
             try:
                 s, n = i.split()
             except Exception:
-                xx()
+                breakpoint() 
+                pass
             a = GetSigFig(s)
             n = int(n)
             assert_equal(a, n)

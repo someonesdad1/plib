@@ -135,7 +135,6 @@ if 1:   # Header
         import re
         import sys
         from pathlib import Path as P
-        from pdb import set_trace as xx
         from collections.abc import Iterable
         from collections import deque
         from string import hexdigits
@@ -902,7 +901,7 @@ class Color:
                 '''
                 flags = re.I | re.X
                 regexps = (
-                    # [@#$]xxyyzz form
+                    # [@#$]XXYYZZ form
                     ("hex", R(r"([@#$][0-9a-f]{6})", flags)),
                     # Three integers or floats separated by commas
                     ("fcomma", R(rf"({s},\s*{s},\s*{s})", flags)),
@@ -1257,7 +1256,7 @@ class Trm:
             except AttributeError as e:
                 if 0:       # Use to flag programming problems
                     print(e)
-                    xx()
+                    breakpoint()
                 else:
                     pass    # Ignore the problem
         # Reset to default colors
@@ -1407,7 +1406,7 @@ class ColorName(dict):
                     self[name] = c
                 except Exception as e:
                     print(e)
-                    xx()
+                    breakpoint()
             else:
                 if "=" in line and ColorName.allow_exec:
                     exec(line)
@@ -2553,7 +2552,7 @@ if __name__ == "__main__":
     def InterpretColorSpecifier(s):
         '''s will be a string of one of the following forms:
             1.  One of the short names such as 'ornl'
-            2.  #xxxxxx, @xxxxxx, and $xxxxxx hex forms
+            2.  #XXXXXX, @XXXXXX, and $XXXXXX hex forms
             3.  "a b c" where the letters represent integers
         Instead of space characters, nearly any characters can be used as
         delimiters, as they are replaced by spaces.
