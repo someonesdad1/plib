@@ -43,7 +43,6 @@ if 1:   # Header
         import sys
         import time
         from collections import deque
-        from pdb import set_trace as xx
     # Custom imports
         from wrap import dedent
         from months import months
@@ -445,7 +444,7 @@ if 1:   # Core functionality
         out.append(Get(dt, times, t.naut, t.naut))
         times = S.astronomicalTwilight(year, month, day, longitude, latitude)
         out.append(Get(dt, times, t.astro, t.astro))
-        # Need to correct for DST #xx
+        # xx Need to correct for DST
         return ''.join(out)
 
 if __name__ == "__main__":

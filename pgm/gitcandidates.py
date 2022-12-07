@@ -29,7 +29,6 @@ if 1:   # Header
         from itertools import filterfalse as remove
         import re
         import sys
-        from pdb import set_trace as xx
         from pprint import pprint as pp
     # Custom imports
     if 1:
@@ -106,8 +105,8 @@ if 1:   # Core functionality
         for i in p.glob("**/*"):
             if i.is_file():
                 out.append(i)
-        if 0: #xx
-            pp(out);exit() #xx
+        if 0:
+            pp(out);exit()
         return out
     def FilterFiles(files):
         if True:

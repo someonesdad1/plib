@@ -1690,7 +1690,7 @@ if 1:   # Core functionality
                             length_of_engagement=d["-L"])
         p = 1/tpi
         H = p*sqrt(3)/2
-        if 0:   # xx
+        if 0: 
             import ruler
             R = ruler.Ruler()
             print(R(choice=0))

@@ -40,7 +40,6 @@ if 1:   # Imports
     import string
     from textwrap import TextWrapper
     from pprint import pprint as pp
-    from pdb import set_trace as xx
 if 1:   # Custom imports
     from wrap import dedent
     from get import GetTokens
@@ -256,8 +255,8 @@ def PrintWordNet(word, d):
     # Get results of grep
     lines = s.stdout.readlines()
     if dbg:
-        print("xx2 cmd =", cmd)
-        print("xx3 lines =", lines)
+        print("++2 cmd =", cmd)
+        print("++3 lines =", lines)
     error = s.stderr.readlines()
     if error:
         print("PrintWordNet() grep error:", file=sys.stderr)
@@ -270,7 +269,7 @@ def PrintWordNet(word, d):
     for line in lines:
         found_word, letter, head_word, offset = ParseIndexLine(line)
         if dbg:
-            print("xx4 word from index line =", found_word, letter)
+            print("++4 word from index line =", found_word, letter)
         if d["-d"] or d["-" + letter]:
             # Note we use Word instead of word or found_word!
             PrintWord(Word, letter, head_word, offset, d)
@@ -312,7 +311,7 @@ def WordNet(regexp, d):
     # We have the full words that matched in results, so print out
     # what the user has requested.
     if dbg:
-        print("xx1 results =", results)
+        print("++1 results =", results)
     for word in results:
         PrintWordNet(word, d)
     normal()
@@ -327,7 +326,7 @@ def LookUp(regexp, d):
     wd = d["dict"][d["which_dict"]].replace("\\", "/")
     cmd += wd
     if dbg:
-        print("xx grep command =", repr(cmd))
+        print("++ grep command =", repr(cmd))
     rc = subprocess.call(cmd, stdout=sys.stdout, stderr=sys.stderr,
                          bufsize=0, shell=True)
     #normal()

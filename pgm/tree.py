@@ -34,7 +34,6 @@ if 1:  # Header
         import math
         import os
         import sys
-        from pdb import set_trace as xx 
     # Custom imports
         from wrap import dedent
         from dppath import IsVCDir
@@ -208,7 +207,7 @@ if 1:   # Core functionality
         t.c9 = t("magl", None, "rb")
         t.c10 = t("redl", None, "rb")
 
-if 0:   # Test area xx
+if 0:   # Test area 
     d = {"-c": 0}
     GetColors()
     for i in range(12):

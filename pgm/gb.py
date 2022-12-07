@@ -214,7 +214,7 @@ def FindUnmakeable(d):
     for i in range(2000, max_size):
         if i not in results:
             print i
-    exit()  # xx
+    exit()
 
 if __name__ == "__main__":
     d = {}

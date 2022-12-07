@@ -17,8 +17,8 @@ TODO
     * Do not list the built-in styles to astyle, as the user can get them
       by 'astyle -h' or 'indent -H'.
     * Add '-a dir' option that applies all styles to a single source file and
-      puts them into a directory named 'dir'.  Each file xx.c will be
-      renamed to xx.style.c to retain the extension.
+      puts them into a directory named 'dir'.  Each file a.c will be
+      renamed to a.style.c to retain the extension.
     * astyle screws up the permissions; make sure they're the same as the
       original file.
     * Important:  --remove-comment-prefix removes the annoying '*'
@@ -26,7 +26,7 @@ TODO
     * It is recommended that you read the astyle.html page in detail, as
       there are many settings to let you get code looking the way you
       prefer.
-    * Define my custom set of files by using indent.xx.style files in
+    * Define my custom set of files by using indent.a.style files in
       /plib/pgm.  Some styles:
         * min       Vertically compressed with minimal braces
         * prod      Production code style
@@ -56,7 +56,6 @@ if 1:   # Standard imports
     import pathlib
     import subprocess
     import sys
-    from pdb import set_trace as xx
 if 1:   # Custom imports
     from wrap import wrap, dedent
     from color import (C, fg, black, blue, green, cyan, red, magenta,
@@ -173,7 +172,7 @@ if 1:   # Utility
  
           The second usage is to give a project file with the extension
           .proj on the command line.  This is a file with the project
-          files in it, one file per line.  Include a 'style = xx' in the
+          files in it, one file per line.  Include a 'style = Xx' in the
           project file to change the indenting style.
  
           The third usage tells the script to act as a filter:  take its
@@ -375,7 +374,7 @@ if 1:   # Core functionality
               indentation styles.
  
         Test case:  verify project file works
-            * Run 'indent xx' where xx is the filename less the suffix of
+            * Run 'indent XX' where XX is the filename less the suffix of
               your project file
             * Verify the correct number of files were formatted and that
               they have the new style given in the project file

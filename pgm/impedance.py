@@ -19,11 +19,8 @@ if 1:   # Imports
     import getopt
     import os
     import sys
-    #from math import tan, sin, cos, pi, isinf, radians #xx
-    from pdb import set_trace as xx
 if 1:   # Custom imports
     from wrap import dedent
-    #from sig import sig #xx
     from f import flt, tan, sin, cos, pi, isinf, radians
     from fpformat import FPFormat
     if 1:

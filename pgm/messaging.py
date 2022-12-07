@@ -102,10 +102,8 @@ def GetCallString(level):
     # this gets us the frame of the caller and will work
     # in python versions 1.5.2 and greater (there are better
     # ways starting in 2.1
-    # xx
     import inspect
     file = inspect.stack()[level + 1][1]
-    # xx
     try:
         raise FakeException("this is fake")
     except Exception as e:

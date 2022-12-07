@@ -520,11 +520,11 @@ void Eng(double T, char *str)
         if ( T < -3 ) strcpy(prefix, "us");
     }
 
-    /* Convert T to x.xx, xx.x, or xxx form */
+    /* Convert T to X.XX, XX.X, or XXX form */
     T *= pow(10, ip % 3);
     
     /* Now print to a string and extract the first three digits. */
-    sprintf(tmpstr, "%-+e", T);  /* +x.xxxxxxexx format */
+    sprintf(tmpstr, "%-+e", T);  /* +X.XXXXXXEXX format */
     tmpstr[5] = 0;  /* Truncate the string after second decimal place */
     strcat(tmpstr, " ");
     strcat(tmpstr, prefix); 

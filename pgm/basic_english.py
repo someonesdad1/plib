@@ -20,7 +20,6 @@ if 1:  # Copyright, license
     pass
 if 1:   # Imports
     import sys
-    from pdb import set_trace as xx
 if 1:   # Global variables
     all_words = set()
     punct = ".,;:?![](){}='\"@#$%^&*-_=+|\\<>`~"
@@ -215,7 +214,7 @@ def GetWords():
     '''
     words = {}
     if 0:
-        print("xx, Reading from file instead of stdin")
+        print("**, Reading from file instead of stdin")
         for i, line in enumerate(open("aa").readlines()):
             ProcessLine(i + 1, line, words)
         return words

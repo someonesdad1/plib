@@ -565,7 +565,7 @@ if 1:  # Core functionality
                 else:
                     output_on = True
             except Exception as e:
-                breakpoint() #xx
+                breakpoint()
                 Error(f"Bad expression in line {current_line} of file {current_file!r}'\n  {e}")
         elif cmd == "off":
             if len(fields) > 1:  # Argument given

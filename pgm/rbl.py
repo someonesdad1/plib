@@ -29,7 +29,6 @@ if 1:   # Standard imports
     import pathlib
     import subprocess
     import sys
-    from pdb import set_trace as xx
 if 1:   # Custom imports
     from wrap import wrap, dedent
     from fel import GetEmptyLines
@@ -170,7 +169,7 @@ if 1:   # Testing code
         tempfile2 = script + ".test.tmp2"     # Temporary file
         open(tempfile1, "w").write(this_code)
         open(tempfile2, "w").write(this_code)
-        exit()  # xx
+        exit()
         # Make the black commands
         blackcmd1 = [black, "-q", "-S", "-l 75", tempfile1]
         blackcmd2 = [black, "-q", "-S", "-l 75", tempfile2]
