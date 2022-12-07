@@ -28,6 +28,7 @@ if 1:   # Header
         ii = isinstance
         class g: pass
         t.err = t("redl")
+        t.output = t("purl")
 if 1:   # Utility
     def Error(*msg, status=1):
         print(*msg, file=sys.stderr)
@@ -80,30 +81,53 @@ if 1:   # Algorithms
         exit(0)
     def AllDigits(s):
         if not s:
+            t.print(f"{t.err}{s!r} is empty")
             return False
         for i in s:
             if i not in digits:
+                t.print(f"{t.err}{s!r} is not all digits")
                 return False
         return True
-    def TenHut(s):
+    def Tminus(s):
+        a = dict(zip("0123456789", "0987654321"))
+        return ''.join(a[i] for i in s)
+    def IsOdd(n):
+        assert(ii(n, int) and n > 0)
+        return bool(n % 2 != 0)
+    def TenRev(s):
         'Reverse digits, subtract each from 10, 0 -> 0'
         if not AllDigits(s):
-            t.print(f"{t.err}{s!r} is not all digits")
             return
-        a = dict(zip("0123456789", "0987654321"))
-        r = [a[i] for i in  list(reversed(str(s)))]
-        return ''.join(r)
-    TenHut.description = "Reverse digits, 10 - d, 0 -> 0"
+        return Tminus(list(reversed(str(s))))
+    TenRev.description = "Reverse digits, 10 - d, 0 -> 0"
+    TenRev.alg = "TenRev"
     def TenTwin(s):
         'Reverse adjacent digits, subtract each from 10, 0 -> 0'
-        a = dict(zip("0123456789", "0987654321"))
-        r = [a[i] for i in  list(reversed(str(s)))]
-        return ''.join(r)
+        if not AllDigits(s):
+            return
+        lst = list(s)
+        n = len(lst)
+        for i in range(0, n - IsOdd(n), 2):
+            lst[i], lst[i + 1] = lst[i + 1], lst[i]
+        return Tminus(lst)
     TenTwin.description = "Reverse adjacent digits, 10 - d, 0 -> 0"
+    TenTwin.alg = "TenTwin"
 if 1:   # Core functionality
     def PrintResults():
+        # Get max column widths
+        w0, w1 = 10, 10
+        for s0, s1 in g.results:
+            w0 = max(w0, len(s0))
+            w1 = max(w1, len(s1))
+        # Print the algorithm used
+        f = g.algorithms[d["-a"]]
+        print(f"Used algorithm {f.alg!r}\n")
+        # Print the header
+        t.print(f"{'In':^{w0}s} {t.output}{'Out':^{w1}s}")
+        t.print(f"{'-'*w0:s} {t.output}{'-'*w1:s}")
+        # Print the data
         for input, output in g.results:
-            print(input, output)
+            t.print(f"{input!s:^{w0}s} {t.output}{output!s:^{w1}s}")
     def Transform(s):
         f = g.algorithms[d["-a"]]
         result = f(s)
@@ -113,8 +137,8 @@ if 1:   # Core functionality
 if __name__ == "__main__":
     d = {}      # Options dictionary
     g.algorithms = [
-        TenHut,
         TenTwin,
+        TenRev,
     ]
     g.results = []
     args = ParseCommandLine(d)
