@@ -1,6 +1,6 @@
 Active
 
-    - pgm/cnt.c broken wrt color.py (no Decorate())
+    - Find a decent thesaurus
 
     - gawk & mawk
         - HU could use an article on this while I'm relearning awk for the
@@ -10,13 +10,6 @@ Active
         - Speed on my machine is 16 times faster than a C program that
           processes things by bytes (admittedly inefficent, but simple to
           write a state machine).
-
-    - Parker Jotter
-        - The Pentel Energel (0.7 or 1.0) almost fits the Jotter barrel.
-          Could it be machined to fit?
-        - If not, could the Parker's plastic barrel be bored out?
-        - Easiest is to try Fisher space pen cartridges at $8 each.
-          Ordered 3 of them 21 Nov 2022.
 
     - Death:
         - Plan for my death
