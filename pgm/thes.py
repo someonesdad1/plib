@@ -36,9 +36,9 @@ if 1:   # Utility
         exit(status)
     def Usage(status=1):
         print(dedent(f'''
-        Usage:  {sys.argv[0]} [options] regex1 [regex2...]
-          Show matches for the given regular expressions in the Moby
-          thesaurus.  To show the synonyms for thse words, use the -s
+        Usage:  {sys.argv[0]} [options] regex 
+          Show matches for the given regular expression in the Moby
+          thesaurus.  To show the synonyms for these words, use the -s
           option.
         Options:
             -a      Color always on
@@ -107,5 +107,4 @@ if __name__ == "__main__":
     SetupColor()
     lines = open(file).read().split("\n")
     thesaurus = BuildThesaurus()
-    for word in wordlist:
-        FindWord(word)
+    FindWord(' '.join(wordlist))
