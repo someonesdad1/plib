@@ -37,63 +37,56 @@ if 1:   # Utility
     def Usage(status=1):
         print(dedent(f'''
         Usage:  {sys.argv[0]} [options] str1 [str2...]
-          Transform the integer(s) in the string(s) to "shrouded" values.
+          Transform the digits in the string(s) to "shrouded" values.
+          Intended use is to lightly encode things like telephone numbers
+          or lock combinations.
         Options:
             -a n    Choose the algorithm [{d['-a']}]
-            -l      List the algorithms
         '''))
+        print("The algorithms are:")
+        ListAlgorithms()
         exit(status)
     def ParseCommandLine(d):
         d["-a"] = 0         # Choose the algorithm
-        d["-l"] = False     # List the algorithms
         if len(sys.argv) < 2:
             Usage()
         try:
-            opts, args = getopt.getopt(sys.argv[1:], "a:hl") 
+            opts, args = getopt.getopt(sys.argv[1:], "a:h") 
         except getopt.GetoptError as e:
             print(str(e))
             exit(1)
         for o, a in opts:
-            if o[1] in list("l"):
+            if o[1] in list(""):
                 d[o] = not d[o]
-            elif o in ("-a",):
-                n = int(a)
-                m = len(g.algorithms)
+            elif o == "-a":
+                n, m = int(a), len(g.algorithms)
                 if n not in range(m):
                     Error(f"-a option must be between 0 and {m - 1}")
                 d[o] = n
             elif o == "-h":
                 Usage(status=0)
-        if d["-l"]:
-            ListAlgorithms()
         return args
-    def AllDigits(s):
-        if not s:
-            t.print(f"{t.err}{s!r} is empty")
-            return False
-        for i in s:
-            if i not in digits:
-                t.print(f"{t.err}{s!r} is not all digits")
-                return False
-        return True
     def IsOdd(n):
         assert(ii(n, int) and n > 0)
         return bool(n % 2 != 0)
     def Tminus(s):
         'In str s, change digit d to d - 5 except 0'
+        if not ii(s, str):
+            s = ''.join(s)
         return s.translate(Tminus.f)
     Tminus.f = ''.maketrans("0123456789", "0987654321")
     def ListAlgorithms():
+        s = "12345"
+        def f(n):
+            return g.algorithms[n](s)
         for i, item in enumerate(g.algorithms):
-            print(i, item.name)
+            print(f"  {i} {item.name}")
             for j in item.descr.split("\n"):
                 print(f"    {j}")
-        exit(0)
+                print(f"    {s!r} --> {f(i)!r}")
 if 1:   # Algorithms
     def TenRev(s):
         'Reverse string s, subtract each digit from 10, 0 -> 0'
-        if not AllDigits(s):
-            return
         return Tminus(reversed(str(s)))
     TenRev.descr = dedent('''
         Reverse characters and subtract digits from 10.
@@ -113,14 +106,6 @@ if 1:   # Algorithms
         Reverse adjacent digits and subtract digits from 10.
         ''')
     TenTwin.name = "TenTwin"
-    def ROT13(s):
-        return codecs.encode(s, encoding="rot13")
-    ROT13.descr = dedent('''
-        Caesar cipher:  rotate by 13 characters
-            abcdefghijklmnopqrstuvwxyz
-            nopqrstuvwxyzabcdefghijklm
-    ''')
-    ROT13.name = "ROT13"
 if 1:   # Core functionality
     def PrintResults():
         # Get max column widths
@@ -148,7 +133,6 @@ if __name__ == "__main__":
     g.algorithms = [
         TenTwin,
         TenRev,
-        ROT13,
     ]
     g.results = []
     args = ParseCommandLine(d)
