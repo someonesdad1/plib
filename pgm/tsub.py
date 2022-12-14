@@ -4,16 +4,35 @@ TODO
     - Change behavior to allow the command line to have arbitrary
       whitespace in front of the '.'
         - Add -s to force strict behavior ('.' in first column)
+    - Should allow multiline substitutions.  Certainly this can be done
+      within a code block, but it would be nicer if multiline stuff was
+      handled.
+        - Special syntax of .mls symbolname/.endmls could handle this, but
+          it would be better if it could be handled with regular python
+          syntax.
+    - Allow the syntax of {varname} to be macro expansions in text
+        - This allows the architecture of reading the whole string into
+          memory and then using str.format() to do the substitutions.
+    - Read everything into memory at once, then process it as a string or
+      bytestring.
+        - Use regexps to do the key processing.
     - Switch os.path stuff to pathlib
     - .off should also have an optional [expr]
     - Check to see that defined variables really wind up in the global
       namespace or are put into a variables dict.
     - Change comment block to .[, .] to agree with ts.py?
-    - Use f-strings instead of clumsy %%(name)s formattin
+    - Use f-strings instead of clumsy %%(name)s formatting
     - It could be nice to allow things like {F(x)} to be found and executed
       as a code short-hand.  Or use '.{F(x).}'.
     - Virtually all input text will be UTF8.  Does there need to be an
       option to handle other encodings?
+    - Add -b option to change r'\\n' on a line to remove the newline.  This
+      needs to be an option as it's now the default behavior and this
+      screws up things like r'\\' in LaTeX tables.
+    - .def var = str
+        - If var is a python symbol, then put it into the localvars dict so
+          it can also be used in code.
+    - .undef var1 var2 ...
 
 A text substitution tool
 

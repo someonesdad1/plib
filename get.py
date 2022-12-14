@@ -42,6 +42,7 @@ if 1:   # Header
             _have_unc = True
         except ImportError:
             _have_unc = False
+        from f import flt, cpx
         try:
             from f import flt, cpx
             _have_f = True
@@ -91,8 +92,8 @@ if 1:   # Getting text, tokens, lines, bytes
                         itself for the text.
             bytes       
             stream
-        If enc is not None, then it's the encoding to read the file and it is
-        read as binary.  Keywords are (for bool (b), action is if True):
+         If enc is not None, then it's the encoding to read the file and it is
+         read as binary.  Keywords are (for bool (b), action is if True):
         
             nonl          b If True, remove trailing newline
             script        b If True, ignore comment lines

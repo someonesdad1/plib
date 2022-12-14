@@ -1392,10 +1392,11 @@ class ColorName(dict):
         '''
         if clear:
             self.clear()
-        from get import GetLines
-        lines = GetLines(file, ignore=[], script=True, ignore_empty=True)
         vars = {}
-        for line in lines:
+        for line in open(file).read().split("\n"):
+            line = line.strip()
+            if not line or line[0] == "#":
+                continue
             if ColorName.sep in line:
                 a, b = line.split(ColorName.sep)
                 name = eval(a)
