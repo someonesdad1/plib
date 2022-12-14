@@ -15,6 +15,7 @@ Pitch rattle
     a = rattle measurement is approximately sqrt(2*d*eps)
 
 '''
+dbg = 1
 if 1:   # Header
     if 1:   # Copyright, license
         # These "trigger strings" can be managed with trigger.py
@@ -35,17 +36,18 @@ if 1:   # Header
         from pathlib import Path as P
         import sys
         from pdb import set_trace as xx
+        from functools import partial
     if 1:   # Custom imports
         from wrap import wrap, dedent
-        #from color import Color, TRM as t
+        from color import Color, t
         from u import u
         from f import flt, sqrt
         import get
-        breakpoint() #xx
     if 1:   # Global variables
         ii = isinstance
         W = int(os.environ.get("COLUMNS", "80")) - 1
         L = int(os.environ.get("LINES", "50"))
+        t.ans = t("purl")
 if 1:   # Utility
     def Error(*msg, status=1):
         print(*msg, file=sys.stderr)
@@ -63,9 +65,9 @@ if 1:   # Utility
         '''))
         exit(status)
     def ParseCommandLine(d):
-        d["-d"] = 3         # Number of significant digits
+        d["-d"] = 4         # Number of significant digits
         d["-m"] = False     # Default to mm
-        if len(sys.argv) < 2:
+        if not dbg and len(sys.argv) < 2:
             Usage()
         try:
             opts, args = getopt.getopt(sys.argv[1:], "ad:h", 
@@ -92,6 +94,12 @@ if 1:   # Utility
                 # unhandled exception
                 import debug
                 debug.SetDebugger()
+        # Set up flt characteristics
+        x = flt(0)
+        x.N = d["-d"]
+        x.rtz = False
+        if dbg:
+            args = ["r"]
         return args[0]
     def Manpage():
         print(dedent(f'''
@@ -137,22 +145,40 @@ if 1:   # Utility
         '''))
         exit(0)
 if 1:   # Core functionality
+    GetNum = partial(get.GetNumber, allow_none=True, numtype=flt)
     def RollRattle():
         print("Roll rattle:  enter nothing for the unknown")
         while True:
-            d, unit = GetNumber("What is diameter?", use_unit=True,
-                allow_none=True, numtype=flt)
-            L, unit = GetNumber("What is rod length?", use_unit=True,
-                allow_none=True, numtype=flt)
-            w, unit = GetNumber("What is rattle distance?", use_unit=True,
-                allow_none=True, numtype=flt)
+            if dbg:
+                d = None
+                L = sqrt(2)
+                w = flt(2)
+                w.N = 6
+                w.rtz = 0
+            else:
+                d = GetNum("What is diameter? ")
+                L = GetNum("What is rod length? ")
+                w = GetNum("What is rattle distance? ")
             if d is None:
                 if L is None or w is None:
                     print("Not enough things defined")
                     continue
-                L, w = L*u(unit), w*u(unit)
-                a = w/L
-                d = L/sqrt(1 - a**2/4)
+                a = flt(w/L)
+                b = 1 - a**2/4
+                if b <= 0:
+                    print(f"Bad w and L values give complex result")
+                    if dbg:
+                        exit(1)
+                    continue
+                if b == 0:
+                    print(f"Bad w and L values give infinite result")
+                    if dbg:
+                        exit(1)
+                    continue
+                d = flt(L/sqrt(b))
+                print(f"L = {L}")
+                print(f"w = {w}")
+                t.print(f"{t.ans}d = {d}")
             elif L is None:
                 if L is None or w is None:
                     print("Not enough things defined")
@@ -163,6 +189,7 @@ if 1:   # Core functionality
                     continue
             else:
                 print("Leave one variable undefined")
+            if dbg: exit(0) #xx
             
     def PitchRattle():
         pass
