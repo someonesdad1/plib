@@ -57,7 +57,7 @@ if 1:   # Header
             1082 Erotic geology
             1094 Interview:  black hat says "opening has been filled"
             1125 Hubble's car
-            1235 Settled some big issues with people carrying cameras
+            1235 Quietly settled some big issues with cameras
             1356 Fan & kite
             1356 Kerbal & orbital mechanics
             1381 Proof in a margin (parodies Fermat's comment)
@@ -113,8 +113,11 @@ if 1:   # Core functionality
             f = line.split(" ", maxsplit=1)
             di[int(f[0])] = f[1]
         return di
-    def PrintResults(kwd=None):
-        pass
+    def PrintItem(i):
+        s = f"{p}{i!s}"
+        print(f"{s:21s} {di[i]}")
+    def PrintResults(keyword):
+        breakpoint() #xx
 
 if __name__ == "__main__":
     d = {}      # Options dictionary
@@ -123,8 +126,9 @@ if __name__ == "__main__":
     results, p = [], "https://xkcd.com/"
     if keywords:
         for keyword in keywords:
-            PrintResults(keyword)
+            for i in di:
+                if keyword.lower() in di[i].lower():
+                    PrintItem(i)
     else:
         for i in di:
-            s = f"{p}{i!s}"
-            print(f"{s:21s} {di[i]}")
+            PrintItem(i)
