@@ -983,6 +983,8 @@ def grouper(data, mapper, reducer=None):
             d[key] = reducer(group)
     return d
 if 0:
+    # This Walker class is obsolete because pathlib.glob("**/*") can do
+    # these things.
     class Walker(object):
         '''Defines a class that operates as a generator for recursively getting
         files or directories from a starting directory.  The default is to
@@ -990,13 +992,9 @@ if 0:
         The ignore option to the constructor defines directories to ignore.
     
         An example of use to show all the files in the current directory tree:
-    
             w = Walker()
             for i in w("."):
                 print(i)
-        
-        Note:  the functionality here is obsolete because
-        pathlib.glob("**/*") can do these things.
         '''
         def __init__(self, ignore=".bzr .git .hg .rcs __pycache__".split(),
                      dir=False):

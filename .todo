@@ -1,5 +1,19 @@
 Active
 
+    - color.py
+        - TRM needs a way to ensure all attribute access returns "" when
+          .on is False.
+            - https://realpython.com/python-getter-setter/
+            - Probably the easiest way is to use __getattr__ and
+              __setattr__ in the above web page's example of a point
+        - Add support to g.py
+        - Use "grep -l '\<fg\>' *.py" to identify all files in /plib tree
+          that use the old style color.py calls and update them to the
+          modern form.
+        - Obsolete rgb.py and any other old color stuff
+        - Change /plib/rgb to /plib/color and edit the contents to provide
+          useful background/reference stuff to /plib/color.py.
+
     - Find a decent thesaurus
 
     - gawk & mawk
@@ -10,6 +24,7 @@ Active
         - Speed on my machine is 16 times faster than a C program that
           processes things by bytes (admittedly inefficent, but simple to
           write a state machine).
+        - p 142 of the AWK book gives an RPN calculator example.  
 
     - Death:
         - Plan for my death
@@ -62,17 +77,6 @@ Active
     - pcs.py
         - The /plib tree is done for priority 2 and 3 errors.
         - Do for:  /math, /science, /elec, /shop
-
-    - color.py
-        - TRM needs a way to ensure all attribute access returns "" when
-          .on is False.
-        - Add support to g.py
-        - Use "grep -l '\<fg\>' *.py" to identify all files in /plib tree
-          that use the old style color.py calls and update them to the
-          modern form.
-        - Obsolete rgb.py and any other old color stuff
-        - Change /plib/rgb to /plib/color and edit the contents to provide
-          useful background/reference stuff to /plib/color.py.
 
     - trigger.py
         - Change default trigger strings to '# ∞' and '∞ #', as this will
@@ -130,7 +134,7 @@ Text processor
     - Easy to comment out large blocks of text
         - Even better if this can be done conditionally on environment
           variables or programming variables
-    - Allow condition constructs of if/else and allow them to be
+    - Allow conditional constructs of if/else and allow them to be
       arbitrarily nested
     - ts.py and tp.awk use control lines of '^\.x' form.  Relax this to
       allow them to have arbitrary leading whitespace.
@@ -155,7 +159,7 @@ Text processor
       where ∞ is a special trigger character to alert to a control
       sequence.
     - Token problems
-        - When you want to e.g.  format lines of text, such as dedenting or
+        - When you want to e.g. format lines of text, such as dedenting or
           indenting.
         - How do you handle line-oriented regexps (which get used a lot)?
 

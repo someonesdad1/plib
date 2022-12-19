@@ -7,14 +7,14 @@
       the sky color for the match; plain files are printed with the default
       text style but matches with sky.  Thus, the default for nomatch_style
       should be None, meaning the default text style.
-    - TRM needs a method to set all the attributes to empty strings when
-      the .on attribute is False.  This is important to applications to
-      make it easy to turn off escape codes.  (A good example where this
-      isn't working is dev/ts/ts.py).  Need to handle t.print and t.out
-      too.
-        - Of course, this is a bad idea when the user wants to set .on to
-          True again.  Best is to make sure all attributes are properties
-          and their return value is set to "" if .on is False.
+    - TRM attributes should be "" if .on is False
+        - This needs __getattr__ and __setattr__
+        - .on can have three states
+            - None means to use stdout.isatty()
+            - False means always off so all t.x attributes are ""
+            - True means always on so all t.x attributes are proper escape
+              codes
+        - Could change to methods:  on(), off(), none().
     - TestInvariants() is made to pass, but I'd like to see the conversion
       work exactly.  It could be a problem with decimal roundoff in the
       colorsys module.
