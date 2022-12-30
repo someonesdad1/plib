@@ -1,5 +1,9 @@
 Active
 
+    - /math/hcpy/integer.py
+        - Move to /plib/zn.py.
+        - Zn class to give you n-bit signed & unsigned integers.
+
     - color.py
         - TRM needs a way to ensure all attribute access returns "" when
           .on is False.
@@ -265,6 +269,9 @@ Other
 
     - format_numbers.py and fraction.py
         - Move to fmt.py
+        - Note the formatting features of /math/hcpy/mpformat.py include 
+          commas and 5 spaces for decimals.  These things could be added to
+          the fmt.py module.
 
     - transpose.py
         - This may be the basis of a text table tool along with wrap.py

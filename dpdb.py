@@ -139,7 +139,10 @@ class DPdb(Pdb):
                 mo = rret.match(msg)
                 if mo:
                     #t.print(f"{t.ret}{msg}")
-                    rd(msg, insert_nl=True)
+                    #   The following line is what has been giving the 
+                    #   'C⁸(163,  65, 255)--Return--' message in the
+                    #   debugger, so I've just commented it out.
+                    #rd(msg, insert_nl=True)
                     return
             except TypeError:
                 # This exception will occur when the 'whatis' command

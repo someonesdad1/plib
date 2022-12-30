@@ -28,6 +28,7 @@ String utilities
     Remove           Return items from sequence not in the remove sequence
     RemoveComment    Remove '#.*$' from a string
     RemoveFilter     Functional form of Remove (it's a closure)
+    RemoveWhitespace Remove whitespace from a string
     soundex          Return 4-character soundex value for a string
     SoundSimilar     Return True if two strings sound similar
     SpellCheck       Spell check a sequence of words
@@ -276,6 +277,13 @@ if 1:   # Core functionality
         def func(s):
             return Remove(s, remove)
         return func
+    def RemoveWhitespace(s):
+        '''Remove whitespace characters from the string s.  Whitespace
+        characters are:  space, tab, linefeed, return, formfeed and
+        vertical tab, which are ' ', \t, \n, \r, \f, and \v.
+        '''
+        # This is a specialized fast method because it's done by C code
+        return ''.join(s.split())
     def FilterStr(remove, replacements):
         '''Return a function that removes the characters in sequence remove
         from other strings and replaces them with corresponding characters
@@ -967,6 +975,10 @@ if __name__ == "__main__":
         f = FilterStr('''"',.''', [None]*4)
         t = f(s)
         Assert(t == "Not that easy Im sure")
+    def Test_RemoveWhitespace():
+        s = "a b\tc\nd\re\ff\vg"
+        t = RemoveWhitespace(s)
+        Assert(t == "abcdefg")
     def TestFindDiff():
         s1 = u"hello"
         s2 = u"hello there"
