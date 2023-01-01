@@ -284,7 +284,7 @@ if 1:   # Plotting
                 legend()
                 grid()
                 show()
-            text(10, 2, "Wikipedia length is last size")
+            text(10, 2, "Wikipedia length is the size of the last")
         clf()
         Nike()
         SafeWorkWears()
