@@ -32,14 +32,14 @@ Here's a data structure found in another file:
     typedef UINT unsigned integer
 
     typedef EXPOSURE struct {  /* Used to contain f, T, EV */
-    double f;
-    double T;
-    double EV;
-    double Trecip;
+        double f;
+        double T;
+        double EV;
+        double Trecip;
     }
 
     typdef FILM struct {
-    char *name;
+        char *name;
         float *T;
         float *Trecip;
     }
@@ -51,10 +51,10 @@ Here's a data structure found in another file:
     }
 
     struct SETUP { /* Defines the setup state of the program */
-    UINT body;   /* Which camera body is current.  0 means none. */
-    UINT lens;   /* Which lens is current.  0 means none. */
-    UINT film;   /* Which film is current.  0 means none. */
-    UINT filter; /* Which lens is current.  0 means none. */
+        UINT body;   /* Which camera body is current.  0 means none. */
+        UINT lens;   /* Which lens is current.  0 means none. */
+        UINT film;   /* Which film is current.  0 means none. */
+        UINT filter; /* Which lens is current.  0 means none. */
         char *time;  /* Points to string of allowed shutter times; null if body=0 */
         char *aper;  /* Points to string of allowed apertures; null if lens=0 */
         FILM *filmlist /* Linked list of films */
@@ -64,12 +64,7 @@ Here's a data structure found in another file:
         int lock;    /* Which variable is locked; 0=f, 1=T, 2=EV */
         int timedir; /* Time increment direction; 0=normal, 1 = reversed */
     }
-
 */
-
-
-
-
 
 
 /*************************************************************************
