@@ -44,7 +44,7 @@ if 1:   # Header
             712 Single ladies
             735 Pretending the floor is lava
             788 Grand Theft Auto, Emily Dickinson edition
-            793 Obnoxious physicists
+            793 Obnoxious physicists:  why does your field need a journal?
             841 Audiophiles
             896 Marie Curie, Noether
             962 Can't focus on calculus

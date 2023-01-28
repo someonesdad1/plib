@@ -1,5 +1,60 @@
 Active
 
+    - Anagrams
+        - Given a string, find all anagrams that use the letters that
+          contain words in a given dictionary.
+        - There are lots of algorithms for testing if two strings are
+          anagrams
+            - Assign each letter a prime number and compute the prodct for
+              each string; if they match, they are anagrams.  For spaces
+              and punctuation, you can use 1 to ignore them.  The method is
+              based on the fundamental theorem of arithmetic that all
+              non-prime numbers have unique factorizations.
+            - Convert the strings to multisets; if the multisets are equal,
+              the strings are anagrams.
+            - Sort the letters of the strings; if they match, they are an
+              anagram.
+            - f = collections.Counter(s) for string s returns a dict
+              containing the counts of each character.  Thus, if f(s1) ==
+              f(s2), then s1 and s2 are anagrams.
+
+    - Planets
+        - Prints out properties of planets and moons
+        - Allows you to choose units
+            - Moons' mass in Earth moon's mass
+            - Planet mass in other planet masses or sun mass
+
+    - Asteroids
+        - Construct a numerical model of the asteroids and use it to
+          perform a Monte Carlo simulation of flying through the asteroid
+          belt.
+            - Basic question is how often does a collision with the
+              spacecraft happen?
+        - All the asteroids' mass is 3% of the moon.  50% of that is in the
+          four largest Ceres, Vesta, Pallas, and Hygiea; the rest is
+          distributed through an orbit 2e9 km around.
+            - Fit a mass distribution from
+              https://en.wikipedia.org/wiki/List_of_exceptional_asteroids#Most_massive
+            - Asteroid densities:  https://astrostatistics.psu.edu/datasets/asteroid_dens.dat
+              1 to 5 would be representative.  Rocky cores are 3 to 5.
+            - https://en.wikipedia.org/wiki/Standard_asteroid_physical_characteristics
+              discusses some approximations.
+        - As usual, Hollywood's representations of reality suck.  Typical
+          movie representations of asteroids look like Saturn's rings, but
+          in truth they are spread so far apart you'd likely not be able to
+          see other asteroids with your naked eye, at least to distinguish
+          them from faint stars.
+        - In fact, it's essentially a one-dimensional problem.  Assume the
+          trajectory is a straight line.  Then you move at constant
+          velocity through the asteroid field, encountering asteroids with
+          a random distance from the axis and a random diameter.  At each
+          time step, it's easy to calculate whether there is a collision or
+          not.
+        - From the picture
+          https://en.wikipedia.org/wiki/File:InnerSolarSystem-en.png, the
+          trapezoidal distribution would be a decent first choice
+          https://en.wikipedia.org/wiki/Trapezoidal_distribution.
+
     - /math/hcpy/integer.py
         - Move to /plib/zn.py.
         - Zn class to give you n-bit signed & unsigned integers.
