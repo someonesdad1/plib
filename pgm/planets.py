@@ -72,6 +72,10 @@ if 1:   # Header
         ii = isinstance
         W = int(os.environ.get("COLUMNS", "80")) - 1
         L = int(os.environ.get("LINES", "50"))
+if 1:   # Classes
+    class Planet:
+        def __init__(self):
+            pass
 if 1:   # Utility
     def Error(*msg, status=1):
         print(*msg, file=sys.stderr)

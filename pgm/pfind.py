@@ -51,6 +51,7 @@ if 1:   # Utility
         print(*msg, file=sys.stderr)
         exit(status)
     def Usage(status=1):
+        cc = "on" if d["-c"] else "off"
         print(dedent(f'''
         Usage:  {sys.argv[0]} [options] regex [dir1 [dir2...]]
           Finds files using python regular expressions.  If no directories
@@ -58,7 +59,7 @@ if 1:   # Utility
           directory.  If output is to a TTY, the -k option is set
           automatically.
         Options:
-            -c      Turn on color-coding
+            -c      Toggle color-coding (default {cc})
             -d      Search for directories only
             -f      Search for files only
             -i      Make regex search case-sensitive
@@ -146,7 +147,7 @@ if 1:   # Core functionality
         t.norm = t.n if cc else ""
         e = "\x1b[01;31m"   # This will match grep & ls color for directories
         t.dirs = e if cc else ""
-        t.files = t("whtl", "blu") if cc else ""
+        t.files = t("brnl") if cc else ""
     def GetDirectories(dir):
         '''Return a list of direcctories as Path instances at and below dir.
             Filter out the things indicated by the options in d.

@@ -24,6 +24,15 @@ Active
             - Moons' mass in Earth moon's mass
             - Planet mass in other planet masses or sun mass
 
+    - Name tags
+        - Make a PDF with name/phone that can be printed on a durable
+          plastic sheet, cut out, and have a hole punched to make a label
+          for e.g. putting on a keyring or tying to something to identify
+          it.  Draw borders around them so they can be cut off.  Have the
+          printer shear them off into strips (remainder can be cut with
+          scissors when needed).  Do for me, Glenda, Sally, Seth, Jimmy,
+          Leslie.
+
     - Asteroids
         - Construct a numerical model of the asteroids and use it to
           perform a Monte Carlo simulation of flying through the asteroid
@@ -54,6 +63,16 @@ Active
           https://en.wikipedia.org/wiki/File:InnerSolarSystem-en.png, the
           trapezoidal distribution would be a decent first choice
           https://en.wikipedia.org/wiki/Trapezoidal_distribution.
+
+    - Sundial
+        - Would be fun to build one
+        - Impressive one is in
+          https://sundials.org/index.php/sundial-registry/selectdials/ID.html
+          https://sundials.org/index.php/sundial-registry/onedial/344
+          in Ann Morrison park.  Indicates time to 15 s, true time to the
+          minute, date to the day, and adusts for daylight saving time.
+        - https://sundials.org/index.php/nass-shop2/2-publications
+          $30 to get the NASS repository, 800 MB of documentation
 
     - /math/hcpy/integer.py
         - Move to /plib/zn.py.
@@ -146,6 +165,14 @@ Active
 
     - Move notes, password db, etc. to .0rc because it's backed up to the
       cloud
+
+    - Isotopes
+        - https://en.wikipedia.org/wiki/Isotopes_of_xenon
+        - The extensive table is excellent with lots of detail.  If this
+          information could be harvested, it would be a valuable python
+          database.
+        - https://en.wikipedia.org/wiki/List_of_nuclides might be more 
+          appropriate and accessible.
 
     - numpy
         - Now that I have working numpy/scipy installations, run the MLR
@@ -1383,15 +1410,4 @@ Shamrock survey
           strings and adjusted to read true north.  Then it will be
           calibrated for the current magnetic declination.
     - This will be worth a reference document explaining techniques.  The
-      resulting python script could be turned into a library module based
-      on g.py that allows people to plot their own surveys.  Some key
-      graphic components would be
-        - Benchmarks, primary and secondary
-        - Buildings
-        - Cement pads
-        - Plants, fence posts, sprinklers
-        - Layers could be used for different features.  For example, the
-          electrical layer would show known cables.  The sprinkler layer
-          would show valves, sprinklers, pump, wires.  Etc.
-    - This survey would get archived on github so it can't be lost
-
+      resulting python script could be turned into a library module bas

@@ -1,6 +1,7 @@
 '''
 TODO
     
+    - CO2 gas at 1.8 from pht can't be correct
     - Move density data to a datafile and use GetLines to retrieve.  In
       fact, it probably ought to be put into densitydb.py, a module in
       /plib.  Then it can be directly imported as a data structure.
@@ -2966,7 +2967,9 @@ def ParseCommandLine(d):
             print(wrap(f'''
             The references I've given are ones I have on-hand.  For more
             careful work, you might want to look for a copy of the
-            Smithsonian Physical Tables book, although it is dated.
+            Smithsonian Physical Tables book, although it is dated.  For
+            critical work, mistrust the handbooks and go directly to the
+            research literature.
             '''))
             exit(0)
         elif o == "-r":  # Print relative to a given density
