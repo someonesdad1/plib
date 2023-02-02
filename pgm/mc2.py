@@ -50,16 +50,62 @@ if 1:   # Utility
     def Manpage():
         n = sys.argv[0]
         print(dedent(f'''
-        This script is used to convert between mass and energy.
+        This script is used to convert between mass and energy.  A simple
+        example is the conversion of 1 kg of mass to energy:
+            
+            {n} m 1
 
-        Check the output
-        ------------
+        gives
+            Input       'm 1'
+            Mass        1 kg
+            Energy      9e16 J = 21000 kilotons TNT = 1400 Hiroshimas
+            Volume      1.3e-4 m³
+            Length      0.05 m
+            Density     7900 kg/m3 = 7.9 g/cc
+            Material    Steel, rolled
 
-            '{n} -d 4 m 1' should show the energy in 1 kg of matter, which
-            will be (1 kg)(299792458 m/s)**2 or 8.988e16 J.  This is a
-            volume of 1/7930 or 1.261e-4 m3.  Taking the cube root of this
-            gives a length of 0.005015 m.
+        From the equation E = m*c**2, you can do this problem in your head:
+        m is 1 kg and the speed of light c in SI is 3e8 m/s, so the result 
+        is 1(3e8)**2 or 9e16 J, as expected.  
 
+        The Volume is calculated from the mass, assuming the densty of
+        steel.  You can select different materials with the -m option (see
+        a list of materials with -M) or give the -m option a numerical
+        argument, assumed to be a density in g/mL.
+
+        The Length is the side of a cube of this material, which is the
+        cube root of the volume.
+
+        Here are some other examples to show the utility of the script.
+        While there's nothing you can't do with a calculator, the script
+        makes it a little easier to see the numbers.
+
+        - What size of a cube of steel will convert to 1 J of energy?  Use
+          the command '{n} L 1' and you get the length of 0.11 μm.  This is
+          on the order of the size of a typical virus.
+
+        - What mass has the energy equivalent of the bomb dropped on
+          Hiroshima?  Noting the above example for 1 kg of mass yielded
+          1400 Hiroshimas, use the command with '{n} m 1/1400' to get a mass of
+          0.7 g.  This demonstrates that the numerical term can be a valid
+          python expression.
+
+        - An estimate for the mass of the observable universe is 1e53 kg.
+          Assuming the big bang started with the equivalent energy, how
+          much energy does this represent?  'm 1e53' gives 9e69 J.  Since
+          the mass of the hydrogen atom is about 1 Dalton = 1.7e-27 kg,
+          this means there would be about 1e53/1.7e-27 hydrogen atoms in
+          the universe, or 5e79.  This is pretty close to the typical
+          calculation of 1e80 atoms gotten from assuming around 1e9
+          stars in a galaxy, 1e12 galaxies, and each star being around the
+          mass of the sun of 2e30 kg.  1e9*1e12*2e30 is 1e51, a factor of
+          100 below the above mass of the observable universe.
+
+        - The US consumed in 2021 about 1e20 J of energy.  If this could be
+          produced by total annihilation of mass with 10% efficiency, how
+          much mass would be required?  Use '{n} e 1e20/0.1' to get a
+          mass of about 1e6 kg.  That's a cube of steel about 1 m on a
+          side, maybe about half the size of a regular desk.
         '''))
         exit(0)
     def Usage(status=1):
@@ -325,7 +371,7 @@ if 1:   # Core functionality
         kt = g.E/flt(4.184e12)
         hiroshima = kt/15.5
         print(f"{'Energy':{w}s}{t}{g.E} J = {kt} kilotons TNT = {hiroshima} Hiroshimas")
-        print(f"{'Volume':{w}s}{t}{g.V} m3")
+        print(f"{'Volume':{w}s}{t}{g.V} m³")
         print(f"{'Length':{w}s}{t}{g.s} m")
         print(f"{'Density':{w}s}{t}{g.rho} kg/m3 = {g.rho/1000} g/cc")
         print(f"{'Material':{w}s}{t}{g.name}")
