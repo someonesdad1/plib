@@ -137,6 +137,19 @@ if 1:   # Utility
             Test()
         return args
 if 1:   # Core functionality
+    def ListMaterials():
+        # Get max width
+        w = 0
+        for i in g.density:
+            w = max(w, len(i))
+        w += 2
+        x = flt(0)
+        x.N = 3
+        print("Materials with density in kg/m3")
+        print("-------------------------------")
+        for i in g.density:
+            print(f"{i:{w}s} {int(g.density[i]):6d}")
+        exit(0)
     def GetDensityDict():
         'Put density dict in g.density in kg/m3'
         # Density in g/cc 
@@ -225,7 +238,7 @@ if 1:   # Core functionality
         mass, unit = ParseUnit(arg, allow_expr=True)
         if not unit:
             unit = "kg"
-        g.m = flt(mass)*u(unit)
+        g.m = flt(eval(mass))*u(unit)
         g.V = g.m/g.rho
         g.s = g.V**(1/3)    # Edge of cube with this volume
         g.E = g.m*g.c**2
@@ -236,43 +249,33 @@ if 1:   # Core functionality
         energy, unit = ParseUnit(arg, allow_expr=True)
         if not unit:
             unit = "J"
-        g.E = flt(energy)*u(unit)
-        g.V = 1/g.rho
-        g.s = g.V**(1/3)
+        g.E = flt(eval(energy))*u(unit)
         g.m = g.E/g.c**2
+        g.V = g.m/g.rho
+        g.s = g.V**(1/3)
+        Report(op, arg)
     def Volume(op, arg):
         if dbg:
             t.print(f"{t.dbg}Volume({op}, {arg})")
         volume, unit = ParseUnit(arg, allow_expr=True)
         if not unit:
             unit = "m3"
-        g.V = flt(volume)*u(unit)
+        g.V = flt(eval(volume))*u(unit)
         g.s = g.V**(1/3)    # Edge of cube with this volume
         g.m = g.rho*g.V
         g.E = g.m*g.c**2
+        Report(op, arg)
     def Length(op, arg):
         if dbg:
             t.print(f"{t.dbg}Length({op}, {arg})")
         length, unit = ParseUnit(arg, allow_expr=True)
         if not unit:
             unit = "m"
-        g.s = flt(length)*u(unit)
+        g.s = flt(eval(length))*u(unit)
         g.V = g.s**3
         g.m = g.rho*g.V
         g.E = g.m*g.c**2
-    def Report(op, arg):
-        if d["-t"]:
-            return
-        w, t = 12, " "*0
-        print(f"{'Input':{w}s}{t}'{op} {arg}'")
-        print(f"{'Mass':{w}s}{t}{g.m} kg")
-        kt = g.E/flt(4.184e12)
-        hiroshima = kt/15.5
-        print(f"{'Energy':{w}s}{t}{g.E} J = {kt} kilotons TNT = {hiroshima} Hiroshimas")
-        print(f"{'Volume':{w}s}{t}{g.V} m3")
-        print(f"{'Length':{w}s}{t}{g.s} m")
-        print(f"{'Density':{w}s}{t}{g.rho} kg/m3")
-        print(f"{'Material':{w}s}{t}{g.name}")
+        Report(op, arg)
     def Test():
         '''Test each function Mass, Energy, Volume, Length to show that
         they produce the correct values.
@@ -294,11 +297,11 @@ if 1:   # Core functionality
             f = check_flt(g.s, s, reltol=eps)
             Assert(not f)
         GetDensity()
-        # Expected answers
-        m = 1
-        E = 8.98755178736818e16
-        V = 1.26103404791929e-4
-        s = 0.0501466898597635
+        # Expected values for a 1 kg mass of steel
+        m = 1                       # kg
+        E = 8.98755178736818e16     # J
+        V = 1.26103404791929e-4     # m3
+        s = 0.0501466898597635      # m
         # Mass
         Mass("m", str(m))
         Check()
@@ -313,6 +316,19 @@ if 1:   # Core functionality
         Check()
         print("Tests passed")
         exit(0)
+    def Report(op, arg):
+        if d["-t"]:
+            return
+        w, t = 12, " "*0
+        print(f"{'Input':{w}s}{t}'{op} {arg}'")
+        print(f"{'Mass':{w}s}{t}{g.m} kg")
+        kt = g.E/flt(4.184e12)
+        hiroshima = kt/15.5
+        print(f"{'Energy':{w}s}{t}{g.E} J = {kt} kilotons TNT = {hiroshima} Hiroshimas")
+        print(f"{'Volume':{w}s}{t}{g.V} m3")
+        print(f"{'Length':{w}s}{t}{g.s} m")
+        print(f"{'Density':{w}s}{t}{g.rho} kg/m3 = {g.rho/1000} g/cc")
+        print(f"{'Material':{w}s}{t}{g.name}")
 
 if __name__ == "__main__":
     d = {}      # Options dictionary

@@ -1410,4 +1410,15 @@ Shamrock survey
           strings and adjusted to read true north.  Then it will be
           calibrated for the current magnetic declination.
     - This will be worth a reference document explaining techniques.  The
-      resulting python script could be turned into a library module bas
+      resulting python script could be turned into a library module based
+      on g.py that allows people to plot their own surveys.  Some key
+      graphic components would be
+        - Benchmarks, primary and secondary
+        - Buildings
+        - Cement pads
+        - Plants, fence posts, sprinklers
+        - Layers could be used for different features.  For example, the
+          electrical layer would show known cables.  The sprinkler layer
+          would show valves, sprinklers, pump, wires.  Etc.
+    - This survey would get archived on github so it can't be lost
+
