@@ -1068,7 +1068,7 @@ def DefaultUnitData(level=-1, randomize=False, angles_have_dim=False):
             [2, "calorie = cal"],
             [2, "therm = 1.054804e8*J"],  # Unit of natural gas energy
             [2, "BTU = btu"],
-            [2, "kttnt = 4.184e12*J"],    # kiloton of TNT
+            [2, "ttnt = 4.184e12*J"],     # ton (2000 lb) of TNT
         ]],
         ["N", ["Quantity",
             [1, "mole = mol"],

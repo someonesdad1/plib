@@ -20,6 +20,7 @@ if 1:   # Header
         import os
         from pathlib import Path as P
         import sys
+        from math import *
         from pdb import set_trace as xx
     if 1:   # Custom imports
         from wrap import wrap, dedent
@@ -57,11 +58,11 @@ if 1:   # Utility
 
         gives
             Input       'm 1'
-            Mass        1 kg
-            Energy      9e16 J = 21000 kilotons TNT = 1400 Hiroshimas
-            Volume      1.3e-4 m³
-            Length      0.05 m
-            Density     7900 kg/m3 = 7.9 g/cc
+            Mass        1 g = 1e0 g = 2.2e0 lb
+            Energy      90 PJ = 9e16 J = 21000 kilotons TNT = 1400 Hiroshimas
+            Volume      130 μm³ = 1.3e-4 m³
+            Length      50 mm = 5e-2 m = 2e0 in
+            Density     7900 kg/m³ = 7.9 g/cm³
             Material    Steel, rolled
 
         From the equation E = m*c**2, you can do this problem in your head:
@@ -76,6 +77,10 @@ if 1:   # Utility
         The Length is the side of a cube of this material, which is the
         cube root of the volume.
 
+        If you use the -m option with the built-in materials, you'll find
+        the size of the cube varies from 210 mm for aerogel to 35 mm for
+        osmium.
+
         Here are some other examples to show the utility of the script.
         While there's nothing you can't do with a calculator, the script
         makes it a little easier to see the numbers.
@@ -84,11 +89,22 @@ if 1:   # Utility
           the command '{n} L 1' and you get the length of 0.11 μm.  This is
           on the order of the size of a typical virus.
 
+        - A car has a gas tank that contains 20 gallons of gasoline.  The
+          combustion heat of this gasoline is 44 MJ/kg and the density of
+          gasoline is about 0.75 g/m³, giving 2.5 GJ of heat energy.  The
+          size of a cube of steel for this energy is 150 μm, or a cube with
+          a side roughly the diameter of a human hair.
+
         - What mass has the energy equivalent of the bomb dropped on
           Hiroshima?  Noting the above example for 1 kg of mass yielded
-          1400 Hiroshimas, use the command with '{n} m 1/1400' to get a mass of
-          0.7 g.  This demonstrates that the numerical term can be a valid
-          python expression.
+          1400 Hiroshimas, use the command 
+
+            {n} m 1/1400*tan(pi/4)
+
+          to get a mass of 0.7 μg.  This demonstrates that the numerical
+          term can be a python expression and that the math library is in
+          scope.  Note you'll may have to escape the math symbols from the
+          shell.
 
         - An estimate for the mass of the observable universe is 1e53 kg.
           Assuming the big bang started with the equivalent energy, how
@@ -367,13 +383,13 @@ if 1:   # Core functionality
             return
         w, t = 12, " "*0
         print(f"{'Input':{w}s}{t}'{op} {arg}'")
-        print(f"{'Mass':{w}s}{t}{g.m} kg")
+        print(f"{'Mass':{w}s}{t}{g.m.engsi}g = {g.m.sci} g = {(g.m/u('lb')).sci} lb")
         kt = g.E/flt(4.184e12)
         hiroshima = kt/15.5
-        print(f"{'Energy':{w}s}{t}{g.E} J = {kt} kilotons TNT = {hiroshima} Hiroshimas")
-        print(f"{'Volume':{w}s}{t}{g.V} m³")
-        print(f"{'Length':{w}s}{t}{g.s} m")
-        print(f"{'Density':{w}s}{t}{g.rho} kg/m3 = {g.rho/1000} g/cc")
+        print(f"{'Energy':{w}s}{t}{g.E.engsi}J = {g.E.sci} J = {kt} kilotons TNT = {hiroshima} Hiroshimas")
+        print(f"{'Volume':{w}s}{t}{g.V.engsi}m³ = {g.V.sci} m³")
+        print(f"{'Length':{w}s}{t}{g.s.engsi}m = {g.s.sci} m = {(g.s/u('in')).sci} in")
+        print(f"{'Density':{w}s}{t}{g.rho} kg/m³ = {g.rho/1000} g/cm³")
         print(f"{'Material':{w}s}{t}{g.name}")
 
 if __name__ == "__main__":
