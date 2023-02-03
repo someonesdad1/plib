@@ -42,10 +42,11 @@ table = '''
     zj	zy, zʲ	zj	/zj/: 'Z' in 'Zeus'	diaphoneme
     ʒ	Z, zh	ʒ	/ʒ/: 's' in 'pleasure'	diaphoneme
     ɑː	A:, ɑ:, aː, a:	ɑː	/ɑː/: 'a' in 'father'	diaphoneme
+    ə	@	ə	/ə/: 'a' in 'about'	diaphoneme
+    æ	ae, {	æ	/æ/: 'a' in 'bad'	diaphoneme
     ɑːr	ɑɹ, aːr, a:r, ɑ:r, ɑr	ɑːr	/ɑːr/: 'ar' in 'far'	diaphoneme
     ɒ	Q	ɒ	/ɒ/: 'o' in 'body'	diaphoneme
     ɒr	Qr	ɒr	/ɒr/: 'or' in 'moral'	diaphoneme
-    æ	ae, {	æ	/æ/: 'a' in 'bad'	diaphoneme
     ær	aer, &r, æɹ	ær	/ær/: 'arr' in 'marry'	diaphoneme
     aɪ	ai, aI	aɪ	/aɪ/: 'i' in 'tide'	diaphoneme
     aɪər	aɪr, aIr, aɪə	aɪər	/aɪər/: 'ire' in 'fire'	diaphoneme
@@ -77,7 +78,6 @@ table = '''
     ʌ	V	ʌ	/ʌ/: 'u' in 'cut'	diaphoneme
     ʌr	Vr, ʌɹ	ʌr	/ʌr/: 'urr' in 'hurry'	diaphoneme
     ɜːr	ɝː, ɝ, 3r, 3:r, əːr, @:r, ɜɹ, ɜ(r), ɜr	ɜːr	/ɜːr/: 'ur' in 'fur'	diaphoneme
-    ə	@	ə	/ə/: 'a' in 'about'	diaphoneme
     ər	ɚ, @r, əɹ, ə(r)	ər	/ər/: 'er' in 'letter'	diaphoneme
     əl	@l, ᵊl, l̩	əl	/əl/: 'le' in 'bottle'	diaphoneme
     ən	@n, ᵊn, n̩	ən	/ən/: 'on' in 'button'	diaphoneme
@@ -106,6 +106,129 @@ table = '''
     jʊər		jʊər	/jʊər/: 'ure' in 'cure'	diaphoneme
 '''.strip()
 
+if 0:
+    # This table has had field 3 from above extracted, modified for uniformity,
+    # some lines deleted, and had things moved around.
+    for line in table.split("\n"):
+        if "separator" in line or "prosodic" in line:
+            continue
+        f = line.split("\t")
+        s = f[3]
+        if ":" not in s:
+            u = s.split()[0].replace("'", "/")
+            s = f"{u}: {s}"
+        # Change ':' to tab
+        s = s.replace(": ", "\t")
+        print(s)
+    exit()
+
+# 4th column from table at https://en.wikipedia.org/wiki/Template:IPAc-en,
+# modified for uniformity and the lines containing "separator" or
+# "prosodic" eliminated.  I've moved the order around and denoted column
+# headers with '+'.
+
+table = '''
+    Consonants	+
+    /b/	'b' in 'buy'
+    /d/	'd' in 'dye'
+    /dj/	'd' in 'dew'
+    /f/	'f' in 'find'
+    /ɡ/	'g' in 'guy'
+    /h/	'h' in 'hi'
+    /dʒ/	'j' in 'jam'
+    /k/	'k' in 'kind'
+    /l/	'l' in 'lie'
+    /lj/	'l' in 'lute'
+    /m/	'm' in 'my'
+    /n/	'n' in 'nigh'
+    /nj/	'n' in 'new'
+    /ŋ/	'ng' in 'sing'
+    /p/	'p' in 'pie'
+    /r/	'r' in 'rye'
+    /s/	's' in 'sigh'
+    /sj/	's' in 'consume'
+    /ʃ/	'sh' in 'shy'
+    /ʒ/	's' in 'pleasure'
+    /t/	't' in 'tie'
+    /tj/	't' in 'tune'
+    /ð/	'th' in 'this'
+    /tʃ/	'ch' in 'China'
+    /θ/	'th' in 'thigh'
+    /θj/	'th' in 'enthuse'
+    /v/	'v' in 'vie'
+    /w/	'w' in 'wind'
+    /hw/	'wh' in 'why'
+    /j/	'y' in 'yes'
+    /z/	'z' in 'zoom'
+    /zj/	'Z' in 'Zeus'
+
+    --Vowel a	+
+    /ɑː/	'a' in 'father'
+    /ɒ/	'o' in 'body'
+    /ə/	'a' in 'about'
+    /æ/	'a' in 'bad'
+    /eɪ/	'a' in 'face'
+    /ɑːr/	'ar' in 'far'
+    /ɒr/	'or' in 'moral'
+    /ær/	'arr' in 'marry'
+
+    --Vowel e	+
+    /ɛ/	'e' in 'dress'
+    /ɛr/	'err' in 'merry'
+    /ɛər/	'are' in 'bare'
+    /ɛəˈr/	'ere' in 'thereof'
+    /ɛəˌr/	'ere' in 'thereof'
+    /iː/	'ee' in 'fleece'
+    /ɪəˈr/	'er' in 'spheroidal'
+    /ɪəˌr/	'er' in 'spheroidal'
+    /i/	'y' in 'happy'
+
+    --Vowel i	+
+    /aɪ/	'i' in 'tide'
+    /aɪər/	'ire' in 'fire'
+    /ɪ/	'i' in 'kit'
+    /ɪr/	'irr' in 'mirror'
+
+    --Vowel o	+
+    /aʊ/	'ou' in 'mouth'
+    /aʊər/	'our' in 'hour'
+    /ɪər/	'ear' in 'near'
+    /oʊ/	'o' in 'code'
+    /ɔː/	'au' in 'fraud'
+    /ɔːr/	'ar' in 'war'
+    /ɔɪ/	'oi' in 'choice'
+    /ɔɪər/	'oir' in 'coir'
+
+    --Vowel u	+
+    /u/	'u' in 'influence'
+    /juː/	'u' in 'cute'
+    /ʊ/	'u' in 'push'
+    /ʊr/	'our' in 'courier'
+    /uː/	'oo' in 'goose'
+    /ʊər/	'our' in 'tour'
+    /ər/	'er' in 'letter'
+    /ʊəˈr/	'ur' in 'plurality'
+    /ʊəˌr/	'ur' in 'plurality'
+    /ʌ/	'u' in 'cut'
+    /ʌr/	'urr' in 'hurry'
+    /ɜːr/	'ur' in 'fur'
+    /ɜː/	r-less 'ur' in 'nurse'
+    /əl/	'le' in 'bottle'
+    /ən/	'on' in 'button'
+    /əm/	'm' in 'rhythm'
+    /jʊər/	'ure' in 'cure'
+
+    --Other	+
+    /x/	'ch' in 'loch'
+    /ʔ/	catch in 'uh-oh'
+    /ɒ̃/	nasal 'an' in 'vin blanc'
+    /æ̃/	nasal 'in' in 'vin blanc'
+    /ˈ/	primary stress follows
+    /ˌ/	secondary stress follows
+    /./	syllable break
+    /#/	morpheme break
+'''.strip()
+
 if 1:   # Header
     if 1:   # Copyright, license
         # These "trigger strings" can be managed with trigger.py
@@ -116,7 +239,7 @@ if 1:   # Header
         #   See http://opensource.org/licenses/OSL-3.0.
         #∞license∞#
         #∞what∞#
-        # Program description string
+        # IPA pronounciations
         #∞what∞#
         #∞test∞# #∞test∞#
         pass
@@ -139,49 +262,38 @@ if 1:   # Header
         W = int(os.environ.get("COLUMNS", "80")) - 1
         L = int(os.environ.get("LINES", "50"))
         r = re.compile("'(.*)' in '(.*)'")
-        t.hi = t("whtl", "blu", "bold")
 if 1:   # Utility
     def Error(*msg, status=1):
         print(*msg, file=sys.stderr)
         exit(status)
     def Usage(status=1):
         print(dedent(f'''
-        Usage:  {sys.argv[0]} [options] etc.
-          Explanations...
+        Usage:  {sys.argv[0]} [options] 
+          Print out a table of IPA symbols.
         Options:
-            -h      Print a manpage
+            -c      Don't use ANSI color in output
         '''))
         exit(status)
     def ParseCommandLine(d):
-        d["-a"] = False
-        d["-d"] = 3         # Number of significant digits
+        d["-c"] = True      # Print in color
         try:
-            opts, args = getopt.getopt(sys.argv[1:], "ad:h", 
+            opts, args = getopt.getopt(sys.argv[1:], "ch", 
                     ["help", "debug"])
         except getopt.GetoptError as e:
             print(str(e))
             exit(1)
         for o, a in opts:
-            if o[1] in list("a"):
+            if o[1] in list("c"):
                 d[o] = not d[o]
-            elif o in ("-d",):
-                try:
-                    d["-d"] = int(a)
-                    if not (1 <= d["-d"] <= 15):
-                        raise ValueError()
-                except ValueError:
-                    msg = ("-d option's argument must be an integer between "
-                        "1 and 15")
-                    Error(msg)
             elif o in ("-h", "--help"):
                 Usage(status=0)
-            elif o in ("--debug",):
-                # Set up a handler to drop us into the debugger on an
-                # unhandled exception
-                import debug
-                debug.SetDebugger()
+        SetupColor()
         return args
 if 1:   # Core functionality
+    def SetupColor():
+        t.hi = t("whtl", "blu", "bold") if d["-c"] else ""
+        t.hdr = t("cynl") if d["-c"] else ""
+        t.N = t.n if d["-c"] else ""
     def GetString(a, b):
         '''Return a string with color coding
         '''
@@ -189,7 +301,7 @@ if 1:   # Core functionality
         mo = r.search(b)
         if mo:
             c, d = mo.groups()
-            f = d.replace(c, f"{t.hi}{c}{t.n}", 1)
+            f = d.replace(c, f"{t.hi}{c}{t.N}", 1)
             if "vin" in d:
                 f = " " + f
             return f"{a:6s}{f}"
@@ -209,10 +321,11 @@ if 1:   # Core functionality
             elif a == " " or a == "‖":
                 return None
             return f"{a:4s}  {b}"
-    def PrintTable():
-        out = []
+    def PrintTable1():
+        out = [f"{t.hdr}Consonants{t.N}"]
         for line in table.split("\n"):
-            f = [i.strip() for i in line.split("\t")]
+            a, f = [i.strip() for i in line.split("\t")]
+            breakpoint() #xx
             # Parse out field 3
             s = f[3]
             if ":" in s:
@@ -223,9 +336,30 @@ if 1:   # Core functionality
             a, b = [i.strip() for i in (a, b)]
             if "separator" in f[4]:
                 continue
-            t = GetString(a, b)
-            if t:
-                out.append(t)
+            u = GetString(a, b)
+            if u:
+                if "ɑː" in u and "ɑːr" not in u:
+                    out.append(f"  {t.hdr}Vowels{t.N}")
+                elif "ʔ" in u:
+                    out.append(f"  {t.hdr}Other{t.N}")
+                out.append(u)
+        print(" "*18, "IPA symbols")
+        print(" "*18, "-----------")
+        for i in Columnize(out, columns=3):
+            print(i)
+    def PrintTable():
+        out = []
+        for line in table.split("\n"):
+            if not line.strip():
+                continue
+            a, b = [i.strip() for i in line.split("\t")]
+            if b == "+":
+                out.append(f"{t.hdr}{a.replace('-', ' ')}{t.N}")
+            else:
+                s = GetString(a, b)
+                out.append(s)
+        print(" "*18, "IPA symbols")
+        print(" "*18, "-----------")
         for i in Columnize(out, columns=3):
             print(i)
 
