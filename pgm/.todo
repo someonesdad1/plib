@@ -1,9 +1,5 @@
 Active
 
-    - IPA https://en.wikipedia.org/wiki/Help:IPA/English
-        - Print the table to the screen 
-        - Use bold and color to highlight the letters for the symbols
-
     - Anagrams
         - Given a string, find all anagrams that use the letters that
           contain words in a given dictionary.
