@@ -339,13 +339,6 @@ if 1:   # Utility
             dbg = True
         return files
 if 1:   # Core functionality
-    def PrintHeader():
-        if dbg:
-            print("     C      W    CW     OS    SY  SENT   FOG   ARI",
-                end=" ")
-            print("   CL  FKRE  FKGL  SMOG  FORC")
-        else:
-            print("  FOG   ARI    CL  FKRE  FKGL  SMOG  FORC")
     def GuessSyllables(word):
         "Guess the number of syllables in a word"
         # Our basic way of guessing is to count the number of vowels
@@ -418,50 +411,6 @@ if 1:   # Core functionality
         keys.sort()
         for i in keys:
             print(i, "%.2f%%" % (100.*d[i]/n))
-    def CountStats(text):
-        '''For a set string of text, return a tuple of the following items:
-            number of characters
-            number of words
-            number of sentences
-            number of syllables
-            number of complex words (i.e., with >= 3 syllables)
-        '''
-        characters = 0
-        words = 0
-        complex_words = 0
-        one_syllable_words = 0
-        syllables = 0
-        sentences = 0
-        for word in text.split():
-            word = word.lower()  # Ignore proper nouns
-            if EndOfSentence(word):
-                sentences += 1
-            words += 1
-            word = StripNonletters(word)
-            characters += len(word)
-            number_of_syllables = CountSyllables(word)
-            syllables += number_of_syllables
-            if number_of_syllables >= 3:
-                complex_words += 1
-            if number_of_syllables == 1:
-                one_syllable_words += 1
-        return (characters, words, complex_words, one_syllable_words,
-                syllables, sentences)
-    def PrintResults(stats, file):
-        (characters, words, complex_words, one_syllable_words, 
-            syllables, sentences) = stats
-        fog = GunningFogIndex(words, sentences, complex_words)
-        ari = AutomatedReadabilityIndex(characters, words, sentences)
-        cl = ColemanLiauIndex(characters, words, sentences)
-        fkre = FleschKincaidReadingEase(words, syllables, sentences)
-        fkgl = FleschKincaidGradeLevel(words, syllables, sentences)
-        smog = SMOGIndex(complex_words, sentences)
-        forc = FORCASTReadabilityFormula(words, one_syllable_words)
-        if dbg:
-            print("%6d %6d %5d %6d %5d %5d" % stats, end=" ")
-        fmt = "%5.1f " * 7
-        print(fmt % (fog, ari, cl, fkre, fkgl, smog, forc), end=" ")
-        print(file)
     def GunningFogIndex(words, sentences, complex_words):
         ASL = words/sentences
         PCW = 100*complex_words/words
@@ -515,6 +464,57 @@ if 1:   # Core functionality
         except Exception:
             num = GuessSyllables(word)
         return num
+    def PrintHeader():
+        if dbg:
+            print("     C      W    CW     OS    SY  SENT   FOG   ARI",
+                end=" ")
+            print("   CL  FKRE  FKGL  SMOG  FORC")
+        else:
+            print("  FOG   ARI    CL  FKRE  FKGL  SMOG  FORC")
+    def CountStats(text):
+        '''For a set string of text, return a tuple of the following items:
+            number of characters
+            number of words
+            number of sentences
+            number of syllables
+            number of complex words (i.e., with >= 3 syllables)
+        '''
+        characters = 0
+        words = 0
+        complex_words = 0
+        one_syllable_words = 0
+        syllables = 0
+        sentences = 0
+        for word in text.split():
+            word = word.lower()  # Ignore proper nouns
+            if EndOfSentence(word):
+                sentences += 1
+            words += 1
+            word = StripNonletters(word)
+            characters += len(word)
+            number_of_syllables = CountSyllables(word)
+            syllables += number_of_syllables
+            if number_of_syllables >= 3:
+                complex_words += 1
+            if number_of_syllables == 1:
+                one_syllable_words += 1
+        return (characters, words, complex_words, one_syllable_words,
+                syllables, sentences)
+    def PrintResults(stats, file):
+        (characters, words, complex_words, one_syllable_words, 
+            syllables, sentences) = stats
+        fog = GunningFogIndex(words, sentences, complex_words)
+        ari = AutomatedReadabilityIndex(characters, words, sentences)
+        cl = ColemanLiauIndex(characters, words, sentences)
+        fkre = FleschKincaidReadingEase(words, syllables, sentences)
+        fkgl = FleschKincaidGradeLevel(words, syllables, sentences)
+        smog = SMOGIndex(complex_words, sentences)
+        forc = FORCASTReadabilityFormula(words, one_syllable_words)
+        if dbg:
+            print("%6d %6d %5d %6d %5d %5d" % stats, end=" ")
+        fmt = "%5.1f " * 7
+        print(fmt % (fog, ari, cl, fkre, fkgl, smog, forc), end=" ")
+        print(file)
 if __name__ == "__main__":
     d = {}      # Options dictionary
     files = ParseCommandLine(d)

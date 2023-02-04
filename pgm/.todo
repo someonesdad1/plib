@@ -1,5 +1,9 @@
 Active
 
+    - Core setup data
+        - Move notes, password db, etc. to .0rc because it's backed up to
+          the cloud
+
     - write.py
         - Tool to assess some writing
         - Wikipedia's https://en.wikipedia.org/wiki/Wikipedia:Summary_style
@@ -32,12 +36,6 @@ Active
               containing the counts of each character.  Thus, if f(s1) ==
               f(s2), then s1 and s2 are anagrams.
 
-    - Planets
-        - Prints out properties of planets and moons
-        - Allows you to choose units
-            - Moons' mass in Earth moon's mass
-            - Planet mass in other planet masses or sun mass
-
     - Name tags
         - Make a PDF with name/phone that can be printed on a durable
           plastic sheet, cut out, and have a hole punched to make a label
@@ -46,47 +44,6 @@ Active
           printer shear them off into strips (remainder can be cut with
           scissors when needed).  Do for me, Glenda, Sally, Seth, Jimmy,
           Leslie.
-
-    - Asteroids
-        - Construct a numerical model of the asteroids and use it to
-          perform a Monte Carlo simulation of flying through the asteroid
-          belt.
-            - Basic question is how often does a collision with the
-              spacecraft happen?
-        - All the asteroids' mass is 3% of the moon.  50% of that is in the
-          four largest Ceres, Vesta, Pallas, and Hygiea; the rest is
-          distributed through an orbit 2e9 km around.
-            - Fit a mass distribution from
-              https://en.wikipedia.org/wiki/List_of_exceptional_asteroids#Most_massive
-            - Asteroid densities:  https://astrostatistics.psu.edu/datasets/asteroid_dens.dat
-              1 to 5 would be representative.  Rocky cores are 3 to 5.
-            - https://en.wikipedia.org/wiki/Standard_asteroid_physical_characteristics
-              discusses some approximations.
-        - As usual, Hollywood's representations of reality suck.  Typical
-          movie representations of asteroids look like Saturn's rings, but
-          in truth they are spread so far apart you'd likely not be able to
-          see other asteroids with your naked eye, at least to distinguish
-          them from faint stars.
-        - In fact, it's essentially a one-dimensional problem.  Assume the
-          trajectory is a straight line.  Then you move at constant
-          velocity through the asteroid field, encountering asteroids with
-          a random distance from the axis and a random diameter.  At each
-          time step, it's easy to calculate whether there is a collision or
-          not.
-        - From the picture
-          https://en.wikipedia.org/wiki/File:InnerSolarSystem-en.png, the
-          trapezoidal distribution would be a decent first choice
-          https://en.wikipedia.org/wiki/Trapezoidal_distribution.
-
-    - Sundial
-        - Would be fun to build one
-        - Impressive one is in
-          https://sundials.org/index.php/sundial-registry/selectdials/ID.html
-          https://sundials.org/index.php/sundial-registry/onedial/344
-          in Ann Morrison park.  Indicates time to 15 s, true time to the
-          minute, date to the day, and adusts for daylight saving time.
-        - https://sundials.org/index.php/nass-shop2/2-publications
-          $30 to get the NASS repository, 800 MB of documentation
 
     - /math/hcpy/integer.py
         - Move to /plib/zn.py.
@@ -124,10 +81,12 @@ Active
         - Send email to certain friends
         - Identifying scars/characteristics 
 
-    - Time:  I like the time calculation feature in hc.  Often, I'd like to
-      be able to do something like enter a data 7Nov2022 and subtract off 
-      12 years.  It would be nice to have a specialized script to do this.
-      Or add to hc the ability to include the time unit with the number.
+    - Time calculations
+        - I like the time calculation feature in hc.  Often, I'd like to be
+          able to do something like enter a data 7Nov2022 and subtract off
+          12 years.  It would be nice to have a specialized script to do
+          this.  Or add to hc the ability to include the time unit with the
+          number.
 
     - /plib/pgm/cu_wire.py
         - Add -l option that lets you specify a length (defaults to m) and
@@ -177,17 +136,6 @@ Active
         - Write a script to modify all the files in the current directory
           and identify all the trigger strings first.
 
-    - Move notes, password db, etc. to .0rc because it's backed up to the
-      cloud
-
-    - Isotopes
-        - https://en.wikipedia.org/wiki/Isotopes_of_xenon
-        - The extensive table is excellent with lots of detail.  If this
-          information could be harvested, it would be a valuable python
-          database.
-        - https://en.wikipedia.org/wiki/List_of_nuclides might be more 
-          appropriate and accessible.
-
     - numpy
         - Now that I have working numpy/scipy installations, run the MLR
           code on the NIST test cases to see how badly they perform.
@@ -224,54 +172,140 @@ Active
           breakpoint you'd do something like qq(myvar) and it would produce
           a pretty-printed dump of the attributes.
 
-Text processor
+Astronomy
 
-    I find I do a lot of text processing.  Tools like gawk/mawk are almost
-    adequate and they have power and are very efficient.  But they have
-    archaic 40-year old semantics.  I've never liked the design of m4
-    though it is powerful.  The following would be features I would want:
+    - Planets
+        - Prints out properties of planets and moons
+        - Allows you to choose units
+            - Moons' mass in Earth moon's mass
+            - Planet mass in other planet masses or sun mass
 
-    - Easy to comment out large blocks of text
-        - Even better if this can be done conditionally on environment
-          variables or programming variables
-    - Allow conditional constructs of if/else and allow them to be
-      arbitrarily nested
-    - ts.py and tp.awk use control lines of '^\.x' form.  Relax this to
-      allow them to have arbitrary leading whitespace.
-    - Need to define text replacements that are either plain text or
-      regexps
-    - Need numerical evaluations, both integer and floating point
-    - Use standard function notation like f(*p, **kw)
-    - Namespaces or control over scope
-    - Needs to be both byte-oriented and able to handle UTF8
-    - Supports iteration
+    - Asteroids
+        - Construct a numerical model of the asteroids and use it to
+          perform a Monte Carlo simulation of flying through the asteroid
+          belt.
+            - Basic question is how often does a collision with the
+              spacecraft happen?
+        - All the asteroids' mass is 3% of the moon.  50% of that is in the
+          four largest Ceres, Vesta, Pallas, and Hygiea; the rest is
+          distributed through an orbit 2e9 km around.
+            - Fit a mass distribution from
+              https://en.wikipedia.org/wiki/List_of_exceptional_asteroids#Most_massive
+            - Asteroid densities:  https://astrostatistics.psu.edu/datasets/asteroid_dens.dat
+              1 to 5 would be representative.  Rocky cores are 3 to 5.
+            - https://en.wikipedia.org/wiki/Standard_asteroid_physical_characteristics
+              discusses some approximations.
+        - As usual, Hollywood's representations of reality suck.  Typical
+          movie representations of asteroids look like Saturn's rings, but
+          in truth they are spread so far apart you'd likely not be able to
+          see other asteroids with your naked eye, at least to distinguish
+          them from faint stars.
+        - In fact, it's essentially a one-dimensional problem.  Assume the
+          trajectory is a straight line.  Then you move at constant
+          velocity through the asteroid field, encountering asteroids with
+          a random distance from the axis and a random diameter.  At each
+          time step, it's easy to calculate whether there is a collision or
+          not.
+        - From the picture
+          https://en.wikipedia.org/wiki/File:InnerSolarSystem-en.png, the
+          trapezoidal distribution would be a decent first choice
+          https://en.wikipedia.org/wiki/Trapezoidal_distribution.
 
-    My feeling is that this needs a careful design, then should be
-    implemented in C/C++ or modern tools like Go or Rust.  
-
-    There are two fundamental design choices:  line-oriented or
-    token-oriented.  
-
-    - Token-oriented could be acceptable, but whitespace would have to be
-      conserved to be useful for text processing.  
-    - A token oriented design is desirable from a flexibility standpoint
-      and a standard functional form like ∞funcname(*p, **kw) could be used
-      where ∞ is a special trigger character to alert to a control
-      sequence.
-    - Token problems
-        - When you want to e.g. format lines of text, such as dedenting or
-          indenting.
-        - How do you handle line-oriented regexps (which get used a lot)?
-
-    Another idea would be to write in C/C++ and use an embedded python 
-    interpreter.
-
-    Though C requires painful manual memory management, most text files do
-    not have overly huge input lines.  A large line buffer on a modern
-    machine could be 100k to 1M and be able to handle any typical text file
-    I'd throw at it.  
+    - Sundial
+        - Would be fun to build one
+        - Impressive one is in
+          https://sundials.org/index.php/sundial-registry/selectdials/ID.html
+          https://sundials.org/index.php/sundial-registry/onedial/344
+          in Ann Morrison park.  Indicates time to 15 s, true time to the
+          minute, date to the day, and adusts for daylight saving time.
+        - https://sundials.org/index.php/nass-shop2/2-publications
+          $30 to get the NASS repository, 800 MB of documentation
 
 Other
+
+    - Shamrock survey
+        - Benchmarks
+            - bma = Primary = in center of Edna/Shamrock intersection
+            - Secondary
+                - bmb0 = center of well
+                - bmb1 = Entrance to driveway on Edna
+                    - Need photo of spot on concrete
+                - bmb2 = Southernmost metal gate pole on west side
+                - bmb3 = Farthest east wooden fence post on south side
+                - bmb4 = Street sign near bmb3
+                - bmb5 = Farthest northwest wooden fence post
+                - bmb6 = Street sign next to bmb5
+                - bmb7 = Southeasternmost corner of fence gate cement pad
+            - Tertiary
+                - bmt1 = SW corner of gray building foundation
+                - bmt2 = NW corner of cement slab
+                - bmt3 = NW corner of patio
+                - Corners of house foundation
+        - Layout of lawn
+        - Location of sprinklers
+        - Building location
+        - Use sighting compass to take magnetic bearings of things.
+            - Calibrate compass by dropping a vertical from the north star
+            - As of 2022, Polaris' mean declination is 89.35 degrees, so
+            calibration of the compass will be better than 1 degree
+            - This will be done with two strings on plumb bobs, one adjustable.
+            Then the next day the compass will be sighted along the two
+            strings and adjusted to read true north.  Then it will be
+            calibrated for the current magnetic declination.
+        - This will be worth a reference document explaining techniques.  The
+        resulting python script could be turned into a library module based
+        on g.py that allows people to plot their own surveys.  Some key
+        graphic components would be
+            - Benchmarks, primary and secondary
+            - Buildings
+            - Cement pads
+            - Plants, fence posts, sprinklers
+            - Layers could be used for different features.  For example, the
+            electrical layer would show known cables.  The sprinkler layer
+            would show valves, sprinklers, pump, wires.  Etc.
+        - This survey would get archived on github so it can't be lost
+
+    - Text processor
+        - I find I do a lot of text processing.  Tools like gawk/mawk are
+          almost adequate and they have power and are very efficient.  But
+          they have archaic 40-year old semantics.  I've never liked the
+          design of m4 though it is powerful.  The following would be
+          features I would want:
+        - Easy to comment out large blocks of text
+            - Even better if this can be done conditionally on environment
+              variables or programming variables
+        - Allow conditional constructs of if/else and allow them to be
+          arbitrarily nested
+        - ts.py and tp.awk use control lines of '^\.x' form.  Relax this to
+          allow them to have arbitrary leading whitespace.
+        - Need to define text replacements that are either plain text or
+          regexps
+        - Need numerical evaluations, both integer and floating point
+        - Use standard function notation like f(*p, **kw)
+        - Namespaces or control over scope
+        - Needs to be both byte-oriented and able to handle UTF8
+        - Supports iteration
+        - My feeling is that this needs a careful design, then should be
+          implemented in C/C++ or modern tools like Go or Rust.  
+        - There are two fundamental design choices:  line-oriented or
+          token-oriented.  
+            - Token-oriented could be acceptable, but whitespace would have
+              to be conserved to be useful for text processing.  
+            - A token oriented design is desirable from a flexibility
+              standpoint and a standard functional form like ∞funcname(*p,
+              **kw) could be used where ∞ is a special trigger character to
+              alert to a control sequence.
+            - Token problems
+                - When you want to e.g. format lines of text, such as
+                  dedenting or indenting.
+                - How do you handle line-oriented regexps (which get used a
+                  lot)?
+        - Another idea would be to write in C/C++ and use an embedded
+          python interpreter.
+        - Though C requires painful manual memory management, most text
+          files do not have overly huge input lines.  A large line buffer
+          on a modern machine could be 100k to 1M and be able to handle any
+          typical text file I'd throw at it.  
 
     - python code spell checker
         - This would use the parser to find strings and spell check the
@@ -1291,6 +1325,53 @@ Other
             - sub defines a substitution (it can call a python function if
               desired)
             - '{' and '}' define python code blocks
+    - Tabulation tool
+        - https://pypi.org/project/tabulate/ has some ideas.  Basically, it
+          takes a nested list and tabulates it.  headers kw can be used for
+          column titles.  tablefmt kw describes formatting to use.  Default
+          is to use pandoc's simple_tables:
+          https://pandoc.org/MANUAL.html#tables.  There's also a
+          multiline_tables format.
+        - Want a module that is used to produce tabular data reports.
+        - The basic interface is that it's fed a list of row vectors that
+          you want to be column vectors.  It prints out the transpose after
+          adjusting things to your tastes.
+        - It uses Len to ignore escape sequences for colorizing.
+        - Would be nice to be able to address the attributes of each
+          column.
+            - col[0].width = 12
+            - col[0].just = "c"     # Justification
+            - col[0].hfill = "-"    # Separation from header
+            - col[0].tfill = "-"    # Separation from trailer
+        - You could also use a syntax like col.width = 12 to set the
+          defaults for each of the columns.  Then col[0].width = 13 would
+          override the default.
+        - Should each tabulation instance be a matrix?  Then has some
+          machinery behind the needs.  Most useful is that you can address
+          individual elements.  And it can't be a matrix without being a
+          properly-formed nested list.
+        - Desired features
+            - Specify spacings between columns (either fixed or irregular)
+            - Specify strings between columns for borders (they can be
+              considered another column)
+            - Fill to a given screen width, truncate columns to fit, or
+              raise exception that it won't fit
+            - Line up decimal points for reports
+            - Coalesced columns?  Complicated; other formatters like pandoc
+              often don't support.
+        - Simple use case
+
+            col0 = ["Sides", "4", 5"]
+            col1 = ["d", "1.000", "1.000"]
+            col2 = ["D", "1.414", "1.236"]
+            col3 = ["a", "1.000", "0.7265"]
+            col4 = ["Area", "1.000", "0.9082"]
+
+            Results in the report (centering is default):
+
+            Sides     d       D       a     Area
+            4     1.000   1.414   1.000   1.000
+            5     1.000   1.236  0.7265  0.9082
 
 hc.py
     
@@ -1332,107 +1413,3 @@ hc.py
         - mpmath's special functions supported.  The user can construct a
           config file list of the desired functions.
         - Commands are easy to alias to get the interface you want.
-
-Computing goals
-
-    - Interface
-        - I want a UNIX-like environment to work in, as I spend most of my
-          time in a bash/vim environment.
-        - cygwin is at the end of its life and it has always been a niche
-          application.  With WSL available, it's even a tinier niche.
-        - I'd prefer to have one hardware box running
-        - My choice at the moment is either WSL2 or a VM
-
-Tabulation tool
-
-    - https://pypi.org/project/tabulate/ has some ideas.  Basically, it
-      takes a nested list and tabulates it.  headers kw can be used for
-      column titles.  tablefmt kw describes formatting to use.  Default is
-      to use pandoc's simple_tables:
-      https://pandoc.org/MANUAL.html#tables.  There's also a
-      multiline_tables format.
-    - Want a module that is used to produce tabular data reports.
-    - The basic interface is that it's fed a list of row vectors that you
-      want to be column vectors.  It prints out the transpose after
-      adjusting things to your tastes.
-    - It uses Len to ignore escape sequences for colorizing.
-    - Would be nice to be able to address the attributes of each column.
-        - col[0].width = 12
-        - col[0].just = "c"     # Justification
-        - col[0].hfill = "-"    # Separation from header
-        - col[0].tfill = "-"    # Separation from trailer
-    - You could also use a syntax like col.width = 12 to set the defaults
-      for each of the columns.  Then col[0].width = 13 would override the
-      default.
-    - Should each tabulation instance be a matrix?  Then has some machinery
-      behind the needs.  Most useful is that you can address individual
-      elements.  And it can't be a matrix without being a properly-formed
-      nested list.
-
-    Simple use case
-
-        col0 = ["Sides", "4", 5"]
-        col1 = ["d", "1.000", "1.000"]
-        col2 = ["D", "1.414", "1.236"]
-        col3 = ["a", "1.000", "0.7265"]
-        col4 = ["Area", "1.000", "0.9082"]
-
-        Results in the report (centering is default):
-
-        Sides     d       D       a     Area
-          4     1.000   1.414   1.000   1.000
-          5     1.000   1.236  0.7265  0.9082
-
-    Desired features
-        - Specify spacings between columns (either fixed or irregular)
-        - Specify strings between columns for borders (they can be
-          considered another column)
-        - Fill to a given screen width, truncate columns to fit, or raise
-          exception that it won't fit
-        - Line up decimal points for reports
-        - Coalesced columns?  Complicated; other formatters like pandoc
-          often don't support.
-
-Shamrock survey
-
-    - Benchmarks
-        - bma = Primary = in center of Edna/Shamrock intersection
-        - Secondary
-            - bmb0 = center of well
-            - bmb1 = Entrance to driveway on Edna
-                - Need photo of spot on concrete
-            - bmb2 = Southernmost metal gate pole on west side
-            - bmb3 = Farthest east wooden fence post on south side
-            - bmb4 = Street sign near bmb3
-            - bmb5 = Farthest northwest wooden fence post
-            - bmb6 = Street sign next to bmb5
-            - bmb7 = Southeasternmost corner of fence gate cement pad
-        - Tertiary
-            - bmt1 = SW corner of gray building foundation
-            - bmt2 = NW corner of cement slab
-            - bmt3 = NW corner of patio
-            - Corners of house foundation
-    - Layout of lawn
-    - Location of sprinklers
-    - Building location
-    - Use sighting compass to take magnetic bearings of things.
-        - Calibrate compass by dropping a vertical from the north star
-        - As of 2022, Polaris' mean declination is 89.35 degrees, so
-          calibration of the compass will be better than 1 degree
-        - This will be done with two strings on plumb bobs, one adjustable.
-          Then the next day the compass will be sighted along the two
-          strings and adjusted to read true north.  Then it will be
-          calibrated for the current magnetic declination.
-    - This will be worth a reference document explaining techniques.  The
-      resulting python script could be turned into a library module based
-      on g.py that allows people to plot their own surveys.  Some key
-      graphic components would be
-        - Benchmarks, primary and secondary
-        - Buildings
-        - Cement pads
-        - Plants, fence posts, sprinklers
-        - Layers could be used for different features.  For example, the
-          electrical layer would show known cables.  The sprinkler layer
-          would show valves, sprinklers, pump, wires.  Etc.
-    - This survey would get archived on github so it can't be lost
-
