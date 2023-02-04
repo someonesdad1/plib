@@ -1,5 +1,7 @@
 '''
 Convert HTML file(s) on command line to plain text.
+
+Needed:  'pip install html2text'
 '''
 if 1:  # Copyright, license
     # These "trigger strings" can be managed with trigger.py
@@ -27,15 +29,14 @@ def Error(*msg, status=1):
     exit(status)
 def Usage(d, status=1):
     print(dedent(f'''
-    Usage:  {sys.argv[0]} [options] [htmlfile1 [htmlfile2...]]
-      Converts the HTML files given to plain text and prints them to stdout.
+    Usage:  {sys.argv[0]} [options] [file1 [file2...]]
+      Prints HTML files converted to basic markdown text to stdout.
     Options:
-        -l      Don't print links
+        -l      Include links
     '''))
-    print(s)
     exit(status)
 def ParseCommandLine(d):
-    d["-l"] = False     # Don't print links
+    d["-l"] = True      # Print links too
     try:
         opts, args = getopt.getopt(sys.argv[1:], "hl")
     except getopt.GetoptError as e:
