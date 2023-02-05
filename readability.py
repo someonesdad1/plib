@@ -358,43 +358,62 @@ if 1:   # Manpage
     def Manpage():
         print(dedent(f'''
 
-Readability Estimates
+        Readability Estimates
 
-    For an introduction, see https://en.wikipedia.org/wiki/Readability.
-    This module contains a class Readability that can take input from files
-    or streams that results in plain ASCII text with words separated by
-    whitespace.  The text is analyzed for number of characters, words,
-    sentences, syllables per word, and complex words.  These numbers are
-    used to calculate various estimates of how readable a selection of text
-    is.  Because this is based on only the text content, 
-    the visual layout of the text is ignored.
+            For an introduction, see https://en.wikipedia.org/wiki/Readability.
+            This module contains a class Readability that can take input from files
+            or streams that results in plain ASCII text with words separated by
+            whitespace.  The text is analyzed for number of characters, words,
+            sentences, syllables per word, and complex words.  These numbers are
+            used to calculate various estimates of how readable a selection of text
+            is.  Because this is based on only the text content, 
+            the visual layout of the text is ignored.
 
-    The methods used are a mix of heuristic and other methods, sometimes
-    condensed into a formula gotten from a multiple linear regression.  
+            The methods used are a mix of heuristic and other methods, sometimes
+            condensed into a formula gotten from a multiple linear regression.  
 
-Opinions
+            I recommend you experiment with the different methods and decide on
+            which tools provide for your needs.  Reading the above wikipedia page
+            should give you enough background on the methods.
 
-    My primary use of a few of these formulas is to assess the approximate
-    reading level of my written material.  I went through a typical
-    academic curriculum, doing research and writing reports and papers.
-    Unfortunately, many such writers can produce nearly unreadable text;
-    this is easily seen when reading research literature.  After a decade
-    or so working in industrial R&D, a good friend who was an executive
-    politely told me I wrote too many words and used too many unfamiliar
-    words.  This almost guaranteed the memos and reports I wrote to
-    influence decision makes were not read.  Later, when I was in
-    management, I noticed the same behavior in my department, so I studied
-    books aimed at helping professionals to write better.  It took a lot of
-    effort and study to unlearn the academic habits we had.
+        Opinions
 
-    After retiring, I would occasionally do consulting work for an
-    electronic test company, writing and editing user manuals and marketing
-    communications.  This further showed the need for more careful
-    writing, so I routinely used the precursor of this library to analyze
-    every piece of writing I was responsible for.
+            My primary use of a few of these formulas is to assess the approximate
+            reading level of my written material.  I went through a typical
+            academic curriculum, doing research and writing reports and papers.
+            Unfortunately, many such writers can produce nearly unreadable text;
+            this is easily seen when reading research literature.  After a decade
+            or so working in industrial R&D, a good friend who was an executive
+            politely told me I wrote too many words and used too many unfamiliar
+            words.  This almost guaranteed the memos and reports I wrote to
+            influence decision makes were not read.  Later, when I was in
+            management, I noticed the same behavior in my department, so I studied
+            books aimed at helping professionals to write better.  It took a lot of
+            effort and study to unlearn the stilted academic habits we all
+            had to be able to write suitably for the industrial environment.
+            
+            The main lesson my friend taught me was that decision makers (executives,
+            managers, senior-level technical staff) are typically overloaded with
+            reading material and if you can't get them the core message in half a
+            sheet of paper, they likely won't read the rest of your material.  Thus,
+            if you want to make an impact, keep the executive summary short and
+            provide the details in an appendix if needed.
 
+            After retiring, I would occasionally do consulting work for an
+            electronic test company, writing and editing user manuals and marketing
+            communications.  This further showed the need for more careful
+            writing, so I routinely used the precursor of this library to analyze
+            every piece of writing I was responsible for.
 
+            I eventually settled on the Flesch-Kincaid grade level (FKGL) in
+            integer form as the most practical guide to reading ease.  I read
+            somewhere that "Reader's Digest" had a FKGL of about 8th grade and I
+            used this as a target for most of my writing.  
 
+            When you understand the estimates' algorithms, it's not hard to supply
+            artificial texts that have estimated numbers that are outside the range 
+            of "normal" text material.  For example, the FKGL estimate for one of
+            my larger python scripts is 7118, a meaningless number.
         '''))
         exit(0)
 if 1:   # Core functionality
@@ -634,6 +653,7 @@ if 1:   # Classes
 
 if __name__ == "__main__":
     d = {}      # Options dictionary
+    exit()#xx
     files = ParseCommandLine(d)
     PrintHeader()
     for file in files:
