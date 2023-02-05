@@ -2,8 +2,13 @@
 Library to calculate common readability estimates
 
 TODO:
-    * Add the usual ParseCommandLine
-    * Update to more modern syntax
+    - Add a method that allows you to remove a set of words.  This might be
+      appropriate in a technical document that uses lots of words that
+      won't be in typical dictionaries or have lots of syllables.  While
+      this will skew the results a bit, it may represent the overall
+      writing's characteristics better.
+    - Include in the manpage the scores from a number of popular texts such
+      as pnp, Tom Sawyer, etc.
 
 Calculate various readability indices for a set of files
     Changes:
@@ -247,46 +252,55 @@ Calculate various readability indices for a set of files
         "The FORCAST Readability Formula." Pennsylvania State University
         Nutrition Center, Bridge to Excellence Conference, 1992.
 '''
-if 1:  # Copyright, license
-    # These "trigger strings" can be managed with trigger.py
-    #∞copyright∞# Copyright (C) 2005 Don Peterson #∞copyright∞#
-    #∞contact∞# gmail.com@someonesdad1 #∞contact∞#
-    #∞license∞#
-    #   Licensed under the Open Software License version 3.0.
-    #   See http://opensource.org/licenses/OSL-3.0.
-    #∞license∞#
-    #∞what∞#
-    # Calculate various readability indices for a set of files
-    #∞what∞#
-    #∞test∞# #∞test∞#
-    pass
-if 1:   # Imports
-    from math import sqrt
-    from pdb import set_trace as xx
-    import getopt
-    import os
-    import pathlib
-    import re
-    import sys
-if 1:   # Custom imports
-    from wrap import dedent
-    # Load a dictionary of number of syllables if available (otherwise,
-    # the number of syllables in each word will be found by the function
-    # GuessSyllables.  The words_syllables module contains two
-    # dictionaries that greatly speed up getting the number of syllables
-    # per word.  See the docstring.
-    try:
-        from words_syllables import syllables as S, multiple_syllables as MS
-    except ImportError:
+if 1:   # Header
+    if 1:   # Copyright, license
+        # These "trigger strings" can be managed with trigger.py
+        #∞copyright∞# Copyright (C) 2005, 2023 Don Peterson #∞copyright∞#
+        #∞contact∞# gmail.com@someonesdad1 #∞contact∞#
+        #∞license∞#
+        #   Licensed under the Open Software License version 3.0.
+        #   See http://opensource.org/licenses/OSL-3.0.
+        #∞license∞#
+        #∞what∞#
+        # Calculate various readability indices for a set of files
+        #∞what∞#
+        #∞test∞# #∞test∞#
         pass
-if 1:   # Global variables
-    P = pathlib.Path
-    ii = isinstance
-    # If true, print out more details
-    dbg = 0
-    common_abbreviations = (
-        "mr", "mrs", "ms", "dr", "no", "mssr", "st", "ave"
-    )
+    if 1:   # Standard imports
+        from math import sqrt
+        import getopt
+        import os
+        from pathlib import Path as P
+        import re
+        import sys
+        from collections import namedtuple
+    if 1:   # Custom imports
+        from wrap import wrap, dedent
+        from color import Color, TRM as t
+        # Load a dictionary of number of syllables if available (otherwise,
+        # the number of syllables in each word will be found by the function
+        # GuessSyllables.  The words_syllables module contains two
+        # dictionaries that greatly speed up getting the number of syllables
+        # per word.  See the docstring.
+        try:
+            from words_syllables import syllables as S, multiple_syllables as MS
+        except ImportError:
+            pass
+    if 1:   # Global variables
+        ii = isinstance
+        W = int(os.environ.get("COLUMNS", "80")) - 1
+        L = int(os.environ.get("LINES", "50"))
+        ii = isinstance
+        # If true, print out more details
+        dbg = 0
+        # Named tuple to hold textual information
+        TextInfo = namedtuple("TextInfo", '''
+            characters,
+            words,
+            complex_words,
+            one_syllable_words,
+            syllables,
+            sentences''')
 if 1:   # Utility
     def Error(*msg, status=1):
         print(*msg, file=sys.stderr)
@@ -340,6 +354,49 @@ if 1:   # Utility
             global dbg
             dbg = True
         return files
+if 1:   # Manpage
+    def Manpage():
+        print(dedent(f'''
+
+Readability Estimates
+
+    For an introduction, see https://en.wikipedia.org/wiki/Readability.
+    This module contains a class Readability that can take input from files
+    or streams that results in plain ASCII text with words separated by
+    whitespace.  The text is analyzed for number of characters, words,
+    sentences, syllables per word, and complex words.  These numbers are
+    used to calculate various estimates of how readable a selection of text
+    is.  Because this is based on only the text content, 
+    the visual layout of the text is ignored.
+
+    The methods used are a mix of heuristic and other methods, sometimes
+    condensed into a formula gotten from a multiple linear regression.  
+
+Opinions
+
+    My primary use of a few of these formulas is to assess the approximate
+    reading level of my written material.  I went through a typical
+    academic curriculum, doing research and writing reports and papers.
+    Unfortunately, many such writers can produce nearly unreadable text;
+    this is easily seen when reading research literature.  After a decade
+    or so working in industrial R&D, a good friend who was an executive
+    politely told me I wrote too many words and used too many unfamiliar
+    words.  This almost guaranteed the memos and reports I wrote to
+    influence decision makes were not read.  Later, when I was in
+    management, I noticed the same behavior in my department, so I studied
+    books aimed at helping professionals to write better.  It took a lot of
+    effort and study to unlearn the academic habits we had.
+
+    After retiring, I would occasionally do consulting work for an
+    electronic test company, writing and editing user manuals and marketing
+    communications.  This further showed the need for more careful
+    writing, so I routinely used the precursor of this library to analyze
+    every piece of writing I was responsible for.
+
+
+
+        '''))
+        exit(0)
 if 1:   # Core functionality
     def GuessSyllables(word):
         "Guess the number of syllables in a word"
@@ -434,22 +491,6 @@ if 1:   # Core functionality
     def FORCASTReadabilityFormula(words, one_syllable_words):
         N = words/150
         return 20 - (one_syllable_words/N)/10
-    def EndOfSentence(word):
-        '''Return 1 if the word is the end of a sentence.
-        '''
-        if not word:
-            raise Exception("Empty word")
-        last_char = word[-1]
-        end_of_sentence_chars = ".!?"
-        non_word_chars = ",;:-" + end_of_sentence_chars
-        if last_char in end_of_sentence_chars:
-            word = word[:-1]
-            while len(word) and word[-1] in non_word_chars:
-                word = word[:-1]
-            word = word.lower()
-            return False if word in common_abbreviations else True
-        else:
-            return False
     def StripNonletters(word):
         while len(word) and word[-1] not in "abcdefghijklmnopqrstuvwxyz":
             word = word[:-1]
@@ -519,47 +560,77 @@ if 1:   # Core functionality
         print(file)
 if 1:   # Classes
     class Readability:
+        '''Calculate readability estimates for text with words separated by
+        whitespace.
+        '''
         def __init__(self):
             self.text = None
-        def file(self, file, append=False):
-            '''Read in new text data.  Set append to True to append to
+            eos = ".!?"
+            self.end_of_sentence_chars = eos
+            self.non_word_chars = ",;:-" + eos
+            self.common_abbreviations = "mr mrs ms dr no mssr st ave".split()
+            self.letters = "abcdefghijklmnopqrstuvwxyz"
+        def read_file(self, file, append=False):
+            '''Read in new text data from a file.  Set append to True to append to
             existing string data.
             '''
             s = open(file).read()
-            if append:
-                self.text += s
+            self.text = self.text + s if append else s
+        def EndOfSentence(self, word):
+            'Return True if the word is the end of a sentence'
+            if not word:
+                raise ValueError("Empty word")
+            last_char = word[-1]
+            if last_char in self.end_of_sentence_chars:
+                word = word[:-1]
+                while len(word) and word[-1] in self.non_word_chars:
+                    word = word[:-1]
+                word = word.lower()
+                return False if word in self.common_abbreviations else True
             else:
-                self.text = s
-        @property
-        def stats(self):
-            '''Return a named tuple with fields
-                characters
-                words
-                sentences
-                syllables
-                complex_words
-            '''
-            characters = 0
-            words = 0
-            complex_words = 0
-            one_syllable_words = 0
-            syllables = 0
-            sentences = 0
-            for word in text.split():
-                word = word.lower()  # Ignore proper nouns
-                if EndOfSentence(word):
-                    sentences += 1
-                words += 1
-                word = StripNonletters(word)
-                characters += len(word)
-                number_of_syllables = CountSyllables(word)
-                syllables += number_of_syllables
-                if number_of_syllables >= 3:
-                    complex_words += 1
-                if number_of_syllables == 1:
-                    one_syllable_words += 1
-            return (characters, words, complex_words, one_syllable_words,
-                    syllables, sentences)
+                return False
+        def StripNonletters(self, word):
+            'Remove non-letters from end of word'
+            while len(word) and word[-1] not in self.letters:
+                word = word[:-1]
+            return word
+        def CountSyllables(self, word):
+            num = 0
+            try:
+                if word in S:
+                    num = S[word]
+                elif word in MS:
+                    num = MS[word][0]
+                else:
+                    num = GuessSyllables(word)
+            except Exception:
+                num = GuessSyllables(word)
+            return num
+        if 1:   # Properties
+            @property
+            def stats(self):
+                'Return a named tuple with counts of words, sentences, etc.'
+                characters, words, complex_words = 0, 0, 0
+                one_syllable_words, syllables, sentences = 0, 0, 0
+                for word in text.split():
+                    word = word.lower()  # Ignore proper nouns
+                    if EndOfSentence(word):
+                        sentences += 1
+                    words += 1
+                    word = StripNonletters(word)
+                    characters += len(word)
+                    number_of_syllables = CountSyllables(word)
+                    syllables += number_of_syllables
+                    if number_of_syllables >= 3:
+                        complex_words += 1
+                    if number_of_syllables == 1:
+                        one_syllable_words += 1
+                return TextInfo(characters,
+                                words,
+                                complex_words,
+                                one_syllable_words,
+                                syllables,
+                                sentences)
 
 if __name__ == "__main__":
     d = {}      # Options dictionary
