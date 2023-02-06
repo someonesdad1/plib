@@ -18,6 +18,7 @@ String utilities
                      Return trailing whitespace of a string.  Can be used to
                      gather any set of characters from the end of a string.
     GetString        Return string from user that matches choices
+    IsASCII          Return True if string is all ASCII characters
     Keep             Return items in sequence that are in keep sequence
     KeepFilter       Returns a function that will keep a character set
     KeepOnlyLetters  Replace all non-word characters with spaces
@@ -26,6 +27,7 @@ String utilities
     MultipleReplace  Replace multiple patterns in a string
     ReadData         Read data from a multiline string
     Remove           Return items from sequence not in the remove sequence
+    RemoveASCII      Remove all ASCII characters from a string
     RemoveComment    Remove '#.*$' from a string
     RemoveFilter     Functional form of Remove (it's a closure)
     RemoveWhitespace Remove whitespace from a string
@@ -805,6 +807,22 @@ if 1:   # Core functionality
             r = re.compile(f"([{t}]+)$", re.M)
             mo = r.search(s)
             return mo.groups()[0] if mo else ""
+    def RemoveASCII(s):
+        '''Remove ASCII characters from string s.  This means the string
+        only consists of characters chr(0x0) to chr(0x7e) inclusive.
+        '''
+        if not hasattr(RemoveASCII, "table"):
+            # Cache a translation table
+            r = range(0, 0x7f)
+            chars = [chr(i) for i in r]
+            none = [None]*len(chars)
+            RemoveASCII.table = ''.maketrans(dict(zip(chars, none)))
+        return s.translate(RemoveASCII.table)
+    def IsASCII(s):
+        '''Return True if string s is all ASCII characters.  This means the
+        string only consists of characters chr(0x0) to chr(0x7e) inclusive.
+        '''
+        return not bool(RemoveASCII(s))
 
 if __name__ == "__main__": 
     from lwtest import run, raises, assert_equal, Assert
@@ -812,6 +830,15 @@ if __name__ == "__main__":
     import os
     from sig import sig
     from color import TRM as t
+    def Test_IsASCII():
+        s1, s2 = "abc", "abc∞"
+        # RemoveASCII
+        Assert(RemoveASCII(s1) == "")
+        Assert(RemoveASCII(s2) == "∞")
+        Assert(IsASCII(s1))
+        # IsASCII
+        Assert(IsASCII(""))
+        Assert(not IsASCII(s2))
     def Test_GetWhitespace():
         for t in (
                 "",

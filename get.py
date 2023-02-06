@@ -58,28 +58,26 @@ if 1:   # Header
             "łŁŀĿľĽļĻĺĹĸķĶĵĴıİįĮĭĬīĪĩĨħĦĥĤģĢġĠğĞĝĜěĚęĘėĖĕĔēĒđĐďĎčČċĊĉĈć"
             "ĆąĄăĂāĀÿþýüûúùøöõôóòñðïîíìëêéèçæåäãâáàßÞÝÜÛÚÙØÖÕÔÓÒÑÐÏÎÍÌË"
             "ÊÉÈÇÆÅÄÃÂÁÀ")
-if 1:   # Getting text, tokens, lines, bytes
+if 1:   # Getting text, lines, bytes
     def GetText(thing, enc=None):
         '''Return text from thing, which is
-            string      It's a file name.  If read exception , then use string
+            string      It's a file name.  If read exception, then use string
                         itself for the text.
             bytes       
             stream
         If enc is not None, then it's the encoding to read the file and it is
         read as binary.
         '''
-        if ii(thing, bytes):
-            # Bytes
+        if ii(thing, bytes):            # Bytes
             s = thing.decode(encoding="UTF-8" if enc is None else enc)
-        elif ii(thing, pathlib.Path):
-            # It's a path, so read its text
+        elif ii(thing, pathlib.Path):   # It's a path, so read its text
             s = thing.read_text(encoding=enc) if enc else thing.read_text()
-        elif ii(thing, str):    # It's a file name or string
+        elif ii(thing, str):            # It's a file name or string
             try:
                 p = pathlib.Path(thing)
                 s = p.read_text(encoding=enc) if enc else p.read_text()
             except Exception:
-                s = thing   # It's a string
+                s = thing               # It's a string
         elif hasattr(thing, "read"):    # It's a stream
             s = thing.read()
         else:
@@ -740,6 +738,9 @@ if 1:   # Tokenizing
         (see details for GetLines).  If sep is None, then the data are split
         on whitespace; otherwise, the newlines are replaced by sep, then the
         data are split on sep.  
+ 
+        ignore is a sequence of regular expressions that indicate the lines
+        to ignore.
         '''
         lines = GetLines(thing, ignore=ignore, nonl=True)
         if sep is not None:

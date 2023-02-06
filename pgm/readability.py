@@ -23,24 +23,24 @@ Calculate various readability indices for a set of files
     Note added 22 Sep 2010:  you should be cautious in applying the results
     of a program like this.  Reading scores are only rough guides; they
     cannot measure many things that are relevant to reading comprehension.
-    If you don't believe this, the clearest argument I can give you is to
-    have you randomly shuffle the words in each sentence of a document.
-    Virtually all documents will now be unintelligible, yet the typical
-    readability scores will be unchanged.  These scores know nothing about
-    semantics or syntax, the formatting/font of the text, how nice it's
-    visually organized, or the background and interest of the reader.
-    These (and many other) things are relevent to reading comprehension,
-    yet are obviously beyond the ken of a computer program.
+    If you don't believe this, randomly shuffle the words in each sentence
+    of a document.  The documents will now almost certainly be
+    unintelligible, yet the typical readability scores will be unchanged.
+    These scores know nothing about semantics or syntax, the
+    formatting/font of the text, how nice it's visually organized, or the
+    background and interest of the reader.  These and other things are
+    relevent to reading comprehension, yet are obviously beyond the ken of
+    a computer program.
   
-    I personally use this program as a rough guide to how well I am
-    writing.  If I'm writing for a general reader, I shoot for a reading
-    level around 8th grade; if I'm writing a technical document to educated
-    readers, I shoot for around 12th grade level.  It took me many years to
-    get out of the habit of writing stilted, hard-to-read text which seems
-    to be favored by academia and the published technical literature.
-    Certainly some of the motivation for this type of writing is that using
-    big words and complex sentences indirectly communicates the author's
-    erudition.  This was fine in graduate school, but in the real,
+    I use this program as a guide to how well I am writing.  If I'm writing
+    for a general reader, I shoot for a reading level around 8th grade; if
+    I'm writing a technical document to educated readers, I shoot for
+    around 12th grade level.  It took me many years to get out of the habit
+    of writing stilted, hard-to-read text which seems to be favored by
+    academia and the published technical literature.  Certainly some of the
+    motivation for this type of writing is that using big words and complex
+    sentences indirectly communicates the author's erudition.  This was
+    fine in graduate school for writing academic papers, but in the 
     practical world, it simply turns readers off and lowers comprehension
     (or, worse, a busy executive will simply stop reading your material and
     you haven't communicated anything at all except your lack of writing
@@ -97,12 +97,6 @@ Calculate various readability indices for a set of files
     
             ((words/sentence) + 100*(complex words/words))*0.4
     
-        The formula can be easily modified to produce a Gunning-Fog index
-        result with any length sample. Simply multiply the standard result
-        by 100/(words in sample). The resultant formula wil be:
-    
-        ((words/sentence) + 100*(complex words/words))*0.4*100/(words in sample)
-    
         While the index is a good indication of reading difficulty, it still
         has flaws. Not all multisyllabic words are difficult. For example, the
         word spontaneous is generally not considered to be a difficult word,
@@ -123,6 +117,8 @@ Calculate various readability indices for a set of files
         3. Add #1 and #2 together, and subtract 21.43.
     
         (4.71 * characters/word) + (0.5 * words/sentence) - 21.43
+
+        Gives an approximate US grade level.
     
     Coleman-Liau Index
     
@@ -138,6 +134,8 @@ Calculate various readability indices for a set of files
     
         (5.89 * characters/word) - (0.3 * sentences)/(100 * words) -15.8
     
+        Gives an approximate US grade level.
+
     Flesch-Kincaid Reading Ease
     
         From http://en.wikipedia.org/wiki/Flesch-Kincaid_Readability_Test
@@ -222,7 +220,7 @@ Calculate various readability indices for a set of files
     
         3. Take the square root of the resultant number.
     
-        4. Add 3 to the resultant number.
+        4. Multiply by 1.0430 and add 3.1291 to the resultant number.
     
     FORCAST Readability Formula
     
@@ -244,6 +242,9 @@ Calculate various readability indices for a set of files
     
         "The FORCAST Readability Formula." Pennsylvania State University
         Nutrition Center, Bridge to Excellence Conference, 1992.
+
+        5 Feb 2023:  I removed this metric from the script's output, as I
+        think the other ones are better.
 '''
 if 1:  # Copyright, license
     # These "trigger strings" can be managed with trigger.py
@@ -310,7 +311,6 @@ if 1:   # Utility
           CL   = Coleman-Liau Index
           FKGL = Flesch-Kincaid Grade Level
           SMOG = SMOG Index
-          FORC = FORCAST Readability Formula
         See the comments in the program code for formulas and references.
         ''', n=6))
         print(dedent(f'''
@@ -428,7 +428,9 @@ if 1:   # Core functionality
         ASW = syllables/words
         return 0.39*ASL + 11.8*ASW - 15.59
     def SMOGIndex(complex_words, sentences):
-        return sqrt(30*complex_words/sentences) + 3
+        # Updated from wikipedia page 5 Feb 2023 (constant in front of
+        # radical no longer 1 and constant of 3 updated)
+        return 1.0430*sqrt(30*complex_words/sentences) + 3.1291
     def FORCASTReadabilityFormula(words, one_syllable_words):
         N = words/150
         return 20 - (one_syllable_words/N)/10
@@ -464,13 +466,6 @@ if 1:   # Core functionality
         except Exception:
             num = GuessSyllables(word)
         return num
-    def PrintHeader():
-        if dbg:
-            print("     C      W    CW     OS    SY  SENT   FOG   ARI",
-                end=" ")
-            print("   CL  FKRE  FKGL  SMOG  FORC")
-        else:
-            print("  FOG   ARI    CL  FKRE  FKGL  SMOG  FORC")
     def CountStats(text):
         '''For a set string of text, return a tuple of the following items:
             number of characters
@@ -500,6 +495,13 @@ if 1:   # Core functionality
                 one_syllable_words += 1
         return (characters, words, complex_words, one_syllable_words,
                 syllables, sentences)
+    def PrintHeader():
+        if dbg:
+            print("     C      W    CW     OS    SY  SENT   FOG   ARI",
+                end=" ")
+            print("   CL  FKRE  FKGL  SMOG")
+        else:
+            print("  FOG   ARI    CL  FKRE  FKGL  SMOG")
     def PrintResults(stats, file):
         (characters, words, complex_words, one_syllable_words, 
             syllables, sentences) = stats
@@ -509,11 +511,12 @@ if 1:   # Core functionality
         fkre = FleschKincaidReadingEase(words, syllables, sentences)
         fkgl = FleschKincaidGradeLevel(words, syllables, sentences)
         smog = SMOGIndex(complex_words, sentences)
-        forc = FORCASTReadabilityFormula(words, one_syllable_words)
+        #forc = FORCASTReadabilityFormula(words, one_syllable_words)
         if dbg:
             print("%6d %6d %5d %6d %5d %5d" % stats, end=" ")
-        fmt = "%5.1f " * 7
-        print(fmt % (fog, ari, cl, fkre, fkgl, smog, forc), end=" ")
+        n = 6
+        fmt = "%5.1f "*n if d["-p"] else "%5.0f "*n
+        print(fmt % (fog, ari, cl, fkre, fkgl, smog), end=" ")
         print(file)
 if __name__ == "__main__":
     d = {}      # Options dictionary
@@ -521,6 +524,10 @@ if __name__ == "__main__":
     PrintHeader()
     for file in files:
         stats = CountStats(open(file).read())
+        if 0:
+            print("characters, words, complex_words, one_syllable_words, syllables, sentences")
+            print(stats)
+            exit()#xx
         if not stats[-1]:
             print(f"No sentences in '{file}'")
             exit(1)

@@ -1,5 +1,6 @@
 '''
-Change Unicode characters to nearest ASCII equivalents
+Change Unicode characters to nearest ASCII equivalents.  Also provides the
+function IsASCII() to determine if a string is all ASCII characters.
 '''
 
 if 1:  # Copyright, license
