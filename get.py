@@ -901,6 +901,10 @@ if 1:   # Miscellaneous
                 elif not unit:
                     return s, value
     GetWireDiameter.input = None    # Used for self tests
+    def GetFileSize(file):
+        p = pathlib.Path(file)
+        s = p.stat()
+        return s.st_size
 
 if __name__ == "__main__": 
     # Regression tests

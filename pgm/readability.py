@@ -246,46 +246,48 @@ Calculate various readability indices for a set of files
         5 Feb 2023:  I removed this metric from the script's output, as I
         think the other ones are better.
 '''
-if 1:  # Copyright, license
-    # These "trigger strings" can be managed with trigger.py
-    #∞copyright∞# Copyright (C) 2005 Don Peterson #∞copyright∞#
-    #∞contact∞# gmail.com@someonesdad1 #∞contact∞#
-    #∞license∞#
-    #   Licensed under the Open Software License version 3.0.
-    #   See http://opensource.org/licenses/OSL-3.0.
-    #∞license∞#
-    #∞what∞#
-    # Calculate various readability indices for a set of files
-    #∞what∞#
-    #∞test∞# #∞test∞#
-    pass
-if 1:   # Imports
-    from math import sqrt
-    from pdb import set_trace as xx
-    import getopt
-    import os
-    import pathlib
-    import re
-    import sys
-if 1:   # Custom imports
-    from wrap import dedent
-    # Load a dictionary of number of syllables if available (otherwise,
-    # the number of syllables in each word will be found by the function
-    # GuessSyllables.  The words_syllables module contains two
-    # dictionaries that greatly speed up getting the number of syllables
-    # per word.  See the docstring.
-    try:
-        from words_syllables import syllables as S, multiple_syllables as MS
-    except ImportError:
+if 1:   # Header
+    if 1:  # Copyright, license
+        # These "trigger strings" can be managed with trigger.py
+        #∞copyright∞# Copyright (C) 2005 Don Peterson #∞copyright∞#
+        #∞contact∞# gmail.com@someonesdad1 #∞contact∞#
+        #∞license∞#
+        #   Licensed under the Open Software License version 3.0.
+        #   See http://opensource.org/licenses/OSL-3.0.
+        #∞license∞#
+        #∞what∞#
+        # Calculate various readability indices for a set of files
+        #∞what∞#
+        #∞test∞# #∞test∞#
         pass
-if 1:   # Global variables
-    P = pathlib.Path
-    ii = isinstance
-    # If true, print out more details
-    dbg = 0
-    common_abbreviations = (
-        "mr", "mrs", "ms", "dr", "no", "mssr", "st", "ave"
-    )
+    if 1:   # Imports
+        import getopt
+        import math
+        import os
+        from pathlib import Path as P
+        import re
+        import sys
+    if 1:   # Custom imports
+        if 0:
+            import debug
+            debug.SetDebugger()
+        from wrap import dedent
+        from color import Color, TRM as t
+        import get
+        # Load a dictionary of number of syllables if available (otherwise,
+        # the number of syllables in each word will be found by the function
+        # GuessSyllables.  The words_syllables module contains two
+        # dictionaries that greatly speed up getting the number of syllables
+        # per word.  See the docstring.
+        try:
+            from words_syllables import syllables as S, multiple_syllables as MS
+        except ImportError:
+            pass
+    if 1:   # Global variables
+        ii = isinstance
+        common_abbreviations = (
+            "mr", "mrs", "ms", "dr", "no", "mssr", "st", "ave"
+        )
 if 1:   # Utility
     def Error(*msg, status=1):
         print(*msg, file=sys.stderr)
@@ -293,51 +295,110 @@ if 1:   # Utility
     def Usage(status=1):
         print(dedent(f'''
         Usage:  {sys.argv[0]} file1 [file2...]
-          Prints readability statistics for text files.
+          Prints readability statistics for text files.  The number of '+'
+          after the file name is ceil(log10(file_size)).
         '''))
-        if dbg:
-            print(dedent(f'''
-        C    = number of characters in words
-        W    = number of words
-        CW   = number of complex words (3 or more syllables)
-        SY   = number of syllables
-        SENT = number of sentences'''))
         print(dedent(f'''
-          FKRE = Flesch-Kincaid Reading Ease
-            0-100, higher numbers mean easier to read
-        The following numbers are the approximate reading level in US grade level:
-          FOG  = Gunning Fog Index
-          ARI  = Automated Readability Index
-          CL   = Coleman-Liau Index
-          FKGL = Flesch-Kincaid Grade Level
-          SMOG = SMOG Index
-        See the comments in the program code for formulas and references.
+          FKGL = Flesch-Kincaid Grade Level *
+          Fog  = Gunning Fog Index *
+          FRES = Flesch-Kincaid Reading Ease (0-100, 100 easy)
+          ARI  = Automated Readability Index *
+          CL   = Coleman-Liau Index *
+          SMOG = SMOG Index *
+          * means a number that is a US grade level
         ''', n=6))
         print(dedent(f'''
         Options
-          -d    Turn on debug printing
+          -C    Print color key
+          -c    Colorize the statistics
+          -d    Turn on debug printing (shows more data)
           -p    Print to one decimal place (integer is default)
+          -t    Run self-tests
         '''))
         exit(status)
     def ParseCommandLine(d):
+        d["-C"] = False     # Print color key
+        d["-c"] = False     # Print in color
         d["-d"] = False     # Debug output
         d["-p"] = False     # Print to 1 decimal place
-        if len(sys.argv) < 2:
-            Usage(1)
+        d["-t"] = False     # Run self-tests
         try:
-            opts, files = getopt.getopt(sys.argv[1:], "dhp", "help")
+            opts, files = getopt.getopt(sys.argv[1:], "Ccdhpt", "help")
         except getopt.GetoptError as e:
             print(str(e))
             exit(1)
         for o, a in opts:
-            if o[1] in list("dp"):
+            if o[1] in list("Ccdpt"):
                 d[o] = not d[o]
             elif o in ("-h", "--help"):
                 Usage(status=0)
-        if d["-d"]:
-            global dbg
-            dbg = True
+        GetColor()
+        if d["-t"]:
+            exit(SelfTests())
+        if not files:
+            Usage(1)
         return files
+    def Clamp(x, low, high):
+        'Return a number on [low, high]'
+        return min(max(low, x), high)
+    def GetColor():
+        t.easy = t("purl") if d["-c"] else ""
+        t.std = t("grnl") if d["-c"] else ""
+        t.med = t("yell") if d["-c"] else ""
+        t.medhard = t("ornl") if d["-c"] else ""
+        t.hard = t("redl") if d["-c"] else ""
+        t.N = t.n if d["-c"] else ""
+if 1:   # Testing
+    def SelfTests():
+        'Return 0 for pass, number of failures for fail'
+        # Note:  the formulas written below were independently written from
+        # the wikipedia web pages without looking at the script's
+        # implementation.
+        fail = 0
+        p = P(sys.argv[0]).parent
+        # This file's data came from "The Martian"
+        file = p/"readability.txt"
+        s = open(file).read()
+        (characters, words, complex_words, one_syllable_words,
+                syllables, sentences) = CountStats(s)
+        #print(characters, words, complex_words, one_syllable_words, syllables, sentences)
+        assert(characters == 2414)
+        assert(words == 578)
+        assert(complex_words == 38)
+        assert(one_syllable_words == 414)
+        assert(syllables == 791)
+        assert(sentences == 55)
+        # FKGL https://en.wikipedia.org/wiki/Flesch%E2%80%93Kincaid_readability_tests
+        fkgl = FleschKincaidGradeLevel(words, syllables, sentences)
+        expected = 0.39*words/sentences + 11.8*syllables/words - 15.59
+        if fkgl != expected:
+            fail += 1
+        # Fog https://en.wikipedia.org/wiki/Gunning_fog_index
+        fog = GunningFogIndex(words, sentences, complex_words)
+        expected = 0.4*(words/sentences + 100*complex_words/words)
+        if fog != expected:
+            fail += 1
+        # FRES https://en.wikipedia.org/wiki/Flesch%E2%80%93Kincaid_readability_tests
+        fres = FleschReadingEaseScore(words, syllables, sentences)
+        expected = 206.835 - 1.015*words/sentences - 84.6*syllables/words
+        if fres != expected:
+            fail += 1
+        # ARI http://en.wikipedia.org/wiki/Automated_Readability_Index
+        ari = AutomatedReadabilityIndex(characters, words, sentences)
+        expected = 4.71*characters/words + 0.5*words/sentences - 21.43
+        if ari != expected:
+            fail += 1
+        # CL http://en.wikipedia.org/wiki/Coleman-Liau_Index
+        cl = ColemanLiauIndex(characters, words, sentences)
+        expected = 0.0588*100*characters/words - 0.296*100*sentences/words - 15.8
+        if cl != expected:
+            fail += 1
+        # SMOG http://en.wikipedia.org/wiki/SMOG_Index
+        smog = SMOGIndex(complex_words, sentences)
+        expected = 1.043*math.sqrt(complex_words*30/sentences) + 3.1291
+        if smog != expected:
+            fail += 1
+        return fail
 if 1:   # Core functionality
     def GuessSyllables(word):
         "Guess the number of syllables in a word"
@@ -414,26 +475,31 @@ if 1:   # Core functionality
     def GunningFogIndex(words, sentences, complex_words):
         ASL = words/sentences
         PCW = 100*complex_words/words
-        return 0.4*(ASL + PCW)
+        fog = 0.4*(ASL + PCW)
+        return Clamp(fog, 0, 9999)
     def AutomatedReadabilityIndex(characters, words, sentences):
-        return 4.71*characters/words + 0.5*words/sentences - 21.43
+        ari = 4.71*characters/words + 0.5*words/sentences - 21.43
+        return Clamp(ari, 0, 9999)
     def ColemanLiauIndex(characters, words, sentences):
-        return 5.89*characters/words - 0.3*sentences/(100*words) - 15.8
-    def FleschKincaidReadingEase(words, syllables, sentences):
-        ASW = syllables/words
-        ASL = words/sentences
-        return 206.835 - 1.015*ASL - 84.6*ASW
+        CL = 0.0588*100*characters/words - 0.296*100*sentences/words - 15.8
+        return Clamp(CL, 0, 9999)
+    def FleschReadingEaseScore(words, syllables, sentences):
+        fres = 206.835 - 1.015*words/sentences - 84.6*syllables/words
+        return Clamp(fres, 0, 9999)
     def FleschKincaidGradeLevel(words, syllables, sentences):
         ASL = words/sentences
         ASW = syllables/words
-        return 0.39*ASL + 11.8*ASW - 15.59
+        fkgl = 0.39*ASL + 11.8*ASW - 15.59
+        return Clamp(fkgl, 0, 9999)
     def SMOGIndex(complex_words, sentences):
         # Updated from wikipedia page 5 Feb 2023 (constant in front of
         # radical no longer 1 and constant of 3 updated)
-        return 1.0430*sqrt(30*complex_words/sentences) + 3.1291
+        smog = 1.0430*math.sqrt(30*complex_words/sentences) + 3.1291
+        return Clamp(smog, 0, 9999)
     def FORCASTReadabilityFormula(words, one_syllable_words):
         N = words/150
-        return 20 - (one_syllable_words/N)/10
+        forcast = 20 - (one_syllable_words/N)/10
+        return Clamp(forcast, 0, 9999)
     def EndOfSentence(word):
         '''Return 1 if the word is the end of a sentence.
         '''
@@ -496,28 +562,71 @@ if 1:   # Core functionality
         return (characters, words, complex_words, one_syllable_words,
                 syllables, sentences)
     def PrintHeader():
-        if dbg:
-            print("     C      W    CW     OS    SY  SENT   FOG   ARI",
-                end=" ")
-            print("   CL  FKRE  FKGL  SMOG")
+        if d["-d"]:
+            print(f"{'Chars':>7s}", end=" ")
+            print(f"{'Words':>6s}", end=" ")
+            print(f"{'CpxWrd':>6s}", end=" ")
+            print(f"{'OneSyl':>6s}", end=" ")
+            print(f"{'Syl':>6s}", end=" ")
+            print(f"{'Sent':>6s}", end=" ")
+        print(f"{'FKGL':>6s}", end=" ")
+        print(f"{'Fog':>6s}", end=" ")
+        print(f"{'FRES':>6s}", end=" ")
+        print(f"{'ARI':>6s}", end=" ")
+        print(f"{'CL':>6s}", end=" ")
+        print(f"{'SMOG':>6s}", end=" ")
+        print()
+    def Print(gradelevel, n, fmt, metric):
+        if metric == "fres":
+            if gradelevel >= 70:
+                c = t.easy
+            elif gradelevel >= 60:
+                c = t.std
+            elif gradelevel >= 50:
+                c = t.med
+            elif gradelevel >= 30:
+                c = t.medhard
+            else:
+                c = t.hard
         else:
-            print("  FOG   ARI    CL  FKRE  FKGL  SMOG")
+            if gradelevel <= 7:
+                c = t.easy
+            elif gradelevel <= 10:
+                c = t.std
+            elif gradelevel <= 12:
+                c = t.med
+            elif gradelevel <= 16:
+                c = t.medhard
+            else:
+                c = t.hard
+        s = fmt % gradelevel
+        print(f"{c}{s:{n}s}{t.N}", end="")
     def PrintResults(stats, file):
         (characters, words, complex_words, one_syllable_words, 
             syllables, sentences) = stats
         fog = GunningFogIndex(words, sentences, complex_words)
         ari = AutomatedReadabilityIndex(characters, words, sentences)
         cl = ColemanLiauIndex(characters, words, sentences)
-        fkre = FleschKincaidReadingEase(words, syllables, sentences)
+        fres = FleschReadingEaseScore(words, syllables, sentences)
         fkgl = FleschKincaidGradeLevel(words, syllables, sentences)
         smog = SMOGIndex(complex_words, sentences)
         #forc = FORCASTReadabilityFormula(words, one_syllable_words)
-        if dbg:
-            print("%6d %6d %5d %6d %5d %5d" % stats, end=" ")
+        if d["-d"]:
+            print("%7d %6d %6d %6d %6d %6d" % stats, end=" ")
         n = 6
-        fmt = "%5.1f "*n if d["-p"] else "%5.0f "*n
-        print(fmt % (fog, ari, cl, fkre, fkgl, smog), end=" ")
-        print(file)
+        fmt = f"%{n}.1f " if d["-p"] else f"%{n}.0f "
+        Print(fkgl, n, fmt, "fkgl")
+        Print(fog, n, fmt, "fog")
+        Print(fres, n, fmt, "fres")
+        Print(ari, n, fmt, "ari")
+        Print(cl, n, fmt, "cl")
+        Print(smog, n, fmt, "smog")
+        print(file, end=" ")
+        # Print "+"*n where n is ceil(log(file_size))
+        sz = get.GetFileSize(file)
+        n = math.ceil(math.log10(sz))
+        print("+"*n)
+
 if __name__ == "__main__":
     d = {}      # Options dictionary
     files = ParseCommandLine(d)

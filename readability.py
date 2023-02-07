@@ -2,12 +2,19 @@
 Library to calculate common readability estimates
 
 ToDo
+    - Needed options
+        - Warn when a file contains non-ASCII characters
+        - ASCIIfy the file's data
+        - Remove a set of words from a file or sequence
+        - Change ';' to '.'.  In most prose, this is probably appropriate
+          unless it's usage like 'France, 3; UK, 2;...'.  Note that speech
+          never uses a semicolon.
     - Colorize the results for grade level.  There are two target
       audiences:
         - Educated adults (e.g., has a college degree)
-            - purl:  easy (<= grade 7)              Lower grammar school
-            - grnl:  standard (<= grade 8-10)       Upper grammar school/lower high school
-            - yell:  medium (<= grade 11-12)        Upper high school
+            - purl:  easy (<= grade 7)
+            - grnl:  standard (<= grade 8-10)
+            - yell:  medium (<= grade 11-12)
             - ornl:  medium-hard (<= grade 13-16)   College
             - redl:  hard (> grade 16)              Graduate school
         - Average adult
@@ -16,18 +23,27 @@ ToDo
             - yell:  medium (<= grade 9-10)
             - ornl:  medium-hard (<= grade 11-12)
             - redl:  hard (> grade 12)
-    - Add a method that allows you to remove a set of words.  This might be
-      appropriate in a technical document that uses lots of words that won't be in
-      typical dictionaries or have lots of syllables.  While this will skew the
-      results a bit, it may represent the overall writing's characteristics better.
-    - Include in the manpage the scores from a number of popular texts such as pnp,
-      Tom Sawyer, etc.
-    - 22 Jul 2021:  "Pride and Prejudice" has a FKGL of around 12th grade, senior in
-      high school.  "Tom Sawyer" is about 8th grade level.  A surprise was Andy
-      Weir's "The Martian" is about 5th grade level.  It's an eminently readable book
-      and I wouldn't have guessed it would have such a low readability score.  It's
-      probably a combination of lots of short sentences and avoiding the use of long
-      words.
+    - Include in the manpage the scores from a number of popular texts such
+      as pnp, Tom Sawyer, etc.
+        - 22 Jul 2021:  "Pride and Prejudice" has a FKGL of around 12th
+          grade, senior in high school.  "Tom Sawyer" is about 8th grade
+          level.  A surprise was Andy Weir's "The Martian" is about 5th
+          grade level.  It's an eminently readable book and I wouldn't have
+          guessed it would have such a low readability score.  It's
+          probably a combination of lots of short sentences and avoiding
+          the use of long words.
+    - This should be both my readability script and a library.
+        - Default
+            - Fog
+            - FKGL
+        - Optional
+            - ARI
+            - CL
+            - FRES
+            - SMOG
+        - Consider an option that prints out x where x =
+          math.ceil(log(characters)) and x is a superscript after the file
+          name.
 
 Observations
     - I tried to use a Readability class, but performance fell by about a factor of 2
@@ -83,48 +99,54 @@ Observations
 Algorithms
     - Gunning Fog Index
         - From http://en.wikipedia.org/wiki/Gunning_Fog_Index
-        - 1. Take a full passage that is around 100 words (do not omit any
-          sentences).
-        - 2. Find the average sentence length (divide the number of words by the
-          number of sentences).
-        - 3. Count words with three or more syllables (complex words), not including
-          proper nouns (for example, Djibouti), compound words, or common suffixes
-          such as -es, -ed, or -ing as a syllable, or familiar jargon.
-        - 4. Add the average sentence length and the percentage of complex words
-          (ex., +13.37%, not simply + .1337)
-        - 5. Multiply the result by 0.4
-        - The formula is 0.4*((words/sentence) + 100*(complex words/words))
-        - While the index is a good indication of reading difficulty, it still has
-          flaws.  Not all multisyllabic words are difficult. For example, the word
-          spontaneous is generally not considered to be a difficult word, even though
-          it has four syllables.
+        - Method
+            - 1. Take a full passage that is around 100 words (do not omit
+              any sentences).
+            - 2. Find the average sentence length (divide the number of
+              words by the number of sentences).
+            - 3. Count words with three or more syllables (complex words),
+              not including proper nouns (for example, Djibouti), compound
+              words, or common suffixes such as -es, -ed, or -ing as a
+              syllable, or familiar jargon.
+            - 4. Add the average sentence length and the percentage of
+              complex words (ex., +13.37%, not simply + .1337)
+            - 5. Multiply the result by 0.4
+            - The formula is 0.4*((words/sentence) + 100*(complex
+              words/words))
+        - While the index is a good indication of reading difficulty, it
+          still has flaws.  Not all multisyllabic words are difficult. For
+          example, the word spontaneous is generally not considered to be a
+          difficult word, even though it has four syllables.
     - Automated Readability Index
         - From http://en.wikipedia.org/wiki/Automated_Readability_Index
-        - To calculate the Automated Readability Index:
-        - 1. Divide the number of characters by the number of words, and multiply by
-          4.71. This is A.
-        - 2. Divide the number of words by the number of sentences, and multiply by
-          0.5. This is B.
-        - 3. Add A and B together, and subtract 21.43.
-        - Index = (4.71*characters/word) + (0.5*words/sentence) - 21.43
+        - Method
+            - 1. Divide the number of characters by the number of words,
+              and multiply by 4.71. This is A.
+            - 2. Divide the number of words by the number of sentences, and
+              multiply by 0.5. This is B.
+            - 3. Add A and B together, and subtract 21.43.
+            - Index = (4.71*characters/word) + (0.5*words/sentence) - 21.43
     - Coleman-Liau Index
         - From http://en.wikipedia.org/wiki/Coleman-Liau_Index
-        - 1. Divide the number of characters by the number of words, and multiply by
-          5.89. This is #1.
-        - 2. Divide (0.3 times the number of sentences) by 100 times the number of
-          words. This is #2.
-        - 3. Subtract #2 from #1 together, and subtract 15.8
-        - Index = (5.89*characters/word) - (0.3*sentences)/(100*words) - 15.8
+        - Method
+            - 1. Divide the number of characters by the number of words,
+              and multiply by 5.89. This is #1.
+            - 2. Divide (0.3 times the number of sentences) by 100 times
+              the number of words. This is #2.
+            - 3. Subtract #2 from #1 together, and subtract 15.8
+            - Index = (5.89*characters/word) - (0.3*sentences)/(100*words)
+              - 15.8
     - Flesch Reading Ease Score = FRES
         - From http://en.wikipedia.org/wiki/Flesch-Kincaid_Readability_Test
-        - Scores passages on a scale of 0-100 (can be > 100 and < 0 for pathological
-          cases). Higher scores indicate material that is easier to read; lower
-          numbers mark harder-to-read passages.
+        - Scores passages on a scale of 0-100 (can be > 100 and < 0 for
+          pathological cases). Higher scores indicate material that is
+          easier to read; lower numbers mark harder-to-read passages.
             - Formula:  FRES = 206.835 - 1.015*ASL - 84.6*ASW
         - where
-            - ASW = average number of syllables per word (total syllables)/(total
-              words)
-            - ASL = average sentence length = (total words)/(total sentences)
+            - ASW = average number of syllables per word (total
+              syllables)/(total words)
+            - ASL = average sentence length = (total words)/(total
+              sentences)
         - Interpretation
             - > 90:  understandable by 5th grade
             - 60-70:  understandable by 8th and 9th grades
@@ -132,58 +154,61 @@ Algorithms
             - Reader's Digest:  65
             - Time magazine:  52
             - Harvard Law Review:  low 30's
-        - Has become a U.S. governmental standard.  Many government agencies require
-          documents or forms to meet specific readability levels.  Most states
-          require insurance forms to score 40-50 on the test.  The US DoD uses the
-          Reading Ease test as the standard test of readability for its documents and
-          forms.
+        - Has become a US governmental standard.  Many government agencies
+          require documents or forms to meet specific readability levels.
+          Most states require insurance forms to score 40-50 on the test.
+          The US DoD uses the Reading Ease test as the standard test of
+          readability for its documents and forms.
     - Flesch-Kincaid Grade Level = FKGL
         - From http://en.wikipedia.org/wiki/Flesch-Kincaid_Readability_Test
-        - An obvious use for readability tests is in the field of education.  The
-          "Flesch-Kincaid Grade Level Formula" translates the 0-100 score to a US
-          grade level, making it easier for teachers, parents, librarians, and others
-          to judge the readability level of various books and texts.  The grade level
-          is calculated with the following formula:
+        - An obvious use for readability tests is in the field of
+          education.  The "Flesch-Kincaid Grade Level Formula" translates
+          the 0-100 score to a US grade level, making it easier for
+          teachers, parents, librarians, and others to judge the
+          readability level of various books and texts.
+        - Method
             - GL = 0.39*ASL + 11.8*ASW
             - where
                 - ASW = average number of syllables per word = (total
                   syllables)/(total words)
-                - ASL = average sentence length = (total words)/(total sentences)
-        - The result is a number that corresponds with a grade level. For example, a
-          score of 6.1 would indicate that the text is understandable by an average
-          student in 6th grade.
-
+                - ASL = average sentence length = (total words)/(total
+                  sentences)
+        - The result is a number that corresponds with a grade level. For
+          example, a score of 6.1 would indicate that the text is
+          understandable by an average student in 6th grade.
     - SMOG Index
         - From http://en.wikipedia.org/wiki/SMOG_Index
-        - McLaughlin, G. (1969), "SMOG grading: A new readability formula", Journal
-          of Reading, 12 (8) 639-646
+        - McLaughlin, G. (1969), "SMOG grading: A new readability formula",
+          Journal of Reading, 12 (8) 639-646
         - The SMOG Index is a readability test designed to gauge the
           understandability of a text. Like the Flesch-Kincaid Grade Level,
-          Gunning-Fog Index, Automated Readability Index, and Coleman-Liau Index, its
-          output is an approximate representation of the US grade level needed to
-          comprehend the text.
-        - To calculate the SMOG Index:
-            - 1. Count the number of complex words (words containing 3 or more
-              syllables).
-            - 2. Multiply the number of complex words by a factor of (30/number of
-              sentences).
+          Gunning-Fog Index, Automated Readability Index, and Coleman-Liau
+          Index, its output is an approximate representation of the US
+          grade level needed to comprehend the text.
+        - Method
+            - 1. Count the number of complex words (words containing 3 or
+              more syllables).
+            - 2. Multiply the number of complex words by a factor of
+              (30/number of sentences).
             - 3. Take the square root of the resultant number.
             - 4. Add 3 to the resultant number.
     - FORCAST Readability Formula
         - From http://agcomwww.tamu.edu/market/training/power/readabil.html
-        - FORCAST is a new readability formula designed especially for technical
-          materials. It is not meant for traditional high school reading matter,
-          newspapers, magazines, or books of fiction.  It is simpler and faster to
-          use than other readability formulas and, according to its authors, is more
-          accurate for technical writing. It can be used to analyze a single passage,
-          a group of passages, or a random series of selections from a large body of
-          technical material.
-        - Algorithm
-            - 1. Count the number of one-syllable words in a 150-word passage.
+        - FORCAST is a new readability formula designed especially for
+          technical materials. It is not meant for traditional high school
+          reading matter, newspapers, magazines, or books of fiction.  It
+          is simpler and faster to use than other readability formulas and,
+          according to its authors, is more accurate for technical writing.
+          It can be used to analyze a single passage, a group of passages,
+          or a random series of selections from a large body of technical
+          material.
+        - Method
+            - 1. Count the number of one-syllable words in a 150-word
+              passage.
             - 2. Divide that number by 10.
             - 3. Subtract the answer from 20.
-        - "The FORCAST Readability Formula." Pennsylvania State University Nutrition
-          Center, Bridge to Excellence Conference, 1992.
+        - "The FORCAST Readability Formula." Pennsylvania State University
+          Nutrition Center, Bridge to Excellence Conference, 1992.
 
 '''
 if 1:   # Header
@@ -482,7 +507,7 @@ if 1:   # Basic routines
         If letters_only is True, then an exception is raised if any
         punctuation characters are found in the word.  This is intended to
         ensure that you're not e.g. examining program code.
-
+ 
         From pyflesch.py script by Seb Bacon.  Downloaded 5 Feb 2023
         https://github.com/sebbacon/pyflesch/blob/master/pyflesch.py.
         I have edited the algorithm.
@@ -594,7 +619,7 @@ if 1:   # Basic routines
         print(file)
     def GetTextInfo(text):
         '''For a string of text, return a TextInfo namedtuple.
-
+ 
         '''
         Assert(ii(text, str))
         # Operate on only lowercase strings.  Note this means we won't
@@ -624,7 +649,7 @@ if 1:   # Basic routines
         for i in s[:-1]:
             Assert(i >= 0)
         return TextInfo(*s)
-if 1:   # Reading metric algorithms
+if 1:   # Readability metric algorithms
     def GunningFogIndex(words, sentences, complex_words):
         ASL = words/sentences
         PCW = 100*complex_words/words
@@ -645,6 +670,14 @@ if 1:   # Reading metric algorithms
             raise ValueError("ARI is < 0")
         return ari
     def ColemanLiauIndex(characters, words, sentences):
+        '''Return an estimate of the US grade level.
+
+        See https://en.wikipedia.org/wiki/Coleman%E2%80%93Liau_index.
+        Formula is 
+            CL = 0.0588*L - 0.296*S - 15.8
+        where
+            L = 100*characters/words
+            S = 100*sentences/words
         return 5.89*characters/words - 0.3*sentences/(100*words) - 15.8
     def FleschKincaidReadingEase(words, syllables, sentences):
         ASW = syllables/words
@@ -743,6 +776,25 @@ if 0:   # Dale-Chall stuff (not working yet)
 if 1:   # Test routines
     def TestGunningFogIndex():
         raise Exception("Needs to be written")
+    def TestCL():
+        # Text from # https://en.wikipedia.org/wiki/Coleman%E2%80%93Liau_index
+        text = '''
+            Existing computer programs that measure readability are based
+            largely upon subroutines which estimate number of syllables,
+            usually by counting vowels. The shortcoming in estimating
+            syllables is that it necessitates keypunching the prose into
+            the computer.  There is no need to estimate syllables since
+            word length in letters is a better predictor of readability
+            than word length in syllables.  Therefore, a new readability
+            formula was computed that has for its predictors letters per
+            100 words and sentences per 100 words. Both predictors can be
+            counted by an optical scanning device, and thus the formula
+            makes it economically feasible for an organization such as the
+            U.S. Office of Education to calibrate the readability of all
+            textbooks for the public school system. '''
+        # The CL index should be (0.0588*537 - 0.296*4.20 - 15.8 = 14.5
+        # There are L = letters/words*100 = 537
+        # S = sentences/words*100 = 4.20
     def TestText():
         # 49% through Tom Sawyer
         return '''About midnight Joe awoke, and called the boys.  There was a brooding

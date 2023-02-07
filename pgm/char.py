@@ -1,4 +1,12 @@
 '''
+
+- Change the letters printout to the following form:
+    Lower   a b c d e f g h i j k l m n o p q r s t u v w x y z
+    Upper   A B C D E F G H I J K L M N O P   R S T U V W   Y Z
+  This makes it easier to see the missing characters.  Do the same for the
+  digits.  Put in a line of '- ' strings to show where the characters go.
+
+---------------------------------------------------------------------------
 Classifies the characters in one or more files by type (e.g., lowercase
 letters, digits, etc.) and prints out a table of the characters present
 in the file(s).  Reads stdin if no files are given on the command line.
