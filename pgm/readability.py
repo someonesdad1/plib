@@ -296,20 +296,24 @@ if 1:   # Utility
         print(dedent(f'''
         Usage:  {sys.argv[0]} file1 [file2...]
           Prints readability statistics for text files.  The number of '+'
-          after the file name is ceil(log10(file_size)).
+          after the file name is ceil(log10(file_size)).  For example, if
+          you see four + symbols, the file has between 1000 and 10000
+          characters.
         '''))
         print(dedent(f'''
-          FKGL = Flesch-Kincaid Grade Level *
-          Fog  = Gunning Fog Index *
-          FRES = Flesch-Kincaid Reading Ease (0-100, 100 easy)
-          ARI  = Automated Readability Index *
-          CL   = Coleman-Liau Index *
-          SMOG = SMOG Index *
+            FKGL = Flesch-Kincaid Grade Level     *
+            FRES = Flesch-Kincaid Reading Ease (0-100, 100 easy)
+          The following are also printed with -a:
+            Fog  = Gunning Fog Index              *
+            ARI  = Automated Readability Index    *
+            CL   = Coleman-Liau Index             *
+            SMOG = SMOG Index                     *
           * means a number that is a US grade level
         ''', n=6))
         print(dedent(f'''
         Options
-          -C    Print color key
+          -a    Print all statistics
+          -C    Print color key (also sets -c)
           -c    Colorize the statistics
           -d    Turn on debug printing (shows more data)
           -p    Print to one decimal place (integer is default)
@@ -317,26 +321,29 @@ if 1:   # Utility
         '''))
         exit(status)
     def ParseCommandLine(d):
+        d["-a"] = False     # Print all statistics
         d["-C"] = False     # Print color key
         d["-c"] = False     # Print in color
         d["-d"] = False     # Debug output
         d["-p"] = False     # Print to 1 decimal place
         d["-t"] = False     # Run self-tests
         try:
-            opts, files = getopt.getopt(sys.argv[1:], "Ccdhpt", "help")
+            opts, files = getopt.getopt(sys.argv[1:], "aCcdhpt", "help")
         except getopt.GetoptError as e:
             print(str(e))
             exit(1)
         for o, a in opts:
-            if o[1] in list("Ccdpt"):
+            if o[1] in list("aCcdpt"):
                 d[o] = not d[o]
             elif o in ("-h", "--help"):
                 Usage(status=0)
-        GetColor()
         if d["-t"]:
             exit(SelfTests())
         if not files:
             Usage(1)
+        if d["-C"]:
+            d["-c"] = True
+        GetColor()
         return files
     def Clamp(x, low, high):
         'Return a number on [low, high]'
@@ -485,7 +492,9 @@ if 1:   # Core functionality
         return Clamp(CL, 0, 9999)
     def FleschReadingEaseScore(words, syllables, sentences):
         fres = 206.835 - 1.015*words/sentences - 84.6*syllables/words
-        return Clamp(fres, 0, 9999)
+        # We clamp to -1 to use -1 for pathological cases where there's
+        # only one sentence.
+        return Clamp(fres, -1, 9999)
     def FleschKincaidGradeLevel(words, syllables, sentences):
         ASL = words/sentences
         ASW = syllables/words
@@ -559,23 +568,8 @@ if 1:   # Core functionality
                 complex_words += 1
             if number_of_syllables == 1:
                 one_syllable_words += 1
-        return (characters, words, complex_words, one_syllable_words,
-                syllables, sentences)
-    def PrintHeader():
-        if d["-d"]:
-            print(f"{'Chars':>7s}", end=" ")
-            print(f"{'Words':>6s}", end=" ")
-            print(f"{'CpxWrd':>6s}", end=" ")
-            print(f"{'OneSyl':>6s}", end=" ")
-            print(f"{'Syl':>6s}", end=" ")
-            print(f"{'Sent':>6s}", end=" ")
-        print(f"{'FKGL':>6s}", end=" ")
-        print(f"{'Fog':>6s}", end=" ")
-        print(f"{'FRES':>6s}", end=" ")
-        print(f"{'ARI':>6s}", end=" ")
-        print(f"{'CL':>6s}", end=" ")
-        print(f"{'SMOG':>6s}", end=" ")
-        print()
+        return [characters, words, complex_words, one_syllable_words,
+                syllables, sentences]
     def Print(gradelevel, n, fmt, metric):
         if metric == "fres":
             if gradelevel >= 70:
@@ -601,6 +595,34 @@ if 1:   # Core functionality
                 c = t.hard
         s = fmt % gradelevel
         print(f"{c}{s:{n}s}{t.N}", end="")
+    def PrintColorKey():
+        print("\nColor key")
+        w = len("medium hard") + 3
+        print(f"{t.easy}{'Easy':<{w}s} Grade 7 or less")
+        print(f"{t.std}{'Standard':<{w}s} Grade 8-10")
+        print(f"{t.med}{'Medium':<{w}s} Grade 11-12")
+        print(f"{t.medhard}{'Medium hard':<{w}s} Undergraduate college")
+        print(f"{t.hard}{'Hard':<{w}s} Graduate-level college")
+    def PrintHeader():
+        if PrintHeader.hdr:
+            return
+        if d["-d"]:
+            print(f"{'Chars':>7s}", end=" ")
+            print(f"{'Words':>6s}", end=" ")
+            print(f"{'CpxWrd':>6s}", end=" ")
+            print(f"{'OneSyl':>6s}", end=" ")
+            print(f"{'Syl':>6s}", end=" ")
+            print(f"{'Sent':>6s}", end=" ")
+        print(f"{'FKGL':>6s}", end=" ")
+        print(f"{'FRES':>6s}", end=" ")
+        if d["-a"]:
+            print(f"{'Fog':>6s}", end=" ")
+            print(f"{'ARI':>6s}", end=" ")
+            print(f"{'CL':>6s}", end=" ")
+            print(f"{'SMOG':>6s}", end=" ")
+        print()
+        PrintHeader.hdr = True
+    PrintHeader.hdr = False
     def PrintResults(stats, file):
         (characters, words, complex_words, one_syllable_words, 
             syllables, sentences) = stats
@@ -611,21 +633,31 @@ if 1:   # Core functionality
         fkgl = FleschKincaidGradeLevel(words, syllables, sentences)
         smog = SMOGIndex(complex_words, sentences)
         #forc = FORCASTReadabilityFormula(words, one_syllable_words)
+        PrintHeader()
         if d["-d"]:
             print("%7d %6d %6d %6d %6d %6d" % stats, end=" ")
         n = 6
         fmt = f"%{n}.1f " if d["-p"] else f"%{n}.0f "
-        Print(fkgl, n, fmt, "fkgl")
-        Print(fog, n, fmt, "fog")
-        Print(fres, n, fmt, "fres")
-        Print(ari, n, fmt, "ari")
-        Print(cl, n, fmt, "cl")
-        Print(smog, n, fmt, "smog")
+        fmt1 = f"%{n}.1f " if d["-p"] else f"%{n-1}.0f. "
+        if d["-a"]:
+            Print(fkgl, n, fmt, "fkgl")
+            Print(fres, n, fmt1, "fres")
+            Print(fog, n, fmt, "fog")
+            Print(ari, n, fmt, "ari")
+            Print(cl, n, fmt, "cl")
+            Print(smog, n, fmt, "smog")
+        else:
+            Print(fkgl, n, fmt, "fkgl")
+            Print(fres, n, fmt1, "fres")
         print(file, end=" ")
         # Print "+"*n where n is ceil(log(file_size))
         sz = get.GetFileSize(file)
         n = math.ceil(math.log10(sz))
         print("+"*n)
+        if d["-C"]:
+            d["-c"] = True
+            GetColor()
+            PrintColorKey()
 
 if __name__ == "__main__":
     d = {}      # Options dictionary
@@ -633,11 +665,5 @@ if __name__ == "__main__":
     PrintHeader()
     for file in files:
         stats = CountStats(open(file).read())
-        if 0:
-            print("characters, words, complex_words, one_syllable_words, syllables, sentences")
-            print(stats)
-            exit()#xx
-        if not stats[-1]:
-            print(f"No sentences in '{file}'")
-            exit(1)
+        stats[-1] = stats[-1] if stats[-1] else 1
         PrintResults(stats, file)
