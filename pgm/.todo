@@ -4,6 +4,11 @@ Active
         - Move notes, password db, etc. to .0rc because it's backed up to
           the cloud
 
+    - pgm/scramble.py
+        - Change to a tool that scrambles the letters of all the words,
+          leaving the punctuation the same.  An option can be used to 
+          leave the first and last letters alone.
+
     - write.py
         - Tool to assess some writing
         - Wikipedia's https://en.wikipedia.org/wiki/Wikipedia:Summary_style

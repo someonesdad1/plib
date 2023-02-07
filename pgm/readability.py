@@ -1,10 +1,10 @@
 '''
 Calculate readability statistics for a set of files
  
-    I use this script to show me the Flesch-Kincaid grade level (FKGL) and
-    the Flesch Reading Ease Score (FRES) for the text files on the command
-    line.  My goal for FKGL for general writing is about 8 and for
-    technical writing about 12 or less.
+    I use this script to show me the estimated Flesch-Kincaid US grade
+    level (FKGL) for the text files on the command line.  For my own
+    writing, I try to have an FKGL score of 8 for general writing and 12 or
+    less for technical writing.
  
     Be cautious in applying the results of a program like this.  These
     readability scores are only rough guides.  They cannot measure many
@@ -13,9 +13,9 @@ Calculate readability statistics for a set of files
     document.  The documents will now be unintelligible, yet these
     readability scores will be unchanged.  These scores know nothing about
     semantics or syntax, the formatting/font of the text, how nice it's
-    visually organized, or the background and motivation of the reader.
-    These and other things are relevent to reading comprehension, yet are
-    beyond the ken of a text-based computer program.
+    visually organized, or the background/motivation of the reader.  These
+    and other things are relevent to reading comprehension, yet are beyond
+    the ken of a text-based computer program.
  
     One of Hemingway's secrets:  "I write one page of masterpiece to
     ninety-one pages of shit.  I try to put the shit in the wastebasket."
@@ -52,7 +52,7 @@ if 1:   # Header
         import re
         import sys
     if 1:   # Custom imports
-        if 0:
+        if 1:
             import debug
             debug.SetDebugger()
         from wrap import dedent
@@ -100,6 +100,7 @@ if 1:   # Utility
           -C    Print color key (also sets -c)
           -c    Colorize the statistics
           -d    Turn on debug printing (shows more data)
+          -h    Print a manpage
           -p    Print to one decimal place (integer is default)
           -t    Run self-tests
         '''))
@@ -120,7 +121,7 @@ if 1:   # Utility
             if o[1] in list("aCcdpt"):
                 d[o] = not d[o]
             elif o in ("-h", "--help"):
-                Usage(status=0)
+                Manpage()
         if d["-t"]:
             exit(SelfTests())
         if not files:
@@ -139,6 +140,51 @@ if 1:   # Utility
         t.medhard = t("ornl") if d["-c"] else ""
         t.hard = t("redl") if d["-c"] else ""
         t.N = t.n if d["-c"] else ""
+    def Manpage():
+        print(dedent(f'''
+
+        This script prints various readability estimates for the text files on the
+        command line.  The estimates are
+
+            FKGL    Flesch-Kincaid Grade Level
+            FRES    Flesch-Kincaid Reading Ease (0-100, 100 easy)
+            Fog     Gunning Fog Index
+            ARI     Automated Readability Index
+            CL      Coleman-Liau Index
+            SMOG    SMOG Index
+
+        Except for FRES, the estimates are in terms of the US school grade level (1-8
+        is grammar school, 9-12 is high school, 13-16 is college and > 16 is
+        post-college-graduate).  The metrics are given as integers, which is
+        appropriate since they are approximate estimates.  You can see one decimal
+        place with the -p option.
+
+        For my own use, I have standardized on using the FKGL estimate to make
+        decisions about readability.  I've found it to be a good tool when used on
+        plain prose with on the order of 1000 words or more.  Because it's a simple
+        statistic, it's not difficult to construct pathological examples.  For
+        example, on the above wikipedia page link, run this script on the Proust
+        sentence and the FKGL will be 233, indicating that this is poor writing from
+        a readability standpoint (and the assessment is correct).  If you use it on
+        plain ASCII prose in English, it gives good guidance.  
+
+        Most of these readability metrics were developed before digital computation
+        resources became common (say, after 1985), so they tended to be metrics that
+        were easy for a human to take a sample and compute manually.
+
+        My use is for assessing readability for writing aimed at educated adults and
+        often technically-educated adults.  
+
+        Some examples
+        -------------
+
+        Other sources
+        -------------
+
+        https://pypi.org/project/py-readability-metrics/#files
+
+        '''))
+        exit(0)
 if 1:   # Testing
     def SelfTests():
         'Return 0 for pass, number of failures for fail'
@@ -394,8 +440,8 @@ if 1:   # Core functionality
             print(f"{'Syl':>6s}", end=" ")
             print(f"{'Sent':>6s}", end=" ")
         print(f"{'FKGL':>6s}", end=" ")
-        print(f"{'FRES':>6s}", end=" ")
         if d["-a"]:
+            print(f"{'FRES':>6s}", end=" ")
             print(f"{'Fog':>6s}", end=" ")
             print(f"{'ARI':>6s}", end=" ")
             print(f"{'CL':>6s}", end=" ")
@@ -414,7 +460,7 @@ if 1:   # Core functionality
         smog = SMOGIndex(complex_words, sentences)
         PrintHeader()
         if d["-d"]:
-            print("%7d %6d %6d %6d %6d %6d" % stats, end=" ")
+            print("%7d %6d %6d %6d %6d %6d" % tuple(stats), end=" ")
         n = 6
         fmt = f"%{n}.1f " if d["-p"] else f"%{n}.0f "
         fmt1 = f"%{n}.1f " if d["-p"] else f"%{n-1}.0f. "
@@ -427,7 +473,6 @@ if 1:   # Core functionality
             Print(smog, n, fmt, "smog")
         else:
             Print(fkgl, n, fmt, "fkgl")
-            Print(fres, n, fmt1, "fres")
         print(file, end=" ")
         # Print "+"*n where n is ceil(log(file_size))
         sz = get.GetFileSize(file)
