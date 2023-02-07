@@ -1,262 +1,46 @@
 '''
-TODO:
-    * Add the usual ParseCommandLine
-    * Update to more modern syntax
-
-Calculate various readability indices for a set of files
-    Changes:
-
-    10 Nov 2019:  I spent time producing the words_syllables.py script,
-    which is basically what used to be in the old words.py file from
-    about 15 years ago; it's made from a CMU corpus in the NLTK (see the
-    script /pylib/pgm/words_syllables_make.py).  The dictionary lookup
-    of the number of syllables decreased the run time on
-    /ebooks/kindle/Twain/*.txt from 52.4 s to 6.6 s, so having the
-    dictionaries is worth the half second or so they take to load.
-
-    22 Sep 2010:  Added test of GuessSyllables().  Changed output to
-    just print nearest integer; this better reflects the approximate
-    nature of the numbers.
+Calculate readability statistics for a set of files
  
-    -------------------------------------------------------------------
-  
-    Note added 22 Sep 2010:  you should be cautious in applying the results
-    of a program like this.  Reading scores are only rough guides; they
-    cannot measure many things that are relevant to reading comprehension.
-    If you don't believe this, randomly shuffle the words in each sentence
-    of a document.  The documents will now almost certainly be
-    unintelligible, yet the typical readability scores will be unchanged.
-    These scores know nothing about semantics or syntax, the
-    formatting/font of the text, how nice it's visually organized, or the
-    background and interest of the reader.  These and other things are
-    relevent to reading comprehension, yet are obviously beyond the ken of
-    a computer program.
-  
-    I use this program as a guide to how well I am writing.  If I'm writing
-    for a general reader, I shoot for a reading level around 8th grade; if
-    I'm writing a technical document to educated readers, I shoot for
-    around 12th grade level.  It took me many years to get out of the habit
-    of writing stilted, hard-to-read text which seems to be favored by
-    academia and the published technical literature.  Certainly some of the
-    motivation for this type of writing is that using big words and complex
-    sentences indirectly communicates the author's erudition.  This was
-    fine in graduate school for writing academic papers, but in the 
-    practical world, it simply turns readers off and lowers comprehension
-    (or, worse, a busy executive will simply stop reading your material and
-    you haven't communicated anything at all except your lack of writing
-    ability).  Track down how-to-write documents like the one from Malcom
-    Forbes of Forbes Magazine -- he'll give you valuable advice on how to
-    communicate clearly.  It's entitled "How to Write a Business Letter",
-    but it's sound advice for any type of writing.  Also find "How to Write
-    Clearly" by Edward Thompson, Editor-in-Chief, Reader's Digest, and
-    "Writing that Works" by Kenneth Roman and Joel Raphaelson.  Also use
-    references like Strunk & White or the Chicago Manual of Style --
-    getting the details right means you care about both the craft of
-    writing and your reader.
-  
-    Or, if you're averse to books, do a web search on "how to write well".
-    You'll get many useful web pages, and, as is common for the web, much
-    junk.
-    
+    I use this script to show me the Flesch-Kincaid grade level (FKGL) and
+    the Flesch Reading Ease Score (FRES) for the text files on the command
+    line.  My goal for FKGL for general writing is about 8 and for
+    technical writing about 12 or less.
+ 
+    Be cautious in applying the results of a program like this.  These
+    readability scores are only rough guides.  They cannot measure many
+    things that are relevant to reading comprehension.  If you don't
+    believe this, randomly shuffle the words in each sentence of a
+    document.  The documents will now be unintelligible, yet these
+    readability scores will be unchanged.  These scores know nothing about
+    semantics or syntax, the formatting/font of the text, how nice it's
+    visually organized, or the background and motivation of the reader.
+    These and other things are relevent to reading comprehension, yet are
+    beyond the ken of a text-based computer program.
+ 
     One of Hemingway's secrets:  "I write one page of masterpiece to
     ninety-one pages of shit.  I try to put the shit in the wastebasket."
-    
-    Update 22 Jul 2021:  As mentioned, I still find this script as a useful
-    gauge for my writing.  The measure I use the most is the Flesch-Kincaid
-    grade level, rounded to an integer.  Interestingly, a novel like "Pride
-    and Prejudice" has a FKGL of around 12th grade, senior in high school.
-    "Tom Sawyer" is about 8th grade level.  A real surprise was Andy Weir's 
-    "The Martian" is about 5th grade level.  It's an eminently readable book
-    and I wouldn't have guessed it would have such a low readability score.
-    It's probably a combination of lots of short sentences and avoiding the
-    use of long words.
-    
-    -----------------------------------------------------------------------
-    
-    Gunning Fog Index
-    
-        From http://en.wikipedia.org/wiki/Gunning_Fog_Index
-    
-        1. Take a full passage that is around 100 words (do not omit any
-            sentences).
-    
-        2. Find the average sentence length (divide the number of words by
-            the number of sentences).
-    
-        3. Count words with three or more syllables (complex words), not
-            including proper nouns (for example, Djibouti), compound words,
-            or common suffixes such as -es, -ed, or -ing as a syllable, or
-            familiar jargon.
-    
-        4. Add the average sentence length and the percentage of complex
-            words (ex., +13.37%, not simply + .1337)
-    
-        5. Multiply the result by 0.4
-    
-        The complete formula is as follows:
-    
-            ((words/sentence) + 100*(complex words/words))*0.4
-    
-        While the index is a good indication of reading difficulty, it still
-        has flaws. Not all multisyllabic words are difficult. For example, the
-        word spontaneous is generally not considered to be a difficult word,
-        even though it has four syllables.
-    
-    Automated Readability Index
-    
-        From http://en.wikipedia.org/wiki/Automated_Readability_Index
-    
-        To calculate the Automated Readability Index:
-    
-        1. Divide the number of characters by the number of words, and
-            multiply by 4.71. This is #1.
-    
-        2. Divide the number of words by the number of sentences, and
-            multiply by 0.5. This is #2.
-    
-        3. Add #1 and #2 together, and subtract 21.43.
-    
-        (4.71 * characters/word) + (0.5 * words/sentence) - 21.43
-
-        Gives an approximate US grade level.
-    
-    Coleman-Liau Index
-    
-        From http://en.wikipedia.org/wiki/Coleman-Liau_Index
-    
-        1. Divide the number of characters by the number of words, and
-            multiply by 5.89. This is #1.
-    
-        2. Divide (0.3 times the number of sentences) by 100 times the
-            number of words. This is #2.
-    
-        3. Subtract #2 from #1 together, and subtract 15.8
-    
-        (5.89 * characters/word) - (0.3 * sentences)/(100 * words) -15.8
-    
-        Gives an approximate US grade level.
-
-    Flesch-Kincaid Reading Ease
-    
-        From http://en.wikipedia.org/wiki/Flesch-Kincaid_Readability_Test
-    
-        One of the tests is known as the "Flesch-Kincaid Reading Ease" test.
-        It scores passages on a scale of 0-100. Higher scores indicate
-        material that is easier to read; lower numbers mark harder-to-read
-        passages. The formula for the Flesch Reading Ease Score (FRES) test
-        is:
-    
-            FRES = 206.835 - 1.015*ASL - 84.6*ASW
-    
-        where
-    
-            ASW = average number of syllables per word
-                = (total syllables)/(total words)
-    
-            ASL = average sentence length
-                = (total words)/(total sentences)
-    
-        As a rule of thumb, scores of 90-100 are considered easily
-        understandable by an average 5th grader.  8th and 9th grade students
-        could easily understand passages with a score of 60-70, and passage
-        with results of 0-30 are best understood by college graduates.
-        Reader's Digest magazine has a readability index of about 65, Time
-        magazine scores about 52, and the Harvard Law Review has a general
-        readability score in the low 30s.
-    
-        This test has become a U.S. governmental standard.  Many government
-        agencies require documents or forms to meet specific readability
-        levels.  Most states require insurance forms to score 40-50 on the
-        test.  The U.S. Department of Defense uses the Reading Ease test as
-        the standard test of readability for its documents and forms.  The
-        test is so ubiquitous that it is bundled with the popular word
-        processing programs KWord and Microsoft Word.
-    
-    Flesch-Kincaid Grade Level FKGL
-    
-        From http://en.wikipedia.org/wiki/Flesch-Kincaid_Readability_Test
-    
-        An obvious use for readability tests is in the field of education.
-        The "Flesch-Kincaid Grade Level Formula" translates the 0-100 score
-        to a U.S. grade level, making it easier for teachers, parents,
-        librarians, and others to judge the readability level of various
-        books and texts.  The grade level is calculated with the following
-        formula:
-    
-            0.39*ASL + 11.8*ASW
-    
-        where
-    
-            ASW = average number of syllables per word
-                = (total syllables)/(total words)
-    
-            ASL = average sentence length
-                = (total words)/(total sentences)
-    
-        The result is a number that corresponds with a grade level. For
-        example, a score of 6.1 would indicate that the text is
-        understandable by an average student in 6th grade.
-    
-    SMOG Index
-    
-        From http://en.wikipedia.org/wiki/SMOG_Index
-    
-        McLaughlin, G. (1969), "SMOG grading: A new readability formula",
-            Journal of Reading, 12 (8) 639-646
-    
-        The SMOG Index is a readability test designed to gauge the
-        understandability of a text. Like the Flesch-Kincaid Grade Level,
-        Gunning-Fog Index, Automated Readability Index, and Coleman-Liau
-        Index, its output is an approximate representation of the U.S.
-        grade level needed to comprehend the text.
-    
-        To calculate the SMOG Index:
-    
-        1. Count the number of complex words (words containing 3 or more
-            syllables).
-    
-        2. Multiply the number of complex words by a factor of (30/number
-            of sentences).
-    
-        3. Take the square root of the resultant number.
-    
-        4. Multiply by 1.0430 and add 3.1291 to the resultant number.
-    
-    FORCAST Readability Formula
-    
-        From http://agcomwww.tamu.edu/market/training/power/readabil.html
-    
-        FORCAST is a new readability formula designed especially for
-        technical materials. It is not meant for traditional high school
-        reading matter or for newspapers or magazines or books of fiction.
-        It is simpler and faster to use than other readability formulas and,
-        according to its authors, is more accurate for technical writing. It
-        can be used to analyze a single passage, a group of passages, or a
-        random series of selections from a large body of technical material.
-    
-        1. Count the number of one-syllable words in a 150-word passage.
-    
-        2. Divide that number by 10.
-    
-        3. Subtract the answer from 20.
-    
-        "The FORCAST Readability Formula." Pennsylvania State University
-        Nutrition Center, Bridge to Excellence Conference, 1992.
-
-        5 Feb 2023:  I removed this metric from the script's output, as I
-        think the other ones are better.
+ 
+    Some good references:
+        - Malcom Forbes, "How to Write a Business Letter"
+        - Edward Thompson, "How to Write Clearly"
+        - Kenneth Roman and Joel Raphaelson, "Writing that Works"
+        - Strunk & White
+        - Chicago Manual of Style
+ 
+    Consult these excellent tools because you care both about the craft of
+    writing and your readers.
 '''
 if 1:   # Header
     if 1:  # Copyright, license
         # These "trigger strings" can be managed with trigger.py
-        #∞copyright∞# Copyright (C) 2005 Don Peterson #∞copyright∞#
+        #∞copyright∞# Copyright (C) 2005, 2023 Don Peterson #∞copyright∞#
         #∞contact∞# gmail.com@someonesdad1 #∞contact∞#
         #∞license∞#
         #   Licensed under the Open Software License version 3.0.
         #   See http://opensource.org/licenses/OSL-3.0.
         #∞license∞#
         #∞what∞#
-        # Calculate various readability indices for a set of files
+        # Calculate various readability statistics for a set of files.
         #∞what∞#
         #∞test∞# #∞test∞#
         pass
@@ -452,7 +236,7 @@ if 1:   # Core functionality
         school like CMU.  This function prints out the histogram of the (actual
         - predicted) number of syllables.  This gives the following results
         for the words.py file included with this script:
-
+ 
             -2 0.11%
             -1 6.54%
             0 83.56%
@@ -461,7 +245,7 @@ if 1:   # Core functionality
             3 0.04%
             4 0.01%
             5 0.00%
-
+ 
         The bottom line is that the GuessSyllables function is correct 84% of
         the time and only off by one syllable 16% of the time.  In my mind,
         this is excellent performance for a relatively simple algorithm.
@@ -505,10 +289,6 @@ if 1:   # Core functionality
         # radical no longer 1 and constant of 3 updated)
         smog = 1.0430*math.sqrt(30*complex_words/sentences) + 3.1291
         return Clamp(smog, 0, 9999)
-    def FORCASTReadabilityFormula(words, one_syllable_words):
-        N = words/150
-        forcast = 20 - (one_syllable_words/N)/10
-        return Clamp(forcast, 0, 9999)
     def EndOfSentence(word):
         '''Return 1 if the word is the end of a sentence.
         '''
@@ -632,7 +412,6 @@ if 1:   # Core functionality
         fres = FleschReadingEaseScore(words, syllables, sentences)
         fkgl = FleschKincaidGradeLevel(words, syllables, sentences)
         smog = SMOGIndex(complex_words, sentences)
-        #forc = FORCASTReadabilityFormula(words, one_syllable_words)
         PrintHeader()
         if d["-d"]:
             print("%7d %6d %6d %6d %6d %6d" % stats, end=" ")
@@ -662,7 +441,6 @@ if 1:   # Core functionality
 if __name__ == "__main__":
     d = {}      # Options dictionary
     files = ParseCommandLine(d)
-    PrintHeader()
     for file in files:
         stats = CountStats(open(file).read())
         stats[-1] = stats[-1] if stats[-1] else 1
