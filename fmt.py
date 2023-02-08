@@ -1,5 +1,4 @@
 '''
- 
 Format floating point numbers
     Run the module as a script to see example output.
 

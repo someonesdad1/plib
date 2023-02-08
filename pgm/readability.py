@@ -1,4 +1,16 @@
 '''
+
+Todo
+    - Add -e option to show the second form.  The second form uses the exponent to
+      show you the power of 10, letting you compare numbers more easily as there are
+      only two figures.
+
+       Chars  Words CpxWrd OneSyl    Syl   Sent   FKGL   
+      430783 100757   7948  71226 140865   9216      5  martian.txt
+        4.3⁵   1.0⁵   8.0³   7.1⁴   1.4⁵   9.2³      5  martian.txt
+
+        - For example, you can see words/sentence is (1/9.2)e3 which gives 10.9.
+
 Calculate readability statistics for a set of files
  
     I use this script to estimate the Flesch-Kincaid US grade level (FKGL)
@@ -6,33 +18,15 @@ Calculate readability statistics for a set of files
     have an FKGL score of 8 for general writing and <= 12 for technical
     writing.
  
-    Be cautious in applying the results of a program like this.  These
-    readability scores are only rough guides.  They cannot measure a number
-    of things that are relevant to reading comprehension.  If you don't
-    believe this, randomly shuffle the words in each sentence of a
-    document.  The documents will now be unintelligible, yet the FKGL score
-    will be unchanged (if you could make each word have the same number of
-    syllables).  You can fiddle with the pgm/scramble.py script in this
-    repository and experience this first-hand.
-
-    These readability metrics know nothing about semantics or syntax, the
-    formatting/font of the text, how nice it's visually organized, or the
-    background/motivation of the reader.  These and other things are
-    relevent to reading comprehension, yet are beyond the ken of a
-    text-based computer program.
+    Hemingway:  "I write one page of masterpiece to ninety-one pages of
+    shit.  I try to put the shit in the wastebasket."
  
-    One of Hemingway's secrets:  "I write one page of masterpiece to
-    ninety-one pages of shit.  I try to put the shit in the wastebasket."
- 
-    Some good references:
+    Some references on writing:
         - Malcom Forbes, "How to Write a Business Letter"
         - Edward Thompson, "How to Write Clearly"
-        - Kenneth Roman and Joel Raphaelson, "Writing that Works"
+        - Kenneth Roman and Joel Raphaelson, "Writing That Works"
         - Strunk & White
         - Chicago Manual of Style
- 
-    Consult these excellent tools because you care both about the craft of
-    writing and your readers.
 '''
 if 1:   # Header
     if 1:  # Copyright, license
@@ -51,23 +45,17 @@ if 1:   # Header
     if 1:   # Imports
         import getopt
         import math
-        import os
         from pathlib import Path as P
         import re
         import sys
     if 1:   # Custom imports
-        if 1:
-            import debug
-            debug.SetDebugger()
         from wrap import dedent
-        from color import Color, TRM as t
+        from color import t
         import get
         # Load a dictionary of number of syllables if available (otherwise,
         # the number of syllables in each word will be found by the
-        # function GuessSyllables.  The words_syllables module contains two
-        # dictionaries that speed up getting the number of syllables per
-        # word.  See the docstring.  Note:  using this syllable dictionary
-        # speeds this script up by about 4 times.
+        # function GuessSyllables.  Using this syllable dictionary speeds
+        # this script up by about 4 times.
         try:
             from words_syllables import syllables as S, multiple_syllables as MS
             have_syllable_dict = True
@@ -97,6 +85,7 @@ if 1:   # Utility
           -h    Print a manpage
           -p    Print to one decimal place (integer is default)
           -t    Run self-tests
+          -z    Print size of file in subscripts after file's name
         '''))
         exit(status)
     def ParseCommandLine(d):
@@ -106,15 +95,16 @@ if 1:   # Utility
         d["-d"] = False     # Debug output
         d["-p"] = False     # Print to 1 decimal place
         d["-t"] = False     # Run self-tests
+        d["-z"] = False     # Print file size
         try:
-            opts, files = getopt.getopt(sys.argv[1:], "aCcdhpt", "help")
+            opts, files = getopt.getopt(sys.argv[1:], "aCcdhptz")
         except getopt.GetoptError as e:
             print(str(e))
             exit(1)
         for o, a in opts:
-            if o[1] in list("aCcdpt"):
+            if o[1] in list("aCcdptz"):
                 d[o] = not d[o]
-            elif o in ("-h", "--help"):
+            elif o == "-h":
                 Manpage()
         if d["-t"]:
             exit(SelfTests())
@@ -136,7 +126,6 @@ if 1:   # Utility
         t.N = t.n if d["-c"] else ""
     def Manpage():
         print(dedent(f'''
-
         This script prints various readability estimates for the text files on the
         command line.  The estimates are
 
@@ -166,11 +155,210 @@ if 1:   # Utility
         shuffled the letters in each word and somehow kept the number of syllables
         per word the same (the script uses a heuristic to calculate the number of
         syllables per word), the FKGL statistic would stay the same, but the text
-        would likely be unreadable.  Nevertheless, I've found the FKGL statistic
-        works well for assessing plain prose in ASCII text form.
+        would be unreadable.  Nevertheless, I've found the FKGL statistic works well
+        for assessing plain prose in ASCII text form.
 
-        Some examples
-        -------------
+        Some FKGL examples
+        ------------------
+          E. R. Burroughs
+             6 TheMucker.txt
+             6 TheOakdaleAffair.txt
+          Jane Austen
+            12 Emma.txt
+            12 Lady_Susan.txt
+            13 Love_and_Friendship.txt
+            12 Mansfield_Park.txt
+            13 Northanger_Abbey.txt
+            12 Persuasion.txt
+            12 Pride_and_Prejudice.txt
+            14 Sense_and_Sensibility.txt
+          Agatha Christie
+            6 Secret_Adversary.txt
+            7 The_Mysterious_Affair_at_Styles.txt
+          P. G. Wodehouse
+            8 A_man_of_means.txt
+            7 Adventures_of_Sally.txt
+            7 Damsel_in_distress.txt
+            7 Death_at_the_Excelsior.txt
+            6 Love_among_the_chickens.txt
+            6 My_Man_Jeeves.txt
+            7 Psmith_in_the_city.txt
+            8 Right_Ho_Jeeves.txt
+            6 The_man_with_two_left_feet.txt
+          Charles Dickens
+             8 A_Christmas_Carol.txt
+            10 A_House_to_Let.txt
+            12 A_Message_from_the_Sea.txt
+            10 A_Tale_of_Two_Cities.txt
+            15 All_the_Year_Round.txt
+            14 American_Notes.txt
+            11 Bardell_v._Pickwick.txt
+            11 Barnaby_Rudge.txt
+            10 Bleak_House.txt
+             9 Captain_Boldheart.txt
+            10 David_Copperfield.txt
+             9 Doctor_Marigold.txt
+            11 Dombey_and_Son.txt
+            11 George_Silvermans_Explanation.txt
+            12 Great_English_Short-Story_Writers.txt
+            11 Great_Expectations.txt
+            10 Hard_Times.txt
+             9 Holiday_Romance.txt
+            10 Hunted_Down.txt
+            11 Lazy_Tour_of_Two_Idle_Apprentices.txt
+            11 Little_Dorrit.txt
+            10 Martin_Chuzzlewit.txt
+            14 Master_Humphreys_Clock.txt
+            16 Mrs._Lirripers_Legacy.txt
+            14 Mudfog_and_Other_Sketches.txt
+             9 Mugby_Junction.txt
+            13 Nicholas_Nickleby.txt
+             9 No_Thoroughfare.txt
+            11 Oliver_Twist.txt
+            10 Our_Mutual_Friend.txt
+            10 Perils_of_Certain_English_Prisoners.txt
+            11 Reprinted_Pieces.txt
+            15 Sketches_by_Boz.txt
+            17 Sketches_of_Young_Couples.txt
+            21 Sketches_of_Young_Gentlemen.txt
+            12 Some_Christmas_Stories.txt
+            11 Somebodys_Luggage.txt
+            17 Sunday_under_Three_Heads.txt
+             9 The_Battle_of_Life.txt
+             8 The_Chimes.txt
+             9 The_Cricket_on_the_Hearth.txt
+            10 The_Haunted_Man_and_the_Ghosts_Bargain.txt
+            12 The_Holly-Tree.txt
+            12 The_Lamplighter.txt
+            11 The_Lock_and_Key_Library.txt
+            12 The_Magic_Fishbone.txt
+            12 The_Old_Curiosity_Shop.txt
+            12 The_Pickwick_Papers.txt
+            12 The_Seven_Poor_Travellers.txt
+            14 The_Uncommercial_Traveller.txt
+            12 Three_Ghost_Stories.txt
+             9 To_Be_Read_at_Dusk.txt
+            12 Tom_Tiddlers_Ground.txt
+            12 Wreck_of_the_Golden_Mary.txt
+          Arthur Conan Doyle
+             9 A_Desert_Drama.txt
+             8 A_Duet.txt
+             9 A_Visit_to_Three_Fronts.txt
+             8 Beyond_the_City.txt
+             8 Danger_and_Other_Stories.txt
+             8 Lock_and_Key_Collection.txt
+             8 Lupin_versus_Herlock_Sholmes.txt
+            11 Masterpieces_of_Mystery.txt
+             9 My_Friend_The_Murderer.txt
+            10 pg9504.txt
+            10 Rodney_Stone.txt
+             8 Round_the_Red_Lamp.txt
+             9 Short_stories_Freck_ed.txt
+             9 Sir_Nigel.txt
+            10 Tales_of_terror_and_mystery.txt
+             7 The_Adventures_of_Gerard.txt
+             9 The_Cabmans_Story.txt
+            10 The_Captain_of_the_Polestar.txt
+            12 The_Coming_of_the_Fairies.txt
+             9 The_Croxley_Master.txt
+             9 The_Dealings_of_Captain_Sharkey.txt
+             9 The_Doings_Of_Raffles_Haw.txt
+             9 The_Firm_of_Girdlestone.txt
+            12 The_German_War.txt
+            12 The_Great_Boer_War.txt
+             9 The_Great_Keinplatz_Experiment.txt
+             9 The_Great_Shadow.txt
+             9 The_Green_Flag.txt
+             9 The_Gully_of_Bluemansdyke.txt
+             8 The_Last_Galley.txt
+             9 The_Last_of_the_Legions.txt
+             9 The_Man_from_Archangel.txt
+            11 The_Mystery_of_Cloomber.txt
+            12 The_New_Revelation.txt
+             7 The_Parasite.txt
+             9 The_Poison_Belt.txt
+             9 The_Refugees.txt
+            13 The_Vital_Message.txt
+            10 The_White_Company.txt
+            11 Through_the_Magic_Door.txt
+            10 Troubled_marriages.txt
+            10 Uncle_Bernac.txt
+             9 A_Study_in_Scarlet.txt
+             7 Adventure_of_the_Bruce-Partington_Plans.txt
+             9 Adventure_of_the_Cardboard_Box.txt
+             9 Adventure_of_the_Devils_Foot.txt
+             6 Adventure_of_the_Dying_Detective.txt
+             7 Adventure_of_the_Red_Circle.txt
+             8 Adventure_of_Wisteria_Lodge.txt
+             9 Adventures_of_Sherlock_Holmes.txt
+             8 His_Last_Bow.txt
+             9 Hound_of_the_Baskervilles.txt
+             9 Memoirs_of_Sherlock_Holmes.txt
+             8 Return_of_Sherlock_Holmes.txt
+             8 Sign_of_the_Four.txt
+             8 Valley_of_Fear.txt
+          Science Fiction
+             7 And_Thats_How_It_Was_Officer.txt
+            11 Doc_Smith_-_Skylark_Three.txt
+            11 Doc_Smith_-_Spacehounds_of_IPC.txt
+             7 Doc_Smith_-_Subspace_Survivors.txt
+            10 Doc_Smith_-_The_Skylark_of_Space.txt
+            10 Doc_Smith_-_The_Vortex_Blaster.txt
+            11 Doc_Smith_-_Triplanetary.txt
+             6 Old_Rambling_House.txt
+             6 Operation_Haystack.txt
+             8 The_Time_Machine.txt
+             9 The_War_of_the_Worlds.txt
+          Mark Twain
+            10 A_Connecticut_Yankee_in_King_Arthurs_Court.txt
+            14 A_dogs_tale.txt
+             9 Adventures_of_Huckleberry_Finn.txt
+            10 Best_American_Short_Stories.txt
+            10 Eves_diary.txt
+            10 Extract_from_Captain_Stormfields_Visit_to_Heaven.txt
+            10 Following_the_Equator.txt
+            11 How_to_Tell_a_Story_and_Other_Essays.txt
+            11 Innocents_Abroad.txt
+            11 Life_on_the_Mississippi.txt
+            10 Man_that_corrupted_Hadleyburg.txt
+             9 Mark_Twains_speeches.txt
+            10 Mysterious_Stranger.txt
+            11 Personal_recollections_of_Joan_of_Arc.txt
+            11 Prince_and_the_Pauper.txt
+            10 The_30000_Dollar_Bequest_and_Other_Stories.txt
+            10 The_gilded_age.txt
+             8 Tom_Sawyer.txt
+            10 Tragedy_of_Puddnhead_Wilson.txt
+            11 Tramp_Abroad.txt
+             8 What_Is_Man_and_Other_Essays.txt
+          Jules Verne
+             9 A_Journey_to_the_Centre_of_the_Earth.txt
+            11 Abandoned.txt
+            10 An_Antarctic_Mystery.txt
+            11 Around_the_World_in_80_Days.txt
+            11 Eight_Hundred_Leagues_on_the_Amazon.txt
+            11 From_the_Earth_to_the_Moon.txt
+            10 In_Search_of_the_Castaways.txt
+            11 In_the_Year_2889.txt
+            10 Robur_the_Conqueror.txt
+             9 The_Master_of_the_World.txt
+             9 The_Mysterious_Island.txt
+             9 Twenty_Thousand_Leagues_Under_the_Sea.txt
+          Andy Weir
+            5 TheMartian.txt
+
+            I wondered why "The Martian" had such a low readability score and it
+            doesn't look significantly different from other text except there appear
+            to be more short sentences.  Comparing the output of 'readability.py -da' 
+            for the Martian and Dickens' "Sunday_under_Three_Heads.txt" showed that 
+            the number of words per sentence for the Dickens writing was about 4
+            times as large as the Martian novel.  The average sentence length for the
+            Dickens writing was 10 grade levels higher than the Martian, which
+            explains the difference.
+
+            Chars  Words CpxWrd OneSyl    Syl   Sent   FKGL   
+           430783 100757   7948  71226 140865   9216      5  martian.txt
+            52303  11171   1332   7237  16951    299     17  Sunday_under_Three_Heads.txt
 
         Other sources
         -------------
@@ -467,15 +655,22 @@ if 1:   # Core functionality
             Print(smog, n, fmt, "smog")
         else:
             Print(fkgl, n, fmt, "fkgl")
-        # Print "+"*n where n is ceil(log(file_size))
         if file == "-":
             sz = stdin_size
-            print("<stdin>", end=" ")
+            print("<stdin>", end="")
         else:
             sz = get.GetFileSize(file)
-            print(file, end=" ")
-        n = math.ceil(math.log10(sz))
-        print("+"*n)
+            print(file, end="")
+        if d["-z"]:  # Append an exponent to estimate the file size
+            size = f"{sz:.0e}"
+            m, e = size.split("e")
+            ss = dict(zip("0123456789e", "₀₁₂₃₄₅₆₇₈₉ₑ"))
+            k = [ss[m], ss["e"]]
+            for i in str(int(e)):
+                k.append(ss[i])
+            print(''.join(k), end="")
+        print()
+        # Print color key if needed
         if d["-C"]:
             d["-c"] = True
             GetColor()

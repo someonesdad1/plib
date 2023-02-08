@@ -1,8 +1,22 @@
 Active
 
+    - elements.py
+        - 'el -o Ag' launches the Mg web page, but it should search for a
+          symbol match first.
+
     - Core setup data
         - Move notes, password db, etc. to .0rc because it's backed up to
           the cloud
+
+    - pgm/scramble.py
+        - Change to a tool that scrambles the letters of all the words,
+          leaving the punctuation the same.  An option can be used to leave
+          the first and last letters alone.
+        - Algorithm:  identify the string position of every
+          punctuation/space character by constructing a list of numbers.
+          Make a copy of the string and replace every punctuation/space
+          character with a space, then split into words.
+
 
     - write.py
         - Tool to assess some writing
