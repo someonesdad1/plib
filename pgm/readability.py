@@ -1,21 +1,25 @@
 '''
 Calculate readability statistics for a set of files
  
-    I use this script to show me the estimated Flesch-Kincaid US grade
-    level (FKGL) for the text files on the command line.  For my own
-    writing, I try to have an FKGL score of 8 for general writing and 12 or
-    less for technical writing.
+    I use this script to estimate the Flesch-Kincaid US grade level (FKGL)
+    for the text files on the command line.  For my own writing, I aim to
+    have an FKGL score of 8 for general writing and <= 12 for technical
+    writing.
  
     Be cautious in applying the results of a program like this.  These
-    readability scores are only rough guides.  They cannot measure many
-    things that are relevant to reading comprehension.  If you don't
+    readability scores are only rough guides.  They cannot measure a number
+    of things that are relevant to reading comprehension.  If you don't
     believe this, randomly shuffle the words in each sentence of a
-    document.  The documents will now be unintelligible, yet these
-    readability scores will be unchanged.  These scores know nothing about
-    semantics or syntax, the formatting/font of the text, how nice it's
-    visually organized, or the background/motivation of the reader.  These
-    and other things are relevent to reading comprehension, yet are beyond
-    the ken of a text-based computer program.
+    document.  The documents will now be unintelligible, yet the FKGL score
+    will be unchanged (if you could make each word have the same number of
+    syllables).  You can fiddle with the pgm/scramble.py script in this
+    repository and experience this first-hand.
+
+    These readability metrics know nothing about semantics or syntax, the
+    formatting/font of the text, how nice it's visually organized, or the
+    background/motivation of the reader.  These and other things are
+    relevent to reading comprehension, yet are beyond the ken of a
+    text-based computer program.
  
     One of Hemingway's secrets:  "I write one page of masterpiece to
     ninety-one pages of shit.  I try to put the shit in the wastebasket."
@@ -59,14 +63,16 @@ if 1:   # Header
         from color import Color, TRM as t
         import get
         # Load a dictionary of number of syllables if available (otherwise,
-        # the number of syllables in each word will be found by the function
-        # GuessSyllables.  The words_syllables module contains two
-        # dictionaries that greatly speed up getting the number of syllables
-        # per word.  See the docstring.
+        # the number of syllables in each word will be found by the
+        # function GuessSyllables.  The words_syllables module contains two
+        # dictionaries that speed up getting the number of syllables per
+        # word.  See the docstring.  Note:  using this syllable dictionary
+        # speeds this script up by about 4 times.
         try:
             from words_syllables import syllables as S, multiple_syllables as MS
+            have_syllable_dict = True
         except ImportError:
-            pass
+            have_syllable_dict = False
     if 1:   # Global variables
         ii = isinstance
         common_abbreviations = (
@@ -79,25 +85,13 @@ if 1:   # Utility
     def Usage(status=1):
         print(dedent(f'''
         Usage:  {sys.argv[0]} file1 [file2...]
-          Prints readability statistics for text files.  The number of '+'
-          after the file name is ceil(log10(file_size)).  For example, if
-          you see four + symbols, the file has between 1000 and 10000
-          characters.
-        '''))
-        print(dedent(f'''
-            FKGL = Flesch-Kincaid Grade Level     *
-            FRES = Flesch-Kincaid Reading Ease (0-100, 100 easy)
-          The following are also printed with -a:
-            Fog  = Gunning Fog Index              *
-            ARI  = Automated Readability Index    *
-            CL   = Coleman-Liau Index             *
-            SMOG = SMOG Index                     *
-          * means a number that is a US grade level
-        ''', n=6))
-        print(dedent(f'''
+          Prints readability statistics for text files.  Use '-' for stdin.
+          The Flesch-Kincaid grade level is printed by default for each
+          file.  The exponent after the file name is the log of the file
+          size rounded up.  Use -h to see more details.
         Options
           -a    Print all statistics
-          -C    Print color key (also sets -c)
+          -C    Colorize the statistics and print color key
           -c    Colorize the statistics
           -d    Turn on debug printing (shows more data)
           -h    Print a manpage
@@ -159,8 +153,8 @@ if 1:   # Utility
         appropriate since they are approximate estimates.  You can see one decimal
         place with the -p option.
 
-        For my own use, I have standardized on using the FKGL estimate to make
-        decisions about readability.  I've found it to be a good tool when used on
+        I have standardized on using the FKGL estimate to make decisions about
+        readability of my writing.  I've found it to be a good tool when used on
         plain prose with on the order of 1000 words or more.  Because it's a simple
         statistic, it's not difficult to construct pathological examples.  For
         example, on the above wikipedia page link, run this script on the Proust
@@ -168,12 +162,12 @@ if 1:   # Utility
         a readability standpoint (and the assessment is correct).  If you use it on
         plain ASCII prose in English, it gives good guidance.  
 
-        Most of these readability metrics were developed before digital computation
-        resources became common (say, after 1985), so they tended to be metrics that
-        were easy for a human to take a sample and compute manually.
-
-        My use is for assessing readability for writing aimed at educated adults and
-        often technically-educated adults.  
+        These estimation tools are necessarily simple.  For example, if you randomly
+        shuffled the letters in each word and somehow kept the number of syllables
+        per word the same (the script uses a heuristic to calculate the number of
+        syllables per word), the FKGL statistic would stay the same, but the text
+        would likely be unreadable.  Nevertheless, I've found the FKGL statistic
+        works well for assessing plain prose in ASCII text form.
 
         Some examples
         -------------
@@ -181,7 +175,7 @@ if 1:   # Utility
         Other sources
         -------------
 
-        https://pypi.org/project/py-readability-metrics/#files
+        https://pypi.org/project/py-readability-metrics
 
         '''))
         exit(0)
@@ -236,6 +230,41 @@ if 1:   # Testing
         if smog != expected:
             fail += 1
         return fail
+    def Test_Syllable_function():
+        '''22 Sep 2010 DP:  this function provides a check of the
+        GuessSyllables function's output.  The word_syllables dictionary from
+        words.py contains the number of syllables for each word in the
+        dictionary; I believe I found this list of syllables from a CS-heavy
+        school like CMU.  This function prints out the histogram of the (actual
+        - predicted) number of syllables.  This gives the following results
+        for the words.py file included with this script:
+ 
+            -2 0.11%
+            -1 6.54%
+            0 83.56%
+            1 9.36%
+            2 0.39%
+            3 0.04%
+            4 0.01%
+            5 0.00%
+ 
+        The bottom line is that the GuessSyllables function is correct 84% of
+        the time and only off by one syllable 16% of the time.  In my mind,
+        this is excellent performance for a relatively simple algorithm.
+        '''
+        from words import word_syllables
+        d, n = {}, len(word_syllables)
+        for i in word_syllables:
+            actual, calculated = word_syllables[i], GuessSyllables(i)
+            diff = actual - calculated
+            if diff in d:
+                d[diff] += 1
+            else:
+                d[diff] = 1
+        keys = d.keys()
+        keys.sort()
+        for i in keys:
+            print(i, "%.2f%%" % (100.*d[i]/n))
 if 1:   # Core functionality
     def GuessSyllables(word):
         "Guess the number of syllables in a word"
@@ -274,41 +303,6 @@ if 1:   # Core functionality
             syl += 1
         syl += len(spl)
         return syl if syl else 1
-    def Test_Syllable_function():
-        '''22 Sep 2010 DP:  this function provides a check of the
-        GuessSyllables function's output.  The word_syllables dictionary from
-        words.py contains the number of syllables for each word in the
-        dictionary; I believe I found this list of syllables from a CS-heavy
-        school like CMU.  This function prints out the histogram of the (actual
-        - predicted) number of syllables.  This gives the following results
-        for the words.py file included with this script:
- 
-            -2 0.11%
-            -1 6.54%
-            0 83.56%
-            1 9.36%
-            2 0.39%
-            3 0.04%
-            4 0.01%
-            5 0.00%
- 
-        The bottom line is that the GuessSyllables function is correct 84% of
-        the time and only off by one syllable 16% of the time.  In my mind,
-        this is excellent performance for a relatively simple algorithm.
-        '''
-        from words import word_syllables
-        d, n = {}, len(word_syllables)
-        for i in word_syllables:
-            actual, calculated = word_syllables[i], GuessSyllables(i)
-            diff = actual - calculated
-            if diff in d:
-                d[diff] += 1
-            else:
-                d[diff] = 1
-        keys = d.keys()
-        keys.sort()
-        for i in keys:
-            print(i, "%.2f%%" % (100.*d[i]/n))
     def GunningFogIndex(words, sentences, complex_words):
         ASL = words/sentences
         PCW = 100*complex_words/words
@@ -357,14 +351,14 @@ if 1:   # Core functionality
         return word
     def CountSyllables(word):
         num = 0
-        try:
+        if have_syllable_dict:
             if word in S:
                 num = S[word]
             elif word in MS:
                 num = MS[word][0]
             else:
                 num = GuessSyllables(word)
-        except Exception:
+        else:
             num = GuessSyllables(word)
         return num
     def CountStats(text):
@@ -473,9 +467,13 @@ if 1:   # Core functionality
             Print(smog, n, fmt, "smog")
         else:
             Print(fkgl, n, fmt, "fkgl")
-        print(file, end=" ")
         # Print "+"*n where n is ceil(log(file_size))
-        sz = get.GetFileSize(file)
+        if file == "-":
+            sz = stdin_size
+            print("<stdin>", end=" ")
+        else:
+            sz = get.GetFileSize(file)
+            print(file, end=" ")
         n = math.ceil(math.log10(sz))
         print("+"*n)
         if d["-C"]:
@@ -486,7 +484,13 @@ if 1:   # Core functionality
 if __name__ == "__main__":
     d = {}      # Options dictionary
     files = ParseCommandLine(d)
+    stdin_size = None
     for file in files:
-        stats = CountStats(open(file).read())
+        if file == "-":
+            s = sys.stdin.read()
+            stdin_size = len(s)
+        else:
+            s = open(file).read()
+        stats = CountStats(s)
         stats[-1] = stats[-1] if stats[-1] else 1
         PrintResults(stats, file)

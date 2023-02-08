@@ -16,10 +16,13 @@
 .z
 __pycache__
 a
+a?
 a.py
-aa
+aa?
 b
+b?
 bb
+c
 big.txt
 ca.log
 circular_imports/

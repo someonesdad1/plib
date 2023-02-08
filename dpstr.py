@@ -31,6 +31,7 @@ String utilities
     RemoveComment    Remove '#.*$' from a string
     RemoveFilter     Functional form of Remove (it's a closure)
     RemoveWhitespace Remove whitespace from a string
+    Scramble         Randomly shuffle words in a string
     soundex          Return 4-character soundex value for a string
     SoundSimilar     Return True if two strings sound similar
     SpellCheck       Spell check a sequence of words
@@ -823,13 +824,100 @@ if 1:   # Core functionality
         string only consists of characters chr(0x0) to chr(0x7e) inclusive.
         '''
         return not bool(RemoveASCII(s))
+    def Scramble(mystring, punc=None, start_end_const=False):
+        '''Return a string with the letters in the words randomly shuffled
+        but with the punctuation and whitespace unchanged if punc is None.
+    
+        Set punc to a different set of punctuation characters if you wish
+        (the punctuation characters are ignored when shuffling words).  For
+        example, you might want to include common Unicode characters
+        included as punctuation also.
+ 
+        If start_end_const is True, then the first and last letters of each
+        word are unchanged.  This lets you test the assertion that leaving
+        the first and last letters intact but shuffling the interior
+        letters doesn't change the readability of the text.  Personally,
+        I've found that's mostly nonsense except for some fairly easy
+        pieces of text.  In particular, doing this scrambling on a
+        complicated technical document virtually always results in
+        jibberish.
+ 
+        If you wish to save memory, make mystring a list of individual
+        characters; then a copy of the string isn't made.  Note there is no
+        check that the list's elements are single character strings.
+ 
+        Example with random.seed('0'):  
+            s = '"Hello there", said John.'
+        returns
+                '"loeHl eerth", isda noJh.'
+        '''
+        if punc is None:
+            punc = set(string.punctuation + string.whitespace)
+        dummy = "."
+        prepended = appended = False
+        is_string = ii(mystring, str)
+        s = list(mystring) if is_string else mystring
+        # Add dummy punctuation characters at start and end if needed.  This
+        # regularizes the algorithm.
+        if s[0] not in punc:
+            s.insert(0, dummy)
+            prepended = True
+        if s[-1] not in punc:
+            s.append(dummy)
+            appended = True
+        # Generate a list of integers showing where punctuation characters are
+        loc = []
+        for i in range(len(s)):
+            if s[i] in punc:
+                loc.append(i)
+        # Use loc to pick out words and scramble them
+        i = 0
+        while i < len(loc):
+            try:
+                start, end = loc[i], loc[i + 1]
+                if end - start > 1:  # It's a word, so shuffle its letters
+                    do_shuffle = True
+                    if start_end_const:
+                        # Need at least 3 characters to shuffle
+                        if end - start < 3:
+                            do_shuffle = False
+                    if do_shuffle:
+                        if start_end_const:
+                            start += 1
+                            end -= 1
+                        substr = s[start + 1:end]
+                        random.shuffle(substr)  # Shuffles sequence in place
+                        s[start + 1:end] = substr
+                i += 1
+            except IndexError:
+                break
+        # Clean up
+        if prepended:
+            s.pop(0)
+        if appended:
+            s.pop(-1)
+        # Return scrambled string or list
+        return ''.join(s) if is_string else s
 
 if __name__ == "__main__": 
     from lwtest import run, raises, assert_equal, Assert
     import math
     import os
+    import random
     from sig import sig
     from color import TRM as t
+    def Test_Scramble():
+        random.seed("0")
+        s = '"Yes", said John. Åé—'
+        s1 = Scramble(s)
+        Assert(s1 == '"sYe", dsai ohnJ. —éÅ')
+        # Don't modify first and last characters in word
+        s1 = Scramble(s, start_end_const=True)
+        Assert(s1 == '"Yes", siad John. Åé—')
+        # Use only space as punctuation
+        s = "oblong clink calf"
+        s1 = Scramble(s)
+        Assert(s1 == "nbgloo lncik lafc")
     def Test_IsASCII():
         s1, s2 = "abc", "abc∞"
         # RemoveASCII
