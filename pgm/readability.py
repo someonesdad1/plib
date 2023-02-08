@@ -1,16 +1,4 @@
 '''
-
-Todo
-    - Add -e option to show the second form.  The second form uses the exponent to
-      show you the power of 10, letting you compare numbers more easily as there are
-      only two figures.
-
-       Chars  Words CpxWrd OneSyl    Syl   Sent   FKGL   
-      430783 100757   7948  71226 140865   9216      5  martian.txt
-        4.3⁵   1.0⁵   8.0³   7.1⁴   1.4⁵   9.2³      5  martian.txt
-
-        - For example, you can see words/sentence is (1/9.2)e3 which gives 10.9.
-
 Calculate readability statistics for a set of files
  
     I use this script to estimate the Flesch-Kincaid US grade level (FKGL)
@@ -82,10 +70,11 @@ if 1:   # Utility
           -C    Colorize the statistics and print color key
           -c    Colorize the statistics
           -d    Turn on debug printing (shows more data)
+          -e    Same as -d but uses an abbreviated number form
           -h    Print a manpage
           -p    Print to one decimal place (integer is default)
           -t    Run self-tests
-          -z    Print size of file in subscripts after file's name
+          -z    Print approximate file size in subscripts after name
         '''))
         exit(status)
     def ParseCommandLine(d):
@@ -93,16 +82,17 @@ if 1:   # Utility
         d["-C"] = False     # Print color key
         d["-c"] = False     # Print in color
         d["-d"] = False     # Debug output
+        d["-e"] = False     # Exponent notation
         d["-p"] = False     # Print to 1 decimal place
         d["-t"] = False     # Run self-tests
         d["-z"] = False     # Print file size
         try:
-            opts, files = getopt.getopt(sys.argv[1:], "aCcdhptz")
+            opts, files = getopt.getopt(sys.argv[1:], "aCcdehptz")
         except getopt.GetoptError as e:
             print(str(e))
             exit(1)
         for o, a in opts:
-            if o[1] in list("aCcdptz"):
+            if o[1] in list("aCcdeptz"):
                 d[o] = not d[o]
             elif o == "-h":
                 Manpage()
@@ -112,6 +102,8 @@ if 1:   # Utility
             Usage(1)
         if d["-C"]:
             d["-c"] = True
+        if d["-e"]:
+            d["-d"] = True
         GetColor()
         return files
     def Clamp(x, low, high):
@@ -128,20 +120,20 @@ if 1:   # Utility
         print(dedent(f'''
         This script prints various readability estimates for the text files on the
         command line.  The estimates are
-
+ 
             FKGL    Flesch-Kincaid Grade Level
             FRES    Flesch-Kincaid Reading Ease (0-100, 100 easy)
             Fog     Gunning Fog Index
             ARI     Automated Readability Index
             CL      Coleman-Liau Index
             SMOG    SMOG Index
-
+ 
         Except for FRES, the estimates are in terms of the US school grade level (1-8
         is grammar school, 9-12 is high school, 13-16 is college and > 16 is
         post-college-graduate).  The metrics are given as integers, which is
         appropriate since they are approximate estimates.  You can see one decimal
         place with the -p option.
-
+ 
         I have standardized on using the FKGL estimate to make decisions about
         readability of my writing.  I've found it to be a good tool when used on
         plain prose with on the order of 1000 words or more.  Because it's a simple
@@ -150,7 +142,7 @@ if 1:   # Utility
         sentence and the FKGL will be 233, indicating that this is poor writing from
         a readability standpoint (and the assessment is correct).  If you use it on
         plain ASCII prose in English, it gives good guidance.  
-
+ 
         These estimation tools are necessarily simple.  For example, if you randomly
         shuffled the letters in each word and somehow kept the number of syllables
         per word the same (the script uses a heuristic to calculate the number of
@@ -158,6 +150,9 @@ if 1:   # Utility
         would be unreadable.  Nevertheless, I've found the FKGL statistic works well
         for assessing plain prose in ASCII text form.
 
+        If you use the -e option, you can see the characters, words, etc.  given to 2
+        significant figures, making easier to estimate other statistics.
+ 
         Some FKGL examples
         ------------------
           E. R. Burroughs
@@ -346,25 +341,26 @@ if 1:   # Utility
              9 Twenty_Thousand_Leagues_Under_the_Sea.txt
           Andy Weir
             5 TheMartian.txt
+ 
+            I wondered why "The Martian" had such a low readability score.  Comparing
+            the output of 'readability.py -e' for the Martian and Dickens'
+            "Sunday_under_Three_Heads.txt" showed that the number of words per
+            sentence for the Dickens writing was 3.4 times as large as the Martian
+            novel:  The average sentence length ASL (Words/Sent) for the Dickens
+ 
+               Chars  Words CpxWrd OneSyl    Syl   Sent   FKGL 
+                4.3⁵   1.0⁵   7.9³   7.1⁴   1.4⁵   9.2³      5 martian.txt
+                5.2⁴   1.1⁴   1.3³   7.2³   1.7⁴   3.0²     17 Sunday_under_...
 
-            I wondered why "The Martian" had such a low readability score and it
-            doesn't look significantly different from other text except there appear
-            to be more short sentences.  Comparing the output of 'readability.py -da' 
-            for the Martian and Dickens' "Sunday_under_Three_Heads.txt" showed that 
-            the number of words per sentence for the Dickens writing was about 4
-            times as large as the Martian novel.  The average sentence length for the
-            Dickens writing was 10 grade levels higher than the Martian, which
-            explains the difference.
-
-            Chars  Words CpxWrd OneSyl    Syl   Sent   FKGL   
-           430783 100757   7948  71226 140865   9216      5  martian.txt
-            52303  11171   1332   7237  16951    299     17  Sunday_under_Three_Heads.txt
-
+            The ASL for Martian is 1e5/9.2e3 = 10.9 versus 36.7 for Sunday.
+            Multiplying by 0.39 to get the grade level (from the FKGL formula), we
+            get 4 versus 14, explaining the observed difference.
+ 
         Other sources
         -------------
-
+ 
         https://pypi.org/project/py-readability-metrics
-
+ 
         '''))
         exit(0)
 if 1:   # Testing
@@ -631,6 +627,17 @@ if 1:   # Core functionality
         print()
         PrintHeader.hdr = True
     PrintHeader.hdr = False
+    def AbbrExp(x, places=1):
+        '''Return abbreviated exponential form for a number.  Example:
+        The integer 142103 will be returned as 1.3⁵.
+        '''
+        ss = dict(zip("0123456789", "⁰¹²³⁴⁵⁶⁷⁸⁹"))
+        m, e = f"{x:.{places}e}".split("e")
+        k = [m]
+        for i in str(int(e)):
+            k.append(ss[i])
+        u = ''.join(k)
+        return u
     def PrintResults(stats, file):
         (characters, words, complex_words, one_syllable_words, 
             syllables, sentences) = stats
@@ -642,7 +649,12 @@ if 1:   # Core functionality
         smog = SMOGIndex(complex_words, sentences)
         PrintHeader()
         if d["-d"]:
-            print("%7d %6d %6d %6d %6d %6d" % tuple(stats), end=" ")
+            if d["-e"]:
+                # Print abbreviated exponential form
+                abbr = [AbbrExp(x) for x in stats]
+                print("%7s %6s %6s %6s %6s %6s" % tuple(abbr), end=" ")
+            else:
+                print("%7d %6d %6d %6d %6d %6d" % tuple(stats), end=" ")
         n = 6
         fmt = f"%{n}.1f " if d["-p"] else f"%{n}.0f "
         fmt1 = f"%{n}.1f " if d["-p"] else f"%{n-1}.0f. "

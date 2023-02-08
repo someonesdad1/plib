@@ -731,8 +731,8 @@ Some useful Unicode characters:
   ± ∞ ∂ ∫ ∼ ∝ ∓ ∍ ∊ ∈ ∉ ∅ ∃ « » ∀ ∡ ∠ ∟ ∥ ∦ ℝ ℂ ℤ ℕ ℚ ℐ ℛ ⊙ ⊗ ⊕ ⊉ ⊈ ⊇ ⊆ ⊅ ⊄ ⊃ ⊂
   ≤ ≥ ≪ ≫ ≈ ≠ ≡ ≢ ≝ ≟ ∧ ∨ ∩ ∪ ∴ ⅛ ¼ ⅜ ½ ⅝ ¾ ⅞ ⍈ █ ∎
   ← ↑ → ↓ ↔ ↕ ↖ ↗ ↘ ↙ ↺ ↻ ⇐ ⇑ ⇒ ⇓ ⇔ ⇦ ⇧ ⇨ ⇩ ⭍ ⭠ ⭡ ⭢ ⭣ ⭤ ⭥ ⭮ ⭯ ￪ ￬
-  Superscripts: ⁰ ¹ ² ³ ⁴ ⁵ ⁶ ⁷ ⁸ ⁹ ⁺ ⁻ ⁼ ⁽ ⁾ ⁱ ⁿ
-  Subscripts:   ₀ ₁ ₂ ₃ ₄ ₅ ₆ ₇ ₈ ₉ ₊ ₋ ₌ ₍ ₎ ₐₑₕᵢⱼₖₗₘₙₒₚᵣₛₜᵤᵥₓᵦᵩ
+  Superscripts: ⁰¹²³⁴⁵⁶⁷⁸⁹⁺⁻⁼⁽⁾ⁱⁿ
+  Subscripts:   ₀₁₂₃₄₅₆₇₈₉₊₋₌₍₎ₐₑₕᵢⱼₖₗₘₙₒₚᵣₛₜᵤᵥₓᵦᵩ
 '''[1:-1])
     '''
     https://www.unicode.org/reporting.html  unicode@unicode.org On 28
