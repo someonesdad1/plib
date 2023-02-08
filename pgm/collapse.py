@@ -21,8 +21,8 @@ if 1:   # Header
         import re
         import sys
     if 1:   # Custom imports
-        from wrap import wrap, dedent
-        from color import Color, TRM as t
+        from wrap import dedent
+        from lwtest import Assert
     if 1:   # Global variables
         ii = isinstance
 if 1:   # Utility
@@ -36,20 +36,21 @@ if 1:   # Utility
           lines into one line.  Leading empty lines are removed also.
           Use '-' for stdin.
         Options:
-            -h      Show help
+            -h  Show help
+            -t  Run self-tests
         '''))
         exit(status)
     def ParseCommandLine(d):
-        d["-d"] = False
+        d["-t"] = False     # Run self-tests
         if len(sys.argv) < 2:
             Usage()
         try:
-            opts, args = getopt.getopt(sys.argv[1:], "dh") 
+            opts, args = getopt.getopt(sys.argv[1:], "ht") 
         except getopt.GetoptError as e:
             print(str(e))
             exit(1)
         for o, a in opts:
-            if o[1] in list("d"):
+            if o[1] in list("t"):
                 d[o] = not d[o]
             elif o in ("-h", "--help"):
                 Usage(status=0)
@@ -58,11 +59,21 @@ if 1:   # Utility
                 # unhandled exception
                 import debug
                 debug.SetDebugger()
+        if d["-t"]:
+            Tests()
         return args
 if 1:   # Core functionality
-    def ProcessFile(file):
-        # Get string
-        s = sys.stdin.read() if file == "-" else open(file).read()
+    def Tests():
+        # Normal behavior
+        s = "   \n  \n\nA\n\n\nB\n\nC\n"
+        u = ProcessString(s)
+        Assert(u == "A\n\nB\n\nC")
+        # Empty string with whitespace
+        s = "   \t\r\v\f\n\n\n"
+        u = ProcessString(s)
+        Assert(u == "")
+        exit()
+    def ProcessString(s):
         s = s.strip()
         if 1:   # First step:  lines with ws only to empty lines
             lines = s.split("\n")
@@ -72,7 +83,11 @@ if 1:   # Core functionality
             s = '\n'.join(lines)
         if 1:   # Second step:  Change 3+ newlines to two
             s = re.sub(r"\n\n\n+", r"\n\n", s)
-        print(s)
+        return s
+    def ProcessFile(file):
+        # Get string
+        s = sys.stdin.read() if file == "-" else open(file).read()
+        print(ProcessString(s))
 
 if __name__ == "__main__":
     d = {}      # Options dictionary
