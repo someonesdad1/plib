@@ -70,7 +70,7 @@ if 1:  # Header
         from collections import deque, defaultdict
         from itertools import filterfalse
         from pdb import set_trace as xx 
-        from random import choice
+        import random
         import re
         import string
         import struct
@@ -611,7 +611,7 @@ if 1:   # Core functionality
         # Robin Parmar on 8 Aug 2007 under PSF license.
         v, c, r, count = 'aeiou', 'bdfghklmnprstvw', range(half_length), 0
         while count < num_tries:
-            word = ''.join([choice(c) + choice(v) for i in r])
+            word = ''.join([random.choice(c) + random.choice(v) for i in r])
             if not unique or (unique and word not in unique):
                 return word
             count += 1
@@ -903,7 +903,6 @@ if __name__ == "__main__":
     from lwtest import run, raises, assert_equal, Assert
     import math
     import os
-    import random
     from sig import sig
     from color import TRM as t
     def Test_Scramble():
