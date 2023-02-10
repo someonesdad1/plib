@@ -8,15 +8,11 @@ Active
         - Move notes, password db, etc. to .0rc because it's backed up to
           the cloud
 
-    - pgm/scramble.py
-        - Change to a tool that scrambles the letters of all the words,
-          leaving the punctuation the same.  An option can be used to leave
-          the first and last letters alone.
-        - Algorithm:  identify the string position of every
-          punctuation/space character by constructing a list of numbers.
-          Make a copy of the string and replace every punctuation/space
-          character with a space, then split into words.
-
+    - pgm/readability.py
+        - Add an option to let you see the histograms of the readability
+          elements: word length, syllables, words per sentences.
+        - Add -w to print out a list of the unique words in the file.  -W
+          does the same but maintains case.
 
     - write.py
         - Tool to assess some writing

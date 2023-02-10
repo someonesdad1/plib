@@ -16,7 +16,6 @@ if 1:  # Copyright, license
     # equivalents.  For example, é and è would be changed to e.
     #∞what∞#
     #∞test∞# ignore #∞test∞#
-
     # Testing with the following script is disabled until it can be fixed
     #∞Test∞# ["test/asciify_test.py"] #∞Test∞#
     pass
@@ -2674,6 +2673,7 @@ def Asciify(s):
     if not isinstance(s, str):
         raise TypeError("s must be a string")
     return s.translate(_ascii_translate)
+
 if __name__ == "__main__":  
     if 1:   # Imports & globals
         import getopt

@@ -34,15 +34,15 @@ Some repository tags are:
 ## Coding style
 
 My coding style is vertically compressed which most folks won't like.  You
-can use a style formatter (e.g., black) to to recover more normal vertical
+can use a style formatter (e.g., black) to recover more normal vertical
 formatting.  I use `pgm/rbl.py` to remove blank lines so I can see as much
 as possible on my screen.  
 
 I use a folding editor, which folds on indentation and explains the
-frequent use of 'if 1:' element, which I use to divide the code up into
-viewable chunks.  A completely folded file should be viewable in 20-30 
-lines.  I also use a second 4k monitor in portrait mode to view 100 to
-150 lines of text at once; this is very convenient for coding.
+frequent use of the 'if 1:' element, which I use to divide the code up into
+viewable chunks.  A completely folded file should be viewable in 20-30
+lines.  I also use a second 4k monitor in portrait mode to view 100 to 150
+lines of text at once; this is very convenient for code development.
 
 My editor has commands to go to the next paragraph, which is defined by a
 bare newline.  With no blank lines in a file, this lets me set up
@@ -70,7 +70,7 @@ time and fix/maintain some of the stuff.  My intent is that this stuff will
 remain here for a few years after I've died or when I turn its maintenance
 over to a friend who said he'd be the caretaker for it after I'm no longer
 able to maintain things.  By then any content of interest to others will
-probably have made its way out into the world; he can remove the repository
+probably have diffused  out into the world; he can remove the repository
 when he sees fit.
 
 ## Caution
@@ -123,7 +123,9 @@ such problems.
 The g.py and other files in the g directory are a python wrapper over
 PostScript for making drawings.  I wrote it in 2001 because there wasn't
 anything available at the time to do such tasks.  Surprisingly, it has been
-used for thousands of tasks over that time with few changes.
+used for thousands of tasks over that time with essentially no changes
+except for when a python change or external library changed, requiring a
+fix in the g.py script.
 
 ## 0what.py
 
@@ -134,12 +136,18 @@ organized by categories.
 ## 0test.py
 
 This script will run the self tests of the files.  The tests are either in
-the module's file or are located in the test directory.  Each module file has
-a special trigger string (see `trigger.py`) that tells `0test.py` how to run
-its tests.  If you run `python 0test.py`, you'll get a summary report of
-passes and failures.  Only failed tests will print out messages.  Use the
--v option to see each test's output.  The default output tells you the
-files that fail self-tests and need to be worked on.
+the module's file or are located in the /plib/test directory.  Each module
+file has a special trigger string (see `trigger.py`) that tells `0test.py`
+how to run its tests.  If you run `python 0test.py`, you'll get a summary
+report of passes and failures.  Only failed tests will print out messages.
+Use the -v option to see each test's output.  The default output tells you
+the files that fail self-tests and need to be worked on.
+
+A number of years ago I wrote lwtest.py to run tests, as I didn't like
+python's unittest module because it intercepted the standard streams, so
+you couldn't introduce breakpoints to see what was happening (or I was
+ignorant of the proper method).  I liked nose and pytest, but I wanted to
+minimize dependencies, so I rolled my own. 
 
 ## Assert()
 

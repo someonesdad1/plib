@@ -802,8 +802,8 @@ if 1:   # Tokenizing
         '''Return a deque t that contains all the word tokens in the string
         s.  The tokenizing process is such that ''.join(t) is the same
         string as s (this is verified if check is True).  wordchars and
-        otherchars must be sequences of letters so that "in" works on
-        detecting whether a letter is in the sequence.
+        otherchars must be sequences of letters (sets preferred) so that
+        "in" works on detecting whether a letter is in the sequence.
     
         The returned deque is made up of non-empty strings of a) words with
         letters and b) non-letters.  These strings will be wordtype and
