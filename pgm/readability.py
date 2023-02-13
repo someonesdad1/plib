@@ -51,9 +51,7 @@ if 1:   # Header
             have_syllable_dict = False
     if 1:   # Global variables
         ii = isinstance
-        common_abbreviations = (
-            "mr", "mrs", "ms", "dr", "no", "mssr", "st", "ave"
-        )
+        common_abbreviations = set("mr mrs ms dr no mssr st ave".split())
 if 1:   # Utility
     def Error(*msg, status=1):
         print(*msg, file=sys.stderr)

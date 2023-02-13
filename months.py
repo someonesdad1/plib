@@ -16,6 +16,8 @@ if 1:  # Copyright, license
     #∞test∞# run #∞test∞#
     pass
 if 1:   # Imports
+    import datetime
+    import string
     from bidict import bidict
 if 1:   # Global variables
     # Names of the months
@@ -91,6 +93,16 @@ if 1:   # Core functions
         elif isinstance(month, int):
             n = month
         return days_per_month[n] + bool(leap_year)
+    def GetDate(s):
+        '''Return a date.Date object given the string s in the form
+        11Feb2023.
+        '''
+        u = s.replace(" ", "")
+        u = "0" + u if len(u) == 8 else u
+        day = int(u[:2])
+        month = months(u[2:5])
+        year = int(u[5:])
+        return datetime.date(year, month, day)
 
 if __name__ == "__main__": 
     from lwtest import run
@@ -134,7 +146,7 @@ if __name__ == "__main__":
         assert DaysPerMonth("oct") == 31
         assert DaysPerMonth("nov") == 30
         assert DaysPerMonth("dec") == 31
-
+        #
         assert DaysPerMonth(1) == 31
         assert DaysPerMonth(2) == 28
         assert DaysPerMonth(2, leap_year=True) == 29
@@ -148,4 +160,6 @@ if __name__ == "__main__":
         assert DaysPerMonth(10) == 31
         assert DaysPerMonth(11) == 30
         assert DaysPerMonth(12) == 31
+        #
+        assert GetDate("11Feb2023") == datetime.date(2023, 2, 11)
     exit(run(globals(), halt=1)[0])

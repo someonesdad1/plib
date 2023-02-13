@@ -1,5 +1,7 @@
 '''
-IsAbbreviation(w: str) -> bool
+Determine if a string is an English abbrevation (case ignored)
+        from abbreviations import IsAbbreviation
+        IsAbbreviation(w: str) -> bool
 '''
 if 1:  # Copyright, license
     # These "trigger strings" can be managed with trigger.py
@@ -18,12 +20,12 @@ if 1:  # Copyright, license
 
 if 1:   # Imports
     from collections import defaultdict
-    from pdb import set_trace as xx 
 if 1:   # Custom imports
     from columnize import Columnize
 def IsAbbreviation(w):
     'Returns True if w is an abbreviation; case is ignored'
     if not hasattr(IsAbbreviation, "abbrev"):
+        # Cache our set of abbreviation strings
         IsAbbreviation.data = '''
 
             a.c. a.d. a.k.a. a.m. a.s.a.p. abbr. abbrev. abol.  aborig.

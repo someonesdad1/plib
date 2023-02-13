@@ -33,7 +33,6 @@ if 1:   # Header
         from collections.abc import Iterable
         from io import StringIO
         from fractions import Fraction
-        from pdb import set_trace as xx
     # Custom imports
         import u
         from asciify import Asciify
