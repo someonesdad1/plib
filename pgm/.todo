@@ -1,5 +1,9 @@
 Active
 
+    - pgm/ds.py
+        - Make the directory portion of the printed files gray so that they
+          are harder to see.
+
     - elements.py
         - 'el -o Ag' launches the Mg web page, but it should search for a
           symbol match first.
@@ -14,19 +18,18 @@ Active
         - Add -w to print out a list of the unique words in the file.  -W
           does the same but maintains case.
 
-    - write.py
-        - Tool to assess some writing
-        - Wikipedia's https://en.wikipedia.org/wiki/Wikipedia:Summary_style
-          page indicates that 40 kB of readable prose is about where things
-          are getting too long.
-        - Show FOG and number of words
-        - Flag UK spellings
-        - Use a number of dictionaries from basic to advanced and provide
-          the distribution of words in those dictionaries by percentage.
-          This gives a feel for how fancy the word use is.
-            - https://simple.wikipedia.org/wiki/Wikipedia:List_of_1000_basic_words
-            - https://en.wiktionary.org/wiki/Appendix:Basic_English_word_list
-            - https://simple.wikipedia.org/wiki/Wikipedia:Basic_English_combined_wordlist
+    - Solar system objects
+        - I keep coming across web pages on solar system objects and wonder
+          about their relative sizes.  Collect the diameters of all the
+          planets and dwarf planets in the solar system and produce a plot
+          that shows scaled sizes.
+        - All data can be gotten here
+          https://en.wikipedia.org/wiki/List_of_gravitationally_rounded_objects_of_the_Solar_System
+        - Some existing plots/data
+            - https://en.wikipedia.org/wiki/File:EightTNOs.png
+            - https://en.wikipedia.org/wiki/File:TheTransneptunians_Size_Albedo_Color.svg
+            - https://en.wikipedia.org/wiki/Dwarf_planet at about 60% has a
+              suitable table of diameter and mass 
 
     - Anagrams
         - Given a string, find all anagrams that use the letters that
