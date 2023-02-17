@@ -1,5 +1,6 @@
 '''
 Module that contains basic data on solar system objects
+    When run as a script, produces tables and plots.
 
 Core information from https://en.wikipedia.org/wiki/List_of_gravitationally_rounded_objects_of_the_Solar_System
     - Mean distance from primary, km
@@ -17,21 +18,67 @@ Core information from https://en.wikipedia.org/wiki/List_of_gravitationally_roun
     - Atmospheric composition
     - Number of moons
 
+PLANETS
 Mercury Venus Earth Mars Jupiter Saturn Uranus Neptune
-mean distance from sun km: 57909175 108208930 149597890 227936640 778412010 1426725400 2870972200 4498252900
-equatorial radius km: 2440.53 6051.8 6378.1366 3396.19 71492 60268 25559 24764
-mass kg:  3.302e23 4.8690e24 5.972e24 6.4191e23 1.8987e27 5.6851e26 8.6849e25 1.0244e26
-equatorial gravity m/s2:  3.70 8.87 9.8 3.71 24.79 10.44 8.87 11.15
-escape velocity km/s: 4.25 10.36 11.18 5.02 59.54 35.49 21.29 23.71
-rotation period days: 58.646225 243.0187 0.99726968 1.02595675 0.41354 0.44401 0.71833 0.67125
-orbital period days: 87.969 224.701 365.256363 686.971 4332.59 10759.22 30688.5 60182
-mean orbital speed km/s: 47.8725 35.0214 29.7859 24.1309 13.0697 9.6724 6.8352 5.4778
-eccentricity: 0.20563069 0.00677323 0.01671022 0.09341233 0.04839266 0.05415060 0.04716771 0.00858587
-inclination °: 7.00 3.39 0 1.85 1.31 2.48 0.76 1.77
-axial tilt °: 0.0 177.3 23.44 25.19 3.12 26.73 97.86 28.32
-number of moons:  0 0 1 2 92 83 27 14
+Mean distance from sun km: 57909175 108208930 149597890 227936640 778412010 1426725400 2870972200 4498252900
+Equatorial radius km: 2440.53 6051.8 6378.1366 3396.19 71492 60268 25559 24764
+Mass kg:  3.302e23 4.8690e24 5.972e24 6.4191e23 1.8987e27 5.6851e26 8.6849e25 1.0244e26
+Equatorial gravity m/s2:  3.70 8.87 9.8 3.71 24.79 10.44 8.87 11.15
+Escape velocity km/s: 4.25 10.36 11.18 5.02 59.54 35.49 21.29 23.71
+Rotation period days: 58.646225 243.0187 0.99726968 1.02595675 0.41354 0.44401 0.71833 0.67125
+Orbital period days: 87.969 224.701 365.256363 686.971 4332.59 10759.22 30688.5 60182
+Mean orbital speed km/s: 47.8725 35.0214 29.7859 24.1309 13.0697 9.6724 6.8352 5.4778
+Eccentricity: 0.20563069 0.00677323 0.01671022 0.09341233 0.04839266 0.05415060 0.04716771 0.00858587
+Inclination °: 7.00 3.39 0 1.85 1.31 2.48 0.76 1.77
+Axial tilt °: 0.0 177.3 23.44 25.19 3.12 26.73 97.86 28.32
+Number of moons:  0 0 1 2 92 83 27 14
 
-When run as a script, produces tables and plots.
+DWARF PLANETS
+Ceres Pluto Haumea Makemake Eris
+Mean distance from sun km: 413700000 5906380000 6484000000 6850000000 10210000000
+Equatorial radius km: 473 1188.3 816 715 1163
+Mass kg:  9.39e20 1.30e22 4.0e21 3.1e21 1.65e22
+Equatorial gravity m/s2: 0.27 0.62 0.63 0.40 0.82
+Escape velocity km/s: 0.51 1.21 0.91 0.54 1.37
+Rotation period days: 0.3781 6.3872 0.1631 0.9511 15.7859
+Orbital period years: 4.599 247.9 283.8 306.2 559
+Mean orbital speed km/s: 17.882 4.75 4.48 4.40 3.44
+Eccentricity: 0.080 0.249 0.195 0.161 0.436
+Inclination °: 10.59 17.14 28.21 28.98 44.04
+Axial tilt °: 4 119.6 ≈126 ? ≈78
+Number of moons:  0 5 2 1 1
+
+MOONS
+Moon Io Europa Ganymede Callisto Mimas Enceladus Tethys Dione Rhea
+Symbol: E1 J1 J2 J3 J4 S1 S2 S3 S4 S5
+Mean distance from primary km: 384399 421600 670900 1070400 1882700 185520 237948 294619 377396 527108
+Mean radius km: 1737.1 1815 1569 2634.1 2410.3 198.30 252.1 533 561.7 764.3
+Mass 1e22 kg: 7.3477 8.94 4.80 14.819 10.758 0.00375 0.0108 0.06174 0.1095 0.2306
+Equatorial gravity m/s2: 1.622 1.796 1.314 1.428 1.235 0.0636 0.111 0.145 0.231 0.264
+Escape velocity km/s: 2.38 2.56 2.025 2.741 2.440 0.159 0.239 0.393 0.510 0.635
+Rotation period days: 27.321582 1.7691378 3.551181 7.154553 16.68902 0.942422 1.370218 1.887802 2.736915 4.518212
+Orbital period days: 27.32158 1.769138 3.551181 7.154553 16.68902 0.942422 1.370218 1.887802 2.736915 4.518212
+Mean orbital speed km/s: 1.022 17.34 13.740 10.880 8.204 14.32 12.63 11.35 10.03 8.48
+Eccentricity: 0.0549 0.0041 0.009 0.0013 0.0074 0.0202 0.0047 0.02 0.002 0.001
+Inclination °: 18.29–28.58 0.04 0.47 1.85 0.2 1.51 0.02 1.51 0.019 0.345
+Axial tilt °: 6.68 0.000405±0.00076 0.0965±0.0069 0.155±0.065 ≈0–2 ≈0 ≈0 ≈0 ≈0 ≈0
+
+Titan Iapetus Miranda Ariel Umbriel Titania Oberon Triton Charon Dysnomia
+Symbol: s6 s8 u5 u1 u2 u3 u4 N1 P1 -
+Mean distance from primary km: 1221870 3560820 129390 190900 266000 436300 583519 354759 17536 37300
+Mean radius km: 2576 735.60 235.8 578.9 584.7 788.9 761.4 1353.4 603.5 350
+Mass 1e22 kg: 13.452 0.18053 0.00659 0.135 0.12 0.35 0.3014 2.14 0.152 0.03–0.05
+Equatorial gravity m/s2: 1.35 0.22 0.08 0.27 0.23 0.39 0.35 0.78 0.28 0.16–0.27
+Escape velocity km/s: 2.64 0.57 0.19 0.56 0.52 0.77 0.73 1.46 0.58 0.34–0.44
+Rotation period days: 15.945 79.322 1.414 2.52 4.144 8.706 13.46 5.877 6.387 15.786
+Orbital period days: 15.945 79.322 1.4135 2.520 4.144 8.706 13.46 5.877 6.387 15.786
+Mean orbital speed km/s: 5.57 3.265 6.657 5.50898 4.66797 3.644 3.152 4.39 0.2 0.172
+Eccentricity: 0.0288 0.0286 0.0013 0.0012 0.005 0.0011 0.0014 0.00002 0.0022 0.0062
+Inclination °: 0.33 14.72 4.22 0.31 0.36 0.14 0.10 157[h] 0.001 ≈0
+Axial tilt °: ≈0.3 ≈0 ≈0 ≈0 ≈0 ≈0 ≈0 ≈0.7[92] ≈0 ≈0
+Mean surface temperature K: 93.7 130 59 58 61 60 61 38 53 34
+
+
 
 '''
 if 1:   # Header

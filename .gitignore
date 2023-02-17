@@ -70,4 +70,7 @@ cephes.dll
 pgm/songs
 pgm/spray.py
 rpath.zip
-
+guess_syllables.py
+pgm/tsub.new.py
+pgm/tx.py
+pgm/write.py
