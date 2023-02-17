@@ -21,7 +21,7 @@ Core information from https://en.wikipedia.org/wiki/List_of_gravitationally_roun
 '''
 # PLANETS
 p = '''
-Mercury Venus Earth Mars Jupiter Saturn Uranus Neptune
+Name: Mercury Venus Earth Mars Jupiter Saturn Uranus Neptune
 Symbol: None None None None None None None None
 Mean distance from primary km: 57909175 108208930 149597890 227936640 778412010 1426725400 2870972200 4498252900
 Mean radius km: 2440.53 6051.8 6378.1366 3396.19 71492 60268 25559 24764
@@ -40,7 +40,7 @@ Mean surface temperature K: 440-100 730 287 227 152 134 76 73
 
 # DWARF PLANETS
 dp1 = '''
-Ceres Pluto Haumea Makemake Eris
+Name: Ceres Pluto Haumea Makemake Eris
 Symbol: None None None None None
 Mean distance from primary km: 413700000 5906380000 6484000000 6850000000 10210000000
 Mean radius km: 473 1188.3 816 715 1163
@@ -58,11 +58,11 @@ Mean surface temperature K: 167 40 <50 30 30
 '''
 
 dp2 = '''
-Orcus Salacia Quaoar Gonggong Sedna
+Name: Orcus Salacia Quaoar Gonggong Sedna
 Symbol: None None None None None
 Mean distance from primary km: 5896946000 6310600000 6535930000 10072433340 78668000000
 Mean radius km: 458.5 423 560.5 615 497.5
-Mass kg: 6.32e20 4.9e20 1.41e21 1.75×21 ?
+Mass kg: 6.32e20 4.9e20 1.41e21 1.75e21 ?
 Equatorial gravity m/s2: 0.27 0.18 0.24 0.285 ?
 Escape velocity km/s:  0.50 0.39 0.45 0.604 ?
 Rotation period days: ? ? 0.3683 0.9333 0.4280
@@ -74,9 +74,10 @@ Axial tilt deg: None None None None None
 Number of moons: 1 1 1 1 0
 Mean surface temperature K: ≈42 ≈43 ≈41 ≈30 ≈12
 '''
+
 # MOONS
 m1 = '''
-Moon Io Europa Ganymede Callisto Mimas Enceladus Tethys Dione Rhea
+Name: Moon Io Europa Ganymede Callisto Mimas Enceladus Tethys Dione Rhea
 Symbol: E1 J1 J2 J3 J4 S1 S2 S3 S4 S5
 Mean distance from primary km: 384399 421600 670900 1070400 1882700 185520 237948 294619 377396 527108
 Mean radius km: 1737.1 1815 1569 2634.1 2410.3 198.30 252.1 533 561.7 764.3
@@ -89,12 +90,13 @@ Mean orbital speed km/s: 1.022 17.34 13.740 10.880 8.204 14.32 12.63 11.35 10.03
 Eccentricity: 0.0549 0.0041 0.009 0.0013 0.0074 0.0202 0.0047 0.02 0.002 0.001
 Inclination deg: 18.29-28.58 0.04 0.47 1.85 0.2 1.51 0.02 1.51 0.019 0.345
 Axial tilt deg: 6.68 0.000405±0.00076 0.0965±0.0069 0.155±0.065 ≈0-2 ≈0 ≈0 ≈0 ≈0 ≈0
+Number of moons: 0 0 0 0 0 0 0 0 0 0  
 Mean surface temperature K: 220 130 102 110 134 64 75 64 87 76
 '''
 
 m2 = '''
-Titan Iapetus Miranda Ariel Umbriel Titania Oberon Triton Charon Dysnomia
-Symbol: S6 S8 U5 U1 U2 U3 U4 N1 P1 -
+Name: Titan Iapetus Miranda Ariel Umbriel Titania Oberon Triton Charon Dysnomia
+Symbol: S6 S8 U5 U1 U2 U3 U4 N1 P1 None
 Mean distance from primary km: 1221870 3560820 129390 190900 266000 436300 583519 354759 17536 37300
 Mean radius km: 2576 735.60 235.8 578.9 584.7 788.9 761.4 1353.4 603.5 350
 Mass kg: 13.452e22 0.18053e22 0.00659e22 0.135e22 0.12e22 0.35e22 0.3014e22 2.14e22 0.152e22 0.03e22-0.05e22
@@ -105,32 +107,10 @@ Orbital period days: 15.945 79.322 1.4135 2.520 4.144 8.706 13.46 5.877 6.387 15
 Mean orbital speed km/s: 5.57 3.265 6.657 5.50898 4.66797 3.644 3.152 4.39 0.2 0.172
 Eccentricity: 0.0288 0.0286 0.0013 0.0012 0.005 0.0011 0.0014 0.00002 0.0022 0.0062
 Inclination deg: 0.33 14.72 4.22 0.31 0.36 0.14 0.10 157[h] 0.001 ≈0
-Axial tilt deg: ≈0.3 ≈0 ≈0 ≈0 ≈0 ≈0 ≈0 ≈0.7[92] ≈0 ≈0
+Axial tilt deg: ≈0.3 ≈0 ≈0 ≈0 ≈0 ≈0 ≈0 ≈0.7 ≈0 ≈0
+Number of moons: 0 0 0 0 0 0 0 0 0 0  
 Mean surface temperature K: 93.7 130 59 58 61 60 61 38 53 34
 '''
-# Check that each item has equal number of fields
-def Check():
-    def CheckFields(s, name):
-        l = []
-        for i in s.strip().split("\n"):
-            if ":" in i:
-                loc = i.find(":")
-                f = i[loc + 1:].split()
-            else:
-                f = i.split()
-            l.append(len(f))
-        if 0:
-            from pprint import pprint as pp
-            print(name)
-            pp(l)
-        return l
-    assert(set(CheckFields(p, "p")) == {8})
-    assert(set(CheckFields(dp1, "dp1")) == {5})
-    assert(set(CheckFields(dp2, "dp2")) == {5})
-    assert(set(CheckFields(m1, "m1")) == {10})
-    assert(set(CheckFields(m2, "m2")) == {10})
-    exit()
-Check()
 
 if 1:   # Header
     if 1:   # Copyright, license
@@ -147,6 +127,8 @@ if 1:   # Header
         #∞test∞# #∞test∞#
         pass
     if 1:   # Standard imports
+        from collections import defaultdict
+        from pprint import pprint as pp
         import getopt
         import os
         from pathlib import Path as P
@@ -154,6 +136,11 @@ if 1:   # Header
     if 1:   # Custom imports
         from wrap import wrap, dedent
         from color import Color, TRM as t
+        from f import flt
+        from u import u
+        if 1:
+            import debug
+            debug.SetDebugger()
     if 1:   # Global variables
         ii = isinstance
         W = int(os.environ.get("COLUMNS", "80")) - 1
@@ -201,9 +188,185 @@ if 1:   # Utility
                 import debug
                 debug.SetDebugger()
         return args
+    # Check that each item has equal number of fields
+    def Check():
+        def CheckFields(s, name):
+            l = []
+            for i in s.strip().split("\n"):
+                if ":" in i:
+                    loc = i.find(":")
+                    f = i[loc + 1:].split()
+                else:
+                    f = i.split()
+                l.append(len(f))
+            if 0:
+                from pprint import pprint as pp
+                print(name)
+                pp(l)
+            return l
+        assert(set(CheckFields(p, "p")) == {8})
+        assert(set(CheckFields(dp1, "dp1")) == {5})
+        assert(set(CheckFields(dp2, "dp2")) == {5})
+        assert(set(CheckFields(m1, "m1")) == {10})
+        assert(set(CheckFields(m2, "m2")) == {10})
+        exit()
 if 1:   # Core functionality
-    pass
+    def GetData(s, name):
+        "Return a list of each item's data"
+        o = []
+        for i in s.strip().split("\n"):
+            u = []
+            loc = i.find(":")
+            u.append(i[:loc])
+            f = i[loc + 1:].split()
+            u.extend(f)
+            o.append(u)
+        return o
+
+    class Unk(flt):
+        '''Represent an unknown number.  Always return '?' for str or repr.
+        '''
+        def __new__(cls, arg):
+            instance = super().__new__(cls, 0)
+            return instance
+        def __str__(self):
+            return "?"
+        def __repr__(self):
+            return "Unk('?')"
+    class Approx(flt):
+        '''Represent an approximate number.  Prepends "≈" to str.
+        '''
+        def __new__(cls, arg):
+            instance = super().__new__(cls, arg[1:])
+            if arg[0] == "≈":
+                instance.c = "≈"
+            elif arg[0] == "<":
+                instance.c = "<"
+            else:
+                raise Exception(f"{arg!r}")
+            return instance
+        def __str__(self):
+            return self.c + super().__str__(cls)
+        def __repr__(self):
+            return "Approx(str(self))"
+
+    def ParseData():
+        '''Return a dict with the following keys:
+            name    Object's name
+            sym     Symbol
+            type    p, dp, m (planet, dwarf planet, moon)
+            d       Distance from primary
+            r       Mean radius
+            m       Mass
+            g       Equatorial gravitational acceleration
+            ev      Escape velocity
+            rot     Rotation period
+            orb     Orbital period
+            vel     Orbital speed
+            ecc     Eccentricity
+            inc     Inclination
+            tilt    Axial tilt
+            moons   Number of moons
+            T       Mean surface temperature
+        All physical values will be in base SI units with angles in
+        radians.  
+ 
+        Example:  Let di be the returned dictionary.  Then di["name"]
+        returns a list of object names; there are N of them.  All of the
+        lists thus returned are length N.
+        '''
+        di = defaultdict(list)     # Dict to be returned
+        # Dict to map wikipedia name to our variable name
+        namemap = {
+            "Name": "name",
+            "Symbol": "sym",
+            "Mean distance from primary km": "d",
+            "Mean radius km": "r",
+            "Mass kg": "m",
+            "Equatorial gravity m/s2": "g",
+            "Escape velocity km/s": "ev",
+            "Rotation period days": "rot",
+            "Orbital period days": "orb",
+            "Mean orbital speed km/s": "vel",
+            "Eccentricity": "ecc",
+            "Inclination deg": "inc",
+            "Axial tilt deg": "tilt",
+            "Number of moons": "moons",
+            "Mean surface temperature K": "T",
+            
+        }
+        for i, name in ((p, "planets"),
+                        (dp1, "dwarf planets1"),
+                        (dp2, "dwarf planets2"),
+                        (m1, "moons1"),
+                        (m2, "moons2")):
+            o = GetData(i, name)
+            for i in o:
+                key = i[0]
+                symbol = namemap[i[0]]
+                remainder = [ConvertToValue(j, key) for j in i[1:]]
+                di[key].extend(remainder)
+        pp(di)
+    def ConvertToValue(s, name):
+        '''Change s to a suitable number or string.  The basic desire is to
+        return a flt in base SI units.
+        '''
+        def to_flt(v):
+            '''Convert v to a flt.  If it is "?", convert to Unk.  If it
+            starts with "≈", return Approx.
+            '''
+            if ii(v, (float, flt)):
+                return flt(v)
+            if v.startswith("≈"):
+                return Approx(v)
+            elif v == "?" or v == "None":
+                return Unk(v)
+            else:
+                return flt(v)
+        if name == "Name":
+            return s
+        elif name == "Symbol":
+            return None if s == "None" else s
+        elif name == "Mean distance from primary km":
+            return to_flt(s)*u("km")
+        elif name == "Mean radius km":
+            return to_flt(s)*u("km")
+        elif name == "Mass kg":
+            return to_flt(s)*u("kg")
+        elif name == "Equatorial gravity m/s2":
+            return to_flt(s)*u("m/s2")
+        elif name == "Escape velocity km/s":
+            return to_flt(s)*u("km/s")
+        elif name == "Rotation period days":
+            if "*" in s:
+                return to_flt(eval(s))*u("days")
+            return to_flt(s)*u("days")
+        elif name == "Orbital period days":
+            if "*" in s:
+                return to_flt(eval(s))*u("days")
+            return to_flt(s)*u("days")
+        elif name == "Mean orbital speed km/s":
+            return to_flt(s)*u("km/s")
+        elif name == "Eccentricity":
+            return to_flt(s)
+        elif name == "Inclination deg":
+            return to_flt(s)*u("deg")
+        elif name == "Axial tilt deg":
+            return to_flt(s)*u("deg")
+        elif name == "Number of moons":
+            return int(s)
+        elif name == "Mean surface temperature K":
+            if s == "440-100":
+                return flt(540/2)*u("K")
+            elif s.startswith("<"):
+                return Approx(s)
+            return to_flt(s)*u("K")
+        else:
+            raise Exception(f"{name!r} is bad name")
+
+ParseData();exit()
 
 if __name__ == "__main__":
+    Check()
     d = {}      # Options dictionary
     args = ParseCommandLine(d)
