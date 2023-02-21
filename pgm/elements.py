@@ -21,18 +21,20 @@ if 1:   # Header
         import getopt
         import os
         import re
+        import string
         import sys
         import webbrowser
+        from pprint import pprint as pp
     if 1:   # Custom imports
         from wrap import wrap, dedent
         from color import Color, TRM as t
-        if 1:
+        from lwtest import Assert
+        if 0:
             import debug
             debug.SetDebugger()
+        t.dbg = t("lill")
     if 1:   # Global variables
         ii = isinstance
-        W = int(os.environ.get("COLUMNS", "80")) - 1
-        L = int(os.environ.get("LINES", "50"))
         elements = '''
             Hydrogen       H    1
             Helium         He   2
@@ -156,11 +158,18 @@ if 1:   # Header
         # Mappings for element names, symbols, atomic numbers
         class g:
             pass
-        g.sym2num = {}
-        g.num2sym = {}
-        g.num2name = {}
-        g.name2num = {}
-        g.names = []
+        g.sym2num = {}      # {('h', 1), ('he', 2), ...
+                            #  ('H', 1), ('He', 2)}
+        g.num2sym = {}      # {(1, 'h'), (2, 'he')}
+        g.num2Sym = {}      # {(1, 'H'), (2, 'He')}
+        g.num2name = {}     # {(1, 'hydrogen'), (2, 'helium')}
+        g.num2Name = {}     # {(1, 'Hydrogen'), (2, 'Helium')}
+        g.name2num = {}     # [('hydrogen', 1), ('helium', 2)]
+        g.Name2num = {}     # [('Hydrogen', 1), ('Helium', 2)]
+        g.names = []        # ['hydrogen', 'helium', ...
+                            #  'Hydrogen', 'Helium']
+        g.symbols = []      # ['h', 'he', 'li', 'be', ...
+                            #  'H', 'He', 'Li', 'Be']
 if 1:   # Utility
     def Error(*msg, status=1):
         print(*msg, file=sys.stderr)
@@ -171,24 +180,30 @@ if 1:   # Utility
           Print the matched elements.  The el strings can be the element's
           symbol, a regular expression for the name, or the atomic number.
         Options:
+            -d      Dump data structures
             -i      Launch page on isotopes
             -o      Open wikipedia page on matched elements
+            -t      Run self-tests
         '''))
         exit(status)
     def ParseCommandLine(d):
+        d["-d"] = False     # Dump data structures
         d["-i"] = False     # Open isotopes page
         d["-o"] = False     # Open web page instead of printing to stdout
-        if len(sys.argv) < 2:
-            Usage()
+        d["-t"] = False     # Run self-tests
         try:
-            opts, args = getopt.getopt(sys.argv[1:], "io", 
-                    ["help", "debug"])
+            opts, args = getopt.getopt(sys.argv[1:], "dhiot") 
         except getopt.GetoptError as e:
             print(str(e))
             exit(1)
         for o, a in opts:
-            if o[1] in list("io"):
+            if o[1] in list("dhiot"):
                 d[o] = not d[o]
+        GetData()
+        if d["-t"]:
+            TestGetElements()
+        if not args:
+            Usage()
         return args
 if 1:   # Core functionality
     def Uppercase(word):
@@ -197,13 +212,43 @@ if 1:   # Core functionality
     def GetData():
         'Construct global dicts'
         for line in elements.strip().split("\n"):
-            name, sym, num = [i.strip().lower() for i in line.split()]
+            Name, Sym, num = [i.strip() for i in line.split()]
             num = int(num)
-            g.names.append(name)
+            sym = Sym.lower()
+            name = Name.lower()
+            # Dicts
             g.sym2num[sym] = num
+            g.sym2num[Sym] = num
             g.num2sym[num] = sym
+            g.num2Sym[num] = Sym
+            g.num2Name[num] = Name
             g.num2name[num] = name
+            g.Name2num[Name] = num
             g.name2num[name] = num
+            #  Lists
+            g.symbols.append(Sym)
+            g.symbols.append(sym)
+            g.names.append(Name)
+            g.names.append(name)
+        #  Set of capitalized element names
+        g.all = set(i for i in g.names if i[0] in string.ascii_uppercase)
+        if d["-d"]:     # Dump data structures
+            def L(di):
+                return list(di.items())[:2]
+            print(f"g.names    [list]: {g.names[:4]}")
+            print(f"g.symbols  [list]: {g.symbols[:4]}")
+            print()
+            #
+            print(f"g.sym2num  [dict]: {L(g.sym2num)}")
+            #
+            print(f"g.num2sym  [dict]: {L(g.num2sym)}")
+            print(f"g.num2Sym  [dict]: {L(g.num2Sym)}")
+            print(f"g.num2name [dict]: {L(g.num2name)}")
+            print(f"g.num2Name [dict]: {L(g.num2Name)}")
+            #
+            print("All formal element names, capitalized:")
+            print(f"  g.all       [set]: {list(g.all)[:2]}")
+            exit()
     def LaunchWebPage(name):
         base = "https://en.wikipedia.org/wiki/"
         if d["-i"]:
@@ -214,54 +259,97 @@ if 1:   # Core functionality
             # Open the element page
             url = base + name
             webbrowser.open(url)
-    def GetElement(el):
-        'Return the name(s) of the indicated element as a list'
-        # See if it's an atomic number
-        el = el.lower()
-        try:
-            return [Uppercase(g.num2name[int(el)])]
-        except Exception:
-            pass
-        # See if it's a symbol
-        try:
-            return [Uppercase(g.num2name[g.sym2name[sym]])]
-        except Exception:
-            pass
-        # See if it's an exact match to a name
-        try:
+    def GetElements(el, test=False):
+        '''Return the name(s) of the indicated element as a list.
+        Search strategy:
+            - See if it's an integer, meaning an atomic number
+            - See if it's an element symbol (1st character must be upper case)
+            - See if it's a full element name
+            - Search with it as a regex
+        If test is True, always return a list, even if empty.
+        '''
+        if not el.strip():
+            return []
+        try:    # Atomic number?
+            atomic_number = int(el)
+            name = g.num2Name[atomic_number]
+            assert(name in g.all)
+            return [name]
+        except (ValueError, KeyError):
+            if test:
+                return []
+        # Element symbol?
+        if el[0] in string.ascii_uppercase:
+            try:
+                if el in g.symbols:
+                    atomic_number = g.sym2num[el]
+                    name = g.num2Name[atomic_number]
+                    assert(name in g.all)
+                    return [name]
+            except KeyError:
+                if test:
+                    return []
+        # Matches a full element name?
+        if el in g.names:
             index = g.names.index(el)
-            return [Uppercase(g.names[index])]
-        except Exception:
-            pass
-        # Search for the string in names
-        names = []
-        for name in g.names:
-            if el in name:
-                names.append(Uppercase(name))
-        if names:
-            return names
+            name = Uppercase(g.names[index])
+            assert(name in g.all)
+            return [name]
         # Use regular expression
         r = re.compile(el)
+        names = []
         for name in g.names:
-            mo = r.search(el)
-            if mo:
+            mo = r.search(name)
+            if mo and Uppercase(name) not in names:
                 names.append(Uppercase(name))
+        for name in names:
+            assert(name in g.all)
         return names
-
-if 0:
-    url = "https://someonesdad1.github.io/hobbyutil/project_list.html"
-    webbrowser.open(url)
-    exit()
+    def TestGetElements():
+        'Check that GetElements returns reasonable values'
+        # Valid atomic number
+        Assert(GetElements("1") == ["Hydrogen"])
+        # Invalid atomic number
+        Assert(GetElements("0", test=True) == [])
+        # Valid symbol
+        Assert(GetElements("H") == ["Hydrogen"])
+        # Invalid symbol
+        Assert(GetElements("Zz", test=True) == [])
+        # Valid full element name
+        Assert(GetElements("Hydrogen") == ["Hydrogen"])
+        Assert(GetElements("hydrogen") == ["Hydrogen"])
+        # Invalid full element name
+        Assert(GetElements("Zydrogen") == [])
+        # Valid regex
+        Assert(GetElements("[YZ]") == ['Zinc', 'Yttrium', 'Zirconium', 'Ytterbium'])
+        # Invalid regex
+        Assert(GetElements("Zydrogen") == [])
+        Assert(GetElements("") == [])
+        #
+        print("Tests passed")
+        exit(0)
 
 if __name__ == "__main__":
     d = {}      # Options dictionary
-    GetData()
     args = ParseCommandLine(d)
-    names = []
+    g.found_names = []
     for el in args:
-        for name in GetElement(el):
-            if name not in names:
-                names.append(name)
+        for name in GetElements(el):
+            if name not in g.found_names:
+                g.found_names.append(name)
+    # Make sure we found only valid names
+    valid = True
+    for i in g.found_names:
+        if i not in g.all:
+            valid = False
+            print(f"{i!r} not a valid name")
+    if not valid:
+        exit(1)
+    if 1:   # Dump for debugging
+        # Make sure we found only valid names
+        print("Found:")
+        pp(g.found_names)
+        exit()
     # Open the web pages
     for name in names:
         if d["-o"] or d["-i"]:
