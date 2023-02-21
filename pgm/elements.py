@@ -32,7 +32,7 @@ if 1:   # Header
         if 0:
             import debug
             debug.SetDebugger()
-        t.dbg = t("lill")
+        t.dbg = t("brnl")
     if 1:   # Global variables
         ii = isinstance
         elements = '''
@@ -235,7 +235,7 @@ if 1:   # Core functionality
         if d["-d"]:     # Dump data structures
             def L(di):
                 return list(di.items())[:2]
-            print(f"g.names    [list]: {g.names[:4]}")
+            print(f"{t.dbg}g.names    [list]: {g.names[:4]}")
             print(f"g.symbols  [list]: {g.symbols[:4]}")
             print()
             #
@@ -247,8 +247,8 @@ if 1:   # Core functionality
             print(f"g.num2Name [dict]: {L(g.num2Name)}")
             #
             print("All formal element names, capitalized:")
-            print(f"  g.all       [set]: {list(g.all)[:2]}")
-            exit()
+            t.print(f"  g.all       [set]: {list(g.all)[:2]}")
+            print()
     def LaunchWebPage(name):
         base = "https://en.wikipedia.org/wiki/"
         if d["-i"]:
@@ -332,26 +332,18 @@ if 1:   # Core functionality
 if __name__ == "__main__":
     d = {}      # Options dictionary
     args = ParseCommandLine(d)
+    # Find all the element names referenced by the command line
     g.found_names = []
     for el in args:
         for name in GetElements(el):
             if name not in g.found_names:
                 g.found_names.append(name)
-    # Make sure we found only valid names
-    valid = True
-    for i in g.found_names:
-        if i not in g.all:
-            valid = False
-            print(f"{i!r} not a valid name")
-    if not valid:
-        exit(1)
-    if 1:   # Dump for debugging
-        # Make sure we found only valid names
-        print("Found:")
+    if d["-d"]:   # Dump for debugging
+        print("Found the following elements:")
         pp(g.found_names)
         exit()
     # Open the web pages
-    for name in names:
+    for name in g.found_names:
         if d["-o"] or d["-i"]:
             LaunchWebPage(name)
         else:

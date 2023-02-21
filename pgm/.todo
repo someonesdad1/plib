@@ -1,14 +1,5 @@
 Active
 
-    - pgm/ds.py
-        - Update to use the new color.py
-        - Make the directory portion of the printed files gray so that they
-          are harder to see.
-
-    - elements.py
-        - 'el -o Ag' launches the Mg web page, but it should search for a
-          symbol match first.
-
     - Core setup data
         - Move notes, password db, etc. to .0rc because it's backed up to
           the cloud
