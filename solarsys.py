@@ -106,7 +106,7 @@ Rotation period days: 15.945 79.322 1.414 2.52 4.144 8.706 13.46 5.877 6.387 15.
 Orbital period days: 15.945 79.322 1.4135 2.520 4.144 8.706 13.46 5.877 6.387 15.786
 Mean orbital speed km/s: 5.57 3.265 6.657 5.50898 4.66797 3.644 3.152 4.39 0.2 0.172
 Eccentricity: 0.0288 0.0286 0.0013 0.0012 0.005 0.0011 0.0014 0.00002 0.0022 0.0062
-Inclination deg: 0.33 14.72 4.22 0.31 0.36 0.14 0.10 157[h] 0.001 ≈0
+Inclination deg: 0.33 14.72 4.22 0.31 0.36 0.14 0.10 157 0.001 ≈0
 Axial tilt deg: ≈0.3 ≈0 ≈0 ≈0 ≈0 ≈0 ≈0 ≈0.7 ≈0 ≈0
 Number of moons: 0 0 0 0 0 0 0 0 0 0  
 Mean surface temperature K: 93.7 130 59 58 61 60 61 38 53 34
@@ -138,7 +138,7 @@ if 1:   # Header
         from color import Color, TRM as t
         from f import flt
         from u import u
-        if 1:
+        if len(sys.argv) > 1:
             import debug
             debug.SetDebugger()
     if 1:   # Global variables
@@ -222,7 +222,6 @@ if 1:   # Core functionality
             u.extend(f)
             o.append(u)
         return o
-
     class Unk(flt):
         '''Represent an unknown number.  Always return '?' for str or repr.
         '''
@@ -244,12 +243,25 @@ if 1:   # Core functionality
                 instance.c = "<"
             else:
                 raise Exception(f"{arg!r}")
+            instance.cls = cls
             return instance
         def __str__(self):
-            return self.c + super().__str__(cls)
+            return self.c + super().__str__(self.cls)
         def __repr__(self):
             return "Approx(str(self))"
-
+    class Rng(flt):
+        '''Represent a range.
+        '''
+        def __new__(cls, a, b):
+            assert(ii(a, flt) and ii(b, flt))
+            instance = super().__new__(cls, (a + b)/2)
+            instance.rng = (a, b)
+            return instance
+        def __str__(self):
+            a, b = self.rng
+            return f"[{a},{b}]"
+        def __repr__(self):
+            return "Rng(str(self))"
     def ParseData():
         '''Return a dict with the following keys:
             name    Object's name
@@ -306,7 +318,7 @@ if 1:   # Core functionality
                 symbol = namemap[i[0]]
                 remainder = [ConvertToValue(j, key) for j in i[1:]]
                 di[key].extend(remainder)
-        pp(di)
+        return di
     def ConvertToValue(s, name):
         '''Change s to a suitable number or string.  The basic desire is to
         return a flt in base SI units.
@@ -317,10 +329,19 @@ if 1:   # Core functionality
             '''
             if ii(v, (float, flt)):
                 return flt(v)
-            if v.startswith("≈"):
+            if "-" in v:
+                if v.startswith("≈"):
+                    v = v.replace("≈", "")
+                a, b = [flt(i) for i in v.split("-")]
+                return Rng(a, b)
+            elif v.startswith("≈"):
                 return Approx(v)
             elif v == "?" or v == "None":
                 return Unk(v)
+            elif "±" in v:
+                mean, stddev = [flt(i) for i in v.split("±")]
+                a, b = mean - stddev, mean + stddev
+                return Rng(a, b)
             else:
                 return flt(v)
         if name == "Name":
@@ -363,8 +384,19 @@ if 1:   # Core functionality
             return to_flt(s)*u("K")
         else:
             raise Exception(f"{name!r} is bad name")
+    def PrintData(di):
+        'Dump the dictionary for checking'
+        x = flt(0)
+        x.N = 2
+        x.high = 1e3
+        for i in di:
+            print(f"{i!r}:", end=" ")
+            s = [str(j) for j in di[i]]
+            print(' '.join(s))
 
-ParseData();exit()
+di = ParseData()
+PrintData(di)
+exit()
 
 if __name__ == "__main__":
     Check()

@@ -1,6 +1,7 @@
 Active
 
     - pgm/ds.py
+        - Update to use the new color.py
         - Make the directory portion of the printed files gray so that they
           are harder to see.
 

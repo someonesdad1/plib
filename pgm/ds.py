@@ -42,23 +42,29 @@ if 1:   # Custom imports
     from wrap import dedent
     from selection import Select
     from dirfiles import Dirfiles
-    # Try to import the color module
-    _have_color = False
-    try:
-        import color as c
-        _have_color = True
-    except ImportError:
-        class _C:  # Dummy object that will swallow calls to the color module
-            def __setattr__(self, attr, x):
-                pass
-            def __getattr__(self, attr):
-                return None
-            def fg(self, *p):
-                pass
-            def normal(self):
-                pass
-        c = _C()
-        del _C
+    # Color import stuff
+    use_new = False
+    use_new = True
+    if use_new:
+        from color import t
+    else:
+        # Try to import the color module
+        _have_color = False
+        try:
+            import color as c
+            _have_color = True
+        except ImportError:
+            class _C:  # Dummy object that will swallow calls to the color module
+                def __setattr__(self, attr, x):
+                    pass
+                def __getattr__(self, attr):
+                    return None
+                def fg(self, *p):
+                    pass
+                def normal(self):
+                    pass
+            c = _C()
+            del _C
 if 1:   # Global variables
     # app to open a file with registered application
     unix = False
@@ -67,42 +73,6 @@ if 1:   # Global variables
     else:                               # Windows
         #app = "<dir>/app.exe"
         app = "c:/cygwin/bin/cygstart.exe" 
-if 1:   # Colors for output; colors available are:
-    #   black   gray
-    #   blue    lblue
-    #   green   lgreen
-    #   cyan    lcyan
-    #   red     lred
-    #   magenta lmagenta
-    #   brown   yellow
-    #   white   lwhite
-    (black, blue, green, cyan, red, magenta, brown, white, gray, lblue,
-    lgreen, lcyan, lred, lmagenta, yellow, lwhite) = (
-        c.black, c.blue, c.green, c.cyan, c.red, c.magenta, c.brown,
-        c.white, c.gray, c.lblue, c.lgreen, c.lcyan, c.lred, c.lmagenta,
-        c.yellow, c.lwhite)
-    c_norm = (white, black)  # Color when finished
-    c_plain = (white, black)
-    # The following variable can be used to choose different color styles
-    colorstyle = 0
-    if colorstyle == 0:
-        c_dir = (lred, black)
-        c_match = (yellow, black)
-    elif colorstyle == 1:
-        c_dir = (lred, black)
-        c_match = (white, blue)
-    elif colorstyle == 2:
-        c_dir = (lgreen, black)
-        c_match = (black, green)
-    elif colorstyle == 3:
-        c_dir = (lmagenta, black)
-        c_match = (yellow, black)
-    elif colorstyle == 4:
-        c_dir = (lgreen, black)
-        c_match = (lwhite, magenta)
-    elif colorstyle == 5:
-        c_dir = (lred, black)
-        c_match = (black, yellow)
     # Index files hold the files to be searched.  These are stored in files
     # because caching on my system doesn't work well for the d:/ drive.  It
     # only takes a few seconds to generate the index files with -I.
@@ -112,6 +82,46 @@ if 1:   # Colors for output; colors available are:
         "eb": "/plib/pgm/ds.eb.index", 
         "hpj": "/plib/pgm/ds.hpj.index", 
     }
+if 1:   # Colors for output; colors available are:
+    if use_new:
+        t.gry = t("gryd")       # Dark gray for directory portion
+        t.match = t("ornl")     # Color for matches
+    else:
+        #   black   gray
+        #   blue    lblue
+        #   green   lgreen
+        #   cyan    lcyan
+        #   red     lred
+        #   magenta lmagenta
+        #   brown   yellow
+        #   white   lwhite
+        (black, blue, green, cyan, red, magenta, brown, white, gray, lblue,
+        lgreen, lcyan, lred, lmagenta, yellow, lwhite) = (
+            c.black, c.blue, c.green, c.cyan, c.red, c.magenta, c.brown,
+            c.white, c.gray, c.lblue, c.lgreen, c.lcyan, c.lred, c.lmagenta,
+            c.yellow, c.lwhite)
+        c_norm = (white, black)  # Color when finished
+        c_plain = (white, black)
+        # The following variable can be used to choose different color styles
+        colorstyle = 0
+        if colorstyle == 0:
+            c_dir = (lred, black)
+            c_match = (yellow, black)
+        elif colorstyle == 1:
+            c_dir = (lred, black)
+            c_match = (white, blue)
+        elif colorstyle == 2:
+            c_dir = (lgreen, black)
+            c_match = (black, green)
+        elif colorstyle == 3:
+            c_dir = (lmagenta, black)
+            c_match = (yellow, black)
+        elif colorstyle == 4:
+            c_dir = (lgreen, black)
+            c_match = (lwhite, magenta)
+        elif colorstyle == 5:
+            c_dir = (lred, black)
+            c_match = (black, yellow)
 def Error(*msg, status=1):
     print(*msg, file=sys.stderr)
     exit(status)
@@ -161,22 +171,6 @@ def ParseCommandLine(d):
     if len(args) != 1:
         Usage(d)
     return args
-def PrintMatch(num, path, start, end, d):
-    '''For the match in path, print things out in the appropriate colors.
-    Note start and end are the indices into just the file part of the
-    whole path name.
-    '''
-    c.fg(c_plain)
-    print("%3d  " % num, end="")
-    s = str(path)
-    dir, file = split(s[len(d["root"]) + 1:])  # Gets rid of leading stuff
-    dir += "/"
-    print(dir, end="")
-    print(file[:start], end="")
-    c.fg(c_match)
-    print(file[start:end], end="")
-    c.fg(c_plain)
-    print(file[end:])
 def GenerateIndexFiles(d):
     'Generate all of the index files at once'
     # ebooks
@@ -252,6 +246,31 @@ def GetMatches(regexp, d):
         # Sort by whole path name (first element), then toss out first element
         matches = [(i[1], i[2]) for i in list(sorted(matches))]
     return matches
+def PrintMatch(num, path, start, end, d):
+    '''For the match in path, print things out in the appropriate colors.
+    Note start and end are the indices into just the file part of the
+    whole path name.
+    '''
+    if use_new:
+        print("%3d  " % num, end="")
+        s = str(path)
+        dir, file = split(s[len(d["root"]) + 1:])  # Gets rid of leading stuff
+        dir += "/"
+        print(f"{t.gry}{dir}{t.n}", end="")
+        print(file[:start], end="")
+        print(f"{t.match}{file[start:end]}{t.n}{file[end:]}")
+    else:
+        c.fg(c_plain)
+        print("%3d  " % num, end="")
+        s = str(path)
+        dir, file = split(s[len(d["root"]) + 1:])  # Gets rid of leading stuff
+        dir += "/"
+        print(dir, end="")
+        print(file[:start], end="")
+        c.fg(c_match)
+        print(file[start:end], end="")
+        c.fg(c_plain)
+        print(file[end:])
 def PrintChoices(matches, d):
     print("Choose which file(s) to open:")
     for num, data in enumerate(matches):
