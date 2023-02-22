@@ -1,4 +1,8 @@
 '''
+
+TODO
+    - Use -x option to force using SI prefixes
+
 Module that contains basic data on solar system objects
     When run as a script, produces tables and plots.
 
@@ -7,100 +11,26 @@ Module that contains basic data on solar system objects
     18Feb2023:  These data were gotten by screen scraping the tables and
     getting rid of the extra numbers.
 
-'''
-# PLANETS
-p = '''
-    Name: Mercury Venus Earth Mars Jupiter Saturn Uranus Neptune
-    Symbol: None None None None None None None None
-    Mean distance from primary km: 57909175 108208930 149597890 227936640 778412010 1426725400 2870972200 4498252900
-    Mean radius km: 2440.53 6051.8 6378.1366 3396.19 71492 60268 25559 24764
-    Mass kg:  3.302e23 4.8690e24 5.972e24 6.4191e23 1.8987e27 5.6851e26 8.6849e25 1.0244e26
-    Equatorial gravity m/s2:  3.70 8.87 9.8 3.71 24.79 10.44 8.87 11.15
-    Escape velocity km/s: 4.25 10.36 11.18 5.02 59.54 35.49 21.29 23.71
-    Rotation period days: 58.646225 243.0187 0.99726968 1.02595675 0.41354 0.44401 0.71833 0.67125
-    Orbital period days: 87.969 224.701 365.256363 686.971 4332.59 10759.22 30688.5 60182
-    Mean orbital speed km/s: 47.8725 35.0214 29.7859 24.1309 13.0697 9.6724 6.8352 5.4778
-    Eccentricity: 0.20563069 0.00677323 0.01671022 0.09341233 0.04839266 0.05415060 0.04716771 0.00858587
-    Inclination deg: 7.00 3.39 0 1.85 1.31 2.48 0.76 1.77
-    Axial tilt deg: 0.0 177.3 23.44 25.19 3.12 26.73 97.86 28.32
-    Number of moons:  0 0 1 2 92 83 27 14
-    Mean surface temperature K: 440-100 730 287 227 152 134 76 73
-'''
+    The global dictionary solarsys contains the following keys:
+        name    Object's name
+        name_lc Object's name (all lower case)
+        sym     Symbol
+        d       Distance from primary, m
+        r       Mean radius, m
+        m       Mass, kg
+        g       Equatorial gravitational acceleration, m/s2
+        ev      Escape velocity, m/s
+        rot     Rotation period, s
+        orb     Orbital period, s
+        vel     Orbital speed, m/s
+        ecc     Eccentricity
+        inc     Inclination, degrees
+        tilt    Axial tilt, degrees
+        moons   Number of moons
+        T       Mean surface temperature, K
 
-# DWARF PLANETS
-dp1 = '''
-    Name: Ceres Pluto Haumea Makemake Eris
-    Symbol: None None None None None
-    Mean distance from primary km: 413700000 5906380000 6484000000 6850000000 10210000000
-    Mean radius km: 473 1188.3 816 715 1163
-    Mass kg:  9.39e20 1.30e22 4.0e21 3.1e21 1.65e22
-    Equatorial gravity m/s2: 0.27 0.62 0.63 0.40 0.82
-    Escape velocity km/s: 0.51 1.21 0.91 0.54 1.37
-    Rotation period days: 0.3781 6.3872 0.1631 0.9511 15.7859
-    Orbital period days: 4.599*365.25 247.9*365.25 283.8*365.25 306.2*365.25 559*365.25
-    Mean orbital speed km/s: 17.882 4.75 4.48 4.40 3.44
-    Eccentricity: 0.080 0.249 0.195 0.161 0.436
-    Inclination deg: 10.59 17.14 28.21 28.98 44.04
-    Axial tilt deg: 4 119.6 ≈126 ? ≈78
-    Number of moons:  0 5 2 1 1
-    Mean surface temperature K: 167 40 <50 30 30
-'''
 
-dp2 = '''
-    Name: Orcus Salacia Quaoar Gonggong Sedna
-    Symbol: None None None None None
-    Mean distance from primary km: 5896946000 6310600000 6535930000 10072433340 78668000000
-    Mean radius km: 458.5 423 560.5 615 497.5
-    Mass kg: 6.32e20 4.9e20 1.41e21 1.75e21 ?
-    Equatorial gravity m/s2: 0.27 0.18 0.24 0.285 ?
-    Escape velocity km/s:  0.50 0.39 0.45 0.604 ?
-    Rotation period days: ? ? 0.3683 0.9333 0.4280
-    Orbital period days: 247.49*365.25 273.98*365.25 287.97*365.25 552.52*365.25 12059*365.25
-    Mean orbital speed km/s: 4.68 4.57 4.52 3.63 1.04
-    Eccentricity: 0.226 0.106 0.038 0.506 0.855
-    Inclination deg: 20.59 23.92 7.99 30.74 11.93
-    Axial tilt deg: None None None None None
-    Number of moons: 1 1 1 1 0
-    Mean surface temperature K: ≈42 ≈43 ≈41 ≈30 ≈12
 '''
-
-# MOONS
-m1 = '''
-    Name: Moon Io Europa Ganymede Callisto Mimas Enceladus Tethys Dione Rhea
-    Symbol: E1 J1 J2 J3 J4 S1 S2 S3 S4 S5
-    Mean distance from primary km: 384399 421600 670900 1070400 1882700 185520 237948 294619 377396 527108
-    Mean radius km: 1737.1 1815 1569 2634.1 2410.3 198.30 252.1 533 561.7 764.3
-    Mass kg: 7.3477e22 8.94e22 4.80e22 14.819e22 10.758e22 0.00375e22 0.0108e22 0.06174e22 0.1095e22 0.2306e22
-    Equatorial gravity m/s2: 1.622 1.796 1.314 1.428 1.235 0.0636 0.111 0.145 0.231 0.264
-    Escape velocity km/s: 2.38 2.56 2.025 2.741 2.440 0.159 0.239 0.393 0.510 0.635
-    Rotation period days: 27.321582 1.7691378 3.551181 7.154553 16.68902 0.942422 1.370218 1.887802 2.736915 4.518212
-    Orbital period days: 27.32158 1.769138 3.551181 7.154553 16.68902 0.942422 1.370218 1.887802 2.736915 4.518212
-    Mean orbital speed km/s: 1.022 17.34 13.740 10.880 8.204 14.32 12.63 11.35 10.03 8.48
-    Eccentricity: 0.0549 0.0041 0.009 0.0013 0.0074 0.0202 0.0047 0.02 0.002 0.001
-    Inclination deg: 18.29-28.58 0.04 0.47 1.85 0.2 1.51 0.02 1.51 0.019 0.345
-    Axial tilt deg: 6.68 0.000405±0.00076 0.0965±0.0069 0.155±0.065 ≈0-2 ≈0 ≈0 ≈0 ≈0 ≈0
-    Number of moons: 0 0 0 0 0 0 0 0 0 0  
-    Mean surface temperature K: 220 130 102 110 134 64 75 64 87 76
-'''
-
-m2 = '''
-    Name: Titan Iapetus Miranda Ariel Umbriel Titania Oberon Triton Charon Dysnomia
-    Symbol: S6 S8 U5 U1 U2 U3 U4 N1 P1 None
-    Mean distance from primary km: 1221870 3560820 129390 190900 266000 436300 583519 354759 17536 37300
-    Mean radius km: 2576 735.60 235.8 578.9 584.7 788.9 761.4 1353.4 603.5 350
-    Mass kg: 13.452e22 0.18053e22 0.00659e22 0.135e22 0.12e22 0.35e22 0.3014e22 2.14e22 0.152e22 0.03e22-0.05e22
-    Equatorial gravity m/s2: 1.35 0.22 0.08 0.27 0.23 0.39 0.35 0.78 0.28 0.16-0.27
-    Escape velocity km/s: 2.64 0.57 0.19 0.56 0.52 0.77 0.73 1.46 0.58 0.34-0.44
-    Rotation period days: 15.945 79.322 1.414 2.52 4.144 8.706 13.46 5.877 6.387 15.786
-    Orbital period days: 15.945 79.322 1.4135 2.520 4.144 8.706 13.46 5.877 6.387 15.786
-    Mean orbital speed km/s: 5.57 3.265 6.657 5.50898 4.66797 3.644 3.152 4.39 0.2 0.172
-    Eccentricity: 0.0288 0.0286 0.0013 0.0012 0.005 0.0011 0.0014 0.00002 0.0022 0.0062
-    Inclination deg: 0.33 14.72 4.22 0.31 0.36 0.14 0.10 157 0.001 ≈0
-    Axial tilt deg: ≈0.3 ≈0 ≈0 ≈0 ≈0 ≈0 ≈0 ≈0.7 ≈0 ≈0
-    Number of moons: 0 0 0 0 0 0 0 0 0 0  
-    Mean surface temperature K: 93.7 130 59 58 61 60 61 38 53 34
-'''
-
 if 1:   # Header
     if 1:   # Copyright, license
         # These "trigger strings" can be managed with trigger.py
@@ -126,15 +56,112 @@ if 1:   # Header
     if 1:   # Custom imports
         from wrap import wrap, dedent
         from color import Color, TRM as t
-        from f import flt, radians
+        from f import flt
         from u import u
-        if len(sys.argv) > 1:
+        from columnize import Columnize
+        #if len(sys.argv) > 1:
+        if 0:
             import debug
             debug.SetDebugger()
     if 1:   # Global variables
         ii = isinstance
         W = int(os.environ.get("COLUMNS", "80")) - 1
         L = int(os.environ.get("LINES", "50"))
+if 1:   # Scraped raw data
+    """
+    # PLANETS
+    p = '''
+        Name: Mercury Venus Earth Mars Jupiter Saturn Uranus Neptune
+        Symbol: None None None None None None None None
+        Mean distance from primary km: 57909175 108208930 149597890 227936640 778412010 1426725400 2870972200 4498252900
+        Mean radius km: 2440.53 6051.8 6378.1366 3396.19 71492 60268 25559 24764
+        Mass kg:  3.302e23 4.8690e24 5.972e24 6.4191e23 1.8987e27 5.6851e26 8.6849e25 1.0244e26
+        Equatorial gravity m/s2:  3.70 8.87 9.8 3.71 24.79 10.44 8.87 11.15
+        Escape velocity km/s: 4.25 10.36 11.18 5.02 59.54 35.49 21.29 23.71
+        Rotation period days: 58.646225 243.0187 0.99726968 1.02595675 0.41354 0.44401 0.71833 0.67125
+        Orbital period days: 87.969 224.701 365.256363 686.971 4332.59 10759.22 30688.5 60182
+        Mean orbital speed km/s: 47.8725 35.0214 29.7859 24.1309 13.0697 9.6724 6.8352 5.4778
+        Eccentricity: 0.20563069 0.00677323 0.01671022 0.09341233 0.04839266 0.05415060 0.04716771 0.00858587
+        Inclination deg: 7.00 3.39 0 1.85 1.31 2.48 0.76 1.77
+        Axial tilt deg: 0.0 177.3 23.44 25.19 3.12 26.73 97.86 28.32
+        Number of moons:  0 0 1 2 92 83 27 14
+        Mean surface temperature K: 440-100 730 287 227 152 134 76 73
+    '''
+
+    # DWARF PLANETS
+    dp1 = '''
+        Name: Ceres Pluto Haumea Makemake Eris
+        Symbol: None None None None None
+        Mean distance from primary km: 413700000 5906380000 6484000000 6850000000 10210000000
+        Mean radius km: 473 1188.3 816 715 1163
+        Mass kg:  9.39e20 1.30e22 4.0e21 3.1e21 1.65e22
+        Equatorial gravity m/s2: 0.27 0.62 0.63 0.40 0.82
+        Escape velocity km/s: 0.51 1.21 0.91 0.54 1.37
+        Rotation period days: 0.3781 6.3872 0.1631 0.9511 15.7859
+        Orbital period days: 4.599*365.25 247.9*365.25 283.8*365.25 306.2*365.25 559*365.25
+        Mean orbital speed km/s: 17.882 4.75 4.48 4.40 3.44
+        Eccentricity: 0.080 0.249 0.195 0.161 0.436
+        Inclination deg: 10.59 17.14 28.21 28.98 44.04
+        Axial tilt deg: 4 119.6 ≈126 ? ≈78
+        Number of moons:  0 5 2 1 1
+        Mean surface temperature K: 167 40 <50 30 30
+    '''
+
+    dp2 = '''
+        Name: Orcus Salacia Quaoar Gonggong Sedna
+        Symbol: None None None None None
+        Mean distance from primary km: 5896946000 6310600000 6535930000 10072433340 78668000000
+        Mean radius km: 458.5 423 560.5 615 497.5
+        Mass kg: 6.32e20 4.9e20 1.41e21 1.75e21 ?
+        Equatorial gravity m/s2: 0.27 0.18 0.24 0.285 ?
+        Escape velocity km/s:  0.50 0.39 0.45 0.604 ?
+        Rotation period days: ? ? 0.3683 0.9333 0.4280
+        Orbital period days: 247.49*365.25 273.98*365.25 287.97*365.25 552.52*365.25 12059*365.25
+        Mean orbital speed km/s: 4.68 4.57 4.52 3.63 1.04
+        Eccentricity: 0.226 0.106 0.038 0.506 0.855
+        Inclination deg: 20.59 23.92 7.99 30.74 11.93
+        Axial tilt deg: None None None None None
+        Number of moons: 1 1 1 1 0
+        Mean surface temperature K: ≈42 ≈43 ≈41 ≈30 ≈12
+    '''
+
+    # MOONS
+    m1 = '''
+        Name: Moon Io Europa Ganymede Callisto Mimas Enceladus Tethys Dione Rhea
+        Symbol: E1 J1 J2 J3 J4 S1 S2 S3 S4 S5
+        Mean distance from primary km: 384399 421600 670900 1070400 1882700 185520 237948 294619 377396 527108
+        Mean radius km: 1737.1 1815 1569 2634.1 2410.3 198.30 252.1 533 561.7 764.3
+        Mass kg: 7.3477e22 8.94e22 4.80e22 14.819e22 10.758e22 0.00375e22 0.0108e22 0.06174e22 0.1095e22 0.2306e22
+        Equatorial gravity m/s2: 1.622 1.796 1.314 1.428 1.235 0.0636 0.111 0.145 0.231 0.264
+        Escape velocity km/s: 2.38 2.56 2.025 2.741 2.440 0.159 0.239 0.393 0.510 0.635
+        Rotation period days: 27.321582 1.7691378 3.551181 7.154553 16.68902 0.942422 1.370218 1.887802 2.736915 4.518212
+        Orbital period days: 27.32158 1.769138 3.551181 7.154553 16.68902 0.942422 1.370218 1.887802 2.736915 4.518212
+        Mean orbital speed km/s: 1.022 17.34 13.740 10.880 8.204 14.32 12.63 11.35 10.03 8.48
+        Eccentricity: 0.0549 0.0041 0.009 0.0013 0.0074 0.0202 0.0047 0.02 0.002 0.001
+        Inclination deg: 18.29-28.58 0.04 0.47 1.85 0.2 1.51 0.02 1.51 0.019 0.345
+        Axial tilt deg: 6.68 0.000405±0.00076 0.0965±0.0069 0.155±0.065 ≈0-2 ≈0 ≈0 ≈0 ≈0 ≈0
+        Number of moons: 0 0 0 0 0 0 0 0 0 0  
+        Mean surface temperature K: 220 130 102 110 134 64 75 64 87 76
+    '''
+
+    m2 = '''
+        Name: Titan Iapetus Miranda Ariel Umbriel Titania Oberon Triton Charon Dysnomia
+        Symbol: S6 S8 U5 U1 U2 U3 U4 N1 P1 None
+        Mean distance from primary km: 1221870 3560820 129390 190900 266000 436300 583519 354759 17536 37300
+        Mean radius km: 2576 735.60 235.8 578.9 584.7 788.9 761.4 1353.4 603.5 350
+        Mass kg: 13.452e22 0.18053e22 0.00659e22 0.135e22 0.12e22 0.35e22 0.3014e22 2.14e22 0.152e22 0.03e22-0.05e22
+        Equatorial gravity m/s2: 1.35 0.22 0.08 0.27 0.23 0.39 0.35 0.78 0.28 0.16-0.27
+        Escape velocity km/s: 2.64 0.57 0.19 0.56 0.52 0.77 0.73 1.46 0.58 0.34-0.44
+        Rotation period days: 15.945 79.322 1.414 2.52 4.144 8.706 13.46 5.877 6.387 15.786
+        Orbital period days: 15.945 79.322 1.4135 2.520 4.144 8.706 13.46 5.877 6.387 15.786
+        Mean orbital speed km/s: 5.57 3.265 6.657 5.50898 4.66797 3.644 3.152 4.39 0.2 0.172
+        Eccentricity: 0.0288 0.0286 0.0013 0.0012 0.005 0.0011 0.0014 0.00002 0.0022 0.0062
+        Inclination deg: 0.33 14.72 4.22 0.31 0.36 0.14 0.10 157 0.001 ≈0
+        Axial tilt deg: ≈0.3 ≈0 ≈0 ≈0 ≈0 ≈0 ≈0 ≈0.7 ≈0 ≈0
+        Number of moons: 0 0 0 0 0 0 0 0 0 0  
+        Mean surface temperature K: 93.7 130 59 58 61 60 61 38 53 34
+    '''
+    """
 if 1:   # Solar system data (scraped 18 Feb 2023)
     names = '''
         Mercury Venus Earth Mars Jupiter Saturn Uranus Neptune
@@ -335,6 +362,7 @@ if 1:   # Get data
     def BuildDataDict():
         '''Construct a dict that has lists of the data.  We use the keys
             name    Object's name
+            name_lc Object's name (all lower case)
             sym     Symbol
             d       Distance from primary, m
             r       Mean radius, m
@@ -345,8 +373,8 @@ if 1:   # Get data
             orb     Orbital period, s
             vel     Orbital speed, m/s
             ecc     Eccentricity
-            inc     Inclination, radians
-            tilt    Axial tilt, radians
+            inc     Inclination, degrees
+            tilt    Axial tilt, degrees
             moons   Number of moons
             T       Mean surface temperature, K
         All objects not strings are flts or objects derived from flt.
@@ -382,8 +410,6 @@ if 1:   # Get data
         di["rot"] = [i*86400 for i in di["rot"]]        # To s
         di["orb"] = [i*86400 for i in di["orb"]]        # To s
         di["vel"] = [i*1000 for i in di["vel"]]         # To m/s
-        di["inc"] = [radians(i) for i in di["inc"]]     # To radians
-        di["tilt"] = [radians(i) for i in di["tilt"]]   # To radians
         di["moons"] = [int(i) for i in di["moons"]]     # To integer
         if 0:
             # Dump to 1 figure to check things
@@ -405,8 +431,8 @@ if 1:   # Get data
         assert(di["orb"][i] == 365.256363*86400)
         assert(di["vel"][i] == 29.7859*1000)
         assert(di["ecc"][i] == 0.01671022)
-        assert(di["inc"][i] == radians(0))
-        assert(di["tilt"][i] == radians(23.44))
+        assert(di["inc"][i] == 0)
+        assert(di["tilt"][i] == 23.44)
         assert(di["moons"][i] == 1)
         assert(di["T"][i] == 287)
         i = -1   # Values for Dysnomia
@@ -421,41 +447,64 @@ if 1:   # Get data
         assert(di["orb"][i] == 15.786*86400)
         assert(di["vel"][i] == 0.172*1000)
         assert(di["ecc"][i] == 0.0062)
-        assert(di["inc"][i] == radians(0))
-        assert(di["tilt"][i] == radians(0))
+        assert(di["inc"][i] == 0)
+        assert(di["tilt"][i] == 0)
         assert(di["moons"][i] == 0)
         assert(di["T"][i] == 34)
-
-    BuildDataDict()
-    exit()
-
+        # Make lower case names
+        di["name_lc"] = [i.lower() for i in di["name"]]
+        return di
+    solarsys = BuildDataDict()
 if 1:   # Utility
+    def Manpage():
+        print(dedent(f'''
+        '''))
+        exit(0)
     def Error(*msg, status=1):
         print(*msg, file=sys.stderr)
         exit(status)
     def Usage(status=1):
         print(dedent(f'''
-        Usage:  {sys.argv[0]} [options] etc.
-          Explanations...
+        Usage:  {sys.argv[0]} [options] [s1 [s2...]]
+          Print data for object s1, s2, etc.  If only one object is given,
+          then all parameters for that object are printed.  Otherwise, you
+          must specify which parameters you want in the -p option:
+            sym     Symbol
+            d       Distance from primary, m
+            r       Mean radius, m
+            m       Mass, kg
+            g       Equatorial gravitational acceleration, m/s2
+            ev      Escape velocity, m/s
+            rot     Rotation period, s
+            orb     Orbital period, s
+            vel     Orbital speed, m/s
+            ecc     Eccentricity
+            inc     Inclination, degrees
+            tilt    Axial tilt, degrees
+            moons   Number of moons
+            T       Mean surface temperature, K
         Options:
+          -d n    Number of significant digits [{d['-d']}]
           -h      Print a manpage
+          -l      List the objects and their numbers
+          -p a    Print these parameters (space separated list OK)
+          -r n    Print relative to named object n's values
+          -u a    Use specified units for indicated parameters in space
+                  separated list (e.g., d:Mm means Mm for d).
         '''))
         exit(status)
     def ParseCommandLine(d):
-        d["-a"] = False
         d["-d"] = 3         # Number of significant digits
-        if len(sys.argv) < 2:
-            Usage()
+        d["-l"] = False     # Show object names
         try:
-            opts, args = getopt.getopt(sys.argv[1:], "ad:h", 
-                    ["help", "debug"])
+            opts, args = getopt.getopt(sys.argv[1:], "d:hl") 
         except getopt.GetoptError as e:
             print(str(e))
             exit(1)
         for o, a in opts:
-            if o[1] in list("a"):
+            if o[1] in list("l"):
                 d[o] = not d[o]
-            elif o in ("-d",):
+            elif o == "-d":
                 try:
                     d["-d"] = int(a)
                     if not (1 <= d["-d"] <= 15):
@@ -464,184 +513,52 @@ if 1:   # Utility
                     msg = ("-d option's argument must be an integer between "
                         "1 and 15")
                     Error(msg)
-            elif o in ("-h", "--help"):
-                Usage(status=0)
-            elif o in ("--debug",):
-                # Set up a handler to drop us into the debugger on an
-                # unhandled exception
-                import debug
-                debug.SetDebugger()
-        return args
-    # Check that each item has equal number of fields
-    def CheckFields(s, name):
-        l = []
-        for i in s.strip().split("\n"):
-            if ":" in i:
-                loc = i.find(":")
-                f = i[loc + 1:].split()
-            else:
-                f = i.split()
-            l.append(len(f))
-        if 0:
-            from pprint import pprint as pp
-            print(name)
-            pp(l)
-        return l
-    assert(set(CheckFields(p, "p")) == {8})
-    assert(set(CheckFields(dp1, "dp1")) == {5})
-    assert(set(CheckFields(dp2, "dp2")) == {5})
-    assert(set(CheckFields(m1, "m1")) == {10})
-    assert(set(CheckFields(m2, "m2")) == {10})
-    exit()
-if 1:   # Core functionality
-    def GetData(s, name):
-        "Return a list of each item's data"
-        o = []
-        for i in s.strip().split("\n"):
-            u = []
-            loc = i.find(":")
-            u.append(i[:loc])
-            f = i[loc + 1:].split()
-            u.extend(f)
-            o.append(u)
-        return o
-    def ParseData():
-        '''Return a dict with the following keys:
-            name    Object's name
-            sym     Symbol
-            type    p, dp, m (planet, dwarf planet, moon)
-            d       Distance from primary
-            r       Mean radius
-            m       Mass
-            g       Equatorial gravitational acceleration
-            ev      Escape velocity
-            rot     Rotation period
-            orb     Orbital period
-            vel     Orbital speed
-            ecc     Eccentricity
-            inc     Inclination
-            tilt    Axial tilt
-            moons   Number of moons
-            T       Mean surface temperature
-        All physical values will be in base SI units with angles in
-        radians.  
-
-        Example:  Let di be the returned dictionary.  Then di["name"]
-        returns a list of object names; there are N of them.  All of the
-        lists thus returned are length N.
-        '''
-        di = defaultdict(list)     # Dict to be returned
-        # Dict to map wikipedia name to our variable name
-        namemap = {
-            "Name": "name",
-            "Symbol": "sym",
-            "Mean distance from primary km": "d",
-            "Mean radius km": "r",
-            "Mass kg": "m",
-            "Equatorial gravity m/s2": "g",
-            "Escape velocity km/s": "ev",
-            "Rotation period days": "rot",
-            "Orbital period days": "orb",
-            "Mean orbital speed km/s": "vel",
-            "Eccentricity": "ecc",
-            "Inclination deg": "inc",
-            "Axial tilt deg": "tilt",
-            "Number of moons": "moons",
-            "Mean surface temperature K": "T",
-            
-        }
-        for i, name in ((p, "planets"),
-                        (dp1, "dwarf planets1"),
-                        (dp2, "dwarf planets2"),
-                        (m1, "moons1"),
-                        (m2, "moons2")):
-            o = GetData(i, name)
-            for i in o:
-                key = i[0]
-                symbol = namemap[i[0]]
-                remainder = [ConvertToValue(j, key) for j in i[1:]]
-                di[key].extend(remainder)
-        return di
-    def ConvertToValue(s, name):
-        '''Change s to a suitable number or string.  The basic desire is to
-        return a flt in base SI units.
-        '''
-        def to_flt(v):
-            '''Convert v to a flt.  If it is "?", convert to Unk.  If it
-            starts with "≈", return Approx.
-            '''
-            if ii(v, (float, flt)):
-                return flt(v)
-            if "-" in v:
-                if v.startswith("≈"):
-                    v = v.replace("≈", "")
-                a, b = [flt(i) for i in v.split("-")]
-                return Rng(a, b)
-            elif v.startswith("≈"):
-                return Approx(v)
-            elif v == "?" or v == "None":
-                return Unk(v)
-            elif "±" in v:
-                mean, stddev = [flt(i) for i in v.split("±")]
-                a, b = mean - stddev, mean + stddev
-                return Rng(a, b)
-            else:
-                return flt(v)
-        if name == "Name":
-            return s
-        elif name == "Symbol":
-            return None if s == "None" else s
-        elif name == "Mean distance from primary km":
-            return to_flt(s)*u("km")
-        elif name == "Mean radius km":
-            return to_flt(s)*u("km")
-        elif name == "Mass kg":
-            return to_flt(s)*u("kg")
-        elif name == "Equatorial gravity m/s2":
-            return to_flt(s)*u("m/s2")
-        elif name == "Escape velocity km/s":
-            return to_flt(s)*u("km/s")
-        elif name == "Rotation period days":
-            if "*" in s:
-                return to_flt(eval(s))*u("days")
-            return to_flt(s)*u("days")
-        elif name == "Orbital period days":
-            if "*" in s:
-                return to_flt(eval(s))*u("days")
-            return to_flt(s)*u("days")
-        elif name == "Mean orbital speed km/s":
-            return to_flt(s)*u("km/s")
-        elif name == "Eccentricity":
-            return to_flt(s)
-        elif name == "Inclination deg":
-            return to_flt(s)*u("deg")
-        elif name == "Axial tilt deg":
-            return to_flt(s)*u("deg")
-        elif name == "Number of moons":
-            return int(s)
-        elif name == "Mean surface temperature K":
-            if s == "440-100":
-                return flt(540/2)*u("K")
-            elif s.startswith("<"):
-                return Approx(s)
-            return to_flt(s)*u("K")
-        else:
-            raise Exception(f"{name!r} is bad name")
-    def PrintData(di):
-        'Dump the dictionary for checking'
+            elif o == "-h":
+                Manpage()
         x = flt(0)
-        x.N = 2
-        x.high = 1e3
-        for i in di:
-            print(f"{i!r}:", end=" ")
-            s = [str(j) for j in di[i]]
-            print(' '.join(s))
-
-di = ParseData()
-PrintData(di)
-exit()
+        x.N = d["-d"]
+        x.low, x.high = 0.01, 1000
+        if d["-l"]:
+            ListObjects()
+        if not args:
+            Usage()
+        return args
+if 1:   # Core functionality
+    def ListObjects():
+        o = sorted(solarsys["name"])
+        for i in Columnize(o):
+            print(i)
+        exit(0)
+    def PrintItem(name):
+        s, u = solarsys, " "*4
+        if name.lower() not in s["name_lc"]:
+            print(f"{name!r} not found")
+            return
+        n = s["name_lc"].index(name.lower())
+        sym = s["sym"][n]
+        sym = "" if sym == "None" else sym
+        print(f"{s['name'][n]} {sym}")
+        w = 10
+        print(f"{u}{'d':{w}s}{s['d'][n]} m")
+        print(f"{u}{'r':{w}s}{s['r'][n]} m")
+        print(f"{u}{'m':{w}s}{s['m'][n]} kg")
+        print(f"{u}{'g':{w}s}{s['g'][n]} m/s²")
+        print(f"{u}{'ev':{w}s}{s['ev'][n]} m/s")
+        print(f"{u}{'rot':{w}s}{s['rot'][n]} s")
+        print(f"{u}{'orb':{w}s}{s['orb'][n]} s")
+        print(f"{u}{'vel':{w}s}{s['vel'][n]} m/s")
+        print(f"{u}{'ecc':{w}s}{s['ecc'][n]}")
+        print(f"{u}{'inc':{w}s}{s['inc'][n]}°")
+        print(f"{u}{'tilt':{w}s}{s['tilt'][n]}°")
+        print(f"{u}{'moons':{w}s}{s['moons'][n]}")
+        print(f"{u}{'T':{w}s}{s['T'][n]} K")
+    def PrintItems(*names):
+        pass
 
 if __name__ == "__main__":
-    Check()
     d = {}      # Options dictionary
-    args = ParseCommandLine(d)
+    objects = ParseCommandLine(d)
+    if len(objects) == 1:
+        PrintItem(objects[0])
+    else:
+        PrintItems(*objects)
