@@ -1,20 +1,6 @@
 Active
 
-    - elements.py
-        - 'el -o Ag' launches the Mg web page, but it should search for a
-          symbol match first.
-
-    - Core setup data
-        - Move notes, password db, etc. to .0rc because it's backed up to
-          the cloud
-
-    - pgm/readability.py
-        - Add an option to let you see the histograms of the readability
-          elements: word length, syllables, words per sentences.
-        - Add -w to print out a list of the unique words in the file.  -W
-          does the same but maintains case.
-
-    - Solar system objects
+    - solarsys.py     Solar system objects
         - I keep coming across web pages on solar system objects and wonder
           about their relative sizes.  Collect the diameters of all the
           planets and dwarf planets in the solar system and produce a plot
@@ -26,6 +12,16 @@ Active
             - https://en.wikipedia.org/wiki/File:TheTransneptunians_Size_Albedo_Color.svg
             - https://en.wikipedia.org/wiki/Dwarf_planet at about 60% has a
               suitable table of diameter and mass 
+
+    - Core setup data
+        - Move notes, password db, etc. to .0rc because it's backed up to
+          the cloud
+
+    - pgm/readability.py
+        - Add an option to let you see the histograms of the readability
+          elements: word length, syllables, words per sentences.
+        - Add -w to print out a list of the unique words in the file.  -W
+          does the same but maintains case.
 
     - Anagrams
         - Given a string, find all anagrams that use the letters that
