@@ -1329,13 +1329,15 @@ if 1:   # Classes derived from flt for physical data
     class Unk(flt):
         '''Represent an unknown number.  Always return '?' for str or repr.
         Constructor argument must be a single question mark or equivalent
-        Unicode character.
+        Unicode character.  The numerical value is deliberately NaN so that
+        calculations with it won't succeed.
         '''
         def __new__(cls, arg):
             assert(ii(arg, str))
             c = arg.strip()
-            assert(len(c) == 1 and c in set("?¿⁇❓❔⸮︖﹖？"))
-            instance = super().__new__(cls, 0)
+            if c:
+                assert(len(c) == 1 and c in set("?¿⁇❓❔⸮︖﹖？"))
+            instance = super().__new__(cls, "NaN")
             return instance
         def __str__(self):
             return "?"
@@ -1343,25 +1345,30 @@ if 1:   # Classes derived from flt for physical data
             return "Unk('?')"
     class Approx(flt):
         '''Represent an approximate number.  Prepends "≈" to str.
+        The first character must be one of '~≈≅'; the remainder is the
+        number string.
         '''
         def __new__(cls, arg):
             first_char = arg[0]
-            assert(first_char in set("~≈≆≅"))
+            assert(first_char in set("~≈≅"))
             instance = super().__new__(cls, arg[1:])
+            instance.arg = arg
+            instance.fc = "≈"
             return instance
         def __str__(self):
-            return "≈" + super().__str__()
+            return self.fc + super().__str__()
         def __repr__(self):
-            return f"Approx({self})"
+            return f"Approx({self.arg!r})"
     class Rng(flt):
         'Represent a range'
         def __new__(cls, a, b):
             assert(ii(a, str) and ii(b, str))
-            if a.startswith("≈"):
+            if a[0] in set("~≈≅"):
+                # Is approximate, but ignore, as it's already approximate
                 x, y = flt(a[1:]), flt(b)
             else:
                 x, y = flt(a), flt(b)
-            val = (x + y)/2
+            val = (x + y)/2     # Value is midpoint of interval
             instance = super().__new__(cls, val)
             instance.rng = (x, y) if x <= y else (y, x)
             return instance
@@ -1369,17 +1376,34 @@ if 1:   # Classes derived from flt for physical data
             a, b = self.rng
             return f"[{a},{b}]"
         def __repr__(self):
-            return f"Rng({self})"
+            a, b = self.rng
+            return f"Rng({a}, {b})"
     class LessThan(flt):
-        'Represent a number <x'
-        def __new__(cls, s):
-            assert(s and s[0] == "<")
-            instance = super().__new__(cls, s[1:])
+        'Represent a number <x or ≤x'
+        def __new__(cls, arg):
+            chars = set("<≪⋘﹤＜≤≦⋜")
+            assert(arg and arg[0] in chars)
+            instance = super().__new__(cls, arg[1:].replace(" ", ""))
+            instance.arg = arg
+            instance.char = arg[0]
             return instance
         def __str__(self):
-            return "<" + super().__str__()
+            return self.char + super().__str__()
         def __repr__(self):
-            return f"LessThan({self})"
+            return f"LessThan({self.arg!r})"
+    class GreaterThan(flt):
+        'Represent a number >x or ≥x'
+        def __new__(cls, arg):
+            chars = set(">≫⋙﹥＞≥≧⋝")
+            assert(arg and arg[0] in chars)
+            instance = super().__new__(cls, arg[1:].replace(" ", ""))
+            instance.arg = arg
+            instance.char = arg[0]
+            return instance
+        def __str__(self):
+            return self.char + super().__str__()
+        def __repr__(self):
+            return f"GreaterThan({self.arg!r})"
     class Unc(flt):
         'Represent an uncertain number'
         def __new__(cls, s):
@@ -1443,7 +1467,50 @@ if __name__ == "__main__":
         Assert(str(x) == "--")
         Assert(repr(x) == "Nothing(None)")
         # Unk
-        x = Nothing("")
+        x = Unk("")
+        Assert(str(x) == "?")
+        Assert(repr(x) == "Unk('?')")
+        # Approx
+        x = Approx("~1.2")
+        Assert(x == 1.2)
+        Assert(str(x) == "≈1.2")
+        Assert(repr(x) == "Approx('~1.2')")
+        x = Approx("≈1.2")
+        Assert(x == 1.2)
+        Assert(str(x) == "≈1.2")
+        Assert(repr(x) == "Approx('≈1.2')")
+        x = Approx("≅1.2")
+        Assert(x == 1.2)
+        Assert(str(x) == "≈1.2")
+        Assert(repr(x) == "Approx('≅1.2')")
+        # Rng
+        x = Rng("1", "2")
+        Assert(x == 1.5)
+        Assert(str(x) == "[1,2]")
+        Assert(repr(x) == "Rng(1, 2)")
+        x = Rng("2", "1")
+        Assert(x == 1.5)
+        Assert(str(x) == "[1,2]")
+        Assert(repr(x) == "Rng(1, 2)")
+        # LessThan
+        x = LessThan("<3.5")
+        Assert(x == 3.5)
+        Assert(str(x) == "<3.5")
+        Assert(repr(x) == "LessThan('<3.5')")
+        x = LessThan("≤3.5")
+        Assert(x == 3.5)
+        Assert(str(x) == "≤3.5")
+        Assert(repr(x) == "LessThan('≤3.5')")
+        # GreaterThan
+        x = GreaterThan(">3.5")
+        Assert(x == 3.5)
+        Assert(str(x) == ">3.5")
+        Assert(repr(x) == "GreaterThan('>3.5')")
+        x = GreaterThan("≥3.5")
+        Assert(x == 3.5)
+        Assert(str(x) == "≥3.5")
+        Assert(repr(x) == "GreaterThan('≥3.5')")
+        
 
     def Test_sig_equal():
         '''Base.sig_equal compares two numbers to a specified number of
