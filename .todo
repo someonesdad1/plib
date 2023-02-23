@@ -1,18 +1,5 @@
 Active
 
-    - solarsys.py     Solar system objects
-        - I keep coming across web pages on solar system objects and wonder
-          about their relative sizes.  Collect the diameters of all the
-          planets and dwarf planets in the solar system and produce a plot
-          that shows scaled sizes.
-        - All data can be gotten here
-          https://en.wikipedia.org/wiki/List_of_gravitationally_rounded_objects_of_the_Solar_System
-        - Some existing plots/data
-            - https://en.wikipedia.org/wiki/File:EightTNOs.png
-            - https://en.wikipedia.org/wiki/File:TheTransneptunians_Size_Albedo_Color.svg
-            - https://en.wikipedia.org/wiki/Dwarf_planet at about 60% has a
-              suitable table of diameter and mass 
-
     - Core setup data
         - Move notes, password db, etc. to .0rc because it's backed up to
           the cloud

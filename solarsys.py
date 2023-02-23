@@ -1,7 +1,9 @@
 '''
 
 TODO
-    - Use -x option to force using SI prefixes
+    - Use -x option to force using SI prefixes in printing
+    - When -r is used, relative values are printed in color.  When you
+      don't see color, the relative value was zero.
 
 Module that contains basic data on solar system objects
     When run as a script, produces tables and plots.
