@@ -1,6 +1,6 @@
 # plib
 
-Last updated 5 Aug 2022 
+Last updated 23 Feb 2023
 
 # Introduction
 This repository is a collection of python stuff I've written since 1998.
@@ -30,6 +30,18 @@ Some repository tags are:
   using 3.7 for a number of years).  The command `python 0test.py .`
   tests all the python modules in `/plib` that have self-tests.  Most of
   them pass their tests.
+
+## Getting a copy
+If you wish to get a copy of some of the files in this repository, the
+easiest way is to clone the whole repository with a command like
+`git clone https://github.com/someonesdad1/plib.git`.  It will take around
+10 seconds and you'll have around 50 MB of files.  
+
+This is the preferred method because many of the files depend on others in
+the directory and if the resulting plib directory is in your PYTHONPATH,
+things will likely work unless a library's name conflicts with one of your
+installed libraries.  After you get things working this way, you can prune
+and edit to get things to work the way you want them to.
 
 ## Coding style
 

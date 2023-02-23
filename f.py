@@ -193,6 +193,11 @@ if 1:  # Header
         from wrap import dedent
         from color import TRM as t
         import fmt
+        try:
+            import uncertainties
+            have_unc = True
+        except ImportError:
+            have_unc = False
     # Global variables
         Lock = threading.Lock()
         D = decimal.Decimal
@@ -1304,11 +1309,89 @@ if 1:   # Other
             t = rlz(t)
         return len(t)
 
-if 0:
-    x = flt(-0.234)
-    x.rlz = 1
-    print(x)
-    exit()
+if 1:   # Classes derived from flt for physical data
+    class Nothing(flt):
+        '''Represent a 'None' number.  Can be initialized with None, 
+        "None" (case insensitive), or "".
+        '''
+        def __new__(cls, arg):
+            if ii(arg, str):
+                assert(arg.lower() == "none" or not arg)
+            else:
+                assert(arg == None)
+            instance = super().__new__(cls, 0)
+            instance.arg = arg
+            return instance
+        def __str__(self):
+            return "--"
+        def __repr__(self):
+            return f"Nothing({self.arg!r})"
+    class Unk(flt):
+        '''Represent an unknown number.  Always return '?' for str or repr.
+        Constructor argument must be a single question mark or equivalent
+        Unicode character.
+        '''
+        def __new__(cls, arg):
+            assert(ii(arg, str))
+            c = arg.strip()
+            assert(len(c) == 1 and c in set("?¿⁇❓❔⸮︖﹖？"))
+            instance = super().__new__(cls, 0)
+            return instance
+        def __str__(self):
+            return "?"
+        def __repr__(self):
+            return "Unk('?')"
+    class Approx(flt):
+        '''Represent an approximate number.  Prepends "≈" to str.
+        '''
+        def __new__(cls, arg):
+            first_char = arg[0]
+            assert(first_char in set("~≈≆≅"))
+            instance = super().__new__(cls, arg[1:])
+            return instance
+        def __str__(self):
+            return "≈" + super().__str__()
+        def __repr__(self):
+            return f"Approx({self})"
+    class Rng(flt):
+        'Represent a range'
+        def __new__(cls, a, b):
+            assert(ii(a, str) and ii(b, str))
+            if a.startswith("≈"):
+                x, y = flt(a[1:]), flt(b)
+            else:
+                x, y = flt(a), flt(b)
+            val = (x + y)/2
+            instance = super().__new__(cls, val)
+            instance.rng = (x, y) if x <= y else (y, x)
+            return instance
+        def __str__(self):
+            a, b = self.rng
+            return f"[{a},{b}]"
+        def __repr__(self):
+            return f"Rng({self})"
+    class LessThan(flt):
+        'Represent a number <x'
+        def __new__(cls, s):
+            assert(s and s[0] == "<")
+            instance = super().__new__(cls, s[1:])
+            return instance
+        def __str__(self):
+            return "<" + super().__str__()
+        def __repr__(self):
+            return f"LessThan({self})"
+    class Unc(flt):
+        'Represent an uncertain number'
+        def __new__(cls, s):
+            assert(s and "±" in s)
+            xbar, sd = s.split("±")
+            instance = super().__new__(cls, xbar)
+            instance.sd = flt(sd)
+            return instance
+        def __str__(self):
+            return super().__str__() + "±" + str(self.sd)
+        def __repr__(self):
+            return f"LessThan({self})"
 
 if __name__ == "__main__": 
     from lwtest import run, raises, assert_equal, Assert
@@ -1348,6 +1431,20 @@ if __name__ == "__main__":
             return True
         else:
             raise TypeError("Both a and b must be flt or cpx")
+    def Test_flt_derivatives():
+        # Nothing
+        x = Nothing("")
+        Assert(str(x) == "--")
+        Assert(repr(x) == "Nothing('')")
+        x = Nothing("nOnE")
+        Assert(str(x) == "--")
+        Assert(repr(x) == "Nothing('nOnE')")
+        x = Nothing(None)
+        Assert(str(x) == "--")
+        Assert(repr(x) == "Nothing(None)")
+        # Unk
+        x = Nothing("")
+
     def Test_sig_equal():
         '''Base.sig_equal compares two numbers to a specified number of
         digits and returns True if they are equal.
