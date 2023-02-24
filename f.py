@@ -1312,13 +1312,15 @@ if 1:   # Other
 if 1:   # Classes derived from flt for physical data
     class Nothing(flt):
         '''Represent a 'None' number.  Can be initialized with None, 
-        "None" (case insensitive), or "".
+        "None" (case insensitive), "-", or "".
         '''
         def __new__(cls, arg):
             if ii(arg, str):
-                assert(arg.lower() == "none" or not arg)
+                if not (arg.lower() == "none" or not arg or set(arg) == {"-"}):
+                    raise ValueError(f"{arg!r} is improper argument")
             else:
-                assert(arg == None)
+                if arg is not None:
+                    raise ValueError(f"{arg!r} must be None")
             instance = super().__new__(cls, 0)
             instance.arg = arg
             return instance
@@ -1332,11 +1334,13 @@ if 1:   # Classes derived from flt for physical data
         Unicode character.  The numerical value is deliberately NaN so that
         calculations with it won't succeed.
         '''
+        allowed = set("?¿⁇❓❔⸮︖﹖？")
         def __new__(cls, arg):
-            assert(ii(arg, str))
+            if not ii(arg, str):
+                raise TypeError(f"'{arg}' must be a string")
             c = arg.strip()
-            if c:
-                assert(len(c) == 1 and c in set("?¿⁇❓❔⸮︖﹖？"))
+            if c and (len(c) != 1 or c not in Unk.allowed):
+                raise ValueError(f"'{c}' must be in {Unk.allowed!r}")
             instance = super().__new__(cls, "NaN")
             return instance
         def __str__(self):
@@ -1348,9 +1352,11 @@ if 1:   # Classes derived from flt for physical data
         The first character must be one of '~≈≅'; the remainder is the
         number string.
         '''
+        allowed = set("~≈≅")
         def __new__(cls, arg):
-            first_char = arg[0]
-            assert(first_char in set("~≈≅"))
+            c = arg[0]
+            if c not in Approx.allowed:
+                raise ValueError(f"'{c}' must be in {Approx.allowed!r}")
             instance = super().__new__(cls, arg[1:])
             instance.arg = arg
             instance.fc = "≈"
@@ -1363,8 +1369,8 @@ if 1:   # Classes derived from flt for physical data
         'Represent a range'
         def __new__(cls, a, b):
             assert(ii(a, str) and ii(b, str))
-            if a[0] in set("~≈≅"):
-                # Is approximate, but ignore, as it's already approximate
+            if a[0] in Approx.allowed:
+                # Is approximate, but ignore, as it's a range
                 x, y = flt(a[1:]), flt(b)
             else:
                 x, y = flt(a), flt(b)
@@ -1380,9 +1386,9 @@ if 1:   # Classes derived from flt for physical data
             return f"Rng({a}, {b})"
     class LessThan(flt):
         'Represent a number <x or ≤x'
+        allowed = set("<≪⋘﹤＜≤≦⋜")
         def __new__(cls, arg):
-            chars = set("<≪⋘﹤＜≤≦⋜")
-            assert(arg and arg[0] in chars)
+            assert(arg and arg[0] in LessThan.allowed)
             instance = super().__new__(cls, arg[1:].replace(" ", ""))
             instance.arg = arg
             instance.char = arg[0]
@@ -1393,9 +1399,9 @@ if 1:   # Classes derived from flt for physical data
             return f"LessThan({self.arg!r})"
     class GreaterThan(flt):
         'Represent a number >x or ≥x'
+        allowed = set(">≫⋙﹥＞≥≧⋝")
         def __new__(cls, arg):
-            chars = set(">≫⋙﹥＞≥≧⋝")
-            assert(arg and arg[0] in chars)
+            assert(arg and arg[0] in GreaterThan.allowed)
             instance = super().__new__(cls, arg[1:].replace(" ", ""))
             instance.arg = arg
             instance.char = arg[0]
@@ -1442,6 +1448,29 @@ if 1:   # Classes derived from flt for physical data
         @property
         def s(self):
             return self.sd
+    def FltDerived(s):
+        'Utility to return the proper type of derived flt'
+        if not s:
+            raise ValueError("Need a string")
+        try:
+            return flt(s)
+        except Exception:
+            pass
+        for i in set("-­‐‑‒–—―"):
+            loc = s.find(i)
+            if i in s:
+                # It's a range
+                f = s.split(i)
+                if len(f) != 2:
+                    
+                a, b = 
+        c = s[0]
+        if c in LessThan.allowed:
+            return LessThan(s)
+        elif c in GreaterThan.allowed:
+            return GreaterThan(s)
+        elif c in Unk.allowed:
+            return Unk(s)
 
 if __name__ == "__main__": 
     from lwtest import run, raises, assert_equal, Assert
@@ -1481,11 +1510,17 @@ if __name__ == "__main__":
             return True
         else:
             raise TypeError("Both a and b must be flt or cpx")
-    def Test_flt_derivatives():
+    def Test_flt_derived_classes():
         # Nothing
         x = Nothing("")
         Assert(str(x) == "--")
         Assert(repr(x) == "Nothing('')")
+        x = Nothing("-")
+        Assert(str(x) == "--")
+        Assert(repr(x) == "Nothing('-')")
+        x = Nothing("--")
+        Assert(str(x) == "--")
+        Assert(repr(x) == "Nothing('--')")
         x = Nothing("nOnE")
         Assert(str(x) == "--")
         Assert(repr(x) == "Nothing('nOnE')")
@@ -1494,6 +1529,9 @@ if __name__ == "__main__":
         Assert(repr(x) == "Nothing(None)")
         # Unk
         x = Unk("")
+        Assert(str(x) == "?")
+        Assert(repr(x) == "Unk('?')")
+        x = Unk("?")
         Assert(str(x) == "?")
         Assert(repr(x) == "Unk('?')")
         # Approx
@@ -1543,6 +1581,20 @@ if __name__ == "__main__":
         Assert(x.s == 0.0036)
         Assert(str(x) == "3.456(4)")
         Assert(repr(x) == f"Unc('{s}')")
+        #
+        # The following are explicit tests for the type of data in
+        # solarsys.py strings for screen-scraped data.
+        '''
+        1426725400
+        2440.53
+        ?
+        0.03e22-0.05e22
+        0.16-0.27 ≈0-2 ~0-2
+        ≈0 ≈0-2 ≈0.3 ≈126 ~2
+        <50 ≤50 ≪50
+        >50 ≥50 ≫50
+        '''
+
 
     def Test_sig_equal():
         '''Base.sig_equal compares two numbers to a specified number of
