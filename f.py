@@ -1449,19 +1449,23 @@ if 1:   # Classes derived from flt for physical data
         def s(self):
             return self.sd
     def FltDerived(s):
-        'Utility to return the proper type of derived flt'
+        '''Utility to return the proper type of derived flt.
+        If you want to use a range of negative numbers, use U+2d for the
+        negative sign and U+ad for the separating hyphen to denote a 
+        range.
+        '''
+        # Simplest case
         if ii(s, (flt, int, float)):
             return flt(s)
-        # See if it's an expression
-
         u = s.strip()
-        if not u or (u == "-" or s is None or u.lower() == "none"):
-            return Nothing()
         try:
             # Try the most common case first
             return flt(u)
         except Exception:
             pass
+        # Assume it's one of the special derived flt objects
+        if not u or (u == "-" or s is None or u.lower() == "none"):
+            return Nothing()
         c = u[0]
         if c in LessThan.allowed:
             return LessThan(u)
@@ -1473,11 +1477,13 @@ if 1:   # Classes derived from flt for physical data
             return Unk(s)
         elif "±" in u or "+/-" in u or ("(" in u and ")" in u):
             return Unc(s)
-        # It must be a range
-        for i in set("-­‐‑‒–—―"):
+        # It must be a range.  Note the ASCII hyphen is last to support the
+        # notion of using other Unicode characters to separate the range
+        # first.
+        for i in set("­‐‑‒–—―-"):
             loc = u.find(i)
-            if loc != -1:
-                raise ValueError(f"{s!r} not a valid argument")
+            if loc == -1:
+                continue
             if loc == 0:
                 raise ValueError(f"Hyphen can't be first non-space character")
             f = u.split(i)
@@ -1485,6 +1491,12 @@ if 1:   # Classes derived from flt for physical data
                 raise ValueError(f"More than 2 hyphens")
             a, b = f
             return Rng(a, b)
+        # See if it's an expression
+        try:
+            return flt(eval(u))
+        except Exception:
+            pass
+        # It's nothing we recognize
         raise ValueError(f"{s!r} not a valid argument")
 
 if __name__ == "__main__": 
@@ -1598,20 +1610,53 @@ if __name__ == "__main__":
         Assert(repr(x) == f"Unc('{s}')")
         #
         # The following are explicit tests for the type of data in
-        # solarsys.py strings for screen-scraped data.
-        '''
-        1426725400
-        2440.53
-        ?
-        0.03e22-0.05e22
-        0.16-0.27 ≈0-2 ~0-2
-        ≈0 ≈0-2 ≈0.3 ≈126 ~2
-        <50 ≤50 ≪50
-        >50 ≥50 ≫50
-        '''
+        # solarsys.py strings for screen-scraped data.  Note ≈0-2 is not
+        # allowed.
         f = FltDerived
         Assert(f(1426725400) == flt(1426725400))
-
+        Assert(f(2440.53) == flt(2440.53))
+        # Unk
+        Assert(ii(f("?"), Unk))
+        # Rng
+        x = f("0.03e22-0.05e22")
+        Assert(ii(x, Rng))
+        Assert(str(x) == "[3e20,5e20]")
+        Assert(repr(x) == "Rng(3e20, 5e20)")
+        # Approx
+        x = f("≈0.3")
+        Assert(ii(x, Approx))
+        Assert(str(x) == "≈0.3")
+        Assert(repr(x) == "Approx('≈0.3')")
+        x = f("~2")
+        Assert(ii(x, Approx))
+        Assert(str(x) == "≈2")
+        Assert(repr(x) == "Approx('~2')")
+        # LessThan
+        x = f("<50")
+        Assert(ii(x, LessThan))
+        Assert(str(x) == "<50")
+        Assert(repr(x) == "LessThan('<50')")
+        x = f("≤50")
+        Assert(ii(x, LessThan))
+        Assert(str(x) == "≤50")
+        Assert(repr(x) == "LessThan('≤50')")
+        x = f("≪50")
+        Assert(ii(x, LessThan))
+        Assert(str(x) == "≪50")
+        Assert(repr(x) == "LessThan('≪50')")
+        # GreaterThan
+        x = f(">50")
+        Assert(ii(x, GreaterThan))
+        Assert(str(x) == ">50")
+        Assert(repr(x) == "GreaterThan('>50')")
+        x = f("≥50")
+        Assert(ii(x, GreaterThan))
+        Assert(str(x) == "≥50")
+        Assert(repr(x) == "GreaterThan('≥50')")
+        x = f("≫50")
+        Assert(ii(x, GreaterThan))
+        Assert(str(x) == "≫50")
+        Assert(repr(x) == "GreaterThan('≫50')")
     def Test_sig_equal():
         '''Base.sig_equal compares two numbers to a specified number of
         digits and returns True if they are equal.
