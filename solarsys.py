@@ -58,11 +58,11 @@ if 1:   # Header
     if 1:   # Custom imports
         from wrap import wrap, dedent
         from color import Color, TRM as t
+        import f as F
         from f import flt
         from u import u
         from columnize import Columnize
-        #if len(sys.argv) > 1:
-        if 0:
+        if len(sys.argv) > 1:
             import debug
             debug.SetDebugger()
     if 1:   # Global variables
@@ -141,7 +141,7 @@ if 1:   # Scraped raw data
         Mean orbital speed km/s: 1.022 17.34 13.740 10.880 8.204 14.32 12.63 11.35 10.03 8.48
         Eccentricity: 0.0549 0.0041 0.009 0.0013 0.0074 0.0202 0.0047 0.02 0.002 0.001
         Inclination deg: 18.29-28.58 0.04 0.47 1.85 0.2 1.51 0.02 1.51 0.019 0.345
-        Axial tilt deg: 6.68 0.000405±0.00076 0.0965±0.0069 0.155±0.065 ≈0-2 ≈0 ≈0 ≈0 ≈0 ≈0
+        Axial tilt deg: 6.68 0.000405±0.00076 0.0965±0.0069 0.155±0.065 0-2 ≈0 ≈0 ≈0 ≈0 ≈0
         Number of moons: 0 0 0 0 0 0 0 0 0 0  
         Mean surface temperature K: 220 130 102 110 134 64 75 64 87 76
     '''
@@ -253,7 +253,7 @@ if 1:   # Solar system data (scraped 18 Feb 2023)
         0.0 177.3 23.44 25.19 3.12 26.73 97.86 28.32
         4 119.6 ≈126 ? ≈78
         None None None None None
-        6.68 0.000405±0.00076 0.0965±0.0069 0.155±0.065 ≈0-2 ≈0 ≈0 ≈0 ≈0 ≈0
+        6.68 0.000405±0.00076 0.0965±0.0069 0.155±0.065 0-2 ≈0 ≈0 ≈0 ≈0 ≈0
         ≈0.3 ≈0 ≈0 ≈0 ≈0 ≈0 ≈0 ≈0.7 ≈0 ≈0
     '''.split()
     number_moons = '''
@@ -270,97 +270,10 @@ if 1:   # Solar system data (scraped 18 Feb 2023)
         220 130 102 110 134 64 75 64 87 76
         93.7 130 59 58 61 60 61 38 53 34
     '''.split()
-if 1:   # Classes
-    class Nothing(flt):
-        "Represent a 'None' number"
-        def __new__(cls, arg):
-            instance = super().__new__(cls, 0)
-            return instance
-        def __str__(self):
-            return "--"
-        def __repr__(self):
-            return "Nothing('--')"
-    class Unk(flt):
-        '''Represent an unknown number.  Always return '?' for str or repr.
-        '''
-        def __new__(cls, arg):
-            instance = super().__new__(cls, 0)
-            return instance
-        def __str__(self):
-            return "?"
-        def __repr__(self):
-            return "Unk('?')"
-    class Approx(flt):
-        '''Represent an approximate number.  Prepends "≈" to str.
-        '''
-        def __new__(cls, arg):
-            assert(arg[0] == "≈")
-            instance = super().__new__(cls, arg[1:])
-            return instance
-        def __str__(self):
-            return "≈" + super().__str__()
-        def __repr__(self):
-            return f"Approx({self})"
-    class Rng(flt):
-        'Represent a range'
-        def __new__(cls, a, b):
-            assert(ii(a, str) and ii(b, str))
-            if a.startswith("≈"):
-                x, y = flt(a[1:]), flt(b)
-            else:
-                x, y = flt(a), flt(b)
-            val = (x + y)/2
-            instance = super().__new__(cls, val)
-            instance.rng = (x, y) if x <= y else (y, x)
-            return instance
-        def __str__(self):
-            a, b = self.rng
-            return f"[{a},{b}]"
-        def __repr__(self):
-            return f"Rng({self})"
-    class LessThan(flt):
-        'Represent a number <x'
-        def __new__(cls, s):
-            assert(s and s[0] == "<")
-            instance = super().__new__(cls, s[1:])
-            return instance
-        def __str__(self):
-            return "<" + super().__str__()
-        def __repr__(self):
-            return f"LessThan({self})"
-    class Unc(flt):
-        'Represent an uncertain number'
-        def __new__(cls, s):
-            assert(s and "±" in s)
-            xbar, sd = s.split("±")
-            instance = super().__new__(cls, xbar)
-            instance.sd = flt(sd)
-            return instance
-        def __str__(self):
-            return super().__str__() + "±" + str(self.sd)
-        def __repr__(self):
-            return f"LessThan({self})"
 if 1:   # Get data
     def ToFlt(lst):
-        def Conv(s):
-            if "<" in s:
-                return LessThan(s)
-            elif "±" in s:
-                return Unc(s)
-            elif "-" in s:
-                a, b = s.split("-")
-                return Rng(a, b)
-            elif s == "None":
-                return Nothing(0)
-            elif s == "?":
-                return Unk(s)
-            elif s.startswith("≈"):
-                return Approx(s)
-            else:
-                if "*" in s:
-                    return flt(eval(s))
-                return flt(s)
-        return [Conv(i) for i in lst]
+        f = F.FltDerived
+        return [f(i) for i in lst]
     def BuildDataDict():
         '''Construct a dict that has lists of the data.  We use the keys
             name    Object's name
@@ -527,8 +440,12 @@ if 1:   # Utility
         return args
 if 1:   # Core functionality
     def ListObjects():
-        o = sorted(solarsys["name"])
-        for i in Columnize(o):
+        a, b = sorted(solarsys["name"]), []
+        # Number each item
+        for i in range(len(a)):
+            s = f"{i:2d} {a[i]}"
+            b.append(s)
+        for i in Columnize(b):
             print(i)
         exit(0)
     def PrintItem(name):

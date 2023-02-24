@@ -1465,7 +1465,7 @@ if 1:   # Classes derived from flt for physical data
             pass
         # Assume it's one of the special derived flt objects
         if not u or (u == "-" or s is None or u.lower() == "none"):
-            return Nothing()
+            return Nothing(u)
         c = u[0]
         if c in LessThan.allowed:
             return LessThan(u)
