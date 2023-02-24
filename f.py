@@ -1450,27 +1450,42 @@ if 1:   # Classes derived from flt for physical data
             return self.sd
     def FltDerived(s):
         'Utility to return the proper type of derived flt'
-        if not s:
-            raise ValueError("Need a string")
-        try:
+        if ii(s, (flt, int, float)):
             return flt(s)
+        # See if it's an expression
+
+        u = s.strip()
+        if not u or (u == "-" or s is None or u.lower() == "none"):
+            return Nothing()
+        try:
+            # Try the most common case first
+            return flt(u)
         except Exception:
             pass
-        for i in set("-­‐‑‒–—―"):
-            loc = s.find(i)
-            if i in s:
-                # It's a range
-                f = s.split(i)
-                if len(f) != 2:
-                    
-                a, b = 
-        c = s[0]
+        c = u[0]
         if c in LessThan.allowed:
-            return LessThan(s)
+            return LessThan(u)
         elif c in GreaterThan.allowed:
             return GreaterThan(s)
+        elif c in Approx.allowed:
+            return Approx(s)
         elif c in Unk.allowed:
             return Unk(s)
+        elif "±" in u or "+/-" in u or ("(" in u and ")" in u):
+            return Unc(s)
+        # It must be a range
+        for i in set("-­‐‑‒–—―"):
+            loc = u.find(i)
+            if loc != -1:
+                raise ValueError(f"{s!r} not a valid argument")
+            if loc == 0:
+                raise ValueError(f"Hyphen can't be first non-space character")
+            f = u.split(i)
+            if len(f) != 2:
+                raise ValueError(f"More than 2 hyphens")
+            a, b = f
+            return Rng(a, b)
+        raise ValueError(f"{s!r} not a valid argument")
 
 if __name__ == "__main__": 
     from lwtest import run, raises, assert_equal, Assert
@@ -1594,7 +1609,8 @@ if __name__ == "__main__":
         <50 ≤50 ≪50
         >50 ≥50 ≫50
         '''
-
+        f = FltDerived
+        Assert(f(1426725400) == flt(1426725400))
 
     def Test_sig_equal():
         '''Base.sig_equal compares two numbers to a specified number of
