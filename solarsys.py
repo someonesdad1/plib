@@ -53,22 +53,24 @@ if 1:   # Header
         import getopt
         import math
         import os
+        import re
         from pathlib import Path as P
         import sys
     if 1:   # Custom imports
         from wrap import wrap, dedent
         from color import Color, TRM as t
         import f as F
-        from f import flt
         from u import u
         from columnize import Columnize
-        if len(sys.argv) > 1:
+        if 0:
             import debug
             debug.SetDebugger()
     if 1:   # Global variables
         ii = isinstance
         W = int(os.environ.get("COLUMNS", "80")) - 1
         L = int(os.environ.get("LINES", "50"))
+        # Colors
+        t.rel = t("grnl")
 if 1:   # Scraped raw data
     """
     # PLANETS
@@ -411,8 +413,9 @@ if 1:   # Utility
     def ParseCommandLine(d):
         d["-d"] = 3         # Number of significant digits
         d["-l"] = False     # Show object names
+        d["-r"] = None      # Object to use as reference
         try:
-            opts, args = getopt.getopt(sys.argv[1:], "d:hl") 
+            opts, args = getopt.getopt(sys.argv[1:], "d:hlr:") 
         except getopt.GetoptError as e:
             print(str(e))
             exit(1)
@@ -428,9 +431,19 @@ if 1:   # Utility
                     msg = ("-d option's argument must be an integer between "
                         "1 and 15")
                     Error(msg)
+            elif o == "-r":
+                n = len(solarsys["name"])
+                try:
+                    d["-r"] = int(a)
+                    if not (0 <= d["-r"] < n):
+                        raise ValueError()
+                except ValueError:
+                    msg = ("-r option's argument must be an integer between "
+                           f"0 and {n - 1}")
+                    Error(msg)
             elif o == "-h":
                 Manpage()
-        x = flt(0)
+        x = F.flt(0)
         x.N = d["-d"]
         x.low, x.high = 0.01, 1000
         if d["-l"]:
@@ -439,45 +452,101 @@ if 1:   # Utility
             Usage()
         return args
 if 1:   # Core functionality
+    def GetObjDict():
+        'Return dict indexed by integer number'
+        di = {}
+        for i, name in enumerate(solarsys["name"]):
+            di[i] = name
+        return di
+    num2name = GetObjDict()
     def ListObjects():
-        a, b = sorted(solarsys["name"]), []
-        # Number each item
-        for i in range(len(a)):
-            s = f"{i:2d} {a[i]}"
-            b.append(s)
-        for i in Columnize(b):
+        a, di = [], GetObjDict()
+        for i in di:
+            s = f"{i:2d} {di[i]}"
+            a.append(s)
+        for i in Columnize(a):
             print(i)
         exit(0)
-    def PrintItem(name):
-        s, u = solarsys, " "*4
-        if name.lower() not in s["name_lc"]:
-            print(f"{name!r} not found")
+    def PrintItem(num):
+        'Print indicated item.  num must be an integer.'
+        assert(ii(num, int))
+        di, u = GetObjDict(), " "*4
+        if num not in di:
+            print(f"Item {num!r} not found")
             return
-        n = s["name_lc"].index(name.lower())
-        sym = s["sym"][n]
-        sym = "" if sym == "None" else sym
-        print(f"{s['name'][n]} {sym}")
+        # Print this object's data
+        ss = solarsys
+        sym = ss["sym"][num]
+        print(f"{ss['name'][num]} {'' if sym == 'None' else sym}")
         w = 10
-        print(f"{u}{'d':{w}s}{s['d'][n]} m")
-        print(f"{u}{'r':{w}s}{s['r'][n]} m")
-        print(f"{u}{'m':{w}s}{s['m'][n]} kg")
-        print(f"{u}{'g':{w}s}{s['g'][n]} m/s²")
-        print(f"{u}{'ev':{w}s}{s['ev'][n]} m/s")
-        print(f"{u}{'rot':{w}s}{s['rot'][n]} s")
-        print(f"{u}{'orb':{w}s}{s['orb'][n]} s")
-        print(f"{u}{'vel':{w}s}{s['vel'][n]} m/s")
-        print(f"{u}{'ecc':{w}s}{s['ecc'][n]}")
-        print(f"{u}{'inc':{w}s}{s['inc'][n]}°")
-        print(f"{u}{'tilt':{w}s}{s['tilt'][n]}°")
-        print(f"{u}{'moons':{w}s}{s['moons'][n]}")
-        print(f"{u}{'T':{w}s}{s['T'][n]} K")
+        # Put data in local variables
+        D = ss['d'][num]
+        r = ss['r'][num]
+        m = ss['m'][num]
+        g = ss['g'][num]
+        ev = ss['ev'][num]
+        rot = ss['rot'][num]
+        orb = ss['orb'][num]
+        vel = ss['vel'][num]
+        ecc = ss['ecc'][num]
+        inc = ss['inc'][num]
+        tilt = ss['tilt'][num]
+        moons = ss['moons'][num]
+        T = ss['T'][num]
+        if d["-r"]:
+            print("Relative stuff")
+        else:
+            print(f"{u}{'d':{w}s}{D} m")
+            print(f"{u}{'r':{w}s}{r} m")
+            print(f"{u}{'m':{w}s}{m} kg")
+            print(f"{u}{'g':{w}s}{g} m/s²")
+            print(f"{u}{'ev':{w}s}{ev} m/s")
+            print(f"{u}{'rot':{w}s}{rot} s")
+            print(f"{u}{'orb':{w}s}{orb} s")
+            print(f"{u}{'vel':{w}s}{vel} m/s")
+            print(f"{u}{'ecc':{w}s}{ecc}")
+            print(f"{u}{'inc':{w}s}{inc}°")
+            print(f"{u}{'tilt':{w}s}{tilt}°")
+            print(f"{u}{'moons':{w}s}{moons}")
+            print(f"{u}{'T':{w}s}{T} K")
+    def MatchName(name):
+        'Return a list of matched names by index number'
+        ss = solarsys["name"]
+        # See if it's an integer
+        try:
+            num = int(name)
+            if 0 <= num <= len(ss):
+                return num
+            else:
+                print(f"{num!r} is an out-of-range number")
+                return None
+        except ValueError:
+            pass
+        o = []
+        r = re.compile(r"{name}", re.I)
+        for i, item in enumerate(solarsys["name"]):
+            if r.search(item):
+                o.append(i)
+        return list(sorted(set(o)))
     def PrintItems(*names):
-        pass
+        o = []
+        for name in names:
+            o.extend(MatchName(name))
+        for i in list(sorted(set(o))):
+            PrintItem(i)
 
 if __name__ == "__main__":
     d = {}      # Options dictionary
     objects = ParseCommandLine(d)
-    if len(objects) == 1:
-        PrintItem(objects[0])
-    else:
-        PrintItems(*objects)
+    if d["-r"] is not None:
+        name = solarsys["name"][d["-r"]]
+        t.print(f"{t.rel}Numbers are relative to {name}'s values")
+    for name in objects:
+        num = MatchName(name)
+        if num is None:
+            continue
+        elif ii(num, list):
+            for i in num:
+                PrintItem(i)
+        else:
+            PrintItem(num)
