@@ -1405,17 +1405,43 @@ if 1:   # Classes derived from flt for physical data
         def __repr__(self):
             return f"GreaterThan({self.arg!r})"
     class Unc(flt):
-        'Represent an uncertain number'
-        def __new__(cls, s):
-            assert(s and "±" in s)
-            xbar, sd = s.split("±")
-            instance = super().__new__(cls, xbar)
-            instance.sd = flt(sd)
+        '''Represent an uncertain number.  If the python uncertainties
+        library is available, it is used for the convenient display of 
+        uncertain numbers in the abbreviated 1.23(4) style.  Otherwise, the
+        "nominal_value ± uncertainty" form is used.
+ 
+        The property s is the uncertainty.
+  
+        Initialize the constructor with strings of the form 
+            1) "3.4±0.1"
+        If you have the python uncertainties library, you can also use:
+            2) "3.4(1)"
+            3) "3.4+/-0.1"
+        '''
+        def __new__(cls, u):
+            'Our floating point value is the nominal value'
+            r = u.replace(" ", "")
+            if have_unc:
+                v = uncertainties.ufloat_fromstr(r)
+                instance = super().__new__(cls, v.n)
+                instance.sd = float(v.s)
+            else:
+                n, s = [float(i) for i in r.split("±")]
+                instance = super().__new__(cls, n)
+                instance.sd = s
+            instance.str = u
             return instance
         def __str__(self):
-            return super().__str__() + "±" + str(self.sd)
+            if have_unc:
+                u = uncertainties.ufloat(float(self), self.sd)
+                return f"{u:uS}"
+            else:
+                return super().__str__() + "±" + str(self.sd)
         def __repr__(self):
-            return f"LessThan({self})"
+            return f"Unc('{self.str}')"
+        @property
+        def s(self):
+            return self.sd
 
 if __name__ == "__main__": 
     from lwtest import run, raises, assert_equal, Assert
@@ -1510,7 +1536,13 @@ if __name__ == "__main__":
         Assert(x == 3.5)
         Assert(str(x) == "≥3.5")
         Assert(repr(x) == "GreaterThan('≥3.5')")
-        
+        # Unc
+        s = "3.456 ± 0.0036"
+        x = Unc(s)
+        Assert(x == 3.456)
+        Assert(x.s == 0.0036)
+        Assert(str(x) == "3.456(4)")
+        Assert(repr(x) == f"Unc('{s}')")
 
     def Test_sig_equal():
         '''Base.sig_equal compares two numbers to a specified number of
