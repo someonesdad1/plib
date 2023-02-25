@@ -1,5 +1,5 @@
 '''
-
+ 
 TODO
     - Change symbols
         - d to r for orbit radius
@@ -17,15 +17,15 @@ TODO
         - '-p var' option, which prints variable var for all objects.  -r works
         with these numbers.
         - '-P var' option, same as -p except sorts by value
-
+ 
 Module that contains basic data on solar system objects
     When run as a script, produces tables and plots.
-
+ 
     Core information from
     https://en.wikipedia.org/wiki/List_of_gravitationally_rounded_objects_of_the_Solar_System
     These data were gotten by screen scraping the tables and getting rid of
     the extra numbers.
-
+ 
     The global dictionary solarsys contains the following keys:
         name    Object's name
         name_lc Object's name (all lower case)
@@ -87,6 +87,56 @@ if 1:   # Header
         t.rel = t("grnl")
         t.notrel = t("lipl")
         t.nan = t("redl")
+        # Color coding for objects
+        t.planet = t("ornl")
+        t.dwarf = t("denl")
+        t.tno = t("trql")
+        t.moon = t("purl")
+        # Dict to get color code
+        obj_color = {
+            # Planets
+            "Mercury": t.planet,
+            "Venus": t.planet,
+            "Earth": t.planet,
+            "Mars": t.planet,
+            "Jupiter": t.planet,
+            "Saturn": t.planet,
+            "Uranus": t.planet,
+            "Neptune": t.planet,
+            # Dwarf planets
+            "Ceres": t.dwarf,
+            "Pluto": t.dwarf,
+            "Haumea": t.dwarf,
+            "Makemake": t.dwarf,
+            "Eris": t.dwarf,
+            # TNO
+            "Orcus": t.tno,
+            "Salacia": t.tno,
+            "Quaoar": t.tno,
+            "Gonggong": t.tno,
+            "Sedna": t.tno,
+            # Moons
+            "Moon": t.moon,
+            "Io": t.moon,
+            "Europa": t.moon,
+            "Ganymede": t.moon,
+            "Callisto": t.moon,
+            "Mimas": t.moon,
+            "Enceladus": t.moon,
+            "Tethys": t.moon,
+            "Dione": t.moon,
+            "Rhea": t.moon,
+            "Titan": t.moon,
+            "Iapetus": t.moon,
+            "Miranda": t.moon,
+            "Ariel": t.moon,
+            "Umbriel": t.moon,
+            "Titania": t.moon,
+            "Oberon": t.moon,
+            "Triton": t.moon,
+            "Charon": t.moon,
+            "Dysnomia": t.moon,
+        }
 if 1:   # Solar system data
     # https://en.wikipedia.org/wiki/List_of_gravitationally_rounded_objects_of_the_Solar_System
     # Changes:  
@@ -207,7 +257,6 @@ if 1:   # Solar system data
         ? ? ? ? ? ? ? ? ? ?
         ? ? ? ? ? ? ? ? ? ?
     '''.split()
-
     # Sun's data
     sun = [
         # Sym, value, unit, description
@@ -252,7 +301,7 @@ if 1:   # Get data
         # Gravitational constant = 6.67430(15)e−11 in N*m2/kg2
         G = 6.6743e-11
         # Check for consistency in list lengths
-        n = len(names)
+        n = len(names)  # As of 25 Feb 2023, n == 38
         for i in (symbols, dist_km, radius_km, mass_kg, gravity_ms2,
                   escape_kmps, rotate_days, orbit_days, orbit_speed_kmps,
                   eccentricity, incl_deg, axial_tilt_deg, number_moons,
@@ -393,6 +442,23 @@ if 1:   # Utility
         of all the other objects in the neighorhood of that planet's orbit.
         The planets will have ld >> 0 and dwarf planets will have ld < 0.
  
+        Here's a list of the 38 objects that are included and their counts
+        by category:
+ 
+            Planets (8) {t.planet}
+                Mercury Venus Earth Mars Jupiter Saturn Uranus Neptune {t.n}
+            Dwarf planets (5)
+                {t.dwarf}Ceres Pluto Haumea Makemake Eris {t.n}
+            Trans-Neptunian objects (5)
+                {t.tno}Orcus Salacia Quaoar Gonggong Sedna {t.n}
+            Moons (20)
+                Earth: {t.moon}Moon {t.n}
+                Jupiter: {t.moon}Io Europa Ganymede Callisto {t.n}
+                Saturn: {t.moon}Mimas Enceladus Tethys Dione Rhea Titan Iapetus {t.n}
+                Uranus: {t.moon}Miranda Ariel Umbriel Titania Oberon {t.n}
+                Neptune: {t.moon}Triton {t.n}
+                Pluto: {t.moon}Charon {t.n}
+                Eris: {t.moon}Dysnomia {t.n}
         '''))
         exit(0)
     def Error(*msg, status=1):
@@ -497,8 +563,8 @@ if 1:   # Core functionality
         print(f"{t.name}{ss['name'][num]} (index = {num}) {'' if sym == 'None' else sym}{t.n}")
         w = 10
         # Put data in local variables
-        D = ss['d'][num]
         r = ss['r'][num]
+        D = ss['D'][num]
         m = ss['m'][num]
         g = ss['g'][num]
         ev = ss['ev'][num]
@@ -517,8 +583,8 @@ if 1:   # Core functionality
                 num0 = n[0]
             else:
                 Error(f"-r option has too many numbers: {n}")
-            D0 = ss['d'][num0]
             r0 = ss['r'][num0]
+            D0 = ss['D'][num0]
             m0 = ss['m'][num0]
             g0 = ss['g'][num0]
             ev0 = ss['ev'][num0]
@@ -543,8 +609,8 @@ if 1:   # Core functionality
                         return f"{t.rel}{ratio}{t.n}"
                 except ZeroDivisionError:
                     return f"{t.notrel}{F.flt(value)}{units}{t.n}"
-            r_D = GetRatio(D, D0, " m")
             r_r = GetRatio(r, r0, " m")
+            r_D = GetRatio(D, D0, " m")
             r_m = GetRatio(m, m0, " kg")
             r_g = GetRatio(g, g0, " m/s²")
             r_ev = GetRatio(ev, ev0, " m/s")
@@ -556,8 +622,8 @@ if 1:   # Core functionality
             r_tilt = GetRatio(tilt, tilt0, "°")
             r_moons = GetRatio(moons, moons0, "°")
             r_T = GetRatio(T, T0, "")
-            print(f"{u}{'d':{w}s}{r_D}")
-            print(f"{u}{'r':{w}s}{r_r}")
+            print(f"{u}{'d':{w}s}{r_r}")
+            print(f"{u}{'r':{w}s}{r_D}")
             print(f"{u}{'m':{w}s}{r_m}")
             print(f"{u}{'g':{w}s}{r_g}")
             print(f"{u}{'ev':{w}s}{r_ev}")
@@ -576,8 +642,8 @@ if 1:   # Core functionality
                     return f"{s}{' '*(not cuddle)}{unit}"
                 else:
                     return f"{s}{unit}"
-            print(f"{u}{'d':{w}s}{D} m = {SI(D, 'm')}")
             print(f"{u}{'r':{w}s}{r} m = {SI(r, 'm')}")
+            print(f"{u}{'D':{w}s}{D} m = {SI(D, 'm')}")
             print(f"{u}{'m':{w}s}{m} kg = {SI(1000*m, 'g')}")
             print(f"{u}{'g':{w}s}{g} m/s² = {SI(g, 'm/s²')}")
             print(f"{u}{'ev':{w}s}{ev} m/s = {SI(ev, 'm/s')}")
@@ -639,6 +705,12 @@ if __name__ == "__main__":
             PrintItem(num)
     if d["-s"]:
         PrintSun()
+    # Print color code
+    print(f"Color code: ", end=" ")
+    print(f"{t.planet}Planet{t.n}", end=" ")
+    print(f"{t.dwarf}Dwarf planet{t.n}", end=" ")
+    print(f"{t.tno}TNO{t.n}", end=" ")
+    print(f"{t.moon}Moon{t.n}")
     if d["-l"]:
         print()
         ListObjects()
