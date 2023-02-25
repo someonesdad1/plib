@@ -75,6 +75,7 @@ if 1:   # Header
         t.notrel = t("lipl")
         t.nan = t("redl")
 if 1:   # Solar system data
+    # https://en.wikipedia.org/wiki/List_of_gravitationally_rounded_objects_of_the_Solar_System
     scrape_date = "18 Feb 2023"
     names = '''
         Mercury Venus Earth Mars Jupiter Saturn Uranus Neptune
@@ -118,7 +119,7 @@ if 1:   # Solar system data
         1.622 1.796 1.314 1.428 1.235 0.0636 0.111 0.145 0.231 0.264
         1.35 0.22 0.08 0.27 0.23 0.39 0.35 0.78 0.28 0.16-0.27
     '''.split()
-    escape_mps = '''
+    escape_kmps = '''
         4.25 10.36 11.18 5.02 59.54 35.49 21.29 23.71
         0.51 1.21 0.91 0.54 1.37
         0.50 0.39 0.45 0.604 ?
@@ -182,9 +183,9 @@ if 1:   # Solar system data
         93.7 130 59 58 61 60 61 38 53 34
     '''.split()
 if 1:   # Get data
-    def ToFlt(lst):
+    def ToFlt(lst, mult=1):
         f = F.FltDerived
-        return [f(i) for i in lst]
+        return [f(i)*mult for i in lst]
     def BuildDataDict():
         '''Construct a dict that has lists of the data.  We use the keys
             name    Object's name
@@ -209,7 +210,7 @@ if 1:   # Get data
         # Check for consistency in list lengths
         n = len(names)
         for i in (symbols, dist_km, radius_km, mass_kg, gravity_ms2,
-                  escape_mps, rotate_days, orbit_days, orbit_speed_kmps,
+                  escape_kmps, rotate_days, orbit_days, orbit_speed_kmps,
                   eccentricity, incl_deg, axial_tilt_deg, number_moons,
                   surface_temp_K):
             assert(len(i) == n)
@@ -217,25 +218,20 @@ if 1:   # Get data
         di = {}
         di["name"] = names
         di["sym"] = symbols
-        di["d"] = ToFlt(dist_km)
-        di["r"] = ToFlt(radius_km)
+        di["d"] = ToFlt(dist_km, 1000)
+        di["r"] = ToFlt(radius_km, 1000)
         di["m"] = ToFlt(mass_kg)
         di["g"] = ToFlt(gravity_ms2)
-        di["ev"] = ToFlt(escape_mps)
-        di["rot"] = ToFlt(rotate_days)
-        di["orb"] = ToFlt(orbit_days)
-        di["vel"] = ToFlt(orbit_speed_kmps)
+        di["ev"] = ToFlt(escape_kmps, 1000)
+        di["rot"] = ToFlt(rotate_days, 86400)
+        di["orb"] = ToFlt(orbit_days, 86400)
+        di["vel"] = ToFlt(orbit_speed_kmps, 1000)
         di["ecc"] = ToFlt(eccentricity)
         di["inc"] = ToFlt(incl_deg)
         di["tilt"] = ToFlt(axial_tilt_deg)
         di["moons"] = number_moons
         di["T"] = ToFlt(surface_temp_K)
         # Now convert things to the desired units
-        di["d"] = [i*1000 for i in di["d"]]             # To m
-        di["r"] = [i*1000 for i in di["r"]]             # To m
-        di["rot"] = [i*86400 for i in di["rot"]]        # To s
-        di["orb"] = [i*86400 for i in di["orb"]]        # To s
-        di["vel"] = [i*1000 for i in di["vel"]]         # To m/s
         di["moons"] = [int(i) for i in di["moons"]]     # To integer
         if 0:
             # Dump to 1 figure to check things
@@ -252,7 +248,7 @@ if 1:   # Get data
         assert(di["r"][i] == 6378.1366*1000)
         assert(di["m"][i] == 5.972e24)
         assert(di["g"][i] == 9.8)
-        assert(di["ev"][i] == 11.18)
+        assert(di["ev"][i] == 11.18*1000)
         assert(di["rot"][i] == 0.99726968*86400)
         assert(di["orb"][i] == 365.256363*86400)
         assert(di["vel"][i] == 29.7859*1000)
@@ -268,7 +264,7 @@ if 1:   # Get data
         assert(di["r"][i] == 350*1000)
         assert(di["m"][i] == 0.04e22)
         assert(di["g"][i] == 0.215)
-        assert(di["ev"][i] == 0.39)
+        assert(di["ev"][i] == 0.39*1000)
         assert(di["rot"][i] == 15.786*86400)
         assert(di["orb"][i] == 15.786*86400)
         assert(di["vel"][i] == 0.172*1000)
@@ -290,20 +286,28 @@ if 1:   # Utility
         Here's example output for Titan (the table mapping index numbers to
         body is omitted):
 
-            Titan (index = 28) S6
-                d         1.2e9 m = 1.2 G
-                r         2.6e6 m
-                m         1.3e23 kg
-                g         1.4 m/s²
-                ev        2.6 m/s
-                rot       1.4e6 s
-                orb       1.4e6 s
-                vel       5.6e3 m/s
-                ecc       0.029
-                inc       0.33°
-                tilt      ≈0.30°
-                moons     0
-                T         94 K
+        Titan (index = 28) S6
+            d         1.2e9 m = 1.2 Gm          Distance from primary
+            r         2.6e6 m = 2.6 Mm          Mean radius
+            m         1.3e23 kg = 130 Yg        Mass
+            g         1.4 m/s² = 1.4 m/s²       Equatorial gravitational acceleration
+            ev        2.6 m/s = 2.6 m/s         Escape velocity
+            rot       1.4e6 s = 1.4 Ms          Rotation period
+            orb       1.4e6 s = 1.4 Ms          Orbital period
+            vel       5.6e3 m/s = 5.6 km/s      Orbital speed
+            ecc       0.029                     Eccentricity
+            inc       0.33° = 330m°             Inclination
+            tilt      ≈0.30° = 300m°            Axial tilt
+            moons     0                         Number of moons
+            T         94 K = 94 K               Mean surface temperature
+
+        Because SI prefixes can be useful in interpreting results, the
+        values are followed by the significant with an appended SI prefix
+        to the units.
+
+        d is the distance to the primary.  Thus, for a planet like Mars,
+        this means the distance to the sun.  For a moon like Ganymede, it
+        means the distance to Jupiter.
 
         The index number lets you use either that number or "Titan" as the
         command line argument to get the report.  The command line
@@ -311,8 +315,7 @@ if 1:   # Utility
         expressions, so e.g. "^t" will show you the bodies with names that
         start with the letter t.
 
-        The 'S6' is the symbol and means it's the 6th moon of S (Saturn).
-        The other variables are explained in the usage statement.
+        The variables are explained in the usage statement.
 
         When you use the -r option, you specify a reference body.  Then the
         report's parameters are printed to the reference body's values.
@@ -320,9 +323,12 @@ if 1:   # Utility
         Earth's.  You should see Venus' mass is 0.82 of Earth's and its
         surface temperature is 2.5 times that of Earth's.
 
-        Because SI prefixes can be useful in interpreting results, the
-        values are followed by the significant with an appended SI prefix.
-        Thus, in the above example
+        If you use Earth as the -r argument, note you won't get quite the
+        same numbers as seen in the wikipedia table because the Earth's
+        mean distance from the sun is 1.00000011 AU, not unity as you'd
+        expect.  If you use this correction, you should get the table
+        values to within about 8 digits.
+
 
         '''))
         exit(0)
@@ -332,10 +338,13 @@ if 1:   # Utility
     def Usage(status=1):
         print(dedent(f'''
         Usage:  {sys.argv[0]} [options] [s1 [s2...]]
-          Print data for object s1, s2, etc.  If only one object is given,
-          then all parameters for that object are printed.  Otherwise, you
-          must specify which parameters you want in the -p option:
-            sym     Symbol
+          Print data for solar system objects s1, s2, etc.  You can specify
+          either the index number (e.g., Earth is 2) or a regular
+          expression for the names (e.g. '^ti' will show Titan's and
+          Titania's data).
+ 
+          The parameters printed are:
+            sym     Symbol (e.g. 'S6' means 6th moon of Saturn)
             d       Distance from primary, m
             r       Mean radius, m
             m       Mass, kg
@@ -349,16 +358,18 @@ if 1:   # Utility
             tilt    Axial tilt, degrees
             moons   Number of moons
             T       Mean surface temperature, K
+          Note units are base SI units except for angles, which are in
+          degrees.
         Options:
           -d n    Number of significant digits [{d['-d']}]
           -h      Print a manpage
-          -l      Don't list the objects and their numbers at end
+          -l      List the objects and their numbers at end of report
           -r n    Print relative to named object n's values
         '''))
         exit(status)
     def ParseCommandLine(d):
         d["-d"] = 2         # Number of significant digits
-        d["-l"] = True      # Show object names
+        d["-l"] = False     # Show object names
         d["-r"] = None      # Object to use as reference
         try:
             opts, args = getopt.getopt(sys.argv[1:], "d:hlr:") 
@@ -490,19 +501,25 @@ if 1:   # Core functionality
             print(f"{u}{'moons':{w}s}{r_moons}")
             print(f"{u}{'T':{w}s}{r_T}")
         else:
-            print(f"{u}{'d':{w}s}{D} m = {D.engsi}m")
-            print(f"{u}{'r':{w}s}{r} m = {r.engsi}m")
-            print(f"{u}{'m':{w}s}{m} kg = {(1000*m).engsi}g")
-            print(f"{u}{'g':{w}s}{g} m/s² = {g.engsi}m/s²")
-            print(f"{u}{'ev':{w}s}{ev} m/s = {ev.engsi}m/s")
-            print(f"{u}{'rot':{w}s}{rot} s = {rot.engsi}s")
-            print(f"{u}{'orb':{w}s}{orb} s = {orb.engsi}s")
-            print(f"{u}{'vel':{w}s}{vel} m/s = {vel.engsi}m/s")
+            def SI(val, unit, cuddle=False):
+                s = f"{val.engsi}"
+                if "e" in s: # No SI prefix
+                    return f"{s}{' '*(not cuddle)}{unit}"
+                else:
+                    return f"{s}{unit}"
+            print(f"{u}{'d':{w}s}{D} m = {SI(D, 'm')}")
+            print(f"{u}{'r':{w}s}{r} m = {SI(r, 'm')}")
+            print(f"{u}{'m':{w}s}{m} kg = {SI(1000*m, 'g')}")
+            print(f"{u}{'g':{w}s}{g} m/s² = {SI(g, 'm/s²')}")
+            print(f"{u}{'ev':{w}s}{ev} m/s = {SI(ev, 'm/s')}")
+            print(f"{u}{'rot':{w}s}{rot} s = {SI(rot, 's')}")
+            print(f"{u}{'orb':{w}s}{orb} s = {SI(orb, 's')}")
+            print(f"{u}{'vel':{w}s}{vel} m/s = {SI(vel, 'm/s')}")
             print(f"{u}{'ecc':{w}s}{ecc}")
-            print(f"{u}{'inc':{w}s}{inc}° = {inc.engsic}°")
-            print(f"{u}{'tilt':{w}s}{tilt}° = {tilt.engsic}°")
+            print(f"{u}{'inc':{w}s}{inc}°")
+            print(f"{u}{'tilt':{w}s}{tilt}°")
             print(f"{u}{'moons':{w}s}{moons}")
-            print(f"{u}{'T':{w}s}{T} K = {T.engsi}K")
+            print(f"{u}{'T':{w}s}{T} K = {SI(T, 'K')}")
     def MatchName(regex):
         'Return a list of matched names by index number'
         ss = solarsys["name"]
