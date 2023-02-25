@@ -1,9 +1,22 @@
 '''
 
 TODO
-    - Use -x option to force using SI prefixes in printing
-    - When -r is used, relative values are printed in color.  When you
-      don't see color, the relative value was zero.
+    - Change symbols
+        - d to r for orbit radius
+        - r to D for mean diameter
+    - Calculate and print the following if -c is used:
+        - A surface area
+        - V volume
+        - rho density
+        - These variables can be calculated, so don't need separate tables
+            - g surface gravity = G*m/r**2
+            - ev escape velocity = sqrt(2*G*m/r)
+            - vel orbital speed from r & orb
+    - New options
+        - -s shows sun's data
+        - '-p var' option, which prints variable var for all objects.  -r works
+        with these numbers.
+        - '-P var' option, same as -p except sorts by value
 
 Module that contains basic data on solar system objects
     When run as a script, produces tables and plots.
@@ -30,8 +43,7 @@ Module that contains basic data on solar system objects
         tilt    Axial tilt, degrees
         moons   Number of moons
         T       Mean surface temperature, K
-
-
+        ld      log(Soter's discriminant)
 '''
 if 1:   # Header
     if 1:   # Copyright, license
@@ -59,6 +71,7 @@ if 1:   # Header
     if 1:   # Custom imports
         from wrap import wrap, dedent
         from color import Color, TRM as t
+        from lwtest import Assert, assert_equal
         import f as F
         from u import u
         from columnize import Columnize
@@ -76,6 +89,9 @@ if 1:   # Header
         t.nan = t("redl")
 if 1:   # Solar system data
     # https://en.wikipedia.org/wiki/List_of_gravitationally_rounded_objects_of_the_Solar_System
+    # Changes:  
+    #   - Defined Earth to sun distance to be 149597870.7 km, as this is
+    #     the definition of the AU.
     scrape_date = "18 Feb 2023"
     names = '''
         Mercury Venus Earth Mars Jupiter Saturn Uranus Neptune
@@ -92,7 +108,7 @@ if 1:   # Solar system data
         S6 S8 U5 U1 U2 U3 U4 N1 P1 None
     '''.split()
     dist_km = '''
-        57909175 108208930 149597890 227936640 778412010 1426725400 2870972200 4498252900
+        57909175 108208930 149597870.7 227936640 778412010 1426725400 2870972200 4498252900
         413700000 5906380000 6484000000 6850000000 10210000000
         5896946000 6310600000 6535930000 10072433340 78668000000
         384399 421600 670900 1070400 1882700 185520 237948 294619 377396 527108
@@ -182,11 +198,33 @@ if 1:   # Solar system data
         220 130 102 110 134 64 75 64 87 76
         93.7 130 59 58 61 60 61 38 53 34
     '''.split()
+    # In the following, all unknown or meaningless values are given '?'
+    # because these will result in nan when the log is taken.
+    discriminant = '''
+        9.1e4 1.35e6 1.7e6 1.8e5 6.25e5 1.9e5 2.9e4 2.4e4
+        0.33 0.077 0.023 0.02 0.10
+        0.003 <0.1 0.0015 <0.1 ?
+        ? ? ? ? ? ? ? ? ? ?
+        ? ? ? ? ? ? ? ? ? ?
+    '''.split()
+
+    # Sun's data
+    sun = [
+        # Sym, value, unit, description
+        ("r", 2.5e20,           "m",  "Mean distance to galactic center"),
+        ("D", 2*695508e3,       "m",  "Mean diameter"),
+        ("m", 1.9855e30,        "kg", "Mass"),
+        ("rot", 25.38*86400,    "s",  "Rotation period"),
+        ("orb", 240e6*3.156e13, "s",  "Orbital period about galactic center"),
+        ("tilt", 7.25,          "°",  "Axial tilt to ecliptic"),
+        ("gtilt", 67.23,        "°",  "Axial tilt to galactic plane"),
+        ("T", 5778,             "K",  "Mean surface temperature"),
+    ]
 if 1:   # Get data
     def ToFlt(lst, mult=1):
         f = F.FltDerived
         return [f(i)*mult for i in lst]
-    def BuildDataDict():
+    def BuildDataDict(calculate=False):
         '''Construct a dict that has lists of the data.  We use the keys
             name    Object's name
             name_lc Object's name (all lower case)
@@ -206,7 +244,13 @@ if 1:   # Get data
             T       Mean surface temperature, K
         All objects not strings are flts or objects derived from flt.
         moons is an integer.
+ 
+        If calculate is True, then area, volume, density, g, escape
+        velocity, orbital velocity are calculated from the data rather than
+        using the table values.
         '''
+        # Gravitational constant = 6.67430(15)e−11 in N*m2/kg2
+        G = 6.6743e-11
         # Check for consistency in list lengths
         n = len(names)
         for i in (symbols, dist_km, radius_km, mass_kg, gravity_ms2,
@@ -218,8 +262,8 @@ if 1:   # Get data
         di = {}
         di["name"] = names
         di["sym"] = symbols
-        di["d"] = ToFlt(dist_km, 1000)
-        di["r"] = ToFlt(radius_km, 1000)
+        di["r"] = ToFlt(dist_km, 1000)
+        di["D"] = ToFlt(radius_km, 2000)
         di["m"] = ToFlt(mass_kg)
         di["g"] = ToFlt(gravity_ms2)
         di["ev"] = ToFlt(escape_kmps, 1000)
@@ -229,10 +273,20 @@ if 1:   # Get data
         di["ecc"] = ToFlt(eccentricity)
         di["inc"] = ToFlt(incl_deg)
         di["tilt"] = ToFlt(axial_tilt_deg)
-        di["moons"] = number_moons
+        di["moons"] = [int(i) for i in number_moons]
         di["T"] = ToFlt(surface_temp_K)
-        # Now convert things to the desired units
-        di["moons"] = [int(i) for i in di["moons"]]     # To integer
+        di["ld"] = [F.log10(i) for i in ToFlt(discriminant)]
+        # Calculate area, volume, density
+        di["A"] = [4*F.pi*(i/2)**2 for i in di["D"]]
+        di["V"] = [4/3*F.pi*(i/2)**3 for i in di["D"]]
+        di["rho"] = [m/V for m, V in zip(di["m"], di["V"])]
+        if calculate:
+            # Calculate g, escape velocity, orbital velocity
+            R, M = [i/2 for i in di["D"]], di["m"]
+            P = zip(R, M)
+            di["g"] =   [G*m/r**2        for r, m in P]
+            di["ev"] =  [F.sqrt(2*G*m/r) for r, m in P]
+            di["vel"] = [2*F.pi*r/orb    for r, orb in zip(di["r"], di["orb"])]
         if 0:
             # Dump to 1 figure to check things
             x = flt(0)
@@ -244,8 +298,8 @@ if 1:   # Get data
         i = 2   # Values for Earth
         assert(di["name"][i] == "Earth")
         assert(di["sym"][i] == "None")
-        assert(di["d"][i] == 149597890*1000)
-        assert(di["r"][i] == 6378.1366*1000)
+        assert(di["r"][i] == 149597870.7*1000)
+        assert(di["D"][i] == 6378.1366*2000)
         assert(di["m"][i] == 5.972e24)
         assert(di["g"][i] == 9.8)
         assert(di["ev"][i] == 11.18*1000)
@@ -260,8 +314,8 @@ if 1:   # Get data
         i = -1   # Values for Dysnomia
         assert(di["name"][i] == "Dysnomia")
         assert(di["sym"][i] == "None")
-        assert(di["d"][i] == 37300*1000)
-        assert(di["r"][i] == 350*1000)
+        assert(di["r"][i] == 37300*1000)
+        assert(di["D"][i] == 350*2000)
         assert(di["m"][i] == 0.04e22)
         assert(di["g"][i] == 0.215)
         assert(di["ev"][i] == 0.39*1000)
@@ -282,10 +336,10 @@ if 1:   # Utility
         print(dedent(f'''
         This script prints out wikipedia's information on the major solar
         system bodies as of {scrape_date}.
-
+ 
         Here's example output for Titan (the table mapping index numbers to
         body is omitted):
-
+ 
         Titan (index = 28) S6
             d         1.2e9 m = 1.2 Gm          Distance from primary
             r         2.6e6 m = 2.6 Mm          Mean radius
@@ -300,39 +354,45 @@ if 1:   # Utility
             tilt      ≈0.30° = 300m°            Axial tilt
             moons     0                         Number of moons
             T         94 K = 94 K               Mean surface temperature
-
+            ld        xx                        Log discriminant
+ 
         Because SI prefixes can be useful in interpreting results, the
         values are followed by the significant with an appended SI prefix
         to the units.
-
+ 
         d is the distance to the primary.  Thus, for a planet like Mars,
         this means the distance to the sun.  For a moon like Ganymede, it
         means the distance to Jupiter.
-
+ 
         The index number lets you use either that number or "Titan" as the
         command line argument to get the report.  The command line
         arguments will also be interpreted as case-insensitive regular
         expressions, so e.g. "^t" will show you the bodies with names that
         start with the letter t.
-
+ 
         The variables are explained in the usage statement.
-
+ 
         When you use the -r option, you specify a reference body.  Then the
         report's parameters are printed to the reference body's values.
         Example:  'solarsys.py -r earth venus' shows Venus' values in terms of
         Earth's.  You should see Venus' mass is 0.82 of Earth's and its
         surface temperature is 2.5 times that of Earth's.
-
+ 
         If you use Earth as the -r argument, you won't get quite the same
         numbers as seen in the wikipedia table because the Earth's mean
         distance from the sun is 1.00000011 AU, not unity as you'd expect.
         If you use this correction, you should get the table values to
         within about 7 or 8 digits.
-
+ 
         The default number of digits printed is 2.  You can change this in
-        the ParseCommandLine() function if you wish, but I find 2 digits
+        the ParseCommandLine() function if you wish.  I find 2 digits
         nice for getting a feel for the size of things.
-
+ 
+        ld is the base 10 logarithm of the Soter discriminant for a planet,
+        which is M/m where M is the planet's mass and m is the summed mass
+        of all the other objects in the neighorhood of that planet's orbit.
+        The planets will have ld >> 0 and dwarf planets will have ld < 0.
+ 
         '''))
         exit(0)
     def Error(*msg, status=1):
@@ -348,19 +408,23 @@ if 1:   # Utility
  
           The parameters printed are:
             sym     Symbol (e.g. 'S6' means 6th moon of Saturn)
-            d       Distance from primary, m
-            r       Mean radius, m
+            r       Distance from primary, m
+            D       Mean diameter, m
+            A       Surface area, m²
+            V       Volume, m³
             m       Mass, kg
+            ρ       Density, g/cm³
             g       Equatorial gravitational acceleration, m/s²
             ev      Escape velocity, m/s
             rot     Rotation period, s
             orb     Orbital period, s
-            vel     Orbital speed, m/s
+            vel     Mean orbital speed, m/s
             ecc     Eccentricity
             inc     Inclination, degrees
             tilt    Axial tilt, degrees
             moons   Number of moons
             T       Mean surface temperature, K
+            ld      Log of Soter discriminant log10(M/m)
           Note units are base SI units except for angles, which are in
           degrees.
         Options:
@@ -368,19 +432,21 @@ if 1:   # Utility
           -h      Print a manpage
           -l      List the objects and their numbers at end of report
           -r n    Print relative to named object n's values
+          -s      Print data for sun
         '''))
         exit(status)
     def ParseCommandLine(d):
         d["-d"] = 2         # Number of significant digits
         d["-l"] = False     # Show object names
         d["-r"] = None      # Object to use as reference
+        d["-s"] = False     # Print sun's data
         try:
-            opts, args = getopt.getopt(sys.argv[1:], "d:hlr:") 
+            opts, args = getopt.getopt(sys.argv[1:], "d:hlr:s") 
         except getopt.GetoptError as e:
             print(str(e))
             exit(1)
         for o, a in opts:
-            if o[1] in list("l"):
+            if o[1] in list("ls"):
                 d[o] = not d[o]
             elif o == "-d":
                 try:
@@ -548,6 +614,8 @@ if 1:   # Core functionality
             o.extend(MatchName(name))
         for i in list(sorted(set(o))):
             PrintItem(i)
+    def PrintSun():
+        pass
 
 if __name__ == "__main__":
     d = {}      # Options dictionary
@@ -569,6 +637,8 @@ if __name__ == "__main__":
                 PrintItem(i)
         else:
             PrintItem(num)
+    if d["-s"]:
+        PrintSun()
     if d["-l"]:
         print()
         ListObjects()
