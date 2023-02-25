@@ -43,6 +43,9 @@ if 1:  # Header
         from wrap import wrap, dedent
         import get
         from color import TRM as t
+        if 1:
+            import debug
+            debug.SetDebugger()
     # Global variables
         P = pathlib.Path
         ii = isinstance
@@ -94,15 +97,15 @@ if 1:   # Utility
     '''))
         exit(status)
     def ParseCommandLine(d):
-        d["-a"] = False
-        d["-d"] = False
-        d["-e"] = None
-        d["-f"] = None
-        d["-H"] = False
-        d["-l"] = False
-        d["-q"] = False
-        d["-S"] = False
-        d["-s"] = False
+        d["-a"] = False     # Check non-commented config lines
+        d["-d"] = False     # Show data file contents
+        d["-e"] = None      # Write result to indicated file
+        d["-f"] = None      # Name of the configuration file
+        d["-H"] = False     # Show config file syntax
+        d["-l"] = False     # Launch file
+        d["-q"] = False     # Print silent alias names
+        d["-S"] = False     # Same as -s, but all lines
+        d["-s"] = False     # Search non-commented config lines for regex
         try:
             opts, args = getopt.getopt(sys.argv[1:], "ade:f:HhlqSs")
         except getopt.GetoptError as e:
@@ -236,8 +239,17 @@ if 1:   # Core functionality
             line = line.strip()
             if not line:
                 continue
-            elif line[0] == "#" and not d["-a"]:
-                continue
+            elif line[0] == "#":
+                # If it has two ## characters, always ignore it
+                if len(line) > 1 and line[1] == "#":
+                    continue
+                # It's a comment line.  We'll ignore it unless -a is used.
+                if not d["-a"]:
+                    continue
+                # If it doesn't contain a '/' it's a plain comment, so
+                # ignore it.
+                if "/" not in line:
+                    continue
             elif Ignore(line):
                 continue
             f = [i.strip() for i in line.split(g.sep)]
@@ -252,7 +264,7 @@ if 1:   # Core functionality
             file = P(f[-1])
             fs = str(file)
             if fs[0] == "#":
-                if fs[1] == "-":    # Line of hyphens
+                if len(fs) > 1 and fs[1] == "-":    # Line of hyphens
                     continue
                 file = P(fs[1:].strip())
             if not file.exists():

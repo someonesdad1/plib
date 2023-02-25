@@ -25,7 +25,7 @@ Korobushka|Pr3ZgN8onRA|
 Midnight In Moscow (Kenny Ball 1961)|o744d4mwOgQ|Dixieland from England
 Papillon: Waltz arrangement|FKrmozFh5ww|
 Potato Head Blues (Louis Armstrong 1927)|EfGZB78R7uw|Famous trumpet solo
-Scheherezade (1st movement, Rimsky-Korsakov 1888)|6dDk6aft4JU|von Karajan on Deutsche Grammophone
+Scheherazade (1st movement, Rimsky-Korsakov 1888)|6dDk6aft4JU|von Karajan on Deutsche Grammophone
 Stairway to Heaven (Led Zeppelin 1971)|QkF3oxziUI4|
 This is a Man's World (PMJ, Morgan James)|mPimt0Zu_To|
 Vltava (The Moldau) (Smetana, 1875)|l6kqu2mk-Kw|
@@ -249,7 +249,7 @@ You Were On My Mind|c7YSANg8vgw|
 You'll Never Know|4HU8I9BY1H0|
 You're So Vain|cleCtBP0o5Y|
 
-Rimsky-Korsakov:  Scheherezade|1i6TsIVKByM|Excellent youth orchestra
+Rimsky-Korsakov:  Scheherazade|1i6TsIVKByM|Excellent youth orchestra
 Barber of Seville (1821)|OloXRhesab0||Most of us probably heard this first by watching Saturday morning cartoons.
 Ravel: Bolero|8KsXPq3nedY|
 Beethoven: Moonlight Sonata (3rd)|o6rBK0BqL2w|17 year old girl (Tina S)
