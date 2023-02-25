@@ -10,8 +10,8 @@ Module that contains basic data on solar system objects
 
     Core information from
     https://en.wikipedia.org/wiki/List_of_gravitationally_rounded_objects_of_the_Solar_System
-    18Feb2023:  These data were gotten by screen scraping the tables and
-    getting rid of the extra numbers.
+    These data were gotten by screen scraping the tables and getting rid of
+    the extra numbers.
 
     The global dictionary solarsys contains the following keys:
         name    Object's name
@@ -70,103 +70,12 @@ if 1:   # Header
         W = int(os.environ.get("COLUMNS", "80")) - 1
         L = int(os.environ.get("LINES", "50"))
         # Colors
+        t.name = t("ornl")
         t.rel = t("grnl")
-if 1:   # Scraped raw data
-    """
-    # PLANETS
-    p = '''
-        Name: Mercury Venus Earth Mars Jupiter Saturn Uranus Neptune
-        Symbol: None None None None None None None None
-        Mean distance from primary km: 57909175 108208930 149597890 227936640 778412010 1426725400 2870972200 4498252900
-        Mean radius km: 2440.53 6051.8 6378.1366 3396.19 71492 60268 25559 24764
-        Mass kg:  3.302e23 4.8690e24 5.972e24 6.4191e23 1.8987e27 5.6851e26 8.6849e25 1.0244e26
-        Equatorial gravity m/s2:  3.70 8.87 9.8 3.71 24.79 10.44 8.87 11.15
-        Escape velocity km/s: 4.25 10.36 11.18 5.02 59.54 35.49 21.29 23.71
-        Rotation period days: 58.646225 243.0187 0.99726968 1.02595675 0.41354 0.44401 0.71833 0.67125
-        Orbital period days: 87.969 224.701 365.256363 686.971 4332.59 10759.22 30688.5 60182
-        Mean orbital speed km/s: 47.8725 35.0214 29.7859 24.1309 13.0697 9.6724 6.8352 5.4778
-        Eccentricity: 0.20563069 0.00677323 0.01671022 0.09341233 0.04839266 0.05415060 0.04716771 0.00858587
-        Inclination deg: 7.00 3.39 0 1.85 1.31 2.48 0.76 1.77
-        Axial tilt deg: 0.0 177.3 23.44 25.19 3.12 26.73 97.86 28.32
-        Number of moons:  0 0 1 2 92 83 27 14
-        Mean surface temperature K: 440-100 730 287 227 152 134 76 73
-    '''
-
-    # DWARF PLANETS
-    dp1 = '''
-        Name: Ceres Pluto Haumea Makemake Eris
-        Symbol: None None None None None
-        Mean distance from primary km: 413700000 5906380000 6484000000 6850000000 10210000000
-        Mean radius km: 473 1188.3 816 715 1163
-        Mass kg:  9.39e20 1.30e22 4.0e21 3.1e21 1.65e22
-        Equatorial gravity m/s2: 0.27 0.62 0.63 0.40 0.82
-        Escape velocity km/s: 0.51 1.21 0.91 0.54 1.37
-        Rotation period days: 0.3781 6.3872 0.1631 0.9511 15.7859
-        Orbital period days: 4.599*365.25 247.9*365.25 283.8*365.25 306.2*365.25 559*365.25
-        Mean orbital speed km/s: 17.882 4.75 4.48 4.40 3.44
-        Eccentricity: 0.080 0.249 0.195 0.161 0.436
-        Inclination deg: 10.59 17.14 28.21 28.98 44.04
-        Axial tilt deg: 4 119.6 ≈126 ? ≈78
-        Number of moons:  0 5 2 1 1
-        Mean surface temperature K: 167 40 <50 30 30
-    '''
-
-    dp2 = '''
-        Name: Orcus Salacia Quaoar Gonggong Sedna
-        Symbol: None None None None None
-        Mean distance from primary km: 5896946000 6310600000 6535930000 10072433340 78668000000
-        Mean radius km: 458.5 423 560.5 615 497.5
-        Mass kg: 6.32e20 4.9e20 1.41e21 1.75e21 ?
-        Equatorial gravity m/s2: 0.27 0.18 0.24 0.285 ?
-        Escape velocity km/s:  0.50 0.39 0.45 0.604 ?
-        Rotation period days: ? ? 0.3683 0.9333 0.4280
-        Orbital period days: 247.49*365.25 273.98*365.25 287.97*365.25 552.52*365.25 12059*365.25
-        Mean orbital speed km/s: 4.68 4.57 4.52 3.63 1.04
-        Eccentricity: 0.226 0.106 0.038 0.506 0.855
-        Inclination deg: 20.59 23.92 7.99 30.74 11.93
-        Axial tilt deg: None None None None None
-        Number of moons: 1 1 1 1 0
-        Mean surface temperature K: ≈42 ≈43 ≈41 ≈30 ≈12
-    '''
-
-    # MOONS
-    m1 = '''
-        Name: Moon Io Europa Ganymede Callisto Mimas Enceladus Tethys Dione Rhea
-        Symbol: E1 J1 J2 J3 J4 S1 S2 S3 S4 S5
-        Mean distance from primary km: 384399 421600 670900 1070400 1882700 185520 237948 294619 377396 527108
-        Mean radius km: 1737.1 1815 1569 2634.1 2410.3 198.30 252.1 533 561.7 764.3
-        Mass kg: 7.3477e22 8.94e22 4.80e22 14.819e22 10.758e22 0.00375e22 0.0108e22 0.06174e22 0.1095e22 0.2306e22
-        Equatorial gravity m/s2: 1.622 1.796 1.314 1.428 1.235 0.0636 0.111 0.145 0.231 0.264
-        Escape velocity km/s: 2.38 2.56 2.025 2.741 2.440 0.159 0.239 0.393 0.510 0.635
-        Rotation period days: 27.321582 1.7691378 3.551181 7.154553 16.68902 0.942422 1.370218 1.887802 2.736915 4.518212
-        Orbital period days: 27.32158 1.769138 3.551181 7.154553 16.68902 0.942422 1.370218 1.887802 2.736915 4.518212
-        Mean orbital speed km/s: 1.022 17.34 13.740 10.880 8.204 14.32 12.63 11.35 10.03 8.48
-        Eccentricity: 0.0549 0.0041 0.009 0.0013 0.0074 0.0202 0.0047 0.02 0.002 0.001
-        Inclination deg: 18.29-28.58 0.04 0.47 1.85 0.2 1.51 0.02 1.51 0.019 0.345
-        Axial tilt deg: 6.68 0.000405±0.00076 0.0965±0.0069 0.155±0.065 0-2 ≈0 ≈0 ≈0 ≈0 ≈0
-        Number of moons: 0 0 0 0 0 0 0 0 0 0  
-        Mean surface temperature K: 220 130 102 110 134 64 75 64 87 76
-    '''
-
-    m2 = '''
-        Name: Titan Iapetus Miranda Ariel Umbriel Titania Oberon Triton Charon Dysnomia
-        Symbol: S6 S8 U5 U1 U2 U3 U4 N1 P1 None
-        Mean distance from primary km: 1221870 3560820 129390 190900 266000 436300 583519 354759 17536 37300
-        Mean radius km: 2576 735.60 235.8 578.9 584.7 788.9 761.4 1353.4 603.5 350
-        Mass kg: 13.452e22 0.18053e22 0.00659e22 0.135e22 0.12e22 0.35e22 0.3014e22 2.14e22 0.152e22 0.03e22-0.05e22
-        Equatorial gravity m/s2: 1.35 0.22 0.08 0.27 0.23 0.39 0.35 0.78 0.28 0.16-0.27
-        Escape velocity km/s: 2.64 0.57 0.19 0.56 0.52 0.77 0.73 1.46 0.58 0.34-0.44
-        Rotation period days: 15.945 79.322 1.414 2.52 4.144 8.706 13.46 5.877 6.387 15.786
-        Orbital period days: 15.945 79.322 1.4135 2.520 4.144 8.706 13.46 5.877 6.387 15.786
-        Mean orbital speed km/s: 5.57 3.265 6.657 5.50898 4.66797 3.644 3.152 4.39 0.2 0.172
-        Eccentricity: 0.0288 0.0286 0.0013 0.0012 0.005 0.0011 0.0014 0.00002 0.0022 0.0062
-        Inclination deg: 0.33 14.72 4.22 0.31 0.36 0.14 0.10 157 0.001 ≈0
-        Axial tilt deg: ≈0.3 ≈0 ≈0 ≈0 ≈0 ≈0 ≈0 ≈0.7 ≈0 ≈0
-        Number of moons: 0 0 0 0 0 0 0 0 0 0  
-        Mean surface temperature K: 93.7 130 59 58 61 60 61 38 53 34
-    '''
-    """
-if 1:   # Solar system data (scraped 18 Feb 2023)
+        t.notrel = t("lipl")
+        t.nan = t("redl")
+if 1:   # Solar system data
+    scrape_date = "18 Feb 2023"
     names = '''
         Mercury Venus Earth Mars Jupiter Saturn Uranus Neptune
         Ceres Pluto Haumea Makemake Eris
@@ -375,6 +284,46 @@ if 1:   # Get data
 if 1:   # Utility
     def Manpage():
         print(dedent(f'''
+        This script prints out wikipedia's information on the major solar
+        system bodies as of {scrape_date}.
+
+        Here's example output for Titan (the table mapping index numbers to
+        body is omitted):
+
+            Titan (index = 28) S6
+                d         1.2e9 m = 1.2 G
+                r         2.6e6 m
+                m         1.3e23 kg
+                g         1.4 m/s²
+                ev        2.6 m/s
+                rot       1.4e6 s
+                orb       1.4e6 s
+                vel       5.6e3 m/s
+                ecc       0.029
+                inc       0.33°
+                tilt      ≈0.30°
+                moons     0
+                T         94 K
+
+        The index number lets you use either that number or "Titan" as the
+        command line argument to get the report.  The command line
+        arguments will also be interpreted as case-insensitive regular
+        expressions, so e.g. "^t" will show you the bodies with names that
+        start with the letter t.
+
+        The 'S6' is the symbol and means it's the 6th moon of S (Saturn).
+        The other variables are explained in the usage statement.
+
+        When you use the -r option, you specify a reference body.  Then the
+        report's parameters are printed to the reference body's values.
+        Example:  'solarsys.py -r earth venus' shows Venus' values in terms of
+        Earth's.  You should see Venus' mass is 0.82 of Earth's and its
+        surface temperature is 2.5 times that of Earth's.
+
+        Because SI prefixes can be useful in interpreting results, the
+        values are followed by the significant with an appended SI prefix.
+        Thus, in the above example
+
         '''))
         exit(0)
     def Error(*msg, status=1):
@@ -390,7 +339,7 @@ if 1:   # Utility
             d       Distance from primary, m
             r       Mean radius, m
             m       Mass, kg
-            g       Equatorial gravitational acceleration, m/s2
+            g       Equatorial gravitational acceleration, m/s²
             ev      Escape velocity, m/s
             rot     Rotation period, s
             orb     Orbital period, s
@@ -403,16 +352,13 @@ if 1:   # Utility
         Options:
           -d n    Number of significant digits [{d['-d']}]
           -h      Print a manpage
-          -l      List the objects and their numbers
-          -p a    Print these parameters (space separated list OK)
+          -l      Don't list the objects and their numbers at end
           -r n    Print relative to named object n's values
-          -u a    Use specified units for indicated parameters in space
-                  separated list (e.g., d:Mm means Mm for d).
         '''))
         exit(status)
     def ParseCommandLine(d):
-        d["-d"] = 3         # Number of significant digits
-        d["-l"] = False     # Show object names
+        d["-d"] = 2         # Number of significant digits
+        d["-l"] = True      # Show object names
         d["-r"] = None      # Object to use as reference
         try:
             opts, args = getopt.getopt(sys.argv[1:], "d:hlr:") 
@@ -432,22 +378,13 @@ if 1:   # Utility
                         "1 and 15")
                     Error(msg)
             elif o == "-r":
-                n = len(solarsys["name"])
-                try:
-                    d["-r"] = int(a)
-                    if not (0 <= d["-r"] < n):
-                        raise ValueError()
-                except ValueError:
-                    msg = ("-r option's argument must be an integer between "
-                           f"0 and {n - 1}")
-                    Error(msg)
+                d["-r"] = a
             elif o == "-h":
                 Manpage()
         x = F.flt(0)
         x.N = d["-d"]
+        x.rtz = False
         x.low, x.high = 0.01, 1000
-        if d["-l"]:
-            ListObjects()
         if not args:
             Usage()
         return args
@@ -477,7 +414,7 @@ if 1:   # Core functionality
         # Print this object's data
         ss = solarsys
         sym = ss["sym"][num]
-        print(f"{ss['name'][num]} {'' if sym == 'None' else sym}")
+        print(f"{t.name}{ss['name'][num]} (index = {num}) {'' if sym == 'None' else sym}{t.n}")
         w = 10
         # Put data in local variables
         D = ss['d'][num]
@@ -494,38 +431,95 @@ if 1:   # Core functionality
         moons = ss['moons'][num]
         T = ss['T'][num]
         if d["-r"]:
-            print("Relative stuff")
+            # Get reference data
+            n = MatchName(d["-r"])
+            if len(n) == 1:
+                num0 = n[0]
+            else:
+                Error(f"-r option has too many numbers: {n}")
+            D0 = ss['d'][num0]
+            r0 = ss['r'][num0]
+            m0 = ss['m'][num0]
+            g0 = ss['g'][num0]
+            ev0 = ss['ev'][num0]
+            rot0 = ss['rot'][num0]
+            orb0 = ss['orb'][num0]
+            vel0 = ss['vel'][num0]
+            ecc0 = ss['ecc'][num0]
+            inc0 = ss['inc'][num0]
+            tilt0 = ss['tilt'][num0]
+            moons0 = ss['moons'][num0]
+            T0 = ss['T'][num0]
+            # Calculate ratios
+            def GetRatio(value, ref, units):
+                '''Calculate value/ref as flt and return it as a formatted
+                string, but if ref is 0, then return value with units.
+                '''
+                try:
+                    ratio = F.flt(value/ref)
+                    if str(ratio) == "nan":
+                        return f"{t.nan}{'?'}{t.n}"
+                    else:
+                        return f"{t.rel}{ratio}{t.n}"
+                except ZeroDivisionError:
+                    return f"{t.notrel}{F.flt(value)}{units}{t.n}"
+            r_D = GetRatio(D, D0, " m")
+            r_r = GetRatio(r, r0, " m")
+            r_m = GetRatio(m, m0, " kg")
+            r_g = GetRatio(g, g0, " m/s²")
+            r_ev = GetRatio(ev, ev0, " m/s")
+            r_rot = GetRatio(rot, rot0, " s")
+            r_orb = GetRatio(orb, orb0, " s")
+            r_vel = GetRatio(vel, vel0, " s")
+            r_ecc = GetRatio(ecc, ecc0, "")
+            r_inc = GetRatio(inc, inc0, "°")
+            r_tilt = GetRatio(tilt, tilt0, "°")
+            r_moons = GetRatio(moons, moons0, "°")
+            r_T = GetRatio(T, T0, "")
+            print(f"{u}{'d':{w}s}{r_D}")
+            print(f"{u}{'r':{w}s}{r_r}")
+            print(f"{u}{'m':{w}s}{r_m}")
+            print(f"{u}{'g':{w}s}{r_g}")
+            print(f"{u}{'ev':{w}s}{r_ev}")
+            print(f"{u}{'rot':{w}s}{r_rot}")
+            print(f"{u}{'orb':{w}s}{r_orb}")
+            print(f"{u}{'vel':{w}s}{r_vel}")
+            print(f"{u}{'ecc':{w}s}{r_ecc}")
+            print(f"{u}{'inc':{w}s}{r_inc}")
+            print(f"{u}{'tilt':{w}s}{r_tilt}")
+            print(f"{u}{'moons':{w}s}{r_moons}")
+            print(f"{u}{'T':{w}s}{r_T}")
         else:
-            print(f"{u}{'d':{w}s}{D} m")
-            print(f"{u}{'r':{w}s}{r} m")
-            print(f"{u}{'m':{w}s}{m} kg")
-            print(f"{u}{'g':{w}s}{g} m/s²")
-            print(f"{u}{'ev':{w}s}{ev} m/s")
-            print(f"{u}{'rot':{w}s}{rot} s")
-            print(f"{u}{'orb':{w}s}{orb} s")
-            print(f"{u}{'vel':{w}s}{vel} m/s")
+            print(f"{u}{'d':{w}s}{D} m = {D.engsi}m")
+            print(f"{u}{'r':{w}s}{r} m = {r.engsi}m")
+            print(f"{u}{'m':{w}s}{m} kg = {(1000*m).engsi}g")
+            print(f"{u}{'g':{w}s}{g} m/s² = {g.engsi}m/s²")
+            print(f"{u}{'ev':{w}s}{ev} m/s = {ev.engsi}m/s")
+            print(f"{u}{'rot':{w}s}{rot} s = {rot.engsi}s")
+            print(f"{u}{'orb':{w}s}{orb} s = {orb.engsi}s")
+            print(f"{u}{'vel':{w}s}{vel} m/s = {vel.engsi}m/s")
             print(f"{u}{'ecc':{w}s}{ecc}")
-            print(f"{u}{'inc':{w}s}{inc}°")
-            print(f"{u}{'tilt':{w}s}{tilt}°")
+            print(f"{u}{'inc':{w}s}{inc}° = {inc.engsic}°")
+            print(f"{u}{'tilt':{w}s}{tilt}° = {tilt.engsic}°")
             print(f"{u}{'moons':{w}s}{moons}")
-            print(f"{u}{'T':{w}s}{T} K")
-    def MatchName(name):
+            print(f"{u}{'T':{w}s}{T} K = {T.engsi}K")
+    def MatchName(regex):
         'Return a list of matched names by index number'
         ss = solarsys["name"]
         # See if it's an integer
         try:
-            num = int(name)
-            if 0 <= num <= len(ss):
-                return num
+            num = int(regex)
+            if 0 <= num < len(ss):
+                return [num]
             else:
                 print(f"{num!r} is an out-of-range number")
                 return None
         except ValueError:
             pass
         o = []
-        r = re.compile(r"{name}", re.I)
-        for i, item in enumerate(solarsys["name"]):
-            if r.search(item):
+        r = re.compile(rf"{regex}", re.I)
+        for i, name in enumerate(ss):
+            if r.search(name):
                 o.append(i)
         return list(sorted(set(o)))
     def PrintItems(*names):
@@ -539,8 +533,13 @@ if __name__ == "__main__":
     d = {}      # Options dictionary
     objects = ParseCommandLine(d)
     if d["-r"] is not None:
-        name = solarsys["name"][d["-r"]]
-        t.print(f"{t.rel}Numbers are relative to {name}'s values")
+        nums = MatchName(d["-r"])
+        if len(nums) == 1:
+            name = solarsys["name"][nums[0]]
+            print(f"Numbers are relative to {name}'s values")
+            t.print(f"  Colors:  {t.rel}ratio{t.n}  {t.notrel}regular value  {t.nan}unknown")
+        else:
+            Error(f"-r argument not specific enough:  {nums}")
     for name in objects:
         num = MatchName(name)
         if num is None:
@@ -550,3 +549,6 @@ if __name__ == "__main__":
                 PrintItem(i)
         else:
             PrintItem(num)
+    if d["-l"]:
+        print()
+        ListObjects()
