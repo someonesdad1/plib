@@ -323,12 +323,15 @@ if 1:   # Utility
         Earth's.  You should see Venus' mass is 0.82 of Earth's and its
         surface temperature is 2.5 times that of Earth's.
 
-        If you use Earth as the -r argument, note you won't get quite the
-        same numbers as seen in the wikipedia table because the Earth's
-        mean distance from the sun is 1.00000011 AU, not unity as you'd
-        expect.  If you use this correction, you should get the table
-        values to within about 8 digits.
+        If you use Earth as the -r argument, you won't get quite the same
+        numbers as seen in the wikipedia table because the Earth's mean
+        distance from the sun is 1.00000011 AU, not unity as you'd expect.
+        If you use this correction, you should get the table values to
+        within about 7 or 8 digits.
 
+        The default number of digits printed is 2.  You can change this in
+        the ParseCommandLine() function if you wish, but I find 2 digits
+        nice for getting a feel for the size of things.
 
         '''))
         exit(0)
