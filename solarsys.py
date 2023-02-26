@@ -1,17 +1,10 @@
 '''
  
 TODO
-    - Change symbols
-        - d to r for orbit radius
-        - r to D for mean diameter
-    - Calculate and print the following if -c is used:
-        - A surface area
-        - V volume
-        - rho density
-        - These variables can be calculated, so don't need separate tables
-            - g surface gravity = G*m/r**2
-            - ev escape velocity = sqrt(2*G*m/r)
-            - vel orbital speed from r & orb
+    - Change numbering so Sun is 0, Mercury 1, etc.  Then set things up so
+      that 0 can be included as if it was a planet and -r works with it.
+    - Use format_numbers.py to change things like 6.6(3)e-27 to
+      6.6(3)×10⁻²⁷.
     - New options
         - -s shows sun's data
         - '-p var' option, which prints variable var for all objects.  -r works
@@ -82,6 +75,8 @@ if 1:   # Header
         ii = isinstance
         W = int(os.environ.get("COLUMNS", "80")) - 1
         L = int(os.environ.get("LINES", "50"))
+        # Gravitational constant = 6.67430(15)e−11 in N*m2/kg2
+        G = 6.6743e-11
         # Colors
         t.name = t("ornl")
         t.rel = t("grnl")
@@ -92,6 +87,7 @@ if 1:   # Header
         t.dwarf = t("denl")
         t.tno = t("trql")
         t.moon = t("purl")
+        t.sun = t("yell")
         # Dict to get color code
         obj_color = {
             # Planets
@@ -155,7 +151,7 @@ if 1:   # Solar system data
         None None None None None
         None None None None None
         E1 J1 J2 J3 J4 S1 S2 S3 S4 S5
-        S6 S8 U5 U1 U2 U3 U4 N1 P1 None
+        S6 S8 U5 U1 U2 U3 U4 N1 P1 E1
     '''.split()
     dist_km = '''
         57909175 108208930 149597870.7 227936640 778412010 1426725400 2870972200 4498252900
@@ -278,8 +274,11 @@ if 1:   # Get data
             name    Object's name
             name_lc Object's name (all lower case)
             sym     Symbol
-            d       Distance from primary, m
-            r       Mean radius, m
+            r       Distance from primary, m
+            D       Mean radius, m
+            A       Area, m2
+            V       Volume, m3
+            rho     Density, g/cm3
             m       Mass, kg
             g       Equatorial gravitational acceleration, m/s2
             ev      Escape velocity, m/s
@@ -298,8 +297,6 @@ if 1:   # Get data
         velocity, orbital velocity are calculated from the data rather than
         using the table values.
         '''
-        # Gravitational constant = 6.67430(15)e−11 in N*m2/kg2
-        G = 6.6743e-11
         # Check for consistency in list lengths
         n = len(names)  # As of 25 Feb 2023, n == 38
         for i in (symbols, dist_km, radius_km, mass_kg, gravity_ms2,
@@ -328,7 +325,8 @@ if 1:   # Get data
         # Calculate area, volume, density
         di["A"] = [4*F.pi*(i/2)**2 for i in di["D"]]
         di["V"] = [4/3*F.pi*(i/2)**3 for i in di["D"]]
-        di["rho"] = [m/V for m, V in zip(di["m"], di["V"])]
+        # Note the conversion from kg/m3 to g/cm3
+        di["rho"] = [(m/V)/1000 for m, V in zip(di["m"], di["V"])]
         if calculate:
             # Calculate g, escape velocity, orbital velocity
             R, M = [i/2 for i in di["D"]], di["m"]
@@ -362,7 +360,7 @@ if 1:   # Get data
         assert(di["T"][i] == 287)
         i = -1   # Values for Dysnomia
         assert(di["name"][i] == "Dysnomia")
-        assert(di["sym"][i] == "None")
+        assert(di["sym"][i] == "E1")    # Eris moon 1
         assert(di["r"][i] == 37300*1000)
         assert(di["D"][i] == 350*2000)
         assert(di["m"][i] == 0.04e22)
@@ -452,13 +450,13 @@ if 1:   # Utility
             Trans-Neptunian objects (5)
                 {t.tno}Orcus Salacia Quaoar Gonggong Sedna {t.n}
             Moons (20)
-                Earth: {t.moon}Moon {t.n}
+                Earth:   {t.moon}Moon {t.n}
                 Jupiter: {t.moon}Io Europa Ganymede Callisto {t.n}
-                Saturn: {t.moon}Mimas Enceladus Tethys Dione Rhea Titan Iapetus {t.n}
-                Uranus: {t.moon}Miranda Ariel Umbriel Titania Oberon {t.n}
+                Saturn:  {t.moon}Mimas Enceladus Tethys Dione Rhea Titan Iapetus {t.n}
+                Uranus:  {t.moon}Miranda Ariel Umbriel Titania Oberon {t.n}
                 Neptune: {t.moon}Triton {t.n}
-                Pluto: {t.moon}Charon {t.n}
-                Eris: {t.moon}Dysnomia {t.n}
+                Pluto:   {t.moon}Charon {t.n}
+                Eris:    {t.moon}Dysnomia {t.n}
         '''))
         exit(0)
     def Error(*msg, status=1):
@@ -531,7 +529,7 @@ if 1:   # Utility
         x.N = d["-d"]
         x.rtz = False
         x.low, x.high = 0.01, 1000
-        if not args:
+        if not args and not (d["-s"] or d["-l"]):
             Usage()
         return args
 if 1:   # Core functionality
@@ -550,6 +548,37 @@ if 1:   # Core functionality
         for i in Columnize(a):
             print(i)
         exit(0)
+    def MatchName(regex):
+        'Return a list of matched names by index number'
+        ss = solarsys["name"]
+        # See if it's an integer
+        try:
+            num = int(regex)
+            if 0 <= num < len(ss):
+                return [num]
+            else:
+                print(f"{num!r} is an out-of-range number")
+                return None
+        except ValueError:
+            pass
+        o = []
+        r = re.compile(rf"{regex}", re.I)
+        for i, name in enumerate(ss):
+            if r.search(name):
+                o.append(i)
+        return list(sorted(set(o)))
+    def PrintItems(*names):
+        o = []
+        for name in names:
+            o.extend(MatchName(name))
+        for i in list(sorted(set(o))):
+            PrintItem(i)
+    def SI(val, unit, cuddle=False):
+        s = f"{val.engsi}"
+        if "e" in s: # No SI prefix
+            return f"{s}{' '*(not cuddle)}{unit}"
+        else:
+            return f"{s}{unit}"
     def PrintItem(num):
         'Print indicated item.  num must be an integer.'
         assert(ii(num, int))
@@ -560,11 +589,15 @@ if 1:   # Core functionality
         # Print this object's data
         ss = solarsys
         sym = ss["sym"][num]
-        print(f"{t.name}{ss['name'][num]} (index = {num}) {'' if sym == 'None' else sym}{t.n}")
+        color = obj_color[ss['name'][num]]
+        print(f"{color}{ss['name'][num]} (index = {num}) {'' if sym == 'None' else sym}{t.n}")
         w = 10
         # Put data in local variables
         r = ss['r'][num]
         D = ss['D'][num]
+        A = ss['A'][num]
+        V = ss['V'][num]
+        rho = ss['rho'][num]
         m = ss['m'][num]
         g = ss['g'][num]
         ev = ss['ev'][num]
@@ -585,6 +618,9 @@ if 1:   # Core functionality
                 Error(f"-r option has too many numbers: {n}")
             r0 = ss['r'][num0]
             D0 = ss['D'][num0]
+            A0 = ss['A'][num0]
+            V0 = ss['V'][num0]
+            rho0 = ss['rho'][num0]
             m0 = ss['m'][num0]
             g0 = ss['g'][num0]
             ev0 = ss['ev'][num0]
@@ -611,6 +647,9 @@ if 1:   # Core functionality
                     return f"{t.notrel}{F.flt(value)}{units}{t.n}"
             r_r = GetRatio(r, r0, " m")
             r_D = GetRatio(D, D0, " m")
+            r_A = GetRatio(A, A0, " m")
+            r_V = GetRatio(V, V0, " m")
+            r_rho = GetRatio(rho, rho0, " m")
             r_m = GetRatio(m, m0, " kg")
             r_g = GetRatio(g, g0, " m/s²")
             r_ev = GetRatio(ev, ev0, " m/s")
@@ -624,6 +663,9 @@ if 1:   # Core functionality
             r_T = GetRatio(T, T0, "")
             print(f"{u}{'d':{w}s}{r_r}")
             print(f"{u}{'r':{w}s}{r_D}")
+            print(f"{u}{'A':{w}s}{r_A}")
+            print(f"{u}{'V':{w}s}{r_V}")
+            print(f"{u}{'rho':{w}s}{r_rho}")
             print(f"{u}{'m':{w}s}{r_m}")
             print(f"{u}{'g':{w}s}{r_g}")
             print(f"{u}{'ev':{w}s}{r_ev}")
@@ -636,15 +678,12 @@ if 1:   # Core functionality
             print(f"{u}{'moons':{w}s}{r_moons}")
             print(f"{u}{'T':{w}s}{r_T}")
         else:
-            def SI(val, unit, cuddle=False):
-                s = f"{val.engsi}"
-                if "e" in s: # No SI prefix
-                    return f"{s}{' '*(not cuddle)}{unit}"
-                else:
-                    return f"{s}{unit}"
             print(f"{u}{'r':{w}s}{r} m = {SI(r, 'm')}")
             print(f"{u}{'D':{w}s}{D} m = {SI(D, 'm')}")
+            print(f"{u}{'A':{w}s}{A} m² = {SI(A, 'm²')}")
+            print(f"{u}{'V':{w}s}{V} m³ = {SI(V, 'm³')}")
             print(f"{u}{'m':{w}s}{m} kg = {SI(1000*m, 'g')}")
+            print(f"{u}{'rho':{w}s}{rho} g/cm³ = {SI(rho, 'g/cm³')}")
             print(f"{u}{'g':{w}s}{g} m/s² = {SI(g, 'm/s²')}")
             print(f"{u}{'ev':{w}s}{ev} m/s = {SI(ev, 'm/s')}")
             print(f"{u}{'rot':{w}s}{rot} s = {SI(rot, 's')}")
@@ -654,34 +693,46 @@ if 1:   # Core functionality
             print(f"{u}{'inc':{w}s}{inc}°")
             print(f"{u}{'tilt':{w}s}{tilt}°")
             print(f"{u}{'moons':{w}s}{moons}")
-            print(f"{u}{'T':{w}s}{T} K = {SI(T, 'K')}")
-    def MatchName(regex):
-        'Return a list of matched names by index number'
-        ss = solarsys["name"]
-        # See if it's an integer
-        try:
-            num = int(regex)
-            if 0 <= num < len(ss):
-                return [num]
-            else:
-                print(f"{num!r} is an out-of-range number")
-                return None
-        except ValueError:
-            pass
-        o = []
-        r = re.compile(rf"{regex}", re.I)
-        for i, name in enumerate(ss):
-            if r.search(name):
-                o.append(i)
-        return list(sorted(set(o)))
-    def PrintItems(*names):
-        o = []
-        for name in names:
-            o.extend(MatchName(name))
-        for i in list(sorted(set(o))):
-            PrintItem(i)
+            print(f"{u}{'T':{w}s}{T} K")
     def PrintSun():
-        pass
+        # Get variables
+        f = F.flt
+        r = f(2.5e20)      # Mean distance to galactic center, m
+        D = f(2*695508e3)  # Mean diameter, m
+        A = f(4*F.pi*(D/2)**2)     # Surface area, m2
+        V = f(4/3*F.pi*(D/2)**3)   # Volume, m3
+        m = f(1.9855e30)   # Mass, kg
+        rho = f((m/V)/1000)    # Density, g/cm3
+        g = f(G*m/(D/2)**2)    # Gravitational acceleration at surface, m/s2
+        ev = f(F.sqrt(2*G*m/(D/2)))    # Escape velocity, m/s
+        rot = f(25.38*86400)   # Rotation period, s
+        orb = f(240e6*3.156e13)    # Orbital period about galactic center, s
+        vel = f(2*F.pi*(D/2)/orb)  # Mean orbital speed, m/s
+        ecc = F.Unk("?")
+        inc = F.Unk("?")
+        tilt = f(7.25)     # Axial tilt to ecliptic, °
+        moons = F.Unk("?")
+        T = f(5778)        # Mean surface temperature, K
+        ld = F.Unk("?")
+        #
+        u, w = " "*4, 10
+        print(f"{t.sun}{'Sun'}{t.n}")
+        print(f"{u}{'r':{w}s}{r} m = {SI(r, 'm')} (dist. to galactic center)")
+        print(f"{u}{'D':{w}s}{D} m = {SI(D, 'm')}")
+        print(f"{u}{'A':{w}s}{A} m² = {SI(A, 'm²')}")
+        print(f"{u}{'V':{w}s}{V} m³ = {SI(V, 'm³')}")
+        print(f"{u}{'m':{w}s}{m} kg = {SI(1000*m, 'g')}")
+        print(f"{u}{'rho':{w}s}{rho} g/cm³ = {SI(rho, 'g/cm³')}")
+        print(f"{u}{'g':{w}s}{g} m/s² = {SI(g, 'm/s²')}")
+        print(f"{u}{'ev':{w}s}{ev} m/s = {SI(ev, 'm/s')}")
+        print(f"{u}{'rot':{w}s}{rot} s = {SI(rot, 's')}")
+        print(f"{u}{'orb':{w}s}{orb} s = {SI(orb, 's')} (time to rotate around galaxy)")
+        print(f"{u}{'vel':{w}s}{vel} m/s = {SI(vel, 'm/s')}")
+        print(f"{u}{'ecc':{w}s}{ecc}")
+        print(f"{u}{'inc':{w}s}{inc}")
+        print(f"{u}{'tilt':{w}s}{tilt}° (axial tilt to ecliptic)")
+        print(f"{u}{'moons':{w}s}{moons}")
+        print(f"{u}{'T':{w}s}{T} K = {SI(T, 'K')}")
 
 if __name__ == "__main__":
     d = {}      # Options dictionary
@@ -694,23 +745,25 @@ if __name__ == "__main__":
             t.print(f"  Colors:  {t.rel}ratio{t.n}  {t.notrel}regular value  {t.nan}unknown")
         else:
             Error(f"-r argument not specific enough:  {nums}")
-    for name in objects:
-        num = MatchName(name)
-        if num is None:
-            continue
-        elif ii(num, list):
-            for i in num:
-                PrintItem(i)
-        else:
-            PrintItem(num)
+    if objects:
+        for name in objects:
+            num = MatchName(name)
+            if num is None:
+                continue
+            elif ii(num, list):
+                for i in num:
+                    PrintItem(i)
+            else:
+                PrintItem(num)
     if d["-s"]:
         PrintSun()
     # Print color code
-    print(f"Color code: ", end=" ")
-    print(f"{t.planet}Planet{t.n}", end=" ")
-    print(f"{t.dwarf}Dwarf planet{t.n}", end=" ")
-    print(f"{t.tno}TNO{t.n}", end=" ")
-    print(f"{t.moon}Moon{t.n}")
+    if objects and not d["-s"]:
+        print(f"Color code: ", end=" ")
+        print(f"{t.planet}Planet{t.n}", end=" ")
+        print(f"{t.dwarf}Dwarf planet{t.n}", end=" ")
+        print(f"{t.tno}TNO{t.n}", end=" ")
+        print(f"{t.moon}Moon{t.n}", end=" ")
+        print(f"{t.sun}Sun{t.n}")
     if d["-l"]:
-        print()
         ListObjects()

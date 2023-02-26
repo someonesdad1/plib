@@ -41,6 +41,7 @@ Hot Rod Lincoln|3R7l7nDuj1o|
 White Rabbit|EUY2kJE0AZE|
 The Ballad Of Cat Ballou|Sw16X_9XtuE|
 Bobby Darin:  Mack the Knife|SEllHMWkXEU|
+Ray Charles:  Georgia On My Mind|QL3EZwSJAh0|
 '''
 
 songs = '''
@@ -111,6 +112,7 @@ Fever|JGb5IweiYG8|
 Fleetwood Mac:  Dreams|O5ugW4-BstE|
 Fleetwood Mac: Gypsy|mwgg1Pu6cNg|
 Foggy Mountain Breakdown|z_Y3mnj-8lA|
+Ghost Riders In the Sky: Roy Clark|8o2w1zhBKzk|
 Ghost Riders In the Sky: Burl Ives (1949)|j2klh2cTa_Q|
 Ghost Riders In the Sky: Frankie Laine|ZwAPa0qHmLo|
 Ghost Riders In the Sky: Highwaymen (1990)|nOWjX4BpC24|
@@ -195,7 +197,6 @@ Queen of Hearts|P0DK-0fIKCw|
 Rainy Night in Georgia|bDRbF80NKDU|
 Rawhide|_EjbzCX3enA|
 Ray Charles:  Cincinnati Kid|rfn1YrwG2Oc|
-Ray Charles:  Georgia On My Mind|QL3EZwSJAh0|
 Rolling Stones:  Jumpin' Jack Flash|-rIG2POqtV8|
 Rolling Stones:  Paint It Black|O4irXQhgMqg|
 Sally:  Gypsy Waltz|eDGE6ah-e4Y|
