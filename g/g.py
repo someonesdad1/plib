@@ -28,6 +28,7 @@ if 1:   # Standard imports
     from pdb import set_trace as xx
 if 1:   # Custom imports
     import go
+    from wrap import dedent
     from gco import *  # Module that contains our constants
     if 0:
         import debug
@@ -1563,3 +1564,34 @@ if 1:   # Miscellaneous
             if push_count:
                 print("Warning:  push count is %d" % push_count)
     monitor = Monitor()
+
+if __name__ == "__main__": 
+    # Print usage help
+    print(dedent(f'''
+    Suggested usage for g library:
+
+    def SetUp(file, orientation=landscape, units=mm):
+        """Convenience function to set up the drawing environment and return a
+        file object to the output stream.
+        """
+        ofp = open(file, "w")
+        ginitialize(ofp, wrap_in_PJL=0)
+        setOrientation(orientation, units)
+        return ofp
+
+    # Draw a line and circle to locate things
+    LineWidth(1)
+    FillColor(red)
+    origin(10, 10)  # Put origin 10 mm from lower left corner of page
+    move(0, 0)      # Put current point at origin
+    a = 20
+    rline(20, 20)   # Draw line from (0, 0) to (20, 20)
+    push()          # Save graphics state
+    origin(a, a)
+    move(0, 0)
+    circle(5)       # Draw a circle 5 mm in diameter
+    pop()
+    # We are back to old state.  Draw a circle at the origin.
+    move(0, 0)
+    circle(5)       # Draw a circle 5 mm in diameter
+    '''))
