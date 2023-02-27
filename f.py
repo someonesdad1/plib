@@ -192,6 +192,7 @@ if 1:  # Header
     # Custom imports
         from wrap import dedent
         from color import TRM as t
+        from columnize import Columnize
         import fmt
         try:
             import uncertainties
@@ -605,7 +606,10 @@ class flt(Base, float):
         print(dedent('''
         The flt class is derived from float and has the following attributes:
           c       * ANSI color escape codes in str() and repr()
+          copy      Returns a copy of self
           eng       Return engineering notation string
+          engsi     Return eng string with SI prefix
+          engsic    Return eng string with cuddled SI prefix
           f       * Exchange behavior of str() and repr()
           h         Print this help
           high    * Switch to scientific notation if x > high
@@ -614,6 +618,7 @@ class flt(Base, float):
           n         Number of interpolated digits for one instance
           r         The repr() string, regardless of f attribute state
           rlz     * Don't print leading zero ("0.25" becomes ".25")
+          rnd       Return a flt rounded to current number of digits
           rtz     * Don't print trailing zeros ("1.00" becomes "1.")
           rtdp    * Don't print trailing radix (decimal point) ("1." becomes "1")
           s         The str() string, regardless of f attribute state
@@ -622,6 +627,7 @@ class flt(Base, float):
           t       * Date and time
           u       * Use Unicode characters in eng/sci string interpolation
              * means the attribute's state affects all flt and cps instances'''[1:]))
+        return ""
     if 1:   # Arithmetic functions
         def _do_op(self, other, op):
             if ii(other, complex):
@@ -2370,3 +2376,7 @@ if __name__ == "__main__":
         except ImportError:
             pass
     failed, messages = run(globals(), regexp=r"^[Tt]est_", halt=1, verbose=0)
+    if len(sys.argv) > 1:
+        # Print out flt attributes
+        x = flt(0)
+        x.help()

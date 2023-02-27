@@ -25,7 +25,7 @@ Constants for the g.py module
     negligence or otherwise) arising in any way out of the use of this
     software, even if advised of the possibility of such damage.
 '''
-from textwrap import dedent
+from textwrap import dedent as Dedent
 if 1:   # Exceptions
     class gException(Exception): pass
     class NotImplemented(gException): pass
@@ -879,7 +879,7 @@ if 1:   # PostScript chunks
     '''
 class Colors:
     def __init__(self):
-        self.colors = dedent('''
+        self.colors = Dedent('''
         aliceblue           darkolivegreen      lightgray           plum
         antiquewhite        darkorange          lightgrey           plum1
         aquamarine          darkorchid          lightpink           plum2
