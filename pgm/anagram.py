@@ -69,20 +69,33 @@ if 1:   # Utility
         exit(status)
     def Manpage():
         print(dedent(f'''
-        Here's a simple example.  Put the following line of text into a
-        file named 'data':
+        Here's an example.  Put the following line of text into a file
+        named 'data':
             
             I was able ere I saw Elba.
  
         Run the script as 'python anagram.py data' and you'll get the
         output
  
+            elba able
+            saw was
+ 
+        These are the two pairs of words in the original string that are
+        anagrams of each other.  All the words are converted to lowercase.
+
+        On my system, I use a script to get all the words from a large
+        number of files, then put the output in a file named 'anagrams'.
+        When I want to find an anagram of a word x, I use the command 
+
+            grep -i '\<x\>' anagram
+
+        and I'll get lines printed that contain the string in x.  The 
+        \< and \> terms make sure we only see complete words that match x.
         '''))
         exit(0)
     def Usage(status=1):
         print(dedent(f'''
         Usage:  {sys.argv[0]} [options] [file1 [file2...]]
- 
           This script constructs lines of anagrams from the words in the
           given files (use '-' for stdin) and prints them to stdout.  All
           text is converted to lowercase and words are separated by
@@ -92,7 +105,6 @@ if 1:   # Utility
           by whitespace and send the output to a file 'anagrams'.  Later,
           you can find anagrams for a word with the command 'grep -i <word>
           anagrams'.
- 
         Options:
             -a      Keep only ASCII letters
             -h      Print a manpage
@@ -149,7 +161,6 @@ if 1:   # Core functionality
             IsValidWord.rm_invalid = "".maketrans(lc, " "*len(lc))
         s = word.translate(IsValidWord.rm_invalid).replace(" ", "")
         return not bool(len(s))
-
     def GetWords(mystring):
         '''Given a string, return a set of the words in this string.  The
         returned words will all be lowercase.  The algorithm is:
@@ -182,21 +193,6 @@ if 1:   # Core functionality
             if IsValidWord(word):
                 words.add(word)
         return words
-
-    def EqualCounters(c1, c2):
-        if len(c1) != len(c2):
-            return False
-        for i in c1:
-            if i not in c2:
-                return False
-            if c1[i] != c2[i]:
-                return False
-        return True
-    def CanonicalCounter(word):
-        '''Return a Counter object whose word is sorted first so that words
-        that are anagrams will have the same Counter.
-        '''
-        return collections.Counter(sorted(list(word)))
     def GetAnagrams(mystring, sortlist=True):
         '''Return a list strings such that each element is a string of
         space-separated anagrams of the words in mystring.  If sortlist is
@@ -233,18 +229,12 @@ if 1:   # Core functionality
             o = [' '.join(i) for i in di.values()]
         return o
 
-if 1:   #xx
-    s = "I was able ere I saw Elba ∞, wasn't I?"
-    if 0:
-        s = open("words.x.universal").read()
-    else:
-        s = open("words").read()
-    for i in GetAnagrams([s]):
-        print(i)
-    exit() #xx
-
 if __name__ == "__main__":
     d = {}      # Options dictionary
     files = ParseCommandLine(d)
+    strings = []
     for file in files:
-        ProcessFile(file)
+        strings.append(open(file).read())
+    for i in GetAnagrams(' '.join(strings)):
+        print(i)
+
