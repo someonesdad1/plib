@@ -10,14 +10,13 @@ Cfg                   Execute a sequence of text lines for config use
 ConvertToNumber       Convert a string to a number
 Debug                 A class that helps with debugging
 Dispatch              Class to aid polymorphism
-iDistribute           Return an integer sequence equally distributed
-fDistribute           Return a float sequence equally distributed
 DoubleFactorial       Compute the double factorial of an integer
 EBCDIC                Return string translation table ASCII <--> EBCDIC
-eng                   Convenience function for engineering format
 EditData              Edit a str or bytes object with vim
+eng                   Convenience function for engineering format
 Engineering           Represent a number in engineering notation
 execfile              Python 3 replacement for python 2 function
+fDistribute           Return a float sequence equally distributed
 Flatten               Flattens nested sequences to a sequence of scalars
 GroupByN              Group items from a sequence by n items at a time
 grouper               Function to group data
@@ -25,6 +24,7 @@ HeatIndex             Effect of temperature and humidity
 Height                Predict a child's adult height
 hyphen_range          Returns list of integers specified as ranges
 IdealGas              Calculate ideal gas P, v, T (v is specific volume)
+iDistribute           Return an integer sequence equally distributed
 IsBinaryFile          Heuristic to see if a file is a binary file
 IsConvexPolygon       Is seq of 2-D points a convex polygon?
 IsCygwinSymlink       Returns True if a file is a cygwin symlink
@@ -35,9 +35,9 @@ Now                   Time or datetime as now
 Paste                 Return sequence of pasted sequences
 PPSeq                 Class for formatting number sequences for pretty printing
 ProgressBar           Prints a progress bar to stdout
+RandomIntegers        Return a list of random integers
 randq                 Simple, fast random number generator
 randr                 Random numbers on [0,1) using randq
-RandomIntegers        Return a list of random integers
 ReadVariables         Read variables from a file
 RemoveIndent          Remove spaces from beginning of multiline string
 SignificantFigures    Rounds to specified num of sig figs (returns float)
@@ -55,6 +55,7 @@ US_states             Dictionary of states keyed by 2-letter abbreviation
 VisualCount           Return a list representing a histogram of a sequence
 Walker  (deprecated)  Generator to recursively return files or directories
 WindChillInDegF       Calculate wind chill given OAT & wind speed
+
 '''
 if 1:  # Copyright, license
     # These "trigger strings" can be managed with trigger.py

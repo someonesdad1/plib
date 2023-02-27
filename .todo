@@ -1,9 +1,5 @@
 Active
 
-    - Core setup data
-        - Move notes, password db, etc. to .0rc because it's backed up to
-          the cloud
-
     - pgm/readability.py
         - Add an option to let you see the histograms of the readability
           elements: word length, syllables, words per sentences.
@@ -13,17 +9,26 @@ Active
     - Anagrams
         - Given a string, find all anagrams that use the letters that
           contain words in a given dictionary.
-        - There are lots of algorithms for testing if two strings are
-          anagrams
-            - Assign each letter a prime number and compute the prodct for
+            - https://stackoverflow.com/questions/7896694/how-to-find-find-anagrams-among-words-which-are-given-in-a-file
+            - https://stackoverflow.com/questions/12477339/finding-anagrams-for-a-given-word
+        - Prime integers
+            - Assign each letter a prime number and compute the product for
               each string; if they match, they are anagrams.  For spaces
               and punctuation, you can use 1 to ignore them.  The method is
               based on the fundamental theorem of arithmetic that all
               non-prime numbers have unique factorizations.
+        - Multisets
             - Convert the strings to multisets; if the multisets are equal,
               the strings are anagrams.
+        - Sorted strings
             - Sort the letters of the strings; if they match, they are an
               anagram.
+            - Sort the letters of the strings.  Use the sorted letters as a
+              key to a dict with all other words with the same sorted
+              letters.
+            - Could use a dict keyed by the length of the string for faster
+              lookups.
+        - Counter
             - f = collections.Counter(s) for string s returns a dict
               containing the counts of each character.  Thus, if f(s1) ==
               f(s2), then s1 and s2 are anagrams.
