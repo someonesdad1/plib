@@ -23,17 +23,22 @@ if 1:   # Imports
     from itertools import combinations
 if 1:   # Custom imports
     from wrap import dedent
-    from resistors import Resistors, GetClosest
+    from color import t
+    from resistors import resistors, FindClosest
     # Note:  leave the use of sig.py.  Changing to flt's with f.py
     # increases the running time of a typical problem by an order of
     # magnitude.
     from sig import sig
     from u import ParseUnit, SI_prefixes
     from fpformat import FPFormat
+    if 1:
+        import debug
+        debug.SetDebugger()
 if 1:   # Global variables
     number_limit_default = 20
     fp = FPFormat(num_digits=3)
     fp.trailing_decimal_point(False)
+    t.exact = t("ornl")
 def Error(msg, status=1):
     print(msg, file=sys.stderr)
     exit(status)
@@ -95,7 +100,7 @@ def Combinations(R):
     '''Get the combinations of the paired resistors, then add in each
     resistor paired with itself.
     '''
-    a = list(combinations(Resistors(), 2))
+    a = list(combinations(resistors, 2))
     return a + [(i, i) for i in R]
 def GetR(s):
     '''s is a string that can have a cuddled SI prefix.
@@ -142,12 +147,12 @@ def FindResistors(Rtotal, desired_ratio, number_limit, d):
     eng = fp.engsic
     matches = []
     C = namedtuple("Candidate", "dr dratio ratio rtotal R1 R2")
-    resistor_set = Resistors()
-    comb = Combinations(Resistors())
+    resistor_set = resistors
+    comb = Combinations(resistors)
     n = len(resistor_set)
     N = len(comb)
     def f(x, y):
-        round(abs(x/y - 1), 4)
+        return round(abs(x/y - 1), 4)
     for R1, R2 in comb:
         rtotal = R1 + R2
         ratio = R1/rtotal
@@ -174,9 +179,14 @@ def FindResistors(Rtotal, desired_ratio, number_limit, d):
     ---------------    --------------    ------   ------'''))
     for candidate in matches:
         drat, dr, ratio, rtotal, R1, R2 = candidate
-        print("{:^6s}   {:6s}    {:8s} {:8s} {:^8s} {:^8s}".format(
-            Pct(100*drat), Show_dr(dr), sig(ratio, 3), eng(rtotal),
-            eng(R1), eng(R2)))
+        if drat:
+            print("{:^6s}   {:6s}    {:8s} {:8s} {:^8s} {:^8s}".format(
+                Pct(100*drat), Show_dr(dr), sig(ratio, 3), eng(rtotal),
+                eng(R1), eng(R2)))
+        else:
+            t.print("{:s}{:^6s}   {:6s}    {:8s} {:8s} {:^8s} {:^8s}".format(
+                    t.exact, Pct(100*drat), Show_dr(dr), sig(ratio, 3), eng(rtotal),
+                    eng(R1), eng(R2)))
 def Problem2(args, d):
     E = fp.engsi
     if len(args) != 4:

@@ -30,10 +30,12 @@ if 1:   # Header
         from wrap import wrap, dedent
         from color import Color, TRM as t
         from lwtest import Assert
+        from columnize import Columnize
         if 0:
             import debug
             debug.SetDebugger()
         t.dbg = t("brnl")
+        t.err = t("ornl")
     if 1:   # Global variables
         ii = isinstance
         elements = '''
@@ -328,17 +330,6 @@ if 1:   # Element data
         origin
         phase
     ''')
-    def GetElementData():
-        'Return a list of named tuples'
-        # Convert input string to single lines, one element per line
-        i = deque(data.strip().split("\n"))
-        o = deque()
-        while i:
-            line = i.popleft().strip().replace(" ·  ", " ")
-            f = line.split("\t")
-            k = Element(*f)
-            o.append(k)
-        return list(o)
     def Analyze(d):
         "Use to look at set of each element's contents"
         o = []
@@ -361,11 +352,6 @@ if 1:   # Element data
         origin: from decay, primordial, synthetic
         phase:  gas, liquid, solid, unknown phase
         '''
-    if 1:
-        print("Getting element data")
-        d = GetElementData()
-        Analyze(d)
-        exit()
 if 1:   # Utility
     def Error(*msg, status=1):
         print(*msg, file=sys.stderr)
@@ -375,10 +361,12 @@ if 1:   # Utility
         Usage:  {sys.argv[0]} [options] el1 [el2 ...]
           Print the matched elements.  The el strings can be the element's
           symbol, a regular expression for the name, or the atomic number.
+          There are {d['n']} elements in the script.
         Options:
             -d      Dump data structures
             -i      Launch page on isotopes
             -l      Launch page on list of elements
+            -n m    Allow up to m pages to be opened [{d['-n']}]
             -o      Open wikipedia page on matched elements
             -t      Run self-tests
         '''))
@@ -387,17 +375,26 @@ if 1:   # Utility
         d["-d"] = False     # Dump data structures
         d["-i"] = False     # Open isotopes page
         d["-l"] = False     # Launch page on list of elements
+        d["-n"] = 5         # Number of allowed pages
         d["-o"] = False     # Open web page instead of printing to stdout
         d["-t"] = False     # Run self-tests
         try:
-            opts, args = getopt.getopt(sys.argv[1:], "dhilot") 
+            opts, args = getopt.getopt(sys.argv[1:], "dhiln:ot") 
         except getopt.GetoptError as e:
             print(str(e))
             exit(1)
         for o, a in opts:
-            if o[1] in list("dhilot"):
+            if o[1] in list("adhilot"):
                 d[o] = not d[o]
+            elif o == "-n":
+                try:
+                    n = int(a)
+                    if n < 1:
+                        raise ValueError
+                except ValueError:
+                    Error("-n argument must be an integer > 0")
         GetData()
+        d["n"] = len(g.num2sym)     # Number of elements in the script
         if d["-t"]:
             TestGetElements()
         if d["-l"]:
@@ -449,6 +446,7 @@ if 1:   # Core functionality
             print("All formal element names, capitalized:")
             t.print(f"  g.all       [set]: {list(g.all)[:2]}")
             print()
+            exit(0)
     def LaunchWebPage(name):
         base = "https://en.wikipedia.org/wiki/"
         if d["-i"]:
@@ -530,6 +528,9 @@ if 1:   # Core functionality
         #
         print("Tests passed")
         exit(0)
+    def DumpElements():
+        for i in Columnize(sorted(g.found_names)):
+            print(i)
 
 if __name__ == "__main__":
     d = {}      # Options dictionary
@@ -542,9 +543,14 @@ if __name__ == "__main__":
                 g.found_names.append(name)
     if d["-d"]:   # Dump for debugging
         print("Found the following elements:")
-        pp(g.found_names)
-        exit()
+        DumpElements()
+        exit(0)
     # Open the web pages
+    if len(g.found_names) > d["-n"] and (d["-i"] or d["-o"]):
+        n = len(g.found_names)
+        t.print(f"{t.err}{n} is too many pages, refine your regex")
+        DumpElements()
+        exit(1)
     for name in g.found_names:
         if d["-o"] or d["-i"]:
             LaunchWebPage(name)
