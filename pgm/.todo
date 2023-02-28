@@ -1,5 +1,12 @@
 Active
 
+    - pgm/elements.py
+        - Move to /plib
+        - Utilize scraped data to print out element properties by default
+          rather than opening web pages.
+            - This is because it has Z, symbol, name, atomic weight,
+              density, mp, bp, specific heat, ppm abundance in crust, phase
+
     - pgm/readability.py
         - Add an option to let you see the histograms of the readability
           elements: word length, syllables, words per sentences.
