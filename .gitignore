@@ -65,6 +65,8 @@ dev_old
 hsm.zip
 profit.data
 cephes.dll
+pgm/anagrams
+pgm/earth.py
 
 # Temporary
 pgm/songs
