@@ -1,17 +1,13 @@
 Active
 
+    - dev/cos
+
     - pgm/elements.py
         - Move to /plib
         - Utilize scraped data to print out element properties by default
           rather than opening web pages.
             - This is because it has Z, symbol, name, atomic weight,
               density, mp, bp, specific heat, ppm abundance in crust, phase
-
-    - pgm/readability.py
-        - Add an option to let you see the histograms of the readability
-          elements: word length, syllables, words per sentences.
-        - Add -w to print out a list of the unique words in the file.  -W
-          does the same but maintains case.
 
     - Name tags
         - Make a PDF with name/phone that can be printed on a durable
@@ -41,6 +37,14 @@ Active
         - https://math.stackexchange.com/questions/2345783/given-n-identical-resistors-find-the-total-number-of-series-parallel-combinatio#2864105
         - http://oeis.org/A000084/a000084_2.pdf
 
+Inactive
+
+    - pgm/readability.py
+        - Add an option to let you see the histograms of the readability
+          elements: word length, syllables, words per sentences.
+        - Add -w to print out a list of the unique words in the file.  -W
+          does the same but maintains case.
+
     - DMM accuracy tool
         - Script to allow you to estimate uncertainty of a DMM's
           measurements
@@ -66,7 +70,7 @@ Active
             - https://realpython.com/python-getter-setter/
             - Probably the easiest way is to use __getattr__ and
               __setattr__ in the above web page's example of a point
-        - Add support to g.py
+        - Add support to /plib/g/g.py
         - Use "grep -l '\<fg\>' *.py" to identify all files in /plib tree
           that use the old style color.py calls and update them to the
           modern form.
@@ -183,57 +187,6 @@ Active
           breakpoint you'd do something like qq(myvar) and it would produce
           a pretty-printed dump of the attributes.
 
-Astronomy
-
-    - Planets
-        - Prints out properties of planets and moons
-        - Allows you to choose units
-            - Moons' mass in Earth moon's mass
-            - Planet mass in other planet masses or sun mass
-
-    - Asteroids
-        - Construct a numerical model of the asteroids and use it to
-          perform a Monte Carlo simulation of flying through the asteroid
-          belt.
-            - Basic question is how often does a collision with the
-              spacecraft happen?
-        - All the asteroids' mass is 3% of the moon.  50% of that is in the
-          four largest Ceres, Vesta, Pallas, and Hygiea; the rest is
-          distributed through an orbit 2e9 km around.
-            - Fit a mass distribution from
-              https://en.wikipedia.org/wiki/List_of_exceptional_asteroids#Most_massive
-            - Asteroid densities:  https://astrostatistics.psu.edu/datasets/asteroid_dens.dat
-              1 to 5 would be representative.  Rocky cores are 3 to 5.
-            - https://en.wikipedia.org/wiki/Standard_asteroid_physical_characteristics
-              discusses some approximations.
-        - As usual, Hollywood's representations of reality suck.  Typical
-          movie representations of asteroids look like Saturn's rings, but
-          in truth they are spread so far apart you'd likely not be able to
-          see other asteroids with your naked eye, at least to distinguish
-          them from faint stars.
-        - In fact, it's essentially a one-dimensional problem.  Assume the
-          trajectory is a straight line.  Then you move at constant
-          velocity through the asteroid field, encountering asteroids with
-          a random distance from the axis and a random diameter.  At each
-          time step, it's easy to calculate whether there is a collision or
-          not.
-        - From the picture
-          https://en.wikipedia.org/wiki/File:InnerSolarSystem-en.png, the
-          trapezoidal distribution would be a decent first choice
-          https://en.wikipedia.org/wiki/Trapezoidal_distribution.
-
-    - Sundial
-        - Would be fun to build one
-        - Impressive one is in
-          https://sundials.org/index.php/sundial-registry/selectdials/ID.html
-          https://sundials.org/index.php/sundial-registry/onedial/344
-          in Ann Morrison park.  Indicates time to 15 s, true time to the
-          minute, date to the day, and adusts for daylight saving time.
-        - https://sundials.org/index.php/nass-shop2/2-publications
-          $30 to get the NASS repository, 800 MB of documentation
-
-Other
-
     - Shamrock survey
         - Benchmarks
             - bma = Primary = in center of Edna/Shamrock intersection
@@ -258,22 +211,22 @@ Other
         - Use sighting compass to take magnetic bearings of things.
             - Calibrate compass by dropping a vertical from the north star
             - As of 2022, Polaris' mean declination is 89.35 degrees, so
-            calibration of the compass will be better than 1 degree
-            - This will be done with two strings on plumb bobs, one adjustable.
-            Then the next day the compass will be sighted along the two
-            strings and adjusted to read true north.  Then it will be
-            calibrated for the current magnetic declination.
-        - This will be worth a reference document explaining techniques.  The
-        resulting python script could be turned into a library module based
-        on g.py that allows people to plot their own surveys.  Some key
-        graphic components would be
+              calibration of the compass will be better than 1 degree
+            - This will be done with two strings on plumb bobs, one
+              adjustable.  Then the next day the compass will be sighted
+              along the two strings and adjusted to read true north.  Then
+              it will be calibrated for the current magnetic declination.
+        - This will be worth a reference document explaining techniques.
+          The resulting python script could be turned into a library module
+          based on g.py that allows people to plot their own surveys.  Some
+          key graphic components would be
             - Benchmarks, primary and secondary
             - Buildings
             - Cement pads
             - Plants, fence posts, sprinklers
-            - Layers could be used for different features.  For example, the
-            electrical layer would show known cables.  The sprinkler layer
-            would show valves, sprinklers, pump, wires.  Etc.
+            - Layers could be used for different features.  For example,
+              the electrical layer would show known cables.  The sprinkler
+              layer would show valves, sprinklers, pump, wires.  Etc.
         - This survey would get archived on github so it can't be lost
 
     - Text processor
@@ -1371,18 +1324,63 @@ Other
             - Coalesced columns?  Complicated; other formatters like pandoc
               often don't support.
         - Simple use case
+            - col0 = ["Sides", "4", 5"]
+            - col1 = ["d", "1.000", "1.000"]
+            - col2 = ["D", "1.414", "1.236"]
+            - col3 = ["a", "1.000", "0.7265"]
+            - col4 = ["Area", "1.000", "0.9082"]
+            - Results in the report (centering is default):
+            - Sides     d       D       a     Area
+            - 4     1.000   1.414   1.000   1.000
+            - 5     1.000   1.236  0.7265  0.9082
 
-            col0 = ["Sides", "4", 5"]
-            col1 = ["d", "1.000", "1.000"]
-            col2 = ["D", "1.414", "1.236"]
-            col3 = ["a", "1.000", "0.7265"]
-            col4 = ["Area", "1.000", "0.9082"]
+    - Astronomy
+        - Planets
+            - Prints out properties of planets and moons
+            - Allows you to choose units
+                - Moons' mass in Earth moon's mass
+                - Planet mass in other planet masses or sun mass
+        - Asteroids
+            - Construct a numerical model of the asteroids and use it to
+              perform a Monte Carlo simulation of flying through the
+              asteroid belt.
+                - Basic question is how often does a collision with the
+                  spacecraft happen?
+            - All the asteroids' mass is 3% of the moon.  50% of that is in
+              the four largest Ceres, Vesta, Pallas, and Hygiea; the rest
+              is distributed through an orbit 2e9 km around.
+                - Fit a mass distribution from
+                  https://en.wikipedia.org/wiki/List_of_exceptional_asteroids#Most_massive
+                - Asteroid densities:
+                  https://astrostatistics.psu.edu/datasets/asteroid_dens.dat
+                  1 to 5 would be representative.  Rocky cores are 3 to 5.
+                - https://en.wikipedia.org/wiki/Standard_asteroid_physical_characteristics
+                  discusses some approximations.
+            - As usual, Hollywood's representations of reality suck.
+              Typical movie representations of asteroids look like Saturn's
+              rings, but in truth they are spread so far apart you'd likely
+              not be able to see other asteroids with your naked eye, at
+              least to distinguish them from faint stars.
+            - In fact, it's essentially a one-dimensional problem.  Assume
+              the trajectory is a straight line.  Then you move at constant
+              velocity through the asteroid field, encountering asteroids
+              with a random distance from the axis and a random diameter.
+              At each time step, it's easy to calculate whether there is a
+              collision or not.
+            - From the picture
+              https://en.wikipedia.org/wiki/File:InnerSolarSystem-en.png,
+              the trapezoidal distribution would be a decent first choice
+              https://en.wikipedia.org/wiki/Trapezoidal_distribution.
 
-            Results in the report (centering is default):
-
-            Sides     d       D       a     Area
-            4     1.000   1.414   1.000   1.000
-            5     1.000   1.236  0.7265  0.9082
+    - Sundial
+        - Would be fun to build one
+        - Impressive one is in
+          https://sundials.org/index.php/sundial-registry/selectdials/ID.html
+          https://sundials.org/index.php/sundial-registry/onedial/344
+          in Ann Morrison park.  Indicates time to 15 s, true time to the
+          minute, date to the day, and adusts for daylight saving time.
+        - https://sundials.org/index.php/nass-shop2/2-publications
+          $30 to get the NASS repository, 800 MB of documentation
 
 hc.py
     

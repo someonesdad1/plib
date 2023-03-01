@@ -31,6 +31,7 @@ if 1:   # Header
         from color import Color, TRM as t
         from lwtest import Assert
         from columnize import Columnize
+        from f import flt
         if 0:
             import debug
             debug.SetDebugger()
@@ -330,28 +331,47 @@ if 1:   # Element data
         origin
         phase
     ''')
-    def Analyze(d):
-        "Use to look at set of each element's contents"
+    if 0:
+        def Analyze(d):
+            "Use to look at set of each element's contents"
+            o = []
+            for i in d:
+                o.append(i.rho)
+            k = list(set(o))
+            print('   '.join(sorted(k)))
+            '''
+            group:  integer except for 'f-block groups'
+            period: int 1-7
+            block:  d-block   f-block   p-block   s-block
+            aw_Da:  floats except for [n] for synthetics
+            rho:    floats, (x) = predicted, ± is uncertainty, a-b
+            mp:     float, int, -, ± is uncertainty, -[k] (does not solidify at 1 atm), >4000
+            bp:     float, () predicted, ±, -, ()[x] note
+            sp_ht:  float, -
+            en:     float, -, (2+), >0.79[6]
+            ppm:    float, -, 1×10-4, ~ 1×10-18, ~, ≤ 3×10-11
+            origin: from decay, primordial, synthetic
+            phase:  gas, liquid, solid, unknown phase
+            '''
+    def FixLine(line):
+        '''Fix lines that contain things like '[a]' by deleting such
+        things in square brackets.
+        '''
+        s = re.sub(r"\[[a-z]\]", "", line)
+        s = re.sub(r"\[[0-9]\]", "", s)
+        return s
+    def GetElementNamedTuples():
+        'Return a list of Element namedtuple objects'
         o = []
-        for i in d:
-            o.append(i.phase)
-
-        k = list(set(o))
-        print('   '.join(sorted(k)))
-        '''
-        group:  integer except for 'f-block groups'
-        period: int 1-7
-        block:  d-block   f-block   p-block   s-block
-        aw_Da:  floats except for [n] for synthetics
-        rho:    floats, (x) = predicted, ± is uncertainty, a-b
-        mp:     float, int, -, ± is uncertainty, -[k] (does not solidify at 1 atm), >4000
-        bp:     float, () predicted, ±, -, ()[x] note
-        sp_ht:  float, -
-        en:     float, -, (2+), >0.79[6]
-        ppm:    float, -, 1×10-4, ~ 1×10-18, ~, ≤ 3×10-11
-        origin: from decay, primordial, synthetic
-        phase:  gas, liquid, solid, unknown phase
-        '''
+        for line in data.split("\n"):
+            line = line.strip()
+            if not line:
+                continue
+            line = FixLine(line)
+            f = line.split("\t")
+            assert(len(f) == 16)
+            o.append(Element(*f))
+        return o
 if 1:   # Utility
     def Error(*msg, status=1):
         print(*msg, file=sys.stderr)
@@ -363,7 +383,8 @@ if 1:   # Utility
           symbol, a regular expression for the name, or the atomic number.
           There are {d['n']} elements in the script.
         Options:
-            -d      Dump data structures
+            -D      Dump data structures
+            -d n    Set number of significant digits
             -i      Launch page on isotopes
             -l      Launch page on list of elements
             -n m    Allow up to m pages to be opened [{d['-n']}]
@@ -372,20 +393,30 @@ if 1:   # Utility
         '''))
         exit(status)
     def ParseCommandLine(d):
-        d["-d"] = False     # Dump data structures
+        d["-D"] = False     # Dump data structures
+        d["-d"] = 3         # Significant digits
         d["-i"] = False     # Open isotopes page
         d["-l"] = False     # Launch page on list of elements
         d["-n"] = 5         # Number of allowed pages
         d["-o"] = False     # Open web page instead of printing to stdout
         d["-t"] = False     # Run self-tests
         try:
-            opts, args = getopt.getopt(sys.argv[1:], "dhiln:ot") 
+            opts, args = getopt.getopt(sys.argv[1:], "Dd:hiln:ot") 
         except getopt.GetoptError as e:
             print(str(e))
             exit(1)
         for o, a in opts:
-            if o[1] in list("adhilot"):
+            if o[1] in list("aDhilot"):
                 d[o] = not d[o]
+            elif o in ("-d",):
+                try:
+                    d["-d"] = int(a)
+                    if not (1 <= d["-d"] <= 15):
+                        raise ValueError()
+                except ValueError:
+                    msg = ("-d option's argument must be an integer between "
+                        "1 and 15")
+                    Error(msg)
             elif o == "-n":
                 try:
                     n = int(a)
@@ -395,6 +426,8 @@ if 1:   # Utility
                     Error("-n argument must be an integer > 0")
         GetData()
         d["n"] = len(g.num2sym)     # Number of elements in the script
+        x = flt(0)
+        x.N = d["-d"]
         if d["-t"]:
             TestGetElements()
         if d["-l"]:
@@ -429,7 +462,7 @@ if 1:   # Core functionality
             g.names.append(name)
         #  Set of capitalized element names
         g.all = set(i for i in g.names if i[0] in string.ascii_uppercase)
-        if d["-d"]:     # Dump data structures
+        if d["-D"]:     # Dump data structures
             def L(di):
                 return list(di.items())[:2]
             print(f"{t.dbg}g.names    [list]: {g.names[:4]}")
@@ -531,17 +564,110 @@ if 1:   # Core functionality
     def DumpElements():
         for i in Columnize(sorted(g.found_names)):
             print(i)
+    def ToFlt(s):
+        try:
+            return flt(s)
+        except ValueError:
+            return s
+    def F(K):
+        'Convert temperature in K to °F'
+        assert(ii(K, flt))
+        return (K - 273.15)*9/5 + 32
+    def C(K):
+        'Convert temperature in K to °C'
+        assert(ii(K, flt))
+        return K - 273.15
+
+    def PrintElement(Name):
+        num = g.Name2num[Name]
+        e = d["el"][num]
+        i, w = " "*4, 20
+        Da2kg = 1.66053906660e-27
+        print(f"{Name} ({e.sym})    Z = {e.Z}")
+        # Atomic weight
+        aw = ToFlt(e.aw_Da)
+        if ii(aw, flt):
+            print(f"{i}{'Atomic weight':{w}s}{aw} Da = {aw*Da2kg} kg")
+        else:
+            print(f"{i}{'Atomic weight':{w}s}{e.aw_Da} Da")
+        # Density
+        rho = ToFlt(e.rho)
+        print(f"{i}{'Density':{w}s}{rho} g/cm³")
+        # Melting point
+        mp = ToFlt(e.mp)
+        print(f"{i}{'Melting point':{w}s}{mp} K", end=" ")
+        if ii(mp, flt):
+            print(f"= {C(mp)} °C = {F(mp)} °F")
+        else:
+            print()
+        # Boiling point
+        bp = ToFlt(e.bp)
+        print(f"{i}{'Boiling point':{w}s}{bp} K", end=" ")
+        if ii(bp, flt):
+            print(f"= {C(bp)} °C = {F(bp)} °F")
+        else:
+            print()
+        # Specific heat
+        sh = ToFlt(e.sp_ht)
+        print(f"{i}{'Specific heat':{w}s}{sh} J/(g*K)")
+        # Pauling electronegativity
+        en = ToFlt(e.en)
+        print(f"{i}{'Electronegativity':{w}s}{en}")
+        # Abundance
+        ppm = ToFlt(e.ppm)
+        print(f"{i}{'Abundance (crust)':{w}s}{ppm} ppm")
+        # Origin
+        print(f"{i}{'Origin':{w}s}{e.origin}")
+        # Phase
+        print(f"{i}{'Origin':{w}s}{e.phase}")
+
+        '''
+            Z
+            sym
+            name
+            name_origin
+            group
+            period
+            block
+            aw_Da
+            rho
+            mp
+            bp
+            sp_ht
+            en
+            ppm
+            origin
+            phase
+        '''
+        # Fields for Element named tuple
+        # 0   Atomic number Z
+        # 1   Symbol
+        # 2   Name
+        # 3   Origin of name
+        # 4   Group
+        # 5   Period
+        # 6   Block
+        # 7   Standard atomic weight, Da
+        # 8   Density, g/cm3
+        # 9   Melting point, K
+        # 10  Boiling point, K
+        # 11  Specific heat capacity, J/(g*K)
+        # 12  Electronegativity (Pauling)
+        # 13  Abundance in Earth's crust, ppm
+        # 14  Origin
+        # 15  Phase at 25 °C, 100 kPa
 
 if __name__ == "__main__":
     d = {}      # Options dictionary
     args = ParseCommandLine(d)
+    d["el"] = GetElementNamedTuples()
     # Find all the element names referenced by the command line
     g.found_names = []
     for el in args:
         for name in GetElements(el):
             if name not in g.found_names:
                 g.found_names.append(name)
-    if d["-d"]:   # Dump for debugging
+    if d["-D"]:   # Dump for debugging
         print("Found the following elements:")
         DumpElements()
         exit(0)
@@ -555,7 +681,4 @@ if __name__ == "__main__":
         if d["-o"] or d["-i"]:
             LaunchWebPage(name)
         else:
-            w = 14
-            num = g.name2num[name.lower()]
-            sym = g.num2sym[num]
-            print(f"{name:{w}s} {num:3d} {Uppercase(sym)}")
+            PrintElement(name)
