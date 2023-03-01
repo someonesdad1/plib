@@ -32,7 +32,7 @@ if 1:   # Header
         from lwtest import Assert
         from columnize import Columnize
         from f import flt
-        if 0:
+        if 1:
             import debug
             debug.SetDebugger()
         t.dbg = t("brnl")
@@ -212,14 +212,14 @@ if 1:   # Element data
     33	As	Arsenic	French arsenic, from Greek arsenikón 'yellow arsenic' (influenced by arsenikós, 'masculine' or 'virile'), from a West Asian wanderword ultimately from Old Iranian *zarniya-ka, 'golden'	15	4	p-block	74.922	5.727	1090[l]	887	0.329	2.18	1.8	primordial	solid
     34	Se	Selenium	Greek selḗnē, 'moon'	16	4	p-block	78.971	4.81	453	958	0.321	2.55	0.05	primordial	solid
     35	Br	Bromine	Greek brômos, 'stench'	17	4	p-block	79.904	3.1028	265.8	332.0	0.474	2.96	2.4	primordial	liquid
-    36	Kr	Krypton	Greek kryptós, 'hidden'	18	4	p-block	83.798	0.003749	115.79	119.93	0.248	3.00	1×10-4	primordial	gas
+    36	Kr	Krypton	Greek kryptós, 'hidden'	18	4	p-block	83.798	0.003749	115.79	119.93	0.248	3.00	1×10⁻⁴	primordial	gas
     37	Rb	Rubidium	Latin rubidus, 'deep red'	1	5	s-block	85.468	1.532	312.46	961	0.363	0.82	90	primordial	solid
     38	Sr	Strontium	Strontian, a village in Scotland, where it was found	2	5	s-block	87.62	2.64	1050	1655	0.301	0.95	370	primordial	solid
     39	Y	Yttrium	Ytterby, Sweden, where it was found; see also terbium, erbium, ytterbium	3	5	d-block	88.906	4.472	1799	3609	0.298	1.22	33	primordial	solid
     40	Zr	Zirconium	Zircon, a mineral, from Persian zargun, 'gold-hued'	4	5	d-block	91.224	6.52	2128	4682	0.278	1.33	165	primordial	solid
     41	Nb	Niobium	Niobe, daughter of king Tantalus from Greek mythology; see also tantalum	5	5	d-block	92.906	8.57	2750	5017	0.265	1.6	20	primordial	solid
     42	Mo	Molybdenum	Greek molýbdaina, 'piece of lead', from mólybdos, 'lead', due to confusion with lead ore galena (PbS)	6	5	d-block	95.95	10.28	2896	4912	0.251	2.16	1.2	primordial	solid
-    43	Tc	Technetium	Greek tekhnētós, 'artificial'	7	5	d-block	[97][a]	11	2430	4538	-	1.9	~ 3×10-9	from decay	solid
+    43	Tc	Technetium	Greek tekhnētós, 'artificial'	7	5	d-block	[97][a]	11	2430	4538	-	1.9	~ 3×10⁻⁹	from decay	solid
     44	Ru	Ruthenium	New Latin Ruthenia, 'Russia'	8	5	d-block	101.07	12.45	2607	4423	0.238	2.2	0.001	primordial	solid
     45	Rh	Rhodium	Greek rhodóeis, 'rose-coloured', from rhódon, 'rose'	9	5	d-block	102.91	12.41	2237	3968	0.243	2.28	0.001	primordial	solid
     46	Pd	Palladium	Pallas, an asteroid, considered a planet at the time	10	5	d-block	106.42	12.023	1828.05	3236	0.244	2.20	0.015	primordial	solid
@@ -230,14 +230,14 @@ if 1:   # Element data
     51	Sb	Antimony	Latin antimonium, the origin of which is uncertain: folk etymologies suggest it is derived from Greek antí ('against') + mónos ('alone'), or Old French anti-moine, 'Monk's bane', but it could plausibly be from or related to Arabic ʾiṯmid, 'antimony', reformatted as a Latin word ·  Symbol Sb is derived from Latin stibium 'stibnite'	15	5	p-block	121.76	6.697	903.78	1860	0.207	2.05	0.2	primordial	solid
     52	Te	Tellurium	Latin tellus, 'the ground, earth'	16	5	p-block	127.60	6.24	722.66	1261	0.202	2.1	0.001	primordial	solid
     53	I	Iodine	French iode, from Greek ioeidḗs, 'violet'	17	5	p-block	126.90	4.933	386.85	457.4	0.214	2.66	0.45	primordial	solid
-    54	Xe	Xenon	Greek xénon, neuter form of xénos 'strange'	18	5	p-block	131.29	0.005894	161.4	165.03	0.158	2.60	3×10-5	primordial	gas
+    54	Xe	Xenon	Greek xénon, neuter form of xénos 'strange'	18	5	p-block	131.29	0.005894	161.4	165.03	0.158	2.60	3×10⁻⁵	primordial	gas
     55	Cs	Caesium	Latin caesius, 'sky-blue'	1	6	s-block	132.91	1.93	301.59	944	0.242	0.79	3	primordial	solid
     56	Ba	Barium	Greek barýs, 'heavy'	2	6	s-block	137.33	3.51	1000	2170	0.204	0.89	425	primordial	solid
     57	La	Lanthanum	Greek lanthánein, 'to lie hidden'	f-block groups	6	f-block	138.91	6.162	1193	3737	0.195	1.1	39	primordial	solid
     58	Ce	Cerium	Ceres, a dwarf planet, considered a planet at the time	f-block groups	6	f-block	140.12	6.770	1068	3716	0.192	1.12	66.5	primordial	solid
     59	Pr	Praseodymium	Greek prásios dídymos, 'green twin'	f-block groups	6	f-block	140.91	6.77	1208	3793	0.193	1.13	9.2	primordial	solid
     60	Nd	Neodymium	Greek néos dídymos, 'new twin'	f-block groups	6	f-block	144.24	7.01	1297	3347	0.19	1.14	41.5	primordial	solid
-    61	Pm	Promethium	Prometheus, a figure in Greek mythology	f-block groups	6	f-block	[145]	7.26	1315	3273	-	1.13	2×10-19	from decay	solid
+    61	Pm	Promethium	Prometheus, a figure in Greek mythology	f-block groups	6	f-block	[145]	7.26	1315	3273	-	1.13	2×10⁻¹⁹	from decay	solid
     62	Sm	Samarium	Samarskite, a mineral named after V. Samarsky-Bykhovets, Russian mine official	f-block groups	6	f-block	150.36	7.52	1345	2067	0.197	1.17	7.05	primordial	solid
     63	Eu	Europium	Europe	f-block groups	6	f-block	151.96	5.244	1099	1802	0.182	1.2	2	primordial	solid
     64	Gd	Gadolinium	Gadolinite, a mineral named after Johan Gadolin, Finnish chemist, physicist and mineralogist	f-block groups	6	f-block	157.25	7.90	1585	3546	0.236	1.2	6.2	primordial	solid
@@ -251,7 +251,7 @@ if 1:   # Element data
     72	Hf	Hafnium	New Latin Hafnia, 'Copenhagen' (from Danish havn, harbour)	4	6	d-block	178.49	13.31	2506	4876	0.144	1.3	3	primordial	solid
     73	Ta	Tantalum	King Tantalus, father of Niobe from Greek mythology; see also niobium	5	6	d-block	180.95	16.69	3290	5731	0.14	1.5	2	primordial	solid
     74	W	Tungsten	Swedish tung sten, 'heavy stone' ·  Symbol W is from Wolfram, originally from Middle High German wolf-rahm 'wolf's foam' describing the mineral wolframite[5]	6	6	d-block	183.84	19.25	3695	5828	0.132	2.36	1.3	primordial	solid
-    75	Re	Rhenium	Latin Rhenus, 'the Rhine'	7	6	d-block	186.21	21.02	3459	5869	0.137	1.9	7×10-4	primordial	solid
+    75	Re	Rhenium	Latin Rhenus, 'the Rhine'	7	6	d-block	186.21	21.02	3459	5869	0.137	1.9	7×10⁻⁴	primordial	solid
     76	Os	Osmium	Greek osmḗ, 'smell'	8	6	d-block	190.23	22.59	3306	5285	0.13	2.2	0.002	primordial	solid
     77	Ir	Iridium	Iris, the Greek goddess of the rainbow	9	6	d-block	192.22	22.56	2719	4701	0.131	2.20	0.001	primordial	solid
     78	Pt	Platinum	Spanish platina, 'little silver', from plata 'silver'	10	6	d-block	195.08	21.45	2041.4	4098	0.133	2.28	0.005	primordial	solid
@@ -260,21 +260,21 @@ if 1:   # Element data
     81	Tl	Thallium	Greek thallós, 'green shoot or twig'	13	6	p-block	204.38	11.85	577	1746	0.129	1.62	0.85	primordial	solid
     82	Pb	Lead	English word, from Proto-Celtic *ɸloudom, from a root meaning 'flow' ·  Symbol Pb is derived from Latin plumbum	14	6	p-block	207.2	11.34	600.61	2022	0.129	1.87 (2+) 2.33 (4+)	14	primordial	solid
     83	Bi	Bismuth	German Wismut, from weiß Masse 'white mass', unless from Arabic	15	6	p-block	208.98	9.78	544.7	1837	0.122	2.02	0.009	primordial	solid
-    84	Po	Polonium	Latin Polonia, 'Poland', home country of Marie Curie	16	6	p-block	[209][a]	9.196	527	1235	-	2.0	2×10-10	from decay	solid
-    85	At	Astatine	Greek ástatos, 'unstable'	17	6	p-block	[210]	(8.91-8.95)	575	610	-	2.2	3×10-20	from decay	unknown phase
-    86	Rn	Radon	Radium emanation, originally the name of the isotope Radon-222	18	6	p-block	[222]	0.00973	202	211.3	0.094	2.2	4×10-13	from decay	gas
-    87	Fr	Francium	France, home country of discoverer Marguerite Perey	1	7	s-block	[223]	(2.48)	281	890	-	>0.79[6]	~ 1×10-18	from decay	unknown phase
-    88	Ra	Radium	French radium, from Latin radius, 'ray'	2	7	s-block	[226]	5.5	973	2010	0.094	0.9	9×10-7	from decay	solid
-    89	Ac	Actinium	Greek aktís, 'ray'	f-block groups	7	f-block	[227]	10	1323	3471	0.12	1.1	5.5×10-10	from decay	solid
+    84	Po	Polonium	Latin Polonia, 'Poland', home country of Marie Curie	16	6	p-block	[209][a]	9.196	527	1235	-	2.0	2×10⁻¹⁰	from decay	solid
+    85	At	Astatine	Greek ástatos, 'unstable'	17	6	p-block	[210]	(8.91-8.95)	575	610	-	2.2	3×10⁻²⁰	from decay	unknown phase
+    86	Rn	Radon	Radium emanation, originally the name of the isotope Radon-222	18	6	p-block	[222]	0.00973	202	211.3	0.094	2.2	4×10⁻¹³	from decay	gas
+    87	Fr	Francium	France, home country of discoverer Marguerite Perey	1	7	s-block	[223]	(2.48)	281	890	-	>0.79[6]	~ 1×10⁻¹⁸	from decay	unknown phase
+    88	Ra	Radium	French radium, from Latin radius, 'ray'	2	7	s-block	[226]	5.5	973	2010	0.094	0.9	9×10⁻⁷	from decay	solid
+    89	Ac	Actinium	Greek aktís, 'ray'	f-block groups	7	f-block	[227]	10	1323	3471	0.12	1.1	5.5×10⁻¹⁰	from decay	solid
     90	Th	Thorium	Thor, the Scandinavian god of thunder	f-block groups	7	f-block	232.04	11.7	2115	5061	0.113	1.3	9.6	primordial	solid
-    91	Pa	Protactinium	Proto- (from Greek prôtos, 'first, before') + actinium, since actinium is produced through the radioactive decay of protactinium	f-block groups	7	f-block	231.04	15.37	1841	4300	-	1.5	1.4×10-6	from decay	solid
+    91	Pa	Protactinium	Proto- (from Greek prôtos, 'first, before') + actinium, since actinium is produced through the radioactive decay of protactinium	f-block groups	7	f-block	231.04	15.37	1841	4300	-	1.5	1.4×10⁻⁶	from decay	solid
     92	U	Uranium	Uranus, the seventh planet in the Solar System	f-block groups	7	f-block	238.03	19.1	1405.3	4404	0.116	1.38	2.7	primordial	solid
-    93	Np	Neptunium	Neptune, the eighth planet in the Solar System	f-block groups	7	f-block	[237]	20.45	917	4273	-	1.36	≤ 3×10-12	from decay	solid
-    94	Pu	Plutonium	Pluto, a dwarf planet, considered a planet in the Solar System at the time	f-block groups	7	f-block	[244]	19.85	912.5	3501	-	1.28	≤ 3×10-11	from decay	solid
-    95	Am	Americium	The Americas, where the element was first synthesised, by analogy with its homologue § europium	f-block groups	7	f-block	[243]	12	1449	2880	-	1.13	-	synthetic	solid
+    93	Np	Neptunium	Neptune, the eighth planet in the Solar System	f-block groups	7	f-block	[237]	20.45	917	4273	-	1.36	≤ 3×10⁻¹²	from decay	solid
+    94	Pu	Plutonium	Pluto, a dwarf planet, considered a planet in the Solar System at the time	f-block groups	7	f-block	[244]	19.85	912.5	3501	-	1.28	≤ 3×10⁻¹¹	from decay	solid
+    95	Am	Americium	The Americas, where the element was first synthesized, by analogy with its homologue § europium	f-block groups	7	f-block	[243]	12	1449	2880	-	1.13	-	synthetic	solid
     96	Cm	Curium	Pierre Curie and Marie Curie, French physicists and chemists	f-block groups	7	f-block	[247]	13.51	1613	3383	-	1.28	-	synthetic	solid
-    97	Bk	Berkelium	Berkeley, California, where the element was first synthesised	f-block groups	7	f-block	[247]	14.78	1259	2900	-	1.3	-	synthetic	solid
-    98	Cf	Californium	California, where the element was first synthesised in the LBNL laboratory	f-block groups	7	f-block	[251]	15.1	1173	(1743)[b]	-	1.3	-	synthetic	solid
+    97	Bk	Berkelium	Berkeley, California, where the element was first synthesized	f-block groups	7	f-block	[247]	14.78	1259	2900	-	1.3	-	synthetic	solid
+    98	Cf	Californium	California, where the element was first synthesized in the LBNL laboratory	f-block groups	7	f-block	[251]	15.1	1173	(1743)[b]	-	1.3	-	synthetic	solid
     99	Es	Einsteinium	Albert Einstein, German physicist	f-block groups	7	f-block	[252]	8.84	1133	(1269)	-	1.3	-	synthetic	solid
     100	Fm	Fermium	Enrico Fermi, Italian physicist	f-block groups	7	f-block	[257]	(9.7)[b]	(1125)[7] (1800)[8]	-	-	1.3	-	synthetic	unknown phase
     101	Md	Mendelevium	Dmitri Mendeleev, Russian chemist who proposed the periodic table	f-block groups	7	f-block	[258]	(10.3)	(1100)	-	-	1.3	-	synthetic	unknown phase
@@ -286,12 +286,12 @@ if 1:   # Element data
     107	Bh	Bohrium	Niels Bohr, Danish physicist	7	7	d-block	[270]	(26-27)	-	-	-	-	-	synthetic	unknown phase
     108	Hs	Hassium	New Latin Hassia, 'Hesse', a state in Germany	8	7	d-block	[269]	(27-29)	-	-	-	-	-	synthetic	unknown phase
     109	Mt	Meitnerium	Lise Meitner, Austrian physicist	9	7	d-block	[278]	(27-28)	-	-	-	-	-	synthetic	unknown phase
-    110	Ds	Darmstadtium	Darmstadt, Germany, where the element was first synthesised in the GSI laboratories	10	7	d-block	[281]	(26-27)	-	-	-	-	-	synthetic	unknown phase
+    110	Ds	Darmstadtium	Darmstadt, Germany, where the element was first synthesized in the GSI laboratories	10	7	d-block	[281]	(26-27)	-	-	-	-	-	synthetic	unknown phase
     111	Rg	Roentgenium	Wilhelm Conrad Röntgen, German physicist	11	7	d-block	[282]	(22-24)	-	-	-	-	-	synthetic	unknown phase
     112	Cn	Copernicium	Nicolaus Copernicus, Polish astronomer	12	7	d-block	[285]	(14.0)	(283±11)	(340±10)[b]	-	-	-	synthetic	unknown phase
-    113	Nh	Nihonium	Japanese Nihon, 'Japan', where the element was first synthesised in the Riken laboratories	13	7	p-block	[286]	(16)	(700)	(1400)	-	-	-	synthetic	unknown phase
-    114	Fl	Flerovium	Flerov Laboratory of Nuclear Reactions, part of JINR, where the element was synthesised; itself named after Georgy Flyorov, Russian physicist	14	7	p-block	[289]	(11.4±0.3)	(284±50)[b]	-	-	-	-	synthetic	unknown phase
-    115	Mc	Moscovium	Moscow, Russia, where the element was first synthesised in the JINR laboratories	15	7	p-block	[290]	(13.5)	(700)	(1400)	-	-	-	synthetic	unknown phase
+    113	Nh	Nihonium	Japanese Nihon, 'Japan', where the element was first synthesized in the Riken laboratories	13	7	p-block	[286]	(16)	(700)	(1400)	-	-	-	synthetic	unknown phase
+    114	Fl	Flerovium	Flerov Laboratory of Nuclear Reactions, part of JINR, where the element was synthesized; itself named after Georgy Flyorov, Russian physicist	14	7	p-block	[289]	(11.4±0.3)	(284±50)[b]	-	-	-	-	synthetic	unknown phase
+    115	Mc	Moscovium	Moscow, Russia, where the element was first synthesized in the JINR laboratories	15	7	p-block	[290]	(13.5)	(700)	(1400)	-	-	-	synthetic	unknown phase
     116	Lv	Livermorium	Lawrence Livermore National Laboratory in Livermore, California	16	7	p-block	[293]	(12.9)	(700)	(1100)	-	-	-	synthetic	unknown phase
     117	Ts	Tennessine	Tennessee, United States, where Oak Ridge National Laboratory is located	17	7	p-block	[294]	(7.1-7.3)	(700)	(883)	-	-	-	synthetic	unknown phase
     118	Og	Oganesson	Yuri Oganessian, Russian physicist	18	7	p-block	[294]	(7)	(325±15)	(450±10)	-	-	-	synthetic	unknown phase
@@ -382,6 +382,11 @@ if 1:   # Utility
           Print the matched elements.  The el strings can be the element's
           symbol, a regular expression for the name, or the atomic number.
           There are {d['n']} elements in the script.
+        Notation:
+            [223] means an atomic weight of a radioactive element
+            (223) means a predicted number, not yet observed
+            ~223  means an approximate number, difficult to measure
+            a±b   I assume means a value a with standard uncertainty b
         Options:
             -D      Dump data structures
             -d n    Set number of significant digits
@@ -428,6 +433,8 @@ if 1:   # Utility
         d["n"] = len(g.num2sym)     # Number of elements in the script
         x = flt(0)
         x.N = d["-d"]
+        # Set formatting for flts to use Unicode for scientific
+        x.u = True
         if d["-t"]:
             TestGetElements()
         if d["-l"]:
@@ -577,9 +584,9 @@ if 1:   # Core functionality
         'Convert temperature in K to °C'
         assert(ii(K, flt))
         return K - 273.15
-
     def PrintElement(Name):
-        num = g.Name2num[Name]
+        # Must subtract 1 because the array is 0-based
+        num = g.Name2num[Name] - 1
         e = d["el"][num]
         i, w = " "*4, 20
         Da2kg = 1.66053906660e-27
@@ -619,7 +626,14 @@ if 1:   # Core functionality
         # Origin
         print(f"{i}{'Origin':{w}s}{e.origin}")
         # Phase
-        print(f"{i}{'Origin':{w}s}{e.phase}")
+        print(f"{i}{'Phase':{w}s}{e.phase}")
+        # Name origin
+        s = e.name_origin.replace(" ·  ", " ")
+        print(f"{i}{'Name origin':{w}s}{s}")
+        # Group, period, block
+        print(f"{i}{'Group':{w}s}{e.group}")
+        print(f"{i}{'Period':{w}s}{e.period}")
+        print(f"{i}{'Block':{w}s}{e.block}")
 
         '''
             Z
