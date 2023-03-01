@@ -1,7 +1,12 @@
 '''
+
+- Options:  -a for all, -s for short list
+
 Launch wikipedia pages for elements
     e.g. https://en.wikipedia.org/wiki/Hydrogen
     e.g. https://en.wikipedia.org/wiki/Isotopes_of_hydrogen
+Ref 
+    https://en.wikipedia.org/wiki/List_of_chemical_elements
 '''
 if 1:   # Header
     if 1:   # Copyright, license
@@ -176,6 +181,11 @@ if 1:   # Header
                             #  'H', 'He', 'Li', 'Be']
 if 1:   # Element data
     # Screen-scraped from https://en.wikipedia.org/wiki/List_of_chemical_elements
+    # Edits made
+    # - Removed notes like '[a]' and '[7]'
+    # - Changed Fm's mp to a single estimate
+    # - Changed numbers like 1×10-4 to 1×10⁻⁴
+
     data = '''
     1	H	Hydrogen	Greek elements hydro- and -gen, 'water-forming'	1	1	s-block	1.0080	0.00008988	14.01	20.28	14.304	2.20	1400	primordial	gas
     2	He	Helium	Greek hḗlios, 'sun'	18	1	s-block	4.0026	0.0001785	-[k]	4.22	5.193	-	0.008	primordial	gas
@@ -219,7 +229,7 @@ if 1:   # Element data
     40	Zr	Zirconium	Zircon, a mineral, from Persian zargun, 'gold-hued'	4	5	d-block	91.224	6.52	2128	4682	0.278	1.33	165	primordial	solid
     41	Nb	Niobium	Niobe, daughter of king Tantalus from Greek mythology; see also tantalum	5	5	d-block	92.906	8.57	2750	5017	0.265	1.6	20	primordial	solid
     42	Mo	Molybdenum	Greek molýbdaina, 'piece of lead', from mólybdos, 'lead', due to confusion with lead ore galena (PbS)	6	5	d-block	95.95	10.28	2896	4912	0.251	2.16	1.2	primordial	solid
-    43	Tc	Technetium	Greek tekhnētós, 'artificial'	7	5	d-block	[97][a]	11	2430	4538	-	1.9	~ 3×10⁻⁹	from decay	solid
+    43	Tc	Technetium	Greek tekhnētós, 'artificial'	7	5	d-block	[97][a]	11	2430	4538	-	1.9	~3×10⁻⁹	from decay	solid
     44	Ru	Ruthenium	New Latin Ruthenia, 'Russia'	8	5	d-block	101.07	12.45	2607	4423	0.238	2.2	0.001	primordial	solid
     45	Rh	Rhodium	Greek rhodóeis, 'rose-coloured', from rhódon, 'rose'	9	5	d-block	102.91	12.41	2237	3968	0.243	2.28	0.001	primordial	solid
     46	Pd	Palladium	Pallas, an asteroid, considered a planet at the time	10	5	d-block	106.42	12.023	1828.05	3236	0.244	2.20	0.015	primordial	solid
@@ -263,7 +273,7 @@ if 1:   # Element data
     84	Po	Polonium	Latin Polonia, 'Poland', home country of Marie Curie	16	6	p-block	[209][a]	9.196	527	1235	-	2.0	2×10⁻¹⁰	from decay	solid
     85	At	Astatine	Greek ástatos, 'unstable'	17	6	p-block	[210]	(8.91-8.95)	575	610	-	2.2	3×10⁻²⁰	from decay	unknown phase
     86	Rn	Radon	Radium emanation, originally the name of the isotope Radon-222	18	6	p-block	[222]	0.00973	202	211.3	0.094	2.2	4×10⁻¹³	from decay	gas
-    87	Fr	Francium	France, home country of discoverer Marguerite Perey	1	7	s-block	[223]	(2.48)	281	890	-	>0.79[6]	~ 1×10⁻¹⁸	from decay	unknown phase
+    87	Fr	Francium	France, home country of discoverer Marguerite Perey	1	7	s-block	[223]	(2.48)	281	890	-	>0.79[6]	~1×10⁻¹⁸	from decay	unknown phase
     88	Ra	Radium	French radium, from Latin radius, 'ray'	2	7	s-block	[226]	5.5	973	2010	0.094	0.9	9×10⁻⁷	from decay	solid
     89	Ac	Actinium	Greek aktís, 'ray'	f-block groups	7	f-block	[227]	10	1323	3471	0.12	1.1	5.5×10⁻¹⁰	from decay	solid
     90	Th	Thorium	Thor, the Scandinavian god of thunder	f-block groups	7	f-block	232.04	11.7	2115	5061	0.113	1.3	9.6	primordial	solid
@@ -276,7 +286,7 @@ if 1:   # Element data
     97	Bk	Berkelium	Berkeley, California, where the element was first synthesized	f-block groups	7	f-block	[247]	14.78	1259	2900	-	1.3	-	synthetic	solid
     98	Cf	Californium	California, where the element was first synthesized in the LBNL laboratory	f-block groups	7	f-block	[251]	15.1	1173	(1743)[b]	-	1.3	-	synthetic	solid
     99	Es	Einsteinium	Albert Einstein, German physicist	f-block groups	7	f-block	[252]	8.84	1133	(1269)	-	1.3	-	synthetic	solid
-    100	Fm	Fermium	Enrico Fermi, Italian physicist	f-block groups	7	f-block	[257]	(9.7)[b]	(1125)[7] (1800)[8]	-	-	1.3	-	synthetic	unknown phase
+    100	Fm	Fermium	Enrico Fermi, Italian physicist	f-block groups	7	f-block	[257]	(9.7)[b]	(1125)[7]	-	-	1.3	-	synthetic	unknown phase
     101	Md	Mendelevium	Dmitri Mendeleev, Russian chemist who proposed the periodic table	f-block groups	7	f-block	[258]	(10.3)	(1100)	-	-	1.3	-	synthetic	unknown phase
     102	No	Nobelium	Alfred Nobel, Swedish chemist and engineer	f-block groups	7	f-block	[259]	(9.9)	(1100)	-	-	1.3	-	synthetic	unknown phase
     103	Lr	Lawrencium	Ernest Lawrence, American physicist	3	7	d-block	[266]	(14.4)	(1900)	-	-	1.3	-	synthetic	unknown phase
@@ -370,48 +380,77 @@ if 1:   # Element data
             line = FixLine(line)
             f = line.split("\t")
             assert(len(f) == 16)
+            # Convert to integers
+            for i in (0, 5):    # Z and period (row)
+                f[i] = int(f[i])
             o.append(Element(*f))
         return o
 if 1:   # Utility
     def Error(*msg, status=1):
         print(*msg, file=sys.stderr)
         exit(status)
+    def Manpage():
+        print(dedent(f'''
+        This script uses data scraped from the web page [1] on about 12
+        Feb 2023.  The table includes information on 118 elements.  
+
+        A
+        useful feature of this table is that the controls in the fourth row
+        can be used to sort the table on the column's information.  For
+        example, if you sort descending on abundance, you'll see that the
+        most common elements in the Earth's crust are oxygen, silicon,
+        aluminum, and iron.,t
+
+        References
+          [1] https://en.wikipedia.org/wiki/List_of_chemical_elements
+          [2] https://www.rsc.org/periodic-table
+
+        '''))
+        exit(0)
     def Usage(status=1):
         print(dedent(f'''
         Usage:  {sys.argv[0]} [options] el1 [el2 ...]
           Print the matched elements.  The el strings can be the element's
           symbol, a regular expression for the name, or the atomic number.
           There are {d['n']} elements in the script.
+
+          Data scraped from 
+          https://en.wikipedia.org/wiki/List_of_chemical_elements
         Notation:
             [223] means an atomic weight of a radioactive element
             (223) means a predicted number, not yet observed
             ~223  means an approximate number, difficult to measure
-            a±b   I assume means a value a with standard uncertainty b
+            x±u   I assume means a value x with standard uncertainty u,
+                  but the web page used doesn't explicitly state this
         Options:
+            -a      Show all elements (default is to show up to Z = 92)
             -D      Dump data structures
             -d n    Set number of significant digits
             -i      Launch page on isotopes
             -l      Launch page on list of elements
             -n m    Allow up to m pages to be opened [{d['-n']}]
             -o      Open wikipedia page on matched elements
+            -s      Show a short list of elements
             -t      Run self-tests
         '''))
         exit(status)
     def ParseCommandLine(d):
+        d["-a"] = False     # Show all elements
         d["-D"] = False     # Dump data structures
-        d["-d"] = 3         # Significant digits
+        d["-d"] = 4         # Significant digits
         d["-i"] = False     # Open isotopes page
         d["-l"] = False     # Launch page on list of elements
         d["-n"] = 5         # Number of allowed pages
         d["-o"] = False     # Open web page instead of printing to stdout
+        d["-s"] = False     # Show short list
         d["-t"] = False     # Run self-tests
         try:
-            opts, args = getopt.getopt(sys.argv[1:], "Dd:hiln:ot") 
+            opts, args = getopt.getopt(sys.argv[1:], "aDd:hiln:ost") 
         except getopt.GetoptError as e:
             print(str(e))
             exit(1)
         for o, a in opts:
-            if o[1] in list("aDhilot"):
+            if o[1] in list("aDilost"):
                 d[o] = not d[o]
             elif o in ("-d",):
                 try:
@@ -422,6 +461,8 @@ if 1:   # Utility
                     msg = ("-d option's argument must be an integer between "
                         "1 and 15")
                     Error(msg)
+            elif o in ("-h",):
+                Manpage()
             elif o == "-n":
                 try:
                     n = int(a)
@@ -439,7 +480,7 @@ if 1:   # Utility
             TestGetElements()
         if d["-l"]:
             LaunchWebPage("")
-        if not args:
+        if not args and not (d["-s"] or d["-t"]):
             Usage()
         return args
 if 1:   # Core functionality
@@ -634,47 +675,55 @@ if 1:   # Core functionality
         print(f"{i}{'Group':{w}s}{e.group}")
         print(f"{i}{'Period':{w}s}{e.period}")
         print(f"{i}{'Block':{w}s}{e.block}")
-
-        '''
-            Z
-            sym
-            name
-            name_origin
-            group
-            period
-            block
-            aw_Da
-            rho
-            mp
-            bp
-            sp_ht
-            en
-            ppm
-            origin
-            phase
-        '''
-        # Fields for Element named tuple
-        # 0   Atomic number Z
-        # 1   Symbol
-        # 2   Name
-        # 3   Origin of name
-        # 4   Group
-        # 5   Period
-        # 6   Block
-        # 7   Standard atomic weight, Da
-        # 8   Density, g/cm3
-        # 9   Melting point, K
-        # 10  Boiling point, K
-        # 11  Specific heat capacity, J/(g*K)
-        # 12  Electronegativity (Pauling)
-        # 13  Abundance in Earth's crust, ppm
-        # 14  Origin
-        # 15  Phase at 25 °C, 100 kPa
+    def ShortList():
+        'Show the short list, one element per line'
+        hdr = dedent('''
+        Sym  Z      Name        AtWt        mp/bp K         g/cm³      ppm
+        --- -- ------------- --------- ----------------- ---------- ----------
+        ''')
+        t.hdr = t("brnl")
+        t.print(f"{t.hdr}{hdr}")
+        # Get colors for phases
+        dc = {
+            "solid": t("whtl"),
+            "liquid": t("grnl"),
+            "gas": t("denl"),
+            "unknown phase": t("lipl"),
+        }
+        t.rad = t("redl")
+        for i in d["el"]:
+            num = i.Z
+            if not d["-a"] and num > 92:
+                continue
+            if 0 and num > 15: #xx
+                continue #xx
+            c = dc[f"{i.phase}"]
+            if i.aw_Da[0] == "[":
+                s = f"{t.rad}{i.aw_Da:6s}{t.n}"
+            else:
+                s = f"{i.aw_Da:6s}"
+            print(f"{c}{i.sym:2s} {i.Z:3d} {i.name:13s} {s} {c}Da", end=" ")
+            s = f"{i.mp}/{i.bp}"
+            print(f"{s:^17s} {i.rho:^11s} {i.ppm:^10s}{t.n}")
+        # Print "reverse header"
+        f = hdr.split("\n")
+        t.print(f"{t.hdr}{f[1]}\n{f[0]}")
+        sol = dc["solid"]
+        liq = dc["liquid"]
+        gas = dc["gas"]
+        unk = dc["unknown phase"]
+        print(f"\nPhase colors:  {sol}solid{t.n} "
+              f"{liq}liquid{t.n} {gas}gas{t.n} {unk}unknown{t.n} "
+              "at 25 °C and 100 kPa")
+        print(f"{t.rad}[209]{t.n} means the atomic weight of the most stable isotope")
+        print(f"(1125) means a predicted property")
 
 if __name__ == "__main__":
     d = {}      # Options dictionary
     args = ParseCommandLine(d)
     d["el"] = GetElementNamedTuples()
+    if d["-s"]:
+        ShortList()
     # Find all the element names referenced by the command line
     g.found_names = []
     for el in args:
@@ -689,7 +738,6 @@ if __name__ == "__main__":
     if len(g.found_names) > d["-n"] and (d["-i"] or d["-o"]):
         n = len(g.found_names)
         t.print(f"{t.err}{n} is too many pages, refine your regex")
-        DumpElements()
         exit(1)
     for name in g.found_names:
         if d["-o"] or d["-i"]:
