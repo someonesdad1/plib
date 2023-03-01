@@ -427,6 +427,8 @@ if 1:   # Utility
             -D      Dump data structures
             -d n    Set number of significant digits
             -i      Launch page on isotopes
+            -H      Show manpage
+            -h      Usage statement
             -l      Launch page on list of elements
             -n m    Allow up to m pages to be opened [{d['-n']}]
             -o      Open wikipedia page on matched elements
@@ -438,19 +440,20 @@ if 1:   # Utility
         d["-a"] = False     # Show all elements
         d["-D"] = False     # Dump data structures
         d["-d"] = 4         # Significant digits
+        d["-H"] = False     # Manpage
+        d["-h"] = False     # Usage
         d["-i"] = False     # Open isotopes page
         d["-l"] = False     # Launch page on list of elements
         d["-n"] = 5         # Number of allowed pages
         d["-o"] = False     # Open web page instead of printing to stdout
-        d["-s"] = False     # Show short list
         d["-t"] = False     # Run self-tests
         try:
-            opts, args = getopt.getopt(sys.argv[1:], "aDd:hiln:ost") 
+            opts, args = getopt.getopt(sys.argv[1:], "aDd:Hhiln:ot") 
         except getopt.GetoptError as e:
             print(str(e))
             exit(1)
         for o, a in opts:
-            if o[1] in list("aDilost"):
+            if o[1] in list("aDHhilost"):
                 d[o] = not d[o]
             elif o in ("-d",):
                 try:
@@ -461,8 +464,6 @@ if 1:   # Utility
                     msg = ("-d option's argument must be an integer between "
                         "1 and 15")
                     Error(msg)
-            elif o in ("-h",):
-                Manpage()
             elif o == "-n":
                 try:
                     n = int(a)
@@ -471,6 +472,7 @@ if 1:   # Utility
                 except ValueError:
                     Error("-n argument must be an integer > 0")
         GetData()
+        d["el"] = GetElementNamedTuples()
         d["n"] = len(g.num2sym)     # Number of elements in the script
         x = flt(0)
         x.N = d["-d"]
@@ -480,8 +482,12 @@ if 1:   # Utility
             TestGetElements()
         if d["-l"]:
             LaunchWebPage("")
-        if not args and not (d["-s"] or d["-t"]):
-            Usage()
+        if d["-h"]:
+            Usage(status=0)
+        if d["-H"]:
+            Manpage()
+        if not args:
+            ShortList()
         return args
 if 1:   # Core functionality
     def Uppercase(word):
@@ -721,9 +727,6 @@ if 1:   # Core functionality
 if __name__ == "__main__":
     d = {}      # Options dictionary
     args = ParseCommandLine(d)
-    d["el"] = GetElementNamedTuples()
-    if d["-s"]:
-        ShortList()
     # Find all the element names referenced by the command line
     g.found_names = []
     for el in args:
