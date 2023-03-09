@@ -391,39 +391,89 @@ if 1:   # Utility
         exit(status)
     def Manpage():
         print(dedent(f'''
-        This script uses data scraped from the web page [1] on about 12
-        Feb 2023.  The table includes information on 118 elements.  
+        This script is intended to let you see physical properties of the
+        elements through the following features:
+            
+            - A list of properties printed to stdout with no arguments, one
+              element per line.  This gives the symbol, name, number of
+              protons, atomic weight, melting and boiling points, density,
+              and abundance in the Earth's crust.  I use this mode the most
+              frequently.
+            - You can print the data for selected elements on the command
+              line, identified by atomic number, symbol (case needs to be
+              correct), or a regular expression.  The printed data are a
+              little more extensive than the previous item.
+            - The -o and -i options allow you to open the wikipedia web
+              pages on the element and the element's isotopes,
+              respectively, for the arguments on the command line.
 
-        A
-        useful feature of this table is that the controls in the fourth row
-        can be used to sort the table on the column's information.  For
+        Short list
+        ----------
+
+        The default behavior is to print out data for the elements from 1
+        to 92, one line per element.  Things are color-coded to help with
+        interpretation.
+
+        The items that print out in the color for unknown phase exist in
+        such tiny quantities that this property (and others) are impossible
+        to measure with present technology, either because they are only
+        found as decay products of other materials or they are artificially
+        generated and not enough atoms are available to measure.
+
+        Example [3]:  a sample of pure astatine has never been created because
+        any macroscopic specimen would be vaporized by the heat of its own
+        radioactivity.  Even so, small amounts of astatine are used in
+        nuclear medicine research (see Uses section of [3]).
+
+        The atomic weight is of course more properly called an atomic mass,
+        but the use of "weight" is entrenched.  The unit is in daltons, a
+        non-Si unit of mass equal to 1.66053906660(50)×10−27 kg and is
+        defined to be 1/12 of the mass of an unbound neutral atom of
+        carbon 12.  A more sensible unit would be yg to be compatible with
+        SI (and one wouldn't need to look up conversion factors), but like
+        with things like the American Wire Gauge, we're stuck with these
+        conventions.   
+
+        Data
+        ----
+
+        This script uses data scraped from the web page [1] around the
+        middle of February 2023.  The table includes information on 118
+        elements.  Note that you won't see all 118 elements unless you use
+        the -a option.
+
+        A useful feature of [1]'s table is that the controls in the fourth
+        row can be used to sort the table on the column's information.  For
         example, if you sort descending on abundance, you'll see that the
         most common elements in the Earth's crust are oxygen, silicon,
-        aluminum, and iron.,t
+        aluminum, and iron.
 
         References
+        ----------
+
           [1] https://en.wikipedia.org/wiki/List_of_chemical_elements
           [2] https://www.rsc.org/periodic-table
-
+          [3] https://en.wikipedia.org/wiki/Astatine
         '''))
         exit(0)
     def Usage(status=1):
         print(dedent(f'''
-        Usage:  {sys.argv[0]} [options] el1 [el2 ...]
+        Usage:  {sys.argv[0]} [options] [el1 [el2 ...]]
           Print the matched elements.  The el strings can be the element's
           symbol, a regular expression for the name, or the atomic number.
-          There are {d['n']} elements in the script.
-
-          Data scraped from 
+          There are {d['n']} elements in the script.  If no arguments on
+          the command line are given, the short list of elements is
+          printed.  The data were scraped from the web page
           https://en.wikipedia.org/wiki/List_of_chemical_elements
         Notation:
-            [223] means an atomic weight of a radioactive element
-            (223) means a predicted number, not yet observed
-            ~223  means an approximate number, difficult to measure
-            x±u   I assume means a value x with standard uncertainty u,
-                  but the web page used doesn't explicitly state this
+          [223] means an atomic weight of a radioactive element
+          (223) means a predicted number, not yet observed
+          ~223  means an approximate number (difficult to measure)
+          x±u   I assume means a value x with standard uncertainty u, but
+                the web page used doesn't explicitly state this
         Options:
             -a      Show all elements (default is to show up to Z = 92)
+            -c      Include colorizing even if stdout isn't a terminal
             -D      Dump data structures
             -d n    Set number of significant digits
             -i      Launch page on isotopes
@@ -438,6 +488,7 @@ if 1:   # Utility
         exit(status)
     def ParseCommandLine(d):
         d["-a"] = False     # Show all elements
+        d["-c"] = False     # Use color if stdout isn't terminal
         d["-D"] = False     # Dump data structures
         d["-d"] = 4         # Significant digits
         d["-H"] = False     # Manpage
@@ -448,12 +499,12 @@ if 1:   # Utility
         d["-o"] = False     # Open web page instead of printing to stdout
         d["-t"] = False     # Run self-tests
         try:
-            opts, args = getopt.getopt(sys.argv[1:], "aDd:Hhiln:ot") 
+            opts, args = getopt.getopt(sys.argv[1:], "acDd:Hhiln:ot") 
         except getopt.GetoptError as e:
             print(str(e))
             exit(1)
         for o, a in opts:
-            if o[1] in list("aDHhilost"):
+            if o[1] in list("acDHhilost"):
                 d[o] = not d[o]
             elif o in ("-d",):
                 try:
@@ -478,6 +529,8 @@ if 1:   # Utility
         x.N = d["-d"]
         # Set formatting for flts to use Unicode for scientific
         x.u = True
+        if d["-c"]:
+            t.always = True
         if d["-t"]:
             TestGetElements()
         if d["-l"]:
@@ -636,12 +689,15 @@ if 1:   # Core functionality
         num = g.Name2num[Name] - 1
         e = d["el"][num]
         i, w = " "*4, 20
-        Da2kg = 1.66053906660e-27
+        Da2yg = 1.66053906660
+        Da2kg = Da2yg*1e-27
         print(f"{Name} ({e.sym})    Z = {e.Z}")
         # Atomic weight
         aw = ToFlt(e.aw_Da)
         if ii(aw, flt):
-            print(f"{i}{'Atomic weight':{w}s}{aw} Da = {aw*Da2kg} kg")
+            #print(f"{i}{'Atomic weight':{w}s}{aw} Da = {aw*Da2kg} kg")
+            # Print in yg
+            print(f"{i}{'Atomic weight':{w}s}{aw} Da = {aw*Da2yg} yg")
         else:
             print(f"{i}{'Atomic weight':{w}s}{e.aw_Da} Da")
         # Density
@@ -684,7 +740,7 @@ if 1:   # Core functionality
     def ShortList():
         'Show the short list, one element per line'
         hdr = dedent('''
-        Sym  Z      Name        AtWt        mp/bp K         g/cm³      ppm
+        Sym  Z      Name     AtWt, Da    mp/bp K         g/cm³      ppm
         --- -- ------------- --------- ----------------- ---------- ----------
         ''')
         t.hdr = t("brnl")
@@ -701,14 +757,12 @@ if 1:   # Core functionality
             num = i.Z
             if not d["-a"] and num > 92:
                 continue
-            if 0 and num > 15: #xx
-                continue #xx
             c = dc[f"{i.phase}"]
             if i.aw_Da[0] == "[":
-                s = f"{t.rad}{i.aw_Da:6s}{t.n}"
+                s = f"{t.rad} {i.aw_Da:6s}{t.n}"
             else:
                 s = f"{i.aw_Da:6s}"
-            print(f"{c}{i.sym:2s} {i.Z:3d} {i.name:13s} {s} {c}Da", end=" ")
+            print(f"{c}{i.sym:2s} {i.Z:3d} {i.name:13s} {s:^9s} {c}", end=" ")
             s = f"{i.mp}/{i.bp}"
             print(f"{s:^17s} {i.rho:^11s} {i.ppm:^10s}{t.n}")
         # Print "reverse header"
@@ -723,6 +777,7 @@ if 1:   # Core functionality
               "at 25 °C and 100 kPa")
         print(f"{t.rad}[209]{t.n} means the atomic weight of the most stable isotope")
         print(f"(1125) means a predicted property")
+        print(f"1 Da is 1.6605390666 yg")
 
 if __name__ == "__main__":
     d = {}      # Options dictionary

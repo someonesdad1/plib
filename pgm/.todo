@@ -1,13 +1,55 @@
 Active
 
+    - pgm/c++_units.py
+        - Update to python 3
+        - Find docs & put on HU
+
     - dev/cos
 
-    - pgm/elements.py
-        - Move to /plib
-        - Utilize scraped data to print out element properties by default
-          rather than opening web pages.
-            - This is because it has Z, symbol, name, atomic weight,
-              density, mp, bp, specific heat, ppm abundance in crust, phase
+    - H utility
+        - Rename to j, as lowercase is easier
+        - Use goto.py functionality, modify if needed
+        - Simplify to using order found in config file with commented lines
+          ignored
+        - Commands in H:
+            - e       Edit the config file
+            - g [n]   Change to directory in line n (defaults to 0)
+            - a d     Push the indicated directory d onto the stack
+            - p d     Push the indicated directory d onto the stack
+            - l       Show the contents of the config file
+
+    - goto.py
+        - The commented-out stuff should also be read in and parsed, then
+          put into a secondary data structure.  This allows older things to
+          be used or, if an alias isn't recognized in the primary data
+          structre, the secondary structure can be used.
+        - If an alias isn't found, then a list of search matches on
+          directory and file stuff can be done and a list given.
+
+    - flt.py
+        - Using the recent work on 'Classes derived from flt for physical
+          data, see if it's possible to have one numerical object derived
+          from flt that allows the storage of a numerical value, unit, and
+          covers the special cases like Nothing, Unk, Approx, Rng,
+          LessThan, GreaterThan, and Unc.  For unc, use the uncertainties
+          library and always display in short form.
+            - This would be kept up-to-date and be able to modularize the
+              use of data tables from e.g. wikipedia.  The fundamental
+              goals would be to provide string interpolations that are
+              meaningful and allow numerical computation.
+            - Using types derived from flt is useful and makes code
+              simpler.  How would a single type provide the same feature?
+              One way would be an enum.
+        - Unlike the /pylib/pnumber.py library attempt, the goal is not
+          computation with these physical numbers, rather the string
+          interpolation and scaling of the table numbers.  You can e.g.
+          change the units by the attribute u, as long as the dimensions
+          are consistent.
+        - Since these numbers are just floats, they can be used in math
+          library calls.  No dimensional checking is done to ensure that
+          arguments are dimensionless.  It's possible the math library
+          stuff can be modified to do this by default, by e.g. checking the
+          units attribute to be None or the empty string.
 
     - Name tags
         - Make a PDF with name/phone that can be printed on a durable
@@ -38,6 +80,26 @@ Active
         - http://oeis.org/A000084/a000084_2.pdf
 
 Inactive
+
+    - pgm/pur.py
+        - Script to keep track of purchases
+        - Example:  when did I last buy a set of 357 batteries?
+        - Data (variable names for specifying search; defaults to nm)
+            - nm = name
+            - pn = part number
+            - n  = quantity
+            - v  = vendor
+            - ord = date ordered
+            - del = date delivered
+            - num = receipt number, transaction number, etc.
+            - cat = category
+        - Search for regex is default behavior
+
+    - pgm/uni.py
+        - Allow a search for letters similar to a Latin letter.  
+            - un "LETTER M" |grep '\<M\>' yields a list of things that look
+              like the basic ASCII letter m.
+            - Also combine this with the mappings in asciify.py.
 
     - pgm/readability.py
         - Add an option to let you see the histograms of the readability
