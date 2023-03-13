@@ -1,0 +1,21 @@
+# Driving between Boise ID and Spokane WA.  Route is I84 out of Boise to
+# past Pendleton.  You go north on IXX to get to Umatilla and cross the
+# Columbia.  Near Kennewick you get on 395 North.  Near Ritzville you get
+# on I90 going east, which takes you to Spokane.  The speed limit is 70 mph
+# most of the way.
+
+Boise         | ID | 0
+Ontario       | OR | 56.7
+Huntington    | OR | 29.3
+Durkee        | OR | 20.9
+Baker City    | OR | 23.8
+North Powder  | OR | 20.5
+La Grande     | OR | 25
+Pendleton     | OR | 50.6
+Umatilla      | OR | 42.1
+Kennewick     | WA | 27.6
+Connell       | WA | 39.4
+Ritzville     | WA | 41.7
+Sprague       | WA | 25
+Spokane       | WA | 36.6
+The Y         | WA | 6

@@ -55,6 +55,18 @@ if 1:   # Header
             Spokane       | WA | 36.6
             The Y         | WA | 6
         '''
+        vehicles = {
+            1: {
+                "name": "2011 Suburban",
+                "mpg": 13.5,
+                "gallons": 26,
+            },
+            2: {
+                "name": "2008 Subaru",
+                "mpg": 20,
+                "gallons": 16.9,
+            },
+        }
 if 1:   # Utility
     def Error(*msg, status=1):
         print(*msg, file=sys.stderr)
@@ -73,40 +85,37 @@ if 1:   # Utility
         '''))
         exit(status)
     def ParseCommandLine(d):
-        d["-a"] = False
         d["-c"] = 4         # Cost of gas in $/gallon
         d["-D"] = False     # Debug
-        d["-d"] = 3         # Number of significant digits
-        d["-m"] = 13.5      # Miles per gallon
+        d["-l"] = False     # List vehicles
+        d["-v"] = 1         # Which vehicle
         try:
-            opts, args = getopt.getopt(sys.argv[1:], "aDd:h", 
+            opts, args = getopt.getopt(sys.argv[1:], "c:Dhv:", 
                     ["help", "debug"])
         except getopt.GetoptError as e:
             print(str(e))
             exit(1)
         for o, a in opts:
-            if o[1] in list("aD"):
+            if o[1] in list("Dl"):
                 d[o] = not d[o]
-            elif o in ("-d",):
-                try:
-                    d["-d"] = int(a)
-                    if not (1 <= d["-d"] <= 15):
-                        raise ValueError()
-                except ValueError:
-                    msg = ("-d option's argument must be an integer between "
-                        "1 and 15")
-                    Error(msg)
+            elif o == "-c":
+                d[o] = flt(a)
             elif o in ("-h", "--help"):
                 Usage(status=0)
-            elif o in ("--debug",):
-                # Set up a handler to drop us into the debugger on an
-                # unhandled exception
-                import debug
-                debug.SetDebugger()
+            elif o == "-v":
+                d[o] = int(a)
+                if d[o] not in vehicles:
+                    Error(f"{d[o]} is not a valid vehicle number")
+        if d["-l"]:
+            ListVehicles()
         if not args and not d["-D"]:
             Usage()
         return args
 if 1:   # Core functionality
+    def ListVehicles():
+        for i in vehicles:
+            di = vehicles[i]
+            print(f"{i:2d} {di['name']}: {di['mpg']} mpg, {di['gallons']} gallons")
     def GetCol(n, lst):
         'Return column n (0-based) of lst'
         return [i[n] for i in lst]
@@ -154,12 +163,28 @@ if 1:   # Core functionality
                   f"{cumul[i]:>4d}  "
                   f"{rmiles[i]:>4d}  "
                   f"{rcumul[i]:>4d}")
+        # Print gas cost and gallons used
+        v = vehicles[d["-v"]]
+        mi = flt(cumul[-1])
+        capacity_gal = v['gallons']
+        mpg = v['mpg']
+        dpg = d["-c"]
+        print(f"\n{v['name']} {mpg} mpg, {capacity_gal} gal tank")
+        gal = flt(mi/mpg)
+        cost = flt(dpg*gal)
+        print(f"  Gallons used      {gal}")
+        print(f"  Cost of gas       ${cost}")
+        # Driving time
+        print(f"Driving time, hours")
+        print(f"{mi/75:>6.1f} @ 75 mph")
+        print(f"{mi/70:>6.1f} @ 70 mph")
+        print(f"{mi/65:>6.1f} @ 65 mph")
+        print(f"{mi/60:>6.1f} @ 60 mph")
 
 if __name__ == "__main__":
     d = {}      # Options dictionary
     files = ParseCommandLine(d)
     for file in files:
         lines = get.GetLines(P(file), ignore=[], script=True, ignore_empty=True, strip=True)
-        pp(lines);exit()#xx
         path = GetPath(lines)
         PrintTable(path)
