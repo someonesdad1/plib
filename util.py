@@ -1583,13 +1583,18 @@ def DoubleFactorial(n):
     for i in range(n, 0, -2):
         product *= i
     return product
-def Cumul(seq):
-    'Return the cumulative sum list of the given sequence seq'
-    o, dq = [], deque(seq)
+def Cumul(seq, check=False):
+    '''Return the cumulative sum list of the given sequence seq.  If check
+    is True, verify the last element of the returned array is equal to the
+    sum of all the elements in seq.
+    '''
+    cumul, dq = [], deque(seq)
     while dq:
         item = dq.popleft()
-        o.append(o[-1] + item) if o else o.append(item)
-    return o
+        cumul.append(cumul[-1] + item) if cumul else cumul.append(item)
+    if check and cumul and cumul[-1] != sum(seq):
+        raise ValueError("Sum of sequence not same as last cumul element")
+    return cumul
 
 if __name__ == "__main__": 
     # Missing tests for: Ignore Debug, Dispatch, GetString
@@ -1608,11 +1613,11 @@ if __name__ == "__main__":
     ver = f"{vi[0]}.{vi[1]}"
     def Test_Cumul():
         for a in ([], [0], [0, 1]):
-            Assert(Cumul(a) == a)
+            Assert(Cumul(a, check=True) == a)
         a = [0, 1, 2]
-        Assert(Cumul(a) == [0, 1, 3])
+        Assert(Cumul(a, check=True) == [0, 1, 3])
         a = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
-        Assert(Cumul(a) == [0, 1, 3, 6, 10, 15, 21, 28, 36, 45])
+        Assert(Cumul(a, check=True) == [0, 1, 3, 6, 10, 15, 21, 28, 36, 45])
     def Test_DoubleFactorial():
         df = DoubleFactorial
         Assert(df(0) == 1)
