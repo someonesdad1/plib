@@ -8,6 +8,7 @@ Batch                 Generator to pick n items at a time from a sequence
 BraceExpansion        Brace expansion like modern shells
 Cfg                   Execute a sequence of text lines for config use
 ConvertToNumber       Convert a string to a number
+Cumul                 Return cumulative sums of a sequence
 Debug                 A class that helps with debugging
 Dispatch              Class to aid polymorphism
 DoubleFactorial       Compute the double factorial of an integer
@@ -1582,6 +1583,13 @@ def DoubleFactorial(n):
     for i in range(n, 0, -2):
         product *= i
     return product
+def Cumul(seq):
+    'Return the cumulative sum list of the given sequence seq'
+    o, dq = [], deque(seq)
+    while dq:
+        item = dq.popleft()
+        o.append(o[-1] + item) if o else o.append(item)
+    return o
 
 if __name__ == "__main__": 
     # Missing tests for: Ignore Debug, Dispatch, GetString
@@ -1598,6 +1606,13 @@ if __name__ == "__main__":
     # Need to have version, as SizeOf stuff changed between 3.7 and 3.9
     vi = sys.version_info
     ver = f"{vi[0]}.{vi[1]}"
+    def Test_Cumul():
+        for a in ([], [0], [0, 1]):
+            Assert(Cumul(a) == a)
+        a = [0, 1, 2]
+        Assert(Cumul(a) == [0, 1, 3])
+        a = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+        Assert(Cumul(a) == [0, 1, 3, 6, 10, 15, 21, 28, 36, 45])
     def Test_DoubleFactorial():
         df = DoubleFactorial
         Assert(df(0) == 1)

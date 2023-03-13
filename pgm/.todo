@@ -1,5 +1,16 @@
 Active
 
+    - pgm/trip.py
+        - Make it easy to print out various things with a road trip
+        - Basic output is list of destinations with mileage between them
+          and cumulative mileage
+            - Option lets you specify reverse direction for return trip
+        - This lets you see at a glance:
+            - Next major city on what highway
+            - How many miles from previous city
+            - Total miles traveled
+            - Miles left to destination
+
     - pgm/c++_units.py
         - Update to python 3
         - Find docs & put on HU
