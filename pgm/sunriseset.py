@@ -47,7 +47,7 @@ if 1:   # Header
         from wrap import dedent
         from months import months
         from color import TRM as t
-        if 0:
+        if 1:
             import debug
             debug.SetDebugger()
     # Global variables
@@ -66,20 +66,22 @@ if 1:   # Location data
         latitude = 43.64        # degrees
         longitude = -116.32     # degrees
         GMT_offset = -7         # Hours, to correct GMT to local time
-        # These two definitions are the approximate dates DST starts and
-        # end.  Python's datetime class documentation is confusing and I
-        # just wanted something simple. 
-        if 1:
-            # From Google calendar
-            yr = 2022
-            dst_start = datetime(yr, 3, 13)
-            dst_end = datetime(yr, 11, 6)
-        if 0:
-            # From Google calendar
-            yr = 2023
-            dst_start = datetime(yr, 3, 12)
-            dst_end = datetime(yr, 11, 5)
+        # Dates for DST start and end; from Google Calendar.  Python's
+        # datetime class documentation is confusing and I just wanted
+        # something simple.  The rule is start = second Sunday in March and
+        # end = first Sunday in November.
+        dst_data = {
+            2023:  (datetime(2023, 3, 12), datetime(2023, 11, 5)),
+            2024:  (datetime(2024, 3, 10), datetime(2024, 11, 3)),
+            2025:  (datetime(2025, 3,  9), datetime(2025, 11, 2)),
+            2026:  (datetime(2026, 3,  8), datetime(2026, 11, 1)),
+            2027:  (datetime(2027, 3, 14), datetime(2027, 11, 7)),
+            2028:  (datetime(2028, 3, 12), datetime(2028, 11, 5)),
+            2029:  (datetime(2029, 3, 11), datetime(2029, 11, 4)),
+            2030:  (datetime(2030, 3, 10), datetime(2030, 11, 3)),
+        }
         today = datetime.today()
+        dst_start, dst_end = dst_data[today.year]
         if dst_start.year != today.year:
             raise ValueError(f"{sys.argv[0]}:  Year wrong for DST calculations")
 if 1:   # Utility

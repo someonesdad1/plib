@@ -22,6 +22,7 @@ if 1:   # Header
         from pprint import pprint as pp
         import sys
     if 1:   # Custom imports
+        import get
         from util import Cumul
         from wrap import wrap, dedent
         from color import Color, TRM as t
@@ -120,7 +121,7 @@ if 1:   # Core functionality
             if not f:
                 continue
             if len(f) != 3:
-                Error("{line!r} doesn't have 3 fields")
+                Error(f"{line!r} doesn't have 3 fields")
             miles = int(round(float(f.pop()), 0))
             f.append(miles)
             o.append(f)
@@ -156,7 +157,9 @@ if 1:   # Core functionality
 
 if __name__ == "__main__":
     d = {}      # Options dictionary
-    args = ParseCommandLine(d)
-    lines = data.strip().split("\n")
-    path = GetPath(lines)
-    PrintTable(path)
+    files = ParseCommandLine(d)
+    for file in files:
+        lines = get.GetLines(P(file), ignore=[], script=True, ignore_empty=True, strip=True)
+        pp(lines);exit()#xx
+        path = GetPath(lines)
+        PrintTable(path)
