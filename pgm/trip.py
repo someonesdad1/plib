@@ -27,6 +27,7 @@ if 1:   # Header
         from color import Color, TRM as t
         from f import flt
         from lwtest import Assert
+        from color import t
     if 1:   # Global variables
         ii = isinstance
         W = int(os.environ.get("COLUMNS", "80")) - 1
@@ -59,17 +60,23 @@ if 1:   # Utility
         exit(status)
     def Usage(status=1):
         print(dedent(f'''
-        Usage:  {sys.argv[0]} [options] etc.
-          Explanations...
+        Usage:  {sys.argv[0]} [options] file
+          Print mileage table for a trip given by the data in file.  The
+          file's format is one city per line, followed by two character
+          state and mileage from the previous city.
         Options:
+            -c x    Cost of gasoline in $/gallon [{d["-c"]}]
             -D      Debug mode
             -h      Print a manpage
+            -m x    Mileage of vehicle in miles/gallon [{d["-m"]}]
         '''))
         exit(status)
     def ParseCommandLine(d):
         d["-a"] = False
+        d["-c"] = 4         # Cost of gas in $/gallon
         d["-D"] = False     # Debug
         d["-d"] = 3         # Number of significant digits
+        d["-m"] = 13.5      # Miles per gallon
         try:
             opts, args = getopt.getopt(sys.argv[1:], "aDd:h", 
                     ["help", "debug"])
