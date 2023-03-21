@@ -34,6 +34,9 @@ if 1:   # Header
     if 1:   # Custom imports
         from wrap import wrap, dedent
         from color import Color, TRM as t
+        if 1:
+            import debug
+            debug.SetDebugger()
     if 1:   # Global variables
         ii = isinstance
         W = int(os.environ.get("COLUMNS", "80")) - 1
@@ -831,31 +834,32 @@ if 1:   # Classes
         '''Perform dimension arithmetic for arbitrary units.  This class is
         used to calculate the fundamental unit representation for derived units.
         '''
-        def __init__(me, d):
-            me.d = tuple(d)
-        def __repr__(me):
-            return "%s," % join(["%d" % int(i) for i in me.d], ",")
-        def __mul__(me, b):
-            return U([me.d[i] + b.d[i] for i in range(len(me.d))])
-        def __div__(me, b):
-            return U([me.d[i] - b.d[i] for i in range(len(me.d))])
-        def __pow__(me, b):
+        def __init__(self, d):
+            self.d = tuple(d)
+        def __repr__(self):
+            #return "%s," % join(["%d" % int(i) for i in self.d], ",")
+            return ','.join([f"{int(i)}" for i in self.d])
+        def __mul__(self, b):
+            return U([self.d[i] + b.d[i] for i in range(len(self.d))])
+        def __div__(self, b):
+            return U([self.d[i] - b.d[i] for i in range(len(self.d))])
+        def __pow__(self, b):
             if not ii(b, int):
                 raise TypeError("Bad exponent:  " + repr(b))
             if b == 0:
-                return U([0]*len(me.d))
+                return U([0]*len(self.d))
             if b == 1:
                 return x
             if b < 0:
-                x = U([-i for i in me.d])
+                x = U([-i for i in self.d])
                 if b == -1:
                     return x
                 for i in range(abs(b) - 1):
-                    x /= me
+                    x /= self
             else:
-                x = U(me.d)
+                x = U(self.d)
                 for i in range(b - 1):
-                    x *= me
+                    x *= self
             return x
 if 1:   # Core functionality
     def ReadConfigFile(config_file):
@@ -1117,12 +1121,13 @@ if 1:   # Core functionality
             # Construct the string to compile
             s = "%s = U((%s))" % (name, repr(U(t)))
             try:
+                breakpoint() #xx
                 c = compile(s, "", "single")
                 eval(c)  # Evaluate it in our local namespace
                 # Get the object created and put into our dictionary
                 d[name] = locals()[name]
-            except Exception:
-                Error("Fundamental unit {name!r}has a problem.")
+            except Exception as e:
+                Error(f"Fundamental unit {name!r} has a problem:\n  {e}")
         # Store into the global dictionary for use with evaluating derived
         # units.
         if len(d) == 0:
@@ -1147,10 +1152,11 @@ if 1:   # Core functionality
         # to keep the tasks separate.
         for name in output_strings[Units]:
             try:
+                breakpoint() #xx
                 s = "%s = U((%s))" % (name, output_strings[Units][name])
                 c = compile(s, "", "single")
                 eval(c)
-            except Exception:
+            except Exception as e:
                 Error("Internal error in ConstructDerivedUnits()")
         # Now evaluate the derived expressions
         n = len(output_strings[derived])
