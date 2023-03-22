@@ -22,7 +22,7 @@ Active
         - The commented-out stuff should also be read in and parsed, then
           put into a secondary data structure.  This allows older things to
           be used or, if an alias isn't recognized in the primary data
-          structre, the secondary structure can be used.
+          structure, the secondary structure can be used.
         - If an alias isn't found, then a list of search matches on
           directory and file stuff can be done and a list given.
 

@@ -1,13 +1,11 @@
 '''
 
 TODO
-    * It's OK to have an alias collision -- you just then prompt for which
+    - Remove comment lines from used lines
+    - It's OK to have an alias collision -- you just then prompt for which
       alias to use.  
-    * Change the defaults to NOT have a default file.  This forces all use to
-      include a -f option. 
-    * The -T option isn't really needed.  When checking, the script just
-      needs to ignore a comment line that doesn't parse correctly.
-      CheckConfigFile() is the relevant function.
+    - Change the defaults to NOT have a default file.  This forces all use
+      to include a -f option. 
  
 Driver for the old shell g() function that used the _goto.py script.
 This new file includes the functionality of the g() function, so minimal
@@ -42,8 +40,8 @@ if 1:  # Header
     # Custom imports
         from wrap import wrap, dedent
         import get
-        from color import TRM as t
-        if 1:
+        from color import TRM as t, RegexpDecorate, Color
+        if 0:
             import debug
             debug.SetDebugger()
     # Global variables
@@ -72,47 +70,45 @@ if 1:   # Utility
         exit(status)
     def Usage(d, status=1):
         print(dedent(f'''
-    Usage:  {g.name} [options] arguments
-      Script to save/choose file or directory names.  When run, the
-      configuration file is read (change it with the -f option) and you
-      are prompted for a choice.  The file/directory you choose is
-      printed to stdout, letting e.g. a shell function change to that
-      directory or launch the file.
- 
-    Arguments are:
-        a       Adds current directory to top of configuration file
-        e       Edits the configuration file
-        n       Goes directly to the nth directory.  n can also be an
-                alias string.
-    Options are:
-        -a      Read and check all configuration file lines, then exit
-        -d      Debug printing:  show data file contents
-        -e f    Write result to file f
-        -f f    Set the name of the configuration file
-        -H      Explains details of the configuration file syntax
-        -l      Launch the file(s) with the registered application
-        -q      Print silent alias names (prefaced with {g.at})
-        -S      Search all lines in the config file for a regex
-        -s      Search the non-commented lines in the config file for a regex
-    '''))
+        Usage:  {g.name} [options] arguments
+          Script to save/choose file or directory names.  When run, the
+          configuration file is read (change it with the -f option) and you
+          are prompted for a choice.  The file/directory you choose is
+          printed to stdout, letting e.g. a shell function change to that
+          directory or launch the file.  All lines with paths in the config
+          file are checked to see if they are valid paths so that stale paths
+          don't accumulate.
+        Arguments are:
+            a       Adds current directory to top of configuration file
+            e       Edits the configuration file
+            n       Goes directly to the nth directory.  n can also be an
+                    alias string.
+        Options are:
+            -d      Debug printing:  show data file contents
+            -e f    Write result to file f
+            -f f    Set the name of the configuration file
+            -H      Explains details of the configuration file syntax
+            -l      Launch the file(s) with the registered application
+            -q      Print silent alias names (prefaced with {g.at})
+            -s      Search the non-commented lines in the config file for a regex.
+                    Prints out all non-commented lines with matches highlighted.
+        '''))
         exit(status)
     def ParseCommandLine(d):
-        d["-a"] = False     # Check non-commented config lines
         d["-d"] = False     # Show data file contents
         d["-e"] = None      # Write result to indicated file
         d["-f"] = None      # Name of the configuration file
         d["-H"] = False     # Show config file syntax
         d["-l"] = False     # Launch file
         d["-q"] = False     # Print silent alias names
-        d["-S"] = False     # Same as -s, but all lines
-        d["-s"] = False     # Search non-commented config lines for regex
+        d["-s"] = False     # Search config lines for regex
         try:
-            opts, args = getopt.getopt(sys.argv[1:], "ade:f:HhlqSs")
+            opts, args = getopt.getopt(sys.argv[1:], "de:f:Hhlqs")
         except getopt.GetoptError as e:
             print(str(e))
             exit(1)
         for o, a in opts:
-            if o[1] in list("adlqSs"):
+            if o[1] in list("dlqs"):
                 d[o] = not d[o]
             elif o == "-e":
                 d["-e"] = a
@@ -141,7 +137,8 @@ if 1:   # Utility
         thousand directories, it can be difficult to remember where
         something is that I worked on before.
         
-                            Configuration file
+        Configuration file
+        ------------------
         
         The lines of the configuration file have the following allowed forms:
         
@@ -169,16 +166,13 @@ if 1:   # Utility
         option was used.  These silent aliases are for things you use a
         lot and don't need to see in a listing.
         
-        When the configuration file is read in, the directory/filename
-        for each line is checked to see that it exists; if the file or
+        When the configuration file is read in, the directory/filename for
+        each line is checked to see that it exists; if the file or
         directory doesn't exist, an error message will be printed.  The
-        intent is to make sure that all the active directories and files
-        exist.  If you use the -a option, the same check is done but on
-        all lines in the file, even the ones that are commented out.
-        This helps you when you rename things, hopefully when it's close
-        enough in time to the renaming event to remember the new name.
+        intent is to make sure that all the directories and files exist.
         
-                        Launching project files
+        Launching project files
+        -----------------------
         
         I use the launching capability of this script in a number of
         shell commands.  When the -l option is included on the command
@@ -191,7 +185,8 @@ if 1:   # Utility
         Example:  'python {g.name} -l *.pdf' will launch all the PDF files
         in the current directory.
         
-                        Use in a POSIX environment
+        Use in a POSIX environment
+        --------------------------
         
         The following shell function can prompt you for a directory to go to,
         then go to that directory:
@@ -226,7 +221,9 @@ if 1:   # Core functionality
                 return True
         return False
     def CheckConfigFile(lines):
-        'For each line, verify the file exists'
+        '''For each line, verify the file exists.  Note we check all config
+        file lines if they contain '/'.
+        '''
         def BadLine(ln, line, msg):
             print(dedent(f'''
             {t.C}Line {ln} in configuration file is bad:
@@ -240,12 +237,6 @@ if 1:   # Core functionality
             if not line:
                 continue
             elif line[0] == "#":
-                # If it has two ## characters, always ignore it
-                if len(line) > 1 and line[1] == "#":
-                    continue
-                # It's a comment line.  We'll ignore it unless -a is used.
-                if not d["-a"]:
-                    continue
                 # If it doesn't contain a '/' it's a plain comment, so
                 # ignore it.
                 if "/" not in line:
@@ -271,8 +262,14 @@ if 1:   # Core functionality
                 BadLine(ln, line, "File/directory doesn't exist")
         if BadLine.bad:
             print(f"{t.C}Configuration file is '{g.config}{t.n}'")
-        if d["-a"]:
-            exit(0)
+        # Remove the commented lines
+        o = []
+        for item in lines:
+            n, line = item
+            ln = line.strip()
+            if ln and ln[0] != "#":
+                o.append(item)
+        return o
     def ReadConfigFile():
         'Read in the configuration file and check the lines'
         # Note:  we have to sequentially filter to ensure the lines list
@@ -281,11 +278,16 @@ if 1:   # Core functionality
                  enumerate(get.GetLines(g.config))]
         # Filter out blank lines
         lines = [(ln, line) for ln, line in lines if line.strip()]
-        # Filter out comments
-        if not d["-a"]:     
-            r = re.compile(r"^\s*#")
-            lines = [(ln, line) for ln, line in lines if not r.search(line)]
-        CheckConfigFile(lines)
+        if 0:
+            # Filter out comments
+            if not d["-a"]:     
+                r = re.compile(r"^\s*#")
+                lines = [(ln, line) for ln, line in lines if not r.search(line)]
+        # Filter out lines that begin with '##'
+        r = re.compile(r"^\s*##")
+        lines = [(ln, line) for ln, line in lines if not r.search(line)]
+        # Check all lines
+        lines = CheckConfigFile(lines)
         return lines
     def BackUpConfigFile():
         '''The configuration file is about to be modified, so save a
@@ -501,18 +503,14 @@ if 1:   # Core functionality
                     ActOn(dir)
                     return
     def SearchLines(regexps):
-        '''Find regexps on the gotorc file's lines'''
+        "Find regexps on the gotorc file's lines"
         lines = ReadConfigFile()
-        S = C.Style(C.yellow, C.black)
+        rd = RegexpDecorate()
         for regex in regexps:
             r = re.compile(regex, re.I)
+            rd.register(r, t(Color("yell")), t.n)
             for ln, line in lines:
-                mo = r.search(line)
-                if mo:
-                    match = True
-                    print(f"[{ln}]:  ", end="")
-                    C.PrintMatches(line, [[r, S]])
-                    print()
+                rd(line)
             if len(args) > 1:
                 print("-"*70)
     def ExecuteCommand(cmd, args):
@@ -520,7 +518,7 @@ if 1:   # Core functionality
             AddCurrentDirectory(args)
         elif cmd == "e":
             EditFile()
-        elif d["-s"] or d["-S"]:
+        elif d["-s"]:
             SearchLines([cmd].extend(args) if args else [cmd])    
         else:
             # cmd will be a number or alias
@@ -528,10 +526,9 @@ if 1:   # Core functionality
 if __name__ == "__main__":
     d = {}      # Options dictionary
     args = ParseCommandLine(d)
-    if not args:
-        cmd, other = "", []
-    elif len(args) == 1:
+    cmd, other = "", []
+    if len(args) == 1:
         cmd, other = args[0], []
-    else:
+    elif len(args) > 1:
         cmd, other = args[0], args[1:]
     ExecuteCommand(cmd, other)

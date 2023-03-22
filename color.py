@@ -1453,9 +1453,10 @@ class RegexpDecorate:
     
             rd = RegexpDecorate()
             r = re.compile(r"[Mm]adison")
-            fg = Color("yell")
-            rd.register(r, fg, None)    # Print matches in light yellow
-    
+            fg = t(Color("yell"))
+            bg = t.n
+            # Note fg and bg must be escape sequences
+            rd.register(r, fg, bg)    # Print matches in light yellow on black
             for line in open(file).readlines():
                 rd(line)    # Lines with matches are printed to stdout
     
@@ -1473,7 +1474,7 @@ class RegexpDecorate:
         with
             rd = RegexpDecorate()
             r = re.compile(r"Elizabeth|Lizzy", re.I)
-            rd.register(r, Color("yell"))
+            rd.register(r, t(Color("yell")), t.n)
             rd(pnp)
     
         Suppose you have python files in a directory "mydir" and you're
@@ -1482,7 +1483,7 @@ class RegexpDecorate:
             rd = RegexpDecorate()
             r = re.compile(r"MySymbol")
             files = pathlib.Path("mydir").glob("*.py")
-            rd.register(r, Color("yell"))
+            rd.register(r, t(Color("yell")), t.n)
             rd(*files)
     
         A command line tool like grep is capabile of more precise searching
