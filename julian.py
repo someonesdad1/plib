@@ -18,6 +18,11 @@ Julian day routines
     begins at Greenwich mean noon.  The Julian() function returns the
     more usual Julian day as an integer; it is gotten from the
     astronomical form by adding 0.55 and taking the integer part.
+
+    DecodeDateString() is used to decode date strings of the form
+    '24Mar2023:20:33:18.0'.  These are used by the hc.py calculator
+    program for date arithmetic.
+
 '''
 if 1:  # Copyright, license
     # These "trigger strings" can be managed with trigger.py
@@ -32,7 +37,8 @@ if 1:  # Copyright, license
     # for Calculators".
     #∞what∞#
     #∞test∞# run #∞test∞#
-    pass
+    import re
+    import months
 def NumDaysInMonth(month, year):
     if month == 2:
         return 29 if IsLeapYear(year) else 28
@@ -170,6 +176,48 @@ def Julian1(s):
     assert(len(s) == 8)
     year, month, day = int(s[0:4]), int(s[4:6]), int(s[6:8])
     return Julian(month, day, year)
+def DecodeDateString(s):
+    '''The string s can have the following forms:
+        '24Mar2023'
+        '24Mar2023:20:33:18.0'      
+        '20:33:18.0'
+    These are converted to an astronomical Julian day number.  The
+    canonical use is the hc.py script, which uses dates/times in this
+    way for date arithmetic.  Returns None if not a suitable date string.
+    '''
+    s = s.lower()
+DecodeDateString.r = "jan feb mar apr may jun jul aug sep oct nov dec".split()
+
+if 1:
+    s = '24Mar2023'
+    s = '24Mar2023:20:33:18.0'
+    if 1: # Find date
+        a = "jan feb mar apr may jun jul aug sep oct nov dec".split()
+        b = rf"^(\d?\d)({'|'.join(a)})([+-]?\d+)"
+        rd = re.compile(b, re.I)
+        mo = rd.search(s)
+        if mo:
+            print("Date:")
+            print(mo)
+            print(mo.groups())
+            d, mo, y = mo.groups()
+            m = months.months_lc(mo.lower())
+            y, d = int(y), int(d)
+            j = JulianAstro(m, d, y)
+            print("julian =", j)
+    if 1: # Find time
+        b = rf"(:\d\d)"
+        rt = re.compile(b, re.I)
+        mo = rt.search(s)
+        if mo:
+            print("Time:")
+            print(mo)
+
+    from modified import Modified
+    from pathlib import Path
+    Modified(Path("julian.py"))
+    exit()
+
 if __name__ == "__main__": 
     from lwtest import run, raises, assert_equal
     from pdb import set_trace as xx
