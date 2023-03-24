@@ -1,16 +1,5 @@
 Active
 
-    - pgm/trip.py
-        - Make it easy to print out various things with a road trip
-        - Basic output is list of destinations with mileage between them
-          and cumulative mileage
-            - Option lets you specify reverse direction for return trip
-        - This lets you see at a glance:
-            - Next major city on what highway
-            - How many miles from previous city
-            - Total miles traveled
-            - Miles left to destination
-
     - pgm/c++_units.py
         - Update to python 3
         - Find docs & put on HU
@@ -28,14 +17,6 @@ Active
             - a d     Push the indicated directory d onto the stack
             - p d     Push the indicated directory d onto the stack
             - l       Show the contents of the config file
-
-    - goto.py
-        - The commented-out stuff should also be read in and parsed, then
-          put into a secondary data structure.  This allows older things to
-          be used or, if an alias isn't recognized in the primary data
-          structre, the secondary structure can be used.
-        - If an alias isn't found, then a list of search matches on
-          directory and file stuff can be done and a list given.
 
     - flt.py
         - Using the recent work on 'Classes derived from flt for physical
@@ -92,8 +73,7 @@ Active
 
 Inactive
 
-    - pgm/pur.py
-        - Script to keep track of purchases
+    - pgm/pur.py    Keep track of purchases
         - Example:  when did I last buy a set of 357 batteries?
         - Data (variable names for specifying search; defaults to nm)
             - nm = name
@@ -106,11 +86,10 @@ Inactive
             - cat = category
         - Search for regex is default behavior
 
-    - pgm/uni.py
-        - Allow a search for letters similar to a Latin letter.  
-            - un "LETTER M" |grep '\<M\>' yields a list of things that look
-              like the basic ASCII letter m.
-            - Also combine this with the mappings in asciify.py.
+    - pgm/uni.py    Search for letters similar to a Latin letter
+        - un "LETTER M" |grep '\<M\>' yields a list of things that look
+            like the basic ASCII letter m.
+        - Also combine this with the mappings in asciify.py.
 
     - pgm/readability.py
         - Add an option to let you see the histograms of the readability
@@ -118,9 +97,7 @@ Inactive
         - Add -w to print out a list of the unique words in the file.  -W
           does the same but maintains case.
 
-    - DMM accuracy tool
-        - Script to allow you to estimate uncertainty of a DMM's
-          measurements
+    - DMM accuracy tool:  Estimate uncertainty of a DMM's measurements
         - Look at Siglent_SDM3055_5digit_DMM_datasheet.pdf for an example
           of the table specs on page 4
         - Inputs 

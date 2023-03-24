@@ -1,7 +1,7 @@
 '''
 Format floating point numbers
     Run the module as a script to see example output.
-
+ 
     This module provides string interpolation ("formatting") for floating
     point number types.  If x is float(math.pi), str(x) or repr(x) return
     '3.141592653589793', which contains too many digits for casual
@@ -13,29 +13,29 @@ Format floating point numbers
  
     The read-write attributes of a Fmt instance provide more control over
     the formatting:
-
+ 
     n       Sets the number of digits to use.
-
+ 
     dp      Sets the radix (decimal point) to either "." or ",".
-
+ 
     low     Numbers below this value are displayed with scientific
             notation.  Set to None to always have small numbers displayed
             in fixed point.
-
+ 
     high    Numbers above this value are displayed with scientific
             notation.  Set to None to always have large numbers displayed
             in fixed point.
-
+ 
     u       If True, display scientific and engineering notations with
             Unicode exponents.
-
+ 
     rlz     If True, remove leading zero digit in fixed point strings.
             Example:  -0.284 is "-0.284" if False, "-.284" if True.
-
+ 
     rtz     If True, remove trailing zero digits.
-
+ 
     rtdp    If True, remove the trailing radix if it ends the string.
-
+ 
 '''
 if 1:  # Header
     # Copyright, license
@@ -248,7 +248,30 @@ class Fmt:
         '''Format value with the default "fix" formatter.  n overrides
         self.n digits.  fmt can be "fix", "sci", "eng", "engsi", or "engsic".
         '''
-        x = self.toD(value)
+        x = 0
+        try:
+            x = self.toD(value)
+            abs(x)
+        except (decimal.InvalidOperation, decimal.Overflow) as e:
+            # If we get here, we likely have a value number that has an
+            # exponent too large or small for the default Decimal context.
+            # We'll return a sci formatted value.
+            s = str(value).lower()
+            try:
+                m, e = s.split("e")
+            except Exception:
+                raise ValueError(f"{value!r} can't be formatted")
+            assert("." in m or "," in m)
+            radix = "."
+            if "," in m:
+                radix = ","
+            m = m.replace(radix, "")
+            m = m[:self.n]
+            if len(m) > 1:
+                m = m[0] + radix + m[1:]
+            if e[0] == "+":
+                e = e[1:]
+            return m + "e" + e
         if fmt not in "fix sci eng engsi engsic".split():
             raise ValueError(f"'{fmt}' is unrecognized format string")
         if fmt == "fix":
@@ -716,6 +739,20 @@ if __name__ == "__main__":
             f = Init()
         CompareToFPFormat()
         Other()
+    def Test_ReallyBig():
+        '''The Fmt object uses Decimal numbers to do the formatting.  This
+        works for most stuff, but will fail when dealing with exponents
+        beyond around a million, the default for Decimal.  This should only
+        happend for mpmath.mpf numbers.  In this case, simple sci
+        formatting is done.
+        '''
+        if not have_mpmath:
+            return
+        mpmath.mp.dps = 50
+        x = mpmath.mpf(mpmath.pi)**(10**100)
+        s = ("3.76e4971498726941338543512682882908988736516783243804425858"
+             "528617907843433628490660912792300428115847331")
+        Assert(fmt(x, 3) == s)
     # Module's base code
     def Error(msg, status=1):
         print(msg, file=sys.stderr)
