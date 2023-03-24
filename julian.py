@@ -254,25 +254,6 @@ def DecodeDateString(s):
         # '24Mar2023' form
         year, month, day = DecodeDate(s)
         return Julian(month, day, year)
-DecodeDateString.r = "jan feb mar apr may jun jul aug sep oct nov dec".split()
-
-if __name__ == "__main__": 
-    if 0:
-        x = DecodeDateString("@16:54")
-        print("Decoded date string", x)
-        print("JulianNow()        ", JulianNow())
-        print("JulianToday()      ", JulianToday())
-        exit() #xx
-    if 0:
-        x = DecodeDateString("24Mar2023")
-        print("Decoded date string", x)
-        print("JulianToday()      ", JulianToday())
-        exit() #xx
-    if 0:
-        x = DecodeDateString("24Mar2023@17:38")
-        print("Decoded date string", x)
-        print("JulianNow()        ", JulianNow())
-        exit() #xx
 
 if __name__ == "__main__": 
     from lwtest import run, raises, assert_equal
