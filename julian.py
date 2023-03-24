@@ -37,8 +37,12 @@ if 1:  # Copyright, license
     # for Calculators".
     #∞what∞#
     #∞test∞# run #∞test∞#
+    # Standard libraries
+    import math
     import re
+    # Custom libraries
     import months
+    import iso
 def NumDaysInMonth(month, year):
     if month == 2:
         return 29 if IsLeapYear(year) else 28
@@ -153,12 +157,8 @@ def JulianAstro(month, day, year):
     if month < 3:
         year = year - 1
         month = month + 12
-    # Meeus pg 60 warns that the int() function from some programming
-    # languages doesn't behave as needed; hence, we define Int such that
-    # Int(-7.5) == -8.
-    def Int(x):
-        return int(x) if x >= 0 else int(x) - 1
-    julian = Int(365.25*year) + Int(30.6001*(month + 1)) + day + 1720994.5
+    julian = (math.floor(365.25*year) + math.floor(30.6001*(month + 1)) +
+              day + 1720994.5)
     tmp = year + month/100 + day/10000
     if tmp >= 1582.1015:
         A = year//100
@@ -176,47 +176,104 @@ def Julian1(s):
     assert(len(s) == 8)
     year, month, day = int(s[0:4]), int(s[4:6]), int(s[6:8])
     return Julian(month, day, year)
+def JulianNow():
+    'Return Julian astronomical day number for now in current local time'
+    tm = iso.time()
+    i = iso.ISO()
+    i.set(iso.localtime(tm))
+    tm = str(i)
+    dt, tm = tm.split("-")
+    jd = Julian1(dt)
+    h, m, s = [int(i) for i in tm.split(":")]
+    jd += (h + (m + s/60)/60)/24
+    return jd
+def JulianToday():
+    'Return Julian astronomical day number for beginning of today'
+    return int(JulianNow())
 def DecodeDateString(s):
     '''The string s can have the following forms:
         '24Mar2023'
-        '24Mar2023:20:33:18.0'      
-        '20:33:18.0'
-    These are converted to an astronomical Julian day number.  The
-    canonical use is the hc.py script, which uses dates/times in this
-    way for date arithmetic.  Returns None if not a suitable date string.
+        '24Mar2023@20:33:18.0'      
+        '@20:33:18.0'
+    These are converted to an astronomical Julian day number.  Returns None
+    if s is not a suitable date string.
     '''
-    s = s.lower()
+    def DecodeDate(dt):
+        assert(len(dt) > 4)
+        digits = set("0123456789")
+        d = list(dt)
+        # Get day
+        s = d.pop(0)
+        if d[0] in digits:
+            s += d.pop(0)
+        day = int(s)
+        assert(d[0] not in digits)
+        # Get month
+        s = ''.join(d[:3]).lower()
+        month = months.months_lc(s)
+        # Get year
+        year = int(''.join(d[3:]))
+        return (year, month, day)
+    def DecodeTime(tm):
+        'Return number of days of the time on [0.5, 1.5)'
+        try:
+            f = tm.split(":")
+            assert(f)
+            hours = int(f.pop(0))
+            if f:
+                minutes = int(f.pop(0))
+                hours += minutes/60
+            if f:
+                seconds = float(f.pop(0)) # Seconds
+                hours += seconds/3600
+            assert(0 <= hours < 24)
+            # Subtract 12 hours because noon is 0.5 day
+            hours -= 12
+            return hours/24 + 0.5
+        except Exception:
+            return None
+    s = s.strip().lower()
+    if not s:
+        return None
+    if s[0] == "@":
+        # '@20:33:18.0' form
+        days = DecodeTime(s[1:])
+        if days is None:
+            return None
+        # Add it to today's date
+        jd = JulianToday()
+        return jd + days
+    elif "@" in s:
+        # '24Mar2023@20:33:18.0' form
+        dt, tm = s.split("@")
+        days = DecodeTime(tm)
+        year, month, day = DecodeDate(dt)
+        jd = Julian(month, day, year)
+        return jd + days
+    else:
+        # '24Mar2023' form
+        year, month, day = DecodeDate(s)
+        return Julian(month, day, year)
 DecodeDateString.r = "jan feb mar apr may jun jul aug sep oct nov dec".split()
 
-if 1:
-    s = '24Mar2023'
-    s = '24Mar2023:20:33:18.0'
-    if 1: # Find date
-        a = "jan feb mar apr may jun jul aug sep oct nov dec".split()
-        b = rf"^(\d?\d)({'|'.join(a)})([+-]?\d+)"
-        rd = re.compile(b, re.I)
-        mo = rd.search(s)
-        if mo:
-            print("Date:")
-            print(mo)
-            print(mo.groups())
-            d, mo, y = mo.groups()
-            m = months.months_lc(mo.lower())
-            y, d = int(y), int(d)
-            j = JulianAstro(m, d, y)
-            print("julian =", j)
-    if 1: # Find time
-        b = rf"(:\d\d)"
-        rt = re.compile(b, re.I)
-        mo = rt.search(s)
-        if mo:
-            print("Time:")
-            print(mo)
-
-    from modified import Modified
-    from pathlib import Path
-    Modified(Path("julian.py"))
-    exit()
+if __name__ == "__main__": 
+    if 0:
+        if 0:
+            x = DecodeDateString("@16:54")
+            print("Decoded date string", x)
+            print("JulianNow()        ", JulianNow())
+            print("JulianToday()      ", JulianToday())
+            exit() #xx
+        if 0:
+            x = DecodeDateString("24Mar2023")
+            print("Decoded date string", x)
+            print("JulianToday()      ", JulianToday())
+            exit() #xx
+        if 1:
+            x = DecodeDateString("24Mar2023@17:38")
+            print("Decoded date string", x)
+            print("JulianNow()        ", JulianNow())
+            exit() #xx
 
 if __name__ == "__main__": 
     from lwtest import run, raises, assert_equal

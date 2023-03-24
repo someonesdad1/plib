@@ -9,6 +9,13 @@ to notify of a change in a file.
     Modified(Path(Path("myscript.py"), "Working on bug fix")) just before
     the exit() call, the message will be seen when other code tries to use
     that library and you'll be able to fix things.
+
+Example usage:
+
+    from modified import Modified, Path
+    Modified(Path("myscript.py"))
+    exit()
+
 '''
 if 1:   # Header
     if 1:   # Copyright, license
@@ -26,7 +33,7 @@ if 1:   # Header
         #∞test∞# #∞test∞#
         pass
     if 1:   # Standard imports
-        from pathlib import Path as P
+        from pathlib import Path
     if 1:   # Custom imports
         from color import t
 if 1:   # Core functionality
