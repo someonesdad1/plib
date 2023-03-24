@@ -258,26 +258,34 @@ DecodeDateString.r = "jan feb mar apr may jun jul aug sep oct nov dec".split()
 
 if __name__ == "__main__": 
     if 0:
-        if 0:
-            x = DecodeDateString("@16:54")
-            print("Decoded date string", x)
-            print("JulianNow()        ", JulianNow())
-            print("JulianToday()      ", JulianToday())
-            exit() #xx
-        if 0:
-            x = DecodeDateString("24Mar2023")
-            print("Decoded date string", x)
-            print("JulianToday()      ", JulianToday())
-            exit() #xx
-        if 1:
-            x = DecodeDateString("24Mar2023@17:38")
-            print("Decoded date string", x)
-            print("JulianNow()        ", JulianNow())
-            exit() #xx
+        x = DecodeDateString("@16:54")
+        print("Decoded date string", x)
+        print("JulianNow()        ", JulianNow())
+        print("JulianToday()      ", JulianToday())
+        exit() #xx
+    if 0:
+        x = DecodeDateString("24Mar2023")
+        print("Decoded date string", x)
+        print("JulianToday()      ", JulianToday())
+        exit() #xx
+    if 0:
+        x = DecodeDateString("24Mar2023@17:38")
+        print("Decoded date string", x)
+        print("JulianNow()        ", JulianNow())
+        exit() #xx
 
 if __name__ == "__main__": 
     from lwtest import run, raises, assert_equal
     from pdb import set_trace as xx
+    def TestDecodeDateString():
+        x = DecodeDateString("24Mar2023")
+        assert_equal(x, 2460028)
+        x = DecodeDateString("24Mar2023@17:38")
+        expected = 0.734722222
+        assert_equal(round(x - 2460028, 9), expected)
+        x = DecodeDateString("@17:38")
+        now = JulianToday()
+        assert_equal(round(x - now, 9), expected)
     def TestJulian():
         assert_equal(Julian(12, 31, 1989), 2447892)
         assert_equal(Julian1("19891231"), 2447892)
