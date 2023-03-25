@@ -1,13 +1,18 @@
-#TODO
-#  * Convert token naming conversions to a class
-#  * Missing tests for GetString, WordID
 '''
+
+Todo
+    - FindStrings(seq, str, ignorecase=False):  return sequence of indexes of
+      where in str the strings in seq are found.
+    - Convert token naming conversions to a class
+    - Missing tests for GetString, WordID
+
 String utilities
     Chop             Return a string chopped into equal parts
     CommonPrefix     Return a common prefix of a sequence of strings
     CommonSuffix     Return a common suffix of a sequence of strings
     FilterStr        Return a function that removes characters from strings
     FindDiff         Return where two strings first differ
+    FindStrings      Find locations of a sequence of strings in a string
     FindSubstring    Return indexes of substring in string
     GetChoice        Return choice from a set of choices (minimizes typing)
     GetLeadingWhitespace
@@ -322,6 +327,27 @@ if 1:   # Core functionality
         # If we get here, every character matched up to the end of the
         # shorter string.
         return -1
+    def FindStrings(seq, str, ignorecase=False):
+        '''Return list of (i, j) pairs which indicate where the strings in
+        sequence seq (index i) are located in string str (index j).  An
+        empty list is returned if there are no matches.
+ 
+        Example:
+            seq = "Jan Feb Mar".split()
+            str = "1Jan2001"
+            found = FindStrings(seq, str)
+            Then found is [(0, 1)]
+        '''
+        found, s, sq = [], str, seq
+        if ignorecase:
+            # Make copy so we don't change the original seq
+            s = str.lower()
+            sq = [i.lower() for i in seq]
+        for i, u in enumerate(sq):
+            j = str.find(u)
+            if j != -1:
+                found.append((i, j))
+        return found
     def FindSubstring(mystring, substring):
         '''Return a tuple of the indexes of where the substring is found
         in the string mystring.
@@ -905,6 +931,19 @@ if __name__ == "__main__":
     import os
     from sig import sig
     from color import TRM as t
+    def Test_FindStrings():
+        seq = "Jan Feb Mar".split()
+        str = "1Jan2001"
+        found = FindStrings(seq, str)
+        Assert(found == [(0, 1)])
+        # Show case insensitivity works
+        str = "1jan2001"
+        found = FindStrings(seq, str, ignorecase=True)
+        Assert(found == [(0, 1)])
+        # Show get empty list on no matches
+        str = ""
+        found = FindStrings(seq, str, ignorecase=True)
+        Assert(not found)
     def Test_Scramble():
         random.seed("0")
         s = '"Yes", said John. Åé—'
