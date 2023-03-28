@@ -37,7 +37,9 @@ Debugging tools
             ThisFilename()
     
     fln()
-        File & line number if debug.on is True.
+        File & line number string if debug.on is True.
+    filelinenum()
+        (file, line_number) if debug.on is True.
     
     ShowFunctionCall decorator [Beazley]
     
@@ -434,13 +436,17 @@ def ShowFunctionCall(func):
         return callf
     else:
         return func
-def fln(brackets=True):
+def fln(brackets=True, lst=True):
     'Return a string showing the file and line number if debug is on.'
     s = TB.extract_stack()[-2:][0]
     t = "{}:{}".format(s[0], s[1]) if __debug__ else ""
     if brackets:
         t = "[{}]".format(t)
     return t
+def filelinenum():
+    'Return (file, linenum)'
+    s = TB.extract_stack()[-2:][0]
+    return (s[0], s[1]) if __debug__ else tuple()
 class AutoIndent(object):
     '''Indent debug output based on function call depth.  Adapted from
     code by Lonnie Princehouse (submitted 26 Apr 2005) at

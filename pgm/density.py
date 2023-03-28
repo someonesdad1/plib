@@ -1,6 +1,7 @@
 '''
 TODO
     
+    - -d doesn't work for range data (e.g., human urine is 1-1.03)
     - CO2 gas at 1.8 from pht can't be correct
     - Move density data to a datafile and use GetLines to retrieve.  In
       fact, it probably ought to be put into densitydb.py, a module in
@@ -846,6 +847,9 @@ if 1:   # Global variables
     Turpentine                                     ; .87         ; aes 90
     Turpentine                                     ; .87         ; glo 390
     Turpentine 25 °C                                ; .8682       ; sim
+    Urine, human, normal, adult                     ; 1.003-1.035 ; wp
+    Urine, human, normal, infant up to 2 years      ; 1.001-1.008 ; web
+    Urine, human, normal, newborns                  ; 1.012       ; web
     Water (4 °C)                                    ; 1.00        ; aes 90
     Water (4 °C)                                    ; 1.00        ; glo 390
     Water, (0 °C & 1 atm)                           ; 0.9999      ; aes 89

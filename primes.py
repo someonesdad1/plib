@@ -1,4 +1,9 @@
 '''
+
+ToDo
+    - Use /usr/bin/factor to do factoring of large integers, as it's much
+      faster than this python code
+
 Contains various routines related to prime numbers and factors.
  
 If you run this file as a script, it will print out prime numbers and

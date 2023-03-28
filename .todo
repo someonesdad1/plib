@@ -4,6 +4,10 @@ Active
         - Update to python 3
         - Find docs & put on HU
 
+    - ~/bin/math
+        - Runs a python script that finds all functions in math/cmath and
+          figures out the return values of each call.
+
     - dev/cos
 
     - H utility
