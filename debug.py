@@ -436,7 +436,7 @@ def ShowFunctionCall(func):
         return callf
     else:
         return func
-def fln(brackets=True, lst=True):
+def fln(brackets=True):
     'Return a string showing the file and line number if debug is on.'
     s = TB.extract_stack()[-2:][0]
     t = "{}:{}".format(s[0], s[1]) if __debug__ else ""
