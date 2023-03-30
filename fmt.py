@@ -61,6 +61,7 @@ if 1:  # Header
         import decimal
         import collections 
         import locale 
+        import math 
         from fraction import Fraction
         from pdb import set_trace as xx 
     # Custom imports
@@ -73,6 +74,7 @@ if 1:  # Header
         D = Decimal = decimal.Decimal
         ii = isinstance
         __all__ = "D Fmt fmt".split()
+
 class Fmt:
     # Key to _SI_prefixes dict is exponent//3
     _SI_prefixes = dict(zip(range(-8, 9), list("yzafpnμm.kMGTPEZY")))
@@ -93,6 +95,11 @@ class Fmt:
         self._rtz = False               # Remove trailing zeros if True
         self._rtdp = False              # Remove trailing radix if True
         self._rlz = False               # Remove leading zero if True
+        # Attributes for complex numbers
+        self._imag_unit = "i"           # Imaginary unit
+        self._polar = False             # Use polar coord for complex
+        self._deg = True                # Use degrees for angles
+        self._cuddled = False           # Use 'a+bi' if True
     def toD(self, value) -> Decimal:
         '''Convert value to a Decimal object.  Supported types are int,
         float, Fraction, Decimal, str, mpmath.mpf, and any other type
@@ -244,10 +251,61 @@ class Fmt:
         else:
             raise ValueError(f"'{fmt}' is an unrecognized format")
         return ''.join(dq)
+    def Complex(self, value, fmt="fix", n=None) -> str:
+        '''value is a complex number.  Return a string in the form of 
+        'a + bi'.
+        '''
+        e = TypeError(f"value {value!r} must be complex")
+        if have_mpmath:
+            if not ii(value, (complex, mpmath.mpc)):
+                raise e
+        else:
+            if not ii(value, complex):
+                raise e
+        if self.polar:
+            r = value.real
+            i = value.imag
+            s = "" if self.cuddled else " "
+            if have_mpmath:
+                mag = (r*r + i*i)**(0.5)
+                angle = mpmath.atan2(i, r)
+                if self._deg:
+                    angle *= 180/mpmath.pi
+                a = self(mag, fmt=fmt, n=n)
+                b = self(angle, fmt=fmt, n=n)
+                if self._deg:
+                    b += "°"
+                return f"{a}{s}∠{s}{b}"
+            else:
+                mag = (r*r + i*i)**(0.5)
+                angle = math.atan2(i, r)
+                if self._deg:
+                    angle *= 180/math.pi
+                a = self(mag, fmt=fmt, n=n)
+                b = self(angle, fmt=fmt, n=n)
+                if self._deg:
+                    b += "°"
+                return f"{a}{s}∠{s}{b}"
+        else:
+            sr = self(value.real)
+            si = self(value.imag)
+            # Get imaginary sign
+            sign = "+"
+            if si[0] == "-":
+                sign = "-"
+                si = si[1:]
+            s = "" if self.cuddled else " "
+            ret = f"{sr}{s}{sign}{s}{si}{self._imag_unit}"
+            return ret
+
     def __call__(self, value, fmt="fix", n=None) -> str:
         '''Format value with the default "fix" formatter.  n overrides
         self.n digits.  fmt can be "fix", "sci", "eng", "engsi", or "engsic".
         '''
+        if ii(value, complex):
+            return self.Complex(value, fmt=fmt, n=n)
+        elif have_mpmath and ii(value, mpmath.mpc):
+            return self.Complex(value, fmt=fmt, n=n)
         x = 0
         try:
             x = self.toD(value)
@@ -257,20 +315,33 @@ class Fmt:
             # exponent too large or small for the default Decimal context.
             # We'll return a sci formatted value.
             s = str(value).lower()
+            # Remove minus or plus signs
+            minus = ""
+            if s[0] == "+":
+                s = s[1:]
+            elif s[0] == "-":
+                s = s[1:]
+                minus = "-"
             try:
+                # m will be the significand, e will be the exponent
                 m, e = s.split("e")
             except Exception:
                 raise ValueError(f"{value!r} can't be formatted")
-            assert("." in m or "," in m)
             radix = "."
             if "," in m:
                 radix = ","
             m = m.replace(radix, "")
             m = m[:self.n]
             if len(m) > 1:
-                m = m[0] + radix + m[1:]
+                m = minus + m[0] + radix + m[1:]
             if e[0] == "+":
                 e = e[1:]
+            if self.u:
+                # Use Unicode characters for power of 10
+                o = ["✕10"]
+                for c in e:
+                    o.append(Fmt._superscripts[c])
+                return m + ''.join(o)
             return m + "e" + e
         if fmt not in "fix sci eng engsi engsic".split():
             raise ValueError(f"'{fmt}' is unrecognized format string")
@@ -345,7 +416,50 @@ class Fmt:
         @rlz.setter
         def rlz(self, value):
             self._rlz = bool(value)
+    if 1:   # Complex number properties
+        @property
+        def imag_unit(self) -> str:
+            'Imaginary unit string'
+            return self._imag_unit
+        @imag_unit.setter
+        def imag_unit(self, value):
+            assert(ii(value, str) and len(value) > 0)
+            self._imag_unit = value
+        @property
+        def polar(self) -> bool:
+            '(bool) Show complex numbers in polar form'
+            return self._polar
+        @polar.setter
+        def polar(self, value):
+            self._polar = bool(value)
+        @property
+        def deg(self) -> bool:
+            "(bool) Show complex number's angles in degrees"
+            return self._polar
+        @deg.setter
+        def deg(self, value):
+            self._deg = bool(value)
+        @property
+        def cuddled(self) -> bool:
+            "(bool) Show complex number's angles in degrees"
+            return self._cuddled
+        @cuddled.setter
+        def cuddled(self, value):
+            self._cuddled = bool(value)
 fmt = Fmt()     # Convenience instance
+
+if 1:
+    # Develop handling of complex numbers
+    fmt.u = 0
+    fmt.rtz = 1
+    fmt.rtdp = 1
+    fmt.imag_unit="j"
+    fmt.cuddled = 0
+    fmt.polar = 1
+    x = mpmath.mpc(1, 2)
+    z = complex(1, 2)
+    print(fmt(z, n=2))
+    exit()
 
 if __name__ == "__main__": 
     if 1:   # Header
