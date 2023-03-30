@@ -297,7 +297,6 @@ class Fmt:
             s = "" if self.cuddled else " "
             ret = f"{sr}{s}{sign}{s}{si}{self._imag_unit}"
             return ret
-
     def __call__(self, value, fmt="fix", n=None) -> str:
         '''Format value with the default "fix" formatter.  n overrides
         self.n digits.  fmt can be "fix", "sci", "eng", "engsi", or "engsic".
@@ -448,7 +447,7 @@ class Fmt:
             self._cuddled = bool(value)
 fmt = Fmt()     # Convenience instance
 
-if 1:
+if 0:
     # Develop handling of complex numbers
     fmt.u = 0
     fmt.rtz = 1
