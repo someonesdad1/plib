@@ -13,7 +13,7 @@ if 1:   # Classes
             self.radix = "."
             # Attributes for complex numbers
             self.imag_unit = "i"
-            self.cuddled = False
+            self.cuddled = ""
             self.polar = False
             self.deg = False
         def sigexp(self, x, n=None):
@@ -54,12 +54,17 @@ if 1:   # Classes
                 re = self(r, fmt=fmt, n=n)
                 im = self(abs(i), fmt=fmt, n=n)
                 u = " " if self.cuddled else ""
-                s = f"{re}{u}{sgn}{u}{im}"
+                s = f"{re}{u}{sgn}{u}{im}{self.imag_unit}"
                 return s
             elif ii(x, M.mpf): 
                 sgn, m, e = self.sigexp(x)
                 s = str(m)
-                return f"{sgn}{s[0] + self.radix + s[1:]}e{e}"
+                if fmt == "fix":
+                elif fmt == "sci":
+                    return f"{sgn}{s[0] + self.radix + s[1:]}e{e}"
+                elif fmt == "eng":
+                    # xx Need to adjust exponent
+                    return f"{sgn}{s[0] + self.radix + s[1:]}e{e}"
             elif ii(x, int): 
                 pass
             else:
@@ -68,8 +73,16 @@ if 1:   # Classes
 if __name__ == "__main__": 
     fmt = Fmt()
     fmt.n = 2
+    fmt.radix = "."
+    fmt.imag_unit = "i"
+    fmt.cuddled = ""
+    fmt.polar = False
+    fmt.deg = False
     def Test_complex():
-        z = M.mpc(1, 2)
+        z = M.mpc(1.2, -3.4)
         s = fmt(z)
-        Assert(s == "1.0e0+2.0e0")
+        Assert(s == "1.2e0-3.4e0i")
+        fmt.cuddled = " "
+        s = fmt(z)
+        Assert(s == "1.2e0 - 3.4e0i")
     exit(run(globals(), halt=True)[0])
