@@ -1,5 +1,10 @@
 Active
 
+    - pgm/chklnk.py
+        - For each file on the command line, extract the http:// links and
+          check if they are broken.  For OO files, it's a zip file and you
+          just read each XML file.
+
     - pgm/c++_units.py
         - Update to python 3
         - Find docs & put on HU
