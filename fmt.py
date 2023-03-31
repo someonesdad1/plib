@@ -496,7 +496,7 @@ if __name__ == "__main__":
             Formatting (string interpolation) is gotten by calling the Fmt instance
             as a function:  {t.f}f(number){t.n}.  number can be anything that can be converted
             to a python Decimal instance, such as integer, float, Fraction, string,
-            mpmath mpf type, etc.
+            mpmath mpf type, etc.  Support for complex numbers is included.
  
         '''))
         s = "pi*1e5"
@@ -584,6 +584,14 @@ if __name__ == "__main__":
         {t.t}Engineering SI notation means to append an SI prefix to indicate the number's
         magnitude.  This lets you append a physical unit string to get proper SI
         syntax:  {t.u}{f(x, 'engsi')}Ω{t.n}.
+        ''', n=8))
+        # Complex numbers
+        s = "complex(3.45, -6.78)"
+        t.print(dedent(f'''
+        Complex numbers are also handled by formatting each component separately.  
+            'z = {s}' formats to {fmt(eval(s))}
+        You can use Fmt attributes of {t.f}imag_unit{t.n}, {t.f}polar{t.n}, {t.f}deg{t.n}, and {t.f}cuddled{t.n} to control the
+        number's appearance and change to polar coordinates.
         ''', n=8))
     # Test code 
     def Init():
