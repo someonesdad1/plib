@@ -28,7 +28,7 @@ if 1:   # Imports
 if 1:   # Custom imports
     from columnize import Columnize
     from wrap import dedent, wrap
-    import color as color
+    from color import t as T, RegexpDecorate
     from lwtest import run, raises, assert_equal, Assert
     if 0:
         import debug
@@ -51,13 +51,33 @@ if 1:   # Global variables
     g.I = 0
     # True for debug output
     g.debug = False
+    # Regex decorator
+    g.rd = RegexpDecorate()
 def EnableColor(state=0):
     '''state is 0, 1 or 2.  If 0, color is enabled when stdout is a TTY.
     If 1, color is enabled for all output.  If 2, color is disabled.
     '''
-    C = color.C
-    S = color.Style(color.lred, color.black)
-    g.PrintMatch = partial(color.PrintMatch, style=S)
+    if 0:   # Old color stuff
+        C = color.C
+        S = color.Style(color.lred, color.black)
+        g.PrintMatch = partial(color.PrintMatch, style=S)
+    else:
+        def Decorate(line, mo):
+            '''mo will either be a match object with a compiled regexp or a
+            string if d['-t'] is True.  Make sure the g.rd object has this 
+            regex/string's signature in its style dict.
+            '''
+            fg, bg = T("yell"), T.n
+            if ii(mo, str):
+                g.rd.register(re.compile(mo), fg, bg)
+            else:
+                if mo not in g.rd._styles:
+                    g.rd.register(mo, fg, bg)
+            if "\n" not in line:
+                g.rd(line + "\n")
+            else:
+                g.rd(line)
+        g.PrintMatch = Decorate
     if state == 0:      # Color if stdout is a TTY
         def f(x):
             return x if g.istty else ""
@@ -72,13 +92,13 @@ def EnableColor(state=0):
         g.PrintMatch = lambda x, y: print(x)
     else:
         raise ValueError("Programming bug:  state has bad value")
-    g.fn = f(C.lwht)    # Match filename color
-    g.co = f(C.lcyn)    # Match colon color
-    g.ln = f(C.lmag)    # Match line number color
-    g.ma = f(C.lyel)    # Match color
-    g.ba = f(C.blk)     # Background color
-    g.dbg = f(C.cyn)    # Debug information color
-    g.n = f(C.norm)     # Normal printing
+    g.fn = f(T("whtl"))   # Match filename color
+    g.co = f(T("cynl"))   # Match colon color
+    g.ln = f(T("magl"))   # Match line number color
+    g.ma = f(T("yell"))   # Match color
+    g.ba = f(T("blk"))    # Background color
+    g.dbg = f(T("cyn"))   # Debug information color
+    g.n = f(T.n)          # Normal printing
 def Error(msg, status=1):
     print(msg, file=sys.stderr)
     exit(status)
@@ -631,8 +651,7 @@ def Search():
                         elif not mo and d["-v"]:
                             results.append((file, linenum, line, mo))
         except UnicodeDecodeError as e:
-            print(f"Can't process file '{file}' due to Unicode error",
-                file=sys.stderr) 
+            print(f"{file!r}:  Unicode error", file=sys.stderr) 
             continue
         except Exception as e:
             Debug(f"Exception:  {repr(e)}")
