@@ -177,6 +177,7 @@ class Fmt:
         parts, dq, z = self._get_data(x, n)
         ne = parts.e + 1
         if parts.e >= 0:
+            xx()
             while len(dq) < ne:
                 dq.append(z)
             dq.insert(ne, self.dp)
@@ -447,6 +448,11 @@ class Fmt:
             self._cuddled = bool(value)
 fmt = Fmt()     # Convenience instance
 
+if 0:
+    # Checking a value
+    print(fmt.fix(3.14e1))
+    exit()
+    
 if 0:
     # Develop handling of complex numbers
     fmt.u = 0
