@@ -523,8 +523,7 @@ if __name__ == "__main__":
         t.print(dedent(f'''
         {t.t}Demonstration of Fmt class features:  {t.em}f = Fmt(){t.n}
             Formatting (string interpolation) is gotten by calling the Fmt instance
-            as a function:  {t.f}f(number){t.n}.  number can be an integer, real, or complex
-            number.
+            as a function:  {t.f}f(x){t.n}.  x can be an integer, real, or complex number.
         '''))
         s = "pi*1e5"
         x = eval(s)
@@ -532,8 +531,8 @@ if __name__ == "__main__":
         print(dedent(f'''
         {t.t}Usual float formatting:{t.n}  x = {s}
             repr(x) = str(x) = {t.u}{x!s}{t.n}
-            Though accurate, we're overwhelmed with too many digits.  The Fmt class
-            defaults to showing {f.n} significant figures:  {t.f}f(x){t.n} = {t.fix}{f(x)}{t.n}  The trailing
+            Though accurate, there are too many digits for easy comprehension.  The
+            Fmt class defaults to showing {f.n} significant figures and the trailing
             radix helps you identify that it's a floating point number.
         '''))
         t.print(f"{t.t}Fmt fixed point formatting:")
@@ -546,7 +545,7 @@ if __name__ == "__main__":
         t.print(f"  {t.f}f(x, n=5){t.n} = {t.fix}{f(x, n=5)}")
         f.n = 3
         # Change scientific notation thresholds
-        t.print(f"{t.t}Change transition thresholds to scientific notation")
+        t.print(f"{t.em}Scientific notation{t.n}    {t.t}Change transition thresholds to scientific notation:")
         f.high = 1e6
         f.low = 1e-6
         t.print(f"  {t.f}f.high{t.n} = {t.sci}{f.sci(f.high, n=1)}")
@@ -555,6 +554,7 @@ if __name__ == "__main__":
         print(f"  {t.sci}{f(pi*1e6)}{t.n} > f.high so use sci")
         print(f"  {t.fix}{f(pi*1e-6)}{t.n} > f.low so use fix")
         print(f"  {t.sci}{f(pi*1e-7)}{t.n} < f.low so use sci")
+        exit() #xx
         # Get scientific and engineering notations
         t.print(f"{t.t}Force use of scientific and engineering notation")
         t.print(f"  sci:  {t.f}f.sci(pi*1e-7){t.n}        = {t.sci}{f.sci(pi*1e-7)}")
@@ -569,7 +569,7 @@ if __name__ == "__main__":
         f.u = False
         # Set low & high to None to always get fixed point
         f.low = f.high = None
-        t.print(f"{t.t}Setting f.low and f.high to None always results in fixed point:")
+        t.print(f"{t.t}Setting f.low and f.high to None always results in fixed point interpolation:")
         t.print(f"  {t.f}f(pi*1e-27){t.n} = {t.fix}{f(pi*1e-27)}")
         t.print(f"  {t.f}f(pi*1e57){t.n} = {t.fix}{f(pi*1e57)}")
         f.high = 1e6
