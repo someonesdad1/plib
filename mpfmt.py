@@ -151,7 +151,6 @@ def TestTakeApart():
             TA = partial(TakeApart, n=n)
             for i in (-1, 0, 1, 2, 1234, -1234):
                 expected = TA(i)
-                breakpoint() #xx
                 for x in (float(i), mpmath.mpf(i), D(i), F(i)):
                     Assert(TA(x) == expected)
                     Assert(g(TA(x)) == g(expected))
@@ -160,13 +159,13 @@ def TestTakeApart():
             for typ in (float, mpmath.mpf, D, F):
                 y = TA(typ(s))
                 Assert(y == expected)
-                Assert(g(TA(x)) == g(expected))
+                Assert(g(y) == g(expected))
             # Large positive float
             expected, s = TA(int(123456)*10**297), "123.456e300"
             for typ in (float, mpmath.mpf, D, F):
                 y = TA(typ(s))
                 Assert(y == expected)
-                Assert(g(TA(x)) == g(expected))
+                Assert(g(y) == g(expected))
     if 0:
         w = 20
         s, sp = "-123.456e300", " "*2
