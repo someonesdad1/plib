@@ -14,15 +14,6 @@ except ImportError:
     have_mpmath = False
 ii = isinstance
 
-# Namedtuple to hold the components of a real number that has been taken
-# apart after being approximated by M.nstr().  The components are strings
-# except for exp, which is an int.
-#   sign is "-" or ""
-#   ld is the leading digit
-#   dp is the radix (decimal point character)
-#   other is all digits except the leading one
-#   exp is the power of 10 exponent
-Apart = namedtuple("Apart", "sign ld dp other exp")
 
 if 1:   # Classes
     class Fmt:
@@ -87,14 +78,20 @@ if 1:   # Classes
             else:
                 raise TypeError("x must be int, mpmath.mpf, or mpmath.mpc")
 if 1:   # Core methods
+    # Namedtuple to hold the components of a real number that has been
+    # taken apart after being approximated to n digits.  The components are
+    # strings except for exp, which is an int.
+    #   sign is "-" or ""
+    #   ld is the leading digit
+    #   dp is the radix (decimal point character)
+    #   other is all digits except the leading one
+    #   exp is the power of 10 exponent
+    Apart = namedtuple("Apart", "sign ld dp other exp")
     def TakeApart(x, n=3):
-        '''Return an Apart namedtuple for x, which is an instance
-        representing a real number.  Allowed types for x are int,
-        float, python Decimal, python Fraction, and mpmath.mpf.
-        The number will be rounded to n digits.
- 
-        This is a fundamental routine for doing string interpolation on
-        integers or floating point numbers.
+        '''Take apart a real number into digits, decimal point, and
+        exponent for further string interpolation processing.  Returns an
+        Apart namedtuple instance.  Supports integer, common floating point
+        types and python fractions.
  
         Examples:
             TakeApart(-39578574)
@@ -120,7 +117,7 @@ if 1:   # Core methods
         if have_mpmath and ii(yabs, mpmath.mpf):
             e = int(mpmath.floor(mpmath.log10(yabs))) if yabs else 0
             s = mpmath.nstr(mpmath.mpf(yabs/10**e), n)
-            assert("." in s)    # mpmath seems to use only "."
+            assert("." in s and len(s) > 1)    # mpmath seems to use only "."
             dp = s[1]
             t = s.replace(".", "").replace(",", "")     # Remove radix
             while len(t) < n:   # nstr() returns 1.0 for 1 whatever n is
@@ -148,7 +145,7 @@ def TestTakeApart():
     if 1:   # Show supported types get the same string interpolation
         # Function to convert an Apart to a string
         g = lambda x: ''.join(x[:4]) + f"e{x[4]}"
-        k, u = 5, "1.23456"
+        k, u, m = 5, "1.23456", 300
         for n in range(1, 10):
             TA = partial(TakeApart, n=n)
             for i in (-1, 0, 1, 2, 1234, -1234):
@@ -157,25 +154,25 @@ def TestTakeApart():
                     Assert(TA(x) == expected)
                     Assert(g(TA(x)) == g(expected))
             # Large negative float
-            expected, s = TA(int(-123456)*10**(300 - k)), f"-{u}e300"
+            expected, s = TA(int(-123456)*10**(m - k)), f"-{u}e{m}"
             for typ in (float, mpf, D, F):
                 y = TA(typ(s))
                 Assert(y == expected)
                 Assert(g(y) == g(expected))
             # Large positive float
-            expected, s = TA(int(123456)*10**(300 - k)), f"{u}e300"
+            expected, s = TA(int(123456)*10**(m - k)), f"{u}e{m}"
             for typ in (float, mpf, D, F):
                 y = TA(typ(s))
                 Assert(y == expected)
                 Assert(g(y) == g(expected))
             # Small negative float
-            expected, s = TA(int(-123456)/10**(300 + k)), f"-{u}e-300"
+            expected, s = TA(int(-123456)/10**(m + k)), f"-{u}e-{m}"
             for typ in (float, mpf, D, F):
                 y = TA(typ(s))
                 Assert(y == expected)
                 Assert(g(y) == g(expected))
             # Small positive float
-            expected, s = TA(int(123456)/10**(300 + k)), f"{u}e-300"
+            expected, s = TA(int(123456)/10**(m + k)), f"{u}e-{m}"
             for typ in (float, mpf, D, F):
                 y = TA(typ(s))
                 Assert(y == expected)
