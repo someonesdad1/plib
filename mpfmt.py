@@ -144,14 +144,14 @@ if 1:   # Core methods
 def TestTakeApart():
     D = decimal.Decimal
     F = fractions.Fraction
-    if 1:   # Show all supported types get the same string interpolation
+    if 1:   # Show supported types get the same string interpolation
         # Function to convert an Apart to a string
         g = lambda x: ''.join(x[:4]) + f"e{x[4]}"
-        breakpoint() #xx
         for n in range(1, 10):
             TA = partial(TakeApart, n=n)
             for i in (-1, 0, 1, 2, 1234, -1234):
                 expected = TA(i)
+                breakpoint() #xx
                 for x in (float(i), mpmath.mpf(i), D(i), F(i)):
                     Assert(TA(x) == expected)
                     Assert(g(TA(x)) == g(expected))

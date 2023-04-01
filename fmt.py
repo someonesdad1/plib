@@ -36,6 +36,15 @@ Format floating point numbers
  
     rtdp    If True, remove the trailing radix if it ends the string.
  
+    Complex number attributes:
+ 
+        imag_unit   String to use for the imaginary unit
+ 
+        polar       If True, use polar coordinates
+ 
+        deg         If True, output degrees in polar coordinates
+ 
+        cuddled     If True, use '2+3i' form; if False, use '2 + 3i' form
 '''
 if 1:  # Header
     # Copyright, license
@@ -76,9 +85,6 @@ if 1:  # Header
         __all__ = "D Fmt fmt".split()
 
 class Fmt:
-    # Key to _SI_prefixes dict is exponent//3
-    _SI_prefixes = dict(zip(range(-8, 9), list("yzafpnμm.kMGTPEZY")))
-    _superscripts = dict(zip("-+0123456789", "⁻⁺⁰¹²³⁴⁵⁶⁷⁸⁹"))
     def __init__(self, n=3, low=D("1e-5"), high=D("1e16")):
         '''n is the number of digits to format to.  
         low is the point below which scientific notation is used.
@@ -86,20 +92,23 @@ class Fmt:
         low and high can be None, which disables them; if disabled, then
         fixed point interpolation is used by default.
         '''
-        Fmt._SI_prefixes[0] = ""    # Need empty string
-        self._dp = locale.localeconv()["decimal_point"]  # Radix
         self._n = n                     # Number of digits
-        self._u = False                 # Use Unicode symbols for exponents
+        self._dp = locale.localeconv()["decimal_point"]  # Radix
         self._low = self.toD(low)       # Use sci if x < this value
         self._high = self.toD(high)     # Use sci if x > this value
+        self._u = False                 # Use Unicode symbols for exponents
+        self._rlz = False               # Remove leading zero if True
         self._rtz = False               # Remove trailing zeros if True
         self._rtdp = False              # Remove trailing radix if True
-        self._rlz = False               # Remove leading zero if True
         # Attributes for complex numbers
         self._imag_unit = "i"           # Imaginary unit
         self._polar = False             # Use polar coord for complex
         self._deg = True                # Use degrees for angles
         self._cuddled = False           # Use 'a+bi' if True
+        # Key to _SI_prefixes dict is exponent//3
+        self._SI_prefixes = dict(zip(range(-8, 9), list("yzafpnμm.kMGTPEZY")))
+        self._SI_prefixes[0] = ""       # Need empty string
+        self._superscripts = dict(zip("-+0123456789", "⁻⁺⁰¹²³⁴⁵⁶⁷⁸⁹"))
     def toD(self, value) -> Decimal:
         '''Convert value to a Decimal object.  Supported types are int,
         float, Fraction, Decimal, str, mpmath.mpf, and any other type
@@ -177,7 +186,6 @@ class Fmt:
         parts, dq, z = self._get_data(x, n)
         ne = parts.e + 1
         if parts.e >= 0:
-            xx()
             while len(dq) < ne:
                 dq.append(z)
             dq.insert(ne, self.dp)
@@ -205,7 +213,7 @@ class Fmt:
             # Use Unicode characters for power of 10
             o = ["✕10"]
             for c in str(parts.e):
-                o.append(Fmt._superscripts[c])
+                o.append(self._superscripts[c])
             dq.extend(o)
         else:
             dq.extend(["e", str(parts.e)])
@@ -234,14 +242,14 @@ class Fmt:
         dq = self._trim(dq)
         exponent = ["e", f"{eng_step*div}"]
         try:
-            prefix = Fmt._SI_prefixes[div]
+            prefix = self._SI_prefixes[div]
         except KeyError:
             prefix = None
         if fmt == "eng":
             if self.u:      # Use Unicode characters for power of 10
                 o = ["✕10"]
                 for c in str(eng_step*div):
-                    o.append(Fmt._superscripts[c])
+                    o.append(self._superscripts[c])
                 dq.extend(o)
             else:
                 dq.extend(exponent)
@@ -340,7 +348,7 @@ class Fmt:
                 # Use Unicode characters for power of 10
                 o = ["✕10"]
                 for c in e:
-                    o.append(Fmt._superscripts[c])
+                    o.append(self._superscripts[c])
                 return m + ''.join(o)
             return m + "e" + e
         if fmt not in "fix sci eng engsi engsic".split():
