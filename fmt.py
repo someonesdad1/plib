@@ -3,27 +3,24 @@ Format floating point numbers
     Run the module as a script to see example output.
  
     This module provides string interpolation ("formatting") for floating
-    point number types.  If x is float(math.pi), str(x) or repr(x) return
-    '3.141592653589793', which contains too many digits for casual
-    interpretation.  This module's convenience instance fmt will format pi
-    as fmt(math.pi) = '3.14', which allows easier interpretation.
+    point and complex number types.  If x is float(math.pi), str(x) or
+    repr(x) return '3.141592653589793', which contains too many digits for
+    casual interpretation.  This module's convenience instance fmt will
+    format pi as fmt(math.pi) = '3.14', which allows easier interpretation.
  
-    The Fmt class will format any number/string accepted by Decimal's
-    constructor into a string with the desired number of digits.
+    The attributes of a Fmt instance provide more control over the
+    formatting:
  
-    The read-write attributes of a Fmt instance provide more control over
-    the formatting:
+    n       Sets the number of significant digits
  
-    n       Sets the number of digits to use.
- 
-    dp      Sets the radix (decimal point) to either "." or ",".
+    dp      Sets the radix (decimal point) string
  
     low     Numbers below this value are displayed with scientific
-            notation.  Set to None to always have small numbers displayed
+            notation.  None means all small numbers are displayed
             in fixed point.
  
     high    Numbers above this value are displayed with scientific
-            notation.  Set to None to always have large numbers displayed
+            notation.  None means all large numbers are displayed
             in fixed point.
  
     u       If True, display scientific and engineering notations with
@@ -45,6 +42,10 @@ Format floating point numbers
         deg         If True, output degrees in polar coordinates
  
         cuddled     If True, use '2+3i' form; if False, use '2 + 3i' form
+
+        ul          If True, underline the argument in polar form
+
+        comp        If True, display as (re,im) form, (re, im) if cuddled True
 '''
 if 1:  # Header
     # Copyright, license
@@ -105,6 +106,8 @@ class Fmt:
         self._polar = False             # Use polar coord for complex
         self._deg = True                # Use degrees for angles
         self._cuddled = False           # Use 'a+bi' if True
+        self._ul = False                # Underline argument in polar form
+        self._comp = False              # (re,im) form 
         # Key to _SI_prefixes dict is exponent//3
         self._SI_prefixes = dict(zip(range(-8, 9), list("yzafpnμm.kMGTPEZY")))
         self._SI_prefixes[0] = ""       # Need empty string
@@ -275,29 +278,30 @@ class Fmt:
             r = value.real
             i = value.imag
             s = "" if self.cuddled else " "
+            mag = (r*r + i*i)**(0.5)
             if have_mpmath:
-                mag = (r*r + i*i)**(0.5)
                 angle = mpmath.atan2(i, r)
                 if self._deg:
                     angle *= 180/mpmath.pi
-                a = self(mag, fmt=fmt, n=n)
-                b = self(angle, fmt=fmt, n=n)
-                if self._deg:
-                    b += "°"
-                return f"{a}{s}∠{s}{b}"
             else:
                 mag = (r*r + i*i)**(0.5)
                 angle = math.atan2(i, r)
                 if self._deg:
                     angle *= 180/math.pi
-                a = self(mag, fmt=fmt, n=n)
-                b = self(angle, fmt=fmt, n=n)
-                if self._deg:
-                    b += "°"
+            a = self(mag, fmt=fmt, n=n)
+            b = self(angle, fmt=fmt, n=n)
+            if self._deg:
+                b += "°"
+            if self.ul:
+                return f"{a}{s}{t(attr='ul')}∕{s}{b}{t.n}"
+            else:
                 return f"{a}{s}∠{s}{b}"
         else:
             sr = self(value.real)
             si = self(value.imag)
+            if self.comp:
+                s = "" if self.cuddled else " "
+                return f"({sr},{s}{si})"
             # Get imaginary sign
             sign = "+"
             if si[0] == "-":
@@ -449,18 +453,27 @@ class Fmt:
             self._deg = bool(value)
         @property
         def cuddled(self) -> bool:
-            "(bool) Show complex number's angles in degrees"
+            "(bool) Use '1+2i' form if True, '1 + 2i' form if False"
             return self._cuddled
         @cuddled.setter
         def cuddled(self, value):
             self._cuddled = bool(value)
+        @property
+        def ul(self) -> bool:
+            "(bool) Underline the argument when displaying polar form"
+            return self._ul
+        @ul.setter
+        def ul(self, value):
+            self._ul = bool(value)
+        @property
+        def comp(self) -> bool:
+            "(bool) Show complex number in (re,im) form"
+            return self._comp
+        @comp.setter
+        def comp(self, value):
+            self._comp = bool(value)
 fmt = Fmt()     # Convenience instance
 
-if 0:
-    # Checking a value
-    print(fmt.fix(3.14e1))
-    exit()
-    
 if 0:
     # Develop handling of complex numbers
     fmt.u = 0
@@ -503,26 +516,25 @@ if __name__ == "__main__":
             t.sci = t("yell") if u else ""  # Scientific notation
             t.eng = t("grnl") if u else ""  # Engineering notation
             t.si = t("magl") if u else ""   # Engsi notation
+            t.em = t("purl") if u else ""   # Emphasis
+            t.err = t("redl") if u else ""  # Error in digits
     def Demo():
         f = fmt
         t.print(dedent(f'''
-        {t.t}Demonstration of Fmt class features:  f = Fmt()
+        {t.t}Demonstration of Fmt class features:  {t.em}f = Fmt(){t.n}
             Formatting (string interpolation) is gotten by calling the Fmt instance
-            as a function:  {t.f}f(number){t.n}.  number can be anything that can be converted
-            to a python Decimal instance, such as integer, float, Fraction, string,
-            mpmath mpf type, etc.  Support for complex numbers is included.
- 
+            as a function:  {t.f}f(number){t.n}.  number can be an integer, real, or complex
+            number.
         '''))
         s = "pi*1e5"
         x = eval(s)
         # Standard formatting
         print(dedent(f'''
         {t.t}Usual float formatting:{t.n}  x = {s}
-            repr(x) = {t.u}{x!r}{t.n}, str(x) = {t.u}{x!s}{t.n}
+            repr(x) = str(x) = {t.u}{x!s}{t.n}
             Though accurate, we're overwhelmed with too many digits.  The Fmt class
             defaults to showing {f.n} significant figures:  {t.f}f(x){t.n} = {t.fix}{f(x)}{t.n}  The trailing
             radix helps you identify that it's a floating point number.
- 
         '''))
         t.print(f"{t.t}Fmt fixed point formatting:")
         print(f"  {t.f}f(x){t.n} = {t.fix}{f(x)}{t.n} (defaults to {f.n} significant figures)")
@@ -565,8 +577,8 @@ if __name__ == "__main__":
         # Big exponents
         print(dedent(f'''
         {t.t}Fixed point, scientific, and engineering formatting should work for numbers of
-        arbitrary magnitudes as long as a Decimal exception isn't encountered.  The
-        default Decimal context allows exponents up to an absolute value of (1e6 - 1).
+        arbitrary magnitudes as long as an exception isn't encountered.  For very large
+        or small numbers, install the optional mpmath library.
         '''))
         t.print(f"  {t.f}f(D('1e999999')){t.n} = {t.sci}{f(D('1e999999'))}")
         t.print(f"  {t.f}f(D('1e-999999')){t.n} = {t.sci}{f(D('1e-999999'))}")
@@ -576,37 +588,72 @@ if __name__ == "__main__":
             t.print(f'  {t.f}f(D("1e1000000")){t.n}', "results in overflow")
         t.print(f'  {t.f}f(D("1e-100000000")){t.n}', "underflow that gives 0")
         # Decimals with lots of digits
+        n = 20
         t.print(dedent(f'''
-        {t.t}Arguments of the formatting functions can be Decimal numbers or any number
-        type that can be converted to Decimal.  This means you can format with an
-        arbitrary number of significant digits up to the capacity of the Decimal
-        context.
+        {t.t}You can ask for any number of significant figures, but some displayed digits
+        can be meaningless if they are beyond the number's allowed precision.  Below,
+        digits in error are shown in red, as a python float is only good to about 15
+        digits.  The expression evaluated is 100000*sin(pi/4) to {n} digits.
         '''))
         with decimal.localcontext() as ctx:
-            ctx.prec = 30
+            ctx.prec = n
             x = 100000*decimalmath.sin(decimalmath.pi()/4)
-            t.print(f"  x = 100000*sin(pi/4) to 30 digits = {t.fix}{x}")
+            # mpmath's result to 30 significant figures
+            mp = "70710.6781186547524400844362104822"
+            #    "70710.678118654745049"    float to 20 figures
+            #                     ^ Incorrect digits
+            t.print(f"  x = {t.fix}{fmt(x, n=n)}{t.n} (Decimal calculation)")
+            y = 100000*math.sin(math.pi/4)
+            ys, m = fmt(y, n=n), 16
+            bad = f"{t.fix}{ys[:m]}{t.err}{ys[m:]}{t.n}"
+            t.print(f"  x = {bad} (float calculation)")
             n = 4
-            t.print(f"  sci    to {n} digits = {t.sci}{f(x, 'sci', n=n)}")
+            t.print(f"  sci(x)    to {n} digits = {t.sci}{f(x, 'sci', n=n)}")
             n = 5
-            t.print(f"  eng    to {n} digits = {t.eng}{f(x, 'eng', n=n)}")
+            t.print(f"  eng(x)    to {n} digits = {t.eng}{f(x, 'eng', n=n)}")
             n = 6
-            t.print(f"  engsi  to {n} digits = {t.si}{f(x, 'engsi', n=n)}")
+            t.print(f"  engsi(x)  to {n} digits = {t.si}{f(x, 'engsi', n=n)}")
             n = 7
-            t.print(f"  engsic to {n} digits = {t.si}{f(x, 'engsic', n=n)}")
+            t.print(f"  engsic(x) to {n} digits = {t.si}{f(x, 'engsic', n=n)}")
         t.print(dedent(f'''
         {t.t}Engineering SI notation means to append an SI prefix to indicate the number's
         magnitude.  This lets you append a physical unit string to get proper SI
         syntax:  {t.u}{f(x, 'engsi')}Ω{t.n}.
         ''', n=8))
         # Complex numbers
-        s = "complex(3.45, -6.78)"
+        z = complex(3.45678, -6.78901)
+        fmt.imag_unit = "j"
         t.print(dedent(f'''
-        Complex numbers are also handled by formatting each component separately.  
-            'z = {s}' formats to {fmt(eval(s))}
-        You can use Fmt attributes of {t.f}imag_unit{t.n}, {t.f}polar{t.n}, {t.f}deg{t.n}, and {t.f}cuddled{t.n} to control the
-        number's appearance and change to polar coordinates.
+        Complex numbers are handled by formatting each floating point component
+        separately.  Let z = complex(3.45678, -6.78901):
+            str(z) = {t.f}{str(z)}{t.n}
+            fmt(z) = {t.f}{fmt(z)}{t.n}
+        Use the Fmt object's attributes to change the appearance:
         ''', n=8))
+        w, sp = 25, " "*4
+        fmt.imag_unit = "i"
+        s = 'fmt.imag_unit = "i"'
+        t.print(f"{sp}{s:{w}s} {t.f}{fmt(z)}{t.n}")
+        fmt.cuddled = True
+        s = "fmt.cuddled = True"
+        t.print(f"{sp}{s:{w}s} {t.f}{fmt(z)}{t.n}")
+        fmt.polar = True
+        fmt.deg = False
+        s = "fmt.polar = True"
+        t.print(f"{sp}{s:{w}s} {t.f}{fmt(z)}{t.n} (in radians)")
+        fmt.deg = True
+        s = "fmt.deg = True"
+        t.print(f"{sp}{s:{w}s} {t.f}{fmt(z)}{t.n} (in degrees)")
+        fmt.ul = True
+        s = "fmt.ul = True"
+        t.print(f"{sp}{s:{w}s} {t.f}{fmt(z)}{t.n}")
+        fmt.polar = False
+        fmt.comp = True
+        fmt.cuddled = True
+        s = "fmt.comp = True"
+        t.print(f"{sp}{s:{w}s} {t.f}{fmt(z)}{t.n}  (fmt.cuddled True)")
+        fmt.cuddled = False
+        t.print(f"{sp}{'':{w}s} {t.f}{fmt(z)}{t.n} (fmt.cuddled False)")
     # Test code 
     def Init():
         'Make sure test environment is set up in a repeatable fashion'
