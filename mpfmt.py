@@ -144,62 +144,80 @@ if 1:   # Core methods
 def TestTakeApart():
     D = decimal.Decimal
     F = fractions.Fraction
+    mpf = mpmath.mpf if have_mpmath else float
     if 1:   # Show supported types get the same string interpolation
         # Function to convert an Apart to a string
         g = lambda x: ''.join(x[:4]) + f"e{x[4]}"
+        k, u = 5, "1.23456"
         for n in range(1, 10):
             TA = partial(TakeApart, n=n)
             for i in (-1, 0, 1, 2, 1234, -1234):
                 expected = TA(i)
-                for x in (float(i), mpmath.mpf(i), D(i), F(i)):
+                for x in (float(i), mpf(i), D(i), F(i)):
                     Assert(TA(x) == expected)
                     Assert(g(TA(x)) == g(expected))
             # Large negative float
-            expected, s = TA(int(-123456)*10**297), "-123.456e300"
-            for typ in (float, mpmath.mpf, D, F):
+            expected, s = TA(int(-123456)*10**(300 - k)), f"-{u}e300"
+            for typ in (float, mpf, D, F):
                 y = TA(typ(s))
                 Assert(y == expected)
                 Assert(g(y) == g(expected))
             # Large positive float
-            expected, s = TA(int(123456)*10**297), "123.456e300"
-            for typ in (float, mpmath.mpf, D, F):
+            expected, s = TA(int(123456)*10**(300 - k)), f"{u}e300"
+            for typ in (float, mpf, D, F):
+                y = TA(typ(s))
+                Assert(y == expected)
+                Assert(g(y) == g(expected))
+            # Small negative float
+            expected, s = TA(int(-123456)/10**(300 + k)), f"-{u}e-300"
+            for typ in (float, mpf, D, F):
+                y = TA(typ(s))
+                Assert(y == expected)
+                Assert(g(y) == g(expected))
+            # Small positive float
+            expected, s = TA(int(123456)/10**(300 + k)), f"{u}e-300"
+            for typ in (float, mpf, D, F):
                 y = TA(typ(s))
                 Assert(y == expected)
                 Assert(g(y) == g(expected))
     if 0:
-        w = 20
-        s, sp = "-123.456e300", " "*2
-        n = 5
+        n, w, s, sp, f = 5, 20, "-123.456e300", " "*2, F(1, 1)
         TA = partial(TakeApart, n=n)
-        f = F(1, 1)
         # This printout is handy to compare things for equality
         print("0")
         print(f"{sp}{'int(0)':{w}s} {TA(0)}")
         print(f"{sp}{'float(0)':{w}s} {TA(float(0))}")
-        print(f"{sp}{'mpf(0)':{w}s} {TA(mpmath.mpf(0))}")
+        print(f"{sp}{'mpf(0)':{w}s} {TA(mpf(0))}")
         print(f"{sp}{'Decimal(0)':{w}s} {TA(D(0))}")
         print(f"{sp}{'Fraction(0)':{w}s} {TA(F(0, 1))}")
         #
         print("1")
         print(f"{sp}{'int(1)':{w}s} {TA(1)}")
         print(f"{sp}{'float(1)':{w}s} {TA(float(1))}")
-        print(f"{sp}{'mpf(1)':{w}s} {TA(mpmath.mpf(1))}")
+        print(f"{sp}{'mpf(1)':{w}s} {TA(mpf(1))}")
         print(f"{sp}{'Decimal(1)':{w}s} {TA(D(1))}")
         print(f"{sp}{'Fraction(1, 1)':{w}s} {TA(F(1, 1))}")
         #
         print("-1")
         print(f"{sp}{'int(-1)':{w}s} {TA(-1)}")
         print(f"{sp}{'float(-1)':{w}s} {TA(float(-1))}")
-        print(f"{sp}{'mpf(-1)':{w}s} {TA(mpmath.mpf(-1))}")
+        print(f"{sp}{'mpf(-1)':{w}s} {TA(mpf(-1))}")
         print(f"{sp}{'Decimal(-1)':{w}s} {TA(D(-1))}")
         print(f"{sp}{'Fraction(-1, 1)':{w}s} {TA(F(-1, 1))}")
         #
         print("-123.456e300")
         print(f"{sp}{'int':{w}s} {TA(int(-123456)*10**297)}")
         print(f"{sp}{'float':{w}s} {TA(float(s))}")
-        print(f"{sp}{'mpf':{w}s} {TA(mpmath.mpf(s))}")
+        print(f"{sp}{'mpf':{w}s} {TA(mpf(s))}")
         print(f"{sp}{'Decimal':{w}s} {TA(D(s))}")
         print(f"{sp}{'Fraction':{w}s} {TA(f.from_decimal(D(s)))}")
+        #
+        print("123.456e300")
+        print(f"{sp}{'int':{w}s} {TA(int(123456)*10**297)}")
+        print(f"{sp}{'float':{w}s} {TA(float(s[1:]))}")
+        print(f"{sp}{'mpf':{w}s} {TA(mpf(s[1:]))}")
+        print(f"{sp}{'Decimal':{w}s} {TA(D(s[1:]))}")
+        print(f"{sp}{'Fraction':{w}s} {TA(f.fromdecimal(D(s[1:])))}")
 
 TestTakeApart()
 exit()
