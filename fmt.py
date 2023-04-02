@@ -1,9 +1,14 @@
 '''
 Todo
-    - Make Fmt a context manager so you can do things like
-        with fmt as f:
-            fmt.n += 8
-            ...
+    - Utilize TakeApart as core method
+    - Instead of namedtuple, consider a class TakeApart that
+      takes things apart using __call__(floating_point_number).  
+      The advantage is that it can have computed convenience attributes
+      too; for example, it's str() form will be the assembled interpolation
+      string.
+        - Attributes:  sign, ld, dp, other, exp:  all strings
+            - e attribute is integer
+            - dq gives the deque(ld + other)
 
 Format floating point numbers
     Run the module as a script to see example output.  See Terminal Notes
@@ -95,15 +100,20 @@ if 1:   # Header
     if 1:   # Custom imports
         from color import t
         try:
+            # Note:  mpmath is optional, but I suggest you use it because
+            # it handles numbers much larger and smaller than standard
+            # python tools and it has numerous special functions defined
+            # over the complex plane.
             import mpmath
             have_mpmath = True
         except ImportError:
             have_mpmath = False
     if 1:   # Global variables
         D = Decimal = decimal.Decimal
+        F = Fraction = fractions.Fraction
         ii = isinstance
-        __all__ = "D Fmt fmt".split()
-    if 1:   # Types
+        __all__ = "Fmt fmt TakeApart Apart".split()
+    if 0:   # Types
         # Namedtuple to hold the components of a real number that has been
         # taken apart after being approximated to n digits.  The components are
         # strings except for exp, which is an int.
@@ -525,8 +535,139 @@ if 1:   # Classes
             @comp.setter
             def comp(self, value):
                 self._comp = bool(value)
+    class TakeApart:
+        supported_types = set((int, float, Decimal, Fraction))
+        def __init__(self, n=3):
+            # Note self.n won't be changed in a reset()
+            self._n = n
+            self.reset()
+        def reset(self):
+            'Set attributes to default'
+            self._supported = TakeApart.supported_types
+            if have_mpmath:
+                self.supported.add(mpmath.mpf)
+            self._number = None     # Number argument to __call__()
+            self._sign = None       # "-" or " "
+            self._ld = None         # Leading digit of number
+            self._dp = None         # Decimal point string
+            self._other = None      # Remaining digits of number
+            self._e = None          # Integer exponent of 10
+            self._dq = None         # Deque of significand's digits
+        def __str__(self):
+            if self._ld is None:
+                return None
+            return (self.sign + self._ld + self._dp +
+                    self.other + "e" + str(self._e))
+        if 1:   # Properties
+            @property
+            def dp(self):
+                'Decimal point string'
+                assert(ii(self._ld, str))
+                return self._dp
+            @property
+            def dq(self):
+                "Deque of significand's digits"
+                assert(ii(self._dq, collections.deque))
+                return self._dq
+            @property
+            def e(self):
+                'Integer exponent of 10'
+                assert(ii(self._ld, int))
+                return self._e
+            @property
+            def exp(self):
+                'String form of self.e'
+                return str(self.e)
+            @property
+            def ld(self):
+                'Leading digit of significand'
+                assert(ii(self._ld, str) and len(self._ld == 1))
+                return self._ld
+            @property
+            def other(self):
+                'Non-leading digits of significand'
+                assert(ii(self._ld, str))
+                return self._other
+            @property
+            def n(self):
+                'Number of digits in significand'
+                return self._n
+            @n.setter
+            def n(self, value):
+                assert(ii(value, int))
+                assert(value > 0)
+                self._n = value
+            @property
+            def number(self):
+                'Last argument to __call__()'
+                assert(self._number is not None)
+                return self._number
+            @property
+            def sign(self):
+                '"-" or " ", sign of self.number'
+                assert(ii(self._sign, str) and self._sign in ("-", " "))
+                return self._sign
+            @property
+            def supported(self):
+                'Set of supported types'
+                return self._supported
+            @supported.setter
+            def supported(self, value):
+                assert(ii(value, set))
+                self._supported = value
+        if 1:   # Core methods
+            def __call__(self, x):
+                self._number = x
+                self.disassemble()
+            def disassemble(self):
+                "Disassemble the number self._number into this instance's attributes"
+                n, x = self._n, self._number
+                assert(x is not None)
+                assert(ii(n, int) and n > 0)
+                # Convert either to a Decimal or mpf
+                if ii(x, (int, float, decimal.Decimal)):
+                    y = decimal.Decimal(str(x))
+                elif ii(x, fractions.Fraction):
+                    y = decimal.Decimal(x.numerator)/decimal.Decimal(x.denominator)
+                elif have_mpmath and ii(x, mpmath.mpf):
+                    y = x
+                else:
+                    raise TypeError(f"{x!r} is not a supported number type")
+                # Process
+                sign, yabs = " ", y
+                if y < 0:
+                    sign = "-"
+                    yabs = -y
+                if have_mpmath and ii(yabs, mpmath.mpf):
+                    e = int(mpmath.floor(mpmath.log10(yabs))) if yabs else 0
+                    s = mpmath.nstr(mpmath.mpf(yabs/10**e), n)
+                    assert("." in s and len(s) > 1)    # mpmath seems to use only "."
+                    dp = s[1]
+                    t = s.replace(".", "").replace(",", "")     # Remove radix
+                    while len(t) < n:   # nstr() returns 1.0 for 1 whatever n is
+                        t += "0"
+                    if len(t) > n: # nstr(1, 1) returns 1.0 for n = 1
+                        t = t[:n]
+                    assert(len(t) == n if yabs else 1)
+                    ld, other = t[0], t[1:]
+                else:
+                    yabs = abs(y)
+                    assert(ii(y, decimal.Decimal))
+                    ys = f"{yabs:.{n - 1}e}".lower()    # Get sci form to n digits
+                    s, e = ys.split("e")
+                    dp = "," if "," in s else "."
+                    ld, other = (s, "") if len(s) == 1 else s.split(dp)
+                    # For zero, Decimal formats an exponent to n - 1; we want 0
+                    e = int(e) if y else 0
+                self._sign = sign
+                self._ld = ld
+                self._dp = dp
+                self._other = other
+                self._e = e
+                self._dq = collections.deque(ld + other)
+
 if 1:   # Core methods
-    def TakeApart(x, n=3):
+    def _TakeApart(x, n=3):
         '''Take apart a real number into digits, decimal point, and
         exponent for further string interpolation processing.  Returns an
         Apart namedtuple instance.  Supports integer, common floating point
@@ -576,8 +717,15 @@ if 1:   # Core methods
             # For zero, Decimal formats an exponent to n - 1; we want 0
             e = int(e) if y else 0
             return Apart(sign, ld, dp, other, e)
-
-fmt = Fmt()     # Convenience instance
+if 1:   # Convenience instances
+    fmt = Fmt()
+    ta = TakeApart()
+# Development of class TakeApart
+if __name__ == "__main__": 
+    ta = TakeApart()
+    ta(56.78)
+    print(ta)
+    exit()
 
 if __name__ == "__main__": 
     if 1:   # Header
@@ -779,382 +927,380 @@ if __name__ == "__main__":
         fmt.cuddled = False
         t.print(f"{sp}{'':{w}s} {t.f}{fmt(z)}{t.n} (fmt.cuddled False)")
         t.print(f"The f.ul underlining won't work unless your terminal supports it.")
-    # Test code 
-    def Init():
-        'Make sure test environment is set up in a repeatable fashion'
-        f = Fmt(3)
-        f.rlz = f.rtz = f.rtdp = False
-        return f
-    def Test_Basics():
-        f = Init()
-        s = f(pi)
-        for x, result in (
-            (pi, "3.14"),
-            (-pi, "-3.14"),
-            (pi*1e99, "3.14e99"),
-            (-pi*1e99, "-3.14e99"),
-            (pi*1e-99, "3.14e-99"),
-            (-pi*1e-99, "-3.14e-99"),
-        ):
-            s = f(x)
-            Assert(s == result)
-        # Test simple numbers with fixed point
-        for x, n, result in (
-            (0, 1, "0."),
-            (1, 1, "1."),
-            (-1, 1, "-1."),
-            (0, 2, "0.0"),
-            (1, 2, "1.0"),
-            (-1, 2, "-1.0"),
-            (0, 3, "0.00"),
-            (1, 3, "1.00"),
-            (-1, 3, "-1.00"),
-            (0, 8, "0.0000000"),
-            (1, 8, "1.0000000"),
-            (-1, 8, "-1.0000000"),
-        ):
-            f.n = n
-            s = f(x)
-            Assert(s == result)
-        # Test with numbers near 1
-        f = Init()
-        x = 0.99
-        Assert(f(x, n=1) == "1.")
-        Assert(f(x, n=2) == "0.99")
-        Assert(f(-x, n=1) == "-1.")
-        Assert(f(-x, n=2) == "-0.99")
-        x = 0.999999
-        raises(ValueError, f, x, n=0)
-        raises(ValueError, f, x, n=-1)
-        Assert(f(x, n=1) == "1.")
-        Assert(f(x, n=2) == "1.0")
-        Assert(f(x, n=3) == "1.00")
-        Assert(f(x, n=4) == "1.000")
-        Assert(f(x, n=5) == "1.0000")
-        Assert(f(x, n=6) == "0.999999")
-        Assert(f(x, n=7) == "0.9999990")
-        raises(ValueError, f, -x, n=0)
-        raises(ValueError, f, -x, n=-1)
-        Assert(f(-x, n=1) == "-1.")
-        Assert(f(-x, n=2) == "-1.0")
-        Assert(f(-x, n=3) == "-1.00")
-        Assert(f(-x, n=4) == "-1.000")
-        Assert(f(-x, n=5) == "-1.0000")
-        Assert(f(-x, n=6) == "-0.999999")
-        Assert(f(-x, n=7) == "-0.9999990")
-    def Test_toD():
-        f = Init().toD
-        # int and str
-        for i in (-1, 0, 1, "-1", "0", "1", "inf", "-inf"): 
-            Assert(f(i) == D(i))
-            Assert(f(D(i)) == D(i))
-        for i in (-1_000, 1_000, "-1_000", "1_000"): 
-            Assert(f(i) == D(i))
-            Assert(f(D(i)) == D(i))
-        # float and str
-        for i in (-1., 0., 1., "-1.", "0.", "1."): 
-            Assert(f(i) == D(i))
-            Assert(f(D(i)) == D(i))
-        for i in (-0.00_1, 0.00_1, 
-                    -1_000., 1_000.,
-                    "-0.00_1", "0.00_1",
-                    "-1_000.", "1_000."): 
-            Assert(f(i) == D(i))
-            Assert(f(D(i)) == D(i))
-        # Fraction
-        n, d = 3, 8
-        x = Fraction(n, d)
-        Assert(f(x) == D(n/d))
-        # Fraction string
-        Assert(f(f"{n}/{d}") == D(n/d))
-        # mpmath 
-        if have_mpmath:
-            mpf = mpmath.mpf
-            n = 50
-            mpmath.mp.dps = n
-            x = mpf(2)**mpf(1/2)
-            with decimal.localcontext() as ctx:
-                ctx.prec = n
-                Assert(f(x) == D(2)**D(1/2))
-    def Test_Fix():
-        def TestTrimming():
+    if 1:   # Test code 
+        def Init():
+            'Make sure test environment is set up in a repeatable fashion'
+            f = Fmt(3)
+            f.rlz = f.rtz = f.rtdp = False
+            return f
+        def Test_Basics():
             f = Init()
-            x = 31.41
-            f.n = 6
-            f.rtz = 0
-            Assert(f(x, fmt="fix") == "31.4100")
-            Assert(f(x, fmt="sci") == "3.14100e1")
-            Assert(f(x, fmt="eng") == "31.4100e0")
-            # Remove trailing zeros
-            f.rtz = 1
-            Assert(f(x, fmt="fix") == "31.41")
-            Assert(f(x, fmt="sci") == "3.141e1")
-            Assert(f(x, fmt="eng") == "31.41e0")
-            # Remove decimal point
-            f.rtdp = 1
-            f.n = 2
-            Assert(f(x, fmt="fix") == "31")
-            Assert(f(x, fmt="sci") == "3.1e1")
-            Assert(f(x, fmt="eng") == "31e0")
-            # Remove leading zero
-            f = Init()
-            x = 0.00732
-            f.rlz = False
-            Assert(f(x, fmt="fix") == "0.00732")
-            f.rlz = True
-            Assert(f(x, fmt="fix") == ".00732")
-            # Use alternate string for decimal point
-            f = Init()
-            x = 31.41
-            f.dp = ","
-            Assert(f(x) == "31,4")
-            with raises(TypeError) as y:
-                f.dp = "q"
-        def TestHuge(n, digits=3):
-            f = Init()
-            f.n = digits
-            x = D(str(pi) + f"e{n}")
-            f.high = None
-            s = f(x, fmt="fix")
-            Assert(s[:3] == "314")
-            Assert(s[-1] == ".")
-            Assert(s[3:-1] == "0"*(len(s) - 4))
-        def TestTiny(n, digits=3):
-            f = Init()
-            f.n = digits
-            x = D(str(pi) + f"e-{n}")
-            f.low = None
-            s = f(x, fmt="fix")
-            Assert(s[:2] == "0.")
-            Assert(s[-3:] == "314")
-            Assert(s[2:-3] == "0"*(len(s) - 5))
-        def TestLotsOfDigits(n, digits=3):
-            f = Init()
-            f.n = digits
-            with localcontext() as ctx:
-                ctx.prec = n
-                t = "0." + "1"*n
-                x = D(t)
+            s = f(pi)
+            for x, result in (
+                (pi, "3.14"),
+                (-pi, "-3.14"),
+                (pi*1e99, "3.14e99"),
+                (-pi*1e99, "-3.14e99"),
+                (pi*1e-99, "3.14e-99"),
+                (-pi*1e-99, "-3.14e-99"),
+            ):
+                s = f(x)
+                Assert(s == result)
+            # Test simple numbers with fixed point
+            for x, n, result in (
+                (0, 1, "0."),
+                (1, 1, "1."),
+                (-1, 1, "-1."),
+                (0, 2, "0.0"),
+                (1, 2, "1.0"),
+                (-1, 2, "-1.0"),
+                (0, 3, "0.00"),
+                (1, 3, "1.00"),
+                (-1, 3, "-1.00"),
+                (0, 8, "0.0000000"),
+                (1, 8, "1.0000000"),
+                (-1, 8, "-1.0000000"),
+            ):
                 f.n = n
                 s = f(x)
-                Assert(s == t)
-                s = f(x, n=n)
-                Assert(s == t)
-        def TestBigInteger(n):
-            d = ["1234567890"]*n
-            s = ''.join(d)
-            with localcontext() as ctx:
-                ctx.prec = len(s) + 1
-                f, x = Init(), D(s)
+                Assert(s == result)
+            # Test with numbers near 1
+            f = Init()
+            x = 0.99
+            Assert(f(x, n=1) == "1.")
+            Assert(f(x, n=2) == "0.99")
+            Assert(f(-x, n=1) == "-1.")
+            Assert(f(-x, n=2) == "-0.99")
+            x = 0.999999
+            raises(ValueError, f, x, n=0)
+            raises(ValueError, f, x, n=-1)
+            Assert(f(x, n=1) == "1.")
+            Assert(f(x, n=2) == "1.0")
+            Assert(f(x, n=3) == "1.00")
+            Assert(f(x, n=4) == "1.000")
+            Assert(f(x, n=5) == "1.0000")
+            Assert(f(x, n=6) == "0.999999")
+            Assert(f(x, n=7) == "0.9999990")
+            raises(ValueError, f, -x, n=0)
+            raises(ValueError, f, -x, n=-1)
+            Assert(f(-x, n=1) == "-1.")
+            Assert(f(-x, n=2) == "-1.0")
+            Assert(f(-x, n=3) == "-1.00")
+            Assert(f(-x, n=4) == "-1.000")
+            Assert(f(-x, n=5) == "-1.0000")
+            Assert(f(-x, n=6) == "-0.999999")
+            Assert(f(-x, n=7) == "-0.9999990")
+        def Test_toD():
+            f = Init().toD
+            # int and str
+            for i in (-1, 0, 1, "-1", "0", "1", "inf", "-inf"): 
+                Assert(f(i) == D(i))
+                Assert(f(D(i)) == D(i))
+            for i in (-1_000, 1_000, "-1_000", "1_000"): 
+                Assert(f(i) == D(i))
+                Assert(f(D(i)) == D(i))
+            # float and str
+            for i in (-1., 0., 1., "-1.", "0.", "1."): 
+                Assert(f(i) == D(i))
+                Assert(f(D(i)) == D(i))
+            for i in (-0.00_1, 0.00_1, 
+                        -1_000., 1_000.,
+                        "-0.00_1", "0.00_1",
+                        "-1_000.", "1_000."): 
+                Assert(f(i) == D(i))
+                Assert(f(D(i)) == D(i))
+            # Fraction
+            n, d = 3, 8
+            x = Fraction(n, d)
+            Assert(f(x) == D(n/d))
+            # Fraction string
+            Assert(f(f"{n}/{d}") == D(n/d))
+            # mpmath 
+            if have_mpmath:
+                mpf = mpmath.mpf
+                n = 50
+                mpmath.mp.dps = n
+                x = mpf(2)**mpf(1/2)
+                with decimal.localcontext() as ctx:
+                    ctx.prec = n
+                    Assert(f(x) == D(2)**D(1/2))
+        def Test_Fix():
+            def TestTrimming():
+                f = Init()
+                x = 31.41
+                f.n = 6
+                f.rtz = 0
+                Assert(f(x, fmt="fix") == "31.4100")
+                Assert(f(x, fmt="sci") == "3.14100e1")
+                Assert(f(x, fmt="eng") == "31.4100e0")
+                # Remove trailing zeros
+                f.rtz = 1
+                Assert(f(x, fmt="fix") == "31.41")
+                Assert(f(x, fmt="sci") == "3.141e1")
+                Assert(f(x, fmt="eng") == "31.41e0")
+                # Remove decimal point
+                f.rtdp = 1
+                f.n = 2
+                Assert(f(x, fmt="fix") == "31")
+                Assert(f(x, fmt="sci") == "3.1e1")
+                Assert(f(x, fmt="eng") == "31e0")
+                # Remove leading zero
+                f = Init()
+                x = 0.00732
+                f.rlz = False
+                Assert(f(x, fmt="fix") == "0.00732")
+                f.rlz = True
+                Assert(f(x, fmt="fix") == ".00732")
+                # Use alternate string for decimal point
+                f = Init()
+                x = 31.41
+                f.dp = ","
+                Assert(f(x) == "31,4")
+                with raises(TypeError) as y:
+                    f.dp = "q"
+            def TestHuge(n, digits=3):
+                f = Init()
+                f.n = digits
+                x = D(str(pi) + f"e{n}")
                 f.high = None
-                for m in range(1, len(s)):
-                    t = f(x, n=m)
-                    begin = t[:m]
-                    end = ("0"*(len(s) - m)) + "."
-                    Assert(t == begin + end)
-            # Here's a second test with somewhat more random digits.
-            s = "305834907503304830840485408347390568489537430834"
-            n = int(1e6/len(s))  # How many before we reach a million digits
-            x = D(s*n)
-            f = Init()
-            f.high = None
-            t = f(x, fmt="fix")
-            Assert(len(t) == n*len(s) + 1)
-        def Test_rlz():
-            f = Init()
-            x = 0.2846
-            s = f.fix(x)
-            Assert(s == "0.285")
-            x *= -1
-            s = f.fix(x)
-            Assert(s == "-0.285")
-            x *= -1
-            # Turn on rlz
-            f.rlz = True
-            s = f.fix(x)
-            Assert(s == ".285")
-            x *= -1
-            s = f.fix(x)
-            Assert(s == "-.285")
-        for n in (999999,  # Largest exponent allowed by default Decimal context
-                100, 20, 3):
-            TestTiny(n)
-            TestHuge(n)
-            TestLotsOfDigits(n)
-        TestTrimming()
-        TestBigInteger(100)
-        Test_rlz()
-    def Test_Eng():
-        '''Compare to fpformat's results.  Only go up to 15 digits because
-        fpformat uses floats.
-        '''
-        s, numdigits = "1.2345678901234567890", 15
-        x = D(s)
-        fp = FPFormat()
-        fp.expdigits = 1
-        fp.expsign = False
-        def Test_eng():
-            f = Init()
-            for n in range(1, numdigits + 1):
-                t = f.eng(x, n=n)
-                fp.digits(n)
-                expected = fp.eng(x)
-                if n == 1:
-                    expected = expected.replace(".", "")
-                Assert(t == expected)
-        def Test_engsi():
-            f = Init()
-            for n in range(1, numdigits + 1):
-                t = f.eng(x, n=n, fmt="engsi")
-                fp.digits(n)
-                expected = fp.engsi(x)
-                if n == 1:
-                    expected = expected.replace(".", "")
-                Assert(t == expected)
-        def Test_engsic():
-            f = Init()
-            for n in range(1, numdigits + 1):
-                t = f.eng(x, n=n, fmt="engsic")
-                fp.digits(n)
-                expected = fp.engsic(x)
-                if n == 1:
-                    expected = expected.replace(".", "")
-                Assert(t == expected)
-        Test_eng()
-        Test_engsi()
-        Test_engsic()
-    def Test_Sci():
-        def CompareToFPFormat():
+                s = f(x, fmt="fix")
+                Assert(s[:3] == "314")
+                Assert(s[-1] == ".")
+                Assert(s[3:-1] == "0"*(len(s) - 4))
+            def TestTiny(n, digits=3):
+                f = Init()
+                f.n = digits
+                x = D(str(pi) + f"e-{n}")
+                f.low = None
+                s = f(x, fmt="fix")
+                Assert(s[:2] == "0.")
+                Assert(s[-3:] == "314")
+                Assert(s[2:-3] == "0"*(len(s) - 5))
+            def TestLotsOfDigits(n, digits=3):
+                f = Init()
+                f.n = digits
+                with localcontext() as ctx:
+                    ctx.prec = n
+                    t = "0." + "1"*n
+                    x = D(t)
+                    f.n = n
+                    s = f(x)
+                    Assert(s == t)
+                    s = f(x, n=n)
+                    Assert(s == t)
+            def TestBigInteger(n):
+                d = ["1234567890"]*n
+                s = ''.join(d)
+                with localcontext() as ctx:
+                    ctx.prec = len(s) + 1
+                    f, x = Init(), D(s)
+                    f.high = None
+                    for m in range(1, len(s)):
+                        t = f(x, n=m)
+                        begin = t[:m]
+                        end = ("0"*(len(s) - m)) + "."
+                        Assert(t == begin + end)
+                # Here's a second test with somewhat more random digits.
+                s = "305834907503304830840485408347390568489537430834"
+                n = int(1e6/len(s))  # How many before we reach a million digits
+                x = D(s*n)
+                f = Init()
+                f.high = None
+                t = f(x, fmt="fix")
+                Assert(len(t) == n*len(s) + 1)
+            def Test_rlz():
+                f = Init()
+                x = 0.2846
+                s = f.fix(x)
+                Assert(s == "0.285")
+                x *= -1
+                s = f.fix(x)
+                Assert(s == "-0.285")
+                x *= -1
+                # Turn on rlz
+                f.rlz = True
+                s = f.fix(x)
+                Assert(s == ".285")
+                x *= -1
+                s = f.fix(x)
+                Assert(s == "-.285")
+            for n in (999999,  # Largest exponent allowed by default Decimal context
+                    100, 20, 3):
+                TestTiny(n)
+                TestHuge(n)
+                TestLotsOfDigits(n)
+            TestTrimming()
+            TestBigInteger(100)
+            Test_rlz()
+        def Test_Eng():
             '''Compare to fpformat's results.  Only go up to 15 digits because
-            fpformat uses floats
+            fpformat uses floats.
             '''
             s, numdigits = "1.2345678901234567890", 15
+            x = D(s)
             fp = FPFormat()
             fp.expdigits = 1
             fp.expsign = False
-            f = Init()
-            for e in range(10):
+            def Test_eng():
+                f = Init()
                 for n in range(1, numdigits + 1):
-                    x = D(s + f"e{e}")
-                    t = f.sci(x, n=n)
+                    t = f.eng(x, n=n)
                     fp.digits(n)
-                    expected = fp.sci(x)
+                    expected = fp.eng(x)
                     if n == 1:
                         expected = expected.replace(".", "")
                     Assert(t == expected)
-        def Other():
-            f = Init()
-        CompareToFPFormat()
-        Other()
-    def Test_ReallyBig():
-        '''The Fmt object uses Decimal numbers to do the formatting.  This
-        works for most stuff, but will fail when dealing with exponents
-        beyond around a million, the default for Decimal.  This should only
-        happend for mpmath.mpf numbers.  In this case, simple sci
-        formatting is done.
-        '''
-        if not have_mpmath:
-            return
-        mpmath.mp.dps = 50
-        x = mpmath.mpf(mpmath.pi)**(10**100)
-        s = ("3.76e4971498726941338543512682882908988736516783243804425858"
-             "528617907843433628490660912792300428115847331")
-        Assert(fmt(x, 3) == s)
-    def Test_TakeApart():
-        D = decimal.Decimal
-        F = fractions.Fraction
-        mpf = mpmath.mpf if have_mpmath else float
-        if 1:   # Show supported types get the same string interpolation
-            # Function to convert an Apart to a string
-            g = lambda x: ''.join(x[:4]) + f"e{x[4]}"
-            k, u, m = 5, "1.23456", 300
-            for n in range(1, 10):
+            def Test_engsi():
+                f = Init()
+                for n in range(1, numdigits + 1):
+                    t = f.eng(x, n=n, fmt="engsi")
+                    fp.digits(n)
+                    expected = fp.engsi(x)
+                    if n == 1:
+                        expected = expected.replace(".", "")
+                    Assert(t == expected)
+            def Test_engsic():
+                f = Init()
+                for n in range(1, numdigits + 1):
+                    t = f.eng(x, n=n, fmt="engsic")
+                    fp.digits(n)
+                    expected = fp.engsic(x)
+                    if n == 1:
+                        expected = expected.replace(".", "")
+                    Assert(t == expected)
+            Test_eng()
+            Test_engsi()
+            Test_engsic()
+        def Test_Sci():
+            def CompareToFPFormat():
+                '''Compare to fpformat's results.  Only go up to 15 digits because
+                fpformat uses floats
+                '''
+                s, numdigits = "1.2345678901234567890", 15
+                fp = FPFormat()
+                fp.expdigits = 1
+                fp.expsign = False
+                f = Init()
+                for e in range(10):
+                    for n in range(1, numdigits + 1):
+                        x = D(s + f"e{e}")
+                        t = f.sci(x, n=n)
+                        fp.digits(n)
+                        expected = fp.sci(x)
+                        if n == 1:
+                            expected = expected.replace(".", "")
+                        Assert(t == expected)
+            def Other():
+                f = Init()
+            CompareToFPFormat()
+            Other()
+        def Test_ReallyBig():
+            '''The Fmt object uses Decimal numbers to do the formatting.  This
+            works for most stuff, but will fail when dealing with exponents
+            beyond around a million, the default for Decimal.  This should only
+            happend for mpmath.mpf numbers.  In this case, simple sci
+            formatting is done.
+            '''
+            if not have_mpmath:
+                return
+            mpmath.mp.dps = 50
+            x = mpmath.mpf(mpmath.pi)**(10**100)
+            s = ("3.76e4971498726941338543512682882908988736516783243804425858"
+                 "528617907843433628490660912792300428115847331")
+            Assert(fmt(x, 3) == s)
+        def Test_TakeApart():
+            mpf = mpmath.mpf if have_mpmath else float
+            if 1:   # Show supported types get the same string interpolation
+                # Function to convert an Apart to a string
+                g = lambda x: ''.join(x[:4]) + f"e{x[4]}"
+                k, u, m = 5, "1.23456", 300
+                for n in range(1, 10):
+                    TA = partial(TakeApart, n=n)
+                    for i in (-1, 0, 1, 2, 1234, -1234):
+                        expected = TA(i)
+                        for x in (float(i), mpf(i), D(i), F(i)):
+                            Assert(TA(x) == expected)
+                            Assert(g(TA(x)) == g(expected))
+                    # Large negative float
+                    expected, s = TA(int(-123456)*10**(m - k)), f"-{u}e{m}"
+                    for typ in (float, mpf, D, F):
+                        y = TA(typ(s))
+                        Assert(y == expected)
+                        Assert(g(y) == g(expected))
+                    # Large positive float
+                    expected, s = TA(int(123456)*10**(m - k)), f"{u}e{m}"
+                    for typ in (float, mpf, D, F):
+                        y = TA(typ(s))
+                        Assert(y == expected)
+                        Assert(g(y) == g(expected))
+                    # Small negative float
+                    expected, s = TA(int(-123456)/10**(m + k)), f"-{u}e-{m}"
+                    for typ in (float, mpf, D, F):
+                        y = TA(typ(s))
+                        Assert(y == expected)
+                        Assert(g(y) == g(expected))
+                    # Small positive float
+                    expected, s = TA(int(123456)/10**(m + k)), f"{u}e-{m}"
+                    for typ in (float, mpf, D, F):
+                        y = TA(typ(s))
+                        Assert(y == expected)
+                        Assert(g(y) == g(expected))
+            if 0:
+                n, w, s, sp, f = 5, 20, "-123.456e300", " "*2, F(1, 1)
                 TA = partial(TakeApart, n=n)
-                for i in (-1, 0, 1, 2, 1234, -1234):
-                    expected = TA(i)
-                    for x in (float(i), mpf(i), D(i), F(i)):
-                        Assert(TA(x) == expected)
-                        Assert(g(TA(x)) == g(expected))
-                # Large negative float
-                expected, s = TA(int(-123456)*10**(m - k)), f"-{u}e{m}"
-                for typ in (float, mpf, D, F):
-                    y = TA(typ(s))
-                    Assert(y == expected)
-                    Assert(g(y) == g(expected))
-                # Large positive float
-                expected, s = TA(int(123456)*10**(m - k)), f"{u}e{m}"
-                for typ in (float, mpf, D, F):
-                    y = TA(typ(s))
-                    Assert(y == expected)
-                    Assert(g(y) == g(expected))
-                # Small negative float
-                expected, s = TA(int(-123456)/10**(m + k)), f"-{u}e-{m}"
-                for typ in (float, mpf, D, F):
-                    y = TA(typ(s))
-                    Assert(y == expected)
-                    Assert(g(y) == g(expected))
-                # Small positive float
-                expected, s = TA(int(123456)/10**(m + k)), f"{u}e-{m}"
-                for typ in (float, mpf, D, F):
-                    y = TA(typ(s))
-                    Assert(y == expected)
-                    Assert(g(y) == g(expected))
-        if 0:
-            n, w, s, sp, f = 5, 20, "-123.456e300", " "*2, F(1, 1)
-            TA = partial(TakeApart, n=n)
-            # This printout is handy to compare things for equality
-            print("0")
-            print(f"{sp}{'int(0)':{w}s} {TA(0)}")
-            print(f"{sp}{'float(0)':{w}s} {TA(float(0))}")
-            print(f"{sp}{'mpf(0)':{w}s} {TA(mpf(0))}")
-            print(f"{sp}{'Decimal(0)':{w}s} {TA(D(0))}")
-            print(f"{sp}{'Fraction(0)':{w}s} {TA(F(0, 1))}")
-            #
-            print("1")
-            print(f"{sp}{'int(1)':{w}s} {TA(1)}")
-            print(f"{sp}{'float(1)':{w}s} {TA(float(1))}")
-            print(f"{sp}{'mpf(1)':{w}s} {TA(mpf(1))}")
-            print(f"{sp}{'Decimal(1)':{w}s} {TA(D(1))}")
-            print(f"{sp}{'Fraction(1, 1)':{w}s} {TA(F(1, 1))}")
-            #
-            print("-1")
-            print(f"{sp}{'int(-1)':{w}s} {TA(-1)}")
-            print(f"{sp}{'float(-1)':{w}s} {TA(float(-1))}")
-            print(f"{sp}{'mpf(-1)':{w}s} {TA(mpf(-1))}")
-            print(f"{sp}{'Decimal(-1)':{w}s} {TA(D(-1))}")
-            print(f"{sp}{'Fraction(-1, 1)':{w}s} {TA(F(-1, 1))}")
-            #
-            print("-123.456e300")
-            print(f"{sp}{'int':{w}s} {TA(int(-123456)*10**297)}")
-            print(f"{sp}{'float':{w}s} {TA(float(s))}")
-            print(f"{sp}{'mpf':{w}s} {TA(mpf(s))}")
-            print(f"{sp}{'Decimal':{w}s} {TA(D(s))}")
-            print(f"{sp}{'Fraction':{w}s} {TA(f.from_decimal(D(s)))}")
-            #
-            print("123.456e300")
-            print(f"{sp}{'int':{w}s} {TA(int(123456)*10**297)}")
-            print(f"{sp}{'float':{w}s} {TA(float(s[1:]))}")
-            print(f"{sp}{'mpf':{w}s} {TA(mpf(s[1:]))}")
-            print(f"{sp}{'Decimal':{w}s} {TA(D(s[1:]))}")
-            print(f"{sp}{'Fraction':{w}s} {TA(f.fromdecimal(D(s[1:])))}")
-    # Module's base code
-    def Error(msg, status=1):
-        print(msg, file=sys.stderr)
-        exit(status)
-    def ParseCommandLine(d):
-        d["--test"] = False         # Run self tests
-        try:
-            opts, args = getopt.getopt(sys.argv[1:], "h", 
-                "test".split())
-        except getopt.GetoptError as e:
-            print(str(e))
-            exit(1)
-        for o, a in opts:
-            if o in ("-h", "--help"):
-                Usage(d, status=0)
-            elif o == "--test":
-                d["--test"] = True
-        return args
+                # This printout is handy to compare things for equality
+                print("0")
+                print(f"{sp}{'int(0)':{w}s} {TA(0)}")
+                print(f"{sp}{'float(0)':{w}s} {TA(float(0))}")
+                print(f"{sp}{'mpf(0)':{w}s} {TA(mpf(0))}")
+                print(f"{sp}{'Decimal(0)':{w}s} {TA(D(0))}")
+                print(f"{sp}{'Fraction(0)':{w}s} {TA(F(0, 1))}")
+                #
+                print("1")
+                print(f"{sp}{'int(1)':{w}s} {TA(1)}")
+                print(f"{sp}{'float(1)':{w}s} {TA(float(1))}")
+                print(f"{sp}{'mpf(1)':{w}s} {TA(mpf(1))}")
+                print(f"{sp}{'Decimal(1)':{w}s} {TA(D(1))}")
+                print(f"{sp}{'Fraction(1, 1)':{w}s} {TA(F(1, 1))}")
+                #
+                print("-1")
+                print(f"{sp}{'int(-1)':{w}s} {TA(-1)}")
+                print(f"{sp}{'float(-1)':{w}s} {TA(float(-1))}")
+                print(f"{sp}{'mpf(-1)':{w}s} {TA(mpf(-1))}")
+                print(f"{sp}{'Decimal(-1)':{w}s} {TA(D(-1))}")
+                print(f"{sp}{'Fraction(-1, 1)':{w}s} {TA(F(-1, 1))}")
+                #
+                print("-123.456e300")
+                print(f"{sp}{'int':{w}s} {TA(int(-123456)*10**297)}")
+                print(f"{sp}{'float':{w}s} {TA(float(s))}")
+                print(f"{sp}{'mpf':{w}s} {TA(mpf(s))}")
+                print(f"{sp}{'Decimal':{w}s} {TA(D(s))}")
+                print(f"{sp}{'Fraction':{w}s} {TA(f.from_decimal(D(s)))}")
+                #
+                print("123.456e300")
+                print(f"{sp}{'int':{w}s} {TA(int(123456)*10**297)}")
+                print(f"{sp}{'float':{w}s} {TA(float(s[1:]))}")
+                print(f"{sp}{'mpf':{w}s} {TA(mpf(s[1:]))}")
+                print(f"{sp}{'Decimal':{w}s} {TA(D(s[1:]))}")
+                print(f"{sp}{'Fraction':{w}s} {TA(f.fromdecimal(D(s[1:])))}")
+    if 1:   # Module's base code
+        def Error(msg, status=1):
+            print(msg, file=sys.stderr)
+            exit(status)
+        def ParseCommandLine(d):
+            d["--test"] = False         # Run self tests
+            try:
+                opts, args = getopt.getopt(sys.argv[1:], "h", 
+                    "test".split())
+            except getopt.GetoptError as e:
+                print(str(e))
+                exit(1)
+            for o, a in opts:
+                if o in ("-h", "--help"):
+                    Usage(d, status=0)
+                elif o == "--test":
+                    d["--test"] = True
+            return args
     args = ParseCommandLine(d)
     if d["--test"]:
         exit(run(globals(), regexp=r"Test_", halt=1, verbose=1)[0])
