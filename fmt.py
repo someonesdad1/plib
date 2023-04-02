@@ -6,7 +6,8 @@ Todo
             ...
 
 Format floating point numbers
-    Run the module as a script to see example output.
+    Run the module as a script to see example output.  See Terminal Notes
+    below.
  
     This module provides string interpolation ("formatting") for floating
     point and complex number types.  If x is float(math.pi), str(x) or
@@ -48,10 +49,18 @@ Format floating point numbers
         deg         If True, output degrees in polar coordinates
  
         cuddled     If True, use '2+3i' form; if False, use '2 + 3i' form
-
+ 
         ul          If True, underline the argument in polar form
-
+ 
         comp        If True, display as (re,im) form, (re, im) if cuddled True
+
+    Terminal Notes
+        This script was intended to be used with other scripts in the plib
+        directory.  You can get the needed tools at
+        https://github.com/someonesdad1/plib.  I use this script in a bash
+        terminal in a cygwin environment using the mintty terminal emulator
+        and it works as written.  Look at /plib/pictures/fmt.png to see
+        what the Demo() function's output looks like on my screen.
 '''
 if 1:  # Header
     # Copyright, license
@@ -78,9 +87,12 @@ if 1:  # Header
         import collections 
         import locale 
         import math 
+        import threading 
         from fraction import Fraction
+        from pprint import pprint as pp
         from pdb import set_trace as xx 
     # Custom imports
+        from color import t
         try:
             import mpmath
             have_mpmath = True
@@ -118,6 +130,30 @@ class Fmt:
         self._SI_prefixes = dict(zip(range(-8, 9), list("yzafpnμm.kMGTPEZY")))
         self._SI_prefixes[0] = ""       # Need empty string
         self._superscripts = dict(zip("-+0123456789", "⁻⁺⁰¹²³⁴⁵⁶⁷⁸⁹"))
+        # For context manager behavior, we'll use a lock to avoid another
+        # thread messing with our attributes
+        self.lock = threading.Lock()
+    def __enter__(self):
+        # Store our attributes (note only those that start with '_' are
+        # saved)
+        self.lock.acquire()  # Stay locked through context execution
+        self.my_attributes = {}
+        for a in self.__dict__:
+            if a.startswith("__"):
+                continue
+            if not a.startswith("_"):
+                continue
+            if a in "_SI_prefixes _superscripts".split():
+                continue
+            self.my_attributes[a] = eval(f"self.{a}")
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        # Restore our attributes
+        d = self.my_attributes
+        for i in d:
+            exec(f"self.{i} = d['{i}']")
+        self.lock.release()
+        del self.my_attributes
+        return False
     def toD(self, value) -> Decimal:
         '''Convert value to a Decimal object.  Supported types are int,
         float, Fraction, Decimal, str, mpmath.mpf, and any other type
@@ -480,26 +516,12 @@ class Fmt:
             self._comp = bool(value)
 fmt = Fmt()     # Convenience instance
 
-if 0:
-    # Develop handling of complex numbers
-    fmt.u = 0
-    fmt.rtz = 1
-    fmt.rtdp = 1
-    fmt.imag_unit="j"
-    fmt.cuddled = 0
-    fmt.polar = 1
-    x = mpmath.mpc(1, 2)
-    z = complex(1, 2)
-    print(fmt(z, n=2))
-    exit()
-
 if __name__ == "__main__": 
     if 1:   # Header
         # Standard imports
             from collections import deque
             from decimal import localcontext
             from math import pi
-            from pdb import set_trace as xx
             import getopt
             import os
             import pathlib
@@ -509,7 +531,6 @@ if __name__ == "__main__":
             from lwtest import run, raises, Assert
             from wrap import dedent
             import decimalmath
-            from color import Color, TRM as t
         # Global variables
             P = pathlib.Path
             d = {}      # Options dictionary
@@ -554,7 +575,6 @@ if __name__ == "__main__":
         t.print(f"  {t.f}f(x) = {t.fix}{f(x)}")
         t.print(f"{t.t}Override f.n significant figures:")
         t.print(f"  {t.f}f(x, n=5){t.n} = {t.fix}{f(x, n=5)}")
-
         t.print(f"{t.t}Remove trailing significant zeros:")
         t.print(f"  {t.f}f(1/4) = {t.fix}{f(1/4)} f.rtz = False")
         f.rtz = True
@@ -641,8 +661,24 @@ if __name__ == "__main__":
         t.print(dedent(f'''
         {t.em}SI notation{t.n}    The {t.f}f.engsi{t.n} method supplies an SI prefix after the number to
         indicate the number's magnitude.  You can then append a physical unit string
-        to get proper SI syntax:  {t.u}{f(x, 'engsi')}Ω{t.n}.
+        to get proper SI syntax:  {t.u}{f(x, 'engsi')}Ω{t.n}.  {t.f}f.engsic{t.n} does the same except the prefix
+        is cuddled: {t.u}{f(x, 'engsic')}Ω{t.n}.
         ''', n=8))
+        # Context manager
+        x = 2**0.5
+        t.print(dedent(f'''
+        {t.em}Context manager{t.n}    A Fmt class instance is a context manager that lets you
+        change attributes in a with statement and have them restored when the with
+        block is over:
+            x = 2**0.5
+            print(fmt(x))        -->  {t.f}{fmt(x)}{t.n}
+            with x:
+                fmt.n = 8
+        ''', n=8))
+        with fmt:
+            fmt.n = 8
+            t.print(f"        print(fmt(x))    -->  {t.f}{fmt(x)}{t.n}")
+        t.print(f"    print(fmt(x))        -->  {t.f}{fmt(x)}{t.n}")
         # Complex numbers
         z = complex(3.45678, -6.78901)
         fmt.imag_unit = "j"
