@@ -1,4 +1,10 @@
 '''
+Todo
+    - Make Fmt a context manager so you can do things like
+        with fmt as f:
+            fmt.n += 8
+            ...
+
 Format floating point numbers
     Run the module as a script to see example output.
  
@@ -529,20 +535,36 @@ if __name__ == "__main__":
         x = eval(s)
         # Standard formatting
         print(dedent(f'''
-        {t.t}Usual float formatting:{t.n}  x = {s}
+        {t.t}Usual python float formatting:{t.n}  x = {s}
             repr(x) = str(x) = {t.u}{x!s}{t.n}
             Though accurate, there are too many digits for easy comprehension.  The
             Fmt class defaults to showing {f.n} significant figures and the trailing
             radix helps you identify that it's a floating point number.
         '''))
-        t.print(f"{t.t}Fmt fixed point formatting:")
+        t.print(f"{t.em}Fixed point formatting")
         print(f"  {t.f}f(x){t.n} = {t.fix}{f(x)}{t.n} (defaults to {f.n} significant figures)")
-        # 2 figures
-        t.print(f"{t.t}Set to 2 significant figures:  {t.f}f.n = 2")
-        f.n = 2
-        t.print(f"  f(x) = {t.fix}{f(x)}")
+        t.print(f"{t.t}Remove trailing decimal point:  {t.f}f.rtdp = True")
+        f.rtdp = True
+        t.print(f"  {t.f}f(x) = {t.fix}{f(x)}")
+        f.rtdp = False
+        # More figures
+        n = 10
+        t.print(f"{t.t}Set to {n} significant figures:  {t.f}f.n = {n}")
+        f.n = n
+        t.print(f"  {t.f}f(x) = {t.fix}{f(x)}")
         t.print(f"{t.t}Override f.n significant figures:")
         t.print(f"  {t.f}f(x, n=5){t.n} = {t.fix}{f(x, n=5)}")
+
+        t.print(f"{t.t}Remove trailing significant zeros:")
+        t.print(f"  {t.f}f(1/4) = {t.fix}{f(1/4)} f.rtz = False")
+        f.rtz = True
+        t.print(f"  {t.f}f(1/4) = {t.fix}{f(1/4)} {' '*8}f.rtz = True")
+        f.rtz = False
+        t.print(f"{t.t}Remove leading zero of decimal fraction:")
+        t.print(f"  {t.f}f(1/4) = {t.fix}{f(1/4)} f.rlz = False")
+        f.rlz = True
+        t.print(f"  {t.f}f(1/4) = {t.fix}{f(1/4)} {' '*1}f.rlz = True")
+        f.rlz = False
         f.n = 3
         # Change scientific notation thresholds
         t.print(f"{t.em}Scientific notation{t.n}    {t.t}Change transition thresholds to scientific notation:")
@@ -554,7 +576,6 @@ if __name__ == "__main__":
         print(f"  {t.sci}{f(pi*1e6)}{t.n} > f.high so use sci")
         print(f"  {t.fix}{f(pi*1e-6)}{t.n} > f.low so use fix")
         print(f"  {t.sci}{f(pi*1e-7)}{t.n} < f.low so use sci")
-        exit() #xx
         # Get scientific and engineering notations
         t.print(f"{t.t}Force use of scientific and engineering notation")
         t.print(f"  sci:  {t.f}f.sci(pi*1e-7){t.n}        = {t.sci}{f.sci(pi*1e-7)}")
@@ -563,37 +584,39 @@ if __name__ == "__main__":
         t.print(f"        {t.f}f(pi*1e-7, fmt='eng'){t.n} = {t.eng}{f(pi*1e-7, fmt='eng')}")
         # Use Unicode characters for scientific notation
         f.u = True
-        t.print(f"{t.t}Set f.u to True to use Unicode characters in sci and eng exponents:")
-        t.print(f"  {t.f}f.sci(pi*1e6)){t.n} = {t.sci}{f.sci(pi*1e6)}")
-        t.print(f"  {t.f}f.eng(pi*1e-7){t.n} = {t.eng}{f.eng(pi*1e-7)}")
+        t.print(f"{t.em}Unicode    {t.n}{t.t}Set f.u to True to use Unicode characters in sci and eng exponents:")
+        t.print(f"  {t.f}f.sci(pi*1e6)){t.n} = {t.sci}{f.sci(pi*1e6)}{t.n}   f.u = True")
+        t.print(f"  {t.f}f.eng(pi*1e-7){t.n} = {t.eng}{f.eng(pi*1e-7)}{t.n}   f.u = True")
         f.u = False
         # Set low & high to None to always get fixed point
+        t.print(f"{t.em}Always use fixed point")
         f.low = f.high = None
-        t.print(f"{t.t}Setting f.low and f.high to None always results in fixed point interpolation:")
+        t.print(f"  {t.t}Set {t.f}f.low{t.n} and {t.f}f.high{t.n} to None always use fixed point:")
         t.print(f"  {t.f}f(pi*1e-27){t.n} = {t.fix}{f(pi*1e-27)}")
         t.print(f"  {t.f}f(pi*1e57){t.n} = {t.fix}{f(pi*1e57)}")
         f.high = 1e6
         f.low = 1e-6
         # Big exponents
         print(dedent(f'''
-        {t.t}Fixed point, scientific, and engineering formatting should work for numbers of
-        arbitrary magnitudes as long as an exception isn't encountered.  For very large
-        or small numbers, install the optional mpmath library.
+        {t.em}Big numbers{t.n}   {t.t}Fixed point, scientific, and engineering formatting should work
+        for numbers of arbitrary magnitudes as long as an exception isn't encountered.
+        For very large or small numbers, install the optional mpmath library.
         '''))
-        t.print(f"  {t.f}f(D('1e999999')){t.n} = {t.sci}{f(D('1e999999'))}")
-        t.print(f"  {t.f}f(D('1e-999999')){t.n} = {t.sci}{f(D('1e-999999'))}")
+        t.print(f"  {t.f}f(Decimal('1e999999')){t.n} = {t.sci}{f(D('1e999999'))}")
+        t.print(f"  {t.f}f(Decimal('1e-999999')){t.n} = {t.sci}{f(D('1e-999999'))}")
         try:
             f(D("1e1000000"))
         except decimal.Overflow:
-            t.print(f'  {t.f}f(D("1e1000000")){t.n}', "results in overflow")
-        t.print(f'  {t.f}f(D("1e-100000000")){t.n}', "underflow that gives 0")
+            t.print(f'  {t.f}f(Decimal("1e1000000")){t.n}', "results in overflow")
+        t.print(f'  {t.f}f(Decimal("1e-100000000")){t.n}', "underflow that gives 0")
         # Decimals with lots of digits
         n = 20
         t.print(dedent(f'''
-        {t.t}You can ask for any number of significant figures, but some displayed digits
-        can be meaningless if they are beyond the number's allowed precision.  Below,
-        digits in error are shown in red, as a python float is only good to about 15
-        digits.  The expression evaluated is 100000*sin(pi/4) to {n} digits.
+        {t.em}Significant figures{t.n}    {t.t}You can ask for any number of significant figures, but
+        some displayed digits can be meaningless if they are beyond the number's
+        allowed precision.  Below, digits in error are shown in red, as a python float
+        is only good to about 15 digits.  The expression evaluated is
+        100000*sin(pi/4) to {n} digits.
         '''))
         with decimal.localcontext() as ctx:
             ctx.prec = n
@@ -616,19 +639,19 @@ if __name__ == "__main__":
             n = 7
             t.print(f"  engsic(x) to {n} digits = {t.si}{f(x, 'engsic', n=n)}")
         t.print(dedent(f'''
-        {t.t}Engineering SI notation means to append an SI prefix to indicate the number's
-        magnitude.  This lets you append a physical unit string to get proper SI
-        syntax:  {t.u}{f(x, 'engsi')}Ω{t.n}.
+        {t.em}SI notation{t.n}    The {t.f}f.engsi{t.n} method supplies an SI prefix after the number to
+        indicate the number's magnitude.  You can then append a physical unit string
+        to get proper SI syntax:  {t.u}{f(x, 'engsi')}Ω{t.n}.
         ''', n=8))
         # Complex numbers
         z = complex(3.45678, -6.78901)
         fmt.imag_unit = "j"
         t.print(dedent(f'''
-        Complex numbers are handled by formatting each floating point component
-        separately.  Let z = complex(3.45678, -6.78901):
+        {t.em}Complex numbers{t.n}    These are handled by formatting each floating point
+        component separately.  Let z = complex(3.45678, -6.78901):
             str(z) = {t.f}{str(z)}{t.n}
             fmt(z) = {t.f}{fmt(z)}{t.n}
-        Use the Fmt object's attributes to change the appearance:
+        Use the Fmt object's attributes to change the formatted form:
         ''', n=8))
         w, sp = 25, " "*4
         fmt.imag_unit = "i"
@@ -654,6 +677,7 @@ if __name__ == "__main__":
         t.print(f"{sp}{s:{w}s} {t.f}{fmt(z)}{t.n}  (fmt.cuddled True)")
         fmt.cuddled = False
         t.print(f"{sp}{'':{w}s} {t.f}{fmt(z)}{t.n} (fmt.cuddled False)")
+        t.print(f"The f.ul underlining won't work unless your terminal supports it.")
     # Test code 
     def Init():
         'Make sure test environment is set up in a repeatable fashion'
