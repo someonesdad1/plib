@@ -128,6 +128,7 @@ if 1:   # Classes
         def __init__(self, n=3):
             # Note self.n won't be changed in a reset()
             self._n = n
+            self.lock = threading.Lock()    # For context management
             self.reset()
         def reset(self):
             'Set attributes to default'
@@ -141,6 +142,25 @@ if 1:   # Classes
             self._other = None      # Remaining digits of number
             self._e = None          # Integer exponent of 10
             self._dq = None         # Deque of significand's digits
+        def __enter__(self):
+            self.lock.acquire()  # Stay locked through context execution
+            self.my_attributes = {}
+            for a in self.__dict__:
+                if a.startswith("__"):
+                    continue
+                if not a.startswith("_"):
+                    continue
+                if a in "_supported _superscripts".split():
+                    continue
+                self.my_attributes[a] = eval(f"self.{a}")
+        def __exit__(self, exc_type, exc_val, exc_tb):
+            # Restore our attributes
+            d = self.my_attributes
+            for i in d:
+                exec(f"self.{i} = d['{i}']")
+            self.lock.release()
+            del self.my_attributes
+            return False
         def __str__(self):
             if self._ld is None:
                 return None
@@ -412,31 +432,33 @@ if 1:   # Classes
                     dq.appendleft(parts.sign)
                 dq = self.trim(dq)
                 retval_old = ''.join(dq)
-            if 1:   # Use new method
-                # Use TakeApart impl
-                self.ta(value)
-                sign = self.ta.sign     # Sign ("-" or " ")
-                dp = self.ta.dp         # Decimal point
-                dq = self.ta.dq         # Deque of significand's digits (no dp)
-                e = self.ta.e           # Integer exponent
-                if e < 0:
-                    # Number < 1
-                    ne = e + 1
-                    while ne < 0:
-                        dq.appendleft("0")
-                        ne += 1
-                    dq.appendleft(dp)
-                    if not self._rlz:
-                        dq.appendleft("0")
-                else:
-                    # Number >= 1
-                    while len(dq) < e + 1:
-                        dq.append("0")
-                    dq.insert(e + 1, dp)
-                if sign == "-" or (sign == " " and self.spc):
-                    dq.appendleft(sign)
-                dq = self.trim(dq)
-                retval_new = ''.join(dq)
+            if 1:   # Use new method with TakeApart implementation
+                with self.ta:
+                    self.ta(value)
+                    self.ta.n = n if n is not None else self.n
+                    sign = self.ta.sign     # Sign ("-" or " ")
+                    # Note we use fmt instance's decimal point
+                    dp = self.dp            # Decimal point
+                    dq = self.ta.dq         # Deque of significand's digits (no dp)
+                    e = self.ta.e           # Integer exponent
+                    if e < 0:
+                        # Number < 1
+                        ne = e + 1
+                        while ne < 0:
+                            dq.appendleft("0")
+                            ne += 1
+                        dq.appendleft(dp)
+                        if not self._rlz:
+                            dq.appendleft("0")
+                    else:
+                        # Number >= 1
+                        while len(dq) < e + 1:
+                            dq.append("0")
+                        dq.insert(e + 1, dp)
+                    if sign == "-" or (sign == " " and self.spc):
+                        dq.appendleft(sign)
+                    dq = self.trim(dq)
+                    retval_new = ''.join(dq)
                 assert(set(retval_new).issubset(set("0123456789.,- ")))
             # Ensure new and old method get same results (prepend space to
             # old results if >= 0 and self.spc)
@@ -996,7 +1018,6 @@ if __name__ == "__main__":
             return f
         def Test_Basics():
             f = Init()
-            breakpoint() #xx
             s = f(pi)
             for x, result in (
                 (pi, "3.14"),
