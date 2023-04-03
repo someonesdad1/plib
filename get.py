@@ -3,8 +3,7 @@ Module for a) getting data from files, strings, and streams, b) getting
 numbers interactively from user.
  
 TODO:  
-    * Add Zn to GetNumbers
-    * Change 'ignore_regexes' keyword to 'ignore'
+    - Add Zn to GetNumbers
 '''
 if 1:   # Header
     # Copyright, license
@@ -38,15 +37,19 @@ if 1:   # Header
         from asciify import Asciify
         try:
             from uncertainties import ufloat, ufloat_fromstr, UFloat
-            _have_unc = True
+            have_unc = True
         except ImportError:
-            _have_unc = False
-        from f import flt, cpx
+            have_unc = False
         try:
             from f import flt, cpx
-            _have_f = True
+            have_f = True
         except ImportError:
-            _have_f = False
+            have_f = False
+        try:
+            from mpmath import mpf, mpc
+            have_mpmath = True
+        except ImportError:
+            have_mpmath = False
     # Global variables
         P = pathlib.Path
         ii = isinstance
@@ -57,6 +60,13 @@ if 1:   # Header
             "łŁŀĿľĽļĻĺĹĸķĶĵĴıİįĮĭĬīĪĩĨħĦĥĤģĢġĠğĞĝĜěĚęĘėĖĕĔēĒđĐďĎčČċĊĉĈć"
             "ĆąĄăĂāĀÿþýüûúùøöõôóòñðïîíìëêéèçæåäãâáàßÞÝÜÛÚÙØÖÕÔÓÒÑÐÏÎÍÌË"
             "ÊÉÈÇÆÅÄÃÂÁÀ")
+        __all__ = '''
+            GetText GetLines1 GetLines GetTextLines GetLine GetNumberedLines GetBinary
+            GetNumber GetNumber GetNumberArray GetFraction ParseUnit ParseUnitString GetComplex
+            GetChoice
+            GetWords GetTokens GetWordlist wrd pnc Tokenize
+            IsPunctuation GetWireDiameter GetFileSize
+        '''.split()
 if 1:   # Getting text, lines, bytes
     def GetText(thing, enc=None):
         '''Return text from thing, which is
@@ -503,7 +513,7 @@ if 1:   # Getting numbers
             if len(s) == 1 and s in "qQ" and allow_quit:
                 exit(0)
             if use_unc and "+-" in s:  # Change 8+-1 to 8+/-1
-                if not _have_unc:
+                if not have_unc:
                     raise ValueError("Uncertainties library not available")
                 s = s.replace("+-", "+/-")
             # Check to see if number contains a unit
@@ -577,7 +587,7 @@ if 1:   # Getting numbers
         whitespace and returns a list of these numbers.  If numtype is
         given, all found strings are converted to that type.
     
-        If flt and cpx types are available (_have_f is True), then floats
+        If flt and cpx types are available (have_f is True), then floats
         and complex types are converted to these over float and complex, 
         respectively.
     
@@ -589,16 +599,16 @@ if 1:   # Getting numbers
             if numtype:
                 lst.append(numtype(s))
             else:
-                if _have_unc and "+-" in s:
+                if have_unc and "+-" in s:
                     s = s.replace("+-", "+/-")
-                if _have_unc and ("+/-" in s or "(" in s or "±" in s):
+                if have_unc and ("+/-" in s or "(" in s or "±" in s):
                     x = ufloat_fromstr(s)
                 elif "/" in s:
                     x = Fraction(s)
                 elif "j" in s.lower():
-                    x = cpx(s) if _have_f else complex(s)
+                    x = cpx(s) if have_f else complex(s)
                 elif dp in s or "e" in s.lower():
-                    x = flt(s) if _have_f else float(s)
+                    x = flt(s) if have_f else float(s)
                 else:
                     x = int(s)
                 lst.append(x)
@@ -760,6 +770,85 @@ if 1:   # Getting numbers
             if prefix not in si:
                 raise ValueError(f"'{prefix}' is not an SI prefix")
             return (10**si[prefix], unit)
+    def GetComplex(s, typ=complex):
+        '''Return a complex number from the string s.  If s does not
+        represent a complex number, None is returned.  You can change the
+        returned number type with typ.  The allowed forms of s are:
+            1. i, +i, -i
+            2. X+i, X-i
+            3. Xi
+            4. XYi
+        where
+            X is an integer or float with an optional leading sign
+            Y is an integer or float with a mandatory leading sign
+        '''
+        if not ii(s, str):
+            raise TypeError("Parameter s must be a string")
+        u = s.lower().replace("j", "i")
+        u = re.sub("\s*", "", u)    # Remove all whitespace
+        if not u:
+            return None
+        if not u.endswith("i"):
+            return None
+        # Case 1.  i, +i, -i forms
+        if u == "i" or u == "+i":
+            return typ(0, 1)
+        elif u == "-i":
+            return typ(0, -1)
+        # Case 2.  X+i, X-i forms
+        if u.endswith("-i") or u.endswith("+i"):
+            im = "-1j" if u.endswith("-i") else "+1j"
+            u = u[:-2]
+            assert(u)
+            if have_mpmath and typ == mpc:
+                return typ(u, im.replace("j", ""))
+            else:
+                return typ(u + im)
+        # Remove the trailing 'i'
+        u = u[:-1]
+        # Get leading - sign
+        minus = 1
+        if u.startswith("+"):
+            u = u[1:]
+        elif u.startswith("-"):
+            u = u[1:]
+            minus = -1
+        if not u:
+            return None
+        # Case 3 and 4 forms with no trailing i
+        # 
+        # u is now one or two numbers.  These numbers will be separated
+        # by '+' or '-'.  Replace "e-" by "em" and "e+" by "e".  Remaining
+        # string can then have only one "+" or "-"; split on it to get
+        # real and imaginary parts.
+        assert(u and u[0] not in "+-")
+        u = u.replace("e-", "em")
+        u = u.replace("e+", "e")
+        p = u.count("+")
+        m = u.count("-")
+        if p > 1 or m > 1:
+            return None
+        # 3. Xi form 
+        sgn = "-" if minus == -1 else "+"
+        if not p and not m:
+            u = u.replace("em", "e-")
+            if have_mpmath and typ == mpc:
+                return typ("0", f"{sgn}{u}")
+            else:
+                return typ(f"0{sgn}{u}j")
+        assert((p and not m) or (not p and m))
+        sp = "+" if p else "-"  # Character to split on
+        r, i = u.split(sp)
+        r = r.replace("em", "e-")
+        i = i.replace("em", "e-")
+        r = r if r else 0
+        i = i if i else 0
+        iminus = -1 if sp == "-" else 1
+        z = f"{sgn}{r}{sp}{i}j"
+        if have_mpmath and typ == mpc:
+            return typ(f"{sgn}{r}", f"{sp}{i}")
+        else:
+            return typ(z)
 if 1:   # Getting choices
     def GetChoice(seq, default=1, indent=None, col=False, instream=None,
                   outstream=None):
@@ -967,10 +1056,7 @@ if 1:   # Miscellaneous
         s = p.stat()
         return s.st_size
 
-if 0:
-    lines = GetLines("pgm/trip.boi2spok")
-    from pprint import pprint as pp
-    pp(lines)
+if 0:   # xx Developmental area
     exit()
 
 if __name__ == "__main__": 
@@ -1390,14 +1476,14 @@ if __name__ == "__main__":
             L = GetNumbers(s)
             Assert(L == [1, 1.2, Fraction(3, 4), (3+1j)])
             # Check f.py types flt and cpx
-            if _have_f:
+            if have_f:
                 s = "1.2 3+1j"
                 x, z = GetNumbers(s)
                 Assert(ii(x, flt) and ii(z, cpx))
                 Assert(x == flt(1.2))
                 Assert(z == cpx(3+1j))
             # Check uncertainties library forms
-            if _have_unc:
+            if have_unc:
                 s = "3±4 3+-4 3+/-4 3(4)"
                 for u in GetNumbers(s):
                     Assert(u.nominal_value == 3)
@@ -1493,6 +1579,64 @@ if __name__ == "__main__":
             Assert(a == 1 and b == "")
             a, b = ParseUnitString("μ", [], strict=False)
             Assert(a == 1 and b == "")
+        def TestGetComplex():
+            em, ep = "1.23e-77", "1.23e+77"
+            cases = (
+                # Case 1
+                ("i", "0+1j"),
+                ("+i", "0+1j"),
+                ("-i", "0-1j"),
+                # Case 2
+                ("2+i", "2+1j"),
+                ("2-i", "2-1j"),
+                # Case 3
+                ("3i", "0+3j"),
+                ("+3i", "0+3j"),
+                ("-3i", "0-3j"),
+                (f" {em}i", f"0+{em}j"),
+                (f"+{em}i", f"0+{em}j"),
+                (f"-{em}i", f"0-{em}j"),
+                (f" {ep}i", f"0+{ep}j"),
+                (f"+{ep}i", f"0+{ep}j"),
+                (f"-{ep}i", f"0-{ep}j"),
+                # Case 4
+                (f" {ep}+{em}i", f"{ep}+{em}j"),
+                (f"+{ep}+{em}i", f"{ep}+{em}j"),
+                (f"-{ep}+{em}i", f"-{ep}+{em}j"),
+                (f" {ep}-{em}i", f"{ep}-{em}j"),
+                (f"+{ep}-{em}i", f"{ep}-{em}j"),
+                (f"-{ep}-{em}i", f"-{ep}-{em}j"),
+                (f" {em}+{ep}i", f"{em}+{ep}j"),
+                (f"+{em}+{ep}i", f"{em}+{ep}j"),
+                (f"-{em}+{ep}i", f"-{em}+{ep}j"),
+                (f" {em}-{ep}i", f"{em}-{ep}j"),
+                (f"+{em}-{ep}i", f"{em}-{ep}j"),
+                (f"-{em}-{ep}i", f"-{em}-{ep}j"),
+                #
+                (f" {ep}+{ep}i", f"{ep}+{ep}j"),
+                (f"+{ep}+{ep}i", f"{ep}+{ep}j"),
+                (f"-{ep}+{ep}i", f"-{ep}+{ep}j"),
+                (f" {ep}-{ep}i", f"{ep}-{ep}j"),
+                (f"+{ep}-{ep}i", f"{ep}-{ep}j"),
+                (f"-{ep}-{ep}i", f"-{ep}-{ep}j"),
+                (f" {em}+{em}i", f"{em}+{em}j"),
+                (f"+{em}+{em}i", f"{em}+{em}j"),
+                (f"-{em}+{em}i", f"-{em}+{em}j"),
+                (f" {em}-{em}i", f"{em}-{em}j"),
+                (f"+{em}-{em}i", f"{em}-{em}j"),
+                (f"-{em}-{em}i", f"-{em}-{em}j"),
+            )
+            for i, j in cases:
+                z = GetComplex(i)
+                expected = complex(j)
+                Assert(z == expected)
+                if have_f:
+                    z = GetComplex(i, typ=cpx)
+                    Assert(z == expected)
+                if have_mpmath:
+                    z = GetComplex(i, typ=mpc)
+                    Assert(z == expected)
+
     if 1:   # Getting choices
         def TestGetChoice():
             seq = ["a", "b", "c"]
