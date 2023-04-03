@@ -46,7 +46,7 @@ class Fmt:  Format floating point numbers
         cuddled     If True, use '2+3i' form; if False, use '2 + 3i' form.
         ul          If True, underline the argument in polar form.
         comp        If True, display as (re,im) form, (re, im) if cuddled
-                    True.
+                    False.
  
     Terminal Notes
         This script is intended to be used with other scripts in the plib
@@ -56,7 +56,8 @@ class Fmt:  Format floating point numbers
         and it works as written.  Look at /plib/pictures/fmt.png to see
         what the Demo() function's output looks like on my screen.  Other
         terminals will likely need hacking on color.py to get things to
-        work correctly.
+        work correctly.  Define the environment variable DPRC to get ANSI
+        color strings output to the terminal.
 '''
 if 1:   # Header
     if 1:   # Copyright, license
@@ -68,14 +69,9 @@ if 1:   # Header
         #   See http://opensource.org/licenses/OSL-3.0.
         #∞license∞#
         #∞what∞#
-        # <programming> Format Decimal numbers with the Fmt class.  Provides
-        # fixed point, scientific, and engineering formats.  You can control
-        # the points at which fixed point switches to scientific notation
-        # (or set them to None, which means you always get fixed point
-        # notation).  Scientific and engineering notation can use Unicode
-        # characters for exponents, such as 3.14✕10⁶ and 314✕10⁻⁹.  Since
-        # the implementation is in Decimal numbers, you can work with
-        # arbitrarily large numbers and arbitrary number of decimal places.
+        # <programming> Format numbers with the Fmt class.  Provides
+        # fixed point, scientific, and engineering formats.  Run as a
+        # script to see a demo.
         #∞what∞#
         #∞test∞# --test #∞test∞#
         pass
@@ -907,6 +903,7 @@ if __name__ == "__main__":
         t.print(f"  {t.t}Set {t.f}f.low{t.n} and {t.f}f.high{t.n} to None always use fixed point:")
         t.print(f"  {t.f}f(pi*1e-27){t.n} = {t.fix}{f(pi*1e-27)}")
         t.print(f"  {t.f}f(pi*1e57){t.n} = {t.fix}{f(pi*1e57)}")
+        print(f"  Large and small enough numbers will still require scientific notation.")
         f.high = 1e6
         f.low = 1e-6
         # Big exponents
@@ -965,7 +962,7 @@ if __name__ == "__main__":
         block is over:
             x = 2**0.5
             print(fmt(x))        -->  {t.f}{fmt(x)}{t.n}
-            with x:
+            with fmt:
                 fmt.n = 8
         ''', n=8))
         with fmt:
@@ -1389,6 +1386,6 @@ if __name__ == "__main__":
             return args
     args = ParseCommandLine(d)
     if d["--test"]:
-        exit(run(globals(), regexp=r"Test_", halt=1, verbose=1)[0])
+        exit(run(globals(), regexp=r"Test_", halt=1, verbose=0)[0])
     else:
         Demo()
