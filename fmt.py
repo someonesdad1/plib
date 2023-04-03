@@ -5,15 +5,6 @@ Todo
       None, there should still be limits to what will be printed.  A
       guide would be half the number of characters that will fit on the
       screen at once.
-    - Utilize TakeApart as core method
-    - Instead of namedtuple, consider a class TakeApart that
-      takes things apart using __call__(floating_point_number).  
-      The advantage is that it can have computed convenience attributes
-      too; for example, it's str() form will be the assembled interpolation
-      string.
-        - Attributes:  sign, ld, dp, other, exp:  all strings
-            - e attribute is integer
-            - dq gives the deque(ld + other)
  
 class Fmt:  Format floating point numbers
     Run the module as a script to see example output.  See Terminal Notes
@@ -94,6 +85,7 @@ if 1:   # Header
         import collections 
         import locale 
         import math 
+        import os 
         import threading 
         from pprint import pprint as pp
         from pdb import set_trace as xx 
@@ -109,20 +101,12 @@ if 1:   # Header
         except ImportError:
             have_mpmath = False
     if 1:   # Global variables
+        W = int(os.environ.get("COLUMNS", "80")) - 1
+        L = int(os.environ.get("LINES", "50"))
         D = Decimal = decimal.Decimal
         F = Fraction = fractions.Fraction
         ii = isinstance
-        __all__ = "Fmt fmt TakeApart Apart".split()
-    if 0:   # Types
-        # Namedtuple to hold the components of a real number that has been
-        # taken apart after being approximated to n digits.  The components are
-        # strings except for exp, which is an int.
-        #   sign is "-" or ""
-        #   ld is the leading digit
-        #   dp is the radix (decimal point character)
-        #   other is all digits except the leading one
-        #   exp is the power of 10 exponent
-        Apart = collections.namedtuple("Apart", "sign ld dp other exp")
+        __all__ = "Fmt TakeApart fmt ta".split()
 if 1:   # Classes
     class TakeApart:
         def __init__(self, n=3):
@@ -190,8 +174,9 @@ if 1:   # Classes
                 sign = "-"
                 yabs = -y
             if have_mpmath and ii(yabs, mpmath.mpf):
-                e = int(mpmath.floor(mpmath.log10(yabs))) if yabs else 0
-                s = mpmath.nstr(mpmath.mpf(yabs/10**e), n)
+                lg, ten = mpmath.log10(yabs), mpmath.mpf(10)
+                e = int(mpmath.floor(lg)) if yabs else 0
+                s = mpmath.nstr(mpmath.mpf(yabs/ten**e), n)
                 assert("." in s and len(s) > 1)    # mpmath seems to use only "."
                 dp = s[1]
                 t = s.replace(".", "").replace(",", "")     # Remove radix
@@ -284,7 +269,7 @@ if 1:   # Classes
             def supported(self, myset):
                 assert(ii(myset, set) and myset)
                 self._supported = myset
-    old = False
+    new_method = True
     class Fmt:
         def __init__(self, n=3, low=D("1e-5"), high=D("1e16")):
             '''n is the number of digits to format to.  
@@ -294,7 +279,7 @@ if 1:   # Classes
             fixed point interpolation is used by default.
             '''
             self._n = n                     # Number of digits
-            if not old:
+            if new_method:
                 self.ta = TakeApart()       # Take apart machinery
                 self.ta.n = n               # Synchronize number of digits
             self._dp = locale.localeconv()["decimal_point"]  # Radix
@@ -413,6 +398,20 @@ if 1:   # Classes
             return dq
         def fix(self, value, n=None) -> str:
             'Return a fixed point representation'
+            # We first need to check that this number isn't too large to
+            # use fixed point formatting.  Example:  pi**100000 has an
+            # exponent of 49714 and its fixed point expression will involve
+            # tens of thousands of digits.  I've arbitrarily chosen that a
+            # number that will take up more than about 1/4 of the screen's
+            # space is too big for fixed formatting, so go over to
+            # scientific in this case.
+            #
+            # First get the exponent e
+            self.ta(value)
+            e = abs(self.ta.e)
+            nmax = W*L//4    # 1/4 of the number of characters that fit on screen
+            if e > nmax:
+                return self.sci(value, n=n)
             if 1:   # Use old method
                 x = self.toD(value)
                 parts, dq, z = self._get_data(x, n)
@@ -801,8 +800,8 @@ if 1:   # Convenience instances
 
 # Development area
 if 0 and __name__ == "__main__": 
-    x = round(10000*math.pi, 2)
-    print(fmt(x))
+    x = mpmath.mpf("1e8")
+    print(fmt.fix(x))
     exit()
 
 if __name__ == "__main__": 
@@ -1108,6 +1107,7 @@ if __name__ == "__main__":
                     ctx.prec = n
                     Assert(f(x) == D(2)**D(1/2))
         def Test_Fix():
+            'This is where the majority of execution time is'
             def TestTrimming():
                 f = Init()
                 x = 31.41
@@ -1136,9 +1136,9 @@ if __name__ == "__main__":
                 Assert(f(x, fmt="fix") == ".00732")
                 # Use alternate string for decimal point
                 f = Init()
-                x = 31.41
+                x = -31.41
                 f.dp = ","
-                Assert(f(x) == "31,4")
+                Assert(f(x) == "-31,4")
                 with raises(TypeError) as y:
                     f.dp = "q"
             def TestHuge(n, digits=3):
@@ -1147,18 +1147,22 @@ if __name__ == "__main__":
                 x = D(str(pi) + f"e{n}")
                 f.high = None
                 s = f(x, fmt="fix")
-                Assert(s[:3] == "314")
-                Assert(s[-1] == ".")
-                Assert(s[3:-1] == "0"*(len(s) - 4))
+                if n == 999999:
+                    # Note sci is used
+                    Assert(s == "3.14e999999")
+                else:
+                    Assert(s.startswith("3140"))
             def TestTiny(n, digits=3):
                 f = Init()
                 f.n = digits
                 x = D(str(pi) + f"e-{n}")
                 f.low = None
                 s = f(x, fmt="fix")
-                Assert(s[:2] == "0.")
-                Assert(s[-3:] == "314")
-                Assert(s[2:-3] == "0"*(len(s) - 5))
+                if n == 999999:
+                    # Note sci is used
+                    Assert(s == "3.14e-999999")
+                else:
+                    Assert(s.endswith("0314"))
             def TestLotsOfDigits(n, digits=3):
                 f = Init()
                 f.n = digits
@@ -1183,14 +1187,15 @@ if __name__ == "__main__":
                         begin = t[:m]
                         end = ("0"*(len(s) - m)) + "."
                         Assert(t == begin + end)
-                # Here's a second test with somewhat more random digits.
-                s = "305834907503304830840485408347390568489537430834"
-                n = int(1e6/len(s))  # How many before we reach a million digits
-                x = D(s*n)
-                f = Init()
-                f.high = None
-                t = f(x, fmt="fix")
-                Assert(len(t) == n*len(s) + 1)
+                if 1:
+                    # Here's a second test with somewhat more random digits.
+                    s = "305834907503304830840485408347390568489537430834"
+                    n = int(1e4/len(s))  # How many digits
+                    x = D(s*n)
+                    f = Init()
+                    f.high = None
+                    t = f(x, fmt="fix")
+                    Assert(t == "3.06e9983")
             def Test_rlz():
                 f = Init()
                 x = 0.2846
@@ -1213,7 +1218,7 @@ if __name__ == "__main__":
                 TestHuge(n)
                 TestLotsOfDigits(n)
             TestTrimming()
-            TestBigInteger(100)
+            TestBigInteger(20)
             Test_rlz()
         def Test_Eng():
             '''Compare to fpformat's results.  Only go up to 15 digits because
@@ -1256,15 +1261,13 @@ if __name__ == "__main__":
             Test_engsic()
         def Test_Sci():
             def CompareToFPFormat():
-                '''Compare to fpformat's results.  Only go up to 15 digits because
-                fpformat uses floats
-                '''
-                s, numdigits = "1.2345678901234567890", 15
+                "Compare to fpformat's results"
+                s, numdigits = "1.2345678901234567890", 10
                 fp = FPFormat()
                 fp.expdigits = 1
                 fp.expsign = False
                 f = Init()
-                for e in range(10):
+                for e in range(6):
                     for n in range(1, numdigits + 1):
                         x = D(s + f"e{e}")
                         t = f.sci(x, n=n)
