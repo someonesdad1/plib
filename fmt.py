@@ -1,8 +1,7 @@
 '''
 Todo
-    - New attributes
-        - spc
-        - sign
+    - Add integer formatting
+        - self.fmtint(x, fmt=None)
     - Let fmt.n = 0, which means to produce real & complex to all digits.
       Note I'm not sure this is appropriate, as it adds complexity and
       needs to deal with both Decimal and mpf numbers.  Instead, let the
@@ -31,9 +30,10 @@ class Fmt:  Format floating point numbers
  
     Fmt is also a context manager so you can change formatting
     characteristics in a with block.
-
-    Call the instance's reset() method to put the instance into a known
-    state (this is done by the constructor).
+ 
+    Methods
+        - reset() to put instance in default state
+        - fmtint() to format an integer
  
     The attributes of a Fmt instance provide more control over the
     formatting:
@@ -432,6 +432,31 @@ if 1:   # Classes
             parts = self._take_apart(x, n)
             return (parts, collections.deque(parts.ld) + 
                 collections.deque(parts.other), "0")
+        def fmtint(self, value, fmt=None):
+            '''Format an integer value.  If fmt is None or "norm", 
+            str(value) is returned.  Other values for fmt are "hex", "oct",
+            "dec", and "bin", which cause 0x, 0o, 0d, or 0b to be
+            prepended.  self.sign and self.spc are honored.
+            '''
+            if not ii(value, int):
+                raise TypeError("value must be an int")
+            if value < 0:
+                sgn = "-"
+            else:
+                sgn = "+" if self.sign else " " if self.spc else ""
+            if fmt is None or fmt == "norm":
+                return f"{sgn}{value}"
+            elif fmt == "hex":
+                return f"{sgn}{hex(value)}"
+            elif fmt == "oct":
+                return f"{sgn}{oct(value)}"
+            elif fmt == "dec":
+                return f"{sgn}0d{value}"
+            elif fmt == "bin":
+                return f"{sgn}{bin(value)}"
+            else:
+                raise ValueError("fmt must be None, norm, hex, oct, dec, or bin")
+
         def trim(self, dq):
             'Implement rtz, rtdp, and rlz for significand dq in deque'
             assert(ii(dq, collections.deque))
@@ -835,7 +860,6 @@ if 1:   # Classes
             @comp.setter
             def comp(self, value):
                 self._comp = bool(value)
-
 if 0:   # Core methods
     def _TakeApart(x, n=3):
         '''Take apart a real number into digits, decimal point, and
@@ -893,8 +917,6 @@ if 1:   # Convenience instances
 
 # Development area
 if 0 and __name__ == "__main__": 
-    x = mpmath.mpf("1e8")
-    print(fmt.fix(x))
     exit()
 
 if __name__ == "__main__": 
@@ -1495,6 +1517,16 @@ if __name__ == "__main__":
                 print(f"{sp}{'mpf':{w}s} {TA(mpf(s[1:]))}")
                 print(f"{sp}{'Decimal':{w}s} {TA(D(s[1:]))}")
                 print(f"{sp}{'Fraction':{w}s} {TA(f.fromdecimal(D(s[1:])))}")
+        def Test_Int():
+            f = Init()
+            x = 32768
+            Assert(f.fmtint(x) == "32768")
+            Assert(f.fmtint(x, fmt="norm") == f"{x}")
+            Assert(f.fmtint(x, fmt="hex") == hex(x))
+            Assert(f.fmtint(x, fmt="oct") == oct(x))
+            Assert(f.fmtint(x, fmt="dec") == "0d32768")
+            Assert(f.fmtint(x, fmt="bin") == bin(x))
+            raises(TypeError, f.fmtint, "kdjfkdj")
     if 1:   # Module's base code
         def Error(msg, status=1):
             print(msg, file=sys.stderr)
