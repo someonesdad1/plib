@@ -1,10 +1,17 @@
 '''
 Todo
+    - Let fmt.n = 0, which means to produce real & complex to all digits.
+    - Angle measures:  deg rad grad rev
     - Test_Big produces a number with an exponent of 1e49.  In pure fixed
       mode, this would take forever to print out.  Thus, if low or high are
       None, there should still be limits to what will be printed.  A
       guide would be half the number of characters that will fit on the
       screen at once.
+    - Note mpmath.nstr() has keywords to control low & high for fixed point
+      strings.  You can also use it to get a floating point interpolation.
+        - An x = mpf(i) where i is an integer appears to have the property 
+          int(x) == i, at least if the integer can be expressed at the
+          current precision exactly.  Checked up to 2**1000000.
  
 class Fmt:  Format floating point numbers
     Run the module as a script to see example output.  See Terminal Notes

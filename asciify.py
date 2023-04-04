@@ -2679,26 +2679,39 @@ if __name__ == "__main__":
         import getopt
         import os
         import sys
-        from textwrap import dedent
+        from wrap import dedent
     def Error(msg, status=1):
         print(msg, file=sys.stderr)
         exit(status)
     def Usage(status=1):
         print(dedent(f'''
-    Usage:  {sys.argv[0]} [options] file1 [file2...]
-      Convert the Unicode characters in the files to their ASCII
-      equivalents and write the text to stdout.  Use '-' for a 
-      filename to read from stdin.'''[1:]))
+        Usage:  {sys.argv[0]} [options] file1 [file2...]
+          Convert the Unicode characters in the files to their ASCII
+          equivalents and write the text to stdout.  Use '-' for a 
+          filename to read from stdin.
+        Options
+          -d    Dump all the characters we translate to stdout
+        '''))
         exit(status)
+    def Dump():
+        for i in _ascii_translate:
+            print(f"{chr(i)}", end="")
+        print()
+        exit(0)
     def ParseCommandLine():
+        d["-d"] = False     # Dump chars to stdout
         try:
-            opts, args = getopt.getopt(sys.argv[1:], "h")
+            opts, args = getopt.getopt(sys.argv[1:], "dh")
         except getopt.GetoptError as e:
             print(str(e))
             exit(1)
         for o, a in opts:
-            if o == "-h":
+            if o == "-d":
+                d[o] = not d[o]
+            elif o == "-h":
                 Usage()
+        if d["-d"]:
+            Dump()
         # Determine if we need to read the files in
         if not args:
             Usage()
