@@ -1,6 +1,12 @@
 '''
 Todo
+    - New attributes
+        - spc
+        - sign
     - Let fmt.n = 0, which means to produce real & complex to all digits.
+      Note I'm not sure this is appropriate, as it adds complexity and
+      needs to deal with both Decimal and mpf numbers.  Instead, let the
+      calling environment deal with it.
     - Angle measures:  deg rad grad rev
     - Test_Big produces a number with an exponent of 1e49.  In pure fixed
       mode, this would take forever to print out.  Thus, if low or high are
@@ -25,11 +31,16 @@ class Fmt:  Format floating point numbers
  
     Fmt is also a context manager so you can change formatting
     characteristics in a with block.
+
+    Call the instance's reset() method to put the instance into a known
+    state (this is done by the constructor).
  
     The attributes of a Fmt instance provide more control over the
     formatting:
  
         n       Sets the number of significant digits.
+        default String for default formatting (fix, sci, eng, engsi,
+                engsic)
         dp      Sets the radix (decimal point) string.
         low     Numbers below this value are displayed with scientific
                 notation.  None means all small numbers are displayed
@@ -44,6 +55,7 @@ class Fmt:  Format floating point numbers
         rtz     If True, remove trailing significant zero digits.
         rtdp    If True, remove the trailing radix if it ends the string.
         spc     If True, use " " as leading character if number >= 0
+        sign    If True, always include the number's sign
  
     Complex number attributes:
  
@@ -272,42 +284,74 @@ if 1:   # Classes
             def supported(self, myset):
                 assert(ii(myset, set) and myset)
                 self._supported = myset
-    new_method = True
     class Fmt:
         def __init__(self, n=3, low=D("1e-5"), high=D("1e16")):
             '''n is the number of digits to format to.  
             low is the point below which scientific notation is used.
             high is the point above which scientific notation is used.
             low and high can be None, which disables them; if disabled, then
-            fixed point interpolation is used by default.
+            fixed point interpolation is used by default except for very
+            large or small numbers where there are too many digits to
+            display on the screen.
             '''
-            self._n = n                     # Number of digits
-            self._default = "fix"           # Default formatting method
-            if new_method:
-                self.ta = TakeApart()       # Take apart machinery
-                self.ta.n = n               # Synchronize number of digits
-            self._dp = locale.localeconv()["decimal_point"]  # Radix
-            self._low = self.toD(low)       # Use sci if x < this value
-            self._high = self.toD(high)     # Use sci if x > this value
-            self._u = False                 # Use Unicode symbols for exponents
-            self._rlz = False               # Remove leading zero if True
-            self._rtz = False               # Remove trailing zeros if True
-            self._rtdp = False              # Remove trailing radix if True
-            self._spc = False               # If num >= 0, use " " for leading character
+            self._n = None                  # Number of digits
+            self._default = None            # Default formatting method
+            self.ta = None                  # Take apart machinery
+            self._dp = None                 # Radix
+            self._u = None                  # Use Unicode symbols for exponents
+            self._rlz = None                # Remove leading zero if True
+            self._rtz = None                # Remove trailing zeros if True
+            self._rtdp = None               # Remove trailing radix if True
+            self._spc = None                # If num >= 0, use " " for leading character
+            self._sign = None               # Include "+" or "-" in interpolation
+            # If in fix mode, very large/small numbers can result in too
+            # many digits to display on the screen.  When abs(exponent) is
+            # greater than self.nchars (here, about 1/4 of the terminal
+            # window's capacity), use sci.
+            self.nchars = None              # If in fix mode, use sci if n > this number
             # Attributes for complex numbers
-            self._imag_unit = "i"           # Imaginary unit
-            self._polar = False             # Use polar coord for complex
-            self._deg = True                # Use degrees for angles
-            self._cuddled = False           # Use 'a+bi' if True
-            self._ul = False                # Underline argument in polar form
-            self._comp = False              # (re,im) form 
+            self._imag_unit = None          # Imaginary unit
+            self._polar = None              # Use polar coord for complex
+            self._deg = None                # Use degrees for angles
+            self._cuddled = None            # Use 'a+bi' if True
+            self._ul = None                 # Underline argument in polar form
+            self._comp = None               # (re,im) form 
+            # Other attributes that won't change when reset() is called
             # Key to _SI_prefixes dict is exponent//3
+            self._low_init = self.toD(low)
+            self._high_init = self.toD(high)
             self._SI_prefixes = dict(zip(range(-8, 9), list("yzafpnμm.kMGTPEZY")))
             self._SI_prefixes[0] = ""       # Need empty string
             self._superscripts = dict(zip("-+0123456789", "⁻⁺⁰¹²³⁴⁵⁶⁷⁸⁹"))
             # For context manager behavior, we'll use a lock to avoid another
             # thread messing with our attributes
             self.lock = threading.Lock()
+            # Set to default state
+            self.reset()
+        def reset(self):
+            'Reset attributes to default state'
+            n = 3
+            self._n = n
+            self._default = "fix"
+            self.ta = TakeApart()
+            self.ta.n = n  # Synchronize number of digits
+            self._dp = locale.localeconv()["decimal_point"]
+            self._low = self._low_init  
+            self._high = self._high_init
+            self._u = False
+            self._rlz = False
+            self._rtz = False
+            self._rtdp = False
+            self._spc = False
+            self._sign = False
+            self.nchars = W*L//4
+            # Attributes for complex numbers
+            self._imag_unit = "i"
+            self._polar = False
+            self._deg = True
+            self._cuddled = False
+            self._ul = False
+            self._comp = False
         def __enter__(self):
             # Store our attributes (note only those that start with '_' are
             # saved)
@@ -413,10 +457,10 @@ if 1:   # Classes
             # First get the exponent e
             self.ta(value)
             e = abs(self.ta.e)
-            nmax = W*L//4    # 1/4 of the number of characters that fit on screen
-            if e > nmax:
+            if e > self.nchars:
+                # Too many characters will result from fixed, so use sci
                 return self.sci(value, n=n)
-            if 1:   # Use old method
+            if 0:   # Old method
                 x = self.toD(value)
                 parts, dq, z = self._get_data(x, n)
                 ne = parts.e + 1
@@ -458,16 +502,29 @@ if 1:   # Classes
                         while len(dq) < e + 1:
                             dq.append("0")
                         dq.insert(e + 1, dp)
-                    if sign == "-" or (sign == " " and self.spc):
+                    # Handle the sign
+                    if self.sign:   # Always use a sign
+                        if sign == " ":
+                            sign = "+"
                         dq.appendleft(sign)
+                    else:
+                        if self.spc:  # Use ' ' if positive
+                            if sign == "-":
+                                dq.appendleft(sign)
+                            else:
+                                dq.appendleft(" ")
+                        else:           # Only use sign if negative
+                            if sign == "-":
+                                dq.appendleft(sign)
                     dq = self.trim(dq)
                     retval_new = ''.join(dq)
-                assert(set(retval_new).issubset(set("0123456789.,- ")))
-            # Ensure new and old method get same results (prepend space to
-            # old results if >= 0 and self.spc)
-            if retval_old[0] != "-" and self.spc:
-                retval_old = f" {retval_old}"
-            assert retval_new == retval_old, f"{retval_new!r} != {retval_old!r}"
+                assert(set(retval_new).issubset(set("0123456789.,-+ ")))
+            if 0:
+                # Ensure new and old method get same results (prepend space to
+                # old results if >= 0 and self.spc)
+                if retval_old[0] != "-" and self.spc:
+                    retval_old = f" {retval_old}"
+                assert retval_new == retval_old, f"{retval_new!r} != {retval_old!r}"
             return retval_new
         def sci(self, value, n=None) -> str:
             'Return a scientific format representation'
@@ -690,6 +747,13 @@ if 1:   # Classes
                 n = abs(int(value))
                 self._n = max(n, 1)
                 self.ta.n = self._n
+            @property
+            def sign(self) -> bool:
+                "Always include numbers' sign"
+                return self._sign
+            @sign.setter
+            def sign(self, value):
+                self._sign = bool(value)
             @property
             def spc(self) -> bool:
                 'Add " " to numbers >= 0 where "-" goes'
@@ -1040,9 +1104,8 @@ if __name__ == "__main__":
     if 1:   # Test code 
         def Init():
             'Make sure test environment is set up in a repeatable fashion'
-            f = Fmt(3)
-            f.rlz = f.rtz = f.rtdp = False
-            return f
+            fmt = Fmt(3)
+            return fmt
         def Test_Basics():
             f = Init()
             s = f(pi)
@@ -1224,6 +1287,25 @@ if __name__ == "__main__":
                     f.high = None
                     t = f(x, fmt="fix")
                     Assert(t == "3.06e9983")
+            def Test_spc():
+                'Test .spc and .sign'
+                f = Init()
+                x = 0.2846
+                s = f(x)
+                Assert(s == "0.285")
+                f.spc = True
+                s = f(x)
+                Assert(s == " 0.285")
+                f.sign = True
+                s = f(x)
+                Assert(s == "+0.285")
+                f.spc = False
+                s = f(x)
+                Assert(s == "+0.285")
+                x = -0.2846
+                s = f(x)
+                Assert(s == "-0.285")
+
             def Test_rlz():
                 f = Init()
                 x = 0.2846
@@ -1247,6 +1329,7 @@ if __name__ == "__main__":
                 TestLotsOfDigits(n)
             TestTrimming()
             TestBigInteger(20)
+            Test_spc()
             Test_rlz()
         def Test_Eng():
             '''Compare to fpformat's results.  Only go up to 15 digits because
