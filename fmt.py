@@ -304,6 +304,7 @@ if 1:   # Classes
             self._rtdp = None               # Remove trailing radix if True
             self._spc = None                # If num >= 0, use " " for leading character
             self._sign = None               # Include "+" or "-" in interpolation
+            self._int = None                # Default fmtint() style
             # If in fix mode, very large/small numbers can result in too
             # many digits to display on the screen.  When abs(exponent) is
             # greater than self.nchars (here, about 1/4 of the terminal
@@ -345,6 +346,7 @@ if 1:   # Classes
             self._spc = False
             self._sign = False
             self.nchars = W*L//4
+            self._int = "norm"
             # Attributes for complex numbers
             self._imag_unit = "i"
             self._polar = False
@@ -444,7 +446,9 @@ if 1:   # Classes
                 sgn = "-"
             else:
                 sgn = "+" if self.sign else " " if self.spc else ""
-            if fmt is None or fmt == "norm":
+            if fmt is None:
+                return self.fmtint(value, fmt=self.int)
+            elif fmt == "norm":
                 return f"{sgn}{value}"
             elif fmt == "hex":
                 return f"{sgn}{hex(value)}"
@@ -758,6 +762,17 @@ if 1:   # Classes
             @high.setter
             def high(self, value):
                 self._high = None if value is None else abs(D(str(value)))
+
+            @property
+            def int(self):
+                'How to format integers with self.fmtint()'
+                return self._int
+            @int.setter
+            def int(self, value):
+                s = "norm hex oct dec bin"
+                if value not in s.split():
+                    raise ValueError(f"value must be one of {' '.join(s)}")
+                self._int = value
             @property
             def low(self):
                 'Use "sci" format if abs(x) is < low and not None'
@@ -1527,6 +1542,10 @@ if __name__ == "__main__":
             Assert(f.fmtint(x, fmt="dec") == "0d32768")
             Assert(f.fmtint(x, fmt="bin") == bin(x))
             raises(TypeError, f.fmtint, "kdjfkdj")
+            raises(ValueError, f.fmtint, x, fmt="kdjfkdj")
+            # Setting default works
+            f.int = "hex"
+            Assert(f.fmtint(x) == hex(x))
     if 1:   # Module's base code
         def Error(msg, status=1):
             print(msg, file=sys.stderr)
