@@ -484,7 +484,9 @@ if 1:   # Classes
                     self.ta(value)
                     self.ta.n = n if n is not None else self.n
                     sign = self.ta.sign     # Sign ("-" or " ")
-                    # Note we use fmt instance's decimal point
+                    # Note we use fmt instance's decimal point, which is
+                    # gotten from the locale, not from the number parsed by
+                    # TakeApart()
                     dp = self.dp            # Decimal point
                     dq = self.ta.dq         # Deque of significand's digits (no dp)
                     e = self.ta.e           # Integer exponent
@@ -1305,7 +1307,6 @@ if __name__ == "__main__":
                 x = -0.2846
                 s = f(x)
                 Assert(s == "-0.285")
-
             def Test_rlz():
                 f = Init()
                 x = 0.2846
