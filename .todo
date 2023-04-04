@@ -1,5 +1,11 @@
 Active
 
+    - ca.py
+        - In light of hc.py work, this could be a better calculator
+          environment than hc
+        - Allow documentation with vi
+        - Use only mpf and mpc, int, fractions
+
     - fmt.py
         - mpmath's nstr() provides a shorter way to format floating point
           numbers.  Consider either rewriting this module to use it or a
@@ -12,24 +18,6 @@ Active
           a convenience function that takes the largest or smallest number
           you'll probably see and then generate settings so that all other
           numbers print correctly.
-
-        def SigExp(x, n):
-            '''Return (significand, exponent) for x, which is an mpmath.mpf
-            instance or an integer.  Both significand and exponent are integers
-            and significand carries the sign of x.  The implied radix is after
-            the first digit of the significand.  n is the number of significant
-            digits in the significand and must be an integer > 0.  Note if x is
-            inf or nan you'll get a ValueError exception.
-            '''
-            assert(ii(x, (M.mpf, int)))
-            assert(ii(n, int) and n > 0)
-            sign = -1 if x < 0 else 1
-            a = abs(x)
-            e = int(M.floor(M.log10(a))) if x else 0
-            s = M.nstr(a/10**e, n)
-            s = s.replace(".", "").replace(",", "")     # Remove radix
-            assert(len(s) == n if x else 1)
-            return sign*int(s), e
 
     - pgm/chklnk.py
         - For each file on the command line, extract the http:// links and

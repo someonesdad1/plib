@@ -282,6 +282,7 @@ if 1:   # Classes
             fixed point interpolation is used by default.
             '''
             self._n = n                     # Number of digits
+            self._default = "fix"           # Default formatting method
             if new_method:
                 self.ta = TakeApart()       # Take apart machinery
                 self.ta.n = n               # Synchronize number of digits
@@ -528,10 +529,15 @@ if 1:   # Classes
             else:
                 raise ValueError(f"'{fmt}' is an unrecognized format")
             return ''.join(dq)
-        def Complex(self, value, fmt="fix", n=None) -> str:
+        def Complex(self, value, fmt=None, n=None) -> str:
             '''value is a complex number.  Return a string in the form of 
             'a + bi'.
             '''
+            if fmt is not None:
+                if fmt not in "fix sci eng engsi engsic".split():
+                    raise ValueError(f"'{fmt}' is unrecognized format string")
+            else:
+                fmt = self.default
             e = TypeError(f"value {value!r} must be complex")
             if have_mpmath:
                 if not ii(value, (complex, mpmath.mpc)):
@@ -575,10 +581,20 @@ if 1:   # Classes
                 s = "" if self.cuddled else " "
                 ret = f"{sr}{s}{sign}{s}{si}{self._imag_unit}"
                 return ret
-        def __call__(self, value, fmt="fix", n=None) -> str:
+        def __call__(self, value, fmt=None, n=None) -> str:
             '''Format value with the default "fix" formatter.  n overrides
             self.n digits.  fmt can be "fix", "sci", "eng", "engsi", or "engsic".
             '''
+            if fmt is not None:
+                if fmt not in "fix sci eng engsi engsic".split():
+                    raise ValueError(f"'{fmt}' is unrecognized format string")
+            else:
+                fmt = self.default
+            if n is not None:
+                if not ii(n, int):
+                    raise TypeError("n must be an integer")
+                if n < 1:
+                    raise ValueError("n must be > 0")
             if ii(value, complex):
                 return self.Complex(value, fmt=fmt, n=n)
             elif have_mpmath and ii(value, mpmath.mpc):
@@ -620,8 +636,6 @@ if 1:   # Classes
                         o.append(self._superscripts[c])
                     return m + ''.join(o)
                 return m + "e" + e
-            if fmt not in "fix sci eng engsi engsic".split():
-                raise ValueError(f"'{fmt}' is unrecognized format string")
             if fmt == "fix":
                 if x and self.high is not None and abs(x) > self.high:
                     return self.sci(x, n)
@@ -633,6 +647,16 @@ if 1:   # Classes
             else:
                 return self.eng(x, n=n, fmt=fmt)
         if 1:   # Properties
+            @property
+            def default(self) -> str:
+                'Decimal point string'
+                return self._default
+            @default.setter
+            def default(self, value):
+                'Default formatting method'
+                if value not in "fix sci eng engsi engsic".split():
+                    raise TypeError("value must be fix, sci, eng, engsi, or engsi")
+                self._default = value
             @property
             def dp(self) -> str:
                 'Decimal point string'
@@ -1296,7 +1320,21 @@ if __name__ == "__main__":
             mpmath.mp.dps = 50
             x = mpmath.mpf(mpmath.pi)**(10**50)
             s = "1.81e49714987269413385435126828829089887365167832438044"
-            Assert(fmt(x, 3) == s)
+            Assert(fmt(x, n=3) == s)
+        def Test_Default():
+            'Verify the default formatting attribute works'
+            fmt = Fmt()
+            fmt.n = 3
+            x = math.pi*1e4
+            Assert(fmt(x) == "31400.")
+            fmt.default = "sci"
+            Assert(fmt(x) == "3.14e4")
+            fmt.default = "eng"
+            Assert(fmt(x) == "31.4e3")
+            fmt.default = "engsi"
+            Assert(fmt(x) == "31.4 k")
+            fmt.default = "engsic"
+            Assert(fmt(x) == "31.4k")
         def Test_TakeApart():
             mpf = mpmath.mpf if have_mpmath else float
             if 1:   # Show supported types get the same string interpolation
