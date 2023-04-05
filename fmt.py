@@ -1,14 +1,10 @@
 '''
+ 
 Todo
-    - Implement strict; if true, n can't be > precision
-    - Let fmt.n = 0, which means to produce real & complex to all digits.
-      Note I'm not sure this is appropriate, as it adds complexity and
-      needs to deal with both Decimal and mpf numbers.  Instead, let the
-      calling environment deal with it.
     - Angle measures:  deg rad grad rev
     - Note mpmath.nstr() has keywords to control low & high for fixed point
       strings.  You can also use it to get a floating point interpolation.
-        - An x = mpf(i) where i is an integer appears to have the property 
+        - An x = mpf(i) where i is an integer appears to have the property
           int(x) == i, at least if the integer can be expressed at the
           current precision exactly.  Checked up to 2**1000000.
  
@@ -950,7 +946,7 @@ if 1:   # Convenience instances
     fmt = Fmt()
     ta = TakeApart()
 # Development area
-if 1 and __name__ == "__main__": 
+if 0 and __name__ == "__main__": 
     x = 1e4*mpmath.pi
     print("Precision =", mpmath.mp.dps)
     print("Not strict", fmt.significand(x, n=73))
@@ -959,9 +955,6 @@ if 1 and __name__ == "__main__":
     exit()
 
 if __name__ == "__main__": 
-    if 1:
-        import debug
-        debug.SetDebugger()
     if 1:   # Header
         # Standard imports
             from collections import deque
@@ -1570,6 +1563,19 @@ if __name__ == "__main__":
             # Setting default works
             f.int = "hex"
             Assert(f.fmtint(x) == hex(x))
+        def Test_Strict():
+            'Also slightly checks significand'
+            f = Init()
+            prec = 15
+            n = 100
+            mpmath.mp.dps = prec
+            x = mpmath.pi
+            fmt.strict = False
+            s1 = fmt.significand(x, n=n)
+            Assert(len(s1) == n + 1)
+            fmt.strict = True
+            s1 = fmt.significand(x, n=n)
+            Assert(len(s1) == prec + 1)
     if 1:   # Module's base code
         def Error(msg, status=1):
             print(msg, file=sys.stderr)
