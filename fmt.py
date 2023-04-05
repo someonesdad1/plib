@@ -1,17 +1,11 @@
 '''
 Todo
-    - Add integer formatting
-        - self.fmtint(x, fmt=None)
+    - Implement strict; if true, n can't be > precision
     - Let fmt.n = 0, which means to produce real & complex to all digits.
       Note I'm not sure this is appropriate, as it adds complexity and
       needs to deal with both Decimal and mpf numbers.  Instead, let the
       calling environment deal with it.
     - Angle measures:  deg rad grad rev
-    - Test_Big produces a number with an exponent of 1e49.  In pure fixed
-      mode, this would take forever to print out.  Thus, if low or high are
-      None, there should still be limits to what will be printed.  A
-      guide would be half the number of characters that will fit on the
-      screen at once.
     - Note mpmath.nstr() has keywords to control low & high for fixed point
       strings.  You can also use it to get a floating point interpolation.
         - An x = mpf(i) where i is an integer appears to have the property 
@@ -141,6 +135,7 @@ if 1:   # Classes
             self._other = None      # Remaining digits of number
             self._e = None          # Integer exponent of 10
             self._dq = None         # Deque of significand's digits
+            self._strict = False    # If True, n must be <= precision
         def __enter__(self):
             self.lock.acquire()  # Stay locked through context execution
             self.my_attributes = {}
@@ -177,10 +172,13 @@ if 1:   # Classes
             # Convert either to a Decimal or mpf
             if ii(x, (int, float, decimal.Decimal)):
                 y = decimal.Decimal(str(x))
+                ctx = decimal.localcontext()
+                n = min(ctx.prec, n) if self.strict else n
             elif ii(x, fractions.Fraction):
                 y = decimal.Decimal(x.numerator)/decimal.Decimal(x.denominator)
             elif have_mpmath and ii(x, mpmath.mpf):
                 y = x
+                n = min(mpmath.mp.dps, n) if self.strict else n
             else:
                 raise TypeError(f"{x!r} is not a supported number type")
             # Process
@@ -277,6 +275,13 @@ if 1:   # Classes
                 assert(ii(self._sign, str) and self._sign in ("-", " ", ""))
                 return self._sign
             @property
+            def strict(self):
+                'If True, n must be <= precision'
+                return self._strict
+            @strict.setter
+            def strict(self, value):
+                self._strict = bool(value)
+            @property
             def supported(self):
                 'Set of supported types'
                 return self._supported
@@ -305,6 +310,7 @@ if 1:   # Classes
             self._spc = None                # If num >= 0, use " " for leading character
             self._sign = None               # Include "+" or "-" in interpolation
             self._int = None                # Default fmtint() style
+            self._strict = None             # If True, n must be <= precision
             # If in fix mode, very large/small numbers can result in too
             # many digits to display on the screen.  When abs(exponent) is
             # greater than self.nchars (here, about 1/4 of the terminal
@@ -347,6 +353,7 @@ if 1:   # Classes
             self._sign = False
             self.nchars = W*L//4
             self._int = "norm"
+            self._strict = False
             # Attributes for complex numbers
             self._imag_unit = "i"
             self._polar = False
@@ -460,7 +467,6 @@ if 1:   # Classes
                 return f"{sgn}{bin(value)}"
             else:
                 raise ValueError("fmt must be None, norm, hex, oct, dec, or bin")
-
         def trim(self, dq):
             'Implement rtz, rtdp, and rlz for significand dq in deque'
             assert(ii(dq, collections.deque))
@@ -473,6 +479,14 @@ if 1:   # Classes
                 if dq[0] == "0" and dq[1] == self._dp: 
                     dq.popleft()    # Remove leading 0
             return dq
+        def significand(self, value, n=None) -> str:
+            'Return the signifcand of abs(value) as a string'
+            with self.ta:
+                self.ta(abs(value))
+                self.ta.n = n if n is not None else self.n
+                dq = self.ta.dq         # Deque of significand's digits (no dp)
+            dq.insert(1, self.dp)
+            return ''.join(dq)
         def fix(self, value, n=None) -> str:
             'Return a fixed point representation'
             # We first need to check that this number isn't too large to
@@ -737,7 +751,7 @@ if 1:   # Classes
         if 1:   # Properties
             @property
             def default(self) -> str:
-                'Decimal point string'
+                'Default formatting method'
                 return self._default
             @default.setter
             def default(self, value):
@@ -762,7 +776,6 @@ if 1:   # Classes
             @high.setter
             def high(self, value):
                 self._high = None if value is None else abs(D(str(value)))
-
             @property
             def int(self):
                 'How to format integers with self.fmtint()'
@@ -790,27 +803,6 @@ if 1:   # Classes
                 self._n = max(n, 1)
                 self.ta.n = self._n
             @property
-            def sign(self) -> bool:
-                "Always include numbers' sign"
-                return self._sign
-            @sign.setter
-            def sign(self, value):
-                self._sign = bool(value)
-            @property
-            def spc(self) -> bool:
-                'Add " " to numbers >= 0 where "-" goes'
-                return self._spc
-            @spc.setter
-            def spc(self, value):
-                self._spc = bool(value)
-            @property
-            def u(self) -> bool:
-                '(bool) Use Unicode in "sci" and "eng" formats if True'
-                return self._u
-            @u.setter
-            def u(self, value):
-                self._u = bool(value)
-            @property
             def rtz(self) -> bool:
                 '(bool) Remove trailing zeros after radix if True'
                 return self._rtz
@@ -831,6 +823,34 @@ if 1:   # Classes
             @rlz.setter
             def rlz(self, value):
                 self._rlz = bool(value)
+            @property
+            def sign(self) -> bool:
+                "Always include numbers' sign"
+                return self._sign
+            @sign.setter
+            def sign(self, value):
+                self._sign = bool(value)
+            @property
+            def spc(self) -> bool:
+                'Add " " to numbers >= 0 where "-" goes'
+                return self._spc
+            @spc.setter
+            def spc(self, value):
+                self._spc = bool(value)
+            @property
+            def strict(self):
+                'If True, n must be <= precision'
+                return self._strict
+            @strict.setter
+            def strict(self, value):
+                self._strict = self.ta.strict = bool(value)
+            @property
+            def u(self) -> bool:
+                '(bool) Use Unicode in "sci" and "eng" formats if True'
+                return self._u
+            @u.setter
+            def u(self, value):
+                self._u = bool(value)
         if 1:   # Complex number properties
             @property
             def imag_unit(self) -> str:
@@ -929,9 +949,13 @@ if 0:   # Core methods
 if 1:   # Convenience instances
     fmt = Fmt()
     ta = TakeApart()
-
 # Development area
-if 0 and __name__ == "__main__": 
+if 1 and __name__ == "__main__": 
+    x = 1e4*mpmath.pi
+    print("Precision =", mpmath.mp.dps)
+    print("Not strict", fmt.significand(x, n=73))
+    fmt.strict = 1
+    print("Strict    ", fmt.significand(x, n=73))
     exit()
 
 if __name__ == "__main__": 
