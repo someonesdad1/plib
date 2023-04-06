@@ -1500,4 +1500,3 @@ hc.py
         - mpmath's special functions supported.  The user can construct a
           config file list of the desired functions.
         - Commands are easy to alias to get the interface you want.
-                                                                                                                                       

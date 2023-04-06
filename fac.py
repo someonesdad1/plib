@@ -1,14 +1,7 @@
 '''
-Use /usr/bin/factor to provide the factorization of integers in Unicode
-output format.
-
+Use /usr/bin/factor to provide the prime factorization of integers
     Factor(3141596, u=True) produces 2²·37·21227
     Factor(3141596) produces 2^2*37*21227
-'''
-
-
-'''
-Description of program
 '''
 if 1:   # Header
     if 1:   # Copyright, license
