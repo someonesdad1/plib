@@ -1,35 +1,20 @@
 Active
 
-    - fmt.py
-        - mpmath's nstr() provides a shorter way to format floating point
-          numbers.  Consider either rewriting this module to use it or a
-          new mpfmt.py module.
-        - Also do complex numbers.
-        - Have a method that lets you get a fp number to fit into a given
-          number of spaces, lining up the decimal points.  Also give fine
-          control over sci format, like radix, number of digits in
-          exponent, whether sign is there, etc.  These settings could have
-          a convenience function that takes the largest or smallest number
-          you'll probably see and then generate settings so that all other
-          numbers print correctly.
+    - cmddecode.py
+        - Some commands are special.  Thus, in hc.py, clstk is to clear the
+          stack.  Suppose it's only confounded with clx.  Then cls means to
+          clear the stack.  But because I type cls a lot, I might
+          accidentally type cls when I meant clx.  Thus, clstk needs to be
+          at least clst.
 
-        def SigExp(x, n):
-            '''Return (significand, exponent) for x, which is an mpmath.mpf
-            instance or an integer.  Both significand and exponent are integers
-            and significand carries the sign of x.  The implied radix is after
-            the first digit of the significand.  n is the number of significant
-            digits in the significand and must be an integer > 0.  Note if x is
-            inf or nan you'll get a ValueError exception.
-            '''
-            assert(ii(x, (M.mpf, int)))
-            assert(ii(n, int) and n > 0)
-            sign = -1 if x < 0 else 1
-            a = abs(x)
-            e = int(M.floor(M.log10(a))) if x else 0
-            s = M.nstr(a/10**e, n)
-            s = s.replace(".", "").replace(",", "")     # Remove radix
-            assert(len(s) == n if x else 1)
-            return sign*int(s), e
+    - ca.py
+        - In light of hc.py work, this could be a better calculator
+          environment than hc
+        - Allow documentation with vi
+        - Use only mpf and mpc, int, fractions
+
+    - fmt.py
+        - f.py needs to be changed to use fmt.py
 
     - pgm/chklnk.py
         - For each file on the command line, extract the http:// links and
@@ -59,6 +44,9 @@ Active
             - l       Show the contents of the config file
 
     - flt.py
+        - Get rid of N attribute, as I always forget it:  go back to n.
+          Then make n got to m, which changes only the instance's number of
+          digits.
         - Using the recent work on 'Classes derived from flt for physical
           data, see if it's possible to have one numerical object derived
           from flt that allows the storage of a numerical value, unit, and
@@ -1512,3 +1500,4 @@ hc.py
         - mpmath's special functions supported.  The user can construct a
           config file list of the desired functions.
         - Commands are easy to alias to get the interface you want.
+                                                                                                                                       

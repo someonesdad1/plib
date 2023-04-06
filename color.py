@@ -2618,7 +2618,7 @@ if __name__ == "__main__":
         P(c.irgb, "RGB")
         P(c.ihsv, "HSV")
         P(c.ihls, "HLS")
-    def _PrintRGB(orig, x, rgb):
+    def PrintRGB(orig, x, rgb):
         'Show the color in various forms'
         q = "({:3d}, {:3d}, {:3d})"
         def dec(c):

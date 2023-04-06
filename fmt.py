@@ -167,8 +167,12 @@ if 1:   # Classes
             assert(ii(n, int) and n > 0)
             # Convert either to a Decimal or mpf
             if ii(x, (int, float, decimal.Decimal)):
+                # The following avoids an infinite recursion with f.flt
+                # instances
+                if str(type(x)) == "<class 'f.flt'>":
+                    x = float(x)
                 y = decimal.Decimal(str(x))
-                ctx = decimal.localcontext()
+                ctx = decimal.getcontext()
                 n = min(ctx.prec, n) if self.strict else n
             elif ii(x, fractions.Fraction):
                 y = decimal.Decimal(x.numerator)/decimal.Decimal(x.denominator)

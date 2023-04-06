@@ -1,5 +1,12 @@
 Active
 
+    - cmddecode.py
+        - Some commands are special.  Thus, in hc.py, clstk is to clear the
+          stack.  Suppose it's only confounded with clx.  Then cls means to
+          clear the stack.  But because I type cls a lot, I might
+          accidentally type cls when I meant clx.  Thus, clstk needs to be
+          at least clst.
+
     - ca.py
         - In light of hc.py work, this could be a better calculator
           environment than hc
@@ -7,17 +14,7 @@ Active
         - Use only mpf and mpc, int, fractions
 
     - fmt.py
-        - mpmath's nstr() provides a shorter way to format floating point
-          numbers.  Consider either rewriting this module to use it or a
-          new mpfmt.py module.
-        - Also do complex numbers.
-        - Have a method that lets you get a fp number to fit into a given
-          number of spaces, lining up the decimal points.  Also give fine
-          control over sci format, like radix, number of digits in
-          exponent, whether sign is there, etc.  These settings could have
-          a convenience function that takes the largest or smallest number
-          you'll probably see and then generate settings so that all other
-          numbers print correctly.
+        - f.py needs to be changed to use fmt.py
 
     - pgm/chklnk.py
         - For each file on the command line, extract the http:// links and
@@ -47,6 +44,9 @@ Active
             - l       Show the contents of the config file
 
     - flt.py
+        - Get rid of N attribute, as I always forget it:  go back to n.
+          Then make n got to m, which changes only the instance's number of
+          digits.
         - Using the recent work on 'Classes derived from flt for physical
           data, see if it's possible to have one numerical object derived
           from flt that allows the storage of a numerical value, unit, and
