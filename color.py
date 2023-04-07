@@ -1025,297 +1025,300 @@ class Trm:
         self._bg = None     # Default background color
         self.reset()
         self._check()
-    def _check(self):
-        'Validate the initial attributes'
-        assert(ii(self._bits, int) and self._bits in (4, 8, 24))
-        assert(ii(self._fg, Color))
-        assert(ii(self._bg, Color))
-        assert(ii(self.cn, ColorName))
-    def _ta(self):
-        'Return attributes mapping'
-        s = '''normal-no:0 bold-bo:1 dim-di:2 italic-it:3
-        underline-ul:4 blink-bl:5 rapidblink-rb:6 reverse-rv:7
-        hide-hi:8 strikeout-so:9 doubleunderline-du:21 overline-ol:53
-        superscript-sp:73 subscript-sb:74'''
-        ta = {}
-        for i in s.split():
-            name, num = i.split(":")
-            short, long = name.split("-")
-            num = int(num)
-            ta[short] = num
-            ta[long] = num
-        return ta
-    def _user(self):
-        'Return a set of user-defined attribute names'
-        ignore = set('''_bits cn on _fg fg _bg bg _ta _always always _user _check
-            _get_code load n out print reset GetColorNames terminal_bits
-            default_color'''.split())
-        attributes = []
-        for i in dir(self):
-            if i.startswith("__") or i in ignore:
-                continue
-            attributes.append(i)
-        return set(attributes)
-    def __str__(self):
-        '''Returns a string that can be printed to stdout to show all the
-        currently-defined styles.
-        '''
-        show = []
-        for style in sorted(self._user()):
-            s = getattr(self, style)
-            if s:
-                show.append(style)
-        out = []
-        if show:
-            for i in show:
-                s = f"{getattr(self, i)}{i}{self.n}"
-                out.append(s)
-        classname = str(self.__class__)
-        loc = classname.find(".")
-        classname = classname[loc + 1:]
-        if classname.endswith("'>"):
-            classname = classname[:-2]
-        return classname + "(" + ' '.join(out) + ")"
-    def __call__(self, fg=None, bg=None, attr=None):
-        '''Return the indicated color style escape code string.  fg and
-        bg must be Color instances.  They may also be strings if a
-        ColorNames dictionary has been loaded with GetColorNamesDict().
-        Hex strings beginning with "@" (hsv), "#" (rgb), or "$" (hls)
-        are also allowed.
- 
-        attr    String of attributes (separate multiple attributes by
-                spaces).
-        fg      Foreground Color instance or string
-        bg      Background Color instance or string
-        '''
-        msg = "{} must be None, a string, or a Color instance"
-        if fg is not None and not ii(fg, (Color, str)):
-            raise ValueError(msg.format("fg"))
-        if bg is not None and not ii(bg, (Color, str)):
-            raise ValueError(msg.format("bg"))
-        if attr is not None and not ii(attr, str):
-            raise ValueError("attr must be None or a string")
-        if not self._on:
-            return ""
-        '''
-        Primer on ANSI escape sequences
-        https://en.wikipedia.org/wiki/ANSI_escape_code#SGR_(Select_Graphic_Rendition)_parameters
-        gives information on attributes and the section below that
-        discusses colors.
- 
-        4-bit color
-            ESC[<f>;<b>m    f is foreground, b is background
-            f   g                               Short name
-            30  40  Black                       blk
-            31  41  Red                         red
-            32  42  Green                       grn
-            33  43  Yellow                      yel
-            34  44  Blue                        blu
-            35  45  Magenta                     mag
-            36  46  Cyan                        cyn
-            37  47  White                       wht
-            90 100  Bright black (gray)         blkl
-            91 101  Bright red                  redl
-            92 102  Bright green                grnl
-            93 103  Bright yellow               yell
-            94 104  Bright blue                 blul
-            95 105  Bright magenta              magl
-            96 106  Bright cyan                 cynl
-            97 107  Bright white                whtl
-        8-bit color
-            ESC[38;5;<n>m      Foreground color
-            ESC[48;5;<n>m      Background color
-            0-7    :  Standard colors
-            8-15   :  High intensity colors
-            16-231 :  6x6x6 cube:  16 + 36*r + 6*g + b (0 <= r, b, g <= 5)
-            232-255:  Grayscale from black to white in 24 steps
-        24-bit color
-            ESC[38;2;<r>;<g>;<b>m      RGB foreground color
-            ESC[48;2;<r>;<g>;<b>m      RGB background color
-        '''
-        # If they are strings, they are either a name or a hex string.
-        if fg and ii(fg, str):
-            if fg[0] in "@#$":
-                fg = Color(fg)
+    if 1:   # Utility methods
+        def _check(self):
+            'Validate the initial attributes'
+            assert(ii(self._bits, int) and self._bits in (4, 8, 24))
+            assert(ii(self._fg, Color))
+            assert(ii(self._bg, Color))
+            assert(ii(self.cn, ColorName))
+        def _ta(self):
+            'Return attributes mapping'
+            s = '''normal-no:0 bold-bo:1 dim-di:2 italic-it:3
+            underline-ul:4 blink-bl:5 rapidblink-rb:6 reverse-rv:7
+            hide-hi:8 strikeout-so:9 doubleunderline-du:21 overline-ol:53
+            superscript-sp:73 subscript-sb:74'''
+            ta = {}
+            for i in s.split():
+                name, num = i.split(":")
+                short, long = name.split("-")
+                num = int(num)
+                ta[short] = num
+                ta[long] = num
+            return ta
+        def _user(self):
+            'Return a set of user-defined attribute names'
+            ignore = set('''_bits cn on _fg fg _bg bg _ta _always always _user _check
+                _get_code load n out print reset GetColorNames terminal_bits
+                default_color'''.split())
+            attributes = []
+            for i in dir(self):
+                if i.startswith("__") or i in ignore:
+                    continue
+                attributes.append(i)
+            return set(attributes)
+        def __str__(self):
+            '''Returns a string that can be printed to stdout to show all the
+            currently-defined styles.
+            '''
+            show = []
+            for style in sorted(self._user()):
+                s = getattr(self, style)
+                if s:
+                    show.append(style)
+            out = []
+            if show:
+                for i in show:
+                    s = f"{getattr(self, i)}{i}{self.n}"
+                    out.append(s)
+            classname = str(self.__class__)
+            loc = classname.find(".")
+            classname = classname[loc + 1:]
+            if classname.endswith("'>"):
+                classname = classname[:-2]
+            return classname + "(" + ' '.join(out) + ")"
+        def _get_code(self, color, bg=False):
+            'For Color instance color, return escape code'
+            if color is not None:
+                assert(ii(color, Color))
             else:
-                new = None
-                if "@" in fg or "#" in fg or "$" in fg:     # It's a composite
-                    new = self.cn.split(fg)
-                fg = self.cn[fg] if new is None else new
-        if bg and ii(bg, str):
-            if bg[0] in "@#$":
-                bg = Color(bg)
+                return ""
+            assert(ii(bg, bool))
+            if self._bits == 4:
+                raise Exception("Not implemented")
+            elif self._bits == 8:
+                raise Exception("Not implemented")
+            elif self._bits == 24:
+                n = 48 if bg else 38
+                if color.bpc > 8:
+                    color = color.change_bpc(8)
+                r, g, b = color.irgb
+                code = f"\x1b[{n};2;{r};{g};{b}m"
             else:
-                new = None
-                if "@" in bg or "#" in bg or "$" in bg:     # It's a composite
-                    new = self.cn.split(bg)
-                bg = self.cn[bg] if new is None else new
-        # Put the escape codes for fg, bg, and attributes in the
-        # container
-        container = []
-        # Get attr codes
-        if attr is not None:
-            ta = self._ta()
-            attrs = attr.split()
-            while attrs:
-                a = attrs.pop(0)
-                if a not in ta:
-                    msg = f"'{a}' is not a valid attribute"
-                    raise ValueError(msg)
-                container.append(f"\x1b[{ta[a]}m")
-        # Get other codes
-        assert(fg is None or ii(fg, Color))
-        assert(bg is None or ii(bg, Color))
-        container.append(self._get_code(fg))
-        container.append(self._get_code(bg, bg=True))
-        return ''.join(container)
-    def _get_code(self, color, bg=False):
-        if color is not None:
-            assert(ii(color, Color))
-        else:
-            return ""
-        assert(ii(bg, bool))
-        if self._bits == 4:
-            raise Exception("Not implemented")
-        elif self._bits == 8:
-            raise Exception("Not implemented")
-        elif self._bits == 24:
-            n = 48 if bg else 38
-            if color.bpc > 8:
-                color = color.change_bpc(8)
-            r, g, b = color.irgb
-            code = f"\x1b[{n};2;{r};{g};{b}m"
-        else:
-            raise RuntimeError("self._bits bad")
-        return code
-    def load(self, file, reset=False, show=False):
-        '''Read style definitions from a file (filename string, stream,
-        or string of characters).  Each line is either a comment
-        (leading '#') or must contain the following fields separated by
-        whitespace:
-            style_name fg_color_name bg_color_name [attr1 [attr2 ...]]
-        where fg_color_name and bg_color_name are either color name
-        strings or None.  These strings can also be suitable integer
-        strings (e.g., '21') and will be converted to integers.  attr1,
-        etc. are attribute strings that are in the dictionary ta.
- 
-        If show is True, print this object to stdout after loading is
-        finished.
-        '''
-        def Convert(s):
-            'Convert color string'
-            if s == "None":
-                return None
-            else:
-                try:
-                    n = int(s)
-                    return n
-                except Exception:
-                    return s
-        lines = GetNumberedLines(file)
-        # Remove blank lines
-        lines = [i for i in lines if i[1]]
-        # Remove leading spaces
-        lines = [(i, j.strip()) for i, j in lines]
-        # Remove comments
-        lines = [(i, j) for i, j in lines if j[0] != "#"]
-        if reset:
-            self.reset()
-        # Parse the remainder
-        for n, line in lines:
-            f = line.split()
-            if len(f) < 3:
-                msg = f"Line {n}:  not enough fields:\n  '{line}"
-                raise ValueError(msg)
-            name = f.pop(0)
-            s = f.pop(0)
-            fg = Convert(s)
-            s = f.pop(0)
-            bg = Convert(s)
-            attrs = f if f else None
-            if attrs:
-                attrs = ' '.join(attrs)
-            s = f"self.{name} = self(fg={fg!r}, bg={bg!r}, attr={attrs!r})"
-            exec(s)
-        if show:
-            t = "string"
-            try:
-                f = P(file)
-                if f.exists():
-                    t = f"file '{file}'"
-            except Exception:
-                if hasattr(file, "read"):
-                    t = "stream"
-            print(f"Trm.load() from {t}: ", self)
-    def reset(self):
-        'Sets the instance to a default state'
-        # Delete all user-set attributes
-        for i in self._user():
-            try:
-                delattr(self, i)
-            except AttributeError as e:
-                if 0:       # Use to flag programming problems
-                    print(e)
-                    breakpoint()
+                raise RuntimeError("self._bits bad")
+            return code
+        def load(self, file, reset=False, show=False):
+            '''Read style definitions from a file (filename string, stream,
+            or string of characters).  Each line is either a comment
+            (leading '#') or must contain the following fields separated by
+            whitespace:
+                style_name fg_color_name bg_color_name [attr1 [attr2 ...]]
+            where fg_color_name and bg_color_name are either color name
+            strings or None.  These strings can also be suitable integer
+            strings (e.g., '21') and will be converted to integers.  attr1,
+            etc. are attribute strings that are in the dictionary ta.
+     
+            If show is True, print this object to stdout after loading is
+            finished.
+            '''
+            def Convert(s):
+                'Convert color string'
+                if s == "None":
+                    return None
                 else:
-                    pass    # Ignore the problem
-        # Reset to default colors
-        self._fg, self._bg = Trm.default_color
-        # Turn on output unless not to terminal
-        self._on = False
-        so = sys.stdout
-        if (hasattr(so, "isatty") and so.isatty()) or self.always:
+                    try:
+                        n = int(s)
+                        return n
+                    except Exception:
+                        return s
+            lines = GetNumberedLines(file)
+            # Remove blank lines
+            lines = [i for i in lines if i[1]]
+            # Remove leading spaces
+            lines = [(i, j.strip()) for i, j in lines]
+            # Remove comments
+            lines = [(i, j) for i, j in lines if j[0] != "#"]
+            if reset:
+                self.reset()
+            # Parse the remainder
+            for n, line in lines:
+                f = line.split()
+                if len(f) < 3:
+                    msg = f"Line {n}:  not enough fields:\n  '{line}"
+                    raise ValueError(msg)
+                name = f.pop(0)
+                s = f.pop(0)
+                fg = Convert(s)
+                s = f.pop(0)
+                bg = Convert(s)
+                attrs = f if f else None
+                if attrs:
+                    attrs = ' '.join(attrs)
+                s = f"self.{name} = self(fg={fg!r}, bg={bg!r}, attr={attrs!r})"
+                exec(s)
+            if show:
+                t = "string"
+                try:
+                    f = P(file)
+                    if f.exists():
+                        t = f"file '{file}'"
+                except Exception:
+                    if hasattr(file, "read"):
+                        t = "stream"
+                print(f"Trm.load() from {t}: ", self)
+        def reset(self):
+            'Sets the instance to a default state'
+            # Delete all user-set attributes
+            for i in self._user():
+                try:
+                    delattr(self, i)
+                except AttributeError as e:
+                    if 0:       # Use to flag programming problems
+                        print(e)
+                        breakpoint()
+                    else:
+                        pass    # Ignore the problem
+            # Reset to default colors
+            self._fg, self._bg = Trm.default_color
+            # Turn on output unless not to terminal
+            self._on = False
+            so = sys.stdout
+            if (hasattr(so, "isatty") and so.isatty()) or self.always:
+                self._on = True
+    if 1:   # Core methods
+        def __call__(self, fg=None, bg=None, attr=None):
+            '''Return the indicated color style escape code string.  fg and
+            bg must be Color instances.  They may also be strings if a
+            ColorNames dictionary has been loaded with GetColorNamesDict().
+            Hex strings beginning with "@" (hsv), "#" (rgb), or "$" (hls)
+            are also allowed.
+     
+            attr    String of attributes (separate multiple attributes by
+                    spaces).
+            fg      Foreground Color instance or string
+            bg      Background Color instance or string
+            '''
+            msg = "{} must be None, a string, or a Color instance"
+            if fg is not None and not ii(fg, (Color, str)):
+                raise ValueError(msg.format("fg"))
+            if bg is not None and not ii(bg, (Color, str)):
+                raise ValueError(msg.format("bg"))
+            if attr is not None and not ii(attr, str):
+                raise ValueError("attr must be None or a string")
+            if not self._on:
+                return ""
+            '''
+            Primer on ANSI escape sequences
+            https://en.wikipedia.org/wiki/ANSI_escape_code#SGR_(Select_Graphic_Rendition)_parameters
+            gives information on attributes and the section below that
+            discusses colors.
+     
+            4-bit color
+                ESC[<f>;<b>m    f is foreground, b is background
+                f   g                               Short name
+                30  40  Black                       blk
+                31  41  Red                         red
+                32  42  Green                       grn
+                33  43  Yellow                      yel
+                34  44  Blue                        blu
+                35  45  Magenta                     mag
+                36  46  Cyan                        cyn
+                37  47  White                       wht
+                90 100  Bright black (gray)         blkl
+                91 101  Bright red                  redl
+                92 102  Bright green                grnl
+                93 103  Bright yellow               yell
+                94 104  Bright blue                 blul
+                95 105  Bright magenta              magl
+                96 106  Bright cyan                 cynl
+                97 107  Bright white                whtl
+            8-bit color
+                ESC[38;5;<n>m      Foreground color
+                ESC[48;5;<n>m      Background color
+                0-7    :  Standard colors
+                8-15   :  High intensity colors
+                16-231 :  6x6x6 cube:  16 + 36*r + 6*g + b (0 <= r, b, g <= 5)
+                232-255:  Grayscale from black to white in 24 steps
+            24-bit color
+                ESC[38;2;<r>;<g>;<b>m      RGB foreground color
+                ESC[48;2;<r>;<g>;<b>m      RGB background color
+            '''
+            # If they are strings, they are either a name or a hex string.
+            if fg and ii(fg, str):
+                if fg[0] in "@#$":
+                    fg = Color(fg)
+                else:
+                    new = None
+                    if "@" in fg or "#" in fg or "$" in fg:     # It's a composite
+                        new = self.cn.split(fg)
+                    fg = self.cn[fg] if new is None else new
+            if bg and ii(bg, str):
+                if bg[0] in "@#$":
+                    bg = Color(bg)
+                else:
+                    new = None
+                    if "@" in bg or "#" in bg or "$" in bg:     # It's a composite
+                        new = self.cn.split(bg)
+                    bg = self.cn[bg] if new is None else new
+            # Put the escape codes for fg, bg, and attributes in the
+            # container
+            container = []
+            # Get attr codes
+            if attr is not None:
+                ta = self._ta()
+                attrs = attr.split()
+                while attrs:
+                    a = attrs.pop(0)
+                    if a not in ta:
+                        msg = f"'{a}' is not a valid attribute"
+                        raise ValueError(msg)
+                    container.append(f"\x1b[{ta[a]}m")
+            # Get other codes
+            assert(fg is None or ii(fg, Color))
+            assert(bg is None or ii(bg, Color))
+            container.append(self._get_code(fg))
+            container.append(self._get_code(bg, bg=True))
+            return ''.join(container)
+        def print(self, *p, **kw):
+            '''Print arguments with newline, reverting to normal color
+            after finishing.
+            '''
+            self.out(*p, **kw)
+            print(**kw)
+        def out(self, *p, **kw):
+            'Same as print() but no newline'
+            k = kw.copy()
+            if "end" not in k:
+                k["end"] = ""
+            print(*p, **k)
+            print(self.n, **k)
+    if 1:   # Writable properties
+        @property
+        def on(self):
+            return self._on
+        @on.setter
+        def on(self, value):
+            self._on = bool(value)
+        @property
+        def always(self):
+            return self._always
+        @always.setter
+        def always(self, value):
+            self._always = bool(value)
             self._on = True
-    def print(self, *p, **kw):
-        '''Print arguments with newline, reverting to normal color
-        after finishing.
-        '''
-        self.out(*p, **kw)
-        print(**kw)
-    def out(self, *p, **kw):
-        'Same as print() but no newline'
-        k = kw.copy()
-        if "end" not in k:
-            k["end"] = ""
-        print(*p, **k)
-        print(self.n, **k)
-    # Writable properties
-    @property
-    def on(self):
-        return self._on
-    @on.setter
-    def on(self, value):
-        self._on = bool(value)
-    @property
-    def always(self):
-        return self._always
-    @always.setter
-    def always(self, value):
-        self._always = bool(value)
-        self._on = True
-    # Read-only properties
-    @property
-    def n(self):
-        'Return escape code for normal (default) screen'
-        if not self._on:
-            return ""
-        s = []
-        s.append(self._get_code(self._fg, bg=False))
-        s.append(self._get_code(self._bg, bg=True))
-        s.append("\x1b[0m")     # Normal text attribute
-        return ''.join(s)
-    @property
-    def fg(self):
-        'Returns default foreground color'
-        if not self._on:
-            return ""
-        return self._fg
-    @property
-    def bg(self):
-        'Returns default background color'
-        if not self._on:
-            return ""
-        return self._bg
+    if 1:   # Read-only properties
+        @property
+        def n(self):
+            'Return escape code for normal (default) screen'
+            if not self._on:
+                return ""
+            s = []
+            s.append(self._get_code(self._fg, bg=False))
+            s.append(self._get_code(self._bg, bg=True))
+            s.append("\x1b[0m")     # Normal text attribute
+            return ''.join(s)
+        @property
+        def fg(self):
+            'Returns default foreground color'
+            if not self._on:
+                return ""
+            return self._fg
+        @property
+        def bg(self):
+            'Returns default background color'
+            if not self._on:
+                return ""
+            return self._bg
 
 class ColorName(dict):
     '''This class is a dictionary initialized with a file name.  This must be
