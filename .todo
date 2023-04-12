@@ -1,5 +1,9 @@
 Active
 
+    - Annotations
+        - mypy seems to be a good tool.  For better robustness, it would
+          make sense to annotate all the library modules.
+
     - cmddecode.py
         - Some commands are special.  Thus, in hc.py, clstk is to clear the
           stack.  Suppose it's only confounded with clx.  Then cls means to
@@ -12,9 +16,13 @@ Active
           environment than hc
         - Allow documentation with vi
         - Use only mpf and mpc, int, fractions
+        - Have a command that toggles between str() and repr()
+          representations
 
     - fmt.py
         - f.py needs to be changed to use fmt.py
+        - Move color.py out of the module code (put it in the if __name__
+          section)
 
     - pgm/chklnk.py
         - For each file on the command line, extract the http:// links and

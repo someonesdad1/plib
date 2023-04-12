@@ -43,6 +43,13 @@
             - nanj
 
 Elementary functions for the python Decimal library
+
+Opinion:  if you need arbitrary precision floating point calculations, I
+suggest using mpmath instead of this module because:
+    - Real and complex numbers are supported
+    - Most functions are defined over the complex plane
+    - mpmath has been around for 15 years and has a good track record
+
 '''
 
 if 1:  # Header

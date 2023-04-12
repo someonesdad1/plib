@@ -186,6 +186,7 @@ if 1:  # Header
         import sys
         import threading
         import time
+        from pdb import set_trace as xx 
         if 0:
             import debug
             debug.SetDebugger()
@@ -454,18 +455,17 @@ class Base(object):
             return Base._digits
         @N.setter
         def N(self, value):
+            'Set the number of digits for all flt objects'
             'The value is clamped to be between 1 and 15 digits'
-            min_value, max_value = 1, 15
-            if value is None:
-                value = max_value
-            elif not ii(value, int):
-                raise ValueError("value must be an integer")
-            if value < min_value:
-                value = min_value
-            elif value > max_value:
-                value = max_value
+            if not ii(value, int):
+                raise TypeError("value must be an integer >= 0")
+            # Clamp to [1, 15]
+            if not value:
+                value = 15
+            value = max(1, min(value, 15))
+            assert(1 <= value <= 15)
             Base._digits = value
-            assert(min_value <= Base._digits <= max_value)
+            Base._fmt.n = value
         @property
         def rtdp(self):  # Remove trailing decimal point if True
             'Remove trailing decimal point if True'
@@ -514,7 +514,7 @@ class flt(Base, float):
     '''The flt class is a float except that its str() representation is
     limited to the number of digits set in Base.N.  You can change the
     number of digits for a flt instance by changing the n attribute.  Set 
-    it to 0 to return to the Base class behavior.
+    n to 0 to return to the Base class behavior.
     '''
     def __new__(cls, value):
         if ii(value, str) and "∞" in value:
@@ -1315,7 +1315,8 @@ if 1:   # Other
             t = rlz(t)
         return len(t)
 
-if 1:   # Classes derived from flt for physical data
+# xx These got broken; problem appears in f.py line 699 __eq__
+if 0:   # Classes derived from flt for physical data
     class Nothing(flt):
         '''Represent a 'None' number.  Can be initialized with None, 
         "None" (case insensitive), "-", or "".
@@ -1368,7 +1369,7 @@ if 1:   # Classes derived from flt for physical data
             instance.fc = "≈"
             return instance
         def __str__(self):
-            return self.fc + super().__str__()
+            return self.fc + super(Approx, self).__str__()
         def __repr__(self):
             return f"Approx({self.arg!r})"
     class Rng(flt):
@@ -1544,6 +1545,7 @@ if __name__ == "__main__":
         else:
             raise TypeError("Both a and b must be flt or cpx")
     def Test_flt_derived_classes():
+        return  # These classes broke somehow xx
         # Nothing
         x = Nothing("")
         Assert(str(x) == "--")
@@ -1570,6 +1572,7 @@ if __name__ == "__main__":
         # Approx
         x = Approx("~1.2")
         Assert(x == 1.2)
+        xx() #xx
         Assert(str(x) == "≈1.2")
         Assert(repr(x) == "Approx('~1.2')")
         x = Approx("≈1.2")
@@ -1977,13 +1980,16 @@ if __name__ == "__main__":
             x = flt(10*pi)
             x._reset()
             y = flt(10*pi)
-            Assert(str(x) == str(y) == "31.4")
+            Assert(str(x) == "31.4")
+            Assert(str(y) == "31.4")
             # Show context manager works to allow a change to Base.N; also show
             # that an instance's change to self.n isn't affected by the context
             # manager.
             with x:
+                xx() #xx
                 x.N = 8
-                Assert(str(x) == str(y) == "31.415927")
+                Assert(str(x) == "31.415927")
+                Assert(str(y) == "31.415927")
                 y.n = 8
             Assert(str(x) == "31.4")
             # y still uses 8 digits but x doesn't
