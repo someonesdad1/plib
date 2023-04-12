@@ -1019,8 +1019,12 @@ if 1:   # Convenience instances
     ta = TakeApart()
 # Development area
 if 0 and __name__ == "__main__": 
-    x = mpmath.mpf('1.8137828291853159435141973544306170989342808296680724e+49714987269413385435126828829089887365167832438044')
+    mpmath.mp.dps = 200
+    x = +mpmath.pi
+    fmt.n = 4
     print(fmt(x))
+    fmt.n = 400
+    print(len(fmt(x)))
     exit()
 
 if __name__ == "__main__": 

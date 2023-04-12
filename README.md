@@ -1,6 +1,6 @@
 # plib
 
-Last updated 23 Feb 2023
+Last updated 12 Apr 2023
 
 # Introduction
 This repository is a collection of python stuff I've written since 1998.
@@ -43,37 +43,29 @@ things will likely work unless a library's name conflicts with one of your
 installed libraries.  After you get things working this way, you can prune
 and edit to get things to work the way you want them to.
 
-## Coding style
+## File style
 
-My coding style is vertically compressed which most folks won't like.  You
-can use a style formatter (e.g., black) to recover more normal vertical
-formatting.  I use `pgm/rbl.py` to remove blank lines so I can see as much
-as possible on my screen.  
+I vertically compress files to see as much as possible on screen at once.
+Use a style formatter to recover more normal vertical formatting.  Most
+files try to adhere to an 80 column width, but some applications use more.
 
 I use a folding editor, which folds on indentation and explains the
 frequent use of the 'if 1:' element, which I use to divide the code up into
-viewable chunks.  A completely folded file should be viewable in 20-30
-lines.  I also use a second 4k monitor in portrait mode to view 100 to 150
-lines of text at once; this is very convenient for code development.
+viewable chunks.  A completely folded file is often viewable on screen as a
+whole.  My second 4k monitor in portrait mode is used to view 100 or so
+lines for editing a file I'm working on.  
 
-My editor has commands to go to the next paragraph, which is defined by a
-bare newline.  With no blank lines in a file, this lets me set up
-"bookmarks" by inserting an empty line.  I can then jump between two areas
-in a file with one key press.  It's much faster than using stored bookmarks
-or multiple tab pages.
+When I'm working on a file, I insert a blank line where I'm working.  Other
+blank lines are put in as needed to get to other working sections in the
+file.  This is the fastest way of navigating I've found when editing files
+and is the reason I use no blank lines.  
 
-You'll find 'git log' pretty useless in this repository, as my development
-model is similar to how I used RCS at home for a few decades.  I'm the only
+You'll find 'git log' useless in this repository, as my development model
+is similar to how I used RCS at home for a few decades.  I'm the only
 developer and I make check-ins when I've gotten far enough where I don't
 want to lose something, so I check it in with no comment and push it to
 github.  I rarely make branches.  I'll occasionally mark a notable event
 with a tag.  The latest revision on main is the file you'll want.
-
-I use pycodestyle (a python PEP8 style checker) to check my code's style,
-but I run it from a script `pgm/pcs.py` to 1) condense the output 2)
-color code the error number and message, and 3) only output what I consider
-are the most important things to fix.  It's easily tuned to your tastes, as
-style guidelines can be subjective.
 
 ## Status
 
@@ -82,20 +74,19 @@ time and fix/maintain some of the stuff.  My intent is that this stuff will
 remain here for a few years after I've died or when I turn its maintenance
 over to a friend who said he'd be the caretaker for it after I'm no longer
 able to maintain things.  By then any content of interest to others will
-probably have diffused  out into the world; he can remove the repository
+probably have diffused out into the world; he can delete the repository
 when he sees fit.
 
 ## Caution
 
 The set of files in this directory are a core set of python modules and
 scripts I've written over the years for my own use.  There's some useful
-functionality in here, but I must warn you it's fairly tightly coupled.
-This means if you find a script you like and want to move it somewhere
-else, you may find that it's dependent on a number of other
-modules.  This will be annoying and possibly a lot of work to fix.  This
-repository on my system is `/plib` and my `PYTHONPATH` variable is
-`"/plib:/plib/g"`, so this repository is the only code I use outside of
-what's in the python distribution. 
+functionality in here, but it's fairly tightly coupled.  This means if
+you find a script you like and want to move it somewhere else, you may find
+that it's dependent on a number of other modules.  This will be annoying
+and possibly a lot of work to fix.  This repository on my system is `/plib`
+and my `PYTHONPATH` variable is `"/plib:/plib/g"`, so this repository is
+the only code I use outside of what's in the python distribution. 
 
 # Software lesson
 
@@ -252,5 +243,5 @@ techniques.
       out, meaning you'll be able to remember where they are.  My computer
       has many hundreds of thousands of files and it's nearly impossible to
       remember where everything is.  I wrote this before I retired a couple
-      of  decades ago and a number of friends at work told me they couldn't
+      of decades ago and a number of friends at work told me they couldn't
       live without the script.  I use it constantly at the command line.
