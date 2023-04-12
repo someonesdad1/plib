@@ -199,7 +199,13 @@ class TakeApart:
             yabs = -y
         if have_mpmath and ii(yabs, mpmath.mpf):
             # mpmath
-            lg, ten = mpmath.log10(yabs), mpmath.mpf(10)
+            # 
+            # chop is needed to handle a corner case:  let the precision be
+            # 20 and use the number mpf('0.99999999999999999999915').
+            # Without the chop, the exponent e is -1 instead of 1 and the
+            # significand is s = "10.0", giving the decimal point as s[1]
+            # as "0", causing an assertion exception below.
+            lg, ten = mpmath.chop(mpmath.log10(yabs)), mpmath.mpf(10)
             e = int(mpmath.floor(lg)) if yabs else 0
             s = mpmath.nstr(mpmath.mpf(yabs/ten**e), n)
             assert("." in s and len(s) > 1)    # mpmath seems to use only "."
@@ -473,7 +479,7 @@ class Fmt:
         else:
             sgn = "+" if self.sign else " " if self.spc else ""
         if fmt is None:
-            return self.fmtint(value, fmt=self.int)
+            return sgn + self.fmtint(value, fmt=self.int)
         elif fmt == "norm":
             return f"{sgn}{value}"
         elif fmt == "hex":
@@ -1024,13 +1030,12 @@ if 1:   # Convenience instances
     fmt = Fmt()
     ta = TakeApart()
 # Development area
-if 0 and __name__ == "__main__": 
-    mpmath.mp.dps = 200
-    x = +mpmath.pi
-    fmt.n = 4
+if 1 and __name__ == "__main__": 
+    mpmath.mp.dps = 20
+    x = mpmath.mpf('0.99999999999999999999915')
+    fmt.n = 3
+    print(x)
     print(fmt(x))
-    fmt.n = 400
-    print(len(fmt(x)))
     exit()
 
 if __name__ == "__main__": 
