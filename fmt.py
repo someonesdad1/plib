@@ -793,11 +793,14 @@ class Fmt:
                 return m + ''.join(o)
             return m + "e" + e
         if fmt == "fix":
-            if x and self.high is not None and abs(x) > self.high:
-                return self.sci(x, n)
-            elif x and self.low is not None and abs(x) < self.low:
-                return self.sci(x, n)
-            return self.fix(x, n)
+            if value:
+                if x and self.high is not None and abs(x) > self.high:
+                    return self.sci(x, n)
+                elif x and self.low is not None and abs(x) < self.low:
+                    return self.sci(x, n)
+                return self.fix(x, n)
+            else:
+                return self.fix(x, n)
         elif fmt == "sci":
             return self.sci(x, n)
         else:
@@ -806,11 +809,14 @@ class Fmt:
         assert(ii(value, mpmath.mpf))
         low, high = mpmath.mpf(str(self.low)), mpmath.mpf(str(self.high))
         if fmt == "fix":
-            if abs(value) > high:
-                return self.sci(value, n)
-            if abs(value) < low:
-                return self.sci(value, n)
-            return self.fix(value, n)
+            if value:
+                if abs(value) > high:
+                    return self.sci(value, n)
+                if abs(value) < low:
+                    return self.sci(value, n)
+                return self.fix(value, n)
+            else:
+                return self.fix(value, n)
         elif fmt == "sci":
             return self.sci(value, n)
         else:
