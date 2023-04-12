@@ -628,7 +628,7 @@ class Fmt:
                 if not self.spc and sgn == " ":
                     sgn = ""
                 # Get significand
-                dq = deque(list(ta.ld + ta.dp + ta.other))
+                dq = collections.deque(list(ta.ld + ta.dp + ta.other))
                 dq = self.trim(dq)
                 sig = [sgn, ''.join(dq), "e", str(ta.e)]
                 return ''.join(sig)
