@@ -160,15 +160,15 @@ class TakeApart:
         return (self.sign + self._ld + self._dp +
                 self.other + "e" + str(self._e))
     def __call__(self, x):
+        assert(x is not None)
         self._number = x
         self.disassemble()
         return str(self)
     def disassemble(self):
         "Disassemble the number self._number into this instance's attributes"
         n, x = self._n, self._number
-        assert(x is not None)
         assert(ii(n, int) and n >= 0)
-        # Convert either to a Decimal or mpf
+        # Handle int, float, Decimal, mpf, and Fractions
         if ii(x, (int, float, decimal.Decimal)):
             # The following avoids an infinite recursion with f.flt
             # instances
@@ -198,6 +198,7 @@ class TakeApart:
             sign = "-"
             yabs = -y
         if have_mpmath and ii(yabs, mpmath.mpf):
+            # mpmath
             lg, ten = mpmath.log10(yabs), mpmath.mpf(10)
             e = int(mpmath.floor(lg)) if yabs else 0
             s = mpmath.nstr(mpmath.mpf(yabs/ten**e), n)
@@ -211,6 +212,7 @@ class TakeApart:
             assert(len(t) == n if yabs else 1)
             ld, other = t[0], t[1:]
         else:
+            # Decimal
             yabs = abs(y)
             assert(ii(y, decimal.Decimal))
             ys = f"{yabs:.{n - 1}e}".lower()    # Get sci form to n digits
@@ -225,15 +227,19 @@ class TakeApart:
         self._other = other
         self._e = e
         self._dq = collections.deque(ld + other)
-        # Check invariants
-        assert(self._sign in ("-", " "))
-        assert(ii(self._ld, str) and len(self._ld) == 1)
-        assert(self._dp in (".", ","))
-        assert(len(self._dp) == 1)
-        assert(ii(self._other, str))
-        assert(ii(self._e, int))
-        assert(ii(self._dq, collections.deque) and 
-               (len(self._dq) == len(self._ld) + len(self._other)))
+        if 1:
+            # Check invariants
+            assert(self._sign in ("-", " "))
+            assert(ii(self._ld, str) and len(self._ld) == 1)
+            assert(self._dp in (".", ","))
+            assert(len(self._dp) == 1)
+            assert(ii(self._other, str))
+            assert(ii(self._e, int))
+            # Deque has length of strings ld and other
+            assert(ii(self._dq, collections.deque) and 
+                (len(self._dq) == len(self._ld) + len(self._other)))
+            assert("." not in self._dq and "," not in self._dq)
+            assert(len(self._ld + self._other) == n)
     if 1:   # Properties
         @property
         def dp(self):
@@ -362,7 +368,7 @@ class Fmt:
         self._rtdp = False
         self._spc = False
         self._sign = False
-        self.nchars = W*L//4
+        self.nchars = W*L//4  # Base on screen width and hight
         self._int = "norm"
         self._strict = False
         # Attributes for complex numbers
@@ -411,7 +417,7 @@ class Fmt:
             else:
                 return D(value)
         elif have_mpmath and ii(value, mpmath.mpf):
-            return D(str(value))
+                return D(str(value))
         else:
             return D(str(value))
     def _take_apart(self, x, n=None) -> collections.namedtuple:
@@ -542,6 +548,10 @@ class Fmt:
                 #if self.ta._number is None or value != self.ta._number:
                 self.ta(value)  # Disassemble into parts
                 sign = self.ta.sign     # Sign ("-" or " ")
+                if not self.spc and sign == " ":
+                    sign = ""
+                if self.sign and sign == "":
+                    sign = "+"
                 # Note we use fmt instance's decimal point, which is
                 # gotten from the locale, not from the number parsed by
                 # TakeApart()
@@ -591,22 +601,37 @@ class Fmt:
         return retval_new
     def sci(self, value, n=None) -> str:
         'Return a scientific format representation'
-        x = self.toD(value)
-        parts, dq, z = self._get_data(x, n)
-        dq.insert(1, self.dp)
-        dq.appendleft(parts.sign)
-        if dq[-1] == self.dp:
-            del dq[-1]
-        dq = self.trim(dq)
-        if self.u:
-            # Use Unicode characters for power of 10
-            o = ["✕10"]
-            for c in str(parts.e):
-                o.append(self._superscripts[c])
-            dq.extend(o)
+        if 0:   # Old method
+            x = self.toD(value)
+            parts, dq, z = self._get_data(x, n)
+            dq.insert(1, self.dp)
+            dq.appendleft(parts.sign)
+            if dq[-1] == self.dp:
+                del dq[-1]
+            dq = self.trim(dq)
+            if self.u:
+                # Use Unicode characters for power of 10
+                o = ["✕10"]
+                for c in str(parts.e):
+                    o.append(self._superscripts[c])
+                dq.extend(o)
+            else:
+                dq.extend(["e", str(parts.e)])
+            return ''.join(dq)
         else:
-            dq.extend(["e", str(parts.e)])
-        return ''.join(dq)
+            n = n if n is not None else self.n
+            ta = self.ta
+            with ta:
+                ta.n = n
+                ta(value)
+                sgn = ta.sign
+                if not self.spc and sgn == " ":
+                    sgn = ""
+                # Get significand
+                dq = deque(list(ta.ld + ta.dp + ta.other))
+                dq = self.trim(dq)
+                sig = [sgn, ''.join(dq), "e", str(ta.e)]
+                return ''.join(sig)
     def eng(self, value, fmt="eng", n=None) -> str:
         '''Return an engineering format representation.  Suppose value
         is 31415.9 and n is 3.  Then fmt can be:
@@ -701,7 +726,7 @@ class Fmt:
             s = "" if self.cuddled else " "
             ret = f"{sr}{s}{sign}{s}{si}{self._imag_unit}"
             return ret
-    def __call__(self, value, fmt=None, n=None) -> str:
+    def __call__(self, value, fmt: str=None, n: int=None) -> str:
         '''Format value with the default "fix" formatter.  n overrides
         self.n digits.  fmt can be "fix", "sci", "eng", "engsi", or "engsic".
         '''
@@ -721,8 +746,16 @@ class Fmt:
             return self.Complex(value, fmt=fmt, n=n)
         elif have_mpmath and ii(value, mpmath.mpc):
             return self.Complex(value, fmt=fmt, n=n)
-        x = 0
         assert(n is not None)
+        x = value
+        if ii(value, (int, float, Decimal)):
+            return self.call_Decimal(value, fmt=fmt, n=n)
+        else:
+            return self.call_mpmath(value, fmt=fmt, n=n)
+    def call_Decimal(self, value, fmt: str="fix", n: int=None) -> str:
+        'Handle formatting with the Decimal type'
+ 
+        assert(ii(value, (int, float, Decimal)))
         try:
             x = self.toD(value)
             abs(x)
@@ -769,6 +802,19 @@ class Fmt:
             return self.sci(x, n)
         else:
             return self.eng(x, n=n, fmt=fmt)
+    def call_mpmath(self, value, fmt: str="fix", n: int=None) -> str:
+        assert(ii(value, mpmath.mpf))
+        low, high = mpmath.mpf(str(self.low)), mpmath.mpf(str(self.high))
+        if fmt == "fix":
+            if abs(value) > high:
+                return self.sci(value, n)
+            if abs(value) < low:
+                return self.sci(value, n)
+            return self.fix(value, n)
+        elif fmt == "sci":
+            return self.sci(value, n)
+        else:
+            return self.eng(value, n=n, fmt=fmt)
     if 1:   # Properties
         @property
         def default(self) -> str:
@@ -973,13 +1019,8 @@ if 1:   # Convenience instances
     ta = TakeApart()
 # Development area
 if 0 and __name__ == "__main__": 
-    # Get n = 0 feature working
-    M = mpmath
-    x = M.mpf('3.1830988618379067e+32')
-    x = M.mpf('3.1830988618379067e8')
-    fmt.n = 0
-    fmt.rtz = 1
-    print(fmt(x, fmt="engsic"))
+    x = mpmath.mpf('1.8137828291853159435141973544306170989342808296680724e+49714987269413385435126828829089887365167832438044')
+    print(fmt(x))
     exit()
 
 if __name__ == "__main__": 
@@ -1182,13 +1223,14 @@ if __name__ == "__main__":
         t.print(f"{sp}{s:{w}s} {t.f}{fmt(z)}{t.n}  (fmt.cuddled True)")
         fmt.cuddled = False
         t.print(f"{sp}{'':{w}s} {t.f}{fmt(z)}{t.n} (fmt.cuddled False)")
-        t.print(f"The f.ul underlining won't work unless your terminal supports it.")
+        t.print(f"The fmt.ul underlining won't work unless your terminal supports it.")
         if not use_colors:
             print(f"Set the environment variable DPRC to true to see colorized output.")
     if 1:   # Test code 
         def Init():
             'Make sure test environment is set up in a repeatable fashion'
-            fmt = Fmt(3)
+            fmt = Fmt()
+            fmt.n = 3
             return fmt
         def Test_Basics():
             f = Init()
@@ -1239,7 +1281,6 @@ if __name__ == "__main__":
             Assert(f(x, n=5) == "1.0000")
             Assert(f(x, n=6) == "0.999999")
             Assert(f(x, n=7) == "0.9999990")
-
             raises(ValueError, f, -x, n=-1)
             Assert(f(-x, n=0) == "-" + s)
             Assert(f(-x, n=1) == "-1.")
@@ -1463,6 +1504,7 @@ if __name__ == "__main__":
                 fp.expdigits = 1
                 fp.expsign = False
                 f = Init()
+                f.rtdp = 1
                 for e in range(6):
                     for n in range(1, numdigits + 1):
                         x = D(s + f"e{e}")
