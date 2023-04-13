@@ -3,30 +3,32 @@ Construct the rgbdata.py file.  This file is a list of color names
 and Color objects encapsulating the RGB color.  Write the constructed data
 to stdout.
 '''
-if 1:  # Copyright, license
-    # These "trigger strings" can be managed with trigger.py
-    #∞copyright∞# Copyright (C) 2022 Don Peterson #∞copyright∞#
-    #∞contact∞# gmail.com@someonesdad1 #∞contact∞#
-    #∞license∞#
-    #   Licensed under the Open Software License version 3.0.
-    #   See http://opensource.org/licenses/OSL-3.0.
-    #∞license∞#
-    #∞what∞#
-    # Build the rgbdata.py file's information
-    #∞what∞#
-    #∞test∞# #∞test∞#
-    pass
-if 1:   # Standard imports
-    import getopt
-    import os
-    from pathlib import Path as P
-    import sys
-    from collections import deque
-    from pdb import set_trace as xx
-if 1:   # Custom imports
-    from wrap import wrap, dedent
-if 1:   # Global variables
-    ii = isinstance
+if 1:  # Header
+    if 1:  # Copyright, license
+        # These "trigger strings" can be managed with trigger.py
+        #∞copyright∞# Copyright (C) 2022 Don Peterson #∞copyright∞#
+        #∞contact∞# gmail.com@someonesdad1 #∞contact∞#
+        #∞license∞#
+        #   Licensed under the Open Software License version 3.0.
+        #   See http://opensource.org/licenses/OSL-3.0.
+        #∞license∞#
+        #∞what∞#
+        # Build the rgbdata.py file's information
+        #∞what∞#
+        #∞test∞# #∞test∞#
+        pass
+    if 1:   # Standard imports
+        import getopt
+        import os
+        from pathlib import Path as P
+        import sys
+        import time
+        from collections import deque
+        from pdb import set_trace as xx
+    if 1:   # Custom imports
+        from wrap import wrap, dedent
+    if 1:   # Global variables
+        ii = isinstance
 if 1:   # Utility
     def Error(*msg, status=1):
         print(*msg, file=sys.stderr)
@@ -110,9 +112,19 @@ if 1:   # Core functionality
         return tuple(int(i, 16) for i in rgb)
     def Report(data, attrdict):
         'Write output in form of python list and dict'
+        myname = P(sys.argv[0]).resolve()
         # List of colors
         if 1:
             print(dedent(f'''
+            # This file was constructed by {myname}
+            # {time.asctime()}
+            #
+            # It is a collection of color names compiled from a number of web
+            # sources.  There are over 10,000 color names with a number of
+            # duplicates, demonstrating a lot of copying over the years.  The
+            # progenitor of much of this information was the rgb.txt file on 
+            # early XWindows systems.
+
             from color import Color
                 # Fields are:
                 #   Attribution number (indexes into attrdict)
@@ -135,7 +147,7 @@ if 1:   # Core functionality
         # Attribution dictionary:  the integer key is the color name
         # attribution in the above list, the value is the attribution
         # string.  These python scripts are in the 
-        # /plib/rgb/build directory.
+        # {myname.parent} directory.
         '''))
         print("attr_data = {")
         for i in attrdict:

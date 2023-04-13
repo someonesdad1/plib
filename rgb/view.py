@@ -32,12 +32,13 @@ if 1:   # Standard imports
 if 1:   # Custom imports
     from rgbdata import color_data
     from wrap import wrap, dedent
-    from clr import Clr
-    from rgb import Color
+    #from clr import Clr
+    from color import Color, t
+    #from rgb import Color
 if 1:   # Global variables
     P = pathlib.Path
     ii = isinstance
-    c = Clr()
+    #c = Clr()
 if 1:   # Utility
     def Error(*msg, status=1):
         print(*msg, file=sys.stderr)
@@ -85,6 +86,7 @@ if 1:   # Core functionality
     def GetColors(sort_order):
         'Return a sorted list of rgb.Color objects'
         colors = [i[2] for i in color_data]
+        breakpoint() #xx
         if d["-d"]:
             colors = colors[:50]
         # Sort the data
@@ -113,7 +115,8 @@ if 1:   # Core functionality
                 s = color.hex
             else:
                 raise Exception("-H or -R should have been defined")
-            print(f"{c('#' + s)}{s}{c.n}", end=" ")
+            #print(f"{c('#' + s)}{s}{c.n}", end=" ")
+            print(f"{t('#' + s)}{s}{t.n}", end=" ")
             count += 1
             if count and not (count % N):
                 print()

@@ -1030,12 +1030,9 @@ if 1:   # Convenience instances
     fmt = Fmt()
     ta = TakeApart()
 # Development area
-if 1 and __name__ == "__main__": 
+if 0 and __name__ == "__main__": 
     mpmath.mp.dps = 20
     x = mpmath.mpf('0.99999999999999999999915')
-    fmt.n = 3
-    print(x)
-    print(fmt(x))
     exit()
 
 if __name__ == "__main__": 

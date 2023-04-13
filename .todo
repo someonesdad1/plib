@@ -1,8 +1,11 @@
 Active
 
-    - Annotations
-        - mypy seems to be a good tool.  For better robustness, it would
-          make sense to annotate all the library modules.
+    - Colors
+        - I often want to see a selection of colors to choose something for
+          an application
+        - rgb/view.py started at this
+        - Make a tool that will list colors by name:  blue, yellow, red,
+          etc.  Print out the three hex forms.
 
     - cmddecode.py
         - Some commands are special.  Thus, in hc.py, clstk is to clear the

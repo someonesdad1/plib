@@ -3,7 +3,7 @@ if 1:
     debug.SetDebugger()
 attr = '''file = /pylib/g/rgb.txt
 Constructed from an rgb.txt file I got from either an HPUX or Linux box
-around 1992.'''.strip()
+in the early 1990's.'''.strip()
 # Split first on the tab character
 data = '''
 240 248 255	AliceBlue
