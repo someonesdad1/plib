@@ -119,7 +119,7 @@ if 1:   # Core functionality
             # This file was constructed by {myname}
             # {time.asctime()}
             #
-            # It is a collection of color names compiled from a number of web
+            # It is a list of color names compiled from a number of web
             # sources.  There are over 10,000 color names with a number of
             # duplicates, demonstrating a lot of copying over the years.  The
             # progenitor of much of this information was the rgb.txt file on 

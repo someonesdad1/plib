@@ -4,6 +4,7 @@
 *.swp
 *.pdf
 *.ps
+*.tmp
 *.bak
 *.orig
 *.0test
