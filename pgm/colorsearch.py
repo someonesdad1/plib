@@ -24,7 +24,7 @@ if 1:   # Header
     if 1:   # Custom imports
         from wrap import wrap, dedent
         from color import Color, t
-        from rgbdata import color_data
+        from rgbdata import color_data, attr_data
         import cdec
     if 1:   # Global variables
         ii = isinstance
@@ -82,13 +82,26 @@ if 1:   # Core functionality
         '''Print the colors sorted by the default color.Sort() method (uses
         'hL').
         '''
+        if not data:
+            return
         seq = data.values()
         get = lambda x: x[2]    # Predicate to get the Color instance
         seq = Color.Sort(seq, keys=d["-s"], get=get)
         # Get maximum name length
         w = max(len(i[1]) for i in seq)
         for attr, name, color in seq:
-            t.print(f"{t(color)}{color.xrgb} {color.xhsv} {color.xhls} {attr}   {name:{w}s}")
+            if d["-a"]:
+                t.print(f"{t(color)}{color.xrgb} {color.xhsv} {color.xhls} {attr}    {name:{w}s}")
+            else:
+                t.print(f"{t(color)}{color.xrgb} {color.xhsv} {color.xhls}    {name:{w}s}")
+        if d["-a"]:
+            # Print attributions
+            print("Attribution numbers:")
+            for i in attr_data:
+                s = attr_data[i].split("\n")
+                print(i)
+                for j in s:
+                    print(f"  {j}")
 
 if __name__ == "__main__":
     d = {}      # Options dictionary
