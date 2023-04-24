@@ -125,7 +125,26 @@ class Weather:
         for day, details in self.lst:
             o.append(day)
         return '\n'.join(o)
-
+    if 1:   # Properties
+        @property
+        def age(self):
+            'Return the age of the report in hours'
+            s = g.update.replace("Last Update: ", "")
+            f = s.split()
+            print(f) #xx
+            tm, ampm, tz, month, day, year = f
+            hour, minute = [int(i) for i in tm.split(":")]
+            if ampm == "pm":
+                hour += 12
+            year = int(year)
+            month = months.months(month)
+            day = int(day.replace(",", ""))
+            jday = julian.JulianAstroDateTime(year, month, day, hour, minute, 0)
+            jdaynow = julian.JulianNow()
+            daydiff = jdaynow - jday
+            breakpoint() #xx
+            age_hours = round(24.0*daydiff, 1)
+            return age_hours
 if 1:   # Core functionality
     def Wrap(line):
         'Print the line wrapped as needed'
@@ -270,23 +289,6 @@ if 1:   # Core functionality
             exit()
         Assert(lines)
         return lines
-    def GetLastUpdate():
-        'Return number of hours since last update'
-        s = g.update.replace("Last Update: ", "")
-        f = s.split()
-        tm, ampm, tz, month, day, year = f
-        hr, minute = [int(i) for i in tm.split(":")]
-        hrs = hr + minute/60
-        if ampm == "am":
-            hrs += 12
-            day
-
-
-        print(f)
-        month = months.months(month)
-        print(month)
-        exit()
-
     def Report(lines):
         for line in lines:
             loc = line.find(":")
@@ -295,7 +297,6 @@ if 1:   # Core functionality
             PrintTitle(title, details)
             if d["-b"]:
                 Wrap(details)
-        num_hours = GetLastUpdate()
         print(g.update, "\nNow: ", end="")
         os.system("date")
 if __name__ == "__main__": 
@@ -311,8 +312,8 @@ if __name__ == "__main__":
                 print(l)
         exit(0)
     lines = Select(q)
-    if 0:
+    if 1:
         w = Weather(lines)
-        print(w)
+        print(w.age)
     else:
         Report(lines)

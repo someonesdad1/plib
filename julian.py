@@ -157,7 +157,13 @@ def JulianAstro(month, day, year):
     floating point number.  month must be an integer from 1 to 12, day
     can be an integer or float, and year must be an integer.  Note that
     day 1.0 means 12 noon on the first day of the month; 1.5 means
-    midnight.
+    midnight.  Here, the time is Greenwich mean time (GMT).
+ 
+    Note:  because of the PITA of dealing with daylight saving time and
+    local times, this day parameter assumes it's a day for GMT.  When
+    calculating time differences in days, this distinction doesn't matter,
+    but if you want correct astronomical Julian day numbers, you must
+    convert local time to GMT.
     '''
     Assert(isinstance(month, int) and 1 <= month <= 12)
     Assert(isinstance(day, (int, float)) and 1 <= day < 32)
@@ -329,12 +335,36 @@ if __name__ == "__main__":
         assert_equal(Julian(2, 29, 2000), 2451604)
         assert_equal(Julian1("20000229"), 2451604)
     def TestJulianAstro():
-        assert_equal(JulianAstro(1, 27.5, 333), 1842713.0)
-        assert_equal(JulianAstro(10, 4.81, 1957), 2436116.31)
-        # Note the following also checks JulianAstroDT()
-        year, month, day, hour, minute, second = 333, 1, 27, 12, 0, 0
-        jadt = JulianAstroDateTime(year, month, day, hour, minute, second)
-        assert_equal(jadt, 1842713.0)
+        # Test case, pg 61 of Meeus:  27 Jan 333 at 12 pm == 1842713.0
+        expected = 1842713.0
+        assert_equal(JulianAstro(1, 27.5, 333), expected)
+        if 1:   # Same case, different functions
+            # Note the following also checks JulianAstroDT()
+            year, month, day, hour, minute, second = 333, 1, 27, 12, 0, 0
+            jadt = JulianAstroDateTime(year, month, day, hour, minute, second)
+            assert_equal(jadt, expected)
+        # Test case, pg 61 of Meeus:  4.81 Oct 1957 (Sputnik I launch) == 2436116.31
+        expected = 2436116.31
+        assert_equal(JulianAstro(10, 4.81, 1957), expected)
+        if 1:   # Other test cases from pg 62
+            cases = (
+                ("2000 1  1.5", 2451545.0),
+                ("1999 1  1.0", 2451179.5),
+                ("1987 1 27.0", 2446822.5),
+                #
+                ("-123 12 31.0", 1676496.5),
+                ("-122 1   1.0", 1676497.5),
+                #
+                ("-1000 7 12.5", 1356001.0),
+                ("-1000 2 29.0", 1355866.5),
+                ("-1001 8 17.9", 1355671.4),
+                ("-4712 1  1.5", 0.0),
+            )
+            for s, expected in cases:
+                y, m, d = s.split()
+                year, month = int(y), int(m)
+                day = float(d)
+                assert_equal(JulianAstro(month, day, year), expected)
     def TestDayOfWeek():
         assert_equal(DayOfWeek(11, 13, 1949), 0)
         assert_equal(DayOfWeek(5, 30, 1998), 6)
