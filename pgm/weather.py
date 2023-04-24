@@ -39,7 +39,7 @@ if 1:   # Header
         # Location
         lat, lon = "43.5", "-116.4"
         # Turn on debugging to avoid loading from web
-        dbg = 1
+        dbg = 0
         class g: 
             # Global variable holder
             pass
@@ -87,64 +87,6 @@ if 0:   # Functions to return string describing the weather feature
     def AnalyzeSnow(line):
         'Return empty string if nothing of interest'
         return ""
-class Weather:
-    def __init__(self, lines, brief_report=True):
-        self.lines = lines
-        self.brief_report = brief_report
-        # Build a list of the days' data:  elements are [day, details]
-        self.lst = lst = []
-        for line in self.lines:
-            day, details = line.split(":")
-            lst.append([day, details])
-        self.today, self.first_day_count = self.FixTodaysName()
-        Assert(len(self.lst) in (12, 13))
-        Assert(self.first_day_count in (1, 2))
-    def FixTodaysName(self):
-        # Get a set of the day's names
-        a = set()
-        for day, details in self.lst:
-            if "Night" in day or "Today" in day or "Tonight" in day:
-                continue
-            a.add(day)
-        days = set("Monday Tuesday Wednesday Thursday Friday Saturday Sunday".split())
-        # Find the missing name
-        b = days - a
-        Assert(len(b) == 1)
-        today = b.pop()
-        # Change first two elements to today's day name
-        count = 0
-        if self.lst[0][0] == "Today":
-            self.lst[0][0] = today
-            count += 1
-        if self.lst[1][0] == "Tonight":
-            self.lst[1][0] = f"{today} Night"
-            count += 1
-        return today, count
-    def __str__(self):
-        o = []
-        for day, details in self.lst:
-            o.append(day)
-        return '\n'.join(o)
-    if 1:   # Properties
-        @property
-        def age(self):
-            'Return the age of the report in hours'
-            s = g.update.replace("Last Update: ", "")
-            f = s.split()
-            print(f) #xx
-            tm, ampm, tz, month, day, year = f
-            hour, minute = [int(i) for i in tm.split(":")]
-            if ampm == "pm":
-                hour += 12
-            year = int(year)
-            month = months.months(month)
-            day = int(day.replace(",", ""))
-            jday = julian.JulianAstroDateTime(year, month, day, hour, minute, 0)
-            jdaynow = julian.JulianNow()
-            daydiff = jdaynow - jday
-            breakpoint() #xx
-            age_hours = round(24.0*daydiff, 1)
-            return age_hours
 if 1:   # Core functionality
     def Wrap(line):
         'Print the line wrapped as needed'
@@ -159,6 +101,22 @@ if 1:   # Core functionality
             print(word, end=" ")
             used += l
         print()
+    def Age():
+        'Return the age of the report in hours'
+        s = g.update.replace("Last Update: ", "")
+        f = s.split()
+        tm, ampm, tz, month, day, year = f
+        hour, minute = [int(i) for i in tm.split(":")]
+        if ampm == "pm":
+            hour += 12
+        year = int(year)
+        month = months.months(month)
+        day = int(day.replace(",", ""))
+        jday = julian.JulianAstroDateTime(year, month, day, hour, minute, 0)
+        jdaynow = julian.JulianNow()
+        daydiff = jdaynow - jday
+        age_hours = int(round(24.0*daydiff, 0))
+        return age_hours
     def Get():
         file = "/plib/pgm/weather.data"
         if dbg:
@@ -297,8 +255,8 @@ if 1:   # Core functionality
             PrintTitle(title, details)
             if d["-b"]:
                 Wrap(details)
-        print(g.update, "\nNow: ", end="")
-        os.system("date")
+        age = Age()
+        print(f"Data are {age} hours old")
 if __name__ == "__main__": 
     d = {}      # Options dictionary
     SetColors()
@@ -312,8 +270,4 @@ if __name__ == "__main__":
                 print(l)
         exit(0)
     lines = Select(q)
-    if 1:
-        w = Weather(lines)
-        print(w.age)
-    else:
-        Report(lines)
+    Report(lines)
