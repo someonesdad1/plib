@@ -1,5 +1,8 @@
 '''
 TODO
+    - Bug:  Wrapping 'which is equal to (x - 1)!  if x is an integer.' will
+      result in two spaces after the '!'.  Look at the next letter of the
+      sentence and don't double space if it's not a capital.
     - Use the -H string from /plib/pgm/goto.py as an example of the typical
       help string found in a script.
         - Develop a mini-language for formatting things; these get stripped

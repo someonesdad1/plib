@@ -1,4 +1,8 @@
 '''
+
+Fix
+    - Sort key doesn't seem to do anything
+
 Print out color names with a regex in the name
 '''
 if 1:   # Header

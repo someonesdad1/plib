@@ -199,15 +199,18 @@ class TakeApart:
             yabs = -y
         if have_mpmath and ii(yabs, mpmath.mpf):
             # mpmath
-            # 
-            # chop is needed to handle a corner case:  let the precision be
-            # 20 and use the number mpf('0.99999999999999999999915').
-            # Without the chop, the exponent e is -1 instead of 1 and the
-            # significand is s = "10.0", giving the decimal point as s[1]
-            # as "0", causing an assertion exception below.
             lg, ten = mpmath.chop(mpmath.log10(yabs)), mpmath.mpf(10)
             e = int(mpmath.floor(lg)) if yabs else 0
-            s = mpmath.nstr(mpmath.mpf(yabs/ten**e), n)
+            # Get the significand string
+            a = yabs*ten**(-e)
+            assert(ii(a, mpmath.mpf))
+            s = mpmath.nstr(a, n)
+            a = mpmath.mpf(s)
+            if a >= 10:
+                # This can happen when e.g. the number is 9.999999 and we
+                # are rounding to 3 figures
+                s = mpmath.nstr(a/ten, n)
+                e += 1
             assert("." in s and len(s) > 1)    # mpmath seems to use only "."
             dp = s[1]
             t = s.replace(".", "").replace(",", "")     # Remove radix
@@ -354,7 +357,8 @@ class Fmt:
         self._SI_prefixes[0] = ""       # Need empty string
         self._superscripts = dict(zip("-+0123456789", "⁻⁺⁰¹²³⁴⁵⁶⁷⁸⁹"))
         # For context manager behavior, we'll use a lock to avoid another
-        # thread messing with our attributes
+        # thread messing with our attributes.  You can set this to None if
+        # you don't want a lock used.
         self.lock = threading.Lock()
         # Set to default state
         self.reset()
@@ -384,10 +388,18 @@ class Fmt:
         self._cuddled = False
         self._ul = False
         self._comp = False
+    def __getstate__(self):
+        state = self.__dict__.copy()
+        # Remove things that are unpicklable
+        del state["lock"]
+    def __setstate__(self, state):
+        self.__dict__.update(state)
+        self.lock = threading.Lock()
     def __enter__(self):
         # Store our attributes (note only those that start with '_' are
         # saved)
-        self.lock.acquire()  # Stay locked through context execution
+        if self.lock is not None:
+            self.lock.acquire()  # Stay locked through context execution
         self.my_attributes = {}
         for a in self.__dict__:
             if a.startswith("__"):
@@ -402,7 +414,8 @@ class Fmt:
         d = self.my_attributes
         for i in d:
             exec(f"self.{i} = d['{i}']")
-        self.lock.release()
+        if self.lock is not None:
+            self.lock.release()
         del self.my_attributes
         return False
     def toD(self, value) -> Decimal:
