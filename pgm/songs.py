@@ -35,13 +35,11 @@ Woman in Love (Barbra Streisand)|hQLGCX8D-1Y|
 '''
 
 dead_urls = '''
-Flight of the Condor|66KVAhNE_rQ|1982| This was a BBC TV show and had great pan pipe music from South America.
-Journey to Kilimanjaro|e0DpZ3WVowY|1994 Nova show.  Melodically simple but haunting music:  1:20, 4:15, 8:10, 12:03, 19:40, 22:08, 36:50, 38:46, *39:34, 44:58, 51:57, 54:15 (credits)
 Hot Rod Lincoln|3R7l7nDuj1o|
 White Rabbit|EUY2kJE0AZE|
-The Ballad Of Cat Ballou|Sw16X_9XtuE|
 Bobby Darin:  Mack the Knife|SEllHMWkXEU|
 Ray Charles:  Georgia On My Mind|QL3EZwSJAh0|
+The Night the Lights Went Out in Georgia|wMD5nBcPrCk|
 '''
 
 songs = '''
@@ -59,6 +57,7 @@ Aquarius|oPK7ZF6jfJE&t=8|
 B.B. King: How Blue Can You Get?|LWLAAzOBoBI|A masterpiece
 B.B. King: The Thrill is Gone|Nu4tjTyqbho|
 Bad Bad Leroy Brown|CIiVindRSTA|
+Ballad Of Cat Ballou|-ghnpUNTR1I|
 Barracuda|PeMvMNpvB5M|
 Beat It|oRdxUFDoQe0|
 Beatles:  Drive My Car|kfSQkZuIx84|
@@ -111,6 +110,7 @@ Eye Of The Tiger|btPJPFnesV4|
 Fever|JGb5IweiYG8|
 Fleetwood Mac:  Dreams|O5ugW4-BstE|
 Fleetwood Mac: Gypsy|mwgg1Pu6cNg|
+Flight of the Condor|66KVAhNE_rQ|1982| This was a BBC TV show and had great pan pipe music from South America.
 Foggy Mountain Breakdown|z_Y3mnj-8lA|
 Ghost Riders In the Sky: Roy Clark|8o2w1zhBKzk|
 Ghost Riders In the Sky: Burl Ives (1949)|j2klh2cTa_Q|
@@ -123,7 +123,7 @@ Hava Nagila|https://www.youtube.com/watch?v=YBj2PZ1IeIc|
 Hawaii 50 Theme|AepyGm9Me6w|
 Heart Full of Soul|pM1qZBFiOLU|
 Hit the Road Jack|SrnWp5O0DEs| Ray Charles
-Hollies:  Long Cool Woman|X3sU_q1GH-4|
+Hollies:  Long Cool Woman|g8XiNKsKyVk|
 Hollies: Bus Stop|It75wQ0JypA|
 Hotel California|https://www.youtube.com/watch?v=BciS5krYL80|
 House Of The Rising Sun|MJkr0DWbhTk||I loved this song in high school.
@@ -137,6 +137,7 @@ It Was A Very Good Year|CJARjwzmceg|
 It's a Heartache|https://www.youtube.com/watch?v=bEOl38y8Nj8|
 Jailhouse Rock|A99sV18J0mk|
 Johnny B. Goode|Uf4rxCB4lys|
+Journey to Kilimanjaro|5ZFJWIGN9zQ|1994 Nova show.  Melodically simple but haunting music:  0:48, 6:43, 9:28, 10:44, 30:07, 35:27, 37:33, 38:28*, 43:45, 50:42, 53:00(credits),
 Kingston Trio: Bay Of Mexico|-16OczraVi4|
 Kingston Trio: Fast Freight|Oy_NkJOwRqE||
 Kingston Trio: MTA|MbtkL5_f6-4|
@@ -223,7 +224,6 @@ Sweet Dreams|qeMFqkcPYcg|
 The Gambler|7hx4gdlfamo|
 The Little Nash Rambler|enqNl7tdLR4|
 The Night They Drove Old Dixie Down|wanJQC5KAfo|
-The Night the Lights Went Out in Georgia|wMD5nBcPrCk|
 The Wreck of the Edmund Fitzgerald|9vST6hVRj2A|
 Theme From Shaft|Q429AOpL_ds|
 They Call the Wind Mariah|ByqYEzugleE|
@@ -286,7 +286,7 @@ def Inspect():
             exit(1)
     for item in (favorites, songs):
         for line in GetTextLines(item):
-            if not line or line[0] == "#":
+            if not line or line.strip()[0] == "#":
                 continue
             Check(line)
 def Print(s):
