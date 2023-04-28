@@ -1,6 +1,18 @@
 '''
  
 Todo
+    - fix(), sci(), etc. should use two new keywords:  unc and err.  unc
+      will be interpreted as an uncertainty and use the standard
+      uncertainty interpolation such as 3.14(3).  err is the same but uses
+      3.14[3] to imply an interval number, such as from a roundoff error.
+        - This also gives the ability to handle ufloats.
+
+    - Why doesn't fix() use significand()?
+    - The threading.Lock used for context management is a PITA in some use
+      cases because it means this object can't be pickled.  Try using a
+      global variable that allows the lock to not be used.
+        - One use case is hc.py, which is a single threaded app.  It would
+          be easier to persist its state if pickling could be used.
     - Refactor to get rid of old method and use new TakeApart instance.
     - Get rid of the color.py dependency in the module (OK in test code).
       The only needed change is to put an ANSI escape sequence in for
@@ -21,6 +33,9 @@ class Fmt:  Format floating point numbers
     '3.141592653589793', which contains too many digits for
     casual interpretation.  This module's convenience instance fmt will
     format pi as fmt(math.pi) = '3.14', which allows easier interpretation.
+
+    A Fmt instance can format int, float, decimal.Decimal, mpmath.mpf, and
+    fraction.Fraction number types.
  
     Fmt is also a context manager so you can change formatting
     characteristics in a with block.
@@ -91,11 +106,12 @@ if 1:   # Header
     if 1:   # Standard imports
         import decimal
         import fractions
-        import collections 
         import locale 
         import math 
         import os 
+        import string 
         import threading 
+        from collections import deque, namedtuple
         from pprint import pprint as pp
         from pdb import set_trace as xx 
     if 1:   # Custom imports
@@ -117,6 +133,7 @@ if 1:   # Header
         ii = isinstance
         __all__ = "Fmt TakeApart fmt ta".split()
 class TakeApart:
+    'Handles int, float, Decimal, mpf, and Fractions'
     def __init__(self, n=3):
         # Note self.n won't be changed in a reset()
         self._n = n
@@ -235,7 +252,7 @@ class TakeApart:
         self._dp = dp
         self._other = other
         self._e = e
-        self._dq = collections.deque(ld + other)
+        self._dq = deque(ld + other)
         if 1:
             # Check invariants
             assert(self._sign in ("-", " "))
@@ -245,7 +262,7 @@ class TakeApart:
             assert(ii(self._other, str))
             assert(ii(self._e, int))
             # Deque has length of strings ld and other
-            assert(ii(self._dq, collections.deque) and 
+            assert(ii(self._dq, deque) and 
                 (len(self._dq) == len(self._ld) + len(self._other)))
             assert("." not in self._dq and "," not in self._dq)
             assert(len(self._ld + self._other) == n)
@@ -258,7 +275,7 @@ class TakeApart:
         @property
         def dq(self):
             "Deque of significand's digits"
-            assert(ii(self._dq, collections.deque) and len(self._dq))
+            assert(ii(self._dq, deque) and len(self._dq))
             return self._dq
         @property
         def e(self):
@@ -325,6 +342,7 @@ class Fmt:
         large or small numbers where there are too many digits to
         display on the screen.
         '''
+        self._n_init = n
         self._n = None                  # Number of digits
         self._default = None            # Default formatting method
         self.ta = None                  # Take apart machinery
@@ -364,7 +382,7 @@ class Fmt:
         self.reset()
     def reset(self):
         'Reset attributes to default state'
-        n = 3
+        n = self._n_init
         self._n = n
         self._default = "fix"
         self.ta = TakeApart()
@@ -439,7 +457,7 @@ class Fmt:
                 return D(str(value))
         else:
             return D(str(value))
-    def _take_apart(self, x, n=None) -> collections.namedtuple:
+    def _take_apart(self, x, n=None) -> namedtuple:
         '''Take the Decimal number x apart into its sign, digits,
         decimal point, and exponent.  Return the named tuple 
         Apart(sign, ld, dp, other, e) where:
@@ -450,7 +468,7 @@ class Fmt:
             e is the integer exponent
         n overrides self.n if it is not None.
         '''
-        Apart = collections.namedtuple("Apart", "sign ld dp other e")
+        Apart = namedtuple("Apart", "sign ld dp other e")
         if not ii(x, D):
             raise TypeError("x must be a Decimal number")
         # Get scientific notation form
@@ -476,8 +494,7 @@ class Fmt:
     def _get_data(self, value, n=None) -> tuple:
         x = D(str(value))
         parts = self._take_apart(x, n)
-        return (parts, collections.deque(parts.ld) + 
-            collections.deque(parts.other), "0")
+        return (parts, deque(parts.ld) + deque(parts.other), "0")
     def fmtint(self, value, fmt=None):
         '''Format an integer value.  If fmt is None or "norm", 
         str(value) is returned.  Other values for fmt are "hex", "oct",
@@ -507,7 +524,7 @@ class Fmt:
             raise ValueError("fmt must be None, norm, hex, oct, dec, or bin")
     def trim(self, dq):
         'Implement rtz, rtdp, and rlz for significand dq in deque'
-        assert(ii(dq, collections.deque))
+        assert(ii(dq, deque))
         if self._rtz and self._dp in dq:
             while dq and dq[-1] == "0":
                 dq.pop()        # Remove trailing 0's
@@ -527,22 +544,15 @@ class Fmt:
         return ''.join(dq)
     def fix(self, value, n=None) -> str:
         'Return a fixed point representation'
-        # We first need to check that this number isn't too large to
-        # use fixed point formatting.  Example:  pi**100000 has an
-        # exponent of 49714 and its fixed point expression will involve
-        # tens of thousands of digits.  I've arbitrarily chosen that a
-        # number that will take up more than about 1/4 of the screen's
-        # space is too big for fixed formatting, so go over to
-        # scientific in this case.
-        #
-        # First get the exponent e
+        # Get the exponent e
         if self.ta._number is None or value != self.ta._number:
             self.ta(value)  # Needs disassembling into parts
-        e = abs(self.ta.e)
-        if e > self.nchars:
-            # Too many characters will result from fixed, so use sci
+        if abs(self.ta.e) > self.nchars:
+            # I've arbitrarily decided that a number whose exponent will
+            # take up more than 1/4 of the screen's digits is too large, so 
+            # use sci interpolation.
             return self.sci(value, n=n)
-        if 0:   # Old method
+        if 0:   # Old method using Decimal numbers
             x = self.toD(value)
             parts, dq, z = self._get_data(x, n)
             ne = parts.e + 1
@@ -564,7 +574,6 @@ class Fmt:
         if 1:   # Use new method with TakeApart implementation
             with self.ta:
                 self.ta.n = n if n is not None else self.n
-                #if self.ta._number is None or value != self.ta._number:
                 self.ta(value)  # Disassemble into parts
                 sign = self.ta.sign     # Sign ("-" or " ")
                 if not self.spc and sign == " ":
@@ -578,7 +587,10 @@ class Fmt:
                 dq = self.ta.dq         # Deque of significand's digits 
                 # Remove any decimal point in dq
                 s = ''.join(dq).replace(dp, "")     # Remove dp
-                dq = collections.deque(s)
+                dq = deque(s)
+                # Check we only have digits in dq
+                if not set(dq).issubset(set(string.digits)):
+                    raise Exception("Bug in dq's characters")
                 e = self.ta.e           # Integer exponent
                 if e < 0:
                     # Number < 1
@@ -647,7 +659,7 @@ class Fmt:
                 if not self.spc and sgn == " ":
                     sgn = ""
                 # Get significand
-                dq = collections.deque(list(ta.ld + ta.dp + ta.other))
+                dq = deque(list(ta.ld + ta.dp + ta.other))
                 dq = self.trim(dq)
                 sig = [sgn, ''.join(dq), "e", str(ta.e)]
                 return ''.join(sig)
@@ -1051,7 +1063,6 @@ if 0 and __name__ == "__main__":
 if __name__ == "__main__": 
     if 1:   # Header
         # Standard imports
-            from collections import deque
             from functools import partial
             from decimal import localcontext
             from math import pi

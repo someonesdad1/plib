@@ -137,7 +137,7 @@ It Was A Very Good Year|CJARjwzmceg|
 It's a Heartache|https://www.youtube.com/watch?v=bEOl38y8Nj8|
 Jailhouse Rock|A99sV18J0mk|
 Johnny B. Goode|Uf4rxCB4lys|
-Journey to Kilimanjaro|5ZFJWIGN9zQ|1994 Nova show.  Melodically simple but haunting music:  0:48, 6:43, 9:28, 10:44, 30:07, 35:27, 37:33, 38:28*, 43:45, 50:42, 53:00(credits),
+Journey to Kilimanjaro|5ZFJWIGN9zQ|1994 Nova show.  Melodically simple but haunting music:  0:48, 6:43, 9:28, 10:44, 30:07, 35:27, 37:33, 38:14*, 43:45, 50:42, 53:00(credits),
 Kingston Trio: Bay Of Mexico|-16OczraVi4|
 Kingston Trio: Fast Freight|Oy_NkJOwRqE||
 Kingston Trio: MTA|MbtkL5_f6-4|
