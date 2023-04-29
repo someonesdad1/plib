@@ -545,7 +545,9 @@ class Fmt:
         else:
             # Get L = what will fit on one line
             L = self.get_columns() - offset if width is None else int(width) - offset
-            min_length = 2 + len(self.ellipsis)  # One character each end and ellipsis
+            # The minimum possible length is the sign, one character each
+            # end, and ellipsis
+            min_length = 2 + len(self.ellipsis) + len(sgn)
             m = ""
             if mag:     # Add in the length of ' |10ⁿ|' string
                 x = D(value)*D("1.0")
@@ -556,12 +558,15 @@ class Fmt:
                 for i in str(e):
                     m += self._superscripts[i]
                 m += "|"
-            L0 = min_length + len(m)
+            L0 = min_length + len(m) + len(sgn)
             if L < L0:
                 raise ValueError(f"Resulting width of {L} is < minimum of {L0}")
             n = len(s)
             if n <= L and not mag:
                 return s
+            if s[0] in "+- ":
+                s = s[1:]
+                n = len(s)
             # Limit the width.  The algorithm is to change s to two deques,
             # split in the middle.  Then remove one digit at a time,
             # alternating deques, until the resulting string will fit the
@@ -578,16 +583,16 @@ class Fmt:
                 if len(left) > len(right):
                     if len(left) > 1:
                         left.pop()
-                        if dqlen() <= L - len(m):
+                        if dqlen() <= L - len(m) - len(sgn):
                             break
                         #print(f"a: {''.join(left)!r} {''.join(right)!r}")
                 else:
                     if len(right) > 1:
                         right.popleft()
-                        if dqlen() <= L - len(m):
+                        if dqlen() <= L - len(m) - len(sgn):
                             break
                         #print(f"b: {''.join(left)!r} {''.join(right)!r}")
-            u = ''.join(left) + self.ellipsis + ''.join(right) + m
+            u = sgn + ''.join(left) + self.ellipsis + ''.join(right) + m
             if len(u) > L:
                 msg = dedent(f'''
                 Bug in algorithm:
@@ -1134,14 +1139,15 @@ if 1:   # Convenience instances
 # Development area
 if 1 and __name__ == "__main__": 
     fmt.brief=1
-    y = 1234567890123456789123456789012345678912345678901234567891234567890123456789
-    width = 79
+    y = -1234567890123456789123456789012345678912345678901234567891234567890123456789
+    width = 7
     offset = 0
+    mag = 0
     print(f"{y}")
     print(f"len = {len(str(y))}")
     print(f"Desired width  = {width}")
     print(f"Desired offset = {offset}")
-    result = fmt.fmtint(y, width=width, offset=offset, mag=True)
+    result = fmt.fmtint(y, width=width, offset=offset, mag=mag)
     print(f"result =\n{result}, length = {len(result)}")
     exit()
 
