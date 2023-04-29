@@ -33,7 +33,7 @@ class Fmt:  Format floating point numbers
     '3.141592653589793', which contains too many digits for
     casual interpretation.  This module's convenience instance fmt will
     format pi as fmt(math.pi) = '3.14', which allows easier interpretation.
-
+ 
     A Fmt instance can format int, float, decimal.Decimal, mpmath.mpf, and
     fraction.Fraction number types.
  
@@ -50,6 +50,8 @@ class Fmt:  Format floating point numbers
         n       Sets the number of significant digits.
         default String for default formatting (fix, sci, eng, engsi,
                 engsic)
+        int     How to format integers (None is str(), dec, hex, oct, bin)
+        brief   If True, fit string on one line if possible.
         dp      Sets the radix (decimal point) string.
         low     Numbers below this value are displayed with scientific
                 notation.  None means all small numbers are displayed
@@ -83,9 +85,9 @@ class Fmt:  Format floating point numbers
         terminal in a cygwin environment using the mintty terminal emulator
         and it works as written.  Look at /plib/pictures/fmt.png to see
         what the Demo() function's output looks like on my screen.  Other
-        terminals will likely need hacking on color.py to get things to
-        work correctly.  Define the environment variable DPRC to get ANSI
-        color strings output to the terminal.
+        terminals may need hacking on color.py to get things to work 
+        correctly.  Define the environment variable DPRC to get ANSI color
+        strings output to the terminal.
 '''
 if 1:   # Header
     if 1:   # Copyright, license
@@ -360,6 +362,7 @@ class Fmt:
         # greater than self.nchars (here, about 1/4 of the terminal
         # window's capacity), use sci.
         self.nchars = None              # If in fix mode, use sci if n > this number
+        self.brief = None               # Fit string on one line 
         # Attributes for complex numbers
         self._imag_unit = None          # Imaginary unit
         self._polar = None              # Use polar coord for complex
@@ -385,6 +388,7 @@ class Fmt:
         n = self._n_init
         self._n = n
         self._default = "fix"
+        self._int = None    # Default uses str(int)
         self.ta = TakeApart()
         self.ta.n = n  # Synchronize number of digits
         self._dp = locale.localeconv()["decimal_point"]
@@ -397,7 +401,7 @@ class Fmt:
         self._spc = False
         self._sign = False
         self.nchars = W*L//4  # Base on screen width and hight
-        self._int = "norm"
+        self.brief = False
         self._strict = False
         # Attributes for complex numbers
         self._imag_unit = "i"
@@ -495,11 +499,25 @@ class Fmt:
         x = D(str(value))
         parts = self._take_apart(x, n)
         return (parts, deque(parts.ld) + deque(parts.other), "0")
-    def fmtint(self, value, fmt=None):
-        '''Format an integer value.  If fmt is None or "norm", 
-        str(value) is returned.  Other values for fmt are "hex", "oct",
+    def get_columns(self):
+        'Return the number of columns on the screen'
+        return int(os.environ.get("COLUMNS", 80)) - 1
+    def fmtint(self, value, fmt=None, width=None, offset=0, mag=False):
+        '''Format an integer value.  If fmt is None, str(value)
+        is returned.  Other values for fmt are "hex", "oct",
         "dec", and "bin", which cause 0x, 0o, 0d, or 0b to be
         prepended.  self.sign and self.spc are honored.
+ 
+        width is the number of spaces the string must fit into.
+        If it is None, then the number of COLUMNS - 1 is used.
+ 
+        offset is subtracted from width to allow for other string 
+        elements to be used with the returned string.
+        
+        mag if True is used to provide a [~10ⁿ] string at the end to 
+        indicate the magnitude of the number.
+ 
+        width and offset are only used if self.brief is True.
         '''
         if not ii(value, int):
             raise TypeError("value must be an int")
@@ -508,20 +526,58 @@ class Fmt:
             value = abs(value)
         else:
             sgn = "+" if self.sign else " " if self.spc else ""
-        if fmt is None:
-            return sgn + self.fmtint(value, fmt=self.int)
-        elif fmt == "norm":
-            return f"{sgn}{value}"
-        elif fmt == "hex":
-            return f"{sgn}{hex(value)}"
-        elif fmt == "oct":
-            return f"{sgn}{oct(value)}"
-        elif fmt == "dec":
-            return f"{sgn}0d{value}"
-        elif fmt == "bin":
-            return f"{sgn}{bin(value)}"
+        s = f"{sgn}{value}"
+        if not self.brief:
+            if fmt == "hex":
+                s = f"{sgn}{hex(value)}"
+            elif fmt == "oct":
+                s = f"{sgn}{oct(value)}"
+            elif fmt == "dec":
+                s = f"{sgn}0d{value}"
+            elif fmt == "bin":
+                s = f"{sgn}{bin(value)}"
+            else:
+                raise ValueError("fmt must be None, hex, oct, dec, or bin")
+            return s
         else:
-            raise ValueError("fmt must be None, norm, hex, oct, dec, or bin")
+            # Get L = what will fit on one line
+            ellipsis = "·"*3
+            L = self.get_columns() - offset if width is None else int(width) - offset
+            min_length = 2 + len(ellipsis)  # One character each end and ellipsis
+            if L < min_length:
+                raise ValueError(f"Resulting width of {L} is < minimum of {min_length}")
+            n = len(s)
+            if n <= L:
+                return s
+            # Limit the width.  The algorithm is to change s to two deques,
+            # split in the middle.  Then remove one digit at a time,
+            # alternating deques, until the resulting string will fit the
+            # current string width.
+            lst = list(s)
+            split = n//2
+            left, right = deque(lst[:split]), deque(lst[split:])
+            assert(len(left) + len(right) == n)
+            
+            def dqlen():
+                return len(left) + len(right) + len(ellipsis)
+            while True:
+                # Remove a character from the larger of the two deques
+                if len(left) > len(right):
+                    if len(left) > 1:
+                        left.pop()
+                        if dqlen() <= L:
+                            break
+                        #print(f"a: {''.join(left)!r} {''.join(right)!r}")
+                else:
+                    if len(right) > 1:
+                        right.popleft()
+                        if dqlen() <= L:
+                            break
+                        #print(f"b: {''.join(left)!r} {''.join(right)!r}")
+            u = ''.join(left) + ellipsis + ''.join(right)
+            if len(u) > L:
+                raise Exception("Bug in algorithm")
+            return u
     def trim(self, dq):
         'Implement rtz, rtdp, and rlz for significand dq in deque'
         assert(ii(dq, deque))
@@ -1055,9 +1111,15 @@ if 1:   # Convenience instances
     fmt = Fmt()
     ta = TakeApart()
 # Development area
-if 0 and __name__ == "__main__": 
-    mpmath.mp.dps = 20
-    x = mpmath.mpf('0.99999999999999999999915')
+if 1 and __name__ == "__main__": 
+    fmt.brief=1
+    y = 1234567890123456789123456789012345678912345678901234567891234567890123456789
+    width = 8
+    offset = 3
+    print(f"Desired width  = {width}")
+    print(f"Desired offset = {offset}")
+    result = fmt.fmtint(y, width=width, offset=offset)
+    print(f"result = {result!r}, length = {len(result)}")
     exit()
 
 if __name__ == "__main__": 
