@@ -122,7 +122,7 @@ def GetSI(x, eng=False):
     '''
     if ii(x, str):
         if not x:
-            raise ValueError("x cannot be the empty string")
+            return 1
         if len(x) > 2:
             raise ValueError("x must be string of length 1 or 2")
         if x in si:
@@ -159,7 +159,7 @@ def GetSI(x, eng=False):
         raise ValueError("x must be string, float (mpmath.mpf OK too), or integer")
 
 if __name__ == "__main__": 
-    from lwtest import Assert
+    from lwtest import Assert, raises
     def Testing():
         # float
         a = 6.2
@@ -184,7 +184,6 @@ if __name__ == "__main__":
                     Assert(GetSI(b) == (b, b, ""))
                 else:
                     raise Exception("Bug")
-        exit() #xx
         # mpmath
         a = M.mpf(6.2)
         for e in range(-25, 28):
@@ -192,21 +191,53 @@ if __name__ == "__main__":
             e1 = GetSIExponent(e)
             expected_p = None
             if e1 in si.values():
-                expected_p = si(e1)
+                expected_p = si(e1)  # Yep, an incestuous test
+                correction = e - e1
             if expected_p is not None:
                 x, t, p = GetSI(b)
                 Assert(p == expected_p)
-                Assert(e - e1 in (0, 1, 2))
-                x1 = round(M.mpf(t), 4)
-                Assert(str(x1) == str(b))
+                Assert(correction in (0, 1, 2))
+                x1 = round(M.mpf(t), 2)
+                b1 = 10**correction*round(M.mpf(fmt.significand(t)), 2)
+                Assert(str(x1) == str(b1))
             else:
-                if b:
+                if e < -24 or e > 25:
                     Assert(GetSI(b) == (b, None, None))
+                elif 0 <= e < 3:
+                    Assert(GetSI(b) == (b, b, ""))
                 else:
-                    Assert(GetSI(b) == (b, 0, ""))
-        for e in range(-25, 28):
-            x = eval(f"M.mpf(6.2e{e})")
-            print(GetSI(x))
+                    raise Exception("Bug")
+        # Prefixes
+        di = {
+            "": 0,
+            "d": -1,
+            "c": -2,
+            "m": -3,
+            "μ": -6,
+            "u": -6,
+            "n": -9,
+            "p": -12,
+            "f": -15,
+            "a": -18,
+            "z": -21,
+            "y": -24,
+            "da": 1,
+            "h": 2,
+            "k": 3,
+            "M": 6,
+            "G": 9,
+            "T": 12,
+            "P": 15,
+            "E": 18,
+            "Z": 21,
+            "Y": 24
+        }
+        for prefix in di:
+            expected = 10**di[prefix]
+            Assert(expected == GetSI(prefix))
+        # Not allowed prefix when eng is True
+        for i in ("d", "c", "da", "h"):
+            raises(ValueError, GetSI, i, eng=True)
     Testing()
     names = {
         -24: "yocto",
