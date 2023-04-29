@@ -118,6 +118,7 @@ if 1:   # Header
         from pdb import set_trace as xx 
     if 1:   # Custom imports
         from color import t
+        from wrap import dedent
         try:
             # Note:  mpmath is optional, but I suggest you use it because
             # it handles numbers much larger and smaller than standard
@@ -363,6 +364,7 @@ class Fmt:
         # window's capacity), use sci.
         self.nchars = None              # If in fix mode, use sci if n > this number
         self.brief = None               # Fit string on one line 
+        self.ellipsis = None            # Ellipsis for brief mode
         # Attributes for complex numbers
         self._imag_unit = None          # Imaginary unit
         self._polar = None              # Use polar coord for complex
@@ -402,6 +404,7 @@ class Fmt:
         self._sign = False
         self.nchars = W*L//4  # Base on screen width and hight
         self.brief = False
+        self.ellipsis = "·"*3
         self._strict = False
         # Attributes for complex numbers
         self._imag_unit = "i"
@@ -541,13 +544,23 @@ class Fmt:
             return s
         else:
             # Get L = what will fit on one line
-            ellipsis = "·"*3
             L = self.get_columns() - offset if width is None else int(width) - offset
-            min_length = 2 + len(ellipsis)  # One character each end and ellipsis
-            if L < min_length:
-                raise ValueError(f"Resulting width of {L} is < minimum of {min_length}")
+            min_length = 2 + len(self.ellipsis)  # One character each end and ellipsis
+            m = ""
+            if mag:     # Add in the length of ' |10ⁿ|' string
+                x = D(value)*D("1.0")
+                a = f"{x:.1e}".split("e")[1]
+                e = int(a)
+                assert(e >= 0)
+                m = " |10"
+                for i in str(e):
+                    m += self._superscripts[i]
+                m += "|"
+            L0 = min_length + len(m)
+            if L < L0:
+                raise ValueError(f"Resulting width of {L} is < minimum of {L0}")
             n = len(s)
-            if n <= L:
+            if n <= L and not mag:
                 return s
             # Limit the width.  The algorithm is to change s to two deques,
             # split in the middle.  Then remove one digit at a time,
@@ -559,24 +572,32 @@ class Fmt:
             assert(len(left) + len(right) == n)
             
             def dqlen():
-                return len(left) + len(right) + len(ellipsis)
+                return len(left) + len(right) + len(self.ellipsis)
             while True:
                 # Remove a character from the larger of the two deques
                 if len(left) > len(right):
                     if len(left) > 1:
                         left.pop()
-                        if dqlen() <= L:
+                        if dqlen() <= L - len(m):
                             break
                         #print(f"a: {''.join(left)!r} {''.join(right)!r}")
                 else:
                     if len(right) > 1:
                         right.popleft()
-                        if dqlen() <= L:
+                        if dqlen() <= L - len(m):
                             break
                         #print(f"b: {''.join(left)!r} {''.join(right)!r}")
-            u = ''.join(left) + ellipsis + ''.join(right)
+            u = ''.join(left) + self.ellipsis + ''.join(right) + m
             if len(u) > L:
-                raise Exception("Bug in algorithm")
+                msg = dedent(f'''
+                Bug in algorithm:
+                  L = {L}
+                  result = {u!r}
+                  len(result) = {len(u)}
+                  min_length = {min_length}
+                  m = {m!r}  (len = {len(m)})
+                ''')
+                raise Exception(msg)
             return u
     def trim(self, dq):
         'Implement rtz, rtdp, and rlz for significand dq in deque'
@@ -1114,12 +1135,14 @@ if 1:   # Convenience instances
 if 1 and __name__ == "__main__": 
     fmt.brief=1
     y = 1234567890123456789123456789012345678912345678901234567891234567890123456789
-    width = 8
-    offset = 3
+    width = 79
+    offset = 0
+    print(f"{y}")
+    print(f"len = {len(str(y))}")
     print(f"Desired width  = {width}")
     print(f"Desired offset = {offset}")
-    result = fmt.fmtint(y, width=width, offset=offset)
-    print(f"result = {result!r}, length = {len(result)}")
+    result = fmt.fmtint(y, width=width, offset=offset, mag=True)
+    print(f"result =\n{result}, length = {len(result)}")
     exit()
 
 if __name__ == "__main__": 
