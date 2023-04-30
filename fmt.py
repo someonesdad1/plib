@@ -558,7 +558,7 @@ class Fmt:
                 for i in str(e):
                     m += self._superscripts[i]
                 m += "|"
-            L0 = min_length + len(m) + len(sgn)
+            L0 = min_length + len(m)
             if L < L0:
                 raise ValueError(f"Resulting width of {L} is < minimum of {L0}")
             n = len(s)
@@ -575,9 +575,8 @@ class Fmt:
             split = n//2
             left, right = deque(lst[:split]), deque(lst[split:])
             assert(len(left) + len(right) == n)
-            
             def dqlen():
-                return len(left) + len(right) + len(self.ellipsis)
+                return len(left) + len(right) + len(self.ellipsis) + len(sgn)
             while True:
                 # Remove a character from the larger of the two deques
                 if len(left) > len(right):
@@ -586,12 +585,15 @@ class Fmt:
                         if dqlen() <= L - len(m) - len(sgn):
                             break
                         #print(f"a: {''.join(left)!r} {''.join(right)!r}")
+
                 else:
                     if len(right) > 1:
                         right.popleft()
                         if dqlen() <= L - len(m) - len(sgn):
                             break
                         #print(f"b: {''.join(left)!r} {''.join(right)!r}")
+                if len(left) == 1 and len(right) == 1:
+                    break
             u = sgn + ''.join(left) + self.ellipsis + ''.join(right) + m
             if len(u) > L:
                 msg = dedent(f'''
@@ -1138,17 +1140,22 @@ if 1:   # Convenience instances
     ta = TakeApart()
 # Development area
 if 1 and __name__ == "__main__": 
-    fmt.brief=1
-    y = -1234567890123456789123456789012345678912345678901234567891234567890123456789
-    width = 7
+    fmt.brief = 1
+    y = 1234567890123456789123456789012345678912345678901234567891234567890123456789
     offset = 0
     mag = 0
-    print(f"{y}")
-    print(f"len = {len(str(y))}")
-    print(f"Desired width  = {width}")
-    print(f"Desired offset = {offset}")
-    result = fmt.fmtint(y, width=width, offset=offset, mag=mag)
-    print(f"result =\n{result}, length = {len(result)}")
+    for z in (-y, y):
+        for width in range(4, 26):
+            if 0:
+                print(f"{z}")
+                print(f"len = {len(str(z))}")
+                print(f"Desired width  = {width}")
+                print(f"Desired offset = {offset}")
+            try:
+                result = fmt.fmtint(z, width=width, offset=offset, mag=mag)
+                print(f"result = {result}, length = {len(result)}")
+            except ValueError as e:
+                print(f"{width} is not wide enough: {e}")
     exit()
 
 if __name__ == "__main__": 
