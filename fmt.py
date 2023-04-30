@@ -1,9 +1,13 @@
 '''
  
 Todo
+    - Refactor to get rid of old method and use new TakeApart instance.
     - The brief keyword was added to Fmt attributes.  When it is True,
       string interpolation output is truncated to fit into a user-defined
-      width.
+      width.  Need to implement in fix sci eng __call__.
+        - Behavior:  if fmt.brief is True, then a width is gotten and a 
+          number's interpolation string is adusted to fit into the desired
+          width.  This defaults to COLUMNS - 1 if it is not specified.
 
     - fix(), sci(), etc. should use two new keywords:  unc and err.  unc
       will be interpreted as an uncertainty and use the standard
@@ -18,7 +22,6 @@ Todo
           using a global variable that allows the lock to not be used.
         - One use case is hc.py, which is a single threaded app.  It would
           be easier to persist its state if pickling could be used.
-    - Refactor to get rid of old method and use new TakeApart instance.
     - Get rid of the color.py dependency in the module (OK in test code).
       The only needed change is to put an ANSI escape sequence in for
       underlining for polar complex number display.
@@ -43,7 +46,8 @@ class Fmt:  Format floating point numbers
     fraction.Fraction number types.
  
     Fmt is also a context manager so you can change formatting
-    characteristics in a with block.
+    characteristics in a with block.  See Locking notes below for 
+    a complication detail about the context manager.
  
     Methods
         - reset() to put instance in default state
@@ -93,6 +97,14 @@ class Fmt:  Format floating point numbers
         terminals may need hacking on color.py to get things to work 
         correctly.  Define the environment variable DPRC to get ANSI color
         strings output to the terminal.
+ 
+    Locking notes 
+        The context manager uses a threading.Lock object to keep things
+        sane in multi-threaded environments.  However, there's a fairly
+        steep cost of doing this:  you cannot pickle a Fmt instance to 
+        e.g. persist its state.  If you wish to persist a Fmt instance
+        state, you can set the self.lock attribute to None before pickling.
+ 
 '''
 if 1:   # Header
     if 1:   # Copyright, license
@@ -117,6 +129,7 @@ if 1:   # Header
         import math 
         import os 
         import string 
+        import subprocess 
         import threading 
         from collections import deque, namedtuple
         from pprint import pprint as pp
@@ -510,6 +523,19 @@ class Fmt:
     def get_columns(self):
         'Return the number of columns on the screen'
         return int(os.environ.get("COLUMNS", 80)) - 1
+    def get_colums1(self):
+        '''Returns the current number of columns on the screen.  It's not
+        called by default because it's slow since it has to create another
+        process.  Use it if the user may have resized a window after your 
+        app has started.
+        '''
+        # This only works on UNIX/cygwin type systems
+        try:
+            r = subprocess.run(["stty", "size"], capture_output=True)
+            lines, columns = tuple(int(i) for i in r.stdout.strip().split())
+            return lines
+        except CalledProcessError:
+            return self.get_columns()
     def fmtint(self, value, fmt=None, width=None, offset=0, mag=False):
         '''Format an integer value.  If fmt is None, the default self.int
         formatting is used.  Other values for fmt are "hex", "oct", "dec",
@@ -594,7 +620,6 @@ class Fmt:
                         if dqlen() <= L - len(m) - len(sgn):
                             break
                         #print(f"a: {''.join(left)!r} {''.join(right)!r}")
-
                 else:
                     if len(right) > 1:
                         right.popleft()
@@ -635,7 +660,7 @@ class Fmt:
             dq = self.ta.dq         # Deque of significand's digits (no dp)
         dq.insert(1, self.dp)
         return ''.join(dq)
-    def fix(self, value, n=None) -> str:
+    def fix(self, value, n=None, width=None, offset=0) -> str:
         'Return a fixed point representation'
         # Get the exponent e
         if self.ta._number is None or value != self.ta._number:
@@ -723,7 +748,7 @@ class Fmt:
                 retval_old = f" {retval_old}"
             assert retval_new == retval_old, f"{retval_new!r} != {retval_old!r}"
         return retval_new
-    def sci(self, value, n=None) -> str:
+    def sci(self, value, n=None, width=None, offset=0) -> str:
         'Return a scientific format representation'
         if 0:   # Old method
             x = self.toD(value)
@@ -756,7 +781,7 @@ class Fmt:
                 dq = self.trim(dq)
                 sig = [sgn, ''.join(dq), "e", str(ta.e)]
                 return ''.join(sig)
-    def eng(self, value, fmt="eng", n=None) -> str:
+    def eng(self, value, fmt="eng", n=None, width=None, offset=0) -> str:
         '''Return an engineering format representation.  Suppose value
         is 31415.9 and n is 3.  Then fmt can be:
             "eng"    returns "31.4e3"
@@ -850,9 +875,10 @@ class Fmt:
             s = "" if self.cuddled else " "
             ret = f"{sr}{s}{sign}{s}{si}{self._imag_unit}"
             return ret
-    def __call__(self, value, fmt: str=None, n: int=None) -> str:
+    def __call__(self, value, fmt: str=None, n: int=None, width=None, offset=0) -> str:
         '''Format value with the default "fix" formatter.  n overrides
-        self.n digits.  fmt can be "fix", "sci", "eng", "engsi", or "engsic".
+        self.n digits.  fmt can be "fix", "sci", "eng", "engsi", or
+        "engsic".  If it is None, then self.default is used.
         '''
         if fmt is not None:
             if fmt not in "fix sci eng engsi engsic".split():
@@ -1148,27 +1174,16 @@ if 1:   # Convenience instances
     fmt = Fmt()
     ta = TakeApart()
 # Development area
-if 0 and __name__ == "__main__": 
+if 1 and __name__ == "__main__": 
     '''
-    brief for integers seems to work; write tests.
-    Next, work on floating point stuff.
+    Need fix sci eng __call__
     '''
+    M = mpmath
     fmt.brief = 1
-    y = 1234567890123456789123456789012345678912345678901234567891234567890123456789
-    offset = 0
-    mag = 0
-    for z in (-y, y):
-        for width in range(4, 26):
-            if 0:
-                print(f"{z}")
-                print(f"len = {len(str(z))}")
-                print(f"Desired width  = {width}")
-                print(f"Desired offset = {offset}")
-            try:
-                result = fmt.fmtint(z, width=width, offset=offset, mag=mag)
-                print(f"result = {result}, length = {len(result)}")
-            except ValueError as e:
-                print(f"{width} is not wide enough: {e}")
+    M.mp.dps = 20
+    x = M.mpf("3.45678901234567890")
+    print(f"x = {x}")
+    print(f"fmt(x) = {fmt(x)}")
     exit()
 
 if __name__ == "__main__": 
