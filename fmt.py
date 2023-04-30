@@ -1,6 +1,10 @@
 '''
  
 Todo
+    - The brief keyword was added to Fmt attributes.  When it is True,
+      string interpolation output is truncated to fit into a user-defined
+      width.
+
     - fix(), sci(), etc. should use two new keywords:  unc and err.  unc
       will be interpreted as an uncertainty and use the standard
       uncertainty interpolation such as 3.14(3).  err is the same but uses
@@ -8,9 +12,10 @@ Todo
         - This also gives the ability to handle ufloats.
 
     - Why doesn't fix() use significand()?
-    - The threading.Lock used for context management is a PITA in some use
-      cases because it means this object can't be pickled.  Try using a
-      global variable that allows the lock to not be used.
+    - Lock
+        - The threading.Lock used for context management is a PITA in some
+          use cases because it means this object can't be pickled.  Try
+          using a global variable that allows the lock to not be used.
         - One use case is hc.py, which is a single threaded app.  It would
           be easier to persist its state if pickling could be used.
     - Refactor to get rid of old method and use new TakeApart instance.
@@ -506,18 +511,18 @@ class Fmt:
         'Return the number of columns on the screen'
         return int(os.environ.get("COLUMNS", 80)) - 1
     def fmtint(self, value, fmt=None, width=None, offset=0, mag=False):
-        '''Format an integer value.  If fmt is None, str(value)
-        is returned.  Other values for fmt are "hex", "oct",
-        "dec", and "bin", which cause 0x, 0o, 0d, or 0b to be
-        prepended.  self.sign and self.spc are honored.
+        '''Format an integer value.  If fmt is None, the default self.int
+        formatting is used.  Other values for fmt are "hex", "oct", "dec",
+        and "bin", which cause 0x, 0o, 0d, or 0b to be prepended.
+        self.sign and self.spc are honored.
  
-        width is the number of spaces the string must fit into.
-        If it is None, then the number of COLUMNS - 1 is used.
+        width is the number of spaces the string must fit into.  If it is
+        None, then the number of COLUMNS - 1 is used.
  
-        offset is subtracted from width to allow for other string 
-        elements to be used with the returned string.
+        offset is subtracted from width to allow for other string elements
+        to be used with the returned string.
         
-        mag if True is used to provide a [~10ⁿ] string at the end to 
+        mag if True is used to provide a [~10ⁿ] string at the end to
         indicate the magnitude of the number.
  
         width and offset are only used if self.brief is True.
@@ -529,6 +534,8 @@ class Fmt:
             value = abs(value)
         else:
             sgn = "+" if self.sign else " " if self.spc else ""
+        if fmt is None:
+            fmt = self.int
         s = f"{sgn}{value}"
         if not self.brief:
             if fmt == "hex":
@@ -539,8 +546,10 @@ class Fmt:
                 s = f"{sgn}0d{value}"
             elif fmt == "bin":
                 s = f"{sgn}{bin(value)}"
+            elif fmt is None:
+                pass
             else:
-                raise ValueError("fmt must be None, hex, oct, dec, or bin")
+                raise ValueError(f"fmt = {fmt!r} must be None, hex, oct, dec, or bin")
             return s
         else:
             # Get L = what will fit on one line
@@ -970,7 +979,7 @@ class Fmt:
             return self._int
         @int.setter
         def int(self, value):
-            s = "norm hex oct dec bin"
+            s = "None hex oct dec bin"
             if value not in s.split():
                 raise ValueError(f"value must be one of {' '.join(s)}")
             self._int = value
@@ -1139,7 +1148,11 @@ if 1:   # Convenience instances
     fmt = Fmt()
     ta = TakeApart()
 # Development area
-if 1 and __name__ == "__main__": 
+if 0 and __name__ == "__main__": 
+    '''
+    brief for integers seems to work; write tests.
+    Next, work on floating point stuff.
+    '''
     fmt.brief = 1
     y = 1234567890123456789123456789012345678912345678901234567891234567890123456789
     offset = 0
@@ -1759,7 +1772,7 @@ if __name__ == "__main__":
             f = Init()
             x = 32768
             Assert(f.fmtint(x) == "32768")
-            Assert(f.fmtint(x, fmt="norm") == f"{x}")
+            Assert(f.fmtint(x, fmt=None) == f"{x}")
             Assert(f.fmtint(x, fmt="hex") == hex(x))
             Assert(f.fmtint(x, fmt="oct") == oct(x))
             Assert(f.fmtint(x, fmt="dec") == "0d32768")
@@ -1782,6 +1795,30 @@ if __name__ == "__main__":
             fmt.strict = True
             s1 = fmt.significand(x, n=n)
             Assert(len(s1) == prec + 1)
+        def Test_Brief():
+            # Integers
+            Init()
+            fmt.brief = True
+            x = 12345678901234567891234567890123456789123456789
+            result = fmt.fmtint(x, width=10, offset=0, mag=0)
+            Assert(result == "1234···789")
+            result = fmt.fmtint(x, width=5, offset=0, mag=0)
+            Assert(result == "1···9")
+            x = -x
+            result = fmt.fmtint(x, width=10)
+            Assert(result == "-123···89")
+            raises(ValueError, fmt.fmtint, x, width=5)
+            result = fmt.fmtint(x, width=6, offset=0, mag=0)
+            Assert(result == "-1···9")
+            if 1:   # Test offset
+                result = fmt.fmtint(x, width=10, offset=4)
+                Assert(result == "-1···9")
+                raises(ValueError, fmt.fmtint, x, width=9, offset=4)
+            if 1:   # Test mag
+                result = fmt.fmtint(x, width=15, mag=True)
+                Assert(result == "-12···9 |10⁴⁶|")
+            # Floats
+            print("Test_Brief:  need to write float code")  #xx
     if 1:   # Module's base code
         def Error(msg, status=1):
             print(msg, file=sys.stderr)
