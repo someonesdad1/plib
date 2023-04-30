@@ -1174,7 +1174,7 @@ if 1:   # Convenience instances
     fmt = Fmt()
     ta = TakeApart()
 # Development area
-if 1 and __name__ == "__main__": 
+if 0 and __name__ == "__main__": 
     '''
     Need fix sci eng __call__
     '''
