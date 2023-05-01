@@ -155,7 +155,7 @@ if 1:   # Core functionality
                 exit()
         return q
     def SetColors():
-        if 0:
+        if 1:
             t.dbg = t("purl")
             t.title = t("orn")
             t.rain = t("grnl")
@@ -172,8 +172,8 @@ if 1:   # Core functionality
             t.dbg = t("purl")
             t.title = t("brnl")
             t.rain = t("grnl")
-            t.snow = t("magl")
-            t.thun = t("magl")
+            t.snow = t("blul", "whtl", attr="rv")
+            t.thun = t("whtl", "mag")
             t.wind = t("cynl")
             t.sun = t("yell")
             t.cloud = t("viol")
@@ -204,7 +204,7 @@ if 1:   # Core functionality
         print(f"{t.title}{title:s}{t.n}", end=" "*n)
         print(f"{temp}", end=" "*4)
         if thund:
-            print(f"{t.thun}thund{t.n} ", end="")
+            print(f"{t.thun}tstorm{t.n} ", end="")
         if snow:
             print(f"{t.snow}snow{t.n} ", end="")
         if rain:
@@ -257,6 +257,16 @@ if 1:   # Core functionality
                 Wrap(details)
         age = Age()
         print(f"Data are {age} hours old")
+        print(f"Colors:\n{t.dbg}debug{t.n} "
+              f"{t.title}title{t.n} "
+              f"{t.rain}rain{t.n} "
+              f"{t.snow}snow{t.n} "
+              f"{t.thun}thunderstorm{t.n} "
+              f"{t.wind}wind{t.n} "
+              f"{t.sun}sunny{t.n} "
+              f"{t.cloud}cloudy{t.n} "
+              f"{t.low}low{t.n} "
+              f"{t.high}high{t.n}")
 if __name__ == "__main__": 
     d = {}      # Options dictionary
     SetColors()

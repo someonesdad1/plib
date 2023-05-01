@@ -1619,11 +1619,11 @@ if __name__ == "__main__":
             Test_spc()
             Test_rlz()
         def Test_Eng():
-            if 0:   
+            '''
                 # Old testing method
-                '''Compare to fpformat's results.  Only go up to 15 digits because
+                """Compare to fpformat's results.  Only go up to 15 digits because
                 fpformat uses floats.
-                '''
+                """
                 s, numdigits = "1.2345678901234567890", 15
                 x = D(s)
                 fp = FPFormat()
@@ -1659,33 +1659,33 @@ if __name__ == "__main__":
                 Test_eng()
                 Test_engsi()
                 Test_engsic()
-            else:
-                old_dps = None
-                if have_mpmath:
-                    old_dps = mpmath.mp.dps
-                    mpmath.mp.dps = 10
-                for typ in (D, "mpmath"):
-                    if typ == "mpmath" and have_mpmath:
-                        typ = mpmath.mpf
-                    fmt = GetDefaultFmtInstance()
-                    x = typ("3.45678e7")
-                    fmt.u = 0
-                    fmt.n = 6
-                    # eng
-                    s = f"{fmt.eng(x)}"
-                    Assert(s == "34.5678e6")
-                    fmt.u = 1
-                    s = f"{fmt.eng(x)}"
-                    Assert(s == "34.5678✕10⁶")
-                    fmt.u = 0
-                    # engsi
-                    s = f"{fmt.eng(x, fmt='engsi')}"
-                    Assert(s == "34.5678 M")
-                    # engsic
-                    s = f"{fmt.eng(x, fmt='engsic')}"
-                    Assert(s == "34.5678M")
-                if old_dps is not None:
-                    mpmath.mp.dps = old_dps
+            '''
+            old_dps = None
+            if have_mpmath:
+                old_dps = mpmath.mp.dps
+                mpmath.mp.dps = 10
+            for typ in (D, "mpmath"):
+                if typ == "mpmath" and have_mpmath:
+                    typ = mpmath.mpf
+                fmt = GetDefaultFmtInstance()
+                x = typ("3.45678e7")
+                fmt.u = 0
+                fmt.n = 6
+                # eng
+                s = f"{fmt.eng(x)}"
+                Assert(s == "34.5678e6")
+                fmt.u = 1
+                s = f"{fmt.eng(x)}"
+                Assert(s == "34.5678✕10⁶")
+                fmt.u = 0
+                # engsi
+                s = f"{fmt.eng(x, fmt='engsi')}"
+                Assert(s == "34.5678 M")
+                # engsic
+                s = f"{fmt.eng(x, fmt='engsic')}"
+                Assert(s == "34.5678M")
+            if old_dps is not None:
+                mpmath.mp.dps = old_dps
 
         def Test_Sci():
             def CompareToFPFormat():
