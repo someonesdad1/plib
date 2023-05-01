@@ -1664,13 +1664,13 @@ if __name__ == "__main__":
             if have_mpmath:
                 old_dps = mpmath.mp.dps
                 mpmath.mp.dps = 10
+            fmt = GetDefaultFmtInstance()
+            fmt.u = 0
+            fmt.n = 6
             for typ in (D, "mpmath"):
                 if typ == "mpmath" and have_mpmath:
                     typ = mpmath.mpf
-                fmt = GetDefaultFmtInstance()
                 x = typ("3.45678e7")
-                fmt.u = 0
-                fmt.n = 6
                 # eng
                 s = f"{fmt.eng(x)}"
                 Assert(s == "34.5678e6")
@@ -1684,6 +1684,21 @@ if __name__ == "__main__":
                 # engsic
                 s = f"{fmt.eng(x, fmt='engsic')}"
                 Assert(s == "34.5678M")
+                #
+                x = typ("3.45678e-13")
+                s = f"{fmt.eng(x)}"
+                Assert(s == "345.678e-15")
+                fmt.u = 1
+                s = f"{fmt.eng(x)}"
+                Assert(s == "345.678✕10⁻¹⁵")
+                fmt.u = 0
+                # engsi
+                s = f"{fmt.eng(x, fmt='engsi')}"
+                Assert(s == "345.678 f")
+                # engsic
+                s = f"{fmt.eng(x, fmt='engsic')}"
+                Assert(s == "345.678f")
+
             if old_dps is not None:
                 mpmath.mp.dps = old_dps
 
