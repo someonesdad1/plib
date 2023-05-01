@@ -823,13 +823,10 @@ class Fmt:
                 dq.pop()
                 if dbg:
                     print(f"  sig = {''.join(dq) + ''.join(exponent)}  tlen = {tlen()}") #xx
-            # Remove dp if it ends significand
-            if dq[-1] == ta.dp:
-                dq.pop()
 
-
-
-
+        # Remove dp if it ends significand
+        if dq[-1] == ta.dp:
+            dq.pop()
         if fmt == "eng":
             if self.u:      # Use Unicode characters for power of 10
                 o = ["✕10"]
@@ -1670,34 +1667,84 @@ if __name__ == "__main__":
             for typ in (D, "mpmath"):
                 if typ == "mpmath" and have_mpmath:
                     typ = mpmath.mpf
-                x = typ("3.45678e7")
-                # eng
-                s = f"{fmt.eng(x)}"
-                Assert(s == "34.5678e6")
-                fmt.u = 1
-                s = f"{fmt.eng(x)}"
-                Assert(s == "34.5678✕10⁶")
-                fmt.u = 0
-                # engsi
-                s = f"{fmt.eng(x, fmt='engsi')}"
-                Assert(s == "34.5678 M")
-                # engsic
-                s = f"{fmt.eng(x, fmt='engsic')}"
-                Assert(s == "34.5678M")
-                #
-                x = typ("3.45678e-13")
-                s = f"{fmt.eng(x)}"
-                Assert(s == "345.678e-15")
-                fmt.u = 1
-                s = f"{fmt.eng(x)}"
-                Assert(s == "345.678✕10⁻¹⁵")
-                fmt.u = 0
-                # engsi
-                s = f"{fmt.eng(x, fmt='engsi')}"
-                Assert(s == "345.678 f")
-                # engsic
-                s = f"{fmt.eng(x, fmt='engsic')}"
-                Assert(s == "345.678f")
+                if 1:
+                    x = typ("3.45678e7")
+                    # eng
+                    s = f"{fmt.eng(x)}"
+                    Assert(s == "34.5678e6")
+                    s = f"{fmt.eng(-x)}"
+                    Assert(s == "-34.5678e6")
+                    s = f"{fmt.eng(x, n=1)}"
+                    Assert(s == "30e6")
+                    s = f"{fmt.eng(-x, n=1)}"
+                    Assert(s == "-30e6")
+                    fmt.u = 1
+                    s = f"{fmt.eng(x)}"
+                    Assert(s == "34.5678✕10⁶")
+                    s = f"{fmt.eng(-x)}"
+                    Assert(s == "-34.5678✕10⁶")
+                    s = f"{fmt.eng(x, n=1)}"
+                    Assert(s == "30✕10⁶")
+                    s = f"{fmt.eng(-x, n=1)}"
+                    Assert(s == "-30✕10⁶")
+                    fmt.u = 0
+                    # engsi
+                    s = f"{fmt.eng(x, fmt='engsi')}"
+                    Assert(s == "34.5678 M")
+                    s = f"{fmt.eng(-x, fmt='engsi')}"
+                    Assert(s == "-34.5678 M")
+                    s = f"{fmt.eng(x, fmt='engsi', n=1)}"
+                    Assert(s == "30 M")
+                    s = f"{fmt.eng(-x, fmt='engsi', n=1)}"
+                    Assert(s == "-30 M")
+                    # engsic
+                    s = f"{fmt.eng(x, fmt='engsic')}"
+                    Assert(s == "34.5678M")
+                    s = f"{fmt.eng(-x, fmt='engsic')}"
+                    Assert(s == "-34.5678M")
+                    s = f"{fmt.eng(x, fmt='engsic', n=1)}"
+                    Assert(s == "30M")
+                    s = f"{fmt.eng(-x, fmt='engsic', n=1)}"
+                    Assert(s == "-30M")
+                if 1:
+                    x = typ("3.45678e-13")
+                    s = f"{fmt.eng(x)}"
+                    Assert(s == "345.678e-15")
+                    s = f"{fmt.eng(-x)}"
+                    Assert(s == "-345.678e-15")
+                    s = f"{fmt.eng(x, n=1)}"
+                    Assert(s == "300e-15")
+                    s = f"{fmt.eng(-x, n=1)}"
+                    Assert(s == "-300e-15")
+
+                    fmt.u = 1
+                    s = f"{fmt.eng(x)}"
+                    Assert(s == "345.678✕10⁻¹⁵")
+                    s = f"{fmt.eng(-x)}"
+                    Assert(s == "-345.678✕10⁻¹⁵")
+                    s = f"{fmt.eng(x, n=1)}"
+                    Assert(s == "300✕10⁻¹⁵")
+                    s = f"{fmt.eng(-x, n=1)}"
+                    Assert(s == "-300✕10⁻¹⁵")
+                    fmt.u = 0
+                    # engsi
+                    s = f"{fmt.eng(x, fmt='engsi')}"
+                    Assert(s == "345.678 f")
+                    s = f"{fmt.eng(-x, fmt='engsi')}"
+                    Assert(s == "-345.678 f")
+                    s = f"{fmt.eng(x, fmt='engsi', n=1)}"
+                    Assert(s == "300 f")
+                    s = f"{fmt.eng(-x, fmt='engsi', n=1)}"
+                    Assert(s == "-300 f")
+                    # engsic
+                    s = f"{fmt.eng(x, fmt='engsic')}"
+                    Assert(s == "345.678f")
+                    s = f"{fmt.eng(-x, fmt='engsic')}"
+                    Assert(s == "-345.678f")
+                    s = f"{fmt.eng(x, fmt='engsic', n=1)}"
+                    Assert(s == "300f")
+                    s = f"{fmt.eng(-x, fmt='engsic', n=1)}"
+                    Assert(s == "-300f")
 
             if old_dps is not None:
                 mpmath.mp.dps = old_dps
