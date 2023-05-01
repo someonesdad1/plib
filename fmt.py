@@ -1,7 +1,11 @@
 '''
  
 Todo
-    - Refactor to get rid of old method and use new TakeApart instance.
+    - fmt_refactoring branch
+        - Refactor to get rid of old method and use new TakeApart instance
+        - Fix threading.Lock problem for persistence in single-threaded
+          environments.
+
     - The brief keyword was added to Fmt attributes.  When it is True,
       string interpolation output is truncated to fit into a user-defined
       width.  Need to implement in fix sci eng __call__.
@@ -482,44 +486,45 @@ class Fmt:
                 return D(str(value))
         else:
             return D(str(value))
-    def _take_apart(self, x, n=None) -> namedtuple:
-        '''Take the Decimal number x apart into its sign, digits,
-        decimal point, and exponent.  Return the named tuple 
-        Apart(sign, ld, dp, other, e) where:
-            ld + dp + other is the significand: 
-            ld is the leading digit
-            dp is the locale's radix (decimal point)
-            other is the string of digits after the decimal point
-            e is the integer exponent
-        n overrides self.n if it is not None.
-        '''
-        Apart = namedtuple("Apart", "sign ld dp other e")
-        if not ii(x, D):
-            raise TypeError("x must be a Decimal number")
-        # Get scientific notation form
-        N = int(n) if n is not None else self._n
-        if not N:
-            ctx = decimal.getcontext()
-            N = ctx.prec
-        xs = f"{abs(x):.{N - 1}e}"
-        if self.dp == ",":
-            xs = xs.replace(".", ",")
-        sign = "-" if x < 0 else ""
-        significand, e = xs.split("e")
-        exponent = int(e) if x else 0
-        other, dp = "", self.dp
-        if dp not in significand:
-            if len(significand) != 1:
-                raise ValueError("'{significand}' was expected to be 1 character")
-            ld = significand
-        else:
-            ld, other = significand.split(dp)
-        assert(len(ld) + len(other) == N)     # N figures is an invariant
-        return Apart(sign, ld, dp, other, int(exponent))
-    def _get_data(self, value, n=None) -> tuple:
-        x = D(str(value))
-        parts = self._take_apart(x, n)
-        return (parts, deque(parts.ld) + deque(parts.other), "0")
+    if 0: #xx
+        def _take_apart(self, x, n=None) -> namedtuple:
+            '''Take the Decimal number x apart into its sign, digits,
+            decimal point, and exponent.  Return the named tuple 
+            Apart(sign, ld, dp, other, e) where:
+                ld + dp + other is the significand: 
+                ld is the leading digit
+                dp is the locale's radix (decimal point)
+                other is the string of digits after the decimal point
+                e is the integer exponent
+            n overrides self.n if it is not None.
+            '''
+            Apart = namedtuple("Apart", "sign ld dp other e")
+            if not ii(x, D):
+                raise TypeError("x must be a Decimal number")
+            # Get scientific notation form
+            N = int(n) if n is not None else self._n
+            if not N:
+                ctx = decimal.getcontext()
+                N = ctx.prec
+            xs = f"{abs(x):.{N - 1}e}"
+            if self.dp == ",":
+                xs = xs.replace(".", ",")
+            sign = "-" if x < 0 else ""
+            significand, e = xs.split("e")
+            exponent = int(e) if x else 0
+            other, dp = "", self.dp
+            if dp not in significand:
+                if len(significand) != 1:
+                    raise ValueError("'{significand}' was expected to be 1 character")
+                ld = significand
+            else:
+                ld, other = significand.split(dp)
+            assert(len(ld) + len(other) == N)     # N figures is an invariant
+            return Apart(sign, ld, dp, other, int(exponent))
+        def _get_data(self, value, n=None) -> tuple:
+            x = D(str(value))
+            parts = self._take_apart(x, n)
+            return (parts, deque(parts.ld) + deque(parts.other), "0")
     def get_columns(self):
         'Return the number of columns on the screen'
         return int(os.environ.get("COLUMNS", 80)) - 1
@@ -670,84 +675,57 @@ class Fmt:
             # take up more than 1/4 of the screen's digits is too large, so 
             # use sci interpolation.
             return self.sci(value, n=n)
-        if 0:   # Old method using Decimal numbers
-            x = self.toD(value)
-            parts, dq, z = self._get_data(x, n)
-            ne = parts.e + 1
-            if parts.e >= 0:
-                while len(dq) < ne:
-                    dq.append(z)
-                dq.insert(ne, self.dp)
-            else:
+        with self.ta:
+            self.ta.n = n if n is not None else self.n
+            self.ta(value)  # Disassemble into parts
+            sign = self.ta.sign     # Sign ("-" or " ")
+            if not self.spc and sign == " ":
+                sign = ""
+            if self.sign and sign == "":
+                sign = "+"
+            # Note we use fmt instance's decimal point, which is
+            # gotten from the locale, not from the number parsed by
+            # TakeApart()
+            dp = self.dp            # Decimal point
+            dq = self.ta.dq         # Deque of significand's digits 
+            # Remove any decimal point in dq
+            s = ''.join(dq).replace(dp, "")     # Remove dp
+            dq = deque(s)
+            # Check we only have digits in dq
+            if not set(dq).issubset(set(string.digits)):
+                raise Exception("Bug in dq's characters")
+            e = self.ta.e           # Integer exponent
+            if e < 0:
+                # Number < 1
+                ne = e + 1
                 while ne < 0:
-                    dq.appendleft(z)
+                    dq.appendleft("0")
                     ne += 1
-                dq.appendleft(self.dp)
+                dq.appendleft(dp)
                 if not self._rlz:
-                    dq.appendleft(z)
-            if parts.sign:
-                dq.appendleft(parts.sign)
-            dq = self.trim(dq)
-            retval_old = ''.join(dq)
-        if 1:   # Use new method with TakeApart implementation
-            with self.ta:
-                self.ta.n = n if n is not None else self.n
-                self.ta(value)  # Disassemble into parts
-                sign = self.ta.sign     # Sign ("-" or " ")
-                if not self.spc and sign == " ":
-                    sign = ""
-                if self.sign and sign == "":
+                    dq.appendleft("0")
+            else:
+                # Number >= 1
+                while len(dq) < e + 1:
+                    dq.append("0")
+                dq.insert(e + 1, dp)
+            # Handle the sign
+            if self.sign:   # Always use a sign
+                if sign == " ":
                     sign = "+"
-                # Note we use fmt instance's decimal point, which is
-                # gotten from the locale, not from the number parsed by
-                # TakeApart()
-                dp = self.dp            # Decimal point
-                dq = self.ta.dq         # Deque of significand's digits 
-                # Remove any decimal point in dq
-                s = ''.join(dq).replace(dp, "")     # Remove dp
-                dq = deque(s)
-                # Check we only have digits in dq
-                if not set(dq).issubset(set(string.digits)):
-                    raise Exception("Bug in dq's characters")
-                e = self.ta.e           # Integer exponent
-                if e < 0:
-                    # Number < 1
-                    ne = e + 1
-                    while ne < 0:
-                        dq.appendleft("0")
-                        ne += 1
-                    dq.appendleft(dp)
-                    if not self._rlz:
-                        dq.appendleft("0")
-                else:
-                    # Number >= 1
-                    while len(dq) < e + 1:
-                        dq.append("0")
-                    dq.insert(e + 1, dp)
-                # Handle the sign
-                if self.sign:   # Always use a sign
-                    if sign == " ":
-                        sign = "+"
-                    dq.appendleft(sign)
-                else:
-                    if self.spc:  # Use ' ' if positive
-                        if sign == "-":
-                            dq.appendleft(sign)
-                        else:
-                            dq.appendleft(" ")
-                    else:           # Only use sign if negative
-                        if sign == "-":
-                            dq.appendleft(sign)
-                dq = self.trim(dq)
-                retval_new = ''.join(dq)
-            assert(set(retval_new).issubset(set("0123456789.,-+ ")))
-        if 0:
-            # Ensure new and old method get same results (prepend space to
-            # old results if >= 0 and self.spc)
-            if retval_old[0] != "-" and self.spc:
-                retval_old = f" {retval_old}"
-            assert retval_new == retval_old, f"{retval_new!r} != {retval_old!r}"
-        return retval_new
+                dq.appendleft(sign)
+            else:
+                if self.spc:  # Use ' ' if positive
+                    if sign == "-":
+                        dq.appendleft(sign)
+                    else:
+                        dq.appendleft(" ")
+                else:           # Only use sign if negative
+                    if sign == "-":
+                        dq.appendleft(sign)
+            dq = self.trim(dq)
+            retval = ''.join(dq)
+        return retval
     def sci(self, value, n=None, width=None, offset=0) -> str:
         'Return a scientific format representation'
         if 0:   # Old method
@@ -781,7 +759,7 @@ class Fmt:
                 dq = self.trim(dq)
                 sig = [sgn, ''.join(dq), "e", str(ta.e)]
                 return ''.join(sig)
-    def eng(self, value, fmt="eng", n=None, width=None, offset=0) -> str:
+    def eng(self, value, fmt="eng", n=None, width=None) -> str:
         '''Return an engineering format representation.  Suppose value
         is 31415.9 and n is 3.  Then fmt can be:
             "eng"    returns "31.4e3"
@@ -789,25 +767,50 @@ class Fmt:
             "engsic" returns "31.4k" (the SI prefix is cuddled)
         Note:  cuddling is illegal SI syntax, but it's sometimes useful in
         program output.
+ 
+        If width is not None and self.brief is True, try to fit the string
+        into width characters by removing digits to the right of the
+        decimal point.
         '''
-        x = self.toD(value)
-        fmt = fmt.strip().lower()
-        parts, dq, z = self._get_data(x, n)
-        eng_step = 3
-        div, rem = divmod(parts.e, eng_step)
-        k = rem + 1 
-        while len(dq) < k:
-            dq.append(z)
-        dq.insert(k, self.dp)
-        if dq[-1] == self.dp:
-            del dq[-1]
-        dq.appendleft(parts.sign)
-        dq = self.trim(dq)
-        exponent = ["e", f"{eng_step*div}"]
-        try:
-            prefix = self._SI_prefixes[div]
-        except KeyError:
-            prefix = None
+        ta = self.ta
+        ta(value)
+        with ta:
+            ta.n = n if n is not None else self.n
+            ta(value)
+            sgn = ta.sign
+            if not self.spc and sgn == " ":
+                sgn = ""
+            # Get significand without decimal point
+            dq = deque(list(ta.ld + ta.other))
+            eng_step = 3
+            div, rem = divmod(ta.e, eng_step)
+            k = rem + 1 
+            while len(dq) < k:
+                dq.append("0")
+            dq.insert(k, ta.dp)
+            dq.appendleft(sgn)
+            dq = self.trim(dq)  # Implement rtz, rtdp, rlz
+            exponent = ["e", f"{eng_step*div}"]
+            try:
+                prefix = self._SI_prefixes[div]
+            except KeyError:
+                prefix = None
+        if self.brief:
+            width = W if width is None else width
+            # dq holds the eng significand
+            if dq[0] == "":
+                dq.popleft()    # Remove the empty string
+            def tlen():
+                'Return the total length of string'
+                total = len(''.join(exponent))
+                if self.u:
+                    total = 3 - 1   # -1 corrects for no 'e'
+                total += len(dq)
+                return total
+
+            while tlen() > width and dq[-1] != ta.dp:
+                dq.pop()
+            print(tlen(), dq, exponent) #xx
         if fmt == "eng":
             if self.u:      # Use Unicode characters for power of 10
                 o = ["✕10"]
@@ -1174,6 +1177,20 @@ if 1:   # Convenience instances
     fmt = Fmt()
     ta = TakeApart()
 # Development area
+if 1 and __name__ == "__main__": 
+    # Get eng working with TakeApart
+    M = mpmath
+    M.mp.dps = 20
+    x = M.mpf("34567.8901234567890")
+    fmt.u = 0
+    fmt.n = 6
+    fmt.brief = 1
+    print(f"x = {x}")
+    print(f"eng(x) = {fmt.eng(x, width=8)}")
+    print(f"engsi(x) = {fmt.eng(x, fmt='engsi')}")
+    print(f"engsic(x) = {fmt.eng(x, fmt='engsic')}")
+    exit()
+
 if 0 and __name__ == "__main__": 
     '''
     Need fix sci eng __call__
