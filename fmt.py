@@ -770,7 +770,29 @@ class Fmt:
  
         If width is not None and self.brief is True, try to fit the string
         into width characters by removing digits to the right of the
-        decimal point.
+        decimal point.  Example:
+ 
+            x = 34567800.0
+            width = 8
+            eng    = '34.567e6'
+            eng    = '34.5✕10⁶' with self.u == True
+            engsi  = '34.567 M'
+            engsic = '34.5678M'
+ 
+        Note that you may get a string longer than the desired width
+        because you'd lose information otherwise.  Example:  in the
+        previous example, if the width is changed to 5, you'll get
+ 
+            eng       = '34e6'    len = 4
+            eng       = '34✕10⁶'  len = 6 with self.u == True
+            engsi     = '34 M'    len = 4
+            engsic    = '34.5M'   len = 5
+        
+        In the first and third lines, the length would have been 5 except
+        it's OK to remove the decimal point.  In the second line, there's 
+        no way to remove another digit from the significand without ruining
+        the engineering notation (i.e., the exponent would need to be
+        changed, turning the notation into plain scientific).
         '''
         ta = self.ta
         ta(value)
@@ -795,22 +817,45 @@ class Fmt:
                 prefix = self._SI_prefixes[div]
             except KeyError:
                 prefix = None
+
+
+
+
         if self.brief:
             width = W if width is None else width
             # dq holds the eng significand
             if dq[0] == "":
                 dq.popleft()    # Remove the empty string
-            def tlen():
-                'Return the total length of string'
-                total = len(''.join(exponent))
-                if self.u:
-                    total = 3 - 1   # -1 corrects for no 'e'
-                total += len(dq)
-                return total
+            # Adjust the significand to get the desired digits.  Since it's
+            # eng notation, we can only remove digits up to the decimal
+            # point.
+            elen = len(''.join(exponent))
 
-            while tlen() > width and dq[-1] != ta.dp:
+
+            # Get the width for the significand for the style chosen
+            if fmt == "eng":
+                elen -= 1 if self.u else 0
+                width -= 3 + elen if self.u else elen
+            elif fmt == "engsi":
+                width -= 2 if prefix else elen
+            elif fmt == "engsic":
+                width -= 1 if prefix else elen
+            dbg = 0
+            if dbg:
+                print(f"  elen = {elen}") #xx
+                print(f"  Target significand width = {width}") #xx
+            # Remove LSDs from significand to get width goal
+            while len(''.join(dq)) > width and dq[-1] != ta.dp:
                 dq.pop()
-            print(tlen(), dq, exponent) #xx
+                if dbg:
+                    print(f"  sig = {''.join(dq) + ''.join(exponent)}  tlen = {tlen()}") #xx
+            # Remove dp if it ends significand
+            if dq[-1] == ta.dp:
+                dq.pop()
+
+
+
+
         if fmt == "eng":
             if self.u:      # Use Unicode characters for power of 10
                 o = ["✕10"]
@@ -1180,15 +1225,28 @@ if 1:   # Convenience instances
 if 1 and __name__ == "__main__": 
     # Get eng working with TakeApart
     M = mpmath
-    M.mp.dps = 20
-    x = M.mpf("34567.8901234567890")
+    M.mp.dps = 10
+    x = M.mpf("3.45678e7")
     fmt.u = 0
     fmt.n = 6
     fmt.brief = 1
     print(f"x = {x}")
-    print(f"eng(x) = {fmt.eng(x, width=8)}")
-    print(f"engsi(x) = {fmt.eng(x, fmt='engsi')}")
-    print(f"engsic(x) = {fmt.eng(x, fmt='engsic')}")
+    w = 1
+    print(f"width = {w}")
+    if 1:
+        s = f"{fmt.eng(x, width=w)}"
+        print(f"eng(x)    = '{s}'  len = {len(s)}")
+    if 1:
+        fmt.u = 1
+        s = f"{fmt.eng(x, width=w)}"
+        print(f"eng(x)    = '{s}'  len = {len(s)}")
+    if 1:
+        fmt.u = 0
+        s = f"{fmt.eng(x, fmt='engsi', width=w)}"
+        print(f"engsi(x)  = '{s}'  len = {len(s)}")
+    if 1:
+        s = f"{fmt.eng(x, fmt='engsic', width=w)}"
+        print(f"engsic(x) = '{s}'  len = {len(s)}")
     exit()
 
 if 0 and __name__ == "__main__": 
