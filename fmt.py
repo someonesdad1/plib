@@ -1,4 +1,7 @@
 '''
+
+Bug:  fmt.significand encounters an assert error because ta._sign is None.
+Indicates a fundamental logic flaw somewhere.
  
 Todo
     - fmt_refactoring branch
@@ -168,12 +171,32 @@ if 1:   # Header
         F = Fraction = fractions.Fraction
         ii = isinstance
         __all__ = "Fmt TakeApart fmt ta".split()
+if 1:   # Utility
+    def Assert(cond, debug=False, msg=""):
+        '''Similar to assert, but you'll be dropped into the debugger on an
+        exception if debug is True, Assert.debug is True, or 'Assert' is
+        a nonempty environment string.  If msg is not empty, it's printed
+        out.
+        '''
+        if not cond:
+            #if debug or Assert.debug or os.environ.get("Assert", ""):
+            if Assert.debug:
+                if msg:
+                    print(msg, file=sys.stderr)
+                print("Type 'up' to go to line that failed", file=sys.stderr)
+                breakpoint()
+            else:
+                raise AssertionError(msg)
+    Assert.debug = True
+    Assert.debug = False
 class TakeApart:
     'Handles int, float, Decimal, mpf, and Fractions'
-    def __init__(self, n=3):
+    def __init__(self, n=3, lock=None):
         # Note self.n won't be changed in a reset()
         self._n = n
-        self.lock = threading.Lock()    # For context management
+        self.lock = None                # For context management
+        if lock is not None:
+            self.lock = threading.Lock()
         self.reset()
     def reset(self):
         'Set attributes to default'
@@ -189,7 +212,8 @@ class TakeApart:
         self._dq = None         # Deque of significand's digits
         self._strict = False    # If True, n must be <= precision
     def __enter__(self):
-        self.lock.acquire()  # Stay locked through context execution
+        if self.lock is not None:
+            self.lock.acquire()  # Stay locked through context execution
         self.my_attributes = {}
         for a in self.__dict__:
             if a.startswith("__"):
@@ -201,11 +225,10 @@ class TakeApart:
             self.my_attributes[a] = eval(f"self.{a}")
     def __exit__(self, exc_type, exc_val, exc_tb):
         # Restore our attributes
-        d = self.my_attributes
-        for i in d:
-            exec(f"self.{i} = d['{i}']")
-        self.lock.release()
-        del self.my_attributes
+        for i in self.my_attributes:
+            exec(f"self.{i} = self.my_attributes['{i}']")
+        if self.lock is not None:
+            self.lock.release()
         return False
     def __str__(self):
         if self._ld is None:
@@ -213,14 +236,14 @@ class TakeApart:
         return (self.sign + self._ld + self._dp +
                 self.other + "e" + str(self._e))
     def __call__(self, x):
-        assert(x is not None)
+        Assert(x is not None)
         self._number = x
         self.disassemble()
         return str(self)
     def disassemble(self):
         "Disassemble the number self._number into this instance's attributes"
         n, x = self._n, self._number
-        assert(ii(n, int) and n >= 0)
+        Assert(ii(n, int) and n >= 0)
         # Handle int, float, Decimal, mpf, and Fractions
         if ii(x, (int, float, decimal.Decimal)):
             # The following avoids an infinite recursion with f.flt
@@ -233,7 +256,7 @@ class TakeApart:
             if not n:
                 n = ctx.prec
             if self._strict:
-                assert(1 <= n <= ctx.prec)
+                Assert(1 <= n <= ctx.prec)
         elif ii(x, fractions.Fraction):
             y = decimal.Decimal(x.numerator)/decimal.Decimal(x.denominator)
         elif have_mpmath and ii(x, mpmath.mpf):
@@ -242,7 +265,7 @@ class TakeApart:
             if not n:
                 n = mpmath.mp.dps
             if self._strict:
-                assert(1 <= n <= mpmath.mp.dps)
+                Assert(1 <= n <= mpmath.mp.dps)
         else:
             raise TypeError(f"{x!r} is not a supported number type")
         # Now disassemble the number
@@ -256,7 +279,7 @@ class TakeApart:
             e = int(mpmath.floor(lg)) if yabs else 0
             # Get the significand string
             a = yabs*ten**(-e)
-            assert(ii(a, mpmath.mpf))
+            Assert(ii(a, mpmath.mpf))
             s = mpmath.nstr(a, n)
             a = mpmath.mpf(s)
             if a >= 10:
@@ -264,19 +287,19 @@ class TakeApart:
                 # are rounding to 3 figures
                 s = mpmath.nstr(a/ten, n)
                 e += 1
-            assert("." in s and len(s) > 1)    # mpmath seems to use only "."
+            Assert("." in s and len(s) > 1)    # mpmath seems to use only "."
             dp = s[1]
             t = s.replace(".", "").replace(",", "")     # Remove radix
             while len(t) < n:   # nstr() returns 1.0 for 1 whatever n is
                 t += "0"
             if len(t) > n: # nstr(1, 1) returns 1.0 for n = 1
                 t = t[:n]
-            assert(len(t) == n if yabs else 1)
+            Assert(len(t) == n if yabs else 1)
             ld, other = t[0], t[1:]
         else:
             # Decimal
             yabs = abs(y)
-            assert(ii(y, decimal.Decimal))
+            Assert(ii(y, decimal.Decimal))
             ys = f"{yabs:.{n - 1}e}".lower()    # Get sci form to n digits
             s, e = ys.split("e")
             dp = "," if "," in s else "."
@@ -291,32 +314,31 @@ class TakeApart:
         self._dq = deque(ld + other)
         if 1:
             # Check invariants
-            assert(self._sign in ("-", " "))
-            assert(ii(self._ld, str) and len(self._ld) == 1)
-            assert(self._dp in (".", ","))
-            assert(len(self._dp) == 1)
-            assert(ii(self._other, str))
-            assert(ii(self._e, int))
+            Assert(self._sign in ("-", " ", ""))
+            Assert(ii(self._ld, str) and len(self._ld) == 1)
+            Assert(self._dp in (".", ","))
+            Assert(ii(self._other, str))
+            Assert(ii(self._e, int))
             # Deque has length of strings ld and other
-            assert(ii(self._dq, deque) and 
+            Assert(ii(self._dq, deque) and 
                 (len(self._dq) == len(self._ld) + len(self._other)))
-            assert("." not in self._dq and "," not in self._dq)
-            assert(len(self._ld + self._other) == n)
+            Assert("." not in self._dq and "," not in self._dq)
+            Assert(len(self._ld + self._other) == n)
     if 1:   # Properties
         @property
         def dp(self):
             'Decimal point string'
-            assert(ii(self._dp, str) and len(self._dp) == 1)
+            Assert(ii(self._dp, str) and len(self._dp) == 1)
             return self._dp
         @property
         def dq(self):
             "Deque of significand's digits"
-            assert(ii(self._dq, deque) and len(self._dq))
+            Assert(ii(self._dq, deque) and len(self._dq))
             return self._dq
         @property
         def e(self):
             'Integer exponent of 10'
-            assert(ii(self._e, int))
+            Assert(ii(self._e, int))
             return self._e
         @property
         def exp(self):
@@ -325,12 +347,12 @@ class TakeApart:
         @property
         def ld(self):
             'Leading digit of significand'
-            assert(ii(self._ld, str) and len(self._ld) == 1)
+            Assert(ii(self._ld, str) and len(self._ld) == 1)
             return self._ld
         @property
         def other(self):
             'Non-leading digits of significand'
-            assert(ii(self._ld, str))
+            Assert(ii(self._ld, str))
             return self._other
         @property
         def n(self):
@@ -338,7 +360,7 @@ class TakeApart:
             return self._n
         @n.setter
         def n(self, value):
-            assert(ii(value, int) and value >= 0)
+            Assert(ii(value, int) and value >= 0)
             redo = True if self._n != value else False
             self._n = value
             if redo and self._number is not None:
@@ -346,12 +368,12 @@ class TakeApart:
         @property
         def number(self):
             'Last argument to __call__()'
-            assert(self._number is not None)
+            Assert(self._number is not None)
             return self._number
         @property
         def sign(self) -> str:
             '"-" or " ", sign of self.number'
-            assert(ii(self._sign, str) and self._sign in ("-", " ", ""))
+            Assert(ii(self._sign, str) and self._sign in ("-", " ", ""))
             return self._sign
         @property
         def strict(self):
@@ -366,7 +388,7 @@ class TakeApart:
             return self._supported
         @supported.setter
         def supported(self, myset):
-            assert(ii(myset, set) and myset)
+            Assert(ii(myset, set) and myset)
             self._supported = myset
 class Fmt:
     def __init__(self, n=3, lock=False):
@@ -567,7 +589,7 @@ class Fmt:
                 x = D(value)*D("1.0")
                 a = f"{x:.1e}".split("e")[1]
                 e = int(a)
-                assert(e >= 0)
+                Assert(e >= 0)
                 m = " |10"
                 for i in str(e):
                     m += self._superscripts[i]
@@ -588,7 +610,7 @@ class Fmt:
             lst = list(s)
             split = n//2
             left, right = deque(lst[:split]), deque(lst[split:])
-            assert(len(left) + len(right) == n)
+            Assert(len(left) + len(right) == n)
             def dqlen():
                 return len(left) + len(right) + len(self.ellipsis) + len(sgn)
             while True:
@@ -621,7 +643,7 @@ class Fmt:
             return u
     def trim(self, dq):
         'Implement rtz, rtdp, and rlz for significand dq in deque'
-        assert(ii(dq, deque))
+        Assert(ii(dq, deque))
         if self._rtz and self._dp in dq:
             while dq and dq[-1] == "0":
                 dq.pop()        # Remove trailing 0's
@@ -631,14 +653,20 @@ class Fmt:
             if dq[0] == "0" and dq[1] == self._dp: 
                 dq.popleft()    # Remove leading 0
         return dq
-    def significand(self, value, n=None) -> str:
-        'Return the signifcand of abs(value) as a string'
+    def significand(self, value, n=None) -> tuple:
+        '''Return the (significand, e) of value where significand is the
+        significand's string and e is the integer exponent.
+        '''
         with self.ta:
             self.ta.n = n if n is not None else self.n
-            self.ta(abs(value))
-            dq = self.ta.dq         # Deque of significand's digits (no dp)
-        dq.insert(1, self.dp)
-        return ''.join(dq)
+            self.ta(value)
+            sgn = ta.sign
+            if not self.spc and sgn == " ":
+                sgn = ""
+            self.ta.dq.insert(1, self.ta.dp)
+            sig = ta.sgn + ''.join(self.ta.dq)
+            e = ta.e
+        return (sig, e)
     def fix(self, value, n=None, width=None, offset=0) -> str:
         'Return a fixed point representation'
         # Get the exponent e
@@ -702,146 +730,19 @@ class Fmt:
         return retval
     def sci(self, value, n=None, width=None, offset=0) -> str:
         'Return a scientific format representation'
-        if 0:   # Old method
-            x = self.toD(value)
-            parts, dq, z = self._get_data(x, n)
-            dq.insert(1, self.dp)
-            dq.appendleft(parts.sign)
-            if dq[-1] == self.dp:
-                del dq[-1]
-            dq = self.trim(dq)
-            if self.u:
-                # Use Unicode characters for power of 10
-                o = ["✕10"]
-                for c in str(parts.e):
-                    o.append(self._superscripts[c])
-                dq.extend(o)
-            else:
-                dq.extend(["e", str(parts.e)])
-            return ''.join(dq)
-        else:
-            n = n if n is not None else self.n
-            ta = self.ta
-            with ta:
-                ta.n = n
-                ta(value)
-                sgn = ta.sign
-                if not self.spc and sgn == " ":
-                    sgn = ""
-                # Get significand
-                dq = deque(list(ta.ld + ta.dp + ta.other))
-                dq = self.trim(dq)
-                sig = [sgn, ''.join(dq), "e", str(ta.e)]
-                return ''.join(sig)
-    def eng(self, value, fmt="eng", n=None, width=None) -> str:
-        '''Return an engineering format representation.  Suppose value
-        is 31415.9 and n is 3.  Then fmt can be:
-            "eng"    returns "31.4e3"
-            "engsi"  returns "31.4 k"
-            "engsic" returns "31.4k" (the SI prefix is cuddled)
-        Note:  cuddling is invalid SI syntax, but it's sometimes useful in
-        program output.
- 
-        If width is not None and self.brief is True, try to fit the string
-        into width characters by removing digits to the right of the
-        decimal point.  Example:
- 
-            x = 34567800.0
-            width = 8
-            eng    = '34.567e6'
-            eng    = '34.5✕10⁶' with self.u == True
-            engsi  = '34.567 M'
-            engsic = '34.5678M'
- 
-        Note that you may get a string longer than the desired width
-        because you'd lose information otherwise.  Example:  in the
-        previous example, if the width is changed to 5, you'll get
- 
-            eng       = '34e6'    len = 4
-            eng       = '34✕10⁶'  len = 6 with self.u == True
-            engsi     = '34 M'    len = 4
-            engsic    = '34.5M'   len = 5
-        
-        In the first and third lines, the length would have been 5 except
-        it's OK to remove the decimal point.  In the second line, there's 
-        no way to remove another digit from the significand without ruining
-        the engineering notation (i.e., the exponent would need to be
-        changed, turning the notation into plain scientific).
-        '''
-        ta = self.ta
-        ta(value)
-        with ta:
-            ta.n = n if n is not None else self.n
-            ta(value)
-            sgn = ta.sign
-            if not self.spc and sgn == " ":
-                sgn = ""
-            # Get significand without decimal point
-            dq = deque(list(ta.ld + ta.other))
-            eng_step = 3
-            div, rem = divmod(ta.e, eng_step)
-            k = rem + 1 
-            while len(dq) < k:
-                dq.append("0")
-            dq.insert(k, ta.dp)
-            dq.appendleft(sgn)
-            dq = self.trim(dq)  # Implement rtz, rtdp, rlz
-            exponent = ["e", f"{eng_step*div}"]
-            try:
-                prefix = self._SI_prefixes[div]
-            except KeyError:
-                prefix = None
+        n = n if n is not None else self.n
+        breakpoint() #xx
+        sig, e = self.significand(value, n=n)
+        breakpoint() #xx
+        # Get exponent
+        with self.ta:
+            self.ta.n = n
+            self.ta(value)
+            e = self.ta.e
 
-
-
-
-        if self.brief:
-            width = W if width is None else width
-            # dq holds the eng significand
-            if dq[0] == "":
-                dq.popleft()    # Remove the empty string
-            # Adjust the significand to get the desired digits.  Since it's
-            # eng notation, we can only remove digits up to the decimal
-            # point.
-            elen = len(''.join(exponent))
-
-
-            # Get the width for the significand for the style chosen
-            if fmt == "eng":
-                elen -= 1 if self.u else 0
-                width -= 3 + elen if self.u else elen
-            elif fmt == "engsi":
-                width -= 2 if prefix else elen
-            elif fmt == "engsic":
-                width -= 1 if prefix else elen
-            dbg = 0
-            if dbg:
-                print(f"  elen = {elen}") #xx
-                print(f"  Target significand width = {width}") #xx
-            # Remove LSDs from significand to get width goal
-            while len(''.join(dq)) > width and dq[-1] != ta.dp:
-                dq.pop()
-                if dbg:
-                    print(f"  sig = {''.join(dq) + ''.join(exponent)}  tlen = {tlen()}") #xx
-
-        # Remove dp if it ends significand
-        if dq[-1] == ta.dp:
-            dq.pop()
-        if fmt == "eng":
-            if self.u:      # Use Unicode characters for power of 10
-                o = ["✕10"]
-                for c in str(eng_step*div):
-                    o.append(self._superscripts[c])
-                dq.extend(o)
-            else:
-                dq.extend(exponent)
-        elif fmt == "engsi":
-            dq.extend(exponent) if prefix is None else dq.extend([" ", prefix])
-        elif fmt == "engsic":
-            dq.extend(exponent) if prefix is None else dq.extend([prefix])
-        else:
-            raise ValueError(f"'{fmt}' is an unrecognized format")
-        return ''.join(dq)
+            breakpoint() #xx
+            pass #xx
+        return ''.join(sig)
     def Complex(self, value, fmt=None, n=None) -> str:
         '''value is a complex number.  Return a string in the form of 
         'a + bi'.
@@ -915,7 +816,7 @@ class Fmt:
             return self.Complex(value, fmt=fmt, n=n)
         elif have_mpmath and ii(value, mpmath.mpc):
             return self.Complex(value, fmt=fmt, n=n)
-        assert(n is not None)
+        Assert(n is not None)
         x = value
         if ii(value, (int, float, Decimal)):
             return self.call_Decimal(value, fmt=fmt, n=n)
@@ -924,7 +825,7 @@ class Fmt:
     def call_Decimal(self, value, fmt: str="fix", n: int=None) -> str:
         'Handle formatting with the Decimal type'
  
-        assert(ii(value, (int, float, Decimal)))
+        Assert(ii(value, (int, float, Decimal)))
         try:
             x = self.toD(value)
             abs(x)
@@ -975,7 +876,7 @@ class Fmt:
         else:
             return self.eng(x, n=n, fmt=fmt)
     def call_mpmath(self, value, fmt: str="fix", n: int=None) -> str:
-        assert(ii(value, mpmath.mpf))
+        Assert(ii(value, mpmath.mpf))
         low, high = mpmath.mpf(str(self.low)), mpmath.mpf(str(self.high))
         if fmt == "fix":
             if value:
@@ -1101,7 +1002,7 @@ class Fmt:
             return self._imag_unit
         @imag_unit.setter
         def imag_unit(self, value):
-            assert(ii(value, str) and len(value) > 0)
+            Assert(ii(value, str) and len(value) > 0)
             self._imag_unit = value
         @property
         def polar(self) -> bool:
@@ -1170,16 +1071,13 @@ if 0 and __name__ == "__main__":
         print(f"engsic(x) = '{s}'  len = {len(s)}")
     exit()
 
-if 0 and __name__ == "__main__": 
+if 1 and __name__ == "__main__": 
     '''
     Need sci __call__
     '''
-    M = mpmath
-    fmt.brief = 1
-    M.mp.dps = 20
-    x = M.mpf("3.45678901234567890")
-    print(f"x = {x}")
-    print(f"fmt(x) = {fmt(x)}")
+    x = D("3.141592653589793e+99")
+    s = fmt(x, fmt="sci", n=3)
+    print(f"s")
     exit()
 
 if __name__ == "__main__": 
@@ -1194,7 +1092,7 @@ if __name__ == "__main__":
             import sys
         # Custom imports
             from fpformat import FPFormat
-            from lwtest import run, raises, Assert
+            from lwtest import run, raises
             from wrap import dedent
             import decimalmath
         # Global variables
@@ -1401,6 +1299,8 @@ if __name__ == "__main__":
                 (pi*1e-99, "3.14e-99"),
                 (-pi*1e-99, "-3.14e-99"),
             ):
+                if x == pi*1e99:
+                    breakpoint() #xx
                 s = f(x)
                 Assert(s == result)
             # Test simple numbers with fixed point
@@ -1716,7 +1616,6 @@ if __name__ == "__main__":
                     Assert(s == "300e-15")
                     s = f"{fmt.eng(-x, n=1)}"
                     Assert(s == "-300e-15")
-
                     fmt.u = 1
                     s = f"{fmt.eng(x)}"
                     Assert(s == "345.678✕10⁻¹⁵")
@@ -1745,10 +1644,8 @@ if __name__ == "__main__":
                     Assert(s == "300f")
                     s = f"{fmt.eng(-x, fmt='engsic', n=1)}"
                     Assert(s == "-300f")
-
             if old_dps is not None:
                 mpmath.mp.dps = old_dps
-
         def Test_Sci():
             def CompareToFPFormat():
                 "Compare to fpformat's results"
