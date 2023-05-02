@@ -8,6 +8,7 @@
         - inspect has a number of functions that could be useful for a
           command that's used to inspect an object:  it's source, docs,
           etc.  Call the built-in pager to do this.
+        - Use a traceback to print the call stack on an exception.
 
 This module extends the python debugger pdb.py Features:
     - Added commands

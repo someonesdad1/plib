@@ -1,8 +1,7 @@
 '''
 
-Bug:  fmt.significand encounters an assert error because ta._sign is None.
-Indicates a fundamental logic flaw somewhere.
- 
+- Get rid of offset, as width is all that is needed
+
 Todo
     - fmt_refactoring branch
         - Refactor to get rid of old method and use new TakeApart instance
@@ -209,8 +208,8 @@ class TakeApart:
         self._dp = None         # Decimal point string
         self._other = None      # Remaining digits of number
         self._e = None          # Integer exponent of 10
-        self._dq = None         # Deque of significand's digits
-        self._strict = False    # If True, n must be <= precision
+        self._dq = None         # Deque of significand's digits without dp
+        self.valid = False      # Is valid after call to disassemble & checking
     def __enter__(self):
         if self.lock is not None:
             self.lock.acquire()  # Stay locked through context execution
@@ -231,41 +230,37 @@ class TakeApart:
             self.lock.release()
         return False
     def __str__(self):
-        if self._ld is None:
-            return None
+        if not self.valid:
+            raise ValueError("TakeApart instance is invalid")
         return (self.sign + self._ld + self._dp +
                 self.other + "e" + str(self._e))
     def __call__(self, x):
         Assert(x is not None)
-        self._number = x
-        self.disassemble()
-        return str(self)
-    def disassemble(self):
-        "Disassemble the number self._number into this instance's attributes"
-        n, x = self._n, self._number
+        self.disassemble(x)
+    def disassemble(self, value):
+        "Disassemble the number value into this instance's attributes"
+        self.reset()    # Get this instance into a known state
+        x = self._number = value
+        n = self._n
+        Assert(value is not None)
         Assert(ii(n, int) and n >= 0)
         # Handle int, float, Decimal, mpf, and Fractions
         if ii(x, (int, float, decimal.Decimal)):
-            # The following avoids an infinite recursion with f.flt
-            # instances
+            # Avoid an infinite recursion with f.flt instances
             if ".flt'>" in str(type(x)):
                 x = float(x)
             y = decimal.Decimal(str(x))
             ctx = decimal.getcontext()
-            n = min(ctx.prec, n) if self.strict else n
             if not n:
                 n = ctx.prec
-            if self._strict:
-                Assert(1 <= n <= ctx.prec)
+            n = max(ctx.prec, n)
         elif ii(x, fractions.Fraction):
             y = decimal.Decimal(x.numerator)/decimal.Decimal(x.denominator)
         elif have_mpmath and ii(x, mpmath.mpf):
             y = x
-            n = min(mpmath.mp.dps, n) if self.strict else n
             if not n:
                 n = mpmath.mp.dps
-            if self._strict:
-                Assert(1 <= n <= mpmath.mp.dps)
+            n = max(mpmath.mp.dps, n)
         else:
             raise TypeError(f"{x!r} is not a supported number type")
         # Now disassemble the number
@@ -306,6 +301,7 @@ class TakeApart:
             ld, other = (s, "") if len(s) == 1 else s.split(dp)
             # For zero, Decimal formats an exponent to n - 1; we want 0
             e = int(e) if y else 0
+        # Set our six attributes
         self._sign = sign
         self._ld = ld
         self._dp = dp
@@ -314,31 +310,38 @@ class TakeApart:
         self._dq = deque(ld + other)
         if 1:
             # Check invariants
-            Assert(self._sign in ("-", " ", ""))
+            Assert(self._sign is not None and
+                   self._ld is not None and
+                   self._dp is not None and
+                   self._other is not None and
+                   self._e is not None and
+                   self._dq is not None)
+            Assert(self._sign in ("-", " "))
             Assert(ii(self._ld, str) and len(self._ld) == 1)
             Assert(self._dp in (".", ","))
             Assert(ii(self._other, str))
             Assert(ii(self._e, int))
             # Deque has length of strings ld and other
-            Assert(ii(self._dq, deque) and 
-                (len(self._dq) == len(self._ld) + len(self._other)))
+            Assert(ii(self._dq, deque))
+            Assert(len(self._dq) == len(self._ld) + len(self._other))
             Assert("." not in self._dq and "," not in self._dq)
             Assert(len(self._ld + self._other) == n)
+        self.valid = True
     if 1:   # Properties
         @property
         def dp(self):
             'Decimal point string'
-            Assert(ii(self._dp, str) and len(self._dp) == 1)
+            Assert(self.valid and ii(self._dp, str) and len(self._dp) == 1)
             return self._dp
         @property
         def dq(self):
             "Deque of significand's digits"
-            Assert(ii(self._dq, deque) and len(self._dq))
+            Assert(self.valid and ii(self._dq, deque) and len(self._dq))
             return self._dq
         @property
         def e(self):
             'Integer exponent of 10'
-            Assert(ii(self._e, int))
+            Assert(self.valid and ii(self._e, int))
             return self._e
         @property
         def exp(self):
@@ -347,12 +350,12 @@ class TakeApart:
         @property
         def ld(self):
             'Leading digit of significand'
-            Assert(ii(self._ld, str) and len(self._ld) == 1)
+            Assert(self.valid and ii(self._ld, str) and len(self._ld) == 1)
             return self._ld
         @property
         def other(self):
             'Non-leading digits of significand'
-            Assert(ii(self._ld, str))
+            Assert(self.valid and ii(self._ld, str))
             return self._other
         @property
         def n(self):
@@ -373,15 +376,8 @@ class TakeApart:
         @property
         def sign(self) -> str:
             '"-" or " ", sign of self.number'
-            Assert(ii(self._sign, str) and self._sign in ("-", " ", ""))
+            Assert(self.valid and ii(self._sign, str) and self._sign in ("-", " "))
             return self._sign
-        @property
-        def strict(self):
-            'If True, n must be <= precision'
-            return self._strict
-        @strict.setter
-        def strict(self, value):
-            self._strict = bool(value)
         @property
         def supported(self):
             'Set of supported types'
@@ -390,6 +386,10 @@ class TakeApart:
         def supported(self, myset):
             Assert(ii(myset, set) and myset)
             self._supported = myset
+
+
+
+
 class Fmt:
     def __init__(self, n=3, lock=False):
         '''n is the number of digits to format to.  If lock is True, a
@@ -408,7 +408,6 @@ class Fmt:
         self._spc = None                # If num >= 0, use " " for leading character
         self._sign = None               # Include "+" or "-" in interpolation
         self._int = None                # Default fmtint() style
-        self._strict = None             # If True, n must be <= precision
         # If in fix mode, very large/small numbers can result in too
         # many digits to display on the screen.  When abs(exponent) is
         # greater than self.nchars (here, about 1/4 of the terminal
@@ -462,7 +461,6 @@ class Fmt:
         self.nchars = W*L//4  # Base on screen width and hight
         self.brief = False
         self.ellipsis = "·"*3
-        self._strict = False
         # Attributes for complex numbers
         self._imag_unit = "i"
         self._polar = False
@@ -537,7 +535,7 @@ class Fmt:
             return lines
         except CalledProcessError:
             return self.get_columns()
-    def fmtint(self, value, fmt=None, width=None, offset=0, mag=False):
+    def fmtint(self, value, fmt=None, width=None, mag=False):
         '''Format an integer value.  If fmt is None, the default self.int
         formatting is used.  Other values for fmt are "hex", "oct", "dec",
         and "bin", which cause 0x, 0o, 0d, or 0b to be prepended.
@@ -653,21 +651,7 @@ class Fmt:
             if dq[0] == "0" and dq[1] == self._dp: 
                 dq.popleft()    # Remove leading 0
         return dq
-    def significand(self, value, n=None) -> tuple:
-        '''Return the (significand, e) of value where significand is the
-        significand's string and e is the integer exponent.
-        '''
-        with self.ta:
-            self.ta.n = n if n is not None else self.n
-            self.ta(value)
-            sgn = ta.sign
-            if not self.spc and sgn == " ":
-                sgn = ""
-            self.ta.dq.insert(1, self.ta.dp)
-            sig = ta.sgn + ''.join(self.ta.dq)
-            e = ta.e
-        return (sig, e)
-    def fix(self, value, n=None, width=None, offset=0) -> str:
+    def fix(self, value, n=None, width=None) -> str:
         'Return a fixed point representation'
         # Get the exponent e
         if self.ta._number is None or value != self.ta._number:
@@ -728,20 +712,38 @@ class Fmt:
             dq = self.trim(dq)
             retval = ''.join(dq)
         return retval
-    def sci(self, value, n=None, width=None, offset=0) -> str:
+    def sci(self, value, n=None, width=None) -> str:
         'Return a scientific format representation'
         n = n if n is not None else self.n
-        breakpoint() #xx
-        sig, e = self.significand(value, n=n)
-        breakpoint() #xx
-        # Get exponent
-        with self.ta:
-            self.ta.n = n
-            self.ta(value)
-            e = self.ta.e
-
+        Assert(ii(n, int) and n > 0)
+        self.ta(value)
+        sgn = self.ta.sign  # Will be '-' or ' '
+        if not self.spc and sgn == " ":
+            sgn = ""    # No leading space allowed if self.spc True
+        if 1:   # Adjust significand deque to needed digits
+            dq = deque(list(self.ta.dq)[:n])
             breakpoint() #xx
-            pass #xx
+            # Get m = number of digits that can be in significand
+            m = width
+            if self.u:
+                m -= 3                      # For '×10'
+            else:
+                m -= 1                      # For 'e'
+            m -= len(str(self.ta.e))        # For exponent's digits
+
+            if self.brief and width is not None: 
+                assert(ii(width, int) and width > 0)
+                raise Exception("need to write")
+            else:
+                pass
+            digits = list(self.ta.dq)[:n]   # Needed n digits
+            # Insert locale's decimal point
+            digits.insert(1, self.dp)
+            print(digits)
+
+
+
+
         return ''.join(sig)
     def Complex(self, value, fmt=None, n=None) -> str:
         '''value is a complex number.  Return a string in the form of 
@@ -982,13 +984,6 @@ class Fmt:
         def spc(self, value):
             self._spc = bool(value)
         @property
-        def strict(self):
-            'If True, n must be <= precision'
-            return self._strict
-        @strict.setter
-        def strict(self, value):
-            self._strict = self.ta.strict = bool(value)
-        @property
         def u(self) -> bool:
             '(bool) Use Unicode in "sci" and "eng" formats if True'
             return self._u
@@ -1041,7 +1036,7 @@ class Fmt:
             self._comp = bool(value)
 if 1:   # Convenience instances
     fmt = Fmt()
-    ta = TakeApart()
+    #ta = TakeApart()
 
 # Development area
 if 0 and __name__ == "__main__": 
@@ -1785,19 +1780,6 @@ if __name__ == "__main__":
             # Setting default works
             f.int = "hex"
             Assert(f.fmtint(x) == hex(x))
-        def Test_Strict():
-            'Also slightly checks significand'
-            f = GetDefaultFmtInstance()
-            prec = 15
-            n = 100
-            mpmath.mp.dps = prec
-            x = +mpmath.pi
-            fmt.strict = False
-            s1 = fmt.significand(x, n=n)
-            Assert(len(s1) == n + 1)
-            fmt.strict = True
-            s1 = fmt.significand(x, n=n)
-            Assert(len(s1) == prec + 1)
         def Test_Brief():
             # Integers
             GetDefaultFmtInstance()
