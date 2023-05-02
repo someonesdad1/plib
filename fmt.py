@@ -745,6 +745,115 @@ class Fmt:
 
 
         return ''.join(sig)
+    def eng(self, value, fmt="eng", n=None, width=None) -> str:
+        '''Return an engineering format representation.  Suppose value
+        is 31415.9 and n is 3.  Then fmt can be:
+            "eng"    returns "31.4e3"
+            "engsi"  returns "31.4 k"
+            "engsic" returns "31.4k" (the SI prefix is cuddled)
+        Note:  cuddling is invalid SI syntax, but it's sometimes useful in
+        program output.
+ 
+        If width is not None and self.brief is True, try to fit the string
+        into width characters by removing digits to the right of the
+        decimal point.  Example:
+ 
+            x = 34567800.0
+            width = 8
+            eng    = '34.567e6'
+            eng    = '34.5✕10⁶' with self.u == True
+            engsi  = '34.567 M'
+            engsic = '34.5678M'
+ 
+        Note that you may get a string longer than the desired width
+        because you'd lose information otherwise.  Example:  in the
+        previous example, if the width is changed to 5, you'll get
+ 
+            eng       = '34e6'    len = 4
+            eng       = '34✕10⁶'  len = 6 with self.u == True
+            engsi     = '34 M'    len = 4
+            engsic    = '34.5M'   len = 5
+        
+        In the first and third lines, the length would have been 5 except
+        it's OK to remove the decimal point.  In the second line, there's 
+        no way to remove another digit from the significand without ruining
+        the engineering notation (i.e., the exponent would need to be
+        changed, turning the notation into plain scientific).
+        '''
+        ta = self.ta
+        ta(value)
+        with ta:
+            ta.n = n if n is not None else self.n
+            ta(value)
+            sgn = ta.sign
+            if not self.spc and sgn == " ":
+                sgn = ""
+            # Get significand without decimal point
+            dq = deque(list(ta.ld + ta.other))
+            eng_step = 3
+            div, rem = divmod(ta.e, eng_step)
+            k = rem + 1 
+            while len(dq) < k:
+                dq.append("0")
+            dq.insert(k, ta.dp)
+            dq.appendleft(sgn)
+            dq = self.trim(dq)  # Implement rtz, rtdp, rlz
+            exponent = ["e", f"{eng_step*div}"]
+            try:
+                prefix = self._SI_prefixes[div]
+            except KeyError:
+                prefix = None
+
+
+
+
+        if self.brief:
+            width = W if width is None else width
+            # dq holds the eng significand
+            if dq[0] == "":
+                dq.popleft()    # Remove the empty string
+            # Adjust the significand to get the desired digits.  Since it's
+            # eng notation, we can only remove digits up to the decimal
+            # point.
+            elen = len(''.join(exponent))
+
+
+            # Get the width for the significand for the style chosen
+            if fmt == "eng":
+                elen -= 1 if self.u else 0
+                width -= 3 + elen if self.u else elen
+            elif fmt == "engsi":
+                width -= 2 if prefix else elen
+            elif fmt == "engsic":
+                width -= 1 if prefix else elen
+            dbg = 0
+            if dbg:
+                print(f"  elen = {elen}") #xx
+                print(f"  Target significand width = {width}") #xx
+            # Remove LSDs from significand to get width goal
+            while len(''.join(dq)) > width and dq[-1] != ta.dp:
+                dq.pop()
+                if dbg:
+                    print(f"  sig = {''.join(dq) + ''.join(exponent)}  tlen = {tlen()}") #xx
+
+        # Remove dp if it ends significand
+        if dq[-1] == ta.dp:
+            dq.pop()
+        if fmt == "eng":
+            if self.u:      # Use Unicode characters for power of 10
+                o = ["✕10"]
+                for c in str(eng_step*div):
+                    o.append(self._superscripts[c])
+                dq.extend(o)
+            else:
+                dq.extend(exponent)
+        elif fmt == "engsi":
+            dq.extend(exponent) if prefix is None else dq.extend([" ", prefix])
+        elif fmt == "engsic":
+            dq.extend(exponent) if prefix is None else dq.extend([prefix])
+        else:
+            raise ValueError(f"'{fmt}' is an unrecognized format")
+        return ''.join(dq)
     def Complex(self, value, fmt=None, n=None) -> str:
         '''value is a complex number.  Return a string in the form of 
         'a + bi'.
