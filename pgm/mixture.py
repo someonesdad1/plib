@@ -210,7 +210,7 @@ if __name__ == "__main__":
     d = {}      # Options dictionary
     args = ParseCommandLine(d)
     if 1:
-        # Custom data for a test case
+        # Custom data for a test case:  0.188% concentration
         g.ConcA = flt(0.113)
         g.ConcB = flt(0)
         g.VolA = 0.25
