@@ -680,6 +680,8 @@ class Fmt:
             # Check we only have digits in dq
             if not set(dq).issubset(set(string.digits)):
                 raise Exception("Bug in dq's characters")
+            # Keep n digits
+            dq = deque(list(dq)[:n])
             e = self.ta.e           # Integer exponent
             if e < 0:
                 # Number < 1
@@ -812,10 +814,6 @@ class Fmt:
                 prefix = self._SI_prefixes[div]
             except KeyError:
                 prefix = None
-
-
-
-
         if self.brief:
             width = W if width is None else width
             # dq holds the eng significand
@@ -825,8 +823,6 @@ class Fmt:
             # eng notation, we can only remove digits up to the decimal
             # point.
             elen = len(''.join(exponent))
-
-
             # Get the width for the significand for the style chosen
             if fmt == "eng":
                 elen -= 1 if self.u else 0
@@ -844,7 +840,6 @@ class Fmt:
                 dq.pop()
                 if dbg:
                     print(f"  sig = {''.join(dq) + ''.join(exponent)}  tlen = {tlen()}") #xx
-
         # Remove dp if it ends significand
         if dq[-1] == ta.dp:
             dq.pop()
