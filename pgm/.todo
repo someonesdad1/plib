@@ -27,6 +27,37 @@ Active
         - Move color.py out of the module code (put it in the if __name__
           section)
 
+    - pgm/mixture.py
+        - Change this to be an interactive script that lets you iterate a
+          problem to get a solution.  
+            - Example:  I need to mix 11.3% glufosinate with water to get a
+              0.25% solution and I want the final volume to be 15 gallons
+              to fit in my sprayer.  If I start with 14.75 gal of water,
+              the existing script will show I need 0.3337 gal of
+              concentrate and I'll wind up with 15.08 gallons, a practical
+              solution that's usable as is.
+        - The basic problem variables are
+            - C = concentration
+            - V = volume
+            - S = solute volume
+            - D = solvent volume
+            - Equations
+                - V = S + D
+                - C = S/(S + D) = S/V
+                - S = C*V
+        - There would be three submenus of the problem that would prompt
+          for the variables C, V, S, D:  solution A, solution B, and
+          mixture.  You'd press c, v, s, d to enter new values.
+        - You can use the units you want and they are persisted.
+        - Save a problem to a storage register (any name) and it's
+          persisted.  
+        - You can lock certain variables so they can't be changed.  For
+          example, using the 11.3% glufosinate weed killer, you wouldn't
+          want to change the bottle's concentration.  I'd also want the
+          final volume to be locked at 15 gallons, as that's the sprayer
+          volume.  The 'l x' and 'u x' commands would lock and unlock the
+          variable x.
+
     - pgm/chklnk.py
         - For each file on the command line, extract the http:// links and
           check if they are broken.  For OO files, it's a zip file and you

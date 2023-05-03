@@ -1,17 +1,14 @@
 '''
-
-- Get rid of offset, as width is all that is needed
-
-Todo
+- Todo
     - fmt_refactoring branch
         - Refactor to get rid of old method and use new TakeApart instance
         - Get fix/eng/sci working with brief keyword
             - Change tests to no longer depend on fpformat
         - Fix threading.Lock problem for persistence in single-threaded
           environments.
-            - Most of my applications will be single threaded, so the lock 
+            - Most of my applications will be single threaded, so the lock
               should be off by default
-
+ 
         - The brief keyword was added to Fmt attributes.  When it is True,
           string interpolation output is truncated to fit into a
           user-defined width.  Need to implement in fix sci eng __call__.
@@ -19,14 +16,14 @@ Todo
               number's interpolation string is adusted to fit into the
               desired width.  This defaults to COLUMNS - 1 if it is not
               specified.
-
+ 
     - fix(), sci(), etc. should use a new keyword:  'unc'.  unc
       will be interpreted as an uncertainty and use the standard
       uncertainty interpolation such as '3.14(3)'.  To handle the case where
       this can represent a roundoff error, a boolean ro keyword is used;
       when True, you get '3.14[3]' like the uncertainty short-hand
       notation, but this denotes an estimated interval number.
-
+ 
     - Why doesn't fix() use significand()?
     - Lock
         - The threading.Lock used for context management is a PITA in some
@@ -41,7 +38,7 @@ Todo
       display notation for polar coordinates.  ◣ or ▶ might be good for
       grad and ⊚ ⏺ ⬤ ● Ⓡ ⭙ might be good for revolutions (make sure it
       isn't confused with a digit).
-
+ 
     - Note mpmath.nstr() has keywords to control low & high for fixed point
       strings.  You can also use it to get a floating point interpolation.
         - An x = mpf(i) where i is an integer appears to have the property
@@ -386,9 +383,9 @@ class TakeApart:
         def supported(self, myset):
             Assert(ii(myset, set) and myset)
             self._supported = myset
-
-
-
+ 
+ 
+ 
 
 class Fmt:
     def __init__(self, n=3, lock=False):
@@ -460,7 +457,10 @@ class Fmt:
         self._sign = False
         self.nchars = W*L//4  # Base on screen width and hight
         self.brief = False
+        # Ellipsis:  '···' is easily recognizable, but takes up 3 spaces.
+        # '⋯' takes up one space but might be confused for a hyphen.
         self.ellipsis = "·"*3
+        self.short_ellipsis = "⋯"
         # Attributes for complex numbers
         self._imag_unit = "i"
         self._polar = False
@@ -544,13 +544,10 @@ class Fmt:
         width is the number of spaces the string must fit into.  If it is
         None, then the number of COLUMNS - 1 is used.
  
-        offset is subtracted from width to allow for other string elements
-        to be used with the returned string.
-        
         mag if True is used to provide a [~10ⁿ] string at the end to
         indicate the magnitude of the number.
  
-        width and offset are only used if self.brief is True.
+        width is only used if self.brief is True.
         '''
         if not ii(value, int):
             raise TypeError("value must be an int")
@@ -578,7 +575,7 @@ class Fmt:
             return s
         else:
             # Get L = what will fit on one line
-            L = self.get_columns() - offset if width is None else int(width) - offset
+            L = self.get_columns() if width is None else int(width)
             # The minimum possible length is the sign, one character each
             # end, and ellipsis
             min_length = 2 + len(self.ellipsis) + len(sgn)
@@ -724,38 +721,55 @@ class Fmt:
             sgn = ""    # No leading space allowed if self.spc True
         # Adjust significand deque to needed digits
         dq = deque(list(self.ta.dq)[:n])
+        # Get exponent string
+        exponent = self.GetUnicodeExponent(self.ta.e) if self.u else f"e{self.ta.e}"
         # Return for simplest formatting case
         if not self.brief:
-            exponent = self.GetUnicodeExponent(self.ta.e) if self.u else f"e{self.ta.e}"
             # Insert locale's decimal point
             dq.insert(1, self.dp)
             s = sgn + ''.join(dq) + exponent
             return s
-
-
-
-        # Get m = number of digits that can be in significand
-        m = width
-        if self.u:
-            m -= 3                      # For '×10'
+        # Handle the case when self.brief is True
+        if width is None:
+            raise ValueError(f"width cannot be None if fmt.brief is True")
+        if 1:   # Get m = number of digits that can be in significand
+            m = width
+            if self.u:
+                m -= 3                      # For '×10'
+            else:
+                m -= 1                      # For 'e'
+            m -= len(str(self.ta.e))        # For exponent's digits
+            m -= 1                          # For decimal point
+            m -= len(self.ellipsis)         # For ellipsis
+            m = max(2, m)                   # Must have at least two characters
+        if len(dq) <= m:    # We can return it with no more work
+            # Insert locale's decimal point
+            dq.insert(1, self.dp)
+            s = sgn + ''.join(dq) + exponent
+            return s
+        # Significand needs digits removed.  Split significand and remove
+        # middle digits to get needed width.
+        middle = len(dq)//2
+        left = deque(list(dq)[:middle])
+        right = deque(list(dq)[middle:])
+        def Len():
+            return len(left) + len(right)
+        while Len() > m:
+            if len(left) >= len(right):
+                left.pop()
+            else:
+                right.popleft()
+        Assert(Len() <= m)
+        # Insert decimal point and ellipsis
+        left.append(self.dp)
+        if Len() > m:
+            left.append(self.short_ellipsis)
         else:
-            m -= 1                      # For 'e'
-        m -= len(str(self.ta.e))        # For exponent's digits
+            left.append(self.ellipsis)
+        s = sgn + ''.join(left) + ''.join(right) + exponent
 
-        if self.brief and width is not None: 
-            assert(ii(width, int) and width > 0)
-            raise Exception("need to write")
-        else:
-            pass
-        digits = list(self.ta.dq)[:n]   # Needed n digits
-        # Insert locale's decimal point
-        digits.insert(1, self.dp)
-        print(digits)
-
-
-
-
-        return ''.join(sig)
+        print(f"{s}  width = {len(s)}  target = {width}") #xx
+        return s
     def eng(self, value, fmt="eng", n=None, width=None) -> str:
         '''Return an engineering format representation.  Suppose value
         is 31415.9 and n is 3.  Then fmt can be:
@@ -913,10 +927,13 @@ class Fmt:
             s = "" if self.cuddled else " "
             ret = f"{sr}{s}{sign}{s}{si}{self._imag_unit}"
             return ret
-    def __call__(self, value, fmt: str=None, n: int=None, width=None, offset=0) -> str:
+    def __call__(self, value, fmt: str=None, n: int=None, width: int=None, ) -> str:
         '''Format value with the default "fix" formatter.  n overrides
         self.n digits.  fmt can be "fix", "sci", "eng", "engsi", or
-        "engsic".  If it is None, then self.default is used.
+        "engsic".  If it is None, then self.default is used.  If width is
+        not None, it is the desired string width when self.brief is True;
+        note that a best effort will be made, but the returned string may
+        be larger than the desired width.
         '''
         if fmt is not None:
             if fmt not in "fix sci eng engsi engsic".split():
@@ -931,16 +948,16 @@ class Fmt:
             if n < 0:
                 raise ValueError("n must be >= 0")
         if ii(value, complex):
-            return self.Complex(value, fmt=fmt, n=n)
+            return self.Complex(value, fmt=fmt, n=n, width=width)
         elif have_mpmath and ii(value, mpmath.mpc):
-            return self.Complex(value, fmt=fmt, n=n)
+            return self.Complex(value, fmt=fmt, n=n, width=width)
         Assert(n is not None)
         x = value
         if ii(value, (int, float, Decimal)):
-            return self.call_Decimal(value, fmt=fmt, n=n)
+            return self.call_Decimal(value, fmt=fmt, n=n, width=width)
         else:
-            return self.call_mpmath(value, fmt=fmt, n=n)
-    def call_Decimal(self, value, fmt: str="fix", n: int=None) -> str:
+            return self.call_mpmath(value, fmt=fmt, n=n, width=width)
+    def call_Decimal(self, value, fmt: str="fix", n: int=None, width: int=None) -> str:
         'Handle formatting with the Decimal type'
  
         Assert(ii(value, (int, float, Decimal)))
@@ -983,32 +1000,32 @@ class Fmt:
         if fmt == "fix":
             if value:
                 if x and self.high is not None and abs(x) >= self.high:
-                    return self.sci(x, n)
+                    return self.sci(x, n, width=width)
                 elif x and self.low is not None and abs(x) < self.low:
-                    return self.sci(x, n)
-                return self.fix(x, n)
+                    return self.sci(x, n, width=width)
+                return self.fix(x, n, width=width)
             else:
-                return self.fix(x, n)
+                return self.fix(x, n, width=width)
         elif fmt == "sci":
-            return self.sci(x, n)
+            return self.sci(x, n, width=width)
         else:
-            return self.eng(x, n=n, fmt=fmt)
-    def call_mpmath(self, value, fmt: str="fix", n: int=None) -> str:
+            return self.eng(x, n=n, fmt=fmt, width=width)
+    def call_mpmath(self, value, fmt: str="fix", n: int=None, width: int=None) -> str:
         Assert(ii(value, mpmath.mpf))
         low, high = mpmath.mpf(str(self.low)), mpmath.mpf(str(self.high))
         if fmt == "fix":
             if value:
                 if abs(value) >= high:
-                    return self.sci(value, n)
+                    return self.sci(value, n, width=width)
                 if abs(value) < low:
-                    return self.sci(value, n)
-                return self.fix(value, n)
+                    return self.sci(value, n, width=width)
+                return self.fix(value, n, width=width)
             else:
-                return self.fix(value, n)
+                return self.fix(value, n, width=width)
         elif fmt == "sci":
-            return self.sci(value, n)
+            return self.sci(value, n, width=width)
         else:
-            return self.eng(value, n=n, fmt=fmt)
+            return self.eng(value, n=n, fmt=fmt, width=width)
     if 1:   # Properties
         @property
         def default(self) -> str:
@@ -1155,42 +1172,18 @@ if 1:   # Convenience instances
     #ta = TakeApart()
 
 # Development area
-if 0 and __name__ == "__main__": 
-    # Get eng working with TakeApart
-    M = mpmath
-    M.mp.dps = 10
-    x = M.mpf("3.45678e7")
-    fmt.u = 0
-    fmt.n = 6
-    fmt.brief = 1
-    print(f"x = {x}")
-    w = 1
-    print(f"width = {w}")
-    if 1:
-        s = f"{fmt.eng(x, width=w)}"
-        print(f"eng(x)    = '{s}'  len = {len(s)}")
-    if 1:
-        fmt.u = 1
-        s = f"{fmt.eng(x, width=w)}"
-        print(f"eng(x)    = '{s}'  len = {len(s)}")
-    if 1:
-        fmt.u = 0
-        s = f"{fmt.eng(x, fmt='engsi', width=w)}"
-        print(f"engsi(x)  = '{s}'  len = {len(s)}")
-    if 1:
-        s = f"{fmt.eng(x, fmt='engsic', width=w)}"
-        print(f"engsic(x) = '{s}'  len = {len(s)}")
-    exit()
-
 if 1 and __name__ == "__main__": 
     '''
     Need sci __call__
     '''
     x = D("3.141592653589793e+99")
-    s = fmt(x, fmt="sci", n=3)
+    fmt.brief = 1
+    fmt.n = 6
+    width = 8
+
+    s = fmt(x, fmt="sci", width=width)
     print(f"{s}")
     exit()
-
 if __name__ == "__main__": 
     if 1:   # Header
         # Standard imports
@@ -1901,20 +1894,16 @@ if __name__ == "__main__":
             GetDefaultFmtInstance()
             fmt.brief = True
             x = 12345678901234567891234567890123456789123456789
-            result = fmt.fmtint(x, width=10, offset=0, mag=0)
+            result = fmt.fmtint(x, width=10, mag=0)
             Assert(result == "1234···789")
-            result = fmt.fmtint(x, width=5, offset=0, mag=0)
+            result = fmt.fmtint(x, width=5, mag=0)
             Assert(result == "1···9")
             x = -x
             result = fmt.fmtint(x, width=10)
             Assert(result == "-123···89")
             raises(ValueError, fmt.fmtint, x, width=5)
-            result = fmt.fmtint(x, width=6, offset=0, mag=0)
+            result = fmt.fmtint(x, width=6, mag=0)
             Assert(result == "-1···9")
-            if 1:   # Test offset
-                result = fmt.fmtint(x, width=10, offset=4)
-                Assert(result == "-1···9")
-                raises(ValueError, fmt.fmtint, x, width=9, offset=4)
             if 1:   # Test mag
                 result = fmt.fmtint(x, width=15, mag=True)
                 Assert(result == "-12···9 |10⁴⁶|")

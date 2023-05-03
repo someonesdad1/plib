@@ -37,7 +37,7 @@ if 1:   # Global variables
     g.ConcB = flt(0)
     g.ConcMixture = flt(0)
 def ParseCommandLine(d):
-    d["-d"] = 4         # Number of significant digits
+    d["-d"] = 3         # Number of significant digits
     d["-g"] = False     # Turn on debug printing
     try:
         opts, args = getopt.getopt(sys.argv[1:], "d:h")
@@ -59,14 +59,17 @@ def ParseCommandLine(d):
                 exit(1)
         elif o in ("-h", "--help"):
             ShowFormulas()
-    flt(0).n = d["-d"]
+    flt(0).N = d["-d"]
     return args
 def ShowFormulas():
     print(dedent('''
+    This script calculates the concentration of a solution gotten by mixing
+    two volumes of solutions of differing concentrations.
+
     Assumptions:
         - The solute in both solutions A and B are the same.
         - One or both solutions can be pure solvent.
-        - The solute and solvent are mixed well.
+        - The solute and solvent are miscible and are mixed well.
         - There are no volume or temperature changes when the solutions are
           mixed.
         - Works best for dilute solutions.
@@ -107,6 +110,43 @@ def ShowFormulas():
           volume of 2 units.
         - Mix one unit volume of p% concentration and one unit volume of 0%
           concentration to get 2 units of (p/2)% concentration.
+
+    Here's a numerical example that can be used as a check case.  I have a
+    weed killer with a concentration of 11.3%.  I want to mix it
+    with water to get 15 gallons, the volume of my sprayer's tank.  The 
+    target mixture concentration for application is 0.25%.  What volume of
+    the 11.3% solution should I mix with water to get the desired 15
+    gallons of 0.25% solution?
+
+    This needs to be solved by iteration, but since it's a dilute solution,
+    we'll probably get close enough on the first pass.  I'll suppose that
+    the water volume I use is 14.75 gallons, as the typical bottled
+    concentrate comes in 1/4th gallon (1 quart) containers.  Here are the 
+    entered values and results:
+
+        Concentration of solution A in %? [0] 11.3
+        Concentration of solution B in %? [0] 0
+
+      Enter two of:  volume A, volume B, mixture volume, mixture
+      concentration.  Press return if not known.  Expressions are allowed and
+      the math module is in scope.
+
+        Volume of solution A? [0]
+        Volume of solution B? [0] 14.75
+        Volume of mixture? [0]
+        Concentration of mixture in %? [0] 0.25
+
+      Results:
+          Solution            Volume            Concentration %
+          --------        --------------        ---------------
+             A                0.3337                 11.3
+             B                14.75                   0
+          Mixture             15.08                  0.25
+
+    0.3337 gallons is 0.3337/0.25 = 1.33 bottles of concentrate.  No
+    further iteration is necessary, as this is more than adequate for yard
+    weed spraying.
+
     '''))
     exit(0)
 def GetData():
@@ -133,8 +173,9 @@ def GetData():
     g.ConcB = Get("  Concentration of solution B in %? ", high=100, default=0)
     print(dedent('''
 
-    Enter what you know; press return if not known.  You must enter two data
-    items to obtain a solution.
+    Enter two of:  volume A, volume B, mixture volume, mixture
+    concentration.  Press return if not known.  Expressions are allowed and
+    the math module is in scope.
 
     '''))
     data_items_entered = 0
@@ -201,15 +242,15 @@ def PrintResults():
     Results:
         Solution            Volume            Concentration %
         --------        --------------        ---------------
-        {"A":^{n}s}{s}{g.VolA!s:^{k}s}{s}{100*g.ConcA!s:^{k}s}
-        {"B":^{n}s}{s}{g.VolB!s:^{k}s}{s}{100*g.ConcB!s:^{k}s}
-        {"Mixture":^{n}s}{s}{g.VolMixture!s:^{k}s}{s}{100*g.ConcMixture!s:^{k}s}
+        {"A":^{n}s}{s}{g.VolA!s:^{k}s}{s}{g.ConcA!s:^{k}s}
+        {"B":^{n}s}{s}{g.VolB!s:^{k}s}{s}{g.ConcB!s:^{k}s}
+        {"Mixture":^{n}s}{s}{g.VolMixture!s:^{k}s}{s}{g.ConcMixture!s:^{k}s}
     '''))
 
 if __name__ == "__main__":
     d = {}      # Options dictionary
     args = ParseCommandLine(d)
-    if 1:
+    if 0:
         # Custom data for a test case:  0.188% concentration
         g.ConcA = flt(0.113)
         g.ConcB = flt(0)
