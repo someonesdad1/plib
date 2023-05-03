@@ -720,26 +720,35 @@ class Fmt:
         sgn = self.ta.sign  # Will be '-' or ' '
         if not self.spc and sgn == " ":
             sgn = ""    # No leading space allowed if self.spc True
-        if 1:   # Adjust significand deque to needed digits
-            dq = deque(list(self.ta.dq)[:n])
-            breakpoint() #xx
-            # Get m = number of digits that can be in significand
-            m = width
-            if self.u:
-                m -= 3                      # For '×10'
-            else:
-                m -= 1                      # For 'e'
-            m -= len(str(self.ta.e))        # For exponent's digits
-
-            if self.brief and width is not None: 
-                assert(ii(width, int) and width > 0)
-                raise Exception("need to write")
-            else:
-                pass
-            digits = list(self.ta.dq)[:n]   # Needed n digits
+        # Adjust significand deque to needed digits
+        dq = deque(list(self.ta.dq)[:n])
+        # Return for simplest formatting case
+        if not self.brief:
+            exponent = self.GetUnicodeExponent(self.ta.e) if self.u else f"e{self.ta.e}"
             # Insert locale's decimal point
-            digits.insert(1, self.dp)
-            print(digits)
+            dq.insert(1, self.dp)
+            s = sgn + ''.join(dq) + exponent
+            return s
+
+
+
+        # Get m = number of digits that can be in significand
+        m = width
+        if self.u:
+            m -= 3                      # For '×10'
+        else:
+            m -= 1                      # For 'e'
+        m -= len(str(self.ta.e))        # For exponent's digits
+
+        if self.brief and width is not None: 
+            assert(ii(width, int) and width > 0)
+            raise Exception("need to write")
+        else:
+            pass
+        digits = list(self.ta.dq)[:n]   # Needed n digits
+        # Insert locale's decimal point
+        digits.insert(1, self.dp)
+        print(digits)
 
 
 
@@ -841,10 +850,8 @@ class Fmt:
             dq.pop()
         if fmt == "eng":
             if self.u:      # Use Unicode characters for power of 10
-                o = ["✕10"]
-                for c in str(eng_step*div):
-                    o.append(self._superscripts[c])
-                dq.extend(o)
+                o = self.GetUnicodeExponent(eng_step*div)
+                dq.extend(list(o))
             else:
                 dq.extend(exponent)
         elif fmt == "engsi":
@@ -854,6 +861,11 @@ class Fmt:
         else:
             raise ValueError(f"'{fmt}' is an unrecognized format")
         return ''.join(dq)
+    def GetUnicodeExponent(self, e):
+        o = ["✕10"]
+        for c in str(e):
+            o.append(self._superscripts[c])
+        return ''.join(o)
     def Complex(self, value, fmt=None, n=None) -> str:
         '''value is a complex number.  Return a string in the form of 
         'a + bi'.
@@ -1181,7 +1193,7 @@ if 1 and __name__ == "__main__":
     '''
     x = D("3.141592653589793e+99")
     s = fmt(x, fmt="sci", n=3)
-    print(f"s")
+    print(f"{s}")
     exit()
 
 if __name__ == "__main__": 

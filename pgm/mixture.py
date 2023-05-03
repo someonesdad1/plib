@@ -37,7 +37,7 @@ if 1:   # Global variables
     g.ConcB = flt(0)
     g.ConcMixture = flt(0)
 def ParseCommandLine(d):
-    d["-d"] = 3         # Number of significant digits
+    d["-d"] = 4         # Number of significant digits
     d["-g"] = False     # Turn on debug printing
     try:
         opts, args = getopt.getopt(sys.argv[1:], "d:h")
@@ -64,14 +64,15 @@ def ParseCommandLine(d):
 def ShowFormulas():
     print(dedent('''
     Assumptions:
-        * The solute in both solutions A and B are the same.
-        * One or both solutions can be pure solvent.
-        * The solute and solvent are mixed well.
-        * There are no volume or temperature changes when the solutions are mixed.
-        * Works best for dilute solutions.
-        * The concentration fractions are volume fractions.  This means both
-        the solvent and solute are liquids (example:  water and antifreeze
-        for your car).
+        - The solute in both solutions A and B are the same.
+        - One or both solutions can be pure solvent.
+        - The solute and solvent are mixed well.
+        - There are no volume or temperature changes when the solutions are
+          mixed.
+        - Works best for dilute solutions.
+        - The concentration fractions are volume fractions.  This means
+          both the solvent and solute are liquids (example:  water and
+          antifreeze for your car).
     
     Symbols:
         C = concentration fraction
@@ -100,11 +101,11 @@ def ShowFormulas():
     polar electrical forces.
     
     You can check the following cases for reasonableness:
-        * Mix two unit-volume solutions of 0% concentration to get 2 units
+        - Mix two unit-volume solutions of 0% concentration to get 2 units
           of volume of 0% concentration.
-        * Mix two unit-volume solutions of 100% concentration to get a 100%
+        - Mix two unit-volume solutions of 100% concentration to get a 100%
           volume of 2 units.
-        * Mix one unit volume of p% concentration and one unit volume of 0%
+        - Mix one unit volume of p% concentration and one unit volume of 0%
           concentration to get 2 units of (p/2)% concentration.
     '''))
     exit(0)
@@ -113,15 +114,16 @@ def GetData():
     g.ConcA = g.ConcB = flt(0)
     g.VolA = g.VolB = g.VolMixture = g.ConcMixture = flt(0)
     #
-    print(dedent(f'''
-    Script is {pathlib.Path(sys.argv[0]).resolve()}
+    if 0:
+        print(dedent(f'''
+        Script is {pathlib.Path(sys.argv[0]).resolve()}
 
-    Calculate the resulting concentration of a solution gotten by mixing
-    two solutions of differing concentrations.  Use -h on the command line
-    to see the formulas used.  Use -d to set the number of significant
-    digits (defaults to {d["-d"]}).
+        Calculate the resulting concentration of a solution gotten by mixing
+        two solutions of differing concentrations.  Use -h on the command line
+        to see the formulas used.  Use -d to set the number of significant
+        digits (defaults to {d["-d"]}).
 
-    '''))
+        '''))
     print(dedent('''
     Specify concentrations of both solutions.  If one solution is a
     dilutant (e.g., pure water), enter its concentration as 0%.
@@ -170,7 +172,7 @@ def GetData():
             ConcB           {g.ConcB!r}
             ConcMixture     {g.ConcMixture!r}{C.norm}'''))
 def PrintResults():
-    pa, pb, pm = g.ConcA/100, g.ConcB/100, g.ConcMixture/100
+    pa, pb, pm = g.ConcA/flt(100), g.ConcB/flt(100), g.ConcMixture/flt(100)
     if g.VolA and g.VolB:
         g.VolMixture = flt(g.VolA + g.VolB)
         g.ConcMixture = flt(100*(g.VolA*pa + g.VolB*pb)/(g.VolA + g.VolB))
@@ -197,14 +199,21 @@ def PrintResults():
     print(dedent(f'''
     
     Results:
-        Solution            Volume            Concentration
-        --------        --------------        -------------
-        {"A":^{n}s}{s}{g.VolA!s:^{k}s}{s}{g.ConcA!s:^{k}s}
-        {"B":^{n}s}{s}{g.VolB!s:^{k}s}{s}{g.ConcB!s:^{k}s}
-        {"Mixture":^{n}s}{s}{g.VolMixture!s:^{k}s}{s}{g.ConcMixture!s:^{k}s}
+        Solution            Volume            Concentration %
+        --------        --------------        ---------------
+        {"A":^{n}s}{s}{g.VolA!s:^{k}s}{s}{100*g.ConcA!s:^{k}s}
+        {"B":^{n}s}{s}{g.VolB!s:^{k}s}{s}{100*g.ConcB!s:^{k}s}
+        {"Mixture":^{n}s}{s}{g.VolMixture!s:^{k}s}{s}{100*g.ConcMixture!s:^{k}s}
     '''))
 if __name__ == "__main__":
     d = {}      # Options dictionary
     args = ParseCommandLine(d)
-    GetData()
+    if 1:
+        # Custom data for a test case
+        g.ConcA = flt(0.113)
+        g.ConcB = flt(0)
+        g.VolA = 0.25
+        g.VolB = 14.75
+    else:
+        GetData()
     PrintResults()
