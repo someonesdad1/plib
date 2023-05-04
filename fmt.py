@@ -183,11 +183,12 @@ if 1:   # Utility
     Assert.debug = True
     Assert.debug = False
 class TakeApart:
-    '''Handles int, float, Decimal, mpf, and Fractions.  Note it is not
+    '''Handles int, float, Decimal, mpf, and Fractions.  This code is not
     thread-safe, so only use one instance with one thread.
     '''
     def __init__(self, n=3):
         # Note self.n won't be changed in a reset()
+        self._thread_id = threading.get_ident()
         self._n = n
         self.reset()
     def reset(self):
@@ -209,6 +210,11 @@ class TakeApart:
         return (self.sign + self._ld + self._dp +
                 self.other + "e" + str(self._e))
     def __call__(self, x):
+        if self._thread_id != threading.get_ident():
+            print(f"Warning:  current thread ID = {threading.get_ident()}\n"
+                  f"  TakeApart constructor started with is {self._thread_id}.\n"
+                  f"  The TakeApart object is not thread-safe.",
+                  file=sys.stderr)
         Assert(x is not None)
         self.disassemble(x)
     def disassemble(self, value):
@@ -1445,7 +1451,15 @@ if __name__ == "__main__":
             Assert(f(*g(dq, 6)) == "123457")
             Assert(f(*g(dq, 7)) == "1234568")
             Assert(f(*g(dq, 8)) == "12345679")
-            
+        def Test_Threading():
+            def Method(x):
+                x(3.4)
+            ta = TakeApart()
+            t = threading.Thread(target=Method, args=(ta,))
+            try:
+                t.start()
+            except RuntimeError:
+                pass
         def Test_Fix():
             'This is where the majority of execution time is'
             def TestTrimming():
@@ -1710,36 +1724,40 @@ if __name__ == "__main__":
                 # Function to convert an Apart to a string
                 g = lambda x: ''.join(x[:4]) + f"e{x[4]}"
                 k, u, m = 5, "1.23456", 300
-                TA = TakeApart()
+                ta = TakeApart()
                 for n in range(1, 10):
-                    TA.n = n
+                    ta.n = n
                     for i in (-1, 0, 1, 2, 1234, -1234):
-                        expected = TA(i)
+                        ta(i)
+                        expected = str(ta)
                         for x in (float(i), mpf(i), D(i), F(i)):
-                            Assert(TA(x) == expected)
-                            Assert(g(TA(x)) == g(expected))
+                            ta(x)
+                            strta = str(ta)
+                            if strta != expected: breakpoint() #xx
+                            Assert(strta == expected)
+                            Assert(g(strta) == g(expected))
                     # Large negative float
-                    expected, s = TA(int(-123456)*10**(m - k)), f"-{u}e{m}"
+                    expected, s = ta(int(-123456)*10**(m - k)), f"-{u}e{m}"
                     for typ in (float, mpf, D, F):
-                        y = TA(typ(s))
+                        y = ta(typ(s))
                         Assert(y == expected)
                         Assert(g(y) == g(expected))
                     # Large positive float
-                    expected, s = TA(int(123456)*10**(m - k)), f"{u}e{m}"
+                    expected, s = ta(int(123456)*10**(m - k)), f"{u}e{m}"
                     for typ in (float, mpf, D, F):
-                        y = TA(typ(s))
+                        y = ta(typ(s))
                         Assert(y == expected)
                         Assert(g(y) == g(expected))
                     # Small negative float
-                    expected, s = TA(int(-123456)/10**(m + k)), f"-{u}e-{m}"
+                    expected, s = ta(int(-123456)/10**(m + k)), f"-{u}e-{m}"
                     for typ in (float, mpf, D, F):
-                        y = TA(typ(s))
+                        y = ta(typ(s))
                         Assert(y == expected)
                         Assert(g(y) == g(expected))
                     # Small positive float
-                    expected, s = TA(int(123456)/10**(m + k)), f"{u}e-{m}"
+                    expected, s = ta(int(123456)/10**(m + k)), f"{u}e-{m}"
                     for typ in (float, mpf, D, F):
-                        y = TA(typ(s))
+                        y = ta(typ(s))
                         Assert(y == expected)
                         Assert(g(y) == g(expected))
             if 0:
@@ -1814,6 +1832,7 @@ if __name__ == "__main__":
                 Assert(result == "-123⋯89 |10⁴⁶|")
             # Floats
             print("xx Test_Brief:  need to write float code")  #xx
+    Test_Threading();exit() #xx
     if 1:   # Module's base code
         def Error(msg, status=1):
             print(msg, file=sys.stderr)
