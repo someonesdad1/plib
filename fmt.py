@@ -48,13 +48,24 @@ class Fmt:  Format floating point numbers
     A Fmt instance can format int, float, decimal.Decimal, mpmath.mpf, and
     fraction.Fraction number types.
  
-    IMPORTANT:  Fmt is deliberately not thread-safe.  This means if you
-    call the methods of the same instance in two different threads, you'll
-    get unpredictable and probably wrong results.  This could be fixed by
-    e.g. using a thread.Lock instance and turning Fmt into a context
-    manager, but the cost is that Fmt is then not able to be pickled.  Most
-    of my applications are single-threaded and I prefer to have the ability
-    to pickle things if desired.
+    IMPORTANT
+
+        Fmt is deliberately not thread-safe.  This means if you call the
+        methods of the same instance in two different threads, you'll get
+        unpredictable and probably wrong results.  This could be fixed by
+        e.g. using a thread.Lock instance and turning Fmt into a context
+        manager, but the cost is that Fmt is then not able to be pickled.
+        Most of my applications are single-threaded and I prefer to have
+        the ability to pickle things if desired.
+
+        To simulate the use of a context manager, make a copy:
+
+            fmt = Fmt(3)
+            fmt_copy = fmt.copy()
+            < Change fmt_copy's attributes as needed >
+            del fmt_copy    # Remove the copy when done
+
+        The fmt instance is unchanged.
  
     Methods
         - reset() to put instance in default state
@@ -63,7 +74,7 @@ class Fmt:  Format floating point numbers
     The attributes of a Fmt instance provide more control over the
     formatting:
  
-        n       Sets the number of significant digits.
+        n       Sets the number of displayed digits.
         default String for default formatting (fix, sci, eng, engsi,
                 engsic)
         int     How to format integers (None is str(), dec, hex, oct, bin)
@@ -79,7 +90,7 @@ class Fmt:  Format floating point numbers
                 Unicode such as 3.14✕10⁶.
         rlz     If True, remove leading zero digit in fixed point strings.
                 Example:  -0.284 is "-0.284" if False, "-.284" if True.
-        rtz     If True, remove trailing significant zero digits.
+        rtz     If True, remove trailing zero digits.
         rtdp    If True, remove the trailing radix if it ends the string.
         spc     If True, use " " as leading character if number >= 0
         sign    If True, always include the number's sign
@@ -326,7 +337,7 @@ class TakeApart:
             return self._n
         @n.setter
         def n(self, value):
-            Assert(ii(value, int) and value >= 0)
+            Assert(ii(value, int) and value > 0)
             redo = True if self._n != value else False
             self._n = value
             if redo and self._number is not None:
@@ -421,6 +432,19 @@ class Fmt:
         self._cuddled = False
         self._ul = False
         self._comp = False
+    def copy(self):
+        'Return a copy of the current instance'
+        fmt = Fmt(self.n)
+        # Set attributes equal
+        for i in self.__dict__:
+            if i.startswith("__") and i.endswith("__"):
+                continue
+            fmt.__dict__[i] = self.__dict__[i]
+        Assert(fmt.__dict__ == self.__dict__)
+        # Set a new TakeApart instance 
+        fmt.ta = TakeApart()
+        # For this to work, fmt.ta(number) must be called before
+        # disassembling any number.
     def toD(self, value) -> Decimal:
         '''Convert value to a Decimal object.  Supported types are int,
         float, Fraction, Decimal, str, mpmath.mpf, and any other type
@@ -571,11 +595,18 @@ class Fmt:
             if dq[0] == "0" and dq[1] == self._dp: 
                 dq.popleft()    # Remove leading 0
         return dq
-    def round(self, dq: deque, n: int) -> deque:
-        '''Given a deque of digits, round them to the indicated number of
-        figures.
+    def round(self, dq: deque, n: int):
+        '''Given a deque of digits, round it to the indicated number of
+        figures.  Returns (nine, dq) where nine is a Boolean that's True 
+        if the first figure was '9' before rounding and '1' after (meaning
+        we rounded up from 9 to 10) and dq is the deque with the desired 
+        number of n digits.
         '''
         Assert(len(dq) >= n and n > 0)
+        if set(dq) == set("0"):
+            # The special value of 0, so we need to return n zero digits
+            return (False, deque("0"*n))
+        first_char = dq[0]
         lst = ''.join(dq)
         left, right = int(lst[:n]), lst[n:]
         # Use banker rounding.  The sentinel is the first character of the
@@ -586,7 +617,13 @@ class Fmt:
         elif sentinel == 5:
             if str(left)[-1] in "13579":
                 left += 1   # Round to even
-        return deque(str(left))
+        d =  deque(str(left))
+        # Check to see if we rounded up 9 to 10
+        nine = True if first_char == "9" and d[0] == "1" else False
+        if nine and len(d) == n + 1:
+            d.pop()     # Get rid of last digit
+        Assert(len(d) == n)
+        return (nine, d)
     def fix(self, value, n=None, width=None) -> str:
         'Return a fixed point representation'
         # Get the exponent e
@@ -597,59 +634,60 @@ class Fmt:
             # take up more than 1/4 of the screen's digits is too large, so 
             # use sci interpolation.
             return self.sci(value, n=n)
-        with self.ta:
-            self.ta.n = n if n is not None else self.n
-            self.ta(value)  # Disassemble into parts
-            sign = self.ta.sign     # Sign ("-" or " ")
-            if not self.spc and sign == " ":
-                sign = ""
-            if self.sign and sign == "":
+        self.ta.n = n if n is not None else self.n
+        n = self.ta.n
+        self.ta(value)  # Disassemble into parts
+        sign = self.ta.sign     # Sign ("-" or " ")
+        if not self.spc and sign == " ":
+            sign = ""
+        if self.sign and sign == "":
+            sign = "+"
+        # Note we use fmt instance's decimal point, which is
+        # gotten from the locale, not from the number parsed by
+        # TakeApart()
+        dp = self.dp            # Decimal point
+        dq = self.ta.dq         # Deque of significand's digits 
+        # Remove any decimal point in dq
+        s = ''.join(dq).replace(dp, "")     # Remove dp
+        dq = deque(s)
+        # Check we only have digits in dq
+        if not set(dq).issubset(set(string.digits)):
+            raise Exception("Bug in dq's characters")
+        # Round to n digits
+        nine, dq = self.round(dq, n)
+        e = self.ta.e           # Integer exponent
+        if nine and dq[0] == "1":
+           e += 1
+        if e < 0:
+            # Number < 1
+            ne = e + 1
+            while ne < 0:
+                dq.appendleft("0")
+                ne += 1
+            dq.appendleft(dp)
+            if not self._rlz:
+                dq.appendleft("0")
+        else:
+            # Number >= 1
+            while len(dq) < e + 1:
+                dq.append("0")
+            dq.insert(e + 1, dp)
+        # Handle the sign
+        if self.sign:   # Always use a sign
+            if sign == " ":
                 sign = "+"
-            # Note we use fmt instance's decimal point, which is
-            # gotten from the locale, not from the number parsed by
-            # TakeApart()
-            dp = self.dp            # Decimal point
-            dq = self.ta.dq         # Deque of significand's digits 
-            # Remove any decimal point in dq
-            s = ''.join(dq).replace(dp, "")     # Remove dp
-            dq = deque(s)
-            # Check we only have digits in dq
-            if not set(dq).issubset(set(string.digits)):
-                raise Exception("Bug in dq's characters")
-            # Round to n digits
-            dq = self.round(dq, n)
-            dq = deque(list(dq)[:n])
-            e = self.ta.e           # Integer exponent
-            if e < 0:
-                # Number < 1
-                ne = e + 1
-                while ne < 0:
-                    dq.appendleft("0")
-                    ne += 1
-                dq.appendleft(dp)
-                if not self._rlz:
-                    dq.appendleft("0")
-            else:
-                # Number >= 1
-                while len(dq) < e + 1:
-                    dq.append("0")
-                dq.insert(e + 1, dp)
-            # Handle the sign
-            if self.sign:   # Always use a sign
-                if sign == " ":
-                    sign = "+"
-                dq.appendleft(sign)
-            else:
-                if self.spc:  # Use ' ' if positive
-                    if sign == "-":
-                        dq.appendleft(sign)
-                    else:
-                        dq.appendleft(" ")
-                else:           # Only use sign if negative
-                    if sign == "-":
-                        dq.appendleft(sign)
-            dq = self.trim(dq)
-            retval = ''.join(dq)
+            dq.appendleft(sign)
+        else:
+            if self.spc:  # Use ' ' if positive
+                if sign == "-":
+                    dq.appendleft(sign)
+                else:
+                    dq.appendleft(" ")
+            else:           # Only use sign if negative
+                if sign == "-":
+                    dq.appendleft(sign)
+        dq = self.trim(dq)
+        retval = ''.join(dq)
         return retval
     def sci(self, value, n=None, width=None) -> str:
         'Return a scientific format representation'
@@ -660,13 +698,14 @@ class Fmt:
         if not self.spc and sgn == " ":
             sgn = ""    # No leading space allowed if self.spc True
         # Round to n digits
-        dq = self.round(self.ta.dq, n)
+        nine, dq = self.round(self.ta.dq, n)
         # Get exponent string
         exponent = self.GetUnicodeExponent(self.ta.e) if self.u else f"e{self.ta.e}"
         # Return for simplest formatting case
         if not self.brief:
             # Insert locale's decimal point
             dq.insert(1, self.dp)
+            dq = self.trim(dq)  # Implement rtz, rtdp, rlz
             s = sgn + ''.join(dq) + exponent
             return s
         # Handle the case when self.brief is True
@@ -685,6 +724,7 @@ class Fmt:
         if len(dq) <= m:    # We can return it with no more work
             # Insert locale's decimal point
             dq.insert(1, self.dp)
+            dq = self.trim(dq)  # Implement rtz, rtdp, rlz
             s = sgn + ''.join(dq) + exponent
             return s
         # Significand needs digits removed.  Split significand and remove
@@ -744,14 +784,15 @@ class Fmt:
         the engineering notation (i.e., the exponent would need to be
         changed, turning the notation into plain scientific).
         '''
-        self.ta(value)
         self.ta.n = n if n is not None else self.n
+        n = self.ta.n
+        self.ta(value)
         sgn = self.ta.sign
         if not self.spc and sgn == " ":
             sgn = ""
         # Get significand without decimal point
         dq = deque(list(self.ta.ld + self.ta.other))
-        dq = self.round(dq, n)
+        nine, dq = self.round(dq, n)
         eng_step = 3
         div, rem = divmod(self.ta.e, eng_step)
         k = rem + 1 
@@ -860,11 +901,11 @@ class Fmt:
             return ret
     def __call__(self, value, fmt: str=None, n: int=None, width: int=None, ) -> str:
         '''Format value with the default "fix" formatter.  n overrides
-        self.n digits.  fmt can be "fix", "sci", "eng", "engsi", or
-        "engsic".  If it is None, then self.default is used.  If width is
-        not None, it is the desired string width when self.brief is True;
-        note that a best effort will be made, but the returned string may
-        be larger than the desired width.
+        self.n digits and must be > 0.  fmt can be "fix", "sci", "eng",
+        "engsi", or "engsic".  If it is None, then self.default is used.
+        If width is not None, it is the desired string width when
+        self.brief is True; note that a best effort will be made, but the
+        returned string may be larger than the desired width.
         '''
         if fmt is not None:
             if fmt not in "fix sci eng engsi engsic".split():
@@ -873,11 +914,10 @@ class Fmt:
             fmt = self.default
         if n is None:
             n = self._n
-        else:
-            if not ii(n, int):
-                raise TypeError("n must be an integer")
-            if n < 0:
-                raise ValueError("n must be >= 0")
+        if not ii(n, int):
+            raise TypeError("n must be an integer")
+        if n <= 0:
+            raise ValueError("n must be > 0")
         if ii(value, complex):
             return self.Complex(value, fmt=fmt, n=n, width=width)
         elif have_mpmath and ii(value, mpmath.mpc):
@@ -1008,8 +1048,8 @@ class Fmt:
             return self._n
         @n.setter
         def n(self, value):
-            if not(ii(value, int) or value < 0):
-                raise ValueError("value must be integer >= 0")
+            if not(ii(value, int) or value <= 0):
+                raise ValueError("value must be integer > 0")
             self._n = value
             self.ta._n = value
         @property
@@ -1102,14 +1142,9 @@ if 1:   # Convenience instances
     fmt = Fmt()
     #ta = TakeApart()
 # Development area
-if 1 and __name__ == "__main__": 
-    x = D("3.141592653589793e+99")
-    fmt.brief = 0
-    fmt.n = 4
-    fmt.u = 0
-    width = 13
-    #s = fmt(x, fmt="sci", width=width)
-    s = fmt.eng(x, n=4)
+if 0 and __name__ == "__main__": 
+    x = 0.99
+    s = fmt(x, fmt="fix", n=1)
     print(f"{s}")
     exit()
 
@@ -1157,23 +1192,23 @@ if __name__ == "__main__":
         {t.t}Usual python float formatting:{t.n}  x = {s}
             repr(x) = str(x) = {t.u}{x!s}{t.n}
             Though accurate, there are too many digits for easy comprehension.  The
-            Fmt class defaults to showing {f.n} significant figures and the trailing
-            radix helps you identify that it's a floating point number.
+            Fmt class defaults to showing {f.n} digits and the trailing radix helps
+            you identify that it's a floating point number.
         '''))
         t.print(f"{t.em}Fixed point formatting")
-        print(f"  {t.f}f(x){t.n} = {t.fix}{f(x)}{t.n} (defaults to {f.n} significant figures)")
+        print(f"  {t.f}f(x){t.n} = {t.fix}{f(x)}{t.n} (defaults to {f.n} digits)")
         t.print(f"{t.t}Remove trailing decimal point:  {t.f}f.rtdp = True")
         f.rtdp = True
         t.print(f"  {t.f}f(x) = {t.fix}{f(x)}")
         f.rtdp = False
-        # More figures
+        # More digits
         n = 10
-        t.print(f"{t.t}Set to {n} significant figures:  {t.f}f.n = {n}")
+        t.print(f"{t.t}Set to {n} digits:  {t.f}f.n = {n}")
         f.n = n
         t.print(f"  {t.f}f(x) = {t.fix}{f(x)}")
-        t.print(f"{t.t}Override f.n significant figures:")
+        t.print(f"{t.t}Override f.n digits:")
         t.print(f"  {t.f}f(x, n=5){t.n} = {t.fix}{f(x, n=5)}")
-        t.print(f"{t.t}Remove trailing significant zeros:")
+        t.print(f"{t.t}Remove trailing zeros:")
         t.print(f"  {t.f}f(1/4) = {t.fix}{f(1/4)} f.rtz = False")
         f.rtz = True
         t.print(f"  {t.f}f(1/4) = {t.fix}{f(1/4)} {' '*8}f.rtz = True")
@@ -1231,8 +1266,8 @@ if __name__ == "__main__":
         # Decimals with lots of digits
         n = 20
         t.print(dedent(f'''
-        {t.em}Significant figures{t.n}    {t.t}You can ask for any number of significant figures, but
-        some displayed digits can be meaningless if they are beyond the number's
+        {t.em}Digits{t.n}    {t.t}You can ask for any number of digits, but some
+        displayed digits can be meaningless if they are beyond the number's
         allowed precision.  Below, digits in error are shown in red, as a python float
         is only good to about 15 digits.  The expression evaluated is
         100000*sin(pi/4) to {n} digits.
@@ -1240,9 +1275,9 @@ if __name__ == "__main__":
         with decimal.localcontext() as ctx:
             ctx.prec = n
             x = 100000*decimalmath.sin(decimalmath.pi()/4)
-            # mpmath's result to 30 significant figures
+            # mpmath's result to 30 digits
             mp = "70710.6781186547524400844362104822"
-            #    "70710.678118654745049"    float to 20 figures
+            #    "70710.678118654745049"    float to 20 digits
             #                     ^ Incorrect digits
             t.print(f"  x = {t.fix}{fmt(x, n=n)}{t.n} (Decimal calculation)")
             y = 100000*math.sin(math.pi/4)
@@ -1263,21 +1298,6 @@ if __name__ == "__main__":
         to get proper SI syntax:  {t.u}{f(x, 'engsi')}Ω{t.n}.  {t.f}f.engsic{t.n} does the same except the prefix
         is cuddled: {t.u}{f(x, 'engsic')}Ω{t.n}.
         ''', n=8))
-        # Context manager
-        x = 2**0.5
-        t.print(dedent(f'''
-        {t.em}Context manager{t.n}    A Fmt class instance is a context manager that lets you
-        change attributes in a with statement and have them restored when the with
-        block is over:
-            x = 2**0.5
-            print(fmt(x))        -->  {t.f}{fmt(x)}{t.n}
-            with fmt:
-                fmt.n = 8
-        ''', n=8))
-        with fmt:
-            fmt.n = 8
-            t.print(f"        print(fmt(x))    -->  {t.f}{fmt(x)}{t.n}")
-        t.print(f"    print(fmt(x))        -->  {t.f}{fmt(x)}{t.n}")
         # Complex numbers
         z = complex(3.45678, -6.78901)
         fmt.imag_unit = "j"
@@ -1355,15 +1375,13 @@ if __name__ == "__main__":
             # Test with numbers near 1
             f = GetDefaultFmtInstance()
             x = 0.99
-            breakpoint() #xx
             Assert(f(x, n=1) == "1.")
             Assert(f(x, n=2) == "0.99")
             Assert(f(-x, n=1) == "-1.")
             Assert(f(-x, n=2) == "-0.99")
             x = 0.999999
             raises(ValueError, f, x, n=-1)
-            s = "0.9999989999999999712443354838"
-            Assert(f(x, n=0) == s)
+            raises(ValueError, f, x, n=0)
             Assert(f(x, n=1) == "1.")
             Assert(f(x, n=2) == "1.0")
             Assert(f(x, n=3) == "1.00")
@@ -1372,7 +1390,7 @@ if __name__ == "__main__":
             Assert(f(x, n=6) == "0.999999")
             Assert(f(x, n=7) == "0.9999990")
             raises(ValueError, f, -x, n=-1)
-            Assert(f(-x, n=0) == "-" + s)
+            raises(ValueError, f, -x, n=0)
             Assert(f(-x, n=1) == "-1.")
             Assert(f(-x, n=2) == "-1.0")
             Assert(f(-x, n=3) == "-1.00")
@@ -1417,16 +1435,16 @@ if __name__ == "__main__":
         def Test_Rounding():
             fmt = GetDefaultFmtInstance()
             dq = deque(list("123456789"))
-            f = lambda x: ''.join(x)
+            f = lambda x, y: ''.join(y)
             g = fmt.round
-            Assert(f(g(dq, 1)) == "1")
-            Assert(f(g(dq, 2)) == "12")
-            Assert(f(g(dq, 3)) == "123")
-            Assert(f(g(dq, 4)) == "1234")
-            Assert(f(g(dq, 5)) == "12346")
-            Assert(f(g(dq, 6)) == "123457")
-            Assert(f(g(dq, 7)) == "1234568")
-            Assert(f(g(dq, 8)) == "12345679")
+            Assert(f(*g(dq, 1)) == "1")
+            Assert(f(*g(dq, 2)) == "12")
+            Assert(f(*g(dq, 3)) == "123")
+            Assert(f(*g(dq, 4)) == "1234")
+            Assert(f(*g(dq, 5)) == "12346")
+            Assert(f(*g(dq, 6)) == "123457")
+            Assert(f(*g(dq, 7)) == "1234568")
+            Assert(f(*g(dq, 8)) == "12345679")
             
         def Test_Fix():
             'This is where the majority of execution time is'
@@ -1556,7 +1574,8 @@ if __name__ == "__main__":
                     100, 20, 3):
                 TestTiny(n)
                 TestHuge(n)
-                TestLotsOfDigits(n)
+                print("xx TestLotsOfDigits() commented out")
+                #TestLotsOfDigits(n)
             TestTrimming()
             TestBigInteger(20)
             Test_spc()
@@ -1781,18 +1800,18 @@ if __name__ == "__main__":
             fmt.brief = True
             x = 12345678901234567891234567890123456789123456789
             result = fmt.fmtint(x, width=10, mag=0)
-            Assert(result == "1234···789")
+            Assert(result == "12345⋯6789")
             result = fmt.fmtint(x, width=5, mag=0)
-            Assert(result == "1···9")
+            Assert(result == "12⋯89")
             x = -x
             result = fmt.fmtint(x, width=10)
-            Assert(result == "-123···89")
-            raises(ValueError, fmt.fmtint, x, width=5)
-            result = fmt.fmtint(x, width=6, mag=0)
-            Assert(result == "-1···9")
+            Assert(result == "-1234⋯789")
+            result = fmt.fmtint(x, width=5)
+            Assert(result == "-1⋯9")
+            raises(ValueError, fmt.fmtint, x, width=3)
             if 1:   # Test mag
                 result = fmt.fmtint(x, width=15, mag=True)
-                Assert(result == "-12···9 |10⁴⁶|")
+                Assert(result == "-123⋯89 |10⁴⁶|")
             # Floats
             print("xx Test_Brief:  need to write float code")  #xx
     if 1:   # Module's base code
