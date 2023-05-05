@@ -63,7 +63,7 @@ class Fmt:  Format floating point numbers
     fraction.Fraction number types.
  
     IMPORTANT
-
+ 
         Fmt is deliberately not thread-safe.  This means if you call the
         methods of the same instance in two different threads, you'll get
         unpredictable and probably wrong results.  This could be fixed by
@@ -71,14 +71,14 @@ class Fmt:  Format floating point numbers
         manager, but the cost is that Fmt is then not able to be pickled.
         Most of my applications are single-threaded and I prefer to have
         the ability to pickle things if desired.
-
+ 
         To simulate the use of a context manager, make a copy:
-
+ 
             fmt = Fmt(3)
             fmt_copy = fmt.copy()
             < Change fmt_copy's attributes as needed >
             del fmt_copy    # Remove the copy when done
-
+ 
         The fmt instance is unchanged.
  
     Methods
@@ -154,6 +154,7 @@ if 1:   # Header
         import math 
         import os 
         import string 
+        import sys 
         import subprocess 
         import threading 
         from collections import deque, namedtuple
@@ -185,17 +186,16 @@ if 1:   # Utility
         a nonempty environment string.  If msg is not empty, it's printed
         out.
         '''
+        if not hasattr(Assert, "debug"):
+            Assert.debug = False
         if not cond:
-            #if debug or Assert.debug or os.environ.get("Assert", ""):
-            if Assert.debug:
+            if debug or Assert.debug or os.environ.get("Assert", ""):
                 if msg:
                     print(msg, file=sys.stderr)
                 print("Type 'up' to go to line that failed", file=sys.stderr)
                 breakpoint()
             else:
                 raise AssertionError(msg)
-    Assert.debug = True
-    Assert.debug = False
 class TakeApart:
     '''Handles int, float, Decimal, mpf, and Fractions.  This code is not
     thread-safe, so only use one instance with one thread.
@@ -231,9 +231,113 @@ class TakeApart:
         Assert(x is not None)
         Assert(ii(n, int) and n > 0)
         self.disassemble(x, n)
+    def prepare(self, value, n: int):
+        '''Return a canonical representation of a number value.  n is an
+        integer describing the number of decimal digits we will want.  To
+        do this, the canonical representation must have at least n + 1
+        digits available; the n+1 digit allows for banker's rounding of the
+        significand to n digits.
+ 
+        The returned representation will be a tuple of the form 
+            
+            (neg, digits, radix, e)
+ 
+        where
+ 
+            Value   Type    Definition
+            neg      b      Number is negative if True
+            digits   s      Decimal digits of significand with no radix
+            radix    s      Decimal point either "." or ","
+            e        i      Power of 10 exponent.  None if value is integer.
+ 
+        where b is Boolean, s is string, and i is integer.
+ 
+        Improper values:
+            inf     (False, "inf", None, None)
+            -inf    (True, "inf", None, None)
+            nan     (None, "nan", None, None)
+ 
+        Integer values:
+            (neg, digits, None, None)
+ 
+        The algorithm to do this depends on value's type:
+ 
+            int         str(value) 
+            float       f"{value:.16e}"
+            fraction    convert to Decimal
+            Decimal     f"{x:.{prec}e}"
+            mfp         mpmath.nstr(), other code
+ 
+        This method will check a number of constraints and raise an
+        exception if improper behavior is detected.
+        '''
+        if not (ii(n, int) and n > 0):
+            raise ValueError("n must be an integer > 0")
+        if value is None:
+            raise ValueError("value must not be None")
+        def special(value, typ):
+            if value == typ("inf"):
+                return (False, "inf", None, None)
+            elif value == typ("-inf"):
+                return (True, "inf", None, None)
+            elif value == typ("nan"):
+                return (None, "nan", None, None)
+            return None
+        # We always use the locale's radix
+        radix = locale.localeconv()["decimal_point"]
+        # If value is not int, float, Decimal, mpf, convert it
+        if ii(value, Fraction):
+            value = Decimal(value.numerator)/Decimal(value.denominator)
+        # Construct the output tuple
+        if ii(value, int):
+            result = (value < 0, str(abs(value)), None, None)
+        elif ii(value, float):
+            result = special(value, float)
+            if result is None:
+                s = f"{abs(value):.16e}".replace(".", "").replace(",", "")
+                if "e" not in s:
+                    raise Exception("Bug:  no 'e' in float interpolation")
+                digits, exp = s.split("e")
+                result = (value < 0, digits, radix, int(exp))
+        elif ii(value, Decimal):
+            result = special(value, Decimal)
+            if result is None:
+                p = getcontext().prec
+                s = f"{abs(value):.{p}e}".replace(".", "").replace(",", "")
+                if "e" not in s:
+                    raise Exception("Bug:  no 'e' in Decimal interpolation")
+                digits, exp = s.split("e")
+                result = (value < 0, digits, radix, int(exp))
+        elif have_mpmath and ii(value, mpmath.mpf):
+            result = special(value, mpmath.mpf)
+            if result is None:
+                # An mpmath.mpf instance can also be an integer
+                if mpmath.isint():
+                    result = (value < 0, str(int(abs(value))), None, None)
+                else:
+                    p = mpmath.mp.dps
+                    s = nstr(abs(value), p, show_zero_exponent=True)
+                    if "e" not in s:
+                        raise Exception("Bug:  no 'e' in nstr() result")
+                    digits, exp = s.split("e")
+                    digits = digits.replace(".", "").replace(",", "")
+                    result = (value < 0, digits, radix, int(exp))
+        else:
+            raise TypeError(f"{value!r} is an unsupported type")
+        if 1:   # Verify constraints
+            Assert(len(result) == 4)
+            neg, digits, radix, e = result
+            Assert(neg is None or ii(neg, bool))
+            Assert(ii(digits, str) and len(digits))
+            Assert(radix is None or ii(radix, str))
+            if ii(radix, str):
+                Assert(len(radix) == 1 and radix in ".,")
+            Assert(e is None or ii(e, int))
+
+        return result
     def disassemble(self, value, n):
         "Disassemble the number value into this instance's attributes"
-        self.reset()    # Get this instance into a known state
+        self.reset()    # Put this instance into a known state
         x = self._number = value
         self._n = n
         Assert(value is not None)
@@ -378,7 +482,6 @@ class TakeApart:
         def supported(self, myset):
             Assert(ii(myset, set) and myset)
             self._supported = myset
-
 class Fmt:
     def __init__(self, n=3):
         'n is the number of digits to format to'
@@ -1146,15 +1249,35 @@ class Fmt:
         @comp.setter
         def comp(self, value):
             self._comp = bool(value)
-if 1:   # Convenience instances
+if 1:   # Convenience Fmt instance
     fmt = Fmt()
-    #ta = TakeApart()
 # Development area
 if 0 and __name__ == "__main__": 
-    x = 0.99
-    s = fmt(x, fmt="fix", n=1)
-    print(f"{s}")
+    from decimal import Decimal as D, getcontext
+    n, d = -30579573497547, 4068406805840
+    x = D(n)/D(d)
+    prec = getcontext().prec
+    print(f"{x:.{prec}e}")
     exit()
+if 1 and __name__ == "__main__": 
+        def Test_prepare():
+            '''TakeApart.prepare() is the core functionality needed for
+            string interpolation, so test all of its functionality.
+            '''
+            ta = TakeApart()
+            def f(x):
+                return ta.prepare(x, 3)
+            # int
+            Assert(f(0) == (False, "0", None, None))
+            for s in "1 2 10 20 1234567890".split():
+                Assert(f(int(s)) == (False, s, None, None))
+                Assert(f(-int(s)) == (True, s, None, None))
+            # float
+            # Fraction
+            # Decimal
+            # mpf
+        Test_prepare()
+        exit()
 
 if __name__ == "__main__": 
     if 1:   # Header
