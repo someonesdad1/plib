@@ -235,8 +235,8 @@ class TakeApart:
         '''Return a canonical representation of a number value.  n is an
         integer describing the number of decimal digits we will want.  To
         do this, the canonical representation must have at least n + 1
-        digits available; the n+1 digit allows for banker's rounding of the
-        significand to n digits.
+        digits available; the n + 1 digits allows for banker's rounding (i.e.,
+        round-to-even) of the significand to n digits.
  
         The returned representation will be a tuple of the form 
             
@@ -245,6 +245,7 @@ class TakeApart:
         where
  
             Value   Type    Definition
+            ------  ----    ------------------------------------------------
             neg      b      Number is negative if True
             digits   s      Decimal digits of significand with no radix
             radix    s      Decimal point either "." or ","
@@ -260,15 +261,7 @@ class TakeApart:
         Integer values:
             (neg, digits, None, None)
  
-        The algorithm to do this depends on value's type:
- 
-            int         str(value) 
-            float       f"{value:.16e}"
-            fraction    convert to Decimal
-            Decimal     f"{x:.{prec}e}"
-            mfp         mpmath.nstr(), other code
- 
-        This method will check a number of constraints and raise an
+        This method will check constraints/invariants and raise an
         exception if improper behavior is detected.
         '''
         if not (ii(n, int) and n > 0):
@@ -332,15 +325,30 @@ class TakeApart:
                 result = (value < 0, digits, radix, int(exp))
         else:
             raise TypeError(f"{value!r} is an unsupported type")
-        if 1:   # Verify constraints
-            Assert(len(result) == 4)
-            neg, digits, radix, e = result
-            Assert(neg is None or ii(neg, bool))
-            Assert(ii(digits, str) and len(digits))
-            Assert(radix is None or ii(radix, str))
-            if ii(radix, str):
-                Assert(len(radix) == 1 and radix in ".,")
-            Assert(e is None or ii(e, int))
+        if 1:   # Verify constraints & invariants
+            assert(ii(result, tuple))
+            neg, digits, radix, e = result  # result must be 4-tuple
+            if radix is None and e is None:
+                if neg is None:     # Check for nan
+                    Assert(digits == "nan")
+                else:               # inf or int
+                    Assert(ii(neg, bool))
+                    if "inf" in digits:
+                        Assert(digits == "inf" or digits == "-inf")
+                    else:
+                        Assert(ii(value, int))
+            else:
+                # Normal number:  make sure we have at least n + 1 digits for
+                # banker's rounding of the significand.
+                Assert(ii(digits, str) and len(digits) >= n + 1)
+                Assert(radix is None or ii(radix, str))
+                if ii(radix, str):
+                    Assert(len(radix) == 1 and radix in ".,")
+                if have_mpmath:
+                    Assert(ii(value, (float, Fraction, Decimal, mpmath.mpf)))
+                else:
+                    Assert(ii(value, (float, Fraction, Decimal)))
+                Assert(ii(e, int))
         return result
     def disassemble(self, value, n):
         "Disassemble the number value into this instance's attributes"
