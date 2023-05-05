@@ -1,11 +1,25 @@
 '''
 - Todo
     - fmt_refactoring branch
+        - Change to Fmt.disassemble(value, n) so that n is always defined
+        - Change disassemble() to use a function named self.prepare(value)
+          at the beginning that converts the various number types (int,
+          float, Decimal, mpf, and Fractions) to the form 
+
+            (sign,      # "-" or "+"
+             ld,        # Lead digit
+             radix,     # Radix:  '.', ',', or "" for integer
+             od,        # Other digits
+             exp)       # Integer exponent, base 10
+
+          Then typ(sign + ld + radix + od + "e" + str(exp)) gives back the
+          original floating point number.  typ(sign + ld + od) gives back
+          the original integer.  Then diassembling the number is simpler.
+            - Needs to handle inf and nan.
         - Get fix/eng/sci working with brief keyword
             - Change tests to no longer depend on fpformat
             - Has to handle large numbers with thousands of digits in
               exponent '1000 fac ent pow'.
- 
         - The brief keyword was added to Fmt attributes.  When it is True,
           string interpolation output is truncated to fit into a
           user-defined width.  Need to implement in fix sci eng __call__.
@@ -186,16 +200,15 @@ class TakeApart:
     '''Handles int, float, Decimal, mpf, and Fractions.  This code is not
     thread-safe, so only use one instance with one thread.
     '''
-    def __init__(self, n=3):
-        # Note self.n won't be changed in a reset()
+    def __init__(self):
         self._thread_id = threading.get_ident()
-        self._n = n
         self.reset()
     def reset(self):
         'Set attributes to default'
         self._supported = set((int, float, Decimal, Fraction))
         if have_mpmath:
             self.supported.add(mpmath.mpf)
+        self._n = None          # Number of digits
         self._number = None     # Number argument to __call__()
         self._sign = None       # "-" or " "
         self._ld = None         # Leading digit of number
@@ -209,19 +222,20 @@ class TakeApart:
             raise ValueError("TakeApart instance is invalid")
         return (self.sign + self._ld + self._dp +
                 self.other + "e" + str(self._e))
-    def __call__(self, x):
+    def __call__(self, x, n):
         if self._thread_id != threading.get_ident():
             print(f"Warning:  current thread ID = {threading.get_ident()}\n"
                   f"  TakeApart constructor started with is {self._thread_id}.\n"
                   f"  The TakeApart object is not thread-safe.",
                   file=sys.stderr)
         Assert(x is not None)
-        self.disassemble(x)
-    def disassemble(self, value):
+        Assert(ii(n, int) and n > 0)
+        self.disassemble(x, n)
+    def disassemble(self, value, n):
         "Disassemble the number value into this instance's attributes"
         self.reset()    # Get this instance into a known state
         x = self._number = value
-        n = self._n
+        self._n = n
         Assert(value is not None)
         Assert(ii(n, int) and n >= 0)
         # Handle int, float, Decimal, mpf, and Fractions
@@ -231,16 +245,12 @@ class TakeApart:
                 x = float(x)
             y = decimal.Decimal(str(x))
             ctx = decimal.getcontext()
-            if not n:
-                n = ctx.prec
-            n = max(ctx.prec, n)
+            n = min(ctx.prec, n)
         elif ii(x, fractions.Fraction):
             y = decimal.Decimal(x.numerator)/decimal.Decimal(x.denominator)
         elif have_mpmath and ii(x, mpmath.mpf):
             y = x
-            if not n:
-                n = mpmath.mp.dps
-            n = max(mpmath.mp.dps, n)
+            n = min(mpmath.mp.dps, n)
         else:
             raise TypeError(f"{x!r} is not a supported number type")
         # Now disassemble the number
@@ -255,7 +265,8 @@ class TakeApart:
             # Get the significand string
             a = yabs*ten**(-e)
             Assert(ii(a, mpmath.mpf))
-            s = mpmath.nstr(a, n)
+            m = mpmath.mp.dps
+            s = mpmath.nstr(a, m)   # Significand to full precision
             a = mpmath.mpf(s)
             if a >= 10:
                 # This can happen when e.g. the number is 9.999999 and we
@@ -288,6 +299,7 @@ class TakeApart:
         self._other = other
         self._e = e
         self._dq = deque(ld + other)
+        breakpoint() #xx
         if 1:
             # Check invariants
             Assert(self._sign is not None and
@@ -373,6 +385,7 @@ class Fmt:
         self._n_init = n
         self._n = None                  # Number of digits
         self._default = None            # Default formatting method
+        self._int = None                # Default fmtint() style
         self.ta = None                  # Take apart machinery
         self._dp = None                 # Radix
         self._u = None                  # Use Unicode symbols for exponents
@@ -381,7 +394,6 @@ class Fmt:
         self._rtdp = None               # Remove trailing radix if True
         self._spc = None                # If num >= 0, use " " for leading character
         self._sign = None               # Include "+" or "-" in interpolation
-        self._int = None                # Default fmtint() style
         # If in fix mode, very large/small numbers can result in too
         # many digits to display on the screen.  When abs(exponent) is
         # greater than self.nchars (here, about 1/4 of the terminal
@@ -402,7 +414,8 @@ class Fmt:
             # notation.  Standard python uses 1e-5 and 1e15; the latter is
             # much too large for my tastes.  Set either of these to None to 
             # disable switching to scientific notation -- but you can get
-            # very large strings this way.
+            # very large strings this way.  Since these are seldom changed,
+            # there's no properties defined for them.
             self._low_init = self.toD("1e-4")
             self._high_init = self.toD("1e6")
         # Key to _SI_prefixes dict is exponent//3
@@ -413,15 +426,11 @@ class Fmt:
         self.reset()
     def reset(self):
         'Reset attributes to default state'
-        n = self._n_init
-        self._n = n
+        self.n = self._n_init
         self._default = "fix"
         self._int = None    # Default uses str(int)
         self.ta = TakeApart()
-        self.ta.n = n  # Synchronize number of digits
         self._dp = locale.localeconv()["decimal_point"]
-        self._low = self._low_init  
-        self._high = self._high_init
         self._u = False
         self._rlz = False
         self._rtz = False
@@ -438,6 +447,9 @@ class Fmt:
         self._cuddled = False
         self._ul = False
         self._comp = False
+        # Low and high settings
+        self._low = self._low_init  
+        self._high = self._high_init
     def copy(self):
         'Return a copy of the current instance'
         fmt = Fmt(self.n)
@@ -632,17 +644,14 @@ class Fmt:
         return (nine, d)
     def fix(self, value, n=None, width=None) -> str:
         'Return a fixed point representation'
-        # Get the exponent e
-        if self.ta._number is None or value != self.ta._number:
-            self.ta(value)  # Needs disassembling into parts
+        n = n if n is not None else self.n
+        self.ta(value, n)  # Disassemble into parts
+        breakpoint() #xx
         if abs(self.ta.e) > self.nchars:
             # I've arbitrarily decided that a number whose exponent will
             # take up more than 1/4 of the screen's digits is too large, so 
             # use sci interpolation.
             return self.sci(value, n=n)
-        self.ta.n = n if n is not None else self.n
-        n = self.ta.n
-        self.ta(value)  # Disassemble into parts
         sign = self.ta.sign     # Sign ("-" or " ")
         if not self.spc and sign == " ":
             sign = ""
@@ -698,8 +707,7 @@ class Fmt:
     def sci(self, value, n=None, width=None) -> str:
         'Return a scientific format representation'
         n = n if n is not None else self.n
-        Assert(ii(n, int) and n > 0)
-        self.ta(value)
+        self.ta(value, n)
         sgn = self.ta.sign  # Will be '-' or ' '
         if not self.spc and sgn == " ":
             sgn = ""    # No leading space allowed if self.spc True
@@ -790,9 +798,8 @@ class Fmt:
         the engineering notation (i.e., the exponent would need to be
         changed, turning the notation into plain scientific).
         '''
-        self.ta.n = n if n is not None else self.n
-        n = self.ta.n
-        self.ta(value)
+        n = n if n is not None else self.n
+        self.ta(value, n)
         sgn = self.ta.sign
         if not self.spc and sgn == " ":
             sgn = ""
@@ -905,7 +912,7 @@ class Fmt:
             s = "" if self.cuddled else " "
             ret = f"{sr}{s}{sign}{s}{si}{self._imag_unit}"
             return ret
-    def __call__(self, value, fmt: str=None, n: int=None, width: int=None, ) -> str:
+    def __call__(self, value, fmt: str=None, n: int=None, width: int=None) -> str:
         '''Format value with the default "fix" formatter.  n overrides
         self.n digits and must be > 0.  fmt can be "fix", "sci", "eng",
         "engsi", or "engsic".  If it is None, then self.default is used.
@@ -913,23 +920,19 @@ class Fmt:
         self.brief is True; note that a best effort will be made, but the
         returned string may be larger than the desired width.
         '''
-        if fmt is not None:
-            if fmt not in "fix sci eng engsi engsic".split():
+        if 1:   # Check arguments
+            if fmt is not None and fmt not in "fix sci eng engsi engsic".split():
                 raise ValueError(f"'{fmt}' is unrecognized format string")
-        else:
-            fmt = self.default
-        if n is None:
-            n = self._n
-        if not ii(n, int):
-            raise TypeError("n must be an integer")
-        if n <= 0:
-            raise ValueError("n must be > 0")
-        if ii(value, complex):
+            else:
+                fmt = self.default
+            n = self.n if n is None else n
+            if not ii(n, int):
+                raise TypeError("n must be an integer")
+            if n <= 0:
+                raise ValueError("n must be > 0")
+        # Call the relevant method
+        if ii(value, complex) or (have_mpmath and ii(value, mpmath.mpc)):
             return self.Complex(value, fmt=fmt, n=n, width=width)
-        elif have_mpmath and ii(value, mpmath.mpc):
-            return self.Complex(value, fmt=fmt, n=n, width=width)
-        Assert(n is not None)
-        x = value
         if ii(value, (int, float, Decimal)):
             return self.call_Decimal(value, fmt=fmt, n=n, width=width)
         else:
@@ -1050,14 +1053,13 @@ class Fmt:
             self._low = None if value is None else abs(D(str(value)))
         @property
         def n(self) -> int:
-            'Number of digits (integer >0 0)'
+            'Number of digits, an integer > 0'
             return self._n
         @n.setter
         def n(self, value):
             if not(ii(value, int) or value <= 0):
                 raise ValueError("value must be integer > 0")
             self._n = value
-            self.ta._n = value
         @property
         def rtz(self) -> bool:
             '(bool) Remove trailing zeros after radix if True'
@@ -1349,6 +1351,7 @@ if __name__ == "__main__":
             return fmt
         def Test_Basics():
             f = GetDefaultFmtInstance()
+            breakpoint() #xx
             s = f(pi)
             for x, result in (
                 (pi, "3.14"),
@@ -1451,15 +1454,6 @@ if __name__ == "__main__":
             Assert(f(*g(dq, 6)) == "123457")
             Assert(f(*g(dq, 7)) == "1234568")
             Assert(f(*g(dq, 8)) == "12345679")
-        def Test_Threading():
-            def Method(x):
-                x(3.4)
-            ta = TakeApart()
-            t = threading.Thread(target=Method, args=(ta,))
-            try:
-                t.start()
-            except RuntimeError:
-                pass
         def Test_Fix():
             'This is where the majority of execution time is'
             def TestTrimming():
@@ -1832,7 +1826,6 @@ if __name__ == "__main__":
                 Assert(result == "-123⋯89 |10⁴⁶|")
             # Floats
             print("xx Test_Brief:  need to write float code")  #xx
-    Test_Threading();exit() #xx
     if 1:   # Module's base code
         def Error(msg, status=1):
             print(msg, file=sys.stderr)
