@@ -1305,45 +1305,55 @@ if 1 and __name__ == "__main__":
                         exit()
                 Assert(f(x) == expected)
             # Decimal
-            m = decimal.getcontext().prec + 1
-            Assert(f(D("inf")) == (False, "inf", None, None))
-            Assert(f(D("-inf")) == (True, "inf", None, None))
-            Assert(f(D("nan")) == (None, "nan", None, None))
-            for x, expected in (
-                    (D( 0.0), (False, "0"*m, ".", m - 1)),
-                    (D( 1.0), (False, "1" + "0"*(m - 1), ".", 0)),
-                    (D(-1.0), (True , "1" + "0"*(m - 1), ".", 0)),
-                    (D( 0.1), (False, "10000000000000000555111512310", ".", -1)),
-                    (D(-0.1), (True , "10000000000000000555111512310", ".", -1)),
-                    (D( 123456.78901), (False, "12345678900999999314080923800", ".", 5)),
-                    (D(-123456.78901), (True , "12345678900999999314080923800", ".", 5)),
-                    (D( 123456.78901e-6), (False, "12345678900999999816345820140", ".", -1)),
-                    (D(-123456.78901e-6), (True , "12345678900999999816345820140", ".", -1)),
-                    (D( 123456.78901e300), (False, "12345678900999999740046835070", ".", 305)),
-                    (D(-123456.78901e300), (True , "12345678900999999740046835070", ".", 305)),
-                    (D( 123456.78901e-300), (False, "12345678901000000637177520390", ".", -295)),
-                    (D(-123456.78901e-300), (True , "12345678901000000637177520390", ".", -295)),
-                ):
-                if 0:
-                    if f(x) != expected:
-                        print(x, f(x))
-                        exit()
-                Assert(f(x) == expected)
-            # Fraction
-            F = Fraction
-            for x, expected in (
-                    (F( 0, 1), (False, "0"*m, ".", m - 1)),
-                    (F( 1, 1), (False, "1" + "0"*(m - 1), ".", 0)),
-                    (F(-1, 1), (True , "1" + "0"*(m - 1), ".", 0)),
-                    (F( 1, 10), (False, "10000000000000000000000000000", ".", -1)),
-                    (F(-1, 10), (True , "10000000000000000000000000000", ".", -1)),
-                ):
-                y = D(x.numerator)/D(x.denominator)
-                if 0:
-                    if f(y) != expected:
-                        print(y, f(y))
-                        exit()
-                Assert(f(y) == expected)
+            m = 10
+            with decimal.localcontext() as ctx:
+                ctx.prec = m
+                u = "1" + "0"*m
+                v = "12345678900"
+                Assert(f(D("inf")) == (False, "inf", None, None))
+                Assert(f(D("-inf")) == (True, "inf", None, None))
+                Assert(f(D("nan")) == (None, "nan", None, None))
+                for x, expected in (
+                        (D(" 0.0"), (False, "0"*(m + 1), ".", m - 1)),
+                        (D(" 1.0"), (False, u, ".", 0)),
+                        (D("-1.0"), (True , u, ".", 0)),
+                        (D(" 0.1"), (False, u, ".", -1)),
+                        (D("-0.1"), (True , u, ".", -1)),
+                        (D(" 123456.78901"), (False, v, ".", 5)),
+                        (D("-123456.78901"), (True , v, ".", 5)),
+                        (D(" 123456.78901e-6"), (False, v, ".", -1)),
+                        (D("-123456.78901e-6"), (True , v, ".", -1)),
+                        (D(" 123456.78901e300"), (False, v, ".", 305)),
+                        (D("-123456.78901e300"), (True , v, ".", 305)),
+                        (D(" 123456.78901e-300"), (False, v, ".", -295)),
+                        (D("-123456.78901e-300"), (True , v, ".", -295)),
+                        (D(" 0.9999999999"), (False, "99999999990", ".", -1)),
+                        (D(" 0.99999999999"), (False, "10000000000", ".", 0)),
+                    ):
+                    if 1:
+                        if f(x) != expected:
+                            print(f"x = {x}")
+                            print(f"got      = {f(x)}")
+                            print(f"expected = {expected}")
+                            exit()
+                    Assert(f(x) == expected)
+                # Fraction
+                F = Fraction
+                for x, expected in (
+                        (F( 0, 1), (False, "0"*(m + 1), ".", m)),
+                        (F( 1, 1), (False, u, ".", 0)),
+                        (F(-1, 1), (True , u, ".", 0)),
+                        (F( 1, 10), (False, u, ".", -1)),
+                        (F(-1, 10), (True , u, ".", -1)),
+                    ):
+                    y = D(x.numerator)/D(x.denominator)
+                    if 0:
+                        if f(y) != expected:
+                            print(f"y = {y}")
+                            print(f"got      = {f(y)}")
+                            print(f"expected = {expected}")
+                            exit()
+                    Assert(f(y) == expected)
             # mpf
             if not have_mpmath:
                 return
