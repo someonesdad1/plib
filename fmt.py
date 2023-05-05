@@ -280,7 +280,7 @@ class TakeApart:
                 return (False, "inf", None, None)
             elif value == typ("-inf"):
                 return (True, "inf", None, None)
-            elif value == typ("nan") or repr(value) in "nan Decimal('NaN')".split():
+            elif value == typ("nan") or repr(value) in "nan Decimal('NaN') mpf('nan')".split():
                 return (None, "nan", None, None)
             return None
         # We always use the locale's radix
@@ -309,19 +309,27 @@ class TakeApart:
                 digits, exp = s.split("e")
                 result = (value < 0, digits, radix, int(exp))
         elif have_mpmath and ii(value, mpmath.mpf):
+            # Note:  I have made it a policy to assume that any number defined
+            # to be an mpmath.mpf type is a real number, even if mpmath.isinf()
+            # is True for that number.  
             result = special(value, mpmath.mpf)
             if result is None:
-                # An mpmath.mpf instance can also be an integer
-                if mpmath.isint():
-                    result = (value < 0, str(int(abs(value))), None, None)
-                else:
-                    p = mpmath.mp.dps
-                    s = nstr(abs(value), p, show_zero_exponent=True)
-                    if "e" not in s:
-                        raise Exception("Bug:  no 'e' in nstr() result")
-                    digits, exp = s.split("e")
-                    digits = digits.replace(".", "").replace(",", "")
-                    result = (value < 0, digits, radix, int(exp))
+                m = mpmath.mp.dps
+                # To get mpmath.nstr to return the full number of
+                # significant digits, pass in the keyword argument
+                # strip_zeros=False.  This keyword gets passed to
+                # libmpf.to_str().  Also, min_fixed > max_fixed is used to
+                # force scientific notation.
+                s = mpmath.nstr(abs(value), m, show_zero_exponent=True,
+                                min_fixed=1, max_fixed=0, strip_zeros=False)
+                if "e" not in s:
+                    raise Exception("Bug:  no 'e' in nstr() result")
+                digits, exp = s.split("e")
+                digits = digits.replace(".", "").replace(",", "")
+                if not value and len(digits) < m:
+                    while len(digits) < m:
+                        digits += "0"
+                result = (value < 0, digits, radix, int(exp))
         else:
             raise TypeError(f"{value!r} is an unsupported type")
         if 1:   # Verify constraints
@@ -1252,12 +1260,12 @@ if 1:   # Convenience Fmt instance
     fmt = Fmt()
 # Development area
 if 0 and __name__ == "__main__": 
-    from decimal import Decimal as D, getcontext
-    n, d = -30579573497547, 4068406805840
-    x = D(n)/D(d)
-    prec = getcontext().prec
-    print(f"{x:.{prec}e}")
+    ta = TakeApart()
+    x = mpmath.mpf("0.0")
+    s = ta.prepare(x, 3)
+    print(x, s)
     exit()
+
 if 1 and __name__ == "__main__": 
         def Test_prepare():
             '''TakeApart.prepare() is the core functionality needed for
@@ -1309,13 +1317,10 @@ if 1 and __name__ == "__main__":
                     (D(-0.1), (True , "10000000000000000555111512310", ".", -1)),
                     (D( 123456.78901), (False, "12345678900999999314080923800", ".", 5)),
                     (D(-123456.78901), (True , "12345678900999999314080923800", ".", 5)),
-
                     (D( 123456.78901e-6), (False, "12345678900999999816345820140", ".", -1)),
                     (D(-123456.78901e-6), (True , "12345678900999999816345820140", ".", -1)),
-
                     (D( 123456.78901e300), (False, "12345678900999999740046835070", ".", 305)),
                     (D(-123456.78901e300), (True , "12345678900999999740046835070", ".", 305)),
-
                     (D( 123456.78901e-300), (False, "12345678901000000637177520390", ".", -295)),
                     (D(-123456.78901e-300), (True , "12345678901000000637177520390", ".", -295)),
                 ):
@@ -1340,6 +1345,38 @@ if 1 and __name__ == "__main__":
                         exit()
                 Assert(f(y) == expected)
             # mpf
+            if not have_mpmath:
+                return
+            m = mpmath.mp.dps
+            mpf = mpmath.mpf
+            Assert(f(mpf("inf")) == (False, "inf", None, None))
+            Assert(f(mpf("-inf")) == (True, "inf", None, None))
+            Assert(f(mpf("nan")) == (None, "nan", None, None))
+            for x, expected in (
+                    (mpf(" 0.0"), (False, "000000000000000", ".", 0)),
+                    (mpf(" 1.0"), (False, "100000000000000", ".", 0)),
+                    (mpf("-1.0"), (True , "100000000000000", ".", 0)),
+                    (mpf(" 0.1"), (False, "100000000000000", ".", -1)),
+                    (mpf("-0.1"), (True , "100000000000000", ".", -1)),
+                    (mpf(" 123456.78901"), (False, "123456789010000", ".", 5)),
+                    (mpf("-123456.78901"), (True , "123456789010000", ".", 5)),
+                    (mpf(" 123456.78901e-6"), (False, "123456789010000", ".", -1)),
+                    (mpf("-123456.78901e-6"), (True , "123456789010000", ".", -1)),
+                    (mpf(" 123456.78901e300"), (False, "123456789010000", ".", 305)),
+                    (mpf("-123456.78901e300"), (True , "123456789010000", ".", 305)),
+                    (mpf(" 123456.78901e-300"), (False, "123456789010000", ".", -295)),
+                    (mpf("-123456.78901e-300"), (True , "123456789010000", ".", -295)),
+                ):
+                if 1:
+                    if f(x) != expected:
+                        print(f"x = {x}")
+                        print(f"expected = {expected}")
+                        print(f"got      = {f(x)}")
+                        s = mpmath.nstr(x, m, show_zero_exponent=True,
+                            min_fixed=1, max_fixed=0, strip_zeros=False)
+                        print(f"nstr = {s}")
+                        exit()
+                Assert(f(x) == expected)
         Test_prepare()
         exit()
 
