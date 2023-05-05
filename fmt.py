@@ -363,7 +363,9 @@ class TakeApart:
         # Get the basic string interpolation data for the supported number types
         neg, digits, radix, e = self.prepare(value, n)
         if radix is None and e is None:     # inf, nan, or int
+            breakpoint() #xx
         else:                               # Regular number
+            breakpoint() #xx
         # Set our attributes
         self.n = n
         self.number = self._number = value
