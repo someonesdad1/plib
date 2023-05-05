@@ -280,7 +280,7 @@ class TakeApart:
                 return (False, "inf", None, None)
             elif value == typ("-inf"):
                 return (True, "inf", None, None)
-            elif value == typ("nan"):
+            elif value == typ("nan") or repr(value) in "nan Decimal('NaN')".split():
                 return (None, "nan", None, None)
             return None
         # We always use the locale's radix
@@ -302,7 +302,7 @@ class TakeApart:
         elif ii(value, Decimal):
             result = special(value, Decimal)
             if result is None:
-                p = getcontext().prec
+                p = decimal.getcontext().prec
                 s = f"{abs(value):.{p}e}".replace(".", "").replace(",", "")
                 if "e" not in s:
                     raise Exception("Bug:  no 'e' in Decimal interpolation")
@@ -333,7 +333,6 @@ class TakeApart:
             if ii(radix, str):
                 Assert(len(radix) == 1 and radix in ".,")
             Assert(e is None or ii(e, int))
-
         return result
     def disassemble(self, value, n):
         "Disassemble the number value into this instance's attributes"
@@ -1273,8 +1272,73 @@ if 1 and __name__ == "__main__":
                 Assert(f(int(s)) == (False, s, None, None))
                 Assert(f(-int(s)) == (True, s, None, None))
             # float
-            # Fraction
+            m = 17
+            Assert(f(float("inf")) == (False, "inf", None, None))
+            Assert(f(float("-inf")) == (True, "inf", None, None))
+            Assert(f(float("nan")) == (None, "nan", None, None))
+            for x, expected in (
+                    (float( 0.0), (False, "0"*m, ".", 0)),
+                    (float( 1.0), (False, "1" + "0"*(m - 1), ".", 0)),
+                    (float(-1.0), (True , "1" + "0"*(m - 1), ".", 0)),
+                    (float( 0.1), (False, "10000000000000001", ".", -1)),
+                    (float(-0.1), (True , "10000000000000001", ".", -1)),
+                    (float( 123456.78901), (False, "12345678900999999", ".", 5)),
+                    (float(-123456.78901), (True , "12345678900999999", ".", 5)),
+                    (float( 123456.78901e-6), (False, "12345678901000000", ".", -1)),
+                    (float(-123456.78901e-6), (True , "12345678901000000", ".", -1)),
+                    (float( 123456.78901e300), (False, "12345678901000000", ".", 305)),
+                    (float(-123456.78901e300), (True , "12345678901000000", ".", 305)),
+                    (float( 123456.78901e-300), (False, "12345678901000001", ".", -295)),
+                    (float(-123456.78901e-300), (True , "12345678901000001", ".", -295)),
+                ):
+                if 0:
+                    if f(x) != expected:
+                        print(x, f(x))
+                        exit()
+                Assert(f(x) == expected)
             # Decimal
+            m = decimal.getcontext().prec + 1
+            Assert(f(D("inf")) == (False, "inf", None, None))
+            Assert(f(D("-inf")) == (True, "inf", None, None))
+            Assert(f(D("nan")) == (None, "nan", None, None))
+            for x, expected in (
+                    (D( 0.0), (False, "0"*m, ".", m - 1)),
+                    (D( 1.0), (False, "1" + "0"*(m - 1), ".", 0)),
+                    (D(-1.0), (True , "1" + "0"*(m - 1), ".", 0)),
+                    (D( 0.1), (False, "10000000000000000555111512310", ".", -1)),
+                    (D(-0.1), (True , "10000000000000000555111512310", ".", -1)),
+                    (D( 123456.78901), (False, "12345678900999999314080923800", ".", 5)),
+                    (D(-123456.78901), (True , "12345678900999999314080923800", ".", 5)),
+
+                    (D( 123456.78901e-6), (False, "12345678900999999816345820140", ".", -1)),
+                    (D(-123456.78901e-6), (True , "12345678900999999816345820140", ".", -1)),
+
+                    (D( 123456.78901e300), (False, "12345678900999999740046835070", ".", 305)),
+                    (D(-123456.78901e300), (True , "12345678900999999740046835070", ".", 305)),
+
+                    (D( 123456.78901e-300), (False, "12345678901000000637177520390", ".", -295)),
+                    (D(-123456.78901e-300), (True , "12345678901000000637177520390", ".", -295)),
+                ):
+                if 0:
+                    if f(x) != expected:
+                        print(x, f(x))
+                        exit()
+                Assert(f(x) == expected)
+            # Fraction
+            F = Fraction
+            for x, expected in (
+                    (F( 0, 1), (False, "0"*m, ".", m - 1)),
+                    (F( 1, 1), (False, "1" + "0"*(m - 1), ".", 0)),
+                    (F(-1, 1), (True , "1" + "0"*(m - 1), ".", 0)),
+                    (F( 1, 10), (False, "10000000000000000000000000000", ".", -1)),
+                    (F(-1, 10), (True , "10000000000000000000000000000", ".", -1)),
+                ):
+                y = D(x.numerator)/D(x.denominator)
+                if 0:
+                    if f(y) != expected:
+                        print(y, f(y))
+                        exit()
+                Assert(f(y) == expected)
             # mpf
         Test_prepare()
         exit()
