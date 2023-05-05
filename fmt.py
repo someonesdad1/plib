@@ -1347,36 +1347,41 @@ if 1 and __name__ == "__main__":
             # mpf
             if not have_mpmath:
                 return
-            m = mpmath.mp.dps
-            mpf = mpmath.mpf
-            Assert(f(mpf("inf")) == (False, "inf", None, None))
-            Assert(f(mpf("-inf")) == (True, "inf", None, None))
-            Assert(f(mpf("nan")) == (None, "nan", None, None))
-            for x, expected in (
-                    (mpf(" 0.0"), (False, "000000000000000", ".", 0)),
-                    (mpf(" 1.0"), (False, "100000000000000", ".", 0)),
-                    (mpf("-1.0"), (True , "100000000000000", ".", 0)),
-                    (mpf(" 0.1"), (False, "100000000000000", ".", -1)),
-                    (mpf("-0.1"), (True , "100000000000000", ".", -1)),
-                    (mpf(" 123456.78901"), (False, "123456789010000", ".", 5)),
-                    (mpf("-123456.78901"), (True , "123456789010000", ".", 5)),
-                    (mpf(" 123456.78901e-6"), (False, "123456789010000", ".", -1)),
-                    (mpf("-123456.78901e-6"), (True , "123456789010000", ".", -1)),
-                    (mpf(" 123456.78901e300"), (False, "123456789010000", ".", 305)),
-                    (mpf("-123456.78901e300"), (True , "123456789010000", ".", 305)),
-                    (mpf(" 123456.78901e-300"), (False, "123456789010000", ".", -295)),
-                    (mpf("-123456.78901e-300"), (True , "123456789010000", ".", -295)),
-                ):
-                if 1:
-                    if f(x) != expected:
-                        print(f"x = {x}")
-                        print(f"expected = {expected}")
-                        print(f"got      = {f(x)}")
-                        s = mpmath.nstr(x, m, show_zero_exponent=True,
-                            min_fixed=1, max_fixed=0, strip_zeros=False)
-                        print(f"nstr = {s}")
-                        exit()
-                Assert(f(x) == expected)
+            m = 10
+            with mpmath.workdps(m):
+                mpf = mpmath.mpf
+                Assert(f(mpf("inf")) == (False, "inf", None, None))
+                Assert(f(mpf("-inf")) == (True, "inf", None, None))
+                Assert(f(mpf("nan")) == (None, "nan", None, None))
+                u = "1" + "0"*(m - 1)
+                v = "1234567890"
+                for x, expected in (
+                        (mpf(" 0.0"), (False, "0"*m, ".", 0)),
+                        (mpf(" 1.0"), (False, u, ".", 0)),
+                        (mpf("-1.0"), (True , u, ".", 0)),
+                        (mpf(" 0.1"), (False, u, ".", -1)),
+                        (mpf("-0.1"), (True , u, ".", -1)),
+                        (mpf(" 123456.78901"), (False, "1234567890", ".", 5)),
+                        (mpf("-123456.78901"), (True , "1234567890", ".", 5)),
+                        (mpf(" 123456.78901e-6"), (False, v, ".", -1)),
+                        (mpf("-123456.78901e-6"), (True , v, ".", -1)),
+                        (mpf(" 123456.78901e300"), (False, v, ".", 305)),
+                        (mpf("-123456.78901e300"), (True , v, ".", 305)),
+                        (mpf(" 123456.78901e-300"), (False, v, ".", -295)),
+                        (mpf("-123456.78901e-300"), (True , v, ".", -295)),
+                        (mpf(" 0.9999999999"), (False, "9999999999", ".", -1)),
+                        (mpf(" 0.99999999999"), (False, "1000000000", ".", 0)),
+                    ):
+                    if 1:
+                        if f(x) != expected:
+                            print(f"x = {x}")
+                            print(f"expected = {expected}")
+                            print(f"got      = {f(x)}")
+                            s = mpmath.nstr(x, m, show_zero_exponent=True,
+                                min_fixed=1, max_fixed=0, strip_zeros=False)
+                            print(f"nstr = {s}")
+                            exit()
+                    Assert(f(x) == expected)
         Test_prepare()
         exit()
 
