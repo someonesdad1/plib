@@ -218,10 +218,20 @@ class TakeApart:
         self.e = None           # Integer power of 10 of number
         self.dq = None          # Deque of significand's digits without dp
     def __str__(self):
-        if not self.valid:
-            raise ValueError("TakeApart instance is invalid")
-        return (self.sign + self._ld + self._dp +
-                self.other + "e" + str(self._e))
+        if self.number is None:
+            return "Call disassemble(value, n) first"
+        if self.normal:
+            if self.int:
+                return f"{self.sign}{''.join(self.dq)}"
+            else:
+                cp = self.dq.copy()
+                cp.insert(1, self.radix)
+                return f"{self.sign}{''.join(cp)}e{self.e}"
+        else:
+            if self.dq[0] == "n":
+                return ''.join(self.dq)
+            else:
+                return self.sign.strip() + ''.join(self.dq)
     def __call__(self, x, n):
         if self._thread_id != threading.get_ident():
             print(f"Warning:  current thread ID = {threading.get_ident()}\n"
@@ -428,7 +438,7 @@ class TakeApart:
         '''
         # Integers are special cases.  For example, 123 can be rounded to 2
         # digits, but an integer < 10 cannot.
-        if ii(self.number, int) and abs(self.number) < 10**n - 1:
+        if ii(self.number, int) and len(str(abs(self.number))) <= n:
             return dq
         Assert(len(dq) >= n + 1)
         # Truncate to a string of n + 1 digits
@@ -1582,10 +1592,10 @@ if __name__ == "__main__":
             show it works for the basic tasks.
             '''
             ta = TakeApart()
+            def f(x, n):
+                ta.disassemble(x, n)
+                return ''.join(ta.dq)
             if 1:   # Integer
-                def f(x, n):
-                    ta.disassemble(x, n)
-                    return ''.join(ta.dq)
                 x = 12345600
                 for n, expected in (
                         (1, "10000000"),
@@ -1600,16 +1610,27 @@ if __name__ == "__main__":
                     Assert(ta.sign == " ")
                     Assert(f(-x, n) == expected)
                     Assert(ta.sign == "-")
-                # Basic forms
+                # One digit integers that can't be rounded
                 for x in range(1, 10):
                     for n in range(1, 20):
                         Assert(f(x, n) == str(x))
-            exit()
-            # Float
-            x = 12345600.
-            ta.disassemble(x, n)
-            print(f"x = {x}")
-            print(f"    {''.join(ta.dq)}")
+                        Assert(f(-x, n) == str(x))
+            if 1:   # Float
+                X = mpmath.mpf("12345600.") if have_mpmath else 12345600.
+                for x in (12345600., D("12345600."), X):
+                    for n, expected in (
+                            (1, "1"),
+                            (2, "12"),
+                            (3, "123"),
+                            (4, "1234"),
+                            (5, "12346"),
+                            (6, "123456"),
+                            (7, "1234560"),
+                        ):
+                        Assert(f(x, n) == expected)
+                        Assert(ta.sign == " ")
+                        Assert(f(-x, n) == expected)
+                        Assert(ta.sign == "-")
 
         def Test_Basics():
             f = GetDefaultFmtInstance()
