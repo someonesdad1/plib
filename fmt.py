@@ -5,13 +5,13 @@
         - Change disassemble() to use a function named self.prepare(value)
           at the beginning that converts the various number types (int,
           float, Decimal, mpf, and Fractions) to the form 
-
+ 
             (sign,      # "-" or "+"
              ld,        # Lead digit
              radix,     # Radix:  '.', ',', or "" for integer
              od,        # Other digits
              exp)       # Integer exponent, base 10
-
+ 
           Then typ(sign + ld + radix + od + "e" + str(exp)) gives back the
           original floating point number.  typ(sign + ld + od) gives back
           the original integer.  Then diassembling the number is simpler.
@@ -368,7 +368,7 @@ class TakeApart:
     def disassemble(self, value, n):
         '''Disassemble the number value into this instance's attributes.
         The basic information returned is:
-
+ 
         self.number     Original value
         self.normal     Boolean:  True for int/float, false for inf/nan
         self.int        Boolean:  True for int, False for float
@@ -377,20 +377,20 @@ class TakeApart:
         self.radix      Decimal point (defined by locale)
         self.e          Integer containing the numbers base 10 exponent
         self.dq         Deque containing self.n digits
-
+ 
         The deque self.dq contains the self.n digits that will be displayed.
         The last digit of the deque is rounded using half-even rounding:  if
         the (n+1)st digit is 5, the last digit is rounded up if the last digit
         is odd.
-
+ 
         If the number is inf/nan (self.normal is False), then self.dq will
         contain the string "nan" or "inf"; everything else is None.  If it's
         the string "inf", then self.sign will be either "-" or "".
-
+ 
         If the number is an integer, the deque will contain the first self.n
         digits followed by the necessary remaining zeroes.  self.sign is also
         set; everything else is None.
-
+ 
         Otherwise, the number is a floating point number and the deque contains
         the desired self.n digits with the other attributes set appropriately.
         '''
@@ -988,6 +988,7 @@ class Fmt:
             raise TypeError(f"{value!r} is an unsupported type")
     def Int(self, value, fmt=None, n=None, width=None) -> str:
         n = n if n is not None else self.n
+
     def Real(self, value, fmt=None, n=None, width=None) -> str:
         n = n if n is not None else self.n
     def Complex(self, value, fmt=None, n=None, width=None) -> str:
