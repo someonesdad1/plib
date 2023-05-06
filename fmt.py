@@ -202,21 +202,21 @@ class TakeApart:
     '''
     def __init__(self):
         self._thread_id = threading.get_ident()
+        self.supported = [int, float, Decimal, Fraction]
+        if have_mpmath:
+            self.supported.append(mpmath.mpf)
+        self.supported = tuple(self.supported)
         self.reset()
     def reset(self):
-        'Clear attributes'
-        self.supported = set((int, float, Decimal, Fraction))
-        if have_mpmath:
-            self.supported.add(mpmath.mpf)
-        self.n = None          # Desired number of digits
-        self.number = None     # Number argument to __call__()
-        self.sign = None       # "-" or " "
-        self.ld = None         # Leading digit of number
-        self.dp = None         # Decimal point string
-        self.other = None      # Remaining digits of number
-        self.e = None          # Integer exponent of 10
-        self.dq = None         # Deque of significand's digits without dp
-        self.is_valid = False      # Is valid after call to disassemble & checking
+        'Clear attributes used for number disassembly'
+        self.number = None      # Number argument to __call__()
+        self.normal = None      # True means number is not inf and not nan
+        self.int = None         # True means number is an integer
+        self.n = None           # Desired number of digits
+        self.sign = None        # "-" or " "
+        self.radix = None       # Decimal point defined by locale
+        self.e = None           # Integer power of 10 of number
+        self.dq = None          # Deque of significand's digits without dp
     def __str__(self):
         if not self.valid:
             raise ValueError("TakeApart instance is invalid")
@@ -287,7 +287,7 @@ class TakeApart:
         # Construct the output tuple
         if ii(value, int):
             result = (value < 0, str(abs(value)), None, None)
-        elif ii(value, float, flt):
+        elif ii(value, float):
             if ".flt'>" in str(type(value)):  # Avoid an infinite recursion with f.flt instances
                 value = float(value)
             result = special(value, float)
@@ -356,103 +356,100 @@ class TakeApart:
                 Assert(ii(e, int))
         return result
     def disassemble(self, value, n):
-        "Disassemble the number value into this instance's attributes"
-        self.reset()    # Put this instance into a known state
-        Assert(value is not None)
-        Assert(ii(n, int) and n >= 0)
+        '''Disassemble the number value into this instance's attributes.
+        The basic information returned is:
+
+        self.number     Original value
+        self.normal     Boolean:  True for int/float, false for inf/nan
+        self.int        Boolean:  True for int, False for float
+        self.n          Number of desired digits in interpolation
+        self.sign       Sign of number:  "-" or " "
+        self.radix      Decimal point (defined by locale)
+        self.e          Integer containing the numbers base 10 exponent
+        self.dq         Deque containing self.n digits
+
+        The deque self.dq contains the self.n digits that will be displayed.
+        The last digit of the deque is rounded using half-even rounding:  if
+        the (n+1)st digit is 5, the last digit is rounded up if the last digit
+        is odd.
+
+        If the number is inf/nan (self.normal is False), then self.dq will
+        contain the string "nan" or "inf"; everything else is None.  If it's
+        the string "inf", then self.sign will be either "-" or "".
+
+        If the number is an integer, the deque will contain the first self.n
+        digits followed by the necessary remaining zeroes.  self.sign is also
+        set; everything else is None.
+
+        Otherwise, the number is a floating point number and the deque contains
+        the desired self.n digits with the other attributes set appropriately.
+        '''
+        # Put this instance into a known state
+        self.reset()
         # Get the basic string interpolation data for the supported number types
         neg, digits, radix, e = self.prepare(value, n)
-        if radix is None and e is None:     # inf, nan, or int
-            breakpoint() #xx
-        else:                               # Regular number
-            breakpoint() #xx
-        # Set our attributes
+        self.number = value
+        self.normal = True
         self.n = n
-        self.number = self._number = value
+        if digits == "nan" or "inf" in digits:
+            self.normal = False
+            self.sign = "-" if neg else ""
+            self.dq = deque(digits)
+            return
+        if radix is None and e is None:     # int
+            self.sign = "-" if neg else " "
+            self.int = True
+            size = len(digits)
+            self.dq = self.round(deque(digits), self.n)
+            # Append zeroes if needed
+            for i in range(size - len(self.dq)):
+                self.dq.append("0")
+            # Checks
+            Assert(len(self.dq) == size)
+            Assert(self.sign == "-" or self.sign == " ")
+            return
+        # Regular floating point number
+        self.int = False
         self.sign = "-" if neg else " "
-        self.ld = digits[0]
-        self.dp = radix
-        self.other = digits[1:] if len(digits) > 1 else ""
+        self.radix = radix
         self.e = e
-        self.dq = deque(digits)
-        if 1:
-            # Check invariants
-            Assert(self.sign is not None and
-                   self.ld is not None and
-                   self.dp is not None and
-                   self.other is not None and
-                   self.e is not None and
-                   self.dq is not None)
-            Assert(self.sign in ("-", " "))
-            Assert(ii(self.ld, str) and len(self.ld) == 1)
-            Assert(self.dp in (".", ","))
-            Assert(ii(self.other, str))
-            Assert(ii(self.e, int))
-            # Deque has length of strings ld and other
-            Assert(ii(self.dq, deque))
-            Assert(len(self.dq) == len(self.ld) + len(self.other))
-            Assert("." not in self.dq and "," not in self.dq)
-            Assert(len(self.ld + self.other) == n)
-        self.valid = True
-    if 1:   # Properties
-        @property
-        def dp(self):
-            'Decimal point string'
-            Assert(self.valid and ii(self._dp, str) and len(self._dp) == 1)
-            return self._dp
-        @property
-        def dq(self):
-            "Deque of significand's digits"
-            Assert(self.valid and ii(self._dq, deque) and len(self._dq))
-            return self._dq
-        @property
-        def e(self):
-            'Integer exponent of 10'
-            Assert(self.valid and ii(self._e, int))
-            return self._e
-        @property
-        def exp(self):
-            'String form of self.e'
-            return str(self.e)
-        @property
-        def ld(self):
-            'Leading digit of significand'
-            Assert(self.valid and ii(self._ld, str) and len(self._ld) == 1)
-            return self._ld
-        @property
-        def other(self):
-            'Non-leading digits of significand'
-            Assert(self.valid and ii(self._ld, str))
-            return self._other
-        @property
-        def n(self):
-            'Number of digits in significand'
-            return self._n
-        @n.setter
-        def n(self, value):
-            Assert(ii(value, int) and value > 0)
-            redo = True if self._n != value else False
-            self._n = value
-            if redo and self._number is not None:
-                self(self._number)
-        @property
-        def number(self):
-            'Last argument to __call__()'
-            Assert(self._number is not None)
-            return self._number
-        @property
-        def sign(self) -> str:
-            '"-" or " ", sign of self.number'
-            Assert(self.valid and ii(self._sign, str) and self._sign in ("-", " "))
-            return self._sign
-        @property
-        def supported(self):
-            'Set of supported types'
-            return self._supported
-        @supported.setter
-        def supported(self, myset):
-            Assert(ii(myset, set) and myset)
-            self._supported = myset
+        self.dq = self.round(deque(digits), self.n)
+        # Checks
+        Assert(ii(self.int, bool))
+        Assert(self.sign == "-" or self.sign == " ")
+        Assert(self.radix == "." or self.radix == ",")
+        Assert(ii(self.e, int))
+        Assert(len(self.dq) == n)
+    def round(self, dq: deque, n: int):
+        '''Return the deque dq of digits rounded to n digits.  Use half-even
+        rounding:  the last digit is rounded up if the following digit is
+        greater than 5.  If the following digit is 5, the last digit is rounded
+        up if it is odd.
+        '''
+        # Integers are special cases.  For example, 123 can be rounded to 2
+        # digits, but an integer < 10 cannot.
+        if ii(self.number, int) and abs(self.number) < 10**n - 1:
+            return dq
+        Assert(len(dq) >= n + 1)
+        # Truncate to a string of n + 1 digits
+        s = ''.join(dq)[:n + 1]
+        # Get the (n+1)st digit, which is used as the sentinel for rounding
+        sentinel = int(s[-1])
+        # Truncate to n digits
+        s = s[:-1]
+        Assert(len(s) == n)
+        # Get last digit of significand
+        last_digit = s[-1]
+        # Convert to integer to make rounding easy
+        significand = int(s)
+        # Round significand 
+        if sentinel > 5 or (sentinel == 5 and last_digit in "13579"):
+            significand += 1
+        # Convert back to deque
+        dq = deque(str(significand))
+        # Check 
+        Assert(len(dq) == n)
+        return dq
 class Fmt:
     def __init__(self, n=3):
         'n is the number of digits to format to'
@@ -1224,9 +1221,17 @@ if 1:   # Convenience Fmt instance
 # Development area
 if 0 and __name__ == "__main__": 
     ta = TakeApart()
-    x = mpmath.mpf("0.0")
-    s = ta.prepare(x, 3)
-    print(x, s)
+    n = 5
+    # Integer
+    x = 12345600
+    ta.disassemble(x, n)
+    print(f"x = {x}")
+    print(f"    {''.join(ta.dq)}")
+    # Float
+    x = 12345600.
+    ta.disassemble(x, n)
+    print(f"x = {x}")
+    print(f"    {''.join(ta.dq)}")
     exit()
 
 if __name__ == "__main__": 
@@ -1424,84 +1429,44 @@ if __name__ == "__main__":
             return fmt
         def Test_prepare():
             '''TakeApart.prepare() is the core functionality needed for
-            string interpolation, so test all of its functionality.
+            string interpolation for supported number types.
             '''
             ta = TakeApart()
             def f(x):
                 return ta.prepare(x, 3)
-            # int
-            Assert(f(0) == (False, "0", None, None))
-            for s in "1 2 10 20 1234567890".split():
-                Assert(f(int(s)) == (False, s, None, None))
-                Assert(f(-int(s)) == (True, s, None, None))
-            # float
-            m = 17
-            Assert(f(float("inf")) == (False, "inf", None, None))
-            Assert(f(float("-inf")) == (True, "inf", None, None))
-            Assert(f(float("nan")) == (None, "nan", None, None))
-            for x, expected in (
-                    (float( 0.0), (False, "0"*m, ".", 0)),
-                    (float( 1.0), (False, "1" + "0"*(m - 1), ".", 0)),
-                    (float(-1.0), (True , "1" + "0"*(m - 1), ".", 0)),
-                    (float( 0.1), (False, "10000000000000001", ".", -1)),
-                    (float(-0.1), (True , "10000000000000001", ".", -1)),
-                    (float( 123456.78901), (False, "12345678900999999", ".", 5)),
-                    (float(-123456.78901), (True , "12345678900999999", ".", 5)),
-                    (float( 123456.78901e-6), (False, "12345678901000000", ".", -1)),
-                    (float(-123456.78901e-6), (True , "12345678901000000", ".", -1)),
-                    (float( 123456.78901e300), (False, "12345678901000000", ".", 305)),
-                    (float(-123456.78901e300), (True , "12345678901000000", ".", 305)),
-                    (float( 123456.78901e-300), (False, "12345678901000001", ".", -295)),
-                    (float(-123456.78901e-300), (True , "12345678901000001", ".", -295)),
-                    #
-                    (float("0." + "9"*(m - 1)), (False, "99999999999999989", ".", -1)),
-                    (float("0." + "9"*m), (False, "10000000000000000", ".", 0)),
-                    (float("1." + "0"*(m - 3) + "1"), (False, "10000000000000011", ".", 0)),
-                    (float("1." + "0"*(m - 2) + "1"), (False, "10000000000000000", ".", 0)),
-                    (float("-0." + "9"*(m - 1)), (True, "99999999999999989", ".", -1)),
-                    (float("-0." + "9"*m), (True, "10000000000000000", ".", 0)),
-                    (float("-1." + "0"*(m - 3) + "1"), (True, "10000000000000011", ".", 0)),
-                    (float("-1." + "0"*(m - 2) + "1"), (True, "10000000000000000", ".", 0)),
-                ):
-                if 0:
-                    if f(x) != expected:
-                        print(f"x = {x}")
-                        print(f"got      = {f(x)}")
-                        print(f"expected = {expected}")
-                        exit()
-                Assert(f(x) == expected)
-            # Decimal
-            m = 10
-            with decimal.localcontext() as ctx:
-                ctx.prec = m
-                u = "1" + "0"*m
-                v = "12345678900"
-                Assert(f(D("inf")) == (False, "inf", None, None))
-                Assert(f(D("-inf")) == (True, "inf", None, None))
-                Assert(f(D("nan")) == (None, "nan", None, None))
+            if 1:   # int
+                Assert(f(0) == (False, "0", None, None))
+                for s in "1 2 10 20 1234567890".split():
+                    Assert(f(int(s)) == (False, s, None, None))
+                    Assert(f(-int(s)) == (True, s, None, None))
+            if 1:   # float
+                m = 17
+                Assert(f(float("inf")) == (False, "inf", None, None))
+                Assert(f(float("-inf")) == (True, "inf", None, None))
+                Assert(f(float("nan")) == (None, "nan", None, None))
                 for x, expected in (
-                        (D(" 0.0"), (False, "0"*(m + 1), ".", m - 1)),
-                        (D(" 1.0"), (False, u, ".", 0)),
-                        (D("-1.0"), (True , u, ".", 0)),
-                        (D(" 0.1"), (False, u, ".", -1)),
-                        (D("-0.1"), (True , u, ".", -1)),
-                        (D(" 123456.78901"), (False, v, ".", 5)),
-                        (D("-123456.78901"), (True , v, ".", 5)),
-                        (D(" 123456.78901e-6"), (False, v, ".", -1)),
-                        (D("-123456.78901e-6"), (True , v, ".", -1)),
-                        (D(" 123456.78901e300"), (False, v, ".", 305)),
-                        (D("-123456.78901e300"), (True , v, ".", 305)),
-                        (D(" 123456.78901e-300"), (False, v, ".", -295)),
-                        (D("-123456.78901e-300"), (True , v, ".", -295)),
+                        (float( 0.0), (False, "0"*m, ".", 0)),
+                        (float( 1.0), (False, "1" + "0"*(m - 1), ".", 0)),
+                        (float(-1.0), (True , "1" + "0"*(m - 1), ".", 0)),
+                        (float( 0.1), (False, "10000000000000001", ".", -1)),
+                        (float(-0.1), (True , "10000000000000001", ".", -1)),
+                        (float( 123456.78901), (False, "12345678900999999", ".", 5)),
+                        (float(-123456.78901), (True , "12345678900999999", ".", 5)),
+                        (float( 123456.78901e-6), (False, "12345678901000000", ".", -1)),
+                        (float(-123456.78901e-6), (True , "12345678901000000", ".", -1)),
+                        (float( 123456.78901e300), (False, "12345678901000000", ".", 305)),
+                        (float(-123456.78901e300), (True , "12345678901000000", ".", 305)),
+                        (float( 123456.78901e-300), (False, "12345678901000001", ".", -295)),
+                        (float(-123456.78901e-300), (True , "12345678901000001", ".", -295)),
                         #
-                        (D(" 0.9999999999"), (False, "99999999990", ".", -1)),
-                        (D(" 0.99999999999"), (False, "10000000000", ".", 0)),
-                        (D("1." + "0"*(m - 2) + "1"), (False, "10000000010", ".", 0)),
-                        (D("1." + "0"*(m - 1) + "1"), (False, "10000000000", ".", 0)),
-                        (D("-0.9999999999"), (True, "99999999990", ".", -1)),
-                        (D("-0.99999999999"), (True, "10000000000", ".", 0)),
-                        (D("-1." + "0"*(m - 2) + "1"), (True, "10000000010", ".", 0)),
-                        (D("-1." + "0"*(m - 1) + "1"), (True, "10000000000", ".", 0)),
+                        (float("0." + "9"*(m - 1)), (False, "99999999999999989", ".", -1)),
+                        (float("0." + "9"*m), (False, "10000000000000000", ".", 0)),
+                        (float("1." + "0"*(m - 3) + "1"), (False, "10000000000000011", ".", 0)),
+                        (float("1." + "0"*(m - 2) + "1"), (False, "10000000000000000", ".", 0)),
+                        (float("-0." + "9"*(m - 1)), (True, "99999999999999989", ".", -1)),
+                        (float("-0." + "9"*m), (True, "10000000000000000", ".", 0)),
+                        (float("-1." + "0"*(m - 3) + "1"), (True, "10000000000000011", ".", 0)),
+                        (float("-1." + "0"*(m - 2) + "1"), (True, "10000000000000000", ".", 0)),
                     ):
                     if 0:
                         if f(x) != expected:
@@ -1510,68 +1475,142 @@ if __name__ == "__main__":
                             print(f"expected = {expected}")
                             exit()
                     Assert(f(x) == expected)
-                # Fraction
-                F = Fraction
-                for x, expected in (
-                        (F( 0, 1), (False, "0"*(m + 1), ".", m)),
-                        (F( 1, 1), (False, u, ".", 0)),
-                        (F(-1, 1), (True , u, ".", 0)),
-                        (F( 1, 10), (False, u, ".", -1)),
-                        (F(-1, 10), (True , u, ".", -1)),
+            if 1:   # Decimal
+                m = 10
+                with decimal.localcontext() as ctx:
+                    ctx.prec = m
+                    u = "1" + "0"*m
+                    v = "12345678900"
+                    Assert(f(D("inf")) == (False, "inf", None, None))
+                    Assert(f(D("-inf")) == (True, "inf", None, None))
+                    Assert(f(D("nan")) == (None, "nan", None, None))
+                    for x, expected in (
+                            (D(" 0.0"), (False, "0"*(m + 1), ".", m - 1)),
+                            (D(" 1.0"), (False, u, ".", 0)),
+                            (D("-1.0"), (True , u, ".", 0)),
+                            (D(" 0.1"), (False, u, ".", -1)),
+                            (D("-0.1"), (True , u, ".", -1)),
+                            (D(" 123456.78901"), (False, v, ".", 5)),
+                            (D("-123456.78901"), (True , v, ".", 5)),
+                            (D(" 123456.78901e-6"), (False, v, ".", -1)),
+                            (D("-123456.78901e-6"), (True , v, ".", -1)),
+                            (D(" 123456.78901e300"), (False, v, ".", 305)),
+                            (D("-123456.78901e300"), (True , v, ".", 305)),
+                            (D(" 123456.78901e-300"), (False, v, ".", -295)),
+                            (D("-123456.78901e-300"), (True , v, ".", -295)),
+                            #
+                            (D(" 0.9999999999"), (False, "99999999990", ".", -1)),
+                            (D(" 0.99999999999"), (False, "10000000000", ".", 0)),
+                            (D("1." + "0"*(m - 2) + "1"), (False, "10000000010", ".", 0)),
+                            (D("1." + "0"*(m - 1) + "1"), (False, "10000000000", ".", 0)),
+                            (D("-0.9999999999"), (True, "99999999990", ".", -1)),
+                            (D("-0.99999999999"), (True, "10000000000", ".", 0)),
+                            (D("-1." + "0"*(m - 2) + "1"), (True, "10000000010", ".", 0)),
+                            (D("-1." + "0"*(m - 1) + "1"), (True, "10000000000", ".", 0)),
+                        ):
+                        if 0:
+                            if f(x) != expected:
+                                print(f"x = {x}")
+                                print(f"got      = {f(x)}")
+                                print(f"expected = {expected}")
+                                exit()
+                        Assert(f(x) == expected)
+                    # Fraction
+                    F = Fraction
+                    for x, expected in (
+                            (F( 0, 1), (False, "0"*(m + 1), ".", m)),
+                            (F( 1, 1), (False, u, ".", 0)),
+                            (F(-1, 1), (True , u, ".", 0)),
+                            (F( 1, 10), (False, u, ".", -1)),
+                            (F(-1, 10), (True , u, ".", -1)),
+                        ):
+                        y = D(x.numerator)/D(x.denominator)
+                        if 0:
+                            if f(y) != expected:
+                                print(f"y = {y}")
+                                print(f"got      = {f(y)}")
+                                print(f"expected = {expected}")
+                                exit()
+                        Assert(f(y) == expected)
+            if 1:   # mpf
+                if not have_mpmath:
+                    return
+                m = 10
+                with mpmath.workdps(m):
+                    mpf = mpmath.mpf
+                    Assert(f(mpf("inf")) == (False, "inf", None, None))
+                    Assert(f(mpf("-inf")) == (True, "inf", None, None))
+                    Assert(f(mpf("nan")) == (None, "nan", None, None))
+                    u = "1" + "0"*(m - 1)
+                    v = "1234567890"
+                    for x, expected in (
+                            (mpf(" 0.0"), (False, "0"*m, ".", 0)),
+                            (mpf(" 1.0"), (False, u, ".", 0)),
+                            (mpf("-1.0"), (True , u, ".", 0)),
+                            (mpf(" 0.1"), (False, u, ".", -1)),
+                            (mpf("-0.1"), (True , u, ".", -1)),
+                            (mpf(" 123456.78901"), (False, "1234567890", ".", 5)),
+                            (mpf("-123456.78901"), (True , "1234567890", ".", 5)),
+                            (mpf(" 123456.78901e-6"), (False, v, ".", -1)),
+                            (mpf("-123456.78901e-6"), (True , v, ".", -1)),
+                            (mpf(" 123456.78901e300"), (False, v, ".", 305)),
+                            (mpf("-123456.78901e300"), (True , v, ".", 305)),
+                            (mpf(" 123456.78901e-300"), (False, v, ".", -295)),
+                            (mpf("-123456.78901e-300"), (True , v, ".", -295)),
+                            #
+                            (mpf(" 0.9999999999"), (False, "9999999999", ".", -1)),
+                            (mpf(" 0.99999999999"), (False, "1000000000", ".", 0)),
+                            (mpf("1." + "0"*(m - 2) + "1"), (False, "1000000001", ".", 0)),
+                            (mpf("1." + "0"*(m - 1) + "1"), (False, "1000000000", ".", 0)),
+                            (mpf("-0.9999999999"), (True, "9999999999", ".", -1)),
+                            (mpf("-0.99999999999"), (True, "1000000000", ".", 0)),
+                            (mpf("-1." + "0"*(m - 2) + "1"), (True, "1000000001", ".", 0)),
+                            (mpf("-1." + "0"*(m - 1) + "1"), (True, "1000000000", ".", 0)),
+                        ):
+                        if 0:
+                            if f(x) != expected:
+                                print(f"x = {x}")
+                                print(f"expected = {expected}")
+                                print(f"got      = {f(x)}")
+                                s = mpmath.nstr(x, m, show_zero_exponent=True,
+                                    min_fixed=1, max_fixed=0, strip_zeros=False)
+                                print(f"nstr = {s}")
+                                exit()
+                        Assert(f(x) == expected)
+        def Test_disassemble():
+            '''TakeApart.disassemble() is used for all string interpolation, so
+            show it works for the basic tasks.
+            '''
+            ta = TakeApart()
+            if 1:   # Integer
+                def f(x, n):
+                    ta.disassemble(x, n)
+                    return ''.join(ta.dq)
+                x = 12345600
+                for n, expected in (
+                        (1, "10000000"),
+                        (2, "12000000"),
+                        (3, "12300000"),
+                        (4, "12340000"),
+                        (5, "12346000"),
+                        (6, "12345600"),
+                        (7, "12345600"),
                     ):
-                    y = D(x.numerator)/D(x.denominator)
-                    if 0:
-                        if f(y) != expected:
-                            print(f"y = {y}")
-                            print(f"got      = {f(y)}")
-                            print(f"expected = {expected}")
-                            exit()
-                    Assert(f(y) == expected)
-            # mpf
-            if not have_mpmath:
-                return
-            m = 10
-            with mpmath.workdps(m):
-                mpf = mpmath.mpf
-                Assert(f(mpf("inf")) == (False, "inf", None, None))
-                Assert(f(mpf("-inf")) == (True, "inf", None, None))
-                Assert(f(mpf("nan")) == (None, "nan", None, None))
-                u = "1" + "0"*(m - 1)
-                v = "1234567890"
-                for x, expected in (
-                        (mpf(" 0.0"), (False, "0"*m, ".", 0)),
-                        (mpf(" 1.0"), (False, u, ".", 0)),
-                        (mpf("-1.0"), (True , u, ".", 0)),
-                        (mpf(" 0.1"), (False, u, ".", -1)),
-                        (mpf("-0.1"), (True , u, ".", -1)),
-                        (mpf(" 123456.78901"), (False, "1234567890", ".", 5)),
-                        (mpf("-123456.78901"), (True , "1234567890", ".", 5)),
-                        (mpf(" 123456.78901e-6"), (False, v, ".", -1)),
-                        (mpf("-123456.78901e-6"), (True , v, ".", -1)),
-                        (mpf(" 123456.78901e300"), (False, v, ".", 305)),
-                        (mpf("-123456.78901e300"), (True , v, ".", 305)),
-                        (mpf(" 123456.78901e-300"), (False, v, ".", -295)),
-                        (mpf("-123456.78901e-300"), (True , v, ".", -295)),
-                        #
-                        (mpf(" 0.9999999999"), (False, "9999999999", ".", -1)),
-                        (mpf(" 0.99999999999"), (False, "1000000000", ".", 0)),
-                        (mpf("1." + "0"*(m - 2) + "1"), (False, "1000000001", ".", 0)),
-                        (mpf("1." + "0"*(m - 1) + "1"), (False, "1000000000", ".", 0)),
-                        (mpf("-0.9999999999"), (True, "9999999999", ".", -1)),
-                        (mpf("-0.99999999999"), (True, "1000000000", ".", 0)),
-                        (mpf("-1." + "0"*(m - 2) + "1"), (True, "1000000001", ".", 0)),
-                        (mpf("-1." + "0"*(m - 1) + "1"), (True, "1000000000", ".", 0)),
-                    ):
-                    if 0:
-                        if f(x) != expected:
-                            print(f"x = {x}")
-                            print(f"expected = {expected}")
-                            print(f"got      = {f(x)}")
-                            s = mpmath.nstr(x, m, show_zero_exponent=True,
-                                min_fixed=1, max_fixed=0, strip_zeros=False)
-                            print(f"nstr = {s}")
-                            exit()
-                    Assert(f(x) == expected)
+                    Assert(f(x, n) == expected)
+                    Assert(ta.sign == " ")
+                    Assert(f(-x, n) == expected)
+                    Assert(ta.sign == "-")
+                # Basic forms
+                for x in range(1, 10):
+                    for n in range(1, 20):
+                        Assert(f(x, n) == str(x))
+            exit()
+            # Float
+            x = 12345600.
+            ta.disassemble(x, n)
+            print(f"x = {x}")
+            print(f"    {''.join(ta.dq)}")
+
         def Test_Basics():
             f = GetDefaultFmtInstance()
             s = f(pi)
@@ -2049,6 +2088,7 @@ if __name__ == "__main__":
                 Assert(result == "-123⋯89 |10⁴⁶|")
             # Floats
             print("xx Test_Brief:  need to write float code")  #xx
+    Test_disassemble();exit() #xx
     if 1:   # Module's base code
         def Error(msg, status=1):
             print(msg, file=sys.stderr)
