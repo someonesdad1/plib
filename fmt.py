@@ -581,107 +581,6 @@ class Fmt:
             return lines
         except CalledProcessError:
             return self.get_columns()
-    def fmtint(self, value, fmt=None, width=None, mag=False):
-        '''Format an integer value.  If fmt is None, the default self.int
-        formatting is used.  Other values for fmt are "hex", "oct", "dec",
-        and "bin", which cause 0x, 0o, 0d, or 0b to be prepended.
-        self.sign and self.spc are honored.
- 
-        width is the number of spaces the string must fit into.  If it is
-        None, then the number of COLUMNS - 1 is used.
- 
-        mag if True is used to provide a [~10ⁿ] string at the end to
-        indicate the magnitude of the number.
- 
-        width is only used if self.brief is True.
-        '''
-        if not ii(value, int):
-            raise TypeError("value must be an int")
-        if value < 0:
-            sgn = "-"
-            value = abs(value)
-        else:
-            sgn = "+" if self.sign else " " if self.spc else ""
-        if fmt is None:
-            fmt = self.int
-        s = f"{sgn}{value}"
-        if not self.brief:
-            if fmt == "hex":
-                s = f"{sgn}{hex(value)}"
-            elif fmt == "oct":
-                s = f"{sgn}{oct(value)}"
-            elif fmt == "dec":
-                s = f"{sgn}0d{value}"
-            elif fmt == "bin":
-                s = f"{sgn}{bin(value)}"
-            elif fmt is None:
-                pass
-            else:
-                raise ValueError(f"fmt = {fmt!r} must be None, hex, oct, dec, or bin")
-            return s
-        else:
-            # Get L = what will fit on one line
-            L = self.get_columns() if width is None else int(width)
-            # The minimum possible length is the sign, one character each
-            # end, and ellipsis
-            min_length = 2 + len(self.ellipsis) + len(sgn)
-            m = ""
-            if mag:     # Add in the length of ' |10ⁿ|' string
-                x = D(value)*D("1.0")
-                a = f"{x:.1e}".split("e")[1]
-                e = int(a)
-                Assert(e >= 0)
-                m = " |10"
-                for i in str(e):
-                    m += self._superscripts[i]
-                m += "|"
-            L0 = min_length + len(m)
-            if L < L0:
-                raise ValueError(f"Resulting width of {L} is < minimum of {L0}")
-            n = len(s)
-            if n <= L and not mag:
-                return s
-            if s[0] in "+- ":
-                s = s[1:]
-                n = len(s)
-            # Limit the width.  The algorithm is to change s to two deques,
-            # split in the middle.  Then remove one digit at a time,
-            # alternating deques, until the resulting string will fit the
-            # current string width.
-            lst = list(s)
-            split = n//2
-            left, right = deque(lst[:split]), deque(lst[split:])
-            Assert(len(left) + len(right) == n)
-            def dqlen():
-                return len(left) + len(right) + len(self.ellipsis) + len(sgn)
-            while True:
-                # Remove a character from the larger of the two deques
-                if len(left) > len(right):
-                    if len(left) > 1:
-                        left.pop()
-                        if dqlen() <= L - len(m) - len(sgn):
-                            break
-                        #print(f"a: {''.join(left)!r} {''.join(right)!r}")
-                else:
-                    if len(right) > 1:
-                        right.popleft()
-                        if dqlen() <= L - len(m) - len(sgn):
-                            break
-                        #print(f"b: {''.join(left)!r} {''.join(right)!r}")
-                if len(left) == 1 and len(right) == 1:
-                    break
-            u = sgn + ''.join(left) + self.ellipsis + ''.join(right) + m
-            if len(u) > L:
-                msg = dedent(f'''
-                Bug in algorithm:
-                  L = {L}
-                  result = {u!r}
-                  len(result) = {len(u)}
-                  min_length = {min_length}
-                  m = {m!r}  (len = {len(m)})
-                ''')
-                raise Exception(msg)
-            return u
     def trim(self, dq):
         'Implement rtz, rtdp, and rlz for significand dq in deque'
         Assert(ii(dq, deque))
@@ -986,8 +885,117 @@ class Fmt:
             return self.Real(value, fmt=fmt, n=n, width=width)
         else:
             raise TypeError(f"{value!r} is an unsupported type")
+    def fmtint(self, value, fmt=None, width=None, mag=False):
+        '''Format an integer value.  If fmt is None, the default self.int
+        formatting is used.  Other values for fmt are "hex", "oct", "dec",
+        and "bin", which cause 0x, 0o, 0d, or 0b to be prepended.
+        self.sign and self.spc are honored.
+ 
+        width is the number of spaces the string must fit into.  If it is
+        None, then the number of COLUMNS - 1 is used.
+ 
+        mag if True is used to provide a [~10ⁿ] string at the end to
+        indicate the magnitude of the number.
+ 
+        width is only used if self.brief is True.
+        '''
+        if not ii(value, int):
+            raise TypeError("value must be an int")
+        if value < 0:
+            sgn = "-"
+            value = abs(value)
+        else:
+            sgn = "+" if self.sign else " " if self.spc else ""
+        if fmt is None:
+            fmt = self.int
+        s = f"{sgn}{value}"
+        if not self.brief:
+            if fmt == "hex":
+                s = f"{sgn}{hex(value)}"
+            elif fmt == "oct":
+                s = f"{sgn}{oct(value)}"
+            elif fmt == "dec":
+                s = f"{sgn}0d{value}"
+            elif fmt == "bin":
+                s = f"{sgn}{bin(value)}"
+            elif fmt is None:
+                pass
+            else:
+                raise ValueError(f"fmt = {fmt!r} must be None, hex, oct, dec, or bin")
+            return s
+        else:
+            # Get L = what will fit on one line
+            L = self.get_columns() if width is None else int(width)
+            # The minimum possible length is the sign, one character each
+            # end, and ellipsis
+            min_length = 2 + len(self.ellipsis) + len(sgn)
+            m = ""
+            if mag:     # Add in the length of ' |10ⁿ|' string
+                x = D(value)*D("1.0")
+                a = f"{x:.1e}".split("e")[1]
+                e = int(a)
+                Assert(e >= 0)
+                m = " |10"
+                for i in str(e):
+                    m += self._superscripts[i]
+                m += "|"
+            L0 = min_length + len(m)
+            if L < L0:
+                raise ValueError(f"Resulting width of {L} is < minimum of {L0}")
+            n = len(s)
+            if n <= L and not mag:
+                return s
+            if s[0] in "+- ":
+                s = s[1:]
+                n = len(s)
+            # Limit the width.  The algorithm is to change s to two deques,
+            # split in the middle.  Then remove one digit at a time,
+            # alternating deques, until the resulting string will fit the
+            # current string width.
+            lst = list(s)
+            split = n//2
+            left, right = deque(lst[:split]), deque(lst[split:])
+            Assert(len(left) + len(right) == n)
+            def dqlen():
+                return len(left) + len(right) + len(self.ellipsis) + len(sgn)
+            while True:
+                # Remove a character from the larger of the two deques
+                if len(left) > len(right):
+                    if len(left) > 1:
+                        left.pop()
+                        if dqlen() <= L - len(m) - len(sgn):
+                            break
+                        #print(f"a: {''.join(left)!r} {''.join(right)!r}")
+                else:
+                    if len(right) > 1:
+                        right.popleft()
+                        if dqlen() <= L - len(m) - len(sgn):
+                            break
+                        #print(f"b: {''.join(left)!r} {''.join(right)!r}")
+                if len(left) == 1 and len(right) == 1:
+                    break
+            u = sgn + ''.join(left) + self.ellipsis + ''.join(right) + m
+            if len(u) > L:
+                msg = dedent(f'''
+                Bug in algorithm:
+                  L = {L}
+                  result = {u!r}
+                  len(result) = {len(u)}
+                  min_length = {min_length}
+                  m = {m!r}  (len = {len(m)})
+                ''')
+                raise Exception(msg)
+            return u
     def Int(self, value, fmt=None, n=None, width=None) -> str:
         n = n if n is not None else self.n
+        fmt = fmt if fmt is None else self.int
+        Assert(ii(value, int))
+        self.ta(value, n)
+        sgn = self.ta.sign
+        if sgn == " " and not self.spc:
+            sgn = ""
+        s = sgn + ''.join(self.ta.dq)
+        return s
 
     def Real(self, value, fmt=None, n=None, width=None) -> str:
         n = n if n is not None else self.n
@@ -1046,7 +1054,6 @@ class Fmt:
             return ret
     def call_Decimal(self, value, fmt: str="fix", n: int=None, width: int=None) -> str:
         'Handle formatting with the Decimal type'
- 
         Assert(ii(value, (int, float, Decimal)))
         try:
             x = self.toD(value)
@@ -1259,7 +1266,8 @@ if 1:   # Convenience Fmt instance
 if 1 and __name__ == "__main__": 
     x = 12345600
     print(f"x = {x}")
-    print(f"    {fmt(x)}")
+    print(f"    {fmt(x, n=8888)}")
+    exit() #xx
     # Float
     x = 12345600.
     ta.disassemble(x, n)
@@ -2131,7 +2139,6 @@ if __name__ == "__main__":
                 Assert(result == "-123⋯89 |10⁴⁶|")
             # Floats
             print("xx Test_Brief:  need to write float code")  #xx
-    Test_disassemble();exit() #xx
     if 1:   # Module's base code
         def Error(msg, status=1):
             print(msg, file=sys.stderr)
