@@ -940,10 +940,61 @@ class Fmt:
         for c in str(e):
             o.append(self._superscripts[c])
         return ''.join(o)
-    def Complex(self, value, fmt=None, n=None) -> str:
+    def __call__(self, value, fmt=None, n=None, width=None) -> str:
+        '''Format value with the default formatter.  n overrides self.n
+        digits and must be > 0.  fmt can be "fix", "sci", "eng", "engsi", or
+        "engsic" for real numbers.  If it is None, then self.default is used.
+ 
+        If n is not None, it is an integer > 0 that overrides the self.n
+        setting.
+ 
+        If value is an integer, fmt can be "dec", "hex", "oct", or "bin".  
+ 
+        If width is not None, it is the desired string width when self.brief is
+        True; note that a best effort will be made, but the returned string may
+        be larger than the desired width.
+        '''
+        if 1:   # Check arguments
+            if n is not None:
+                if not ii(n, int):
+                    raise TypeError("n must be an integer")
+                if n <= 0:
+                    raise ValueError("n must be > 0")
+            if ii(value, int):
+                if fmt is not None and fmt not in "dec hex oct bin".split():
+                    raise ValueError(f"'{fmt}' is unrecognized format string")
+                else:
+                    fmt = self.int
+            else:
+                if fmt is not None and fmt not in "fix sci eng engsi engsic".split():
+                    raise ValueError(f"'{fmt}' is unrecognized format string")
+                else:
+                    fmt = self.default
+            if width is not None:
+                if not ii(width, int):
+                    raise TypeError("width must be an integer")
+                if n <= 0:
+                    raise ValueError("width must be > 0")
+        # Call the relevant method
+        if ii(value, complex) or (have_mpmath and ii(value, mpmath.mpc)):
+            return self.Complex(value, fmt=fmt, n=n, width=width)
+        elif ii(value, int):
+            return self.Int(value, fmt=fmt, n=n, width=width)
+        elif ii(value, (float, Decimal, Fraction)):
+            return self.Real(value, fmt=fmt, n=n, width=width)
+        elif have_mpmath and ii(value, mpmath.mpf):
+            return self.Real(value, fmt=fmt, n=n, width=width)
+        else:
+            raise TypeError(f"{value!r} is an unsupported type")
+    def Int(self, value, fmt=None, n=None, width=None) -> str:
+        n = n if n is not None else self.n
+    def Real(self, value, fmt=None, n=None, width=None) -> str:
+        n = n if n is not None else self.n
+    def Complex(self, value, fmt=None, n=None, width=None) -> str:
         '''value is a complex number.  Return a string in the form of 
         'a + bi'.
         '''
+        n = n if n is not None else self.n
         if fmt is not None:
             if fmt not in "fix sci eng engsi engsic".split():
                 raise ValueError(f"'{fmt}' is unrecognized format string")
@@ -992,31 +1043,6 @@ class Fmt:
             s = "" if self.cuddled else " "
             ret = f"{sr}{s}{sign}{s}{si}{self._imag_unit}"
             return ret
-    def __call__(self, value, fmt: str=None, n: int=None, width: int=None) -> str:
-        '''Format value with the default "fix" formatter.  n overrides
-        self.n digits and must be > 0.  fmt can be "fix", "sci", "eng",
-        "engsi", or "engsic".  If it is None, then self.default is used.
-        If width is not None, it is the desired string width when
-        self.brief is True; note that a best effort will be made, but the
-        returned string may be larger than the desired width.
-        '''
-        if 1:   # Check arguments
-            if fmt is not None and fmt not in "fix sci eng engsi engsic".split():
-                raise ValueError(f"'{fmt}' is unrecognized format string")
-            else:
-                fmt = self.default
-            n = self.n if n is None else n
-            if not ii(n, int):
-                raise TypeError("n must be an integer")
-            if n <= 0:
-                raise ValueError("n must be > 0")
-        # Call the relevant method
-        if ii(value, complex) or (have_mpmath and ii(value, mpmath.mpc)):
-            return self.Complex(value, fmt=fmt, n=n, width=width)
-        if ii(value, (int, float, Decimal)):
-            return self.call_Decimal(value, fmt=fmt, n=n, width=width)
-        else:
-            return self.call_mpmath(value, fmt=fmt, n=n, width=width)
     def call_Decimal(self, value, fmt: str="fix", n: int=None, width: int=None) -> str:
         'Handle formatting with the Decimal type'
  
@@ -1229,14 +1255,10 @@ class Fmt:
 if 1:   # Convenience Fmt instance
     fmt = Fmt()
 # Development area
-if 0 and __name__ == "__main__": 
-    ta = TakeApart()
-    n = 5
-    # Integer
+if 1 and __name__ == "__main__": 
     x = 12345600
-    ta.disassemble(x, n)
     print(f"x = {x}")
-    print(f"    {''.join(ta.dq)}")
+    print(f"    {fmt(x)}")
     # Float
     x = 12345600.
     ta.disassemble(x, n)
@@ -1615,9 +1637,9 @@ if __name__ == "__main__":
                     for n in range(1, 20):
                         Assert(f(x, n) == str(x))
                         Assert(f(-x, n) == str(x))
-            if 1:   # Float
+            if 1:   # Floating point numbers and a fraction
                 X = mpmath.mpf("12345600.") if have_mpmath else 12345600.
-                for x in (12345600., D("12345600."), X):
+                for x in (12345600., D("12345600."), Fraction(12345600, 1), X):
                     for n, expected in (
                             (1, "1"),
                             (2, "12"),
@@ -1631,7 +1653,6 @@ if __name__ == "__main__":
                         Assert(ta.sign == " ")
                         Assert(f(-x, n) == expected)
                         Assert(ta.sign == "-")
-
         def Test_Basics():
             f = GetDefaultFmtInstance()
             s = f(pi)
