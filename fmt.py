@@ -1,40 +1,18 @@
 '''
 - Todo
-    - fmt_refactoring branch
-        - Change to Fmt.disassemble(value, n) so that n is always defined
-        - Change disassemble() to use a function named self.prepare(value)
-          at the beginning that converts the various number types (int,
-          float, Decimal, mpf, and Fractions) to the form 
+    - Get fix/eng/sci working
+    - Worry about width keyword later
+    - Change tests to no longer depend on fpformat
+    - Has to handle large numbers with thousands of digits in exponent
+        as in hc.py:  '1000 fac ent pow'.  
  
-            (sign,      # "-" or "+"
-             ld,        # Lead digit
-             radix,     # Radix:  '.', ',', or "" for integer
-             od,        # Other digits
-             exp)       # Integer exponent, base 10
- 
-          Then typ(sign + ld + radix + od + "e" + str(exp)) gives back the
-          original floating point number.  typ(sign + ld + od) gives back
-          the original integer.  Then diassembling the number is simpler.
-            - Needs to handle inf and nan.
-        - Get fix/eng/sci working with brief keyword
-            - Change tests to no longer depend on fpformat
-            - Has to handle large numbers with thousands of digits in
-              exponent '1000 fac ent pow'.
-        - The brief keyword was added to Fmt attributes.  When it is True,
-          string interpolation output is truncated to fit into a
-          user-defined width.  Need to implement in fix sci eng __call__.
-            - Behavior:  if fmt.brief is True, then a width is gotten and a
-              number's interpolation string is adusted to fit into the
-              desired width.  This defaults to COLUMNS - 1 if it is not
-              specified.
- 
+- Later
     - fix(), sci(), etc. should use a new keyword:  'unc'.  unc
       will be interpreted as an uncertainty and use the standard
       uncertainty interpolation such as '3.14(3)'.  To handle the case where
       this can represent a roundoff error, a boolean ro keyword is used;
       when True, you get '3.14[3]' like the uncertainty short-hand
       notation, but this denotes an estimated interval number.
- 
     - Get rid of the color.py dependency in the module (OK in test code).
       The only needed change is to put an ANSI escape sequence in for
       underlining for polar complex number display.
@@ -42,13 +20,13 @@
       display notation for polar coordinates.  ◣ or ▶ might be good for
       grad and ⊚ ⏺ ⬤ ● Ⓡ ⭙ might be good for revolutions (make sure it
       isn't confused with a digit).
- 
     - Note mpmath.nstr() has keywords to control low & high for fixed point
       strings.  You can also use it to get a floating point interpolation.
         - An x = mpf(i) where i is an integer appears to have the property
           int(x) == i, at least if the integer can be expressed at the
           current precision exactly.  Checked up to 2**1000000.
  
+---------------------------------------------------------------------------
 class Fmt:  Format floating point numbers
     Run the module as a script to see example output.  See Terminal Notes
     below.
@@ -987,6 +965,8 @@ class Fmt:
                 raise Exception(msg)
             return u
     def Int(self, value, fmt=None, n=None, width=None) -> str:
+        if width is not None:
+            raise Exception("Bug:  width not supported yet")
         n = n if n is not None else self.n
         fmt = fmt if fmt is None else self.int
         Assert(ii(value, int))
@@ -998,11 +978,15 @@ class Fmt:
         return s
 
     def Real(self, value, fmt=None, n=None, width=None) -> str:
+        if width is not None:
+            raise Exception("Bug:  width not supported yet")
         n = n if n is not None else self.n
     def Complex(self, value, fmt=None, n=None, width=None) -> str:
         '''value is a complex number.  Return a string in the form of 
         'a + bi'.
         '''
+        if width is not None:
+            raise Exception("Bug:  width not supported yet")
         n = n if n is not None else self.n
         if fmt is not None:
             if fmt not in "fix sci eng engsi engsic".split():
@@ -1052,105 +1036,100 @@ class Fmt:
             s = "" if self.cuddled else " "
             ret = f"{sr}{s}{sign}{s}{si}{self._imag_unit}"
             return ret
-    def call_Decimal(self, value, fmt: str="fix", n: int=None, width: int=None) -> str:
-        'Handle formatting with the Decimal type'
-        Assert(ii(value, (int, float, Decimal)))
-        try:
-            x = self.toD(value)
-            abs(x)
-        except (decimal.InvalidOperation, decimal.Overflow) as e:
-            # If we get here, we likely have a value number that has an
-            # exponent too large or small for the default Decimal context.
-            # We'll return a sci formatted value.
-            s = str(value).lower()
-            # Remove minus or plus signs
-            minus = ""
-            if s[0] == "+":
-                s = s[1:]
-            elif s[0] == "-":
-                s = s[1:]
-                minus = "-"
+    if 0:   # Old implementation
+        def call_Decimal(self, value, fmt: str="fix", n: int=None, width: int=None) -> str:
+            'Handle formatting with the Decimal type'
+            Assert(ii(value, (int, float, Decimal)))
             try:
-                # m will be the significand, e will be the exponent
-                m, e = s.split("e")
-            except Exception:
-                raise ValueError(f"{value!r} can't be formatted")
-            radix = "."
-            if "," in m:
-                radix = ","
-            m = m.replace(radix, "")
-            m = m[:self.n]
-            if len(m) > 1:
-                m = minus + m[0] + radix + m[1:]
-            if e[0] == "+":
-                e = e[1:]
-            if self.u:
-                # Use Unicode characters for power of 10
-                o = ["✕10"]
-                for c in e:
-                    o.append(self._superscripts[c])
-                return m + ''.join(o)
-            return m + "e" + e
-        if fmt == "fix":
-            if value:
-                if x and self.high is not None and abs(x) >= self.high:
-                    return self.sci(x, n, width=width)
-                elif x and self.low is not None and abs(x) < self.low:
-                    return self.sci(x, n, width=width)
-                return self.fix(x, n, width=width)
+                x = self.toD(value)
+                abs(x)
+            except (decimal.InvalidOperation, decimal.Overflow) as e:
+                # If we get here, we likely have a value number that has an
+                # exponent too large or small for the default Decimal context.
+                # We'll return a sci formatted value.
+                s = str(value).lower()
+                # Remove minus or plus signs
+                minus = ""
+                if s[0] == "+":
+                    s = s[1:]
+                elif s[0] == "-":
+                    s = s[1:]
+                    minus = "-"
+                try:
+                    # m will be the significand, e will be the exponent
+                    m, e = s.split("e")
+                except Exception:
+                    raise ValueError(f"{value!r} can't be formatted")
+                radix = "."
+                if "," in m:
+                    radix = ","
+                m = m.replace(radix, "")
+                m = m[:self.n]
+                if len(m) > 1:
+                    m = minus + m[0] + radix + m[1:]
+                if e[0] == "+":
+                    e = e[1:]
+                if self.u:
+                    # Use Unicode characters for power of 10
+                    o = ["✕10"]
+                    for c in e:
+                        o.append(self._superscripts[c])
+                    return m + ''.join(o)
+                return m + "e" + e
+            if fmt == "fix":
+                if value:
+                    if x and self.high is not None and abs(x) >= self.high:
+                        return self.sci(x, n, width=width)
+                    elif x and self.low is not None and abs(x) < self.low:
+                        return self.sci(x, n, width=width)
+                    return self.fix(x, n, width=width)
+                else:
+                    return self.fix(x, n, width=width)
+            elif fmt == "sci":
+                return self.sci(x, n, width=width)
             else:
-                return self.fix(x, n, width=width)
-        elif fmt == "sci":
-            return self.sci(x, n, width=width)
-        else:
-            return self.eng(x, n=n, fmt=fmt, width=width)
-    def call_mpmath(self, value, fmt: str="fix", n: int=None, width: int=None) -> str:
-        Assert(ii(value, mpmath.mpf))
-        low, high = mpmath.mpf(str(self.low)), mpmath.mpf(str(self.high))
-        if fmt == "fix":
-            if value:
-                if abs(value) >= high:
-                    return self.sci(value, n, width=width)
-                if abs(value) < low:
-                    return self.sci(value, n, width=width)
-                return self.fix(value, n, width=width)
+                return self.eng(x, n=n, fmt=fmt, width=width)
+        def call_mpmath(self, value, fmt: str="fix", n: int=None, width: int=None) -> str:
+            Assert(ii(value, mpmath.mpf))
+            low, high = mpmath.mpf(str(self.low)), mpmath.mpf(str(self.high))
+            if fmt == "fix":
+                if value:
+                    if abs(value) >= high:
+                        return self.sci(value, n, width=width)
+                    if abs(value) < low:
+                        return self.sci(value, n, width=width)
+                    return self.fix(value, n, width=width)
+                else:
+                    return self.fix(value, n, width=width)
+            elif fmt == "sci":
+                return self.sci(value, n, width=width)
             else:
-                return self.fix(value, n, width=width)
-        elif fmt == "sci":
-            return self.sci(value, n, width=width)
-        else:
-            return self.eng(value, n=n, fmt=fmt, width=width)
+                return self.eng(value, n=n, fmt=fmt, width=width)
     if 1:   # Properties
-        @property
+        @property       # Default formatting method
         def default(self) -> str:
-            'Default formatting method'
             return self._default
         @default.setter
         def default(self, value):
-            'Default formatting method'
             if value not in "fix sci eng engsi engsic".split():
                 raise TypeError("value must be fix, sci, eng, engsi, or engsi")
             self._default = value
-        @property
+        @property       # Decimal point string
         def dp(self) -> str:
-            'Decimal point string'
             return self._dp
         @dp.setter
         def dp(self, value):
-            'Only "." or "," allowed for decimal point'
             if not ii(value, str) or len(value) > 1 or value not in ".,":
                 raise TypeError("value must be either '.' or ','")
             self._dp = value
-        @property
+        @property       # Use "sci" format if abs(x) is >= high and not None
         def high(self):
-            'Use "sci" format if abs(x) is >= high and not None'
             return self._high
         @high.setter
         def high(self, value):
             self._high = None if value is None else abs(D(str(value)))
-        @property
+        @property       # How to format integers with self.fmtint()
         def int(self):
-            'How to format integers with self.fmtint()'
             return self._int
         @int.setter
         def int(self, value):
@@ -1158,104 +1137,92 @@ class Fmt:
             if value not in s.split():
                 raise ValueError(f"value must be one of {' '.join(s)}")
             self._int = value
-        @property
+        @property       # Use "sci" format if abs(x) is < low and not None
         def low(self):
-            'Use "sci" format if abs(x) is < low and not None'
             return self._low
         @low.setter
         def low(self, value):
             self._low = None if value is None else abs(D(str(value)))
-        @property
+        @property       # Number of digits wanted in interpolation, an int > 0
         def n(self) -> int:
-            'Number of digits, an integer > 0'
+            if self._n is None:
+                raise ValueError("Bug:  fmt._n is None")
             return self._n
         @n.setter
         def n(self, value):
             if not(ii(value, int) or value <= 0):
                 raise ValueError("value must be integer > 0")
             self._n = value
-        @property
+        @property       # (bool) Remove trailing zeros after radix if True
         def rtz(self) -> bool:
-            '(bool) Remove trailing zeros after radix if True'
             return self._rtz
         @rtz.setter
         def rtz(self, value):
             self._rtz = bool(value)
-        @property
-        def rtdp(self) -> bool:
-            '(bool) Remove trailing radix if True'
+        @property       # (bool) Remove trailing radix if True
+        def rtdp(self) -> bool: 
             return self._rtdp
         @rtdp.setter
         def rtdp(self, value):
             self._rtdp = bool(value)
-        @property
+        @property       # (bool) Remove leading zero if True
         def rlz(self) -> bool:
-            '(bool) Remove leading zero if True'
             return self._rlz
         @rlz.setter
         def rlz(self, value):
             self._rlz = bool(value)
-        @property
+        @property       # Always include numbers' sign
         def sign(self) -> bool:
-            "Always include numbers' sign"
             return self._sign
         @sign.setter
         def sign(self, value):
             self._sign = bool(value)
-        @property
+        @property       # Add " " to numbers >= 0 where "-" goes
         def spc(self) -> bool:
-            'Add " " to numbers >= 0 where "-" goes'
             return self._spc
         @spc.setter
         def spc(self, value):
             self._spc = bool(value)
-        @property
+        @property       # (bool) Use Unicode in "sci" and "eng" formats if True
         def u(self) -> bool:
-            '(bool) Use Unicode in "sci" and "eng" formats if True'
             return self._u
         @u.setter
         def u(self, value):
             self._u = bool(value)
     if 1:   # Complex number properties
-        @property
+        @property       # Imaginary unit string
         def imag_unit(self) -> str:
-            'Imaginary unit string'
             return self._imag_unit
         @imag_unit.setter
         def imag_unit(self, value):
             Assert(ii(value, str) and len(value) > 0)
             self._imag_unit = value
-        @property
+        @property       # (bool) Show complex numbers in polar form
         def polar(self) -> bool:
-            '(bool) Show complex numbers in polar form'
             return self._polar
         @polar.setter
         def polar(self, value):
             self._polar = bool(value)
-        @property
+        @property       # (bool) Show complex number's angles in degrees
         def deg(self) -> bool:
-            "(bool) Show complex number's angles in degrees"
             return self._polar
         @deg.setter
         def deg(self, value):
             self._deg = bool(value)
-        @property
+        @property       # (bool) Use '1+2i' form if True, '1 + 2i' form if False
         def cuddled(self) -> bool:
-            "(bool) Use '1+2i' form if True, '1 + 2i' form if False"
             return self._cuddled
         @cuddled.setter
         def cuddled(self, value):
             self._cuddled = bool(value)
-        @property
+        @property       # (bool) Underline the argument when displaying polar form
         def ul(self) -> bool:
-            "(bool) Underline the argument when displaying polar form"
             return self._ul
         @ul.setter
         def ul(self, value):
             self._ul = bool(value)
-        @property
+        @property       # (bool) Show complex number in (re,im) form
         def comp(self) -> bool:
-            "(bool) Show complex number in (re,im) form"
             return self._comp
         @comp.setter
         def comp(self, value):
