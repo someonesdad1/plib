@@ -218,6 +218,16 @@ class TakeApart:
                   file=sys.stderr)
         Assert(x is not None)
         Assert(ii(n, int) and n > 0)
+        # Clamp n to the maximum precision allowed
+        if ii(x, int):
+            n = min(n, len(str(abs(x))))
+        elif ii(x, float):
+            n = min(n, 15)
+        elif ii(x, (D, Fraction)):
+            ctx = decimal.getcontext()
+            n = min(n, ctx.prec)
+        elif have_mpmath and ii(x, mpmath.mpf):
+            n = min(n, mpmath.mp.dps)
         self.disassemble(x, n)
     def prepare(self, value, n: int):
         '''Return a canonical representation of a number value.  n is an
@@ -470,11 +480,9 @@ class Fmt:
         # Attributes that won't change when reset() is called
         if 1:
             # These set the points where fixed mode switches to scientific
-            # notation.  Standard python uses 1e-5 and 1e15; the latter is
-            # much too large for my tastes.  Set either of these to None to 
-            # disable switching to scientific notation -- but you can get
-            # very large strings this way.  Since these are seldom changed,
-            # there's no properties defined for them.
+            # notation.  Standard python uses 1e-5 and 1e15.  Set either of
+            # these to None to disable switching to scientific notation
+            # (note you can get very large strings this way.
             self._low_init = self.toD("1e-4")
             self._high_init = self.toD("1e6")
         # Key to _SI_prefixes dict is exponent//3
@@ -525,7 +533,12 @@ class Fmt:
     def toD(self, value) -> Decimal:
         '''Convert value to a Decimal object.  Supported types are int,
         float, Fraction, Decimal, str, mpmath.mpf, and any other type
-        that gives a value from str(value)
+        that gives a value from str(value).
+ 
+        Note: if value is an mpmath.mpf number, it may be much larger than
+        a default Decimal instance can hold (Decimal's default exponent
+        goes up to 1e6).  Raise a ValueError exception to explain the
+        problem.
         '''
         if ii(value, (int, float)):
             return D(value)
@@ -540,110 +553,46 @@ class Fmt:
             else:
                 return D(value)
         elif have_mpmath and ii(value, mpmath.mpf):
-                return D(str(value))
+                try:
+                    return D(str(value))
+                except Exception as e:
+                    breakpoint() #xx
+
         else:
             return D(str(value))
-    def get_columns(self):
-        'Return the number of columns on the screen'
-        return int(os.environ.get("COLUMNS", 80)) - 1
-    def get_colums1(self):
-        '''Returns the current number of columns on the screen.  It's not
-        called by default because it's slow since it has to create another
-        process.  Use it if the user may have resized a window after your 
-        app has started.
-        '''
-        # This only works on UNIX/cygwin type systems
-        try:
-            r = subprocess.run(["stty", "size"], capture_output=True)
-            lines, columns = tuple(int(i) for i in r.stdout.strip().split())
-            return lines
-        except CalledProcessError:
-            return self.get_columns()
-    def trim(self, dq):
-        'Implement rtz, rtdp, and rlz for significand dq in deque'
-        Assert(ii(dq, deque))
-        if self._rtz and self._dp in dq:
-            while dq and dq[-1] == "0":
-                dq.pop()        # Remove trailing 0's
-        if self._rtdp and dq and dq[-1] == self._dp:
-            dq.pop()            # Remove trailing decimal point
-        if self._rlz and len(dq) > 2:
-            if dq[0] == "0" and dq[1] == self._dp: 
-                dq.popleft()    # Remove leading 0
-        return dq
-    def round(self, dq: deque, n: int):
-        '''Given a deque of digits, round it to the indicated number of
-        figures.  Returns (nine, dq) where nine is a Boolean that's True 
-        if the first figure was '9' before rounding and '1' after (meaning
-        we rounded up from 9 to 10) and dq is the deque with the desired 
-        number of n digits.
-        '''
-        Assert(len(dq) >= n and n > 0)
-        if set(dq) == set("0"):
-            # The special value of 0, so we need to return n zero digits
-            return (False, deque("0"*n))
-        first_char = dq[0]
-        lst = ''.join(dq)
-        left, right = int(lst[:n]), lst[n:]
-        # Use banker rounding.  The sentinel is the first character of the
-        # right portion and is used to decide the rounding direction.
-        sentinel = int(right[0])
-        if sentinel > 5:
-            left += 1       # Round to even
-        elif sentinel == 5:
-            if str(left)[-1] in "13579":
-                left += 1   # Round to even
-        d =  deque(str(left))
-        # Check to see if we rounded up 9 to 10
-        nine = True if first_char == "9" and d[0] == "1" else False
-        if nine and len(d) == n + 1:
-            d.pop()     # Get rid of last digit
-        Assert(len(d) == n)
-        return (nine, d)
     def fix(self, value, n=None, width=None) -> str:
         'Return a fixed point representation'
         n = n if n is not None else self.n
-        self.ta(value, n)  # Disassemble into parts
+        self.ta(value, n)
         if abs(self.ta.e) > self.nchars:
-            # I've arbitrarily decided that a number whose exponent will
-            # take up more than 1/4 of the screen's digits is too large, so 
-            # use sci interpolation.
+            # A number whose exponent will take up more than 1/4 of the
+            # screen's digits is too large, so use sci interpolation.
             return self.sci(value, n=n)
         sign = self.ta.sign     # Sign ("-" or " ")
         if not self.spc and sign == " ":
             sign = ""
         if self.sign and sign == "":
             sign = "+"
-        # Note we use fmt instance's decimal point, which is
-        # gotten from the locale, not from the number parsed by
-        # TakeApart()
-        dp = self.dp            # Decimal point
         dq = self.ta.dq         # Deque of significand's digits 
-        # Remove any decimal point in dq
-        s = ''.join(dq).replace(dp, "")     # Remove dp
-        dq = deque(s)
-        # Check we only have digits in dq
-        if not set(dq).issubset(set(string.digits)):
-            raise Exception("Bug in dq's characters")
-        # Round to n digits
-        nine, dq = self.round(dq, n)
-        e = self.ta.e           # Integer exponent
-        if nine and dq[0] == "1":
-           e += 1
+        if self.low is not None and value < self.low:
+            return self.sci(value, n=n)
+        elif self.high is not None and value >= self.high:
+            return self.sci(value, n=n)
+        e = self.ta.e
         if e < 0:
             # Number < 1
             ne = e + 1
             while ne < 0:
                 dq.appendleft("0")
                 ne += 1
-            dq.appendleft(dp)
+            dq.appendleft(self.dp)  # Use self.dp; allows user to set it
             if not self._rlz:
                 dq.appendleft("0")
         else:
             # Number >= 1
             while len(dq) < e + 1:
                 dq.append("0")
-            dq.insert(e + 1, dp)
+            dq.insert(e + 1, self.dp)  # Use self.dp; allows user to set it
         # Handle the sign
         if self.sign:   # Always use a sign
             if sign == " ":
@@ -659,8 +608,8 @@ class Fmt:
                 if sign == "-":
                     dq.appendleft(sign)
         dq = self.trim(dq)
-        retval = ''.join(dq)
-        return retval
+        s = ''.join(dq)
+        return s
     def sci(self, value, n=None, width=None) -> str:
         'Return a scientific format representation'
         n = n if n is not None else self.n
@@ -668,17 +617,14 @@ class Fmt:
         sgn = self.ta.sign  # Will be '-' or ' '
         if not self.spc and sgn == " ":
             sgn = ""    # No leading space allowed if self.spc True
-        # Round to n digits
-        nine, dq = self.round(self.ta.dq, n)
         # Get exponent string
         exponent = self.GetUnicodeExponent(self.ta.e) if self.u else f"e{self.ta.e}"
-        # Return for simplest formatting case
-        if not self.brief:
-            # Insert locale's decimal point
-            dq.insert(1, self.dp)
-            dq = self.trim(dq)  # Implement rtz, rtdp, rlz
-            s = sgn + ''.join(dq) + exponent
-            return s
+        # Insert locale's decimal point
+        self.ta.dq.insert(1, self.dp)
+        self.ta.dq = self.trim(self.ta.dq)  # Implement rtz, rtdp, rlz
+        s = sgn + ''.join(self.ta.dq) + exponent
+        return s
+
         # Handle the case when self.brief is True
         if width is None:
             raise ValueError(f"width cannot be None if fmt.brief is True")
@@ -757,25 +703,46 @@ class Fmt:
         '''
         n = n if n is not None else self.n
         self.ta(value, n)
-        sgn = self.ta.sign
-        if not self.spc and sgn == " ":
-            sgn = ""
+        sign = self.ta.sign     # Sign ("-" or " ")
+        if not self.spc and sign == " ":
+            sign = ""
+        if self.sign and sign == "":
+            sign = "+"
         # Get significand without decimal point
-        dq = deque(list(self.ta.ld + self.ta.other))
-        nine, dq = self.round(dq, n)
+        dq = self.ta.dq
         eng_step = 3
         div, rem = divmod(self.ta.e, eng_step)
         k = rem + 1 
         while len(dq) < k:
             dq.append("0")
-        dq.insert(k, self.ta.dp)
-        dq.appendleft(sgn)
+        dq.insert(k, self.dp)   # Using self.dp allows user to change it
+        dq.appendleft(sign)
         dq = self.trim(dq)  # Implement rtz, rtdp, rlz
         exponent = ["e", f"{eng_step*div}"]
         try:
             prefix = self._SI_prefixes[div]
         except KeyError:
             prefix = None
+        # Remove dp if it ends significand
+        if dq[-1] == self.dp:
+            dq.pop()
+        if fmt == "eng":
+            if self.u:      # Use Unicode characters for power of 10
+                o = self.GetUnicodeExponent(eng_step*div)
+                dq.extend(list(o))
+            else:
+                dq.extend(exponent)
+        elif fmt == "engsi":
+            dq.extend(exponent) if prefix is None else dq.extend([" ", prefix])
+        elif fmt == "engsic":
+            dq.extend(exponent) if prefix is None else dq.extend([prefix])
+        else:
+            raise ValueError(f"'{fmt}' is an unrecognized format")
+        return ''.join(dq)
+
+
+
+
         if self.brief:
             width = W if width is None else width
             # dq holds the eng significand
@@ -796,27 +763,27 @@ class Fmt:
             # Remove LSDs from significand to get width goal
             while len(''.join(dq)) > width and dq[-1] != self.ta.dp:
                 dq.pop()
-        # Remove dp if it ends significand
-        if dq[-1] == self.ta.dp:
-            dq.pop()
-        if fmt == "eng":
-            if self.u:      # Use Unicode characters for power of 10
-                o = self.GetUnicodeExponent(eng_step*div)
-                dq.extend(list(o))
-            else:
-                dq.extend(exponent)
-        elif fmt == "engsi":
-            dq.extend(exponent) if prefix is None else dq.extend([" ", prefix])
-        elif fmt == "engsic":
-            dq.extend(exponent) if prefix is None else dq.extend([prefix])
-        else:
-            raise ValueError(f"'{fmt}' is an unrecognized format")
-        return ''.join(dq)
     def GetUnicodeExponent(self, e):
         o = ["✕10"]
         for c in str(e):
             o.append(self._superscripts[c])
         return ''.join(o)
+    def trim(self, dq):
+        'Implement rtz, rtdp, and rlz for significand dq in deque'
+        Assert(ii(dq, deque))
+        if self._rtz and self._dp in dq:
+            while dq and dq[-1] == "0":
+                dq.pop()        # Remove trailing 0's
+        if self._rtdp and dq and dq[-1] == self._dp:
+            dq.pop()            # Remove trailing decimal point
+        if self._rlz and len(dq) > 2:
+            if dq[0] == "0" and dq[1] == self._dp: 
+                dq.popleft()    # Remove leading 0
+        return dq
+    def none_bug(self, var, name):
+        'Raise exception if var is None'
+        if var is None:
+            raise Exception(f"fmt.{var} is None")
     def __call__(self, value, fmt=None, n=None, width=None) -> str:
         '''Format value with the default formatter.  n overrides self.n
         digits and must be > 0.  fmt can be "fix", "sci", "eng", "engsi", or
@@ -845,7 +812,7 @@ class Fmt:
             else:
                 if fmt is not None and fmt not in "fix sci eng engsi engsic".split():
                     raise ValueError(f"'{fmt}' is unrecognized format string")
-                else:
+                elif fmt is None:
                     fmt = self.default
             if width is not None:
                 if not ii(width, int):
@@ -976,11 +943,19 @@ class Fmt:
             sgn = ""
         s = sgn + ''.join(self.ta.dq)
         return s
-
     def Real(self, value, fmt=None, n=None, width=None) -> str:
         if width is not None:
             raise Exception("Bug:  width not supported yet")
         n = n if n is not None else self.n
+        fmt = fmt if fmt is not None else self.default
+        if fmt == "fix":
+            return self.fix(value, n=n, width=width)
+        elif fmt == "sci":
+            return self.sci(value, n=n, width=width)
+        elif fmt in "eng engsi engsic".split():
+            return self.eng(value, fmt=fmt, n=n, width=width)
+        else:
+            raise ValueError(f"{fmt!r} is an unknown format")
     def Complex(self, value, fmt=None, n=None, width=None) -> str:
         '''value is a complex number.  Return a string in the form of 
         'a + bi'.
@@ -1037,6 +1012,51 @@ class Fmt:
             ret = f"{sr}{s}{sign}{s}{si}{self._imag_unit}"
             return ret
     if 0:   # Old implementation
+        def round(self, dq: deque, n: int):
+            '''Given a deque of digits, round it to the indicated number of
+            figures.  Returns (nine, dq) where nine is a Boolean that's True 
+            if the first figure was '9' before rounding and '1' after (meaning
+            we rounded up from 9 to 10) and dq is the deque with the desired 
+            number of n digits.
+            '''
+            Assert(len(dq) >= n and n > 0)
+            if set(dq) == set("0"):
+                # The special value of 0, so we need to return n zero digits
+                return (False, deque("0"*n))
+            first_char = dq[0]
+            lst = ''.join(dq)
+            left, right = int(lst[:n]), lst[n:]
+            # Use banker rounding.  The sentinel is the first character of the
+            # right portion and is used to decide the rounding direction.
+            sentinel = int(right[0])
+            if sentinel > 5:
+                left += 1       # Round to even
+            elif sentinel == 5:
+                if str(left)[-1] in "13579":
+                    left += 1   # Round to even
+            d =  deque(str(left))
+            # Check to see if we rounded up 9 to 10
+            nine = True if first_char == "9" and d[0] == "1" else False
+            if nine and len(d) == n + 1:
+                d.pop()     # Get rid of last digit
+            Assert(len(d) == n)
+            return (nine, d)
+        def get_columns(self):
+            'Return the number of columns on the screen'
+            return int(os.environ.get("COLUMNS", 80)) - 1
+        def get_colums1(self):
+            '''Returns the current number of columns on the screen.  It's not
+            called by default because it's slow since it has to create another
+            process.  Use it if the user may have resized a window after your 
+            app has started.
+            '''
+            # This only works on UNIX/cygwin type systems
+            try:
+                r = subprocess.run(["stty", "size"], capture_output=True)
+                lines, columns = tuple(int(i) for i in r.stdout.strip().split())
+                return lines
+            except CalledProcessError:
+                return self.get_columns()
         def call_Decimal(self, value, fmt: str="fix", n: int=None, width: int=None) -> str:
             'Handle formatting with the Decimal type'
             Assert(ii(value, (int, float, Decimal)))
@@ -1108,6 +1128,7 @@ class Fmt:
     if 1:   # Properties
         @property       # Default formatting method
         def default(self) -> str:
+            self.none_bug(self._default, "default")
             return self._default
         @default.setter
         def default(self, value):
@@ -1116,11 +1137,12 @@ class Fmt:
             self._default = value
         @property       # Decimal point string
         def dp(self) -> str:
+            self.none_bug(self._dp, "dp")
             return self._dp
         @dp.setter
         def dp(self, value):
             if not ii(value, str) or len(value) > 1 or value not in ".,":
-                raise TypeError("value must be either '.' or ','")
+                raise TypeError("Decimal point must be either '.' or ','")
             self._dp = value
         @property       # Use "sci" format if abs(x) is >= high and not None
         def high(self):
@@ -1145,8 +1167,7 @@ class Fmt:
             self._low = None if value is None else abs(D(str(value)))
         @property       # Number of digits wanted in interpolation, an int > 0
         def n(self) -> int:
-            if self._n is None:
-                raise ValueError("Bug:  fmt._n is None")
+            self.none_bug(self._n, "n")
             return self._n
         @n.setter
         def n(self, value):
@@ -1155,36 +1176,42 @@ class Fmt:
             self._n = value
         @property       # (bool) Remove trailing zeros after radix if True
         def rtz(self) -> bool:
+            self.none_bug(self._rtz, "rtz")
             return self._rtz
         @rtz.setter
         def rtz(self, value):
             self._rtz = bool(value)
         @property       # (bool) Remove trailing radix if True
         def rtdp(self) -> bool: 
+            self.none_bug(self._rtdp, "rtdp")
             return self._rtdp
         @rtdp.setter
         def rtdp(self, value):
             self._rtdp = bool(value)
         @property       # (bool) Remove leading zero if True
         def rlz(self) -> bool:
+            self.none_bug(self._rlz, "rlz")
             return self._rlz
         @rlz.setter
         def rlz(self, value):
             self._rlz = bool(value)
         @property       # Always include numbers' sign
         def sign(self) -> bool:
+            self.none_bug(self._sign, "sign")
             return self._sign
         @sign.setter
         def sign(self, value):
             self._sign = bool(value)
         @property       # Add " " to numbers >= 0 where "-" goes
         def spc(self) -> bool:
+            self.none_bug(self._spc, "spc")
             return self._spc
         @spc.setter
         def spc(self, value):
             self._spc = bool(value)
         @property       # (bool) Use Unicode in "sci" and "eng" formats if True
         def u(self) -> bool:
+            self.none_bug(self._u, "u")
             return self._u
         @u.setter
         def u(self, value):
@@ -1192,6 +1219,7 @@ class Fmt:
     if 1:   # Complex number properties
         @property       # Imaginary unit string
         def imag_unit(self) -> str:
+            self.none_bug(self._imag_unit, "imag_unit")
             return self._imag_unit
         @imag_unit.setter
         def imag_unit(self, value):
@@ -1199,30 +1227,35 @@ class Fmt:
             self._imag_unit = value
         @property       # (bool) Show complex numbers in polar form
         def polar(self) -> bool:
+            self.none_bug(self._polar, "polar")
             return self._polar
         @polar.setter
         def polar(self, value):
             self._polar = bool(value)
         @property       # (bool) Show complex number's angles in degrees
         def deg(self) -> bool:
-            return self._polar
+            self.none_bug(self._deg, "deg")
+            return self._deg
         @deg.setter
         def deg(self, value):
             self._deg = bool(value)
         @property       # (bool) Use '1+2i' form if True, '1 + 2i' form if False
         def cuddled(self) -> bool:
+            self.none_bug(self._cuddled, "cuddled")
             return self._cuddled
         @cuddled.setter
         def cuddled(self, value):
             self._cuddled = bool(value)
         @property       # (bool) Underline the argument when displaying polar form
         def ul(self) -> bool:
+            self.none_bug(self._ul, "ul")
             return self._ul
         @ul.setter
         def ul(self, value):
             self._ul = bool(value)
         @property       # (bool) Show complex number in (re,im) form
         def comp(self) -> bool:
+            self.none_bug(self._comp, "comp")
             return self._comp
         @comp.setter
         def comp(self, value):
@@ -1231,15 +1264,18 @@ if 1:   # Convenience Fmt instance
     fmt = Fmt()
 # Development area
 if 1 and __name__ == "__main__": 
-    x = 12345600
-    print(f"x = {x}")
-    print(f"    {fmt(x, n=8888)}")
-    exit() #xx
+    if 0:
+        x = 12345600
+        print(f"x = {x}")
+        print(f"    {fmt(x)}")
     # Float
-    x = 12345600.
-    ta.disassemble(x, n)
+    x = 1.23456e4
     print(f"x = {x}")
-    print(f"    {''.join(ta.dq)}")
+    print(f"    {fmt(x)}")
+    print(f"    {fmt(x, fmt='sci')}")
+    print(f"    {fmt(x, fmt='eng')}")
+    print(f"    {fmt(x, fmt='engsi')}")
+    print(f"    {fmt(x, fmt='engsic')}")
     exit()
 
 if __name__ == "__main__": 
