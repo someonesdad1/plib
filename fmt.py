@@ -470,7 +470,6 @@ class TakeApart:
             dq = deque(str(significand))
         # Check 
         Assert(len(dq) in (n, n + 1))
-        breakpoint() #xx
         return dq
 class Fmt:
     def __init__(self, n=3):
@@ -507,8 +506,10 @@ class Fmt:
             # notation.  Standard python uses 1e-5 and 1e15.  Set either of
             # these to None to disable switching to scientific notation
             # (note you can get very large strings this way.
-            self._low_init = self.toD("1e-4")
-            self._high_init = self.toD("1e6")
+            # NOTE:  these must be floats because they are compared to both
+            # mpf and Decimal types.
+            self._low_init = 1e-4
+            self._high_init = 1e6
         # Key to _SI_prefixes dict is exponent//3
         self._SI_prefixes = dict(zip(range(-8, 9), list("yzafpnμm.kMGTPEZY")))
         self._SI_prefixes[0] = ""       # Need empty string
@@ -783,10 +784,12 @@ class Fmt:
         if len(dq) == n + 1:
             dq.pop()
             e += 1
+
         if self.low is not None and 0 < abs(value) < self.low:
             return self.sci(value, n=n)
         elif self.high is not None and abs(value) >= self.high:
             return self.sci(value, n=n)
+
         if e < 0:
             # Number < 1
             ne = e + 1
@@ -1174,7 +1177,8 @@ class Fmt:
             return self._high
         @high.setter
         def high(self, value):
-            self._high = None if value is None else abs(D(str(value)))
+            # Note this must be a float (see notes in constructor)
+            self._high = None if value is None else abs(float(str(value)))
         @property       # How to format integers with self.fmtint()
         def int(self):
             return self._int
@@ -1189,7 +1193,8 @@ class Fmt:
             return self._low
         @low.setter
         def low(self, value):
-            self._low = None if value is None else abs(D(str(value)))
+            # Note this must be a float (see notes in constructor)
+            self._low = None if value is None else abs(float(str(value)))
         @property       # Number of digits wanted in interpolation, an int > 0
         def n(self) -> int:
             self.none_bug(self._n, "n")
