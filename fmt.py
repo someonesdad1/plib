@@ -1,5 +1,9 @@
 '''
 - Todo
+    - Bug:  line 767 in fix:  'if self.low is not None and 0 <
+      abs(value) < self.low:':  in hc.py, value is mpf and self.low
+      is a decimal.  Probably best to add self.low_mp and use separate
+      test.
     - Get fix/eng/sci working
     - Worry about width keyword later
     - Change tests to no longer depend on fpformat
@@ -31,11 +35,11 @@ class Fmt:  Format floating point numbers
     Run the module as a script to see example output.  See Terminal Notes
     below.
  
-    This module provides string interpolation ("formatting") for floating
-    point and complex number types.  str(float(math.pi)) returns
-    '3.141592653589793', which contains too many digits for
-    casual interpretation.  This module's convenience instance fmt will
-    format pi as fmt(math.pi) = '3.14', which allows easier interpretation.
+    This module provides string interpolation ("formatting") for integer,
+    floating point, and complex number types.  str(float(math.pi)) returns
+    '3.141592653589793', which contains too many digits for casual
+    interpretation.  This module's convenience instance fmt will format pi
+    as fmt(math.pi) = '3.14', which allows easier interpretation.
  
     A Fmt instance can format int, float, decimal.Decimal, mpmath.mpf, and
     fraction.Fraction number types.
@@ -50,14 +54,9 @@ class Fmt:  Format floating point numbers
         Most of my applications are single-threaded and I prefer to have
         the ability to pickle things if desired.
  
-        To simulate the use of a context manager, make a copy:
- 
-            fmt = Fmt(3)
-            fmt_copy = fmt.copy()
-            < Change fmt_copy's attributes as needed >
-            del fmt_copy    # Remove the copy when done
- 
-        The fmt instance is unchanged.
+        One solution to a multithreading application is to give each thread
+        its own Fmt() instance.  An easy way to do this is to create one
+        instance, then make a copy using the copy() method.
  
     Methods
         - reset() to put instance in default state
@@ -67,11 +66,11 @@ class Fmt:  Format floating point numbers
     formatting:
  
         n       Sets the number of displayed digits.
-        default String for default formatting (fix, sci, eng, engsi,
-                engsic)
+        default String for default floating point formatting (fix, sci,
+                eng, engsi, engsic)
         int     How to format integers (None is str(), dec, hex, oct, bin)
         brief   If True, fit string on one line if possible.
-        dp      Sets the radix (decimal point) string.
+        dp      Sets the radix (decimal point) string (use '.' or ',').
         low     Numbers below this value are displayed with scientific
                 notation.  None means all small numbers are displayed
                 in fixed point.
@@ -97,6 +96,11 @@ class Fmt:  Format floating point numbers
         comp        If True, display as (re,im) form, (re, im) if cuddled
                     False.
  
+    Notes
+        - n, the number of displayed digits, won't be larger than the
+          number of digits allowed by the type.  For Decimal and mpmath
+          numbers, this is determined by the relevant context.
+ 
     Terminal Notes
         This script is intended to be used with other scripts in the plib
         directory.  You can get the needed tools at
@@ -107,6 +111,14 @@ class Fmt:  Format floating point numbers
         terminals may need hacking on color.py to get things to work 
         correctly.  Define the environment variable DPRC to get ANSI color
         strings output to the terminal.
+ 
+    How it works
+        Most of the work is done by the TakeApart class, which takes apart
+        numbers into their component parts (prepare() and disassemble()
+        methods).  Then the Fmt instance uses the TakeApart instance to
+        supply the needed parts of the number and builds the desired
+        interpolation string.
+ 
  
 '''
 if 1:   # Header
@@ -417,7 +429,7 @@ class TakeApart:
         Assert(self.sign == "-" or self.sign == " ")
         Assert(self.radix == "." or self.radix == ",")
         Assert(ii(self.e, int))
-        Assert(len(self.dq) == n)
+        Assert(len(self.dq) in (n, n + 1))
     def round(self, dq: deque, n: int):
         '''Return the deque dq of digits rounded to n digits.  Use half-even
         rounding:  the last digit is rounded up if the following digit is
@@ -429,24 +441,36 @@ class TakeApart:
         if ii(self.number, int) and len(str(abs(self.number))) <= n:
             return dq
         Assert(len(dq) >= n + 1)
-        # Truncate to a string of n + 1 digits
-        s = ''.join(dq)[:n + 1]
+        # Truncate to a string of n digits
+        s = ''.join(dq)[:n]         # First n digits
+        r = ''.join(dq)[n:]         # Remainder of digits
         # Get the (n+1)st digit, which is used as the sentinel for rounding
-        sentinel = int(s[-1])
-        # Truncate to n digits
-        s = s[:-1]
+        sentinel = int(r[0])
+        # Handle an exceptional case (example is fmt(0.99, n=2,
+        # fmt="fix")):  dq contains '98999999999999999' and s becomes
+        # '989'.  We find this example by converting '999999999999999'
+        # to an int and adding 1.  If the string length changes, we have to
+        # add 1 to s and then do half-even rounding.
+        add_one = 0
+        if len(str(int(r) + 1)) > len(r):
+            add_one = 1
         Assert(len(s) == n)
-        # Get last digit of significand
-        last_digit = s[-1]
-        # Convert to integer to make rounding easy
-        significand = int(s)
-        # Round significand 
-        if sentinel > 5 or (sentinel == 5 and last_digit in "13579"):
-            significand += 1
-        # Convert back to deque
-        dq = deque(str(significand))
+        if set(s) == set("0"):
+            dq = deque(s)
+        else:
+            # Get last digit of significand
+            last_digit = s[-1]
+            # Convert to integer to make rounding easy.  Note the addition
+            # of add_one for the exceptional case.
+            significand = int(s) + add_one
+            # Round significand 
+            if sentinel > 5 or (sentinel == 5 and last_digit in "13579"):
+                significand += 1
+            # Convert back to deque
+            dq = deque(str(significand))
         # Check 
-        Assert(len(dq) == n)
+        Assert(len(dq) in (n, n + 1))
+        breakpoint() #xx
         return dq
 class Fmt:
     def __init__(self, n=3):
@@ -557,212 +581,8 @@ class Fmt:
                     return D(str(value))
                 except Exception as e:
                     breakpoint() #xx
-
         else:
             return D(str(value))
-    def fix(self, value, n=None, width=None) -> str:
-        'Return a fixed point representation'
-        n = n if n is not None else self.n
-        self.ta(value, n)
-        if abs(self.ta.e) > self.nchars:
-            # A number whose exponent will take up more than 1/4 of the
-            # screen's digits is too large, so use sci interpolation.
-            return self.sci(value, n=n)
-        sign = self.ta.sign     # Sign ("-" or " ")
-        if not self.spc and sign == " ":
-            sign = ""
-        if self.sign and sign == "":
-            sign = "+"
-        dq = self.ta.dq         # Deque of significand's digits 
-        if self.low is not None and value < self.low:
-            return self.sci(value, n=n)
-        elif self.high is not None and value >= self.high:
-            return self.sci(value, n=n)
-        e = self.ta.e
-        if e < 0:
-            # Number < 1
-            ne = e + 1
-            while ne < 0:
-                dq.appendleft("0")
-                ne += 1
-            dq.appendleft(self.dp)  # Use self.dp; allows user to set it
-            if not self._rlz:
-                dq.appendleft("0")
-        else:
-            # Number >= 1
-            while len(dq) < e + 1:
-                dq.append("0")
-            dq.insert(e + 1, self.dp)  # Use self.dp; allows user to set it
-        # Handle the sign
-        if self.sign:   # Always use a sign
-            if sign == " ":
-                sign = "+"
-            dq.appendleft(sign)
-        else:
-            if self.spc:  # Use ' ' if positive
-                if sign == "-":
-                    dq.appendleft(sign)
-                else:
-                    dq.appendleft(" ")
-            else:           # Only use sign if negative
-                if sign == "-":
-                    dq.appendleft(sign)
-        dq = self.trim(dq)
-        s = ''.join(dq)
-        return s
-    def sci(self, value, n=None, width=None) -> str:
-        'Return a scientific format representation'
-        n = n if n is not None else self.n
-        self.ta(value, n)
-        sgn = self.ta.sign  # Will be '-' or ' '
-        if not self.spc and sgn == " ":
-            sgn = ""    # No leading space allowed if self.spc True
-        # Get exponent string
-        exponent = self.GetUnicodeExponent(self.ta.e) if self.u else f"e{self.ta.e}"
-        # Insert locale's decimal point
-        self.ta.dq.insert(1, self.dp)
-        self.ta.dq = self.trim(self.ta.dq)  # Implement rtz, rtdp, rlz
-        s = sgn + ''.join(self.ta.dq) + exponent
-        return s
-
-        # Handle the case when self.brief is True
-        if width is None:
-            raise ValueError(f"width cannot be None if fmt.brief is True")
-        if 1:   # Get m = number of digits that can be in significand
-            m = width
-            if self.u:
-                m -= 3                      # For '×10'
-            else:
-                m -= 1                      # For 'e'
-            m -= len(str(self.ta.e))        # For exponent's digits
-            m -= 1                          # For decimal point
-            m -= len(self.ellipsis)         # For ellipsis
-            m = max(2, m)                   # Must have at least two characters
-        if len(dq) <= m:    # We can return it with no more work
-            # Insert locale's decimal point
-            dq.insert(1, self.dp)
-            dq = self.trim(dq)  # Implement rtz, rtdp, rlz
-            s = sgn + ''.join(dq) + exponent
-            return s
-        # Significand needs digits removed.  Split significand and remove
-        # middle digits to get needed width.
-        middle = len(dq)//2
-        left = deque(list(dq)[:middle])
-        right = deque(list(dq)[middle:])
-        def Len():
-            return len(left) + len(right)
-        while Len() > m:
-            if len(left) >= len(right):
-                left.pop()
-            else:
-                right.popleft()
-        Assert(Len() <= m)
-        # Insert decimal point and ellipsis
-        if len(left) == 1:
-            left.append(self.dp)
-            left.append(self.ellipsis)
-        else:
-            right.insert(0, self.ellipsis)
-            left.insert(1, self.dp)
-        s = sgn + ''.join(left) + ''.join(right) + exponent
-        return s
-    def eng(self, value, fmt="eng", n=None, width=None) -> str:
-        '''Return an engineering format representation.  Suppose value
-        is 31415.9 and n is 3.  Then fmt can be:
-            "eng"    returns "31.4e3"
-            "engsi"  returns "31.4 k"
-            "engsic" returns "31.4k" (the SI prefix is cuddled)
-        Note:  cuddling is invalid SI syntax, but it's sometimes useful in
-        program output.
- 
-        If width is not None and self.brief is True, try to fit the string
-        into width characters by removing digits to the right of the
-        decimal point.  Example:
- 
-            x = 34567800.0
-            width = 8
-            eng    = '34.567e6'
-            eng    = '34.5✕10⁶' with self.u == True
-            engsi  = '34.567 M'
-            engsic = '34.5678M'
- 
-        Note that you may get a string longer than the desired width
-        because you'd lose information otherwise.  Example:  in the
-        previous example, if the width is changed to 5, you'll get
- 
-            eng       = '34e6'    len = 4
-            eng       = '34✕10⁶'  len = 6 with self.u == True
-            engsi     = '34 M'    len = 4
-            engsic    = '34.5M'   len = 5
-        
-        In the first and third lines, the length would have been 5 except
-        it's OK to remove the decimal point.  In the second line, there's 
-        no way to remove another digit from the significand without ruining
-        the engineering notation (i.e., the exponent would need to be
-        changed, turning the notation into plain scientific).
-        '''
-        n = n if n is not None else self.n
-        self.ta(value, n)
-        sign = self.ta.sign     # Sign ("-" or " ")
-        if not self.spc and sign == " ":
-            sign = ""
-        if self.sign and sign == "":
-            sign = "+"
-        # Get significand without decimal point
-        dq = self.ta.dq
-        eng_step = 3
-        div, rem = divmod(self.ta.e, eng_step)
-        k = rem + 1 
-        while len(dq) < k:
-            dq.append("0")
-        dq.insert(k, self.dp)   # Using self.dp allows user to change it
-        dq.appendleft(sign)
-        dq = self.trim(dq)  # Implement rtz, rtdp, rlz
-        exponent = ["e", f"{eng_step*div}"]
-        try:
-            prefix = self._SI_prefixes[div]
-        except KeyError:
-            prefix = None
-        # Remove dp if it ends significand
-        if dq[-1] == self.dp:
-            dq.pop()
-        if fmt == "eng":
-            if self.u:      # Use Unicode characters for power of 10
-                o = self.GetUnicodeExponent(eng_step*div)
-                dq.extend(list(o))
-            else:
-                dq.extend(exponent)
-        elif fmt == "engsi":
-            dq.extend(exponent) if prefix is None else dq.extend([" ", prefix])
-        elif fmt == "engsic":
-            dq.extend(exponent) if prefix is None else dq.extend([prefix])
-        else:
-            raise ValueError(f"'{fmt}' is an unrecognized format")
-        return ''.join(dq)
-
-
-
-
-        if self.brief:
-            width = W if width is None else width
-            # dq holds the eng significand
-            if dq[0] == "":
-                dq.popleft()    # Remove the empty string
-            # Adjust the significand to get the desired digits.  Since it's
-            # eng notation, we can only remove digits up to the decimal
-            # point.
-            elen = len(''.join(exponent))
-            # Get the width for the significand for the style chosen
-            if fmt == "eng":
-                elen -= 1 if self.u else 0
-                width -= 3 + elen if self.u else elen
-            elif fmt == "engsi":
-                width -= 2 if prefix else elen
-            elif fmt == "engsic":
-                width -= 1 if prefix else elen
-            # Remove LSDs from significand to get width goal
-            while len(''.join(dq)) > width and dq[-1] != self.ta.dp:
-                dq.pop()
     def GetUnicodeExponent(self, e):
         o = ["✕10"]
         for c in str(e):
@@ -943,6 +763,211 @@ class Fmt:
             sgn = ""
         s = sgn + ''.join(self.ta.dq)
         return s
+    def fix(self, value, n=None, width=None) -> str:
+        'Return a fixed point representation'
+        n = n if n is not None else self.n
+        self.ta(value, n)
+        if abs(self.ta.e) > self.nchars:
+            # A number whose exponent will take up more than 1/4 of the
+            # screen's digits is too large, so use sci interpolation.
+            return self.sci(value, n=n)
+        sign = self.ta.sign     # Sign ("-" or " ")
+        if not self.spc and sign == " ":
+            sign = ""
+        if self.sign and sign == "":
+            sign = "+"
+        dq = self.ta.dq         # Deque of significand's digits 
+        e = self.ta.e
+        # If len(dq) == n + 1, a special rounding happened to increase the
+        # length by one, so pop the right end and increment the exponent
+        if len(dq) == n + 1:
+            dq.pop()
+            e += 1
+        if self.low is not None and 0 < abs(value) < self.low:
+            return self.sci(value, n=n)
+        elif self.high is not None and abs(value) >= self.high:
+            return self.sci(value, n=n)
+        if e < 0:
+            # Number < 1
+            ne = e + 1
+            while ne < 0:
+                dq.appendleft("0")
+                ne += 1
+            dq.appendleft(self.dp)  # Use self.dp; allows user to set it
+            if not self._rlz:
+                dq.appendleft("0")
+        else:
+            # Number >= 1
+            while len(dq) < e + 1:
+                dq.append("0")
+            dq.insert(e + 1, self.dp)  # Use self.dp; allows user to set it
+        # Handle the sign
+        if self.sign:   # Always use a sign
+            if sign == " ":
+                sign = "+"
+            dq.appendleft(sign)
+        else:
+            if self.spc:  # Use ' ' if positive
+                if sign == "-":
+                    dq.appendleft(sign)
+                else:
+                    dq.appendleft(" ")
+            else:           # Only use sign if negative
+                if sign == "-":
+                    dq.appendleft(sign)
+        dq = self.trim(dq)
+        s = ''.join(dq)
+        return s
+    def sci(self, value, n=None, width=None) -> str:
+        'Return a scientific format representation'
+        n = n if n is not None else self.n
+        self.ta(value, n)
+        sgn = self.ta.sign  # Will be '-' or ' '
+        if not self.spc and sgn == " ":
+            sgn = ""    # No leading space allowed if self.spc True
+        # Get exponent string
+        exponent = self.GetUnicodeExponent(self.ta.e) if self.u else f"e{self.ta.e}"
+        # Insert locale's decimal point
+        self.ta.dq.insert(1, self.dp)
+        self.ta.dq = self.trim(self.ta.dq)  # Implement rtz, rtdp, rlz
+        s = sgn + ''.join(self.ta.dq) + exponent
+        return s
+
+        # Handle the case when self.brief is True
+        if width is None:
+            raise ValueError(f"width cannot be None if fmt.brief is True")
+        if 1:   # Get m = number of digits that can be in significand
+            m = width
+            if self.u:
+                m -= 3                      # For '×10'
+            else:
+                m -= 1                      # For 'e'
+            m -= len(str(self.ta.e))        # For exponent's digits
+            m -= 1                          # For decimal point
+            m -= len(self.ellipsis)         # For ellipsis
+            m = max(2, m)                   # Must have at least two characters
+        if len(dq) <= m:    # We can return it with no more work
+            # Insert locale's decimal point
+            dq.insert(1, self.dp)
+            dq = self.trim(dq)  # Implement rtz, rtdp, rlz
+            s = sgn + ''.join(dq) + exponent
+            return s
+        # Significand needs digits removed.  Split significand and remove
+        # middle digits to get needed width.
+        middle = len(dq)//2
+        left = deque(list(dq)[:middle])
+        right = deque(list(dq)[middle:])
+        def Len():
+            return len(left) + len(right)
+        while Len() > m:
+            if len(left) >= len(right):
+                left.pop()
+            else:
+                right.popleft()
+        Assert(Len() <= m)
+        # Insert decimal point and ellipsis
+        if len(left) == 1:
+            left.append(self.dp)
+            left.append(self.ellipsis)
+        else:
+            right.insert(0, self.ellipsis)
+            left.insert(1, self.dp)
+        s = sgn + ''.join(left) + ''.join(right) + exponent
+        return s
+    def eng(self, value, fmt="eng", n=None, width=None) -> str:
+        '''Return an engineering format representation.  Suppose value
+        is 31415.9 and n is 3.  Then fmt can be:
+            "eng"    returns "31.4e3"
+            "engsi"  returns "31.4 k"
+            "engsic" returns "31.4k" (the SI prefix is cuddled)
+        Note:  cuddling is invalid SI syntax, but it's sometimes useful in
+        program output.
+ 
+        If width is not None and self.brief is True, try to fit the string
+        into width characters by removing digits to the right of the
+        decimal point.  Example:
+ 
+            x = 34567800.0
+            width = 8
+            eng    = '34.567e6'
+            eng    = '34.5✕10⁶' with self.u == True
+            engsi  = '34.567 M'
+            engsic = '34.5678M'
+ 
+        Note that you may get a string longer than the desired width
+        because you'd lose information otherwise.  Example:  in the
+        previous example, if the width is changed to 5, you'll get
+ 
+            eng       = '34e6'    len = 4
+            eng       = '34✕10⁶'  len = 6 with self.u == True
+            engsi     = '34 M'    len = 4
+            engsic    = '34.5M'   len = 5
+        
+        In the first and third lines, the length would have been 5 except
+        it's OK to remove the decimal point.  In the second line, there's 
+        no way to remove another digit from the significand without ruining
+        the engineering notation (i.e., the exponent would need to be
+        changed, turning the notation into plain scientific).
+        '''
+        n = n if n is not None else self.n
+        self.ta(value, n)
+        sign = self.ta.sign     # Sign ("-" or " ")
+        if not self.spc and sign == " ":
+            sign = ""
+        if self.sign and sign == "":
+            sign = "+"
+        # Get significand without decimal point
+        dq = self.ta.dq
+        eng_step = 3
+        div, rem = divmod(self.ta.e, eng_step)
+        k = rem + 1 
+        while len(dq) < k:
+            dq.append("0")
+        dq.insert(k, self.dp)   # Using self.dp allows user to change it
+        dq.appendleft(sign)
+        dq = self.trim(dq)  # Implement rtz, rtdp, rlz
+        exponent = ["e", f"{eng_step*div}"]
+        try:
+            prefix = self._SI_prefixes[div]
+        except KeyError:
+            prefix = None
+        # Remove dp if it ends significand
+        if dq[-1] == self.dp:
+            dq.pop()
+        if fmt == "eng":
+            if self.u:      # Use Unicode characters for power of 10
+                o = self.GetUnicodeExponent(eng_step*div)
+                dq.extend(list(o))
+            else:
+                dq.extend(exponent)
+        elif fmt == "engsi":
+            dq.extend(exponent) if prefix is None else dq.extend([" ", prefix])
+        elif fmt == "engsic":
+            dq.extend(exponent) if prefix is None else dq.extend([prefix])
+        else:
+            raise ValueError(f"'{fmt}' is an unrecognized format")
+        return ''.join(dq)
+
+        if self.brief:
+            width = W if width is None else width
+            # dq holds the eng significand
+            if dq[0] == "":
+                dq.popleft()    # Remove the empty string
+            # Adjust the significand to get the desired digits.  Since it's
+            # eng notation, we can only remove digits up to the decimal
+            # point.
+            elen = len(''.join(exponent))
+            # Get the width for the significand for the style chosen
+            if fmt == "eng":
+                elen -= 1 if self.u else 0
+                width -= 3 + elen if self.u else elen
+            elif fmt == "engsi":
+                width -= 2 if prefix else elen
+            elif fmt == "engsic":
+                width -= 1 if prefix else elen
+            # Remove LSDs from significand to get width goal
+            while len(''.join(dq)) > width and dq[-1] != self.ta.dp:
+                dq.pop()
     def Real(self, value, fmt=None, n=None, width=None) -> str:
         if width is not None:
             raise Exception("Bug:  width not supported yet")
@@ -1264,18 +1289,8 @@ if 1:   # Convenience Fmt instance
     fmt = Fmt()
 # Development area
 if 1 and __name__ == "__main__": 
-    if 0:
-        x = 12345600
-        print(f"x = {x}")
-        print(f"    {fmt(x)}")
-    # Float
-    x = 1.23456e4
-    print(f"x = {x}")
-    print(f"    {fmt(x)}")
-    print(f"    {fmt(x, fmt='sci')}")
-    print(f"    {fmt(x, fmt='eng')}")
-    print(f"    {fmt(x, fmt='engsi')}")
-    print(f"    {fmt(x, fmt='engsic')}")
+    x = 0.99
+    print(fmt(x, fmt='fix', n=2))
     exit()
 
 if __name__ == "__main__": 
@@ -1667,7 +1682,6 @@ if __name__ == "__main__":
                         Assert(ta.sign == "-")
         def Test_Basics():
             f = GetDefaultFmtInstance()
-            s = f(pi)
             for x, result in (
                 (pi, "3.14"),
                 (-pi, "-3.14"),
@@ -1678,20 +1692,40 @@ if __name__ == "__main__":
             ):
                 s = f(x)
                 Assert(s == result)
-            # Test simple numbers with fixed point
+            # Test integers with fixed point
+            zero, one = 0, 1
             for x, n, result in (
-                (0, 1, "0."),
-                (1, 1, "1."),
-                (-1, 1, "-1."),
-                (0, 2, "0.0"),
-                (1, 2, "1.0"),
-                (-1, 2, "-1.0"),
-                (0, 3, "0.00"),
-                (1, 3, "1.00"),
-                (-1, 3, "-1.00"),
-                (0, 8, "0.0000000"),
-                (1, 8, "1.0000000"),
-                (-1, 8, "-1.0000000"),
+                (zero, 1, "0"),
+                (one, 1, "1"),
+                (-one, 1, "-1"),
+                (zero, 2, "0"),
+                (one, 2, "1"),
+                (-one, 2, "-1"),
+                (zero, 3, "0"),
+                (one, 3, "1"),
+                (-one, 3, "-1"),
+                (zero, 8, "0"),
+                (one, 8, "1"),
+                (-one, 8, "-1"),
+            ):
+                f.n = n
+                s = f(x)
+                Assert(s == result)
+            # Test floats with fixed point
+            zero, one = 0.0, 1.0
+            for x, n, result in (
+                (zero, 1, "0."),
+                (one, 1, "1."),
+                (-one, 1, "-1."),
+                (zero, 2, "0.0"),
+                (one, 2, "1.0"),
+                (-one, 2, "-1.0"),
+                (zero, 3, "0.00"),
+                (one, 3, "1.00"),
+                (-one, 3, "-1.00"),
+                (zero, 8, "0.0000000"),
+                (one, 8, "1.0000000"),
+                (-one, 8, "-1.0000000"),
             ):
                 f.n = n
                 s = f(x)
@@ -1699,6 +1733,12 @@ if __name__ == "__main__":
             # Test with numbers near 1
             f = GetDefaultFmtInstance()
             x = 0.99
+            # Nasty bug:  dq is '98999999999999999' and it gets truncated
+            # to '98' for n == 2 and N == 15.  This gets rounded to 99.
+            # One fix would be to convert truncated digits to integer and
+            # add 1.  If the length changes, then it was all 9's and this
+            # case can be handled.
+            breakpoint() #xx
             Assert(f(x, n=1) == "1.")
             Assert(f(x, n=2) == "0.99")
             Assert(f(-x, n=1) == "-1.")
