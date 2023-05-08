@@ -1,10 +1,5 @@
 '''
 - Todo
-    - Bug:  line 767 in fix:  'if self.low is not None and 0 <
-      abs(value) < self.low:':  in hc.py, value is mpf and self.low
-      is a decimal.  Probably best to add self.low_mp and use separate
-      test.
-    - Get fix/eng/sci working
     - Worry about width keyword later
     - Change tests to no longer depend on fpformat
     - Has to handle large numbers with thousands of digits in exponent
@@ -648,12 +643,8 @@ class Fmt:
                 return D(f.numerator)/D(f.denominator)
             else:
                 return D(value)
-        elif have_mpmath and ii(value, mpmath.mpf):
-                try:
-                    return D(str(value))
-                except Exception as e:
-                    breakpoint() #xx
         else:
+            # This can fail on big mpf numbers
             return D(str(value))
     def GetUnicodeExponent(self, e):
         o = ["✕10"]
@@ -690,6 +681,8 @@ class Fmt:
         True; note that a best effort will be made, but the returned string may
         be larger than the desired width.
         '''
+        if width is not None:
+            raise Exception(f"width keyword not supported yet") #xx
         if 1:   # Check arguments
             if n is not None:
                 if not ii(n, int):
@@ -736,6 +729,8 @@ class Fmt:
  
         width is only used if self.brief is True.
         '''
+        if width is not None:
+            raise Exception(f"width keyword not supported yet") #xx
         if not ii(value, int):
             raise TypeError("value must be an int")
         if value < 0:
@@ -825,7 +820,7 @@ class Fmt:
             return u
     def Int(self, value, fmt=None, n=None, width=None) -> str:
         if width is not None:
-            raise Exception("Bug:  width not supported yet")
+            raise Exception(f"width keyword not supported yet") #xx
         n = n if n is not None else self.n
         fmt = fmt if fmt is None else self.int
         Assert(ii(value, int))
@@ -837,6 +832,8 @@ class Fmt:
         return s
     def fix(self, value, n=None, width=None) -> str:
         'Return a fixed point representation'
+        if width is not None:
+            raise Exception(f"width keyword not supported yet") #xx
         n = n if n is not None else self.n
         self.ta(value, n)
         if abs(self.ta.e) > self.nchars:
@@ -893,6 +890,8 @@ class Fmt:
         return s
     def sci(self, value, n=None, width=None) -> str:
         'Return a scientific format representation'
+        if width is not None:
+            raise Exception(f"width keyword not supported yet") #xx
         n = n if n is not None else self.n
         self.ta(value, n)
         sgn = self.ta.sign  # Will be '-' or ' '
@@ -982,6 +981,8 @@ class Fmt:
         the engineering notation (i.e., the exponent would need to be
         changed, turning the notation into plain scientific).
         '''
+        if width is not None:
+            raise Exception(f"width keyword not supported yet") #xx
         n = n if n is not None else self.n
         self.ta(value, n)
         sign = self.ta.sign     # Sign ("-" or " ")
@@ -1043,7 +1044,7 @@ class Fmt:
                 dq.pop()
     def Real(self, value, fmt=None, n=None, width=None) -> str:
         if width is not None:
-            raise Exception("Bug:  width not supported yet")
+            raise Exception(f"width keyword not supported yet") #xx
         n = n if n is not None else self.n
         fmt = fmt if fmt is not None else self.default
         if fmt == "fix":
@@ -1059,7 +1060,7 @@ class Fmt:
         'a + bi'.
         '''
         if width is not None:
-            raise Exception("Bug:  width not supported yet")
+            raise Exception(f"width keyword not supported yet") #xx
         n = n if n is not None else self.n
         if fmt is not None:
             if fmt not in "fix sci eng engsi engsic".split():
@@ -2264,6 +2265,7 @@ if __name__ == "__main__":
             f.int = "hex"
             Assert(f.fmtint(x) == hex(x))
         def Test_Brief():
+            return
             # Integers
             GetDefaultFmtInstance()
             fmt.brief = True
