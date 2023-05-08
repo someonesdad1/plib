@@ -302,7 +302,11 @@ class TakeApart:
                 value = float(value)
             result = special(value, float)
             if result is None:
-                s = f"{abs(value):.16e}".replace(".", "").replace(",", "")
+                # We handle floats specially because the built-in
+                # formatting does the required job without needing any
+                # additional rounding step.
+                m = min(n, 16)  # Clamp n
+                s = f"{abs(value):.{m - 1}e}".replace(".", "").replace(",", "")
                 if "e" not in s:
                     raise Exception("Bug:  no 'e' in float interpolation")
                 digits, exp = s.split("e")
@@ -353,9 +357,13 @@ class TakeApart:
                     else:
                         Assert(ii(value, int))
             else:
+                Assert(ii(digits, str))
                 # Normal number:  make sure we have at least n + 1 digits for
                 # banker's rounding of the significand.
-                Assert(ii(digits, str) and len(digits) >= n + 1)
+                if ii(value, float):
+                    Assert(len(digits) == n)    # Rounding already done
+                else:
+                    Assert(len(digits) >= n + 1)
                 Assert(radix is None or ii(radix, str))
                 if ii(radix, str):
                     Assert(len(radix) == 1 and radix in ".,")
@@ -410,7 +418,7 @@ class TakeApart:
             self.sign = "-" if neg else " "
             self.int = True
             size = len(digits)
-            self.dq = self.round(deque(digits), self.n)
+            self.dq = self.round(value, deque(digits), self.n)
             # Append zeroes if needed
             for i in range(size - len(self.dq)):
                 self.dq.append("0")
@@ -423,14 +431,14 @@ class TakeApart:
         self.sign = "-" if neg else " "
         self.radix = radix
         self.e = e
-        self.dq = self.round(deque(digits), self.n)
+        self.dq = self.round(value, deque(digits), self.n)
         # Checks
         Assert(ii(self.int, bool))
         Assert(self.sign == "-" or self.sign == " ")
         Assert(self.radix == "." or self.radix == ",")
         Assert(ii(self.e, int))
         Assert(len(self.dq) in (n, n + 1))
-    def round(self, dq: deque, n: int):
+    def round(self, value, dq: deque, n: int):
         '''Return the deque dq of digits rounded to n digits.  Use half-even
         rounding:  the last digit is rounded up if the following digit is
         greater than 5.  If the following digit is 5, the last digit is rounded
@@ -440,20 +448,77 @@ class TakeApart:
         # digits, but an integer < 10 cannot.
         if ii(self.number, int) and len(str(abs(self.number))) <= n:
             return dq
+        # Floats are also a special case, as rounding was done by the
+        # string interpolation in prepare().
+        if ii(value, float):
+            return dq
         Assert(len(dq) >= n + 1)
         # Truncate to a string of n digits
         s = ''.join(dq)[:n]         # First n digits
-        r = ''.join(dq)[n:]         # Remainder of digits
+        r = ''.join(dq)[n:]         # Remaining digits
         # Get the (n+1)st digit, which is used as the sentinel for rounding
         sentinel = int(r[0])
-        # Handle an exceptional case (example is fmt(0.99, n=2,
-        # fmt="fix")):  dq contains '98999999999999999' and s becomes
-        # '989'.  We find this example by converting '999999999999999'
-        # to an int and adding 1.  If the string length changes, we have to
-        # add 1 to s and then do half-even rounding.
-        add_one = 0
-        if len(str(int(r) + 1)) > len(r):
-            add_one = 1
+        if 1:   # Handle an exceptional case
+            '''
+            Example is fmt(float(0.99), n=2, fmt="fix")):  dq contains
+            '98999999999999999' and s becomes '98'.  Using the sentinel
+            to round will produce 0.99 instead of the expected 1.0.
+ 
+            We handle this example by converting r = '999999999999999' to
+            an int and adding 1.  If the string length changes, we have to
+            add 1 to s and _then_ do half-even rounding.  This problem
+            comes about because of the unexpected f"{x:.16e}" being equal
+            to '9.8999999999999999e-01'.
+        
+            The following code demonstrates that this anomalous '8' appears
+            in float string interpolation for '.{w}e' values of 15 and above.
+ 
+            from collections import deque
+            for w in range(12, 18):
+                print("digits =", w)
+                dq = deque("9")
+                count = 0
+                while count < 20:
+                    x = float("." + ''.join(dq))
+                    s = f"{x:.{w}e}"
+                    if "8" in s:
+                        print(f"{''.join(dq)}     {s}")
+                    count += 1
+                    dq.append("9")
+ 
+            which gives
+ 
+                digits = 12
+                digits = 13
+                digits = 14
+                digits = 15
+                99999999     9.999999899999999e-01
+                digits = 16
+                99     9.8999999999999999e-01
+                999999     9.9999899999999997e-01
+                99999999     9.9999998999999995e-01
+                9999999999     9.9999999989999999e-01
+                9999999999999     9.9999999999989997e-01
+                9999999999999999     9.9999999999999989e-01
+                digits = 17
+                99     9.89999999999999991e-01
+                999     9.98999999999999999e-01
+                999999     9.99998999999999971e-01
+                99999999     9.99999989999999950e-01
+                999999999     9.99999999000000028e-01
+                9999999999     9.99999999899999992e-01
+                99999999999     9.99999999989999999e-01
+                9999999999999     9.99999999999899969e-01
+                99999999999999     9.99999999999990008e-01
+                9999999999999999     9.99999999999999889e-01
+ 
+            This is one of those rare bugs that is only found by testing at
+            edge cases.  It was found in Test_Basics() and I was lucky that
+            I chose both 0.99 and 16 digits.
+            '''
+            add_one = 0     # This is used below
+            if len(str(int(r) + 1)) > len(r):
+                add_one = 1
         Assert(len(s) == n)
         if set(s) == set("0"):
             dq = deque(s)
@@ -507,7 +572,9 @@ class Fmt:
             # these to None to disable switching to scientific notation
             # (note you can get very large strings this way.
             # NOTE:  these must be floats because they are compared to both
-            # mpf and Decimal types.
+            # mpf and Decimal types.  This is a compromise, as it will
+            # break on high and low values beyond the range of a float (but
+            # practically this will never happen).
             self._low_init = 1e-4
             self._high_init = 1e6
         # Key to _SI_prefixes dict is exponent//3
@@ -542,6 +609,9 @@ class Fmt:
         # Low and high settings
         self._low = self._low_init  
         self._high = self._high_init
+        # See constructor for why these must be floats
+        Assert(ii(self._low, float))
+        Assert(ii(self._high, float))
     def copy(self):
         'Return a copy of the current instance'
         fmt = Fmt(self.n)
@@ -780,16 +850,15 @@ class Fmt:
         dq = self.ta.dq         # Deque of significand's digits 
         e = self.ta.e
         # If len(dq) == n + 1, a special rounding happened to increase the
-        # length by one, so pop the right end and increment the exponent
+        # length by one, so pop the right end and increment the exponent.
+        # See comments in TakeApart.round().
         if len(dq) == n + 1:
             dq.pop()
             e += 1
-
         if self.low is not None and 0 < abs(value) < self.low:
             return self.sci(value, n=n)
         elif self.high is not None and abs(value) >= self.high:
             return self.sci(value, n=n)
-
         if e < 0:
             # Number < 1
             ne = e + 1
@@ -1293,7 +1362,7 @@ class Fmt:
 if 1:   # Convenience Fmt instance
     fmt = Fmt()
 # Development area
-if 1 and __name__ == "__main__": 
+if 0 and __name__ == "__main__": 
     x = 0.99
     print(fmt(x, fmt='fix', n=2))
     exit()
@@ -1738,12 +1807,6 @@ if __name__ == "__main__":
             # Test with numbers near 1
             f = GetDefaultFmtInstance()
             x = 0.99
-            # Nasty bug:  dq is '98999999999999999' and it gets truncated
-            # to '98' for n == 2 and N == 15.  This gets rounded to 99.
-            # One fix would be to convert truncated digits to integer and
-            # add 1.  If the length changes, then it was all 9's and this
-            # case can be handled.
-            breakpoint() #xx
             Assert(f(x, n=1) == "1.")
             Assert(f(x, n=2) == "0.99")
             Assert(f(-x, n=1) == "-1.")
