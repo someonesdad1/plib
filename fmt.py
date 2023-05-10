@@ -2029,7 +2029,7 @@ if __name__ == "__main__":
                 ):
                 f.n = n
                 got = f(x, fmt="fixed")
-                if 1 and got != expected:
+                if 0 and got != expected:
                     print(f"n = {n}")
                     print(f"got      = {got}")
                     print(f"expected = {expected}")
@@ -2077,6 +2077,75 @@ if __name__ == "__main__":
                     exit()
                 Assert(f(x, fmt="fixed", n=n) == expected)
                 Assert(f(-x, fmt="fixed") == "-" + expected)
+            # Test with an mpf
+            if have_mpmath:
+                mpmath.mp.dps = 40
+                x = mpmath.mpf("31.43905775")
+                for n, expected in (
+                        (1, "31.4"),
+                        (2, "31.44"),
+                        (3, "31.439"),
+                        (4, "31.4390"),
+                        (5, "31.43906"),
+                        (6, "31.439058"),
+                        (7, "31.4390578"),
+                        (8, "31.43905775"),
+                        (15, "31.439057750000000"),
+                        (30, "31.439057750000000000000000000000"),
+                    ):
+                    f.n = n
+                    got = f(x, fmt="fixed")
+                    if 0 and got != expected:
+                        print(f"n = {n}")
+                        print(f"got      = {got}")
+                        print(f"expected = {expected}")
+                        exit()
+                    Assert(f(x, fmt="fixed") == expected)
+                    Assert(f(-x, fmt="fixed") == "-" + expected)
+                    # Show that n in call overrides fmt.n
+                    got = f(x, fmt="fixed", n=n)
+                    if 0 and got != expected:
+                        print(f"n = {n}")
+                        print(f"got      = {got}")
+                        print(f"expected = {expected}")
+                        exit()
+                    Assert(f(x, fmt="fixed", n=n) == expected)
+                    Assert(f(-x, fmt="fixed", n=n) == "-" + expected)
+            # Test with a Decimal
+            with decimal.localcontext() as ctx:
+                ctx.prec = 40
+                x = D("31.43905775")
+                for n, expected in (
+                        (1, "31.4"),
+                        (2, "31.44"),
+                        (3, "31.439"),
+                        (4, "31.4390"),
+                        (5, "31.43906"),
+                        (6, "31.439058"),
+                        (7, "31.4390578"),
+                        (8, "31.43905775"),
+                        (15, "31.439057750000000"),
+                        (30, "31.439057750000000000000000000000"),
+                    ):
+                    f.n = n
+                    got = f(x, fmt="fixed")
+                    if 0 and got != expected:
+                        print(f"n = {n}")
+                        print(f"got      = {got}")
+                        print(f"expected = {expected}")
+                        exit()
+                    Assert(f(x, fmt="fixed") == expected)
+                    Assert(f(-x, fmt="fixed") == "-" + expected)
+                    # Show that n in call overrides fmt.n
+                    got = f(x, fmt="fixed", n=n)
+                    if 0 and got != expected:
+                        print(f"n = {n}")
+                        print(f"got      = {got}")
+                        print(f"expected = {expected}")
+                        exit()
+                    Assert(f(x, fmt="fixed", n=n) == expected)
+                    Assert(f(-x, fmt="fixed", n=n) == "-" + expected)
+
         def Test_Fix():
             def TestTrimming():
                 f = GetDefaultFmtInstance()
