@@ -1,7 +1,7 @@
 '''
 
 Fix
-    - Sort key doesn't seem to do anything
+    - 
 
 Print out color names with a regex in the name
 '''
@@ -55,7 +55,7 @@ if 1:   # Utility
     def ParseCommandLine(d):
         d["-a"] = False     # Show attributions
         d["-i"] = True      # Ignore case in searches
-        d["-s"] = "hsv"     # Color sorting method
+        d["-s"] = "svh"     # Color sorting method
         if len(sys.argv) < 2:
             Usage()
         try:

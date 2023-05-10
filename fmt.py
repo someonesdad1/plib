@@ -1,7 +1,7 @@
 '''
 - Todo
+    - Add "fixed" option that emulates typical HP calculator's fixed mode
     - Worry about width keyword later
-    - Change tests to no longer depend on fpformat
     - Has to handle large numbers with thousands of digits in exponent
         as in hc.py:  '1000 fac ent pow'.  
  
@@ -218,7 +218,7 @@ class TakeApart:
                 return ''.join(self.dq)
             else:
                 return self.sign.strip() + ''.join(self.dq)
-    def __call__(self, x, n):
+    def __call__(self, x, n, all=False):
         if self._thread_id != threading.get_ident():
             print(f"Warning:  current thread ID = {threading.get_ident()}\n"
                   f"  TakeApart constructor started with is {self._thread_id}.\n"
@@ -236,13 +236,14 @@ class TakeApart:
             n = min(n, ctx.prec)
         elif have_mpmath and ii(x, mpmath.mpf):
             n = min(n, mpmath.mp.dps)
-        self.disassemble(x, n)
-    def prepare(self, value, n: int):
+        self.disassemble(x, n, all=all)
+    def prepare(self, value, n: int, all=False):
         '''Return a canonical representation of a number value.  n is an
         integer describing the number of decimal digits we will want.  To
         do this, the canonical representation must have at least n + 1
         digits available; the n + 1 digits allows for banker's rounding (i.e.,
-        round-to-even) of the significand to n digits.
+        round-to-even) of the significand to n digits.  If all is True, we
+        return all of the number's digits.
  
         The returned representation will be a tuple of the form 
             
@@ -300,9 +301,12 @@ class TakeApart:
             if result is None:
                 # We handle floats specially because the built-in
                 # formatting does the required job without needing any
-                # additional rounding step.  However, note it is not
+                # additional rounding step.  However, note it is NOT
                 # half-even rounding.
-                m = min(n, 16)  # Clamp n
+                if all:
+                    m = 16
+                else:
+                    m = min(n, 16)  # Clamp n
                 s = f"{abs(value):.{m - 1}e}".replace(".", "").replace(",", "")
                 if "e" not in s:
                     raise Exception("Bug:  no 'e' in float interpolation")
@@ -338,6 +342,7 @@ class TakeApart:
                 digits, exp = s.split("e")
                 digits = digits.replace(".", "").replace(",", "")
                 if not value and len(digits) < m:
+                    # This can happen with numbers like 0
                     while len(digits) < m:
                         digits += "0"
                 result = (value < 0, digits, radix, int(exp))
@@ -357,15 +362,16 @@ class TakeApart:
                         Assert(ii(value, int))
             else:
                 Assert(ii(digits, str))
-                # Normal number:  make sure we have at least n + 1 digits for
-                # banker's rounding of the significand.
-                if ii(value, float):
-                    Assert(len(digits) == n)    # Rounding already done
-                else:
-                    if len(digits) == n:
-                        digits += "0"   # Correct for this one case
-                        result = (value < 0, digits, radix, int(exp))
-                    Assert(len(digits) >= n + 1)
+                if not all:
+                    # Normal number:  make sure we have at least n + 1 digits for
+                    # banker's rounding of the significand.
+                    if ii(value, float):
+                        Assert(len(digits) == n)    # Rounding already done
+                    else:
+                        if len(digits) == n:
+                            digits += "0"   # Correct for this one case
+                            result = (value < 0, digits, radix, int(exp))
+                        Assert(len(digits) >= n + 1)
                 Assert(radix is None or ii(radix, str))
                 if ii(radix, str):
                     Assert(len(radix) == 1 and radix in ".,")
@@ -375,7 +381,7 @@ class TakeApart:
                     Assert(ii(value, (float, Fraction, Decimal)))
                 Assert(ii(e, int))
         return result
-    def disassemble(self, value, n):
+    def disassemble(self, value, n, all=False):
         '''Disassemble the number value into this instance's attributes.
         The basic information returned is:
  
@@ -403,11 +409,14 @@ class TakeApart:
  
         Otherwise, the number is a floating point number and the deque contains
         the desired self.n digits with the other attributes set appropriately.
+         
+        If all is True, then n is ignored and all of the digits in the
+        deque are returned.
         '''
         # Put this instance into a known state
         self.reset()
         # Get the basic string interpolation data for the supported number types
-        neg, digits, radix, e = self.prepare(value, n)
+        neg, digits, radix, e = self.prepare(value, n, all=all)
         self.number = value
         self.normal = True
         self.n = n
@@ -433,13 +442,15 @@ class TakeApart:
         self.sign = "-" if neg else " "
         self.radix = radix
         self.e = e
-        self.dq = self.round(value, deque(digits), self.n)
+        self.dq = deque(digits)
+        if not all:
+            self.dq = self.round(value, deque(digits), self.n)
+            Assert(len(self.dq) in (n, n + 1))
         # Checks
         Assert(ii(self.int, bool))
         Assert(self.sign == "-" or self.sign == " ")
         Assert(self.radix == "." or self.radix == ",")
         Assert(ii(self.e, int))
-        Assert(len(self.dq) in (n, n + 1))
     def round(self, value, dq: deque, n: int):
         '''Return the deque dq of digits rounded to n digits.  Use half-even
         rounding:  the last digit is rounded up if the following digit is
@@ -855,11 +866,83 @@ class Fmt:
             sgn = ""
         s = sgn + ''.join(self.ta.dq)
         return s
-    def fix(self, value, n=None, width=None) -> str:
-        'Return a fixed point representation'
+    def fixed(self, value, n=None, width=None) -> str:
+        '''Return a fixed point representation simulating an HP calculator.
+        Example:  if value = 72.8435 and n = 3, then '72.844' is returned.
+        Here, n represents the number of digits after the decimal point.
+        '''
         if width is not None:
             raise Exception(f"width keyword not supported yet") #xx
         n = n if n is not None else self.n
+        if self.low is not None and 0 < abs(value) < self.low:
+            return self.sci(value, n=n)
+        elif self.high is not None and abs(value) >= self.high:
+            return self.sci(value, n=n)
+        # Take things apart
+        self.ta(value, n, all=True)
+        if abs(self.ta.e) > self.nchars:
+            # A number whose exponent will take up more than 1/4 of the
+            # screen's digits is too large, so use sci interpolation.
+            return self.sci(value, n=n)
+        sign = self.ta.sign     # Sign ("-" or " ")
+        if not self.spc and sign == " ":
+            sign = ""
+        if self.sign and sign == "":
+            sign = "+"
+        dq = self.ta.dq         # Deque of significand's digits 
+        e = self.ta.e
+        # Place the decimal point
+        dqlen = len(dq)
+        if e >= 0:
+            # Add zeroes if needed
+            while e + 1 > dqlen:
+                dq.append("0")
+            insertion_point = e + 1
+            last_digit = insertion_point + n - 1
+            # Convert to string for more efficient indexing
+            s = ''.join(dq)
+            ending_digit = s[last_digit]
+            sentinel = int(s[last_digit + 1])
+            # Truncate at n digits past the decimal point
+            int_value = int(s[:last_digit + 1])
+            # Round if needed
+            if sentinel > 5 or (sentinel == 5 and ending_digit in "13579"):
+                int_value += 1
+            dq = deque(str(int_value))
+            dq.insert(e + 1, self.dp)
+            return sign + ''.join(dq)
+        else:
+            last_digit_index = n + e
+            s = ''.join(dq)
+            int_value = int(s[:last_digit_index + 1])
+            last_digit = s[last_digit_index]
+            sentinel = int(s[last_digit_index + 1])
+            # Round if needed
+            if sentinel > 5 or (sentinel == 5 and ending_digit in "13579"):
+                int_value += 1
+            dq = deque(str(int_value))
+            # Prepend zeroes if needed
+            k = e
+            while k < 0:
+                dq.appendleft("0")
+                k += 1
+            dq.insert(1, self.dp)
+            return sign + ''.join(dq)
+
+    def fix(self, value, n=None, width=None) -> str:
+        '''Return a fixed point representation using significant figures.
+        Example:  if value = 72.8435 and n = 3, then '72.8' is returned.
+        Here, n represents the number of significant digits in the return
+        string.
+        '''
+        if width is not None:
+            raise Exception(f"width keyword not supported yet") #xx
+        n = n if n is not None else self.n
+        if self.low is not None and 0 < abs(value) < self.low:
+            return self.sci(value, n=n)
+        elif self.high is not None and abs(value) >= self.high:
+            return self.sci(value, n=n)
+        # Take things apart
         self.ta(value, n)
         if abs(self.ta.e) > self.nchars:
             # A number whose exponent will take up more than 1/4 of the
@@ -878,10 +961,6 @@ class Fmt:
         if len(dq) == n + 1:
             dq.pop()
             e += 1
-        if self.low is not None and 0 < abs(value) < self.low:
-            return self.sci(value, n=n)
-        elif self.high is not None and abs(value) >= self.high:
-            return self.sci(value, n=n)
         if e < 0:
             # Number < 1
             ne = e + 1
@@ -929,7 +1008,7 @@ class Fmt:
         self.ta.dq = self.trim(self.ta.dq)  # Implement rtz, rtdp, rlz
         s = sgn + ''.join(self.ta.dq) + exponent
         return s
-
+ 
         # Handle the case when self.brief is True
         if width is None:
             raise ValueError(f"width cannot be None if fmt.brief is True")
@@ -1046,7 +1125,7 @@ class Fmt:
         else:
             raise ValueError(f"'{fmt}' is an unrecognized format")
         return ''.join(dq)
-
+ 
         if self.brief:
             width = W if width is None else width
             # dq holds the eng significand
@@ -1386,15 +1465,15 @@ class Fmt:
         @comp.setter
         def comp(self, value):
             self._comp = bool(value)
-if 1:   # Convenience Fmt instance
-    fmt = Fmt()
+# Convenience Fmt instance
+fmt = Fmt()
+ 
 # Development area
-if 0 and __name__ == "__main__": 
-    x = mpmath.mpf("-1.23456e300")
-    ta = TakeApart()
-    ta(x, 4)
-    print(str(ta))
-    #print(fmt(x, fmt='fix', n=2))
+if 1 and __name__ == "__main__": 
+    x = 72.8435
+    print(fmt.fixed(x, n=3))
+    x = 0.0728435
+    print(fmt.fixed(x, n=3))
     exit()
 
 if __name__ == "__main__": 
@@ -1408,7 +1487,6 @@ if __name__ == "__main__":
             import pathlib
             import sys
         # Custom imports
-            from fpformat import FPFormat
             from lwtest import run, raises
             from wrap import dedent
             import decimalmath
