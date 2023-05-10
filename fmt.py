@@ -891,11 +891,9 @@ class Fmt:
             sign = "+"
         dq = self.ta.dq         # Deque of significand's digits 
         e = self.ta.e
-        # Place the decimal point
-        dqlen = len(dq)
         if e >= 0:
             # Add zeroes if needed
-            while e + 1 > dqlen:
+            while e + 1 > len(dq):
                 dq.append("0")
             insertion_point = e + 1
             last_digit = insertion_point + n - 1
@@ -1473,7 +1471,7 @@ class Fmt:
 fmt = Fmt()
  
 # Development area
-if 1 and __name__ == "__main__": 
+if 0 and __name__ == "__main__": 
     x = 72.8435
     print(fmt.fixed(x, n=3))
     x = 0.0728435
