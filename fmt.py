@@ -921,6 +921,10 @@ class Fmt:
             if sentinel > 5 or (sentinel == 5 and ending_digit in "13579"):
                 int_value += 1
             dq = deque(str(int_value))
+            s = ''.join(dq)
+            # If it will be all zeros, use sci
+            if set(s) == set("0"):
+                return self.sci(value, n=n)
             # Prepend zeroes if needed
             k = e
             while k < 0:
