@@ -362,6 +362,9 @@ class TakeApart:
                 if ii(value, float):
                     Assert(len(digits) == n)    # Rounding already done
                 else:
+                    if len(digits) == n:
+                        digits += "0"   # Correct for this one case
+                        result = (value < 0, digits, radix, int(exp))
                     Assert(len(digits) >= n + 1)
                 Assert(radix is None or ii(radix, str))
                 if ii(radix, str):
@@ -689,7 +692,6 @@ class Fmt:
         sign = self.ta.sign.strip()
         dq.insert(1, self.dp)
         return sign + ''.join(dq)
-
     def __call__(self, value, fmt=None, n=None, width=None) -> str:
         '''Format value with the default formatter.  n overrides self.n
         digits and must be > 0.  fmt can be "fix", "sci", "eng", "engsi", or
