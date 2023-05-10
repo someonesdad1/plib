@@ -867,6 +867,17 @@ class Fmt:
             sgn = ""
         s = sgn + ''.join(self.ta.dq)
         return s
+    def clamp_n(self, value, n) -> int:
+        'Clamp n to reasonable values'
+        if ii(value, float):
+            return min(n, 15)
+        elif ii(value, D):
+            ctx = decimal.getcontext()
+            return min(n, ctx.prec)
+        elif have_mpmath and ii(value, mpmath.mpf):
+            return min(n, mpmath.mp.dps)
+        else:
+            return n
     def fixed(self, value, n=None, width=None) -> str:
         '''Return a fixed point representation simulating an HP calculator.
         Example:  if value = 72.8435 and n = 3, then '72.844' is returned.
@@ -875,6 +886,7 @@ class Fmt:
         if width is not None:
             raise Exception(f"width keyword not supported yet") #xx
         n = n if n is not None else self.n
+        n = self.clamp_n(value, n)
         if self.low is not None and 0 < abs(value) < self.low:
             return self.sci(value, n=n)
         elif self.high is not None and abs(value) >= self.high:
@@ -911,7 +923,7 @@ class Fmt:
             dq.insert(e + 1, self.dp)
             return sign + ''.join(dq)
         else:
-            k = n - abs(e)
+            k = n - abs(e) + 1
             if k < 0:
                 # Can't get any digits of significand
                 return self.sci(value, n=n)
@@ -945,6 +957,7 @@ class Fmt:
         if width is not None:
             raise Exception(f"width keyword not supported yet") #xx
         n = n if n is not None else self.n
+        n = self.clamp_n(value, n)
         if self.low is not None and 0 < abs(value) < self.low:
             return self.sci(value, n=n)
         elif self.high is not None and abs(value) >= self.high:
@@ -1004,6 +1017,7 @@ class Fmt:
         if width is not None:
             raise Exception(f"width keyword not supported yet") #xx
         n = n if n is not None else self.n
+        n = self.clamp_n(value, n)
         self.ta(value, n)
         sgn = self.ta.sign  # Will be '-' or ' '
         if not self.spc and sgn == " ":
@@ -1095,6 +1109,7 @@ class Fmt:
         if width is not None:
             raise Exception(f"width keyword not supported yet") #xx
         n = n if n is not None else self.n
+        n = self.clamp_n(value, n)
         self.ta(value, n)
         sign = self.ta.sign     # Sign ("-" or " ")
         if not self.spc and sign == " ":
@@ -1478,9 +1493,13 @@ class Fmt:
 fmt = Fmt()
  
 # Development area
-if 1 and __name__ == "__main__": 
-    x = 0.3543905775
-    print(fmt.fixed(x, n=22))
+if 0 and __name__ == "__main__": 
+    for i in range(1, 10):
+        x = 0.3543905775
+        print(i, fmt.fixed(x, n=i))
+    for i in range(0, 10):
+        x = 354.3905775
+        print(i, fmt.fixed(x, n=i))
     exit()
 
 if __name__ == "__main__": 
@@ -2002,8 +2021,8 @@ if __name__ == "__main__":
                     (8, "31.43905775"),
                 ):
                 f.n = n
-                got = f(x, fmt="fixed")
                 if 0 and got != expected:
+                    got = f(x, fmt="fixed")
                     print(f"n = {n}")
                     print(f"got      = {got}")
                     print(f"expected = {expected}")
@@ -2011,8 +2030,8 @@ if __name__ == "__main__":
                 Assert(f(x, fmt="fixed") == expected)
                 Assert(f(-x, fmt="fixed") == "-" + expected)
                 # Show that n in call overrides fmt.n
-                got = f(x, fmt="fixed", n=n)
                 if 0 and got != expected:
+                    got = f(x, fmt="fixed", n=n)
                     print(f"n = {n}")
                     print(f"got      = {got}")
                     print(f"expected = {expected}")
@@ -2021,32 +2040,35 @@ if __name__ == "__main__":
                 Assert(f(-x, fmt="fixed", n=n) == "-" + expected)
             x = 0.03143905775
             for n, expected in (
-                    (1, "31.4"),
-                    (2, "31.44"),
-                    (3, "31.439"),
-                    (4, "31.4390"),
-                    (5, "31.43906"),
-                    (6, "31.439058"),
-                    (7, "31.4390578"),
-                    (8, "31.43905775"),
+                    (1,  "0.03"),
+                    (2,  "0.03"),
+                    (3,  "0.031"),
+                    (4,  "0.0314"),
+                    (5,  "0.03144"),
+                    (6,  "0.031439"),
+                    (7,  "0.0314390"),
+                    (8,  "0.03143906"),
+                    (9,  "0.031439058"),
+                    (10, "0.0314390578"),
                 ):
                 f.n = n
-                got = f(x, fmt="fixed")
-                if 1 and got != expected:
+                if 0 and got != expected:
+                    got = f(x, fmt="fixed")
                     print(f"n = {n}")
                     print(f"got      = {got}")
                     print(f"expected = {expected}")
                     exit()
                 Assert(f(x, fmt="fixed") == expected)
+                Assert(f(-x, fmt="fixed") == "-" + expected)
                 # Show that n in call overrides fmt.n
-                got = f(x, fmt="fixed", n=n)
                 if 0 and got != expected:
+                    got = f(x, fmt="fixed", n=n)
                     print(f"n = {n}")
                     print(f"got      = {got}")
                     print(f"expected = {expected}")
                     exit()
                 Assert(f(x, fmt="fixed", n=n) == expected)
-            exit()#xx
+                Assert(f(-x, fmt="fixed") == "-" + expected)
         def Test_Fix():
             def TestTrimming():
                 f = GetDefaultFmtInstance()
