@@ -705,8 +705,9 @@ class Fmt:
         return sign + ''.join(dq)
     def __call__(self, value, fmt=None, n=None, width=None) -> str:
         '''Format value with the default formatter.  n overrides self.n
-        digits and must be > 0.  fmt can be "fix", "sci", "eng", "engsi", or
-        "engsic" for real numbers.  If it is None, then self.default is used.
+        digits and must be > 0.  fmt can be "fix", "fixed", "sci", "eng",
+        "engsi", or "engsic" for real numbers.  If it is None, then 
+        self.default is used.
  
         If n is not None, it is an integer > 0 that overrides the self.n
         setting.
@@ -731,7 +732,7 @@ class Fmt:
                 else:
                     fmt = self.int
             else:
-                if fmt is not None and fmt not in "fix sci eng engsi engsic".split():
+                if fmt is not None and fmt not in "fix fixed sci eng engsi engsic".split():
                     raise ValueError(f"'{fmt}' is unrecognized format string")
                 elif fmt is None:
                     fmt = self.default
@@ -910,19 +911,23 @@ class Fmt:
             dq.insert(e + 1, self.dp)
             return sign + ''.join(dq)
         else:
-            last_digit_index = n + e
+            k = n - abs(e)
+            if k < 0:
+                # Can't get any digits of significand
+                return self.sci(value, n=n)
             s = ''.join(dq)
-            int_value = int(s[:last_digit_index + 1])
-            last_digit = s[last_digit_index]
-            sentinel = int(s[last_digit_index + 1])
+            int_value = int(s[:k]) if k else int(s[k])
+            ending_digit = s[k - 1] if k else s[k]
+            sentinel = int(s[k]) if k else int(s[k + 1])
             # Round if needed
             if sentinel > 5 or (sentinel == 5 and ending_digit in "13579"):
                 int_value += 1
             dq = deque(str(int_value))
             s = ''.join(dq)
-            # If it will be all zeros, use sci
+            # If it is all zeros, use sci
             if set(s) == set("0"):
                 return self.sci(value, n=n)
+            Assert(1 <= len(s) <= n)
             # Prepend zeroes if needed
             k = e
             while k < 0:
@@ -1155,6 +1160,8 @@ class Fmt:
         fmt = fmt if fmt is not None else self.default
         if fmt == "fix":
             return self.fix(value, n=n, width=width)
+        elif fmt == "fixed":
+            return self.fixed(value, n=n, width=width)
         elif fmt == "sci":
             return self.sci(value, n=n, width=width)
         elif fmt in "eng engsi engsic".split():
@@ -1169,7 +1176,7 @@ class Fmt:
             raise Exception(f"width keyword not supported yet") #xx
         n = n if n is not None else self.n
         if fmt is not None:
-            if fmt not in "fix sci eng engsi engsic".split():
+            if fmt not in "fix fixed sci eng engsi engsic".split():
                 raise ValueError(f"'{fmt}' is unrecognized format string")
         else:
             fmt = self.default
@@ -1471,11 +1478,9 @@ class Fmt:
 fmt = Fmt()
  
 # Development area
-if 0 and __name__ == "__main__": 
-    x = 72.8435
-    print(fmt.fixed(x, n=3))
-    x = 0.0728435
-    print(fmt.fixed(x, n=3))
+if 1 and __name__ == "__main__": 
+    x = 0.3543905775
+    print(fmt.fixed(x, n=22))
     exit()
 
 if __name__ == "__main__": 
@@ -1982,8 +1987,67 @@ if __name__ == "__main__":
                 with decimal.localcontext() as ctx:
                     ctx.prec = n
                     Assert(f(x) == D(2)**D(1/2))
+        def Test_Fixed():
+            f = GetDefaultFmtInstance()
+            # Test with a float
+            x = 31.43905775
+            for n, expected in (
+                    (1, "31.4"),
+                    (2, "31.44"),
+                    (3, "31.439"),
+                    (4, "31.4390"),
+                    (5, "31.43906"),
+                    (6, "31.439058"),
+                    (7, "31.4390578"),
+                    (8, "31.43905775"),
+                ):
+                f.n = n
+                got = f(x, fmt="fixed")
+                if 0 and got != expected:
+                    print(f"n = {n}")
+                    print(f"got      = {got}")
+                    print(f"expected = {expected}")
+                    exit()
+                Assert(f(x, fmt="fixed") == expected)
+                Assert(f(-x, fmt="fixed") == "-" + expected)
+                # Show that n in call overrides fmt.n
+                got = f(x, fmt="fixed", n=n)
+                if 0 and got != expected:
+                    print(f"n = {n}")
+                    print(f"got      = {got}")
+                    print(f"expected = {expected}")
+                    exit()
+                Assert(f(x, fmt="fixed", n=n) == expected)
+                Assert(f(-x, fmt="fixed", n=n) == "-" + expected)
+            x = 0.03143905775
+            for n, expected in (
+                    (1, "31.4"),
+                    (2, "31.44"),
+                    (3, "31.439"),
+                    (4, "31.4390"),
+                    (5, "31.43906"),
+                    (6, "31.439058"),
+                    (7, "31.4390578"),
+                    (8, "31.43905775"),
+                ):
+                f.n = n
+                got = f(x, fmt="fixed")
+                if 1 and got != expected:
+                    print(f"n = {n}")
+                    print(f"got      = {got}")
+                    print(f"expected = {expected}")
+                    exit()
+                Assert(f(x, fmt="fixed") == expected)
+                # Show that n in call overrides fmt.n
+                got = f(x, fmt="fixed", n=n)
+                if 0 and got != expected:
+                    print(f"n = {n}")
+                    print(f"got      = {got}")
+                    print(f"expected = {expected}")
+                    exit()
+                Assert(f(x, fmt="fixed", n=n) == expected)
+            exit()#xx
         def Test_Fix():
-            'This is where the majority of execution time is'
             def TestTrimming():
                 f = GetDefaultFmtInstance()
                 x = 31.41
