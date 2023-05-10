@@ -912,7 +912,13 @@ class Fmt:
             last_digit = insertion_point + n - 1
             # Convert to string for more efficient indexing
             s = ''.join(dq)
-            ending_digit = s[last_digit]
+            while len(s) < last_digit + 2:
+                s += "0"
+            try:
+                ending_digit = s[last_digit]
+            except Exception as e:
+                breakpoint() #xx
+                pass
             sentinel = int(s[last_digit + 1])
             # Truncate at n digits past the decimal point
             int_value = int(s[:last_digit + 1])
@@ -2019,10 +2025,11 @@ if __name__ == "__main__":
                     (6, "31.439058"),
                     (7, "31.4390578"),
                     (8, "31.43905775"),
+                    (15, "31.439057750000000"),
                 ):
                 f.n = n
-                if 0 and got != expected:
-                    got = f(x, fmt="fixed")
+                got = f(x, fmt="fixed")
+                if 1 and got != expected:
                     print(f"n = {n}")
                     print(f"got      = {got}")
                     print(f"expected = {expected}")
@@ -2030,8 +2037,8 @@ if __name__ == "__main__":
                 Assert(f(x, fmt="fixed") == expected)
                 Assert(f(-x, fmt="fixed") == "-" + expected)
                 # Show that n in call overrides fmt.n
+                got = f(x, fmt="fixed", n=n)
                 if 0 and got != expected:
-                    got = f(x, fmt="fixed", n=n)
                     print(f"n = {n}")
                     print(f"got      = {got}")
                     print(f"expected = {expected}")
@@ -2050,10 +2057,11 @@ if __name__ == "__main__":
                     (8,  "0.03143906"),
                     (9,  "0.031439058"),
                     (10, "0.0314390578"),
+                    (15, "0.031439057750000"),
                 ):
                 f.n = n
+                got = f(x, fmt="fixed")
                 if 0 and got != expected:
-                    got = f(x, fmt="fixed")
                     print(f"n = {n}")
                     print(f"got      = {got}")
                     print(f"expected = {expected}")
@@ -2061,8 +2069,8 @@ if __name__ == "__main__":
                 Assert(f(x, fmt="fixed") == expected)
                 Assert(f(-x, fmt="fixed") == "-" + expected)
                 # Show that n in call overrides fmt.n
+                got = f(x, fmt="fixed", n=n)
                 if 0 and got != expected:
-                    got = f(x, fmt="fixed", n=n)
                     print(f"n = {n}")
                     print(f"got      = {got}")
                     print(f"expected = {expected}")
