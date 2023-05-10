@@ -20,8 +20,11 @@ if 1:  # Copyright, license
 if 1:  # Global variables
     ii = isinstance
 def gcd(a, b):
-    '''Greatest common divisor of a and b using Euclid's algorithm.
-    '''
+    "Greatest common divisor of a and b using Euclid's algorithm"
+    if not (ii(a, int) and ii(b, int)):
+        raise TypeError("a and b must be an integers")
+    if not a or not b:
+        raise ValueError("a and b cannot both be zero")
     a, b = abs(a), abs(b)
     if not a:
         return b
@@ -31,8 +34,7 @@ def gcd(a, b):
         a, b = b, a % b
     return a
 def gcd_seq(seq):
-    '''Greatest common divisor of a sequence of numbers.
-    '''
+    'Greatest common divisor of a sequence of numbers'
     if not seq:
         return None
     r = seq[0]
@@ -42,14 +44,12 @@ def gcd_seq(seq):
             break
     return r
 def lcm(a, b):
-    '''Least common multiple of a and b.
-    '''
+    'Least common multiple of a and b'
     if not a or not b:
         return 0
     return a*b/gcd(a, b)
 def lcm_seq(seq):
-    '''Least common multiple of numbers in seq.
-    '''
+    'Least common multiple of numbers in seq'
     if not seq:
         return 0
     r = seq[0]
@@ -59,9 +59,7 @@ def lcm_seq(seq):
             break
     return r
 def factorial(n):
-    '''Returns the factorial of n.
-        n! = n * (n-1) * (n-2) * ... * 2 * 1
-    '''
+    'Returns the factorial of n: n! = n*(n-1)*(n-2)*...*2*1'
     if not ii(n, int):
         raise TypeError("n must be an integer")
     if n < 0:

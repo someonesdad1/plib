@@ -300,7 +300,8 @@ class TakeApart:
             if result is None:
                 # We handle floats specially because the built-in
                 # formatting does the required job without needing any
-                # additional rounding step.
+                # additional rounding step.  However, note it is not
+                # half-even rounding.
                 m = min(n, 16)  # Clamp n
                 s = f"{abs(value):.{m - 1}e}".replace(".", "").replace(",", "")
                 if "e" not in s:
@@ -323,6 +324,8 @@ class TakeApart:
             result = special(value, mpmath.mpf)
             if result is None:
                 m = mpmath.mp.dps
+                if m < n:
+                    raise ValueError(f"mpmath precision less than requested n = {n}")
                 # To get mpmath.nstr to return the full number of
                 # significant digits, pass in the keyword argument
                 # strip_zeros=False.  This keyword gets passed to
@@ -509,8 +512,8 @@ class TakeApart:
                 9999999999999999     9.99999999999999889e-01
  
             This is one of those rare bugs that is only found by testing at
-            edge cases.  It was found in Test_Basics() and I was lucky that
-            I chose both 0.99 and 16 digits.
+            edge cases.  It was found in Test_Basics() and it was sheer luck
+            that I chose both 0.99 and 16 digits.
             '''
             add_one = 0     # This is used below
             if len(str(int(r) + 1)) > len(r):
@@ -531,6 +534,9 @@ class TakeApart:
             dq = deque(str(significand))
         # Check 
         Assert(len(dq) in (n, n + 1))
+        # Remove the extraneous digit if needed
+        if len(dq) == n + 1:
+            dq.pop()
         return dq
 class Fmt:
     def __init__(self, n=3):
@@ -667,6 +673,23 @@ class Fmt:
         'Raise exception if var is None'
         if var is None:
             raise Exception(f"fmt.{var} is None")
+    def significand(self, value) -> str:
+        "Return a string for the value's significand"
+        if ii(value, float):
+            n = 15
+        elif have_mpmath and ii(value, mpmath.mpf):
+            n = mpmath.mp.dps
+        elif ii(value, D):
+            ctx = decimal.getcontext()
+            n = ctx.prec
+        elif ii(value, int):
+            return str(value)
+        self.ta(value, n)
+        dq = self.ta.dq
+        sign = self.ta.sign.strip()
+        dq.insert(1, self.dp)
+        return sign + ''.join(dq)
+
     def __call__(self, value, fmt=None, n=None, width=None) -> str:
         '''Format value with the default formatter.  n overrides self.n
         digits and must be > 0.  fmt can be "fix", "sci", "eng", "engsi", or
@@ -1708,6 +1731,7 @@ if __name__ == "__main__":
                         if 0:
                             if f(x) != expected:
                                 print(f"x = {x}")
+                                print(f"m = {m}")
                                 print(f"expected = {expected}")
                                 print(f"got      = {f(x)}")
                                 s = mpmath.nstr(x, m, show_zero_exponent=True,
