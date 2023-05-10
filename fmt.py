@@ -1,6 +1,5 @@
 '''
 - Todo
-    - Add "fixed" option that emulates typical HP calculator's fixed mode
     - Worry about width keyword later
     - Has to handle large numbers with thousands of digits in exponent
         as in hc.py:  '1000 fac ent pow'.  
@@ -953,7 +952,6 @@ class Fmt:
                 k += 1
             dq.insert(1, self.dp)
             return sign + ''.join(dq)
-
     def fix(self, value, n=None, width=None) -> str:
         '''Return a fixed point representation using significant figures.
         Example:  if value = 72.8435 and n = 3, then '72.8' is returned.
@@ -1500,12 +1498,6 @@ fmt = Fmt()
  
 # Development area
 if 0 and __name__ == "__main__": 
-    for i in range(1, 10):
-        x = 0.3543905775
-        print(i, fmt.fixed(x, n=i))
-    for i in range(0, 10):
-        x = 354.3905775
-        print(i, fmt.fixed(x, n=i))
     exit()
 
 if __name__ == "__main__": 
