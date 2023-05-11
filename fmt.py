@@ -1242,120 +1242,6 @@ class Fmt:
             s = "" if self.cuddled else " "
             ret = f"{sr}{s}{sign}{s}{si}{self._imag_unit}"
             return ret
-    if 0:   # Old implementation
-        def round(self, dq: deque, n: int):
-            '''Given a deque of digits, round it to the indicated number of
-            figures.  Returns (nine, dq) where nine is a Boolean that's True 
-            if the first figure was '9' before rounding and '1' after (meaning
-            we rounded up from 9 to 10) and dq is the deque with the desired 
-            number of n digits.
-            '''
-            Assert(len(dq) >= n and n > 0)
-            if set(dq) == set("0"):
-                # The special value of 0, so we need to return n zero digits
-                return (False, deque("0"*n))
-            first_char = dq[0]
-            lst = ''.join(dq)
-            left, right = int(lst[:n]), lst[n:]
-            # Use banker rounding.  The sentinel is the first character of the
-            # right portion and is used to decide the rounding direction.
-            sentinel = int(right[0])
-            if sentinel > 5:
-                left += 1       # Round to even
-            elif sentinel == 5:
-                if str(left)[-1] in "13579":
-                    left += 1   # Round to even
-            d =  deque(str(left))
-            # Check to see if we rounded up 9 to 10
-            nine = True if first_char == "9" and d[0] == "1" else False
-            if nine and len(d) == n + 1:
-                d.pop()     # Get rid of last digit
-            Assert(len(d) == n)
-            return (nine, d)
-        def get_columns(self):
-            'Return the number of columns on the screen'
-            return int(os.environ.get("COLUMNS", 80)) - 1
-        def get_colums1(self):
-            '''Returns the current number of columns on the screen.  It's not
-            called by default because it's slow since it has to create another
-            process.  Use it if the user may have resized a window after your 
-            app has started.
-            '''
-            # This only works on UNIX/cygwin type systems
-            try:
-                r = subprocess.run(["stty", "size"], capture_output=True)
-                lines, columns = tuple(int(i) for i in r.stdout.strip().split())
-                return lines
-            except CalledProcessError:
-                return self.get_columns()
-        def call_Decimal(self, value, fmt: str="fix", n: int=None, width: int=None) -> str:
-            'Handle formatting with the Decimal type'
-            Assert(ii(value, (int, float, Decimal)))
-            try:
-                x = self.toD(value)
-                abs(x)
-            except (decimal.InvalidOperation, decimal.Overflow) as e:
-                # If we get here, we likely have a value number that has an
-                # exponent too large or small for the default Decimal context.
-                # We'll return a sci formatted value.
-                s = str(value).lower()
-                # Remove minus or plus signs
-                minus = ""
-                if s[0] == "+":
-                    s = s[1:]
-                elif s[0] == "-":
-                    s = s[1:]
-                    minus = "-"
-                try:
-                    # m will be the significand, e will be the exponent
-                    m, e = s.split("e")
-                except Exception:
-                    raise ValueError(f"{value!r} can't be formatted")
-                radix = "."
-                if "," in m:
-                    radix = ","
-                m = m.replace(radix, "")
-                m = m[:self.n]
-                if len(m) > 1:
-                    m = minus + m[0] + radix + m[1:]
-                if e[0] == "+":
-                    e = e[1:]
-                if self.u:
-                    # Use Unicode characters for power of 10
-                    o = ["✕10"]
-                    for c in e:
-                        o.append(self._superscripts[c])
-                    return m + ''.join(o)
-                return m + "e" + e
-            if fmt == "fix":
-                if value:
-                    if x and self.high is not None and abs(x) >= self.high:
-                        return self.sci(x, n, width=width)
-                    elif x and self.low is not None and abs(x) < self.low:
-                        return self.sci(x, n, width=width)
-                    return self.fix(x, n, width=width)
-                else:
-                    return self.fix(x, n, width=width)
-            elif fmt == "sci":
-                return self.sci(x, n, width=width)
-            else:
-                return self.eng(x, n=n, fmt=fmt, width=width)
-        def call_mpmath(self, value, fmt: str="fix", n: int=None, width: int=None) -> str:
-            Assert(ii(value, mpmath.mpf))
-            low, high = mpmath.mpf(str(self.low)), mpmath.mpf(str(self.high))
-            if fmt == "fix":
-                if value:
-                    if abs(value) >= high:
-                        return self.sci(value, n, width=width)
-                    if abs(value) < low:
-                        return self.sci(value, n, width=width)
-                    return self.fix(value, n, width=width)
-                else:
-                    return self.fix(value, n, width=width)
-            elif fmt == "sci":
-                return self.sci(value, n, width=width)
-            else:
-                return self.eng(value, n=n, fmt=fmt, width=width)
     if 1:   # Properties
         @property       # Default formatting method
         def default(self) -> str:
@@ -1363,7 +1249,7 @@ class Fmt:
             return self._default
         @default.setter
         def default(self, value):
-            if value not in "fix sci eng engsi engsic".split():
+            if value not in "fix fixed sci eng engsi engsic".split():
                 raise TypeError("value must be fix, sci, eng, engsi, or engsi")
             self._default = value
         @property       # Decimal point string
