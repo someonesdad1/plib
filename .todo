@@ -76,8 +76,6 @@ Active
         - Runs a python script that finds all functions in math/cmath and
           figures out the return values of each call.
 
-    - dev/cos
-
     - H utility
         - Rename to j, as lowercase is easier
         - Use goto.py functionality, modify if needed
