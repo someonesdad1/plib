@@ -37,31 +37,16 @@ if 1:   # Header
         L = int(os.environ.get("LINES", "50"))
         # name [args] [returns]
         mathfuncs = '''
-            acos        [float]; [float]
-            acosh       [float]; [float]
-            asin        [float]; [float]
-            asinh       [float]; [float]
-            atan        [float]; [float]
             atan2       [float, float]; [float]
-            atanh       [float]; [float]
             ceil        [float]; [int]
             comb        [int, int]; [int]
             copysign    [float, float]; [float]
-            cos         [float]; [float]
-            cosh        [float]; [float]
-            degrees     [float]; [float]
             dist        [floatseq, floatseq]; [float]
-            erf         [float]; [float]
-            erfc        [float]; [float]
-            exp         [float]; [float]
-            expm1       [float]; [float]
-            fabs        [float]; [float]
             factorial   [int]; [int]
             floor       [float]; [int]
             fmod        [float, float]; [float]
             frexp       [float]; [float, int]
             fsum        [iter]; [float] 
-            gamma       [float]; [float]
             gcd         [int_seq]; [int]
             hypot       [seq_coord]; [float]    
             isclose     [float, float]; [bool]
@@ -71,24 +56,41 @@ if 1:   # Header
             isqrt       [float]; [int] 
             lcm         [int_seq]; [int]
             ldexp       [float, int]; [float]
-            lgamma      [float]; [float]
             log         [float, float=]; [float]
-            log10       [float]; [float]
-            log1p       [float]; [float]
-            log2        [float]; [float]
             modf        [float]; [float, float] 
             nextafter   [float, float]; [float]
             perm        [int, =int]; [int] 
             pow         [float, float]; [float]
             prod        [iter, =float]; [float]
-            radians     [float]; [float]
             remainder   [float, float]; [float]
+            trunc       [float]; [int] 
+
+            # The following ones are verified
+            acos        [float]; [float]
+            acosh       [float]; [float]
+            asin        [float]; [float]
+            asinh       [float]; [float]
+            atan        [float]; [float]
+            atanh       [float]; [float]
+            cos         [float]; [float]
+            cosh        [float]; [float]
+            degrees     [float]; [float]
+            erf         [float]; [float]
+            erfc        [float]; [float]
+            exp         [float]; [float]
+            expm1       [float]; [float]
+            fabs        [float]; [float]
+            gamma       [float]; [float]
+            lgamma      [float]; [float]
+            log10       [float]; [float]
+            log1p       [float]; [float]
+            log2        [float]; [float]
+            radians     [float]; [float]
             sin         [float]; [float] 
             sinh        [float]; [float] 
             sqrt        [float]; [float] 
             tan         [float]; [float] 
             tanh        [float]; [float] 
-            trunc       [float]; [int] 
             ulp         [float]; [float] 
         '''
 
@@ -172,6 +174,8 @@ if 1:   # Core functionality
     def CheckMathFuncs():
         for line in mathfuncs.strip().split("\n"):
             line = line.strip()
+            if not line or line[0] == "#":
+                continue
             func = line[:12].strip()
             input, output = [i.strip() for i in line[12:].split(";")]
             #print(func, input, output)
@@ -187,6 +191,8 @@ if 1:   # Core functionality
 if __name__ == "__main__":
     d = {}      # Options dictionary
     args = ParseCommandLine(d)
-    #mathfuncs = GetMathFuncs()
-    #cmathfuncs = GetCMathFuncs()
-    CheckMathFuncs()
+    if 0:
+        mathfuncs = GetMathFuncs()
+        cmathfuncs = GetCMathFuncs()
+    else:
+        CheckMathFuncs()
