@@ -1,12 +1,5 @@
 Active
 
-    - Colors
-        - I often want to see a selection of colors to choose something for
-          an application
-        - rgb/view.py started at this
-        - Make a tool that will list colors by name:  blue, yellow, red,
-          etc.  Print out the three hex forms.
-
     - cmddecode.py
         - Some commands are special.  Thus, in hc.py, clstk is to clear the
           stack.  Suppose it's only confounded with clx.  Then cls means to
@@ -15,7 +8,7 @@ Active
           at least clst.
 
     - ca.py
-        - In light of hc.py work, this could be a better calculator
+        - In light of hc.py work, this might be a better calculator
           environment than hc
         - Allow documentation with vi
         - Use only mpf and mpc, int, fractions
@@ -40,10 +33,10 @@ Active
             - C = concentration
             - V = volume
             - S = solute volume
-            - D = solvent volume
+            - T = solvent volume
             - Equations
-                - V = S + D
-                - C = S/(S + D) = S/V
+                - V = S + T
+                - C = S/(S + T) = S/V
                 - S = C*V
         - There would be three submenus of the problem that would prompt
           for the variables C, V, S, D:  solution A, solution B, and

@@ -528,8 +528,8 @@ class flt(Base, float):
         return instance
     def _s(self, fmt="fix", no_color=False):    # flt
         'Return the rounded string representation'
-        if fmt not in set("fix eng sci engsi engsic".split()):
-            raise ValueError("fmt must be one of:  fix, eng, sci, engsi, engsic")
+        if fmt not in set("fix fixed eng sci engsi engsic".split()):
+            raise ValueError("fmt must be one of:  fix, fixed, eng, sci, engsi, engsic")
         self._check()
         if not Base._digits:
             return str(float(self))
@@ -555,13 +555,13 @@ class flt(Base, float):
             Base._fmt.rtdp = self._rtdp
             Base._fmt.rlz = self._rlz
             Base._fmt.u = self._uni
-        if fmt == "fix":
+        if fmt == "fix" or fmt == "fixed":
             need_sci = ((x and self.low is not None and abs(x) < self.low) or 
-                        (x and self.high is not None and abs(x) > self.high))
+                        (x and self.high is not None and abs(x) >= self.high))
             if need_sci:
                 s = self._fmt.sci(self, n=n)
             else:
-                s = self._fmt.fix(self, n=n)
+                s = self._fmt.fix(self, n=n) if fmt == "fix" else self._fmt.fixed(self, n=n)
         elif fmt == "eng":
             s = self._fmt.eng(self, fmt="eng", n=n)
         elif fmt == "engsi":
@@ -1572,7 +1572,6 @@ if __name__ == "__main__":
         # Approx
         x = Approx("~1.2")
         Assert(x == 1.2)
-        xx() #xx
         Assert(str(x) == "≈1.2")
         Assert(repr(x) == "Approx('~1.2')")
         x = Approx("≈1.2")
@@ -1825,7 +1824,7 @@ if __name__ == "__main__":
             x.high = 100
             Assert(x(1).s == "1.0")
             Assert(x(10).s == "10.")
-            Assert(x(100).s == "100.")
+            Assert(x(100).s == "1.0e2")
             Assert(x(99.9).s == "100.")
             Assert(x(100.9).s == "1.0e2")
             Assert(x(101).s == "1.0e2")
@@ -1986,7 +1985,6 @@ if __name__ == "__main__":
             # that an instance's change to self.n isn't affected by the context
             # manager.
             with x:
-                xx() #xx
                 x.N = 8
                 Assert(str(x) == "31.415927")
                 Assert(str(y) == "31.415927")
