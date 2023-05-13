@@ -1,6 +1,41 @@
 '''
 Program to calculate mixtures
     Modeled after a C program by Marv Klotz.
+
+13 May 2023:  Turn into a more general tool
+
+- Problem variables
+    - C = concentration []
+    - V = volume [L³]
+    - S = solute [L³]
+    - T = solvent [L³]
+- Equations
+    - V = S + T
+    - C = S/V
+- Relations from equations
+    - C = S/V = 1 - T/V
+    - V = S + T = T/(1 - C)
+    - S = C*V = V - T
+    - T = V - S = V*(1 - C)
+- Relations in terms of variables
+    - C(S, V) = C(T, V)
+    - V(S, T) = V(C, T)
+    - S(C, V) = S(T, V)
+    - T(S, V) = T(C, V)
+
+- Numerical check:  S = 1, T = 3, V = 4, C = 1/4
+- Problem statements
+    - Problem 1a
+        - Single solvent and solute.  Solutions A and B with different
+          concentrations are mixed.  What are the characteristics of the
+          mixture?
+    - Problem 1b
+        - Same as 1b, but multiple solutions A, B, C, ...
+    - Problem 2
+        - Single solvent, multiple solutes.  Solutions A, B, etc. with
+          different concentrations are mixed.  What are the characteristics
+          of the mixture?
+
 '''
 if 1:  # Copyright, license
     # These "trigger strings" can be managed with trigger.py
