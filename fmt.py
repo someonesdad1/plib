@@ -9,12 +9,18 @@
         - 1.21e≪1.47e160≫
  
 - Later
-    - fix(), sci(), etc. should use a new keyword:  'unc'.  unc
-      will be interpreted as an uncertainty and use the standard
-      uncertainty interpolation such as '3.14(3)'.  To handle the case where
-      this can represent a roundoff error, a boolean ro keyword is used;
-      when True, you get '3.14[3]' like the uncertainty short-hand
-      notation, but this denotes an estimated interval number.
+    - width
+        - Need an algorithm to make interpolations fit in a desired width.
+          Must be on a best effort basis, as it will be impossible for some
+          numbers (e.g., the above 100!**100!).
+    - unc
+        - fix(), sci(), etc. should use a new keyword:  'unc'.  unc will be
+          interpreted as an uncertainty and use the standard uncertainty
+          interpolation such as '3.14(3)' (unc must be the same number type
+          as the value passed in).  To handle the case where this can
+          represent a roundoff error, a boolean ro keyword is used; when
+          True, you get '3.14[3]' like the uncertainty short-hand notation,
+          but this denotes an estimated interval number.
     - Get rid of the color.py dependency in the module (OK in test code).
       The only needed change is to put an ANSI escape sequence in for
       underlining for polar complex number display.
@@ -149,7 +155,6 @@ if 1:   # Header
         from pprint import pprint as pp
         from pdb import set_trace as xx 
     if 1:   # Custom imports
-        from color import t
         from wrap import dedent
         try:
             # Note:  mpmath is optional, but I suggest you use it because
@@ -1229,7 +1234,13 @@ class Fmt:
             if self._deg:
                 b += "°"
             if self.ul:
-                return f"{a}{s}{t(attr='ul')}∕{s}{b}{t.n}"
+                # Manual hack to get underlining.  This removes the
+                # dependency on color.py, which sometimes results in
+                # circular dependency problems.
+                #return f"{a}{s}{t(attr='ul')}∕{s}{b}{t.n}"
+                u = '\x1b[4m'
+                v = '\x1b[38;2;192;192;192m\x1b[48;2;0;0;0m\x1b[0m'
+                return f"{a}{s}{u}∕{s}{b}{v}"
             else:
                 return f"{a}{s}∠{s}{b}"
         else:
@@ -1405,6 +1416,7 @@ if __name__ == "__main__":
             import pathlib
             import sys
         # Custom imports
+            from color import t
             from lwtest import run, raises
             from wrap import dedent
             import decimalmath
