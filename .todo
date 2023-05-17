@@ -5,20 +5,6 @@ Active
           If have SI prefix, convert to 'e' notation.  Use fmt.py as
           needed.
         
-    - Colors
-        - I often want to see a selection of colors to choose something for
-          an application
-        - rgb/view.py started at this
-        - Make a tool that will list colors by name:  blue, yellow, red,
-          etc.  Print out the three hex forms.
-
-    - cmddecode.py
-        - Some commands are special.  Thus, in hc.py, clstk is to clear the
-          stack.  Suppose it's only confounded with clx.  Then cls means to
-          clear the stack.  But because I type cls a lot, I might
-          accidentally type cls when I meant clx.  Thus, clstk needs to be
-          at least clst.
-
     - ca.py
         - In light of hc.py work, this could be a better calculator
           environment than hc
@@ -62,11 +48,6 @@ Active
           final volume to be locked at 15 gallons, as that's the sprayer
           volume.  The 'l x' and 'u x' commands would lock and unlock the
           variable x.
-
-    - pgm/chklnk.py
-        - For each file on the command line, extract the http:// links and
-          check if they are broken.  For OO files, it's a zip file and you
-          just read each XML file.
 
     - pgm/c++_units.py
         - Update to python 3
@@ -263,7 +244,7 @@ Inactive
         - Utility to parse GNU units data file
         - Could be useful to use to define a set of units for u.py
 
-    - pcs.py
+    - pcs.py (runs pycodestyle to check scripts)
         - The /plib tree is done for priority 2 and 3 errors.
         - Do for:  /math, /science, /elec, /shop
 
@@ -354,7 +335,7 @@ Inactive
 
     - Text processor
         - I find I do a lot of text processing.  Tools like gawk/mawk are
-          almost adequate and they have power and are very efficient.  But
+          almost adequate; they have power and are very efficient.  But
           they have archaic 40-year old semantics.  I've never liked the
           design of m4 though it is powerful.  The following would be
           features I would want:

@@ -1,6 +1,7 @@
 ''' 
  
 TODO
+    - Use fmt.py for formatting
     -flt
         - rlz doesn't remove 0 for negative numbers
     - cpx:

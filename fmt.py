@@ -1,8 +1,12 @@
 '''
 - Todo
     - Worry about width keyword later
-    - Has to handle large numbers with thousands of digits in exponent
-        as in hc.py:  '1000 fac ent pow'.  
+    - Large exponents
+        - 100!**100! can be calculated with mpmath, but the exponent is 1.47e160.
+          Need to develop a notation to handle such large numbers
+        - 1.21e[1.47e160]
+        - 1.21e<1.47e160>
+        - 1.21e≪1.47e160≫
  
 - Later
     - fix(), sci(), etc. should use a new keyword:  'unc'.  unc
@@ -60,8 +64,8 @@ class Fmt:  Format floating point numbers
     formatting:
  
         n       Sets the number of displayed digits.
-        default String for default floating point formatting (fix, sci,
-                eng, engsi, engsic)
+        default String for default floating point formatting (fix, fixed,
+                sci, eng, engsi, engsic)
         int     How to format integers (None is str(), dec, hex, oct, bin)
         brief   If True, fit string on one line if possible.
         dp      Sets the radix (decimal point) string (use '.' or ',').
@@ -1384,6 +1388,10 @@ fmt = Fmt()
  
 # Development area
 if 0 and __name__ == "__main__": 
+    x = mpmath.mpf(100)
+    y = mpmath.fac(x)
+    z = y**y
+    print(fmt(z))
     exit()
 
 if __name__ == "__main__": 
@@ -1432,8 +1440,8 @@ if __name__ == "__main__":
             Fmt class defaults to showing {f.n} digits and the trailing radix helps
             you identify that it's a floating point number.
         '''))
-        t.print(f"{t.em}Fixed point formatting")
-        print(f"  {t.f}f(x){t.n} = {t.fix}{f(x)}{t.n} (defaults to {f.n} digits)")
+        t.print(f"{t.em}fmt=\"fix\":  Shows desired number of figures")
+        print(f"  {t.f}f(x) = f(x, fmt=\"fix\"){t.n} = {t.fix}{f(x)}{t.n} (defaults to {f.n} digits)")
         t.print(f"{t.t}Remove trailing decimal point:  {t.f}f.rtdp = True")
         f.rtdp = True
         t.print(f"  {t.f}f(x) = {t.fix}{f(x)}")
@@ -1456,8 +1464,10 @@ if __name__ == "__main__":
         t.print(f"  {t.f}f(1/4) = {t.fix}{f(1/4)} {' '*1}f.rlz = True")
         f.rlz = False
         f.n = 3
+        t.print(f"{t.em}fmt=\"fixed\":  Shows fixed number of decimal places")
+        print(f"  {t.f}f(x) = f(x, fmt=\"fixed\", n=2){t.n} = {t.fix}{f(x, fmt='fixed', n=2)}{t.n} (show to second decimal place)")
         # Change scientific notation thresholds
-        t.print(f"{t.em}Scientific notation{t.n}    {t.t}Change transition thresholds to scientific notation:")
+        t.print(f"{t.em}fmt=\"sci\"  Scientific notation{t.n}    {t.t}Change transition thresholds to scientific notation:")
         f.high = 1e6
         f.low = 1e-6
         t.print(f"  {t.f}f.high{t.n} = {t.sci}{f.sci(f.high, n=1)}")
@@ -1484,14 +1494,16 @@ if __name__ == "__main__":
         t.print(f"  {t.t}Set {t.f}f.low{t.n} and {t.f}f.high{t.n} to None always use fixed point:")
         t.print(f"  {t.f}f(pi*1e-27){t.n} = {t.fix}{f(pi*1e-27)}")
         t.print(f"  {t.f}f(pi*1e57){t.n} = {t.fix}{f(pi*1e57)}")
-        print(f"  Large and small enough numbers will still require scientific notation.")
+        print(dedent(f'''
+        Large and small enough numbers will still require scientific notation (the
+        default processing switches to scientific notation if an interpolation takes
+        up more than a fourth of the screen area).'''))
         f.high = 1e6
         f.low = 1e-6
         # Big exponents
         print(dedent(f'''
         {t.em}Big numbers{t.n}   {t.t}Fixed point, scientific, and engineering formatting should work
         for numbers of arbitrary magnitudes as long as an exception isn't encountered.
-        For very large or small numbers, install the optional mpmath library.
         '''))
         t.print(f"  {t.f}f(Decimal('1e999999')){t.n} = {t.sci}{f(D('1e999999'))}")
         t.print(f"  {t.f}f(Decimal('1e-999999')){t.n} = {t.sci}{f(D('1e-999999'))}")
@@ -1500,40 +1512,49 @@ if __name__ == "__main__":
         except decimal.Overflow:
             t.print(f'  {t.f}f(Decimal("1e1000000")){t.n}', "results in overflow")
         t.print(f'  {t.f}f(Decimal("1e-100000000")){t.n}', "underflow that gives 0")
+        if 0 and have_mpmath:
+            x = mpmath.mpf(100)
+            y = mpmath.fac(x)
+            z = y**y
+            print(dedent(f'''
+            mpmath lets you calculate y = x**x where x is 100!:
+            y = {fmt(z)} (the exponent is 1.47e160)
+            '''))
+        else:
+            print(dedent(f'''
+            If you install mpmath, you can handle/format large numbers.  For example,
+            if x = 100!, then x**x is a large number with an exponent of 1.47e160 and
+            fmt(x**x) will format the number properly.
+            '''))
         # Decimals with lots of digits
         n = 20
         t.print(dedent(f'''
-        {t.em}Digits{t.n}    {t.t}You can ask for any number of digits, but some
-        displayed digits can be meaningless if they are beyond the number's
-        allowed precision.  Below, digits in error are shown in red, as a python float
-        is only good to about 15 digits.  The expression evaluated is
-        100000*sin(pi/4) to {n} digits.
+        {t.em}Digits{t.n}  {t.t}You can ask for any number of digits, but the maximum given will be
+        number consistent with the numerical type's precision.  A float is good to
+        about 15 digits.  Decimal and mpmath numbers depend on the current context's
+        precision.  The expression evaluated is y = 100000*sin(pi/4):
         '''))
         with decimal.localcontext() as ctx:
             ctx.prec = n
             x = 100000*decimalmath.sin(decimalmath.pi()/4)
-            # mpmath's result to 30 digits
-            mp = "70710.6781186547524400844362104822"
-            #    "70710.678118654745049"    float to 20 digits
-            #                     ^ Incorrect digits
-            t.print(f"  x = {t.fix}{fmt(x, n=n)}{t.n} (Decimal calculation)")
+            t.print(f"  y = {t.fix}{fmt(x, n=n)}{t.n} (Decimal calculation to 20 digits)")
             y = 100000*math.sin(math.pi/4)
             ys, m = fmt(y, n=n), 16
             bad = f"{t.fix}{ys[:m]}{t.err}{ys[m:]}{t.n}"
-            t.print(f"  x = {bad} (float calculation)")
+            t.print(f"  y = {bad}      (float calculation to 15 digits)")
             n = 4
-            t.print(f"  sci(x)    to {n} digits = {t.sci}{f(x, 'sci', n=n)}")
+            t.print(f"  sci(y)    to {n} digits = {t.sci}{f(x, 'sci', n=n)}")
             n = 5
-            t.print(f"  eng(x)    to {n} digits = {t.eng}{f(x, 'eng', n=n)}")
+            t.print(f"  eng(y)    to {n} digits = {t.eng}{f(x, 'eng', n=n)}")
             n = 6
-            t.print(f"  engsi(x)  to {n} digits = {t.si}{f(x, 'engsi', n=n)}")
+            t.print(f"  engsi(y)  to {n} digits = {t.si}{f(x, 'engsi', n=n)}")
             n = 7
-            t.print(f"  engsic(x) to {n} digits = {t.si}{f(x, 'engsic', n=n)}")
+            t.print(f"  engsic(y) to {n} digits = {t.si}{f(x, 'engsic', n=n)}")
         t.print(dedent(f'''
         {t.em}SI notation{t.n}    The {t.f}f.engsi{t.n} method supplies an SI prefix after the number to
         indicate the number's magnitude.  You can then append a physical unit string
         to get proper SI syntax:  {t.u}{f(x, 'engsi')}Ω{t.n}.  {t.f}f.engsic{t.n} does the same except the prefix
-        is cuddled: {t.u}{f(x, 'engsic')}Ω{t.n}.
+        is cuddled: {t.u}{f(x, 'engsic')}Ω{t.n} (incorrect SI syntax, but sometimes useful).
         ''', n=8))
         # Complex numbers
         z = complex(3.45678, -6.78901)
@@ -1572,6 +1593,8 @@ if __name__ == "__main__":
         t.print(f"The fmt.ul underlining won't work unless your terminal supports it.")
         if not use_colors:
             print(f"Set the environment variable DPRC to true to see colorized output.")
+        if W < 79:
+            print("[Need a screen width of at least 80 for acceptable Demo() output]")
     if 1:   # Test code 
         def GetDefaultFmtInstance():
             'Make sure test environment is set up in a repeatable fashion'

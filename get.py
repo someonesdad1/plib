@@ -476,9 +476,10 @@ if 1:   # Getting numbers
         unit_string = ""
         while True:
             if inspect is None:
-                out(prompt_msg)
-                if default is not None:
-                    out("[" + str(default) + "] ")
+                msg = f"{prompt_msg}"
+                msg += f" [{default}]" if default is not None else ""
+                if outstream != sys.stdout:
+                    out(msg)
                 if instream is not None:
                     s = instream.readline()
                     if not s:
@@ -494,7 +495,10 @@ if 1:   # Getting numbers
                             else:
                                 return numtype(default)
                 else:
-                    s = input().strip()
+                    # This form allows you to use readline:  execute 
+                    # 'readline.set_startup_hook(input)' and the following
+                    # input call will use readline's facilities.
+                    s = input(msg).strip()
             else:
                 s = inspect
             if not s:
