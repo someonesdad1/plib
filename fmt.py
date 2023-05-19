@@ -1,12 +1,23 @@
 '''
 - Todo
-    - Worry about width keyword later
-    - Large exponents
-        - 100!**100! can be calculated with mpmath, but the exponent is 1.47e160.
-          Need to develop a notation to handle such large numbers
-        - 1.21e[1.47e160]
-        - 1.21e<1.47e160>
-        - 1.21e≪1.47e160≫
+    - Roundoff/uncertainty
+        - Add method unc(x, u, fmt="fix", intv=False)
+        - Displays in shorthand for uncertainty:  1.23(4).  This is to be
+          interpreted as a standard uncertainty.
+        - If intv is True, then it is displayed as 1.23[4].  This form is
+          intended to convey that it's an interval, from e.g. roundoff
+          errors.
+    - Large numbers
+        - mpmath can calculate fac(1e1000); it's log is 1.00e1002.  Thus
+          log(log(x)) could be a way to get reasonably-sized numbers to
+          help you see the magnitude.
+        - 100!**100! can be calculated with mpmath, but the exponent is
+          1.47e160.  Need to develop a notation to handle large numbers.
+        - Use log: ((1.47e160))
+        - Power tower:  10↑↑n == 10**10**...**10, n times
+        - "order" of magnitude n:  how many times you have to take log of a
+          number to get a result between 1 and 10.  Could call this
+          "biglog".  See https://en.wikipedia.org/wiki/Super-logarithm
  
 - Later
     - width
@@ -21,18 +32,11 @@
           represent a roundoff error, a boolean ro keyword is used; when
           True, you get '3.14[3]' like the uncertainty short-hand notation,
           but this denotes an estimated interval number.
-    - Get rid of the color.py dependency in the module (OK in test code).
-      The only needed change is to put an ANSI escape sequence in for
-      underlining for polar complex number display.
-    - Angle measures:  deg rad grad rev.  Need to come up with a usable
-      display notation for polar coordinates.  ◣ or ▶ might be good for
-      grad and ⊚ ⏺ ⬤ ● Ⓡ ⭙ might be good for revolutions (make sure it
-      isn't confused with a digit).
-    - Note mpmath.nstr() has keywords to control low & high for fixed point
-      strings.  You can also use it to get a floating point interpolation.
-        - An x = mpf(i) where i is an integer appears to have the property
-          int(x) == i, at least if the integer can be expressed at the
-          current precision exactly.  Checked up to 2**1000000.
+    - Angle measures
+        - deg rad grad rev.  Need to come up with a usable display notation
+          for polar coordinates.  ◣ or ▶ might be good for grad and ⊚ ⏺ ⬤
+          ● Ⓡ ⭙ might be good for revolutions (make sure it isn't confused
+          with a digit).
  
 ---------------------------------------------------------------------------
 class Fmt:  Format floating point numbers
@@ -210,6 +214,19 @@ class TakeApart:
         self.radix = None       # Decimal point defined by locale
         self.e = None           # Integer power of 10 of number
         self.dq = None          # Deque of significand's digits without dp
+    def copy(self):
+        'Return a copy of this instance'
+        ta = TakeApart()
+        ta.number = self.number
+        ta.normal = self.normal
+        ta.int = self.int
+        ta.n = self.n
+        ta.sign = self.sign
+        ta.radix = self.radix
+        ta.e = self.e
+        if self.dq is not None:
+            ta.dq = self.dq.copy()
+        return ta
     def __str__(self):
         if self.number is None:
             return "Call disassemble(value, n) first"
@@ -695,6 +712,17 @@ class Fmt:
         'Raise exception if var is None'
         if var is None:
             raise Exception(f"fmt.{var} is None")
+    def clamp_n(self, value, n) -> int:
+        'Clamp n to reasonable values'
+        if ii(value, float):
+            return min(n, 15)
+        elif ii(value, D):
+            ctx = decimal.getcontext()
+            return min(n, ctx.prec)
+        elif have_mpmath and ii(value, mpmath.mpf):
+            return min(n, mpmath.mp.dps)
+        else:
+            return n
     def significand(self, value) -> str:
         "Return a string for the value's significand"
         if ii(value, float):
@@ -875,17 +903,6 @@ class Fmt:
             sgn = ""
         s = sgn + ''.join(self.ta.dq)
         return s
-    def clamp_n(self, value, n) -> int:
-        'Clamp n to reasonable values'
-        if ii(value, float):
-            return min(n, 15)
-        elif ii(value, D):
-            ctx = decimal.getcontext()
-            return min(n, ctx.prec)
-        elif have_mpmath and ii(value, mpmath.mpf):
-            return min(n, mpmath.mp.dps)
-        else:
-            return n
     def fixed(self, value, n=None, width=None) -> str:
         '''Return a fixed point representation simulating an HP calculator.
         Example:  if value = 72.8435 and n = 3, then '72.844' is returned.
@@ -1181,6 +1198,67 @@ class Fmt:
             # Remove LSDs from significand to get width goal
             while len(''.join(dq)) > width and dq[-1] != self.ta.dp:
                 dq.pop()
+    def unc(self, x, u, fmt="fix", intv=False) -> str:
+        '''Return a string form analogous to the shorthand form used for
+        uncertainty:  e.g. '1.23(4)' where '1.23' is x and the '4' is
+        the indication of the uncertainty u.  If intv is True, use the form
+        '1.23[4]', which indicates an interval from e.g. a roundoff error.
+        Only 'fix' and 'sci' are allowed format types.
+        '''
+        if 1:   # Check parameters
+            if fmt is None:
+                fmt = self.default
+            elif fmt not in "fix sci".split():
+                raise ValueError(f"'{fmt}' is unrecognized format string")
+            # x and u must be real 
+            msg = "must be a float or Decimal"
+            types = (float, D)
+            if have_mpmath:
+                msg = "must be a float, Decimal, or mpmath.mpf"
+                types = (float, D, mpmath.mpf)
+            if not ii(x, types):
+                raise TypeError("x " + msg)
+            if not ii(u, types):
+                raise TypeError("u " + msg)
+            # u must be >= 0
+            if u < 0:
+                raise ValueError("u must be >= 0")
+            # u must be < x
+            if u >= abs(x):
+                raise ValueError("u must be < x")
+        # Get the maximum number of digits we can get
+        n = 15  # Assume float
+        if ii(x, D):
+            n = decimal.getcontext().prec
+        elif have_mpmath and ii(x, mpmath.mpf):
+            n = mpmath.mp.dps
+        # Take the numbers apart
+        uta = self.ta.copy()
+        xta = self.ta.copy()
+        xta(x, n)
+        uta(u, 1)
+
+        if 1:   # Debug print
+            print("x", x)
+            print("u", u)
+            print("xta", xta)
+            print("uta", uta)
+            print("x dq", ''.join(xta.dq))
+            print("u dq", ''.join(uta.dq))
+            print("x e", xta.e)
+            print("u e", uta.e)
+            print("diff", xta.e - uta.e)
+
+        k = xta.e - uta.e
+        Assert(k > 0)
+        lbkt, rbkt = "[", "]" if intv else "(", ")"
+        # Get significand's digits with unc/ro
+        dq = deque(''.join(list(xta.dq)[:k]) + lbkt + uta.dq[0] + rbkt)
+        # Place decimal point
+        if xta.e < 0:
+        else:
+
+
     def Real(self, value, fmt=None, n=None, width=None) -> str:
         if width is not None:
             raise Exception(f"width keyword not supported yet") #xx
@@ -1398,11 +1476,14 @@ class Fmt:
 fmt = Fmt()
  
 # Development area
-if 0 and __name__ == "__main__": 
-    x = mpmath.mpf(100)
-    y = mpmath.fac(x)
-    z = y**y
-    print(fmt(z))
+if 1 and __name__ == "__main__": 
+    x = 1.23456e-18
+    u = 0.00642e-18
+    x = 1.23456e18
+    u = 0.00642e18
+    x = 1.23456
+    u = 0.00642
+    print(fmt.unc(x, u))
     exit()
 
 if __name__ == "__main__": 
