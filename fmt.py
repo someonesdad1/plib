@@ -1232,13 +1232,18 @@ class Fmt:
             n = decimal.getcontext().prec
         elif have_mpmath and ii(x, mpmath.mpf):
             n = mpmath.mp.dps
+        # Switch to sci if needed
+        if self.low is not None and abs(x) < self.low:
+            fmt = "sci"
+        elif self.high is not None and abs(x) >= self.high:
+            fmt = "sci"
         # Take the numbers apart
         uta = self.ta.copy()
         xta = self.ta.copy()
         xta(x, n)
         uta(u, 1)
 
-        if 1:   # Debug print
+        if 0:   # Debug print
             print("x", x)
             print("u", u)
             print("xta", xta)
@@ -1251,12 +1256,30 @@ class Fmt:
 
         k = xta.e - uta.e
         Assert(k > 0)
-        lbkt, rbkt = "[", "]" if intv else "(", ")"
-        # Get significand's digits with unc/ro
-        dq = deque(''.join(list(xta.dq)[:k]) + lbkt + uta.dq[0] + rbkt)
+        lbkt, rbkt = ("[", "]") if intv else ("(", ")")
+        us = lbkt + uta.dq[0] + rbkt    # Unc/ro portion
+        # Get significand's digits 
+        dq = deque(''.join(list(xta.dq)[:k]))
+
         # Place decimal point
-        if xta.e < 0:
+        e = xta.e
+        if fmt == "sci":
+            dq.insert(1, self.dp)
+            dq.append(us)
+            if self.u:
+                dq.append(self.GetUnicodeExponent(e))
+            else:
+                dq.append(f"e{e}")
         else:
+            if e < 0:
+                while e:
+                    dq.appendleft("0")
+                    e += 1
+                dq.insert(1, self.dp)
+                dq.append(us)
+            else:
+                pass
+        return ''.join(dq)
 
 
     def Real(self, value, fmt=None, n=None, width=None) -> str:
@@ -1477,13 +1500,13 @@ fmt = Fmt()
  
 # Development area
 if 1 and __name__ == "__main__": 
-    x = 1.23456e-18
-    u = 0.00642e-18
-    x = 1.23456e18
-    u = 0.00642e18
-    x = 1.23456
-    u = 0.00642
-    print(fmt.unc(x, u))
+    n = -0
+    x = f"1.23456e{n}"
+    u = f"0.00642e{n}"
+    X, U = [float(i) for i in (x, u)]
+    fmt.u = 0
+    #fmt.low = None
+    print(fmt.unc(X, U, fmt="fix", intv=True))
     exit()
 
 if __name__ == "__main__": 
