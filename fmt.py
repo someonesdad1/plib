@@ -1242,46 +1242,33 @@ class Fmt:
         xta = self.ta.copy()
         xta(x, n)
         uta(u, 1)
-
-        if 0:   # Debug print
-            print("x", x)
-            print("u", u)
-            print("xta", xta)
-            print("uta", uta)
-            print("x dq", ''.join(xta.dq))
-            print("u dq", ''.join(uta.dq))
-            print("x e", xta.e)
-            print("u e", uta.e)
-            print("diff", xta.e - uta.e)
-
-        k = xta.e - uta.e
+        k = xta.e - uta.e + 1   # Number of digits in significand
         Assert(k > 0)
         lbkt, rbkt = ("[", "]") if intv else ("(", ")")
         us = lbkt + uta.dq[0] + rbkt    # Unc/ro portion
         # Get significand's digits 
-        dq = deque(''.join(list(xta.dq)[:k]))
-
-        # Place decimal point
+        sig = deque(''.join(list(xta.dq)[:k]))
+        # Format the string
         e = xta.e
         if fmt == "sci":
-            dq.insert(1, self.dp)
-            dq.append(us)
-            if self.u:
-                dq.append(self.GetUnicodeExponent(e))
-            else:
-                dq.append(f"e{e}")
+            sig.insert(1, self.dp)
+            sig.append(us)
+            sig.append(self.GetUnicodeExponent(e) if self.u else f"e{e}")
         else:
+            # Fixed point
             if e < 0:
                 while e:
-                    dq.appendleft("0")
+                    sig.appendleft("0")
                     e += 1
-                dq.insert(1, self.dp)
-                dq.append(us)
+                sig.insert(1, self.dp)
+                sig.append(us)
             else:
-                pass
-        return ''.join(dq)
 
+                print(f"x = {x}   u = {u}")
+                print(f"sig = {''.join(sig)}   us = {us}    e  = {e}")
+                exit() #xx
 
+        return ''.join(sig)
     def Real(self, value, fmt=None, n=None, width=None) -> str:
         if width is not None:
             raise Exception(f"width keyword not supported yet") #xx
@@ -1500,13 +1487,14 @@ fmt = Fmt()
  
 # Development area
 if 1 and __name__ == "__main__": 
-    n = -0
+    n = 5
     x = f"1.23456e{n}"
     u = f"0.00642e{n}"
     X, U = [float(i) for i in (x, u)]
     fmt.u = 0
     #fmt.low = None
-    print(fmt.unc(X, U, fmt="fix", intv=True))
+    #print(X, U)
+    print(fmt.unc(X, U, fmt="fix", intv=0))
     exit()
 
 if __name__ == "__main__": 

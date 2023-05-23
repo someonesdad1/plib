@@ -5,6 +5,15 @@ Active
           If have SI prefix, convert to 'e' notation.  Use fmt.py as
           needed.
         
+    - isotopes.py
+        - Create an on-disk database of isotope data.  These can be made
+          with requests.py and the wikipedia isotopes tables.
+        - Provide searches
+            - Half life
+            - Decay mode
+            - Decay energy
+            - Metastable states
+
     - ca.py
         - In light of hc.py work, this could be a better calculator
           environment than hc
@@ -71,7 +80,7 @@ Active
 
     - flt.py
         - Get rid of N attribute, as I always forget it:  go back to n.
-          Then make n got to m, which changes only the instance's number of
+          Then make n become m, which changes only the instance's number of
           digits.
         - Using the recent work on 'Classes derived from flt for physical
           data, see if it's possible to have one numerical object derived

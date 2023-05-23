@@ -79,13 +79,15 @@ def ParseCommandLine(d):
     if len(sys.argv) < 2:
         Usage(1)
     try:
-        optlist, args = getopt.getopt(sys.argv[1:], "i:sw")
+        optlist, args = getopt.getopt(sys.argv[1:], "hi:sw")
     except getopt.GetoptError as e:
         msg, option = e
         print(msg)
         sys.exit(1)
     for opt in optlist:
-        if opt[0] == "-i":
+        if opt[0] == "-h":
+            Usage(0)
+        elif opt[0] == "-i":
             r = re.compile(opt[1])
             d["-i"].append(r)
         elif opt[0] == "-s":
