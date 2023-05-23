@@ -1263,8 +1263,14 @@ class Fmt:
                 sig.insert(1, self.dp)
                 sig.append(us)
             else:
+                print(f"sig = {''.join(sig)}   us = {us}    e  = {e}")
+                while len(sig) < 1 + e:
+                    sig.append("0")
+                sig.append(self.dp)
+                sig.insert(k, us)
 
                 print(f"x = {x}   u = {u}")
+                print(f"k = {k}")
                 print(f"sig = {''.join(sig)}   us = {us}    e  = {e}")
                 exit() #xx
 
