@@ -1263,16 +1263,18 @@ class Fmt:
                 sig.insert(1, self.dp)
                 sig.append(us)
             else:
-                print(f"sig = {''.join(sig)}   us = {us}    e  = {e}")
-                while len(sig) < 1 + e:
-                    sig.append("0")
-                sig.append(self.dp)
+                if 1:
+                    print(f"x = {x}   u = {u}")
+                    print(f"k = {k}")
+                    print(f"sig = {''.join(sig)}   us = {us}    e  = {e}")
+                # Place decimal point
+                if len(sig) < e + 1:   # Need added 0's
+                    sig.append("0"*(e + 1 - len(sig)))
+                    sig.append(self.dp)
+                else:
+                    sig.insert(e + 1, self.dp)
+                    k += 1
                 sig.insert(k, us)
-
-                print(f"x = {x}   u = {u}")
-                print(f"k = {k}")
-                print(f"sig = {''.join(sig)}   us = {us}    e  = {e}")
-                exit() #xx
 
         return ''.join(sig)
     def Real(self, value, fmt=None, n=None, width=None) -> str:
@@ -1493,12 +1495,12 @@ fmt = Fmt()
  
 # Development area
 if 1 and __name__ == "__main__": 
-    n = 5
+    n = 1
     x = f"1.23456e{n}"
-    u = f"0.00642e{n}"
+    u = f"0.0064e{n}"
     X, U = [float(i) for i in (x, u)]
     fmt.u = 0
-    #fmt.low = None
+    fmt.high = None
     #print(X, U)
     print(fmt.unc(X, U, fmt="fix", intv=0))
     exit()
