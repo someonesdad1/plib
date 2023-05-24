@@ -1,12 +1,7 @@
 '''
 - Todo
-    - Roundoff/uncertainty
-        - Add method unc(x, u, fmt="fix", intv=False)
-        - Displays in shorthand for uncertainty:  1.23(4).  This is to be
-          interpreted as a standard uncertainty.
-        - If intv is True, then it is displayed as 1.23[4].  This form is
-          intended to convey that it's an interval, from e.g. roundoff
-          errors.
+    - fmt.unc()
+        - Add support for eng, engsi, engsic
     - Large numbers
         - mpmath can calculate fac(1e1000); it's log is 1.00e1002.  Thus
           log(log(x)) could be a way to get reasonably-sized numbers to
@@ -1263,17 +1258,19 @@ class Fmt:
                 sig.insert(1, self.dp)
                 sig.append(us)
             else:
-                if 1:
+                if 0:
                     print(f"x = {x}   u = {u}")
                     print(f"k = {k}")
                     print(f"sig = {''.join(sig)}   us = {us}    e  = {e}")
                 # Place decimal point
                 if len(sig) < e + 1:   # Need added 0's
                     sig.append("0"*(e + 1 - len(sig)))
-                    sig.append(self.dp)
+                    if not self.rtdp:
+                        sig.append(self.dp)
                 else:
-                    sig.insert(e + 1, self.dp)
-                    k += 1
+                    if not self.rtdp:
+                        sig.insert(e + 1, self.dp)
+                        k += 1
                 sig.insert(k, us)
 
         return ''.join(sig)
@@ -1492,9 +1489,9 @@ class Fmt:
             self._comp = bool(value)
 # Convenience Fmt instance
 fmt = Fmt()
- 
+
 # Development area
-if 1 and __name__ == "__main__": 
+if 0 and __name__ == "__main__": 
     n = 1
     x = f"1.23456e{n}"
     u = f"0.0064e{n}"
@@ -2158,7 +2155,6 @@ if __name__ == "__main__":
                         exit()
                     Assert(f(x, fmt="fixed", n=n) == expected)
                     Assert(f(-x, fmt="fixed", n=n) == "-" + expected)
-
         def Test_Fix():
             def TestTrimming():
                 f = GetDefaultFmtInstance()
@@ -2386,8 +2382,51 @@ if __name__ == "__main__":
             fmt = GetDefaultFmtInstance()
             x = D("3.141592653589793e+99")
             fmt.n = 4
-            s = fmt(x)
-            #yy
+            Assert(fmt(x) == "3.142e99")
+            fmt.n = 3
+            Assert(fmt(x) == "3.14e99")
+            x = D("3.141592653589793e-99")
+            Assert(fmt(x) == "3.14e-99")
+            x = D("3.141592653589793")
+            Assert(fmt(x) == "3.14")
+            Assert(fmt(x, fmt="sci") == "3.14e0")
+            x = D("3.9e21")
+            fmt.n = 1
+            Assert(fmt(x) == "4.e21")
+        def Test_Unc():
+            fmt = GetDefaultFmtInstance()
+            x = 1.23456
+            u = 0.0064
+            Assert(fmt.unc(x, u) == "1.234(6)")
+            Assert(fmt.unc(x, u, fmt="fix") == "1.234(6)")
+            Assert(fmt.unc(x, u, fmt="fix", intv=True) == "1.234[6]")
+            Assert(fmt.unc(x, u, fmt="sci") == "1.234(6)e0")
+            #
+            x = 123.456
+            u = 0.64
+            Assert(fmt.unc(x, u) == "123.4(6)")
+            x = 123.456e3
+            u = 0.64e3
+            Assert(fmt.unc(x, u) == "1234(6)00.")
+            fmt.rtdp = True
+            Assert(fmt.unc(x, u) == "1234(6)00")
+            fmt.rtdp = False
+            #
+            fmt.high = None
+            x = 1.23456e10
+            u = 0.0064e10
+            Assert(fmt.unc(x, u) == "1234(6)0000000.")
+            x = 1.23456e50
+            u = 0.0064e50
+            Assert(fmt.unc(x, u) == "1234(6)00000000000000000000000000000000000000000000000.")
+            #
+            fmt.low = None
+            x = 1.23456e-5
+            u = 0.0064e-5
+            Assert(fmt.unc(x, u) == "0.00001234(6)")
+            x = 1.23456e-50
+            u = 0.0064e-50
+            Assert(fmt.unc(x, u) == "0.00000000000000000000000000000000000000000000000001234(6)")
 
         def Test_Big():
             '''The Fmt object uses Decimal numbers to do the formatting.  This
