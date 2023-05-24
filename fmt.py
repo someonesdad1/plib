@@ -9,70 +9,68 @@
         - 100!**100! can be calculated with mpmath, but the exponent is
           1.47e160.  Need to develop a notation to handle large numbers.
         - Use log: ((1.47e160))
+        - Use sci notation in exponent:  1.47e((1e160))
         - Power tower:  10↑↑n == 10**10**...**10, n times
         - "order" of magnitude n:  how many times you have to take log of a
           number to get a result between 1 and 10.  Could call this
           "biglog".  See https://en.wikipedia.org/wiki/Super-logarithm
- 
-- Later
     - width
+        - Change brief attribute to width attribute; remove width from
+          function calls.
+            - Set to 0 for normal behavior.  Larger integer specifies the
+              desired width.
         - Need an algorithm to make interpolations fit in a desired width.
           Must be on a best effort basis, as it will be impossible for some
-          numbers (e.g., the above 100!**100!).
-    - unc
-        - fix(), sci(), etc. should use a new keyword:  'unc'.  unc will be
-          interpreted as an uncertainty and use the standard uncertainty
-          interpolation such as '3.14(3)' (unc must be the same number type
-          as the value passed in).  To handle the case where this can
-          represent a roundoff error, a boolean ro keyword is used; when
-          True, you get '3.14[3]' like the uncertainty short-hand notation,
-          but this denotes an estimated interval number.
+          numbers.  Example 100!**100! won't fit into e.g. 60 columns
+          because the exponent is 160 digits long.
+            - See notes above about large number notations
+        - Typical abbreviation will use ellipsis ⋯ (U+22EF) and truncate
+          middle digits to get things to fit
     - Angle measures
-        - deg rad grad rev.  Need to come up with a usable display notation
-          for polar coordinates.  ◣ or ▶ might be good for grad and ⊚ ⏺ ⬤
-          ● Ⓡ ⭙ might be good for revolutions (make sure it isn't confused
-          with a digit).
- 
+        - Add grads and revolutions for polar display.
+            - 7.62∠-1.10        Radians
+            - 7.62〈-1.10       Radians     *
+            - 7.62 〈 -1.10     Radians     *
+            - 7.62∠-63.0°       Degrees
+            - 7.62〈-63.0°      Degrees     *
+            - 7.62 〈 -63.0°    Degrees     *
+            - 7.62▼-70.0        Grads
+            - 7.62《-70.0       Grads       *
+            - 7.62 《 -70.0     Grads       *
+            - 7.62⬤-0.175       Revolutions
+            - 7.62⚫-0.175      Revolutions *
+            - 7.62 ⚫ -0.175    Revolutions *
+        - A core need is visual clarity to reduce the chance of a reading
+          error.  I'm leaning towards the ones marked with *.  I'd also
+          then eliminate the underlining form.  Could also honor the
+          cuddled setting.
+        - For plain ASCII, could use
+            - 7.62 (-1.10 rad)
+            - 7.62 (-63.0 deg)
+            - 7.62 (-70.0 grad)
+            - 7.62 (-0.175 rev)
 ---------------------------------------------------------------------------
 class Fmt:  Format floating point numbers
+
+    This module provides string interpolation ("formatting") for integer,
+    floating point, and complex number types.  A Fmt instance can format
+    int, float, decimal.Decimal, mpmath.mpf, and fraction.Fraction number
+    types.
+ 
     Run the module as a script to see example output.  See Terminal Notes
     below.
- 
-    This module provides string interpolation ("formatting") for integer,
-    floating point, and complex number types.  str(float(math.pi)) returns
-    '3.141592653589793', which contains too many digits for casual
-    interpretation.  This module's convenience instance fmt will format pi
-    as fmt(math.pi) = '3.14', which allows easier interpretation.
- 
-    A Fmt instance can format int, float, decimal.Decimal, mpmath.mpf, and
-    fraction.Fraction number types.
- 
-    IMPORTANT
- 
-        Fmt is deliberately not thread-safe.  This means if you call the
-        methods of the same instance in two different threads, you'll get
-        unpredictable and probably wrong results.  This could be fixed by
-        e.g. using a thread.Lock instance and turning Fmt into a context
-        manager, but the cost is that Fmt is then not able to be pickled.
-        Most of my applications are single-threaded and I prefer to have
-        the ability to pickle things if desired.
- 
-        One solution to a multithreading application is to give each thread
-        its own Fmt() instance.  An easy way to do this is to create one
-        instance, then make a copy using the copy() method.
- 
-    Methods
-        - reset() to put instance in default state
-        - fmtint() to format an integer
  
     The attributes of a Fmt instance provide more control over the
     formatting:
  
-        n       Sets the number of displayed digits.
+        n       Sets the number of displayed digits.  For floats, the
+                maximum is 15; for mpmath and Decimal, it's controlled by
+                the context's precision.
         default String for default floating point formatting (fix, fixed,
                 sci, eng, engsi, engsic)
         int     How to format integers (None is str(), dec, hex, oct, bin)
-        brief   If True, fit string on one line if possible.
+        brief   If True, fit string on one line if possible.  (Not
+                implemented yet)
         dp      Sets the radix (decimal point) string (use '.' or ',').
         low     Numbers below this value are displayed with scientific
                 notation.  None means all small numbers are displayed
@@ -104,6 +102,19 @@ class Fmt:  Format floating point numbers
           number of digits allowed by the type.  For Decimal and mpmath
           numbers, this is determined by the relevant context.
  
+    Thread safety
+        Fmt is deliberately not thread-safe.  This means if you call the
+        methods of the same instance in two different threads, you'll get
+        unpredictable and probably wrong results.  This could be fixed by
+        e.g. using a thread.Lock instance and turning Fmt into a context
+        manager, but the cost is that Fmt is then not able to be pickled.
+        Most of my applications are single-threaded and I prefer to have
+        the ability to pickle things if desired.
+ 
+        One solution to a multithreading application is to give each thread
+        its own Fmt() instance.  An easy way to do this is to create one
+        instance, then make a copy using the copy() method.
+ 
     Terminal Notes
         This script is intended to be used with other scripts in the plib
         directory.  You can get the needed tools at
@@ -121,7 +132,6 @@ class Fmt:  Format floating point numbers
         methods).  Then the Fmt instance uses the TakeApart instance to
         supply the needed parts of the number and builds the desired
         interpolation string.
- 
  
 '''
 if 1:   # Header
@@ -189,8 +199,12 @@ if 1:   # Utility
             else:
                 raise AssertionError(msg)
 class TakeApart:
-    '''Handles int, float, Decimal, mpf, and Fractions.  This code is not
-    thread-safe, so only use one instance with one thread.
+    '''Take apart a number into its components to prepare for string
+    interpolation.  Handles int, float, Decimal, mpf, and Fractions.  
+    The core implementation is in disassemble(), which depends on
+    prepare().
+ 
+    This code is not thread-safe, so only use one instance with one thread.
     '''
     def __init__(self):
         self._thread_id = threading.get_ident()
@@ -572,6 +586,7 @@ class TakeApart:
         if len(dq) == n + 1:
             dq.pop()
         return dq
+
 class Fmt:
     def __init__(self, n=3):
         'n is the number of digits to format to'
@@ -606,11 +621,12 @@ class Fmt:
             # These set the points where fixed mode switches to scientific
             # notation.  Standard python uses 1e-5 and 1e15.  Set either of
             # these to None to disable switching to scientific notation
-            # (note you can get very large strings this way.
-            # NOTE:  these must be floats because they are compared to both
-            # mpf and Decimal types.  This is a compromise, as it will
-            # break on high and low values beyond the range of a float (but
-            # practically this will never happen).
+            # (you can get large strings this way).  NOTE:  these must be
+            # floats because they are compared to both mpf and Decimal
+            # types.  This is a compromise, as it will break on high and
+            # low values beyond the range of a float.  However, since float
+            # exponents go over the range of about 308, this will likely
+            # never happen.
             self._low_init = 1e-4
             self._high_init = 1e6
         # Key to _SI_prefixes dict is exponent//3
@@ -1272,7 +1288,6 @@ class Fmt:
                         sig.insert(e + 1, self.dp)
                         k += 1
                 sig.insert(k, us)
-
         return ''.join(sig)
     def Real(self, value, fmt=None, n=None, width=None) -> str:
         if width is not None:
