@@ -54,7 +54,7 @@ class Fmt:  Format floating point numbers
 
     This module provides string interpolation ("formatting") for integer,
     floating point, and complex number types.  A Fmt instance can format
-    int, float, decimal.Decimal, mpmath.mpf, and fraction.Fraction number
+    int, float, decimal.Decimal, mpmath.mpf, and fractions.Fraction number
     types.
  
     Run the module as a script to see example output.  See Terminal Notes
@@ -69,8 +69,6 @@ class Fmt:  Format floating point numbers
         default String for default floating point formatting (fix, fixed,
                 sci, eng, engsi, engsic)
         int     How to format integers (None is str(), dec, hex, oct, bin)
-        brief   If True, fit string on one line if possible.  (Not
-                implemented yet)
         dp      Sets the radix (decimal point) string (use '.' or ',').
         low     Numbers below this value are displayed with scientific
                 notation.  None means all small numbers are displayed
@@ -97,11 +95,6 @@ class Fmt:  Format floating point numbers
         comp        If True, display as (re,im) form, (re, im) if cuddled
                     False.
  
-    Notes
-        - n, the number of displayed digits, won't be larger than the
-          number of digits allowed by the type.  For Decimal and mpmath
-          numbers, this is determined by the relevant context.
- 
     Thread safety
         Fmt is deliberately not thread-safe.  This means if you call the
         methods of the same instance in two different threads, you'll get
@@ -112,7 +105,7 @@ class Fmt:  Format floating point numbers
         the ability to pickle things if desired.
  
         One solution to a multithreading application is to give each thread
-        its own Fmt() instance.  An easy way to do this is to create one
+        its own Fmt() instance:  one way to do this is to create one
         instance, then make a copy using the copy() method.
  
     Terminal Notes
@@ -123,15 +116,14 @@ class Fmt:  Format floating point numbers
         and it works as written.  Look at /plib/pictures/fmt.png to see
         what the Demo() function's output looks like on my screen.  Other
         terminals may need hacking on color.py to get things to work 
-        correctly.  Define the environment variable DPRC to get ANSI color
-        strings output to the terminal.
+        correctly.  For the demo, define the environment variable DPRC to
+        get ANSI color strings output to the terminal.
  
     How it works
-        Most of the work is done by the TakeApart class, which takes apart
-        numbers into their component parts (prepare() and disassemble()
-        methods).  Then the Fmt instance uses the TakeApart instance to
-        supply the needed parts of the number and builds the desired
-        interpolation string.
+        The TakeApart class takes apart numbers into their component parts
+        (prepare() and disassemble() methods).  Then the Fmt instance uses
+        the TakeApart instance to supply the needed parts of the number and
+        builds the desired interpolation string.
  
 '''
 if 1:   # Header
@@ -1591,7 +1583,8 @@ if __name__ == "__main__":
         t.print(f"{t.em}fmt=\"fixed\":  Shows fixed number of decimal places")
         print(f"  {t.f}f(x) = f(x, fmt=\"fixed\", n=2){t.n} = {t.fix}{f(x, fmt='fixed', n=2)}{t.n} (show to second decimal place)")
         # Change scientific notation thresholds
-        t.print(f"{t.em}fmt=\"sci\"  Scientific notation{t.n}    {t.t}Change transition thresholds to scientific notation:")
+        t.print(f"{t.em}fmt=\"sci\"  Scientific notation")
+        print(f"Change transition thresholds to scientific notation:")
         f.high = 1e6
         f.low = 1e-6
         t.print(f"  {t.f}f.high{t.n} = {t.sci}{f.sci(f.high, n=1)}")
@@ -1654,7 +1647,7 @@ if __name__ == "__main__":
         n = 20
         t.print(dedent(f'''
         {t.em}Digits{t.n}  {t.t}You can ask for any number of digits, but the maximum given will be
-        number consistent with the numerical type's precision.  A float is good to
+        a number consistent with the numerical type's precision.  A float is good to
         about 15 digits.  Decimal and mpmath numbers depend on the current context's
         precision.  The expression evaluated is y = 100000*sin(pi/4):
         '''))
