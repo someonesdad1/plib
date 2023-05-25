@@ -15,8 +15,7 @@
           number to get a result between 1 and 10.  Could call this
           "biglog".  See https://en.wikipedia.org/wiki/Super-logarithm
     - width
-        - Change brief attribute to width attribute; remove width from
-          function calls.
+        - Add width attribute; remove width from method calls
             - Set to 0 for normal behavior.  Larger integer specifies the
               desired width.
         - Need an algorithm to make interpolations fit in a desired width.
@@ -26,29 +25,18 @@
             - See notes above about large number notations
         - Typical abbreviation will use ellipsis ⋯ (U+22EF) and truncate
           middle digits to get things to fit
-    - Angle measures
-        - Add grads and revolutions for polar display.
-            - 7.62∠-1.10        Radians
-            - 7.62〈-1.10       Radians     *
-            - 7.62 〈 -1.10     Radians     *
-            - 7.62∠-63.0°       Degrees
-            - 7.62〈-63.0°      Degrees     *
-            - 7.62 〈 -63.0°    Degrees     *
-            - 7.62▼-70.0        Grads
-            - 7.62《-70.0       Grads       *
-            - 7.62 《 -70.0     Grads       *
-            - 7.62⬤-0.175       Revolutions
-            - 7.62⚫-0.175      Revolutions *
-            - 7.62 ⚫ -0.175    Revolutions *
-        - A core need is visual clarity to reduce the chance of a reading
-          error.  I'm leaning towards the ones marked with *.  I'd also
-          then eliminate the underlining form.  Could also honor the
-          cuddled setting.
-        - For plain ASCII, could use
-            - 7.62 (-1.10 rad)
-            - 7.62 (-63.0 deg)
-            - 7.62 (-70.0 grad)
-            - 7.62 (-0.175 rev)
+    - Angle measures:  use plain ASCII for polar forms.  Support radians,
+      degrees, gradians, and revolutions.
+        - form:  x (a u) where x is the magnitude, a is the angle, and u is
+          the angular unit (e.g., rad, deg, grad, rev).  
+        - Other angle measures:  arcmin, arcsec, hour angle (24 per rev),
+          point (1/8 of right angle), binary degree (256 per rev), quadrant
+          (90°), sextant (60°).  
+        - Could allow for a custom angle measure with a custom_angle
+          attribute.
+        - angle_measure attribute can be "deg", "rad", "grad", "rev",
+          "turn".
+
 ---------------------------------------------------------------------------
 class Fmt:  Format floating point numbers
 
