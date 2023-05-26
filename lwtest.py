@@ -1,26 +1,26 @@
 '''
 TODO:
-
+ 
     - https://pycodestyle.pycqa.org/en/latest/advanced.html#automated-tests
       tells how to add automated code style testing for conformance.  Add
       it to the self tests as an option to run.
-
+ 
     - If an argument passed on the command line is a directory, search it
       recursively for all files that appear to be test scripts and run
       them.
-
+ 
         - If a file is passed on the command line, search it for suitable
           test functions and run them, even if there's no run() call in the
           script.  Options to provide run()'s features:  -h to halt at
           first failure, -r for regexp to identify a test function, -R for
           regexp's options, -v for verbose
-
+ 
     - Add a verbose keyword to run() which prints the file name and the
       function/class to be executed, like 'nosetests -v' does.  Another
       thing to consider would be to let run look at sys.argv and process
       options there in lieu of keywords (this would be handy for command
       line work, as the command line options would overrule the keywords).
-
+ 
 '''
 if 1:  # Header
     # Copyright, license
@@ -87,7 +87,7 @@ if 1:  # Header
                 # How to compare floating point numbers
                 eps = 1e-6
                 a, b = 1, 1 + eps
-
+ 
                 # In following, debug=True starts debugger if a != b
                 assert_equal(a, b, abstol=eps, debug=True)
                 # Set Assert.debug to True to always drop into debugger
@@ -108,13 +108,13 @@ if 1:  # Header
                 the debugger if so instructed.  Type 'up' to go to the
                 failed Assert() line.  Since dropping into the debugger is
                 a common need, there are multiple ways:
-
+ 
                     - Set the debug keyword to True
                     - Include a command line argument
                     - Set Assert.debug to True
                     - Set the environment variable 'Assert' to the nonempty
                       string
-
+ 
                 Note Assert() and assert_equal() do not pay attention to
                 __debug__, unlike python's assert statement.
         
@@ -609,6 +609,7 @@ if 1:   # Checking functions
             else:
                 raise AssertionError(msg)
     Assert.debug = False
+
 if __name__ == "__main__":
     print(dedent(f'''
     lwtest:  Lightweight test framework -- typical usage:
@@ -639,5 +640,7 @@ if __name__ == "__main__":
             ToDoMessage(message, prefix="+", color="yel")
         Like assert, but puts you into the debugger with cmd line arg:
             Assert(condition)
-        Both assert_equal and Assert also include a debug keyword argument
+        Both assert_equal and Assert also include a debug keyword argument;
+        if True, you are dropped into the debugger (type 'u' to go to the 
+        line that failed).
     '''[1:].rstrip()))

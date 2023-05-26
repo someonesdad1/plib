@@ -1,9 +1,14 @@
 '''
-Identify the functions in math/cmath and print out their return types
-
-Done for python 3.9.10
+Print out a table showing the math/cmath functions and their return types.
+Done for python 3.9.10.
 '''
-if 1:   # Header
+from wrap import dedent
+from astr import alen
+from color import t
+if 1:
+    import debug
+    debug.SetDebugger()
+if 0:   # Header
     if 1:   # Copyright, license
         # These "trigger strings" can be managed with trigger.py
         #∞copyright∞# Copyright (C) 2023 Don Peterson #∞copyright∞#
@@ -26,7 +31,7 @@ if 1:   # Header
         import sys
     if 1:   # Custom imports
         from wrap import wrap, dedent
-        from color import Color, TRM as t
+        from color import Color, t
         from columnize import Columnize
         if 1:
             import debug
@@ -35,67 +40,102 @@ if 1:   # Header
         ii = isinstance
         W = int(os.environ.get("COLUMNS", "80")) - 1
         L = int(os.environ.get("LINES", "50"))
-        # name [args] [returns]
+        # name args ; returns [; note]
+        # seq = sequence of integers or floats
+        # fseq = float sequence
+        # iseq = int sequence
+
         mathfuncs = '''
-            atan2       [float, float]; [float]
-            ceil        [float]; [int]
-            comb        [int, int]; [int]
-            copysign    [float, float]; [float]
-            dist        [floatseq, floatseq]; [float]
-            factorial   [int]; [int]
-            floor       [float]; [int]
-            fmod        [float, float]; [float]
-            frexp       [float]; [float, int]
-            fsum        [iter]; [float] 
-            gcd         [int_seq]; [int]
-            hypot       [seq_coord]; [float]    
-            isclose     [float, float]; [bool]
-            isfinite    [float]; [bool] 
-            isinf       [float]; [bool]
-            isnan       [float]; [bool]
-            isqrt       [float]; [int] 
-            lcm         [int_seq]; [int]
-            ldexp       [float, int]; [float]
-            log         [float, float=]; [float]
-            modf        [float]; [float, float] 
-            nextafter   [float, float]; [float]
-            perm        [int, =int]; [int] 
-            pow         [float, float]; [float]
-            prod        [iter, =float]; [float]
-            remainder   [float, float]; [float]
-            trunc       [float]; [int] 
+            acos        float; float
+            acosh       float; float
+            asin        float; float
+            asinh       float; float
+            atan        float; float
+            atan2       float, float; float
+            atanh       float; float
+            ceil        float; int
+            comb        int, int; int
+            copysign    float, float; float
+            cos         float; float
+            cosh        float; float
+            degrees     float; float
+            dist        fseq, fseq; float
+            erf         float; float
+            erfc        float; float
+            exp         float; float
+            expm1       float; float
+            fabs        float; float
+            factorial   int; int
+            floor       float; int
+            fmod        float, float; float
+            frexp       float; float, int
+            fsum        seq; float 
+            gamma       float; float
+            gcd         iseq; int
+            hypot       seq; float    
+            isclose     float, float; bool
+            isfinite    float; bool 
+            isinf       float; bool
+            isnan       float; bool
+            isqrt       int; int 
+            lcm         iseq; int
+            ldexp       float, int; float
+            lgamma      float; float
+            log         float, =float; float
+            log10       float; float
+            log1p       float; float
+            log2        float; float
+            modf        float; float, float 
+            nextafter   float, float; float
+            perm        int, =int; int 
+            pow         float, float; float
+            prod        seq, =float; float; (int if all of iter are ints)
+            radians     float; float
+            remainder   float, float; float
+            sin         float; float 
+            sinh        float; float 
+            sqrt        float; float 
+            tan         float; float 
+            tanh        float; float 
+            trunc       float; int 
+            ulp         float; float 
 
-            # The following ones are verified
-            acos        [float]; [float]
-            acosh       [float]; [float]
-            asin        [float]; [float]
-            asinh       [float]; [float]
-            atan        [float]; [float]
-            atanh       [float]; [float]
-            cos         [float]; [float]
-            cosh        [float]; [float]
-            degrees     [float]; [float]
-            erf         [float]; [float]
-            erfc        [float]; [float]
-            exp         [float]; [float]
-            expm1       [float]; [float]
-            fabs        [float]; [float]
-            gamma       [float]; [float]
-            lgamma      [float]; [float]
-            log10       [float]; [float]
-            log1p       [float]; [float]
-            log2        [float]; [float]
-            radians     [float]; [float]
-            sin         [float]; [float] 
-            sinh        [float]; [float] 
-            sqrt        [float]; [float] 
-            tan         [float]; [float] 
-            tanh        [float]; [float] 
-            ulp         [float]; [float] 
         '''
-
+        # cmath's functions can take arguments of int, float, or complex
         cmathfuncs = '''
+            acos        z; complex
+            acosh       z; complex
+            asin        z; complex
+            asinh       z; complex
+            atan        z; complex
+            atanh       z; complex
+            cos         z; complex
+            cosh        z; complex
+            exp         z; complex
+            isclose     z, z; bool 
+            isfinite    z; bool
+            isinf       z; bool
+            isnan       z; bool
+            log         z; complex
+            log10       z; complex
+            phase       z; float
+            polar       z; float, float
+            rect        float, float; complex
+            sin         z; complex
+            sinh        z; complex
+            sqrt        z; complex
+            tan         z; complex
+            tanh        z; complex
         '''
+        # Colors
+        C = {
+            "bool": t("magl"),
+            "int": t("lwnl"),
+
+            "float": t("yell"),
+            "complex": t("cynl"),
+            "z": t("purl"),
+        }
 if 1:   # Utility
     def Error(*msg, status=1):
         print(*msg, file=sys.stderr)
@@ -188,11 +228,156 @@ if 1:   # Core functionality
                 if not ii(y, float):
                     raise Exception(f"{func}:  bad type")
 
-if __name__ == "__main__":
+if 0 and __name__ == "__main__":
     d = {}      # Options dictionary
     args = ParseCommandLine(d)
     if 0:
-        mathfuncs = GetMathFuncs()
-        cmathfuncs = GetCMathFuncs()
+        if 1:
+            mathfuncs = GetMathFuncs()
+            cmathfuncs = GetCMathFuncs(show=1)
+        else:
+            CheckMathFuncs()
     else:
-        CheckMathFuncs()
+        for line in cmathfuncs.split("\n"):
+            line = line.strip()
+            if not line:
+                continue
+            name = line[:12].strip()
+            a, b = line[12:].strip().split(";")
+            a, b = [i.strip() for i in (a, b)]
+            ca = C["z"] if "z" in a else C["float"]
+            if b in "bool float complex".split():
+                cb = C[b]
+            else:
+                assert("," in b)
+                cb = C["float"]
+            t.print(f"{name}({ca}{a}{t.n}) → {cb}{b}")
+
+#------------------------------------------------------------------------------
+b = t("magl")
+i = t("lwnl")
+f = t("yell")
+c = t("cynl")
+z = t("purl")
+x = t("ornl")
+r = t("redl")
+e = "∊"
+s = dedent(f'''
+    python 3.9.10 math functions
+
+    acos(x) ;  float ; complex
+    acosh(x) ;  float ; complex
+    asin(x) ;  float ; complex
+    asinh(x) ;  float ; complex
+    atan(x) ;  float ; complex
+    atan2(y, x) ;  float
+    atanh(x) ;  float ; complex
+    ceil(x) ;  int
+    comb(n, m) ;  int
+    copysign(x, y) ;  float
+    cos(x) ;  float
+    cosh(x) ;  float
+    degrees(x) ;  float
+    dist(fseq, fseq) ;  float
+    erf(x) ;  float
+    erfc(x) ;  float
+    exp(x) ;  float ; complex
+    expm1(x) ;  float
+    fabs(x) ;  float
+    factorial(n) ;  int
+    floor(x) ;  int
+    fmod(x, y) ;  float
+    frexp(x) ;  float, int
+    fsum(fseq) ;  float 
+    gamma(x) ;  float
+    gcd(iseq) ;  int
+    hypot(fseq) ;  float    
+    isclose(x, y) ;  bool ; bool
+    isfinite(x) ;  bool  ; bool
+    isinf(x) ;  bool ; bool
+    isnan(x) ;  bool ; bool
+    isqrt(n) ;  int 
+    lcm(iseq) ;  int
+    ldexp(x, n) ;  float
+    lgamma(x) ;  float
+    log(x, =y) ;  float ; complex
+    log10(x) ;  float ; complex
+    log1p(x) ;  float
+    log2(x) ;  float
+    modf(x) ;  float, float 
+    nextafter(x, y) ;  float
+    perm(n, =m) ;  int 
+    pow(x, y) ;  float
+    prod(fseq, =x) ;  float
+    radians(x) ;  float
+    remainder(x, y) ;  float
+    sin(x) ;  float  ; complex
+    sinh(x) ;  float  ; complex
+    sqrt(x) ;  float  ; complex
+    tan(x) ;  float  ; complex
+    tanh(x) ;  float  ; complex
+    trunc(x) ;  int 
+    ulp(x) ;  float 
+
+    ''')
+
+def F(s):
+    s = s.replace("(x)", f"({x}x{t.n})")
+    s = s.replace("(x,", f"({x}x{t.n},")
+    s = s.replace("=x)", f"={x}x{t.n})")
+    s = s.replace("y)", f"{x}y{t.n})")
+    s = s.replace("(n,", f"({i}n{t.n},")
+    s = s.replace("n)", f"{i}n{t.n})")
+    s = s.replace(" m)", f" {i}m{t.n})")
+    s = s.replace("=m)", f"={i}m{t.n})")
+    s = s.replace("iseq", f"{i}iseq{t.n}")
+    s = s.replace("fseq", f"{x}fseq{t.n}")
+    s = s.replace("float", f"{x}float{t.n}")
+    s = s.replace("complex", f"{c}complex{t.n}")
+    s = s.replace("int", f"{i}int{t.n}")
+    s = s.replace("bool", f"{b}bool{t.n}")
+    s = s.replace("(z)", f"({z}z{t.n})")
+    return s
+
+# Print the elements in columns
+for line in s.split("\n"):
+    if "python" in line:
+        print(line)
+        print(f"{' '*28}Return type(s)")
+        t.print(f"{' '*22}{r}math{' '*16}cmath")
+        t.print(f"{' '*22}{r}----{' '*16}-----")
+        continue
+    if not line.strip():
+        #print()
+        continue
+    g = line.split(";")
+    name = F(g[0])
+    print(name, end=" "*(20 - alen(name)))
+    mret = F(g[1])
+    print(mret, end=" "*(20 - alen(mret)))
+    if len(g) > 2:
+        print(F(g[2]))
+    else:
+        print()
+print()
+s = dedent('''
+    phase(z); float
+    polar(z); float, float
+    rect(float, float) ; complex
+''')
+for line in s.split("\n"):
+    if not line:
+        continue
+    g = line.split(";")
+    name = F(g[0])
+    print(name, end=" "*(40 - alen(name)))
+    cmret = F(g[1])
+    print(F(cmret))
+print()
+t.print(f'''
+Type color coding:  {b}bool    {i}int    {f}float    {c}complex{t.n}
+    {x}x{t.n}, {x}y{t.n} {e} {{{i}int{t.n}, {f}float{t.n}}}
+    {z}z{t.n} {e} {{{i}int{t.n}, {f}float{t.n}, {c}complex{t.n}}}
+    iseq = sequence of {i}int{t.n}
+    fseq = sequence of {i}int{t.n} or {f}float{t.n}
+'''.strip())

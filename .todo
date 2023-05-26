@@ -22,11 +22,6 @@ Active
         - Have a command that toggles between str() and repr()
           representations
 
-    - fmt.py
-        - f.py needs to be changed to use fmt.py
-        - Move color.py out of the module code (put it in the if __name__
-          section)
-
     - pgm/mixture.py
         - Change this to be an interactive script that lets you iterate a
           problem to get a solution.  
@@ -62,7 +57,7 @@ Active
         - Update to python 3
         - Find docs & put on HU
 
-    - ~/bin/math
+    - pgm/mathfuncs.py
         - Runs a python script that finds all functions in math/cmath and
           figures out the return values of each call.
 
@@ -78,7 +73,8 @@ Active
             - p d     Push the indicated directory d onto the stack
             - l       Show the contents of the config file
 
-    - flt.py
+    - f.py
+        - Use fmt.py for interpolation
         - Get rid of N attribute, as I always forget it:  go back to n.
           Then make n become m, which changes only the instance's number of
           digits.
