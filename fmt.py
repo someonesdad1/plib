@@ -1,7 +1,4 @@
 '''
-- Bugs
-    - 9.99999796866929e999999 with normal string interpolation is erroneously shown as 1.00e999999.
-      fmt is not rounding properly.
 - Todo
     - fmt.unc()
         - Add support for eng, engsi, engsic
