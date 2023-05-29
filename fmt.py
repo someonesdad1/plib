@@ -1,4 +1,7 @@
 '''
+- Bugs
+    - 9.99999796866929e999999 with normal string interpolation is erroneously shown as 1.00e999999.
+      fmt is not rounding properly.
 - Todo
     - fmt.unc()
         - Add support for eng, engsi, engsic
@@ -36,10 +39,9 @@
           attribute.
         - angle_measure attribute can be "deg", "rad", "grad", "rev",
           "turn".
-
+ 
 ---------------------------------------------------------------------------
 class Fmt:  Format floating point numbers
-
     This module provides string interpolation ("formatting") for integer,
     floating point, and complex number types.  A Fmt instance can format
     int, float, decimal.Decimal, mpmath.mpf, and fractions.Fraction number
@@ -459,7 +461,7 @@ class TakeApart:
         self.dq = deque(digits)
         if not all:
             self.dq = self.round(value, deque(digits), self.n)
-            Assert(len(self.dq) in (n, n + 1))
+            Assert(len(self.dq) == n)
         # Checks
         Assert(ii(self.int, bool))
         Assert(self.sign == "-" or self.sign == " ")
@@ -562,11 +564,13 @@ class TakeApart:
             dq = deque(str(significand))
         # Check 
         Assert(len(dq) in (n, n + 1))
-        # Remove the extraneous digit if needed
+        # Remove the extraneous digit if needed.  This will be a case like
+        # '999' rounding up to '1000'.
         if len(dq) == n + 1:
             dq.pop()
+            self.e += 1
         return dq
-
+ 
 class Fmt:
     def __init__(self, n=3):
         'n is the number of digits to format to'
@@ -1376,10 +1380,13 @@ class Fmt:
             return self._int
         @int.setter
         def int(self, value):
-            s = "None hex oct dec bin"
-            if value not in s.split():
-                raise ValueError(f"value must be one of {' '.join(s)}")
-            self._int = value
+            s = "hex oct dec bin"
+            if value is None:
+                self._int = None
+            else:
+                if value not in s.split():
+                    raise ValueError(f"value must be one of {s}")
+                self._int = None if value == "dec" else value
         @property       # Use "sci" format if abs(x) is < low and not None
         def low(self):
             return self._low
@@ -1488,13 +1495,8 @@ fmt = Fmt()
 # Development area
 if 0 and __name__ == "__main__": 
     n = 1
-    x = f"1.23456e{n}"
-    u = f"0.0064e{n}"
-    X, U = [float(i) for i in (x, u)]
-    fmt.u = 0
-    fmt.high = None
-    #print(X, U)
-    print(fmt.unc(X, U, fmt="fix", intv=0))
+    x = mpmath.mpf("9.99999796866929e999999")
+    print(fmt(x))
     exit()
 
 if __name__ == "__main__": 
