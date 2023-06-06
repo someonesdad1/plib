@@ -183,6 +183,7 @@ if __name__ == "__main__":
         Maximum diameter        {t.inch}12.16 in{t.n} {t.mm}    {12.16*m:5.1f} mm{t.n}
     Swing over cross slide      {t.inch} 3.72 in{t.n} {t.mm}    {3.72*m:5.1f} mm{t.n}
         Maximum diameter        {t.inch} 7.44 in{t.n} {t.mm}    {7.44*m:5.1f} mm{t.n}
+    Hole through headstock      {t.inch} 1.38 in{t.n} {t.mm}    {1.38*m:5.1f} mm{t.n}
     '''[1:]))
     if d["-m"]:
         Threading_tpi()
