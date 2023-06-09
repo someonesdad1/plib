@@ -42,8 +42,9 @@ if 1:   # Header
         from dbg import Debug
     # Global variables
     if 1:
-        #dbg.dbg = True
         Dbg = Debug()
+        Debug.dbg = True
+        Debug.dbg = False
         ii = isinstance
 if 1:   # Utility
     def Error(*msg, status=1):
@@ -101,7 +102,7 @@ if 1:   # Utility
         longopts = '''git hg nohiddenfiles nohiddendirs'''.split()
         longnames = ["--" + i for i in longopts]
         try:
-            opts, dirs = getopt.getopt(sys.argv[1:], "cdfikl:rt:", longopts)
+            opts, dirs = getopt.getopt(sys.argv[1:], "cdfhikl:rt:", longopts)
         except getopt.GetoptError as e:
             print(str(e))
             exit(1)
@@ -110,6 +111,8 @@ if 1:   # Utility
                 d[o] = not d[o]
             if o in longnames:
                 d[o] = not d[o]
+            elif o == "-h":
+                Usage(0)
             elif o == "-l":
                 d[o] = n = int(a)
                 if n <= 0:
@@ -121,24 +124,16 @@ if 1:   # Utility
                     d[o].append(a)
                 else:
                     Error(f"{a!r} is not a recognized type")
-        if d["-t"]:
-            # If the -t option is given, no regex is required
-            regex = None
-            dirs = dirs if dirs else ["."]
-        else:
-            if not dirs:
-                Usage()
-            regex = dirs.pop(0)
-            if not dirs:
-                dirs = ["."]
-        # If output is to a TTY, enable -k automatically
-        if 0:
-            if not d["-k"] and sys.stdout.isatty():
-                d["-k"] = True
+        if not dirs:
+            Usage()
+        regex = dirs.pop(0)
+        if not dirs:
+            dirs = ["."]
         # Debug dump of d
-        Dbg("Options dictionary:")
-        for i in d:
-            Dbg(f"    d[{i}] = {d[i]}")
+        if Dbg:
+            Dbg("Options dictionary:")
+            for i in d:
+                Dbg(f"    d[{i}] = {d[i]}")
         return regex, dirs
 if 1:   # Core functionality
     def ColorCoding():
@@ -309,6 +304,8 @@ if 1:   # Core functionality
         def Unique(lst):
             'Return a unique list of sorted items'
             return list(sorted(set(lst)))
+        Dbg(f"dirs has {len(dirs)} directories", color=t("cynl"))
+        Dbg(f"files has {len(files)} files", color=t("cynl"))
         if not d["-t"]:
             # Simple selection by one regex
             out_dirs = ApplyRegexToDirectories(dirs, d["regex"], keep=True)
@@ -343,10 +340,13 @@ if 1:   # Core functionality
         if "src" in d["-t"]:
             # Also show makefiles
             s += r"|[mM]akefile$"
-        d["regex"] = regex = re.compile(s) if d["-i"] else re.compile(s, re.I)
+        regex = re.compile(s) if d["-i"] else re.compile(s, re.I)
         # We'll keep only files
         out_dirs = []
         out_files = ApplyRegexToFiles(files, regex, keep=True)
+        # Now apply the command line regex
+        if d["regex"]:
+            out_files = ApplyRegexToFiles(out_files, d["regex"], keep=True)
         return Unique(out_dirs), Unique(out_files)
 
 if __name__ == "__main__":

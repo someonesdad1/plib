@@ -10,7 +10,7 @@ Provides a debug printing class Debug that is called like print()
     Run this script for a demo.
  
     Since Debug is a class, you can have multiple instances that can
-    print messages in different colors:
+    print messages in different colors.
 '''
 if 1:   # Header
     # Copyright, license
@@ -48,6 +48,9 @@ if 1:   # Core functionality
             self.file = file
             self.esc = t(fg, bg, attr)
             self.color = t(fg, bg, attr)   # Generates needed escape codes
+        def __bool__(self):
+            'Return True if printing is on'
+            return bool(Debug.dbg)
         def __call__(self, *p, **kw):
             '''Print to the debug stream if the Debug.dbg class variable is
             True.  The syntax is the same as print() except there's an
