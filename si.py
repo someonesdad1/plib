@@ -12,6 +12,7 @@ SI prefixes
 import sys
 import math
 from fmt import fmt
+from collections import deque
 
 have_mpmath = False
 try:
@@ -157,115 +158,179 @@ def GetSI(x, eng=False):
         return (x, t, p)
     else:
         raise ValueError("x must be string, float (mpmath.mpf OK too), or integer")
+def Testing():
+    from lwtest import Assert, raises
+    # float
+    a = 6.2
+    for e in range(-25, 28):
+        b = a*10**e
+        e1 = GetSIExponent(e)
+        expected_p = None
+        if e1 in si.values():
+            expected_p = si(e1)  # Yep, an incestuous test
+            correction = e - e1
+        if expected_p is not None:
+            x, t, p = GetSI(b)
+            Assert(p == expected_p)
+            Assert(correction in (0, 1, 2))
+            x1 = round(float(t), 2)
+            b1 = 10**correction*round(float(fmt.significand(t)), 2)
+            Assert(str(x1) == str(b1))
+        else:
+            if e < -24 or e > 25:
+                Assert(GetSI(b) == (b, None, None))
+            elif 0 <= e < 3:
+                Assert(GetSI(b) == (b, b, ""))
+            else:
+                raise Exception("Bug")
+    # mpmath
+    a = M.mpf(6.2)
+    for e in range(-25, 28):
+        b = a*10**e
+        e1 = GetSIExponent(e)
+        expected_p = None
+        if e1 in si.values():
+            expected_p = si(e1)  # Yep, an incestuous test
+            correction = e - e1
+        if expected_p is not None:
+            x, t, p = GetSI(b)
+            Assert(p == expected_p)
+            Assert(correction in (0, 1, 2))
+            x1 = round(M.mpf(t), 2)
+            b1 = 10**correction*round(M.mpf(fmt.significand(t)), 2)
+            Assert(str(x1) == str(b1))
+        else:
+            if e < -24 or e > 25:
+                Assert(GetSI(b) == (b, None, None))
+            elif 0 <= e < 3:
+                Assert(GetSI(b) == (b, b, ""))
+            else:
+                raise Exception("Bug")
+    # Prefixes
+    di = {
+        "": 0,
+        "d": -1,
+        "c": -2,
+        "m": -3,
+        "μ": -6,
+        "u": -6,
+        "n": -9,
+        "p": -12,
+        "f": -15,
+        "a": -18,
+        "z": -21,
+        "y": -24,
+        "da": 1,
+        "h": 2,
+        "k": 3,
+        "M": 6,
+        "G": 9,
+        "T": 12,
+        "P": 15,
+        "E": 18,
+        "Z": 21,
+        "Y": 24
+    }
+    for prefix in di:
+        expected = 10**di[prefix]
+        Assert(expected == GetSI(prefix))
+    # Not allowed prefix when eng is True
+    for i in ("d", "c", "da", "h"):
+        raises(ValueError, GetSI, i, eng=True)
+def PerformConversion(string):
+    '''If the string contains 'e', then convert to SI engineering notation.
+    If it contains an SI prefix, convert it to 'e' notation.
+ 
+    Examples:  '3.4e7' returns '34M'.  '34M' returns '3.4e7'.
+    '''
+    breakpoint() #xx
+    n = GetSignificantFigures(string)
+    if "e" in string:
+        x = float(string)
+        if 1e-24 <= x < 1e27:
+            return fmt(x, fmt="engsic", n=n)
+        else:
+            return string
+    else:
+        found = ""
+        for i in "yzafpnμmkMGTPEZY":
+            if i in string:
+                found = i
+                break
+        if found:
+            if not string.endswith(found):
+                raise ValueError(f"{string!r} doesn't end with {found!r}")
+            x = float(string[:-1])*10**si[found]
+            return fmt.sci(x, n=n)
+        else:
+            # Assume it's an integer 
+            return fmt.engsic(float(string))
+def GetSignificantFigures(string):
+    '''Given a string representing a floating point number, determine how
+    many significant figures it has.
+    '''
+    def Fix(s):
+        for i in "+- .,":
+            s = s.replace(i, "")
+        return s
+    s = string.lower()
+    if "e" in s:
+        t = Fix(s.split("e")[0])
+    elif "×10" in s:
+        t = Fix(s.split("×")[0])
+    else:
+        for i in "yzafpnμmkMGTPEZY":
+            s = s.replace(i, "")
+        if "." in s or "," in s:
+            t = Fix(s)
+        else:
+            # An integer > 1e308 will cause an exception here
+            u = deque(repr(float(s)))
+            # Get rid of trailing zeroes
+            while u[-1] == "0":
+                u.pop()
+            return GetSignificantFigures(repr(float(s)))
+    return len(t)
+
+if 1 and __name__ == "__main__":
+    s = "342M"
+    print(PerformConversion(s))
+    exit()
 
 if __name__ == "__main__": 
-    from lwtest import Assert, raises
-    def Testing():
-        # float
-        a = 6.2
-        for e in range(-25, 28):
-            b = a*10**e
-            e1 = GetSIExponent(e)
-            expected_p = None
-            if e1 in si.values():
-                expected_p = si(e1)  # Yep, an incestuous test
-                correction = e - e1
-            if expected_p is not None:
-                x, t, p = GetSI(b)
-                Assert(p == expected_p)
-                Assert(correction in (0, 1, 2))
-                x1 = round(float(t), 2)
-                b1 = 10**correction*round(float(fmt.significand(t)), 2)
-                Assert(str(x1) == str(b1))
-            else:
-                if e < -24 or e > 25:
-                    Assert(GetSI(b) == (b, None, None))
-                elif 0 <= e < 3:
-                    Assert(GetSI(b) == (b, b, ""))
-                else:
-                    raise Exception("Bug")
-        # mpmath
-        a = M.mpf(6.2)
-        for e in range(-25, 28):
-            b = a*10**e
-            e1 = GetSIExponent(e)
-            expected_p = None
-            if e1 in si.values():
-                expected_p = si(e1)  # Yep, an incestuous test
-                correction = e - e1
-            if expected_p is not None:
-                x, t, p = GetSI(b)
-                Assert(p == expected_p)
-                Assert(correction in (0, 1, 2))
-                x1 = round(M.mpf(t), 2)
-                b1 = 10**correction*round(M.mpf(fmt.significand(t)), 2)
-                Assert(str(x1) == str(b1))
-            else:
-                if e < -24 or e > 25:
-                    Assert(GetSI(b) == (b, None, None))
-                elif 0 <= e < 3:
-                    Assert(GetSI(b) == (b, b, ""))
-                else:
-                    raise Exception("Bug")
-        # Prefixes
-        di = {
-            "": 0,
-            "d": -1,
-            "c": -2,
-            "m": -3,
-            "μ": -6,
-            "u": -6,
-            "n": -9,
-            "p": -12,
-            "f": -15,
-            "a": -18,
-            "z": -21,
-            "y": -24,
-            "da": 1,
-            "h": 2,
-            "k": 3,
-            "M": 6,
-            "G": 9,
-            "T": 12,
-            "P": 15,
-            "E": 18,
-            "Z": 21,
-            "Y": 24
-        }
-        for prefix in di:
-            expected = 10**di[prefix]
-            Assert(expected == GetSI(prefix))
-        # Not allowed prefix when eng is True
-        for i in ("d", "c", "da", "h"):
-            raises(ValueError, GetSI, i, eng=True)
     Testing()
-    names = {
-        -24: "yocto",
-        -21: "zepto",
-        -18: "atto",
-        -15: "femto",
-        -12: "pico",
-        -9: "nano",
-        -6: "micro",
-        -3: "milli",
-        -2: "centi",
-        -1: "deci",
-        1: "deca",
-        2: "hecto",
-        3: "kilo",
-        6: "mega",
-        9: "giga",
-        12: "tera",
-        15: "peta",
-        18: "exa",
-        21: "zetta",
-        24: "yotta",
-    }
-    print("Symbol   Exponent    Prefix")
-    print("------   --------    ------")
-    for num in (-24, -21, -18, -15, -12, -9, -6, -3, -2, -1, 1, 2, 3, 6, 9,
-                12, 15, 18, 21, 24):
-        if num:
-            sym = si(num)
-            name = names[num]
-            print("  %2s      %4d       %s" % (sym, num, name))
+    if len(sys.argv) > 1:
+        for input in sys.argv[1:]:
+            output = PerformConversion(input)
+            print(input, "-->", output)
+    else:
+        names = {
+            -24: "yocto",
+            -21: "zepto",
+            -18: "atto",
+            -15: "femto",
+            -12: "pico",
+            -9: "nano",
+            -6: "micro",
+            -3: "milli",
+            -2: "centi",
+            -1: "deci",
+            1: "deca",
+            2: "hecto",
+            3: "kilo",
+            6: "mega",
+            9: "giga",
+            12: "tera",
+            15: "peta",
+            18: "exa",
+            21: "zetta",
+            24: "yotta",
+        }
+        print("Symbol   Exponent    Prefix")
+        print("------   --------    ------")
+        for num in (-24, -21, -18, -15, -12, -9, -6, -3, -2, -1, 1, 2, 3, 6, 9,
+                    12, 15, 18, 21, 24):
+            if num:
+                sym = si(num)
+                name = names[num]
+                print("  %2s      %4d       %s" % (sym, num, name))
