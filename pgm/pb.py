@@ -23,20 +23,24 @@ if 1:   # Custom imports
     from f import flt
 def Usage(d, status=1):
     print(dedent(f'''
-    Usage:  {sys.argv[0]} temp [c_or_f]
-      Print out a table of the voltage of a lead-acid battery at
-      temperature temp, which must be an integer divisible by 10.
-      Use c for °C and f for degrees °F.  Allow half a day for
-      the battery to reach equilibrium after charging.
+    Usage:  {sys.argv[0]} temp 
+      Print out a table of the voltage of a lead-acid battery at temperature
+      temp °C, which must be an integer divisible by 10.  Allow half a day
+      for the battery to reach equilibrium after charging.
+    Options
+      -f    Use °F
     '''))
     exit(status)
 def ParseCommandLine(d):
+    d["-f"] = False
     try:
-        opts, args = getopt.getopt(sys.argv[1:], "h")
+        opts, args = getopt.getopt(sys.argv[1:], "fh")
     except getopt.GetoptError as e:
         print(str(e))
         exit(1)
     for o, a in opts:
+        if o[1] in "f":
+            t[o] = not t[o]
         if o in ("-h", "--help"):
             Usage(d, status=0)
     if not args:
@@ -58,11 +62,9 @@ if __name__ == "__main__":
     if T % 10 != 0:
         print("temp must be divisible by 10")
         exit(1)
-    degC = True
-    if len(args) == 2:
-        degC = True if args[1] == "c" else False
+    degC = not d["-f"]
     w = int(os.environ.get("COLUMNS", 80)) - 1 
-    print(f"{'Lead-Acid Battery Voltage':^{w}s}")
+    print(f"{'Lead-Acid Battery Voltage at % of Charge':^{w}s}")
     n = 6
     print(f"{T} °{'C' if degC else 'F'}")
     print(" %  ", end="")

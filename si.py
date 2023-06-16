@@ -294,7 +294,8 @@ def GetSignificantFigures(string):
 
 if 1 and __name__ == "__main__":
     s = "342M"
-    print(PerformConversion(s))
+    print(s, "-->", PerformConversion(s))
+    print("Error:  should have only 3 figures")
     exit()
 
 if __name__ == "__main__": 

@@ -42,21 +42,20 @@ Energizer alkaline spec sheet data:  i in mA, mA*hr at 21 degC [ending voltage]
   9V   [4.8]:  25/600        100/450        300/350        500/300
   C    [0.8]:  25/8300       100/7300       300/5000       500/3200
   D    [0.8]:  25/20000      100/15000      250/13000      500/10000
+Temperature effect:  New Duracell alkaline 9 V:  measured 9.65 V at 24
+deg C; at -11 deg C (48 hr soak) was 9.67 V (both open circuit).
  
 Silver Oxide   Volts mA*hr     Alkaline   Volts  mA*hr   Dia   Length
 ------------   ----- -----     --------   -----  -----   ----  ------
     SR41        1.55   42        LR41       1.5    32     7.9    3.6
     SR44        1.55  200        LR44[2.0g] 1.5   150    11.6    5.4
-Hearing aid batteries (typically Zinc-Air (ZnO2) 1.4 V)         Tab color
----------------------
-    5       35 mA*hr    5.8 mm dia  2.15 mm long    0.20 g      Red
-    10      75 mA*hr    5.8 mm dia  3.6  mm long    0.28 g      Yellow
-    312    170 mA*hr    7.9 mm dia  3.6  mm long    0.49 g      Brown
-    13     300 mA*hr    7.9 mm dia  5.4  mm long    0.80 g      Orange
-    675    605 mA*hr   11.6 mm dia  5.4  mm long    1.76 g      Blue
-    5.8 mm = 0.228", 7.9 mm = 0.311", 11.6 mm = 0.457"
-Temperature effect:  New Duracell alkaline 9 V:  measured 9.65 V at 24
-deg C; at -11 deg C (48 hr soak) was 9.67 V (both open circuit).
+
+Coin cells (selected, 3 V nom, 3.6 V open circuit, LiMn02 chemistry)
+  No.     Dia, mm   Thk, mm   Mass, g     mA*hr
+------    -------   -------   -------     -----
+CR2025       20       2.5       2.5         165
+CR2032       20       3.2       3.1         200
+CR2477      24.5      7.7       10.5       1000
  
               V/cell    Chg          Loss/%/yr
 Chemistry   New   EOL  Meth  Cycles Life/yr  Temp/C Comments
@@ -72,7 +71,18 @@ NiMH *      1.2   1.0                               Hi ED, hi self-D
 * = secondary (rechargeable)   F = float   D = discharge   ED = energy density
                                EOL = end of life
 Include a command line argument to see lithium coin cell data.  Use aa, aaa,
-etc. to see common battery PDF datasheets.
+etc. to see common battery PDF datasheets.  Use -t to see how to test capacity.
+    '''[1:].rstrip())
+def PrintHearingAid():
+    print(f'''
+Hearing aid batteries (typically Zinc-Air (ZnO2) 1.4 V)         Tab color
+---------------------
+    5       35 mA*hr    5.8 mm dia  2.15 mm long    0.20 g      Red
+    10      75 mA*hr    5.8 mm dia  3.6  mm long    0.28 g      Yellow
+    312    170 mA*hr    7.9 mm dia  3.6  mm long    0.49 g      Brown
+    13     300 mA*hr    7.9 mm dia  5.4  mm long    0.80 g      Orange
+    675    605 mA*hr   11.6 mm dia  5.4  mm long    1.76 g      Blue
+    5.8 mm = 0.228", 7.9 mm = 0.311", 11.6 mm = 0.457"
     '''[1:].rstrip())
 def PrintLithium():
     print(dedent(f'''
@@ -125,14 +135,20 @@ def Usage(d, status=1):
     '''))
     exit(status)
 def ParseCommandLine(d):
+    d["-t"] = False     # Show how to test
     try:
-        opts, args = getopt.getopt(sys.argv[1:], "h")
+        opts, args = getopt.getopt(sys.argv[1:], "ht")
     except getopt.GetoptError as e:
         print(str(e))
         exit(1)
     for o, a in opts:
+        if o[1] in "t":
+            d[o] = not d[o]
         if o in ("-h", "--help"):
             Usage(d, status=0)
+    if d["-t"]:
+        TestData()
+        exit(0)
     return args
 def Open(cmd):
     pth = "C:/cygwin/elec/batteries/duracell"
@@ -170,4 +186,5 @@ if __name__ == "__main__":
         else:
             PrintData()
             PrintLithium()
+            PrintHearingAid()
 # vim:  wm=0
