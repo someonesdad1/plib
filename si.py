@@ -34,11 +34,11 @@ class SI(dict):
  
     An incorrect string or integer will result in a KeyError
     exception.
+
+    Use pure=True in constructor to avoid the 'd c, da h" prefixes.
     '''
-    def __init__(self):
+    def __init__(self, pure=False):
         self.update({
-            "d": -1,
-            "c": -2,
             "m": -3,
             "μ": -6,
             "u": -6,
@@ -48,8 +48,6 @@ class SI(dict):
             "a": -18,
             "z": -21,
             "y": -24,
-            "da": 1,
-            "h": 2,
             "k": 3,
             "M": 6,
             "G": 9,
@@ -59,10 +57,7 @@ class SI(dict):
             "Z": 21,
             "Y": 24
         })
-    def __call__(self, x):
-        d = {
-            -1: "d",
-            -2: "c",
+        self.d = {
             -3: "m",
             -6: "μ",
             -9: "n",
@@ -72,8 +67,6 @@ class SI(dict):
             -21: "z",
             -24: "y",
             0: "",
-            1: "da",
-            2: "h",
             3: "k",
             6: "M",
             9: "G",
@@ -83,7 +76,22 @@ class SI(dict):
             21: "Z",
             24: "Y",
         }
-        return d[x]
+        self.pure = pure
+        if not self.pure:
+            self.update({
+                "d": -1,
+                "c": -2,
+                "da": 1,
+                "h": 2,
+            })
+            self.d.update({
+                -1: "d",
+                -2: "c",
+                1: "da",
+                2: "h",
+            })
+    def __call__(self, x):
+        return self.d[x]
 # Convenience instance 
 si = SI()
  
@@ -237,65 +245,69 @@ def Testing():
     # Not allowed prefix when eng is True
     for i in ("d", "c", "da", "h"):
         raises(ValueError, GetSI, i, eng=True)
-def PerformConversion(string):
-    '''If the string contains 'e', then convert to SI engineering notation.
+def PerformConversion(s):
+    '''If the string s contains 'e', then convert to SI engineering notation.
     If it contains an SI prefix, convert it to 'e' notation.
  
     Examples:  '3.4e7' returns '34M'.  '34M' returns '3.4e7'.
     '''
-    breakpoint() #xx
-    n = GetSignificantFigures(string)
-    if "e" in string:
-        x = float(string)
+    # Remove any trailing SI prefix
+    n = GetSignificantFigures(s)
+    if "e" in s:
+        x = float(s)
         if 1e-24 <= x < 1e27:
             return fmt(x, fmt="engsic", n=n)
         else:
-            return string
+            return s
     else:
         found = ""
         for i in "yzafpnμmkMGTPEZY":
-            if i in string:
+            if i in s:
                 found = i
                 break
         if found:
-            if not string.endswith(found):
-                raise ValueError(f"{string!r} doesn't end with {found!r}")
-            x = float(string[:-1])*10**si[found]
+            if not s.endswith(found):
+                raise ValueError(f"{s!r} doesn't end with {found!r}")
+            x = float(s[:-1])*10**si[found]
             return fmt.sci(x, n=n)
         else:
             # Assume it's an integer 
-            return fmt.engsic(float(string))
-def GetSignificantFigures(string):
-    '''Given a string representing a floating point number, determine how
+            return fmt.engsic(float(s))
+def GetSignificantFigures(s):
+    '''Given a string s representing a floating point number, determine how
     many significant figures it has.
     '''
     def Fix(s):
         for i in "+- .,":
             s = s.replace(i, "")
         return s
-    s = string.lower()
-    if "e" in s:
-        t = Fix(s.split("e")[0])
-    elif "×10" in s:
-        t = Fix(s.split("×")[0])
+    # Remove any SI prefix
+    u = s
+    for i in si:
+        if s.endswith(i):
+            n = len(i)
+            u = u[:-n]
+    u = u.lower()
+    if "e" in u:
+        t = Fix(u.split("e")[0])
+    elif "×10" in u:
+        t = Fix(u.split("×")[0])
     else:
-        for i in "yzafpnμmkMGTPEZY":
-            s = s.replace(i, "")
-        if "." in s or "," in s:
-            t = Fix(s)
+        if "." in u or "," in u:
+            t = Fix(u)
         else:
-            # An integer > 1e308 will cause an exception here
-            u = deque(repr(float(s)))
+            # It's an integers.  Note an integer > 1e308 will cause an
+            # exception.
+            v = deque(repr(int(u)))
             # Get rid of trailing zeroes
-            while u[-1] == "0":
-                u.pop()
-            return GetSignificantFigures(repr(float(s)))
+            while v[-1] == "0":
+                v.pop()
+            return len(v)
     return len(t)
 
-if 1 and __name__ == "__main__":
+if 0 and __name__ == "__main__":
     s = "342M"
     print(s, "-->", PerformConversion(s))
-    print("Error:  should have only 3 figures")
     exit()
 
 if __name__ == "__main__": 

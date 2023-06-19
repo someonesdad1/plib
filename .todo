@@ -1,5 +1,8 @@
 Active
 
+    - meter.py
+        - Library to generate analog meter scales
+
     - si.py
         - Command line arguments:  if have 'e', convert to SI eng notation.
           If have SI prefix, convert to 'e' notation.  Use fmt.py as
