@@ -459,10 +459,12 @@ if 1:   # Core functionality
         else:       # Prompt for a choice
             n = max([len(i) for i in aliases]) if aliases else 3
             # Print out choices
+            had_choice = False
             for i in choices:
                 dir, name = choices[i]
                 print(f"{i:<{n}d}  {name if name else dir}")
-            if aliases:
+                had_choice = True
+            if aliases and had_choice:
                 print()
             # Print out aliases
             for i in GetSortedAliases(aliases):
