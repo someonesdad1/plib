@@ -22,6 +22,8 @@ if 1:   # Imports
     from pdb import set_trace as xx
 if 1:   # Custom imports
     from wrap import dedent
+    from color import t
+    t.e = t("ornl")
 def PrintData():
     print(f'''
     Battery capacity in mA*hr (3.6 coul)  (mass in g, dimensions in mm)
@@ -29,7 +31,7 @@ def PrintData():
        Mass,g   Alkaline    C-Zn  NiMH        Lithium  Diameter   Length
        ------   --------    ----  ---------   -------  ---------  ---------
 AA       20      2890       1100  1700-2900     3000   13.5-14.5  49.5-50.5
-AAA      11.5    1250        540  800-1000             9.5-10.5   43.3-44.5
+{t.e}AAA      11.5    1250        540  800-1000             9.5-10.5   43.3-44.5{t.n}
 AAAA      6.5     625                                  7.7-8.3    41.5-42.5
 C        66      8350       3800  4500-6000            24.9-26.2  48.5-50
 D       140     20500       8000  900-11500            32.3-34.2  59.5-61.5
@@ -54,7 +56,7 @@ Coin cells (selected, 3 V nom, 3.6 V open circuit, LiMn02 chemistry)
   No.     Dia, mm   Thk, mm   Mass, g     mA*hr
 ------    -------   -------   -------     -----
 CR2025       20       2.5       2.5         165
-CR2032       20       3.2       3.1         200
+{t.e}CR2032       20       3.2       3.1         200{t.n}
 CR2477      24.5      7.7       10.5       1000
  
               V/cell    Chg          Loss/%/yr
@@ -79,7 +81,7 @@ Hearing aid batteries (typically Zinc-Air (ZnO2) 1.4 V)         Tab color
 ---------------------
     5       35 mA*hr    5.8 mm dia  2.15 mm long    0.20 g      Red
     10      75 mA*hr    5.8 mm dia  3.6  mm long    0.28 g      Yellow
-    312    170 mA*hr    7.9 mm dia  3.6  mm long    0.49 g      Brown
+    {t.e}312    170 mA*hr    7.9 mm dia  3.6  mm long    0.49 g      Brown{t.n}
     13     300 mA*hr    7.9 mm dia  5.4  mm long    0.80 g      Orange
     675    605 mA*hr   11.6 mm dia  5.4  mm long    1.76 g      Blue
     5.8 mm = 0.228", 7.9 mm = 0.311", 11.6 mm = 0.457"
@@ -90,7 +92,7 @@ def PrintLithium():
       No.     Dia, mm   Thk, mm   Mass, g     mA*hr
     ------    -------   -------   -------     -----
     '''))
-    s = '''
+    s = f'''
     CR1025 10x2.5 0.7 30 3
     CR1216 12.5x1.6 0.7 25 3
     CR1220 12.5x2 1.2 35 3
@@ -118,7 +120,12 @@ def PrintLithium():
     for line in s.strip().split("\n"):
         name, sz, mass, mAhr, V = line.split()
         dia, h = sz.split("x")
-        print(f.format(name, dia, h, mass, mAhr))
+        if "CR2032" in name or "CR2025" in name:
+            print(f"{t.e}", end="")
+        print(f.format(name, dia, h, mass, mAhr), end="")
+        if "CR2032" in name or "CR2025" in name:
+            print(f"{t.n}", end="")
+        print()
 def Error(msg, status=1):
     print(msg, file=sys.stderr)
     exit(status)
