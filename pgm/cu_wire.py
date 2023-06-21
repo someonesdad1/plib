@@ -64,6 +64,7 @@ if 1:   # Global variables
         16: (C.yellow, C.lmagenta),
         20: (C.lmagenta, C.black),
         24: (C.yellow, C.black),
+        28: (C.lwhite, C.blue),
     }
     # Used for formatting numbers
     fp = FPFormat(4)
@@ -1126,4 +1127,5 @@ if __name__ == "__main__":
             PrintTable(-3, 25, step=1)
         else:
             PrintTable(0, 31, step=2, others=[-3, -2, -1])
+            print(f"{'28 ga is wire-wrap wire':^79s}")
 # vim: wm=1
