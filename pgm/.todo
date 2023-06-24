@@ -1,5 +1,10 @@
 Active
 
+    - pgm/ds.py
+        - Add an optional regexps on the command line that will further
+          filter the selections.  Example:  for Simpson 260, I want to see
+          the schematics, so I'd use "260 schematic".
+
     - cmddecode.py
         - Some commands are special.  Thus, in hc.py, clstk is to clear the
           stack.  Suppose it's only confounded with clx.  Then cls means to

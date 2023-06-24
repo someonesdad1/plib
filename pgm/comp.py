@@ -21,6 +21,7 @@ if 1:   # Global variables
     # Colors
     t.hl = t("ornl")
     t.k = t("lill")
+    t.N = t.n
 manual = dedent(f'''
     {sys.argv[0]} [options] [regex [regex2...]]
       Searches the components database for the indicated regular expressions 
@@ -29,7 +30,8 @@ manual = dedent(f'''
     Options
       -a        Dump all records
       -b N      Show contents of box number N
-      -c        Turn off color highlighting
+      -C        Turn off color highlighting
+      -c        Show category
       -k kwd    Show items with keyword kwd
       -l        List the keywords
     ''')
@@ -45,34 +47,34 @@ class Entry:
         self.kw = kw.split()
     def __str__(self):
         s = '/'.join(self.kw)
-        return f"{self.loc} {self.descr} {t.k}{s}{t.n}"
+        if d["-c"]:
+            return f"{self.loc} {self.descr} {t.k}{s}{t.n}"
+        else:
+            return f"{self.loc} {self.descr}"
 
 def ParseCommandLine(d):
     d["-a"] = False     # Dump all records
     d["-b"] = None      # Specifies box number to list
-    d["-c"] = True      # Use color highlighting
+    d["-C"] = True      # Use color highlighting
+    d["-c"] = False     # Show category
     d["-k"] = ""        # Show this keyword
     d["-l"] = False     # List the keywords
     try:
-        optlist, args = getopt.getopt(sys.argv[1:], "ab:chk:l")
+        optlist, args = getopt.getopt(sys.argv[1:], "ab:Cchk:l")
     except getopt.GetoptError as e:
         print(str(e))
         sys.exit(1)
     for o, a in optlist:
-        if o in ("-a",):
-            d["-a"] = True
+        if o[1] in "aCcl":
+            d[o] = not d[o]
         elif o in ("-b",):
             d["-b"] = int(a)
-        elif o in ("-c",):
-            d["-c"] = not d["-c"]
         elif o in ("-h",):
             name = sys.argv[0]
             print(manual.format(**locals()))
             exit(0)
         elif o in ("-k",):
             d["-k"] = a
-        elif o in ("-l",):
-            d["-l"] = not d["-l"]
     return args
 def GetData():
     # Return a list of Entry items
@@ -136,10 +138,10 @@ def TextSearch(args, d, items):
             if n < spc or m < spc:
                 continue
             print(i[:n], end="")
-            if d["-c"]:
+            if d["-C"]:
                 print(f"{t.hl}", end="")
             print(i[n:m], end="")
-            if d["-c"]:
+            if d["-C"]:
                 print(f"{t.n}", end="")
             print(i[m:])
     exit(0)
@@ -152,6 +154,8 @@ def Keywords(items):
 if __name__ == "__main__": 
     d = {}  # Options dictionary
     args = ParseCommandLine(d)
+    if not d["-C"]:
+        t.k = t.hl = t.N = ""
     items = GetData()
     if d["-a"]:
         # Show all items
