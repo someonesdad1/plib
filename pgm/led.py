@@ -344,6 +344,18 @@ def Details():
 
       Conclusion:  The script will probably estimate things to within 5% to
       10%, which should be good enough for casual work.
+
+      Voltage for an RGB LED, sample of one 24 Jun 2023
+           mA    Red      Green      Blue
+          0.5   1.75       2.30      2.50
+           1    1.78       2.37      2.54
+          2.5   1.84       2.50      2.60
+           5    1.88       2.68      2.68
+          7.5   1.93       2.80      2.74
+          10    1.96       2.91      2.81
+          20    2.06       3.22      3.00
+          25    2.09       3.33      3.08
+          30    2.12       3.42      3.14
     '''))
     exit(0)
 if __name__ == "__main__":
