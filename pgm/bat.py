@@ -158,9 +158,13 @@ def ParseCommandLine(d):
         exit(0)
     return args
 def Open(cmd):
-    pth = "C:/cygwin/elec/batteries/duracell"
+    if 0:
+        pth = "C:/cygwin/elec/batteries/duracell"
+        st = "C:/cygwin/bin/cygstart.exe"
+    else:
+        pth = "d:/cygwin64/elec/batteries/duracell"
+        st = "d:/cygwin64/bin/cygstart.exe"
     file = f"{pth}/Duracell_{cmd.upper()}_alkaline.pdf"
-    st = "C:/cygwin/bin/cygstart.exe"
     subprocess.Popen([st, file])
 def TestData():
     print(dedent(f'''
