@@ -1,13 +1,25 @@
 Active
 
+    - pgm/ds.py
+        - Add an optional regexps on the command line that will further
+          filter the selections.  Example:  for Simpson 260, I want to see
+          the schematics, so I'd use "260 schematic".
+
+    - fmt.py
+        - f.py needs to be changed to use fmt.py
+        - Move color.py out of the module code (put it in the if __name__
+          section)
+
+    - pgm/diode.py
+        - Used to predict electrical parameters of various diodes
+        - Given V, print i and R
+        - Given i, print V and R
+        - Given R, print i and V
+        - 1N4001 types, 1N4148, LEDs, Schottky
+
     - meter.py
         - Library to generate analog meter scales
 
-    - si.py
-        - Command line arguments:  if have 'e', convert to SI eng notation.
-          If have SI prefix, convert to 'e' notation.  Use fmt.py as
-          needed.
-        
     - isotopes.py
         - Create an on-disk database of isotope data.  These can be made
           with requests.py and the wikipedia isotopes tables.
@@ -16,6 +28,13 @@ Active
             - Decay mode
             - Decay energy
             - Metastable states
+
+    - cmddecode.py
+        - Some commands are special.  Thus, in hc.py, clstk is to clear the
+          stack.  Suppose it's only confounded with clx.  Then cls means to
+          clear the stack.  But because I type cls a lot, I might
+          accidentally type cls when I meant clx.  Thus, clstk needs to be
+          at least clst.
 
     - ca.py
         - In light of hc.py work, this could be a better calculator
@@ -38,10 +57,10 @@ Active
             - C = concentration
             - V = volume
             - S = solute volume
-            - D = solvent volume
+            - t = solvent volume
             - Equations
-                - V = S + D
-                - C = S/(S + D) = S/V
+                - V = S + T
+                - C = S/(S + T) = S/V
                 - S = C*V
         - There would be three submenus of the problem that would prompt
           for the variables C, V, S, D:  solution A, solution B, and
@@ -56,9 +75,18 @@ Active
           volume.  The 'l x' and 'u x' commands would lock and unlock the
           variable x.
 
+    - pgm/chklnk.py
+        - For each file on the command line, extract the http:// links and
+          check if they are broken.  For OO files, it's a zip file and you
+          just read each XML file.
+
     - pgm/c++_units.py
         - Update to python 3
         - Find docs & put on HU
+
+    - ~/bin/math
+        - Runs a python script that finds all functions in math/cmath and
+          figures out the return values of each call.
 
     - H utility
         - Rename to j, as lowercase is easier
