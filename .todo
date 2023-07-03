@@ -10,6 +10,12 @@ Active
         - Move color.py out of the module code (put it in the if __name__
           section)
 
+    - pgm/zener.py
+        - Given a desired voltage, show how to get as near as possible to
+          this with on-hand zeners and other diode types.
+        - Note things are very current-dependent, so final experimentation
+          needs to be done with various current levels
+
     - pgm/diode.py
         - Used to predict electrical parameters of various diodes
         - Given V, print i and R
