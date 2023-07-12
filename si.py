@@ -12,6 +12,7 @@ SI prefixes
 import sys
 import math
 from fmt import fmt
+from f import flt
 from collections import deque
 
 have_mpmath = False
@@ -304,6 +305,26 @@ def GetSignificantFigures(s):
                 v.pop()
             return len(v)
     return len(t)
+def ConvertSI(s):
+    '''String s can end in an SI prefix and the remaining characters must
+    represent a float.  Return a flt instance for the represented number.
+    '''
+    if s == "inf":
+        return flt("inf")
+    elif s == "-inf":
+        return flt("-inf")
+    if s.endswith("da"):
+        raise ValueError(f"{s!r} cannot end in prefix 'da'")
+    found = ""
+    for prefix in si:
+        if s.endswith(prefix):
+            found = prefix
+            break
+    if not found:
+        return flt(s)
+    s = s[:-1]  # Remove prefix letter
+    x = flt(s)*10**si[prefix]
+    return x
 
 if 0 and __name__ == "__main__":
     s = "342M"

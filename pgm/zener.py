@@ -5,9 +5,9 @@ Given a voltage on the command line, determine the best set of diodes
 On-hand zeners 1/2 W:
 3.3 4.7 5.1 6.2 7.5 8.2 9.1 10 12 15 18 24 27 30
 
-Note:  the output needs to be based on experimental measurements of real
-diodes, reflecting the current levels and the normal stochastic variation
-in a set of "the same" diodes.
+Note:  Ideally, the output needs to be based on experimental measurements of real
+diodes, reflecting the current levels and the normal stochastic variation in a set of
+"the same" diodes.
 
 It would be nice to have a tester that would have specific current levels
 for testing.  Useful values would be 0.1, 0.5, 1, 2, 5, 10, 20 mA. 
