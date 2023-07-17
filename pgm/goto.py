@@ -440,7 +440,7 @@ if 1:   # Core functionality
             try:
                 choice = int(arg)
                 if choice not in choices:
-                    Error("'{arg}' isn't a valid choice")
+                    Error(f"'{arg}' isn't a valid choice")
                 selection = choices[choice][0]
                 ActOn(choices[choice][0])
                 return
