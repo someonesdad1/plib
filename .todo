@@ -1,5 +1,39 @@
 Active
 
+    - lib:  fmt
+        - Minimal python function to get string interpolation to n digits
+        - Handle floats & integers
+        - Put in lib as paste-in code
+
+    - par.py
+        - Parallel resistors solver
+        - Arguments are R1 R2 ... Rresult  Substitute x for what you want.
+        - Expressions are allowed for each resistor
+        - Can use SI prefixes but not in expressions:  they will be
+          expanded to the proper form
+            - Consider using tokenizer for expressions so that SI prefixes
+              can be used
+        - -s str lets you define a variable for a shorthand use in an
+          expression.  Example:  str = 'R7 = 44.7 - 3.2' and it will be
+          evaluated by exec(str, globals, locals)
+
+
+    - Spelling
+        - I'd like a script to check the spelling in the strings in python
+          scripts
+        - Standard output would be to print the misspelled words with the
+          line number
+        - Optional 
+            - Print the line of text with the misspelled word highlighted
+            - Print all the text with mispellings highlighted
+        - Use case:  script usage statements with spelling errors that
+          aren't caught for years (just had this happen in the
+          convert_temperature.py script)
+
+    - wb.py
+        - Wheatstone bridge exploration tool
+        - You'd pro
+
     - pgm/ds.py
         - Add an optional regexps on the command line that will further
           filter the selections.  Example:  for Simpson 260, I want to see
@@ -1564,3 +1598,52 @@ hc.py
         - mpmath's special functions supported.  The user can construct a
           config file list of the desired functions.
         - Commands are easy to alias to get the interface you want.
+
+wb.py
+
+    Wheatstone bridge exploration tool
+
+    You'd provide a script containing the parameters of the bridge
+        
+        Vin
+        Vout
+        Rlt     Left arm, top resistor
+        Rlb     Left arm, bottom resistor
+        Rrt     Right arm, top resistor
+        Rrb     Right arm, bottom resistor
+
+    Example:
+        
+        Vin: voltage_in_V [unc]
+        Rlt: resistance_in_ohms [unc]
+        etc.
+
+    The line that is left blank is the dependent variable.  You can specify
+    numbers with cuddled SI prefixes.  If unc is given, it's either a
+    number with optional cuddled SI prefix or a percentage.  If you use u
+    or μ, then it's in ppm.
+
+    The tool is set up so that when the script's last modification time
+    changes, the output is recalculated and printed to stdout.
+
+    Output report
+
+    Wheatstone bridge calculations
+        Data file = <name>
+        Last modification time = <time>
+        MD5 hash = <hash>
+
+        Input data:
+            Vin  = 
+            Vout =
+            Rlt  =
+            Rlb  =
+            Rrt  =
+            Rrb  =
+
+        Calculated data:
+            Unknown = 
+        Derivatives of unknown wrt known variables
+
+    If uncertainties are given, then the calculations are done with the
+    python uncertainties library.

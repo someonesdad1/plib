@@ -84,7 +84,7 @@ def Usage(d):
       option isn't used.
     Options:
         -c      Don't use color in output
-        -d n    Set number of signifcant figures
+        -d n    Set number of significant figures
         -f      Show the formulas
         -r      Include Rankine temperatures
     '''))
@@ -133,6 +133,7 @@ def Report(t, include_nl=False):
         z.N = n if n else NumberOfFigures(t)
         z.rtz = True
         z.rtdp = True
+        z.rtz = False
     else:
         sig.digits = n if n else NumberOfFigures(t)
         sig.rtz = True

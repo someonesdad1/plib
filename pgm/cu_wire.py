@@ -50,6 +50,9 @@ if 1:   # Custom imports
         from get import GetNumber, GetWireDiameter
 if 1:   # Global variables
     # Copper properties
+    # In 1914 an international agreement was reached defining the
+    # resistivity of annealed copper to be the following.  See NBS 470
+    # circular from 1948.
     resistivity = 17.241e-9     # Cu resistivity in Ω·m at 20 °C
     temp_coeff = 0.0039         # Temperature coefficient of resistivity, 1/K
     density = 8900              # kg/m³
