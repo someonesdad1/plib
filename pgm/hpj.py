@@ -3124,6 +3124,8 @@ if 1:   # Utility
         t.ti = t("grnl") if d["-C"] else ""
         t.au = t("magl") if d["-C"] else ""
         t.nn = t.n if d["-C"] else ""
+        if not args:
+            Usage(d)
         return args
 if 1:   # Core functionality
     def GetArticleString(a):

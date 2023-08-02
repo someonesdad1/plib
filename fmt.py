@@ -153,6 +153,12 @@ if 1:   # Header
             have_mpmath = True
         except ImportError:
             have_mpmath = False
+        try:
+            # Used in FmtIV class
+            import uncertainties
+            have_unc = True
+        except ImportError:
+            have_unc = False
     if 1:   # Global variables
         W = int(os.environ.get("COLUMNS", "80")) - 1
         L = int(os.environ.get("LINES", "50"))
@@ -1486,14 +1492,62 @@ class Fmt:
         @comp.setter
         def comp(self, value):
             self._comp = bool(value)
+
+from uncertainties import ufloat, ufloat_fromstr
+from mpmath import iv, mpf
+ii = isinstance
+
+class FmtIV:
+    '''Utilities for dealing with mpmath interval numbers.  Call the
+    instance to:
+        - Convert a list or tuple of two numbers to an interval number
+        - Convert short form like 2[1] to interval number iv.mpf([1, 3])
+        - Convert interval number to short form like 2[1]
+    '''
+    def __init__(self, n=1):
+        # n is number of digits to show in "uncertainty" portion, where
+        # here "uncertainty" means the halfwidth of the interval.
+        assert(ii(n, int) and n > 0)
+        assert(have_mpmath and have_unc)
+        self.n = n
+    def __call__(self, x):
+        '''Action depents on type of x:
+        list, tuple:    convert to iv.mpf (must be 2 numbers)
+        string:         x[y] short form of interval number
+        iv.mpf:         Convert to x[y] short form string
+ 
+        The easy way to do this stuff is to use the facilities of the
+        uncertainties library.
+        '''
+        if ii(x, (list, tuple)):
+            # Two numbers, convert to interval number
+            return iv.mpf(x)
+        elif ii(x, str):
+            # x[y] form, convert to interval number
+            t = ufloat_fromstr(x.replace("[", "(").replace("]", ")"))
+            return iv.mpf((t.n - t.s, t.n + t.s))
+        elif ii(x, iv.mpf):
+            # Interval number, convert to short form string
+            n = float(mpf(x.mid))
+            s = float(mpf(x.delta)/2)
+            t = ufloat(n, s)
+            u = f".{self.n}uS" 
+            return f"{t:{u}}".replace("(", "[").replace(")", "]")
+        else:
+            m = "x must be list or tuple of two floats, string, or interval number"
+            raise TypeError(m)
+
 # Convenience Fmt instance
 fmt = Fmt()
+# Convenience FmtIV instance
+if have_mpmath and have_unc:
+    fmtiv = FmtIV()
 
 # Development area
 if 0 and __name__ == "__main__": 
-    n = 1
-    x = mpmath.mpf("9.99999796866929e999999")
-    print(fmt(x))
+    f = FmtIV()
+    x = iv.mpf((0, 2))
+    print(f(x))
     exit()
 
 if __name__ == "__main__": 
@@ -2422,7 +2476,6 @@ if __name__ == "__main__":
             x = 1.23456e-50
             u = 0.0064e-50
             Assert(fmt.unc(x, u) == "0.00000000000000000000000000000000000000000000000001234(6)")
-
         def Test_Big():
             '''The Fmt object uses Decimal numbers to do the formatting.  This
             works for most stuff, but will fail when dealing with exponents
