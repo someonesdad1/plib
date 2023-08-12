@@ -1,5 +1,20 @@
 Active
 
+    - Practical uncertainty and accuracy
+        - Elementary exposition
+        - References wp uncertainty propagation page
+            - Discusses X ± Y and X*Y
+            - Then shows same calculation with uncertainties library
+        - Uncertainties library
+            - Mention facility with numpy & correlation
+            - Demonstrate a use of a mfg spec for a DMM to calculate a
+              measurement uncertainty
+        - Interval arithmetic
+            - Show the same computation with interval numbers
+            - List the function support of mpmath
+        - Focus on interactive python sessions
+            - Show how to use pip to install mpmath & uncertainties
+
     - lib:  fmt
         - Minimal python function to get string interpolation to n digits
         - Handle floats & integers

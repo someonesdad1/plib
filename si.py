@@ -40,23 +40,27 @@ class SI(dict):
     '''
     def __init__(self, pure=False):
         self.update({
-            "m": -3,
-            "μ": -6,
-            "u": -6,
-            "n": -9,
-            "p": -12,
-            "f": -15,
-            "a": -18,
-            "z": -21,
-            "y": -24,
-            "k": 3,
-            "M": 6,
-            "G": 9,
-            "T": 12,
-            "P": 15,
-            "E": 18,
-            "Z": 21,
-            "Y": 24
+            "m": -3,    # milli
+            "μ": -6,    # micro
+            "u": -6,    # micro
+            "n": -9,    # nano
+            "p": -12,   # pico
+            "f": -15,   # femto
+            "a": -18,   # atto
+            "z": -21,   # zepto
+            "y": -24,   # yocto
+            "r": -27,   # ronto   Added 2022 27th CGPM
+            "q": -30,   # quecto  Added 2022 27th CGPM
+            "k": 3,     # kilo
+            "M": 6,     # mega
+            "G": 9,     # giga
+            "T": 12,    # tera
+            "P": 15,    # peta
+            "E": 18,    # exa
+            "Z": 21,    # zetta
+            "Y": 24,    # yotta
+            "R": 27,    # ronna   Added 2022 27th CGPM
+            "Q": 30,    # quetta  Added 2022 27th CGPM
         })
         self.d = {
             -3: "m",
@@ -67,6 +71,8 @@ class SI(dict):
             -18: "a",
             -21: "z",
             -24: "y",
+            -27: "r",
+            -30: "q",
             0: "",
             3: "k",
             6: "M",
@@ -76,6 +82,8 @@ class SI(dict):
             18: "E",
             21: "Z",
             24: "Y",
+            27: "R",
+            30: "Q",
         }
         self.pure = pure
         if not self.pure:

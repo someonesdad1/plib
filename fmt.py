@@ -155,7 +155,7 @@ if 1:   # Header
             have_mpmath = False
         try:
             # Used in FmtIV class
-            import uncertainties
+            from uncertainties import ufloat, ufloat_fromstr
             have_unc = True
         except ImportError:
             have_unc = False
@@ -1493,10 +1493,6 @@ class Fmt:
         def comp(self, value):
             self._comp = bool(value)
 
-from uncertainties import ufloat, ufloat_fromstr
-from mpmath import iv, mpf
-ii = isinstance
-
 class FmtIV:
     '''Utilities for dealing with mpmath interval numbers.  Call the
     instance to:
@@ -1512,27 +1508,40 @@ class FmtIV:
         self.n = n
     def __call__(self, x):
         '''Action depents on type of x:
-        list, tuple:    convert to iv.mpf (must be 2 numbers)
+        list, tuple:    convert to mpmath.iv.mpf (must be 2 numbers)
         string:         x[y] short form of interval number
-        iv.mpf:         Convert to x[y] short form string
+        mpmath.iv.mpf:  Convert to x[y] short form string
  
         The easy way to do this stuff is to use the facilities of the
         uncertainties library.
         '''
         if ii(x, (list, tuple)):
             # Two numbers, convert to interval number
-            return iv.mpf(x)
+            return mpmath.iv.mpf(x)
         elif ii(x, str):
             # x[y] form, convert to interval number
             t = ufloat_fromstr(x.replace("[", "(").replace("]", ")"))
-            return iv.mpf((t.n - t.s, t.n + t.s))
-        elif ii(x, iv.mpf):
+            return mpmath.iv.mpf((t.n - t.s, t.n + t.s))
+        elif ii(x, mpmath.iv.mpf):
             # Interval number, convert to short form string
-            n = float(mpf(x.mid))
-            s = float(mpf(x.delta)/2)
+            n = float(mpmath.mpf(x.mid))
+            s = float(mpmath.mpf(x.delta)/2)
             t = ufloat(n, s)
             u = f".{self.n}uS" 
-            return f"{t:{u}}".replace("(", "[").replace(")", "]")
+            v = f"{t:{u}}".replace("(", "[").replace(")", "]")
+            # Fix verbose scientific notation
+            if "e+" in v:
+                a, b = v.split("e+")
+                while len(b) > 1 and b[0] == "0":
+                    b = b[1:]
+                return a + "e" + b
+            elif "e-" in v:
+                a, b = v.split("e+")
+                while len(b) > 1 and b[0] == "0":
+                    b = b[1:]
+                return a + "e-" + b
+            else:
+                return v
         else:
             m = "x must be list or tuple of two floats, string, or interval number"
             raise TypeError(m)
