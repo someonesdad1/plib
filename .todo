@@ -15,6 +15,13 @@ Active
         - Focus on interactive python sessions
             - Show how to use pip to install mpmath & uncertainties
 
+    - sw.py
+        - Resurrect /pylib/pgm/obsolete/sw.py
+        - Write it to use as a general purpose stopwatch timing tool
+          without needing msvcrt
+        - Note:  this script can be made to work with the winpython
+          install.  The fix needed seems to be to convert bytes to strings.
+
     - lib:  fmt
         - Minimal python function to get string interpolation to n digits
         - Handle floats & integers
