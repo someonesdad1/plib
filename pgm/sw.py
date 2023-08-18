@@ -52,11 +52,26 @@ if 1:   # Header
     if 1:   # Custom imports
         import msvcrt
         from wrap import wrap, dedent
-        from color import Color, TRM as t
+        from color import t
     if 1:   # Global variables
         ii = isinstance
         W = int(os.environ.get("COLUMNS", "80")) - 1
         L = int(os.environ.get("LINES", "50"))
+        # Colors
+        t.s = t("purl")
+        t.m = t("cynl")
+        t.h = t("ornl")
+        t.d = t("redl")
+        # Holder for global variables
+        class G:
+            pass
+        g = G()
+        g.n = 15    # Num spaces for decimal time
+        g.display_unit = "s"
+        g.allowed_display_units = "smhd"
+        g.start = 0         # Integer start time in ns
+        g.now = 0           # Integer now in ns
+        g.last = 0          # Integer last time in ns
 if 1:   # Utility
     def Error(*msg, status=1):
         print(*msg, file=sys.stderr)
@@ -67,10 +82,10 @@ if 1:   # Utility
             q       Quit
             Z       Zero time
             C       Enter a comment
-            s       Display in seconds
-            m       Display in minutes
-            h       Display in hours
-            d       Display in days
+            {t.s}s       Display in seconds{t.n}
+            {t.m}m       Display in minutes{t.n}
+            {t.h}h       Display in hours{t.n}
+            {t.d}d       Display in days{t.n}
         Any other keys take a split.  Start with a filename on the command
         line to also have the data appended to that file.  A state summary
         report will be written to the file.
@@ -106,9 +121,9 @@ if 1:   # Utility
         return args
 if 1:   # Core functionality
     def Header():
-        a = f"{'Diff time':^{n}s}"
-        b = f"{'Total time':^{n}s}"
-        c = "-"*n
+        a = f"{'Diff time':^{g.n}s}"
+        b = f"{'Total time':^{g.n}s}"
+        c = "-"*g.n
         return dedent(f'''
         Times are in seconds
  
@@ -120,14 +135,29 @@ if 1:   # Core functionality
         if log_stream:
             log_stream.write(str + "\n")
     def Print(key):
-        global last_time
-        t = time.time()
+        def tof(t):
+            'Change t in ns to float in s'
+            return float(t)/1e9
+        g.now = time.time_ns()   # Integer current time in ns
+        # Print split and total time in chosen units
+        if g.display_unit == "s":
+            dt1 = tof(g.now - g.last)
+            dt2 = tof(g.now - g.start)
+            print(f"{dt1:{g.n}.2f}", end=" ")
+            print(f"{dt2:{g.n}.2f}", end=" ")
+        elif g.display_unit == "m":
+            breakpoint() #xx
+        elif g.display_unit == "h":
+            breakpoint() #xx
+        elif g.display_unit == "d":
+            breakpoint() #xx
+        else:
+            raise RuntimeError("{g.display_unit!r} is bad display unit")
         # Get current time string
-        loc = time.localtime(t)
+        loc = time.localtime(tof(g.now))
         str = time.asctime(loc)
-        fmt = f"%{n}.2f %{n}.2f     %s   %s"
-        Log(fmt % ((t-last_time), (t-start), str, key))
-        last_time = t
+        Log(f"{str} {key}")
+        g.last = g.now
     def GetKey():
         '''Return a string that represents the key pressed.  If the first
         getch() returns a '\000' character, then we call getch() again to
@@ -143,10 +173,9 @@ if 1:   # Core functionality
         return key
 
 if __name__ == "__main__":
-    n = 15      # Number of spaces for decimal time
     done = 0
-    start = time.time()
-    last_time = start
+    g.start = time.time_ns()
+    g.last = g.start
     log_stream = None
 
     d = {}      # Options dictionary
@@ -167,14 +196,19 @@ if __name__ == "__main__":
             sys.exit(0)
         elif key == "Z":
             start = time.time()
-            last_time = start
+            g.last_time = start
             Log("Time reset")
+            Print("Time reset to 0")
         elif key == "C":
             # Prompt the user for a string
             str = input("Enter comment string, '.<cr>' to finish:\n")
             while str != ".":
                 Log("+ " + str)
                 str = input("")
+            Print(key)
+        elif len(key) == 1 and key in g.allowed_display_units:
+            g.display_unit = key
+            Print(key)
         else:
             Print(key)
 

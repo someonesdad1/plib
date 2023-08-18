@@ -4,14 +4,14 @@ Print RTD tables
 if 1:   # Header
     if 1:   # Copyright, license
         # These "trigger strings" can be managed with trigger.py
-        #∞copyright∞# Copyright (C) 2023 Don Peterson #∞copyright∞#
+        #∞copyright∞# Copyright (C) 2005, 2023 Don Peterson #∞copyright∞#
         #∞contact∞# gmail.com@someonesdad1 #∞contact∞#
         #∞license∞#
         #   Licensed under the Open Software License version 3.0.
         #   See http://opensource.org/licenses/OSL-3.0.
         #∞license∞#
         #∞what∞#
-        # Program description string
+        # Print RTD tables.
         #∞what∞#
         #∞test∞# #∞test∞#
         pass
@@ -55,7 +55,6 @@ if 1:   # Utility
             elif o in ("-h", "--help"):
                 Usage(status=0)
         return args
-
 if 1:   # Core functionality
     def Report():
         a, b, R0 = 3.9083e-3, -5.775e-7, 100
