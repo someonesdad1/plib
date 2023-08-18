@@ -141,16 +141,29 @@ if 1:   # Core functionality
         g.now = time.time_ns()   # Integer current time in ns
         # Print split and total time in chosen units
         if g.display_unit == "s":
-            dt1 = tof(g.now - g.last)
-            dt2 = tof(g.now - g.start)
-            print(f"{dt1:{g.n}.2f}", end=" ")
-            print(f"{dt2:{g.n}.2f}", end=" ")
+            c = 1
+            dt1 = tof(g.now - g.last)/c
+            dt2 = tof(g.now - g.start)/c
+            print(f"{t.s}{dt1:{g.n}.2f}", end=" ")
+            print(f"{dt2:{g.n}.2f}{t.n}", end=" ")
         elif g.display_unit == "m":
-            breakpoint() #xx
+            c = 60
+            dt1 = tof(g.now - g.last)/c
+            dt2 = tof(g.now - g.start)/c
+            print(f"{t.m}{dt1:{g.n}.3f}", end=" ")
+            print(f"{dt2:{g.n}.3f}{t.n}", end=" ")
         elif g.display_unit == "h":
-            breakpoint() #xx
+            c = 3600
+            dt1 = tof(g.now - g.last)/c
+            dt2 = tof(g.now - g.start)/c
+            print(f"{t.h}{dt1:{g.n}.5f}", end=" ")
+            print(f"{dt2:{g.n}.5f}{t.n}", end=" ")
         elif g.display_unit == "d":
-            breakpoint() #xx
+            c = 24*3600
+            dt1 = tof(g.now - g.last)/c
+            dt2 = tof(g.now - g.start)/c
+            print(f"{t.d}{dt1:{g.n}.7f}", end=" ")
+            print(f"{dt2:{g.n}.7f}{t.n}", end=" ")
         else:
             raise RuntimeError("{g.display_unit!r} is bad display unit")
         # Get current time string
