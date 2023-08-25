@@ -15,6 +15,13 @@ Active
         - Focus on interactive python sessions
             - Show how to use pip to install mpmath & uncertainties
 
+    - 870.py
+        - Given a reading by the Aneng 870, print out the accuracy
+          statement in a variety of forms
+            - x.xxx[y], x.xxx(y), etc.
+            - -k option sets k factor to estimate std uncertainty from
+              accuracy interval.  Defaults to 2.
+
     - sw.py
         - Resurrect /pylib/pgm/obsolete/sw.py
         - Write it to use as a general purpose stopwatch timing tool

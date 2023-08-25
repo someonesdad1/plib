@@ -139,37 +139,39 @@ if 1:   # Core functionality
             'Change t in ns to float in s'
             return float(t)/1e9
         g.now = time.time_ns()   # Integer current time in ns
-        # Print split and total time in chosen units
+        # Print split and total time in chosen units.  The decimal
+        # resolution is chosen so that holding the space bar down lets you
+        # see the last digit change.
         if g.display_unit == "s":
             c = 1
             dt1 = tof(g.now - g.last)/c
             dt2 = tof(g.now - g.start)/c
-            print(f"{t.s}{dt1:{g.n}.2f}", end=" ")
-            print(f"{dt2:{g.n}.2f}{t.n}", end=" ")
+            s1 = f"{t.s}{dt1:{g.n}.2f}"
+            s2 = f"{t.s}{dt2:{g.n}.2f}"
         elif g.display_unit == "m":
             c = 60
             dt1 = tof(g.now - g.last)/c
             dt2 = tof(g.now - g.start)/c
-            print(f"{t.m}{dt1:{g.n}.3f}", end=" ")
-            print(f"{dt2:{g.n}.3f}{t.n}", end=" ")
+            s1 = f"{t.m}{dt1:{g.n}.4f}"
+            s2 = f"{t.m}{dt2:{g.n}.4f}"
         elif g.display_unit == "h":
             c = 3600
             dt1 = tof(g.now - g.last)/c
             dt2 = tof(g.now - g.start)/c
-            print(f"{t.h}{dt1:{g.n}.5f}", end=" ")
-            print(f"{dt2:{g.n}.5f}{t.n}", end=" ")
+            s1 = f"{t.h}{dt1:{g.n}.5f}"
+            s2 = f"{t.h}{dt2:{g.n}.5f}"
         elif g.display_unit == "d":
             c = 24*3600
             dt1 = tof(g.now - g.last)/c
             dt2 = tof(g.now - g.start)/c
-            print(f"{t.d}{dt1:{g.n}.7f}", end=" ")
-            print(f"{dt2:{g.n}.7f}{t.n}", end=" ")
+            s1 = f"{t.d}{dt1:{g.n}.7f}"
+            s2 = f"{dt2:{g.n}.7f}{t.n}"
         else:
             raise RuntimeError("{g.display_unit!r} is bad display unit")
         # Get current time string
-        loc = time.localtime(tof(g.now))
-        str = time.asctime(loc)
-        Log(f"{str} {key}")
+        loc = time.localtime(tof(g.now) - 7*3600.)
+        s = time.strftime("%d%b%Y %H:%M:%S", loc)
+        Log(f"{s1} {s2} {s} {key}")
         g.last = g.now
     def GetKey():
         '''Return a string that represents the key pressed.  If the first
