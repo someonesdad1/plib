@@ -1,10 +1,11 @@
 '''
 TODO:
+
+- Get -i working.  Use u.py library so common units can be input.
  
-* Add -L option to specify a length.  Then table should print resistance of
+- Add -L option to specify a length.  Then table should print resistance of
   that length.
-* Change -i option to use u.py library so common units can be input.
-* Finish MIL5088(gauge, ΔT) function.
+- Finish MIL5088(gauge, ΔT) function.
  
 ----------------------------------------------------------------------
 Output a copper wire table.  Other useful things are done too (use the 
@@ -29,7 +30,11 @@ if 1:   # Imports
     import getopt
     from math import pi, log, sqrt, log10
 if 1:   # Custom imports
-    import color as C
+    oc = False  # If True, use the old color methods
+    if oc:
+        import color as C
+    else:
+        from color import t
     from wrap import dedent
     from fpformat import FPFormat
     from columnize import Columnize
@@ -59,16 +64,28 @@ if 1:   # Global variables
     isatty = sys.stdout.isatty()
     no_color = False
     # Color of popular gauge sizes
-    popular_sizes = {
-        10: (C.lgreen, C.black),
-        12: (C.yellow, C.blue),
-        14: (C.brown, C.black),
-        18: (C.lred, C.black),
-        16: (C.yellow, C.lmagenta),
-        20: (C.lmagenta, C.black),
-        24: (C.yellow, C.black),
-        28: (C.lwhite, C.blue),
-    }
+    if oc:
+        popular_sizes = {
+            #10: (C.lgreen, C.black),
+            12: (C.lwhite, C.red),
+            #14: (C.brown, C.black),
+            16: (C.lwhite, C.lmagenta),
+            #18: (C.lred, C.black),
+            20: (C.lmagenta, C.black),
+            24: (C.lwhite, C.blue),
+            28: (C.yellow, C.black),
+        }
+    else:
+        popular_sizes = {
+            #10: t("grnl"),
+            12: t("whtl", "red"),
+            #14: t("brnl"),
+            16: t("whtl", "mag"),
+            #18: t("redl"),
+            20: t("magl"),
+            24: t("whtl", "blul"),
+            28: t("ornl"),
+        }
     # Used for formatting numbers
     fp = FPFormat(4)
     fp.trailing_decimal_point(False)
@@ -78,11 +95,11 @@ def Error(msg, status=1):
 def Manpage():
     rho = f"{resistivity*1e9:.5g}"
     print(dedent(f'''
-                                Copper Wire Table
+                              Copper Wire Table
     
     The properties of commercial copper wire in this table are calculated
     from the density of copper ({density} kg/m³) and its room temperature
-    resistivity of {rho} nΩ·m.
+    resistivity of {rho} nΩ·m (agreed internationally in 1914).
     
     AWG is American Wire Gauge [1].  Given an AWG number N, the diameter of
     a wire in inches is 92**((36 - N)/39)/200.  For 2/0, 3/0, or m/0 where
@@ -124,7 +141,7 @@ def Manpage():
     Over the indicated temperature ranges, these linear relationships make
     integrations easier.
     
-                                    Ampacity
+                                  Ampacity
     ----------------------------------------------------------------------
     
     Ampacity refers to the allowed current carrying ability of copper wire.
@@ -194,9 +211,7 @@ def Manpage():
         small wire without influencing the heat loss mechanisms is more
         work that I'd want to invest.  Still, the experiment provided me
         with enough of an engineering feel (no pun :^) that these current
-        levels would be safe should I want to base a design on them.  I
-        don't have a DC power supply capable of enough current to study
-        wires at higher DC currents.
+        levels would be safe should I want to base a design on them.  
     
         A 24 gauge piece of copper wire held in alligator clips with 30 A
         through the wire will glow a faint red in a room with the curtains
@@ -325,6 +340,7 @@ def Manpage():
         given in MIL-W-5088L for a ΔT of 60°C.  If you assume an ambient
         temperature of 30°C, then this means the insulation temperature
         will be around 90°C, a common insulation temperature rating.  
+
    [10] https://www.lectromec.com/maximum-harness-ampacity and
         https://www.lectromec.com/ampacity-improvements.
         '''.rstrip()))
@@ -357,8 +373,8 @@ def Manpage():
     '''))
     exit(0)
 def ParseCommandLine(d):
-    d["-a"] = False     # Print the detailed ampacity data
-    d["-C"] = False     # Emit color escape codes even if not a tty
+    d["-a"] = False     # Print detailed ampacity data
+    d["-C"] = False     # Do not use color
     d["-c"] = False     # Emit color escape codes even if not a tty
     d["-e"] = False     # Print an equivalence table
     d["-i"] = False     # Interactive solution
@@ -883,7 +899,10 @@ def PrintTable(n, m, step=1, others=[]):
 def PrintLine(awg):
     fp.digits(3)
     if awg in popular_sizes and isatty and not no_color:
-        C.fg(*popular_sizes[awg])
+        if oc:
+            C.fg(*popular_sizes[awg])
+        else:
+            print(f"{popular_sizes[awg]}", end="")
     Print(f"{Size(awg):>4s}  ")
     dia_in = AWG(awg)
     # Diameter
@@ -912,7 +931,10 @@ def PrintLine(awg):
         Print(f"{g(f_Hz/1000):>5s} ")
         Print(f"{g(brk):>5s}")
     if awg in popular_sizes and isatty and not no_color:
-        C.normal()
+        if oc:
+            C.normal()
+        else:
+            print(f"{t.n}", end="")
     print()
 def Preece(awg):
     '''Return the current in A at which a copper conductor of AWG size awg
@@ -939,7 +961,10 @@ def PrintAmpacityLine(awg):
             return g(x)
     fp.digits(4)
     if awg in popular_sizes and isatty and not no_color:
-        C.fg(*popular_sizes[awg])
+        if oc:
+            C.fg(*popular_sizes[awg])
+        else:
+            print(f"{popular_sizes[awg]}", end="")
     Print(f"{Size(awg):>4s}  ")
     dia_in = AWG(awg)
     nec = NEC()
@@ -970,7 +995,10 @@ def PrintAmpacityLine(awg):
         Print(f"{g(Onderdonk(awg, 1)):>8s}")
         Print(f"{g(Onderdonk(awg, 0.032)):>8s}")
     if awg in popular_sizes and isatty and not no_color:
-        C.normal()
+        if oc:
+            C.normal()
+        else:
+            print(f"{t.n}", end="")
     print()
 def AmpacityData():
     print(dedent(f'''
@@ -1096,7 +1124,10 @@ def PrintVoltageDropTable():
         area_m2 = pi*(dia_m/2)**2
         r_ohm_per_m = flt(resistivity/area_m2)
         if n in popular_sizes and not d["-C"]:
-            C.fg(*popular_sizes[n])
+            if oc:
+                C.fg(*popular_sizes[n])
+            else:
+                print(f"{popular_sizes[n]}", end="")
         print(f"{n:2d}     ", end="")
         print(f"{flt(i_chass)!s:^5s} ", end="")
         for p in pct:
@@ -1104,7 +1135,10 @@ def PrintVoltageDropTable():
             V = int(i*r_ohm_per_m*1000)
             print(f"{V:^{wc}d} ", end="")
         if n in popular_sizes and not d["-C"]:
-            C.normal()
+            if oc:
+                C.normal()
+            else:
+                print(f"{t.n}", end="")
         print()
 if __name__ == "__main__":
     d = {}      # Options dictionary
