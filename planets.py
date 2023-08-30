@@ -42,6 +42,7 @@ if 1:   # Header
         L = int(os.environ.get("LINES", "50"))
         AU_to_m = 1.495978707e9     # Astronomical unit to m
         yr_to_s = 31556925.9746784  # Year to seconds
+        t.r = t("sky")
 if 1:   # Classes
     # Planetary data from 
     # https://en.wikipedia.org/wiki/List_of_gravitationally_rounded_objects_of_the_Solar_System#Planets
@@ -60,12 +61,12 @@ if 1:   # Classes
             if d["-p"] is not None:
                 p = planets[trans[d["-p"]]]
                 return dedent(f'''
-                {self.name} (relative to {p.name})
-                    Orbit semimajor axis        {(self.semimajor/p.semimajor).engsi}
+                {self.name} ({t.r}relative to {p.name}{t.n})
+                    Orbit semimajor axis        {t.r}{self.semimajor/p.semimajor}{t.n}
                     Orbit eccentricity          {self.eccentricity}
-                    Inclination to ecliptic     {degrees(self.inclination)}° 
-                    Equatorial radius           {(self.eq_radius/p.eq_radius).engsi}
-                    Orbital period              {(self.orbital_period/p.orbital_period).engsi}
+                    Inclination to ecliptic     {degrees(self.inclination)}°
+                    Equatorial radius           {t.r}{self.eq_radius/p.eq_radius}{t.n}
+                    Orbital period              {t.r}{self.orbital_period/p.orbital_period}{t.n}
                 ''')
             else:
                 return dedent(f'''
