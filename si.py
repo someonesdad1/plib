@@ -1,31 +1,45 @@
 '''
 SI prefixes
 '''
-
-# Copyright (C) 2014 Don Peterson
-# Contact:  gmail.com@someonesdad1
-
-#
-# Licensed under the Open Software License version 3.0.
-# See http://opensource.org/licenses/OSL-3.0.
-#
-import sys
-import math
-from fmt import fmt
-from f import flt
-from collections import deque
-
-have_mpmath = False
-try:
-    import mpmath as M
-    have_mpmath = True
-except ImportError:
-    pass
-if 0:
-    import debug
-    debug.SetDebugger()
-ii = isinstance
-
+if 1:   # Header
+    if 1:   # Copyright, license
+        # These "trigger strings" can be managed with trigger.py
+        #∞copyright∞# Copyright (C) 2014, 2023 Don Peterson #∞copyright∞#
+        #∞contact∞# gmail.com@someonesdad1 #∞contact∞#
+        #∞license∞#
+        #   Licensed under the Open Software License version 3.0.
+        #   See http://opensource.org/licenses/OSL-3.0.
+        #∞license∞#
+        #∞what∞#
+        # SI constants
+        #∞what∞#
+        #∞test∞# #∞test∞#
+        pass
+    if 1:   # Standard imports
+        import getopt
+        import math
+        import os
+        import sys
+        from pathlib import Path as P
+        from collections import deque
+    if 1:   # Custom imports
+        from wrap import dedent
+        from color import t
+        from fmt import fmt
+        from f import flt
+        have_mpmath = False
+        try:
+            import mpmath as M
+            have_mpmath = True
+        except ImportError:
+            pass
+        if 1:
+            import debug
+            debug.SetDebugger()
+    if 1:   # Global variables
+        ii = isinstance
+        W = int(os.environ.get("COLUMNS", "80")) - 1
+        L = int(os.environ.get("LINES", "50"))
 class SI(dict):
     '''Class to present a bidict behavior for both SI prefix strings
     and exponents.  Index as a dictionary with an SI prefix string and
@@ -207,7 +221,7 @@ def Testing():
         e1 = GetSIExponent(e)
         expected_p = None
         if e1 in si.values():
-            expected_p = si(e1)  # Yep, an incestuous test
+            expected_p = si(e1)
             correction = e - e1
         if expected_p is not None:
             x, t, p = GetSI(b)
@@ -237,6 +251,8 @@ def Testing():
         "a": -18,
         "z": -21,
         "y": -24,
+        "r": -27,
+        "q": -30,
         "da": 1,
         "h": 2,
         "k": 3,
@@ -246,7 +262,9 @@ def Testing():
         "P": 15,
         "E": 18,
         "Z": 21,
-        "Y": 24
+        "Y": 24,
+        "R": 27,
+        "Q": 30,
     }
     for prefix in di:
         expected = 10**di[prefix]
@@ -347,31 +365,35 @@ if __name__ == "__main__":
             print(input, "-->", output)
     else:
         names = {
-            -24: "yocto",
-            -21: "zepto",
-            -18: "atto",
-            -15: "femto",
-            -12: "pico",
-            -9: "nano",
-            -6: "micro",
-            -3: "milli",
-            -2: "centi",
-            -1: "deci",
-            1: "deca",
-            2: "hecto",
-            3: "kilo",
-            6: "mega",
-            9: "giga",
-            12: "tera",
-            15: "peta",
-            18: "exa",
-            21: "zetta",
-            24: "yotta",
+            -30: "quecto    2022",
+            -27: "ronto     2022",
+            -24: "yocto     1991",
+            -21: "zepto     1991",
+            -18: "atto      1964",
+            -15: "femto     1964",
+            -12: "pico      1960",
+             -9: "nano      1960",
+             -6: "micro     1960",
+             -3: "milli     1795",
+             -2: "centi     1795",
+             -1: "deci      1795",
+              1: "deca      1795",
+              2: "hecto     1795",
+              3: "kilo      1795",
+              6: "mega      1960",
+              9: "giga      1960",
+             12: "tera      1960",
+             15: "peta      1975",
+             18: "exa       1975",
+             21: "zetta     1991",
+             24: "yotta     1991",
+             27: "ronna     2022",
+             30: "quetta    2022",
         }
-        print("Symbol   Exponent    Prefix")
-        print("------   --------    ------")
-        for num in (-24, -21, -18, -15, -12, -9, -6, -3, -2, -1, 1, 2, 3, 6, 9,
-                    12, 15, 18, 21, 24):
+        print("                               Year")
+        print("Symbol   Exponent    Prefix   added")
+        print("------   --------    ------   -----")
+        for num in reversed(names):
             if num:
                 sym = si(num)
                 name = names[num]

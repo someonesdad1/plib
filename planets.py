@@ -34,7 +34,7 @@ if 1:   # Header
     if 1:   # Custom imports
         from wrap import dedent
         from color import t
-        from f import flt, radians
+        from f import flt, radians, degrees
         from u import u
     if 1:   # Global variables
         ii = isinstance
@@ -42,7 +42,6 @@ if 1:   # Header
         L = int(os.environ.get("LINES", "50"))
         AU_to_m = 1.495978707e9     # Astronomical unit to m
         yr_to_s = 31556925.9746784  # Year to seconds
-
 if 1:   # Classes
     # Planetary data from 
     # https://en.wikipedia.org/wiki/List_of_gravitationally_rounded_objects_of_the_Solar_System#Planets
@@ -50,85 +49,122 @@ if 1:   # Classes
         def __init__(self):
             # Physical units are in base SI units
             # Angles are in radians
+            self.name = None            # Name of planet
             self.semimajor = None       # Semimajor axis of orbit
             self.eccentricity = None    # Eccentricity of orbit
             self.inclination = None     # Inclination of orbit to ecliptic, radians
             self.eq_radius = None       # Equatorial radius
             self.orbital_period = None  # Time to orbit the sun
-    class Mercury:
+        def __str__(self):
+            scale = 1
+            if d["-p"] is not None:
+                p = planets[trans[d["-p"]]]
+                return dedent(f'''
+                {self.name} (relative to {p.name})
+                    Orbit semimajor axis        {(self.semimajor/p.semimajor).engsi}
+                    Orbit eccentricity          {self.eccentricity}
+                    Inclination to ecliptic     {degrees(self.inclination)}° 
+                    Equatorial radius           {(self.eq_radius/p.eq_radius).engsi}
+                    Orbital period              {(self.orbital_period/p.orbital_period).engsi}
+                ''')
+            else:
+                return dedent(f'''
+                {self.name}
+                    Orbit semimajor axis        {self.semimajor.engsi}m
+                    Orbit eccentricity          {self.eccentricity}
+                    Inclination to ecliptic     {degrees(self.inclination)}° 
+                    Equatorial radius           {self.eq_radius.engsi}m
+                    Orbital period              {self.orbital_period.engsi}
+                ''')
+        def __repr__(self):
+            return str(self)
+    class Mercury(Planet):
         def __init__(self):
-            self.semimajor = 0.38709893*AU_to_m
-            self.eccentricity = 0.20563069
-            self.inclination = radians(7)
-            self.eq_radius = 2440.53e3
-            self.orbital_period = 0.2408467*yr_to_s
-    class Venus:
+            self.name = "Mercury"
+            self.semimajor = flt(0.38709893*AU_to_m)
+            self.eccentricity = flt(0.20563069)
+            self.inclination = flt(radians(7))
+            self.eq_radius = flt(2440.53e3)
+            self.orbital_period = flt(0.2408467*yr_to_s)
+    class Venus(Planet):
         def __init__(self):
-            self.semimajor = 0.72333199*AU_to_m
-            self.eccentricity = 0.00677323
-            self.inclination = radians(3.39)
-            self.eq_radius = 6051.8e3
-            self.orbital_period = 0.61519726*yr_to_s
-    class Mars:
+            self.name = "Venus"
+            self.semimajor = flt(0.72333199*AU_to_m)
+            self.eccentricity = flt(0.00677323)
+            self.inclination = flt(radians(3.39))
+            self.eq_radius = flt(6051.8e3)
+            self.orbital_period = flt(0.61519726*yr_to_s)
+    class Earth(Planet):
         def __init__(self):
-            self.semimajor = 1.52366231*AU_to_m
-            self.eccentricity = 0.09341233
-            self.inclination = radians(1.85)
-            self.eq_radius = 3396.19e3
-            self.orbital_period = 1.8808476*yr_to_s
-    class Jupiter:
+            self.name = "Earth"
+            self.semimajor = flt(149597890*AU_to_m)
+            self.eccentricity = flt(0.01671022)
+            self.inclination = flt(radians(0))
+            self.eq_radius = flt(6378.1366e3)
+            self.orbital_period = flt(1.0000174*yr_to_s)
+    class Mars(Planet):
         def __init__(self):
-            self.semimajor = 778412010*AU_to_m
-            self.eccentricity = 0.04839266
-            self.inclination = radians(1.31)
-            self.eq_radius = 71492e3
-            self.orbital_period = 11.862615*yr_to_s
-    class Saturn:
+            self.name = "Mars"
+            self.semimajor = flt(227936640*AU_to_m)
+            self.eccentricity = flt(0.09341233)
+            self.inclination = flt(radians(1.85))
+            self.eq_radius = flt(3396.19e3)
+            self.orbital_period = flt(1.8808476*yr_to_s)
+    class Jupiter(Planet):
         def __init__(self):
-            self.semimajor = 1426725400*AU_to_m
-            self.eccentricity = 0.05415060
-            self.inclination = radians(2.48)
-            self.eq_radius = 60268e3
-            self.orbital_period = 29.447498*yr_to_s
-    class Uranus:
+            self.name = "Jupiter"
+            self.semimajor = flt(778412010*AU_to_m)
+            self.eccentricity = flt(0.04839266)
+            self.inclination = flt(radians(1.31))
+            self.eq_radius = flt(71492e3)
+            self.orbital_period = flt(11.862615*yr_to_s)
+    class Saturn(Planet):
         def __init__(self):
-            self.semimajor = 2870972200*AU_to_m
-            self.eccentricity = 0.04716771
-            self.inclination = radians(0.76)
-            self.eq_radius = 25559e3
-            self.orbital_period = 84.016846*yr_to_s
-    class Neptune:
+            self.name = "Saturn"
+            self.semimajor = flt(1426725400*AU_to_m)
+            self.eccentricity = flt(0.05415060)
+            self.inclination = flt(radians(2.48))
+            self.eq_radius = flt(60268e3)
+            self.orbital_period = flt(29.447498*yr_to_s)
+    class Uranus(Planet):
         def __init__(self):
-            self.semimajor = 4498252900*AU_to_m
-            self.eccentricity = 0.00858587
-            self.inclination = radians(1.77)
-            self.eq_radius = 24764e3
-            self.orbital_period = 164.79132*yr_to_s
-
+            self.name = "Uranus"
+            self.semimajor = flt(2870972200*AU_to_m)
+            self.eccentricity = flt(0.04716771)
+            self.inclination = flt(radians(0.76))
+            self.eq_radius = flt(25559e3)
+            self.orbital_period = flt(84.016846*yr_to_s)
+    class Neptune(Planet):
+        def __init__(self):
+            self.name = "Neptune"
+            self.semimajor = flt(4498252900*AU_to_m)
+            self.eccentricity = flt(0.00858587)
+            self.inclination = flt(radians(1.77))
+            self.eq_radius = flt(24764e3)
+            self.orbital_period = flt(164.79132*yr_to_s)
 if 1:   # Utility
     def Error(*msg, status=1):
         print(*msg, file=sys.stderr)
         exit(status)
     def Usage(status=1):
         print(dedent(f'''
-        Usage:  {sys.argv[0]} [options] etc.
-          Explanations...
+        Usage:  {sys.argv[0]} [options] 
+          Print out planetary data.
         Options:
-            -h      Print a manpage
+            -r p    Print numbers relative to planet p (first letter, use h
+                    for Mercury))
         '''))
         exit(status)
     def ParseCommandLine(d):
-        d["-a"] = False
         d["-d"] = 3         # Number of significant digits
-        if len(sys.argv) < 2:
-            Usage()
+        d["-p"] = None      # Relative to this planet
         try:
-            opts, args = getopt.getopt(sys.argv[1:], "ad:h") 
+            opts, args = getopt.getopt(sys.argv[1:], "d:hp:") 
         except getopt.GetoptError as e:
             print(str(e))
             exit(1)
         for o, a in opts:
-            if o[1] in list("a"):
+            if o[1] in list(""):
                 d[o] = not d[o]
             elif o in ("-d",):
                 try:
@@ -139,12 +175,42 @@ if 1:   # Utility
                     msg = ("-d option's argument must be an integer between "
                         "1 and 15")
                     Error(msg)
+            elif o in ("-p",):
+                if len(a) > 1 or a not in "hvemjsun":
+                    Error("-p option's letter must be in 'hvemjsun'")
+                d["-p"] = a
             elif o in ("-h", "--help"):
                 Usage(status=0)
+        x = flt(0)
+        x.N = d["-d"]
+        x.rtz = False
         return args
 if 1:   # Core functionality
-    pass
+    planets = {
+        "Mercury": Mercury(),
+        "Venus": Venus(),
+        "Earth": Earth(),
+        "Mars": Mars(),
+        "Jupiter": Jupiter(),
+        "Saturn": Saturn(),
+        "Uranus": Uranus(),
+        "Neptune": Neptune(),
+    }
+    trans = {
+        "h": "Mercury",
+        "v": "Venus",
+        "e": "Earth",
+        "m": "Mars",
+        "j": "Jupiter",
+        "s": "Saturn",
+        "u": "Uranus",
+        "n": "Neptune",
+    }
 
 if __name__ == "__main__":
     d = {}      # Options dictionary
     args = ParseCommandLine(d)
+    if not args:
+        print(f"Data to {d['-d']} figures")
+        for p in planets:
+            print(str(planets[p]))
