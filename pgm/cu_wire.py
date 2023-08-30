@@ -100,10 +100,24 @@ def Manpage():
     The properties of commercial copper wire in this table are calculated
     from the density of copper ({density} kg/m³) and its room temperature
     resistivity of {rho} nΩ·m (agreed internationally in 1914).
-    
-    AWG is American Wire Gauge [1].  Given an AWG number N, the diameter of
-    a wire in inches is 92**((36 - N)/39)/200.  For 2/0, 3/0, or m/0 where
-    m >= 2, use an N of 1 - m.
+
+    If you know the resistivity of a material and it is not direction
+    dependent, you can calculate the resistance of a chunk of material
+    with 
+
+        R = ρ*A/L
+
+    where R is the resistance in ohms, ρ is the resistivity in Ω·m, A is
+    the conductor's cross-sectional area in m, and L is the conductor's
+    length in m
+
+    Unfortunately, the US still uses AWG, a gauge system to state wire size
+    instead of diameter measurements.  AWG is American Wire Gauge [1].
+    Given an AWG number N, the diameter of a wire in inches is 92**((36 -
+    N)/39)/200.  For 2/0, 3/0, or m/0 where m >= 2, use an N of 1 - m.
+    This silly gauge system was orginally related to the number of dies
+    needed to draw down a particular size -- this is fine for manufacturers
+    but of absolutely no use to users of wire. 
     
     Useful approximations to memorize are that 12 gauge wire is about 2 mm
     in diameter and 18 gauge wire is about 1 mm in diameter (if you want

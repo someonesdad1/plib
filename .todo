@@ -1,5 +1,10 @@
 Active
 
+    - planets.py
+        - https://en.wikipedia.org/wiki/List_of_gravitationally_rounded_objects_of_the_Solar_System#Planets
+        - Library to get planetary data
+        - Default output when run as a script is to print table
+
     - Practical uncertainty and accuracy
         - Elementary exposition
         - References wp uncertainty propagation page
