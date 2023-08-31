@@ -42,7 +42,7 @@ if 1:   # Header
         L = int(os.environ.get("LINES", "50"))
         AU_to_m = 1.495978707e11    # Astronomical unit to m
         yr_to_s = 31556925.9746784  # Year to seconds
-        t.r = t("redl")
+        t.r = t("ornl")
         t.nr = t("trql")
 if 1:   # Classes
     # Planetary data from 
@@ -59,13 +59,16 @@ if 1:   # Classes
             self.orbital_period = None  # Time to orbit the sun
             self.mass = None
             self.orbital_speed = None
+        def calc(self):
+            # Calculate other attributes
+            self.circum = 2*pi*self.eq_radius
+            self.area = 4*pi*self.eq_radius**2
+            self.vol = 4/3*pi*self.eq_radius**3
+            self.spgr = (self.mass*1000/(self.vol*1e6))  # Convert to g/cc
         def __str__(self):
             scale = 1
-            vol = 4/3*pi*self.eq_radius**3
             if d["-r"] is not None:
                 p = planets[trans[d["-r"]]]
-                pvol = 4/3*pi*p.eq_radius**3
-                spgr = (self.mass/vol)/(p.mass/pvol)
                 return dedent(f'''
                 {self.name} 
                     Semimajor axis              {t.r}{self.semimajor/p.semimajor}{t.n}
@@ -74,11 +77,13 @@ if 1:   # Classes
                     Orbital period              {t.r}{self.orbital_period/p.orbital_period}{t.n}
                     Inclination to ecliptic     {t.nr}{degrees(self.inclination)}°{t.n}
                     Equatorial radius           {t.r}{self.eq_radius/p.eq_radius}{t.n}
+                    Circumference               {t.r}{self.circum/p.circum}{t.n}
+                    Area                        {t.r}{self.area/p.area}{t.n}
+                    Volume                      {t.r}{self.vol/p.vol}{t.n}
                     Mass                        {t.r}{self.mass/p.mass}{t.n}
-                    Specific gravity            {t.nr}{spgr}{t.n}
+                    Specific gravity            {t.r}{self.spgr/p.spgr}{t.n}
                 ''')
             else:
-                spgr = (self.mass*1000/(vol*1e6))  # Convert to g/cc
                 return dedent(f'''
                 {self.name}
                     Semimajor axis              {self.semimajor.engsi}m = {self.semimajor.sci} m
@@ -87,8 +92,11 @@ if 1:   # Classes
                     Orbital period              {self.orbital_period.engsi}s = {(self.orbital_period/yr_to_s).engsi}yr
                     Inclination to ecliptic     {degrees(self.inclination)}° 
                     Equatorial radius           {self.eq_radius.engsi}m = {self.eq_radius.sci} m
+                    Circumference               {self.circum.engsi}m = {self.circum.sci} m
+                    Area                        {self.area.engsi}m² = {self.area.sci} m²
+                    Volume                      {self.vol.engsi}m³ = {self.vol.sci} m³
                     Mass                        {self.mass.sci} kg 
-                    Specific gravity            {spgr}
+                    Specific gravity            {self.spgr}
                 ''')
         def __repr__(self):
             return str(self)
@@ -102,6 +110,7 @@ if 1:   # Classes
             self.orbital_period = flt(0.2408467*yr_to_s)
             self.mass = flt(3.302e23)
             self.orbital_speed = flt(47.8725*1e3)
+            self.calc()
     class Venus(Planet):
         def __init__(self):
             self.name = "Venus"
@@ -112,6 +121,7 @@ if 1:   # Classes
             self.orbital_period = flt(0.61519726*yr_to_s)
             self.mass = flt(4.869e24)
             self.orbital_speed = flt(35.0214*1e3)
+            self.calc()
     class Earth(Planet):
         def __init__(self):
             self.name = "Earth"
@@ -122,6 +132,7 @@ if 1:   # Classes
             self.orbital_period = flt(1.0000174*yr_to_s)
             self.mass = flt(5.972e24)
             self.orbital_speed = flt(29.7859*1e3)
+            self.calc()
     class Mars(Planet):
         def __init__(self):
             self.name = "Mars"
@@ -132,6 +143,7 @@ if 1:   # Classes
             self.orbital_period = flt(1.8808476*yr_to_s)
             self.mass = flt(6.419e23)
             self.orbital_speed = flt(24.1309*1e3)
+            self.calc()
     class Jupiter(Planet):
         def __init__(self):
             self.name = "Jupiter"
@@ -142,6 +154,7 @@ if 1:   # Classes
             self.orbital_period = flt(11.862615*yr_to_s)
             self.mass = flt(1.8987e27)
             self.orbital_speed = flt(13.0697*1e3)
+            self.calc()
     class Saturn(Planet):
         def __init__(self):
             self.name = "Saturn"
@@ -152,6 +165,7 @@ if 1:   # Classes
             self.orbital_period = flt(29.447498*yr_to_s)
             self.mass = flt(5.6851e26)
             self.orbital_speed = flt(9.6724*1e3)
+            self.calc()
     class Uranus(Planet):
         def __init__(self):
             self.name = "Uranus"
@@ -162,6 +176,7 @@ if 1:   # Classes
             self.orbital_period = flt(84.016846*yr_to_s)
             self.mass = flt(8.6849e25)
             self.orbital_speed = flt(6.8352*1e3)
+            self.calc()
     class Neptune(Planet):
         def __init__(self):
             self.name = "Neptune"
@@ -172,6 +187,7 @@ if 1:   # Classes
             self.orbital_period = flt(164.79132*yr_to_s)
             self.mass = flt(1.0244e26)
             self.orbital_speed = flt(5.4778*1e3)
+            self.calc()
 if 1:   # Utility
     def Error(*msg, status=1):
         print(*msg, file=sys.stderr)
@@ -182,6 +198,9 @@ if 1:   # Utility
           Print out planetary data.  Planet letters are the first letter of
           the planet's name (use h for Mercury).  If no planet letters are
           given, all planets are printed.
+        Examples:
+            '-e s' shows Saturn's data relative to Earth
+            '-r s e' shows Earth's data relative to Saturn
         Options:
             -e      Relative to Earth (short for '-r e')
             -r p    Print numbers relative to planet p (first letter)
