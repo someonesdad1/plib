@@ -34,13 +34,13 @@ if 1:   # Header
     if 1:   # Custom imports
         from wrap import dedent
         from color import t
-        from f import flt, radians, degrees
+        from f import flt, radians, degrees, pi
         from u import u
     if 1:   # Global variables
         ii = isinstance
         W = int(os.environ.get("COLUMNS", "80")) - 1
         L = int(os.environ.get("LINES", "50"))
-        AU_to_m = 1.495978707e9     # Astronomical unit to m
+        AU_to_m = 1.495978707e11    # Astronomical unit to m
         yr_to_s = 31556925.9746784  # Year to seconds
         t.r = t("redl")
         t.nr = t("trql")
@@ -57,10 +57,15 @@ if 1:   # Classes
             self.inclination = None     # Inclination of orbit to ecliptic, radians
             self.eq_radius = None       # Equatorial radius
             self.orbital_period = None  # Time to orbit the sun
+            self.mass = None
+            self.orbital_speed = None
         def __str__(self):
             scale = 1
+            vol = 4/3*pi*self.eq_radius**3
             if d["-r"] is not None:
                 p = planets[trans[d["-r"]]]
+                pvol = 4/3*pi*p.eq_radius**3
+                spgr = (self.mass/vol)/(p.mass/pvol)
                 return dedent(f'''
                 {self.name} 
                     Semimajor axis              {t.r}{self.semimajor/p.semimajor}{t.n}
@@ -70,8 +75,10 @@ if 1:   # Classes
                     Inclination to ecliptic     {t.nr}{degrees(self.inclination)}°{t.n}
                     Equatorial radius           {t.r}{self.eq_radius/p.eq_radius}{t.n}
                     Mass                        {t.r}{self.mass/p.mass}{t.n}
+                    Specific gravity            {t.nr}{spgr}{t.n}
                 ''')
             else:
+                spgr = (self.mass*1000/(vol*1e6))  # Convert to g/cc
                 return dedent(f'''
                 {self.name}
                     Semimajor axis              {self.semimajor.engsi}m = {self.semimajor.sci} m
@@ -81,6 +88,7 @@ if 1:   # Classes
                     Inclination to ecliptic     {degrees(self.inclination)}° 
                     Equatorial radius           {self.eq_radius.engsi}m = {self.eq_radius.sci} m
                     Mass                        {self.mass.sci} kg 
+                    Specific gravity            {spgr}
                 ''')
         def __repr__(self):
             return str(self)
@@ -176,7 +184,7 @@ if 1:   # Utility
           given, all planets are printed.
         Options:
             -e      Relative to Earth (short for '-r e')
-            -r ltr  Print numbers relative to planet ltr (first letter)
+            -r p    Print numbers relative to planet p (first letter)
         '''))
         exit(status)
     def ParseCommandLine(d):
