@@ -42,7 +42,8 @@ if 1:   # Header
         L = int(os.environ.get("LINES", "50"))
         AU_to_m = 1.495978707e9     # Astronomical unit to m
         yr_to_s = 31556925.9746784  # Year to seconds
-        t.r = t("sky")
+        t.r = t("redl")
+        t.nr = t("trql")
 if 1:   # Classes
     # Planetary data from 
     # https://en.wikipedia.org/wiki/List_of_gravitationally_rounded_objects_of_the_Solar_System#Planets
@@ -58,26 +59,28 @@ if 1:   # Classes
             self.orbital_period = None  # Time to orbit the sun
         def __str__(self):
             scale = 1
-            if d["-p"] is not None:
-                p = planets[trans[d["-p"]]]
+            if d["-r"] is not None:
+                p = planets[trans[d["-r"]]]
                 return dedent(f'''
-                {self.name} ({t.r}relative to {p.name}{t.n})
-                    Orbit semimajor axis        {t.r}{self.semimajor/p.semimajor}{t.n}
-                    Orbit eccentricity          {self.eccentricity}
-                    Inclination to ecliptic     {degrees(self.inclination)}°
-                    Equatorial radius           {t.r}{self.eq_radius/p.eq_radius}{t.n}
+                {self.name} 
+                    Semimajor axis              {t.r}{self.semimajor/p.semimajor}{t.n}
+                    Eccentricity                {t.nr}{self.eccentricity}{t.n}
+                    Orbital speed (mean)        {t.r}{self.orbital_speed/p.orbital_speed}{t.n}
                     Orbital period              {t.r}{self.orbital_period/p.orbital_period}{t.n}
+                    Inclination to ecliptic     {t.nr}{degrees(self.inclination)}°{t.n}
+                    Equatorial radius           {t.r}{self.eq_radius/p.eq_radius}{t.n}
                     Mass                        {t.r}{self.mass/p.mass}{t.n}
                 ''')
             else:
                 return dedent(f'''
                 {self.name}
-                    Orbit semimajor axis        {self.semimajor.engsi}m
-                    Orbit eccentricity          {self.eccentricity}
-                    Inclination to ecliptic     {degrees(self.inclination)}° 
-                    Equatorial radius           {self.eq_radius.engsi}m
+                    Semimajor axis              {self.semimajor.engsi}m = {self.semimajor.sci} m
+                    Eccentricity                {self.eccentricity}
+                    Orbital speed (mean)        {self.orbital_speed.engsi}m/s
                     Orbital period              {self.orbital_period.engsi}s = {(self.orbital_period/yr_to_s).engsi}yr
-                    Mass                        {(self.mass*1e3).sci} g
+                    Inclination to ecliptic     {degrees(self.inclination)}° 
+                    Equatorial radius           {self.eq_radius.engsi}m = {self.eq_radius.sci} m
+                    Mass                        {self.mass.sci} kg 
                 ''')
         def __repr__(self):
             return str(self)
@@ -90,6 +93,7 @@ if 1:   # Classes
             self.eq_radius = flt(2440.53e3)
             self.orbital_period = flt(0.2408467*yr_to_s)
             self.mass = flt(3.302e23)
+            self.orbital_speed = flt(47.8725*1e3)
     class Venus(Planet):
         def __init__(self):
             self.name = "Venus"
@@ -99,6 +103,7 @@ if 1:   # Classes
             self.eq_radius = flt(6051.8e3)
             self.orbital_period = flt(0.61519726*yr_to_s)
             self.mass = flt(4.869e24)
+            self.orbital_speed = flt(35.0214*1e3)
     class Earth(Planet):
         def __init__(self):
             self.name = "Earth"
@@ -108,6 +113,7 @@ if 1:   # Classes
             self.eq_radius = flt(6378.1366e3)
             self.orbital_period = flt(1.0000174*yr_to_s)
             self.mass = flt(5.972e24)
+            self.orbital_speed = flt(29.7859*1e3)
     class Mars(Planet):
         def __init__(self):
             self.name = "Mars"
@@ -117,6 +123,7 @@ if 1:   # Classes
             self.eq_radius = flt(3396.19e3)
             self.orbital_period = flt(1.8808476*yr_to_s)
             self.mass = flt(6.419e23)
+            self.orbital_speed = flt(24.1309*1e3)
     class Jupiter(Planet):
         def __init__(self):
             self.name = "Jupiter"
@@ -126,6 +133,7 @@ if 1:   # Classes
             self.eq_radius = flt(71492e3)
             self.orbital_period = flt(11.862615*yr_to_s)
             self.mass = flt(1.8987e27)
+            self.orbital_speed = flt(13.0697*1e3)
     class Saturn(Planet):
         def __init__(self):
             self.name = "Saturn"
@@ -135,6 +143,7 @@ if 1:   # Classes
             self.eq_radius = flt(60268e3)
             self.orbital_period = flt(29.447498*yr_to_s)
             self.mass = flt(5.6851e26)
+            self.orbital_speed = flt(9.6724*1e3)
     class Uranus(Planet):
         def __init__(self):
             self.name = "Uranus"
@@ -144,6 +153,7 @@ if 1:   # Classes
             self.eq_radius = flt(25559e3)
             self.orbital_period = flt(84.016846*yr_to_s)
             self.mass = flt(8.6849e25)
+            self.orbital_speed = flt(6.8352*1e3)
     class Neptune(Planet):
         def __init__(self):
             self.name = "Neptune"
@@ -153,29 +163,33 @@ if 1:   # Classes
             self.eq_radius = flt(24764e3)
             self.orbital_period = flt(164.79132*yr_to_s)
             self.mass = flt(1.0244e26)
+            self.orbital_speed = flt(5.4778*1e3)
 if 1:   # Utility
     def Error(*msg, status=1):
         print(*msg, file=sys.stderr)
         exit(status)
     def Usage(status=1):
         print(dedent(f'''
-        Usage:  {sys.argv[0]} [options] 
-          Print out planetary data.
+        Usage:  {sys.argv[0]} [options] [planet_letters]
+          Print out planetary data.  Planet letters are the first letter of
+          the planet's name (use h for Mercury).  If no planet letters are
+          given, all planets are printed.
         Options:
-            -r p    Print numbers relative to planet p (first letter, use h
-                    for Mercury))
+            -e      Relative to Earth (short for '-r e')
+            -r ltr  Print numbers relative to planet ltr (first letter)
         '''))
         exit(status)
     def ParseCommandLine(d):
         d["-d"] = 2         # Number of significant digits
-        d["-p"] = None      # Relative to this planet
+        d["-e"] = False     # Relative to Earth
+        d["-r"] = None      # Relative to this planet
         try:
-            opts, args = getopt.getopt(sys.argv[1:], "d:hp:") 
+            opts, args = getopt.getopt(sys.argv[1:], "d:ehr:") 
         except getopt.GetoptError as e:
             print(str(e))
             exit(1)
         for o, a in opts:
-            if o[1] in list(""):
+            if o[1] in list("e"):
                 d[o] = not d[o]
             elif o in ("-d",):
                 try:
@@ -186,15 +200,18 @@ if 1:   # Utility
                     msg = ("-d option's argument must be an integer between "
                         "1 and 15")
                     Error(msg)
-            elif o in ("-p",):
+            elif o in ("-r",):
                 if len(a) > 1 or a not in "hvemjsun":
-                    Error("-p option's letter must be in 'hvemjsun'")
-                d["-p"] = a
+                    Error("-r option's letter must be in 'hvemjsun'")
+                d["-r"] = a
             elif o in ("-h", "--help"):
                 Usage(status=0)
         x = flt(0)
         x.N = d["-d"]
         x.rtz = False
+        x.u = True
+        if d["-e"]:
+            d["-r"] = "e"
         return args
 if 1:   # Core functionality
     planets = {
@@ -221,7 +238,17 @@ if 1:   # Core functionality
 if __name__ == "__main__":
     d = {}      # Options dictionary
     args = ParseCommandLine(d)
+    print(f"Physical data on the planets")
+    print(f"  Data to {d['-d']} figures (use -d option to change)")
+    if d["-r"]:
+        t.print(f"  {t.r}Relative to {planets[trans[d['-r']]].name}{t.n}, {t.nr}not relative")
+    print()
     if not args:
-        print(f"Data to {d['-d']} figures")
         for p in planets:
             print(str(planets[p]))
+    else:
+        letters = ''.join(args)
+        for letter in letters:
+            if letter not in trans:
+                continue
+            print(str(planets[trans[letter]]))
