@@ -67,6 +67,7 @@ if 1:   # Classes
                     Inclination to ecliptic     {degrees(self.inclination)}°
                     Equatorial radius           {t.r}{self.eq_radius/p.eq_radius}{t.n}
                     Orbital period              {t.r}{self.orbital_period/p.orbital_period}{t.n}
+                    Mass                        {t.r}{self.mass/p.mass}{t.n}
                 ''')
             else:
                 return dedent(f'''
@@ -75,7 +76,8 @@ if 1:   # Classes
                     Orbit eccentricity          {self.eccentricity}
                     Inclination to ecliptic     {degrees(self.inclination)}° 
                     Equatorial radius           {self.eq_radius.engsi}m
-                    Orbital period              {self.orbital_period.engsi}
+                    Orbital period              {self.orbital_period.engsi}s = {(self.orbital_period/yr_to_s).engsi}yr
+                    Mass                        {(self.mass*1e3).sci} g
                 ''')
         def __repr__(self):
             return str(self)
@@ -87,6 +89,7 @@ if 1:   # Classes
             self.inclination = flt(radians(7))
             self.eq_radius = flt(2440.53e3)
             self.orbital_period = flt(0.2408467*yr_to_s)
+            self.mass = flt(3.302e23)
     class Venus(Planet):
         def __init__(self):
             self.name = "Venus"
@@ -95,6 +98,7 @@ if 1:   # Classes
             self.inclination = flt(radians(3.39))
             self.eq_radius = flt(6051.8e3)
             self.orbital_period = flt(0.61519726*yr_to_s)
+            self.mass = flt(4.869e24)
     class Earth(Planet):
         def __init__(self):
             self.name = "Earth"
@@ -103,6 +107,7 @@ if 1:   # Classes
             self.inclination = flt(radians(0))
             self.eq_radius = flt(6378.1366e3)
             self.orbital_period = flt(1.0000174*yr_to_s)
+            self.mass = flt(5.972e24)
     class Mars(Planet):
         def __init__(self):
             self.name = "Mars"
@@ -111,6 +116,7 @@ if 1:   # Classes
             self.inclination = flt(radians(1.85))
             self.eq_radius = flt(3396.19e3)
             self.orbital_period = flt(1.8808476*yr_to_s)
+            self.mass = flt(6.419e23)
     class Jupiter(Planet):
         def __init__(self):
             self.name = "Jupiter"
@@ -119,6 +125,7 @@ if 1:   # Classes
             self.inclination = flt(radians(1.31))
             self.eq_radius = flt(71492e3)
             self.orbital_period = flt(11.862615*yr_to_s)
+            self.mass = flt(1.8987e27)
     class Saturn(Planet):
         def __init__(self):
             self.name = "Saturn"
@@ -127,6 +134,7 @@ if 1:   # Classes
             self.inclination = flt(radians(2.48))
             self.eq_radius = flt(60268e3)
             self.orbital_period = flt(29.447498*yr_to_s)
+            self.mass = flt(5.6851e26)
     class Uranus(Planet):
         def __init__(self):
             self.name = "Uranus"
@@ -135,6 +143,7 @@ if 1:   # Classes
             self.inclination = flt(radians(0.76))
             self.eq_radius = flt(25559e3)
             self.orbital_period = flt(84.016846*yr_to_s)
+            self.mass = flt(8.6849e25)
     class Neptune(Planet):
         def __init__(self):
             self.name = "Neptune"
@@ -143,6 +152,7 @@ if 1:   # Classes
             self.inclination = flt(radians(1.77))
             self.eq_radius = flt(24764e3)
             self.orbital_period = flt(164.79132*yr_to_s)
+            self.mass = flt(1.0244e26)
 if 1:   # Utility
     def Error(*msg, status=1):
         print(*msg, file=sys.stderr)
@@ -157,7 +167,7 @@ if 1:   # Utility
         '''))
         exit(status)
     def ParseCommandLine(d):
-        d["-d"] = 3         # Number of significant digits
+        d["-d"] = 2         # Number of significant digits
         d["-p"] = None      # Relative to this planet
         try:
             opts, args = getopt.getopt(sys.argv[1:], "d:hp:") 
