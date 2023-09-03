@@ -59,6 +59,9 @@ if 1:   # Classes
             self.orbital_period = None  # Time to orbit the sun
             self.mass = None
             self.orbital_speed = None
+            self.moons = None
+            self.gravity = None         # Equatorial gravitational acceleration m/s²
+            self.esc_vel = None         # Escape velocity km/s
         def calc(self):
             # Calculate other attributes
             self.circum = 2*pi*self.eq_radius
@@ -82,6 +85,9 @@ if 1:   # Classes
                     Volume                      {t.r}{self.vol/p.vol}{t.n}
                     Mass                        {t.r}{self.mass/p.mass}{t.n}
                     Specific gravity            {t.r}{self.spgr/p.spgr}{t.n}
+                    Moons                       {t.nr}{self.moons}{t.n}
+                    Equatorial gravity          {t.r}{self.gravity/p.gravity}{t.n}
+                    Escape velocity             {t.r}{self.esc_vel/p.esc_vel}{t.n}
                 ''')
             else:
                 return dedent(f'''
@@ -97,6 +103,9 @@ if 1:   # Classes
                     Volume                      {self.vol.engsi}m³ = {self.vol.sci} m³
                     Mass                        {self.mass.sci} kg 
                     Specific gravity            {self.spgr}
+                    Moons                       {self.moons}
+                    Equatorial gravity          {self.gravity} m/s²
+                    Escape velocity             {self.esc_vel} km/s
                 ''')
         def __repr__(self):
             return str(self)
@@ -111,6 +120,9 @@ if 1:   # Classes
             self.mass = flt(3.302e23)
             self.orbital_speed = flt(47.8725*1e3)
             self.calc()
+            self.moons = 0
+            self.gravity = flt(3.7)
+            self.esc_vel = flt(4.25)
     class Venus(Planet):
         def __init__(self):
             self.name = "Venus"
@@ -122,6 +134,9 @@ if 1:   # Classes
             self.mass = flt(4.869e24)
             self.orbital_speed = flt(35.0214*1e3)
             self.calc()
+            self.moons = 0
+            self.gravity = flt(8.87)
+            self.esc_vel = flt(10.36)
     class Earth(Planet):
         def __init__(self):
             self.name = "Earth"
@@ -133,6 +148,9 @@ if 1:   # Classes
             self.mass = flt(5.972e24)
             self.orbital_speed = flt(29.7859*1e3)
             self.calc()
+            self.moons = 1
+            self.gravity = flt(9.8)
+            self.esc_vel = flt(11.18)
     class Mars(Planet):
         def __init__(self):
             self.name = "Mars"
@@ -144,6 +162,9 @@ if 1:   # Classes
             self.mass = flt(6.419e23)
             self.orbital_speed = flt(24.1309*1e3)
             self.calc()
+            self.moons = 2
+            self.gravity = flt(3.71)
+            self.esc_vel = flt(5.02)
     class Jupiter(Planet):
         def __init__(self):
             self.name = "Jupiter"
@@ -155,6 +176,9 @@ if 1:   # Classes
             self.mass = flt(1.8987e27)
             self.orbital_speed = flt(13.0697*1e3)
             self.calc()
+            self.moons = 95
+            self.gravity = flt(24.79)
+            self.esc_vel = flt(59.54)
     class Saturn(Planet):
         def __init__(self):
             self.name = "Saturn"
@@ -166,6 +190,9 @@ if 1:   # Classes
             self.mass = flt(5.6851e26)
             self.orbital_speed = flt(9.6724*1e3)
             self.calc()
+            self.moons = 146
+            self.gravity = flt(10.44)
+            self.esc_vel = flt(35.49)
     class Uranus(Planet):
         def __init__(self):
             self.name = "Uranus"
@@ -177,6 +204,9 @@ if 1:   # Classes
             self.mass = flt(8.6849e25)
             self.orbital_speed = flt(6.8352*1e3)
             self.calc()
+            self.moons = 27
+            self.gravity = flt(8.87)
+            self.esc_vel = flt(21.29)
     class Neptune(Planet):
         def __init__(self):
             self.name = "Neptune"
@@ -188,6 +218,9 @@ if 1:   # Classes
             self.mass = flt(1.0244e26)
             self.orbital_speed = flt(5.4778*1e3)
             self.calc()
+            self.moons = 14
+            self.gravity = flt(11.15)
+            self.esc_vel = flt(23.71)
 if 1:   # Utility
     def Error(*msg, status=1):
         print(*msg, file=sys.stderr)
@@ -196,8 +229,8 @@ if 1:   # Utility
         print(dedent(f'''
         Usage:  {sys.argv[0]} [options] [planet_letters]
           Print out planetary data.  Planet letters are the first letter of
-          the planet's name (use h for Mercury).  If no planet letters are
-          given, all planets are printed.
+          the planet's name (use h for Mercury).  Use 'a' to show all
+          planets.
         Examples:
             '-e s' shows Saturn's data relative to Earth
             '-r s e' shows Earth's data relative to Saturn
@@ -237,8 +270,11 @@ if 1:   # Utility
         x.N = d["-d"]
         x.rtz = False
         x.u = True
+        x.high = 1e5
         if d["-e"]:
             d["-r"] = "e"
+        if not args:
+            Usage()
         return args
 if 1:   # Core functionality
     planets = {
@@ -268,9 +304,10 @@ if __name__ == "__main__":
     print(f"Physical data on the planets")
     print(f"  Data to {d['-d']} figures (use -d option to change)")
     if d["-r"]:
-        t.print(f"  {t.r}Relative to {planets[trans[d['-r']]].name}{t.n}, {t.nr}not relative")
+        t.print(f"  {t.r}Relative to {planets[trans[d['-r']]].name}{t.n} "
+                f"{t.nr}(this color means not relative)")
     print()
-    if not args:
+    if "a" in args:
         for p in planets:
             print(str(planets[p]))
     else:
