@@ -42,6 +42,7 @@ if 1:   # Header
         L = int(os.environ.get("LINES", "50"))
         AU_to_m = 1.495978707e11    # Astronomical unit to m
         yr_to_s = 31556925.9746784  # Year to seconds
+        day_to_s = 86400            # Day to seconds
         t.r = t("ornl")
         t.nr = t("trql")
 if 1:   # Classes
@@ -62,6 +63,8 @@ if 1:   # Classes
             self.moons = None
             self.gravity = None         # Equatorial gravitational acceleration m/s²
             self.esc_vel = None         # Escape velocity km/s
+            self.tilt = None            # Axial tilt
+            self.rot_per = None         # Rotation period, days
         def calc(self):
             # Calculate other attributes
             self.circum = 2*pi*self.eq_radius
@@ -88,6 +91,8 @@ if 1:   # Classes
                     Moons                       {t.nr}{self.moons}{t.n}
                     Equatorial gravity          {t.r}{self.gravity/p.gravity}{t.n}
                     Escape velocity             {t.r}{self.esc_vel/p.esc_vel}{t.n}
+                    Axial tilt                  {t.nr}{degrees(self.tilt)}°{t.n}
+                    Rotation period             {t.r}{self.rot_per/p.rot_per}{t.n}
                 ''')
             else:
                 return dedent(f'''
@@ -106,6 +111,8 @@ if 1:   # Classes
                     Moons                       {self.moons}
                     Equatorial gravity          {self.gravity} m/s²
                     Escape velocity             {self.esc_vel} km/s
+                    Axial tilt                  {degrees(self.tilt)}°
+                    Rotation period             {self.rot_per.engsi}s = {self.rot_per/day_to_s} days
                 ''')
         def __repr__(self):
             return str(self)
@@ -123,6 +130,8 @@ if 1:   # Classes
             self.moons = 0
             self.gravity = flt(3.7)
             self.esc_vel = flt(4.25)
+            self.tilt = flt(radians(0))
+            self.rot_per = flt(58.646225)*day_to_s
     class Venus(Planet):
         def __init__(self):
             self.name = "Venus"
@@ -137,6 +146,8 @@ if 1:   # Classes
             self.moons = 0
             self.gravity = flt(8.87)
             self.esc_vel = flt(10.36)
+            self.tilt = flt(radians(177.3))
+            self.rot_per = flt(243.0187)*day_to_s
     class Earth(Planet):
         def __init__(self):
             self.name = "Earth"
@@ -151,6 +162,8 @@ if 1:   # Classes
             self.moons = 1
             self.gravity = flt(9.8)
             self.esc_vel = flt(11.18)
+            self.tilt = flt(radians(23.44))
+            self.rot_per = flt(0.99726968)*day_to_s
     class Mars(Planet):
         def __init__(self):
             self.name = "Mars"
@@ -165,6 +178,8 @@ if 1:   # Classes
             self.moons = 2
             self.gravity = flt(3.71)
             self.esc_vel = flt(5.02)
+            self.tilt = flt(radians(25.19))
+            self.rot_per = flt(1.02595675)*day_to_s
     class Jupiter(Planet):
         def __init__(self):
             self.name = "Jupiter"
@@ -179,6 +194,8 @@ if 1:   # Classes
             self.moons = 95
             self.gravity = flt(24.79)
             self.esc_vel = flt(59.54)
+            self.tilt = flt(radians(3.12))
+            self.rot_per = flt(0.41354)*day_to_s
     class Saturn(Planet):
         def __init__(self):
             self.name = "Saturn"
@@ -193,6 +210,8 @@ if 1:   # Classes
             self.moons = 146
             self.gravity = flt(10.44)
             self.esc_vel = flt(35.49)
+            self.tilt = flt(radians(26.73))
+            self.rot_per = flt(0.44401)*day_to_s
     class Uranus(Planet):
         def __init__(self):
             self.name = "Uranus"
@@ -207,6 +226,8 @@ if 1:   # Classes
             self.moons = 27
             self.gravity = flt(8.87)
             self.esc_vel = flt(21.29)
+            self.tilt = flt(radians(97.86))
+            self.rot_per = flt(0.71833)*day_to_s
     class Neptune(Planet):
         def __init__(self):
             self.name = "Neptune"
@@ -221,6 +242,8 @@ if 1:   # Classes
             self.moons = 14
             self.gravity = flt(11.15)
             self.esc_vel = flt(23.71)
+            self.tilt = flt(radians(28.32))
+            self.rot_per = flt(0.67125)*day_to_s
 if 1:   # Utility
     def Error(*msg, status=1):
         print(*msg, file=sys.stderr)
@@ -240,7 +263,7 @@ if 1:   # Utility
         '''))
         exit(status)
     def ParseCommandLine(d):
-        d["-d"] = 2         # Number of significant digits
+        d["-d"] = 3         # Number of significant digits
         d["-e"] = False     # Relative to Earth
         d["-r"] = None      # Relative to this planet
         try:
