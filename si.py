@@ -33,7 +33,7 @@ if 1:   # Header
             have_mpmath = True
         except ImportError:
             pass
-        if 1:
+        if 0:
             import debug
             debug.SetDebugger()
     if 1:   # Global variables

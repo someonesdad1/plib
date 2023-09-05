@@ -116,8 +116,8 @@ def Manpage():
     Given an AWG number N, the diameter of a wire in inches is 92**((36 -
     N)/39)/200.  For 2/0, 3/0, or m/0 where m >= 2, use an N of 1 - m.
     This silly gauge system was orginally related to the number of dies
-    needed to draw down a particular size -- this is fine for manufacturers
-    but of absolutely no use to users of wire. 
+    needed to draw down a particular size -- fine for manufacturers but of
+    absolutely no use to users of wire. 
     
     Useful approximations to memorize are that 12 gauge wire is about 2 mm
     in diameter and 18 gauge wire is about 1 mm in diameter (if you want
@@ -451,6 +451,7 @@ def Usage(status=1):
 def ShowResistivities():
     r = (
         ("Aluminum", "1.6"),
+        ("Brass", "3.5"),
         ("Graphite", "2 to 36"),
         ("Constantan", "29"),
         ("Iron", "5.8"),
@@ -1179,4 +1180,5 @@ if __name__ == "__main__":
         else:
             PrintTable(0, 31, step=2, others=[-3, -2, -1])
             print(f"{'28 ga is wire-wrap wire':^79s}")
+            ShowResistivities()
 # vim: wm=1
