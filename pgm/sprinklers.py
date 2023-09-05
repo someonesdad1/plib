@@ -82,43 +82,19 @@ if 1:   # Core functionality
         elif not up and y > abs(x):
             y -= template
         return sign*y
-    # Note:  the python datetime module is a complicated mess and doesn't
-    # do simple naive time arithmetic, so I've defined time to be an
-    # integer in minutes since midnight.
     def HM(t):
         '''t is time in minutes from midnight.  Return in HH:MM format.
         '''
         h, m = divmod(t, 60)
         h %= 24
+        m %= 60
         return f"{h:02d}:{m:02d}"
     def PrintSchedule(budget):
         def f(t):
             return t.strftime('%I:%M %p').lower()
-        assert(ii(budget, int) and 0 < budget <= 100)
+        assert(ii(budget, int) and 0 <= budget <= 100)
         p = budget/100
         print(f"Budget = {budget}%")
-        if 1:   # Tuesday and Thursday
-            print(f"Tuesday, Thursday schedule")
-            w, sep, indent = (7, 7, 7, 7), " "*5, " "*4
-            print(f"{indent}{'Circuit':^{w[0]}s}"
-                  f"{sep}{'Minutes':^{w[1]}s}"
-                  f"{sep}{'Start':^{w[2]}s}"
-                  f"{sep}{'End':^{w[3]}s}")
-            print(f"{indent}{'-'*w[0]:^{w[0]}s}"
-                  f"{sep}{'-'*w[1]:^{w[1]}s}"
-                  f"{sep}{'-'*w[2]:^{w[2]}s}"
-                  f"{sep}{'-'*w[3]:^{w[3]}s}")
-            t = 7*60    # Start at 7 am
-            total_minutes = 0
-            for ckt, minutes in timing:
-                minutes = int(minutes*budget/100 + 0.5)
-                total_minutes += minutes
-                print(f"{indent}{ckt:^{w[0]}s}"
-                    f"{sep}{minutes!s:^{w[1]}s}"
-                    f"{sep}{HM(t):^{w[2]}s}"
-                    f"{sep}{HM(t + minutes):^{w[3]}s}")
-                t += minutes
-            print(f"{indent}Total minutes = {total_minutes} = {total_minutes/60:.3f} hours")
         if 1:   # Saturday
             print(f"Saturday schedule")
             w, sep, indent = (7, 7, 7, 7), " "*5, " "*4
@@ -131,6 +107,28 @@ if 1:   # Core functionality
                   f"{sep}{'-'*w[2]:^{w[2]}s}"
                   f"{sep}{'-'*w[3]:^{w[3]}s}")
             t = 16*60    # Start at 4 pm
+            total_minutes = 0
+            for ckt, minutes in timing:
+                minutes = int(minutes*budget/100 + 0.5)
+                total_minutes += minutes
+                print(f"{indent}{ckt:^{w[0]}s}"
+                    f"{sep}{minutes!s:^{w[1]}s}"
+                    f"{sep}{HM(t):^{w[2]}s}"
+                    f"{sep}{HM(t + minutes):^{w[3]}s}")
+                t += minutes
+            print(f"{indent}Total minutes = {total_minutes} = {total_minutes/60:.3f} hours")
+        if 1:   # Tuesday and Thursday
+            print(f"Tuesday, Thursday schedule")
+            w, sep, indent = (7, 7, 7, 7), " "*5, " "*4
+            print(f"{indent}{'Circuit':^{w[0]}s}"
+                  f"{sep}{'Minutes':^{w[1]}s}"
+                  f"{sep}{'Start':^{w[2]}s}"
+                  f"{sep}{'End':^{w[3]}s}")
+            print(f"{indent}{'-'*w[0]:^{w[0]}s}"
+                  f"{sep}{'-'*w[1]:^{w[1]}s}"
+                  f"{sep}{'-'*w[2]:^{w[2]}s}"
+                  f"{sep}{'-'*w[3]:^{w[3]}s}")
+            t = 7*60    # Start at 7 am
             total_minutes = 0
             for ckt, minutes in timing:
                 minutes = int(minutes*budget/100 + 0.5)
