@@ -243,6 +243,7 @@ def TemplateRound(x, template, up=True):
     '''Round a float to a template number.  The basic algorithm is to
     determine how many template values are in x.  You can choose to
     round up (the default) or down.
+    '''
     if not x:
         return x
     sign = 1 if x >= 0 else -1
