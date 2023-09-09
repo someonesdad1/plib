@@ -33,6 +33,7 @@ IsIterable            Determines if you can iterate over an object
 IsTextFile            Heuristic to see if a file is a text file
 ItemCount             Summarize a sequence with counts of each item
 Now                   Time or datetime as now
+ParseComplex          Split a complex number string into re, im strings
 Paste                 Return sequence of pasted sequences
 PPSeq                 Class for formatting number sequences for pretty printing
 ProgressBar           Prints a progress bar to stdout
@@ -1595,6 +1596,70 @@ def Cumul(seq, check=False):
     if check and cumul and cumul[-1] != sum(seq):
         raise ValueError("Sum of sequence not same as last cumul element")
     return cumul
+def ParseComplex(numstring):
+    '''numstring contains a string representing a complex number that must
+    be of the form 'x+yi'.  The complex unit can be i or j.  Return (real,
+    imag) where real and imag are the real and imaginary strings of the
+    complex number.
+    '''
+    # The method uses a regular expression to recognize the string forms of
+    # integers or real numbers.  Applied to the string twice, it picks out
+    # the real and imaginary parts.
+    str = numstring.lower().strip().replace("i", "j").replace(",", ".")
+    msg = f"{numstring!r} not a valid complex number string"
+    # Check for illegal characters
+    s = set(str)
+    if not s.issubset(set("j+-e.0123456789")):
+        raise ValueError(msg)
+    # Regular expression to recognize an int or float
+    regex  = r'''
+            (                               # Group
+                [+-]?                       # Optional sign
+                \.\d+                       # Number like .345
+                ([eE][+-]?\d+)?|            # Optional exponent
+            # or
+                [+-]?                       # Optional sign
+                \d+\.?\d*                   # Number:  2.345
+                ([eE][+-]?\d+)?             # Optional exponent
+            )                               # End group
+            '''
+    r = re.compile(regex, re.X)
+    # If no 'j', it's real
+    if str[-1] != "j":
+        return (str, "")
+    if 1:   # Extract real part
+        first = ""
+        mo = r.search(str)
+        if mo:
+            a, b = mo.span()
+            first = str[a:b]
+            str = str[b:]
+        else:
+            # It must have been only 'j' or '-j'
+            if str[0] == "+" or str[0] == "j":
+                return ("", "1")
+            elif str[0] == "-":
+                return ("", "-1")
+            else:
+                raise ValueError(msg)
+        if str == "j":
+            # It was pure imaginary
+            return ("", first)
+    if 1:   # Extract imag part
+        mo = r.search(str)
+        if mo:
+            a, b = mo.span()
+            second = str[a:b]
+            assert str[-1] == "j"
+        else:
+            # It can only be '+j' or '-j'
+            if str == "+j":
+                second = "1"
+            elif str == "-j":
+                second = "-1"
+            else:
+                raise ValueError(msg)
+    return (first, second)
 
 if __name__ == "__main__": 
     # Missing tests for: Ignore Debug, Dispatch, GetString
@@ -2142,6 +2207,55 @@ if __name__ == "__main__":
             assert_equal(signum(i), 0)
         for i in (1, 2, 2.2, Fraction(1, 1), Decimal("3.7")):
             assert_equal(signum(i), 1)
+    def Test_ParseComplex():
+        # Note:  I don't test the regexp exhaustively, as it has been tested
+        # numerous times before
+        for input, expected in (
+                # Real numbers
+                ("0", ("0", "")),
+                ("+0", ("+0", "")),
+                ("-0", ("-0", "")),
+                ("1", ("1", "")),
+                ("-1", ("-1", "")),
+                ("0.", ("0.", "")),
+                ("1.", ("1.", "")),
+                ("-1.", ("-1.", "")),
+                (".0", (".0", "")),
+                (".1", (".1", "")),
+                ("-.1", ("-.1", "")),
+                # Imaginary numbers
+                ("0j", ("", "0")),
+                ("+0j", ("", "+0")),
+                ("-0j", ("", "-0")),
+                ("j", ("", "1")),
+                ("-j", ("", "-1")),
+                ("2.2j", ("", "2.2")),
+                ("+2.2j", ("", "+2.2")),
+                ("-2.2j", ("", "-2.2")),
+                # Complex numbers
+                ("0+i", ("0", "1")),
+                ("0-i", ("0", "-1")),
+                ("0+1i", ("0", "+1")),
+                ("0-1i", ("0", "-1")),
+                ("1+0i", ("1", "+0")),
+                ("1-0i", ("1", "-0")),
+                ("-1-0i", ("-1", "-0")),
+                #
+                ("1.33+37i", ("1.33", "+37")),
+                ("1.33-37i", ("1.33", "-37")),
+                ("-1.33+37i", ("-1.33", "+37")),
+                ("-1.33-37i", ("-1.33", "-37")),
+                ("+1.33+37i", ("+1.33", "+37")),
+                ("+1.33-37i", ("+1.33", "-37")),
+            ):
+            got = ParseComplex(input)
+            if got != expected:
+                print(f"Input    = {input!r}")
+                print(f"Expected = {expected!r}")
+                print(f"Got      = {got!r}")
+                exit(1)
+        # Illegal forms
+        raises(ValueError, ParseComplex, "x")
     check_names = False
     if check_names:
         mnames, delete = set(dir()), []

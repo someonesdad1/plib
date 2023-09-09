@@ -10,7 +10,7 @@ if 1:
 favorites = '''
 
 Angie (Rolling Stones)|S7sigwbqEj8|
-Beethoven's 7th|Rw-KtQLdRT4|Bernstein & NY Philharmonic
+Beethoven's 7th|Rw-KtQLdRT4|2nd movement 14:33 is best
 Beethoven's 9th, 2nd movement (1824)|iwIvS4yIThU|Genius
 Bad Romance|VCTOpdlZJ8U|PMJ & Sarah Reich tap dancing (singer is Telly Savalas' daughter)
 Catharsis (Sa Sa 2013)|h3hlFAVV6aI|My favorite fiddle song
@@ -111,6 +111,7 @@ Fever|JGb5IweiYG8|
 Fleetwood Mac:  Dreams|O5ugW4-BstE|
 Fleetwood Mac: Gypsy|mwgg1Pu6cNg|
 Flight of the Condor|66KVAhNE_rQ|1982| This was a BBC TV show and had great pan pipe music from South America.
+Für Elise|2fcX2dWmR6g|
 Foggy Mountain Breakdown|z_Y3mnj-8lA|
 Ghost Riders In the Sky: Roy Clark|8o2w1zhBKzk|
 Ghost Riders In the Sky: Burl Ives (1949)|j2klh2cTa_Q|
@@ -218,6 +219,7 @@ Simon & Garfunkel: Sounds of Silence|4zLfCnGVeL4|
 Simon & Garfunkel: The Boxer|C1VUWDcp5Sg|
 Stairway to Heaven: Heart|2cZ_EFAmj08|
 Stairway to Heaven: Led Zeppelin (concert)|BciS5krYL80e|
+Stairway to Heaven: Harp|wLiH6F82t_U|
 Struttin' With Some Barbecue|yl-2R_Pb7dk|
 Sunrise, Sunset|03rzUoyq9K0|Fiddler On the Roof movie
 Sunrise, Sunset|QD8u-fjQnFs|Bette Midler

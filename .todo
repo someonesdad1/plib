@@ -1,5 +1,11 @@
 Active
 
+    - hc.py
+        - Needs to be finished off
+        - Complete documentation
+        - Move to /plib/hc
+        - Finish unit tests
+
     - planets.py
         - https://en.wikipedia.org/wiki/List_of_gravitationally_rounded_objects_of_the_Solar_System#Planets
         - Library to get planetary data
@@ -63,10 +69,6 @@ Active
         - Use case:  script usage statements with spelling errors that
           aren't caught for years (just had this happen in the
           convert_temperature.py script)
-
-    - wb.py
-        - Wheatstone bridge exploration tool
-        - You'd pro
 
     - pgm/ds.py
         - Add an optional regexps on the command line that will further
