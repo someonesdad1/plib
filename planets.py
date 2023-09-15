@@ -1,16 +1,7 @@
 '''
-Library for solar system planetary data.
-
-Eccentricities
-
-Glenda commented about the moon last night being closer.  She had been
-reading some "marketing" information somewhere; no doubt some news writer
-had to exaggerate things to get readership.  I explained that most of the
-planets and their moons have low eccentricity orbits, meaning their
-geometrical sizes won't change all that much.  At least for the inner
-planets, the sizes will be most affected by the relative positions in the
-orbits.
-
+Library for solar system planetary data.  Class Planet instances have their
+attributes given in base SI units.  Run as a script to print data to
+stdout.
 '''
 if 1:   # Header
     if 1:   # Copyright, license
@@ -22,7 +13,7 @@ if 1:   # Header
         #   See http://opensource.org/licenses/OSL-3.0.
         #∞license∞#
         #∞what∞#
-        # Program description string
+        # Solar system planetary data
         #∞what∞#
         #∞test∞# #∞test∞#
         pass
@@ -248,17 +239,67 @@ if 1:   # Utility
     def Error(*msg, status=1):
         print(*msg, file=sys.stderr)
         exit(status)
+    def Manpage():
+        print(dedent(f'''
+        Data from https://en.wikipedia.org/wiki/List_of_gravitationally_rounded_objects_of_the_Solar_System#Planets
+
+        Semimajor axis
+            Though this is related to the orbital ellipse, it's essentially the mean
+            distance of the planet from the sun, as the planets' orbits are not very
+            eccentric except for Mercury.
+        Eccentricity
+            A dimensionless number on [0, 1) that measures how much a planet's
+            elliptical orbit deviates from a circle.  A circle has an eccentricity of
+            0.
+        Orbital speed (mean)
+            Average speed of the planet around the sun.
+        Orbital period
+            How long it takes to make a complete orbit around the sun.
+        Inclination to ecliptic
+            How much a planet's orbit is tilted to the ecliptic, the plane of the
+            Earth's orbit around the sun.
+        Equatorial radius
+            Radius of the planet at its equator.
+        Circumference
+            2π times the equatorial radius.
+        Area
+            Surface area, calculated from the equatorial radius and assuming the
+            planet is a sphere.
+        Volume
+            Calculated from the equatorial radius and assuming the planet is a
+            sphere.
+        Mass
+            A measure of the quantity of matter in the planet.
+        Specific gravity
+            The average mass density of the planet divided by the density of water at
+            0 °C and 1 atmosphere pressure.
+        Moons
+            Recognized "natural" satellites orbiting the planet.
+        Equatorial gravity
+            Acceleration of the planet's gravity at its equator.
+        Escape velocity
+            A minimum speed required for a non-propelled body to escape the
+            gravitational field of the planet.
+        Axial tilt
+            Angle of tilt of the rotation axis of the planet relative to its orbital
+            plane.
+        Rotation period (sidereal)
+            Time for one rotation about its rotation axis of the planet with respect
+            to the fixed stars.
+        '''))
+        exit(0)
     def Usage(status=1):
         print(dedent(f'''
         Usage:  {sys.argv[0]} [options] [planet_letters]
           Print out planetary data.  Planet letters are the first letter of
           the planet's name (use h for Mercury).  Use 'a' to show all
-          planets.
-        Examples:
+          planets.  Examples:
             '-e s' shows Saturn's data relative to Earth
             '-r s e' shows Earth's data relative to Saturn
         Options:
+            -d n    Number of figures in output [{d['-d']}]
             -e      Relative to Earth (short for '-r e')
+            -h      Print a manpage
             -r p    Print numbers relative to planet p (first letter)
         '''))
         exit(status)
@@ -287,8 +328,8 @@ if 1:   # Utility
                 if len(a) > 1 or a not in "hvemjsun":
                     Error("-r option's letter must be in 'hvemjsun'")
                 d["-r"] = a
-            elif o in ("-h", "--help"):
-                Usage(status=0)
+            elif o == "-h":
+                Manpage()
         x = flt(0)
         x.N = d["-d"]
         x.rtz = False

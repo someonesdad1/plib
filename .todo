@@ -726,10 +726,6 @@ Inactive
         - This is a significant enough script that it should be tested and
           moved into /plib/pgm if it warrants.  Then add back to hu.
 
-    - pgm/parse_complex.py
-        - Needs to be looked at again.  With some work and generation of
-          tests, it could be useful.  Then it could become part of f.py.
-
     - linkcheck.py
         - Utility to search a file for http links and see if they are still
           accessible.
@@ -751,7 +747,7 @@ Inactive
           github.
 
     - columnize.py
-        - Wwrite a Decolumnize() function that can take the columnized
+        - Write a Decolumnize() function that can take the columnized
           output like '0what.py -m *.py' produces in /plib/pgm and converts
           it to a list of lines with one object per line.  For files it
           can't figure out, add an option to show the columns where breaks

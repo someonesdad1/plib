@@ -11,7 +11,7 @@ if 1:   # Header
         #   See http://opensource.org/licenses/OSL-3.0.
         #∞license∞#
         #∞what∞#
-        # Program description string
+        # Delete blank lines from files or stdin
         #∞what∞#
         #∞test∞# #∞test∞#
         pass
@@ -38,7 +38,6 @@ if 1:   # Utility
           Delete blank lines from files.  Use '-' for stdin.
         Options:
             -1      Collapse multiple blank lines to one
-            -h      Print a manpage
         '''))
         exit(status)
     def ParseCommandLine(d):
@@ -46,15 +45,13 @@ if 1:   # Utility
         if len(sys.argv) < 2:
             Usage()
         try:
-            opts, files = getopt.getopt(sys.argv[1:], "1h") 
+            opts, files = getopt.getopt(sys.argv[1:], "1") 
         except getopt.GetoptError as e:
             print(str(e))
             exit(1)
         for o, a in opts:
             if o[1] in list("1"):
                 d[o] = not d[o]
-            elif o == "-h":
-                Usage(status=0)
         return files
 if 1:   # Core functionality
     def ProcessFile(file):
