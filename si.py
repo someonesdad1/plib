@@ -352,17 +352,41 @@ def ConvertSI(s):
     x = flt(s)*10**si[prefix]
     return x
 
-if 0 and __name__ == "__main__":
-    s = "342M"
-    print(s, "-->", PerformConversion(s))
-    exit()
+if 1:   # Utility
+    def Error(*msg, status=1):
+        print(*msg, file=sys.stderr)
+        exit(status)
+    def Usage(status=1):
+        print(dedent(f'''
+        Usage:  {sys.argv[0]} [options] expr1 [expr2 ...]
+          Convert expressions to and from SI-prefix forms.  If no
+          expressions are given, print out a table of SI prefixes.
+        Options:
+            -t      Put tabs in the table output
+        '''))
+        exit(status)
+    def ParseCommandLine(d):
+        d["-t"] = False     # Tabs in printed table
+        try:
+            opts, args = getopt.getopt(sys.argv[1:], "ht") 
+        except getopt.GetoptError as e:
+            print(str(e))
+            exit(1)
+        for o, a in opts:
+            if o[1] in list("ht"):
+                d[o] = not d[o]
+            if o[1] == "h":
+                Usage(0)
+        return args
 
 if __name__ == "__main__": 
     Testing()
-    if len(sys.argv) > 1:
-        for input in sys.argv[1:]:
-            output = PerformConversion(input)
-            print(input, "-->", output)
+    d = {}      # Options dictionary
+    args = ParseCommandLine(d)
+    if args:
+        for arg in args:
+            output = PerformConversion(arg)
+            print(arg, "-->", output)
     else:
         names = {
             -30: "quecto    2022",
@@ -390,11 +414,22 @@ if __name__ == "__main__":
              27: "ronna     2022",
              30: "quetta    2022",
         }
-        print("                               Year")
-        print("Symbol   Exponent    Prefix   added")
-        print("------   --------    ------   -----")
-        for num in reversed(names):
-            if num:
-                sym = si(num)
-                name = names[num]
-                print("  %2s      %4d       %s" % (sym, num, name))
+        if d["-t"]:
+            print("\t\t\tYear")
+            print("Symbol\tExponent\tPrefix\tadded")
+            print("------\t--------\t ------\t-----")
+            for num in reversed(names):
+                if num:
+                    sym = si(num)
+                    name = names[num]
+                    nm, yr = name.split()
+                    print(f"  {sym:2s}\t{num:4d}\t{nm}\t{yr}")
+        else:
+            print("                               Year")
+            print("Symbol   Exponent    Prefix   added")
+            print("------   --------    ------   -----")
+            for num in reversed(names):
+                if num:
+                    sym = si(num)
+                    name = names[num]
+                    print("  %2s      %4d       %s" % (sym, num, name))

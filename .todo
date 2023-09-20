@@ -1,15 +1,23 @@
 Active
+    
+    - help
+        - Add in statistics module's methods
+        - Change random's stuff to begin with RNGs, then bookkeeping stuff
+
+    - dbl.py (pgm/dbl.py)
+        - Delete blank lines in a file
+        - Change multiple lines to 1:  -1
+        - Delete lines with whitespace ^\s*$ :  -s
+        - Default is to only remove ^$ matches
+        - Combine with pgm/rm_multiple_lines.py
+        - Almost always python code, so don't want to touch things inside
+          multiline strings
 
     - hc.py
         - Needs to be finished off
         - Complete documentation
         - Move to /plib/hc
         - Finish unit tests
-
-    - planets.py
-        - https://en.wikipedia.org/wiki/List_of_gravitationally_rounded_objects_of_the_Solar_System#Planets
-        - Library to get planetary data
-        - Default output when run as a script is to print table
 
     - Practical uncertainty and accuracy
         - Elementary exposition
@@ -23,6 +31,7 @@ Active
         - Interval arithmetic
             - Show the same computation with interval numbers
             - List the function support of mpmath
+        - Differentials
         - Focus on interactive python sessions
             - Show how to use pip to install mpmath & uncertainties
 
@@ -730,14 +739,6 @@ Inactive
         - Utility to search a file for http links and see if they are still
           accessible.
 
-    - dbl.py (pgm/rbl.py)
-        - Delete blank lines in a file
-        - Change multiple lines to 1:  -1
-        - Delete lines with whitespace ^\s*$ :  -s
-        - Default is to only remove ^$ matches
-        - Combine with pgm/rm_multiple_lines.py
-        - Almost always python code, so don't want to touch things inside
-          multiline strings
 
     - /tools
         - https://github.com/vonj/snippets.org is a copy of what I had
