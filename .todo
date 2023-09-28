@@ -1,5 +1,8 @@
 Active
     
+    - matplotlib
+        - For show(), add in a keyboard trap of escape to exit
+
     - help
         - Add in statistics module's methods
         - Change random's stuff to begin with RNGs, then bookkeeping stuff
