@@ -14,12 +14,20 @@ DLL = cephes.dll
 
 .PHONY: $(DLL)	# Always build the DLL
 
-# The core distributions supported are:
-# 	binomial (bdtr.c), chisq (chdtr.c), F (fdtr.c), normal (ndtr.c,
-# 	ndtri.c), poisson (pdtr.c), t (stdtr.c)
+# The distributions supported are (*.c file names follow):
+# 	Binomial   			bdtr
+# 	Beta 				btdtr
+# 	chisq 				chdtr
+# 	F 					fdtr
+# 	Gamma				gdtr
+# 	Negative binomial	nbdtr
+# 	Normal 				ndtr, ndtri
+# 	Poisson 			pdtr
+# 	Student's t 		stdtr
 
-SRC = bdtr.c chdtr.c fdtr.c ndtr.c ndtri.c pdtr.c stdtr.c \
-      mtherr.c const.c isnan.c polevl.c \
+
+SRC = bdtr.c btdtr.c chdtr.c fdtr.c nbdtr.c ndtr.c ndtri.c \
+	  pdtr.c stdtr.c mtherr.c const.c isnan.c polevl.c \
 	  incbet.c igami.c igam.c incbi.c expx2.c gamma.c
 
 all: $(DLL) tags
@@ -38,6 +46,5 @@ clean:
 	rm -f *.o tags
 realclean:  clean
 	rm -f $(DLL)
-	# Note the DLL in /plib is not removed
 
 # vim: noet

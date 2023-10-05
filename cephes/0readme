@@ -2,7 +2,7 @@ Wed 20 Jul 2022
 
 The files in this directory are from http://www.moshier.net/double.zip.
 These are S. Moshier's cephes library files in double precision, dated 23
-Dec 2018.  The MD5 hash of the copy of this file I downloaded on 20 Jul
+Dec 2018.  The MD5 hash of the copy of the file I downloaded on 20 Jul
 2022 is 18e00691a500e7458bb8a628b7968aa0.
 
 A subset of these C files is used to construct cephes.dll, a DLL that is
@@ -13,6 +13,7 @@ commonly used in basic statistics.  Changes I have made to Moshier's code:
       that is specific to cygwin's python 3.7, which is the python
       distribution I use.  I invoke GNU make with the -Rr options to avoid
       the builtin rules, which explains the need for the "%.o: %.c" target.
+
     - The igami.c file from netlib below differs from the above double.zip
       file (though they are labeled internally as the same revision).  The
       latter version added a loss of precision message in the function when
@@ -21,6 +22,7 @@ commonly used in basic statistics.  Changes I have made to Moshier's code:
       TestPoisson().  I haven't explored these functions numerically, but
       note the icdf functions that use the igami.c file invert the
       probability properly to python float precision.
+
     - I used astyle to reformat each of the *.c files.
 
 --------------------------------------------------------------------------------

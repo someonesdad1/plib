@@ -25,6 +25,7 @@ Active
           deviate, calculating where it is in the CDF, then using the
           correlation to get other CDF values for the other RV's CDFs?
           This would be a heuristic, but who cares if it works?
+            - Use cephes/cephes.dll
 
     - matplotlib
         - For show(), add in a keyboard trap of escape to exit
