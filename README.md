@@ -192,12 +192,14 @@ techniques.
       eventually be removed).  I included support for the old design, as it
       was used in about 80 files in this directory tree.  I'll slowly
       convert things over to the new file and delete the legacy stuff.  
-    - A handy utility that uses `color.py` is `pgm/cdec.py`, which will
+    - A handy utility that uses `color.py` is `cdec.py`, which will
       decorate lines of a file with color specifiers, so you see the line
-      in its specified color.  Try 'cdec colornames0' and you'll see a
-      demo.  The colornames0 is my default set of colors with naming based
-      on the 3 letter names of the resistor color code.  Run `color.py` as a
-      script to see the colors and add the `a` argument to see the styles.
+      in its specified color.  Try 'python cdec.py colornames0' and you'll
+      see a demo.  The colornames0 is my default set of colors with naming
+      based on the 3 letter names of the resistor color code.  Run
+      `color.py` as a script to see the colors and add the `a` argument to
+      see the styles.  I use the mintty terminal under cygwin,
+      which uses 24-bit color and provides Unicode support.
 
 * lwtest.py
     - Lightweight test runner adapted from a nice tool by Raymond

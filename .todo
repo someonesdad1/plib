@@ -1,10 +1,35 @@
 Active
     
+    - words
+        - Dicts in /pylib/pgm/words and /pylib/pgm/wordlists
+        - Create a github repository to contain my various dictionaries
+        - Set it up to be the directory /words
+
+    - Correlated random variables
+        - A method for normal deviates is to generate uncorrelated samples,
+          then multiply them by a matrix c such that c*c.T = r where r is
+          the desired covariance matrix.  c can be created by using the
+          Cholesky decomposition of r or from the eigenvalues and
+          eigenvectors of r.
+          https://scipy-cookbook.readthedocs.io/items/CorrelatedRandomSamples.html
+          gives a suitable script showing how to do this.
+        - It's more important to me to see this method work for variates
+          from other supported distribution.  Explore how the method works
+          with other distributions:  uniform, weibull, gamma, lognormal.
+        - Even if it only works approximately, it would still be useful for
+          Monte Carlo simulations.
+        - If it works adequately, create a library to generate such things,
+          using numpy and scipy.
+        - Question:  if these tools don't work generally, is there another
+          approach like using the desired correlation to generate one
+          deviate, calculating where it is in the CDF, then using the
+          correlation to get other CDF values for the other RV's CDFs?
+          This would be a heuristic, but who cares if it works?
+
     - matplotlib
         - For show(), add in a keyboard trap of escape to exit
 
     - help
-        - Add in statistics module's methods
         - Change random's stuff to begin with RNGs, then bookkeeping stuff
 
     - dbl.py (pgm/dbl.py)
