@@ -66,6 +66,7 @@ if 1:   # Utility
             -c t    Cracking time in hours.  This gives an estimate of how
                     many word combinations must be tested per second to
                     find the password by brute force in t hours.
+            -d f    Change dictionary file to f
             -j s    String to join words ['{d["-j"]}']
             -n n    Number of passwords to generate if not on command line
             -s s    Pseudorandom number generator seed
@@ -74,17 +75,21 @@ if 1:   # Utility
         Generator types
           1   Dictionary words separated by '{d["-j"]}'
           2   7-bit ASCII characters
+        Note:  estimate of cracking time is dependent on algorithms/cracker
+        used.  If the password you want to crack is hashed, it's possible
+        things like rainbow tables could be much faster than brute force.
         '''))
         exit(status)
     def ParseCommandLine(d):
-        d["-c"] = 4         # Crack time in hours
+        d["-c"] = 24        # Crack time in hours
+        d["-d"] = None      # Dictionary file to use (None means default)
         d["-j"] = "."       # String to join words
         d["-n"] = 10        # Number of passwords to generate
         d["-s"] = None      # PRG seed
         d["-t"] = 1         # Which generator to use
         d["-w"] = 4         # Number of words
         try:
-            opts, args = getopt.getopt(sys.argv[1:], "c:hj:n:s:t:w:") 
+            opts, args = getopt.getopt(sys.argv[1:], "c:d:hj:n:s:t:w:") 
         except getopt.GetoptError as e:
             print(str(e))
             exit(1)
@@ -94,7 +99,9 @@ if 1:   # Utility
             elif o in ("-h", "--help"):
                 Usage(status=0)
             elif o == "-c":     # Crack time in hours
-                d[o] = GetInt("-c", 1)
+                d[o] = GetInt("-c", a, 1)
+            elif o == "-d":     # Dictionary file
+                d[o] = a
             elif o == "-j":     # String to join words
                 d[o] = a
             elif o == "-n":     # Number of passwords to generate
@@ -120,15 +127,16 @@ if 1:   # Core functionality
         cs = flt(nw)/seconds
         with cs:
             cs.N = 2
-            return cs.engsi
+            return cs.sci
     def GetWords():
         if g.words is None:
-            if 1:
+            if d["-d"] is None:
                 # This dict is from https://7esl.com/common-words/
                 g.words = open("/pylib/pgm/words.x.1000.3").read().split("\n")
                 g.words = [i for i in g.words if i and i[0] != "#" and len(i) > 2]
             else:
-                raise ValueError("No word dict defined")
+                g.words = open(d["-d"]).read().split("\n")
+                g.words = [i for i in g.words if i and i[0] != "#" and len(i) > 2]
             if 1:
                 # Print information on the passwords generated
                 f = sys.stderr
@@ -143,7 +151,7 @@ if 1:   # Core functionality
                 print(f"Word list has {nw} words of [{mn}, {mx}] length", file=f)
                 print(f"log10(number of possible passwords) = {math.log10(np):.1f}", file=f)
                 print(f"Brute force cracking of password in {d['-c']} hours will take", file=f)
-                print(f"  testing combinations at {CrackSpeed(np)}Hz.", file=f)
+                print(f"  testing combinations at {CrackSpeed(np)} Hz.", file=f)
                 t.print("", file=f)
             seed = d["-s"] if d["-s"] is not None else 0
             random.seed(seed)
