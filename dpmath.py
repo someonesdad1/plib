@@ -331,17 +331,19 @@ def SpiralArcLength(a, theta, degrees=False):
         raise ValueError("a must be > 0")
     theta = radians(flt(theta)) if degrees else flt(theta)
     A = sqrt(theta*theta + 1)
-    return flt(a)/2*(theta*A + log(theta + A))
+    return flt(a)/2*(theta*A + math.log(theta + A))
 def ApproximateSpiralArcLength(ID, OD, thickness):
-    '''Given the inside and outside diameters of a spiral roll of
-    material with uniform thickness, estimate the length of material on
-    the roll.  The three parameters must be measured in the same units
-    and the returned number will be in the same units.
+    '''Return (length, number_of_layers) for a spiral roll of material
+    given the inside and outside diameters with a uniform thickness.  The
+    three parameters must be measured in the same units and the returned
+    number will be in the same units.
  
     The smaller thickness*(OD - ID) is, the better the approximation.
+
+    Algorithm:  we approximate the length of a fine-pitched spiral by a
+    circle with the diameter equal to the in-between diameter of the spiral
+    by the circle's circumference.
     '''
-    # Approximation:  for a large diameter circle, one revolution of a
-    # fine-pitch spiral should be nearly equal to the circumference.
     if ID < 0 or ID >= OD:
         raise ValueError("ID must be >= 0 and < OD")
     if OD <= 0:
@@ -351,12 +353,12 @@ def ApproximateSpiralArcLength(ID, OD, thickness):
     n = (OD - ID)/thickness
     if n < 1:
         raise ValueError("Number of turns is < 1")
-    pitch = (OD - ID)/n
-    length = 0
-    for dia in frange(ID, OD, 2*pitch):
-        dia += pitch    # Use in-between diameter
-        length += 2*math.pi*(dia + pitch)
-    return length
+    length, number_of_layers = flt(0), 0
+    for diameter in frange(ID, OD, 2*thickness):
+        D = diameter + thickness    # Use in-between diameter
+        length += math.pi*D
+        number_of_layers += 1
+    return (length, number_of_layers)
 def CountBits(num):
     '''Return (n_on, n_off), the number of 'on' and 'off' bits in the 
     integer num.

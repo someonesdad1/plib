@@ -26,12 +26,31 @@ Active
           correlation to get other CDF values for the other RV's CDFs?
           This would be a heuristic, but who cares if it works?
             - Use cephes/cephes.dll
+        - Using "how to generate correlated random variables" for a web
+          search turns up some hits.  Look at "more videos"
+            - https://www.youtube.com/watch?v=pVgKwqN621s uses Latin
+              hypercube sampling for correlated variables
+
+    - sortindented
+        - Sorts stuff like
+            b 
+                stuff
+                stuff
+            a
+                stuff
+                stuff
+
+          to get
+            a 
+                stuff
+                stuff
+            b
+                stuff
+                stuff
+        - Would be handy for organizing my help files
 
     - matplotlib
         - For show(), add in a keyboard trap of escape to exit
-
-    - help
-        - Change random's stuff to begin with RNGs, then bookkeeping stuff
 
     - dbl.py (pgm/dbl.py)
         - Delete blank lines in a file

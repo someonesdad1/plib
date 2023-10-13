@@ -4,6 +4,7 @@ numbers interactively from user.
  
 TODO:  
     - Add Zn to GetNumbers
+    - Change GetFraction to also handle integers
 '''
 if 1:   # Header
     # Copyright, license
@@ -662,8 +663,9 @@ if 1:   # Getting numbers
         return [list(i) for i in zip(*A)]
     def GetFraction(s):
         '''Return a Fraction object if string s contains a '/' and can be
-        interpreted as an improper or proper fraction; otherwise return
-        None.  The following forms are allowed:
+        interpreted as an improper or proper fraction or if it can be
+        interpreted as an integer.  Otherwise return None.  The following
+        forms are allowed:
     
             A   5/4     +5/4    -5/4
             B   1 1/4   +1 1/4  -1 1/4
@@ -671,7 +673,11 @@ if 1:   # Getting numbers
             D   1+1/4   +1+1/4  -1+1/4
         '''
         if "/" not in s:
-            return None
+            try:
+                i = int(s)
+                return Fraction(i, 1)
+            except Exception:
+                return None
         s = s.strip()
         try:
             neg = 1
@@ -1566,6 +1572,7 @@ if __name__ == "__main__":
                 i = i.strip()
                 neg = -1 if i[0] == "-" else 1
                 Assert(GetFraction(i) == neg*e)
+            Assert(GetFraction("1") == Fraction(1, 1))
         def TestParseUnitString():
             u = ["m", "in", "ft"]
             s = "mm"

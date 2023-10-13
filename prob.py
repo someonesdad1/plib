@@ -75,7 +75,7 @@ Provides probability functions used in basic statistics
         In the 70's and 80's when I did a fair bit of experimental work, my
         favorite statistics reference was Crow, "Statistics Manual", 1955
         (republished by Dover in 1960) because it was both terse and
-        carefully labeled.  Biometrika Tables by Pearson and Hartley is
+        carefully labeled.  "Biometrika Tables" by Pearson and Hartley is
         also good, but you'll want to make sketches of the functions being
         integrated on the tables you're using.
 
@@ -169,6 +169,9 @@ if 1:   # Utility
 if 1:   # Classes
     # Distributions:  normal, chisq, F, binomial, t, Poisson
     class Prob:
+        '''Call instance.cdf() or instance.icdf() with appropriate
+        arguments for the distribution.
+        '''
         def __init__(self, dll):
             self.dll = dll
         def cdf(self):

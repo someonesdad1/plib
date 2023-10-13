@@ -76,10 +76,13 @@ if 1:   # Utility
     def Error(*msg, status=1):
         print(*msg, file=sys.stderr)
         exit(status)
-    def Usage():
+    def Usage(spc=False):
+        if spc:
+            print(f"{t.n}")
         print(dedent(f'''
-        Commands:
+        {t.n}Commands:
             q       Quit
+            ? or /  This help
             Z       Zero time
             C       Enter a comment
             {t.s}s       Display in seconds{t.n}
@@ -90,6 +93,8 @@ if 1:   # Utility
         line to also have the data appended to that file.  A state summary
         report will be written to the file.
         '''))
+        if spc:
+            print()
     def ParseCommandLine(d):
         d["-a"] = False
         d["-d"] = 3         # Number of significant digits
@@ -209,6 +214,8 @@ if __name__ == "__main__":
             if log_stream:
                 log_stream.close()
             sys.exit(0)
+        elif key in "?/":
+            Usage(spc=True)
         elif key == "Z":
             start = time.time()
             g.last_time = start

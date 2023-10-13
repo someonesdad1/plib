@@ -24,10 +24,8 @@ if 1:   # Header
         from pdb import set_trace as xx
     # Custom imports
         from wrap import wrap, dedent
-        from clr import Clr
     # Global variables
         ii = isinstance
-        c = Clr()
 if 1:   # Utility
     def Error(*msg, status=1):
         print(*msg, file=sys.stderr)
@@ -36,11 +34,11 @@ if 1:   # Utility
         print(dedent(f'''
         Usage:  {sys.argv[0]} [options] [file1 [file2...]]
           Generate short hash strings for files.  The SHA-1 hash is used by
-          default (same as git).
+          default (same as git).  These are intended to identify files, not 
+          provide cryptographic security.
         Options:
             -1      Use MD5
             -n n    Print out n characters of the hash [{d["-n"]}]
-            -h      Print a manpage
         '''))
         exit(status)
     def ParseCommandLine(d):
@@ -49,7 +47,7 @@ if 1:   # Utility
         if len(sys.argv) < 2:
             Usage()
         try:
-            opts, args = getopt.getopt(sys.argv[1:], "1hn:", "help")
+            opts, args = getopt.getopt(sys.argv[1:], "1n:")
         except getopt.GetoptError as e:
             print(str(e))
             exit(1)
@@ -58,8 +56,6 @@ if 1:   # Utility
                 d[o] = not d[o]
             elif o in ("-n",):
                     d[o] = max(abs(int(a)), 2)
-            elif o in ("-h", "--help"):
-                Usage(status=0)
         return args
 if 1:   # Core functionality
     def ProcessFile(file):

@@ -1,4 +1,14 @@
 '''
+
+ToDo:
+    - Default units metric, -p for lbf
+    - Samson 3/8" stable braid has min 4.8 klb breaking with a mean of 5.6
+      klb, so mean is about 15% more than minimum.  Assuming a normal
+      distribution with the minimum being minus three standard deviations,
+      this means the standard deviation of the strength is about 5%.
+
+---------------------------------------------------------------------------
+
 Print rope data
 '''
 #∞test∞# ignore #∞test∞#
@@ -7,17 +17,26 @@ if 1:   # Header
         import getopt
         import sys
         from fractions import Fraction
+        from pprint import pprint as pp
     # Custom imports
         from wrap import dedent
         from f import flt
         from get import GetFraction
         from color import TRM as t
+        from fraction import FormatFraction
+        if 1:
+            import debug
+            debug.SetDebugger()
     # Global variables
         t.title = t("trq")
         t.d25 = t("purl")
         t.d38 = t("yell")
         t.d5 = t("magl")
         t.d75 = t("ornl")
+        class G:
+            pass
+        g = G()
+        g.mm_to_frac = {}
 if 1:   # Utility
     def Error(*msg, status=1):
         print(*msg, file=sys.stderr)
@@ -28,48 +47,48 @@ if 1:   # Utility
           If arg is empty, print strength data.  If arg is given, plot the
           rope strength as a function of nylon's strength.
         Options:
+            -a      Show sizes over 1 inch diameter
+            -f      Used fixed decimal point display
+            -d      Number of digits in numbers [{d['-d']}]
             -h      Print a manpage
         '''))
         exit(status)
     def ParseCommandLine(d):
-        d["-a"] = False
+        d["-a"] = False     # Print all sizes
+        d["-d"] = 3         # Number of digits in numbers
+        d["-f"] = False     # Fixed decimal point display
         try:
-            opts, args = getopt.getopt(sys.argv[1:], "h", 
-                    ["help", "debug"])
+            opts, args = getopt.getopt(sys.argv[1:], "ad:fh") 
         except getopt.GetoptError as e:
             print(str(e))
             exit(1)
         for o, a in opts:
-            if o[1] in list(""):
+            if o[1] in list("af"):
                 d[o] = not d[o]
-            elif o in ("-h", "--help"):
+            elif o == "-d":
+                try:
+                    d["-d"] = n = int(a)
+                    if not (1 <= d["-d"] <= 15):
+                        raise ValueError()
+                    flt(0).N = n
+                except ValueError:
+                    msg = ("-d option's argument must be an integer between "
+                        "1 and 15")
+                    Error(msg)
+            elif o == "-h":
                 Usage(status=0)
         return args
 if 1:   # Samson data
-    def GetSamsonData(metric=False, use_fractions=False, all=False):
+    def GetSamsonData():
         '''Return a list of 
-        [
-            diameter_inches,
-            mass_lbm_per_100_feet,
-            average_strength_klb,
-            minimum_strength_klb
-        ]
-        If use_fractions is True, the diameter_inches will be a fraction.
-        Otherwise, it will be a floating point number rounded to two decimal
-        places.
-        
-        If metric is True, return the list
-        [
+        (
             diameter_mm,
-            weight_lb_per_100_feet,
-            mass_kg_per_100_m,
-            average_strength_kN,
-            minimum_strength_kN
-        ]
-     
-        If all is True, return all the sizes; otherwise, just return sizes up
-        to 1 inch diameter.
+            mass_density_g_per_m,
+            average_strength_N,
+            minimum_strength_N
+        )
         '''
+        # These are the data from the Samson website
         dia_in = '''1/4 5/16 3/8 7/16 1/2 9/16 5/8 3/4 7/8 1 1-1/8 1-1/4 1-5/16
                     1-1/2 1-5/8 1-3/4 2 2-1/8 2-1/4 2-1/2 2-5/8 2-3/4 3 3-1/4
                     3-5/8 4 4-1/4 4-5/8 5'''.split()
@@ -82,80 +101,121 @@ if 1:   # Samson data
         strength_min_klb = '''2 3.1 4.8 6.5 8.8 11.3 13.9 17.3 25.4 33.3 41 48.7 55
                               63.8 74.1 88.4 105 123 141 162 180 199 236 292
                               346 400 453 524 593'''.split()
-        if not all:
-            n = 10
-            dia_in = dia_in[:n]
-            wt_100_ft_lb = [flt(i) for i in wt_100_ft_lb[:n]]
-            strength_avg_klb = [flt(i) for i in strength_avg_klb[:n]]
-            strength_min_klb = [flt(i) for i in strength_min_klb[:n]]
-        data = list(zip(dia_in, wt_100_ft_lb, strength_avg_klb, strength_min_klb))
-        # Convert first term to a fraction
-        for i, item in enumerate(data):
-            item = list(item)
-            a = item[0]
-            item[0] = GetFraction(a)
-            if item[0] is None:
-                item[0] = Fraction(int(a), 1)
-            for j in range(1, 4):
-                item[j] = flt(item[j])
-            data[i] = item
-        flt(0).rtz = flt(0).rtdp = True
-        # Convert first element to decimal inches if wanted
-        if not use_fractions:
-            for i in range(len(data)):
-                data[i][0] = flt(round(data[i][0], 2))
-        # Convert to metric if wanted
-        if metric:
-            for i in range(len(data)):
-                data[i][0] = flt(round(float(data[i][0])*25.4, 1))
-                data[i][1] = flt(round(float(data[i][1])*0.453592, 2))
-                data[i][2] = flt(round(float(data[i][2])*4.44822, 2))
-                data[i][3] = flt(round(float(data[i][3])*4.44822, 2))
+        # Get diameter in mm
+        dia_mm = []
+        for i in dia_in:
+            f = GetFraction(i)
+            mm = flt(round(f.numerator/f.denominator*25.4, 4))
+            dia_mm.append(mm)
+            g.mm_to_frac[mm] = FormatFraction(f)
+        # Get linear mass density in g/m
+        g_per_m = []
+        for i in wt_100_ft_lb:
+            c = flt(14.8816)     # Converts lbm/100 ft to g/m
+            g_per_m.append(flt(round(float(i)*c, 2)))
+        # Get average strength in N
+        strength_avg_N = []
+        for i in strength_avg_klb:
+            c = flt(4448.22)     # Converts klbf to N
+            strength_avg_N.append(flt(round(float(i)*c, 0)))
+        # Get average strength in N
+        strength_min_N = []
+        for i in strength_min_klb:
+            c = flt(4448.22)     # Converts klbf to N
+            strength_min_N.append(flt(round(float(i)*c, 0)))
+        data = list(zip(dia_mm, g_per_m, strength_avg_N, strength_min_N))
         return data
-    def PrintSamsonTable(data):
-        lbf2N = 4.44822
-        lb2kg = 0.453592
-        data = GetSamsonData(use_fractions=True)
-        t.print(f"{t.title}Samson double-braided polyester rope")
+    def PrintSamsonTableMetric(data, all=False):
+        '''data is a list of (dia_mm, g_per_m, strength_avg_N,
+        strength_min_N) entries.
+        '''
+        if 1:   # Set up flt formatting
+            x = flt(0)
+            x.N = d["-d"]
+            x.rtz = False
+            x.rtdp = True
+        n = len(data) if all else 10 
+        w = 7, 6, 8, 8, 10
+        # Header
+        print("Samson double-braided polyester rope breaking strengths")
+        print(f"{'Diameter':^{w[0] + w[1] + 1}s} "
+              f"{'Strength, kN':^{w[2] + w[3] + 1}s} "
+              f"{'Mass':^{w[4]}s}")
+        print(f"{'in':^{w[0]}s} "
+              f"{'mm':^{w[1]}s} "
+              f"{'Min':^{w[2]}s} "
+              f"{'Avg':^{w[3]}s} "
+              f"{'g/m':^{w[4]}s}")
+        k = 2
+        print(f"{'-'*(w[0] - k):^{w[0]}s} "
+              f"{'-'*(w[1] - k):^{w[1]}s} "
+              f"{'-'*(w[2] - k):^{w[2]}s} "
+              f"{'-'*(w[3] - k):^{w[3]}s} "
+              f"{'-'*(w[4] - k):^{w[4]}s}")
+        # Print rows
+        for dia_mm, g_per_m, strength_avg_N, strength_min_N in data[:n]:
+            if d["-f"]:   # Print with fixed decimal places
+                print(f"{g.mm_to_frac[dia_mm]:^{w[0]}s} "
+                    f"{dia_mm:^{w[1]}.1f} "
+                    f"{strength_min_N/1000:^{w[2]}.1f} "
+                    f"{strength_avg_N/1000:^{w[3]}.1f} "
+                    f"{g_per_m:^{w[4]}.1f}")
+            else:   # Print desired number of figures
+                print(f"{g.mm_to_frac[dia_mm]:^{w[0]}s} "
+                    f"{dia_mm!s:^{w[1]}s} "
+                    f"{strength_min_N/1000!s:^{w[2]}s} "
+                    f"{strength_avg_N/1000!s:^{w[3]}s} "
+                    f"{g_per_m/1000!s:^{w[4]}s}")
         print(dedent('''
-                                                    Linear mass density
-          Diameter      Minimum breaking strength     lb/       
-        inch     mm        klbf   kN    kgf          100 ft    kg/m
-        -----------        ----  ----  -----          -----    -----'''))
-        for line in data:
-            dia, wt, avg, min = line
-            di = flt(dia)    # Diameter in inches
-            # Diameter
-            Di = FormatFraction(dia)
-            dm = di*25.4
-            with dm:
-                dm.n = 2
-                Dm = f"{dm}"
-            c = ""  # Color for most-used
-            if Di == "1/4":
-                c = t.d25
-            elif Di == "3/8":
-                c = t.d38
-            elif Di == "1/2":
-                c = t.d5
-            elif Di == "3/4":
-                c = t.d75
-            print(f"{c}{Di:^5s} {Dm:>5s}", end=" "*8)
-            # Minimum breaking strength
-            bi = min
-            bm = bi*lbf2N
-            bk = bi*lb2kg
-            w = 5
-            print(f"{bi!s:^{w}s} {bm!s:^{w}s} {bk!s:^{w}s}{t.n if c else ''}",
-                end=" "*10)
-            # Linear mass density
-            si = wt
-            sm = wt*lb2kg
-            w = 6
-            print(f" {si!s:^{w}s}  {sm!s:^{w}s}")
-    def FormatFraction(x):
-        assert(x <= 1)
-        return "1" if x == 1 else f"{x.numerator}/{x.denominator}"
+
+            Minimum strength is about 15% below average.  If strength is
+            assumed to be a normal distribution and the minimum is 3σ below 
+            the mean, then the standard deviation is about 5% of the mean.
+        '''))
+    def PrintSamsonTablePounds(data, all=False):
+        '''data is a list of (dia_mm, g_per_m, strength_avg_N,
+        strength_min_N) entries.
+        '''
+        if 1:   # Set up flt formatting
+            x = flt(0)
+            x.N = d["-d"]
+            x.rtz = False
+            x.rtdp = True
+        n = len(data) if all else 10 
+        w = 7, 6, 8, 8, 10
+        # Header
+        print("Samson double-braided polyester rope breaking strengths")
+        print(f"{'Diameter':^{w[0] + w[1] + 1}s} "
+              f"{'Strength, klbf':^{w[2] + w[3] + 1}s} "
+              f"{'Mass':^{w[4]}s}")
+        print(f"{'in':^{w[0]}s} "
+              f"{'mm':^{w[1]}s} "
+              f"{'Min':^{w[2]}s} "
+              f"{'Avg':^{w[3]}s} "
+              f"{'lbm/100 ft':^{w[4]}s}")
+        k = 2
+        print(f"{'-'*(w[0] - k):^{w[0]}s} "
+              f"{'-'*(w[1] - k):^{w[1]}s} "
+              f"{'-'*(w[2] - k):^{w[2]}s} "
+              f"{'-'*(w[3] - k):^{w[3]}s} "
+              f"{'-'*(w[4] - k):^{w[4]}s}")
+        # Print rows
+        for dia_mm, g_per_m, strength_avg_N, strength_min_N in data[:n]:
+            lb_per_100_ft = flt(0.0671969*g_per_m)
+            strength_avg_klbf = flt(strength_avg_N*0.000224809)
+            strength_min_klbf = flt(strength_min_N*0.000224809)
+            if d["-f"]:   # Print with fixed decimal places
+                print(f"{g.mm_to_frac[dia_mm]:^{w[0]}s} "
+                    f"{dia_mm:^{w[1]}.1f} "
+                    f"{strength_min_klbf:^{w[2]}.1f} "
+                    f"{strength_avg_klbf:^{w[3]}.1f} "
+                    f"{lb_per_100_ft:^{w[4]}.1f}")
+            else:   # Print desired number of figures
+                print(f"{g.mm_to_frac[dia_mm]:^{w[0]}s} "
+                    f"{dia_mm!s:^{w[1]}s} "
+                    f"{strength_min_klbf!s:^{w[2]}s} "
+                    f"{strength_avg_klbf!s:^{w[3]}s} "
+                    f"{lb_per_100_ft!s:^{w[4]}s}")
 if 1:   # Generic data
     def GetGenericData():
         # From U.S. Naval Institute and Wall Rope Works, Inc., NY
@@ -181,7 +241,7 @@ if 1:   # Generic data
             data.append(item)
         return data
     def PrintGenericTable(data):
-        t.print(f"{t.title}Generic rope data breaking strength")
+        t.print(f"Generic rope data breaking strength")
         print(f"  Strength in klb and diameter in inches")
         print(f"  Source:  U.S. Naval Institute and Wall Rope Works, NY")
         print(f"  PE = polyethylene, PP = polypropylene, PEst = polyester")
@@ -207,17 +267,60 @@ if 1:   # Generic data
                     Di = out[0]
                     out += [str(i) for i in item[1:]]
                     for i, x in enumerate(out):
-                        c = ""  # Color for most-used
-                        if Di == "1/4":
-                            c = t.d25
-                        elif Di == "3/8":
-                            c = t.d38
-                        elif Di == "1/2":
-                            c = t.d5
-                        elif Di == "3/4":
-                            c = t.d75
-                        print(f"{c}{x:^{w}s}", end=" "*2)
-                    print(f"{t.n if c else ''}")
+                        print(f"{x:^{w}s}", end=" "*2)
+                    print()
+    def ChainData():
+        '''
+        https://www.uscargocontrol.com/blogs/blog/working-load-limits-chain
+        '''
+        data = [
+            # Working load limit in klbf as function of grade & size
+            ("Size",   30,     43,     80,    100),
+            ("1/4",   1.3,    2.6,    3.5,    4.3),
+            ("5/16",  1.9,    3.9,    4.5,    5.7),
+            ("3/8",   2.65,   5.4,    7.1,    8.8),
+            ("1/2",   4.5,    9.2,    12,     15),
+            ("5/8",   6.9,    13,     18.1,   22.6),
+        ]
+        lbf_to_kN = flt(4.44822)
+        w = 8
+        # Pound data
+        print(f"Working load limit in klbf for steel chain vs. grade")
+        for i in data:
+            if i[0] == "Size":
+                print(f"{i[0]:^{w}s} "
+                      f"{i[1]:^{w}d} "
+                      f"{i[2]:^{w}d} "
+                      f"{i[3]:^{w}d} "
+                      f"{i[4]:^{w}d}")
+            else:
+                print(f"{i[0]:^{w}s} "
+                      f"{flt(i[1])!s:^{w}s} "
+                      f"{flt(i[2])!s:^{w}s} "
+                      f"{flt(i[3])!s:^{w}s} "
+                      f"{flt(i[4])!s:^{w}s}")
+        print(dedent('''
+
+        Grade 30:  economical, light duty
+        Grade 43:  towing & logging duty
+        Grade 80:  Heat-treated alloy chain for lifting
+        Grade 100: Heat-treated alloy chain for lifting
+        '''))
+        # Metric data
+        print(f"\nWorking load limit in kN for steel chain vs. grade")
+        for i in data:
+            if i[0] == "Size":
+                print(f"{i[0]:^{w}s} "
+                      f"{i[1]:^{w}d} "
+                      f"{i[2]:^{w}d} "
+                      f"{i[3]:^{w}d} "
+                      f"{i[4]:^{w}d}")
+            else:
+                print(f"{i[0]:^{w}s} "
+                      f"{flt(i[1])*lbf_to_kN!s:^{w}s} "
+                      f"{flt(i[2])*lbf_to_kN!s:^{w}s} "
+                      f"{flt(i[3])*lbf_to_kN!s:^{w}s} "
+                      f"{flt(i[4])*lbf_to_kN!s:^{w}s}")
     def PlotData():
         '''Fields are:
             Dia, inches
@@ -283,7 +386,8 @@ if 1:   # Generic data
         ylabel("Breaking strength, klbf")
         grid()
         legend()
-        if 1:
+        showme = 0
+        if showme:
             show()
         else:
             savefig("rope_strength.png")
@@ -300,7 +404,7 @@ if 1:   # Generic data
         ylabel("Relative breaking strength")
         grid()
         legend()
-        if 1:
+        if showme:
             show()
         else:
             savefig("rope_str_rel_nylon.png")
@@ -335,12 +439,16 @@ if __name__ == "__main__":
     if args:
         PlotData()
     else:
-        data = GetSamsonData(use_fractions=True)
-        PrintSamsonTable(data)
-        print()
         data = GetGenericData()
         PrintGenericTable(data)
         print()
         PrintTypeTable()
         print()
         Notes()
+        print()
+        ChainData()
+        print()
+        data = GetSamsonData() 
+        PrintSamsonTablePounds(data, all=d["-a"])
+        print()
+        PrintSamsonTableMetric(data, all=d["-a"])
