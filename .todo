@@ -1,5 +1,9 @@
 Active
     
+    - concrete.py
+        - Get from /pylib/pgm/obsolete/concrete.py
+        - Fix and get running
+
     - words
         - Dicts in /pylib/pgm/words and /pylib/pgm/wordlists
         - Create a github repository to contain my various dictionaries

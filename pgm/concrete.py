@@ -18,10 +18,10 @@ if 1:  # Copyright, license
     pass
 if 1:   # Imports
     import sys
-    from math import pi, acos, sqrt
+    #from math import pi, acos, sqrt
 if 1:   # Custom imports
     from wrap import dedent
-    from sig import sig
+    from f import flt, pi, acos, sqrt
     from get import GetNumber
     from u import ParseUnit, ParseUnitString
     from color import C
@@ -29,12 +29,16 @@ if 1:   # Global variables
     # Set to True to debug the script
     Debug = 1
     # Constants
-    m3_per_ft3 = 0.0283168
-    lb_per_kg = 2.20462
-    gal_per_L = 0.264172
-    in_per_m = 39.37
-    ft_per_m = 12/in_per_m
-if 1:   # Component mixing info 
+    m3_per_ft3 = flt(0.0283168)
+    lb_per_kg = flt(2.20462)
+    gal_per_L = flt(0.264172)
+    in_per_m = flt(39.37)
+    ft_per_m = flt(12/in_per_m)
+    class G:
+        pass
+    g = G()
+    g.digits = 2
+if 1: # Component mixing info 
     # Note:  in the following, specific gravities are always given in
     # g/cc units.  Multiply by 1000 to get kg/m3.
     #
@@ -43,21 +47,21 @@ if 1:   # Component mixing info
     # ratio.  However, the specific gravities are cement:1.6,
     # sand(dry):1.6, and gravel(dry):1.6, so if these conditions are
     # met, then it also works for volume.
-    vol_ratio_cement = 1/6
-    vol_ratio_sand = 2/6
-    vol_ratio_gravel = 3/6
+    vol_ratio_cement = flt(1/6)
+    vol_ratio_sand = flt(2/6)
+    vol_ratio_gravel = flt(3/6)
 
     # Value to multiply a cured concrete volume to get the required dried
     # components volume.  This is also sometimes called the "make sure
     # you have enough factor".  Typical values range from 1.5 to 2.
     # You can empirically determine a good value by starting with 1.5
     # and keeping track of the discrepancy from the desired volume.
-    dry_components_factor = 1.5
+    dry_components_factor = flt(1.5)
 
     # The density of concrete with sand and gravel.  Modify by
     # experience.  A density of 2.5 corresponds to 156 lbm/ft3; many
     # folks use 150 lb/ft3 as a round number.
-    concrete_specific_gravity = 2.5
+    concrete_specific_gravity = flt(2.5)
 
     # The amount of water is determined by the mass of cement.  The
     # Quikrete 1101 datasheet suggests 2.8 L (3/4 gal) per 80 lb bag
@@ -81,14 +85,14 @@ if 1:   # Component mixing info
     # a loose pile.  I've rounded it down to 1.4.  The best thing you
     # can do is to measure the actual mass and volume when you're
     # making some concrete and use the measured density.
-    water_to_cement_mass_ratio = 0.45
-    cement_specific_gravity = 1.4
+    water_to_cement_mass_ratio = flt(0.45)
+    cement_specific_gravity = flt(1.4)
 
     # To estimate the total mass of the finished concrete, we need the
     # estimated specific gravities of the sand and gravel.  Obviously,
     # you'll get the best results if you measured these values.
-    sand_specific_gravity = 1.6     # Assumes dry sand, Glover
-    gravel_specific_gravity = 1.7   # Glover
+    sand_specific_gravity = flt(1.6)     # Assumes dry sand, Glover
+    gravel_specific_gravity = flt(1.7)   # Glover
 if 1:   # Premix info 
     # Data taken from Quikrete 1101 data sheet.
     #
@@ -96,13 +100,13 @@ if 1:   # Premix info
     # of premixed concrete yields 0.6 of a cubic foot of cured
     # concrete.  Note this is not a density, as it implicitly contains
     # the water of hydration.
-    premix_yield_kg_per_m3 = 2135.8
+    premix_yield_kg_per_m3 = flt(2135.8)
 
     # Recommended amount of water is 2.8 L per 80 lb bag of concrete.
     # From the notes above, this is a 0.47 water/cement mass ratio.
     # The data sheet indicates you can go to a maximum of 4.3 L per 80
     # lb bag.
-    water_L_per_kg_of_concrete = 0.0771618
+    water_L_per_kg_of_concrete = flt(0.0771618)
 if 1:   # Other info 
     # Compressive strength, typical
     strength_28_days_MPa = 27.6     # (4000 psi)
@@ -114,16 +118,16 @@ if 1:   # Other info
     # Allowed length units.  The values convert the unit to m.
     default_unit = "inches"
     allowed_length_units = {
-        "": 1,
-        "m": 1,
-        "in": 1/in_per_m,
-        "inch": 1/in_per_m,
-        "inches": 1/in_per_m,
-        "foot": 12/in_per_m,
-        "feet": 12/in_per_m,
-        "ft": 12/in_per_m,
-        "yard": 36/in_per_m,
-        "yd": 36/in_per_m,
+        "" : flt(1),
+        "m" : flt(1),
+        "in" : flt(1/in_per_m),
+        "inch" : flt(1/in_per_m),
+        "inches" : flt(1/in_per_m),
+        "foot" : flt(12/in_per_m),
+        "feet" : flt(12/in_per_m),
+        "ft" : flt(12/in_per_m),
+        "yard" : flt(36/in_per_m),
+        "yd" : flt(36/in_per_m),
     }
     allowed_length_units[""] = allowed_length_units[default_unit]
 
@@ -131,7 +135,7 @@ if 1:   # Other info
     # filled to the brim is different from 5 gallons.
     # with its top.  This comes from measurements of a few actual
     # buckets.
-    bucket_ratio = 5.6/5
+    bucket_ratio = flt(5.6/5)
 if 1:   # Shapes
     class FormShape(object):
         def GetDescription(self):
@@ -257,20 +261,21 @@ if 1:   # Shapes
                 "Diameter = %s" % self.diameter_orig,
                 "Percent  = %s" % self.percent_orig,
             )
+
 def Error(msg, status=1):
     print(msg, stream=sys.stderr)
     exit(status)
 def Initialization():
-    sig.digits = 3
     if len(sys.argv) == 3 and sys.argv[1] == "-d":
         try:
-            digits = int(sys.argv[2])
+            g.digits = int(sys.argv[2])
         except Exception:
             Error("Bad argument for -d option (must be integer)")
         else:
-            if not (1 <= digits <= 15):
+            if not (1 <= g.digits <= 15):
                 Error("-d argument must be between 1 and 15")
-            sig.digits = digits
+    x = flt(0)
+    x.N = g.digits
 def HeaderInfo():
     if Debug:
         return
@@ -326,17 +331,17 @@ def GetLength(prompt):
             unit = default_unit
         prefix, u = ParseUnitString(unit, allowed_length_units, strict=False)
         if u in allowed_length_units:
-            return (num*prefix*allowed_length_units[u],
-                    sig(num) + " " + unit)
+            return (flt(num)*flt(prefix)*flt(allowed_length_units[u]),
+                    str(flt(num)) + " " + unit)
         else:
             print(f"'{unit}' is unrecognized unit -- try again.")
 def GetFormGeometry():
     default = 1
     form = {
-        1: Slab(),
-        2: Cylinder(),
-        3: HorizontalCylinder(),
-        4: Sphere(),
+        1 : Slab(),
+        2 : Cylinder(),
+        3 : HorizontalCylinder(),
+        4 : Sphere(),
     }
     while True:
         print(dedent(f'''
@@ -393,8 +398,8 @@ if __name__ == "__main__":
         a, sa, b, sb = 2, "2 m", 1, "1 m"
         # Set up the desired dimensions
         length, s_length = ft_per_m, "1 ft"
-        dia, s_dia = 2*ft_per_m, "2 ft"
-        pct, s_pct = 100, "100"
+        dia, s_dia = flt(2*ft_per_m), "2 ft"
+        pct, s_pct = flt(100), "100"
         number = 1
         if isinstance(form, Slab):
             form.length, form.length_orig = length, s_length
@@ -410,24 +415,24 @@ if __name__ == "__main__":
             form.diameter, form.diameter_orig = dia, s_dia
             form.how_many = number
             if 0:
-                form.percent, form.percent_orig = 100, "100"
+                form.percent, form.percent_orig = flt(100), "100"
             else:
-                form.percent, form.percent_orig = 50, "50"
-                form.percent, form.percent_orig = 0, "0"
+                form.percent, form.percent_orig = flt(50), "50"
+                form.percent, form.percent_orig = flt(0), "0"
         elif isinstance(form, Sphere):
             form.diameter, form.diameter_orig = dia, s_dia
             form.how_many = number
             if 0:
-                form.percent, form.percent_orig = 100, "100"
+                form.percent, form.percent_orig = flt(100), "100"
             else:
-                form.percent, form.percent_orig = 50, "50"
+                form.percent, form.percent_orig = flt(50), "50"
         else:
             raise Exception("Bad geometry")
     # Calculate results
-    volume_m3 = form.GetVolume()
-    v_m = sig(volume_m3)
-    v_ft = sig(volume_m3/m3_per_ft3)
-    v_yd = sig(volume_m3/(27*m3_per_ft3))
+    volume_m3 = flt(form.GetVolume())
+    v_m = volume_m3
+    v_ft = flt(volume_m3/m3_per_ft3)
+    v_yd = flt(volume_m3/(27*m3_per_ft3))
     # Print answer
     if problem == 1:        # Ready-mix
         print("For the concrete form of:")
@@ -437,14 +442,14 @@ if __name__ == "__main__":
         s = "{indent}Volume = {v_m} m3 = {v_ft} ft3 = {v_yd} yd3".format(
             **locals())
         print(s)
-        M_kg = volume_m3*premix_yield_kg_per_m3
-        M_lb = M_kg*lb_per_kg
-        n_60, n_80 = sig(M_lb/60), sig(M_lb/80)
-        m_kg, m_lb = [sig(i) for i in (M_kg, M_lb)]
-        w_L = M_kg*water_L_per_kg_of_concrete
-        v_water_L = sig(w_L)
-        v_water_gal = sig(gal_per_L*w_L)
-        v_water_qt = sig(gal_per_L*w_L*4)
+        M_kg = flt(volume_m3*premix_yield_kg_per_m3)
+        M_lb = flt(M_kg*lb_per_kg)
+        n_60, n_80 = str(M_lb/60), str(M_lb/80)
+        m_kg, m_lb = [str(i) for i in (M_kg, M_lb)]
+        w_L = flt(M_kg*water_L_per_kg_of_concrete)
+        v_water_L = str(w_L)
+        v_water_gal = str(gal_per_L*w_L)
+        v_water_qt = str(gal_per_L*w_L*4)
         print(f'''
     This is {m_kg} kg = {m_lb} lb of cured concrete.
     Water required is {v_water_L} liters = {v_water_gal} gal = {v_water_qt} qt
@@ -456,69 +461,66 @@ if __name__ == "__main__":
         print("%s%s" % (indent, form.name))
         for i in form.Characteristics():
             print("%s%s" % (indent, i))
-        v_sh = sig(volume_m3*shovel_per_m3)
+        v_sh = str(volume_m3*shovel_per_m3)
         print(dedent(f'''
         {indent}Volume of finished concrete
         {indent}{indent}= {v_m} m3 = {v_ft} ft3 = {v_yd} yd3 = {v_sh} shovels
         '''))
-        wcmr = sig(water_to_cement_mass_ratio)
-        v_mix_m3 = volume_m3*dry_components_factor
-        v_cement_m3 = v_mix_m3*vol_ratio_cement
-        v_sand_m3 = v_mix_m3*vol_ratio_sand
-        v_gravel_m3 = v_mix_m3*vol_ratio_gravel
+        wcmr = str(water_to_cement_mass_ratio)
+        v_mix_m3 = flt(volume_m3*dry_components_factor)
+        v_cement_m3 = flt(v_mix_m3*vol_ratio_cement)
+        v_sand_m3 = flt(v_mix_m3*vol_ratio_sand)
+        v_gravel_m3 = flt(v_mix_m3*vol_ratio_gravel)
         # Calculate the total mass of cured concrete
-        k = 1000    # Because sp gr is in g/cc
-        M_cement_kg = k*v_mix_m3*vol_ratio_cement*cement_specific_gravity
-        M_sand_kg = k*v_mix_m3*vol_ratio_sand*sand_specific_gravity
-        M_gravel_kg = k*v_mix_m3*vol_ratio_gravel*gravel_specific_gravity
-        M_water_kg = water_to_cement_mass_ratio*M_cement_kg
-        M_kg = M_cement_kg + M_sand_kg + M_gravel_kg + M_water_kg
-        M_lb = M_kg*lb_per_kg
-        m_kg = sig(M_kg)
-        m_lb = sig(M_lb)
-        w_L = sig(M_water_kg)
-        w_gal = sig(M_water_kg*gal_per_L)
-        w_b = sig(M_water_kg*gal_per_L/(5*bucket_ratio))
-        # Make things fixed-width
-        sig.fit = 10
-        sig.dp_position = 5
+        k = flt(1000)    # Because sp gr is in g/cc
+        M_cement_kg = flt(k*v_mix_m3*vol_ratio_cement*cement_specific_gravity)
+        M_sand_kg = flt(k*v_mix_m3*vol_ratio_sand*sand_specific_gravity)
+        M_gravel_kg = flt(k*v_mix_m3*vol_ratio_gravel*gravel_specific_gravity)
+        M_water_kg = flt(water_to_cement_mass_ratio*M_cement_kg)
+        M_kg = flt(M_cement_kg + M_sand_kg + M_gravel_kg + M_water_kg)
+        M_lb = flt(M_kg*lb_per_kg)
+        m_kg = str(M_kg)
+        m_lb = str(M_lb)
+        w_L = str(M_water_kg)
+        w_gal = str(M_water_kg*gal_per_L)
+        w_b = str(M_water_kg*gal_per_L/(5*bucket_ratio))
         # Liters
-        c_L = sig(k*v_mix_m3*vol_ratio_cement)
-        s_L = sig(k*v_mix_m3*vol_ratio_sand)
-        g_L = sig(k*v_mix_m3*vol_ratio_gravel)
+        c_L = str(k*v_mix_m3*vol_ratio_cement)
+        s_L = str(k*v_mix_m3*vol_ratio_sand)
+        g_L = str(k*v_mix_m3*vol_ratio_gravel)
         # Cubic feet
-        k = 35.3147  # Converts m3 to ft3
-        c_ft3 = sig(k*v_mix_m3*vol_ratio_cement)
-        s_ft3 = sig(k*v_mix_m3*vol_ratio_sand)
-        g_ft3 = sig(k*v_mix_m3*vol_ratio_gravel)
+        k = flt(35.3147)  # Converts m3 to ft3
+        c_ft3 = str(k*v_mix_m3*vol_ratio_cement)
+        s_ft3 = str(k*v_mix_m3*vol_ratio_sand)
+        g_ft3 = str(k*v_mix_m3*vol_ratio_gravel)
         # 5 gallon bucket
-        k = 264.172/(5*bucket_ratio)  # m3 to gal, then scaled by bucket volume
-        c_b = sig(k*v_mix_m3*vol_ratio_cement)
-        s_b = sig(k*v_mix_m3*vol_ratio_sand)
-        g_b = sig(k*v_mix_m3*vol_ratio_gravel)
+        k = flt(264.172/(5*bucket_ratio))  # m3 to gal, then scaled by bucket volume
+        c_b = str(k*v_mix_m3*vol_ratio_cement)
+        s_b = str(k*v_mix_m3*vol_ratio_sand)
+        g_b = str(k*v_mix_m3*vol_ratio_gravel)
         # #2 shovel
-        k = shovel_per_m3
-        c_sh = sig(k*v_mix_m3*vol_ratio_cement)
-        s_sh = sig(k*v_mix_m3*vol_ratio_sand)
-        g_sh = sig(k*v_mix_m3*vol_ratio_gravel)
+        k = flt(shovel_per_m3)
+        c_sh = str(k*v_mix_m3*vol_ratio_cement)
+        s_sh = str(k*v_mix_m3*vol_ratio_sand)
+        g_sh = str(k*v_mix_m3*vol_ratio_gravel)
         # Sums
-        S_L = sig(sum([float(i) for i in (c_L, s_L, g_L)]))
-        S_ft3 = sig(sum([float(i) for i in (c_ft3, s_ft3, g_ft3)]))
-        S_b = sig(sum([float(i) for i in (c_b, s_b, g_b)]))
-        S_sh = sig(sum([float(i) for i in (c_sh, s_sh, g_sh)]))
-        digits = sig.digits
+        S_L = str(sum([flt(i) for i in (c_L, s_L, g_L)]))
+        S_ft3 = str(sum([flt(i) for i in (c_ft3, s_ft3, g_ft3)]))
+        S_b = str(sum([flt(i) for i in (c_b, s_b, g_b)]))
+        S_sh = str(sum([flt(i) for i in (c_sh, s_sh, g_sh)]))
+        w1, w2 = 10, 12
         print(f'''
-    Results are to {digits} significant figures
+    Results are to {g.digits} significant figures
     This is {m_kg} kg = {m_lb} lb of cured concrete.
  
     Component volumes needed:
                  liters          cu. ft.       5 gal bucket    #2 shovel
                 ----------     ----------      ------------    -----------
-    Cement      {c_L}     {c_ft3}        {c_b}  {c_sh}
-    Sand        {s_L}     {s_ft3}        {s_b}  {s_sh}
-    Gravel      {g_L}     {g_ft3}        {g_b}  {g_sh}
+    Cement      {c_L:^{w1}s}     {c_ft3:^{w1}s}      {c_b:^{w2}s}   {c_sh:^{w2}s}
+    Sand        {s_L:^{w1}s}     {s_ft3:^{w1}s}      {s_b:^{w2}s}   {s_sh:^{w2}s}
+    Gravel      {g_L:^{w1}s}     {g_ft3:^{w1}s}      {g_b:^{w2}s}   {g_sh:^{w2}s}
                 ----------     ----------      ------------    -----------
-    Sum         {S_L}     {S_ft3}        {S_b}  {S_sh}
+    Sum         {S_L:^{w1}s}     {S_ft3:^{w1}s}      {S_b:^{w2}s}   {S_sh:^{w2}s}
  
     Water needed = {w_L} liters = {w_gal} gallons = {w_b} five gal buckets
     Water/cement mass ratio = {wcmr}
