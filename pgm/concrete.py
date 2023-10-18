@@ -366,16 +366,6 @@ def GetFormGeometry():
                 return form[num]
             print("Number must be {min(form)} to {max(form)}, inclusive")
 if __name__ == "__main__": 
-    print(dedent(f'''
-    {C.lred}This script ({sys.argv[0]}) is not finished.  Some remaining
-    tasks are:
-        * Get rid of sig; switch to use of flt
-        * Use data files also?
-        * Account for load ability of mixer? (i.e., mix loads <= this)
-        * Consider some added shapes: frustum of cone/pyramid, cylinder
-          with polygonal cross section, cylinder with arbitrary cross
-          section specified by area.
-    {C.norm}'''))
     indent = " "*4
     Initialization()
     HeaderInfo()
