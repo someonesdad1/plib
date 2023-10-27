@@ -1,10 +1,25 @@
 '''
 TODO
-    - Don't remove blank lines between comments, as black would never put
-      them back, so the test strategy used will fail.  Besides, those
-      comments were separated for a reason.
+    - Python code
+        - Don't remove blank lines between comments (they were separated
+          for a reason)
+        - Don't remove blank lines in multiline strings
+    - Options
+        - -1 to change multiple blank lines to one
+        - -s to delete lines with whitespace ^\s*$
+        - Default is to remove only ^$ matches
+        - -p means it's NOT python code
 
 Remove blank lines from python scripts
+
+Motivation:  vertical real estate on a terminal screen is precious and I
+like to see as much information as possible when editing code.  Python's
+indentation helps with this and allows you to see the code's logic by 
+the indentation level, so this works.  However, there are two use case
+where you don't want to see blank lines removed in python code:  blank
+lines between comments (that blank line was put there for a reason) and 
+in multiline strings.
+
 '''
  
 if 1:  # Copyright, license
@@ -52,7 +67,8 @@ if 1:   # Utility
           that it does the task you expect of it.  This script modifies the
           file with no backup made unless the -b option is used.
         Options:
-            -b      Make a backup file before overwriting the original
+            -b      Make a backup file before overwriting the original (the
+                    backup will have the extension '.bak')
             -d      Turn on debugging to see tokenizing details to stderr
             -n      Dry run:  show files' line numbers that will be deleted 
             -v      Verbose:  print out the files processed

@@ -107,7 +107,7 @@ if 1:   # Samson data
             f = GetFraction(i)
             mm = flt(round(f.numerator/f.denominator*25.4, 4))
             dia_mm.append(mm)
-            g.mm_to_frac[mm] = FormatFraction(f)
+            g.mm_to_frac[mm] = FormatFraction(f, unicode=False)
         # Get linear mass density in g/m
         g_per_m = []
         for i in wt_100_ft_lb:
@@ -241,34 +241,69 @@ if 1:   # Generic data
             data.append(item)
         return data
     def PrintGenericTable(data):
-        t.print(f"Generic rope data breaking strength")
-        print(f"  Strength in klb and diameter in inches")
-        print(f"  Source:  U.S. Naval Institute and Wall Rope Works, NY")
-        print(f"  PE = polyethylene, PP = polypropylene, PEst = polyester")
-        print()
-        x = flt(0)
-        with x:
-            x.n = 2
-            n, m, w = 8, 12, 6
-            for i in range(m):
-                item = data[i]
-                if not i:
-                    # Header row
-                    for j in range(n):
-                        k = 0 if j == n - 1 else 2
-                        print(f"{item[j]:^{w}s}", end=" "*k)
-                    print()
-                    for j in range(n):
-                        k = 0 if j == n - 1 else 2
-                        print(f"{'-'*w:^{w}s}", end=" "*k)
-                    print()
-                else:
-                    out = [FormatFraction(item[0])]
-                    Di = out[0]
-                    out += [str(i) for i in item[1:]]
-                    for i, x in enumerate(out):
-                        print(f"{x:^{w}s}", end=" "*2)
-                    print()
+        '''This information was online at one time, but I cannot find a
+        link for it anymore.  Wall Rope Works apparently has been defunct
+        for a number of decades.
+        '''
+        digits = 2
+        if 1:   # Table in klbf
+            print(f"Generic rope data breaking strength to {digits} digits")
+            print(f"  Strength in klb and diameter in inches")
+            print(f"  Source:  U.S. Naval Institute and Wall Rope Works, NY")
+            print(f"  PE = polyethylene, PP = polypropylene, PEst = polyester")
+            print()
+            x = flt(0)
+            with x:
+                x.N = digits
+                n, m, w = 8, 12, 6
+                for i in range(m):
+                    item = data[i]
+                    if not i:
+                        # Header row
+                        for j in range(n):
+                            k = 0 if j == n - 1 else 2
+                            print(f"{item[j]:^{w}s}", end=" "*k)
+                        print()
+                        for j in range(n):
+                            k = 0 if j == n - 1 else 2
+                            print(f"{'-'*w:^{w}s}", end=" "*k)
+                        print()
+                    else:
+                        out = [FormatFraction(item[0], unicode=False)]
+                        out += [str(i) for i in item[1:]]
+                        for i, x in enumerate(out):
+                            print(f"{x:^{w}s}", end=" "*2)
+                        print()
+        if 1:   # Table in kN
+            print()
+            print(f"Generic rope data breaking strength to {digits} digits")
+            print(f"  Strength in kN and diameter in inches")
+            print(f"  Source:  U.S. Naval Institute and Wall Rope Works, NY")
+            print(f"  PE = polyethylene, PP = polypropylene, PEst = polyester")
+            print()
+            x = flt(0)
+            with x:
+                x.N = digits
+                n, m, w = 8, 12, 6
+                for i in range(m):
+                    item = data[i]
+                    if not i:
+                        # Header row
+                        for j in range(n):
+                            k = 0 if j == n - 1 else 2
+                            print(f"{item[j]:^{w}s}", end=" "*k)
+                        print()
+                        for j in range(n):
+                            k = 0 if j == n - 1 else 2
+                            print(f"{'-'*w:^{w}s}", end=" "*k)
+                        print()
+                    else:
+                        out = [FormatFraction(item[0], unicode=False)]
+                        # Convert klbf to kN by multiplying by 4.44822
+                        out += [str(i*flt(4.44822)) for i in item[1:]]
+                        for i, x in enumerate(out):
+                            print(f"{x:^{w}s}", end=" "*2)
+                        print()
     def ChainData():
         '''
         https://www.uscargocontrol.com/blogs/blog/working-load-limits-chain

@@ -615,7 +615,7 @@ class Fmt:
             # exponents go over the range of about 308, this will likely
             # never happen.
             self._low_init = 1e-4
-            self._high_init = 1e6
+            self._high_init = 999999.0
         # Key to _SI_prefixes dict is exponent//3
         self._SI_prefixes = dict(zip(range(-8, 9), list("yzafpnμm.kMGTPEZY")))
         self._SI_prefixes[0] = ""       # Need empty string

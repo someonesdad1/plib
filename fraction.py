@@ -26,27 +26,37 @@ if 0:
 
 _super, _sub = "⁰¹²³⁴⁵⁶⁷⁸⁹", "₀₁₂₃₄₅₆₇₈₉"
 
-def FormatFraction(f, improper=False):
+def FormatFraction(f, improper=False, unicode=True):
     '''Return the string form of a fraction using Unicode subscript and
     superscript characters.  If improper is True, return an improper
-    fraction.
+    fraction.  If unicode is False, then return strings like '1-5/16'.
     '''
     if not isinstance(f, Fraction):
         raise TypeError("f must be a Fraction")
     s, n, d = "", f.numerator, f.denominator
-    if improper:
-        rem = n
+    if unicode:
+        if improper:
+            rem = n     # rem is remainder
+        else:
+            ip, rem = divmod(n, d)
+            if ip:
+                s += str(ip)
+        if rem:
+            for i in str(rem):
+                s += _super[int(i)]
+            s += "/"
+            for i in str(d):
+                s += _sub[int(i)]
+        return s
     else:
-        ip, rem = divmod(n, d)
-        if ip:
-            s += str(ip)
-    if rem:
-        for i in str(rem):
-            s += _super[int(i)]
-        s += "/"
-        for i in str(d):
-            s += _sub[int(i)]
-    return s
+        if improper or n < d:
+            return f"{n}/{d}"
+        else:
+            ip, rem = divmod(n, d)
+            if rem:
+                return f"{ip}-{rem}/{d}"
+            else:
+                return f"{ip}"
 
 def FractionToUnicode(s):
     '''In the string s, convert 'a/b' expressions to the Unicode form

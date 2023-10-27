@@ -1,4 +1,9 @@
 '''
+ToDo
+    - GetSI:  add keyword 'strict' that when False allows prefixes like
+      'kk' to be appended to a number and interpreted as 'M'.  This is not
+      legal SI syntax, but could occasionally be useful.
+
 SI prefixes
 '''
 if 1:   # Header

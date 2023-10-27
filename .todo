@@ -1,8 +1,9 @@
 Active
     
-    - concrete.py
-        - Get from /pylib/pgm/obsolete/concrete.py
-        - Fix and get running
+    - xref.py
+        - This is still in /pylib/pgm
+        - Get installed in /plib/pgm
+        - Couple with /words files
 
     - words
         - Dicts in /pylib/pgm/words and /pylib/pgm/wordlists
@@ -56,8 +57,8 @@ Active
     - matplotlib
         - For show(), add in a keyboard trap of escape to exit
 
-    - dbl.py (pgm/dbl.py)
-        - Delete blank lines in a file
+    - pgm/rbl.py
+        - Remove blank lines in a file
         - Change multiple lines to 1:  -1
         - Delete lines with whitespace ^\s*$ :  -s
         - Default is to only remove ^$ matches
