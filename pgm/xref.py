@@ -33,6 +33,7 @@ if 1:   # Header
         import getopt
         import os
         from pathlib import Path as P
+        import keyword
         import re
         import string
         import sys
@@ -41,6 +42,7 @@ if 1:   # Header
         from wrap import wrap, dedent, indent, Wrap
         from columnize import Columnize
         from globalcontainer import Global, Variable, Constant
+        from color import t
         if 0:
             import debug
             debug.SetDebugger()  # Start debugger on unhandled exception
@@ -52,6 +54,7 @@ if 1:   # Header
         G = Global()
         G.ro = Constant()
         G.ro.default_dict = '/words/words.default'
+        t.warn = t("ornl")
 if 1:   # Utility
     def eprint(*p, **kw):
         print(*p, **kw, file=sys.stderr)
@@ -301,12 +304,14 @@ if 1:   # Utility
                 exit(0)
         # Compare the options in d to those given in Usage to find
         # disconnects.
-        Usage(quiet=True)
+        Usage(quiet=True)   # Puts options in Usage.s
         opts = set([i for i in d if i[0] == "-" and len(i) == 2])
         if opts != Usage.s:
             eprint(dedent(f'''
-            Parse not in Usage:  {' '.join(opts - Usage.s)}
-            Usage not in Parse:  {' '.join(Usage.s - opts)}
+            {t.warn}xref.py has a disconnect between the options in the dict opt
+            and those listed in Usage():
+              In ParseCommandLine, not in Usage:  {' '.join(opts - Usage.s)}
+              In Usage, not in ParseCommandLine:  {' '.join(Usage.s - opts)}{t.n}
             '''))
             exit(2)
         if not args and not d["-@"]:
@@ -361,13 +366,7 @@ if 1:   # Core functionality
         return mydict 
     def GetWords(s):
         ' Return a set of words in the multiline string s'
-        w = []
-        for line in s.split(nl):
-            if d["-i"]:
-                w.extend(line.lower().split())    
-            else:
-                w.extend(line.split())    
-        return set(tuple(w))
+        return set(s.split())
     def Keywords():
         ' Return a set of programming keywords'
         # C/C++/shell
@@ -415,6 +414,13 @@ if 1:   # Core functionality
         repr rlshift rmod rmul rop ror rpow rrshift rshift rsub rxor setattr
         setitem setslice setstate staticmethod tuple ufloat UFloat umath
         uncertainties vars xor xrange zip'''
+        # From 3.9's keyword.kwlist:
+        t += '''
+            False None True and as assert async await break class continue
+            def del elif else except finally for from global if import in
+            is lambda nonlocal not or pass raise return try while with
+            yield
+        '''
         s.update(GetWords(t))
         return s
     def GetWordlists():
@@ -530,14 +536,8 @@ if 1:   # Core functionality
         if d["-u"]:     # Warn on non-7-bit characters in any token
             u = Non7BitCharacters()
             if u:
-                eprint("Warning:  non-7-bit character(s) in tokens:")
-                # Print characters
-                w = Wrap()
-                w.i = " "*2
-                eprint(f"{w(' '.join(u))}")
-                # Print U+DDDD form
-                U = ["U+" + hex(ord(i))[2:].upper() for i in u]
-                eprint(f"{w(' '.join(U))}")
+                eprint(f"{t.warn}Warning:  non-7-bit character(s) in tokens:{t.n}")
+                eprint(f"{t.warn}  {' '.join(u)}{t.n}")
         if d["-I"]:     # Print information statistics
             PrintStatistics()
     def PrintStatistics():

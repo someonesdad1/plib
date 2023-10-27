@@ -1,10 +1,5 @@
 Active
     
-    - xref.py
-        - This is still in /pylib/pgm
-        - Get installed in /plib/pgm
-        - Couple with /words files
-
     - words
         - Dicts in /pylib/pgm/words and /pylib/pgm/wordlists
         - Create a github repository to contain my various dictionaries
