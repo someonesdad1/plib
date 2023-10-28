@@ -6,11 +6,11 @@ d = 20.7
 offset = 0.3
 h = 33
 r = 3.2
-Report("liters", "cm", 1)
-{
+output_volume_units = "l"
+output_length_units = "cm"
+volume_steps = 1
 print('''Ropak kitty litter square bucket test case
   Expected values:
     5 L : 11.76 cm
     9 L : 20.32 cm
 ''')
-}

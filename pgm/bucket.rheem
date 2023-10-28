@@ -6,7 +6,10 @@ D = 11.34
 d = 10.42
 offset = "11.9 mm"
 h = 14
-Report("liters", "mm", 1)
+digits = 4
+output_volume_units = "l"
+output_length_units = "mm"
+volume_steps = 5
 
 print('''Rheem 5 gallon bucket test case
   Expected values:
