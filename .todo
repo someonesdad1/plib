@@ -5,6 +5,13 @@ Active
         - Create a github repository to contain my various dictionaries
         - Set it up to be the directory /words
 
+    - pgm/lump.py
+        - Script that takes regexps on the command line and finds all
+          files at and below the current directory and lumps all the files
+          together and sends their content to stdout.
+        - Example:  'lump \*\.txt' causes the content of all *.txt files to
+          be sent to stdout.
+
     - Correlated random variables
         - A method for normal deviates is to generate uncorrelated samples,
           then multiply them by a matrix c such that c*c.T = r where r is
