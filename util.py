@@ -19,6 +19,7 @@ Engineering           Represent a number in engineering notation
 execfile              Python 3 replacement for python 2 function
 fDistribute           Return a float sequence equally distributed
 Flatten               Flattens nested sequences to a sequence of scalars
+GetHash               Get a file's hash as a hex string
 GroupByN              Group items from a sequence by n items at a time
 grouper               Function to group data
 HeatIndex             Effect of temperature and humidity
@@ -88,6 +89,7 @@ if 1:   # Imports
 
     import cmath
     import glob
+    import hashlib
     import math
     import os
     import random
@@ -123,6 +125,14 @@ if 1:   # Global variables
         West·Virginia Wyoming'''.split()]
     US_states = dict(zip(a, b))
     del a, b
+def GetHash(file, method="md5"):
+    "Return a file's hash as a hex string"
+    if method.lower() in "md5 sha1 sha224 sha256 sha384 sha512".split():
+        h = eval(f"hashlib.{method.lower()}")()
+    else:
+        raise ValueError(f"{method!r} is unsupported")
+    h.update(open(file, "rb").read())
+    return h.hexdigest()
 def ItemCount(seq, n=None):
     '''Return a sorted list of the items and their counts in the iterable
     seq, with the largest count first in the tuple.  If n is given, only
