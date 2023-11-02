@@ -5,6 +5,22 @@ Active
         - Create a github repository to contain my various dictionaries
         - Set it up to be the directory /words
 
+    - wordparse.py
+        - Tokenize a file and apply heuristics to get rid of things like 
+          '*italic*', '[GitHub](http://github.com)', etc.  This would for
+          example be someone's markdown dialect.  Then the remaining text 
+          can be evaluated for readability.  Also remove common
+          abbreviations (Mr., Mrs.) and other stuff.
+
+    - Readability
+        - Once the NGSL stuff is built, it could be combined into about a
+          5k wordlist that would cover a lot of writing, as it's aimed at
+          ESL applications and has something like 90%+ coverage of general,
+          academic, and business writing.  This should be added as an
+          option to pgm/readability.py.
+        - This will need to be tuned with a number of the various words I
+          use in general writing.
+
     - pgm/lump.py
         - Script that takes regexps on the command line and finds all
           files at and below the current directory and lumps all the files

@@ -23,7 +23,28 @@ if 1:   # Custom imports
     from wrap import dedent
 if 1:   # Global variables
     element_string = None   # For el operation
-def Usage(status):
+def Error(msg):
+    print(msg, file=sys.stderr)
+    exit(1)
+def CheckArgs(args):
+    if len(args) < 3:
+        Usage()
+    try:
+        op = args[0][:2]
+        if op not in "ne eq el di sd in is un".split():
+            Error(f"{args[0]!r} is not a recognized operation")
+    except Exception:
+        Usage(1)
+    args[0] = op
+    if op in "sd is el".split():
+        if len(args) != 3:
+            Usage(1)
+def Manpage():
+    print(dedent(f'''
+    Manpage
+    '''))
+    exit(0)
+def Usage(status=1):
     print(dedent(f'''
     Usage:  {sys.argv[0]} [options] op file1 file2 [file3 ...]
       where op is the operation:
@@ -50,55 +71,50 @@ def Usage(status):
       want the lines sorted (they will be in an indeterminate order, however,
       as a set has no notion of ordering).
     Options
+      -H            Print a manpage
       -i regexp     Ignore lines that contain the regexp.  More than one of
                     these options may be given.
+      -l            Convert all lines to lowercase
       -s            Do not sort the output lines
       -w            Ignore leading and trailing whitespace
     '''))
     exit(status)
-def CheckArgs(args):
-    if len(args) < 3:
-        Usage(1)
-    try:
-        op = args[0][:2]
-        if op not in ("ne", "eq", "el", "di", "sd", "in", "is", "un"):
-            print("'%s' is not a recognized operation" % args[0],
-                  file=sys.stderr)
-            exit(1)
-    except Exception:
-        Usage(1)
-    args[0] = op
-    if op in ("sd", "is", "el"):
-        if len(args) != 3:
-            Usage(1)
-    return args
 def ParseCommandLine(d):
+    d["-H"] = False     # Print manpage
     d["-i"] = []        # Regexps of lines to ignore
+    d["-l"] = False     # Convert all lines to lowercase
     d["-s"] = True      # Sort output
     d["-w"] = False     # Ingore leading and trailing whitespace
     if len(sys.argv) < 2:
-        Usage(1)
+        Usage()
     try:
-        optlist, args = getopt.getopt(sys.argv[1:], "hi:sw")
+        optlist, args = getopt.getopt(sys.argv[1:], "Hhi:lsw")
     except getopt.GetoptError as e:
         msg, option = e
         print(msg)
         sys.exit(1)
-    for opt in optlist:
-        if opt[0] == "-h":
+    for o, a in optlist:
+        if o[1] in list("Hlsw"):
+            d[o] = not d[o]
+        elif opt[0] == "-h":
             Usage(0)
         elif opt[0] == "-i":
             r = re.compile(opt[1])
             d["-i"].append(r)
-        elif opt[0] == "-s":
-            d["-s"] = False
-        elif opt[0] == "-w":
-            d["-w"] = True
+    if d["-H"]:
+        Manpage()
     if len(args) < 2:
         Usage()
-    return CheckArgs(args)
+    CheckArgs(args)
+    return args
 def GetLines(op, files, d):
-    'Note the returned lines include the newline'
+    '''Read in the lines from the files, perform the indicated operation,
+    and return (a, b) where lines1 and lines2 are the sets of lines.  Note
+    the returned lines include the newline.
+      op:       one of the strings ne eq el di sd in is un
+      files:    List of files to get lines from
+      d:        Command line options dictionary
+    '''
     def do_not_ignore(line, r):
         return not r.search(line)
     lines1 = open(files[0]).readlines()
@@ -110,13 +126,16 @@ def GetLines(op, files, d):
     else:
         for file in files[1:]:
             lines2 += open(file).readlines()
-        if d["-i"]:
+        if d["-i"]:     # Ignore lines with given regular expressions
             for r in d["-i"]:
                 lines1 = [line for line in lines1 if do_not_ignore(line, r)]
                 lines2 = [line for line in lines2 if do_not_ignore(line, r)]
-        if d["-w"]:
+        if d["-w"]:     # Strip leading and trailing whitespace
             lines1 = [line.strip() for line in lines1]
             lines2 = [line.strip() for line in lines2]
+        if d["-l"]:     # Convert lines to lowercase
+            lines1 = [line.lower() for line in lines1]
+            lines2 = [line.lower() for line in lines2]
     return frozenset(lines1), frozenset(lines2)
 if __name__ == "__main__":
     d = {}
@@ -153,9 +172,11 @@ if __name__ == "__main__":
         if not lines1 < lines2:
             status = 1
     if op in ("di", "sd", "in", "un"):
-        eol = "\n" if d["-w"] else ""
+        results = list(results)
         if d["-s"]:
-            results = list(results)
-            results.sort()
+            results = sorted(results)
         for line in results:
-            print(line, end=eol)
+            if line[-1] == "\n":
+                print(line, end="")
+            else:
+                print(line)

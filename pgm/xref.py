@@ -232,7 +232,7 @@ if 1:   # Utility
             Please send bug reports/improvements to someonesdad1@gmail.com.
         '''))
     def Usage(status=1, quiet=False):
-        ' Print usage statement and exit'
+        'Print usage statement and exit'
         name = sys.argv[0]
         s = dedent(f'''
         Usage:  {name} [options] [file1 [file2...]]

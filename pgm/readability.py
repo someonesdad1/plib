@@ -15,6 +15,14 @@ Calculate readability statistics for a set of files
         - Kenneth Roman and Joel Raphaelson, "Writing That Works"
         - Strunk & White
         - Chicago Manual of Style
+
+Other metrics:
+
+    - ARI (automated readability index) = US grade level estimate.
+        - ARI = 4.71*characters/words + 0.5*words/sentences - 21.43
+        - Developed by Flesch in the 1960s as an alternative to the 
+          Flesch reading ease metric.
+
 '''
 if 1:   # Header
     if 1:  # Copyright, license
