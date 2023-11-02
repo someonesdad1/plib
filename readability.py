@@ -46,55 +46,61 @@ ToDo
           name.
 
 Observations
-    - I tried to use a Readability class, but performance fell by about a factor of 2
-      or more, so I retained the function-based approach.
+    - I tried to use a Readability class, but performance fell by about a
+      factor of 2 or more, so I retained the function-based approach.
     - Readability is a complicated topic and can be pretty subjective, as
-      it depends on many things.  https://scholarworks.wmich.edu/cgi/viewcontent.cgi?referer=https://en.wikipedia.org/&httpsredir=1&article=1792&context=reading_horizons
+      it depends on many things.
+      https://scholarworks.wmich.edu/cgi/viewcontent.cgi?referer=https://en.wikipedia.org/&httpsredir=1&article=1792&context=reading_horizons
       explains some of the complexities.  For my needs, I've found that the
       Flesch-Kincaid grade level is easy to compute and works well for the
       documents I evaluate and write.  These documents are aimed at
       educated adults, often with a technical background.
-    - 10 Nov 2019:  I spent time producing the words_syllables.py script, which is
-      basically what used to be in the old words.py file from about 15 years ago;
-      it's made from a CMU corpus in the NLTK (see the script
-      /pylib/pgm/words_syllables_make.py).  The dictionary lookup of the number of
-      syllables decreased the run time on /ebooks/kindle/Twain/*.txt from 52.4 s to
-      6.6 s, so having the dictionaries is worth the half second or so they take to
-      load.
+    - 10 Nov 2019:  I spent time producing the words_syllables.py script,
+      which is basically what used to be in the old words.py file from
+      about 15 years ago; it's made from a CMU corpus in the NLTK (see the
+      script /pylib/pgm/words_syllables_make.py).  The dictionary lookup of
+      the number of syllables decreased the run time on
+      /ebooks/kindle/Twain/*.txt from 52.4 s to 6.6 s, so having the
+      dictionaries is worth the half second or so they take to load.
     - 22 Sep 2010
-        - Added test of GuessSyllables().  Changed output to just print nearest
-          integer; this better reflects the approximate nature of the numbers.
-        - You should be cautious in applying the results of a program like this.
-          Reading scores are only rough guides; they cannot measure many things that
-          are relevant to reading comprehension.  If you don't believe this, the
-          clearest argument I can give you is to have you randomly shuffle the words
-          in each sentence of a document.  Virtually all documents will now be
-          unintelligible, yet the typical readability scores will be unchanged.
-          These scores know nothing about semantics or syntax, the formatting/font of
-          the text, how nice it's visually organized, or the background and interest
-          of the reader.  These (and many other) things are relevent to reading
-          comprehension, yet are obviously beyond the ken of a computer program.
+        - Added test of GuessSyllables().  Changed output to just print
+          nearest integer; this better reflects the approximate nature of
+          the numbers.
+        - You should be cautious in applying the results of a program like
+          this.  Reading scores are only rough guides; they cannot measure
+          many things that are relevant to reading comprehension.  If you
+          don't believe this, the clearest argument I can give you is to
+          have you randomly shuffle the words in each sentence of a
+          document.  Virtually all documents will now be unintelligible,
+          yet the typical readability scores will be unchanged.  These
+          scores know nothing about semantics or syntax, the
+          formatting/font of the text, how nice it's visually organized, or
+          the background and interest of the reader.  These (and many
+          other) things are relevent to reading comprehension, yet are
+          obviously beyond the ken of a computer program.
     - I use this script as a guide to how well I am writing
         - My writing targets in grade level
             - General reader:  8
             - Technical document for educated readers:  12
-        - It took me many years to get out of the habit of writing with the style I
-          learned in academia.  This was OK in graduate school, but in the real,
-          practical world, it turns readers off and lowers comprehension.
-        - A core realization in my industrial career was that I needed to get my
-          message across to busy executives and decision makers in half a page of
-          paper with easy-to-read prose.  Put the gory details in an appendix.
+        - It took me many years to get out of the habit of writing with the
+          style I learned in academia.  This was OK in graduate school, but
+          in the real, practical world, it turns readers off and lowers
+          comprehension.
+        - A core realization in my industrial career was that I needed to
+          get my message across to busy executives and decision makers in
+          half a page of paper with easy-to-read prose.  Put the gory
+          details in an appendix.
         - Read good references on clear writing
             - Malcom Forbes "How to Write a Business Letter"
-            - "How to Write Clearly" by Edward Thompson, Editor-in-Chief, Reader's
-              Digest
+            - "How to Write Clearly" by Edward Thompson, Editor-in-Chief,
+              Reader's Digest
             - "Writing that Works" by Kenneth Roman and Joel Raphaelson
             - Strunk & White
             - Chicago Manual of Style
-            - Getting the details right means you care about the craft of writing and
-              your reader
-        - Hemingway:  "I write one page of masterpiece to ninety-one pages of shit.
-          I try to put the shit in the wastebasket."
+            - Getting the details right means you care about the craft of
+              writing and your reader
+        - Hemingway:  "I write one page of masterpiece to ninety-one pages
+          of shit.  I try to put the shit in the wastebasket."
 
 Algorithms
     - Gunning Fog Index
@@ -678,6 +684,7 @@ if 1:   # Readability metric algorithms
         where
             L = 100*characters/words
             S = 100*sentences/words
+        '''
         return 5.89*characters/words - 0.3*sentences/(100*words) - 15.8
     def FleschKincaidReadingEase(words, syllables, sentences):
         ASW = syllables/words
