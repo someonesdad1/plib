@@ -3,7 +3,7 @@ Calculate readability statistics for a set of files
  
     I use this script to estimate the Flesch-Kincaid US grade level (FKGL)
     for the text files on the command line.  For my own writing, I aim to
-    have an FKGL score of 8 for general writing and <= 12 for technical
+    have an FKGL score of <= 8 for general writing and <= 12 for technical
     writing.
  
     Hemingway:  "I write one page of masterpiece to ninety-one pages of
@@ -15,6 +15,22 @@ Calculate readability statistics for a set of files
         - Kenneth Roman and Joel Raphaelson, "Writing That Works"
         - Strunk & White
         - Chicago Manual of Style
+
+
+https://en.wikipedia.org/wiki/Readability#Using_the_readability_formulas
+    
+    Most experts agree that simple readability formulas like Flesch–Kincaid
+    grade-level can be highly misleading. Even though the traditional
+    features like the average sentence length have high correlation with
+    reading difficulty, the measure of readability is much more complex.
+    The artificial intelligence, data-driven approach (see above) was
+    studied to tackle this shortcoming.
+
+While I recognize the complexity of the task to "measure" readability, the
+simplicity of the formulas like those used in this script are attractive
+compared to the work needed to generate the AI tools mentioned in the
+wikipedia article.
+
 '''
 if 1:   # Header
     if 1:  # Copyright, license
@@ -68,7 +84,8 @@ if 1:   # Utility
           -C    Colorize the statistics and print color key
           -c    Colorize the statistics
           -d    Turn on debug printing (shows more data)
-          -e    Same as -d but uses an abbreviated number form
+          -e    Same as -d but uses an abbreviated number form (example:
+                2.4³ means 2.4e3)
           -h    Print a manpage
           -p    Print to one decimal place (integer is default)
           -t    Run self-tests
@@ -116,8 +133,9 @@ if 1:   # Utility
         t.N = t.n if d["-c"] else ""
     def Manpage():
         print(dedent(f'''
-        This script prints various readability estimates for the text files on the
-        command line.  The estimates are
+
+        This script prints various readability estimates for the text files
+        on the command line.  The estimates are
  
             FKGL    Flesch-Kincaid Grade Level
             FRES    Flesch-Kincaid Reading Ease (0-100, 100 easy)
@@ -126,30 +144,33 @@ if 1:   # Utility
             CL      Coleman-Liau Index
             SMOG    SMOG Index
  
-        Except for FRES, the estimates are in terms of the US school grade level (1-8
-        is grammar school, 9-12 is high school, 13-16 is college and > 16 is
-        post-college-graduate).  The metrics are given as integers, which is
-        appropriate since they are approximate estimates.  You can see one decimal
-        place with the -p option.
+        Except for FRES, the estimates are in terms of the US school grade
+        level (1-8 is grammar school, 9-12 is high school, 13-16 is college
+        and > 16 is post-college-graduate).  The metrics are given as
+        integers, which is appropriate since they are approximate
+        estimates.  You can see one decimal place with the -p option.
  
-        I have standardized on using the FKGL estimate to make decisions about
-        readability of my writing.  I've found it to be a good tool when used on
-        plain prose with on the order of 1000 words or more.  Because it's a simple
-        statistic, it's not difficult to construct pathological examples.  For
-        example, on the above wikipedia page link, run this script on the Proust
-        sentence and the FKGL will be 233, indicating that this is poor writing from
-        a readability standpoint (and the assessment is correct).  If you use it on
-        plain ASCII prose in English, it gives good guidance.  
+        I have standardized on using the FKGL estimate to make decisions
+        about readability of my writing.  I've found it to be a good tool
+        when used on plain prose with on the order of 1000 words or more.
+        Because it's a simple statistic, it's not difficult to construct
+        pathological examples.  For example, on the above wikipedia page
+        link, run this script on the Proust sentence and the FKGL will be
+        233, indicating that this is poor writing from a readability
+        standpoint (and the assessment is correct).  If you use it on plain
+        ASCII prose in English, it gives good guidance.  
  
-        These estimation tools are necessarily simple.  For example, if you randomly
-        shuffled the letters in each word and somehow kept the number of syllables
-        per word the same (the script uses a heuristic to calculate the number of
-        syllables per word), the FKGL statistic would stay the same, but the text
-        would be unreadable.  Nevertheless, I've found the FKGL statistic works well
-        for assessing plain prose in ASCII text form.
+        These estimation tools are necessarily simple.  For example, if you
+        randomly shuffled the letters in each word and somehow kept the
+        number of syllables per word the same (the script uses a heuristic
+        to calculate the number of syllables per word), the FKGL statistic
+        would stay the same, but the text would be unreadable.
+        Nevertheless, I've found the FKGL statistic works well for
+        assessing plain prose in ASCII text form.
 
-        If you use the -e option, you can see the characters, words, etc.  given to 2
-        significant figures, making easier to estimate other statistics.
+        If you use the -e option, you can see the characters, words, etc.
+        given to 2 significant figures, making easier to estimate other
+        statistics.
  
         Some FKGL examples
         ------------------
@@ -340,11 +361,11 @@ if 1:   # Utility
           Andy Weir
             5 TheMartian.txt
  
-            I wondered why "The Martian" had such a low readability score.  Comparing
-            the output of 'readability.py -e' for the Martian and Dickens'
-            "Sunday_under_Three_Heads.txt" showed that the number of words per
-            sentence for the Dickens writing was 3.4 times as large as the Martian
-            novel:  The average sentence length ASL (Words/Sent) for the Dickens
+            I wondered why "The Martian" had such a low readability score.
+            Comparing the output of 'readability.py -e' for the Martian and
+            Dickens' "Sunday_under_Three_Heads.txt" showed that the number
+            of words per sentence for the Dickens writing was 3.4 times as
+            large as the Martian novel:  
  
                Chars  Words CpxWrd OneSyl    Syl   Sent   FKGL 
                 4.3⁵   1.0⁵   7.9³   7.1⁴   1.4⁵   9.2³      5 martian.txt
@@ -459,6 +480,10 @@ if 1:   # Core functionality
         # March 29, 2005,  You can find it at
         # http://freshmeat.net/projects/pyflesch/.  Update 10 Nov 2019:  This
         # URL is defunct.
+        #
+        # As of 3 Nov 2023, a web search turned up
+        # https://github.com/sebbacon/pyflesch which uses a database of
+        # words with number of syllables.
         syl = 0
         subtract_syl = ['cial', 'tia', 'cius', 'cious', 'giu', 'ion', 'iou',
                         'sia$', '.ely$', 'ea.', 'oa.', 'enced$']

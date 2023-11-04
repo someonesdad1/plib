@@ -476,7 +476,7 @@ if __name__ == "__main__":
         "fixed width": None,                    # -n
         "output fixed width": None,             # -m
         "output fixed max width": False,        # -M
-        "max field widths": {}
+        "max field widths": {},
         "output separator": "\t",               # -o
         "reverse sense": False,                 # -R
         "same size records": False,             # -s

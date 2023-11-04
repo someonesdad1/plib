@@ -112,8 +112,8 @@ if 1:   # Utility
             
             Non-7-bit characters seen in e.g. UTF-8 encoded files will be seen
             in tokens, so this program should work on encoded files in a
-            suitable terminal.  The line numbers and offsets of these non-
-            7-bit characters will be sent to stderr if the -8 option is used.
+            suitable terminal.  If a different encoding is used, use a
+            program like /usr/bin/iconv to conver to UTF-8.
         
         CROSS-REFERENCING OPTIONS
           -@
@@ -277,7 +277,7 @@ if 1:   # Utility
         d["-g"] = False     # Do not remove digits from tokens
         d["-h"] = False     # Print manpage
         d["-I"] = False     # Show informational stats
-        d["-i"] = True      # Do not ignore case of tokens
+        d["-i"] = True      # Ignore case of tokens
         d["-k"] = False     # Split composite tokens
         d["-N"] = False     # Don't ignore tokens beginning with a digit
         d["-n"] = False     # Print correctly-spelled tokens
@@ -318,52 +318,6 @@ if 1:   # Utility
             Usage()
         return args
 if 1:   # Core functionality
-    def Xref(stream, filename, preserve_case=True, mydict={}):
-        ''' Build a dictionary of the tokens from stream, which will be read
-        a line at a time.  mydict = dict(token: fdict) where fdict is
-        dict(filename: set of line numbers where token was found).
-        Stream is named by filename and will usually be the stream from
-        open(filename), but it might be something else like the stdin stream
-        which was labeled "stdin".
-    
-        The punctuation and control characters in the line are replaced
-        with space characters, then each line is parsed on whitespace.  The
-        tokens are inserted into the dictionary, which is returned.
-        Multiple calls with a dictionary allow cross-referencing tokens in
-        multiple files.
-        '''
-        if not hasattr(Xref, "punct"):
-            # Construct a regexp that can be used to replace punctuation
-            # with space characters for subsequent tokenizing.  '_' is
-            # removed, as it is a valid token identifier character.
-            punct = string.punctuation.replace("_", "")
-            p = [re.escape(i) for i in punct]
-            Xref.punct = re.compile('|'.join(p))
-        def ProcessLine(line, linenum):
-            line = line.rstrip("\n\r").replace("\t", " ")
-            line = Xref.punct.sub(" ", line)        # Replace punct w/ space
-            line = line if not preserve_case else line.lower() 
-            words = re.split("  *", line)
-            for word in words:
-                if not word:
-                    continue
-                # Ignore any token that begins with a number
-                if not d["-N"] and word[0] in string.digits:
-                    continue
-                if word not in mydict:
-                    mydict[word] = {filename: set()}
-                if filename not in mydict[word]:
-                    mydict[word][filename] = set()
-                if linenum not in mydict[word][filename]:
-                    mydict[word][filename].add(linenum)
-        # Read the lines from the stream
-        linenum = 0
-        line = stream.readline()
-        while line:
-            linenum += 1   # Line numbering is 1-based
-            ProcessLine(line, linenum)
-            line = stream.readline()
-        return mydict 
     def GetWords(s):
         ' Return a set of words in the multiline string s'
         return set(s.split())
@@ -423,19 +377,6 @@ if 1:   # Core functionality
         '''
         s.update(GetWords(t))
         return s
-    def GetWordlists():
-        ''' 
-        '''
-        if not d["-c"]:
-            d["wordlist"].update(Keywords())
-        if d["-C"]:
-            d["wordlist"].update(GetContractions())
-        for f in d["-d"]:
-            s = open(f).read()
-            d["wordlist"].update(GetWords(s))
-        if d["-D"] is not None:
-            s = open(d["-D"]).read()
-            d["wordlist"].update(GetWords(s))
     def GetContractions():
         ''' Return a set of contraction words
         '''
@@ -447,13 +388,6 @@ if 1:   # Core functionality
         'Read in the files to process from stdin, one file per line'
         files = [i.strip() for i in sys.stdin.read().split("\n") if i.strip()]
         return [i for i in files if i[0] != "#"]    # Removed 'commented' files
-    def ProcessFile(file: str) -> None:
-        "Read in this file's tokens and put them into d['tokens']"
-        if file == "-":
-            stream, name = sys.stdin, "stdin"
-        else:
-            stream, name = open(file), file
-        Xref(stream, name, preserve_case=d["-i"], mydict=d["tokens"])
     def NumReferences(token: str):
         'Return the number of line references this token has'
         n = 0
@@ -484,27 +418,6 @@ if 1:   # Core functionality
         s = ''.join(new)
         return s.lower().split() if d["-i"] else s.split()
     SplitCompositeToken.capitals = set(string.ascii_uppercase)
-    def SpellCheck():
-        'Print misspelled words'
-        GetWordlists()
-        # T is the set of tokens found in the input
-        # W is the set of allowed words
-        T, W = sorted(d["tokens"].keys()), d["wordlist"]
-        for t in T:
-            misspelled = False
-            if d["-k"]:     # Split composite tokens first
-                for w in SplitCompositeToken(t):
-                    if w not in W:
-                        misspelled = True
-                        break
-            else:
-                tk = RemoveDigits(t.lower() if d["-i"] else t)
-                misspelled = tk not in W
-            if d["-n"]:
-                if not misspelled:
-                    print(t)
-            elif misspelled:
-                print(t)
     def Non7BitCharacters():
         'Return a list of any non-7bit characters in the tokens'
         all_chars = set(''.join(set(d["tokens"])))
@@ -589,6 +502,95 @@ if 1:   # Core functionality
         for i in s:
             o.append(i[1])
         print(w(' '.join(o)))
+    def GetWordlists():
+        if not d["-c"]:
+            d["wordlist"].update(Keywords())
+        if d["-C"]:
+            d["wordlist"].update(GetContractions())
+        for f in d["-d"]:
+            s = open(f).read()
+            d["wordlist"].update(GetWords(s))
+        if d["-D"] is not None:
+            s = open(d["-D"]).read()
+            d["wordlist"].update(GetWords(s))
+        if d["-i"]:
+            # Change all words to lowercase
+            d["wordlist"] = set(i.lower() for i in d["wordlist"])
+    def SpellCheck():
+        'Print misspelled words'
+        GetWordlists()
+        # T is the set of tokens found in the input
+        # W is the set of allowed words
+        T, W = sorted(d["tokens"].keys()), d["wordlist"]
+        for t in T:
+            misspelled = False
+            if d["-k"]:     # Split composite tokens first
+                for w in SplitCompositeToken(t):
+                    if w not in W:
+                        misspelled = True
+                        break
+            else:
+                tk = RemoveDigits(t.lower() if d["-i"] else t)
+                misspelled = tk not in W
+            if d["-n"]:
+                if not misspelled:
+                    print(t)
+            elif misspelled:
+                print(t)
+    def ProcessFile(file: str) -> None:
+        "Read in this file's tokens and put them into d['tokens']"
+        if file == "-":
+            stream, name = sys.stdin, "stdin"
+        else:
+            stream, name = open(file), file
+        Xref(stream, name, preserve_case=d["-i"], mydict=d["tokens"])
+    def Xref(stream, filename, preserve_case=True, mydict={}):
+        ''' Build a dictionary of the tokens from stream, which will be read
+        a line at a time.  mydict = dict(token: fdict) where fdict is
+        dict(filename: set of line numbers where token was found).
+        Stream is named by filename and will usually be the stream from
+        open(filename), but it might be something else like the stdin stream
+        which was labeled "stdin".
+    
+        The punctuation and control characters in the line are replaced
+        with space characters, then each line is split on whitespace.  The
+        tokens are inserted into the dictionary, which is returned.
+        Multiple calls with a dictionary allow cross-referencing tokens in
+        multiple files.
+        '''
+        if not hasattr(Xref, "punct"):
+            # Construct a regexp that can be used to replace punctuation
+            # with space characters for subsequent tokenizing.  '_' is
+            # removed, as it is a valid token identifier character.
+            punct = string.punctuation.replace("_", "")
+            p = [re.escape(i) for i in punct]
+            Xref.punct = re.compile('|'.join(p))
+        def ProcessLine(line, linenum):
+            line = line.rstrip("\n\r").replace("\t", " ")
+            line = Xref.punct.sub(" ", line)        # Replace punct w/ space
+            line = line if not preserve_case else line.lower() 
+            # xx Why not use str.split(); it should do the same thing.
+            words = re.split("  *", line)
+            for word in words:
+                if not word:
+                    continue
+                # Ignore any token that begins with a number
+                if not d["-N"] and word[0] in string.digits:
+                    continue
+                if word not in mydict:
+                    mydict[word] = {filename: set()}
+                if filename not in mydict[word]:
+                    mydict[word][filename] = set()
+                if linenum not in mydict[word][filename]:
+                    mydict[word][filename].add(linenum)
+        # Read the lines from the stream
+        linenum = 0
+        line = stream.readline()
+        while line:
+            linenum += 1   # Line numbering is 1-based
+            ProcessLine(line, linenum)
+            line = stream.readline()
+        return mydict 
 
 if __name__ == "__main__":
     d = {}      # Options dictionary

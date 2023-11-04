@@ -368,12 +368,12 @@ if 1:   # Manpage
             This is easily seen when reading research literature.  When I worked in
             R&D at HP, a good friend who was an executive politely told me I wrote
             too many words and used too many unfamiliar words.  This almost
-            guaranteed the memos and reports I wrote to influence decision makes were
+            guaranteed the memos and reports I wrote to influence decision makers were
             not read.  Later, when I was in management, I noticed the same behavior
             in my department, so I studied books aimed at helping professionals to
             write better.  It took effort and study to unlearn the stilted academic
             habits we all had.  But it helped us write a bit better for our
-            industrial environment.
+            business environment.
             
             The main lesson my friend taught me was that decision makers (executives,
             managers, senior-level technical staff) are overloaded with reading
@@ -387,7 +387,7 @@ if 1:   # Manpage
             communications.  This further showed the need for more careful writing,
             so I routinely used the precursor of this library to analyze every piece
             of writing I was responsible for.  It must have helped, as they used my
-            writing services occasionally over a decade or more.
+            writing services for over a decade.
 
             I settled on the Flesch-Kincaid grade level (FKGL) in integer form as the
             most practical guide to reading ease.  I read somewhere that "Reader's
