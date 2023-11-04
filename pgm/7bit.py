@@ -45,26 +45,27 @@ if 1:   # Utility
         Usage:  {name} [options] file1 [file2 ...]
             Show the non-ASCII characters in the files by character with the line
             numbers that character occurs on.  Column and line numbers are 1-based.
-            Whitespace is ignored.
+            Whitespace is ignored.  The file is read as UTF-8 unless the -b
+            option is used.
         Options
-            -c  Show column numbers too with line_number:column_number format.
-            -l  Just print out the file name if a non-ASCII character is found.
-            -u  Read lines as UTF8-encoded text and show the non-7bit characters
-            -w  Wrap lines to make easier to read.
+            -b  Read file as binary
+            -c  Show column numbers too with line_number:column_number format
+            -l  Just print out the file name if a non-ASCII character is found
+            -w  Wrap lines to make easier to read
         '''))
         exit(status)
     def ParseCommandLine(d):
+        d["-b"] = False     # Read as binary
         d["-c"] = False     # Use linenum:col format
         d["-l"] = False     # Only print the filename
-        d["-u"] = False     # Read as UTF8 text
         d["-w"] = False     # Wrap lines
         try:
-            optlist, args = getopt.getopt(sys.argv[1:], "chluw")
+            optlist, args = getopt.getopt(sys.argv[1:], "bchlw")
         except getopt.GetoptError as str:
             msg, option = str
             Error(msg)
         for o, a in optlist:
-            if o[1] in list("cluw"):
+            if o[1] in list("bclw"):
                 d[o] = not d[o]
             elif o == "-h":
                 Usage(0)
@@ -164,7 +165,7 @@ if 1:   # Core functionality
     def ProcessFile(file, d):
         # Dictionary to keep track of non-ASCII bytes found
         nonascii = defaultdict(list)
-        if d["-u"]:     # Show Unicode characters 
+        if not d["-b"]:     # Show Unicode characters 
             for linenum, line in enumerate(GetLinesText(file)):
                 if RemoveASCIICharacters(line):
                     if d["-l"]: 
