@@ -1,10 +1,18 @@
 Active
-    
-    - words
-        - Dicts in /pylib/pgm/words and /pylib/pgm/wordlists
-        - Create a github repository to contain my various dictionaries
-        - Set it up to be the directory /words
 
+    - pgm/words.py
+        - Use a variety of operators to say what to do with a file
+            - Analyze:  count words, lines, characters, sentences,
+              paragraphs.  
+            - Same as analyze but include word count frequencies
+              sorted by quantity.  Print in columnar format.
+            - Frequency:  print a histogram of the most heavily used
+              words.  -c will subtract out the common words like the, and,
+              etc.
+            - Dict comparison:  show the words used that are not in
+              the dict specified by the -d option.
+            - Readability assessment
+    
     - wordparse.py
         - Tokenize a file and apply heuristics to get rid of things like 
           '*italic*', '[GitHub](http://github.com)', etc.  This would for
@@ -14,12 +22,15 @@ Active
 
     - Readability
         - Once the NGSL stuff is built, it could be combined into about a
-          5k wordlist that would cover a lot of writing, as it's aimed at
-          ESL applications and has something like 90%+ coverage of general,
-          academic, and business writing.  This should be added as an
-          option to pgm/readability.py.
+          15k wordlist from the lemmatized stuff that would cover a lot of
+          writing, as it's aimed at ESL applications and has something like
+          90%+ coverage of general, academic, and business writing.  This
+          should be added as an option to pgm/readability.py.
         - This will need to be tuned with a number of the various words I
           use in general writing.
+        - A weakness of FK type metrics is that they can be fooled by
+          gobbledygook (e.g., shuffle the words in a sentence and they'll
+          still remain the same).
 
     - pgm/lump.py
         - Script that takes regexps on the command line and finds all

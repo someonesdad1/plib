@@ -122,10 +122,12 @@ if __name__ == "__main__":
     else:
         for file in files:
             try:
-                s = sys.stdin if file == "-" else open(file)
                 filename = "<stdin>" if file == "-" else file
-            except Exception:
+                s = sys.stdin if file == "-" else open(file)
+            except FileNotFoundError:
                 print(f"Couldn't open '{filename}'", file=sys.stderr) 
+                if len(files) == 1:
+                    exit(1)
             result = CountLines(s, filename)
             if result is not None:
                 results.append(result)
