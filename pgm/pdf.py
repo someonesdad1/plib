@@ -59,17 +59,17 @@ if 1:   # Utility
         if len(sys.argv) < 2:
             Usage()
         try:
-            opts, args = getopt.getopt(sys.argv[1:], "ad:h") 
+            opts, args = getopt.getopt(sys.argv[1:], "ad:ht:") 
         except getopt.GetoptError as e:
             print(str(e))
             exit(1)
         for o, a in opts:
             if o[1] in list(""):
                 d[o] = not d[o]
-            elif o in ("-d",):
+            elif o == "-t":
                 try:
-                    d["-d"] = int(a)
-                    if not (0 <= d["-d"] <= 8):
+                    d[o] = int(a)
+                    if not (0 <= d[o] <= 8):
                         raise ValueError()
                 except ValueError:
                     msg = "-t option's argument must be an integer between 0 and 8"
@@ -81,20 +81,127 @@ if 1:   # Core functionality
     def ToText(*files):
         for file in files:
             pdf = P(file)
-            txt = P(pdf.stem + ".txt")
+            out = P(pdf.stem + ".txt")
             cmd = ["pdftotext", 
                    "-enc UTF-8",
                    str(pdf),
-                   str(txt)
+                   str(out)
                   ]
             s = ' '.join(cmd)
             r = subprocess.run(s, shell=True, capture_output=True)
             if r.returncode:
                 t.print(f"{t.err}{s!r} failed:", file=sys.stderr)
                 t.print(f"  {t.msg}{r.stderr.strip().decode()!r}", file=sys.stderr)
+    def ToPS(*files):
+        for file in files:
+            pdf = P(file)
+            out = P(pdf.stem + ".ps")
+            cmd = ["pdftops", 
+                   str(pdf),
+                   str(out)
+                  ]
+            s = ' '.join(cmd)
+            r = subprocess.run(s, shell=True, capture_output=True)
+            if r.returncode:
+                t.print(f"{t.err}{s!r} failed:", file=sys.stderr)
+                t.print(f"  {t.msg}{r.stderr.strip().decode()!r}", file=sys.stderr)
+    def ToHTML(*files):
+        if len(files) != 2:
+            Error("For pdftohtml, first arg is PDF and second is directory")
+        pdf = P(files[0])
+        cmd = ["pdftohtml", 
+                str(pdf),
+                str(files[1])
+                ]
+        s = ' '.join(cmd)
+        r = subprocess.run(s, shell=True, capture_output=True)
+        if r.returncode:
+            t.print(f"{t.err}{s!r} failed:", file=sys.stderr)
+            t.print(f"  {t.msg}{r.stderr.strip().decode()!r}", file=sys.stderr)
+    def Info(*files):
+        for file in files:
+            pdf = P(file)
+            cmd = ["pdfinfo", str(pdf)]
+            s = ' '.join(cmd)
+            r = subprocess.run(s, shell=True, capture_output=True)
+            if r.returncode:
+                t.print(f"{t.err}{s!r} failed:", file=sys.stderr)
+                t.print(f"  {t.msg}{r.stderr.strip().decode()!r}", file=sys.stderr)
+            print(file)
+            for i in r.stdout.decode().split("\n"):
+                if i.strip():
+                    print(f"  {i}")
+    def Fonts(*files):
+        for file in files:
+            pdf = P(file)
+            cmd = ["pdffonts", str(pdf)]
+            s = ' '.join(cmd)
+            r = subprocess.run(s, shell=True, capture_output=True)
+            if r.returncode:
+                t.print(f"{t.err}{s!r} failed:", file=sys.stderr)
+                t.print(f"  {t.msg}{r.stderr.strip().decode()!r}", file=sys.stderr)
+            print(file)
+            for i in r.stdout.decode().split("\n"):
+                if i.strip():
+                    print(f"  {i}")
+    def Detach(*files):
+        for file in files:
+            pdf = P(file)
+            cmd = ["pdfdetach", "-list", str(pdf)]
+            s = ' '.join(cmd)
+            r = subprocess.run(s, shell=True, capture_output=True)
+            if r.returncode:
+                t.print(f"{t.err}{s!r} failed:", file=sys.stderr)
+                t.print(f"  {t.msg}{r.stderr.strip().decode()!r}", file=sys.stderr)
+            print(file)
+            for i in r.stdout.decode().split("\n"):
+                if i.strip():
+                    print(f"  {i}")
+    def PNG(*files):
+        if len(files) != 2:
+            Error("For pdftopng, first arg is PDF and second is PNG name root")
+        pdf = P(files[0])
+        cmd = ["pdftopng", 
+                str(pdf),
+                str(files[1])
+                ]
+        s = ' '.join(cmd)
+        r = subprocess.run(s, shell=True, capture_output=True)
+        if r.returncode:
+            t.print(f"{t.err}{s!r} failed:", file=sys.stderr)
+            t.print(f"  {t.msg}{r.stderr.strip().decode()!r}", file=sys.stderr)
+    def Images(*files):
+        if len(files) != 2:
+            Error("For pdfimages, first arg is PDF and second is image root")
+        pdf = P(files[0])
+        cmd = ["pdfimages", 
+                str(pdf),
+                str(files[1])
+                ]
+        s = ' '.join(cmd)
+        r = subprocess.run(s, shell=True, capture_output=True)
+        if r.returncode:
+            t.print(f"{t.err}{s!r} failed:", file=sys.stderr)
+            t.print(f"  {t.msg}{r.stderr.strip().decode()!r}", file=sys.stderr)
 
 if __name__ == "__main__":
     d = {}      # Options dictionary
     files = ParseCommandLine(d)
     if d["-t"] == 0:
         ToText(*files)
+    elif d["-t"] == 1:
+        ToPS(*files)
+    elif d["-t"] == 2:
+        ToHTML(*files)
+    elif d["-t"] == 3:
+        Info(*files)
+    elif d["-t"] == 4:
+        Fonts(*files)
+    elif d["-t"] == 5:
+        Detach(*files)
+    elif d["-t"] == 6:
+        Error("pdftoppm not supported")
+    elif d["-t"] == 7:
+        PNG(*files)
+    elif d["-t"] == 8:
+        Images(*files)
