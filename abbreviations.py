@@ -1,7 +1,12 @@
 '''
 Determine if a string is an English abbrevation (case ignored)
-        from abbreviations import IsAbbreviation
+  Use:  from abbreviations import IsAbbreviation
         IsAbbreviation(w: str) -> bool
+
+Source:  I put together this list over a period of time from a variety of
+searches and manual construction.  The typical method is to search for a
+string in text that ends in "." that's not a word in a dictionary.
+
 '''
 if 1:  # Copyright, license
     # These "trigger strings" can be managed with trigger.py
@@ -37,13 +42,13 @@ def IsAbbreviation(w):
             b. b.c. b.c.e. b.o. b.t.u. b.y.o.b. betw. bibliog. biochem.
             biog. biogr. biol. bk. bks. blvd. bot. brit. bur.
 
-            c. c.e. c.e.o. c.o.d. c.p.u. ca. cal. calc. calif. camb.
-            cap. capt. cath. cent. ceram. cert. certif. cf. ch. chap.
-            char. chas. chem. chr. chron. chronol. circ. cl. class.
-            cmdr. co. col. coll. colloq. com. comm. comp. compl. conc.
-            concr. conf. conj. consol. const. constr. cont. contrib.
-            conv. convtrov. coron. corp. corp. corr. corresp. cp. cpd.
-            cpl. cr. crim. crit. ct. cycl.
+            c. c.e. c.e.o. c.o.d. c.p.u. ca. cal. calc. calif. camb.  cap.
+            capt. cath. cent. ceram. cert. certif. cf. ch. chap.  char.
+            chas. chem. chr. chron. chronol. circ. cl. class.  cmdr. co.
+            col. coll. colloq. com. comm. comp. compl. conc.  concr. conf.
+            conj. consol. const. constr. cont. contrib.  conv. convtrov.
+            coron. corp. corr. corresp. cp. cpd. cpl.  cr. crim. crit. ct.
+            cycl.
 
             d.a. d.c. d.i.y. d.o.a. dan. dat. deb. dec. def. deliv. dem.
             dep. dept. deriv. derog. descr. devel. dial. dict. diff.

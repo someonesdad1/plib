@@ -1,17 +1,4 @@
 Active
-
-    - pgm/words.py
-        - Use a variety of operators to say what to do with a file
-            - Analyze:  count words, lines, characters, sentences,
-              paragraphs.  
-            - Same as analyze but include word count frequencies
-              sorted by quantity.  Print in columnar format.
-            - Frequency:  print a histogram of the most heavily used
-              words.  -c will subtract out the common words like the, and,
-              etc.
-            - Dict comparison:  show the words used that are not in
-              the dict specified by the -d option.
-            - Readability assessment
     
     - wordparse.py
         - Tokenize a file and apply heuristics to get rid of things like 
