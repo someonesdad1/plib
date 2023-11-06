@@ -84,6 +84,7 @@ if 1:   # Core functionality
             out = P(pdf.stem + ".txt")
             cmd = ["pdftotext", 
                    "-enc UTF-8",
+                   "-layout",
                    str(pdf),
                    str(out)
                   ]
