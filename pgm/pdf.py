@@ -81,12 +81,10 @@ if 1:   # Core functionality
     def ToText(*files):
         for file in files:
             pdf = P(file)
-            out = P(pdf.stem + ".txt")
             cmd = ["pdftotext", 
                    "-enc UTF-8",
                    "-layout",
-                   str(pdf),
-                   str(out)
+                   str(pdf)
                   ]
             s = ' '.join(cmd)
             r = subprocess.run(s, shell=True, capture_output=True)
