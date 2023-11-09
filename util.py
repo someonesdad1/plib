@@ -54,6 +54,7 @@ StringToNumbers       Convert a string to a sequence of numbers
 TempConvert           Convert a temperature
 Time                  Returns a string giving local time and date
 TranslateSymlink      Returns what a cygwin symlink is pointing to
+Unrange               Turn a seq of integers into a collection of ranges
 US_states             Dictionary of states keyed by 2-letter abbreviation
 VisualCount           Return a list representing a histogram of a sequence
 Walker  (deprecated)  Generator to recursively return files or directories
@@ -1670,6 +1671,63 @@ def ParseComplex(numstring):
             else:
                 raise ValueError(msg)
     return (first, second)
+def unrange(seq, sort_it=True):
+    '''Turn a sequence of integers into a collection of ranges.  Example:
+    1 3 4 5 6 7 8 10 11 12 is turned into "1 3-9 10-12".
+
+    If sort_it is True, the sequence is sorted.
+    '''
+    dq = deque(sorted(seq)) if sort_it else deque(seq)
+    def Get():
+        x = dq.popleft()
+        if not ii(x, int):
+            raise TypeError(f"{x!r} is not an integer")
+        return x
+    if not dq:
+        return ""
+    lastx = dq.popleft()
+    out = [lastx]
+    in_sequence = False
+    while dq:
+        x = Get()
+        #breakpoint() #xx
+        if not in_sequence and x == out[-1] + 1:
+            in_sequence = True
+        elif in_sequence:
+            if x != lastx + 1:
+                in_sequence = False
+                out.extend(["-", lastx])
+                out.append(x)
+        else:
+            out.append(x)
+        lastx = x
+    if in_sequence:
+        out.extend(["-", lastx])
+    s = ' '.join([str(i) for i in out])
+    return s.replace(" - ", "-")
+
+if 0:
+    # Missing area codes
+    ac = [int(i) for i in '''
+        200 265 294 356 383 421 461 490 545 589 635 674 699 752 793 852 892 944 974
+        221 266 295 357 384 422 462 491 546 590 637 675 722 755 794 853 893 946 976
+        222 271 296 358 387 426 465 492 547 591 638 676 723 756 795 871 894 953 977
+        230 273 297 359 388 427 466 493 549 592 642 677 729 759 796 874 895 955 981
+        232 275 298 362 389 429 467 494 550 593 643 685 733 761 797 875 896 957 982
+        233 277 299 366 390 433 471 495 552 594 644 687 735 764 798 880 897 958 987
+        237 278 300 370 391 439 476 496 553 595 648 688 736 766 799 881 898 960 990
+        238 280 322 371 392 444 477 497 554 596 652 690 739 768 822 882 899 961 991
+        241 282 328 372 393 446 481 498 556 597 653 691 741 776 823 883 921 962 992
+        243 285 333 373 394 449 482 499 558 598 654 692 744 777 824 884 922 963 993
+        244 286 335 374 395 451 483 532 560 599 655 693 745 783 827 885 923 964 994
+        245 287 338 375 396 452 485 535 565 625 663 694 746 788 834 886 926 965 995
+        247 288 342 376 397 453 486 536 569 627 665 695 748 789 836 887 927 966 996
+        255 290 344 377 398 454 487 538 576 632 666 696 749 790 841 889 932 967 997
+        258 291 348 378 399 455 488 542 578 633 668 697 750 791 842 890 933 968 998
+        259 292 349 379 400 459 489 543 583 634 673 698 751 792 846 891 935 969 999
+        261 293 355 381'''.split()]
+    print(unrange(ac))
+    exit()
 
 if __name__ == "__main__": 
     # Missing tests for: Ignore Debug, Dispatch, GetString
@@ -1686,6 +1744,23 @@ if __name__ == "__main__":
     # Need to have version, as SizeOf stuff changed between 3.7 and 3.9
     vi = sys.version_info
     ver = f"{vi[0]}.{vi[1]}"
+    def Test_unrange():
+        s = unrange([])
+        Assert(s == "")
+        s = unrange([1])
+        Assert(s == "1")
+        s = unrange([1, 2])
+        Assert(s == "1-2")
+        s = unrange([1, 2, 4])
+        Assert(s == "1-2 4")
+        s = unrange([1, 3, 4, 5, 6, 7, 8, 10, 11, 12])
+        Assert(s == "1 3-8 10-12")
+        n = 10000
+        s = unrange(range(1, n))
+        Assert(s == f"1-{n - 1}")
+        seq = [-i for i in (1, 3, 4, 5, 6, 7, 8, 10, 11, 12)]
+        s = unrange(seq)
+        Assert(s == f"-12--10 -8--3 -1")
     def Test_Cumul():
         for a in ([], [0], [0, 1]):
             Assert(Cumul(a, check=True) == a)

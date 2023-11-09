@@ -1,5 +1,7 @@
 '''
-Description of program
+Provides areacode.areacodes, a dictionary that maps a 3 digit integer North
+America areacode into a string detailing its location.  This same
+information is in the list areacode.areacodelist.
 '''
 if 1:   # Header
     if 1:   # Copyright, license
@@ -24,14 +26,12 @@ if 1:   # Header
     if 1:   # Custom imports
         from columnize import Columnize
         from wrap import dedent, HangingIndent
+        from util import unrange
     if 1:   # Global variables
         ii = isinstance
         W = int(os.environ.get("COLUMNS", "80")) - 1
         L = int(os.environ.get("LINES", "50"))
-        class G:
-            pass
-        g = G()
-        g.di = {
+        areacodes = {
             201: 'NJ Bergen County and Hudson County',
             202: 'Washington, D.C',
             203: 'CT Bridgeport, Danbury, New Haven, Waterbury, and southwestern Connecticut',
@@ -525,7 +525,7 @@ if 1:   # Header
             988: 'an N11 short code for the Suicide & Crisis Lifeline; not assignable as an area code',
             989: 'MI Alpena, Mt. Pleasant, Bay City, Saginaw, Midland, Owosso, and a part of central Michigan',
         }
-        g.lines = [f"{i!s} {j}" for i, j in g.di.items()]
+        areacodelist = [f"{i!s} {j}" for i, j in areacodes.items()]
 if 1:   # Utility
     def Error(*msg, status=1):
         print(*msg, file=sys.stderr)
@@ -573,7 +573,7 @@ if 1:   # Utility
                         "1 and 15")
                     Error(msg)
         if d["-a"]:
-            for i in g.lines:
+            for i in areacodelist:
                 Print(i)
             exit(0)
         if d["-m"]:
@@ -588,26 +588,20 @@ if 1:   # Core functionality
         'Given the regex, find lines that match'
         r = re.compile(regex)
         found = []
-        for i in g.lines:
+        for i in areacodelist:
             if r.search(i):
                 found.append(i)
         return found
     def ShowMissing():
         # Find the numbers not present
         all = set(range(200, 1000))
-        have = set(g.di)
+        have = set(areacodes)
         missing = sorted(list(all - have))
         print("Missing area codes:")
-        if 0:
-            # Print in columns
-            for i in Columnize(missing, indent=" "*2):
-                print(i)
-        else:
-            # Collapse into ranges
-            items = [missing[0]]
-            while missing:
-                item = items.pop(0)
-                
+        # Collapse into ranges
+        s = unrange(missing)
+        for i in s.split():
+            print(f"    {i}")
 
 if __name__ == "__main__":
     d = {}      # Options dictionary
