@@ -1,5 +1,7 @@
 '''
 Lump a group of files' contents together and send to stdout.
+
+Similar to 'cat <glob_patterns>' except can operate recursively.
 '''
 if 1:   # Header
     if 1:   # Copyright, license
@@ -19,18 +21,10 @@ if 1:   # Header
         import getopt
         import os
         from pathlib import Path as P
-        from pprint import pprint as pp
         import sys
     if 1:   # Custom imports
         from wrap import dedent
-        from color import t
-        if 1:
-            import debug
-            debug.SetDebugger()
     if 1:   # Global variables
-        ii = isinstance
-        W = int(os.environ.get("COLUMNS", "80")) - 1
-        L = int(os.environ.get("LINES", "50"))
         class G:
             pass
         g = G()
@@ -80,7 +74,10 @@ if 1:   # Core functionality
         p = P(".")
         list_of_files = []
         for glob in globs:
-            list_of_files.extend(p.rglob(glob) if d["-r"] else p.glob(glob))
+            if glob == "-":
+                list_of_files.append("-")
+            else:
+                list_of_files.extend(p.rglob(glob) if d["-r"] else p.glob(glob))
         got = set()     # Keep track of files we've seen
         for i in list_of_files:
             if i in got:
@@ -90,7 +87,10 @@ if 1:   # Core functionality
                 g.files.append(i)
     def GetFileData():
         for file in g.files:
-            sys.stdout.write(open(file).read())
+            if file == "-":
+                sys.stdout.write(sys.stdin.read())
+            else:
+                sys.stdout.write(open(file).read())
 
 if __name__ == "__main__":
     d = {}      # Options dictionary
