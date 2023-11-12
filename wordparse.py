@@ -1,4 +1,12 @@
 '''
+Todo
+    - Add option to replace punctuation (except ' for contractions) in
+      words with spaces before splitting.
+        - -p replaces punctuation except ' and single - (thus keeping
+          contractions and hyphenations)
+        - -P replaces all punctuation 
+    - Make columnization an option
+
 Provides WordParse(string) to get a list of words in the string.
 
 Run as a script to print a set of the words in the files given on the
@@ -41,36 +49,28 @@ if 1:   # Utility
         exit(status)
     def Usage(status=1):
         print(dedent(f'''
-        Usage:  {sys.argv[0]} [options] etc.
-          Explanations...
+        Usage:  {sys.argv[0]} [options] file1 [file2...]
+          Print out the words in the indicated text files.  Use "-" to read
+          from stdin.
         Options:
             -h      Print a manpage
         '''))
         exit(status)
     def ParseCommandLine(d):
-        d["-a"] = False
-        d["-d"] = 3         # Number of significant digits
-        if len(sys.argv) < 2:
-            Usage()
+        d["-P"] = False     # Replace all punctuation with space
+        d["-p"] = False     # Replace punc except ' and single -
         try:
-            opts, args = getopt.getopt(sys.argv[1:], "ad:h") 
+            opts, args = getopt.getopt(sys.argv[1:], "Pph") 
         except getopt.GetoptError as e:
             print(str(e))
             exit(1)
         for o, a in opts:
-            if o[1] in list("a"):
+            if o[1] in list("Pp"):
                 d[o] = not d[o]
-            elif o in ("-d",):
-                try:
-                    d["-d"] = int(a)
-                    if not (1 <= d["-d"] <= 15):
-                        raise ValueError()
-                except ValueError:
-                    msg = ("-d option's argument must be an integer between "
-                        "1 and 15")
-                    Error(msg)
-            elif o in ("-h", "--help"):
+            elif o == "-h":
                 Usage(status=0)
+        if not args:
+            Usage()
         return args
 if 1:   # Core functionality
     def FixWord(word):
@@ -88,6 +88,27 @@ if 1:   # Core functionality
                 dq.pop()
             else:
                 break
+        if d["-P"] or d["-p"]:
+            print("-P, -p option not working");exit()
+            # Remove middle punctuation characters
+            ndq = dq.copy()
+            while dq:
+                c = dq.popleft()
+                if c in punc:
+                    if d["-P"]:
+                        continue
+                    elif c == "-":
+                        if dq and dq[0] == "-":
+                            dq.popleft()
+                            continue
+                        ndq.append(c)
+                    elif c == "'":
+                        ndq.append(c)
+                    else:
+                        continue
+                else:
+                    ndq.append(c)
+            dq = ndq.copy()
         return ''.join(dq)
     def WordParse(s, ic=False):
         '''Returns a set of words from the string s.
@@ -114,5 +135,5 @@ if __name__ == "__main__":
             s = open(file).read()
         s = Asciify(s)
         words.update(WordParse(s))
-    for i in Columnize(sorted(words)):
+    for i in sorted(words):
         print(i)

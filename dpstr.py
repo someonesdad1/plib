@@ -1,8 +1,6 @@
 '''
 
 Todo
-    - FindStrings(seq, str, ignorecase=False):  return sequence of indexes of
-      where in str the strings in seq are found.
     - Convert token naming conversions to a class
     - Missing tests for GetString, WordID
 
@@ -11,6 +9,12 @@ String utilities
     CommonPrefix     Return a common prefix of a sequence of strings
     CommonSuffix     Return a common suffix of a sequence of strings
     FilterStr        Return a function that removes characters from strings
+ 
+    FindFirstIn      Find first item in sequence in a given set
+    FindLastIn       Find last item in sequence in a given set
+    FindFirstNotIn   Find first item not in sequence in a given set
+    FindLastNotIn    Find last item not in sequence in a given set
+ 
     FindDiff         Return where two strings first differ
     FindStrings      Find locations of a sequence of strings in a string
     FindSubstring    Return indexes of substring in string
@@ -255,15 +259,92 @@ if 1:   # Core functionality
         def rev(s):     # Reverse the string s
             return f([f(list(i)) for i in reversed(s)])
         return rev(CommonPrefix([rev(i) for i in seq]))
-    def Keep(s, keep):
-        '''Return a list (or a string if s is a string) of the items in s that
-        are in keep.
-        '''
-        k = set(keep)
-        def f(x):
-            return x in k
-        ret = filter(f, s)
-        return ''.join(ret) if isinstance(s, str) else list(ret)
+
+    if 0:
+        def Keep(s, keep):
+            '''Return a list (or a string if s is a string) of the items in s that
+            are in keep.
+            '''
+            k = set(keep)
+            def f(x):
+                return x in k
+            ret = filter(f, s)
+            return ''.join(ret) if isinstance(s, str) else list(ret)
+    else:
+
+        def FindFirstIn(s, items, invert=False):
+            '''Return smallest integer i such that s[i] is in items else
+            None.  If invert is True, find the smallest integer i such that
+            s[i] is not in items.
+
+            if s is a reversed type, then we're searching for the last
+            index of the item in items if invert is False or the last
+            index of the first item in reversed(s) that's in items when
+            invert is True.
+            '''
+            if not s or not items:
+                return None
+            set_of_items = set(items)
+            # If s is a reversed iterator, convert it to a list so s[i]
+            # doesn't fail
+            rev = ii(s, reversed)
+            r = list(s) if rev else s
+            n = len(r)
+            for i in range(n):
+                if invert:
+                    if r[i] not in set_of_items:
+                        return n - i - 1 if rev else i
+                else:
+                    if r[i] in set_of_items:
+                        return n - i - 1 if rev else i
+            return None
+        def FindLastIn(s, items):
+            'Return index of last element in s in items or None'
+            return FindFirstIn(reversed(s), items)
+        def FindFirstNotIn(s, items):
+            'Return smallest integer i such that s[i] not in items else None'
+            return FindFirstIn(s, items, invert=True)
+        def FindLastNotIn(s, items):
+            'Return index of last element in s not in items or None'
+            return FindFirstIn(reversed(s), items, invert=True)
+
+        def Keep(s, keep, left=False, middle=False, right=False):
+            '''Return a list (or a string if s is a string) of the items in s that
+            are in keep.
+ 
+            Effectively splits s into sl + sm + sr where 
+ 
+                - sl is the sequence of leftmost elements of s not in keep
+                - sr is the sequence of rightmost elements of s not in keep
+                - sm is the sequence of elements of s with sl and sr trimmed
+                  off where only the elements of s in keep are kept
+ 
+            An invariant is that s == sl + sm + sr, which will be checked
+            if check is True.
+            '''
+            kp = set(keep)
+            def FindLast(first):
+                'Return index of last element of s in keep'
+                # first is index of first element of s in keep
+                found = None
+                for i in reversed(range(first, len(s))):
+                    j = -(i + 1)    # Convert to right-most index
+                    if s[j] in kp:
+                        found = j
+                        break
+                if found is not None:
+                    found = len(s) + j  # Convert to normal indexing
+                return found
+ 
+            first = FindFirst()
+            if first is None:
+                return '' if isinstance(s, str) else []
+ 
+            def f(x):
+                return x in k
+            ret = filter(f, s)
+            return ''.join(ret) if isinstance(s, str) else list(ret)
+
     def KeepFilter(keep):
         '''Return a function that takes a string and returns a string
         containing only those characters that are in keep.
@@ -271,13 +352,25 @@ if 1:   # Core functionality
         def func(s):
             return Keep(s, keep)
         return func
-    def Remove(s, remove):
-        'Return a sequence of the items in s that are not in remove'
-        r = set(remove)
-        def f(x):
-            return x in r
-        ret = filterfalse(f, s)
-        return ''.join(ret) if isinstance(s, str) else type(s)(ret)
+
+    if 0:
+        def Remove(s, remove):
+            'Return a sequence of the items in s that are not in remove'
+            r = set(remove)
+            def f(x):
+                return x in r
+            ret = filterfalse(f, s)
+            return ''.join(ret) if isinstance(s, str) else type(s)(ret)
+    else:
+        def Remove(s, remove):
+            'Return a sequence of the items in s that are not in remove'
+            r = set(remove)
+            def f(x):
+                return x in r
+            ret = filterfalse(f, s)
+            return ''.join(ret) if isinstance(s, str) else type(s)(ret)
+
+
     def RemoveFilter(remove):
         '''Return a function that takes a string and returns a string
         containing only those characters that are not in remove.
@@ -327,30 +420,30 @@ if 1:   # Core functionality
         # If we get here, every character matched up to the end of the
         # shorter string.
         return -1
-    def FindStrings(seq, str, ignorecase=False):
+    def FindStrings(seq, Str, ignorecase=False):
         '''Return list of (i, j) pairs which indicate where the strings in
-        sequence seq (index i) are located in string str (index j).  An
+        sequence seq (index i) are located in string Str (index j).  An
         empty list is returned if there are no matches.
  
         Example:
             seq = "Jan Feb Mar".split()
-            str = "1Jan2001"
-            found = FindStrings(seq, str)
+            Str = "1Jan2001"
+            found = FindStrings(seq, Str)
             Then found is [(0, 1)]
         '''
-        found, s, sq = [], str, seq
+        found, s, sq = [], Str, seq
         if ignorecase:
             # Make copy so we don't change the original seq
-            s = str.lower()
+            s = Str.lower()
             sq = [i.lower() for i in seq]
         for i, u in enumerate(sq):
-            j = str.find(u)
+            j = Str.find(u)
             if j != -1:
                 found.append((i, j))
         return found
     def FindSubstring(mystring, substring):
-        '''Return a tuple of the indexes of where the substring is found
-        in the string mystring.
+        '''Return a tuple of the all the indexes of where the substring is
+        found in the string mystring.
         '''
         if not isinstance(mystring, str):
             raise TypeError("mystring needs to be a string")
@@ -925,12 +1018,65 @@ if 1:   # Core functionality
         # Return scrambled string or list
         return ''.join(s) if is_string else s
 
+if 0: #xx
+    s = "a;bc;d;"
+    items = ";"
+    #
+    print(f"FindFirstIn({s!r}, {items!r})")
+    print(FindFirstIn(s, items))
+    print(f"FindLastIn({s!r}, {items!r})")
+    print(FindLastIn(s, items))
+    #
+    print(f"FindFirstNotIn({s!r}, {items!r})")
+    print(FindFirstNotIn(s, items))
+    print(f"FindLastNotIn({s!r}, {items!r})")
+    print(FindLastNotIn(s, items))
+    exit()
+
 if __name__ == "__main__": 
     from lwtest import run, raises, assert_equal, Assert
     import math
     import os
     from sig import sig
     from color import TRM as t
+    def Test_FindNotIn():
+        # Tests are only on strings, but they should work for any sequence
+        if 1:   # FindFirstIn, FindLastIn
+            F, L = FindFirstIn, FindLastIn
+            Assert(F("", "abc") == None)
+            Assert(L("", "abc") == None)
+            Assert(F("abc", "") == None)
+            Assert(L("abc", "") == None)
+            #
+            Assert(F("abc", "d") == None)
+            Assert(L("abc", "d") == None)
+            #
+            Assert(F("dabc", "d") == 0)
+            #Assert(L("dabc", "d") == 0)
+            #
+            Assert(F("abc;d", ";") == 3)
+            Assert(L("abc;de", ";") == 3)
+            Assert(L("abc;", ";") == 3)
+            Assert(L(";abc;", ";") == 4)
+        if 1:   # FindFirstNotIn, FindLastNotIn
+            F, L = FindFirstNotIn, FindLastNotIn
+            Assert(F("", "abc") == None)
+            Assert(L("", "abc") == None)
+            Assert(F("abc", "") == None)
+            Assert(L("abc", "") == None)
+            #
+            Assert(F("abc", "d") == 0)
+            Assert(L("abc", "d") == 2)
+            #
+            Assert(F("dabc", "d") == 1)
+            Assert(L("dabc", "d") == 3)
+            #
+            Assert(F("abc;d", string.ascii_letters) == 3)
+            Assert(L("abc;de", string.ascii_letters) == 3)
+            Assert(L("abc;", string.ascii_letters) == 3)
+            Assert(L(";abc;", string.ascii_letters) == 4)
+
+        exit() #xx
     def Test_FindStrings():
         seq = "Jan Feb Mar".split()
         str = "1Jan2001"
@@ -1101,26 +1247,26 @@ if __name__ == "__main__":
         Assert(SoundSimilar("don", "din"))
         Assert(not SoundSimilar("robert", "rabbit"))
         Assert(not SoundSimilar("aorta", "rabbit"))
-    def TestCommonPrefix():
+    def Test_CommonPrefix():
         Assert(not CommonPrefix(["a", "b"]))
         Assert("a" == CommonPrefix(["aone", "atwo", "athree"]))
         Assert("abc" == CommonPrefix(["abc", "abc", "abc"]))
         raises(TypeError, CommonPrefix, ["a", 1])
-    def TestCommonSuffix():
+    def Test_CommonSuffix():
         Assert(not CommonSuffix(["a", "b"]))
         Assert("a" == CommonSuffix(["onea", "twoa", "threea"]))
         Assert("abc" == CommonSuffix(["abc", "abc", "abc"]))
         raises(TypeError, CommonSuffix, ["a", 1])
-    def TestKeep():
+    def Test_Keep():
         Assert(Keep("abc", "bc") == "bc")
         A, B = "a b c".split(), "b c".split()
         Assert(Keep(A, B) == B)
-    def TestKeepFilter():
+    def Test_KeepFilter():
         f = KeepFilter("bc")
         Assert(f("abc") == "bc")
-    def TestRemove():
+    def Test_Remove():
         Assert(Remove("abc", "cb") == "a")
-    def TestRemoveFilter():
+    def Test_RemoveFilter():
         f = RemoveFilter("bc")
         Assert(f("abc") == "a")
     def Test_FilterStr():
@@ -1132,7 +1278,7 @@ if __name__ == "__main__":
         s = "a b\tc\nd\re\ff\vg"
         t = RemoveWhitespace(s)
         Assert(t == "abcdefg")
-    def TestFindDiff():
+    def Test_FindDiff():
         s1 = u"hello"
         s2 = u"hello there"
         Assert(FindDiff(s1, s2) == -1)
@@ -1140,16 +1286,16 @@ if __name__ == "__main__":
         Assert(FindDiff(s1, s2) == 4)
         s1 = u""
         Assert(FindDiff(s1, s2, ignore_empty=True) == 0)
-    def TestFindSubstring():
+    def Test_FindSubstring():
         #    01234567890
         s = "x  x    x  "
         Assert(FindSubstring(s, "x") == (0, 3, 8))
-    def TestGetChoice():
+    def Test_GetChoice():
         names = set(("one", "two", "three", "thrifty"))
         Assert(GetChoice("o", names) == "one")
         Assert(set(GetChoice("th", names)) == set(["three", "thrifty"]))
         Assert(GetChoice("z", names) is None)
-    def TestKeepOnlyLetters():
+    def Test_KeepOnlyLetters():
         s = "\t\n\xf8abcABC123_"
         # digits True
         expected = "   abcABC123"
@@ -1163,7 +1309,7 @@ if __name__ == "__main__":
         Assert(t == expected + " "*4)
         t = KeepOnlyLetters(s, underscore=True, digits=False)
         Assert(t == expected + " "*3 + "_")
-    def TestStringSplit():
+    def Test_StringSplit():
         s = "hello there"
         Assert(StringSplit([4, 7], s) == ['hell', 'o t', 'here'])
         t = "3s 3x 4s"
@@ -1172,7 +1318,7 @@ if __name__ == "__main__":
         q = [f('hel'), f('ther'), f('e')]
         Assert(StringSplit(t, s, remainder=True) == q)
         Assert(StringSplit(t, s, remainder=False) == q[:-1])
-    def TestListInColumns():
+    def Test_ListInColumns():
         s = [sig(math.sin(i/20), 3) for i in range(20)]
         got = "\n".join(ListInColumns(s))
         ts = "  "   # Note there are two spaces after these rows...
@@ -1182,7 +1328,7 @@ if __name__ == "__main__":
         exp += "0.0500 0.149  0.247  0.343  0.435  0.523  0.605  0.682  0.751  0.813"
         exp += ts
         Assert(got == exp)
-    def TestNamingConventionConversions():
+    def Test_NamingConventionConversions():
         cw, us, mc = "AbcDef", "abc_def", "abcDef"
         nc = NameConvert()
         Assert(nc.cw2us(cw) == us)
@@ -1220,7 +1366,7 @@ if __name__ == "__main__":
         }
         result = MultipleReplace(text, patterns)
         Assert(result == 'x        x x        x')
-    def TestRemoveComment():
+    def Test_RemoveComment():
         s = ""
         Assert(RemoveComment(s) == s)
         s = "abc"
@@ -1235,13 +1381,13 @@ if __name__ == "__main__":
             raise Exception("Expected a ValueError exception")
         except ValueError:
             pass
-    def TestSpellCheck():
+    def Test_SpellCheck():
         input_list = ("dog", "cAt", "hurse")
         word_dictionary = {"dog": "", "cat": "", "horse": "", "chicken": ""}
         s = SpellCheck(input_list, word_dictionary, ignore_case=True)
         Assert(len(s) == 1 and "hurse" in s)
         s = SpellCheck(input_list, word_dictionary, ignore_case=False)
         Assert(len(s) == 2 and "cAt" in s and "hurse" in s)
-    def TestSplitOnNewlines():
+    def Test_SplitOnNewlines():
         Assert(SplitOnNewlines("1\n2\r\n3\r") == ["1", "2", "3", ""])
     exit(run(globals(), regexp="^Test", halt=1)[0])
