@@ -308,42 +308,64 @@ if 1:   # Core functionality
             'Return index of last element in s not in items or None'
             return FindFirstIn(reversed(s), items, invert=True)
 
-        def Keep(s, keep, left=False, middle=False, right=False):
+        def Keep(s, keep, whole=False, left=False, middle=False, right=False, check=True):
             '''Return a list (or a string if s is a string) of the items in s that
             are in keep.
- 
-            Effectively splits s into sl + sm + sr where 
- 
-                - sl is the sequence of leftmost elements of s not in keep
-                - sr is the sequence of rightmost elements of s not in keep
-                - sm is the sequence of elements of s with sl and sr trimmed
-                  off where only the elements of s in keep are kept
- 
-            An invariant is that s == sl + sm + sr, which will be checked
-            if check is True.
+
+            If whole is True:
+                Returns s only with elements that are in keep.
+                Examples:  
+                    Keep("a;bc;d;", ";") returns ";;;"
+                    Keep("a;bc;d;", string.ascii_lowercase) returns "abcd"
+            else:
+                Effectively splits s into sl + sm + sr where 
+                    - sl is the sequence of leftmost elements of s not in keep
+                    - sr is the sequence of rightmost elements of s not in keep
+                    - sm is the sequence of elements of s with sl and sr trimmed
+                      off where only the elements of s in keep are kept
+                An invariant is that s == sl + sm + sr, which will be checked
+                if check is True.
+                Examples:  
+                    s = "a;bc;d;"
+                    Keep(s, string.ascii_lowercase, left=True) returns "a"
+                    Keep(s, string.ascii_lowercase, middle=True) returns ";bc;d"
+                    Keep(s, string.ascii_lowercase, right=True) returns ";"
+                  Note that the middle and right sections of the string can contain
+                  elements not in keep.  If you don't want this, run
+                  Keep(..., whole=True) on the result.
             '''
             kp = set(keep)
-            def FindLast(first):
-                'Return index of last element of s in keep'
-                # first is index of first element of s in keep
-                found = None
-                for i in reversed(range(first, len(s))):
-                    j = -(i + 1)    # Convert to right-most index
-                    if s[j] in kp:
-                        found = j
-                        break
-                if found is not None:
-                    found = len(s) + j  # Convert to normal indexing
-                return found
- 
-            first = FindFirst()
-            if first is None:
-                return '' if isinstance(s, str) else []
- 
-            def f(x):
-                return x in k
-            ret = filter(f, s)
-            return ''.join(ret) if isinstance(s, str) else list(ret)
+            if whole:
+                result = []
+                for i in s:
+                    if i in kp:
+                        result.append(i)
+                return ''.join(result) if ii(s, str) else result
+            else:
+                sl = FindFirstNotIn(s, keep)
+                sr = FindLastNotIn(s, keep)
+                # Get components
+                s_left = s[:sl]
+                s_right = s[sr:]
+                s_middle = s[sl:sr]
+                if check:
+                    if s_left + s_middle + s_right != s:
+                        if ii(s, str):
+                            msg = "Bug:  s_left + s_middle + s_right != original string"
+                        else:
+                            msg = "Bug:  s_left + s_middle + s_right != original sequence"
+                        raise RuntimeError(msg)
+                result = []
+                if left:
+                    result.append(s_left)
+                if middle:
+                    result.append(s_middle)
+                if right:
+                    result.append(s_right)
+                if ii(s, str):
+                    return ''.join(result)
+                else:
+                    return result
 
     def KeepFilter(keep):
         '''Return a function that takes a string and returns a string
@@ -1018,19 +1040,18 @@ if 1:   # Core functionality
         # Return scrambled string or list
         return ''.join(s) if is_string else s
 
-if 0: #xx
+if 1: #xx
     s = "a;bc;d;"
-    items = ";"
+    items = string.ascii_lowercase
     #
-    print(f"FindFirstIn({s!r}, {items!r})")
-    print(FindFirstIn(s, items))
-    print(f"FindLastIn({s!r}, {items!r})")
-    print(FindLastIn(s, items))
-    #
-    print(f"FindFirstNotIn({s!r}, {items!r})")
-    print(FindFirstNotIn(s, items))
-    print(f"FindLastNotIn({s!r}, {items!r})")
-    print(FindLastNotIn(s, items))
+    print(f"Original       :  {s!r}")
+    print(f"All            :  {Keep(s, items, left=True, middle=True, right=True)!r}")
+    print(f"Left           :  {Keep(s, items, left=True)!r}")
+    print(f"Middle         :  {Keep(s, items, middle=True)!r}")
+    print(f"Right          :  {Keep(s, items, right=True)!r}")
+    print()
+    print(f"Whole = True   :  {Keep(s, ';', whole=True)!r}")
+    print(f"Whole = True   :  {Keep(s, string.ascii_lowercase, whole=True)!r}")
     exit()
 
 if __name__ == "__main__": 
@@ -1047,13 +1068,11 @@ if __name__ == "__main__":
             Assert(L("", "abc") == None)
             Assert(F("abc", "") == None)
             Assert(L("abc", "") == None)
-            #
             Assert(F("abc", "d") == None)
             Assert(L("abc", "d") == None)
             #
             Assert(F("dabc", "d") == 0)
-            #Assert(L("dabc", "d") == 0)
-            #
+            Assert(L("dabc", "d") == 0)
             Assert(F("abc;d", ";") == 3)
             Assert(L("abc;de", ";") == 3)
             Assert(L("abc;", ";") == 3)
@@ -1067,16 +1086,12 @@ if __name__ == "__main__":
             #
             Assert(F("abc", "d") == 0)
             Assert(L("abc", "d") == 2)
-            #
             Assert(F("dabc", "d") == 1)
             Assert(L("dabc", "d") == 3)
-            #
             Assert(F("abc;d", string.ascii_letters) == 3)
             Assert(L("abc;de", string.ascii_letters) == 3)
             Assert(L("abc;", string.ascii_letters) == 3)
             Assert(L(";abc;", string.ascii_letters) == 4)
-
-        exit() #xx
     def Test_FindStrings():
         seq = "Jan Feb Mar".split()
         str = "1Jan2001"
