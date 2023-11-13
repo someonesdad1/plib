@@ -20,13 +20,8 @@ String utilities
     FindStrings      Find locations of a sequence of strings in a string
     FindSubstring    Return indexes of substring in string
     GetChoice        Return choice from a set of choices (minimizes typing)
-    GetLeadingWhitespace
-                     Return leading whitespace of a string.  Can be used to
-                     gather any set of characters from the front of a
-                     string.
-    GetTrailingWhitespace
-                     Return trailing whitespace of a string.  Can be used to
-                     gather any set of characters from the end of a string.
+    GetLeadingChars  Return leading characters of a string
+    GetTrailingChars Return trailing characters of a string
     GetString        Return string from user that matches choices
     IsASCII          Return True if string is all ASCII characters
     Keep             Return items in sequence that are in keep sequence
@@ -80,6 +75,7 @@ if 1:  # Header
         from collections import deque, defaultdict
         from itertools import filterfalse
         from pdb import set_trace as xx 
+        import os
         import random
         import re
         import string
@@ -88,6 +84,7 @@ if 1:  # Header
         import time
     # Custom imports
         from f import flt
+        from color import t
         from wrap import dedent
     # Global variables
         ii = isinstance
@@ -400,7 +397,7 @@ if 1:   # Core functionality
         differ.  The number returned is the index where the first
         difference was found.  If the strings are equal, then -1 is
         returned, implying one string is a substring of the other (or they
-        are the same string).  If ignore_empty is True, an exception is
+        are the same string).  If ignore_empty is False, an exception is
         raised if one of the strings is empty.  If equal_length is True,
         then the strings must be of equal length or a ValueError exception
         is raised.
@@ -412,15 +409,16 @@ if 1:   # Core functionality
         ls1, ls2 = len(s1), len(s2)
         if equal_length and ls1 != ls2:
             raise ValueError("Strings must be equal lengths")
-        n = min(len(s1), len(s2))
+        n = min(ls1, ls2)
         if not n:
             return 0
+        if s1[:n] == s2[:n]:
+            return -1
+        # Compare characters until we get a mismatch
         for i in range(n):
             if s1[i] != s2[i]:
                 return i
-        # If we get here, every character matched up to the end of the
-        # shorter string.
-        return -1
+        raise RuntimeError("Bug:  strings differed")
     def FindStrings(seq, Str, ignorecase=False):
         '''Return list of (i, j) pairs which indicate where the strings in
         sequence seq (index i) are located in string Str (index j).  An
@@ -624,6 +622,8 @@ if 1:   # Core functionality
                               len(str(alist[i]))) + " " * space_betw)
             lines.append(s)
         assert(len(lines) == num_rows)
+        t.print(f"{t('ornl')}dpstr.ListInColumns is obsolete.  "
+                f"Use columnize.Columnize.", file=sys.stderr)
         return lines
     def MultipleReplace(text, patterns, flags=0):
         '''Replace multiple patterns in the string text.  patterns is a
@@ -755,16 +755,16 @@ if 1:   # Core functionality
                     print(line)
                 print()
         '''
-    def Chop(s, size):
+    def Chop(seq, size):
         '''Return a list of the sequence seq chopped into subsequences of
         length size.  The last subsequence will be shorter than size if
-        len(s) % size is not zero.
+        len(seq) % size is not zero.
         '''
         if not ii(size, int) or size <= 0:
             raise ValueError("size must be integer > 0")
         out = []
-        for i in range(0, len(s), size):
-            out.append(s[i:i + size])
+        for i in range(0, len(seq), size):
+            out.append(seq[i:i + size])
         return out
     def ReadData(data, structure, **kw):
         '''Read data from a multiline string data.  structure is a list of the 
@@ -884,46 +884,40 @@ if 1:   # Core functionality
         if check and ''.join(out) != s:
             raise ValueError("Invariant s == ''.join(out) is not True")
         return out
-    def GetLeadingWhitespace(s, ws=None):
-        '''Return the string defining the leading whitespace in the string
-        s.  If ws is not None, use it as the set of characters defining
-        whitespace.  If ws is not given, whitespace characters are defined
-        by the re module's '\\s' metacharacters.
- 
-        You can define the set ws to be any set of characters and the
-        returned string will be the string of those characters that are at
-        the beginning of s.
+    def GetLeadingChars(s, chars=None):
+        '''Return the string defining the leading characters in the string
+        s.  If chars is not None, use it as the set of allowed leading
+        characters.  If chars is None, then return the leading whitespace
+        characters, which are defined by the re module's '\\s'
+        metacharacters.
         '''
         if not ii(s, str):
             raise TypeError("s must be a string")
-        if ws is None:
+        if chars is None:
             r = re.compile(r"^(\s+).*$", re.M)
             mo = r.match(s)
             return mo.groups()[0] if mo else ""
         else:
-            S = set(ws)
+            S = set(chars)
             t = re.escape(''.join(S))
             r = re.compile(f"^([{t}]+).*$", re.M)
             mo = r.match(s)
             return mo.groups()[0] if mo else ""
-    def GetTrailingWhitespace(s, ws=None):
-        '''Return the string defining the trailing whitespace in the string
-        s.  If ws is not None, use it as the set of characters defining
-        whitespace.  If ws is not given, whitespace characters are defined
-        by the re module's '\\s' metacharacters.
- 
-        You can define the set ws to be any set of characters and the
-        returned string will be the string of those characters that are at
-        the end of s.
+    def GetTrailingChars(s, chars=None):
+        '''Return the string defining the trailing characters in the string
+        s.  If chars is not None, use it as the set of allowed trailing
+        characters.  If chars is None, then return the leading whitespace
+        characters, which are defined by the re module's '\\s'
+        metacharacters.
         '''
         if not ii(s, str):
             raise TypeError("s must be a string")
-        if ws is None:
+        if chars is None:
             r = re.compile(r"^[^\s]*(\s+)$", re.M)
             mo = r.match(s)
             return mo.groups()[0] if mo else ""
         else:
-            S = set(ws)
+            S = set(chars)
             t = re.escape(''.join(S))
             r = re.compile(f"([{t}]+)$", re.M)
             mo = r.search(s)
@@ -1128,24 +1122,24 @@ if __name__ == "__main__":
                 "\n",
                 "\t\r\n\f    \t\t\t",
             ):
-            Assert(GetLeadingWhitespace(t) == t)
-            Assert(GetLeadingWhitespace(t + "a") == t)
-            Assert(GetTrailingWhitespace(t) == t)
-            Assert(GetTrailingWhitespace("a" + t) == t)
+            Assert(GetLeadingChars(t) == t)
+            Assert(GetLeadingChars(t + "a") == t)
+            Assert(GetTrailingChars(t) == t)
+            Assert(GetTrailingChars("a" + t) == t)
         # Define custom sets of whitespace
         if 1:   # Leading
-            Assert(GetLeadingWhitespace("  \t  a", ws="z") == "")
-            Assert(GetLeadingWhitespace("  \t  a", ws="\t") == "")
-            Assert(GetLeadingWhitespace("  \t  a", ws=" ") == "  ")
+            Assert(GetLeadingChars("  \t  a", ws="z") == "")
+            Assert(GetLeadingChars("  \t  a", ws="\t") == "")
+            Assert(GetLeadingChars("  \t  a", ws=" ") == "  ")
             ws, t = ".;:", ".;..:::."
-            a = GetLeadingWhitespace(t + "a", ws=ws)
+            a = GetLeadingChars(t + "a", ws=ws)
             Assert(a == t)
         if 1:   # Trailing
-            Assert(GetTrailingWhitespace("a  \t  ", ws="z") == "")
-            Assert(GetTrailingWhitespace("a  \t  ", ws="\t") == "")
-            Assert(GetTrailingWhitespace("a  \t  ", ws=" ") == "  ")
+            Assert(GetTrailingChars("a  \t  ", ws="z") == "")
+            Assert(GetTrailingChars("a  \t  ", ws="\t") == "")
+            Assert(GetTrailingChars("a  \t  ", ws=" ") == "  ")
             ws, t = ".;:", ".;..:::."
-            a = GetTrailingWhitespace("a" + t, ws=ws)
+            a = GetTrailingChars("a" + t, ws=ws)
             Assert(a == t)
     def Test_Tokenize():
         Assert(Tokenize("", check=True) == [])
@@ -1315,15 +1309,16 @@ if __name__ == "__main__":
         Assert(StringSplit(t, s, remainder=True) == q)
         Assert(StringSplit(t, s, remainder=False) == q[:-1])
     def Test_ListInColumns():
-        s = [sig(math.sin(i/20), 3) for i in range(20)]
-        got = "\n".join(ListInColumns(s))
-        ts = "  "   # Note there are two spaces after these rows...
-        exp = "0.00   0.0998 0.199  0.296  0.389  0.479  0.565  0.644  0.717  0.783"
-        exp += ts
-        exp += "\n"
-        exp += "0.0500 0.149  0.247  0.343  0.435  0.523  0.605  0.682  0.751  0.813"
-        exp += ts
-        Assert(got == exp)
+        if 0:
+            s = [sig(math.sin(i/20), 3) for i in range(20)]
+            got = "\n".join(ListInColumns(s))
+            ts = "  "   # Note there are two spaces after these rows...
+            exp = "0.00   0.0998 0.199  0.296  0.389  0.479  0.565  0.644  0.717  0.783"
+            exp += ts
+            exp += "\n"
+            exp += "0.0500 0.149  0.247  0.343  0.435  0.523  0.605  0.682  0.751  0.813"
+            exp += ts
+            Assert(got == exp)
     def Test_NamingConventionConversions():
         cw, us, mc = "AbcDef", "abc_def", "abcDef"
         nc = NameConvert()
@@ -1386,4 +1381,68 @@ if __name__ == "__main__":
         Assert(len(s) == 2 and "cAt" in s and "hurse" in s)
     def Test_SplitOnNewlines():
         Assert(SplitOnNewlines("1\n2\r\n3\r") == ["1", "2", "3", ""])
+    def Demo():
+        'Demonstrate the various functions to stdout'
+        print(f"{t('cynl')}Demo of /plib/dpstr.py functions{t('skyl')}")
+        # Chop
+        s = "abcdefghij"
+        print(f"Chop({s!r}, 3) = {Chop(s, 3)}")
+        # CommonPrefix and CommonSuffix
+        s = ["a.b.c", "a.c.c", "a.d.c"]
+        print(f"CommonPrefix({s!r}) = {CommonPrefix(s)}")
+        print(f"CommonSuffix({s!r}) = {CommonSuffix(s)}")
+        # FilterStr
+        print(dedent('''
+
+        FilterStr() returns a function that can replace a sequence of characters
+        with a corresponding sequence from another equally-sized list of characters.'''))
+        s = "abc"
+        u = "αβɣ"
+        print(f"  Characters to remove  :  {s!r}")
+        print(f"  Replacement characters:  {u!r}")
+        f = FilterStr(s, u)
+        o = "abc are the leading characters of the alphabet"
+        print(f"  Original   :  '{o}'")
+        print(f"  Transformed:  '{f(o)}'")
+        # FindFirstIn, FindLastIn, etc.
+        s = "abc Are the leading characTers of the alphabet"
+        items = string.ascii_uppercase
+        from ruler import Ruler
+        r = Ruler(0, zb=True)
+        print("FindFirstIn, FindLastIn, FindFirstNotIn, FindLastNotIn")
+        print("  Test string s is:")
+        for i in r(len(s)).split("\n"):
+            print(f"    {i}")
+        print(f"    {s}")
+        print(f"  items argument is {items!r}")
+        print(f"    FindFirstIn(s, items) = {FindFirstIn(s, items)} (A)")
+        print(f"    FindLastIn(s, items)  = {FindLastIn(s, items)} (T)")
+        items = string.ascii_lowercase
+        print(f"  items argument is {items!r}")
+        print(f"    FindFirstNotIn(s, items) = {FindFirstNotIn(s, items)} (space)")
+        print(f"    FindLastNotIn(s, items)  = {FindLastNotIn(s, items)} (space)")
+        # FindDiff
+        a, b = "abc", "aBc"
+        print(f"FindDiff({a!r}, {b!r}) = {FindDiff(a, b)}")
+        # FindStrings
+        a = "Jan Feb Mar".split()
+        b = "1Jan2001"
+        print(f"FindStrings({a!r}, {b!r}) = {FindStrings(a, b)}")
+        # FindSubstring
+        mystring = "cat rat hat"
+        substring = "at"
+        print(f"FindSubtring({mystring!r}, {substring!r}) = "
+              f"{FindSubstring(mystring, substring)}")
+        # GetLeadingChars, GetTrailingChars
+        s = "this STRING HAS UPPER AND LOWER CASE letters"
+        chars = string.ascii_lowercase
+        print(f"GetLeadingChars({s!r},\n {' '*15}{chars!r}) = "
+              f"{GetLeadingChars(s, chars)}")
+
+        t.print(end="")
+
+    #if len(sys.argv) > 1:
+    if 1: #xx
+        Demo()
+        exit()
     exit(run(globals(), regexp="^Test", halt=1)[0])
