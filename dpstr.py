@@ -3,6 +3,7 @@
 Todo
     - Convert token naming conversions to a class
     - Missing tests for GetString, WordID
+    - Consider upper & lower keywords for Keep and Remove
 
 String utilities
     Chop             Return a string chopped into equal parts
@@ -29,7 +30,7 @@ String utilities
     GetString        Return string from user that matches choices
     IsASCII          Return True if string is all ASCII characters
     Keep             Return items in sequence that are in keep sequence
-    KeepFilter       Returns a function that will keep a character set
+    KeepFilter       Returns a function that keeps a set of items in a sequence
     KeepOnlyLetters  Replace all non-word characters with spaces
     ListInColumns    Obsolete (use columnize.py)
     MatchCap         Match string capitalization
@@ -259,140 +260,117 @@ if 1:   # Core functionality
         def rev(s):     # Reverse the string s
             return f([f(list(i)) for i in reversed(s)])
         return rev(CommonPrefix([rev(i) for i in seq]))
-
-    if 0:
-        def Keep(s, keep):
-            '''Return a list (or a string if s is a string) of the items in s that
-            are in keep.
-            '''
-            k = set(keep)
-            def f(x):
-                return x in k
-            ret = filter(f, s)
-            return ''.join(ret) if isinstance(s, str) else list(ret)
-    else:
-
-        def FindFirstIn(s, items, invert=False):
-            '''Return smallest integer i such that s[i] is in items else
-            None.  If invert is True, find the smallest integer i such that
-            s[i] is not in items.
-
-            if s is a reversed type, then we're searching for the last
-            index of the item in items if invert is False or the last
-            index of the first item in reversed(s) that's in items when
-            invert is True.
-            '''
-            if not s or not items:
-                return None
-            set_of_items = set(items)
-            # If s is a reversed iterator, convert it to a list so s[i]
-            # doesn't fail
-            rev = ii(s, reversed)
-            r = list(s) if rev else s
-            n = len(r)
-            for i in range(n):
-                if invert:
-                    if r[i] not in set_of_items:
-                        return n - i - 1 if rev else i
-                else:
-                    if r[i] in set_of_items:
-                        return n - i - 1 if rev else i
+    def FindFirstIn(s, items, invert=False):
+        '''Return smallest integer i such that s[i] is in items else
+        None.  If invert is True, find the smallest integer i such that
+        s[i] is not in items.
+ 
+        if s is a reversed type, then we're searching for the last
+        index of the item in items if invert is False or the last
+        index of the first item in reversed(s) that's in items when
+        invert is True.
+        '''
+        if not s or not items:
             return None
-        def FindLastIn(s, items):
-            'Return index of last element in s in items or None'
-            return FindFirstIn(reversed(s), items)
-        def FindFirstNotIn(s, items):
-            'Return smallest integer i such that s[i] not in items else None'
-            return FindFirstIn(s, items, invert=True)
-        def FindLastNotIn(s, items):
-            'Return index of last element in s not in items or None'
-            return FindFirstIn(reversed(s), items, invert=True)
-
-        def Keep(s, keep, whole=False, left=False, middle=False, right=False, check=True):
-            '''Return a list (or a string if s is a string) of the items in s that
-            are in keep.
-
-            If whole is True:
-                Returns s only with elements that are in keep.
-                Examples:  
-                    Keep("a;bc;d;", ";") returns ";;;"
-                    Keep("a;bc;d;", string.ascii_lowercase) returns "abcd"
+        set_of_items = set(items)
+        # If s is a reversed iterator, convert it to a list so s[i]
+        # doesn't fail
+        rev = ii(s, reversed)
+        r = list(s) if rev else s
+        n = len(r)
+        for i in range(n):
+            if invert:
+                if r[i] not in set_of_items:
+                    return n - i - 1 if rev else i
             else:
-                Effectively splits s into sl + sm + sr where 
-                    - sl is the sequence of leftmost elements of s not in keep
-                    - sr is the sequence of rightmost elements of s not in keep
-                    - sm is the sequence of elements of s with sl and sr trimmed
-                      off where only the elements of s in keep are kept
-                An invariant is that s == sl + sm + sr, which will be checked
-                if check is True.
-                Examples:  
-                    s = "a;bc;d;"
-                    Keep(s, string.ascii_lowercase, left=True) returns "a"
-                    Keep(s, string.ascii_lowercase, middle=True) returns ";bc;d"
-                    Keep(s, string.ascii_lowercase, right=True) returns ";"
-                  Note that the middle and right sections of the string can contain
-                  elements not in keep.  If you don't want this, run
-                  Keep(..., whole=True) on the result.
-            '''
-            kp = set(keep)
-            if whole:
-                result = []
-                for i in s:
-                    if i in kp:
-                        result.append(i)
-                return ''.join(result) if ii(s, str) else result
+                if r[i] in set_of_items:
+                    return n - i - 1 if rev else i
+        return None
+    def FindLastIn(s, items):
+        'Return index of last element in s in items or None'
+        return FindFirstIn(reversed(s), items)
+    def FindFirstNotIn(s, items):
+        'Return smallest integer i such that s[i] not in items else None'
+        return FindFirstIn(s, items, invert=True)
+    def FindLastNotIn(s, items):
+        'Return index of last element in s not in items or None'
+        return FindFirstIn(reversed(s), items, invert=True)
+    def Keep(s, keep, whole=True, left=False, middle=False, right=False, check=True):
+        '''Return a list (or a string if s is a string) of the items in s that
+        are in keep.
+ 
+        If whole is True:
+            Returns s only with elements that are in keep.
+            Examples:  
+                Keep("a;bc;d;", ";") returns ";;;"
+                Keep("a;bc;d;", string.ascii_lowercase) returns "abcd"
+            Note whole is True by default.  If left, middle, or right are
+            True, then whole is set to False.
+        else:
+            Effectively splits s into sl + sm + sr where 
+                - sl is the sequence of leftmost elements of s not in keep
+                - sr is the sequence of rightmost elements of s not in keep
+                - sm is the sequence of elements of s with sl and sr trimmed
+                    off where only the elements of s in keep are kept
+            An invariant is that s == sl + sm + sr, which will be checked
+            if check is True.
+            Examples:  
+                s = "a;bc;d;"
+                Keep(s, string.ascii_lowercase, left=True) returns "a"
+                Keep(s, string.ascii_lowercase, middle=True) returns ";bc;d"
+                Keep(s, string.ascii_lowercase, right=True) returns ";"
+                Note that the middle and right sections of the string can contain
+                elements not in keep.  If you don't want this, run
+                Keep(..., whole=True) on the result.
+        '''
+        kp = set(keep)
+        if left or middle or right:
+            whole = False
+        if whole:
+            result = []
+            for i in s:
+                if i in kp:
+                    result.append(i)
+            return ''.join(result) if ii(s, str) else result
+        else:
+            sl = FindFirstNotIn(s, keep)
+            sr = FindLastNotIn(s, keep)
+            # Get components
+            s_left = s[:sl]
+            s_right = s[sr:]
+            s_middle = s[sl:sr]
+            if check:
+                if s_left + s_middle + s_right != s:
+                    if ii(s, str):
+                        msg = "Bug:  s_left + s_middle + s_right != original string"
+                    else:
+                        msg = "Bug:  s_left + s_middle + s_right != original sequence"
+                    raise RuntimeError(msg)
+            result = []
+            if left:
+                result.append(s_left)
+            if middle:
+                result.append(s_middle)
+            if right:
+                result.append(s_right)
+            if ii(s, str):
+                return ''.join(result)
             else:
-                sl = FindFirstNotIn(s, keep)
-                sr = FindLastNotIn(s, keep)
-                # Get components
-                s_left = s[:sl]
-                s_right = s[sr:]
-                s_middle = s[sl:sr]
-                if check:
-                    if s_left + s_middle + s_right != s:
-                        if ii(s, str):
-                            msg = "Bug:  s_left + s_middle + s_right != original string"
-                        else:
-                            msg = "Bug:  s_left + s_middle + s_right != original sequence"
-                        raise RuntimeError(msg)
-                result = []
-                if left:
-                    result.append(s_left)
-                if middle:
-                    result.append(s_middle)
-                if right:
-                    result.append(s_right)
-                if ii(s, str):
-                    return ''.join(result)
-                else:
-                    return result
-
+                return result
     def KeepFilter(keep):
         '''Return a function that takes a string and returns a string
         containing only those characters that are in keep.
         '''
         def func(s):
-            return Keep(s, keep)
+            return Keep(s, keep, whole=True)
         return func
-
-    if 0:
-        def Remove(s, remove):
-            'Return a sequence of the items in s that are not in remove'
-            r = set(remove)
-            def f(x):
-                return x in r
-            ret = filterfalse(f, s)
-            return ''.join(ret) if isinstance(s, str) else type(s)(ret)
-    else:
-        def Remove(s, remove):
-            'Return a sequence of the items in s that are not in remove'
-            r = set(remove)
-            def f(x):
-                return x in r
-            ret = filterfalse(f, s)
-            return ''.join(ret) if isinstance(s, str) else type(s)(ret)
-
-
+    def Remove(s, remove):
+        'Return a sequence of the items in s that are not in remove'
+        r = set(remove)
+        def f(x):
+            return x in r
+        ret = filterfalse(f, s)
+        return ''.join(ret) if isinstance(s, str) else type(s)(ret)
     def RemoveFilter(remove):
         '''Return a function that takes a string and returns a string
         containing only those characters that are not in remove.
@@ -1040,26 +1018,27 @@ if 1:   # Core functionality
         # Return scrambled string or list
         return ''.join(s) if is_string else s
 
-if 1: #xx
-    s = "a;bc;d;"
-    items = string.ascii_lowercase
-    #
-    print(f"Original       :  {s!r}")
-    print(f"All            :  {Keep(s, items, left=True, middle=True, right=True)!r}")
-    print(f"Left           :  {Keep(s, items, left=True)!r}")
-    print(f"Middle         :  {Keep(s, items, middle=True)!r}")
-    print(f"Right          :  {Keep(s, items, right=True)!r}")
-    print()
-    print(f"Whole = True   :  {Keep(s, ';', whole=True)!r}")
-    print(f"Whole = True   :  {Keep(s, string.ascii_lowercase, whole=True)!r}")
-    exit()
-
 if __name__ == "__main__": 
     from lwtest import run, raises, assert_equal, Assert
     import math
     import os
     from sig import sig
     from color import TRM as t
+    def Test_Keep():
+        Assert(Keep("abc", "bc") == "bc")
+        Assert(Keep("abc", "bc", whole=True) == "bc")
+        A, B = "a b c".split(), "b c".split()
+        Assert(Keep(A, B) == B)
+    def Test_KeepFilter():
+        f = KeepFilter("bc")
+        Assert(f("abc") == "bc")
+    def Test_Remove():
+        Assert(Remove("", "ab") == "")
+        Assert(Remove("ab", "") == "ab")
+        Assert(Remove("abc", "cb") == "a")
+    def Test_RemoveFilter():
+        f = RemoveFilter("bc")
+        Assert(f("abc") == "a")
     def Test_FindNotIn():
         # Tests are only on strings, but they should work for any sequence
         if 1:   # FindFirstIn, FindLastIn
@@ -1272,18 +1251,6 @@ if __name__ == "__main__":
         Assert("a" == CommonSuffix(["onea", "twoa", "threea"]))
         Assert("abc" == CommonSuffix(["abc", "abc", "abc"]))
         raises(TypeError, CommonSuffix, ["a", 1])
-    def Test_Keep():
-        Assert(Keep("abc", "bc") == "bc")
-        A, B = "a b c".split(), "b c".split()
-        Assert(Keep(A, B) == B)
-    def Test_KeepFilter():
-        f = KeepFilter("bc")
-        Assert(f("abc") == "bc")
-    def Test_Remove():
-        Assert(Remove("abc", "cb") == "a")
-    def Test_RemoveFilter():
-        f = RemoveFilter("bc")
-        Assert(f("abc") == "a")
     def Test_FilterStr():
         s = '''"Not that easy, I'm sure."'''
         f = FilterStr('''"',.''', [None]*4)
