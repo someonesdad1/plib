@@ -316,12 +316,13 @@ if 1:   # Core functionality
             if check is True.
             Examples:  
                 s = "a;bc;d;"
-                Keep(s, string.ascii_lowercase, left=True) returns "a"
-                Keep(s, string.ascii_lowercase, middle=True) returns ";bc;d"
-                Keep(s, string.ascii_lowercase, right=True) returns ";"
-                Note that the middle and right sections of the string can contain
-                elements not in keep.  If you don't want this, run
-                Keep(..., whole=True) on the result.
+                keep = string.ascii_lowercase
+                Keep(s, keep, left=True) returns "a"
+                Keep(s, keep, middle=True) returns ";bc;d"
+                Keep(s, keep, right=True) returns ""
+            Note that the middle section of the string may contain elements
+            not in keep.  If you don't want this, run Keep(..., whole=True)
+            on the result.
         '''
         kp = set(keep)
         if left or middle or right:
@@ -337,8 +338,8 @@ if 1:   # Core functionality
             sr = FindLastNotIn(s, keep)
             # Get components
             s_left = s[:sl]
-            s_right = s[sr:]
-            s_middle = s[sl:sr]
+            s_right = s[sr + 1:]
+            s_middle = s[sl:sr + 1]
             if check:
                 if s_left + s_middle + s_right != s:
                     if ii(s, str):
@@ -1025,10 +1026,23 @@ if __name__ == "__main__":
     from sig import sig
     from color import TRM as t
     def Test_Keep():
+        Assert(Keep("", "") == "")
+        Assert(Keep("", "a") == "")
+        Assert(Keep("a", "") == "")
+        # Works on strings
         Assert(Keep("abc", "bc") == "bc")
         Assert(Keep("abc", "bc", whole=True) == "bc")
+        # Works on list sequence
         A, B = "a b c".split(), "b c".split()
         Assert(Keep(A, B) == B)
+        # Using keywords
+        s = "a;bc;d;"
+        keep = string.ascii_lowercase
+        Assert(Keep(s, keep, left=True) == "a")
+        t = Keep(s, keep, middle=True)
+        Assert(t == ";bc;d;")
+        Assert(Keep(t, keep) == "bcd")
+        Assert(Keep(s, keep, right=True) == "")
     def Test_KeepFilter():
         f = KeepFilter("bc")
         Assert(f("abc") == "bc")

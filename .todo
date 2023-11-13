@@ -1,5 +1,12 @@
 Active
     
+    - words.py
+        - Using files in /words/words.*, return sets of words indexed by
+          short names.
+        - GetWords(name, ic=False) where ic means ignore case.
+        - Dump __doc__ to get description of each list of words.
+        - Include a bidict to get UK-American word spellings
+
     - wordparse.py
         - Tokenize a file and apply heuristics to get rid of things like 
           '*italic*', '[GitHub](http://github.com)', etc.  This would for
