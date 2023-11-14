@@ -292,7 +292,7 @@ if 1:   # Core functionality
     def FindLastNotIn(s, items):
         'Return index of last element in s not in items or None'
         return FindFirstIn(reversed(s), items, invert=True)
-    def Keep(s, keep, whole=True, left=False, middle=False, right=False, check=True):
+    def Keep(s, keep, whole=True, left=False, middle=False, right=False):
         '''Return a list (or a string if s is a string) of the items in s that
         are in keep.
  
@@ -304,13 +304,11 @@ if 1:   # Core functionality
             Note whole is True by default.  If left, middle, or right are
             True, then whole is set to False.
         else:
-            Effectively splits s into sl + sm + sr where 
+            Splits s into sl + sm + sr where 
                 - sl is the sequence of leftmost elements of s not in keep
                 - sr is the sequence of rightmost elements of s not in keep
                 - sm is the sequence of elements of s with sl and sr trimmed
                     off where only the elements of s in keep are kept
-            An invariant is that s == sl + sm + sr, which will be checked
-            if check is True.
             Examples:  
                 s = "a;bc;d;"
                 keep = string.ascii_lowercase
@@ -924,7 +922,8 @@ if 1:   # Core functionality
             return mo.groups()[0] if mo else ""
     def RemoveASCII(s):
         '''Remove ASCII characters from string s.  This means the string
-        only consists of characters chr(0x0) to chr(0x7e) inclusive.
+        only consists of characters chr(0x0) to chr(0x7e) inclusive or
+        Unicode characters above 0x7f.
         '''
         if not hasattr(RemoveASCII, "table"):
             # Cache a translation table
@@ -1438,6 +1437,13 @@ if __name__ == "__main__":
         chars = string.ascii_lowercase
         print(f"GetLeadingChars({s!r},\n {' '*15}{chars!r}) = "
               f"{GetLeadingChars(s, chars)}")
+        # IsASCII
+        s, u = "abc", "∞"
+        print(f"IsASCII({s!r}) = {IsASCII(s)}, IsASCII({u!r}) = {IsASCII(u)}")
+        # Keep
+        print(f"Keep is used to keep only desired elements in a sequence")
+        s, u = "a;bc;d;", string.ascii_lowercase
+        print(f"  Keep({s!r}, {u!r}) returns {Keep(s, u)!r}")
 
         t.print(end="")
 
