@@ -153,7 +153,14 @@ if 1:   # Classes
 if 1:   # Core functionality
     def MatchCap(s, t):
         '''Return t capitalized as s is.  s and t are expected to be sequences
-        of characters.  The returned sequence matches the type of t.
+        of characters.  The returned sequence matches the type of t and has
+        a length equal to the shorter of s and t.  Must have len(s) >=
+        len(t).
+
+        Example:
+            s = "StuVwxyz"
+            t = "abcd"
+            MatchCap(s, t) = "AbcD"
         '''
         if not t:
             return t
@@ -258,7 +265,7 @@ if 1:   # Core functionality
             return f([f(list(i)) for i in reversed(s)])
         return rev(CommonPrefix([rev(i) for i in seq]))
     def FindFirstIn(s, items, invert=False):
-        '''Return smallest integer i such that s[i] is in items else
+        '''Return smallest integer i such that s[i] is in items or else
         None.  If invert is True, find the smallest integer i such that
         s[i] is not in items.
  
@@ -335,13 +342,13 @@ if 1:   # Core functionality
             s_left = s[:sl]
             s_right = s[sr + 1:]
             s_middle = s[sl:sr + 1]
-            if check:
-                if s_left + s_middle + s_right != s:
-                    if ii(s, str):
-                        msg = "Bug:  s_left + s_middle + s_right != original string"
-                    else:
-                        msg = "Bug:  s_left + s_middle + s_right != original sequence"
-                    raise RuntimeError(msg)
+            # Check invariant
+            if s_left + s_middle + s_right != s:
+                if ii(s, str):
+                    msg = "Bug:  s_left + s_middle + s_right != original string"
+                else:
+                    msg = "Bug:  s_left + s_middle + s_right != original sequence"
+                raise RuntimeError(msg)
             result = []
             if left:
                 result.append(s_left)
@@ -496,7 +503,7 @@ if 1:   # Core functionality
             else:
                 return d[name]
         return None
-    def KeepOnlyLetters(s, underscore=False, digits=True):
+    def KeepOnlyLetters(s, underscore=False, digits=False):
         '''Replace all non-word characters with spaces.  If underscore is
         True, keep underscores too (e.g., typical for programming language
         identifiers).  If digits is True, keep digits too.
@@ -1127,18 +1134,18 @@ if __name__ == "__main__":
             Assert(GetTrailingChars("a" + t) == t)
         # Define custom sets of whitespace
         if 1:   # Leading
-            Assert(GetLeadingChars("  \t  a", ws="z") == "")
-            Assert(GetLeadingChars("  \t  a", ws="\t") == "")
-            Assert(GetLeadingChars("  \t  a", ws=" ") == "  ")
+            Assert(GetLeadingChars("  \t  a", chars="z") == "")
+            Assert(GetLeadingChars("  \t  a", chars="\t") == "")
+            Assert(GetLeadingChars("  \t  a", chars=" ") == "  ")
             ws, t = ".;:", ".;..:::."
-            a = GetLeadingChars(t + "a", ws=ws)
+            a = GetLeadingChars(t + "a", chars=ws)
             Assert(a == t)
         if 1:   # Trailing
-            Assert(GetTrailingChars("a  \t  ", ws="z") == "")
-            Assert(GetTrailingChars("a  \t  ", ws="\t") == "")
-            Assert(GetTrailingChars("a  \t  ", ws=" ") == "  ")
+            Assert(GetTrailingChars("a  \t  ", chars="z") == "")
+            Assert(GetTrailingChars("a  \t  ", chars="\t") == "")
+            Assert(GetTrailingChars("a  \t  ", chars=" ") == "  ")
             ws, t = ".;:", ".;..:::."
-            a = GetTrailingChars("a" + t, ws=ws)
+            a = GetTrailingChars("a" + t, chars=ws)
             Assert(a == t)
     def Test_Tokenize():
         Assert(Tokenize("", check=True) == [])
@@ -1219,6 +1226,10 @@ if __name__ == "__main__":
         Assert(MatchCap("MatchCap", t) == "AbcdeF")
         Assert(MatchCap("MATCHCAP", t) == "ABCDEF")
         Assert(MatchCap("matchcap", t) == "abcdef")
+        Assert(MatchCap("matchcap", t) == "abcdef")
+        s = "StuVwxyz"
+        t = "abcd"
+        Assert(MatchCap(s, t) == "AbcD")
     def Test_soundex():
         test_cases = (
             ("Euler", "E460"),
@@ -1382,71 +1393,91 @@ if __name__ == "__main__":
         Assert(SplitOnNewlines("1\n2\r\n3\r") == ["1", "2", "3", ""])
     def Demo():
         'Demonstrate the various functions to stdout'
-        print(f"{t('cynl')}Demo of /plib/dpstr.py functions{t('skyl')}")
-        # Chop
-        s = "abcdefghij"
-        print(f"Chop({s!r}, 3) = {Chop(s, 3)}")
-        # CommonPrefix and CommonSuffix
-        s = ["a.b.c", "a.c.c", "a.d.c"]
-        print(f"CommonPrefix({s!r}) = {CommonPrefix(s)}")
-        print(f"CommonSuffix({s!r}) = {CommonSuffix(s)}")
-        # FilterStr
-        print(dedent('''
-
-        FilterStr() returns a function that can replace a sequence of characters
-        with a corresponding sequence from another equally-sized list of characters.'''))
-        s = "abc"
-        u = "αβɣ"
-        print(f"  Characters to remove  :  {s!r}")
-        print(f"  Replacement characters:  {u!r}")
-        f = FilterStr(s, u)
-        o = "abc are the leading characters of the alphabet"
-        print(f"  Original   :  '{o}'")
-        print(f"  Transformed:  '{f(o)}'")
-        # FindFirstIn, FindLastIn, etc.
-        s = "abc Are the leading characTers of the alphabet"
-        items = string.ascii_uppercase
-        from ruler import Ruler
-        r = Ruler(0, zb=True)
-        print("FindFirstIn, FindLastIn, FindFirstNotIn, FindLastNotIn")
-        print("  Test string s is:")
-        for i in r(len(s)).split("\n"):
-            print(f"    {i}")
-        print(f"    {s}")
-        print(f"  items argument is {items!r}")
-        print(f"    FindFirstIn(s, items) = {FindFirstIn(s, items)} (A)")
-        print(f"    FindLastIn(s, items)  = {FindLastIn(s, items)} (T)")
-        items = string.ascii_lowercase
-        print(f"  items argument is {items!r}")
-        print(f"    FindFirstNotIn(s, items) = {FindFirstNotIn(s, items)} (space)")
-        print(f"    FindLastNotIn(s, items)  = {FindLastNotIn(s, items)} (space)")
-        # FindDiff
-        a, b = "abc", "aBc"
-        print(f"FindDiff({a!r}, {b!r}) = {FindDiff(a, b)}")
-        # FindStrings
-        a = "Jan Feb Mar".split()
-        b = "1Jan2001"
-        print(f"FindStrings({a!r}, {b!r}) = {FindStrings(a, b)}")
-        # FindSubstring
-        mystring = "cat rat hat"
-        substring = "at"
-        print(f"FindSubtring({mystring!r}, {substring!r}) = "
-              f"{FindSubstring(mystring, substring)}")
-        # GetLeadingChars, GetTrailingChars
-        s = "this STRING HAS UPPER AND LOWER CASE letters"
-        chars = string.ascii_lowercase
-        print(f"GetLeadingChars({s!r},\n {' '*15}{chars!r}) = "
-              f"{GetLeadingChars(s, chars)}")
-        # IsASCII
-        s, u = "abc", "∞"
-        print(f"IsASCII({s!r}) = {IsASCII(s)}, IsASCII({u!r}) = {IsASCII(u)}")
-        # Keep
-        print(f"Keep is used to keep only desired elements in a sequence")
-        s, u = "a;bc;d;", string.ascii_lowercase
-        print(f"  Keep({s!r}, {u!r}) returns {Keep(s, u)!r}")
+        print(f"{t('ornl')}Demo of /plib/dpstr.py functions{t('skyl')}")
+        if 0: #xx
+            # Chop
+            s = "abcdefghij"
+            print(f"Chop({s!r}, 3) = {Chop(s, 3)}")
+            # CommonPrefix and CommonSuffix
+            s = ["a.b.c", "a.c.c", "a.d.c"]
+            print(f"CommonPrefix({s!r}) = {CommonPrefix(s)}")
+            print(f"CommonSuffix({s!r}) = {CommonSuffix(s)}")
+            # FilterStr
+            print(dedent('''
+ 
+            FilterStr() returns a function that can replace a sequence of characters
+            with a corresponding sequence from another equally-sized list of characters.'''))
+            s = "abc"
+            u = "αβɣ"
+            print(f"  Characters to remove  :  {s!r}")
+            print(f"  Replacement characters:  {u!r}")
+            f = FilterStr(s, u)
+            o = "abc are the leading characters of the alphabet"
+            print(f"  Original   :  '{o}'")
+            print(f"  Transformed:  '{f(o)}'")
+            # FindFirstIn, FindLastIn, etc.
+            s = "abc Are the leading characTers of the alphabet"
+            items = string.ascii_uppercase
+            from ruler import Ruler
+            r = Ruler(0, zb=True)
+            print("FindFirstIn, FindLastIn, FindFirstNotIn, FindLastNotIn")
+            print("  Test string s is:")
+            for i in r(len(s)).split("\n"):
+                print(f"    {i}")
+            print(f"    {s}")
+            print(f"  items argument is {items!r}")
+            print(f"  The functions return the 0-based index of the found item")
+            print(f"    FindFirstIn(s, items) = {FindFirstIn(s, items)} (A)")
+            print(f"    FindLastIn(s, items)  = {FindLastIn(s, items)} (T)")
+            items = string.ascii_lowercase
+            print(f"  items argument is {items!r}")
+            print(f"    FindFirstNotIn(s, items) = {FindFirstNotIn(s, items)} (space)")
+            print(f"    FindLastNotIn(s, items)  = {FindLastNotIn(s, items)} (space)")
+            # FindDiff
+            a, b = "abc", "aBc"
+            print(f"FindDiff({a!r}, {b!r}) = {FindDiff(a, b)}")
+            # FindStrings
+            a = "Jan Feb Mar".split()
+            b = "1Jan2001"
+            print(f"FindStrings({a!r}, {b!r}) = {FindStrings(a, b)}")
+            # FindSubstring
+            mystring = "cat rat hat"
+            substring = "at"
+            print(f"FindSubtring({mystring!r}, {substring!r}) = "
+                f"{FindSubstring(mystring, substring)}")
+            # GetLeadingChars, GetTrailingChars
+            s = "this STRING HAS UPPER AND LOWER CASE letters"
+            chars = string.ascii_lowercase
+            print(f"GetLeadingChars({s!r},\n {' '*15}{chars!r}) = "
+                f"{GetLeadingChars(s, chars)}")
+            # IsASCII
+            s, u = "abc", "∞"
+            print(f"IsASCII({s!r}) = {IsASCII(s)}, IsASCII({u!r}) = {IsASCII(u)}")
+            # Keep
+            print(f"Keep is used to keep only desired elements in a sequence")
+            s, items = "a;bc;d;", string.ascii_lowercase
+            print(f"  items = desired elements = {items!r}")
+            print(f"  Keep({s!r}, items) returns {Keep(s, items)!r}")
+            print(f"  Keep({s!r}, items, left=True) returns {Keep(s, items, left=True)!r}")
+            print(f"  Keep({s!r}, items, middle=True) returns {Keep(s, items, middle=True)!r}")
+            print(f"  Keep({s!r}, items, right=True) returns {Keep(s, items, right=True)!r}")
+            # KeepFilter
+            print(f"KeepFilter returns a filter based on Keep's arguments")
+            print(f"  f = KeepFilter returns a filter based on Keep's arguments")
+            f = KeepFilter(string.ascii_lowercase)
+            print(f"  f = KeepFilter(string.ascii_lowercase + " ")")
+            s = "this STRING"
+            print(f"  f({s!r}) = {f(s)}")
+        # KeepOnlyLetters
+        s = "88; Hello    there!"
+        print(f"KeepOnlyLetters({s!r}) = {KeepOnlyLetters(s)!r}")
+        # MatchCap
+        s = "StuVwxyz"
+        u = "abcd"
+        print(f"MatchCap({s!r}, {u!r}) = {MatchCap(s, u)!r}")
+        # MultipleReplace
 
         t.print(end="")
-
     #if len(sys.argv) > 1:
     if 1: #xx
         Demo()

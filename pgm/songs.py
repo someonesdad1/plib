@@ -244,6 +244,7 @@ Two Faces Have I|w05w1XbZTG8|
 Unchained Melody|zrK5u5W8afc|
 Unforgettable|Fy_JRGjc1To|
 Volga Boatmen|0tw3g88JtWA|Baritone L. Kharitonov 1965 
+Volga Boatmen |yfO0ADduEr8|Better than Kharitonov
 Walk On the Wild Side|5O82y59h7MI|
 Walking in the Air|upH1QZU4Z0Y|Movie theme sung by a 13 year old choirboy
 Washington Square|ihenbyTzQ2A|
