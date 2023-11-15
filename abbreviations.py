@@ -31,8 +31,11 @@ if 1:   # Imports
     from collections import defaultdict
 if 1:   # Custom imports
     from columnize import Columnize
-def IsAbbreviation(w):
-    'Returns True if w is an abbreviation; case is ignored'
+def IsAbbreviation(w, full=False):
+    '''Returns True if w is an abbreviation; case is ignored.  If full is
+    True, the set is enhanced by abbreviations that can also be words that
+    end a sentence.
+    '''
     if not hasattr(IsAbbreviation, "abbrev"):
         # Cache our set of abbreviation strings
         IsAbbreviation.data = '''
@@ -48,7 +51,7 @@ def IsAbbreviation(w):
 
             c. c.e. c.e.o. c.o.d. c.p.u. ca. cal. calc. calif. camb.  cap.
             capt. cath. cent. ceram. cert. certif. cf. ch. chap.  char.
-            chas. chem. chr. chron. chronol. circ. cl. class.  cmdr. co.
+            chas. chem. chr. chron. chronol. circ. cl. cmdr. co.
             col. coll. colloq. com. comm. comp. compl. conc.  concr. conf.
             conj. consol. const. constr. cont. contrib.  conv. convtrov.
             coron. corp. corr. corresp. cp. cpd. cpl.  cr. crim. crit. ct.
@@ -60,7 +63,7 @@ def IsAbbreviation(w):
 
             e. e.g. e.s.p. e.t.a. e.v.p. ea. eccl. eccles. ecol. econ.
             ed. educ. edw. electr. elem. emph. encycl. eng. enq. entom.
-            equip. esp. est. et.al. et.seq. etc. etym. etymol. euphem.
+            equip. esp. esq. est. et.al. et.seq. etc. etym. etymol. euphem.
             eval. exc. exch. exec. exper.
 
             f. f.b.i. fab. fam. famil. feb. fem. ff. fl. floz. fr. freq.
@@ -88,10 +91,10 @@ def IsAbbreviation(w):
             n. n.b. n.e. n.s.w. n.w. n.y. n.z. narr. nat. naut. nav.
             nec. neurol. nom. nov. nucl.
 
-            o.d. o.e.d. o.k. o.t. obj. obs. observ. occas. oct. off.
+            o.d. o.e.d. o.k. o.t. obj. obs. observ. occas. oct. 
             offic. opp. opt. ord. org. orig. oz.
 
-            p. p.a. p.e. p.m. p.o. p.s. pass. path. perf. pers. ph.d.
+            p. p.a. p.e. p.m. p.o. p.s. perf. pers. ph.d.
             pharm. phil. philos. phys. pict. pl. plur. pm. poet. pol.
             polit. poss. posth. postm. pp. ppb. ppl. ppm. pr. pract.
             prec. pred. pref. prep. pres. pres. prim. princ. priv. prob.
@@ -124,12 +127,16 @@ def IsAbbreviation(w):
 
         '''
         IsAbbreviation.abbrev = set(IsAbbreviation.data.split())
-        if 1:
+        if full:
             # The following abbreviations can also be words that end
-            # a sentence; you can exclude them if you wish.
+            # a sentence; you can exclude them if you wish by setting the
+            # keyword full to False.
             IsAbbreviation.abbrev.update(set('''
-                add. admin. am. ann. art. bull. conn. dim. fig. math. mod.
-                no. pa. pop. sept. sing. west. wed. sat. sun.
+
+                add. admin. am. ann. art. bull. class. conn. dim. fig.
+                math. mod. no. off. pa. pass. path. pop. sept. sing. west.
+                wed. sat. sun.
+
             '''.split()))
     return w.strip().lower() in IsAbbreviation.abbrev
 IsAbbreviation("")      # Load IsAbbreviation.abbrev

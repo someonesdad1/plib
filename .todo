@@ -1,5 +1,8 @@
 Active
     
+    - dpstr.py
+        - Finish usage examples
+
     - words.py
         - Using files in /words/words.*, return sets of words indexed by
           short names.

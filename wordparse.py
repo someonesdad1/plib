@@ -31,6 +31,7 @@ if 1:   # Header
         import getopt
         import os
         from pathlib import Path as P
+        import re
         import string
         import sys
     if 1:   # Custom imports
@@ -51,21 +52,24 @@ if 1:   # Utility
         print(dedent(f'''
         Usage:  {sys.argv[0]} [options] file1 [file2...]
           Print out the words in the indicated text files.  Use "-" to read
-          from stdin.
+          from stdin.  
         Options:
-            -h      Print a manpage
+            -a      Do not asciify the input text
+            -P      Replace all punctuation with space characters
+            -p      Same as -P except for ' and -
         '''))
         exit(status)
     def ParseCommandLine(d):
+        d["-a"] = True      # Do not asciify the text
         d["-P"] = False     # Replace all punctuation with space
         d["-p"] = False     # Replace punc except ' and single -
         try:
-            opts, args = getopt.getopt(sys.argv[1:], "Pph") 
+            opts, args = getopt.getopt(sys.argv[1:], "aPph") 
         except getopt.GetoptError as e:
             print(str(e))
             exit(1)
         for o, a in opts:
-            if o[1] in list("Pp"):
+            if o[1] in list("aPp"):
                 d[o] = not d[o]
             elif o == "-h":
                 Usage(status=0)
@@ -123,6 +127,48 @@ if 1:   # Core functionality
             if word:
                 new_words.add(word)
         return new_words
+    def FixFile(s):
+        '''s is the string read from a file.  Do the needed fix-ups and
+        return a set of words from the string.
+        '''
+        s1 = Asciify(s) if d["-a"] else s
+        # Substitute ' ' for most punctuation characters except ' . -
+        p = (r"!|\"|#|\$|%|&|\(|\)|\*|\+|,|/|:|;|<|=|>|"
+             r"\?|@|\[|\\|\]|\^|_|`|\{|\||\}|~")
+        s2 = re.sub(p, " ", s1)
+        # Substitute ' ' for two or more hyphens, periods, single quotes
+        s3 = re.sub(r"---*|'''*|\.\.\.*", " ", s2)
+        wrds = set(s3.split())
+        if 1:   # Specific fixups
+            # Remove ' or " at beginning of word
+            f = lambda x: x.startswith("'") or x.startswith('"')
+            a = list(filter(f, wrds))
+            for i in a:
+                wrds.add(i[1:])
+                wrds.remove(i)
+            # Remove .' at end of word
+            f = lambda x: x.endswith(".'") 
+            a = list(filter(f, wrds))
+            for i in a:
+                wrds.add(i[:-2])
+                wrds.remove(i)
+            # Remove . at end of word
+            f = lambda x: x.endswith(".") 
+            a = list(filter(f, wrds))
+            for i in a:
+                wrds.add(i[:-1])
+                wrds.remove(i)
+            # Remove ' at end of word 
+            if 1:
+                f = lambda x: x.endswith("'")
+                a = list(filter(f, wrds))
+                for i in a:
+                    wrds.add(i[:-1])
+                    wrds.remove(i)
+        return wrds
+
+if 0:
+    exit()
 
 if __name__ == "__main__":
     d = {}      # Options dictionary
@@ -133,7 +179,12 @@ if __name__ == "__main__":
             s = sys.stdin.read()
         else:
             s = open(file).read()
-        s = Asciify(s)
-        words.update(WordParse(s))
+        wrds = FixFile(s)
+        words.update(wrds)
+    if 1:
+        from dpstr import KeepFilter
+        from abbreviations import IsAbbreviation
+        f = KeepFilter("'.-")
+        words = filter(f, words)
     for i in sorted(words):
         print(i)
