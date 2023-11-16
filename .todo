@@ -5,13 +5,14 @@ Active
     
     - extensions.py
         - Provide a dictionary for file extensions and their type(s)
+        - Add feature to pgm/ext.py to use this dict to annotate the
+          extensions that are printed
         - Good links to check
             - https://en.wikipedia.org/wiki/List_of_file_formats
             - https://www.webopedia.com/reference/data-formats-and-file-extensions/
                 - https://www.webopedia.com/reference/data-formats-and-file-extensions/
                 - https://www.webopedia.com/reference/fileextensionsnumber/
                 - https://www.webopedia.com/reference/fileextensionssymbol/
-
         - Others
             - https://support.microsoft.com/en-us/windows/common-file-name-extensions-in-windows-da4a4430-8e76-89c5-59f7-1cdbbc75cb01
             - https://www.computerhope.com/issues/ch001789.htm
