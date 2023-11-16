@@ -2,6 +2,45 @@ Active
     
     - dpstr.py
         - Finish usage examples
+    
+    - extensions.py
+        - Provide a dictionary for file extensions and their type(s)
+        - Good links to check
+            - https://en.wikipedia.org/wiki/List_of_file_formats
+            - https://www.webopedia.com/reference/data-formats-and-file-extensions/
+                - https://www.webopedia.com/reference/data-formats-and-file-extensions/
+                - https://www.webopedia.com/reference/fileextensionsnumber/
+                - https://www.webopedia.com/reference/fileextensionssymbol/
+
+        - Others
+            - https://support.microsoft.com/en-us/windows/common-file-name-extensions-in-windows-da4a4430-8e76-89c5-59f7-1cdbbc75cb01
+            - https://www.computerhope.com/issues/ch001789.htm
+            - https://en.wikipedia.org/wiki/List_of_file_signatures
+
+    - dividing_holes.py
+        - Print a paper template to allow marking holes on a workpiece
+        - See pg 35 of "The Home Shop Reader's Tips Book", 2005
+        - Use a data file of:
+            - units <str>       Defines units to use
+            - center x, y       Where center of circles are
+            - dia_mark          Diameter of marking circles
+            - circle dia num offset
+                - Each circle of holes
+                - dia               Diameter of this hole circle
+                - num               Number of equally-spaced holes
+                - offset (optional) Degrees of first hole from polar axis
+        - Make a lathe fixture that is held in a 4-jaw that holes the plate
+          being made.  You adjust it with a wiggler to get one hole
+          centered.  Then a precision bush allows the work to be rotated on
+          center to align the other punch marks.
+
+    - pgm/utf8.py
+        - Given one or more files, prints out those that aren't encoded
+          UTF-8.
+        - Option -r will recurse into subdirectories and assumes the files
+          on the command line are globbing patterns.
+        - Use case:  find the enormously annoying case of files that look
+          like text files but aren't UTF-8 encoded.
 
     - words.py
         - Using files in /words/words.*, return sets of words indexed by
