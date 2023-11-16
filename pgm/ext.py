@@ -41,7 +41,7 @@ def Usage(d, status=1):
     '''))
     exit(status)
 def ParseCommandLine(d):
-    d["-c"] = True      # Extension names are case-sensitive
+    d["-c"] = False     # Extension names are case-sensitive
     d["-C"] = False     # Print in columns
     d["-f"] = False     # Command line contains files
     d["-h"] = False     # Include .hg/.git directories
@@ -118,7 +118,7 @@ def ProcessFiles(files, data, d):
         if os.path.isfile(file):
             name, ext = os.path.splitext(file)
             if ext:
-                if not d["-c"]:
+                if d["-c"]:
                     ext = ext.lower()
                 data[ext] += 1
 if __name__ == "__main__":

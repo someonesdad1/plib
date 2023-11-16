@@ -1,0 +1,27 @@
+# Calculates the mass of the Alaska pipeline steel.
+# https://en.wikipedia.org/wiki/Trans-Alaska_Pipeline_System#Technical_details
+# states 466 miles of 0.462 inches thickness and 334 miles of 0.562 inches
+# thickness.  The outside diameter is 48 inches.
+material steel
+
+# Default length units
+units inch
+angles pi/180
+digits 3
+munit kg
+# Volume unit
+vunit in3
+
+# Components:  each component of the composite assembly is defined by
+# a component line.  Each line requires certain keywords to specify
+# the dimension of the component.  Each keyword must be of the form
+# 'kw = value', followed by a comma.  Keywords can be:
+#
+# n         Number of components of this type.
+# name      String to identify the component.
+# rho       Density of the component in g/cc.
+# neg       Defines a negative component (i.e., a hole).
+# material  Uses a short string to identify the component's material.
+
+pipe d=48, t=0.462, L=466*5280*12
+pipe d=48, t=0.562, L=334*5280*12
