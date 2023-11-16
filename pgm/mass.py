@@ -1,7 +1,18 @@
 '''
 TODO:
 
-* Consider making an input datafile a chunk of executable python.  Each
+- Get rid of sig
+- I should be able to write lines like
+
+    units inch
+    pipe d=48, t=0.462, L=466 mi
+
+  and have the mi converted to inches.
+
+  Another approach would be to have all length and mass units in m and kg
+  unless you included a separate unit.
+
+- Consider making an input datafile a chunk of executable python.  Each
   of the objects would then be instantiated with lines like 
 
     import mass 
@@ -31,10 +42,10 @@ TODO:
   of the config file with the debugger, letting you see where errors
   occur.
 
-  * I'd be able to document a configuration file with triple-quoted
+  - I'd be able to document a configuration file with triple-quoted
     strings.
 
-  * Another syntax could be 
+  - Another syntax could be 
 
     mass.components = [
         mass.comp(mass.w2x4, L="10 ft", material=mass.fir, n=5, 
@@ -46,7 +57,7 @@ TODO:
    reducing the typing of quotes.  oct would go to octbar and hex would
    go to hexbar to avoid clashing with python keywords.
 
-* Add bolt, screw, washer, nut, lockwasher objects.  Have them default
+- Add bolt, screw, washer, nut, lockwasher objects.  Have them default
   to being made from steel.
 
 ----------------------------------------------------------------------
@@ -57,9 +68,8 @@ report giving the volume and mass of each component.
 
 See the mass.pdf file for documentation.
 
-The included densities are derived from the values I given in the
-density.zip package (see
-https://someonesdad1.github.io/hobbyutil/project_list.html).
+The included densities are derived from the values in the density.zip
+package (see https://someonesdad1.github.io/hobbyutil/project_list.html).
 
 '''
 if 1:  # Copyright, license
@@ -93,6 +103,9 @@ if 1:   # Custom imports
     from columnize import Columnize
     from get import GetNumber
     from cmddecode import CommandDecode
+    if 1:
+        import debug
+        debug.SetDebugger()
 if 1:   # Global variables
     # The density of air in g/cc at 20 degrees C and 1 atmosphere.  The
     # density of other gases are defined in terms of air's density.
@@ -1623,7 +1636,7 @@ def GetSci(num, digits, fit):
     notation and center in fit spaces.
     '''
     if num:
-        s = "{:.{}e}".format(digits - 1, num)
+        s = "{1:.{0}e}".format(digits - 1, num)
         return "{0:^{1}}".format(s, fit)
     else:
         return "{0:^{1}}".format(0, fit)

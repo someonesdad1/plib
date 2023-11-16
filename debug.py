@@ -76,6 +76,7 @@ if 1:   # Header
         from util import IsIterable
         from wrap import dedent
         from color import Color, Trm, TRM as t
+        import dpdb
     # Global variables
         # dash_O_on = True  ==> Use python -O to turn debugging on.
         # dash_O_on = False ==> Use python -O to turn debugging off.
@@ -393,7 +394,10 @@ def TraceInfo(type, value, traceback):
         TB.print_exception(type, value, traceback)
         print()
         # Now start the debugger
-        pdb.pm()
+        try:
+            dpdb.pm()
+        except Exception:
+            pdb.pm()
 def SetDebugger():
     '''If you execute this function, TraceInfo() will be called when
     you get an unhandled exception and you'll be dumped into the

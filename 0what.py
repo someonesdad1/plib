@@ -38,6 +38,8 @@ if 1:   # Global variables
     EntryType = namedtuple("EntryType", "p what category")
     t.sep = t("yell")
     t.py = t("grn")
+    # Generate escape codes even if stdout isn't a TTY
+    t.always = True
 if 1:   # Utility
     def Error(msg, status=1):
         print(msg, file=sys.stderr)
