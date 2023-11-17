@@ -15,7 +15,8 @@ data = '''
     ARC – ARC: pre-Zip data compression
     ARC – Nintendo U8 Archive (mostly Yaz0 compressed)
     ARJ – ARJ compressed file
-    ASS, SSA – ASS (also SSA): a subtitles file created by Aegisub, a video typesetting application (also a Halo game engine file)
+    ASS – a subtitles file created by Aegisub, a video typesetting application (also a Halo game engine file)
+    SSA – a subtitles file created by Aegisub, a video typesetting application (also a Halo game engine file)
     B – (B file) Similar to .a, but less compressed.
     BA – BA: Scifer Archive (.ba), Scifer External Archive Type
     BIN – compressed archive, can be read and used by CD-ROMs and Java, extractable by 7-zip and WINRAR
@@ -1690,9 +1691,12 @@ for i in o:
         if not ext.startswith("."):
             ext = "." + ext
         out[ext].append(descr)
+# Ensure no duplicates
+for i in out:
+    out[i] = list(sorted(set(out[i])))
 # Print to stdout
 keys = sorted(list(out))
 w = max(len(i) for i in keys)
 for i in keys:
-    l = list(set(out[i]))
-    print(f"{i:{w}s} {out[i]}")
+    for j in out[i]:
+        print(f'"{i}": "{j}",')
