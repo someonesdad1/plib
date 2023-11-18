@@ -97,7 +97,7 @@ if 1:   # Core functionality
     def MakeModule():
         'Construct /plib/extensions.py'
         dest = P("/plib/extensions.py")
-        local = P("extensions.py")
+        local = P("local")
         with open(local, "w") as fp:
             fp.write("extensions_dict = {\n")
             for i in Mk.data:
@@ -108,6 +108,9 @@ if 1:   # Core functionality
         new = GetHash(local)
         if old != new:
             shutil.copyfile(local, dest)
+            print("File updated")
+        else:
+            print("No changes; file not updated")
 
 if __name__ == "__main__":
     d = {}      # Options dictionary
@@ -119,8 +122,3 @@ if __name__ == "__main__":
     for file in files:
         Mk(file)
     MakeModule()
-    # Print dict to stdout
-    print("extensions_dict = {")
-    for i in Mk.data:
-        print(i)
-    print("}")
