@@ -4016,7 +4016,8 @@ for line in data.split("\n"):
         continue
     if line.startswith("."):
         ext, descr = line.split("\t", 1)
-        print(f'"{ext}": "{descr}",')
+        descr = descr.replace('"', '\\"')  # Escape double quotes
+        print(f'"{ext}": {descr!r},')
     else:
         # Use last extension
-        print(f'"{ext}": "{descr}",')
+        print(f'"{ext}": {descr!r},')

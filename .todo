@@ -1,7 +1,12 @@
 Active
     
+    - pgm/trim.py
+        - Script to do what old binary ~/bin/trim does
+        - Use dpstr.Trim()
+
     - dpstr.py
         - Finish usage examples
+        - Add Trim(s, chars_to_trim, left=True, right=True)
     
     - extensions.py
         - Provide a dictionary for file extensions and their type(s)

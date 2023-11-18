@@ -27,7 +27,8 @@ if 1:   # Header
         #   See http://opensource.org/licenses/OSL-3.0.
         #∞license∞#
         #∞what∞#
-        # Program description string
+        # Create an extensions dictionary mapping an extension to a
+        # description.
         #∞what∞#
         #∞test∞# #∞test∞#
         pass
@@ -35,6 +36,7 @@ if 1:   # Header
         import getopt
         import os
         from pathlib import Path as P
+        import subprocess
         import sys
     if 1:   # Custom imports
         from wrap import dedent
@@ -81,8 +83,29 @@ if 1:   # Utility
                 Usage(status=0)
         return args
 if 1:   # Core functionality
-    pass
+    def Mk(python_script):
+        if not hasattr(Mk, "data"):
+            Mk.data = []
+        cmd = [sys.executable, python_script]
+        r = subprocess.run(cmd, capture_output=True)
+        r.check_returncode()
+        lines = [i for i in r.stdout.decode().split("\n") if i]
+        for line in lines:
+            Mk.data.append(f"    {line}")
+    def MakeModule():
+        'Construct /plib/extensions.py'
 
 if __name__ == "__main__":
     d = {}      # Options dictionary
-    args = ParseCommandLine(d)
+    #args = ParseCommandLine(d)
+    files = [
+        P("webopedia.py"),
+        P("wp.py"),
+    ]
+    for file in files:
+        Mk(file)
+    # Print dict to stdout
+    print("extensions_dict = {")
+    for i in Mk.data:
+        print(i)
+    print("}")

@@ -1516,7 +1516,8 @@ data = '''
     .smc, .078, .sfc – Super NES (.078 is for split ROMs, which are rare)
     .fig – Super Famicom (Japanese releases are rarely .fig, above extensions are more common)
     .srm – Super NES Saved Data Files
-    .zst, .zs1-.zs9, .z10-.z99 – ZSNES Save States (.zst, .zs1-.zs9, .z10-.z99)
+    .zst, .zs1, .zs2, .zs3, .zs4, .zs5, .zs6, .zs8, .zs9 – ZSNES Save States (.zst, .zs1-.zs9, .z10-.z99)
+    .z10-.z99 – ZSNES Save States (.zst, .zs1-.zs9, .z10-.z99)
     .frz, .000-.008 – Snes9X Save States
     .pce – TurboGrafx-16/PC Engine
     .npc, .ngp – Neo Geo Pocket
@@ -1679,6 +1680,8 @@ for i, line in enumerate(data.split("\n")):
     if "," in ext:
         for j in ext.split(","):
             o.append((j.strip(), descr.strip()))
+    else:
+        o.append((ext.strip(), descr.strip()))
 # Get widest extension
 if 1:
     import debug
@@ -1690,7 +1693,7 @@ for i in o:
     if ext.strip():
         if not ext.startswith("."):
             ext = "." + ext
-        out[ext].append(descr)
+        out[ext].append(f"{descr!r}")
 # Ensure no duplicates
 for i in out:
     out[i] = list(sorted(set(out[i])))
