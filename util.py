@@ -127,12 +127,16 @@ if 1:   # Global variables
     US_states = dict(zip(a, b))
     del a, b
 def GetHash(file, method="md5"):
-    "Return a file's hash as a hex string"
+    '''Return a file's hash as a hex string, None if file can't be read.
+    '''
     if method.lower() in "md5 sha1 sha224 sha256 sha384 sha512".split():
         h = eval(f"hashlib.{method.lower()}")()
     else:
         raise ValueError(f"{method!r} is unsupported")
-    h.update(open(file, "rb").read())
+    try:
+        h.update(open(file, "rb").read())
+    except Exception:
+        return None
     return h.hexdigest()
 def ItemCount(seq, n=None):
     '''Return a sorted list of the items and their counts in the iterable

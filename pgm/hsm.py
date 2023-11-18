@@ -1,16 +1,28 @@
 '''
+
+ToDo:
+    - The data need to be regularized
+        - A single field for each entry
+        - Use a character like "|" to separate fields (note this character
+          isn't in the current data)
+        - Output in e.g. CSV form.
+        - Datafile should be pure ASCII if possible
+        - There are 8268 records currently, a lot of work
+        - Eliminate titles in authors' names (like Dr.)
+
+    - Eliminate duplicates (e.g. Lautard's "Wax/Stockholm tar resist")
+    - "A Rocking', ' Swinging Grinder Table" in vp1 has a comma in
+        it, so it needs to be parsed by e.g. a CSV routine.  Joe
+        Landau's index has it in it, so the vp1 index needs to be
+        filtered and written so it can be simply split with a simple
+        field separator.
+
+    - Add feature that highlights HSM issues I have.
+
+---------------------------------------------------------------------------
 Search various indexes of metalworking publications
     The script contains its own data, so this is the only file you
     should need.
-
-    TODO:
-        * "A Rocking', ' Swinging Grinder Table" in vp1 has a comma in
-          it, so it needs to be parse by e.g. a CSV routine.  Joe
-          Landau's index has it in it, so the vp1 index needs to be
-          filtered and written so it can be simply split with a simple
-          field separator.
-
-        * Add feature that highlights HSM issues I have.
 '''
 if 1:  # Copyright, license
     # These "trigger strings" can be managed with trigger.py
@@ -8467,14 +8479,14 @@ def Usage(d, status=1):
           Show all authors with the string 'rudy'
       python {name} -p HSM
           Show all HSM publications
-      python {name} -A
+      python {name} -d
           Show all records in the data
     Options:
       -1    Print the title
       -2    Print the author
       -3    Print the publication
-      -A    Dump all records to stdout
       -a    Search author instead of title
+      -d    Dump all records to stdout
       -i    Don't ignore case
       -k    Show publication abbreviations
       -p    Search publication instead of title
@@ -8485,18 +8497,18 @@ def ParseCommandLine(d):
     d["-1"] = False     # Print title
     d["-2"] = False     # Print author
     d["-3"] = False     # Print author
-    d["-A"] = False     # Dump all records
+    d["-d"] = False     # Dump all records
     d["-a"] = False     # Search author
     d["-i"] = True      # Ignore case
     d["-p"] = False     # Search publication
     d["-s"] = " | "     # Printing separator
     try:
-        opts, args = getopt.getopt(sys.argv[1:], "123Aahikps:")
+        opts, args = getopt.getopt(sys.argv[1:], "123adhikps:")
     except getopt.GetoptError as e:
         print(str(e))
         exit(1)
     for o, a in opts:
-        if o[1] in list("123Aaip"):
+        if o[1] in list("123adip"):
             d[o] = not d[o]
         elif o in ("-h", "--help"):
             d["-h"] = True
@@ -8509,7 +8521,7 @@ def ParseCommandLine(d):
         elif o in ("-s",):
             d["-s"] = a
     d["all"] = False if d["-1"] or d["-2"] or d["-3"] else True
-    if not d["-A"] and not args:
+    if not d["-d"] and not args:
         Usage(d)
     return args
 def PrintItem(item):
@@ -8542,7 +8554,7 @@ if __name__ == "__main__":
     d = {}      # Options dictionary
     regexps = ParseCommandLine(d)
     d["data"] = GetData()
-    if d["-A"]:
+    if d["-d"]:
         for title, author, pub in d["data"]:
             print(title, author, pub)
         exit(0)

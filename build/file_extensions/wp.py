@@ -1167,7 +1167,6 @@ data = '''
     VPR – Vocaloid 5 Editor sequence excluding wave-file
     VSQ – Vocaloid 2 Editor sequence excluding wave-file
     VSQX – Vocaloid 3 & 4 Editor sequence excluding wave-file
-    🗿 – ThirtyDollar Project file
     DVR-MS – Windows XP Media Center Edition's Windows Media Center recorded television format
     WTV – Windows Vista's and up Windows Media Center recorded television format
     ADA, ADB, 2.ADA – Ada (body) source
@@ -1702,4 +1701,4 @@ keys = sorted(list(out))
 w = max(len(i) for i in keys)
 for i in keys:
     for j in out[i]:
-        print(f'"{i}": "{j}",')
+        print(f'"{i}": {j!r},')

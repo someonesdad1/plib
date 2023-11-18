@@ -36,11 +36,13 @@ if 1:   # Header
         import getopt
         import os
         from pathlib import Path as P
+        import shutil
         import subprocess
         import sys
     if 1:   # Custom imports
         from wrap import dedent
         from color import t
+        from util import GetHash
     if 1:   # Global variables
         ii = isinstance
         W = int(os.environ.get("COLUMNS", "80")) - 1
@@ -94,6 +96,18 @@ if 1:   # Core functionality
             Mk.data.append(f"    {line}")
     def MakeModule():
         'Construct /plib/extensions.py'
+        dest = P("/plib/extensions.py")
+        local = P("extensions.py")
+        with open(local, "w") as fp:
+            fp.write("extensions_dict = {\n")
+            for i in Mk.data:
+                fp.write(i + "\n")
+            fp.write("}\n")
+        # Check hash to see if need to overwrite /plib file
+        old = GetHash(dest)
+        new = GetHash(local)
+        if old != new:
+            shutil.copyfile(local, dest)
 
 if __name__ == "__main__":
     d = {}      # Options dictionary
@@ -104,6 +118,7 @@ if __name__ == "__main__":
     ]
     for file in files:
         Mk(file)
+    MakeModule()
     # Print dict to stdout
     print("extensions_dict = {")
     for i in Mk.data:
