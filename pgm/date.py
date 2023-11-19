@@ -1,5 +1,11 @@
 '''
-Replacement for /bin/date
+Replacement for /bin/date.  This script is aware of time zones and will
+handle calculations involving DST correctly (well, as long as python's 
+datetime module does them correctly).
+
+Note:  if you use this for your own use, you'll want to make sure the
+code uses the proper datetime.tzinfo object for your location.  This is
+done by providing the location in a constructor call to ZoneInfo().
 
 - Command line not needed for current time
 - Command line arithmetic
@@ -39,17 +45,22 @@ if 1:   # Header
         #∞test∞# #∞test∞#
         pass
     if 1:   # Standard imports
+        from datetime import datetime, timedelta
         import getopt
         import os
         from pathlib import Path as P
         import sys
+        from zoneinfo import ZoneInfo
     if 1:   # Custom imports
         from wrap import dedent, wrap
         from color import t
+        from lwtest import Assert
+        import months 
     if 1:   # Global variables
         ii = isinstance
         W = int(os.environ.get("COLUMNS", "80")) - 1
         L = int(os.environ.get("LINES", "50"))
+        zi = ZoneInfo("America/Boise")
 if 1:   # Utility
     def Error(*msg, status=1):
         print(*msg, file=sys.stderr)
@@ -67,23 +78,24 @@ if 1:   # Utility
         year to be an integer number of days.  We've evolved rules for
         intercalation
         (https://en.wikipedia.org/wiki/Intercalation_(timekeeping)) that
-        approximate this by inserting leap days, etc. into our times to
-        keep the calendar days aligned with the astronomical events.
+        approximate this by inserting e.g. leap times to keep the calendar
+        days aligned with the astronomical events.
 
         The actual solar year (time for Earth to go around the sun) is
         365.2425 days.  In the Gregorian calendar, 97 out of 400 years
         (97/400 == 0.2425) must be leap years to keep the calendar
-        synchronized with orbital workings of the Earth about the sun.
+        synchronized with orbital period of the Earth about the sun with
+        respect to the "fixed" stars.
 
         The SI day is defined to be 24*3600 == 86400 seconds.
         https://en.wikipedia.org/wiki/Day_length_fluctuations shows
         interesting detail on how the measured length of a day varies over
         60 years starting in 1962, about 7 years after the invention of
-        suitably-precise atomic clocks.  Note the vertical scale is 5 ms.
-        The small flucuations are caused by the changes in mass
-        distribution over the Earth by things like tides, crustal
-        movements, atmospheric changes, core and mantle changes, and
-        perhaps other things.
+        atomic clocks with the precision to make such measurements.  Note
+        the vertical scale is 5 ms.  The small flucuations are caused by
+        the changes in mass distribution over the Earth by things like
+        tides, crustal movements, atmospheric changes, core and mantle
+        changes, and perhaps other things.
 
         Earth's rotation rate has changed over time (see
         https://en.wikipedia.org/wiki/Tidal_acceleration#Historical_evidence
@@ -91,15 +103,11 @@ if 1:   # Utility
         https://en.wikipedia.org/wiki/Tidal_acceleration#Effects_of_Moon's_gravity).
         If we waited long enough, the length of Earth's day would
         synchronize with the Moon's orbital period (gravitational locking),
-        but this won't happen before e.g. the Earth's oceans boil away in
-        about 1 Gyr.  This slowdown is caused by tidal friction, causing
-        gravitational energy to be dissipated in the Earth, resulting in
-        the Earth-Moon system to lose energy (i.e., some gravitational
-        energy is converted to heat, indicating gravitational energy isn't
-        conserved).  This slowdown is so slow that it equal a month before
-        the sun becomes a red giant in 4.5 Gyr and destroys both the Earth
-        and Moon.
-
+        but this won't happen before the Earth and Moon are destroyed by
+        the sun in about 4.5 Gyr when the sun becomes a red giant.  This
+        slowdown is caused by tidal friction, meaning some of the
+        Earth-Moon gravitational energy is dissipated in the Earth as heat
+        (i.e., the system's gravitational energy isn't conserved). 
 
         ''')))
         exit(0)
@@ -134,9 +142,9 @@ if 1:   # Utility
                   2   Zulu    18Nov2023 10:52:59 GMT
                   3   24 hr   18Nov2023 14:52:59 Sat
                   4   Julian  2460267.4570023147 JD
-          -h      Print a manpage
+          -H      Print a manpage
+          -h      Print usage
           -n s    Define the current date/time
-          -t s    Define the current time using the time format
           -u ltr  Output in these time units (first letter of seconds,
                   minutes, hours, days, weeks, months, years, and
                   centuries)
@@ -145,22 +153,25 @@ if 1:   # Utility
             - Case of the three month letters is ignored
             - Time is 24 hour form with hours:minutes:seconds
             - The seconds term can have arbitrary decimals
+            - If the time portion is omitted, it is set to midnight
         '''))
         exit(status)
     def ParseCommandLine(d):
-        d["-d"] = 5         # Number of decimal digits in Julian days
+        d["-d"] = 5         # Number of decimal digits in Julian days (5
+                            # gives about 1 s resolution).
         d["-f"] = 0         # Date/time format (integer)
-        if len(sys.argv) < 2:
-            Usage()
+        d["-n"] = None      # Current date/time
+        d["-u"] = None      # Time units for output (None means use default)
+        d["-z"] = -7        # Hours offset from UTC
         try:
-            opts, args = getopt.getopt(sys.argv[1:], "ad:f:h") 
+            opts, args = getopt.getopt(sys.argv[1:], "ad:f:hn:u:") 
         except getopt.GetoptError as e:
             print(str(e))
             exit(1)
         for o, a in opts:
             if o[1] in list("a"):
                 d[o] = not d[o]
-            elif o == "-d":
+            elif o == "-d":     # Number of decimal places in Julian day
                 try:
                     d[o] = int(a)
                     if not (0 <= d[o] <= 10):
@@ -169,7 +180,7 @@ if 1:   # Utility
                     msg = ("-d option's argument must be an integer between "
                         "1 and 10")
                     Error(msg)
-            elif o == "-f":
+            elif o == "-f":     # Chose the date/time format
                 low, high = 0, 4
                 try:
                     d[o] = int(a)
@@ -179,12 +190,39 @@ if 1:   # Utility
                     msg = ("-f option's argument must be an integer between "
                         "{low} and {high}")
                     Error(msg)
-            elif o == "-h":
+            elif o == "-H":     # Show the manpage
                 Manpage()
+            elif o == "-h":     # Show the manpage
+                Usage(status=0)
+            elif o == "-n":     # Define current date/time
+                print("Missing code!")
+                breakpoint() #xx
         return args
 if 1:   # Core functionality
-    pass
+    def PrintDate(dt):
+        'Print the date in the selected format'
+        Assert(ii(dt, datetime))
+        if d["-f"] == 0:        # 18Nov2023 10:52:59 am Sat
+            pass
+        elif d["-f"] == 1:      # 18Nov2023
+            pass
+        elif d["-f"] == 2:      # 18Nov2023 10:52:59 UTC
+            pass
+        elif d["-f"] == 3:      # 18Nov2023 14:52:59 Sat
+            pass
+        elif d["-f"] == 4:      # 2460267.4570023147 JD
+        else:
+            raise RuntimeError(f"Bad d['-f'] value of {d['-f']}")
+
+    def ShowCurrentTime():
+        '''Print the current time in the selected format to stdout.
+        Note this ignores the -n option.
+        '''
+        PrintDate(datetime.now(zi))
+
 
 if __name__ == "__main__":
     d = {}      # Options dictionary
     args = ParseCommandLine(d)
+    if not args:
+        ShowCurrentTime()

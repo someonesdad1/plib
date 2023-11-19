@@ -1,5 +1,40 @@
 '''
-Generate passwords.
+
+- Script to ask a bunch of questions, concatenate your responses,
+  and deliver a desired hash of the response data.
+- The script will number and output the questions along with the
+  hashed answer.
+- With a good set of questions, it is unlikely anyone could crack
+  things, especially if the answers have numerous characters in
+  them.
+
+Example:
+    - Here are a set of questions with answers in double quotes:
+        - Name Donald Duck's nephews
+            - "Huey Dewey Louie"
+        - Name of the duck that the cat loved to wipe its tail under
+            - "Daddles"
+        - So-and-so's phone number
+            - "916-456-7890"
+    - The answer strings are concatentated to get the string to be hashed:
+        - "Huey Dewey LouieDaddles916-456-7890"
+    - The command line options to the program are used to transform the
+      input string to make it easier to tolerate input differences later
+        - -i is used to ignore case
+        - -p is used to remove punctuation
+        - -w is used to remove whitespace
+    - If all these options were used, the string to be hashed is 
+        - "hueydeweylouiedaddles9164567890"
+        - Even if you knew the string was 21 letters followed by 10 digits,
+          you'd still be faced with 26**21*10**10 = 5e39 combinations that
+          must be tried in a brute-force attack.
+    - A bitcoin mining website in Nov 2023 gave a $3.2k Bitmain AntMiner
+      S19 Pro's hash speed at 110 Th/s or 1e14 Hz.  Suppose you could
+      afford a million of these machines ($3e9), giving you a brute force
+      checking rate of 1e20 Hz.  You'd need 1e39/1e20 = 1e19 s to check all
+      the possibilities, which larger than 4e17 s, the age of the universe.
+
+
 '''
 if 1:   # Header
     if 1:   # Copyright, license
@@ -11,168 +46,62 @@ if 1:   # Header
         #   See http://opensource.org/licenses/OSL-3.0.
         #∞license∞#
         #∞what∞#
-        # Generate passwords.
+        # Program description string
         #∞what∞#
         #∞test∞# #∞test∞#
         pass
     if 1:   # Standard imports
         import getopt
-        import math
         import os
-        import random
-        import secrets
         from pathlib import Path as P
         import sys
     if 1:   # Custom imports
         from wrap import dedent
         from color import t
-        from f import flt
     if 1:   # Global variables
         ii = isinstance
         W = int(os.environ.get("COLUMNS", "80")) - 1
         L = int(os.environ.get("LINES", "50"))
-        class G:
-            pass
-        g = G()
-        g.n = 1     # Number of passwords to generate
-        g.words = None
-        g.prg = secrets.choice
-        t.inf = t("sky")
 if 1:   # Utility
-    def GetInt(option, x, low, high=None):
-        try:
-            n = int(x)
-            if high is None:
-                if n < low:
-                    raise ValueError()
-            else:
-                if not (low <= n <= high):
-                    raise ValueError()
-            return n
-        except ValueError:
-            if high is None:
-                Error(f"{option} option must be an integer >= {low}")
-            else:
-                Error(f"{option} option must be integer on [{low}, {high}]")
     def Error(*msg, status=1):
         print(*msg, file=sys.stderr)
         exit(status)
     def Usage(status=1):
         print(dedent(f'''
-        Usage:  {sys.argv[0]} [options] [n]
-            Generate n passwords.  The passwords generated are not
-            repeatable unless you use the -s option.
+        Usage:  {sys.argv[0]} [options] etc.
+          Explanations...
         Options:
-            -c t    Cracking time in hours.  This gives an estimate of how
-                    many word combinations must be tested per second to
-                    find the password by brute force in t hours.
-            -d f    Change dictionary file to f
-            -j s    String to join words ['{d["-j"]}']
-            -n n    Number of passwords to generate if not on command line
-            -s s    Pseudorandom number generator seed
-            -t m    Type of generator to use [{d["-t"]}]
-            -w n    Number of words in password [{d["-w"]}]
-        Generator types
-          1   Dictionary words separated by '{d["-j"]}'
-          2   7-bit ASCII characters
-        Note:  estimate of cracking time is dependent on algorithms/cracker
-        used.  If the password you want to crack is hashed, it's possible
-        things like rainbow tables could be much faster than brute force.
+            -h      Print a manpage
         '''))
         exit(status)
     def ParseCommandLine(d):
-        d["-c"] = 24        # Crack time in hours
-        d["-d"] = None      # Dictionary file to use (None means default)
-        d["-j"] = "."       # String to join words
-        d["-n"] = 10        # Number of passwords to generate
-        d["-s"] = None      # PRG seed
-        d["-t"] = 1         # Which generator to use
-        d["-w"] = 4         # Number of words
+        d["-a"] = False     # Describe this option
+        d["-d"] = 3         # Number of significant digits
+        if len(sys.argv) < 2:
+            Usage()
         try:
-            opts, args = getopt.getopt(sys.argv[1:], "c:d:hj:n:s:t:w:") 
+            opts, args = getopt.getopt(sys.argv[1:], "ad:h") 
         except getopt.GetoptError as e:
             print(str(e))
             exit(1)
         for o, a in opts:
-            if o[1] in list(""):
+            if o[1] in list("a"):
                 d[o] = not d[o]
-            elif o in ("-h", "--help"):
+            elif o in ("-d",):
+                try:
+                    d["-d"] = int(a)
+                    if not (1 <= d["-d"] <= 15):
+                        raise ValueError()
+                except ValueError:
+                    msg = ("-d option's argument must be an integer between "
+                        "1 and 15")
+                    Error(msg)
+            elif o == "-h":
                 Usage(status=0)
-            elif o == "-c":     # Crack time in hours
-                d[o] = GetInt("-c", a, 1)
-            elif o == "-d":     # Dictionary file
-                d[o] = a
-            elif o == "-j":     # String to join words
-                d[o] = a
-            elif o == "-n":     # Number of passwords to generate
-                d[o] = GetInt("-n", a, 1)
-                g.n = d[0]
-            elif o == "-s":     # PRG seed
-                random.seed(a)
-                g.prg = random.choice
-            elif o in "-t":     # Choose generator to use
-                d[o] = GetInt("-n", a, 1, 2)
-            elif o in "-w":     # Number of words
-                d[o] = GetInt("-n", a, 2)
-        if args:
-            g.n = d["-n"] = int(args[0])
         return args
 if 1:   # Core functionality
-    def CrackSpeed(nw):
-        '''Return how many passwords must be tested per second to 
-        be able to crack the password using brute force in 24 hours.
-        The returned string's units are Hz.
-        '''
-        seconds = flt(3600*d["-c"])
-        cs = flt(nw)/seconds
-        with cs:
-            cs.N = 2
-            return cs.sci
-    def GetWords():
-        if g.words is None:
-            if d["-d"] is None:
-                # This dict is from https://7esl.com/common-words/
-                g.words = open("/pylib/pgm/words.x.1000.3").read().split("\n")
-                g.words = [i for i in g.words if i and i[0] != "#" and len(i) > 2]
-            else:
-                g.words = open(d["-d"]).read().split("\n")
-                g.words = [i for i in g.words if i and i[0] != "#" and len(i) > 2]
-            if 1:
-                # Print information on the passwords generated
-                f = sys.stderr
-                s = [len(i) for i in g.words]
-                mx, mn = max(s), min(s)
-                nw = len(g.words)
-                np = float(nw)**d["-w"]    # Number of passwords generated
-                s = P(sys.argv[0]).resolve()
-                print(f"{t.inf}", file=f, end="")
-                print(f"Script:  {s}", file=f)
-                print(f"Seed:  {d['-s']}", file=f)
-                print(f"Word list has {nw} words of [{mn}, {mx}] length", file=f)
-                print(f"log10(number of possible passwords) = {math.log10(np):.1f}", file=f)
-                print(f"Brute force cracking of password in {d['-c']} hours will take", file=f)
-                print(f"  testing combinations at {CrackSpeed(np)} Hz.", file=f)
-                t.print("", file=f)
-            seed = d["-s"] if d["-s"] is not None else 0
-            random.seed(seed)
-            random.shuffle(g.words)
-    def DictionaryWords(i, maxlen):
-        GetWords()
-        o = []
-        for j in range(d["-w"]):
-            o.append(g.prg(g.words))
-        print(f"{i + 1:{maxlen}d}    {d['-j'].join(o)}")
-    def ASCII_Characters():
-        pass
+    pass
 
 if __name__ == "__main__":
     d = {}      # Options dictionary
     args = ParseCommandLine(d)
-    if d["-t"] == 1:
-        g.n = int(args[0]) if args else 5
-        for i in range(g.n):
-            DictionaryWords(i, len(str(g.n)))
-    elif d["-t"] == 2:
-        ASCII_Characters()
-    else:
-        Error("-t number not recognized")
