@@ -91,7 +91,7 @@ if 1:   # Utility
             elif o == "-r":
                 try:
                     d[o] = int(a)
-                    if not (d[o] <= 2):
+                    if not (d[o] >= 2):
                         raise ValueError()
                 except ValueError:
                     msg = f"{o} option's argument must be an integer > 1"
@@ -131,7 +131,8 @@ if 1:   # Core functionality
                     too_many.append(n)
         # Print report
         w, s = 4, " "*4
-        print(f"Dividing head calculations")
+        cmd = ' '.join(sys.argv[1:])
+        print(f"Dividing head calculations (args = {cmd!r})")
         print(f"{ratio:{w}d}{s}Worm gear ratio")
         print(f"{Nmax:{w}d}{s}Max divisions to generate")
         if hmax:
@@ -149,7 +150,7 @@ if 1:   # Core functionality
             print(i)
         # Plates removed
         if hmax:
-            print(f"Plates removed because they were > hmax:")
+            print(f"Plates removed because they were > hmax = {hmax}:")
             for i in Columnize([str(j) for j in sorted(too_many)], indent=" "*4):
                 print(i)
         CoalesceHoles(mydict)
@@ -179,7 +180,7 @@ if 1:   # Core functionality
             Plates removed because they were > hmax:
                 51 57 63 69 77 81 87 91 93 99
 
-        Here's how this would be analyzed.  Factors:
+        Here's how this would be analyzed.  Integer factors:
             10: 2 5
             12: 2 2 3
             14: 2 7
@@ -211,6 +212,18 @@ if 1:   # Core functionality
             49: 7 7
             50: 2 5 5
 
+        First get the even number of holes:
+            2 4 6 8 10 12 20 
+        The factors are
+            2: 2
+            4: 2 2
+            6: 2 3
+            8: 2 2 2
+            10: 2 5
+            12: 2 2 3
+            20: 2 2 5
+        
+        The factors in the list are 2, 3, 5
         '''
 
 if __name__ == "__main__":
