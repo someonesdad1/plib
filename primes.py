@@ -2,7 +2,8 @@
 
 ToDo
     - Use /usr/bin/factor to do factoring of large integers, as it's much
-      faster than this python code
+      faster than this python code.  See code for hc.py, as it uses it in
+      that script.
 
 Contains various routines related to prime numbers and factors.
  
@@ -44,55 +45,13 @@ if 1:   # Global variables
     t.N = t("grnl")
     nl = "\n"
     __all__ = '''AllFactors Factor FactorList FormatFactors IsPrime
-                 PrimeList PrimeNumberSieve Primes factor_gen
+                 PrimeList PrimeNumberSieve Primes FactorGenerator
               '''.split()
     d = {"-c": False}
 def IsPositiveInteger(n, msg):
     if n < 1 or not ii(n, int):
         raise ValueError(msg)
-def Primes(n, show=False):
-    '''Returns a list of primes < n.  From
-    http://stackoverflow.com/questions/2068372/fastest-way-to-list-all-primes-below-n-in-python/3035188#3035188
-    The pure python method used here is named rwh_primes1.  If show is
-    True, print out the sieve's contents for each iteration.
-    '''
-    # Times on 2.5 GHz Intel quad core:
-    #     log10(n)       s        num primes
-    #        6           0.4      78498
-    #        7           1.0      664579
-    #        8           8.3      5761455
-    #        9    memory error
-    IsPositiveInteger(n, "n must be an integer > 0")
-    def Show(count, sieve):
-        if show:
-            # Make a string of 0's and 1's
-            s = str([0 + i for i in sieve])
-            if not count:
-                # Print a ruler
-                print(" " * 4, ("    .    |") * (len(sieve) // 10))
-            print(
-                "%3d " % count,
-                s[1:-1]
-                .replace(",", "")
-                .replace(" ", "")
-                .replace("0", " ")
-                .replace("1", "x"),
-            )
-    sieve = [True] * (n // 2)  # Boolean array representing odd numbers
-    if show:
-        Show(0, sieve)
-    # Iterate from 3 to sqrt(n), odd numbers only
-    for i in range(3, int(n**0.5) + 1, 2):
-        # If this element's value is true, then set each multiple of i to
-        # false by using the proper stride.  This is very fast because it
-        # will all be done in C code.  The RHS is the tricky part -- it's
-        # the remaining number of items in the Boolean array.
-        if sieve[i // 2]:
-            sieve[i*i//2::i] = [False] * ((n - i*i - 1)//(2*i) + 1)
-            if show:
-                Show(i, sieve)
-    return [2] + [2 * i + 1 for i in range(1, n // 2) if sieve[i]]
-def factor_gen(N):
+def FactorGenerator(N):
     '''This is a generator that factors an integer N.  We get a list of
     possible factors that are primes less than N.  Then we reverse the
     list and test each factor to see if it divides N.
@@ -155,7 +114,7 @@ def Factor(n, check=False):
     IsPositiveInteger(n, "n must be an integer > 0")
     if n < 4:
         return {}
-    factors, d = list(factor_gen(n)), collections.defaultdict(int)
+    factors, d = list(FactorGenerator(n)), collections.defaultdict(int)
     if check and factors and reduce(operator.mul, factors) != n:
         raise RuntimeError("Bug in Factor for n = %d" % n)
     if factors == [n]:
@@ -169,7 +128,7 @@ def FactorList(n, check=False):
     multiplied together to verify that the original number is gotten.
     '''
     IsPositiveInteger(n, "n must be an integer > 0")
-    factors = sorted(list(factor_gen(n)))
+    factors = sorted(list(FactorGenerator(n)))
     if check and factors and reduce(operator.mul, factors) != n:
         raise RuntimeError("Bug in FactorList for n = %d" % n)
     return factors
@@ -211,7 +170,7 @@ def AllFactors(n):
     '''
     IsPositiveInteger(n, "n must be an integer > 0")
     assert n > 1
-    factors = list(factor_gen(n))
+    factors = list(FactorGenerator(n))
     all_factors = set(factors)
     for num_factors in range(2, len(factors)):
         for comb in itertools.combinations(factors, num_factors):
@@ -219,6 +178,69 @@ def AllFactors(n):
     numbers = list(all_factors)
     numbers.sort()
     return tuple(numbers)
+def Primes(n, show=False, new_algorithm=True):
+    '''Returns a list of primes < n.  If show is True, print out the
+    sieve's contents for each iteration (show only works for old algorithm).
+    Set new_algorithm to False to use the old algorithm.
+ 
+    For n == 10**6, the new algorithm is about 16 ms, twice as fast as the old.
+    '''
+    IsPositiveInteger(n, "n must be an integer > 0")
+    if new_algorithm:
+        # New algorithm
+        # From https://stackoverflow.com/questions/2068372/ ...
+        #      fastest-way-to-list-all-primes-below-n/33356284#33356284
+        # Downloaded Mon 20 Nov 2023 08:21:39 AM
+        # For arguments > about 400, this algorithm is faster than the old
+        # and for large arguments (10**6) it's about twice as fast.
+        zero = bytearray([False])
+        size = n//3 + (n % 6 == 2)
+        sieve = bytearray([True]) * size
+        sieve[0] = False
+        for i in range(int(n**0.5)//3+1):
+            if sieve[i]:
+                k=3*i+1|1
+                start = (k*k+4*k-2*k*(i&1))//3
+                sieve[(k*k)//3::2*k]=zero*((size - (k*k)//3 - 1) // (2 * k) + 1)
+                sieve[  start ::2*k]=zero*((size -   start  - 1) // (2 * k) + 1)
+        ans = [2,3]
+        poss = itertools.chain.from_iterable(itertools.zip_longest(*[range(i, n, 6) for i in (1,5)]))
+        ans.extend(itertools.compress(poss, sieve))
+        return ans
+    else:
+        # Old algorithm
+        # http://stackoverflow.com/questions/2068372/ ...
+        #     fastest-way-to-list-all-primes-below-n-in-python/3035188#3035188
+        def Show(count, sieve):
+            if show:
+                # Make a string of 0's and 1's
+                s = str([0 + i for i in sieve])
+                if not count:
+                    # Print a ruler
+                    print(" " * 4, ("    .    |") * (len(sieve) // 10))
+                print(
+                    "%3d " % count,
+                    s[1:-1]
+                    .replace(",", "")
+                    .replace(" ", "")
+                    .replace("0", " ")
+                    .replace("1", "x"),
+                )
+        sieve = [True] * (n // 2)  # Boolean array representing odd numbers
+        if show:
+            Show(0, sieve)
+        # Iterate from 3 to sqrt(n), odd numbers only
+        for i in range(3, int(n**0.5) + 1, 2):
+            # If this element's value is true, then set each multiple of i to
+            # false by using the proper stride.  This is very fast because it
+            # will all be done in C code.  The RHS is the tricky part -- it's
+            # the remaining number of items in the Boolean array.
+            if sieve[i // 2]:
+                sieve[i*i//2::i] = [False] * ((n - i*i - 1)//(2*i) + 1)
+                if show:
+                    Show(i, sieve)
+        return [2] + [2 * i + 1 for i in range(1, n // 2) if sieve[i]]
+
 if __name__ == "__main__":
     # If run as a script, list primes and factors.
     from lwtest import Assert, run

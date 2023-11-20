@@ -54,7 +54,7 @@ if 1:   # Utility
         exit(status)
     def Usage(status=1):
         print(dedent(f'''
-        Usage:  {sys.argv[0]} [options] R N
+        Usage:  {sys.argv[0]} [options] R Nmax
           For a dividing head with a ratio R, construct a table showing the
           number of holes needed to get all the divisions from 2 to N.  R
           and N must be integers.
@@ -89,38 +89,39 @@ if 1:   # Utility
         return args
 if 1:   # Core functionality
     def OrganizeResults(results):
-        '''results is a dict of N for keys and di[n] is the number of holes in a
-        dividing plate to get N for the give ratio.  List things by number
-        of holes and the values of N that can be gotten with that number of
+        '''results is a dict of Nmax for keys and di[n] is the number of holes in a
+        dividing plate to get Nmax for the give ratio.  List things by number
+        of holes and the values of Nmax that can be gotten with that number of
         holes.
         '''
         mydict = defaultdict(list)
         for n in results:
             holes = results[n]
             mydict[holes].append(n)
-        #from pprint import pprint as pp
-        #pp(mydict)
-        for i in mydict:
+        # Print report
+        print(f"Ratio = {ratio}   Nmax = {Nmax}")
+        print(f"Holes  Divisions")
+        for i in sorted(mydict):
             s = ' '.join(str(j) for j in mydict[i])
-            print(f"{i}:  {s}")
+            print(f"{i:2d}:  {s}")
 
 
 if __name__ == "__main__":
     d = {}      # Options dictionary
     args = ParseCommandLine(d)
-    R, N = [int(i) for i in args]
-    print(f"Ratio = {R}")
+    ratio, Nmax = [int(i) for i in args]
     results = {}
-    for n in range(2, N + 1):
-        if R % n:
-            results[n] = Fraction(R % n, n).denominator
+    for n in range(2, Nmax + 1):
+        if ratio % n:
+            results[n] = Fraction(ratio % n, n).denominator
         else:
-            results[n] = R // n
-    if 1:
+            results[n] = ratio // n
+    if 0:
         OrganizeResults(results)
     else:
         o = []
+        print("N:h where N is desired divisions and h is number of holes")
         for n in results:
-            o.append(f"{n}:{results[n]}")
+            o.append(f"{n:3d}:{results[n]:3d}")
         for i in Columnize(o, col_width=10):
             print(i)
