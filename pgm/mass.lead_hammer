@@ -1,15 +1,60 @@
-# This is a design for a lead hammer.  The mold is made from two
-# pieces of aluminum plate; the pieces are pinned together and held
-# together by a screw.  Then a hole is bored along the joint between
-# the plates.  A 90 degree hole is drilled to intersect the first hole
-# to provide a hole for e.g. a socket head cap screw, which allows the
-# head to be screwed to a handle.
+# 19 Nov 2023 
+#
+# This file is to estimate the weight of a lead hammer shown in "Projects
+# in Metal", Oct. 1990, page 10, entitled "Soft-Faced Hammer".
 
-material al
-units in
-munit oz
-vunit in^3
+# With the original dimensions from the article, the overall weight of the
+# hammer was 2.5 lb.  The endcaps were 1.2 lb, the body 0.6 lb and the
+# handle 0.75.  The handle is thus 30% of the total weight and I consider
+# this too high, as I'd like to see most of the mass in the head.
+#
+# To get more mass in the head, the second iteration was for a wooden
+# handle.  The endcaps & body were 1.8 lb and the handle was 0.32 lb, about
+# half of the aluminum one.
 
-cyl d=3/4, L=3, rho="pb", name="Head"
-cyl d=0.5, L=3.5, name="Handle handle"
-cyl d=0.375, L=4, name="Handle head"
+# Thus, I decided on a wooden handle.  I'd like the head to be about 2.5 to
+# 3 lbs, so I lengthened the endcaps.
+
+material steel
+units inches
+digits 2
+munit lb
+vunit in3
+
+# There are three components: 
+#   1   Lead endcap
+#   2   Body (steel)
+#   3   Aluminum handle
+
+# There are two of the endcaps and they also contain a 1 inch long 5/16"
+# hex bolt, but I'm going to ignore the weight of these.
+
+# 1:  Lead endcap
+# Original
+#   cyl d=1.5, L=0.88, material="Pb", name="endcap", n=2
+#   cyl d=1, L=0.25, material="Pb", name="endcap hole", neg=True, n=2
+
+# Lengthened to get 2.5 to 3 lb for head.  
+#   L=1.2 gives 2.14 lb for the head.
+#   L=1.6 gives 2.64 lb for the head.
+    cyl d=1.5, L=1.5, material="Pb", name="endcap", n=2
+    cyl d=1, L=0.25, material="Pb", name="endcap hole", neg=True, n=2
+
+# 2:  Body
+cyl d=1.5, L=1.5, name="body"
+cyl d=1, L=0.25, name="body recess", n=2, neg=True
+cyl d=0.3, L=0.75, name="handle threaded hole", neg=True
+cyl d=0.3, L=1.5, name="body threaded hole", neg=True
+
+# 3:  Handle
+#
+# Made from aluminum
+#cyl d=1, L=10.25, name="handle", material="al"
+#cyl d=0.2, L=10.25, name="handle taper", neg=True, material="al"
+
+# Made from wood (maple)
+cyl d=1.25, L=10.25, name="handle", material="maple"
+cyl d=0.2, L=10.25, name="handle taper", neg=True, material="maple"
+
+# Note:  I am approximating the handle's taper with an estimate of the
+# equivalent diameter. 

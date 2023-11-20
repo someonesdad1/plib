@@ -1,6 +1,7 @@
 '''
 TODO:
 
+- Bug:  % of total column is wrong for mass.leadhammer file
 - Get rid of sig
 - I should be able to write lines like
 
@@ -126,6 +127,7 @@ if 1:   # Global variables
             (1, "cu", "Copper", 8.9),
             (1, "steel", "Steel 1018", 7.86),
             (1, "pb", "Lead", 11.35),
+
             (2, "ag", "Silver", 10.5),
             (2, "au", "Gold", 19.3),
             (2, "becu", "BeCu (beryllium copper)", 8.25),
@@ -134,6 +136,7 @@ if 1:   # Global variables
             (2, "solder", "Solder, Pb-Sn eutectic", 8.32),
             (2, "sst", "Steel 304 stainless", 8.02),
             (2, "zn", "Zinc", 7.1),
+
             (3, "alnico", "Alnico", 7),
             (3, "babbit", "Babbit", 7.28),
             (3, "cd", "Cadmium", 8.65),
@@ -179,11 +182,13 @@ if 1:   # Global variables
             # foot per inch of thickness.
             (1, "ply", "Plywood", 0.58),
             (1, "plywood", "Plywood", 0.58),
+
             (2, "balsa", "Balsa", 0.13),
             (2, "bamboo", "Bamboo", 0.35),
             (2, "cedar", "Cedar, red", 0.38),
             (2, "cherry", "Cherry", 0.8),
             (2, "walnut", "Walnut", 0.68),
+
             (3, "apple", "Apple", 0.71),
             (3, "ash", "Ash", 0.75),
             (3, "ash, green", "Ash, green", 0.85),
@@ -201,12 +206,14 @@ if 1:   # Global variables
             (1, "poly", "Polyethylene", 0.93),
             (1, "pvc", "PVC", 1.2),
             (1, "styro", "Styrofoam", 0.04),
+
             (2, "abs", "ABS", 1.07),
             (2, "hdpe", "Polyethylene HDPE", 0.96),
             (2, "polycarb", "Polycarbonate", 1.2),
             (2, "polypro", "Polypropylene", 0.9),
             (2, "styrene", "Polystyrene", 1.06),
             (2, "teflon", "Teflon", 2.2),
+
             (3, "bak", "Bakelite", 1.36),
             (3, "epgc", "Epoxy w/65% by wt glass cloth", 2.0),
             (3, "epoxy", "Epoxy", 1.11),
@@ -230,6 +237,7 @@ if 1:   # Global variables
             (1, "gravel", "Gravel, dry", 1.5),
             (1, "sand", "Sand, dry", 1.6),
             (1, "wetsand", "Sand, wet packed", 2.0),
+
             (2, "wdirt", "Earth, wet excavated", 1.6),
             (2, "alumina", "Alumina", 3.68),
             (2, "basalt", "Basalt", 3.0),
@@ -239,6 +247,7 @@ if 1:   # Global variables
             (2, "marble", "Marble", 2.6),
             (2, "plaster", "Plaster", 0.85),
             (2, "sio2", "Silica glass SiO2", 2.55),
+
             (3, "bent", "Bentonite", 0.6),
             (3, "corundum", "Corundum", 3.2),
             (3, "dia", "Diamond", 3.1),
@@ -250,6 +259,7 @@ if 1:   # Global variables
             (1, "card", "Cardboard", 0.7),
             (1, "paper", "Paper", 0.9),
             (1, "rubber", "Rubber, hard", 1.2),
+
             (2, "buna", "Rubber, Buna N", 1.0),
             (2, "chalk", "Chalk", 2),
             (2, "cork", "Cork", 0.24),
@@ -259,6 +269,7 @@ if 1:   # Global variables
             (2, "linoleum", "Linoleum", 1.18),
             (2, "perl", "Perlite", 0.09),
             (2, "wax", "Paraffin wax", 0.9),
+
             (3, "amber", "Amber", 1.08),
             (3, "beeswax", "Beeswax", 0.95),
             (3, "bicarb", "Bicarbonate of soda", 0.69),
@@ -290,12 +301,14 @@ if 1:   # Global variables
             (1, "gas", "Gasoline", 0.7),
             (1, "oil", "Machine oil", 0.9),
             (1, "water", "Water", 1),
+
             (2, "acetone", "Acetone", 0.79),
             (2, "ethanol", "Alcohol, ethyl", 0.788),
             (2, "ipa", "Alcohol, isopropyl", 0.79),
             (2, "kerosene", "Kerosene", 0.823),
             (2, "methanol", "Alcohol, methyl", 0.79),
             (2, "spirits", "Mineral spirits", 0.66),
+
             (3, "acetic", "Acetic acid", 1.05),
             (3, "eglycol", "Ethylene glycol", 1.1),
             (3, "benzene", "Benzene", 0.876),
@@ -324,11 +337,13 @@ if 1:   # Global variables
             (1, "n2", "Nitrogen (gas)", 0.967*_air_density),
             (1, "o2", "Oxygen (gas)", 1.105*_air_density),
             (1, "co2", "Carbon dioxide (gas)", 1.52*_air_density),
+
             (2, "ar", "Argon (gas)", 0.59*_air_density),
             (2, "he", "Helium (gas)", 0.138*_air_density),
             (2, "ne", "Neon (gas)", 0.697*_air_density),
             (2, "propane", "Propane (gas)", 1.52*_air_density),
             (2, "xe", "Xenon (gas)", 4.53*_air_density),
+
             (3, "acetylene", "Acetylene (gas)", 0.9*_air_density),
             (3, "butane", "Butane (gas)", 0.9*_air_density),
             (3, "cl", "Chlorine (gas)", 2.45*_air_density),
@@ -1535,10 +1550,11 @@ def GetMaterialDictionary(d):
     D = {}
     for i in _materials:
         for include, id, name, rho in _materials[i]:
-            if id in D:
+            _id = id.lower()
+            if _id in D:
                 Error("'{}' is a duplicated ShortID in _materials dict".format(id))
             else:
-                D[id] = (name, rho)
+                D[_id] = (name, rho)
     d["materials"] = D
 def GetKeywords(__linenum, __line, __list_of_expr, __vars):
     '''Given a list of expressions and a dictionary of variables __vars,
@@ -1873,7 +1889,7 @@ def ReadDatafile(d):
             kw = GetKeywords(linenum, line, list_of_expr, d["vars"])
             if "rho" not in kw:
                 if "material" in kw:
-                    kw["rho"] = d["materials"][kw["material"]][1]
+                    kw["rho"] = d["materials"][kw["material"].lower()][1]
                 else:
                     kw["rho"] = d["rho"]  # Use current default material
             elif isinstance(kw["rho"], (int, float)):
@@ -1915,8 +1931,8 @@ def ReadDatafile(d):
                 d["digits"] = Eval(linenum, line, expr, d["vars"])
             elif f[0] == "material":
                 d["material"] = None
-                if f[1] in d["materials"]:
-                    matl = d["materials"][f[1]]
+                if f[1].lower() in d["materials"]:
+                    matl = d["materials"][f[1].lower()]
                     d["rho"] = matl[1]
                     d["material"] = "{} ({})".format(f[1], matl[0])
                 else:
