@@ -1,9 +1,14 @@
 '''
+
+ToDo
+    - Add a -d option that only looks at drill sizes
+
+---------------------------------------------------------------------------
 Print out a decimal equivalents table.
 
 There are two primary behaviors:  
-    * A typical fractions of an inch to decimal inches table is printed.
-    * An extensive table of fractions, mm, and various gauges is printed
+    - A typical fractions of an inch to decimal inches table is printed.
+    - An extensive table of fractions, mm, and various gauges is printed
       (this is similar to the spreadsheet printout on my shop wall).
 '''
 if 1:  # Copyright, license
@@ -22,6 +27,8 @@ if 1:  # Copyright, license
 if 1:   # Imports
     import getopt
     import sys
+    # The following is done so the math library functions are in scope for
+    # expressions.
     from math import *
     from fractions import Fraction
     from bisect import bisect_left, bisect_right
@@ -35,6 +42,9 @@ if 1:   # Custom imports
     from fraction import FormatFraction, ToFraction
     import color
     import sizes
+    if 1:
+        import debug
+        debug.SetDebugger()
 if 1:   # Global variables
     # How much to indent a fraction to have pleasing offsets to make the
     # table easier to read.
@@ -208,7 +218,7 @@ def TapDrills(d):
     from asme import UnifiedThread as UT
     # Number thread major diameter in inches
     def nt(n):
-        round(0.06 + 0.013*n, 4)
+        return round(0.06 + 0.013*n, 4)
     t = []
     # ----------------------------------------------------------------------
     # Inch-based threads
