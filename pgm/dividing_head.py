@@ -44,6 +44,7 @@ if 1:   # Header
         from wrap import dedent
         from color import t
         from columnize import Columnize
+        from primes import IsPrime
     if 1:   # Global variables
         ii = isinstance
         W = int(os.environ.get("COLUMNS", "80")) - 1
@@ -54,37 +55,48 @@ if 1:   # Utility
         exit(status)
     def Usage(status=1):
         print(dedent(f'''
-        Usage:  {sys.argv[0]} [options] R Nmax
+        Usage:  {sys.argv[0]} [options] Nmax [hmax]
           For a dividing head with a ratio R, construct a table showing the
-          number of holes needed to get all the divisions from 2 to N.  R
-          and N must be integers.
+          number of holes needed to get all the divisions from 2 to Nmax.
+          hmax is the maximum number of holes allowed in a plate.  If you
+          provide hmax, some divisions will not be possible.  R, N, and
+          hmax must be integers.
         Options:
             -h      Print a manpage
+            -r R    Set ratio [{d['-r']}]
         '''))
         exit(status)
     def ParseCommandLine(d):
         d["-a"] = False     # Describe this option
         d["-d"] = 3         # Number of significant digits
+        d["-r"] = 40        # Default ratio
         try:
-            opts, args = getopt.getopt(sys.argv[1:], "ad:h") 
+            opts, args = getopt.getopt(sys.argv[1:], "ad:hr:") 
         except getopt.GetoptError as e:
             print(str(e))
             exit(1)
         for o, a in opts:
             if o[1] in list("a"):
                 d[o] = not d[o]
-            elif o in ("-d",):
+            elif o == "-d":
                 try:
-                    d["-d"] = int(a)
-                    if not (1 <= d["-d"] <= 15):
+                    d[o] = int(a)
+                    if not (1 <= d[o] <= 15):
                         raise ValueError()
                 except ValueError:
-                    msg = ("-d option's argument must be an integer between "
-                        "1 and 15")
+                    msg = f"{o} option's argument must be an integer between 1 and 15"
                     Error(msg)
             elif o == "-h":
                 Usage(status=0)
-        if len(args) != 2:
+            elif o == "-r":
+                try:
+                    d[o] = int(a)
+                    if not (d[o] <= 2):
+                        raise ValueError()
+                except ValueError:
+                    msg = f"{o} option's argument must be an integer > 1"
+                    Error(msg)
+        if len(args) not in (1, 2):
             Usage(status=1)
         return args
 if 1:   # Core functionality
@@ -98,28 +110,65 @@ if 1:   # Core functionality
         for n in results:
             holes = results[n]
             mydict[holes].append(n)
+        # Find the mydict entries that are prime numbers and only have one
+        # entry, that of their number.
+        p = []
+        for n in mydict:
+            if n == 1:
+                continue
+            if IsPrime(n) and len(mydict[n]) == 1:
+                p.append(n)
+        # Remove these from the dict
+        for n in p:
+            del mydict[n]
+        # If hmax is given, remove numbers > hmax
+        too_many, o = [], []
+        if hmax:
+            o = set(range(hmax + 1, Nmax))
+            for n in o:
+                if n in mydict:
+                    del mydict[n]
+                    too_many.append(n)
         # Print report
-        print(f"Ratio = {ratio}   Nmax = {Nmax}")
-        print(f"Holes  Divisions")
+        w, s = 4, " "*4
+        print(f"Dividing head calculations")
+        print(f"{ratio:{w}d}{s}Worm gear ratio")
+        print(f"{Nmax:{w}d}{s}Max divisions to generate")
+        if hmax:
+            print(f"{hmax:{w}d}{s}Max holes in plates")
+        print(f"\nHoles  Divisions")
+        o = []
         for i in sorted(mydict):
             s = ' '.join(str(j) for j in mydict[i])
-            print(f"{i:2d}:  {s}")
-
+            o.append(f"{i:2d}:  {s}")
+        for i in Columnize(o):
+            print(i)
+        # Plates for single prime numbers
+        print(f"Plates for single prime numbers:")
+        for i in Columnize([str(j) for j in sorted(p)], indent=" "*4):
+            print(i)
+        # Plates removed
+        if hmax:
+            print(f"Plates removed because they were > hmax:")
+            for i in Columnize([str(j) for j in sorted(too_many)], indent=" "*4):
+                print(i)
 
 if __name__ == "__main__":
     d = {}      # Options dictionary
     args = ParseCommandLine(d)
-    ratio, Nmax = [int(i) for i in args]
+    ratio = d["-r"]
+    Nmax = int(args[0])
+    hmax = None if len(args) == 1 else int(args[1])
     results = {}
     for n in range(2, Nmax + 1):
         if ratio % n:
             results[n] = Fraction(ratio % n, n).denominator
         else:
             results[n] = ratio // n
-    if 0:
+    if 1:
         OrganizeResults(results)
     else:
-        o = []
+        o, p = [], []
         print("N:h where N is desired divisions and h is number of holes")
         for n in results:
             o.append(f"{n:3d}:{results[n]:3d}")

@@ -34,7 +34,6 @@ Example:
       checking rate of 1e20 Hz.  You'd need 1e39/1e20 = 1e19 s to check all
       the possibilities, which larger than 4e17 s, the age of the universe.
 
-
 '''
 if 1:   # Header
     if 1:   # Copyright, license
