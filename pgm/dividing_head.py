@@ -34,6 +34,7 @@ if 1:   # Header
         #∞test∞# #∞test∞#
         pass
     if 1:   # Standard imports
+        from collections import defaultdict
         from fraction import Fraction
         import getopt
         import os
@@ -87,21 +88,39 @@ if 1:   # Utility
             Usage(status=1)
         return args
 if 1:   # Core functionality
-    pass
+    def OrganizeResults(results):
+        '''results is a dict of N for keys and di[n] is the number of holes in a
+        dividing plate to get N for the give ratio.  List things by number
+        of holes and the values of N that can be gotten with that number of
+        holes.
+        '''
+        mydict = defaultdict(list)
+        for n in results:
+            holes = results[n]
+            mydict[holes].append(n)
+        #from pprint import pprint as pp
+        #pp(mydict)
+        for i in mydict:
+            s = ' '.join(str(j) for j in mydict[i])
+            print(f"{i}:  {s}")
+
 
 if __name__ == "__main__":
     d = {}      # Options dictionary
     args = ParseCommandLine(d)
     R, N = [int(i) for i in args]
     print(f"Ratio = {R}")
-    di = {}
+    results = {}
     for n in range(2, N + 1):
         if R % n:
-            di[n] = Fraction(R % n, n).denominator
+            results[n] = Fraction(R % n, n).denominator
         else:
-            di[n] = R // n
-    o = []
-    for n in di:
-        o.append(f"{n}:{di[n]}")
-    for i in Columnize(o):
-        print(i)
+            results[n] = R // n
+    if 1:
+        OrganizeResults(results)
+    else:
+        o = []
+        for n in results:
+            o.append(f"{n}:{results[n]}")
+        for i in Columnize(o, col_width=10):
+            print(i)
