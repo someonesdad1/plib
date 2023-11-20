@@ -152,6 +152,66 @@ if 1:   # Core functionality
             print(f"Plates removed because they were > hmax:")
             for i in Columnize([str(j) for j in sorted(too_many)], indent=" "*4):
                 print(i)
+        CoalesceHoles(mydict)
+    def CoalesceHoles(mydict):
+        '''Reduce the set to a minimum number of hole circles needed.
+
+        Here's the results for arguments of 100 50:
+
+            Dividing head calculations
+              40    Worm gear ratio
+             100    Max divisions to generate
+              50    Max holes in plates
+            
+            Holes  Divisions
+             1:  40                   11:  11 22 44 55 88       29:  29 58
+             2:  16 20 80             12:  96                   31:  31 62
+             3:  3 6 12 15 24 30 60   13:  13 26 52 65          33:  33 66
+             4:  10 32                15:  75                   37:  37 74
+             5:  8 25 50 100          17:  17 34 68 85          39:  39 78
+             6:  48                   19:  19 38 76 95          41:  41 82
+             7:  7 14 28 35 56 70     20:  2                    43:  43 86
+             8:  5 64                 21:  21 42 84             47:  47 94
+             9:  9 18 36 45 72 90     23:  23 46 92             49:  49 98
+            10:  4                    27:  27 54
+            Plates for single prime numbers:
+                53 59 61 67 71 73 79 83 89 97
+            Plates removed because they were > hmax:
+                51 57 63 69 77 81 87 91 93 99
+
+        Here's how this would be analyzed.  Factors:
+            10: 2 5
+            12: 2 2 3
+            14: 2 7
+            15: 3 5
+            16: 2 2 2 2
+            18: 2 3 3
+            20: 2 2 5
+            21: 3 7
+            22: 2 11
+            24: 2 2 2 3
+            25: 5 5
+            26: 2 13
+            27: 3 3 3
+            28: 2 2 7
+            30: 2 3 5
+            32: 2 2 2 2 2
+            33: 3 11
+            34: 2 17
+            35: 5 7
+            36: 2 2 3 3
+            38: 2 19
+            39: 3 13
+            40: 2 2 2 5
+            42: 2 3 7
+            44: 2 2 11
+            45: 3 3 5
+            46: 2 23
+            48: 2 2 2 2 3
+            49: 7 7
+            50: 2 5 5
+
+        '''
 
 if __name__ == "__main__":
     d = {}      # Options dictionary
