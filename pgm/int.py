@@ -63,7 +63,8 @@ if 1:   # Utility
         Options
             -a n    Print the data out for the numbers 2 to n.  The other numbers
                     on the command line are ignored.
-            -c      Don't use colors
+            -c      Use colors
+            -f      Print out the all factors line if number is not prime
             -o      Print the sum of squares and cubes on one line.
             -P      Print out only primes with -a option
             -p      Print out only non-primes with -a option
@@ -75,28 +76,39 @@ if 1:   # Utility
         '''))
         exit(status)
     def ParseCommandLine():
-        d["-a"] = None
-        d["-c"] = False
-        d["-o"] = False
-        d["-P"] = False     # Only print out primes
-        d["-p"] = False     # Only print out non-primes
-        d["-s"] = None
-        d["-t"] = False
+        d["-a"] = None      # All numbers from 2 to n
+        d["-c"] = False     # Use color
+        d["-f"] = False     # Only show all factors line
+        d["-o"] = False     # Sum of squares & cubes on one line
+        d["-P"] = False     # Only print out primes with -a
+        d["-p"] = False     # Only print out non-primes with -a
+        d["-s"] = None      # Calculate sums of squares and cubes
+        d["-t"] = False     # Include triple sums
         if len(sys.argv) < 2:
             Usage(1)
         try:
-            optlist, args = getopt.getopt(sys.argv[1:], "a:coPps:t")
+            optlist, args = getopt.getopt(sys.argv[1:], "a:cfoPps:t")
         except getopt.GetoptError as str:
             msg, option = str
             print(msg)
             sys.exit(1)
         for o, a in optlist:
-            if o[1] in "coPpt":
+            if o[1] in "cfoPpt":
                 d[o] = not d[o]
             elif o == "-a":
-                d["-a"] = int(a)
+                try:
+                    d[o] = int(a)
+                    if d[o] < 2:
+                        raise ValueError
+                except ValueError:
+                    Error(f"-a argument must be integer > 1")
             elif o == "-s":
-                d["-s"] = int(a)
+                try:
+                    d[o] = int(a)
+                    if d[o] < 2:
+                        raise ValueError
+                except ValueError:
+                    Error(f"-a argument must be integer > 1")
         if not args and d["-a"] is None:
             Usage()
         if d["-P"] and d["-p"]:
@@ -157,13 +169,15 @@ if 1:   # Core functionality
         msg = f"  {g.w}All Factors [{len(all_factors)}]:  {g.fa}{m}{t.n}"
         return msg
     def Factors(n):
-        '''Print out the prime and non-prime factors of n.
-        '''
+        'Print out all factors of n'
         factorable, is_prime, msg, factors = GetPrimeFactors(n)
         print(msg)
         if factorable and not is_prime:
             # Make a list of all nonprime factors
-            print(str(AllFactors(n, factors)).replace("L", ""))
+            if 1 or d["-f"]:
+                print(AllFactors(n, factors))
+            else:
+                print(str(AllFactors(n, factors)).replace("L", ""))
     def Logarithms(n):
         l, ln, l2 = math.log10(n), math.log(n), math.log(n)/math.log(2)
         print(f"  {g.lg}Logarithms:  log = %.10f, ln = %.10f, log2 = %.10f{t.n}" % (l, ln, l2))
@@ -266,6 +280,17 @@ if 1:   # Core functionality
                 print(str(float(f)), " log = ", math.log10(float(f)))
             else:
                 print(f, " log = ", math.log10(float(f)))
+    def CheckNumber(number):
+        try:
+            n = int(number)
+            if n < 2:
+                print("Numbers must be positive integers > 2", file=sys.stderr)
+                exit(1)
+            else:
+                return n
+        except ValueError:
+            print(f"'{number}' isn't an integer", file=sys.stderr)
+            return None
     def PrintProperties(n):
         print(f"{g.n}{n}{t.n}")
         Bases(n)
@@ -291,17 +316,22 @@ if __name__ == "__main__":
                 # Print if prime
                 if is_prime:
                     PrintProperties(n)
+            elif d["-f"]:
+                if not primes.IsPrime(n):
+                    s = ' '.join(str(i) for i in primes.AllFactors(n))
+                    print(f"{n}: {s}")
             else:
                 PrintProperties(n)
-    else:
-        se = sys.stderr
+    elif d["-f"]:
         for number in numbers:
-            try:
-                n = int(number)
-            except ValueError:
-                print(f"'{number}' isn't an integer", file=se)
+            n = CheckNumber(number)
+            if n is None:
                 continue
-            if n < 2:
-                print("Numbers must be positive integers > 2", file=se)
-                exit(1)
+            s = ' '.join(str(i) for i in primes.AllFactors(n))
+            print(f"{n}: {s}")
+    else:
+        for number in numbers:
+            n = CheckNumber(number)
+            if not n:
+                continue
             PrintProperties(n)

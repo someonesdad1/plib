@@ -18,6 +18,11 @@ The number of holes needed for N turns is thus Fraction(R % N, N).denominator.
 This lets us construct a table of N versus number of holes in a plate for a
 given ratio R.
 
+B&S dividing heads came with three plates:
+    1:  15 16 17 18 19 20
+    2:  21 23 27 29 31 33
+    3:  37 39 41 43 47 49
+
 '''
 if 1:   # Header
     if 1:   # Copyright, license
@@ -63,20 +68,24 @@ if 1:   # Utility
           hmax must be integers.
         Options:
             -h      Print a manpage
-            -r R    Set ratio [{d['-r']}]
+            -m      Print characteristics of Master dividing head
+            -r R    Set worm gear ratio [{d['-r']}]
+            -t      Show table of divisions wanted and holes needed
         '''))
         exit(status)
     def ParseCommandLine(d):
         d["-a"] = False     # Describe this option
         d["-d"] = 3         # Number of significant digits
-        d["-r"] = 40        # Default ratio
+        d["-m"] = False     # Show details of Master dividing head
+        d["-r"] = 40        # Default worm gear ratio
+        d["-t"] = False     # Show divisions wanted and holes needed
         try:
-            opts, args = getopt.getopt(sys.argv[1:], "ad:hr:") 
+            opts, args = getopt.getopt(sys.argv[1:], "ad:hmr:t") 
         except getopt.GetoptError as e:
             print(str(e))
             exit(1)
         for o, a in opts:
-            if o[1] in list("a"):
+            if o[1] in list("amt"):
                 d[o] = not d[o]
             elif o == "-d":
                 try:
@@ -96,9 +105,70 @@ if 1:   # Utility
                 except ValueError:
                     msg = f"{o} option's argument must be an integer > 1"
                     Error(msg)
+        if d["-m"]:
+            MasterDividingHead()
+            exit(0)
         if len(args) not in (1, 2):
             Usage(status=1)
         return args
+if 1:   # Manpage
+    def Manpage():
+        print(dedent(f'''
+
+        A dividing head is essentially a spindle that is rotated by a worm
+        gear and worm wheel.  A handle turns the worm gear and a plate with
+        holes on the worm gear allows an integer number of rotations by
+        using an indexing pin in the plate.  The usual operation is to
+        accurately rotate the spindle by a known angle.  See [1].
+
+        Suppose the worm gear ratio is R and the number of evenly-spaced
+        holes in the dividing plate is H.  Both R and H are assumed to be
+        integers > 0.  For example, a common worm ratio is 40, which means
+        the worm gear must revolve 40 times to cause the worm wheel to
+        rotate once.
+
+        Suppose we have a specific ratio R and number of holes in the
+        dividing plate H.  The plate allows a minimum worm gear rotation of
+        1/H of a full rotation and the gear reduction means this results in
+        a rotation of 1/(H*R) of a circle.
+
+
+        The behavior is gotten with fractional arithmetic.  
+
+
+        References:
+            [1] https://en.wikipedia.org/wiki/Indexing_head
+        '''))
+        exit(0)
+if 1:   # Master dividing head
+    def MasterDividingHead():
+        '''Print out the division capabilities of the Master dividing head.
+ 
+        This is a smaller Master dividing head for lathes that belonged
+        to HPR.  It has an expanding collet to fit a spindle tube and,
+        once secured to the lathe, can divide spindle rotation into desired
+        numbers.
+ 
+        The worm gear is 40:1 and the dividing plate has 21, 23, 27, 29,
+        31, and 33 holes.
+        '''
+        print(dedent(f'''
+        Master dividing head for lathe (belonged to HPR)
+            40:1 worm with 21 23 27 29 31 33 holes in plate
+
+        Number of divisions achievable:
+                  1  2   4   5   8  10  20
+                 -------------------------
+            21:  21 42  84 105 168 210 420
+            23:  23 46  92 115 184 230 460
+            27:  27 54 108 135 216 270
+            29:  29 58 116 145 232 290
+            31:  31 62 124 155 248 310
+            33:  33 66 132 165 264 330
+
+        This script gives the 
+        '''))
+
 if 1:   # Core functionality
     def OrganizeResults(results):
         '''results is a dict of Nmax for keys and di[n] is the number of holes in a
@@ -238,12 +308,12 @@ if __name__ == "__main__":
             results[n] = Fraction(ratio % n, n).denominator
         else:
             results[n] = ratio // n
-    if 1:
-        OrganizeResults(results)
-    else:
+    if d["-t"]:
         o, p = [], []
         print("N:h where N is desired divisions and h is number of holes")
         for n in results:
             o.append(f"{n:3d}:{results[n]:3d}")
         for i in Columnize(o, col_width=10):
             print(i)
+    else:
+        OrganizeResults(results)

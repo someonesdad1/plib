@@ -165,9 +165,7 @@ def FormatFactors(n, plain=False, factor_dict=None):
     char = " " if plain else "·"
     return N + char.join(s)
 def AllFactors(n):
-    '''Return a sorted tuple of all the integer factors of n; n must
-    be greater than 1.
-    '''
+    'Return a list of all factors of n if n is not prime'
     IsPositiveInteger(n, "n must be an integer > 0")
     assert n > 1
     factors = list(FactorGenerator(n))
@@ -175,9 +173,7 @@ def AllFactors(n):
     for num_factors in range(2, len(factors)):
         for comb in itertools.combinations(factors, num_factors):
             all_factors.add(reduce(operator.mul, comb))
-    numbers = list(all_factors)
-    numbers.sort()
-    return tuple(numbers)
+    return list(sorted(list(all_factors)))
 def Primes(n, show=False, new_algorithm=True):
     '''Returns a list of primes < n.  If show is True, print out the
     sieve's contents for each iteration (show only works for old algorithm).
@@ -373,7 +369,7 @@ if __name__ == "__main__":
             if len(sys.argv) < 2:
                 Usage()
             try:
-                opts, args = getopt.getopt(sys.argv[1:], "Ccdhpu", "test")
+                opts, args = getopt.getopt(sys.argv[1:], "Ccdhptu")
             except getopt.GetoptError as e:
                 print(str(e))
                 exit(1)
@@ -382,7 +378,7 @@ if __name__ == "__main__":
                     d[o] = not d[o]
                 elif o in ("-h", "--help"):
                     Usage(status=0)
-                elif o == "--test":
+                elif o == "-t":
                     exit(run(globals(), halt=True)[0])
             if not d["-c"]:
                 t.p = t.n = t.N = ""
