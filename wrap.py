@@ -297,7 +297,6 @@ class Wrap(Abbr):
     @width.setter
     def width(self, value):
         self._width = int(value)
-wrap = Wrap()   # Convenience instance
 def indent(s: str, sindent=""):
     'Convenience function to indent'
     if not hasattr(indent, "wrap"):
@@ -371,6 +370,8 @@ def HangingIndent(s, indent="", first_line_indent=""):
         w = Wrap(indent=indent)
         out.extend(w(t).split("\n"))
     return '\n'.join(out)
+
+wrap = Wrap()   # Convenience instance
 
 if 0:
     s = "Return the string s wrapped so that the first line has the indicated indent with the remaining lines indented uniformly."
