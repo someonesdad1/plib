@@ -404,11 +404,19 @@ if 1:   # Core functionality
     def Master(*args):
         pass
     def DivisionsWithPlates(*args):
-        '''H = args[0].  Print out all the divisions that can be gotten
-        with plates with holes from 1 to H.
+        '''If only one argument is present, print out the divisions that
+        can be gotten with all plates with holes from 1 to that value.
+        Otherwise, just print the divisions for the given plates.
         '''
+        discrete = False
         try:
-            H = int(args[0])
+            if len(args) > 1:
+                discrete = True
+                H = [int(i) for i in args]
+                if any(i < 1 for i in H):
+                    Error("Arguments must be integers > 0")
+            else:
+                H = range(1, int(args[0]) + 1)
         except ValueError:
             Error("For op == d, the argument must be an integer > 0")
         ratio = d["-r"]
@@ -416,7 +424,7 @@ if 1:   # Core functionality
         # value is the number of holes that let this number of divisions be
         # gotten.
         div = defaultdict(list)
-        for h in range(1, H + 1):
+        for h in H:
             for factor in AllFactors(ratio*h):
                 div[factor].append(h)
         # Make sure for each item in dict that number of holes is only
@@ -424,8 +432,10 @@ if 1:   # Core functionality
         for i in div:
             div[i] = list(sorted(set(div[i])))
         # Print report
-        print(f"Which plates can be used to get a desired number of divisions")
-        print(f"Divisions   Number of holes in plate")
+        print(f"Number of divisions realizable (ratio = {ratio})")
+        if discrete:
+            print(f"  Holes:  {' '.join(args)}\n")
+        print(f"Divisions    Number of holes to use ")
         print(f"---------   ------------------------")
         indent = " "*12
         for n in sorted(div):
@@ -447,7 +457,8 @@ if __name__ == "__main__":
     d = {}      # Options dictionary
     args = ParseCommandLine(d)
     if dbg:
-        op, args = "t", ["50"]
+        op, args = "t", ["10"]
+        op, args = "t", "21 23 27 29 31 33".split()
     else:
         op = args.pop(0)
     if dbg:
