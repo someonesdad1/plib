@@ -81,6 +81,7 @@ def Usage(d, status=1):
       -i    Make the search case sensitive
       -j    Search HP Journal and Bench Brief files (note:  consider
             using the hpj.py script for such searches)
+      -x    Generate the index
     Long options
       --exec n
         Name of index file for usage statement.  Choices are:
@@ -88,17 +89,17 @@ def Usage(d, status=1):
     '''))
     exit(status)
 def ParseCommandLine(d):
-    d["-I"] = False     # If True, then generate indexes
+    d["-I"] = d["-x"] = False     # If True, then generate indexes
     d["-i"] = False     # If True, then case-sensitive search
     d["-j"] = False     # Show HPJ matches
     try:
-        optlist, args = getopt.getopt(sys.argv[1:], "hIij", ["exec="])
+        optlist, args = getopt.getopt(sys.argv[1:], "hIijx", ["exec="])
     except getopt.GetoptError as e:
         msg, option = e
         print(msg)
         exit(1)
     for o, a in optlist:
-        if o[1] in list("Iij"):
+        if o[1] in list("Iijx"):
             d[o] = not d[o]
         elif o == "--exec":
             d["--exec"] = a
@@ -106,7 +107,7 @@ def ParseCommandLine(d):
                 Error("'{a}' not an index")
         elif o == "-h":
             Usage(d, 0)
-    if d["-I"]:
+    if d["-I"] or d["-x"]:
         GenerateIndexFiles(d)
     if d["-j"]:
         d["--exec"] = "hpj"

@@ -1,3 +1,29 @@
+'''
+
+ToDo
+    - Add -i option for interactive solving of the following parameters
+        - n = number of sides
+        - θ = central angle
+        - β = interior angle between sides
+        - s = length of side
+        - p = perimeter
+        - A = area
+        - r = radius for inscribed circle
+        - R = radius for circumscribed circle
+        - d = diameter for inscribed circle
+        - D = diameter for circumscribed circle
+    - Here are the functions given in the analytic geometry document
+        - ρ means one of r, R, d, D
+        - θ(n)
+        - β(n)
+        - s(ρ, n)
+        - p(s, n)
+        - A(s, n), A(ρ, n)
+        - r(s, n), r(R, n)
+        - d(s, n), d(D, n)
+
+
+'''
 if 1:   # Header
     # Copyright, license
         # These "trigger strings" can be managed with trigger.py
@@ -54,7 +80,7 @@ if 1:   # Utility
         '''))
         exit(status)
     def ParseCommandLine(d):
-        d["-a"] = True      # Abbreviate numbers
+        d["-a"] = False     # Abbreviate numbers
         d["-c"] = ""        # Which lines to highlight
         d["-d"] = 4         # Number of significant digits
         d["-n"] = "3,4,5,6,7,8"
@@ -84,7 +110,8 @@ if 1:   # Utility
                 else:
                     d["-n"] = arg
         x = flt(0)
-        x.n = d["-d"]
+        x.N = d["-d"]
+        x.rtz = x.rtdp = False
         if d["-a"]:
             x.rtz = x.rtdp = True
         x.low = 1e-4

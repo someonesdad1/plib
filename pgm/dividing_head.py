@@ -452,13 +452,18 @@ if 1:   # Core functionality
                     line += " " + item
             if line:
                 print(line)
+        print("\nList of divisions available:")
+        o = sorted([f"{i:4d}" for i in div], key=int)
+        for i in Columnize(o, indent=" "*4, col_width=8):
+            print(i)
 
 if __name__ == "__main__":
     d = {}      # Options dictionary
     args = ParseCommandLine(d)
     if dbg:
-        op, args = "t", ["10"]
-        op, args = "t", "21 23 27 29 31 33".split()
+            op, args = "t", ["50"]
+            # Master dividing head's possibilities
+            op, args = "t", "21 23 27 29 31 33".split()
     else:
         op = args.pop(0)
     if dbg:
