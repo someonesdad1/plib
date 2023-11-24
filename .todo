@@ -33,24 +33,16 @@ Active
         - Use a data file of:
             - units <str>       Defines units to use
             - center x, y       Where center of circles are
-            - dia_mark          Diameter of marking circles
+            - dia_mark          Diameter of marking circle(s) separated by spaces
             - circle dia num offset
                 - Each circle of holes
                 - dia               Diameter of this hole circle
                 - num               Number of equally-spaced holes
                 - offset (optional) Degrees of first hole from polar axis
-        - Make a lathe fixture that is held in a 4-jaw that holes the plate
+        - Make a lathe fixture that is held in a 4-jaw that holds the plate
           being made.  You adjust it with a wiggler to get one hole
-          centered.  Then a precision bush allows the work to be rotated on
+          centered.  Then a bearing allows the work to be rotated on
           center to align the other punch marks.
-
-    - pgm/utf8.py
-        - Given one or more files, prints out those that aren't encoded
-          UTF-8.
-        - Option -r will recurse into subdirectories and assumes the files
-          on the command line are globbing patterns.
-        - Use case:  find the enormously annoying case of files that look
-          like text files but aren't UTF-8 encoded.
 
     - words.py
         - Using files in /words/words.*, return sets of words indexed by
