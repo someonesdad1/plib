@@ -478,7 +478,7 @@ if 1:   # Getting numbers
         while True:
             if inspect is None:
                 msg = f"{prompt_msg}"
-                msg += f" [{default}]" if default is not None else ""
+                msg += f" [{default}] " if default is not None else ""
                 if outstream != sys.stdout:
                     out(msg)
                 if instream is not None:

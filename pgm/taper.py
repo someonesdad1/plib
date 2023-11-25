@@ -49,16 +49,11 @@ if 1:  # Header
     if 1:   # Imports
         import sys
         import getopt
-        import time
-        from pprint import pprint as pp
     if 1:   # Custom imports
         from wrap import dedent
-        from u import u, ParseUnit
         from get import GetNumber
-        from bidict import bidict
         from frange import frange
-        from sig import sig
-        from f import flt, atan, pi, degrees
+        from f import flt, atan, pi, degrees, ceil
         from color import t
     if 1:   # Global variables
         nl = "\n"
@@ -70,6 +65,9 @@ if 1:  # Header
         dbg = 1
         # Colors
         t.dbg = t("denl")
+        t.title = t("ornl")
+        t.impt = t("grnl")
+        t.hdr = t("magl")
 if 1:   # Classes
    class Taper(object):
        'Base class for tapers'
@@ -285,16 +283,21 @@ if 1:   # Classes
            L = (D - d)/self.tpi
            return (D, d, L)
 if 1:   # Utility
+    def Dbg(*p, **kw):
+        if dbg:
+            print(f"{t.dbg}", end="")
+            t.print(*p, **kw)
     def Error(msg, status=1):
         print(msg, file=sys.stderr)
         exit(status)
     def Usage(status=1):
         print(dedent(f'''
         Usage:  {sys.argv[0]} [options] op arguments
-          t name size
+          t 
             Print table of taper sizes
-          b name size
-            Print step boring/turning information
+          b
+            Print step boring/turning information (you'll be prompted for
+            the taper)
           c d1 d2 length
             Calculate taper from measurements
         Options:
@@ -304,8 +307,6 @@ if 1:   # Utility
     def ParseCommandLine(d):
         d["-d"] = 4         # Number of significant digits
         d["-m"] = False     # Output in mm
-        if len(sys.argv) < 2:
-            Usage()
         try:
             opts, args = getopt.getopt(sys.argv[1:], "d:hm") 
         except getopt.GetoptError as e:
@@ -328,278 +329,145 @@ if 1:   # Utility
         x = flt(0)
         x.N = d["-d"]
         x.rtz = x.rtdp = False
+        if not dbg and not args:
+            Usage()
         return args
-    def Dbg(*p, **kw):
-        if dbg:
-            print(f"{t.dbg}", end="")
-            t.print(*p, **kw)
-if 0:   # Old stuff
-    def Introduction():
-        if dbg:
-            return
-        names = ["  " + i for i in taper_names]
+if 1:   # Core functionality
+    def TaperSizes():
         print(dedent(f'''
-        This script will print a table of step-boring dimensions for a tapered
-        hole.  You'll be prompted for the following information:
-            - Standard taper name and size number
-                or
-            - Taper large and small diameters and length
-            - Clearance between the step corners and the taper (this determines the
-              amount of material that would need to be reamed out after step boring
-              was finished).
-            - Longitudinal step size
-            - Units to display the output report in
-        
-        The default units are inches; you can use other common length units and
-        metric prefixes as desired.
-        
-        The allowed standard taper names are:
-        {nl.join(names)}
+        Taper sizes in mils
+          Dimensions are for the socket
+            D       Large end diameter
+            d       Small end diameter
+            L       Length
+            θ       Half of taper's included angle in degrees
+            tpi     Taper in mils per inch.  This is a dial indicator's
+                    reading on the cross slide if you move the saddle 
+                    1 inch towards the headstock.
+            tpf     Taper per foot in mils
+
         '''))
-    def RTZ(s):
-        '''Replace trailing 0 characters in s with spaces but don't change the
-        length of s.
-        '''
-        t, i, n = list(reversed(list(s))), 1, len(s)
-        if t[0] == "0":
-            t[0] = " "
-            while t[i - 1] == " " and t[i] == "0" and i < len(t):
-                t[i] = " "
-                i += 1
-        t = ''.join(reversed(t))
-        # Remove "." if it's the last non-space character
-        u = t.rstrip()
-        if u[-1] == ".":
-            u = u[:-1] + " "
-        u += " "*(n - len(u))
-        return u
-    def Report(opts):
-        print(f"{time.asctime():^78s}")
-        if opts["taper_type"] != "dimensioned":
-            print(opts["taper_type"], "#" + str(opts["taper_number"]),
-                  "standard taper")
-        print()
-        D = opts["D"]   # inches
-        d = opts["d"]   # inches
-        L = opts["L"]   # inches
-        diff = sig(D - d)
-        tpi = (D - d)/L
-        tpi_ = sig(tpi)
-        tpf_ = sig(tpi*12)
-        tps = tpi*opts["step_size"]
-        tps_ = sig(tps)
-        # Fill locals with desired strings to be printed
-        D_ = RTZ(sig(opts["D"]))
-        d_ = RTZ(sig(opts["d"]))
-        L_ = RTZ(sig(opts["L"]))
-        clearance = RTZ(sig(opts["clearance"]))
-        step_size = RTZ(sig(opts["step_size"]))
-        print(dedent(f'''
-        Taper dimensions in inches:
-            D = large diameter = {D_}
-            d = small diameter = {d_}
-            Diameter difference = {diff}
-            L = length = {L_}
-            Clearance = {clearance}
-            Step size = {step_size}
-            Taper = {tpi_} inch/inch = {tpf_} inch/foot
-            Taper per step = {tps_} inch
-        '''))
-        # Generate report
-        print(dedent(f'''
-     
-        The following cutting schedule starts at the deepest part of the tapered
-        bore (x = 0).  First bore a hole to the small diameter above less the
-        clearance (the entry under Diameter for x = 0), then move the cutting tool
-        right one step and then move the cross slide out by the indicated step dy.
-        Repeat until the large diameter has been cut.
-                                                Total
-               x         dy        Diameter       x
-            -------    ------      --------    -------'''))
-        ss = opts["step_size"]
-        m = 0  # Number of dial indicator ranges in x so far
-        clr = opts["clearance"]
-        for i, x in enumerate(frange(0, L + 0.9*ss, ss)):
-            m_new, remainder = divmod(x, indicator_size)
-            if m_new > m and remainder:
-                print("Reset dial indicator")
-                m = m_new
-            X = x - m*indicator_size
-            a = RTZ("{:10.3f}".format(X))
-            b = RTZ("{:10.4f}".format(tps)) if i else " "*10
-            c = RTZ("{:12.3f}".format(d - clr + i*tps))
-            e = RTZ("{:10.3f}".format(x))
-            print("{} {} {} {}".format(a, b, c, e))
-    def GetInfo(opts):
-        '''Information needed:
-        Standard taper or specify by dimensions?
-            Standard:  Morse, Jarno, B&S
-            Dimensions:  large dia, small dia, length
-        Clearance from step to actual taper
-        Radial step
-        Longitudinal step
-        Output dimensions [inch]
-        '''
-        if dbg:
-            opts["taper_type"] = "Morse"
-            opts["taper_number"] = 3
-            opts["clearance"] = 0.002
-            opts["clearance_input"] = ""
-            opts["step_size"] = 0.1
-            opts["step_size_input"] = ""
-            T = Morse()
-            D, d, L = T(opts["taper_number"])
-            opts["D"] = D
-            opts["D_input"] = str(D) + " in"
-            opts["d"] = d
-            opts["d_input"] = str(d) + " in"
-            opts["L"] = L
-            opts["L_input"] = str(L) + " in"
-            return
-        p = "Standard taper (1) or specified by dimensions (2)? "
-        taper = GetNumber(p, numtype=int, default=1, low=1, high=2)
-        opts["taper_type"] = "standard" if taper == 1 else "dimensioned"
-        if 1:
-            # Get taper type or dimensions
-            if opts["taper_type"] == "standard":
-                # Morse, Jarno, etc.
-                print("Choose a taper type:")
-                bd = bidict()
-                for i, name in enumerate(taper_names):
-                    print("  {}) {}".format(i + 1, name))
-                    bd[i] = name
-                morse = bd("Morse") + 1
-                ok = False
-                while not ok:
-                    try:
-                        choice = GetNumber("?", default=morse, numtype=int,
-                                           low=1, high=len(taper_names))
-                        choice -= 1
-                        ok = True
-                    except ValueError:
-                        print("You must select one of the numbers.")
-                opts["taper_type"] = taper_name = taper_names[choice]
-                # Instantiate a taper object
-                T = taper_objects[choice]()
-                # Get taper number
-                tapers = sorted(T.sizes)
-                t = ' '.join([str(i) for i in tapers])
-                ok, number = False, -1
-                while number not in tapers:
-                    print('''Select a {} taper number from the following list:
-          {}'''.format(taper_name, t))
-                    choice = input("? ")
-                    if choice.lower() == "q":
-                        exit(0)
-                    try:
-                        number = int(choice)
-                    except ValueError:
-                        print("'{}' is not a valid number".format(choice))
-                opts["taper_number"] = number
-                # Convert to dimensions D, d, and L in inches
-                D, d, L = T(number)
+        w = 8
+        i = " "*3
+        for id in tapers:
+            T, name = tapers[id]
+            t.print(f"{t.title}{name} tapers")
+            t.print(f"{t.hdr}{i}Num{'D ':>{w}s} {'d ':>{w}s} {'L ':>{w}s} {'θ, °':>{w}s}  "
+                  f"{'tpi/2':>{w}s}{'tpf':>{w}s}")
+            f = lambda x: str(int(1000*x))
+            for N in T.sizes:
+                D, d, L = T(N)
+                tpi = (D - d)/L
+                tpf = 1000*12*tpi
+                θ = degrees(atan(tpi/2))
+                impt = (name == "Morse" and N == 3)
+                if impt:
+                    print(f"{t.impt}", end="")
+                print(f"{i}{N:2d} {f(D):>{w}s} {f(d):>{w}s} {f(L):>{w}s} {θ:>{w}.4f}"
+                      f"  {1000*tpi/2!s:>{w}s} {tpf!s:>{w}s}", end="")
+                t.print() if impt else print()
+            print()
+    def Get(prompt, allowed=None):
+        if allowed:
+            print("Answers:  ", ' '.join(allowed))
+        while True:
+            s = input(prompt).lower()
+            if s == "q":
+                exit(0)
+            elif allowed:
+                if s in allowed:
+                    return s
+                print("Must be one of:")
+                print("  ", ' '.join(allowed))
             else:
-                # Dimensioned
-                # Get D in inches
-                p = "What is large diameter? "
-                value, unit = GetNumber(p, low=0, low_open=True, use_unit=True)
-                unit = unit if unit else "in"
-                D = value*u(unit)/u("inch")
-                opts["D_input"] = (sig(value) + " " + unit).strip()
-                # Get d in inches
-                p = "What is small diameter? "
-                while True:
-                    print(p, end="")
-                    answer = input()
-                    if answer.strip().lower() == "q":
-                        exit(0)
-                    value, unit = ParseUnit(answer)
-                    # Note value is a string
-                    opts["d_input"] = (value + " " + unit).strip()
-                    d = float(value)*u(unit)/u("inch")
-                    if d <= 0:
-                        print("Diameter must be > 0")
-                    elif d >= D:
-                        print("Diameter must be < {}".format(opts["D input"]))
-                    else:
-                        break
-                # Get L in inches
-                p = "What is length? "
-                value, unit = GetNumber(p, low=0, low_open=True, use_unit=True)
-                unit = unit if unit else "in"
-                L = value*u(unit)/u("inch")
-                opts["L_input"] = (sig(value) + " " + unit).strip()
-        opts["D"] = D
-        opts["d"] = d
-        opts["L"] = L
-        # Get clearance from step corner to taper
-        p = "What is clearance from step corner to taper? "
-        value, unit = GetNumber(p, low=0, use_unit=True, default=0.005)
-        unit = unit if unit else "in"
-        opts["clearance"] = value*u(unit)/u("inch")
-        opts["clearance_input"] = (sig(value) + " " + unit).strip()
-        # Get (longitudinal) step size
-        p = "What is longitudinal step size? "
-        value, unit = GetNumber(p, low=0, low_open=True, use_unit=True,
-                                default=0.1)
-        unit = unit if unit else "in"
-        opts["step_size"] = value*u(unit)/u("inch")
-        opts["step_size_input"] = (sig(value) + " " + unit).strip()
-        print()
-if 0 and __name__ == "__main__":
-    taper_names = ("Brown & Sharpe", "Jacobs", "Jarno", "Morse", "Sellers")
-    taper_objects = (BrownAndSharpe, Jacobs, Jarno, Morse, Sellers)
-    opts = {}   # Options & data
-    sig.digits = 4
-    sig.rtz = True
-    Introduction()
-    GetInfo(opts)
-    Report(opts)
-if 1:   # t:  taper size table
-    def TaperSize(name, size):
-        Dbg(f"TaperSize({name!r}, {size!r})")
-        T = tapers[name]
-        D, d, L = T(int(size))
-        print(f"{taper_names[name]} #{size} taper")
-        print(f"  Large diameter            {D} inches ({D*25.4} mm)")
-        print(f"  Small diameter            {d} inches ({d*25.4} mm)")
-        print(f"  Length                    {L} inches ({L*25.4} mm)")
-        tpi = (D - d)/L
-        print(f"  Taper, inches per inch    {tpi}")
-        print(f"  Taper, inches per foot    {tpi*12} inches")
-        theta = 2*atan(tpi/2)
-        print(f"  Included angle            {degrees(theta)}° ({1000*theta} mrad)")
+                return s
+    def StepBoring():
+        'Prompt user for details and print out a step boring table'
+        if 0 and dbg:
+            pass
+        else:
+            # Get data by prompting
+            # Taper name
+            # Taper size
+            # Longitudinal step
+            print("Default units are inches.  Include different unit if desired.")
+            if dbg:
+                taper = "m"
+                T, name = tapers[taper]
+                num = 3
+                step = flt(0.1)
+                allow = 0.003
+            else:
+                taper = Get("Which taper? ", list(tapers))
+                T, name = tapers[taper]
+                nums = [str(i) for i in T.sizes]
+                num = Get("Which number? ", list(tapers))
+                ans = GetNumber("Enter longitudinal step size: ", low=0,
+                    low_open=True, allow_quit=True, use_unit=True, default="0.1")
+                step = ans[0]
+                if ans[1]:
+                    step = ans[0]*u(ans[1])/u("in")
+                allow = GetNumber("Allowance for reaming", low=0,
+                    low_open=True, allow_quit=True, use_unit=False, default="0.003")
+            Dbg(f"Taper = {name} {num}")
+            Dbg(f"Step size = {step} inches")
+            Dbg(f"Allowance = {allow} inches")
+            D, d, L = T(num)
+            # Report
+            i, w = " "*4, 6
+            f = lambda x: str(int(1000*x))
+            print(f"\n{name} {num} taper (dimensions in mils)")
+            print(f"{i}D{2*i}{f(D):>{w}s}")
+            print(f"{i}d{2*i}{f(d):>{w}s}")
+            print(f"{i}L{2*i}{f(L):>{w}s}")
+            delta = flt(0.05)
+            with delta:
+                delta.rtz = True
+                print(dedent(f'''
+
+                Use stock length of at least {L + delta} inches.  This allows {delta} inches of
+                the first cut to be used to set cross slide to zero.  You'll measure the
+                resulting bore to get {D} inches, then face this {delta} inch off at end.
+
+                '''))
+            print(dedent(f'''
+            Bore hole to d = {f(d)} mils.  Set boring bar face to front edge of work.
+            Set longitudinal dial indicator to zero.
+
+            '''))
+            with delta:
+                delta.rtz = True
+                print(dedent(f'''
+                Bore {delta} deep to a diameter of {f(D - allow)} mils.  Set cross slide to zero.
+                Set longitudinal dial indicator to zero.
+                '''))
+            
+            num_cuts = ceil(L/step)
+            print(f"Cut     Depth    Cross slide feed")
+            for i in range(num_cuts):
+                dia = D - i*step - allow
+                depth = i*step
+                print(f"{i:2d}     {depth} {dia}")
 
 if __name__ == "__main__":
     d = {}      # Options dictionary
     tapers = {
-        "m": Morse(),
-        "b": BrownAndSharpe(),
-        "jar": Jarno(),
-        "jac": Jacobs(),
-        "s": Sellers(),
-        "n": NMTB(),
-    }
-    taper_names = {
-        "b": "Brown & Sharpe", 
-        "jac": "Jacobs",
-        "jar": "Jarno",
-        "m": "Morse",
-        "s": "Sellers",
+        "s": (Sellers(), "Sellers"),
+        "b": (BrownAndSharpe(), "Brown & Sharpe"),
+        "n": (NMTB(), "NMTB"),
+        "jar": (Jarno(), "Jarno"),
+        "jac": (Jacobs(), "Jacobs"),
+        "m": (Morse(), "Morse"),
     }
     args = ParseCommandLine(d)
-    op = args.pop(0)
-    if not args:
-        Usage()
+    if not dbg:
+        op = args.pop(0)
+    else:
+        op = "b"
     if op == "t":
-        name = args.pop(0)
-        if args:
-            size = args.pop(0)
-            TaperSize(name, size)
-        else:
-            TaperSize(name, "all")
+        TaperSizes()
     elif op == "b":
-        pass
+        StepBoring()
     elif op == "i":
         pass
     elif op == "c":
