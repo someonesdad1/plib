@@ -1,8 +1,8 @@
 '''
 Script to deal with tapers
-
+ 
 Operators & their arguments
-
+ 
 - t name size 
     - Print out table of taper sizes
     - If no name is given, it's assumed to be a Morse taper
@@ -28,7 +28,7 @@ Operators & their arguments
 - c
     - Calculate a taper from 2 diameters and a length.  If it matches any
       of the standard tapers, so indicate.
-
+ 
 Script to calculate feeds for step boring in the lathe.  An example is to
 make a Morse taper by step-boring, followed by reaming.
 '''
@@ -53,7 +53,7 @@ if 1:  # Header
         from wrap import dedent
         from get import GetNumber
         from frange import frange
-        from f import flt, atan, pi, degrees, ceil
+        from f import flt, tan, sin, atan, pi, degrees, ceil
         from color import t
     if 1:   # Global variables
         nl = "\n"
@@ -62,7 +62,8 @@ if 1:  # Header
         # measurement with a dial indicator on the lathe.
         indicator_size = 2
         # Set dbg to True to get input data automatically for debugging
-        dbg = 1
+        dbg = False
+        dbg = True
         # Colors
         t.dbg = t("denl")
         t.title = t("ornl")
@@ -92,21 +93,7 @@ if 1:   # Classes
            self.name = "Morse"
            self.super = super(Morse, self)
            self.super.__init__(set(range(8)))
-           # Dimensions in inches; see MH, 19th ed., pg 1679.  The symbols
-           # are:  tpf is the taper in inches per foot, D is the small
-           # diameter of the plug, H is the depth of the hole, and X is the
-           # additional length of the socket such that P = H - X = plug depth.
-           self.data = {
-               #      tpf       D      H       X
-               0: [0.62460, 0.252, 2+1/32, 1/32],
-               1: [0.59858, 0.369, 2+5/32, 1/16],
-               2: [0.59941, 0.572, 2+39/64, 1/16],
-               3: [0.60235, 0.778, 3+1/4, 1/16],
-               4: [0.62326, 1.020, 4+1/8, 1/16],
-               5: [0.63151, 1.475, 5+1/4, 1/16],
-               6: [0.62565, 2.116, 7+21/64, 1/16],
-               7: [0.62400, 2.750, 10+5/64, 1/16],
-           }
+           # Dimensions in inches; see MH, 19th ed., pg 1679. 
            self.data = {
                # tpf = taper in inches per foot
                # A = large diameter
@@ -298,8 +285,9 @@ if 1:   # Utility
           b
             Print step boring/turning information (you'll be prompted for
             the taper)
-          c d1 d2 length
-            Calculate taper from measurements
+          m
+            Calculate taper from measurements (you'll be prompted for
+            the measurements)
         Options:
             -d n    Number of significant figures
         '''))
@@ -345,7 +333,7 @@ if 1:   # Core functionality
                     reading on the cross slide if you move the saddle 
                     1 inch towards the headstock.
             tpf     Taper per foot in mils
-
+ 
         '''))
         w = 8
         i = " "*3
@@ -383,94 +371,145 @@ if 1:   # Core functionality
                 return s
     def StepBoring():
         'Prompt user for details and print out a step boring table'
+        # Get data by prompting:
+        #   Taper name
+        #   Taper size
+        #   Longitudinal step
+        t.print(f"{t.title}Step boring table for a taper\n")
+        print("Default units are inches.  Include different unit if desired.")
         if 0 and dbg:
-            pass
+            taper = "m"
+            T, name = tapers[taper]
+            num = 3
+            step = flt(0.1)
+            allow = 0.003
         else:
-            # Get data by prompting
-            # Taper name
-            # Taper size
-            # Longitudinal step
-            print("Default units are inches.  Include different unit if desired.")
-            if dbg:
-                taper = "m"
-                T, name = tapers[taper]
-                num = 3
-                step = flt(0.1)
-                allow = 0.003
-            else:
-                taper = Get("Which taper? ", list(tapers))
-                T, name = tapers[taper]
-                nums = [str(i) for i in T.sizes]
-                num = Get("Which number? ", list(tapers))
-                ans = GetNumber("Enter longitudinal step size: ", low=0,
-                    low_open=True, allow_quit=True, use_unit=True, default="0.1")
-                step = ans[0]
-                if ans[1]:
-                    step = ans[0]*u(ans[1])/u("in")
-                allow = GetNumber("Allowance for reaming", low=0,
-                    low_open=True, allow_quit=True, use_unit=False, default="0.003")
-            Dbg(f"Taper = {name} {num}")
-            Dbg(f"Step size = {step} inches")
-            Dbg(f"Allowance = {allow} inches")
-            D, d, L = T(num)
-            # Report
-            i, w = " "*4, 6
-            f = lambda x: str(int(1000*x))
-            print(f"\n{name} {num} taper (dimensions in mils)")
-            print(f"{i}D{2*i}{f(D):>{w}s}")
-            print(f"{i}d{2*i}{f(d):>{w}s}")
-            print(f"{i}L{2*i}{f(L):>{w}s}")
-            delta = flt(0.05)
-            with delta:
-                delta.rtz = True
-                print(dedent(f'''
-
-                Use stock length of at least {L + delta} inches.  This allows {delta} inches of
-                the first cut to be used to set cross slide to zero.  You'll measure the
-                resulting bore to get {D} inches, then face this {delta} inch off at end.
-
-                '''))
+            taper = Get("Which taper? ", list(tapers))
+            T, name = tapers[taper]
+            nums = [str(i) for i in T.sizes]
+            num = int(Get("Which number? ", nums))
+            ans = GetNumber("Enter longitudinal step size: ", low=0,
+                low_open=True, allow_quit=True, use_unit=True, default="0.1")
+            step = ans[0]
+            if ans[1]:
+                step = ans[0]*u(ans[1])/u("in")
+            allow = GetNumber("Allowance for reaming", low=0, high=0.006,
+                low_open=True, allow_quit=True, use_unit=False, default="0.003")
+        Dbg(f"Taper = {name} {num}")
+        Dbg(f"Step size = {step} inches")
+        Dbg(f"Allowance = {allow} inches")
+        D, d, L = T(num)
+        # Report
+        i, w = " "*4, 6
+        f = lambda x: str(int(1000*x))
+        print(f"\n{name} {num} taper (dimensions in mils)")
+        print(f"{i}D{2*i}{f(D):>{w}s}")
+        print(f"{i}d{2*i}{f(d):>{w}s}")
+        print(f"{i}L{2*i}{f(L):>{w}s}")
+        delta = flt(0.05)
+        with delta:
+            delta.rtz = True
             print(dedent(f'''
-            Bore hole to d = {f(d)} mils.  Set boring bar face to front edge of work.
-            Set longitudinal dial indicator to zero.
-
+ 
+            Use stock length of at least {L + delta} inches.  This allows {delta} inches of
+            the first cut to be used to set cross slide to zero.  You'll face this
+            {delta} inch off at the end.
+ 
             '''))
-            with delta:
-                delta.rtz = True
-                print(dedent(f'''
-                Bore {delta} deep to a diameter of {f(D - allow)} mils.  Set cross slide to zero.
-                Set longitudinal dial indicator to zero.
-                '''))
-            
-            num_cuts = ceil(L/step)
-            print(f"Cut     Depth    Cross slide feed")
-            for i in range(num_cuts):
-                dia = D - i*step - allow
-                depth = i*step
-                print(f"{i:2d}     {depth} {dia}")
+        print(dedent(f'''
+        Bore hole to d = {f(d - allow)} mils.  Set boring bar face to front edge of work.
+        Set longitudinal dial indicator to zero.
+ 
+        '''))
+        with delta:
+            delta.rtz = True
+            print(dedent(f'''
+            Bore {delta} deep to a diameter of {f(D - allow)} mils.  Set cross slide to zero.
+            Set longitudinal dial indicator to zero.
+ 
+            '''))
+        N = ceil(L/step)
+        print(f"{i}Cut     Depth, in    Cross feed, mils")
+        xstep = (D - d)/N
+        for j in range(N + 1):
+            depth = j*step
+            cross = max(j*xstep - allow, 0)
+            cross = f(cross)
+            with depth:
+                depth.rtz = True
+                print(f"{i}{j:2d}{' '*8}{depth!s:^6s}{' '*10}{cross:^6s}")
+        with delta:
+            delta.rtz = True
+            print(dedent(f'''
+ 
+            Face off {delta} inch from the front of the socket.
+            '''))
+    def Measured():
+        'Prompt for D, d, L and try to identify taper'
+        t.print(f"{t.title}Calculate taper values from measurements\n")
+        if dbg:
+            D = flt(0.938)
+            d = flt(0.778)
+            L = flt(3.25)
+        else:
+            print("Enter the measured values for the taper (default units inches):")
+            while True:
+                D, units = GetNumber("  Large diameter? ", low=0, low_open=True, allow_quit=True, use_unit=True)
+                if units:
+                    D *= u(units)/u("inch")
+                d, units = GetNumber("  Small diameter? ", low=0, low_open=True, allow_quit=True, use_unit=True)
+                if units:
+                    d *= u(units)/u("inch")
+                if d <= D:
+                    break
+                else:
+                    print("Can't have d > D, try again")
+            L, units = GetNumber("  Length? ", low=0, low_open=True, allow_quit=True, use_unit=True)
+            if units:
+                L *= u(units)/u("inch")
+            print()
+        print(dedent(f'''
+        Input data
+            D = large diameter = {D} inches
+            d = small diameter = {d} inches
+            L = length         = {L} inches
+        '''))
+        tpi = (D - d)/L
+        θ = atan(tpi/2)
+        print(dedent(f'''
+ 
+        Calculated data
+            θ = half angle          {degrees(θ)}°
+            2θ = included angle     {degrees(2*θ)}°
+            tpi                     {tpi}
+            tpf                     {tpi*12}
+            tan(θ)                  {tan(θ)}
+            tan(2θ)                 {tan(2*θ)}
+
+        In the lathe, a dial indicator traversed 1 inch along the taper
+        will show a change of {tpi/2:.3f} inches.
+        '''))
 
 if __name__ == "__main__":
-    d = {}      # Options dictionary
+    opt = {}      # Options dictionary
     tapers = {
-        "s": (Sellers(), "Sellers"),
+        #"s": (Sellers(), "Sellers"),
         "b": (BrownAndSharpe(), "Brown & Sharpe"),
         "n": (NMTB(), "NMTB"),
         "jar": (Jarno(), "Jarno"),
         "jac": (Jacobs(), "Jacobs"),
         "m": (Morse(), "Morse"),
     }
-    args = ParseCommandLine(d)
+    args = ParseCommandLine(opt)
     if not dbg:
         op = args.pop(0)
     else:
-        op = "b"
+        op = "m"
     if op == "t":
         TaperSizes()
     elif op == "b":
         StepBoring()
-    elif op == "i":
-        pass
-    elif op == "c":
-        pass
+    elif op == "m":
+        Measured()
     else:
         Error(f"{op!r} not recognized")
