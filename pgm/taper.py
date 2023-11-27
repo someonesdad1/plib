@@ -62,8 +62,8 @@ if 1:  # Header
         # measurement with a dial indicator on the lathe.
         indicator_size = 2
         # Set dbg to True to get input data automatically for debugging
-        dbg = False
         dbg = True
+        dbg = False
         # Colors
         t.dbg = t("denl")
         t.title = t("ornl")
@@ -371,6 +371,7 @@ if 1:   # Core functionality
                 return s
     def StepBoring():
         'Prompt user for details and print out a step boring table'
+        t.print(f"{t('grnl')}This option's output needs to be tested/checked\n")
         # Get data by prompting:
         #   Taper name
         #   Taper size
