@@ -34,9 +34,10 @@ if 1:   # Utility
         exit(status)
     def Manpage():
         print(dedent(f'''
+
         This script is used to assess how close two resistors' resistances
-        are.  The primary use case is putting two resistances in series
-        across a known voltage, then measuring the voltage drop across each
+        are.  The use case is putting two resistances in series across a
+        known voltage, then measuring the voltage drop across each
         resistor.  
 
         Example:  I have two precision Fluke resistors that came from an
@@ -141,9 +142,10 @@ if 1:   # Core functionality
         cov = halfwidth/mean
         pct = 100*cov
         ppm = 1e6*cov
+        pct.n, ppm.n = 2, 2
         # Print data
         print(f"Resistor matching:")
-        mean.n = mean.N = max(d["-d"], n + 1)
+        mean.n = max(d["-d"], n + 1)
         if d["-1"] or d["-2"]:
             # One of the resistors was defined
             if d["-1"]:
@@ -169,6 +171,9 @@ if 1:   # Core functionality
             print(f"  V2   = {s2}")
             print(f"  Mean = {mean} ", end="")
             print(f"{t.pct}±{pct}%{t.n} (±{ppm} ppm)")
+
+print(GetSignificantFigures("1095.7000", rtz=True))
+exit()
 
 if __name__ == "__main__":
     d = {}      # Options dictionary
