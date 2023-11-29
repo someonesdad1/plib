@@ -23,11 +23,12 @@ if 1:   # Header
     if 1:   # Custom imports
         from wrap import dedent
         from color import t
-        from si import GetSignificantFigures
+        from si import GetSignificantFigures, ConvertSI
         from f import flt
     if 1:   # Global variables
         ii = isinstance
         t.pct = t("ornl")
+        t.ppm = t("yell")
 if 1:   # Utility
     def Error(*msg, status=1):
         print(*msg, file=sys.stderr)
@@ -35,10 +36,9 @@ if 1:   # Utility
     def Manpage():
         print(dedent(f'''
 
-        This script is used to assess how close two resistors' resistances
-        are.  The use case is putting two resistances in series across a
-        known voltage, then measuring the voltage drop across each
-        resistor.  
+        This script calculates how close two resistors' resistances are by
+        measurement:  the two resistances in series are put across a known
+        voltage and the voltage drop across each resistor is measured. 
 
         Example:  I have two precision Fluke resistors that came from an
         893A differential voltmeter.  I put the maximum output of my HP
@@ -48,24 +48,51 @@ if 1:   # Utility
         arguments '10.957 10.955' to the script, we get
 
             Resistor matching:
-                v1   = 10.957
-                v2   = 10.955
+                V1   = 10.957
+                V2   = 10.955
                 Mean = 10.956 ±0.0091% (±91 ppm)
         
-        This shows the resistors are matched to within about 90 ppm.
+        showing the resistors are matched to within about 90 ppm.
 
         If you use -1 or -2 to define the resistance of one of the
         resistors, the report changes, as it assumes the given resistance
         is a known resistance standard.  The report then states how much
-        the other resistor deviates from the first.  Note the output is
+        the other resistor deviates from the given resistor.  The output is
         given in Ω because the current can be calculated.
 
         The above Fluke resistors are stamped with the value 98.582 kΩ.
         Giving the script the arguments '-1 98.582k 10.957 10.955'
         results in
 
+            Resistor matching:
+                R1   ≝ 98582
+                R2   = 98582 - 0.018% = R1 - 180 ppm
+
+        If the arguments were '-1 98.5820k 10.957 10.955', the results are
+
+            Resistor matching (ppm = parts per 10⁶):
+                R1   ≝ 98582.0 Ω
+                R2   = 98582.0 Ω - 0.02% = R1 - 200 ppm
+
+        Note the results are printed to six significant figures, as the
+        argument to -1 had that many figures.  The argument with the
+        maximum number of significant figures is used to print out the
+        results.  Thus, '-1 98.582000k 1 1.1' results in 
+
+            Resistor matching (ppm = parts per 10⁶):
+                R1   ≝ 98582.000 Ω
+                R2   = 98582.000 Ω + 10% = R1 + 100000 ppm
+
+        because the -1 argument had 7 significant figures.  Of course, the
+        measured voltages don't have that many figures, so you have to
+        interpret the results carefully.  
+
+        When the -1 or -2 options aren't used, the V1 and V2 values are the
+        strings that were given on the command line.  The number of figures
+        for the mean will be the maximum number of figures in V1 and V2.
+
         '''))
-        exit(status)
+        exit(0)
     def Usage(status=1):
         print(dedent(f'''
         Usage:  {sys.argv[0]} [options] V1 V2
@@ -74,6 +101,8 @@ if 1:   # Utility
           If the -w option is used, the input parameters are Vin and Vout.
           If either -1 or -2 are used, the resistance value of the other
           resistor will be calculated in terms of the given resistance.
+          Voltages and resistances can have cuddled SI prefixes (e.g., 
+          '1.234k').
         Example:
           Arguments of '1 1.01' produce
             Resistor matching:
@@ -83,14 +112,15 @@ if 1:   # Utility
         Options:
             -1 R    Define resistance of first resistor
             -2 R    Define resistance of second resistor
-            -d n    Number of significant figures [{d['-d']}]
+            -d n    Number of significant figures in % and ppm [{d['-d']}]
             -h      Print a manpage
         '''))
         exit(status)
     def ParseCommandLine(d):
+        d["n"] = 0          # Number of digits for -1 or -2
         d["-1"] = None      # First resistor
         d["-2"] = None      # Second resistor
-        d["-d"] = 2         # Number of significant digits
+        d["-d"] = 2         # Number of significant digits in % or ppm
         if len(sys.argv) < 2:
             Usage()
         try:
@@ -102,13 +132,15 @@ if 1:   # Utility
             if o[1] in list(""):
                 d[o] = not d[o]
             elif o == "-1":
-                d[o] = flt(a)
+                d[o] = ConvertSI(a)
+                d["n"] = GetSignificantFigures(a)
                 if d[o] <= 0:
                     Error(f"-1's value must be > 0")
                 if d["-2"] is not None:
                     Error(f"-2 cannot be used if -1 is")
             elif o == "-2":
-                d[o] = flt(a)
+                d[o] = ConvertSI(a)
+                d["n"] = GetSignificantFigures(a)
                 if d[o] <= 0:
                     Error(f"-2's value must be > 0")
                 if d["-1"] is not None:
@@ -134,29 +166,31 @@ if 1:   # Core functionality
         return s
     def Report(s1, s2):
         's1 and s2 are the strings the user entered for the voltages'
-        # Get number of digits used in numbers
+        # Get number of digits to use in numbers
         n = max(GetSignificantFigures(s1), GetSignificantFigures(s2))
+        flt(0).N = n
+        flt(0).rtz = False
         V1, V2 = flt(s1), flt(s2)
         mean = (V1 + V2)/2
         halfwidth = abs(V1 - V2)/2
         cov = halfwidth/mean
         pct = 100*cov
         ppm = 1e6*cov
-        pct.n, ppm.n = 2, 2
         # Print data
-        print(f"Resistor matching:")
-        mean.n = max(d["-d"], n + 1)
+        print(f"Resistor matching (ppm = parts per 10⁶):")
         if d["-1"] or d["-2"]:
             # One of the resistors was defined
+            V1.N = max(d["n"], n)
             if d["-1"]:
-                i = V1/d["-1"]
+                i = flt(V1/d["-1"])
                 R1, R2 = V1/i, V2/i
                 diff = R2 - R1
                 sgn = "-" if diff < 0 else "+"
                 pct = 100*abs(diff)/R1
                 ppm = 1e4*pct
-                print(f"  R1   ≝ {R1}")
-                print(f"  R2   = {R1} {t.pct}{sgn} {pct}%{t.n} = R1 {sgn} {ppm} ppm")
+                pct.n, ppm.n = d["-d"], d["-d"]
+                print(f"  R1   ≝ {R1} Ω")
+                print(f"  R2   = {R1} Ω {t.pct}{sgn} {pct}%{t.n} = R1 {t.ppm}{sgn} {ppm} ppm{t.n}")
             else:
                 i = V2/d["-2"]
                 R1, R2 = V1/i, V2/i
@@ -164,16 +198,16 @@ if 1:   # Core functionality
                 sgn = "-" if diff < 0 else "+"
                 pct = 100*abs(diff)/R2
                 ppm = 1e4*pct
-                print(f"  R1   = {R2} {t.pct}{sgn} {pct}%{t.n} = R2 {sgn} {ppm} ppm")
-                print(f"  R2   ≝ {R2}")
+                pct.n, ppm.n = d["-d"], d["-d"]
+                print(f"  R1   = {R2} Ω {t.pct}{sgn} {pct}%{t.n} = R2 {t.ppm}{sgn} {ppm} ppm{t.n}")
+                print(f"  R2   ≝ {R2} Ω")
         else:
+            mean.N = n + 1  # One more digit than components
             print(f"  V1   = {s1}")
             print(f"  V2   = {s2}")
             print(f"  Mean = {mean} ", end="")
+            pct.n, ppm.n = d["-d"], d["-d"]
             print(f"{t.pct}±{pct}%{t.n} (±{ppm} ppm)")
-
-print(GetSignificantFigures("1095.7000", rtz=True))
-exit()
 
 if __name__ == "__main__":
     d = {}      # Options dictionary

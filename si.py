@@ -396,6 +396,7 @@ if 1:   # Core functionality
             ("100", False, 3),
             ("100", True, 1),
             ("12.34", True, 4),
+            ("12.34k", True, 4),
             ("12.340000", True, 4),
             ("12.34e6", False, 4),
             ("12.34×10⁶", False, 4),
