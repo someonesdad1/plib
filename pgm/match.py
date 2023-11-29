@@ -177,6 +177,8 @@ if 1:   # Core functionality
         V1, V2 = ConvertSI(s1), ConvertSI(s2)
         mean = (V1 + V2)/2
         halfwidth = abs(V1 - V2)/2
+        if not mean:
+            Error("One of the values is zero")
         cov = halfwidth/mean
         pct = 100*cov
         ppm = 1e6*cov
