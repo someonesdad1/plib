@@ -35,24 +35,23 @@ if 1:   # Utility
         exit(status)
     def Manpage():
         print(dedent(f'''
-
         This script calculates how close two resistors' resistances are by
         measurement:  the two resistances in series are put across a known
         voltage and the voltage drop across each resistor is measured. 
 
-        Example:  I have two precision Fluke resistors that came from an
-        893A differential voltmeter.  I put the maximum output of my HP
-        E3615A power supply across these two resistors in series, which is
-        about 21.9 V.  The measured voltages across the two resistors were 
-        10.957 V and 10.955 V, measured with an Aneng 870 DMM.  Using the
-        arguments '10.957 10.955' to the script, we get
+        Example:  I have two matched resistors that came from a
+        differential voltmeter.  I put 21.9 V across the two resistors and
+        measured their voltage drops as  10.957 V and 10.955 V using an
+        Aneng 870 DMM.  Giving the arguments '10.957 10.955' to the script,
+        we get
 
             Resistor matching:
                 V1   = 10.957
                 V2   = 10.955
-                Mean = 10.956 ±0.0091% (±91 ppm)
+                Mean = 10.9560 ±0.0091% (±91 ppm)
         
-        showing the resistors are matched to within about 90 ppm.
+        showing the resistors are matched to within about 90 ppm.  Note the
+        mean has one more digit than the argument with the most digits.
 
         If you use -1 or -2 to define the resistance of one of the
         resistors, the report changes, as it assumes the given resistance
@@ -68,14 +67,15 @@ if 1:   # Utility
                 R1   ≝ 98582
                 R2   = 98582 - 0.018% = R1 - 180 ppm
 
+        Note you can use cuddled SI prefixes with the -1 or -2 options.
         If the arguments were '-1 98.5820k 10.957 10.955', the results are
 
             Resistor matching (ppm = parts per 10⁶):
                 R1   ≝ 98582.0 Ω
                 R2   = 98582.0 Ω - 0.02% = R1 - 200 ppm
 
-        Note the results are printed to six significant figures, as the
-        argument to -1 had that many figures.  The argument with the
+        In this case, the results are printed to six significant figures,
+        as the argument to -1 had that many figures.  The argument with the
         maximum number of significant figures is used to print out the
         results.  Thus, '-1 98.582000k 1 1.1' results in 
 
@@ -85,11 +85,13 @@ if 1:   # Utility
 
         because the -1 argument had 7 significant figures.  Of course, the
         measured voltages don't have that many figures, so you have to
-        interpret the results carefully.  
+        interpret the results with that in mind.  The results represent
+        arithmetical significance, not necessarily physical significance.
 
         When the -1 or -2 options aren't used, the V1 and V2 values are the
         strings that were given on the command line.  The number of figures
-        for the mean will be the maximum number of figures in V1 and V2.
+        for the mean will be the maximum number of figures in V1 and V2
+        plus one.
 
         '''))
         exit(0)
@@ -97,17 +99,18 @@ if 1:   # Utility
         print(dedent(f'''
         Usage:  {sys.argv[0]} [options] V1 V2
           Print matching % for two resistors in series with a voltage
-          across them.  The strings must be the voltages in volts.
-          If the -w option is used, the input parameters are Vin and Vout.
+          across them.  V1 and V2 are the voltages in volts across the
+          resistors.
+ 
           If either -1 or -2 are used, the resistance value of the other
           resistor will be calculated in terms of the given resistance.
-          Voltages and resistances can have cuddled SI prefixes (e.g., 
+          Voltages and resistances can have cuddled SI prefixes (e.g.,
           '1.234k').
         Example:
           Arguments of '1 1.01' produce
             Resistor matching:
-                v1   = 1
-                v2   = 1.01
+                V1   = 1
+                V2   = 1.01
                 Mean = 1.005 ±0.5% (±5000 ppm)
         Options:
             -1 R    Define resistance of first resistor
@@ -170,7 +173,8 @@ if 1:   # Core functionality
         n = max(GetSignificantFigures(s1), GetSignificantFigures(s2))
         flt(0).N = n
         flt(0).rtz = False
-        V1, V2 = flt(s1), flt(s2)
+        flt(0).high = 1e6
+        V1, V2 = ConvertSI(s1), ConvertSI(s2)
         mean = (V1 + V2)/2
         halfwidth = abs(V1 - V2)/2
         cov = halfwidth/mean
@@ -207,7 +211,7 @@ if 1:   # Core functionality
             print(f"  V2   = {s2}")
             print(f"  Mean = {mean} ", end="")
             pct.n, ppm.n = d["-d"], d["-d"]
-            print(f"{t.pct}±{pct}%{t.n} (±{ppm} ppm)")
+            print(f"{t.pct}± {pct}%{t.n} = {mean} {t.ppm}± {ppm} ppm{t.n}")
 
 if __name__ == "__main__":
     d = {}      # Options dictionary
