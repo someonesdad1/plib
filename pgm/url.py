@@ -1,15 +1,31 @@
 '''
+ToDo
+    - Refine the error messages by trapping requests' exceptions.  See
+      https://requests.readthedocs.io/en/latest/api/#exceptions.
+      The supported exceptions would make the exception messages more
+      explicit without having to figure things out from the detailed text
+      in the str(e) form.
+    - Note it finds URLs like 'trigger.py' in wl2rgb.py, so the code should
+      probably eliminate things that don't start with "http", "https",
+      "ftp", etc.  Those three might be all that are needed in a practical
+      sense.
+    - Adapt to other documents
+        - OO
+        - Word
+        - PDF
+    - Add '-x file' option, which gives URLs that are to be ignored
 
-Searches for URLs in text files given on the command line and lists the
-ones that are defunct or return a non-200 status.
-    - If the request returns a status that is not 200, then the file, URL,
-      and status are printed.
-    - URLs that cause an exception message to be printed are probably sites
-      that cannot be reached or are ill-formed/incomplete URLs.
-If there is no output, then either there were no URLs in the file(s) or all 
-the URL were successfully loaded.
+Provides two functions to help with getting and validating URLs from text
+strings.
 
-To use this, install select with 'pip install select'.
+    GetURLs(s) returns a list of the URLs in the string s.
+
+    URL_is_unreadable(url, file) tells you when a URL is not readable.
+
+You can also run this file as a script to search file(s) for URLs and check
+that they can be loaded.
+
+To use this module, install select with 'pip install select'.
 '''
 if 1:   # Header
     if 1:   # Copyright, license
@@ -29,15 +45,19 @@ if 1:   # Header
         import getopt
         from pathlib import Path as P
         import re
-        import requests
         import sys
         from textwrap import dedent
+    if 1:   # Custom imports
+        import requests
+        from color import t
+        from lwtest import Assert
     if 1:   # Global variables
         class G:
             pass
         g = G()
         # This regex came from https://gist.github.com/gruber/8891611 on 29
-        # Nov 2023 and purports to find valid URLs in text strings.
+        # Nov 2023 and aims to find valid URLs in text strings.
+        #
         # Comment:  it's the only regex I was able to find after trying
         # many different ones (mostly from stackoverflow, which has a large
         # number of poor suggestions).
@@ -88,7 +108,43 @@ if 1:   # Header
         '''
 
         g.r = re.compile(regex.strip())
-if 1:   # Utility
+if 1:   # Core functionality
+    def URL_is_unreadable(url):
+        '''Return (True, status_code, e) if URL cannot be read, (False,
+        status_code, None) otherwise.  status_code is the number returned
+        by the get request.  If an exception occurred, e is set to the
+        Exception object and status_code will be None.
+ 
+        The URL is considered readable if a get request returns 200 to 299.
+        If an exception occurs, it's often because the URL is poorly formed 
+        or the website no longer exists.
+        '''
+        try:
+            r = requests.get(url)
+        except Exception as e:
+            return (True, None, e)
+        st = r.status_code
+        # Note:  the status code is 200-299 for a successful response (see
+        # https://developer.mozilla.org/en-US/docs/Web/HTTP/Status).  
+        success = 200 <= st < 300
+        return (False, st, None) if success else (True, st, None)
+    def GetURLs(s, unique=True):
+        '''Return a list of the URLs in the string s.  If unique is True,
+        then only return the unique URLs.  The order of the URLs in the
+        list is the same as they are encountered in the string.
+        '''
+        urls = []
+        mo = g.r.search(s)
+        while mo:
+            for i in mo.groups():
+                if unique and i not in urls:
+                    urls.append(i)
+            start, end = mo.span()
+            s = s[end + 1:]
+            mo = g.r.search(s)
+        return urls
+
+if __name__ == "__main__":
     def Error(*msg, status=1):
         print(*msg, file=sys.stderr)
         exit(status)
@@ -98,63 +154,58 @@ if 1:   # Utility
           Search for URLs in the given files and tries to load them.  Any
           that cannot be loaded are printed to stdout.  Use '-' to get text
           from stdin.
+        Warning:
+          This script requests and loads the data from every web page to
+          ensure that the URL is valid.  This can take a long time to
+          execute for a set of files with a lot of URLs in them.
+        Options:
+          -c        Turn off color in output
+          -f        Don't include the file name in the output
+          -s        Print the URLs in the file(s) (don't load them)
+          -t        Run some simple tests
+          -u        Same as -s, but sort the URLs and only show unique ones
         '''[1:].rstrip()))
         exit(status)
+    def RunTests():
+        # Check a known good URL
+        url = "https://en.wikipedia.org/wiki/Main_Page"
+        status, sc, exc =  URL_is_unreadable(url)
+        Assert(not status and sc == 200 and not exc)
+        # Get an exception on an unreachable url
+        url = "https://kdfjopeurte.3095uoleorj.eorijeor/kdjfdkfj.html"
+        status, sc, exc =  URL_is_unreadable(url)
+        Assert(status and sc == None and exc)
+        # Get a non-200 status
+        url = "http://www.ndt-ed.org/GeneralResources/IACS/IACS.htm"
+        status, sc, exc =  URL_is_unreadable(url)
+        Assert(status and sc == 404 and not exc)
     def ParseCommandLine(d):
-        d["-a"] = False     # Describe this option
-        d["-d"] = 3         # Number of significant digits
-        d["-s"] = False     # Just show the URLs encountered
+        d["-c"] = True      # Turn off color in output
+        d["-f"] = False     # Don't include file name
+        d["-s"] = False     # Just show the URLs encountered without any checking
+        d["-t"] = False     # Run simple tests
+        d["-u"] = False     # Same as -s but sorted and uniqued
         if len(sys.argv) < 2:
             Usage()
         try:
-            opts, args = getopt.getopt(sys.argv[1:], "s") 
+            opts, args = getopt.getopt(sys.argv[1:], "cfstu") 
         except getopt.GetoptError as e:
             print(str(e))
             exit(1)
         for o, a in opts:
-            if o[1] in list("s"):
+            if o[1] in list("cfstu"):
                 d[o] = not d[o]
-            elif o in ("-d",):
-                try:
-                    d["-d"] = int(a)
-                    if not (1 <= d["-d"] <= 15):
-                        raise ValueError()
-                except ValueError:
-                    msg = ("-d option's argument must be an integer between "
-                        "1 and 15")
-                    Error(msg)
             elif o == "-h":
                 Usage(status=0)
+        if d["-t"]:
+            RunTests()
         return args
-if 1:   # Core functionality
-    def URL_is_unreadable(url, file):
-        '''Return (True, status_code) if URL cannot be read, (False,
-        status_code) otherwise.  -1 is returned for an exception.
-        '''
-        try:
-            r = requests.get(url)
-        except Exception as e:
-            print(f"Exception: {file}: {url!r}")
-            return (False, -1)
-        st = r.status_code
-        return (False, st) if st == 200 else (True, st)
-    def GetURLs(s):
-        'Return a list of the URLs in the string s'
-        urls = []
-        mo = g.r.search(s)
-        while mo:
-            for i in mo.groups():
-                urls.append(i)
-            start, end = mo.span()
-            s = s[end + 1:]
-            mo = g.r.search(s)
-        return urls
-
-if __name__ == "__main__":
     def CheckFile(file):
         'Find URLs in the file and print any that cannot be read'
+        filename = file
         if file == "-":
             s = sys.stdin.read()
+            filename = "sys.stdin"
         else:
             p = P(file)
             if not p.exists():
@@ -166,14 +217,51 @@ if __name__ == "__main__":
                 print(f"Cannot read {file!r}: {e!r}", file=sys.stderr)
                 return
         urls = GetURLs(s)
-        for url in urls:
-            if d["-s"]:
-                print(f"{file}:  {url!r}")
-            else:
-                not_ok, status = URL_is_unreadable(url, file)
-                if not_ok:
-                    print(f"{file}:  {url!r}, status = {status}")
+        if d["-s"]:
+            for url in urls:
+                if d["-f"]:
+                    print(f"{url}")
+                else:
+                    print(f"{filename}:  {url}")
+        elif d["-u"]:
+            urls_ = list(sorted(set(urls)))
+            for url in urls_:
+                if d["-f"]:
+                    print(f"{url}")
+                else:
+                    print(f"{filename}:  {url}")
+        else:
+            for url in urls:
+                if d["-s"] or d["-u"]:
+                    if d["-f"]:
+                        print(f"{url}")
+                    else:
+                        print(f"{filename}:  {url}")
+                else:
+                    loaded = set()  # Only load a URL once
+                    if file not in loaded:
+                        not_ok, status, exception = URL_is_unreadable(url)
+                        loaded.add(file)
+                        if not_ok:
+                            if exception is not None:
+                                if d["-f"]:
+                                    print(f"{t.exc}Exception:{t.n}  {url}")
+                                else:
+                                    print(f"{t.exc}Exception:{t.n}  {filename}:  {url}")
+                            else:
+                                if d["-f"]:
+                                    print(f"{url}    status = {t.st}{status}{t.n}")
+                                else:
+                                    print(f"{filename}:  {url}    status = {t.st}{status}{t.n}")
     d = {}      # Options dictionary
     files = ParseCommandLine(d)
+    if d["-c"]:
+        t.exc = t("ornl")
+        t.st = t("yell")
+    else:
+        t.exc = ""
+        t.st = ""
+    if len(files) == 1:
+        d["-f"] = True
     for file in files:
         CheckFile(file)
