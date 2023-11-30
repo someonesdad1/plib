@@ -412,6 +412,6 @@ def PrintStatus(fp, status="Permanent"):
 print("List of URI Schemes as of 30 Nov 2023")
 print("  Source = https://www.iana.org/assignments/uri-schemes/uri-schemes.xhtml")
 fp = StringIO(data)
-PrintStatus(fp, status="Permanent")
-PrintStatus(fp, status="Historical")
 PrintStatus(fp, status="Provisional")
+PrintStatus(fp, status="Historical")
+PrintStatus(fp, status="Permanent")
