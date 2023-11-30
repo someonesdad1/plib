@@ -1,10 +1,13 @@
 '''
+
 ToDo
+    - Change the default behavior to what -s does now.  The loading
+      behavior should be gotten with -l.
     - Refine the error messages by trapping requests' exceptions.  See
-      https://requests.readthedocs.io/en/latest/api/#exceptions.
-      The supported exceptions would make the exception messages more
-      explicit without having to figure things out from the detailed text
-      in the str(e) form.
+      https://requests.readthedocs.io/en/latest/api/#exceptions.  The
+      supported exceptions would make the exception messages more explicit
+      without having to figure things out from the detailed text in the
+      str(e) form.
     - Note it finds URLs like 'trigger.py' in wl2rgb.py, so the code should
       probably eliminate things that don't start with "http", "https",
       "ftp", etc.  Those three might be all that are needed in a practical
@@ -13,6 +16,26 @@ ToDo
         - OO
         - Word
         - PDF
+            - Crude but works:  use pdftohtml to convert to html (puts the
+              files in a new directory), then scan the resulting html files
+            - PDFMiner:  https://github.com/euske/pdfminer
+                - https://github.com/pdfminer/pdfminer.six is a fork.  It
+                  looks like it could be useful, especially the pdf2txt.py
+                  and dumppdf.py script (the latter is probably what I
+                  need).
+            - PDFQuery: 'pip install pdfquery', https://pypi.org/project/pdfquery/
+                - Search down the https://pypi.org/project/pdfquery/ page
+                  to 'your best bet is to dump the xml using', which shows
+                  how easy it is to get XML.  Also read about caching to
+                  speed things up.
+                - https://www.freecodecamp.org/news/extract-data-from-pdf-files-with-python/
+                Shows an example of converting a PDF to XML:
+                    - #read the PDF
+                    - pdf = pdfquery.PDFQuery('customers.pdf')
+                    - pdf.load()
+                    - #
+                    - #convert the pdf to XML
+                    - pdf.tree.write('customers.xml', pretty_print = True)
     - Add '-x file' option, which gives URLs that are to be ignored
 
 Provides two functions to help with getting and validating URLs from text
@@ -128,10 +151,14 @@ if 1:   # Core functionality
         # https://developer.mozilla.org/en-US/docs/Web/HTTP/Status).  
         success = 200 <= st < 300
         return (False, st, None) if success else (True, st, None)
-    def GetURLs(s, unique=True):
+    def GetURLs(s, unique=True, filter=False, schemes="http https ftp".split()):
         '''Return a list of the URLs in the string s.  If unique is True,
         then only return the unique URLs.  The order of the URLs in the
         list is the same as they are encountered in the string.
+         
+        If filter is True, then only URLs with the indicated schemes are
+        returned.  Thus "https://developer.mozilla.org" would be returned,
+        but "developer.mozilla.org" would not.
         '''
         urls = []
         mo = g.r.search(s)
@@ -142,6 +169,7 @@ if 1:   # Core functionality
             start, end = mo.span()
             s = s[end + 1:]
             mo = g.r.search(s)
+        # Filter out 
         return urls
 
 if __name__ == "__main__":
@@ -155,7 +183,7 @@ if __name__ == "__main__":
           that cannot be loaded are printed to stdout.  Use '-' to get text
           from stdin.
         Warning:
-          This script requests and loads the data from every web page to
+          This script requests and loads the data from every URL to
           ensure that the URL is valid.  This can take a long time to
           execute for a set of files with a lot of URLs in them.
         Options:
@@ -200,22 +228,27 @@ if __name__ == "__main__":
         if d["-t"]:
             RunTests()
         return args
-    def CheckFile(file):
-        'Find URLs in the file and print any that cannot be read'
-        filename = file
+    def GetFileString(file):
+        '''Return (s, filename), where s is the string contents of the file
+        and filename is the printable name of the file.  Return None for s if
+        file cannot be read.  Print error messages to stderr.
+        '''
         if file == "-":
             s = sys.stdin.read()
-            filename = "sys.stdin"
+            return (s, "stdin")
         else:
             p = P(file)
             if not p.exists():
                 print(f"{file!r} doesn't exist", file=sys.stderr)
-                return
+                return (None, file)
             try:
-                s = open(file).read()
+                return (open(file).read(), file)
             except Exception as e:
                 print(f"Cannot read {file!r}: {e!r}", file=sys.stderr)
-                return
+                return (None, file)
+    def CheckFile(file):
+        'Find URLs in the file and print any that cannot be read'
+        s, filename = GetFileString(file)
         urls = GetURLs(s)
         if d["-s"]:
             for url in urls:
@@ -253,6 +286,10 @@ if __name__ == "__main__":
                                     print(f"{url}    status = {t.st}{status}{t.n}")
                                 else:
                                     print(f"{filename}:  {url}    status = {t.st}{status}{t.n}")
+    def ListURLsInFile(file):
+        s, filename = GetFileString(file)
+        urls = GetURLs(s)
+
     d = {}      # Options dictionary
     files = ParseCommandLine(d)
     if d["-c"]:
@@ -264,4 +301,7 @@ if __name__ == "__main__":
     if len(files) == 1:
         d["-f"] = True
     for file in files:
-        CheckFile(file)
+        if d["-l"]:
+            CheckFile(file)
+        else:
+            ListURLsInFile(file)
