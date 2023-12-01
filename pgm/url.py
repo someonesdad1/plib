@@ -237,7 +237,6 @@ if __name__ == "__main__":
     def Manpage():
         Dbg("Showing manpage")
         print(dedent(f'''
-        
         This script evolved as a tool to validate the URLs used in a file.
         The first functionality was to find URLs in text files, such as a
         python script.  This is done by using a regex (regular expresssion)
@@ -279,7 +278,28 @@ if __name__ == "__main__":
         in a file and using the -x option to ignore these URLs when they
         are found after making a note in a document that the URL was found
         to be defunct on a particular date.
+
+        Here are some of the ways I use this script:
+
+        'url.py -x url.ignore *.py'
+
+            Shows the URLs in all the python files in the current
+            directory.  The url.ignore file contains URLs that I don't want
+            to see in the output.  For example, nearly all of my python
+            files have the OSL3 open source license, so the url.ignore file
+            has the URL http://opensource.org/licenses/OSL-3.0 in it.
  
+        'url.py -x url.ignore -lv a_script.py'
+
+            This loads each of the discovered URLs in the indicated python
+            file and prints out any URLs that don't work.  The -v option
+            prints out a helpful table that tells what the 400 level error
+            status numbers are.
+
+        Sadly, the -l option can often produce a large list of broken URLs.
+        These can be a lot of work to fix, as you either have to track down
+        the new URL, modify the text to not use the URL, or at least
+        declare the URL as broken.
         '''))
         exit(0)
     def Usage(status=1):
@@ -287,31 +307,27 @@ if __name__ == "__main__":
         Usage:  {sys.argv[0]} file1 [file2 ...]
           Print the URLs in the given text files.  The URLs are listed in
           the order they are found.  Use '-' to get text from stdin.
-        File types:
-          The default file type is UTF-8 encoded text.  I plan for this
-          script to support other file types too:
-            - Open Office documents
-            - PDF files
-          These file types will be determined by their extension.
         Loading the URL to validate it:
           The -l option is used to load the URL's contents by a get()
-          command.  This can take a long time for file(s) with lots of
-          URLs.  Color is used to highlight URLs that had an exception or
-          returned a get() status that wasn't in the range 200-299.
+          command.  This can take a long time for file(s) with lots of URLs
+          and/or large amounts of data to download.  Color is used to
+          highlight URLs that had an exception or returned a get() status
+          that wasn't in the range 200-299.
         Options:
           -a        Show all URLs that match the regex (normal behavior is
                     to only show URLs with schemes http, https, or ftp)
           -c        Turn off color in output
           -d        Turn on debug printing
-          -f        Don't include the file name in the output
+          -F        Don't include the file name in the output
+          -f file   Read the input files from a file (you can use more than
+                    one -f option)
           -h        Print a manpage
           -l        Load the URLs, which verifies the URL is not defunct
           -s        Sort the URLs in each file
           -t        Run basic tests
           -U        Coalesce all unique URLs from the files into a sorted list
-          -u        Only show the unique URLs in a file
-          -u        Show a list of the statuses found to stderr
-          -v        Include get() 400 status code explanations
+          -u        Don't show the unique URLs in a file, show them all
+          -v        Include get() 400 status code explanations to stderr
           -x file   Ignore URLs in the file (can have more than one -x option)
         '''[1:].rstrip()))
         exit(status)
@@ -319,13 +335,14 @@ if __name__ == "__main__":
         d["-a"] = False     # Show all URLs, not just http/https/ftp
         d["-c"] = True      # Color in output
         d["-d"] = False     # Show debugging output
-        d["-f"] = False     # Don't include file name in output
+        d["-F"] = False     # Don't include file name in output
+        d["-f"] = []        # Read the input files from a file
         d["-h"] = False     # Manpage
         d["-l"] = False     # Load URLs found
         d["-s"] = False     # Sort URLs in each file
         d["-t"] = False     # Run basic tests
         d["-U"] = False     # Coalesce all URLs into sorted unique list
-        d["-u"] = False     # Same as -s but sorted and uniqued
+        d["-u"] = True      # Unique set for each file on the command line
         d["-v"] = False     # Show the 400 status explanations that are found
         d["-x"] = []        # Ignore URLs in these files
         try:
@@ -336,6 +353,8 @@ if __name__ == "__main__":
         for o, a in opts:
             if o[1] in list("acdfhlstUuv"):
                 d[o] = not d[o]
+            elif o == "-f":
+                d[o].append(a)
             elif o == "-x":
                 d[o].append(a)
         SetUpDbg(d["-d"])
@@ -388,7 +407,7 @@ if __name__ == "__main__":
     def CheckFile(file):
         'Find URLs in the file and print any that cannot be read'
         s, filename = GetFileString(file)
-        urls = GetURLs(s)
+        urls = GetURLs(s, filter=not d["-a"])
         loaded = set()  # Only load a URL once
         for url in urls:
             if url in loaded or url in d["ignored"]:
@@ -423,8 +442,7 @@ if __name__ == "__main__":
         else:
             urls = GetURLs(s, unique=False, filter=True)
         Dbg(f"  Found {len(urls)} URLs")
-        # If -U is not True, we can report the files from here
-        if d["-u"]:
+        if d["-u"] or d["-U"]:
             # Save only unique URLs
             u, found = [], set()
             for i in urls:
@@ -437,6 +455,7 @@ if __name__ == "__main__":
             urls = list(sorted(urls))
         # Remove ignored URLs
         urls = [i for i in urls if i not in d["ignored"]]
+        # If -U is not True, we can report the files from here
         if not d["-U"] and urls:
             print(f"{filename}:")
             for url in urls:
@@ -448,10 +467,10 @@ if __name__ == "__main__":
         list.
         '''
         found = set()
-        for file in d["urls"]:
-            for url in d["urls"][file]:
-                found.add(url)
-        for url in sorted(list(found)):
+        for file in d["files"]:
+            found.update(d["urls"][file])
+        found = list(sorted(found))
+        for url in found:
             print(url)
     def StatusName(status):
         '''Convert integer status to string.  Taken from
@@ -487,6 +506,17 @@ if __name__ == "__main__":
             429: "Too Many Requests (RFC 6585)",
             431: "Request Header Fields Too Large (RFC 6585)",
             451: "Unavailable For Legal Reasons (RFC 7725)",
+            500: "Internal Server Error",
+            501: "Not Implemented",
+            502: "Bad Gateway",
+            503: "Service Unavailable",
+            504: "Gateway Timeout",
+            505: "HTTP Version Not Supported",
+            506: "Variant Also Negotiates (RFC 2295)",
+            507: "Insufficient Storage (WebDAV; RFC 4918)",
+            508: "Loop Detected (WebDAV; RFC 5842)",
+            510: "Not Extended (RFC 2774)",
+            511: "Network Authentication Required (RFC 6585)",
         }
         return names.get(status, "?")
     def PrintStatuses():
@@ -497,7 +527,7 @@ if __name__ == "__main__":
                 print(f"  {i}:  {StatusName(i)}", file=sys.stderr)
             print(f"{t.N}", end="", file=sys.stderr)
     d = {       # Options dictionary
-        "urls": {},         # Container for -U option
+        "urls": {},         # Dict for -U option keyed by file
         "files": set(),     # Keep track of files processed
         "status": set(),    # Keep track of returned statuses
         "ignored": set(),   # URLs to ignore 
@@ -512,12 +542,15 @@ if __name__ == "__main__":
     files = unique
     if len(files) == 1:
         d["-f"] = True
+    if d["-l"]:
+        d["-u"] = d["-s"] = True
     for file in files:
+        Dbg(f"Processing {file!r}")
         if d["-l"]:
-            d["-u"] = d["-s"] = True
             CheckFile(file)
-            PrintStatuses()
         else:
             URLsInFile(file)
-            if d["-U"]:
-                Report()
+    if d["-l"]:
+        PrintStatuses()
+    elif d["-U"]:
+        Report()
