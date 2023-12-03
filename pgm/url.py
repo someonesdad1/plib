@@ -1,9 +1,6 @@
 '''
 
 ToDo
-    - Add -t to allow setting the timeout
-    - Change the default behavior to what -s does now.  The loading
-      behavior should be gotten with -l.
     - Refine the error messages by trapping requests' exceptions.  See
       https://requests.readthedocs.io/en/latest/api/#exceptions.  The
       supported exceptions would make the exception messages more explicit
@@ -13,7 +10,7 @@ ToDo
       probably eliminate things that don't start with "http", "https",
       "ftp", etc.  Those three might be all that are needed in a practical
       sense.
-    - Adapt to other documents
+    - Adapt to other document types
         - OO
         - Word
         - PDF
@@ -37,7 +34,6 @@ ToDo
                     - #
                     - #convert the pdf to XML
                     - pdf.tree.write('customers.xml', pretty_print = True)
-    - Add '-x file' option, which gives URLs that are to be ignored
 
 Provides two functions to help with getting and validating URLs from text
 strings.
@@ -284,6 +280,9 @@ if __name__ == "__main__":
         are found after making a note in a document that the URL was found
         to be defunct on a particular date.
 
+        You can use the -t option to set the amount of time the get()
+        function of the requests library will time out.
+
         Here are some of the ways I use this script:
 
         'url.py -x url.ignore *.py'
@@ -298,13 +297,8 @@ if __name__ == "__main__":
 
             This loads each of the discovered URLs in the indicated python
             file and prints out any URLs that don't work.  The -v option
-            prints out a helpful table that tells what the 400 level error
-            status numbers are.
-
-        Sadly, the -l option can often produce a large list of broken URLs.
-        These can be a lot of work to fix, as you either have to track down
-        the new URL, modify the text to not use the URL, or at least
-        declare the URL as broken.
+            prints out a table that tells what the (known) error status
+            numbers are.
         '''))
         exit(0)
     def Usage(status=1):
@@ -329,10 +323,11 @@ if __name__ == "__main__":
           -h        Print a manpage
           -l        Load the URLs, which verifies the URL is not defunct
           -s        Sort the URLs in each file
-          -t        Run basic tests
+          -T        Run basic tests
+          -t n      Set timeout in seconds [{d['-t']}]
           -U        Coalesce all unique URLs from the files into a sorted list
           -u        Don't show the unique URLs in a file, show them all
-          -v        Include get() 400 status code explanations to stderr
+          -v        Include get() 400 status code explanations
           -x file   Ignore URLs in the file (can have more than one -x option)
         '''[1:].rstrip()))
         exit(status)
@@ -345,21 +340,29 @@ if __name__ == "__main__":
         d["-h"] = False     # Manpage
         d["-l"] = False     # Load URLs found
         d["-s"] = False     # Sort URLs in each file
-        d["-t"] = False     # Run basic tests
+        d["-T"] = False     # Run basic tests
+        d["-t"] = 5         # Set timeout in seconds
         d["-U"] = False     # Coalesce all URLs into sorted unique list
         d["-u"] = True      # Unique set for each file on the command line
         d["-v"] = False     # Show the 400 status explanations that are found
         d["-x"] = []        # Ignore URLs in these files
         try:
-            opts, files = getopt.getopt(sys.argv[1:], "acdfhlstUuvx:") 
+            opts, files = getopt.getopt(sys.argv[1:], "acdfhlsTt:Uuvx:") 
         except getopt.GetoptError as e:
             print(str(e))
             exit(1)
         for o, a in opts:
-            if o[1] in list("acdfhlstUuv"):
+            if o[1] in list("acdfhlsTUuv"):
                 d[o] = not d[o]
             elif o == "-f":
                 d[o].append(a)
+            elif o == "-t":
+                try:
+                    d[o] = float(a)
+                    if d[o] <= 0:
+                        raise Exception()
+                except Exception:
+                    Error("-t option must be number of seconds > 0")
             elif o == "-x":
                 d[o].append(a)
         SetUpDbg(d["-d"])
@@ -371,7 +374,7 @@ if __name__ == "__main__":
                     continue
                 if i.startswith("-"):
                     Dbg(f"  d[{i}] = {d[i]}")
-        if d["-t"]:
+        if d["-T"]:
             RunTests()
         elif d["-h"]:
             Manpage()
@@ -417,7 +420,7 @@ if __name__ == "__main__":
         for url in urls:
             if url in loaded or url in d["ignored"]:
                 continue
-            not_ok, status, exception = URL_is_unreadable(url)
+            not_ok, status, exception = URL_is_unreadable(url, timeout=d["-t"])
             loaded.add(url)
             if not_ok:
                 if exception is not None:
@@ -531,12 +534,13 @@ if __name__ == "__main__":
         }
         return names.get(status, "?")
     def PrintStatuses():
-        'Show statuses found to stderr'
+        'Show statuses found'
+        file = sys.stdout
         if d["status"] and d["-v"]:
-            print(f"\n{t.sts}get() status items found in search:", file=sys.stderr)
+            print(f"\n{t.sts}get() status items found in search:", file=file)
             for i in sorted(d["status"]):
-                print(f"  {i}:  {StatusName(i)}", file=sys.stderr)
-            print(f"{t.N}", end="", file=sys.stderr)
+                print(f"  {i}:  {StatusName(i)}", file=file)
+            print(f"{t.N}", end="", file=file)
     d = {       # Options dictionary
         "urls": {},         # Dict for -U option keyed by file
         "files": set(),     # Keep track of files processed
