@@ -107,12 +107,14 @@ End of the World|sonLd-32ns4|
 Everybody's Somebody's Fool|ECOthzFvUXY|
 Exodus|xhXZ3eXJIFc|
 Eye Of The Tiger|btPJPFnesV4|
+Eye in the Sky|56hqrlQxMMI|
 Fever|JGb5IweiYG8|
 Fleetwood Mac:  Dreams|O5ugW4-BstE|
 Fleetwood Mac: Gypsy|mwgg1Pu6cNg|
 Flight of the Condor|66KVAhNE_rQ|1982| This was a BBC TV show and had great pan pipe music from South America.
 Für Elise|2fcX2dWmR6g|
 Foggy Mountain Breakdown|z_Y3mnj-8lA|
+Games People Play|SLi7Ljcy6n8|
 Ghost Riders In the Sky: Roy Clark|8o2w1zhBKzk|
 Ghost Riders In the Sky: Burl Ives (1949)|j2klh2cTa_Q|
 Ghost Riders In the Sky: Frankie Laine|ZwAPa0qHmLo|
@@ -126,7 +128,7 @@ Heart Full of Soul|pM1qZBFiOLU|
 Hit the Road Jack|SrnWp5O0DEs| Ray Charles
 Hollies:  Long Cool Woman|g8XiNKsKyVk|
 Hollies: Bus Stop|It75wQ0JypA|
-Hotel California|https://www.youtube.com/watch?v=BciS5krYL80|
+Hotel California|BciS5krYL80|
 House Of The Rising Sun|MJkr0DWbhTk||I loved this song in high school.
 I Am A Man Of Constant Sorrow|OdYGnAFaeHU|
 I Left My Heart in San Francisco|SC73kdOL5hk|
@@ -185,6 +187,7 @@ Nothing Else Matters: Harp|KMX2bmtS_TE|
 Nothing Else Matters: Metallica|tAGnKpE4NCI|
 Nothing Else Matters: PMJ:  15 year old girl singer|KSSa0-oAnIo|
 Nothing Else Matters: Piano|DmL12NRE4hQ|
+Old and Wise|ZmzqqdVFw8g|
 Papa Was a Rollin' Stone|71l85z2bXAs|
 Papillon|Js69DkyaDVQ|
 Patricia|rTXIXkeWnEo|
@@ -248,7 +251,7 @@ Walk On the Wild Side|5O82y59h7MI|
 Walking in the Air|upH1QZU4Z0Y|Movie theme sung by a 13 year old choirboy
 Washington Square|ihenbyTzQ2A|
 White Silver Sands|mOqbjENGN7s|
-Who's on First|kTcRRaXV-fg|Genius comedy
+Who's on First|jIGRgmxRfiE|Genius comedy
 Woman in Love (Barbra Streisand)|hQLGCX8D-1Y|
 Yesterday when I was young|GQIAcztYjbc|
 You Were On My Mind|c7YSANg8vgw|

@@ -4,9 +4,6 @@ Active
         - Add -i option for interactive solution of polygons (see notes in
           script)
 
-    - pgm/tmp.py
-        - Show typical temporary files in current directory
-
     - pgm/trim.py
         - Script to do what old binary ~/bin/trim does
         - Use dpstr.Trim()
