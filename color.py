@@ -1456,7 +1456,7 @@ class RegexpDecorate:
     
             rd = RegexpDecorate()
             r = re.compile(r"[Mm]adison")
-            fg = t(Color("yell"))
+            fg = t("yell")
             bg = t.n
             # Note fg and bg must be escape sequences
             rd.register(r, fg, bg)    # Print matches in light yellow on black
@@ -1489,7 +1489,7 @@ class RegexpDecorate:
             rd.register(r, t(Color("yell")), t.n)
             rd(*files)
     
-        A command line tool like grep is capabile of more precise searching
+        A command line tool like grep is capable of more precise searching
         including file names and line numbers.
     '''
     def __init__(self):

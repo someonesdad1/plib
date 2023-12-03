@@ -1,6 +1,7 @@
 '''
 
 ToDo
+    - Add -t to allow setting the timeout
     - Change the default behavior to what -s does now.  The loading
       behavior should be gotten with -l.
     - Refine the error messages by trapping requests' exceptions.  See
@@ -134,7 +135,7 @@ if 1:   # Header
         g.r = re.compile(regex.strip())
         dbg = None
 if 1:   # Core functionality
-    def URL_is_unreadable(url):
+    def URL_is_unreadable(url, timeout=10):
         '''Return (True, status_code, e) if URL cannot be read, (False,
         status_code, None) otherwise.  status_code is the number returned
         by the get request.  If an exception occurred, e is set to the
@@ -143,9 +144,13 @@ if 1:   # Core functionality
         The URL is considered readable if a get request returns 200 to 299.
         If an exception occurs, it's often because the URL is poorly formed 
         or the website no longer exists.
+
+        The timeout is set to the indicated number of seconds.
         '''
         try:
-            r = requests.get(url)
+            r = requests.get(url, timeout=timeout)
+        except requests.exceptions.Timeout:
+            return (True, None, f"Timeout ({timeout} s)")
         except Exception as e:
             return (True, None, e)
         st = r.status_code
@@ -416,10 +421,16 @@ if __name__ == "__main__":
             loaded.add(url)
             if not_ok:
                 if exception is not None:
-                    if d["-f"]:
-                        print(f"{t.exc}{url}    Exception{t.n}")
+                    if "Timeout (" in str(exception):
+                        if d["-f"]:
+                            print(f"{t.exc}{url}    {exception}{t.n}")
+                        else:
+                            print(f"{t.exc}{filename}:  {url}    {exception}{t.n}")
                     else:
-                        print(f"{t.exc}{filename}:  {url}    Exception{t.n}")
+                        if d["-f"]:
+                            print(f"{t.exc}{url}    Exception{t.n}")
+                        else:
+                            print(f"{t.exc}{filename}:  {url}    Exception{t.n}")
                 else:
                     d["status"].add(status)
                     if d["-f"]:
