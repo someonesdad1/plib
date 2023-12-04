@@ -45,6 +45,7 @@ String utilities
     Str              String class whose len() ignores ANSI escape sequences
     TimeStr          Readable string for time() in s
     Tokenize         Return a list of tokens from tokenizing a string
+    Trim             Remove characters from a string
     WordID           Return an ID string that is somewhat pronounceable
 Ignore ANSI escape sequences
     Len              Length of string with ANSI escape sequences removed
@@ -1018,6 +1019,41 @@ if 1:   # Core functionality
             s.pop(-1)
         # Return scrambled string or list
         return ''.join(s) if is_string else s
+    def Trim(s, chars="", left=True, right=True, check=False):
+        '''Remove characters in the string chars from the left and right
+        sides of s, returning the result.
+ 
+        This routine breaks s into three strings L, M, and R such that s =
+        L + M + R.  L and R consist only of characters in chars.  The
+        returned string is
+            left    right       returned
+            ----    -----     -------------
+            True    True            M
+            True    False         M + R
+            False   True          L + M
+            False   False     s = L + M + R
+        If check is True, the invariants are validated.
+        '''
+        if not chars or (not left and not right):
+            return s
+        cs = ''.join(set(chars))
+        # Partition s into L, M, R pieces so that s == L + M + R
+        MR = s.lstrip(cs)
+        LM = s.rstrip(cs)
+        M = s.strip(cs)
+        L = LM[:len(LM) - len(M)]
+        R = MR[len(M):]
+        if check and not set(s).issubset(cs):   # Validate invariants
+            if set(s).issubset(cs):
+                assert(not L and not M and not R)
+            else:
+                assert(L + M + R == s)
+                assert(set(L).issubset(charset))
+                assert(set(R).issubset(charset))
+        if left:
+            return M if right else M + R
+        else:
+            return L + M
 
 if __name__ == "__main__": 
     from lwtest import run, raises, assert_equal, Assert
@@ -1025,6 +1061,23 @@ if __name__ == "__main__":
     import os
     from sig import sig
     from color import TRM as t
+    def Test_Trim():
+        for s in ("", "a", "abc"):
+            Assert(Trim(s) == s)
+        u = "a b"
+        s = f" {u} "
+        cs = " "
+        Assert(Trim(s, chars=cs) == f"{u}")
+        Assert(Trim(s, chars=cs, left=True, right=False) == f"{u} ")
+        Assert(Trim(s, chars=cs, left=False, right=True) == f" {u}")
+        Assert(Trim(s, chars=cs, left=True, right=True) == f"{u}")
+        # Test when s is a subset of chars
+        s = "aaaaaaaaaa"
+        cs = "eoirtjwpo op4er9qorja"
+        Assert(Trim(s, chars=cs, check=True) == "")
+        Assert(Trim(s, chars=cs, left=True, right=False, check=True) == "")
+        Assert(Trim(s, chars=cs, left=False, right=True, check=True) == "")
+        Assert(Trim(s, chars=cs, left=True, right=True, check=True) == "")
     def Test_Keep():
         Assert(Keep("", "") == "")
         Assert(Keep("", "a") == "")
@@ -1478,8 +1531,7 @@ if __name__ == "__main__":
         # MultipleReplace
 
         t.print(end="")
-    #if len(sys.argv) > 1:
-    if 1: #xx
+    if len(sys.argv) > 1:
         Demo()
         exit()
     exit(run(globals(), regexp="^Test", halt=1)[0])

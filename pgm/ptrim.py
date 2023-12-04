@@ -1,5 +1,8 @@
 '''
 Trim characters from the lines of files and print them to stdout
+
+ToDo
+    - Change to use dpstr:Trim()
 '''
 if 1:   # Header
     if 1:   # Copyright, license

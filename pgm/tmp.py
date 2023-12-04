@@ -73,7 +73,7 @@ if 1:   # Utility
             elif o == "-h":
                 Usage(status=0)
         if not dirs:
-            Usage()
+            dirs = ["."]
         return dirs
 if 1:   # Core functionality
     def FindTemp(dir, multiple=False):
@@ -86,11 +86,12 @@ if 1:   # Core functionality
             print(f"{dir!r} doesn't exist", file=sys.stderr)
         for glb in g.glob:
             found.extend(p.glob(glb))
-        if multiple:
-            print(f"{dir}:")
-        ind = " "*2 if multiple else ""
-        for i in Columnize(sorted(found), indent=ind):
-            print(i)
+        if found:
+            if multiple:
+                print(f"{dir}:")
+            ind = " "*2 if multiple else ""
+            for i in Columnize(sorted(found), indent=ind):
+                print(i)
 
 if __name__ == "__main__":
     d = {}      # Options dictionary

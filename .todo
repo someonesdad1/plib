@@ -4,10 +4,6 @@ Active
         - Add -i option for interactive solution of polygons (see notes in
           script)
 
-    - pgm/trim.py
-        - Script to do what old binary ~/bin/trim does
-        - Use dpstr.Trim()
-
     - dpstr.py
         - Finish usage examples
         - Add Trim(s, chars_to_trim, left=True, right=True)
