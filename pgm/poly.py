@@ -83,7 +83,7 @@ if 1:   # Utility
         d["-a"] = False     # Abbreviate numbers
         d["-c"] = ""        # Which lines to highlight
         d["-d"] = 4         # Number of significant digits
-        d["-n"] = "3,4,5,6,7,8"
+        d["-n"] = ",".join(str(i) for i in range(3, 13))
         d["-t"] = False     # Print the table
         try:
             opts, diameters = getopt.getopt(sys.argv[1:], "ac:d:n:t")
@@ -119,8 +119,11 @@ if 1:   # Utility
         if not d["-t"] and not diameters:
             Usage(d)
         # Convert d["-c"] to a set of integers
-        s = d["-c"].split(",")
-        d["-c"] = set([int(i) for i in s]) if s != [""] else set([])
+        if d["-c"]:
+            s = d["-c"].split(",")
+            d["-c"] = set([int(i) for i in s])
+        else:
+            d["-c"] = set([3, 6])
         return diameters
 if 1:   # Core functionality
     def Convert(size):
@@ -219,7 +222,7 @@ if 1:   # Core functionality
         exit(0)
     def Title():
         print(dedent(f'''
-        {t.ti}Properties of regular polygons{t.nn}
+        {t.ti}Properties of regular polygons to {opts["-d"]} figures{t.nn}
             d = inscribed diameter
             D = circumscribed diameter
             a = length of side
