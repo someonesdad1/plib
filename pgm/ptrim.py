@@ -51,6 +51,7 @@ if 1:   # Utility
           script only removes space characters.
         Options:
             -c set  Define the set of characters to trim
+            -d      Debug printing to see operation
             -l      Trim from the left side only
             -r      Trim from the right side only
             -w      Trim whitespace
@@ -62,8 +63,6 @@ if 1:   # Utility
         d["-l"] = False     # Trim from left side only
         d["-r"] = False     # Trim from right side only
         d["-w"] = False     # Include whitespace characters
-        if len(argv) < 2:
-            Usage()
         try:
             opts, files = getopt.getopt(argv[1:], "c:dhlrw") 
         except getopt.GetoptError as e:
@@ -79,14 +78,16 @@ if 1:   # Utility
             elif o == "-c":
                 d[o] += a
             elif o == "-h":
-                Usage(status=0)
+                Manpage()
         if d["-w"]:
             d["-c"] += string.whitespace
+        # Set up colors
+        t.dbg = t.norm = t.N = ""
         if d["-d"]:
             g.dbg = True
-            t.dbg = t("skyl") if g.dbg else ""
-            t.norm = t("redl") if g.dbg else ""
-            t.N = t.n if g.dbg else ""
+            t.dbg = t("skyl")
+            t.norm = t("redl")
+            t.N = t.n
         if not files:
             Usage()
         Dbg(f"Files: {' '.join(files)}")
@@ -120,30 +121,40 @@ if 1:   # Core functionality
         # Remove trailing newline
         if line[-1] == "\n":
             line = line[:-1]
-        chars = ''.join(set(d["-c"] if d["-c"] else " "))
         # Partition line into L, M, R pieces so that line == L + M + R
-        MR = line.lstrip(chars)
-        LM = line.rstrip(chars)
-        M = line.strip(chars)
+        MR = line.lstrip(ProcessLine.chars)
+        LM = line.rstrip(ProcessLine.chars)
+        M = line.strip(ProcessLine.chars)
         m = len(M)
         L = LM[:len(LM) - m]
         R = MR[m:]
-        Dbg(f"  left   = '{Escape(L)}'")
-        Dbg(f"  middle = '{Escape(M)}'")
-        Dbg(f"  right  = '{Escape(R)}'")
+        Dbg(f"  Left   = '{Escape(L)}'")
+        Dbg(f"  Middle = '{Escape(M)}'")
+        Dbg(f"  Right  = '{Escape(R)}'")
         if g.dbg:
             # Validate invariant
             assert(L + M + R == line)
         if d["-l"]:
-            print(f"{t.norm}{M + R}{t.n}")
+            Dbg(f"  Result = '{M + R}'")
+            print(f"{t.norm}{M + R}{t.N}")
         elif d["-r"]:
-            print(f"{t.norm}{L + M}{t.n}")
+            Dbg(f"  Result = '{L + M}'")
+            print(f"{t.norm}{L + M}{t.N}")
         else:
-            print(f"{t.norm}{M}{t.n}")
+            Dbg(f"  Result = '{M}'")
+            print(f"{t.norm}{M}{t.N}")
 
 if __name__ == "__main__":
     d = {}      # Options dictionary
     files = ParseCommandLine(d)
+    if 1:   # Make the set of chars to remove
+        if d["-w"]:
+            d["-c"] += string.whitespace
+        ProcessLine.chars = ''.join(set(d["-c"] if d["-c"] else " "))
+    if 0:
+        line = " aa∞ \t\v\n\n"
+        ProcessLine(line, "xx")
+        exit()
     for file in files:
         g.line = 1
         with fileinput.input(file) as f:
