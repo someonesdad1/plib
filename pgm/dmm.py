@@ -1,9 +1,9 @@
 '''
 Given a reading from a DMM, calculates the uncertainty statement for the
 reading.
-
+ 
 Desired features
-
+ 
     - Each meter gets a class to define its capabilities.
         - Count, ranges, etc.
         - Functions
@@ -22,7 +22,7 @@ Desired features
       to get the estimated uncertainty.  Defaults to 1, which is likely
       conservative, but manufacturers tell you nothing statistically about
       their meters.
-
+ 
 '''
 if 1:   # Header
     if 1:   # Copyright, license
@@ -51,6 +51,9 @@ if 1:   # Header
         from si import SI
         from uncertainties import ufloat, ufloat_fromstr, UFloat
         from u import u, ParseUnit
+        if 0:
+            import debug
+            debug.SetDebugger()
     if 1:   # Global variables
         class G:
             pass
@@ -133,6 +136,10 @@ if 1:   # Meter classes
         'Base class for meters'
         def __init__(self, serial_number=""):
             self.serial_number = sn
+            # Set up number of digits for flt type
+            x = flt(0)
+            x.N = 3
+            x.rtz = x.rtdp = False
             # Dictionaries for range (key) and accuracy (value = tuple of %
             # accuracy and counts)
             self.dcv = {}
@@ -172,21 +179,56 @@ if 1:   # Meter classes
             if u(prefix + found) is None:
                 raise ValueError(f"{un!r} is an unrecognized unit")
             return (prefix, found, is_ac)
-
         def __call__(self, arg):
             'arg = string = number followed by an optional unit'
             Dbg(f"arg = {arg!r}")
-            value, unit = ParseUnit(arg, allow_unc=True)
+            value, unit = ParseUnit(arg, allow_unc=False)
+            value = flt(value)
             Dbg(f"  value = {value!r}, unit = {unit!r}")
             # Get proper SI unit
             prefix, un, ac = self.get_unit(unit)
             # Convert to an SI quantity
             measured = value*u(un)
-            Dbg(f"  SI value = '{measured} {un}', {'is AC' if ac else 'is DC'}")
+            Dbg(f"  SI value = '{measured} {un} {'AC' if ac else 'DC'}'")
+            if ac and un != "V" and un != "A":
+                raise ValueError(f"AC can only be used with V or A")
+            self.report(measured, un, ac)
+        def get_range(self, measured, unit, ac):
+            'Return (di, range) for the measured value'
+            if unit == "V":
+                di = self.acv if ac else self.dcv
+            elif unit == "A":
+                di = self.aca if ac else self.dca
+            elif unit == "Ω":
+                di = self.ohm
+            elif unit == "F":
+                di = self.F
+            elif unit == "Hz":
+                di = self.Hz
+            else:
+                raise ValueError(f"Bug:  {unit!r} is bad unit")
+            Dbg("get_range:")
+            Dbg(f"di = {di}")
+            values = list(sorted(di))
+            for i, value in enumerate(di):
+                Dbg(f"Checking {value}")
+                if abs(measured) < value:
+                    return (di, values[i])
+            raise ValueError(f"{measured!r} {unit} is out of range")
+
+        def report(self, measured, unit, ac):
+            '''measured is the measured value in SI units, unit is the unit
+            string, and ac is a boolean indicating an AC measurement.
+            '''
+            di, range = self.get_range(measured, unit, ac)
+            Dbg(f"range = {range}")
+            pct, digits = di[range]
+            Dbg(f"{pct}% and {digits} digits")
 
     class Aneng870(Meter):
         def __init__(self, serial_number=""):
             self.count = 20000
+            flt(0).N = 5
             # Ranges and accuracy (% of reading, counts)
             a = (0.05, 3)
             self.dcv = {    
@@ -254,14 +296,11 @@ if 1:   # Meter classes
                 10e6: a,
             }
 
-if 1:   # Core functionality
-    pass
-
 if 1:   # Prototyping area
     dmm = Aneng870()
     dmm("1.321 V")
     exit()
-    
+
 if __name__ == "__main__":
     d = {}      # Options dictionary
     args = ParseCommandLine(d)
