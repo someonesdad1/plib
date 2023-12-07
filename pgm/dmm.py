@@ -46,55 +46,55 @@ if 1:   # Header
     if 1:   # Custom imports
         from wrap import wrap, dedent
         from color import Color, TRM as t
+        from lwtest import Assert
         from f import flt
+        from si import SI
+        from uncertainties import ufloat, ufloat_fromstr, UFloat
+        from u import u, ParseUnit
     if 1:   # Global variables
+        class G:
+            pass
+        g = G()  # Storage for global variables as attributes
+        g.dbg = True
+        g.si = SI(pure=True)    # True means avoid 2 character prefixes like 'da'
         ii = isinstance
         W = int(os.environ.get("COLUMNS", "80")) - 1
         L = int(os.environ.get("LINES", "50"))
         # Colors
-        t.unc = t("purl")   # Uncertainty, no coverage factor
-        t.unck = t("ornl")  # Uncertainty, has a coverage factor
+        t.dbg = t("sky") if g.dbg else ""
+        t.N = t.n if g.dbg else ""
+        t.unc = t("purl") if g.dbg else ""  # Uncertainty, no coverage factor
+        t.unck = t("ornl") if g.dbg else "" # Uncertainty, has a coverage factor
 if 1:   # Utility
+    def Dbg(*p, **kw):
+        if g.dbg:
+            print(f"{t.dbg}", end="")
+            print(*p, **kw)
+            print(f"{t.N}", end="")
     def Error(*msg, status=1):
         print(*msg, file=sys.stderr)
         exit(status)
     def Usage(status=1):
         print(dedent(f'''
         Usage:  {sys.argv[0]} [options] rdg1 [rdg2...]
-          Convert the indicated reading to a number with its estimated
-          uncertainty.  Units can be
-            v   Volts, DC
-            v~  Volts, AC
-            a   Amperes, DC
-            a~  Amperes, AC
-            o   Ohms
-            Ω   Ohms
-            f   Farad
-            hz  Hertz
-          Case of the units is unimportant, but any SI prefix is
-          case-sensitive.  One or more spaces between the number and the
-          unit are allowed.
-        Output:
-            The output is given as an "accuracy" interval in various forms.
-            It's up to you to interpret this properly.  You can use the -u
-            option to interpret the halfwidth as a standard uncertainty
-            with no coverage factor.  If you use the -k option to specify a
-            coverage factor >= 1, then the halfwidth of the interval is
-            divided by the coverage factor to "convert" it to a standard
-            uncertainty.  Color in the printout will be used to denote that
-            this should be interpreted as a standard uncertainty.
-        Examples:
-            '4.2'       4.2 V DC
-            '4.2 V~'    4.2 V AC
-            '4.2V~'     Same
-            '4.2 mV~'   4.2 mV AC
-            '4.2mV~'    Same
+          Convert the indicated DMM reading to a number with its estimated
+          uncertainty.  Each reading must include the SI unit for the
+          measurement.  Attach '~' for an AC value.  Use 'ohm' or 'Ω' for
+          resistance.  If no unit is given, DC volts are assumed.  A
+          variety of output forms are given and color is used to
+          distinguish them.
         Options:
             -h      Print a manpage
             -k n    Define a coverage factor
             -l      List meters supported
             -m n    Choose meter to use (default Aneng 870)
-            -u      Halfwidth is standard uncertainty, no coverage factor
+            -o n    Choose output format
+                       n = 0    Short form uncertainty   [default]
+                       n = 1    Regular form uncertainty
+                       n = 2    Accuracy interval
+            -r r    Define the instrument's range
+            -t      Assume a triangular distribution to get uncertainty
+            -u      Assume a uniform distribution to get uncertainty
         '''))
         exit(status)
     def ParseCommandLine(d):
@@ -129,9 +129,63 @@ if 1:   # Utility
                 debug.SetDebugger()
         return args
 if 1:   # Meter classes
-    class Aneng870:
-        def __init__(self, sn=""):
-            self.sn = sn
+    class Meter:
+        'Base class for meters'
+        def __init__(self, serial_number=""):
+            self.serial_number = sn
+            # Dictionaries for range (key) and accuracy (value = tuple of %
+            # accuracy and counts)
+            self.dcv = {}
+            self.acv = {}
+            self.dci = {}
+            self.aci = {}
+            self.ohm = {}
+            self.F = {}
+            self.Hz = {}
+        def get_unit(self, un):
+            '''Return (prefix, si_unit, is_ac) where prefix is a proper SI
+            prefix, si_unit is a proper SI unit (may contain an SI prefix)
+            and is_ac is True if it's an AC quantity.
+            '''
+            myun = un.strip()
+            is_ac = True if myun.endswith("~") else False
+            if is_ac:
+                myun = myun[:-1]
+            Assert(myun)
+            # Substitute "Ω" for "ohm"
+            myun = myun.replace("ohm", "Ω")
+            # The only allowed units in un are "V, A, Ω, F, or Hz".  There
+            # can be a leading SI prefix.
+            found = None
+            for unit in "V A Ω F Hz".split():
+                if myun.endswith(unit):
+                    found = unit
+                    break
+            if not found:
+                raise ValueError(f"{un!r} is an invalid unit")
+            # Remove the unit
+            prefix = myun.replace(found, "")
+            # Anything left over must be the SI prefix
+            if prefix and prefix not in g.si:
+                raise ValueError(f"{un!r} has an invalid SI prefix")
+            # Make sure it can be converted to an SI quantity
+            if u(prefix + found) is None:
+                raise ValueError(f"{un!r} is an unrecognized unit")
+            return (prefix, found, is_ac)
+
+        def __call__(self, arg):
+            'arg = string = number followed by an optional unit'
+            Dbg(f"arg = {arg!r}")
+            value, unit = ParseUnit(arg, allow_unc=True)
+            Dbg(f"  value = {value!r}, unit = {unit!r}")
+            # Get proper SI unit
+            prefix, un, ac = self.get_unit(unit)
+            # Convert to an SI quantity
+            measured = value*u(un)
+            Dbg(f"  SI value = '{measured} {un}', {'is AC' if ac else 'is DC'}")
+
+    class Aneng870(Meter):
+        def __init__(self, serial_number=""):
             self.count = 20000
             # Ranges and accuracy (% of reading, counts)
             a = (0.05, 3)
@@ -199,24 +253,15 @@ if 1:   # Meter classes
                 1e6: a,
                 10e6: a,
             }
-        def __call__(self, arg):
-            '''arg is a string that is a number followed by an optional
-            unit string.  If there is no unit string, DC voltage is
-            assumed.  The case of the unit string is ignored; there can be
-            an SI prefix on the unit.  The allowed unit strings are
-                v   Volts, DC
-                v~  Volts, AC
-                a   Amperes, DC
-                a~  Amperes, AC
-                o   Ohms
-                Ω   Ohms
-                f   Farad
-                hz  Hertz
-            '''
 
 if 1:   # Core functionality
     pass
 
+if 1:   # Prototyping area
+    dmm = Aneng870()
+    dmm("1.321 V")
+    exit()
+    
 if __name__ == "__main__":
     d = {}      # Options dictionary
     args = ParseCommandLine(d)

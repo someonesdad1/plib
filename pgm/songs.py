@@ -232,7 +232,8 @@ The Little Nash Rambler|enqNl7tdLR4|
 The Night They Drove Old Dixie Down|wanJQC5KAfo|
 The Wreck of the Edmund Fitzgerald|9vST6hVRj2A|
 Theme From Shaft|Q429AOpL_ds|
-They Call the Wind Mariah|ByqYEzugleE|
+They Call the Wind Mariah|ByqYEzugleE|Harv Presnel
+They Call the Wind Mariah|wFHh0Rs34v0|Smothers Brothers
 This is a Man's World: James Brown|wd1-HM234DE|
 Those Were The Days|y3KEhWTnWvE|
 Three Dog Night:  Eli's coming|1A2eet1bttY|Also look up writer's Laura Nyro's version.

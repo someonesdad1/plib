@@ -405,7 +405,7 @@ if 1:   # Core functionality
             Assert(GetSignificantFigures("-" + s, rtz=rtz) == n)
     
 # Convenience instance 
-si = SI()
+si = SI(pure=True)
 
 if __name__ == "__main__": 
     Testing()
