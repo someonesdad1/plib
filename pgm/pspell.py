@@ -27,6 +27,7 @@ if 1:   # Header
         #∞test∞# #∞test∞#
         pass
     if 1:   # Standard imports
+        from collections import defaultdict
         import getopt
         import os
         from pathlib import Path as P
@@ -39,7 +40,7 @@ if 1:   # Header
         from wrap import dedent
         from color import t
         from dpstr import Tokenize
-        #from columnize import Columnize
+        from get import GetLines
     if 1:   # Global variables
         class G:
             pass
@@ -100,192 +101,30 @@ if 1:   # Core functionality
                 /words/words.ngsl.experimental
                 /words/words.additional
         '''.split()
+        files = '''
+                /words/words.univ
+        '''.split()
         words = set()
         for file in files:
-            words.update(set(open(file).read().lower().split("\n")))
+            lines = GetLines(file, script=True, ignore_empty=True,
+                             strip=True, nonl=True)
+            words.update(set(i.lower() for i in lines))
         # Here's a list of other words that are spelled correctly
-        extra = '''
-            blk  blkl  blkd  blkb
-            brn  brnl  brnd  brnb
-            red  redl  redd  redb
-            orn  ornl  ornd  ornb
-            yel  yell  yeld  yelb
-            grn  grnl  grnd  grnb
-            blu  blul  blud  blub
-            vio  viol  viod  viob
-            gry  gryl  gryd  gryb
-            wht  whtl  whtd  whtb
-            cyn  cynl  cynd  cynb
-            mag  magl  magd  magb
-            pnk  pnkl  pnkd  pnkb
-            lip  lipl  lipd  lipb
-            lav  lavl  lavd  lavb
-            lil  lill  lild  lilb
-            pur  purl  purd  purb
-            roy  royl  royd  royb
-            den  denl  dend  denb
-            sky  skyl  skyd  skyb
-            trq  trql  trqd  trqb
-            sea  seal  sead  seab
-            lwn  lwnl  lwnd  lwnb
-            olv  olvl  olvd  olvb
-
-            abbreviation 
-            abs 
-            alternate 
-            alternating 
-            analogous 
-            angular 
-            anomalous 
-            arcmin 
-            arcsec 
-            argv
-            bash 
-            bool 
-            boolean 
-            canonical 
-            circular 
-            clamp 
-            colorize colorizing
-            columnize
-            com
-            constructor 
-            cop 
-            cuddled 
-            cuddling 
-            dbg
-            debugger 
-            deg 
-            deque 
-            deques 
-            disassemble 
-            disassembling 
-            div 
-            don
-            dp 
-            dq 
-            ellipsis 
-            emulator 
-            en 
-            engsic 
-            err 
-            exponent 
-            exponents 
-            extraneous 
-            fac 
-            formatter 
-            functionalities
-            functionality
-            getline
-            gmail
-            grad 
-            gradians 
-            hack 
-            hacking 
-            halfwidth 
-            handy 
-            header
-            hex 
-            http
-            https
-            id 
-            ident 
-            imaginary 
-            improper 
-            increment 
-            integer 
-            integers 
-            interpolation 
-            interpolations 
-            invalid 
-            invariants 
-            isinf 
-            iv 
-            keyword 
-            len 
-            libmpf 
-            lill
-            locale 
-            logarithm 
-            million 
-            misspelled
-            multiline
-            multithreading 
-            nan 
-            ngls
-            nonempty 
-            num 
-            opensource
-            optional 
-            org 
-            overflow 
-            override 
-            overrides 
-            peterson
-            pgm
-            pickle 
-            pickled 
-            plib
-            prefix 
-            prefixes 
-            prepend 
-            prepended 
-            printout 
-            py
-            python
-            quadrant 
-            radians 
-            radix 
-            recursion 
-            repeatable 
-            repr 
-            reset 
-            rev 
-            rlz 
-            roundoff 
-            rtdp 
-            rtz 
-            sentinel 
-            sextant 
-            sgn 
-            shorthand 
-            si 
-            someonesdad1
-            specially 
-            sr 
-            str
-            sys
-            takeapart 
-            token
-            tokenize
-            tokens
-            truncate 
-            underflow 
-            underline 
-            underlining 
-            unrecognized 
-            unsupported 
-            verbose 
-            width 
-            xref
-            zero 
-            zeroes 
-            zeros 
-
-        '''.split()
-        words.update(extra)
+        e = GetLines("/plib/pgm/pspell.extra", script=True, ignore_empty=True,
+                     strip=True, nonl=True)
+        words.update(' '.join(i.lower() for i in e).split())
         return words
-
     def GetLine(mytoken):
-        '''Return [L] for the token if it's on a single line.  Otherwise
-        return [L1-L2] when it's a multiline entity.
+        '''Return L (line number) for the token if it's on a single line.
+        Otherwise return L1-L2 (line number range) when it's a multiline
+        entity.
         '''
         a, b = mytoken.start
         c, d = mytoken.end
         if a == c:
-            return f"[{a}]"
+            return f"{a}"
         else:
-            return f"[{a}-{c}]"
+            return f"{a}-{c}"
     def SpellCheck(string):
         bad = set()
         wordchars = String.ascii_letters
@@ -294,8 +133,8 @@ if 1:   # Core functionality
             if not w or len(w) == 1:
                 continue
             if w not in mywords:
-                bad.add(w)
-        return list(sorted(bad))
+                bad.add(word)
+        return list(sorted(bad, key=str.lower))
     def Process(tokens):
         badwords = []
         for mytoken in tokens:
@@ -305,26 +144,53 @@ if 1:   # Core functionality
                     badwords.append((item, mytoken))
         return badwords
     def ProcessFile(file):
+        filename = file
+        p = P(filename)
+        if not p.exists():
+            # See if adding '.py' to it works
+            filename += ".py"
+            p = P(filename)
+            if not p.exists():
+                Error(f"Cannot find {file!r}")
         # Collect tokens
         comments = []
         strings = []
-        with tokenize.open(file) as f:
-            tokens = tokenize.generate_tokens(f.readline)
-            for T in tokens:
-                if d["-s"] and token.tok_name[T.exact_type] == "STRING":
-                    strings.append(T)
-                elif d["-k"] and token.tok_name[T.exact_type] == "COMMENT":
-                    comments.append(T)
+        try:
+            with tokenize.open(filename) as f:
+                tokens = tokenize.generate_tokens(f.readline)
+                for T in tokens:
+                    if d["-s"] and token.tok_name[T.exact_type] == "STRING":
+                        strings.append(T)
+                    elif d["-k"] and token.tok_name[T.exact_type] == "COMMENT":
+                        comments.append(T)
+        except tokenize.TokenError:
+            Error(f"{file!r} may not be a python script")
         badstrings = Process(strings) if d["-s"] else []
         badcomments = Process(comments) if d["-k"] else []
         if badstrings:
-            print(f"{t.file}{file}:  {t.str}bad strings{t.N}")
-            for badword, mytoken in badstrings:
-                print(f"  {t.str}{badword} {GetLine(mytoken)}{t.N}")
+            Report(badstrings, t.str, file, "bad strings")
         if badcomments:
-            print(f"{t.file}{file}:  {t.cmt}bad comments{t.N}")
-            for badword, mytoken in badcomments:
-                print(f"  {t.cmt}{badword} {GetLine(mytoken)}{t.N}")
+            Report(badcomments, t.cmt, file, "bad comments")
+    def Report(items, clrstr, file, mytype):
+        '''Condense the items into one line per word with line numbers.
+          items     (word, token)
+          clrstr    Colorizing escape code or ''
+          file      Which file
+          mytype    "bad strings", "bad comments", etc.
+        '''
+        # Collapse line numbers to a single line per word
+        lst = defaultdict(list)
+        for word, token in items:
+            lst[word].append(GetLine(token))
+        # Make a sorted list of the words and their line numbers
+        out = []
+        for word in lst:
+            ln = ' '.join(lst[word])
+            out.append(f"  {word} {ln}")
+        # Print sorted list            
+        print(f"{t.file}{file} {mytype}{t.N}")
+        for i in sorted(out, key=str.lower):
+            print(f"  {clrstr}{i}{t.N}")
 
 if __name__ == "__main__":
     d = {}      # Options dictionary

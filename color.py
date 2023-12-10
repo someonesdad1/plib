@@ -412,7 +412,7 @@ class Color:
         parameter on [0, 1].  If t is 0, you'll get back self and if t
         is 1, you'll get back other.  If t is intermediate, you'll get
         a color "between" the two.  space can be "rgb", "hsv", or "hls"
-        and picks the coordinates used to intepolate.
+        and picks the coordinates used to interpolate.
         '''
         '''
         The algorithm is linear interpolation in 2D Cartesian

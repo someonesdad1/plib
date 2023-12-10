@@ -3,7 +3,7 @@
 Todo:
     - Harvest from https://en.wikipedia.org/wiki/Lists_of_abbreviations
 
-Determine if a string is an English abbrevation (case ignored)
+Determine if a string is an English abbreviation (case ignored)
   Use:  from abbreviations import IsAbbreviation
         IsAbbreviation(w: str) -> bool
 
