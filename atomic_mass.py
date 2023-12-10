@@ -198,7 +198,7 @@ if 1:   # Utility
         m = CalculateMass("Ca(C2H3O2)2")
         Assert(m == 158.1654)
         # Single formula of all elements.  This is a checksum of the
-        # atomic_mass dictonary's elements.
+        # atomic_mass dictionary's elements.
         a = ("AcAgAlAmArAsAtAuBBaBeBhBiBkBrCCaCdCeCfClCmCoCrCsCuDbDyErEsEu"
             "FFeFmFrGaGdGeHHeHfHgHoHsIInIrKKrLaLiLrLuMdMgMnMoMtNNaNbNdNe"
             "NiNoNpOOsPPaPbPdPmPoPrPtPuRaRbReRfRhRnRuSSbScSeSgSiSmSnSrTa"

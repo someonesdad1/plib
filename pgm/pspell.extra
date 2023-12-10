@@ -1,263 +1,373 @@
 # Color names from color.py
-    blk  blkl  blkd  blkb
-    brn  brnl  brnd  brnb
-    red  redl  redd  redb
-    orn  ornl  ornd  ornb
-    yel  yell  yeld  yelb
-    grn  grnl  grnd  grnb
-    blu  blul  blud  blub
-    vio  viol  viod  viob
-    gry  gryl  gryd  gryb
-    wht  whtl  whtd  whtb
-    cyn  cynl  cynd  cynb
-    mag  magl  magd  magb
-    pnk  pnkl  pnkd  pnkb
-    lip  lipl  lipd  lipb
-    lav  lavl  lavd  lavb
-    lil  lill  lild  lilb
-    pur  purl  purd  purb
-    roy  royl  royd  royb
-    den  denl  dend  denb
-    sky  skyl  skyd  skyb
-    trq  trql  trqd  trqb
-    sea  seal  sead  seab
-    lwn  lwnl  lwnd  lwnb
-    olv  olvl  olvd  olvb
+blk  blkl  blkd  blkb
+brn  brnl  brnd  brnb
+red  redl  redd  redb
+orn  ornl  ornd  ornb
+yel  yell  yeld  yelb
+grn  grnl  grnd  grnb
+blu  blul  blud  blub
+vio  viol  viod  viob
+gry  gryl  gryd  gryb
+wht  whtl  whtd  whtb
+cyn  cynl  cynd  cynb
+mag  magl  magd  magb
+pnk  pnkl  pnkd  pnkb
+lip  lipl  lipd  lipb
+lav  lavl  lavd  lavb
+lil  lill  lild  lilb
+pur  purl  purd  purb
+roy  royl  royd  royb
+den  denl  dend  denb
+sky  skyl  skyd  skyb
+trq  trql  trqd  trqb
+sea  seal  sead  seab
+lwn  lwnl  lwnd  lwnb
+olv  olvl  olvd  olvb
 
 # Python keywords (also things like mpmath)
-    abs 
-    argv
-    bool 
-    deque 
-    id 
-    isinf 
-    iv 
-    nan 
-    pickle 
-    radians 
-    repr 
-    str
-    sys
-    token
-    tokenize
+abs 
+argv
+bool 
+deque 
+id 
+isinf 
+iv 
+nan 
+pickle 
+radians 
+repr 
+str
+sys
+token
+tokenize
 
 # My library files and their contents
-    columnize
-    engsic 
-    err 
-    rlz 
-    rtdp 
-    rtz 
-    sgn 
-    si 
+columnize
+engsic 
+err 
+rlz 
+rtdp 
+rtz 
+sgn 
+si 
+
+# Elements
+Ac Ag Al Am Ar As At Au B Ba Be Bh Bi Bk Br C Ca Cd Ce Cf Cl Cm Co Cr Cs Cu
+Db Dy Er Es Eu F Fe Fm Fr Ga Gd Ge H He Hf Hg Ho Hs I In Ir K Kr La Li Lr
+Lu Md Mg Mn Mo Mt N Na Nb Nd Ne Ni No Np O Os P Pa Pb Pd Pm Po Pr Pt Pu Ra
+Rb Re Rf Rh Rn Ru S Sb Sc Se Sg Si Sm Sn Sr Ta Tb Tc Te Th Ti Tl Tm U V W
+Xe Y Yb Zn Zr
+
+# Cities used in area code file
+Abilene Abingdon Aiken Akron Albuquerque Alcoa Allegan Alpena Altoona
+Americus Ames Anaheim Angeles Anniston Antigua Antioch Appalachicola
+Appleton Ardmore areacode areacodelist areacodes Arlington Asheville
+Ashland Ashtabula Astoria Avon Bainbridge Bakersfield Barbuda Bardstown
+Bartlesville Bartow Beaumont Beaverton bec Belleville Bellingham Belmont
+Beloit Belvidere Bemidji Bergen Berks Bernardino Bettendorf Binghamton
+Blacksburg Bloomington Bloomsburg Bluefield Boca Bonner Boxborough Boynton
+Bradenton Brainerd Branson Brantford Braunfels Bremerton Brentwood Brewton
+Bridgeport Brisbane Brookline Brooklyn Broward Brownsburg Brownsville
+Caicos Calgary Camden Canoga Capistrano Carbondale Carlsbad Carpentersville
+Carrollton Cartersville Carthage Catharines Centralia Channahon
+Charlottesville Chaska Chibougamau Claremont Clearfield Clemson Colby
+Columbus Conroe Cortland Covington Creston Crestwood Crossville Cullman
+Cumberland Cupertino Dalhart Daly Danbury Danville Dayton Daytona Decatur
+Deerfield DeKalb Denison Denton Denver Des Detroit Dixon Dothan Downey
+Dryden Dublin Dubuque Duluth Dunnellon DuPage Eagan Eau Edgartown Edina
+Edmonton Edwardsville Eglin Elgin Elizabethtown Elkhart Elko Ellensburg
+Elyria Encino Enumclaw Escanaba Estcourt Estes Estrie Eufaula Evanston
+Evansville Fairfield Farmington Fayetteville Fontana Frankfort
+Fredericksburg Freeport Fridley Frisco Fullerton Gadsden Gainesville
+Galesburg Gallup Galveston Gastonia Gatlinburg Gatos Gettysburg Girardeau
+Glendale Glenview Glenwood Goldsboro Gorda Grande Grandview Greeley
+Greensburg Greenville Grenada Grosse Groveland Gulfport Gurnee Habra
+Hagerstown Haleiwa Hampton Hamtramck Harlingen Harrisburg Harrisonburg
+Harrisonville Hartford Hattiesburg Haute Helens Hempstead Hillsboro
+Hillsborough Hilo Honolulu Hopkinsville Houma Huachuca Hudspeth Huntsville
+Hutchinson Hyder Indianapolis Indianola Ionia Ironton Jacksonville
+Jeffersonville Johnsonburg Johnstown Joliet Jonesboro Joplin Kahului Kailua
+Kalamazoo Kankakee Kearney Kelowna Kenora Kenosha Kerrville Kinston
+Kirksville Kirkwood Kissimmee Kitts Kokomo Laguna Lakeview Lakewood Lansing
+Lapeer Laredo Lauderdale Lawrenceburg Lawrenceville Leadville Leavenworth
+Leesville Lehigh Lenexa Lenox Lethbridge Lexington Libertyville Lihue Limon
+Lindstrom Littleton Livermore Logansport Longmont Longview Loudon Loudoun
+Louisville Lubbock Ludington Lufkin Lumberton Lynchburg MacDill Macomb
+Madera Malibu Manitowoc Mankato Marquette Martinsville Marysville Maryville
+Mauricie Maysville McAlester McAllen McConnell McCook McHenry Medford
+Melbourne Memphis Mendota Menlo Menomonee Merced metroplex Meyersdale
+Middletown Mililani Milledgeville Millville Milpitas Milwaukee Mineola
+Minneapolis Minnetonka Minooka miscamingue Modesto Moines Mojave Monticello
+Montr Montreal Montserrat Mooresville Moorhead Moreno Mulvane Muncie
+Mundelein Muskegon Myers Nacogdoches Nahant Naperville Naples Nashville
+Nevis Newark Noblesville Nogales Nord Norristown Northbrook Northridge
+Norwalk Norwich Nunavut Nuys Oakland Oberlin Ocala Olathe Oldsmar Olean
+Opelika Opelousas Oshawa Oshkosh Oskaloosa Oswego Ottumwa Outaouais
+Owensboro Owosso Ozarks Paducah Palestine Palmdale Pascagoula Pasco Paso
+Paterson Payne Pella Pendleton Pennsburg Petersburg Petoskey Phenix
+Philadelphia Pikeville Pinellas Pittsburgh Placerville Plaines Plainfield
+Platte Platteville Plattsburgh Pleasanton Plympton Pointes Pontiac
+Portsmouth Potomac Provo Puerto Racine Raton Redlands Redondo Reno
+Richfield Rico Ridgway Rivera Rivieres Rockford Rockland Rockledge
+Rockville Romeoville Roswell Roxboro Saginaw Saguenay Salinas Salisbury
+Samoa Saranac Sarasota Saskatchewan Schaumburg Schenectady Scottsbluff
+Scottsboro Scranton Seattle Sebring Sedalia Sheboygan Shelbyville
+Sherbrooke Shorewood Shreveport Sint Skokie Slidell Snelling Snellville
+Snyder Socorro Somerville Soto Spanaway Spartanburg Springfield Starke
+Starkville Staten Statesboro Staunton Ste Stephenville Steubenville
+Stoughton Streator Sudbury Sumter Sunnyvale Susanville Swainsboro Sylmar
+Syracuse Tacoma Tahoe Tallahassee Tallulah Tampa tariffed Tarzana Temecula
+Terre Texarkana Titusville Tobago Topeka Toronto Trinidad Trois Truckee
+Tucson Tulsa Turks Tuscaloosa Tuscumbia Tustin Ukiah Uniontown Urbana Utica
+Valdosta Valle Vallejo Vancouver Vandalia Vegas Vero Vicksburg Vidalia
+Viejo Visalia Wabash Walla Waterbury Watertown Waukegan Waukesha Wausau
+Waycross Waynesville Weatherford Wenatchee Wenham Westchester Westfield
+Westport Wharton Whiteman Whittier Wilkes Wilkesboro Williamsport Willmar
+Wilmington Winnemucca Winnetka Woodstock Wytheville Yosemite Youngstown
+Ypsilanti Yreka Zanesville Zeeland Zionsville Zurich
 
 # Other stuff
-    abbreviation 
-    alternate 
-    alternating 
-    analogous 
-    angular 
-    anomalous 
-    arcmin 
-    arcsec 
-    bash 
-    boolean 
-    canonical 
-    circular 
-    clamp 
-    colorize
-    colorizing
-    com
-    constructor 
-    cop 
-    cuddled 
-    cuddling 
-    dbg
-    debugger 
-    deg 
-    deques 
-    disassemble 
-    disassembling 
-    div 
-    don
-    dp 
-    dq 
-    ellipsis 
-    emulator 
-    en 
-    exponent 
-    exponents 
-    extraneous 
-    fac 
-    formatter 
-    functionalities
-    functionality
-    getline
-    gmail
-    grad 
-    gradians 
-    hack 
-    hacking 
-    halfwidth 
-    handy 
-    header
-    hex 
-    http
-    https
-    ident 
-    imaginary 
-    improper 
-    increment 
-    integer 
-    integers 
-    interpolation 
-    interpolations 
-    invalid 
-    invariants 
-    keyword
-    keyword 
-    keywords
-    len 
-    libmpf 
-    lill
-    locale 
-    logarithm 
-    million 
-    misspelled
-    multiline
-    multithreading 
-    ngls
-    ngsl
-    nonempty 
-    num 
-    opensource
-    optional 
-    org 
-    overflow 
-    override 
-    overrides 
-    peterson
-    pgm
-    pickled 
-    plib
-    prefix 
-    prefixes 
-    prepend 
-    prepended 
-    printout 
-    py
-    python
-    quadrant 
-    radix 
-    recursion 
-    repeatable 
-    reset 
-    rev 
-    roundoff 
-    sentinel 
-    sextant 
-    shorthand 
-    someonesdad1
-    specially 
-    sr 
-    takeapart 
-    tokens
-    truncate 
-    underflow 
-    underline 
-    underlining 
-    unrecognized 
-    unsupported 
-    verbose 
-    width 
-    xref
-    zero 
-    zeroes 
-    zeros 
+abbreviation 
+alternate 
+alternating 
+analogous 
+angular 
+anomalous 
+arcmin 
+arcsec 
+bash 
+boolean 
+canonical 
+circular 
+clamp 
+colorize
+colorizing
+com
+constructor 
+cop 
+cuddled 
+cuddling 
+dbg
+debugger 
+deg 
+deques 
+disassemble 
+disassembling 
+div 
+don
+dp 
+dq 
+ellipsis 
+emulator 
+en 
+exponent 
+exponents 
+extraneous 
+fac 
+formatter 
+functionalities
+functionality
+getline
+gmail
+grad 
+gradians 
+hack 
+hacking 
+halfwidth 
+handy 
+header
+hex 
+http
+https
+ident 
+imaginary 
+improper 
+increment 
+integer 
+integers 
+interpolation 
+interpolations 
+invalid 
+invariants 
+keyword
+keyword 
+keywords
+len 
+libmpf 
+lill
+locale 
+logarithm 
+million 
+misspelled
+multiline
+multithreading 
+ngls
+ngsl
+nonempty 
+num 
+opensource
+optional 
+org 
+overflow 
+override 
+overrides 
+peterson
+pgm
+pickled 
+plib
+prefix 
+prefixes 
+prepend 
+prepended 
+printout 
+py
+python
+quadrant 
+radix 
+recursion 
+repeatable 
+reset 
+rev 
+roundoff 
+sentinel 
+sextant 
+shorthand 
+someonesdad1
+specially 
+sr 
+takeapart 
+tokens
+truncate 
+underflow 
+underline 
+underlining 
+unrecognized 
+unsupported 
+verbose 
+width 
+xref
+zero 
+zeroes 
+zeros 
 
-    condense
-    attribution
-    progenitor
-    XWindows
-    rgb
-    hyphen
-    filename
-    stdin
-    stdout
-    stderr
-    ruble
-    rupee
-    peseta
-    char
-    chars
-    ohm
-    ambiguous
-    banner
-    basename
-    chmod
-    compress
-    cpio
-    crypt
-    decode
-    egrep
-    fgrep
-    initialized
-    insensitive
-    instantiate
-    mkdir
-    chdir
-    printf
-    rm
-    rmdir
-    ksh
-    bash
-    stty
-    sync
-    tar
-    tee
-    uname
-    uniq
-    uudecode
-    uuencode
-    decode
-    initialized
-    walker
-    syntactically
-    spinner
-    additive
-    animations
-    breakpoint
-    byte
-    cartesian
-    concave
-    convex
-    decorator
-    decorators
-    decorating
-    dprecate
-    dprecated
-    derate
-    derated
-    diagonal
-    diagonals
-    dummy
-    enclose
-    exhaustively
-    glob
-    handlers
-    IEEE
-    indent
-    indented
-    indenting
-    inverses
-    iterable
-    mapper
-    multiplicative
-    obsolete
-    precedence
-    pathlib
-    semantically
-    sequential
-    sizeof
-    
+condense
+attribution
+progenitor
+XWindows
+rgb
+hyphen
+filename
+stdin
+stdout
+stderr
+ruble
+rupee
+peseta
+char
+chars
+ohm
+ambiguous
+banner
+basename
+chmod
+compress
+cpio
+crypt
+decode
+egrep
+fgrep
+initialized
+insensitive
+instantiate
+mkdir
+chdir
+printf
+rm
+rmdir
+ksh
+bash
+stty
+sync
+tar
+tee
+uname
+uniq
+uudecode
+uuencode
+decode
+initialized
+walker
+syntactically
+spinner
+additive
+animations
+breakpoint
+byte
+cartesian
+concave
+convex
+decorator
+decorators
+decorating
+dprecate
+dprecated
+derate
+derated
+diagonal
+diagonals
+dummy
+enclose
+exhaustively
+glob
+handlers
+IEEE
+indent
+indented
+indenting
+inverses
+iterable
+mapper
+multiplicative
+obsolete
+precedence
+pathlib
+semantically
+sequential
+sizeof
+quantize
+antiderivative
+antiderivatives
+bitvector
+bitvectors
+cmath
+exp
+sqrt
+stackexchange
+minimax
+ulps
+parseable
+rutgers
+flt
+cpx
+divmod
+erf
+erfc
+expm
+fabs
+fsum
+gcd
+ldexp
+lgamma
+modf
+nanj
+rnd
+staticmethod
+copysign
+frexp
+hypot
+infj
+isclose
+isnan
+ldexp
+namespace
 
