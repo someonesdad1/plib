@@ -885,8 +885,10 @@ if 1:   # Core functionality
             else:
                 if word:
                     out.append(''.join(word))
+                    word = []
                 out.append(c)
-                word = []
+        if word:
+            out.append(''.join(word))
         if check and ''.join(out) != s:
             raise ValueError("Invariant s == ''.join(out) is not True")
         return out
@@ -1209,6 +1211,10 @@ if __name__ == "__main__":
         u = ['How', ' ', 'so', '?', ' ', ' ', 'How', ' ', 'can', ' ', 'it',
              ' ', 'affect', ' ', 'them', '?']
         Assert(t == u)
+        # Using a comment string (makes sure the last word is there)
+        s = "# A b"
+        t = Tokenize(s, check=True)
+        Assert(t == ['#', ' ', 'A', ' ', 'b'])
     def Test_Str():
         a, b, c = f"{t('wht')}", "mystr", t.n
         s = Str(a + b + c)
@@ -1529,7 +1535,6 @@ if __name__ == "__main__":
         u = "abcd"
         print(f"MatchCap({s!r}, {u!r}) = {MatchCap(s, u)!r}")
         # MultipleReplace
-
         t.print(end="")
     if len(sys.argv) > 1:
         Demo()

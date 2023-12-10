@@ -159,7 +159,6 @@ Active
           expression.  Example:  str = 'R7 = 44.7 - 3.2' and it will be
           evaluated by exec(str, globals, locals)
 
-
     - Spelling
         - I'd like a script to check the spelling in the strings in python
           scripts

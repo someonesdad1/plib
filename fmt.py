@@ -635,7 +635,7 @@ class Fmt:
         self._rtdp = False
         self._spc = False
         self._sign = False
-        self.nchars = W*L//4  # Base on screen width and hight
+        self.nchars = W*L//4  # Base on screen width and height
         self.brief = False
         self.ellipsis = "⋯"
         # Attributes for complex numbers
@@ -1507,7 +1507,7 @@ class FmtIV:
         assert(have_mpmath and have_unc)
         self.n = n
     def __call__(self, x):
-        '''Action depents on type of x:
+        '''Action depends on type of x:
         list, tuple:    convert to mpmath.iv.mpf (must be 2 numbers)
         string:         x[y] short form of interval number
         mpmath.iv.mpf:  Convert to x[y] short form string
@@ -2489,7 +2489,7 @@ if __name__ == "__main__":
             '''The Fmt object uses Decimal numbers to do the formatting.  This
             works for most stuff, but will fail when dealing with exponents
             beyond around a million, the default for Decimal.  This should only
-            happend for mpmath.mpf numbers.  In this case, simple sci
+            happen for mpmath.mpf numbers.  In this case, simple sci
             formatting is done.
             '''
             if not have_mpmath:

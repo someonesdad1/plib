@@ -4,6 +4,8 @@ reading.
  
 Desired features
  
+    - Need a -r option to manually specify the range when it has been
+      manually selected.
     - Each meter gets a class to define its capabilities.
         - Count, ranges, etc.
         - Functions
@@ -95,7 +97,7 @@ if 1:   # Utility
                        n = 0    Short form uncertainty   [default]
                        n = 1    Regular form uncertainty
                        n = 2    Accuracy interval
-            -r r    Define the instrument's range
+            -r val  Manually define the instrument's range
             -t      Assume a triangular distribution to get uncertainty
             -u      Assume a uniform distribution to get uncertainty
         '''))
@@ -192,7 +194,7 @@ if 1:   # Meter classes
             Dbg(f"  SI value = '{measured} {un} {'AC' if ac else 'DC'}'")
             if ac and un != "V" and un != "A":
                 raise ValueError(f"AC can only be used with V or A")
-            self.report(measured, un, ac)
+            self.report(arg, measured, un, ac)
         def get_range(self, measured, unit, ac):
             'Return (di, range) for the measured value'
             if unit == "V":
@@ -207,23 +209,24 @@ if 1:   # Meter classes
                 di = self.Hz
             else:
                 raise ValueError(f"Bug:  {unit!r} is bad unit")
-            Dbg("get_range:")
-            Dbg(f"di = {di}")
+            # Find which range it is by getting the first range which is
+            # larger than the absolute value of the measured value.
+            Dbg("  get_range:")
             values = list(sorted(di))
             for i, value in enumerate(di):
-                Dbg(f"Checking {value}")
+                Dbg(f"    Checking {value}")
                 if abs(measured) < value:
                     return (di, values[i])
             raise ValueError(f"{measured!r} {unit} is out of range")
-
-        def report(self, measured, unit, ac):
-            '''measured is the measured value in SI units, unit is the unit
-            string, and ac is a boolean indicating an AC measurement.
+        def report(self, arg, measured, unit, ac):
+            '''arg is the user's request.  measured is the measured value
+            in SI units, unit is the unit string, and ac is a boolean
+            indicating an AC measurement.
             '''
+            Dbg(f"Reporting: {arg!r} {measured} {unit} ac={ac}")
             di, range = self.get_range(measured, unit, ac)
-            Dbg(f"range = {range}")
             pct, digits = di[range]
-            Dbg(f"{pct}% and {digits} digits")
+            Dbg(f"    Found range = {range}:  {pct}% and {digits} digits")
 
     class Aneng870(Meter):
         def __init__(self, serial_number=""):
@@ -231,70 +234,21 @@ if 1:   # Meter classes
             flt(0).N = 5
             # Ranges and accuracy (% of reading, counts)
             a = (0.05, 3)
-            self.dcv = {    
-                0.02: a,
-                0.2: a,
-                2: a,
-                20: a,
-                200: a,
-                1000: a,
-            }
+            self.dcv = dict(zip((0.02, 0.2, 2, 20, 200, 1000), [a]*6))
             a = (0.3, 3)
-            self.acv = {
-                0.02: a,
-                0.2: a,
-                2: a,
-                20: a,
-                200: a,
-                750: a,
-            }
+            self.acv = dict(zip((0.02, 0.2, 2, 20, 200, 700), [a]*6))
             a = (0.5, 3)
-            self.dci = {
-                100e-6: a,
-                2e-3: a,
-                20e-3: a,
-                0.2: a,
-                2: a,
-                20: a,
-            }
+            self.dci = dict(zip((100e-6, 2e-3, 0.02, 0.2, 2, 20), [a]*6))
             a = (0.8, 3)
-            self.aci = {
-                100e-6: a,
-                2e-3: a,
-                20e-3: a,
-                0.2: a,
-                2: a,
-                20: a,
-            }
+            self.aci = dict(zip((100e-6, 2e-3, 0.02, 0.2, 2, 20), [a]*6))
             a = (0.2, 3)
-            self.ohm = {
-                200: (0.5, 3),
-                2e3: a,
-                20e3: a,
-                200e3: a,
-                2e6: (1, 3),
-                20e6: (1, 3),
-                200e6: (5, 5)
-            }
+            self.ohm = dict(zip((200, 2e3, 20e3, 200e3, 2e6, 20e6, 200e6), 
+                                [(.5, 3), a, a, a, (1, 3), (1, 3), (5, 5)]))
             a = (2, 5)
-            self.F = {
-                10e-9: (5, 20),
-                100e-9: a,
-                1000e-9: a,
-                10e-6: a,
-                100e-6: a,
-                1000e-6: a,
-                10e-3: (5, 5),
-            }
+            self.F = dict(zip((10e-9, 100e-9, 1e-8, 10e-6, 100e-6, 1e-5, 10e-3), 
+                                [(5, 20), a, a, a, a, a, (5, 5)]))
             a = (0.1, 2)
-            self.Hz = {
-                100: a,
-                1e3: a,
-                10e3: a,
-                100e3: a,
-                1e6: a,
-                10e6: a,
-            }
+            self.Hz = dict(zip((100, 1e3, 10e3, 100e3, 1e6, 10e6), [a]*6))
 
 if 1:   # Prototyping area
     dmm = Aneng870()
