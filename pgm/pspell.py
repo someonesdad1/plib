@@ -67,8 +67,11 @@ if 1:   # Utility
           scripts.  The line number(s) are printed with the misspelled
           token.  All characters are converted to lowercase and words
           are made up only of ASCII letters.
+ 
+          To spell check a complete file, use /plib/pgm/xref.py with the -s
+          option.
         Options:
-            -b      Brief:  no filenames or line numbers
+            -b      Brief output:  no filenames or line numbers
             -c      Don't colorize output
             -f fil  Define a dictionary file (can have > 1)
             -k      Don't check comments
@@ -119,22 +122,11 @@ if 1:   # Utility
 if 1:   # Core functionality
     def GetWords():
         'Return the set of words used for spell checking'
-        files = '''
-                /words/words.ngsl.experimental
-                /words/words.additional
-        '''.split()
-        files = '''
-                /words/words.univ
-        '''.split()
         words = set()
-        for file in files:
+        for file in d["-f"]:
             lines = GetLines(file, script=True, ignore_empty=True,
                              strip=True, nonl=True)
             words.update(set(i.lower() for i in lines))
-        # Here's a list of other words that are spelled correctly
-        e = GetLines("/plib/pgm/pspell.extra", script=True, ignore_empty=True,
-                     strip=True, nonl=True)
-        words.update(' '.join(i.lower() for i in e).split())
         return words
     def GetLine(mytoken):
         '''Return L (line number) for the token if it's on a single line.
