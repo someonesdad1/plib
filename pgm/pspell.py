@@ -57,7 +57,6 @@ if 1:   # Utility
             print(f"{t.dbg}", end="")
             print(*p, **kw)
             print(f"{t.N}", end="")
-            
     def Error(*msg, status=1):
         print(*msg, file=sys.stderr)
         exit(status)
@@ -69,23 +68,46 @@ if 1:   # Utility
           token.  All characters are converted to lowercase and words
           are made up only of ASCII letters.
         Options:
+            -b      Brief:  no filenames or line numbers
             -c      Don't colorize output
+            -f fil  Define a dictionary file (can have > 1)
             -k      Don't check comments
             -s      Don't check strings
+        Dictionaries are:
         '''))
+        for i in d["-f"]:
+            print(f"  {str(i)}")
         exit(status)
     def ParseCommandLine(d):
-        d["-c"] = True      # Don't use color in output
+        d["-b"] = False     # Brief
+        d["-c"] = True      # Colorize output
+        d["-f"] = []        # Dictionary files
         d["-k"] = True      # Don't check comments
         d["-s"] = True      # Don't check strings
+        d["brief"] = []     # Container for -b option
         try:
-            opts, files = getopt.getopt(sys.argv[1:], "cks") 
+            opts, files = getopt.getopt(sys.argv[1:], "bcf:ks") 
         except getopt.GetoptError as e:
             print(str(e))
             exit(1)
         for o, a in opts:
-            if o[1] in list("cks"):
+            if o[1] in list("bcks"):
                 d[o] = not d[o]
+            if o == "-f":
+                p = P(a)
+                if not p.exists():
+                    Error(f"Can't find {a!r}")
+                d[o].append(a)
+        if not d["-f"]:
+            # Default dictionary files
+            for i in '''
+                    /words/words.univ
+                    /plib/pgm/pspell.extra
+                    '''.split():
+                p = P(i)
+                if not p.exists():
+                    Error(f"Can't find {i!r}")
+                d["-f"].append(p)
         if not files:
             Usage()
         # Set up colorizing
@@ -168,9 +190,15 @@ if 1:   # Core functionality
         badstrings = Process(strings) if d["-s"] else []
         badcomments = Process(comments) if d["-k"] else []
         if badstrings:
-            Report(badstrings, t.str, file, "bad strings")
+            if d["-b"]:
+                d["brief"].extend(badstrings)
+            else:
+                Report(badstrings, t.str, file, "bad strings")
         if badcomments:
-            Report(badcomments, t.cmt, file, "bad comments")
+            if d["-b"]:
+                d["brief"].extend(badcomments)
+            else:
+                Report(badcomments, t.cmt, file, "bad comments")
     def Report(items, clrstr, file, mytype):
         '''Condense the items into one line per word with line numbers.
           items     (word, token)
@@ -191,10 +219,16 @@ if 1:   # Core functionality
         print(f"{t.file}{file} {mytype}{t.N}")
         for i in sorted(out, key=str.lower):
             print(f"  {clrstr}{i}{t.N}")
+    def BriefReport():
+        words = set(i[0] for i in d["brief"])
+        for word in sorted(words, key=str.lower):
+            print(word)
 
 if __name__ == "__main__":
     d = {}      # Options dictionary
-    mywords = GetWords()
     files = ParseCommandLine(d)
+    mywords = GetWords()
     for file in files:
         ProcessFile(file)
+    if d["-b"]:
+        BriefReport()

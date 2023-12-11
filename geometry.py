@@ -244,7 +244,7 @@ if __name__ == "__main__":
         assert_equal(c[1], 0)
     def TestTriangleInscribedCircle():
         '''From a graphical construction; numbers in mm.  This was a 45
-        degree isoceles right triangle with the right angle at the origin.
+        degree isosceles right triangle with the right angle at the origin.
         The right-most point was p3 and the highest point was p2.  The
         measured incircle diameter was 28.6 mm with measured center at
         (28.5, 28.5).
