@@ -406,7 +406,7 @@ if 1:   # Core functionality
             u = multiplier                          = s/c
         Enter a variable's value after its letter.  Expressions are allowed and
         the math module is in scope.  Example:
-            > a = 1     # Local variable assigment
+            > a = 1     # Local variable assignment
             > c a       # cost is now equal to 1
             > s 2       # Selling price is 2
         will print

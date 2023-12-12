@@ -26,17 +26,18 @@ if 1:   # Custom imports
     from get import GetNumber
     from f import flt, cpx, sin, acos, sqrt, pi, Base
     import root
-    from color import C
+    #from color import C
+    from color import t
     from lwtest import run, raises, assert_equal, Assert
 if 1:   # Global variables
     ii = isinstance
     class g:
         pass
-    g.err = C.lred
-    g.calc = C.lwht
-    g.have = C.wht
-    g.answer = C.lcyn
-    g.n = C.norm
+    t.err = t("redl")
+    t.calc = t("ornl")
+    t.have = t("wht")
+    t.answer = t("cynl")
+    t.N = t.n
 def Error(*msg, status=1):
     print(*msg, file=sys.stderr)
     exit(status)
@@ -62,6 +63,9 @@ def Usage(status=1):
     is exact, but it's a transcendental equation in d, D, and C, so 
     approximate equations are used when you want to solve for d, D, or C.
     These should be adequate for practical problems.
+
+    Calculations are given to {opts['-d']} figures; you can change this with
+    the -d option.
     '''))
     exit(status)
 def Fmt(num):
@@ -103,15 +107,17 @@ def ParseCommandLine(d):
             d["--test"] = True
         elif o in ("-h", "--help"):
             Usage(status=0)
-    flt(0).n = d["-d"]
+    x = flt(0)
+    x.N = d["-d"]
+    x.rtz = x.rtdp = False
     return args
 def Introduction():
-    s = ['''This script ({sys.argv[0]}) will calculate the unknown
+    s = [f'''This script ({sys.argv[0]}) will calculate the unknown
     dimension of an open belt pulley problem.  You need to give three of
     the four variables d, D, C, and L, where d and D are pulley diameters,
     C is the center distance between the pulleys, and L is the belt length.
     Enter nothing for the unknown.''',
-    '''The solution is based on an appoximation and the answers should be
+    '''The solution is based on an approximation and the answers should be
     good to 3 significant figures or better.''',
     ]
     for i, item in enumerate(s):
@@ -123,9 +129,9 @@ def GetVariables():
     '''
     def Show(name, value, indent=" "*2):
         if value is None:
-            print(f"{indent}{g.calc}{name} will be calculated{g.n}")
+            print(f"{indent}{t.calc}{name} will be calculated{t.N}")
         else:
-            print(f"{indent}{g.have}{name} = {Fmt(value)}{g.n}")
+            print(f"{indent}{t.have}{name} = {Fmt(value)}{t.N}")
     d, D, C, L = None, None, None, None
     GN = partial(GetNumber, numtype=flt, low=0, low_open=True, allow_none=True)
     if opts["--test"]:
@@ -151,7 +157,7 @@ def GetVariables():
                     continue
             if sum([i is None for i in (d, D, C, L)]) == 1:
                 break
-            print(f"{g.err}Only one variable can be calculated; try again.{g.n}")
+            print(f"{t.err}Only one variable can be calculated; try again.{t.N}")
     # Show the input data
     if not opts["--test"]:
         print("\nInput data:")
@@ -373,7 +379,7 @@ if 0:
     https://en.wikipedia.org/wiki/Belt_problem#Pulley_problem gives the
     exact solution.  The angle θ is 3.0582351887446375, meaning the 
     inclination angle α is (π - θ)/2 or 0.0416787324225778.  The
-    approximation relaces the sine of this angle by the angle; here
+    approximation replaces the sine of this angle by the angle; here
         θ      = 0.0416787324225778
         sin(θ) = 0.0416666666666666
         Δ% = 0.29% or about 1 part in 350

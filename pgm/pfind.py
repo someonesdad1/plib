@@ -144,7 +144,7 @@ if 1:   # Core functionality
         t.dirs = e if cc else ""
         t.files = t("brnl") if cc else ""
     def GetDirectories(dir):
-        '''Return a list of direcctories as Path instances at and below dir.
+        '''Return a list of directories as Path instances at and below dir.
             Filter out the things indicated by the options in d.
         '''
         Dbg(f"GetDirectories({dir!r})")
