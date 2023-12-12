@@ -68,8 +68,8 @@ if 1:
         PVC, rigid ; 12.7-13 ; 12-15
         PVC, flexible ; 6.7-12.7 ; >14
         Silicone (glass) ; 8-12 ; >11
-    Qartz, par. to opt. axis ; 12
-    Qartz, perp. to opt. axis ; 14
+    Quartz, par. to opt. axis ; 12
+    Quartz, perp. to opt. axis ; 14
     Shellac ; 7 ; 13.7
     Silicone oil ; 12
     Silicone rubber ; 9

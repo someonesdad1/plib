@@ -157,7 +157,7 @@ class RemoveEmptyLines:
             open(self.file, "w").write('\n'.join(lines))
 if 1:   # Testing code
     def Test():
-        '''Test stratgy:  
+        '''Test strategy:  
             - Make a copy of this file
             - Reformat it with black
             - Get its hash

@@ -127,7 +127,7 @@ def Manpage():
       integers that give the power of ten for each decade of resistors (the
       numbers can be separated by spaces or commas).  For example, '6 -1 0
       1 2 3 4 5 6' would represent the set of six EIA resistance values E6
-      (1, 1.5, 2.2, 3.3, 4.7, and 6.8) with multiplers of 1e-1, 1e0, 1e1,
+      (1, 1.5, 2.2, 3.3, 4.7, and 6.8) with multipliers of 1e-1, 1e0, 1e1,
       ..., 1e6.  The result would be a set of 48 different resistor values.
 
     Example

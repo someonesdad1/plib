@@ -35,7 +35,7 @@ def Usage(d, status=1):
       character.
     Example:
         {sys.argv[0]} 3.1mm 600sfpm
-      prints the RPM needed to achieve a 600 surface feet per minue linear
+      prints the RPM needed to achieve a 600 surface feet per minute linear
       speed for a 3.1 mm diameter bit.
     Options:
       -d n  Number of significant figures in output  [{d["-d"]}]

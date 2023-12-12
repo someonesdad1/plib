@@ -240,7 +240,7 @@ if __name__ == "__main__":
         print(dedent(f'''
         This script evolved as a tool to validate the URLs used in a file.
         The first functionality was to find URLs in text files, such as a
-        python script.  This is done by using a regex (regular expresssion)
+        python script.  This is done by using a regex (regular expression)
         to find a URL in a string.  I also intend to develop the following
         abilities:
  

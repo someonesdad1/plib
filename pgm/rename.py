@@ -65,7 +65,7 @@ def Manpage():
     repository.  Yes, you can recover from such things, but it's better to
     e.g. move all the files you want to rename to a temporary directory,
     verify you'll get what you want by a dry run (i.e., don't use the -x
-    option), then peform the renaming with -x.  
+    option), then perform the renaming with -x.  
 
     Another caution is that sometimes significant information can be
     'encoded' in the file's names, such as date, location, people, etc.

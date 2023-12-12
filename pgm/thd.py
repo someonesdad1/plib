@@ -1005,7 +1005,7 @@ if 1:   # Utility
         Output Notes
             Allowance is to preclude surface-to-surface fit between mating
             parts for Class 1A threads.  For Class 2A threads, the allowance
-            may be used to accomodate plating or coating.
+            may be used to accommodate plating or coating.
         
             Thread shear areas are geometric and will somewhat overestimate
             the shear strength (see the ASME document).
