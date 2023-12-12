@@ -45,7 +45,7 @@ Utah.
 Fri 19 Feb 2016 10:01:57 AM Search time on Intel Quad running Ubuntu
     14.04 (machine Jimmy built in Feb 2011):
         Search time = 620.7 sec
-    Note this script orginally took over 2 hours on my Micron laptop in the
+    Note this script originally took over 2 hours on my Micron laptop in the
     year 2000 (I can pin it down in time, as my wife and daughter went to
     the winter Olympics in Salt Lake City and I stayed home).
 
@@ -105,7 +105,7 @@ C, N, D, P, T = 0, 1, 2, 3, 4
 always_print = 0   # For debugging; print out every comb/perm checked
 
 # Keep track of how many possibilities we look at.  This should be
-# equal to (51 choose 5) * 5! = 281887200 at the end of calcuation.
+# equal to (51 choose 5) * 5! = 281887200 at the end of calculation.
 total_examined = 0
 
 # perms will contain the 120 permutations of 5.  The numbers are 0-based

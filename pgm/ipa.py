@@ -1,5 +1,5 @@
 '''
-IPA pronounciations
+IPA pronunciations
 '''
 
 # https://en.wikipedia.org/wiki/Template:IPAc-en table's columns:
@@ -239,7 +239,7 @@ if 1:   # Header
         #   See http://opensource.org/licenses/OSL-3.0.
         #∞license∞#
         #∞what∞#
-        # IPA pronounciations
+        # IPA pronunciations
         #∞what∞#
         #∞test∞# #∞test∞#
         pass

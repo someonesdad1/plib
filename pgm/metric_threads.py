@@ -63,7 +63,7 @@ if 1:   # Header
             108 112 128 144 160 176 184 192 208 216 224'''
         TPI = [flt(i) for i in threading_tpi.split()]
         # Angle with respect to the centerline achievable using the taper attachment.
-        # The taper attachement is graduated in include angles up to 20° on either
+        # The taper attachment is graduated in include angles up to 20° on either
         # side of the centerline.
         taper_attachment_angle_deg = 10
         # From https://en.wikipedia.org/wiki/ISO_metric_screw_thread#Preferred_sizes

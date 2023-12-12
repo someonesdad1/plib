@@ -32,7 +32,7 @@ def Usage(d, status=1):
     print(dedent(f'''
     Usage:  {name} [options] dir1 [dir2...]
       Plots a histogram of file sizes for the indicated directories.  The
-      directories are descendended recursively.  Files of zero size are ignored
+      directories are descended recursively.  Files of zero size are ignored
       unless the -z option is used.
     
     Options:

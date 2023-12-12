@@ -111,7 +111,7 @@ def PrintTable(d):
     sharp, flat, sz = "s", "f", 8
     if d["-u"]:
         sharp, flat = chr(0x266f), chr(0x266d)
-    print("Frequences in Hz")
+    print("Frequencies in Hz")
     print(" "*48, "Octave")
     print("    ", end="")
     for octave in range(11):

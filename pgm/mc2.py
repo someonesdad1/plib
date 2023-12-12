@@ -69,7 +69,7 @@ if 1:   # Utility
         m is 1 kg and the speed of light c in SI is 3e8 m/s, so the result 
         is 1(3e8)**2 or 9e16 J, as expected.  
 
-        The Volume is calculated from the mass, assuming the densty of
+        The Volume is calculated from the mass, assuming the density of
         steel.  You can select different materials with the -m option (see
         a list of materials with -M) or give the -m option a numerical
         argument, assumed to be a density in g/mL.

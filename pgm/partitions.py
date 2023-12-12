@@ -72,7 +72,7 @@ def partitions_cs(n, k=None):
  
     Reference
     ---------
-    Modified from Tim Peter's posting to accomodate a k value:
+    Modified from Tim Peter's posting to accommodate a k value:
     http://code.activestate.com/recipes/218332/
     '''
     if n < 0:

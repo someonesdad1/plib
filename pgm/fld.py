@@ -173,7 +173,7 @@ def Usage(status=1):
       gets fields 3 and 1 from stdin and sends them to stdout.
       Fields are split by default on python's re whitespace.
       -f is to specify the file to read; '-' means stdin.  Use
-      -i to specifiy a regexp to split the fields.
+      -i to specify a regexp to split the fields.
       Use -h to get a more detailed manual.
       '''))
     exit(status)

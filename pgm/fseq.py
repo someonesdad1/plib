@@ -100,7 +100,7 @@ def Manpage(d, bye=None):
         norm mu:s x1 [x2 ...]   Normal P(X <= x1 | mu, sigma=s)
         poisson mu x1 [x2 ...]  Poisson P(X <= x1 | mu)
     
-    p for the binomial and hypergeomtric distributions is the
+    p for the binomial and hypergeometric distributions is the
     fraction of the population that has the desired trait.
     
     You may use arbitrary python expressions in the command line
@@ -447,7 +447,7 @@ def Renard(series):
 def GetInt(x, msg, minimum=None, minimum_ge=None):
     '''x should be convertible to an integer.  If minimum is not None,
     then x must be > minimum.  If not, print the error message in
-    msg.  minimum_ge is the same as minimum by the comparision is >=.
+    msg.  minimum_ge is the same as minimum by the comparison is >=.
 
     Note we round to the nearest integer
     '''

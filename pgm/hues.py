@@ -58,7 +58,7 @@ if 1:   # Utility
         exit(status)
     def Usage(status=1):
         print(dedent(f'''
-        Usage:  {sys.argv[0]} [options] num_hues [num_sat [num_lighness]]
+        Usage:  {sys.argv[0]} [options] num_hues [num_sat [num_lightness]]
           Print out a set of hues.  The arguments are the numbers of items
           to use from 0 to 255.  0 for saturation and lightness won't be
           used.

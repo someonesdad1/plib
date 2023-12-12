@@ -384,7 +384,7 @@ if 1:   # Core functionality
         }
         for prefix in di:
             expected = 10**di[prefix]
-            Assert(expected == GetSI(prefix))
+            Assert(expected == GetSI(prefix, eng=False))
         # Not allowed prefix when eng is True
         for i in ("d", "c", "da", "h"):
             raises(ValueError, GetSI, i, eng=True)
@@ -406,6 +406,7 @@ if 1:   # Core functionality
     
 # Convenience instance 
 si = SI(pure=True)
+si = SI(pure=False)
 
 if __name__ == "__main__": 
     Testing()

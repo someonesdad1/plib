@@ -84,7 +84,7 @@ def ParseCommandLine(d):
     d["-i"] = []        # Regexps of lines to ignore
     d["-l"] = False     # Convert all lines to lowercase
     d["-s"] = True      # Sort output
-    d["-w"] = False     # Ingore leading and trailing whitespace
+    d["-w"] = False     # Ignore leading and trailing whitespace
     if len(sys.argv) < 2:
         Usage()
     try:

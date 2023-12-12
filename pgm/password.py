@@ -16,7 +16,7 @@ Example:
             - "Daddles"
         - So-and-so's phone number
             - "916-456-7890"
-    - The answer strings are concatentated to get the string to be hashed:
+    - The answer strings are concatenated to get the string to be hashed:
         - "Huey Dewey LouieDaddles916-456-7890"
     - The command line options to the program are used to transform the
       input string to make it easier to tolerate input differences later

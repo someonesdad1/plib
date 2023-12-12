@@ -46,7 +46,7 @@ if 1:   # Global variables
         ("Starrett 134 cross test level", 3, flt(20)),
         ("Starrett 133 plumber's level, 15 inch", 23, flt(9.7)),
         ("Starrett 98 level", 7, flt(4.6)),
-        # The following two sensitivies are estimated
+        # The following two sensitivities are estimated
         ("Starrett 199 precision level, 15 inch", 40, flt(0.57)),
         ("Grizzly H2682 precision level, 15 inch", 5, flt(0.29)),
     )

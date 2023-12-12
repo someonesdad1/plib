@@ -56,7 +56,7 @@ def Error(*msg, status=1):
 def Usage(d, status=1):
     print(dedent(f'''
     Usage:  {sys.argv[0]} [options] c1 [c2 c3 ... ext]
-      Assumes an image has been copied to the clipbard.  Copies the image to
+      Assumes an image has been copied to the clipboard.  Copies the image to
       the indicated file.  The file name to be copied to is constructed from
       the c? and ext elements on the command line.
     Options:

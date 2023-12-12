@@ -113,7 +113,7 @@ if 1:   # Global variables
             # available today for around the same price.  They're cylinders
             # of steel finished to the stamped length and they can be
             # clamped together with set screws because there is a tapped
-            # longintudinal hole through each piece.
+            # longitudinal hole through each piece.
             500, 625, 600, 700, 800, 900, 1000, 1010, 1020, 1030, 1040,
             1050, 1060, 1070, 1080, 1090, 1100, 1200, 1250, 1300, 1400,
             1500, 1600, 1700, 1800, 1900, 2000, 3000, 4000, 5000, 6000,
