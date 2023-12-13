@@ -1,10 +1,13 @@
 '''
-Module for a) getting data from files, strings, and streams, b) getting
-numbers interactively from user.
- 
 TODO:  
+    - See if GetLines and GetLines1 can be combined
+    - Add number kw to GetLines which then causes a list of tuples
+      (linenum, str) to be returned
     - Add Zn to GetNumbers
     - Change GetFraction to also handle integers
+
+Module for a) getting data from files, strings, and streams, b) getting
+numbers interactively from user.
 '''
 if 1:   # Header
     # Copyright, license

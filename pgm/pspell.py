@@ -75,6 +75,7 @@ if 1:   # Utility
             -c      Don't colorize output
             -f fil  Define a dictionary file (can have > 1)
             -k      Don't check comments
+            -l      List each file processed to stderr
             -s      Don't check strings
         Dictionaries are:
         '''))
@@ -86,15 +87,16 @@ if 1:   # Utility
         d["-c"] = True      # Colorize output
         d["-f"] = []        # Dictionary files
         d["-k"] = True      # Don't check comments
+        d["-l"] = False     # List each file to stderr
         d["-s"] = True      # Don't check strings
         d["brief"] = []     # Container for -b option
         try:
-            opts, files = getopt.getopt(sys.argv[1:], "bcf:ks") 
+            opts, files = getopt.getopt(sys.argv[1:], "bcf:kls") 
         except getopt.GetoptError as e:
             print(str(e))
             exit(1)
         for o, a in opts:
-            if o[1] in list("bcks"):
+            if o[1] in list("bckls"):
                 d[o] = not d[o]
             if o == "-f":
                 p = P(a)
@@ -221,6 +223,8 @@ if __name__ == "__main__":
     files = ParseCommandLine(d)
     mywords = GetWords()
     for file in files:
+        if d["-l"]:
+            print(file, file=sys.stderr) 
         ProcessFile(file)
     if d["-b"]:
         BriefReport()

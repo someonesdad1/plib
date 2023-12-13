@@ -403,7 +403,8 @@ if 1:   # Core functionality
                     # It's probably a line too long problem, so just
                     # dump the strings; not pretty, but at least it works.
                     for i in di[key]:
-                        print(i, end=" ")
+                        #print(i, end=" ")
+                        print(f"  {i}")
                     print()
                 print(f"{t.n}", end="")
 if __name__ == "__main__":
