@@ -160,7 +160,7 @@ Active
           evaluated by exec(str, globals, locals)
 
     - pgm/ds.py
-        - Add an optional regexps on the command line that will further
+        - Add optional regexps on the command line that will further
           filter the selections.  Example:  for Simpson 260, I want to see
           the schematics, so I'd use "260 schematic".
 

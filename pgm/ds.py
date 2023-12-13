@@ -38,6 +38,7 @@ if 1:   # Imports
     from itertools import filterfalse
     from os.path import join, isfile, split
     from pdb import set_trace as xx
+    from pprint import pprint as pp
 if 1:   # Custom imports
     from wrap import dedent
     from selection import Select
@@ -71,11 +72,14 @@ def Usage(d, status=1):
     name = sys.argv[0]
     name = d["--exec"]
     print(dedent(f'''
-    Usage:  {name} [options] regexp
+    Usage:  {name} [options] regexp [re1 re2...]
       Open a document if it's the only match to the regexp.  Otherwise print
       out the matches and choose which ones to display.  When choosing, you
       can select multiple numbers by separating them with spaces or commas.
       Ranges like 5-8 are recognized.
+
+      If re1 etc. are present, they are other regexps to additionally
+      search for in the results; they are ORed together.
     Options
       -I    Generate the index
       -i    Make the search case sensitive
@@ -111,7 +115,7 @@ def ParseCommandLine(d):
         GenerateIndexFiles(d)
     if d["-j"]:
         d["--exec"] = "hpj"
-    if len(args) != 1:
+    if not args:
         Usage(d)
     return args
 def GenerateIndexFiles(d):
@@ -175,7 +179,7 @@ def OpenFile(app, matches, choice):
     # bug messages sent to the console.
     subprocess.Popen([app, matches[choice - 1][0]],
                      stderr=subprocess.DEVNULL)
-def GetMatches(regexp, d):
+def GetMatches(regexp, d, regexps):
     r = re.compile(regexp) if d["-i"] else re.compile(regexp, re.I)
     matches = []
     for i in d["files"]:
@@ -185,9 +189,24 @@ def GetMatches(regexp, d):
         if mo:
             # Decorate with string first for sorting output
             matches.append([str(i), i, mo])
+    # Refine by regexps
+    if regexps:
+        filtered_matches = []
+        res = [re.compile(i) if d["-i"] else re.compile(i, re.I) for i in regexps]
+        for r in res:
+            for i in matches:
+                p = i[1]    # This is the file's Path object
+                name = p.name
+                mo = r.search(name)
+                if mo and i not in filtered_matches:
+                    filtered_matches.append(i)
+        matches = filtered_matches
     if matches:
         # Sort by whole path name (first element), then toss out first element
         matches = [(i[1], i[2]) for i in list(sorted(matches))]
+    if 0:
+        pp(matches)
+        exit()
     return matches
 def PrintMatch(num, path, start, end, d):
     '''For the match in path, print things out in the appropriate colors.
@@ -223,7 +242,9 @@ if __name__ == "__main__":
     d = {   # Options dictionary
         "--exec": "ds",
     }
-    regexp = ParseCommandLine(d)[0]
+    regexps = ParseCommandLine(d)
+    regexp = regexps[0]
+    regexps.pop(0)
     ReadIndexFile(d)    # Get list of the files to search
-    matches = GetMatches(regexp, d)
+    matches = GetMatches(regexp, d, regexps)
     OpenMatches(matches, d)
