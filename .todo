@@ -1,5 +1,13 @@
 Active
     
+    - ca.py
+        - In light of hc.py work, this could be a better calculator
+          environment than hc
+        - Allow documentation with vi
+        - Use only mpf and mpc, int, fractions
+        - Have a command that toggles between str() and repr()
+          representations
+
     - pgm/poly.py
         - Add -i option for interactive solution of polygons (see notes in
           script)
@@ -135,13 +143,6 @@ Active
             - -k option sets k factor to estimate std uncertainty from
               accuracy interval.  Defaults to 2.
 
-    - sw.py
-        - Resurrect /pylib/pgm/obsolete/sw.py
-        - Write it to use as a general purpose stopwatch timing tool
-          without needing msvcrt
-        - Note:  this script can be made to work with the winpython
-          install.  The fix needed seems to be to convert bytes to strings.
-
     - lib:  fmt
         - Minimal python function to get string interpolation to n digits
         - Handle floats & integers
@@ -158,16 +159,6 @@ Active
         - -s str lets you define a variable for a shorthand use in an
           expression.  Example:  str = 'R7 = 44.7 - 3.2' and it will be
           evaluated by exec(str, globals, locals)
-
-    - pgm/ds.py
-        - Add optional regexps on the command line that will further
-          filter the selections.  Example:  for Simpson 260, I want to see
-          the schematics, so I'd use "260 schematic".
-
-    - fmt.py
-        - f.py needs to be changed to use fmt.py
-        - Move color.py out of the module code (put it in the if __name__
-          section)
 
     - pgm/zener.py
         - Given a desired voltage, show how to get as near as possible to
@@ -201,14 +192,6 @@ Active
           accidentally type cls when I meant clx.  Thus, clstk needs to be
           at least clst.
 
-    - ca.py
-        - In light of hc.py work, this could be a better calculator
-          environment than hc
-        - Allow documentation with vi
-        - Use only mpf and mpc, int, fractions
-        - Have a command that toggles between str() and repr()
-          representations
-
     - pgm/mixture.py
         - Change this to be an interactive script that lets you iterate a
           problem to get a solution.  
@@ -219,14 +202,18 @@ Active
               concentrate and I'll wind up with 15.08 gallons, a practical
               solution that's usable as is.
         - The basic problem variables are
-            - C = concentration
-            - V = volume
-            - S = solute volume
-            - t = solvent volume
+            - a and b are the two solutions, m is the mixture
+            - Ca, Cb, Cm = concentrations
+            - Va, Vb, Vm = volumes
             - Equations
-                - V = S + T
-                - C = S/(S + T) = S/V
-                - S = C*V
+                - Vm = Va + Vb
+                - Cm = (Ca*Va + Cb*Vb)/Vm
+            - There are 6 variables with 2 equations, so there will be 4
+              variables that will need to be given for a solution.
+            - The fundamental assumption is that the volumes don't change
+              when you mix the solutions.  This can be a reasonable
+              approximation for dilute solutions.
+            - The problem can be calculated on a mass or volume basis.
         - There would be three submenus of the problem that would prompt
           for the variables C, V, S, D:  solution A, solution B, and
           mixture.  You'd press c, v, s, d to enter new values.
