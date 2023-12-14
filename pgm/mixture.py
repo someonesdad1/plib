@@ -415,6 +415,13 @@ if 1:  # Datafile approach
         not be an equality.  Thus, the allowed solutions must contain at
         least one unknown volume.
         '''
+    def GetVars(file):
+        'Return a dict of variables from file'
+        vars = {}
+        with open(file) as f:
+            code = compile(f.read(), file, 'exec')
+            exec(code, globals(), vars)
+        return vars
     def SolveDatafile(file):
         '''Read the variables in from a text file and solve for the
         unknowns.  The core equations are
@@ -441,70 +448,64 @@ if 1:  # Datafile approach
         The ones marked with * are not allowed because there is then
         effectively only one equation, the second, with two unknowns.
         '''
-        vars = {
-            "u_out": "m3",
-        }
-        with open(file) as f:
-            code = compile(f.read(), file, 'exec')
-            exec(code, globals(), vars)
-        u_out = vars["u_out"]
-        del vars["u_out"]
-        # Get which variables we have to find
-        all = set("ca cb cm va vb vm".split())
-        missing = all - set(vars)
-        find = ' '.join(sorted(missing))
-        # Get our variables
+        vars = GetVars(file)
+        # Get the problem's variables
         ca = vars.get("ca", None)
         cb = vars.get("cb", None)
         cm = vars.get("cm", None)
         va = vars.get("va", None)
         vb = vars.get("vb", None)
         vm = vars.get("vm", None)
+        u_out = vars.get("u_out", "m3")
         # Solve for the unknowns
-        if find == "vb vm":
+        if vb is None and vm is None:
             vb = (-ca*va + cm*va)/(cb - cm)
             vm = (-ca*va + cb*va)/(cb - cm)
-        elif find == "va vm":
+        elif va is None and vm is None:
             va = (-cb*vb + cm*vb)/(ca - cm)
             vm = (ca*vb - cb*vb)/(ca - cm)
-        elif find == "va vb":
+        elif va is None and vb is None:
             va = (-cb*vm + cm*vm)/(ca - cb)
             vb = (ca*vm - cm*vm)/(ca - cb)
-        elif find == "cm vm":
+        elif cm is None and vm is None:
             cm = (ca*va + cb*vb)/(va + vb)
             vm = va + vb
-        elif find == "cm vb":
+        elif cm is None and vb is None:
             cm = (ca*va - cb*va + cb*vm)/vm
             vb = -va + vm
-        elif find == "cm va":
+        elif cm is None and va is None:
             cm = (-ca*vb + ca*vm + cb*vb)/vm
             va = -vb + vm
-        elif find == "cb vm":
+        elif cb is None and vm is None:
             cb = (-ca*va + cm*va + cm*vb)/vb
             vm = va + vb
-        elif find == "cb vb":
+        elif cb is None and vb is None:
             cb = (ca*va - cm*vm)/(va - vm)
             vb = -va + vm
-        elif find == "cb va":
+        elif cb is None and va is None:
             cb = (ca*vb - ca*vm + cm*vm)/vb
             va = -vb + vm
-        elif find == "cb cm":
-            Error("At least one volume must be unknown")
-        elif find == "ca vm":
+        elif ca is None and vm is None:
             ca = (-cb*vb + cm*va + cm*vb)/va
             vm = va + vb
-        elif find == "ca vb":
+        elif ca is None and vb is None:
             ca = (cb*va - cb*vm + cm*vm)/va
             vb = -va + vm
-        elif find == "ca va":
+        elif ca is None and va is None:
             ca = (cb*vb - cm*vm)/(vb - vm)
             va = -vb + vm
-        elif find == "ca cm":
-            Error("At least one volume must be unknown")
-        elif find == "ca cb":
+        elif ((cb is None and cm is None) or (ca is None and cm is None) or 
+              (ca is None and cb is None)):
             Error("At least one volume must be unknown")
         else:
-            Error(f"Bad problem: {find!r}")
+            print("Bad problem:  variables are:")
+            print("  ca = {ca}")
+            print("  cb = {cb}")
+            print("  cm = {cm}")
+            print("  va = {va}")
+            print("  vb = {vb}")
+            print("  vm = {vm}")
+            exit(1)
         # Print report
         print(f"ca = {flt(ca)}%")
         print(f"cb = {flt(cb)}%")
