@@ -134,7 +134,6 @@ if 1:  # Utility
         return args
     def Manpage(d):
         print(dedent('''
-    
         This script calculates the concentration of a solution gotten by mixing
         two volumes of solutions of differing concentrations.
     
@@ -150,24 +149,24 @@ if 1:  # Utility
               antifreeze for your car).
         
         Symbols:
-            C = concentration fraction
-            V = volume
+            c = concentration fraction
+            v = volume
         
         The six variables in the problem are thus:
-            Solution A:  Ca, Va
-            Solution B:  Cb, Vb
-            Mixture:     Cm, Vm
+            Solution A:  ca, va
+            Solution B:  cb, vb
+            Mixture:     cm, vm
         
-        Solution A has a solute volume of Ca*Va.
-        Solution B has a solute volume of Cb*Vb.
+        Solution A has a solute volume of ca*va.
+        Solution B has a solute volume of cb*vb.
         
         After mixing, the resulting mixture has a solute volume faction of
         
-            Cm = (Ca*Va + Cb*Vb)/Vm
+            cm = (ca*va + cb*vb)/vm
         
         where the volume is
         
-            Vm = Va + Vb
+            vm = va + vb
         
         Note that this formulation is an approximation; real solutions sometimes
         don't satisfy the above assumptions.  Example:  ethanol and water mixed
@@ -195,9 +194,9 @@ if 1:  # Utility
             Concentration of solution A in %? [0] 11.3
             Concentration of solution B in %? [0] 0
     
-          Enter two of:  volume A, volume B, mixture volume, mixture
-          concentration.  Press return if not known.  Expressions are allowed and
-          the math module is in scope.
+          Enter two of:  volume A, volume B, mixture volume, mixture concentration.
+          Press return if not known.  Expressions are allowed and the math module
+          is in scope.
     
             Volume of solution A? [0]
             Volume of solution B? [0]
@@ -215,6 +214,12 @@ if 1:  # Utility
         quart or 32 fl oz, which is 1/4 gallon.  Thus, I need to add 0.332/0.25
         or 4(0.332) = 1.33 bottles to the tank and fill it up to the 15 gallon
         level.
+
+        If you use the datafile approach to solve the problem, the
+        calculation is a little more convenient because you can specify the
+        unit used for the volumes used in the report.  Use the -c option to
+        print a sample datafile and supply the known variables.  The u()
+        function accepts commonly-used volume units.
         '''))
         exit(0)
 if 1:  # Interactive solution
@@ -562,7 +567,7 @@ if 1:  # Datafile approach
         # Print report
         t.print(dedent(f'''
         Concentration calculation (volume basis, unknowns in {t.unk}this color{t.n})
-          Use '{sys.argv[0]} -h' to see the manpage for the assumptions.
+          Use '{sys.argv[0]} -H' to see the manpage for the assumptions.
           {time.asctime()}
           Input file = {t('grnl')}{"sys.stdin" if file == "-" else f} 
  
