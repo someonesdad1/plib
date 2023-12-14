@@ -50,7 +50,7 @@ if 1:  # Header
     if 1:   # Imports
         import sys
         import getopt
-        import pathlib
+        from pathlib import Path as P
         import time
         from functools import partial
         from pprint import pprint as pp
@@ -60,7 +60,7 @@ if 1:  # Header
         from f import flt
         from u import u
         from color import C, t
-        if 1:
+        if 0:
             import debug
             debug.SetDebugger()
     if 1:   # Global variables
@@ -84,6 +84,17 @@ if 1:  # Utility
           Interactively calculate dilution problems.  If a file is given, the
           variables are taken from the file's contents (use '-' to read the
           file from stdin).
+        Using a datafile:
+          The variables are
+            ca      Solution A concentration in %
+            cb      Solution B concentration in %
+            cm      Mixture concentration in %
+            va      Solution A volume
+            vb      Solution B volume
+            vm      Mixture volume
+          The equations solved are
+            vm = va + vb
+            cm*vm = ca*va + cb*vb
         Options
             -c      Print a sample datafile
             -d n    Number of figures to display
@@ -92,6 +103,7 @@ if 1:  # Utility
         '''))
         exit(0)
     def ParseCommandLine(d):
+        d["-c"] = False     # Print sample datafile
         d["-d"] = 3         # Number of significant digits
         try:
             opts, args = getopt.getopt(sys.argv[1:], "cd:Hh")
@@ -420,9 +432,16 @@ if 1:  # Datafile approach
     def GetVars(file):
         'Return a dict of variables from file'
         vars = {}
-        with open(file) as f:
-            code = compile(f.read(), file, 'exec')
+        if file == "-":
+            code = compile(sys.stdin.read(), "sys.stdin", 'exec')
             exec(code, globals(), vars)
+        else:
+            try:
+                with open(file) as f:
+                    code = compile(f.read(), file, 'exec')
+                    exec(code, globals(), vars)
+            except Exception:
+                Error(f"Couldn't open file {file!r}")
         return vars
     def SolveDatafile(file):
         '''Read the variables in from a text file and solve for the
@@ -450,7 +469,9 @@ if 1:  # Datafile approach
         The ones marked with * are not allowed because there is then
         effectively only one equation, the second, with two unknowns.
         '''
-        vars = GetVars(file)
+        if file != "-":
+            f = P(file).resolve()
+        vars = GetVars(f)
         # Get the problem's variables
         ca = vars.get("ca", None)
         cb = vars.get("cb", None)
@@ -517,7 +538,13 @@ if 1:  # Datafile approach
             t.ca = t.va = t.unk
         elif ((cb is None and cm is None) or (ca is None and cm is None) or 
               (ca is None and cb is None)):
-            Error("At least one volume must be unknown")
+            Error(dedent(f'''
+            The following unknown pairs are not allowed:
+                ca and cb
+                ca and cm
+                cb and cm
+            This is because this effectively gives one equation in two unknowns.
+            '''))
         else:
             print("Bad problem:  variables are:")
             print("  ca = Solution {ca}")
@@ -533,56 +560,27 @@ if 1:  # Datafile approach
         results = ca, cb, cm, va, vb, vm
         w = max(len(str(i)) for i in results)
         # Print report
-        print(dedent(f'''
-        Concentration calculation (unknowns in {t.unk}this color{t.n})")
-          Assumptions:  solutions are miscible, no change in volume on mixing,
-          and no endothermic/exothermic reactions.
+        t.print(dedent(f'''
+        Concentration calculation (volume basis, unknowns in {t.unk}this color{t.n})
+          Use '{sys.argv[0]} -h' to see the manpage for the assumptions.
           {time.asctime()}
-
+          Input file = {t('grnl')}{"sys.stdin" if file == "-" else f} 
+ 
         '''))
-
         t.print(f"{t.ca}ca = Solution A concentration   {ca!s:>{w}s} %")
         t.print(f"{t.cb}cb = Solution B concentration   {cb!s:>{w}s} %")
         t.print(f"{t.cm}cm = Mixture concentration      {cm!s:>{w}s} %")
         t.print(f"{t.va}va = Volume of solution A       {va!s:>{w}s} {u_out}")
         t.print(f"{t.vb}vb = Volume of solution B       {vb!s:>{w}s} {u_out}")
         t.print(f"{t.vm}vm = Volume of mixture          {vm!s:>{w}s} {u_out}")
-
-if 0:
-    for i in '''
-    ca cb cm va
-    ca cb cm vb
-    ca cb cm vm
-    ca cb va vb
-    ca cb va vm
-    ca cb vb vm
-    ca cm va vb
-    ca cm va vm
-    ca cm vb vm
-    ca va vb vm
-    cb cm va vb
-    cb cm va vm
-    cb cm vb vm
-    cb va vb vm
-    cm va vb vm
-    '''.strip().split("\n"):
-        missing = ' '.join(set("ca cb cm va vb vm".split()) - set(i.split()))
-        print(i, "   ", ' '.join(sorted(missing.split())))
-    exit()
-
-#GetSolutions()
-SolveDatafile("mixture.data")
-exit()
+        print()
 
 if __name__ == "__main__":
     d = {}      # Options dictionary
     args = ParseCommandLine(d)
-    if 0:
-        # Custom data for a test case:  0.188% concentration
-        g.ConcA = flt(0.113)
-        g.ConcB = flt(0)
-        g.VolA = 0.25
-        g.VolB = 14.75
+    if args:
+        for file in args:
+            SolveDatafile(file)
     else:
         GetData()
-    PrintResults()
+        PrintResults()

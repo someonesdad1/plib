@@ -128,7 +128,8 @@ if 1:   # Core functionality
         for file in d["-f"]:
             lines = GetLines(file, script=True, ignore_empty=True,
                              strip=True, nonl=True)
-            words.update(set(i.lower() for i in lines))
+            for line in lines:
+                words.update(set(i.lower() for i in line.split()))
         return words
     def GetLine(mytoken):
         '''Return L (line number) for the token if it's on a single line.
