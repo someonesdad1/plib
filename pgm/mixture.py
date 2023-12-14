@@ -51,6 +51,7 @@ if 1:  # Header
         import sys
         import getopt
         import pathlib
+        import time
         from functools import partial
         from pprint import pprint as pp
     if 1:   # Custom imports
@@ -58,7 +59,7 @@ if 1:  # Header
         from get import GetNumber, GetLines
         from f import flt
         from u import u
-        from color import C
+        from color import C, t
         if 1:
             import debug
             debug.SetDebugger()
@@ -72,6 +73,7 @@ if 1:  # Header
         g.ConcA = flt(0)
         g.ConcB = flt(0)
         g.ConcMixture = flt(0)
+        t.unk = t("ornl")
 if 1:  # Utility
     def Error(*msg, status=1):
         print(*msg, file=sys.stderr)
@@ -457,62 +459,94 @@ if 1:  # Datafile approach
         vb = vars.get("vb", None)
         vm = vars.get("vm", None)
         u_out = vars.get("u_out", "m3")
+        # Set up output colors
+        t.ca = t.n
+        t.cb = t.n
+        t.cm = t.n
+        t.va = t.n
+        t.vb = t.n
+        t.vm = t.n
         # Solve for the unknowns
         if vb is None and vm is None:
             vb = (-ca*va + cm*va)/(cb - cm)
             vm = (-ca*va + cb*va)/(cb - cm)
+            t.vb = t.vm = t.unk
         elif va is None and vm is None:
             va = (-cb*vb + cm*vb)/(ca - cm)
             vm = (ca*vb - cb*vb)/(ca - cm)
+            t.va = t.vm = t.unk
         elif va is None and vb is None:
             va = (-cb*vm + cm*vm)/(ca - cb)
             vb = (ca*vm - cm*vm)/(ca - cb)
+            t.va = t.vb = t.unk
         elif cm is None and vm is None:
             cm = (ca*va + cb*vb)/(va + vb)
             vm = va + vb
+            t.cm = t.vm = t.unk
         elif cm is None and vb is None:
             cm = (ca*va - cb*va + cb*vm)/vm
             vb = -va + vm
+            t.cm = t.vb = t.unk
         elif cm is None and va is None:
             cm = (-ca*vb + ca*vm + cb*vb)/vm
             va = -vb + vm
+            t.cm = t.va = t.unk
         elif cb is None and vm is None:
             cb = (-ca*va + cm*va + cm*vb)/vb
             vm = va + vb
+            t.cb = t.vm = t.unk
         elif cb is None and vb is None:
             cb = (ca*va - cm*vm)/(va - vm)
             vb = -va + vm
+            t.cb = t.vb = t.unk
         elif cb is None and va is None:
             cb = (ca*vb - ca*vm + cm*vm)/vb
             va = -vb + vm
+            t.cb = t.va = t.unk
         elif ca is None and vm is None:
             ca = (-cb*vb + cm*va + cm*vb)/va
             vm = va + vb
+            t.ca = t.vm = t.unk
         elif ca is None and vb is None:
             ca = (cb*va - cb*vm + cm*vm)/va
             vb = -va + vm
+            t.ca = t.vb = t.unk
         elif ca is None and va is None:
             ca = (cb*vb - cm*vm)/(vb - vm)
             va = -vb + vm
+            t.ca = t.va = t.unk
         elif ((cb is None and cm is None) or (ca is None and cm is None) or 
               (ca is None and cb is None)):
             Error("At least one volume must be unknown")
         else:
             print("Bad problem:  variables are:")
-            print("  ca = {ca}")
+            print("  ca = Solution {ca}")
             print("  cb = {cb}")
             print("  cm = {cm}")
             print("  va = {va}")
             print("  vb = {vb}")
             print("  vm = {vm}")
             exit(1)
+        # Get width of printed variables
+        ca, cb, cm = [flt(i) for i in (ca, cb, cm)]
+        va, vb, vm = [flt(i)/u(u_out) for i in (va, vb, vm)]
+        results = ca, cb, cm, va, vb, vm
+        w = max(len(str(i)) for i in results)
         # Print report
-        print(f"ca = {flt(ca)}%")
-        print(f"cb = {flt(cb)}%")
-        print(f"cm = {flt(cm)}%")
-        print(f"va = {flt(va)/u(u_out)} {u_out}")
-        print(f"vb = {flt(vb)/u(u_out)} {u_out}")
-        print(f"vm = {flt(vm)/u(u_out)} {u_out}")
+        print(dedent(f'''
+        Concentration calculation (unknowns in {t.unk}this color{t.n})")
+          Assumptions:  solutions are miscible, no change in volume on mixing,
+          and no endothermic/exothermic reactions.
+          {time.asctime()}
+
+        '''))
+
+        t.print(f"{t.ca}ca = Solution A concentration   {ca!s:>{w}s} %")
+        t.print(f"{t.cb}cb = Solution B concentration   {cb!s:>{w}s} %")
+        t.print(f"{t.cm}cm = Mixture concentration      {cm!s:>{w}s} %")
+        t.print(f"{t.va}va = Volume of solution A       {va!s:>{w}s} {u_out}")
+        t.print(f"{t.vb}vb = Volume of solution B       {vb!s:>{w}s} {u_out}")
+        t.print(f"{t.vm}vm = Volume of mixture          {vm!s:>{w}s} {u_out}")
 
 if 0:
     for i in '''
