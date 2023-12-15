@@ -60,6 +60,7 @@ if 1:  # Header
         from f import flt
         from u import u
         from color import C, t
+        from lwtest import Assert
         if 0:
             import debug
             debug.SetDebugger()
@@ -386,6 +387,28 @@ if 1:  # Datafile approach
             cm va vb vm     ca cb *
         The problems marked * are those that cannot be solved because there
         is only one equation with two unknowns.
+         
+        This code produces the following output:
+            (vb, vm) {((-ca*va + cm*va)/(cb - cm), (-ca*va + cb*va)/(cb - cm))}
+            (va, vm) {((-cb*vb + cm*vb)/(ca - cm), (ca*vb - cb*vb)/(ca - cm))}
+            (va, vb) {((-cb*vm + cm*vm)/(ca - cb), (ca*vm - cm*vm)/(ca - cb))}
+            (cm, vm) {((ca*va + cb*vb)/(va + vb), va + vb)}
+            (cm, vb) {((ca*va - cb*va + cb*vm)/vm, -va + vm)}
+            (cm, va) {((-ca*vb + ca*vm + cb*vb)/vm, -vb + vm)}
+            (cb, vm) {((-ca*va + cm*va + cm*vb)/vb, va + vb)}
+            (cb, vb) {((ca*va - cm*vm)/(va - vm), -va + vm)}
+            (cb, va) {((ca*vb - ca*vm + cm*vm)/vb, -vb + vm)}
+            (cb, cm) EmptySet
+            (ca, vm) {((-cb*vb + cm*va + cm*vb)/va, va + vb)}
+            (ca, vb) {((cb*va - cb*vm + cm*vm)/va, -va + vm)}
+            (ca, va) {((cb*vb - cm*vm)/(vb - vm), -vb + vm)}
+            (ca, cm) EmptySet
+            (ca, cb) EmptySet
+        The solutions marked as empty sets are not allowed.  You can see
+        that the three volumes are given and the first equation may or may
+        not be an equality.  Thus, the allowed solutions must contain at
+        least one unknown volume.
+        ----------------------------------------------------------------
         '''
         import sympy as S
         ca, cb, cm, va, vb, vm = S.symbols("ca cb cm va vb vm")
@@ -413,27 +436,6 @@ if 1:  # Datafile approach
                 print(i, S.linsolve(equations, i))
             except Exception:
                 print(i, S.nonlinsolve(equations, i))
-        '''This code produces the following output:
-            (vb, vm) {((-ca*va + cm*va)/(cb - cm), (-ca*va + cb*va)/(cb - cm))}
-            (va, vm) {((-cb*vb + cm*vb)/(ca - cm), (ca*vb - cb*vb)/(ca - cm))}
-            (va, vb) {((-cb*vm + cm*vm)/(ca - cb), (ca*vm - cm*vm)/(ca - cb))}
-            (cm, vm) {((ca*va + cb*vb)/(va + vb), va + vb)}
-            (cm, vb) {((ca*va - cb*va + cb*vm)/vm, -va + vm)}
-            (cm, va) {((-ca*vb + ca*vm + cb*vb)/vm, -vb + vm)}
-            (cb, vm) {((-ca*va + cm*va + cm*vb)/vb, va + vb)}
-            (cb, vb) {((ca*va - cm*vm)/(va - vm), -va + vm)}
-            (cb, va) {((ca*vb - ca*vm + cm*vm)/vb, -vb + vm)}
-            (cb, cm) EmptySet
-            (ca, vm) {((-cb*vb + cm*va + cm*vb)/va, va + vb)}
-            (ca, vb) {((cb*va - cb*vm + cm*vm)/va, -va + vm)}
-            (ca, va) {((cb*vb - cm*vm)/(vb - vm), -vb + vm)}
-            (ca, cm) EmptySet
-            (ca, cb) EmptySet
-        The solutions marked as empty sets are not allowed.  You can see
-        that the three volumes are given and the first equation may or may
-        not be an equality.  Thus, the allowed solutions must contain at
-        least one unknown volume.
-        '''
     def GetVars(file):
         'Return a dict of variables from file'
         vars = {}
@@ -448,51 +450,14 @@ if 1:  # Datafile approach
             except Exception:
                 Error(f"Couldn't open file {file!r}")
         return vars
-    def SolveDatafile(file):
-        '''Read the variables in from a text file and solve for the
-        unknowns.  The core equations are
-            vm = va + vb
-            cm*vm = ca*va + cb*vb
-        There are six variables, so the user must supply four of them.
-        The problems are:
-               Known      Solve for
-            ca cb cm va     vb vm
-            ca cb cm vb     va vm
-            ca cb cm vm     va vb
-            ca cb va vb     cm vm
-            ca cb va vm     cm vb
-            ca cb vb vm     cm va
-            ca cm va vb     cb vm
-            ca cm va vm     cb vb
-            ca cm vb vm     cb va
-            ca va vb vm     cb cm *
-            cb cm va vb     ca vm
-            cb cm va vm     ca vb
-            cb cm vb vm     ca va
-            cb va vb vm     ca cm *
-            cm va vb vm     ca cb *
-        The ones marked with * are not allowed because there is then
-        effectively only one equation, the second, with two unknowns.
+    def GetUnknowns(ca, cb, cm, va, vb, vm):
+        '''Two of the unknowns should be None.  Solve for these two.
+        Return (vars, colors) where both are 6-tuples.  vars contains the
+        solved variables and colors contains the colorizing strings for the
+        variables (the two unknowns will be colored).
+        
+        The solution's equations came from GetSolutions().
         '''
-        if file != "-":
-            f = P(file).resolve()
-        vars = GetVars(f)
-        # Get the problem's variables
-        ca = vars.get("ca", None)
-        cb = vars.get("cb", None)
-        cm = vars.get("cm", None)
-        va = vars.get("va", None)
-        vb = vars.get("vb", None)
-        vm = vars.get("vm", None)
-        u_out = vars.get("u_out", "m3")
-        # Set up output colors
-        t.ca = t.n
-        t.cb = t.n
-        t.cm = t.n
-        t.va = t.n
-        t.vb = t.n
-        t.vm = t.n
-        # Solve for the unknowns
         if vb is None and vm is None:
             vb = (-ca*va + cm*va)/(cb - cm)
             vm = (-ca*va + cb*va)/(cb - cm)
@@ -559,6 +524,59 @@ if 1:  # Datafile approach
             print("  vb = {vb}")
             print("  vm = {vm}")
             exit(1)
+        return (
+            (ca, cb, cm, va, vb, vm),
+            (t.ca, t.cb, t.cm, t.va, t.vb, t.vm)
+        )
+    def SolveDatafile(file):
+        '''Read the variables in from a text file and solve for the
+        unknowns.  The core equations are
+            vm = va + vb
+            cm*vm = ca*va + cb*vb
+        There are six variables, so the user must supply four of them.
+        There are Comb(6, 4) = 15 combinations, but 3 of them are not
+        allowed because they have no solution.  The problems are:
+               Known      Solve for
+            ca cb cm va     vb vm
+            ca cb cm vb     va vm
+            ca cb cm vm     va vb
+            ca cb va vb     cm vm
+            ca cb va vm     cm vb
+            ca cb vb vm     cm va
+            ca cm va vb     cb vm
+            ca cm va vm     cb vb
+            ca cm vb vm     cb va
+            ca va vb vm     cb cm *
+            cb cm va vb     ca vm
+            cb cm va vm     ca vb
+            cb cm vb vm     ca va
+            cb va vb vm     ca cm *
+            cm va vb vm     ca cb *
+        The ones marked with * are not allowed because there is then
+        effectively only one equation, the second, with two unknowns.
+        '''
+        if file != "-":
+            f = P(file).resolve()
+        vars = GetVars(f)
+        # Get the problem's variables
+        ca = vars.get("ca", None)
+        cb = vars.get("cb", None)
+        cm = vars.get("cm", None)
+        va = vars.get("va", None)
+        vb = vars.get("vb", None)
+        vm = vars.get("vm", None)
+        u_out = vars.get("u_out", "m3")
+        # Set up output colors
+        t.ca = t.n
+        t.cb = t.n
+        t.cm = t.n
+        t.va = t.n
+        t.vb = t.n
+        t.vm = t.n
+        # Solve for the unknowns
+        vars, colors = GetUnknowns(ca, cb, cm, va, vb, vm)
+        ca, cb, cm, va, vb, vm = vars
+        t.ca, t.cb, t.cm, t.va, t.vb, t.vm = colors
         # Get width of printed variables
         ca, cb, cm = [flt(i) for i in (ca, cb, cm)]
         va, vb, vm = [flt(i)/u(u_out) for i in (va, vb, vm)]
@@ -579,6 +597,75 @@ if 1:  # Datafile approach
         t.print(f"{t.vb}vb = Volume of solution B       {vb!s:>{w}s} {u_out}")
         t.print(f"{t.vm}vm = Volume of mixture          {vm!s:>{w}s} {u_out}")
         print()
+    def AcceptableDiff(x, y, n=3):
+        '''Return True if abs((x - y)/x) <= 10**-n.  If x is 0, then
+        calculate abs((y - x)/y).
+        
+        The use case for this is testing for numerical differences when the
+        numbers come from physical measurements.  Most of the time such
+        data have 2, 3, or 4 figures.
+        '''
+    def TestSolutions():
+        '''This function tests the GetUnknowns() function to see that it
+        uses the correct formulas.  The equations are
+            vm = va + vb
+            cm*vm = ca*va + cb*vb
+        The problem is 
+            ca = 8
+            va = 1
+            cb = 10
+            vb = 1
+            cm = 9
+            vm = 2
+        because it results in exact integer solutions.
+        '''
+        t.ca, t.cb, t.cm, t.va, t.vb, t.vm = [""]*6
+        init = 8, 10, 9, 1, 1, 2
+        # Unknowns vb and vm.  Solution:
+        #   vm = vb + 1
+        #   9*vm = 8(1) + 10(vb) = 8 + 10(vm - 1)
+        #   9*vm = 8 + 10*vm - 10
+        #   -vm = -2
+        #   So vm = 2 and vb = 1
+        ca, cb, cm, va, vb, vm = init
+        vb, vm = None, None
+        v, _ = GetUnknowns(ca, cb, cm, va, vb, vm)
+        ca, cb, cm, va, vb, vm = v
+        Assert(vb == 1 and vm == 2)
+        # Unknowns va and vm
+        ca, cb, cm, va, vb, vm = init
+        va, vm = None, None
+        v, _ = GetUnknowns(ca, cb, cm, va, vb, vm)
+        ca, cb, cm, va, vb, vm = v
+        Assert(va == 1 and vm == 2)
+        # Unknowns va and vb
+        ca, cb, cm, va, vb, vm = init
+        va, vb = None, None
+        v, _ = GetUnknowns(ca, cb, cm, va, vb, vm)
+        ca, cb, cm, va, vb, vm = v
+        Assert(va == 1 and vb == 1)
+        # Unknowns cm and vm
+        ca, cb, cm, va, vb, vm = init
+        cm, vm = None, None
+        v, _ = GetUnknowns(ca, cb, cm, va, vb, vm)
+        ca, cb, cm, va, vb, vm = v
+        Assert(cm == 9 and vm == 2)
+        # Unknowns cm and vb
+        ca, cb, cm, va, vb, vm = init
+        cm, vb = None, None
+        v, _ = GetUnknowns(ca, cb, cm, va, vb, vm)
+        ca, cb, cm, va, vb, vm = v
+        Assert(cm == 9 and vb == 1)
+        # Unknowns cm and va
+        ca, cb, cm, va, vb, vm = init
+        cm, va = None, None
+        v, _ = GetUnknowns(ca, cb, cm, va, vb, vm)
+        ca, cb, cm, va, vb, vm = v
+        Assert(cm == 9 and va == 1)
+
+if 1:
+    TestSolutions()
+    exit()
 
 if __name__ == "__main__":
     d = {}      # Options dictionary
