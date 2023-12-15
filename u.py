@@ -2388,6 +2388,11 @@ def PrintSupportedUnits():
     units, dims = GetUnits(level=0, check=True)
     base = [i for i in units if isinstance(units[i], int) and units[i] == 1]
     print(f"Base SI units:  {', '.join(base)}\n")
+    print(dedent(f'''
+    'dol' stands for US dollar and is not an SI unit, but it's part of the
+    base units to facilitate cost calculations.
+
+    '''))
     # Print out by description
     print("Units by description")
     print("--------------------\n")
@@ -2892,7 +2897,7 @@ if __name__ == "__main__":
         assert_equal(L, M)
         L = set(u.find_unit(u.dim("therm")))
         M = set(["Wh", "erg", "cal", "Whr", "CAL", "calorie", "kcal", "btu",
-                "eV", "J", "BTU", "Calorie", "therm"])
+                "eV", "J", "BTU", "Calorie", "therm", "ttnt"])
         assert_equal(L, M)
         assert_equal(u.find_unit(u.dim("m88/s2348")), None)
     def Test_GetDim():

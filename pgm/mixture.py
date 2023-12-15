@@ -59,7 +59,7 @@ if 1:  # Header
         from get import GetNumber, GetLines
         from f import flt
         from u import u
-        from color import C, t
+        from color import t
         from lwtest import Assert
         if 0:
             import debug
@@ -107,13 +107,14 @@ if 1:  # Utility
     def ParseCommandLine(d):
         d["-c"] = False     # Print sample datafile
         d["-d"] = 3         # Number of significant digits
+        d["-g"] = False     # Debug printing
         try:
-            opts, args = getopt.getopt(sys.argv[1:], "cd:Hh")
+            opts, args = getopt.getopt(sys.argv[1:], "cd:gHh")
         except getopt.GetoptError as e:
             print(str(e))
             exit(1)
         for o, a in opts:
-            if o[1] in list("c"):
+            if o[1] in list("cg"):
                 d[o] = not d[o]
             elif o in ("-d",):
                 try:
@@ -137,22 +138,14 @@ if 1:  # Utility
     def Manpage(d):
         print(dedent('''
         This script calculates the concentration of a solution gotten by mixing
-        two volumes of solutions of differing concentrations.
-    
-        Assumptions:
-            - The solute in both solutions A and B are the same.
-            - One or both solutions can be pure solvent.
-            - The solute and solvent are miscible and are mixed well.
-            - There are no volume or temperature changes when the solutions are
-              mixed.
-            - Works best for dilute solutions.
-            - The concentration fractions are volume fractions.  This means
-              both the solvent and solute are liquids (example:  water and
-              antifreeze for your car).
-        
+        two volumes of solutions of differing concentrations.  The solute
+        is the solution that is diluted by adding solvent.  Example:  a
+        concentrated weed killer solution is the solute and the solvent is
+        water.  
+
         Symbols:
-            c = concentration fraction
-            v = volume
+            c = concentration volume fraction in percent
+            v = volume of solute + solvent
         
         The six variables in the problem are thus:
             Solution A:  ca, va
@@ -169,6 +162,16 @@ if 1:  # Utility
         where the volume is
         
             vm = va + vb
+    
+        Assumptions:
+            - The solute in both solutions A and B are the same
+            - One or both solutions can be pure solvent
+            - The solute and solvent are miscible and are mixed well
+            - No volume or temperature changes when the solutions are mixed
+            - Works best for dilute solutions
+            - The concentration fractions are volume fractions.  This means
+              both the solvent and solute are liquids (example:  water and
+              antifreeze for your car).
         
         Note that this formulation is an approximation; real solutions sometimes
         don't satisfy the above assumptions.  Example:  ethanol and water mixed
@@ -279,9 +282,10 @@ if 1:  # Interactive solution
             else:
                 break
         if d["-g"]:
+            # Show how we interpreted the input data
             print(dedent(f'''
     
-            {C.lcyn}Entered data:
+            {t('cynl')}Entered data:
                 VolA            {g.VolA!r}
                 VolB            {g.VolB!r}
                 VolMixture      {g.VolMixture!r}
@@ -324,44 +328,66 @@ if 1:  # Interactive solution
         '''))
 if 1:  # Datafile approach
     def PrintSampleDatafile():
-        print(dedent(f'''
+        print(dedent(f"""
+        '''
+        This is a sample data file for the mixture.py script.  This data
+        file needs to be valid python syntax.
+
+        You need
+        to define four of the following six variables:
+          ca      Concentration of solution A in %
+          cb      Concentration of solution B in %
+          cm      Concentration of resulting mixture in %
+          va      Volume of solution A
+          vb      Volume of solution B
+          vm      Volume of mixture
+
+        These variables satisfy the equations
+
+            vm = va + vb
+            cm*vm = ca*va + cb*vb
         
-        # This is a sample data file for the mixture.py script.  You need
-        # to define four of the following six variables:
-        #   ca      Concentration of solution A in %
-        #   cb      Concentration of solution B in %
-        #   cm      Concentration of resulting mixture in %
-        #   va      Volume of solution A
-        #   vb      Volume of solution B
-        #   vm      Volume of mixture
-        #
-        # You should also define 'v_unit' as the desired volume unit for
-        # output.  It defaults to 'm3'.
-        #
-        # The u() function is used to let you use the input volume units of
-        # your problem.  The following example line lets you define the va
-        # variable in terms of ml:
-        # 
-        #   va = 321*u("ml")
-        # 
-        # Your definitions must use valid python syntax.
+        You cannot have unknowns of (ca, cb), (ca, cm), or (cb, cm) because
+        these conditions effectively give one equation with two unknowns.
+
+        You may also define 'v_unit' as the desired volume unit for
+        output.  It defaults to 'm3' as if you used
+
+            v_unit = "m3"
+        
+        The u() function is used to let you use the input volume units of
+        your choice (it's in /plib/u.py).  The following example line lets
+        you define the va variable in terms of ml:
+        
+          va = 321*u("ml")
+        
+        Run 'python /plib/u.py' to see allowed volume units (you can also
+        use any valid length unit with an appended 3 for a power of 3).
+
+        Your definitions must use valid python syntax.
+        '''
  
         # The following example data solve the following problem.  I have a
-        # weed killer (solution a) with a concentration of 11.3%.  I want
+        # weed killer (solution A) with a concentration of 11.3%.  I want
         # to know how much of it I must mix with a volume of water
-        # (solution b) to get a 15 gallon solution with a concentration of
+        # (solution B) to get a 15 gallon solution with a concentration of
         # 0.25%.
     
         ca = 11.3           # Concentration of solution a
         cb = 0              # Concentration of solution b
         cm = 0.25           # Concentration of mixture
         vm = 15*u("gal")    # Volume of mixture
-        u_out = "gal"       # Report should use gallons for volumes
+        v_unit = "gal"      # Report should use gallons for volumes
+
+        description = '''
+            This optional variable holds a description of the problem and
+            is printed with the report if present.
+        '''
     
         # This data file should give the results
         #   volume of solution A = 0.332 gal
         #   volume of solution B = 14.7 gal
-        '''))
+        """))
     def TestSolutions():
         '''This function tests the GetUnknowns() function to see that it
         uses the correct formulas.  The equations are
@@ -648,7 +674,7 @@ if 1:  # Datafile approach
         va = vars.get("va", None)
         vb = vars.get("vb", None)
         vm = vars.get("vm", None)
-        u_out = vars.get("u_out", "m3")
+        v_unit = vars.get("v_unit", "m3")
         # Set up output colors
         t.ca = t.n
         t.cb = t.n
@@ -657,52 +683,33 @@ if 1:  # Datafile approach
         t.vb = t.n
         t.vm = t.n
         # Solve for the unknowns
-        vars, colors = GetUnknowns(ca, cb, cm, va, vb, vm)
-        ca, cb, cm, va, vb, vm = vars
+        myvars, colors = GetUnknowns(ca, cb, cm, va, vb, vm)
+        ca, cb, cm, va, vb, vm = myvars
         t.ca, t.cb, t.cm, t.va, t.vb, t.vm = colors
         # Get width of printed variables
         ca, cb, cm = [flt(i) for i in (ca, cb, cm)]
-        va, vb, vm = [flt(i)/u(u_out) for i in (va, vb, vm)]
+        va, vb, vm = [flt(i)/u(v_unit) for i in (va, vb, vm)]
         results = ca, cb, cm, va, vb, vm
         w = max(len(str(i)) for i in results)
         # Print report
         t.print(dedent(f'''
         Concentration calculation (volume basis, unknowns in {t.unk}this color{t.n})
-          Use '{sys.argv[0]} -H' to see the manpage for the assumptions.
+          Use '{sys.argv[0]} -H' to see the problem's assumptions.
           {time.asctime()}
           Input file = {t('grnl')}{"sys.stdin" if file == "-" else f} 
  
         '''))
+        if "description" in vars and vars["description"].strip():
+            print(vars["description"].strip())
+            print()
         t.print(f"{t.ca}ca = Solution A concentration   {ca!s:>{w}s} %")
         t.print(f"{t.cb}cb = Solution B concentration   {cb!s:>{w}s} %")
         t.print(f"{t.cm}cm = Mixture concentration      {cm!s:>{w}s} %")
-        t.print(f"{t.va}va = Volume of solution A       {va!s:>{w}s} {u_out}")
-        t.print(f"{t.vb}vb = Volume of solution B       {vb!s:>{w}s} {u_out}")
-        t.print(f"{t.vm}vm = Volume of mixture          {vm!s:>{w}s} {u_out}")
-        print()
-    def AcceptableDiff(x, y, n=3, strict=False):
-        '''Return True if abs((x - y)/x) <= 10**-n.  If x is 0, then
-        calculate abs((y - x)/y).  If strict is True, then x and y must be
-        the same numerical type.
-        
-        The use case for this is testing for numerical differences when the
-        numbers come from physical measurements.  Most of the time such
-        data have 2, 3, or 4 figures.
-        '''
-        if strict and (type(x) != type(y)):
-            raise TypeError("x and y must be the same numerical type")
-        if x == y:
-            return True
-        if x:
-            return abs((x - y)/x) <= 10**-n
-        else:
-            return abs((x - y)/y) <= 10**-n
-
-if 1:
-    Assert(AcceptableDiff(0, 0))
-    Assert(not AcceptableDiff(1, 1.01))
-    Assert(AcceptableDiff(1, 1.001))
-    exit()
+        t.print(f"{t.va}va = Volume of solution A       {va!s:>{w}s} {v_unit}")
+        t.print(f"{t.vb}vb = Volume of solution B       {vb!s:>{w}s} {v_unit}")
+        t.print(f"{t.vm}vm = Volume of mixture          {vm!s:>{w}s} {v_unit}")
+        if len(args) > 1:
+            print()
 
 if __name__ == "__main__":
     d = {}      # Options dictionary
