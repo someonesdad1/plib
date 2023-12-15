@@ -2,6 +2,7 @@
 #   Debug class should use print()'s arguments
 '''Miscellaneous routines in python:
  
+AcceptableDiff        Returns False if two numbers are not equal
 Ampacity              Returns NEC ampacity of copper wire
 AWG                   Returns wire diameter in inches for AWG gauge number
 Batch                 Generator to pick n items at a time from a sequence
@@ -1721,6 +1722,23 @@ def Unique(seq):
         else:
             found.add(item)
             yield item
+def AcceptableDiff(x, y, n=3, strict=False):
+    '''Return True if abs((x - y)/x) <= 10**-n.  If x is 0, then
+    calculate abs((y - x)/y).  If strict is True, then x and y must be
+    the same numerical type.
+ 
+    The use case for this is testing for numerical differences when the
+    numbers come from physical measurements.  Most of the time such
+    data have 2, 3, or 4 figures.
+    '''
+    if strict and (type(x) != type(y)):
+        raise TypeError("x and y must be the same numerical type")
+    if x == y:
+        return True
+    if x:
+        return abs((x - y)/x) <= 10**-n
+    else:
+        return abs((x - y)/y) <= 10**-n
 
 if __name__ == "__main__": 
     # Missing tests for: Ignore Debug, Dispatch, GetString
@@ -1737,6 +1755,11 @@ if __name__ == "__main__":
     # Need to have version, as SizeOf stuff changed between 3.7 and 3.9
     vi = sys.version_info
     ver = f"{vi[0]}.{vi[1]}"
+    def Test_AcceptableDiff():
+        Assert(AcceptableDiff(0, 0))
+        Assert(not AcceptableDiff(1, 1.01))
+        Assert(AcceptableDiff(1, 1.001))
+        raises(TypeError, AcceptableDiff, 1, 1.1, strict=True)
     def Test_Unique():
         f = lambda x: list(Unique(x))
         Assert(f([]) == [])

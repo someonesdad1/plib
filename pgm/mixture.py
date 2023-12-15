@@ -17,7 +17,7 @@ TODO
       'cm = 0.25%' " and the other variables would be solved for.  You can
       give concentration in % or as a number which must be on [0, 1].
     - With no command line arguments, you're prompted for the quantities
-
+ 
 - The basic problem variables are
     - a and b are the two solutions, m is the mixture
     - ca, cb, cm = concentrations
@@ -30,7 +30,7 @@ TODO
     - The fundamental assumption is that the volumes don't change when you
       mix the solutions.  This can be a reasonable approximation for dilute
       solutions.
-
+ 
 Program to calculate mixtures
 '''
 if 1:  # Header
@@ -75,6 +75,7 @@ if 1:  # Header
         g.ConcB = flt(0)
         g.ConcMixture = flt(0)
         t.unk = t("ornl")
+        t.ca, t.cb, t.cm, t.va, t.vb, t.vm = [""]*6
 if 1:  # Utility
     def Error(*msg, status=1):
         print(*msg, file=sys.stderr)
@@ -215,7 +216,7 @@ if 1:  # Utility
         quart or 32 fl oz, which is 1/4 gallon.  Thus, I need to add 0.332/0.25
         or 4(0.332) = 1.33 bottles to the tank and fill it up to the 15 gallon
         level.
-
+ 
         If you use the datafile approach to solve the problem, the
         calculation is a little more convenient because you can specify the
         unit used for the volumes used in the report.  Use the -c option to
@@ -344,7 +345,7 @@ if 1:  # Datafile approach
         #   va = 321*u("ml")
         # 
         # Your definitions must use valid python syntax.
-
+ 
         # The following example data solve the following problem.  I have a
         # weed killer (solution a) with a concentration of 11.3%.  I want
         # to know how much of it I must mix with a volume of water
@@ -361,6 +362,88 @@ if 1:  # Datafile approach
         #   volume of solution A = 0.332 gal
         #   volume of solution B = 14.7 gal
         '''))
+    def TestSolutions():
+        '''This function tests the GetUnknowns() function to see that it
+        uses the correct formulas.  The equations are
+            vm = va + vb
+            cm*vm = ca*va + cb*vb
+        The problem is 
+            ca, cb, cm = 8, 10, 9
+            va, vb, vm = 1, 1, 2
+        '''
+        init = 8, 10, 9, 1, 1, 2
+        # Unknowns vb and vm
+        ca, cb, cm, va, vb, vm = init
+        vb, vm = None, None
+        v, _ = GetUnknowns(ca, cb, cm, va, vb, vm)
+        ca, cb, cm, va, vb, vm = v
+        Assert(vb == 1 and vm == 2)
+        # Unknowns va and vm
+        ca, cb, cm, va, vb, vm = init
+        va, vm = None, None
+        v, _ = GetUnknowns(ca, cb, cm, va, vb, vm)
+        ca, cb, cm, va, vb, vm = v
+        Assert(va == 1 and vm == 2)
+        # Unknowns va and vb
+        ca, cb, cm, va, vb, vm = init
+        va, vb = None, None
+        v, _ = GetUnknowns(ca, cb, cm, va, vb, vm)
+        ca, cb, cm, va, vb, vm = v
+        Assert(va == 1 and vb == 1)
+        # Unknowns cm and vm
+        ca, cb, cm, va, vb, vm = init
+        cm, vm = None, None
+        v, _ = GetUnknowns(ca, cb, cm, va, vb, vm)
+        ca, cb, cm, va, vb, vm = v
+        Assert(cm == 9 and vm == 2)
+        # Unknowns cm and vb
+        ca, cb, cm, va, vb, vm = init
+        cm, vb = None, None
+        v, _ = GetUnknowns(ca, cb, cm, va, vb, vm)
+        ca, cb, cm, va, vb, vm = v
+        Assert(cm == 9 and vb == 1)
+        # Unknowns cm and va
+        ca, cb, cm, va, vb, vm = init
+        cm, va = None, None
+        v, _ = GetUnknowns(ca, cb, cm, va, vb, vm)
+        ca, cb, cm, va, vb, vm = v
+        Assert(cm == 9 and va == 1)
+        # Unknowns cb and vm
+        ca, cb, cm, va, vb, vm = init
+        cb, vm = None, None
+        v, _ = GetUnknowns(ca, cb, cm, va, vb, vm)
+        ca, cb, cm, va, vb, vm = v
+        Assert(cb == 10 and vm == 2)
+        # Unknowns cb and vb
+        ca, cb, cm, va, vb, vm = init
+        cb, vb = None, None
+        v, _ = GetUnknowns(ca, cb, cm, va, vb, vm)
+        ca, cb, cm, va, vb, vm = v
+        Assert(cb == 10 and vb == 1)
+        # Unknowns cb and va
+        ca, cb, cm, va, vb, vm = init
+        cb, va = None, None
+        v, _ = GetUnknowns(ca, cb, cm, va, vb, vm)
+        ca, cb, cm, va, vb, vm = v
+        Assert(cb == 10 and va == 1)
+        # Unknowns ca and vm
+        ca, cb, cm, va, vb, vm = init
+        ca, vm = None, None
+        v, _ = GetUnknowns(ca, cb, cm, va, vb, vm)
+        ca, cb, cm, va, vb, vm = v
+        Assert(ca == 8 and vm == 2)
+        # Unknowns ca and vb
+        ca, cb, cm, va, vb, vm = init
+        ca, vb = None, None
+        v, _ = GetUnknowns(ca, cb, cm, va, vb, vm)
+        ca, cb, cm, va, vb, vm = v
+        Assert(ca == 8 and vb == 1)
+        # Unknowns ca and va
+        ca, cb, cm, va, vb, vm = init
+        ca, va = None, None
+        v, _ = GetUnknowns(ca, cb, cm, va, vb, vm)
+        ca, cb, cm, va, vb, vm = v
+        Assert(ca == 8 and va == 1)
     def GetSolutions():
         '''Use sympy to solve for the needed volume mixture functions.
         The two core equations are:
@@ -597,78 +680,33 @@ if 1:  # Datafile approach
         t.print(f"{t.vb}vb = Volume of solution B       {vb!s:>{w}s} {u_out}")
         t.print(f"{t.vm}vm = Volume of mixture          {vm!s:>{w}s} {u_out}")
         print()
-    def AcceptableDiff(x, y, n=3):
+    def AcceptableDiff(x, y, n=3, strict=False):
         '''Return True if abs((x - y)/x) <= 10**-n.  If x is 0, then
-        calculate abs((y - x)/y).
+        calculate abs((y - x)/y).  If strict is True, then x and y must be
+        the same numerical type.
         
         The use case for this is testing for numerical differences when the
         numbers come from physical measurements.  Most of the time such
         data have 2, 3, or 4 figures.
         '''
-    def TestSolutions():
-        '''This function tests the GetUnknowns() function to see that it
-        uses the correct formulas.  The equations are
-            vm = va + vb
-            cm*vm = ca*va + cb*vb
-        The problem is 
-            ca = 8
-            va = 1
-            cb = 10
-            vb = 1
-            cm = 9
-            vm = 2
-        because it results in exact integer solutions.
-        '''
-        t.ca, t.cb, t.cm, t.va, t.vb, t.vm = [""]*6
-        init = 8, 10, 9, 1, 1, 2
-        # Unknowns vb and vm.  Solution:
-        #   vm = vb + 1
-        #   9*vm = 8(1) + 10(vb) = 8 + 10(vm - 1)
-        #   9*vm = 8 + 10*vm - 10
-        #   -vm = -2
-        #   So vm = 2 and vb = 1
-        ca, cb, cm, va, vb, vm = init
-        vb, vm = None, None
-        v, _ = GetUnknowns(ca, cb, cm, va, vb, vm)
-        ca, cb, cm, va, vb, vm = v
-        Assert(vb == 1 and vm == 2)
-        # Unknowns va and vm
-        ca, cb, cm, va, vb, vm = init
-        va, vm = None, None
-        v, _ = GetUnknowns(ca, cb, cm, va, vb, vm)
-        ca, cb, cm, va, vb, vm = v
-        Assert(va == 1 and vm == 2)
-        # Unknowns va and vb
-        ca, cb, cm, va, vb, vm = init
-        va, vb = None, None
-        v, _ = GetUnknowns(ca, cb, cm, va, vb, vm)
-        ca, cb, cm, va, vb, vm = v
-        Assert(va == 1 and vb == 1)
-        # Unknowns cm and vm
-        ca, cb, cm, va, vb, vm = init
-        cm, vm = None, None
-        v, _ = GetUnknowns(ca, cb, cm, va, vb, vm)
-        ca, cb, cm, va, vb, vm = v
-        Assert(cm == 9 and vm == 2)
-        # Unknowns cm and vb
-        ca, cb, cm, va, vb, vm = init
-        cm, vb = None, None
-        v, _ = GetUnknowns(ca, cb, cm, va, vb, vm)
-        ca, cb, cm, va, vb, vm = v
-        Assert(cm == 9 and vb == 1)
-        # Unknowns cm and va
-        ca, cb, cm, va, vb, vm = init
-        cm, va = None, None
-        v, _ = GetUnknowns(ca, cb, cm, va, vb, vm)
-        ca, cb, cm, va, vb, vm = v
-        Assert(cm == 9 and va == 1)
+        if strict and (type(x) != type(y)):
+            raise TypeError("x and y must be the same numerical type")
+        if x == y:
+            return True
+        if x:
+            return abs((x - y)/x) <= 10**-n
+        else:
+            return abs((x - y)/y) <= 10**-n
 
 if 1:
-    TestSolutions()
+    Assert(AcceptableDiff(0, 0))
+    Assert(not AcceptableDiff(1, 1.01))
+    Assert(AcceptableDiff(1, 1.001))
     exit()
 
 if __name__ == "__main__":
     d = {}      # Options dictionary
+    TestSolutions()
     args = ParseCommandLine(d)
     if args:
         for file in args:
