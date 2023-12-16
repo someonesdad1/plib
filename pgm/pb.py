@@ -93,10 +93,14 @@ if 1:  # Utility
         exit(status)
     def Usage(d, status=1):
         print(dedent(f'''
-        Usage:  {sys.argv[0]} temp 
-          Print out a table of the voltage of a lead-acid battery at temperature
-          temp °C, which must be an integer divisible by 10.  Allow half a day
-          for the battery to reach equilibrium after charging.
+        Usage:  {sys.argv[0]} [temperature]
+          Print a table of percent of charge of a lead acid battery as a
+          function of electrolyte temperature and voltage.  Allow 24 hours
+          for the battery to reach equilibrium after charging and make sure
+          there is no load on the battery.
+
+          If temperature is included, print a table of voltages for that
+          temperature.
         Example:  temp = 0
           The table gives the battery voltage for % charge from 0 to 109%.  I
           went out to one of our cars and used an IR thermometer to measure the
@@ -120,11 +124,9 @@ if 1:  # Utility
             exit(1)
         for o, a in opts:
             if o[1] in "f":
-                t[o] = not t[o]
+                d[o] = not d[o]
             if o in ("-h", "--help"):
                 Usage(d, status=0)
-        if not args:
-            Usage(d)
         return args
 if 1:  # Core functionality
     def DeriveEquations():
@@ -150,12 +152,6 @@ if 1:  # Core functionality
         years ago and didn't write down the source.
         '''
         return (pct_chg/100 + 15.5151)/1.3065 + (T_degC - 26.7)/231.7
-    def Warning():
-        print(dedent(f'''
-        https://batteryuniversity.com/article/bu-903-how-to-measure-state-of-charge
-        for more details.
-        '''))
-
     def VoltageTable(degC=True):
         '''Print out a table of % of charge as a function of DC voltage.
         The voltages go down the left column from 11.6 to 12.8 in steps of
@@ -211,49 +207,41 @@ if 1:  # Core functionality
                         #print(f"{c*3:>4s}", end="")
                         print(f"{'  · '}", end="")
                 print()
+    def ChargeTable(temperature):
+        T = int(temperature)
+        if T % 10 != 0:
+            print("Temperature must be divisible by 10")
+            exit(1)
+        degC = not d["-f"]
+        w = int(os.environ.get("COLUMNS", 80)) - 1 
+        print(f"{t.bad}{'Lead-Acid Battery Voltage at % of Charge':^{w}s}{t.n}\n")
+        deg = f"°{'C' if degC else 'F'}"
+        n = 6
+        s = f"Temperature in {deg}"
+        print(f"{t.good}{s:^{w}s}{t.n}")
+        print(" %  ", end=f"{t.good}")
+        for i in range(10):
+            print(f"{T + i:^{n}d} ", end="")
+        print(t.n)
+        print("--- ", end="")
+        for i in range(10):
+            print(f"{'-'*n:^{n}s} ", end="")
+        print()
+        for pct in range(0, 101, 10):
+            print(f"{pct:3d}", end=" ")
+            for T_offset in range(10):
+                T0 = T + T_offset
+                if not degC:
+                    T0 = C(T0)  # Change F to C
+                v = V(pct, T0)
+                print(f"{v:{n}.3f}", end=" ")
             print()
-            print("Formulas (V in volts, P in %, T in °C):")
-            print("  V = (P/100 + 15.5151)/1.3065 + (T - 26.7)/231.7")
-            print("  P = -0.5638757*T + 130.65*V - 1536.454")
-        Warning()
-
-if 0:
-    DeriveEquations()
-x = flt(0)
-x.rtz = False
-x.N = 4
-d={"-f": False}
-VoltageTable() #xx
-exit() #xx
+        print()
 
 if __name__ == "__main__":
     d = {}      # Options dictionary
-    flt(0).n = 4
     args = ParseCommandLine(d)
-    T = int(args[0])
-    if T % 10 != 0:
-        print("temp must be divisible by 10")
-        exit(1)
-    degC = not d["-f"]
-    w = int(os.environ.get("COLUMNS", 80)) - 1 
-    print(f"{'Lead-Acid Battery Voltage at % of Charge':^{w}s}")
-    n = 6
-    print(f"{T} °{'C' if degC else 'F'}")
-    print(" %  ", end="")
-    for i in range(10):
-        print(f"{T + i:^{n}d} ", end="")
-    print()
-    print("--- ", end="")
-    for i in range(10):
-        print(f"{'-'*n:^{n}s} ", end="")
-    print()
-    for pct in range(0, 101, 10):
-        print(f"{pct:3d}", end=" ")
-        for T_offset in range(10):
-            T0 = T + T_offset
-            if not degC:
-                T0 = C(T0)  # Change F to C
-            v = V(pct, T0)
-            print(f"{v:{n}.3f}", end=" ")
-        print()
-    print()
+    if not args:
+        VoltageTable()
+    else:
+        ChargeTable(args[0])
