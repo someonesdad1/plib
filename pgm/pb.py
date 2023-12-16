@@ -85,12 +85,15 @@ if 1:  # Utility
             V = battery voltage
             T = temperature of electrolyte
 
+        Figure 12 in [1] show some circuits that might help prevent
+        overdischarge of batteries.  
+
         References
         ----------
         [1] https://www.power-sonic.com/wp-content/uploads/2018/12/Technical-Manual.pdf
         [2] https://batteryuniversity.com/article/bu-903-how-to-measure-state-of-charge
         '''))
-        exit(status)
+        exit(0)
     def Usage(d, status=1):
         print(dedent(f'''
         Usage:  {sys.argv[0]} [temperature]
@@ -112,21 +115,27 @@ if 1:  # Utility
           This measurement indicates to me that I need to charge the battery
           again.
         Options
-          -f    Use °F
+          -c    Use °C
+          -H    Print manpage
         '''))
         exit(status)
     def ParseCommandLine(d):
-        d["-f"] = False
+        d["-c"] = False
         try:
-            opts, args = getopt.getopt(sys.argv[1:], "fh")
+            opts, args = getopt.getopt(sys.argv[1:], "cHh")
         except getopt.GetoptError as e:
             print(str(e))
             exit(1)
         for o, a in opts:
-            if o[1] in "f":
+            if o[1] in "c":
                 d[o] = not d[o]
-            if o in ("-h", "--help"):
+            elif o in ("-h", "--help"):
                 Usage(d, status=0)
+            elif o in ("-H",):
+                Manpage()
+        x = flt(0)
+        x.N = 4
+        x.rtz = False
         return args
 if 1:  # Core functionality
     def DeriveEquations():
@@ -146,12 +155,43 @@ if 1:  # Core functionality
         exit()
     def C(T_degF):
         return 5/9*(T_degF - 32)
-    def V(pct_chg, T_degC):
+    def Voltage(pct_chg, T_degC):
         '''I cannot attribute this formula for lead-acid battery voltage as a
         function of % of charge and electrolyte temperature, as I found it many
         years ago and didn't write down the source.
         '''
         return (pct_chg/100 + 15.5151)/1.3065 + (T_degC - 26.7)/231.7
+    def ChargeTable(temperature):
+        'Print charge table when command line has a temperature'
+        T = int(temperature)
+        if T % 10 != 0:
+            print("Temperature must be divisible by 10")
+            exit(1)
+        degC = d["-c"]
+        w = int(os.environ.get("COLUMNS", 80)) - 1 
+        print(f"{t.bad}{'Lead-Acid Battery Voltage at % of Charge':^{w}s}{t.n}\n")
+        deg = f"°{'C' if degC else 'F'}"
+        n = 6
+        s = f"Temperature in {deg}"
+        print(f"{t.good}{s:^{w}s}{t.n}")
+        print(" %  ", end=f"{t.good}")
+        for i in range(10):
+            print(f"{T + i:^{n}d} ", end="")
+        print(t.n)
+        print("--- ", end="")
+        for i in range(10):
+            print(f"{'-'*n:^{n}s} ", end="")
+        print()
+        for pct in range(0, 101, 10):
+            print(f"{pct:3d}", end=" ")
+            for T_offset in range(10):
+                T0 = T + T_offset
+                if not degC:
+                    T0 = C(T0)  # Change F to C
+                v = Voltage(pct, T0)
+                print(f"{v:{n}.3f}", end=" ")
+            print()
+        print()
     def VoltageTable(degC=True):
         '''Print out a table of % of charge as a function of DC voltage.
         The voltages go down the left column from 11.6 to 12.8 in steps of
@@ -164,8 +204,44 @@ if 1:  # Core functionality
             V = (P/100 + 15.5151)/1.3065 + (T - 80)/417
             P = -0.313309352517986*T + 130.65*V - 1526.44525179856
         '''
-        if d["-f"]: # Use °F
-            pass
+        if not d["-c"]: # Use °F
+            if 1:   # Print header
+                print(f"Percent charge as a function of lead-acid battery voltage")
+                print("  (Battery has not been charged or discharged for at least 24 hours)")
+                print()
+                print(f"{'Electrolyte Temperature, °F':^{g.W}s}")
+                # Percent of charge will be a 2 digit integer and
+                # temperature will be 3 digits (typically to allow from 0
+                # to 160 °F).  We'll have a space between columns, so each
+                # column will be 4 characters.  The first column is voltage
+                # and will be 5 characters.
+                T_degF = list(range(0, 161, 10))
+                # Trim items off this list until the column width is <= g.W
+                while len(T_degF)*4 + 7 > g.W:
+                    T_degF.pop()
+                print(f"Volts ", end="")
+                for T in T_degF:
+                    print(f"{T:>4d}", end="")
+
+                print()
+                print(f"----- ", end="")
+                for T in T_degF:
+                    print(f" ---", end="")
+                print()
+            # Print table
+            for V in frange("11.7", "12.8", "0.05", include_end=True, return_type=flt):
+                print(V, end=" ")
+
+                for T in T_degF:
+                    P = -0.313309352517986*T + 130.65*V - 1526.44525179856
+                    if 0 <= P <=100:
+                        if P < 50:
+                            print(f"{t.bad}{int(round(P, 0)):>4d}{t.n}", end="")
+                        else:
+                            print(f"{t.good}{int(round(P, 0)):>4d}{t.n}", end="")
+                    else:
+                        print(f"{'  · '}", end="")
+                print()
         else:       # Use °C
             if 1:   # Print header
                 print(f"Percent charge as a function of lead-acid battery voltage")
@@ -174,7 +250,7 @@ if 1:  # Core functionality
                 print(f"{'Electrolyte Temperature, °C':^{g.W}s}")
                 # Percent of charge will be a 2 digit integer and
                 # temperature will be 3 digits (typically to allow from -20
-                # to 70).  We'll have a space between columns, so each
+                # to 70 °C).  We'll have a space between columns, so each
                 # column will be 4 characters.  The first column is voltage
                 # and will be 5 characters.
                 T_degC = list(range(-20, 71, 5))
@@ -200,43 +276,8 @@ if 1:  # Core functionality
                         else:
                             print(f"{t.good}{int(round(P, 0)):>4d}{t.n}", end="")
                     else:
-                        #print(f"····", end="")
-                        c = "․"
-                        c = "˙"
-                        c = "·"
-                        #print(f"{c*3:>4s}", end="")
                         print(f"{'  · '}", end="")
                 print()
-    def ChargeTable(temperature):
-        T = int(temperature)
-        if T % 10 != 0:
-            print("Temperature must be divisible by 10")
-            exit(1)
-        degC = not d["-f"]
-        w = int(os.environ.get("COLUMNS", 80)) - 1 
-        print(f"{t.bad}{'Lead-Acid Battery Voltage at % of Charge':^{w}s}{t.n}\n")
-        deg = f"°{'C' if degC else 'F'}"
-        n = 6
-        s = f"Temperature in {deg}"
-        print(f"{t.good}{s:^{w}s}{t.n}")
-        print(" %  ", end=f"{t.good}")
-        for i in range(10):
-            print(f"{T + i:^{n}d} ", end="")
-        print(t.n)
-        print("--- ", end="")
-        for i in range(10):
-            print(f"{'-'*n:^{n}s} ", end="")
-        print()
-        for pct in range(0, 101, 10):
-            print(f"{pct:3d}", end=" ")
-            for T_offset in range(10):
-                T0 = T + T_offset
-                if not degC:
-                    T0 = C(T0)  # Change F to C
-                v = V(pct, T0)
-                print(f"{v:{n}.3f}", end=" ")
-            print()
-        print()
 
 if __name__ == "__main__":
     d = {}      # Options dictionary
@@ -244,4 +285,5 @@ if __name__ == "__main__":
     if not args:
         VoltageTable()
     else:
-        ChargeTable(args[0])
+        for arg in args:
+            ChargeTable(arg)
