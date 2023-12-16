@@ -40,38 +40,37 @@ Here are the major steps in solving the problem:
  
 Note:  this script was originally written in python 1.5.2 during a
 weekend in 2000 when my wife and daughter went to the Winter Olympics in
-Utah.
+Utah.  It took about 120 minutes to solve the problem.
 
 Fri 19 Feb 2016 10:01:57 AM Search time on Intel Quad running Ubuntu
     14.04 (machine Jimmy built in Feb 2011):
-        Search time = 620.7 sec
-    Note this script originally took over 2 hours on my Micron laptop in the
-    year 2000 (I can pin it down in time, as my wife and daughter went to
-    the winter Olympics in Salt Lake City and I stayed home).
+        Search time = 620.7 sec = 10.3 minutes
 
 Tue 28 Nov 2017 08:37:46 PM
-
     Run on newer Windows computer with RAM disks that Jimmy built me
-    around mid-2016.  Time to solve = 357.7 s = 5.9 minutes.  788044
-    permutations/s, total number of permutations checked = 281887200.
-
-    Note this is a reduction of 20 times in run time over a period of 17
-    years.
+    around mid-2016.  Time to solve = 357.7 s = 5.9 minutes
 
 Thu 06 May 2021 07:29:43 PM
     Same Windows computer with python 3.7.7 in 300 s = 5.0 minutes.
 
-    I also analyzed a copy of this script and it's pretty clear that it
-    would be difficult to speed up because it's going through 2.3e6
-    iterations of a function in the main while loop and this function
-    takes around 0.12 ms, which gives about 300 s execution time.  The
-    search rate is 939k permutations checked per second.  Note there
-    were 281887200 permutations checked, which is (51 choose 5)*5! or
-    51*50*49*48*47 = 281887200.
+Fri 15 Dec 2023 03:00:02 PM
+    Same Windows computer with python 3.9.10 in 246 s = 4.1 minutes.
 
-    The only strategies for more speed would be 1) reduce the number of
-    combinations that need to be checked or 2) reduce the time that
-    CheckCombination() takes.
+---------------------------------------------------------------------------
+
+I've analyzed a copy of this script and it's pretty clear that it would be
+difficult to speed up because it's going through 2.3e6 iterations of a
+function in the main while loop and this function takes around 0.12 ms,
+which gives about 300 s execution time.  The search rate is 939k
+permutations checked per second.  Note there were 281887200 permutations
+checked, which is (51 choose 5)*5! or 51*50*49*48*47 = 281887200.
+
+The only strategies for more speed would be
+    - Reduce the number of combinations that need to be checked
+    - Reduce the time that CheckCombination() takes
+    - Use multiple threads
+
+
 '''
  
 # Copyright (C) 2014 Don Peterson
