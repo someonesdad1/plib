@@ -70,6 +70,18 @@ The only strategies for more speed would be
     - Reduce the time that CheckCombination() takes
     - Use multiple threads
 
+---------------------------------------------------------------------------
+
+Fri 15 Dec 2023 06:40:57 PM
+
+Thoughts about using multithreading to reduce computation time
+    - Since this computer has 4 cores, perhaps a 3 to 4 times speed
+      improvement could be gotten
+    - The controlling thread could keep a deque containing the combinations
+      of the calculations needing to be done.  
+    - Worker threads would pull off calculations and perform them.
+    - The working functions need to be vetted to be sure they aren't using
+      global data.
 
 '''
  
