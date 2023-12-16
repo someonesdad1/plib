@@ -389,7 +389,7 @@ if __name__ == "__main__":
     current_combination = comb_perm.GetCombination(51, 5, init=1, zero_based=1)
     # The first combination is (0, 1, 2, 3, 4)
     count = 1  # Number of combinations examined
-    total_expected = 51*50*49*48*47/(5*4*3*2)    # (51 choose 5)
+    total_expected = 51*50*49*48*47/(5*4*3*2)    # (51 choose 5) = 2349060
     last_printed = -1
     while current_combination:
         CheckCombination(current_combination)

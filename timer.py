@@ -1,4 +1,8 @@
 '''
+Todo
+    - Add split() method to Timer.  Or let et() be allow to be called when
+      running.
+
 Time-related tools:
     Stopwatch class:  For elapsed times
     Timer class:  Tool that works as a context manager and decorator

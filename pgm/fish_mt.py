@@ -333,7 +333,7 @@ if 1:   # Core functions
                 print(prefix, end="")
             print(("%-12s " * 5) % item)
 
-if 1:
+if 0:
     # This code shows that a list of 535e6 5-byte strings can be created
     # without running out of memory.  The used memory was over 4 GB.
     s = b'abcde'
@@ -348,6 +348,27 @@ if 1:
     # Results:  I killed things at 4e9 bytes, as garbage collection was
     # slowing things way down.
     exit()
+if 1:
+    # Time how long it takes to create a deque of 281887200 5-byte
+    # bytestrings.
+    from collections import deque
+    from timer import Timer, Stopwatch
+    b = b'abcde'
+    dq = deque()
+    sw = Stopwatch()
+    for i in range(281887200):
+        dq.append(b)
+    print(f"{sw()} s")
+    exit()
+    '''
+    Result was 18.4 s.
+    
+    Conclusion:  since I'm shooting for a run time of 60 to 90 s, this
+    initialization takes 20% to 30% of the total run time.  I feel it would
+    be much better to use a generator and avoid this overhead.  
+
+    '''
+        
 
 if __name__ == "__main__":
     start_time = time.time()
