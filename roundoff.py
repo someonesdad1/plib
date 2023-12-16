@@ -5,7 +5,7 @@ Roundoff()
         745.6998719999999               --> 745.699872
         4046.8726100000003              --> 4046.87261
         0.0254*12 = 0.30479999999999996 --> 0.3048
-
+ 
 TemplateRound()
     Used to round a number to a template.  Examples:
         TemplateRound(123.48, 0.1, up=True)  --> 123.5
@@ -177,22 +177,13 @@ def TemplateRound(x, template, up=True):
     '''Round a number x to a template number.  The basic algorithm is to
     determine how many template values are in x.  You can choose to
     round up (the default) or down.  This should work with x and template
-    being any numerical types with floating point semantics.
+    being any numerical types with floating point semantics.  The absolute
+    value of template is used.
  
-    The basic algorithm came from pg 435 of the 31 Oct 1988 issue of "PC
+    The algorithm is derive from pg 435 of the 31 Oct 1988 issue of "PC
     Magazine" written in BASIC:
- 
         DEF FNRound(Amount, Template) =
             SGN(Amount)*INT(0.5 + ABS(Amount)/Template)*Template
- 
-    I was able to look this reference up because when I went to HP in 1980,
-    we were required to use HP's lab notebooks while doing R&D work.  I
-    hated these corporate lab notebooks because they had stiff perfect
-    bindings, rather than a decent sewn-in-signature binding.  They often
-    wouldn't lay flat on your desk.  The executive I worked for at the time
-    had a nice lab notebook for himself:  a Boorum and Pease No. 21.  I
-    liked it so much I bought myself one for home use in 1983 and have kept
-    track of technical tidbits ever since.
     '''
     if not template:
         raise ValueError("template must not be zero")
@@ -202,11 +193,15 @@ def TemplateRound(x, template, up=True):
     if sign < 0:
         up = not up
     nt = type(x) if type(x) != int else float
+    # Find out how many template "units" there are in x
     y = int(abs(x/template) + nt("0.5"))*abs(template)
+    # Do rounding as needed
     if up and y < abs(x):
         y += template
     elif not up and y > abs(x):
         y -= template
+    # Check that y is within one template of x
+    assert abs(abs(x) - abs(y)) <= abs(template)
     return sign*y
 
 if __name__ == "__main__":
@@ -257,7 +252,6 @@ if __name__ == "__main__":
             a, t = mpf("123.48"), mpf("0.1")
             Assert(TemplateRound(a, t, up=True) == mpf("123.5"))
             Assert(TemplateRound(a, t, up=False) == mpf("123.4"))
-
     def Test_RoundOff():
         Assert(RoundOff(745.6998719999999) == 745.699872)
         Assert(RoundOff(745.6998719999999, 5) == 745.70)
