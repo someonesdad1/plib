@@ -382,14 +382,18 @@ if 1:   # Core functionality
         s = GetDrake()
         print("Drake message from Shklovskii & Sagan pg 423")
         PrintSummary(s)
+        print(dedent('''
+        
+        Note:  I suspect there are errors in the table on page 423 because the carbon
+        atom picture is wrong.'''))
     def PrintSummary(s):
+        'Print a summary of the message string s'
         bits = len(s)
         cksum = sum(int(i) for i in s)
         md5 = hashlib.md5()
         md5.update(s.encode())
-        digest = md5.hexdigest()
         print(f"  {len(s)} bits:  {cksum} 1's, {bits - cksum} 0's")
-        print(f"  MD5 hash of binary string:  {digest}")
+        print(f"  MD5 hash of binary string:  {md5.hexdigest()}")
         PrintBinaryString(s)
     def PrintBinaryString(s):
         '''Fit the string s to the screen and use a number of columns that
