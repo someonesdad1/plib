@@ -43,86 +43,6 @@ References
 [5] https://www.universetoday.com/153920/what-is-the-arecibo-message/
 [6] https://www.seti.org/seti-institute/project/details/arecibo-message
 '''
-
-
-
-# From https://pages.uoregon.edu/jimbrau/astr123/Notes/ch28/73by23.html
-# Sent 16 Nov 1974 aimed at M13
-Arecibo1679 = '''
-00000010101010000000000
-00101000001010000000100
-10001000100010010110010
-10101010101010100100100
-00000000000000000000000
-00000000000011000000000
-00000000001101000000000
-00000000001101000000000
-00000000010101000000000
-00000000011111000000000
-00000000000000000000000
-11000011100011000011000
-10000000000000110010000
-11010001100011000011010
-11111011111011111011111
-00000000000000000000000
-00010000000000000000010
-00000000000000000000000
-00001000000000000000001
-11111000000000000011111
-00000000000000000000000
-11000011000011100011000
-10000000100000000010000
-11010000110001110011010
-11111011111011111011111
-00000000000000000000000
-00010000001100000000010
-00000000001100000000000
-00001000001100000000001
-11111000001100000011111
-00000000001100000000000
-00100000000100000000100
-00010000001100000001000
-00001100001100000010000
-00000011000100001100000
-00000000001100110000000
-00000011000100001100000
-00001100001100000010000
-00010000001000000001000
-00100000001100000000100
-01000000001100000000100
-01000000000100000001000
-00100000001000000010000
-00010000000000001100000
-00001100000000110000000
-00100011101011000000000
-00100000001000000000000
-00100000111110000000000
-00100001011101001011011
-00000010011100100111111
-10111000011100000110111
-00000000010100000111011
-00100000010100000111111
-00100000010100000110000
-00100000110110000000000
-00000000000000000000000
-00111000001000000000000
-00111010100010101010101
-00111000000000101010100
-00000000000000101000000
-00000000111110000000000
-00000011111111100000000
-00001110000000111000000
-00011000000000001100000
-00110100000000010110000
-01100110000000110011000
-01000101000001010001000
-01000100100010010001000
-00000100010100010000000
-00000100001000010000000
-00000100000000010000000
-00000001001010000000000
-01111001111101001111000
-'''[1:-1]
 if 1:   # Header
     if 1:   # Copyright, license
         # These "trigger strings" can be managed with trigger.py
@@ -162,8 +82,9 @@ if 1:   # Header
         g.L = int(os.environ.get("LINES", "50"))
 if 1:   # Utility
     def GetColors():
-        t.dbg = t("lill") if g.dbg else ""
-        t.N = t.n if g.dbg else ""
+        t.dbg = t("lill")
+        t.ruler = t("sky")
+        t.N = t.n
     def Dbg(*p, **kw):
         if g.dbg:
             print(f"{t.dbg}", end="")
@@ -224,7 +145,7 @@ if 1:   # Utility
                 raise AssertionError(msg)
     Assert.debug = False
 if 1:   # Core functionality
-    def Oliver1271():
+    def GetOliver():
         'Return the 1271 bit Oliver message'
         # Screen-scraped from PDF of pg 5 of ref [1]
         s = '''
@@ -263,23 +184,21 @@ if 1:   # Core functionality
         '''
         s = s.replace("\n", "").replace(" ", "")
         Assert(len(s) == 1271 + 1)  # The '.' is an extra character
-        return s
-    def GetOliver():
-        '''The set of non-whitespace characters in the screen-scraped message
-        is '.01Qlo~'.  I would make the following substitutions:
-                        Row Col
-            .   ' '      6   21  Length of line indicates it's spurious
-            0   None    
-            1   None    
-            Q   '0'      6   13
-            l   '1'     various  Easy to see why confused with 1
-            o   '0'      6   20
-            ~   '0'      8   13  Gotten by counting in figure 2  
-        It's supposed to be 41 columns and 31 rows.  However, return the string
-        of 1271 characters.
-        '''
-        s = Oliver1271()
-        if 1:   # Fix the data
+        if 1: # Fix the data
+            '''The set of non-whitespace characters in the data is '.01Qlo~'.
+            I would make the following substitutions:
+
+                            Row Col
+                .   ' '      6   21  Length of line indicates it's spurious
+                0   None    
+                1   None    
+                Q   '0'      6   13
+                l   '1'     various  Easy to see why confused with 1
+                o   '0'      6   20
+                ~   '0'      8   13  Gotten by counting in figure 2  
+            It's supposed to be 41 columns and 31 rows.  However, return the string
+            of 1271 characters.
+            '''
             # Remove spaces and newlines
             s = s.replace(" ", "").replace("\n", "")
             # Remove the '.'
@@ -316,6 +235,51 @@ if 1:   # Core functionality
     def GetDrake():
         s = Drake.replace("\n", "")
         Assert(len(s) == 551)
+        return s
+    def GetArecibo():
+        'Return the 1679 bit Arecibo message'
+        # From https://pages.uoregon.edu/jimbrau/astr123/Notes/ch28/73by23.html
+        s = '''
+            00000010101010000000000 00101000001010000000100
+            10001000100010010110010 10101010101010100100100
+            00000000000000000000000 00000000000011000000000
+            00000000001101000000000 00000000001101000000000
+            00000000010101000000000 00000000011111000000000
+            00000000000000000000000 11000011100011000011000
+            10000000000000110010000 11010001100011000011010
+            11111011111011111011111 00000000000000000000000
+            00010000000000000000010 00000000000000000000000
+            00001000000000000000001 11111000000000000011111
+            00000000000000000000000 11000011000011100011000
+            10000000100000000010000 11010000110001110011010
+            11111011111011111011111 00000000000000000000000
+            00010000001100000000010 00000000001100000000000
+            00001000001100000000001 11111000001100000011111
+            00000000001100000000000 00100000000100000000100
+            00010000001100000001000 00001100001100000010000
+            00000011000100001100000 00000000001100110000000
+            00000011000100001100000 00001100001100000010000
+            00010000001000000001000 00100000001100000000100
+            01000000001100000000100 01000000000100000001000
+            00100000001000000010000 00010000000000001100000
+            00001100000000110000000 00100011101011000000000
+            00100000001000000000000 00100000111110000000000
+            00100001011101001011011 00000010011100100111111
+            10111000011100000110111 00000000010100000111011
+            00100000010100000111111 00100000010100000110000
+            00100000110110000000000 00000000000000000000000
+            00111000001000000000000 00111010100010101010101
+            00111000000000101010100 00000000000000101000000
+            00000000111110000000000 00000011111111100000000
+            00001110000000111000000 00011000000000001100000
+            00110100000000010110000 01100110000000110011000
+            01000101000001010001000 01000100100010010001000
+            00000100010100010000000 00000100001000010000000
+            00000100000000010000000 00000001001010000000000
+            01111001111101001111000
+        '''
+        s = s.replace("\n", "").replace(" ", "")
+        Assert(len(s) == 1679)
         return s
     def PrintRows(s, nrows, one="1", zero="0", double=False):
         '''Given the binary string s, print out the 1's and 0's with the
@@ -366,17 +330,18 @@ if 1:   # Core functionality
         s = GetOliver()
         print("Barney Oliver message from 1961")
         PrintSummary(s)
-    def PrintBinaryString(s):
-        'Fit the string s to the screen'
-        n = g.W
-        while n % 10:
-            n -= 1
-        m = 0   # Keep track of number of characters printed
-        for i in range(0, len(s) + 1, n):
-            u = s[i:i + n]
-            print(u)
-            m += len(u)
-        Assert(m == len(s))
+    def PlotArecibo():
+        s = GetArecibo()
+        print("Arecibo message from 1974\n")
+        # Useful characters: ● █ ․ ‥
+        one, zero = "█", "․"
+        # 1679 bits = 23*73
+        rows = 23 if d["-r"] else 73
+        PrintRows(s, nrows=rows, one=one, zero=zero, double=d["-2"])
+    def PrintArecibo():
+        s = GetArecibo()
+        print("Arecibo message from 1974")
+        PrintSummary(s)
     def PrintSummary(s):
         bits = len(s)
         cksum = sum(int(i) for i in s)
@@ -384,53 +349,53 @@ if 1:   # Core functionality
         md5.update(s.encode())
         digest = md5.hexdigest()
         print(f"  {len(s)} bits, {cksum} 1's, {bits - cksum} 0's")
-        print(f"  MD5 hash:  {digest}")
+        print(f"  MD5 hash of binary string:  {digest}")
         PrintBinaryString(s)
-
-PrintOliver();exit()
+    def PrintBinaryString(s):
+        '''Fit the string s to the screen and use a number of columns that
+        is divisible by 10.  Also use rulers to help see rows and columns.
+        '''
+        n = g.W
+        while n % 10:
+            n -= 1
+        m = 0   # Keep track of number of characters printed
+        # Divide into rows
+        rows = []
+        for i in range(0, len(s) + 1, n):
+            row = s[i:i + n]
+            rows.append(row)
+            m += len(row)
+        Assert(m == len(s))
+        # Print the header
+        w = len(str(len(rows)))
+        m = n//10
+        print(f"{' '*w} {t.ruler}", end="")
+        for i in range(m):
+            s = str(i + 1)
+            u = " "*(10 - len(s))
+            print(f"{u}{s}", end="")
+        t.print()
+        # Print the rows
+        t.print(f"{' '*w} {t.ruler}{'1234567890'*m}")
+        for i, row in enumerate(rows):
+            print(f"{t.ruler}{i + 1:{w}d}{t.n} {row}")
 
 if __name__ == "__main__":
     d = {}      # Options dictionary
     args = ParseCommandLine(d)
     GetColors()
     action = int(args[0])
-    if action == 0:     # Plot the Oliver raster pattern
+    if action == 1:
         PlotOliver()
-    elif action == 1:   # Encode the Oliver message in hex
-        oliver = RecoverData(Oliver)
-        bits = 8
-        msg = []
-        src = oliver
-        while src:
-            m = src[:bits]
-            src = src[bits:]
-            if len(m) != 8:
-                breakpoint() #xx
-            val = int(m, 2)
-            u = f"{val:02x}"
-            msg.append(f"{u:2s}")
-        for i, u in enumerate(msg):
-            if i and i % 25 == 0:
-                print()
-            print(f"{u} ", end="")
-        print()
-        if 1:   # Recover the binary; prove it by printing the picture
-            o = []
-            for i in msg:
-                u = f"{int(i, 16):08b}"
-                o.append(u)
-                print(o)
-            new_s = ''.join(o)
-            Assert(oliver == new_s)
-    elif action == 2:   # Plot the Drake data
-        drake = GetDrake()
-        # Factors of len(drake) == 551 are 19 and 29
-        if 1:
-            # Print 29 rows
-            one = "●"
-            one = "█"
-            zero = "․"
-            PrintRows(drake, nrows=29, one=one, zero=zero, double=0)
-        else:
-            # Print 41 rows
-            PrintRows(drake, nrows=19, one=one, zero=zero, double=False)
+    elif action == 2:
+        PlotArecibo()
+    elif action == 3:
+        PlotDrake()
+    elif action == 4:
+        PrintOliver()
+    elif action == 5:
+        PrintArecibo()
+    elif action == 6:
+        PrintDrake()
+    else:
+        Error(f"{action} is an illegal action")
