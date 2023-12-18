@@ -27,7 +27,7 @@ if 1:   # Header
     if 1:   # Custom imports
         from wrap import dedent
         from color import t
-        if 1:   # Drops into debugger on exception
+        if 0:   # Drops into debugger on exception
             import debug
             debug.SetDebugger()
     if 1:   # Global variables
@@ -89,14 +89,14 @@ if 1:   # Utility
 
         Even with the explanations of these bitmaps, they can be a bit hard to follow
         or see without careful studying.  I got interested in these messages after
-        reading [7] again, which I consider very good because of the careful and
-        thoughtful contributions of the confererence's attendees (many were amongst
-        the top scientists at the time).  I loaned the book to a friend, both because
-        I thought he might be interested in some of the discussions and some of the
-        ideas/topics might make for interesting discussions/projects amongst his
-        students (he teaches at a local university).  In particular, I was wondering
-        if it could make a good term project (or perhaps one or more dissertations)
-        to see if software could be written that would extract some of the messages
+        reading [7] again, which I consider an excellent book because of the careful
+        and thoughtful contributions of the confererence's attendees (many were
+        amongst the top scientists at the time).  I loaned the book to a friend, both
+        because I thought he might be interested in some of the discussions and some
+        of the ideas/topics might make for interesting discussions/projects amongst
+        his students.  I was wondering if it could help make good term or research
+        projects for students.  Since his students are computer science students, I
+        wondered if software could be written that would extract some of the messages
         within the bitmap.
 
         References
@@ -114,6 +114,8 @@ if 1:   # Utility
         [6] https://www.seti.org/seti-institute/project/details/arecibo-message
         [7] Sagan (ed.), "Communication with Extraterrestrial Intelligence", MIT
             Press, 1975
+        [8] https://en.wikipedia.org/wiki/Lincos_language
+        [9] https://math.dartmouth.edu/~carlp/PDF/extraterrestrial.pdf
         '''))
         exit(0)
     def Usage(status=1):
@@ -244,7 +246,7 @@ if 1:   # Core functionality
             s = s.replace("~", "0")
         Assert(len(s) == 1271)
         return s
-    def Drake():
+    def GetDrake():
         'Return the 551 bit Drake message'
         # From Shklovskii & Sagan [2] pg 423 
         s = '''
@@ -264,10 +266,6 @@ if 1:   # Core functionality
         001000111100101111
         '''
         s = s.replace("\n", "").replace(" ", "")
-        Assert(len(s) == 551)
-        return s
-    def GetDrake():
-        s = Drake.replace("\n", "")
         Assert(len(s) == 551)
         return s
     def GetArecibo():
@@ -315,7 +313,7 @@ if 1:   # Core functionality
         s = s.replace("\n", "").replace(" ", "")
         Assert(len(s) == 1679)
         return s
-    def PrintRows(s, nrows, one="1", zero="0", double=False):
+    def PlotRows(s, nrows, one="1", zero="0", double=False):
         '''Given the binary string s, print out the 1's and 0's with the
         indicated characters.  If double is True, then print two characters
         for each bit, as this can help with the anisotropic nature of a
@@ -324,7 +322,7 @@ if 1:   # Core functionality
         '''
         Assert(set(s) == set("01"))
         ncols = len(s)//nrows
-        Dbg(f"PrintRows:  {len(s)} bits, {nrows} rows, {ncols} columns")
+        Dbg(f"PlotRows:  {len(s)} bits, {nrows} rows, {ncols} columns")
         if ncols*nrows != len(s):
             Dbg(f"  Warning:  ncols*nrows != len(s)")
         # Print a header to get column numbering
@@ -359,7 +357,7 @@ if 1:   # Core functionality
         print("Barney Oliver message from 1961\n")
         # 1271 bits = 31*41
         rows = 41 if d["-r"] else 31
-        PrintRows(s, nrows=rows, one=g.one, zero=g.zero, double=d["-2"])
+        PlotRows(s, nrows=rows, one=g.one, zero=g.zero, double=d["-2"])
     def PrintOliver():
         s = GetOliver()
         print("Barney Oliver message from 1961")
@@ -369,10 +367,20 @@ if 1:   # Core functionality
         print("Arecibo message from 1974\n")
         # 1679 bits = 23*73
         rows = 23 if d["-r"] else 73
-        PrintRows(s, nrows=rows, one=g.one, zero=g.zero, double=d["-2"])
+        PlotRows(s, nrows=rows, one=g.one, zero=g.zero, double=d["-2"])
     def PrintArecibo():
         s = GetArecibo()
         print("Arecibo message from 1974")
+        PrintSummary(s)
+    def PlotDrake():
+        s = GetDrake()
+        print("Drake message from Shklovskii & Sagan pg 423 \n")
+        # 551 bits = 19*29
+        rows = 19 if d["-r"] else 29
+        PlotRows(s, nrows=rows, one=g.one, zero=g.zero, double=d["-2"])
+    def PrintDrake():
+        s = GetDrake()
+        print("Drake message from Shklovskii & Sagan pg 423")
         PrintSummary(s)
     def PrintSummary(s):
         bits = len(s)
