@@ -1,15 +1,18 @@
 '''
 
 TODO
-    - Consider changing to a datafile format.
+    - Change to a datafile format
+        - Get rid of prompting stuff
         - You then define variables ca, cb, cm, va, vb, vm
         - concentrations can be plain or have % appended
         - conc_unit = "%" or "" (used in output report)
         - vol_unit = "xxxx" 
         - Input data are printed, then report of results is given
-    - Change to allow calculations via either mass or volume basis
+    - 
+    - Allow calculations via either mass or volume basis
         - -v is volume basis (default)
         - -m is mass basis
+        - Or use 'basis = "mass"' in datafile
     - Allow specification of volume units and use of common ones
     - Use the u library so various units can be used
         - The -u option lets you specify the output volume unit
@@ -137,6 +140,12 @@ if 1:  # Utility
         return args
     def Manpage(d):
         print(dedent('''
+
+Use [1] to provide a gentler introduction and to help design
+further additions to the code.  Get rid of the interactive solution
+code.
+
+
         This script calculates the concentration of a solution gotten by mixing
         two volumes of solutions of differing concentrations.  The solute
         is the solution that is diluted by adding solvent.  Example:  a
@@ -225,6 +234,13 @@ if 1:  # Utility
         unit used for the volumes used in the report.  Use the -c option to
         print a sample datafile and supply the known variables.  The u()
         function accepts commonly-used volume units.
+
+        References
+        ----------
+        At site https://www.physiologyweb.com/calculators (add this prefix to urls)
+            [1] Percent solutions:  percent_solutions_calculator.html
+            [2] Mass per unit volume calculator:  mass_per_volume_solution_concentration_calculator.html
+            [3] Dilution calculator: dilution_calculator_mass_per_volume.html
         '''))
         exit(0)
 if 1:  # Interactive solution

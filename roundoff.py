@@ -139,13 +139,13 @@ def RoundOff(number, digits=12, convert=False):
                 return z
     else:
         raise TypeError("Unrecognized floating point type")
-def SigFig(x):
+def SigFig(x, clamp=True):
     '''Return the number of significant figures in the float x (x must
     be anything that can be converted to a float).  This is done by
     rounding to 12 figures, the default for RoundOff().  Note you won't
     get more than 12 figures, even if the number has them.  The reason for
     this is that essentially no practical measured data ever has 12
-    figures.  
+    figures.  If you do want more than 12, set clamp to False.
  
     Note that trailing '0' digits are removed, so a number like 30000
     will have 1 significant figure, as will 30000.00.  If you're

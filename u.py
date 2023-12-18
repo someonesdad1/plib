@@ -2278,7 +2278,7 @@ def GetDim(s, strict=False):
     dimobj = u(s, dim=1, strict=strict)[1]
     return dimobj
 def FormatUnit(unit, expr=False, flat=False, solidus=False, strict=False,
-               sep="\xb7"):
+               sep="·"):
     '''Return a formatted version of the unit string.  For the input
     string unit = "kg*m/(s2*K)", examples of the styles are:
  
@@ -2291,7 +2291,7 @@ def FormatUnit(unit, expr=False, flat=False, solidus=False, strict=False,
     superscripts with an equivalent '**number' form, but the last one is
     not, at least with respect to a left-associative parser like
     python's.  However, it is a convenient form for informal work as
-    long as you recognized that all terms after '//' are in the units
+    long as you recognize that all terms after '//' are in the units
     denominator.
  
     If strict is True, the unit expression must be algebraically
@@ -2302,7 +2302,8 @@ def FormatUnit(unit, expr=False, flat=False, solidus=False, strict=False,
     fraction will be converted to a float and you'll need parentheses to
     get the proper expression.
  
-    sep is the string that separates the unit tokens.
+    sep is the string that separates the unit tokens; the default is the
+    middle dot U+B7.
     '''
     def Separate(d):
         'Return two dicts of numerator & denominator terms'
@@ -2373,13 +2374,17 @@ def FormatUnit(unit, expr=False, flat=False, solidus=False, strict=False,
             D.append(sep.join(s))
         if close:
             D.append(")")
-    if 0:
-        print(f"N = {N}")
-        print(f"D = {D}")
     if flat:
-        return sep.join([sep.join(N), sep.join(D)])
+        if N:
+            s = sep.join([sep.join(N), sep.join(D)])
+            return s if D else sep.join(N)
+        else:
+            return sep.join(D) if D else ""
     else:
-        return ''.join([''.join(N), ''.join(D)])
+        if N:
+            return ''.join([''.join(N), ''.join(D)]) if D else ''.join(N)
+        else:
+            return ''.join(D) if D else ''
 def PrintSupportedUnits():
     'Print out the supported units'
     from columnize import Columnize

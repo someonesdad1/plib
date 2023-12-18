@@ -40,7 +40,8 @@ Here are the major steps in solving the problem:
  
 Note:  this script was originally written in python 1.5.2 during a
 weekend in 2000 when my wife and daughter went to the Winter Olympics in
-Utah.  It took about 120 minutes to solve the problem.
+Utah.  It took about 120 minutes to solve the problem on the Micron laptop
+I had at the time.
 
 Fri 19 Feb 2016 10:01:57 AM Search time on Intel Quad running Ubuntu
     14.04 (machine Jimmy built in Feb 2011):

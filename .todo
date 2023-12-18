@@ -194,7 +194,7 @@ Active
 
     - pgm/mixture.py
         - This works well now as a volume-based script
-        - Consider removing the interaction prompting portion, as I much
+        - Consider removing the interaction prompting portion, as I 
           prefer the datafile-driven approach since it allows faster
           problem solving.
         - Add a mass-based option which lets you calculate in mass per unit

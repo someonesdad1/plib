@@ -2,6 +2,7 @@ from sig import GetSigFig
 from collections import defaultdict, deque
 '''
 Sat 28 Aug 2021 08:24:20 AM
+    (Checked again Sun 17 Dec 2023 08:24:17 AM and is identical)
 from https://physics.nist.gov/cuu/Constants/Table/allascii.txt
 This is a python script that will print a histogram of the number of significant figures
 for each of the constants.
@@ -17,6 +18,7 @@ for each of the constants.
 0         1         2         3         4         5         6         7         8         9        10        11        12
 |····+····|····+····|····+····|····+····|····+····|····+····|····+····|····+····|····+····|····+····|····+····|····+····|····+
 '''
+
 data = '''
 alpha particle-electron mass ratio                          7294.299 541 42          0.000 000 24             
 alpha particle mass                                         6.644 657 3357 e-27      0.000 000 0020 e-27      kg
@@ -373,6 +375,7 @@ Wien frequency displacement law constant                    5.878 925 757... e10
 Wien wavelength displacement law constant                   2.897 771 955... e-3     (exact)                  m K
 W to Z mass ratio                                           0.881 53                 0.000 17                 
 '''
+
 d = defaultdict(int)
 count, U = 0, []
 for line in data.split("\n"):
