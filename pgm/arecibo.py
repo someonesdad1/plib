@@ -1,47 +1,6 @@
 '''
 Various binary messages for extraterrestrial communication
 
-Oliver1271 (1961, referenced on pg 6 of [1])
-
-    On pg 5 it gives a 1271 bit = 31*41 message in Figure 1, which I screen
-    scraped from the PDF (using the SumatraPDF viewer).  Barney Oliver
-    constructed this message in 1961 after a conference in Green Bank.  The
-    decrypted message is shown on pg 6.  Page 7 contains the
-    interpretation.  As far as I know, this message was never sent, but it
-    provided many of the ideas for Drake's 1974 Arecibo message.
-
-Drake (hypothetical) pg 423 of [2]
-
-    This message is given in binary form on pg 423, but it appears to have
-    errors when compared to the decoding given in figure 30-2 on pg 425 (in
-    particular, the carbon atom is wrong).
-
-Arecibo1679 (Arecibo message 16 Nov 1974) See [3].
-
-    This is a binary message sent via the Arecibo radio telescope in Puerto
-    Rico.  The signal was aimed at M13, which is 25 kly away, so an answer
-    will take 50 thousand years.  It's 1679 = 73*23 bits.  A copy is at
-    [4], which is used for the data in this script.
-
-    The message was at 2.38 GHz using FM and a bandwidth of 10 Hz,
-    resulting in about 10 bits/second and took less than 3 minutes.  The
-    Arecibo telescope was 305 m in diameter and the broadcast power was on
-    the order of 1 MW.  [5, 6]
-
-References
-----------
-    All downloaded about 17 Dec 2023
-    
-[1] https://www.nsa.gov/portals/75/documents/news-features/declassified-
-    documents/cryptologic-spectrum/communications_extraterrestrial_intelligence.pdf
-    "Communication with Extraterrestrial Intelligence", DOCID 3052333,
-    author Lambros D. Callimahos.  No date given, but probably 1975 because
-    it refers to the Arecibo message of 1974 as "last November".
-[2] Sklovskii & Sagan, "Intelligent Live in the Universe", Delta, 1966
-[3] https://en.wikipedia.org/wiki/Arecibo_message
-[4] https://pages.uoregon.edu/jimbrau/astr123/Notes/ch28/73by23.html
-[5] https://www.universetoday.com/153920/what-is-the-arecibo-message/
-[6] https://www.seti.org/seti-institute/project/details/arecibo-message
 '''
 if 1:   # Header
     if 1:   # Copyright, license
@@ -93,6 +52,70 @@ if 1:   # Utility
     def Error(*msg, status=1):
         print(*msg, file=sys.stderr)
         exit(status)
+    def Manpage():
+        print(dedent(f'''
+        This script grew out of my interest in seeing both the content and bitmap
+        interpretation of these old messages put forward as examples to communicate
+        with extraterrestrial beings.
+ 
+        Oliver (hypothetical, never sent)
+ 
+            Page 5 of [1] gives a 1271 bit = 31*41 message in Figure 1, which I
+            screen scraped from the PDF (using the SumatraPDF viewer).  Barney Oliver
+            constructed this message in 1961 after a conference in Green Bank.  The
+            decrypted message is shown on pg 6.  Page 7 contains the interpretation.
+            As far as I know, this message was never sent, but it provided many of
+            the ideas for Drake's 1974 Arecibo message.
+ 
+        Drake (hypothetical, never sent)
+ 
+            This message is given in binary form on page 423 of [2], but it appears
+            to have errors when compared to the decoding given in figure 30-2 on page
+            425 (in particular, the carbon atom is wrong).
+ 
+        Arecibo (Arecibo message 16 Nov 1974) See [3, 5, 6].
+ 
+            This is a binary message of 1679 bits (73*23) sent via the Arecibo radio
+            telescope in Puerto Rico on 16 Nov 1974 (see [3]).  The signal was aimed
+            at M13, which is 25 kly away, so an answer will take 50 thousand years.
+            A copy is at [4], which is used for the binary string in this script.
+ 
+            The message was at 2.38 GHz, was frequency modulated, and had a bandwidth
+            of 10 Hz, resulting in about 10 bits/second.  It took less than 3 minutes
+            to send and was sent only once.  The Arecibo telescope was 305 m in
+            diameter and the broadcast power was on the order of 1 MW.  The purpose
+            was to demonstrate the revised Arecibo radio telescope, not to try to
+            communicate with anyone.
+
+        Even with the explanations of these bitmaps, they can be a bit hard to follow
+        or see without careful studying.  I got interested in these messages after
+        reading [7] again, which I consider very good because of the careful and
+        thoughtful contributions of the confererence's attendees (many were amongst
+        the top scientists at the time).  I loaned the book to a friend, both because
+        I thought he might be interested in some of the discussions and some of the
+        ideas/topics might make for interesting discussions/projects amongst his
+        students (he teaches at a local university).  In particular, I was wondering
+        if it could make a good term project (or perhaps one or more dissertations)
+        to see if software could be written that would extract some of the messages
+        within the bitmap.
+
+        References
+        ----------
+            URLs downloaded about 17 Dec 2023
+            
+        [1] https://www.nsa.gov/portals/75/documents/news-features/declassified-documents/cryptologic-spectrum/communications_extraterrestrial_intelligence.pdf
+            "Communication with Extraterrestrial Intelligence", DOCID 3052333, author
+            Lambros D. Callimahos.  No date given, but probably 1975 because it
+            refers to the Arecibo message of 1974 as "last November".
+        [2] Sklovskii & Sagan, "Intelligent Live in the Universe", Delta, 1966
+        [3] https://en.wikipedia.org/wiki/Arecibo_message
+        [4] https://pages.uoregon.edu/jimbrau/astr123/Notes/ch28/73by23.html
+        [5] https://www.universetoday.com/153920/what-is-the-arecibo-message/
+        [6] https://www.seti.org/seti-institute/project/details/arecibo-message
+        [7] Sagan (ed.), "Communication with Extraterrestrial Intelligence", MIT
+            Press, 1975
+        '''))
+        exit(0)
     def Usage(status=1):
         print(dedent(f'''
         Usage:  {sys.argv[0]} [options] action
@@ -104,6 +127,8 @@ if 1:   # Utility
             5   Print the Arecibo data
             6   Print the Drake data
         Options:
+            -0 c    Character for 0's
+            -1 c    Character for 1's
             -2      Double the number of horizontal bits in plot
             -d      Turn on debug printing
             -h      Show manpage
@@ -111,21 +136,30 @@ if 1:   # Utility
         '''))
         exit(status)
     def ParseCommandLine(d):
+        d["-0"] = " "       # Character for 0 (others:  ․ ‥)
+        d["-1"] = "X"       # Character for 1 (others:  ● █ ■ ⛝)
+        d["-2"] = False     # Double horizontal bits in plot
         d["-2"] = False     # Double horizontal bits in plot
         d["-d"] = False     # Turn on debug printing
         d["-r"] = False     # Flip bitmap
         if len(sys.argv) < 2:
             Usage()
         try:
-            opts, args = getopt.getopt(sys.argv[1:], "2dhr") 
+            opts, args = getopt.getopt(sys.argv[1:], "0:1:2dhr") 
         except getopt.GetoptError as e:
             print(str(e))
             exit(1)
         for o, a in opts:
             if o[1] in list("2dr"):
                 d[o] = not d[o]
+            elif o in ("-0", "-1"):
+                d[o] = a
+            elif o == "-1":
+                d[o] = a
             elif o == "-h":
                 Manpage()
+        g.zero = d["-0"]
+        g.one = d["-1"]
         if d["-d"]:
             g.dbg = True
         return args
@@ -294,17 +328,18 @@ if 1:   # Core functionality
         if ncols*nrows != len(s):
             Dbg(f"  Warning:  ncols*nrows != len(s)")
         # Print a header to get column numbering
+        tens = (ncols + 1)//10 + 1
         if double:
             print("  ", end="")
-            for i in range(1, (ncols + 1)//10):
+            for i in range(1, tens):
                 print(f"{i:20d}", end="")
             print()
             print("   ", end="")
             for i in range(ncols):
                 print(f"{(i + 1) % 10} ", end="")
         else:
-            print("  ", end="")
-            for i in range(1, (ncols + 1)//10):
+            print("   ", end="")
+            for i in range(1, tens):
                 print(f"{i:10d}", end="")
             print()
             print("   ", end="")
@@ -320,12 +355,11 @@ if 1:   # Core functionality
             print(char, end="")
         print()
     def PlotOliver():
-        oliver = GetOliver()
+        s = GetOliver()
         print("Barney Oliver message from 1961\n")
-        # Useful characters: ● █ ․ ‥
-        one, zero = "█", "․"
+        # 1271 bits = 31*41
         rows = 41 if d["-r"] else 31
-        PrintRows(oliver, nrows=rows, one=one, zero=zero, double=d["-2"])
+        PrintRows(s, nrows=rows, one=g.one, zero=g.zero, double=d["-2"])
     def PrintOliver():
         s = GetOliver()
         print("Barney Oliver message from 1961")
@@ -333,11 +367,9 @@ if 1:   # Core functionality
     def PlotArecibo():
         s = GetArecibo()
         print("Arecibo message from 1974\n")
-        # Useful characters: ● █ ․ ‥
-        one, zero = "█", "․"
         # 1679 bits = 23*73
         rows = 23 if d["-r"] else 73
-        PrintRows(s, nrows=rows, one=one, zero=zero, double=d["-2"])
+        PrintRows(s, nrows=rows, one=g.one, zero=g.zero, double=d["-2"])
     def PrintArecibo():
         s = GetArecibo()
         print("Arecibo message from 1974")
@@ -348,7 +380,7 @@ if 1:   # Core functionality
         md5 = hashlib.md5()
         md5.update(s.encode())
         digest = md5.hexdigest()
-        print(f"  {len(s)} bits, {cksum} 1's, {bits - cksum} 0's")
+        print(f"  {len(s)} bits:  {cksum} 1's, {bits - cksum} 0's")
         print(f"  MD5 hash of binary string:  {digest}")
         PrintBinaryString(s)
     def PrintBinaryString(s):
