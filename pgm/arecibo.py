@@ -1,24 +1,36 @@
-# Sun 17 Dec 2023 04:08:12 PM
-# From https://www.nsa.gov/portals/75/documents/news-features/declassified-documents/cryptologic-spectrum/communications_with_extraterrestrial.pdf
+'''
+This is a binary message sent via the Arecibo radio telescope in Puerto
+Rico in 1961.  The signal was aimed at M13, which is 24 kly away, so an
+answer will take 48 kyears, which would have been 2009.  I don't know if
+anyone deliberately did any listening for an answer.
 
-# Page 6 states Barney Oliver made this message in 1961 and it has 1271
-# binary digits.
+https://www.nsa.gov/portals/75/documents/news-features/declassified-documents/cryptologic-spectrum/communications_with_extraterrestrial.pdf
+Downloaded Sun 17 Dec 2023 04:08:12 PM
 
+Page 6 states Barney Oliver made this message in 1961 and it has 1271
+(product of two prime factors 31 and 41) binary digits.
+
+I got the data by screen scraping the above PDF in Chrome's PDF viewer.  It
+actually did fairly well (particularly when you know that getting text
+lines from a PDF is nontrivial) and it wasn't hard to correct the few
+errors.
+
+The script will print out the binary data in an array of 41 dots per line
+and 31 lines.
+
+Sklovskii & Sagan, "Intelligent Live in the Universe", Delta, 1966
+    Page 423 gives a similar binary message created by F. Drake to simulate
+    a hypothetical message received on Earth.  It is 551 bits and has
+    content very similar to Oliver's message.
+'''
 from wrap import dedent
 from lwtest import Assert
- 
-# From Word interpreting the PDF
-data1 = '''
-1 o o o o o o o o o o o o o O O o o O o o   o o o  o o o o o o o o o O O O o  1 o o o o 1 1 1 o o o O O o 0 o 1 o o O O o 1 o o O o o o 1 O O o O o 1  o o o  o o 1 o o o 1 O o o O O o o o O 0 o o O o o O o o O o O o o o o O o o  o o o o 1 0 0 0   0 O o o 1 O o O o O o 1 O   o 0   O O o O o o o 1 o o  o o o o o o o 1 o o o 1 o o o o o 1 O o o O o o 1 o o O O o o o o 1 o o o 1  o 1 o o o O o o o 1 1 I O O O o o O O o O O o o o o 1 o o O o O o o o o o O 0 1 o o o o o O o o o o o O   o 0 O 0 o O O O o O o o o o o O O O O o O  o o o o o 0 o o 0 0 0 0 0 O o o o o O o 1 O O o O o 1 O o o o O o 1  
-O O o 1 o o O o 1 1 O O o 1 O o o O O o o O O o 1 1 O o o O o o O o O O o o  
-O O O O O O   O O O o O O O O o O O o 1   o O O o 1 1 O O O o 1 I O O O o 
-1 1 o 1 1 o 1 1 o 1 o o 1 1 o O O o 1 1 o o 1 o 1   o o I o 1 1 o o 1 O o 1  1 o o 1 o o 1 o o 1 o I o 1 o o 1 o o 1 0 O O o 1 o O O o 1 1 o o o o 1 1  O o 1 1 o O O o 1 1 O O O   o o O O o 1 O o O O O O O O O O o 1   1 1 I o 1  
-O 0   o o o 0 0 0 O O 0 O O o O O o o 1 o o O o O o o 0 O o o 1 o O O o o 1  
-O o o O 0 o O O o 1 o 1 1 o 1 1 1 O o 1 O O o O o o O O O O o o o 1 1 1 1 1 0 1 O O 0 0 0 O o O O O 0 O 0 o O O o O o O O O O o O O O o 1 O O O O O O O o O  o o o O o o 1 o o o 1 O o 1 1 1 o o O O o 0 0 o O o o o 1 o 1 o O o O O O O  o o o o O o   o 1 O o 1 O O O o 1 1 o o I o 1 o 1 1 1 o o I o 1 O o O O O O  O 0 o O o o o 1 o 1 O o 1 O o 0 o 1 O O o o o O O O o o I o o   O o O O O O  O 0 o o o o o 0 o 1 o o 1 O 0 o O o 1 o O o O O O O o o O o 1 1 1 1 1 O O 0    O o o o o o o 1 1 1 1 1 O O o O O o 1 1 1 o 1 o I o o O o O o 1 o 1 o 1 O  o O O o 0 0 o o 1 o 1 o I O o O o o O o 1 O o O o O o O O o 1 O o o 1 o  o 0 o o O O o o 1 o 1 O O o 1 O O o O O o O o o O O O o o O o 1 O O   1  1 O o o 1 O O o I O o 1 1 o 1 1 0 o 1 1 1 o 1 1 o 1 1 o 1 O O o O o 1 0 O o  o o 1 o 1 o 1 o I 0 o o 1 o O o 1 O O O O O o o O O O o O o o O o O o 1 O O 0 1 o o o 1 O o I 0 o 1 0 0 o 1 o O o 1 O o o O o o 1 o O O O O o O O o  O O o 1 1 1 o o o O o 1 1 1 1 1 O o 0 o o 1 1 1 O O O o   0 o 1 1 1 1 I o 1 0 O O O o 1 0 1 o 1 o 0 O o o I o 1 O 0 0 O o 1 O O o 1 O O 0 o o o 1 O O O O O O O O O o  1  o o o 1 0 o o o 1 1 1 O o o o 1 o o o o o 1 O o o 1 o O   O O O O O O o 1 O O o O o   o 1 o   o I   O o 1 O o o O o 1 O O O O o 1 1 o 1 I O O 0 0 1 0 o o O o 1 0 0 o 1 o o o 1 o O o 1 O o o o o 1 o O O O o 1 1 O O O O O o O 
-1 O o o O o 1 1 o 1 1 o o o 1 1 o 1 1 O O o o o 1 1 O o 1 1 1
-'''
-# By selecting the text in Chrome's PDF viewer
-data2 = '''
+from collections import deque
+if 1:
+    import debug
+    debug.SetDebugger()
+
+Oliver = '''
 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
 1 0 0 0 0 1 1 1 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 1 0 0 0 0 0 0 1 0 0 0 0 0 1 0 0
 0 0 0 0 0 1 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
@@ -52,8 +64,23 @@ data2 = '''
 0 0 0 0 0 1 0 0 0 1 0 0 0 1 0 0 0 1 0 0 0 0 0 1 0 0 0 0 0 1 1 0 0 0 0 0 0 0 0 1
 1 0 0 0 0 0 1 1 0 1 1 0 0 0 1 1 0 1 1 0 0 0 0 0 1 1 0 0 1 1 1 
 '''[1:-1]
-
-def RecoverData(s):
+Drake = '''
+11110000101001000011001000000010000010100
+10000011001011001111000001100001101000000
+00100000100001000010000101010000100000000
+00000000001000100000000001011000000000000
+00000001000111011010110101000000000000000
+00001001000011101010101000000000101010101
+00000000011101010101110101100000001000000
+00000000000100000000000001000100111111000
+00111010000010110000011100000001000000000
+10000000010000000111110000001011000101110
+10000000110010111110101111100010011111001
+00000000000111110000001011000111111100000
+10000011000001100001000011000000011000101
+001000111100101111
+'''[1:-1]
+def GetOliver():
     '''The set of non-whitespace characters in the screen-scraped message
     is '.01Qlo~'.  I would make the following substitutions:
                     Row Col
@@ -67,6 +94,7 @@ def RecoverData(s):
     It's supposed to be 41 columns and 31 rows.  However, return the string
     of 1271 characters.
     '''
+    s = Oliver
     if 0:   # Show characters in raw data
         print(''.join(sorted(set(s))))
     if 0:   # Print with ruler and numbered rows
@@ -80,7 +108,7 @@ def RecoverData(s):
             print(f"{i+1:2d} {line.strip().replace(' ', '')}")
     if 1:   # Fix the data
         # Remove spaces and newlines
-        s = data2.replace(" ", "").replace("\n", "")
+        s = s.replace(" ", "").replace("\n", "")
         # Remove the '.'
         s = s.replace(".", "")
         Assert(len(s) == 1271)
@@ -93,11 +121,11 @@ def RecoverData(s):
         Assert(set(s) == set("01"))
     return s
 def PrintRows(s, nrows, one="1", zero="0", double=False):
-    ncols = 1271//nrows
+    ncols = len(s)//nrows
     # Print a header to get column number
     if double:
         print("  ", end="")
-        for i in range(1, 5):
+        for i in range(1, (ncols + 1)//10):
             print(f"{i:20d}", end="")
         print()
         print("   ", end="")
@@ -105,7 +133,7 @@ def PrintRows(s, nrows, one="1", zero="0", double=False):
             print(f"{(i + 1) % 10} ", end="")
     else:
         print("  ", end="")
-        for i in range(1, 5):
+        for i in range(1, (ncols + 1)//10):
             print(f"{i:10d}", end="")
         print()
         print("   ", end="")
@@ -120,15 +148,62 @@ def PrintRows(s, nrows, one="1", zero="0", double=False):
             char = zero + zero if double else zero
         print(char, end="")
     print()
-    
-s = RecoverData(data2)
-if 1:
-    # Print 31 rows
-    one = "█"
-    one = "●"
-    zero = "‥"
-    zero = " "
-    PrintRows(s, nrows=31, one=one, zero=zero)
-else:
-    # Print 41 rows
-    PrintRows(s, nrows=41, one="█", zero="‥")
+def GetDrake():
+    s = Drake.replace("\n", "")
+    Assert(len(s) == 551)
+    return s
+
+action = 2
+if action == 0:     # Print the Oliver raster pattern
+    oliver = GetOliver()
+    if 1:
+        # Print 31 rows
+        one = "●"
+        one = "█"
+        zero = " "
+        zero = "‥"
+        zero = "․"
+        PrintRows(oliver, nrows=31, one=one, zero=zero, double=True)
+    else:
+        # Print 41 rows
+        PrintRows(oliver, nrows=41, one="█", zero="‥")
+elif action == 1:
+    # Encode the Oliver message in hex
+    oliver = RecoverData(Oliver)
+    bits = 8
+    msg = []
+    src = oliver
+    while src:
+        m = src[:bits]
+        src = src[bits:]
+        if len(m) != 8:
+            breakpoint() #xx
+        val = int(m, 2)
+        u = f"{val:02x}"
+        msg.append(f"{u:2s}")
+    for i, u in enumerate(msg):
+        if i and i % 25 == 0:
+            print()
+        print(f"{u} ", end="")
+    print()
+    if 1:   # Recover the binary; prove it by printing the picture
+        o = []
+        for i in msg:
+            u = f"{int(i, 16):08b}"
+            o.append(u)
+            print(o)
+        new_s = ''.join(o)
+        Assert(oliver == new_s)
+elif action == 2:
+    # Plot the Drake data
+    drake = GetDrake()
+    # Factors of len(drake) == 551 are 19 and 29
+    if 1:
+        # Print 29 rows
+        one = "●"
+        one = "█"
+        zero = "․"
+        PrintRows(drake, nrows=29, one=one, zero=zero, double=True)
+    else:
+        # Print 41 rows
+        PrintRows(drake, nrows=19, one=one, zero=zero, double=False)
