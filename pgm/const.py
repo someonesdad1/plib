@@ -45,8 +45,9 @@ if 1:   # Header
             t.dbg = t("lill") if g.dbg else ""
             t.N = t.n if g.dbg else ""
         # Colors
-        t.nodim = t("lavl")     # Dimensionless numbers
-        t.exact = t("cynl")     # Exact numbers
+        t.nodim = t("trql")     # Dimensionless numbers
+        t.exact = t("magl")     # Exact numbers
+        t.err = t("redl")       # Error
 
         ii = isinstance
         g.W = int(os.environ.get("COLUMNS", "80")) - 1
@@ -117,6 +118,7 @@ if 1:   # Utility
         Options:
             -a      Show all constants
             -e      Show numbers is engineering format
+                    {t.err}Not working correctly yet{t.n}
             -d n    Set number of digits (default {d["-d"]}).  Set
                     to 0 to see the number's uncertainty.
             -H      Print a manpage
@@ -129,7 +131,7 @@ if 1:   # Utility
         exit(status)
     def ParseCommandLine(d):
         d["-a"] = False     # Show all constants
-        d["-d"] = 3         # Digits
+        d["-d"] = 0         # Digits
         d["-E"] = False     # Use engsi format, but limit logs to < 12
         d["-e"] = False     # Use engsi format
         d["-u"] = 0         # Unit formatting
@@ -265,7 +267,17 @@ if 1:   # Core functionality
         else:
             # Keep the uncertainty
             if x.s:
-                return f"{x:.1uS} {unit}"
+                # Hack to get a number with uncertainty expressed as
+                # 5.1(2)✕10⁻¹ instead of 5.1(2)e-1.
+                s = f"{x:.1uS}"
+                if "e" in s:
+                    a, b = s.split("e")
+                    x = flt(f"1e{b}").sci
+                    loc = x.find("✕")
+                    y = a + x[loc:]
+                    return f"{y} {unit}"
+                else:
+                    return f"{x:.1uS} {unit}"
             else:
                 y = flt(x.n)
                 y.n = sigfig
@@ -288,6 +300,7 @@ if 1:   # Core functionality
                     w = max(w, len(name))
         for item in items:
             name, value, un, sigfig = g.data[item]
+            # Get colorizing string c
             c = ""
             if not un:
                 c = t.nodim

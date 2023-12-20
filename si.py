@@ -232,13 +232,13 @@ if 1:   # Core functionality
         n = GetSignificantFigures(s)
         if "e" in s:
             x = float(s)
-            if 1e-24 <= x < 1e27:
-                return fmt(x, fmt="engsic", n=n)
+            if 1e-32 <= x < 1e32:
+                return fmt(x, fmt="engsi", n=n)
             else:
                 return s
         else:
             found = ""
-            for i in "yzafpnμmkMGTPEZY":
+            for i in "qryzafpnμmkMGTPEZYRQ":
                 if i in s:
                     found = i
                     break

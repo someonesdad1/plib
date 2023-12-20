@@ -1,5 +1,16 @@
 Active
     
+    - /science/elements/periodic_table.py
+        - Work on this so that it can be built with python 3 and the modern
+          crappier tools
+        - See if it can be repackaged to have a minimum dependence on
+          special tools
+
+    - buptime.py
+        - This is a script that would start when the bup script starts.  At
+          the end, it would receive a suitable signal and print out its
+          total runtime in seconds, minutes, and hours.
+
     - ca.py
         - In light of hc.py work, this could be a better calculator
           environment than hc
@@ -40,11 +51,18 @@ Active
         - Include a bidict to get UK-American word spellings
 
     - wordparse.py
-        - Tokenize a file and apply heuristics to get rid of things like 
+        - Tokenize a file and apply heuristics to get rid of things like
           '*italic*', '[GitHub](http://github.com)', etc.  This would for
-          example be someone's markdown dialect.  Then the remaining text 
+          example be someone's markdown dialect.  Then the remaining text
           can be evaluated for readability.  Also remove common
           abbreviations (Mr., Mrs.) and other stuff.
+            - Some examples
+                - *italic*, _italic_, **bold**, __bold__, `backticks`,
+                  ~strikethrough~
+                - Lists, numbered lists
+                - Links [GitHub](http://github.com)
+                - Block quotes, comments
+
 
     - Readability
         - Once the NGSL stuff is built, it could be combined into about a
