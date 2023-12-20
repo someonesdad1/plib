@@ -61,18 +61,15 @@ if 1:   # Utility
     def ParseCommandLine(d):
         d["-t"] = False     # Tabs in printed table
         try:
-            opts, args = getopt.getopt(sys.argv[1:], "ht", "test") 
+            opts, args = getopt.getopt(sys.argv[1:], "ht") 
         except getopt.GetoptError as e:
             print(str(e))
             exit(1)
         for o, a in opts:
-            if o[1] in list("ht"):
+            if o[1] in list("t"):
                 d[o] = not d[o]
-            if o[1] == "h":
+            if o == "-h":
                 Usage(0)
-            if o == "--test":
-                Testing()
-                exit()
         return args
 if 1:   # Classes
     class SI(dict):
@@ -307,6 +304,8 @@ if 1:   # Core functionality
         return x
     def Testing():
         from lwtest import Assert, raises
+        global si
+        si = SI(pure=False)
         # float
         a = 6.2
         for e in range(-25, 28):
@@ -403,10 +402,10 @@ if 1:   # Core functionality
             ):
             Assert(GetSignificantFigures(s, rtz=rtz) == n)
             Assert(GetSignificantFigures("-" + s, rtz=rtz) == n)
+        si = SI(pure=True)
     
 # Convenience instance 
 si = SI(pure=True)
-si = SI(pure=False)
 
 if __name__ == "__main__": 
     Testing()
@@ -443,6 +442,7 @@ if __name__ == "__main__":
              27: "ronna     2022",
              30: "quetta    2022",
         }
+        si = SI(pure=False)
         if d["-t"]:
             print("\t\t\tYear")
             print("Symbol\tExponent\tPrefix\tadded")
