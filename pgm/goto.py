@@ -317,22 +317,12 @@ if 1:   # Core functionality
         print(f"{t.n}")
     def ActOn(dir):
         '''dir is a directory or file.  Write it to stdout or the output
-        file if -e option was used.  If -l was used, launch dir with the
-        registered application.
+        file if -e option was used.
         '''
-        if d["-l"]:
-            s = platform.system()
-            if s.startswith("CYGWIN_NT"):
-                subprocess.call((ActOn.cygwin, dir))
-            elif s == "Windows":
-                subprocess.call((ActOn.app, dir))
-            else:   # Linux variants
-                subprocess.call(('xdg-open', filepath))
-        else:
-            s = sys.stdout
-            if d["-e"]:
-                s = open(d["-e"], "w")
-            print(dir, file=s)
+        s = sys.stdout
+        if d["-e"]:
+            s = open(d["-e"], "w")
+        print(dir, file=s)
     ActOn.app = "c:/cygwin/home/Don/bin/app.exe"
     ActOn.cygwin = "c:/cygwin/bin/cygstart.exe"
     def GetSortedAliases(aliases):
