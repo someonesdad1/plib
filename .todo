@@ -1,11 +1,5 @@
 Active
     
-    - /science/elements/periodic_table.py
-        - Work on this so that it can be built with python 3 and the modern
-          crappier tools
-        - See if it can be repackaged to have a minimum dependence on
-          special tools
-
     - buptime.py
         - This is a script that would start when the bup script starts.  At
           the end, it would receive a suitable signal and print out its
@@ -18,6 +12,12 @@ Active
         - Use only mpf and mpc, int, fractions
         - Have a command that toggles between str() and repr()
           representations
+
+    - /science/elements/periodic_table.py
+        - Work on this so that it can be built with python 3 and the modern
+          crappier tools
+        - See if it can be repackaged to have a minimum dependence on
+          special tools
 
     - pgm/poly.py
         - Add -i option for interactive solution of polygons (see notes in

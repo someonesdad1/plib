@@ -28,7 +28,6 @@ if 1:  # Header
         #∞what∞#
         #∞test∞# #∞test∞#
     # Standard imports
-        from pdb import set_trace as xx
         from pprint import pprint as pp
         import getopt
         import os
@@ -61,9 +60,7 @@ if 1:  # Header
         t.y = t("yell")
         # Regular expressions describing configuration file lines that
         # should be ignored
-        g.ignore = (
-            re.compile(r"^\s*##"),
-        )
+        g.ignore = ()
 if 1:   # Utility
     def Error(msg, status=1):
         print(msg, file=sys.stderr)
@@ -83,6 +80,9 @@ if 1:   # Utility
             e       Edits the configuration file
             n       Goes directly to the nth directory.  n can also be an
                     alias string.
+            s       Search for the remaining regex arguments in the data
+                    file.  Ignores commented entries.
+            S       Same as s, but searches all entries
         Options are:
             -d      Debug printing:  show data file contents
             -e f    Write result to file f
@@ -90,8 +90,6 @@ if 1:   # Utility
             -H      Explains details of the configuration file syntax
             -l      Launch the file(s) with the registered application
             -q      Print silent alias names (prefaced with {g.at})
-            -s      Search the non-commented lines in the config file for a regex.
-                    Prints out all non-commented lines with matches highlighted.
         '''))
         exit(status)
     def ParseCommandLine(d):
@@ -220,75 +218,6 @@ if 1:   # Core functionality
             if r.search(line):
                 return True
         return False
-    def CheckConfigFile(lines):
-        '''For each line, verify the file exists.  Note we check all config
-        file lines if they contain '/'.
-        '''
-        def BadLine(ln, line, msg):
-            print(dedent(f'''
-            {t.C}Line {ln} in configuration file is bad:
-                Line:     '{t.y}{line}{t.C}'
-                Problem:  {t.R}{msg}{t.C}
-            '''))
-            BadLine.bad = True
-        BadLine.bad = False
-        for ln, line in lines:
-            line = line.strip()
-            if not line:
-                continue
-            elif line[0] == "#":
-                # If it doesn't contain a '/' it's a plain comment, so
-                # ignore it.
-                if "/" not in line:
-                    continue
-            elif Ignore(line):
-                continue
-            f = [i.strip() for i in line.split(g.sep)]
-            if len(f) not in (1, 2, 3):
-                BadLine(ln, line, "Doesn't have three fields")
-                continue
-            # No empty fields
-            if any([not i for i in f]):
-                BadLine(ln, line, "Has an empty field")
-                continue
-            # Check that file exists
-            file = P(f[-1])
-            fs = str(file)
-            if fs[0] == "#":
-                if len(fs) > 1 and fs[1] == "-":    # Line of hyphens
-                    continue
-                file = P(fs[1:].strip())
-            if not file.exists():
-                BadLine(ln, line, "File/directory doesn't exist")
-        if BadLine.bad:
-            print(f"{t.C}Configuration file is '{g.config}{t.n}'")
-        # Remove the commented lines
-        o = []
-        for item in lines:
-            n, line = item
-            ln = line.strip()
-            if ln and ln[0] != "#":
-                o.append(item)
-        return o
-    def ReadConfigFile():
-        'Read in the configuration file and check the lines'
-        # Note:  we have to sequentially filter to ensure the lines list
-        # has the correct line numbers.
-        lines = [(linenum + 1, line) for linenum, line in
-                 enumerate(get.GetLines(g.config))]
-        # Filter out blank lines
-        lines = [(ln, line) for ln, line in lines if line.strip()]
-        if 0:
-            # Filter out comments
-            if not d["-a"]:     
-                r = re.compile(r"^\s*#")
-                lines = [(ln, line) for ln, line in lines if not r.search(line)]
-        # Filter out lines that begin with '##'
-        r = re.compile(r"^\s*##")
-        lines = [(ln, line) for ln, line in lines if not r.search(line)]
-        # Check all lines
-        lines = CheckConfigFile(lines)
-        return lines
     def BackUpConfigFile():
         '''The configuration file is about to be modified, so save a
         copy of it in the g.backup directory.
@@ -504,24 +433,108 @@ if 1:   # Core functionality
                     dir, name = choices[choice]
                     ActOn(dir)
                     return
-    def SearchLines(regexps):
-        "Find regexps on the gotorc file's lines"
-        lines = ReadConfigFile()
+    def CheckConfigFile(lines, all=False):
+        '''For each line, verify the file exists.  Note we check all config
+        file lines if they contain '/'.  If all is True, then we also
+        return the commented lines (but lines starting with "##" are never
+        returned).
+        '''
+        def BadLine(ln, line, msg):
+            print(dedent(f'''
+            {t.C}Line {ln} in configuration file is bad:
+                Line:     '{t.y}{line}{t.C}'
+                Problem:  {t.R}{msg}{t.C}
+            '''))
+            BadLine.bad = True
+        BadLine.bad = False
+        keep = []
+        for ln, line in lines:
+            line = line.strip()
+            if not line:
+                continue
+            elif line.startswith("##"):
+                # Lines beginning with "##" are always ignored
+                continue
+            elif line.startswith("#"):
+                if "/" not in line or not all:
+                    continue
+            elif Ignore(line):
+                continue
+            f = [i.strip() for i in line.split(g.sep)]
+            if len(f) not in (1, 2, 3):
+                BadLine(ln, line, "Doesn't have three fields")
+                continue
+            # No empty fields
+            if any([not i for i in f]):
+                BadLine(ln, line, "Has an empty field")
+                continue
+            # Check that file exists
+            file = P(f[-1])
+            fs = str(file)
+            if fs.startswith("#"):
+                if len(fs) > 1 and fs[1] == "-":    # Line of hyphens
+                    continue
+                file = P(fs[1:].strip())
+            if not file.exists():
+                BadLine(ln, line, "File/directory doesn't exist")
+            keep.append((ln, line))
+        if BadLine.bad:
+            print(f"{t.C}Configuration file is '{g.config}{t.n}'")
+        # Remove the commented lines
+        if all:
+            return keep
+        o = []
+        for item in keep:
+            if not item[1].startswith("#"):
+                o.append(item)
+        return o
+    def ReadConfigFile(all=False):
+        '''Read in the configuration file and check the lines.  If all is
+        True, return regular lines and commented lines.  Lines starting
+        with "##" are never returned.
+        '''
+        # Create a list of (linenumber, linestring) tuples so we can refer
+        # to line numbers later if needed.  They are 1-based.
+        lines = [(linenum + 1, line) for linenum, line in
+                 enumerate(get.GetLines(g.config, ignore_empty=True))]
+        # Check all lines
+        lines = CheckConfigFile(lines, all)
+        return lines
+    def SearchLines(regexps, all=False):
+        '''Find regexps on the gotorc file's lines.  If all is True, search
+        all of the lines, even the commented-out ones.
+        '''
+        lines = ReadConfigFile(all)
         rd = RegexpDecorate()
-        for regex in regexps:
-            r = re.compile(regex, re.I)
-            rd.register(r, t(Color("yell")), t.n)
+        if 0:
+            for regex in regexps:
+                r = re.compile(regex, re.I)
+                rd.register(r, t(Color("yell")), t.n)
+                for ln, line in lines:
+                    mo = r.search(line)
+                    if mo:
+                        rd(f"{ln}:  {line}", insert_nl=True)
+        else:
+            R = []
+            for regex in regexps:
+                r = re.compile(regex, re.I)
+                R.append(r)
+                rd.register(r, t(Color("ornl")), t.n)
             for ln, line in lines:
-                rd(line)
-            if len(args) > 1:
-                print("-"*70)
+                for r in R:
+                    mo = r.search(line)
+                    if mo:
+                        rd(f"{ln}:  {line}", insert_nl=True)
+                        break
     def ExecuteCommand(cmd, args):
         if cmd == "a":
             AddCurrentDirectory(args)
         elif cmd == "e":
             EditFile()
-        elif d["-s"]:
-            SearchLines([cmd].extend(args) if args else [cmd])    
+        elif cmd == "s":
+            SearchLines(args, all=False)
+        elif cmd == "S":
+            SearchLines(args, all=True)
         else:
             # cmd will be a number or alias
             GoTo(cmd)
