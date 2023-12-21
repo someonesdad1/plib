@@ -1,11 +1,8 @@
 '''
 
 TODO
-    - Remove comment lines from used lines
     - It's OK to have an alias collision -- you just then prompt for which
       alias to use.  
-    - Change the defaults to NOT have a default file.  This forces all use
-      to include a -f option. 
  
 Driver for the old shell g() function that used the _goto.py script.
 This new file includes the functionality of the g() function, so minimal
@@ -78,17 +75,18 @@ if 1:   # Utility
         Arguments are:
             a       Adds current directory to top of configuration file
             e       Edits the configuration file
+            l       Launch the indicated arguments with registered app(s)
             n       Goes directly to the nth directory.  n can also be an
                     alias string.
             s       Search for the remaining regex arguments in the data
-                    file.  Ignores commented entries.
+                    file and print out the line numbers that match.  Ignores
+                    commented entries.
             S       Same as s, but searches all entries
         Options are:
             -d      Debug printing:  show data file contents
             -e f    Write result to file f
             -f f    Set the name of the configuration file
             -H      Explains details of the configuration file syntax
-            -l      Launch the file(s) with the registered application
             -q      Print silent alias names (prefaced with {g.at})
         '''))
         exit(status)
@@ -97,16 +95,15 @@ if 1:   # Utility
         d["-e"] = None      # Write result to indicated file
         d["-f"] = None      # Name of the configuration file
         d["-H"] = False     # Show config file syntax
-        d["-l"] = False     # Launch file
         d["-q"] = False     # Print silent alias names
         d["-s"] = False     # Search config lines for regex
         try:
-            opts, args = getopt.getopt(sys.argv[1:], "de:f:Hhlqs")
+            opts, args = getopt.getopt(sys.argv[1:], "de:f:Hhqs")
         except getopt.GetoptError as e:
             print(str(e))
             exit(1)
         for o, a in opts:
-            if o[1] in list("dlqs"):
+            if o[1] in list("dqs"):
                 d[o] = not d[o]
             elif o == "-e":
                 d["-e"] = a
@@ -142,6 +139,7 @@ if 1:   # Utility
         
             <blank line>                Ignored
             # Comment line              Ignored
+            ## Comment line             Always Ignored
             path
             name; path
             name; alias; path
@@ -168,20 +166,7 @@ if 1:   # Utility
         each line is checked to see that it exists; if the file or
         directory doesn't exist, an error message will be printed.  The
         intent is to make sure that all the directories and files exist.
-        
-        Launching project files
-        -----------------------
-        
-        I use the launching capability of this script in a number of
-        shell commands.  When the -l option is included on the command
-        line, the indicated file/directory (by number or alias) is
-        opened with its registered application.  You can also pass in
-        strings that aren't aliases in the configuration file and they
-        will be interpreted as files and opened with their registered
-        application.
-        
-        Example:  'python {g.name} -l *.pdf' will launch all the PDF files
-        in the current directory.
+        Only lines starting with "##" are ignored in this check.
         
         Use in a POSIX environment
         --------------------------
@@ -379,9 +364,6 @@ if 1:   # Core functionality
                     dir, name = aliases[arg]
                 elif g.at + arg in aliases:
                     dir, name = aliases[g.at + arg]
-                elif d["-l"]:
-                    # Assume it's a file; open it with registered application.
-                    dir = arg
                 else:
                     Error(f"'{arg}' isn't a valid choice")
                 ActOn(dir)
@@ -526,11 +508,20 @@ if 1:   # Core functionality
                     if mo:
                         rd(f"{ln}:  {line}", insert_nl=True)
                         break
+    def LaunchFiles(args):
+        p = "c:/cygwin/bin/cygstart.exe"
+        for item in args:
+            try:
+                subprocess.call((p, item))
+            except Exception as e:
+                print(f"{e}", file=sys.stderr)
     def ExecuteCommand(cmd, args):
         if cmd == "a":
             AddCurrentDirectory(args)
         elif cmd == "e":
             EditFile()
+        elif cmd == "l":
+            LaunchFiles(args)
         elif cmd == "s":
             SearchLines(args, all=False)
         elif cmd == "S":
