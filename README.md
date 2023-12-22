@@ -247,3 +247,11 @@ techniques.
       remember where everything is.  I wrote this before I retired a couple
       of decades ago and a number of friends at work told me they couldn't
       live without the script.  I use it constantly at the command line.
+
+# Lessons
+
+Two core lessons I have to learn over and over again are 
+
+* Document your data structures in detail
+* Find someway to index that large list of things you'll write over time:
+  what they do and where they are.

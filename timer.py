@@ -37,6 +37,7 @@ if 1:   # Classes
             sw = Stopwatch()
             ...
             t = sw()    # How many seconds have elapsed since starting
+        Note t is a flt.
         '''
         def __init__(self):
             self.start = flt(time.time())

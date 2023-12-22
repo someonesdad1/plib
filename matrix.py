@@ -123,8 +123,8 @@ class Matrix:
     def __init__(self, rows, cols, fill=0):
         if not ii(rows, int) or not ii(cols, int):
             raise TypeError("rows and cols must be integers")
-        self._r = rows
-        self._c = cols
+        self._r = rows      # Integer
+        self._c = cols      # Integer
         # The basic data structure is a nested list for the elements
         self._grid = [[fill for i in range(cols)] for j in range(rows)]
         self._numtype = None
