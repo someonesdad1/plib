@@ -32,11 +32,18 @@ if 1:   # Header
         class G:
             pass
         g = G()
+        g.dbg = False
+        t.dbg = t("lill")
         g.sw = None
         g.name = sys.argv[0]
         t.msg = t("ornl")
         t.timeout = t("redl")
 if 1:   # Utility
+    def Dbg(*p, **kw):
+        if g.dbg:
+            print(f"{t.dbg}", end="")
+            print(*p, **kw)
+            print(f"{t.n}", end="")
     def Error(*msg, status=1):
         print(*msg, file=sys.stderr)
         exit(status)
@@ -46,22 +53,24 @@ if 1:   # Utility
           Start a timer and monitor when the filename disappears from the
           file system.  Print out the elapsed time.
         Options:
+            -d      Turn on debug printing
             -i n    Interval in seconds to check for file [{d["-i"]} s]
             -k n    Terminate when this time is reached
         '''))
         exit(status)
     def ParseCommandLine(d):
+        d["-d"] = False     # Debug printing
         d["-i"] = float(1)  # Check interval in s
         d["-k"] = 24*3600   # Terminate after this time
         if len(sys.argv) < 2:
             Usage()
         try:
-            opts, args = getopt.getopt(sys.argv[1:], "i:k:") 
+            opts, args = getopt.getopt(sys.argv[1:], "di:k:") 
         except getopt.GetoptError as e:
             print(str(e))
             exit(1)
         for o, a in opts:
-            if o[1] in list(""):
+            if o[1] in list("d"):
                 d[o] = not d[o]
             elif o in ("-i", "-k"):
                 try:
@@ -71,21 +80,30 @@ if 1:   # Utility
                 except ValueError:
                     msg = "-i option's argument must be > 0"
                     Error(msg)
+        if d["-d"]:
+            g.dbg = True
         return args[0]
 if 1:   # Core functionality
     def Create(file):
-        'Create the file and put the starting time in it'
+        'Create the sentinel file and put the starting time in it'
         with open(file, "w") as fp:
             fp.write(f"Start time {time()} s\n")
     def Monitor(file):
+        '''Periodically check that the sentinel file still exists.  When it
+        is no longer present, print out the elapsed time.
+        '''
         assert file.exists()
         timeout = False
         while True:
+            Dbg(f"Starting sleep at {g.sw()} s")
             sleep(d["-i"])
+            Dbg(f"Sleep over at {g.sw()} s")
             if not file.exists():
+                Dbg(f"Sentinal file no longer exists at {g.sw()} s")
                 break
             if g.sw() > d["-k"]:
                 timeout = True
+                Dbg(f"Timeout at {g.sw()} s")
                 break
         if timeout:
             print(f"{t.timeout}{g.name} timed out after {d['-k']} s")
