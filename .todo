@@ -1,31 +1,5 @@
 Active
     
-    - buptime.py
-        - This is a script that would start when the bup script starts.  At
-          the end, it would receive a suitable signal and print out its
-          total runtime in seconds, minutes, and hours.
-
-    - ca.py
-        - In light of hc.py work, this could be a better calculator
-          environment than hc
-        - Allow documentation with vi
-        - Use only mpf and mpc, int, fractions
-        - Have a command that toggles between str() and repr()
-          representations
-
-    - /science/elements/periodic_table.py
-        - Work on this so that it can be built with python 3 and the modern
-          crappier tools
-        - See if it can be repackaged to have a minimum dependence on
-          special tools
-
-    - pgm/poly.py
-        - Add -i option for interactive solution of polygons (see notes in
-          script)
-
-    - dpstr.py
-        - Finish usage examples
-    
     - dividing_holes.py
         - Print a paper template to allow marking holes on a workpiece
         - See pg 35 of "The Home Shop Reader's Tips Book", 2005
@@ -43,6 +17,69 @@ Active
           centered.  Then a bearing allows the work to be rotated on
           center to align the other punch marks.
 
+    - pgm/poly.py
+        - Add -i option for interactive solution of polygons (see notes in
+          script)
+
+    - ca.py
+        - In light of hc.py work, this could be a better calculator
+          environment than hc
+        - Allow documentation with vi
+        - Use only mpf and mpc, int, fractions
+        - Have a command that toggles between str() and repr()
+          representations
+
+    - /science/elements/periodic_table.py
+        - Work on this so that it can be built with python 3 and the modern
+          crappier tools
+        - See if it can be repackaged to have a minimum dependence on
+          special tools
+
+    - bup
+        - Check ~/bin/data/logs/bup.log for log data
+        - Capture the stderr stream and analyze all the temporary and
+          cached stuff for things like Chrome that I don't care whether
+          they get backed up or not.
+        - From a casual inspection, the vast majority of the delay times
+          are caused by trying to backup things in c:/windows.  It would
+          probably make sense to ignore this directory completely, as what
+          I really care about are my datafiles.
+        - rsync exlusion options:
+            - --exclude-from=FILE
+            - --exclude=PATTERN
+        - Candidates to ignore:
+            - c:
+                - $Recycle.Bin
+                - $WinREAgent
+                - MSOCache
+                - PerfLogs
+                - python27 
+                - python36 
+                - Recovery
+                - VGA
+                - tmp
+                - /Users/Don/AppData/Local
+                - /Windows/Logs
+                - /System Volume Information
+                - DumpStack.log.tmp
+                - hiberfil.sys
+                - pagefile.sys
+                - RPCSettings.ini
+                - swapfile.sys
+                - UkLog.dat
+            - d:
+                - $RECYCLE.BIN
+                - /System Volume Information
+        - Timing:  excluding drive c: resulted in 100 s backup time.  Total
+          file size was 142 GB and 49 MB was transferred, so the vast
+          majority of the time is inspecting the filesystem.
+        - 22Dec2023:  I added '2>&1' to the rsync command so that now the
+          log file has all stderr data too.  I'll use it like this for a
+          week or two to select all the candidates to ignore.
+
+    - dpstr.py
+        - Finish usage examples
+    
     - words.py
         - Using files in /words/words.*, return sets of words indexed by
           short names.
@@ -1650,46 +1687,56 @@ Inactive
         - https://sundials.org/index.php/nass-shop2/2-publications
           $30 to get the NASS repository, 800 MB of documentation
 
-hc.py
-    
-    - Objectives
-        - Run on python >= 3.7
-        - Design it to use one number type:  hcn
-            - Behind the scenes the following types are used (+ means
-              optional; i.e., get working if possible, leave out if a pain):
-                - mpf
-                - mpc
-                - ufloat    +
-                - Fraction
-                - Integers
-                    - Fixed-size    +
-                    - Python's built-in integers
-            - mpmath latest is 1.2.0 1 Feb 2021.
-            - Since have scipy and numpy, can e.g. use interpolated
-              functions.  This could be handy for numerical data.
-            - Support physical models?  For example, load an ideal gas
-              module and do physical calculations.  Such things could be 
-              in namespaces and let you get to those of other namespaces.
-        - hcn numbers can have a physical unit
-            - Number is always displayed in the defining unit.  Internally,
-              the value is in SI.
-            - Parsing on whitespace is important, so numbers with units
-              must be entered as '4.3m/s' or '4.3_m/s'.  Another possible
-              notation is '4.3 m/s;', where the ';' forces a unit
-              interpretation.
-            - Evaluation
-                - Strict 
-                    - sin(x) must have x with no dimensions
-                - Relaxed 
-                    - In sin(x), x can have dimensions; the value used is
-                      in the defining units and the units are ignored.
-                      This is definitely bug-prone.
-                - nodim
-                    'x nodim' strips off the units of x and leaves x with
-                    the defining numerical value.
-        - mpmath's special functions supported.  The user can construct a
-          config file list of the desired functions.
-        - Commands are easy to alias to get the interface you want.
+SVG replacement for g library
+    - Have $6 ORA used book on order
+    - Use Inkscape as viewer for the stuff I generate
+    - A huge weakness with the g library is that there's no GSView
+      available anymore -- it was an excellent tool and disappeared with no
+      warning.  The POS that replaced it was horribly underpowered and that
+      seems to have disappeared too.
+    - A core fact is SVG is XML and it can be put into an HTML page.  This
+      means a browser can be used to view the output.
+    - Consider writing it
+        - https://www.codedrome.com/svg-library-in-python/
+        - This might outline a good approach and something I can write
+          myself.  It might even show a way to rearchitect the g library to
+          have PS and SVG backends.
+    - First look through a web search of 'svg python library'
+        - drawsvg2
+            - https://github.com/cduck/drawSvg
+        - drawsvg
+            - https://pypi.org/project/drawsvg/ looks attractive and can be
+              installed with pip, but you need cairo installed to render to
+              PNG, MP4, and GIF.
+        - svg
+            - https://pypi.org/project/svg.py/ Looks more lightweight, may
+              be all I need, pure python.
+            - Probably best to get here:
+                - https://github.com/orsinium-labs/svg.py
+                - Just clone the repository
+            - It's under MIT license, so I could clone it easily and
+              provide my own stuff.
+        - svglib
+            - https://pypi.org/project/svglib/
+            - Converts SVG files to ReportLab toolkit
+            - Might be worth a look because https://docs.reportlab.com/
+              says their open source PDF Tookit could be what I need to get
+              PDFs.  It appears their 4.0 software is written in pure
+              python.
+            - Their documentation is poor, as there's no link to click on
+              to get an overview of their tools
+        - svgwrite
+            - https://pypi.org/project/svgwrite/
+            - http://github.com/mozman/svgwrite.git, inactive with no new
+              development
+            - https://svgwrite.readthedocs.io/en/latest/overview.html
+            - Docs look shallow, typical single developer stuff without
+              high level stuff
+            - pip install svgwrite
+        - CairoSVG can convert SVG to PDF and PNG
+            - https://cairosvg.org/
+            - pip3 install cairosvg
+            - https://cairosvg.org/documentation/#installation
 
 wb.py
 

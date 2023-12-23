@@ -103,6 +103,7 @@ if 1:   # Header
     if 1:   # Global variables
         W = int(os.environ.get("COLUMNS", "80")) - 1
         dbg = True
+        dbg = False
 if 1:   # Manpage
     def Manpage():
         print(dedent(f'''

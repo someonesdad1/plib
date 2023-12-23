@@ -1,5 +1,5 @@
 '''
-Times in seconds since epoch
+Clock time in seconds since epoch
 '''
 if 1:  # Copyright, license
     # These "trigger strings" can be managed with trigger.py
@@ -43,14 +43,10 @@ if 1:   # Utility
     def Usage(d, status=1):
         name = sys.argv[0]
         print(dedent(f'''
-    Usage:  {name} [options] [seconds ...]
-      Print the time corresponding to the seconds from epoch.  If no
-      argument is given, print the number of seconds from epoch.
-
-      Epoch is {time.asctime(time.gmtime(0))}.
-
-    Options:
-        -h      Print a manpage
+        Usage:  {name} [options] [offset_seconds]
+          Print the current time in seconds less any given offset.
+        Options:
+          -h      Print a manpage
     '''))
         exit(status)
     def ParseCommandLine(d):
@@ -62,13 +58,8 @@ if 1:   # Utility
         for o, a in opts:
             if o in ("-h", "--help"):
                 Usage(d, status=0)
-        return args
+        return float(args[0]) if args else 0.0
 if __name__ == "__main__":
     d = {}      # Options dictionary
-    args = ParseCommandLine(d)
-    if not args:
-        print(f"{time.time():.1f} seconds")
-    else:
-        for seconds in args:
-            tm = time.localtime(float(seconds))
-            print(f"{seconds} seconds = {time.asctime(tm)}")
+    offset = ParseCommandLine(d)
+    print(f"{time.time() - offset}")
