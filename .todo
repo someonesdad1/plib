@@ -1,5 +1,11 @@
 Active
     
+    - dev/scrdatafile.py
+        - Script datafile library tool that uses multiprocessing to detect
+          when a datafile has changed and alerts the calling context that
+          it needs to take action.
+        - This is also a good technique for speeding up the fish problem.
+
     - dividing_holes.py
         - Print a paper template to allow marking holes on a workpiece
         - See pg 35 of "The Home Shop Reader's Tips Book", 2005
