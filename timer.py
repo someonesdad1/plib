@@ -1,5 +1,8 @@
 '''
 Todo
+    - The timing tool of choice is probably time.perf_counter_ns()
+        - You must subtract two calls to get a valid time
+        - It includes sleep times
     - Add split() method to Timer.  Or let et() be allow to be called when
       running.
 
@@ -32,22 +35,26 @@ if 1:  # Header
         from f import flt
 if 1:   # Classes 
     class Stopwatch(object):
-        '''Timer that returns the elapsed time in seconds from when it was
-        started.  Example usage:
+        '''Timer that returns a flt of the elapsed time in seconds from
+        when it was started.  Example usage:
             sw = Stopwatch()
             ...
             t = sw()    # How many seconds have elapsed since starting
-        Note t is a flt.
+            sw.reset()  # Start the timer over again
+        The timer's resolution is ns because it uses time.perf_counter_ns()
+        but resolution will be limited for long times because of the limited
+        resolution of floats.
         '''
         def __init__(self):
-            self.start = flt(time.time())
+            self.reset()
         def __call__(self):
-            return flt(time.time() - self.start)
+            et = time.perf_counter_ns() - self.start
+            return flt(et/1e9)
+        def reset(self):
+            'Start the timer over; handy so an instance can be reused'
+            self.start = time.perf_counter_ns()
     class Timer(object):
         '''Use an instance of this object to time events in code.  
-        Ideas from https://realpython.com/python-timer/ and 
-        https://realpython.com/python-with-statement/#measuring-execution-time
-    
         Usage patterns are:
     
             Object:
@@ -78,7 +85,13 @@ if 1:   # Classes
         The u attribute is set to 1 to indicate time units of 1 second.  Set 
         it to a different value to change the default time units.  Example:
         set u to 1000 to set the time units to ms.
+
+        Ideas from
+            https://realpython.com/python-timer/ and 
+            https://realpython.com/python-with-statement/#measuring-execution-time
         '''
+        # The following function returns time in ns and avoids resolution
+        # problems of floating point numbers.
         ns = time.perf_counter_ns
         def __init__(self):
             self.clear()
@@ -182,6 +195,7 @@ if 1:   # Classes
 if 1:   # Convenience instances
     timer = Timer()
     fnt = FNTime()
+    sw = Stopwatch()
 
 if __name__ == "__main__": 
     import re
@@ -308,6 +322,12 @@ if __name__ == "__main__":
         will be a flt instance from f.py.  This will cause the elapsed time to
         be printed to 3 digits, the default.  Change Timer.et.n to a larger
         number for more digits.
+
+        The Stopwatch class is a convenience for routine timing tasks in a
+        script.  You can use the timer.sw convenience instance by starting
+        it with sw.reset(), but be aware that it is not thread-safe.  It's
+        handy because the returned type of flt means you don't see a lot of
+        useless digits.
         '''[1:].rstrip()))
     with Timer() as T:
         run(globals(), regexp="example$", quiet=True)
