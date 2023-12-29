@@ -47,7 +47,8 @@ if 1:  # Header
             pass
         g.name = sys.argv[0]
         g.config = None             # Configuration file
-        g.backup = P("C:/cygwin/home/Don/.bup")     # Backup directory
+        g.cygprefix = "d:/cygwin64"
+        g.backup = P(f"{g.cygprefix}/home/Don/.bup")     # Backup directory
         g.sep = ";"                 # Field separator for config file
         g.at = "@"                  # Designates a silent alias
         g.editor = os.environ["EDITOR"]
@@ -78,10 +79,10 @@ if 1:   # Utility
             l       Launch the indicated arguments with registered app(s)
             n       Goes directly to the nth directory.  n can also be an
                     alias string.
-            s       Search for the remaining regex arguments in the data
+            sl      Search for the remaining regex arguments in the data
                     file and print out the line numbers that match.  Ignores
                     commented entries.
-            S       Same as s, but searches all entries
+            Sl      Same as sl, but searches all entries
         Options are:
             -d      Debug printing:  show data file contents
             -e f    Write result to file f
@@ -323,8 +324,8 @@ if 1:   # Core functionality
         if d["-e"]:
             s = open(d["-e"], "w")
         print(dir, file=s)
-    ActOn.app = "c:/cygwin/home/Don/bin/app.exe"
-    ActOn.cygwin = "c:/cygwin/bin/cygstart.exe"
+    ActOn.app = f"{g.cygprefix}/home/Don/bin/app.exe"
+    ActOn.cygstart = f"{g.cygprefix}/bin/cygstart.exe"
     def GetSortedAliases(aliases):
         '''Generator to return the keys of the aliases dictionary, but
         sorted so that aliases like '@abc' and 'abc' sort next to each
@@ -499,10 +500,9 @@ if 1:   # Core functionality
                         rd(f"{ln}:  {line}", insert_nl=True)
                         break
     def LaunchFiles(args):
-        p = "c:/cygwin/bin/cygstart.exe"
         for item in args:
             try:
-                subprocess.call((p, item))
+                subprocess.call((ActOn.cygstart, item))
             except Exception as e:
                 print(f"{e}", file=sys.stderr)
     def ExecuteCommand(cmd, args):
@@ -512,9 +512,9 @@ if 1:   # Core functionality
             EditFile()
         elif cmd == "l":
             LaunchFiles(args)
-        elif cmd == "s":
+        elif cmd == "sl":
             SearchLines(args, all=False)
-        elif cmd == "S":
+        elif cmd == "Sl":
             SearchLines(args, all=True)
         else:
             # cmd will be a number or alias
