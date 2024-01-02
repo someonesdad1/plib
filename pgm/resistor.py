@@ -13,8 +13,7 @@ if 1:  # Copyright, license
     #   See http://opensource.org/licenses/OSL-3.0.
     #∞license∞#
     #∞what∞#
-    # Select from on-hand resistors to make a voltage divider or a given
-    # resistance value from a pair of resistors in series or parallel
+    # Resistor selection from on-hand resistors
     #∞what∞#
     #∞test∞# #∞test∞#
     pass

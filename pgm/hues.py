@@ -33,7 +33,7 @@ if 1:   # Header
         #   See http://opensource.org/licenses/OSL-3.0.
         #∞license∞#
         #∞what∞#
-        # Program description string
+        # Print a table of color hues
         #∞what∞#
         #∞test∞# #∞test∞#
         pass

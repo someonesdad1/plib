@@ -16,7 +16,7 @@ if 1:  # Copyright, license
     #   See http://opensource.org/licenses/OSL-3.0.
     #∞license∞#
     #∞what∞#
-    # Program description string
+    # Interactive circle tool:  3 pts, segment/sector area, 3 tangent circles
     #∞what∞#
     #∞test∞# --test #∞test∞#
     pass

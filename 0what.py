@@ -1,45 +1,47 @@
 '''
 Show the what strings for python scripts
 '''
-if 1:  # Copyright, license
-    # These "trigger strings" can be managed with trigger.py
-    #∞copyright∞# Copyright (C) 2021 Don Peterson #∞copyright∞#
-    #∞contact∞# gmail.com@someonesdad1 #∞contact∞#
-    #∞license∞#
-    #   Licensed under the Open Software License version 3.0.
-    #   See http://opensource.org/licenses/OSL-3.0.
-    #∞license∞#
-    #∞what∞#
-    # <utility> Show the 'what' strings for python scripts.  These are
-    # the strings in each script describing the purpose of the script.
-    #∞what∞#
-    #∞test∞# ignore #∞test∞#
-    pass
-if 1:   # Imports
-    # Standard library modules
-    from collections import deque, defaultdict, namedtuple
-    import getopt
-    import os
-    import pathlib
-    import re
-    import subprocess
-    import sys
-    from pdb import set_trace as xx
-if 1:   # Custom imports
-    import trigger
-    from wrap import wrap, dedent, indent, Wrap
-    from lwtest import run, raises, assert_equal, Assert
-    from color import TRM as t
-    from columnize import Columnize
-if 1:   # Global variables
-    P = pathlib.Path
-    rcat = re.compile(r"<(.*?)>")  # Find category strings
-    categories = set()
-    EntryType = namedtuple("EntryType", "p what category")
-    t.sep = t("yell")
-    t.py = t("grn")
-    # Generate escape codes even if stdout isn't a TTY
-    t.always = True
+if 1:  # Header
+    if 1:  # Copyright, license
+        # These "trigger strings" can be managed with trigger.py
+        #∞copyright∞# Copyright (C) 2021 Don Peterson #∞copyright∞#
+        #∞contact∞# gmail.com@someonesdad1 #∞contact∞#
+        #∞license∞#
+        #   Licensed under the Open Software License version 3.0.
+        #   See http://opensource.org/licenses/OSL-3.0.
+        #∞license∞#
+        #∞what∞#
+        # <utility> Show the 'what' strings for python scripts.  These are
+        # the strings in each script describing the purpose of the script.
+        #∞what∞#
+        #∞test∞# ignore #∞test∞#
+        pass
+    if 1:   # Imports
+        # Standard library modules
+        from collections import deque, defaultdict, namedtuple
+        import getopt
+        import os
+        import pathlib
+        import re
+        import subprocess
+        import sys
+        from pdb import set_trace as xx
+    if 1:   # Custom imports
+        import trigger
+        from wrap import wrap, dedent, indent, Wrap
+        from lwtest import run, raises, assert_equal, Assert
+        from color import TRM as t
+        from columnize import Columnize
+    if 1:   # Global variables
+        P = pathlib.Path
+        rcat = re.compile(r"<(.*?)>")  # Find category strings
+        categories = set()
+        EntryType = namedtuple("EntryType", "p what category")
+        t.sep = t("yell")
+        t.py = t("grn")
+        t.mt = t("ornl")
+        # Generate escape codes even if stdout isn't a TTY
+        t.always = True
 if 1:   # Utility
     def Error(msg, status=1):
         print(msg, file=sys.stderr)
@@ -52,7 +54,8 @@ if 1:   # Utility
           argument can also be a directory, in which case all python files in
           that directory are queried.
         Options:
-          -c    Show categories
+          -C    Show categories
+          -c    Report by categories
           -d    Show debug output
           -m    Show files missing a category
           -r    Act recursively
@@ -60,18 +63,19 @@ if 1:   # Utility
         '''))
         exit(status)
     def ParseCommandLine(d):
-        d["-c"] = False             # Show categories
+        d["-C"] = False             # Show categories
+        d["-c"] = False             # Report by categories
         d["-d"] = False             # Show debug output
         d["-m"] = False             # Show missing categories
         d["-r"] = False             # Act recursively
         d["-s"] = False             # Sort by filename
         try:
-            opts, args = getopt.getopt(sys.argv[1:], "cdhmrs")
+            opts, args = getopt.getopt(sys.argv[1:], "Ccdhmrs")
         except getopt.GetoptError as e:
             print(str(e))
             exit(1)
         for o, a in opts:
-            if o[1] in list("cdmrs"):
+            if o[1] in list("Ccdmrs"):
                 d[o] = not d[o]
             elif o in ("-h", "--help"):
                 Usage(d, status=0)
@@ -193,14 +197,31 @@ if 1:   # Core functionality
         print("List of categories:")
         for line in Columnize(sorted(categories), indent=" "*4):
             print(line)
+    def ShowListing(files):
+        'Print a listing of all files'
+        empty = "Program description string"
+        # Get longest file name
+        w = 0
+        for i in files:
+            name = i.p.name
+            w = max(w, len(name))
+        for i in files:
+            name = i.p.name
+            what = i.what
+            if what == empty:
+                t.print(f"{t.mt}{name:{w}s}")
+            else:
+                print(f"{name:{w}s} {what}")
+
 if __name__ == "__main__": 
     d = {}      # Options dictionary
-    import color as C
     args = ParseCommandLine(d)
     files = GetFiles(args)
     if d["-m"]:
         ShowMissingCategory(files)
-    elif d["-c"]:
+    elif d["-C"]:
         ShowCategories(files)
-    else:
+    elif d["-c"]:
         ReportByCategory(files)
+    else:
+        ShowListing(files)

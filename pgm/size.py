@@ -10,7 +10,7 @@ if 1:  # Copyright, license
     #   See http://opensource.org/licenses/OSL-3.0.
     #∞license∞#
     #∞what∞#
-    # List sizes for files/patterns specified on the command line.
+    # List file sizes for glob patterns 
     #∞what∞#
     #∞test∞# #∞test∞#
     pass

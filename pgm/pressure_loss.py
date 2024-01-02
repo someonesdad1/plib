@@ -22,8 +22,7 @@ if 1:  # Header
         #   See http://opensource.org/licenses/OSL-3.0.
         #∞license∞#
         #∞what∞#
-        # Print pressure drop and velocity tables for fluid flow through
-        # standard US pipe sizes for PVC and steel pipes.
+        # Print pressure drop & velocity for pipe flow
         #∞what∞#
         #∞test∞# #∞test∞#
     # Standard imports

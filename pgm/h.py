@@ -15,7 +15,7 @@ if 1:   # Header
         #   See http://opensource.org/licenses/OSL-3.0.
         #∞license∞#
         #∞what∞#
-        # Script aid for the H() shell function.
+        # Script aid for the H() shell function
         #∞what∞#
         #∞test∞# #∞test∞#
     # Standard imports

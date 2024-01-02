@@ -14,10 +14,7 @@ if 1:  # Copyright, license
     #   See http://opensource.org/licenses/OSL-3.0.
     #∞license∞#
     #∞what∞#
-    # Read in stdin as a string, remove all newlines, and change to a
-    # one-space separated list of names.  Escape embedded space
-    # characters.  Use case:  put all the lines from stdin onto one line
-    # for subsequent call to a command line function.
+    # Put stdin into one line
     #∞what∞#
     #∞test∞# #∞test∞#
     pass

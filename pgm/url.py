@@ -57,7 +57,7 @@ if 1:   # Header
         #   See http://opensource.org/licenses/OSL-3.0.
         #∞license∞#
         #∞what∞#
-        # Search text files for defunct URLs.
+        # Search text files for defunct URLs
         #∞what∞#
         #∞test∞# #∞test∞#
         pass

@@ -12,7 +12,7 @@ if 1:   # Header
         #   See http://opensource.org/licenses/OSL-3.0.
         #∞license∞#
         #∞what∞#
-        # Replace empty lines with one space.
+        # Replace empty lines with one space
         #∞what∞#
         #∞test∞# #∞test∞#
         pass

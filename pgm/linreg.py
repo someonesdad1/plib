@@ -16,7 +16,7 @@ if 1:  # Copyright, license
     #   See http://opensource.org/licenses/OSL-3.0.
     #∞license∞#
     #∞what∞#
-    # Program description string
+    # 2D linear regression tool
     #∞what∞#
     #∞test∞# #∞test∞#
     pass

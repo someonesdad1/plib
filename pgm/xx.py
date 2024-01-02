@@ -12,7 +12,7 @@ if 1:  # Header
         #   See http://opensource.org/licenses/OSL-3.0.
         #∞license∞#
         #∞what∞#
-        # Find files with 'xx' strings to indicate To Do items.
+        # Find files with 'xx' strings to indicate To Do items
         #∞what∞#
         #∞test∞# #∞test∞#
     # Imports

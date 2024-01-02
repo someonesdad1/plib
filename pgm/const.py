@@ -12,7 +12,7 @@ if 1:   # Header
         #   See http://opensource.org/licenses/OSL-3.0.
         #∞license∞#
         #∞what∞#
-        # Program description string
+        # Display values of physical constants
         #∞what∞#
         #∞test∞# #∞test∞#
         pass

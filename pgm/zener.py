@@ -23,8 +23,7 @@ if 1:   # Header
         #   See http://opensource.org/licenses/OSL-3.0.
         #∞license∞#
         #∞what∞#
-        # Given a desired voltage, print out a string of diodes to
-        # get this value.
+        # Print out string of diodes to get a voltage
         #∞what∞#
         #∞test∞# #∞test∞#
         pass

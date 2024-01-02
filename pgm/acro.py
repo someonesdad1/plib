@@ -11,7 +11,7 @@ if 1:   # Header
         #   See http://opensource.org/licenses/OSL-3.0.
         #∞license∞#
         #∞what∞#
-        # Find acronyms in a text file.
+        # Find acronyms in a text file
         #∞what∞#
         #∞test∞# #∞test∞#
         pass

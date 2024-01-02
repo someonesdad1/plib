@@ -50,7 +50,7 @@ if 1:  # Copyright, license
     #   See http://opensource.org/licenses/OSL-3.0.
     #∞license∞#
     #∞what∞#
-    # Program description string
+    # Print the binary differences between two files
     #∞what∞#
     #∞test∞# #∞test∞#
     pass

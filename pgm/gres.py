@@ -24,8 +24,7 @@ if 1:  # Copyright, license
     #   See http://opensource.org/licenses/OSL-3.0.
     #∞license∞#
     #∞what∞#
-    # Replace symbol tokens in programming text files.  Similar to the
-    # MKS gres command.
+    # Replace symbol tokens in programming text files
     #∞what∞#
     #∞test∞# #∞test∞#
     pass

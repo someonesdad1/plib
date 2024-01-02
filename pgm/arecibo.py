@@ -12,7 +12,7 @@ if 1:   # Header
         #   See http://opensource.org/licenses/OSL-3.0.
         #∞license∞#
         #∞what∞#
-        # Program description string
+        # Gives various binary messages for extraterrestrial communication
         #∞what∞#
         #∞test∞# #∞test∞#
         pass

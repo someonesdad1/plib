@@ -58,7 +58,7 @@ if 1:  # Copyright, license
     #   See http://opensource.org/licenses/OSL-3.0.
     #∞license∞#
     #∞what∞#
-    # Plots slide-rule type scales.  Requires the g graphics library.
+    # Plot slide-rule type scales
     #∞what∞#
     #∞test∞# #∞test∞#
     pass

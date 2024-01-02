@@ -42,7 +42,7 @@ if 1:   # Header
         #   See http://opensource.org/licenses/OSL-3.0.
         #∞license∞#
         #∞what∞#
-        # Calculate various readability statistics for a set of files.
+        # Calculate readability statistics for a set of files
         #∞what∞#
         #∞test∞# #∞test∞#
         pass

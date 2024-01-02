@@ -11,8 +11,7 @@ if 1:  # Copyright, license
     #   See http://opensource.org/licenses/OSL-3.0.
     #∞license∞#
     #∞what∞#
-    # Expressions for integers in terms of the sums and differences of a
-    # set of integers.
+    # Expressions for integers in terms of the sums and differences of a set of integers
     #∞what∞#
     #∞test∞# #∞test∞#
     pass

@@ -10,7 +10,7 @@ if 1:  # Copyright, license
     #   See http://opensource.org/licenses/OSL-3.0.
     #∞license∞#
     #∞what∞#
-    # Rename a large set of files with given extensions.  
+    # Rename a large set of files with given extensions
     #∞what∞#
     #∞test∞# #∞test∞#
     pass

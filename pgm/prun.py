@@ -25,9 +25,7 @@ if 1:  # Copyright, license
     #   See http://opensource.org/licenses/OSL-3.0.
     #∞license∞#
     #∞what∞#
-    # Run a python script when a trigger file's mod time changes; this
-    # makes for faster script development, as you stay in your editor.
-    # Define a macro to modify the trigger file to run the script again.
+    # Run a script when a mod time changes
     #∞what∞#
     #∞test∞# #∞test∞#
     pass

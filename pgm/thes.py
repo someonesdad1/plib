@@ -11,7 +11,7 @@ if 1:   # Header
         #   See http://opensource.org/licenses/OSL-3.0.
         #∞license∞#
         #∞what∞#
-        # Find synonyms (based on Moby thesaurus).
+        # Find synonyms 
         #∞what∞#
         #∞test∞# #∞test∞#
         pass

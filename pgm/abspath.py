@@ -1,5 +1,5 @@
 '''
-Return the paths on the command line as an absolute paths
+Return the paths on the command line as absolute paths
 '''
 if 1:  # Copyright, license
     # These "trigger strings" can be managed with trigger.py

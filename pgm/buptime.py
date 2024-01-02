@@ -14,7 +14,7 @@ if 1:   # Header
         #   See http://opensource.org/licenses/OSL-3.0.
         #∞license∞#
         #∞what∞#
-        # Program description string
+        # Print the elapsed time to see how long a backup takes
         #∞what∞#
         #∞test∞# #∞test∞#
         pass

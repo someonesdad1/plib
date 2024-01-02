@@ -36,7 +36,7 @@ if 1:   # Header
         #   See http://opensource.org/licenses/OSL-3.0.
         #∞license∞#
         #∞what∞#
-        # Program description string
+        # Calculate dilution of weed killer
         #∞what∞#
         #∞test∞# #∞test∞#
         pass

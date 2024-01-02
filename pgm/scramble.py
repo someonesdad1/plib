@@ -11,7 +11,7 @@ if 1:   # Header
         #   See http://opensource.org/licenses/OSL-3.0.
         #∞license∞#
         #∞what∞#
-        # Scramble the letters of the words in text.
+        # Scramble the letters of words in text
         #∞what∞#
         #∞test∞# #∞test∞#
         pass

@@ -10,7 +10,7 @@ if 1:  # Copyright, license
     #   See http://opensource.org/licenses/OSL-3.0.
     #∞license∞#
     #∞what∞#
-    # Execute a python script when it changes.
+    # Execute a python script when it changes
     #∞what∞#
     #∞test∞# #∞test∞#
     pass

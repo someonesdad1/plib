@@ -11,7 +11,7 @@ if 1:  # Copyright, license
     #   See http://opensource.org/licenses/OSL-3.0.
     #∞license∞#
     #∞what∞#
-    # Program description string
+    # Prints comb/perm of command line arguments
     #∞what∞#
     #∞test∞# #∞test∞#
     pass

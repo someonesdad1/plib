@@ -19,8 +19,7 @@ if 1:  # Copyright, license
     #   See http://opensource.org/licenses/OSL-3.0.
     #∞license∞#
     #∞what∞#
-    # Index to Lautard's "The Machinist's Bedside Reader", vols. 1 to 3 and
-    # "Hey Tim".
+    # Index to Lautard's books
     #∞what∞#
     #∞test∞# #∞test∞#
     pass

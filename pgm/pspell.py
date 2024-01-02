@@ -22,7 +22,7 @@ if 1:   # Header
         #   See http://opensource.org/licenses/OSL-3.0.
         #∞license∞#
         #∞what∞#
-        # Spell check strings and comments in a python script.
+        # Spell check strings and comments in a python script
         #∞what∞#
         #∞test∞# #∞test∞#
         pass

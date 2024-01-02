@@ -31,7 +31,7 @@ if 1:  # Copyright, license
     #   See http://opensource.org/licenses/OSL-3.0.
     #∞license∞#
     #∞what∞#
-    # <utility> Removes empty lines from python scripts.
+    # <utility> Remove empty lines from python scripts
     #∞what∞#
     #∞test∞# --test #∞test∞#
     pass

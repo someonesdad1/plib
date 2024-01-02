@@ -29,7 +29,7 @@ if 1:  # Header
         #   See http://opensource.org/licenses/OSL-3.0.
         #∞license∞#
         #∞what∞#
-        # Program description string
+        # Identifies dimensions that might be close to some "standard" size
         #∞what∞#
         #∞test∞# #∞test∞#
     # Standard imports

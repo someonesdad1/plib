@@ -82,7 +82,7 @@ if 1:   # Header
         #   See http://opensource.org/licenses/OSL-3.0.
         #∞license∞#
         #∞what∞#
-        # Program description string
+        # Calculate characteristics of a dividing head
         #∞what∞#
         #∞test∞# #∞test∞#
         pass

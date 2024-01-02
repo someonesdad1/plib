@@ -20,8 +20,7 @@ if 1:  # Header
         #   See http://opensource.org/licenses/OSL-3.0.
         #∞license∞#
         #∞what∞#
-        # Script to help 'remember' locations and files.  For example, I use it
-        # to keep track of project files and working directories.
+        # Script to help 'remember' locations and files
         #∞what∞#
         #∞test∞# #∞test∞#
     # Standard imports

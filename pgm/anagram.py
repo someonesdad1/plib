@@ -1,6 +1,9 @@
 '''
 TODO
-    - Write a simple test routine for each function
+    - This is a candidate to move to /plib
+        - Generalize the functions with keyword arguments
+        - GetWords is a routine that belongs in a library like dpstr.py
+    - Write a test routine for each function
 
 Finding anagrams
     The primary method is GetAnagrams(), which returns a list of lines with
@@ -41,7 +44,7 @@ if 1:   # Header
         #∞license∞#
         #∞what∞#
         # GetAnagrams() and other functions handy to getting anagrams of
-        # words from strings.
+        # words from strings
         #∞what∞#
         #∞test∞# #∞test∞#
         pass

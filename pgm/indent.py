@@ -46,7 +46,7 @@ if 1:  # Copyright, license
     #   See http://opensource.org/licenses/OSL-3.0.
     #∞license∞#
     #∞what∞#
-    # Wrapper program for the astyle tool to indent C/C++ code.
+    # Wrapper program for the astyle tool to indent C/C++ code
     #∞what∞#
     #∞test∞# #∞test∞#
     pass

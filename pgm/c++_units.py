@@ -22,7 +22,7 @@ if 1:   # Header
         #   See http://opensource.org/licenses/OSL-3.0.
         #∞license∞#
         #∞what∞#
-        # Tool to write C++ type-safe numerical code with units.
+        # Tool to write C++ type-safe numerical code with units
         #∞what∞#
         #∞test∞# #∞test∞#
         pass

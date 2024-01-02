@@ -7,9 +7,7 @@ if 1:  # Copyright, license
     #   See http://opensource.org/licenses/OSL-3.0.
     #∞license∞#
     #∞what∞#
-    # Bit rate periods.  The output is useful to help identify a bit
-    # rate when looking at an oscilloscope trace.  Note that baud rate
-    # and bit rate may not be the same thing.
+    # Bit rate periods (help identify a bit rate when looking at an oscilloscope trace)
     #∞what∞#
     #∞test∞# #∞test∞#
     pass

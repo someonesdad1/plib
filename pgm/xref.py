@@ -25,7 +25,7 @@ if 1:   # Header
         #   See http://opensource.org/licenses/OSL-3.0.
         #∞license∞#
         #∞what∞#
-        # Token cross-referencing tool.
+        # Token cross-referencing tool
         #∞what∞#
         #∞test∞# #∞test∞#
         pass

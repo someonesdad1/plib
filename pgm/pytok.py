@@ -11,8 +11,7 @@ if 1:  # Copyright, license
     #   See http://opensource.org/licenses/OSL-3.0.
     #∞license∞#
     #∞what∞#
-    # Show tokens in an input file that are in python modules named on the
-    # command line.
+    # Show tokens in an input file that are in python modules named on the command line
     #∞what∞#
     #∞test∞# #∞test∞#
     pass

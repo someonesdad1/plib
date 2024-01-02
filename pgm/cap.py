@@ -16,7 +16,7 @@ if 1:   # Header
         #   See http://opensource.org/licenses/OSL-3.0.
         #∞license∞#
         #∞what∞#
-        # Save screen captures to file.
+        # Save screen captures to file
         #∞what∞#
         #∞test∞# #∞test∞#
         pass

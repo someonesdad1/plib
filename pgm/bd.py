@@ -59,7 +59,7 @@ if 1:   # Header
         #   See http://opensource.org/licenses/OSL-3.0.
         #∞license∞#
         #∞what∞#
-        # Prints hex dumps of the differences between two files.
+        # Prints hex dumps of the differences between two files
         #∞what∞#
         #∞test∞# --test #∞test∞#
     # Standard imports

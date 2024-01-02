@@ -11,7 +11,7 @@ if 1:   # Header
         #   See http://opensource.org/licenses/OSL-3.0.
         #∞license∞#
         #∞what∞#
-        # Print out sprinkler timing.
+        # Print out sprinkler timing
         #∞what∞#
         #∞test∞# #∞test∞#
         pass

@@ -7,7 +7,7 @@ if 1:  # Copyright, license
     #   See http://opensource.org/licenses/OSL-3.0.
     #∞license∞#
     #∞what∞#
-    # Program description string
+    # Show text file contents with lines truncated to screen width
     #∞what∞#
     #∞test∞# #∞test∞#
     pass

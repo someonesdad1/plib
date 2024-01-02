@@ -11,7 +11,7 @@ if 1:   # Header
         #   See http://opensource.org/licenses/OSL-3.0.
         #∞license∞#
         #∞what∞#
-        # Program description string
+        # List GNU core utilities
         #∞what∞#
         #∞test∞# #∞test∞#
         pass

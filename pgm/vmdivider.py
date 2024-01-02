@@ -20,8 +20,7 @@ if 1:  # Copyright, license
     #   See http://opensource.org/licenses/OSL-3.0.
     #∞license∞#
     #∞what∞#
-    # Solve a voltage divider problem to help design a divider for e.g. a
-    # voltmeter.
+    # Design a voltage divider
     #∞what∞#
     #∞test∞# #∞test∞#
     pass

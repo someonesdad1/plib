@@ -1,9 +1,6 @@
 '''
 Find rational approximations
 '''
-'''
-Description of program
-'''
 if 1:   # Header
     if 1:   # Copyright, license
         # These "trigger strings" can be managed with trigger.py
@@ -14,7 +11,7 @@ if 1:   # Header
         #   See http://opensource.org/licenses/OSL-3.0.
         #∞license∞#
         #∞what∞#
-        # Program description string
+        # Find rational approximations
         #∞what∞#
         #∞test∞# #∞test∞#
         pass

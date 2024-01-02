@@ -12,7 +12,7 @@ if 1:  # Copyright, license
     #   See http://opensource.org/licenses/OSL-3.0.
     #∞license∞#
     #∞what∞#
-    # Program description string
+    # A "personality" test that someone emailed me
     #∞what∞#
     #∞test∞# #∞test∞#
     pass

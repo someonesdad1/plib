@@ -10,7 +10,7 @@ if 1:  # Copyright, license
     #   See http://opensource.org/licenses/OSL-3.0.
     #∞license∞#
     #∞what∞#
-    # Program description string
+    # Remove multiple blank lines in one or more files
     #∞what∞#
     #∞test∞# #∞test∞#
     pass

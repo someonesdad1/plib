@@ -10,7 +10,7 @@ if 1:  # Copyright, license
     #   See http://opensource.org/licenses/OSL-3.0.
     #∞license∞#
     #∞what∞#
-    # Program description string
+    # Generate comb/perm of the lines of a file
     #∞what∞#
     #∞test∞# #∞test∞#
     pass

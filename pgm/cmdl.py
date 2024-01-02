@@ -1,7 +1,6 @@
 '''
 Script to output Mac keyboard commands in various ways
 '''
-
  
 if 1:  # Copyright, license
     # These "trigger strings" can be managed with trigger.py
@@ -12,7 +11,7 @@ if 1:  # Copyright, license
     #   See http://opensource.org/licenses/OSL-3.0.
     #∞license∞#
     #∞what∞#
-    # Program description string
+    # Output Mac keyboard commands
     #∞what∞#
     #∞test∞# #∞test∞#
     pass

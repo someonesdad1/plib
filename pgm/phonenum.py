@@ -11,8 +11,7 @@ if 1:  # Copyright, license
     #   See http://opensource.org/licenses/OSL-3.0.
     #∞license∞#
     #∞what∞#
-    # Change a sequence of letters into numbers and vice versa per the
-    # phone dial's correspondence.
+    # Change letters into numbers per a phone dial's correspondence
     #∞what∞#
     #∞test∞# #∞test∞#
     pass

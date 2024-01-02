@@ -25,7 +25,7 @@ if 1:   # Header
         #   See http://opensource.org/licenses/OSL-3.0.
         #∞license∞#
         #∞what∞#
-        # Produce a replica of Barlow's Tables.
+        # Produce a replica of Barlow's Tables
         #∞what∞#
         #∞test∞# #∞test∞#
         pass

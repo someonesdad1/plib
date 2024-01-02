@@ -21,7 +21,7 @@ if 1:   # Header
         #   See http://opensource.org/licenses/OSL-3.0.
         #∞license∞#
         #∞what∞#
-        # Program description string
+        # Interactive tool for project profit
         #∞what∞#
         #∞test∞# #∞test∞#
     # Standard imports

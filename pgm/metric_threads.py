@@ -38,7 +38,7 @@ if 1:   # Header
         #   See http://opensource.org/licenses/OSL-3.0.
         #∞license∞#
         #∞what∞#
-        # Thread pitch adjustments using taper attachment.
+        # Thread pitch adjustments using taper attachment
         #∞what∞#
         #∞test∞# #∞test∞#
         pass

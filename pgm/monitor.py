@@ -2,37 +2,38 @@
 Print out energy consumption of monitor
 '''
  
-if 1:  # Copyright, license
-    # These "trigger strings" can be managed with trigger.py
-    #∞copyright∞# Copyright (C) 2022 Don Peterson #∞copyright∞#
-    #∞contact∞# gmail.com@someonesdad1 #∞contact∞#
-    #∞license∞#
-    #   Licensed under the Open Software License version 3.0.
-    #   See http://opensource.org/licenses/OSL-3.0.
-    #∞license∞#
-    #∞what∞#
-    # Program description string
-    #∞what∞#
-    #∞test∞# #∞test∞#
-    pass
-if 1:   # Standard imports
-    import getopt
-    import os
-    import pathlib
-    import sys
-    from pdb import set_trace as xx
-if 1:   # Custom imports
-    from wrap import wrap, dedent
-    from f import flt
-    from interpolate import LinearInterpFunction
-    from color import C
-if 1:   # Global variables
-    P = pathlib.Path
-    ii = isinstance
-    class g:
+if 1:  # Header
+    if 1:  # Copyright, license
+        # These "trigger strings" can be managed with trigger.py
+        #∞copyright∞# Copyright (C) 2022 Don Peterson #∞copyright∞#
+        #∞contact∞# gmail.com@someonesdad1 #∞contact∞#
+        #∞license∞#
+        #   Licensed under the Open Software License version 3.0.
+        #   See http://opensource.org/licenses/OSL-3.0.
+        #∞license∞#
+        #∞what∞#
+        # Print out energy consumption of monitor
+        #∞what∞#
+        #∞test∞# #∞test∞#
         pass
-    g.dollar_per_kWhr = 0.104
-    g.cents = "¢"
+    if 1:   # Standard imports
+        import getopt
+        import os
+        import pathlib
+        import sys
+        from pdb import set_trace as xx
+    if 1:   # Custom imports
+        from wrap import wrap, dedent
+        from f import flt
+        from interpolate import LinearInterpFunction
+        from color import C
+    if 1:   # Global variables
+        P = pathlib.Path
+        ii = isinstance
+        class g:
+            pass
+        g.dollar_per_kWhr = 0.104
+        g.cents = "¢"
 if 1:   # Utility
     def Error(*msg, status=1):
         print(*msg, file=sys.stderr)
