@@ -1,29 +1,31 @@
-if 1:  # Copyright, license
-    # These "trigger strings" can be managed with trigger.py
-    #∞copyright∞# Copyright (C) 2014 Don Peterson #∞copyright∞#
-    #∞contact∞# gmail.com@someonesdad1 #∞contact∞#
-    #∞license∞#
-    #   Licensed under the Open Software License version 3.0.
-    #   See http://opensource.org/licenses/OSL-3.0.
-    #∞license∞#
-    #∞what∞#
-    # Calculates the BMI given height and mass
-    #∞what∞#
-    #∞test∞# #∞test∞#
-    pass
-if 1:   # Imports
-    import sys
-    import getopt
-    from pdb import set_trace as xx
-if 1:   # Custom imports
-    from sig import sig
-    import color as C
-if 1:   # Global variables
-    lb2kg = 0.453592
-    in2m = 0.0254
-    # Glenda measured my height at 69.5 inches with socks on, but I'll
-    # round it down.
-    personal_height_inches = 69
+if 1:  # Header
+    if 1:  # Copyright, license
+        # These "trigger strings" can be managed with trigger.py
+        #∞copyright∞# Copyright (C) 2014 Don Peterson #∞copyright∞#
+        #∞contact∞# gmail.com@someonesdad1 #∞contact∞#
+        #∞license∞#
+        #   Licensed under the Open Software License version 3.0.
+        #   See http://opensource.org/licenses/OSL-3.0.
+        #∞license∞#
+        #∞what∞#
+        # Calculates the BMI given height and mass
+        #∞what∞#
+        #∞test∞# #∞test∞#
+        pass
+    if 1:   # Imports
+        import sys
+        import getopt
+        from pdb import set_trace as xx
+    if 1:   # Custom imports
+        from sig import sig
+        import color as C
+        # xx Convert to new color.py form
+    if 1:   # Global variables
+        lb2kg = 0.453592
+        in2m = 0.0254
+        # Glenda measured my height at 69.5 inches with socks on, but I'll
+        # round it down.
+        personal_height_inches = 69
 def GetColor(bmi):
     'Return escape code for color'
     if not bmi:

@@ -37,19 +37,23 @@ def GetParameters():
     y0 = flt(GetNumber("y position of origin? ", default=0))
     return n, dia, theta_offset, x0, y0, digits
 def BoltCircle():
-    if 0:
-        N, Diameter, theta_offset, X0, Y0, digits = GetParameters()
+    if len(sys.argv) > 1:
+        N, Diameter, theta_offset, X0, Y0, digits = (6, flt(1),
+                flt(0), flt(1), flt(-1), 4)
     else:
-        N, Diameter, theta_offset, X0, Y0, digits = (1, flt(10),
-                flt(0), flt(1), flt(-1), 6)
-    X0.n, w = digits, 25
+        N, Diameter, theta_offset, X0, Y0, digits = GetParameters()
+    X0.N = digits
+    X0.rtz = X0.rtdp = False
+    w = 25
     print(dedent(f'''
     Bolt circle placement
     ---------------------
       {'Number of holes':{w}s} {N}
-      {'Bolt circle diameter':{w}s} {Diameter}   radius = {Diameter/2}
+      {'Bolt circle diameter':{w}s} {Diameter}
+      {'Bolt circle radius':{w}s} {Diameter/2}
       {'Angle offset':{w}s} {theta_offset} degrees
       {'Origin':{w}s} ({X0}, {Y0})
+      {'Digits':{w}s} {digits}
     '''))
     s = "Table of hole positions"
     print()
@@ -61,11 +65,11 @@ def BoltCircle():
     print(f"Hole {'x':^{w}} {'y':^{w}} {'theta, deg':^{w}}")
     print(f"---- {s:^{w}} {s:^{w}} {s:^{w}}")
     def g(x):
-        return f"{x!s:^{w}}" if abs(x) >= eps else f"{flt(0)!s:{w}}"
+        return f"{x!s:^{w}}" if abs(x) >= eps else f"{flt(0)!s:^{w}}"
     for i in range(N):
         theta = 2*pi*i/N + radians(theta_offset)
         X, Y = r*cos(theta) + X0, r*sin(theta) + Y0
-        x, y, t = g(X), g(Y), degrees(theta)
+        x, y, t = g(X), g(Y), g(flt(degrees(theta)))
         print(f"{i + 1:^4} {x:^{w}} {y:^{w}} {t:^{w}}")
 if __name__ == "__main__": 
     BoltCircle()

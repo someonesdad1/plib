@@ -74,7 +74,7 @@ if 1:   # Header
         old = 0
         from f import flt
         from wrap import dedent
-        if 1:
+        if 0:
             import debug
             debug.SetDebugger()
     if 1:   # Global variables

@@ -260,9 +260,8 @@ def Usage(d, status=1):
     print(dedent(f'''
     Usage:  {sys.argv[0]} [options] material
       Print out a table of the mass of bar stock for the given material.
-      For materials, try "steel", "brass", etc. (use the -c option to see
+      For materials, try "steel", "brass", etc. (use the -l option to see
       the material choices).
-      
     Options:
         -c  Include conversions to other materials.
         -d  Output the diameter in decimal inches instead of fractions.
