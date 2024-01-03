@@ -1,19 +1,25 @@
 '''
 Construct a copy of Barlow's tables
-    This script will produce a table that will fit in 80 columns.  The
-    square, cube, square root, cube root, reciprocal, and base 10 logarithm
-    of the integers are given.  This simulates the stunning book produced
-    by Barlow in the early 1800's that stayed in print for around 150
-    years.  In fact, in the early 1900's the original printing plates wore
-    out, so new plates had to be generated.
+    This script will produce a table that will fit in 80 columns, assuming
+    the argument isn't too large.  The square, cube, square root, cube
+    root, reciprocal, and base 10 logarithm of the integers are given.
+    This reproduces the contents of the book produced by Barlow in the
+    early 1800's that stayed in print for around 150 years.  In the early
+    1900's the original printing plates wore out, so new plates had to be
+    generated.
+
+    Barlow's work was important for many years to people who needed to do
+    manual arithmetic calculations.  
+
+    See https://en.wikipedia.org/wiki/Peter_Barlow_(mathematician).
  
-    See https://en.wikipedia.org/wiki/Peter_Barlow_(mathematician)
- 
-    The original work took a lot of effort to produce, both calculation of
-    the numbers and the dreary task of checking the printer's typesetting.
-    The edition edited by de Morgan in 1840 was known to be nearly error
-    free.  Today, such a table can be generated in less than a second by a
-    script like this.
+    The original work took much effort to produce, both calculation of the
+    numbers (aided by algebraic checks) and checking the printer's
+    typesetting; typesetting was a notorious source of errors.  The edition
+    edited by de Morgan in 1840 was known to be nearly error free.  These
+    types of tables were made obsolete by electronic calculators and
+    computers, which can produce an equivalent table in a fraction of a
+    second.
 '''
 if 1:   # Header
     if 1:   # Copyright, license
@@ -58,22 +64,22 @@ if 1:   # Utility
           for the logarithm.  If m is given, the table goes from n to m.
         Options:
             -c      Color escapes always on
-            -h      Print a manpage
             -l      Omit the logarithm
             -t      Separate output by tabs
         '''))
         exit(status)
     def ParseCommandLine(d):
+        d["-C"] = False     # No color coding
         d["-c"] = False     # Always color coding
         d["-l"] = False     # Omit logarithm printing
         d["-t"] = False     # Tab separator
         try:
-            opts, args = getopt.getopt(sys.argv[1:], "chl") 
+            opts, args = getopt.getopt(sys.argv[1:], "Cchl") 
         except getopt.GetoptError as e:
             print(str(e))
             exit(1)
         for o, a in opts:
-            if o[1] in list("cl"):
+            if o[1] in list("Ccl"):
                 d[o] = not d[o]
             elif o in ("-h", "--help"):
                 Usage(status=0)
@@ -85,6 +91,8 @@ if 1:   # Utility
 if 1:   # Core functionality
     def GetColors():
         a = sys.stdout.isatty() or d["-c"]
+        if d["-C"]:
+            a = False
         t.num = t("wht") if a else ""
         t.sq = t("trq") if a else ""
         t.cu = t("olvl") if a else ""
