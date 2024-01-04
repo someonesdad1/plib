@@ -1,10 +1,16 @@
 Active
 
     - /plib/pgm scripts
+        - 0what.py
+            - Look at a way of encoding how to run tests on every script if
+              there is such a way.
         - To do
             - Inventory the set of scripts
             - Look for those in /elec, /shop, etc. that could be included
             - Look for opportunities to coalesce things
+        - I'm not so sure there's anything to be gained from a calc/ dir,
+          particularly now that a 'what xxxx.py' tells me what the script
+          does
         - A lot have evolved for practical calculations
         - Create a new directory for them? /plib/calc?
         - A helper document or script is needed to point to the correct
@@ -55,6 +61,14 @@ Active
 
     - dpstr.py
         - Finish usage examples
+
+    - Marv Klotz's stuff
+        - https://www.myvirtualnetwork.com/mklotz/
+        - Might be useful to download everything
+        - Would it be worth it to translate the stuff to python?
+            - It seems someone has done a bunch already:
+              https://github.com/jackr-m/mklotz
+                - Runs on micropython
 
     - words.py
         - Using files in /words/words.*, return sets of words indexed by

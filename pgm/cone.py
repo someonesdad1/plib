@@ -46,7 +46,7 @@ if __name__ == "__main__":
         olap = flt(GN("Overlap fraction for joining? ", low=0, high=1))
         digits = GN("Number of significant digits? ", default=4, 
                     numtype=int, low=1, high=15)
-    d.n = digits
+    d.N = digits
     mean_diameter = (D - d)/2
     r = mean_diameter/height
     cone_included_angle = atan(r)

@@ -1,3 +1,6 @@
+'''
+xx Update to new color.py:  get rid of PrintMatch
+'''
 if 1:  # Copyright, license
     # These "trigger strings" can be managed with trigger.py
     #∞copyright∞# Copyright (C) 2019 Don Peterson #∞copyright∞#

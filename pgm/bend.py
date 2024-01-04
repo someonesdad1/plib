@@ -38,7 +38,7 @@ def BendAllowance():
     x = t/3 if r < 2*t else 2*t/10
     if r > 4*t:
         x = t/2
-    t.n = 4
+    t.N = 4
     print(dedent(f'''
     
     Length of bend exterior          {θ*(r + t)}

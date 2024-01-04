@@ -2341,7 +2341,8 @@ if __name__ == "__main__":
             def f(a):
                 return c(attr=a)
             print(dedent(f'''
-            Text attributes ('hide' is to the right of 'dim')
+            Text attributes (e.g., t('ornl', attr="ul"))
+                ('hide' is to the right of 'dim')
                 {f("no")}normal      no{c.n}       {f("bo")}bold        bo{c.n}
                 {f("it")}italic      it{c.n}       {f("ul")}underline   ul{c.n}
                 {f("bl")}blink       bl{c.n}       {f("rb")}rapidblink  rb{c.n}

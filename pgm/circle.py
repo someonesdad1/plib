@@ -1,4 +1,7 @@
 '''
+ToDo xx
+    - Allow input numbers to have uncertainties
+
 Interactive script for various circle calculations:
     1. Circle through three points
     2. Segment area

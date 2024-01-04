@@ -26,13 +26,12 @@ if 1:   # Imports
     from pdb import set_trace as xx 
 if 1:   # Custom imports
     from wrap import dedent
-    from color import C as c
+    from color import t
 if 1:   # Global variables
-    C = c.lyel
-    P = c.lred
-    N = c.norm
+    t.c = t("wht")
+    t.p = t("magl")
 if __name__ == "__main__": 
-    limit = fac(28)
+    limit = fac(28)     # Limit the printed integers to <= this value
     max_number = 100
     d = defaultdict(list)
     def perm(x):
@@ -40,13 +39,16 @@ if __name__ == "__main__":
     def comb(n, m):
         return int(mp.fac(n)/(mp.fac(n - m)*mp.fac(m)))
     for n in range(max_number + 1):
-        d[perm(n)].append(f"{P}[{n}]{N}")
+        d[perm(n)].append(f"{t.p}[{n}]{t.n}")
         for m in range(1, n//2):
-            d[comb(n, m)].append(f"{C}({n}, {m}){N}")
-    print(f"Number of combinations {C}(n, m){N} and permutations {P}[n]{N}")
+            d[comb(n, m)].append(f"{t.c}({n}, {m}){t.n}{t.n}")
+    hdr = f"Number of combinations {t.c}(n, m){t.n} and permutations {t.p}[n]{t.n}"
+    print(hdr)
     for key in sorted(d):
         if key and key <= limit:
-            print(f"{key:,d}  {key:.0e}  ", end="")
+            print(f"{key:d}  {key:.0e}  ", end="")
             for i in d[key]:
                 print(i, end=" ")
             print()
+    print(hdr)
+    print(f"Limited to integers <= {limit} = {float(limit):.2e}")

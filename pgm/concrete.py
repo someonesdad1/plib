@@ -365,6 +365,7 @@ def GetFormGeometry():
             if num in (1, 2, 3, 4):
                 return form[num]
             print("Number must be {min(form)} to {max(form)}, inclusive")
+
 if __name__ == "__main__": 
     indent = " "*4
     Initialization()
@@ -374,6 +375,7 @@ if __name__ == "__main__":
         form = GetFormGeometry()
         form.GetDimensions()
     else:
+        # Run debug example
         case = 1
         if case == 1:
             form = Slab()
