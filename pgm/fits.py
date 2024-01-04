@@ -1,9 +1,5 @@
 '''
 Calculate shaft/hole fits
-
-
-----------------------------------------------------------------------
-
 '''
 if 1:  # Header
     if 1:  # Copyright, license
@@ -40,6 +36,7 @@ if 1:  # Header
         t.msg = t("cynl", attr="ul")
         t.warn = t("magl")
         t.matl = t("ornl")
+        t.meth = t("purl")
 if 1:  # Utility
     def Usage(opt, status=1):
         name = sys.argv[0]
@@ -166,7 +163,7 @@ if 1:  # Core functionality
         if diam <= 0:
             Error("Negative or zero diameter is meaningless.")
         unit = unit if unit else "inches"
-        diam_inches = diam*u(unit)/u("inches")
+        diam_inches = flt(diam*u(unit)/u("inches"))
         return arg, diam_inches
 if 1:  # Tubal Cain functionality
     if 1:  # Global variables
@@ -197,18 +194,18 @@ if 1:  # Tubal Cain functionality
         )
     def TubalCain(cmdline, D, opt):
         def HoleBasic(D, opt):
-            '''D is hole size in inches.
-            '''
+            'D is hole size in inches'
             f = opt["-m"]
             shaft_size_in = D
             shaft_size_mm = D*in2mm
             t.print(f"{t.msg}Hole size is basic")
             hole_size_in = float(D)
             hole_size_mm = in2mm*D
-            print('''
-                                Shaft size          Clearance
-                               in        mm        mils     mm
-                            -------   --------    -----   ------  
+            print(f'''
+                                 {t.meth}Tubal Cain's Method{t.n}
+                            Shaft size          Clearance
+                           in        mm        mils     mm
+                        -------   --------    -----   ------  
             '''[1:].rstrip())
             for name, constant, allowance in tc.fits:
                 correction = f*(allowance*hole_size_in + constant)/1000
@@ -222,16 +219,15 @@ if 1:  # Tubal Cain functionality
                 q = f"{t.int if clearance_mm < 0 else t.cl}"
                 print(f"{q}{s}{t.n}")
         def ShaftBasic(D, opt):
-            '''D is hole size in inches.
-            '''
+            'D is hole size in inches'
             f = opt["-m"]
             shaft_size_in = float(D)
             shaft_size_mm = in2mm*D
             t.print(f"\n{t.msg}Shaft size is basic")
             print('''
-                                Hole size          Clearance
-                              in        mm        mils     mm
-                            -------   --------    -----   ------  
+                            Hole size          Clearance
+                          in        mm        mils     mm
+                        -------   --------    -----   ------  
             '''[1:].rstrip())
             for name, constant, allowance in tc.fits:
                 correction = -f*(allowance*shaft_size_in + constant)/1000
@@ -289,7 +285,7 @@ if 1:  # Johansson functionality
         # Table data:  Machinery's Handbook, 19th ed., pg 1514
         jo.min = 1/32
         jo.max = 15 + 3/4
-        jo.fits = "lr r, s, p, ed, cd, f"
+        jo.fits = "l r s p e c f".split()
         jo.fit_names = {
             "l": "Light running",
             "r": "Running",
@@ -410,7 +406,17 @@ if 1:  # Johansson functionality
             ),
         }
     def Johansson(cmdline, D, opt):
-        print("ok...")
+        '''cmdline is the string on the command line.  D is the calculated
+        diameter in inches and opt is the options dictionary.
+        '''
+        if not jo.min <= D <= jo.max:
+            msg = f"Diameter {cmdline!r} must be between {jo.min} and {jo.max} inches"
+            Error(msg)
+        print(f"Diameter = {cmdline!r} = {D:.4f} in = {D*25.4:.3f} mm")
+        print(f"\nHole is basic")
+        w = 15
+        for i in jo.fits:
+            print(f"  {jo.fit_names[i]:{w}s}")
 
 if __name__ == "__main__":
     opt = {}  # Options dictionary
