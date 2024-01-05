@@ -280,6 +280,41 @@ if 1:  # Tubal Cain functionality
         CalculateFit(cmdline, D, opt)
         Temperatures(D, opt)
 if 1:  # Johansson functionality
+    '''
+    Logic of the Johansson system
+
+    The tables give the hole as basic.  Let's take an example, a hole of
+    diameter 0.85 inches.  Suppose we want a push fit.  
+
+    We use the tables to calculate the clearance, which will be a pair of
+    numbers (a, b).  
+
+        - When the hole is basic, we add these to the diameter to get the needed
+          shaft diameter.
+        - When the shaft is basic, we subtract these from the diameter to get
+          the hole diameters.
+
+    The diameter 0.85 gives index 4.  Thus, in dict jo.fit["p"], we get the
+    tuple (-24, +31).  The units are 10⁻⁵ inches, so this is (-0.00024,
+    +0.00031).  
+
+    Thus, the shaft dimensions must be 0.84976 to 0.85031 inches.
+    The script would print this out as 0.8498 to 0.8503 inches.
+
+    Hole is basic
+
+        Add 0.85 to (-0.00024, +0.00031) to get (0.84976, 0.85031).  The shaft
+        diameter is thus (0.8498, 0.8503) inches.  Tubal Cain's method gives
+        0.8496 for the shaft diameter, 0.2 mils below Johansson's method.
+
+    Shaft is basic
+
+        Subtract (-0.00024, +0.00031) from 0.85 to get (0.84969, 0.85024).  The
+        hole diameter is thus (0.8497, 0.8502) inches.  Tubal Cain's method gives
+        0.8504 for the hole diameter, 0.2 mils above Johansson's method.
+
+
+    '''
     if 1:  # Global variables
         jo = G()
         # Table data:  Machinery's Handbook, 19th ed., pg 1514
@@ -297,21 +332,21 @@ if 1:  # Johansson functionality
         }
         jo.sizes = (
             # 11 ranges
-            (1/32, 1/8),
-            (1/8, 1/4),
-            (1/4, 13/32),
-            (13/32, 23/32),
-            (23/32, 1 + 1/8),
-            (1 + 1/8, 1 + 7/8),
-            (1 + 7/8, 2 + 15/16),
-            (2 + 15/16, 4 + 17/32),
-            (4 + 17/32, 6 + 7/8),
-            (6 + 7/8, 10 + 7/16),
-            (10 + 7/16, 15 + 3/4),
+            (flt(1/32), flt(1/8)),            #  0:  0.0312-0.125
+            (flt(1/8), flt(1/4)),             #  1:  0.125-0.25
+            (flt(1/4), flt(13/32)),           #  2:  0.25-0.406
+            (flt(13/32), flt(23/32)),         #  3:  0.406-0.719
+            (flt(23/32), flt(1 + 1/8)),       #  4:  0.719-1.12
+            (flt(1 + 1/8), flt(1 + 7/8)),     #  5:  1.12-1.88
+            (flt(1 + 7/8), flt(2 + 15/16)),   #  6:  1.88-2.94
+            (flt(2 + 15/16), flt(4 + 17/32)), #  7:  2.94-4.53
+            (flt(4 + 17/32), flt(6 + 7/8)),   #  8:  4.53-6.88
+            (flt(6 + 7/8), flt(10 + 7/16)),   #  9:  6.88-10.4
+            (flt(10 + 7/16), flt(15 + 3/4)),  # 10:  10.4-15.8
         )
         assert jo.sizes[0][0] == jo.min
         assert jo.sizes[10][1] == jo.max
-        # Units in these tables are 0.1 mils
+        # Units in these tables are 10⁻⁵ inches
         jo.fit = {
             "l": (
                 ( -83,  -43),   # 0
