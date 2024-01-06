@@ -146,8 +146,9 @@ if 1:  # Utility
           module's symbols are in scope.  
         Options
           -h    Print manpage
-          -j    Use the Johansson system of fits
           -f n  Use material factor n (defaults to 1)
+          -j    Use the Johansson system of fits
+          -m    Output in mm instead of inches
         '''))
         exit(status)
 if 1:  # Core functionality
@@ -207,11 +208,12 @@ if 1:  # Tubal Cain functionality
             t.print(f"{t.msg}Hole size is basic")
             hole_size_in = float(D)
             hole_size_mm = in2mm*D
+            i = "mm" if opt["-m"] else "in"
+            c = "mm" if opt["-m"] else "mils"
             print(f'''
                                  {t.meth}Tubal Cain's Method{t.n}
-                            Shaft size          Clearance
-                           in        mm        mils     mm
-                        -------   --------    -----   ------  
+                          Shaft size, {i}       Clearance, {c}
+                          --------------       ---------------
             '''[1:].rstrip())
             for name, constant, allowance in tc.fits:
                 correction = f*(allowance*hole_size_in + constant)/1000
@@ -219,21 +221,24 @@ if 1:  # Tubal Cain functionality
                 shaft_size_mm = shaft_size_in*in2mm
                 clearance_mils = f*(hole_size_in - shaft_size_in)*1000
                 clearance_mm = clearance_mils*in2mm/1000
-                s = "  %-18s %10.4f %10.3f" % (name, shaft_size_in, shaft_size_mm)
-                print(s, end=" ")
-                s = "%8.1f %8.2f" % (clearance_mils, clearance_mm)
                 q = f"{t.int if clearance_mm < 0 else t.cl}"
-                print(f"{q}{s}{t.n}")
+                if opt["-m"]:
+                    print(f"  {name:18s} {shaft_size_mm:16.3f}", end=" ")
+                    print(f"{q}{clearance_mm:19.2f}{t.n}")
+                else:
+                    print(f"  {name:18s} {shaft_size_in:15.4f}", end=" ")
+                    print(f"{q}{clearance_mils:19.2f}{t.n}")
         def ShaftBasic(D, opt):
             'D is hole size in inches'
             f = opt["-f"]
             shaft_size_in = float(D)
             shaft_size_mm = in2mm*D
+            i = "mm" if opt["-m"] else "in"
+            c = "mm" if opt["-m"] else "mils"
             t.print(f"\n{t.msg}Shaft size is basic")
-            print('''
-                            Hole size          Clearance
-                          in        mm        mils     mm
-                        -------   --------    -----   ------  
+            print(f'''
+                           Hole size, {i}       Clearance, {c}
+                           -------------       ---------------
             '''[1:].rstrip())
             for name, constant, allowance in tc.fits:
                 correction = -f*(allowance*shaft_size_in + constant)/1000
@@ -241,11 +246,13 @@ if 1:  # Tubal Cain functionality
                 hole_size_mm = hole_size_in*in2mm
                 clearance_mils = f*(hole_size_in - shaft_size_in)*1000
                 clearance_mm = clearance_mils*in2mm/1000
-                s = "  %-18s %10.4f %10.3f" % (name, hole_size_in, hole_size_mm)
-                print(s, end=" ")
-                s = "%8.1f %8.2f" % (clearance_mils, clearance_mm)
                 q = f"{t.int if clearance_mm < 0 else t.cl}"
-                print(f"{q}{s}{t.n}")
+                if opt["-m"]:
+                    print(f"  {name:18s} {hole_size_mm:16.3f}", end=" ")
+                    print(f"{q}{clearance_mm:19.2f}{t.n}")
+                else:
+                    print(f"  {name:18s} {hole_size_in:15.4f}", end=" ")
+                    print(f"{q}{clearance_mils:19.2f}{t.n}")
         def CalculateFit(cmdline, D, opt):
             '''hole_size_inches is diameter of hole in inches.  opt is the
             settings dictionary.
@@ -261,8 +268,6 @@ if 1:  # Tubal Cain functionality
             print()
             HoleBasic(D, opt)
             ShaftBasic(D, opt)
-            if 1:   # Show color coding
-                t.print(f"\nColor coding:  {t.int}interference  {t.cl}clearance")
         def Temperatures(D, opt):
             'Show temperatures needed to get a shrink fit'
             hole_size_in = float(D)
