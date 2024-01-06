@@ -43,19 +43,6 @@ if 1:  # Header
         t.matl = t("ornl")
         t.meth = t("purl")
 if 1:  # Utility
-    def Usage(opt, status=1):
-        name = sys.argv[0]
-        print(dedent(f'''
-        Usage:  {name} [options] diameter [unit]
-          Print a table showing fits for hole and shaft sizes (inches by
-          default).  The command line can include python expressions; the math
-          module's symbols are in scope.  
-        Options
-          -h    Print manpage
-          -j    Use the Johansson system of fits
-          -m n  Use material factor n (defaults to 1)
-        '''))
-        exit(status)
     def Manpage():
         print(dedent(f'''
         Example
@@ -113,7 +100,7 @@ if 1:  # Utility
  
             D = d - (m*d + c) = d*(1 - m) - c
  
-        The -m option is used to adjust fits to other situations.  The basic
+        The -f option is used to adjust fits to other situations.  The basic
         formulas are good for metallic materials like steel and brass.  For
         other materials like plastic, you may want more of an interference fit;
         for such cases, set the n value to a number larger than 1.  For very
@@ -130,25 +117,39 @@ if 1:  # Utility
         print(*msg, file=sys.stderr)
         exit(status)
     def ParseCommandLine(opt):
+        opt["-f"] = 1         # Adjustment for material (1 = metal)
         opt["-j"] = False     # Use Johansson method
-        opt["-m"] = 1         # Adjustment for material (1 = metal)
+        opt["-m"] = False     # Output in mm
         if len(sys.argv) < 2:
             Usage(opt)
         try:
-            opts, args = getopt.getopt(sys.argv[1:], "hjm:")
+            opts, args = getopt.getopt(sys.argv[1:], "f:hjm")
         except getopt.GetoptError as e:
             print(str(e))
             exit(1)
         for o, a in opts:
-            if o[1] in list("j"):
+            if o[1] in "jm":
                 opt[o] = not opt[o]
-            elif o in ("-m",):
-                opt["-m"] = x = float(a)
+            elif o == "-f":
+                opt[o] = x = flt(a)
                 if x <= 0:
-                    Error("-m option must be > 0")
+                    Error("-f option must be > 0")
             elif o == "-h":
                 Manpage()
         return ' '.join(args)
+    def Usage(opt, status=1):
+        name = sys.argv[0]
+        print(dedent(f'''
+        Usage:  {name} [options] diameter [unit]
+          Print a table showing fits for hole and shaft sizes (inches by
+          default).  The command line can include python expressions; the math
+          module's symbols are in scope.  
+        Options
+          -h    Print manpage
+          -j    Use the Johansson system of fits
+          -f n  Use material factor n (defaults to 1)
+        '''))
+        exit(status)
 if 1:  # Core functionality
     def GetDiameter(arg, opt):
         '''Given the command line arguments collapsed into a space-separated
@@ -200,7 +201,7 @@ if 1:  # Tubal Cain functionality
     def TubalCain(cmdline, D, opt):
         def HoleBasic(D, opt):
             'D is hole size in inches'
-            f = opt["-m"]
+            f = opt["-f"]
             shaft_size_in = D
             shaft_size_mm = D*in2mm
             t.print(f"{t.msg}Hole size is basic")
@@ -225,7 +226,7 @@ if 1:  # Tubal Cain functionality
                 print(f"{q}{s}{t.n}")
         def ShaftBasic(D, opt):
             'D is hole size in inches'
-            f = opt["-m"]
+            f = opt["-f"]
             shaft_size_in = float(D)
             shaft_size_mm = in2mm*D
             t.print(f"\n{t.msg}Shaft size is basic")
@@ -250,8 +251,8 @@ if 1:  # Tubal Cain functionality
             settings dictionary.
             '''
             Dmm = D*in2mm
-            if opt["-m"] != 1:
-                t.print(f"{t.matl}Material factor is", opt["-m"])
+            if opt["-f"] != 1:
+                t.print(f"{t.matl}Material factor is", opt["-f"])
             print("Diameter = " + cmdline)
             print(f"         = {D:.4f} inches")
             print(f"         = {Dmm:.3f} mm")
@@ -267,7 +268,7 @@ if 1:  # Tubal Cain functionality
             hole_size_in = float(D)
             hole_size_mm = in2mm*D
             name, constant, allowance = tc.fits[0]
-            f = opt["-m"]
+            f = opt["-f"]
             assert(name == "Shrink")
             correction = f*(allowance*hole_size_in + constant)/1000
             shaft_size_in = hole_size_in + correction
