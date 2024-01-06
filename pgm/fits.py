@@ -53,8 +53,8 @@ if 1:  # Utility
  
             Run the script with an argument of 0.9937.  In the report, look
             under the heading "Shaft size is basic".  Next to "Drive", the
-            required hole size is 0.9930, which has an interference of 0.0007
-            inches with the shaft.
+            required hole size is 0.9930, which has an interference of 0.75
+            mils with the shaft.
  
         The fit names and associated numbers are from page 5.18 of Tubal Cain's
         (Tom Walshaw) "Model Engineers Handbook", 3rd ed.  Here's the text and
@@ -100,16 +100,39 @@ if 1:  # Utility
  
             D = d - (m*d + c) = d*(1 - m) - c
  
-        The -f option is used to adjust fits to other situations.  The basic
-        formulas are good for metallic materials like steel and brass.  For
-        other materials like plastic, you may want more of an interference fit;
-        for such cases, set the n value to a number larger than 1.  For very
-        stiff materials, you may want to use n values less than 1.  The factor n
-        multiplies the interference calculated for metals.
+        Temperature differential for shrink fit
+
+            The table after Walshaw's method gives the temperature needed to get
+            a shrink fit as given in the tables for different materials.  These
+            are calculated based on the thermal coefficient of expansion and
+            it's assumed the expansion is linear.  You'll probably want to add 5
+            or 10 degrees to make sure things fit.
+
+            Check:  The formula is D = d*(1 + α*ΔT), so ΔT = (D/d - 1)/α.  The
+            shrink size for the above 0.9937 inch shaft was an interference of
+            1.99 mils, so we need the ΔT to get this expansion.  We thus have ΔT
+            = 1.99×10⁻³/(12×10⁻⁶) = 166 K, which is the temperature given in the
+            table under °C.
+
+        Adjusting the fit for other materials
+
+            The -f option is used to adjust fits to other situations.  The basic
+            formulas are good for metallic materials like steel and brass.  For
+            other materials like plastic, you may want more of an interference
+            fit; for such cases, set the n value to a number larger than 1.  For
+            very stiff materials, you may want to use n values less than 1.  The
+            factor n multiplies the interference calculated for metals.
  
-        Machinery's Handbook 19th edition 1971 (page 1514) gives the Johansson
-        system for fits.  This is a table that fits onto one page and covers
-        diameters of 0.03 to 15.75 inches.
+        Johansson system of fits
+
+            Machinery's Handbook 19th edition 1971 (page 1514) gives the
+            Johansson system for fits.  This is a table that fits onto one page
+            and covers diameters of 0.03 to 15.75 inches.  Use the -j option to
+            use this system.  
+
+            For the example given above for the shaft of 0.9937 inches, the
+            Johansson method gives a hole size of 0.9930-0.9934 for an easy
+            driving fit compared to the 0.9930 of Tubal Cain's method.
  
         '''.rstrip()))
         exit(0)
@@ -182,7 +205,7 @@ if 1:  # Tubal Cain functionality
             ("Shrink", flt(0.5), flt(1.5)),
             ("Force", flt(0.5), flt(0.75)),
             ("Drive", flt(0.3), flt(0.45)),
-            ("Wheel keying", flt(0), flt(0)),
+           #("Wheel keying", flt(0), flt(0)),
             ("Push", flt(-0.15), flt(-0.35)),
             ("Slide", flt(-0.3), flt(-0.45)),
             ("Precision running", flt(-0.5), flt(-0.65)),
@@ -211,7 +234,7 @@ if 1:  # Tubal Cain functionality
             i = "mm" if opt["-m"] else "in"
             c = "mm" if opt["-m"] else "mils"
             print(f'''
-                                 {t.meth}Tubal Cain's Method{t.n}
+                           {t.meth}Tom Walshaw's (Tubal Cain) Method{t.n}
                           Shaft size, {i}       Clearance, {c}
                           --------------       ---------------
             '''[1:].rstrip())
