@@ -1,4 +1,9 @@
 '''
+ToDo
+    - Add -m option for metric output
+    - Only print inch or metric
+    - For both Cain & Johansson methods, show clearances in red & green
+
 Calculate shaft/hole fits
 '''
 if 1:  # Header
@@ -54,16 +59,16 @@ if 1:  # Utility
     def Manpage():
         print(dedent(f'''
         Example
-
+ 
             I have a shaft with a measured OD of 0.9937 inches.  I'd like to
             make this shaft a driving fit into a hole.  What should I bore the
             mating hole size to?
-
+ 
             Run the script with an argument of 0.9937.  In the report, look
             under the heading "Shaft size is basic".  Next to "Drive", the
             required hole size is 0.9930, which has an interference of 0.0007
             inches with the shaft.
-
+ 
         The fit names and associated numbers are from page 5.18 of Tubal Cain's
         (Tom Walshaw) "Model Engineers Handbook", 3rd ed.  Here's the text and
         table from the book [sic]:
@@ -100,25 +105,25 @@ if 1:  # Utility
                 Large clearance     -3          -5
             
             An allowance for thermal expansion must be made on engine pistons.
-
+ 
         In the script, the constant under the 'C' column is called c and the
         constant under the thou/in column is called m, both divided by 1000 to
         give units in inches and inches/inch, respectively.  Given the hole
         diameter d, the shaft diameter D should be
-
+ 
             D = d - (m*d + c) = d*(1 - m) - c
-
+ 
         The -m option is used to adjust fits to other situations.  The basic
         formulas are good for metallic materials like steel and brass.  For
         other materials like plastic, you may want more of an interference fit;
         for such cases, set the n value to a number larger than 1.  For very
         stiff materials, you may want to use n values less than 1.  The factor n
         multiplies the interference calculated for metals.
-
+ 
         Machinery's Handbook 19th edition 1971 (page 1514) gives the Johansson
         system for fits.  This is a table that fits onto one page and covers
         diameters of 0.03 to 15.75 inches.
-
+ 
         '''.rstrip()))
         exit(0)
     def Error(*msg, status=1):
@@ -301,13 +306,13 @@ if 1:  # Johansson functionality
     Thus, the shaft dimensions must be 0.84976 to 0.85031 inches.
     The script would print this out as 0.8498 to 0.8503 inches.
  
-    Hole is basic
+    Hole is basic [0.8498, 0.8503]
 
         Add 0.85 to (-0.00024, +0.00031) to get (0.84976, 0.85031).  The shaft
         diameter is thus (0.8498, 0.8503) inches.  Tubal Cain's method gives
         0.8496 for the shaft diameter, 0.2 mils below Johansson's method.
  
-    Shaft is basic
+    Shaft is basic [0.8497, 0.8502]
  
         Subtract (-0.00024, +0.00031) from 0.85 to get (0.84969, 0.85024).  The
         hole diameter is thus (0.8497, 0.8502) inches.  Tubal Cain's method gives
@@ -446,10 +451,44 @@ if 1:  # Johansson functionality
             msg = f"Diameter {cmdline!r} must be between {jo.min} and {jo.max} inches"
             Error(msg)
         print(f"Diameter = {cmdline!r} = {D:.4f} in = {D*25.4:.3f} mm")
-        print(f"\nHole is basic")
-        w = 15
-        for i in jo.fits:
-            print(f"  {jo.fit_names[i]:{w}s}")
+        t.print(f"{t.meth}  Johansson's method")
+        mm = 25.4
+        hdrh = " "*31 + "Shaft Diameter"
+        hdrs = " "*32 + "Hole Diameter"
+        hdr1 = "                         Inches            Millimeters"
+        hdr2 = f"{t.msg}Hole is basic{t.n}         Min      Max         Min      Max"
+        hdr3 = f"{t.msg}Shaft is basic{t.n}        Min      Max         Min      Max"
+        # Decimal digits of decimal numbers
+        win = 4 
+        wmm = win - 1
+        if 1:   # Hole is basic
+            print()
+            print(hdrh)
+            print(hdr1)
+            print(hdr2)
+            w = 15
+            for i, letter in enumerate(jo.fits):
+                print(f"  {jo.fit_names[letter]:{w}s}", end=" ")
+                a, b = [j/1e5 for j in jo.fit[letter][i]]
+                # Print diameter in inches
+                dlo, dhi = D + a, D + b
+                print(f"{dlo:8.{win}f} {dhi:8.{win}f}", end=" "*4)
+                # Print diameter in mm
+                print(f"{dlo*mm:8.{wmm}f} {dhi*mm:8.{wmm}f}")
+        if 1:   # Shaft is basic
+            print()
+            print(hdrs)
+            print(hdr1)
+            print(hdr3)
+            w = 15
+            for i, letter in enumerate(jo.fits):
+                print(f"  {jo.fit_names[letter]:{w}s}", end=" ")
+                a, b = [-j/1e5 for j in jo.fit[letter][i]]
+                # Print diameter in inches
+                dlo, dhi = D + a, D + b
+                print(f"{dhi:8.{win}f} {dlo:8.{win}f}", end=" "*4)
+                # Print diameter in mm
+                print(f"{dlo*mm:8.{wmm}f} {dhi*mm:8.{wmm}f}")
 
 if __name__ == "__main__":
     opt = {}  # Options dictionary
