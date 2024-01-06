@@ -51,7 +51,7 @@ if 1:  # Utility
           -m n  Use material factor n (defaults to 1)
         '''))
         exit(status)
-    def Manpage(opt):
+    def Manpage():
         print(dedent(f'''
         Example
 
@@ -282,38 +282,36 @@ if 1:  # Tubal Cain functionality
 if 1:  # Johansson functionality
     '''
     Logic of the Johansson system
-
+ 
     The tables give the hole as basic.  Let's take an example, a hole of
     diameter 0.85 inches.  Suppose we want a push fit.  
-
+ 
     We use the tables to calculate the clearance, which will be a pair of
     numbers (a, b).  
-
+ 
         - When the hole is basic, we add these to the diameter to get the needed
           shaft diameter.
         - When the shaft is basic, we subtract these from the diameter to get
           the hole diameters.
-
+ 
     The diameter 0.85 gives index 4.  Thus, in dict jo.fit["p"], we get the
     tuple (-24, +31).  The units are 10⁻⁵ inches, so this is (-0.00024,
     +0.00031).  
-
+ 
     Thus, the shaft dimensions must be 0.84976 to 0.85031 inches.
     The script would print this out as 0.8498 to 0.8503 inches.
-
+ 
     Hole is basic
 
         Add 0.85 to (-0.00024, +0.00031) to get (0.84976, 0.85031).  The shaft
         diameter is thus (0.8498, 0.8503) inches.  Tubal Cain's method gives
         0.8496 for the shaft diameter, 0.2 mils below Johansson's method.
-
+ 
     Shaft is basic
-
+ 
         Subtract (-0.00024, +0.00031) from 0.85 to get (0.84969, 0.85024).  The
         hole diameter is thus (0.8497, 0.8502) inches.  Tubal Cain's method gives
         0.8504 for the hole diameter, 0.2 mils above Johansson's method.
-
-
     '''
     if 1:  # Global variables
         jo = G()

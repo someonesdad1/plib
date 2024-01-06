@@ -62,19 +62,39 @@ if 1:   # Utility
     def Error(*msg, status=1):
         print(*msg, file=sys.stderr)
         exit(status)
-    def Help(d):
+    def Manpage():
         print(dedent(f'''
-        If you find errors or want to suggest improvements, please contact
-        someonesdad1@gmail.com.
-        
-        In the output report, a * is used to flag any exact matches to the
-        diameter searched for.
-        
-        The colorizing option is turned on by default.  This requires the color.py
-        module, which should be included in the package.  It should work on
-        consoles that recognize ANSI escape sequences.  It used to work on Windows,
-        but I haven't tested it in a few years because I don't use Windows anymore.
-        Feedback appreciated.
+        I use this script as a helper for shop tasks.  Here are some examples:
+ 
+            - Form a circle from wire: I have some music wire that I want to
+              form into a circle of 1.78 inches in diameter.  I run this script
+              to get a suitable mandrel with the command line '1.78 inches'.
+              About my best match is 1.768 inches, a Snap-On 1-3/8 half-inch
+              drive socket.  I clamp this socket in the vise and wind a chunk of
+              wire around the socket body.  After the wire is relaxed, it will
+              expand to a larger size because it is heat treated.  Suppose the
+              relaxed size is 2.04 inches.  This is 15% over the desired value,
+              so I run the script again with the command line '-s 15 1.78
+              inches' and get the size 1.512 inches, which is the Snap-On 7/8
+              inch socket.  Another trial gets me a closer circle.
+ 
+            - Need to shim something up by 2.7 inches:  The script recommends a
+              no-name brand 13/16 inch spark plug socket, whose length is 2.733
+              inches, 1.2% from the desired value.  If I need to be under the
+              2.7 inch value, a 50 mm 3/4" drive socket has a diameter that's
+              2.2% low.
+ 
+        The things like sockets and other things in the script will be special
+        to my environment, so you will want to edit the GetData() function to
+        reflect your own stuff.  
+ 
+        Color coding is used to identify common classes of things.  For example,
+        if you enter '8 mm' on the command line, you'll see inch-based fractions
+        in brown, inch-based SHCS sizes in light blue, inch-based hex nut wrench
+        sizes in orange, millimeters in blue, and AWG sizes in light brown.
+        You can change the color coding used in the GetData() function.
+ 
+        Exact size matches are flagged with a '*' character.
         
         If you want to change default behavior, examine the options' default values
         in ParseCommandLine().
@@ -84,20 +104,20 @@ if 1:   # Utility
         edit the function's data.
         
         Synonyms
-            US Steel Wire Gauge
+            US Steel Wire Gauge same as
                 Washburn & Moen
                 American Steel and Wire Company Gauge
                 Roebling Wire Gauge
         
-        Birmingham Gauge
+        Birmingham Gauge same as
             Stub's Iron Wire Gauge (don't confuse with Stub's Steel Wire Gauge)
         
         Abbreviations:
-        SHCS        Socket head cap screw
+            SHCS        Socket head cap screw
         
         Reference information was taken from:
-        MH    "Machinery's Handbook", 19th ed., 1971 (1973 printing).
-        TAD   "Universal Reference Calculator", TAD Inc., 1964.
+            MH    "Machinery's Handbook", 19th ed., 1971 (1973 printing)
+            TAD   "Universal Reference Calculator", TAD Inc., 1964
         or various web sites attributed in the code.
         '''))
         exit(0)
@@ -115,8 +135,8 @@ if 1:   # Utility
         Examples:
           {name} 1
             Show things within {tol}% of 1 inch in diameter.
-          {name} pi/10 mm
-            Show things that are within {tol}% of pi/10 mm in diameter.  Note
+          {name} -t 10 pi/10 mm
+            Show things that are within 10% of pi/10 mm in diameter.  Note
             output diameters are in mm.
         Options:
             -a      Show all of the dimensions stored in the script
@@ -128,8 +148,8 @@ if 1:   # Utility
             -k      List of on-hand sockets
             -n n    Number of significant digits [{d['-n']}]
             -o u    Output unit (default is same unit as used for input)
-            -s p    Spring-back percentage.  The diameter used will be reduced by the indicated
-                    percentage.
+            -s p    Spring-back percentage.  The diameter used will be reduced by 
+                    the indicated percentage.
             -t p    Tolerance in % for searching [{tol}]
             -u u    Default measurement unit [{d['-u']}]
         '''))
@@ -157,7 +177,7 @@ if 1:   # Utility
             if o[1] in "acdfk":
                 d[o] = not d[o]
             elif o in ("-h",):
-                Help(d)
+                Manpage()
             elif o in ("-n",):
                 try:
                     d["-n"] = int(a)
@@ -245,32 +265,32 @@ if 1:   # Utility
         The following types of printouts can be gotten using this function
         and native python formats:
     
-            A              B               C               D
-        3.14e-12       3.14e-012       3.14e-012       3.14e-012
-        3.14e-11       3.14e-011       3.14e-011       3.14e-011
-        3.14e-10       3.14e-010       3.14e-010       3.14e-010
-            3.14e-9       3.14e-009       3.14e-009       3.14e-009
-            3.14e-8       3.14e-008       3.14e-008       3.14e-008
-            3.14e-7       3.14e-007       3.14e-007       3.14e-007
-            3.14e-6       3.14e-006       3.14e-006       3.14e-006
-            3.14e-5       3.14e-005       3.14e-005       3.14e-005
-            3.14e-4       3.14e-004        0.000314        0.000314
-            3.14e-3       3.14e-003         0.00314         0.00314
-            3.14e-2       3.14e-002          0.0314          0.0314
-            3.14e-1       3.14e-001           0.314           0.314
-            3.14e+0       3.14e+000            3.14            3.14
-            3.14e+1       3.14e+001            31.4            31.4
-            3.14e+2       3.14e+002             314           314.0
-            3.14e+3       3.14e+003       3.14e+003          3140.0
-            3.14e+4       3.14e+004       3.14e+004         31400.0
-            3.14e+5       3.14e+005       3.14e+005        314000.0
-            3.14e+6       3.14e+006       3.14e+006       3140000.0
-            3.14e+7       3.14e+007       3.14e+007      31400000.0
-            3.14e+8       3.14e+008       3.14e+008     314000000.0
-            3.14e+9       3.14e+009       3.14e+009    3140000000.0
-        3.14e+10       3.14e+010       3.14e+010   31400000000.0
-        3.14e+11       3.14e+011       3.14e+011  314000000000.0
-        3.14e+12       3.14e+012       3.14e+012       3.14e+012
+                A              B               C               D
+            3.14e-12       3.14e-012       3.14e-012       3.14e-012
+            3.14e-11       3.14e-011       3.14e-011       3.14e-011
+            3.14e-10       3.14e-010       3.14e-010       3.14e-010
+            3.14e-9        3.14e-009       3.14e-009       3.14e-009
+            3.14e-8        3.14e-008       3.14e-008       3.14e-008
+            3.14e-7        3.14e-007       3.14e-007       3.14e-007
+            3.14e-6        3.14e-006       3.14e-006       3.14e-006
+            3.14e-5        3.14e-005       3.14e-005       3.14e-005
+            3.14e-4        3.14e-004        0.000314        0.000314
+            3.14e-3        3.14e-003         0.00314         0.00314
+            3.14e-2        3.14e-002          0.0314          0.0314
+            3.14e-1        3.14e-001           0.314           0.314
+            3.14e+0        3.14e+000            3.14            3.14
+            3.14e+1        3.14e+001            31.4            31.4
+            3.14e+2        3.14e+002             314           314.0
+            3.14e+3        3.14e+003       3.14e+003          3140.0
+            3.14e+4        3.14e+004       3.14e+004         31400.0
+            3.14e+5        3.14e+005       3.14e+005        314000.0
+            3.14e+6        3.14e+006       3.14e+006       3140000.0
+            3.14e+7        3.14e+007       3.14e+007      31400000.0
+            3.14e+8        3.14e+008       3.14e+008     314000000.0
+            3.14e+9        3.14e+009       3.14e+009    3140000000.0
+            3.14e+10       3.14e+010       3.14e+010   31400000000.0
+            3.14e+11       3.14e+011       3.14e+011  314000000000.0
+            3.14e+12       3.14e+012       3.14e+012       3.14e+012
     
         A:  SignificantFiguresS(x, 3)
         B:  SignificantFiguresS(x, 3, 0)
@@ -1103,9 +1123,14 @@ if 1:   # Size information
             d.append(Size("(length) " + name, sz, length_m))
         opts["sizes"].extend(d)
     def Renard(s):
-        '''Return the Renard series for s.  See
-        https://en.wikipedia.org/wiki/Preferred_number#Renard_numbers.
-
+        '''Return the Renard series for s where s is one of R5, R10, R20,
+        R40, R80, R'10, R'20, R'40, R"5, R"10, R"20.  The R' numbers are
+        "medium rounded" and the R" numbers are "most rounded".
+ 
+        See https://en.wikipedia.org/wiki/Renard_series.  Charles Renard
+        proposed the system in 1877.  It was adopted in 1952 as standard
+        ISO 3.
+ 
         The nominal formula for series with number n is 10**(i/n) for i from 0
         to n; the values need to be rounded and it's not a simple rounding
         algorithm.
@@ -1127,17 +1152,19 @@ if 1:   # Size information
                     1.15, 1.45, 1.85, 2.3, 2.9, 3.65, 4.62, 5.8, 7.3, 9.25,
                     1.18, 1.5, 1.9, 2.36, 3, 3.75, 4.75, 6, 7.5, 9.5,
                     1.22, 1.55, 1.95, 2.43, 3.07, 3.87, 4.87, 6.15, 7.75, 9.75],
-            'R5"': [1, 1.5, 2.5, 4, 6],
-            "R10'": [1, 1.25, 1.6, 2, 2.5, 3.2, 4, 5, 6.3, 8],
-            'R10"': [1, 1.2, 1.5, 2, 2.5, 3, 4, 5, 6, 8],
-            "R20'": [1, 1.25, 1.6, 2, 2.5, 3.2, 4, 5, 6.3, 8,
+            # Medium rounded
+            "R'10": [1, 1.25, 1.6, 2, 2.5, 3.2, 4, 5, 6.3, 8],
+            "R'20": [1, 1.25, 1.6, 2, 2.5, 3.2, 4, 5, 6.3, 8,
                     1.1, 1.4, 1.8, 2.2, 2.8, 3.6, 4.5, 5.6, 7.1, 9],
-            'R20"': [1, 1.2, 1.5, 2, 2.5, 3, 4, 5, 6, 8,
-                    1, 1.2, 1.5, 2, 2.5, 3, 4, 5, 6, 8],
-            "R40'": [1, 1.25, 1.6, 2, 2.5, 3.2, 4, 5, 6.3, 8,
+            "R'40": [1, 1.25, 1.6, 2, 2.5, 3.2, 4, 5, 6.3, 8,
                     1.05, 1.3, 1.7, 2.1, 2.6, 3.4, 4.2, 5.3, 6.7, 8.5,
                     1.1, 1.4, 1.8, 2.2, 2.8, 3.6, 4.5, 5.6, 7.1, 9,
                     1.2, 1.5, 1.9, 2.4, 3, 3.8, 4.8, 6, 7.5, 9.5],
+            # Most rounded
+            'R"5':  [1, 1.5, 2.5, 4, 6],
+            'R"10': [1, 1.2, 1.5, 2, 2.5, 3, 4, 5, 6, 8],
+            'R"20': [1, 1.2, 1.5, 2, 2.5, 3, 4, 5, 6, 8,
+                    1, 1.2, 1.5, 2, 2.5, 3, 4, 5, 6, 8],
         }
         u = d[s]
         u.sort()
@@ -1227,15 +1254,15 @@ if 1:   # Core functionality
         # Renard numbers
         for series, name in (
             ("R5", "Renard 5"),
-            ('R5"', 'Renard 5"'),
+            ('R"5', 'Renard 5"'),
             ("R10", "Renard 10"),
-            ("R10'", "Renard 10'"),
-            ('R10"', 'Renard 10"'),
+            ("R'10", "Renard 10'"),
+            ('R"10', 'Renard 10"'),
             ("R20", "Renard 20"),
-            ("R20'", "Renard 20'"),
-            ('R20"', 'Renard 20"'),
+            ("R'20", "Renard 20'"),
+            ('R"20', 'Renard 20"'),
             ("R40", "Renard 40"),
-            ("R40'", "Renard 40'"),
+            ("R'40", "Renard 40'"),
             ("R80", "Renard 80"),
         ):
             for i in Renard(series):
