@@ -32,7 +32,7 @@ if 1:   # Header
     # Global variables
         P = pathlib.Path
         ii = isinstance
-        t.c = t("lavl")
+        t.c = t("whtl")
 def Error(*msg, status=1):
     print(*msg, file=sys.stderr)
     exit(status)

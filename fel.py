@@ -40,18 +40,21 @@ if 1:  # Header
     # Global variables
         P = pathlib.Path
         ii = isinstance
-        t.nl = t("grn")
+        t.nl = t("ornl")
+        t.cmt = t("magl")
         # Need to have version, as token numbers were changed between 3.7
         # and 3.9
         vi = sys.version_info
         ver = f"{vi[0]}.{vi[1]}"
 def GetEmptyLines(bytes_stream, debug=None):
+
     '''Return a tuple of 1-based line numbers that python's tokenizer
     considers empty lines.  An empty line can contain one or more
-    whitespace characters in string.whitespace except for the vertical
-    tab.  Empty lines inside multiline strings are not considered empty.
-    The stream will be closed at exit.  If debug is not None, it must be a
-    stream; write the token information to this stream.
+    whitespace characters in string.whitespace except for the vertical tab.
+    Empty lines inside multiline strings are not considered empty nor are
+    empty lines in between comments.  The stream will be closed at exit.
+    If debug is not None, it must be a stream; write the token information
+    to this stream.
  
     When the tokenizer raises an exception, the python script probably has
     a syntax error; find the offending line by running the script.
@@ -62,8 +65,8 @@ def GetEmptyLines(bytes_stream, debug=None):
     with bytes_stream as s:
         tokens = deque(tokenize(s.readline))
     # Make container have (linenumber, token_name) entries where token_name
-    # is either ITEM (for anything but a nwline) or NL (for a newline).
-    item, nl = "ITEM", "NL"
+    # is either 'ITEM' (for anything but a newline), 'COMMENT', or 'NL'
+    # (for a newline).
     Entry = namedtuple("Entry", "linenumber name".split())
     container = deque()
     nltokens = (4, 56)  # Known to work on python 3.7
@@ -72,41 +75,51 @@ def GetEmptyLines(bytes_stream, debug=None):
     while tokens:
         token = tokens.popleft()
         linenumber = token.start[0]  # 1-based line number
-        name = nl if token.type in nltokens else item
+        name = "NL" if token.type in nltokens else "ITEM"
         e = Entry(linenumber, name)
         if debug:
             # Send the line number and token string to debug stream
-            msg = f"{t.nl}" if name == nl else ""
+            if name == "NL":
+                msg = f"{t.nl}"
+            elif token.type == 60:  # Comment
+                msg = f"{t.cmt}"
+            else:
+                msg = ""
             msg += f"{token.start[0]}: "
             msg += f"{tok_name[token.type]} (tt={token.type}) "
             s = token.string
             q = s if s != "\n" else '"\\n"'
             msg += f"{q}{t.n}\n"
             debug.write(msg)
-        container.append(e)
-    # Toss out ITEM/NL pairs using a state machine.  Any leftover NL items are
-    # blank line candidates.
-    blanklines, last, candidate = deque(), None, False
+        if token.type == 60: 
+            container.append(Entry(linenumber, "COMMENT"))
+        else:
+            container.append(e)
+    # Toss out ITEM/NL and COMMENT/NL pairs using a state machine.  Any
+    # leftover NL items are blank line candidates.  Note that any newlines
+    # between comments are always left alone.
+    blanklines = deque()
+    last, candidate, start = None, False, True
     while container:
         e = container.popleft()
-        if e.name == item:
-            last, candidate = item, False
-            continue
-        elif e.name == nl:
+        if e.name == "ITEM":
+            if start:   # This handles a first blank line in the file
+                last, candidate = "ITEM", True
+                start = False
+            else:
+                last, candidate = "ITEM", False
+        elif e.name == "NL":
             if candidate:
                 blanklines.append(e.linenumber)  # Save line number
             else:
-                if last == item:
+                if last == "ITEM":
                     candidate = True
-                    continue
+                elif last == "COMMENT":
+                    candidate = False
+        elif e.name == "COMMENT":
+            last, candidate = "COMMENT", False
     return tuple(blanklines)
-if 0:
-    s = open("toks")
-    from pprint import pprint as pp
-    pp(dir(s))
-    print(type(s))
-    help(s)
-    exit()
+
 if __name__ == "__main__": 
     # Run a basic test case
     from wrap import dedent

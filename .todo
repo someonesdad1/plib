@@ -1,11 +1,5 @@
 Active
 
-    - /plib/pgm/speeds.py
-        - Calculates spindle RPM given material and diameter
-        - https://physics.byu.edu/courses/experimental/docs/physics240/toolspeeds.pdf
-          appears to be a decent source of such speed information and is
-          for HSS tools.
-
     - /plib/pgm scripts
         - 0what.py
             - Look at a way of encoding how to run tests on every script if
@@ -67,14 +61,6 @@ Active
 
     - dpstr.py
         - Finish usage examples
-
-    - Marv Klotz's stuff
-        - https://www.myvirtualnetwork.com/mklotz/
-        - Might be useful to download everything
-        - Would it be worth it to translate the stuff to python?
-            - It seems someone has done a bunch already:
-              https://github.com/jackr-m/mklotz
-                - Runs on micropython
 
     - words.py
         - Using files in /words/words.*, return sets of words indexed by
