@@ -36,68 +36,115 @@ if 1:   # Header
         g.W = int(os.environ.get("COLUMNS", "80")) - 1
         g.L = int(os.environ.get("LINES", "50"))
 if 1:   # Data
-    # Mostly from https://en.wikipedia.org/wiki/Table_of_specific_heat_capacities
+    # References
+    #   https://en.wikipedia.org/wiki/Table_of_specific_heat_capacities
+    #   https://www.engineeringtoolbox.com/specific-heat-capacity-d_391.html
+    #   https://en.wikipedia.org/wiki/List_of_thermal_conductivities
     # Nominally at room temperature (25 °C).  A//B*C means A/(B*C).
-    spht = (
-        # Name, phase, Cp in J//g*K, thermal conductivity in W//m*K
-        ("Acrylic plastic", solid, flt(0.0), flt(0.18)),
-        ("Air, typical room", gas, flt(1.012), flt(0.0262)),
-        ("Aluminum", solid, flt(1.012), flt(237)),
-        ("Animal tissue", mixed, flt(3.5)),
-        ("Argon", gas, flt(0.52)),
-        ("Arsenic", solid, flt(0.328)),
-        ("Beryllium", solid, flt(1.82)),
-        ("Bismuth", solid, flt(0.123)),
-        ("Cadmium", solid, flt(0.231)),
-        ("Carbon dioxide", gas, flt(0.839)),
-        ("Chromium", solid, flt(0.449)),
-        ("Copper", solid, flt(0.385)),
-        ("Diamond", solid, flt(0.509)),
-        ("Ethanol", liquid, flt(2.44)),
-        ("Gasoline", liquid, flt(2.22)),
-        ("Glass", solid, flt(0.84)),
-        ("Gold", solid, flt(0.129)),
-        ("Granite", solid, flt(0.790)),
-        ("Graphite", solid, flt(0.710)),
-        ("Helium", gas, flt(5.1932)),
-        ("Hydrogen", gas, flt(14.30)),
-        ("Hydrogen sulfide", gas, flt(1.015)),
-        ("Iron", solid, flt(0.449)),
-        ("Lead", solid, flt(0.129)),
-        ("Lithium", solid, flt(3.58)),
-        ("Magnesium", solid, flt(1.02)),
-        ("Mercury", liquid, flt(0.14)),
-        ("Methanol", liquid, flt(2.14)),
-        ("Molten salt", liquid, flt(1.56)),
-        ("Nitrogen", gas, flt(1.04)),
-        ("Neon", gas, flt(1.03)),
-        ("Oxygen", gas, flt(0.918)),
-        ("Paraffin wax", solid, flt(2.5)),
-        ("Polyethylene", solid, flt(2.30)),
-        ("Silica (fused)", solid, flt(0.70)),
-        ("Silver", solid, flt(0.233)),
-        ("Sodium", solid, flt(1.23)),
-        ("Steel", solid, flt(0.466)),
-        ("Tin", solid, flt(0.227)),
-        ("Titanium", solid, flt(0.523)),
-        ("Tungsten", solid, flt(0.134)),
-        ("Uranium", solid, flt(0.116)),
-        ("Steam at 100 °C", gas, flt(2.03)),
-        ("Water", liquid, flt(4.18)),
-        ("Ice  at -10 °C", solid, flt(2.05)),
-        ("Zinc", solid, flt(0.387)),
+    #   Name, phase, Cp in J//g*K, thermal conductivity in W//m*K
+    #   Phase is s, l, g, m (mixed)
+    data = '''
+        Acrylic plastic;        s;      1.5;        0.18
+        Air, typical room;      g;      1.012;      0.0262
+        Alumina;                s;      0.72;       -
+        Aluminum;               s;      0.897;      237
+        Animal tissue;          s;      3.5;        -
+        Argon;                  g;      0.52;       -
+        Arsenic;                s;      0.328;      -
+        Asphalt;                s;      0.92;       -
+        Beryllium;              s;      1.02;       -
+        Bismuth;                s;      0.123;      7.97
+        Brass;                  s;      0.38;       -
+        Brick;                  s;      0.84;       -
+        Cadmium;                s;      0.231;      -
+        Carbon dioxide;         g;      0.839;      -
+        Chalk;                  s;      0.75;       -
+        Charcoal;               s;      0.84;       -
+        Chromium;               s;      0.449;      -
+        Concrete w/ aggregrate; s;      0.9;        -
+        Concrete;               s;      0.88;       -
+        Copper;                 s;      0.385;      401
+        Cork;                   s;      2;          -
+        Diamond;                s;      0.509;      1000
+        Epoxy cast resins;      s;      1.0;        -
+        Ethanol;                l;      2.44;       0.1
+        Fire brick;             s;      0.88;       -
+        Gasoline;               l;      2.22;       -
+        Glass;                  s;      0.84;       -
+        Gold;                   s;      0.129;      -
+        Granite;                s;      0.790;      -
+        Graphite;               s;      0.710;      -
+        Gypsum;                 s;      1.09;       -
+        Helium;                 g;      5.19;       -
+        Human body;             s;      3;          -
+        Hydrogen sulfide;       g;      1.015;      -
+        Hydrogen;               g;      14.30;      -
+        Ice  at -10 °C;         s;      2.05;       -
+        Iron;                   s;      0.449;      -
+        Lead;                   s;      0.129;      -
+        Leather;                s;      1.5;        -
+        Lithium;                s;      3.58;       -
+        Magnesium;              s;      1.02;       -
+        Marble;                 s;      0.88;       2.5
+        Mercury;                l;      0.14;       -
+        Methanol;               l;      2.14;       0.1
+        Molten salt;            l;      1.56;       -
+        Mud, wet                s;      2.5;        -
+        Neon;                   g;      1.03;       -
+        Nitrogen;               g;      1.04;       -
+        Nylon 66;               s;      1.7;        -
+        Oxygen;                 g;      0.918;      -
+        PET                     s;      1.2;        -
+        PVC                     s;      1.0;        -
+        Paper;                  s;      1.34;       -
+        Paraffin wax;           s;      2.5;        -
+        Polycarbonate           s;      1.2;        -
+        Polyethylene;           s;      2.30;       -
+        Polypopylene            s;      1.9;        -
+        Polystyrene             s;      1.4;        -
+        Polystyrene, expanded;  s;      -;          0.04
+        Polyurethane foam;      s;      -;          0.03
+        Quartz                  s;      0.7;        -
+        Salt, NaCl              s;      0.88;       -
+        Sand;                   s;      0.84;       -
+        Sandstone               s;      0.7;        -
+        Silica (fused);         s;      0.70;       -
+        Silicon                 s;      0.7;        -
+        Silicon carbide         s;      0.67;       -
+        Silver;                 s;      0.233;      406
+        Slate                   s;      0.76;       -
+        Snow                    s;      2.1;        0.15
+        Sodium;                 s;      1.23;       -
+        Soil, dry               s;      0.8;        -
+        Soil, wet               s;      1.5;        -
+        Soil;                   s;      0.80;       -
+        Steam at 100 °C;        g;      2.03;       -
+        Steel;                  s;      0.466;      -
+        Tantalum                s;      0.14;       -
+        Teflon                  s;      1.2;        0.25
+        Tin;                    s;      0.227;      -
+        Titanium;               s;      0.523;      -
+        Tungsten;               s;      0.134;      -
+        Uranium;                s;      0.116;      -
+        Water;                  l;      4.18;       0.592
+        Wood (1.2 to 2.9);      s;      1.7;        -
+        Zinc;                   s;      0.387;      -
+    '''
+    spht = []
+    for line in data.split("\n"):
+        if not line.strip():
+            continue
+        f = [i.strip() for i in line.strip().split(";")]
+        matl, ph, cp, tc = f
+        assert(ph in "slg")
+        cp = None if cp == "-" else flt(cp)
+        tc = None if tc == "-" else flt(tc)
+        spht.append((matl, ph, cp, tc))
+    spht = tuple(spht)
+    from pprint import pprint as pp
+    pp(spht)
+    exit()
 
-        ("Asphalt", solid, flt(0.92)),
-        ("Brick", solid, flt(0.84)),
-        ("Concrete", solid, flt(0.88)),
-        ("Gypsum", solid, flt(1.09)),
-        ("Marble", solid, flt(0.88)),
-        ("Sand", solid, flt(0.84)),
-        ("Soil", solid, flt(0.80)),
-        ("Wood (1.2 to 2.9)", solid, flt(1.7)),
-
-        ("Human body", mixed, flt(3)),
-    )
 if 1:   # Utility
     def Dbg(*p, **kw):
         if g.dbg:
