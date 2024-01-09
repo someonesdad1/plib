@@ -1,5 +1,18 @@
 Active
 
+    - Thermal model of a camper
+        - Use it to estimate power need to maintain temperature
+        - First order:  just look at heat loss through walls
+        - Tent camper
+            - Simple model:  piece of rectangular material.  All you need
+              is the surface area and thickness to calculate heat flow
+              through it.
+        - ΔT:  common conditions when camping in the mountains is to be 
+          about freezing outside, so this should be the default
+          calculation.  Thus, ΔT = 20 °C for most calculations.
+        - Outside wind:  2 m/s (~5 mph), 5 m/s (11 mph), 10 m/s (22 mph)
+        - Cp of air is 1.006 J/(g*K) over the temperatures of interest
+
     - /plib/pgm scripts
         - 0what.py
             - Look at a way of encoding how to run tests on every script if
