@@ -18,13 +18,16 @@ if 1:   # Header
     if 1:   # Standard imports
         import getopt
         import os
+        import re
         from pathlib import Path as P
         import sys
     if 1:   # Custom imports
         from wrap import dedent
         from color import t
         from f import flt
-        #from columnize import Columnize
+        if 1:
+            import debug
+            debug.SetDebugger()
     if 1:   # Global variables
         class G:
             pass
@@ -35,6 +38,12 @@ if 1:   # Header
         ii = isinstance
         g.W = int(os.environ.get("COLUMNS", "80")) - 1
         g.L = int(os.environ.get("LINES", "50"))
+        # Colors
+        t.sol = t("wht")
+        t.liq = t("trq")
+        t.gas = t("denl")
+        t.title = t("magl", attr="ul")
+        t.trlr = t("ornl")
 if 1:   # Data
     # References
     #   https://en.wikipedia.org/wiki/Table_of_specific_heat_capacities
@@ -89,39 +98,39 @@ if 1:   # Data
         Mercury;                l;      0.14;       -
         Methanol;               l;      2.14;       0.1
         Molten salt;            l;      1.56;       -
-        Mud, wet                s;      2.5;        -
+        Mud, wet;               s;      2.5;        -
         Neon;                   g;      1.03;       -
         Nitrogen;               g;      1.04;       -
         Nylon 66;               s;      1.7;        -
         Oxygen;                 g;      0.918;      -
-        PET                     s;      1.2;        -
-        PVC                     s;      1.0;        -
+        PET;                    s;      1.2;        -
+        PVC;                    s;      1.0;        -
         Paper;                  s;      1.34;       -
         Paraffin wax;           s;      2.5;        -
-        Polycarbonate           s;      1.2;        -
+        Polycarbonate;          s;      1.2;        -
         Polyethylene;           s;      2.30;       -
-        Polypopylene            s;      1.9;        -
-        Polystyrene             s;      1.4;        -
+        Polypopylene;           s;      1.9;        -
+        Polystyrene;            s;      1.4;        -
         Polystyrene, expanded;  s;      -;          0.04
         Polyurethane foam;      s;      -;          0.03
-        Quartz                  s;      0.7;        -
-        Salt, NaCl              s;      0.88;       -
+        Quartz;                 s;      0.7;        -
+        Salt, NaCl;             s;      0.88;       -
         Sand;                   s;      0.84;       -
-        Sandstone               s;      0.7;        -
+        Sandstone;              s;      0.7;        -
         Silica (fused);         s;      0.70;       -
-        Silicon                 s;      0.7;        -
-        Silicon carbide         s;      0.67;       -
+        Silicon;                s;      0.7;        -
+        Silicon carbide;        s;      0.67;       -
         Silver;                 s;      0.233;      406
-        Slate                   s;      0.76;       -
-        Snow                    s;      2.1;        0.15
+        Slate;                  s;      0.76;       -
+        Snow;                   s;      2.1;        0.15
         Sodium;                 s;      1.23;       -
-        Soil, dry               s;      0.8;        -
-        Soil, wet               s;      1.5;        -
+        Soil, dry;              s;      0.8;        -
+        Soil, wet;              s;      1.5;        -
         Soil;                   s;      0.80;       -
         Steam at 100 °C;        g;      2.03;       -
         Steel;                  s;      0.466;      -
-        Tantalum                s;      0.14;       -
-        Teflon                  s;      1.2;        0.25
+        Tantalum;               s;      0.14;       -
+        Teflon;                 s;      1.2;        0.25
         Tin;                    s;      0.227;      -
         Titanium;               s;      0.523;      -
         Tungsten;               s;      0.134;      -
@@ -137,14 +146,15 @@ if 1:   # Data
         f = [i.strip() for i in line.strip().split(";")]
         matl, ph, cp, tc = f
         assert(ph in "slg")
-        cp = None if cp == "-" else flt(cp)
-        tc = None if tc == "-" else flt(tc)
+        cp = 0 if cp == "-" else flt(cp)
+        tc = 0 if tc == "-" else flt(tc)
         spht.append((matl, ph, cp, tc))
-    spht = tuple(spht)
-    from pprint import pprint as pp
-    pp(spht)
-    exit()
-
+    spht = tuple(sorted(spht))
+    # Get widths
+    w0 = max(len(i[0]) for i in spht)
+    w1 = 6
+    w2 = max(len(str(i[2])) for i in spht)
+    w3 = max(len(str(i[3])) for i in spht)
 if 1:   # Utility
     def Dbg(*p, **kw):
         if g.dbg:
@@ -157,9 +167,9 @@ if 1:   # Utility
         exit(status)
     def Usage(status=1):
         print(dedent(f'''
-        Usage:  {sys.argv[0]} [options] [units]
-          Show a table of specific heats.  Units default to 
-          J/(g*K).
+        Usage:  {sys.argv[0]} [options] [regex]
+          Show a table of specific heats and thermal conductivity (search
+          for regex if given).
         Options:
             -h      Print a manpage
         '''))
@@ -167,8 +177,6 @@ if 1:   # Utility
     def ParseCommandLine(d):
         d["-a"] = False     # Describe this option
         d["-d"] = 3         # Number of significant digits
-        if len(sys.argv) < 2:
-            Usage()
         try:
             opts, args = getopt.getopt(sys.argv[1:], "ad:h") 
         except getopt.GetoptError as e:
@@ -190,8 +198,46 @@ if 1:   # Utility
                 Usage(status=0)
         return args
 if 1:   # Core functionality
-    pass
+    def PrintItem(matl, ph, cp, tc):
+        f = lambda x: str(x) if x else "-"
+        p = {
+            "s": "solid",
+            "l": "liquid",
+            "g": "gas",
+        }
+        c = ""
+        if ph == "s":
+            c = t.sol
+        elif ph == "l":
+            c = t.liq
+        elif ph == "g":
+            c = t.gas
+        t.print(f"{c}{matl:{w0}s}{spc}{f(p[ph]):^{w1}s}{spc}{f(cp):^{w2}s}{spc}{f(tc):^{w3}s}")
+    def Hdr():
+        t.print(f"{t.title}{'Material':{w0}s}{spc}{'Phase':^{w1}s}{spc}{'Cp':^{w2}s}{spc}{'k':^{w3}s}")
+    def Trlr():
+        t.print(f"{t.trlr}Cp = specific heat in J//g*K, k = thermal conductivity in W//m*K")
 
 if __name__ == "__main__":
     d = {}      # Options dictionary
+    spc = " "*4
     args = ParseCommandLine(d)
+    if not args:
+        Hdr()
+        for matl, ph, cp, tc in spht:
+            PrintItem(matl, ph, cp, tc)
+        Trlr()
+    else:
+        R = [re.compile(i, re.I) for i in args]
+        results = []
+        for matl, ph, cp, tc in spht:
+            for r in R:
+                mo = r.search(matl)
+                if mo:
+                    results.append((matl, ph, cp, tc))
+                    break
+        if results:
+            Hdr()
+            for matl, ph, cp, tc in results:
+                PrintItem(matl, ph, cp, tc)
+            Trlr()
