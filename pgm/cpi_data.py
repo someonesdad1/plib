@@ -8,9 +8,11 @@ average.
 The output of this script is the CPI dictionary data in cpi.py.
 '''
 # From https://www.inflationdata.com/inflation/Consumer_Price_Index/HistoricalCPI.aspx?reloaded%3Dtrue#Table
-# Downloaded Wed 23 Nov 2022 05:10:55 PM
+# Updated Wed 10 Jan 2024 04:44:09 PM
 data = '''
-2022	281.148	283.716	287.504	289.109	292.296	296.311	296.276	296.171	296.808	298.012
+2023	299.170	300.840	301.836	303.363	304.127	305.109	305.691	307.026	307.789	307.671	307.051
+2022	281.148	283.716	287.504	289.109	292.296	296.311	296.276	296.171	296.808	298.012	297.711	296.797	292.655
+2022	281.148	283.716	287.504	289.109	292.296	296.311	296.276	296.171	296.808	298.012	297.711	296.797	292.655
 2021	261.582	263.014	264.877	267.054	269.195	271.696	273.003	273.567	274.310	276.589	277.948	278.802	270.970
 2020	257.971	258.678	258.115	256.389	256.394	257.797	259.101	259.918	260.280	260.388	260.229	260.474	258.811
 2019	251.712	252.776	254.202	255.548	256.092	256.143	256.571	256.558	256.759	257.346	257.208	256.974	255.657
@@ -126,11 +128,13 @@ for i, line in enumerate(data.split("\n")):
         continue
     f = line.split("\t")
     yr = int(f[0])
-    if yr == 2022:
-        n = 10
+    # Correct here for the latest year that's partially-filled
+    if yr == 2023:
+        n = 11
         cpi = sum([float(j) for j in f[1:n + 1]])/n
     else:
         if len(f) != 14:
             raise ValueError(f"Bad line {i+1}")
         cpi = float(f[-1])
     print(f"{yr}: {int(1000*cpi)},")
+# vim: tw=0

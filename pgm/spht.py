@@ -56,24 +56,25 @@ if 1:   # Data
     #   Name, phase, Cp in J//g*K, thermal conductivity in W//m*K, priority
     #   Phase is s, l, g, m (mixed)
     data = '''
+        Acetone;                l;      2.18;       -        ; 0
         Acrylic plastic;        s;      1.5;        0.18     ; 0
         Air;                    g;      1.012;      0.0262   ; 0
         Alumina;                s;      0.72;       -        ; 0
         Aluminum;               s;      0.897;      237      ; 0
         Animal tissue;          s;      3.5;        -        ; 1
-        Argon;                  g;      0.52;       -        ; 1
+        Argon;                  g;      0.52;       0.0187   ; 1
         Arsenic;                s;      0.328;      -        ; 1
         Asphalt;                s;      0.92;       -        ; 0
         Beryllium;              s;      1.02;       -        ; 1
         Bismuth;                s;      0.123;      7.97     ; 1
-        Brass;                  s;      0.38;       -        ; 0
+        Brass;                  s;      0.38;       85       ; 0
         Brick;                  s;      0.84;       -        ; 0
         Cadmium;                s;      0.231;      -        ; 1
-        Carbon dioxide;         g;      0.839;      -        ; 0
+        Carbon dioxide;         g;      0.839;      0.0162   ; 0
         Chalk;                  s;      0.75;       -        ; 1
         Charcoal;               s;      0.84;       -        ; 1
         Chromium;               s;      0.449;      -        ; 1
-        Concrete w/ aggregrate; s;      0.9;        -        ; 1
+        Concrete w/ aggregrate; s;      0.9;        1.3      ; 1
         Concrete;               s;      0.88;       -        ; 0
         Copper;                 s;      0.385;      401      ; 0
         Cork;                   s;      2;          -        ; 1
@@ -82,17 +83,18 @@ if 1:   # Data
         Ethanol;                l;      2.44;       0.1      ; 1
         Fire brick;             s;      0.88;       -        ; 1
         Gasoline;               l;      2.22;       -        ; 0
-        Glass;                  s;      0.84;       -        ; 0
-        Gold;                   s;      0.129;      -        ; 1
+        Glass;                  s;      0.84;       0.74     ; 0
+        Gold;                   s;      0.129;      313      ; 1
         Granite;                s;      0.790;      -        ; 1
-        Graphite;               s;      0.710;      -        ; 0
+        Graphite;               s;      0.710;      60       ; 0
         Gypsum;                 s;      1.09;       -        ; 0
-        Helium;                 g;      5.19;       -        ; 1
+        Helium;                 g;      5.19;       0.1558   ; 1
         Human body;             s;      3;          -        ; 0
         Hydrogen sulfide;       g;      1.015;      -        ; 1
-        Hydrogen;               g;      14.30;      -        ; 1
-        Ice  at -10 °C;         s;      2.05;       -        ; 0
-        Iron;                   s;      0.449;      -        ; 0
+        Hydrogen;               g;      14.30;      0.1754   ; 1
+        Ice  at -10 °C;         s;      2.05;       2.2      ; 0
+        Iron, cast;             s;      0.50;       62.5     ; 0
+        Iron;                   s;      0.449;      74.4     ; 0
         Lead;                   s;      0.129;      -        ; 0
         Leather;                s;      1.5;        -        ; 1
         Lithium;                s;      3.58;       -        ; 1
@@ -103,12 +105,13 @@ if 1:   # Data
         Molten salt;            l;      1.56;       -        ; 1
         Mud, wet;               s;      2.5;        -        ; 0
         Neon;                   g;      1.03;       -        ; 1
-        Nitrogen;               g;      1.04;       -        ; 0
-        Nylon 66;               s;      1.7;        -        ; 0
-        Oxygen;                 g;      0.918;      -        ; 0
+        Nitrogen;               g;      1.04;       0.0251   ; 0
+        Nylon 66;               s;      1.7;        0.29     ; 0
+        Oxygen;                 g;      0.918;      0.0262   ; 0
         PET;                    s;      1.2;        -        ; 1
         PVC;                    s;      1.0;        -        ; 0
-        Paper;                  s;      1.34;       -        ; 0
+        Paper;                  s;      1.34;       0.14     ; 0
+        Paper, cardboard;       s;      -;          0.25     ; 0
         Paraffin wax;           s;      2.5;        -        ; 0
         Polycarbonate;          s;      1.2;        -        ; 0
         Polyethylene;           s;      2.30;       -        ; 0
@@ -125,20 +128,24 @@ if 1:   # Data
         Silicon carbide;        s;      0.67;       -        ; 1
         Silver;                 s;      0.233;      406      ; 0
         Slate;                  s;      0.76;       -        ; 1
-        Snow;                   s;      2.1;        0.15     ; 0
+        Snow, fresh;            s;      2.1;        0.15     ; 0
+        Snow, compact;          s;      -;          0.35     ; 0
+        Snow, beginning to thaw;s;      -;          0.64     ; 0
         Sodium;                 s;      1.23;       -        ; 1
         Soil, dry;              s;      0.8;        -        ; 0
         Soil, wet;              s;      1.5;        -        ; 0
         Steam at 100 °C;        g;      2.03;       -        ; 0
-        Steel;                  s;      0.466;      -        ; 0
+        Steel;                  s;      0.466;      45.4     ; 0
+        Steel, stainless;       s;      -;          9.3      ; 0
         Tantalum;               s;      0.14;       -        ; 1
         Teflon;                 s;      1.2;        0.25     ; 0
         Tin;                    s;      0.227;      -        ; 1
         Titanium;               s;      0.523;      -        ; 1
         Tungsten;               s;      0.134;      -        ; 1
         Uranium;                s;      0.116;      -        ; 1
+        Vinyl plastic;          s;      -;          0.13     ; 0
         Water;                  l;      4.18;       0.592    ; 0
-        Wood (1.2 to 2.9);      s;      1.7;        -        ; 0
+        Wood (1.2 to 2.9);      s;      2;          0.3      ; 0
         Zinc;                   s;      0.387;      -        ; 1
     '''
     spht = []
@@ -190,6 +197,10 @@ if 1:   # Utility
         Water's heat of fusion is 334 J/g and heat of vaporization is 2265
         J/g.
 
+        References
+            - Koshkin and Shirkevich, "Handbook of Elementary Physics", MIR
+              Publishers, 3rd ed., 1977
+
         '''))
         exit(0)
     def Usage(status=1):
@@ -234,13 +245,13 @@ if 1:   # Utility
         x.rtz = x.rtdp = True
         return args
 if 1:   # Core functionality
-    def PrintItem(*args):
+    def PrintItem(*args, all=False):
         matl, ph, cp, tc, pri = args
         pri = int(pri)
         f = lambda x: str(x) if x else "-"
         p = {
             "s": "solid",
-            "l": "liquid",
+        "l": "liquid",
             "g": "gas",
         }
         c = ""
@@ -250,7 +261,7 @@ if 1:   # Core functionality
             c = t.liq
         elif ph == "g":
             c = t.gas
-        if pri == 0 or (d["-a"] and pri > 0):
+        if pri == 0 or all:
             t.print(f"{c}{matl:{w0}s}{spc}{f(p[ph]):^{w1}s}{spc}{f(cp):^{w2}s}{spc}{f(tc):^{w3}s}")
     def Hdr():
         t.print(f"{t.title}{'Material':{w0}s}{spc}{'Phase':^{w1}s}{spc}{'Cp':^{w2}s}{spc}{'k':^{w3}s}")
@@ -272,6 +283,7 @@ if __name__ == "__main__":
         R = [re.compile(i, re.I) for i in args]
         results = []
         for i in spht:
+            matl = i[0]
             for r in R:
                 mo = r.search(matl)
                 if mo:
@@ -280,5 +292,5 @@ if __name__ == "__main__":
         if results:
             Hdr()
             for i in results:
-                PrintItem(*i)
+                PrintItem(*i, all=True)
             Trlr()
