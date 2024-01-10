@@ -216,7 +216,7 @@ if 1:   # Core functionality
     def Hdr():
         t.print(f"{t.title}{'Material':{w0}s}{spc}{'Phase':^{w1}s}{spc}{'Cp':^{w2}s}{spc}{'k':^{w3}s}")
     def Trlr():
-        t.print(f"{t.trlr}Cp = specific heat in J//g*K, k = thermal conductivity in W//m*K")
+        t.print(f"{t.trlr}Cp = specific heat in J//g*K\nk = thermal conductivity in W//m*K")
 
 if __name__ == "__main__":
     d = {}      # Options dictionary
