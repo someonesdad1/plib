@@ -31,6 +31,7 @@ if 1:   # Custom imports
     from wrap import dedent
     from f import flt
     from columnize import Columnize
+    from color import t
 if 1:   # Global variables
     # The following CPI data came from the cpi_data.py script.
     CPI = {     # Integers need to be divided by 1000 to get CPI
@@ -66,6 +67,7 @@ if 1:   # Global variables
     ref_year = max(CPI)
     min_year = min(CPI)
     min_digits, max_digits = 1, 8
+    t.ref = t("ornl")
 def Error(msg, status=1):
     print(msg, file=sys.stderr)
     exit(status)
@@ -94,27 +96,32 @@ def GetYear(s):
 def ParseCommandLine(d):
     d["-d"] = 3         # Number of significant digits
     d["-p"] = False     # If True, plot the data
+    d["-r"] = 1         # Reference amount
     d["-t"] = False     # If True, print table
     d["-y"] = ref_year  # Today reference year
     if len(sys.argv) < 2:
         Usage(d)
     try:
-        opts, args = getopt.getopt(sys.argv[1:], "d:pty:")
+        opts, args = getopt.getopt(sys.argv[1:], "d:pr:ty:")
     except getopt.GetoptError as e:
         print(str(e))
         exit(1)
     for o, a in opts:
         if o[1] in "pt":
             d[o] = not d[o]
-        elif o in ("-d",):
+        elif o == "-d":
             try:
-                d["-d"] = int(a)
-                if not (min_digits <= d["-d"] <= max_digits):
+                d[o] = int(a)
+                if not (min_digits <= d[o] <= max_digits):
                     raise ValueError()
             except ValueError:
                 Error("-d option's argument must be an integer between "
                       f"{min_digits} and {max_digits}")
-        elif o in ("-y",):
+        elif o == "-r":
+            d[o] = flt(a)
+            if d[o] <= 0:
+                Error("-r option's argument must be > 0")
+        elif o == "-y":
             d["-y"] = GetYear(a)
     if d["-p"]:
         PlotTable(args, d)
@@ -122,7 +129,7 @@ def ParseCommandLine(d):
         PrintTable(args, d)
     if not args:
         Usage(d)
-    flt(0).n = d["-d"]
+    flt(0).N = d["-d"]
     return args
 def PlotTable(args, d):
     from pylab import plot, show, grid, title, xlabel, ylabel, text
@@ -142,11 +149,15 @@ def PlotTable(args, d):
     show()
 def PrintTable(args, d):
     ref_year = d["-y"]
-    print(f"$1 in {ref_year} is equivalent to about how much in other years?")
+    ref_amt = d["-r"]
+    print(f"${ref_amt} in {t.ref}{ref_year}{t.n} is equivalent to about how much in other years?")
     ref_cpi = CPI[ref_year]
+    ref_cpi.N = d["-d"]
     out = []
     for yr, cpi in sorted(CPI.items()):
-        out.append(f"{yr}   ${cpi/ref_cpi}")
+        c = t.ref if yr == ref_year else ""
+        e = t.n if yr == ref_year else ""
+        out.append(f"{c}{yr}   ${ref_amt*cpi/ref_cpi}{e}")
     for i in Columnize(out, columns=4, sep=" "*4):
         print(i)
     exit(0)
