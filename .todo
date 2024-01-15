@@ -1,5 +1,17 @@
 Active
 
+    - Color stuff
+        - /plib/pgm/colorsearch.py
+            - Add an attribution of number 0 that includes the 24 short
+              color names I use in the command clr
+        - /plib/color.py
+            - Reorder the colors in clr command so that they are in order
+              of the optical spectrum.  Make this the default ordering with
+              'w' (wavelength).  The 's' command's ordering should remain.
+        - /plib/cdec.py
+            - Should include an estimate of the wavelength to the nearest
+              nm
+
     - Thermal model of a camper
         - Use it to estimate power need to maintain temperature
         - First order:  just look at heat loss through walls

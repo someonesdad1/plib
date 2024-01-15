@@ -697,13 +697,14 @@ class Color:
             3-tuple using an approximation.  The color black is returned
             for wavelengths out of the visible spectrum.  nm must be
             greater than zero.  Keywords:
-    
+ 
             sunlight    If True, the colors returned are from an approximation
                         constructed from the sun's spectrum.  If False, a
                         "wider" approximation is made, but it is less physical
                         in the sense that it has colors that don't appear in
                         e.g. white light from the sun.
-            gamma        If nonzero, perform a gamma correction on components 
+ 
+            gamma       If nonzero, perform a gamma correction on components 
                         (raise them to the gamma power).  Be careful with
                         gamma, as it can change the color.
  
@@ -772,8 +773,9 @@ class Color:
                     r, g, b = 2/255, 0, 1/255
                 rgb = tuple([float(i) for i in (r, g, b)])
             else:
-                # From http://www.physics.sfasu.edu/astro/color/spectra.html.
+                # From # http://www.physics.sfasu.edu/astro/color/spectra.html (defunct).
                 # Also see http://www.midnightkite.com/color.html.
+                # From D. Bruton's FORTRAN code.
                 if not (380 <= nm <= 780):
                     a = 0.0 
                     return Color(a, a, a)
@@ -1438,7 +1440,11 @@ class ColorName(dict):
 
 # Define default ColorName instance
 CN = ColorName()
-CN.load("c:/cygwin/plib/colornames0")
+wsl = int(os.environ.get("WSL", "0"))
+if wsl:
+    CN.load("/plib/colornames0")
+else:
+    CN.load("d:/cygwin64/plib/colornames0")
 
 # Define default Trm instance
 TRM = Trm()

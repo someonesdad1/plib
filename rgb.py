@@ -200,11 +200,16 @@ if 1:   # Standard imports
 if 1:   # Custom imports
     from wrap import wrap, dedent
     from f import flt
-    raise Exception("This file shouldn't be used")
     from clr import Clr
     if 0:
         import debug
         debug.SetDebugger()
+    if 1:
+        # Print a warning about using this obsolete file
+        print(f"WARNING:  /plib/rgb.txt imported:  it's an obsolete file",
+            file=sys.stderr)
+    else:
+        raise Exception("This file shouldn't be used")
 if 1:   # Global variables
     P = pathlib.Path
     ii = isinstance
