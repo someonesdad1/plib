@@ -36,6 +36,7 @@ if 1:  # Header
         from wrap import wrap, dedent
         import get
         from color import TRM as t, RegexpDecorate, Color
+        from wsl import wsl
         if 0:
             import debug
             debug.SetDebugger()
@@ -47,7 +48,10 @@ if 1:  # Header
         g.name = sys.argv[0]
         g.config = None             # Configuration file
         g.cygprefix = "d:/cygwin64"
-        g.backup = P(f"{g.cygprefix}/home/Don/.bup")     # Backup directory
+        if wsl:
+            g.backup = P(f"/home/don/.bup")     # Backup directory
+        else:
+            g.backup = P(f"{g.cygprefix}/home/Don/.bup")     # Backup directory
         g.sep = ";"                 # Field separator for config file
         g.at = "@"                  # Designates a silent alias
         g.editor = os.environ["EDITOR"]
@@ -335,6 +339,84 @@ if 1:   # Core functionality
         tmp = sorted([a(k) if k[0] == at else k for k in aliases.keys()])
         for key in [b(k) if k[-1] == at else k for k in tmp]:
             yield key
+    def CheckConfigFile(lines, all=False):
+        '''For each line, verify the file exists.  Note we check all config
+        file lines if they contain '/'.  If all is True, then we also
+        return the commented lines (but lines starting with "##" are never
+        returned).
+        '''
+        def BadLine(linenum, line, msg):
+            print(dedent(f'''
+            {t.C}Line {linenum} in configuration file is bad:
+                Line:     '{t.y}{line}{t.C}'
+                Problem:  {t.R}{msg}{t.C}
+            '''))
+            BadLine.bad = True
+        BadLine.bad = False
+        keep = []
+        for linenum, line in lines:
+            line = line.strip()
+            if not line:
+                continue
+            elif line.startswith("##"):
+                # Lines beginning with "##" are always ignored
+                continue
+            elif line.startswith("#"):
+                if "/" not in line or not all:
+                    continue
+            elif Ignore(line):
+                continue
+            f = [i.strip() for i in line.split(g.sep)]
+            if len(f) not in (1, 2, 3):
+                BadLine(linenum, line, "Doesn't have three fields")
+                continue
+            # No empty fields
+            if any([not i for i in f]):
+                BadLine(linenum, line, "Has an empty field")
+                continue
+            # Check that file exists
+            file = P(f[-1])
+            fs = str(file)
+            if fs.startswith("#"):
+                if len(fs) > 1 and fs[1] == "-":    # Line of hyphens
+                    continue
+                file = P(fs[1:].strip())
+            if not file.exists():
+                BadLine(linenum, line, "File/directory doesn't exist")
+            keep.append((linenum, line))
+        if BadLine.bad:
+            print(f"{t.C}Configuration file is '{g.config}{t.n}'")
+        # Remove the commented lines
+        if all:
+            return keep
+        o = []
+        for item in keep:
+            if not item[1].startswith("#"):
+                o.append(item)
+        return o
+    def ReadConfigFile(all=False):
+        '''Read in the configuration file and check the lines.  If all is
+        True, return regular lines and commented lines.  Lines starting
+        with "##" are never returned.
+        '''
+        # Create a list of (linenumber, linestring) tuples so we can refer
+        # to line numbers later if needed.  Line numbers are 1-based.
+        # We have to read all lines in to get correct numbering.
+        lines = get.GetLines(g.config, ignore_empty=False)
+        lines = [(linenum + 1, line) for linenum, line in enumerate(lines)]
+        # Remove blank lines and lines that start with '##'
+        keep = []
+        for linenum, line in lines:
+            line = line.strip()
+            if not line:
+                continue
+            elif line.startswith("##"):
+                continue
+            else:
+                keep.append((linenum, line))
+        # Check all lines
+        lines = CheckConfigFile(keep, all)
+        return lines
     def GoTo(arg):
         'Print the path string the user selects'
         lines = ReadConfigFile()
@@ -405,73 +487,6 @@ if 1:   # Core functionality
                     dir, name = choices[choice]
                     ActOn(dir)
                     return
-    def CheckConfigFile(lines, all=False):
-        '''For each line, verify the file exists.  Note we check all config
-        file lines if they contain '/'.  If all is True, then we also
-        return the commented lines (but lines starting with "##" are never
-        returned).
-        '''
-        def BadLine(ln, line, msg):
-            print(dedent(f'''
-            {t.C}Line {ln} in configuration file is bad:
-                Line:     '{t.y}{line}{t.C}'
-                Problem:  {t.R}{msg}{t.C}
-            '''))
-            BadLine.bad = True
-        BadLine.bad = False
-        keep = []
-        for ln, line in lines:
-            line = line.strip()
-            if not line:
-                continue
-            elif line.startswith("##"):
-                # Lines beginning with "##" are always ignored
-                continue
-            elif line.startswith("#"):
-                if "/" not in line or not all:
-                    continue
-            elif Ignore(line):
-                continue
-            f = [i.strip() for i in line.split(g.sep)]
-            if len(f) not in (1, 2, 3):
-                BadLine(ln, line, "Doesn't have three fields")
-                continue
-            # No empty fields
-            if any([not i for i in f]):
-                BadLine(ln, line, "Has an empty field")
-                continue
-            # Check that file exists
-            file = P(f[-1])
-            fs = str(file)
-            if fs.startswith("#"):
-                if len(fs) > 1 and fs[1] == "-":    # Line of hyphens
-                    continue
-                file = P(fs[1:].strip())
-            if not file.exists():
-                BadLine(ln, line, "File/directory doesn't exist")
-            keep.append((ln, line))
-        if BadLine.bad:
-            print(f"{t.C}Configuration file is '{g.config}{t.n}'")
-        # Remove the commented lines
-        if all:
-            return keep
-        o = []
-        for item in keep:
-            if not item[1].startswith("#"):
-                o.append(item)
-        return o
-    def ReadConfigFile(all=False):
-        '''Read in the configuration file and check the lines.  If all is
-        True, return regular lines and commented lines.  Lines starting
-        with "##" are never returned.
-        '''
-        # Create a list of (linenumber, linestring) tuples so we can refer
-        # to line numbers later if needed.  They are 1-based.
-        lines = [(linenum + 1, line) for linenum, line in
-                 enumerate(get.GetLines(g.config, ignore_empty=True))]
-        # Check all lines
-        lines = CheckConfigFile(lines, all)
-        return lines
     def SearchLines(regexps, all=False):
         '''Find regexps on the gotorc file's lines.  If all is True, search
         all of the lines, even the commented-out ones.
