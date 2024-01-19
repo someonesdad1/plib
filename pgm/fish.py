@@ -52,10 +52,15 @@ Tue 28 Nov 2017 08:37:46 PM
     around mid-2016.  Time to solve = 357.7 s = 5.9 minutes
 
 Thu 06 May 2021 07:29:43 PM
-    Same Windows computer with python 3.7.7 in 300 s = 5.0 minutes.
+    Same Windows computer with cygwin python 3.7.7 in 300 s = 5.0 minutes.
 
 Fri 15 Dec 2023 03:00:02 PM
-    Same Windows computer with python 3.9.10 in 246 s = 4.1 minutes.
+    Same Windows computer with WinPython python 3.9.10 in 246 s = 4.1
+    minutes.
+
+Mon 15 Jan 2024 01:56:55 PM
+    Same Windows computer with python 3.10.12 in a Ubuntu bash shell
+    under WSL in 176.5 s = 2.9 minutes.
 
 ---------------------------------------------------------------------------
 
@@ -64,23 +69,26 @@ difficult to speed up because it's going through 2.3e6 iterations of a
 function in the main while loop and this function takes around 0.12 ms,
 which gives about 300 s execution time.  The search rate is 939k
 permutations checked per second.  Note there were 281887200 permutations
-checked, which is (51 choose 5)*5! or 51*50*49*48*47 = 281887200.
+checked, which is (51 choose 5)*5! or 51*50*49*48*47 = 281887200 = 2.8e8.
 
 The only strategies for more speed would be
     - Reduce the number of combinations that need to be checked
     - Reduce the time that CheckCombination() takes
-    - Use multiple threads
+    - Use multiple threads or processes.  Note multiple threads probably
+      won't do much, as python's global interpreter lock only lets one
+      thread run at once and thus only works well when one of the threads
+      blocks on some call.
 
 ---------------------------------------------------------------------------
 
 Fri 15 Dec 2023 06:40:57 PM
 
-Thoughts about using multithreading to reduce computation time
+Thoughts about using multiprocessing to reduce computation time
     - Since this computer has 4 cores, perhaps a 3 to 4 times speed
       improvement could be gotten
-    - The controlling thread could keep a deque containing the combinations
+    - The controlling process could keep a deque containing the combinations
       of the calculations needing to be done.  
-    - Worker threads would pull off calculations and perform them.
+    - Workers  would pull off calculations and perform them.
     - The working functions need to be vetted to be sure they aren't using
       global data.
 

@@ -89,9 +89,10 @@ if __name__ == "__main__":
         # Show rulers that were chosen on the command line
         for n in sys.argv[1:]:
             print(r(choice=int(n)))
-        print()
-        for n in sys.argv[1:]:
-            print(z(choice=int(n)))
+        if 0:
+            print()
+            for n in sys.argv[1:]:
+                print(z(choice=int(n)))
     else:
         # Show all rulers
         for i in range(len(Ruler.choices)):

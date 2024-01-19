@@ -129,9 +129,10 @@ if 1:   # Custom imports
         import debug
         debug.SetDebugger()
 if 1:   # Global variables
+    # Determine if we're running under WSL
+    wsl = bool(os.environ.get("WSL", False))
     P = pathlib.Path
     ii = isinstance
-    git = "c:/bin/git_2_35_1_2/bin/git.exe"
     dbg = False
     class St(Enum):
         # States for git status -s forms
@@ -154,6 +155,10 @@ if 1:   # Global variables
         St.deleted: ["Deleted", t("lip")],          # d
         St.modified: ["Modified", t("grnl")],       # m
     }
+    if wsl:
+        git = "/usr/bin/git"
+    else:
+        git = "c:/bin/git_2_35_1_2/bin/git.exe"
 if 1:   # Utility
     def NoColor():
         global sc
@@ -238,8 +243,9 @@ if 1:   # Core functionality
             exit(1)
         s = cp.stdout.decode()
         # Convert to a POSIX name
-        cmd = ["/usr/bin/cygpath", s]
-        cp = subprocess.run(cmd, capture_output=True)
+        if not wsl:
+            cmd = ["/usr/bin/cygpath", s]
+            cp = subprocess.run(cmd, capture_output=True)
         p = cp.stdout.decode().rstrip()
         return p
     def GetData(dir):
