@@ -37,7 +37,10 @@ if 1:   # Header
         from wrap import dedent
         from color import t
         from get import GetLines
-        #from columnize import Columnize
+        from columnize import Columnize
+        if 1:
+            import debug
+            debug.SetDebugger()
     if 1:   # Global variables
         class G:
             # Storage for global variables as attributes
@@ -119,20 +122,21 @@ if 1:   # Core functionality
         # Remove the header
         header = []
         while dq:
-            linenum, line = dq.popleft()
+            i = dq.popleft()
+            linenum, line = i
             if funcname.match(line):
-                dq.insert(0, line)
+                dq.insert(0, i)
                 break
-            header.append((linenum, line))
+            header.append(i)
         definitions[""] = header
         Dbg(f"{t('ornl')}Header:{t.n}")
         for ln, l in header:
             Dbg(f"[{ln}]: {l}")
         Dbg(f"{t('ornl')}Function definitions:{t.n}")
         # Process the functions
-        breakpoint() #xx
         while dq:
-            linenum, line = dq.popleft()
+            i = dq.popleft()
+            linenum, line = i
             Dbg(f"[{linenum + 1}] {line}")
             if funcname.match(line):
                 foundfuncs = True
@@ -150,6 +154,8 @@ if 1:   # Core functionality
                 funclines.append(line.strip())
         if not foundfuncs:
             Error("No functions found")
+
+        pp(definitions) #xx
 
 
 if __name__ == "__main__":
