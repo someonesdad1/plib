@@ -140,6 +140,7 @@ if 1:   # Header
         from string import hexdigits
     # Custom imports
     if 1:
+        from wsl import wsl
         from wrap import wrap, dedent
         # Don't use flt for now until import dependencies fixed
         #from f import flt
@@ -1440,7 +1441,6 @@ class ColorName(dict):
 
 # Define default ColorName instance
 CN = ColorName()
-wsl = int(os.environ.get("WSL", "0"))
 if wsl:
     CN.load("/plib/colornames0")
 else:
@@ -2550,6 +2550,15 @@ if __name__ == "__main__":
                     k = i + j
                     print(f"{c('blk', cn[k])}{k:{w}s}{c.n}", end=" "*sp)
                 print()
+            print(dedent(f'''
+
+                Examples:
+                    t(Color(0.35)) gives a {t(Color(0.35))}gray like this{t.n}
+                    t('ornl') gives an {t('ornl')}orange like this{t.n}
+                    t('ornl', 'royd') gives an {t('ornl', 'royd')}orange on a royd background{t.n}
+                    t('blk', 'yel', attr="rb") gives a {t('blk', 'yel', attr="rb")}rapid blink{t.n}
+                    Blinking doesn't work in WSL
+            '''))
     def Int(s):
         'Convert s to an integer; 0x33 and 0o33 forms allowed'
         s = s.strip()
@@ -2704,6 +2713,7 @@ if __name__ == "__main__":
     elif first_char == "a":
         ShowAttributes()
     elif first_char == "s":
+        # Default for no arguments
         ShortNames()
     elif first_char == "t":
         ColorTable(int(cmds[0][1:]))
