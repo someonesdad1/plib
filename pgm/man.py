@@ -55,11 +55,15 @@ if 1:   # Imports
     from pdb import set_trace as xx
 if 1:   # Custom imports
     from wrap import dedent
+    from wsl import wsl
 if 1:   # Global variables
     # UNIX man command location
     man = "/usr/bin/man"
     # Where special manpages are located
-    mandir = "/home/Don/bin/man.d"
+    if wsl:
+        mandir = "/home/don/.manpages"
+    else:
+        mandir = "/home/Don/bin/man.d"
     # Options to be passed to man
     manopts = "--nj"    # --nj is no justification ==> ragged right margins
 def Usage(status=1):

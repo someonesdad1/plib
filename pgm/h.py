@@ -52,7 +52,7 @@ def Usage(status=1):
     '''))
     exit(status)
 def ParseCommandLine(d):
-    d["-c"] = P("/home/Don/.curdir")
+    d["-c"] = P("/home/don/.curdir")
     d["-d"] = False
     d["number"] = 1
     try:
