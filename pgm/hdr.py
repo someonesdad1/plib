@@ -48,9 +48,12 @@ if 1:   # Utility
     g.W, g.L = GetScreen()
     def Dbg(*p, **kw):
         if g.dbg:
-            print(f"{t.dbg}", end="")
-            print(*p, **kw)
-            print(f"{t.N}", end="")
+            print(f"{t.dbg}", end="", file=Dbg.file)
+            k = kw.copy()
+            k["file"] = Dbg.file
+            print(*p, **k)
+            print(f"{t.N}", end="", file=Dbg.file)
+    Dbg.file = sys.stderr   # Debug printing to stderr by default
     def Error(*msg, status=1):
         print(*msg, file=sys.stderr)
         exit(status)
