@@ -53,6 +53,9 @@ if 1:   # Header
         g.funcname =re.compile(r"^function +[A-Za-z_][A-Za-z_0-9]* *$")
         g.funcstart =re.compile(r"^{ *$")
         g.funcend =re.compile(r"^} *$")
+        # Hold spurious lines, which are blank or comment lines between
+        # functions
+        g.spurious = []
 if 1:   # Utility
     def GetColors():
         t.dbg = t("lill") if g.dbg else ""
@@ -207,14 +210,36 @@ if 1:   # Core functionality
             Dbg(f"[{ln}]: {l}")
         Dbg(f"{t('ornl')}Function definitions:{t.n}")
         # Process the functions
+        mt = lambda x: not x[0][1].strip() or x[0][1].strip()[0] == "#"
         while dq:
             f = Function(dq)
             definitions[f.name] = f
-
-        print(f"{t.N}", end="")
-        for i in definitions:
-            if i:
-                print(f"{definitions[i]!s}")
+            if not dq:
+                break
+            # Remove any blank lines or comments
+            next_line = dq[0][1]
+            while dq and mt(dq):
+                ln, line = dq.popleft()
+                if line.strip():
+                    g.spurious.append((ln, line))
+    def PrintResults(definitions):
+        if g.spurious:
+            print(f"{t('magl')}Spurious lines:")
+            for ln, line in g.spurious:
+                print(f"[{ln}]: {line!r}")
+            print(f"{t.n}(spurious means an empty line or a comment between functions)")
+            exit(1)
+        for i in definitions[""]:
+            ln, l = i
+            print(l)
+        for name in sorted(definitions.keys(), key=str.lower):
+            if not name:
+                continue
+            #print(name)
+            if 1:
+                funcobj = definitions[name]
+                for ln, l in funcobj.lines:
+                    print(l)
 
 
 if __name__ == "__main__":
@@ -223,3 +248,4 @@ if __name__ == "__main__":
     definitions = {}
     for file in files:
         ProcessFile(file, definitions)
+    PrintResults(definitions)
