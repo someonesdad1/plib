@@ -4,13 +4,14 @@ Sort bash function definitions
     NOTE:  This script is only intended to work with my bash initialization
     files, which use a specific form of function definitions:
         
-        function name
+        function name [()]
         {
             ## Description of function's purpose on one line
             function_body
         }
 
-    The functions are put in alphabetical order and sent to stdout.
+    The parenthese after the function name are optional.  The functions are
+    put in alphabetical order and sent to stdout.
 '''
 if 1:   # Header
     if 1:   # Copyright, license
@@ -50,7 +51,7 @@ if 1:   # Header
         g.dbg = False
         ii = isinstance
         # Regular expressions to find lines of interest
-        g.funcname =re.compile(r"^function +[A-Za-z_][A-Za-z_0-9]* *$")
+        g.funcname =re.compile(r"^function +([A-Za-z_][A-Za-z_0-9]*) *(\( *\))? *$")
         g.funcstart =re.compile(r"^{ *$")
         g.funcend =re.compile(r"^} *$")
         # Hold spurious lines, which are blank or comment lines between
@@ -140,17 +141,16 @@ if 1:   # Core functionality
             start, end = "{", "}"
             while dq:
                 n, line = dq.popleft()
-                if r.match(line):
+                #print(f"{t('yel')}[{n}] {line!r}{t.n}")
+                mo = r.match(line)
+                if mo:
                     found = True
                     break
             if not found:
                 Error("Start of function's lines not found")
             lines.append((n, line.strip()))
             # Get function name
-            f = line.split()
-            if len(f) != 2:
-                Error(f"[{n}]: {line!r} is a bad function starting line")
-            self.name = f[1]
+            self.name = mo.groups()[0]
             # Next line must be '{'
             n, line = dq.popleft()
             if line.rstrip() != start:  # No leading whitespace
@@ -194,13 +194,13 @@ if 1:   # Core functionality
             dq.popleft()
         while not dq[-1][1].strip():
             dq.pop()
-        foundfuncs = False     # Flags when '^function' found
         # Remove the header
         header = []
         while dq:
             i = dq.popleft()
             linenum, line = i
-            if g.funcname.match(line):
+            mo = g.funcname.match(line)
+            if mo:
                 dq.insert(0, i)
                 break
             header.append(i)
@@ -247,4 +247,5 @@ if __name__ == "__main__":
     g.file = ParseCommandLine(d)
     definitions = {}
     ProcessFile(g.file, definitions)
-    PrintResults(definitions)
+    if 1:
+        PrintResults(definitions)
