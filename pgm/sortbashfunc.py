@@ -116,7 +116,7 @@ if 1:   # Utility
         if d["-d"]:
             g.dbg = True
         GetColors()
-        return files
+        return files[0]
 if 1:   # Core functionality
     class Function:
         '''Give the constructor a deque of lines to a text file.  When it
@@ -224,10 +224,10 @@ if 1:   # Core functionality
                     g.spurious.append((ln, line))
     def PrintResults(definitions):
         if g.spurious:
-            print(f"{t('magl')}Spurious lines:")
+            print(f"{t('ornl')}Error{t.n}:  spurious line(s) in {g.file!r}")
             for ln, line in g.spurious:
-                print(f"[{ln}]: {line!r}")
-            print(f"{t.n}(spurious means an empty line or a comment between functions)")
+                print(f"  [{t('trq')}{ln}{t.n}]: {line!r}")
+            print(f"(spurious means an empty line or a comment between functions)")
             exit(1)
         for i in definitions[""]:
             ln, l = i
@@ -244,8 +244,7 @@ if 1:   # Core functionality
 
 if __name__ == "__main__":
     d = {}      # Options dictionary
-    files = ParseCommandLine(d)
+    g.file = ParseCommandLine(d)
     definitions = {}
-    for file in files:
-        ProcessFile(file, definitions)
+    ProcessFile(g.file, definitions)
     PrintResults(definitions)
