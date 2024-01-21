@@ -33,6 +33,7 @@ if 1:   # Header
         import re
         from pathlib import Path as P
         import sys
+        from pprint import pprint as pp
     if 1:   # Custom imports
         from wrap import dedent
         from color import t
@@ -48,6 +49,10 @@ if 1:   # Header
         g = G()
         g.dbg = False
         ii = isinstance
+        # Regular expressions to find lines of interest
+        g.funcname =re.compile(r"^function +[A-Za-z_][A-Za-z_0-9]* *$")
+        g.funcstart =re.compile(r"^{ *$")
+        g.funcend =re.compile(r"^} *$")
 if 1:   # Utility
     def GetColors():
         t.dbg = t("lill") if g.dbg else ""
@@ -82,7 +87,8 @@ if 1:   # Utility
                 ## One line summary of function's purpose
                 function_body
             }}
-          Otherwise, the script will exit.
+          No comments are allowed on the function line or the {{ or }} lines.
+          The function_body can have any form desired.
         Options:
             -c      Columnize the output
         '''))
@@ -115,7 +121,7 @@ if 1:   # Core functionality
         remaining lines until it has the full functional form, ending on a
         line of '}'.
 
-        An instances attributes are:
+        The instance attributes are:
             name    = function name
             lines   = lines of the function body
             summary = description string
@@ -126,7 +132,7 @@ if 1:   # Core functionality
             text without an ending newline.
             '''
             # Regex to identify a starting line
-            r =re.compile(r"^function +[A-Za-z_][A-Za-z_0-9]* $")
+            r = g.funcname
             lines, found = [], False
             start, end = "{", "}"
             while dq:
@@ -144,7 +150,7 @@ if 1:   # Core functionality
             self.name = f[1]
             # Next line must be '{'
             n, line = dq.popleft()
-            if not line.strip() == start:
+            if line.rstrip() != start:  # No leading whitespace
                 Error(f"[{n}]: {line!r} should be '{start}'")
             lines.append((n, line))
             # Next line must be a comment with leading '##'
@@ -157,7 +163,7 @@ if 1:   # Core functionality
             while dq:
                 n, line = dq.popleft()
                 lines.append((n, line))
-                if line.strip() == end:
+                if line.rstrip() == end:    # No leading whitespace
                     break
             if lines[-1][1] != end:
                 Error(f"{self.name!r} missing ending {end!r}")
@@ -166,6 +172,10 @@ if 1:   # Core functionality
                 Dbg(f"{t('grnl')}{self.name}: {self.summary}")
                 for i, s in lines:
                     Dbg(f"  [{i}]: {s}")
+        def __str__(self):
+            return f"Function({self.name}: {self.summary})"
+        def __repr__(self):
+            return f"Function({self.name}: {self.summary})"
 
     def ProcessFile(file, definitions):
         '''Read the file and parse out its function definitions.  Put them
@@ -176,16 +186,18 @@ if 1:   # Core functionality
             file = sys.stdin
         lines = [(i + 1, ln) for i, ln in enumerate(GetLines(file, nonl=True))]
         dq = deque(lines)
+        # Remove any empty lines at beginning or end
+        while not dq[0][1].strip():
+            dq.popleft()
+        while not dq[-1][1].strip():
+            dq.pop()
         foundfuncs = False     # Flags when '^function' found
-        funcname =re.compile(r"^function +[A-Za-z_][A-Za-z_0-9]* $")
-        funcstart =re.compile(r"^{ *$")
-        funcend =re.compile(r"^} *$")
         # Remove the header
         header = []
         while dq:
             i = dq.popleft()
             linenum, line = i
-            if funcname.match(line):
+            if g.funcname.match(line):
                 dq.insert(0, i)
                 break
             header.append(i)
@@ -195,33 +207,14 @@ if 1:   # Core functionality
             Dbg(f"[{ln}]: {l}")
         Dbg(f"{t('ornl')}Function definitions:{t.n}")
         # Process the functions
-        if 0:
-            while dq:
-                i = dq.popleft()
-                linenum, line = i
-                Dbg(f"[{linenum + 1}] {line}")
-                if funcname.match(line):
-                    foundfuncs = True
-                    infunc = True
-                    name = line.replace("function", "").strip()
-                    funclines = [line.strip()]
-                elif funcstart.match(line):
-                    if not infunc:
-                        Error(f"[{file}:{linenum + 1}]:  {line!r} not in function")
-                    funclines.append(line.strip())
-                elif funcend.match(line):
-                    infunc = False
-                    funclines.append(line.strip())
-                else:
-                    funclines.append(line.strip())
-            if not foundfuncs:
-                Error("No functions found")
-        else:
-            while dq:
-                f = Function(dq)
-                definitions[f.name] = f
+        while dq:
+            f = Function(dq)
+            definitions[f.name] = f
 
-        pp(definitions) #xx
+        print(f"{t.N}", end="")
+        for i in definitions:
+            if i:
+                print(f"{definitions[i]!s}")
 
 
 if __name__ == "__main__":
