@@ -70,25 +70,33 @@ if 1:   # Utility
           Read files and find shell function names.  Use - for stdin.
           Print out a colorized alphabetized listing; a name in color is
           one that is defined in one or more function files defined by the
-          -d option.
+          -d option.  Use -r to define sets of functions that should be
+          ignored (for example, git adds around 130 functions to your bash
+          environment).
         Options:
+            -c      Don't print columnized
             -d file Debug printing
             -f file Define a default function file
+            -g      Ignore git & gawk functions
+            -r file Define a ignore function file
         '''))
         exit(status)
     def ParseCommandLine(d):
+        d["-c"] = True      # Columnized printing
         d["-d"] = False     # Debug printing
-        d["-f"] = []        # Default function file
+        d["-f"] = []        # Default function files
+        d["-g"] = False     # Ignore git & gawk functions
+        d["-r"] = []        # Default ignore files
         d["-s"] = False     # Use a strict regexp
         if len(sys.argv) < 2:
             Usage()
         try:
-            opts, args = getopt.getopt(sys.argv[1:], "df:hs") 
+            opts, args = getopt.getopt(sys.argv[1:], "cdf:ghs") 
         except getopt.GetoptError as e:
             print(str(e))
             exit(1)
         for o, a in opts:
-            if o[1] in list("ds"):
+            if o[1] in list("cdgs"):
                 d[o] = not d[o]
             elif o == "-f":
                 file = P(a)
@@ -101,8 +109,11 @@ if 1:   # Utility
         GetColors()
         return args
 if 1:   # Core functionality
-    def GetFunctionName(line:str, regex: re.Pattern):
-        'Use a regex to find a function definition line'
+    def IgnoreGitGawk(item):
+        'Return True if this is a git or gawk item'
+        return (item.startswith("__git") or
+                item.startswith("_git") or
+                item.startswith("gawk"))
     def Report():
         'Print the function report'
         sentinel = None
@@ -113,12 +124,20 @@ if 1:   # Core functionality
             item = dq.popleft()
             if item is None:
                 break
-            if item in g.myfuncs:
-                dq.append(f"{t.don}{item}{t.n}")
+            if d["-g"] and IgnoreGitGawk(item):
+                continue
             else:
-                dq.append(item)
-        for i in Columnize(dq):
-            print(i)
+                if item in g.myfuncs:
+                    # Decorate with color
+                    dq.append(f"{t.don}{item}{t.n}")
+                else:
+                    dq.append(item)
+        if d["-c"]:
+            for i in Columnize(dq):
+                print(i)
+        else:
+            while dq:
+                print(dq.popleft())
     def DebugPrint(funcs: set, lines: list):
         if g.dbg:
             if 0:
@@ -139,6 +158,9 @@ if 1:   # Core functionality
                 assert dq
                 funcs.add(dq.popleft())
         DebugPrint(funcs, lines)
+
+print("xx Add -i option which lets you ignore starting prefixes; remove -g")
+exit()
 
 if 0:
     # This is a non-strict regexp and it matches things that are taken as
