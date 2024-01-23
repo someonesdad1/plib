@@ -27,6 +27,8 @@ if 1:   # Header
     if 1:   # Custom imports
         from color import t
         from u import u
+        from f import flt
+        import julian
         from get import GetLines
         from wrap import dedent
         #from columnize import Columnize
@@ -35,12 +37,22 @@ if 1:   # Header
             # Storage for global variables as attributes
             pass
         g = G()
-        g.dbg = False
+        g.dbg = True
         t.dbg = t("lill")
-        t.day = t("lav")
-
         ii = isinstance
 if 1:   # Utility
+    def GetColors():
+        'Colors for printed line'
+        t.dow = t("lip")
+        t.date = t("ornl")
+        t.time = t("yell")
+        t.ampm = t("yell")
+        t.z = t("gryd")
+        t.qtr = t("grn")
+        t.sec = t("royl")
+        t.jd = t("olv")
+        t.wk = t("mag")
+        t.doy = t("lipl")
     def GetScreen():
         'Return (LINES, COLUMNS)'
         return (
@@ -79,7 +91,8 @@ if 1:   # Utility
         Usage:  {sys.argv[0]} [options] [offset [unit]]
           Show the current date/time on one line.  If offset is given, it
           shows the date/time with the current offset from now.  Allowed
-          units for offset are s, min, hr, day, wk, mo, yr.
+          units for offset are s, min, hr, day, wk, mo, yr with day as the
+          default time unit.
         Example
           1.  '{sys.argv[0]} -3 wk' shows the time/date 3 weeks ago.
           2.  Let x be the value in s printed out by the command.  
@@ -95,12 +108,12 @@ if 1:   # Utility
         if len(sys.argv) < 2:
             Usage()
         try:
-            opts, args = getopt.getopt(sys.argv[1:], "ad:h") 
+            opts, args = getopt.getopt(sys.argv[1:], "h") 
         except getopt.GetoptError as e:
             print(str(e))
             exit(1)
         for o, a in opts:
-            if o[1] in list("a"):
+            if o[1] in list(""):
                 d[o] = not d[o]
             elif o == "-d":
                 try:
@@ -113,11 +126,70 @@ if 1:   # Utility
                     Error(msg)
             elif o == "-h":
                 Manpage()
+        if len(args) not in (1, 2):
+            Usage()
+        GetColors()
         return args
 if 1:   # Core functionality
-    def PrintDateTime(*args):
-        pass
+    def PrintDateTime(user_offset, units=None):
+        '''Construct the single-line string representing the user's desired
+        date/time.
+
+        Desired format:
+        Tue 23 Jan 2024 10:31:00 am 1706031060 s JD2460333.43819 doy123 wk13
+                                         A            B             C     D
+        A is time in s since epoch
+
+        B is astronomical Julian day.  5 places is sufficient to resolve to
+        about the nearest second.
+
+        C is day of the year
+
+        D is week number
+
+        '''
+        # Get factor to convert offset to SI (seconds)
+        factor = u(units) if units else u("day")
+        offset_s = float(user_offset)*factor
+        now = time.time()
+        desired_time = now + offset_s
+        # Get struct for strftime
+        tm = time.localtime(desired_time)
+        # Get string components
+        if 1:
+            weekday = time.strftime("%a", tm)       # Day as 3-letter string: Mon
+            day = int(time.strftime("%d", tm))      # Day as an integer
+            month = time.strftime("%b", tm)         # Abbreviated month:  Jan
+            year = int(time.strftime("%Y", tm))     # Year as an integer
+            hour = time.strftime("%I", tm)          # Hour as 12 hour, 2 digits
+            minute = time.strftime("%M", tm)        # Minutes (2 digits)
+            sec = time.strftime("%S", tm)           # Seconds (2 digits)
+            ampm = time.strftime("%P", tm)          # am/pm in lowercase
+            utc_offset = time.strftime("%z", tm)    # HHMM offset from Zulu
+            seconds = desired_time                  # Time in seconds
+            mo = int(time.strftime("%m", tm))       # Integer month
+            wk = int(time.strftime("%U", tm))       # Week number with Sunday first day of week
+            jd = julian.Julian(mo, day, year)       # Julian day
+            ly = julian.IsLeapYear(year)            # Boolean for leap year
+            qtr = (mo // 3) + 1                     # Quarter of year
+            doy = int(time.strftime("%j", tm))      # Day of the year
+        if 0:
+            pp(locals())
+        # Print the string
+        print(f"{t.dow}{weekday} ", end="")
+        print(f"{t.date}{day:2d} ", end="")
+        print(f"{t.date}{month:3s} ", end="")
+        print(f"{t.date}{year:4d} ", end="")
+        print(f"{t.time}{hour}:{minute}:{sec} {ampm} ", end="")
+        print(f"{t.z}[{utc_offset}Z] ", end="")
+        print(f"{t.qtr}Q{qtr} ", end="")
+        print(f"{t.wk}{wk}/52 ", end="")
+        print(f"{t.doy}{doy}/{365 + ly} ", end="")
+        print(f"{t.sec}{int(seconds)} s ", end="")
+        print(f"{t.jd}JD{jd} ", end="")
+        t.print()
 
 if __name__ == "__main__":
     d = {}      # Options dictionary
     args = ParseCommandLine(d)
+    PrintDateTime(*args)
