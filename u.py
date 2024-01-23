@@ -2394,13 +2394,27 @@ def PrintSupportedUnits(*categories):
     '''
     indent = " "*2
     if categories:
-        units, dims = GetUnits(level=-1, check=True)
+        # Print any matching categories.  A category matches if it begins
+        # the section's title; case is ignored.
+        #
+        # Get the categories to show
+        names = []
         for category in categories:
-            category = category.lower()
+            for name, dimensions in DefaultUnitData.names.items():
+                if name.lower().startswith(category.lower()):
+                    names.append(name)
+        # Only keep unique names; maintain user's order
+        di = {}
+        for name in names:
+            di[name] = None
+        names = di.keys()
+        # Print out the categories in names
+        units, dims = GetUnits(level=-1, check=True)
+        for Name in names:
             for name, dimensions in DefaultUnitData.names.items():
                 if not dimensions:
                     continue
-                if name.lower() != category.lower():
+                if name != Name:
                     continue
                 dimstr = f'Dim("{dimensions}")'
                 dimobj = Dim(dimensions)

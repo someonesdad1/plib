@@ -21,6 +21,7 @@ if 1:   # Header
         import getopt
         import os
         import re
+        import subprocess
         import sys
         import time
     if 1:   # Custom imports
@@ -58,6 +59,21 @@ if 1:   # Utility
     def Error(*msg, status=1):
         print(*msg, file=sys.stderr)
         exit(status)
+    def Manpage():
+        print(dedent(f'''
+        The time units are those allowed by the /plib/u.py script.  Run
+        'python /plib/u.py time' to see the supported time units:
+
+        '''))
+        cmd = [sys.executable, "/plib/u.py", "Time"]
+        r = subprocess.run(cmd, capture_output=True)
+        if r.returncode:
+            Error("Running u.py got an error")
+        print(r.stdout.decode())
+        print(dedent(f'''
+         See?
+        '''))
+        exit(0)
     def Usage(status=1):
         print(dedent(f'''
         Usage:  {sys.argv[0]} [options] [offset [unit]]
@@ -96,10 +112,11 @@ if 1:   # Utility
                         "1 and 15")
                     Error(msg)
             elif o == "-h":
-                Usage(status=0)
+                Manpage()
         return args
 if 1:   # Core functionality
     def PrintDateTime(*args):
+        pass
 
 if __name__ == "__main__":
     d = {}      # Options dictionary
