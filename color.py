@@ -2429,7 +2429,7 @@ if __name__ == "__main__":
             c.hdr = c(attr="ul")
             def Header():
                 c.print(dedent(f'''
-                {c.hdr}Demonstration of some clr.py features{c.n}
+                {c.hdr}Demonstration of some color.py features{c.n}
  
                 '''))
             def Theme():
@@ -2482,8 +2482,9 @@ if __name__ == "__main__":
                         SI units: kg/(m·s²)
                             With built-in Unicode:      {e}ξ{b}λ{n}{e} = 3 kg·m⁻¹·s⁻²{c.n}
                             With superscripts:          {e}ξ{b}λ{n}{e} = 3 kg·m{u}-1{c.n}{e}·s{u}-2{c.n}
-                            (Unicode looks better, but Unicode doesn't support 'obvious' exponent
-                            characters.  Here's an example with mintty:
+                            (Unicode looks better, but Unicode doesn't support 'obvious'
+                            exponent characters.  Here's an example with mintty (doesn't
+                            work under Windows Terminal):
                                                         {e}ξ{b}λ{n}{e} = 3 kg·m{u}θ{c.n}{e}·s{u}μ²{c.n}
                 '''))
             def TextEditing():
@@ -2710,11 +2711,13 @@ if __name__ == "__main__":
     first_char = cmds[0][0]
     if first_char == "d":
         Examples()
-    elif first_char == "a":
-        ShowAttributes()
     elif first_char == "s":
         # Default for no arguments
         ShortNames()
+        print()
+        ShowAttributes()
+        print("\nUse d for examples, t for color table;")
+        print("otherwise interpret the color specifier")
     elif first_char == "t":
         ColorTable(int(cmds[0][1:]))
     else:

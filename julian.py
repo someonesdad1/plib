@@ -316,6 +316,7 @@ if 0 and __name__ == "__main__":
 if __name__ == "__main__": 
     from lwtest import run, raises, assert_equal
     from pdb import set_trace as xx
+    import sys
     def TestDecodeDateString():
         x = DecodeDateString("24Mar2023")
         assert_equal(x, 2460028)
@@ -472,4 +473,7 @@ if __name__ == "__main__":
             (12, 32),
         ):
             Assert(not IsValidDate(m, d, 2001))
-    exit(run(globals(), halt=1)[0])
+    if len(sys.argv) > 1:
+        print(f"{JulianNow()}")
+    else:
+        exit(run(globals(), halt=1)[0])

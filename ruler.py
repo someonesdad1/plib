@@ -83,22 +83,21 @@ class Ruler(object):
         return columns
 if __name__ == "__main__":
     import sys
-    r = Ruler()
-    z = Ruler(zb=True)
-    if len(sys.argv) > 1:
-        # Show rulers that were chosen on the command line
-        for n in sys.argv[1:]:
-            print(r(choice=int(n)))
-        if 0:
-            print()
-            for n in sys.argv[1:]:
-                print(z(choice=int(n)))
-    else:
+    def ShowAll():
         # Show all rulers
         for i in range(len(Ruler.choices)):
             print("Ruler type = " + str(i))
             print(r(choice=i))
-        print()
-        for i in range(len(Ruler.choices)):
-            print("Ruler type = " + str(i) + " (zero-based)")
-            print(z(choice=i))
+    r = Ruler()
+    z = Ruler(zb=True)
+    if len(sys.argv) > 1:
+        if sys.argv[1] == "-h":
+            print(f"Usage: {sys.argv[0]} [num1 [num2...]]")
+            print(f"  Ruler demo from /plib/ruler.py module")
+            print(f"  No arguments show all ruler types")
+        else:
+            # Show rulers that were chosen on the command line
+            for n in sys.argv[1:]:
+                print(r(choice=int(n)))
+    else:
+        ShowAll()
