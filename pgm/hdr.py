@@ -20,14 +20,16 @@ if 1:   # Header
         #∞test∞# #∞test∞#
         pass
     if 1:   # Standard imports
+        from pathlib import Path as P
+        from pprint import pprint as pp
         import getopt
         import os
         import re
-        from pathlib import Path as P
         import sys
     if 1:   # Custom imports
-        from wrap import dedent
         from color import t
+        from get import GetLines
+        from wrap import dedent
         #from columnize import Columnize
     if 1:   # Global variables
         class G:
