@@ -1,20 +1,21 @@
+*.0test
+*.bak
 *.exe
+*.jpg
 *.o
+*.orig
+*.pdf
+*.png
+*.ps
 *.swo
 *.swp
-*.pdf
-*.ps
 *.tmp
-*.bak
-*.orig
-*.0test
-*.jpg
-*.png
 
 .local_profile
 .p
 .vi
 .z
+Dev
 __pycache__
 a
 a.py
@@ -53,6 +54,7 @@ pgm/disks.ksh
 pgm/ds.*.index
 pgm/earth.py
 pgm/fsm/
+pgm/hdr
 pgm/heat.py
 pgm/weather.data
 pnp
@@ -70,14 +72,3 @@ transposition.py
 trigger.tmpfile
 x
 z
-
-# Temporary
-pgm/songs
-pgm/spray.py
-rpath.zip
-guess_syllables.py
-pgm/tsub.new.py
-pgm/tx.py
-pgm/write.py
-pgm/mixture.data
-svg.py

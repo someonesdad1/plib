@@ -227,6 +227,8 @@ if 1:   # Standard imports
     from math import pi
     from pdb import set_trace as xx 
 if 1:   # Custom imports
+    from columnize import Columnize
+    from wrap import dedent
     try:
         import uncertainties
         _have_uncertainties = True
@@ -925,6 +927,7 @@ def DefaultUnitData(level=-1, randomize=False, angles_have_dim=False):
             [0, "yr = 365.242198781*24*hr"],
             [1, "day = 24*hr"],
             [1, "mo = yr/12"],
+            [1, "wk = 7*day"],
             [1, "week = 7*day"],
             [2, "second = s"],
             [2, "seconds = s"],
@@ -2385,97 +2388,118 @@ def FormatUnit(unit, expr=False, flat=False, solidus=False, strict=False,
             return ''.join([''.join(N), ''.join(D)]) if D else ''.join(N)
         else:
             return ''.join(D) if D else ''
-def PrintSupportedUnits():
-    'Print out the supported units'
-    from columnize import Columnize
-    from wrap import dedent
-    # Base units
-    units, dims = GetUnits(level=0, check=True)
-    base = [i for i in units if isinstance(units[i], int) and units[i] == 1]
-    print(f"Base SI units:  {', '.join(base)}\n")
-    print(dedent(f'''
-    'dol' stands for US dollar and is not an SI unit, but it's part of the
-    base units to facilitate cost calculations.
-
-    '''))
-    # Print out by description
-    print("Units by description")
-    print("--------------------\n")
-    units, dims = GetUnits(level=-1, check=True)
+def PrintSupportedUnits(*categories):
+    '''Print out the supported units.  If categories is not empty, it's a
+    list of the categories to print out.
+    '''
     indent = " "*2
-    for name, dimensions in DefaultUnitData.names.items():
-        if not dimensions:
-            continue
-        dimstr = f'Dim("{dimensions}")'
-        dimobj = Dim(dimensions)
-        print(f'{name}       {dimstr}')
-        # Find those unit names in dims that have dimstr as their value
-        def IsDim(x):
-            return str(dims[x]) == str(dimobj)
-        o = []
-        for item in filter(IsDim, dims):
-            o.append(item)
+    if categories:
+        units, dims = GetUnits(level=-1, check=True)
+        for category in categories:
+            category = category.lower()
+            for name, dimensions in DefaultUnitData.names.items():
+                if not dimensions:
+                    continue
+                if name.lower() != category.lower():
+                    continue
+                dimstr = f'Dim("{dimensions}")'
+                dimobj = Dim(dimensions)
+                print(f'{name}       {dimstr}')
+                # Find those unit names in dims that have dimstr as their value
+                def IsDim(x):
+                    return str(dims[x]) == str(dimobj)
+                o = []
+                for item in filter(IsDim, dims):
+                    o.append(item)
+                for line in Columnize(sorted(o), indent=indent):
+                    print(line)
+    else:
+        # Base units
+        units, dims = GetUnits(level=0, check=True)
+        base = [i for i in units if isinstance(units[i], int) and units[i] == 1]
+        print(f"Base SI units:  {', '.join(base)}\n")
+        print(dedent(f'''
+        'dol' stands for US dollar and is not an SI unit, but it's part of the
+        base units to facilitate cost calculations.
+
+        '''))
+        # Print out by description
+        print("Units by description")
+        print("--------------------\n")
+        units, dims = GetUnits(level=-1, check=True)
+        for name, dimensions in DefaultUnitData.names.items():
+            if not dimensions:
+                continue
+            dimstr = f'Dim("{dimensions}")'
+            dimobj = Dim(dimensions)
+            print(f'{name}       {dimstr}')
+            # Find those unit names in dims that have dimstr as their value
+            def IsDim(x):
+                return str(dims[x]) == str(dimobj)
+            o = []
+            for item in filter(IsDim, dims):
+                o.append(item)
+            for line in Columnize(sorted(o), indent=indent):
+                print(line)
+        # Get the dimensionless units
+        print("Dimensionless units:")
+        o = set()
+        for name, dimensions in DefaultUnitData.names.items():
+            if dimensions:
+                continue
+            for item in dims:
+                if dims[item] == Dim(""):
+                    o.add(item)
         for line in Columnize(sorted(o), indent=indent):
             print(line)
-    # Get the dimensionless units
-    print("Dimensionless units:")
-    o = set()
-    for name, dimensions in DefaultUnitData.names.items():
-        if dimensions:
-            continue
-        for item in dims:
-            if dims[item] == Dim(""):
-                o.add(item)
-    for line in Columnize(sorted(o), indent=indent):
-        print(line)
-    if 1:
-        # Example formatting
-        s = "kg*m/(s2*K)"
-        t = "m(3/4) Pa(-1.3)/(s2*K)"
-        print(dedent(f'''
-    
-    Examples of formatting units with u.FormatUnits()
-    -------------------------------------------------
-      Units = '{s}':
-        Default formatting:     {FormatUnit(s)}
-        Python expression:      {FormatUnit(s, expr=1)}
-        Flat:                   {FormatUnit(s, flat=1)}
-        Flat (nobreak space):   {FormatUnit(s, flat=1, sep=chr(160))}
-        Solidus:                {FormatUnit(s, solidus=1)}
-    
-      The default formatting uses Unicode exponents and U+B7 (middle
-      dot) for the separator character.  The python expression form is a
-      syntactically correct expression evaluatable by the python parser.
-      The flat form has no solidus and uses positive and negative
-      exponents.  The solidus form is informal and syntactically
-      incorrect (for a left-associative parser), but convenient:  there
-      is only a single numerator and denominator and no negative
-      exponents.  This special meaning is flagged by the double solidus
-      '//'.  Algebraically 'a/b*c' means '(a/b)*c' with modern parser
-      syntax, not a/(b*c) like sometimes meant in (ambiguous) casual
-      usage.  The sep keyword lets you use your choice of unit separator
-      string (the second form of the flat form uses a no-break space
-      character U+A0).
-    
-      Unicode's limitations mean that fractional and floating point
-      exponents must be formatted with an ugly mixed syntax:
-    
-      Units = '{t}':
-        Default formatting:     {FormatUnit(t)}
-        Python expression:      {FormatUnit(t, expr=1)}
-        Flat:                   {FormatUnit(t, flat=1)}
-        Solidus:                {FormatUnit(t, solidus=1)}
-    
-      The syntax has some built-in shortcuts:  a space character implies
-      multiplication and a cuddled number means an exponent.
-    
-      The core functionality is in U._expand_units(), which uses the
-      tokenize module.  There are some holes, such as 'm3.34', which gets
-      tokenized as 'm3**.34' rather than the desired 'm**3.34'.  Such things
-      could be fixed, but I didn't deem them worth the effort (use 'm(3.34)'
-      or 'm**3.34').  A future revision might instead use the ast module
-      for more precise control.
-      '''))
+        if 1:
+            # Example formatting
+            s = "kg*m/(s2*K)"
+            t = "m(3/4) Pa(-1.3)/(s2*K)"
+            print(dedent(f'''
+        
+        Examples of formatting units with u.FormatUnits()
+        -------------------------------------------------
+        Units = '{s}':
+            Default formatting:     {FormatUnit(s)}
+            Python expression:      {FormatUnit(s, expr=1)}
+            Flat:                   {FormatUnit(s, flat=1)}
+            Flat (nobreak space):   {FormatUnit(s, flat=1, sep=chr(160))}
+            Solidus:                {FormatUnit(s, solidus=1)}
+        
+        The default formatting uses Unicode exponents and U+B7 (middle
+        dot) for the separator character.  The python expression form is a
+        syntactically correct expression evaluatable by the python parser.
+        The flat form has no solidus and uses positive and negative
+        exponents.  The solidus form is informal and syntactically
+        incorrect (for a left-associative parser), but convenient:  there
+        is only a single numerator and denominator and no negative
+        exponents.  This special meaning is flagged by the double solidus
+        '//'.  Algebraically 'a/b*c' means '(a/b)*c' with modern parser
+        syntax, not a/(b*c) like sometimes meant in (ambiguous) casual
+        usage.  The sep keyword lets you use your choice of unit separator
+        string (the second form of the flat form uses a no-break space
+        character U+A0).
+        
+        Unicode's limitations mean that fractional and floating point
+        exponents must be formatted with an ugly mixed syntax:
+        
+        Units = '{t}':
+            Default formatting:     {FormatUnit(t)}
+            Python expression:      {FormatUnit(t, expr=1)}
+            Flat:                   {FormatUnit(t, flat=1)}
+            Solidus:                {FormatUnit(t, solidus=1)}
+        
+        The syntax has some built-in shortcuts:  a space character implies
+        multiplication and a cuddled number means an exponent.
+        
+        The core functionality is in U._expand_units(), which uses the
+        tokenize module.  There are some holes, such as 'm3.34', which gets
+        tokenized as 'm3**.34' rather than the desired 'm**3.34'.  Such things
+        could be fixed, but I didn't deem them worth the effort (use 'm(3.34)'
+        or 'm**3.34').  A future revision might instead use the ast module
+        for more precise control.
+        '''))
 if __name__ == "__main__":
     import contextlib
     from lwtest import run, raises, assert_equal, Assert
@@ -2944,8 +2968,12 @@ if __name__ == "__main__":
             with raises(TypeError):
                 u(i, dim=1)[1]
     if len(sys.argv) == 1:
+        # Show full help
         PrintSupportedUnits()
-    else:
-        if sys.argv[1] != "--test":
-            Error("Use --test to run unit tests")
-        exit(run(globals(), halt=1)[0])
+    elif len(sys.argv) > 1:
+        if sys.argv[1] == "--test":
+            # Run unit tests
+            exit(run(globals(), halt=1)[0])
+        else:
+            # Print supported units using categories in args
+            PrintSupportedUnits(*sys.argv[1:])
