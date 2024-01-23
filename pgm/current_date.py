@@ -73,6 +73,15 @@ if 1:   # Utility
         exit(status)
     def Manpage():
         print(dedent(f'''
+        Day, date and time should be as you expect.  Other fields are:
+
+            - [....Z] is the HHMM offset from Universal Coordinated Time
+            - Qx is the quarter of the year
+            - x/365 is the day number of the indicated year
+            - x/52 is the week number
+            - x s is the number of seconds since the epoch (1 Jan 1970)
+            - JDx is the astronomical Julian day
+
         The time units are those allowed by the /plib/u.py script.  Run
         'python /plib/u.py time' to see the supported time units:
 
@@ -89,15 +98,14 @@ if 1:   # Utility
     def Usage(status=1):
         print(dedent(f'''
         Usage:  {sys.argv[0]} [options] [offset [unit]]
-          Show the current date/time on one line.  If offset is given, it
-          shows the date/time with the current offset from now.  Allowed
-          units for offset are s, min, hr, day, wk, mo, yr with day as the
-          default time unit.
-        Example
-          1.  '{sys.argv[0]} -3 wk' shows the time/date 3 weeks ago.
-          2.  Let x be the value in s printed out by the command.  
-              '{sys.argv[0]} -x s' should show the date of the epoch,
-              1 Jan 1970.
+          Show the indicated date/time on one line.  If offset is given, it
+          must be an integer or float.  unit is an optional time unit (use
+          -h to see details).  offset is added to the current time.
+        Examples
+          - '{sys.argv[0]} 0' shows the current time/date
+          - '{sys.argv[0]} -3 wk' shows the time/date 3 weeks ago
+          - Let x be the value in s printed out by the command.
+            '{sys.argv[0]} -- -x s' should show the date of the epoch.
         Options
             -h      Print a manpage
         '''))
@@ -149,8 +157,11 @@ if 1:   # Core functionality
 
         '''
         # Get factor to convert offset to SI (seconds)
-        factor = u(units) if units else u("day")
-        offset_s = float(user_offset)*factor
+        try:
+            factor = u(units) if units else u("day")
+            offset_s = float(user_offset)*factor
+        except Exception:
+            Usage(1)
         now = time.time()
         desired_time = now + offset_s
         # Get struct for strftime
