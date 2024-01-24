@@ -1,5 +1,9 @@
 Active
 
+    - pgm/ldir.py
+        - Uses old color model and won't print out directories in color
+          under WSL
+
     - Color stuff
         - /plib/pgm/colorsearch.py
             - Add an attribution of number 0 that includes the 24 short

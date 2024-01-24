@@ -32,6 +32,9 @@ if 1:   # Header
         import julian
         from get import GetLines
         from wrap import dedent
+        if 0:
+            import debug
+            debug.SetDebugger()
         #from columnize import Columnize
     if 1:   # Global variables
         class G:
@@ -100,8 +103,9 @@ if 1:   # Utility
         print(dedent(f'''
         Usage:  {sys.argv[0]} [options] [offset [unit]]
           Show the indicated date/time on one line.  If offset is given, it
-          must be an integer or float.  unit is an optional time unit (use
-          -h to see details).  offset is added to the current time.
+          must be an integer or float.  unit is an optional time unit
+          (defaults to day, use -h to see details).  offset is added to the
+          current time.
         Examples
           - '{sys.argv[0]} 0' shows the current time/date
           - '{sys.argv[0]} -3 wk' shows the time/date 3 weeks ago
@@ -143,21 +147,14 @@ if 1:   # Core functionality
     def PrintDateTime(user_offset, units=None):
         '''Construct the single-line string representing the user's desired
         date/time.
-
-        Desired format:
-        Tue 23 Jan 2024 10:31:00 am 1706031060 s JD2460333.43819 doy123 wk13
-                                         A            B             C     D
-        A is time in s since epoch
-
-        B is astronomical Julian day.  5 places is sufficient to resolve to
-        about the nearest second.
-
-        C is day of the year
-
-        D is week number
-
         '''
         # Get factor to convert offset to SI (seconds)
+        t.print(dedent(f'''
+        {t('redl')}xx Use the datetime module and timedelta stuff to
+        calculate correct offset dates.  Even with this it could miss
+        leap seconds, this differing from other tools.
+
+        '''))
         try:
             factor = u(units) if units else u("day")
             offset_s = float(user_offset)*factor
@@ -181,7 +178,9 @@ if 1:   # Core functionality
             seconds = desired_time                  # Time in seconds
             mo = int(time.strftime("%m", tm))       # Integer month
             wk = int(time.strftime("%U", tm))       # Week number with Sunday first day of week
-            jd = julian.Julian(mo, day, year)       # Julian day
+            # Julian day
+            jd = julian.JulianAstroDateTime(year, mo, day, int(hour),
+                                            int(minute), int(sec))
             ly = julian.IsLeapYear(year)            # Boolean for leap year
             qtr = (mo // 3) + 1                     # Quarter of year
             doy = int(time.strftime("%j", tm))      # Day of the year
@@ -198,7 +197,7 @@ if 1:   # Core functionality
         print(f"{t.wk}{wk}/52 ", end="")
         print(f"{t.doy}{doy}/{365 + ly} ", end="")
         print(f"{t.sec}{int(seconds)} s ", end="")
-        print(f"{t.jd}JD{jd} ", end="")
+        print(f"{t.jd}JD{jd:.2f} ", end="")
         t.print()
 
 if __name__ == "__main__":
