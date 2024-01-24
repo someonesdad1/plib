@@ -1,3 +1,4 @@
+#!/usr/bin/python
 '''
 Show current date/time
 '''
