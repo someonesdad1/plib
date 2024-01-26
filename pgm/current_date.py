@@ -19,6 +19,7 @@ if 1:   # Header
     if 1:   # Standard imports
         from pathlib import Path as P
         from pprint import pprint as pp
+        from datetime import datetime, timedelta
         import getopt
         import os
         import re
@@ -147,23 +148,31 @@ if 1:   # Core functionality
     def PrintDateTime(user_offset, units=None):
         '''Construct the single-line string representing the user's desired
         date/time.
+ 
+        Note:  GNU units says there's 31556925.9746784 s in a year, as does
+        the u("year") call.  This is a tropical year = 365.242198781 days.
         '''
-        # Get factor to convert offset to SI (seconds)
-        t.print(dedent(f'''
-        {t('redl')}xx Use the datetime module and timedelta stuff to
-        calculate correct offset dates.  Even with this it could miss
-        leap seconds, this differing from other tools.
-
-        '''))
+        tm = datetime.now()  # datetime instance
+        # Get a time_delta for the offset
         try:
+            # Get factor to convert offset to SI (seconds).  If no units
+            # are given, they default to days.
             factor = u(units) if units else u("day")
-            offset_s = float(user_offset)*factor
-        except Exception:
+        except Exception as e:
+            print(f"Exception:  {e}")
             Usage(1)
-        now = time.time()
+        offset_s = float(user_offset)*factor
+        td = timedelta(seconds=offset_s)
+        # Add the offset
+        print(tm) #xx
+        tm += td
+        print(tm) #xx
+        exit()
+
+
+
         desired_time = now + offset_s
         # Get struct for strftime
-        tm = time.localtime(desired_time)
         # Get string components
         if 1:
             weekday = time.strftime("%a", tm)       # Day as 3-letter string: Mon
