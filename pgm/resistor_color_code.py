@@ -54,7 +54,7 @@ if 1:   # Header
          None: ("      ", "   ",  "  ",     "     ",    "±20  "),
         }
         g.colors = {
-            0: t("blk", "wht"),
+            0: t("blk", "gry"),
             1: t("brn"),
             2: t("red"),
             3: t("orn"),
@@ -63,7 +63,7 @@ if 1:   # Header
             6: t("blu"),
             7: t("vio"),
             8: t("gry"),
-            9: t("wht"),
+            9: t("whtl"),
            10: t("#e6be8a"),
            11: t("#c9c0bb"),
          None: t("wht"),
@@ -134,7 +134,36 @@ if 1:   # Utility
         return args
 if 1:   # Core functionality
     def PrintTable():
-        pass
+        print(dedent(f'''
+        IEC 60062:2016 standard resistor color codes.  The decimal point is
+        implied after the last digit.  To orient left to right, there is a
+        gap between the last two bands.
+
+        '''))
+        # Column widths
+        w = (8, 14, 8, 12, 14)
+        # Print header
+        t.print(f"{t('magl')}"
+              f"{'':{w[0]}s}"
+              f"{'Abbreviation':^{w[1]}s}"
+              f"{'Digit':^{w[2]}s}"
+              f"{'Multiplier':^{w[3]}s}"
+              f"{'Tolerance, %':^{w[4]}s}")
+        # Print table
+        for i in range(12):
+            color, abbr, digit, mult, tol = g.cc[i]
+            t.print(f"{g.colors[i]}"
+                  f"{color:{w[0]}s}"
+                  f"{abbr:^{w[1]}s}"
+                  f"{digit:^{w[2]}s}"
+                  f"{mult:^{w[3]}s}"
+                  f"{tol:^{w[4]}s}")
+        color, abbr, digit, mult, tol = g.cc[None]
+        print(f"{'None':{w[0]}s}"
+              f"{'':^{w[1]}s}"
+              f"{'':^{w[2]}s}"
+              f"{'':^{w[3]}s}"
+              f"{tol:^{w[4]}s}")
 
 if __name__ == "__main__":
     d = {}      # Options dictionary
