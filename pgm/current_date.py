@@ -18,7 +18,6 @@ if 1:   # Header
         pass
     if 1:   # Standard imports
         from pathlib import Path as P
-        from pprint import pprint as pp
         from datetime import datetime, timedelta
         import getopt
         import os
@@ -27,6 +26,8 @@ if 1:   # Header
         import sys
         import time
     if 1:   # Custom imports
+        from dpprint import PP
+        pp = PP()
         from color import t
         from u import u
         from f import flt
@@ -152,7 +153,7 @@ if 1:   # Core functionality
         Note:  GNU units says there's 31556925.9746784 s in a year, as does
         the u("year") call.  This is a tropical year = 365.242198781 days.
         '''
-        tm = datetime.now()  # datetime instance
+        dt = datetime.now()  # datetime instance
         # Get a time_delta for the offset
         try:
             # Get factor to convert offset to SI (seconds).  If no units
@@ -164,15 +165,10 @@ if 1:   # Core functionality
         offset_s = float(user_offset)*factor
         td = timedelta(seconds=offset_s)
         # Add the offset
-        print(tm) #xx
-        tm += td
-        print(tm) #xx
-        exit()
-
-
-
-        desired_time = now + offset_s
+        dt += td
         # Get struct for strftime
+        ts = dt.timestamp()     # ts is a float in s, same as returned by time.time()
+        tm = time.localtime()   # tm is a struct time 
         # Get string components
         if 1:
             weekday = time.strftime("%a", tm)       # Day as 3-letter string: Mon
@@ -184,7 +180,7 @@ if 1:   # Core functionality
             sec = time.strftime("%S", tm)           # Seconds (2 digits)
             ampm = time.strftime("%P", tm)          # am/pm in lowercase
             utc_offset = time.strftime("%z", tm)    # HHMM offset from Zulu
-            seconds = desired_time                  # Time in seconds
+            seconds = ts                            # Time in seconds
             mo = int(time.strftime("%m", tm))       # Integer month
             wk = int(time.strftime("%U", tm))       # Week number with Sunday first day of week
             # Julian day
