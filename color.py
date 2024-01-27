@@ -3011,14 +3011,14 @@ if __name__ == "__main__":
         TestTrm()
         TestColor()
         print("Tests passed")
-    elif first_char == "8":
+    elif first_char == ".":
         Print256Colors()
     elif first_char == "s":
         # Default for no arguments
         ShortNames()
         print()
         ShowAttributes()
-        print("\nUse d for examples, t for color table, 8 for 8-bit color table;")
+        print("\nUse d for examples, t for color table, . for 8-bit color table;")
         print("otherwise interpret the color specifier")
     elif first_char == "t":
         ColorTable(int(cmds[0][1:]))

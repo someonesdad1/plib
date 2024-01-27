@@ -1,16 +1,30 @@
 Active
 
+    - pgm/ruler.py
+        - Put in my usual Usage/ParseCommandLine stuff, as it's really an
+          application, as I never use it as a library.
+        - Put in an option that lets you define named colors for each group
+          of 10 characters being printed.  For example, you can give 10
+          colors (with names e.g. in color.py) that are different.  Over
+          time, these colors will be memorized and you'll be able to
+          interpret things more quickly.
+            - A useful option to add would be one that lets you give it a
+              file or stdin and it would color the file's contents' columns
+              with the same colors, making it easier to follow columns.
+            - In fact, this points out that it would make more sense to
+              have each dot in a section a different color, letting you
+              identify the column in a section.  The 10 marks could be 
+              in different background colors to aid going down columns.
+
+    - New: pgm/resistor_color_code.py
+        - Print colors & values to the screen.
+        - Alias it to rcc
+
     - pgm/ldir.py
         - Uses old color model and won't print out directories in color
           under WSL
 
     - Color stuff
-        - Since I'm using Windows Terminal, it uses a 256 color xterm.
-          Include in e.g. 'clr yell' the nearest number of 0-255 for a
-          suitable color.  
-            - See clrtable below for data.
-            - Alternatively, just print out an 80-column wide listing from
-              0 to 255 in the stated color.
         - /plib/pgm/colorsearch.py
             - Add an attribution of number 0 that includes the 24 short
               color names I use in the command clr
