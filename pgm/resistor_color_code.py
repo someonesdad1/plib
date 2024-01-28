@@ -23,6 +23,7 @@ if 1:   # Header
         import sys
     if 1:   # Custom imports
         from color import t
+        from bidict import bidict
         from get import GetLines
         from wrap import dedent
         from dpprint import PP
@@ -68,6 +69,21 @@ if 1:   # Header
            11: t("#c9c0bb"),
          None: t("wht"),
         }
+        g.letters = bidict()
+        g.letters.update({
+            "k": 0,
+            "b": 1,
+            "r": 2,
+            "o": 3,
+            "y": 4,
+            "g": 5,
+            "u": 6,
+            "v": 7,
+            "a": 8,
+            "t": 9,
+            "d": 10,
+            "l": 11,
+        })
 if 1:   # Utility
     def GetScreen():
         'Return (LINES, COLUMNS)'
@@ -141,33 +157,41 @@ if 1:   # Core functionality
 
         '''))
         # Column widths
-        w = (8, 14, 8, 12, 14)
+        w = (8, 14, 8, 8, 12, 14)
         # Print header
         t.print(f"{t('magl')}"
               f"{'':{w[0]}s}"
               f"{'Abbreviation':^{w[1]}s}"
-              f"{'Digit':^{w[2]}s}"
-              f"{'Multiplier':^{w[3]}s}"
-              f"{'Tolerance, %':^{w[4]}s}")
+              f"{'Letter':^{w[2]}s}"
+              f"{'Digit':^{w[3]}s}"
+              f"{'Multiplier':^{w[4]}s}"
+              f"{'Tolerance, %':^{w[5]}s}")
         # Print table
         for i in range(12):
             color, abbr, digit, mult, tol = g.cc[i]
+            ltr = g.letters(i)
             t.print(f"{g.colors[i]}"
                   f"{color:{w[0]}s}"
                   f"{abbr:^{w[1]}s}"
-                  f"{digit:^{w[2]}s}"
-                  f"{mult:^{w[3]}s}"
-                  f"{tol:^{w[4]}s}")
+                  f"{ltr:^{w[2]}s}"
+                  f"{digit:^{w[3]}s}"
+                  f"{mult:^{w[4]}s}"
+                  f"{tol:^{w[5]}s}")
         color, abbr, digit, mult, tol = g.cc[None]
         print(f"{'None':{w[0]}s}"
               f"{'':^{w[1]}s}"
               f"{'':^{w[2]}s}"
               f"{'':^{w[3]}s}"
-              f"{tol:^{w[4]}s}")
+              f"{'':^{w[4]}s}"
+              f"{tol:^{w[5]}s}")
+    def Interpret(*args):
+        '''Print an interpretation of a set of colors.
+        '''
 
 if __name__ == "__main__":
     d = {}      # Options dictionary
     args = ParseCommandLine(d)
+    Interpret(*args)
 
 '''
 Note the decimal point is implied after the last digit.  The standard is

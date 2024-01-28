@@ -1783,6 +1783,28 @@ if __name__ == "__main__":
     from lwtest import run, raises, Assert, assert_equal
     from collections import deque
     from columnize import Columnize
+    from wrap import dedent
+    from dpprint import PP
+    pp = PP()   # Screen width aware form of pprint.pprint
+    from wsl import wsl     # wsl is True when running under WSL Linux
+    def GetScreen():
+        'Return (LINES, COLUMNS)'
+        return (
+            int(os.environ.get("LINES", "50")),
+            int(os.environ.get("COLUMNS", "80")) - 1
+        )
+    def GetColors():
+        t.dbg = t("cyn") if g.dbg else ""
+        t.N = t.n if g.dbg else ""
+        t.err = t("redl")
+    def Dbg(*p, **kw):
+        if g.dbg:
+            print(f"{t.dbg}", end="", file=Dbg.file)
+            k = kw.copy()
+            k["file"] = Dbg.file
+            print(*p, **k)
+            print(f"{t.N}", end="", file=Dbg.file)
+    Dbg.file = sys.stderr   # Debug printing to stderr by default
     def GetShortNames(all=False):
         '''Return a tuple of the short names.  If all is True, then
         also append the letters d, l, and b to get all of the basic
@@ -2384,8 +2406,11 @@ if __name__ == "__main__":
             T = "blk  blu grn  cyn  red  mag  yel  wht".split()
             w, t = 4, "text"
             W = 44
-            term = os.environ["TERM_PROGRAM"]
-            print(f"Running on a {term} terminal")
+            try:
+                term = os.environ["TERM_PROGRAM"]
+            except KeyError:
+                term = os.environ["TERM"]
+            print(f"Running on '{term}' terminal")
             if bits == 24:
                 Tbl("Dim text, dim background", False, False)
                 Tbl("Bright text, dim background", True, False)
@@ -2396,27 +2421,7 @@ if __name__ == "__main__":
                 Tbl("Dim text", False, False)
                 Tbl("Bright text", True, False, last=False)
             elif bits == 8:
-                print("8 bit not working yet")
-                if 0:
-                    T = range(256)
-                    N = width//4        # Items that can fit per line
-                    use_white = set([int(i) for i in '''
-                        0 4 8 16 17 18 19 20 21 52 53 54 55 56 57 88 89 90 91 92 93 94
-                        95 96 97 98 99 232 233 234 235 236 237 238 239
-                            '''.split()])
-                    print("As foreground colors")
-                    for i in T:
-                        c.out(f"{c(i)}{i:^4d}")
-                        if i and not ((i + 1) % N):
-                            c.print()
-                    c.print()
-                    print("As background colors")
-                    for i in T:
-                        fg = 15 if i in use_white else 0
-                        c.out(f"{c(fg, i)}{i:^4d}")
-                        if i and not ((i + 1) % N):
-                            c.print()
-                    c.print()
+                Print256Colors()
         def Examples():
             # These work under mintty (https://mintty.github.io/)
             '''
@@ -2575,6 +2580,7 @@ if __name__ == "__main__":
             1.  One of the short names such as 'ornl'
             2.  #XXXXXX, @XXXXXX, and $XXXXXX hex forms
             3.  "a b c" where the letters represent integers
+            4.  An 8-bit integer on [0, 255]
         Instead of space characters, nearly any characters can be used as
         delimiters, as they are replaced by spaces.
         '''
@@ -2586,9 +2592,21 @@ if __name__ == "__main__":
             x = x.replace(i, " ")
         while "  " in x:
             x = x.replace("  ", " ")
+        n = None
+        try:
+            n = Int(x)
+        except:
+            pass
         # Set the variable rgb to a tuple of 3 base 10 integers
-        if len(x) in (3, 4):
-            # Short name form
+        if n:                   # It's an 8-bit color number
+            if 0 <= n <= 255:
+                c = Translate8bit(n)
+            else:
+                Error("An 8-bit form must be between 0 and 255 inclusive")
+            t.print(f"8-bit color name '{n}'    {t(c)}Represents this color")
+            ShowRepresentations(c)
+            return
+        elif len(x) in (3, 4):  # Short name form
             try:
                 c = CN[x]
                 rgb = c.irgb
@@ -2597,17 +2615,15 @@ if __name__ == "__main__":
             t.print(f"Color name '{x}'    {t(c)}Represents this color")
             ShowRepresentations(c)
             return
-        elif x[0] in "@#$":
+        elif x[0] in "@#$":     # Hex form
             c = Color(x)
             rgb = c.irgb
-        else:
+        else:                   # Three numbers
             # Must be 3 RGB numbers separated by white space (either
             # integers or floats)
-            if "." in x or "e" in x:
-                # Interpret as floats
+            if "." in x or "e" in x:    # Three floats
                 rgb = [Int(255*float(i)) for i in x.split()]
-            else:
-                # Interpret as ints
+            else:                       # Three integers
                 rgb = [Int(i) for i in x.split()]
         if len(rgb) != 3:
             Error(f"'{x!s}' doesn't represent three numbers")
@@ -2667,8 +2683,8 @@ if __name__ == "__main__":
         P(c.irgb, "RGB")
         P(c.ihsv, "HSV")
         P(c.ihls, "HLS")
-    def Print256Colors():
-        '''An 8-bit color xterm only uses 256 colors.
+    def Translate8bit(n):
+        '''Translate 8-bit color number to a Color instance
  
         https://www.ditig.com/publications/256-colors-cheat-sheet gave a
         table translating an 8-bit color code to #XXXXXX, RGB, and HSL
@@ -2935,50 +2951,42 @@ if __name__ == "__main__":
             254	Grey89	#e4e4e4	rgb(228,228,228)	hsl(0,0%,89%)
             255	Grey93	#eeeeee	rgb(238,238,238)	hsl(0,0%,93%)
         '''[1:-1]
+        if not hasattr(Translate8bit, "colormap"):
+            # Convert the table into a dictionary that maps an integer from 0
+            # to 255 to a Color instance; cache it in Translate8bit.colormap.
+            di = {}
+            for i, line in enumerate(data.split("\n")):
+                line = line.strip()
+                if not line:
+                    continue
+                f = line.split("\t")
+                if len(f) != 5 and not i:
+                    continue    # Ignore the first line, as it has 6 fields
+                assert len(f) == 5, f"[{i + 1}]:  {line!r} doesn't have 5 fields"
+                key = int(f[0])
+                rgb = f[3].replace("rgb", "")
+                value = eval(f"Color{rgb}")
+                di[key] = value
+            Translate8bit.colormap = di
+        return Translate8bit.colormap[n]
+    def Print256Colors():
         out = []
-        for i, line in enumerate(data.split("\n")):
-            line = line.strip()
-            if not line:
-                continue
-            f = line.split("\t")
-            if len(f) != 5 and not i:
-                continue    # Ignore the first line, as it has 6 fields
-            assert len(f) == 5, f"[{i + 1}]:  {line!r} doesn't have 5 fields"
-            num256 = int(f[0])
-            rgb = f[3].replace("rgb", "")
-            t.c = t(eval(f"Color{rgb}"))
+        for i in range(256):
+            ci = Translate8bit(i)   # Get Color instance
+            t.c = t(ci)
             if 0:
-                print(f"{num256}{t.c} {f[1]}")
+                print(f"{i}{t.c} {f[1]}")
             else:
-                out.append(f"{t.c}{num256:3d}{t.n}")
+                out.append(f"{t.c}{i:3d}{t.n}")
         print("Table of 8-bit colors")
         width = int(os.environ["COLUMNS"]) - 1
         for i in Columnize(out, horiz=True, width=width):
             print(f"{' '*2}{i}")
-
     def Error(*msg, status=1):
         print(*msg, file=sys.stderr)
         exit(status)
-    def Usage(status=1):
-        print(dedent(f'''
-        Usage:  {sys.argv[0]} [options] [cmd]
-          cmd
-           s     Show short color names
-           a     Attributes
-          None   Convert color specifier on command line to various
-                 representations in RGB, HSV, and HLS.  Argument can be
-                 e.g. 'ornl', '128 64 32', '0x80 0o100 0b100000', '#804020',
-                 '@0ebf80' '$0e5099' forms (',' and ';' removed).
-           d     Demo
-           t4    4 bit color table
-           t8    8 bit color table
-           t24   24 bit color table
-        Options:
-          -h      Print this help
-        '''))
-        exit(status)
     def ParseCommandLine(d):
-        d["-t"] = False
+        d["-t"] = False     # Run self-tests
         try:
             opts, args = getopt.getopt(sys.argv[1:], "ht", ["help", "test"])
         except getopt.GetoptError as e:
@@ -2994,34 +3002,40 @@ if __name__ == "__main__":
         if not args:
             return ["s"]
         return args
-    ###########################################################################
-    # Do some tasks
-    #   d       Show examples
-    #   s       Show short names, attributes
-    #   t       Show color table
-    # Otherwise interpret the color string
-    d = {}      # Options dictionary
+    def Usage(status=1):
+        print(dedent(f'''
+        Usage:  {sys.argv[0]} [options] [cmd]
+          cmd
+           d    Show demo
+           s    Show short names, attributes [default action for empty cmd]
+           t4   Show 4-bit color table
+           t8   Show 8-bit color table
+           t24  Show 24-bit color table
+           a    Attributes
+         <num>  Convert color specifier on command line to various representations
+                in RGB, HSV, and HLS.  Argument type examples:
+                    'ornl',     '128 64 32',    '0x80 0o100 0b100000', '202'
+                    '#804020',  '@0ebf80'       '$0e5099' 
+        Options
+          -h      Print this help
+          -t      Run self-tests
+        '''))
+        exit(status)
+    d = {}                      # Options dictionary
     cmds = ParseCommandLine(d)
-
-
     first_char = cmds[0][0]
-    if first_char == "d":
+    if first_char == "d":       # Show examples
         Examples()
-    elif first_char == "T":
-        TestTrm()
-        TestColor()
-        print("Tests passed")
-    elif first_char == ".":
-        Print256Colors()
-    elif first_char == "s":
-        # Default for no arguments
+    elif first_char == "a":     # Show attributes
+        ShowAttributes()
+    elif first_char == "s":     # Default for no arguments
         ShortNames()
         print()
         ShowAttributes()
         print("\nUse d for examples, t for color table, . for 8-bit color table;")
         print("otherwise interpret the color specifier")
-    elif first_char == "t":
+    elif first_char == "t":     # Show 4, 8, or 256 bit color table
         ColorTable(int(cmds[0][1:]))
-    else:
+    else:                       # Interpret color strings on command line
         for i in cmds:
             InterpretColorSpecifier(i)
