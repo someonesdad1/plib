@@ -1,5 +1,13 @@
 Active
 
+    - pgm/bh.py
+        - bash helper script
+        - Examples of arguments:
+            - '$-' see a list of the builtins in e.g. my help/content/bash file.
+            - '${' accessing default values and pattern matching
+        - This is aimed at an experienced user to get both syntax and a high level view of the
+          command and its effects
+
     - pgm/ruler.py
         - Put in my usual Usage/ParseCommandLine stuff, as it's really an
           application, as I never use it as a library.
@@ -2084,3 +2092,5 @@ clrtable
     253	Grey85	#dadada	rgb(218,218,218)	hsl(0,0%,85%)
     254	Grey89	#e4e4e4	rgb(228,228,228)	hsl(0,0%,89%)
     255	Grey93	#eeeeee	rgb(238,238,238)	hsl(0,0%,93%)
+
+vim: tw=100
