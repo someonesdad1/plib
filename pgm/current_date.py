@@ -43,7 +43,7 @@ if 1:   # Header
             # Storage for global variables as attributes
             pass
         g = G()
-        g.dbg = True
+        g.dbg = False
         t.dbg = t("lill")
         ii = isinstance
 if 1:   # Utility
@@ -72,7 +72,7 @@ if 1:   # Utility
             k = kw.copy()
             k["file"] = Dbg.file
             print(*p, **k)
-            print(f"{t.N}", end="", file=Dbg.file)
+            print(f"{t.n}", end="", file=Dbg.file)
     Dbg.file = sys.stderr   # Debug printing to stderr by default
     def Error(*msg, status=1):
         print(*msg, file=sys.stderr)
@@ -107,42 +107,46 @@ if 1:   # Utility
           Show the indicated date/time on one line.  If offset is given, it
           must be an integer or float.  unit is an optional time unit
           (defaults to day, use -h to see details).  offset is added to the
-          current time.
+          current time.  The fields in the output are in different colors
+          and are:
+            Day of week (3 letters)
+            Day, month (3 letters), year
+            Time (am or pm)
+            Local timezone's offset from GMT
+            Quarter of the year
+            Week number (out of 52)
+            Day number (out of 365 or 366)
+            Time in s from 1 Jan 1970
+            Julian astronomical date
         Examples
+          - '{sys.argv[0]} -- -3 wk' shows the time/date 3 weeks ago
           - '{sys.argv[0]} 0' shows the current time/date
-          - '{sys.argv[0]} -3 wk' shows the time/date 3 weeks ago
-          - Let x be the value in s printed out by the command.
-            '{sys.argv[0]} -- -x s' should show the date of the epoch.
+          - Let x be the value in s printed out by the previous command.
+            '{sys.argv[0]} -- -x s' should be within hours of the date of the
+            epoch.
         Options
+            -d      Turn on debugging
             -h      Print a manpage
         '''))
         exit(status)
     def ParseCommandLine(d):
-        d["-a"] = False     # Describe this option
-        d["-d"] = 3         # Number of significant digits
+        d["-d"] = False     # Turn on debug
         if len(sys.argv) < 2:
             Usage()
         try:
-            opts, args = getopt.getopt(sys.argv[1:], "h") 
+            opts, args = getopt.getopt(sys.argv[1:], "dh") 
         except getopt.GetoptError as e:
             print(str(e))
             exit(1)
         for o, a in opts:
-            if o[1] in list(""):
+            if o[1] in list("d"):
                 d[o] = not d[o]
-            elif o == "-d":
-                try:
-                    d[o] = int(a)
-                    if not (1 <= d[o] <= 15):
-                        raise ValueError()
-                except ValueError:
-                    msg = ("-d option's argument must be an integer between "
-                        "1 and 15")
-                    Error(msg)
             elif o == "-h":
                 Manpage()
         if len(args) not in (1, 2):
             Usage()
+        if d["-d"]:
+            g.dbg = True
         GetColors()
         return args
 if 1:   # Core functionality
@@ -154,6 +158,7 @@ if 1:   # Core functionality
         the u("year") call.  This is a tropical year = 365.242198781 days.
         '''
         dt = datetime.now()  # datetime instance
+        Dbg(f"now = {dt} = {time.time()} s")
         # Get a time_delta for the offset
         try:
             # Get factor to convert offset to SI (seconds).  If no units
@@ -164,11 +169,13 @@ if 1:   # Core functionality
             Usage(1)
         offset_s = float(user_offset)*factor
         td = timedelta(seconds=offset_s)
+        Dbg(f"user_offset = {user_offset}, units = {units}")
         # Add the offset
         dt += td
+        Dbg(f"Time with offset = {dt}")
         # Get struct for strftime
-        ts = dt.timestamp()     # ts is a float in s, same as returned by time.time()
-        tm = time.localtime()   # tm is a struct time 
+        ts = dt.timestamp()         # ts is a float in s, same as returned by time.time()
+        tm = time.localtime(ts)     # tm is a struct time 
         # Get string components
         if 1:
             weekday = time.strftime("%a", tm)       # Day as 3-letter string: Mon
@@ -208,4 +215,9 @@ if 1:   # Core functionality
 if __name__ == "__main__":
     d = {}      # Options dictionary
     args = ParseCommandLine(d)
-    PrintDateTime(*args)
+    if len(args) == 1:
+        PrintDateTime(args[0])
+    elif len(args) == 2:
+        PrintDateTime(*args)
+    else:
+        Error("Only 1 or 2 arguments allowed (second must be a time unit)")
