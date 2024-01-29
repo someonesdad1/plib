@@ -148,57 +148,57 @@ It's a Heartache {S} Bonnie Tyler {S} bEOl38y8Nj8 {S}
 Jailhouse Rock {S} Elvis Presley {S} A99sV18J0mk {S} 
 Johnny B. Goode {S} Chuck Berry {S} Uf4rxCB4lys {S} 
 Journey to Kilimanjaro {S} Nova TV show {S} 5ZFJWIGN9zQ {S} 1994 Melodically simple but haunting music:  0:48, 6:43, 9:28, 10:44, 30:07, 35:27, 37:33, 38:14*, 43:45, 50:42, 53:00(credits),
-Kingston Trio: Bay Of Mexico {S} {S} -16OczraVi4 {S} 
-Kingston Trio: Fast Freight {S} {S} Oy_NkJOwRqE {S} 
-Kingston Trio: MTA {S} {S} MbtkL5_f6-4 {S} 
-Kisses Sweeter Than Wine {S} {S} iulmZAz8XfY {S} 
-Kodachrome {S} {S} 8rlDTK6QI-w {S} 
-Land Down Under {S} {S} 8jHXu86O01w {S} 
-Les Bicyclettes De Belsize {S} {S} Qe_1B1P9Bw4 {S} 
-Listen To Your Heart {S} {S} yCC_b5WHLX0 {S} 
-Love Me With All Your Heart {S} {S} k3nfqH4YDDM {S} 
-Love is Blue {S} {S} YYf_hb-jsGo {S} 
-MacArthur Park {S} {S} iplpKwxFH2I {S} 
-Maggie May {S} {S} EOl7dh7a-6g {S} 
-Magnificent Seven (1960) {S} {S} 8XDB7GMnbUQ {S} 
-Mambo Italiano {S} {S} 9prJXEhNhPA {S} 
-Me & Bobby McGee {S} {S} WXV_QjenbDw {S} 
-Memories (from Cats): Betty Buckley {S} {S} 5mlllRdIfqw {S} 
-Memories (from Cats): Elaine Paige {S} {S} mdBVJbzkoqo {S} 
-Memories (from Cats): Streisand {S} {S} MWoQW-b6Ph8 {S} 
-Midnight In Moscow {S} {S} FY3Zr5Tj5zw {S} 2011
-Moody Blues:  Blue World {S} {S} 8a9bfvNuTw0 {S} With lyrics
-Moody Blues:  Blue World {S} {S} oosjl8wNLJU {S} 
-Moody Blues:  I'm Just A Singer in a Rock And Roll Band {S} {S} 5UZWXE76ELU {S} Album
-Moody Blues:  I'm Just a Singer in a Rock and Roll Band {S} {S} s5tb25TqXYU {S} Concert
-Moody Blues:  Isn't Life Strange {S} {S} 9WZZjXgJ4W8 {S} 
-Moody Blues:  Question {S} {S} tmOZFAYeurY {S} 
-Moody Blues:  Ride My See-saw {S} {S} GXHMTuoK060 {S} 
-Moody Blues:  Your Wildest Dreams {S} {S} kmmPFrkuPq0 {S} 
-Moody Blues: The Voice {S} {S} -umqM9R8cnI {S} 
-Mr. Roboto {S} {S} 51ybp_YFo7I {S} 
-My Sweet Lord {S} {S} AR4lpQWcT5g {S} 
-Nancy Sinatra and Lee Hazelwood: Lady Bird {S} {S} FIPQVpw-zkk {S} 
-Nancy Sinatra and Lee Hazelwood: Summer Wine {S} {S} Ib_eW9VSUwM {S} 
-Nancy Sinatra: These Boots Are Made for Walkin' {S} {S} rypT2qMO1RY {S} 
-Nancy Sinatra: You Only Live Twice {S} {S} XgFtQPgHyek {S} 
-Neil Young:  Old Man {S} {S} rAtDrFdomN4 {S} 
-Neil Young: Heart of Gold {S} {S} X3IA6pIVank {S} 
-North to Alaska (1960) {S} {S} RO6IU9RpjS8 {S} 
+Bay Of Mexico {S} Kingston Trio {S} -16OczraVi4 {S} 
+Fast Freight {S} Kingston Trio {S} Oy_NkJOwRqE {S} 
+MTA {S} Kingston Trio {S} MbtkL5_f6-4 {S} 
+Kisses Sweeter Than Wine {S} Marty Robbins {S} iulmZAz8XfY {S} 
+Kodachrome {S} Paul Simon {S} 8rlDTK6QI-w {S} 
+Land Down Under {S} Men at Work {S} 8jHXu86O01w {S} 
+Les Bicyclettes De Belsize {S} Englebert Humperdinck {S} Qe_1B1P9Bw4 {S} 
+Listen To Your Heart {S} Roxette {S} yCC_b5WHLX0 {S} 
+Love Me With All Your Heart {S} Ray Charles Singers {S} k3nfqH4YDDM {S} 
+Love is Blue {S} Paul Muriat {S} YYf_hb-jsGo {S} 
+MacArthur Park {S} Richard Harris {S} iplpKwxFH2I {S} 
+Maggie May {S} Rod Steward {S} EOl7dh7a-6g {S} 
+Magnificent Seven {S} Movie theme {S} 8XDB7GMnbUQ {S} 
+Mambo Italiano {S} Rosemary Clooney {S} 9prJXEhNhPA {S} 
+Me & Bobby McGee {S} Janis Joplin {S} WXV_QjenbDw {S} 
+Memories (from Cats){S} Betty Buckley {S} 5mlllRdIfqw {S} 
+Memories (from Cats){S} Elaine Paige {S} mdBVJbzkoqo {S} 
+Memories (from Cats){S} Barbra Streisand {S} MWoQW-b6Ph8 {S} 
+Midnight In Moscow {S} Sweet & Hot 2011 {S} FY3Zr5Tj5zw {S} 2011
+Blue World {S} Moody Blues {S} 8a9bfvNuTw0 {S} With lyrics
+Blue World {S} Moody Blues {S} oosjl8wNLJU {S} 
+I'm Just A Singer in a Rock And Roll Band {S} Moody Blues {S} 5UZWXE76ELU {S} Album
+I'm Just a Singer in a Rock and Roll Band {S} Moody Blues {S} s5tb25TqXYU {S} Concert
+Isn't Life Strange {S} Moody Blues {S} 9WZZjXgJ4W8 {S} 
+Question {S} Moody Blues {S} tmOZFAYeurY {S} 
+Ride My See-saw {S} Moody Blues {S} GXHMTuoK060 {S} 
+Your Wildest Dreams {S} Moody Blues {S} kmmPFrkuPq0 {S} 
+The Voice {S} Moody Blues {S} -umqM9R8cnI {S} 
+Mr. Roboto {S} Styx {S} 51ybp_YFo7I {S} 
+My Sweet Lord {S} George Harrison {S} AR4lpQWcT5g {S} 
+Nancy Sinatra and Lee Hazelwood: Lady Bird {S} Nancy Sinatra and Lee Hazelwood {S} FIPQVpw-zkk {S} 
+Nancy Sinatra and Lee Hazelwood: Summer Wine {S} Nancy Sinatra and Lee Hazelwood {S} Ib_eW9VSUwM {S} 
+These Boots Are Made for Walkin' {S} Nancy Sinatra {S} rypT2qMO1RY {S} 
+You Only Live Twice {S} Nancy Sinatra {S} XgFtQPgHyek {S} 
+Old Man {S} Neil Young {S} rAtDrFdomN4 {S} 
+Heart of Gold {S} Neil Young {S} X3IA6pIVank {S} 
+North to Alaska (1960) {S} Johnny Horton {S} RO6IU9RpjS8 {S} 
 Nothing Else Matters: Banjo & Mandolin {S} {S} 3JFb_aOn6rc {S} 
 Nothing Else Matters: Guitar & cello {S} {S} pxoW-00Zyho {S} 
 Nothing Else Matters: Guitar {S} {S} WlGiOiRQNhI {S} 
 Nothing Else Matters: Hammered dulcimer {S} {S} 8KK0-9Moz5Q {S} 
 Nothing Else Matters: Hardpan {S} {S} 32v8ARqaBas {S} She makes it look easy
 Nothing Else Matters: Harp {S} {S} KMX2bmtS_TE {S} 
-Nothing Else Matters: Metallica {S} {S} tAGnKpE4NCI {S} 
-Nothing Else Matters: PMJ:  15 year old girl singer {S} {S} KSSa0-oAnIo {S} 
+Nothing Else Matters {S} Metallica {S} tAGnKpE4NCI {S} 
+Nothing Else Matters {S} PMJ, 15 year old girl singer {S} KSSa0-oAnIo {S} 
 Nothing Else Matters: Piano {S} {S} DmL12NRE4hQ {S} 
-Papa Was a Rollin' Stone {S} {S} 71l85z2bXAs {S} 
-Papillon {S} {S} Js69DkyaDVQ {S} 
-Parsons:  Eye in the Sky {S} {S} 56hqrlQxMMI {S} 
-Parsons:  Games People Play {S} {S} SLi7Ljcy6n8 {S} 
-Parsons:  Old and Wise {S} {S} ZmzqqdVFw8g {S} 
+Papa Was a Rollin' Stone {S} Temptations {S} 71l85z2bXAs {S} 
+Papillon {S} Movie theme {S} Js69DkyaDVQ {S} 
+Eye in the Sky {S} Alan Parsons Project {S} 56hqrlQxMMI {S} 
+Games People Play {S} Alan Parsons Project {S} SLi7Ljcy6n8 {S} 
+Old and Wise {S} Alan Parsons Project {S} ZmzqqdVFw8g {S} 
 Patricia {S} {S} rTXIXkeWnEo {S} 
 Paul McCartney carpool karaoke {S} {S} QjvzCTqkBDQ {S} 
 People {S} {S} fPlQ6EtArSc {S} 
