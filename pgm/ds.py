@@ -220,10 +220,19 @@ if 1:   # Core functionality
         return found
     def OpenFile(app, matches, choice):
         'Open indicated choice (subtract 1 first)'
-        # Send stderr to /dev/null because some apps on Linux have annoying
-        # bug messages sent to the console.
-        subprocess.Popen([app, matches[choice - 1][0]],
-                         stderr=subprocess.DEVNULL)
+        file = matches[choice - 1][0]
+        if wsl:
+            # Use wslpath.exe to convert the file name to a Windows path
+            cmd = ["/usr/bin/wslpath", "-w", file]
+            r = subprocess.run(cmd, capture_output=True)
+            file = r.stdout.decode()
+        if 0:
+            # Old method on older Linux
+            # Send stderr to /dev/null because some apps on Linux have annoying
+            # bug messages sent to the console.
+            subprocess.Popen([app, matches[choice - 1][0]],
+                            stderr=subprocess.DEVNULL)
+        subprocess.run([app, file])
     def GetMatches(regexp, d, regexps):
         r = re.compile(regexp) if d["-i"] else re.compile(regexp, re.I)
         matches = []

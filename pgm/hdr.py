@@ -21,7 +21,6 @@ if 1:   # Header
         pass
     if 1:   # Standard imports
         from pathlib import Path as P
-        from pprint import pprint as pp
         import getopt
         import os
         import re
@@ -30,6 +29,9 @@ if 1:   # Header
         from color import t
         from get import GetLines
         from wrap import dedent
+        from dpprint import PP
+        pp = PP()   # Screen width aware form of pprint.pprint
+        from wsl import wsl     # wsl is True when running under WSL Linux
         #from columnize import Columnize
     if 1:   # Global variables
         class G:
@@ -37,8 +39,6 @@ if 1:   # Header
             pass
         g = G()
         g.dbg = False
-        t.dbg = t("lill") if g.dbg else ""
-        t.N = t.n if g.dbg else ""
         ii = isinstance
 if 1:   # Utility
     def GetScreen():
@@ -47,7 +47,10 @@ if 1:   # Utility
             int(os.environ.get("LINES", "50")),
             int(os.environ.get("COLUMNS", "80")) - 1
         )
-    g.W, g.L = GetScreen()
+    def GetColors():
+        t.dbg = t("cyn") if g.dbg else ""
+        t.N = t.n if g.dbg else ""
+        t.err = t("redl")
     def Dbg(*p, **kw):
         if g.dbg:
             print(f"{t.dbg}", end="", file=Dbg.file)
@@ -91,6 +94,8 @@ if 1:   # Utility
                     Error(msg)
             elif o == "-h":
                 Usage(status=0)
+        GetColors()
+        g.W, g.L = GetScreen()
         return args
 if 1:   # Core functionality
     pass

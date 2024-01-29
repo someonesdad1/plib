@@ -1,7 +1,6 @@
 '''
 ToDo
-    - 'H P d' removes d from list
-    - 'H .' goes to a constant directory (probably /plib)
+    - ? 'H P d' removes d from list
 
 Script to aid the H() shell function in getting the required directory.
 '''
@@ -108,23 +107,18 @@ if __name__ == "__main__":
     if cmd == "e":      # Edit config file
         Edit(d["-c"])
     elif cmd == "g":    # Show line n (0-based)
-        if arg == ".":
-            print("/plib")
-        elif arg == "..":
-            print("/plib/pgm")
-        else:
-            n = int(arg)
-            if n < 0:
-                n = 0
-            if n >= len(lines):
-                raise ValueError(f"Line number '{n}' out of range")
-            print(lines[n])
+        n = int(arg)
+        if n < 0:
+            n = 0
+        if n >= len(lines):
+            Error(f"Line number '{n}' out of range")
+        print(lines[n])
     elif cmd == "p":    # Push the arg into the directory stack
         if len(args) == 1:
-            raise ValueError("Need a directory")
+            Error("Need a directory")
         dir, p = arg, P(arg)
         if not p.exists():
-            raise ValueError("'{p}' doesn't exist")
+            Error("'{p}' doesn't exist")
         lines.insert(0, str(p.resolve()))
         open(d["-c"], "w").write('\n'.join(lines))
     elif cmd == "l":    # List the config file
@@ -140,4 +134,4 @@ if __name__ == "__main__":
     else:
         s = "\n"
         msg = f"{s}  Command line: {sys.argv}{s}  Unrecognized command"
-        raise ValueError(msg)
+        Error(msg)

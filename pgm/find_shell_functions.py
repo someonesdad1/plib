@@ -1,7 +1,11 @@
 '''
-Find bash shell functions in text
+
+Purpose:  locate valid shell function definitions
+    - Default behavior is to list all function names found
+
+
+Find shell functions in text
 '''
-from __future__ import annotations
 if 1:   # Header
     if 1:   # Copyright, license
         # These "trigger strings" can be managed with trigger.py
@@ -12,7 +16,7 @@ if 1:   # Header
         #   See http://opensource.org/licenses/OSL-3.0.
         #∞license∞#
         #∞what∞#
-        # Program description string
+        # Find shell functions in text
         #∞what∞#
         #∞test∞# #∞test∞#
         pass
@@ -36,11 +40,16 @@ if 1:   # Header
         g = G()
         g.dbg = False
         ii = isinstance
-        g.funcs = set()
-        g.myfuncs = set()
-        # Regexps for matching bash function lines
-        g.relaxed = re.compile(r"^\s*function\s+([a-z_][a-z0-9_]*)\s*(\(\s*\))\s*$|^\s*([a-z_][a-z0-9_]*)\s*(\(\s*\))\s*$")
-        g.strict = re.compile(r"^function ([a-z_][a-z0-9_]*) *$")
+        # This will contain the function names found
+        g.functions = set()
+        if 1:   # Regexps for matching bash function lines
+            # g.relaxed matches any valid function definition
+            g.relaxed = re.compile(r"^\s*function\s+([A-Za-z_.][A-Za-z0-9_.]*)\s*(\(\s*\))\s*(#.*)?$|"
+                                r"^\s*([A-Za-z_.][A-Za-z0-9_.]*)\s*(\(\s*\))\s*(#.*)?$")
+            # g.strict matches function definitions that match my preferred # form
+            g.strict = re.compile(r"^function ([a-z_][a-z0-9_]*) *(#.*)?$")
+            # g.ignore contains regexps to ignore
+            g.ignore = set()
 if 1:   # Utility
     def GetColors():
         t.dbg = t("lill") if g.dbg else ""
@@ -68,40 +77,51 @@ if 1:   # Utility
         print(dedent(f'''
         Usage:  {sys.argv[0]} [options] [file1 [file2...]]
           Read files and find shell function names.  Use - for stdin.
-          Print out a colorized alphabetized listing; a name in color is
-          one that is defined in one or more function files defined by the
-          -d option.  Use -r to define sets of functions that should be
-          ignored (for example, git adds around 130 functions to your bash
-          environment).
+          Print each function name found on one line.  Use -c to print in
+          columns.
+ 
+          The options -s and -S are used to identify functions that
+          follow my preferred shell function forms:
+            -s      "^function name$"
+            -S      "^ *function name$"
+ 
+        Note
+          Bash function names can be any unquoted shell word without '$'.
+          In this script, I only allow characters 'A-Z', 'a-z', '0-9', '_'
+          and '.'.
         Options:
-            -c      Don't print columnized
-            -d file Debug printing
-            -f file Define a default function file
-            -g      Ignore git & gawk functions
-            -r file Define a ignore function file
+            -c      Print in columns
+            -d      Debug printing
+            -I r    Define regex for function names to ignore (case insensitive)
+            -i r    Define regex for function names to ignore
+            -s      Use strict regex to find my preferred function syntax
         '''))
         exit(status)
     def ParseCommandLine(d):
-        d["-c"] = True      # Columnized printing
+        d["-c"] = False     # Columnized printing
         d["-d"] = False     # Debug printing
-        d["-f"] = []        # Default function files
-        d["-g"] = False     # Ignore git & gawk functions
-        d["-r"] = []        # Default ignore files
-        d["-s"] = False     # Use a strict regexp
+        d["-i"] = []        # Function name regexes to ignore
+        d["-s"] = False     # Use a strict regexp to find my preferred form
+        d["ignore_regexps"] = []
         if len(sys.argv) < 2:
             Usage()
         try:
-            opts, args = getopt.getopt(sys.argv[1:], "cdf:ghs") 
+            opts, args = getopt.getopt(sys.argv[1:], "cdhi:s") 
         except getopt.GetoptError as e:
             print(str(e))
             exit(1)
         for o, a in opts:
-            if o[1] in list("cdgs"):
+            if o[1] in list("cds"):
                 d[o] = not d[o]
-            elif o == "-f":
-                file = P(a)
-                if not file.exists():
-                    Error(f"{a!r} doesn't exist")
+            elif o in ("-i", "-I"):
+                try:
+                    if o == "-i":
+                        d["ignore_regexps"].append(re.compile(a))
+                    else:
+                        d["ignore_regexps"].append(re.compile(a, re.I))
+                except Exception as e:
+                    print(f"Exception: {e!r}")
+                    Error(f"  {a!r} not a proper regular expression for {o!r}")
                 d[o].append(file)
             elif o == "-h":
                 Usage(status=0)
@@ -109,21 +129,19 @@ if 1:   # Utility
         GetColors()
         return args
 if 1:   # Core functionality
-    def IgnoreGitGawk(item):
-        'Return True if this is a git or gawk item'
-        return (item.startswith("__git") or
-                item.startswith("_git") or
-                item.startswith("gawk"))
-    def Report():
+    def Report(function_set):
         'Print the function report'
         sentinel = None
-        dq = deque(sorted(g.funcs))
-        dq.append(sentinel)
-        # Decorate those in g.myfuncs with color
+        dq = deque(sorted(function_set))
+        dq.append(sentinel)     # Identifies end of deque
+        results = []
         while dq:
-            item = dq.popleft()
-            if item is None:
+            funcname = dq.popleft()
+            if funcname is sentinel:
                 break
+            # See if this funcname is to be ignored
+
+            print(funcname)
             if d["-g"] and IgnoreGitGawk(item):
                 continue
             else:
@@ -138,20 +156,29 @@ if 1:   # Core functionality
         else:
             while dq:
                 print(dq.popleft())
-    def DebugPrint(funcs: set, lines: list):
+    def DebugPrint(funcs, lines):
+        '''funcs is a set, lines is a list
+        '''
         if g.dbg:
             if 0:
                 for line in lines:
                     Dbg(line)
             Dbg(f"file = {str(file)!r}:  {len(lines)} lines")
+            Dbg(f"  File's functions:")
             for i in Columnize(funcs):
                 Dbg(i)
-    def GetFunctions(file: Path, funcs: set, strict: bool):
+    def GetFunctions(file, funcs, strict):
         r = g.strict if strict else g.relaxed
+        Dbg(f"strict = {strict}")
+        Dbg(f"regex = {r}")
         lines = GetLines(file, nonl=True)
         for line in lines:
+            Dbg(f"{t('trql')}line = {line!r}")
             mo = r.match(line)
             if mo:
+                Dbg("Matched")
+                # The groups() list will contain a number of Nones, which
+                # are followed by the function's name. 
                 dq = deque(mo.groups())
                 while dq and dq[0] is None:
                     dq.popleft()
@@ -159,8 +186,7 @@ if 1:   # Core functionality
                 funcs.add(dq.popleft())
         DebugPrint(funcs, lines)
 
-print("xx Add -i option which lets you ignore starting prefixes; remove -g")
-exit()
+        exit() #xx
 
 if 0:
     # This is a non-strict regexp and it matches things that are taken as
@@ -183,9 +209,7 @@ cd	(	)
 if __name__ == "__main__":
     d = {}      # Options dictionary
     files = ParseCommandLine(d)
-    if d["-f"]:
-        for file in d["-f"]:
-            GetFunctions(file, g.myfuncs, True)
+    strict = d["-s"]
     for file in files:
-        GetFunctions(file, g.funcs, False)
-    Report()
+        GetFunctions(file, g.functions, strict)
+    Report(g.functions)
