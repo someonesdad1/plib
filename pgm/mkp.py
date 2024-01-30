@@ -79,18 +79,19 @@ if 1:   # Utility
           and the current date/time.
         Options:
             -h      Print a manpage
+            -c      Clear the screen before the python script is run
         '''))
         exit(status)
     def ParseCommandLine(d):
-        d["-a"] = False     # Describe this option
+        d["-c"] = False     # Clear the screen when script runs
         d["-d"] = 3         # Number of significant digits
         try:
-            opts, args = getopt.getopt(sys.argv[1:], "h") 
+            opts, args = getopt.getopt(sys.argv[1:], "ch") 
         except getopt.GetoptError as e:
             print(str(e))
             exit(1)
         for o, a in opts:
-            if o[1] in list(""):
+            if o[1] in list("c"):
                 d[o] = not d[o]
             elif o == "-d":
                 try:
@@ -113,12 +114,16 @@ if 1:   # Core functionality
         assert cmd.exists(), f"{str(cmd)!r} doesn't exist"
         cmd = [P("/plib/pgm/current_date.py"), "0"]
         subprocess.run(cmd)
+    def Clear():
+        if not d["-c"]:
+            return
+        subprocess.run("clear", shell=True)
     def Run(arguments, start_time):
         cmd = [sys.executable] + list(arguments)
         #cmd = sys.executable + " " + ' '.join(arguments)
         # Print separator and date
         t.print(f"{t.hdr}{g.sep}")
-        print(f"cmd = {cmd!r}")
+        print(f"{t('purl')}cmd = {cmd!r}")
         Date()
         runtime = time.time() - start_time
         if runtime < 60:
@@ -145,20 +150,15 @@ if 1:   # Core functionality
             Error(f"Python script {script.resolve()!r} doesn't exist")
         else:
             print(f"Script is '{script.resolve()}'")
-        t.print(f"{t('purl')}Running {list(arguments)!r}")
         Dbg(f"{script!r}")
         mtime = script.stat().st_mtime
         start_time = time.time()
-        if 0:
-            # This runs things just once to see you're getting the desired
-            # output.
-            Run(list(arguments), start_time)
-            exit()
         Run(arguments, start_time)
         while True:
             stat = script.stat()
             new_mtime = stat.st_mtime
             if new_mtime > mtime:
+                Clear()
                 Run(arguments, start_time)
                 mtime = new_mtime
             # The delay below is important, as lack of one will cause an
