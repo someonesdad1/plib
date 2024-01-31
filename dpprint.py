@@ -1,6 +1,7 @@
 '''
 Provides the function PP which returns a form of the pprint.pprint function
-with a width argument set to the desired width.
+with a width argument set to the desired width.  Also includes the utility 
+Clear() which will clear the screen on UNIX type systems.
 '''
 if 1:  # Header
     # Copyright, license
@@ -17,6 +18,7 @@ if 1:  # Header
         #∞test∞# run #∞test∞#
     # Standard imports
         import os
+        import subprocess
         import sys
         from functools import partial
         from fractions import Fraction
@@ -30,7 +32,7 @@ if 1:  # Header
         except ImportError:
             pass
     # Global variables 
-        __all__ = ["PP"]
+        __all__ = ["Clear", "PP"]
         ii = isinstance
 def Int(s):
     'Convert s into a positive integer'
@@ -38,8 +40,10 @@ def Int(s):
     if ii(s, str):
         if s.startswith("0x"):
             n = int(s, 16)
-        elif s.startswith("0"):
+        elif s.startswith("0o"):
             n = int(s, 8)
+        elif s.startswith("0b"):
+            n = int(s, 2)
         elif "." in s or "e" in s:
             n = int(float(s))
         else:
@@ -71,18 +75,41 @@ def PP(width=None):
             print(e)
             exit(1)
     return partial(pprint, width=columns)
+def Clear():
+    subprocess.run("clear", shell=True)
 
 if __name__ == "__main__": 
     from lwtest import run, Assert, raises
+    from io import StringIO
+    from f import flt
     def TestInt():
+        # Integer forms
+        Assert(Int(1) == 1)
+        Assert(Int(0o1) == 1)
+        Assert(Int(0x1) == 1)
+        Assert(Int(0b1) == 1)
         Assert(Int("1") == 1)
         Assert(Int("01") == 1)
         Assert(Int("0x1") == 1)
+        # Float
+        Assert(Int("1e2") == 100)
         Assert(Int("1.2") == 1)
+        Assert(Int(flt("1.2")) == 1)
+        # Decimal
         Assert(Int(Decimal("1.2")) == 1)
+        # Fraction
+        Assert(Fraction(1, 1) == 1)
+        # mpmath.mpf
         if have_mpmath:
             Assert(Int(mpmath.mpf("1")) == 1)
             Assert(Int(mpmath.mpf("1.2")) == 1)
-        Assert(Int(1) == 1)
+            Assert(Int(mpmath.mpf("1e2")) == 100)
+    def Test_pp():
+        pp = PP(5)
+        buf = StringIO()
+        s = "1234567890"
+        pp(s, stream=buf)
+        u = buf.getvalue()
+        assert(u == f"{s!r}\n")
 
     exit(run(globals(), halt=True)[0])

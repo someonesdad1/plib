@@ -1,10 +1,14 @@
 '''
 Run a python script when it changes
     
-    At startup the screen is cleared.  Then the script's mtime is stored
-    and when it changes, the script is run with the given parameters.
-    Each time the script is run, a separator string in color is printed
-    with the current date/time.
+    A use case for this script is when developing a python script, call it
+    a.py.  Edit a.py in one terminal window and run the command 'python
+    mkpy.py a.py <needed arguments>' in another terminal window.  The
+    script will run, then wait for the a.py file to be modified as you make
+    changes to fix the code.  When you save a.py, the mkpy.py script will
+    execute the a.py file again with its arguments.  You can immediately
+    see if the output fixed the problem.
+
 '''
 if 1:   # Header
     if 1:   # Copyright, license
@@ -36,7 +40,6 @@ if 1:   # Header
         from dpprint import PP
         pp = PP()   # Screen width aware form of pprint.pprint
         from wsl import wsl     # wsl is True when running under WSL Linux
-        #from columnize import Columnize
     if 1:   # Global variables
         class G:
             # Storage for global variables as attributes
@@ -44,6 +47,7 @@ if 1:   # Header
         g = G()
         g.dbg = False
         g.dbg = True
+        g.sep = "-"
         ii = isinstance
 if 1:   # Utility
     def GetScreen():
@@ -56,10 +60,8 @@ if 1:   # Utility
         t.dbg = t("cyn") if g.dbg else ""
         t.N = t.n if g.dbg else ""
         t.err = t("redl")
-        t.hdr = t("grnl")
-        # Separator for subsequent invocations
+        t.hdr = t("wht", "#001146")
         g.L, g.C = GetScreen()
-        g.sep = "-"*g.C
     def Dbg(*p, **kw):
         if g.dbg:
             print(f"{t.dbg}", end="", file=Dbg.file)
@@ -80,28 +82,21 @@ if 1:   # Utility
         Options:
             -h      Print a manpage
             -c      Clear the screen before the python script is run
+            -q      Quiet mode:  separator only
         '''))
         exit(status)
     def ParseCommandLine(d):
         d["-c"] = False     # Clear the screen when script runs
-        d["-d"] = 3         # Number of significant digits
+        d["-o"] = False     # Run once
+        d["-q"] = False     # Quiet mode
         try:
-            opts, args = getopt.getopt(sys.argv[1:], "ch") 
+            opts, args = getopt.getopt(sys.argv[1:], "choq") 
         except getopt.GetoptError as e:
             print(str(e))
             exit(1)
         for o, a in opts:
-            if o[1] in list("c"):
+            if o[1] in list("coq"):
                 d[o] = not d[o]
-            elif o == "-d":
-                try:
-                    d[o] = int(a)
-                    if not (1 <= d[o] <= 15):
-                        raise ValueError()
-                except ValueError:
-                    msg = ("-d option's argument must be an integer between "
-                        "1 and 15")
-                    Error(msg)
             elif o == "-h":
                 Usage(status=0)
         GetColors()
@@ -120,23 +115,28 @@ if 1:   # Core functionality
         subprocess.run("clear", shell=True)
     def Run(arguments, start_time):
         cmd = [sys.executable] + list(arguments)
-        #cmd = sys.executable + " " + ' '.join(arguments)
-        # Print separator and date
-        t.print(f"{t.hdr}{g.sep}")
-        print(f"{t('purl')}cmd = {cmd!r}")
-        Date()
         runtime = time.time() - start_time
         if runtime < 60:
-            s = f"{runtime/60:.2f} seconds"
+            s = f"{runtime:.1f} seconds"
         elif runtime < 3600:
             s = f"{runtime/60:.2f} minutes"
         elif runtime < 24*3600:
             s = f"{runtime/3600:.3f} hours"
         else:
             s = f"{runtime/(24*3600):.3f} days"
-        t.print(f"{t.hdr}Run time = {s}")
-        print()
-        #subprocess.run(cmd, shell=True, env=os.environ)
+        # Print separator
+        if not d["-c"]:
+            sep = f"{s}"
+            # Put the date nearer to the left side
+            lsep = len(sep) + 2     # Separator + 2 spaces
+            left = g.C//5
+            right = g.C - left - lsep
+            t.print(f"{t.hdr}{g.sep*left} {sep} {g.sep*right}")
+        if not d["-q"]:
+            print(f"{t('purl')}cmd = {cmd!r}")
+            Date()
+            t.print(f"{t('pnkl')}Run time = {s}")
+            print()
         subprocess.run(cmd)
     def ExecuteScript(arguments):
         '''arguments will be deque of [python_script, optional_arguments].
@@ -149,11 +149,13 @@ if 1:   # Core functionality
         if not script.exists():
             Error(f"Python script {script.resolve()!r} doesn't exist")
         else:
-            print(f"Script is '{script.resolve()}'")
-        Dbg(f"{script!r}")
+            if not d["-q"]:
+                print(f"Script is '{script.resolve()}'")
         mtime = script.stat().st_mtime
         start_time = time.time()
         Run(arguments, start_time)
+        if d["-o"]:
+            return
         while True:
             stat = script.stat()
             new_mtime = stat.st_mtime
