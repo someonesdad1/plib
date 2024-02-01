@@ -26,13 +26,15 @@ class Ruler(object):
         "    ·    │",   # 6
         "====+====█",   # 7
     )
-    def __init__(self, num=None, ones=None, tens=True, zb=False):
+    def __init__(self, num=None, ones=None, tens=True, zb=False, reduce=True):
         '''If num is not None, then it must be a number that indicates
         which ruler you want.  You can also specify the ones string;
         supplying ones overrides supplying num.  If tens is True, then
         a tens line is also produced.  If zb is True, make the ruler
-        zero-based.
+        zero-based.  If reduce is True, the COLUMNS environment variable is
+        reduced by 1 to ensure a print doesn't stop at the last column.
         '''
+        self.reduce = reduce
         self.tens = tens
         self.zb = bool(zb)
         if num is None and ones is None:
@@ -78,26 +80,42 @@ class Ruler(object):
         columns = 80
         if "COLUMNS" in os.environ:
             columns = int(os.environ["COLUMNS"])
-        # Reduce so we don't get a second line because of the newline
-        columns -= 1
+        columns -= self.reduce
         return columns
 if __name__ == "__main__":
     import sys
+    # The following variable determines how printing the ruler is done.  If
+    # reduce is True, the ruler length is $COLUMNS - 1 and the print
+    # statement issues the usual newline.  If False, then the length is 1
+    # more and there's no newline.
+    reduce = True
+    reduce = False
     def ShowAll():
         # Show all rulers
         for i in range(len(Ruler.choices)):
             print("Ruler type = " + str(i))
-            print(r(choice=i))
-    r = Ruler()
+            if reduce:
+                print(r(choice=i))
+            else:
+                print(r(choice=i), end="")
+    args = sys.argv[1:]
+    r = Ruler(reduce=reduce)
     z = Ruler(zb=True)
-    if len(sys.argv) > 1:
-        if sys.argv[1] == "-h":
+    if args:
+        if args[0] == "-h":
             print(f"Usage: {sys.argv[0]} [num1 [num2...]]")
             print(f"  Ruler demo from /plib/ruler.py module")
             print(f"  No arguments show all ruler types")
+        elif args[0] == "a":
+            # This is needed because my 'r' bash function can then show all
+            # the rulers with 'a' as the argument.
+            ShowAll()
         else:
             # Show rulers that were chosen on the command line
-            for n in sys.argv[1:]:
-                print(r(choice=int(n)))
+            for n in args:
+                if reduce:
+                    print(r(choice=int(n)))
+                else:
+                    print(r(choice=int(n)), end="")
     else:
         ShowAll()

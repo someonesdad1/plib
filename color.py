@@ -2410,14 +2410,15 @@ if __name__ == "__main__":
                 term = os.environ["TERM_PROGRAM"]
             except KeyError:
                 term = os.environ["TERM"]
-            print(f"Running on '{term}' terminal")
             if bits == 24:
+                print(f"Running on '{term}' terminal")
                 Tbl("Dim text, dim background", False, False)
                 Tbl("Bright text, dim background", True, False)
                 Tbl("Dim text, bright background", False, True)
                 Tbl("Bright text, bright background", True, True, last=False)
                 c.out(c.n)
             elif bits == 4:
+                print(f"Running on '{term}' terminal")
                 Tbl("Dim text", False, False)
                 Tbl("Bright text", True, False, last=False)
             elif bits == 8:
@@ -2970,6 +2971,12 @@ if __name__ == "__main__":
             Translate8bit.colormap = di
         return Translate8bit.colormap[n]
     def Print256Colors():
+        '''This prints the color numbers for 8-bit colors.  A quirk is that
+        a newline is printed after the first 16 numbers.  This allows you
+        to resize the terminal window to show the next row of 16-51; when
+        you do this, the numbers are arranged as they are in the bitmap
+        ~/.0rc/256colors.png.
+        '''
         out = []
         for i in range(256):
             ci = Translate8bit(i)   # Get Color instance
@@ -2978,10 +2985,21 @@ if __name__ == "__main__":
                 print(f"{i}{t.c} {f[1]}")
             else:
                 out.append(f"{t.c}{i:3d}{t.n}")
-        print("Table of 8-bit colors")
+        term = os.environ.get("TERM", "unknown")
+        print(f"Table of 8-bit colors (on {term!r} terminal)")
         width = int(os.environ["COLUMNS"]) - 1
+        # Print the first 16 colors
+        indent = " "*2
+        n = 16
+        print(f"{indent}", end="")
+        for i in out[:n]:
+            print(f"{i} ", end="")
+        print()
+        del out[:n]
         for i in Columnize(out, horiz=True, width=width):
-            print(f"{' '*2}{i}")
+            print(f"{indent}{i}")
+        print("\nNote:  change terminal width to show numbers 16-51 in the second row and")
+        print("the table will coincide with the bitmap ~/.0rc/256colors.png.")
     def Error(*msg, status=1):
         print(*msg, file=sys.stderr)
         exit(status)
