@@ -58,7 +58,7 @@ if 1:   # Utility
             k["file"] = Dbg.file
             print(*p, **k)
             print(f"{t.N}", end="", file=Dbg.file)
-    Dbg.file = sys.stderr   # Debug printing to stderr by default
+    Dbg.file = sys.stdout
     def Error(*msg, status=1):
         print(*msg, file=sys.stderr)
         exit(status)
