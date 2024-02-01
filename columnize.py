@@ -148,8 +148,8 @@ def Columnize(seq, **kw):
     n, maxlen, lsep = len(sseq), max([Len(i) for i in sseq]), len(sep)
     # Pick reasonable defaults if width and columns not given
     if not width:
+        width = int(os.environ.get("COLUMNS", 80)) - 1
         if not columns:
-            width = int(os.environ.get("COLUMNS", 80)) - 1
             columns = width//(maxlen + len(sep))
             if not columns:
                 msg = (f"Cannot fit longest string ({maxlen} characters) "

@@ -291,8 +291,9 @@ if 1:   # Utility
         return args
 if 1:   # Core functionality
     def SetupColor():
-        t.hi = t("whtl", "blu", "bold") if d["-c"] else ""
+        t.hi = t("whtl", "blud") if d["-c"] else ""
         t.hdr = t("cynl") if d["-c"] else ""
+        t.ti = t("ornl") if d["-c"] else ""
         t.N = t.n if d["-c"] else ""
     def GetString(a, b):
         '''Return a string with color coding
@@ -332,9 +333,8 @@ if 1:   # Core functionality
             else:
                 s = GetString(a, b)
                 out.append(s)
-        print(" "*18, "IPA symbols")
-        print(" "*18, "-----------")
-        for i in Columnize(out, columns=3, width=0):
+        t.print(f"{t.ti}IPA symbols\n")
+        for i in Columnize(out, width=W):
             print(i)
 
 if __name__ == "__main__":
