@@ -321,32 +321,6 @@ if 1:   # Core functionality
             elif a == " " or a == "‖":
                 return None
             return f"{a:4s}  {b}"
-    def PrintTable1():
-        out = [f"{t.hdr}Consonants{t.N}"]
-        for line in table.split("\n"):
-            a, f = [i.strip() for i in line.split("\t")]
-            breakpoint() #xx
-            # Parse out field 3
-            s = f[3]
-            if ":" in s:
-                a, b = s.split(":")
-            else:
-                a = f[0]
-                b = s
-            a, b = [i.strip() for i in (a, b)]
-            if "separator" in f[4]:
-                continue
-            u = GetString(a, b)
-            if u:
-                if "ɑː" in u and "ɑːr" not in u:
-                    out.append(f"  {t.hdr}Vowels{t.N}")
-                elif "ʔ" in u:
-                    out.append(f"  {t.hdr}Other{t.N}")
-                out.append(u)
-        print(" "*18, "IPA symbols")
-        print(" "*18, "-----------")
-        for i in Columnize(out, columns=3):
-            print(i)
     def PrintTable():
         out = []
         for line in table.split("\n"):
@@ -360,7 +334,7 @@ if 1:   # Core functionality
                 out.append(s)
         print(" "*18, "IPA symbols")
         print(" "*18, "-----------")
-        for i in Columnize(out, columns=3):
+        for i in Columnize(out, columns=3, width=0):
             print(i)
 
 if __name__ == "__main__":

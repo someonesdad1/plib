@@ -19,7 +19,7 @@ def Usage():
     print(dedent(f'''
     Usage:  {sys.argv[0]} [-h] [file1 [file2...]]
       Removes ANSI escape sequences from the indicated text files and prints
-      them to stdout.
+      them to stdout.  Use '-' for stdin.
     '''))
     exit(0)
 
@@ -80,7 +80,7 @@ else:
             if sys.argv[1] == "-h":
                 Usage()
             for file in sys.argv[1:]:
-                text = open(file).read()
+                text = sys.stdin.read() if file == "-" else open(file).read()
                 print(ProcessString(text))
         else:
             text = sys.stdin.read()

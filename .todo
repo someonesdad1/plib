@@ -1,5 +1,42 @@
 Active
 
+    - Don't have  OSL
+        - /plib
+            - asciify_make.py
+            - atomic_mass.py
+            - changed_datafile.py
+            - clip.py
+            - colorhues.py
+            - dpdb.py
+            - drillsizes.py
+            - dt.py
+            - extensions.py
+            - flatten.py
+            - fnl.py
+            - format_numbers.py
+            - fraction.py
+            - frozendict.py
+            - fsig.py
+            - itersubclasses.py
+            - iterutil.py
+            - just.py
+            - kbhit.py
+            - license_data.py
+            - linreg.py
+            - listmath.py
+            - module_dep.py
+            - mpfmt.py
+            - resistors.py
+            - rgbdata.py
+            - sizes.py
+            - states.py
+            - template.py
+            - textcompare.py
+            - wconio.py
+            - win.py
+            - wsl.py
+        - /plib/pgm
+
     - pgm
         - Move 'ucd.nounihan.grouped.ver11.xml' to 'ucd.11.xml' to take up less space
 
