@@ -37,6 +37,12 @@ Active
             - wsl.py
         - /plib/pgm
 
+    - pgm/xyz.py
+        - Vet program
+        - Update to new color.py
+        - Check outputs in xyz.odt
+            - Change "oC" to something with the degree symbol
+
     - pgm
         - Move 'ucd.nounihan.grouped.ver11.xml' to 'ucd.11.xml' to take up less space
 
