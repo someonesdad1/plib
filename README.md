@@ -94,9 +94,11 @@ Recently I needed to execute some code buried in a function inside of a
 function in `/plib/color.py` because running some code showed an exception in
 this code.  I rashly stuck in three lines in the middle of the file like
 
-> c = Color(args)
-> Call the offending method
-> exit()
+`
+c = Color(args)
+Call the offending method
+exit()
+`
 
 I then got distracted by something else and I didn't get back to using my
 system the next day, as I used another computer in the living room in the
@@ -237,16 +239,17 @@ techniques.
       scripts and working in a terminal.
 
 * pgm/goto.py
-    - This is a script that keeps track of strings and lets you find them
-      by either typing in their number from a list or using a short alias.
-      I use this to keep track of directories, project files, videos, and a
-      bunch of other stuff.  One of the hidden benefits is that the
-      datafile used for the projects, directories, etc. can be commented
-      out, meaning you'll be able to remember where they are.  My computer
-      has many hundreds of thousands of files and it's nearly impossible to
-      remember where everything is.  I wrote this before I retired a couple
-      of decades ago and a number of friends at work told me they couldn't
-      live without the script.  I use it constantly at the command line.
+    - This script keeps track of strings and lets you find them by either
+      typing in their number from a list or using a short alias.  I use
+      this to keep track of directories, project files, videos, and a bunch
+      of other stuff.  One of the hidden benefits is that the datafile used
+      for the projects, directories, etc. can have a line commented out,
+      meaning you'll be able to remember where the directory/project is
+      years later.  My computer has many hundreds of thousands of files and
+      it's impossible to remember where everything is.  I wrote this
+      before I retired a couple of decades ago and a number of friends at
+      work told me they couldn't live without the script.  I use it
+      constantly at the command line.
 
 # Lessons
 

@@ -1,13 +1,17 @@
 '''
+ToDo
+    - Allow multiple commands on the command line and open them with 
+      'vi -p'
+
 Python script to help viewing manpages.  Its two main features are:
 
-    * Look in ~/bin/man.d and if there's a manpage file there that
+    - Look in ~/bin/man.d and if there's a manpage file there that
       begins with the string passed in on the command line, send that
       file to the /usr/bin/man command.  There must only be one
       argument on the command line for this to happen (otherwise, the
       whole command line is sent to the man command).
 
-    * Send the output from the man command to a temporary file and
+    - Send the output from the man command to a temporary file and
       open that file with the editor instead of the usual pager.
       Append '.man' to the temporary file's name.
 
@@ -68,10 +72,8 @@ if 1:   # Global variables
     manopts = "--nj"    # --nj is no justification ==> ragged right margins
 def Usage(status=1):
     print(dedent(f'''
-    Usage:  {sys.argv[0]} [options] arguments...
-      Generates a manpage from arguments.
-    Options:
-        -h      Show help for command
+    Usage:  {sys.argv[0]} [options] cmdname
+      Generates a manpage for cmdname and opens it in vi.
     '''))
     exit(status)
 def FindMatchingManpage():

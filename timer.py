@@ -5,11 +5,12 @@ Todo
         - It includes sleep times
     - Add split() method to Timer.  Or let et() be allow to be called when
       running.
-
+ 
 Time-related tools:
     Stopwatch class:  For elapsed times
     Timer class:  Tool that works as a context manager and decorator
     FNTime class:  Get a filename with a time in it
+    GetET():  Get a time in s converted to minutes, hr, day, weeks, months, years, etc.
 '''
 if 1:  # Header
     # Copyright, license
@@ -26,6 +27,8 @@ if 1:  # Header
         #∞what∞#
         #∞test∞# ignore #∞test∞#
     # Standard imports
+        from decimal import Decimal
+        from fractions import Fraction
         import datetime
         import time
         import decimal
@@ -33,6 +36,15 @@ if 1:  # Header
         from pdb import set_trace as xx 
     # Custom imports
         from f import flt
+        from u import u
+        try:
+            import mpmath
+            have_mpmath = True
+        except ImportError:
+            have_mpmath = False
+    # Global variables
+        ii = isinstance
+        __all__ = "Stopwatch Timer FNTime GetET timer fnt sw".split()
 if 1:   # Classes 
     class Stopwatch(object):
         '''Timer that returns a flt of the elapsed time in seconds from
@@ -85,7 +97,7 @@ if 1:   # Classes
         The u attribute is set to 1 to indicate time units of 1 second.  Set 
         it to a different value to change the default time units.  Example:
         set u to 1000 to set the time units to ms.
-
+ 
         Ideas from
             https://realpython.com/python-timer/ and 
             https://realpython.com/python-with-statement/#measuring-execution-time
@@ -192,6 +204,73 @@ if 1:   # Classes
                     f"{d.hour:02d}{d.minute:02d}{d.second:02d}."
                     f"{d.microsecond:06d}")
             return s
+if 1:   # Functions
+    def GetET(seconds, units="", digits=3, eng=False):
+        '''Return a string with the elapsed time in seconds given in
+        familiar units.  Examples:  
+                                                Returns 
+            GetET(86399)                        '24 hr'
+            GetET(86399 + 1)                    '1 day'
+            GetET(time.time(), units="yr")      '54.1 years'
+ 
+        The last example is the current time since 1 Jan 1970 and will
+        depend on the time it's run.
+ 
+        If you pass the units keyword, that will be used.
+        You can specify the number of digits in the output.  If eng is
+        given, then engineering format will be used with either seconds or
+        the units you specified.
+ 
+        If units is None, then appropriate units will be chosen.  For
+        seconds less than 1, ms, us, etc. will be used.  For seconds
+        greater than 1, minutes, hours, days, weeks, months, years,
+        centuries, and millenia will be used.
+        '''
+        # seconds must be an integer, float, Fraction, Decimal, or
+        # mpmath.mpf
+        if have_mpmath:
+            if not ii(seconds, (int, float, Fraction, Decimal, mpmath.mpf)): 
+                raise TypeError("seconds must be int, float, Fraction, Decimal, mpmath.mpf")
+        else:
+            if not ii(seconds, (int, float, Fraction, Decimal)): 
+                raise TypeError("seconds must be int, float, Fraction, Decimal")
+        # Convert to a float
+        sign = -1 if seconds < 0 else 1
+        seconds = abs(flt(seconds))
+        with seconds:
+            seconds.N = digits
+            factor = u(units) if units else 1
+            if abs(seconds) < 1:
+                if units:
+                    return f"{(sign*factor/seconds).engsi}{units}"
+                else:
+                    return f"{sign*seconds.engsi}s"
+            if units:
+                return f"{(seconds/factor).engsi}{units}"
+            else:
+                if seconds < u("minute"):
+                    return f"{sign*seconds} s"
+                elif seconds < u("hr"):
+                    return f"{sign*seconds/u('minutes')} min"
+                elif seconds < u("day"):
+                    return f"{sign*seconds/u('hours')} hr"
+                elif seconds < u("week"):
+                    return f"{sign*seconds/u('days')} day"
+                elif seconds < u("month"):
+                    return f"{sign*seconds/u('weeks')} wk"
+                elif seconds < u("year"):
+                    return f"{sign*seconds/u('months')} mo"
+                elif seconds < u("century"):
+                    return f"{sign*seconds/u('years')} yr"
+                elif seconds < u("millenia"):
+                    return f"{sign*seconds/u('centuries')} century"
+                else:
+                    x = seconds/u('millenia')
+                    if x <= 1e4:
+                        return f"{sign*seconds/u('millenia')} millenia"
+                    else:
+                        return f"{(sign*seconds/u('millenia')).sci} millenia"
+            
 if 1:   # Convenience instances
     timer = Timer()
     fnt = FNTime()
@@ -200,8 +279,9 @@ if 1:   # Convenience instances
 if __name__ == "__main__": 
     import re
     from fmt import fmt
+    from color import t
     from f import sqrt
-    from lwtest import run
+    from lwtest import run, Assert
     from textwrap import dedent
     n = 100
     def stats(seq):
@@ -322,13 +402,49 @@ if __name__ == "__main__":
         will be a flt instance from f.py.  This will cause the elapsed time to
         be printed to 3 digits, the default.  Change Timer.et.n to a larger
         number for more digits.
-
+ 
         The Stopwatch class is a convenience for routine timing tasks in a
         script.  You can use the timer.sw convenience instance by starting
         it with sw.reset(), but be aware that it is not thread-safe.  It's
         handy because the returned type of flt means you don't see a lot of
         useless digits.
+ 
+        The GetET function will return the argument in seconds in a time
+        unit that is easier to interpret:
+                                                Returns
+            GetET(86399)                        '24 hr'
+            GetET(86399 + 1)                    '1 day'
+            GetET(time.time(), units="yr")      '54.1 years'
         '''[1:].rstrip()))
+    # Testing
+    def Test():
+        s = GetET(2e-9)
+        Assert(s == "2 ns")
+        s = GetET(0.1)
+        Assert(s == "100 ms")
+        s = GetET(50)
+        Assert(s == "50 s")
+        s = GetET(u("minute"))
+        Assert(s == "1 min")
+        s = GetET(u("hr"))
+        Assert(s == "1 hr")
+        s = GetET(u("day"))
+        Assert(s == "1 day")
+        s = GetET(u("week"))
+        Assert(s == "1 wk")
+        s = GetET(u("month"))
+        Assert(s == "1 mo")
+        s = GetET(u("yr"))
+        Assert(s == "1 yr")
+        s = GetET(u("century"))
+        Assert(s == "1 century")
+        s = GetET(u("millenia"))
+        Assert(s == "1 millenia")
+    retvalue, s = run(globals(), quiet=True, halt=False)
+    if retvalue:
+        t.print(f"{t('ornl')}Self tests failed")
+        print(s.strip())
+        exit(1)
     with Timer() as T:
         run(globals(), regexp="example$", quiet=True)
         #run(globals(), regexp="example$", verbose=True)

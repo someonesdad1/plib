@@ -1,0 +1,28 @@
+#!/bin/bash
+# Print out /plib stats
+set -u
+function GetData
+{
+    cd $1
+    local location=$1
+    local numfiles=$(ls *.py | wc -w)
+    local numbytes=$(cat *.py | wc -c)
+    fmt="%-20s "
+    printf "$c1" $location
+    printf "$c2" $numfiles
+    printf "$c3" $(((numbytes/1000)))
+    cd - >/dev/null
+}
+c1="%-15s "
+c2="%6s "
+c3="%10s\n"
+. ~/.0rc/dot_bin
+echo -e "$(eseq $ornl)/plib files$norm"
+printf "$c1" Dir
+printf "$c2" Files
+printf "$c3" kB
+GetData .
+GetData pgm 
+GetData test
+GetData g
+#Report

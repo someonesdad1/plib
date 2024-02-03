@@ -1,5 +1,8 @@
 Active
 
+    - pgm/man.py
+        - Allow multiple commands on the command line and open them with 'vi -p'
+
     - Don't have  OSL
         - /plib
             - asciify_make.py
@@ -36,6 +39,12 @@ Active
             - win.py
             - wsl.py
         - /plib/pgm
+
+    - pgm/xyz.py
+        - Vet program
+        - Update to new color.py
+        - Check outputs in xyz.odt
+            - Change "oC" to something with the degree symbol
 
     - pgm
         - Move 'ucd.nounihan.grouped.ver11.xml' to 'ucd.11.xml' to take up less space
