@@ -194,8 +194,7 @@ if 1:   # Core functionality
         if d["-o"]:
             return
         while True:
-            stat = script.stat()
-            new_mtime = stat.st_mtime
+            new_mtime = script.stat().st_mtime
             if new_mtime > mtime:
                 Clear()
                 Run(cmdline, start_time)
