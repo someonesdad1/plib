@@ -49,6 +49,12 @@ Active
     - pgm
         - Move 'ucd.nounihan.grouped.ver11.xml' to 'ucd.11.xml' to take up less space
 
+    - pgm/chemical_names.py
+        - /hobbyutil/science/chemical_names.pdf
+        - Would make a good command line utility
+        - Print the three columns to the screen width, wrapping as appropriate
+        - Column widths are given as % of screen width
+
     - asc.py
         - Colorize some key items.  Use colors similar to char.
             - dec: wht, hex: lil, oct: sky, bin: yeld, char: whtl
