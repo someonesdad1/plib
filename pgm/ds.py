@@ -100,7 +100,7 @@ if 1:   # Utility
           can select multiple numbers by separating them with spaces or commas.
           Ranges like 5-8 are recognized.
     
-          If re1 etc. are present, they are other regexps to additionally
+          If re2 etc. are present, they are other regexps to additionally
           search for in the results; they are ORed together.
         Options
           -I    Generate the index
@@ -233,9 +233,30 @@ if 1:   # Core functionality
             subprocess.Popen([app, matches[choice - 1][0]],
                             stderr=subprocess.DEVNULL)
         subprocess.run([app, file])
+    def PrintMatch(num, path, start, end, d):
+        '''For the match in path, print things out in the appropriate colors.
+        Note start and end are the indices into just the file part of the
+        whole path name.
+        '''
+        print("%3d  " % num, end="")
+        s = str(path)
+        dir, file = split(s[len(d["root"]) + 1:])  # Gets rid of leading stuff
+        dir += "/"
+        print(f"{t.dir}{dir}{t.n}", end="")
+        print(file[:start], end="")
+        print(f"{t.match}{file[start:end]}{t.n}{file[end:]}")
+    def PrintChoices(matches, d):
+        print("Choose which file(s) to open:")
+        for num, data in enumerate(matches):
+            file, mo = data
+            PrintMatch(num + 1, file, mo.start(), mo.end(), d)
     def GetMatches(regexp, d, regexps):
+        '''regexp is the first regex on the command line.  d is the options
+        dict and regexps are any other regexes give on the command line.
+        '''
         r = re.compile(regexp) if d["-i"] else re.compile(regexp, re.I)
         matches = []
+        breakpoint() #xx 
         for i in d["files"]:
             # Only search for match in file name
             dir, file = split(i)
@@ -262,23 +283,6 @@ if 1:   # Core functionality
             pp(matches)
             exit()
         return matches
-    def PrintMatch(num, path, start, end, d):
-        '''For the match in path, print things out in the appropriate colors.
-        Note start and end are the indices into just the file part of the
-        whole path name.
-        '''
-        print("%3d  " % num, end="")
-        s = str(path)
-        dir, file = split(s[len(d["root"]) + 1:])  # Gets rid of leading stuff
-        dir += "/"
-        print(f"{t.dir}{dir}{t.n}", end="")
-        print(file[:start], end="")
-        print(f"{t.match}{file[start:end]}{t.n}{file[end:]}")
-    def PrintChoices(matches, d):
-        print("Choose which file(s) to open:")
-        for num, data in enumerate(matches):
-            file, mo = data
-            PrintMatch(num + 1, file, mo.start(), mo.end(), d)
     def ReadIndexFile(d):
         'Read the index file keyed by d["--exec"]'
         key = d["--exec"]
