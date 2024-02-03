@@ -10,7 +10,7 @@ Time-related tools:
     Stopwatch class:  For elapsed times
     Timer class:  Tool that works as a context manager and decorator
     FNTime class:  Get a filename with a time in it
-    BasicTime():  Display a time in s, minutes, hr, day, weeks, months, years
+    GetET():  Get a time in s converted to minutes, hr, day, weeks, months, years, etc.
 '''
 if 1:  # Header
     # Copyright, license
@@ -204,11 +204,22 @@ if 1:   # Classes
                     f"{d.microsecond:06d}")
             return s
 if 1:   # Functions
-    def BasicTime(seconds, units="", digits=3, eng=False):
-        '''Return a string with the time given in familiar units.  If you
-        pass the units keyword, that will be used.  You can specify the
-        number of digits in the output.  If eng is given, then engineering
-        format will be used with either seconds or the units you specified.
+    def GetET(seconds, units="", digits=3, eng=False):
+
+        '''Return a string with the elapsed time in seconds given in
+        familiar units.  Examples:  
+                                                Returns 
+            GetET(86399)                        '24 hr'
+            GetET(86399 + 1)                    '1 day'
+            GetET(time.time(), units="yr")      '54.1 years'
+
+        The last example is the current time since 1 Jan 1970 and will
+        depend on the time it's run.
+ 
+        If you pass the units keyword, that will be used.
+        You can specify the number of digits in the output.  If eng is
+        given, then engineering format will be used with either seconds or
+        the units you specified.
  
         If units is None, then appropriate units will be chosen.  For
         seconds less than 1, ms, us, etc. will be used.  For seconds
@@ -249,10 +260,8 @@ if 1:   # Functions
                     return f"{sign*seconds/u('weeks')} wk"
                 elif seconds < u("year"):
                     return f"{sign*seconds/u('months')} mo"
-                elif seconds < u("decades"):
-                    return f"{sign*seconds/u('years')} yr"
                 elif seconds < u("century"):
-                    return f"{sign*seconds/u('decades')} decade"
+                    return f"{sign*seconds/u('years')} yr"
                 elif seconds < u("millenia"):
                     return f"{sign*seconds/u('centuries')} century"
                 else:
@@ -266,6 +275,12 @@ if 1:   # Convenience instances
     timer = Timer()
     fnt = FNTime()
     sw = Stopwatch()
+
+if 0:
+    print(GetET(86399))
+    print(GetET(86399+1))
+    print(GetET(time.time()))
+    exit()
 
 if __name__ == "__main__": 
     import re
@@ -399,32 +414,37 @@ if __name__ == "__main__":
         it with sw.reset(), but be aware that it is not thread-safe.  It's
         handy because the returned type of flt means you don't see a lot of
         useless digits.
+ 
+        The GetET function will return the argument in seconds in a time
+        unit that is easier to interpret:
+                                                Returns
+            GetET(86399)                        '24 hr'
+            GetET(86399 + 1)                    '1 day'
+            GetET(time.time(), units="yr")      '54.1 years'
         '''[1:].rstrip()))
     # Testing
     def Test():
-        s = BasicTime(2e-9)
+        s = GetET(2e-9)
         Assert(s == "2 ns")
-        s = BasicTime(0.1)
+        s = GetET(0.1)
         Assert(s == "100 ms")
-        s = BasicTime(50)
+        s = GetET(50)
         Assert(s == "50 s")
-        s = BasicTime(u("minute"))
+        s = GetET(u("minute"))
         Assert(s == "1 min")
-        s = BasicTime(u("hr"))
+        s = GetET(u("hr"))
         Assert(s == "1 hr")
-        s = BasicTime(u("day"))
+        s = GetET(u("day"))
         Assert(s == "1 day")
-        s = BasicTime(u("week"))
+        s = GetET(u("week"))
         Assert(s == "1 wk")
-        s = BasicTime(u("month"))
+        s = GetET(u("month"))
         Assert(s == "1 mo")
-        s = BasicTime(u("yr"))
+        s = GetET(u("yr"))
         Assert(s == "1 yr")
-        s = BasicTime(u("decade"))
-        Assert(s == "1 decade")
-        s = BasicTime(u("century"))
+        s = GetET(u("century"))
         Assert(s == "1 century")
-        s = BasicTime(u("millenia"))
+        s = GetET(u("millenia"))
         Assert(s == "1 millenia")
     retvalue, s = run(globals(), quiet=True, halt=False)
     if retvalue:

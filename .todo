@@ -1,5 +1,8 @@
 Active
 
+    - pgm/man.py
+        - Allow multiple commands on the command line and open them with 'vi -p'
+
     - Don't have  OSL
         - /plib
             - asciify_make.py
