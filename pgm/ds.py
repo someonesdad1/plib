@@ -49,6 +49,7 @@ if 1:  # Header
         from selection import Select
         from dirfiles import Dirfiles
         from wsl import wsl
+        from timer import GetET
         from f import flt
         # Color import stuff
         from color import t
@@ -201,7 +202,7 @@ if 1:   # Core functionality
             Dbg(f"{len(df.files)} files ({tm} s)")
             with open(index_files["hpj"], "wb") as fp:
                 pickle.dump(df.files, fp)
-        print(f"Indexing time = {et/60} minutes")
+        print(f"Indexing time = {GetET(et)}")
         exit(0)
     def GetChoices(matches):
         '''Return a set of integers representing the user's choices.

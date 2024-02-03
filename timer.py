@@ -5,7 +5,7 @@ Todo
         - It includes sleep times
     - Add split() method to Timer.  Or let et() be allow to be called when
       running.
-
+ 
 Time-related tools:
     Stopwatch class:  For elapsed times
     Timer class:  Tool that works as a context manager and decorator
@@ -44,6 +44,7 @@ if 1:  # Header
             have_mpmath = False
     # Global variables
         ii = isinstance
+        __all__ = "Stopwatch Timer FNTime GetET timer fnt sw".split()
 if 1:   # Classes 
     class Stopwatch(object):
         '''Timer that returns a flt of the elapsed time in seconds from
@@ -205,14 +206,13 @@ if 1:   # Classes
             return s
 if 1:   # Functions
     def GetET(seconds, units="", digits=3, eng=False):
-
         '''Return a string with the elapsed time in seconds given in
         familiar units.  Examples:  
                                                 Returns 
             GetET(86399)                        '24 hr'
             GetET(86399 + 1)                    '1 day'
             GetET(time.time(), units="yr")      '54.1 years'
-
+ 
         The last example is the current time since 1 Jan 1970 and will
         depend on the time it's run.
  
@@ -275,12 +275,6 @@ if 1:   # Convenience instances
     timer = Timer()
     fnt = FNTime()
     sw = Stopwatch()
-
-if 0:
-    print(GetET(86399))
-    print(GetET(86399+1))
-    print(GetET(time.time()))
-    exit()
 
 if __name__ == "__main__": 
     import re
