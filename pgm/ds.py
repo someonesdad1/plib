@@ -51,7 +51,6 @@ if 1:  # Header
         from wsl import wsl
         from timer import GetET
         from f import flt
-        # Color import stuff
         from color import t
         class G:
             # Storage for global variables as attributes
