@@ -42,7 +42,6 @@ if 1:  # Header
         from time import time
         from itertools import filterfalse
         from os.path import join, isfile, split
-        from pdb import set_trace as xx
         from pprint import pprint as pp
     if 1:   # Custom imports
         from wrap import dedent
@@ -256,7 +255,6 @@ if 1:   # Core functionality
         '''
         r = re.compile(regexp) if d["-i"] else re.compile(regexp, re.I)
         matches = []
-        breakpoint() #xx 
         for i in d["files"]:
             # Only search for match in file name
             dir, file = split(i)
