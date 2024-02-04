@@ -1,5 +1,8 @@
 Active
 
+    - frequent_symbols.py
+        - Module to provide the library symbols I use frequently
+
     - pgm/man.py
         - Allow multiple commands on the command line and open them with 'vi -p'
 
