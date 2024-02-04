@@ -1,7 +1,15 @@
 '''
 
 ToDo
-    - 
+    - Change default behavior
+        - Command line becomes 're1 re1 ...'
+            - This means find documents with re1, then refine the set by
+              including only those with re2
+            - To get current behavior, use 're1 | re2'
+            - You can use either one such string or 
+            - You'll have to escape '|' from the shell
+    - Get help with -h
+    - If no args on command line, prompt the user
 
 Open a document file
     File is opened if it's the only match to the regexp on the command
