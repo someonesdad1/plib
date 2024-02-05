@@ -1,5 +1,15 @@
 Active
 
+    - textcolumns.py
+        - Suppose you have a n by m list of strings
+        - You want the m columns to be printed on the screen by wrapping each row element suitably
+          for a specified % of total columns on the screen
+        - Use a Len() that ignores escape codes so that you can wrap colored text
+        - Default separation between columns is 1 space
+
+    - frequent_symbols.py
+        - Module to provide the library symbols I use frequently
+
     - pgm/man.py
         - Allow multiple commands on the command line and open them with 'vi -p'
 
@@ -48,6 +58,12 @@ Active
 
     - pgm
         - Move 'ucd.nounihan.grouped.ver11.xml' to 'ucd.11.xml' to take up less space
+
+    - pgm/chemical_names.py
+        - /hobbyutil/science/chemical_names.pdf
+        - Would make a good command line utility
+        - Print the three columns to the screen width, wrapping as appropriate
+        - Column widths are given as % of screen width
 
     - asc.py
         - Colorize some key items.  Use colors similar to char.

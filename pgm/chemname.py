@@ -21,7 +21,7 @@ if 1:   # Imports
     import re
 if 1:   # Custom imports
     from wrap import dedent
-    from color import PrintMatch
+    #from color import PrintMatch
 if 1:   # Global variables
     chemical_data = dedent('''
     Acetic ether	Ethyl acetate	C2H5O2C2H3
@@ -622,8 +622,8 @@ def Usage(d, status=1):
     Usage:  {sys.argv[0]} [options] regex1 ...
       Search for a chemical name in a database of old and new names.  The
       regular expressions are OR'd together.  Examples:  
-        * Search for 'vitriol' to find a number of sulfates.
-        * Search for 'sugar' to what 'sugar of lead' is (it was used as
+        - Search for 'vitriol' to find a number of sulfates.
+        - Search for 'sugar' to what 'sugar of lead' is (it was used as
           a sweetener before its toxicity was known).
     Options:
         -i      Make the search case-sensitive
@@ -665,7 +665,8 @@ def SearchLine(regexps, line, d):
     for r in regexps:
         mo = r.search(line)
         if mo:
-            PrintMatch(line, r)
+            print(line)
+            #PrintMatch(line, r)
             return
 if __name__ == "__main__":
     d = {}      # Options dictionary
