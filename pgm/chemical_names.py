@@ -1,7 +1,12 @@
 '''
-Read and print the chemical_names.csv file.  Use it to develop a
-function to transform chemical formulas used to Unicode-aware
-formulas.
+
+ToDo
+    - Develop a method to translate the chemical formulas to Unicode
+    - Add option -u to use Unicode in output
+    - Need a tool for columnar printing with wrapping
+
+Translate old chemical names.  I can't attribute sources because I
+collected these data over a number of decades.
 '''
 
 if 1:   # Header
@@ -14,7 +19,7 @@ if 1:   # Header
         #   See http://opensource.org/licenses/OSL-3.0.
         #∞license∞#
         #∞what∞#
-        # Program description string
+        # Translate old chemical names 
         #∞what∞#
         #∞test∞# #∞test∞#
         pass
@@ -57,7 +62,6 @@ if 1:   # Header
         g.results = []
 
 if 1:   # Data
-
     g.data = (
         ('Old name', 'Chemical name', 'Formula'),
         ('--------', '-------------', '-------'),
@@ -651,7 +655,6 @@ if 1:   # Data
         ('Yellow prussiate of potash', 'Potassium ferrocyanide', 'K4Fe(CN)6·3H2O'),
         ('Zinc white', 'Zinc oxide', 'ZnO'),
     )
-
 if 1:   # Utility
     def GetScreen():
         'Put env LINES into g.L and env COLUMNS into g.W'
@@ -681,10 +684,8 @@ if 1:   # Utility
           unless you use -1, -2, or -3.
         Example command lines
           - Find acids:  'acid'
-          - Find formulas with uranium:  '-3 U'
-        Sources
-          I can't attribute the material as I collected it over decades
-          from many sources.
+          - Find formulas with uranium:  '-3 -i U'. The -i is needed to
+            avoid elements like Cu and Au.
         Options:
             -a      Dump all records
             -1      Search old name
@@ -749,7 +750,7 @@ if 1:   # Core functionality
                 if found:
                     g.results.append(item)
         else:
-            # Searching on strings
+            # Search with strings
             ic = True if  d["-i"] else False
             s = regex.lower() if ic else regex
             for n, item in enumerate(g.data):
@@ -773,14 +774,38 @@ if 1:   # Core functionality
         Report(g.data)
     def Report(results):
         # Set up column widths
-        w0 = g.W//5
-        w2 = g.W//5
-        w1 = g.W - 2*w0 - 2
-        for old, new, formula in results:
-            print(f"{old[:w0]:{w0}s}|{formula[:w2]:{w2}s}|{new[:w1]:{w1}s}")
+        def Trunc(string, width, sep):
+            L = len(sep) - 1
+            if len(string) > width - L:
+                string = string[:width - L - 1]
+                string += "…"
+            assert len(string) <= width - L
+            while len(string) < width - L:
+                string += " "
+            assert len(string) == width - L
+            return string
+        sep = " "
+        p0, p2 = 15, 20   # Percentages of total width
+        w0 = int(g.W*p0/100)
+        w2 = int(g.W*p2/100)
+        p1 = 100 - p0 - p2
+        w1 = int(g.W*p1/100) - len(sep)
+        while w0 + w1 + w2 < g.W:
+            w2 += 1     # Add needed space to formula column
+        while w0 + w1 + w2 > g.W:
+            w1 -= 1     # Take space away from new column
+        assert w0 + w1 + w2 <= g.W
+        for item in results:
+            old, new, formula = [i.strip() for i in item]
+            if old == "Reinecke's salt":
+                breakpoint() #xx
+            s0 = Trunc(old, w0, sep)
+            s1 = Trunc(new, w1, sep)
+            s2 = Trunc(formula, w2, sep).rstrip()
+            print(f"{s0}{sep}{s1}{sep}{s2}")
 
-if 1:
-    # Determine the maximum width of each column
+if 0:
+    # Print the widths of each column
     c1, c2, c3 = set(), set(), set()
     for n, item in enumerate(g.data):
         old, new, formula = [i.strip() for i in item]
@@ -857,4 +882,3 @@ if __name__ == "__main__":
     for i in args:
         Search(i)
     Report(g.results)
-
