@@ -20,6 +20,7 @@ Engineering           Represent a number in engineering notation
 execfile              Python 3 replacement for python 2 function
 fDistribute           Return a float sequence equally distributed
 Flatten               Flattens nested sequences to a sequence of scalars
+getch                 Block until a key is pressed
 GetHash               Get a file's hash as a hex string
 GroupByN              Group items from a sequence by n items at a time
 grouper               Function to group data
@@ -95,6 +96,7 @@ if 1:   # Imports
     import hashlib
     import math
     import os
+    import platform
     import random
     import re
     import struct
@@ -102,6 +104,8 @@ if 1:   # Imports
     import sys
     import tempfile
     import time
+    if platform.system() == "Windows":
+        import msvcrt
 
 if 1:   # Custom imports
     from dpmath import AlmostEqual, SignSignificandExponent, signum
@@ -140,6 +144,13 @@ def GetHash(file, method="md5"):
     except Exception:
         return None
     return h.hexdigest()
+def getch():
+    'Block until a key is pressed.  This function returns nothing.'
+    s = platform.system()
+    if s == "Linux" or s.startswith("CYGWIN"):
+        os.system('bash -c "read -n 1"')
+    else:
+        msvcrt.getch()
 def ItemCount(seq, n=None):
     '''Return a sorted list of the items and their counts in the iterable
     seq, with the largest count first in the tuple.  If n is given, only
