@@ -20,6 +20,7 @@ if 1:   # Header
         #∞test∞# #∞test∞#
         pass
     if 1:   # Standard imports
+        from collections import deque
         from pathlib import Path as P
         import getopt
         import os
@@ -27,10 +28,10 @@ if 1:   # Header
         import sys
     if 1:   # Custom imports
         from color import t
-        from get import GetLines
-        from wrap import dedent
         from dpprint import PP
         pp = PP()   # Screen width aware form of pprint.pprint
+        from get import GetLines
+        from wrap import dedent
         from wsl import wsl     # wsl is True when running under WSL Linux
         #from columnize import Columnize
     if 1:   # Global variables

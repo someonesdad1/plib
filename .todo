@@ -7,6 +7,9 @@ Active
         - Use a Len() that ignores escape codes so that you can wrap colored text
         - Default separation between columns is 1 space
 
+    - pgm/ds.py
+        - Add a -t option that only shows the document's title
+
     - frequent_symbols.py
         - Module to provide the library symbols I use frequently
 
