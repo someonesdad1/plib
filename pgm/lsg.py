@@ -158,6 +158,7 @@ if 1:   # Global variables
     if wsl:
         git = "/usr/bin/git"
     else:
+        # cygwin
         git = "c:/bin/git_2_35_1_2/bin/git.exe"
 if 1:   # Utility
     def NoColor():
