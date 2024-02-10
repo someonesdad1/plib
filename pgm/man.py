@@ -5,7 +5,7 @@ ToDo
 
 Python script to help viewing manpages.  Its two main features are:
 
-    - Look in ~/bin/man.d and if there's a manpage file there that
+    - Look in ~/.local/man.d and if there's a manpage file there that
       begins with the string passed in on the command line, send that
       file to the /usr/bin/man command.  There must only be one
       argument on the command line for this to happen (otherwise, the
