@@ -25,8 +25,9 @@ Thoughts about using multithreading to reduce computation time
     - Since this computer has 4 cores, perhaps a 3 to 4 times speed
       improvement could be gotten
         - Current running speeds:
-            - python 3.9.10:        4.1 minutes
-            - Winpython 3.10.4:     3.8 minutes
+            - python 3.9.10 cygwin:                 4.1 minutes
+            - Winpython 3.10.4:                     3.8 minutes
+            - python 3.11.5 wsl on 10 Feb 2024:     1.9 minutes
     - The controlling thread could keep a deque containing the combinations
       of the calculations needing to be done.  
     - Worker threads would pull off calculations and perform them.
