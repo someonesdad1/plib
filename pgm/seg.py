@@ -28,6 +28,7 @@ if 1:   # Imports
     import os
     import re
     import subprocess
+    import sys
     try:
         import readline         # History and command editing
         import rlcompleter      # Command completion
