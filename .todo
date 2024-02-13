@@ -1,12 +1,5 @@
 Active:  /plib/.todo
 
-    - textcolumns.py
-        - Suppose you have a n by m list of strings
-        - You want the m columns to be printed on the screen by wrapping each row element suitably
-          for a specified % of total columns on the screen
-        - Use a Len() that ignores escape codes so that you can wrap colored text
-        - Default separation between columns is 1 space
-
     - pgm/ds.py
         - Add a -t option that only shows the document's title
 
@@ -612,6 +605,8 @@ Inactive
         - Supports iteration
         - My feeling is that this needs a careful design, then should be implemented in C/C++ or
           modern tools like Go or Rust.  
+            - However, I might be able to adapt e.g. ts.py, especially if I use texttable.py for
+              formatting text in tables.
         - There are two fundamental design choices:  line-oriented or token-oriented.  
             - Token-oriented could be acceptable, but whitespace would have to be conserved to be
               useful for text processing.  

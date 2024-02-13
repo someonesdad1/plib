@@ -229,17 +229,23 @@ if 1:   # Core functionality
         'Open indicated choice (subtract 1 first)'
         file = matches[choice - 1][0]
         if wsl:
-            # Use wslpath.exe to convert the file name to a Windows path
-            cmd = ["/usr/bin/wslpath", "-w", file]
-            r = subprocess.run(cmd, capture_output=True)
-            file = r.stdout.decode()
-        if 0:
-            # Old method on older Linux
-            # Send stderr to /dev/null because some apps on Linux have annoying
-            # bug messages sent to the console.
-            subprocess.Popen([app, matches[choice - 1][0]],
-                            stderr=subprocess.DEVNULL)
-        subprocess.run([app, file])
+            if 0:
+                # Use wslpath.exe to convert the file name to a Windows path
+                cmd = ["/usr/bin/wslpath", "-w", file]
+                r = subprocess.run(cmd, capture_output=True)
+                file = r.stdout.decode()
+            else:
+                # Use the ~/.0rc/bin/expl script to open a file with Explorer
+                r = subprocess.run(f"/home/don/.0rc/bin/expl {file}", shell=True)
+        else:
+            if 0:
+                # Old method on older Linux
+                # Send stderr to /dev/null because some apps on Linux have annoying
+                # bug messages sent to the console.
+                subprocess.Popen([app, matches[choice - 1][0]],
+                                stderr=subprocess.DEVNULL)
+            else:
+                subprocess.run([app, file])
     def PrintMatch(num, path, start, end, d):
         '''For the match in path, print things out in the appropriate colors.
         Note start and end are the indices into just the file part of the
