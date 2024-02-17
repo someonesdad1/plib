@@ -25,6 +25,7 @@ if 1:   # Header
         import getopt
         import os
         import re
+        import subprocess
         import sys
     if 1:   # Custom imports
         from color import t
