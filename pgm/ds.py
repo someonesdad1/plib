@@ -1,6 +1,9 @@
 '''
 
 ToDo
+    - My storage directories like /ebooks are bloated.  To keep things but allow me to see fewer
+      selections, change this program so that older stuff can be moved to a directory named 'old'.
+      Then this script will not enter and index such a directory.
     - Change default behavior
         - Command line becomes 're1 re1 ...'
             - This means find documents with re1, then refine the set by
@@ -176,7 +179,7 @@ if 1:   # Core functionality
                 df.rm("kindle")
                 df.rm("hpj")
                 df.rm("wxPython")
-                df.rm("programming/scipy")
+                df.rm("prog/scipy/scipy-html")
             tm = time() - start
             et += tm
             Dbg(f"{len(df.files)} files ({tm} s)")
