@@ -74,7 +74,7 @@ if 1:   # Utility
         Options
           -a    Show hidden directories
           -c    Don't use color
-          -f    Append / to the names
+          -F    Append / to the names
           -f    Fold the names in sorting
         '''))
         exit(status)
@@ -84,13 +84,13 @@ if 1:   # Utility
         d["-F"] = False     # Append /
         d["-f"] = False     # Fold the sorting
         try:
-            optlist, directories = getopt.getopt(sys.argv[1:], "acfh")
+            optlist, directories = getopt.getopt(sys.argv[1:], "acFfh")
         except getopt.GetoptError as e:
             msg, option = e
             print(msg)
             exit(1)
         for o, a in optlist:
-            if o[1] in list("acf"):
+            if o[1] in list("acFf"):
                 d[o] = not d[o]
             elif o == "-h":
                 Usage(d, status=0)
@@ -116,9 +116,12 @@ if 1:   # Core functionality
                     if not str(i).startswith("."):
                         dirs.append(i)
         if dirs:
-            # Decorate with ending '/' to help flag that they are directories
+            # Decorate with ending '/' to help flag that they are directories.  Remember they are
+            # PosixPath objects.
             if d["-F"]:
                 dirs = [str(i) + "/" for i in dirs]
+            else:
+                dirs = [str(i) for i in dirs]
             dirs = sorted(dirs, key=str.lower) if d["-f"] else sorted(dirs)
             if header:
                 print(f"{t.hdr}Directory {dir}:")
