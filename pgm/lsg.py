@@ -1,10 +1,31 @@
 '''
 TODO
 
-- Want
-    - Show untracked, changed, deleted, and added files by default
-    - -i  Show ignored files
-    - -u  Show unchanged files
+- Vision
+    - Primary purpose
+        - Quickly get a picture of a git repository directory's state
+        - Output looks like that of ls
+        - Color is used to flag important facts
+            - lip is an uncommitted change
+            - grn is a newly-added file
+            - trq is a renamed file
+
+    - My main use case for this command is when I'm in a directory of a git repository, I want to
+      quickly get a picture of the directory's state:
+        - Files in repository:  M, T, A, D, R, C, U letters from status command used to color the
+          individual files.  I primarily want to know M A D R.
+            - ?     Untracked
+            - !     Ignored
+            - M     Modified
+            - A     Added
+            - D     Deleted
+            - R     Renamed
+            - T     File type changed (regular file, symlink, submodule)
+    - Add the -r option to descend into subdirectories
+    - I'd also like to see a recursive listing of all untracked files that are not ignored.  This
+      is because I could have forgotten to add some to the repository.
+
+
 
 Show git repository file status for current directory
     git status:
@@ -120,17 +141,17 @@ if 1:   # Standard imports
     import sys
     from collections import defaultdict
     from pdb import set_trace as xx
-    from pprint import pprint as pp 
 if 1:   # Custom imports
     from wrap import wrap, dedent
     from color import TRM as t
     from columnize import Columnize
+    from wsl import wsl     # wsl is True if we're running under WSL
+    from dpprint import PP
+    pp = PP()
     if 0:
         import debug
         debug.SetDebugger()
 if 1:   # Global variables
-    # Determine if we're running under WSL
-    wsl = bool(os.environ.get("WSL", False))
     P = pathlib.Path
     ii = isinstance
     dbg = False
@@ -158,8 +179,7 @@ if 1:   # Global variables
     if wsl:
         git = "/usr/bin/git"
     else:
-        # cygwin
-        git = "c:/bin/git_2_35_1_2/bin/git.exe"
+        git = "c:/bin/git_2_35_1_2/bin/git.exe"     # cygwin's git
 if 1:   # Utility
     def NoColor():
         global sc
