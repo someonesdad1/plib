@@ -121,9 +121,9 @@ if 1:   # Utility
                 Manpage()
         args = d["args"] = [i.strip() for i in args]
         if g.config is None:
-            Error(f"Must use -f option to specify a configuration file")
+            Error(f"{g.name}:  Must use -f option to specify a configuration file")
         if not g.backup.exists() or not g.backup.is_dir():
-            Error(f"Must define a backup directory in g.backup")
+            Error(f"{g.name}:  Must define a backup directory in g.backup")
         return args
     def Manpage():
         print(dedent(f'''
@@ -323,10 +323,28 @@ if 1:   # Core functionality
         '''dir is a directory or file.  Write it to stdout or the output
         file if -e option was used.
         '''
+        # dir is string, so turn it into a Path and resolve it to an absolute name
+        try:
+            p = P(dir).resolve()
+        except Exception as e:
+            # Exit with a nonzero status to indicate failure
+            print(f"goto.py failed:  {str(e)!r}", file=sys.stderr)
+            print(f"  {dir!r} is not a valid file or directory", file=sys.stderr)
+            exit(1)
         s = sys.stdout
         if d["-e"]:
             s = open(d["-e"], "w")
-        print(dir, file=s)
+        try:
+            print(dir, file=s)
+        except Exception as e:
+            # Exit with a nonzero status to indicate failure
+            print(f"goto.py failed:  {str(e)!r}", file=sys.stderr)
+            exit(1)
+        if d["-e"]:
+            # We exit with a status of 0 to indicate to the calling context that the desired file 
+            # is in the output file.  Only one command on the command line works for this
+            # condition.
+            exit(0)
     ActOn.app = f"{g.cygprefix}/home/Don/bin/app.exe"
     ActOn.cygstart = f"{g.cygprefix}/bin/cygstart.exe"
     def GetSortedAliases(aliases):
@@ -417,6 +435,38 @@ if 1:   # Core functionality
         # Check all lines
         lines = CheckConfigFile(keep, all)
         return lines
+    def SearchLines(regexps, all=False):
+        '''Find regexps on the gotorc file's lines.  If all is True, search
+        all of the lines, even the commented-out ones.
+        '''
+        lines = ReadConfigFile(all)
+        rd = RegexpDecorate()
+        if 0:
+            for regex in regexps:
+                r = re.compile(regex, re.I)
+                rd.register(r, t(Color("yell")), t.n)
+                for ln, line in lines:
+                    mo = r.search(line)
+                    if mo:
+                        rd(f"{ln}:  {line}", insert_nl=True)
+        else:
+            R = []
+            for regex in regexps:
+                r = re.compile(regex, re.I)
+                R.append(r)
+                rd.register(r, t(Color("ornl")), t.n)
+            for ln, line in lines:
+                for r in R:
+                    mo = r.search(line)
+                    if mo:
+                        rd(f"{ln}:  {line}", insert_nl=True)
+                        break
+    def LaunchFiles(args):
+        for item in args:
+            try:
+                subprocess.call((ActOn.cygstart, item))
+            except Exception as e:
+                print(f"{e}", file=sys.stderr)
     def GoTo(arg):
         'Print the path string the user selects'
         lines = ReadConfigFile()
@@ -487,38 +537,6 @@ if 1:   # Core functionality
                     dir, name = choices[choice]
                     ActOn(dir)
                     return
-    def SearchLines(regexps, all=False):
-        '''Find regexps on the gotorc file's lines.  If all is True, search
-        all of the lines, even the commented-out ones.
-        '''
-        lines = ReadConfigFile(all)
-        rd = RegexpDecorate()
-        if 0:
-            for regex in regexps:
-                r = re.compile(regex, re.I)
-                rd.register(r, t(Color("yell")), t.n)
-                for ln, line in lines:
-                    mo = r.search(line)
-                    if mo:
-                        rd(f"{ln}:  {line}", insert_nl=True)
-        else:
-            R = []
-            for regex in regexps:
-                r = re.compile(regex, re.I)
-                R.append(r)
-                rd.register(r, t(Color("ornl")), t.n)
-            for ln, line in lines:
-                for r in R:
-                    mo = r.search(line)
-                    if mo:
-                        rd(f"{ln}:  {line}", insert_nl=True)
-                        break
-    def LaunchFiles(args):
-        for item in args:
-            try:
-                subprocess.call((ActOn.cygstart, item))
-            except Exception as e:
-                print(f"{e}", file=sys.stderr)
     def ExecuteCommand(cmd, args):
         if cmd == "a":
             AddCurrentDirectory(args)

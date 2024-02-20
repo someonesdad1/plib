@@ -9,6 +9,11 @@ Active:  /plib/.todo
     - frequent_symbols.py
         - Module to provide the library symbols I use frequently
 
+    - pgm/halflife.py
+        - The original source page can no longer be screen-scraped.  Find a better source of
+          halflife data.  It may be that screenscraping wikipedia's element pages might be 
+          the best approach.
+
     - pgm/man.py
         - Allow multiple commands on the command line and open them with 'vi -p'
 
