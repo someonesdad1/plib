@@ -82,7 +82,7 @@ if 1:   # Utility
         d["-b"] = False     # Brief output
         d["-c"] = True      # Ignore my referenced shell colors
         d["-n"] = 0         # Limit output lines to this number (0 means all)
-        d["-s"] = None      # Default shell syntax (bash dash, ksh, sh), None means to infer
+        d["-s"] = "bash"    # Default shell syntax (bash dash, ksh, sh), None means to infer
         d["-v"] = False     # Debugging
         if len(sys.argv) < 2:
             Usage()
@@ -101,6 +101,7 @@ if 1:   # Utility
             elif o == "-s":
                 if a not in "bash dash ksh sh".split():
                     Error(f"{a!r} not allowed (must be in 'bash dash ksh sh')")
+                d[o] = a
             elif o == "-h":
                 Usage(status=0)
         if d["-v"]:
@@ -202,7 +203,7 @@ if 1:   # Core functionality
         cmd += ["--format=gcc"]         # Use gcc-style output
         cmd += ["-x"]                   # Follow external source statements
         if d["-s"]:
-            cmd += [f"-s {d['-s']}"]    # Define the shell syntax
+            cmd += [f"--shell={d['-s']}"]    # Define the shell syntax
         cmd += [file]                   # File to process
         r = subprocess.run(cmd, capture_output=True)
         if d["-v"]:
