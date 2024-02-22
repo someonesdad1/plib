@@ -35,7 +35,7 @@ def Usage():
       specify the input files on the command line.  In this case, the hashes
       of the file pieces will be checked before creating the output file.
   
-      The -f option with the SHA1 hash file is to be used in conjuction with
+      The -f option with the SHA1 hash file is to be used in conjunction with
       the split.py utility.
     '''))
     exit(1)
