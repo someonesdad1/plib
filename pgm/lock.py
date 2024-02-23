@@ -56,7 +56,7 @@ if 1:   # Utility
             int(os.environ.get("COLUMNS", "80")) - 1
         )
     def GetColors():
-        t.dbg = t("cyn") if g.dbg else ""
+        t.dbg = t("sky") if g.dbg else ""
         t.N = t.n if g.dbg else ""
         t.err = t("redl")
     def Dbg(*p, **kw):
@@ -65,8 +65,8 @@ if 1:   # Utility
             k = kw.copy()
             k["file"] = Dbg.file
             print(*p, **k)
-            print(f"{t.N}", end="", file=Dbg.file)
-    Dbg.file = sys.stderr
+            print(f"{t.n}", end="", file=Dbg.file)
+    Dbg.file = sys.stdout
     def Error(*msg, status=1):
         print(*msg, file=sys.stderr)
         exit(status)
@@ -105,23 +105,14 @@ if 1:   # Utility
         comp = "Do not use" if d["-c"] else "Use"
         print(dedent(f'''
         Usage:  {sys.argv[0]} [options] infile [outfile]
-            Encrypt and decrypt files.  The default is to encrypt.  The output stream is base64
-            (and it may be compressed).  outfile will be overwritten if it exists.  You'll be
-            prompted for a password twice and your inputs must match before the program will
-            proceed.
-          Encryption
-            If you use '-' for infile, stdin will be encrypted and put in outfile; if outfile
-            is not present, then the information will be sent to stdout.
-          Decryption
-            If you use '-' for infile, stdin will be decrypted and put in outfile; if outfile
-            is not present, then the information will be sent to stdout.
-          Note
-            If you run the program twice with the exact same inputs, you won't get the 
-            same encrypted results, but the data will still decrypt to the same information.
+            Encrypt (default) and decrypt files.  outfile will be overwritten if it exists.  You'll
+            be prompted for a password twice and your inputs must match before the program will
+            proceed.  Use '-' for stdin.  Output sent to stdout if outfile not present.
         Options:
             -c      {comp} compression
             -d      Decrypt the file on the command line
             -h      Show more detailed help
+            -u      Use no password (i.e., file is shrouded like ROT13)
             -v      Verbose operation (messages to stderr)
         '''))
         exit(status)

@@ -105,7 +105,11 @@ if __name__ == "__main__":
     files = ParseCommandLine()
     for file in files:
         if file == "-":
-            Bytes = sys.stdin.read()
+            data = sys.stdin.read()
+            try:
+                Bytes = data.encode()
+            except Exception:
+                Bytes = data
         elif os.path.isfile(file):
             Bytes = open(file, "rb").read()
         else:
