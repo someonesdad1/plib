@@ -138,9 +138,12 @@ if 1:   # Utility
         return args
 if 1:   # Core functionality
     def GetManpageFile(cmd):
-        'Return the file name to open for this command (it must be a Path instance)'
-        # Either 'cmd.man' is in g.mandir or we use 'man' to get the content in a temporary file
-        p = P(str(g.mandir) + f"/{cmd}.man")
+        '''Return the file name to open for this command (it must be a Path instance).  Note:  my
+        static man pages have .hld as an extension so that they can have their tags in them
+        collated into a tags file and I can use them to jump to the desired location in the text.
+        '''
+        # Either 'cmd.hld' is in g.mandir or we use 'man' to get the content in a temporary file
+        p = P(str(g.mandir) + f"/{cmd}.hld")
         Dbg(f"Getting man page file for {cmd!r}")
         if p.exists():
             Dbg(f"  {str(p)!r} exists, so have data")
