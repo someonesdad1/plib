@@ -1,8 +1,5 @@
 '''
-ToDo
-    - ? 'H P d' removes d from list
-
-Script to aid the H() shell function in getting the required directory.
+Script to aid the j() shell function in getting the required directory.
 '''
 if 1:   # Header
     # Copyright, license
@@ -14,7 +11,7 @@ if 1:   # Header
         #   See http://opensource.org/licenses/OSL-3.0.
         #∞license∞#
         #∞what∞#
-        # Script aid for the H() shell function
+        # Script aid for the j() shell function
         #∞what∞#
         #∞test∞# #∞test∞#
     # Standard imports
@@ -31,7 +28,7 @@ if 1:   # Header
     # Global variables
         P = pathlib.Path
         ii = isinstance
-        t.c = t("whtl")
+        t.c = t("lilb")
 def Error(*msg, status=1):
     print(*msg, file=sys.stderr)
     exit(status)
