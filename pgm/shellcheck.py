@@ -30,6 +30,9 @@ if 1:   # Header
         from get import GetLines
         from wrap import dedent
         from wsl import wsl     # wsl is True when running under WSL Linux
+        if 1:
+            import debug
+            debug.SetDebugger()
         #from columnize import Columnize
     if 1:   # Global variables
         class G:
@@ -283,7 +286,8 @@ if 1:   # Core functionality
         indent, count = " "*2, 0
         for ln, errorline in reversed(o):
             t.print(f"{color}{file}[{t('magl')}{ln}{color}] {type}:")
-            PrintLine(errorline.line, errorline.column, indent)
+            if errorline.line:
+                PrintLine(errorline.line, errorline.column, indent)
             print(f"{indent}{errorline.msg}")
             count += 1
             if d["-n"] and count > d["-n"]:
