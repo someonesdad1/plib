@@ -2,6 +2,9 @@ Active:  /plib/.todo
 
     - Spell check all scripts with a Usage function
 
+    - xfmpy/xseq.py
+        - Fix syntax:  '2 8 1.1' doesn't give what I'd expect
+
     - pgm/ds.py
         - Add a -t option that only shows the document's title
         - Add ability to ignore '_old_' directories when encountered.  For e.g. /ebooks, this is a

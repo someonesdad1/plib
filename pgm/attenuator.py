@@ -1,5 +1,10 @@
 '''
 Script to design tee and pi attenuators.
+
+    https://www.rfcafe.com/references/electrical/attenuators.htm has formulas for attenuators.
+    This script should update to both the balanced and unbalanced types.  See the formulas in 
+    cygwin's ~/pictures/attenuators.png.
+
 '''
 if 1:  # Copyright, license
     # These "trigger strings" can be managed with trigger.py
