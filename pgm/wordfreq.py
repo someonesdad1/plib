@@ -145,53 +145,47 @@ if 1:   # Core functionality
     Keep.allowed = set(ascii_letters)
     Keep.c = [chr(i) for i in range(256)]
     Keep.t = ''.join([i if i in Keep.allowed else " " for i in Keep.c])
-    def ProcessFile(file):
+    def ProcessFile(words, file):
         for line in GetLines(file):
             line = Keep(line)
             line = line.lower() if d["-i"] else line
             for word in line.split():
                 words[word] += 1
+    def Report(words):
+        # Print the words only if -w given
+        if d["-w"]:
+            wordlist = reversed(sorted(words.keys())) if d["-r"] else sorted(words.keys())
+            for word in wordlist:
+                print(word)
+            return
+        # Generate a list with elements (count, word)
+        tmp = [(count, word) for word, count in words.items()]
+        # Sort by count, lowest first
+        tmp = sorted(tmp)
+        # Keep only a subset if -t option used
+        if d["-t"]:
+            tmp = tmp[-d["-t"]:]
+        # Reverse the order if -r option was given
+        if d["-r"]:
+            tmp = list(reversed(tmp))
+        # Include the percentages
+        total = sum([count for count, word in tmp])
+        wordlist = [(word, count, "{:.2g}%".format(100*count/total)) for
+                    count, word in tmp]
+        # Get largest string lengths so we can format things
+        largest_word = max([len(i[0]) for i in wordlist]) + 3
+        largest_count = max([len(str(i[1])) for i in wordlist]) + 3
+        # Print the report
+        f = "{:{}s} {:{}d}       {}"
+        for word, count, pct in wordlist:
+            print(f.format(word, largest_word, count, largest_count, pct))
 
 if __name__ == "__main__":
     d = {}  # Options dictionary
-    ParseCommandLine(d)
+    files = ParseCommandLine(d)
     # Fill a dictionary keyed by words with the word counts as values
     words = defaultdict(int)
-    for line in fileinput.input():
-        line = Keep(line)
-        line = line.lower() if d["-i"] else line
-        for word in line.split():
-            words[word] += 1
-    # Print the words only if -w given
-    if d["-w"]:
-        for word in sorted(words.keys()):
-            print(word)
-        exit(0)
-    # Generate a list with elements (count, word)
-    tmp = [(count, word) for word, count in words.items()]
-    # Sort by count, lowest first
-    tmp = sorted(tmp)
-    # Keep only a subset if -t option used
-    if d["-t"]:
-        tmp = tmp[-d["-t"]:]
-    # Reverse the order if -r option was given
-    if d["-r"]:
-        tmp = list(reversed(tmp))
-    # Include the percentages
-    total = sum([count for count, word in tmp])
-    wordlist = [(word, count, "{:.2g}%".format(100*count/total)) for
-                 count, word in tmp]
-    # Get largest string lengths so we can format things
-    largest_word = max([len(i[0]) for i in wordlist]) + 3
-    largest_count = max([len(str(i[1])) for i in wordlist]) + 3
-    # Print the report
-    if 0:
-        f = "{:^{}s} {:^{}s}     {:^s}"
-        print(f.format("Word", largest_word, "Count",
-                        largest_count, "Percentage"))
-        h = "-"
-        print(f.format(h*largest_word, largest_word, h*5, 5, h*10))
-    f = "{:{}s} {:{}d}       {}"
-    for word, count, pct in wordlist:
-        print(f.format(word, largest_word, count, largest_count, pct))
+    for file in files:
+        ProcessFile(words, file)
+    Report(words)
 
