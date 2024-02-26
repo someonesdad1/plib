@@ -1,8 +1,8 @@
 '''
-
+ 
 ToDo
     - Prompt for which documents to open like e.g. 'ds' does
-
+ 
 HP Journal index constructed from the textual data at
  
     https://www.hpl.hp.com/hpjournal/pdfs/IssuePDFs/hpjindex.html
@@ -41,20 +41,44 @@ if 1:
         import subprocess
         import sys
         import textwrap
+        from pathlib import Path as P
         from collections import defaultdict, namedtuple
         from pdb import set_trace as xx
     # Custom imports
         from wsl import wsl
         from wrap import dedent
         from color import TRM as t
+        from dpopen import RegisteredOpen
     # Global variables
         class G:
             pass
         g = G()
+if 1:   # Classes
+    class Article:
+        def __init__(self, year, month, title, subtitle, authors, pages, volume, number):
+            self.year = int(year)
+            self.month = int(month)
+            self.title = title
+            self.subtitle = subtitle
+            self.authors = authors
+            self.pages = pages
+            self.volume = volume
+            self.number = number
+        def __str__(self):
+            s = [f"{t.date}{self.year:4d}-{self.month:02d}{t.N}"]
+            s.append(t.title + self.title + t.N)
+            if not d["-b"]:
+                if self.subtitle and not d["-t"]:
+                    s.append(t.subtitle + "[" + self.subtitle + "]")
+                authors = ', '.join(self.authors)
+                if authors:
+                    s.append("by " + t.author + authors + t.N)
+                s.append("pg " + self.pages)
+            return ', '.join(s)
 
 if 1:   # Data
     # Constructed by lines.py script Sun Nov  1 20:30:02 2020
-    Article = namedtuple('Article', 'year month title subtitle authors pages volume number')
+    #Article = namedtuple('Article', 'year month title subtitle authors pages volume number')
     data = [
     Article('1998', '2', 'Cover: a reflective look at communications appliances used in the past contrasted with those used today', '', '', '', '', ''),
     Article('1998', '2', 'Wireless Communications: A Spectrum of Opportunities', 'The tremendous growth in the consumer market for wireless communications products, such as cellular and cordless telephone, has created a parallel growth in research and development for higher-performance components for these products', ['William J. McFarland'], '6-9', '', ''),
@@ -3047,6 +3071,13 @@ if 1:   # Data
     ]
 
 if 1:   # Utility
+    def SetColors(): 
+        t.date = t("ornl") if d["-c"] else ""
+        t.title = t("seal") if d["-c"] else ""
+        t.subtitle = t("wht") if d["-c"] else ""
+        t.author = t("lill") if d["-c"] else ""
+        t.num = t("redl") if d["-c"] else ""
+        t.N = t.n if d["-c"] else ""
     def Error(*msg, status=1):
         print(*msg, file=sys.stderr)
         exit(status)
@@ -3058,9 +3089,9 @@ if 1:   # Utility
         Options:
           -a      Search author names only
           -b      Brief report:  date and title only
-          -C      Use color decoration
           -c      Use color decoration even if not to TTY
           -d      Dump all the data
+          -g      Prompt for which files to open
           -i      Don't ignore case in search
           -l n    Limit the number of PDFs opened [default = {d["-l"]}]
           -o      Open the PDFs matched by the search
@@ -3076,9 +3107,9 @@ if 1:   # Utility
     def ParseCommandLine(d):
         d["-a"] = False     # Search author names only
         d["-b"] = False     # Brief report 
-        d["-c"] = False     # Use color even if not to TTY
-        d["-C"] = False     # Use color in output
+        d["-c"] = True      # Use color
         d["-d"] = False     # Dump all the data
+        d["-g"] = False     # Prompt for which ones to open
         d["-i"] = True      # Ignore case in search
         d["-l"] = 5         # Limit number of PDFs to open
         d["-o"] = False     # Open matched PDFs
@@ -3093,12 +3124,12 @@ if 1:   # Utility
         if len(sys.argv) < 2:
             Usage(d)
         try:
-            opts, args = getopt.getopt(sys.argv[1:], "abCcdhil:oPpstwy:Y:")
+            opts, args = getopt.getopt(sys.argv[1:], "abCcdghil:oPpstwy:Y:")
         except getopt.GetoptError as e:
             print(str(e))
             exit(1)
         for o, a in opts:
-            if o[1] in list("abCcdioPpstw"):
+            if o[1] in list("abCcdgioPpstw"):
                 d[o] = not d[o]
             elif o == "-l":
                 try:
@@ -3132,11 +3163,8 @@ if 1:   # Utility
         # Set up colors
         if d["-c"]:
             t.always = True
-        t.dt = t("yell") if d["-C"] else ""
-        t.ti = t("grnl") if d["-C"] else ""
-        t.au = t("magl") if d["-C"] else ""
-        t.nn = t.n if d["-C"] else ""
-        if not args:
+        SetColors()
+        if not d["-d"] and not args:
             Usage(d)
         return args
 if 1:   # Core functionality
@@ -3227,26 +3255,33 @@ if 1:   # Core functionality
         return results
     def OpenArticles():
         'Open the articles given by the dates in OpenArticles.list.'
-        dir = "d:/ebooks/hpj/"
+        dir = P("/ebooks/hpj")
         for i in OpenArticles.list:
-            sp = subprocess.Popen(["app.exe", dir + i])
+            file = dir/i
+            RegisteredOpen(file)
     OpenArticles.list = []  # Keeps track of files to open
-    def PrintArticle(i):
+    def PrintArticle(i, num=None):
         s, a = [], data[i]
-        dt = f"{int(a.year):4d}-{int(a.month):02d}"
-        s.append(t.dt + dt + t.nn)
-        s.append(t.ti + a.title + t.nn)
-        if not d["-b"]:
-            if a.subtitle and not d["-t"]:
-                s.append("[" + a.subtitle + "]")
-            authors = ', '.join(a.authors)
-            if authors:
-                s.append("by " + t.au + authors + t.nn)
-            s.append("pg " + a.pages)
-        print(', '.join(s))
-        if d["-w"]:
-            print()
-if __name__ == "__main__":
+        if 0:
+            dt = f"{int(a.year):4d}-{int(a.month):02d}"
+            s.append(t.date + dt + t.N)
+            s.append(t.title + a.title + t.N)
+            if not d["-b"]:
+                if a.subtitle and not d["-t"]:
+                    s.append(t.subtitle + "[" + a.subtitle + "]")
+                authors = ', '.join(a.authors)
+                if authors:
+                    s.append("by " + t.author + authors + t.N)
+                s.append("pg " + a.pages)
+            if num is not None:
+                print(f"{t.num}{num}{t.N}", end=" ")
+            print(', '.join(s))
+            if d["-w"]:
+                print()
+        else:
+            print(a)
+
+if 0 and __name__ == "__main__":
     d = {}      # Options dictionary
     regexps = ParseCommandLine(d)
     if d["-d"]:
@@ -3270,6 +3305,75 @@ if __name__ == "__main__":
             # Trim to the -l number option
             OpenArticles.list = OpenArticles.list[:d["-l"]]
             OpenArticles()
-        # Print the results
-        for i in sorted(list(set(results))):
-            PrintArticle(i)
+        elif d["-g"]:
+            # Prompt user for which ones to open
+            ok = False
+            res = list(sorted(set(results)))
+            breakpoint() #xx 
+            n = len(res)
+            N = set(range(n))
+            while not ok:
+                for i, article in enumerate(res):
+                    PrintArticle(article, num=i + 1)
+                print(f"Enter numbers of the documents you want to open separated by spaces:")
+                items = input()
+                numbers = [int(i) - 1 for i in items.split()]
+                for i in numbers:
+                    if i not in N:
+                        print(f"{i + 1} is not a valid number; try again")
+                        continue
+                break
+            for i in numbers:
+                breakpoint() #xx 
+        else:
+            # Print the results
+            for i in sorted(list(set(results))):
+                PrintArticle(i)
+if __name__ == "__main__":
+    d = {}      # Options dictionary
+    regexps = ParseCommandLine(d)
+    if d["-d"]:
+        # Dump all article information 
+        for a in data:
+            print(a)
+    elif d["-p"] or d["-P"]:
+        # Dump the page count per issue and total pages
+        DumpPageCount(*data)
+    else:
+        results = []
+        for regex in regexps:
+            Search(regex, results)
+        if d["-o"]:
+            # Open the PDF files
+            for i in results:
+                a = data[i]
+                dt = f"{int(a.year):4d}-{int(a.month):02d}.pdf"
+                if dt not in OpenArticles.list:
+                    OpenArticles.list.append(dt)
+            # Trim to the -l number option
+            OpenArticles.list = OpenArticles.list[:d["-l"]]
+            OpenArticles()
+        elif d["-g"]:
+            # Prompt user for which ones to open
+            ok = False
+            res = list(sorted(set(results)))
+            breakpoint() #xx 
+            n = len(res)
+            N = set(range(n))
+            while not ok:
+                for i, article in enumerate(res):
+                    PrintArticle(article, num=i + 1)
+                print(f"Enter numbers of the documents you want to open separated by spaces:")
+                items = input()
+                numbers = [int(i) - 1 for i in items.split()]
+                for i in numbers:
+                    if i not in N:
+                        print(f"{i + 1} is not a valid number; try again")
+                        continue
+                break
+            for i in numbers:
+                breakpoint() #xx 
+        else:
+            # Print the results
+            for i in sorted(list(set(results))):
+                PrintArticle(i)
