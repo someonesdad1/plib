@@ -1,6 +1,8 @@
 '''
 
 ToDo
+    - Store the datafiles in the directories they index.  
+        - What is benefit of pickling?  The basic datastructure is a set of file names.
     - My storage directories like /ebooks are bloated.  To keep things but allow me to see fewer
       selections, change this program so that older stuff can be moved to a directory named 'old'.
       Then this script will not enter and index such a directory.
@@ -62,28 +64,32 @@ if 1:  # Header
         from timer import GetET
         from f import flt
         from color import t
-        class G:
-            # Storage for global variables as attributes
+    if 1:   # Global variables
+        class G: # Storage for global variables as attributes
             pass
         g = G()
         g.dbg = False
         t.dbg = t("lill") if g.dbg else ""
         t.N = t.n if g.dbg else ""
-    if 1:   # Global variables
+        # If the following is True, pickle the datafiles.  Comment:  the datafiles are a set of
+        # file names, so in reality the easiest way to store the data is as a list of files, one
+        # file per line.  This lets the thing be edited if needed.
+        g.pickle = False
         # app to open a file with registered application
         if wsl:
-            app = "explorer.exe"            # Linux under WSL
+            g.app = "explorer.exe"          # Linux under WSL
         else:                               # Windows
-            #app = "<dir>/app.exe"
-            app = "d:/cygwin64/bin/cygstart.exe" 
+            g.app = "d:/cygwin64/bin/cygstart.exe" 
         # Index files hold the files to be searched.  These are stored in files
-        # because caching on my system doesn't work well for the d:/ drive.  It
-        # only takes a few seconds to generate the index files with -I.
-        index_files = {
-            "bk": "/plib/pgm/ds.bk.index", 
-            "ds": "/plib/pgm/ds.ds.index", 
-            "eb": "/plib/pgm/ds.eb.index", 
-            "hpj": "/plib/pgm/ds.hpj.index", 
+        # because caching on my system doesn't work well for the d:/ drive.  Indexing performs well
+        # in cygwin, but is 5-10 times slower under WSL when indexing the Windows file system.
+        # The index files used to be stored in /plib/pgm, but 26 Feb 2024 I decided to store them 
+        # in the directories themselves.  I also removed the BK stuff.
+        g.index_files = {
+            #"bk": "/plib/pgm/ds.bk.index", 
+            "ds": "/manuals/ds.ds.index", 
+            "eb": "/ebooks/ds.eb.index", 
+            "hpj": "/ebooks/hpj/ds.hpj.index", 
         }
         # Colors for output
         t.dir = t("sky")        # Contrast for directory portion
@@ -121,7 +127,7 @@ if 1:   # Utility
         Long options
           --exec n
             Name of index file for usage statement.  Choices are:
-              {' '.join(index_files.keys())}
+              {' '.join(g.index_files.keys())}
         '''))
         exit(status)
     def ParseCommandLine(d):
@@ -139,7 +145,7 @@ if 1:   # Utility
                 d[o] = not d[o]
             elif o == "--exec":
                 d["--exec"] = a
-                if a not in index_files:
+                if a not in g.index_files:
                     Error("'{a}' not an index")
             elif o == "-h":
                 Usage(d, 0)
@@ -155,8 +161,32 @@ if 1:   # Utility
 if 1:   # Core functionality
     def GenerateIndexFiles(d):
         'Generate all of the index files at once'
+        # On 26 Feb 2024, I decided to 1) stop using pickling and just store the filenames in the
+        # index files and 2) store the files in the same directory where they were indexed, as this
+        # keeps the index files accessible to both cygwin and WSL as they're not in a git
+        # repository that can be out of sync.
+        name_ignore = set('''
+            .vi .gitignore .z z tags a b aa bb
+        '''.split())
+        suffix_ignore = set('''
+            .zip .bak
+        '''.split())
+        def DumpIndexFile(name, df):
+            if g.pickle:
+                with open(name, "wb") as fp:
+                    pickle.dump(df.files, fp)
+            else:
+                with open(name, "w") as fp:
+                    for i in sorted(df.files):
+                        if i.name in name_ignore or i.suffix in suffix_ignore:
+                            continue
+                        s = str(i)
+                        # WSL puts on an unneeded mount point which will foul up cygwin
+                        if s.startswith("/mnt/d"):
+                            s = s.replace("/mnt/d", 1)
+                        fp.write(f"{s}\n")
         et = flt(0)
-        if 1:   # B&K
+        if 0:   # B&K
             Dbg("Indexing B&K:", end="  ")
             start = flt(time())
             df = Dirfiles("/manuals/manuals/bk", clear=True)
@@ -167,8 +197,7 @@ if 1:   # Core functionality
             tm = time() - start
             et += tm
             Dbg(f"{len(df.files)} files ({tm} s)")
-            with open(index_files["bk"], "wb") as fp:
-                pickle.dump(df.files, fp)
+            DumpIndexFile(g.index_files["bk"], df)
         if 1:   # ebooks
             Dbg("Indexing ebooks:", end="  ")
             start = flt(time())
@@ -183,8 +212,7 @@ if 1:   # Core functionality
             tm = time() - start
             et += tm
             Dbg(f"{len(df.files)} files ({tm} s)")
-            with open(index_files["eb"], "wb") as fp:
-                pickle.dump(df.files, fp)
+            DumpIndexFile(g.index_files["eb"], df)
         if 1:   # Datasheets
             Dbg("Indexing manuals & datasheets:", end="  ")
             start = flt(time())
@@ -196,8 +224,7 @@ if 1:   # Core functionality
             tm = time() - start
             et += tm
             Dbg(f"{len(df.files)} files ({tm} s)")
-            with open(index_files["ds"], "wb") as fp:
-                pickle.dump(df.files, fp)
+            DumpIndexFile(g.index_files["ds"], df)
         if 1:   # HP Journal
             Dbg(f"Indexing HPJ", end="  ")
             start = flt(time())
@@ -209,8 +236,7 @@ if 1:   # Core functionality
             tm = time() - start
             et += tm
             Dbg(f"{len(df.files)} files ({tm} s)")
-            with open(index_files["hpj"], "wb") as fp:
-                pickle.dump(df.files, fp)
+            DumpIndexFile(g.index_files["hpj"], df)
         print(f"Indexing time = {GetET(et)}")
         exit(0)
     def GetChoices(matches):
@@ -238,7 +264,8 @@ if 1:   # Core functionality
                 r = subprocess.run(cmd, capture_output=True)
                 file = r.stdout.decode()
             else:
-                # Use the ~/.0rc/bin/expl script to open a file with Explorer
+                # Use the ~/.0rc/bin/expl script to open a file with Explorer.  This script first
+                # cd's to the file's directory, as otherwise Explorer doesn't work.  
                 r = subprocess.run(f"/home/don/.0rc/bin/expl {file}", shell=True)
         else:
             if 0:
@@ -301,8 +328,12 @@ if 1:   # Core functionality
     def ReadIndexFile(d):
         'Read the index file keyed by d["--exec"]'
         key = d["--exec"]
-        with open(index_files[key], "rb") as fp:
-            d["files"] = pickle.load(fp)
+        if g.pickle:
+            with open(g.index_files[key], "rb") as fp:
+                    d["files"] = pickle.load(fp)
+        else:
+            with open(g.index_files[key], "r") as fp:
+                d["files"] = set(fp.read().split("\n"))
         # Set d["root"] which is the files' prefix to remove
         root = {
             "bk": "/manuals/manuals",
@@ -310,7 +341,7 @@ if 1:   # Core functionality
             "eb": "/ebooks",
             "hpj": "/cygdrive/d/ebooks",
         }
-        d["root"] = r = root[key]
+        d["root"] = root[key]
     def OpenMatches(matches, d):
         '''Each match item will be (full_filename, match_object) where
         match_object is the mo for _only_ the actual file name (not the
@@ -319,9 +350,9 @@ if 1:   # Core functionality
         if len(matches) > 1:
             PrintChoices(matches, d)
             for choice in GetChoices(matches):
-                OpenFile(app, matches, choice)
+                OpenFile(g.app, matches, choice)
         elif len(matches) == 1:
-            OpenFile(app, matches, 0)
+            OpenFile(g.app, matches, 0)
         else:
             print("No matches")
 

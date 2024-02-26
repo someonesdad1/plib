@@ -105,8 +105,6 @@ if 1:   # Core functionality
         for i in p.glob("**/*"):
             if i.is_file():
                 out.append(i)
-        if 0:
-            pp(out);exit()
         return out
     def FilterFiles(files):
         if True:
@@ -161,8 +159,9 @@ if 1:   # Core functionality
                 files = list(remove(RemoveThisFile, files))
         return files
     def PrintFiles(files):
-        for i in files:
+        for i in sorted(files):
             print(i)
+
 if __name__ == "__main__":
     d = {}      # Options dictionary
     dir = ParseCommandLine(d)
