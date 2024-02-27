@@ -13,7 +13,7 @@ HP Journal's issues.  This long page has URLs that let you download the PDFs for
 interest.  Other sites also collect these PDFs, such as http://hparchive.com (by Glenn Robb) and
 https://worldradiohistory.com/HP-Journal.htm (by David Gleason).
 
-The HP Laps page may give you all you need, as you can search for relevant text and maybe find what
+The HP Labs page may give you all you need, as you can search for relevant text and maybe find what
 you want.  This didn't meet my needs, so I put together the hpj.py script which lets me seach for
 HPJ articles from the command line.  I can refine the search as needed, then have the script open
 up the PDFs for the matching journal titles.  
