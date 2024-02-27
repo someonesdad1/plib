@@ -7,8 +7,7 @@ repository.
 
 '''
 if 1:   # Header
-    # Copyright, license
-    if 1:
+    if 1:   # Copyright, license
         # These "trigger strings" can be managed with trigger.py
         #∞copyright∞# Copyright (C) 2022 Don Peterson #∞copyright∞#
         #∞contact∞# gmail.com@someonesdad1 #∞contact∞#
@@ -21,8 +20,7 @@ if 1:   # Header
         #∞what∞#
         #∞test∞# #∞test∞#
         pass
-    # Standard imports
-    if 1:
+    if 1:   # Standard imports
         import getopt
         import os
         from pathlib import Path as P
@@ -30,15 +28,19 @@ if 1:   # Header
         import re
         import sys
         from pprint import pprint as pp
-    # Custom imports
-    if 1:
+    if 1:   # Custom imports
         from wrap import wrap, dedent
         from color import Color, TRM as t
         import dbg 
-    # Global variables
-    if 1:
+    if 1:   # Global variables
+        class G:
+            pass
+        g = G()
         ii = isinstance
         Dbg = None
+        g.dir = None        # Directory passed on command line
+        g.root = None       # Root of git repository
+        g.files = None      # List of files at and below dir on command line
 if 1:   # Utility
     def Error(*msg, status=1):
         print(*msg, file=sys.stderr)
@@ -46,19 +48,20 @@ if 1:   # Utility
     def Usage(status=1):
         print(dedent(f'''
         Usage:  {sys.argv[0]} [options] dir
-          Recursively finds all files in dir and prints which ones should
-          probably be put into a git repository.
+          Find files in dir and prints which ones should probably be put into the git repository.
         Options:
             -d r        Ignore any directories that match this regexp
             -e ext      Ignore this extension (no leading '.')
             -f r        Ignore files whose names match this regexp
+            -r          Operate recursively
+            -v          Debug printing
         '''))
         exit(status)
     def ParseCommandLine(d):
-        d["-a"] = False
         d["-d"] = [".git", ".hg"]  # Directories to ignore
         d["-e"] = []        # Extensions to ignore
         d["-f"] = []        # File name regex to ignore
+        d["-r"] = False     # Operate recursively
         d["-v"] = False     # Turn on debug printing
         if len(sys.argv) < 2:
             Usage()
@@ -99,13 +102,46 @@ if 1:   # Utility
         pass
     Dbg = Dummy
 if 1:   # Core functionality
-    def GetFiles(dir):
+    def SetUp(dir):
+        'Change our cwd to dir after validating it'
         p = P(dir)
-        out = []
-        for i in p.glob("**/*"):
+        if not p.is_dir():
+            Error(f"{dir!r} is not a directory")
+        if not p.exists():
+            Error(f"{dir!r} does not exist")
+        try:
+            os.chdir(p)
+        except Exception as e:
+            Error(f"Could not cd to {dir!r}: {e}")
+        # Verify we're in a git repository
+        root = GetGitRoot()
+        if root is None:
+            Error(f"{dir!r} is not in a git repository")
+    def GetGitRoot():
+        'Return the root of the repository or None'
+        # https://stackoverflow.com/questions/15715825/how-do-you-get-the-git-repositorys-name-in-some-git-repository
+        cmd = [git, "rev-parse", "--show-toplevel"]
+        cp = subprocess.run(cmd, capture_output=True)
+        if cp.returncode:
+            return None
+        s = cp.stdout.decode()
+        # Convert to a POSIX name
+        if not wsl:
+            cmd = ["/usr/bin/cygpath", s]
+            cp = subprocess.run(cmd, capture_output=True)
+        p = cp.stdout.decode().rstrip()
+        return P(p)
+    def GetFiles(dir):
+        'Return a list of files in this directory, all pathlib.Path instances'
+        files = []
+        if d["-r"]:
+            files = p.glob("**/*")
+        else:
+            files = p.glob("*")
+        for i in files:
             if i.is_file():
-                out.append(i)
-        return out
+                files.append(i)
+        return files
     def FilterFiles(files):
         if True:
             # Filter out unwanted extensions
@@ -164,7 +200,7 @@ if 1:   # Core functionality
 
 if __name__ == "__main__":
     d = {}      # Options dictionary
-    dir = ParseCommandLine(d)
-    files = GetFiles(dir)
+    g.dir = ParseCommandLine(d)
+    g.files = GetFiles(g.dir)
     files = FilterFiles(files)
     PrintFiles(files)
