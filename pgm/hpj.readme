@@ -1,0 +1,88 @@
+26 Feb 2024
+
+This is the hpj.readme file associated with the /plib/pgm/hpj.py script.  The hpj.py script
+provides a way of searching titles and authors of HP Journal (HPJ) articles.  The HP Journal was a
+print publication of HP (Hewlett-Packard Corporation) from 1949 to 1998.  
+
+Probably few people will be interested in this older HP engineering stuff today, but there's still
+a lot of technical wisdom in the articles, which were meant to both show off new products and
+technologies and provide a voice and visibility for the engineering staff.  
+
+You can go to https://www.hpl.hp.com/hpjournal/pdfs/IssuePDFs/hpjindex.html to see an index of the
+HP Journal's issues.  This long page has URLs that let you download the PDFs for the issue of
+interest.  Other sites also collect these PDFs, such as http://hparchive.com (by Glenn Robb) and
+https://worldradiohistory.com/HP-Journal.htm (by David Gleason).
+
+The HP Laps page may give you all you need, as you can search for relevant text and maybe find what
+you want.  This didn't meet my needs, so I put together the hpj.py script which lets me seach for
+HPJ articles from the command line.  I can refine the search as needed, then have the script open
+up the PDFs for the matching journal titles.  
+
+Getting the hpj.py script
+-------------------------
+
+    To run the hpj.py script, you'll need to get it from https://github.com/someonesdad1/plib in
+    the pgm directory.  It needs the wrap.py, color.py, and dpopen.py modules from /plib, but if
+    you are comfortable working with python it's not hard to remove those dependencies.
+
+Example of use
+--------------
+
+    I've got a number of HP analog meters (D'Arsonval type) from instrumentation made before the
+    onset of digital electronics.  From around the early 1960's HP started using the taut band
+    design, which they licensed from a German company.  HP's extra-level of engineering was to also
+    use electronic instrumentation to generate custom scales for each meter, giving perhaps the
+    best accuracy you could get from analog instrumentation.  
+
+    I remembered seeing an HPJ article by Barney Oliver on this topic, so I ran a search using
+    'python hpj.py oliver | grep -i meter' and found exactly what I wanted:  '1961-03, Increasing
+    Accuracy in -hp- Meters Through Servo Calibrating Methods, by Bernard M. Oliver, pg 1-4'.  
+    I then opened the 1961-03.pdf file in my PDF client.
+
+    If you're interested, those old HP instrumentation meters make nice microbalances.  With a
+    constant current source (HP meters were typically 1 mA full scale), you can lift very tiny
+    masses with them and it's fun to experiment with things like seeing fountain pen ink drying on
+    paper or water evaporating from a small piece of thread.  I fooled around with this a couple of
+    decades ago, but I remember one of the hard parts was making mass standards around 1 mg and
+    into the μg range:  an accidental tiny puff of air from a nostril would make those tiny
+    standards disappear.
+
+Getting a copy of the HPJ PDFs
+------------------------------
+
+    I downloaded the files I have by using a python script:
+
+        import pathlib
+        import re
+        import requests
+        from time import time
+
+        # From http://hparchive.com/hp_journals
+        data = '''
+        1 	1 	Sep 	1949 <http://hparchive.com/Journals/HPJ-1949-09.pdf>
+        1 	2 	Oct 	1949 <http://hparchive.com/Journals/HPJ-1949-10.pdf>
+        <snip>
+        50 	1 	Nov 	1998 <http://hparchive.com/Journals/HPJ-1998-11.pdf>
+        '''
+
+        r = re.compile(r"(http://hparchive.com/Journals/HPJ-1.*.pdf)")
+        prefix = "http://hparchive.com/Journals/HPJ-"
+
+        for line in data.split("\n"):
+            line = line.strip()
+            mo = r.search(line)
+            if mo:
+                url = mo.group(1)
+                file = url[len(prefix):]
+                p = pathlib.Path(file)
+                if not p.exists():
+                    print("Downloading: ", file, end=" ")
+                    start = time()
+                    binary_data = requests.get(url)
+                    with open(file, "wb") as fp:
+                        fp.write(binary_data.content)
+                    t = time() - start
+                    print(f"finished in {t:.1f} seconds")
+
+    This was 4 or 5 years ago and I didn't keep any records of the details, but I remember it took
+    a while because 

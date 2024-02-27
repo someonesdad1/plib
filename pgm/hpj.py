@@ -3129,12 +3129,12 @@ if 1:   # Utility
         if len(sys.argv) < 2:
             Usage(d)
         try:
-            opts, args = getopt.getopt(sys.argv[1:], "abCcdghil:ostwy:Y:")
+            opts, args = getopt.getopt(sys.argv[1:], "abcdghil:ostwy:Y:")
         except getopt.GetoptError as e:
             print(str(e))
             exit(1)
         for o, a in opts:
-            if o[1] in list("abCcdgiostw"):
+            if o[1] in list("abcdgiostw"):
                 d[o] = not d[o]
             elif o == "-l":
                 try:
@@ -3286,55 +3286,6 @@ if 1:   # Core functionality
         else:
             print(a)
 
-if 0 and __name__ == "__main__":
-    d = {}      # Options dictionary
-    regexps = ParseCommandLine(d)
-    if d["-d"]:
-        # Dump all the article information except volume/number
-        for a in data:
-            print(GetArticleString(a))
-    elif d["-p"] or d["-P"]:
-        # Dump the page count per issue and total pages
-        DumpPageCount(*data)
-    else:
-        results = []
-        for regex in regexps:
-            Search(regex, results)
-        if d["-o"]:
-            # Open the PDF files
-            for i in results:
-                a = data[i]
-                dt = f"{int(a.year):4d}-{int(a.month):02d}.pdf"
-                if dt not in OpenArticles.list:
-                    OpenArticles.list.append(dt)
-            # Trim to the -l number option
-            OpenArticles.list = OpenArticles.list[:d["-l"]]
-            OpenArticles()
-        elif d["-g"]:
-            # Prompt user for which ones to open
-            ok = False
-            res = list(sorted(set(results)))
-            breakpoint() #xx 
-            n = len(res)
-            N = set(range(n))
-            while not ok:
-                for i, article in enumerate(res):
-                    PrintArticle(article, num=i + 1)
-                print(f"Enter numbers of the documents you want to open separated by spaces:")
-                items = input()
-                numbers = [int(i) - 1 for i in items.split()]
-                for i in numbers:
-                    if i not in N:
-                        print(f"{i + 1} is not a valid number; try again")
-                        continue
-                break
-            for i in numbers:
-                breakpoint() #xx 
-        else:
-            # Print the results
-            for i in sorted(list(set(results))):
-                PrintArticle(i)
-
 if __name__ == "__main__":
     d = {}      # Options dictionary
     regexps = ParseCommandLine(d)
@@ -3373,6 +3324,8 @@ if __name__ == "__main__":
                 print(f"{t.num}{i}{t.N} {article}")
             print(f"Enter the numbers of the documents you want to open separated by spaces:")
             items = input()
+            if items == "q" or not items:
+                exit(0)
             numbers = [int(i) for i in items.split()]
             open = []
             for i in numbers:
