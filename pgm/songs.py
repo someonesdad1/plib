@@ -80,7 +80,9 @@ Blue World {S} Moody Blues {S} 8a9bfvNuTw0 {S} With lyrics
 Blue World {S} Moody Blues {S} oosjl8wNLJU {S} 
 Boogie Woogie Bugle Boy {S} Andrew Sisters {S} 8of3uhG1tCI {S} 
 Both Sides Now {S} Judy Collins {S} 8L1UngfqojI {S} 
+Brandy {S} Looking Glass {S} CFhFyvk0yS8 {S}
 Bucket drummer {S} ? {S} FqJdzYY_Fas {S} 
+Build Me Up Buttercup {S} The Foundations {S} w0kLkDCoRXc {S}
 Bus Stop {S} Hollies {S} It75wQ0JypA {S} 
 Carpool karaoke {S} Paul McCartney {S} QjvzCTqkBDQ {S} 
 Charles:  Cincinnati Kid {S} Ray Charles {S} rfn1YrwG2Oc {S} 
@@ -123,6 +125,7 @@ Girl drummer {S} {S} L-So4DLDvGc {S}
 Gypsy Waltz {S} Sally {S} eDGE6ah-e4Y {S} 
 Gypsy {S} Fleetwood Mac {S} mwgg1Pu6cNg {S} 
 Hair {S} Cowsills {S} BFy-yzj02FE {S} 
+Hallelujah {S} Lucy Thomas {S} dLk9pzmaFHY {S}
 Hang 'Em High {S} Movie theme {S} 0gscut1p4kY {S} 
 Hava Nagila {S} Dalida {S} YBj2PZ1IeIc {S} 
 Hawaii 50 {S} TV show theme {S} AepyGm9Me6w {S} 
@@ -216,7 +219,7 @@ Rawhide {S} Frankie Laine {S} _EjbzCX3enA {S}
 Ride My See-saw {S} Moody Blues {S} GXHMTuoK060 {S} 
 Rocket Man {S} Elton John {S} BdEe5SpdIuo {S} 
 Run Through The Jungle {S} Creedence Clearwater {S} EbI0cMyyw_M {S} 
-Runaround Sue {S} Dion {S} nFch8vH81ks
+Runaround Sue {S} Dion {S} nFch8vH81ks {S}
 Sally Goodin {S} Sally {S} nbYBBeylfGk {S} My second-favorite fiddle song
 Scarborough Fair {S} Simon & Garfunkel {S} -BakWVXHSug {S} 
 Scat singing {S} Ella Fitzgerald & Mel Torme {S} 9CbVy1NnB4g {S} 
@@ -275,9 +278,6 @@ You Were On My Mind {S} We Five {S} c7YSANg8vgw {S}
 You'll Never Know {S} Ralna English {S} 4HU8I9BY1H0 {S} 
 You're So Vain {S} Carly Simon {S} cleCtBP0o5Y {S} 
 Your Wildest Dreams {S} Moody Blues {S} kmmPFrkuPq0 {S} 
-Build Me Up Buttercup {S} The Foundations {S} w0kLkDCoRXc
-Brandy {S} Looking Glass {S} CFhFyvk0yS8
-Hallelujah {S} Lucy Thomas {S} dLk9pzmaFHY
 
 Rimsky-Korsakov:  Scheherazade {S} {S} 1i6TsIVKByM {S} Excellent youth orchestra
 Barber of Seville (1821) {S} {S} OloXRhesab0 {S} Most of us probably heard this first by watching Saturday morning cartoons.
