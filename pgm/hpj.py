@@ -30,12 +30,12 @@ Script to search title & authors of HP Journal (HPJ) articles
     python script that will download the PDFs.
 
     If you want to use the hpj.py script, it needs some modules from
-    https://github.com/someonesdad1/plib:  wrap.py, color.py, and dpopen.py.  If you are
+    https://github.com/someonesdad1/plib:  wrap.py, color.py, and launch.py.  If you are
     comfortable working with python it's straightforward to remove these dependencies so it can be
     a standalone script.
 
-    Example of use
-    --------------
+    Examples of use
+    ---------------
 
         I've got a number of HP analog meters (D'Arsonval type) from instrumentation made before
         the onset of digital electronics.  In the early 1960's HP started using the taut band
@@ -55,16 +55,19 @@ Script to search title & authors of HP Journal (HPJ) articles
         remember one of the hard parts was making mass standards around 1 mg and into the μg range.
         An accidental tiny puff of air from a nostril would make those tiny standards disappear.
 
-        It's still a pleasure to use these old analog instruments and a few of them are still
-        working today.  I've got an HP 427A voltmeter that I found on the web in 2021 and
-        purchased.  It's still working nicely (it needed cleaning of pots with Deoxit) and has the
-        late-model paint and knobs and the analog meter inside was marked as inspected in 1986,
-        which was near the end of the product's life, having been introduced in the 1967 HP
-        catalog.  This transistorized design can run off the AC line and consumes a fraction of a
-        watt of power, so I leave it powered on.  At the same time I got this meter, a friend gave
-        me one of his old Simpson 260 meters, another well-known analog meter.  A nice feature of
-        the Simpson VOM is that it can measure voltages even if its batteries are dead, something
-        modern DMMs can't do.
+        I have and am still using an HP 427A analog multimeter, introduced in 1967 and last seen in
+        the HP catalog around 1986.  Another famous HP instrument is the HP 410C, an analog vacuum
+        tube voltmeter developed in 1963 that has been popular with hams for many years.  If I
+        could have one instrument for my bench for general use for electrical measurements, it
+        would be the 410C (along with a modern oscilloscope) because of its measurement
+        capabilities.  
+
+        One of the engineers on the design of the HP 410C was Paul Baird and you can search using
+        'python hpj.py baird' and you'll get two articles, one in 1979 on electronic equipment
+        reliability and one in 1963 for "A New Multi-Function Voltmeter for General Laboratory
+        Use".  I got to meet Baird when he gave a talk at the HP division I was working at in the
+        early 1980's; he gave an excellent talk on the overall approaches for designing reliable
+        electronics, as he was the head of HP corporate reliability.
 
 '''
 if 1:  
@@ -94,7 +97,7 @@ if 1:
         from wsl import wsl
         from wrap import dedent
         from color import TRM as t
-        from dpopen import RegisteredOpen
+        from launch import Launch
     # Global variables
         class G:
             pass
@@ -3300,7 +3303,7 @@ if 1:   # Core functionality
         dir = P("/ebooks/hpj")
         for i in OpenArticles.list:
             file = dir/i
-            RegisteredOpen(file)
+            Launch(file)
     OpenArticles.list = []  # Keeps track of files to open
     def PrintArticle(i, num=None):
         s, a = [], data[i]
@@ -3349,7 +3352,7 @@ if __name__ == "__main__":
         if len(files_to_open) > d["-l"]:
             files_to_open = files_to_open[:d["-l"]]
         for file in sorted(set(files_to_open)):
-            RegisteredOpen(file)
+            Launch(file)
     elif d["-g"]:
         # Prompt user for which ones to open
         ok = False
@@ -3379,7 +3382,7 @@ if __name__ == "__main__":
             filename = f"{int(article.year):4d}-{int(article.month):02d}.pdf"
             file = P("/ebooks/hpj")/filename
             if file.exists():
-                RegisteredOpen(file)
+                Launch(file)
     else:
         # Print the results
         for i in results:

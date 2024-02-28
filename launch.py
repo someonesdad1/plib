@@ -1,35 +1,49 @@
 '''
-Launch files with their registered applications.
+Launch files with their registered applications
+
+    Windows:  You can compile the C++ application given below; it worked with Windows NT systems in
+    the 1990's and 2000's.  The start.exe application can do the same thing and it's supplied with
+    Windows.
+
+    cygwin:  The cygstart.exe program does the work.
+
+    Linux:  On a real Linux system, xdg-open works.  On WSL, you have to call explorer.exe on the
+    file, but the twist is you have to cd to the file's directory first because Explorer is a
+    strange application.
+
 '''
-if 1:  # Copyright, license
-    # These "trigger strings" can be managed with trigger.py
-    #∞copyright∞# Copyright (C) 2021 Don Peterson #∞copyright∞#
-    #∞contact∞# gmail.com@someonesdad1 #∞contact∞#
-    #∞license∞#
-    #   Licensed under the Open Software License version 3.0.
-    #   See http://opensource.org/licenses/OSL-3.0.
-    #∞license∞#
-    #∞what∞#
-    # <utility> Launch files with their registered applications.  Works
-    # on cygwin/Linux/Windows.
-    #∞what∞#
-    #∞test∞# ignore #∞test∞#
-    pass
-if 1:   # Imports
-    import platform
-    import subprocess
-def Launch(*files):
-    s = platform.system()
-    for file in files:
-        if s.startswith("CYGWIN_NT"):
-            subprocess.call((Launch.cygwin, file))
-        elif s == "Windows":
-            subprocess.call((Launch.app, file))
-        else:   # Linux variants
-            subprocess.call(('xdg-open', filepath))
-Launch.app = "c:/cygwin/home/Don/bin/app.exe"
-Launch.cygwin = "c:/cygwin/bin/cygstart.exe"
-if 0:   # Source code for Windows launcher
+if 1:   # Header
+    if 1:  # Copyright, license
+        # These "trigger strings" can be managed with trigger.py
+        #∞copyright∞# Copyright (C) 2021 Don Peterson #∞copyright∞#
+        #∞contact∞# gmail.com@someonesdad1 #∞contact∞#
+        #∞license∞#
+        #   Licensed under the Open Software License version 3.0.
+        #   See http://opensource.org/licenses/OSL-3.0.
+        #∞license∞#
+        #∞what∞#
+        # <utility> Launch files with their registered applications.  Works
+        # on cygwin/Linux/Windows.
+        #∞what∞#
+        #∞test∞# ignore #∞test∞#
+        pass
+    if 1:   # Standard imports
+        from pathlib import Path as P
+        import getopt
+        import os
+        import platform
+        import subprocess
+        import sys
+    if 1:   # Custom imports
+        from wrap import dedent
+        from wsl import wsl     # If wsl is 1, we're running under WSL under Windows
+    if 1:   # Global variables
+        ii = isinstance
+        class G:
+            pass
+        g = G()
+        g.system = None
+if 0:   # C++ source code old Windows launcher app.exe
     '''
     Note:  the above Windows application can be used to launch files.
     Here's its source code:
@@ -209,11 +223,64 @@ if 0:   # Source code for Windows launcher
         return 0;
     }
     '''
+if 1:   # Core functionality
+    def GetSystem():
+        '''Set g.system to one of the following strings:
+            cygwin      Running under cygwin
+            linux       Running under a real Linux system, not WSL
+            wsl         Running Linux under WSL
+            mac       * Running under Apple's UNIX
+            windows   * Running under Windows
+        Note * means not supported yet.
+        '''
+        s = platform.system()
+        if s.startswith("CYGWIN_NT"):
+            g.system = "cygwin"
+        elif s.startswith("Linux"):
+            g.system = "wsl" if wsl else "linux"
+        else:
+            raise ValueError("{s!r} not supported for platform.system()")
+    def RegisteredOpen(file):
+        '''Open the indicated file with its registered application.  file must be a string
+        or a Path instance.
+        '''
+        if ii(file, str):
+            p = P(file)
+        elif ii(file, P):
+            p = file
+        else:
+            raise TypeError(f"'{file}' must be a string or a pathlib.Path instance")
+        if not p.exists():
+            raise ValueError(f"'{p}' does not exist")
+        cwd = os.getcwd()
+        try:
+            dirname = p.parent
+            filename = p.name
+            os.chdir(dirname)
+            if g.system == "wsl":
+                # Running under Windows in Windows Subsystem for Linux.  The method is to use
+                # explorer.exe to open files.  To get this to work, we have to cd to the file's
+                # directory.  It appears Explorer returns 1 under all conditions.
+                r = subprocess.run(f"explorer.exe {filename}", shell=True)
+            elif g.system == "cygwin":
+                # Must be cygwin; file can be opened with cygstart.exe.
+                r = subprocess.run(f"cygstart {filename}", shell=True)
+            elif g.system == "linux":
+                # Older method worked a decade or two ago, needs to be tested on a Linux box
+                subprocess.call(('xdg-open', filename))
+            else:
+                raise ValueError(f"{g.system!r} not supported yet")
+        except Exception as e:
+            print(f"{e}", file=sys.stderr)
+        finally:
+            os.chdir(cwd)
+    def Launch(*files):
+        for file in files:
+            RegisteredOpen(file)
+    # Make sure we know the system when we get imported
+    GetSystem()
+
 if __name__ == "__main__":
-    import getopt
-    import sys
-    from wrap import dedent
-    from pdb import set_trace as xx 
     def Error(msg, status=1):
         print(msg, file=sys.stderr)
         exit(status)
