@@ -60,6 +60,7 @@ Bad Bad Leroy Brown {S} Jim Croce {S} CIiVindRSTA {S}
 '''
 songs = f'''
 
+100 lbs of Clay {S} Gene McDaniels {S} rUGonj90b5I {S}
 16 Tons {S} Tennessee Ernie Ford {S} jIfu2A0ezq0 {S} 
 25 Or 6 To 4 {S} Chicago {S} iUAYeN3Rp2E {S} Great horns and guitar
 A Horse With No Name {S} America {S} mSZXWdKSQNM {S} 
@@ -215,6 +216,7 @@ Rawhide {S} Frankie Laine {S} _EjbzCX3enA {S}
 Ride My See-saw {S} Moody Blues {S} GXHMTuoK060 {S} 
 Rocket Man {S} Elton John {S} BdEe5SpdIuo {S} 
 Run Through The Jungle {S} Creedence Clearwater {S} EbI0cMyyw_M {S} 
+Runaround Sue {S} Dion {S} nFch8vH81ks
 Sally Goodin {S} Sally {S} nbYBBeylfGk {S} My second-favorite fiddle song
 Scarborough Fair {S} Simon & Garfunkel {S} -BakWVXHSug {S} 
 Scat singing {S} Ella Fitzgerald & Mel Torme {S} 9CbVy1NnB4g {S} 
@@ -262,6 +264,7 @@ Volga Boatmen  {S} Red Army Choir & Band {S} yfO0ADduEr8 {S} 1996
 Volga Boatmen {S} L. Kharitonov {S} 0tw3g88JtWA {S} 1965 
 Walk On the Wild Side {S} Walk on the Wild Side {S} 5O82y59h7MI {S} 
 Walking in the Air {S} Walking In the Air movie {S} upH1QZU4Z0Y {S} Movie theme sung by a 13 year old choirboy
+Wanderer {S} Dion {S} SbYa7NBYyRc {S}
 Washington Square {S} Village Stompers {S} ihenbyTzQ2A {S} 
 White Silver Sands {S} Don Rondo {S} mOqbjENGN7s {S} 
 Who's on First {S} Abbott & Costello {S} jIGRgmxRfiE {S} Genius comedy
@@ -272,6 +275,9 @@ You Were On My Mind {S} We Five {S} c7YSANg8vgw {S}
 You'll Never Know {S} Ralna English {S} 4HU8I9BY1H0 {S} 
 You're So Vain {S} Carly Simon {S} cleCtBP0o5Y {S} 
 Your Wildest Dreams {S} Moody Blues {S} kmmPFrkuPq0 {S} 
+Build Me Up Buttercup {S} The Foundations {S} w0kLkDCoRXc
+Brandy {S} Looking Glass {S} CFhFyvk0yS8
+Hallelujah {S} Lucy Thomas {S} dLk9pzmaFHY
 
 Rimsky-Korsakov:  Scheherazade {S} {S} 1i6TsIVKByM {S} Excellent youth orchestra
 Barber of Seville (1821) {S} {S} OloXRhesab0 {S} Most of us probably heard this first by watching Saturday morning cartoons.
