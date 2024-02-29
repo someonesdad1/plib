@@ -58,51 +58,52 @@ Script's output for 2014 with no conversion from UT:
 Conclusion:  the times are off with most errors around 1/2 of a
 day or so.  It's usable for casual stuff, as you usually just want the day.
 '''
-if 1:  # Copyright, license
-    # These "trigger strings" can be managed with trigger.py
-    #∞copyright∞# Copyright (C) 2005 Don Peterson #∞copyright∞#
-    #∞contact∞# gmail.com@someonesdad1 #∞contact∞#
-    #∞license∞#
-    #   Licensed under the Open Software License version 3.0.
-    #   See http://opensource.org/licenses/OSL-3.0.
-    #∞license∞#
-    #∞what∞#
-    # Print moon phase times
-    #∞what∞#
-    #∞test∞# #∞test∞#
-    pass
-if 1:   # Imports
-    from math import pi, sin, cos, floor, radians
-    import getopt
-    import sys
-    import time
-    from pdb import set_trace as xx 
-if 1:   # Custom imports
-    from wrap import dedent
-    from meeus import IsDST
-    from color import TRM as t
-    t.yr = t("lgrn")
-    t.new = t("gry")
-    t.full = t("byel")
-    t.first = t("bcyn")
-    t.last = t("bvio")
-if 1:   # Global variables
-    # The script will correct universal times to your local time zone's
-    # time.  This time zone is assumed to be in the US so that the
-    # meeus.IsDST function works correctly.
-    if 1:
-        UT_correction = 7  # Hours to subtract from UT to get your local time
-        zone_name = "Mountain"
-    else:
-        UT_correction = 0  # Hours to subtract from UT to get your local time
-        zone_name = "UT"
-    # Phase numbers
-    NEW = 0
-    FIRST = 1
-    FULL = 2
-    LAST = 3
-    d2r = pi/180.0    # Converts degrees to radians
-    desired_year = 0
+if 1:   # Header
+    if 1:  # Copyright, license
+        # These "trigger strings" can be managed with trigger.py
+        #∞copyright∞# Copyright (C) 2005 Don Peterson #∞copyright∞#
+        #∞contact∞# gmail.com@someonesdad1 #∞contact∞#
+        #∞license∞#
+        #   Licensed under the Open Software License version 3.0.
+        #   See http://opensource.org/licenses/OSL-3.0.
+        #∞license∞#
+        #∞what∞#
+        # Print moon phase times
+        #∞what∞#
+        #∞test∞# #∞test∞#
+        pass
+    if 1:   # Imports
+        from math import pi, sin, cos, floor, radians
+        import getopt
+        import sys
+        import time
+        from pdb import set_trace as xx 
+    if 1:   # Custom imports
+        from wrap import dedent
+        from meeus import IsDST
+        from color import TRM as t
+        t.yr = t("grnl")
+        t.new = t("gry")
+        t.full = t("whtl")
+        t.first = t("cyn")
+        t.last = t("purl")
+    if 1:   # Global variables
+        # The script will correct universal times to your local time zone's
+        # time.  This time zone is assumed to be in the US so that the
+        # meeus.IsDST function works correctly.
+        if 1:
+            UT_correction = 7  # Hours to subtract from UT to get your local time
+            zone_name = "Mountain"
+        else:
+            UT_correction = 0  # Hours to subtract from UT to get your local time
+            zone_name = "UT"
+        # Phase numbers
+        NEW = 0
+        FIRST = 1
+        FULL = 2
+        LAST = 3
+        d2r = pi/180.0    # Converts degrees to radians
+        desired_year = 0
 if 1:   # Utility
     def Error(*msg, status=1):
         print(*msg, file=sys.stderr)
