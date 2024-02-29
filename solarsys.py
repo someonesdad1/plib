@@ -1,23 +1,20 @@
 '''
  
 TODO
-    - Change numbering so Sun is 0, Mercury 1, etc.  Then set things up so
-      that 0 can be included as if it was a planet and -r works with it.
-    - Use format_numbers.py to change things like 6.6(3)e-27 to
-      6.6(3)×10⁻²⁷.
+    - Change numbering so Sun is 0, Mercury 1, etc.  Then set things up so that 0 can be included
+      as if it was a planet and -r works with it.
+    - Use format_numbers.py to change things like 6.6(3)e-27 to 6.6(3)×10⁻²⁷.
     - New options
         - -s shows sun's data
-        - '-p var' option, which prints variable var for all objects.  -r works
-        with these numbers.
+        - '-p var' option, which prints variable var for all objects.  -r works with these numbers.
         - '-P var' option, same as -p except sorts by value
  
 Module that contains basic data on solar system objects
-    When run as a script, produces tables and plots.
+    When run as a script, produces tables.
  
     Core information from
-    https://en.wikipedia.org/wiki/List_of_gravitationally_rounded_objects_of_the_Solar_System
-    These data were gotten by screen scraping the tables and getting rid of
-    the extra numbers.
+    https://en.wikipedia.org/wiki/List_of_gravitationally_rounded_objects_of_the_Solar_System These
+    data were gotten by screen scraping the tables and getting rid of the extra numbers.
  
     The global dictionary solarsys contains the following keys:
         name    Object's name
