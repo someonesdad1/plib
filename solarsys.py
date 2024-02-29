@@ -267,8 +267,42 @@ if 1:   # Solar system data
     ]
 if 1:   # Get data
     def ToFlt(lst, mult=1):
-        f = F.FltDerived
-        return [f(i)*mult for i in lst]
+        '''Convert the list of numbers to flt instances.  We need to handle the various special
+        cases.
+        '''
+        r1 = re.compile("^([0-9.e+-]+)-([0-9.e+-]+)$")
+        newlst = []
+        for i in lst:
+            try:
+                newlst.append(F.flt(i))
+            except Exception:
+                if i == "?":
+                    newlst.append(F.flt("nan"))
+                elif i == "None":
+                    newlst.append(F.flt("nan"))
+                elif r1.match(i):
+                    # a-b form, a range of two values
+                    mo = r1.match(i)
+                    a, b = mo.groups()
+                    newlst.append((F.flt(a) + F.flt(b))/2)
+                elif "±" in i:
+                    # Uncertainty form a±b
+                    loc = i.find("±")
+                    newlst.append(F.flt(i[:loc]))
+                elif "<" in i:
+                    # <a form
+                    x = eval(i.replace("<", ""))
+                    newlst.append(F.flt(x))
+                elif "*" in i:
+                    # a*b form
+                    x = eval(i)
+                    newlst.append(F.flt(x))
+                elif "≈" in i:
+                    x = eval(i.replace("≈", ""))
+                    newlst.append(F.flt(x))
+                else:
+                    Error(f"Unexpected in ToFlt():  {i!r}")
+        return [F.flt(i)*mult for i in newlst]
     def BuildDataDict(calculate=False):
         '''Construct a dict that has lists of the data.  We use the keys
             name    Object's name
@@ -381,11 +415,10 @@ if 1:   # Get data
 if 1:   # Utility
     def Manpage():
         print(dedent(f'''
-        This script prints out wikipedia's information on the major solar
-        system bodies as of {scrape_date}.
+        This script prints out wikipedia's information on the major solar system bodies as of
+        {scrape_date}.
  
-        Here's example output for Titan (the table mapping index numbers to
-        body is omitted):
+        Here's example output for Titan (the table mapping index numbers to body is omitted):
  
         Titan (index = 28) S6
             d         1.2e9 m = 1.2 Gm          Distance from primary
@@ -403,45 +436,37 @@ if 1:   # Utility
             T         94 K = 94 K               Mean surface temperature
             ld        xx                        Log discriminant
  
-        Because SI prefixes can be useful in interpreting results, the
-        values are followed by the significant with an appended SI prefix
-        to the units.
+        Because SI prefixes can be useful in interpreting results, the values are followed by the
+        significand with an appended SI prefix to the units.
  
-        d is the distance to the primary.  Thus, for a planet like Mars,
-        this means the distance to the sun.  For a moon like Ganymede, it
-        means the distance to Jupiter.
+        d is the distance to the primary.  Thus, for a planet like Mars, this means the distance to
+        the sun.  For a moon like Ganymede, it means the distance to Jupiter.
  
-        The index number lets you use either that number or "Titan" as the
-        command line argument to get the report.  The command line
-        arguments will also be interpreted as case-insensitive regular
-        expressions, so e.g. "^t" will show you the bodies with names that
-        start with the letter t.
+        The index number lets you use either that number or "Titan" as the command line argument to
+        get the report.  The command line arguments will also be interpreted as case-insensitive
+        regular expressions, so e.g. "^t" will show you the bodies with names that start with the
+        letter t.
  
         The variables are explained in the usage statement.
  
-        When you use the -r option, you specify a reference body.  Then the
-        report's parameters are printed to the reference body's values.
-        Example:  'solarsys.py -r earth venus' shows Venus' values in terms of
-        Earth's.  You should see Venus' mass is 0.82 of Earth's and its
+        When you use the -r option, you specify a reference body.  Then the report's parameters are
+        printed to the reference body's values.  Example:  'solarsys.py -r earth venus' shows
+        Venus' values in terms of Earth's.  You should see Venus' mass is 0.82 of Earth's and its
         surface temperature is 2.5 times that of Earth's.
  
-        If you use Earth as the -r argument, you won't get quite the same
-        numbers as seen in the wikipedia table because the Earth's mean
-        distance from the sun is 1.00000011 AU, not unity as you'd expect.
-        If you use this correction, you should get the table values to
-        within about 7 or 8 digits.
+        If you use Earth as the -r argument, you won't get quite the same numbers as seen in the
+        wikipedia table because the Earth's mean distance from the sun is 1.00000011 AU, not unity
+        as you'd expect.  If you use this correction, you should get the table values to within
+        about 7 or 8 digits.
  
-        The default number of digits printed is 2.  You can change this in
-        the ParseCommandLine() function if you wish.  I find 2 digits
-        nice for getting a feel for the size of things.
+        The default number of digits printed is 2.  You can change this in the ParseCommandLine()
+        function if you wish.  I find 2 digits nice for getting a feel for the size of things.
  
-        ld is the base 10 logarithm of the Soter discriminant for a planet,
-        which is M/m where M is the planet's mass and m is the summed mass
-        of all the other objects in the neighorhood of that planet's orbit.
-        The planets will have ld >> 0 and dwarf planets will have ld < 0.
+        ld is the base 10 logarithm of the Soter discriminant for a planet, which is M/m where M is
+        the planet's mass and m is the summed mass of all the other objects in the neighorhood of
+        that planet's orbit.  The planets will have ld >> 0 and dwarf planets will have ld < 0.
  
-        Here's a list of the 38 objects that are included and their counts
-        by category:
+        Here's a list of the 38 objects that are included and their counts by category:
  
             Planets (8) {t.planet}
                 Mercury Venus Earth Mars Jupiter Saturn Uranus Neptune {t.n}
