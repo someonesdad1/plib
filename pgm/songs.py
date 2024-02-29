@@ -258,7 +258,7 @@ Torn Between Two Lovers {S} {S} TzGbvTl4mpg {S}
 Total Eclipse of the Heart {S} Bonnie Tyler {S} lcOxhH8N3Bo {S} 
 Tuxedo Junction {S} Mary MacGregor {S} iBTYcqtaOjg {S} 
 Two Faces Have I {S} Lou Christie {S} w05w1XbZTG8 {S} 
-Unchained Melody {S} Righteous Brothers {S} zrK5u5W8afc {S} 
+Unchained Melody {S} Righteous Brothers {S} m0EBs6uRgtw {S} 
 Unforgettable {S} Nat King Cole {S} Fy_JRGjc1To {S} 
 Unknown song {S} Sally {S} ob44BR1Hurg {S} 
 Unsquare Dance {S} Dave Clark Five {S} lbdEzRfbeH4 {S} 
