@@ -440,7 +440,7 @@ if 1:   # Core functionality
                 # Print location(s) in file(s)
                 F = D[token]
                 for file in sorted(F):
-                    linenums = ', '.join([str(i) for i in sorted(list(F[file]))])
+                    linenums = ' '.join([str(i) for i in sorted(list(F[file]))])
                     n = len(F[file])
                     print(f"    {file}: [{n}] {linenums}")
         if d["-w"]:     # Print only tokens in columns
