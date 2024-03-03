@@ -22,7 +22,7 @@ S = "|"    # Field separator
  
 favorites = f'''
 
-Angie {S} Rolling Stones {S} S7sigwbqEj8 {S}
+Angie {S} Rolling Stones {S} oWRr03VcA-0 {S}
 Beethoven's 7th {S} Bernstein {S} Rw-KtQLdRT4 {S} 2nd movement 14:33 is best
 Beethoven's 9th, 2nd movement (1824) {S} {S} iwIvS4yIThU {S} Genius
 Bad Romance {S} PMJ, Sarah Reich, Ariana Savalas {S} VCTOpdlZJ8U {S} 

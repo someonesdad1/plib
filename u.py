@@ -89,115 +89,101 @@ if 1:  # Module docstring
     __doc__ = dedent('''
     Unit conversion utilities
     
-    Please see the u.pdf documentation file that came in the package this
-    script came in.  Here, we'll give an overview of the module's use.
+    Please see the u.pdf documentation file that came in the package this script came in.  Here,
+    we'll give an overview of the module's use.
     
-    The main functions you'll use are u() and to().  You can either use the
-    built-in set of SI and non-SI units or supply definitions of your own.
+    The main functions you'll use are u() and to().  You can either use the built-in set of SI and
+    non-SI units or supply definitions of your own.
     
     You endow a variable with a physical unit by a line such as
     
         velocity = 3.7*u("miles/hour")
     
-    The function u() returns a conversion factor that, when multiplied by
-    the indicated unit, results in a number that is equivalent to the same
-    dimensional quantity in base SI units.  Thus, the function call
-    u("miles/hour") returns the number 0.44704.  If you print the variable
-    velocity, it will have the value 1.654048; this is 3.7 miles per hour
-    expressed in meters per second.  Note that the velocity variable is a
-    python floating point number with no "knowledge" of the dimensions of
-    its "attached" units, so it's up to you, the programmer, to keep things
+    The function u() returns a conversion factor that, when multiplied by the indicated unit,
+    results in a number that is equivalent to the same dimensional quantity in base SI units.
+    Thus, the function call u("miles/hour") returns the number 0.44704.  If you print the variable
+    velocity, it will have the value 1.654048; this is 3.7 miles per hour expressed in meters per
+    second.  Note that the velocity variable is a python floating point number with no "knowledge"
+    of the dimensions of its "attached" units, so it's up to you, the programmer, to keep things
     dimensionally consistent.
     
-    When you want the variable velocity to contain the numerical value in
-    ft/minute, you can use the following equivalent methods:
+    When you want the variable velocity to contain the numerical value in ft/minute, you can use
+    the following equivalent methods:
     
         velocity /= u("ft/minute")              # Divide by a u() call
         velocity = to(velocity, "ft/minute")    # Use a convenience function
     
-    Numerous aliases are defined in the built-in set of SI units (and it's
-    trivial to define others).  Thus, you can use
+    Numerous aliases are defined in the built-in set of SI units (and it's trivial to define
+    others).  Thus, you can use
     
         feet, foot, ft
         min, minute, minutes
     
-    If you use the following process when developing code:
+    You should use the following process when developing code:
     
-        * Define all physical variables' numerical values using the u()
-            function, even the dimensionless ones.
+        - Define all physical variables' numerical values using the u() function, even the
+          dimensionless ones.
     
-        * Perform all intermediate calculations knowing that all your
-            variables are in base SI units (or derived SI units in terms
-            of them).
+        - Perform all intermediate calculations knowing that all your variables are in base SI
+          units (or derived SI units in terms of them).
     
-        * For output, use the to() or u() functions to convert the
-            variables' numerical values to the units of choice.
+        - For output, use the to() or u() functions to convert the variables' numerical values to
+          the units of choice.
     
-    This is strictly a units conversion module.  Except for the dimensional
-    checking feature mentioned below, the module is only useful for
-    converting between units with identical dimensional structure.
+    This is strictly a units conversion module.  Except for the dimensional checking feature
+    mentioned below, the module is only useful for converting between units with identical
+    dimensional structure.
     
-    The ParseUnit() function is provided to help pick apart into the number
-    and unit an input string a user might type in at a prompt in a program.
+    The ParseUnit() function is provided to help pick apart into the number and unit an input
+    string a user might type in at a prompt in a program.
     
-    The ParseFraction() function is used to get a number and a unit when the
-    number can be an int, float, or proper or improper fraction.
+    The ParseFraction() function is used to get a number and a unit when the number can be an int,
+    float, or proper or improper fraction.
     
-    The unit 'm/s/s' is ambiguous in normal scientific usage and thus not
-    allowed by SI rules.  Since this module uses python's expression parser
-    to evaluate expressions, it means (m/s)/s to the parser (because
-    division has left-associative division), so is acceptable to this
-    module.
+    The unit 'm/s/s' is ambiguous in normal scientific usage and thus not allowed by SI rules.
+    Since this module uses python's expression parser to evaluate expressions, it means (m/s)/s to
+    the parser (because division has left-associative division), so is acceptable to this module.
     
     Dimensional checking
     --------------------
     
-    A randomization feature is used to help discover dimensional errors in
-    calculations.  The random numbers "orthogonalize" unit conversion
-    factors to help find dimensional errors (see the numericalunits package
-    by Steve Byrnes at http://pypi.python.org/pypi/numericalunits).  You can
-    study the function GetConvenienceUInstance() to see how to instantiate a
-    set of units using this functionality.
+    A randomization feature is used to help discover dimensional errors in calculations.  The
+    random numbers "orthogonalize" unit conversion factors to help find dimensional errors (see the
+    numericalunits package by Steve Byrnes at http://pypi.python.org/pypi/numericalunits).  You can
+    study the function GetConvenienceUInstance() to see how to instantiate a set of units using
+    this functionality.
     
-    Check out the Analon slide rule from Keuffel & Esser from the
-    mid-1960's, as it used the idea of assigning real numbers to
-    dimensions in a consistent way for dimensional analysis.  Note there
-    were only around 1000 of these made and they have all been snapped up
-    by collectors.
+    Check out the Analon slide rule from Keuffel & Esser from the mid-1960's, as it used the idea
+    of assigning real numbers to dimensions in a consistent way for dimensional analysis.  There
+    were only around 1000 of these made and they have all been snapped up by collectors.
     
-    Also take a look at P. Bridgman's classic 1922 text on dimensional
-    analysis.
+    Also take a look at P. Bridgman's classic 1922 text on dimensional analysis.
     
-    You can use the dim() function to determine the physical dimensions of a
-    unit expression.  This returns a Dim object that encapsulates the
-    dimensions.
+    You can use the dim() function to determine the physical dimensions of a unit expression.  This
+    returns a Dim object that encapsulates the dimensions.
     
-    While the idea of using random numbers to orthogonalize the unit
-    conversion factors is interesting, I've found in practice that I don't
-    use it.  Instead, I pay careful attention to the code I write and use
-    the u() function in this module to make sure every physical number has
-    the appropriate unit.  Byrnes (the author of numericalunits) points out
-    that the feature is usable to test code you don't have the source to or
-    is compiled library code.
+    While the idea of using random numbers to orthogonalize the unit conversion factors is
+    interesting, I've found in practice that I don't use it.  Instead, I pay careful attention to
+    the code I write and use the u() function in this module to make sure every physical number has
+    the appropriate unit.  Byrnes (the author of numericalunits) points out that the feature is
+    usable to test code you don't have the source to or is compiled library code.
     
     Dimensional arithmetic
     ----------------------
     
-    The GetDim() function is a useful tool that uses a U object to get the
-    dimensions of an arbitrary unit expression.  The basic method is to 
-    split a unit expression such as "lbf/furlong**2" into unit tokens (here,
-    "lbf" and "furlong") and return a Dim object using these tokens.  These
-    Dim objects have arithmetic defined for them, so you can determine the
-    result of an operation with a number with these physical units.  Read
-    the docstring of GetDim() for more information.  The arithmetic is done
-    by python's parser, so the unit expressions must follow python's
-    grammar.
+    The GetDim() function is a useful tool that uses a U object to get the dimensions of an
+    arbitrary unit expression.  The basic method is to split a unit expression such as
+    "lbf/furlong**2" into unit tokens (here, "lbf" and "furlong") and return a Dim object using
+    these tokens.  These Dim objects have arithmetic defined for them, so you can determine the
+    result of an operation with a number with these physical units.  Read the docstring of GetDim()
+    for more information.  The arithmetic is done by python's parser, so the unit expressions must
+    follow python's grammar.
     
-    Note:  "m/s/s" is a notation sometimes used, but it is semantically
-    ambiguous and depends on the grammar -- which is why SI syntax forbids
-    it.  To python's parser, it results in "(m/s)/s" because division is
-    left-associative, which results in m/s**2.  But if the division is
+    Note:  "m/s/s" is a notation sometimes used, but it is semantically ambiguous and depends on
+    the grammar -- which is why SI syntax forbids it.  To python's parser, it results in "(m/s)/s"
+    because division is left-associative, which results in m/s**2.  But if the division is
     right-associative, the result is "m/(s/s)", which is "m".  
+
     ''')
 if 1:  # Copyright, license
     # These "trigger strings" can be managed with trigger.py
