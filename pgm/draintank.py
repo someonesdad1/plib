@@ -36,8 +36,8 @@ if 1:   # Utility
         exit(status)
     def Usage(status=1):
         print(dedent(f'''
-        Usage:  {sys.argv[0]} [options] etc.
-          Explanations...
+        Usage:  {sys.argv[0]} [options]
+          Interactive script to calculate the time it takes to drain a tank.
         Options:
             -h      Print a manpage
         '''))
@@ -90,36 +90,50 @@ if __name__ == "__main__":
     d = {}      # Options dictionary
     args = ParseCommandLine(d)
     print(dedent('''
-    You'll be asked for a tank volume in m3, a height in m, and a drain
-    hole diameter in m.  If you want to use other units, append them to the
-    number you type in.
+    Calculate the time to drain a tank of water (or fluids with viscosities near water) through a
+    hole.  You'll be asked for a tank volume in m3, a height in m, and a drain hole diameter in m.
+    If you want to use other units, append them to the number you type in.
 
-    The discharge coefficient is the fraction of the ideal mass flow
-    capable through the hole; it's a fraction of ρ*dV/dt with typical
-    values for sharp holes around 0.6 to 0.65.
+    The discharge coefficient is the fraction of the ideal mass flow capable through the hole; it's
+    a fraction of ρ*dV/dt with typical values for sharp holes around 0.6 to 0.65.
+
+    Example:  a 50 gallon drum of water 1 m high with a 1 inch hole hole in the bottom will take
+    1.8 minutes.
 
     '''))
     # All units are SI
+    #   V = Volume of tank
+    #   h = Height of fluid at start of discharge
+    #   d = Drain hole diameter
+    #   μ = Coefficient of discharge
     if 1:
         Vs, V = GetNumber("What is volume? ", "m3")
         Hs, h = GetNumber("What is height? ", "m")
         Ds, d = GetNumber("What is hole diameter? ", "m")
-        Cs, mu = GetNumber("What is coefficient of discharge [0.65]?  ", "", 0.65)
+        Cs, μ = GetNumber("What is coefficient of discharge [0.65]?  ", "", 0.65)
+    elif 0:
+        # 50 gal drum 1 m high with 1 inch hole
+        Vs, V = "50 gal", flt(50)*u.u("gal")
+        Hs, h = "1 m", flt(1)*u.u("m")
+        Ds, d = "1 in", flt(1)*u.u("in")
+        Cs, μ = "0.65", flt(0.65)
+        # Gives 1.8 minutes
     else:
         # This estimate was made for our sprayer draining through a chunk
         # of 1-1/4 inch pipe and it feels about right.
         Vs, V = "15 gal", flt(15)*u.u("gal")
         Hs, h = "10 in", flt(10)*u.u("in")
         Ds, d = "1.38 in", flt(1.38)*u.u("in")
-        Cs, mu = "0.65", flt(0.65)
-    g = 9.8     # Acceleration of gravity
-    A = pi*d**2/4
-    t = mu*V/A*sqrt(2/(h*g))
+        Cs, μ = "0.65", flt(0.65)
+        # Gives 34 s
+    g = 9.8                     # Acceleration of gravity in m/s²
+    A = pi*d**2/4               # Area in m²
+    t = μ*V/A*sqrt(2/(h*g))     # Time to drain tank in s
     # Print report
-    print(f"Volume      {Vs:20s} = {V} m³")
-    print(f"Height      {Hs:20s} = {h} m")
-    print(f"Hole dia    {Ds:20s} = {d} m")
-    print(f"Coeff       {Cs:20s} = {mu}")
+    print(f"Volume              {Vs:20s} = {V} m³")
+    print(f"Height              {Hs:20s} = {h} m")
+    print(f"Hole dia            {Ds:20s} = {d} m")
+    print(f"Coeff of discharge  {Cs:20s} = {μ}")
     if t >= 3600:
         print(f"\nDrain time  {t/3600} = hours")
     elif t >= 60:

@@ -79,6 +79,11 @@ if 1:   # Location data
             2028:  (datetime(2028, 3, 12), datetime(2028, 11, 5)),
             2029:  (datetime(2029, 3, 11), datetime(2029, 11, 4)),
             2030:  (datetime(2030, 3, 10), datetime(2030, 11, 3)),
+            2031:  (datetime(2031, 3,  9), datetime(2031, 11, 2)),
+            2032:  (datetime(2032, 3, 14), datetime(2032, 11, 7)),
+            2033:  (datetime(2033, 3, 13), datetime(2033, 11, 6)),
+            2034:  (datetime(2034, 3, 12), datetime(2034, 11, 5)),
+            2035:  (datetime(2035, 3, 11), datetime(2035, 11, 4)),
         }
         today = datetime.today()
         dst_start, dst_end = dst_data[today.year]
@@ -91,8 +96,13 @@ if 1:   # Utility
     def Usage(status=1):
         print(dedent(f'''
         Usage:  {sys.argv[0]} [options] [year month day]
-          Print sunrise/sunset and twilight times.  The default settings
-          print out 6 months of data.
+          Print sunrise/sunset and twilight times.  The default settings print out 6 months of
+          data.  In the second week in March and first week in November you'll see jumps in sunrise
+          and sunset because of the changes to/from Daylight Savings Time.
+        Validation:
+          2022 data from USNO https://aa.usno.navy.mil agreed within one least significant digit.
+        Source:
+          Derived from a C program by P. Schlyter put in the public domain in Dec 1992.
         Options:
             -h      Print a manpage
             -n n    Print n lines from given date [{d['-n']}]
@@ -446,7 +456,6 @@ if 1:   # Core functionality
         out.append(Get(dt, times, t.naut, t.naut))
         times = S.astronomicalTwilight(year, month, day, longitude, latitude)
         out.append(Get(dt, times, t.astro, t.astro))
-        # xx Need to correct for DST
         return ''.join(out)
 
 if __name__ == "__main__":

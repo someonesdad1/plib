@@ -22,7 +22,7 @@ S = "|"    # Field separator
  
 favorites = f'''
 
-Angie {S} Rolling Stones {S} S7sigwbqEj8 {S}
+Angie {S} Rolling Stones {S} oWRr03VcA-0 {S}
 Beethoven's 7th {S} Bernstein {S} Rw-KtQLdRT4 {S} 2nd movement 14:33 is best
 Beethoven's 9th, 2nd movement (1824) {S} {S} iwIvS4yIThU {S} Genius
 Bad Romance {S} PMJ, Sarah Reich, Ariana Savalas {S} VCTOpdlZJ8U {S} 
@@ -60,6 +60,7 @@ Bad Bad Leroy Brown {S} Jim Croce {S} CIiVindRSTA {S}
 '''
 songs = f'''
 
+100 lbs of Clay {S} Gene McDaniels {S} rUGonj90b5I {S}
 16 Tons {S} Tennessee Ernie Ford {S} jIfu2A0ezq0 {S} 
 25 Or 6 To 4 {S} Chicago {S} iUAYeN3Rp2E {S} Great horns and guitar
 A Horse With No Name {S} America {S} mSZXWdKSQNM {S} 
@@ -79,7 +80,9 @@ Blue World {S} Moody Blues {S} 8a9bfvNuTw0 {S} With lyrics
 Blue World {S} Moody Blues {S} oosjl8wNLJU {S} 
 Boogie Woogie Bugle Boy {S} Andrew Sisters {S} 8of3uhG1tCI {S} 
 Both Sides Now {S} Judy Collins {S} 8L1UngfqojI {S} 
+Brandy {S} Looking Glass {S} CFhFyvk0yS8 {S}
 Bucket drummer {S} ? {S} FqJdzYY_Fas {S} 
+Build Me Up Buttercup {S} The Foundations {S} w0kLkDCoRXc {S}
 Bus Stop {S} Hollies {S} It75wQ0JypA {S} 
 Carpool karaoke {S} Paul McCartney {S} QjvzCTqkBDQ {S} 
 Charles:  Cincinnati Kid {S} Ray Charles {S} rfn1YrwG2Oc {S} 
@@ -122,6 +125,7 @@ Girl drummer {S} {S} L-So4DLDvGc {S}
 Gypsy Waltz {S} Sally {S} eDGE6ah-e4Y {S} 
 Gypsy {S} Fleetwood Mac {S} mwgg1Pu6cNg {S} 
 Hair {S} Cowsills {S} BFy-yzj02FE {S} 
+Hallelujah {S} Lucy Thomas {S} dLk9pzmaFHY {S}
 Hang 'Em High {S} Movie theme {S} 0gscut1p4kY {S} 
 Hava Nagila {S} Dalida {S} YBj2PZ1IeIc {S} 
 Hawaii 50 {S} TV show theme {S} AepyGm9Me6w {S} 
@@ -215,6 +219,7 @@ Rawhide {S} Frankie Laine {S} _EjbzCX3enA {S}
 Ride My See-saw {S} Moody Blues {S} GXHMTuoK060 {S} 
 Rocket Man {S} Elton John {S} BdEe5SpdIuo {S} 
 Run Through The Jungle {S} Creedence Clearwater {S} EbI0cMyyw_M {S} 
+Runaround Sue {S} Dion {S} nFch8vH81ks {S}
 Sally Goodin {S} Sally {S} nbYBBeylfGk {S} My second-favorite fiddle song
 Scarborough Fair {S} Simon & Garfunkel {S} -BakWVXHSug {S} 
 Scat singing {S} Ella Fitzgerald & Mel Torme {S} 9CbVy1NnB4g {S} 
@@ -253,7 +258,7 @@ Torn Between Two Lovers {S} {S} TzGbvTl4mpg {S}
 Total Eclipse of the Heart {S} Bonnie Tyler {S} lcOxhH8N3Bo {S} 
 Tuxedo Junction {S} Mary MacGregor {S} iBTYcqtaOjg {S} 
 Two Faces Have I {S} Lou Christie {S} w05w1XbZTG8 {S} 
-Unchained Melody {S} Righteous Brothers {S} zrK5u5W8afc {S} 
+Unchained Melody {S} Righteous Brothers {S} m0EBs6uRgtw {S} 
 Unforgettable {S} Nat King Cole {S} Fy_JRGjc1To {S} 
 Unknown song {S} Sally {S} ob44BR1Hurg {S} 
 Unsquare Dance {S} Dave Clark Five {S} lbdEzRfbeH4 {S} 
@@ -262,6 +267,7 @@ Volga Boatmen  {S} Red Army Choir & Band {S} yfO0ADduEr8 {S} 1996
 Volga Boatmen {S} L. Kharitonov {S} 0tw3g88JtWA {S} 1965 
 Walk On the Wild Side {S} Walk on the Wild Side {S} 5O82y59h7MI {S} 
 Walking in the Air {S} Walking In the Air movie {S} upH1QZU4Z0Y {S} Movie theme sung by a 13 year old choirboy
+Wanderer {S} Dion {S} SbYa7NBYyRc {S}
 Washington Square {S} Village Stompers {S} ihenbyTzQ2A {S} 
 White Silver Sands {S} Don Rondo {S} mOqbjENGN7s {S} 
 Who's on First {S} Abbott & Costello {S} jIGRgmxRfiE {S} Genius comedy
