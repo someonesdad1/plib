@@ -1,86 +1,5 @@
-if 1:  # Header
-    if 1:  # Copyright, license
-        # These "trigger strings" can be managed with trigger.py
-        #∞copyright∞# Copyright (C) 2014 Don Peterson #∞copyright∞#
-        #∞contact∞# gmail.com@someonesdad1 #∞contact∞#
-        #∞license∞#
-        #   Licensed under the Open Software License version 3.0.
-        #   See http://opensource.org/licenses/OSL-3.0.
-        #∞license∞#
-        #∞what∞#
-        # Bend allowance computation for sheet metal
-        #∞what∞#
-        #∞test∞# #∞test∞#
-        pass
-    if 1:   # Imports
-        import sys
-        from functools import partial
-    if 1:   # Custom imports
-        from wrap import dedent
-        from get import GetNumber
-        from f import flt, radians
-def BendAllowance():
-    g = partial(GetNumber, low_open=True, low=0)
-    print("Bend Allowance Computation (length units are arbitrary)\n")
-    t = flt(g("t = thickness of material? "))
-    r = flt(g("r = radius of bend?        "))
-    θ = flt(g("θ = angle of bend in °?    "))
-    θ = radians(θ)
-    x = t/3 if r < 2*t else 2*t/10
-    if r > 4*t:
-        x = t/2
-    t.N = 3
-    print(dedent(f'''
-    
-    Length of bend exterior          {θ*(r + t)}
-    Length of bend interior          {θ*r}
-    Length of material to form bend  {θ*(r + x)}
- 
-    Formulas:
-        if r < 2*t:
-            x = t/3
-        elif 2*t <= r <= 4*t:
-            x = t/5
-        else:
-            x = t/2
-        and
-            Length of bend exterior          = θ*(r + t)
-            Length of bend interior          = θ*r
-            Length of material to form bend  = θ*(r + x)
-    '''))
-if 0 and __name__ == "__main__": 
-    Intro()
-    BendAllowance()
-
 '''
-ToDo
-    - Use various algorithms
-
 Bend allowance computation for sheet metal
-
-    The fundamental dimensions for bending sheet metal are
-
-        r = inside radius of the bend
-        L = length of straight stock needed before bending
-        θ = angle of bend in radians
-
-    Important:  θ is how much the metal has to be bent from the flat to form the
-    desired shape.  A bracket with an interior angle of 60 degrees needs to be bent by an
-    angle of 120 degrees.  Conversely, a bracket with an interior angle of 120 degrees has a bend
-    angle of 60 degrees.
-
-    Algorithm 1:  Based on bend.c by M. Klotz.  Klotz lost the attribution, but thought it was
-    probably one of Hoffman's articles in "Home Shop Machinist".
-
-    Algorithm 2:  Base on MH 19th ed pg 1857.  The three formulas came from Westinghouse
-    experiments for bench bending with simple tools and working to ±1/64th of an inch.
-    The three cases are: 1) soft brass/copper, 2) half-hard copper/brass, soft steel, and
-    aluminum, and 3) bronze, hard copper, cold-rolled steel, and spring steel.
-
-        L = k*t + r*θ
-
-    where k = 0.55 for case 1, 0.64 for case 2, 0.71 for case 3.
-
 '''
 if 1:   # Header
     if 1:   # Copyright, license
@@ -111,7 +30,6 @@ if 1:   # Header
         from get import GetLines
         from wrap import dedent
         from wsl import wsl     # wsl is True when running under WSL Linux
-        #from columnize import Columnize
     if 1:   # Global variables
         class G:
             # Storage for global variables as attributes
@@ -183,21 +101,11 @@ if 1:   # Utility
         print(dedent(f'''
         Usage:  {sys.argv[0]} [options] t L r [θ]
           Calculate the needed length L' of stock to make a bend in sheet metal of thickness t.
-          The angle θ is from the flat form and r is the inside radius of the bend.  θ must be in
-          degrees and is 90° if omitted.  L is the finished dimension.  L, r, and t are assumed to
-          have the same physical units.  The material is assumed to be half-hard brass/copper, soft
-          steel, or aluminum.  The forming is done at the bench with hand tools.  Working
-          tolerances are about half a mm (0.015 inches or 1/64th of an inch).
-        Example:
-            I want a 90° bracket from 1/8 inch thick aluminum with 1 inch legs on each side.  The
-            bend radius should be 1/8 inch.  How long should the starting stock piece be cut to?
-            Arguments are L = 2, t = 1/8, r = 1/8 (the program's input can evaluate expressions),
-            and we can omit θ because it defaults to 90°.
-
-            The formula from MH is BA = 0.64*t + 1.57*r = 0.64*(1/8) + 1.57*(1/8) = 0.28.  This
-            bend allowance should be added to the finished length of the part, which is 2 inches.
-            Thus, we cut a piece 2.28 inches long.  I mark a line at 1.14 inches from the end and
-            make the 90° bend from this point.
+          The angle θ is the bend angle from the flat form and r is the inside radius of the bend.
+          θ must be in degrees and is 90° if omitted.  L is the finished dimension.  L, r, and t
+          are assumed to have the same physical units.  The material is assumed to be half-hard
+          brass/copper, soft steel, or aluminum.  The forming is done at the bench with hand tools.
+          Working tolerances are about half a mm (0.015 inches or 1/64th of an inch).
         Options:
             -1      Material is soft brass or copper
             -2      Material is bronze, hard copper, cold-rolled steel or spring steel
