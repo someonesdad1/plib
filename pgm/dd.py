@@ -68,7 +68,7 @@ def Clausing():
     for i in Columnize(t, indent=" "*2, sep=" "*4):
         print(i)
 def ClausingMetricPitch():
-    print(f'''\n{"Clausing lathe threads' metric pitch":^{w}s}''')
+    print(f'''\n{"Clausing lathe threads, pitch in mm":^{w}s}''')
     s = []
     for tpi in tpi_lathe:
         p = 25.4/tpi

@@ -2,6 +2,8 @@ Active:  /plib/.todo
 
     - Spell check all scripts with a Usage function
 
+    - pgm/dec.py needs to have color stuff upgraded
+
     - xfmpy/xseq.py
         - Fix syntax:  '2 8 1.1' doesn't give what I'd expect
 
