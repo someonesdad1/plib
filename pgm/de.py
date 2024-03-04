@@ -290,9 +290,9 @@ if 1:  # Core functionality
             f = Fraction(numer, denom)
             c = ""
             if f.denominator in (2, 4, 8):
-                c = tclr("redl") if d["-c"] else ""
+                c = tclr("ornl") if d["-c"] else ""
             elif f.denominator in (16,):
-                c = tclr("grnl") if d["-c"] else ""
+                c = tclr("yell") if d["-c"] else ""
             #elif f.denominator in (32,):
             #    c = tclr("yel") if d["-c"] else ""
             #elif f.denominator in (64,):
@@ -300,7 +300,7 @@ if 1:  # Core functionality
             s = c + FmtFrac(f) + N
             s += f" {c}{float(f):.{n}f}{N}"
             # Include mm equivalent
-            c = tclr("cynl") if d["-c"] else ""
+            c = tclr("denl") if d["-c"] else ""
             s += f" {c}{float(f)*25.4:>4.1f}{N}"
             out.append(s)
         for i in Columnize(out):
