@@ -2,6 +2,8 @@ Active:  /plib/.todo
 
     - Spell check all scripts with a Usage function
 
+    - pgm/de.py and pgm/dia.py have overlapping functionality.  Combine them into one tool.
+
     - pgm/dec.py needs to have color stuff upgraded
 
     - xfmpy/xseq.py
