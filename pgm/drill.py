@@ -28,13 +28,12 @@ if 1:  # Copyright, license
 if 1:   # Imports
     import sys
     import getopt
-    import color as c
-    #from math import *
     from fractions import Fraction
-    from pdb import set_trace as xx
 if 1:   # Custom imports
     from wrap import dedent
     from columnize import Columnize
+    from color import t
+    import color as c
 if 1:   # Global variables
     DrillSizes = '''
         # Name:(diameter in inches)
@@ -200,26 +199,26 @@ def PrintSize(size, d):
             s.append((size, name))
     max_length = max([len(name) for size, name in sz])
     # Get the best match
-    t = []
+    matches = []
     for size, name in s:
         pct = 100*(float(size) - sz_inches)/sz_inches
-        t.append((abs(pct), name))
-    t.sort()
-    best = t[0][1]
+        matches.append((abs(pct), name))
+    if not matches:
+        print("No matches found")
+        exit(0)
+    matches.sort()
+    best = matches[0][1]
     fmt = " "*4 + GetFormat(max_length, d)
     fmt += " "*indent + "{2: .2g}%    {3}"
     for size, name in s:
-        if d["-c"]:
-            flag = ""
-            if name == best:
-                c.fg(c.lred)
-            else:
-                c.normal()
-        else:
-            flag = "*" if name == best else ""
+        flag = "*" if name == best else ""
+        if d["-c"] and name == best:
+            print(f"{t('ornl')}", end="")
         pct = 100*(float(size) - sz_inches)/sz_inches
         print(fmt.format(name, float(size), pct, flag))
-    c.normal()
+        if d["-c"]:
+            print(f"{t.n}", end="")
+
 if __name__ == "__main__": 
     d = {}  # Options dictionary
     sizes = ParseCommandLine(d)
