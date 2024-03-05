@@ -35,6 +35,8 @@ if 1:   # Custom imports
     from f import flt
 if 1:   # Global variables
     sr3 = flt(3**0.5)
+    sr3.N = 5
+    sr3.rtz = sr3.rtdp = False
 def Convert(size):
     'Convert the string size to a flt'
     if "/" in size:
