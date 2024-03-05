@@ -7,9 +7,9 @@ Calculate features of a circle's segment
         r = 152.2
         θ = 90°
         d = 107.4
-        h = 44.8
-        b = 239.1
-        s = 215.5
+        h = 44.8        height of segment
+        b = 239.1       arc length = r*θ
+        s = 215.5       chord length
 '''
 if 1:  # Copyright, license
     # These "trigger strings" can be managed with trigger.py
@@ -25,9 +25,9 @@ if 1:  # Copyright, license
     #∞test∞# #∞test∞#
     pass
 if 1:   # Imports
+    from pathlib import Path as P
     import os
     import re
-    import subprocess
     import sys
     try:
         import readline         # History and command editing
@@ -35,15 +35,15 @@ if 1:   # Imports
         have_readline = True
     except Exception:
         have_readline = False
-    from pdb import set_trace as xx
-    from pprint import pprint as pp
 if 1:   # Custom imports
     from wrap import dedent
-    from f import *
+    from f import flt, pi, degrees, radians, sin, cos, tan, sqrt, asin, acos, atan
     from u import u, ParseUnit
     from cmddecode import CommandDecode
-    from color import C
+    from color import t
+    from launch import Launch
     import root
+    from wsl import wsl
     if 0:
         import debug
         debug.SetDebugger()
@@ -51,12 +51,15 @@ if 1:   # Global variables
     class g:
         pass
     g.E = Exception("Not implemented")
-    g.prompt = C.lred
-    g.n = C.norm
-    g.digits = flt(0).n
+    t.prompt = t("ornl")
+    t.N = t.n
     g.vars = {}
     g.units = "mm"
     g.unc_short = re.compile(r"\(\d+\)")
+    # Set the number of significant figures
+    x = flt(0)
+    x.rtz = x.rtdp = False
+    g.digits = x.N = 6
 def GetNumber(value, vars=None):
     '''The user has entered a number.  Interpret it as an expression
     evaluated as a flt.
@@ -78,7 +81,7 @@ def GetCommand():
     while not ok:
         s = ""
         while not s:
-            s = input(f"{g.prompt}<seg>{g.n} ")
+            s = input(f"{t.prompt}<seg>{t.n} ")
         if "=" in s:
             # Variable assignment
             exec(s, globals(), None)
@@ -172,10 +175,10 @@ def Help():
     Enter two variables needed to solve for the properties of the segment of a circle.  The
     variables are (all lengths must be in the same units):
       r       Circle radius {f("r")}
-      theta   Sector angle {f("theta")}(can also use 't')
-      s       Chord width of sector {f("s")}
-      h       Height of sector {f("h")}
-      b       Arc length of sector {f("b")}
+      theta   Segment angle {f("theta")}(can also use 't')
+      s       Chord width of segment {f("s")}
+      h       Height of segment {f("h")}
+      b       Arc length of segment {f("b")}
       u       Default length units to use [{g.units}]
     Entries should be like
         r 4.2 
@@ -198,7 +201,7 @@ def Help():
  
     Other commands are (they can be abbreviated as needed):
       quit          Exit the script
-      digits n      Set the number of significant digits [{flt(0).n}]
+      digits n      Set the number of significant digits [{flt(0).N}]
       picture       Show the bitmap of the problem's variables
       .             Print the currently solved problem
       dbg           Enter the debugger
@@ -263,10 +266,7 @@ def Execute(cmd, args):
         except Exception:
             print("'{args[0]}' not an integer")
     elif cmd == "picture":
-        p = P(sys.argv[0])
-        f = p.resolve().parent
-        os.chdir(f)
-        subprocess.call(['c:/cygwin/home/Don/bin/app.exe', p.stem + ".png"])
+        Launch(P("/plib/pgm/seg.png"))      # Open the file /plib/pgm/seg.png
         return
     elif cmd == "clear":
         g.vars.clear()
