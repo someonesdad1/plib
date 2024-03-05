@@ -426,13 +426,13 @@ if 1:   # Find sizes that cannot be made
             if not found:
                 x = float(dia/1e4)
                 #print(f"{t('ornl')}{x:.4f}{t.n}", end=" ")
-                print(f"{x:.4f} {sw()} seconds", file=fp)
+                print(f"{x:.4f} {sw()} seconds", file=fd)
             #if count and count % 1000 == 0:
             #    pct = int(100*count/N)
             #    print(f"{t('redl')}{pct}%{t.n}", file=sys.stderr)
         #print()
 
-if 0:
+if 1:
     d, D = 4000, 100000
     from timer import Stopwatch
     with open("starrett.64.impossible_4_to_6", "w") as fd:

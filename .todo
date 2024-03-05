@@ -1,11 +1,19 @@
 Active:  /plib/.todo
 
+    - ad:  make a tool analogous to hd to dump text files so you can see location of Unicode
+      characters and their value.  Can also use color coding.  For control characters, use 
+      things like U2400 to U2421.
+
+    - /shop/software  Update these python scripts to current standards and put them in $pp
+
     - Spell check all scripts with a Usage function
 
     - pgm:  de.py, dia.py, drill.py have overlapping functionality.  Combine them into one tool.
 
     - pgm/dec.py needs to have color stuff upgraded.  Also look at making it not need the '-' to
       read from stdin, as this is such a common use case.
+
+    - Analytic geometry document:  convert to LaTeX
 
     - xfmpy/xseq.py
         - Fix syntax:  '2 8 1.1' doesn't give what I'd expect

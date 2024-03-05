@@ -1,5 +1,5 @@
 '''
-Calculate features of a circle's sector
+Calculate features of a circle's segment
     The method is to use the formulas from pg 51 of the Analytic Geometry
     document, as it has formulas for the independent variables in pairs.
  
@@ -20,7 +20,7 @@ if 1:  # Copyright, license
     #   See http://opensource.org/licenses/OSL-3.0.
     #∞license∞#
     #∞what∞#
-    # Interactive script to calculate features of a circle's sector
+    # Interactive script to calculate features of a circle's segment
     #∞what∞#
     #∞test∞# #∞test∞#
     pass
@@ -168,8 +168,9 @@ def Help():
     def f(x):
         return f"[{g.vars[x]}]" if x in g.vars else ""
     print(dedent(f'''
-    Enter two variables needed to solve for the properties of the sector of a
-    circle.  The variables are (all lengths must be in the same units):
+
+    Enter two variables needed to solve for the properties of the segment of a circle.  The
+    variables are (all lengths must be in the same units):
       r       Circle radius {f("r")}
       theta   Sector angle {f("theta")}(can also use 't')
       s       Chord width of sector {f("s")}
@@ -178,9 +179,14 @@ def Help():
       u       Default length units to use [{g.units}]
     Entries should be like
         r 4.2 
-    The angle theta is in degrees unless you include the unit 'rad' for
-    radians (include a space).  The number can be an expression like 
-    '4.2*sin(radians(12))' (the math module's symbols are in scope).
+    The angle theta is in degrees unless you include the unit 'rad' for radians (include a space).
+    The number can be an expression like '4.2*sin(radians(12))' (the math module's symbols are in
+    scope).
+
+    A circular sector is the pie-shaped piece composed of a given angle.  The segment associated
+    with this sector is the portion with the triangle removed, leaving only the arc and straight
+    line.  It's the form of what you would get if you used scissors to make a straight cut through
+    a disk.  If the cut goes through the center, you wind up with a semicircle.
  
     The solution will be given for the pairs of numbers
         r, θ        s, θ        h, θ        b, θ
@@ -188,8 +194,7 @@ def Help():
         b, s        b, h
     You can also make variable assignments like 
         y = 34.5
-    These variables are put in the global namespace and you can use them in
-    expressions.
+    These variables are put in the global namespace and you can use them in expressions.
  
     Other commands are (they can be abbreviated as needed):
       quit          Exit the script

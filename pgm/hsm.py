@@ -1,6 +1,7 @@
 '''
 
 ToDo:
+    - Color-highlight the matched strings in each line
     - The data need to be regularized
         - A single field for each entry
         - Use a character like "|" to separate fields (note this character
