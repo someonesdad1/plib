@@ -76,6 +76,7 @@ if 1:   # Global variables
     # 5e4ac70ff2eb81007e3c32b7b6fb7d57.
     # NOTE:  these links are defunct as of 6 Jul 2021.
     mi = dedent('''
+
     ! Joe Landau's Metalworking Index 2000 Edition, covering 
     ! "Home Shop Machinist" through 1999
     ! "Projects in Metal" magazines through-1998

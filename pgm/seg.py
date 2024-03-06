@@ -1,15 +1,62 @@
 '''
 Calculate features of a circle's segment
-    The method is to use the formulas from pg 51 of the Analytic Geometry
-    document, as it has formulas for the independent variables in pairs.
+
+    The method is to use the formulas from pg 51 of the Analytic Geometry document, as it has
+    formulas for the independent variables in pairs.
+
+    Alas, the symbols used in the document are poor, as I used s for the chord length and b for the
+    arc length.  s is almost always used for arc length and it catches me every time I use the
+    program, but it's too much work to change the document and its formulas.
  
-    Check data from a drawing on an A size piece of paper:
-        r = 152.2
-        θ = 90°
-        d = 107.4
-        h = 44.8        height of segment
-        b = 239.1       arc length = r*θ
-        s = 215.5       chord length
+    Check data from a drawing on an A size piece of paper in mm:
+        r = 152.2       Radius of circle
+        θ = 90°         Central angle of circle's sector
+        d = 107.4       d + h == r
+        h = 44.8        Height of segment
+        b = 239.1       Arc length = r*θ
+        s = 215.5       Chord length
+
+    This tool solves a puzzle I remember someone gave me when I was a student:
+
+        A train track rail is 10000 meters long and flat.  During the night, a prankster welds in
+        another meter of rail, causing the rail to bow upwards in a circle (the ends of the rails
+        were such that they couldn't move, only pivot).  How far above the ground is the rail if
+        the circular arc is in a vertical plane?  Note the length of the rail only increased by a
+        hundredth of a percent.
+
+    If you enter into the script
+
+        b 10001
+        s 10000
+
+    you'll get the output
+
+        θ = 2.80681° = 0.0489881 radians
+        r = 204152.                     
+        h = 61.2382                     
+        b = 10001.0                     
+        s = 10000.0                     
+
+    The thing that surprises folks is that the rail is 61.2 m (200 feet) over your head.  The root
+    cause of this is that the circle is large.  If the circle were sitting on the Earth's surface
+    and in a vertical plane, the other side of the circle would be well into outer space, as it's
+    400 km away and outer space is approximately 100 km above the Earth's surface.
+
+    This puzzle was given to beginning college students because a good way to solve it is to use
+    the first two terms of the power series for the sine, which they would have learned in their
+    basic calculus class -- and you can solve the problem easily with pencil and paper.  The final
+    numerical answer can be gotten to three figures with a slide rule, which is how we did it when
+    I was in college in the 1960's.  The script solves the problem to 15 figures with a
+    Newton-Raphson root finder for the implicit equation for the angle θ.
+
+    I sent this to a friend and he used the "obvious" approximation of the Pythagorean theorem,
+    something that didn't occur to me even though I was looking right at the appropriate triangle.
+    I looked at this problem again in 2024 to check the math, as I wrote this script about 25 years
+    ago and remembered the table of equations in Machinery's Handbook had a number of errors in
+    them, as I couldn't get the correct numerical answers and had to derive the equations myself.
+    Thus, this rail track problem and the above drawing on paper are good checks of the numerical
+    methods used.
+
 '''
 if 1:  # Copyright, license
     # These "trigger strings" can be managed with trigger.py
