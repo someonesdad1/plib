@@ -16,9 +16,11 @@ def GetDouble(prompt, default, low, high):
         return float(default)
     str = ""
     while 1:
-        str = raw_input(prompt + " [" + default + "] ").strip()
+        str = input(prompt + " [" + default + "] ").strip()
         if str == "":
             return float(default)
+        elif str == "q":
+            exit(0)
         try:
             choice = float(eval(str))
             if choice < low or choice > high:
@@ -32,9 +34,11 @@ def GetInt(prompt, default, low, high):
         return default
     str = ""
     while 1:
-        str = raw_input(prompt + " [" + repr(default) + "] ").strip()
+        str = input(prompt + " [" + repr(default) + "] ").strip()
         if str == "":
             return default
+        elif str == "q":
+            exit(0)
         try:
             choice = int(eval(str))
             if choice < low or choice > high:
@@ -43,14 +47,16 @@ def GetInt(prompt, default, low, high):
         except Exception:
             print(("'%s' not an acceptable integer.  Must lie between %d " +
                   "and %d.") % (str, low, high))
-def GetChoice(prompt, default, choices):
+def GetChoice(prompt, default, choices, quit="q"):
     if debug:
         return default
     ok = 0
     while not ok:
-        choice = raw_input(prompt + " [" + default + "] ").strip()
+        choice = input(prompt + " [" + default + "] ").strip()
         if choice == "":
             return default
+        elif choice == quit:
+            exit(0)
         if choice in choices:
             ok = 1
         else:
