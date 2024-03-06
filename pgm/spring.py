@@ -59,8 +59,8 @@ if 1:   # Header
             # Storage for global variables as attributes
             pass
         g = G()
-        g.dbg = False
         g.dbg = True
+        g.dbg = False
         ii = isinstance
         # Modulus of rigidity (modulus of torsional elasticity) of music
         # wire, MH pg 533
