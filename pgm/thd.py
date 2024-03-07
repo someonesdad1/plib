@@ -888,6 +888,9 @@ if 1:  # Header
             ("1 UNEF", 1.000, 20.0),
         )
 if 1:   # Utility
+    def Error(s):
+        print(s, file=sys.stderr)
+        sys.exit(1)
     def Manpage():
         print(dedent(f'''
         Usage:  {sys.argv[0]} [options] thread_size
@@ -1085,7 +1088,7 @@ if 1:   # Utility
           -a frac     Min & max wire sizes for this thread (use -h for details)
           -b          Show lathe threads closest to metric pitches
           -c num      Specify class 1, 2, or 3 thread ({d["-c"]} is default)
-          -d n        Number of significant figures to display
+          -d n        Number of significant figures to display [{d["-d"]}]
           -h          Detailed help
           -l          List the taps and dies on hand.
           -L loe      Change the length of engagement from 1.  Units are the
@@ -1098,9 +1101,6 @@ if 1:   # Utility
           -w dia      Specify size of thread wire to use
         '''))
         exit(1)
-    def Error(s):
-        print(s, file=sys.stderr)
-        sys.exit(1)
     def ProcessCommandLine():
         d["-A"] = False     # Show all threads
         d["-a"] = 0.95      # Fraction of 5/8*H for max thread wire diameter
@@ -1180,7 +1180,7 @@ if 1:   # Utility
         if len(args) < 1 or len(args) > 3:
             Usage()
         x = flt(0)
-        x.n = d["-d"]
+        x.N = d["-d"]
         x.rtz = x.rtdp = True
         d["cmdline"] = ' '.join(sys.argv[1:])
         # If any elements contain a '-', increase the number of arguments
