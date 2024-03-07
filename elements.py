@@ -482,7 +482,6 @@ if 1:   # Utility
             -l      Launch page on list of elements
             -n m    Allow up to m pages to be opened [{d['-n']}]
             -o      Open wikipedia page on matched elements
-            -s      Show a short list of elements
             -t      Run self-tests
         '''))
         exit(status)
@@ -738,16 +737,17 @@ if 1:   # Core functionality
         print(f"{i}{'Period':{w}s}{e.period}")
         print(f"{i}{'Block':{w}s}{e.block}")
     def ShortList():
-        'Show the short list, one element per line'
+        'This is printed if there are no arguments.  One element per line.'
+        # Print header
         hdr = dedent('''
-        Sym  Z      Name     AtWt, Da    mp/bp K         g/cm³      ppm
+        Sym  Z      Name     AtWt, Da       mp/bp K         g/cm³      ppm
         --- -- ------------- --------- ----------------- ---------- ----------
         ''')
         t.hdr = t("brnl")
         t.print(f"{t.hdr}{hdr}")
         # Get colors for phases
         dc = {
-            "solid": t("whtl"),
+            "solid": t("wht"),
             "liquid": t("grnl"),
             "gas": t("denl"),
             "unknown phase": t("lipl"),
@@ -757,13 +757,15 @@ if 1:   # Core functionality
             num = i.Z
             if not d["-a"] and num > 92:
                 continue
-            c = dc[f"{i.phase}"]
+            c = dc[f"{i.phase}"]    # Phase color
             if i.aw_Da[0] == "[":
-                s = f"{t.rad} {i.aw_Da:6s}{t.n}"
+                s = f"{t.rad} {i.aw_Da:6s}{t.n}"    # Radioactive atomic weight
             else:
-                s = f"{i.aw_Da:6s}"
+                s = f"{i.aw_Da:6s}"                 # Regular atomic weight
+            # symbol, Z, name, at. wt.
             print(f"{c}{i.sym:2s} {i.Z:3d} {i.name:13s} {s:^9s} {c}", end=" ")
             s = f"{i.mp}/{i.bp}"
+            # Melting point/boiling point, density, ppm in crust
             print(f"{s:^17s} {i.rho:^11s} {i.ppm:^10s}{t.n}")
         # Print "reverse header"
         f = hdr.split("\n")
