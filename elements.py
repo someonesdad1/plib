@@ -759,9 +759,9 @@ if 1:   # Core functionality
                 continue
             c = dc[f"{i.phase}"]    # Phase color
             if i.aw_Da[0] == "[":
-                s = f"{t.rad} {i.aw_Da:6s}{t.n}"    # Radioactive atomic weight
+                s = f"{t.rad}{i.aw_Da:^9s}{t.n}"    # Radioactive atomic weight
             else:
-                s = f"{i.aw_Da:6s}"                 # Regular atomic weight
+                s = f"{i.aw_Da:^9s}"                # Regular atomic weight
             # symbol, Z, name, at. wt.
             print(f"{c}{i.sym:2s} {i.Z:3d} {i.name:13s} {s:^9s} {c}", end=" ")
             s = f"{i.mp}/{i.bp}"
@@ -770,6 +770,7 @@ if 1:   # Core functionality
         # Print "reverse header"
         f = hdr.split("\n")
         t.print(f"{t.hdr}{f[1]}\n{f[0]}")
+        # Color codes
         sol = dc["solid"]
         liq = dc["liquid"]
         gas = dc["gas"]
@@ -779,7 +780,7 @@ if 1:   # Core functionality
               "at 25 °C and 100 kPa")
         print(f"{t.rad}[209]{t.n} means the atomic weight of the most stable isotope")
         print(f"(1125) means a predicted property")
-        print(f"1 Da is 1.6605390666 yg")
+        print(f"1 Da is 1.66054×10⁻²⁴ g (i.e., yg)")
 
 if __name__ == "__main__":
     d = {}      # Options dictionary
