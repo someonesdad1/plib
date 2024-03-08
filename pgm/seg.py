@@ -307,7 +307,7 @@ def Execute(cmd, args):
         try:
             n = int(args[0])
             if 1 <= n <= 15:
-                flt(0).n = n
+                flt(0).N = n
             else:
                 raise Exception()
         except Exception:
@@ -365,7 +365,7 @@ def TestCase():
         b = 239.1
         s = 215.5
     '''
-    flt(0).n = 6
+    Nlt(0).N = 6
     # r, θ
     g.vars["r"] = flt(152.2)
     g.vars["theta"] = pi/2
@@ -423,7 +423,7 @@ def TestCase():
 if __name__ == "__main__": 
     if len(sys.argv) == 2 and sys.argv[1] == "-t":
         TestCase()
-    flt(0).n = 4
+    flt(0).N = 4
     g.variables = {}
     g.commands = sorted('''clear ? . quit digits picture dbg dump
                   r theta s h b u
