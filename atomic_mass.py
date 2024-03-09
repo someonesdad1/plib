@@ -1,5 +1,5 @@
 '''
-Calculate the molecular weight of a chemical formula
+Calculate the molecular mass of a chemical formula
 '''
 if 1:   # Header
     # Copyright, license
@@ -9,7 +9,7 @@ if 1:   # Header
         # None
         #∞license∞#
         #∞what∞#
-        # Calculate the molecular weight of a chemical formula.  Taken from
+        # Calculate the molecular mass of a chemical formula.  Taken from
         # https://gist.github.com/Rhomboid/5994999.
         #∞what∞#
         #∞test∞# --test #∞test∞#
@@ -19,7 +19,6 @@ if 1:   # Header
         import re
         from pathlib import Path as P
         import sys
-        from pdb import set_trace as xx
     # Custom imports
         from lwtest import run, raises, assert_equal, Assert
         from f import flt

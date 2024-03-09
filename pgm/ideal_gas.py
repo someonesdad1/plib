@@ -233,7 +233,6 @@ def ParseCommandLine(d):
     x.N = d["-d"]
     x.low = 0.001
     x.high = 99999.999
-    x.u = True
     return args
 def Help(d):
     print(dedent(f'''
