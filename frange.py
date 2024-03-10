@@ -38,46 +38,54 @@ Generators that are floating point analogs of range()
         5, 4, 3, 2, 1,
         1/4, 3/8, 1/2, 5/8, 3/4]
 '''
-if 1:  # Copyright, license
-    # These "trigger strings" can be managed with trigger.py
-    #∞copyright∞# Copyright (C) 2010, 2015 Don Peterson #∞copyright∞#
-    #∞contact∞# gmail.com@someonesdad1 #∞contact∞#
-    #∞license∞#
-    #   Licensed under the Open Software License version 3.0.
-    #   See http://opensource.org/licenses/OSL-3.0.
-    #∞license∞#
-    #∞what∞#
-    # <programming> Generators that are floating point analogs of
-    # range().  Also provides a utility function that can produce
-    # arithmetic sequences of integers, floating point numbers, and
-    # fractions.
-    #∞what∞#
-    #∞test∞# --test #∞test∞#
-    pass
-if 1:   # Imports
-    import re
-    import sys
-    import itertools
-    from decimal import Decimal
-    from numbers import Integral
-    from fractions import Fraction
-if 1:   # Custom imports
-    from roundoff import RoundOff
-    from f import flt
-    # For convenience, frange will return a flt by default.  Change this to
-    # float if you really want a float (note a flt is derived from float).
-    ret_type = flt
-    # You must manually enable numpy support
-    have_numpy = False
-    if have_numpy:
-        import numpy
-if 1:   # Global variables
-    __all__ = "frange ifrange lrange Rational Sequence".split()
-    # Regular expression to split strings on whitespace
-    split_ws = re.compile(r"\s+")
+if 1:  # Header
+    if 1:  # Copyright, license
+        # These "trigger strings" can be managed with trigger.py
+        #∞copyright∞# Copyright (C) 2010, 2015 Don Peterson #∞copyright∞#
+        #∞contact∞# gmail.com@someonesdad1 #∞contact∞#
+        #∞license∞#
+        #   Licensed under the Open Software License version 3.0.
+        #   See http://opensource.org/licenses/OSL-3.0.
+        #∞license∞#
+        #∞what∞#
+        # <programming> Generators that are floating point analogs of
+        # range().  Also provides a utility function that can produce
+        # arithmetic sequences of integers, floating point numbers, and
+        # fractions.
+        #∞what∞#
+        #∞test∞# --test #∞test∞# pass
+        pass
+    if 1:   # Imports
+        import getopt
+        import itertools
+        import os
+        import pathlib
+        import re
+        import sys
+        from decimal import Decimal
+        from numbers import Integral
+        from fractions import Fraction
+    if 1:   # Custom imports
+        from wrap import dedent
+        from lwtest import run, raises, assert_equal, Assert
+        from color import t
+        from roundoff import RoundOff
+        from f import flt
+        # For convenience, frange will return a flt by default.  Change this to
+        # float if you really want a float (note a flt is derived from float).
+        ret_type = flt
+        try:
+            import numpy
+            have_numpy = True
+        except ImportError:
+            have_numpy = False
+    if 1:   # Global variables
+        __all__ = "frange ifrange lrange Rational Sequence".split()
+        # Regular expression to split strings on whitespace
+        split_ws = re.compile(r"\s+")
 class Rational(Fraction):
-    '''The Rational class is a fractions.Fraction object except that
-    it has a conventional proper fraction string representation.
+    '''The Rational class is a fractions.Fraction object except that it has a conventional proper
+    fraction string representation.
     '''
     def __str__(self):
         n, d = abs(self.numerator), abs(self.denominator)
@@ -90,76 +98,64 @@ class Rational(Fraction):
                 s.extend([str(ip), "-"])
             s.extend([str(remainder), "/", str(d)])
         return ''.join(s)
-def frange(start, stop=None, step=None, return_type=ret_type, impl=Decimal,
-           strict=True, include_end=False):
-    '''A floating point generator analog of range.  start, stop, and step
-        are either python floats, integers, or strings representing floating
-        point numbers (or any other object that impl can convert to an object
-        that behaves with numerical semantics).  The iterates returned will be
-        of type return_type, which should be a function that converts the impl
-        type to the desired type.  impl defines the numerical type to use for
-        the implementation.  strict is used to define whether we should try to
-        convert an impl object to a string before converting it to a
-        return_type.  If strict is True, this is not allowed.  If strict is
-        False, the conversion will be tried.  Setting strict to False may allow
-        some number types to work with other number types, however, the burden
-        is on the user to determine if frange still behaves as expected.
+def frange(start, stop=None, step=None, return_type=ret_type, impl=Decimal, strict=True, include_end=False):
+    '''A floating point generator analog of range.  start, stop, and step are either python floats,
+    integers, or strings representing floating point numbers (or any other object that impl can
+    convert to an object that behaves with numerical semantics).  The iterates returned will be of
+    type return_type, which should be a function that converts the impl type to the desired type.
+    impl defines the numerical type to use for the implementation.  strict is used to define
+    whether we should try to convert an impl object to a string before converting it to a
+    return_type.  If strict is True, this is not allowed.  If strict is False, the conversion will
+    be tried.  Setting strict to False may allow some number types to work with other number types,
+    however, the burden is on the user to determine if frange still behaves as expected.
     
-        If include_end is True, then the step is added to the stop number.
-        This allows you to get e.g. an inclusive list of integers.  However,
-        for floating point values, you may get a number one step beyond the
-        stopping point.  Examples:
+    If include_end is True, then the step is added to the stop number.  This allows you to get e.g.
+    an inclusive list of integers.  However, for floating point values, you may get a number one
+    step beyond the stopping point.  Examples:
     
-            frange("1", "3", "0.9") returns 1.0, 1.9, 2.8
+        frange("1", "3", "0.9") returns 1.0, 1.9, 2.8
     
-        but
+    but
     
-            frange("1", "3", "0.9" include_end=True) returns
-            1.0 1.9 2.8 3.7
+        frange("1", "3", "0.9" include_end=True) returns 1.0 1.9 2.8 3.7
     
-        Python's Decimal class is used for the default implementation, but you
-        can choose it to be e.g. floats if you wish (however, you'll then have
-        the typical naive implementation seen all over the web).  Consult
-        http://www.python.org/dev/peps/pep-0327/ and the decimal module's
-        documentation to learn more about why a float implementation is naive.
-    
-        To help ensure you get the output you want, use strings for start, stop
-        and step.  This is the "proper" way to initialize Decimals with
-        non-integer values.  start, stop, and step can be python floating point
-        numbers if you wish, but you may not get the sequence you expect.  For
-        an example, compare the output of frange(9.6001, 9.601, 0.0001) and
-        frange("9.6001", "9.601", "0.0001").  Most users will probably expect
-        the output from the second form, which excludes the stop value like
-        range does.
-    
-        Examples of use (also look at the unit tests):
-            a = list(frange("0.125", "1", ".125"))
-        results in a being
-            [0.125, 0.25, 0.375, 0.5, 0.625, 0.75, 0.875]
-    
-        Alternatively, you can use rational numbers in frange (need python 2.6
-        or later) because they have the proper numerical semantics.  A
-        convenience class called Rational is provided in this module because it
-        allows fractions to be printed in their customary proper form.
-            R = Rational
-            b = list(frange("1/8", "1", "1/8", impl=R, return_type=R))
-        results in b being
-            [1/8, 1/4, 3/8, 1/2, 5/8, 3/4, 7/8]
-        and we also have a == b is True.
-    
-        The happy accident of a == b being True is only because these decimal
-        fractions can be represented exactly in binary floating point.  This is
-        not true in general:
-            c = list(frange("0.1", "1", "0.1"))
-            d = list(frange("1/10", "1", "1/10", impl=R, return_type=R))
-        results in c == d being False.
-    
-        Print out c to see why c and d are not equal (this is practically the
-        canonical example of the problems with binary floating point for us
-        humans that love decimal arithmetic).
-    
-        A convenience is that if '/' is in the string for start, all the
-        numbers are interpreted as Rational objects.
+    Python's Decimal class is used for the default implementation, but you can choose it to be e.g.
+    floats if you wish (however, you'll then have the typical naive implementation seen all over
+    the web).  Consult http://www.python.org/dev/peps/pep-0327/ and the decimal module's
+    documentation to learn more about why a float implementation is naive.
+
+    To help ensure you get the output you want, use strings for start, stop and step.  This is the
+    "proper" way to initialize Decimals with non-integer values.  start, stop, and step can be
+    python floating point numbers if you wish, but you may not get the sequence you expect.  For an
+    example, compare the output of frange(9.6001, 9.601, 0.0001) and frange("9.6001", "9.601",
+    "0.0001").  Most users will probably expect the output from the second form, which excludes the
+    stop value like range does.
+
+    Examples of use (also look at the unit tests):
+        a = list(frange("0.125", "1", ".125"))
+    results in a being
+        [0.125, 0.25, 0.375, 0.5, 0.625, 0.75, 0.875]
+
+    Alternatively, you can use rational numbers in frange (need python 2.6 or later) because they
+    have the proper numerical semantics.  A convenience class called Rational is provided in this
+    module because it allows fractions to be printed in their customary proper form.
+        R = Rational
+        b = list(frange("1/8", "1", "1/8", impl=R, return_type=R))
+    results in b being
+        [1/8, 1/4, 3/8, 1/2, 5/8, 3/4, 7/8]
+    and we also have a == b is True.
+
+    The happy accident of a == b being True is only because these decimal fractions can be
+    represented exactly in binary floating point.  This is not true in general:
+        c = list(frange("0.1", "1", "0.1"))
+        d = list(frange("1/10", "1", "1/10", impl=R, return_type=R))
+    results in c == d being False.
+
+    Print out c to see why c and d are not equal (this is practically the canonical example of the
+    problems with binary floating point for us humans that love decimal arithmetic).
+
+    A convenience is that if '/' is in the string for start, all the numbers are interpreted as
+    Rational objects.
     '''
     def ceil(x):
         i = int(abs(x))
@@ -196,12 +192,10 @@ def frange(start, stop=None, step=None, return_type=ret_type, impl=Decimal,
                 yield return_type(str(start))
             start += step
 def lrange(start_decade, end_decade, dx=1, x=1, mantissas=None):
-    '''Provides a logarithmic analog to the frange function.  Returns a
-    list of values with logarithmic spacing (if the global have_numpy is
-    True, will return a numpy array).
+    '''Provides a logarithmic analog to the frange function.  Returns a list of values with
+    logarithmic spacing.
  
-    Example:  lrange(0, 2, mantissas=[1, 2, 5]) returns
-    [1, 2, 5, 10, 20, 50].
+    Example:  lrange(0, 2, mantissas=[1, 2, 5]) returns [1, 2, 5, 10, 20, 50].
     '''
     msg = "%s must be an integer"
     if not isinstance(start_decade, Integral):
@@ -221,19 +215,15 @@ def lrange(start_decade, end_decade, dx=1, x=1, mantissas=None):
     values = []
     for exp in range(start_decade, end_decade):
         values += [i*10**exp for i in mantissas]
-    if have_numpy:
-        return numpy.array(values)
     return values
 def Sequence(s):
-    '''Return a sequence of numbers based on the specifications in s.
-    Specifications are separated by whitespace characters and are of the
-    forms
+    '''Return a sequence of numbers based on the specifications in s.  Specifications are separated
+    by whitespace characters and are of the forms
         a
         a:b
         a:b:c
-    where a is the starting number and b is the ending number.  The
-    increment is 1 unless c is given.  Unlike python's range function,
-    the endpoint is included in the sequence.
+    where a is the starting number and b is the ending number.  The increment is 1 unless c is
+    given.  Unlike python's range function, the endpoint is included in the sequence.
  
     Example:  Sequence('1:1.5:0.1   5:1:-1  1/4:3/4:1/8') returns
         [1, 1.1, 1.2, 1.3, 1.4, 1.5,
@@ -265,10 +255,9 @@ def Sequence(s):
         return x
     return [MakeIntIfPossible(i) for i in out]
 def ifrange(start, stop, step=1):
-    '''Provides an iterator similar to frange but with a simpler
-    implementation.  Use with integers, floats, and Rationals.  You
-    should rely on no more than 12 significant figures in the returned
-    numbers.
+    '''Provides an iterator similar to frange but with a simpler implementation.  Use with
+    integers, floats, and Rationals.  You should rely on no more than 12 significant figures in the
+    returned numbers.
     '''
     for i in itertools.count(start, step):
         x = RoundOff(i)
@@ -277,24 +266,10 @@ def ifrange(start, stop, step=1):
         yield x
 
 if __name__ == "__main__": 
-    if 1:   # Imports
-        from decimal import Decimal
-        from fractions import Fraction
-        from pdb import set_trace as xx
-        import getopt
-        import os
-        import pathlib
-        import sys
-    if 1:   # Custom modules
-        from wrap import dedent
-        from lwtest import run, raises, assert_equal, Assert
-        from f import flt
-        import color as C
     if 1:   # Global variables
         d = {}      # Options dictionary
         P = pathlib.Path
         ii = isinstance
-        yel, norm = C.fg(C.yellow, s=1), C.normal(s=1)
     if 1:   # Module's base code
         def Error(msg, status=1):
             print(msg, file=sys.stderr)
@@ -378,8 +353,7 @@ if __name__ == "__main__":
             try:
                 from mpmath import mpf, mpc, mp, arange
             except ImportError:
-                print(f"{yel}{__file__}:  Warning:  mpmath not tested{norm}",
-                    file=sys.stderr)
+                t.print(f"{t('ornl')}{__file__}:  Warning:  mpmath not tested{norm}", file=sys.stderr)
             else:
                 # Plain floating point
                 got = list(frange(str(n), return_type=lambda x: mpf(str(x))))
@@ -393,15 +367,13 @@ if __name__ == "__main__":
                 got = list(frange(str(n), return_type=lambda x: mpc(0, str(x))))
                 expected = [mpc(0, i) for i in range(n)]
                 Assert(got == expected)
-                # One would expect mpmath to work as well as Decimal in the
-                # following call:
+                # One would expect mpmath to work as well as Decimal in the following call:
                 #   frange("9.6001", "9.601", "0.0001", return_type=mpf, impl=mpf)
-                # I found that it doesn't work for the default 15 decimals
-                # places (it generates 10 numbers instead of 9, just like using
-                # impl=float).  However, changing to >= 16 decimal places lets
-                # the code work the same as Decimal.  Note:  I'm using an older
-                # version (0.12) of mpmath (0.16 is the current version as this
-                # is written), so this might work with a newer version.
+                # I found that it doesn't work for the default 15 decimals places (it generates 10
+                # numbers instead of 9, just like using impl=float).  However, changing to >= 16
+                # decimal places lets the code work the same as Decimal.  Note:  I'm using an older
+                # version (0.12) of mpmath (0.16 is the current version as this is written), so
+                # this might work with a newer version.
                 mp.dps = 16
                 got = list(frange("9.6001", "9.601", "0.0001", return_type=mpf, 
                                 impl=mpf))
@@ -414,38 +386,33 @@ if __name__ == "__main__":
             got = numpy.array(list(frange(str(n))))
             expected = numpy.arange(0, n, float(1))
             Assert(list(got) == list(expected))
-            # However, the following test case won't work with the default
-            # frange implementation using Decimal numbers; the Decimal
-            # implementation will return 9 numbers, but both numpy and
-            # frange(impl=float) will return 10 numbers.  This is the
-            # "hazard" of computing with floats and their roundoff
-            # problems.  But we get things to "work" (i.e., frange
-            # duplicates the output of numpy's arange) by using impl=float.
+            # However, the following test case won't work with the default frange implementation
+            # using Decimal numbers; the Decimal implementation will return 9 numbers, but both
+            # numpy and frange(impl=float) will return 10 numbers.  This is the "hazard" of
+            # computing with floats and their roundoff problems.  But we get things to "work"
+            # (i.e., frange duplicates the output of numpy's arange) by using impl=float.
             start, stop, step = 9.6001, 9.601, 0.0001
             got = frange(start, stop, step, impl=float)
             expected = numpy.arange(start, stop, step)
             Assert(list(got) == list(expected))
         def Test_fractions():
-            # The following test case shows that frange can be used with a
-            # rational number class to return a sequence of rational numbers by
-            # using rational arithmetic.  This won't work with versions of
-            # python earlier than 2.6.
+            # The following test case shows that frange can be used with a rational number class to
+            # return a sequence of rational numbers by using rational arithmetic.  This won't work
+            # with versions of python earlier than 2.6.
             try:
                 from fractions import Fraction as Rat
             except ImportError:
                 print("\nfractions not tested\n", file=sys.stderr)
             else:
                 got = list(frange("1/3", "5", "1/3", return_type=Rat, impl=Rat))
-                # Note that because we're using floats, we have to avoid using
-                # 5 to ensure that we get the same number of elements as in
-                # got.  Again, this kind of thing is problematic with the
-                # quantization errors of binary floating point arithmetic.
+                # Note that because we're using floats, we have to avoid using 5 to ensure that we
+                # get the same number of elements as in got.  Again, this kind of thing is
+                # problematic with the quantization errors of binary floating point arithmetic.
                 start, stop, inc = 1/float(3), 5 - eps, 1/float(3)
                 expected = list(frange(start, stop, inc, return_type=float, 
                                     impl=float))
                 Assert(len(got) == len(expected))
-                # There are small differences between the numbers; we use 
-                # eps to detect failures. 
+                # There are small differences between the numbers; we use eps to detect failures. 
                 for i, j in zip(got, expected):
                     Assert(abs(i - j) <= eps)
         def Test_include_end():
