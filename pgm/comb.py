@@ -40,12 +40,12 @@ if 1:   # Utility
         k = None if comb else "n"
         print(dedent(f'''
         Usage:  {sys.argv[0]} [options] A [B...]
-            Prints out {which} of command line arguments.  A is a
-            string and if the only argument, then its letters are used as
-            the elements.  Otherwise the set of n arguments (A, B, ...) is
-            used.  If the number of the results is larger than 10!, the
-            calculation time is long, so just the numbers will be printed
-            unless -f is used.
+
+            Prints out {which} of command line arguments.  A is a string and if the only argument,
+            then its letters are used as the elements.  Otherwise the set of n arguments (A, B,
+            ...) is used.  If the number of the results is larger than 10! (3.6e6), the calculation
+            time is long, so just the numbers will be printed.
+
         Notation
             n = number of letters in A or number of arguments if > 1
             k = items to take for each subset'''))
