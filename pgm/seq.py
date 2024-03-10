@@ -166,7 +166,7 @@ if 1:  # Core functionality
         # dd will be a copy of d but with -e set to True
         dd = d.copy()
         dd["-e"] = True
-        f = "%-20s "
+        f = "%-25s "
         print("Output for various command line arguments:\n")
         #
         print(f % "'-n 8'  ", end="")
@@ -201,6 +201,13 @@ if 1:  # Core functionality
         print(f % "'-n -e 1 6 3/4'  ", end="")
         P(Fractions(1, 6, "3/4", dd))
         print("The last two examples show why floating point implementations are naive.")
+        # 
+        # Demo of generating file names
+        print("Demo of how to generate file names:")
+        d["-p"] = "abc"
+        d["-s"] = ".png"
+        print(f % "'-p abc -s .png  1 4'  ", end="")
+        P(Integers(1, 4, 1, d))
         exit(0)
     def IsFloatingPointString(s):
         return s.find(".") != -1 or s.lower().find("e") != -1
@@ -213,7 +220,7 @@ if 1:  # Core functionality
         return o
     def FloatingPoint(n, m, inc, d):
         o = []
-        for i in frange(n, m, inc, include_end=d["-e"]):
+        for i in frange(n, m, inc, return_type=flt, include_end=d["-e"]):
             if i <= float(m):
                 o.append(d["-p"] + str(i) + d["-s"])
         return o
@@ -245,3 +252,5 @@ if __name__ == "__main__":
             print(i)
     elif d["-n"]:
         print(f"{' '.join(o)}")
+    else:
+        print('\n'.join(o))
