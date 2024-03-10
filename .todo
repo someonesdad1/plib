@@ -1,5 +1,8 @@
 Active:  /plib/.todo
 
+    - pgm/seg.py
+        - Should display the area of the segment too
+
     - Lagrange is in a number of modules; put the interpolation stuff in one place (probably
       interpolate.py)
 
