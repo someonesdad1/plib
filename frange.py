@@ -136,9 +136,9 @@ def frange(start, stop=None, step=None, return_type=ret_type, impl=Decimal, stri
     results in a being
         [0.125, 0.25, 0.375, 0.5, 0.625, 0.75, 0.875]
 
-    Alternatively, you can use rational numbers in frange (need python 2.6 or later) because they
-    have the proper numerical semantics.  A convenience class called Rational is provided in this
-    module because it allows fractions to be printed in their customary proper form.
+    Alternatively, you can use python fractions in frange because they have the proper numerical
+    semantics.  A convenience class called Rational is provided in this module because it allows
+    fractions to be printed in their customary proper form.
         R = Rational
         b = list(frange("1/8", "1", "1/8", impl=R, return_type=R))
     results in b being
@@ -303,8 +303,7 @@ if __name__ == "__main__":
     if 1:   # Test code 
         if 1:   # Global variables
             n, N = 10, 100000  # "Large" numbers
-            s = ("9.6001 9.6002 9.6003 9.6004 9.6005 "
-                "9.6006 9.6007 9.6008 9.6009")
+            s = ("9.6001 9.6002 9.6003 9.6004 9.6005 9.6006 9.6007 9.6008 9.6009")
             eps = 1./10**sys.float_info.dig
         def Test_Normal_one_parameter():
             got = list(frange(str(n)))
@@ -396,25 +395,18 @@ if __name__ == "__main__":
             expected = numpy.arange(start, stop, step)
             Assert(list(got) == list(expected))
         def Test_fractions():
-            # The following test case shows that frange can be used with a rational number class to
-            # return a sequence of rational numbers by using rational arithmetic.  This won't work
-            # with versions of python earlier than 2.6.
-            try:
-                from fractions import Fraction as Rat
-            except ImportError:
-                print("\nfractions not tested\n", file=sys.stderr)
-            else:
-                got = list(frange("1/3", "5", "1/3", return_type=Rat, impl=Rat))
-                # Note that because we're using floats, we have to avoid using 5 to ensure that we
-                # get the same number of elements as in got.  Again, this kind of thing is
-                # problematic with the quantization errors of binary floating point arithmetic.
-                start, stop, inc = 1/float(3), 5 - eps, 1/float(3)
-                expected = list(frange(start, stop, inc, return_type=float, 
-                                    impl=float))
-                Assert(len(got) == len(expected))
-                # There are small differences between the numbers; we use eps to detect failures. 
-                for i, j in zip(got, expected):
-                    Assert(abs(i - j) <= eps)
+            # The following test case shows that frange can be used with a python Fraction to
+            # return a sequence of Fractions.
+            got = list(frange("1/3", "5", "1/3", return_type=Fraction, impl=Fraction))
+            # Note that because we're using floats, we have to avoid using 5 to ensure that we get
+            # the same number of elements as in got.  Again, this kind of thing is problematic with
+            # the quantization errors of binary floating point arithmetic.
+            start, stop, inc = 1/float(3), 5 - eps, 1/float(3)
+            expected = list(frange(start, stop, inc, return_type=float, impl=float))
+            Assert(len(got) == len(expected))
+            # There are small differences between the numbers; we use eps to detect failures. 
+            for i, j in zip(got, expected):
+                Assert(abs(i - j) <= eps)
         def Test_include_end():
             # Test with integers
             res = list(frange("1", "3", return_type=int))

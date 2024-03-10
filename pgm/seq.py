@@ -40,20 +40,19 @@ if 1:  # Utility
     def Usage(d, status=1):
         print(dedent(f'''
         Usage:  {sys.argv[0]} [options] n [m [inc]]
-          Generate an arithmetical progression from n to m in steps of inc.
-          If only n is given, the sequence goes from 1 to int(n).  inc
-          defaults to 1.  The arguments n, m, and inc can be integers,
-          floating point numbers, or improper fractions such as '5/3'.
+          Generate an arithmetical progression from n to m in steps of inc.  If only n is given,
+          the sequence goes from 1 to int(n).  inc defaults to 1.  The arguments n, m, and inc can
+          be integers, floating point numbers, or improper fractions such as '5/3'.
         
-          For some fractional and floating point inc values, you may get a
-          finishing value in the sequence larger than m because the ending point
-          in the sequence must be >= the specified endpoint when the -e option
-          isn't used.
+          For some fractional and floating point inc values, you may get a finishing value in the
+          sequence larger than m because the ending point in the sequence must be >= the specified
+          endpoint when the -e option isn't used.
         
           Use the -t option to see some examples.
         Options
           -0    Make the sequences 0-based instead of 1-based
           -b b  Output in the indicated base (defaults to 10)
+          -C    Print output in columns like -c, but increasing horizontally
           -c    Print output in columns
           -d n  Number of significant digits in output [{d["-d"]}]
           -e    Don't include the end point of the sequence
@@ -70,10 +69,11 @@ if 1:  # Utility
     def ParseCommandLine(d):
         d["-0"] = False     # 0-based sequences
         d["-b"] = 10        # Output base
+        d["-C"] = False     # Output in columns like -c but increasing in rows
         d["-c"] = False     # Output in columns
         d["-d"] = 3         # Number of significant digits
-        d["-e"] = True      # Include end point
-        d["-n"] = True      # If True, include newline after number
+        d["-e"] = False     # Include end point
+        d["-n"] = False     # If True, include newline after number
         d["-p"] = ""        # Prefix string
         d["-s"] = ""        # Suffix string
         d["-t"] = False     # Show some examples
@@ -81,36 +81,36 @@ if 1:  # Utility
         if len(sys.argv) < 2:
             Usage(d)
         try:
-            optlist, args = getopt.getopt(sys.argv[1:], "0b:cd:ehnp:Ss:tx")
+            optlist, args = getopt.getopt(sys.argv[1:], "0b:Ccd:ehnp:Ss:tx")
         except getopt.GetoptError as e:
             msg, option = e
             print(msg)
             exit(1)
         for o, a in optlist:
-            if o[1] in list("0cenStx"):
+            if o[1] in list("0CcenStx"):
                 d[o] = not d[o]
-            elif opt[0] == "-b":
+            elif o == "-b":
                 try:
-                    d["-b"] = int(opt[1])
+                    d["-b"] = int(a)
                     if not (2 <= d["-b"] <= 94):
                         raise ValueError()
                 except ValueError:
                     msg = "-b argument must be an integer between 2 and 94"
                     Error(msg)
-            elif opt[0] == "-d":
+            elif o == "-d":
                 try:
-                    d["-d"] = int(opt[1])
+                    d["-d"] = int(a)
                     if not (1 <= d["-d"] <= 15):
                         raise ValueError()
                 except ValueError:
                     msg = "-d argument must be an integer between 1 and 15"
                     Error(msg)
-            elif opt[0] == "-h":
+            elif o == "-h":
                 Usage(d, status=0)
-            elif opt[0] == "-p":
-                d["-p"] = opt[1]
-            elif opt[0] == "-s":
-                d["-s"] = opt[1]
+            elif o == "-p":
+                d["-p"] = a
+            elif o == "-s":
+                d["-s"] = a
         x = flt(0)
         x.N = d["-d"]
         if not d["-t"] and len(args) not in range(1, 4):
@@ -159,102 +159,70 @@ if 1:  # Core functionality
         else:
             n, m, inc = [f(i) for i in args]
         return (n, m, inc)
-    def Fractions(n, m, inc, d):
-        for i in frange(n, m, inc, impl=R, return_type=R,
-                        include_end=d["-e"]):
-            t = d["-p"] + str(i) + d["-s"]
-            if d["-n"]:
-                print(t, "")
-            else:
-                print(t, "", end=" ")
-        if not d["-n"]:
-            print()
-    def FloatingPoint(n, m, inc, d):
-        fmt = "%s%%.%dg%s" % (d["-p"], d["-d"], d["-s"])
-        for i in frange(n, m, inc, include_end=d["-e"]):
-            breakpoint() #xx 
-            if i <= float(m):
-                d["-S"] = d["-p"] or d["-s"] #xx
-                if d["-S"]:
-                    t = d["-p"] + str(i) + d["-s"]
-                    if d["-n"]:
-                        print(t, "")
-                    else:
-                        print(t, "", end="")
-                else:
-                    if d["-n"]:
-                        print(fmt % i, "")
-                    else:
-                        print(fmt % i, "", end="")
-        if not d["-n"]:
-            print()
-    def Integers(n, m, inc, d):
-        for i in frange(n, m, inc, return_type=int, include_end=d["-e"]):
-            s = int2base(i, d["-b"]) if d["-b"] else str(i)
-            s = d["-p"] + s + d["-s"]
-            if i <= int(m):
-                if d["-n"]:
-                    print(s, "")
-                else:
-                    print(s, "", end="")
-        if not d["-n"]:
-            print()
     def ShowExamples(d):
         'Print some examples'
-        d["-n"] = False
+        def P(seq):
+            print(' '.join(seq))
+        # dd will be a copy of d but with -e set to True
+        dd = d.copy()
+        dd["-e"] = True
         f = "%-20s "
         print("Output for various command line arguments:\n")
         #
         print(f % "'-n 8'  ", end="")
-        Integers(1, 8, 1, d)
+        P(Integers(1, 8, 1, d))
         #
         print(f % "'-n -e 8'  ", end="")
-        d["-e"] = False
-        Integers(1, 8, 1, d)
-        d["-e"] = True
+        P(Integers(1, 8, 1, dd))
         #
         print(f % "'-n -0 8'  ", end="")
-        Integers(0, 8, 1, d)
+        P(Integers(0, 8, 1, d))
         #
-        d["-e"] = False
         print(f % "'-n -0 -e 8'  ", end="")
-        Integers(0, 8, 1, d)
-        d["-e"] = True
+        P(Integers(0, 8, 1, dd))
         #
         print()
         print(f % "'-n 0 1 1/8'  ", end="")
-        Fractions(0, 1, "1/8", d)
+        P(Fractions(0, 1, "1/8", d))
         #
         print(f % "'-n -e 0 1 1/8'  ", end="")
-        d["-e"] = False
-        Fractions(0, 1, "1/8", d)
-        d["-e"] = True
+        P(Fractions(0, 1, "1/8", dd))
         #
         print()
         print(f % "'-n 1 6 0.75'  ", end="")
-        FloatingPoint(1, 6, "0.75", d)
+        P(FloatingPoint(1, 6, "0.75", d))
         #
         print(f % "'-n 1 6 3/4'  ", end="")
-        Fractions(1, 6, "3/4", d)
+        P(Fractions(1, 6, "3/4", d))
         #
         print(f % "'-n -e 1 6 0.75'  ", end="")
-        d["-e"] = False
-        FloatingPoint(1, 6, "0.75", d)
-        d["-e"] = True
+        P(FloatingPoint(1, 6, "0.75", dd))
         #
         print(f % "'-n -e 1 6 3/4'  ", end="")
-        d["-e"] = False
-        Fractions(1, 6, "3/4", d)
-        d["-e"] = True
-        #
-        print(f % "'-n -S 1 6 0.75'  ", end="")
-        d["-S"] = True
-        FloatingPoint(1, 6, "0.75", d)
+        P(Fractions(1, 6, "3/4", dd))
+        print("The last two examples show why floating point implementations are naive.")
         exit(0)
     def IsFloatingPointString(s):
         return s.find(".") != -1 or s.lower().find("e") != -1
     def IsFractionString(s):
         return s.find("/") != -1
+    def Fractions(n, m, inc, d):
+        o = []
+        for i in frange(n, m, inc, impl=R, return_type=R, include_end=d["-e"]):
+            o.append(d["-p"] + str(i) + d["-s"])
+        return o
+    def FloatingPoint(n, m, inc, d):
+        o = []
+        for i in frange(n, m, inc, include_end=d["-e"]):
+            if i <= float(m):
+                o.append(d["-p"] + str(i) + d["-s"])
+        return o
+    def Integers(n, m, inc, d):
+        o = []
+        for i in frange(n, m, inc, return_type=int, include_end=d["-e"]):
+            s = int2base(i, d["-b"]) if d["-b"] else str(i)
+            o.append(d["-p"] + s + d["-s"])
+        return o
 
 if __name__ == "__main__":
     d = {}  # Options dictionary
@@ -263,8 +231,17 @@ if __name__ == "__main__":
         ShowExamples(d)
     n, m, inc = GetParameters(args, d)
     if any([IsFractionString(s) for s in (n, m, inc)]):       # Fractions
-        Fractions(n, m, inc, d)
+        o = Fractions(n, m, inc, d)
     elif any([IsFloatingPointString(s) for s in (n, m, inc)]):
-        FloatingPoint(n, m, inc, d)
+        o = FloatingPoint(n, m, inc, d)
     else:
-        Integers(n, m, inc, d)
+        o = Integers(n, m, inc, d)
+    # Print output
+    if d["-C"]:
+        for i in Columnize(o, horiz=True):
+            print(i)
+    elif d["-c"]:
+        for i in Columnize(o):
+            print(i)
+    elif d["-n"]:
+        print(f"{' '.join(o)}")
