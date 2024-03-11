@@ -1,6 +1,5 @@
 '''
-Provide the ucd dictionary, a container of the Unicode Character
-Database (UCD).
+Provide the ucd dictionary, a container of the Unicode Character Database (UCD)
 '''
 
 # Copyright (C) 2014, 2019 Don Peterson
@@ -15,27 +14,24 @@ import xml.etree.ElementTree as ET
 import pickle
 from time import asctime
 import os
-import pathlib
+from pathlib import Path as P
 import re
 import sys
 import unicodedata
 from collections import OrderedDict
 from pprint import pprint as pp
-from pdb import set_trace as xx
-if 1:
+if 0:
     import debug
     debug.SetDebugger()
 
 __all__ = ["ucd"]
-P = pathlib.Path
 
-# This must be one of the grouped XML files at
-# http://www.unicode.org/Public/UCD/latest/ucdxml.
-# I recommend the non-Unihan file unless you need the extra Chinese
-# characters.  The documentation for the contents of this file is in UAX
-# #42 http://www.unicode.org/reports/tr42.  This grouped file results in
-# a data file size about an order of magnitude less than the flat XML
-# file.
+# This must be one of the grouped XML files at http://www.unicode.org/Public/UCD/latest/ucdxml (for
+# other versions start at https://www.unicode.org/Public/).  I recommend the non-Unihan file unless
+# you need the extra Chinese characters.  The documentation for the contents of this file is in UAX
+# #42 http://www.unicode.org/reports/tr42.  This grouped file results in a data file size about an
+# order of magnitude less than the flat XML file.
+
 def GetVersion():
     '''Build the pickled data file.  If you pass in a string as an
     argument on the command line, the latest XML file will be used.
@@ -52,12 +48,14 @@ def GetVersion():
             return P("ucd.nounihan.grouped.ver12.1.xml")
         elif v == "13.0.0":
             return P("ucd.nounihan.grouped.ver13.xml")
+        elif v == "14.0.0":
+            return P("ucd.nounihan.grouped.ver14.xml")
         else:
             raise ValueError(f"{v} is unsupported Unicode version")
 input_file = GetVersion()
 
 # The pickle file will contain the persisted UCD dictionary in ucd.
-pickle_file = P("/pylib/pgm/ucd.pickle")
+pickle_file = P("/plib/pgm/ucd.pickle")
 
 # The UCD dictionary.
 ucd = {}
@@ -68,8 +66,7 @@ how_to_get_datafile = '''
   global variable input_file to point to this file.
 '''[1:-1]
 
-# Description of the data structure we will construct (it's stored in
-# the ucd dictionary).
+# Description of the data structure we will construct (it's stored in the ucd dictionary)
 doc = '''
 Structure of data in the python ucd dictionary constructed on
 %s
