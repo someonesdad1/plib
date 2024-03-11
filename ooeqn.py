@@ -192,127 +192,112 @@ if 1:   # Core functionality
         eq = eq.replace("&ge;", r" \ge ") 
         eq = FixUnicode(eq)
         return eq
-
 if 1:   # Utility
     def Error(*msg, status=1):
         print(*msg, file=sys.stderr)
         exit(status)
     def Help():
         print(dedent(rf'''
-
-
         The script's purpose
         --------------------
 
-        This script is used to print the text in equation objects in Open Document
-        files.
+        This script is used to print the text in equation objects in Open Document files.
         
-        My primary use case for this script is to help me convert Open Document files
-        to LaTeX.  The text conversion is straightforward (save the OO document as a
-        .txt file with UTF-8 encoding), but the math syntax needs to be converted from
-        OO's syntax to LaTeX syntax.  The default behavior of the script is to just
-        print out each equation's text content.  For conversion to LaTeX, use the -a
-        option, which means to adjust the equations' text.  Here, "adjust" means make
-        some conversions to LaTeX that are easy enough to make without having to write
-        a full parser.  For example, if the OO math text contains the string "+-",
-        this is converted to \pm, which is LaTeX's equivalent.
+        My primary use case for this script is to help me convert Open Document files to LaTeX.
+        The text conversion is straightforward (save the OO document as a .txt file with UTF-8
+        encoding), but the math syntax needs to be converted from OO's syntax to LaTeX syntax.  The
+        default behavior of the script is to just print out each equation's text content.  For
+        conversion to LaTeX, use the -a option, which means to adjust the equations' text.  Here,
+        "adjust" means make some conversions to LaTeX that are easy enough to make without having
+        to write a full parser.  For example, if the OO math text contains the string "+-", this is
+        converted to \pm, which is LaTeX's equivalent.
 
-        This script's input files must be Open Document format file(s).  In addition,
-        they must use the "StarMath 5.0" annotation in the XML.  I have tested this
-        script on files produced by Open Office version 4.1.6.  I tested it on
-        documents from Writer (word processor), Calc (spreadsheet), Impress
-        (presentations), and Draw (drawing program).  I'll call these types of
-        documents OO documents.
+        This script's input files must be Open Document format file(s).  In addition, they must use
+        the "StarMath 5.0" annotation in the XML.  I have tested this script on files produced by
+        Open Office version 4.1.6.  I tested it on documents from Writer (word processor), Calc
+        (spreadsheet), Impress (presentations), and Draw (drawing program).  I'll call these types
+        of documents OO documents.
 
-        I wrote this script to convert a reference document I wrote a few decades ago
-        to LaTeX.  This document contained 1113 equations (and about 500 other OLE
-        objects) and the task would have been a daunting amount of labor to type the
-        new equations into a *.tex file from scratch.  It was still a lot of work, but
-        not as much as doing it from scratch because OO's math syntax has similarities
-        to LaTeX -- and once you're fluent in both it's pretty easy to translate the
-        equation text in your text editor.  This script did a lot of the work.
+        I wrote this script to convert a reference document I wrote a few decades ago to LaTeX.
+        This document contained 1113 equations (and about 500 other OLE objects) and the task would
+        have been a daunting amount of labor to type the new equations into a *.tex file from
+        scratch.  It was still a lot of work, but not as much as doing it from scratch because OO's
+        math syntax has similarities to LaTeX -- and once you're fluent in both it's pretty easy to
+        translate the equation text in your text editor.  This script did a lot of the work.
 
-        NOTE:  It's likely you'll have to hack on this script to get it to work on
-        your own files.  FixUnicode() is probably one function you'll want to look at. 
+        NOTE:  It's likely you'll have to hack on this script to get it to work on your own files.
+        FixUnicode() is probably one function you'll want to look at. 
 
         Algorithm
         ---------
 
-        While I haven't read the Open Document specification, I long ago did a hex
-        dump of an OO file and noted that the first two characters were PK, meaning it
-        used zip compression.  Unzipping the file, you'll see a standard structure.
-        The only things that concern us here are the top-level content.xml file and
-        each ObjectX directory, where X is an integer.
+        While I haven't read the Open Document specification, I long ago did a hex dump of an OO
+        file and noted that the first two characters were PK, meaning it used zip compression.
+        Unzipping the file, you'll see a standard structure.  The only things that concern us here
+        are the top-level content.xml file and each ObjectX directory, where X is an integer.
 
-        If you peruse
-        https://en.wikipedia.org/wiki/OpenDocument_technical_specification, it states
+        If you peruse https://en.wikipedia.org/wiki/OpenDocument_technical_specification, it states
         that formulas (i.e., equations) are represented as MathML.  If you read
-        https://en.wikipedia.org/wiki/MathML#Example_and_comparison_to_other_formats,
-        you'll see how the <annotation> XML tag can be used to utilize other non-XML
-        equation formats, such as Star Office 5.0.  
+        https://en.wikipedia.org/wiki/MathML#Example_and_comparison_to_other_formats, you'll see
+        how the <annotation> XML tag can be used to utilize other non-XML equation formats, such as
+        Star Office 5.0.  
 
-        This python script is purely heuristic, based on the text I found in the OO
-        documents I unzipped.  Thus, it may not work for you -- but it shouldn't be
-        too hard to look at the differences/exceptions and figure out how to get
-        things to work.
+        This python script is purely heuristic, based on the text I found in the OO documents I
+        unzipped.  Thus, it may not work for you -- but it shouldn't be too hard to look at the
+        differences/exceptions and figure out how to get things to work.
 
         Here are the steps:
 
             - Open the document as a zipfile using zipfile.ZipFile
-            - Get a list of the object directories in the zipfile.  These match the
-                regexp r"Object\d+"; keep only one copy of this name.  Note these are in
-                the order they are encountered in the OO file.  I'll call these ObjectX.
-            - For each of the ObjectX directories, read the content.xml file in that
-                directory.
+            - Get a list of the object directories in the zipfile.  These match the regexp
+              r"Object\d+"; keep only one copy of this name.  Note these are in the order they are
+              encountered in the OO file.  I'll call these ObjectX.
+            - For each of the ObjectX directories, read the content.xml file in that directory.
                 - If there's a "StarMath 5.0" equation object, get its text.
-            - Return a list of (a, b) objects where a is the ObjectX string and b is
-                the equation's text.
+            - Return a list of (a, b) objects where a is the ObjectX string and b is the equation's
+              text.
 
-        If you run this file as a script, the above list of objects is printed out in
-        a easy-to-consume form with ANSI color coding to show the file name and
-        ObjectX string.
+        If you run this file as a script, the above list of objects is printed out in a
+        easy-to-consume form with ANSI color coding to show the file name and ObjectX string.
 
-        Finding the ObjectX directories used a simple regular expression; finding the
-        equation's text used simple string manipulations.
+        Finding the ObjectX directories used a simple regular expression; finding the equation's
+        text used simple string manipulations.
 
         Dependencies
         ------------
 
-        If you want to run this script, it is dependent on a few files from 
-        https://github.com/someonesdad1/plib.   These are in the section near the top
-        of the file labeled '# Custom imports'.  If you don't want to use these
-        features, they can be removed:
+        If you want to run this script, it is dependent on a few files from
+        https://github.com/someonesdad1/plib.   These are in the section near the top of the file
+        labeled '# Custom imports'.  If you don't want to use these features, they can be removed:
 
-            - In the global variables section, add the line 'class t: pass'
-              after the line with '# Color'.
-            - Remove 'dedent' from print statements (you'll want to manually adjust
-                the argument string to fit your screen).
-            - Under the '# Color' lines, change the t("...") function calls to be
-                empty strings.
+            - In the global variables section, add the line 'class t: pass' after the line with '#
+              Color'.
+            - Remove 'dedent' from print statements (you'll want to manually adjust the argument
+              string to fit your screen).
+            - Under the '# Color' lines, change the t("...") function calls to be empty strings.
             - Change lines with t.print() to print().
-            - Change the line 'lines = GetLines(file)' to 
-                'open(file).read().split("\n")' if file is a string or 
-                'file.read().split("\n")' if file is a stream.
+            - Change the line 'lines = GetLines(file)' to 'open(file).read().split("\n")' if file
+              is a string or 'file.read().split("\n")' if file is a stream.
+
         Notes
         -----
 
-        In 2014 I contacted Henrik Just, the author of Writer2LaTeX.  Henrik used my
-        reference document as a test case for his tool and commented that it helped
-        him find a number of errors.  I wasn't able to use it to get LaTeX output at
-        the time.  In Sep 2022, I decided to revisit this problem again, as I was put
-        out with Open Office's poor equation formatting and problems that made me
-        spend far more time fiddling with formatting than editing the content.  Since
-        I've long been a believer in separating content from presentation (e.g., the
-        MVC pattern), I've always wanted the document in LaTeX, but was gun-shy of the
-        amount of manual work it would take for conversion.  
+        In 2014 I contacted Henrik Just, the author of Writer2LaTeX.  Henrik used my reference
+        document as a test case for his tool and commented that it helped him find a number of
+        errors.  I wasn't able to use it to get LaTeX output at the time.  In Sep 2022, I decided
+        to revisit this problem again, as I was put out with Open Office's poor equation formatting
+        and problems that made me spend far more time fiddling with formatting than editing the
+        content.  Since I've long been a believer in separating content from presentation (e.g.,
+        the MVC pattern), I've always wanted the document in LaTeX, but was gun-shy of the amount
+        of manual work it would take for conversion.  
 
-        It turns out the process wasn't as daunting as I thought it would be.  I used
-        the following process
+        It turns out the process wasn't as daunting as I thought it would be.  I used the following
+        process
 
             - Save the file as a UTF-8-encoded text file to get the document's text.
             - Using a text editor, format this text into paragraphs suitable for LaTeX.
 
-        '''))
+        '''.rstrip()))
         exit(0)
     def Usage(status=1):
         print(dedent(f'''
