@@ -140,15 +140,15 @@ def GetWordList():
         w = list(sorted(w))
     else:
         if d["-2"]:
-            # 511201 words
-            file = "/pylib/pgm/words.x.universal"
+            #file = "/pylib/pgm/words.x.universal"
+            file = "/words/words.univ"
         elif d["-1"]:
-            # 147478 words
-            file = "/pylib/pgm/words.x.wordnet"
+            #file = "/pylib/pgm/words.x.wordnet"
+            file = "/words/words/words.nltk"
         else:
-            # 94340 words
-            file = "/pylib/pgm/words"
-        w = GetWords(file, ignore_regexes=[r"^\s*#"])
+            #file = "/pylib/pgm/words"
+            file = "/words/words.default"
+        w = GetWords(file, ignore=[r"^\s*#"])
     if d["-i"]:
         w = [i.lower() for i in w]
     return w

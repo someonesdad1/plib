@@ -122,7 +122,7 @@ if 1:   # Utility
             elif o == "--test":
                 exit(run(globals(), halt=1)[0])
         x = flt(0)
-        x.n = d["-d"]
+        x.N = d["-d"]
         x.rtz = x.rtdp = True
         if not args:
             Usage()
