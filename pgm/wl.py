@@ -4,17 +4,16 @@ Print out a table of colors (using RGB) representing visible colors from
 '''
 from columnize import Columnize
 from wrap import dedent
-from rgb import ColorNum
-from clr import Clr
-c = Clr(always=True)
+from color import Color, t
+
 def wl2rgb(nm, gamma=0.8):
-    '''Convert nm (light wavelength in nm) into a ColorNum object using a
-    linear approximation.  The ColorNum object represents an RGB color.
-    gamma is used for a gamma adjustment.  nm must be on [380, 780].
+    '''Convert nm (light wavelength in nm) into a Color instance using a linear approximation.
+    The Color instance represents an RGB color.  gamma is used for a gamma adjustment.  nm must be
+    on [380, 780].
     '''
     # Translation of Dan Bruton's FORTRAN code from
-    # http://www.physics.sfasu.edu/astro/color/spectra.html into python.
-    # Also see http://www.midnightkite.com/color.html.
+    # http://www.physics.sfasu.edu/astro/color/spectra.html into python.  Also see
+    # http://www.midnightkite.com/color.html.
     if 380 <= nm <= 440:
         a = (440 - nm)/(440 - 380), 0, 1
     elif 440 <= nm <= 490:
@@ -40,33 +39,22 @@ def wl2rgb(nm, gamma=0.8):
     # Scale the RGB components by i and raise to the gamma power if gamma
     # is nonzero.
     if gamma:
-        b = [float((i*j)**gamma) for j in a]
+        rgb = [float((i*j)**gamma) for j in a]
     else:
-        b = [float(i) for i in a]
+        rgb = [float(i) for i in a]
     # Make sure the numbers are on [0, 1]
-    assert(all([0 <= i <=1 for i in b]))
-    return ColorNum(b)
-def SteppedWavelengths(nm_step, compact=False):
+    assert(all([0 <= i <=1 for i in rgb]))
+    return Color(*rgb)
+def SteppedWavelengths(nm_step):
     gamma = 0.8
     print(f"Wavelength in steps of {nm_step} nm to RGB colors")
     out, count = [], 0
-    if not compact:
-        print(f"  wl in nm, RGB hex, RGB integer, HSV integer")
     for nm in range(380, 781, nm_step):
-        colornum = wl2rgb(nm, gamma=gamma)
-        s = colornum.rgbhex
-        t = colornum.RGB
-        u = colornum.HSV
-        if compact:
-            out.append(f"{c(s)}{nm}{c.n}")
-        else:
-            out.append(f"{c(s)}{nm} {s!s:7s}   {fi(t)}   {fi(u)}{c.n}")
+        c = wl2rgb(nm, gamma=gamma)
+        out.append(f"{t(c.xrgb)}{nm}{t.n}")
         count += 1
-    if compact:
-        o = Columnize(out, indent=" "*2, horiz=True, columns=11)
-    else:
-        o = out
+    o = Columnize(out, horiz=True)
     for line in o:
         print(line)
     print(f"{count} wavelengths printed")
-SteppedWavelengths(5, compact=True)
+SteppedWavelengths(5)

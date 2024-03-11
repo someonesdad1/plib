@@ -1,23 +1,21 @@
 ''' 
+
 - Bugs
-    - RegexpDecorate.register() needs to change to an argument list of 
-      (r, match_style, nomatch_style) where the latter two elements are
-      escape codes used to define how things should be printed.  The use
-      case is pfind.py where I want to see directories printed in red with
-      the sky color for the match; plain files are printed with the default
-      text style but matches with sky.  Thus, the default for nomatch_style
-      should be None, meaning the default text style.
+    - RegexpDecorate.register() needs to change to an argument list of (r, match_style,
+      nomatch_style) where the latter two elements are escape codes used to define how things
+      should be printed.  The use case is pfind.py where I want to see directories printed in red
+      with the sky color for the match; plain files are printed with the default text style but
+      matches with sky.  Thus, the default for nomatch_style should be None, meaning the default
+      text style.
     - TRM attributes should be "" if .on is False
         - This needs __getattr__ and __setattr__
         - .on can have three states
             - None means to use stdout.isatty()
             - False means always off so all t.x attributes are ""
-            - True means always on so all t.x attributes are proper escape
-              codes
+            - True means always on so all t.x attributes are proper escape codes
         - Could change to methods:  on(), off(), none().
-    - TestInvariants() is made to pass, but I'd like to see the conversion
-      work exactly.  It could be a problem with decimal roundoff in the
-      colorsys module.
+    - TestInvariants() is made to pass, but I'd like to see the conversion work exactly.  It could
+      be a problem with decimal roundoff in the colorsys module.
 
 Classes to help with color use in terminals
     - class Color
@@ -31,83 +29,67 @@ Classes to help with color use in terminals
 
         from color import Color, Trm
 
-        t = Trm()
-        print(f"{t('redl')}Error:  you need to fix this{t.n}")
-        print(f"{t('lblu', 'wht'} This is blue text in a white background")
+        t = Trm() print(f"{t('redl')}Error:  you need to fix this{t.n}") print(f"{t('lblu', 'wht'}
+        This is blue text in a white background")
 
-        # The default color names are based on the resistor color code
-        # names.  Prefix with 'l' for the lighter colors, 'd' for darker,
-        # and 'b' for light pastel background colors.  Run the color.py
-        # file as a script to see these color names and how they render on
-        # your screen.
+        # The default color names are based on the resistor color code names.  Prefix with 'l' for
+        # the lighter colors, 'd' for darker, and 'b' for light pastel background colors.  Run the
+        # color.py file as a script to see these color names and how they render on your screen.
 
-        # The Trm instance can be called with a foreground and background
-        # color (either a name or Color instance) and an optional attribute
-        # (e.g., for italics).  The t.n value means to return to the
-        # default color.  You can store escape sequences as attributes:
+        # The Trm instance can be called with a foreground and background color (either a name or
+        # Color instance) and an optional attribute (e.g., for italics).  The t.n value means to
+        # return to the default color.  You can store escape sequences as attributes:
 
-        t.err = t("redl")
-        print(f"{t.err}Error:  you need to fix this{t.n}")
+        t.err = t("redl") print(f"{t.err}Error:  you need to fix this{t.n}")
 
-        # You can use t.out and t.print to avoid having to reset to the
-        # default color.  t.out is the same as t.print but without the
-        # newline.
+        # You can use t.out and t.print to avoid having to reset to the default color.  t.out is
+        # the same as t.print but without the newline.
  
-    - This file includes some deprecated functionality to support an older
-      python module I used for a couple of decades.  Over time, I expect to
-      remove the dependencies on this stuff and it will eventually be
-      removed with no warning (i.e., don't use these older features).  To
-      disable the legacy code support, define the 'klr' environment
-      variable to be empty (evaluate False as a boolean).
+    - This file includes some deprecated functionality to support an older python module I used for
+      a couple of decades.  Over time, I expect to remove the dependencies on this stuff and it
+      will eventually be removed with no warning (i.e., don't use these older features).  To
+      disable the legacy code support, define the 'klr' environment variable to be empty (evaluate
+      False as a boolean).
  
     - class Color
-        - This immutable class is used to store the three integers that
-          define a color.  You can set the number of bits to use to store
-          these integers using the class variable Color.bits_per_color,
-          which defaults to 8.
-        - The Color constructor has a number of ways to instantiate a
-          color:
+        - This immutable class is used to store the three integers that define a color.  You can
+          set the number of bits to use to store these integers using the class variable
+          Color.bits_per_color, which defaults to 8.
+        - The Color constructor has a number of ways to instantiate a color:
             - One argument
-                - A short string name for a color (these are actually
-                  handled by the global ColorNum instance CN).
+                - A short string name for a color (these are actually handled by the global
+                  ColorNum instance CN).
                 - Hex strings
                     - '@abcdef' means an HSV hex string
                     - '#abcdef' means an RGB hex string
                     - '$abcdef' means an HLS hex string
                 - Another Color instance:  a copy is made
-                - A decimal number on [0, 1] defining a gray with white
-                  being 1.
+                - A decimal number on [0, 1] defining a gray with white being 1.
             - Three arguments 
                 - Color(1, 2, 3)
                 - Color(0.1, 0.2, 0.3)
-                - Can use boolean keywords "hsv" or "hls" to not use the
-                  default rgb space.
+                - Can use boolean keywords "hsv" or "hls" to not use the default rgb space.
         - Helpful functionality
             - Construct(x)
-                - This class method returns a Color instance if the string
-                  argument x contains a recognizable color initializer (hex
-                  string or 3-sequence of numbers).  If x was a multiline
-                  string with one or more valid color initializers, a deque
-                  of (a, c) objects is returned with a the line's string
-                  and c the Color instance.  This is handy for e.g.
-                  colorizing a set of lines in a file of color specifiers
-                  such as an X11 rgb.txt file.
+                - This class method returns a Color instance if the string argument x contains a
+                  recognizable color initializer (hex string or 3-sequence of numbers).  If x was a
+                  multiline string with one or more valid color initializers, a deque of (a, c)
+                  objects is returned with a the line's string and c the Color instance.  This is
+                  handy for e.g.  colorizing a set of lines in a file of color specifiers such as
+                  an X11 rgb.txt file.
         - Distance between two colors
             - RGB, HSV, HLS known to be nonlinear wrt perception
-            - https://www.compuphase.com/cmetric.htm gives a practical
-              formula he says is close to L*u*v* space with modified
-              lightness curve (it's a weighted Euclidean distance in RGB
-              space).   Let two colors be specified by (R1, G1, B1) and
-              (R2, G2, B2) where each component is an int on [0, 255].
-              Then
+            - https://www.compuphase.com/cmetric.htm gives a practical formula he says is close to
+              L*u*v* space with modified lightness curve (it's a weighted Euclidean distance in RGB
+              space).   Let two colors be specified by (R1, G1, B1) and (R2, G2, B2) where each
+              component is an int on [0, 255].  Then
                 - r = (R1 + R2)/2
                 - dX = X1 - X2
-                - d**2 = (2 + r/256)*dR**2 + 4*dG**2 + (2 + (255 -
-                  r)/256)*dB**2 
+                - d**2 = (2 + r/256)*dR**2 + 4*dG**2 + (2 + (255 - r)/256)*dB**2 
  
     References
-        - http://color.lukas-stratmann.com/  Nice web pages to help
-          visualize a few color coordinate systems.
+        - http://color.lukas-stratmann.com/  Nice web pages to help visualize a few color
+          coordinate systems.
  
 ''' 
 if 1:   # Header
@@ -142,9 +124,10 @@ if 1:   # Header
     if 1:
         from wsl import wsl
         from wrap import wrap, dedent
-        # Don't use flt for now until import dependencies fixed
-        #from f import flt
-        flt = float
+        try:
+            from f import flt
+        except ImportError:
+            flt = float
         # NOTE:  can't use debug.py because of circular import
         try:
             import mpmath
