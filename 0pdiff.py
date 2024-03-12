@@ -12,9 +12,8 @@ if 1:  # Copyright, license
     #∞what∞#
     # <utility> Identify file differences between /plib and /pylib.  /pylib
     # was my old python directory for scripts I've written starting in
-    # 1998.  There was over 1200 files in the /pylib directory tree, so I
-    # had to do a lot of trimming (as of Mar 2022, it's down to 386 files.
-    # Still too many.  :^)
+    # 1998.  There were over 1200 files in the /pylib directory tree, so I
+    # had to do a lot of trimming.
     #∞what∞#
     #∞test∞# ignore #∞test∞#
     pass
