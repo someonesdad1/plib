@@ -47,7 +47,7 @@ if 1:   # Header
         from wrap import dedent
         from months import months
         from color import TRM as t
-        if 1:
+        if 0:
             import debug
             debug.SetDebugger()
     # Global variables
@@ -66,10 +66,9 @@ if 1:   # Location data
         latitude = 43.64        # degrees
         longitude = -116.32     # degrees
         GMT_offset = -7         # Hours, to correct GMT to local time
-        # Dates for DST start and end; from Google Calendar.  Python's
-        # datetime class documentation is confusing and I just wanted
-        # something simple.  The rule is start = second Sunday in March and
-        # end = first Sunday in November.
+        # Dates for DST start and end; from Google Calendar.  Python's datetime class documentation
+        # is confusing and I just wanted something simple.  The rule is start = second Sunday in
+        # March and end = first Sunday in November.
         dst_data = {
             2023:  (datetime(2023, 3, 12), datetime(2023, 11, 5)),
             2024:  (datetime(2024, 3, 10), datetime(2024, 11, 3)),
@@ -463,7 +462,7 @@ if __name__ == "__main__":
     args = ParseCommandLine(d)
     if args:
         year, month, day = [int(i) for i in sys.argv[1:]]
-        target = date(year, month, date)
+        target = date(year, month, day)
     else:
         target = date.today()
     incr = timedelta(days=d["-s"])

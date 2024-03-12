@@ -49,6 +49,9 @@ if 1:   # Header
     if 1:   # Custom imports
         from wrap import wrap, dedent
         from color import Color, Trm
+        if 1:
+            import debug
+            debug.SetDebugger()
     if 1:   # Global variables
         ii = isinstance
         t = Trm()
@@ -308,7 +311,11 @@ if 1:   # Core functionality
             s = ""
             if d["-x"]:
                 s = ' '.join([c.xrgb, c.xhsv, c.xhls])
-            print(f"{t(c.xrgb)}{line} {s}{t.n}")
+            try:
+                print(f"{t(c.xrgb)}{line} {s}{t.n}")
+            except Exception:
+                # Isn't a proper form, so ignore it
+                continue
             if d["-d"]:
                 # Print details
                 i = " "*4

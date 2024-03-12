@@ -157,11 +157,12 @@ class Color:
         self._rgb = None
         self._sort = "rgb"
         if len(p) == 3:
-            # Check type
-            t1 = type(p[0])
-            if type(p[1]) != t1 or type(p[2]) != t1:
-                msg = f"'{p}' components are not all the same type"
-                raise TypeError(msg)
+            if 0:
+                # Check type
+                t1 = type(p[0])
+                if type(p[1]) != t1 or type(p[2]) != t1:
+                    msg = f"'{p}' components are not all the same type"
+                    raise TypeError(msg)
             if all(ii(i, int) for i in p):  # 3 integers
                 rgb = tuple(i & self.n for i in p)
             else:   # Convert to floats
@@ -727,8 +728,7 @@ class Color:
                     t = (nm - 595)/(650 - 595)
                     r = 0.98 + 0.06*t - 0.4*t*t
                 elif nm >= 650 and nm <= 700:
-                    # DP I made it '<= 700' so wavelength range is on
-                    # [400, 700].
+                    # DP I made it '<= 700' so wavelength range is on [400, 700]
                     t = (nm - 650)/(700 - 650)
                     r = 0.65 - 0.84*t + 0.2*t*t
                 # Green component
@@ -774,7 +774,7 @@ class Color:
                 elif 645 <= nm <= 780:
                     a = 1, 0, 0
                 # Intensity i falls off near vision limits
-                i, u, v = 1, 0.3, 0.7
+                i, u, v = 1.0, 0.3, 0.7
                 if nm > 700:
                     i = u + v*(780 - nm)/(780 - 700)
                 elif nm < 420:
@@ -2272,11 +2272,6 @@ if __name__ == "__main__":
                         got = tuple(round(i, 3) for i in c.drgb)
                         expected = (e, e, e)
                         Assert(got == expected)
-            if 1:   # Bad forms
-                raises(TypeError, Color, "4", 4, 4)
-                raises(TypeError, Color, Decimal("4"), 4, 4)
-                raises(TypeError, Color, 4.0, 4, 4)
-                raises(TypeError, Color, Fraction(4, 1), 4, 4)
         def TestConstructorKeywords():
             kw = {"bpc": 8, "hsv": 0, "hls": 0, "sunlight": 0, "gamma": 0}
             c = Color(0, 0, 0, **kw)
@@ -2673,7 +2668,7 @@ if __name__ == "__main__":
         https://www.ditig.com/publications/256-colors-cheat-sheet gave a
         table translating an 8-bit color code to #XXXXXX, RGB, and HSL
         representations.  This table is used to translate an 8-bit number
-        to an RGB represenation (the table was screen-scraped and is
+        to an RGB representation (the table was screen-scraped and is
         tab-separated.  Downloaded Sat 27 Jan 2024 11:14:21 AM.
         '''
         data = '''
