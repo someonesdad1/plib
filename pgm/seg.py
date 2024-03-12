@@ -58,93 +58,160 @@ Calculate features of a circle's segment
     methods used.
 
 '''
-if 1:  # Copyright, license
-    # These "trigger strings" can be managed with trigger.py
-    #∞copyright∞# Copyright (C) 2021 Don Peterson #∞copyright∞#
-    #∞contact∞# gmail.com@someonesdad1 #∞contact∞#
-    #∞license∞#
-    #   Licensed under the Open Software License version 3.0.
-    #   See http://opensource.org/licenses/OSL-3.0.
-    #∞license∞#
-    #∞what∞#
-    # Interactive script to calculate features of a circle's segment
-    #∞what∞#
-    #∞test∞# #∞test∞#
-    pass
-if 1:   # Imports
-    from pathlib import Path as P
-    import os
-    import re
-    import sys
-    try:
-        import readline         # History and command editing
-        import rlcompleter      # Command completion
-        have_readline = True
-    except Exception:
-        have_readline = False
-if 1:   # Custom imports
-    from wrap import dedent
-    from f import flt, pi, degrees, radians, sin, cos, tan, sqrt, asin, acos, atan
-    from u import u, ParseUnit
-    from cmddecode import CommandDecode
-    from color import t
-    from launch import Launch
-    import root
-    from wsl import wsl
-    if 0:
-        import debug
-        debug.SetDebugger()
-if 1:   # Global variables
-    class g:
+if 1:  # Header
+    if 1:  # Copyright, license
+        # These "trigger strings" can be managed with trigger.py
+        #∞copyright∞# Copyright (C) 2021 Don Peterson #∞copyright∞#
+        #∞contact∞# gmail.com@someonesdad1 #∞contact∞#
+        #∞license∞#
+        #   Licensed under the Open Software License version 3.0.
+        #   See http://opensource.org/licenses/OSL-3.0.
+        #∞license∞#
+        #∞what∞#
+        # Interactive script to calculate features of a circle's segment
+        #∞what∞#
+        #∞test∞# #∞test∞#
         pass
-    g.E = Exception("Not implemented")
-    t.prompt = t("ornl")
-    t.N = t.n
-    g.vars = {}
-    g.units = "mm"
-    g.unc_short = re.compile(r"\(\d+\)")
-    # Set the number of significant figures
-    x = flt(0)
-    x.rtz = x.rtdp = False
-    g.digits = x.N = 6
-def GetNumber(value, vars=None):
-    '''The user has entered a number.  Interpret it as an expression
-    evaluated as a flt.
-    '''
-    try:
-        x = flt(eval(value, globals(), vars))
-        return x
-    except Exception:
+    if 1:   # Imports
+        from pathlib import Path as P
+        import os
+        import re
+        import sys
         try:
-            # Assume it's a number
-            x = flt(value)
+            import readline         # History and command editing
+            import rlcompleter      # Command completion
+            have_readline = True
+        except Exception:
+            have_readline = False
+    if 1:   # Custom imports
+        from wrap import dedent
+        from f import flt, pi, degrees, radians, sin, cos, tan, sqrt, asin, acos, atan
+        from u import u, ParseUnit
+        from cmddecode import CommandDecode
+        from color import t
+        from launch import Launch
+        import root
+        from wsl import wsl
+        if 0:
+            import debug
+            debug.SetDebugger()
+    if 1:   # Global variables
+        class g:
+            pass
+        g.E = Exception("Not implemented")
+        t.prompt = t("ornl")
+        t.N = t.n
+        g.vars = {}
+        g.units = "mm"
+        g.unc_short = re.compile(r"\(\d+\)")
+        # Set the number of significant figures
+        x = flt(0)
+        x.rtz = x.rtdp = False
+        g.digits = x.N = 6
+if 1:  # Utility
+    def GetNumber(value, vars=None):
+        '''The user has entered a number.  Interpret it as an expression
+        evaluated as a flt.
+        '''
+        try:
+            x = flt(eval(value, globals(), vars))
             return x
         except Exception:
-            print(f"Couldn't evaluate '{value}'")
-            return None
-def GetCommand():
-    'Return (command_string, arguments)'
-    ok = False
-    while not ok:
-        s = ""
-        while not s:
-            s = input(f"{t.prompt}<seg>{t.n} ")
-        if "=" in s:
-            # Variable assignment
-            exec(s, globals(), None)
-            return ("", "")
-        else:
-            args = s.split()
-            cmd = g.Cmd(args[0])
-            if cmd == ["quit"]:
-                exit()
-            if not cmd:
-                print(f"'{s}' not recognized as a command")
-            elif len(cmd) > 1:
-                print(f"'{s}' ambiguous; could be:")
-                print(f"  {' '.join(cmd)}")
+            try:
+                # Assume it's a number
+                x = flt(value)
+                return x
+            except Exception:
+                print(f"Couldn't evaluate '{value}'")
+                return None
+    def GetCommand():
+        'Return (command_string, arguments)'
+        ok = False
+        while not ok:
+            s = ""
+            while not s:
+                s = input(f"{t.prompt}<seg>{t.n} ")
+            if "=" in s:
+                # Variable assignment
+                exec(s, globals(), None)
+                return ("", "")
             else:
-                return (cmd[0], args[1:])
+                args = s.split()
+                cmd = g.Cmd(args[0])
+                if cmd == ["quit"]:
+                    exit(0)
+                if not cmd:
+                    print(f"'{s}' not recognized as a command")
+                elif len(cmd) > 1:
+                    print(f"'{s}' ambiguous; could be:")
+                    print(f"  {' '.join(cmd)}")
+                else:
+                    return (cmd[0], args[1:])
+    def TestCase():
+        '''
+        Check data from a drawing on an A size piece of paper:
+            r = 152.2
+            θ = 90°
+            d = 107.4
+            h = 44.8
+            b = 239.1
+            s = 215.5
+        '''
+        Nlt(0).N = 6
+        # r, θ
+        g.vars["r"] = flt(152.2)
+        g.vars["theta"] = pi/2
+        SolveProblem()
+        g.vars.clear()
+        # s, θ
+        g.vars["s"] = flt(215.24)
+        g.vars["theta"] = pi/2
+        SolveProblem()
+        g.vars.clear()
+        # h, θ
+        g.vars["h"] = flt(44.578)
+        g.vars["theta"] = pi/2
+        SolveProblem()
+        g.vars.clear()
+        # b, θ
+        g.vars["b"] = flt(239.07)
+        g.vars["theta"] = pi/2
+        SolveProblem()
+        g.vars.clear()
+        # r, s
+        g.vars["r"] = flt(152.2)
+        g.vars["s"] = flt(215.24)
+        SolveProblem()
+        g.vars.clear()
+        # r, h
+        g.vars["r"] = flt(152.2)
+        g.vars["h"] = flt(44.577)
+        SolveProblem()
+        g.vars.clear()
+        # r, b
+        g.vars["r"] = flt(152.2)
+        g.vars["b"] = flt(239.07)
+        SolveProblem()
+        g.vars.clear()
+        # s, h
+        g.vars["s"] = flt(215.24)
+        g.vars["h"] = flt(44.577)
+        SolveProblem()
+        g.vars.clear()
+        # s, b
+        g.vars["s"] = flt(215.24)
+        g.vars["b"] = flt(239.07)
+        SolveProblem()
+        g.vars.clear()
+        # h, b
+        g.vars["h"] = flt(44.577)
+        g.vars["b"] = flt(239.07)
+        SolveProblem()
+        g.vars.clear()
+        print(dedent('''
+        This test problem should give essentially the same answers for each of the
+        test cases.'''))
+        exit()
 if 1:   # Solve the problems
     def Get_theta_r():
         r, theta = g.vars["r"], g.vars["theta"]
@@ -214,212 +281,152 @@ if 1:   # Solve the problems
         del a, f, fd
         Get_theta_h()
         g.vars.update(locals())
-def Help():
-    def f(x):
-        return f"[{g.vars[x]}]" if x in g.vars else ""
-    print(dedent(f'''
-
-    Enter two variables needed to solve for the properties of the segment of a circle.  The
-    variables are (all lengths must be in the same units):
-      r       Circle radius {f("r")}
-      theta   Segment angle {f("theta")}(can also use 't')
-      s       Chord width of segment {f("s")}
-      h       Height of segment {f("h")}
-      b       Arc length of segment {f("b")}
-      u       Default length units to use [{g.units}]
-    Entries should be like
-        r 4.2 
-    The angle theta is in degrees unless you include the unit 'rad' for radians (include a space).
-    The number can be an expression like '4.2*sin(radians(12))' (the math module's symbols are in
-    scope).
-
-    A circular sector is the pie-shaped piece composed of a given angle.  The segment associated
-    with this sector is the portion with the triangle removed, leaving only the arc and straight
-    line.  It's the form of what you would get if you used scissors to make a straight cut through
-    a disk.  If the cut goes through the center, you wind up with a semicircle.
- 
-    The solution will be given for the pairs of numbers
-        r, θ        s, θ        h, θ        b, θ
-        r, s        r, h        r, b        s, h
-        b, s        b, h
-    You can also make variable assignments like 
-        y = 34.5
-    These variables are put in the global namespace and you can use them in expressions.
- 
-    Other commands are (they can be abbreviated as needed):
-      quit          Exit the script
-      digits n      Set the number of significant digits [{flt(0).N}]
-      picture       Show the bitmap of the problem's variables
-      .             Print the currently solved problem
-      dbg           Enter the debugger
-      clear         Remove problem's variable definitions 
-    '''))
-def SolveProblem():
-    'If g.vars is sufficient, print the solution'
-    needed_pairs = p = dedent('''
-        theta r
-        theta s
-        theta h
-        theta b
-        r s
-        r h
-        r b
-        s h
-        s b
-        h b
-    ''').split("\n")
-    solved = False
-    for i in needed_pairs:
-        v1, v2 = i.split()
-        if v1 in g.vars and v2 in g.vars:
-            exec(f"Get_{i.replace(' ', '_')}()")
-            solved = True
-            break
-    if solved:
-        Report()
-    else:
-        print("Need more variables")
-def Report():
-    i = " "*4
-    print(f"Results:")
-    print(f"{i}θ = {flt(degrees(g.vars['theta']))}° = {flt(g.vars['theta'])} radians")
-    print(f"{i}r = {g.vars['r']}")
-    print(f"{i}h = {g.vars['h']}")
-    print(f"{i}b = {g.vars['b']}")
-    print(f"{i}s = {g.vars['s']}")
-def Execute(cmd, args):
-    def CheckArgs():
-        if not args:
-            print("Need argument for variable")
-        return not bool(args)
-    if args:
-        value, unit = args[0], None
-        if len(args) > 1:
-            unit = args[1]
-    if cmd == ".":
-        pass
-    elif cmd == "dbg":
-        xx()
-        return
-    elif cmd == "digits":
-        if CheckArgs():
+if 1:   # Core functionality
+    def Help():
+        def f(x):
+            return f"[{g.vars[x]}]" if x in g.vars else ""
+        print(dedent(f'''
+    
+        Enter two variables needed to solve for the properties of the segment of a circle.  The
+        variables are (all lengths must be in the same units):
+          r       Circle radius {f("r")}
+          theta   Segment angle {f("theta")}(can also use 't')
+          s       Chord width of segment {f("s")}
+          h       Height of segment {f("h")}
+          b       Arc length of segment {f("b")}
+          u       Default length units to use [{g.units}]
+        Entries should be like
+            r 4.2 
+        The angle theta is in degrees unless you include the unit 'rad' for radians (include a space).
+        The number can be an expression like '4.2*sin(radians(12))' (the math module's symbols are in
+        scope).
+    
+        A circular sector is the pie-shaped piece composed of a given angle.  The segment associated
+        with this sector is the portion with the triangle removed, leaving only the arc and straight
+        line.  It's the form of what you would get if you used scissors to make a straight cut through
+        a disk.  If the cut goes through the center, you wind up with a semicircle.
+     
+        The solution will be given for the pairs of numbers
+            r, θ        s, θ        h, θ        b, θ
+            r, s        r, h        r, b        s, h
+            b, s        b, h
+        You can also make variable assignments like 
+            y = 34.5
+        These variables are put in the global namespace and you can use them in expressions.
+     
+        Other commands are (they can be abbreviated as needed):
+          quit          Exit the script
+          digits n      Set the number of significant digits [{flt(0).N}]
+          picture       Show the bitmap of the problem's variables
+          .             Print the currently solved problem
+          dbg           Enter the debugger
+          clear         Remove problem's variable definitions 
+        '''))
+    def SolveProblem():
+        'If g.vars is sufficient, print the solution'
+        needed_pairs = p = dedent('''
+            theta r
+            theta s
+            theta h
+            theta b
+            r s
+            r h
+            r b
+            s h
+            s b
+            h b
+        ''').split("\n")
+        solved = False
+        for i in needed_pairs:
+            v1, v2 = i.split()
+            if v1 in g.vars and v2 in g.vars:
+                exec(f"Get_{i.replace(' ', '_')}()")
+                solved = True
+                break
+        if solved:
+            Report()
+        else:
+            print("Need more variables")
+    def Report():
+        i = " "*4
+        print(f"Results:")
+        print(f"{i}θ = {flt(degrees(g.vars['theta']))}° = {flt(g.vars['theta'])} radians")
+        print(f"{i}r = {g.vars['r']}")
+        print(f"{i}h = {g.vars['h']}")
+        print(f"{i}b = {g.vars['b']}")
+        print(f"{i}s = {g.vars['s']}")
+        # Report area
+        r, θ = g.vars["r"], g.vars["theta"]
+        A = flt(r**2*(θ - sin(θ))/2)
+        print(f"{i}area = {A}")
+    def Execute(cmd, args):
+        def CheckArgs():
+            if not args:
+                print("Need argument for variable")
+            return not bool(args)
+        if args:
+            value, unit = args[0], None
+            if len(args) > 1:
+                unit = args[1]
+        if cmd == ".":
+            pass
+        elif cmd == "dbg":
+            breakpoint() #xx
             return
-        try:
-            n = int(args[0])
-            if 1 <= n <= 15:
-                flt(0).N = n
-            else:
-                raise Exception()
-        except Exception:
-            print("'{args[0]}' not an integer")
-    elif cmd == "picture":
-        Launch(P("/plib/pgm/seg.png"))      # Open the file /plib/pgm/seg.png
-        return
-    elif cmd == "clear":
-        g.vars.clear()
-        return
-    elif cmd == "quit":
-        exit(0)
-    elif cmd == "?":
-        Help()
-    elif cmd == "r":
-        if CheckArgs():
+        elif cmd == "digits":
+            if CheckArgs():
+                return
+            try:
+                n = int(args[0])
+                if 1 <= n <= 15:
+                    flt(0).N = n
+                else:
+                    raise Exception()
+            except Exception:
+                print("'{args[0]}' not an integer")
+        elif cmd == "picture":
+            Launch(P("/plib/pgm/seg.png"))      # Open the file /plib/pgm/seg.png
             return
-        g.vars["r"] = GetNumber(value, vars=None)
-    elif cmd == "theta":
-        if CheckArgs():
+        elif cmd == "clear":
+            g.vars.clear()
             return
-        # Need to convert to radians.  It's assumed to be degrees unless
-        # "rad" or "grad" are given for the units.
-        t = flt(radians(flt(args[0])))
-        if not 0 < t < pi:
-            print("theta must be > 0 and < pi")
-            return
-        if len(args) > 1:
-            u = args[1]
-            if u == "rad":
-                t = flt(args[0])
-            elif u == "grad":
-                t = flt(args[0])*pi/200
-        g.vars["theta"] = flt(t)
-    elif cmd == "s":
-        if CheckArgs():
-            return
-        g.vars["s"] = GetNumber(value, vars=None)
-    elif cmd == "h":
-        if CheckArgs():
-            return
-        g.vars["h"] = GetNumber(value, vars=None)
-    elif cmd == "b":
-        if CheckArgs():
-            return
-        g.vars["b"] = GetNumber(value, vars=None)
-    SolveProblem()
-def TestCase():
-    '''
-    Check data from a drawing on an A size piece of paper:
-        r = 152.2
-        θ = 90°
-        d = 107.4
-        h = 44.8
-        b = 239.1
-        s = 215.5
-    '''
-    Nlt(0).N = 6
-    # r, θ
-    g.vars["r"] = flt(152.2)
-    g.vars["theta"] = pi/2
-    SolveProblem()
-    g.vars.clear()
-    # s, θ
-    g.vars["s"] = flt(215.24)
-    g.vars["theta"] = pi/2
-    SolveProblem()
-    g.vars.clear()
-    # h, θ
-    g.vars["h"] = flt(44.578)
-    g.vars["theta"] = pi/2
-    SolveProblem()
-    g.vars.clear()
-    # b, θ
-    g.vars["b"] = flt(239.07)
-    g.vars["theta"] = pi/2
-    SolveProblem()
-    g.vars.clear()
-    # r, s
-    g.vars["r"] = flt(152.2)
-    g.vars["s"] = flt(215.24)
-    SolveProblem()
-    g.vars.clear()
-    # r, h
-    g.vars["r"] = flt(152.2)
-    g.vars["h"] = flt(44.577)
-    SolveProblem()
-    g.vars.clear()
-    # r, b
-    g.vars["r"] = flt(152.2)
-    g.vars["b"] = flt(239.07)
-    SolveProblem()
-    g.vars.clear()
-    # s, h
-    g.vars["s"] = flt(215.24)
-    g.vars["h"] = flt(44.577)
-    SolveProblem()
-    g.vars.clear()
-    # s, b
-    g.vars["s"] = flt(215.24)
-    g.vars["b"] = flt(239.07)
-    SolveProblem()
-    g.vars.clear()
-    # h, b
-    g.vars["h"] = flt(44.577)
-    g.vars["b"] = flt(239.07)
-    SolveProblem()
-    g.vars.clear()
-    print(dedent('''
-    This test problem should give essentially the same answers for each of the
-    test cases.'''))
-    exit()
+        elif cmd == "quit":
+            exit(0)
+        elif cmd == "?":
+            Help()
+        elif cmd == "r":
+            if CheckArgs():
+                return
+            g.vars["r"] = GetNumber(value, vars=None)
+        elif cmd == "theta":
+            if CheckArgs():
+                return
+            # Need to convert to radians.  It's assumed to be degrees unless
+            # "rad" or "grad" are given for the units.
+            t = flt(radians(flt(args[0])))
+            if not 0 < t <= pi:
+                print("theta must be > 0 and <= pi")
+                return
+            if len(args) > 1:
+                u = args[1]
+                if u == "rad":
+                    t = flt(args[0])
+                elif u == "grad":
+                    t = flt(args[0])*pi/200
+            g.vars["theta"] = flt(t)
+        elif cmd == "s":
+            if CheckArgs():
+                return
+            g.vars["s"] = GetNumber(value, vars=None)
+        elif cmd == "h":
+            if CheckArgs():
+                return
+            g.vars["h"] = GetNumber(value, vars=None)
+        elif cmd == "b":
+            if CheckArgs():
+                return
+            g.vars["b"] = GetNumber(value, vars=None)
+        SolveProblem()
 if __name__ == "__main__": 
     if len(sys.argv) == 2 and sys.argv[1] == "-t":
         TestCase()

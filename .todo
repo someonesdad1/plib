@@ -1,5 +1,17 @@
 Active:  /plib/.todo
 
+    - Text formatting tool
+        - One of the most common tasks in my scripts is something like a Usage() statement, which
+          needs to print a chunk of text to the screen.  This needs to supply a given indentation
+          and fit itself to the current width of the screen, like the modern man command does in a
+          Linux window today.  Since I use 4 spaces for tabs universally, it could include an
+          integer keyword 'tabs' that would default to 0 or 1.  Then a spaces keyword could be used
+          when needed.
+        - This tool would obviate the need for the dedent() method.  It would let me write my usage
+          text in a straightforward fashion and not have to worry about how it comes out.
+        - Simplest:  it formats text as needed with no formatting commands.
+        - More complex:  allows formatting commands
+
     - pgm/seg.py
         - Should display the area of the segment too
 
@@ -1925,4 +1937,4 @@ clrtable
     254	Grey89	#e4e4e4	rgb(228,228,228)	hsl(0,0%,89%)
     255	Grey93	#eeeeee	rgb(238,238,238)	hsl(0,0%,93%)
 
-vim: tw=100
+vim: tw=99
