@@ -5,7 +5,7 @@ Active:  /plib/.todo
           For example, util.iDistribute is a generator that returns an integer sequence with n
           elements equally distributed between a and b.  I remember writing this, but have long
           forgotten about it.  If I needed the functionality again, I'd probably write a new
-          functions for it, forgetting I had already done it.  So how to come up with a general
+          function for it, forgetting I had already done it.  So how to come up with a general
           indexing scheme that lets me find such things quickly instead of doing things over?
 
     - Text formatting tool

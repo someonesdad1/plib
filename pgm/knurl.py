@@ -70,11 +70,11 @@ if 1:   # Utility
         print(dedent(f'''
         Options:
           -k n      Choose which knurl wheels to use.  Default is {d['-k']}.
-          -m        Input diameters are in mm
-          -s n      Find the next smaller diameter for the 1 inch knurls as these require the same
+          -d n      Find the next smaller diameter for the 1 inch knurls as these require the same
                     diameter as the nominal diameter.  However, sometimes you want the knurling pattern
                     to be just under the nominal diameter.  This is done by subtracting n from the number
                     of teeth.
+          -m        Input diameters are in mm
           -T        Print a decimal table from 0.2 to 2 inches.
           -t        Print a fractional table from 0.2 to 2 inches.
         '''.rstrip()))
@@ -94,12 +94,12 @@ if 1:   # Utility
         if len(sys.argv) < 2:
             Usage(d)
         try:
-            opts, args = getopt.getopt(sys.argv[1:], "d:hk:tT")
+            opts, args = getopt.getopt(sys.argv[1:], "d:hk:mtT")
         except getopt.GetoptError as e:
             print(str(e))
             exit(1)
         for o, a in opts:
-            if o in ("-t", "-T"):
+            if o[1] in "mtT":
                 d[o] = not d[o]
             elif o in ("-d",):
                 d["-d"] = int(a)
@@ -111,8 +111,7 @@ if 1:   # Utility
         if not args and not d["-t"] and not d["-T"]:
             Usage(d)
         dia, nteeth = knurls[d["-k"]]
-        knurl_wheel_diameter, knurl_wheel_units = ParseUnit(dia,
-                                                    allow_expr=True)
+        knurl_wheel_diameter, knurl_wheel_units = ParseUnit(dia, allow_expr=True)
         knurl_wheel_diameter = eval(knurl_wheel_diameter)
         number_of_teeth = int(nteeth) - d["-d"]
         return args
@@ -209,13 +208,16 @@ if __name__ == "__main__":
         print(msg)
         for dia in args:
             try:
-                nominal_diameter = float(dia)
+                nominal_diameter = flt(dia)
                 if d["-m"]:
                     nominal_diameter /= 25.4    # Convert mm to inches
             except ValueError:
                 print(f"{dia!r} is not a valid diameter")
                 continue
-            print(f"  Diameter of workpiece = {dia} inches = {flt(dia)*25.4} mm")
+            if d["-m"]:
+                print(f"  Diameter of workpiece = {nominal_diameter} inches = {dia} mm")
+            else:
+                print(f"  Diameter of workpiece = {dia} inches = {nominal_diameter*25.4} mm")
             D = GetPerfectDiameter(nominal_diameter)
             t.print(f"    Workpiece diameter for perfect knurling = {t('ornl')}{D:.3f} inches "
                           f"= {t('royl')}{D*25.4:.2f} mm")
