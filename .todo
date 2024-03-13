@@ -15,9 +15,6 @@ Active:  /plib/.todo
           underlining.  The formatting tool would need to make the escape codes invisible to things
           like the length of a line.  It would be nice if this was part of the tokenizer.
 
-    - Lagrange is in a number of modules; put the interpolation stuff in one place (probably
-      interpolate.py)
-
     - ad:  make a tool analogous to hd to dump text files so you can see location of Unicode
       characters and their value.  Can also use color coding.  For control characters, use 
       things like U2400 to U2421.
