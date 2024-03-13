@@ -337,31 +337,6 @@ def UT2DT(year):
     if int(year + 0.5) == 1999:
         return 64.0
     raise ValueError("Year is out of bounds")
-def LagrangeInterpolation(x, X, Y, strict=0):
-    '''Page 32.  Given x, an abscissa, calculates the interpolated
-    value y = f(x) where f(x) is Lagrange's interpolating polynomial.
-    X and Y are expected to be iterables of the same size such that
-    Y[i] = f(X[i]).  If strict is True, then you'll get an exception
-    if you try to interpolate outside the range of abscissas given in
-    X.  If strict is True, we'll check to make sure that none of the
-    abscissas in X are the same.
-    '''
-    n = len(X)
-    assert len(Y) == n, "Y's length not the same as X's"
-    if strict:
-        if x < min(X) or x > max(X):
-            raise ValueError("x value is outside of interpolation range")
-        if len(set(X)) != len(X):
-            raise ValueError("X has one or more duplicated values")
-    y = 0
-    for i in range(n):
-        c = 1
-        for j in range(n):
-            if i == j:
-                continue
-            c *= (x - X[j])/(X[i] - X[j])
-        y += c*Y[i]
-    return y
 def product(x):
     '''Returns the product of the components of the iterable x.
     '''
@@ -916,17 +891,6 @@ if __name__ == "__main__":
         # Page 78:  Correction to universal time to get dynamical time
         assert(fabs(UT2DT(1977) - 48) < 1)
         assert(fabs(UT2DT(333) - 6146) < 1)
-    def TestLagrangeInterpolation():
-        # Page 34:  Lagrangian interpolation
-        X = [29.43, 30.97, 27.69, 28.11, 31.58, 33.05]
-        Y = [0.4913598528, 0.5145891926, 0.4646875083, 0.4711658342,
-            0.5236885653, 0.5453707057]
-        d = LagrangeInterpolation(30, X, Y)
-        assert(fabs(d - 1/2.) < 1e-9)
-        d = LagrangeInterpolation(0, X, Y)
-        assert(fabs(d - 0.0000482) < 1e-5)
-        d = LagrangeInterpolation(90, X, Y)
-        assert(fabs(d - 1.00007) < 2e-4)
     def TestLinearRegression():
         # Page 40:  Linear regression
         x = (73, 38, 35, 42, 78, 68, 74, 42, 52, 54, 39,

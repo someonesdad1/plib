@@ -11,9 +11,9 @@ Active:  /plib/.todo
           text in a straightforward fashion and not have to worry about how it comes out.
         - Simplest:  it formats text as needed with no formatting commands.
         - More complex:  allows formatting commands
-
-    - pgm/seg.py
-        - Should display the area of the segment too
+        - It would be nice to include the abilities of the terminal too, such as color and
+          underlining.  The formatting tool would need to make the escape codes invisible to things
+          like the length of a line.  It would be nice if this was part of the tokenizer.
 
     - Lagrange is in a number of modules; put the interpolation stuff in one place (probably
       interpolate.py)
@@ -49,9 +49,6 @@ Active:  /plib/.todo
         - The original source page can no longer be screen-scraped.  Find a better source of
           halflife data.  It may be that screenscraping wikipedia's element pages might be 
           the best approach.
-
-    - pgm/man.py
-        - Allow multiple commands on the command line and open them with 'vi -p'
 
     - Don't have  OSL
         - /plib

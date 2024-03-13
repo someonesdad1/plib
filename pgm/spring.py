@@ -52,6 +52,7 @@ if 1:   # Header
         from get import GetLines
         from wrap import dedent
         from wsl import wsl     # wsl is True when running under WSL Linux
+        from interpolation import LagrangeInterpolation
         #from columnize import Columnize
     if 1:   # Global variables
         pi = math.pi
@@ -219,35 +220,6 @@ if 1:   # Core functionality
                     x2 = x1
                     y2 = y1
         raise "No convergence"
-    def LagrangeInterpolation(x, X, Y, strict=1):
-        '''Page 32 of Meeus, "Astronomical Algorithms", 2nd ed.  Given x, an abcissa, calculates
-        the interpolated value y = f(x) where f(x) is Lagrange's interpolating polynomial.  X and Y
-        are expected to be lists or tuples of the same size such that Y[i] = f(X[i]).  If strict is
-        true, then you'll get an exception if you try to interpolate outside the range of abcissas
-        given in X.  Also, if strict is true, we'll check to make sure that none of the abcissas in
-        X are the same.
-        '''
-        assert(isinstance(X, (list, tuple)))
-        assert(isinstance(Y, (list, tuple)))
-        N = len(X)
-        assert(len(Y) == N)
-        if strict:
-            if x < min(X) or x > max(X):
-                raise "x value is outside of interpolation range"
-            values = {}
-            for value in X:
-                if value in values:
-                    raise "%f is duplicate value in X" % value
-                    values[value] = 0
-        y = 0
-        for ix in range(N):
-            c = 1
-            for jx in range(N):
-                if ix == jx:
-                    continue
-                c *= (x - X[jx])/(X[ix] - X[jx])
-            y += c*Y[ix]
-        return y
     def GetAllowableWorkingStressInPsi(d, service_type):
         stress = g.Severe_stress
         if service_type == "l":

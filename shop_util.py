@@ -147,34 +147,3 @@ def root_find(x0, x2, f, eps, itmax):
                 x2 = x1
                 y2 = y1
     raise RuntimeError("No convergence")
-def LagrangeInterpolation(x, X, Y, strict=1):
-    '''Page 32 of Meeus, "Astronomical Algorithms", 2nd ed.  Given x,
-    an abscissa, calculates the interpolated value y = f(x) where f(x)
-    is Lagrange's interpolating polynomial.  X and Y are expected to
-    be lists or tuples of the same size such that Y[i] = f(X[i]).  If
-    strict is true, then you'll get an exception if you try to
-    interpolate outside the range of abscissas given in X.  Also, if
-    strict is true, we'll check to make sure that none of the abscissas
-    in X are the same.
-    '''
-    assert(ii(X, (tuple, list)))
-    assert(ii(Y, (tuple, list)))
-    N = len(X)
-    assert(len(Y) == N)
-    if strict:
-        if x < min(X) or x > max(X):
-            raise ValueError("x value is outside of interpolation range")
-        values = {}
-        for value in X:
-            if value in values:
-                raise ValueError("%f is duplicate value in X" % value)
-                values[value] = 0
-    y = 0
-    for i in range(N):
-        c = 1
-        for j in range(N):
-            if i == j:
-                continue
-            c *= (x - X[j])/(X[i] - X[j])
-        y += c*Y[i]
-    return y
