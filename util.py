@@ -54,8 +54,8 @@ RemoveIndent          Remove spaces from beginning of multiline string
 SignificantFigures    Rounds to specified num of sig figs (returns float)
 SignificantFiguresS   Rounds to specified num of sig figs (returns string)
 signum                Return -1, 0, or 1 if x < 0, == 0, or > 0
-Singleton             Mix-in class to create the singleton pattern
-SizeOf                Estimate memory of an object in bytes
+Singleton             Mix-in class for singleton pattern
+SizeOf                Estimate memory usage of an object in bytes
 SpeedOfSound          Calculate the speed of sound as func of temperature
 Spinner               Console spinner to show activity
 StringToNumbers       Convert a string to a sequence of numbers
@@ -855,7 +855,7 @@ def ConvertToNumber(s, handle_i=True):
         - If it contains 'j' or 'J', it's complex
         - If it contains '/', it's a fraction
         - If it contains ',', '.', 'E', or 'e', it's a float
-        - Otherwise it's interpreted to be an integer
+        - Otherwise it's interpreted as an integer
     Since I prefer to use 'i' for complex numbers, we'll also allow an 'i' in the number unless
     handle_i is False.
     '''
@@ -1261,6 +1261,9 @@ def RandomIntegers(n, maxint, seed=None, duplicates_OK=False):
 def execfile(filename, globals=None, locals=None, use_user_env=True):
     '''Python 3 substitute for python 2's execfile.  It gets the locals and globals from the
     caller's environment unless use_user_env is False.
+ 
+    Caution:  you should be aware of the risks of using this function to execute arbitrary code,
+    as a malicious file could e.g. wipe out your system or do other types of arbitrary damage.
     '''
     # https://stackoverflow.com/questions/436198/what-is-an-alternative-to-execfile-in-python-3
     e = sys._getframe(1)
@@ -1273,8 +1276,21 @@ def execfile(filename, globals=None, locals=None, use_user_env=True):
         exec(s, globals, locals)
 def iDistribute(n, a, b):
     '''Generator to return an integer sequence [a, ..., b] with n elements equally distributed
-    between a and b.  Raises ValueError if no solution is possible.
-  
+    between a and b.  Raises ValueError if no solution is possible.  Example:
+        a, b = 1, 6
+        for n in range(2, 8):
+            s = list(iDistribute(n, a, b))
+            print(f"iDistribute({n}, {a}, {b}) = {s}")
+    produces
+        iDistribute(2, 1, 6) = [1, 6]
+        iDistribute(3, 1, 6) = [1, 4, 6]
+        iDistribute(4, 1, 6) = [1, 3, 4, 6]
+        iDistribute(5, 1, 6) = [1, 2, 4, 5, 6]
+        iDistribute(6, 1, 6) = [1, 2, 3, 4, 5, 6]
+    with a ValueError exception on the n == 7 term.  For the case n == 4, note how the adjective
+    "equally" needs to be interpreted "symmetrically" and for the case n == 5, even that's not 
+    true.
+ 
     If you need a sequence of n floating point values, see util.fDistribute().
     '''
     if not (ii(a, int) and ii(b, int) and ii(n, int)):

@@ -7,6 +7,13 @@ Active:  /plib/.todo
           forgotten about it.  If I needed the functionality again, I'd probably write a new
           function for it, forgetting I had already done it.  So how to come up with a general
           indexing scheme that lets me find such things quickly instead of doing things over?
+        - Since I have a good start on metadata in each file (at least for python stuff), this
+          allows a scanning tool that collates that information and allows a script to be used to
+          browse it.
+            - This would mean additional metadata would need to be inserted into e.g. each function
+              in util.py.
+        - '#∞' is used as a trigger flag for this metadata.  ∞ is U+221E; ∟ is U+221F and it could
+          be used as a designator of the start of the metadata in a function.
 
     - Text formatting tool
         - One of the most common tasks in my scripts is something like a Usage() statement, which
