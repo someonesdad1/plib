@@ -13,15 +13,17 @@ Active:  /plib/.todo
             - This would mean additional metadata would need to be inserted into e.g. each function
               in util.py.
         - '#∞' is used as a trigger flag for this metadata.  ∞ is U+221E; ∟ is U+221F and it could
-          be used as a designator of the start of the metadata in a function.
+          be used as a designator of the start of the metadata in a function.  I like U+1F756 🝖,
+          the alchemical symbol for horse dung.
+        - With a suitable marker, the function's docstring could also supply the desired metadata.
 
     - Text formatting tool
         - One of the most common tasks in my scripts is something like a Usage() statement, which
           needs to print a chunk of text to the screen.  This needs to supply a given indentation
           and fit itself to the current width of the screen, like the modern man command does in a
-          Linux window today.  Since I use 4 spaces for tabs universally, it could include an
-          integer keyword 'tabs' that would default to 0 or 1.  Then a spaces keyword could be used
-          when needed.
+          terminal window.  Since I use 4 spaces for tabs universally, it could include an integer
+          keyword 'tabs' that would default to 0 or 1.  Then a spaces keyword could be used when
+          needed.
         - This tool would obviate the need for the dedent() method.  It would let me write my usage
           text in a straightforward fashion and not have to worry about how it comes out.
         - Simplest:  it formats text as needed with no formatting commands.
