@@ -123,7 +123,7 @@ if 1:   # Utility
             elif o in ("-h", "--help"):
                 Usage()
         return args
-if 0:   # Nonworking Browse function (broken because less is broken)
+if 1:   # Nonworking Browse function (broken because less is broken)
     def Browse():
         '''This was an attempt to add a browsing feature, but it fails
         because of limitations of the less pager, which I need to view to
