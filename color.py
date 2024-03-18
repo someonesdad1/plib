@@ -3028,9 +3028,9 @@ if __name__ == "__main__":
         ShortNames()
         print()
         ShowAttributes()
-        print("\nUse d for examples, t for color table, . for 8-bit color table;")
+        print("\nUse d for examples, 't[4|8|24]' for color table")
         print("otherwise interpret the color specifier")
-    elif first_char == "t":     # Show 4, 8, or 256 bit color table
+    elif first_char == "t":     # Show 4, 8, or 24 bit color table
         ColorTable(int(cmds[0][1:]))
     else:                       # Interpret color strings on command line
         for i in cmds:
