@@ -38,17 +38,17 @@
 #    filename as its argument.
 #
 # Copyright, license
-    # These "trigger strings" can be managed with trigger.py
-    #∞copyright∞# Copyright © 2022 Don Peterson #∞copyright∞#
-    #∞contact∞# gmail.com@someonesdad1 #∞contact∞#
-    #∞license∞#
-    #   Licensed under the Open Software License version 3.0.
-    #   See http://opensource.org/licenses/OSL-3.0.
-    #∞license∞#
-    #∞what∞#
-    # colornames0 module to define basic Color instances
-    #∞what∞#
-    #∞test∞# #∞test∞#
+# These "trigger strings" can be managed with trigger.py
+#∞copyright∞# Copyright © 2022 Don Peterson #∞copyright∞#
+#∞contact∞# gmail.com@someonesdad1 #∞contact∞#
+#∞license∞#
+#   Licensed under the Open Software License version 3.0.
+#   See http://opensource.org/licenses/OSL-3.0.
+#∞license∞#
+#∞what∞#
+# colornames0 module to define basic Color instances
+#∞what∞#
+#∞test∞# #∞test∞#
 
 'blk' :  Color('$000000', bpc=8)
 'blkd':  Color('$001e00', bpc=8)

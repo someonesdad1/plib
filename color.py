@@ -2636,13 +2636,14 @@ if __name__ == "__main__":
         P(c.ihsv, "HSV")
         P(c.ihls, "HLS")
     def ShowShortNames():
-        lines = GetLines("colornames0", nonl=True, script=True)
+        lines = GetLines("/plib/colornames0", nonl=True, script=True)
         i, f = " "*4, lambda x: ' '*x
         hdr = f"Name{f(10)}RGB{f(12)}XRGB{f(7)}XHSV{f(7)}XHLS "
         t.hdr = t('whtl', 'royd', "")
         t.print(f"{t.hdr}{hdr}")
         for line in sorted(lines):
-            if not line.strip():
+            line = line.strip()
+            if not line or line == "colornames0":
                 continue
             name, clr = line.split(":")
             c = eval(clr)
