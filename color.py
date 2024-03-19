@@ -124,6 +124,9 @@ if 1:   # Header
     if 1:
         from wsl import wsl
         from wrap import wrap, dedent
+        from get import GetLines
+        from dpprint import PP
+        pp = PP()
         try:
             from f import flt
         except ImportError:
@@ -2632,6 +2635,21 @@ if __name__ == "__main__":
         P(c.irgb, "RGB")
         P(c.ihsv, "HSV")
         P(c.ihls, "HLS")
+    def ShowShortNames():
+        lines = GetLines("colornames0", nonl=True, script=True)
+        i, f = " "*4, lambda x: ' '*x
+        hdr = f"Name{f(10)}RGB{f(12)}XRGB{f(7)}XHSV{f(7)}XHLS "
+        t.hdr = t('whtl', 'royd', "")
+        t.print(f"{t.hdr}{hdr}")
+        for line in sorted(lines):
+            if not line.strip():
+                continue
+            name, clr = line.split(":")
+            c = eval(clr)
+            name = name.replace("'", "")
+            s = str(c).replace("C⁸", "")
+            t.print(f"{t(c)}{name}{i}{s}{i}{c.xrgb}{i}{c.xhsv}{i}{c.xhls}")
+        t.print(f"{t.hdr}{hdr}")
     def PrintRGB(orig, x, rgb):
         'Show the color in various forms'
         q = "({:3d}, {:3d}, {:3d})"
@@ -3032,6 +3050,8 @@ if __name__ == "__main__":
         print("otherwise interpret the color specifier")
     elif first_char == "t":     # Show 4, 8, or 24 bit color table
         ColorTable(int(cmds[0][1:]))
+    elif first_char == "l":     # Show #/@/$ and RGB numbers for short names
+        ShowShortNames()
     else:                       # Interpret color strings on command line
         for i in cmds:
             InterpretColorSpecifier(i)
