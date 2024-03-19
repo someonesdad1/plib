@@ -28,10 +28,10 @@ if 1:   # Custom imports
     from columnize import Columnize
 if 1:   # Global variables
     wordlist = {
-        "additional": "/pylib/pgm/words.additional",
-        0: "/pylib/pgm/words.x.ngsl",
-        1: "/pylib/pgm/words.x.beale.2of12inf",
-        2: "/pylib/pgm/words.x.universal",
+        "additional": "/words/words.additional",
+        0: "/words/words.ngsl.experimental",
+        1: "/words/words.beale.2of12inf",
+        2: "/words/words.univ",
     }
     default_wordlist = 1
 def Error(*msg, status=1):
@@ -103,7 +103,8 @@ def ParseCommandLine(d):
         Usage(d)
     return args
 def GetWordlists(d):
-    regex, xfm = r"^\s*#", [str.lower]
+    # regex ignores comments; convert to lowercase if d["-i"] is True
+    regex = r"^\s*#"
     wl = set()
     wl.update(get.GetWords(wordlist["additional"], ignore=[regex]))
     if d["-0"]:

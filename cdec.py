@@ -49,7 +49,7 @@ if 1:   # Header
     if 1:   # Custom imports
         from wrap import wrap, dedent
         from color import Color, Trm
-        if 1:
+        if 0:
             import debug
             debug.SetDebugger()
     if 1:   # Global variables
