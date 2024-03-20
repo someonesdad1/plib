@@ -3038,7 +3038,7 @@ if __name__ == "__main__":
         print("Note:  if you look closely, you may be able to see small differences")
         print("between the last column's integer color and the remainder of the line.")
         print("This is because there are only 256 8-bit colors and the mapping isn't")
-        print("perfect.  Examples:  dend, olv, olvd, orn, pnkd, purd, royd, sead")
+        print("perfect.  Examples:  brnd, dend, olv, olvd, orn, pnkd, purd, royd, sead")
     def PrintRGB(orig, x, rgb):
         'Show the color in various forms'
         q = "({:3d}, {:3d}, {:3d})"
