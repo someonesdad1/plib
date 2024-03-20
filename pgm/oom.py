@@ -7,56 +7,60 @@ TODO
 
 Show lengths close to command line argument
 '''
-if 1:  # Copyright, license
-    # These "trigger strings" can be managed with trigger.py
-    #∞copyright∞# Copyright (C) 2020 Don Peterson #∞copyright∞#
-    #∞contact∞# gmail.com@someonesdad1 #∞contact∞#
-    #∞license∞#
-    #   Licensed under the Open Software License version 3.0.
-    #   See http://opensource.org/licenses/OSL-3.0.
-    #∞license∞#
-    #∞what∞#
-    # Show lengths close to command line argument
-    #∞what∞#
-    #∞test∞# #∞test∞#
-    pass
-if 1:   # Imports
-    import getopt
-    import os
-    import re
-    import sys
-    from pdb import set_trace as xx 
-    if 1:
-        import debug
-        debug.SetDebugger()
-if 1:   # Custom imports
-    from wrap import dedent
-    import u
-    from f import flt
-    import color as C
-if 1:   # Global variables
-    ii = isinstance
-    SI_prefix = {
-        -24: "y", -21: "z", -18: "a", -15: "f", -12: "p", -9: "n", -6: "μ",
-        -3: "m", 0: "", 3: "k", 6: "M", 9: "G", 12: "T", 15: "P", 18: "E",
-        21: "Z", 24: "Y"
-    }
-    # This list has been edited to remove the inconsistencies and
-    # annoyances in the original web page data from
-    # https://en.wikipedia.org/wiki/Orders_of_magnitude_(length).  It was
-    # also sorted by size.
+if 1:  # Header
+    if 1:  # Copyright, license
+        # These "trigger strings" can be managed with trigger.py
+        #∞copyright∞# Copyright (C) 2020 Don Peterson #∞copyright∞#
+        #∞contact∞# gmail.com@someonesdad1 #∞contact∞#
+        #∞license∞#
+        #   Licensed under the Open Software License version 3.0.
+        #   See http://opensource.org/licenses/OSL-3.0.
+        #∞license∞#
+        #∞what∞#
+        # Show lengths close to command line argument
+        #∞what∞#
+        #∞test∞# #∞test∞#
+        pass
+    if 1:   # Imports
+        import getopt
+        import os
+        import re
+        import sys
+    if 1:   # Custom imports
+        from wrap import dedent
+        import u
+        from f import flt
+        from color import t
+        import color as C
+        if 0:
+            import debug
+            debug.SetDebugger()
+    if 1:   # Global variables
+        ii = isinstance
+        SI_prefix = {
+            -24: "y", -21: "z", -18: "a", -15: "f", -12: "p", -9: "n", -6: "μ",
+            -3: "m", 0: "", 3: "k", 6: "M", 9: "G", 12: "T", 15: "P", 18: "E",
+            21: "Z", 24: "Y"
+        }
+if 1:   # Raw data from https://en.wikipedia.org/wiki/Orders_of_magnitude_(length)
+    # Changes I've made:
+    #   - I have removed inconsistencies and annoyances in the original web page data.
+    #
+    # References to cm have been changed to mm, as I consider the use of CGS units to be
+    # antiquated.  The entries were sorted by size.
     data = dedent('''
-    1.6e-11 ym 		The Planck length (measures of distance shorter than this are considered nonsensical and do not make any physical sense, according to current theories of physics).
+
+    1.6e-11 ym 		The Planck length (measures of distance shorter than this are considered nonsensical and do not make any physical sense, according to current theories of physics)
     1 ym 		 1 yoctometer, the smallest named subdivision of the meter in the SI base unit of length, 1e-24 meter
-    1 ym 		 Length of a neutrino.
-    2 ym 		 The effective cross-section radius of 1 MeV neutrinos as measured by Clyde Cowan and Frederick Reines
+    1 ym 		 Length of a neutrino
+    2 ym 		 Effective cross-section radius of 1 MeV neutrinos
     100 ym 		 Length of a top quark, one of the smallest known quarks
-    2 zm 		 Length of a preon, hypothetical particles proposed as subcomponents of quarks and leptons;
+    2 zm 		 Length of a preon, hypothetical particles proposed as subcomponents of quarks and leptons
     2 zm 		 Radius of effective cross section for a 20 GeV neutrino scattering off a nucleon
     7 zm 		 Radius of effective cross section for a 250 GeV neutrino scattering off a nucleon
     15 zm 		 Length of a high energy neutrino
     30 zm 		 Length of a bottom quark
-    177 zm 		 De Broglie wavelength of protons at the Large Hadron Collider (7 TeV as of 2010)
+    177 zm 		 de Broglie wavelength of protons at the Large Hadron Collider (7 TeV as of 2010)
     1 am 		 Length of a down quark
     1 am 		 Length of an electron
     1 am 		 Length of an up quark
@@ -76,7 +80,7 @@ if 1:   # Global variables
     570 fm 		 Typical distance from the atomic nucleus of the two innermost electrons (electrons in the 1s shell) in the uranium atom, the heaviest naturally-occurring atom
     1 pm 		 Distance between atomic nuclei in a white dwarf
     2.4 pm 		 The Compton wavelength of the electron
-    5 pm 		 Shorter X-ray wavelengths (approx.)
+    5 pm 		 Shorter X-ray wavelengths
     25 pm 		 Approximate radius of a helium atom, the smallest neutral atom
     50 pm 		 Bohr radius: approximate radius of a hydrogen atom
     50 pm 		 Radius of a hydrogen atom
@@ -113,14 +117,14 @@ if 1:   # Global variables
     2.3 nm 		 Length of a phospholipid
     2.3 nm 		 Smallest gate oxide thickness in microprocessors
     3 nm 		 As of 2019, the average half-pitch of a memory cell expected to be manufactured circa 2022
-    3 nm 		 Flying height of the head of a hard disk
     3 nm 		 Width of a DNA helix
     3.4 nm 		 Length of a DNA turn (10 bp)
     3.8 nm 		 Size of an albumin molecule
     5 nm 		 As of October 2018, the average half-pitch of a memory cell expected to be manufactured circa 2019-2020
     5 nm 		 Size of the gate length of a 16 nm processor
+    5 nm 		 Flying height of the head of a hard disk in 2011
     6 nm 		 Length of a phospholipid bilayer
-    6.8 nm 		 Width of a haemoglobin molecule
+    6.8 nm 		 Width of a hemoglobin molecule
     7 nm 		 Average half-pitch of a memory cell manufactured circa 2018
     6 to 10 nm 		 Thickness of cell membrane
     10 nm 		 Average half-pitch of a memory cell manufactured circa 2016-2017
@@ -147,12 +151,12 @@ if 1:   # Global variables
     65 nm 		 Average half-pitch of a memory cell manufactured circa 2005-2006
     90 nm 		 Average half-pitch of a memory cell manufactured circa 2002-2003
     90 nm 		 Human immunodeficiency virus (HIV) (generally, viruses range in size from 20 nm to 450 nm)
-    100 nm 		 90% of particles in wood smoke are smaller than this.
+    100 nm 		 90% of particles in wood smoke are smaller than this
     100 nm 		 Greatest particle size that can fit through a surgical mask
     100 nm 		 Length of a mesoporous silica nanoparticle
     120 nm 		 Diameter of a human immunodeficiency virus (HIV)
     120 nm 		 Greatest particle size that can fit through a ULPA filter
-    125 nm 		 Standard depth of pits on compact discs (width: 500 nm, length: 850 nm to 3.5 μm)
+    125 nm 		 Standard depth of pits on compact disks (width: 500 nm, length: 850 nm to 3.5 μm)
     180 nm 		 Typical length of the rabies virus
     200 nm 		 Typical size of a Mycoplasma bacterium, among the smallest bacteria
     300 nm 		 Greatest particle size that can fit through a HEPA (High Efficiency Particulate Air) filter (N100 removes up to 99.97% at 0.3 micrometers, N95 removes up to 95% at 0.3 micrometers)
@@ -166,9 +170,9 @@ if 1:   # Global variables
     565 to 590 nm 		 Wavelength of yellow light
     590 to 625 nm 		 Wavelength of orange light
     625 to 700 nm 		 Wavelength of red light
-    1 μm 		 Edge of cube of volume 10−18 m3 (1 fL)
+    1 μm 		 Edge of cube of volume 10⁻¹⁸ m³ (1 fL)
     1 μm 		 Length of a lysosome
-    1 μm 		 The side of square of area 10−12 m2
+    1 μm 		 The side of square of area 10⁻¹² m²
     1 to 2 μm 		 Anthrax spore
     2 μm 		 Length of an average E. coli bacteria
     3 to 4 μm 		 Size of a typical yeast cell
@@ -226,70 +230,73 @@ if 1:   # Global variables
     1.0 mm 		 Diameter of a pinhead
     1.0 mm 		 Side of square of area 1 mm²
     1.5 mm 		 Length of average flea
-    2.54 mm 		 Distance between pins on old dual in-line package (DIP) electronic components
+    1.52 mm 		 Thickness of US penny
+    2.54 mm 		 Distance between pins on dual in-line package (DIP) electronic components (0.1 inch)
     5 mm 		 Diameter of an average grain of rice
     5 mm 		 Length of an average red ant
     6 mm 		 Approximate width of a pencil
     7 mm 		 Length of a Paedophryne amauensis, the smallest known vertebrate
     7.1 mm 		 Length of a sunflower seed
     8 mm 		 Length of a Paedocypris progenetica, the smallest known fish
-    8 mm 		 Width of old-format home movie film
-    1 cm 		 0.39 inches
-    1 cm 		 10 millimeters
-    1 cm 		 Approximate width of average fingernail
-    1 cm 		 Edge of cube of volume 1 ml
-    1 cm 		 Edge of square of area 1 cm2
-    1 cm 		 Length of a coffee bean
-    1.2 cm 		 Diameter of a dice
-    1.2 cm 		 Length of a bee
-    1.5 cm 		 Length of a very large mosquito
-    1.6 cm 		 Length of a Jaragua Sphaero, a very small reptile
-    1.7 cm 		 Length of a Thorius arboreus, the smallest salamander
-    2 cm 		 Approximate width of an adult human finger
-    2.54 cm 		 1 inch
-    3.4 cm 		 Length of a quail egg
-    3.5 cm 		 Width of film commonly used in motion pictures and still photography
-    4.3 cm 		 Minimum diameter of a golf ball
-    5 cm 		 Height of a hummingbird, the smallest known bird
-    5 cm 		 Usual diameter of a chicken egg
-    5.4 cm 		 Width of a standard credit card
-    6.1 cm 		 Average height of an apple
-    7.3 to 7.5 cm 		 Diameter of a baseball
-    8.6 cm 		 Length of a standard credit card
-    9 cm 		 Length of a Speckled Padloper, the smallest known turtle
-    10 cm		 Diameter of the human cervix upon entering the second stage of labour
-    10 cm		 Wavelength of the highest UHF radio frequency, 3 GHz
-    10.16 cm		 1 hand used in measuring height of horses (4 inches)
-    11 cm		 Diameter of an average potato in the US
-    12 cm		 Diameter of a compact disc (CD) (= 120 mm)
-    12 cm		 Wavelength of the 2.45 GHz ISM radio band
-    15 cm		 Approximate size of largest beetle species
-    15 cm		 Length of a Bic pen with cap on
-    19 cm		 Length of a banana
-    21 cm		 Wavelength of the 1.4 GHz hydrogen emission line, a hyperfine transition of the hydrogen atom
-    22 cm		 Diameter of a typical association football (soccer ball)
-    26.3 cm		 Length of average male human foot
-    29.98 cm		 Distance light travels in one nanosecond
-    30 cm		 Typical school-use ruler length (= 300 mm)
-    30.48 cm		 1 foot (measure)
-    31 cm		 Wingspan of largest butterfly species Ornithoptera alexandrae
-    46 cm		 Length of an average domestic cat
-    50 to 65 cm		 A coati's tail
-    60 cm		 Standard depth (front to back) of a domestic kitchen worktop in Europe (= 600 mm)
-    66 cm		 Length of the longest pine cones (produced by the sugar pine)
-    84 cm		 Approximate diameter of 2008 TS26, a meteoroid
-    90 cm		 Average length of a rapier, a fencing sword
-    91.44 cm		 One yard (measure)
+    8 mm 		 Popular movie film width used from about 1930 to 1990
+    10 mm 		 Approximate width of average fingernail
+    10 mm 		 Edge of cube of volume 1 ml
+    10 mm 		 Length of a coffee bean
+    12 mm 		 Diameter of a dice
+    12 mm 		 Length of a bee
+    15 mm 		 Length of a very large mosquito
+    16 mm 		 Popular movie film width used from about 1930 to 1970
+    16 mm 		 Length of a Jaragua Sphaero, a very small reptile
+    17 mm 		 Length of a Thorius arboreus, the smallest salamander
+    19.05 mm 		 Diameter of US penny
+    20 mm 		 Approximate width of an adult human finger
+    24.26 mm 		 Diameter of US quarter
+    25.4 mm 		 1 inch
+    34 mm 		 Length of a quail egg
+    35 mm 		 Width of film commonly used in motion pictures and still photography
+    43 mm 		 Minimum diameter of a golf ball
+    50 mm 		 Height of a hummingbird, the smallest known bird
+    50 mm 		 Usual diameter of a chicken egg
+    54 mm 		 Width of a standard credit card
+    61 mm 		 Average height of an apple
+    66.3 mm		 Height of a US dollar bill
+    73 to 75 mm 		 Diameter of a baseball
+    86 mm 		 Length of a standard credit card
+    90 mm 		 Length of a Speckled Padloper, the smallest known turtle
+    100 mm		 Diameter of the human cervix upon entering the second stage of labor
+    100 mm		 Wavelength of the highest UHF radio frequency, 3 GHz
+    101.6 mm		 1 hand used in measuring height of horses (4 inches)
+    110 mm		 Diameter of an average potato in the US
+    120 mm		 Diameter of a compact disk (CD)
+    120 mm		 Wavelength of the 2.45 GHz ISM radio band
+    150 mm		 Approximate size of largest beetle species
+    150 mm		 Length of a Bic pen with cap on
+    156 mm		 Width of a US dollar bill
+    190 mm		 Length of a banana
+    210 mm		 Wavelength of the 1.4 GHz hydrogen emission line, a hyperfine transition of the hydrogen atom
+    220 mm		 Diameter of a typical soccer ball
+    263 mm		 Length of average male human foot
+    299.8 mm		 Distance light travels in one nanosecond
+    300 mm		 Typical school-use ruler length (= 300 mm)
+    304.8 mm		 1 foot (measure)
+    310 mm		 Wingspan of largest butterfly species Ornithoptera alexandrae
+    460 mm		 Length of an average domestic cat
+    500 to 650 mm		 A coati's tail
+    600 mm		 Standard depth (front to back) of a domestic kitchen worktop in Europe
+    660 mm		 Length of the longest pine cones (produced by the sugar pine)
+    840 mm		 Approximate diameter of 2008 TS26, a meteoroid
+    900 mm		 Average length of a rapier, a fencing sword
+    914.4 mm		 One yard (measure)
     1 m 		 Approximate height of the top part of a doorknob on a door
     1 m 		 Diameter of a very large beach ball
     1 m 		 Height of Homo floresiensis (the "Hobbit")
-    100 cm		 Wavelength of the lowest UHF radio frequency, 300 MHz
+    1 m		 Wavelength of the lowest UHF radio frequency, 300 MHz
     1.15 m 		 A pizote (mammal)
     1.37 m 		 Average height of an Andamanese person
     1.435 m 		 Standard gauge of railway track used by about 60% of railways in the world = 4' 8½"
     1.63 m 		 (5 feet 4 inches) (or 64 inches) - height of average US female human as of 2002 (source: US Centers for Disease Control and Prevention (CDC))
     1.75 m 		 (5 feet 8 inches) - height of average US male human as of 2002 (source: US CDC as per female above)
-    2.44 m 		 Height of an association football goal
+    2.44 m 		 Height of an association soccer goal
     2.45 m 		 Highest high jump by a human being (Javier Sotomayor)
     2.5 m 		 Distance from the floor to the ceiling in an average residential house
     2.5 m 		 Height of a sunflower
@@ -299,7 +306,7 @@ if 1:   # Global variables
     3.05 m 		 The length of an old Mini
     2.77 to 3.44 m 		 Wavelength of the broadcast radio FM band 87-108 MHz
     3.63 m 		 The record wingspan for living birds (a wandering albatross)
-    4.1 m 		 Diameter of 2008 TC3, a small asteroid that flew into the Earth's atmosphere on October 7, 2008.
+    4.1 m 		 Diameter of 2008 TC3, a small asteroid that flew into the Earth's atmosphere on October 7, 2008
     3 to 6 m 		 Approximate diameter of 2003 SQ222, a meteoroid
     5 m 		 Length of an elephant
     5.2 m 		 Height of a giraffe
@@ -336,7 +343,7 @@ if 1:   # Global variables
     35 meters 		 Length of a Supersaurus, the longest known dinosaur and longest vertebrate
     40 meters 		 Average depth beneath the seabed of the Channel tunnel
     49 meters 		 Wavelength of the broadcast radio shortwave band at 6.1 MHz
-    49 meters 		 Width of an American football field (53⅓ yards)
+    49 meters 		 Width of an American football field (53.33 yards)
     50 meters 		 Length of a road train
     52 meters 		 Height of Niagara Falls
     55 meters 		 Height of the Leaning Tower of Pisa
@@ -347,7 +354,7 @@ if 1:   # Global variables
     69 meters 		 Wingspan of an Antonov An-124 Ruslan
     70 meters 		 Length of the Bayeux Tapestry
     70 meters 		 Typical width of soccer field
-    70 meters 		 Width of a typical association football field
+    70 meters 		 Width of a typical association soccer field
     77 meters 		 Wingspan of a Boeing 747-8
     83 meters 		 Height of a Western hemlock
     88.4 meters 		 Wingspan of the Antonov An-225 Mriya transport aircraft
@@ -360,8 +367,8 @@ if 1:   # Global variables
     100 meters 		 Wavelength of the highest medium wave radio frequency, 3 MHz
     100 meters 		 Wavelength of the lowest shortwave radio frequency, 3 MHz
     100.584 meters 		 Length of a Canadian football field between the goal lines (110 yards)
-    105 meters 		 Length of a typical football field
-    105 meters 		 Length of football pitch (UEFA Stadium Category 3 and 4)
+    105 meters 		 Length of a typical soccer field
+    105 meters 		 Length of soccer pitch (UEFA Stadium Category 3 and 4)
     109.73 meters 		 Total length of an American football field (120 yards, including the end zones)
     115.5 meters 		 Height of the world's tallest tree in 2007, the Hyperion sequoia
     110 to 150 meters 		 The width of an Australian football field
@@ -468,7 +475,7 @@ if 1:   # Global variables
     223 km 		 Length of the Madrid Metro
     240 km 		 Widest width of the English Channel
     300 km 		 Range of a Scud-B missile
-    300 km 		 The approximate distance travelled by light in one millisecond
+    300 km 		 The approximate distance traveled by light in one millisecond
     340 km 		 Diameter of Nereid, the third largest moon of Neptune
     350 km 		 Lower bound of Low Earth orbit
     386 km 		 Altitude of the International Space Station
@@ -583,7 +590,7 @@ if 1:   # Global variables
     2.19 Gm 		 Closest approach of Comet Lexell to Earth, happened on 1 July 1770; closest comet approach on record
     3 Gm 		 Total length of "wiring" in the human brain
     4.2 Gm 		 Diameter of Algol B
-    5.0 Gm 		 (proposed) Size of the arms of the giant triangle shaped Michelson interferometer of the Laser Interferometer Space Antenna (LISA) planned to start observations sometime in the 2030s.
+    5.0 Gm 		 (proposed) Size of the arms of the giant triangle shaped Michelson interferometer of the Laser Interferometer Space Antenna (LISA) planned to start observations sometime in the 2030s
     5.0 Gm 		 Closest approach of Comet Halley to Earth, happened on 10 April 837
     7.9 Gm 		 Diameter of Gamma Orionis
     9.0 Gm 		 Estimated diameter of the event horizon of Sagittarius A*, the supermassive black hole in the center of the Milky Way galaxy
@@ -608,11 +615,11 @@ if 1:   # Global variables
     965 Gm 		 Maximum distance between the Earth and Jupiter
     1.079 Tm 		 One light-hour
     1.4 Tm 		 Distance between Saturn and the Sun
-    1.5 Tm 		 Estimated diameter of VV Cephei A, a red supergiant.
+    1.5 Tm 		 Estimated diameter of VV Cephei A, a red supergiant
     1.83 Tm 		 Diameter of HR 5171 A, the largest known yellow hypergiant star although the latest research suggests it is a red hypergiant with a diameter about 2.1 Tm (14 AU)
-    2 Tm 		 Estimated diameter of VY Canis Majoris, one of the largest known stars.
+    2 Tm 		 Estimated diameter of VY Canis Majoris, one of the largest known stars
     2.9 Tm 		 Distance between Uranus and the Sun
-    4 Tm 		 Previous estimated diameter of VY Canis Majoris based on direct measurements of the radius at infrared wavelengths.
+    4 Tm 		 Previous estimated diameter of VY Canis Majoris based on direct measurements of the radius at infrared wavelengths
     4.4 Tm 		 Perihelion distance of Pluto
     4.5 Tm 		 Distance between Neptune and the Sun
     4.5 Tm 		 Inner radius of the Kuiper belt
@@ -643,7 +650,7 @@ if 1:   # Global variables
     777 Tm 		 One light-month
     7.5 Pm 		 Possible outer boundary of Oort cloud (other estimates are 75,000 to 125,000 or even 189,000 AU (1.18, 2, and 3 light years, respectively))
     7.7 Pm 		 Aphelion distance of the Great Daylight Comet of 1910
-    9.5 Pm 		 One light year, the distance travelled by light in one year
+    9.5 Pm 		 One light year, the distance traveled by light in one year
     15 Pm 		 Possible outer radius of Oort cloud
     20 Pm 		 Maximum extent of influence of the Sun's gravitational field
     30.9 Pm 		 1 parsec
@@ -652,7 +659,7 @@ if 1:   # Global variables
     110 Pm 		 Distance to Tau Ceti
     230 Pm 		 Diameter of the Orion Nebula
     240 Pm 		 Distance to Vega
-    260 Pm 		 Distance to Chara, a star approximately as bright as our Sun. Its faintness gives us an idea how our Sun would appear when viewed from even so close a distance as this.
+    260 Pm 		 Distance to Chara, a star approximately as bright as our Sun. Its faintness gives us an idea how our Sun would appear when viewed from even so close a distance as this
     350 Pm 		 Distance to Arcturus
     373.1 Pm 		 Distance to TRAPPIST-1, a star recently discovered to have 7 planets around it
     400 Pm 		 Distance to Capella
@@ -681,7 +688,7 @@ if 1:   # Global variables
     240 Em 		 Distance to the Canis Major Dwarf Galaxy
     260 Em 		 Distance to the center of the Galaxy
     830 Em 		 Distance to the Sagittarius Dwarf Elliptical Galaxy
-    1.4 to 1.9 Zm 		 Estimated diameter of the disc of the Milky Way Galaxy. The size was previously thought to be half of this.
+    1.4 to 1.9 Zm 		 Estimated diameter of the disk of the Milky Way Galaxy. The size was previously thought to be half of this
     1.7 Zm 		 Distance to the Large Magellanic Cloud, largest satellite galaxy of the Milky Way
     2.0 Zm 		 Distance to the Small Magellanic Cloud
     2.8 Zm 		 Distance to the Intergalactic Wanderer, one of the most distant globular clusters of Milky Way
@@ -721,204 +728,221 @@ if 1:   # Global variables
     260 Ym 		 Diameter of the observable universe (double LTD)
     440 Ym 		 Radius of the universe measured as a comoving distance
     590 Ym 		 Cosmological event horizon: the largest comoving distance from which light will ever reach us (the observer) at any time in the future
-    886.48 Ym 		 The diameter of the observable universe (twice the particle horizon); however, there might be unobserved distances that are even greater.
+    886.48 Ym 		 The diameter of the observable universe (twice the particle horizon); however, there might be unobserved distances that are even greater
+
     ''')
-class Num(flt):
-    '''Encapsulate a number so "closeness" can be determined by the ==
-    operator.  A list of Num objects will sort numerically by size.
-    '''
-    '''
-    Note:  since I changed this to derive from flt, I had to change the
-    low and high attributes of Num to Low and High to avoid the collision
-    with flt's attributes.
-    '''
-    def __new__(cls, s, descr):
-        '''descr is a string describing this number.
- 
-        s is a string representing the number.  It will be of one of
-        the forms
-            'a to b'
-            '~a to b'
-            'a'
-            '<a'
-            '~a'
-        The '~' is ignored.  The 'a to b' form has the self.Low and
-        self.High values set from a and b.  Otherwise, the value is set
-        from a.  Note a will be of the form e.g. '1 nm', i.e., a number and
-        a length unit.
- 
-        The value of a Num is the length in m.  When a range is given, the
-        mean of the endpoints is the value.
+if 1:  # Classes
+    class Num(flt):
+        '''Encapsulate a number so "closeness" can be determined by the ==
+        operator.  A list of Num objects will sort numerically by size.
+        
+        Note:  since I changed this to derive from flt, I had to change the
+        low and high attributes of Num to Low and High to avoid the collision
+        with flt's attributes.
         '''
-        t = s
-        if s[0] == "~":
-            t = t[1:]
-        if "to" in t:
-            f = t.split()
-            assert(len(f) == 4)
-            assert(f[1] == "to") 
-            unit = f[3]
-            Low, High = [float(i) for i in (f[0], f[2])]
-            instance = flt.__new__(cls, (Low + High)/2, units=unit)
-            instance.Low = Low
-            instance.High = High
+        def __new__(cls, s, descr):
+            '''descr is a string describing this number.
+     
+            s is a string representing the number.  It will be of one of
+            the forms
+                'a to b'
+                '~a to b'
+                'a'
+                '<a'
+                '~a'
+            The '~' is ignored.  The 'a to b' form has the self.Low and
+            self.High values set from a and b.  Otherwise, the value is set
+            from a.  Note a will be of the form e.g. '1 nm', i.e., a number and
+            a length unit.
+     
+            The value of a Num is the length in m.  When a range is given, the
+            mean of the endpoints is the value.
+            '''
+            t = s
+            if s[0] == "~":
+                t = t[1:]
+            if "to" in t:
+                f = t.split()
+                assert(len(f) == 4)
+                assert(f[1] == "to") 
+                unit = f[3]
+                toSI = u.u(unit)
+                Low, High = [float(i) for i in (f[0], f[2])]
+                val = (Low + High)*toSI/2
+                instance = flt.__new__(cls, val)
+                instance.units = unit
+                instance.Low = Low*toSI
+                instance.High = High*toSI
+            else:
+                val, unit = u.ParseUnit(t)
+                toSI = u.u(unit)
+                instance = flt.__new__(cls, float(val)*toSI)
+                instance.units = unit
+                instance.Low = None
+                instance.High = None
+            instance.str = s.strip()
+            instance.descr = descr.strip()
+            return instance
+        def __str__(self):
+            return self.str + " " + self.descr
+        def __repr__(self):
+            return self.str + " " + self.descr
+        def __eq__(self, other):
+            '''Return True if we're equal to other.  If self is a single
+            number, then it's True if other is within d["-t"] percent of it.
+            Otherwise, it's equal if self.Low <= other <= self.High.
+            '''
+            if other is None:
+                return False
+            assert(ii(other, Num))
+            if self.Low is None:
+                p = flt(d["-t"])/100
+                return (1 - p)*self <= other <= (1 + p)*self
+            else:
+                return self.Low <= other <= self.High
+        def __lt__(self, other):
+            'Return True if self < other'
+            assert(ii(other, Num))
+            # This depends on the floating point value being in m
+            return float(self) < float(other)
+if 1:  # Utility
+    def Error(msg, status=1):
+        print(msg, file=sys.stderr)
+        exit(status)
+    def Usage(d, status=1):
+        print(dedent(f'''
+        Usage:  {sys.argv[0]} [options] dist1 [dist2 ...]
+          Print the order of magnitude distance data for distances close to dist1, dist2, etc.  Default
+          units are meters, but you can include another unit with no space between it and the number.
+          If a dist argument can't be converted to a dimensioned number, it's a string that is
+          searched for in the descriptions.  Unless -n is used, a 1-figure number in meters in
+          scientific notation is in parentheses to help interpret SI prefixes used.
+        Options:
+          -d n    Number of significant figures to display
+          -n      Do not display number in meters
+          -m      Dump the raw data to stdout and exit
+          -t n    Set % tolerance to be "equal" [{d["-t"]}]
+        '''))
+        exit(status)
+    def ParseCommandLine(d):
+        d["-d"] = 3         # Number of significant digits
+        d["-m"] = False     # Dump data to stdout
+        d["-n"] = True      # Display in meters numerically too
+        d["-t"] = 50        # Tolerance to be "equal"
+        try:
+            opts, args = getopt.getopt(sys.argv[1:], "d:mnt")
+        except getopt.GetoptError as e:
+            print(str(e))
+            exit(1)
+        for o, a in opts:
+            if o[1] in list("nm"):
+                d[o] = not d[o]
+            elif o in ("-d",):
+                try:
+                    d["-d"] = int(a)
+                    if not (1 <= d["-d"] <= 15):
+                        raise ValueError()
+                except ValueError:
+                    msg = ("-d option's argument must be an integer between "
+                           "1 and 15")
+                    Error(msg)
+            elif o in ("-t",):
+                try:
+                    d["-t"] = flt(a)
+                    if d["-t"] <= 0:
+                        raise ValueError()
+                except ValueError:
+                    msg = ("-t option must be > 0")
+                    Error(msg)
+            elif o in ("-h", "--help"):
+                Usage(d, status=0)
+        flt(0).n = d["-d"]
+        flt(0).rtz = True
+        if d["-m"]:
+            GetData(show_sorted=True)
+            exit(0)
+        if not args:
+            Usage(d)
+        return args
+if 1:  # Core functionality
+    def ParseDistance(s):
+        'Return distance string in s in m'
+        f = s.split()
+        if "to" in s:
+            print(s)
+        elif s[0] == "<":
+            print(s)
+        elif s[0] == "~":
+            print(s)
         else:
-            val, unit = u.ParseUnit(t)
-            instance = flt.__new__(cls, val, units=unit)
-            instance.Low = None
-            instance.High = None
-        instance.str = s.strip()
-        instance.descr = descr.strip()
-        return instance
-    def __eq__(self, other):
-        '''Return True if we're equal to other.  If self is a single
-        number, then it's True if other is within d["-t"] percent of it.
-        Otherwise, it's equal if self.Low <= other <= self.High.
+            pass
+        return 1
+    def GetData(show_sorted=False):
+        '''Put data into d["data"].  If show_sorted is True, then the input
+        lines are sorted by size, printed to stdout, and the script exits.
         '''
-        if other is None:
-            return False
-        assert(ii(other, Num))
-        if self.Low is None:
-            p = flt(d["-t"])/100
-            return (1 - p)*self <= other <= (1 + p)*self
-        else:
-            return self.Low <= other <= self.High
-    def __lt__(self, other):
-        'Return True if self < other'
-        assert(ii(other, Num))
-        # This depends on the floating point value being in m
-        return float(self) < float(other)
-def Error(msg, status=1):
-    print(msg, file=sys.stderr)
-    exit(status)
-def Usage(d, status=1):
-    print(dedent(f'''
-    Usage:  {sys.argv[0]} [options] dist1 [dist2 ...]
-      Print the order of magnitude distance data for distances close to
-      dist1, dist2, etc.  Default units are meters, but you can include
-      another unit with no space between it and the number.
-      If the dist arguments can't be converted to a dimensioned number, it's
-      a string that is searched for in the descriptions.  Unless -n is
-      used, a 1-figure number in meters in scientific notation is in
-      parentheses.
-    Options:
-      -d n    Number of significant figures to display
-      -n      Do not display number in meters
-      -m      Dump the raw data to stdout and exit
-      -t n    Set % tolerance to be "equal" [{d["-t"]}]
-    '''))
-    exit(status)
-def ParseCommandLine(d):
-    d["-d"] = 3         # Number of significant digits
-    d["-m"] = False     # Dump data to stdout
-    d["-n"] = True      # Display in meters numerically too
-    d["-t"] = 50        # Tolerance to be "equal"
-    try:
-        opts, args = getopt.getopt(sys.argv[1:], "d:mnt")
-    except getopt.GetoptError as e:
-        print(str(e))
-        exit(1)
-    for o, a in opts:
-        if o[1] in list("nm"):
-            d[o] = not d[o]
-        elif o in ("-d",):
-            try:
-                d["-d"] = int(a)
-                if not (1 <= d["-d"] <= 15):
-                    raise ValueError()
-            except ValueError:
-                msg = ("-d option's argument must be an integer between "
-                       "1 and 15")
-                Error(msg)
-        elif o in ("-t",):
-            try:
-                d["-t"] = flt(a)
-                if d["-t"] <= 0:
-                    raise ValueError()
-            except ValueError:
-                msg = ("-t option must be > 0")
-                Error(msg)
-        elif o in ("-h", "--help"):
-            Usage(d, status=0)
-    flt(0).n = d["-d"]
-    flt(0).rtz = True
-    if d["-m"]:
-        GetData(show_sorted=True)
-        exit(0)
-    if not args:
-        Usage(d)
-    return args
-def ParseDistance(s):
-    'Return distance string in s in m'
-    f = s.split()
-    if "to" in s:
-        print(s)
-    elif s[0] == "<":
-        print(s)
-    elif s[0] == "~":
-        print(s)
-    else:
-        pass
-    return 1
-def GetData(show_sorted=False):
-    '''Put data into d["data"].  If show_sorted is True, then the input
-    lines are sorted by size, printed to stdout, and the script exits.
-    '''
-    # d["data"] is a list of Num objects
-    for line in data.split("\n"):
-        line = line.strip()
-        if not line:
-            continue
-        a, b = line.split("\t\t")
-        x = Num(a, b)
+        # d["data"] is a list of Num objects
+        for line in data.split("\n"):
+            line = line.strip()
+            if not line:
+                continue
+            a, b = line.split("\t\t")
+            x = Num(a, b)
+            if show_sorted:
+                d["data"].append((flt(float(x)), line))
+            else:
+                d["data"].append(x)
         if show_sorted:
-            d["data"].append((flt(float(x)), line))
+            d["data"] = list(sorted(d["data"]))
+            for i in d["data"]:
+                print(i[1])
+            exit()
+    def Print(x, r=None):
+        '''x is a Num object; print it.  If r is not None, then it will be
+        the regex that matched x.descr.
+        '''
+        def sci(x):
+            y = float(x)  # This is in m
+            a, b = f"{y:.0e}".split("e")
+            return ''.join([a, "e", str(int(b))])
+        if r is None:
+            # The number matched
+            print(" ", x.str, end=" ")
+            if d["-n"]:
+                print(f"({sci(x)})", end=" ")
+            print(x.descr)
         else:
-            d["data"].append(x)
-    if show_sorted:
-        d["data"] = list(sorted(d["data"]))
-        for i in d["data"]:
-            print(i[1])
-        exit()
-def Print(x, r=None):
-    '''x is a Num object; print it.  If r is not None, then it will be
-    the regex that matched x.descr.
-    '''
-    def sci(x):
-        y = float(x)  # This is in m
-        a, b = f"{y:.0e}".split("e")
-        return ''.join([a, "e", str(int(b))])
-    if r is None:
-        # The number matched
-        print(" ", x.str, end=" ")
-        if d["-n"]:
-            print(f"({sci(x)})", end=" ")
-        print(x.descr)
-    else:
-        # The regex matched
-        print(" ", x.str, end=" ")
-        if d["-n"]:
-            print(f"({sci(x)})", end=" ")
-        C.PrintMatch(x.descr, r)
-def PrintClose(dist):
-    '''dist is a command line argument.  Convert it to meters and print out
-    those elements in d["data"] that are close to it.
-    '''
-    try:
-        val, unit = u.ParseUnit(dist)
-        if u.dim(unit) != u.dim("m"):
-            raise Exception()  # Just do a text search
-        m = Num(dist, "")
-        search = False
-    except Exception:
-        search, m = True, None
-        r = re.compile(dist, re.I)
-    print(dist)
-    for x in d["data"]:
-        if x == m:
-            Print(x)
-        elif search and r.search(x.descr):
-            Print(x, r=r)
+            # The regex matched
+            print(" ", x.str, end=" ")
+            if d["-n"]:
+                print(f"({sci(x)})", end=" ")
+            print(x.descr)
+            #C.PrintMatch(x.descr, r)
+    def PrintClose(dist):
+        '''dist is a command line argument.  Convert it to meters and print out
+        those elements in d["data"] that are close to it.
+        '''
+        class DoTextSearch(Exception): pass
+        try:
+            val, unit = u.ParseUnit(dist)
+            if not unit:
+                m =Num(val + " m", "")
+            elif u.dim(unit) != u.dim("m"):
+                raise DoTextSearch()  # Just do a text search
+            else:
+                # It has a unit, so use as-is
+                m = Num(dist, "")
+            search = False
+        except (DoTextSearch, TypeError):
+            search, m = True, None
+            r = re.compile(dist, re.I)
+        print(dist)
+        for x in d["data"]:
+            if x == m:
+                Print(x)
+            elif search and r.search(x.descr):
+                Print(x, r=r)
+
 if __name__ == "__main__":
     d = {  # Options dictionary
         "data": [],

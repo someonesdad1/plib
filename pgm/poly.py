@@ -192,7 +192,7 @@ if 1:   # Core functionality
             else:
                 break
         print(f"{'n':^2s}", end=" ")
-        for s in "T(deg) A/d² A/D² A/a² d/a D/a a/d a/D D/d".split():
+        for s in "T,° A/d² A/D² A/a² d/a D/a a/d a/D D/d".split():
             print(f"{s:^{w}s}", end=" ")
         print()
         # Get which sizes to print
@@ -217,7 +217,7 @@ if 1:   # Core functionality
             res.append(F(Doa/doa, w))            # D/d
             if colorize:
                 print(f"{t.hi}", end="")
-            print(' '.join(res))
+            print(' '.join(res).rstrip())
             if colorize:
                 print(f"{t.nn}", end="")
         if 1:   # Print formulas

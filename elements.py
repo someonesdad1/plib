@@ -1,12 +1,14 @@
 '''
-
-- Options:  -a for all, -s for short list
-
-Launch wikipedia pages for elements
-    e.g. https://en.wikipedia.org/wiki/Hydrogen
-    e.g. https://en.wikipedia.org/wiki/Isotopes_of_hydrogen
-Ref 
-    https://en.wikipedia.org/wiki/List_of_chemical_elements
+Call GetElementNamedTuples() to get a list of named tuples with the properties of the elements.
+The index is 1 minus the atomic number.
+ 
+    Can also be run as a script to look at the properties of individual elements and launch
+    wikipedia's web page on an element.
+ 
+    Data from e.g.
+        https://en.wikipedia.org/wiki/Hydrogen
+        https://en.wikipedia.org/wiki/Isotopes_of_hydrogen
+        https://en.wikipedia.org/wiki/List_of_chemical_elements
 '''
 if 1:   # Header
     if 1:   # Copyright, license
@@ -391,86 +393,75 @@ if 1:   # Utility
         exit(status)
     def Manpage():
         print(dedent(f'''
-        This script is intended to let you see physical properties of the
-        elements through the following features:
+        This script is intended to let you see physical properties of the elements through the
+        following features:
             
-            - A list of properties printed to stdout with no arguments, one
-              element per line.  This gives the symbol, name, number of
-              protons, atomic weight, melting and boiling points, density,
-              and abundance in the Earth's crust.  I use this mode the most
-              frequently.
-            - You can print the data for selected elements on the command
-              line, identified by atomic number, symbol (case needs to be
-              correct), or a regular expression.  The printed data are a
-              little more extensive than the previous item.
-            - The -o and -i options allow you to open the wikipedia web
-              pages on the element and the element's isotopes,
-              respectively, for the arguments on the command line.
-
+            - A list of properties printed to stdout with no arguments, one element per line.  This
+              gives the symbol, name, number of protons, atomic weight, melting and boiling points,
+              density, and abundance in the Earth's crust.  I use this mode the most frequently.
+            - You can print the data for selected elements on the command line, identified by
+              atomic number, symbol (case needs to be correct), or a regular expression.  The
+              printed data are a little more extensive than the previous item.
+            - The -o and -i options allow you to open the wikipedia web pages on the element and
+              the element's isotopes, respectively, for the arguments on the command line.
+ 
         Short list
         ----------
-
-        The default behavior is to print out data for the elements from 1
-        to 92, one line per element.  Things are color-coded to help with
-        interpretation.
-
-        The items that print out in the color for unknown phase exist in
-        such tiny quantities that this property (and others) are impossible
-        to measure with present technology, either because they are only
-        found as decay products of other materials or they are artificially
+ 
+        The default behavior is to print out data for the elements from 1 to 92, one line per
+        element.  Things are color-coded to help with interpretation.
+ 
+        The items that print out in the color for unknown phase exist in such tiny quantities that
+        this property (and others) are impossible to measure with present technology, either
+        because they are only found as decay products of other materials or they are artificially
         generated and not enough atoms are available to measure.
-
-        Example [3]:  a sample of pure astatine has never been created because
-        any macroscopic specimen would be vaporized by the heat of its own
-        radioactivity.  Even so, small amounts of astatine are used in
-        nuclear medicine research (see Uses section of [3]).
-
-        The atomic weight is of course more properly called an atomic mass,
-        but the use of "weight" is entrenched.  The unit is in daltons, a
-        non-Si unit of mass equal to 1.66053906660(50)×10−27 kg and is
-        defined to be 1/12 of the mass of an unbound neutral atom of
-        carbon 12.  A more sensible unit would be yg to be compatible with
-        SI (and one wouldn't need to look up conversion factors), but like
-        with things like the American Wire Gauge, we're stuck with these
-        conventions.   
-
+ 
+        Example [3]:  a sample of pure astatine has never been created because any macroscopic
+        specimen would be vaporized by the heat of its own radioactivity.  Even so, small amounts
+        of astatine are used in nuclear medicine research (see Uses section of [3]).
+ 
+        The atomic weight is of course more properly called an atomic mass, but the use of "weight"
+        is entrenched.  The unit is in daltons, a non-Si unit of mass equal to
+        1.66053906660(50)×10−27 kg and is defined to be 1/12 of the mass of an unbound neutral atom
+        of carbon 12.  A more sensible unit would be yg to be compatible with SI (and one wouldn't
+        need to look up conversion factors), but like with things like the American Wire Gauge,
+        we're stuck with these conventions.   
+ 
         Data
         ----
-
-        This script uses data scraped from the web page [1] around the
-        middle of February 2023.  The table includes information on 118
-        elements.  Note that you won't see all 118 elements unless you use
-        the -a option.
-
-        A useful feature of [1]'s table is that the controls in the fourth
-        row can be used to sort the table on the column's information.  For
-        example, if you sort descending on abundance, you'll see that the
-        most common elements in the Earth's crust are oxygen, silicon,
+ 
+        This script uses data scraped from the web page [1] around the middle of February 2023.
+        The table includes information on 118 elements.  Note that you won't see all 118 elements
+        unless you use the -a option.
+ 
+        A useful feature of [1]'s table is that the controls in the fourth row can be used to sort
+        the table on the column's information.  For example, if you sort descending on abundance,
+        you'll see that the most common elements in the Earth's crust are oxygen, silicon,
         aluminum, and iron.
-
+ 
         References
         ----------
-
+ 
           [1] https://en.wikipedia.org/wiki/List_of_chemical_elements
           [2] https://www.rsc.org/periodic-table
           [3] https://en.wikipedia.org/wiki/Astatine
-        '''))
+ 
+        '''.rstrip()))
         exit(0)
     def Usage(status=1):
         print(dedent(f'''
         Usage:  {sys.argv[0]} [options] [el1 [el2 ...]]
-          Print the matched elements.  The el strings can be the element's
-          symbol, a regular expression for the name, or the atomic number.
-          There are {d['n']} elements in the script.  If no arguments on
-          the command line are given, the short list of elements is
-          printed.  The data were scraped from the web page
+          Print the properties of the matched elements.  The el strings can be the element's
+          symbol, a regular expression for the name, or the atomic number.  There are {d['n']}
+          elements in the script.  If no arguments on the command line are given, the short list of
+          elements is printed.  The data were screen scraped from the web page
           https://en.wikipedia.org/wiki/List_of_chemical_elements
         Notation:
           [223] means an atomic weight of a radioactive element
           (223) means a predicted number, not yet observed
           ~223  means an approximate number (difficult to measure)
-          x±u   I assume means a value x with standard uncertainty u, but
-                the web page used doesn't explicitly state this
+          x±u   I assume means a value x with standard uncertainty u, but the web page used doesn't
+          explicitly state this
         Options:
             -a      Show all elements (default is to show up to Z = 92)
             -c      Include colorizing even if stdout isn't a terminal
@@ -482,7 +473,6 @@ if 1:   # Utility
             -l      Launch page on list of elements
             -n m    Allow up to m pages to be opened [{d['-n']}]
             -o      Open wikipedia page on matched elements
-            -s      Show a short list of elements
             -t      Run self-tests
         '''))
         exit(status)
@@ -527,7 +517,7 @@ if 1:   # Utility
         d["n"] = len(g.num2sym)     # Number of elements in the script
         x = flt(0)
         x.N = d["-d"]
-        # Set formatting for flts to use Unicode for scientific
+        # Set formatting for flts to use Unicode for scientific notation
         x.u = True
         if d["-c"]:
             t.always = True
@@ -738,16 +728,17 @@ if 1:   # Core functionality
         print(f"{i}{'Period':{w}s}{e.period}")
         print(f"{i}{'Block':{w}s}{e.block}")
     def ShortList():
-        'Show the short list, one element per line'
+        'This is printed if there are no arguments.  One element per line.'
+        # Print header
         hdr = dedent('''
-        Sym  Z      Name     AtWt, Da    mp/bp K         g/cm³      ppm
+        Sym  Z      Name     AtWt, Da       mp/bp K         g/cm³      ppm
         --- -- ------------- --------- ----------------- ---------- ----------
         ''')
         t.hdr = t("brnl")
         t.print(f"{t.hdr}{hdr}")
         # Get colors for phases
         dc = {
-            "solid": t("whtl"),
+            "solid": t("wht"),
             "liquid": t("grnl"),
             "gas": t("denl"),
             "unknown phase": t("lipl"),
@@ -757,17 +748,20 @@ if 1:   # Core functionality
             num = i.Z
             if not d["-a"] and num > 92:
                 continue
-            c = dc[f"{i.phase}"]
+            c = dc[f"{i.phase}"]    # Phase color
             if i.aw_Da[0] == "[":
-                s = f"{t.rad} {i.aw_Da:6s}{t.n}"
+                s = f"{t.rad}{i.aw_Da:^9s}{t.n}"    # Radioactive atomic weight
             else:
-                s = f"{i.aw_Da:6s}"
+                s = f"{i.aw_Da:^9s}"                # Regular atomic weight
+            # symbol, Z, name, at. wt.
             print(f"{c}{i.sym:2s} {i.Z:3d} {i.name:13s} {s:^9s} {c}", end=" ")
             s = f"{i.mp}/{i.bp}"
+            # Melting point/boiling point, density, ppm in crust
             print(f"{s:^17s} {i.rho:^11s} {i.ppm:^10s}{t.n}")
         # Print "reverse header"
         f = hdr.split("\n")
         t.print(f"{t.hdr}{f[1]}\n{f[0]}")
+        # Color codes
         sol = dc["solid"]
         liq = dc["liquid"]
         gas = dc["gas"]
@@ -777,7 +771,7 @@ if 1:   # Core functionality
               "at 25 °C and 100 kPa")
         print(f"{t.rad}[209]{t.n} means the atomic weight of the most stable isotope")
         print(f"(1125) means a predicted property")
-        print(f"1 Da is 1.6605390666 yg")
+        print(f"1 Da is 1.66054×10⁻²⁴ g (i.e., yg)")
 
 if __name__ == "__main__":
     d = {}      # Options dictionary

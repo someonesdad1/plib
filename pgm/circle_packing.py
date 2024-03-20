@@ -1661,17 +1661,12 @@ def Usage(d, status=1):
     print(dedent(f'''
     Usage:  {name} [options] n1 [n2 ...]
       Give data on packing n1, n2, ... circles into a unit circle.
-    
     Options:
-      -a
-        Print all records.
-      -d digit
-        Print results to the indicated number of digits. [{digits}]
-      -r
-        Print key and references.
-      -s
-        Show the raw data table; floating point numbers are shown to the
-        number of digits specified by the -d option.
+      -a        Print all records.
+      -d n      Print results to the indicated number of digits. [{digits}]
+      -r        Print key and references.
+      -s        Show the raw data table; floating point numbers are shown to the number of digits
+                specified by the -d option.
     '''))
     exit(status)
 def ParseCommandLine(d):

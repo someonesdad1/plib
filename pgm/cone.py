@@ -62,8 +62,8 @@ if __name__ == "__main__":
     Flat pattern for sheet metal cone (C == circumference):
       Input data:
         {C.yel}Significant digits          {d.n}
-        Small diameter              {d} (C = {pi*d})
-        Large diameter              {D} (C = {pi*D})
+        Small diameter              {d} (circumference = {pi*d})
+        Large diameter              {D} (circumference = {pi*D})
         Height of cone              {height}
         Overlap allowance           {olap}{C.norm}
       Calculated data:

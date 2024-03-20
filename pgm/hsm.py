@@ -1,6 +1,7 @@
 '''
 
 ToDo:
+    - Color-highlight the matched strings in each line
     - The data need to be regularized
         - A single field for each entry
         - Use a character like "|" to separate fields (note this character
@@ -75,6 +76,7 @@ if 1:   # Global variables
     # 5e4ac70ff2eb81007e3c32b7b6fb7d57.
     # NOTE:  these links are defunct as of 6 Jul 2021.
     mi = dedent('''
+
     ! Joe Landau's Metalworking Index 2000 Edition, covering 
     ! "Home Shop Machinist" through 1999
     ! "Projects in Metal" magazines through-1998
@@ -5681,6 +5683,7 @@ if 1:   # Global variables
     "Tips  & Tricks: Another Type of Threaded Rivet","Howie Grunert","Tips & Tricks","MW Vol. 33 No. 1 Feb/Mar 20","43"
     "Tips  & Tricks: Cutting a Radius","Aaron Kohler","Tips & Tricks","MW Vol. 33 No. 1 Feb/Mar 20","43"
     ''')
+
     # File:  The_Home_Shop_Machinist_Article_Index.csv Downloaded Mon 17 Feb
     # 2020 07:49:09 PM from
     # http://www.homeshopmachinist.net/resources/article-index/.  MD5 hash

@@ -96,8 +96,7 @@ if 1:   # Getting text, lines, bytes
         else:
             raise TypeError("Type of 'thing' not recognized")
         return s
-    def GetLines1(thing, enc=None, ignore=None, script=False, ignore_empty=False,
-                 strip=False, nonl=False):
+    def GetLines1(thing, enc=None, ignore=None, script=False, ignore_empty=False, strip=False, nonl=False):
         r'''Return text from thing, which is
             string      It's a file name.  If get a read exception, then
                         use string itself for the text.
@@ -163,8 +162,7 @@ if 1:   # Getting text, lines, bytes
         if strip:
             lines = [i.strip() for i in lines]
         return lines
-    def GetLines(thing, enc=None, ignore=[], script=False, ignore_empty=False,
-                 strip=False, nonl=False):
+    def GetLines(thing, enc=None, ignore=[], script=False, ignore_empty=False, strip=False, nonl=False):
         r'''Return text from thing, which is
             string      It's a file name.  If get a read exception, then
                         use string itself for the text.
@@ -1068,9 +1066,17 @@ if 1:   # Miscellaneous
         p = pathlib.Path(file)
         s = p.stat()
         return s.st_size
-
-if 0:   # xx Developmental area
-    exit()
+    def GetIndent(line):
+        if not ii(line, str):
+            raise TypeError("Argument must be a string")
+        if not line:
+            return 0
+        count = 0
+        dq = deque(line)
+        while dq and dq[0] == " ":
+            count += 1
+            dq.popleft()
+        return count
 
 if __name__ == "__main__": 
     # Regression tests
@@ -1650,7 +1656,6 @@ if __name__ == "__main__":
                 if have_mpmath:
                     z = GetComplex(i, typ=mpc)
                     Assert(z == expected)
-
     if 1:   # Getting choices
         def TestGetChoice():
             seq = ["a", "b", "c"]
@@ -1721,6 +1726,16 @@ if __name__ == "__main__":
             Assert(IsPunctuation(s))
             s.add("s")
             Assert(not IsPunctuation(s))
+        def TestGetIndent():
+            raises(TypeError, GetIndent, None)
+            raises(TypeError, GetIndent, 1)
+            raises(TypeError, GetIndent, 1.0)
+            raises(TypeError, GetIndent, b'a')
+            Assert(GetIndent("") == 0)
+            Assert(GetIndent(" ") == 1)
+            Assert(GetIndent("  ") == 2)
+            Assert(GetIndent("  This is a test") == 2)
+            Assert(GetIndent("\t  This is a test") == 0)
     SetUp()
     status = run(globals(), halt=True)[0]
     TearDown()

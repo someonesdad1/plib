@@ -49,6 +49,9 @@ if 1:   # Header
     if 1:   # Custom imports
         from wrap import wrap, dedent
         from color import Color, Trm
+        if 0:
+            import debug
+            debug.SetDebugger()
     if 1:   # Global variables
         ii = isinstance
         t = Trm()
@@ -120,7 +123,7 @@ if 1:   # Utility
             elif o in ("-h", "--help"):
                 Usage()
         return args
-if 0:   # Nonworking Browse function (broken because less is broken)
+if 1:   # Nonworking Browse function (broken because less is broken)
     def Browse():
         '''This was an attempt to add a browsing feature, but it fails
         because of limitations of the less pager, which I need to view to
@@ -308,7 +311,11 @@ if 1:   # Core functionality
             s = ""
             if d["-x"]:
                 s = ' '.join([c.xrgb, c.xhsv, c.xhls])
-            print(f"{t(c.xrgb)}{line} {s}{t.n}")
+            try:
+                print(f"{t(c.xrgb)}{line} {s}{t.n}")
+            except Exception:
+                # Isn't a proper form, so ignore it
+                continue
             if d["-d"]:
                 # Print details
                 i = " "*4

@@ -6,7 +6,7 @@ TODO
     - Add an option that prints out all characters that can be used as
       python symbols.
 
-Utility to look up Unicode characters.
+Utility to look up Unicode characters
 
 ----------------------------------------------------------------------
 Overview of program structure

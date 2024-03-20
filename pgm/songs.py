@@ -209,7 +209,7 @@ Pirates of the Caribbean {S} Movie theme {S} 27mB8verLK8 {S}
 Popcorn Song {S} {S} DBYjZTdrJlA {S} 
 Purple People Eater {S} Sheb Wooley {S} Rx47qrH1GRs {S} 
 Push It To The Limit {S} Movie theme {S} 9D-QD_HIfjA {S} 
-Puttin' on the Rizt {S} Berlin Brass Quintet {S} oQVR-fnyM3o {S}
+Puttin' on the Ritz {S} Berlin Brass Quintet {S} oQVR-fnyM3o {S}
 Que Sera Sera {S} Doris Day {S} xZbKHDPPrrc {S} 
 Queen of Hearts {S} Juice Newton {S} P0DK-0fIKCw {S} 
 Question {S} Moody Blues {S} tmOZFAYeurY {S} 
@@ -266,7 +266,8 @@ Victory {S} Bond {S} j3nBuwOPu8A&list=RDE5NByiEIbD8 {S}
 Volga Boatmen  {S} Red Army Choir & Band {S} yfO0ADduEr8 {S} 1996
 Volga Boatmen {S} L. Kharitonov {S} 0tw3g88JtWA {S} 1965 
 Walk On the Wild Side {S} Walk on the Wild Side {S} 5O82y59h7MI {S} 
-Walking in the Air {S} Walking In the Air movie {S} upH1QZU4Z0Y {S} Movie theme sung by a 13 year old choirboy
+Walking in the Air {S} Walking In the Air movie {S} upH1QZU4Z0Y {S} Movie theme sung by a 13 year old choirboy Aled Jones
+Walking in the Air {S} Malakai Bayoh & Aled Jones {S} Lq8kqsI3hCo {S} Movie theme sung by a 13 year old choirboy
 Wanderer {S} Dion {S} SbYa7NBYyRc {S}
 Washington Square {S} Village Stompers {S} ihenbyTzQ2A {S} 
 White Silver Sands {S} Don Rondo {S} mOqbjENGN7s {S} 

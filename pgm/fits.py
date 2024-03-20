@@ -47,33 +47,27 @@ if 1:  # Utility
         print(dedent(f'''
         Example
  
-            I have a shaft with a measured OD of 0.9937 inches.  I'd like to
-            make this shaft a driving fit into a hole.  What should I bore the
-            mating hole size to?
+            I have a shaft with a measured OD of 0.9937 inches.  I'd like to make this shaft a
+            driving fit into a hole.  What should I bore the mating hole size to?
  
-            Run the script with an argument of 0.9937.  In the report, look
-            under the heading "Shaft size is basic".  Next to "Drive", the
-            required hole size is 0.9930, which has an interference of 0.75
-            mils with the shaft.
+            Run the script with an argument of 0.9937.  In the report, look under the heading
+            "Shaft size is basic".  Next to "Drive", the required hole size is 0.9930, which has an
+            interference of 0.75 mils with the shaft.
  
-        The fit names and associated numbers are from page 5.18 of Tubal Cain's
-        (Tom Walshaw) "Model Engineers Handbook", 3rd ed.  Here's the text and
-        table from the book [sic]:
+        The fit names and associated numbers are from page 5.18 of Tubal Cain's (Tom Walshaw)
+        "Model Engineers Handbook", 3rd ed.  Here's the text and table from the book [sic]:
         
             Shaft/hole fits
             
-            The following figures indicate the difference between hole and shaft
-            size for the named classes of fit.  These apply from shafts from
-            1/8" to 2" dia.  Where the 'hole' is in a wheel boss some
-            consideration must be given to the strength of this -- a test
-            assembly is advised.  Normally the hole should be made dead to size
-            and the shaft diameter adjusted to get the fit desired.  The figures
-            are in thousandths of an inch per inch of diameter, to which must be
-            added the constant 'C'.  Thus, for a 1" push fit the shaft must be
-            0.35 + 0.15 = 0.5 thousandths smaller than the hole ('+' means the
-            shaft is larger and '-' , smaller than the hole.) 'C' may be
-            converted directly to mm (divide by 25 is near enough) and 'thou/in'
-            = micron/mm.
+            The following figures indicate the difference between hole and shaft size for the named
+            classes of fit.  These apply from shafts from 1/8" to 2" dia.  Where the 'hole' is in a
+            wheel boss some consideration must be given to the strength of this -- a test assembly
+            is advised.  Normally the hole should be made dead to size and the shaft diameter
+            adjusted to get the fit desired.  The figures are in thousandths of an inch per inch of
+            diameter, to which must be added the constant 'C'.  Thus, for a 1" push fit the shaft
+            must be 0.35 + 0.15 = 0.5 thousandths smaller than the hole ('+' means the shaft is
+            larger and '-' , smaller than the hole.) 'C' may be converted directly to mm (divide by
+            25 is near enough) and 'thou/in' = micron/mm.
             
                                         'C'
                     Fit             (0.001")    thou/in.
@@ -93,46 +87,41 @@ if 1:  # Utility
             
             An allowance for thermal expansion must be made on engine pistons.
  
-        In the script, the constant under the 'C' column is called c and the
-        constant under the thou/in column is called m, both divided by 1000 to
-        give units in inches and inches/inch, respectively.  Given the hole
-        diameter d, the shaft diameter D should be
+        In the script, the constant under the 'C' column is called c and the constant under the
+        thou/in column is called m, both divided by 1000 to give units in inches and inches/inch,
+        respectively.  Given the hole diameter d, the shaft diameter D should be
  
             D = d - (m*d + c) = d*(1 - m) - c
  
         Temperature differential for shrink fit
 
-            The table after Walshaw's method gives the temperature needed to get
-            a shrink fit as given in the tables for different materials.  These
-            are calculated based on the thermal coefficient of expansion and
-            it's assumed the expansion is linear.  You'll probably want to add 5
-            or 10 degrees to make sure things fit.
+            The table after Walshaw's method gives the temperature needed to get a shrink fit as
+            given in the tables for different materials.  These are calculated based on the thermal
+            coefficient of expansion and it's assumed the expansion is linear.  You'll probably
+            want to add 5 or 10 degrees to make sure things fit.
 
-            Check:  The formula is D = d*(1 + α*ΔT), so ΔT = (D/d - 1)/α.  The
-            shrink size for the above 0.9937 inch shaft was an interference of
-            1.99 mils, so we need the ΔT to get this expansion.  We thus have ΔT
-            = 1.99×10⁻³/(12×10⁻⁶) = 166 K, which is the temperature given in the
-            table under °C.
+            Check:  The formula is D = d*(1 + α*ΔT), so ΔT = (D/d - 1)/α.  The shrink size for the
+            above 0.9937 inch shaft was an interference of 1.99 mils, so we need the ΔT to get this
+            expansion.  We thus have ΔT = 1.99×10⁻³/(12×10⁻⁶) = 166 K, which is the temperature
+            given in the table under °C.
 
         Adjusting the fit for other materials
 
-            The -f option is used to adjust fits to other situations.  The basic
-            formulas are good for metallic materials like steel and brass.  For
-            other materials like plastic, you may want more of an interference
-            fit; for such cases, set the n value to a number larger than 1.  For
-            very stiff materials, you may want to use n values less than 1.  The
+            The -f option is used to adjust fits to other situations.  The basic formulas are good
+            for metallic materials like steel and brass.  For other materials like plastic, you may
+            want more of an interference fit; for such cases, set the n value to a number larger
+            than 1.  For very stiff materials, you may want to use n values less than 1.  The
             factor n multiplies the interference calculated for metals.
  
         Johansson system of fits
 
-            Machinery's Handbook 19th edition 1971 (page 1514) gives the
-            Johansson system for fits.  This is a table that fits onto one page
-            and covers diameters of 0.03 to 15.75 inches.  Use the -j option to
-            use this system.  
+            Machinery's Handbook 19th edition 1971 (page 1514) gives the Johansson system for fits.
+            This is a table that fits onto one page and covers diameters of 0.03 to 15.75 inches.
+            Use the -j option to use this system.  
 
-            For the example given above for the shaft of 0.9937 inches, the
-            Johansson method gives a hole size of 0.9930-0.9934 for an easy
-            driving fit compared to the 0.9930 of Tubal Cain's method.
+            For the example given above for the shaft of 0.9937 inches, the Johansson method gives
+            a hole size of 0.9930-0.9934 for an easy driving fit compared to the 0.9930 of Tubal
+            Cain's method.
  
         '''.rstrip()))
         exit(0)
@@ -171,6 +160,7 @@ if 1:  # Utility
           -h    Print manpage
           -f n  Use material factor n (defaults to 1)
           -j    Use the Johansson system of fits
+          -k    Use the system from MH 1919 pg 880
           -m    Output in mm instead of inches
         '''))
         exit(status)

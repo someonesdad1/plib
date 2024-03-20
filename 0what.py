@@ -1,4 +1,7 @@
 '''
+ToDo
+    - Make the printout fit the screen with a hanging indent
+
 Show the what strings for python scripts
 '''
 if 1:  # Header
@@ -205,13 +208,17 @@ if 1:   # Core functionality
         for i in files:
             name = i.p.name
             w = max(w, len(name))
+        missing = False
         for i in files:
             name = i.p.name
             what = i.what
             if what == empty:
                 t.print(f"{t.mt}{name:{w}s}")
             else:
+                missing = True
                 print(f"{name:{w}s} {what}")
+        if missing:
+            t.print(f"{t.mt}This color means a 'what' string is missing")
 
 if __name__ == "__main__": 
     d = {}      # Options dictionary

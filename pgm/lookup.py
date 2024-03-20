@@ -1,9 +1,11 @@
 '''
 TODO:
-    * -v doesn't limit to verbs and seems to take a long time:
+    - Change to modern color.py
+        - Print a color code at end
+    - -v doesn't limit to verbs and seems to take a long time:
         'dict -cv black'.  'dict -cn black' doesn't show just nouns.
-    * 'dict -a black' fails.
-    * Figure out how to add in the information from
+    - 'dict -a black' fails.
+    - Figure out how to add in the information from
       words_syllables.py.
 
 Script to look up words in various dictionaries.  For a demo of

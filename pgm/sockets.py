@@ -1,29 +1,18 @@
-'''Dimensions of sockets in shop
-'''
+'Dimensions of sockets in shop'
 
 # Copyright (C) 2020 Don Peterson
 # Contact:  gmail.com@someonesdad1
- 
-#
-# Licensed under the Academic Free License version 3.0.
-# See http://opensource.org/licenses/AFL-3.0.
-#
+# Licensed under the Open Software License version 3.0.
+# See http://opensource.org/licenses/OSL-3.0.
  
 if 1:   # Imports & globals
     import getopt
     import os
     import sys
     from columnize import Columnize
- 
-    # Debugging stuff
-    from pdb import set_trace as xx
-    if 0:
-        import debug
-        debug.SetDebugger()  # Start debugger on unhandled exception
-
-if sys.stdout.isatty():
-    w = "[0;37;40m"       # White
-    h = "[1;33;40m"       # Highlight color
+    from color import t
+    w = t("wht")   # White
+    h = t("ornl")   # Highlight color
 else:
     w = h = ""
 
@@ -52,6 +41,7 @@ Snap-On  Standard         Deep     | Mac Std    Sunex Univ dp | Craftsman dp
 1      @1.307 1.373                | 18  0.987     0.981      | L = 2.5
                                    | 19  1.014     1.060      |
                                    |  L = 1.1                 |
+
               {h}1/4 square drive sockets{w}
 Snap-On  Standard        Deep      | Craftsman Std   | Snap-On deep
           D    L       D     L     | mm    D    L    |   D    L
@@ -76,7 +66,7 @@ Snap-On  Standard        Deep      | Craftsman Std   | Snap-On deep
 def Big():
     print('''
                 {h}3/4 square drive sockets{w}
-       D      L                    D      L             
+mm     D      L             mm     D      L             
 19   1.424  1.969           36   1.969  2.397
 22   1.413  1.985           38   2.010  2.328
 24   1.389  1.965           41   2.210  2.478
@@ -86,8 +76,8 @@ def Big():
 30   1.609  2.071           48   2.505  2.792
 32   1.711  2.242           50   2.644  2.711
 34   1.838  2.278
-
 Inch:    1-1/4, 1-3/8, 1-1/2
+
                 {h}1/2 square drive sockets{w}
              Challenger           Snap-On           Bolt
               D      L            D      L          Size
@@ -119,7 +109,6 @@ Neiko metric deep impact socket diameters, L = 3.06
 17      1.023       
 
 '''[1:-1].format(**globals()))
-
 
 sockets = {
     # Dia  Size   Brand    Type  Drive
@@ -406,5 +395,6 @@ if __name__ == "__main__":
     elif args:
         Search(args)
     else:
+        t.print(f"{t('purl')}Diameters and lengths in inches\n")
         Big()
         Regular()

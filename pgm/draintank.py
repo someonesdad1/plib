@@ -91,7 +91,7 @@ if __name__ == "__main__":
     args = ParseCommandLine(d)
     print(dedent('''
     Calculate the time to drain a tank of water (or fluids with viscosities near water) through a
-    hole.  You'll be asked for a tank volume in m3, a height in m, and a drain hole diameter in m.
+    hole.  You'll be asked for a tank volume in m³, a height in m, and a drain hole diameter in m.
     If you want to use other units, append them to the number you type in.
 
     The discharge coefficient is the fraction of the ideal mass flow capable through the hole; it's

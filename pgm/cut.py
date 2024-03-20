@@ -72,9 +72,8 @@ def ParseCommandLine(d):
         Usage(d)
     try:
         optlist, args = getopt.getopt(sys.argv[1:], "cdpstv")
-    except getopt.GetoptError as str:
-        msg, option = str
-        print(msg)
+    except getopt.GetoptError as e:
+        print(str(e))
         sys.exit(1)
     for o, a in optlist:
         if o == "-c":

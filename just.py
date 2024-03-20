@@ -1,10 +1,10 @@
 '''
 TODO
 
-* Need two spaces after ., : and end of quoted sentences like ?",
+- Need two spaces after ., : and end of quoted sentences like ?",
   .", !", etc.  Need to handle abbreviations for these cases too.
 
-* PNP shows numerous sentence endings or places that would be good for
+- PNP shows numerous sentence endings or places that would be good for
   an extra space:
     ?"    ."    !"    ,"    .'"    ,'    ;"    :"
 
@@ -16,39 +16,34 @@ the line.  Justify PNP to 79 spaces and you'll see why.
 '''
 #∞test∞# ignore #∞test∞#
 if 1:
-    from pdb import set_trace as xx 
-    from collections import deque, defaultdict
     from abbreviations import IsAbbreviation
-    from columnize import Columnize
     from dpstr import KeepFilter
-    from io import StringIO
-    from pprint import pprint as pp
     import string
-    import random
     punctuation = set(string.punctuation)
     letters = set(string.ascii_letters)
     letters.update(set("_-"))
     ii = isinstance
 
-def JustifyParagraph(s, L):
-    'Block justify string s into length L and return it'  
+def JustifyParagraph(s, width):
+    'Block justify string s into width width  and return it'  
     # Modified by DP; the original algorithm had a couple of bugs that
-    # show up when you test at corner cases like L == 1.  Also added
+    # show up when you test at corner cases like width == 1.  Also added
     # extra stuff for end of sentence and colon.
     # From https://medium.com/@dimko1/text-justification-63f4cda29375
-    def f(x, y):
+    def ew(x, y):
+        'Return True if string x ends with string y'
         return x.endswith(y)
     out, line, num_of_letters = [], [], 0
     for w in s.split():
         if (not IsAbbreviation(w) and 
-                (f(w, ".") or f(w, "!") or f(w, "?") or f(w, ":"))):
+                (ew(w, ".") or ew(w, "!") or ew(w, "?") or ew(w, ":"))):
             w = w + " "
-        if num_of_letters + len(w) + len(line) > L:
-            spaces_to_add = max(L - num_of_letters, 0)
-            # The following avoids a divide by zero when L is small
+        if num_of_letters + len(w) + len(line) > width:
+            spaces_to_add = max(width - num_of_letters, 0)
+            # The following avoids a divide by zero when width is small
             ws_amount = max(len(line) - 1, 1)
             for i in range(spaces_to_add):
-                # When L is small, line can be empty and the
+                # When width is small, line can be empty and the
                 # mod results in an exception
                 if line:
                     line[i % ws_amount] += ' '
@@ -59,16 +54,16 @@ def JustifyParagraph(s, L):
     # I want last line to not have trailing spaces
     out.append(' '.join(line))
     return '\n'.join(out)
-def Justify(s, L, brk="\n\n"):
+def Justify(s, width, brk="\n\n"):
     '''Block justify the paragraphs in string s and return them.  The
     paragraphs are separated by the string brk.
     '''
-    paragraphs = [JustifyParagraph(i, L) for i in s.split(brk)]
+    paragraphs = [JustifyParagraph(i, width) for i in s.split(brk)]
     return brk.join(paragraphs)
 
 if 1:
     s = open("pnp").read()
-    print(Justify(s, 79000), end="")
+    print(Justify(s, 79), end="")
     exit()
 
 if 0:

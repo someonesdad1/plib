@@ -51,78 +51,69 @@ if 1:   # Utility
     def Manpage():
         n = sys.argv[0]
         print(dedent(f'''
-        This script is used to convert between mass and energy.  A simple
-        example is the conversion of 1 kg of mass to energy:
+        This script is used to convert between mass and energy.  Example:  how much energy is in 1
+        kg of mass:
             
             {n} m 1
 
         gives
             Input       'm 1'
-            Mass        1 g = 1e0 g = 2.2e0 lb
-            Energy      90 PJ = 9e16 J = 21000 kilotons TNT = 1400 Hiroshimas
-            Volume      130 μm³ = 1.3e-4 m³
-            Length      50 mm = 5e-2 m = 2e0 in
+            Mass        1 kg = 1✕10⁰ kg = 2.2✕10⁰ lb
+            Energy      90 PJ = 9✕10¹⁶ J = 21000 kilotons TNT = 1400 Hiroshimas
+            Volume      130 μm³ = 1.3✕10⁻⁴ m³
+            Length      50 mm = 5✕10⁻² m = 2✕10⁰ in
             Density     7900 kg/m³ = 7.9 g/cm³
             Material    Steel, rolled
 
-        From the equation E = m*c**2, you can do this problem in your head:
-        m is 1 kg and the speed of light c in SI is 3e8 m/s, so the result 
-        is 1(3e8)**2 or 9e16 J, as expected.  
+        From the equation E = mc², you can do this problem in your head: m is 1 kg and the speed
+        of light c in SI is 3e8 m/s, so the result is 1(3e8)² or 9e16 J, as expected.  
 
-        The Volume is calculated from the mass, assuming the density of
-        steel.  You can select different materials with the -m option (see
-        a list of materials with -M) or give the -m option a numerical
-        argument, assumed to be a density in g/mL.
+        The Volume is calculated from the mass, assuming the density of steel.  You can select
+        different materials with the -m option (see a list of materials with -M) or give the -m
+        option a numerical argument, assumed to be a density in g/mL.
 
-        The Length is the side of a cube of this material, which is the
-        cube root of the volume.
+        The Length is the side of a cube of this material, which is the cube root of the volume.
 
-        If you use the -m option with the built-in materials, you'll find
-        the size of the cube varies from 210 mm for aerogel to 35 mm for
-        osmium.
+        If you use the -m option with the built-in materials, you'll find the size of the cube
+        varies from 210 mm for aerogel to 35 mm for osmium.
 
-        Here are some other examples to show the utility of the script.
-        While there's nothing you can't do with a calculator, the script
-        makes it a little easier to see the numbers.
+        Here are some other examples.  While there's nothing you can't do with a calculator, the
+        script makes it a little easier to see the numbers.
 
-        - What size of a cube of steel will convert to 1 J of energy?  Use
-          the command '{n} L 1' and you get the length of 0.11 μm.  This is
-          on the order of the size of a typical virus.
+        - What size of a cube of steel will convert to 1 J of energy?  Use the command '{n} L 1'
+          and you get the length of 0.11 μm.  This is on the order of the size of a typical virus.
 
-        - A car has a gas tank that contains 20 gallons of gasoline.  The
-          combustion heat of this gasoline is 44 MJ/kg and the density of
-          gasoline is about 0.75 g/m³, giving 2.5 GJ of heat energy.  The
-          size of a cube of steel for this energy is 150 μm, or a cube with
-          a side roughly the diameter of a human hair.
+        - A car has a gas tank that contains 20 gallons of gasoline.  The combustion heat of this
+          gasoline is 44 MJ/kg and the density of gasoline is about 0.75 g/mL³, giving 2.5 GJ of
+          heat energy.  The size of a cube of steel for this energy is 150 μm, or a cube with a
+          side roughly the diameter of a human hair.  This shows the large difference between the
+          chemical energy and the total energy in mass when it is converted completely to energy.
+          Here, the chemical mass is about 57 kg and the 
 
-        - What mass has the energy equivalent of the bomb dropped on
-          Hiroshima?  Noting the above example for 1 kg of mass yielded
-          1400 Hiroshimas, use the command 
+        - What mass has the energy equivalent of the bomb dropped on Hiroshima?  Noting the above
+          example for 1 kg of mass yielded 1400 Hiroshimas, use the command 
 
             {n} m 1/1400*tan(pi/4)
 
-          to get a mass of 0.7 μg.  This demonstrates that the numerical
-          term can be a python expression and that the math library is in
-          scope.  Note you'll may have to escape the math symbols from the
-          shell.
+          to get a mass of 0.7 μg.  This demonstrates that the numerical term can be a python
+          expression and that the math library is in scope.  You may have to escape the math
+          symbols from the shell.
 
-        - An estimate for the mass of the observable universe is 1e53 kg.
-          Assuming the big bang started with the equivalent energy, how
-          much energy does this represent?  'm 1e53' gives 9e69 J.  Since
-          the mass of the hydrogen atom is about 1 Dalton = 1.7e-27 kg,
-          this means there would be about 1e53/1.7e-27 hydrogen atoms in
-          the universe, or 5e79.  This is pretty close to the typical
-          calculation of 1e80 atoms gotten from assuming around 1e9
-          stars in a galaxy, 1e12 galaxies, and each star being around the
-          mass of the sun of 2e30 kg.  1e9*1e12*2e30 is 1e51, a factor of
-          100 below the above mass of the observable universe.
+        - An estimate for the mass of the observable universe is 1e53 kg.  Assuming the big bang
+          started with the equivalent energy, how much energy does this represent?  'm 1e53' gives
+          9e69 J.  Since the mass of the hydrogen atom is about 1 Dalton = 1.7e-27 kg, this means
+          there would be about 1e53/1.7e-27 hydrogen atoms in the universe, or 5e79.  This is
+          pretty close to the typical calculation of 1e80 atoms gotten from assuming around 1e9
+          stars in a galaxy, 1e12 galaxies, and each star being around the mass of the sun of 2e30
+          kg.  1e9*1e12*2e30 is 1e51, a factor of 100 below the above mass of the observable
+          universe.
 
-        - The US consumed in 2021 about 1e20 J of energy.  If this could be
-          produced by total annihilation of mass with 10% efficiency, how
-          much mass would be required?  Use '{n} e 1e20/0.1' to get a
-          mass of about 1e6 kg.  That's a cube of steel about 1 m on a
-          side, maybe about half the size of a regular desk.
-        '''))
+        - The US consumed in 2021 about 1e20 J of energy.  If this could be produced by total
+          annihilation of mass with 10% efficiency, how much mass would be required?  Use '{n} e
+          1e20/0.1' to get a mass of about 1e6 kg.  That's a cube of steel about 1 m on a side,
+          maybe about half the size of a regular desk.
+
+        '''.rstrip()))
         exit(0)
     def Usage(status=1):
         n = sys.argv[0]
@@ -193,7 +184,8 @@ if 1:   # Utility
         x = flt(1.23456)
         x.N = d["-d"]
         x.low = 1e-3
-        x.high = 1e5
+        x.high = 99999.9999
+        x.u = True
         GetDensity()
         if d["-t"]:
             Test()
@@ -217,43 +209,43 @@ if 1:   # Core functionality
         # Density in g/cc 
         data = '''
         Stryofoam                         ; 0.04     
-        Aerogel, silica                   ; 0.11     
+        Aerogel                           ; 0.11     
         Corkboard                         ; 0.2      
-        Coffee (instant)                  ; 0.304     
+        Coffee, instant                   ; 0.304     
         Flour, loose                      ; 0.45    
         Pine, Oregon                      ; 0.51     
         Ice, crushed                      ; 0.59     
         Gasoline                          ; 0.74
-        Alcohol, wood (methanol)          ; 0.79     
+        Methanol                          ; 0.79     
         Diesel                            ; 0.8      
         Polypropylene                     ; 0.9      
         Vaseline                          ; 0.9      
         Water, (0 °C & 1 atm)             ;  1       
         Epoxy                             ; 1.11     
-        PVC, polyvinyl chloride           ; 1.25     
-        Earth (dirt), dry                 ; 1.4      
-        Earth (dirt), wet, excavated      ; 1.6      
+        PVC                               ; 1.25     
+        Dirt, dry                         ; 1.4      
+        Dirt, wet                         ; 1.6      
         Polyester w/65% by wt glass cloth ; 1.8      
         Brick, hard                       ;  2       
         Glass, window                     ; 2.5      
         Aluminum                          ; 2.7      
-        Basalt, solid (igneous rock)      ; 3.01     
+        Basalt, solid                     ; 3.01     
         Alumina Al₂O₃                     ; 3.68     
         Titanium                          ; 4.5      
-        Pyrite (fool's gold, FeS₂)        ; 5
+        Pyrite                            ; 5
         Earth, planet, mean density       ; 5.51     
         Vanadium                          ; 6.1      
-        Iron, cast gray                   ; 7.1
+        Iron, cast                        ; 7.1
         Manganese                         ; 7.43     
-        Steel, rolled                     ; 7.93     
-        Brass, leaded free-machining      ; 8.5      
-        Copper, pure                      ; 8.96     
+        Steel                             ; 7.93     
+        Brass                             ; 8.5      
+        Copper                            ; 8.96     
         Bismuth                           ; 9.75     
         Molybdenum                        ; 10.2     
-        Lead 99.9%                        ; 11.3     
+        Lead                              ; 11.3     
         Palladium                         ;  12      
         Mercury (25 °C)                   ; 13.5     
-        Tungsten carbide (WC)             ; 15.2     
+        Tungsten carbide                  ; 15.2     
         Uranium                           ; 19.1     
         Gold                              ; 19.3     
         Tungsten                          ; 19.3     
@@ -383,7 +375,7 @@ if 1:   # Core functionality
             return
         w, t = 12, " "*0
         print(f"{'Input':{w}s}{t}'{op} {arg}'")
-        print(f"{'Mass':{w}s}{t}{g.m.engsi}g = {g.m.sci} g = {(g.m/u('lb')).sci} lb")
+        print(f"{'Mass':{w}s}{t}{(1000*g.m).engsi}g = {g.m.sci} kg = {(g.m/u('lb')).sci} lb")
         kt = g.E/flt(4.184e12)
         hiroshima = kt/15.5
         print(f"{'Energy':{w}s}{t}{g.E.engsi}J = {g.E.sci} J = {kt} kilotons TNT = {hiroshima} Hiroshimas")

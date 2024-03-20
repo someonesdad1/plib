@@ -40,32 +40,30 @@ if 1:   # Utility
         k = None if comb else "n"
         print(dedent(f'''
         Usage:  {sys.argv[0]} [options] A [B...]
-            Prints out {which} of command line arguments.  A is a
-            string and if the only argument, then its letters are used as
-            the elements.  Otherwise the set of n arguments (A, B, ...) is
-            used.  If the number of the results is larger than 10!, the
-            calculation time is long, so just the numbers will be printed
-            unless -f is used.
+          Prints out {which} of command line arguments.  A is a string and if the only argument,
+          then its letters are used as the elements.  Otherwise the set of n arguments (A, B, ...)
+          is used.  If the number of the results is larger than 10!, the calculation time is long,
+          so just the numbers will be printed unless -f is used.
         Notation
-            n = number of letters in A or number of arguments if > 1
-            k = items to take for each subset'''))
+          n = number of letters in A or number of arguments if > 1
+          k = items to take for each subset'''))
         if comb:
             print(dedent(f'''
             C(n, k) = combinations of n objects taken k at a time
-                    = n!/((n - k)!*k!)''', n=8))
+                    = n!/((n - k)!*k!)''', n=10))
         else:
             print(dedent(f'''
             P(n, k) = all permutations of the size k subsets taken from
                       all the n elements
                     = n!/(n - k)!
-            P(n)    = P(n, n) = n!''', n=8))
+            P(n)    = P(n, n) = n!''', n=10))
         print(dedent(f'''
         Options (default in square brackets):
-            -c      Don't print in columns
-            -h      Print some examples
-            -k k    Number of objects in {formula} [{k}]
-            -q      Quote the output strings
-            -s x    Separator string for grouped items [""]
+          -c      Don't print in columns
+          -h      Print some examples
+          -k k    Number of objects in {formula} [{k}]
+          -q      Quote the output strings
+          -s x    Separator string for grouped items [""]
         '''))
         exit(status)
     def Manpage():

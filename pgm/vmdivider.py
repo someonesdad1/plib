@@ -1,14 +1,12 @@
 '''
 TODO
 
-    * Include the -2 problem solving of a pot with two resistors in the
-      obsolete/divider.py script.
+    - Include the -2 problem solving of a pot with two resistors in the obsolete/divider.py script.
 
-    * Since the equations are available, allow an uncertainty analysis to
-      be done on the voltage ratios using the calculated resistors and an
-      assumed tolerance %.  The uncertainty of the resistors will be
-      assumed to be triangular and the uncertainty will be 1/sqrt(6) times
-      the percentage half-width.
+    - Since the equations are available, allow an uncertainty analysis to be done on the voltage
+      ratios using the calculated resistors and an assumed tolerance %.  The uncertainty of the
+      resistors will be assumed to be triangular and the uncertainty will be 1/sqrt(6) times the
+      percentage half-width.
       
 '''
 if 1:  # Copyright, license
@@ -51,18 +49,15 @@ def Error(*msg, status=1):
 def Usage(d, status=1):
     print(dedent(f'''
     Usage:  {sys.argv[0]} [options] R ratio1 ratio2 [ratio3 ...]
-      Design a voltage divider for the input of a voltmeter.  R is the
-      total divider resistance in ohms.  The ratios must be floating point
-      numbers on the open interval (0, 1).  Expressions are allowed.  My
-      on-hand resistor set is used by default (change to your set if
-      needed).  R can contain a cuddled SI prefix and the units are assumed
-      to be ohms.
+      Design a voltage divider for the input of a voltmeter.  R is the total divider resistance in
+      ohms.  The ratios must be floating point numbers on the open interval (0, 1).  Expressions
+      are allowed.  My on-hand resistor set is used by default (change to your set if needed).  R
+      can contain a cuddled SI prefix and the units are assumed to be ohms.
     Problem 2
         {sys.argv[0]} -2 R V V1 V2
-      The -2 option allows you to solve for the case of using a pot of
-      value R to adjust a voltage between V1 and V2 with a supply voltage
-      of V.  The script solves for the two resistors on either side of the
-      pot.
+      The -2 option allows you to solve for the case of using a pot of value R to adjust a voltage
+      between V1 and V2 with a supply voltage of V.  The script solves for the two resistors on
+      either side of the pot.
     Options:
         -2      Solve problem 2
         -E e    Use an EIA resistor set
@@ -112,38 +107,33 @@ def Manpage():
         ρ(n-1) = Rn/R
 
     Algorithm
-        * Solve for the needed resistances.
-        * For each resistance, get the two resistors (parallel or series)
-          that best give the needed resistance.
-        * Calculate the actual ratios and total resistance.
-        * Report the information.
+        - Solve for the needed resistances
+        - For each resistance, get the two resistors (parallel or series) that best give the needed
+          resistance
+        - Calculate the actual ratios and total resistance
+        - Report the information
 
     EIA resistor set
-      To use an EIA set of resistors, use the -E option with an argument of
-      the form
+      To use an EIA set of resistors, use the -E option with an argument of the form
             'n e1 e2 ...'
-      where n is an integer 6, 12, 24, 48, or 96 and e1, e2, ... are
-      integers that give the power of ten for each decade of resistors (the
-      numbers can be separated by spaces or commas).  For example, '6 -1 0
-      1 2 3 4 5 6' would represent the set of six EIA resistance values E6
-      (1, 1.5, 2.2, 3.3, 4.7, and 6.8) with multipliers of 1e-1, 1e0, 1e1,
-      ..., 1e6.  The result would be a set of 48 different resistor values.
+      where n is an integer 6, 12, 24, 48, or 96 and e1, e2, ... are integers that give the power
+      of ten for each decade of resistors (the numbers can be separated by spaces or commas).  For
+      example, '6 -1 0 1 2 3 4 5 6' would represent the set of six EIA resistance values E6 (1,
+      1.5, 2.2, 3.3, 4.7, and 6.8) with multipliers of 1e-1, 1e0, 1e1, ..., 1e6.  The result would
+      be a set of 48 different resistor values.
 
     Example
-        I have an analog meter from an old HP instrument that has 0-1 and
-        0-3 scales.  It requires 1 mA for full scale deflection, which is
-        also 250 mV due to the meter's resistance (these are very nice
-        meters made by Weston that were used in the HP 400H VTVM in the
-        1950's).
 
-        I would like to use this meter to make an analog voltmeter that
-        measures DC voltages with full-scale ranges of 0.1, 0.3, 1, 3, 10,
-        30, 100, and 300 V.  I want the input resistance to be 10 MΩ.  The
-        voltage divider ratios need to be such that the input voltage is
-        divided down to 100 mV (I'll use an op amp to get the required 250
-        mV).  The ratios needed are thus 0.1 divided by the range, or 1,
-        1/3, 1/10, 1/30, 1/100, 1/300, 1/1000, and 1/3000.  We ignore the 1
-        and use the following command line (note the use of expressions):
+        I have an analog meter from an old HP instrument that has 0-1 and 0-3 scales.  It requires
+        1 mA for full scale deflection, which is also 250 mV due to the meter's resistance (these
+        are very nice meters made by Weston that were used in the HP 400H VTVM in the 1950's).
+
+        I would like to use this meter to make an analog voltmeter that measures DC voltages with
+        full-scale ranges of 0.1, 0.3, 1, 3, 10, 30, 100, and 300 V.  I want the input resistance
+        to be 10 MΩ.  The voltage divider ratios need to be such that the input voltage is divided
+        down to 100 mV (I'll use an op amp to get the required 250 mV).  The ratios needed are thus
+        0.1 divided by the range, or 1, 1/3, 1/10, 1/30, 1/100, 1/300, 1/1000, and 1/3000.  We
+        ignore the 1 and use the following command line (note the use of expressions):
 
         {sys.argv[0]} 10M 1/3 1/10 1/30 1/100 1/300 1/1000 1/3000
 

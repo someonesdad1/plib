@@ -1,6 +1,7 @@
 '''
 
 - To do
+    - This script and de.py need to have functionalities combined
     - Options
         - Option to get a diameter, meaning output only sockets, bushings,
         - Need an option to get rid of the more esoteric sizes.  Things I
@@ -66,42 +67,37 @@ if 1:   # Utility
         print(dedent(f'''
         I use this script as a helper for shop tasks.  Here are some examples:
  
-            - Form a circle from wire: I have some music wire that I want to
-              form into a circle of 1.78 inches in diameter.  I run this script
-              to get a suitable mandrel with the command line '1.78 inches'.
-              About my best match is 1.768 inches, a Snap-On 1-3/8 half-inch
-              drive socket.  I clamp this socket in the vise and wind a chunk of
-              wire around the socket body.  After the wire is relaxed, it will
-              expand to a larger size because it is heat treated.  Suppose the
-              relaxed size is 2.04 inches.  This is 15% over the desired value,
-              so I run the script again with the command line '-s 15 1.78
-              inches' and get the size 1.512 inches, which is the Snap-On 7/8
-              inch socket.  Another trial gets me a closer circle.
+            - Form a circle from wire: I have some music wire that I want to form into a circle of
+              1.78 inches in diameter.  I run this script to get a suitable mandrel with the
+              command line '1.78 inches'.  The best match is 1.768 inches, the outside diameter of
+              a Snap-On 1-3/8 half-inch drive socket.  I clamp this socket in the vise and wind a
+              chunk of wire around the socket body.  After the wire is relaxed, it will expand to a
+              larger size because it is heat treated.  Suppose the relaxed size is 2.04 inches.
+              This is 15% over the desired value, so I run the script again with the command line
+              '-s 15 1.78 inches' to correct for the 15% spring-back and get the size 1.512 inches,
+              which is the smaller Snap-On 7/8 inch socket.  Another trial gets me a suitable
+              circle of wire.
  
-            - Need to shim something up by 2.7 inches:  The script recommends a
-              no-name brand 13/16 inch spark plug socket, whose length is 2.733
-              inches, 1.2% from the desired value.  If I need to be under the
-              2.7 inch value, a 50 mm 3/4" drive socket has a diameter that's
-              2.2% low.
+            - Need to shim something up by 2.7 inches:  The script recommends a no-name brand 13/16
+              inch spark plug socket, whose length is 2.733 inches, 1.2% from the desired value.
+              If I need to be under the 2.7 inch value, a 50 mm 3/4" drive socket has a diameter
+              that's 2.2% low.
  
-        The things like sockets and other things in the script will be special
-        to my environment, so you will want to edit the GetData() function to
-        reflect your own stuff.  
+        The things like sockets and other things in the script will be special to my environment,
+        so you will want to edit the GetData() function to reflect your own stuff.  
  
-        Color coding is used to identify common classes of things.  For example,
-        if you enter '8 mm' on the command line, you'll see inch-based fractions
-        in brown, inch-based SHCS sizes in light blue, inch-based hex nut wrench
-        sizes in orange, millimeters in blue, and AWG sizes in light brown.
-        You can change the color coding used in the GetData() function.
+        Color coding is used to identify common classes of things.  For example, if you enter '8
+        mm' on the command line, you'll see inch-based fractions in brown, inch-based SHCS sizes in
+        light blue, inch-based hex nut wrench sizes in orange, millimeters in blue, and AWG sizes
+        in light brown.  You can change the color coding used in the GetData() function.
  
         Exact size matches are flagged with a '*' character.
         
-        If you want to change default behavior, examine the options' default values
-        in ParseCommandLine().
+        If you want to change default behavior, examine the options' default values in
+        ParseCommandLine().
         
-        The Sockets() function defines on-hand sockets, bushings, etc.  If you want
-        it to reflect the sizes you have, you'll have to measure your sockets and
-        edit the function's data.
+        The Sockets() function defines on-hand sockets, bushings, etc.  If you want it to reflect
+        the sizes you have, you'll have to measure your sockets and edit the function's data.
         
         Synonyms
             US Steel Wire Gauge same as
@@ -125,19 +121,19 @@ if 1:   # Utility
         name, tol = sys.argv[0], d["-t"]
         print(dedent(f'''
         Usage:  {name} [options] diameter [unit]
-          Identifies dimensions that might be close to some "standard" size, such as
-          fractions of an inch, numbered drills, millimeters, or on-hand socket sizes.
-          Use -f to include the full set of different size systems.
+          Identifies dimensions that might be close to some "standard" size, such as fractions of
+          an inch, numbered drills, millimeters, or on-hand socket sizes.  Use -f to include the
+          full set of different size systems.
         
-          'diameter' is a length and may contain an optional trailing unit (size is
-          in {d['-u']} if no unit is given).  Expressions for the diameter are
-          allowed and the math module's symbols are in scope.
+          'diameter' is a length and may contain an optional trailing unit (size is in {d['-u']} if
+          no unit is given).  Expressions for the diameter are allowed and the math module's
+          symbols are in scope.
         Examples:
           {name} 1
             Show things within {tol}% of 1 inch in diameter.
           {name} -t 10 pi/10 mm
-            Show things that are within 10% of pi/10 mm in diameter.  Note
-            output diameters are in mm.
+            Show things that are within 10% of pi/10 mm in diameter.  Note output diameters are in
+            mm.
         Options:
             -a      Show all of the dimensions stored in the script
             -c      Don't show results in color
@@ -1289,8 +1285,7 @@ if 1:   # Core functionality
             while val > 10:
                 val /= 10
             val = round(val, 5)
-            descr = "sqrt(2)**{} =".format(i)
-            sz = Size("sqrt(2)**{} =".format(i), str(val), val)
+            sz = Size("sqrt(2)**{}".format(i), str(val), val)
             d.append(sz)
         return d
     def Dimensionless(value, d):

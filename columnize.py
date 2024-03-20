@@ -65,8 +65,7 @@ if 1:   # Core functionality
                         left-to-right; the default is top-to-bottom.  The
                         "shape" of both outputs will be the same.
      
-        ignore [False]  If True, return an identity transformation.
-     
+
         indent [None]   If defined, then it is a string to prepend to each
                         line.
      

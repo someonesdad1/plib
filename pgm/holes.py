@@ -44,29 +44,26 @@ if 1:   # Utility
     def Usage(d, status=1):
         print(dedent(f'''
         Usage:  {sys.argv[0]} [options] datafile diameter
-        Will print a table of positions (Cartesian, angles, and chords) of
-        the centers of the circles whose diameters are given in the datafile
-        (one number per line) so that the angle between each of the circles
-        is a constant.  There are no implied units for the dimensions; use 
-        a consistent unit for your problem.
-        
-        The datafile may contain lines of the form 'a = b' which causes a
-        variable named a to be defined.  This variable can then be used in
-        subsequent lines.  b is a valid python expression.  All the symbols
-        from the math module are in scope.  These assignment lines must be one
-        per line.  The diameter of the main circle (or the line length for the
-        linear problem) is defined to be the symbol D.  Then a single
-        circle diameter must be on each line (expressions allowed).
-        
-        If you have the optional graphics library from
-        https://github.com/someonesdad1/plib, the script can generate a
-        scaled drawing of the layout.
-        
-        The -l option causes the layout of the circles to be on a straight
-        line.  The diameter on the command line then becomes the distance
-        between the circle's edges.  An example of use is to lay out the holes
-        to drill in a block of wood to hold a set of sockets.
-        
+
+          Position holes on a circle so that they are equally-spaced.  The script prints a table of
+          positions (Cartesian, angles, and chords) of the centers of the circles whose diameters
+          are given in the datafile (one number per line) so that the angle between each of the
+          circles is a constant.  There are no implied units for the dimensions; use a consistent
+          unit for your problem.
+          
+          The datafile may contain lines of the form 'a = b' which causes a variable named a to be
+          defined.  This variable can then be used in subsequent lines.  b is a valid python
+          expression.  All the symbols from the math module are in scope.  These assignment lines
+          must be one per line.  The diameter of the main circle (or the line length for the linear
+          problem) is defined to be the symbol D.  Then a single circle diameter must be on each
+          line (expressions allowed).
+          
+          If you have the optional graphics library from https://github.com/someonesdad1/plib, the
+          script can generate a scaled drawing of the layout.
+          
+          The -l option causes the layout of the circles to be on a straight line.  The diameter on
+          the command line then becomes the distance between the circle's edges.  An example of use
+          is to lay out the holes to drill in a block of wood to hold a set of sockets.
         Options:
           -d n  Number of significant figures in results [{d['-d']}]
           -g f  Generate a Postscript drawing to file f

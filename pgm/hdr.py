@@ -36,8 +36,7 @@ if 1:   # Header
         from wsl import wsl     # wsl is True when running under WSL Linux
         #from columnize import Columnize
     if 1:   # Global variables
-        class G:
-            # Storage for global variables as attributes
+        class G:    # Storage for global variables as attributes
             pass
         g = G()
         g.dbg = False

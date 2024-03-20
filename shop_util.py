@@ -1,26 +1,37 @@
+'''
+
+Todo
+    - Update to python 3 semantics where needed
+    - This is for old /shop scripts.  This functionality should be in get.py.
+        - The root & interp stuff should be in other files
+    - Once done, this module can be eliminated.
+
+'''
+
 # Copyright (C) 2014 Don Peterson
 # Contact:  gmail.com@someonesdad1
 
-#
 # Licensed under the Open Software License version 3.0.
 # See http://opensource.org/licenses/OSL-3.0.
-#
 import math
 import sys
+from f import flt
 
 debug = 0
 ii = isinstance
 
 def GetDouble(prompt, default, low, high):
     if debug:
-        return float(default)
+        return flt(default)
     str = ""
-    while 1:
-        str = raw_input(prompt + " [" + default + "] ").strip()
+    while True:
+        str = input(prompt + " [" + default + "] ").strip()
         if str == "":
-            return float(default)
+            return flt(default)
+        elif str == "q":
+            exit(0)
         try:
-            choice = float(eval(str))
+            choice = flt(eval(str))
             if choice < low or choice > high:
                 raise Exception()
             return choice
@@ -31,10 +42,12 @@ def GetInt(prompt, default, low, high):
     if debug:
         return default
     str = ""
-    while 1:
-        str = raw_input(prompt + " [" + repr(default) + "] ").strip()
-        if str == "":
+    while True:
+        str = input(prompt + " [" + repr(default) + "] ").strip()
+        if not str:
             return default
+        elif str == "q":
+            exit(0)
         try:
             choice = int(eval(str))
             if choice < low or choice > high:
@@ -43,53 +56,48 @@ def GetInt(prompt, default, low, high):
         except Exception:
             print(("'%s' not an acceptable integer.  Must lie between %d " +
                   "and %d.") % (str, low, high))
-def GetChoice(prompt, default, choices):
+def GetChoice(prompt, default, choices, quit="q"):
     if debug:
         return default
-    ok = 0
+    ok = False
     while not ok:
-        choice = raw_input(prompt + " [" + default + "] ").strip()
+        choice = input(prompt + " [" + default + "] ").strip()
         if choice == "":
             return default
+        elif choice == quit:
+            exit(0)
         if choice in choices:
-            ok = 1
+            ok = True
         else:
             print("Not a valid answer.  Must be one of the following\n" +
                   "  " + repr(choices))
     return choice
 def root_find(x0, x2, f, eps, itmax):
-    '''
-    A root finding routine.  See "All Problems Are Simple" by Jack
-    Crenshaw, Embedded Systems Programming, May, 2002, pg 7-14,
-    jcrens@earthlink.com.  Can be downloaded from
+    '''A root finding routine.  See "All Problems Are Simple" by Jack Crenshaw, Embedded Systems
+    Programming, May, 2002, pg 7-14, jcrens@earthlink.com.  Can be downloaded from
     www.embedded.com/code.htm.
  
-    Translated from Crenshaw's C code modified by Don Peterson 20 May
-    2003.
+    Translated from Crenshaw's C code modified by Don Peterson 20 May 2003.
  
-    Crenshaw states this routine will converge rapidly on most functions,
-    typically adding 4 digits to the solution on each iteration.  The
-    method is something called "inverse parabolic interpolation".  The
-    routine works by starting with x0, x2, and finding a third x1 by
-    bisection.  The ordinates are gotten, then a horizontally- opening
-    parabola is fitted to the points.  The parabola's root's abscissa is
-    gotten, and the iteration is repeated.
+    Crenshaw states this routine will converge rapidly on most functions, typically adding 4 digits
+    to the solution on each iteration.  The method is something called "inverse parabolic
+    interpolation".  The routine works by starting with x0, x2, and finding a third x1 by
+    bisection.  The ordinates are gotten, then a horizontally- opening parabola is fitted to the
+    points.  The parabola's root's abscissa is gotten, and the iteration is repeated.
  
-    The function root_find will find a root of the function f(x) in the
-    interval [x0, x2].  We must have that f(x0)*f(x2) < 0.
+    The function root_find will find a root of the function f(x) in the interval [x0, x2].  We must
+    have that f(x0)*f(x2) < 0.
  
     The root value is returned.
  
-    Root lies between x0 and x2.  f is the function to evaluate;
-    it takes one float argument and returns a float.  eps is the
-    precision to find the root to and itmax is the maximum number of
+    Root lies between x0 and x2.  f is the function to evaluate; it takes one float argument and
+    returns a float.  eps is the precision to find the root to and itmax is the maximum number of
     iterations allowed.
  
     Returns a tuple (x, numits) where
         x is the root.
         numits is the number of iterations taken.
-    The routine will throw an exception if it receives bad input
-    data or it doesn't converge.
+    The routine will throw an exception if it receives bad input data or it doesn't converge.
     '''
     x1 = y0 = y1 = y2 = b = c = temp = y10 = y20 = y21 = xm = ym = 0.0
     xmlast = x0
@@ -139,34 +147,3 @@ def root_find(x0, x2, f, eps, itmax):
                 x2 = x1
                 y2 = y1
     raise RuntimeError("No convergence")
-def LagrangeInterpolation(x, X, Y, strict=1):
-    '''Page 32 of Meeus, "Astronomical Algorithms", 2nd ed.  Given x,
-    an abscissa, calculates the interpolated value y = f(x) where f(x)
-    is Lagrange's interpolating polynomial.  X and Y are expected to
-    be lists or tuples of the same size such that Y[i] = f(X[i]).  If
-    strict is true, then you'll get an exception if you try to
-    interpolate outside the range of abscissas given in X.  Also, if
-    strict is true, we'll check to make sure that none of the abscissas
-    in X are the same.
-    '''
-    assert(ii(X, (tuple, list)))
-    assert(ii(Y, (tuple, list)))
-    N = len(X)
-    assert(len(Y) == N)
-    if strict:
-        if x < min(X) or x > max(X):
-            raise ValueError("x value is outside of interpolation range")
-        values = {}
-        for value in X:
-            if value in values:
-                raise ValueError("%f is duplicate value in X" % value)
-                values[value] = 0
-    y = 0
-    for i in range(N):
-        c = 1
-        for j in range(N):
-            if i == j:
-                continue
-            c *= (x - X[j])/(X[i] - X[j])
-        y += c*Y[i]
-    return y

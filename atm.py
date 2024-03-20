@@ -21,48 +21,51 @@ Calculate atmospheric properties
   
     [eq 33] is equation 33 in the paper and [5] refers to page 5.
 '''
-if 1:  # Copyright, license
-    # These "trigger strings" can be managed with trigger.py
-    #∞copyright∞# Copyright (C) 2010 Don Peterson #∞copyright∞#
-    #∞contact∞# gmail.com@someonesdad1 #∞contact∞#
-    #∞license∞#
-    #   Licensed under the Open Software License version 3.0.
-    #   See http://opensource.org/licenses/OSL-3.0.
-    #∞license∞#
-    #∞what∞#
-    # <science> Calculate standard atmosphere characteristics.
-    # Equations taken from a 1976 NASA document.
-    #∞what∞#
-    #∞test∞# --test #∞test∞#
-    pass
-if 1:  # Imports
-    import getopt
-    import os
-    import sys
-    from math import exp, sqrt, pi
-if 1:  # Custom imports
-    from wrap import dedent
-    from fpformat import FPFormat
-    from u import u
-    from f import flt
-    from pdb import set_trace as xx
-    from sig import sig
-if 1:  # Global variables
-    ii = isinstance
-    fp = FPFormat()
-    radius_earth = 6369.0   # Radius of the Earth (km)
-    gmr = 34.163195         # Hydrostatic constant
-    P0 = 101325             # Standard sea-level atmospheric pressure in Pa
-    T0 = 288.15             # Standard sea-level temperature, K
-    M0 = 28.9644/1000       # Mean molecular weight for air, kg/mol
-    rho0 = 1.225            # Sea-level density in kg/m^3
-    R = 8.32432             # Universal gas constant N*m/(mol*K) [3]
-    sigma = 3.65e-10        # Effective collision diameter, m [17]
-    gamma = 1.40            # Specific heat ratio cp/cv
-    Na = 6.022169e23        # Avogadro's constant, 1/mol [2]
-    # Standard sea-level acceleration of gravity at a latitude of 45.5425
-    # degrees. [3]
-    g0 = 9.80665
+if 1:  # Header
+    if 1:  # Copyright, license
+        # These "trigger strings" can be managed with trigger.py
+        #∞copyright∞# Copyright (C) 2010 Don Peterson #∞copyright∞#
+        #∞contact∞# gmail.com@someonesdad1 #∞contact∞#
+        #∞license∞#
+        #   Licensed under the Open Software License version 3.0.
+        #   See http://opensource.org/licenses/OSL-3.0.
+        #∞license∞#
+        #∞what∞#
+        # <science> Calculate standard atmosphere characteristics.
+        # Equations taken from a 1976 NASA document.
+        #∞what∞#
+        #∞test∞# --test #∞test∞#
+        pass
+    if 1:  # Imports
+        import getopt
+        import os
+        import sys
+        from math import exp, sqrt, pi
+    if 1:  # Custom imports
+        from lwtest import assert_equal, Assert
+        from wrap import dedent
+        from fpformat import FPFormat
+        from u import u
+        from f import flt
+        from color import t as T
+        from pdb import set_trace as xx
+        from sig import sig
+    if 1:  # Global variables
+        ii = isinstance
+        fp = FPFormat()
+        radius_earth = 6369.0   # Radius of the Earth (km)
+        gmr = 34.163195         # Hydrostatic constant
+        P0 = 101325             # Standard sea-level atmospheric pressure in Pa
+        T0 = 288.15             # Standard sea-level temperature, K
+        M0 = 28.9644/1000       # Mean molecular weight for air, kg/mol
+        rho0 = 1.225            # Sea-level density in kg/m^3
+        R = 8.32432             # Universal gas constant N*m/(mol*K) [3]
+        sigma = 3.65e-10        # Effective collision diameter, m [17]
+        gamma = 1.40            # Specific heat ratio cp/cv
+        Na = 6.022169e23        # Avogadro's constant, 1/mol [2]
+        # Standard sea-level acceleration of gravity at a latitude of 45.5425
+        # degrees. [3]
+        g0 = 9.80665
 if 1:  # Original FORTRAN code
     def _Code():
         '''Original FORTRAN90 code from http://www.pdas.com/programs/atmos.f90.
@@ -141,210 +144,213 @@ if 1:  # Original FORTRAN code
         RETURN
         END Subroutine Atmosphere   ! -----------------------------------------------
         '''
-def atm(altitude_km):
-    '''Returns a dictionary of the SI properties of air at the given
-    geometric height, which is 0 for sea-level.  The returned
-    dictionary is
-        {
-            "density"           : d,     # kg/m^3
-            "pressure"          : p,     # Pa
-            "temperature"       : t,     # K
-            "g"                 : g,     # m/s^2
-            "speed of sound"    : Cs,    # m/s
-            "dynamic viscosity" : nu,    # N*s/m^2
-            "mean free path"    : mfp,   # m
-        }
-    The values returned will be floating point numbers.
-    '''
-    z_km = float(altitude_km)
-    if not (-5 <= z_km < 86):
-        raise ValueError("altitude_km must be between -5 and 86 km")
-    results = {}
-    htab = (0.0, 11.0, 20.0, 32.0, 47.0, 51.0, 71.0, 84.852)
-    ttab = (288.15, 216.65, 216.65, 228.65, 270.65, 270.65, 214.65, 186.946)
-    ptab = (1.0, 2.233611e-1, 5.403295e-2, 8.5666784e-3, 1.0945601e-3,
-            6.6063531e-4, 3.9046834e-5, 3.68501e-6)
-    gtab = (-6.5, 0.0, 1.0, 2.8, 0.0, -2.8, -2.0, 0.0)
-    # Geometric to geopotential altitude
-    h = z_km*radius_earth/(z_km + radius_earth)
-    i, j = 0, 7   # Set up binary search
-    while 1:
-        k = (i + j)//2
-        if h < htab[k]:
-            j = k
-        else:
-            i = k
-        if j <= i+1:
-            break
-    tgrad = gtab[i]
-    tbase = ttab[i]
-    deltah = h - htab[i]
-    tlocal = tbase + tgrad*deltah
-    tr = tlocal/ttab[0]     # Reduced temperature
-    if tgrad == 0.0:        # Reduced pressure
-        pr = ptab[i]*exp(-gmr*deltah/tbase)
-    else:
-        pr = ptab[i]*(tbase/tlocal)**(gmr/tgrad)
-    rhor = pr/tr            # Reduced density
-    T = T0*tr
-    results["density"] = rho0*rhor
-    results["pressure"] = P0*pr
-    results["temperature"] = T0*tr
-    results["g"] = g0*(radius_earth/(radius_earth + z_km))**2
-    results["speed of sound"] = sqrt(gamma*R*T/M0)
-    results["dynamic viscosity"] = 1.458e-6*T**(1.5)/(T + 110.4)
-    results["mean free path"] = sqrt(2)*R*T/(2*pi*Na*sigma**2*P0*pr)
-    return results
-def Error(msg, status=1):
-    print(msg, file=sys.stderr)
-    exit(status)
-def Usage(d, status=1):
-    name = sys.argv[0]
-    digits = d["-d"]
-    print(dedent(f'''
-    Usage:  {name} altitude [unit]
-      Prints the density, pressure, and temperature for altitudes between
-      -5 and 86 km.  From the 1976 NASA standard atmosphere.
-    
-      Note:  you can include an optional unit for the altitude (any common
-      unit will work).  The number is interpreted in km if no unit is given.
-    Options:
-      -d n      Number of significant figures. [{digits}]
-      -t        Print a table of the standard atmosphere in km heights
-    '''[1:-1]))
-    exit(status)
-def ParseCommandLine(d):
-    d["-t"] = False         # Print table
-    d["-d"] = 4             # Number of significant digits
-    d["--test"] = False     # Number of significant digits
-    if len(sys.argv) < 2:
-        Usage(d)
-    try:
-        opts, args = getopt.getopt(sys.argv[1:], "d:t", "test")
-    except getopt.GetoptError as e:
-        print(str(e))
-        exit(1)
-    for o, a in opts:
-        if o in ("-d",):
-            try:
-                d["-d"] = int(a)
-                if not (1 <= d["-d"] <= 15):
-                    raise ValueError()
-            except ValueError:
-                msg = ("-d option's argument must be an integer between "
-                       "1 and 15")
-                Error(msg)
-        elif o in ("-t",):
-            d["-t"] = not d["-t"]
-        elif o in ("--test",):
-            exit(run(globals(), halt=1)[0])
-    if not args and not d["-t"]:
-        Usage(d)
-    fp.digits(d["-d"])
-    sig.digits = d["-d"]
-    return args
-def GetHeight_km(args):
-    to_km = 1
-    if len(args) == 2:
+if 1:  # Utility
+    def Error(msg, status=1):
+        print(msg, file=sys.stderr)
+        exit(status)
+    def Usage(d, status=1):
+        name = sys.argv[0]
+        digits = d["-d"]
+        print(dedent(f'''
+        Usage:  {name} altitude [unit]
+          Prints the density, pressure, and temperature for altitudes between
+          -5 and 86 km.  From the 1976 NASA standard atmosphere.
+        
+          Note:  you can include an optional unit for the altitude (any common
+          unit will work).  The number is interpreted in km if no unit is given.
+        Options:
+          -d n      Number of significant figures. [{digits}]
+          -t        Print a table of the standard atmosphere in km heights
+        '''[1:-1]))
+        exit(status)
+    def ParseCommandLine(d):
+        d["-t"] = False         # Print table
+        d["-d"] = 4             # Number of significant digits
+        d["--test"] = False     # Number of significant digits
+        if len(sys.argv) < 2:
+            Usage(d)
         try:
-            to_km = u(args[1])/u("km")
-        except Exception:
-            print("Unit '{}' is not recognized".format(args[1]))
+            opts, args = getopt.getopt(sys.argv[1:], "d:t", "test")
+        except getopt.GetoptError as e:
+            print(str(e))
             exit(1)
-    z_km = float(args[0])*to_km
-    if z_km < -5 or z_km > 86:
-        print("Altitude must be between -5 and 86 km.")
-        exit(1)
-    return z_km
-def PrintHeight(args, opts):
-    def F(a, b):
-        'Return 100*a/prop0[b] in %'
-        return sig(100*a/prop0[b], 3) + "%"
-    digits = opts["-d"]
-    e = fp.engsi
-    # Height
-    z_km = GetHeight_km(args)
-    Z_km = sig(z_km)
-    Z_ft = sig(1000*z_km/u("ft"))
-    Z_mi = sig(1000*z_km/u("mi"))
-    prop = atm(z_km)
-    prop0 = atm(0)
-    # Density
-    d = prop["density"]
-    d0 = F(d, "density")
-    D_SI = sig(d)
-    D_lbpin3 = e(d/u("lbm/in3"))
-    D_lbpft3 = e(d/u("lbm/ft3"))
-    # Pressure
-    p = prop["pressure"]
-    p0 = F(p, "pressure")
-    P_kPa = sig(p/1000)
-    P_psi = e(p/u("psi"))
-    P_torr = e(p/u("torr"))
-    P_atm = e(p/u("atm"))
-    # Temperature
-    t = prop["temperature"]
-    t0 = F(t, "temperature")
-    T_SI = sig(t)
-    T_C = t - 273.15
-    T_degC = sig(T_C)
-    T_degF = sig(9/5*T_C + 32)
-    # Gravity
-    g = prop["g"]
-    g0 = F(g, "g")
-    G_SI = sig(g)
-    # Speed of sound
-    Cs = prop["speed of sound"]
-    CS_SI = sig(Cs)
-    CS_mph = sig(Cs/u("mph"))
-    # Viscosity
-    mu = prop["dynamic viscosity"]
-    nu = mu/float(d)   # Kinematic viscosity
-    MU_SI = e(mu)
-    NU_SI = e(nu)
-    # Mean free path
-    mfp = prop["mean free path"]
-    mfp0 = F(mfp, "mean free path")
-    MFP_SI = e(mfp)
-    # Print results
-    print(dedent(f'''
-    1976 Standard atmosphere properties at {Z_km} km ({Z_ft} ft, {Z_mi} mi):
-      [Reduced values with respect to sea level are in square brackets]
-      Density                 = {D_SI} kg/m^3             [{d0}]
-                              = {D_lbpin3}lbm/in^3
-                              = {D_lbpft3}lbm/ft^3
-      Pressure                = {P_kPa} kPa                [{p0}]
-                              = {P_psi}psi
-                              = {P_torr}torr
-                              = {P_atm}atm
-      Temperature             = {T_SI} K                  [{t0}]
-                              = {T_degC} °C
-                              = {T_degF} °F
-      Acceleration of gravity = {G_SI} m/s^2              [{g0}]
-      Speed of sound          = {CS_SI} m/s
-                              = {CS_mph} mi/hr
-      Dynamic viscosity       = {MU_SI}(N*s/m^2)
-      Kinematic viscosity     = {NU_SI}(m^2/s)
-      Mean free path          = {MFP_SI}m                 [{mfp0}]
-    '''))
-def PrintTable(args, d):
-    n = d["-d"] + 8
-    e = fp.engsic
-    fmt = "{z_km:5d} {d:^{n}s} {p:^{n}s} {t:^{n}s} {g:^{n}s} {Cs:^{n}s}"
-    header = dedent('''
-    Height  Density      Pressure      Temp      Acc. grav.   Speed of Sound
-      km     kg/m3          Pa          K            m/s2         m/s
-    ''')
-    print(header)
-    for z_km in range(-5, 31):
+        for o, a in opts:
+            if o in ("-d",):
+                try:
+                    d["-d"] = int(a)
+                    if not (1 <= d["-d"] <= 15):
+                        raise ValueError()
+                except ValueError:
+                    msg = ("-d option's argument must be an integer between "
+                           "1 and 15")
+                    Error(msg)
+            elif o in ("-t",):
+                d["-t"] = not d["-t"]
+            elif o in ("--test",):
+                exit(run(globals(), halt=1)[0])
+        if not args and not d["-t"]:
+            Usage(d)
+        fp.digits(d["-d"])
+        sig.digits = d["-d"]
+        return args
+if 1:  # Core functionality
+    def atm(altitude_km):
+        '''Returns a dictionary of the SI properties of air at the given
+        geometric height, which is 0 for sea-level.  The returned
+        dictionary is
+            {
+                "density"           : d,     # kg/m^3
+                "pressure"          : p,     # Pa
+                "temperature"       : t,     # K
+                "g"                 : g,     # m/s^2
+                "speed of sound"    : Cs,    # m/s
+                "dynamic viscosity" : nu,    # N*s/m^2
+                "mean free path"    : mfp,   # m
+            }
+        The values returned will be floating point numbers.
+        '''
+        z_km = float(altitude_km)
+        if not (-5 <= z_km <= 86):
+            raise ValueError("altitude_km must be between -5 and 86 km")
+        results = {}
+        htab = (0.0, 11.0, 20.0, 32.0, 47.0, 51.0, 71.0, 84.852)
+        ttab = (288.15, 216.65, 216.65, 228.65, 270.65, 270.65, 214.65, 186.946)
+        ptab = (1.0, 2.233611e-1, 5.403295e-2, 8.5666784e-3, 1.0945601e-3,
+                6.6063531e-4, 3.9046834e-5, 3.68501e-6)
+        gtab = (-6.5, 0.0, 1.0, 2.8, 0.0, -2.8, -2.0, 0.0)
+        # Geometric to geopotential altitude
+        h = z_km*radius_earth/(z_km + radius_earth)
+        i, j = 0, 7   # Set up binary search
+        while 1:
+            k = (i + j)//2
+            if h < htab[k]:
+                j = k
+            else:
+                i = k
+            if j <= i+1:
+                break
+        tgrad = gtab[i]
+        tbase = ttab[i]
+        deltah = h - htab[i]
+        tlocal = tbase + tgrad*deltah
+        tr = tlocal/ttab[0]     # Reduced temperature
+        if tgrad == 0.0:        # Reduced pressure
+            pr = ptab[i]*exp(-gmr*deltah/tbase)
+        else:
+            pr = ptab[i]*(tbase/tlocal)**(gmr/tgrad)
+        rhor = pr/tr            # Reduced density
+        T = T0*tr
+        results["density"] = rho0*rhor
+        results["pressure"] = P0*pr
+        results["temperature"] = T0*tr
+        results["g"] = g0*(radius_earth/(radius_earth + z_km))**2
+        results["speed of sound"] = sqrt(gamma*R*T/M0)
+        results["dynamic viscosity"] = 1.458e-6*T**(1.5)/(T + 110.4)
+        results["mean free path"] = sqrt(2)*R*T/(2*pi*Na*sigma**2*P0*pr)
+        return results
+    def GetHeight_km(args):
+        to_km = 1
+        if len(args) == 2:
+            try:
+                to_km = u(args[1])/u("km")
+            except Exception:
+                print("Unit '{}' is not recognized".format(args[1]))
+                exit(1)
+        z_km = float(args[0])*to_km
+        if z_km < -5 or z_km > 86:
+            print("Altitude must be between -5 and 86 km.")
+            exit(1)
+        return z_km
+    def PrintHeight(args, opts):
+        def F(a, b):
+            'Return 100*a/prop0[b] in %'
+            return sig(100*a/prop0[b], 3) + "%"
+        digits = opts["-d"]
+        e = fp.engsi
+        # Height
+        z_km = GetHeight_km(args)
+        Z_km = sig(z_km)
+        Z_ft = sig(1000*z_km/u("ft"))
+        Z_mi = sig(1000*z_km/u("mi"))
         prop = atm(z_km)
-        d = e(prop["density"])
-        p = e(prop["pressure"])
-        t = e(prop["temperature"])
-        g = e(prop["g"])
-        Cs = e(prop["speed of sound"])
-        print(fmt.format(**locals()))
-    print(header)
+        prop0 = atm(0)
+        # Density
+        d = prop["density"]
+        d0 = F(d, "density")
+        D_SI = sig(d)
+        D_lbpin3 = e(d/u("lbm/in3"))
+        D_lbpft3 = e(d/u("lbm/ft3"))
+        # Pressure
+        p = prop["pressure"]
+        p0 = F(p, "pressure")
+        P_kPa = sig(p/1000)
+        P_psi = e(p/u("psi"))
+        P_torr = e(p/u("torr"))
+        P_atm = e(p/u("atm"))
+        # Temperature
+        t = prop["temperature"]
+        t0 = F(t, "temperature")
+        T_SI = sig(t)
+        T_C = t - 273.15
+        T_degC = sig(T_C)
+        T_degF = sig(9/5*T_C + 32)
+        # Gravity
+        g = prop["g"]
+        g0 = F(g, "g")
+        G_SI = sig(g)
+        # Speed of sound
+        Cs = prop["speed of sound"]
+        CS_SI = sig(Cs)
+        CS_mph = sig(Cs/u("mph"))
+        # Viscosity
+        mu = prop["dynamic viscosity"]
+        nu = mu/float(d)   # Kinematic viscosity
+        MU_SI = e(mu)
+        NU_SI = e(nu)
+        # Mean free path
+        mfp = prop["mean free path"]
+        mfp0 = F(mfp, "mean free path")
+        MFP_SI = e(mfp)
+        # Print results
+        T.c = T("ornl")
+        print(dedent(f'''
+        1976 Standard atmosphere properties at {Z_km} km ({Z_ft} ft, {Z_mi} mi):
+          [Reduced values with respect to sea level are in color]
+          Density                 = {D_SI} kg/m^3             [{T.c}{d0}{T.n}]
+                                  = {D_lbpin3}lbm/in^3
+                                  = {D_lbpft3}lbm/ft^3
+          Pressure                = {P_kPa} kPa                [{T.c}{p0}{T.n}]
+                                  = {P_psi}psi
+                                  = {P_torr}torr
+                                  = {P_atm}atm
+          Temperature             = {T_SI} K                     [{T.c}{t0}{T.n}]
+                                  = {T_degC} °C
+                                  = {T_degF} °F
+          Acceleration of gravity = {G_SI} m/s^2                 [{T.c}{g0}{T.n}]
+          Speed of sound          = {CS_SI} m/s
+                                  = {CS_mph} mi/hr
+          Dynamic viscosity       = {MU_SI}(N*s/m^2)
+          Kinematic viscosity     = {NU_SI}(m^2/s)
+          Mean free path          = {MFP_SI}m                    [{T.c}{mfp0}{T.n}]
+        '''))
+    def PrintTable(args, d):
+        n = d["-d"] + 8
+        e = fp.engsic
+        fmt = "{z_km:5d} {d:^{n}s} {p:^{n}s} {t:^{n}s} {g:^{n}s} {Cs:^{n}s}"
+        header = dedent('''
+        Height  Density      Pressure      Temp      Acc. grav.   Speed of Sound
+          km     kg/m3          Pa          K            m/s2         m/s
+        ''')
+        print(header)
+        for z_km in range(-5, 31):
+            prop = atm(z_km)
+            d = e(prop["density"])
+            p = e(prop["pressure"])
+            t = e(prop["temperature"])
+            g = e(prop["g"])
+            Cs = e(prop["speed of sound"])
+            print(fmt.format(**locals()))
+        print(header)
 if 1:   # Another properties function
     def atm2(hm):
         '''Return (T, p, ρ) where 
@@ -353,9 +359,8 @@ if 1:   # Another properties function
             ρ is density in kg/m³
         for the standard atmosphere at height hm in meters above sea level.
  
-        The height hm can either be a flt (from f.py) instance with
-        optional length dimensions or can be a number convertible to a
-        float.  The allowed range for hm is 0 to 85 km.
+        The height hm can either be a flt (from f.py) instance with optional length dimensions or
+        can be a number convertible to a float.  The allowed range for hm is 0 to 85 km.
         '''
         # Formulas from http://nebula.wsimg.com/ab321c1edd4fa69eaa94b5e8e769b113?AccessKeyId=AF1D67CEBF3A194F66A3&disposition=0&alloworigin=1
         '''
@@ -363,62 +368,52 @@ if 1:   # Another properties function
  
         Text from the web page:
  
-        The "standard atmosphere" is a hypothetical vertical distribution of
-        atmospheric properties which, by international agreement, is roughly
-        representative of year-round, mid-latitude conditions.  Typical usages
-        include altimeter calibrations and aircraft design and performance
-        calculations. It should be recognized that actual conditions may vary
+        The "standard atmosphere" is a hypothetical vertical distribution of atmospheric properties
+        which, by international agreement, is roughly representative of year-round, mid-latitude
+        conditions.  Typical usages include altimeter calibrations and aircraft design and
+        performance calculations. It should be recognized that actual conditions may vary
         considerably from this standard.
  
-        The most recent definition is the "US Standard Atmosphere, 1976"
-        developed jointly by NOAA, NASA, and the USAF. It is an idealized,
-        steady state representation of the earth's atmosphere from the surface
-        to 1000 km, as it is assumed to exist during a period of moderate solar
-        activity. The 1976 model is identical with the earlier 1962 standard up
-        to 51 km, and with the International Civil Aviation Organization (ICAO)
-        standard up to 32 km.
+        The most recent definition is the "US Standard Atmosphere, 1976" developed jointly by NOAA,
+        NASA, and the USAF. It is an idealized, steady state representation of the earth's
+        atmosphere from the surface to 1000 km, as it is assumed to exist during a period of
+        moderate solar activity. The 1976 model is identical with the earlier 1962 standard up to
+        51 km, and with the International Civil Aviation Organization (ICAO) standard up to 32 km.
  
-        Up to 86 km, the model assumes a constant mean molecular weight, and
-        comprises of a series of six layers, each defined by a linear
-        temperature gradient (lapse rate). (The assumption of linearity
-        conveniently avoids the need for numerical integration in the
-        computation of properties.) The bottom layer, with a negative lapse
-        rate, represents the earth's troposphere, a region where most clouds
-        form, and with generally turbulent conditions. Higher layers form part
-        of the earth's stratosphere, where winds may be high, but turbulence is
-        generally low.
+        Up to 86 km, the model assumes a constant mean molecular weight, and comprises of a series
+        of six layers, each defined by a linear temperature gradient (lapse rate). (The assumption
+        of linearity conveniently avoids the need for numerical integration in the computation of
+        properties.) The bottom layer, with a negative lapse rate, represents the earth's
+        troposphere, a region where most clouds form, and with generally turbulent conditions.
+        Higher layers form part of the earth's stratosphere, where winds may be high, but
+        turbulence is generally low.
  
-        The model is derived by assuming a constant value for g (gravitational
-        acceleration). Strictly speaking, altitudes in this model should
-        therefore be referred to as "geopotential altitudes" rather than
-        "geometric altitudes" (physical height above mean sea level). The
+        The model is derived by assuming a constant value for g (gravitational acceleration).
+        Strictly speaking, altitudes in this model should therefore be referred to as "geopotential
+        altitudes" rather than "geometric altitudes" (physical height above mean sea level). The
         relationship between these altitudes is given by:
  
         hgeometric = hgeopotential x Rearth / (Rearth - hgeopotential)
  
-        where Rearth is the earth's effective radius. The difference is small,
-        with geometric altitude and geopotential altitude differing from by less
-        than 0.5% at 30 km (~100,000 ft).
+        where Rearth is the earth's effective radius. The difference is small, with geometric
+        altitude and geopotential altitude differing from by less than 0.5% at 30 km (~100,000 ft).
  
-        The standard is defined in terms of the International System of Units
-        (SI). The air is assumed to be dry and to obey the perfect gas law and
-        hydrostatic equation, which, taken together, relate temperature,
-        pressure and density with geopotential altitude.
+        The standard is defined in terms of the International System of Units (SI). The air is
+        assumed to be dry and to obey the perfect gas law and hydrostatic equation, which, taken
+        together, relate temperature, pressure and density with geopotential altitude.
  
-        It should also be noted that since the standard atmosphere model does
-        not include humidity, and since water has a lower molecular weight than
-        air, its presence produces a lower density. Under extreme circumstances,
-        this can amount to as much as a 3% reduction, but typically is less than
-        1% and may be neglected.
+        It should also be noted that since the standard atmosphere model does not include humidity,
+        and since water has a lower molecular weight than air, its presence produces a lower
+        density. Under extreme circumstances, this can amount to as much as a 3% reduction, but
+        typically is less than 1% and may be neglected.
  
         Symbols
  
-        The following symbols are used to define the relationships between
-        variables in the model. Subscript n indicates conditions at the base of
-        the nth layer (or at the top of the (n-1)th layer) or refers to the
-        constant lapse rate in the nth layer.  The first layer is considered to
-        be layer 0, hence subscript 0 indicates standard, sea level conditions,
-        or lapse rate in the bottom layer.
+        The following symbols are used to define the relationships between variables in the model.
+        Subscript n indicates conditions at the base of the nth layer (or at the top of the (n-1)th
+        layer) or refers to the constant lapse rate in the nth layer.  The first layer is
+        considered to be layer 0, hence subscript 0 indicates standard, sea level conditions, or
+        lapse rate in the bottom layer.
  
             h = Pressure/Geopotential Altitude
             T = Temperature
@@ -525,12 +520,7 @@ if 1:   # Another properties function
             dev.append(' '.join(s))
         for i in dev:
             print(i)
-
-if __name__ == "__main__":
-    # Unit test stuff
-    import subprocess
-    from time import sleep
-    from lwtest import run, assert_equal, raises, Assert
+if 1:   # Unit tests
     def GetReferenceData():
         '''Return the altitude in km, along with sigma = reduced density,
         delta = reduced pressure, theta = reduced temperature (reduced means
@@ -617,7 +607,11 @@ if __name__ == "__main__":
         if 0:
             m = max([abs(i) for i in o])
             print(f"Max % relative diff = {m}")
+
 if __name__ == "__main__": 
+    # Run the self tests
+    Test_atm_1()
+    Test_atm_2()
     d = {}      # Options dictionary
     args = ParseCommandLine(d)
     if d["-t"]:
