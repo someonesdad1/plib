@@ -1,9 +1,9 @@
 Active:  /plib/.todo
 
-    - color
-        - I need the #, $, @ 24-bit numbers associated with my short color names.  Add them as an
-          option to the clr command (e.g., 'clr l').  It would also be nice if they included the
-          nearest 8-bit color number too.
+    - hobbyutil
+        - Test all python scripts with 3.11
+        - Get rid of file size
+        - Make HTML as short as possible and all on one line to make browsing quick
 
     - Programmer's index
         - I have so many tools & utilities I need some kind of overall master index to find them.
