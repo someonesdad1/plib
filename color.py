@@ -3020,7 +3020,7 @@ if __name__ == "__main__":
     def ShowShortNames():
         lines = GetLines("/plib/colornames0", nonl=True, script=True)
         i, f = " "*4, lambda x: ' '*x
-        hdr = f"Name{f(10)}RGB{f(12)}XRGB{f(7)}XHSV{f(7)}XHLS "
+        hdr = f"Name{f(10)}RGB{f(12)}XRGB{f(7)}XHSV{f(7)}XHLS{f(4)}8-BIT"
         t.hdr = t('whtl', 'royd', "")
         t.print(f"{t.hdr}{hdr}")
         for line in sorted(lines):
@@ -3031,8 +3031,14 @@ if __name__ == "__main__":
             c = eval(clr)
             name = name.replace("'", "")
             s = str(c).replace("C⁸", "")
-            t.print(f"{t(c)}{name}{i}{s}{i}{c.xrgb}{i}{c.xhsv}{i}{c.xhls}")
+            n = RGBtoANSI8bit(*c.irgb)
+            ctrans = Translate8bit(n)
+            t.print(f"{t(c)}{name}{i}{s}{i}{c.xrgb}{i}{c.xhsv}{i}{c.xhls}{i}{t(ctrans)}{n}")
         t.print(f"{t.hdr}{hdr}")
+        print("Note:  if you look closely, you may be able to see small differences")
+        print("between the last column's integer color and the remainder of the line.")
+        print("This is because there are only 256 8-bit colors and the mapping isn't")
+        print("perfect.  Examples:  dend, olv, olvd, orn, pnkd, purd, royd, sead")
     def PrintRGB(orig, x, rgb):
         'Show the color in various forms'
         q = "({:3d}, {:3d}, {:3d})"
