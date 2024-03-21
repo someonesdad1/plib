@@ -28,7 +28,7 @@
 #    A basic naming goal was that the name should evoke that color in my mind.  This, of course, is
 #    subjective, so feel free to define things to your needs.
 #
-#    Note these definitions rely on an 24-bit color environment.  'python color.py l' will print
+#    Note these definitions rely on a 24-bit color environment.  'python color.py l' will print
 #    these out, along with the closest ANSI 8-bit color that matches each definition.
 #
 #    For a preview of the colors, run the script /plib/pgm/cdec.py with this filename as its
