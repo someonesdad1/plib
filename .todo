@@ -1,5 +1,8 @@
 Active:  /plib/.todo
 
+    - starship
+        - Make the shlvl print out multiple · characters.  Or maybe |.
+
     - hobbyutil
         - Test all python scripts with 3.11
         - Get rid of file size
