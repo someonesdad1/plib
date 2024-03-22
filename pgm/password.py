@@ -97,6 +97,7 @@ if 1:   # Utility
             -h      Print a manpage
             -i      Ignore case of words
             -l n    Limit words to n letters
+            -m n    Words must be at least n letters
             -p      Remove punctuation
             -s sd   Define seed to use repeatable pseudorandom generator
             -w      Remove whitespace
@@ -104,11 +105,12 @@ if 1:   # Utility
         exit(status)
     def ParseCommandLine(d):
         d["-l"] = None      # Limit words to this length
+        d["-m"] = None      # Words at least this length
         d["-s"] = None      # Random number seed; implies pseudorandom number generator
         if len(sys.argv) < 2:
             Usage()
         try:
-            opts, args = getopt.getopt(sys.argv[1:], "0123ad:hl:s:") 
+            opts, args = getopt.getopt(sys.argv[1:], "0123ad:hl:m:s:") 
         except getopt.GetoptError as e:
             print(str(e))
             exit(1)
@@ -124,6 +126,13 @@ if 1:   # Utility
                         raise ValueError()
                 except ValueError:
                     Error("-l option's argument must be an integer > 0")
+            elif o == "-m":
+                try:
+                    d[o] = int(a)
+                    if d[o] < 1:
+                        raise ValueError()
+                except ValueError:
+                    Error("-m option's argument must be an integer > 0")
             elif o == "-h":
                 Usage(status=0)
             elif o in ("-s",):
@@ -145,6 +154,9 @@ if 1:   # Core functionality
         if d["-l"]:
             # Keep words with d["-l"] letters or less
             words = [i for i in words if len(i) <= d["-l"]]
+        if d["-m"]:
+            # Keep words with d["-m"] letters or more
+            words = [i for i in words if len(i) >= d["-m"]]
         if d["-s"] is None:
             # Random selection, cannot be repeated
             for i in range(m):
