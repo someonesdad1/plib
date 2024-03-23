@@ -270,6 +270,44 @@ if 1:   # Functions
                         return f"{sign*seconds/u('millenia')} millenia"
                     else:
                         return f"{(sign*seconds/u('millenia')).sci} millenia"
+    def AdjustTimeUnits(seconds, digits=3):
+        '''Convert a time in seconds to an easier to understand string.  If seconds is < 1, then
+        the returned string will be in s with an SI prefix.  If seconds is > 1, then it will be
+        converted to one of the larger time units:  minutes hours days weeks months years.
+        '''
+        x = flt(0)
+        with x:
+            x.N = digits
+            if seconds < 1:
+                s = flt(seconds)
+                return f"{s.engsi}s"
+            else:
+                if seconds/u("years") >= 1:
+                    s = flt(seconds/u("years"))
+                    return f"{s.engsi}yr"
+                elif seconds/u("months") >= 1:
+                    s = flt(seconds/u("months"))
+                    return f"{s.engsi}months"
+                elif seconds/u("weeks") >= 1:
+                    s = flt(seconds/u("weeks"))
+                    return f"{s.engsi}weeks"
+                elif seconds/u("days") >= 1:
+                    s = flt(seconds/u("days"))
+                    return f"{s.engsi}days"
+                elif seconds/u("hours") >= 1:
+                    s = flt(seconds/u("hours"))
+                    return f"{s.engsi}hours"
+                elif seconds/u("minutes") >= 1:
+                    s = flt(seconds/u("minutes"))
+                    return f"{s.engsi}minutes"
+                else:
+                    s = flt(seconds)
+                    return f"{s.engsi}seconds"
+
+if 1:
+    for un in "yr month week day hr minute".split():
+        print(AdjustTimeUnits(1*u(un)))
+    exit()
             
 if 1:   # Convenience instances
     timer = Timer()
