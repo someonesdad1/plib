@@ -284,7 +284,7 @@ if 1:   # Functions
             else:
                 if seconds/u("years") >= 1:
                     s = flt(seconds/u("years"))
-                    return f"{s.engsi}yr"
+                    return f"{s.engsi}years"
                 elif seconds/u("months") >= 1:
                     s = flt(seconds/u("months"))
                     return f"{s.engsi}months"
@@ -304,11 +304,6 @@ if 1:   # Functions
                     s = flt(seconds)
                     return f"{s.engsi}seconds"
 
-if 1:
-    for un in "yr month week day hr minute".split():
-        print(AdjustTimeUnits(1*u(un)))
-    exit()
-            
 if 1:   # Convenience instances
     timer = Timer()
     fnt = FNTime()
@@ -478,11 +473,16 @@ if __name__ == "__main__":
         Assert(s == "1 century")
         s = GetET(u("millenia"))
         Assert(s == "1 millenia")
+        # AdjustTimeUnits()
+        for un in "years months weeks days hours minutes".split():
+            Assert(AdjustTimeUnits(1*u(un)) == f"1 {un}")
     retvalue, s = run(globals(), quiet=True, halt=False)
     if retvalue:
         t.print(f"{t('ornl')}Self tests failed")
         print(s.strip())
         exit(1)
+    else:
+        t.print(f"{t('grnl')}Tests passed")
     with Timer() as T:
         run(globals(), regexp="example$", quiet=True)
         #run(globals(), regexp="example$", verbose=True)
