@@ -273,8 +273,10 @@ if 1:   # Functions
     def AdjustTimeUnits(seconds, digits=3, un=False):
         '''Convert a time in seconds to an easier to understand string.  If seconds is < 1, then
         the returned string will be in s with an SI prefix.  If seconds is > 1, then it will be
-        converted to one of the larger time units:  minutes hours days weeks months years.  If un
-        is true, use scientific notation instead (helpful for big SI prefixes you can't remember).
+        converted to one of the larger time units:  
+            minutes hours days weeks months years
+        If un is true, use scientific notation instead (helpful for big SI prefixes you can't
+        remember).
         '''
         def P(time, units, un):
             return f"{s.engsi}{units} = {s.sci} {units}" if un else f"{s.engsi}{units}"
