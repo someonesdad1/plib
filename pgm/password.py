@@ -103,8 +103,8 @@ if 1:   # Utility
             minchars = minimum number of characters allowed in words [1]
           If you want to constrain only the minimum number of characters, set maxchars to '-' and
           set minchars appropriately.  The output is random and not repeatable unless you use the
-          -s option.  A conservative estimate of the number of bits in the password is printed in
-          square brackets and clamped to be less than 10000.
+          -s option.  An estimate of the number of bits in the password is printed in square
+          brackets and clamped to be less than 10000 (around 200-300 words depending on word list).
         Options:
             -0      Simple wordlist (3000 words) [default]
             -1      Moderately-sized wordlist (16378 words)
@@ -225,10 +225,6 @@ if 1:   # Core functionality
         measures many of orders of magnitude more complex and difficult.
 
         '''.rstrip()))
-
-if 1:
-    SecurityEstimates() #xx
-    exit()
 
     def CheckParameters(numwords, numlines, maxchars, minchars):
         if numwords < 1:
