@@ -43,21 +43,20 @@ if 1:   # Utility
         print(dedent(f'''
         Print the permutations of the letters 'rgb'
             python perm.py rgb
-            prints
+            prints 3! = 6 items
                 rgb rbg grb gbr brg bgr
                 6 permutations
         Print the permutations of the letters 'rgbhsv' taken 3 at a time
             python perm.py -k 3 rgbhsv
-            prints
+            prints 6!/3! = 6*5*4 = 120 items
                 rgb rbv rsh grh ...
                 rgh rhg rsv grs ...
                 ...
                 120 permutations
         Print the combinations of the letters 'rgbhsv' taken 3 at a time
             python comb.py -k 3 rgbhsv
-            prints
-                rgb rgs rgv rbh rbs ...
-                rgh
+            prints 6!/(3!*3!) = 6*5*4/6 = 20
+                rgb rgh rgs rgv rbh rbs rbv rhs rhv rsv gbh gbs gbv ghs ghv gsv bhs bhv bsv hsv
                 20 combinations
         '''))
         exit(0)
@@ -76,15 +75,14 @@ if 1:   # Utility
           so just the numbers will be printed unless -f is used.
         Notation
           n = number of letters in A or number of arguments if > 1
-          k = items to take for each subset'''))
+          k = number of items to take for each subset'''))
         if comb:
             print(dedent(f'''
             C(n, k) = combinations of n objects taken k at a time
                     = n!/((n - k)!*k!)''', n=10))
         else:
             print(dedent(f'''
-            P(n, k) = all permutations of the size k subsets taken from
-                      all the n elements
+            P(n, k) = all permutations of the size k subsets taken from all the n elements
                     = n!/(n - k)!
             P(n)    = P(n, n) = n!''', n=10))
         print(dedent(f'''
