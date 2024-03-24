@@ -1,7 +1,18 @@
 Active:  /plib/.todo
 
-    - starship
-        - Make the shlvl print out multiple · characters.  Or maybe |.
+    - /words
+        - Include verbs, nouns, adjectives, etc. from Wordnet
+
+    - pgm/random_phrase.py
+        - This is a handy script, but it should by default use a set of words much smaller
+          than Wordnet's, as this leads to unfamiliar words like 'Phyllostachys' or
+          'megasporangium'.  Edit things to use this simpler set of words, then include an option
+          to select the full list.
+    - pgm/weather.py
+        - Use the extra width of terminal windows to make two columns for day and night
+        - Lines are then the 6 forecast days
+        - Use words 'rain snow tstorm wind sun cloudy low high
+        - Give temps in C and F
 
     - hobbyutil
         - Test all python scripts with 3.11

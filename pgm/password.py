@@ -1,41 +1,9 @@
 '''
 
-Script to generate hard-to-crack passwords
+ToDo
+    - Estimate number of bits in each set of words
 
-    Method 1:  uses secrets module and a list of words to randomly select words from the list.  You
-    specify the number of words, the list of words, and the number of lines to generate.
-
-
-Method 2
-    - Script to ask a bunch of questions, concatenate your responses, and deliver a desired hash of
-      the response data.
-    - The script will number and output the questions along with the hashed answer.
-    - With a good set of questions, it is unlikely anyone could crack things, especially if the
-      answers have numerous characters in them.
-
-Example of method 2:
-    - Here are a set of questions with answers in double quotes:
-        - Name Donald Duck's nephews
-            - "Huey Dewey Louie"
-        - Name of the duck that the cat loved to wipe its tail under
-            - "Daddles"
-        - So-and-so's phone number
-            - "916-456-7890"
-    - The answer strings are concatenated to get the string to be hashed:
-        - "Huey Dewey LouieDaddles916-456-7890"
-    - The command line options to the program are used to transform the input string to make it
-      easier to tolerate input differences later
-        - -i is used to ignore case
-        - -p is used to remove punctuation
-        - -w is used to remove whitespace
-    - If all these options were used, the string to be hashed is 
-        - "hueydeweylouiedaddles9164567890"
-        - Even if you knew the string had 21 letters and 10 digits, you'd still be faced with
-          26**21*10**10 = 5e39 combinations that must be tried in a brute-force attack.
-    - A bitcoin mining website in Nov 2023 gave a $3.2k Bitmain AntMiner S19 Pro's hash speed at
-      110 Th/s or 1e14 Hz.  Suppose you could afford a million of these machines ($3e9), giving you
-      a brute force checking rate of 1e20 Hz.  You'd need 1e39/1e20 = 1e19 s to check all the
-      possibilities, which larger than 4e17 s, the age of the universe.
+Script to generate easier-to-remember passwords than modern "recommendations"
 
 '''
 if 1:   # Header
@@ -53,14 +21,17 @@ if 1:   # Header
         #∞test∞# #∞test∞#
         pass
     if 1:   # Standard imports
-        import getopt
-        import os
         from pathlib import Path as P
+        import getopt
+        import math
+        import os
         import random
         import secrets
         import sys
     if 1:   # Custom imports
+        from f import flt
         from wrap import dedent
+        from color import t 
     if 1:   # Global variables
         class G:
             pass
@@ -81,6 +52,40 @@ if 1:   # Utility
         print(dedent(f'''
 
         Thoughts
+            - Also see /plib/pgm/random_phrase.py.  This can build phrases easier to remember
+              because you can e.g. specify 'ad v a n' on the command line, saying you want an
+              adverb followed by a verb followed by an adjective followed by a noun.  
+                - Example output:
+                    - unblushingly dado secretory sickroom
+                    - forever twiddle famished Phyllostachys
+                    - disgustingly shoulder hunched rink
+                    - seaward gun dissipated megasporangium
+                    - wrongheadedly teethe entitled convulsion
+                - This uses words from Wordnet 3.1, which is a fairly large set of words.  Such
+                  things can result in words the average person won't recognize, such as
+                  'Phyllostachys' or 'megasporangium'.
+
+            - An attacker won't know the number of symbols used nor the length of the password.
+              Since these passwords are composed of English words, their number of bits is far
+              smaller than e.g. random bytes or even the 95 usual ASCII characters.
+                - https://en.wikipedia.org/wiki/Rainbow_table#Example states that using a PC to
+                  crack an 8 character password in lowercase letters is completely feasible(1e12
+                  hashes), but a 16 character password in lowercase letters is completely
+                  inveasible (1e25 hashes).
+                    - Precomputed rainbow tables:  For older Unix passwords which used a 12-bit
+                      salt this would require 4096 tables, a significant increase in cost for the
+                      attacker, but not impractical with terabyte hard drives. The SHA2-crypt and
+                      bcrypt methods—used in Linux, BSD Unixes, and Solaris—have salts of 128
+                      bits.[4] These larger salt values make precomputation attacks against these
+                      systems infeasible for almost any length of a password. Even if the attacker
+                      could generate a million tables per second, they would still need billions of
+                      years to generate tables for all possible salts.
+
+            - The number of symbols in the wordlists vary:  -0:47, -1:26, -2:29, -3:63.  These will
+              strongly impact the assessed number of bits in the passwords.
+            - The default wordlist is -0 and I recommend this for passwords that more easily
+              remembered.  The remaining wordlists contain more complex words.  The -3 option will
+              probably have many unfamiliar words.
             - I recommend using a password safe to store your passwords.  Then you only have to
               memorize one good password to open up the password safe.  
             - For important stuff (e.g. banking, retirement account, etc.) use high-strength
@@ -88,13 +93,13 @@ if 1:   # Utility
             - For passwords that you need to remember for things you can't easily keep on your
               computer, the sets of words generated by this script might be useful.  I wouldn't
               hesitate to permute the words to make the thing easier to remember.
-            - Another technique is to shift your hands up one row on the keyboard.  This makes
-              the word "randomly selected" come out as "4qhe9joy w3o3d53e".
+            - Another technique is to shift your hands up one row on the keyboard.  This makes the
+              word "randomly selected" come out as "4qhe9joy w3o3d53e".
             - I recommend you stick with the -0 word list, as you'll get more familiar words that
               should be easier to remember.
             - I had a friend in the 1980's who had the initials GE, so he used the phrase "we bring
               good things to life", which was (and might still be) an advertising slogan from GE.
-              He told me he then used the first letters of the words to get "wbgttl" for a short 
+              He told me he then used the first letters of the words to get "wbgttl" for a short
               password that was easy to remember.  Of course, telling me his password wasn't a very
               good security practice. :^)
                 - You can make up a memorable word phrase and do the same thing, then putting some
@@ -122,123 +127,27 @@ if 1:   # Utility
         One technique is to generate a set of words that you can remember.  This script does this
         for you, selecting from various lists of words.  
 
-        Estimating Security
-        -------------------
-
-        Let
-
-            N = size of the set of symbols used for passwords
-            P = number of symbols in password
-
-        To crack
-        the password by brute force, all N**P possible passwords would have to be tried.
-        If the attacker didn't know the actual number of characters in the password, the the sum
-        of the terms of N**i from i = 1 to i = P would have to be gotten.
-
-        from these assumptions.  This is an elementary combinatoric argument.  Assume you use a
-        password of length 2.  The first character can be chosen n different ways and the second
-        character can be chose n different ways, giving n² possibilities.
-
-        A measure of this number of possibilities is its base 2 logarithm rounded to an
-        integer and called 'bits'.  We have log2(mⁿ) = n*log2(m).  We can make a table of the
-        number of bits as a function of m, the number of characters in your password.  If we assume
-        the size of the set of characters used, let's assume it's only the lowercase letters and digits,
-        meaning n = 36.
-
-        Most people probably only use the 7-bit ASCII characters from 0x20 to 0x7e for their
-        passwords, which is 95 characters.  The number of bits in a password with m characters is
-        then about 6.5*m bits.  A basic problem with many websites is that they limit your
-        character choices and length of the password you can choose.
-
-        How many bits must you have in your password to feel secure?  The answer depends on the
-        resources of the person or organization trying to get your password.  A good benchmark
-        might be a single hacker with a modern desktop computer and graphics card.  A well-heeled
-        attacker (e.g. corporation or government) could have orders of magnitude larger resources
-        than this.  https://www.hivesystems.com/blog/are-your-passwords-in-the-green gives some
-        hashing speeds of modern hardware.  I'll give these numbers in Hz, as this makes it easy to
-        compare to frequencies.  The current hardware seems to be around 50 to 150 GHz.  150 GHz
-        means computing hashes at 150e9 per second.  This, in turn, is useful if an attacker has
-        gotten hold of e.g. a hashed password file from a computer and knows what hashing algorithm
-        was used.
-
-
-        The security of a password can be estimated by the number of bits that represent the number
-        of passwords you'd have to try in a brute force search to guess the password.  The easiest
-        password for brute force search is a symbol that's either 0 or 1.  Then you have to check
-        two possible symbols.
-
-        A more complicated password would be the 5-digit phone password I used in the 1980's at
-        work.  How many 5 digit passwords using the digits 0 to 9 are there?  10**5 or one hundred
-        thousand.  This was nicely secure, as an incoming caller would have to try all the possible
-        numbers and typing these in on a phone would take too much time.
-
-        The base 2 logarithm of the number of possible passwords is often used to estimate password
-        strength.  It is usually rounded to an integer.
-
-        The most straightforward measure of the effectiveness of a password is to calculate the 
-        number of passwords that are "similar" to it, with similar meaning roughly the number
-        of possible strings that can be generated by the set of characters you used and the number
-        of characters in the password.  Here's an example.  Suppose we allow only lower case
-        letters in our password, or 26 characters.  Add in the space character, the comma, and the
-        semicolon.  This is a set of 29 characters.  If you then choose an n character password
-        from this character set, you'd calculate that there are 29**n possible passwords.  Since
-        the logarithm of 2 is 4.8 to two places, this is (2**4.8)**n or 2**(4.8*n).  Password
-        strength is often estimated with the number of bits, which is the base 2 logarithm of the
-        number of possible passwords.  Thus, our estimate here is 4.8*n bits.  Call it 5 bits per
-        character. 
-
-        Here's a table from around 2022
-        (https://www.hivesystems.com/blog/are-your-passwords-in-the-green) that gives cracking time
-        when the attacker knows the hash values.  I've rounded the values to 2 figures and these
-        estimates change quickly with time.
-
-        Columns:
-            N   number of characters
-            A   Number digits only used
-            B   Lower case letters
-            C   Upper and lower case letters
-            D   Numbers and letters
-            E   Numbers, letters, symbols
-
-        The crack times are given the units:
-            s = seconds, m = minutes, h = hours, d = days, m = months, y = years, c = century
-            If a cell is empty, it means more than 1000 yearss.
-
-            N       A       B       C       D       E
-            8       0s      0s      1s      2s      4s
-            10      0s      1m      21h     5d      14d
-            12      1s      14h     6y      53y     230y
-            14      52s     1y     
-            16      1h      710y    
-            18      6d      
-
-        Such numbers are strongly dependent on the assumptions and hardware; the basic assumption
-        likely is what a hacker could build with current hardware and graphics card.
-
-        The major takeaway from the table is that crack times go up with 1) size of the set of the
-        number of symbols used in the password and 2) the number of symbols in the password.
-
-        Column E is probably limited to the ASCII 7-bit characters that include the letters, number
-        digits, and punctuation.  These are the bytes from 0x20 to 0x7e or 95 characters.
-
 
 
         '''))
         exit()
     def Usage():
         print(dedent(f'''
-        Usage:  {sys.argv[0]} [options] n [k [M [m]]]
-          If only n is given, print a line of n randomly-selected words.  If k is given, print k
-          lines of n words.  If M is given, limit the words to a maximum of M characters.  If m is
-          given, the words must be at least m letters long.  The output is random and not
-          repeatable unless you use the -s option.
+        Usage:  {sys.argv[0]} [options] numwords [numlines [maxchars [minchars]]]
+          Print line(s) containing numwords randomly selected from a wordlist.  Optional arguments:
+            numlines = number of lines to print
+            maxchars = maximum number of characters allowed in words
+            minchars = minimum number of characters allowed in words
+          If you want to constrain only the minimum number of characters, set maxchars to '-' and
+          set minchars appropriately.  The output is random and not repeatable unless you use the
+          -s option.
         Options:
             -0      Simple wordlist (3000 words) [default]
             -1      Moderately-sized wordlist (16378 words)
-                    excellent list of words from Alan Beale.
+            -2      Large list of words from Alan Beale (81882 words)
             -3      Complex wordlist (302618 words)
             -h      Print a manpage
-            -s sd   Define seed to use repeatable pseudorandom generator
+            -s st   Define seed string st to use repeatable pseudorandom generator
         '''))
         exit(0)
     def ParseCommandLine(d):
@@ -263,44 +172,67 @@ if 1:   # Utility
             g.wordlist = 0
         return args
 if 1:   # Core functionality
-    def Calculate(n, k, M, m):
-        N, m = [int(i) for i in args]
-        if N < 1:
-            Error("N must be an integer > 0")
-        if m < 1:
-            Error("m must be an integer > 0")
-        # Get the list of words
+    def CheckParameters(numwords, numlines, maxchars, minchars):
+        if numwords < 1:
+            Error("numwords must be an integer > 0")
+        if numlines < 1:
+            Error("numlines must be an integer > 0")
+        if minchars < 1:
+            Error("minchars must be an integer > 0")
+        if maxchars < minchars:
+            Error("maxchars must be an integer > 0 and be larger than minchars")
+    def GetBits(passwd: list, numsymbols: str):
+        '''Estimate the number of bits in the list of words.  This will be int(log2(N**P)) where N
+        is the number of possible symbols (numsymbols) and P is the number of characters in
+        ''.join(passwd).
+        '''
+        n = flt(numsymbols**len(''.join(passwd)))
+        bits = int(round(math.log2(n), 0))
+        if bits > 9999:
+            bits = 9999
+        elif bits < 1:
+            bits = 1
+        return bits
+    def Calculate(numwords, numlines, maxchars, minchars):
+        '''Print the indicated numbers of words
+        numwords = number of words per line
+        numlines = number of lines to print
+        maxchars = maximum number of characters per word
+        minchars = minimum number of characters per word
+        '''
+        # Get the word list
         file = g.words[g.wordlist]
         assert file.exists()
         with open(file) as f:
             words = [word.strip() for word in f]
-        if d["-l"]:
-            # Keep words with d["-l"] letters or less
-            words = [i for i in words if len(i) <= d["-l"]]
-        if d["-m"]:
-            # Keep words with d["-m"] letters or more
-            words = [i for i in words if len(i) >= d["-m"]]
+            # Only keep words with lengths between minchars and maxchars
+            words = [i for i in words if minchars <= len(i) <= maxchars]
+        numsymbols = len(set(''.join(words)))   # Does not include the space character
         if d["-s"] is None:
             # Random selection, cannot be repeated
-            for i in range(m):
-                password = ' '.join(secrets.choice(words) for i in range(N))
-                print(password)
+            for i in range(numlines):
+                passwd = [secrets.choice(words) for i in range(numwords)]
+                bits = GetBits(passwd, numsymbols)
+                print(f"{t('lill')}[{bits:4d}]{t.n} {' '.join(passwd)}")
         else:
             # Pseudorandom number generator, same output for same seed
             random.seed(d["-s"])
-            n = len(words)
-            for linenum in range(m):
-                o = []
-                for i in range(N):
-                    k = random.randint(0, n - 1)
-                    o.append(words[k])
-                print(' '.join(o))
+            for linenum in range(numlines):
+                passwd = []
+                for i in range(numwords):
+                    k = random.randint(0, len(words) - 1)
+                    passwd.append(words[k])
+                bits = GetBits(passwd, numsymbols)
+                print(f"{t('lill')}[{bits:4d}]{t.n} {' '.join(passwd)}")
 
 if __name__ == "__main__":
     d = {}      # Options dictionary
+    maxchars = 1000  # Much large number of characters than any word in wordlists
     args = ParseCommandLine(d)
-    n = int(args[0])
-    k = int(args[1]) if len(args) > 1 else None
-    M = int(args[2]) if len(args) > 2 else None
-    m = int(args[3]) if len(args) > 3 else None
-    Calculate(n, k, M, m)
+    numwords = int(args[0])
+    numlines = int(args[1]) if len(args) > 1 else 1
+    if len(args) > 2 and args[2] != "-":
+        maxchars = int(args[2])
+    minchars = int(args[3]) if len(args) > 3 else 1
+    CheckParameters(numwords, numlines, maxchars, minchars)
+    Calculate(numwords, numlines, maxchars, minchars)
