@@ -182,9 +182,23 @@ if 1:   # Core functionality
         if maxchars < minchars:
             Error("maxchars must be an integer > 0 and be larger than minchars")
     def GetBits(passwd: list, numsymbols: str):
-        '''Estimate the number of bits in the list of words.  This will be int(log2(N**P)) where N
-        is the number of possible symbols (numsymbols) and P is the number of characters in
-        ''.join(passwd).
+        '''Estimate the number of bits in the list of words.  This will be int(log2(N**P)) where 
+            N = number of possible symbols (numsymbols)
+            P =  number of characters in ''.join(passwd)
+        One can quibble about this calculation, as I've used the set of the actual characters in
+        the password, not the population set that the actual set was drawn from.  I consider this
+        reasonable, as the randomly selected items are from a word list, not randomly drawn from a
+        large set of characters.  To be more correct, I could let N be the number of words in the
+        wordlist.
+
+        The basic purpose of this script is to produce passwords using groups of English words with
+        the intent that such a password is probably easier for the average human to remember than
+        something like 'QlN<^y;_[1416D]$NwSx?CKGou5v)vC}', produced by my password management
+        software and labeled as having 191 bits, a very strong password.  
+
+        I'd use the output of this script for things like a password for my NAS box or a wifi
+        password at home.  I'd never use this output for something like a bank or financial
+        account.  In fact, for such things I insist on two factor authorization.
         '''
         n = flt(numsymbols**len(''.join(passwd)))
         bits = int(round(math.log2(n), 0))
