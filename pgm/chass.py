@@ -1,18 +1,18 @@
 '''
 
-MIL5088L has tables for maximum currents in copper conductors for
-aeronautical vehicles.  I suspect the chassis currents found elsewhere are
-derived from these milspec numbers.  The key document is a log-log graph of 
-allowed current versus temperature difference between ambient and the wire;
-the lines are parameterized by the AWG wire size.  The graph is Figure 3 on
-page 46 and 47 of the PDF.
+MIL5088L has tables for maximum currents in copper conductors for aeronautical vehicles.  This
+standard was based on a lot of work in the 1960's and still appears to be an important design
+document (see URLs below).
 
-I picked two points off each line, one at 30°C and one at 250°C.  The PDF
-of the page was maximized and screen captured; I plotted this to a piece of
-letter paper scaled to take up the whole page in landscape mode.  This let
-me read off the numbers with fairly good accuracy.  Compare to the second 
-table following; the 30°C numbers are close to each other.  The table
-values are currents in A.
+I suspect the chassis currents found elsewhere are derived from these milspec numbers.  The key
+document is a log-log graph of allowed current versus temperature difference between ambient and
+the wire; the lines are parameterized by the AWG wire size.  The graph is Figure 3 on page 46 and
+47 of the PDF.
+
+I picked two points off each line, one at 30°C and one at 250°C.  The PDF of the page was maximized
+and screen captured; I plotted this to a piece of letter paper scaled to take up the whole page in
+landscape mode.  This let me read off the numbers with fairly good accuracy.  Compare to the second
+table following; the 30°C numbers are close to each other.  The table values are currents in A.
 
     AWG     ΔT = 30°C     ΔT = 250°C 
     ---     ---------     ----------
@@ -42,16 +42,15 @@ The following were the first set of points I picked off the graph.
 https://www.lectromec.com/maximum-harness-ampacity/
 https://www.lectromec.com/ampacity-improvements/ 
 
-    Summary:  electrical harness design has become much more sophisticated,
-    with both better thermal modeling and predicting degradation of
-    insulation at elevated temperatures.
+    Summary:  electrical harness design has become much more sophisticated, with both better
+    thermal modeling (including lower air pressures at elevated altitudes) and predicting
+    degradation of insulation at elevated temperatures.
 
-    Fundamentally, the design of cable bundles is a heat transfer and
-    materials problem, compounded by the need to worry about the long-term
-    degradation of insulation at elevated temperatures.  
+    Fundamentally, the design of cable bundles is a heat transfer and materials problem, compounded
+    by the need to worry about the long-term degradation of insulation at elevated temperatures.  
 
-The HP 6033A power supply manual on page 37 of the Agilent PDF gives a
-table of stranded copper wire ampacity in A derived from MIL-W-5088B:
+The HP 6033A power supply manual on page 37 of the Agilent PDF gives a table of stranded copper
+wire ampacity in A derived from MIL-W-5088B:
 
     AWG     Ampacity, A     My Chass, A
     ---     -----------     -----------
@@ -106,7 +105,7 @@ indent = " "*4
 AWG, ΔT30, ΔT250 = GetNumberArray(data)
 AWG = [int(i) for i in AWG]
 M, B = [], []
-print("Slope and intercept:")
+print("Slope and intercept from MIL5088L graph for 60°C:")
 print(f"{indent}AWG       Slope      Intercept 10**b")
 print(f"{indent}---       -----      ---------------")
 for i, awg in enumerate(AWG):
