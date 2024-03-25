@@ -34,6 +34,7 @@ if 1:   # Header
         from get import GetLines
         from wrap import dedent
         from wsl import wsl     # wsl is True when running under WSL Linux
+        from lwtest import Assert
         #from columnize import Columnize
     if 1:   # Global variables
         class G:    # Storage for global variables as attributes

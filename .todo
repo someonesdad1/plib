@@ -1,5 +1,9 @@
 Active:  /plib/.todo
 
+    - get.py
+        - GetLine needs a keep=[] keyword argument to be used on lines that aren't removed by the
+          ignore argument.
+
     - /words
         - Include verbs, nouns, adjectives, etc. from Wordnet
 
