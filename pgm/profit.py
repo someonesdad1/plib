@@ -358,7 +358,7 @@ if 1:   # Persistence
                 return None
             # Reset flt state
             x = flt(0)
-            x.n = mdl.n
+            x.N = mdl.n
             x.rtz = x.rtdp = True
             x.low, x.high = mdl.low, mdl.high
             return mdl
@@ -482,22 +482,26 @@ if 1:   # Core functionality
 
         The script's purpose is to let you make adjustments to the variables and see the results.
         For example, if you wanted 77.3% profit, enter 'p 77.3' and you'll see the selling price
-        become 4.4.
+        needs to be 4.4.  I like to keep the model's display to 2 digits (use the n command)
+        because this makes the overall numerical state easy to grasp and see 1%-ish changes.
+        Contrast this to most tools like spreadsheets where you see too many digits which obscure
+        the overall behavior.
 
-        When I worked at HP in the 1980's, R&D projects had a corporate financial mandate to
-        develop new products with a multiplier of 5.  The multiplier u is defined as s/c.  If you
-        enter the command 'c1;u5' (a semicolon can separate commands on one line) you'll find this
-        is equivalent to 80% profit.  I'm a fan of using multipliers because you can do the rough
+        When I worked at HP in the 1980's, R&D projects had a corporate mandate to develop new
+        products with a multiplier of 5.  The multiplier u is defined as s/c.  If you enter the
+        command 'c1;u5' (a semicolon can separate commands on one line) you'll find this is
+        equivalent to 80% profit.  I'm a fan of using multipliers because you can do the rough
         calculation in your head.
 
         If colorizing is on (toggle with k), you can see the last two entered variables and you'll
         see negative values of p or m in red and u's magnitude will be colorized at various integer
-        levels (red means u < 1).  Use the command K to see the colorizing rules.
+        levels (red means u < 1).  Use the command K to see the colorizing rules.  For an important
+        calculation, use a command like 'script' to capture all your interaction with the script
+        and be able to replay it later.  Use '#' on lines to act as comments for documentation.
 
-        A model with unit cost is easy to visualize.  To work with this, save the current cost in a
-        local variable with 'cost = c', then enter the command N; the c variable will be set to 1.
-        Get back to where you were with the command 'c cost'.
-
+        A model with unit cost is easy to visualize.  To work with a unit cost, save the current
+        cost in a local variable with 'cost = c', then type the command N.  The c variable will be
+        set to 1.  Get back to where you were with the command 'c cost'.
 
         '''.rstrip()))
         print(f"{t.nn}", end="")
@@ -588,7 +592,7 @@ if 1:   # Core functionality
             if sf is None:
                 return 1
             x = flt(0)
-            x.N = sf
+            x.N = mdl.n = sf
             print(mdl)
         elif cmd[0] == "*":     # Multiply c & s by a constant
             if len(cmd) == 1:
