@@ -102,11 +102,19 @@ if 1:   # Core functionality
         else:
             Error(f"{i!r} is not a file or directory")
         # Process each file
+        r1 = re.compile(r"^[^#]*$")
+        r2 = re.compile(r"^ *#∞$")
+        for file in files:
+            lines = GetLines(file, ignore=[r1], ignore_empty=True, nonl=True)
+            pp(lines) ; exit()
+            keep = [i for i in lines if r2.match(i)]
+            pp(keep)
 
 if __name__ == "__main__":
     d = {}      # Options dictionary
     args = ParseCommandLine(d)
     if not args:
+        breakpoint() #xx 
     else:
         for i in args:
             Process(i)
