@@ -1,15 +1,10 @@
 '''
 
+ToDo
+    - Spread out the printout a bit
+    - Color the values too (neg p or m red, u's goodness by color)
+
 Interactive utility to calculate the profit of a project
-    Type ? for help at prompt
- 
-    Equations
-        p = 1 - c/s     = m/(1 + m) = 1 - 1/u
-        s = c/(1 - p)   = u*c
-        c = s*(1 - p)   = s/u
- 
-        m = p/(1 - p)   = u - 1
-        u = s/c         = m + 1 = 1/(1 - p)
 '''
 if 1:   # Header
     # Copyright, license
@@ -50,7 +45,7 @@ if 1:   # Utility
     def ParseCommandLine(d):
         d["-e"] = False     # Turns off catching exceptions so you can see
                             # where error occurs
-        d["-h"] = False     # Introductory help
+        d["-h"] = True      # Introductory help
         d["-i"] = False     # Don't read persisted data
         d["-n"] = 2         # Number of significant digits
         try:
@@ -92,7 +87,7 @@ if 1:   # Classes
         def reset(self, hard=False):
             self.names = set("cspmu")   # Names of model variables
             z = flt(0)
-            z.n = d["-n"]           # Number of significant figures
+            z.N = d["-n"]           # Number of significant figures
             z.rtz = z.rtdp = True   # Make str(flt) look like integer when possible
             # Primary model attributes
             self.c = z              # Cost
@@ -225,7 +220,7 @@ if 1:   # Classes
             s, c, p, m, u = self.s, self.c, self.p, self.m, self.u
             # Note there are two behaviors:  if self.pct is True (toggled
             # by the 'p' command), then display m and p in %.
-            n, minw = 1, 4
+            minw = 4
             pct, mult = ("%", 100) if self.pct else ("", 1)
             out = []
             # Get variable's value strings
@@ -234,47 +229,40 @@ if 1:   # Classes
             P = f"{mult*p}"
             M = f"{mult*m}"
             U = f"{u}"
-            # Build output array
-            O = (
-                ("S", S),
-                ("C", C),
-                (f"P{pct}", P),
-                (f"M{pct}", M),
-                ("U", U)
-            )
             # Get first and second variables to colorize
             first, second = None, None
             if len(self.dq) == 2:
                 second, first = self.dq
             elif len(self.dq) == 1:
                 first = self.dq[0]
-            for heading, value in O:
+            for heading, value in (("s", S), ("c", C), (f"p{pct}", P), (f"m{pct}", M), ("u", U)):
                 letter = heading[0].lower()
                 w = max(len(value), minw)
                 # Format them centered to indicated column width
-                if not self.ok and heading in ("S", "C"):
+                if not self.ok and heading in ("s", "c"):
                     hdr = f"{heading:^{w}s}"
                     val = f"{'-':^{w}s}"
                 else:
                     hdr = f"{heading:^{w}s}"
                     val = f"{value:^{w}s}"
-                # If P or M are negative, colorize them
-                if letter in ("P", "M"):
+                # If p or m are negative, colorize them
+                if letter in ("p", "m"):
                     if flt(val) < 0:
                         val = f"{t.neg}{val}{t.nn}"
-                elif letter == "U":
+                elif letter == "u":
                     if U != "0/0":
-                        tmp = val
-                        if u >= 2:
-                            tmp = f"{t.u2}{val}{t.nn}"
-                        if u >= 3:
-                            tmp = f"{t.u3}{val}{t.nn}"
-                        if u >= 4:
-                            tmp = f"{t.u4}{val}{t.nn}"
-                        if u >= 5:
-                            tmp = f"{t.u5}{val}{t.nn}"
-                        val = tmp
-                # Colorize last changed
+                        # Colorize u
+                        if u < 1:
+                            val = f"{t.u1}{val}{t.nn}"
+                        elif u >= 2:
+                            val = f"{t.u2}{val}{t.nn}"
+                        elif u >= 3:
+                            val = f"{t.u3}{val}{t.nn}"
+                        elif u >= 4:
+                            val = f"{t.u4}{val}{t.nn}"
+                        elif u >= 5:
+                            val = f"{t.u5}{val}{t.nn}"
+                # Colorize the two last changed variables
                 if first == letter:
                     hdr = f"{t.first}{hdr}{t.nn}"
                 elif second == letter:
@@ -369,6 +357,23 @@ if 1:   # Persistence
             t.print(f"{t.msg}[{Lineno()}]Could not read previous state from disk")
             return None
 if 1:   # Core functionality
+    def Colors(on):
+        '''If on is False, all of these are empty strings so that no escape
+        codes wind up in the output.
+        '''
+        none = ""
+        t.msg = t("#dff1d6") if on else none    # Hint of green
+        t.msg = t("#a1a894") if on else none    # Half Washed Green
+        t.neg = t("redl") if on else none
+        t.first = t("ornl") if on else none
+        t.second = t("trq") if on else none
+        t.last = t("royl") if on else none
+        t.u1 = t('redl') if on else none        # u < 1
+        t.u2 = t('olv') if on else none         # u >= 2
+        t.u3 = t('yel') if on else none         # u >= 3
+        t.u4 = t('royl') if on else none        # u >= 4
+        t.u5 = t('magl') if on else none        # u >= 5
+        t.nn = t.n if on else none
     def ColorKey():
         'Print a color key'
         if not mdl.color:
@@ -376,75 +381,116 @@ if 1:   # Core functionality
             return
         Colors(True)
         print("Meanings of color:")
-        t.print(f"{t.last}    Last variable changed")
-        t.print(f"{t.u2}    U >= 2, {t.u3}U >= 3, {t.u4}U >= 4, {t.u5}U >= 5")
-        t.print(f"{t.neg}    P or M are negative")
+        t.print(f"{t.first}    Last variable changed")
+        t.print(f"{t.second}    Next to last variable changed")
+        t.print(f"{t.u2}    u >= 2, {t.u3}u >= 3, {t.u4}u >= 4, {t.u5}u >= 5")
+        t.print(f"{t.neg}    p or m are negative, u < 1")
         t.print(f"{t.msg}    Informational message")
         Colors(False)
-    def Colors(on):
-        '''If on is False, all of these are empty strings so that no escape
-        codes wind up in the output.
-        '''
-        none = ""
-        t.msg = t("wht") if on else none
-        t.neg = t("redl") if on else none
-        t.first = t("ornl") if on else none
-        t.second = t("trq") if on else none
-        t.u2 = t('grnl') if on else none
-        t.u3 = t('yell') if on else none
-        t.u4 = t('ornl') if on else none
-        t.u5 = t('magl') if on else none
-        t.nn = t.n if on else none
     def Intro():
         print(dedent(f'''
-        Interactive utility to calculate a project's profit.  Use h for list of 
-        commands.  Variables are:
+        Interactive utility to calculate a project's profit.  Use h for list of commands.
+        Variables are:
             c = cost                                = s*(1 - p)
             s = selling price                       = c/(1 - p)
             p = profit based on selling price       = 1 - s/c
             m = markup based on cost                = p/(1 - p)
             u = multiplier                          = s/c
-        Enter a variable's value after its letter.  Expressions are allowed and
-        the math module is in scope.  Example:
+        Enter a variable's value after its letter.  Expressions are allowed and the math module is
+        in scope.  Example:
             > a = 1     # Local variable assignment
             > c a       # cost is now equal to 1
             > s 2       # Selling price is 2
         will print
             S    C    P%   M%   U
             2    1    50  100   2
-        Profit and markup can be in either % or decimal fractions (use the %
-        command to switch between them).
-        '''))
+        Profit and markup can be in either % or decimal fractions (use the % command to switch
+        between them).
+        
+        Use the h command at the '>' prompt for help.
+
+        '''.rstrip()))
     def Help():
         print(f"{t.msg}", end="")
         print(dedent(f'''
-        Interactive utility to calculate a project's profit.  Enter s for
-        selling price, c for cost, and p for profit followed by the desired
-        value.  Use -h on command line for introductory help.  Commands:
-        q       Quit
-        .       Print the results again (.. adds 2 significant figures)
-        C       Clear the screen
-        e       Show equations
-        k       Use colorized text [{mdl.color}]
-        l       List local variables
-        n num   Set the number of significant figures [{mdl.n}]
-        %       Toggle percent mode (show profit and markup in %) [{mdl.pct}]
-        > file  Save state to a file (won't overwrite existing file)
-        >> file Save state to a file (overwrites existing file)
-        < file  Load state from a file
-        * x     Multiply s and c by x
-        / x     Divide s and c by x
-        '       Reset model
-        ''      Reset and clear all local variables
+        Interactive utility to calculate a project's profit.  Enter s for selling price, c for
+        cost, and p for profit followed by the desired value.  Commands:
+            q       Quit (state is persisted)
+            .       Print the results again
+            b       Enter debugger
+            C       Clear the screen
+            e       Show equations
+            H       Manpage
+            k       Use colorized text [{mdl.color}]
+            K       Show color meanings
+            l       List local variables
+            n num   Set the number of significant figures [{mdl.n}]
+            %       Toggle percent mode (show profit and markup in %) [{mdl.pct}]
+            > file  Save state to a file (won't overwrite existing file)
+            >> file Save state to a file (overwrites existing file)
+            < file  Load state from a file
+            * x     Multiply s and c by x
+            / x     Divide s and c by x
+            !       Reset model
+            !!      Reset and clear all local variables
         '''))
+        print(f"{t.nn}", end="")
+    def SetUp():
+        'Use to set the model to a desired state for testing/debugging'
+        choice = 1
+        if not choice:
+            return
+        cmds = ""
+        su = t("magl")
+        t.print(f"{su}Running commands from SetUp")
+        if choice == 1:
+            cmds = dedent('''
+            /
+            k
+            c1
+            m200
+            ''')
+        for i in cmds.split("\n"):
+            t.print(f"{t('magl')}>>> {i}")
+            ProcessCommand(i.strip(), off=True)
+        t.print(f"{su}Finished SetUp()")
+    def Manpage():
+        print(dedent(f'''
+        
+        This script assesses the profit of a project.  It lets you work with the numbers you want.
+        Most of the time you only need perhaps two figures in your results to see the big picture,
+        so this is the default number of digits displayed in numbers.
+
+        Here's an example.  Suppose you plan to sell widgets for 2 and they cost you 1.  Start the
+        program and define these two variables as follows
+
+            > s2
+            > c 1
+            S    C    P%   M%   U
+            2    1    50  100   2
+
+        The 's2' shows that the number can be cuddled next to the symbol for the primary variables
+        s, c, p, m, and u.  p and m are shown in % by default; use the command '%' to toggle this.
+
+        The script's purpose is to let you make adjustments to the variables and see the results.
+        For example, if you wanted 77.3% profit, enter 'p 77.3' and you'll see the selling price
+        become 4.41.
+
+        At one well-know company I used to work, R&D teams were tasked with a corporate financial
+        mandate to develop new products with a multiplier of 5.  The multiplier u is defined as the
+        selling price divided by the cost or u = s/c.  If you enter the commands 'c1;u5' you'll
+        find this is equivalent to 80% profit.
+
+        '''.rstrip()))
         print(f"{t.nn}", end="")
     def ShowEquations():
         print(dedent(f'''
-        p = 1 - c/s     = m/(1 + m)    = 1 - 1/u
-        s = c/(1 - p)   = u*c
-        c = s*(1 - p)   = s/u
-        m = p/(1 - p)   = u - 1
-        u = s/c         = m + 1        = 1/(1 - p)
+        Equations
+            p = 1 - c/s     = m/(1 + m)    = 1 - 1/u        Profit
+            s = c/(1 - p)   = u*c                           Selling price
+            c = s*(1 - p)   = s/u                           Cost
+            m = p/(1 - p)   = u - 1                         Markup based on cost
+            u = s/c         = m + 1        = 1/(1 - p)      Multiplier
         '''))
     def GetN(s):
         'Return int(s) between 1 and 15 or None if problem'
@@ -461,6 +507,10 @@ if 1:   # Core functionality
             return s
         loc = s.find("#")
         return s[:loc].trim()
+    def DumpState():
+        '''Print program's state for debugging help
+        '''
+
     def DoCommand(cmd):
         '''Return values:
             0   Command completed successfully
@@ -491,8 +541,12 @@ if 1:   # Core functionality
             breakpoint()
         elif cmd == "C":
             os.system("clear")
+        elif cmd == "D":
+            DumpState()
         elif cmd == "e":
             ShowEquations()
+        elif cmd == "H":
+            Manpage()
         elif cmd == "k":
             mdl.color = not mdl.color
             print(mdl)
@@ -513,7 +567,7 @@ if 1:   # Core functionality
             if sf is None:
                 return 1
             x = flt(0)
-            x.n = sf
+            x.N = sf
             print(mdl)
         elif cmd[0] == "*":
             if len(cmd) == 1:
@@ -573,9 +627,9 @@ if 1:   # Core functionality
         elif cmd == "%":
             mdl.pct = not mdl.pct
             print(mdl)
-        elif cmd == "'":
+        elif cmd == "!":
             mdl.reset()
-        elif cmd == "'!":
+        elif cmd == "!!":
             mdl.reset(hard=True)
         else:
             t.print(f"{t.msg}{cmd!r} is an unrecognized command")
@@ -639,10 +693,10 @@ if 1:   # Core functionality
         if mdl.ok:
             print(mdl)
         while not finished:
-            e = input(f"> ").strip()
+            e = input(f"> ").strip()    # Get command
             if not e:
                 continue
-            cmds = e.split(";")
+            cmds = e.split(";")         # Multiple commands separated by ';'
             for cmd in cmds:
                 retval = ProcessCommand(cmd)
                 if retval == 1:
@@ -650,25 +704,6 @@ if 1:   # Core functionality
                 elif retval == 2:
                     finished = True
                     break
-    def SetUp():
-        'Use to set the model to a desired state for testing/debugging'
-        choice = 1
-        if not choice:
-            return
-        cmds = ""
-        su = t("magl")
-        t.print(f"{su}Running commands from SetUp")
-        if choice == 1:
-            cmds = dedent('''
-            /
-            k
-            c1
-            m200
-            ''')
-        for i in cmds.split("\n"):
-            t.print(f"{t('magl')}>>> {i}")
-            ProcessCommand(i.strip(), off=True)
-        t.print(f"{su}Finished SetUp()")
 
 if __name__ == "__main__":
     # Note:  there's no locking, so if you run this script in two different
@@ -685,7 +720,4 @@ if __name__ == "__main__":
         mdl = Load(modelfile)
         if mdl is None:
             mdl = Model()
-    if 0:
-        Loop(setup=True)
-    else:
-        Loop()
+    Loop(setup=True) if False else Loop()
