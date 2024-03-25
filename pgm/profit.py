@@ -3,6 +3,7 @@
 ToDo
     - Spread out the printout a bit
     - Color the values too (neg p or m red, u's goodness by color)
+    - Instead of scientific notation use engsic
 
 Interactive utility to calculate the profit of a project
 '''
@@ -109,6 +110,13 @@ if 1:   # Classes
             # User's local variables
             if not hasattr(self, "vars") or hard:
                 self.vars = {}
+        def normalize(self):
+            'Divide s and c by c'
+            if not self.c:
+                print("Can't normalize with zero cost")
+            else:
+                self.s /= self.c
+                self.c /= self.c
         def append(self, name):
             "Append if name isn't already in deque"
             if name in self.dq:
@@ -216,6 +224,7 @@ if 1:   # Classes
             self.vars["m"] = m
             self.vars["u"] = u
         def __str__(self):
+            'Print the instance produces the report'
             Colors(self.color)
             s, c, p, m, u = self.s, self.c, self.p, self.m, self.u
             # Note there are two behaviors:  if self.pct is True (toggled
@@ -251,17 +260,17 @@ if 1:   # Classes
                         val = f"{t.neg}{val}{t.nn}"
                 elif letter == "u":
                     if U != "0/0":
-                        # Colorize u
-                        if u < 1:
+                        # Colorize u's val
+                        if u <= 1:
                             val = f"{t.u1}{val}{t.nn}"
-                        elif u >= 2:
-                            val = f"{t.u2}{val}{t.nn}"
-                        elif u >= 3:
-                            val = f"{t.u3}{val}{t.nn}"
-                        elif u >= 4:
-                            val = f"{t.u4}{val}{t.nn}"
                         elif u >= 5:
                             val = f"{t.u5}{val}{t.nn}"
+                        elif u >= 4:
+                            val = f"{t.u4}{val}{t.nn}"
+                        elif u >= 3:
+                            val = f"{t.u3}{val}{t.nn}"
+                        elif u >= 2:
+                            val = f"{t.u2}{val}{t.nn}"
                 # Colorize the two last changed variables
                 if first == letter:
                     hdr = f"{t.first}{hdr}{t.nn}"
@@ -412,6 +421,7 @@ if 1:   # Core functionality
         '''.rstrip()))
     def Help():
         print(f"{t.msg}", end="")
+        x = flt(0)
         print(dedent(f'''
         Interactive utility to calculate a project's profit.  Enter s for selling price, c for
         cost, and p for profit followed by the desired value.  Commands:
@@ -424,10 +434,11 @@ if 1:   # Core functionality
             k       Use colorized text [{mdl.color}]
             K       Show color meanings
             l       List local variables
-            n num   Set the number of significant figures [{mdl.n}]
-            %       Toggle percent mode (show profit and markup in %) [{mdl.pct}]
-            > file  Save state to a file (won't overwrite existing file)
-            >> file Save state to a file (overwrites existing file)
+            N       Normalize c to 1
+            n num   Set number of digits [{x.N}]
+            %       Toggle p and m in %
+            > file  Save state (no overwrite)
+            >> file Save state (overwrites)
             < file  Load state from a file
             * x     Multiply s and c by x
             / x     Divide s and c by x
@@ -456,17 +467,14 @@ if 1:   # Core functionality
         t.print(f"{su}Finished SetUp()")
     def Manpage():
         print(dedent(f'''
-        
-        This script assesses the profit of a project.  It lets you work with the numbers you want.
-        Most of the time you only need perhaps two figures in your results to see the big picture,
-        so this is the default number of digits displayed in numbers.
+        This script helps assess the profit of a project.  Example:
 
-        Here's an example.  Suppose you plan to sell widgets for 2 and they cost you 1.  Start the
-        program and define these two variables as follows
+        Suppose you plan to sell widgets for 2 and they cost you 1.  Start the program and define
+        these two variables as follows
 
             > s2
             > c 1
-            S    C    P%   M%   U
+            s    c    p%   m%   u
             2    1    50  100   2
 
         The 's2' shows that the number can be cuddled next to the symbol for the primary variables
@@ -474,12 +482,22 @@ if 1:   # Core functionality
 
         The script's purpose is to let you make adjustments to the variables and see the results.
         For example, if you wanted 77.3% profit, enter 'p 77.3' and you'll see the selling price
-        become 4.41.
+        become 4.4.
 
-        At one well-know company I used to work, R&D teams were tasked with a corporate financial
-        mandate to develop new products with a multiplier of 5.  The multiplier u is defined as the
-        selling price divided by the cost or u = s/c.  If you enter the commands 'c1;u5' you'll
-        find this is equivalent to 80% profit.
+        When I worked at HP in the 1980's, R&D projects had a corporate financial mandate to
+        develop new products with a multiplier of 5.  The multiplier u is defined as s/c.  If you
+        enter the command 'c1;u5' (a semicolon can separate commands on one line) you'll find this
+        is equivalent to 80% profit.  I'm a fan of using multipliers because you can do the rough
+        calculation in your head.
+
+        If colorizing is on (toggle with k), you can see the last two entered variables and you'll
+        see negative values of p or m in red and u's magnitude will be colorized at various integer
+        levels (red means u < 1).  Use the command K to see the colorizing rules.
+
+        A model with unit cost is easy to visualize.  To work with this, save the current cost in a
+        local variable with 'cost = c', then enter the command N; the c variable will be set to 1.
+        Get back to where you were with the command 'c cost'.
+
 
         '''.rstrip()))
         print(f"{t.nn}", end="")
@@ -518,13 +536,13 @@ if 1:   # Core functionality
             2   Command was to quit
         '''
         cmd = RemoveComment(cmd)
-        if cmd == "q":
+        if cmd == "q":          # Quit
             if not d["-i"]:
                 Save(modelfile)
             return 2
-        elif cmd == "h":
+        elif cmd == "h":        # Show help
             Help()
-        elif cmd[0] == ".":
+        elif cmd[0] == ".":     # Print results again
             x = flt(0)
             if set(cmd) != set("."):
                 t.print(f"{t.msg}'.' command can only be composed of '.' characters")
@@ -537,29 +555,32 @@ if 1:   # Core functionality
                     x.n += 2
                     mdl.update()
                     print(mdl)
-        elif cmd == "b":
+        elif cmd == "b":        # Start debugger
             breakpoint()
-        elif cmd == "C":
+        elif cmd == "C":        # Clear the screen
             os.system("clear")
-        elif cmd == "D":
+        elif cmd == "D":        # Dump model's state for debugging
             DumpState()
-        elif cmd == "e":
+        elif cmd == "e":        # Show the model's equations
             ShowEquations()
-        elif cmd == "H":
+        elif cmd == "H":        # Show manpage
             Manpage()
-        elif cmd == "k":
+        elif cmd == "k":        # Toggle color display
             mdl.color = not mdl.color
             print(mdl)
-        elif cmd == "K":
+        elif cmd == "K":        # Show color key
             ColorKey()
-        elif cmd == "l":
+        elif cmd == "l":        # Show local variables
             print(f"{t.msg}Local variables:")
             if mdl.vars:
                 for i in mdl.vars:
                     if i not in mdl.names:
                         print(f"  {i} = {mdl.vars[i]}")
             print(f"{t.nn}", end="")
-        elif cmd[0] == "n":
+        elif cmd == "N":        # Normalize cost to 1
+            mdl.normalize()
+            print(mdl)
+        elif cmd[0] == "n":     # Set number of digits
             if not cmd[1:]:
                 t.print(f"{t.msg}Need an argument for n command")
                 return 1
@@ -569,7 +590,7 @@ if 1:   # Core functionality
             x = flt(0)
             x.N = sf
             print(mdl)
-        elif cmd[0] == "*":
+        elif cmd[0] == "*":     # Multiply c & s by a constant
             if len(cmd) == 1:
                 t.print(f"{t.msg}Need an argument for * command")
             try:
@@ -581,7 +602,7 @@ if 1:   # Core functionality
             mdl.s *= x
             mdl.update()
             print(mdl)
-        elif cmd[0] == "/":
+        elif cmd[0] == "/":     # Divide c & s by a constant
             if len(cmd) == 1:
                 t.print(f"{t.msg}Need an argument for / command")
             try:
@@ -593,7 +614,7 @@ if 1:   # Core functionality
             mdl.s /= x
             mdl.update()
             print(mdl)
-        elif cmd[0] == ">":
+        elif cmd[0] == ">":     # Save state to a file; overwrite if '>>'
             if len(cmd) == 1:
                 t.print(f"{t.msg}Must give a file name to save to")
                 return 1
@@ -613,7 +634,7 @@ if 1:   # Core functionality
                 Save(name)
             except Exeption as e:
                 t.print(f"{t.msg}[{Lineno()}] Save() exception: {e}")
-        elif cmd[0] == "<":
+        elif cmd[0] == "<":     # Load state from file
             if len(cmd) == 1:
                 t.print(f"{t.msg}Must give a file name to read from")
                 return 1
@@ -624,12 +645,12 @@ if 1:   # Core functionality
             rv = Load(name)
             if rv is None:
                 t.print(f"{t.msg}Couldn't read file '{name}'")
-        elif cmd == "%":
+        elif cmd == "%":        # Toggle % display
             mdl.pct = not mdl.pct
             print(mdl)
-        elif cmd == "!":
+        elif cmd == "!":        # Reset model variables
             mdl.reset()
-        elif cmd == "!!":
+        elif cmd == "!!":       # Reset model variables and remove local variables
             mdl.reset(hard=True)
         else:
             t.print(f"{t.msg}{cmd!r} is an unrecognized command")
@@ -638,7 +659,12 @@ if 1:   # Core functionality
         '''Return values:
             0   Command completed successfully
             1   Command failed
-            2   Command was to quit
+            2   Quit
+        Commands are:
+            #   A comment
+            Local variable assignment  (contains '=')
+            Set primary variable c, s, p, m, or u
+            Other commands
         '''
         name = cmd[0]
         if name == "#":
@@ -648,14 +674,17 @@ if 1:   # Core functionality
             # Local variable assignment
             name, value = cmd.split("=", 1)
             name = name.strip()
-            try:
-                x = eval(value, globals(), mdl.vars)
-            except Exception as e:
-                if edbg: 
-                    raise
-                t.print(f"{t.msg}[{Lineno()}] Local variable exception:\n {e}")
-                return 1
-            mdl.vars[name] = x
+            if name in "c s p m u".split():
+                print("You cannot assign to c, s, p, m, or u")
+            else:
+                try:
+                    x = eval(value, globals(), mdl.vars)
+                except Exception as e:
+                    if edbg: 
+                        raise
+                    t.print(f"{t.msg}[{Lineno()}] Local variable exception:\n {e}")
+                    return 1
+                mdl.vars[name] = x
         elif name in mdl.names:
             # Set primary variable
             if len(cmd) < 2:
