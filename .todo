@@ -1,5 +1,13 @@
 Active:  /plib/.todo
 
+    - pgm/lookpy.py
+        - This relies on Wordnet and was a lot of work.  /pylib/types_of_words/WordNet
+        - The raw stuff needs to be moved to /words and checked in to github.  Then the overall
+          stuff needs to be examined to see how it works again.  Finally, construct the needed
+          /words/words.* files for dict and lookup to work, as I use them a lot.
+        - The Wordnet stuff is too complicated for most work (typical of academics).  Stratify the
+          wordlists into e.g. 3 layers:  easy, moderate, arcane.
+
     - get.py
         - GetLine needs a keep=[] keyword argument to be used on lines that aren't removed by the
           ignore argument.
