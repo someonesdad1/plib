@@ -35,12 +35,18 @@ if 1:   # Header
         from wrap import dedent
         from wsl import wsl     # wsl is True when running under WSL Linux
         from lwtest import Assert
-        #from columnize import Columnize
+        if 1:
+            import debug
+            debug.SetDebugger()
     if 1:   # Global variables
         class G:    # Storage for global variables as attributes
             pass
         g = G()
         g.dbg = False
+        # Collect file/directory data from command line
+        g.ok = []           # Have the #∞...∞# lines and are complete
+        g.have = []         # Have the #∞...∞# lines, but incomplete
+        g.have_not = []     # Do not have any #∞...∞# lines
         ii = isinstance
 if 1:   # Utility
     def GetScreen():
@@ -53,6 +59,7 @@ if 1:   # Utility
         t.dbg = t("cyn") if g.dbg else ""
         t.N = t.n if g.dbg else ""
         t.err = t("ornl")
+        t.ok = t("grnl")
     def Dbg(*p, **kw):
         if g.dbg:
             print(f"{t.dbg}", end="", file=Dbg.file)
@@ -71,19 +78,21 @@ if 1:   # Utility
           work.  The goal is to 
         Options:
             -h      Print a manpage
+            -v      Print the files that are in good shape
         '''))
         exit(status)
     def ParseCommandLine(d):
         d["-r"] = False     # Recursively search for python scripts
+        d["-v"] = False     # Print files in good shape
         if 0 and len(sys.argv) < 2:
             Usage()
         try:
-            opts, args = getopt.getopt(sys.argv[1:], "hr") 
+            opts, args = getopt.getopt(sys.argv[1:], "hrv") 
         except getopt.GetoptError as e:
             print(str(e))
             exit(1)
         for o, a in opts:
-            if o[1] in list("r"):
+            if o[1] in list("rv"):
                 d[o] = not d[o]
             elif o == "-h":
                 Usage(status=0)
@@ -122,29 +131,41 @@ if 1:   # Classes
                     self.category += 1
                 else:
                     Error(f"{line!r} not recognized")
-        def check(self):
-            'Verify the #∞...∞# attributes are correct'
+        def get_errors(self):
+            'Return string of attributes that are incorrect'
+            def Strip(s):
+                return s.replace("#∞", "").replace("∞#", "")
             errors = []
             if not self.copyright:
-                errors.append("Missing '#∞copyright∞#'")
+                errors.append(Strip("#∞copyright∞#"))
             elif not self.contact:
-                errors.append("Missing '#∞contact∞#'")
+                errors.append(Strip("#∞contact∞#"))
             elif self.license != 2:
-                errors.append("Must have two '#∞license∞#' on separate lines")
+                errors.append("two license")
             elif self.what != 2:
-                errors.append("Must have two '#∞what∞#' on separate lines")
+                errors.append("two what")
             elif not self.test:
-                errors.append("Missing '#∞test∞#'")
+                errors.append(Strip("#∞test∞#"))
             elif not self.category:
-                errors.append("Missing '#∞category∞#'")
+                errors.append(Strip("#∞category∞#"))
+            return ','.join(errors)
+        def ok(self):
+            errors = self.get_errors()
+            return not bool(errors)
+        def dump_no_errors(self):
+            'Print filename if the #∞...∞# attributes are ok'
+            errors = self.get_errors()
+            if not errors:
+                t.print(f"{t.ok}{self.file}")
+        def dump_errors(self, width):
+            'Print the errors'
+            errors = self.get_errors()
             if errors:
-                t.print(f"{t.err}{self.file} errors:")
-                for e in errors:
-                    print(f"  {e}")
+                print(f"{t.err}{self.file:{width}s}{t.n} {errors}")
 
 if 1:   # Core functionality
-    def Process(i):
-        p = P(i)
+    def Process(file):
+        p = P(file)
         if p.is_dir():
             if d["-r"]:
                 files = p.glob("**/*.py")
@@ -153,16 +174,41 @@ if 1:   # Core functionality
         elif p.is_file():
             files = [p]
         else:
-            Error(f"{i!r} is not a file or directory")
+            Error(f"{file!r} is not a file or directory")
         # Process each file
-        r1 = re.compile(r"^[^#]*$")
+        r1 = re.compile(r"^[^#]*$")     # Ignore lines with no '#'
         s = "|".join("copyright contact license what test category".split())
-        r2 = re.compile(f"^ *#∞({s})∞#")
+        r2 = re.compile(f"^ *#∞({s})∞#")    # Find #∞...∞# lines
+        have = []       # List of files that have #∞...∞# lines
+        have_not = []   # List of files that don't have #∞...∞# lines
         for file in files:
             lines = GetLines(file, ignore=[r1], ignore_empty=True, nonl=True)
-            keep = [i.strip() for i in lines if r2.search(i)]
-        f = File(file, keep)
-        f.check()
+            file_keep_lines = [i.strip() for i in lines if r2.search(i)]
+            if file_keep_lines:
+                # File had some #∞...∞# lines
+                f = File(file, file_keep_lines)
+                if f.ok():
+                    g.ok.append(f)
+                else:
+                    g.have.append(f)
+            else:
+                # File had no #∞...∞# lines
+                g.have_not.append(file)
+    def Report():
+        if d["-v"]:
+            # Print files that are OK
+            for i in sorted(g.ok):
+                print(f"{i.file}")
+        else:
+            # Print files missing #∞...∞# lines.
+            # Get maximum width.
+            o = []
+
+            have = [i for i in have if i]   # Remove empty
+            w = max(len(str(i.file)) for i in have)
+            for f in have:
+                errors = f.get_errors()
+                print(f"{t.err}{str(f.file):{w}s}{t.n} {errors}")
 
 if __name__ == "__main__":
     d = {}      # Options dictionary
@@ -172,3 +218,4 @@ if __name__ == "__main__":
     else:
         for i in args:
             Process(i)
+    Report()
