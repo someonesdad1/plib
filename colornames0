@@ -1,19 +1,16 @@
 # Name strings to Color instance mapping 3 May 2022
 #
-#    This file is my basic set of colors for use in terminal programs with the
-#    color.py module.
+#    This file is my basic set of colors for use in terminal programs with the color.py module.
 #
-#    The first set of 12 colors were motivated by the resistor color code: blk
-#    brn red orn yel grn blu vio gry wht.  I added cyn and mag because these
-#    two colors are used a lot.  Suffixes of "d" for "dark", "l" for "light"
-#    and "b" for "background" were added.  Most of these are gotten by
-#    changing the L parameter in the hue, lightness, saturation coordinates.
-#    Note that small inconsistencies exist in the hex strings for these HLS
-#    definitions because of float rounding characteristics of the python
-#    colorsys module's functions.
+#    The first set of 12 colors were motivated by the resistor color code: blk brn red orn yel grn
+#    blu vio gry wht.  I added cyn and mag because these two colors are used a lot.  Suffixes of
+#    "d" for "dark", "l" for "light" and "b" for "background" were added.  Most of these are gotten
+#    by changing the L parameter in the hue, lightness, saturation coordinates.  Note that small
+#    inconsistencies exist in the hex strings for these HLS definitions because of float rounding
+#    characteristics of the python colorsys module's functions.
 #
-#    The second set of color names added the following names, trying to stick
-#    with a 3-letter naming scheme:
+#    The second set of color names added the following names, trying to stick with a 3-letter
+#    naming scheme:
 #
 #        - pnk   Pink
 #        - lip   Lipstick
@@ -27,15 +24,32 @@
 #        - sea   Sea green
 #        - lwn   Lawn
 #        - olv   Olive
-#    
-#    A basic naming goal was that the name should evoke that color in my mind.
-#    This, of course, is subjective, so feel free to define things to your
-#    needs.
 #
-#    Note these definitions rely on an 8-bit color environment.
+#    A naming goal was that the name should evoke that color in my mind.  This, of course, is
+#    subjective, so feel free to define things to your needs.
 #
-#    For a preview of the colors, run the script /plib/pgm/cdec.py with this
-#    filename as its argument.
+#    Note these definitions rely on a 24-bit color environment.  'python color.py l' will print
+#    these out, along with the closest ANSI 8-bit color that matches each definition.
+#
+#
+# Assessment 21 Mar 2024 
+#
+#   I have been using these 96 color names for about 2 years and they have served my needs well.
+#   Probably their most important feature is the short names are easily remembered.  This lets me
+#   get a color I want quickly in a python script, as I just use e.g.
+#
+#       from color import t
+#       t.print(f"{t('redl')Error message")
+#
+#   to get an error message in red.  I use a wht on blk terminal window and the most visible colors
+#   to my eyes (and hence the ones I use the most) are ornl, yell, grnl, royl, and lavl/purl.
+#
+#   For you command line users, I use some of these colors with https://starship.rs/ to tune my
+#   PS1 prompt.  I dislike the garish fruit-salad things often seen on places like oh-my-zsh (but
+#   this is subjective and one man's meat is another's poison), so my home directory prompt is the
+#   minimalist '~>' in plain white.  But when an important git state, nonzero command status, or
+#   background job is running, such things are displayed in these very visible colors, meaning my
+#   old geezer eyes won't miss them.  
 #
 # Copyright, license
 # These "trigger strings" can be managed with trigger.py

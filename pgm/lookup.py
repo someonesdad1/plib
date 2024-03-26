@@ -1,24 +1,22 @@
 '''
-TODO:
+
+TODO
     - Change to modern color.py
         - Print a color code at end
-    - -v doesn't limit to verbs and seems to take a long time:
-        'dict -cv black'.  'dict -cn black' doesn't show just nouns.
+    - -v doesn't limit to verbs and seems to take a long time: 'dict -cv black'.  'dict -cn black'
+      doesn't show just nouns.
     - 'dict -a black' fails.
-    - Figure out how to add in the information from
-      words_syllables.py.
+    - Figure out how to add in the information from words_syllables.py.
 
-Script to look up words in various dictionaries.  For a demo of
-capabilities, try
+Script to look up words in various dictionaries.  For a demo of capabilities, try
 
     python lookup.py "heav"
         Find all words with the string "heav" in them
     python lookup.py -dc "^mother$|^motherless$|^motherly$"
-        Show all words/definitions/synonyms/type for the indicated
-        regexps.  Note this produces colored output on a DOS/cygwin
-        shell.  You can make it colored on e.g. a UNIX box if you're
-        willing to write suitable escape-code stuff analogous to
-        what's in the color module.
+        Show all words/definitions/synonyms/type for the indicated regexps.  Note this produces
+        colored output on a DOS/cygwin shell.  You can make it colored on e.g. a UNIX box if you're
+        willing to write suitable escape-code stuff analogous to what's in the color module.
+
 '''
 if 1:  # Copyright, license
     # These "trigger strings" can be managed with trigger.py

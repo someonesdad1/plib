@@ -1,942 +1,733 @@
 '''
+Todo
+    - Change to std form
+    - SignSignificandExponent:  allow it to also process Decimal and mpmath numbers.  Also change 
+      the significand to be a string instead of a float; this allows it to be used with mpmath and
+      Decimal numbers.  First check what python scripts under plib would be affected by this type
+      change.
+
 Math-related functions
 '''
-if 1:  # Copyright, license
-    # These "trigger strings" can be managed with trigger.py
-    #∞copyright∞# Copyright (C) 2014 Don Peterson #∞copyright∞#
-    #∞contact∞# gmail.com@someonesdad1 #∞contact∞#
-    #∞license∞#
-    #   Licensed under the Open Software License version 3.0.
-    #   See http://opensource.org/licenses/OSL-3.0.
-    #∞license∞#
-    #∞what∞#
-    # <math> Math-related functions
-    #∞what∞#
-    #∞test∞# run #∞test∞#
-    pass
-if 1:   # Imports
-    import math
-    import string
-    import sys
-    from fractions import Fraction
-    from pdb import set_trace as xx 
-if 1:   # Custom imports
-    from frange import frange
-    from f import flt
-if 1:   # Global variables
-    ii = isinstance
-def AlmostEqual(a, b, rel_err=2e-15, abs_err=5e-323):
-    '''Determine whether floating-point values a and b are equal to
-    within a (small) rounding error; return True if almost equal and
-    False otherwise.  The default values for rel_err and abs_err are
-    chosen to be suitable for platforms where a float is represented
-    by an IEEE 754 double.  They allow an error of between 9 and 19
-    ulps.
- 
-    This routine comes from the Lib/test/test_cmath.py in the python
-    distribution; the function was called almostEqualF.
-    '''
-    # Special values testing
-    if math.isnan(a):
-        return math.isnan(b)
-    if math.isinf(a):
-        return a == b
-    # If both a and b are zero, check whether they have the same sign
-    # (in theory there are examples where it would be legitimate for a
-    # and b to have opposite signs; in practice these hardly ever
-    # occur).
-    if not a and not b:
-        return math.copysign(float(1), a) == math.copysign(float(1), b)
-    # If a - b overflows, or b is infinite, return False.  Again, in
-    # theory there are examples where a is within a few ulps of the
-    # max representable float, and then b could legitimately be
-    # infinite.  In practice these examples are rare.
-    try:
-        absolute_error = abs(b - a)
-    except OverflowError:
-        return False
-    else:
-        return absolute_error <= max(abs_err, rel_err*abs(a))
-def polar(x, y, deg=False):
-    '''Return the polar coordinates for the given rectangular
-    coordinates.  If deg is True, angle measure is in degrees;
-    otherwise, angles are in radians.
-    '''
-    r2d = 180/math.pi if deg else 1
-    return (math.hypot(x, y), math.atan2(y, x)*r2d)
-def rect(r, theta, deg=False):
-    '''Return the rectangular coordinates for the given polar
-    coordinates.  If deg is True, angle measure is in degrees;
-    otherwise, angles are in radians.
-    '''
-    d2r = math.pi/180 if deg else 1
-    return (r*math.cos(theta*d2r), r*math.sin(theta*d2r))
-if 1:   # Polynomial utilities
-    # These routines were originally from 
-    # http://www.physics.rutgers.edu/~masud/computing/
-    # in the file WPark_recipes_in_python.html; I probably downloaded them
-    # before 2000.  This URL is defunct.
-    # 
-    # coef is a sequence of the polynomial's coefficients; coef[0] is the
-    # constant term and coef[-1] is the highest term; x is a number.
-    def polyeval(coef, x, lowest_first=True):
-        '''Evaluate a polynomial with the stated coefficients.  Returns 
-        coef[0] + x(coef[1] + x(coef[2] +...+ x(coef[n-1] + coef[n]x)...)
-        This is Horner's method.  If lowest_first is False, then the
-        coefficients are in the opposite order with the highest degree
-        coefficient first.
-     
-        Example: polyeval((3, 2, 1), 6) = 3 + 2(6) + 1(6)**2 = 51
-        '''
-        f = reversed if lowest_first else lambda x: x
-        p = 0
-        for i in f(coef):
-            p = p*x + i
-        return p
-    def polyderiv(coef):
-        '''Returns the coefficients of the derivative of a polynomial with
-        coefficients in coef.
- 
-        Example: polyderiv((3, 2, 1)) = [2, 2]
-        '''
-        b = []
-        for i in range(1, len(coef)):
-            b.append(i*coef[i])
-        return b
-    def polyreduce(coef, root):
-        '''Given a root of a polynomial, factor out the (x - root) term, then
-        return the coefficients of the factored polynomial.
- 
-        Example: polyreduce((-12, -1, 1), -3) = [-4, 1]
-        '''
-        c, p = [], 0
-        for i in reversed(coef):
-            p = p*root + i
-            c.append(p)
-        c.reverse()
-        return c[1:]
-def bitlength(n):
-    '''This emulates the n.bit_count() function of integers in python 2.7
-    and 3.  This returns the number of bits needed to represent the
-    integer n; n can be any integer.
- 
-    A naive implementation is to take the base two logarithm of the
-    integer, but this will fail if abs(n) is larger than the largest
-    floating point number.
-    '''
-    try:
-        return n.bit_count()
-    except Exception:
-        return len(bin(abs(n))) - 2
-def isqrt(x):
-    '''Integer square root.  This calculation is done with integers, so it
-    can calculate square roots for large numbers that would overflow the
-    normal square root function.
-    
-    From
-    http://code.activestate.com/recipes/577821-integer-square-root-function/
-    '''
-    if x < 0:
-        raise ValueError("Square root not defined for negative numbers")
-    n = int(x)
-    if n == 0:
-        return 0
-    a, b = divmod(bitlength(n), 2)
-    x = 2**(a+b)
-    while True:
-        y = (x + n//x)//2
-        if y >= x:
-            return x
-        x = y
-def inverse_normal_cdf(p):
-    '''Compute the inverse CDF for the normal distribution.  Absolute
-    value of the relative error is less than 1.15e-9.
- 
-    Retrieved 28 Feb 2012 from
-    http://home.online.no/~pjacklam/notes/invnorm/impl/field/ltqnorm.txt.
-    This link was provided by the algorithm's developer:
-    http://home.online.no/~pjacklam/notes/invnorm/.
- 
-    DP:  I've made minor changes to formatting, etc.
- 
-    ---------------------------------------------------------------------------
-    Original docstring:
- 
-    Modified from the author's original perl code (original comments follow
-    below) by dfield@yahoo-inc.com.  May 3, 2004.
- 
-    Lower tail quantile for standard normal distribution function.
- 
-    This function returns an approximation of the inverse cumulative
-    standard normal distribution function.  I.e., given P, it returns
-    an approximation to the X satisfying P = Pr{Z <= X} where Z is a
-    random variable from the standard normal distribution.
- 
-    The algorithm uses a minimax approximation by rational functions
-    and the result has a relative error whose absolute value is less
-    than 1.15e-9.
- 
-    Author:      Peter John Acklam
-    Time-stamp:  2000-07-19 18:26:14
-    E-mail:      pjacklam@online.no
-    WWW URL:     http://home.online.no/~pjacklam
-    '''
-    if not (0 < p < 1):
-        raise ValueError("Argument to inverse_normal_cdf must be in open "
-                         "interval (0,1)")
-    # Coefficients in rational approximations.
-    a = (-3.969683028665376e+01, 2.209460984245205e+02,
-         -2.759285104469687e+02, 1.383577518672690e+02,
-         -3.066479806614716e+01, 2.506628277459239e+00)
-    b = (-5.447609879822406e+01, 1.615858368580409e+02,
-         -1.556989798598866e+02, 6.680131188771972e+01,
-         -1.328068155288572e+01)
-    c = (-7.784894002430293e-03, -3.223964580411365e-01,
-         -2.400758277161838e+00, -2.549732539343734e+00,
-         4.374664141464968e+00, 2.938163982698783e+00)
-    d = (7.784695709041462e-03, 3.224671290700398e-01,
-         2.445134137142996e+00, 3.754408661907416e+00)
-    # Define break-points
-    plow = 0.02425
-    phigh = 1 - plow
-    # Rational approximation for lower region:
-    if p < plow:
-        q = math.sqrt(-2*math.log(p))
-        num = ((((c[0]*q + c[1])*q + c[2])*q + c[3])*q + c[4])*q + c[5]
-        den = (((d[0]*q+d[1])*q+d[2])*q+d[3])*q+1
-        return num/den
-        # Original code:
-        # return ((((((c[0]*q+c[1])*q+c[2])*q+c[3])*q+c[4])*q+c[5]) /
-        #        ((((d[0]*q+d[1])*q+d[2])*q+d[3])*q+1))
-    # Rational approximation for upper region:
-    if phigh < p:
-        q = math.sqrt(-2*math.log(1-p))
-        num = ((((c[0]*q + c[1])*q + c[2])*q + c[3])*q + c[4])*q + c[5]
-        den = (((d[0]*q + d[1])*q + d[2])*q + d[3])*q + 1
-        return num/den
-        # Original code:
-        # return -((((((c[0]*q+c[1])*q+c[2])*q+c[3])*q+c[4])*q+c[5]) /
-        #         ((((d[0]*q+d[1])*q+d[2])*q+d[3])*q+1))
-    # Rational approximation for central region:
-    q = p - 0.5
-    r = q*q
-    num = (((((a[0]*r + a[1])*r + a[2])*r + a[3])*r + a[4])*r + a[5])*q
-    den = ((((b[0]*r + b[1])*r + b[2])*r + b[3])*r + b[4])*r + 1
-    return num/den
-    # Original code:
-    # return ((((((a[0]*r+a[1])*r+a[2])*r+a[3])*r+a[4])*r+a[5])*q /
-    #        (((((b[0]*r+b[1])*r+b[2])*r+b[3])*r+b[4])*r+1))
-def invnormal_as(p):
-    '''26.2.22 from Abramowitz and Stegun; absolute error is < 3e-3.
-    '''
-    if not (0 < p < 1):
-        raise ValueError("p must be in (0, 1)")
-    if p > 0.5:
-        sign = 1
-        p = 1 - p
-    else:
-        sign = -1
-    t = math.sqrt(math.log(1/p**2))
-    return sign*(t - (2.30753 + 0.27061*t)/(1 + 0.99229*t + 0.04481*t**2))
-if 1:   # Archimedean spirals
-    ''' Length of an Archimedian spiral
-    
-    Motivation:  How much toilet paper is on a roll?  One way to measure it
-    would be to roll it out.  This is perhaps the most accurate method.  But
-    it would be nice to be able to estimate it from the roll's dimensions.
-    The function ArchimedianSpiralArcLength below will help you do this.
-    
-    The polar equation of this spiral is
-    
-        r = a*theta
-    
-    where theta is the angle and a is a constant.  For a spiral with
-    multiple revolutions, the distance between the revolutions (i.e., the
-    pitch) is 
-            
-        pitch = 2*pi*a = math.tau*a.
-    
-    The arc length s is gotten from the integral from theta1 to theta2
-    of
-    
-        sqrt(r*r + (dr/dtheta)^2) dtheta
-    
-    Substituting the equation for a spiral, we get
-    
-        A = sqrt(theta*theta + 1)
-        s = a/2*[theta*A + ln(theta + A)]
-    
-    This is the formula for the total arc length from an angle of 0 to an angle
-    of theta (remember theta is in radians).
-    
-    To convert this to more practical formulas, let
-    
-        D = outside diameter of roll
-        d = inside diameter of roll
-        t = thickness of material on roll
-        n = number of turns of material on roll = n1 - n0
-        n0 = number of turns to make up ID
-        n1 = number of turns to make up OD
-    
-    Now, if t is reasonably thin, we have
-    
-        D = d + 2*n*t
-    
-    because one wrap adds a thickness of 2*t on the diameter.  For thin t,
-    we can approximate the length by a finite sum:
-    
-        1st wrap:  circumference = pi*d
-        2nd wrap:  circumference = pi*(d + 1*(2*t))
-        3rd wrap:  circumference = pi*(d + 2*(2*t))
-        4th wrap:  circumference = pi*(d + 3*(2*t))
-        ...
-        nth wrap:  circumference = pi*(d + (n-1)*(2*t))
-    
-    Thus, the sum is
-    
-        S = pi*[d + (d + 1*(2*t)) + (d + 2*(2*t)) + ... + (d + (n-1)*(2*t))]
-    
-    This is
-    
-        S = pi[n*d + 2*t*A(n - 1)]
-    
-    where A(n - 1) is the sum of the integers 1 to (n - 1).  This is
-    0.5*(n - 1)*(n - 1 + 1) or n*(n - 1)/2.  Hence
-    
-        S/pi = n*d + 2*t*n*(n-1)/2 = n*d + t*n(n-1)
-    
-    or, finally,
-    
-    +------------------------+
-    |                        |
-    | S = pi*n*[t*(n-1) + d] |
-    |                        |
-    +------------------------+
-    
-    In terms of the constant in the polar equation for the spiral, we have
-    
-        t = 2*pi*a
-        a = t/(2*pi)
-    '''
-def SpiralArcLength(a, theta, degrees=False):
-    '''Calculate the arc length of an Archimedian spiral from angle
-    0 to theta.  theta is in radians unless degrees is True.  The number a
-    is the constant in the polar equation for the spiral
- 
-        r = a*theta
- 
-    The formula is exact.
-    '''
-    if a <= 0:
-        raise ValueError("a must be > 0")
-    theta = radians(flt(theta)) if degrees else flt(theta)
-    A = sqrt(theta*theta + 1)
-    return flt(a)/2*(theta*A + math.log(theta + A))
-def ApproximateSpiralArcLength(ID, OD, thickness):
-    '''Return (length, number_of_layers) for a spiral roll of material
-    given the inside and outside diameters with a uniform thickness.  The
-    three parameters must be measured in the same units and the returned
-    number will be in the same units.
- 
-    The smaller thickness*(OD - ID) is, the better the approximation.
-
-    Algorithm:  we approximate the length of a fine-pitched spiral by a
-    circle with the diameter equal to the in-between diameter of the spiral
-    by the circle's circumference.
-    '''
-    if ID < 0 or ID >= OD:
-        raise ValueError("ID must be >= 0 and < OD")
-    if OD <= 0:
-        raise ValueError("OD must be > 0")
-    if thickness <= 0:
-        raise ValueError("thickness must be > 0")
-    n = (OD - ID)/thickness
-    if n < 1:
-        raise ValueError("Number of turns is < 1")
-    length, number_of_layers = flt(0), 0
-    for diameter in frange(ID, OD, 2*thickness):
-        D = diameter + thickness    # Use in-between diameter
-        length += math.pi*D
-        number_of_layers += 1
-    return (length, number_of_layers)
-def CountBits(num):
-    '''Return (n_on, n_off), the number of 'on' and 'off' bits in the 
-    integer num.
-    '''
-    if not isinstance(num, int):
-        raise ValueError("num must be an integer")
-    s = list(bin(num)[2:])
-    on = sum([i == "1" for i in s])
-    off = sum([i == "0" for i in s])
-    return (on, off)
-def DecimalToBase(num, base, check_result=False):
-    '''Convert a decimal integer num to a string in base base.  Tested with
-    random integers from 10 to 10,000 digits in bases 2 to 36 inclusive.
-    Set check_result to True to assure that the integer was converted
-    properly.
-    '''
-    if not 2 <= base <= 36:
-        raise ValueError('Base must be between 2 and 36.')
-    if num == 0:
-        return "0"
-    s, sign, n = "0123456789abcdefghijklmnopqrstuvwxyz", "", abs(num)
-    if num < 0:
-        sign, num = "-", abs(num)
-    d, in_base = dict(zip(range(len(s)), list(s))), ""
-    while num:
-        num, rem = divmod(num, base)
-        in_base = d[rem] + in_base
-    if check_result and int(in_base, base) != n:
-        raise ArithmeticError("Base conversion failed for %d to base %d" %
-                              (num, base))
-    return sign + in_base
-def Int(s):
-    '''Convert the string x to an integer.  Allowed forms are:
-    Plain base 10 string
-    0b binary
-    0o octal
-    0x hex
-    '''
-    neg = 1
-    if s[0] == "-":
-        neg = -1
-        s = s[1:]
-    if s.startswith("0b"):
-        return neg*int(s, 2)
-    elif s.startswith("0o"):
-        return neg*int(s, 8)
-    elif s.startswith("0x"):
-        return neg*int(s, 16)
-    else:
-        return neg*int(s, 10)
-def int2base(x, base):
-    '''Converts the integer x to a string representation in a given
-    base.  base may be from 2 to 94.
- 
-    Method by Alex Martelli
-    http://stackoverflow.com/questions/2267362/convert-integer-to-a-string-in-a-given-numeric-base-in-python
-    Modified slightly by DP.
-    '''
-    if not hasattr(int2base, "digits"):
-        a = string.digits + string.ascii_letters
-        int2base.digits = a + string.punctuation
-    if not ii(base, int):
-        raise TypeError(f"base must be an integer")
-    if not (2 <= base <= len(int2base.digits)):
-        n = len(int2base.digits)
-        raise ValueError(f"base must be between 2 and {n} inclusive")
-    if not isinstance(x, (int, str)):
-        raise ValueError("Argument x must be an integer or string")
-    y = int(x) if isinstance(x, str) else x
-    sgn = -1 if y < 0 else 1
-    if not y:
-        return '0'
-    y, answer = abs(y), []
-    while y:
-        answer.append(int2base.digits[y % base])
-        y //= base
-    if sgn < 0:
-        answer.append('-')
-    return ''.join(reversed(answer))
-def base2int(x, base):
-    '''Inverse of int2base.  Converts a string x in the indicated base
-    to a base 10 integer.  base may be from 2 to 94.
-    '''
-    if not hasattr(base2int, "digits"):
-        a = string.digits + string.ascii_letters
-        base2int.digits = a + string.punctuation
-    if not ii(base, int):
-        raise TypeError(f"base must be an integer")
-    if not (2 <= base <= len(base2int.digits)):
-        n = len(int2base.digits)
-        raise ValueError(f"base must be between 2 and {n} inclusive")
-    if not isinstance(x, str):
-        raise ValueError("Argument x must be a string")
-    n, y = 0, reversed(x)
-    n = 0
-    for i, c in enumerate(y):
-        try:
-            val = base2int.digits.index(c)
-        except Exception:
-            raise ValueError(f"'{c}' not a valid character for base {base}")
-        n += val*(base**i)
-    return n
-def int2bin(n, numbits=32):
-    '''Returns the binary of integer n, using numbits number of
-    digits.  Note this is a two's-complement representation.
-    From http://www.daniweb.com/software-development/python/code/216539
-    '''
-    return "".join([str((n >> y) & 1) for y in range(numbits - 1, -1, -1)])
-def Binary(n):
-    '''convert an integer n to a binary string.  Example:  Binary(11549)
-    gives '10110100011101'.
-    '''
-    if 0:
-        # from http://www.daniweb.com/software-development/python/code/216539
-        s, m = "", abs(n)
-        if not n:
-            return "0"
-        while m > 0:
-            s = str(m % 2) + s
-            m >>= 1
-        return "-" + s if n < 0 else s
-    else:
-        # Use built-in bin()
-        return "-" + bin(n)[3:] if n < 0 else bin(n)[2:]
-class bitvector(int):
-    '''This convenience class is an integer that lets you get its bit
-    values using indexing or slices.
- 
-    Examples:
-        x = bitvector(9)
-        x[3] returns 1
-        x[2] returns 0
-        x[2:3] returns 2
-        x[123] returns 0    # Arbitrary bits can be addressed
-        x[-1] raises an IndexError
- 
-    Suggested from python 2 code given by Ross Rogers at
-    (http://stackoverflow.com/questions/147713/how-do-i-manipulate-bits-in-python)
-    dated 29 Sep 2008.
-    '''
-    def __repr__(self):
-        return "bitvector({})".format(self)
-    def _validate_slice(self, slice):
-        '''Check the slice object for valid values; raises an IndexError if
-        it's improper.  Return (start, stop) where the values are valid
-        indices into the binary value.  Note that start and stop values can
-        be any integers >= 0 as long as start is less than or equal to
-        stop.
-        '''
-        start, stop, step = slice.start, slice.stop, slice.step
-        # Check start
-        if start is None:
-            start = 0
-        elif start < 0:
-            raise IndexError("Slice start cannot be < 0")
-        # Check stop
-        if stop is None:
-            stop = int(math.log(self)/math.log(2))
-        elif stop < 0:
-            raise IndexError("Slice stop cannot be < 0")
-        if step is not None:
-            raise IndexError("Slice step must be None")
-        if start > stop:
-            raise IndexError("Slice start must be <= stop")
-        return start, stop
-    def __getitem__(self, key):
-        if isinstance(key, slice):
-            start, stop = self._validate_slice(key)
-            return bitvector((self >> start) & (2**(stop - start + 1) - 1))
-        else:
-            try:
-                index = int(key)
-            except Exception:
-                raise IndexError("'{}' is an invalid index".format(key))
-            if index < 0:
-                raise ValueError("Negative bit index not allowed")
-            return bitvector((self & 2**index) >> index)
-def bin2gray(bits):
-    '''bits will be a string representing a binary number with the most
-    significant bit at index 0; for example, the integer 13 would be
-    represented by the string '1101'.  Return a string representing a Gray
-    code of this number.
- 
-    Example:  If bits = '1011' (binary of the integer 13), this function
-    returns '1011'.
-    '''
-    # Algorithm from http://rosettacode.org/wiki/Gray_code#Python
-    b = [int(i) for i in bits]
-    g = b[:1] + [i ^ ishift for i, ishift in zip(b[:-1], b[1:])]
-    return ''.join([str(i) for i in g])
-def gray2bin(bits):
-    '''bits will be a string representing a Gray-encoded binary number.
-    Return a string representing a binary number with the most significant
-    bit at index 0.
- 
-    Example:  If bits = '1101', this function returns '1101', the binary
-    form of the integer 13.
-    '''
-    # Algorithm from http://rosettacode.org/wiki/Gray_code#Python
-    Bits = [int(i) for i in bits]
-    b = [Bits[0]]
-    for nextb in Bits[1:]:
-        b.append(b[-1] ^ nextb)
-    return ''.join([str(i) for i in b])
-def InterpretFraction(s):
-    '''Interprets the string s as a fraction.  The following are
-    equivalent forms:  '5/4', '1 1/4', '1-1/4', or '1+1/4'.  The
-    fractional part in a proper fraction can be improper:  thus,
-    '1 5/4' is returned as Fraction(9, 4).
-    '''
-    if "/" not in s:
-        raise ValueError("'%s' must contain '/'" % s)
-    t = s.strip()
-    # First, try to convert the string to a Fraction object
-    try:
-        return Fraction(t)
-    except ValueError:
+if 1:  # Header
+    if 1:  # Copyright, license
+        # These "trigger strings" can be managed with trigger.py
+        #∞copyright∞# Copyright (C) 2014 Don Peterson #∞copyright∞#
+        #∞contact∞# gmail.com@someonesdad1 #∞contact∞#
+        #∞license∞#
+        #   Licensed under the Open Software License version 3.0.
+        #   See http://opensource.org/licenses/OSL-3.0.
+        #∞license∞#
+        #∞what∞#
+        # <math> Math-related functions
+        #∞what∞#
+        #∞test∞# run #∞test∞#
         pass
-    # Assume it's of the form 'm[ +-]n/d' where m, n, d are
-    # integers.
-    msg = "'%s' is not of the correct form" % s
-    neg = True if t[0] == "-" else False
-    fields = t.replace("+", " ").replace("-", " ").strip().split()
-    if len(fields) != 2:
-        raise ValueError(msg)
-    try:
-        ip = abs(int(fields[0]))
-        fp = abs(Fraction(fields[1]))
-        return -(ip + fp) if neg else ip + fp
-    except ValueError:
-        raise ValueError(msg)
-def ProperFraction(fraction, separator=" "):
-    '''Return the Fraction object fraction in a proper fraction string
-    form.
- 
-    Example:  Fraction(-5, 4) returns '-1 1/4'.
-    '''
-    if not isinstance(fraction, Fraction):
-        raise ValueError("frac must be a Fraction object")
-    sgn = "-" if fraction < 0 else ""
-    n, d = abs(fraction.numerator), abs(fraction.denominator)
-    ip, numerator = divmod(n, d)
-    return "{}{}{}{}/{}".format(sgn, ip, separator, numerator, d)
-def mantissa(x, digits=6):
-    '''Return the mantissa of the base 10 logarithm of x rounded to the
-    indicated number of digits.
-    '''
-    return round(math.log10(significand(x, digits=digits)), digits)
-def significand(x, digits=6):
-    '''Return the significand of x rounded to the indicated number of
-    digits.
-    '''
-    s = SignSignificandExponent(x)[1]
-    return round(s, digits - 1)
-def SignSignificandExponent(x, digits=15):
-    '''Returns a tuple (sign, significand, exponent) of a floating point
-    number x.  sign is -1 or 1, significand is a float, and exponent is an
-    integer.
-    '''
-    s = ("%%.%de" % digits) % abs(float(x))
-    return (1 - 2*(x < 0), float(s[0:digits + 2]), int(s[digits + 3:]))
-def signum(x, return_type=int):
-    'Return a number -1, 0, or 1 representing the sign of x'
-    if x < 0:
-        return return_type(-1)
-    elif x > 0:
-        return return_type(1)
-    return return_type(0)
-def Percentile(seq, fraction):
-    '''Return the indicated fraction of a sequence seq of sorted
-    values.  fraction will be converted to be in [0, 1].
- 
-    The method is recommended by NIST at
-    https://www.itl.nist.gov/div898/handbook/prc/section2/prc262.htm.  
+    if 1:   # Imports
+        import math
+        import string
+        import sys
+        from fractions import Fraction
+        from pdb import set_trace as xx 
+    if 1:   # Custom imports
+        from frange import frange
+        from f import flt
+    if 1:   # Global variables
+        ii = isinstance
+if 1:  # Core functionality
+    def AlmostEqual(a, b, rel_err=2e-15, abs_err=5e-323):
+        '''Determine whether floating-point values a and b are equal to
+        within a (small) rounding error; return True if almost equal and
+        False otherwise.  The default values for rel_err and abs_err are
+        chosen to be suitable for platforms where a float is represented
+        by an IEEE 754 double.  They allow an error of between 9 and 19
+        ulps.
+     
+        This routine comes from the Lib/test/test_cmath.py in the python
+        distribution; the function was called almostEqualF.
+        '''
+        # Special values testing
+        if math.isnan(a):
+            return math.isnan(b)
+        if math.isinf(a):
+            return a == b
+        # If both a and b are zero, check whether they have the same sign
+        # (in theory there are examples where it would be legitimate for a
+        # and b to have opposite signs; in practice these hardly ever
+        # occur).
+        if not a and not b:
+            return math.copysign(float(1), a) == math.copysign(float(1), b)
+        # If a - b overflows, or b is infinite, return False.  Again, in
+        # theory there are examples where a is within a few ulps of the
+        # max representable float, and then b could legitimately be
+        # infinite.  In practice these examples are rare.
+        try:
+            absolute_error = abs(b - a)
+        except OverflowError:
+            return False
+        else:
+            return absolute_error <= max(abs_err, rel_err*abs(a))
+    def polar(x, y, deg=False):
+        '''Return the polar coordinates for the given rectangular
+        coordinates.  If deg is True, angle measure is in degrees;
+        otherwise, angles are in radians.
+        '''
+        r2d = 180/math.pi if deg else 1
+        return (math.hypot(x, y), math.atan2(y, x)*r2d)
+    def rect(r, theta, deg=False):
+        '''Return the rectangular coordinates for the given polar
+        coordinates.  If deg is True, angle measure is in degrees;
+        otherwise, angles are in radians.
+        '''
+        d2r = math.pi/180 if deg else 1
+        return (r*math.cos(theta*d2r), r*math.sin(theta*d2r))
+    if 1:   # Polynomial utilities
+        # These routines were originally from 
+        # http://www.physics.rutgers.edu/~masud/computing/
+        # in the file WPark_recipes_in_python.html; I probably downloaded them
+        # before 2000.  This URL is defunct.
+        # 
+        # coef is a sequence of the polynomial's coefficients; coef[0] is the
+        # constant term and coef[-1] is the highest term; x is a number.
+        def polyeval(coef, x, lowest_first=True):
+            '''Evaluate a polynomial with the stated coefficients.  Returns 
+            coef[0] + x(coef[1] + x(coef[2] +...+ x(coef[n-1] + coef[n]x)...)
+            This is Horner's method.  If lowest_first is False, then the
+            coefficients are in the opposite order with the highest degree
+            coefficient first.
+         
+            Example: polyeval((3, 2, 1), 6) = 3 + 2(6) + 1(6)**2 = 51
+            '''
+            f = reversed if lowest_first else lambda x: x
+            p = 0
+            for i in f(coef):
+                p = p*x + i
+            return p
+        def polyderiv(coef):
+            '''Returns the coefficients of the derivative of a polynomial with
+            coefficients in coef.
+     
+            Example: polyderiv((3, 2, 1)) = [2, 2]
+            '''
+            b = []
+            for i in range(1, len(coef)):
+                b.append(i*coef[i])
+            return b
+        def polyreduce(coef, root):
+            '''Given a root of a polynomial, factor out the (x - root) term, then
+            return the coefficients of the factored polynomial.
+     
+            Example: polyreduce((-12, -1, 1), -3) = [-4, 1]
+            '''
+            c, p = [], 0
+            for i in reversed(coef):
+                p = p*root + i
+                c.append(p)
+            c.reverse()
+            return c[1:]
+    def bitlength(n):
+        '''This emulates the n.bit_count() function of integers in python 2.7
+        and 3.  This returns the number of bits needed to represent the
+        integer n; n can be any integer.
+     
+        A naive implementation is to take the base two logarithm of the
+        integer, but this will fail if abs(n) is larger than the largest
+        floating point number.
+        '''
+        try:
+            return n.bit_count()
+        except Exception:
+            return len(bin(abs(n))) - 2
+    def isqrt(x):
+        '''Integer square root.  This calculation is done with integers, so it
+        can calculate square roots for large numbers that would overflow the
+        normal square root function.
+        
+        From
+        http://code.activestate.com/recipes/577821-integer-square-root-function/
+        '''
+        if x < 0:
+            raise ValueError("Square root not defined for negative numbers")
+        n = int(x)
+        if n == 0:
+            return 0
+        a, b = divmod(bitlength(n), 2)
+        x = 2**(a+b)
+        while True:
+            y = (x + n//x)//2
+            if y >= x:
+                return x
+            x = y
+    def inverse_normal_cdf(p):
+        '''Compute the inverse CDF for the normal distribution.  Absolute
+        value of the relative error is less than 1.15e-9.
+     
+        Retrieved 28 Feb 2012 from
+        http://home.online.no/~pjacklam/notes/invnorm/impl/field/ltqnorm.txt.
+        This link was provided by the algorithm's developer:
+        http://home.online.no/~pjacklam/notes/invnorm/.
+     
+        DP:  I've made minor changes to formatting, etc.
+     
+        ---------------------------------------------------------------------------
+        Original docstring:
+     
+        Modified from the author's original perl code (original comments follow
+        below) by dfield@yahoo-inc.com.  May 3, 2004.
+     
+        Lower tail quantile for standard normal distribution function.
+     
+        This function returns an approximation of the inverse cumulative
+        standard normal distribution function.  I.e., given P, it returns
+        an approximation to the X satisfying P = Pr{Z <= X} where Z is a
+        random variable from the standard normal distribution.
+     
+        The algorithm uses a minimax approximation by rational functions
+        and the result has a relative error whose absolute value is less
+        than 1.15e-9.
+     
+        Author:      Peter John Acklam
+        Time-stamp:  2000-07-19 18:26:14
+        E-mail:      pjacklam@online.no
+        WWW URL:     http://home.online.no/~pjacklam
+        '''
+        if not (0 < p < 1):
+            raise ValueError("Argument to inverse_normal_cdf must be in open "
+                             "interval (0,1)")
+        # Coefficients in rational approximations.
+        a = (-3.969683028665376e+01, 2.209460984245205e+02,
+             -2.759285104469687e+02, 1.383577518672690e+02,
+             -3.066479806614716e+01, 2.506628277459239e+00)
+        b = (-5.447609879822406e+01, 1.615858368580409e+02,
+             -1.556989798598866e+02, 6.680131188771972e+01,
+             -1.328068155288572e+01)
+        c = (-7.784894002430293e-03, -3.223964580411365e-01,
+             -2.400758277161838e+00, -2.549732539343734e+00,
+             4.374664141464968e+00, 2.938163982698783e+00)
+        d = (7.784695709041462e-03, 3.224671290700398e-01,
+             2.445134137142996e+00, 3.754408661907416e+00)
+        # Define break-points
+        plow = 0.02425
+        phigh = 1 - plow
+        # Rational approximation for lower region:
+        if p < plow:
+            q = math.sqrt(-2*math.log(p))
+            num = ((((c[0]*q + c[1])*q + c[2])*q + c[3])*q + c[4])*q + c[5]
+            den = (((d[0]*q+d[1])*q+d[2])*q+d[3])*q+1
+            return num/den
+            # Original code:
+            # return ((((((c[0]*q+c[1])*q+c[2])*q+c[3])*q+c[4])*q+c[5]) /
+            #        ((((d[0]*q+d[1])*q+d[2])*q+d[3])*q+1))
+        # Rational approximation for upper region:
+        if phigh < p:
+            q = math.sqrt(-2*math.log(1-p))
+            num = ((((c[0]*q + c[1])*q + c[2])*q + c[3])*q + c[4])*q + c[5]
+            den = (((d[0]*q + d[1])*q + d[2])*q + d[3])*q + 1
+            return num/den
+            # Original code:
+            # return -((((((c[0]*q+c[1])*q+c[2])*q+c[3])*q+c[4])*q+c[5]) /
+            #         ((((d[0]*q+d[1])*q+d[2])*q+d[3])*q+1))
+        # Rational approximation for central region:
+        q = p - 0.5
+        r = q*q
+        num = (((((a[0]*r + a[1])*r + a[2])*r + a[3])*r + a[4])*r + a[5])*q
+        den = ((((b[0]*r + b[1])*r + b[2])*r + b[3])*r + b[4])*r + 1
+        return num/den
+        # Original code:
+        # return ((((((a[0]*r+a[1])*r+a[2])*r+a[3])*r+a[4])*r+a[5])*q /
+        #        (((((b[0]*r+b[1])*r+b[2])*r+b[3])*r+b[4])*r+1))
+    def invnormal_as(p):
+        '''26.2.22 from Abramowitz and Stegun; absolute error is < 3e-3.
+        '''
+        if not (0 < p < 1):
+            raise ValueError("p must be in (0, 1)")
+        if p > 0.5:
+            sign = 1
+            p = 1 - p
+        else:
+            sign = -1
+        t = math.sqrt(math.log(1/p**2))
+        return sign*(t - (2.30753 + 0.27061*t)/(1 + 0.99229*t + 0.04481*t**2))
+    if 1:   # Archimedean spirals
+        ''' Length of an Archimedian spiral
+        
+        Motivation:  How much toilet paper is on a roll?  One way to measure it
+        would be to roll it out.  This is perhaps the most accurate method.  But
+        it would be nice to be able to estimate it from the roll's dimensions.
+        The function ArchimedianSpiralArcLength below will help you do this.
+        
+        The polar equation of this spiral is
+        
+            r = a*theta
+        
+        where theta is the angle and a is a constant.  For a spiral with
+        multiple revolutions, the distance between the revolutions (i.e., the
+        pitch) is 
+                
+            pitch = 2*pi*a = math.tau*a.
+        
+        The arc length s is gotten from the integral from theta1 to theta2
+        of
+        
+            sqrt(r*r + (dr/dtheta)^2) dtheta
+        
+        Substituting the equation for a spiral, we get
+        
+            A = sqrt(theta*theta + 1)
+            s = a/2*[theta*A + ln(theta + A)]
+        
+        This is the formula for the total arc length from an angle of 0 to an angle
+        of theta (remember theta is in radians).
+        
+        To convert this to more practical formulas, let
+        
+            D = outside diameter of roll
+            d = inside diameter of roll
+            t = thickness of material on roll
+            n = number of turns of material on roll = n1 - n0
+            n0 = number of turns to make up ID
+            n1 = number of turns to make up OD
+        
+        Now, if t is reasonably thin, we have
+        
+            D = d + 2*n*t
+        
+        because one wrap adds a thickness of 2*t on the diameter.  For thin t,
+        we can approximate the length by a finite sum:
+        
+            1st wrap:  circumference = pi*d
+            2nd wrap:  circumference = pi*(d + 1*(2*t))
+            3rd wrap:  circumference = pi*(d + 2*(2*t))
+            4th wrap:  circumference = pi*(d + 3*(2*t))
+            ...
+            nth wrap:  circumference = pi*(d + (n-1)*(2*t))
+        
+        Thus, the sum is
+        
+            S = pi*[d + (d + 1*(2*t)) + (d + 2*(2*t)) + ... + (d + (n-1)*(2*t))]
+        
+        This is
+        
+            S = pi[n*d + 2*t*A(n - 1)]
+        
+        where A(n - 1) is the sum of the integers 1 to (n - 1).  This is
+        0.5*(n - 1)*(n - 1 + 1) or n*(n - 1)/2.  Hence
+        
+            S/pi = n*d + 2*t*n*(n-1)/2 = n*d + t*n(n-1)
+        
+        or, finally,
+        
+        +------------------------+
+        |                        |
+        | S = pi*n*[t*(n-1) + d] |
+        |                        |
+        +------------------------+
+        
+        In terms of the constant in the polar equation for the spiral, we have
+        
+            t = 2*pi*a
+            a = t/(2*pi)
+        '''
+    def SpiralArcLength(a, theta, degrees=False):
+        '''Calculate the arc length of an Archimedian spiral from angle
+        0 to theta.  theta is in radians unless degrees is True.  The number a
+        is the constant in the polar equation for the spiral
+     
+            r = a*theta
+     
+        The formula is exact.
+        '''
+        if a <= 0:
+            raise ValueError("a must be > 0")
+        theta = radians(flt(theta)) if degrees else flt(theta)
+        A = sqrt(theta*theta + 1)
+        return flt(a)/2*(theta*A + math.log(theta + A))
+    def ApproximateSpiralArcLength(ID, OD, thickness):
+        '''Return (length, number_of_layers) for a spiral roll of material
+        given the inside and outside diameters with a uniform thickness.  The
+        three parameters must be measured in the same units and the returned
+        number will be in the same units.
+     
+        The smaller thickness*(OD - ID) is, the better the approximation.
     
-    The algorithm is:
- 
-        Suppose you have N numbers Y_[1] to Y_[N].  For the pth percentile,
-        let x = p*(N + 1) and
+        Algorithm:  we approximate the length of a fine-pitched spiral by a
+        circle with the diameter equal to the in-between diameter of the spiral
+        by the circle's circumference.
+        '''
+        if ID < 0 or ID >= OD:
+            raise ValueError("ID must be >= 0 and < OD")
+        if OD <= 0:
+            raise ValueError("OD must be > 0")
+        if thickness <= 0:
+            raise ValueError("thickness must be > 0")
+        n = (OD - ID)/thickness
+        if n < 1:
+            raise ValueError("Number of turns is < 1")
+        length, number_of_layers = flt(0), 0
+        for diameter in frange(ID, OD, 2*thickness):
+            D = diameter + thickness    # Use in-between diameter
+            length += math.pi*D
+            number_of_layers += 1
+        return (length, number_of_layers)
+    def CountBits(num):
+        '''Return (n_on, n_off), the number of 'on' and 'off' bits in the 
+        integer num.
+        '''
+        if not isinstance(num, int):
+            raise ValueError("num must be an integer")
+        s = list(bin(num)[2:])
+        on = sum([i == "1" for i in s])
+        off = sum([i == "0" for i in s])
+        return (on, off)
+    def DecimalToBase(num, base, check_result=False):
+        '''Convert a decimal integer num to a string in base base.  Tested with
+        random integers from 10 to 10,000 digits in bases 2 to 36 inclusive.
+        Set check_result to True to assure that the integer was converted
+        properly.
+        '''
+        if not 2 <= base <= 36:
+            raise ValueError('Base must be between 2 and 36.')
+        if num == 0:
+            return "0"
+        s, sign, n = "0123456789abcdefghijklmnopqrstuvwxyz", "", abs(num)
+        if num < 0:
+            sign, num = "-", abs(num)
+        d, in_base = dict(zip(range(len(s)), list(s))), ""
+        while num:
+            num, rem = divmod(num, base)
+            in_base = d[rem] + in_base
+        if check_result and int(in_base, base) != n:
+            raise ArithmeticError("Base conversion failed for %d to base %d" %
+                                  (num, base))
+        return sign + in_base
+    def Int(s):
+        '''Convert the string x to an integer.  Allowed forms are:
+        Plain base 10 string
+        0b binary
+        0o octal
+        0x hex
+        '''
+        neg = 1
+        if s[0] == "-":
+            neg = -1
+            s = s[1:]
+        if s.startswith("0b"):
+            return neg*int(s, 2)
+        elif s.startswith("0o"):
+            return neg*int(s, 8)
+        elif s.startswith("0x"):
+            return neg*int(s, 16)
+        else:
+            return neg*int(s, 10)
+    def int2base(x, base):
+        '''Converts the integer x to a string representation in a given
+        base.  base may be from 2 to 94.
+     
+        Method by Alex Martelli
+        http://stackoverflow.com/questions/2267362/convert-integer-to-a-string-in-a-given-numeric-base-in-python
+        Modified slightly by DP.
+        '''
+        if not hasattr(int2base, "digits"):
+            a = string.digits + string.ascii_letters
+            int2base.digits = a + string.punctuation
+        if not ii(base, int):
+            raise TypeError(f"base must be an integer")
+        if not (2 <= base <= len(int2base.digits)):
+            n = len(int2base.digits)
+            raise ValueError(f"base must be between 2 and {n} inclusive")
+        if not isinstance(x, (int, str)):
+            raise ValueError("Argument x must be an integer or string")
+        y = int(x) if isinstance(x, str) else x
+        sgn = -1 if y < 0 else 1
+        if not y:
+            return '0'
+        y, answer = abs(y), []
+        while y:
+            answer.append(int2base.digits[y % base])
+            y //= base
+        if sgn < 0:
+            answer.append('-')
+        return ''.join(reversed(answer))
+    def base2int(x, base):
+        '''Inverse of int2base.  Converts a string x in the indicated base
+        to a base 10 integer.  base may be from 2 to 94.
+        '''
+        if not hasattr(base2int, "digits"):
+            a = string.digits + string.ascii_letters
+            base2int.digits = a + string.punctuation
+        if not ii(base, int):
+            raise TypeError(f"base must be an integer")
+        if not (2 <= base <= len(base2int.digits)):
+            n = len(int2base.digits)
+            raise ValueError(f"base must be between 2 and {n} inclusive")
+        if not isinstance(x, str):
+            raise ValueError("Argument x must be a string")
+        n, y = 0, reversed(x)
+        n = 0
+        for i, c in enumerate(y):
+            try:
+                val = base2int.digits.index(c)
+            except Exception:
+                raise ValueError(f"'{c}' not a valid character for base {base}")
+            n += val*(base**i)
+        return n
+    def int2bin(n, numbits=32):
+        '''Returns the binary of integer n, using numbits number of
+        digits.  Note this is a two's-complement representation.
+        From http://www.daniweb.com/software-development/python/code/216539
+        '''
+        return "".join([str((n >> y) & 1) for y in range(numbits - 1, -1, -1)])
+    def Binary(n):
+        '''convert an integer n to a binary string.  Example:  Binary(11549)
+        gives '10110100011101'.
+        '''
+        if 0:
+            # from http://www.daniweb.com/software-development/python/code/216539
+            s, m = "", abs(n)
+            if not n:
+                return "0"
+            while m > 0:
+                s = str(m % 2) + s
+                m >>= 1
+            return "-" + s if n < 0 else s
+        else:
+            # Use built-in bin()
+            return "-" + bin(n)[3:] if n < 0 else bin(n)[2:]
+    class bitvector(int):
+        '''This convenience class is an integer that lets you get its bit
+        values using indexing or slices.
+     
+        Examples:
+            x = bitvector(9)
+            x[3] returns 1
+            x[2] returns 0
+            x[2:3] returns 2
+            x[123] returns 0    # Arbitrary bits can be addressed
+            x[-1] raises an IndexError
+     
+        Suggested from python 2 code given by Ross Rogers at
+        (http://stackoverflow.com/questions/147713/how-do-i-manipulate-bits-in-python)
+        dated 29 Sep 2008.
+        '''
+        def __repr__(self):
+            return "bitvector({})".format(self)
+        def _validate_slice(self, slice):
+            '''Check the slice object for valid values; raises an IndexError if
+            it's improper.  Return (start, stop) where the values are valid
+            indices into the binary value.  Note that start and stop values can
+            be any integers >= 0 as long as start is less than or equal to
+            stop.
+            '''
+            start, stop, step = slice.start, slice.stop, slice.step
+            # Check start
+            if start is None:
+                start = 0
+            elif start < 0:
+                raise IndexError("Slice start cannot be < 0")
+            # Check stop
+            if stop is None:
+                stop = int(math.log(self)/math.log(2))
+            elif stop < 0:
+                raise IndexError("Slice stop cannot be < 0")
+            if step is not None:
+                raise IndexError("Slice step must be None")
+            if start > stop:
+                raise IndexError("Slice start must be <= stop")
+            return start, stop
+        def __getitem__(self, key):
+            if isinstance(key, slice):
+                start, stop = self._validate_slice(key)
+                return bitvector((self >> start) & (2**(stop - start + 1) - 1))
+            else:
+                try:
+                    index = int(key)
+                except Exception:
+                    raise IndexError("'{}' is an invalid index".format(key))
+                if index < 0:
+                    raise ValueError("Negative bit index not allowed")
+                return bitvector((self & 2**index) >> index)
+    def bin2gray(bits):
+        '''bits will be a string representing a binary number with the most
+        significant bit at index 0; for example, the integer 13 would be
+        represented by the string '1101'.  Return a string representing a Gray
+        code of this number.
+     
+        Example:  If bits = '1011' (binary of the integer 13), this function
+        returns '1011'.
+        '''
+        # Algorithm from http://rosettacode.org/wiki/Gray_code#Python
+        b = [int(i) for i in bits]
+        g = b[:1] + [i ^ ishift for i, ishift in zip(b[:-1], b[1:])]
+        return ''.join([str(i) for i in g])
+    def gray2bin(bits):
+        '''bits will be a string representing a Gray-encoded binary number.
+        Return a string representing a binary number with the most significant
+        bit at index 0.
+     
+        Example:  If bits = '1101', this function returns '1101', the binary
+        form of the integer 13.
+        '''
+        # Algorithm from http://rosettacode.org/wiki/Gray_code#Python
+        Bits = [int(i) for i in bits]
+        b = [Bits[0]]
+        for nextb in Bits[1:]:
+            b.append(b[-1] ^ nextb)
+        return ''.join([str(i) for i in b])
+    def InterpretFraction(s):
+        '''Interprets the string s as a fraction.  The following are
+        equivalent forms:  '5/4', '1 1/4', '1-1/4', or '1+1/4'.  The
+        fractional part in a proper fraction can be improper:  thus,
+        '1 5/4' is returned as Fraction(9, 4).
+        '''
+        if "/" not in s:
+            raise ValueError("'%s' must contain '/'" % s)
+        t = s.strip()
+        # First, try to convert the string to a Fraction object
+        try:
+            return Fraction(t)
+        except ValueError:
+            pass
+        # Assume it's of the form 'm[ +-]n/d' where m, n, d are
+        # integers.
+        msg = "'%s' is not of the correct form" % s
+        neg = True if t[0] == "-" else False
+        fields = t.replace("+", " ").replace("-", " ").strip().split()
+        if len(fields) != 2:
+            raise ValueError(msg)
+        try:
+            ip = abs(int(fields[0]))
+            fp = abs(Fraction(fields[1]))
+            return -(ip + fp) if neg else ip + fp
+        except ValueError:
+            raise ValueError(msg)
+    def ProperFraction(fraction, separator=" "):
+        '''Return the Fraction object fraction in a proper fraction string
+        form.
+     
+        Example:  Fraction(-5, 4) returns '-1 1/4'.
+        '''
+        if not isinstance(fraction, Fraction):
+            raise ValueError("frac must be a Fraction object")
+        sgn = "-" if fraction < 0 else ""
+        n, d = abs(fraction.numerator), abs(fraction.denominator)
+        ip, numerator = divmod(n, d)
+        return "{}{}{}{}/{}".format(sgn, ip, separator, numerator, d)
+    def mantissa(x, digits=6):
+        '''Return the mantissa of the base 10 logarithm of x rounded to the
+        indicated number of digits.
+        '''
+        return round(math.log10(significand(x, digits=digits)), digits)
+    def significand(x, digits=6):
+        '''Return the significand of x rounded to the indicated number of
+        digits.
+        '''
+        s = SignSignificandExponent(x)[1]
+        return round(s, digits - 1)
+    def SignSignificandExponent(x, digits=15):
+        '''Returns a tuple (sign, significand, exponent) of a floating point
+        number x.  sign is -1 or 1, significand is a float, and exponent is an
+        integer.
+        '''
+        s = ("%%.%de" % digits) % abs(float(x))
+        return (1 - 2*(x < 0), float(s[0:digits + 2]), int(s[digits + 3:]))
+    def signum(x, return_type=int):
+        'Return a number -1, 0, or 1 representing the sign of x'
+        if x < 0:
+            return return_type(-1)
+        elif x > 0:
+            return return_type(1)
+        return return_type(0)
+    def Percentile(seq, fraction):
+        '''Return the indicated fraction of a sequence seq of sorted
+        values.  fraction will be converted to be in [0, 1].
+     
+        The method is recommended by NIST at
+        https://www.itl.nist.gov/div898/handbook/prc/section2/prc262.htm.  
+        
+        The algorithm is:
+     
+            Suppose you have N numbers Y_[1] to Y_[N].  For the pth percentile,
+            let x = p*(N + 1) and
+          
+              k = int(x)      [Integer part of x], d >= 0
+              d = x - k       [Fractional part of x], d in [0, 1)
+          
+            Then calculate
+          
+              1.  For 0 < k < N, Y_(p) = Y_[k] + d*(Y_[k+1] - Y_[k]).
+              2.  For k = 0, Y_[p] = Y[1].  Note that any p <= 1/(N+1) will be
+                  set to the minimum value.
+              3.  For k >= N, Y_(p) = = Y_[N].  Note that any p > N/(N+1) will
+                  be set to the maximum value.
+          
+              Note the array indexing is 1-based, so python code will need to
+              take this into account.
       
-          k = int(x)      [Integer part of x], d >= 0
-          d = x - k       [Fractional part of x], d in [0, 1)
+        Example:  A gauge study resulted in 12 measurements:
       
-        Then calculate
+             i  Measurements   Sorted       Ranks
+            --- ------------   -------      -----
+             1     95.1772     95.0610        9
+             2     95.1567     95.0925        6
+             3     95.1937     95.1065       10
+             4     95.1959     95.1195       11
+             5     95.1442     95.1442        5
+             6     95.0610     95.1567        1
+             7     95.1591     95.1591        7
+             8     95.1195     95.1682        4
+             9     95.1065     95.1772        3
+            10     95.0925     95.1937        2
+            11     95.1990     95.1959       12
+            12     95.1682     95.1990        8
       
-          1.  For 0 < k < N, Y_(p) = Y_[k] + d*(Y_[k+1] - Y_[k]).
-          2.  For k = 0, Y_[p] = Y[1].  Note that any p <= 1/(N+1) will be
-              set to the minimum value.
-          3.  For k >= N, Y_(p) = = Y_[N].  Note that any p > N/(N+1) will
-              be set to the maximum value.
+        To find the 90th percentile, we have p*(N+1) = 0.9*13 = 11.7.  Then 
+        k = 11 and d = 0.7.  From step 1 above, we estimate Y_(90) as
       
-          Note the array indexing is 1-based, so python code will need to
-          take this into account.
-  
-    Example:  A gauge study resulted in 12 measurements:
-  
-         i  Measurements   Sorted       Ranks
-        --- ------------   -------      -----
-         1     95.1772     95.0610        9
-         2     95.1567     95.0925        6
-         3     95.1937     95.1065       10
-         4     95.1959     95.1195       11
-         5     95.1442     95.1442        5
-         6     95.0610     95.1567        1
-         7     95.1591     95.1591        7
-         8     95.1195     95.1682        4
-         9     95.1065     95.1772        3
-        10     95.0925     95.1937        2
-        11     95.1990     95.1959       12
-        12     95.1682     95.1990        8
-  
-    To find the 90th percentile, we have p*(N+1) = 0.9*13 = 11.7.  Then 
-    k = 11 and d = 0.7.  From step 1 above, we estimate Y_(90) as
-  
-        Y_(90) = Y[11] + 0.7*(95.1990 - 95.1959) = 95.1981
-  
-    Note this algorithm will work for N > 1.
- 
-    http://code.activestate.com/recipes/511478-finding-the-percentile-of-the-values/
-    gives another algorithm, but it doesn't give the same results as the
-    NIST algorithm.
-    '''
-    if not seq:
-        return None
-    N = len(seq)
-    if N == 1:
-        raise ValueError("Sequence must have at least 2 elements")
-    fraction = max(min(fraction, 1), 0)
-    x = fraction*(N + 1)
-    k = int(x)      # Integer part of x
-    d = x - k       # Fractional part of x
-    if 0 < k < N:
-        yk = seq[k - 1]
-        y = yk + d*(seq[k] - yk)
-    elif k >= N:
-        y = seq[-1]
-    else:
-        y = seq[0]
-    return y
-def LengthOfRopeOnDrum(dia, width, flange_dia, barrel_dia):
-    '''Return the length of rope of diameter dia that will fit on a
-    winch drum of diameter barrel_dia.  The width of winding area is
-    width and the maximum diameter of the drum's flange is flange_dia.
-    These variables are in inches and the output length is in ft.
-    '''
-    # Formula from Sampson Rope Users Manual pg. 28.  Note the formula
-    # is for all input variables in inches and output length in feet.
-    A = width
-    B = flange_dia
-    C = barrel_dia
-    rope_dia = dia
-    L = flt(A*(B**2 - C**2)/(15.3*rope_dia**2))
-    return L
-    '''Here's a post on math.stackexchange that discusses this problem
-    https://math.stackexchange.com/questions/3853557/how-to-calculate-the-length-of-cable-on-a-winch-given-the-rotations-of-the-drum
- 
-    Let's let n be the number of complete layers already laid down, and t be
-    the number of turns in the current (partial) layer, and s be the length
-    of cable currently wound on the spool. Given the other constants (drum
-    diameter, drum width, cable diameter), you'd like
- 
-    A formula that converts n,t into s
- 
-    A formula that converts s into n,t
- 
-    each of them without loops if possible, and with the property that
- 
-    if you start with some n,t, convert to s, and convert back, you get back
-    the same n,t you started with, and if you start with s, convert to
-    (n,t), and then back to s, you get the same s you started with.  Before
-    I jump into this, I want to observe that property 3 is almost impossible
-    on a computer. If you start with a number x, compute its square root,
-    and square that, you'll get back something very close to x, but not, in
-    general, actually equal to x -- they'll differ in the 10th or 12th or
-    20th digit somewhere. So testing for perfect equality of floating-point
-    numbers is always a bad idea. The most you can hope for is approximate
-    equality. Notice, however, that an error in the 20th digit in the
-    reconstructed value for s is hugely smaller than the variation in the
-    length of s due to differing loads on the winch, different temperature
-    (because everything has a temperature coefficient, even your drum!), and
-    probably amounts to something less than a wavelength of light in the
-    cable-length --- a far tinier error than you have in your measurement of
-    your (physical) drum or cable. In short: don't expect equality.
- 
-    I also want to note that I think your model of cable winding on a spool
-    is probably a bit broken --- unless the diameter of the cable is small
-    compared to the diameter of the drum, you probably want to worry about
-    the fact that individual wraps are not circles, but are helixes. And at
-    the end of a layer, the "climb up" to the next layer isn't really
-    accounted for. Perhaps none of these matters for you, but they are
-    caveats: my answer assumes that your model is a good one, and solves the
-    problems you posed within that context only.
- 
-    As I said, I'm going to answer the question you asked. Your "side note"
-    at the bottom makes me worry that this will all be of no use. It's
-    incredibly easy to change a problem from one that's easy to solve into
-    one that's impossible. Find an elementary antiderivative for x↦exp(−x)?
-    Easy. Find one for x↦exp(−x2)? Impossible. I just say this so that
-    you're warned.
- 
-    Letting w be the constant number of turns per full layer, d the drum
-    diameter, and h the rope diameter...here goes.
- 
-    To convert (n,t) into s (only valid when t≤w, of course):
- 
-    Let's start with a largish value of n, to detect a pattern:
- 
-    Total length on layer 1: w(π(d+h))
- 
-    Total length on layer 2: w(π(d+2h))
- 
-    Total length on layer 3: w(π(d+3h))
- 
-    ...
- 
-    Total length on layer (n−1): w(π(d+(n−1)h))
- 
-    Total length on layer n: w(π(d+nh))
- 
-    Total length on layer n: t(π(d+(n+1)h))
- 
-    So the total length on the first n−1 layers is
- 
-    T1=πw[(d+h)+(d+2h)+…+(d+nh)]
- 
-    Within the brackets, there are n copies of d,which I'll gather together:
- 
-    T1=πw[nd+(h+2h+…+nh)]
- 
-    and then I factor out an h to get
- 
-    T1=πw[nd+h(1+2+…+n)]
- 
-    Now I have to pull out a formula, due to Gauss, for the sum of the first
-    n positive integers, namely,
- 
-    1+2+…+n=(n(n+1))/2.
- 
-    So we can write
- 
-    T1=πw[nd+h(n(n+1)/2)]
- 
-    and then simplify to get
- 
-    T1=πwn[d+h(n+1)2].
- 
-    We add to this the total length on the (n+1)th layer, which is
-    t(π(d+(n+1)h)), and we get
- 
-    s=T1+t(π(d+(n+1)h))=πwn[d+h(n+1)/2]+t(π(d+(n+1)h))
- 
-    At this point, it's nice to divide through by π just to make things
-    prettier, and to multiply by 2 to get rid of fractions; we'll get back
-    to s in a while. So we have
- 
-    2sπ=2wn[d+h(n+1)/2]+2t(d+(n+1)h)
- 
-    and now I'm going to just do algebra to expand all of this to be a
-    nicely expressed function of n.
- 
-    2s/π=2wnd+2wnh(n+1)/2+2td+2th(n+1)
-        =2wdn+wnhn+wnh+2td+2thn+2th
-        =(wh)n2+(2wd+wh+2th)n+2td+2th
-        =(wh)n2+(2wd+wh+2th)n+2t(h+d)
- 
-    so that
- 
-    s=π/2((wh)n^2+(2wd+wh+2th)n+2t(h+d)).
- 
-    So that's part 1: you can compute the total length s wrapped up in n−1
-    layers with t more turns on the nth layer using that formula.
- 
-    I'm going to rewrite that as a sum of two terms:
- 
-    s=π/2(whn^2+(2wd+wh)n)+π/2((2th)n+t(2d+2h))
- 
-    Let's call those S1 and S2, respectively. S1 is the stuff in the first n
-    (complete) layers; S2 is the length due to the additional t turns on the
-    (n+1)st layer.
- 
-    Now suppose we have s and want to find n and t. Let's start out by
-    finding n. We need the total length of the completed layers to be no
-    more than s, i.e., we need to find the largest integer n with S1≤s. So
-    we're looking for the largest integer n with
- 
-    π/2(whn^2+(2wd+wh)n) ≤ s (1)
- 
-    Because the length of the wrapped-up rope is an increasing function of n
-    (at least for n>0, which is all we care about), we can find the real
-    number n0 that makes equation 1 into an equality --- maybe we find that
-    6.3 layers would produce our chosen value s. Well, you can't have 6.3
-    layers, but the largest whole number of layers you can have that'll fit
-    is 6 layers, and then you have to compute how many more wraps there will
-    in the 7th layer to get all the way to s. So let's change to equality in
-    equation 1, and solve:
- 
-    s = π/2(whn^2+(2wd+wh)n)
-    2s/π = whn^2+(2wd+wh)n
-    0=whn^2+(2wd+wh)n−2s/π
-    0 =An^2+Bn+C, where
-    A = wh
-    B = (2wd+wh)
-    C =−2s/π
- 
-    We can solve this with the quadratic formula, choosing the "plus" part
-    of the plus-or-minus to avoid negative values of n, and get
- 
-    2wh(n_0) = -(2wd + wh) + sqrt((2wd+wh)^2 + 8whs/π)
- 
-    That'll be some typically non-integer number, but we can compute n to be
-    the "floor" of n0, i.e., the result of rounding down to the nearest
-    whole number. (The floor of 3.8 is 3; the floor of 7 is 7.)
- 
-    Now knowing n, the number of complete layers, we know the length of the
-    cable in those layers is given by S1, i.e., it's
- 
-    s1=π/2(whn^2+(2wd+wh)n)
- 
-    Now the remaining part, s2, must be s−s1, so to find t, we need to solve
- 
-    π/2((2th)n+t(2d+2h))=s−s1
- 
-    for t. Let's do it!
- 
-    π/2((2th)n+t(2d+2h)) = s -s1
-    (2th)n+t(2d+2h) = 2/π(s-s1)
-    t(2nh)+t(2d+2h) = 2/π(s-s1)
-    t(2nh+2d+2h)
-    t = (2/π)(s−s1)/(2nh+2d+2h)
- 
-    and we're done.
- 
-    The only remaining question is whether this all works.
- 
-    It does: here's Matlab code that runs the operations both ways. THe
-    result, when this is run, is to print out 200 zeroes (i.e., the input
-    length and output lengths agree).
- 
-    ---------------------------------------------------------------------
-    function test()
-    for s = 1:200
-        [n, t] = layersAndTurns(s); 
-        sp = cableLength(n, t); 
-        s - sp  % print out the difference between the two values.
-    end
- 
-    function s = cableLength(n, t)
-    % Express total length of cable as a function of the number of complete
-    % layers, n, and the number, t, of turns on the (n+1)-st layer. Depends on 
-    % constants d = drum diameter, w = number of turns in a full layer, and 
-    % h = cable diameter. 
-    w = 10;
-    d = 20; 
-    h = 1; 
- 
-    s = (pi/2)*( w*h*n^2 + (2*w*d + w*h + 2*t*h)*n + 2*t*(h + d));
-    %s = (pi/2) * ( w*h * n^2 + (2*w*d - w*h + 2*t*h)*n + 2*(t-w)*d);
- 
-    function [n, t] = layersAndTurns(s)
-    % Given the total length of cable, determine the number, n, of full layers 
-    % on the cable drum, and the number, t, of turns on the next (unfilled)
-    % layer.  Depends on 
-    % constants d = drum diameter, w = number of turns in a full layer, and 
-    % h = cable diameter. 
-    w = 10;
-    d = 20; 
-    h = 1; 
- 
-    n0 = (-(2*w*d + w*h) + sqrt((2*w*d + w*h)^2 + 8*w*h*s/pi))/(2*w*h);
-    n = floor(n0); % The whole number of layers that fit. 
- 
-    s_1 = (pi/2) * (w * h * n^2 + (2*w*d + w*h)* n);
-    t   = (2/pi) * (s - s_1)/(2*n*h + 2*d + 2*h);
-    ---------------------------------------------------------------------
-    answered Oct 6 '20 at 16:22
- 
-    John Hughes
-    '''
+            Y_(90) = Y[11] + 0.7*(95.1990 - 95.1959) = 95.1981
+      
+        Note this algorithm will work for N > 1.
+     
+        http://code.activestate.com/recipes/511478-finding-the-percentile-of-the-values/
+        gives another algorithm, but it doesn't give the same results as the
+        NIST algorithm.
+    
+        King's book on probability plotting gave a number of such estimating functions with 
+        i/(n + 1) one of the most common and easist to use.  This works well if you have an
+        approximately linearizing function for the ordinates.
+        '''
+        if not seq:
+            return None
+        N = len(seq)
+        if N == 1:
+            raise ValueError("Sequence must have at least 2 elements")
+        fraction = max(min(fraction, 1), 0)
+        x = fraction*(N + 1)
+        k = int(x)      # Integer part of x
+        d = x - k       # Fractional part of x
+        if 0 < k < N:
+            yk = seq[k - 1]
+            y = yk + d*(seq[k] - yk)
+        elif k >= N:
+            y = seq[-1]
+        else:
+            y = seq[0]
+        return y
+    def LengthOfRopeOnDrum(dia, width, flange_dia, barrel_dia):
+        '''Return the length of rope of diameter dia that will fit on a
+        winch drum of diameter barrel_dia.  The width of winding area is
+        width and the maximum diameter of the drum's flange is flange_dia.
+        These variables are in inches and the output length is in ft.
+    
+        Here's a post on math.stackexchange that discusses this problem
+        https://math.stackexchange.com/questions/3853557/how-to-calculate-the-length-of-cable-on-a-winch-given-the-rotations-of-the-drum
+        '''
+        # Formula from Sampson Rope Users Manual pg. 28.  Note the formula
+        # is for all input variables in inches and output length in feet.
+        A = width
+        B = flange_dia
+        C = barrel_dia
+        rope_dia = dia
+        L = flt(A*(B**2 - C**2)/(15.3*rope_dia**2))
+        return L
 
 if __name__ == "__main__": 
     from lwtest import run, raises, assert_equal, Assert

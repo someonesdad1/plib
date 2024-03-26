@@ -60,7 +60,7 @@ if 1:  # Header
     # Custom imports
         from f import flt, cpx
         from wrap import dedent
-        from color import Color, TRM as t
+        from color import Color, t
     # Optional imports
         try:
             import numpy
@@ -594,16 +594,16 @@ if 1:   # Checking functions
             breakpoint()
         else:
             print(fail, file=sys.stderr)
-    def Assert(cond, debug=False, msg=""):
-        '''Similar to assert, but you'll be dropped into the debugger on an
-        exception if debug is True, Assert.debug is True, or 'Assert' is
-        a nonempty environment string.  If msg is not empty, it's printed
-        out.
+    def Assert(cond, msg="", debug=False):
+        '''Replacement for assert but it can't be optimized out.  If debug is True, Assert.debug is
+        True, or 'Assert' is a nonempty environment string, you'll be dropped into a debugger.  If
+        msg is not empty, it's printed out.
         '''
         if not cond:
             if debug or Assert.debug or os.environ.get("Assert", ""):
+                # Print colorized message to stdout and start debugger
                 if msg:
-                    print(msg, file=sys.stderr)
+                    t.print(f"{t('magl')}{msg}", file=sys.stderr)
                 print("Type 'up' to go to line that failed", file=sys.stderr)
                 breakpoint()
             else:
@@ -611,22 +611,24 @@ if 1:   # Checking functions
     Assert.debug = False
 
 if __name__ == "__main__":
+    t.h = t("lill")
+    t.w = t("whtl")
     print(dedent(f'''
-    lwtest:  Lightweight test framework -- typical usage:
+    {t('yell')}lwtest:  Lightweight test framework -- typical usage:{t.n}
         from lwtest import run, assert_equal, raises
         # Name your test functions e.g. "def Test_*()"
         if __name__ == "__main__":
-            failed, messages = run(globals())
+            {t.h}failed, messages = run(globals()){t.n}
     
-    run()'s keyword arguments (default value in square brackets):
-        broken:   If True, testing is acknowledged to be broken and a warning
-                  message to this effect is printed. [False]
-        verbose:  Print the function names as they are executed. [False]
-        halt:     Stop at the first failure.  [False]
-        regexp:   Regular expression that identifies a test function.
-                  ["{id_test_function_regexp}"]
-        reopts:   Regular expression's options. [re.I]
-        stream:   Where to send output [stdout].  None = no output.
+    {t.h}run(){t.n}'s keyword arguments (default value in square brackets):
+
+        {t.w}broken{t.n}    If True, testing is acknowledged to be broken and a warning message to this
+                  effect is printed. [False]
+        {t.w}verbose{t.n}   Print the function names as they are executed [False]
+        {t.w}halt{t.n}      Stop at the first failure [False]
+        {t.w}regexp{t.n}    Regular expression that identifies a test function ["{id_test_function_regexp}"]
+        {t.w}reopts{t.n}    Regular expression's options [re.I]
+        {t.w}stream{t.n}    Where to send output [stdout].  None = no output.
     
     Utility functions:
         Check that two numbers are close:
@@ -638,9 +640,10 @@ if __name__ == "__main__":
                 <code that must raise an exception>
         Send a colored reminder message to stdout:
             ToDoMessage(message, prefix="+", color="yel")
-        Like assert, but puts you into the debugger with cmd line arg:
-            Assert(condition)
-        Both assert_equal and Assert also include a debug keyword argument;
-        if True, you are dropped into the debugger (type 'u' to go to the 
-        line that failed).
+
+        {t.h}Assert(condition, msg){t.n}
+            Is like assert but can't be optimized out.  The debug keyword argument if True drops
+            you into the debugger if condition is False (type 'u' to go to the line that failed)
+            and msg is printed in color to stderr.  You can also get this behavior if the
+            environment variable Assert is not empty.
     '''[1:].rstrip()))

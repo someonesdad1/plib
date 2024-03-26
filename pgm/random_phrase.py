@@ -1,4 +1,11 @@
 '''
+
+ToDo
+    - The word lists are too large and can result in things that use unfamiliar words.  Divide
+      each word type into two forms:  an easily-recognizable set and the more exotic words.
+      Then the -0 option uses the easy words and -1 combines both easy and exotic into the
+      words used.
+
 Generate random phrases of words
     While the output isn't proof against a modern brute-force search, it
     can result in reasonably secure pass phrases, especially if you include

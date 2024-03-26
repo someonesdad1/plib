@@ -270,7 +270,46 @@ if 1:   # Functions
                         return f"{sign*seconds/u('millenia')} millenia"
                     else:
                         return f"{(sign*seconds/u('millenia')).sci} millenia"
-            
+    def AdjustTimeUnits(seconds, digits=3, un=False):
+        '''Convert a time in seconds to an easier to understand string.  If seconds is < 1, then
+        the returned string will be in s with an SI prefix.  If seconds is > 1, then it will be
+        converted to one of the larger time units:  
+            minutes hours days weeks months years
+        If un is true, use scientific notation instead (helpful for big SI prefixes you can't
+        remember).
+        '''
+        def P(time, units, un):
+            return f"{s.engsi}{units} = {s.sci} {units}" if un else f"{s.engsi}{units}"
+        x = flt(0)
+        with x:
+            x.N = digits
+            x.u = un
+            if seconds < 1:
+                s = flt(seconds)
+                return f"{s.engsi}s"
+            else:
+                if seconds/u("years") >= 1:
+                    s = flt(seconds/u("years"))
+                    return P(s, "years", un=un)
+                elif seconds/u("months") >= 1:
+                    s = flt(seconds/u("months"))
+                    return P(s, "months", un=un)
+                elif seconds/u("weeks") >= 1:
+                    s = flt(seconds/u("weeks"))
+                    return P(s, "weeks", un=un)
+                elif seconds/u("days") >= 1:
+                    s = flt(seconds/u("days"))
+                    return P(s, "days", un=un)
+                elif seconds/u("hours") >= 1:
+                    s = flt(seconds/u("hours"))
+                    return P(s, "hours", un=un)
+                elif seconds/u("minutes") >= 1:
+                    s = flt(seconds/u("minutes"))
+                    return P(s, "minutes", un=un)
+                else:
+                    s = flt(seconds)
+                    return P(s, "seconds", un=un)
+
 if 1:   # Convenience instances
     timer = Timer()
     fnt = FNTime()
@@ -440,11 +479,16 @@ if __name__ == "__main__":
         Assert(s == "1 century")
         s = GetET(u("millenia"))
         Assert(s == "1 millenia")
+        # AdjustTimeUnits()
+        for un in "years months weeks days hours minutes".split():
+            Assert(AdjustTimeUnits(1*u(un)) == f"1 {un}")
     retvalue, s = run(globals(), quiet=True, halt=False)
     if retvalue:
         t.print(f"{t('ornl')}Self tests failed")
         print(s.strip())
         exit(1)
+    else:
+        t.print(f"{t('grnl')}Tests passed")
     with Timer() as T:
         run(globals(), regexp="example$", quiet=True)
         #run(globals(), regexp="example$", verbose=True)

@@ -31,16 +31,15 @@ Classes to help with color use in terminals
 
     - Typical usage
 
-        from color import Color, Trm
-
-        t = Trm() print(f"{t('redl')}Error:  you need to fix this{t.n}") print(f"{t('lblu', 'wht'}
-        This is blue text in a white background")
+        from color import Color, t
+        print(f"{t('redl')}Error:  you need to fix this{t.n}")
+        print(f"{t('lblu', 'wht'} This is blue text in a white background")
 
         # The default color names are based on the resistor color code names.  Prefix with 'l' for
         # the lighter colors, 'd' for darker, and 'b' for light pastel background colors.  Run the
         # color.py file as a script to see these color names and how they render on your screen.
 
-        # The Trm instance can be called with a foreground and background color (either a name or
+        # The Trm instance t can be called with a foreground and background color (either a name or
         # Color instance) and an optional attribute (e.g., for italics).  The t.n value means to
         # return to the default color.  You can store escape sequences as attributes:
 
@@ -90,6 +89,7 @@ Classes to help with color use in terminals
                 - r = (R1 + R2)/2
                 - dX = X1 - X2
                 - d**2 = (2 + r/256)*dR**2 + 4*dG**2 + (2 + (255 - r)/256)*dB**2 
+            - ColorDistance() is a simple Euclidean distance in RGB space using an integer square root.
  
     References
         - http://color.lukas-stratmann.com/  Nice web pages to help visualize a few color
@@ -3124,6 +3124,7 @@ if __name__ == "__main__":
         Usage:  {sys.argv[0]} [options] [cmd]
           cmd
            d    Show demo
+           l    List short names with various Color constructor arguments
            s    Show short names, attributes [default action for empty cmd]
            t4   Show 4-bit color table
            t8   Show 8-bit color table
@@ -3149,7 +3150,7 @@ if __name__ == "__main__":
         ShortNames()
         print()
         ShowAttributes()
-        print("\nUse d for examples, 't[4|8|24]' for color table")
+        print("\nUse d for examples, 't[4|8|24]' for color table, l for short name properties,")
         print("otherwise interpret the color specifier")
     elif first_char == "t":     # Show 4, 8, or 24 bit color table
         ColorTable(int(cmds[0][1:]))
