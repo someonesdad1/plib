@@ -1,54 +1,59 @@
 '''
 Various formulas from Meeus, "Astronomical Algorithms", 2nd ed.  
 '''
-if 1:  # Copyright, license
-    # These "trigger strings" can be managed with trigger.py
-    #∞copyright∞# Copyright (C) 1999, 2014, 2020 Don Peterson #∞copyright∞#
-    #∞contact∞# gmail.com@someonesdad1 #∞contact∞#
-    #∞license∞#
-    #   Licensed under the Open Software License version 3.0.
-    #   See http://opensource.org/licenses/OSL-3.0.
-    #∞license∞#
-    #∞what∞#
-    # <science> Various astronomical formulas from Meeus, "Astronomical
-    # Algorithms", 2nd ed.  
-    #∞what∞#
-    #∞test∞# run #∞test∞#
-    pass
-if 1:   # Imports
-    import sys
-    import operator
-    import datetime
-    import functools
-    from math import pi, floor, sqrt, sin, cos, tan, asin, acos, atan, atan2
-    from math import fabs, fmod, radians, degrees, ceil, log10
-if 1:   # Global variables
-    reduce = functools.reduce
-    class Global:   # Constants
+if 1:  # Header
+    if 1:  # Copyright, license
+        # These "trigger strings" can be managed with trigger.py
+        #∞copyright∞# Copyright (C) 1999, 2014, 2020 Don Peterson #∞copyright∞#
+        #∞contact∞# gmail.com@someonesdad1 #∞contact∞#
+        #∞license∞#
+        #   Licensed under the Open Software License version 3.0.
+        #   See http://opensource.org/licenses/OSL-3.0.
+        #∞license∞#
+        #∞what∞#
+        # <science> Various astronomical formulas from Meeus, "Astronomical
+        # Algorithms", 2nd ed.  
+        #∞what∞#
+        #∞test∞# run #∞test∞#
         pass
-    G = Global()
-    G.earth_equatorial_radius_km = 6378.14
-    G.earth_flattening = f = 1/298.257
-    G.earth_meridian_eccentricity = sqrt(2*f - f*f)
-    del f
-    G.minimum_year = -4712
-    # Days in months (February handled specially because of leap years)
-    months = {
-        1: 31, 
-        3: 31,
-        4: 30,
-        5: 31,
-        6: 30,
-        7: 31,
-        8: 31,
-        9: 30,
-        10: 31,
-        11: 30,
-        12: 31
-    }
-def IsInt(x, msg):
-    'Check that x is an integer'
-    assert isinstance(x, int), msg
+    if 1:   # Imports
+        import sys
+        import operator
+        import datetime
+        import functools
+        from math import pi, floor, sqrt, sin, cos, tan, asin, acos, atan, atan2
+        from math import fabs, fmod, radians, degrees, ceil, log10
+    if 1:   # Global variables
+        reduce = functools.reduce
+        class Global:   # Constants
+            pass
+        G = Global()
+        G.earth_equatorial_radius_km = 6378.14
+        G.earth_flattening = f = 1/298.257
+        G.earth_meridian_eccentricity = sqrt(2*f - f*f)
+        del f
+        G.minimum_year = -4712
+        # Days in months (February handled specially because of leap years)
+        months = {
+            1: 31, 
+            3: 31,
+            4: 30,
+            5: 31,
+            6: 30,
+            7: 31,
+            8: 31,
+            9: 30,
+            10: 31,
+            11: 30,
+            12: 31
+        }
+if 1:   # Utility
+    def Error(*msg, status=1):
+        print(*msg, file=sys.stderr)
+        exit(status)
+    def IsInt(x, msg):
+        'Check that x is an integer'
+        assert isinstance(x, int), msg
 def MDY2ISO(month, day, year):
     '''Returns an integer in the ISO form YYYYMMDD.  month and year
     must be integers.  day can be a float; it is truncated to an
@@ -171,11 +176,8 @@ def IsValidGregorianDate(month, day, year):
     except ValueError:
         return False
 def JulianAstro(month, day, year):
-    '''Page 60.  Returns the astronomical Julian day number which is a
-    floating point number that is zero at Greenwich mean noon.  The
-    Julian() function returns the more usual Julian day as an integer;
-    it is gotten from the astronomical form by adding 0.55 and taking
-    the integer part.
+    '''Page 60.  Returns the astronomical Julian day number which is a floating point number whose
+    decimal fraction part is zero at Greenwich mean noon.
     '''
     CheckIntegerDate(month, day, year, decimal_day=True)
     assert year >= G.minimum_year
@@ -183,7 +185,7 @@ def JulianAstro(month, day, year):
     if M in (1, 2):
         Y -= 1
         M += 12
-    A = int(Y/100.0)
+    A = int(Y/100)
     tmp = year + month/100 + day/10000
     B = 0 if tmp < 1582.1015 else 2 - A + int(A/4)      # B==0 ==> Julian cal.
     julian = int(365.25*(Y + 4716)) + int(30.6001*(M + 1)) + D + B - 1524.5
@@ -779,20 +781,16 @@ def EquationOfTime(jd):
          y*y/2*sin(4*L0) - 5/4*e*e*sin(2*M))
     return E
 def KeplerEquation(e, M, reltol=0):
-    '''Returns eccentric anomaly E in radians by solving Kepler's
-    equation 30.5 pg 195 via Sinnott's binary search algorithm on page
-    206.  e is orbital eccentricity (dimensionless) and M is the mean
-    anomaly in radians.  Meeus gives the number of iterations required
-    as 3.32*digits, where digits is the platform's number of floating
-    point digits.
+    '''Returns eccentric anomaly E in radians by solving Kepler's equation 30.5 pg 195 via
+    Sinnott's binary search algorithm on page 206.  e is orbital eccentricity (dimensionless) and M
+    is the mean anomaly in radians.  Meeus gives the number of iterations required as 3.32*digits,
+    where digits is the platform's number of floating point digits.
  
-    I've typed the BASIC algorithm in mostly verbatim and translated it
-    to python.  The numbers in the comments are the line numbers of the
-    BASIC code.
+    I've typed the BASIC algorithm in mostly verbatim and translated it to python.  The numbers in
+    the comments are the line numbers of the BASIC code.
  
-    I've modified the program by stopping at a desired relative
-    tolerance between iterations.  Note if you set e.g. reltol to
-    about 1e-15 or less, the algorithm won't get any better -- it will
+    I've modified the program by stopping at a desired relative tolerance between iterations.  Note
+    if you set e.g. reltol to about 1e-15 or less, the algorithm won't get any better -- it will
     just run its normal number of iterations.
     '''
     P1 = pi                                 # 100
@@ -809,7 +807,8 @@ def KeplerEquation(e, M, reltol=0):
     E0 = P1/2                               # 170
     D = P1/4                                # 170
     Elast = E0/2
-    for J in range(KeplerEquation.N):       # 180
+    max_iterations = ceil(sys.float_info.dig/log10(2))  # Typically == 50
+    for J in range(max_iterations):         # 180
         M1 = E0 - e*sin(E0)                 # 190
         E0 = E0 + D*SGN(M - M1)             # 200
         D = D/2                             # 200
@@ -820,11 +819,9 @@ def KeplerEquation(e, M, reltol=0):
     #NEXT J                                 # 210
     E0 = E0*F                               # 220
     return E0
-KeplerEquation.N = ceil(sys.float_info.dig/log10(2))
+
 if __name__ == "__main__": 
-    import sys
-    from lwtest import run, assert_equal, raises, Assert
-    from pdb import set_trace as xx
+    from lwtest import run, raises, Assert
     def TestAngularSeparation():
         # Page 110:  Angular separation
         ra1 = radians(213.9154)
@@ -832,22 +829,22 @@ if __name__ == "__main__":
         ra2 = radians(201.2983)
         dec2 = radians(-11.1614)
         d = AngularSeparation(ra1, dec1, ra2, dec2)
-        assert(fabs(degrees(d) - 32.7930) < 1e-4)
+        Assert(fabs(degrees(d) - 32.7930) < 1e-4)
     def TestSiderealTime():
         # Page 88 and 89:  Sidereal time
         d = 10 + (19 + 21/60.)/24   # Example 12.b
         t = MeanSiderealTime(4, d, 1987)
         expected = 8 + 34./60 + 57.0896/3600
-        assert(t - expected < 1e-10)
+        Assert(t - expected < 1e-10)
         t = MeanSiderealTime(4, 10, 1987)
         h, m, s = hr2hms(t)
-        assert(h == 13 and m == 10)
-        assert(fabs(s - 46.3668) < 0.0001)
+        Assert(h == 13 and m == 10)
+        Assert(fabs(s - 46.3668) < 0.0001)
         t = ApparentSiderealTime(4, 10, 1987)
         h, m, s = hr2hms(t)
-        assert(h == 13 and m == 10)
+        Assert(h == 13 and m == 10)
         expected = 46.1351  # Example 12.a bottom
-        assert(fabs(s - expected) < 0.01)
+        Assert(fabs(s - expected) < 0.01)
     def TestCheckIntegerDate():
         # Bad month
         raises(ValueError, CheckIntegerDate, 13, 1, 1)
@@ -866,8 +863,8 @@ if __name__ == "__main__":
         CheckIntegerDate(12, 30.1, 2000, decimal_day=True)
     def TestDayOfYear2MDY():
         # Page 65:  Day of the year
-        assert(DayOfYear2MDY(113, 1988) == (4, 22, 1988))
-        assert(DayOfYear2MDY(318, 1978) == (11, 14, 1978))
+        Assert(DayOfYear2MDY(113, 1988) == (4, 22, 1988))
+        Assert(DayOfYear2MDY(318, 1978) == (11, 14, 1978))
     def TestEarthSurfaceDistance():
         # Page 85:  Distance between points in France & USNO
         long1 = dms2rad(-2, 20, 14)
@@ -875,22 +872,22 @@ if __name__ == "__main__":
         long2 = dms2rad(77, 3, 56)
         lat2 = dms2rad(38, 55, 17)
         d = EarthSurfaceDistance(lat1, long1, lat2, long2)
-        assert(fabs(d - 6181.63) <= .05)
+        Assert(fabs(d - 6181.63) <= .05)
     def TestLongitudinalDistance():
         # Page 83:  distance along a line of constant latitude
         latitude = dms2rad(42, 0, 0)
         angle = dms2rad(1, 0, 0)
         d = LongitudinalDistance(latitude, angle)
-        assert(fabs(d - 82.8508) < 0.0001)
+        Assert(fabs(d - 82.8508) < 0.0001)
         # Page 84:  distance along a line of constant longitude
         latitude = dms2rad(42, 0, 0)
         angle = dms2rad(1, 0, 0)
         d = LatitudinalDistance(latitude, angle)
-        assert(fabs(d - 111.0733) < 0.0001)
+        Assert(fabs(d - 111.0733) < 0.0001)
     def TestUT2DT():
         # Page 78:  Correction to universal time to get dynamical time
-        assert(fabs(UT2DT(1977) - 48) < 1)
-        assert(fabs(UT2DT(333) - 6146) < 1)
+        Assert(fabs(UT2DT(1977) - 48) < 1)
+        Assert(fabs(UT2DT(333) - 6146) < 1)
     def TestLinearRegression():
         # Page 40:  Linear regression
         x = (73, 38, 35, 42, 78, 68, 74, 42, 52, 54, 39,
@@ -899,54 +896,54 @@ if __name__ == "__main__":
             131.3, 98.5, 144.8, 78.1, 89.5, 63.9, 112.1, 82.0, 119.8,
             161.2, 208.4, 111.6, 167.1, 162.1)
         slope, intercept, r = LinearRegression(x, y)
-        assert(fabs(slope + 2.49) < .01)
-        assert(fabs(intercept - 244.18) < .01)
-        assert(fabs(r + 0.767) < .001)
+        Assert(fabs(slope + 2.49) < .01)
+        Assert(fabs(intercept - 244.18) < .01)
+        Assert(fabs(r + 0.767) < .001)
     def TestJulian():
         # Page 59:  Julian day and associated routines
-        assert(JulianAstro(10, 4.81, 1957) == 2436116.31)
-        assert(JulianAstro(1, 27.5, 333) == 1842713.0)
-        assert(JulianAstro(1, 1.5, -4712) == 0.0)
-        assert(DayOfWeek(11, 13, 1949) == 0)
-        assert(DayOfWeek(5, 30, 1998) == 6)
-        assert(DayOfYear(11, 14, 1978) == 318)
-        assert(DayOfYear(4, 22, 1980) == 113)
+        Assert(JulianAstro(10, 4.81, 1957) == 2436116.31)
+        Assert(JulianAstro(1, 27.5, 333) == 1842713.0)
+        Assert(JulianAstro(1, 1.5, -4712) == 0.0)
+        Assert(DayOfWeek(11, 13, 1949) == 0)
+        Assert(DayOfWeek(5, 30, 1998) == 6)
+        Assert(DayOfYear(11, 14, 1978) == 318)
+        Assert(DayOfYear(4, 22, 1980) == 113)
         month, day, year = JulianToMonthDayYear(2436116.31)
-        assert(month == 10)
-        assert(year == 1957)
-        assert(abs(day - 4.81) < 0.00001)
+        Assert(month == 10)
+        Assert(year == 1957)
+        Assert(abs(day - 4.81) < 0.00001)
         month, day, year = JulianToMonthDayYear(1842713.0)
-        assert(month == 1)
-        assert(year == 333)
-        assert(abs(day - 27.5) < 0.00001)
+        Assert(month == 1)
+        Assert(year == 333)
+        Assert(abs(day - 27.5) < 0.00001)
         month, day, year = JulianToMonthDayYear(1507900.13)
-        assert(month == 5)
-        assert(year == -584)
-        assert(abs(day - 28.63) < 0.00001)
-        assert(NumDaysInMonth(1, 1999) == 31)
-        assert(NumDaysInMonth(2, 1999) == 28)
-        assert(NumDaysInMonth(3, 1999) == 31)
-        assert(NumDaysInMonth(4, 1999) == 30)
-        assert(NumDaysInMonth(5, 1999) == 31)
-        assert(NumDaysInMonth(6, 1999) == 30)
-        assert(NumDaysInMonth(7, 1999) == 31)
-        assert(NumDaysInMonth(8, 1999) == 31)
-        assert(NumDaysInMonth(9, 1999) == 30)
-        assert(NumDaysInMonth(10, 1999) == 31)
-        assert(NumDaysInMonth(11, 1999) == 30)
-        assert(NumDaysInMonth(12, 1999) == 31)
-        assert(NumDaysInMonth(1, 2000) == 31)
-        assert(NumDaysInMonth(2, 2000) == 29)
-        assert(NumDaysInMonth(3, 2000) == 31)
-        assert(NumDaysInMonth(4, 2000) == 30)
-        assert(NumDaysInMonth(5, 2000) == 31)
-        assert(NumDaysInMonth(6, 2000) == 30)
-        assert(NumDaysInMonth(7, 2000) == 31)
-        assert(NumDaysInMonth(8, 2000) == 31)
-        assert(NumDaysInMonth(9, 2000) == 30)
-        assert(NumDaysInMonth(10, 2000) == 31)
-        assert(NumDaysInMonth(11, 2000) == 30)
-        assert(NumDaysInMonth(12, 2000) == 31)
+        Assert(month == 5)
+        Assert(year == -584)
+        Assert(abs(day - 28.63) < 0.00001)
+        Assert(NumDaysInMonth(1, 1999) == 31)
+        Assert(NumDaysInMonth(2, 1999) == 28)
+        Assert(NumDaysInMonth(3, 1999) == 31)
+        Assert(NumDaysInMonth(4, 1999) == 30)
+        Assert(NumDaysInMonth(5, 1999) == 31)
+        Assert(NumDaysInMonth(6, 1999) == 30)
+        Assert(NumDaysInMonth(7, 1999) == 31)
+        Assert(NumDaysInMonth(8, 1999) == 31)
+        Assert(NumDaysInMonth(9, 1999) == 30)
+        Assert(NumDaysInMonth(10, 1999) == 31)
+        Assert(NumDaysInMonth(11, 1999) == 30)
+        Assert(NumDaysInMonth(12, 1999) == 31)
+        Assert(NumDaysInMonth(1, 2000) == 31)
+        Assert(NumDaysInMonth(2, 2000) == 29)
+        Assert(NumDaysInMonth(3, 2000) == 31)
+        Assert(NumDaysInMonth(4, 2000) == 30)
+        Assert(NumDaysInMonth(5, 2000) == 31)
+        Assert(NumDaysInMonth(6, 2000) == 30)
+        Assert(NumDaysInMonth(7, 2000) == 31)
+        Assert(NumDaysInMonth(8, 2000) == 31)
+        Assert(NumDaysInMonth(9, 2000) == 30)
+        Assert(NumDaysInMonth(10, 2000) == 31)
+        Assert(NumDaysInMonth(11, 2000) == 30)
+        Assert(NumDaysInMonth(12, 2000) == 31)
     def TestTransformationOfCoordinates():
         # Page 95:  Transformation of coordinates
         jd = JulianAstro(4, 10 + (19 + 21/60.)/24, 1987)
@@ -955,8 +952,8 @@ if __name__ == "__main__":
         ra = hms2rad(23, 9, 16.641)
         dec = dms2rad(-6, 43, 11.61)
         azimuth, altitude = LocalCoordinates(latitude, longitude, ra, dec, jd)
-        assert(fabs(azimuth - 248.03) < 0.01)
-        assert(fabs(altitude - 15.12) < 0.01)
+        Assert(fabs(azimuth - 248.03) < 0.01)
+        Assert(fabs(altitude - 15.12) < 0.01)
     def TestPrecession():
         # Page 135:  Precession
         ra0 = hms2rad(2, 44, 11.986)
@@ -967,8 +964,8 @@ if __name__ == "__main__":
         jd = 2462088.69
         ra, dec = Precession(jd, jd0, ra0, dec0, pm_ra, pm_dec)
         eps = 2e-6
-        assert(fabs(degrees(ra) - 41.547214) < eps)
-        assert(fabs(degrees(dec) - 49.348483) < eps)
+        Assert(fabs(degrees(ra) - 41.547214) < eps)
+        Assert(fabs(degrees(dec) - 49.348483) < eps)
     def TestPolarisPrecession():
         # For Polaris
         ra0 = hms2rad(2, 31, 48.704)
@@ -979,58 +976,58 @@ if __name__ == "__main__":
         jd = JulianAstro(1, 1, 2050)
         ra, dec = Precession(jd, jd0, ra0, dec0, pm_ra, pm_dec)
         h, m, s = rad2hms(ra)
-        assert(h == 3 and m == 48 and fabs(s - 16.427) < 0.01)
+        Assert(h == 3 and m == 48 and fabs(s - 16.427) < 0.01)
         d, m, s = rad2dms(dec)
-        assert(d == 89 and m == 27 and fabs(s - 15.375) < 0.01)
+        Assert(d == 89 and m == 27 and fabs(s - 15.375) < 0.01)
     def TestEclipticObliquity():
         # Page 148:  obliquity of the ecliptic
         d, m, s = rad2dms(EclipticObliquity(2446895.5))
-        assert(d == 23 and m == 26 and fabs(s - 27.407) < 0.01)
+        Assert(d == 23 and m == 26 and fabs(s - 27.407) < 0.01)
         d_psi, d_eps = Nutation(2446895.5)
-        assert(fabs(d_psi + radians(3.788/3600)) < radians(0.5/3600))
-        assert(fabs(d_eps - radians(9.443/3600)) < radians(0.1/3600))
+        Assert(fabs(d_psi + radians(3.788/3600)) < radians(0.5/3600))
+        Assert(fabs(d_eps - radians(9.443/3600)) < radians(0.1/3600))
         # Page 147:  Obliquity of the ecliptic; example 28.b pg 185.
         eps = EclipticObliquity(JulianAstro(10, 13, 1992))
-        assert(fabs(degrees(eps) - 23.44023) < 1e-5)
+        Assert(fabs(degrees(eps) - 23.44023) < 1e-5)
         jd = JulianAstro(1, 1, 2050)
     def TestSunPosition():
         # Page 165:  solar coordinates
         ra, dec = SunPosition(2448908.5, apparent=0)
-        assert(fabs(degrees(ra) - 198.38) < 0.01)
-        assert(fabs(degrees(dec) + 7.785) < 0.001)
+        Assert(fabs(degrees(ra) - 198.38) < 0.01)
+        Assert(fabs(degrees(dec) + 7.785) < 0.001)
     def TestEquationOfTime():
         # Page 183:  Equation of Time; example 28.b pg 185
         jd = JulianAstro(10, 13, 1992)
-        assert(fabs(EquationOfTime(jd) - 0.059825572) < 1e-8)
+        Assert(fabs(EquationOfTime(jd) - 0.059825572) < 1e-8)
     def TestSunMeanLongitude():
         # Page 183:  Sun's mean longitude; example 28.b pg 185
         T = (JulianAstro(10, 13, 1992) - 2451545)/36525
         L0 = SunMeanLongitude(T)            # In radians
-        assert(fabs(degrees(L0) - 201.80720) < 1e-5)
+        Assert(fabs(degrees(L0) - 201.80720) < 1e-5)
     def TestEarthOrbitEccentricity():
         # Page 163:  Eccentricity of Earth's orbit; example 28.b pg 185.
         T = (JulianAstro(10, 13, 1992) - 2451545)/36525
         e = EarthOrbitEccentricity(T)
-        assert(fabs(e - 0.016711668) < 1e-9)
+        Assert(fabs(e - 0.016711668) < 1e-9)
     def TestSunMeanAnomaly():
         # Page 163:  Sun's mean anomaly; example 28.b pg 185.
         T = (JulianAstro(10, 13, 1992) - 2451545)/36525
         M = degrees(SunMeanAnomaly(T))
-        assert(fabs(M - 278.99397) < 1e-5)
+        Assert(fabs(M - 278.99397) < 1e-5)
     def TestKeplerEquation():
         # Page 195:  Kepler's equation
         e, M = 0.1, radians(5)  # Example 30.a pg 196
-        assert(fabs(degrees(KeplerEquation(e, M)) - 5.554589) < 1e-6)
+        Assert(fabs(degrees(KeplerEquation(e, M)) - 5.554589) < 1e-6)
         e, M = 0.99, 0.2  # Example 30.a pg 196
-        assert(fabs(KeplerEquation(e, M) - 1.066997365282) < 1e-12)
+        Assert(fabs(KeplerEquation(e, M) - 1.066997365282) < 1e-12)
     def TestSignum():
         # Signum function
-        assert(SGN(5) == 1)
-        assert(SGN(0) == 0)
-        assert(SGN(-5) == -1)
-        assert(SGN(5.0) == 1)
-        assert(SGN(0.0) == 0)
-        assert(SGN(-5.0) == -1)
+        Assert(SGN(5) == 1)
+        Assert(SGN(0) == 0)
+        Assert(SGN(-5) == -1)
+        Assert(SGN(5.0) == 1)
+        Assert(SGN(0.0) == 0)
+        Assert(SGN(-5.0) == -1)
     def TestSunriseSunset():
         # Sunrise & sunset for Alamo, CA on 15 Dec 2012.  Correct values
         # come from http://www.sunrisesunset.com/ (I prefer to use the
@@ -1049,119 +1046,119 @@ if __name__ == "__main__":
             set += 24
         hr = int(rise)
         min = int((rise - hr)*60 + 0.5)
-        assert(hr == 7 and abs(min - 16) < 1)
+        Assert(hr == 7 and abs(min - 16) < 1)
         hr = int(set)
         min = int((set - hr)*60 + 0.5)
-        assert(hr == 16 and abs(min - 50) < 1)
+        Assert(hr == 16 and abs(min - 50) < 1)
     def TestIsDST():
         # IsDST:  Test cases from
         # http://www.webexhibits.org/daylightsaving/b.html accessed Mon 19
         # May 2014 09:23:55 AM.
         M, D, Y = 3, 14, 2010
-        assert(IsDST(M, D, Y))
-        assert(not IsDST(M, D-1, Y))
+        Assert(IsDST(M, D, Y))
+        Assert(not IsDST(M, D-1, Y))
         M, D, Y = 11, 7, 2010
-        assert(not IsDST(M, D, Y))
-        assert(IsDST(M, D-1, Y))
+        Assert(not IsDST(M, D, Y))
+        Assert(IsDST(M, D-1, Y))
         M, D, Y = 3, 13, 2011
-        assert(IsDST(M, D, Y))
-        assert(not IsDST(M, D-1, Y))
+        Assert(IsDST(M, D, Y))
+        Assert(not IsDST(M, D-1, Y))
         M, D, Y = 11, 6, 2011
-        assert(not IsDST(M, D, Y))
-        assert(IsDST(M, D-1, Y))
+        Assert(not IsDST(M, D, Y))
+        Assert(IsDST(M, D-1, Y))
         M, D, Y = 3, 11, 2012
-        assert(IsDST(M, D, Y))
-        assert(not IsDST(M, D-1, Y))
+        Assert(IsDST(M, D, Y))
+        Assert(not IsDST(M, D-1, Y))
         M, D, Y = 11, 4, 2012
-        assert(not IsDST(M, D, Y))
-        assert(IsDST(M, D-1, Y))
+        Assert(not IsDST(M, D, Y))
+        Assert(IsDST(M, D-1, Y))
         M, D, Y = 3, 10, 2013
-        assert(IsDST(M, D, Y))
-        assert(not IsDST(M, D-1, Y))
+        Assert(IsDST(M, D, Y))
+        Assert(not IsDST(M, D-1, Y))
         M, D, Y = 11, 3, 2013
-        assert(not IsDST(M, D, Y))
-        assert(IsDST(M, D-1, Y))
+        Assert(not IsDST(M, D, Y))
+        Assert(IsDST(M, D-1, Y))
         M, D, Y = 3, 9, 2014
-        assert(IsDST(M, D, Y))
-        assert(not IsDST(M, D-1, Y))
+        Assert(IsDST(M, D, Y))
+        Assert(not IsDST(M, D-1, Y))
         M, D, Y = 11, 2, 2014
-        assert(not IsDST(M, D, Y))
-        assert(IsDST(M, D-1, Y))
+        Assert(not IsDST(M, D, Y))
+        Assert(IsDST(M, D-1, Y))
         M, D, Y = 3, 8, 2015
-        assert(IsDST(M, D, Y))
-        assert(not IsDST(M, D-1, Y))
+        Assert(IsDST(M, D, Y))
+        Assert(not IsDST(M, D-1, Y))
         M, D, Y = 11, 1, 2015
-        assert(not IsDST(M, D, Y))
-        assert(IsDST(10, 31, Y))
+        Assert(not IsDST(M, D, Y))
+        Assert(IsDST(10, 31, Y))
         M, D, Y = 3, 13, 2016
-        assert(IsDST(M, D, Y))
-        assert(not IsDST(M, D-1, Y))
+        Assert(IsDST(M, D, Y))
+        Assert(not IsDST(M, D-1, Y))
         M, D, Y = 11, 6, 2016
-        assert(not IsDST(M, D, Y))
-        assert(IsDST(M, D-1, Y))
+        Assert(not IsDST(M, D, Y))
+        Assert(IsDST(M, D-1, Y))
     def TestTimeOfMoonPhase():
         yr = 1977.13    # Example 49.a, p 353
         t = TimeOfMoonPhase(yr, quarter=0)
-        assert(abs(t - 2443192.65118) < 0.00001)
+        Assert(abs(t - 2443192.65118) < 0.00001)
         yr = 2044       # Example 49.b, p 353
         t = TimeOfMoonPhase(yr, quarter=3)
-        assert(abs(t - 2467636.49186) < 0.00001)
+        Assert(abs(t - 2467636.49186) < 0.00001)
     def Test_dms2rad():
         d, m, s = 22, 30, 30
         t_rad = radians(d + m/60 + s/3600)
-        assert(t_rad == dms2rad(d, m, s))
+        Assert(t_rad == dms2rad(d, m, s))
     def Test_hms2rad():
         h, m, s = 22, 30, 30
         hrs = h + m/60.0 + s/3600.0
         t_deg = hrs*15
         t_rad = radians(t_deg)
-        assert(t_rad == hms2rad(h, m, s))
+        Assert(t_rad == hms2rad(h, m, s))
     def Test_hr2hms():
         hr, hms = 12.5822222222, 12.3456
         h, m, s = hr2hms(hr)
         hms1 = h + m/1e2 + s/1e4
-        assert(abs(hms - hms1) < 0.0001)
+        Assert(abs(hms - hms1) < 0.0001)
     def TestIsLeapYear():
-        assert(IsLeapYear(1600))
-        assert(IsLeapYear(2000))
-        assert(IsLeapYear(2004))
-        assert(IsLeapYear(2400))
-        assert(not IsLeapYear(1700))
-        assert(not IsLeapYear(1800))
-        assert(not IsLeapYear(1900))
-        assert(not IsLeapYear(2100))
-        assert(not IsLeapYear(2200))
+        Assert(IsLeapYear(1600))
+        Assert(IsLeapYear(2000))
+        Assert(IsLeapYear(2004))
+        Assert(IsLeapYear(2400))
+        Assert(not IsLeapYear(1700))
+        Assert(not IsLeapYear(1800))
+        Assert(not IsLeapYear(1900))
+        Assert(not IsLeapYear(2100))
+        Assert(not IsLeapYear(2200))
     def TestIsValidGregorianDate():
-        assert(IsValidGregorianDate(1, 1, 1583))
-        assert(IsValidGregorianDate(12, 31, 1583))
-        assert(not IsValidGregorianDate(1, 1, 1582))
-        assert(not IsValidGregorianDate(1, 32, 2000))
+        Assert(IsValidGregorianDate(1, 1, 1583))
+        Assert(IsValidGregorianDate(12, 31, 1583))
+        Assert(not IsValidGregorianDate(1, 1, 1582))
+        Assert(not IsValidGregorianDate(1, 32, 2000))
     def TestNormalize():
-        assert(Normalize(0, degrees=True) == 0)
-        assert(Normalize(1, degrees=True) == 1)
-        assert(Normalize(361, degrees=True) == 1)
-        assert(Normalize(-1, degrees=True) == 359)
-        assert(Normalize(0) == 0)
-        assert(Normalize(-pi/2) == 3*pi/2)
-        assert(Normalize(-pi) == pi)
+        Assert(Normalize(0, degrees=True) == 0)
+        Assert(Normalize(1, degrees=True) == 1)
+        Assert(Normalize(361, degrees=True) == 1)
+        Assert(Normalize(-1, degrees=True) == 359)
+        Assert(Normalize(0) == 0)
+        Assert(Normalize(-pi/2) == 3*pi/2)
+        Assert(Normalize(-pi) == pi)
     def Test_product():
         a = (1, 2, 3, 4, 5, 6)
-        assert(product(a) == 720)
+        Assert(product(a) == 720)
     def Test_rad2dms():
-        assert(dms2rad(*rad2dms(pi/6)) == pi/6)
+        Assert(dms2rad(*rad2dms(pi/6)) == pi/6)
     def Test_rad2hms():
-        assert(hms2rad(*rad2hms(pi/6)) == pi/6)
+        Assert(hms2rad(*rad2hms(pi/6)) == pi/6)
     def Test_SGN():
-        assert(SGN(-5) == -1)
-        assert(SGN(-1) == -1)
-        assert(SGN(0) == 0)
-        assert(SGN(1) == 1)
-        assert(SGN(5) == 1)
-        assert(SGN(-5.) == -1)
-        assert(SGN(-1.) == -1)
-        assert(SGN(0.) == 0)
-        assert(SGN(1.) == 1)
-        assert(SGN(5.) == 1)
+        Assert(SGN(-5) == -1)
+        Assert(SGN(-1) == -1)
+        Assert(SGN(0) == 0)
+        Assert(SGN(1) == 1)
+        Assert(SGN(5) == 1)
+        Assert(SGN(-5.) == -1)
+        Assert(SGN(-1.) == -1)
+        Assert(SGN(0.) == 0)
+        Assert(SGN(1.) == 1)
+        Assert(SGN(5.) == 1)
     def Test_JD():
         D = (   # jd, m, d for 2000 (a leap year)
             (1, 1, 1), (2, 1, 2), (3, 1, 3), (4, 1, 4), (5, 1, 5), (6, 1, 6),
@@ -1253,9 +1250,9 @@ if __name__ == "__main__":
         )
         yr = 2000
         for jd, m, d in D:
-            assert(jd == JD(*JD2MDY(jd, yr)))
+            Assert(jd == JD(*JD2MDY(jd, yr)))
     def Test_MDY2ISO():
-        assert(MDY2ISO(1, 1, 2014) == 20140101)
-        assert(MDY2ISO(12, 31, 2014) == 20141231)
+        Assert(MDY2ISO(1, 1, 2014) == 20140101)
+        Assert(MDY2ISO(12, 31, 2014) == 20141231)
         raises(ValueError, MDY2ISO, 12, 32, 2014)
     exit(run(globals(), halt=1)[0])
