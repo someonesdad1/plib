@@ -1,12 +1,28 @@
 '''
 
 TODO
-    - Change to modern color.py
-        - Print a color code at end
+    - Change to '-f num' to pick dict, as -0 to -5 is too many
+        - Better, give them names:  easy, hs, college, univ
+    - Use dicts in /words
+    - Fix color
+        - Print a color code at end when -w is used
+        - Use new colors; original choices are harsh
     - -v doesn't limit to verbs and seems to take a long time: 'dict -cv black'.  'dict -cn black'
       doesn't show just nouns.
     - 'dict -a black' fails.
     - Figure out how to add in the information from words_syllables.py.
+    - Fix -H
+        - Discuss dicts
+        - Describe common use cases
+            - -@ for spell checking a file (-s to see words not in dict, -S for words in dict)
+            - For -S spell checking, it could be handy to print the words out in different colors
+              depending on which dicts they come from.  Examples:  skyl for grammar school words,
+              denl for high school, ornl for college, redl for hard.
+                - This would be implemented by sets of words "easy", "hs", "college", "hard".  The
+                  union of these sets would be the univ dict.
+                - This could be used with a reading ease level to flag words that are considered
+                  outside.  -l 0 would be easy, -l 1 would be hs, etc.  For words outside the
+                  desired level, a lookup could find synonyms that could be substituted.
 
 Script to look up words in various dictionaries.  For a demo of capabilities, try
 
@@ -364,7 +380,7 @@ def ParseCommandLine(d):
         if o == "-i":
             d[o] = ""
         elif o == "-h":
-            Usage(d, status=0)
+            Usage()
     if d["-@"]:
         d["-s"] = True
     if d["-w"]:
@@ -378,7 +394,7 @@ def ParseCommandLine(d):
     if d["-s"]:
         return args
     if not args:
-        Usage(d)
+        Usage()
     else:
         if len(args) > 1:
             # Combine the words with underscores and use the -d option to
@@ -388,20 +404,18 @@ def ParseCommandLine(d):
             return '_'.join(args)
         else:
             return args[0]
-def Usage(d, status=1):
+def Usage():
     which = d["which_dict"]
     print(dedent(f'''
     Usage:  {sys.argv[0]} [options] regexp
-      Look up a regular expression in a dictionary of words (case-
-      insensitive search by default).  If you search the WordNet dictionary,
-      use an underscore for the space character (use -c to exclude them).
-      The -w option provides the ability to search the list of words from
-      WordNet and see synonyms and definitions.  
+      Look up a regular expression in a dictionary of words (case-insensitive search by default).
+      If you search the WordNet dictionary, use an underscore for the space character (use -c to
+      exclude them).  The -w option provides the ability to search the list of words from WordNet
+      and see synonyms and definitions.  
     
-      The -s option is used to look up all the words on the command line
-      (they are plain text, not regular expressions).  Any words not (-s) or
-      are (-S) in the indicated dictionary are printed out.  Use -@ to read
-      stdin for words one line at a time.
+      The -s option is used to look up all the words on the command line (they are plain text, not
+      regular expressions).  Any words not (-s) or are (-S) in the indicated dictionary are printed
+      out.  Use -@ to read stdin for words one line at a time.
     Options:  ({which} is the default dictionary)
       -@      Read words from stdin; implies -s or -S were used
       -0      Use a short English dictionary  (850 words)
@@ -423,12 +437,10 @@ def Usage(d, status=1):
         -r      Limit to adverbs
         -v      Limit to verbs
     Acknowledgements for some great tools:
-      1.  Thanks to Alan Beale for his 12dicts.
-          http://wordlist.aspell.net/12dicts/
-      2.  Thanks to the folks at Princeton who provide WordNet:
-          http://wordnet.princeton.edu/.
+      1.  Thanks to Alan Beale for his 12dicts.  http://wordlist.aspell.net/12dicts/
+      2.  Thanks to the folks at Princeton who provide WordNet http://wordnet.princeton.edu/
     '''))
-    exit(status)
+    exit(0)
 def DictionaryLookup(words, d):
     '''Print words in the list of words that aren't (d["-s"] or are
     (d["-S"]) in the indicated dictionary.
@@ -436,7 +448,9 @@ def DictionaryLookup(words, d):
     # Get dictionary
     def convert(x):
         return x if d["-i"] else lambda x: x.lower()
-    tokens = set(GetTokens(d["dict"][d["which_dict"]], convert=convert))
+    tokens = set(GetTokens(d["dict"][d["which_dict"]]))
+    if not d["-i"]:
+        tokens = [i.lower() for i in tokens]
     if d["-@"]:
         # Read lines of words from stdin
         line = sys.stdin.readline()
