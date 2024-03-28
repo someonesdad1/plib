@@ -7,12 +7,6 @@ Active:  /plib/.todo
             - Give the bin-type command and it will execute it for you
         - This will likely cut number of commands by 2 or more
 
-    - dpstr.py
-        - An occasional need is to have a function to replace a set of letters with a single
-          letter.  An example is to replace punctuation characters with a space.  This is most
-          quickly done using a string translation dict.  Add a function to return a function that
-          does this.
-
     - color.py
         - More color names could be handy
             - White:  pearl, snow, ivory, cream, egg, cotton, chiffon, salt, linen, bone, frost,

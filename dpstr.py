@@ -4,7 +4,7 @@ Todo
     - Convert token naming conversions to a class
     - Missing tests for GetString, WordID
     - Consider upper & lower keywords for Keep and Remove
-
+ 
 String utilities
     Chop             Return a string chopped into equal parts
     CommonPrefix     Return a common prefix of a sequence of strings
@@ -158,7 +158,7 @@ if 1:   # Core functionality
         of characters.  The returned sequence matches the type of t and has
         a length equal to the shorter of s and t.  Must have len(s) >=
         len(t).
-
+ 
         Example:
             s = "StuVwxyz"
             t = "abcd"
@@ -1057,17 +1057,17 @@ if 1:   # Core functionality
             return M if right else M + R
         else:
             return L + M
-
     def GetTransFunc(chars_from, to, delete=None):
         '''Return a function that will change characters in chars_from to the characters in to.
         This function will use str.translate() to perform its work at C speeds.  If chars_from has
         N characters, then to must have 1 or N characters.  The rules are:
-
+ 
             - Any characters in the sequence delete are deleted from chars_from.
-            - If delete is not None, then its characters are deleted from the string.
+            - If delete is not None, then it must be a str whose characters are deleted from the
+              string.
             - If to has 1 character, then remaining characters in the string will be replaced by
               the character in to.
-
+ 
         Example:  Let chars_from = string.punctuation and to = " ".  Then GetTransFunc(chars_from,
         to) returns a function f that substitutes a space character for every punctuation
         character.  Given a string s, f(s) returns a string of the same length as s but with all
@@ -1082,11 +1082,11 @@ if 1:   # Core functionality
         if len(to) == 1:
             From, To = chars_from, to*N
         # Check delete
-        if ii(delete, (list, tuple)):
-            Delete = ''.join(set(delete))
+        if delete is None:
+            Delete = None
+        elif not ii(delete, str):
+            raise TypeError("delete must be None or a string")
         else:
-            if not ii(delete, str):
-                raise TypeError("delete must be a list/tuple of characters or a string")
             Delete = ''.join(set(delete))
         # Make the translation table
         tt = str.maketrans(From, To, Delete) if Delete else str.maketrans(From, To)
