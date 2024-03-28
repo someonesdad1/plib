@@ -22,6 +22,7 @@ String utilities
     GetChoice        Return choice from a set of choices (minimizes typing)
     GetLeadingChars  Return leading characters of a string
     GetTrailingChars Return trailing characters of a string
+    GetTransFunc     Return a function that translates strings
     GetString        Return string from user that matches choices
     IsASCII          Return True if string is all ASCII characters
     Keep             Return items in sequence that are in keep sequence
@@ -1057,12 +1058,55 @@ if 1:   # Core functionality
         else:
             return L + M
 
+    def GetTransFunc(chars_from, to, delete=None):
+        '''Return a function that will change characters in chars_from to the characters in to.
+        This function will use str.translate() to perform its work at C speeds.  If chars_from has
+        N characters, then to must have 1 or N characters.  The rules are:
+
+            - Any characters in the sequence delete are deleted from chars_from.
+            - If delete is not None, then its characters are deleted from the string.
+            - If to has 1 character, then remaining characters in the string will be replaced by
+              the character in to.
+
+        Example:  Let chars_from = string.punctuation and to = " ".  Then GetTransFunc(chars_from,
+        to) returns a function f that substitutes a space character for every punctuation
+        character.  Given a string s, f(s) returns a string of the same length as s but with all
+        ASCII punctuation characters replaced by a string.
+        '''
+        if not chars_from:
+            return lambda x: x
+        N = len(chars_from)
+        if len(to) not in (1, N):
+            raise ValueError("to must have 1 or len(chars_from) characters")
+        From, To = chars_from, to
+        if len(to) == 1:
+            From, To = chars_from, to*N
+        # Check delete
+        if ii(delete, (list, tuple)):
+            Delete = ''.join(set(delete))
+        else:
+            if not ii(delete, str):
+                raise TypeError("delete must be a list/tuple of characters or a string")
+            Delete = ''.join(set(delete))
+        # Make the translation table
+        tt = str.maketrans(From, To, Delete) if Delete else str.maketrans(From, To)
+        # Now make the function
+        def f(s):
+            return s.translate(tt)
+        return f
+
 if __name__ == "__main__": 
     from lwtest import run, raises, assert_equal, Assert
     import math
     import os
     from sig import sig
     from color import TRM as t
+    def Test_GetTransFunc():
+        From     = '''Mr. Dee, a, a--b; 'z' and "a", ok.'''
+        expected =  '''r  Dee  a  a  b   z  and  a   ok '''
+        f = GetTransFunc(string.punctuation, " ", delete="M")
+        got = f(From)
+        Assert(got == expected)
     def Test_Trim():
         for s in ("", "a", "abc"):
             Assert(Trim(s) == s)
