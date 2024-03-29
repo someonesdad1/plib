@@ -43,7 +43,7 @@ if 1:   # Utility
         name = sys.argv[0]
         print(dedent(f'''
         Usage:  {name} [options] file1 [file2 ...]
-            Show the non-ASCII characters in the files by character with the line
+            Show the non-7-bit ASCII characters in the files by character with the line
             numbers that character occurs on.  Column and line numbers are 1-based.
             Whitespace is ignored.  The file is read as UTF-8 unless the -b
             option is used.
@@ -51,6 +51,7 @@ if 1:   # Utility
             -b  Read file as binary
             -c  Show column numbers too with line_number:column_number format
             -l  Just print out the file name if a non-ASCII character is found
+            -u  Like -w but don't include the line numbers
             -w  Wrap lines to make easier to read
         '''))
         exit(status)
@@ -58,14 +59,15 @@ if 1:   # Utility
         d["-b"] = False     # Read as binary
         d["-c"] = False     # Use linenum:col format
         d["-l"] = False     # Only print the filename
+        d["-u"] = False     # Just print the U+xxxx form after the filename
         d["-w"] = False     # Wrap lines
         try:
-            optlist, args = getopt.getopt(sys.argv[1:], "bchlw")
+            optlist, args = getopt.getopt(sys.argv[1:], "bchluw")
         except getopt.GetoptError as str:
             msg, option = str
             Error(msg)
         for o, a in optlist:
-            if o[1] in list("bclw"):
+            if o[1] in list("bcluw"):
                 d[o] = not d[o]
             elif o == "-h":
                 Usage(0)
@@ -176,20 +178,26 @@ if 1:   # Core functionality
                 print(file)
                 for c in sorted(nonascii):
                     linenumbers = ' '.join(nonascii[c])
-                    if d["-w"]:
+                    if d["-w"] or d["-u"]:
                         # Wrap line numbers so they are easily readable.
                         # The lines must be indented 15 characters.
                         cols = int(os.environ["COLUMNS"])
                         width = cols - 15 - 1
                         lines = textwrap.wrap(linenumbers, width=width)
                         print(f"{HeaderText(c)}", end="")
-                        for i, line in enumerate(lines):
-                            if i:
-                                print(f"{' '*14}{line}")
-                            else:
-                                print(line)
+                        if d["-u"]:
+                            print()
+                        else:
+                            for i, line in enumerate(lines):
+                                if i:
+                                    print(f"{' '*14}{line}")
+                                else:
+                                    print(line)
                     else:
-                        print(f"{HeaderText(c)}{linenumbers}")
+                        if d["-u"]:
+                            print(f"{HeaderText(c)}")
+                        else:
+                            print(f"{HeaderText(c)}{linenumbers}")
         else:           # Show non-7-bit bytes
             for linenum, line in enumerate(GetLinesBinary(file)):
                 if RemoveASCIIBytes(line):
