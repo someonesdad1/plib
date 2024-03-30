@@ -1,9 +1,8 @@
 '''
-
 Module to convert between British and US spellings 
-    - B2A() returns a dict that converts British words to American equivalents
-    - A2B() returns a dict that converts American words to British equivalents
-    - both are all lowercase
+    - B2A() returns a dictionary that converts British words to American equivalents
+    - A2B() returns a dictionary that converts American words to British equivalents
+    - Both dictionaries are all lowercase
 
     - When run as a script, flags UK words with their US conversions
     - -c option provides the line's context, printing the line with US and Brit words in color
@@ -34,11 +33,14 @@ if 1:   # Header
         from color import t
         from dpprint import PP
         pp = PP()   # Screen width aware form of pprint.pprint
-        from get import GetLines
+        import get
         from wrap import dedent
         from wsl import wsl     # wsl is True when running under WSL Linux
         from lwtest import Assert
         #from columnize import Columnize
+        if 0:
+            import debug
+            debug.SetDebugger()
     if 1:   # Global variables
         __all__ = "B_to_US US_to_B".split()
         ii = isinstance
@@ -2105,16 +2107,6 @@ if 1:   # Translation data
 
         '''.rstrip()).strip()
 if 1:   # Utility
-    def GetScreen():
-        'Return (LINES, COLUMNS)'
-        return (
-            int(os.environ.get("LINES", "50")),
-            int(os.environ.get("COLUMNS", "80")) - 1
-        )
-    def GetColors():
-        t.dbg = t("cyn") if g.dbg else ""
-        t.N = t.n if g.dbg else ""
-        t.err = t("redl")
     def Dbg(*p, **kw):
         if g.dbg:
             print(f"{t.dbg}", end="", file=Dbg.file)
@@ -2126,40 +2118,49 @@ if 1:   # Utility
     def Error(*msg, status=1):
         print(*msg, file=sys.stderr)
         exit(status)
-    def Usage(status=1):
+    def Manpage():
         print(dedent(f'''
-        Usage:  {sys.argv[0]} [options] etc.
-          Explanations...
+          Caution:  inspect the results carefully, as different senses of the words may not
+          require the substitution given, particularly with older text.  Here's are some examples
+          from "Pride and Prejudice" (a good test case), there are numerous cases like this:  
+
+          - 'bonnet to hood' is recommended, but this word should be left alone, as it's
+            concerning a type of hat.
+          - 'broke to brake' doesn't make sense, as the context in the novel is "When the party
+            broke up".  
+          - 'fresher to freshman' doesn't make sense, as the usage would also be 'fresher' in US
+            English (the context was 'fresher intelligence').
+          - 'vice to vise' doesn't work, as the word should remain 'vice' in US English (the
+            substitution is for the workholding tool in the shop).
+
+          These examples indicate that this tool is simplistic and is only working on spelling,
+          not on semantics.  Still, most of the nearly 100 changes recommended for PnP are
+          appropriate.
+        '''))
+        exit(0)
+    def Usage():
+        print(dedent(f'''
+        Usage:  {sys.argv[0]} [options] [file1 [file2...]]
+          Show the use of UK words in the indicated files along with their US counterpart.
         Options:
             -h      Print a manpage
+            -r      Reverse the sense of the search:  show UK words for US words
         '''))
-        exit(status)
+        exit(0)
     def ParseCommandLine(d):
-        d["-a"] = False     # Describe this option
-        d["-d"] = 3         # Number of significant digits
+        d["-r"] = False     # Reverse sense of search
         if len(sys.argv) < 2:
             Usage()
         try:
-            opts, args = getopt.getopt(sys.argv[1:], "ad:h") 
+            opts, args = getopt.getopt(sys.argv[1:], "hr") 
         except getopt.GetoptError as e:
             print(str(e))
             exit(1)
         for o, a in opts:
-            if o[1] in list("a"):
+            if o[1] in list("r"):
                 d[o] = not d[o]
-            elif o == "-d":
-                try:
-                    d[o] = int(a)
-                    if not (1 <= d[o] <= 15):
-                        raise ValueError()
-                except ValueError:
-                    msg = ("-d option's argument must be an integer between "
-                        "1 and 15")
-                    Error(msg)
             elif o == "-h":
-                Usage(status=0)
-        GetColors()
-        g.W, g.L = GetScreen()
+                Manpage()
         return args
 if 1:   # Core functionality
     def B_to_US():
@@ -2196,7 +2197,37 @@ if 1:   # Core functionality
                 di[us] = br
             g.us2b = di
         return g.us2b
+    def ProcessFile(file, reverse=False):
+        p = P(file)
+        s = p.open().read()
+        dq = get.Tokenize(s)
+        # Only keep the get.wrd types
+        words_in_file = [i for i in dq if ii(i, get.wrd)]
+        # Convert to all lowercase
+        words_in_file = set(i.lower() for i in words_in_file)
+        if reverse:
+            # Scan for UK words
+            di, out = US_to_B(), []
+            for word in words_in_file:
+                if word in di:
+                    out.append((word, di[word]))
+            # Report
+            w = max(len(i[0]) for i in out)
+            for us, uk in sorted(out):
+                print(f"{us:{w}s}  -->  {uk}")
+        else:
+            # Scan for UK words
+            di, out = B_to_US(), []
+            for word in words_in_file:
+                if word in di:
+                    out.append((word, di[word]))
+            # Report
+            w = max(len(i[0]) for i in out)
+            for uk, us in sorted(out):
+                print(f"{uk:{w}s}  -->  {us}")
 
 if __name__ == "__main__":
-    d = {}      # Options dictionary
-    args = ParseCommandLine(d)
+    d = {}  # Options dictionary
+    files = ParseCommandLine(d)
+    for file in files:
+        ProcessFile(file, reverse=d["-r"])

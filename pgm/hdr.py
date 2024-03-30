@@ -64,14 +64,20 @@ if 1:   # Utility
     def Error(*msg, status=1):
         print(*msg, file=sys.stderr)
         exit(status)
-    def Usage(status=1):
+    def Manpage():
         print(dedent(f'''
+        '''.rstrip()).lstrip())
+        exit(0)
+    def Usage():
+        print(dedent(f'''
+ 
         Usage:  {sys.argv[0]} [options] etc.
           Explanations...
         Options:
             -h      Print a manpage
-        '''))
-        exit(status)
+ 
+        '''.rstrip()).lstrip())
+        exit(0)
     def ParseCommandLine(d):
         d["-a"] = False     # Describe this option
         d["-d"] = 3         # Number of significant digits
