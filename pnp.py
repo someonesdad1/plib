@@ -2194,19 +2194,15 @@ if 1:   # Utility
         exit(status)
     def Usage():
         print(dedent(f'''
-        Usage:  {sys.argv[0]} [options] cmd
-          Send the text of Pride and Prejudice to stdout.  cmd gets different behaviors:
-            w   Wrapped to current screen width
+        Usage:  {sys.argv[0]} [options] [cmd]
+          Send the text of Pride and Prejudice to stdout.  cmd is:
+            w   Wrap to current screen width    [default]
             0   As stored; each paragraph is a single line
             1   Each paragraph is a single line with empty lines between them
-        Options:
-            -h      Print a manpage
         '''))
         exit(0)
     def ParseCommandLine(d):
         d["-a"] = False     # Describe this option
-        if len(sys.argv) < 2:
-            Usage()
         try:
             opts, args = getopt.getopt(sys.argv[1:], "h") 
         except getopt.GetoptError as e:
@@ -2243,7 +2239,7 @@ if 1:   # Core functionality
 if __name__ == "__main__":
     d = {}      # Options dictionary
     args = ParseCommandLine(d)
-    cmd = args[0]
+    cmd = args[0] if args else "w"
     if cmd == "0":
         print(PnP())
     elif cmd == "1":

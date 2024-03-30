@@ -122,7 +122,7 @@ if 1:   # Global variables
     # Note:  this choice of a small floating point number may be
     # wrong on a system that doesn't use IEEE floating point numbers.
     eps = 1e-15
-def US_states()
+def US_states():
     'Return dictionary of US state abbreviations'
     a = '''AK AL AR AZ CA CO CT DE FL GA HI IA ID IL IN KS KY LA MA MD ME MI MN MO MS MT NC ND NE
         NH NJ NM NV NY OH OK OR PA RI SC SD TN TX UT VA VT WA WI WV WY'''.split()
