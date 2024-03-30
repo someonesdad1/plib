@@ -23,6 +23,8 @@ TODO
                 - This could be used with a reading ease level to flag words that are considered
                   outside.  -l 0 would be easy, -l 1 would be hs, etc.  For words outside the
                   desired level, a lookup could find synonyms that could be substituted.
+    - Use 🔵🟢🟡🟠🔴 to indicate which dict matched
+        - 🔵 is easy
 
 Script to look up words in various dictionaries.  For a demo of capabilities, try
 

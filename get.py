@@ -895,13 +895,11 @@ if 1:   # Getting choices
         return (choice, seq[choice])
 if 1:   # Tokenizing
     def GetWords(thing, sep=None, enc=None, ignore=[]):
-        '''Return a list of words separated by the string sep from the thing
-        (see details for GetLines).  If sep is None, then the data are split
-        on whitespace; otherwise, the newlines are replaced by sep, then the
-        data are split on sep.  
+        '''Return a list of words separated by the string sep from the thing (see details for
+        GetLines).  If sep is None, then the data are split on whitespace; otherwise, the newlines
+        are replaced by sep, then the data are split on sep.  
  
-        ignore is a sequence of regular expressions that indicate the lines
-        to ignore.
+        ignore is a sequence of regular expressions that indicate the lines to ignore.
         '''
         lines = GetLines(thing, ignore=ignore, nonl=True)
         if sep is not None:
@@ -910,24 +908,23 @@ if 1:   # Tokenizing
         else:
             return ' '.join(lines).split()
     def GetTokens(*things, sep=None, enc=None):
-        '''Similar to GetWords(), but this is a generator so that arbitrarily 
-        large sets of files or streams can be processed.
+        '''Similar to GetWords(), but this is a generator so that arbitrarily large sets of files
+        or streams can be processed.
         '''
         for thing in things:
             for line in GetLine(thing, enc=enc):
                 for token in line.split() if sep is None else line.split(sep):
                     yield token
     def GetWordlist(*files, case=None):
-        '''The arguments can be a stream, filename, or string to parse.
-        Return a set of all the words in these files.
+        '''The arguments can be a stream, filename, or string to parse.  Return a set of all the
+        words in these files.
     
-        This function is aimed at reading wordlists I use on my computer.
-        These will have comment lines beginning with '#' after stripping
-        whitespace.  Then words are separated by whitespace and can be
-        gotten at once on the whole file's string with strip().
+        This function is aimed at reading wordlists I use on my computer.  These will have comment
+        lines beginning with '#' after stripping whitespace.  Then words are separated by
+        whitespace and can be gotten at once on the whole file's string with strip().
     
-        If case is None, do nothing with the words.  If it is "lower",
-        change them to lower case; upper with "upper".
+        If case is None, do nothing with the words.  If it is "lower", change them to lower case;
+        upper with "upper".
         '''
         words = set()
         for file in files:
@@ -958,23 +955,22 @@ if 1:   # Tokenizing
     class pnc(str):
         def __new__(cls, value):
             return super(pnc, cls).__new__(cls, value)
-    def Tokenize(s, wordchars=letters, otherchars=others, check=True,
-                wordtype=wrd, punctype=pnc):
-        '''Return a deque t that contains all the word tokens in the string
-        s.  The tokenizing process is such that ''.join(t) is the same
-        string as s (this is verified if check is True).  wordchars and
-        otherchars must be sequences of letters (sets preferred) so that
-        "in" works on detecting whether a letter is in the sequence.
+    def Tokenize(s, wordchars=letters, otherchars=others, check=True, wordtype=wrd, punctype=pnc):
+        '''Return a deque t that contains all the word tokens in the string s.  The tokenizing
+        process is such that ''.join(t) is the same string as s (this is verified if check is
+        True).  wordchars and otherchars must be sequences of letters (sets preferred) so that "in"
+        works on detecting whether a letter is in the sequence.
     
-        The returned deque is made up of non-empty strings of a) words with
-        letters and b) non-letters.  These strings will be wordtype and
-        punctype, respectively, which are derived from str.
+        The returned deque is made up of non-empty strings of a) words with letters and b)
+        non-letters.  These strings will be wordtype and punctype, respectively, which are derived
+        from str.
     
         Example:  Tokenize("To be, or not to be:") returns
-            deque(['To', ' ', 'be', ', ', 'or', ' ', 'not', ' ', 'to', ' ',
-                'be', ':'])
-        The word tokens have isinstance(token, wrd) return True and the
-        punctuation strings have isinstance(token, pnc) return True.
+ 
+            deque(['To', ' ', 'be', ', ', 'or', ' ', 'not', ' ', 'to', ' ', 'be', ':'])
+ 
+        The word tokens have isinstance(token, wrd) return True and the punctuation strings have
+        isinstance(token, pnc) return True.
         '''
         def Handle(c, seq1, seq2, seq2type):
             seq1.append(c)
@@ -1001,6 +997,16 @@ if 1:   # Tokenizing
                 print(f"New :  {repr(t)}")
                 print("Tokenize's invariant failed")
         return out
+if __name__ == "__main__":  
+    # xx Testing of Tokenize
+    s = '''
+This is a sentence; it's a compound-sentence!
+"There's a reasonable amt of punc."'''[1:]
+    tk = Tokenize(s)
+    #print(tk)
+    print(list(i for i in tk if ii(i, wrd)))
+    exit()
+
 if 1:   # Miscellaneous
     def IsPunctuation(seq):
         'Return True if all characters in iterable seq are punctuation'

@@ -64,7 +64,7 @@ Time                  Returns a string giving local time and date
 TranslateSymlink      Returns what a cygwin symlink is pointing to
 Unique                Generator to return only the unique elements in sequence
 unrange               Turn a seq of integers into a collection of ranges
-US_states             Dictionary of states keyed by 2-letter abbreviation
+US_states             Return a dict of US_states keyed by two-letter names
 VisualCount           Return a list representing a histogram of a sequence
 WindChillInDegF       Calculate wind chill given OAT & wind speed
 
@@ -122,7 +122,8 @@ if 1:   # Global variables
     # Note:  this choice of a small floating point number may be
     # wrong on a system that doesn't use IEEE floating point numbers.
     eps = 1e-15
-    # Dictionary of US state abbreviations
+def US_states()
+    'Return dictionary of US state abbreviations'
     a = '''AK AL AR AZ CA CO CT DE FL GA HI IA ID IL IN KS KY LA MA MD ME MI MN MO MS MT NC ND NE
         NH NJ NM NV NY OH OK OR PA RI SC SD TN TX UT VA VT WA WI WV WY'''.split()
     b = [i.replace("·", " ") for i in '''Alaska Alabama Arkansas Arizona California Colorado
@@ -131,8 +132,7 @@ if 1:   # Global variables
         North·Carolina North·Dakota Nebraska New·Hampshire New·Jersey New·Mexico Nevada New·York
         Ohio Oklahoma Oregon Pennsylvania Rhode·Island South·Carolina South·Dakota Tennessee Texas
         Utah Virginia Vermont Washington Wisconsin West·Virginia Wyoming'''.split()]
-    US_states = dict(zip(a, b))
-    del a, b
+    return dict(zip(a, b))
 def GetHash(file, method="md5"):
     "Return a file's hash as a hex string, None if file can't be read"
     if method.lower() in "md5 sha1 sha224 sha256 sha384 sha512".split():
