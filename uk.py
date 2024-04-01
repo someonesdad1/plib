@@ -2142,6 +2142,7 @@ if 1:   # Utility
         print(dedent(f'''
         Usage:  {sys.argv[0]} [options] [file1 [file2...]]
           Show the use of UK words in the indicated files along with their US counterpart.
+          Use "-" for stdin.
         Options:
             -h      Print a manpage
             -r      Reverse the sense of the search:  show UK words for US words
@@ -2175,8 +2176,7 @@ if 1:   # Core functionality
                     continue
                 us, br = [i.lower() for i in line.split()]
                 if br in di:
-                    print(f"{br!r} already in dict: {di[br]!r}")
-                    exit()#xx)
+                    Error(f"{br!r} already in dict: {di[br]!r}")
                 di[br] = us
             g.b2us = di
         return g.b2us
@@ -2192,39 +2192,45 @@ if 1:   # Core functionality
                     continue
                 us, br = [i.lower() for i in line.split()]
                 if us in di:
-                    print(f"{us!r} already in dict: {di[us]!r}")
-                    exit()#xx)
+                    Error(f"{us!r} already in dict: {di[us]!r}")
                 di[us] = br
             g.us2b = di
         return g.us2b
     def ProcessFile(file, reverse=False):
-        p = P(file)
-        s = p.open().read()
+        if file == "-":
+            s = sys.stdin.read()
+        else:
+            p = P(file)
+            s = p.open().read()
         dq = get.Tokenize(s)
         # Only keep the get.wrd types
         words_in_file = [i for i in dq if ii(i, get.wrd)]
         # Convert to all lowercase
         words_in_file = set(i.lower() for i in words_in_file)
+        # Scan for words
         if reverse:
-            # Scan for UK words
+            # US to UK
             di, out = US_to_B(), []
             for word in words_in_file:
                 if word in di:
                     out.append((word, di[word]))
-            # Report
-            w = max(len(i[0]) for i in out)
-            for us, uk in sorted(out):
-                print(f"{us:{w}s}  -->  {uk}")
         else:
-            # Scan for UK words
+            # Uk to US
             di, out = B_to_US(), []
             for word in words_in_file:
                 if word in di:
                     out.append((word, di[word]))
-            # Report
+        # Report
+        if out:
+            s = "<stdin>" if file == "-" else file
+            print(f"{'<stdin>' if file == '-' else file}")
             w = max(len(i[0]) for i in out)
-            for uk, us in sorted(out):
-                print(f"{uk:{w}s}  -->  {us}")
+            if reverse:
+                for us, uk in sorted(out):
+                    print(f"{us:{w}s}  -->  {uk}")
+            else:
+                for uk, us in sorted(out):
+                    print(f"{uk:{w}s}  -->  {us}")
 
 if __name__ == "__main__":
     d = {}  # Options dictionary
