@@ -99,7 +99,7 @@ if 1:   # Getting text, lines, bytes
         else:
             raise TypeError("Type of 'thing' not recognized")
         return s
-    if 1:   # Phase out if nothing breaks
+    if 0:   # Phase out if nothing breaks
         def GetLines1(thing, enc=None, ignore=None, script=False, ignore_empty=False, strip=False, nonl=False):
             r'''Return text from thing, which is
                 string      It's a file name.  If get a read exception, then
