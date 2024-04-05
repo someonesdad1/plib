@@ -17,6 +17,20 @@
     - TestInvariants() is made to pass, but I'd like to see the conversion work exactly.  It could
       be a problem with decimal roundoff in the colorsys module.
 
+- More color names could be handy
+    - White:  pearl snow ivory cream egg cotton chiffon salt linen bone frost rice vanilla cloud casper moon ghost milk blizzard polar crystal
+    - Black:  ebony crow ink raven onyx soot coal obsidian
+    - Gray:  graphite iron pewter cloud silver smoke slate ash dove fog flint charcoal lead coin fossil lava rhino granite shark platinum
+    - Purple:  mauve violet lavender plum lilac grape iris orchid thistle prune indigo pansy fuchsia eggplant
+    - Blue:  ice baby robin egg blueberry navy slate sky navy indigo cobalt teal ocean azure lapis spruce denim sapphire arctic aqua steel royal
+    - Green:  juniper sage lime fern emerald pear moss shamrock pine mint seaweed pickle pistachio basil tea army kelly jungle apple laurel beryl tea moss sage spring copper mint army pea turtle lime leaf kiwi jade teal kelly aqua grass frog emerald shamrock kermit verdigris foilage glade willow mantis broccoli turf
+    - Yellow: canary gold flax butter lemon mustard corn banana dijon honey blonde peach daffodil maize citrus topaz ochre custard tangerine melon straw saffron khaki papaya sand pee sun mustard
+    - Orange:  cider rust ginger tiger fire bronze apricot carrot amber yam mango papaya sunset coral paprika nectarine squash salmon caramel umber
+    - Red:  cherry rose jam merlot garnet ruby scarlet wine brick blood berry candy lipstick chili barn fuchsia punch rouge tomato flame cerise sunset pink pig barbie inferno claret
+    - Tan:  beige oat fawn sand sepia latte oyster desert caramel latte beach almond toffee vanilla butter wheat maple nutmeg
+    - Brown:  coffee mocha peanut wood pecan walnut caramel syrup umber tawny penny cedar cognac sienna
+
+---------------------------------------------------------------------------
 Functions to convert between ANSI 8-bit color numbers and 24-bit RGB values:
     RGBtoANSI8bit(r, g, b)
     Translate8bit(n)
