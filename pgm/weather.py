@@ -23,9 +23,7 @@ if 1:   # Header
         from pathlib import Path as P
         import re
         import sys
-        from pdb import set_trace as xx
         from collections import deque
-        from pprint import pprint as pp
     # Custom imports
         import requests
         import julian
@@ -33,17 +31,20 @@ if 1:   # Header
         from wrap import dedent
         from color import TRM as t
         from lwtest import Assert
+        from dpprint import PP
+        pp = PP()   # Screen width aware form of pprint.pprint
     # Global variables
         ii = isinstance
         w = int(os.environ.get("COLUMNS", "80")) - 5
         # Location
         lat, lon = "43.5", "-116.4"
-        # Turn on debugging to avoid loading from web
-        dbg = 0
         class g: 
             # Global variable holder
             pass
         g.update = ""
+        # Turn on debugging to avoid loading from web
+        g.dbg = 1
+        g.dbg = 0
 if 1:   # Utility
     def Error(*msg, stasus=1):
         print(*msg, file=sys.stderr)
@@ -119,7 +120,7 @@ if 1:   # Core functionality
         return age_hours
     def Get():
         file = "/plib/pgm/weather.data"
-        if dbg:
+        if g.dbg:
             t.print(f"{t.dbg}weather.py is in debug mode")
             s = open(file).read()
         else:
@@ -131,6 +132,7 @@ if 1:   # Core functionality
             s = s.replace("<br>", "\n")
             s = s.replace("<b>", "\n")
             s = s.replace("</b>", "")
+            # Save the last website read in the file for future debugging runs
             open(file, "w").write(s)
         q = s.split("\n")
         # Do some preliminary processing to remove the header stuff
@@ -150,6 +152,7 @@ if 1:   # Core functionality
                     o.append(ln)
             q = deque(o)
             if 0:
+                t.print(f"{t.dbg}Debug dump of the saved lines:")
                 for i in q:
                     print(i)
                 exit()
@@ -216,13 +219,13 @@ if 1:   # Core functionality
         if cloudy:
             print(f"{t.cloud}cloudy{t.n} ", end="")
         print()
-    def Select(q):
+    def Select(dq):
         'Return a list of the lines to be printed'
-        Assert(ii(q, deque))
+        Assert(ii(dq, deque))
         found, lines = False, []
         show = 0    # Set to True to see all of the lines and then exit
-        while q:
-            u = q.popleft()
+        while dq:
+            u = dq.popleft()
             u = u.strip()
             if show:
                 # Just print to see what's going on
@@ -235,8 +238,8 @@ if 1:   # Core functionality
                 s = u[:loc]
                 g.update = s.replace("</a>", "")
                 continue
-            if (u.startswith("Today") or u.startswith("This ") or
-                u.startswith("Tonight")):
+            f = u.startswith
+            if (f("Today") or f("This ") or f("Tonight")):
                 found = True
             if not found:
                 continue
@@ -246,6 +249,9 @@ if 1:   # Core functionality
         if show:
             exit()
         Assert(lines)
+        if 0:   # Dump lines
+            pp(lines)
+            exit()
         return lines
     def Report(lines):
         for line in lines:
@@ -267,17 +273,18 @@ if 1:   # Core functionality
               f"{t.cloud}cloudy{t.n} "
               f"{t.low}low{t.n} "
               f"{t.high}high{t.n}")
+
 if __name__ == "__main__": 
     d = {}      # Options dictionary
     SetColors()
     args = ParseCommandLine(d)
-    q = Get()
+    dq = Get()
     if args and args[0] == "d":
         # Show raw html
-        for line in q:
+        for line in dq:
             l = line.rstrip()
             if l:
                 print(l)
         exit(0)
-    lines = Select(q)
+    lines = Select(dq)
     Report(lines)

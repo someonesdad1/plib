@@ -1,28 +1,11 @@
 Active:  /plib/.todo
 
-    - british.py
-        - Module
-            - B2A() returns a dict that converts British words to American equivalents
-            - A2B() returns a dict that converts American words to British equivalents
-            - both are all lowercase
-        - Script
-            - Tokenizes input files and flags British words with their US conversions
-            - -c option provides the line's context, printing the line with US and Brit words in
-              color
-
     - Functions
         - Way too many
         - Decide on a single letter command 
             - No args:  it will search for the bin-type commands and then execute them for you 
             - Give the bin-type command and it will execute it for you
         - This will likely cut number of commands by 2 or more
-
-    - pgm/srt.py
-        - Takes one or more lines and sorts the tokens on each line
-        - Options
-            - Skip n tokens at beginning
-            - Skip n tokens at end
-            - Ignore case
 
     - pgm/lookup.py
         - This relies on Wordnet and was a lot of work.  /pylib/types_of_words/WordNet
@@ -39,7 +22,7 @@ Active:  /plib/.todo
     - get.py
         - GetLine needs a keep=[] keyword argument to be used on lines that aren't removed by the
           ignore argument.
-        - Are GetLine and GetLine1 both needed?
+        - GetLine1 staged to be removed by commenting out
 
     - /words
         - Include verbs, nouns, adjectives, etc. from Wordnet
