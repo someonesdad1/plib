@@ -292,8 +292,8 @@ if 1:   # Utility
 if 1:   # Core functionality
     def SetupColor():
         t.hi = t("whtl", "blud") if d["-c"] else ""
-        t.hdr = t("cynl") if d["-c"] else ""
-        t.ti = t("ornl") if d["-c"] else ""
+        t.hdr = t("ornl") if d["-c"] else ""
+        t.ti = t("yell") if d["-c"] else ""
         t.N = t.n if d["-c"] else ""
     def GetString(a, b):
         '''Return a string with color coding
