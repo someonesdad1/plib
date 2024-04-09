@@ -104,7 +104,7 @@ if 1:   # Utility
         Usage:  {sys.argv[0]} [options] [regex1 [regex2...]]
           With no arguments, print out common physical constants.  If arguments are given, they
           are regular expressions to print out constants that the regexs match (they are OR'd
-          together).
+          together and the search is case-insensitive).
         Options:
             -a      Show all constants
             -c      Use color in output
