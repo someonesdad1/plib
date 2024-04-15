@@ -10,12 +10,10 @@ String utilities
     CommonPrefix     Return a common prefix of a sequence of strings
     CommonSuffix     Return a common suffix of a sequence of strings
     FilterStr        Return a function that removes characters from strings
- 
     FindFirstIn      Find first item in sequence in a given set
     FindLastIn       Find last item in sequence in a given set
     FindFirstNotIn   Find first item not in sequence in a given set
     FindLastNotIn    Find last item not in sequence in a given set
- 
     FindDiff         Return where two strings first differ
     FindStrings      Find locations of a sequence of strings in a string
     FindSubstring    Return indexes of substring in string
@@ -28,6 +26,7 @@ String utilities
     Keep             Return items in sequence that are in keep sequence
     KeepFilter       Returns a function that keeps a set of items in a sequence
     KeepOnlyLetters  Replace all non-word characters with spaces
+    Len              Length of string with ANSI escape sequences removed
     ListInColumns    Obsolete (use columnize.py)
     MatchCap         Match string capitalization
     MultipleReplace  Replace multiple patterns in a string
@@ -37,6 +36,7 @@ String utilities
     RemoveComment    Remove '#.*$' from a string
     RemoveFilter     Functional form of Remove (it's a closure)
     RemoveWhitespace Remove whitespace from a string
+    RmEsc            Remove ANSI escape strings from string arguments
     Scramble         Randomly shuffle words in a string
     soundex          Return 4-character soundex value for a string
     SoundSimilar     Return True if two strings sound similar
@@ -48,10 +48,6 @@ String utilities
     Tokenize         Return a list of tokens from tokenizing a string
     Trim             Remove characters from a string
     WordID           Return an ID string that is somewhat pronounceable
-Ignore ANSI escape sequences
-    Len              Length of string with ANSI escape sequences removed
-    Str              String class that ignores ANSI escape codes in len()
-    RmEsc            Remove ANSI escape strings from string arguments
 Token naming conversions:
     cw2mc            Cap-words to mixed-case
     cw2us            Cap-words to underscore

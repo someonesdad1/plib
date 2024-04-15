@@ -1,5 +1,20 @@
 Active:  /plib/.todo
 
+    - Text formatting tool
+        - One of the most common tasks in my scripts is something like a Usage() statement, which
+          needs to print a chunk of text to the screen.  This needs to supply a given indentation
+          and fit itself to the current width of the screen, like the modern man command does in a
+          terminal window.  Since I use 4 spaces for tabs universally, it could include an integer
+          keyword 'tabs' that would default to 0 or 1.  Then a spaces keyword could be used when
+          needed.
+        - This tool would obviate the need for the dedent() method.  It would let me write my usage
+          text in a straightforward fashion and not have to worry about how it comes out.
+        - Simplest:  it formats text as needed with no formatting commands.
+        - More complex:  allows formatting commands
+        - It would be nice to include the abilities of the terminal too, such as color and
+          underlining.  The formatting tool would need to make the escape codes invisible to things
+          like the length of a line.  It would be nice if this was part of the tokenizer.
+
     - Functions
         - Way too many
         - Decide on a single letter command 
@@ -60,21 +75,6 @@ Active:  /plib/.todo
           be used as a designator of the start of the metadata in a function.  I like U+1F756 🝖,
           the alchemical symbol for horse dung.
         - With a suitable marker, the function's docstring could also supply the desired metadata.
-
-    - Text formatting tool
-        - One of the most common tasks in my scripts is something like a Usage() statement, which
-          needs to print a chunk of text to the screen.  This needs to supply a given indentation
-          and fit itself to the current width of the screen, like the modern man command does in a
-          terminal window.  Since I use 4 spaces for tabs universally, it could include an integer
-          keyword 'tabs' that would default to 0 or 1.  Then a spaces keyword could be used when
-          needed.
-        - This tool would obviate the need for the dedent() method.  It would let me write my usage
-          text in a straightforward fashion and not have to worry about how it comes out.
-        - Simplest:  it formats text as needed with no formatting commands.
-        - More complex:  allows formatting commands
-        - It would be nice to include the abilities of the terminal too, such as color and
-          underlining.  The formatting tool would need to make the escape codes invisible to things
-          like the length of a line.  It would be nice if this was part of the tokenizer.
 
     - ad:  make a tool analogous to hd to dump text files so you can see location of Unicode
       characters and their value.  Can also use color coding.  For control characters, use 
