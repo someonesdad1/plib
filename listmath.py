@@ -361,7 +361,8 @@ if len(sys.argv) == 1:
         return o
     def uniq(x):
         return list(sorted(set(x)))
-    def Prt(title, s):
+    def Prt1(title, s):
+        'Print the columnized colorized names'
         t.print(title)
         sym = []
         for i in s:
@@ -369,7 +370,21 @@ if len(sys.argv) == 1:
         out = []
         for name, entry in sorted(sym):
             out.append(f"{entry.color}{name}{t.n}")
-        for i in Columnize(out, indent=ind):
+        for i in Columnize(out, indent=ind, esc=True):
+            print(i)
+    def Prt2(title, s):
+        'Print the names'
+        t.print(title)
+        sym = []
+        for i in s:
+            sym.append((i.name, i))
+        out = []
+        for name, entry in sorted(sym):
+            lib = "cmath" if entry.lib == "c" else "math"
+            lib = f"{entry.color}{lib}"
+            s = f"{lib}.{name}{entry.args}{t.n}"
+            out.append(s)
+        for i in Columnize(out, indent=ind, esc=True):
             print(i)
     def MathReport():
         'Show the math/cmath symbols'
@@ -405,36 +420,43 @@ if len(sys.argv) == 1:
             out = []
             for name, entry in sorted(sym):
                 out.append(f"{entry.color}{name}{t.n}")
-            for i in Columnize(out, indent=ind):
+            for i in Columnize(out, indent=ind, esc=True):
                 print(i)
         if 1:   # Names organized by calling type
             print("-"*W)
-            t.print(f"{t('whtl', 'royd')}Names organized by calling type")
+            t.print(f"{t.hdr}Names organized by calling type")
             if 1:   # Constants
                 s = [i for i in o if i.n == "0"]
-                Prt(f"{t('grnl')}Constants", s)
+                Prt1(f"{t.type}Constants", s)
             if 1:   # Univariate
-                s = [i for i in o if i.n == "1"]
-                Prt(f"{t('grnl')}Univariate", s)
+                univariate = [i for i in o if i.n == "1"]
+                Prt1(f"{t.type}Univariate", univariate)
             if 1:   # Bivariate
-                s = [i for i in o if i.n == "2"]
-                Prt(f"{t('grnl')}Bivariate", s)
+                bivariate = [i for i in o if i.n == "2"]
+                Prt1(f"{t.type}Bivariate", bivariate)
             if 1:   # Iterator
-                s = [i for i in o if i.n == "i"]
-                Prt(f"{t('grnl')}Iterator", s)
+                iterator = [i for i in o if i.n == "i"]
+                Prt1(f"{t.type}Iterator", iterator)
             if 1:   # List of arguments
-                s = [i for i in o if i.n == "*"]
-                Prt(f"{t('grnl')}List of arguments", s)
+                list_of_arguments = [i for i in o if i.n == "*"]
+                Prt1(f"{t.type}List of arguments", list_of_arguments)
             if 1:   # Other
-                s = [i for i in o if i.n == "4"]
-                Prt(f"{t('grnl')}Other", s)
+                other = [i for i in o if i.n == "4"]
+                Prt1(f"{t.type}Other", other)
         if 1:   # Argument syntax for functions
             print("-"*W)
-            t.print(f"{t('whtl', 'royd')}Argument syntax for functions")
+            t.print(f"{t.hdr}Argument syntax for functions")
+            Prt2(f"{t.type}Univariate", univariate)
+            Prt2(f"{t.type}Bivariate", bivariate)
+            Prt2(f"{t.type}Iterator", iterator)
+            Prt2(f"{t.type}List of arguments", list_of_arguments)
+            Prt2(f"{t.type}Other", other)
 
     entry = namedtuple("Entry", "lib n name args color")
     t.m = t("brnl")
     t.c = t("denl")
+    t.type = t("grnl")
+    t.hdr = t("whtl", "royd")
     ind = " "*2
     W = int(os.environ.get("COLUMNS", "80")) - 1
     MathReport()
