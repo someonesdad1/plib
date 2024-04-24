@@ -1,5 +1,5 @@
 '''
-Elementary number theory and combinatorics functions.
+Elementary number theory and combinatorics functions
 
 References
   ASPN Recipes, mathematics.py
@@ -22,8 +22,8 @@ if 1:  # Global variables
 def gcd(a, b):
     "Greatest common divisor of a and b using Euclid's algorithm"
     if not (ii(a, int) and ii(b, int)):
-        raise TypeError("a and b must be an integers")
-    if not a or not b:
+        raise TypeError("a and b must be integers")
+    if not a and not b:
         raise ValueError("a and b cannot both be zero")
     a, b = abs(a), abs(b)
     if not a:
@@ -215,9 +215,8 @@ def stirling2(n, k):
     return stirling2(n - 1, k - 1) + k*stirling2(n - 1, k)
 def NumberOfDerangements(n):
     '''Returns the number of derangements using the formula:
-        d(n) = n*d(n-1) + (-1)**n
-    A derangement is a permutation where each element is not in its
-    natural place, or p[i] != i.
+        d(n) = n*d(n - 1) + (-1)**n
+    A derangement is a permutation where each element is not in its natural place, or p[i] != i.
     '''
     if not n:
         return 1
@@ -239,18 +238,21 @@ if __name__ == "__main__":
     from lwtest import run, assert_equal, raises, Assert
     from pdb import set_trace as xx
     def Test_gcd():
-        assert_equal(gcd(0, 0), 0)
         assert_equal(gcd(0, 1), 1)
         assert_equal(gcd(1, 0), 1)
         assert_equal(gcd(1, 1), 1)
         #
-        assert_equal(gcd(0, 0), 0)
         assert_equal(gcd(0, -1), 1)
         assert_equal(gcd(-1, 0), 1)
         assert_equal(gcd(-1, -1), 1)
         #
         assert_equal(gcd(10, 12), 2)
         assert_equal(gcd(-10, -12), 2)
+        #
+        raises(ValueError, gcd, 0, 0)
+        raises(TypeError, gcd, 1.0, 0)
+        raises(TypeError, gcd, 0, 1.0)
+        raises(TypeError, gcd, 1.0, 1.0)
         # gcd_seq
         assert_equal(gcd_seq(None), None)
         assert_equal(gcd_seq(0), None)
@@ -325,15 +327,11 @@ if __name__ == "__main__":
             assert_equal(ackermann(3, n), 2**(n + 3) - 3)
     def Test_univariate():
         data = (
-            ((1, 1, 2, 5, 15, 52, 203, 877, 4140, 21147, 115975, 678570,
-                4213597, 27644437), bell),
-            ((1, 1, 2, 5, 14, 42, 132, 429, 1430, 4862, 16796, 58786,
-            208012), catalan),
+            ((1, 1, 2, 5, 15, 52, 203, 877, 4140, 21147, 115975, 678570, 4213597, 27644437), bell),
+            ((1, 1, 2, 5, 14, 42, 132, 429, 1430, 4862, 16796, 58786, 208012), catalan),
             ((0, 1, 1, 2, 3, 5, 8, 13, 21, 34, 55, 89, 144), fibonacci),
-            ((2, 1, 3, 4, 7, 11, 18, 29, 47, 76, 123, 199, 322, 521,
-                843, 1364, 2207), lucas),
-            ((1, 0, 1, 2, 9, 44, 265, 1854, 14833, 133496, 1334961,
-            14684570, 176214841, 2290792932), NumberOfDerangements),
+            ((2, 1, 3, 4, 7, 11, 18, 29, 47, 76, 123, 199, 322, 521, 843, 1364, 2207), lucas),
+            ((1, 0, 1, 2, 9, 44, 265, 1854, 14833, 133496, 1334961, 14684570, 176214841, 2290792932), NumberOfDerangements),
         )
         for answers, func in data:
             for n in range(len(answers)):

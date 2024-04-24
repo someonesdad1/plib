@@ -1,5 +1,8 @@
 Active:  /plib/.todo
 
+    - listmath.py
+        - Update to 3.11
+
     - Text formatting tool
         - One of the most common tasks in my scripts is something like a Usage() statement, which
           needs to print a chunk of text to the screen.  This needs to supply a given indentation
