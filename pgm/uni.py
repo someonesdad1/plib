@@ -663,7 +663,7 @@ def ParseCommandLine(d):
         not d["-P"] and 
         not d["-p"] and 
         not args):
-        Usage(d)
+        Usage(d, status=0)
     if d["-D"] or d["-g"]:
         d["-a"] = True
     return args

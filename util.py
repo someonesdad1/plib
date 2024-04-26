@@ -3,7 +3,6 @@
 ToDo
     - Convert Spinner to a class so the instance is thread-safe
     - Debug class should use print()'s arguments
-    - Remove sig dependencies if not too difficult (use flt instead)
     - Document Now class
 
 Miscellaneous routines in python:
@@ -114,7 +113,6 @@ if 1:   # Imports
  
 if 1:   # Custom imports
     from dpmath import AlmostEqual, SignSignificandExponent, signum
-    from sig import sig
     from frange import frange
 if 1:   # Global variables
     ii = isinstance
@@ -708,8 +706,8 @@ def IdealGas(P=0, v=0, T=0, MW=28.9):
         v = specific volume in m^3/kg
         T = absolute temperature in K
         MW = molecular weight = molar mass in g/mol (defaults to air) Note you can also supply a
-             string; if the lower-case version of this string is in the dictionary of gas_molar_mass
-             below, the molar mass for that gas will be used.
+             string; if the lower-case version of this string is in the dictionary of 
+             gas_molar_mass below, the molar mass for that gas will be used.
     The tuple (P, v, T) will be returned.
  
     WARNING:  Note that v is the specific volume, not the volume!
@@ -722,24 +720,22 @@ def IdealGas(P=0, v=0, T=0, MW=28.9):
     be found in numerous handbooks, such as the CRC Handbook of Chemistry and Physics, the
     Smithsonian Critical Tables, etc.
  
-    Some molar masses and critical values for common gases are:
+    Some molar masses and critical values for common gases are (Tc is critical temperature, Pc is
+    critical pressure (multiply by 1e5 to get Pa), MW is molecular weight):
  
-                    Tc       Pc     MW
-        air        133.3   37.69   28.9
-        ammonia    405.6  113.14   17.03
-        argon      151.0   48.00   39.95
-        co2        304.2   73.82   44.0099
-        helium       5.2    2.25    4.003
-        hydrogen    33.3   12.97    2.01594
-        methane    190.6   46.04   16.04298
-        nitrogen   126.1   33.94   28.0134
-        oxygen     154.6   50.43   31.9988
-        propane    369.8   42.49   26.03814
-        water      647.3  221.2    18.01534
-        xenon      289.8   58.00  131.30
- 
-    Tc is the critical temperature in K, Pc is the critical pressure in bar (multiply by 1e5 to get
-    Pa), and MW is the molecular weight in daltons (1 Da = 1 g/mol).
+                   Tc, K    Pc, bar    MW, g/mol
+        air        133.3     37.69     28.9
+        ammonia    405.6    113.14     17.03
+        argon      151.0     48.00     39.95
+        co2        304.2     73.82     44.0099
+        helium       5.2      2.25      4.003
+        hydrogen    33.3     12.97      2.01594
+        methane    190.6     46.04     16.04298
+        nitrogen   126.1     33.94     28.0134
+        oxygen     154.6     50.43     31.9988
+        propane    369.8     42.49     26.03814
+        water      647.3    221.2      18.01534
+        xenon      289.8     58.00    131.30
     '''
     gas_molar_mass = {
         "air": 28.9,
@@ -2324,7 +2320,7 @@ if __name__ == "__main__":
         chain combinations islice groupby cycle zip_longest itemgetter xx
         randint seed ascii_letters DIGITS punctuation AlmostEqual
         SignSignificandExponent signum cmath glob math os pathlib re struct
-        subprocess sys tempfile time sig Test __ Miscellaneous'''.split()
+        subprocess sys tempfile time Test __ Miscellaneous'''.split()
         for name in mnames:
             for s in ignore:
                 if name.startswith(s):
