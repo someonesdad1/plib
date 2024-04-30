@@ -100,7 +100,9 @@ if __name__ == "__main__":
                 print(r(choice=i), end="")
     args = sys.argv[1:]
     r = Ruler(reduce=reduce)
-    z = Ruler(zb=True)
+    if args and "-z" in args:
+        r = Ruler(zb=True, reduce=reduce)
+        args.remove("-z")
     if args:
         if args[0] == "-h":
             print(f"Usage: {sys.argv[0]} [num1 [num2...]]")

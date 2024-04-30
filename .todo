@@ -1,22 +1,18 @@
 Active:  /plib/.todo
 
-    - Programmer's index (see xxpgidx)
-        - I have so many tools & utilities I need some kind of overall master index to find them.
+    - Statistical tools
+        - DAP https://en.wikipedia.org/wiki/DAP_(software) 
+            - Command line tool for statistics
+            - Too focused on C-type behavior and emacs
+        - PSPP:  GNU tool at https://www.gnu.org/software/pspp/
+            - Needs GNU scientific library, python 3.4+, iconv, Cairo 1.12+, zlipb, libxml2,
+              gettext.  
+                - Run configure with --without-gui to just build CLI version
+            - GUI:  needs pkg-config, GTK+, GtkSourceView, GNU Spread Sheet Widget
+        - An honest assessment is that it would likely make the most sense to have a dedicated
+          Linux box to run this stuff on.
 
-    - Text formatting tool
-        - One of the most common tasks in my scripts is something like a Usage() statement, which
-          needs to print a chunk of text to the screen.  This needs to supply a given indentation
-          and fit itself to the current width of the screen, like the modern man command does in a
-          terminal window.  Since I use 4 spaces for tabs universally, it could include an integer
-          keyword 'tabs' that would default to 0 or 1.  Then a spaces keyword could be used when
-          needed.
-        - This tool would obviate the need for the dedent() method.  It would let me write my usage
-          text in a straightforward fashion and not have to worry about how it comes out.
-        - Simplest:  it formats text as needed with no formatting commands.
-        - More complex:  allows formatting commands
-        - It would be nice to include the abilities of the terminal too, such as color and
-          underlining.  The formatting tool would need to make the escape codes invisible to things
-          like the length of a line.  It would be nice if this was part of the tokenizer.
+    - Programmer's index (see xxpgidx)
 
     - Functions
         - Way too many
@@ -1738,5 +1734,7 @@ Programmer's index  xxpgidx
         - Flags:  #∞, #🝖, etc.
         - #∞ used for file-level descriptions 
         - #🝖 used for function-level descriptions 
+        - #ϵ, #϶ to delineate a text block
+            - A block should be formatted by my standard text formatting tool
 
 vim: tw=99

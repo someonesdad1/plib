@@ -109,16 +109,16 @@ if 1:   # Classes
                 "Q": 30,    # quetta  Added 2022 27th CGPM
             })
             self.d = {
-                -3: "m",
-                -6: "μ",
-                -9: "n",
-                -12: "p",
-                -15: "f",
-                -18: "a",
-                -21: "z",
-                -24: "y",
-                -27: "r",
                 -30: "q",
+                -27: "r",
+                -24: "y",
+                -21: "z",
+                -18: "a",
+                -15: "f",
+                -12: "p",
+                -9: "n",
+                -6: "μ",
+                -3: "m",
                 0: "",
                 3: "k",
                 6: "M",
@@ -234,19 +234,19 @@ if 1:   # Core functionality
             else:
                 return s
         else:
-            found = ""
+            si_prefix_found = ""
             for i in "qryzafpnμmkMGTPEZYRQ":
                 if i in s:
-                    found = i
+                    si_prefix_found = i
                     break
-            if found:
-                if not s.endswith(found):
-                    raise ValueError(f"{s!r} doesn't end with {found!r}")
-                x = float(s[:-1])*10**si[found]
+            if si_prefix_found:
+                if not s.endswith(si_prefix_found):
+                    raise ValueError(f"{s!r} doesn't end with {si_prefix_found!r}")
+                x = float(s[:-1])*10**si[si_prefix_found]
                 return fmt.sci(x, n=n)
             else:
                 # Assume it's an integer 
-                return fmt.engsic(float(s))
+                return flt(s).engsi
     def GetSignificantFigures(s, rtz=False):
         '''Given a string s representing a floating point number, determine how
         many significant figures it has.  If rtz is True, remove trailing

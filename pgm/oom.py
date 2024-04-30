@@ -1,8 +1,8 @@
 '''
 TODO
 
-    * Sizes are not sorted
-    * "meters" in parentheses are not being converted to m.  Example:  do a
+    - Sizes are not sorted
+    - "meters" in parentheses are not being converted to m.  Example:  do a
       search on '1mm'.
 
 Show lengths close to command line argument
@@ -27,24 +27,42 @@ if 1:  # Header
         import re
         import sys
     if 1:   # Custom imports
-        from wrap import dedent
+        from wrap import dedent, wrap
         import u
         from f import flt
         from color import t
-        import color as C
         if 0:
             import debug
             debug.SetDebugger()
     if 1:   # Global variables
         ii = isinstance
+        W = int(os.environ.get("COLUMNS", "80")) - 1
         SI_prefix = {
-            -24: "y", -21: "z", -18: "a", -15: "f", -12: "p", -9: "n", -6: "μ",
-            -3: "m", 0: "", 3: "k", 6: "M", 9: "G", 12: "T", 15: "P", 18: "E",
-            21: "Z", 24: "Y"
+            -30: "q",   
+            -27: "r",   
+            -24: "y",   
+            -21: "z",   
+            -18: "a",   
+            -15: "f",   
+            -12: "p",   
+            -9: "n",    
+            -6: "μ",    
+            -3: "m",    
+            0: "",      
+            3: "k",     
+            6: "M",     
+            9: "G",     
+            12: "T",    
+            15: "P",    
+            18: "E",    
+            21: "Z",    
+            24: "Y",    
+            27: "R",    
+            30: "Q",    
         }
 if 1:   # Raw data from https://en.wikipedia.org/wiki/Orders_of_magnitude_(length)
     # Changes I've made:
-    #   - I have removed inconsistencies and annoyances in the original web page data.
+    #   - Removed inconsistencies and annoyances in the original web page data.
     #
     # References to cm have been changed to mm, as I consider the use of CGS units to be
     # antiquated.  The entries were sorted by size.
@@ -68,7 +86,7 @@ if 1:   # Raw data from https://en.wikipedia.org/wiki/Orders_of_magnitude_(lengt
     1 am 		 Upper bound of the typical size range for "fundamental strings"
     1 am 		 Upper limit for the size of quarks and electrons
     10 am 		 Range of the weak force
-    100 am 		 All lengths shorter than this distance are not confirmed in terms of size
+    100 am 		 Lengths shorter than this distance are not confirmed in terms of size
     850 am 		 Approximate proton radius
     1 fm 		 Diameter of a neutron, approximate range-limit of the color force carried between quarks by gluons
     1.5 fm 		 Diameter of the scattering cross section of an 11 MeV proton with a target proton
@@ -159,7 +177,7 @@ if 1:   # Raw data from https://en.wikipedia.org/wiki/Orders_of_magnitude_(lengt
     125 nm 		 Standard depth of pits on compact disks (width: 500 nm, length: 850 nm to 3.5 μm)
     180 nm 		 Typical length of the rabies virus
     200 nm 		 Typical size of a Mycoplasma bacterium, among the smallest bacteria
-    300 nm 		 Greatest particle size that can fit through a HEPA (High Efficiency Particulate Air) filter (N100 removes up to 99.97% at 0.3 micrometers, N95 removes up to 95% at 0.3 micrometers)
+    300 nm 		 Largest particle size that can fit through a HEPA (High Efficiency Particulate Air) filter (N100 removes up to 99.97% at 0.3 micrometers, N95 removes up to 95% at 0.3 micrometers)
     300 to 400 nm 		 Near ultraviolet wavelength
     400 to 420 nm 		 Wavelength of violet light
     420 to 440 nm 		 Wavelength of indigo light
@@ -181,7 +199,7 @@ if 1:   # Raw data from https://en.wikipedia.org/wiki/Orders_of_magnitude_(lengt
     3 to 8 μm 		 Width of strand of spider web silk
     6 μm 		 Thickness of the tape in a 120-minute (C120) compact cassette
     7 μm 		 Diameter of the nucleus of a typical eukaryotic cell
-    ~ 7 μm 		 Diameter of human red blood cells
+    ~7 μm 		 Diameter of human red blood cells
     5 to 10 μm 		 Width of a chloroplast
     8 to 11 μm 		 Size of a ground-level fog or mist droplet
     10 μm 		 Mean longest dimension of a human red blood cell
@@ -294,8 +312,8 @@ if 1:   # Raw data from https://en.wikipedia.org/wiki/Orders_of_magnitude_(lengt
     1.15 m 		 A pizote (mammal)
     1.37 m 		 Average height of an Andamanese person
     1.435 m 		 Standard gauge of railway track used by about 60% of railways in the world = 4' 8½"
-    1.63 m 		 (5 feet 4 inches) (or 64 inches) - height of average US female human as of 2002 (source: US Centers for Disease Control and Prevention (CDC))
-    1.75 m 		 (5 feet 8 inches) - height of average US male human as of 2002 (source: US CDC as per female above)
+    1.63 m 		 64 inches, height of average US female human as of 2002 (US CDC)
+    1.75 m 		 68 inches, height of average US male human as of 2002 (US CDC)
     2.44 m 		 Height of an association soccer goal
     2.45 m 		 Highest high jump by a human being (Javier Sotomayor)
     2.5 m 		 Distance from the floor to the ceiling in an average residential house
@@ -315,90 +333,88 @@ if 1:   # Raw data from https://en.wikipedia.org/wiki/Orders_of_magnitude_(lengt
     7.5 m 		 Approximate length of the human gastrointestinal tract
     8.38 m 		 The length of a London Bus (AEC Routemaster)
     8.95 m 		 Longest long jump by a human being (Mike Powell)
-    10 meters 		 Average length of human digestive tract
-    10 meters 		 Wavelength of the highest shortwave radio frequency, 30 MHz
-    11 meters 		 Approximate width of a doubles tennis court
-    12 meters 		 Length of a whale shark, largest living fish
-    12 meters 		 Wingspan of a Quetzalcoatlus, a pterosaur
-    13 meters 		 Length of a giant squid and colossal squid, the largest living invertebrates
-    15 meters 		 Approximate distance the tropical circles of latitude are moving towards the equator and the polar circles are moving towards the poles each year due to a natural, gradual decrease in the Earth's axial tilt
-    15 meters 		 Width of a standard FIBA basketball court
-    15.24 meters 		 Width of an NBA basketball court (50 feet)
-    18 meters 		 Height of a Sauroposeidon, the tallest known dinosaur
-    18.44 meters 		 Distance between the front of the pitcher's rubber and the rear point of home plate on a baseball field (60 feet, 6 inches)
-    20 meters 		 Length of a Leedsichthys, the largest known fish ever lived
-    20 meters 		 Length of cricket pitch (22 yards)
-    21 meters 		 Height of High Force waterfall in England
-    23 meters 		 Height of the obelisk of the Place de la Concorde, Paris, France
-    25 meters 		 Wavelength of the broadcast radio shortwave band at 12 MHz
-    27.43 meters 		 Distance between bases on a baseball field (90 feet)
-    28 meters 		 Length of a standard FIBA basketball court
-    28.65 meters 		 Length of an NBA basketball court (94 feet)
-    29 meters 		 Height of the lighthouse at Savudrija, Slovenia
-    30 meters 		 Diameter of 1998 KY26, a rapidly spinning meteoroid
-    31 meters 		 Wavelength of the broadcast radio shortwave band at 9.7 MHz
-    32 meters 		 Approximate diameter of 2008 HJ, a small meteoroid
-    33 meters 		 Length of a blue whale, the largest animal on earth, living or extinct, in terms of mass
-    34 meters 		 Height of the Split Point Lighthouse in Aireys Inlet, Victoria, Australia
-    35 meters 		 Length of a Supersaurus, the longest known dinosaur and longest vertebrate
-    40 meters 		 Average depth beneath the seabed of the Channel tunnel
-    49 meters 		 Wavelength of the broadcast radio shortwave band at 6.1 MHz
-    49 meters 		 Width of an American football field (53.33 yards)
-    50 meters 		 Length of a road train
-    52 meters 		 Height of Niagara Falls
-    55 meters 		 Height of the Leaning Tower of Pisa
-    55 meters 		 Length of a bootlace worm, the longest known animal
-    59.436 meters 		 Width of a Canadian football field (65 yards)
-    62.5 meters 		 Height of Pyramid of Djoser
-    64 meters 		 Wingspan of a Boeing 747-400
-    69 meters 		 Wingspan of an Antonov An-124 Ruslan
-    70 meters 		 Length of the Bayeux Tapestry
-    70 meters 		 Typical width of soccer field
-    70 meters 		 Width of a typical association soccer field
-    77 meters 		 Wingspan of a Boeing 747-8
-    83 meters 		 Height of a Western hemlock
-    88.4 meters 		 Wingspan of the Antonov An-225 Mriya transport aircraft
-    91 meters 		 Length of American football field (100 yards, measured between the goal lines)
-    91.5 meters 		 137 meters - length of a soccer field
-    93 meters 		 Height of the Statue of Liberty
-    96 meters 		 Height of Big Ben
-    100 meters 		 Spacing of location marker posts on British motorways
-    100 meters 		 The distance a very fast human being can run in about 10 seconds
-    100 meters 		 Wavelength of the highest medium wave radio frequency, 3 MHz
-    100 meters 		 Wavelength of the lowest shortwave radio frequency, 3 MHz
-    100.584 meters 		 Length of a Canadian football field between the goal lines (110 yards)
-    105 meters 		 Length of a typical soccer field
-    105 meters 		 Length of soccer pitch (UEFA Stadium Category 3 and 4)
-    109.73 meters 		 Total length of an American football field (120 yards, including the end zones)
-    115.5 meters 		 Height of the world's tallest tree in 2007, the Hyperion sequoia
-    110 to 150 meters 		 The width of an Australian football field
-    137.16 meters 		 Total length of a Canadian football field, including the end zones (150 yards)
-    138.8 meters 		 Height of the Great Pyramid of Giza (Pyramid of Cheops)
-    139 meters 		 Height of the world's tallest roller coaster, Kingda Ka
-    187 meters 		 Shortest wavelength of the broadcast radio AM band, 1600 kHz
-    202 meters 		 Length of the Széchenyi Chain Bridge connecting Buda and Pest
-    270 meters 		 Length of 99942 Apophis
-    310 meters 		 Maximum depth of Lake Geneva
-    318 meters 		 Height of The New York Times Building
-    318.9 meters 		 Height of the Chrysler Building
-    320.75 meters 		 Height of the Eiffel Tower(including antenna)
-    328 meters 		 Height of Auckland's Sky Tower, the tallest free-standing structure in the Southern Hemisphere
-    340 meters 		 Distance sound travels in air at sea level in one second; see Speed of sound
-    341 meters 		 Height of the world's tallest bridge, the Millau Viaduct
-    390 meters 		 Height of the Empire State Building
-    458 meters 		 Length of the Knock Nevis, the world's largest supertanker
-    535 meters 		 Length of 25143 Itokawa, a small asteroid visited by a spacecraft
-    553.33 meters 		 Height of the CN Tower
-    555 meters 		 Longest wavelength of the broadcast radio AM band, 540 kHz
-    400 to 800 meters 		 Approximate heights of the world's tallest skyscrapers of the past 80 years
-    630 meters 		 Height of the KVLY-TV mast, second tallest structure in the world
-    646 meters 		 Height of the Warsaw radio mast, the world's tallest structure until its collapse in 1991
-    828 meters 		 Height of Burj Khalifa, world's tallest structure on 17 January 2009
-    979 meters 		 Height of the Salto Angel, the world's highest free-falling waterfall (Venezuela)
+    10 m 		 Average length of human digestive tract
+    10 m 		 Wavelength of the highest shortwave radio frequency, 30 MHz
+    11 m 		 Approximate width of a doubles tennis court
+    12 m 		 Length of a whale shark, largest living fish
+    12 m 		 Wingspan of a Quetzalcoatlus, a pterosaur
+    13 m 		 Length of a giant squid and colossal squid, the largest living invertebrates
+    15 m 		 Approximate distance the tropical circles of latitude are moving towards the equator and the polar circles are moving towards the poles each year due to a natural, gradual decrease in the Earth's axial tilt
+    15 m 		 Width of a standard FIBA basketball court
+    15.24 m 		 Width of an NBA basketball court (50 feet)
+    18 m 		 Height of a Sauroposeidon, the tallest known dinosaur
+    18.44 m 		 Distance between the front of the pitcher's rubber and the rear point of home plate on a baseball field (60 feet, 6 inches)
+    20 m 		 Length of a Leedsichthys, the largest known fish ever lived
+    20 m 		 Length of cricket pitch (22 yards)
+    21 m 		 Height of High Force waterfall in England
+    23 m 		 Height of the obelisk of the Place de la Concorde, Paris, France
+    25 m 		 Wavelength of the broadcast radio shortwave band at 12 MHz
+    27.43 m 		 Distance between bases on a baseball field (90 feet)
+    28 m 		 Length of a standard FIBA basketball court
+    28.65 m 		 Length of an NBA basketball court (94 feet)
+    29 m 		 Height of the lighthouse at Savudrija, Slovenia
+    30 m 		 Diameter of 1998 KY26, a rapidly spinning meteoroid
+    31 m 		 Wavelength of the broadcast radio shortwave band at 9.7 MHz
+    32 m 		 Approximate diameter of 2008 HJ, a small meteoroid
+    33 m 		 Length of a blue whale, the largest animal on earth, living or extinct, in terms of mass
+    34 m 		 Height of the Split Point Lighthouse in Aireys Inlet, Victoria, Australia
+    35 m 		 Length of a Supersaurus, the longest known dinosaur and longest vertebrate
+    40 m 		 Average depth beneath the seabed of the Channel tunnel
+    49 m 		 Wavelength of the broadcast radio shortwave band at 6.1 MHz
+    49 m 		 Width of an American football field (53.33 yards)
+    50 m 		 Length of a road train
+    52 m 		 Height of Niagara Falls
+    55 m 		 Height of the Leaning Tower of Pisa
+    55 m 		 Length of a bootlace worm, the longest known animal
+    59.436 m 		 Width of a Canadian football field (65 yards)
+    62.5 m 		 Height of Pyramid of Djoser
+    64 m 		 Wingspan of a Boeing 747-400
+    69 m 		 Wingspan of an Antonov An-124 Ruslan
+    70 m 		 Length of the Bayeux Tapestry
+    70 m 		 Typical width of soccer field
+    77 m 		 Wingspan of a Boeing 747-8
+    83 m 		 Height of a Western hemlock
+    88.4 m 		 Wingspan of the Antonov An-225 Mriya transport aircraft
+    91 m 		 Length of American football field (100 yards, measured between the goal lines)
+    93 m 		 Height of the Statue of Liberty
+    96 m 		 Height of Big Ben
+    100 m 		 Spacing of location marker posts on British motorways
+    100 m 		 The distance a very fast human being can run in about 10 seconds
+    100 m 		 Wavelength of the highest medium wave radio frequency, 3 MHz
+    100 m 		 Wavelength of the lowest shortwave radio frequency, 3 MHz
+    100.584 m 		 Length of a Canadian football field between the goal lines (110 yards)
+    105 m 		 Length of a typical soccer field
+    105 m 		 Length of soccer pitch (UEFA Stadium Category 3 and 4)
+    109.73 m 		 Total length of an American football field (120 yards, including the end zones)
+    115.5 m 		 Height of the world's tallest tree in 2007, the Hyperion sequoia
+    110 to 150 m 		 The width of an Australian football field
+    137.16 m 		 Total length of a Canadian football field, including the end zones (150 yards)
+    138.8 m 		 Height of the Great Pyramid of Giza (Pyramid of Cheops)
+    139 m 		 Height of the world's tallest roller coaster, Kingda Ka
+    187 m 		 Shortest wavelength of the broadcast radio AM band, 1600 kHz
+    202 m 		 Length of the Széchenyi Chain Bridge connecting Buda and Pest
+    270 m 		 Length of 99942 Apophis
+    310 m 		 Maximum depth of Lake Geneva
+    318 m 		 Height of The New York Times Building
+    318.9 m 		 Height of the Chrysler Building
+    320.75 m 		 Height of the Eiffel Tower(including antenna)
+    328 m 		 Height of Auckland's Sky Tower, the tallest free-standing structure in the Southern Hemisphere
+    340 m 		 Distance sound travels in air at sea level in one second; see Speed of sound
+    341 m 		 Height of the world's tallest bridge, the Millau Viaduct
+    390 m 		 Height of the Empire State Building
+    458 m 		 Length of the Knock Nevis, the world's largest supertanker
+    535 m 		 Length of 25143 Itokawa, a small asteroid visited by a spacecraft
+    553.33 m 		 Height of the CN Tower
+    555 m 		 Longest wavelength of the broadcast radio AM band, 540 kHz
+    400 to 800 m 		 Approximate heights of the world's tallest skyscrapers of the past 80 years
+    630 m 		 Height of the KVLY-TV mast, second tallest structure in the world
+    646 m 		 Height of the Warsaw radio mast, the world's tallest structure until its collapse in 1991
+    828 m 		 Height of Burj Khalifa, world's tallest structure on 17 January 2009
+    979 m 		 Height of the Salto Angel, the world's highest free-falling waterfall (Venezuela)
     1 km 		 Diameter of 1620 Geographos
     1 km 		 Very approximate size of the smallest known moons of Jupiter
     1 km 		 Wavelength of the highest long wave radio frequency, 300 kHz
-    1000 meters 		 Wavelength of the lowest mediumwave radio frequency, 300 kHz
+    1000 m 		 Wavelength of the lowest mediumwave radio frequency, 300 kHz
     1.280 km 		 Span of the Golden Gate Bridge (distance between towers)
     1.4 km 		 Diameter of Dactyl, the first confirmed asteroid moon
     1.609 km 		 1 mile
@@ -595,14 +611,14 @@ if 1:   # Raw data from https://en.wikipedia.org/wiki/Orders_of_magnitude_(lengt
     7.9 Gm 		 Diameter of Gamma Orionis
     9.0 Gm 		 Estimated diameter of the event horizon of Sagittarius A*, the supermassive black hole in the center of the Milky Way galaxy
     15 Gm 		 Closest distance of Comet Hyakutake from Earth
-    18 Gm 		 One light-minute (see yellow sphere in right-hand diagram)
+    18 Gm 		 One light-minute
     24 Gm 		 Radius of a heliostationary orbit
-    46 Gm 		 Perihelion distance of Mercury (yellow ellipse on the right)
+    46 Gm 		 Perihelion (closest to sun) distance of Mercury
     55 Gm 		 60,000-year perigee of Mars (last achieved on 27 August 2003)
     55 Gm 		 Radius of Rigel, a blue supergiant star (largest star on right)
     58 Gm 		 Average passing distance between Earth and Mars at the moment they overtake each other in their orbits
     61 Gm 		 Diameter of Aldebaran, an orange giant star (large star on right)
-    70 Gm 		 Aphelion distance of Mercury
+    70 Gm 		 Aphelion (farthest from sun) distance of Mercury
     76 Gm 		 Neso's apocentric distance; greatest distance of a natural satellite from its parent planet (Neptune)
     109 Gm 		 Distance between Venus and the Sun
     149.6 Gm 		 Distance between the Earth and the Sun - the definition of the astronomical unit
@@ -620,15 +636,15 @@ if 1:   # Raw data from https://en.wikipedia.org/wiki/Orders_of_magnitude_(lengt
     2 Tm 		 Estimated diameter of VY Canis Majoris, one of the largest known stars
     2.9 Tm 		 Distance between Uranus and the Sun
     4 Tm 		 Previous estimated diameter of VY Canis Majoris based on direct measurements of the radius at infrared wavelengths
-    4.4 Tm 		 Perihelion distance of Pluto
+    4.4 Tm 		 Perihelion (closest to sun) distance of Pluto
     4.5 Tm 		 Distance between Neptune and the Sun
     4.5 Tm 		 Inner radius of the Kuiper belt
-    5.7 Tm 		 Perihelion distance of Eris
-    7.3 Tm 		 Aphelion distance of Pluto
+    5.7 Tm 		 Perihelion (closest to sun) distance of Eris
+    7.3 Tm 		 Aphelion (farthest from sun) distance of Pluto
     7.5 Tm 		 Outer radius of the Kuiper Belt, inner boundary of the Oort Cloud
     10 Tm 		 Diameter of a hypothetical Quasi-star
     11.1 Tm 		 Distance that Voyager 1 began detecting returning particles from termination shock
-    11.4 Tm 		 Perihelion distance of 90377 Sedna
+    11.4 Tm 		 Perihelion (closest to sun) distance of 90377 Sedna
     12.1 Tm 		 Distance to termination shock (Voyager 1 crossed at 94 AU)
     12.9 Tm 		 Distance to 90377 Sedna in March 2014
     13.2 Tm 		 Distance to Pioneer 11 in March 2014
@@ -641,15 +657,15 @@ if 1:   # Raw data from https://en.wikipedia.org/wiki/Orders_of_magnitude_(lengt
     20.6 Tm 		 Distance to Voyager 1 as of late February 2017
     21.1 Tm 		 Distance to Voyager 1 as of November 2017
     25.9 Tm 		 One light-day
-    55.7 Tm 		 Aphelion distance of the comet Hale-Bopp
-    146 Tm 		 Aphelion distance of 90377 Sedna
+    55.7 Tm 		 Aphelion (farthest from sun) distance of the comet Hale-Bopp
+    146 Tm 		 Aphelion (farthest from sun) distance of 90377 Sedna
     172 Tm 		 Schwarzschild diameter of H1821+643, one of the most massive black holes known
     181 Tm 		 One light-week
-    653 Tm 		 Aphelion distance of comet Hyakutake (current orbit)
+    653 Tm 		 Aphelion (farthest from sun) distance of comet Hyakutake (current orbit)
     757 Tm 		 Radius of the Stingray Nebula
     777 Tm 		 One light-month
     7.5 Pm 		 Possible outer boundary of Oort cloud (other estimates are 75,000 to 125,000 or even 189,000 AU (1.18, 2, and 3 light years, respectively))
-    7.7 Pm 		 Aphelion distance of the Great Daylight Comet of 1910
+    7.7 Pm 		 Aphelion (farthest from sun) distance of the Great Daylight Comet of 1910
     9.5 Pm 		 One light year, the distance traveled by light in one year
     15 Pm 		 Possible outer radius of Oort cloud
     20 Pm 		 Maximum extent of influence of the Sun's gravitational field
@@ -812,30 +828,31 @@ if 1:  # Utility
     def Usage(d, status=1):
         print(dedent(f'''
         Usage:  {sys.argv[0]} [options] dist1 [dist2 ...]
-          Print the order of magnitude distance data for distances close to dist1, dist2, etc.  Default
-          units are meters, but you can include another unit with no space between it and the number.
-          If a dist argument can't be converted to a dimensioned number, it's a string that is
-          searched for in the descriptions.  Unless -n is used, a 1-figure number in meters in
-          scientific notation is in parentheses to help interpret SI prefixes used.
+          Print the order of magnitude distance data for distances close to dist1, dist2, etc.
+          Default units are meters, but you can include another unit with no space between it and
+          the number (or use quotes: '3.7 m').  If a dist argument can't be converted to a
+          dimensioned number, it's a string that is searched for in the descriptions.  
         Options:
           -d n    Number of significant figures to display
-          -n      Do not display number in meters
+          -n      Include a one-digit number in meters
           -m      Dump the raw data to stdout and exit
+          -s      Print a summary of some key distances
           -t n    Set % tolerance to be "equal" [{d["-t"]}]
         '''))
-        exit(status)
+        exit(0)
     def ParseCommandLine(d):
         d["-d"] = 3         # Number of significant digits
         d["-m"] = False     # Dump data to stdout
-        d["-n"] = True      # Display in meters numerically too
+        d["-n"] = False     # Display in meters numerically too
+        d["-s"] = False     # Print summary
         d["-t"] = 50        # Tolerance to be "equal"
         try:
-            opts, args = getopt.getopt(sys.argv[1:], "d:mnt")
+            opts, args = getopt.getopt(sys.argv[1:], "d:mnst")
         except getopt.GetoptError as e:
             print(str(e))
             exit(1)
         for o, a in opts:
-            if o[1] in list("nm"):
+            if o[1] in list("nms"):
                 d[o] = not d[o]
             elif o in ("-d",):
                 try:
@@ -860,6 +877,9 @@ if 1:  # Utility
         flt(0).rtz = True
         if d["-m"]:
             GetData(show_sorted=True)
+            exit(0)
+        if d["-s"]:
+            Summary()
             exit(0)
         if not args:
             Usage(d)
@@ -897,6 +917,59 @@ if 1:  # Core functionality
             for i in d["data"]:
                 print(i[1])
             exit()
+    def Summary():
+        data = '''
+        1.8 to 15 fm 		 Diameter range of the atomic nucleus
+        100 pm 		 Diameter of a hydrogen atom
+        200 pm 		 Highest resolution of a typical electron microscope
+        280 pm 		 Average size of the water molecule
+        3 nm 		 Width of a DNA helix
+        5 nm 		 Flying height of the head of a hard disk in 2011
+        10 nm 		 Thickness of cell wall in Gram negative bacteria
+        90 nm 		 Human immunodeficiency virus (HIV)
+        100 nm 		 Largest particle size that can fit through a surgical mask
+        540 nm		 Wavelength of green light
+        2 μm 		 Length of an average E. coli bacteria
+        10 μm 		 Mean longest dimension of a human red blood cell
+        100 μm 		 Average diameter of a strand of human hair
+        1.5 mm 		 Thickness of US penny
+        10 mm 		 Approximate width of average fingernail
+        120 mm		 Diameter of a compact disk (CD)
+        300 mm		 Distance light travels in 1 ns
+        1 m 		 Approximate height of the top part of a doorknob on a door
+        2.5 m 		 Distance from the floor to the ceiling in an average residential house
+        10 m 		 Average length of human digestive tract
+        100 m 		 The distance a fast human being can run in about 10 seconds
+        1.3 km 		 Distance between towers of the Golden Gate Bridge 
+        8.8 km 		 Height of Mount Everest
+        11 km 		 Depth of Mariana Trench
+        50 km 		 Approximate height of the stratosphere
+        386 km 		 Altitude of the International Space Station
+        5 Mm 		 Width of the United States
+        13 Mm 		 Diameter of Earth
+        120 Mm 		 Diameter of Saturn
+        1.4 Gm 		 Diameter of Sun
+        150 Gm 		 Distance between the Earth and the Sun 
+        28 Tm 		 Estimated diameter of the solar system (~ 1 light-day)
+        9.5 Pm 		 Distance traveled by light in 1 year
+        40 Pm 		 Distance to Proxima Centauri, nearest star to Sun
+        1.2 Em 		 Diameter of Messier 13, a typical globular cluster
+        260 Em 		 Distance to the center of Milky Way galaxy
+        24 Zm 		 Distance to the Andromeda galaxy
+        570 Zm 		 Approximate distance to the Virgo cluster, nearest galaxy cluster
+        1.2 Ym 		 Distance to the closest observed gamma ray burst GRB 980425
+        18 Ym 		 Redshift 0.16 - Distance to the quasar 3C 273 (light travel distance)
+        260 Ym 		 Diameter of the observable universe (double light travel distance)
+        '''
+        w = 15
+        wrap.i = " "*2
+        for line in data.split("\n"):
+            line = line.strip()
+            if not line:
+                continue
+            x, s = line.split("\t\t")
+            print(f"{x:{w}s} {s}")
+        print(f"Exponents:  T: 12   P: 15   E: 18   Z: 21   Y: 24")
     def Print(x, r=None):
         '''x is a Num object; print it.  If r is not None, then it will be
         the regex that matched x.descr.
@@ -905,23 +978,34 @@ if 1:  # Core functionality
             y = float(x)  # This is in m
             a, b = f"{y:.0e}".split("e")
             return ''.join([a, "e", str(int(b))])
+        t.num = t("skyl")
+        wrap.i = " "*2
+        print(f"{t.num}{x.str}{t.n}", end=" ")
+        if d["-n"]:
+            print(f"({sci(x)} m)")
+        else:
+            print()
+        print(wrap(x.descr))
+        return
         if r is None:
             # The number matched
-            print(" ", x.str, end=" ")
+            print(x.str, end=" ")
             if d["-n"]:
-                print(f"({sci(x)})", end=" ")
-            print(x.descr)
+                print(f"({sci(x)} m)")
+            else:
+                print()
+            print(wrap(x.descr))
         else:
             # The regex matched
-            print(" ", x.str, end=" ")
+            print(x.str, end=" ")
             if d["-n"]:
                 print(f"({sci(x)})", end=" ")
             print(x.descr)
-            #C.PrintMatch(x.descr, r)
-    def PrintClose(dist):
+    def PrintClose(dist, sep=False):
         '''dist is a command line argument.  Convert it to meters and print out
         those elements in d["data"] that are close to it.
         '''
+        unit = ""
         class DoTextSearch(Exception): pass
         try:
             val, unit = u.ParseUnit(dist)
@@ -936,12 +1020,21 @@ if 1:  # Core functionality
         except (DoTextSearch, TypeError):
             search, m = True, None
             r = re.compile(dist, re.I)
-        print(dist)
+        if search:
+            t.print(f"{t('ornl')}{dist}")
+        else:
+            if unit and not unit.endswith("m"):
+                x = flt(val)*u.u(unit)
+                t.print(f"{t('ornl')}{dist} = {x} m")
+            else:
+                t.print(f"{t('ornl')}{dist}")
         for x in d["data"]:
             if x == m:
                 Print(x)
             elif search and r.search(x.descr):
                 Print(x, r=r)
+        if sep:
+            t.print(f"{t('grnl')}{'-'*W}")
 
 if __name__ == "__main__":
     d = {  # Options dictionary
@@ -950,4 +1043,4 @@ if __name__ == "__main__":
     distances = ParseCommandLine(d)
     GetData()
     for dist in distances:
-        PrintClose(dist)
+        PrintClose(dist, sep=len(distances) > 1)
