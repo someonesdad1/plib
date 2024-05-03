@@ -121,9 +121,9 @@ if 1:  # Core functionality
     def ShowFormulas():
         print(dedent(f'''
         Formulas:
-            °C = 5/9*(°F - 32) = K - 273.15
-            °F = 9/5*(°C + 32) 
-            °R = °F + 459.67'''))
+            C = 5/9*(F - 32) = K - 273.15
+            F = 9/5*C + 32 
+            R = F + 459.67'''))
     def Report(t, include_nl=False):
         n = d["-d"]
         try:

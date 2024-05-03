@@ -72,7 +72,7 @@ if 1:   # Utility
  
         Usage:  {sys.argv[0]} [options] file1 file2 [file3...]
           Compare the files as wordlists.  The files will be selected in pairs and the comparison
-          numbers printed for each pair.
+          numbers printed for each pair.  Lines beginning with '#' are removed.
         Options:
             -i      Do not ignore case of words
  

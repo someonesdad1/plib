@@ -96,9 +96,9 @@ def ParseCommandLine(d):
     for o, a in optlist:
         if o[1] in list("Hlsw"):
             d[o] = not d[o]
-        elif opt[0] == "-h":
+        elif o[0] == "-h":
             Usage(0)
-        elif opt[0] == "-i":
+        elif o[0] == "-i":
             r = re.compile(opt[1])
             d["-i"].append(r)
     if d["-H"]:
