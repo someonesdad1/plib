@@ -1316,6 +1316,26 @@ if 1:   # Other
             t = rlz(t)
         return len(t)
 
+if 1:   # Classes derived from flt for physical data; needed for solarsys.py
+    class Unk(flt):
+        '''Represent an unknown number.  Always return '?' for str or repr.
+        Constructor argument must be a single question mark or equivalent
+        Unicode character.  The numerical value is deliberately NaN so that
+        calculations with it won't succeed.
+        '''
+        allowed = set("?¿⁇❓❔⸮︖﹖？")
+        def __new__(cls, arg):
+            if not ii(arg, str):
+                raise TypeError(f"'{arg}' must be a string")
+            c = arg.strip()
+            if c and (len(c) != 1 or c not in Unk.allowed):
+                raise ValueError(f"'{c}' must be in {Unk.allowed!r}")
+            instance = super().__new__(cls, "NaN")
+            return instance
+        def __str__(self):
+            return "?"
+        def __repr__(self):
+            return "Unk('?')"
 # xx These got broken; problem appears in f.py line 699 __eq__
 if 0:   # Classes derived from flt for physical data
     class Nothing(flt):
@@ -1336,25 +1356,6 @@ if 0:   # Classes derived from flt for physical data
             return "--"
         def __repr__(self):
             return f"Nothing({self.arg!r})"
-    class Unk(flt):
-        '''Represent an unknown number.  Always return '?' for str or repr.
-        Constructor argument must be a single question mark or equivalent
-        Unicode character.  The numerical value is deliberately NaN so that
-        calculations with it won't succeed.
-        '''
-        allowed = set("?¿⁇❓❔⸮︖﹖？")
-        def __new__(cls, arg):
-            if not ii(arg, str):
-                raise TypeError(f"'{arg}' must be a string")
-            c = arg.strip()
-            if c and (len(c) != 1 or c not in Unk.allowed):
-                raise ValueError(f"'{c}' must be in {Unk.allowed!r}")
-            instance = super().__new__(cls, "NaN")
-            return instance
-        def __str__(self):
-            return "?"
-        def __repr__(self):
-            return "Unk('?')"
     class Approx(flt):
         '''Represent an approximate number.  Prepends "≈" to str.
         The first character must be one of '~≈≅'; the remainder is the

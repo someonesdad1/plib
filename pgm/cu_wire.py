@@ -773,8 +773,10 @@ def ShowEquivalentAreas(args, d):
     n, m = [int(i) for i in args]
     n, m = (n, m) if n < m else (m, n)  # Make n the larger AWG size
     D, d, ratio = EquivalentArea(n, m)
-    print(dedent(f'''    Larger  = {n} AWG      Diameter = {D} inches
-    Smaller = {m} AWG      Diameter = {d} inches
+    A, a = flt(pi/4*D**2), flt(pi/4*d**2)
+    print(dedent(f'''
+    Larger  = {n} AWG      Diameter = {D} inches    Area = {A} in²
+    Smaller = {m} AWG      Diameter = {d} inches    Area = {a} in²
     {ratio} of {m} gauge wires = same area as one {n} gauge wire
     '''))
     exit(0)

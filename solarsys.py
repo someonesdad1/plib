@@ -62,7 +62,8 @@ if 1:   # Header
         from wrap import wrap, dedent
         from color import Color, TRM as t
         from lwtest import Assert, assert_equal
-        import f as F
+        #import f as F #xx Gives the flt object for floating point calculations & math funcs
+        import f 
         from u import u
         from columnize import Columnize
         if 0:
@@ -271,35 +272,35 @@ if 1:   # Get data
         newlst = []
         for i in lst:
             try:
-                newlst.append(F.flt(i))
+                newlst.append(f.flt(i))
             except Exception:
                 if i == "?":
-                    newlst.append(F.flt("nan"))
+                    newlst.append(f.flt("nan"))
                 elif i == "None":
-                    newlst.append(F.flt("nan"))
+                    newlst.append(f.flt("nan"))
                 elif r1.match(i):
                     # a-b form, a range of two values
                     mo = r1.match(i)
                     a, b = mo.groups()
-                    newlst.append((F.flt(a) + F.flt(b))/2)
+                    newlst.append((f.flt(a) + f.flt(b))/2)
                 elif "±" in i:
                     # Uncertainty form a±b
                     loc = i.find("±")
-                    newlst.append(F.flt(i[:loc]))
+                    newlst.append(f.flt(i[:loc]))
                 elif "<" in i:
                     # <a form
                     x = eval(i.replace("<", ""))
-                    newlst.append(F.flt(x))
+                    newlst.append(f.flt(x))
                 elif "*" in i:
                     # a*b form
                     x = eval(i)
-                    newlst.append(F.flt(x))
+                    newlst.append(f.flt(x))
                 elif "≈" in i:
                     x = eval(i.replace("≈", ""))
-                    newlst.append(F.flt(x))
+                    newlst.append(f.flt(x))
                 else:
                     Error(f"Unexpected in ToFlt():  {i!r}")
-        return [F.flt(i)*mult for i in newlst]
+        return [f.flt(i)*mult for i in newlst]
     def BuildDataDict(calculate=False):
         '''Construct a dict that has lists of the data.  We use the keys
             name    Object's name
@@ -352,10 +353,10 @@ if 1:   # Get data
         di["tilt"] = ToFlt(axial_tilt_deg)
         di["moons"] = [int(i) for i in number_moons]
         di["T"] = ToFlt(surface_temp_K)
-        di["ld"] = [F.log10(i) for i in ToFlt(discriminant)]
+        di["ld"] = [f.log10(i) for i in ToFlt(discriminant)]
         # Calculate area, volume, density
-        di["A"] = [4*F.pi*(i/2)**2 for i in di["D"]]
-        di["V"] = [4/3*F.pi*(i/2)**3 for i in di["D"]]
+        di["A"] = [4*f.pi*(i/2)**2 for i in di["D"]]
+        di["V"] = [4/3*f.pi*(i/2)**3 for i in di["D"]]
         # Note the conversion from kg/m3 to g/cm3
         di["rho"] = [(m/V)/1000 for m, V in zip(di["m"], di["V"])]
         if calculate:
@@ -363,8 +364,8 @@ if 1:   # Get data
             R, M = [i/2 for i in di["D"]], di["m"]
             P = zip(R, M)
             di["g"] =   [G*m/r**2        for r, m in P]
-            di["ev"] =  [F.sqrt(2*G*m/r) for r, m in P]
-            di["vel"] = [2*F.pi*r/orb    for r, orb in zip(di["r"], di["orb"])]
+            di["ev"] =  [f.sqrt(2*G*m/r) for r, m in P]
+            di["vel"] = [2*f.pi*r/orb    for r, orb in zip(di["r"], di["orb"])]
         if 0:
             # Dump to 1 figure to check things
             x = flt(0)
@@ -547,7 +548,7 @@ if 1:   # Utility
                 d["-r"] = a
             elif o == "-h":
                 Manpage()
-        x = F.flt(0)
+        x = f.flt(0)
         x.N = d["-d"]
         x.rtz = False
         x.low, x.high = 0.01, 1000
@@ -660,13 +661,13 @@ if 1:   # Core functionality
                 string, but if ref is 0, then return value with units.
                 '''
                 try:
-                    ratio = F.flt(value/ref)
+                    ratio = f.flt(value/ref)
                     if str(ratio) == "nan":
                         return f"{t.nan}{'?'}{t.n}"
                     else:
                         return f"{t.rel}{ratio}{t.n}"
                 except ZeroDivisionError:
-                    return f"{t.notrel}{F.flt(value)}{units}{t.n}"
+                    return f"{t.notrel}{f.flt(value)}{units}{t.n}"
             r_r = GetRatio(r, r0, " m")
             r_D = GetRatio(D, D0, " m")
             r_A = GetRatio(A, A0, " m")
@@ -718,24 +719,23 @@ if 1:   # Core functionality
             print(f"{u}{'T':{w}s}{T} K")
     def PrintSun():
         # Get variables
-        f = F.flt
-        r = f(2.5e20)      # Mean distance to galactic center, m
-        D = f(2*695508e3)  # Mean diameter, m
-        A = f(4*F.pi*(D/2)**2)     # Surface area, m2
-        V = f(4/3*F.pi*(D/2)**3)   # Volume, m3
-        m = f(1.9855e30)   # Mass, kg
-        rho = f((m/V)/1000)    # Density, g/cm3
-        g = f(G*m/(D/2)**2)    # Gravitational acceleration at surface, m/s2
-        ev = f(F.sqrt(2*G*m/(D/2)))    # Escape velocity, m/s
-        rot = f(25.38*86400)   # Rotation period, s
-        orb = f(240e6*3.156e13)    # Orbital period about galactic center, s
-        vel = f(2*F.pi*(D/2)/orb)  # Mean orbital speed, m/s
-        ecc = F.Unk("?")
-        inc = F.Unk("?")
-        tilt = f(7.25)     # Axial tilt to ecliptic, °
-        moons = F.Unk("?")
-        T = f(5778)        # Mean surface temperature, K
-        ld = F.Unk("?")
+        r = f.flt(2.5e20)      # Mean distance to galactic center, m
+        D = f.flt(2*695508e3)  # Mean diameter, m
+        A = f.flt(4*f.pi*(D/2)**2)     # Surface area, m2
+        V = f.flt(4/3*f.pi*(D/2)**3)   # Volume, m3
+        m = f.flt(1.9855e30)   # Mass, kg
+        rho = f.flt((m/V)/1000)    # Density, g/cm3
+        g = f.flt(G*m/(D/2)**2)    # Gravitational acceleration at surface, m/s2
+        ev = f.flt(f.sqrt(2*G*m/(D/2)))    # Escape velocity, m/s
+        rot = f.flt(25.38*86400)   # Rotation period, s
+        orb = f.flt(240e6*3.156e13)    # Orbital period about galactic center, s
+        vel = f.flt(2*f.pi*(D/2)/orb)  # Mean orbital speed, m/s
+        ecc = f.Unk("?")
+        inc = f.Unk("?")
+        tilt = f.flt(7.25)     # Axial tilt to ecliptic, °
+        moons = f.Unk("?")
+        T = f.flthttps://en.wikipedia.org/wiki/List_of_screw_drives(5778)        # Mean surface temperature, K
+        ld = f.Unk("?")
         #
         u, w = " "*4, 10
         print(f"{t.sun}{'Sun'}{t.n}")
