@@ -24,14 +24,14 @@ if 1:   # Custom imports
     from f import flt
     from frange import frange
     from columnize import Columnize
-    from color import C
+    from color import t
 if 1:   # Global variables
     in2mm = flt(25.4)
     class g:
         pass
-    g.n = C.norm
-    g.m = C.lcyn
-    g.i = C.lmag
+    g.n = t.n
+    g.m = t("denl")
+    g.i = t("ornl")
 def Error(*msg, status=1):
     print(*msg, file=sys.stderr)
     exit(status)
@@ -46,7 +46,7 @@ def Usage(d, status=1):
     '''))
     exit(status)
 def ParseCommandLine(d):
-    d["-d"] = 3         # Number of significant digits
+    d["-d"] = 4         # Number of significant digits
     try:
         opts, args = getopt.getopt(sys.argv[1:], "d:m")
     except getopt.GetoptError as e:
@@ -63,8 +63,8 @@ def ParseCommandLine(d):
                        "1 and 15")
                 Error(msg)
     x = flt(0)
-    x.n = d["-d"]
-    x.rtdp = True
+    x.N = d["-d"]
+    x.rtz = False
     if not args:
         Usage(d)
     return args
