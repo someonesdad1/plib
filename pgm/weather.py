@@ -158,67 +158,16 @@ if 1:   # Core functionality
                 exit()
         return q
     def SetColors():
-        if 1:
-            t.dbg = t("purl")
-            t.title = t("orn")
-            t.rain = t("grnl")
-            t.snow = t("magl")
-            t.thun = t("redl")
-            t.wind = t("cynl")
-            t.sun = t("yell")
-            t.cloud = t("vio")
-            t.low = t("wht", "royd")
-            t.high = t("wht", "lipd")
-            t.low = t("sky")
-            t.high = t("lipl")
-        else:
-            t.dbg = t("purl")
-            t.title = t("brnl")
-            t.rain = t("grnl")
-            t.snow = t("blul", "whtl", attr="rv")
-            t.thun = t("whtl", "mag")
-            t.wind = t("cynl")
-            t.sun = t("yell")
-            t.cloud = t("viol")
-            t.low = t("wht", "royd")
-            t.high = t("wht", "lipd")
-            t.low = t("sky")
-            t.high = t("redl")
-    def PrintTitle(title, line):
-        '''Print the title with color coding.  To do this, search line
-        text for keywords.
-        '''
-        r = line.lower()
-        rain = True if "rain" in r or "shower" in r else False
-        snow = True if "snow" in r else False
-        thund = True if "thunderstorm" in r else False
-        windy = True if "wind" in r or "gust" in r else False
-        sunny = True if "sunny" in r else False
-        cloudy = True if "cloudy" in r else False
-        # Get high and low temperatures
-        mo = re.search(r"high near (-?\d{1,3})", line, re.I)
-        high = mo.groups()[0] if mo else ""
-        mo = re.search(r"low around (-?\d{1,3})", line, re.I)
-        low = mo.groups()[0] if mo else ""
-        temp = f"{t.low}{low}{t.n}{t.high}{high}{t.n}"
-        # Print title to 16 characters wide
-        n = 16 - len(title)
-        #Assert(n >= 0)
-        print(f"{t.title}{title:s}{t.n}", end=" "*n)
-        print(f"{temp}", end=" "*4)
-        if thund:
-            print(f"{t.thun}tstorm{t.n} ", end="")
-        if snow:
-            print(f"{t.snow}snow{t.n} ", end="")
-        if rain:
-            print(f"{t.rain}rain{t.n} ", end="")
-        if windy:
-            print(f"{t.wind}wind{t.n} ", end="")
-        if sunny:
-            print(f"{t.sun}sun{t.n} ", end="")
-        if cloudy:
-            print(f"{t.cloud}cloudy{t.n} ", end="")
-        print()
+        t.dbg = t("purl")
+        t.title = t("orn")
+        t.rain = t("grnl")
+        t.snow = t("magl")
+        t.thun = t("redl")
+        t.wind = t("cynl")
+        t.sun = t("yell")
+        t.cloud = t("vio")
+        t.low = t("wht", "blu")
+        t.high = t("yell", "lip")
     def Select(dq):
         'Return a list of the lines to be printed'
         Assert(ii(dq, deque))
@@ -253,16 +202,7 @@ if 1:   # Core functionality
             pp(lines)
             exit()
         return lines
-    def Report(lines):
-        for line in lines:
-            loc = line.find(":")
-            title = line[:loc]
-            details = line[loc + 1:].strip()
-            PrintTitle(title, details)
-            if d["-b"]:
-                Wrap(details)
-        age = Age()
-        print(f"Data are {age} hours old")
+    def PrintColors():
         print(f"Colors:\n{t.dbg}debug{t.n} "
               f"{t.title}title{t.n} "
               f"{t.rain}rain{t.n} "
@@ -273,6 +213,58 @@ if 1:   # Core functionality
               f"{t.cloud}cloudy{t.n} "
               f"{t.low}low{t.n} "
               f"{t.high}high{t.n}")
+    def Report(lines):
+        for line in lines:
+            loc = line.find(":")
+            title = line[:loc]
+            details = line[loc + 1:].strip()
+            PrintTitle(title, details)
+            if d["-b"]:
+                Wrap(details)
+        age = Age()
+        print(f"Data are {age} hours old")
+        PrintColors()
+    def PrintTitle(title, line):
+        '''Print the title with color coding.  To do this, search line
+        text for keywords.
+        '''
+        r = line.lower()
+        rain = True if "rain" in r or "shower" in r else False
+        snow = True if "snow" in r else False
+        thund = True if "thunderstorm" in r else False
+        windy = True if "wind" in r or "gust" in r else False
+        sunny = True if "sunny" in r else False
+        cloudy = True if "cloudy" in r else False
+        # Get high and low temperatures
+        s = " "*2
+        mo = re.search(r"high near (-?\d{1,3})", line, re.I)
+        if mo:
+            high = f"{t.high}{mo.groups()[0]}{t.n}{s}"
+        else:
+            high = ""
+        mo = re.search(r"low around (-?\d{1,3})", line, re.I)
+        if mo:
+            low = f"{s}{t.low}{mo.groups()[0]}{t.n}"
+        else:
+            low = ""
+        temp = f"{low}{high}{t.n}"
+        # Print title to 16 characters wide
+        n = 16 - len(title)
+        print(f"{t.title}{title:s}{t.n}", end=" "*n)
+        print(f"{temp}", end=" "*4)
+        if thund:
+            print(f"{t.thun}tstorm{t.n} ", end="")
+        if snow:
+            print(f"{t.snow}snow{t.n} ", end="")
+        if rain:
+            print(f"{t.rain}rain{t.n} ", end="")
+        if windy:
+            print(f"{t.wind}wind{t.n} ", end="")
+        if sunny:
+            print(f"{t.sun}sun{t.n} ", end="")
+        if cloudy:
+            print(f"{t.cloud}cloudy{t.n} ", end="")
+        print()
 
 if __name__ == "__main__": 
     d = {}      # Options dictionary
