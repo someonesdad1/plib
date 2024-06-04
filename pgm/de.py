@@ -27,6 +27,7 @@ if 1:  # Header
         pass
     if 1:   # Imports
         import getopt
+        import os
         import sys
         # The following is done so the math library functions are in scope for
         # expressions.
@@ -38,16 +39,18 @@ if 1:  # Header
         from wrap import dedent
         from frange import frange, Rational
         from sig import sig
+        from f import flt
         from columnize import Columnize
         from u import u
         from fraction import FormatFraction, ToFraction
         import color
-        from color import t as tclr
+        from color import t
         import sizes
         if 1:
             import debug
             debug.SetDebugger()
     if 1:   # Global variables
+        L = int(os.environ.get("COLUMNS", "80")) - 1
         # How much to indent a fraction to have pleasing offsets to make the
         # table easier to read.
         default_indents = {
@@ -63,7 +66,7 @@ if 1:  # Header
         # This color is used to indicate a match in the extended listing that has
         # zero % deviation from the desired value.
         match = color.yellow
-        tclr.match = tclr("yell")
+        t.match = t("yell")
         # Names of the gauges
         GN = {
             "awg": "AWG",
@@ -234,6 +237,9 @@ if 1:  # Utility
             elif o in ("-h",):
                 Manpage()
         sig.digits = d["-d"]
+        x = flt(0)
+        x.N = d["-d"]
+        x.rtz = True
         tbl = d["-t"] or d["-T"] or d["-w"] or d["-x"]
         if not args and not tbl:
             Usage(d)
@@ -251,7 +257,7 @@ if 1:  # Core functionality
         print()    
         # Metric columns
         out.append("mm    in    ")
-        c, N = {8: tclr("redl"), 19: tclr("magl"), 27: tclr("yell")}, tclr.n
+        c, N = {8: t("redl"), 19: t("magl"), 27: t("yell")}, t.n
         for mm in MM:
             x = c[mm] if (mm in c and d["-c"]) else ""
             s = f"{x}{str(mm):4s} {mm/25.4:5.3f}{N}"
@@ -259,8 +265,8 @@ if 1:  # Core functionality
         # Join them
         sep = " "*12
         out[0] += sep + "in    Decimal   mm"
-        c = {Rational(5, 16): tclr("redl"), Rational(3, 4): tclr("magl"), 
-             Rational(17, 16): tclr("yell")}
+        c = {Rational(5, 16): t("redl"), Rational(3, 4): t("magl"), 
+             Rational(17, 16): t("yell")}
         for i, inches in enumerate(inch):
             x = c[inches] if (inches in c and d["-c"]) else ""
             s = (f"{sep} {x}{str(inches):^6s} {float(inches):6.3f} "
@@ -284,25 +290,38 @@ if 1:  # Core functionality
             s = "1"
         return "{0}{1:<5s} {2}".format(before, s, after)
     def PrintNormalTable(d):
-        out, denom, n, N = [], 64, d["-d"], tclr.n
+        out, denom, n, N = [], 64, d["-d"], t.n
         length = None
         for numer in range(1, denom + 1):
             f = Fraction(numer, denom)
             c = ""
             if f.denominator in (2, 4, 8):
-                c = tclr("ornl") if d["-c"] else ""
+                c = t("ornl") if d["-c"] else ""
             elif f.denominator in (16,):
-                c = tclr("yell") if d["-c"] else ""
+                c = t("yell") if d["-c"] else ""
             #elif f.denominator in (32,):
-            #    c = tclr("yel") if d["-c"] else ""
+            #    c = t("yel") if d["-c"] else ""
             #elif f.denominator in (64,):
-            #    c = tclr("blul") if d["-c"] else ""
+            #    c = t("blul") if d["-c"] else ""
             s = c + FmtFrac(f) + N
             s += f" {c}{float(f):.{n}f}{N}"
             # Include mm equivalent
-            c = tclr("denl") if d["-c"] else ""
+            c = t("denl") if d["-c"] else ""
             s += f" {c}{float(f)*25.4:>4.1f}{N}"
             out.append(s)
+        for i in Columnize(out):
+            print(i)
+    def PrintMMtoInchTable(d):
+        out = []
+        c = t("denl") if d["-c"] else ""
+        print()
+        s = f"{c}mm{t.n} to inches"  # 12 characters
+        print(" "*(L//2 - 12//2), end="")
+        print(s)
+        w = 8
+        for i in range(1, 25):
+            out.append(f"{c}{flt(i - 0.5)!s:4s}{t.n} {flt((i - 0.5)/25.4)!s:{w}s}")
+            out.append(f"{c}{flt(i)!s:4s}{t.n} {flt(i/25.4)!s:{w}s}")
         for i in Columnize(out):
             print(i)
     def MakeTable(dictionary, identifier):
@@ -310,16 +329,16 @@ if 1:  # Core functionality
             (dia_inches, gauge, identifier)
         for the indicated items.
         '''
-        t = []
+        s = []
         for gauge in dictionary:
-            t.append([dictionary[gauge], sizes.TranslateGauge(gauge), identifier])
-        return t
+            s.append([dictionary[gauge], sizes.TranslateGauge(gauge), identifier])
+        return s
     def Lathe(lathe_tpi):
-        t = []
+        s = []
         for tpi in lathe_tpi:
             dia = round(1/tpi, 6)
-            t.append([dia, str(tpi), GN["lathe"]])
-        return t
+            s.append([dia, str(tpi), GN["lathe"]])
+        return s
     def TapDrills(d):
         '''Calculate the 50% and 75% tap drills for commonly-used threads.
         '''
@@ -327,7 +346,7 @@ if 1:  # Core functionality
         # Number thread major diameter in inches
         def nt(n):
             return round(0.06 + 0.013*n, 4)
-        t = []
+        s = []
         # ----------------------------------------------------------------------
         # Inch-based threads
         T = { 
@@ -342,14 +361,14 @@ if 1:  # Core functionality
             for n, tpi in T[U]:
                 major_dia = nt(n)
                 # Thread major diameter
-                t.append([major_dia, "#{}-{}{}".format(n, tpi, U), GN["tmd"]])
+                s.append([major_dia, "#{}-{}{}".format(n, tpi, U), GN["tmd"]])
                 # 75% tap drill
                 thd = UT(major_dia, tpi)
                 td = thd.TapDrill(75)
-                t.append([td, "#{}-{}{}".format(n, tpi, U), GN["tap75"]])
+                s.append([td, "#{}-{}{}".format(n, tpi, U), GN["tap75"]])
                 # 50% tap drill
                 td = thd.TapDrill(50)
-                t.append([td, "#{}-{}{}".format(n, tpi, U), GN["tap50"]])
+                s.append([td, "#{}-{}{}".format(n, tpi, U), GN["tap50"]])
         T = { 
             "C":  # UNC coarse fractional sizes
             (("1/4", 20), ("5/16", 18), ("3/8", 16), ("7/16", 14), ("1/2", 13),
@@ -362,14 +381,14 @@ if 1:  # Core functionality
             for f, tpi in T[U]:
                 major_dia = eval(f)
                 # Thread major diameter
-                t.append([major_dia, "{}-{}{}".format(f, tpi, U), GN["tmd"]])
+                s.append([major_dia, "{}-{}{}".format(f, tpi, U), GN["tmd"]])
                 # 75% tap drill
                 thd = UT(major_dia, tpi)
                 td = thd.TapDrill(75)
-                t.append([td, "{}-{}{}".format(f, tpi, U), GN["tap75"]])
+                s.append([td, "{}-{}{}".format(f, tpi, U), GN["tap75"]])
                 # 50% tap drill
                 td = thd.TapDrill(50)
-                t.append([td, "{}-{}{}".format(f, tpi, U), GN["tap50"]])
+                s.append([td, "{}-{}{}".format(f, tpi, U), GN["tap50"]])
         for name, td in (("1/8 NPT", 0.339),
                         ("1/4 NPT", 0.438),
                         ("3/8 NPT", 0.578),
@@ -379,7 +398,7 @@ if 1:  # Core functionality
                         ("1-1/4 NPT", 1.5),
                         ("1-1/2 NPT", 1.734),
                         ("2 NPT", 2.219)):
-            t.append([td, "{}".format(name), GN["NPT"]])
+            s.append([td, "{}".format(name), GN["NPT"]])
         for name, td in (("1/8 NPS", 0.348),
                         ("1/4 NPS", 0.453),
                         ("3/8 NPS", 0.594),
@@ -389,7 +408,7 @@ if 1:  # Core functionality
                         ("1-1/4 NPS", 1.516),
                         ("1-1/2 NPS", 1.75),
                         ("2 NPS", 2.219)):
-            t.append([td, "{}".format(name), GN["NPS"]])
+            s.append([td, "{}".format(name), GN["NPS"]])
         # ----------------------------------------------------------------------
         # Metric threads
         T = { 
@@ -410,60 +429,60 @@ if 1:  # Core functionality
                 sz, p = i.split("×")
                 sz = round(float(sz.replace("M", ""))/25.4, 4)
                 p = float(p)
-                t.append([sz, "{}".format(i + U), GN["tap75"]])
+                s.append([sz, "{}".format(i + U), GN["tap75"]])
         # Nut and wrench sizes
         T = ("#0,5/32 #1,5/32 #2,3/16 #3,3/16 #4,1/4 #5,5/16 #6,5/16 #8,11/32 "
             "#10,3/8 1/4,7/16 5/16,1/2 3/8,9/16 7/16,11/16 1/2,3/4 5/8,15/16 "
             "3/4,9/8 7/8,21/16 1,3/2")
         for size, wrench in [i.split(",") for i in T.split()]:
             d = round(float(eval(wrench)), 4)
-            t.append([d, "{} hex nut".format(size), GN["hexn"]])
+            s.append([d, "{} hex nut".format(size), GN["hexn"]])
         T = ("#1,1/8 #2,1/8 #3,3/16 #4,3/16 #5,3/16 #6,1/4 #8,1/4 "
             "#10,5/16 1/4,7/16 5/16,1/2 3/8,9/16 7/16,5/8 1/2,3/4 5/8,15/16 "
             "3/4,9/8 7/8,21/16 1,3/2")
         for size, wrench in [i.split(",") for i in T.split()]:
             d = round(float(eval(wrench)), 4)
-            t.append([d, "{} hex head".format(size), GN["hexh"]])
+            s.append([d, "{} hex head".format(size), GN["hexh"]])
         T = ("#0,0.05 #1,1/16 #2,5/64 #3,5/64 #4,3/32 #5,3/32 #6,7/64 #8,9/64 "
             "#10,5/32 1/4,3/16 5/16,1/4 3/8,5/16 7/16,3/8 1/2,3/8 5/8,1/2 "
             "3/4,5/8 7/8,3/4 1,3/4")
         for size, wrench in [i.split(",") for i in T.split()]:
             d = round(float(eval(wrench)), 4)
-            t.append([d, "{} SHCS head".format(size), GN["shcs"]])
+            s.append([d, "{} SHCS head".format(size), GN["shcs"]])
         # Metric screw head sizes
         # https://en.wikipedia.org/wiki/ISO_metric_screw_thread
         T = ("M2,4 M2.5,5 M3,5.5 M3.5,6 M4,7 M5,8 M6,10 M7,11 M8,13 M10,16 "
             "M12,18 M14,21 M16,24 M18,27 M20,30 M22,34 M24,36")
         for size, wrench in [i.split(",") for i in T.split()]:
             d = round(float(wrench)/25.4, 4)
-            t.append([d, "{} hex head".format(size), GN["hexh"]])
+            s.append([d, "{} hex head".format(size), GN["hexh"]])
         T = ("M2,1.5 M2.5,2  M3,2.5 M4,3  M5,4  M6,5  M8,6  M10,8  M12,10 "
             "M14,10 M16,14 M18,14 M20,17 M22,17 M24,19")
         for size, wrench in [i.split(",") for i in T.split()]:
             d = round(float(wrench)/25.4, 4)
-            t.append([d, "{} SHCS head".format(size), GN["shcs"]])
+            s.append([d, "{} SHCS head".format(size), GN["shcs"]])
         T = ("M2,1.25 M2.5,1.5 M3,2 M4,2.5 M5,3 M6,4 M8,5 M10,6 M12,8 M16,10 "
             "M18,12 M20,12 M22,14 M24,14")
         for size, wrench in [i.split(",") for i in T.split()]:
             d = round(float(wrench)/25.4, 4)
-            t.append([d, "{} FHCS head".format(size), GN["fhcs"]])
+            s.append([d, "{} FHCS head".format(size), GN["fhcs"]])
         T = ("M2,0.9 M2.5,1.3 M3,1.5 M4,2 M5,2.5 M6,3 M8,4 M10,5 M12,6 "
             "M16,8 M20,10 M24,12")
         for size, wrench in [i.split(",") for i in T.split()]:
             d = round(float(wrench)/25.4, 4)
-            t.append([d, "{} set scr".format(size), GN["set"]])
-        return t
+            s.append([d, "{} set scr".format(size), GN["set"]])
+        return s
     def GetMetricSizes(d):
         '''Make a list of metric sizes.
         '''
-        t = []
+        s = []
         # 0.5 mm resolution up to 13 mm (typical 25-piece drill set)
         for mm in frange("0", "13.1", "0.5"):
-            t.append([round(mm/25.4, 8), "{} mm".format(mm), "mm"])
+            s.append([round(mm/25.4, 8), "{} mm".format(mm), "mm"])
         # 1 mm resolution from 14 mm and above
         for mm in range(14, 300):
-            t.append([round(mm/25.4, 8), "{} mm".format(mm), "mm"])
-        return t
+            s.append([round(mm/25.4, 8), "{} mm".format(mm), "mm"])
+        return s
     def BuildExtendedTable(args, d):
         '''Return a list with elements 
             (dia_inches, gauge, identifier)
@@ -474,26 +493,26 @@ if 1:  # Core functionality
         If args is not empty, search for the sizes that are within range of the
         stated size.
         '''
-        t = MakeTable(sizes.number_drills, GN["#"])
-        t.extend(MakeTable(sizes.letter_drills, GN["ltr"]))
-        t.extend(Lathe(sizes.clausing_lathe_tpi))
-        t.extend(MakeTable(sizes.AWG, GN["awg"]))
+        s = MakeTable(sizes.number_drills, GN["#"])
+        s.extend(MakeTable(sizes.letter_drills, GN["ltr"]))
+        s.extend(Lathe(sizes.clausing_lathe_tpi))
+        s.extend(MakeTable(sizes.AWG, GN["awg"]))
         if d["-a"]:
-            t.extend(MakeTable(sizes.US_Standard, GN["US"]))
-            t.extend(MakeTable(sizes.steel, GN["shtstl"]))
-            t.extend(MakeTable(sizes.galvanized_steel, GN["galv"]))
-            t.extend(MakeTable(sizes.stainless_steel, GN["sst"]))
-            t.extend(MakeTable(sizes.aluminum, GN["al"]))
-            t.extend(MakeTable(sizes.zinc, GN["zn"]))
-            t.extend(MakeTable(sizes.hypodermic_needles, GN["hyp"]))
-            t.extend(MakeTable(sizes.stubs_iron_wire, GN["siron"]))
-            t.extend(MakeTable(sizes.Washburn_and_Moen_steel_wire, GN["wm"]))
-            t.extend(MakeTable(sizes.music_wire, GN["music"]))
-            t.extend(MakeTable(sizes.stubs_steel_wire, GN["sstl"]))
-            t.extend(TapDrills(d))
+            s.extend(MakeTable(sizes.US_Standard, GN["US"]))
+            s.extend(MakeTable(sizes.steel, GN["shtstl"]))
+            s.extend(MakeTable(sizes.galvanized_steel, GN["galv"]))
+            s.extend(MakeTable(sizes.stainless_steel, GN["sst"]))
+            s.extend(MakeTable(sizes.aluminum, GN["al"]))
+            s.extend(MakeTable(sizes.zinc, GN["zn"]))
+            s.extend(MakeTable(sizes.hypodermic_needles, GN["hyp"]))
+            s.extend(MakeTable(sizes.stubs_iron_wire, GN["siron"]))
+            s.extend(MakeTable(sizes.Washburn_and_Moen_steel_wire, GN["wm"]))
+            s.extend(MakeTable(sizes.music_wire, GN["music"]))
+            s.extend(MakeTable(sizes.stubs_steel_wire, GN["sstl"]))
+            s.extend(TapDrills(d))
         # Millimeter sizes
         MM = GetMetricSizes(d)
-        t.extend(MM)
+        s.extend(MM)
         # Fractions of an inch:  64ths to 1 inch, 16ths to 2 inches, 8ths to 12
         # inches.
         F = []
@@ -504,17 +523,17 @@ if 1:  # Core functionality
             F.append([float(f), str(f), GN["frac"]])
         for f in frange("17/8", "97/8", "1/8"):
             F.append([float(f), str(f), GN["frac"]])
-        t.extend(F)
-        return t
+        s.extend(F)
+        return s
     def SortTable(table, column_number):
         if column_number == 0:
             return sorted(table)
         elif column_number == 1:
-            t = sorted([(j, i, k) for i, j, k in table])
-            return [(j, i, k) for i, j, k in t]
+            s = sorted([(j, i, k) for i, j, k in table])
+            return [(j, i, k) for i, j, k in s]
         elif column_number == 2:
-            t = sorted([(k, i, j) for i, j, k in table])
-            return [(j, k, i) for i, j, k in t]
+            s = sorted([(k, i, j) for i, j, k in table])
+            return [(j, k, i) for i, j, k in s]
         else:
             raise ValueError("Column number {} is bad".format(column_number))
     def NumberSizeScrew(args):
@@ -538,8 +557,8 @@ if 1:  # Core functionality
             c[GN[key]] = None
         c["0dev"] = match
         # Construct data
-        t = BuildExtendedTable(args, d)
-        t = SortTable(t, 0)     # Sort by diameter in inches
+        s = BuildExtendedTable(args, d)
+        s = SortTable(s, 0)     # Sort by diameter in inches
         # If command line arguments were given, we need to reduce the table to
         # the relevant lines.
         if args:
@@ -564,18 +583,18 @@ if 1:  # Core functionality
                 # dia_search is desired dimension in inches.  Find closest size
                 # in table.  
                 m = d["-n"] if d["-n"] else 1e8
-                T = [i[0] for i in t]  # Just diameters in inches
+                T = [i[0] for i in s]  # Just diameters in inches
                 nleft = bisect_left(T, dia_search)
                 nright = bisect_right(T, dia_search)
-                lo, hi = max(nleft - m, 0), min(nright + m, len(t))
-                t = t[lo:hi]
+                lo, hi = max(nleft - m, 0), min(nright + m, len(s))
+                s = s[lo:hi]
             except Exception as ex:
                 print("Search for arguments on command line failed:")
                 print("  ", ex)
                 exit(1)
         # Print the results.  Note this is aimed at a screen 80 columns wide or
         # wider.
-        t = SortTable(t, d["-s"])   # Sort order desired
+        s = SortTable(s, d["-s"])   # Sort order desired
         if args:
             print(dedent('''
             Size         Inches        mm        Category                      %dev
@@ -588,7 +607,7 @@ if 1:  # Core functionality
         -----------     --------     -------     --------
         '''[1:-1]))
             fmt = "{:^14s}  {:8s}     {:8s}    {}"
-        for dia, identifier, name in t:
+        for dia, identifier, name in s:
                 if args:
                     pct = 100*(dia - dia_search)/dia_search
                     if abs(pct) <= 1e-3:
@@ -598,12 +617,12 @@ if 1:  # Core functionality
                         dev = " " + dev
                     if not pct:     # Had exact match, so print in color
                         if d["-c"]:
-                            print(f"{tclr('ornl')}", end="")
+                            print(f"{t('ornl')}", end="")
                         else:
                             dev += "    *"
                     print(fmt.format(identifier, sig(dia), sig(dia*25.4), name, dev))
                     if d["-c"]:
-                        print(tclr.n, end="")
+                        print(t.n, end="")
                 else:
                     print(fmt.format(identifier, sig(dia), sig(dia*25.4), name))
 if __name__ == "__main__": 
@@ -617,3 +636,4 @@ if __name__ == "__main__":
         PrintExtendedTable(args, d)
     elif d["-t"] or d["-T"]:
         PrintNormalTable(d)
+        PrintMMtoInchTable(d)
