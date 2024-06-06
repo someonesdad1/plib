@@ -1,4 +1,14 @@
 '''
+
+- Default behavior is to print out timing with current budget setting
+    - Spring budget setting is 50%, letting hot summer temperatures use 80% or 90%
+- Use -b option to display for a different budget setting
+- Use -B option to change default budget setting
+- As of May 2024, all circuit timing is 120 minutes
+- A command line argument lets you define the starting time and the new table will reflect that
+  starting time
+
+
 Print out sprinkler timing
 '''
 if 1:   # Header
@@ -28,15 +38,20 @@ if 1:   # Header
         W = int(os.environ.get("COLUMNS", "80")) - 1
         L = int(os.environ.get("LINES", "50"))
         # Circuit timing in minutes at budget == 100%
+        # As of 6 Jun 2024
+        a = 120
         timing = (
-            ("1, 3", 100),
-            ("2", 100),
-            ("4", 115),
-            ("5", 115),
-            ("6", 115),
-            ("7, 8", 130),
-            ("9", 115),
+            ("1,3", a),
+            ("2", a),
+            ("4", a),
+            ("5", a),
+            ("6", a),
+            ("7,8", a),
+            ("9", a),
         )
+        del a
+        # This variable is the budget setting (resolution = 10%)
+        budget = 50
 if 1:   # Utility
     def Error(*msg, status=1):
         print(*msg, file=sys.stderr)
@@ -52,16 +67,22 @@ if 1:   # Utility
         '''))
         exit(status)
     def ParseCommandLine(d):
-        d["-a"] = False
-        d["-d"] = 3         # Number of significant digits
+        d["-b"] = budget    # Default budget value
         try:
-            opts, args = getopt.getopt(sys.argv[1:], "h") 
+            opts, args = getopt.getopt(sys.argv[1:], "b:h") 
         except getopt.GetoptError as e:
             print(str(e))
             exit(1)
         for o, a in opts:
             if o[1] in list(""):
                 d[o] = not d[o]
+            elif o == "-b":
+                d[o] = b = int(a)
+                allowed = (0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100)
+                if b not in allowed:
+                    print(f"{a!r} is not an acceptable budget number:")
+                    print(f"    Must be one of {' '.join(str(i) for i in allowed)}")
+                    exit(1)
             elif o in ("-h", "--help"):
                 Usage(status=0)
         return args

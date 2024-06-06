@@ -38,6 +38,11 @@ if 1:   # Header
         g = G()
         g.dbg = False
         ii = isinstance
+        ext = '''
+            jpeg jpg jfif exif
+            gif png bmp webp tiff
+            ppm pgm pbm pnm
+            '''.split()
 if 1:   # Utility
     def GetScreen():
         'Return (LINES, COLUMNS)'
@@ -154,5 +159,5 @@ if __name__ == "__main__":
         ProcessDirectory(dir, new_dir_name, ext)
         exit(0)
     else:
-        sys.stderr.write("'" + dir + "' not found")
+        Error(f"{dir!r} not found")
         exit(1)
