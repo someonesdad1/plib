@@ -38,6 +38,7 @@ if 1:   # Header
         from fractions import Fraction
     # Custom imports
         import u
+        from f import flt
         from asciify import Asciify
         try:
             from uncertainties import ufloat, ufloat_fromstr, UFloat

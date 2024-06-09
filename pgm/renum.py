@@ -19,6 +19,8 @@ if 1:   # Header
         from collections import deque
         from pathlib import Path as P
         import getopt
+        import glob
+        import math
         import os
         import re
         import subprocess
@@ -38,11 +40,7 @@ if 1:   # Header
         g = G()
         g.dbg = False
         ii = isinstance
-        ext = '''
-            jpeg jpg jfif exif
-            gif png bmp webp tiff
-            ppm pgm pbm pnm
-            '''.split()
+        extensions = "bmp gif jpg png".split()
 if 1:   # Utility
     def GetScreen():
         'Return (LINES, COLUMNS)'
@@ -69,67 +67,112 @@ if 1:   # Utility
         print(dedent(f'''
         '''.rstrip()).lstrip())
         exit(0)
-    def Usage():
+    def Usage(status=0):
         print(dedent(f'''
- 
-        Usage:  {sys.argv[0]} [options] [dir1 [dir2...]]
-          Rename picture files in the indicated directories.  The default behavior is to show
-          which files will be renamed.
+
+        Usage:  {sys.argv[0]} [options]
+
+          Rename picture files in the current directory.  The file extensions processed are bmp,
+          gif, jpg, and png.  The default behavior is to show which files will be renamed (use -x
+          to perform the renaming).
+
         Options:
             -@      Get files to be renamed from stdin
-            -e      Perform the renaming
-            -f f    Get files to be renamed from file f
             -h      Print a manpage
-            -i e    Ignore extension e (can have multiple i options)
-            -x s    Ignore indicated files (s is a regexp)
+            -i e    Ignore extension e (e.g., '.jpg')
+                    (can have multiple i options)
+            -n n    Starting number for file numberss [0]
+            -p p    New prefix for file names ['']
+            -s s    New suffix for file names ['']
+            -x      Perform the renaming
  
         '''.rstrip()).lstrip())
-        exit(0)
+        exit(status)
     def ParseCommandLine(d):
+        d["-@"] = False     # Get files to be renamed from stdin
+        d["-i"] = []        # Ignored extensions
+        d["-n"] = 0         # Starting number
+        d["-p"] = ""        # Prefix for renaming
+        d["-s"] = ""        # Suffix for renaming
         d["-x"] = False     # Perform the renaming
-        if len(sys.argv) < 2:
-            Usage()
         try:
-            opts, args = getopt.getopt(sys.argv[1:], "f:hx") 
+            opts, args = getopt.getopt(sys.argv[1:], "@hi:p:s:x") 
         except getopt.GetoptError as e:
             print(str(e))
             exit(1)
         for o, a in opts:
             if o[1] in list("x"):
                 d[o] = not d[o]
-            elif o == "-d":
-                try:
-                    d[o] = int(a)
-                    if not (1 <= d[o] <= 15):
-                        raise ValueError()
-                except ValueError:
-                    msg = ("-d option's argument must be an integer between "
-                        "1 and 15")
-                    Error(msg)
+            elif o == "-i":
+                d[o].append(a)
+            elif o in ("-p", "-s"):
+                d[o] = a
             elif o == "-h":
-                Usage(status=0)
+                Usage()
         GetColors()
         g.W, g.L = GetScreen()
         return args
 if 1:   # Core functionality
-    def ProcessDirectory(dir, new_dir_name, ext):
-        print("Processing", dir)
-        currdir = os.getcwd()
-        os.chdir(dir)
-        files = glob.glob("*." + ext)
-        numfiles = len(files)
-        if numfiles < 10:
-            fmt = "%d"
-        elif numfiles < 100:
-            fmt = "%02d"
-        elif numfiles < 1000:
-            fmt = "%03d"
-        elif numfiles < 10000:
-            fmt = "%04d"
-        elif numfiles < 100000:
-            fmt = "%05d"
-        else:
-            fmt = "%d"
+    def GetWidth(numfiles):
+        '''Return the number of digits to give the renaming integer to.  This ensures the new file
+        names are all the same length.
+        '''
+        Assert(numfiles > 0)
+        # Method:  generate all the numbers needed and get the largest string
+        sz, start = 0, d["-n"]
+        for i in range(start, start + numfiles + 1):
+            sz = max(sz, len(str(i)))
+        return sz
+    def Process():
+        '''Return (old, new).  old is a tuple of the files to rename.  new is a tuple of their new
+        names.  In the new names, the first letter is to be removed after the first renaming pass.
+ 
+        Algorithm: To avoid a naming collision, the set of file names is used to get the set of
+        all characters used in naming the files.  Then a character x not in this set is gotten.
+        The new names are constructed by renumbering, adding the desired prefix and suffix, then
+        making the character x the first character of the new names.  Renaming can then take place
+        in two passes:  the first pass the naming is done as given by (old, new).  The second pass
+        removes the leading character x from the names.
+        '''
+        currdir = P(os.getcwd())
+        print(f"Current directory = {currdir.resolve()}")
+        # Get list of file names to process
+        old = []
+        for ext in extensions:
+            if ext not in d["-i"]:
+                l = list(glob.glob(f"*.{ext}"))
+                old.extend(l)
+        old = list(sorted(old))
+        # Get set of characters making up these names
+        chars = set(''.join(old))
+        # Find a character not in chars (start at 'A')
+        i = 65
+        while True:
+            x = chr(i)
+            if x not in chars:
+                break
+        # Make list of new names
+        new = []
+        w = GetWidth(len(old))
+        for i, name in enumerate(old):
+            p = P(name)
+            prefix, suffix = d["-p"], d["-s"]
+            new.append(f"{x}{prefix}{i:0{w}d}{suffix}{p.suffix}")
+            
+        if 0:   # Print old and new names
+            for i,j in zip(old, new):
+                print(i, j)
+            exit()
+        return old, new
+    def Show(old, new):
+        '''old is tuple of existing file names, new is tuple of new names.  Print out what will
+        happen, removing the first letter of each name in new.
+        '''
+        w = max(len(i) for i in old)
+        for i, j in zip(old, new):
+            print(f"{i:{w}s} --> {j[1:]}")
+    def Rename(old, new):
+        breakpoint() #xx
         num = 1
         for file in files:
             p = os.path.splitext(file)
@@ -146,18 +189,6 @@ if 1:   # Core functionality
 
 if __name__ == "__main__": 
     d = {}  # Options dictionary
-    args = ParseCommandLine(d)
-    dir = args[0]
-    if len(args) == 2:
-        new_dir_name = args[1]
-    else:
-        new_dir_name = ""
-    ext = "jpg"
-    if d["-p"]:
-        ext = "png"
-    if os.path.isdir(dir):
-        ProcessDirectory(dir, new_dir_name, ext)
-        exit(0)
-    else:
-        Error(f"{dir!r} not found")
-        exit(1)
+    ParseCommandLine(d)
+    old, new = Process()
+    Rename(old, new) if d["-x"] else Show(old, new)

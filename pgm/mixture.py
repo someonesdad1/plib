@@ -23,7 +23,7 @@ TODO
  
 - The basic problem variables are
     - a and b are the two solutions, m is the mixture
-    - ca, cb, cm = concentrations
+    - ca, cb, cm = concentrations (fractions on [0, 1])
     - va, vb, vm = volumes
     - Equations
         - vm = va + vb
@@ -33,6 +33,37 @@ TODO
     - The fundamental assumption is that the volumes don't change when you
       mix the solutions.  This can be a reasonable approximation for dilute
       solutions.
+
+
+    Typical problems
+
+        - Have 0.41 mixture of glyphosate.  Want to mix with water to get 0.02 solution and get vm
+          of this amount.  Variables are
+            - vm = 15 gallons for our sprayer
+            - cm = 0.02     Desired mixture concentration
+            - ca = 0.41     Bottled glyphosate solution
+            - cb = 0        Concentration of water
+
+              Here, vm = 15 gallons for our sprayer.  The solution b is water, so its
+              concentration is cb = 0.  Therefore vm*cm = va*ca or 15(0.02) = va(0.42), giving
+              that va = 15(0.02)/0.42 = 0.7143 gallons.  vb = vm - va = 15 - 0.7143 = 14.3
+              gallons.
+
+            - *** WRONG ***   The solution to this problem given in the manual is 2-2/3 floz of
+              solution to make 1 gallon of water.  This is 2.667/(128 - 2.667) = 2.13% since 1
+              gallon is 128 floz..
+            - Do for 1 gallon:  
+                - vm = 128 floz
+                - cm = 0.02     Desired mixture concentration
+                - ca = 0.41     Bottled glyphosate solution
+                - cb = 0        Concentration of water
+
+                    vm*cm = va*ca + vb*cb = 128*0.02 = va*0.41
+                    So 0.41*va = 2.56 giving va = 6.24 floz
+                    vb = 128 - 6.24 = 121.8 floz
+
+
+---------------------------------------------------------------------------
  
 Program to calculate mixtures
 '''
