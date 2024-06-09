@@ -40,7 +40,7 @@ if 1:   # Header
         g = G()
         g.dbg = False
         ii = isinstance
-        extensions = "bmp gif jpg png".split()
+        extensions = "bmp gif jpg jpeg png".split()
 if 1:   # Utility
     def GetScreen():
         'Return (LINES, COLUMNS)'
@@ -69,13 +69,10 @@ if 1:   # Utility
         exit(0)
     def Usage(status=0):
         print(dedent(f'''
-
         Usage:  {sys.argv[0]} [options]
-
           Rename picture files in the current directory.  The file extensions processed are bmp,
           gif, jpg, and png.  The default behavior is to show which files will be renamed (use -x
           to perform the renaming).
-
         Options:
             -@      Get files to be renamed from stdin
             -h      Print a manpage
@@ -145,12 +142,17 @@ if 1:   # Core functionality
         old = list(sorted(old))
         # Get set of characters making up these names
         chars = set(''.join(old))
+        Assert(chars)
         # Find a character not in chars (start at 'A')
-        i = 65
+        i, count = 65, 0
         while True:
+            count += 1
+            if count > 1000:
+                Error("Too many attempts to find a character")
             x = chr(i)
             if x not in chars:
                 break
+            i += 1
         # Make list of new names
         new = []
         w = GetWidth(len(old))
@@ -158,34 +160,54 @@ if 1:   # Core functionality
             p = P(name)
             prefix, suffix = d["-p"], d["-s"]
             new.append(f"{x}{prefix}{i:0{w}d}{suffix}{p.suffix}")
-            
         if 0:   # Print old and new names
             for i,j in zip(old, new):
                 print(i, j)
             exit()
+        Assert(len(old) == len(new))
         return old, new
     def Show(old, new):
         '''old is tuple of existing file names, new is tuple of new names.  Print out what will
         happen, removing the first letter of each name in new.
         '''
-        w = max(len(i) for i in old)
-        for i, j in zip(old, new):
-            print(f"{i:{w}s} --> {j[1:]}")
+        temp = tuple([i[1:] for i in new])
+        if set(old) == set(temp):
+            print("No renaming needed")
+        else:
+            w = max(len(i) for i in old)
+            for i, j in zip(old, new):
+                print(f"{i:{w}s} --> {j[1:]}")
     def Rename(old, new):
-        breakpoint() #xx
-        num = 1
-        for file in files:
-            p = os.path.splitext(file)
-            name = p[0].lower()
-            ex = p[1].lower()
-            assert(ex[1:] == ext)
-            newname = fmt % num + "." + ext
-            while os.path.exists(newname):
-                num = num + 1
-                newname = fmt % num + "." + ext
-            os.rename(file, new_dir_name + newname)
-            num = num + 1
-        os.chdir(currdir)
+        '''Renaming is done in two passes.  The first pass renames corresponding elements in old
+        to those in new.  The second pass then renames each element in new to the same name
+        without the first letter.
+        '''
+        # Use deques so we can undo if get exception
+        Old, New = deque(old), deque(new)
+        oldu, newu = deque(), deque()   # Capture renames to undo
+        # First pass:  old to new name with leading unique letter
+        while Old:
+            o, n = Old.popleft(), New.popleft()
+            op, np = P(o), P(n)
+            try:
+                op.rename(np)
+            except Exception:
+                break
+            else:
+                # Store undo information
+                oldu.append(o)
+                newu.append(n)
+        # If Old is not empty, we must undo
+        if Old:
+            print("Oops:  error, need to undo")
+            breakpoint() #xx 
+        # Success:  Do second pass:  Remove leading letter.  We'll assume these can't fail.
+        New = deque(new)
+        while New:
+            n = New.popleft()
+            op = P(n)
+            np = P(n[1:])
+            op.rename(np)
 
 if __name__ == "__main__": 
     d = {}  # Options dictionary
