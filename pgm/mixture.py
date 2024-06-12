@@ -116,12 +116,9 @@ if 1:  # Utility
         exit(status)
     def Usage(d):
         print(dedent(f'''
-        Usage:  {sys.argv[0]} [file]
-          Interactively calculate dilution problems.  If a file is given, the
-          variables are taken from the file's contents (use '-' to read the
-          file from stdin).
-        Using a datafile:
-          The variables are
+        Usage:  {sys.argv[0]} [dilfile]
+          Solve a dilution problem whose definition is in dilfile.  Use '-' to read the contents
+          from stdin.  The variables are
             ca      Solution A concentration in %
             cb      Solution B concentration in %
             cm      Mixture concentration in %
@@ -136,6 +133,7 @@ if 1:  # Utility
             -d n    Number of figures to display
             -H      Show manpage
             -h      Show this help
+            -i      Interactively solve the problem
         '''))
         exit(0)
     def ParseCommandLine(d):
@@ -168,20 +166,21 @@ if 1:  # Utility
         if d["-c"]:
             PrintSampleDatafile()
             exit()
+        elif d["-i"]:
+            # Interactive solution
+            GetData()
+            PrintResults()
+            exit(0)
+        if not args:
+            Usage(d)
         return args
     def Manpage(d):
         print(dedent('''
 
-Use [1] to provide a gentler introduction and to help design
-further additions to the code.  Get rid of the interactive solution
-code.
-
-
-        This script calculates the concentration of a solution gotten by mixing
-        two volumes of solutions of differing concentrations.  The solute
-        is the solution that is diluted by adding solvent.  Example:  a
-        concentrated weed killer solution is the solute and the solvent is
-        water.  
+        This script calculates the concentration of a solution gotten by mixing two volumes of
+        solutions of differing concentrations.  The solute is the solution that is diluted by
+        adding solvent.  Example:  a concentrated weed killer solution is the solute and the
+        solvent is water.  
 
         Symbols:
             c = concentration volume fraction in percent
@@ -209,39 +208,34 @@ code.
             - The solute and solvent are miscible and are mixed well
             - No volume or temperature changes when the solutions are mixed
             - Works best for dilute solutions
-            - The concentration fractions are volume fractions.  This means
-              both the solvent and solute are liquids (example:  water and
-              antifreeze for your car).
+            - The concentration fractions are volume fractions.  This means both the solvent and
+              solute are liquids (example:  water and antifreeze for your car).
         
-        Note that this formulation is an approximation; real solutions sometimes
-        don't satisfy the above assumptions.  Example:  ethanol and water mixed
-        together will have a lower volume than their component sum because the
-        water and ethanol molecules "interlock" somewhat because of close-range
-        polar electrical forces.
+        Note that this formulation is an approximation; real solutions sometimes don't satisfy the
+        above assumptions.  Example:  ethanol and water mixed together will have a lower volume
+        than their component sum because the water and ethanol molecules "interlock" somewhat
+        because of close-range polar electrical forces.
         
         You can check the following cases for reasonableness:
-            - Mix two unit-volume solutions of 0% concentration to get 2 units
-              of volume of 0% concentration.
-            - Mix two unit-volume solutions of 100% concentration to get a 100%
-              volume of 2 units.
-            - Mix one unit volume of p% concentration and one unit volume of 0%
-              concentration to get 2 units of (p/2)% concentration.
+            - Mix two unit-volume solutions of 0% concentration to get 2 units of volume of 0%
+              concentration.
+            - Mix two unit-volume solutions of 100% concentration to get a 100% volume of 2 units.
+            - Mix one unit volume of p% concentration and one unit volume of 0% concentration to
+              get 2 units of (p/2)% concentration.
     
-        Here's a numerical example that can be used as a check case.  I have a
-        weed killer with a concentration of 11.3%.  I want to mix it
-        with water to get 15 gallons, the volume of my sprayer's tank.  The 
-        target mixture concentration for application is 0.25%.  What volume of
-        the 11.3% solution should I mix with water to get the desired 15
-        gallons of 0.25% solution?
+        Here's a numerical example that can be used as a check case.  I have a weed killer with a
+        concentration of 11.3%.  I want to mix it with water to get 15 gallons, the volume of my
+        sprayer's tank.  The target mixture concentration for application is 0.25%.  What volume
+        of the 11.3% solution should I mix with water to get the desired 15 gallons of 0.25%
+        solution?
     
         Here are the entered values and results:
     
             Concentration of solution A in %? [0] 11.3
             Concentration of solution B in %? [0] 0
     
-          Enter two of:  volume A, volume B, mixture volume, mixture concentration.
-          Press return if not known.  Expressions are allowed and the math module
-          is in scope.
+          Enter two of:  volume A, volume B, mixture volume, mixture concentration.  Press return
+          if not known.  Expressions are allowed and the math module is in scope.
     
             Volume of solution A? [0]
             Volume of solution B? [0]
@@ -255,16 +249,14 @@ code.
                  B                 14.7                   0
                Mixture              15                   0.25
     
-        Note I assumed gallons for volumes.  The bottle of concentrate is 1
-        quart or 32 fl oz, which is 1/4 gallon.  Thus, I need to add 0.332/0.25
-        or 4(0.332) = 1.33 bottles to the tank and fill it up to the 15 gallon
-        level.
+        Note I assumed gallons for volumes.  The bottle of concentrate is 1 quart or 32 fl oz,
+        which is 1/4 gallon.  Thus, I need to add 0.332/0.25 or 4(0.332) = 1.33 bottles to the
+        tank and fill it up to the 15 gallon level.
  
-        If you use the datafile approach to solve the problem, the
-        calculation is a little more convenient because you can specify the
-        unit used for the volumes used in the report.  Use the -c option to
-        print a sample datafile and supply the known variables.  The u()
-        function accepts commonly-used volume units.
+        If you use the datafile approach to solve the problem, the calculation is a little more
+        convenient because you can specify the unit used for the volumes used in the report.  Use
+        the -c option to print a sample datafile and supply the known variables.  The u() function
+        accepts commonly-used volume units.
 
         References
         ----------
@@ -377,11 +369,11 @@ if 1:  # Datafile approach
     def PrintSampleDatafile():
         print(dedent(f"""
         '''
-        This is a sample data file for the mixture.py script.  This data
-        file needs to be valid python syntax.
 
-        You need
-        to define four of the following six variables:
+        This is a sample data file for the mixture.py script.  This data file needs to be valid
+        python syntax.
+
+        You need to define four of the following six variables:
           ca      Concentration of solution A in %
           cb      Concentration of solution B in %
           cm      Concentration of resulting mixture in %
@@ -394,22 +386,21 @@ if 1:  # Datafile approach
             vm = va + vb
             cm*vm = ca*va + cb*vb
         
-        You cannot have unknowns of (ca, cb), (ca, cm), or (cb, cm) because
-        these conditions effectively give one equation with two unknowns.
+        You cannot have unknowns of (ca, cb), (ca, cm), or (cb, cm) because these conditions
+        effectively give one equation with two unknowns.
 
-        You may also define 'v_unit' as the desired volume unit for
-        output.  It defaults to 'm3' as if you used
+        You may also define 'v_unit' as the desired volume unit for output.  It defaults to 'm3'
+        as if you used
 
             v_unit = "m3"
         
-        The u() function is used to let you use the input volume units of
-        your choice (it's in /plib/u.py).  The following example line lets
-        you define the va variable in terms of ml:
+        The u() function is used to let you use the input volume units of your choice (it's in
+        /plib/u.py).  The following example line lets you define the va variable in terms of ml:
         
           va = 321*u("ml")
         
-        Run 'python /plib/u.py' to see allowed volume units (you can also
-        use any valid length unit with an appended 3 for a power of 3).
+        Run 'python /plib/u.py' to see allowed volume units (you can also use any valid length
+        unit with an appended 3 for a power of 3).
 
         Your definitions must use valid python syntax.
         '''
@@ -426,10 +417,9 @@ if 1:  # Datafile approach
         vm = 15*u("gal")    # Volume of mixture
         v_unit = "gal"      # Report should use gallons for volumes
 
-        description = '''
-            This optional variable holds a description of the problem and
-            is printed with the report if present.
-        '''
+        # This optional variable holds a description of the problem and
+        # is printed with the report if present.
+        description = ""
     
         # This data file should give the results
         #   volume of solution A = 0.332 gal
@@ -762,9 +752,5 @@ if __name__ == "__main__":
     d = {}      # Options dictionary
     TestSolutions()
     args = ParseCommandLine(d)
-    if args:
-        for file in args:
-            SolveDatafile(file)
-    else:
-        GetData()
-        PrintResults()
+    for file in args:
+        SolveDatafile(file)

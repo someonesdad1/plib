@@ -1,4 +1,7 @@
 '''
+- Todo
+    - Colorize picture type
+
 Rename picture files
 '''
 if 1:   # Header
@@ -52,6 +55,7 @@ if 1:   # Utility
         t.dbg = t("cyn") if g.dbg else ""
         t.N = t.n if g.dbg else ""
         t.err = t("redl")
+        t.warn = t("ornl")
     def Dbg(*p, **kw):
         if g.dbg:
             print(f"{t.dbg}", end="", file=Dbg.file)
@@ -186,9 +190,11 @@ if 1:   # Core functionality
         Old, New = deque(old), deque(new)
         oldu, newu = deque(), deque()   # Capture renames to undo
         # First pass:  old to new name with leading unique letter
+        count = 0
         while Old:
             o, n = Old.popleft(), New.popleft()
             op, np = P(o), P(n)
+            count += 1
             try:
                 op.rename(np)
             except Exception:
@@ -199,9 +205,13 @@ if 1:   # Core functionality
                 newu.append(n)
         # If Old is not empty, we must undo
         if Old:
-            print("Oops:  error, need to undo")
-            breakpoint() #xx 
-        # Success:  Do second pass:  Remove leading letter.  We'll assume these can't fail.
+            t.print(f"{t.warn}Error, need to undo (run script undo.renum):")
+            fp = open("undo.renum", "w")
+            for i, j in zip(oldu, newu):
+                print(f"mv {j} {i}")
+                print(f"mv {j} {i}", file=fp)
+            exit(1)
+        # Success:  Do second pass:  Remove leading letter.  We'll assume these renames can't fail.
         New = deque(new)
         while New:
             n = New.popleft()
