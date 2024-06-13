@@ -102,7 +102,6 @@ if 1:  # Copyright, license
 if 1:   # Imports
     from collections import deque
     import os
-    import pdb
 if 1:   # Global variables
     all = '''Abbr Wrap dedent indent wrap'''.split()
 class Abbr:
@@ -388,17 +387,21 @@ def LeadingSpaces(s):
 def dedent(s):
     '''For the multiline string s, remove common leading space characters.  The use case is for
     help strings in scripts, allowing arbitrary leading and trailing newlines that are removed.
-    dedent(s) for
+    Example:  dedent(s) for
         s = """
-
+    
         Line 1
           Line 2
-
+    
         """
     will return 'Line 1\n  Line 2'.
     '''
+    # If s is the empty string, return the empty string
     if not s.strip():
         return ""
+    # If s has no newlines, return s.strip()
+    if '\n' not in s:
+        return s.strip()
     lines = deque(s.split("\n"))
     # Remove leading blank lines or lines with only spaces
     while lines:
@@ -410,27 +413,27 @@ def dedent(s):
         if not IsBlankOrSpaces(lines[-1]):
             break
         lines.pop()
-    # Get sequence of the number of beginning spaces on each line
+    # Get sequence of the number of leading spaces on each line
     numspaces = [LeadingSpaces(i) for i in lines]
     # Bare newlines are considered to have infinite spaces.  The following emulates this by making
     # them appear to have max(numspaces) + 1 spaces.
     m = max(numspaces)
     numspaces = [i if i else m + 1 for i in numspaces]  
-    # Find n, the number of common beginning spaces on each line
+    # Find n = the number of common beginning spaces on each line
     n = min(numspaces)
-    # Trim off n spaces from each line
-    lines = [i[n:] for i in lines]
+    # If n is zero, then there are no lines with leading spaces, so just return s
+    if not n:
+        return s
+    else:
+        # Trim off n spaces from each line
+        lines = [i[n:] for i in lines]
+    # Return the dedented string
     return '\n'.join(lines)
 
 if 0: #xx
     s = '''
-    
-    
     Line 1
-
-        Line 2
-    
-    
+   Line 2
     '''
     result = dedent(s)
     print(f"orig:\n{s}")
@@ -444,7 +447,6 @@ if __name__ == "__main__":
     # Run the selftests
     from lwtest import run, Assert
     import sys
-    from pdb import set_trace as xx
     def Dump(s):
         'Print a multiline string to stdout'
         for i in s.split("\n"):
@@ -486,14 +488,51 @@ if __name__ == "__main__":
             'affection for her drew him oftener from home than anything \n'
             '\n' 'else could do.')
         Assert(u == t)
-    def TestDedent():
+    def Test_dedent():
+        # Simplest cases:  no newline in string
+        Assert(dedent("") == "")
+        Assert(dedent(" ") == "")
+        Assert(dedent("x") == "x")
         Assert(dedent(" x") == "x")
+        Assert(dedent("  x") == "x")
+        Assert(dedent("  x  ") == "x")
+        # Canonical use cases
+        x = '''
+        a
+        b
+        '''
+        Assert(dedent(x) == "a\nb")
+        x = '''
+        
+        a
+        b
+        
+        '''
+        Assert(dedent(x) == "a\nb")
+        # Make sure an embedded blank line is retained, but leading and trailing empty lines are
+        # deleted.
+        x = '''
+
+        
+        
+        
+        a
+
+        b
+        
+        
+        
+
+        '''
+        Assert(dedent(x) == "a\n\nb")
+    def TestDedent():
+        Assert(Dedent(" x") == "x")
         s = '''        a
         b'''
         s = "        a\n        b"
-        Assert(dedent(s) == "a\nb")
+        Assert(Dedent(s) == "a\nb")
         s = "\n        a\n        b\n          c\n        "
-        Assert(dedent(s) == "a\nb\n  c")
+        Assert(Dedent(s) == "a\nb\n  c")
         # Test main use case:  script help strings
         s = '''   
         Line 1
@@ -501,7 +540,7 @@ if __name__ == "__main__":
         
         '''
         t = "Line 1\n  Line 2\n"
-        Assert(dedent(s) == t)
+        Assert(Dedent(s) == t)
         # Blank line with empty False
         s = '''   
         Line 1
@@ -510,27 +549,16 @@ if __name__ == "__main__":
         
         '''
         t = "        Line 1\n          Line 2\n\n        "
-        Assert(dedent(s, empty=False) == t)
+        Assert(Dedent(s, empty=False) == t)
         t = "Line 1\n  Line 2\n\n"
-        Assert(dedent(s, empty=True) == t)
+        Assert(Dedent(s, empty=True) == t)
         # Most common use case
         s = '''
         Line 1
           Line 2
         '''
         t = "Line 1\n  Line 2"
-        Assert(dedent(s) == t)
-        # Most common use case and use ltrim and rtrim
-        s = '''
-        
-        
-        Line 1
-          Line 2
-        
-        
-        '''
-        t = "Line 1\n  Line 2"
-        Assert(dedent(s) == t)
+        Assert(Dedent(s) == t)
     def TestIndent():
         f, spc = wrap.indent, " "
         Assert(f(" x", spc) == "  x")
@@ -608,7 +636,8 @@ if __name__ == "__main__":
         Example3()
         Example4()
         Example5()
-    if "--test" in sys.argv:
-        exit(run(globals(), halt=1)[0])
-    else:
-        Demos()
+    # Run self tests, then show demo stuff if successful
+    status = run(globals())[0]
+    if status:
+        exit(status)
+    Demos()
