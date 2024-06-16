@@ -221,28 +221,66 @@ if 1:   # Core functionality
         now = dt.datetime.now()
         starttime = dt.datetime(now.year, now.month, now.day, hour, minute)
         indent = " "*4
-        w = (5, 7, 7, 7)
+        w = (7, 7, 12, 12)
+        total_minutes = 0
+        def Print():
+            nonlocal total_minutes
+            print(f"{indent} "
+                f"{'Ckt':^{w[0]}s} "
+                f"{'Minutes':^{w[1]}s} "
+                f"{'Start':^{w[2]}s} "
+                f"{'End':^{w[3]}s}")
+            for ckt, minutes in g.timing:
+                minutes = int(minutes*budget/100 + 0.5)
+                start = starttime + dt.timedelta(minutes=total_minutes)
+                total_minutes += minutes
+                finish = starttime + dt.timedelta(minutes=total_minutes)
+                print(f"{indent} "
+                    f"{ckt:^{w[0]}s} "
+                    f"{minutes!s:^{w[1]}s} "
+                    f"{H(start):^{w[2]}s} "
+                    f"{H(finish):^{w[3]}s}")
+            print(f"{indent}Watering time = {total_minutes} minutes = {total_minutes/60:.2f} hours")
         # Program A
         print("Program A")
-        print(f"{indent} "
-              f"{'Ckt':^{w[0]}s} "
-              f"{'Minutes':^{w[1]}s} "
-              f"{'Start':^{w[2]}s} "
-              f"{'End':^{w[3]}s}")
-        total_minutes = 0
-        for ckt, minutes in g.timing:
-            minutes = int(minutes*budget/100 + 0.5)
-            start = starttime + dt.timedelta(minutes=total_minutes)
-            total_minutes += minutes
-            finish = starttime + dt.timedelta(minutes=total_minutes)
+        Print()
+        if 0:
             print(f"{indent} "
-                  f"{ckt:^{w[0]}s} "
-                  f"{minutes!s:^{w[1]}s} "
-                  f"{H(start):^{w[2]}s} "
-                  f"{H(finish):^{w[3]}s}")
-        print(f"{indent}Total minutes = {total_minutes} = {total_minutes/60:.3f} hours")
+                f"{'Ckt':^{w[0]}s} "
+                f"{'Minutes':^{w[1]}s} "
+                f"{'Start':^{w[2]}s} "
+                f"{'End':^{w[3]}s}")
+            for ckt, minutes in g.timing:
+                minutes = int(minutes*budget/100 + 0.5)
+                start = starttime + dt.timedelta(minutes=total_minutes)
+                total_minutes += minutes
+                finish = starttime + dt.timedelta(minutes=total_minutes)
+                print(f"{indent} "
+                    f"{ckt:^{w[0]}s} "
+                    f"{minutes!s:^{w[1]}s} "
+                    f"{H(start):^{w[2]}s} "
+                    f"{H(finish):^{w[3]}s}")
+            print(f"{indent}Watering time = {total_minutes} minutes = {total_minutes/60:.2f} hours")
         # Program B
-        print("\nProgram A")
+        print("\nProgram B")
+        Print()
+        if 0:
+            print(f"{indent} "
+                f"{'Ckt':^{w[0]}s} "
+                f"{'Minutes':^{w[1]}s} "
+                f"{'Start':^{w[2]}s} "
+                f"{'End':^{w[3]}s}")
+            for ckt, minutes in g.timing:
+                minutes = int(minutes*budget/100 + 0.5)
+                start = starttime + dt.timedelta(minutes=total_minutes)
+                total_minutes += minutes
+                finish = starttime + dt.timedelta(minutes=total_minutes)
+                print(f"{indent} "
+                    f"{ckt:^{w[0]}s} "
+                    f"{minutes!s:^{w[1]}s} "
+                    f"{H(start):^{w[2]}s} "
+                    f"{H(finish):^{w[3]}s}")
+            print(f"{indent}Watering time = {total_minutes} minutes = {total_minutes/60:.2f} hours")
 
 if __name__ == "__main__":
     d = {}      # Options dictionary
