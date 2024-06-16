@@ -34,13 +34,16 @@ if 1:   # Header
         from wrap import dedent
         from color import t
     if 1:   # Global variables
+        class G:
+            pass
+        g = G()
         ii = isinstance
         W = int(os.environ.get("COLUMNS", "80")) - 1
         L = int(os.environ.get("LINES", "50"))
         # Circuit timing in minutes at budget == 100%
         # As of 6 Jun 2024
         a = 120
-        timing = (
+        g.timing = (
             ("1,3", a),
             ("2", a),
             ("4", a),
@@ -50,24 +53,36 @@ if 1:   # Header
             ("9", a),
         )
         del a
+        # Where to store the default budget value
+        g.budget_file = "/plib/pgm/sprinklers.budget"
         # This variable is the budget setting (resolution = 10%)
-        budget = 50
+        g.default_budget = None
+            
 if 1:   # Utility
+    def GetBudget():
+        try:
+            with open(g.budget_file) as fp:
+                s = fp.read()
+                return int(s)
+        except Exception:
+            Error(f"Could not read budget file {g.budget_file}")
     def Error(*msg, status=1):
         print(*msg, file=sys.stderr)
         exit(status)
     def Usage(status=1):
         print(dedent(f'''
-        Usage:  {sys.argv[0]} [options] [budget]
-          Print out the times the sprinklers will come on.  Normal timing
-          is such that budget == 70%.  This is done to get the longer times
-          needed for July and August.
+        Usage:  {sys.argv[0]} [options] [start]
+          Print out the times the sprinklers will come on.  No argument prints the normal weekly
+          schedule.  If you provide a start time hh:mm in 24 hour form, the sprinkler circuit
+          timing will be printed.
         Options:
+            -B n    Set n to the default budget value
+            -b n    Use n as the budget value [50]
             -h      Print a manpage
         '''))
         exit(status)
     def ParseCommandLine(d):
-        d["-b"] = budget    # Default budget value
+        d["-b"] = g.budget    # Default budget value
         try:
             opts, args = getopt.getopt(sys.argv[1:], "b:h") 
         except getopt.GetoptError as e:
@@ -106,12 +121,12 @@ if 1:   # Core functionality
     def HM(t):
         't is time in minutes from midnight.  Return in HH:MM format.'
         h, m = divmod(t, 60)
-        h %= 24
+        H = h % 24
+        h %= 12
         m %= 60
-        ap = "am"
-        if h > 11:
-            ap = "pm"
-            h -= 11
+        ap = "pm" if H > 11 else "am"
+        if not h:
+            h = 12
         return f"{h:2d}:{m:02d} {ap}"
     def PrintSchedule(budget):
         def f(t):
@@ -132,7 +147,7 @@ if 1:   # Core functionality
                   f"{sep}{'-'*w[3]:^{w[3]}s}")
             t = 16*60    # Start at 4 pm
             total_minutes = 0
-            for ckt, minutes in timing:
+            for ckt, minutes in g.timing:
                 minutes = int(minutes*budget/100 + 0.5)
                 total_minutes += minutes
                 print(f"{indent}{ckt:^{w[0]}s}"
@@ -154,7 +169,7 @@ if 1:   # Core functionality
                   f"{sep}{'-'*w[3]:^{w[3]}s}")
             t = 7*60    # Start at 7 am
             total_minutes = 0
-            for ckt, minutes in timing:
+            for ckt, minutes in g.timing:
                 minutes = int(minutes*budget/100 + 0.5)
                 total_minutes += minutes
                 print(f"{indent}{ckt:^{w[0]}s}"
@@ -166,9 +181,7 @@ if 1:   # Core functionality
 
 if __name__ == "__main__":
     d = {}      # Options dictionary
+    g.default_budget = GetBudget()
     args = ParseCommandLine(d)
-    if not args:
-        budget = 70
-    else:
-        budget = int(TemplateRound(float(args[0]), 10))
+    budget = d["-b"]
     PrintSchedule(budget)
