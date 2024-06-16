@@ -104,12 +104,15 @@ if 1:   # Core functionality
             y -= template
         return sign*y
     def HM(t):
-        '''t is time in minutes from midnight.  Return in HH:MM format.
-        '''
+        't is time in minutes from midnight.  Return in HH:MM format.'
         h, m = divmod(t, 60)
         h %= 24
         m %= 60
-        return f"{h:02d}:{m:02d}"
+        ap = "am"
+        if h > 11:
+            ap = "pm"
+            h -= 11
+        return f"{h:2d}:{m:02d} {ap}"
     def PrintSchedule(budget):
         def f(t):
             return t.strftime('%I:%M %p').lower()
