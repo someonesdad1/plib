@@ -57,7 +57,6 @@ if 1:   # Header
         g.budget_file = "/plib/pgm/sprinklers.budget"
         # This variable is the budget setting (resolution = 10%)
         g.default_budget = None
-            
 if 1:   # Utility
     def GetBudget():
         try:
@@ -82,7 +81,8 @@ if 1:   # Utility
         '''))
         exit(status)
     def ParseCommandLine(d):
-        d["-b"] = g.budget    # Default budget value
+        d["-b"] = g.default_budget    # Default budget value
+        breakpoint() #xx 
         try:
             opts, args = getopt.getopt(sys.argv[1:], "b:h") 
         except getopt.GetoptError as e:

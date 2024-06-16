@@ -27,7 +27,9 @@ if 1:   # Header
         #∞what∞#
         #∞test∞# run #∞test∞#
     # Standard imports
+        import bisect
         import locale
+        import math
         import pathlib
         import re
         import string
@@ -865,6 +867,22 @@ if 1:   # Getting numbers
             return typ(f"{sgn}{r}", f"{sp}{i}")
         else:
             return typ(z)
+    def GetClosest(x, seq, dist=lambda a, b:  abs(a - b)):
+        '''Given a number x, return the number in seq that is closest to x.  seq is assumed to be in
+        sorted order so that the bisect module can be used.  The distance between x and elements
+        in seq is calculated by the dist function.
+        '''
+        if not seq:
+            raise ValueError("seq cannot be an empty sequence")
+        assert(seq)
+        i = bisect.bisect_left(seq, x)
+        if not i:
+            return seq[0]
+        elif i > len(seq) - 1:
+            return seq[-1]
+        else:
+            # Choose seq[i - 1] or seq[i], whichever is closest to x
+            return seq[i - 1] if dist(x, seq[i - 1]) < dist(x, seq[i]) else seq[i]
 if 1:   # Getting choices
     def GetChoice(seq, default=1, indent=None, col=False, instream=None,
                   outstream=None):
@@ -1002,16 +1020,6 @@ if 1:   # Tokenizing
                 print(f"New :  {repr(t)}")
                 print("Tokenize's invariant failed")
         return out
-if __name__ == "__main__":  
-    # xx Testing of Tokenize
-    s = '''
-This is a sentence; it's a compound-sentence!
-"There's a reasonable amt of punc."'''[1:]
-    tk = Tokenize(s)
-    #print(tk)
-    print(list(i for i in tk if ii(i, wrd)))
-    exit()
-
 if 1:   # Miscellaneous
     def IsPunctuation(seq):
         'Return True if all characters in iterable seq are punctuation'
@@ -1667,6 +1675,37 @@ if __name__ == "__main__":
                 if have_mpmath:
                     z = GetComplex(i, typ=mpc)
                     Assert(z == expected)
+        def TestGetClosest():
+            seq = (0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100)
+            Assert(GetClosest(-1e300, seq) == 0)
+            Assert(GetClosest(-1, seq) == 0)
+            #
+            Assert(GetClosest(0 - math.ulp(0), seq) == 0)
+            Assert(GetClosest(0.0 - math.ulp(0.0), seq) == 0)
+            Assert(GetClosest(0, seq) == 0)
+            Assert(GetClosest(0 + math.ulp(0), seq) == 0)
+            Assert(GetClosest(0.0 + math.ulp(0.0), seq) == 0)
+            #
+            Assert(GetClosest(44, seq) == 40)
+            #
+            Assert(GetClosest(45 - math.ulp(45), seq) == 40)
+            Assert(GetClosest(45.0 - math.ulp(45.0), seq) == 40)
+            Assert(GetClosest(45, seq) == 50)
+            Assert(GetClosest(45 + math.ulp(45), seq) == 50)
+            Assert(GetClosest(45.0 + math.ulp(45.0), seq) == 50)
+            #
+            Assert(GetClosest(94, seq) == 90)
+            Assert(GetClosest(95, seq) == 100)
+            #
+            Assert(GetClosest(100 - math.ulp(100), seq) == 100)
+            Assert(GetClosest(100.0 - math.ulp(100.0), seq) == 100)
+            Assert(GetClosest(100, seq) == 100)
+            Assert(GetClosest(100 + math.ulp(100), seq) == 100)
+            Assert(GetClosest(100.0 + math.ulp(100.0), seq) == 100)
+            #
+            Assert(GetClosest(101, seq) == 100)
+            Assert(GetClosest(1e300, seq) == 100)
+
     if 1:   # Getting choices
         def TestGetChoice():
             seq = ["a", "b", "c"]
@@ -1724,6 +1763,12 @@ if __name__ == "__main__":
             s, a = "   ", "a"
             t = Tokenize(s + a + s)
             Assert(t == deque([s, a, s]))
+            s = "This is a sentence; it's a compound-sentence!  There's a reasonable amt of punc."
+            tk = Tokenize(s)
+            expected = deque(['This', ' ', 'is', ' ', 'a', ' ', 'sentence', '; ', 'it', "'", 's',
+                              ' ', 'a', ' ', 'compound', '-', 'sentence', '!  ', 'There', "'", 's',
+                              ' ', 'a', ' ', 'reasonable', ' ', 'amt', ' ', 'of', ' ', 'punc', '.'])
+            Assert(tk == expected)
     if 1:   # Miscellaneous
         def TestIsPunctuation():
             other_punc = ''.join([chr(i) for i in 
