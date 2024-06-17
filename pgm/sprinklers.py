@@ -25,6 +25,7 @@ if 1:   # Header
         #∞test∞# #∞test∞#
         pass
     if 1:   # Standard imports
+        from pathlib import Path as P
         import datetime as dt
         import getopt
         import sys
@@ -58,41 +59,31 @@ if 1:   # Header
         g.default_budget = None
         # The Orbit controller only allows the following % values for the budget setting
         g.allowed_budget = (0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100)
+        # Always output color
+        t.always = True
 if 1:   # Utility
     def GetColors():
         t.budget = t("ornl")
         t.err = t("redl")
         t.day = t("yell")
-    def SetBudget(budget):
-        try:
-            b = GetClosest(budget, g.allowed_budget)
-            with open(g.budget_file, "w") as fp:
-                fp.write(str(b))
-            print(f"Budget set to {b}%")
-        except Exception:
-            Error(f"Could not write budget file {g.budget_file}.")
-    def GetBudget():
-        try:
-            with open(g.budget_file) as fp:
-                s = fp.read()
-                budget = int(s)
-                return GetClosest(budget, g.allowed_budget)
-        except Exception:
-            t.print(f"{t.err}Could not read budget file {g.budget_file!r}.  Using 50%.")
-            return 50
     def Error(*msg, status=1):
         print(*msg, file=sys.stderr)
         exit(status)
     def Usage(status=1):
         print(dedent(f'''
-        Usage:  {sys.argv[0]} [options] [start]
+        Usage:  {sys.argv[0]} [options] [start_time]
           Print out the times the sprinklers will come on.  No argument prints the normal weekly
-          schedule.  If you provide a start time hh:mm in 24 hour form, the sprinkler circuit
-          timing will be printed.
+          schedule.  If you provide a start_time, the sprinkler circuit timing will be printed.
+          start_time can be of the equivalent forms "13:30", "1:30 p", "1:30 pm", "13.4" (decimal
+          hour), or "1.5 p" (decimal hour in 12 hour form).
+        Example:
+          '-b 80 8:30p'
+            Show the A and B timing at 80% budget if you start sprinklers at 8:30 pm.  You'll see 
+            the sprinklers shut off at 7:42 am the next morning.
         Options:
-            -B n    Set n to the default budget value
-            -b n    Use n as the budget value [50]
-            -h      Print a manpage
+          -B n    Set n to the default budget value
+          -b n    Use n as the budget value [50]
+          -h      Print a manpage
         '''))
         exit(status)
     def ParseCommandLine(d):
@@ -122,6 +113,33 @@ if 1:   # Utility
                 Usage(status=0)
         return args
 if 1:   # Core functionality
+    def SetBudget(budget):
+        try:
+            b = GetClosest(budget, g.allowed_budget)
+            with open(g.budget_file, "w") as fp:
+                fp.write(str(b))
+            print(f"Budget set to {b}%")
+        except Exception:
+            Error(f"Could not write budget file {g.budget_file}.")
+    def GetBudget():
+        try:
+            with open(g.budget_file) as fp:
+                s = fp.read()
+                budget = int(s)
+                return GetClosest(budget, g.allowed_budget)
+        except Exception:
+            t.print(f"{t.err}Could not read budget file {g.budget_file!r}.  Using 50%.")
+            return 50
+    def GetBudgetChanged():
+        'Return date budget file changed'
+        p = P(g.budget_file)
+        t = time.localtime(p.stat().st_mtime)
+        a = time.strftime("%d %b %Y", t)
+        b = time.strftime("%I:%M:%S", t)
+        if b[0] == "0":
+            b = b[1:]
+        c = time.strftime("%p", t)
+        return f"{a} {b} {c}"
     def TemplateRound(x, template, up=True):
         '''Round a float to a template number.  The basic algorithm is to
         determine how many template values are in x.  You can choose to
@@ -152,7 +170,7 @@ if 1:   # Core functionality
         budget = d["-b"]
         assert(ii(budget, int) and 0 <= budget <= 100)
         p = budget/100
-        t.print(f"{t.budget}Budget = {budget}%")
+        t.print(f"{t.budget}Budget = {budget}%   (changed {GetBudgetChanged()})")
         print("The following times are programmed into the controller")
         w, sep = (7, 7, 7, 7), " "*5
         if 1:   # Tuesday and Thursday
@@ -274,7 +292,7 @@ if 1:   # Core functionality
         budget = d["-b"]
         assert(ii(budget, int) and 0 <= budget <= 100)
         p = budget/100
-        t.print(f"{t.budget}Budget = {budget}%")
+        t.print(f"{t.budget}Budget = {budget}%   (changed {GetBudgetChanged()})")
         now = dt.datetime.now()
         starttime = dt.datetime(now.year, now.month, now.day, h, m)
         indent = " "*4
@@ -310,7 +328,6 @@ if 1:   # Core functionality
         # Program B
         print("\nProgram B")
         Print()
-
     def Test():
         'Check utility functions'
         if 1:   # GetStartTime()
