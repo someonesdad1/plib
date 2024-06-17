@@ -205,92 +205,97 @@ if 1:   # Core functionality
         if not hr:
             hr = 12
         return f"{hr:2d}:{min:02d} {a}"
-    def PrintOffsetSchedule(start_time):
-        '''start_time will be a hh:mm 24-hour time to start the sprinklers.  Then print out the
-        actual times for programs A and B, as they both run unless you select only one.
+    def GetStartTime(start_time):
+        '''start_time can be of the following forms:
+            13:34       24 hour hh:mm form
+            1:34 p      12 hour hh:mm am/pm form
+            1:34 pm     12 hour hh:mm am/pm form
+            13.4        24 hour h.h decimal form
+            1.6 p       12 hour h.h decimal form
+        Return it as (h, m) where h and m are integers with h on [0, 23) and m on [0, 60).
+        '''
+        h, m = 0, 0
+        try:
+            if "a" in start_time:
+                # 12 hour hh:mm form
+                a, b = start_time.split(":")
+                h = int(a)
+            elif "p" in start_time:
+                # 12 hour hh:mm form
+                a, b = start_time.split(":")
+            elif "." in start_time:
+                # Decimal form
+                if "a" in start_time:
+                    pass
+                elif "p" in start_time:
+                    pass
+            else:
+                # 24 hour hh:mm form
+                    pass
+        except Exception:
+            Error(f"{start_time!r} is a bad start time")
+        if not (0 <= h < 24):
+            Error(f"Hour must be on [0, 24)")
+        if not (0 <= m < 60):
+            Error(f"Minutes must be on [0, 60)")
+        return h, m
+    def PrintOffsetSchedule(h, m):
+        '''Print out the actual times for programs A and B, as they both run unless you select only one.
+        h is integer on [0, 24) and m is integer on [0, 60).
         '''
         budget = d["-b"]
         assert(ii(budget, int) and 0 <= budget <= 100)
         p = budget/100
         t.print(f"{t.budget}Budget = {budget}%")
-        try:
-            hour, minute = start_time.split(":")
-            hour, minute = abs(int(hour)) % 24, abs(int(minute)) % 60
-        except Exception:
-            Error(f"{start_time!r} must be hh:mm form")
         now = dt.datetime.now()
-        starttime = dt.datetime(now.year, now.month, now.day, hour, minute)
+        starttime = dt.datetime(now.year, now.month, now.day, h, m)
         indent = " "*4
-        w = (7, 7, 12, 12)
         total_minutes = 0
         def Print():
+            w = (7, 7, 12, 12)
             nonlocal total_minutes
             print(f"{indent} "
-                f"{'Ckt':^{w[0]}s} "
-                f"{'Minutes':^{w[1]}s} "
-                f"{'Start':^{w[2]}s} "
+                f"{'Circuit':^{w[0]}s}{indent}"
+                f"{'Minutes':^{w[1]}s}{indent}"
+                f"{'Start':^{w[2]}s}{indent}"
                 f"{'End':^{w[3]}s}")
+            s = "-"
+            print(f"{indent} "
+                f"{s*w[0]:^{w[0]}s}{indent}"
+                f"{s*w[1]:^{w[1]}s}{indent}"
+                f"{s*w[2]:^{w[2]}s}{indent}"
+                f"{s*w[3]:^{w[3]}s}")
             for ckt, minutes in g.timing:
                 minutes = int(minutes*budget/100 + 0.5)
                 start = starttime + dt.timedelta(minutes=total_minutes)
                 total_minutes += minutes
                 finish = starttime + dt.timedelta(minutes=total_minutes)
                 print(f"{indent} "
-                    f"{ckt:^{w[0]}s} "
-                    f"{minutes!s:^{w[1]}s} "
-                    f"{H(start):^{w[2]}s} "
+                    f"{ckt:^{w[0]}s}{indent}"
+                    f"{minutes!s:^{w[1]}s}{indent}"
+                    f"{H(start):^{w[2]}s}{indent}"
                     f"{H(finish):^{w[3]}s}")
             print(f"{indent}Watering time = {total_minutes} minutes = {total_minutes/60:.2f} hours")
         # Program A
         print("Program A")
         Print()
-        if 0:
-            print(f"{indent} "
-                f"{'Ckt':^{w[0]}s} "
-                f"{'Minutes':^{w[1]}s} "
-                f"{'Start':^{w[2]}s} "
-                f"{'End':^{w[3]}s}")
-            for ckt, minutes in g.timing:
-                minutes = int(minutes*budget/100 + 0.5)
-                start = starttime + dt.timedelta(minutes=total_minutes)
-                total_minutes += minutes
-                finish = starttime + dt.timedelta(minutes=total_minutes)
-                print(f"{indent} "
-                    f"{ckt:^{w[0]}s} "
-                    f"{minutes!s:^{w[1]}s} "
-                    f"{H(start):^{w[2]}s} "
-                    f"{H(finish):^{w[3]}s}")
-            print(f"{indent}Watering time = {total_minutes} minutes = {total_minutes/60:.2f} hours")
         # Program B
         print("\nProgram B")
         Print()
-        if 0:
-            print(f"{indent} "
-                f"{'Ckt':^{w[0]}s} "
-                f"{'Minutes':^{w[1]}s} "
-                f"{'Start':^{w[2]}s} "
-                f"{'End':^{w[3]}s}")
-            for ckt, minutes in g.timing:
-                minutes = int(minutes*budget/100 + 0.5)
-                start = starttime + dt.timedelta(minutes=total_minutes)
-                total_minutes += minutes
-                finish = starttime + dt.timedelta(minutes=total_minutes)
-                print(f"{indent} "
-                    f"{ckt:^{w[0]}s} "
-                    f"{minutes!s:^{w[1]}s} "
-                    f"{H(start):^{w[2]}s} "
-                    f"{H(finish):^{w[3]}s}")
-            print(f"{indent}Watering time = {total_minutes} minutes = {total_minutes/60:.2f} hours")
+
+if 1: #xx
+    print(GetStartTime("7:34"))
+
+    exit()
 
 if __name__ == "__main__":
     d = {}      # Options dictionary
     GetColors()
     g.default_budget = GetBudget()
     args = ParseCommandLine(d)
-    PrintOffsetSchedule("7:43") #xx
-    exit() #xx
     if args:
         for arg in args:
-            PrintOffsetSchedule(arg)
+            h, m = GetStartTime(arg)
+            PrintOffsetSchedule(h, m)
     else:
         PrintSchedule()
