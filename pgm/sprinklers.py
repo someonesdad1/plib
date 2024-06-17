@@ -30,9 +30,11 @@ if 1:   # Header
         import sys
         import time
     if 1:   # Custom imports
+        from dpstr import Keep
         from get import GetClosest
         from color import t
         from wrap import dedent
+        from lwtest import Assert
     if 1:   # Global variables
         class G:
             pass
@@ -60,6 +62,7 @@ if 1:   # Utility
     def GetColors():
         t.budget = t("ornl")
         t.err = t("redl")
+        t.day = t("yell")
     def SetBudget(budget):
         try:
             b = GetClosest(budget, g.allowed_budget)
@@ -150,30 +153,12 @@ if 1:   # Core functionality
         assert(ii(budget, int) and 0 <= budget <= 100)
         p = budget/100
         t.print(f"{t.budget}Budget = {budget}%")
-        if 1:   # Saturday
-            print(f"Saturday schedule")
-            w, sep, indent = (7, 7, 7, 7), " "*5, " "*4
-            print(f"{indent}{'Circuit':^{w[0]}s}"
-                  f"{sep}{'Minutes':^{w[1]}s}"
-                  f"{sep}{'Start':^{w[2]}s}"
-                  f"{sep}{'End':^{w[3]}s}")
-            print(f"{indent}{'-'*w[0]:^{w[0]}s}"
-                  f"{sep}{'-'*w[1]:^{w[1]}s}"
-                  f"{sep}{'-'*w[2]:^{w[2]}s}"
-                  f"{sep}{'-'*w[3]:^{w[3]}s}")
-            T = 16*60    # Start at 4 pm
-            total_minutes = 0
-            for ckt, minutes in g.timing:
-                minutes = int(minutes*budget/100 + 0.5)
-                total_minutes += minutes
-                print(f"{indent}{ckt:^{w[0]}s}"
-                    f"{sep}{minutes!s:^{w[1]}s}"
-                    f"{sep}{HM(T):^{w[2]}s}"
-                    f"{sep}{HM(T + minutes):^{w[3]}s}")
-                T += minutes
-            print(f"{indent}Total minutes = {total_minutes} = {total_minutes/60:.3f} hours")
+        print("The following times are programmed into the controller")
+        w, sep = (7, 7, 7, 7), " "*5
         if 1:   # Tuesday and Thursday
-            print(f"Tuesday, Thursday schedule")
+            indent = " "*4
+            t.print(f"{indent}{t.day}Tuesday, Thursday schedule")
+            indent = " "*8
             w, sep, indent = (7, 7, 7, 7), " "*5, " "*4
             print(f"{indent}{'Circuit':^{w[0]}s}"
                   f"{sep}{'Minutes':^{w[1]}s}"
@@ -184,6 +169,29 @@ if 1:   # Core functionality
                   f"{sep}{'-'*w[2]:^{w[2]}s}"
                   f"{sep}{'-'*w[3]:^{w[3]}s}")
             T = 7*60    # Start at 7 am
+            total_minutes = 0
+            for ckt, minutes in g.timing:
+                minutes = int(minutes*budget/100 + 0.5)
+                total_minutes += minutes
+                print(f"{indent}{ckt:^{w[0]}s}"
+                    f"{sep}{minutes!s:^{w[1]}s}"
+                    f"{sep}{HM(T):^{w[2]}s}"
+                    f"{sep}{HM(T + minutes):^{w[3]}s}")
+                T += minutes
+            print(f"{indent}Total minutes = {total_minutes} = {total_minutes/60:.3f} hours")
+        if 1:   # Saturday
+            indent = " "*4
+            t.print(f"{indent}{t.day}Saturday schedule")
+            indent = " "*8
+            print(f"{indent}{'Circuit':^{w[0]}s}"
+                  f"{sep}{'Minutes':^{w[1]}s}"
+                  f"{sep}{'Start':^{w[2]}s}"
+                  f"{sep}{'End':^{w[3]}s}")
+            print(f"{indent}{'-'*w[0]:^{w[0]}s}"
+                  f"{sep}{'-'*w[1]:^{w[1]}s}"
+                  f"{sep}{'-'*w[2]:^{w[2]}s}"
+                  f"{sep}{'-'*w[3]:^{w[3]}s}")
+            T = 16*60    # Start at 4 pm
             total_minutes = 0
             for ckt, minutes in g.timing:
                 minutes = int(minutes*budget/100 + 0.5)
@@ -215,23 +223,43 @@ if 1:   # Core functionality
         Return it as (h, m) where h and m are integers with h on [0, 23) and m on [0, 60).
         '''
         h, m = 0, 0
+        st = start_time.lower()
+        keep = "+-0123456789.e"     # Decimal number characters
         try:
-            if "a" in start_time:
-                # 12 hour hh:mm form
-                a, b = start_time.split(":")
-                h = int(a)
-            elif "p" in start_time:
-                # 12 hour hh:mm form
-                a, b = start_time.split(":")
-            elif "." in start_time:
+            if "." in st:
                 # Decimal form
-                if "a" in start_time:
-                    pass
-                elif "p" in start_time:
-                    pass
+                if "p" in st:
+                    h = float(Keep(st, keep)) + 12
+                    m = int(60*(h - int(h)))
+                    h = int(h)
+                else:
+                    h = float(Keep(st, keep))
+                    m = int(60*(h - int(h)))
+                    h = int(h)
+            elif ":" in st:
+                if "a" in st:
+                    # 12 hour hh:mm form
+                    a, b = st.split(":")
+                    h = int(a)
+                    m = int(b[:2])
+                elif "p" in st:
+                    # 12 hour hh:mm form
+                    a, b = st.split(":")
+                    h = int(a) + 12 
+                    m = int(b[:2])
+                else:
+                    # 24 hour hh:mm form
+                    a, b = st.split(":")
+                    h = int(a)
+                    m = int(b[:2])
             else:
-                # 24 hour hh:mm form
-                    pass
+                # Can be integer form
+                if "a" in st:
+                    h = int(Keep(st, keep))
+                elif "p" in st:
+                    h = int(Keep(st, keep)) + 12
+                else:
+                    h = int(st)
         except Exception:
             Error(f"{start_time!r} is a bad start time")
         if not (0 <= h < 24):
@@ -283,13 +311,24 @@ if 1:   # Core functionality
         print("\nProgram B")
         Print()
 
-if 1: #xx
-    print(GetStartTime("7:34"))
-
-    exit()
+    def Test():
+        'Check utility functions'
+        if 1:   # GetStartTime()
+            Assert(GetStartTime("7:30") == (7, 30))
+            Assert(GetStartTime("7:30 a") == (7, 30))
+            Assert(GetStartTime("7:30 am") == (7, 30))
+            Assert(GetStartTime("7.5") == (7, 30))
+            Assert(GetStartTime("7.5a") == (7, 30))
+            #
+            Assert(GetStartTime("15:30") == (15, 30))
+            Assert(GetStartTime("3:30 p") == (15, 30))
+            Assert(GetStartTime("3:30 pm") == (15, 30))
+            Assert(GetStartTime("3.5p") == (15, 30))
+            Assert(GetStartTime("15.5") == (15, 30))
 
 if __name__ == "__main__":
     d = {}      # Options dictionary
+    Test()
     GetColors()
     g.default_budget = GetBudget()
     args = ParseCommandLine(d)
