@@ -28,6 +28,7 @@ if 1:   # Header
         from pathlib import Path as P
         import datetime as dt
         import getopt
+        import os
         import sys
         import time
     if 1:   # Custom imports
@@ -66,6 +67,13 @@ if 1:   # Utility
         t.budget = t("ornl")
         t.err = t("redl")
         t.day = t("yell")
+        t.title = t("purl")
+    def GetScreen():
+        'Return (LINES, COLUMNS)'
+        return (
+            int(os.environ.get("LINES", "50")),
+            int(os.environ.get("COLUMNS", "80")) - 1
+        )
     def Error(*msg, status=1):
         print(*msg, file=sys.stderr)
         exit(status)
@@ -111,6 +119,7 @@ if 1:   # Utility
                     exit(1)
             elif o in ("-h", "--help"):
                 Usage(status=0)
+        g.L, g.W = GetScreen()
         return args
 if 1:   # Core functionality
     def SetBudget(budget):
@@ -287,7 +296,7 @@ if 1:   # Core functionality
         return h, m
     def PrintOffsetSchedule(h, m):
         '''Print out the actual times for programs A and B, as they both run unless you select only one.
-        h is integer on [0, 24) and m is integer on [0, 60).
+        Start time is h:m; h is integer on [0, 24) and m is integer on [0, 60).
         '''
         budget = d["-b"]
         assert(ii(budget, int) and 0 <= budget <= 100)
@@ -342,6 +351,35 @@ if 1:   # Core functionality
             Assert(GetStartTime("3:30 pm") == (15, 30))
             Assert(GetStartTime("3.5p") == (15, 30))
             Assert(GetStartTime("15.5") == (15, 30))
+        if 1:   # HM()
+            Assert(HM(0) == "12:00 am")
+            Assert(HM(1) == "12:01 am")
+            Assert(HM(1*60) == " 1:00 am")
+            Assert(HM(8*60) == " 8:00 am")
+            Assert(HM(12*60) == "12:00 pm")
+            Assert(HM(20*60) == " 8:00 pm")
+            Assert(HM(23*60) == "11:00 pm")
+            Assert(HM(23*60 + 59) == "11:59 pm")
+    def PrintTiming():
+        'Show circuit times from 50% to 100%'
+        t.print(f"{t.budget}{' '*10}Circuit timing in minutes as function of budget percentage")
+        w, B = 8, range(100, 19, -10)
+        # Header
+        print(f"{'Circuit':^{w}s}", end=" ")
+        for b in B:
+            print(f"{str(b) + '%':^{w}s}", end=" ")
+        print()
+        print(f"{'-'*w:{w}s}", end=" ")
+        for b in B:
+            print(f"{'-'*w:{w}s}", end=" ")
+        print()
+        # Table
+        for ckt, minutes in g.timing:
+            print(f"{ckt:^{w}s}", end=" ")
+            for b in B:
+                print(f"{str(int(minutes*b/100)):^{w}s}", end=" ")
+            print()
+        print()
 
 if __name__ == "__main__":
     d = {}      # Options dictionary
@@ -354,4 +392,6 @@ if __name__ == "__main__":
             h, m = GetStartTime(arg)
             PrintOffsetSchedule(h, m)
     else:
+        t.print(f"{t.title}Sprinkler information\n")
+        PrintTiming()
         PrintSchedule()
