@@ -76,7 +76,8 @@ if 1:   # Utility
 
           Example:  modern hash checking machines might run at 100 GHz.  To crack a password made
           up of a set of 100 symbols with a length of up to 16 symbols, use a command line of '100
-          16 100G'.  The result is a time of XX. 
+          16 100G'.  The result is a time of 1e19 s, about 23 times the estimated age of the
+          universe. 
         Options:
             -h      Print a manpage
         '''))
