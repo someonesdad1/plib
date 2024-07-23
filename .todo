@@ -32,14 +32,13 @@ Active:  /plib/.todo
         - Get rid of the old dictionary use in /pylib and use the stuff in /words.  
             - Use 🔵🟢🟡🟠🔴 to indicate which dict matched, with 🔵 representing the easiest dict
               with harder ones to the right.
+    - /words
+        - Include verbs, nouns, adjectives, etc. from Wordnet
 
     - get.py
         - GetLine needs a keep=[] keyword argument to be used on lines that aren't removed by the
           ignore argument.
         - GetLine1 staged to be removed by commenting out
-
-    - /words
-        - Include verbs, nouns, adjectives, etc. from Wordnet
 
     - pgm/random_phrase.py
         - This is a handy script, but it should by default use a set of words much smaller
@@ -54,13 +53,14 @@ Active:  /plib/.todo
         - Give temps in C and F
 
     - hobbyutil
+        - Stalled development is because of the PITA of converting to builds using make.
         - Test all python scripts with 3.11
         - Get rid of file size
         - Make HTML as short as possible and all on one line to make browsing quick
 
-    - ad:  make a tool analogous to hd to dump text files so you can see location of Unicode
-      characters and their value.  Can also use color coding.  For control characters, use 
-      things like U2400 to U2421.
+    - pgm/ad.py:  make a tool analogous to hd to dump text files so you can see location of Unicode
+      characters and their value.  Can also use color coding.  For control characters, use things
+      like U2400 to U2421.
 
     - /shop/software  Update these python scripts to current standards and put them in $pp
 

@@ -1657,11 +1657,11 @@ def Unique(seq):
             found.add(item)
             yield item
 def AcceptableDiff(x, y, n=3, strict=False):
-    '''Return True if abs((x - y)/x) <= 10**-n.  If x is 0, then calculate abs((y - x)/y).  If
+    '''Return True if abs((x - y)/x) <= 10ⁿ.  If x is 0, then calculate abs((y - x)/y).  If
     strict is True, then x and y must be the same numerical type.
   
     The use case for this is testing for numerical differences when the numbers come from physical
-    measurements.  Most of the time such data have 2, 3, or 4 figures.
+    measurements.  Most of the time such data have n = 2, 3, or 4 figures.
     '''
     if strict and (type(x) != type(y)):
         raise TypeError("x and y must be the same numerical type")

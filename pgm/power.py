@@ -32,19 +32,19 @@ def Error(*msg, status=1):
     print(*msg, file=sys.stderr)
     exit(status)
 def Usage(d, status=1):
-    flt(0).n = 3
+    flt(0).N = 3
     print(dedent(f'''
     Usage:  {sys.argv[0]} [options] p1 [p2 ...]
-      Prints out various period costs of electrical power for the rate of
-      {100*flt(d["-r"])}¢/(kW*hr) for a given power p1, p2, ... in watts.  
+      Prints out various period costs of electrical power for the rate of {100*flt(d["-r"])}¢/(kW*hr) for a given
+      power p1, p2, ... in watts.  Cost is as of {d["date"]}.
 
-      You can append an optional power unit to p1 with a space (put the
-      expression in quotes to escape it from shell parsing).  The powers
-      can be expressions (the math module's symbols are in scope).
+      You can append an optional power unit to p1 with a space (put the expression in quotes to
+      escape it from shell parsing).  The powers can be expressions (the math module's symbols are
+      in scope).
     Example:
         {sys.argv[0]} '300*cos(49*pi/180) hp'
-      prints out a table for a power of an apparent power of 300 hp at a power
-      factor angle of 49 degrees (power factor is 0.65).
+      prints out a table for a power of an apparent power of 300 hp at a power factor angle of 49
+      degrees (power factor is 0.65).
     Options:
       -d n      Set the number of significant figures in the output [{d["-d"]}]
       -l        Print typical lighting power table
@@ -55,7 +55,9 @@ def Usage(d, status=1):
     exit(status)
 def ParseCommandLine(d):
     x = flt(0)
-    d["-r"] = "0.104"   # Cost of kW*hr of electrical energy in $
+    # From https://www.eia.gov/electricity/monthly/epm_table_grapher.php?t=epmt_5_6_a
+    d["date"] = "Apr 2024"  # Date of Idaho's number
+    d["-r"] = "0.1145"  # Cost of kW*hr of electrical energy in $
     d["-d"] = 2         # Number of significant digits
     d["-l"] = False     # Print out lighting power too
     d["-i"] = False     # Instrument consumption
@@ -202,14 +204,15 @@ def TypicalAppliances():
     ]
     items = sorted([(i[1], i[0]) for i in items])
     w = max([len(i[1]) for i in items])
-    print(f"{'Item':^{w}s}  Watts    ¢ per 8 hr")
+    print(f"{'Item':^{w}s}  Watts    $ per 8 hr")
     print(f"{'-'*w:^{w}s}  -----    ----------")
     c = 100*flt(2.77778e-07)*d["-r"]  # Power cost in cents/J
     cents_day = 8*3600*c    # Cost of 1 W for 8 hr in cents
     for item in items:
         power_W, name = item
         cost = cents_day*power_W
-        print(f"{name:{w}s}  {int(power_W):4d}     {cost!s:^11s}")
+        dollars = cost/100
+        print(f"{name:{w}s}  {int(power_W):4d}     {dollars!s:^11s}")
 def PowerCostByState():
     '''Return a dict keyed by state with value of average cost in cents per
     kW*hr.
