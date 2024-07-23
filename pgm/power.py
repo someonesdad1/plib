@@ -54,15 +54,13 @@ def Usage(d, status=1):
     '''))
     exit(status)
 def ParseCommandLine(d):
-    x = flt(0)
     # From https://www.eia.gov/electricity/monthly/epm_table_grapher.php?t=epmt_5_6_a
     d["date"] = "Apr 2024"  # Date of Idaho's number
     d["-r"] = "0.1145"  # Cost of kW*hr of electrical energy in $
-    d["-d"] = 2         # Number of significant digits
+    d["-d"] = 3         # Number of significant digits
     d["-l"] = False     # Print out lighting power too
     d["-i"] = False     # Instrument consumption
     d["-t"] = False     # Table of typical costs
-    x.n = d["-d"]
     try:
         opts, args = getopt.getopt(sys.argv[1:], "d:hilr:t")
     except getopt.GetoptError as e:
@@ -89,7 +87,10 @@ def ParseCommandLine(d):
                 Error(msg)
         elif o in ("-h", "--help"):
             Usage(d, status=0)
+    x = flt(0)
     x.N = d["-d"]
+    x.rtz = False
+    x.rtdp = True
     if d["-i"]:
         Instruments()
         exit(0)
@@ -304,7 +305,7 @@ def Power(power_expr):
         s = "A power of {} ({} W, {} hp)".format(power_expr, str(power_W), hp)
     else:
         pwr = "{} W".format(power_expr)
-        s = "A power of {} ({} hp)".format(pwr, hp)
+        s = f"A power of {pwr} = {power_W} W ({hp} hp)"
     N = C.norm
     print("{} costs (at {:.1f} ¢ per kW*hr):".format(s,
           dollar_per_kW_hr*100))
