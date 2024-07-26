@@ -277,7 +277,7 @@ if 1:  # Utility
         Thus, WW2 costs were about 1/3 of 1970's, which 2023's costs are nearly 8 times as much.
         '''))
         exit(0)
-    def Usage(d, status=1):
+    def Usage(d, status=0):
         name = sys.argv[0]
         print(dedent(f'''
         Usage:  {name} [options] yr [amount1 amount2 ...]
@@ -293,9 +293,8 @@ if 1:  # Utility
           -t        Print a CPI table relative to the reference year
           -y yr     Define the reference year.  [{ref_year}]
         Examples:
-          '-t -y 2018'
-            Shows a table of 
-                
+          '-t -y 1970'
+            Shows a table of how a unit cost of 1 in 1970 compares to other years.
         '''))
         exit(status)
     def ParseCommandLine(d):
@@ -445,7 +444,7 @@ if 1:  # Core functionality
         print("US Minimum Wage")
         for i in Columnize(mw, col_width=20, indent=" "*2):
             print(i)
-        exit(0) #xx
+        exit(0)
 
 if __name__ == "__main__":
     d = {}      # Options dictionary
