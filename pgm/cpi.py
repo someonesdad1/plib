@@ -32,6 +32,7 @@ if 1:  # Header
         from f import flt
         from columnize import Columnize
         from color import t
+        from months import months
     if 1:   # Global variables
         # Construct CPI dictionary:  key is year, value is CPI index
         CPI0 = { # The following CPI data came from the cpi_data.py script.
@@ -202,7 +203,6 @@ if 1:  # Header
             for i in CPI:
                 print(f"{i} {CPI[i]!r} {CPI0[i]!r}")
             exit(0)
-
 if 1:  # Utility
     def Error(msg, status=1):
         print(msg, file=sys.stderr)
@@ -287,6 +287,7 @@ if 1:  # Utility
         Options:
           -d n      Set the number of significant digits.  [{d["-d"]}]
           -h        Print a manpage
+          -m        Show minimum wage changes in decimal years
           -T        Print a CPI table relative to the reference year, but the shown
                     numbers are the inverse of the -t output
           -t        Print a CPI table relative to the reference year
@@ -307,7 +308,7 @@ if 1:  # Utility
         if len(sys.argv) < 2:
             Usage(d)
         try:
-            opts, args = getopt.getopt(sys.argv[1:], "d:hpr:Tty:")
+            opts, args = getopt.getopt(sys.argv[1:], "d:hmpr:Tty:")
         except getopt.GetoptError as e:
             print(str(e))
             exit(1)
@@ -324,6 +325,8 @@ if 1:  # Utility
                         f"{min_digits} and {max_digits}")
             elif o == "-h":
                 Manpage()
+            elif o == "-m":
+                MinimumWage()
             elif o == "-r":
                 d[o] = flt(a)
                 if d[o] <= 0:
@@ -390,6 +393,59 @@ if 1:  # Core functionality
         if s[-1] == ".":
             return s[:-1]
         return s
+    def MinimumWage():
+        '''Print minimum wage table.  Data from
+        https://www.dol.gov/agencies/whd/minimum-wage/history/chart
+        '''
+        data = '''
+            Oct 24, 1938 $0.25  
+            Oct 24, 1939 $0.30  
+            Oct 24, 1945 $0.40  
+            Jan 25, 1950 $0.75  
+            Mar 1, 1956 $1.00  
+            Sep 3, 1961 $1.15
+            Sep 3, 1963 $1.25  
+            Sep 3, 1964  $1.15 
+            Sep 3, 1965  $1.25 
+            Feb 1, 1967 $1.40
+            Feb 1, 1968 $1.60
+            Feb 1, 1969   $1.30
+            Feb 1, 1970   $1.00
+            Feb 1, 1971   $1.60
+            May 1, 1974 $2.00
+            Jan 1, 1975 $2.10
+            Jan 1, 1976 $2.30
+            Jan 1, 1977 $2.30
+            Jan 1, 1978 $2.65 
+            Jan 1, 1979 $2.90 
+            Jan 1, 1980 $3.10 
+            Jan 1, 1981 $3.35 
+            Apr 1, 1990 $3.80
+            Apr 1, 1991 $4.25
+            Oct 1, 1996 $4.75
+            Sep 1, 1997 $5.15
+            Jul 24, 2007 $5.85
+            Jul 24, 2008 $6.55
+            Jul 24, 2009 $7.25
+        '''
+        mw = []
+        for line in data.split("\n"):
+            if not line.strip():
+                continue
+            date, wage = line.split("$")
+            month, day, year = date.split()
+            month = months(month)
+            day = int(day.strip()[:-1])
+            year = int(year)
+            if day > 15:
+                month += 1
+            month = month % 12
+            year = float(year + month/12)
+            mw.append(f"{year:.1f}   ${float(wage):.2f}")
+        print("US Minimum Wage")
+        for i in Columnize(mw, col_width=20, indent=" "*2):
+            print(i)
+        exit(0) #xx
 
 if __name__ == "__main__":
     d = {}      # Options dictionary
