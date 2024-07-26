@@ -14,6 +14,13 @@ Active:  /plib/.todo
 
     - Programmer's index (see xxpgidx)
 
+    - Acronyms
+        - See https://en.wikipedia.org/wiki/List_of_acronyms:_0%E2%80%939 and e.g. 
+          https://en.wikipedia.org/wiki/List_of_acronyms:_S
+        - These can be screen-scraped to become a textual database
+        - A script can be used to look things up or do text searches
+        - Many include URLs to a relevant page
+
     - Functions
         - Way too many
         - Decide on a single letter command 
