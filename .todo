@@ -1,5 +1,11 @@
 Active:  /plib/.todo
 
+    - Need a new module for sequences:  dpseq.py
+        - GetClosest(x, seq, closest=operator.sub)
+            - Return the element in sequence that is closest to x
+            - Assumes x is a number and seq is a numerical sequence
+            - Example:  seq = (1, 3, 12)
+
     - Statistical tools
         - DAP https://en.wikipedia.org/wiki/DAP_(software) 
             - Command line tool for statistics

@@ -26,6 +26,7 @@ if 1:   # Header
         pass
     if 1:   # Standard imports
         from pathlib import Path as P
+        import bisect
         import datetime as dt
         import getopt
         import os
@@ -90,7 +91,7 @@ if 1:   # Utility
             the sprinklers shut off at 7:42 am the next morning.
         Options:
           -B n    Set n to the default budget value
-          -b n    Use n as the budget value [50]
+          -b n    Use n as the budget value.  The closest allowed value to n will be used.
           -h      Print a manpage
         '''))
         exit(status)
@@ -111,12 +112,20 @@ if 1:   # Utility
                 except Exception:
                     Error(f"{a!r} is not a valid integer")
             elif o == "-b":
-                d[o] = b = int(a)
-                allowed = (0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100)
-                if b not in allowed:
-                    print(f"{a!r} is not an acceptable budget number:")
-                    print(f"    Must be one of {' '.join(str(i) for i in allowed)}")
-                    exit(1)
+                x = int(a)
+                # Get closest allowed value to x
+                min_index = None
+                last_diff = g.allowed_budget[-1] + 1
+                if x > g.allowed_budget[-1]:
+                    min_index = len(g.allowed_budget) - 1
+                elif x < g.allowed_budget[0]:
+                    min_index = 0
+                for i in range(len(g.allowed_budget)):
+                    diff = abs(x - g.allowed_budget[i])
+                    if diff <= last_diff:
+                        min_index = i
+                        last_diff = diff
+                d[o] = g.allowed_budget[min_index]
             elif o in ("-h", "--help"):
                 Usage(status=0)
         g.L, g.W = GetScreen()
