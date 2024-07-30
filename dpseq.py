@@ -1,17 +1,52 @@
 '''
 Functions for dealing with sequences.
 '''
-if 1:   # Header
-    if 1:   # Standard includes
+if 1:  # Header
+    if 1:  # Copyright, license
+        # These "trigger strings" can be managed with trigger.py
+        #∞copyright∞# Copyright (C) 2024 Don Peterson #∞copyright∞#
+        #∞contact∞# gmail.com@someonesdad1 #∞contact∞#
+        #∞license∞#
+        #   Licensed under the Open Software License version 3.0.
+        #   See http://opensource.org/licenses/OSL-3.0.
+        #∞license∞#
+        #∞what∞#
+        # Functions for dealing with sequences
+        #∞what∞#
+        #∞test∞# run #∞test∞#
+        pass
+    if 1:   # Standard imports
         import bisect
         import operator
-    if 1:   # Custom includes
+    if 1:   # Custom imports
+        from f import flt
         from lwtest import Assert, raises
-        if 1:
+        from wrap import dedent
+        if 0:
             import debug
             debug.SetDebugger()
     if 1:   # Global variables
-        pass
+        class G:
+            pass
+        g = G()
+        g.dbg = True
+        ii = isinstance
+if 1:   # Utility
+    def GetColors():
+        t.err = t("redl")
+        t.dbg = t("lill") if g.dbg else ""
+        t.N = t.n if g.dbg else ""
+    def GetScreen():
+        'Return (LINES, COLUMNS)'
+        return (
+            int(os.environ.get("LINES", "50")),
+            int(os.environ.get("COLUMNS", "80")) - 1
+        )
+    def Dbg(*p, **kw):
+        if g.dbg:
+            print(f"{t.dbg}", end="")
+            print(*p, **kw)
+            print(f"{t.N}", end="")
 if 1:   # Core functionality
     def find_le(x, seq):
         'Find rightmost value less than or equal to x'
@@ -71,8 +106,17 @@ if 1:   # Core functionality
         if not seq:
             raise ValueError("Sequence seq cannot be empty")
         if is_sorted is None:
-            # Get list of differences from x
+            # Get list of differences from x.  Note this can be slow for big sequences because it
+            # creates another list.
+            Dbg(f"GetClosest(seq = {seq})")
             o = [abs(distance(i, x)) for i in seq]
+            if g.dbg:
+                Dbg(f"  List of differences from x = {x}\n    {t('denl')}[", end="")
+                out = []
+                for i in o:
+                    out.append(f"{i}")
+                Dbg(f"{t('denl')}{', '.join(out)}", end="")
+                Dbg(f"{t('denl')}]")
             minimum = min(o)                # Minimum difference
             # Get o's index of the minimum
             index = o.index(minimum)
@@ -91,18 +135,20 @@ if 1:   # Core functionality
                 else:
                     raise ValueError("Closest item is unresolvable")
             # Return the closest value
+            if g.dbg:
+                Dbg(f"{t('ornl')}  Answer = {seq[index]}")
             return seq[index]
         else:
-            lseq = seq if is_sorted else sorted(seq, key=key)
-            # lseq is now the sorted sequence seq
-            if x <= lseq[0]:
-                return lseq[0]
-            elif x >= lseq[-1]:
-                return lseq[-1]
+            # Use binary search on a sorted array
+            sseq = seq if is_sorted else sorted(seq, key=key)
+            if x <= sseq[0]:
+                return sseq[0]
+            elif x >= sseq[-1]:
+                return sseq[-1]
             else:
                 # Use binary search
-                l = find_le(x, lseq)    # l is lseq element, not index
-                r = find_ge(x, lseq)    # r is lseq element, not index
+                l = find_le(x, sseq)    # l is sseq element, not index
+                r = find_ge(x, sseq)    # r is sseq element, not index
                 if l == r:
                     return l
                 else:
@@ -111,11 +157,17 @@ if 1:   # Core functionality
 
 if __name__ == "__main__":  
     from functools import partial
+    from color import t
+    g.dbg = True
+    GetColors()
+    g.dbg = False   # Turn g.dbg on to see debug printing
     def Test_GetClosest():
         low, high = -3, 6
         seq = (4, low, high, 1)     # Unsorted sequence
         sseq = (low, 1, 4, high)    # Sorted sequence
-        if 1:   # Test for each type of is_sorted
+        if 1:   
+            # Test for each type of is_sorted.  This makes sure they each get the same results,
+            # except when the unresolved keyword is different.
             for k in (None, False, True):
                 f = partial(GetClosest, is_sorted=k)
                 seq = sseq if k else seq
@@ -144,15 +196,31 @@ if __name__ == "__main__":
                 Assert(f(7, seq) == high)
                 Assert(f(20, seq) == high)
                 Assert(f(100, seq) == high)
-
-        exit()#xx
-
-        seq = (0, 11, 28, 31, 40)
-        if 1:   # Test with is_sorted == None
+        if 1:   
+            # Test with objects that are more complicated than numbers.  Here, the objects are 2D
+            # Cartesian points with the Euclidean distance as the metric.
+            class Pt:
+                def __init__(self, x, y):
+                    self.x = x
+                    self.y = y
+                def __eq__(self, other):
+                    return self.x == other.x and self.y == other.y
+                def __str__(self):
+                    return f"Pt({self.x}, {self.y})"
+                def __repr__(self):
+                    return str(self)
+                def dist(self, other):
+                    x = (self.x - other.x)**2
+                    y = (self.y - other.y)**2
+                    return flt((x + y)**0.5)
+            seq = (Pt(0, 0), Pt(-3, 6), Pt(4, 8), Pt(2, 0))
             f = partial(GetClosest, is_sorted=None)
-            raises(ValueError, f, -1e99, seq)
-            raises(ValueError, f, 1e99, seq)
-            Assert(f(-1, seq) == 0)
-            Assert(f(0, seq) == 0)
+            metric = lambda a, b: a.dist(b)
+            Assert(f(Pt(0.1, 0.1), seq, distance=metric) == Pt(0, 0))
+            Assert(f(Pt(-0.1, -0.1), seq, distance=metric) == Pt(0, 0))
+            Assert(f(Pt(-100, 0.1), seq, distance=metric) == Pt(-3, 6))
+            Assert(f(Pt(0, 1000), seq, distance=metric) == Pt(4, 8))
+            Assert(f(Pt(1, 0), seq, distance=metric) == Pt(0, 0))
+            Assert(f(Pt(1.0001, 0), seq, distance=metric) == Pt(2, 0))
 
     Test_GetClosest()
