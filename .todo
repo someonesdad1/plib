@@ -5,6 +5,18 @@ Active:  /plib/.todo
             - Return the element in sequence that is closest to x
             - Assumes x is a number and seq is a numerical sequence
             - Example:  seq = (1, 3, 12)
+        - Class smatrix
+            - Simple matrices
+            - Instantiate from a list or nested list
+            - Get rows and columns as lists
+            - Get transpose
+            - Print compactly
+
+    - Matrices
+        - matrix.py is powerful, but a frequent use case is to have a 2D matrix as 
+          a nested list and you want the transpose so you can iterate on the rows.
+        - Should a smatrix.py module be made for this?
+        - Should it be done in dpseq.py as a class?
 
     - Statistical tools
         - DAP https://en.wikipedia.org/wiki/DAP_(software) 

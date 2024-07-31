@@ -90,7 +90,7 @@ if 1:  # Header
                 have_sympy = True
             except ImportError:
                 pass
-        if len(sys.argv) > 1:
+        if 0:
             import debug
             debug.SetDebugger()
     # Global variables
