@@ -1909,6 +1909,10 @@ class Matrix:
             'Returns the number of elements in the matrix'
             return self.r*self.c
         @property
+        def l(self): 
+            'Synonym for self.flat'
+            return self.flat
+        @property
         def list(self): 
             'Synonym for self.flat'
             return self.flat
@@ -2533,6 +2537,13 @@ if 1:   # Utility functions
                     return z
         else:
             raise TypeError("Unrecognized floating point type")
+
+if 0:   # Test/development area
+    a = matrix("1 2\n3 4")
+    breakpoint() #xx 
+    a[0, 0] = 789
+    print(a)
+    exit()
 
 if __name__ == "__main__": 
     from lwtest import run, raises, assert_equal, Assert

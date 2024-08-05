@@ -779,7 +779,8 @@ def Flatten(L, max_depth=None, ltypes=(list, tuple)):
             'Flatten one level of nesting'
             return chain.from_iterable(listOfLists)
   
-    but every element encountered needs to be an iterable.  This Flatten() function works more generally.
+    but every element encountered needs to be an iterable.  This Flatten() function works more
+    generally.
     '''
     if max_depth is None:
         def make_flat(x):
@@ -1841,9 +1842,10 @@ if __name__ == "__main__":
         Assert(ConvertToNumber(str(n)) == n)
     def Test_Flatten():
         Assert(list(Flatten([])) == [])
+        Assert(tuple(Flatten([])) == ())
         r = list(range(11))
         Assert(list(Flatten(r)) == r)
-        a = [0, (1, 2, (3, 4, (5, 6, 7))), (8, (9, 10))]
+        a = [0, (1, 2, [3, 4, (5, 6, 7)]), (8, (9, 10))]
         Assert(list(Flatten(a)) == r)
     def Test_eng():
         Assert(eng(3456.78) == "3.46e3")

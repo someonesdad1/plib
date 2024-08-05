@@ -1,4 +1,29 @@
 '''
+
+ToDo
+    - Add smatrix class
+        - Simple matrices from sequences:  for manipulation only
+        - Uses flat sequences with a size or a nested sequence
+        - Primarily to get transpose, as this is an often-needed use case
+            - Let m be a matrix, m.t is transpose
+            - for i in m.t.rows:
+                - Then i is a row vector you can do something with
+            - But then 
+                - for i in m.cols: 
+                    - do something with column
+                - is exactly what's desired
+                - m.cols returns an iterator
+        - Rows and columns are lists with an extra attribute
+            - This allows e.g. two columns a = [1, 2, 3] and b = [4, 5, 6] to be combined using 
+              a + b to result in the matrix [a.t, b.t].
+        - row() and col() methods to get stated rows and columns
+        - Holds arbitrary objects, so numpy isn't a good choice
+        - Aim at composition and decomposition, not numerical computation
+        - Constructor
+            - Sequence:  produces row vector by default; use column kw for column vector
+            - Sequence with matrix size tuple:  produces matrix
+            - Nested sequence:  produces 2D matrix
+
 Functions for dealing with sequences.
 '''
 if 1:  # Header

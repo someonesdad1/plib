@@ -1452,6 +1452,22 @@ TRM = Trm()
 t = TRM     # I use 't' so much it should be defined
 TRM.cn = CN
 
+if 1:
+    '''Add a number of attributes to the t instance giving the regular and light colors in the
+    color table using my standard names.
+    '''
+    clrs = '''blk brn red orn yel grn blu vio gry wht cyn mag
+              pnk lip lav lil pur roy den sky trq sea lwn olv'''.split()
+    for clr in clrs:
+        for i in ("", "l", "d", "b"):
+            exec(f"t.{clr}{i} = t('{clr}{i}')")
+    if 0:
+        # Test that we got desire colors
+        t.print(f"{t.mag}mag")
+        t.print(f"{t.magl}magl")
+        t.print(f"{t.magd}magd")
+        t.print(f"{t.magb}magb")
+
 class RegexpDecorate:
     '''Decorate regular expression matches with color.
         The styles attribute is a dictionary that contains the styles to
