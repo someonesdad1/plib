@@ -12,8 +12,39 @@ Active:  /plib/.todo
           making a demo by setting the regexp to "^Demo_" and running the functions in the order
           they were encountered in the file.
 
-    - HU needs a dental care document and the reasons why
-        - Old person's "wisdom" of "I wish I had taken better care of my teeth"
+    - tk
+        - https://tkdocs.com/tutorial/firstexample.html
+        - This could be a good tutorial to work through to learn to write GUI python code.
+          Fortunately, miniconda3 contains python 3.11.5 that contains tk, so the first example
+          works as given.
+            - The tutorial is available as a $10 PDF and I'd think this could be a good reference
+              manual to learn things from, as I hate paging through HTML cruft
+
+    - HU
+        - Teeth
+            - Dental care document and the reasons why
+            - Old person's "wisdom" of "I wish I had taken better care of my teeth"
+        - Summer heat
+            - Managing heat in the summer (temperatures in °F)
+            - The summer of 2024 was very hot in the western US with near-record temperatures
+            - Our home's air conditioner is not capable of cooling the house off when temperatures
+              get above 100 to 105 every day, particularly after our attic fan had failed after 35
+              years of service
+                - Attic temperatures get over 120, roof's plywood gets to 160
+            - 2 key strategies
+                - Attic fan:  $120 unit 16"dia x10" deep, 1945 cfm, 18 cfm/W (==> 108 W, 0.9 A).
+                  Set thermostat to run when temperature is above 50, as this pulls cool air into
+                  the attic and removes a lot of stored heat.
+                    - Cost $0.3 per day (always running), $9/month
+                - Box fan(s):  exhaust air through window at one end of house.  Open windows at
+                  other end of house, adjusting opening to try to get turbulent air flow through as
+                  much of the house as possible.  I use two box fans of 70 W each.
+                    - Cost $0.18 per day (11 hours/day), $5.4/month
+            - Contrast this to running the air conditioner for 6 hours per day.  Nameplate current
+              is around 23 A at 240 V.  Assuming 0.9 power factor, this is a power of 5 kW.
+                - Cost $3.5/day, $105/month
+            - Conclusion:  Use of fans is 20 times cheaper.  Surprisingly, it's also more
+              effective, particularly when the temperatures at night drop below 70.
 
     - Statistical tools
         - DAP https://en.wikipedia.org/wiki/DAP_(software) 

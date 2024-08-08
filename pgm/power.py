@@ -240,19 +240,18 @@ def Lighting():
     '''))
 def Instruments():
     fp= FPFormat()  # Use to line up cost decimal points
-    fp.digits(2)
     inst = {
         # Item:  power in W
-        "HP 427A     Voltmeter": 0.5,
-        "HP 3435A    Digital multimeter": 2,
-        "HP 3466A    Digital multimeter": 2,
-        "HP 3400A    RMS voltmeter": 7,
+        #"HP 427A     Voltmeter": 0.06,
+        #"HP 3435A    Digital multimeter": 2,
+        #"HP 3466A    Digital multimeter": 2,
+        #"HP 3400A    RMS voltmeter": 7,
         "HP E3615A   Power supply": 7,
         "B&K 8500    DC Load": 9,
         "B&K 4052    Function generator": 13,
-        "B&K 2556A   Oscilloscope": 20,
+        #"B&K 2556A   Oscilloscope": 20,
         "B&K 9130    Power supply": 20,
-        "HP 3456A    Voltmeter": 21,
+        #"HP 3456A    Voltmeter": 21,
         "HP 6038A    Power supply": 34,
         "HP 6033A    Power supply": 38,
         "HP 54601B   Oscilloscope": 50,
@@ -260,23 +259,29 @@ def Instruments():
     print(dedent(f'''
     Cost to run various instruments (power supplies in quiescent state)
 
-    Instrument                       Power, W     ¢/day     $/year
-    ------------------------------   --------     -----     ------
+    Instrument                       Power, W     ¢/day     $/month
+    ------------------------------   --------     -----     -------
     '''))
-    c = flt(2.77778e-07)*d["-r"]/100  # Power cost in $/J
-    cent_day = 24*3600*100*c    # Cost of 1 W for 24 hr in cents
-    c.rtz = c.rtdp = True
-    # Number check:  1 W for 24 hr is 24*3600 J or 86400 J.  At 2.78e-7 $/J,
-    # this is a cost of $0.0240.  Thus, a 20 W instrument should cost 48
-    # cents per day or $175/year.
+    kWhr_cost = flt(d["-r"])    # Cost of a kW*hr in $
+    J_per_kWhr = 3600000        # A kW*hr is 3600000 J
+    dpj = kWhr_cost/J_per_kWhr  # Cost of power in $/J
+    # Check with GNU units:  0.1155 $/(kW*hr) is equal to 3.2083333e-08 $/J
+    assert abs(dpj - 3.2083333e-08) < 1e-15
+    cent_day = 24*3600*100*dpj  # Cost of 1 W for 24 hr in cents
+    fp.digits(3)    # Show numbers to 3 digits
+    dpj.N = 3    
+    dpj.rtz = dpj.rtdp = False
+    monthly_total = 0
     for i, pow in inst.items():
-        day = flt(pow*cent_day)
-        yr = flt(365.25*day/100)
+        day = pow*cent_day              # In cents per day
+        mo = flt(365.25*day/(12*100))   # In dollars per month
         p = fp.dp(pow, width=6, dpoint=3)
         D = fp.dp(day, width=6, dpoint=3)
-        y = fp.dp(yr, width=6, dpoint=3)
-        print(f"{i:32s} {p:8s}    {D:6s}     {y:6s}")
-    print("Cost of power is 6.5¢ per kW*hr = 1.806e-8 $/J")
+        m = fp.dp(mo, width=6, dpoint=3)
+        print(f"{i:32s} {p:8s}    {D:6s}     {m:6s}")
+        monthly_total += mo
+    print(f"\nMonthly cost to run all of these is ${monthly_total}")
+    print(f"Cost of power is ${d['-r']} per kW*hr = {dpj} $/J")
 def TypicalAppliances():
     # Most of this data from https://generatorist.com/power-consumption-of-household-appliances
     items = [
