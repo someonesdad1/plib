@@ -105,10 +105,17 @@ def Manpage():
     '''))
     exit(0)
 def Usage(status=0):
-    print(dedent(f'''
+    dpkWhr = flt(d["-r"])
+    cent_per_kWhr = dpkWhr*100
+    cent_per_MJ = 0.27777778*cent_per_kWhr
+    with dpkWhr:
+        dpkWhr.N = 4
+        print(dedent(f'''
     Usage:  {sys.argv[0]} [options] p1 [p2 ...]
       Prints out various period costs of electrical power for the rate of {100*flt(d["-r"])}¢/(kW*hr) for a given
-      power p1, p2, ... in watts.  Cost is current as of {d["date"]} for southwest Idaho USA.
+      power p1, p2, ... in watts.  The current cost of electrical power as of {d["date"]} for the state 
+      of Idaho is:
+        {cent_per_kWhr} ¢/(kW·hr) = {cent_per_MJ} ¢/MJ
 
       You can append an optional power unit to p1 with a space (put the expression in quotes to
       escape it from shell parsing).  The powers can be expressions (the math module's symbols are
@@ -124,7 +131,7 @@ def Usage(status=0):
       -i        Print the consumption of various instruments
       -r C      Change the cost per kW*hr to C dollars
       -t        Show some costs for typical appliances
-    '''))
+        '''))
     exit(status)
 def ParseCommandLine(d):
     # From https://www.eia.gov/electricity/monthly/epm_table_grapher.php?t=epmt_5_6_a
