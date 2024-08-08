@@ -255,6 +255,7 @@ def Instruments():
         "HP 6038A    Power supply": 34,
         "HP 6033A    Power supply": 38,
         "HP 54601B   Oscilloscope": 50,
+        "HP 428B     Clamp-on ammeter": 50,
     }
     print(dedent(f'''
     Cost to run various instruments (power supplies in quiescent state)
