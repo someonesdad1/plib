@@ -19,6 +19,14 @@ Active:  /plib/.todo
           works as given.
             - The tutorial is available as a $10 PDF and I'd think this could be a good reference
               manual to learn things from, as I hate paging through HTML cruft
+        - Current, voltage, resistance, power
+            - Good first tool
+            - Solves equations when you pick one value as a constant.  Then the other uses a slider
+              and the third is calculate.
+            - Also does wire calculations; e.g., you pick a wire size and a desired current,
+              voltage, or resistance and you see the relevant dependent parameters.  This would
+              include % of chassis current to give a feel for the design limits.  You can also
+              enter a resistivity relative to copper.
 
     - HU
         - Teeth

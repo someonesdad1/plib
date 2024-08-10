@@ -389,7 +389,7 @@ def Usage(status=1):
         print out a table of needed wires of other sizes to get equal area.
         With two arguments, print the number of wires of the smaller wire
         to match the area of the larger wire.
- 
+     
         Freq is the frequency where the skin depth is equal to the wire's
         radius.  Break is the breaking tensile force of a pure copper wire.
         Use -a and -H for more detail on the 'Amps' column.
