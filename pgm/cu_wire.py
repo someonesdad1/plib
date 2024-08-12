@@ -425,7 +425,7 @@ def ShowResistivities():
         ("Nichrome", "58 to 87"),
         ("St. steel", "40"),
     )
-    print("Resistivities relative to copper at 20 °C:")
+    print("Resistivities relative to copper (17.241 nΩ·m @ 20 °C):")
     f, items = "{:12s} {}", []
     for i in sorted(r):
         items.append(f.format(*i))

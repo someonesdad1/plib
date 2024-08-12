@@ -1,5 +1,25 @@
 '''
-Description of program
+Provide information on the Electronic Corporation of America high current transformer marked:
+    - HD4573--Rev 7
+    - 115 V
+    - Part no. E.C.A. 10003
+
+The secondary wires are Cu sheet 2 mm thick by 45 mm wide, about the same conductor area as 0
+gauge copper wire with resistance of 322 μΩ/m, area of 53.5 mm², and chassis current of 240 A.
+There are two 13.55 mm diameter (0.537 inch) holes in these conductors to attach things with 1/2
+inch bolts.  The holes' center distance spacing is 32.66 mm (1.28 inches).  
+
+Low resistance short
+    - A suitable low resistance short can be made with a piece of 1 inch square aluminum bar stock
+      65 mm long with two 1/2 inch diameter cross holes whose centers are spaced 1.28 inches.
+        - However, it will be difficult to get a clamp-on ammeter around this short.
+    - Make the same short out of 3/4 inch square aluminum bar stock and the Kaiweets clamp-on
+      ammeter should be able to get around it.
+        - The area is 19² = 361 mm², about 3.4 times the area of 4/0 cable, so this short should
+          be able to handle about 3.4 times the chassis current of 4/0 copper cable, which is
+          3.4(380) or 1292 A, but we divide by 1.6 which is aluminum's resistivity in terms of
+          copper, giving a current of 807 A.
+
 '''
  
 if 1:  # Header

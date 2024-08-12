@@ -1,5 +1,10 @@
 Active:  /plib/.todo
 
+    - pgm/cu_wire.py
+        - Add an option to cause the printed data to only include quantities with SI units, as this
+          is what I use the most for technical work.  In fact, make it the standard and use the
+          option to see inches and ft/lb.
+
     - color.py
         - Add t.brn, t.brnl, t.brnd, t.brnb, etc. as defined attributes of t.
 
