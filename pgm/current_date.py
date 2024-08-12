@@ -209,7 +209,8 @@ if 1:   # Core functionality
         print(f"{t.wk}{wk}/52 ", end="")
         print(f"{t.doy}{doy}/{365 + ly} ", end="")
         print(f"{t.sec}{int(seconds)} s ", end="")
-        print(f"{t.jd}JD{jd:.2f} ", end="")
+        # Julian day is given to 5 decimal places, as this is a resolution of 0.9 s
+        print(f"{t.jd}JD{jd:.5f} ", end="")
         t.print()
 
 if __name__ == "__main__":
