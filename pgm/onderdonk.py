@@ -114,16 +114,16 @@ def Usage(d, status=1):
       between the number and unit (the arguments can be in any order).  Two arguments are required
       and the third is estimated.  You can use diameter units of AWG by appending 'ga' to the
       diameter.
- 
+     
       The physical model is to equate the energy needed to raise the copper material with a
       linearly-increasing resistivity with temperature from ambient temperature to its melting
       point of 1083 °C to the Joule heating of the wire due to the current.  The approximation is
       adiabatic, meaning heat losses from the wire are ignored.  This is an initial-value
       differential equation problem which is straightforward to solve.
- 
+     
       Times much longer than the order of about 1 second start to be where the assumptions break
       down and heat transfer to the environment starts to be more important.
-
+    
     Examples:       (MPCu = melting point of copper)
       '{name} 12ga 1s'
         12 gauge copper wire (about 2 mm in diameter) will reach MPCu in about 1 second with a
