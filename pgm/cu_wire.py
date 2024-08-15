@@ -1,11 +1,10 @@
 '''
 TODO:
 
-- Get -i working.  Use u.py library so common units can be input.
- 
-- Add -L option to specify a length.  Then table should print resistance of
-  that length.
-- Finish MIL5088(gauge, ΔT) function.
+    - Change default output to SI units only
+    - Get -i working.  Use u.py library so common units can be input.
+    - Add -L option to specify a length.  Then table should print resistance of that length.
+    - Finish MIL5088(gauge, ΔT) function.
  
 ----------------------------------------------------------------------
 Output a copper wire table.  Other useful things are done too (use the 

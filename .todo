@@ -5,8 +5,7 @@ Active:  /plib/.todo
           is what I use the most for technical work.  In fact, make it the standard and use the
           option to see inches and ft/lb.
 
-    - color.py
-        - Add t.brn, t.brnl, t.brnd, t.brnb, etc. as defined attributes of t.
+    - The HP Bench Briefs need to be indexed
 
     - lwtest.py
         - For easier writing/grouping of test cases, it would be nice to be able to nest testing
