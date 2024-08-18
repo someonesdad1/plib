@@ -1,4 +1,8 @@
 '''
+TODO
+    - Change to new color module
+    - Print the color code in Usage in color
+
 Select from on-hand resistors to make a voltage divider or a given
 resistance value from a pair of resistors in series or parallel
  
@@ -30,6 +34,7 @@ if 1:   # Custom imports
     from fpformat import FPFormat
     from columnize import Columnize
     from color import C, fg, normal, yellow as highlight, lred, lgreen
+    from color import t
     from u import u, ParseUnit, SI_prefixes
 if 1:   # Global variables
     fp = FPFormat()
@@ -37,7 +42,7 @@ if 1:   # Global variables
     # On-hand resistor values.  Change these entries to match what you have.
     on_hand = dedent('''
 
-    0.025 0.18 0.2 0.27 0.33           1 2.2 4.6 8.3
+    0.025 0.18 0.2 0.27 0.33 0.6       1 2.2 4.6 8.3
 
     10.1 12 14.7 15 17.8 22 27 28.4 30 31.6 33 35 38.4 46.3 50 55.5 61.8 67
     75 78 81
@@ -84,7 +89,6 @@ if 1:   # Global variables
             6.81, 6.98, 7.15, 7.32, 7.50, 7.68, 7.87, 8.06, 8.25, 8.45,
             8.66, 8.87, 9.09, 9.31, 9.59, 9.76),
     }
-
     # These are the SI prefixes likely to be used
     prefixes = {
         "n": -9,
@@ -98,7 +102,7 @@ if 1:   # Global variables
 def Error(msg, status=1):
     print(msg, file=sys.stderr)
     exit(status)
-def Usage(d, status=1):
+def Usage(d, status=0):
     name = sys.argv[0]
     pmin = "%.1g" % (10**min(powers_of_10))
     pmax = "%.1g" % (10**(max(powers_of_10) + 1))
@@ -429,7 +433,7 @@ def Quotient(d, ratio):
         normal()
 def List(d):
     # EIA
-    print("EIA resistance series:")
+    t.print(f"{t.ornl}EIA resistance series:")
     sig.rtz = True
     for n in (6, 12, 24, 48, 96):
         print("E%d:" % n)
@@ -446,11 +450,11 @@ def List(d):
           Current:  250 A max
           At line voltages:  120 VAC ==> 6.8 to 250 A, 240 VAC ==> 13.7 to 250 A
           10 A at 120 V requires 12 ohms, 15 A requires 8 ohms'''))
-    print("-"*70)
-    print(C.lmag, end="")
-    print("On-hand resistors:")
+    print()
+    t.print(f"{t.ornl}On-hand resistors:")
+    print(f"{t.skyl}", end="")
     print(on_hand)
-    print(C.norm, end="")
+    print(t.n, end="")
 def Pairs(args, d):
     if len(args) != 4:
         Usage(d)

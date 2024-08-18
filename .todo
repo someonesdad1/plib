@@ -1,10 +1,5 @@
 Active:  /plib/.todo
 
-    - pgm/cu_wire.py
-        - Add an option to cause the printed data to only include quantities with SI units, as this
-          is what I use the most for technical work.  In fact, make it the standard and use the
-          option to see inches and ft/lb.
-
     - The HP Bench Briefs need to be indexed
 
     - lwtest.py
