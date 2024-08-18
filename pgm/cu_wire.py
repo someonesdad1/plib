@@ -417,12 +417,12 @@ if 1:   # Core functionality
         # as of 16 Aug 2024
         r = (
             ("Silver", 15.9),
-            ("Copper (annealed)", 17.241),
+            ("Copper", 17.241),
             ("Gold", 24.4),
             ("Aluminum", 26.5),
             ("Tungsten", 56),
             ("Zinc", 59),
-            ("Brass (30% Zn)", 59.9),
+            ("Brass, 30% Zn", 59.9),
             ("Cobalt", 62.4),
             ("Nickel", 69.9),
             ("Iron", 97),
@@ -436,7 +436,7 @@ if 1:   # Core functionality
             ("304 steel", 690),
             ("Mercury", 980),
         )
-        w, indent, o = 20, " "*4, []
+        w, indent, o = 14, " "*4, []
         t.rel = t("sky")
         print(f"\nResistivities in nΩ·m @ 20 °C   {t.rel}[Rel. to Cu]{t.n}")
         cu = flt(17.241)
@@ -446,7 +446,7 @@ if 1:   # Core functionality
                 fp.digits(2)
                 rel = fp.sig(rho/cu)
                 o.append(f"{material:{w}s} {flt(rho)!s:^6s} {t.rel}[{rel}]{t.n}")
-        for i in Columnize(o):
+        for i in Columnize(o, columns=2, col_width=28, sep=" "*4):
             print(i)
     def Interactive():
         '''Prompt the user for three of (d, L, rho, R) and calculate the
@@ -890,7 +890,7 @@ if 1:   # Core functionality
             ----  ----- ------ ------  -----  -----  ----- ----- ----- ----- ----- -----
             ''')[:-1].replace("!", " "))
         else:
-            print(f"Copper wire table")
+            print(f"Copper wire table (annealed copper)")
             print(dedent(f'''
                                                         Chass
             AWG    ∅ mm      Ω/m     m/kg       mm²       A
