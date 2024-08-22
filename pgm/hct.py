@@ -204,7 +204,8 @@ if 1:   # Utility
             reason (even after switching to the normal voltage range).  I switched to the Aneng
             870 and it read 99.62 mV.  This 200 A current flowed for about 30 s to 40 s over two
             experiments and there was noticeable heating of the shunt's element -- my finger touch
-            estimates a 5 to 10 °C rise.
+            estimates a 5 to 10 °C rise.  The script's output predicts 20 W being dissipated in
+            the shunt, accounting for the mild heating.
 
             Assuming the shunt is exactly 100 mV for 200 A, the measured current as judged by the
             shunt is 200(0.9961) or 199.2 A.  Using the DC calibrated 501 μΩ, the estimated
