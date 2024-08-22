@@ -1,27 +1,25 @@
 '''
-Provide information on the Electronic Corporation of America high current transformer marked:
-    - HD4573--Rev 7
-    - 115 V
-    - Part no. E.C.A. 10003
+Plot the electrical characteristics of the high current transformer.
 
-The secondary wires are Cu sheet 2 mm thick by 45 mm wide, about the same conductor area as 0
-gauge copper wire with resistance of 322 μΩ/m, area of 53.5 mm², and chassis current of 240 A.
-There are two 13.55 mm diameter (0.537 inch) holes in these conductors to attach things with 1/2
-inch bolts.  The holes' center distance spacing is 32.66 mm (1.28 inches).  
+    - Temperature rise as a function of secondary current
+    - Primary/secondary current & voltage for secondary current ≤ 200 A
 
-Low resistance short
-    - A suitable low resistance short can be made with a piece of 1 inch square aluminum bar stock
-      65 mm long with two 1/2 inch diameter cross holes whose centers are spaced 1.28 inches.
-        - However, it will be difficult to get a clamp-on ammeter around this short.
-    - Make the same short out of 3/4 inch square aluminum bar stock and the Kaiweets clamp-on
-      ammeter should be able to get around it.
-        - The area is 19² = 361 mm², about 3.4 times the area of 4/0 cable, so this short should
-          be able to handle about 3.4 times the chassis current of 4/0 copper cable, which is
-          3.4(380) or 1292 A, but we divide by 1.6 which is aluminum's resistivity in terms of
-          copper, giving a current of 807 A.
+    - Electrical measurements made 20 Aug 2024
+        - All AC measurements are RMS
+        - Tubing short used to facilitate use with clamp-on ammeter
+        - TO92 transformer used for 20 V and 40 V applied to HCT primary windings
+            - Driven by 10 A Variac
+        - HCT Primary
+            - Voltage measured by Aneng 8009
+            - Current measured by Zotek ZT111 (same as Aneng 8009)
+        - HCT Secondary
+            - Voltage measured by Aneng 870
+            - Current measured by Kaiweets HT206D clamp-on ammeter, either 60 or 600 A range
+        - Protocol was to limit maximum current to 200 A except for a quick determination of the
+          maximum current gotten with the Variac at 100%.  Line voltage is typically 118 V.
+            - Qualitative check was made by feeling the temperature of the tubing short
 
 '''
- 
 if 1:  # Header
     if 1:  # Copyright, license
         # These "trigger strings" can be managed with trigger.py
@@ -39,6 +37,7 @@ if 1:  # Header
     if 1:   # Standard imports
         from collections import deque
         from pathlib import Path as P
+        from pprint import pprint as pp
         import getopt
         import os
         import re
@@ -48,6 +47,8 @@ if 1:  # Header
         from wrap import dedent
         from color import t
         from lwtest import Assert
+        from columnize import Columnize
+        from u import u
         if 0:
             import debug
             debug.SetDebugger()
@@ -57,11 +58,63 @@ if 1:  # Header
         g = G()
         g.dbg = False
         ii = isinstance
+if 1:   # Data
+    winding_data = {
+        # Data fields are
+        #   Primary current in mA
+        #   Primary voltage in V
+        #   Secondary current in A
+        #   Secondary voltage in mV
+        5: '''69.8    1.869    10.1    4.35
+              139.7   3.734    20.2    8.68
+              357.5   9.589    52      22.48
+              697.2   18.78    100.9   44.4
+              1038    28.14    150.1   66.72
+              1424    38.7     206.5   92.09''',
+        4: '''92.4    1.352    10      4.492
+              183.1   2.687    19.9    8.984
+              480.3   7.066    52.1    23.63
+              942     13.88    101.5   46.66
+              1385    20.55    150     69.58
+              1861    27.66    200.8   94.51''',
+        3: '''160.4   1.059    11.5    5.444
+              309.8   2.049    22.4    10.566
+              698.2   4.638    50.3    23.99
+              1423    9.478    102.2   49.22
+              2093    13.98    150.4   73.23
+              2835    18.99    203.5   99.56''',
+        2: '''251.1   0.5658   10.7    4.9
+              481     1.086    20.5    9.452
+              1205    2.727    51.5    23.78
+              2370    5.374    100.8   47.06
+              3549    8.091    150.6   71.8
+              4781    10.88    202.4   96.9''',
+        1: ''' 552.1  0.3854   11.96   6.035
+               1037   0.7292   22.73   11.48
+               2330   1.642    50.9    25.96
+               4618   3.259    100.5   51.83
+               6918   4.886    150.6   78.23
+               9430   6.659    204     107.4''',
+    }
+    # Convert to numerical arrays
+    data = {}
+    for w in winding_data:
+        o = []
+        for line in winding_data[w].split("\n"):
+            s = [flt(i) for i in line.split()]
+            o.append([flt(i) for i in line.split()])
+        data[w] = o
 if 1:   # Utility
     def GetColors():
         t.err = t("redl")
         t.dbg = t("lill") if g.dbg else ""
         t.N = t.n if g.dbg else ""
+        # Colors for voltages needed
+        t.over = t.redl
+        t.warn = t.ornl
+        t.high = t.magl
+        t.medium = t.purl
+        t.low = t.trql
     def GetScreen():
         'Return (LINES, COLUMNS)'
         return (
@@ -76,31 +129,117 @@ if 1:   # Utility
     def Error(*msg, status=1):
         print(*msg, file=sys.stderr)
         exit(status)
+    def Manpage():
+        print(dedent(f'''
+
+        This script is for the transformer made by Electronic Corporation of America.  The
+        markings on the transformer are
+
+            HD4573--Rev 7
+            115 V
+            Part no. E.C.A. 10003
+
+        This transformer has a mass of 13.1 kg and a size of 146x135x180 mm.  I assume it was made
+        in the 1940's or 1950's at the latest, possibly earlier.  The insulation between the
+        secondary winding is paper.  The secondary is made from copper sheet 2 mm thick and 45 mm
+        wide; the cross sectional area is 90 mm², which is 6% larger than 3/0 AWG wire (10.4 mm in
+        diameter).  It is labeled for 115 V input and has 5 primary winding taps labeled 1 through
+        5.  The no-load output voltages for each primary terminal are (with 120 V on the primary
+        winding)
+
+         Terminal   Voltage     Ratio, %
+            1         5.65        4.71
+            2         2.91        2.43
+            3         1.70        1.42
+            4         1.13        0.94
+            5         0.85        0.71
+        
+        The transformer is intended to provide high currents at low voltages.  I've measured its
+        output current with a shorted secondary up to 609 A, as this is the largest value
+        measureable by my Kaiweets HT206D clamp-on ammeter.
+
+        Maximum allowed current is determined by the temperature rise of the transformer because
+        of the Joule heating in the windings.  At 200 A, the measured temperature rise
+        above ambient was 38 °C after 2.7 hours.  At 225 A, the temperature rise was 58 °C after
+        1.3 hours at that current.  This current level would result in a transformer temperature
+        of over 80 °C, which is too much in my opinion.  For continuous operation, I've decided
+        that 200 A is the maximum current to be used.  The transformer is capable of withstanding
+        larger currents for short periods of time (quantification will have to wait until I
+        construct a suitable current transformer for the secondary).
+
+        Operational parameters were measured for each terminal at nominal currents of 10, 20, 50,
+        100, 150, and 200 A.  A short of 129 μΩ made from aluminum tubing was used as the load.
+        The parameters measured were current and voltage for the primary and secondary.  The
+        standard deviation of the voltage, current, and power ratios of the primary and secondary
+        were between 0.2% and 1.1% of the mean ratio for each terminal.
+
+        These measured data were plotted and were linear.  This resulted in linear regressions
+        (all R² values > 0.999) that predict the primary voltage needed to get a desired current
+        across this 129 μΩ short.  These regressions are used for the predictions of this script.
+        They are intended to be estimates to get you into the ballpark for a particular load.
+
+        Examples
+        --------
+
+        1.  What primary voltage to I need for 95 A?  With 95 as the script's argument, the output
+            is
+                For current = 95 A, use the following primary voltages:
+                  Terminal 1    3.13 V
+                  Terminal 2    5.15 V
+                  Terminal 3    8.94 V
+                  Terminal 4    13.3 V
+                  Terminal 5    17.7 V
+
+        2.  I have a 200 A Westinghouse shunt that belonged to my father-in-law.  I've measured
+            its resistance as 501.0 μΩ using a 19.00 A DC current and an HP 6 digit voltmeter.  If
+            I want to test the voltage drop of this shunt at 200 A (it's specified to have a 100
+            mV voltage drop at 200 A), the script's output for the arguments '200 501e-6'  says I
+            should use terminal 5 and apply 37.3 V to the primary.
+
+            I connected the shunt to the transformer with two pieces of 0 AWG battery cable about
+            350 mm long.  I set the Variac's output to 37.4 V and put an Aneng 8009 on the shunt's
+            output to measure the shunt's voltage drop.  When turned on, the clamp-on ammeter read
+            121.6 A and the voltage drop was 60.66 mV, 60% of what was wanted.  I adjusted the
+            current to read 201.0 A, but the Aneng 8009 would not measure the voltage for some
+            reason (even after switching to the normal voltage range).  I switched to the Aneng
+            870 and it read 99.62 mV.  This 200 A current flowed for about 30 s to 40 s over two
+            experiments and there was noticeable heating of the shunt's element -- my finger touch
+            estimates a 5 to 10 °C rise.
+
+            Assuming the shunt is exactly 100 mV for 200 A, the measured current as judged by the
+            shunt is 200(0.9961) or 199.2 A.  Using the DC calibrated 501 μΩ, the estimated
+            current is i = V/R = 99.62e-3/501e-6 or 198.8 A.  The shunt's value is within about 1%
+            of the Kaiweets clamp-on ammeter's measurement, good enough for this check.  
+
+            The script's prediction was wrong, as it assumes a 129 μΩ load.  If we correct the
+            predicted voltage by (501/129)37.3, we get 144 V.  The measured Variac output at 201 A
+            was 60.7 V, so things don't scale like I'd expect.
+
+        '''))
     def Usage(status=0):
         print(dedent(f'''
-        Usage:  {sys.argv[0]} [options] arg
-          Calculate the output of the high current transformer when arg is an integer between 0
-          and 115 representing the Variac % output.  Use the -i option to make arg a desired
-          shorted secondary current in A and you'll get the required Variac setting for each terminal
-          that is capable of meeting the goal.
+        Usage:  {sys.argv[0]} [options] current_A [resistance_Ω]
+          Display the needed primary voltage for a desired shorted secondary current for the high
+          current transformer.  If the resistance is given, then the terminal number and primary
+          voltage that should be used is printed.
         Options:
-            -d n    Set significant digits to display [{d['-d']}]
+            -d n    Number of digits in numbers
             -h      Print a manpage
-            -i      Interpret command line argument as desired current in A
+            -r      Display the raw measured data
         '''))
         exit(status)
     def ParseCommandLine(d):
-        d["-i"] = False     # Interpret arg as desired current in A
         d["-d"] = 2         # Number of significant digits
+        d["-r"] = False     # Display raw data
         if len(sys.argv) < 2:
             Usage()
         try:
-            opts, args = getopt.getopt(sys.argv[1:], "ad:h", "--debug") 
+            opts, args = getopt.getopt(sys.argv[1:], "ad:hr", "--debug") 
         except getopt.GetoptError as e:
             print(str(e))
             exit(1)
         for o, a in opts:
-            if o[1] in list("a"):
+            if o[1] in list("r"):
                 d[o] = not d[o]
             elif o in ("-d",):
                 try:
@@ -117,46 +256,96 @@ if 1:   # Utility
                 # Set up a handler to drop us into the debugger on an unhandled exception
                 import debug
                 debug.SetDebugger()
+        GetColors()
         return args
 if 1:   # Core functionality
-    def GetVariacSetting(desired_current_A):
-        pass
-    def DisplayOutputCurrent(Variac_percent):
-        '''Given a Variac percent from 0 to 110, calculate what the shorted secondary output
-        current in A will be for each terminal.
-
-        The model is gotten from experimental measurements and assumes a linear relationship.  The
-        equation is i = m*v + b where i is current in A and v is the Variac percentage that must
-        be on [0, 110] when the Variac is using the 120 V range winding.
-
-            Terminal    m = slope   b = intercept
-                1         25            5.33
-                2         18.77         10.7
-                3         11.7971       7.57143
-                4         8.23214       6.05
-                5         6.22188      -0.614545
-        '''
-        if not (0 <= Variac_percent <= 110):
-            raise ValueError("Variac_percent must be on [0, 110]")
-        const = {
-            1: (25,      5.33),
-            2: (18.77,   10.7),
-            3: (11.7971, 7.57143),
-            4: (8.23214, 6.05),
-            5: (6.22188, -0.614545),
+    def PrintRawData():
+        'Print the raw data'
+        x = flt(0)
+        x.N = d["-d"]
+        x.rtz = True
+        x.rtdp = True
+        column_labels = ("i, A", "V, V", "i, A", "V, mV")
+        w0, wc = 10, 10
+        t.print(f"{t.yell}High current transformer raw data 21 Aug 2024")
+        print("  Measurements made with aluminum tubing short of 129 μΩ")
+        print("    Primary,   current = Zotek ZT111 (== Aneng 8009)")
+        print("    Primary,   voltage = Aneng 8009")
+        print("    Secondary, current = Kaiweets HT2006D clamp-on ammeter")
+        print("    Secondary, voltage = Aneng 870")
+        print()
+        t.print(f"  {t.ornl}{' '*(w0 + wc//2)}Primary{' '*(w0//2 + wc//2 + 2)}Secondary")
+        for w in sorted(data):
+            print(f"{t.sky}{f'Winding {w}':{w0}s}{t.ornl}" , end="")
+            for label in column_labels:
+                print(f"{label:^{wc}s}", end="")
+            t.print()
+            for line in data[w]:
+                print(f"{' '*w0}", end="")
+                for count, item in enumerate(line):
+                    if not count:
+                        item /= 1000
+                    print(f"{item!s:^{wc}s}", end="")
+                print()
+    def GetVoltage(current, terminal):
+        'Calculate needed voltage given current in A and terminal'
+        if not ii(terminal, int):
+            raise TypeError("terminal must be an int")
+        if terminal not in (1, 2, 3, 4, 5):
+            raise ValueError("terminal must 1, 2, 3, 4, or 5")
+        if current < 0:
+            raise ValueError("current must be ≥ 0")
+        model = {
+            1: (0.0335, -0.0549),
+            2: (0.0549, -0.0689),
+            3: (0.0950, -0.0874),
+            4: (0.1405, -0.0885),
+            5: (0.1861,  0.0541),
         }
-        print(f"Variac setting = {Variac_percent}%")
-        for terminal in const:
-            m, b = const[terminal]
-            i = m*Variac_percent + b
-            print(f"  Terminal {terminal}:  {i} A")
+        m, b = model[terminal]
+        return flt(m*current + b)
+    def GetColor(primary_voltage):
+        'Return color escape code string for given voltage'
+        if primary_voltage < 0:
+            raise ValueError("primary_voltage must be zero or positive")
+        if primary_voltage > 115:
+            return t.over
+        else:
+            return t.N
+    def CalculateVoltage(current):
+        print(f"For current = {current} A, use the following primary voltages:")
+        for terminal in (1, 2, 3, 4, 5):
+            v = GetVoltage(current, terminal)
+            if v <= 0:
+                print(f"  Terminal {terminal}    ~ 0 V")
+            else:
+                t.print(f"  Terminal {terminal}    {GetColor(v)}{v} V")
+    def CalculateVoltageFromResistance(current, resistance):
+        print(f"For current = {current} A and resistance {resistance} Ω:")
+        v = []
+        for terminal in (1, 2, 3, 4, 5):
+            v.append((terminal, GetVoltage(current, terminal)))
+        # Find the lowest voltage needed for the desired resistance
+        for terminal, voltage in reversed(v):
+            i = voltage/resistance
+            if i >= current:
+                print(f"  Use terminal {t.ornl}{terminal}{t.n} with {t.trql}{voltage}{t.n} V on the primary")
+                p = current**2*resistance
+                t.print(f"  Resistor power is {t.denl}{p} W")
+                return
+        t.print(f"  {t.err}Cannot reach desired current {current} with {resistance} Ω")
 
 if __name__ == "__main__":
     d = {}      # Options dictionary
     args = ParseCommandLine(d)
-    if d["-i"]:
-        desired_current_A = flt(args[0])
-        GetVariacSetting(desired_current_A)
+    if d["-r"]:
+        PrintRawData()
+    if len(args) == 1:
+        current = flt(args[0])
+        CalculateVoltage(current)
+    elif len(args) == 2:
+        current = flt(args[0])
+        resistance = flt(args[1])
+        CalculateVoltageFromResistance(current, resistance)
     else:
-        Variac_percent = flt(args[0])
-        DisplayOutputCurrent(Variac_percent)
+        Usage()
