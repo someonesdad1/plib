@@ -7,8 +7,7 @@
 *.pdf
 *.png
 *.ps
-*.swo
-*.swp
+*.sw[nop]
 *.tmp
 
 .local_profile

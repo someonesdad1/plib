@@ -35,7 +35,7 @@ if 1:  # Header
         #∞test∞# #∞test∞#
         pass
     if 1:   # Standard imports
-        from collections import deque
+        from collections import deque, namedtuple
         from pathlib import Path as P
         from pprint import pprint as pp
         import getopt
@@ -60,7 +60,7 @@ if 1:  # Header
         ii = isinstance
 if 1:   # Data
     winding_data = {
-        # Data fields are
+        # Left to right, the data fields are
         #   Primary current in mA
         #   Primary voltage in V
         #   Secondary current in A
@@ -288,6 +288,14 @@ if 1:   # Core functionality
                         item /= 1000
                     print(f"{item!s:^{wc}s}", end="")
                 print()
+    def GetColor(primary_voltage):
+        'Return color escape code string for given voltage'
+        if primary_voltage < 0:
+            raise ValueError("primary_voltage must be zero or positive")
+        if primary_voltage > 115:
+            return t.over
+        else:
+            return t.N
     def GetVoltage(current, terminal):
         'Calculate needed voltage given current in A and terminal'
         if not ii(terminal, int):
@@ -305,14 +313,6 @@ if 1:   # Core functionality
         }
         m, b = model[terminal]
         return flt(m*current + b)
-    def GetColor(primary_voltage):
-        'Return color escape code string for given voltage'
-        if primary_voltage < 0:
-            raise ValueError("primary_voltage must be zero or positive")
-        if primary_voltage > 115:
-            return t.over
-        else:
-            return t.N
     def CalculateVoltage(current):
         print(f"For current = {current} A, use the following primary voltages:")
         for terminal in (1, 2, 3, 4, 5):
@@ -335,6 +335,70 @@ if 1:   # Core functionality
                 t.print(f"  Resistor power is {t.denl}{p} W")
                 return
         t.print(f"  {t.err}Cannot reach desired current {current} with {resistance} Ω")
+if 1:   # Classes
+    # If you know any one of the primary or secondary current or voltage, you can predict the
+    # other three values by knowing the ratios and regressions.
+    OperationPoint = namedtuple("OperationPoint", "i_p, i_s, V_p, V_s")
+    class Winding:
+        'Capture experimental data about a winding'
+        def __init__(self, terminal):
+            if not ii(terminal, int):
+                raise TypeError("terminal must be an int")
+            if terminal not in (1, 2, 3, 4, 5):
+                raise ValueError("terminal must 1, 2, 3, 4, or 5")
+            self.terminal = terminal
+            # Summary of experimental current, voltage, and power ratios
+            data = {    # Map terminal number to ratios
+                1: (    # Tuple is ratio mean, ratio stdev
+                    (21.8, 0.11),           # Current:  (sec in mA)/(pri in A)
+                    (0.01588, 1.74e-4),     # Voltage:  (sec in V)/(pri in mV)
+                    (0.346, 0.0035),        # Power:  (sec in W)/(pri in W)
+                ),
+                2: (    # Tuple is ratio mean, ratio stdev
+                    (42.5, 0.14),           # Current:  (sec in mA)/(pri in A)
+                    (0.00877, 9.8e-5),      # Voltage:  (sec in V)/(pri in mV)
+                    (0.373, 0.0031),        # Power:  (sec in W)/(pri in W)
+                ),
+                3: (    # Tuple is ratio mean, ratio stdev
+                    (71.9, 0.22),           # Current:  (sec in mA)/(pri in A)
+                    (0.00519, 4.2e-5),      # Voltage:  (sec in V)/(pri in mV)
+                    (0.373, 0.0029),        # Power:  (sec in W)/(pri in W)
+                ),
+                4: (    # Tuple is ratio mean, ratio stdev
+                    (108.2, 0.35),          # Current:  (sec in mA)/(pri in A)
+                    (0.00336, 3.4e-5),      # Voltage:  (sec in V)/(pri in mV)
+                    (0.364, 0.0033),        # Power:  (sec in W)/(pri in W)
+                ),
+                5: (    # Tuple is ratio mean, ratio stdev
+                    (144.8, 0.33),          # Current:  (sec in mA)/(pri in A)
+                    (0.00235, 2.3e-5),      # Voltage:  (sec in V)/(pri in mV)
+                    (0.341, 0.0035),        # Power:  (sec in W)/(pri in W)
+                ),
+            }
+            # Set up our ratios as secondary/primary
+            self.i_ratio, self.i_ratio_s = data[terminal][0]
+            self.V_ratio, self.V_ratio_s = data[terminal][1]
+            self.P_ratio, self.P_ratio_s = data[terminal][2]
+        def PriCurrent(self, current_A):
+            'Return OperationPoint for primary current in A'
+        def SecCurrent(self, current_A):
+            'Return OperationPoint for secondary current in A'
+            V_pri = GetVoltage(current_A, self.terminal)
+
+            breakpoint() #xx 
+        def PriVoltage(self, voltage_V):
+            'Return OperationPoint for primary voltage in V'
+        def SecVoltage(self, voltage_V):
+            'Return OperationPoint for secondary voltage in V'
+
+    x = Winding(5)
+    # Data for 100.9 A for secondary gave:
+    #       0.0442 V on secondary 
+    #       0.6972 A on primary
+    #       18.78 V on primary
+    x.SecCurrent(100.9)
+    exit()
+
 
 if __name__ == "__main__":
     d = {}      # Options dictionary
