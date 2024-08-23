@@ -1003,27 +1003,28 @@ if 1:   # Core functionality
         '''[1:]))
         for awg in range(0, 41, 2):
             PrintAmpacityLine(awg)
+        print()
         print(dedent(f'''
-        Chass is the maximum current for a single isolated wire in air.  Pwr uses a
-        current density of 2.82 A/mm².  Freq is the AC frequency where the skin
-        depth equals the wire's radius.  Use the -H option for more details.'''))
+        Chass is the maximum current for a single isolated wire in air (current density varies with
+        wire diameter).  Pwr uses a current density of 2.82 A/mm².  Use the -H option for more details.
+        '''))
+
     def MIL5088(gauge, ΔT):
-        '''Return the allowed current for a wire of size AWG gauge.  The
-        temperature differenct ΔT is the wire's rating minus the ambient
-        temperature in K.
+
+        '''Return the allowed current for a wire of size AWG gauge.  The temperature differenct ΔT
+        is the wire's rating minus the ambient temperature in K.
      
-        From MIL-W-5088L dated 10 May 1991.  This is a specification for the
-        wiring of aerospace vehicles such as airplanes, helicopters, and
-        missles.  The formula is estimated from the graphs on pages 46 and 47.
+        From MIL-W-5088L dated 10 May 1991.  This is a specification for the wiring of aerospace
+        vehicles such as airplanes, helicopters, and missles.  The formula is estimated from the
+        graphs on pages 46 and 47.
      
-        Since the graphs are log-log and the lines are straight, I used a model 
-        of ΔT = b*i**m.  Taking the log of both sides, we get
+        Since the graphs are log-log and the lines are straight, I used a model of ΔT = b*i**m.
+        Taking the log of both sides, we get
      
                 ln(ΔT) = m*ln(i) + ln(b)
      
-        The slope m is estimated from page 46 as 2.09 and as 2.07 on page 47,
-        so I'll use 2.08.  The y-intercepts read from the graph at the 100 K
-        line in A are
+        The slope m is estimated from page 46 as 2.09 and as 2.07 on page 47, so I'll use 2.08.
+        The y-intercepts read from the graph at the 100 K line in A are
         
             AWG      i0
             4/0     535
@@ -1045,17 +1046,16 @@ if 1:   # Core functionality
             24      10.7
             26      8
      
-        For a plot y = m*x + b, if a point x0 has a value k, then we can solve
-        for b as b = k - m*x0.  Changing things for the ln expressions, we get
+        For a plot y = m*x + b, if a point x0 has a value k, then we can solve for b as b = k -
+        m*x0.  Changing things for the ln expressions, we get
      
             ln(b) = ln(ΔT) - m*ln(i0)
             b = exp(ln(ΔT) - m*ln(i0))
      
-        It's easier to work with wire diameter than AWG.  Plotting the above
-        data as i0 vs wire diameter in mm, the graph is approximated by two
-        straight lines (and the plot shows that the MIL spec graphs were
-        probably gotten from empirical data).  If d is the diameter in mm of
-        the wire, then the two lines are:
+        It's easier to work with wire diameter than AWG.  Plotting the above data as i0 vs wire
+        diameter in mm, the graph is approximated by two straight lines (and the plot shows that
+        the MIL spec graphs were probably gotten from empirical data).  If d is the diameter in mm
+        of the wire, then the two lines are:
      
             ΔT = 27*d             d < 2.6
             ΔT = 51*d - 58        d >= 2.6
