@@ -338,7 +338,7 @@ if 1:   # Core functionality
 if 1:   # Classes
     # If you know any one of the primary or secondary current or voltage, you can predict the
     # other three values by knowing the ratios and regressions.
-    OperationPoint = namedtuple("OperationPoint", "i_p, i_s, V_p, V_s")
+    OperationPoint = namedtuple("OperationPoint", "i_p i_s V_p V_s P_p P_s")
     class Winding:
         'Capture experimental data about a winding'
         def __init__(self, terminal):
@@ -350,28 +350,28 @@ if 1:   # Classes
             # Summary of experimental current, voltage, and power ratios
             data = {    # Map terminal number to ratios
                 1: (    # Tuple is ratio mean, ratio stdev
-                    (21.8, 0.11),           # Current:  (sec in mA)/(pri in A)
-                    (0.01588, 1.74e-4),     # Voltage:  (sec in V)/(pri in mV)
+                    (21.8e-3, 0.11),        # Current:  (sec in A)/(pri in A)
+                    (0.01588, 1.74e-4),     # Voltage:  (sec in V)/(pri in V)
                     (0.346, 0.0035),        # Power:  (sec in W)/(pri in W)
                 ),
                 2: (    # Tuple is ratio mean, ratio stdev
-                    (42.5, 0.14),           # Current:  (sec in mA)/(pri in A)
-                    (0.00877, 9.8e-5),      # Voltage:  (sec in V)/(pri in mV)
+                    (42.5e-3, 0.14),        # Current:  (sec in A)/(pri in A)
+                    (0.00877, 9.8e-5),      # Voltage:  (sec in V)/(pri in V)
                     (0.373, 0.0031),        # Power:  (sec in W)/(pri in W)
                 ),
                 3: (    # Tuple is ratio mean, ratio stdev
-                    (71.9, 0.22),           # Current:  (sec in mA)/(pri in A)
-                    (0.00519, 4.2e-5),      # Voltage:  (sec in V)/(pri in mV)
+                    (71.9e-3, 0.22),        # Current:  (sec in A)/(pri in A)
+                    (0.00519, 4.2e-5),      # Voltage:  (sec in V)/(pri in V)
                     (0.373, 0.0029),        # Power:  (sec in W)/(pri in W)
                 ),
                 4: (    # Tuple is ratio mean, ratio stdev
-                    (108.2, 0.35),          # Current:  (sec in mA)/(pri in A)
-                    (0.00336, 3.4e-5),      # Voltage:  (sec in V)/(pri in mV)
+                    (108.2e-3, 0.35),       # Current:  (sec in A)/(pri in A)
+                    (0.00336, 3.4e-5),      # Voltage:  (sec in V)/(pri in V)
                     (0.364, 0.0033),        # Power:  (sec in W)/(pri in W)
                 ),
                 5: (    # Tuple is ratio mean, ratio stdev
-                    (144.8, 0.33),          # Current:  (sec in mA)/(pri in A)
-                    (0.00235, 2.3e-5),      # Voltage:  (sec in V)/(pri in mV)
+                    (144.8e-3, 0.33),       # Current:  (sec in A)/(pri in A)
+                    (0.00235, 2.3e-5),      # Voltage:  (sec in V)/(pri in V)
                     (0.341, 0.0035),        # Power:  (sec in W)/(pri in W)
                 ),
             }
@@ -381,11 +381,24 @@ if 1:   # Classes
             self.P_ratio, self.P_ratio_s = data[terminal][2]
         def PriCurrent(self, current_A):
             'Return OperationPoint for primary current in A'
+            i_pri = flt(current_A)
+            i_sec = flt(i_pri*self.i_ratio)
+            V_pri = flt(GetVoltage(i_sec, self.terminal))
+            V_sec = flt(V_pri*self.V_ratio)
+            P_pri = flt(V_pri*i_pri)
+            P_sec = flt(V_sec*current_A)
+            op = OperationPoint(i_pri, current_A, V_pri, V_sec, P_pri, P_sec)
+            return op
         def SecCurrent(self, current_A):
             'Return OperationPoint for secondary current in A'
-            V_pri = GetVoltage(current_A, self.terminal)
-
-            breakpoint() #xx 
+            i_sec = flt(current_A)
+            V_pri = flt(GetVoltage(current_A, self.terminal))
+            V_sec = flt(V_pri*self.V_ratio)
+            i_pri = flt((i_sec/self.i_ratio)/1000)
+            P_pri = flt(V_pri*i_pri)
+            P_sec = flt(V_sec*current_A)
+            op = OperationPoint(i_pri, current_A, V_pri, V_sec, P_pri, P_sec)
+            return op
         def PriVoltage(self, voltage_V):
             'Return OperationPoint for primary voltage in V'
         def SecVoltage(self, voltage_V):
@@ -396,7 +409,24 @@ if 1:   # Classes
     #       0.0442 V on secondary 
     #       0.6972 A on primary
     #       18.78 V on primary
-    x.SecCurrent(100.9)
+    if 1:  # Given secondary current
+        print("Given secondary current")
+        op = x.SecCurrent(100.9)
+        print(f"    Primary   current = {op.i_p} A")
+        print(f"    Primary   voltage = {op.V_p} V")
+        print(f"    Primary   power   = {op.P_p} W")
+        print(f"    Secondary current = {op.i_s} A")
+        print(f"    Secondary voltage = {op.V_s*1000} mV")
+        print(f"    Secondary power   = {op.P_s} W")
+    if 1:  # Given primary current
+        print("Given primary current")
+        op = x.PriCurrent(0.6972)
+        print(f"    Primary   current = {op.i_p} A")
+        print(f"    Primary   voltage = {op.V_p} V")
+        print(f"    Primary   power   = {op.P_p} W")
+        print(f"    Secondary current = {op.i_s} A")
+        print(f"    Secondary voltage = {op.V_s*1000} mV")
+        print(f"    Secondary power   = {op.P_s} W")
     exit()
 
 
