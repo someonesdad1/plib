@@ -3,34 +3,28 @@ Finds files modified within a specified time frame
 
   TODO:
  
-    * The -l option should use color instead of spacing to print out 
-      the ages.  Currently, a long filename can cause inconveniently
-      long lines that are hard to read.  Or add the -L option to use
-      color.
-
-    * There are numerous searches that one might like to make:
-    
-        - Find files that last changed at the date D +/- t.  Let the
-        date be defined in various ways:
+    - Use a mod_ignore file that uses regexps to define files/directories to ignore.  For example,
+      I don't care to see things like files that end with `~` or have 'lock' in them, nor do I
+      want to see git or hg directories.
+    - The -l option should use color instead of spacing to print out the ages.  Currently, a long
+      filename can cause inconveniently long lines that are hard to read.  Or add the -L option to
+      use color.
+    - There are numerous searches that one might like to make:
+        - Find files that last changed at the date D +/- t.  Let the date be defined in various
+          ways:
             - Jan8,2015-3:10:14
             - 8Jan2015-3:10:14
             - 8Jan2015-3:10:14
             - 20150108-3:10:14
             - 1/8/15-3:10:14
             - 1/8/2015-3:10:14
-        - The last two forms need an option to let you use D/M/Y if you
-        wish.
-        - The above form using a hyphen might not be desired because
-        you'd want to use it to indicate an interval.  For example,
-        you could specify the time parameter as '8Jan2015-16Jan2015'
-        to designate an interval.
-    
-    * Look at man stat for some other info to use.  atime is last
-    access, mtime is last mod time, ctime is last owner/group/perm
-    change on UNIX (creation time on Windows).
-    
-    - Thus there might be two searches:  modification time and access
-        time.
+        - The last two forms need an option to let you use D/M/Y if you wish.
+        - The above form using a hyphen might not be desired because you'd want to use it to
+          indicate an interval.  For example, you could specify the time parameter as
+          '8Jan2015-16Jan2015' to designate an interval.
+    - Look at man stat for some other info to use.  atime is last access, mtime is last mod time,
+      ctime is last owner/group/perm change on UNIX (creation time on Windows).
+    - Thus there might be two searches:  modification time and access time.
     - Use -s option with letter:  a, c, or m
  
 '''
@@ -398,9 +392,13 @@ def PrintReport(results, d):
         return
     maxlen = max([len(i[1]) for i in results])
     for age_s, file in results:
-        age_str = FmtTimeDiff(age_s) if d["-l"] else ""
-        n = maxlen - len(file)
-        print(file, " "*n, age_str)
+        if d["-l"]:
+            age_str = FmtTimeDiff(age_s) if d["-l"] else ""
+            n = maxlen - len(file)
+            print(file, " "*n, age_str)
+        else:
+            print(file)
+
 if __name__ == "__main__":
     nl, inf = "\n", 1e20   # inf is infinite time into the past
     d = {}  # Options dictionary

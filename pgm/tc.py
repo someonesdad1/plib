@@ -666,128 +666,183 @@ if 1:  # Header
                 ),
             ),
         }
-class TC:
-    '''Implements the polynomials to relate EMF to temperature for various
-    thermocouples per the NIST ITS-90 thermocouple tables.  See
-    http://srdata.nist.gov/its90/main.
- 
-    Usage:  instantiate a TC object.  The constructor takes an optional
-    argument to specify the thermocouple type; use one of the letters B,
-    E, J, K, N, R, S, or T.
-                                                      Range, deg C
-        B   Pt-30% Rh versus Pt-6% Rh                0 to 1820
-        E   Ni-Cr alloy versus a Cu-Ni alloy        -270 to 1000
-            (Chromel)            (Constantan)
-        J   Fe versus a Cu-Ni alloy                 -210 to 1200
-                        (Constantan)
-        K   Ni-Cr alloy versus Ni-Al alloy          -270 to 1372
-            (Chromel)          (Alumel)
-        N   Ni-Cr-Si alloy versus Ni-Si-Mg alloy    -270 to 1300
-            (Nicrosil)            (Nisil)
-        R   Pt-13% Rh versus Pt                     -50 to 1768
-        S   Pt-10% Rh versus Pt                     -50 to 1768
-        T   Cu versus a Cu-Ni alloy                 -270 to 400
-                        (Constantan)
-    If you do not set the type, use the set_type() method later; this will
-    be required to avoid an exception.  You can change the thermocouple
-    type at any time.
- 
-    To convert a temperature in deg C to an EMF in mV, call E_mV().
- 
-    To convert an EMF in mV to a temperature in deg C, call T_degC().
-    '''
-    def __init__(self, tc_type="K"):
-        self._allowed_types = set("BEJKNRST")
-        self.tc_type = tc_type.upper()
-        self._check_type()
-    def _check_type(self):
-        if self.tc_type not in self._allowed_types:
-            msg = "'{}' is not an allowed thermocouple type"
-            raise ValueError(msg.format(self.tc_type))
-    def _set_type(self, tc_type):
-        self._tc_type = tc_type.upper()
-        self._check_type()
-    def _get_type(self):
-        return self._tc_type
-    type = property(_get_type, _set_type, None, "Set TC type")
-    def E_mV(self, t_degC):
-        '''Given a temperature in degrees C, return the corresponding
-        voltage in mV.
+if 1:  # Classes
+    class TC:
+        '''Implements the polynomials to relate EMF to temperature for various
+        thermocouples per the NIST ITS-90 thermocouple tables.  See
+        http://srdata.nist.gov/its90/main.
+     
+        Usage:  instantiate a TC object.  The constructor takes an optional
+        argument to specify the thermocouple type; use one of the letters B,
+        E, J, K, N, R, S, or T.
+                                                          Range, deg C
+            B   Pt-30% Rh versus Pt-6% Rh                0 to 1820
+            E   Ni-Cr alloy versus a Cu-Ni alloy        -270 to 1000
+                (Chromel)            (Constantan)
+            J   Fe versus a Cu-Ni alloy                 -210 to 1200
+                            (Constantan)
+            K   Ni-Cr alloy versus Ni-Al alloy          -270 to 1372
+                (Chromel)          (Alumel)
+            N   Ni-Cr-Si alloy versus Ni-Si-Mg alloy    -270 to 1300
+                (Nicrosil)            (Nisil)
+            R   Pt-13% Rh versus Pt                     -50 to 1768
+            S   Pt-10% Rh versus Pt                     -50 to 1768
+            T   Cu versus a Cu-Ni alloy                 -270 to 400
+                            (Constantan)
+        If you do not set the type, use the set_type() method later; this will
+        be required to avoid an exception.  You can change the thermocouple
+        type at any time.
+     
+        To convert a temperature in deg C to an EMF in mV, call E_mV().
+     
+        To convert an EMF in mV to a temperature in deg C, call T_degC().
         '''
-        self._check_type()
-        # Get polynomial data
-        try:
-            data = nist_tc_forward[self.tc_type]
-        except KeyError:
-            raise RuntimeError("Program bug:  bad TC type for dictionary")
-        # Figure out which polynomial to use
-        range_ok = False
-        for Range, degree, coefficients in data:
-            low, high = Range
-            if low <= t_degC <= high:
-                range_ok = True
-                break
-        if not range_ok:
-            msg = "Temperature out of allowed range of %s to %s deg C" % Range
-            raise ValueError(msg)
-        # Consistency check: degree should be one less than the size of the
-        # coefficient array.
-        if len(coefficients) != degree + 1:
-            raise RuntimeError("Program bug:  degree & coeff size wrong")
-        E = 0
-        if dbg:
-            print("t =", t_degC, "degC")
-            print("  low =", low, "high =", high)
-        for i in range(degree + 1):
-            e = coefficients[i]*t_degC**i
-            E += e
+        def __init__(self, tc_type="K"):
+            self._allowed_types = set("BEJKNRST")
+            self.tc_type = tc_type.upper()
+            self._check_type()
+        def _check_type(self):
+            if self.tc_type not in self._allowed_types:
+                msg = "'{}' is not an allowed thermocouple type"
+                raise ValueError(msg.format(self.tc_type))
+        def _set_type(self, tc_type):
+            self._tc_type = tc_type.upper()
+            self._check_type()
+        def _get_type(self):
+            return self._tc_type
+        type = property(_get_type, _set_type, None, "Set TC type")
+        def E_mV(self, t_degC):
+            '''Given a temperature in degrees C, return the corresponding
+            voltage in mV.
+            '''
+            self._check_type()
+            # Get polynomial data
+            try:
+                data = nist_tc_forward[self.tc_type]
+            except KeyError:
+                raise RuntimeError("Program bug:  bad TC type for dictionary")
+            # Figure out which polynomial to use
+            range_ok = False
+            for Range, degree, coefficients in data:
+                low, high = Range
+                if low <= t_degC <= high:
+                    range_ok = True
+                    break
+            if not range_ok:
+                msg = "Temperature out of allowed range of %s to %s deg C" % Range
+                raise ValueError(msg)
+            # Consistency check: degree should be one less than the size of the
+            # coefficient array.
+            if len(coefficients) != degree + 1:
+                raise RuntimeError("Program bug:  degree & coeff size wrong")
+            E = 0
             if dbg:
-                print("t^%02d = %+4.2e" % (i, t_degC**i), end="")
-                print("coeff = %+4.2e" % coefficients[i], end="")
-                print("term = %+15.10f" % e)
-        if dbg:
-            print("Sum = %.3f" % E)
-        if self.tc_type == "K" and t_degC > 0:
-            # Include exponential correction
-            a0, a1, a2 = type_K_exponential
-            e = a0*exp(a1*(t_degC - a2)**2)
+                print("t =", t_degC, "degC")
+                print("  low =", low, "high =", high)
+            for i in range(degree + 1):
+                e = coefficients[i]*t_degC**i
+                E += e
+                if dbg:
+                    print("t^%02d = %+4.2e" % (i, t_degC**i), end="")
+                    print("coeff = %+4.2e" % coefficients[i], end="")
+                    print("term = %+15.10f" % e)
             if dbg:
-                print(" "*17, "Correction = %+.4f" % e)
-            E += a0*exp(a1*(t_degC - a2)**2)
-        return E
-    def T_degC(self, emf_mV):
-        '''Given a voltage in mV, return the corresponding temperature in
-        degrees C.
-        '''
-        self._check_type()
-        try:
-            data = nist_tc_inverse[self.tc_type]
-        except KeyError:
-            raise RuntimeError("Program bug:  bad TC type for dictionary")
-        # Figure out which polynomial to use
-        range_ok = False
-        for Range, coefficients in data:
-            low, high = Range
-            if low <= emf_mV <= high:
-                range_ok = True
-                break
-        if not range_ok:
-            msg = "{:.3f} mV voltage out of allowed range".format(emf_mV)
-            raise ValueError(msg)
-        T = 0
-        if dbg:
-            print("E =", emf_mV, "mV")
-            print("  low =", low, "high =", high)
-        for i in range(len(coefficients)):
-            t = coefficients[i]*emf_mV**i
-            T += t
+                print("Sum = %.3f" % E)
+            if self.tc_type == "K" and t_degC > 0:
+                # Include exponential correction
+                a0, a1, a2 = type_K_exponential
+                e = a0*exp(a1*(t_degC - a2)**2)
+                if dbg:
+                    print(" "*17, "Correction = %+.4f" % e)
+                E += a0*exp(a1*(t_degC - a2)**2)
+            return E
+        def T_degC(self, emf_mV):
+            '''Given a voltage in mV, return the corresponding temperature in
+            degrees C.
+            '''
+            self._check_type()
+            try:
+                data = nist_tc_inverse[self.tc_type]
+            except KeyError:
+                raise RuntimeError("Program bug:  bad TC type for dictionary")
+            # Figure out which polynomial to use
+            range_ok = False
+            for Range, coefficients in data:
+                low, high = Range
+                if low <= emf_mV <= high:
+                    range_ok = True
+                    break
+            if not range_ok:
+                msg = "{:.3f} mV voltage out of allowed range".format(emf_mV)
+                raise ValueError(msg)
+            T = 0
             if dbg:
-                print("V^%02d = %+4.2e" % (i, emf_mV**i), end="")
-                print("coeff = %+4.2e" % coefficients[i], end="")
-                print("term = %+15.10f" % t)
-        if dbg:
-            print("Sum = %.3f" % T)
-        return T
+                print("E =", emf_mV, "mV")
+                print("  low =", low, "high =", high)
+            for i in range(len(coefficients)):
+                t = coefficients[i]*emf_mV**i
+                T += t
+                if dbg:
+                    print("V^%02d = %+4.2e" % (i, emf_mV**i), end="")
+                    print("coeff = %+4.2e" % coefficients[i], end="")
+                    print("term = %+15.10f" % t)
+            if dbg:
+                print("Sum = %.3f" % T)
+            return T
+if 1:  # Utility
+   def _ParseCommandLine(d):
+       d["-k"] = False     # Abbreviated type K table
+       if len(sys.argv) < 2:
+           _Usage(d)
+       try:
+           opts, args = getopt.getopt(sys.argv[1:], "d:kt")
+       except getopt.GetoptError as e:
+           print(str(e))
+           exit(1)
+       for o, a in opts:
+           if o[1] in "k":
+               d[o] = not d[o]
+           elif o == "-t":
+               failed, messages = run(globals())
+               exit(1 if failed else 0)
+       # Process the command line arguments
+       if not args or len(args) > 2:
+           Abbreviated(d)
+       if not len(args[0]) == 1 and args[0] not in "BEJKNRST":
+           _Error("'{}' is an unrecognized tc_type".format(args[0]))
+       tc_type = args[0].upper()
+       deg_scale = "C"
+       if len(args) == 2:
+           if not len(args[1]) == 1 and args[1].upper() not in "CFKR":
+               _Error("'{}' is an unrecognized temperature scale".format(args[1]))
+           deg_scale = args[1].upper()
+       d["tc_type"], d["deg_scale"] = tc_type, deg_scale
+   def _Usage(d, status=1):
+       print(dedent(f'''
+       Usage:  {sys.argv[0]} [options] tc_type [deg_scale]
+         Print thermocouple tables relating temperature and EMF in mV.
+           tc_type:    must be one of the letters B E J K N R S T.
+           deg_scale:  must be one of the letters C F K R (defaults to C).
+         Note this file is primarily intended to be used as a library tool to
+         relate thermocouple voltages and temperatures by using instances of
+         the TC class.
+       
+         The temperature/EMF relationships are gotten from NIST ITS-90
+         polynomials downloaded 24 Dec 2009 from
+         http://srdata.nist.gov/its90/download/download.html.  These files were
+         checked 21 Aug 2016 and verified to be unchanged from the 2009
+         downloads.
+       Options:
+         -k  Print an abbreviated type K table suitable for use with a
+             voltmeter that resolves to 0.1 mV.
+         -t  Run self-tests for the TC object.  You must have the *.tst files
+             constructed from the *.tab files (i.e., the tables from the
+             above NIST URL) and constructed by the gen_table.py script.
+       '''))
+       exit(status)
+   def _Error(msg, status=1):
+       print(msg, file=sys.stderr)
+       exit(status)
 def _TestLibrary():
     def run_E_tests(tc, filename):
         '''The TC object in tc should be set up for the proper type of
@@ -836,59 +891,6 @@ def _TestLibrary():
         filename = "/d/pylib/thermocouples/type_%s.tst" % (tc_type.lower())
         run_E_tests(TC(tc_type), filename)
         run_t_tests(TC(tc_type), filename)
-def _Error(msg, status=1):
-    print(msg, file=sys.stderr)
-    exit(status)
-def _Usage(d, status=1):
-    print(dedent(f'''
-    Usage:  {sys.argv[0]} [options] tc_type [deg_scale]
-      Print thermocouple tables relating temperature and EMF in mV.
-        tc_type:    must be one of the letters B E J K N R S T.
-        deg_scale:  must be one of the letters C F K R (defaults to C).
-      Note this file is primarily intended to be used as a library tool to
-      relate thermocouple voltages and temperatures by using instances of
-      the TC class.
-    
-      The temperature/EMF relationships are gotten from NIST ITS-90
-      polynomials downloaded 24 Dec 2009 from
-      http://srdata.nist.gov/its90/download/download.html.  These files were
-      checked 21 Aug 2016 and verified to be unchanged from the 2009
-      downloads.
-    Options:
-      -k  Print an abbreviated type K table suitable for use with a
-          voltmeter that resolves to 0.1 mV.
-      -t  Run self-tests for the TC object.  You must have the *.tst files
-          constructed from the *.tab files (i.e., the tables from the
-          above NIST URL) and constructed by the gen_table.py script.
-    '''))
-    exit(status)
-def _ParseCommandLine(d):
-    d["-k"] = False     # Abbreviated type K table
-    if len(sys.argv) < 2:
-        _Usage(d)
-    try:
-        opts, args = getopt.getopt(sys.argv[1:], "d:kt")
-    except getopt.GetoptError as e:
-        print(str(e))
-        exit(1)
-    for o, a in opts:
-        if o in ("-k",):
-            d["-k"] = True
-        if o in ("-t",):
-            failed, messages = run(globals())
-            exit(1 if failed else 0)
-    # Process the command line arguments
-    if not args or len(args) > 2:
-        Abbreviated(d)
-    if not len(args[0]) == 1 and args[0] not in "BEJKNRST":
-        _Error("'{}' is an unrecognized tc_type".format(args[0]))
-    tc_type = args[0].upper()
-    deg_scale = "C"
-    if len(args) == 2:
-        if not len(args[1]) == 1 and args[1].upper() not in "CFKR":
-            _Error("'{}' is an unrecognized temperature scale".format(args[1]))
-        deg_scale = args[1].upper()
-    d["tc_type"], d["deg_scale"] = tc_type, deg_scale
 # Thermocouple table ranges
 table_ranges = {
     # [(temp_low_C, temp_high_C), (V_low_mV, V_high_mV)]

@@ -2,6 +2,16 @@ Active:  /plib/.todo
 
     - The HP Bench Briefs need to be indexed
 
+    - hc.py
+        - Add conversions
+            - mm and in
+            - lb and kg
+            - qt and L
+
+    - pgm/resistor.py
+        - Need to add in my stock of 1 W resistors
+        - Check current stock of resistors and make sure all are covered
+
     - lwtest.py
         - For easier writing/grouping of test cases, it would be nice to be able to nest testing
           functions and have them found and executed rather than having to call each nested
