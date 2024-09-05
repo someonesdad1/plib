@@ -94,7 +94,7 @@ if 1:   # Core functionality
                 remaining = w["name"] - 5
                 print(f"{' '*(w['name'] - 5)}", end="")
             else:
-                print(f"{g.clrabbr]}{name:{w['name']}s}{t.n}", end=spc)
+                print(f"{g.clr[abbr]}{name:{w['name']}s}{t.n}", end=spc)
         else:
             print(f"{'':{w['name']}s}", end=spc)
         print(f"{abbr:^{w['abbr']}s}", end=spc)
