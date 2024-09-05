@@ -1,8 +1,15 @@
 '''
+
+ToDo
+    - Get rid of '_' for function names
+    - -k option doesn't work
+    - Get -t option working by copying needed test files
+    - Should be in /plib, as it's primarily a thermocouple library
+
 Print thermocouple tables
 '''
 if 1:  # Header
-    # Copyright, license
+    if 1:  # Copyright, license
         # These "trigger strings" can be managed with trigger.py
         #∞copyright∞# Copyright (C) 2009 Don Peterson #∞copyright∞#
         #∞contact∞# gmail.com@someonesdad1 #∞contact∞#
@@ -14,15 +21,16 @@ if 1:  # Header
         # Print thermocouple tables
         #∞what∞#
         #∞test∞# #∞test∞#
-    # Standard Imports
+        pass
+    if 1:  # Standard Imports
         import sys
         import getopt
         from math import exp
         from pdb import set_trace as xx
-    # Custom imports
+    if 1:  # Custom imports
         from wrap import dedent
         from lwtest import run, assert_equal, raises
-    # Global variables
+    if 1:  # Global variables
         dbg = False
         # The following are the exponential coefficients for the type K
         # thermocouple.
@@ -666,6 +674,18 @@ if 1:  # Header
                 ),
             ),
         }
+        # Thermocouple table ranges
+        table_ranges = {
+            # [(temp_low_C, temp_high_C), (V_low_mV, V_high_mV)]
+            "B": ((0, 1820), (-0.003, 13.820)),
+            "E": ((-270, 1000), (-9.835, 76.373)),
+            "J": ((-210, 1200), (-8.095, 69.553)),
+            "K": ((-270, 1372), (-6.095, 54.886)),
+            "N": ((-270, 1300), (-4.345, 47.513)),
+            "R": ((-50, 1768), (-0.226, 21.101)),
+            "S": ((-50, 1768), (-0.236, 18.693)),
+            "T": ((-270, 400), (-6.258, 20.872)),
+        }
 if 1:  # Classes
     class TC:
         '''Implements the polynomials to relate EMF to temperature for various
@@ -790,278 +810,268 @@ if 1:  # Classes
                 print("Sum = %.3f" % T)
             return T
 if 1:  # Utility
-   def _ParseCommandLine(d):
-       d["-k"] = False     # Abbreviated type K table
-       if len(sys.argv) < 2:
-           _Usage(d)
-       try:
-           opts, args = getopt.getopt(sys.argv[1:], "d:kt")
-       except getopt.GetoptError as e:
-           print(str(e))
-           exit(1)
-       for o, a in opts:
-           if o[1] in "k":
-               d[o] = not d[o]
-           elif o == "-t":
-               failed, messages = run(globals())
-               exit(1 if failed else 0)
-       # Process the command line arguments
-       if not args or len(args) > 2:
-           Abbreviated(d)
-       if not len(args[0]) == 1 and args[0] not in "BEJKNRST":
-           _Error("'{}' is an unrecognized tc_type".format(args[0]))
-       tc_type = args[0].upper()
-       deg_scale = "C"
-       if len(args) == 2:
-           if not len(args[1]) == 1 and args[1].upper() not in "CFKR":
-               _Error("'{}' is an unrecognized temperature scale".format(args[1]))
-           deg_scale = args[1].upper()
-       d["tc_type"], d["deg_scale"] = tc_type, deg_scale
-   def _Usage(d, status=1):
-       print(dedent(f'''
-       Usage:  {sys.argv[0]} [options] tc_type [deg_scale]
-         Print thermocouple tables relating temperature and EMF in mV.
-           tc_type:    must be one of the letters B E J K N R S T.
-           deg_scale:  must be one of the letters C F K R (defaults to C).
-         Note this file is primarily intended to be used as a library tool to
-         relate thermocouple voltages and temperatures by using instances of
-         the TC class.
-       
-         The temperature/EMF relationships are gotten from NIST ITS-90
-         polynomials downloaded 24 Dec 2009 from
-         http://srdata.nist.gov/its90/download/download.html.  These files were
-         checked 21 Aug 2016 and verified to be unchanged from the 2009
-         downloads.
-       Options:
-         -k  Print an abbreviated type K table suitable for use with a
-             voltmeter that resolves to 0.1 mV.
-         -t  Run self-tests for the TC object.  You must have the *.tst files
-             constructed from the *.tab files (i.e., the tables from the
-             above NIST URL) and constructed by the gen_table.py script.
-       '''))
-       exit(status)
-   def _Error(msg, status=1):
-       print(msg, file=sys.stderr)
-       exit(status)
-def _TestLibrary():
-    def run_E_tests(tc, filename):
-        '''The TC object in tc should be set up for the proper type of
-        thermocouple.  The filename variable contains a file name that
-        contains the test values, one per line and of the form:
-            t_degC  voltage_mV
-        Find E as a function of t and compare it to the value from the
-        file.
-        '''
-        tolerance_mV = 0.5/1000
-        for line in open(filename).readlines():
-            t, Vref = [float(i) for i in line.split()]
-            V = tc.E_mV(t)
-            if abs(V - Vref) > tolerance_mV:
-                msg = ["Test failure for type %s at %d degC" % (tc.tc_type, t)]
-                msg.append("  V calc = %+8.3f" % V)
-                msg.append("  V ref  = %+8.3f" % Vref)
-                msg.append("  Diff   = %.1f uV" % (abs(V - Vref)*1000))
-                raise RuntimeError('\n'.join(msg))
-    def run_t_tests(tc, filename):
-        '''The TC object in tc should be set up for the proper type of
-        thermocouple.  The filename variable contains a file name that
-        contains the test values, one per line and of the form:
-            t_degC  voltage_mV
-        Find t as a function of E and compare it to the value from the
-        file.
- 
-        Note we ignore bad voltage exceptions, as the inverse functions are
-        not defined over the whole range of voltages given in the tables.
-        '''
-        tolerance_degC = 0.2
-        for line in open(filename).readlines():
-            tref, V = [float(i) for i in line.split()]
-            try:
-                t = tc.T_degC(V)
-                if abs(t - tref) > tolerance_degC:
-                    msg = ["Test failure for type %s at %d degC" %
-                        (tc.tc_type, t)]
-                    msg.append("  t calc = %+8.3f" % t)
-                    msg.append("  t ref  = %+8.3f" % tref)
-                    msg.append("  Diff   = %.3f degC" % abs(t - tref))
+    def _ParseCommandLine(d):
+        d["-k"] = False     # Abbreviated type K table
+        if len(sys.argv) < 2:
+            _Usage(d)
+        try:
+            opts, args = getopt.getopt(sys.argv[1:], "d:kt")
+        except getopt.GetoptError as e:
+            print(str(e))
+            exit(1)
+        for o, a in opts:
+            if o[1] in "k":
+                d[o] = not d[o]
+            elif o == "-t":
+                failed, messages = run(globals())
+                exit(1 if failed else 0)
+        # Process the command line arguments
+        if not args or len(args) > 2:
+            Abbreviated(d)
+        if not len(args[0]) == 1 and args[0] not in "BEJKNRST":
+            _Error("'{}' is an unrecognized tc_type".format(args[0]))
+        tc_type = args[0].upper()
+        deg_scale = "C"
+        if len(args) == 2:
+            if not len(args[1]) == 1 and args[1].upper() not in "CFKR":
+                _Error("'{}' is an unrecognized temperature scale".format(args[1]))
+            deg_scale = args[1].upper()
+        d["tc_type"], d["deg_scale"] = tc_type, deg_scale
+    def _Usage(d, status=1):
+        print(dedent(f'''
+        Usage:  {sys.argv[0]} [options] tc_type [deg_scale]
+          Print thermocouple tables relating temperature and EMF in mV.
+            tc_type:    must be one of the letters B E J K N R S T.
+            deg_scale:  must be one of the letters C F K R (defaults to C).
+          Note this file is primarily intended to be used as a library tool to
+          relate thermocouple voltages and temperatures by using instances of
+          the TC class.
+        
+          The temperature/EMF relationships are gotten from NIST ITS-90
+          polynomials downloaded 24 Dec 2009 from
+          http://srdata.nist.gov/its90/download/download.html.  These files were
+          checked 21 Aug 2016 and verified to be unchanged from the 2009
+          downloads.
+        Options:
+          -k  Print an abbreviated type K table suitable for use with a
+              voltmeter that resolves to 0.1 mV.
+          -t  Run self-tests for the TC object.  You must have the *.tst files
+              constructed from the *.tab files (i.e., the tables from the
+              above NIST URL) and constructed by the gen_table.py script.
+        '''))
+        exit(status)
+    def _Error(msg, status=1):
+        print(msg, file=sys.stderr)
+        exit(status)
+if 1:  # Testing
+    def _TestLibrary():
+        def run_E_tests(tc, filename):
+            '''The TC object in tc should be set up for the proper type of
+            thermocouple.  The filename variable contains a file name that
+            contains the test values, one per line and of the form:
+                t_degC  voltage_mV
+            Find E as a function of t and compare it to the value from the
+            file.
+            '''
+            tolerance_mV = 0.5/1000
+            for line in open(filename).readlines():
+                t, Vref = [float(i) for i in line.split()]
+                V = tc.E_mV(t)
+                if abs(V - Vref) > tolerance_mV:
+                    msg = ["Test failure for type %s at %d degC" % (tc.tc_type, t)]
+                    msg.append("  V calc = %+8.3f" % V)
+                    msg.append("  V ref  = %+8.3f" % Vref)
+                    msg.append("  Diff   = %.1f uV" % (abs(V - Vref)*1000))
                     raise RuntimeError('\n'.join(msg))
-            except ValueError:
-                pass    # Out of range, but that's OK
-    for tc_type in TC()._allowed_types:
-        filename = "/d/pylib/thermocouples/type_%s.tst" % (tc_type.lower())
-        run_E_tests(TC(tc_type), filename)
-        run_t_tests(TC(tc_type), filename)
-# Thermocouple table ranges
-table_ranges = {
-    # [(temp_low_C, temp_high_C), (V_low_mV, V_high_mV)]
-    "B": ((0, 1820), (-0.003, 13.820)),
-    "E": ((-270, 1000), (-9.835, 76.373)),
-    "J": ((-210, 1200), (-8.095, 69.553)),
-    "K": ((-270, 1372), (-6.095, 54.886)),
-    "N": ((-270, 1300), (-4.345, 47.513)),
-    "R": ((-50, 1768), (-0.226, 21.101)),
-    "S": ((-50, 1768), (-0.236, 18.693)),
-    "T": ((-270, 400), (-6.258, 20.872)),
-}
-def _ToDegC(t, d):
-    '''Convert the temperature t in the temperature scale d["deg_scale"] to
-    degrees C.
-    '''
-    if d["deg_scale"] == "C":
-        return t
-    elif d["deg_scale"] == "F":
-        return 5/9*(t - 32)
-    elif d["deg_scale"] == "K":
-        return t - 273.15
-    elif d["deg_scale"] == "R":
-        t -= 459.67
-        return 5/9*(t - 32)
-    else:
-        raise ValueError("Unknown temperature scale")
-def _FromDegC(t_degC, d):
-    '''Convert the temperature t_degC in degrees C to the temperature 
-    scale d["deg_scale"].
-    '''
-    if d["deg_scale"] == "C":
-        return t_degC
-    elif d["deg_scale"] == "F":
-        return 9/5*t_degC + 32
-    elif d["deg_scale"] == "K":
-        return t_degC + 273.15
-    elif d["deg_scale"] == "R":
-        return (9/5*t_degC + 32) + 459.67
-    else:
-        raise ValueError("Unknown temperature scale")
-def _Voltage(d):
-    '''Print a table of temperature vs. EMF such as:
-Type K thermocouple:  Temperature in deg C vs. voltage in mV
-
-degC     0      1      2      3      4      5      6      7      8      9
-   0  0.000  0.039  0.079  0.119  0.158  0.198  0.238  0.277  0.317  0.357
-  10  0.397  0.437  0.477  0.517  0.557  0.597  0.637  0.677  0.718  0.758
-    '''
-    # We'll start the table at 0 degC and go to the following max
-    # temperature.
-    tmax = {"B": 1820, "E": 1000, "J": 1200, "K": 1370, "N": 1300,
-            "R": 1760, "S": 1760, "T": 400, }[d["tc_type"]]
-    assert(tmax % 10 == 0)
-    # Print the header
-    s = '''Type {0} thermocouple:  Temperature in deg {1} vs. voltage in mV
-
-deg{1}'''
-    print(s.format(d["tc_type"], d["deg_scale"]), end="")
-    for i in range(10):
-        if not i:
-            print("{:5d}".format(i), end="")
-        else:
-            print("{:7d}".format(i), end="")
-    print()
-    # Print the table in rows of 10 degree steps
-    tc = TC(d["tc_type"])
-    width = 6
-    fmt = "{:{}.3f}"
-    for t in range(0, tmax, 10):
-        print("{:4d}".format(t), end=" ")
-        for i in range(10):
-            T = t + i
-            degC = _ToDegC(T, d)
-            try:
-                if degC > tmax:
-                    raise ValueError()
-                mV = tc.E_mV(degC)
-                print(fmt.format(mV, width), end=" ")
-            except ValueError:
-                print(" "*width, end="")
-        print()
-def _Temperature(d):
-    '''Print the temperature for a given EMF in mV.
-    '''
-    # We'll start the table at 0 mV and go to the following maximum
-    # voltage.
-    vmax = {"B": 13.820, "E": 76.373, "J": 69.553, "K": 54.886, "N":
-            47.513, "R": 21.101, "S": 18.693, "T": 20.872, }[d["tc_type"]]
-    tc = TC(d["tc_type"])
-    # Print the header
-    s = '''Type {0} thermocouple:  Voltage in mV vs. temperature in deg{1}
-mV'''
-    print(s.format(d["tc_type"], d["deg_scale"]), end=" ")
-    for i in range(10):
-        s = ".{:d}".format(i)
-        n = 4 if i else 2
-        print(" "*n, s, end="")
-    print()
-    # Print the table in rows of 1 mV steps
-    width = 7
-    for v in range(0, int(vmax) + 1):
-        print("{:2d}".format(v), end=" ")
-        for i in range(10):
-            mV = v + i/10
-            if mV > vmax:
-                print(" "*width, end="")
-            else:
+        def run_t_tests(tc, filename):
+            '''The TC object in tc should be set up for the proper type of
+            thermocouple.  The filename variable contains a file name that
+            contains the test values, one per line and of the form:
+                t_degC  voltage_mV
+            Find t as a function of E and compare it to the value from the
+            file.
+     
+            Note we ignore bad voltage exceptions, as the inverse functions are
+            not defined over the whole range of voltages given in the tables.
+            '''
+            tolerance_degC = 0.2
+            for line in open(filename).readlines():
+                tref, V = [float(i) for i in line.split()]
                 try:
-                    t = _FromDegC(tc.T_degC(mV), d)
-                    print("{:{}.1f}".format(t, width), end="")
+                    t = tc.T_degC(V)
+                    if abs(t - tref) > tolerance_degC:
+                        msg = ["Test failure for type %s at %d degC" %
+                            (tc.tc_type, t)]
+                        msg.append("  t calc = %+8.3f" % t)
+                        msg.append("  t ref  = %+8.3f" % tref)
+                        msg.append("  Diff   = %.3f degC" % abs(t - tref))
+                        raise RuntimeError('\n'.join(msg))
+                except ValueError:
+                    pass    # Out of range, but that's OK
+        for tc_type in TC()._allowed_types:
+            filename = "/d/pylib/thermocouples/type_%s.tst" % (tc_type.lower())
+            run_E_tests(TC(tc_type), filename)
+            run_t_tests(TC(tc_type), filename)
+if 1:  # Core functionality
+    def _ToDegC(t, d):
+        '''Convert the temperature t in the temperature scale d["deg_scale"] to
+        degrees C.
+        '''
+        if d["deg_scale"] == "C":
+            return t
+        elif d["deg_scale"] == "F":
+            return 5/9*(t - 32)
+        elif d["deg_scale"] == "K":
+            return t - 273.15
+        elif d["deg_scale"] == "R":
+            t -= 459.67
+            return 5/9*(t - 32)
+        else:
+            raise ValueError("Unknown temperature scale")
+    def _FromDegC(t_degC, d):
+        '''Convert the temperature t_degC in degrees C to the temperature 
+        scale d["deg_scale"].
+        '''
+        if d["deg_scale"] == "C":
+            return t_degC
+        elif d["deg_scale"] == "F":
+            return 9/5*t_degC + 32
+        elif d["deg_scale"] == "K":
+            return t_degC + 273.15
+        elif d["deg_scale"] == "R":
+            return (9/5*t_degC + 32) + 459.67
+        else:
+            raise ValueError("Unknown temperature scale")
+    def _Voltage(d):
+        '''Print a table of temperature vs. EMF such as:
+            Type K thermocouple:  Temperature in deg C vs. voltage in mV
+            
+            degC     0      1      2      3      4      5      6      7      8      9
+               0  0.000  0.039  0.079  0.119  0.158  0.198  0.238  0.277  0.317  0.357
+              10  0.397  0.437  0.477  0.517  0.557  0.597  0.637  0.677  0.718  0.758
+        '''
+        # We'll start the table at 0 degC and go to the following max
+        # temperature.
+        tmax = {"B": 1820, "E": 1000, "J": 1200, "K": 1370, "N": 1300,
+                "R": 1760, "S": 1760, "T": 400, }[d["tc_type"]]
+        assert(tmax % 10 == 0)
+        # Print the header
+        s = '''Type {0} thermocouple:  Temperature in deg {1} vs. voltage in mV
+    
+    deg{1}'''
+        print(s.format(d["tc_type"], d["deg_scale"]), end="")
+        for i in range(10):
+            if not i:
+                print("{:5d}".format(i), end="")
+            else:
+                print("{:7d}".format(i), end="")
+        print()
+        # Print the table in rows of 10 degree steps
+        tc = TC(d["tc_type"])
+        width = 6
+        fmt = "{:{}.3f}"
+        for t in range(0, tmax, 10):
+            print("{:4d}".format(t), end=" ")
+            for i in range(10):
+                T = t + i
+                degC = _ToDegC(T, d)
+                try:
+                    if degC > tmax:
+                        raise ValueError()
+                    mV = tc.E_mV(degC)
+                    print(fmt.format(mV, width), end=" ")
                 except ValueError:
                     print(" "*width, end="")
-        print()
-def Abbreviated(d):
-    '''Print an abbreviated T to mV table for type K, suitable for use
-    with a voltmeter that resolves to around 10 to 100 uV.  Also print
-    the EMFs for the melting points of various metals.
-    '''
-    print("Abbreviated type K thermocouple tables:")
-    # Print a degC table
-    tc = TC("K")
-    print("degC\tmV\tSlope mV/10 degC")
-    for T in range(0, 1301, 50):
-        slope = tc.E_mV(T) - tc.E_mV(T - 1)
-        print("{:4d}\t{:5.2f}\t{:5.2f}".format(T, tc.E_mV(T), 10*slope))
-    # Print a degF table
-    print("\ndegF\tmV\tSlope mV/10 degF")
-    for T in range(0, 2501, 100):
-        if not T:
-            continue
-        T_C = (T - 32)*5/9
-        slope = 5/9*(tc.E_mV(T_C) - tc.E_mV(T_C - 1))
-        print("{:4d}\t{:5.2f}\t{:5.2f}".format(T, tc.E_mV(T_C), 10*slope))
-    # Metal melting points        
-    print("\nMetal melting points (type K EMFs)")
-    print("                         degC        mV     Slope mV/10 degC")
-    for metal, mp_C in (("Lead", 360),
-                        ("Zinc", 420),
-                        ("Magnesium", 651),
-                        ("Aluminum", 660),
-                        ("Brass", 927),
-                        ("Silver", 951),
-                        ("Silicon bronze", 980),
-                        ("Gold", 1063),
-                        ("Copper", 1083),
-                        ("Cast iron", 1150),
-                        ("Nickel", 1452),
-                        ("Wrought iron", 1482),
-                        ("Steel, low carbon", 1500)):
-        try:
-            mV = tc.E_mV(mp_C)
-            slope = (tc.E_mV(mp_C + 10) - mV)
-            print("    {:20s} {:4d} {:10.2f} {:10.2f}".format(metal,
-                  mp_C, mV, slope))
-        except ValueError:
-            print("    {:20s} {:4d}".format(metal, mp_C))
-    # Aluminum melting point
-    print("\nType K table in degC near the melting point of aluminum:")
-    print("    mV", end="")
-    for i in range(10):
-        print("{:6.1f}".format(i/10), end="")
-    print()
-    for V in range(27, 33):
-        print("    {:2d} ".format(V), end=" ")
+            print()
+    def _Temperature(d):
+        '''Print the temperature for a given EMF in mV.
+        '''
+        # We'll start the table at 0 mV and go to the following maximum
+        # voltage.
+        vmax = {"B": 13.820, "E": 76.373, "J": 69.553, "K": 54.886, "N":
+                47.513, "R": 21.101, "S": 18.693, "T": 20.872, }[d["tc_type"]]
+        tc = TC(d["tc_type"])
+        # Print the header
+        s = '''Type {0} thermocouple:  Voltage in mV vs. temperature in deg{1}
+    mV'''
+        print(s.format(d["tc_type"], d["deg_scale"]), end=" ")
         for i in range(10):
-            mV = V + i/10
-            T_C = tc.T_degC(mV)
-            print("{:4.0f} ".format(T_C), end=" ")
+            s = ".{:d}".format(i)
+            n = 4 if i else 2
+            print(" "*n, s, end="")
         print()
-    exit(0)
+        # Print the table in rows of 1 mV steps
+        width = 7
+        for v in range(0, int(vmax) + 1):
+            print("{:2d}".format(v), end=" ")
+            for i in range(10):
+                mV = v + i/10
+                if mV > vmax:
+                    print(" "*width, end="")
+                else:
+                    try:
+                        t = _FromDegC(tc.T_degC(mV), d)
+                        print("{:{}.1f}".format(t, width), end="")
+                    except ValueError:
+                        print(" "*width, end="")
+            print()
+    def Abbreviated(d):
+        '''Print an abbreviated T to mV table for type K, suitable for use
+        with a voltmeter that resolves to around 10 to 100 uV.  Also print
+        the EMFs for the melting points of various metals.
+        '''
+        print("Abbreviated type K thermocouple tables:")
+        # Print a degC table
+        tc = TC("K")
+        print("degC\tmV\tSlope mV/10 degC")
+        for T in range(0, 1301, 50):
+            slope = tc.E_mV(T) - tc.E_mV(T - 1)
+            print("{:4d}\t{:5.2f}\t{:5.2f}".format(T, tc.E_mV(T), 10*slope))
+        # Print a degF table
+        print("\ndegF\tmV\tSlope mV/10 degF")
+        for T in range(0, 2501, 100):
+            if not T:
+                continue
+            T_C = (T - 32)*5/9
+            slope = 5/9*(tc.E_mV(T_C) - tc.E_mV(T_C - 1))
+            print("{:4d}\t{:5.2f}\t{:5.2f}".format(T, tc.E_mV(T_C), 10*slope))
+        # Metal melting points        
+        print("\nMetal melting points (type K EMFs)")
+        print("                         degC        mV     Slope mV/10 degC")
+        for metal, mp_C in (("Lead", 360),
+                            ("Zinc", 420),
+                            ("Magnesium", 651),
+                            ("Aluminum", 660),
+                            ("Brass", 927),
+                            ("Silver", 951),
+                            ("Silicon bronze", 980),
+                            ("Gold", 1063),
+                            ("Copper", 1083),
+                            ("Cast iron", 1150),
+                            ("Nickel", 1452),
+                            ("Wrought iron", 1482),
+                            ("Steel, low carbon", 1500)):
+            try:
+                mV = tc.E_mV(mp_C)
+                slope = (tc.E_mV(mp_C + 10) - mV)
+                print("    {:20s} {:4d} {:10.2f} {:10.2f}".format(metal,
+                      mp_C, mV, slope))
+            except ValueError:
+                print("    {:20s} {:4d}".format(metal, mp_C))
+        # Aluminum melting point
+        print("\nType K table in degC near the melting point of aluminum:")
+        print("    mV", end="")
+        for i in range(10):
+            print("{:6.1f}".format(i/10), end="")
+        print()
+        for V in range(27, 33):
+            print("    {:2d} ".format(V), end=" ")
+            for i in range(10):
+                mV = V + i/10
+                T_C = tc.T_degC(mV)
+                print("{:4.0f} ".format(T_C), end=" ")
+            print()
+        exit(0)
 if __name__ == "__main__":
     d = {   # Options dictionary
         "tc_type": "K",     # Thermocouple type letter

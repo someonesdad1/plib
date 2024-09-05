@@ -1,5 +1,22 @@
 Active:  /plib/.todo
 
+    - pgm/exp.py
+        - This will be a database of experiments I run
+        - Summarize the results (only for -v option)
+        - Date run
+        - Category
+            - elec
+            - mech
+            - other
+        - Point to the relevant document
+            - Use -o to open the document
+        - Print the relevant heading in the document
+        - Develop a set of keywords to get to things quickly
+            - Example:  a number of experiments have looked at the maximum currents that can be
+              used in various wires or cables.  Thus, two keywords could be 'wire' and 'current'.
+        - Because an experiment might want to be repeated, also include the storage location and
+          serial number of the relevant experimental equipment
+
     - The HP Bench Briefs need to be indexed
 
     - hc.py
