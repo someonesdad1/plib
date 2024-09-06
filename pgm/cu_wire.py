@@ -64,16 +64,15 @@ if 1:   # Header
         isatty = sys.stdout.isatty()
         no_color = False
         # Color of popular gauge sizes
-        if 0:   # Original choice for colorizing printout
+        if 1:   # Original choice for colorizing printout
             popular_sizes = {
                 #10: t("grnl"),
-                12: t("whtl", "red"),
+                12: t("redl"),
                 #14: t("brnl"),
-                16: t("whtl", "mag"),
-                #18: t("redl"),
-                20: t("magl"),
-                24: t("whtl", "blul"),
-                28: t("ornl"),
+                16: t("grnl"),
+                18: t("yell"),
+                #20: t("magl"),
+                24: t("ornl"),
             }
         else:
             popular_sizes = {
