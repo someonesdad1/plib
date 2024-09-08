@@ -95,7 +95,8 @@ if 1:   # Utility
     def Manpage():
         rho = f"{resistivity*1e9:.5g}"
         print(dedent(f'''
-                                  Copper Wire Table
+                                           Copper Wire Table
+                                           -----------------
         
         The properties of commercial copper wire in this table are calculated from the density of
         copper ({density} kg/m³) and its room temperature resistivity of {rho} nΩ·m (agreed to
@@ -896,9 +897,9 @@ if 1:   # Core functionality
         else:
             print(f"Copper wire table (annealed copper)")
             print(dedent(f'''
-                                                        Chass
-            AWG    ∅ mm      Ω/m     m/kg       mm²       A
-            ---    ----     -----    ----      -----    -----
+                                                        Chass      j
+            AWG    ∅ mm      Ω/m     m/kg       mm²       A      A/mm²
+            ---    ----     -----    ----      -----    -----    -----
             '''))
         sizes = sorted(set(list(range(n, m, step)) + others))
         for n in sizes:
@@ -930,10 +931,15 @@ if 1:   # Core functionality
         wt = GetAmpacityData()
         if str(awg) in wt:
             dia_in, chassis_A, pwr_A, f_Hz, brk = wt[str(awg)]
-            Print(f"{g(chassis_A):>5s} ")
+            Print(f"{g(chassis_A):>5s}    ")
             #Print(f"{g(pwr_A):>5s} ")
             #Print(f"{g(f_Hz/1000):>5s} ")
             #Print(f"{g(brk):>5s}")
+        # Current density in A/mm²
+        j = chassis_A/(area_m2*1e6)
+        with j:
+            j.N = 2
+            Print(f"{j!s:>5s} ")
         if awg in popular_sizes and isatty and not no_color:
             print(f"{t.n}", end="")
         print()
