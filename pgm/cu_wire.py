@@ -101,13 +101,13 @@ if 1:   # Utility
         copper ({density} kg/m³) and its room temperature resistivity of {rho} nΩ·m (agreed to
         internationally in 1914).
         
-        If you know the resistivity of a material and it is not direction dependent, you can calculate
-        the resistance of a chunk of material with 
+        If you know the resistivity of a material and it is not directionally dependent (i.e., not
+        a tensor), you can calculate the resistance of a chunk of material with 
         
             R = ρ*A/L
         
-        where R is the resistance in ohms, ρ is the resistivity in Ω·m, A is the conductor's
-        cross-sectional area in m, and L is the conductor's length in m
+        where R is the resistance in Ω, ρ is the resistivity in Ω·m, A is the conductor's
+        cross-sectional area in m, and L is the conductor's length in m.
         
         Unfortunately, the US still uses AWG, a gauge system to state wire size instead of diameter
         measurements.  AWG is American Wire Gauge [1].  Given an AWG number N, the diameter of a wire
@@ -144,8 +144,8 @@ if 1:   # Utility
         
         Over the indicated temperature ranges, these linear relationships make integrations easier.
         
-                                      Ampacity
-        ----------------------------------------------------------------------
+                                                 Ampacity
+        ---------------------------------------------------------------------------------------------
         
         Ampacity refers to the allowed current carrying ability of copper wire.  In general, what is
         allowed physically is dependent on many things because it is ultimately a heat transfer problem
@@ -225,7 +225,7 @@ if 1:   # Utility
         ---
         
         The Pwr (power transmission) current is based on a maximum current density of 2.82 A/mm² at DC
-        conditions (this is quite conservative; compare it to the Chass current densities above).
+        conditions (this is conservative; compare it to the Chass current densities above).
         
         NEC Ratings
         -----------
@@ -242,8 +242,8 @@ if 1:   # Utility
         fails.  Thus, governments will choose conservative and well-established rules for construction
         to minimize their legal exposure.
         
-                                        Fusing
-        ----------------------------------------------------------------------
+                                              Fusing
+        ---------------------------------------------------------------------------------------------
         
         At high currents, enough Joule heat is generated in a wire to raise its temperature; if the
         temperature is raised enough, the wire can melt.  To calculate the current necessary to melt
@@ -269,22 +269,24 @@ if 1:   # Utility
         the mechanical switching devices to open the circuit to protect the conductors.
         
         Reference [4] gives a derivation for Onderdonk's equation by relating the Joule heating of the
-        wire to the temperature rise of the copper from the Joule heat.  Key assumptions are 1)
-        copper's resistivity increases linearly with the temperature increase over ambient, 2) copper's
-        specific heat is constant to the melting point, and 3) the time involved is short enough that
-        heat losses to the environment can be ignored.  The treatment results in a first order linear
-        differental equation for the wire temperature as a function of time.  The "short time" should
-        probably no more than a few seconds.  The derivation ignores the heat of fusion of the
-        conductor, which is probably reasonable, as once the conductor is at the melting point,
-        mechanical disruption is likely due to the mass of the conductor (i.e., its own weight and loss
-        of tensile strength could cause it to separate -- and the insulation will also probably be on
-        fire too).
+        wire to the temperature rise of the copper from the Joule heat.  Key assumptions are 
+
+            - Copper's resistivity increases linearly with the temperature increase over ambient
+            - Copper's specific heat is constant to the melting point 
+            - The time involved is short enough that heat losses to the environment can be ignored
+
+        The treatment results in a first order linear differental equation for the wire
+        temperature as a function of time.  The "short time" should probably no more than a few
+        seconds.  The derivation ignores the heat of fusion of the conductor, which is probably
+        reasonable, as once the conductor is at the melting point, mechanical disruption is likely
+        due to the mass of the conductor (i.e., its own weight and loss of tensile strength could
+        cause it to separate -- and the insulation will likely be on fire too).
         
         If you're interested in seeing Onderdonk's equation, look at the Onderdonk() function in the
         script.
         
-                                    References
-        ----------------------------------------------------------------------
+                                            References
+        ---------------------------------------------------------------------------------------------
         
         [1] https://en.wikipedia.org/wiki/American_wire_gauge
         
@@ -316,8 +318,8 @@ if 1:   # Utility
             you assume an ambient temperature of 30°C, then this means the insulation temperature will
             be around 90°C, a common insulation temperature rating.  
         
-       [10] https://www.lectromec.com/maximum-harness-ampacity and
-            https://www.lectromec.com/ampacity-improvements.
+        [10] https://www.lectromec.com/maximum-harness-ampacity and
+             https://www.lectromec.com/ampacity-improvements.
             '''.rstrip()))
         print(dedent(f'''
      
@@ -342,8 +344,8 @@ if 1:   # Utility
         RG-58/U coax has a 0.9 mm diameter inner conductor (19 gauge) and an outside diameter of 5 mm.
         Capacitance is 90 ± 5 pF/m.
         
-        1000·TCR in 1/K @ 20 °C:  annealed copper: 3.93, aluminum: 3.8, carbon: -0.25, iron: 5.0,
-        lead: 4.3, Pt: 3.8, Ag: 4.0, W: 4.5, Zn: 3.7
+        Temperature coefficient of resistance in 1000/K @ 20 °C:  annealed copper: 3.93, aluminum:
+        3.8, carbon: -0.25, iron: 5.0, lead: 4.3, Pt: 3.8, Ag: 4.0, W: 4.5, Zn: 3.7
     
         '''))
         exit(0)
@@ -355,6 +357,7 @@ if 1:   # Utility
         d["-i"] = False     # Interactive solution
         d["-F"] = False     # Print full table
         d["-f"] = False     # Print big stuff
+        d["-r"] = False     # Include resistivities
         d["-t"] = False     # Print equivalence table
         d["-v"] = False     # Print voltage drop table
         try:
@@ -363,7 +366,7 @@ if 1:   # Utility
             print(str(e))
             exit(1)
         for o, a in optlist:
-            if o[1] in list("aCceFftv"):
+            if o[1] in list("aCceFfrtv"):
                 d[o] = not d[o]
             elif o == "-h":
                 Usage(status=0)
@@ -403,8 +406,8 @@ if 1:   # Utility
             -F  Print full table by 1 gauge steps
             -h  Print this help message
             -H  Print detailed help message
-            -i  Interactively determine length, diameter, resistivity, or
-                resistance
+            -i  Interactively determine length, diameter, resistivity, or resistance
+            -r  Include resistivities in output
             -t  Show table for big wire equivalents
             -v  Show voltage drop table
         '''[1:-1]))
@@ -414,6 +417,8 @@ if 1:   # Core functionality
         # Resistivity data from 
         # https://en.wikipedia.org/wiki/Electrical_resistivity_and_conductivity#Resistivity_and_conductivity_of_various_materials
         # as of 16 Aug 2024
+        if not d["-r"]:
+            return 
         r = (
             ("Silver", 15.9),
             ("Copper", 17.241),
@@ -1149,4 +1154,3 @@ if __name__ == "__main__":
         else:
             PrintTable(0, 31, step=2, others=[-3, -2, -1])
             ShowResistivities()
-# vim: wm=1
