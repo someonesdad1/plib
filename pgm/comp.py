@@ -11,6 +11,7 @@ if 1:   # Header
         from collections import defaultdict
         from pdb import set_trace as xx
         from functools import cmp_to_key
+        from pprint import pprint as pp
     if 1:   # Custom imports
         from wrap import dedent
         from columnize import Columnize
@@ -18,24 +19,10 @@ if 1:   # Header
     if 1:   # Global variables
         beginning_lines_to_ignore = 3
         data_file = "/elec/spreadsheets/Components.csv"
-        nl = "\n"
         # Colors
-        t.hl = t("ornl")
+        t.hl = t("skyl")    # Highlight for a regexp
         t.k = t("lill")
         t.N = t.n
-    manual = dedent(f'''
-        {sys.argv[0]} [options] [regex [regex2...]]
-          Searches the components database for the indicated regular expressions 
-          OR'd together.  The search is case-insensitive.
-    
-        Options
-          -a        Dump all records
-          -b N      Show contents of box number N
-          -C        Turn off color highlighting
-          -c        Show category
-          -k kwd    Show items with keyword kwd
-          -l        List the keywords
-        ''')
 if 1:   # Classes
     class Entry:
         def __init__(self, line_number, item):
@@ -54,6 +41,21 @@ if 1:   # Classes
             else:
                 return f"{self.loc} {self.descr}"
 if 1:   # Utility
+    def Usage(status=0):
+        print(dedent(f'''
+            {sys.argv[0]} [options] [regex [regex2...]]
+              Searches the components database for the indicated regular expressions OR'd
+              together.  The search is case-insensitive.  The data file is 
+                {data_file!r}
+            Options
+              -a        Dump all records
+              -b N      Show contents of box number N
+              -C        Turn off color highlighting
+              -c        Show category
+              -k kwd    Show items with keyword kwd
+              -l        List the keywords
+        '''))
+        exit(status)
     def ParseCommandLine(d):
         d["-a"] = False     # Dump all records
         d["-b"] = None      # Specifies box number to list
@@ -72,9 +74,7 @@ if 1:   # Utility
             elif o in ("-b",):
                 d["-b"] = int(a)
             elif o in ("-h",):
-                name = sys.argv[0]
-                print(manual.format(**locals()))
-                exit(0)
+                Usage()
             elif o in ("-k",):
                 d["-k"] = a
         return args
@@ -164,7 +164,10 @@ if __name__ == "__main__":
     if d["-a"]:
         # Show all items
         for i in items:
-            print(i)
+            if str(i) == ": ":
+                print()
+            else:
+                print(i)
         exit(0)
     elif d["-b"] is not None:
         # Show items in box number -b
@@ -191,7 +194,5 @@ if __name__ == "__main__":
                 print(i)
         exit(0)
     if not args:
-        name = sys.argv[0]
-        print(manual)
-    else:
-        TextSearch(args, d, items)
+        Usage()
+    TextSearch(args, d, items)
