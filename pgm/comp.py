@@ -20,8 +20,9 @@ if 1:   # Header
         beginning_lines_to_ignore = 3
         data_file = "/elec/spreadsheets/Components.csv"
         # Colors
-        t.hl = t("skyl")    # Highlight for a regexp
-        t.k = t("lill")
+        t.hl = t("yel")         # Highlight for a regexp
+        t.cat = t("lill")       # Highlight for category
+        t.warn = t("ornl")      # Color for a missing category warning
         t.N = t.n
 if 1:   # Classes
     class Entry:
@@ -34,10 +35,13 @@ if 1:   # Classes
             kw = ' '.join(item[3:])
             kw = kw.replace(",", " ")
             self.kw = kw.split()
+            # Print out the item to stderr if there's no keyword
+            if not kw.strip() and item[0]:
+                t.print(f"{t.warn}Missing keyword in line {line_number}:  {item!r}", file=sys.stderr)
         def __str__(self):
             s = '/'.join(self.kw)
             if d["-c"]:
-                return f"{self.loc} {self.descr} {t.k}{s}{t.n}"
+                return f"{self.loc} {self.descr} {t.cat}{s}{t.n}"
             else:
                 return f"{self.loc} {self.descr}"
 if 1:   # Utility
@@ -159,7 +163,7 @@ if __name__ == "__main__":
     d = {}  # Options dictionary
     args = ParseCommandLine(d)
     if not d["-C"]:
-        t.k = t.hl = t.N = ""
+        t.cat = t.hl = t.N = ""
     items = GetData()
     if d["-a"]:
         # Show all items
