@@ -224,71 +224,59 @@ if 1:   # Core functionality
         PrintResults(color, operating_voltage_V, resistor_power_rating_W, o)
 def Details():
     print(dedent('''
-    Units:  mA for current, V for volts, Ω for resistance.  All non-DC
-    values are RMS.
+    Units:  mA for current, V for volts, Ω for resistance.  All non-DC values are RMS.
 
-    The script's objective is to give you a range of operating currents for
-    the LED that let you pick a single 1/4 W resistor from the on-hand
-    values.  This is specific to my inventory of resistors, so you'll want
-    to populate the resistors.py script with your own values.
+    The script's objective is to give you a range of operating currents for the LED that let you
+    pick a single 1/4 W resistor from the on-hand values.  This is specific to my inventory of
+    resistors, so you'll want to populate the resistors.py script with your own values.
 
-    This task is analytically problematic because of the nonlinear nature
-    of the diode's current versus voltage characteristics (see
-    https://en.wikipedia.org/wiki/Diode_modelling for details).  However, a
-    piecewise linear model is practical and is how this script works (by
+    This task is analytically problematic because of the nonlinear nature of the diode's current
+    versus voltage characteristics (see https://en.wikipedia.org/wiki/Diode_modelling for
+    details).  However, a piecewise linear model is practical and is how this script works (by
     linear interpolation in the tables given below).
 
     The columns printed out in the script's report are:
 
-      i
-          RMS current through the resistor and diode.
-      Vd
-          RMS voltage drop across the diode, interpolated from the measured
-          data below.
-      Vr
-          RMS voltage drop across the resistor.  This is for the actual
-          calculated resistance value R, not the on-hand resistance Ro.
-      R
-          Calculated resistance needed.
-      Ro
-          Closest on-hand resistance to R.
-      %power
-          % of resistor's rated power run at the indicated current.
+      i         RMS current through the resistor and diode
+      Vd        RMS voltage drop across the diode, interpolated from the measured data below
+      Vr        RMS voltage drop across the resistor.  This is for the actual calculated
+                resistance value R, not the on-hand resistance Ro.
+      R         Calculated resistance needed
+      Ro        Closest on-hand resistance to R
+      %power    % of resistor's rated power run at the indicated current
 
     Comments
     --------
-      The script's output contains estimated values; they do not reflect
-      the stochastic variability of the diodes' characteristics nor any
-      measurement uncertainties.  For a critical application, you'll want
-      to measure such things yourself.  In addition, the script's output is
-      dependent on the measured values of my supply of LEDs purchased in 
-      2017 (see below).
+      The script's output contains estimated values; they do not reflect the stochastic
+      variability of the diodes' characteristics nor any measurement uncertainties.  For a
+      critical application, you'll want to measure such things yourself.  In addition, the
+      script's output is dependent on the measured values of my supply of LEDs purchased in 2017
+      (see below).
 
-      I rarely run these diodes over 10 mA.  Many panel annunciator tasks
-      work for indoor use at 1 to 5 mA.
+      I rarely run these diodes over 10 mA.  Many panel annunciator tasks work for indoor use at 1
+      to 5 mA.
 
-      A common use case is to choose a resistor for one of these LEDs to
-      run at AC line voltage.  Since my line voltage is 120 V RMS and I
-      also design for output from one of my Variacs which can be up to 140
-      V, I conservatively pick a resistor to run at 150 V RMS.  With 1/4 W
-      resistors, this usually means running at 1 mA or less.  To run at 1
-      mA, the needed resistor is typically 147 kΩ, independent of the LED
-      color because most of the voltage is dropped across the resistor.
+      A common use case is to choose a resistor for one of these LEDs to run at AC line voltage.
+      Since my line voltage is 120 V RMS and I also design for output from one of my Variacs which
+      can be up to 140 V, I conservatively pick a resistor to run at 150 V RMS.  With 1/4 W
+      resistors, this usually means running at 1 mA or less.  To run at 1 mA, the needed resistor
+      is typically 147 kΩ, independent of the LED color because most of the voltage is dropped
+      across the resistor.
 
-      A handy tool for the bench is to put five of the LEDs in series, one
-      each of yellow, green, red, blue, and white.  If you look at the
-      table data below, you'll see these strings of LEDs will run at 11 to
-      14 V.  You can hook up the strings to a DC power supply and adjust
-      the voltage to see what the LEDs look like at the same current.  
+      A handy tool for the bench is to put five of the LEDs in series, one each of yellow, green,
+      red, blue, and white.  If you look at the table data below, you'll see these strings of LEDs
+      will run at 11 to 14 V.  You can hook up the strings to a DC power supply and adjust the
+      voltage to see what the LEDs look like at the same current.  
 
     Measured LED properties
     -----------------------
-      The output of this script is dependent on the measured values of 3
-      and 5 mm LEDs purchased from banggood in 2017:
 
-      3 mm LEDs received 21 Jul 2017, 750 pieces of yellow, green, red,
-      blue, and white, 20 mA, $7.45 delivered,
-      https://www.banggood.com/750-Pcs-3mm-LED-Diode-Yellow-Red-Blue-Green-White-Assortment-Light-DIY-Kit-p-1122409.html?rmmds=search
+      The output of this script is dependent on the measured values of 3 and 5 mm LEDs purchased
+      from banggood in 2017:
+
+      3 mm LEDs received 21 Jul 2017, 750 pieces of yellow, green, red, blue, and white, 20 mA,
+      $7.45 delivered, https://www.banggood.com/750-Pcs-3mm-LED-Diode-Yellow-Red-Blue-Green-\\
+      White-Assortment-Light-DIY-Kit-p-1122409.html?rmmds=search
 
         Measured voltage drops as function of current:
           mA     Yellow   Green     Red      Blue    White
@@ -302,9 +290,9 @@ def Details():
           25      2.09     2.07     2.05     3.21     3.11
           30      2.10     2.08     2.07     3.25     3.17
   
-      5 mm LEDs received 21 Jul 2017, 1000 pieces of yellow, green, red,
-      blue, and white, 20 mA, $12.88 delivered,
-      https://www.banggood.com/1000Pcs-5-Colors-5mm-F5-Ultra-Bright-Round-LED-Diode-Kit-p-1059729.html?rmmds=search
+      5 mm LEDs received 21 Jul 2017, 1000 pieces of yellow, green, red, blue, and white, 20 mA,
+      $12.88 delivered, https://www.banggood.com/1000Pcs-5-Colors-5mm-F5-Ultra-Bright-Round-LED-\\
+      Diode-Kit-p-1059729.html?rmmds=search
 
         Measured voltage drops as function of current:
           mA     Yellow   Green     Red      Blue    White
@@ -317,33 +305,32 @@ def Details():
           20      2.12     2.86     2.07     3.13     3.14
           25      2.15     2.92     2.10     3.19     3.21
           30      2.16     2.98     2.13     3.25     3.26
-      Green is surprisingly bright at 1 mA; yellow is disappointing.
-      Output in candela at 20 mA for 5 mm LEDs:
+
+      Green is surprisingly bright at 1 mA; yellow is disappointing.  Output in candela at 20 mA
+      for 5 mm LEDs:
           Red     2.5-3         600-635 nm
           Yellow  15-20         588-590 nm
           Blue    6-8           460-465 nm
           Green   15-18         567-570
           White   6-8           8 kK color temperature
-      I have run these 5 mm LEDs up to 100 mA where they are too bright to
-      look at directly.  Yellow should probably only be run to 80 mA.
+      I have run these 5 mm LEDs up to 100 mA where they are too bright to look at directly.
+      Yellow should probably only be run to 80 mA.
 
-      A spot check of some LEDs in my junkbox gave with a 12 V power supply
-      and a 1 kohm resistor:
+      A spot check of some LEDs in my junkbox gave with a 12 V power supply and a 1 kohm resistor:
                 Measured                Script's prediction
         Color   i, mA   Vd              i, mA   Vd
         grn     9.4     2.675           9       2.65
-        grn *   10.1    1.994           9       2.65
+        grn ‡   10.1    1.994           9       2.65
         wht     9.1     2.997           9       2.93
         yel     10.0    2.067           10      2.05
-        red *   10.4    1.698           10      1.98
+        red ‡   10.4    1.698           10      1.98
         blu     9.1     3.015           9       2.92
         wht     9.2     2.919           9       2.93
 
-        * These appeared to be older LEDs, as they didn't have the bright
-          output of the banggood LEDs.
+        ‡ Probably older LEDs, as they didn't have the bright output of the banggood LEDs
 
-      Conclusion:  The script will probably estimate things to within 5% to
-      10%, which should be good enough for casual work.
+      Conclusion:  The script will probably estimate things to within 5% to 10%, which should be
+      good enough for casual work.
 
       Voltage for an RGB LED, sample of one 24 Jun 2023
            mA    Red      Green      Blue
