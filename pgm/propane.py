@@ -40,7 +40,9 @@ if 1:  # Header
         import re
         import sys
     if 1:   # Custom imports
-        from f import flt
+        from frange import frange
+        from columnize import Columnize
+        from f import flt, ceil
         from wrap import dedent
         from color import t
         from lwtest import Assert
@@ -52,6 +54,10 @@ if 1:  # Header
             pass
         g = G()
         g.dbg = False
+        g.tare = flt(25.4)      # Tare mass of RV tank in lb
+        g.full = flt(54.7)      # Mass of full RV tank in lb
+        g.density = flt(4.28)   # Density of liquid propane in lb/gal
+        g.vol = 8.56            # Geometrical volume in gal
         ii = isinstance
 if 1:   # Utility
     def GetColors():
@@ -74,17 +80,18 @@ if 1:   # Utility
         exit(status)
     def Usage(status=0):
         print(dedent(f'''
-        Usage:  {sys.argv[0]} [options] etc.
-          Explanations...
+        Usage:  {sys.argv[0]} [options] [weight_in_lb]
+          Estimate gallons of propane left in our trailer's propane tanks if weight_in_lb is
+          given.  Assumes tare weight of tank is 25.4 lb and propane density at 25 °C is 4.28
+          lb/gal.  For no input, print out a table.
         Options:
+            -d n    Set number of figures [{d["-d"]}]
             -h      Print a manpage
         '''))
         exit(status)
     def ParseCommandLine(d):
         d["-a"] = False     # Need description
         d["-d"] = 3         # Number of significant digits
-        if len(sys.argv) < 2:
-            Usage()
         try:
             opts, args = getopt.getopt(sys.argv[1:], "ad:h", "--debug") 
         except getopt.GetoptError as e:
@@ -110,8 +117,59 @@ if 1:   # Utility
                 debug.SetDebugger()
         return args
 if 1:   # Core functionality
-    pass
+    def Estimate(wt_lb):
+        w = flt(wt_lb)
+        if not (g.tare <= w <= 55):
+            t.print(f"{t.lill}Tank mass must be between {g.tare} and 55 lb")
+            return
+        v = (w - g.tare)/g.density  # Propane volume in gallons
+        print("Mass in lb")
+        print(f"    Entered mass of tank        {w}")
+        print(f"    Tare mass of tank           {g.tare}")
+        print(f"    Mass of propane in tank     {w - g.tare}")
+        with v:
+            v.N = 2
+            t.print(f"{t.ornl}{v} gallons of propane remaining")
+    def Table():
+        #start = g.tare
+        start = flt(25.5)
+        end = g.full
+        t.lb = t.grnl
+        t.gal = t.lill
+        t.pct = t.yell
+        w1, w2, w3, w = 6, 4, 4, 5
+        vfull = (g.full - g.tare)/g.density
+        print("Remaining propane as a function of tank mass\n")
+        o = [f"{t.ornl}{'lb':^{w1}s} {'gal':^{w2}s} {'%':^{w3}s}"]
+        full = g.vol*g.density  # Max possible mass of completely full tank
+        for mass in frange(str(start), str(start + full + 0.01), "0.5"):
+            v = (mass - g.tare)/g.density  # Propane volume in gallons
+            pct = int(round(100*v/vfull, 0))
+            with v:
+                v.N = 3
+                v.rtz = v.rtdp = False
+                if pct > 100:
+                    o.append(f"{t.lb}{mass!s:^{w1}s} {t.gal}{v:^{w2}.1f} {t.redl}{pct:^{w3}d}")
+                else:
+                    o.append(f"{t.lb}{mass!s:^{w1}s} {t.gal}{v:^{w2}.1f} {t.pct}{pct:^{w3}d}")
+        for i in Columnize(o, col_width=w1 + w2 + w3 + w):
+            t.print(i)
+        print()
+        print(dedent(f'''
+        Details
+            Near 25 °C, liquid propane is {g.density} lb/gal
+            Tare mass of tanks is {g.tare} lb
+            Full tank from propane vendor is {g.full} lb = {(g.full - g.tare)/g.density} gal
+            Tank geometrical volume
+                Tank's water capacity is 71.4 lb.  Water is 8.345 lb/gal, so this implies the
+                tank's volume is 71.4/8.345 gal = 8.56 gal
+            Tanks are typically filled to 80% full = {flt(0.8*8.56)} gal
+        '''))
 
 if __name__ == "__main__":
     d = {}      # Options dictionary
     args = ParseCommandLine(d)
+    if args:
+        Estimate(args[0])
+    else:
+        Table()
