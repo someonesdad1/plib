@@ -157,13 +157,14 @@ if 1:   # Core functionality
         print()
         print(dedent(f'''
         Details
-            Near 25 °C, liquid propane is {g.density} lb/gal
-            Tare mass of tanks is {g.tare} lb
-            Full tank from propane vendor is {g.full} lb = {(g.full - g.tare)/g.density} gal
+            Near 25 °C, liquid propane is {g.density} lbm/gal
+            Tare mass of tanks is {g.tare} lbm
+            Full tank from propane vendor is {g.full} lbm = {(g.full - g.tare)/g.density} gal
             Tank geometrical volume
-                Tank's water capacity is 71.4 lb.  Water is 8.345 lb/gal, so this implies the
+                Tank's water capacity is 71.4 lbm.  Water is 8.345 lbm/gal, so this implies the
                 tank's volume is 71.4/8.345 gal = 8.56 gal
             Tanks are typically filled to 80% full = {flt(0.8*8.56)} gal
+        From M = mass of tank and propane in lbm, % full is 3.416*M - 86.7
         '''))
 
 if __name__ == "__main__":
