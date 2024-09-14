@@ -206,7 +206,7 @@ def ColorCoding():
             {g.exact}Deviation is zero to about 6 figures{g.norm}
             {g.ser}Resistors are in series {g.norm}
             {g.par}Resistors are in parallel {g.norm}
-    ''', n=4))
+    '''))
 def ParseCommandLine():
     d["-2"] = False     # Solve problem 2
     d["-d"] = 4         # Number of significant digits

@@ -1,5 +1,14 @@
 Active:  /plib/.todo
 
+    - pgm/comp.py
+        - Command line regexps should be ANDed, not ORed
+
+    - units
+        - GNU units is a nice program, but I don't care for its command line interface.  Turn it into 
+          a specialized REPL tool that allows you to set variables and convert them amongst
+          compatible units, then doing desired calculations.
+        - Need to come up with some example use cases for desired behavior before designing
+
     - pgm/exp.py
         - This will be a database of experiments I run
         - Summarize the results (only for -v option)

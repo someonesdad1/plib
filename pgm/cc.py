@@ -1,30 +1,5 @@
 '''
-
-function cc ## <occ> Print resistor color code
-{
-    echo 'The decimal point is implied after the last digit.  The standard is IEC 60062:2016.  To
-orient left to right, there is a gap between the last two bands.
-
-         Abbreviation       Digit     Multiplier    Tolerance, %
-Black        blk              0           1             -
-Brown        brn              1          10            ±1
-Red          red              2         100            ±2
-Orange       orn              3           1 k          ±0.05
-Yellow       yel              4          10 k          ±0.02
-Green        grn              5         100 k          ±0.5
-Blue         blu              6           1 M          ±0.25
-Violet       vio              7          10 M          ±0.1
-Gray         gry              8         100 M          ±0.01
-White        wht              9           1 G           --
-Gold         gld              -          0.1           ±5
-Silver       sil              -         0.01           ±10
-None                                                   ±20
-
-Example:  red, vio, grn, gold
-    2, 7, 5, meaning 27e5 or 2.7 MΩ.  Tolerance is 5%.'
-}
-
-Print the resistor color code.
+Print the resistor color code or interpret it
 '''
  
 if 1:  # Header
@@ -37,7 +12,7 @@ if 1:  # Header
         #   See http://opensource.org/licenses/OSL-3.0.
         #∞license∞#
         #∞what∞#
-        # Program description string
+        # Print or interpret resistor color code
         #∞what∞#
         #∞test∞# #∞test∞#
         pass
@@ -62,6 +37,20 @@ if 1:  # Header
         g = G()
         ii = isinstance
         g.clr = {}
+        g.code = {
+            "blk": 0,
+            "brn": 1,
+            "red": 2,
+            "orn": 3,
+            "yel": 4,
+            "grn": 5,
+            "blu": 6,
+            "vio": 7,
+            "gry": 8,
+            "wht": 9,
+            "gld": 0.1,
+            "sil": 0.01,
+        }
 if 1:   # Utility
     def GetColors():
         # Put into g.clr dict
@@ -78,6 +67,45 @@ if 1:   # Utility
         g.clr["wht"] = t("whtl")
         g.clr["gld"] = t("#dbb40c")
         g.clr["sil"] = t("wht")
+    def Error(*msg, status=1):
+        print(*msg, file=sys.stderr)
+        exit(status)
+    def Usage(status=0):
+        print(dedent(f'''
+        Usage:  {sys.argv[0]} [options] etc.
+          Explanations...
+        Options:
+            -h      Print a manpage
+        '''))
+        exit(status)
+    def ParseCommandLine(d):
+        d["-a"] = False     # Need description
+        d["-d"] = 3         # Number of significant digits
+        try:
+            opts, args = getopt.getopt(sys.argv[1:], "ad:h", "--debug") 
+        except getopt.GetoptError as e:
+            print(str(e))
+            exit(1)
+        for o, a in opts:
+            if o[1] in list("a"):
+                d[o] = not d[o]
+            elif o in ("-d",):
+                try:
+                    d["-d"] = int(a)
+                    if not (1 <= d["-d"] <= 15):
+                        raise ValueError()
+                except ValueError:
+                    msg = ("-d option's argument must be an integer between "
+                        "1 and 15")
+                    Error(msg)
+            elif o == "-h":
+                Usage()
+            elif o in ("--debug",):
+                # Set up a handler to drop us into the debugger on an unhandled exception
+                import debug
+                debug.SetDebugger()
+        GetColors()
+        return args
 if 1:   # Core functionality
     def PrintLine(name, abbr, digit, multiplier, tolerance):
         w = {
@@ -116,8 +144,42 @@ if 1:   # Core functionality
         PrintLine("Gold", "gld", "--", "0.1", "±5")
         PrintLine("Silver", "sil", "--", "0.01", "±10")
         PrintLine("None", "", "", "", "±20")
+    def GetClr(name, bar_width, width):
+        if name == "blk":
+            return f"{'⎕'*bar_width:^{width}s}"
+        else:
+            return f"{g.clr[name]}{'█'*bar_width:^{width}s}{t.n}"
+    def Interpret(args):
+        b, blk = "██", "⎕⎕"
+        excess_width, bar_width, o = 1, 3, []
+        width = excess_width + bar_width
+        for i in args:
+            o.append(GetClr(i, bar_width, width))
+        print(''.join(o))
+        # Show the digits
+        for i in args:
+            print(f"{g.code[i]!s:^{width}s}", end="")
+        print()
+        # Interpret the digits
+        if len(args) == 1:
+            print("Value = {g.code[args[0]]!} Ω")
+        elif len(args) == 2:
+            a, b = args
+            value = g.code[a]*10**g.code[b]
+            print(f"Value = {value} Ω")
+        elif len(args) == 3:
+            a, b, c = args
+            value = (10*g.code[a] + g.code[b])*10**g.code[c]
+            print(f"Value = {value} Ω")
+        elif len(args) == 4:
+            a, b, c, d = args
+            value = g.code[int(a + b + c)]*10**g.code[d]
 
 if __name__ == "__main__":
     d = {}      # Options dictionary
     GetColors()
-    PrintTable()
+    args = ParseCommandLine(d)
+    if args:
+        Interpret(args)
+    else:
+        PrintTable()

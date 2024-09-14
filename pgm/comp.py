@@ -44,6 +44,8 @@ if 1:   # Classes
                 return f"{self.loc} {self.descr} {t.cat}{s}{t.n}"
             else:
                 return f"{self.loc} {self.descr}"
+        def __repr__(self):
+            return str(self)
 if 1:   # Utility
     def Usage(status=0):
         print(dedent(f'''
@@ -54,10 +56,12 @@ if 1:   # Utility
             Options
               -a        Dump all records
               -b N      Show contents of box number N
-              -C        Turn off color highlighting
+              -C        Use color highlighting [{d["-C"]}]
               -c        Show category
+              -i        Do not ignore case in searches
               -k kwd    Show items with keyword kwd
               -l        List the keywords
+              -o        OR the regexes instead of AND
         '''))
         exit(status)
     def ParseCommandLine(d):
@@ -65,13 +69,15 @@ if 1:   # Utility
         d["-b"] = None      # Specifies box number to list
         d["-C"] = True      # Use color highlighting
         d["-c"] = False     # Show category
+        d["-i"] = True      # Ignore case
         d["-k"] = ""        # Show this keyword
         d["-l"] = False     # List the keywords
+        d["-o"] = False     # OR the regexes on the command line
         try:
-            optlist, args = getopt.getopt(sys.argv[1:], "ab:Cchk:l")
+            optlist, args = getopt.getopt(sys.argv[1:], "ab:Cchik:lo")
         except getopt.GetoptError as e:
             print(str(e))
-            sys.exit(1)
+            exit(1)
         for o, a in optlist:
             if o[1] in "aCcl":
                 d[o] = not d[o]
@@ -85,12 +91,13 @@ if 1:   # Utility
 if 1:   # Core functionality
     def GetData():
         # Return a list of Entry items
-        items = []
+        items, empty = [], ["", "", "", "", ""]
         C = csv.reader(open(data_file, "r"))
         for i, row in enumerate(C):
             if i < beginning_lines_to_ignore or row[2] == "Empty":
                 continue
-            entry = Entry(i + 1, row)
+            if row != empty:
+                entry = Entry(i + 1, row)
             items.append(entry)
         return items
     def strsort(a, b):
@@ -120,37 +127,82 @@ if 1:   # Core functionality
                 return 1
         else:
             return 1
-    def TextSearch(args, d, items):
-        # found will hold the lines that matched; pos holds the start and
-        # end position of the first match and is keyed by the line.
+    def GetColor(i):
+        if not isinstance(i, int):
+            raise TypeError("i must be an int")
+        i = abs(i)
+        colors = (
+            t.yell,
+            t.grnl,
+            t.ornl,
+            t.magl,
+            t.purl,
+            t.denl,
+            t.trql,
+            t.olvl,
+        )
+        return colors[i % len(colors)]
+    def TextSearch(args, items):
+        '''found will hold the lines that matched; pos holds the start and
+        end position of the first match and is keyed by the line.
+
+        args        List of regexes to search for
+        items       List of Entry instances; when printed, an Entry will result in a string like
+                    "1:1 Component pins".
+        '''
+        # regexps is a list of the regular expressions made from args
         regexps, found, pos = [], [], {}
         for i in args:
-            regexps.append(re.compile(i, re.I))
-        for i in items:
-            s = str(i)
-            for r in regexps:
-                mo = r.search(s)
-                if mo:
-                    pos[s] = (mo.start(), mo.end())
+            if d["-i"]:
+                regexps.append(re.compile(i, re.I))
+            else:
+                regexps.append(re.compile(i))
+        # found is a list of the strings matched (e.g. "1:1 Component pins")
+        # pos is a dict indexed by a found entry with the start and end of the match
+        found, pos = [], defaultdict(list)
+        # Search all the items (Entry instances) for matches after the first space character
+        if d["-o"]:  # OR the regexes
+            for i in items:
+                s = str(i)
+                s1 = s[s.find(" ") + 1:]    # String after box:slot info
+                for r in regexps:
+                    mo = r.search(s1)
+                    if mo:
+                        pos[s].append((mo.start(), mo.end()))
+                        found.append(s)
+                        break
+        else:  # AND the regexes
+            for i in items:
+                s = str(i)
+                s1 = s[s.find(" ") + 1:]    # String after box:slot info
+                matched_all = True          # Assume we'll match all
+                for r in reversed(regexps):
+                    mo = r.search(s1)
+                    if mo:
+                        pos[s].append((mo.start(), mo.end()))
+                    else:
+                        matched_all = False
+                if matched_all:
                     found.append(s)
-                    break
+        # found is a list of the strings matched (e.g. "1:1 Component pins")
+        # pos is a dict indexed by a found entry with the start and end of the match
         found = list(set(found))
         found.sort(key=cmp_to_key(strsort))
-        if found:
-            for i in found:
-                n, m = pos[i]       # Start & end of match
-                spc = i.find(" ")   # Location of first space after box/bin
-                # If the start or end are less than the location of the
-                # space, then don't print this item
-                if n < spc or m < spc:
-                    continue
-                print(i[:n], end="")
+        for item in found:
+            for i, k in enumerate(pos[item]):
+                n, m = k
+                spc = item.find(" ")   # Location of first space after box/bin
+                # Correct for ignoring searches up to the space
+                n += spc + 1
+                m += spc + 1
+                print(item[:n], end="")
+                clr = GetColor(i)
                 if d["-C"]:
-                    print(f"{t.hl}", end="")
-                print(i[n:m], end="")
+                    print(f"{clr}", end="")
+                print(item[n:m], end="")
                 if d["-C"]:
                     print(f"{t.n}", end="")
-                print(i[m:])
+                print(item[m:])
         exit(0)
     def Keywords(items):
         'Returns a set of the keywords'
@@ -199,4 +251,4 @@ if __name__ == "__main__":
         exit(0)
     if not args:
         Usage()
-    TextSearch(args, d, items)
+    TextSearch(args, items)
