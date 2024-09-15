@@ -1,13 +1,20 @@
 Active:  /plib/.todo
 
-    - pgm/comp.py
-        - Command line regexps should be ANDed, not ORed
-
     - units
         - GNU units is a nice program, but I don't care for its command line interface.  Turn it into 
           a specialized REPL tool that allows you to set variables and convert them amongst
           compatible units, then doing desired calculations.
         - Need to come up with some example use cases for desired behavior before designing
+        - Variable assignment
+            - v = expression
+            - v = expression unit_expression
+        - Allow command lines to be expressions
+            - A sequence of one or more spaces is a multiplication
+                - '3   v v' is interpreted as '3*v*v'
+            - Use python's syntax
+            - Optional:  only allow one division '/' on a line and it groups the two together by
+              inserting parentheses
+            - An element 'a b' on a line is a number with a unit
 
     - pgm/exp.py
         - This will be a database of experiments I run
@@ -46,6 +53,39 @@ Active:  /plib/.todo
           them in a list in the order they were found in a file.  This handles the use case of
           making a demo by setting the regexp to "^Demo_" and running the functions in the order
           they were encountered in the file.
+            - Example
+
+                    def x():
+                        # This function contains a test function ytest that we want to run
+                        def ytest():
+                            print("in ytest")
+                        print("in x")
+                        x.ytest = ytest
+
+                    x()
+                    print(x.__dict__)
+                    # Run ytest
+                    func = x.__dict__["ytest"]
+                    func()
+
+              This prints 
+
+                    in x
+                    {'ytest': <function x.<locals>.ytest at 0x7fa870414900>}
+                    in ytest
+
+              Note x() had to be run to generate its local namespace.
+
+              On the other hand, it could have been
+
+                    def x1():
+                        # This function contains a test function ytest that we want to run
+                        def ytest():
+                            print("in ytest")
+                        print("in x")
+                        ytest()
+
+              and you'd have the same result.
 
     - tk
         - https://tkdocs.com/tutorial/firstexample.html
@@ -63,26 +103,39 @@ Active:  /plib/.todo
               include % of chassis current to give a feel for the design limits.  You can also
               enter a resistivity relative to copper.
 
-    - HU
+    - hobbyutil
         - Teeth
             - Dental care document and the reasons why
             - Old person's "wisdom" of "I wish I had taken better care of my teeth"
+                - This was a comment by Laura at one of Trink's dinners
         - Summer heat
             - Managing heat in the summer (temperatures in °F)
-            - The summer of 2024 was very hot in the western US with near-record temperatures
+            - The summer of 2024 was hot in the western US with near-record temperatures
+                - Our city's hottest day was 1 °F lower than the hottest ever recorded in the
+                  1890's
             - Our home's air conditioner is not capable of cooling the house off when temperatures
               get above 100 to 105 every day, particularly after our attic fan had failed after 35
               years of service
                 - Attic temperatures get over 120, roof's plywood gets to 160
-            - 2 key strategies
+            - 2 strategies
                 - Attic fan:  $120 unit 16"dia x10" deep, 1945 cfm, 18 cfm/W (==> 108 W, 0.9 A).
                   Set thermostat to run when temperature is above 50, as this pulls cool air into
                   the attic and removes a lot of stored heat.
                     - Cost $0.3 per day (always running), $9/month
+                    - Old fan failed because I forgot to oil the sleeve bearings one year.  This
+                      made me look for a new fan that uses ball bearings.  Unfortunately,
+                      manufacturers' marketing people aren't smart enough to know this is a selling
+                      point they should crow about, as cheap fan motors use cheap sleeve bearings.
                 - Box fan(s):  exhaust air through window at one end of house.  Open windows at
                   other end of house, adjusting opening to try to get turbulent air flow through as
-                  much of the house as possible.  I use two box fans of 70 W each.
+                  much of the house as possible.  I use two box fans of 70 W each.  They are wimpy
+                  compared to my older box fans, but they do a surprisingly good job when run all
+                  night and the outside night temperatures get below 65 °F.
                     - Cost $0.18 per day (11 hours/day), $5.4/month
+                    - The basic tactic is to use this cheap airflow to cool off all the internal
+                      surfaces of the house from about 10 pm to 9 am (11 hours).
+                    - It works well enough that we don't need to use the air conditioner unless the
+                      outside temperature gets to 100 °F all afternoon or more.
             - Contrast this to running the air conditioner for 6 hours per day.  Nameplate current
               is around 23 A at 240 V.  Assuming 0.9 power factor, this is a power of 5 kW.
                 - Cost $3.5/day, $105/month
