@@ -30,25 +30,25 @@ if 1:   # Imports
     from pdb import set_trace as xx 
 if 1:   # Custom imports
     from wrap import dedent
-    from color import fg, normal, black, gray, blue, lblue, green, lgreen
-    from color import cyan, lcyan, red, lred, magenta, lmagenta, brown
-    from color import yellow, white, lwhite
+    from color import t
 if 1:   # Global variables
-    # Define the color pairs you want to use.
-    c_filename = (lmagenta, black)
-    c_match = (lred, black)
-    c_colon = (lcyan, black)
-    c_numbers = (lgreen, black)
+    class G:
+        pass
+    g = G()
+    # Define the colors to use
+    t.filename = t.magl
+    t.match = t.yell
+    t.colon = t.cynl
+    t.numbers = t.grnl
     # Keep track of number of lines printed
-    _lines_printed = 0
-    _lines_default = 25
+    g.lines_printed = 0
+    g.lines_default = 25
 def Usage(d, status=1):
     name = sys.argv[0]
     try:
         lines = int(os.environ["LINES"])
     except KeyError:
-        lines = _lines_default
-    linesdef = _lines_default
+        lines = g.lines_default
     print(dedent(f'''
     Usage:  {name} [options] regexp [file1 [file2 ...]]
       Decorate a regexp in a text stream.  Behaves like GNU grep in
@@ -60,7 +60,7 @@ def Usage(d, status=1):
       -g    Act like grep
       -i    Ignore case in search
       -p    Page the output at {lines} lines (uses LINES environment variable
-            if present; {linesdef} if not).
+            if present; {g.lines_default} if not).
       -n    Show line numbers
     '''))
     exit(status)
@@ -71,7 +71,7 @@ def ParseCommandLine(d):
     d["-n"] = False
     d["-p"] = 0
     try:
-        optlist, args = getopt.getopt(sys.argv[1:], "fginp")
+        optlist, args = getopt.getopt(sys.argv[1:], "fghinp")
     except getopt.GetoptError as e:
         msg, option = e
         print(msg)
@@ -79,11 +79,13 @@ def ParseCommandLine(d):
     for o, a in optlist:
         if o[1] in "fgin":
             d[o] = not d[o]
-        elif opt[0] == "-p":
+        elif o == "-p":
             try:
                 d["-p"] = int(os.environ["LINES"])
             except KeyError:
-                d["-p"] = _lines_default
+                d["-p"] = g.lines_default
+        elif o == "-h":
+            Usage(d)
     if not args:
         Usage(d)
     return args
@@ -102,19 +104,13 @@ def CheckMatches(line, regexp):
 def ProcessLine(line, linenum, regexp, d, file=None):
     def ShowLineNumber():
         if d["-n"]:  # Show line numbers
-            fg(c_numbers)
-            print(str(linenum), end="")
+            print(f"{t.numbers}{str(linenum)}", end="")
             fg(c_colon)
-            print(":", end="")
-            normal()
+            t.print(f"{t.colon}:")
     def ShowFileName():
         if file is not None:    # Color the file name
-            fg(c_filename)
-            print(file, end="")
-            fg(c_colon)
-            print(":", end="")
-            normal()
-    global _lines_printed
+            print(f"{t.filename}{file}", end="")
+            print(f"{t.colon}:{t.n}", end="")
     matched = CheckMatches(line, regexp)
     if matched:  # Color highlight the line where the matches are
         matched = [0] + matched
@@ -125,20 +121,21 @@ def ProcessLine(line, linenum, regexp, d, file=None):
         # expression.
         for i in range(len(matched) - 1):
             if i % 2 == 0:
-                normal()
+                print(f"{t.wht}", end="")
                 print(line[matched[i]:matched[i+1]], end="")
             else:
-                fg(c_match)
+                print(f"{t.match}", end="")
                 print(line[matched[i]:matched[i+1]], end="")
         print()
-        _lines_printed += 1
+        g.lines_printed += 1
     else:
-        normal()
+        print(f"{t.wht}", end="")
         if not d["-g"]:
             ShowFileName()
             ShowLineNumber()
             print(line)
-            _lines_printed += 1
+            g.lines_printed += 1
+
 if __name__ == "__main__":
     d = {}      # Options dictionary
     files = ParseCommandLine(d)
