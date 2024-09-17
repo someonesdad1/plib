@@ -31,7 +31,7 @@ if 1:  # Header
         from f import flt
         from resistors import FindClosest
         from fpformat import FPFormat
-        from color import C
+        from color import t
     if 1:   # Global variables
         P = pathlib.Path
         ii = isinstance
@@ -55,10 +55,12 @@ if 1:  # Header
         }
         class g:
             pass
-        g.n = C.norm
-        g.a = C.yel
-        g.p = C.lmag
-        g.o = C.lgrn
+        # Colors
+        t.a = t.yell
+        t.p = t.magl
+        t.o = t.grnl
+        t.l3 = t.ornl
+        t.l5 = t.grnl
 if 1:   # Utility
     def Error(*msg, status=1):
         print(*msg, file=sys.stderr)
@@ -121,7 +123,7 @@ if 1:   # Utility
         x.n = d["-d"]
         x.rtz = x.rtdp = True
         if d["-c"]:
-            g.n = g.a = g.o = ""
+            t.a = t.p = t.o = t.l3 = t.l5 = ""
         return args
 if 1:   # Core functionality
     def GetColor(color):
@@ -162,14 +164,14 @@ if 1:   # Core functionality
         print(f"{'Operating voltage':{w}s} {voltage} V")
         print(f"{'LED color':{w}s} {GetColor(color)}")
         print(f"{'LED diameter':{w}s} {3 if d['-3'] else 5} mm")
-        print(f"{g.p}{'Resistor power':{w}s} {ResistorPower(pwr)} W{g.n}")
+        print(f"{t.p}{'Resistor power':{w}s} {ResistorPower(pwr)} W{t.n}")
         # Header
         w = 10
         print()
         print(" "*11, "---Voltage drops---")
         print(" "*13, end="")
-        print(f"Diode     Resistor    -----{g.a}Actual{g.n}------     "
-              f"-----{g.o}On-hand{g.n}-----")
+        print(f"Diode     Resistor    -----{t.a}Actual{t.n}------     "
+              f"-----{t.o}On-hand{t.n}-----")
         print(f"{'i, mA':^{w}s} {'Vd, V':^{w}s} {'Vr, V':^{w}s} ", end="")
         print(f"{'R, Ω':^{w}s} {'%power':^{w}s} ", end="")
         print(f"{'Ro, Ω':^{w}s} {'%power':^{w}s}")
@@ -185,9 +187,9 @@ if 1:   # Core functionality
             print(f"{i!s:^{w}s} ", end="")
             print(f"{Vd!s:^{w}s} ", end="")
             print(f"{Vr!s:^{w}s} ", end="")
-            print(f"{g.a}{R:^{w}s}{g.n} ", end="")
+            print(f"{t.a}{R:^{w}s}{t.n} ", end="")
             print(f"{int(pct):6d}     ", end="")
-            print(f"{g.o}{Ro:^{w}s}{g.n} ", end="")
+            print(f"{t.o}{Ro:^{w}s}{t.n} ", end="")
             print(f"{int(pcto):6d}")
         if d["-p"]:
             print()
@@ -226,7 +228,7 @@ if 1:   # Core functionality
                     o.append([curr, Vd, Vr, fp(R), pct, fp(Ro), pcto])
         PrintResults(color, operating_voltage_V, resistor_power_rating_W, o)
 def Details():
-    print(dedent('''
+    print(dedent(f'''
     Units:  mA for current, V for volts, Ω for resistance.  All non-DC values are RMS.
 
     The script's objective is to give you a range of operating currents for the LED that let you
@@ -275,39 +277,15 @@ def Details():
     -----------------------
 
       The output of this script is dependent on the measured values of 3 and 5 mm LEDs purchased
-      from banggood in 2017:
+      from banggood in 2017.
 
       3 mm LEDs received 21 Jul 2017, 750 pieces of yellow, green, red, blue, and white, 20 mA,
       $7.45 delivered, https://www.banggood.com/750-Pcs-3mm-LED-Diode-Yellow-Red-Blue-Green-\\
       White-Assortment-Light-DIY-Kit-p-1122409.html?rmmds=search
 
-        Measured voltage drops as function of current:
-          mA     Yellow   Green     Red      Blue    White
-          0.5     1.85     1.87     1.81     2.62     2.60
-           1      1.90     1.91     1.84     2.67     2.64
-           2      1.94     1.94     1.87     2.74     2.70
-           5      1.99     1.98     1.93     2.86     2.80
-          10      2.03     2.02     1.97     3.00     2.90
-          15      2.06     2.04     2.01     3.10     2.98
-          20      2.07     2.06     2.03     3.16     3.05
-          25      2.09     2.07     2.05     3.21     3.11
-          30      2.10     2.08     2.07     3.25     3.17
-  
       5 mm LEDs received 21 Jul 2017, 1000 pieces of yellow, green, red, blue, and white, 20 mA,
       $12.88 delivered, https://www.banggood.com/1000Pcs-5-Colors-5mm-F5-Ultra-Bright-Round-LED-\\
       Diode-Kit-p-1059729.html?rmmds=search
-
-        Measured voltage drops as function of current:
-          mA     Yellow   Green     Red      Blue    White
-          0.5     1.85     2.28     1.76     2.61     2.61
-           1      1.88     2.33     1.79     2.65     2.65
-           2      1.92     2.40     1.83     2.71     2.70
-           5      1.98     2.54     1.90     2.82     2.82
-          10      2.05     2.68     1.98     2.95     2.96
-          15      2.09     2.78     2.03     3.05     3.07
-          20      2.12     2.86     2.07     3.13     3.14
-          25      2.15     2.92     2.10     3.19     3.21
-          30      2.16     2.98     2.13     3.25     3.26
 
       Green is surprisingly bright at 1 mA; yellow is disappointing.  Output in candela at 20 mA
       for 5 mm LEDs:
@@ -348,13 +326,38 @@ def Details():
           30    2.12       3.42      3.14
 
       Minimum visibility current for banggood LEDs
-                5 mm        3 mm
+                {t.l5}5 mm        {t.l3}3 mm{t.n}
         grn     10 μA       200 μA
         yel     75 μA       100 μA
         red     50 μA       100 μA
         blu     5-10 μA     5-10 μA
         wht     5-10 μA     5-10 μA
-          Recommendation:  5 mm:  grn, blue   3 mm:  blu
+          Recommendation:  {t.l5}5 mm{t.n}:  grn, blue   {t.l3}3 mm{t.n}:  blu
+
+      {t.l3}3 mm LEDs measured voltage drops as function of current:{t.n}
+        mA     Yellow   Green     Red      Blue    White
+        0.5     1.85     1.87     1.81     2.62     2.60
+         1      1.90     1.91     1.84     2.67     2.64
+         2      1.94     1.94     1.87     2.74     2.70
+         5      1.99     1.98     1.93     2.86     2.80
+        10      2.03     2.02     1.97     3.00     2.90
+        15      2.06     2.04     2.01     3.10     2.98
+        20      2.07     2.06     2.03     3.16     3.05
+        25      2.09     2.07     2.05     3.21     3.11
+        30      2.10     2.08     2.07     3.25     3.17
+
+      {t.l5}5 mm LEDs measured voltage drops as function of current:{t.n}
+        mA     Yellow   Green     Red      Blue    White
+        0.5     1.85     2.28     1.76     2.61     2.61
+         1      1.88     2.33     1.79     2.65     2.65
+         2      1.92     2.40     1.83     2.71     2.70
+         5      1.98     2.54     1.90     2.82     2.82
+        10      2.05     2.68     1.98     2.95     2.96
+        15      2.09     2.78     2.03     3.05     3.07
+        20      2.12     2.86     2.07     3.13     3.14
+        25      2.15     2.92     2.10     3.19     3.21
+        30      2.16     2.98     2.13     3.25     3.26
+
     '''))
     exit(0)
 if __name__ == "__main__":
