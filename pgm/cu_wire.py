@@ -221,6 +221,13 @@ if 1:   # Utility
                 12   12         26  17          40  18
         
         When plotted, these data make me think someone derived these numbers from an experiment.
+
+        A linear regression to a quadratic gives the practical curve (within about 5% except for
+        the four smallest wires)
+
+            i =  0.9*d**2 + 22.6*d - 7.6
+
+        where i is the chassis current in A and d is the copper wire diameter in mm.
         
         Pwr
         ---
