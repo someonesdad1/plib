@@ -1,9 +1,10 @@
 Active:  /plib/.todo
 
     - units
-        - GNU units is a nice program, but I don't care for its command line interface.  Turn it into 
+        - GNU units is a good program, but I don't care for its command line interface.  Turn it into 
           a specialized REPL tool that allows you to set variables and convert them amongst
           compatible units, then doing desired calculations.
+        - Another idea:  incorporate its functionality in hc.py
         - Need to come up with some example use cases for desired behavior before designing
         - Variable assignment
             - v = expression
@@ -30,6 +31,7 @@ Active:  /plib/.todo
         - Develop a set of keywords to get to things quickly
             - Example:  a number of experiments have looked at the maximum currents that can be
               used in various wires or cables.  Thus, two keywords could be 'wire' and 'current'.
+              Or since I use "chassis" currents for this meaning, 'chass' could be a keyword.
         - Because an experiment might want to be repeated, also include the storage location and
           serial number of the relevant experimental equipment
 
