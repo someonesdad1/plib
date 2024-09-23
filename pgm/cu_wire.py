@@ -68,11 +68,15 @@ if 1:   # Header
             popular_sizes = {
                 #10: t("grnl"),
                 12: t("redl"),
+                "c12": t("whtl", "redl"),
                 #14: t("brnl"),
                 16: t("grnl"),
+                "c16": t("blk", "grnl"),
                 18: t("yell"),
+                "c18": t("blk", "yell"),
                 #20: t("magl"),
                 24: t("ornl"),
+                "c24": t("whtl", "ornl"),
             }
         else:
             popular_sizes = {
@@ -913,8 +917,9 @@ if 1:   # Core functionality
             PrintLine(n)
     def PrintLine(awg):
         fp.digits(3)
-        if awg in popular_sizes and isatty and not no_color:
-            print(f"{popular_sizes[awg]}", end="")
+        special = awg in popular_sizes and isatty and not no_color
+        if special:
+            Print(f"{popular_sizes[awg]}")
         Print(f"{Size(awg):>3s}  ")
         dia_in = AWG(awg)
         # Diameter
@@ -938,7 +943,17 @@ if 1:   # Core functionality
         wt = GetAmpacityData()
         if str(awg) in wt:
             dia_in, chassis_A, pwr_A, f_Hz, brk = wt[str(awg)]
-            Print(f"{g(chassis_A):>5s}    ")
+            w = 5
+            # Print leading blanks
+            s = g(chassis_A)
+            Print(" "*(w - len(s)))
+            if special:
+                # Use special reverse video mode to make chassis current stand out
+                Print(f"{popular_sizes['c' + str(awg)]}")
+            Print(f"{s.strip():>{len(s)}s}")
+            if special:
+                Print(f"{t.n}{popular_sizes[awg]}")
+            Print(f"    ")
             #Print(f"{g(pwr_A):>5s} ")
             #Print(f"{g(f_Hz/1000):>5s} ")
             #Print(f"{g(brk):>5s}")
