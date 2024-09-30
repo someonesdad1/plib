@@ -65,12 +65,9 @@ if 1:   # Utility
         exit(0)
     def Usage(status=0):
         print(dedent(f'''
-        Usage:  {sys.argv[0]} [options] num
+        Usage:  {sys.argv[0]} [options] 
           Print i-V characteristics of on-hand diodes.  Current is always in mA and voltage is
           always in mV.
-            1   1N4148 Si
-            2   1N4004 Si
-            3   1N5818 Schottky
         Options:
             -d n    Number of digits [{d["-d"]}]
             -h      Print a manpage
@@ -79,8 +76,8 @@ if 1:   # Utility
     def ParseCommandLine(d):
         d["-a"] = False     # Need description
         d["-d"] = g.digits  # Number of significant digits
-        if len(sys.argv) < 2:
-            Usage()
+        #if len(sys.argv) < 2:
+        #    Usage()
         try:
             opts, args = getopt.getopt(sys.argv[1:], "d:Hh", "--debug") 
         except getopt.GetoptError as e:
@@ -112,6 +109,7 @@ if 1:   # Core functionality
         pass
     def D3():
         '1N5818 Schottky'
+        # Measured data
         Vi = (  # V in mV, i in mA
             (15.34, 0.00047),
             (63.16, 0.00645),
@@ -125,12 +123,16 @@ if 1:   # Core functionality
             (420, 980),
         )
         w = 10
+        print(f"1N5818 Schottky diode (1 A 30 PIV)")
+        print(f"{'V, mV':^{w}s} {'i, mA':^{w}s} {'R, Ω':^{w}s}")
+        print(f"{'-'*w:^{w}s} {'-'*w:^{w}s} {'-'*w:^{w}s}")
         for V, i in Vi:
-            print(f"{flt(V)!s:^{w}s} {flt(i)!s:^{w}s}")
+            R = V/i
+            print(f"{flt(V)!s:^{w}s} {flt(i)!s:^{w}s} {flt(R)!s:^{w}s}")
 
 if __name__ == "__main__":
     d = {}      # Options dictionary
-    nums = [int(i) for i in ParseCommandLine(d)]
-    f = {1: D1, 2: D2, 3: D3}
-    for num in nums:
-        f[num]()
+    args = ParseCommandLine(d)
+    D1()
+    D2()
+    D3()
