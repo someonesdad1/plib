@@ -220,7 +220,7 @@ if 1:   # Core functionality
             df.add("**/*")
             if 1:
                 # Filter out stuff not wanted
-                pass
+                df.rm("3615_power_supply_Jul2013.pdf")
             tm = time() - start
             et += tm
             Dbg(f"{len(df.files)} files ({tm} s)")

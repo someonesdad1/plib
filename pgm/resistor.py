@@ -374,7 +374,7 @@ if 1:  # Core functionality
             print("-------------   ----------   ----------  ----------")
             for val, c, r1, r2 in res:
                 dev = 100*((val - resistance)/resistance)
-                pct = sig(dev, 2)
+                pct = str(sig(dev, 2)) + "%"
                 if dev >= 0:
                     pct = " " + pct
                 R1, R2 = fp.engsi(r1), fp.engsi(r2)
@@ -385,11 +385,9 @@ if 1:  # Core functionality
                     #fg(highlight)
                     print(t.hl, end="")
                 if c == "e":
-                    t.print("   {0:10}   {1:^10}                {2}".format(pct,
-                          R1, conn))
+                    t.print("   {0:10}   {1:^10}                {2}".format(pct, R1, conn))
                 else:
-                    t.print("   {0:10}   {1:^10}   {2:^10}   {3}".format(pct,
-                          R1, R2, conn))
+                    t.print("   {0:10}   {1:^10}   {2:^10}   {3}".format(pct, R1, R2, conn))
                 #normal()
         else:
             return res
