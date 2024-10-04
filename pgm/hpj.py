@@ -15,59 +15,24 @@ Script to search title & authors of HP Journal (HPJ) articles
  
     On my computer, I store all the PDF files in /ebooks/hpj.  This directory is about 17 GB and
     includes the HP Journal PDF files, Measure (an HP magazine for employees), and Bench Briefs.
-    There's also a 1957-09-Sputnik.pdf file that's not on the HP website and is a 2 page supplement
-    that recorded the Doppler shift of the Sputnik satellite.
+    There's also a 1957-09-Sputnik.pdf file that's not on the HP website and is a 2 page
+    supplement that recorded the Doppler shift of the Sputnik satellite.
 
-    It's likely few people will be interested in this older HP engineering stuff today, but there's
-    a lot of technical wisdom in the articles, which were meant to both show off new products and
-    technologies and provide a voice and visibility for the engineering staff.  
+    It's likely few people will be interested in this older HP engineering stuff today, but
+    there's a lot of technical wisdom in the articles, which were meant to both show off new
+    products and technologies and provide a voice and visibility for the engineering staff.  
 
-    The HP Labs page above may give you all you need, as you can search for relevant text and maybe
-    find what you want.  This didn't meet my needs because I like to search things from the command
-    line, so I put together this script.  I can refine the search as needed, then have the script
-    open up the PDFs for the matching journal titles.  If you're interested in using the script
-    with the ability to open the PDF files, email me at someonesdad1@gmail.com and I can send you a
-    python script that will download the PDFs.
+    The HP Labs page above may give you all you need, as you can search for relevant text and
+    maybe find what you want.  This didn't meet my needs because I like to search things from the
+    command line, so I put together this script.  I can refine the search as needed, then have the
+    script open up the PDFs for the matching journal titles.  If you're interested in using the
+    script with the ability to open the PDF files, email me at someonesdad1@gmail.com and I can
+    send you a python script that will download the PDFs.
 
     If you want to use the hpj.py script, it needs some modules from
     https://github.com/someonesdad1/plib:  wrap.py, color.py, and launch.py.  If you are
     comfortable working with python it's straightforward to remove these dependencies so it can be
     a standalone script.
-
-    Examples of use
-    ---------------
-
-        I've got a number of HP analog meters (D'Arsonval type) from instrumentation made before
-        the onset of digital electronics.  In the early 1960's HP started using the taut band
-        design, which they licensed from a German company.  HP used electronic instrumentation to
-        generate custom-printed scales for each meter, giving perhaps the best accuracy you could
-        get from analog instrumentation (around a percent).
-
-        I remembered seeing an HPJ article by Barney Oliver on this topic, so I ran a search using
-        'python hpj.py oliver | grep -i meter' and found '1961-03, Increasing Accuracy in -hp-
-        Meters Through Servo Calibrating Methods, by Bernard M. Oliver, pg 1-4'.  I then opened the
-        1961-03.pdf HPJ article in my PDF client to read the article.
-
-        These old HP analog meters make nice microbalances.  With a constant current source (HP
-        meters were typically 1 mA full scale), you can lift tiny masses with them and it's fun to
-        experiment with things like seeing fountain pen ink drying on paper or water evaporating
-        from a small piece of thread.  I fooled around with this a couple of decades ago and
-        remember one of the hard parts was making mass standards around 1 mg and into the μg range.
-        An accidental tiny puff of air from a nostril would make those tiny standards disappear.
-
-        I have and am still using an HP 427A analog multimeter, introduced in 1967 and last seen in
-        the HP catalog around 1986.  Another famous HP instrument is the HP 410C, an analog vacuum
-        tube voltmeter developed in 1963 that has been popular with hams for many years.  If I
-        could have one instrument for my bench for general use for electrical measurements, it
-        would be the 410C (along with a modern oscilloscope) because of its measurement
-        capabilities.  
-
-        One of the engineers on the design of the HP 410C was Paul Baird and you can search using
-        'python hpj.py baird' and you'll get two articles, one in 1979 on electronic equipment
-        reliability and one in 1963 for "A New Multi-Function Voltmeter for General Laboratory
-        Use".  I got to meet Baird when he gave a talk at the HP division I was working at in the
-        early 1980's; he gave an excellent talk on the overall approaches for designing reliable
-        electronics, as he was the head of HP corporate reliability.
 
 '''
 if 1:  
