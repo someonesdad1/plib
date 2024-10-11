@@ -63,6 +63,9 @@ if 1:
         from wrap import dedent
         from color import TRM as t
         from launch import Launch
+        if 1:
+            import debug       
+            debug.SetDebugger()
     # Global variables
         class G:
             pass
@@ -3083,6 +3086,82 @@ if 1:   # Data
     Article('1949', '11', 'Design Notes on the Resistance-Capacity Oscillator Circuit (Part I)', '', ['Brunton Bauer'], '1-4', '1', '3'),
     Article('1949', '12', 'Design Notes on the Resistance-Capacity Oscillator Circuit (Part II)', '', ['Brunton Bauer'], '1-4', '1', '4'),
     ]
+    # Bench Brief data (manually indexed)
+    bb = '''
+        1971-09.pdf:  Note that HP uses Pozi-drive screws
+        1972-09.pdf:  Cleaning and lubricating rotary switches
+        1972-11.pdf:  Testing the FET; Useful soldering iron tip for removing leaded components from PCBs
+        1973-04.pdf:  dB & dBm; A troubleshooting technique; Dangerous ungrounded chassis
+        1973-05.pdf:  dB & dBm without logs
+        1973-07-08.pdf:  Quartz crystal oscillators
+        1973-09-10.pdf:  Calibration of an oscillator
+        1973-11-12.pdf:  AC analog voltmeters; Murphy's Laws for electrical stuff
+        1974-01-02.pdf:  HP part numbers; Troubleshooting (knowing what's normal)
+        1974-03-04.pdf:  Troubleshooting logically
+        1974-07-08.pdf:  Scope probes; Line fuse ratings (good graph)
+        1974-09-10.pdf:  All about diodes (includes octopus)
+        1974-11-12.pdf:  Troubleshooting transistorized circuits faster (uses octopus); Good letter to editor about octopus tester in previous issue
+        1975-01-02.pdf:  All about power supplies; Isolating power supply drift
+        1975-03-04.pdf:  How to remove ICs
+        1976-09-12.pdf:  Troubleshooting 626xxJ series DC power supplies
+        1977-01-02.pdf:  Glossary of IC terms
+        1977-03-04.pdf:  Digital signature analysis
+        1977-05-08.pdf:  Fast L-C measurements; Logic tester has unambiguous display; Direct-reading ohmmeter needs no calibration; Microprocessor buzz words; Nut holder (kink in solder pounded into nut)
+        1977-09-10.pdf:  Analog circuit testing (discusses HP logic probe etc.)
+        1978-01-04.pdf:  Petals around the rose puzzle
+        1978-05-10.pdf:  Phase-locked loops; Glossary for strip chart recorders
+        1978-11-04.pdf:  Switching power supplies
+        1979-05-07.pdf:  Group delay; A quick guide to batteries
+        1979-09-10.pdf:  Exploring the capacitor
+        1980-01-02.pdf:  How accurate is your AC measurement? 
+        1980-03-04.pdf:  Basic techniques of waveform measurement using an oscilloscope (Part 1)
+        1980-05-06.pdf:  Basic techniques of waveform measurement using an oscilloscope (Part 2)
+        1980-07-08.pdf:  Basic transistor troubleshooting revisited
+        1980-09-11.pdf:  Bench testing a "bus" instrument
+        1981-01-02.pdf:  Basic resistor technology
+        1981-03-05.pdf:  All about CRTs
+        1981-06-08.pdf:  Logical troubleshooting
+        1982-01-02.pdf:  Functional analyzing
+        1982-03-04.pdf:  New HP interface called HP-IL
+        1982-05-06.pdf:  Testing for an intermittent meter
+        1982-07-10.pdf:  Printed circuit board rework, repair, and cleaning
+        1982-11-12.pdf:  Random HV fuse blowing in 1740A, 1742A, and 1743A 100 MHz oscilloscopes; More on printed circuit board rework, repair, and cleaning
+        1983-01-02.pdf:  Improving bandwidth and risetime in 174x oscilloscopes; More on printed circuit board rework, repair, and cleaning; Conformal coatings
+        1983-03-05.pdf:  Static zap makes scrap (ESD details and prevention)
+        1984-01-02.pdf:  Preregulation to reduce power dissipation; Got a scratch that needs repairing?
+        1984-03-04.pdf:  More on regulated linear power supplies
+        1984-05-06.pdf:  Failures come and go with the flip of a switch
+        1984-07-09.pdf:  A study on cleaning connector fingers on printed circuit boards; Quick and easy Amphenol connector replacement
+        1985-01-02.pdf:  Hewlett-Packard is going metric
+        1985-03-05.pdf:  Analog to digital conversion; A refresher on removing ICs
+        1985-06-08.pdf:  Learn the basics of digital microwave communications; Using fiber optics to transmit a frequency standard; More on metric fasteners for cabinet accessories
+        1986-01-02.pdf:  MIL-STD-45662 calibrations; A short troubleshooting quiz; Using fiber optics to transmit a frequency standard -- more information
+        1986-03-04.pdf:  Battery charging with a Hewlett-Packard power supply; Finding short circuits on printed circuit boards
+        1986-05-06.pdf:  The basics of switching regulators; Improvements in programmable step attenuators lead to longer life ratings; Helicoil repair kits for stripped threads in cabinet frames; Should you clean solder flux from high-impedance circuit boards?
+        1986-07-10.pdf:  The basics of switching regulators (cont'd); The bootstrap circuit; Taking the mystery out of probe selection
+        1987-01-03.pdf:  HP 5335A universal frequency counter anomalies and workarounds; Change is contemplated in US unit of volt; Life support for your home computer
+        1987-04-06.pdf:  The rotary pulse generator
+        1987-07-09.pdf:  A few fundamentals about semiconductors; Reader comment about rotary pulse generator
+        1987-10-12.pdf:  Digital to analog (DAC) conversion
+        1988-01-03.pdf:  Using copper tape to fabricate RF breadboarding circuits
+        1988-04-06.pdf:  The values for the volt and ohm are changing
+        1989-01-03.pdf:  How to build a stripline filter
+        1989-04-06.pdf:  Fiber optic troubleshooting
+        1990-01-03.pdf:  The 1990 changes in national reference standards; More on fabricating breadboard circuits with copper tape
+        1990-04-06.pdf:  Operational amplifier basics; The Logistics Data Book 1990; What is traceability and how does it relate to calibration uncertainty?; Extend the life of your CRT
+        1990-07-12.pdf:  Field effect transistors
+        1991-01-03.pdf:  Field effect transistors part 2:  CMOS
+        1992-04-12.pdf:  Using RS-423 and RS-422 for terminal connections:  a field guide
+        1993-01-03.pdf:  The optical spectrum analyzer
+        1993-04-12.pdf:  The optical spectrum analyzer - part 2 HP OSA measurement modes and the noise floor
+        1994-01-03.pdf:  The optical spectrum analyzer - part 3 sensitivity; How is the recommended calibration cycle determined?
+        1994-04-06.pdf:  Calibration of time base oscillators
+        1995-01-03.pdf:  The metrological and financial implications of a clogged fan filter; Timebase ground loops
+        1995-04-12.pdf:  Elements of a standards lab that support a manufacturing facility
+        1996-01-03.pdf:  Failure modes of digital ICs
+        1997-01-03.pdf:  History of frequency traceability at HP Santa Clara; Timebase test/adjustment procedure
+        1998-01-03.pdf:  Important measurement information on cleaning and handling HP lightwave equipment; Practical tips on using power supplies in the T&M environment
+    '''
 
 if 1:   # Utility
     def SetColors(): 
@@ -3102,6 +3181,7 @@ if 1:   # Utility
           restrict the things to search.  One article is printed per line.
         Options:
           -a      Search author names only
+          -B      Search Bench Brief topics
           -b      Brief report:  date and title only
           -c      Use color decoration
           -d      Dump all the data
@@ -3118,6 +3198,7 @@ if 1:   # Utility
         exit(status)
     def ParseCommandLine(d):
         d["-a"] = False     # Search author names only
+        d["-B"] = False     # Search Bench Brief titles
         d["-b"] = False     # Brief report 
         d["-c"] = True      # Use color
         d["-d"] = False     # Dump all the data
@@ -3134,12 +3215,12 @@ if 1:   # Utility
         if len(sys.argv) < 2:
             Usage(d)
         try:
-            opts, args = getopt.getopt(sys.argv[1:], "abcdghil:ostwy:Y:")
+            opts, args = getopt.getopt(sys.argv[1:], "aBbcdghil:ostwy:Y:")
         except getopt.GetoptError as e:
             print(str(e))
             exit(1)
         for o, a in opts:
-            if o[1] in list("abcdgiostw"):
+            if o[1] in list("aBbcdgiostw"):
                 d[o] = not d[o]
             elif o == "-l":
                 try:
@@ -3290,10 +3371,27 @@ if 1:   # Core functionality
                 print()
         else:
             print(a)
+    def BenchBriefs(regexps):
+        dir = P("/ebooks/hpj/benchbriefs")
+        files = set()
+        for regexp in regexps:
+            r = re.compile(regexp, re.I)
+            for line in bb.split("\n"):
+                if not line.strip():
+                    continue
+                file, other = line.split(":", maxsplit=1)
+                if r.search(other):
+                    files.add(file.strip())
+        for i in files:
+            file = dir/i
+            Launch(file)
+        exit(0)
 
 if __name__ == "__main__":
     d = {}      # Options dictionary
     regexps = ParseCommandLine(d)
+    if d["-B"]:
+        BenchBriefs(regexps)
     if d["-d"]:
         # Dump all article information 
         for a in data:
