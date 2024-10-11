@@ -1312,12 +1312,11 @@ def fDistribute(n, a=0, b=1, impl=float):
         fd(3) --> [0.0, 0.5, 1.0]
         fd(3, 1, 2) --> [1.0, 1.5, 2.0]
         fd(4, 1, 2, Fraction) --> [Fraction(1, 1), Fraction(4, 3), Fraction(5, 3), Fraction(2, 1)]
-    You can use other impl types like decimal.Decimal.  Other types that
-    define impl()/impl() to return an impl-type floating point number will
-    also work (e.g., mpmath's mpf type).
  
-    If you need a sequence of evenly-distributed integers, see
-    util.iDistribute().
+    You can use other impl types like decimal.Decimal.  Other types that define impl()/impl() to
+    return an impl-type floating point number will also work (e.g., mpmath's mpf type).
+ 
+    If you need a sequence of evenly-distributed integers, see util.iDistribute().
     '''
     # Check arguments
     msg = "n must be an integer > 1"
@@ -1409,7 +1408,16 @@ def SizeOf(o, handlers={}, verbose=False, full=False, title=None):
     else:
         return total
 class PPSeq:
-    'Format sequences for pretty printing'
+    '''Format sequences for pretty printing
+    Floats must be in [0, 1].
+
+    Example:
+        p = PPSeq(bits_per_number=32)
+        a = [.4, .12, .33, .16000]
+        print(p(a))
+    prints
+        [0.4000000000, 0.1200000000, 0.3300000000, 0.1600000000]
+    '''
     def __init__(self, bits_per_number=8):
         self._bpn = bits_per_number
     def __call__(self, seq, **kw):
@@ -1480,7 +1488,7 @@ class PPSeq:
         else:
             assert(0 <= x <= 1)
             # Get the number of decimal places to display this float
-            w = math.ceil(-math.log10(1/(2**self._bpc - 1)))
+            w = math.ceil(-math.log10(1/(2**self._bpn - 1)))
             return f"{x:{w + 2}.{w}f}"
     def is_monotype(self, seq):
         'Return True if seq contains only one supported type'
@@ -1497,20 +1505,29 @@ class PPSeq:
                 return False
         return True
 class Now:
-    'Use time(), date(), cdate() methods'
+    '''Example:
+        s = Now()
+        print(s.time())
+        print(s.date())
+        print(s.cdate())
+    prints
+        3:20pm
+        11 Oct 2024
+        11Oct2024
+    '''
     def __init__(self):
         self._t = t = time.localtime()
-        dy = self._rmz(time.strftime("%d", t))
+        dy = self.remove_leading_zero(time.strftime("%d", t))
         mo = time.strftime("%b", t)
         yr = time.strftime("%Y", t)
         self._dt = dy, mo, yr
-    def _rmz(self, s):
+    def remove_leading_zero(self, s):
         if s[0] == "0":
             return s[1:]
         return s
     def time(self):
         t = self._t
-        hr = self._rmz(time.strftime("%I", t))
+        hr = self.remove_leading_zero(time.strftime("%I", t))
         min = time.strftime("%M", t)
         ampm = time.strftime("%p", t).lower()
         return f"{hr}:{min}{ampm}"
@@ -1542,6 +1559,8 @@ def DoubleFactorial(n):
 def Cumul(seq, check=False):
     '''Return the cumulative sum list of the given sequence seq.  If check is True, verify the last
     element of the returned array is equal to the sum of all the elements in seq.
+
+    Example:  Cumul([1, 2, 3, 4, 7]) returns [1, 3, 6, 10, 17]
     '''
     cumul, dq = [], deque(seq)
     while dq:
@@ -1553,11 +1572,12 @@ def Cumul(seq, check=False):
 def ParseComplex(numstring):
     '''numstring contains a string representing a complex number that must be of the form 'x+yi';
     the complex unit can be i or j.  Return (real, imag) where real and imag are the real and
-    imaginary strings of the complex number.
+    imaginary strings of the complex number.  Space characters can be anywhere in the string, as
+    they are removed.
     '''
     # The method uses a regular expression to recognize the string forms of integers or real
     # numbers.  Applied to the string twice, it picks out the real and imaginary parts.
-    str = numstring.lower().strip().replace("i", "j").replace(",", ".")
+    str = numstring.lower().strip().replace("i", "j").replace(",", ".").replace(" ", "")
     msg = f"{numstring!r} not a valid complex number string"
     # Check for illegal characters
     # xx This could be modified to allow for ',' as a radix
@@ -2275,12 +2295,14 @@ if __name__ == "__main__":
                 ("-0", ("-0", "")),
                 ("1", ("1", "")),
                 ("-1", ("-1", "")),
+                ("- 1", ("-1", "")),
                 ("0.", ("0.", "")),
                 ("1.", ("1.", "")),
                 ("-1.", ("-1.", "")),
                 (".0", (".0", "")),
                 (".1", (".1", "")),
                 ("-.1", ("-.1", "")),
+                ("- . 1", ("-.1", "")),
                 # Imaginary numbers
                 ("0j", ("", "0")),
                 ("+0j", ("", "+0")),
@@ -2290,6 +2312,7 @@ if __name__ == "__main__":
                 ("2.2j", ("", "2.2")),
                 ("+2.2j", ("", "+2.2")),
                 ("-2.2j", ("", "-2.2")),
+                ("- 2 . 2 j", ("", "-2.2")),
                 # Complex numbers
                 ("0+i", ("0", "1")),
                 ("0-i", ("0", "-1")),
@@ -2305,6 +2328,7 @@ if __name__ == "__main__":
                 ("-1.33-37i", ("-1.33", "-37")),
                 ("+1.33+37i", ("+1.33", "+37")),
                 ("+1.33-37i", ("+1.33", "-37")),
+                ("+ 1.33 - 37 i", ("+1.33", "-37")),
             ):
             got = ParseComplex(input)
             if got != expected:
