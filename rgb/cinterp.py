@@ -1,5 +1,14 @@
 '''
 Interpolate between colors and show on console
+
+Examples to try:
+
+    '#000000' 8 '#ffffff'
+        Shows 8 interpolations between black and white.
+
+    '#ff0000' 10 '#00ff00' 10 '#0000ff'
+        Shows 10 interpolations between red and green, then 10 between green and blue.
+
 '''
  
 if 1:  # Copyright, license
@@ -24,16 +33,18 @@ if 1:   # Standard imports
     from pdb import set_trace as xx
 if 1:   # Custom imports
     from wrap import wrap, dedent
-    from clr import Clr
-    from rgb import ColorNum
+    if 0:
+        from clr import Clr
+        from rgb import ColorNum
+    else:
+        from color import Color, t
     from util import fDistribute
     if 0:
-
         import debug
         debug.SetDebugger()
 if 1:   # Global variables
     ii = isinstance
-    c = Clr()
+    #c = Clr()
 if 1:   # Utility
     def Error(*msg, status=1):
         print(*msg, file=sys.stderr)
@@ -84,30 +95,30 @@ if 1:   # Core functionality
             raise ValueError(f"'{s}' is an improper hex form")
     def InterpretArgument(x):
         '''x is a string from the command line representing a color.
-        Return a ColorNum object.
+        Return a Color object.
         '''
         if x[0] in "@#$":       # Hex string
-            cn = ColorNum(x)
+            c = Color(x)
         else:                   # Must be a tuple or list
             y = eval(x)
-            cn = ColorNum(x)
-        return cn
+            c = Color(x)
+        return c
     def Process(s1, n, s2):
         cn1 = InterpretArgument(s1)
         cn2 = InterpretArgument(s2)
         #print(f"Process('{cn1.RGB}', {n}, '{cn2.RGB}')")
         typ = d["typ"]
-        for t in fDistribute(n):
-            cn3 = cn1.interpolate(cn2, t, typ)
+        for u in fDistribute(n):
+            cn3 = cn1.interpolate(cn2, u, typ)
             # Get hex string to display
             if typ == "rgb":
-                s = cn3.rgbhex
+                s = cn3.xrgb
             elif typ == "hsv":
-                s = cn3.hsvhex
+                s = cn3.xhsv
             else:
-                s = cn3.hlshex
+                s = cn3.xhls
             # Display this string in this color
-            print(f"{c(cn3.rgbhex)}{s}{c.n} ", end="")
+            print(f"{t(cn3.xrgb)}{s}{t.n} ", end="")
         print()
 
 if __name__ == "__main__":

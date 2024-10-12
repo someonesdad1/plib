@@ -126,10 +126,12 @@ if 1:   # Core functionality
             # early XWindows systems.
 
             from color import Color
-                # Fields are:
-                #   Attribution number (indexes into attrdict)
-                #   Text name of color
-                #   Color object holding the color data 
+
+            # Fields are:
+            #   Attribution number (indexes into attribution_dict)
+            #   Text name of color
+            #   Color object holding the color data 
+
             '''))
             print("color_data = [")
             last = (1, 0, 0)
@@ -149,7 +151,7 @@ if 1:   # Core functionality
         # string.  These python scripts are in the 
         # {myname.parent} directory.
         '''))
-        print("attr_data = {")
+        print("attribution_dict = {")
         for i in attrdict:
             print(f"    {i}: {attrdict[i]},")
         print("}")

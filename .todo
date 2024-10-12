@@ -1,5 +1,20 @@
 Active:  /plib/.todo
 
+    - color.py
+        - colorhues.py needs attribution; it references the old kolor directory
+        - /plib/rgb
+            - Change /plib/rgb to /plib/color and edit the contents to provide useful
+              background/reference stuff to /plib/color.py.
+            - The scripts in this directory all import clr, but should use color.py
+        - TRM needs a way to ensure all attribute access returns "" when .on is False.
+            - https://realpython.com/python-getter-setter/
+            - Probably the easiest way is to use __getattr__ and __setattr__ in the above web
+              page's example of a point
+        - Add support to /plib/g/g.py
+        - Use "grep -l '\<fg\>' *.py" to identify all files in /plib tree that use the old style
+          color.py calls and update them to the modern form.
+        - Obsolete rgb.py and any other old color stuff
+
     - diet
         - Hacker's diet is sound, but too wordy.  I also don't care to use spreadsheets.  However,
           the moving average plot of weight is a good idea and this would likely best be done by
@@ -676,18 +691,6 @@ Inactive
         - Move to /plib/zn.py.
         - Zn class to give you n-bit signed & unsigned integers.
 
-    - color.py
-        - TRM needs a way to ensure all attribute access returns "" when .on is False.
-            - https://realpython.com/python-getter-setter/
-            - Probably the easiest way is to use __getattr__ and __setattr__ in the above web page's
-              example of a point
-        - Add support to /plib/g/g.py
-        - Use "grep -l '\<fg\>' *.py" to identify all files in /plib tree that use the old style
-          color.py calls and update them to the modern form.
-        - Obsolete rgb.py and any other old color stuff
-        - Change /plib/rgb to /plib/color and edit the contents to provide useful
-          background/reference stuff to /plib/color.py.
-
     - Find a decent thesaurus
 
     - gawk & mawk
@@ -785,6 +788,11 @@ Inactive
           would produce a pretty-printed dump of the attributes.
 
     - Shamrock survey
+        - Triangulation
+            - Probably the best method of surveying would be to use the laser distance meter.  Find
+              a good target and mount the meter on a tripod.  My older meter needs to work in lower
+              light conditions to get decent distances (a few tens of m), but this isn't a hardship
+              as long as a triangulation grid is constructed.
         - Benchmarks
             - bma = Primary = in center of Edna/Shamrock intersection
             - Secondary

@@ -17,19 +17,20 @@ datafiles = \
 	xfree_rgb.py \
 	xkcd_rgb.py
 
-${file}: ${datafiles} ${tmp} ${script}
-	${PYTHON} ${script} ${tmp} >${file}
+${file}: clean ${datafiles} ${tmp} ${script}
+	python ${script} ${tmp} >${file}
+	#rm ${tmp}
 
 ${tmp}: ${datafiles}
-	${PYTHON} g_lib_rgb.py >${tmp}
-	${PYTHON} medium_color_database.py >>${tmp}
-	${PYTHON} name_that_color.py >>${tmp}
-	${PYTHON} raveling.py >>${tmp}
-	${PYTHON} resene_pencils.py >>${tmp}
-	${PYTHON} resenecolors.py >>${tmp}
-	${PYTHON} wikipedia_list.py >>${tmp}
-	${PYTHON} xfree_rgb.py >>${tmp}
-	${PYTHON} xkcd_rgb.py >>${tmp}
+	python g_lib_rgb.py >${tmp}
+	python medium_color_database.py >>${tmp}
+	python name_that_color.py >>${tmp}
+	python raveling.py >>${tmp}
+	python resene_pencils.py >>${tmp}
+	python resenecolors.py >>${tmp}
+	python wikipedia_list.py >>${tmp}
+	python xfree_rgb.py >>${tmp}
+	python xkcd_rgb.py >>${tmp}
 
 clean:
-	rm ${tmp}
+	rm -f ${tmp}

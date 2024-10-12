@@ -57,7 +57,8 @@ Classes to help with color use in terminals
         # Color instance) and an optional attribute (e.g., for italics).  The t.n value means to
         # return to the default color.  You can store escape sequences as attributes:
 
-            t.err = t("redl") print(f"{t.err}Error:  you need to fix this{t.n}")
+            t.err = t("redl")
+            print(f"{t.err}Error:  you need to fix this{t.n}")
 
         # You can use t.out and t.print to avoid having to reset to the default color.  t.out is
         # the same as t.print but without the newline.
@@ -95,7 +96,7 @@ Classes to help with color use in terminals
                   handy for e.g.  colorizing a set of lines in a file of color specifiers such as
                   an X11 rgb.txt file.
         - Distance between two colors
-            - RGB, HSV, HLS known to be nonlinear wrt perception
+            - RGB, HSV, HLS known to be nonlinear with respect to perception
             - https://www.compuphase.com/cmetric.htm gives a practical formula he says is close to
               L*u*v* space with modified lightness curve (it's a weighted Euclidean distance in RGB
               space).   Let two colors be specified by (R1, G1, B1) and (R2, G2, B2) where each
@@ -1594,12 +1595,14 @@ class RegexpDecorate:
                 print(file=file)
         return True
 
-# Legacy color.py support:  define the environment variable 'klr' to be a
-# nonempty string to enable this section (this is done by
-# default).  Legacy code should then work.  You can then work on porting
-# the old code to the new color.py functionality and quickly test that it
-# no longer needs the legacy code by setting klr="".
-klr = bool(os.environ.get("klr", "on"))
+# Legacy color.py support:  define the environment variable 'klr' to be a nonempty string to
+# enable this section.  # Legacy code should then work.  You can then work on porting the old code
+# to the new color.py functionality and quickly test that it no longer needs the legacy code by
+# setting klr="".
+if 0:
+    klr = bool(os.environ.get("klr", "on"))
+else:
+    klr = bool(os.environ.get("klr", False))
 if klr:   # Legacy code support
     '''This is intended to support the old color.py file and the
     approximately 80 files that used it under /plib.  The intent is to
