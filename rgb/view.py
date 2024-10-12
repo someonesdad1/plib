@@ -32,9 +32,12 @@ if 1:   # Standard imports
 if 1:   # Custom imports
     from rgbdata import color_data
     from wrap import wrap, dedent
-    #from clr import Clr
     from color import Color, t
+    #from clr import Clr
     #from rgb import Color
+    if 1:
+        import debug
+        debug.SetDebugger()
 if 1:   # Global variables
     P = pathlib.Path
     ii = isinstance
@@ -46,61 +49,60 @@ if 1:   # Utility
     def Usage(status=1):
         print(dedent(f'''
         Usage:  {sys.argv[0]} [options] sort_order
-          Print the colors' hex string to stdout wrapped in its 24-bit ANSI
-          escape code.  RGB hex values are shown in lower case; upper case
-          is used for HSV.
-
-          The sort order is given by the order of the letters of "hsv" or
-          "rgb".  "hvs" means to sort by hue first, followed by value, and
-          finally by saturation.  You only need to supply the first two
-          letters.
+          Print the colors' hex string to stdout wrapped in its 24-bit ANSI escape code.  RGB hex
+          values are shown in lower case; upper case is used for HSV.
+          
+          The sort order is given by the order of the letters of "rgb", "hsv", or "HLS".
+          Unfortunately, the 's' in 'hls' and 'hsv' mean different things, though they both are
+          described by 'saturation'.  Example: "hvs" means to sort by hue first, followed by
+          value, and finally by saturation.
         Options:
-            -h      Show HSV values (upper case)
+            -d      Truncate data for debugging
+            -h      Show hsv values
+            -l      Show HLS values
+            -r      Show rgb values (default)
         '''))
         exit(status)
     def ParseCommandLine(d):
         d["-d"] = False     # Debug:  truncate the data for debugging
-        d["-H"] = False     # Show HSV values
-        d["-h"] = False     # Sort by HSV
-        d["-R"] = False     # Show RGB values
-        d["-r"] = False     # Sort by RGB
+        d["-h"] = False     # Show hsv values
+        d["-l"] = False     # Show HLS values
+        d["-r"] = False     # Show rgb values
         try:
-            opts, args = getopt.getopt(sys.argv[1:], "dHhRr", "help")
+            opts, args = getopt.getopt(sys.argv[1:], "dhlr")
         except getopt.GetoptError as e:
             print(str(e))
             exit(1)
         for o, a in opts:
-            if o[1] in list("dHhRr"):
+            if o[1] in list("dhlr"):
                 d[o] = not d[o]
         if not args:
             Usage()
+        if not d["-h"] and not d["-l"] and not d["-r"]:
+            d["-r"] = True
         sort_order = CheckSortLetters(args[0])
         return sort_order
 if 1:   # Core functionality
     def CheckSortLetters(letters):
-        allowed = [list("bgr"), list("hsv")]
-        s = letters.lower()
-        if list(sorted(s)) not in allowed:
-            Error("sort_order must be orderings of 'rgb' or 'hsv'")
-        return letters.lower()
+        allowed = [set("rgb"), set("hsv"), set("HLS")]
+        s = set(letters)
+        if s not in allowed:
+            Error("sort_order must be orderings of 'rgb', 'hsv', or 'HLS'")
+        return letters
     def GetColors(sort_order):
         'Return a sorted list of rgb.Color objects'
         colors = [i[2] for i in color_data]
-        breakpoint() #xx
         if d["-d"]:
             colors = colors[:50]
         # Sort the data
-        if "r" in sort_order:
-            pass #xx
-        else:
-            pass #xx
-#yy
-        raise Exception("yy")
-        return list(sorted(colors, key=f))
+        sorted_colors = list(Color.Sort(colors, keys=sort_order))
+        return sorted_colors
     def DumpColors(colors):
         size = len(colors)
         w = int(os.environ.get("COLUMNS", "80"))
-        N = w//7
+        # Each output string (e.g. '#ff7f00 ') takes 8 characters, so N will be the number of
+        # these we can print on a single line before needing a newline.
+        N = w//8
         count = 0
         used = set()
         while colors:
@@ -109,14 +111,15 @@ if 1:   # Core functionality
             if color in used:
                 continue
             used.add(color)
-            if d["-H"]:
-                s = color.hsvhex
-            elif d["-R"]:
-                s = color.hex
+            if d["-h"]:
+                s = color.xhsv
+            elif d["-l"]:
+                s = color.xhls
+            elif d["-r"]:
+                s = color.xrgb
             else:
-                raise Exception("-H or -R should have been defined")
-            #print(f"{c('#' + s)}{s}{c.n}", end=" ")
-            print(f"{t('#' + s)}{s}{t.n}", end=" ")
+                raise Exception("-h or -l or -r should have been defined")
+            print(f"{t(s)}{s}{t.n}", end=" ")
             count += 1
             if count and not (count % N):
                 print()

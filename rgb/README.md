@@ -18,18 +18,11 @@ There are 10637 colors in the list in rgbdata.py, far too many names.  Over
 
 # cinterp.py
 
-This script lets you supply arguments in the form 'c1 n c2 m c3 ...' where
-the c's are color specifiers like '#121ef45' and n, m, etc. are integers.
-The script then prints n hex specifiers that interpolate between c1 and c2
-and analogously for the other colors.  You can use the options -@, -#, or
--$ to determine if the interpolation takes place in HSV, RGB, or HLS space,
+This script lets you supply arguments in the form 'c1 n c2 m c3 ...' where the c's are color
+specifiers like '#121ef4' and n, m, etc. are positive integers.  The script then prints n hex
+specifiers that interpolate between c1 and c2 and analogously for the other colors.  You can use
+the options -@, -#, or -$ to determine if the interpolation takes place in HSV, RGB, or HLS space,
 respectively.
-
-Example:  python cinterp.py '#000000' 8 '#ffffff' shows eight grays
-between black and white.  The values shown on the screen are:
-
-\#000000 #242424 #484848 #6d6d6d #919191 #b6b6b6 #dadada #ffffff
-
 
 # view.py
 
