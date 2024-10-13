@@ -59,6 +59,7 @@ SpeedOfSound          Calculate the speed of sound as func of temperature
 Spinner               Console spinner to show activity
 StringToNumbers       Convert a string to a sequence of numbers
 TempConvert           Convert a temperature
+TemplateRound         Round a float to a template number
 Time                  Returns a string giving local time and date
 TranslateSymlink      Returns what a cygwin symlink is pointing to
 Unique                Generator to return only the unique elements in sequence
@@ -846,6 +847,27 @@ def TempConvert(t, in_unit, to_unit):
             (tou == "f" and T < -r)):
         raise e
     return T
+def TemplateRound(x, template, round_up=True):
+
+    '''Round a float to a template number.  The algorithm is to determine how many template values
+    are in x.  You can choose to round up or down.
+
+    Examples:
+        TemplateRound(12, 10, round_up=True) = 20
+        TemplateRound(12, 10, round_up=False) = 10
+
+    '''
+    if not x:
+        return x
+    sign = 1 if x >= 0 else -1
+    if sign < 0:
+        round_up = not round_up
+    y = int(abs(x/template) + 0.5)*abs(template)
+    if round_up and y < abs(x):
+        y += template
+    elif not round_up and y > abs(x):
+        y -= template
+    return sign*y
 def ConvertToNumber(s, handle_i=True):
     '''This is a general-purpose routine that will return a python number for a string if it is
     possible.  The basic logic is:
@@ -2338,6 +2360,22 @@ if __name__ == "__main__":
                 exit(1)
         # Illegal forms
         raises(ValueError, ParseComplex, "x")
+    def Test_TemplateRound():
+        a, t = 463.77, 0.1
+        Assert(TemplateRound(-a, t, round_up=True) == -463.7)
+        Assert(TemplateRound(-a, t, round_up=False) == -463.8)
+        Assert(TemplateRound(a, t, round_up=True) == 463.8)
+        Assert(TemplateRound(a, t, round_up=False) == 463.7)
+        a, t = 463.77, 1
+        Assert(TemplateRound(-a, t, round_up=True) == -463)
+        Assert(TemplateRound(-a, t, round_up=False) == -464)
+        Assert(TemplateRound( a, t, round_up=True) == 464)
+        Assert(TemplateRound( a, t, round_up=False) == 463)
+        a, t = 463.77, 10
+        Assert(TemplateRound(-a, t, round_up=True) == -460)
+        Assert(TemplateRound(-a, t, round_up=False) == -470)
+        Assert(TemplateRound( a, t, round_up=True) == 470)
+        Assert(TemplateRound( a, t, round_up=False) == 460)
     check_names = False
     if check_names:
         mnames, delete = set(dir()), []

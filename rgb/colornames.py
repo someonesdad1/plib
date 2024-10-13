@@ -1,4 +1,11 @@
 '''
+
+This script worked when I used the clr.py stuff, but that script has disappeared (replaced by
+color.py) and this script is no longer worth spending the time to translate between the
+implementations.
+
+--------------------------------------------------------------------------- 
+
 Shows some thoughts about color naming
 '''
 import sys
@@ -14,7 +21,7 @@ from wrap import dedent
 from columnize import Columnize
 from frange import frange
 from wl2rgb import wl2rgb, rgb2wl
-if 1:
+if 0:
     import debug
     debug.SetDebugger()
 
@@ -299,14 +306,17 @@ def HueGradations():
     if 0:
         print("HLS by name")
         ShowHLS(n, use_hex=False)
-    print("HLS by RGB hex value")
-    ShowHLS(n, use_hex=True)
+        print("HLS by RGB hex value")
+        ShowHLS(n, use_hex=True)
     if 0:
         print("HSV by name")
         ShowHSV(n, use_hex=False)
-    print("HSV by RGB hex value")
-    ShowHSV(n, use_hex=True)
-    print(dedent('''
+        print("HSV by RGB hex value")
+        ShowHSV(n, use_hex=True)
+    print(dedent(f'''
+
+    {t.ornl}Bugs, so the previous stuff isn't printed.{t.n}
+
     The two methods give similar results.  Sorting the printed RGB
     values show that they use similar but not identical colors.  My
     preference is for the HLS set of colors, so that's the method I
@@ -317,6 +327,7 @@ colorbands = '''v380 v396 v412 b425 b439 b453 c465 c479 c490
                 g500 g520 g540 y550 y565 y590 o600 o614 o628
                 r632 r682 r732'''.split()
 def FirstChoice(n):
+    print()
     print(dedent(f'''
     Here's a printout of a set of colors, selected as shown above by an
     algorithm.  I've chosen to use {n} levels of lightness and
@@ -325,12 +336,12 @@ def FirstChoice(n):
     hex number shown is HLS and the L value of 0xff is not used.
 
     '''))
-    R = iDistribute(0, 255, n + 1)   # The 1 is added to ignore zero
+    R = list(iDistribute(n + 1, 0, 255))   # The 1 is added to ignore zero
     if R[0] == 0:
         R = R[1:]   # Remove the first element of 0
     for name in colorbands:
         colornum = GetBaseColornum(name)
-        hls = list(colornum.hls)
+        hls = list(colornum.ihls)
         s = colornum.xrgb
         print(f"{t(s)}{name}{t.n} ", end="")
         for l in R:
@@ -339,14 +350,14 @@ def FirstChoice(n):
             hls[1] = l/255  # Convert to decimal
             rgb = colorsys.hls_to_rgb(*hls)
             n = ColorNum(*rgb)
-            hls1 = list(n.hls)
+            hls1 = list(n.ihls)
             for s in R:
                 li = R.index(l)
                 si = R.index(s)
                 hls1[2] = s/255
                 rgb = colorsys.hls_to_rgb(*hls1)
                 m = ColorNum(*rgb)
-                print(f"{t(m.xrgb)}{m.hlshex}{t.n} ", end="")
+                print(f"{t(m.xrgb)}{m.xhls}{t.n} ", end="")
         print()
     print(dedent(f'''
 
@@ -357,17 +368,17 @@ def FirstChoice(n):
     '''))
     d = {
         "blk": ColorNum(*(0, 0, 0)).xhls,
-        "lwht": ColorNum(*(1, 1, 1)).xhls,
-        "lblu": ColorNum(*(0, 0, 1)).xhls,
-        "lyel": ColorNum(*(1, 1, 0)).xhls,
-        "lcyn": ColorNum(*(0, 1, 1)).xhls,
-        "lmag": ColorNum(*(1, 0, 1)).xhls,
+        "whtl": ColorNum(*(1, 1, 1)).xhls,
+        "blul": ColorNum(*(0, 0, 1)).xhls,
+        "yell": ColorNum(*(1, 1, 0)).xhls,
+        "cynl": ColorNum(*(0, 1, 1)).xhls,
+        "magl": ColorNum(*(1, 0, 1)).xhls,
     }
     print("  ", end="")
-    for i in "blk lwht lblu lyel lcyn lmag".split():
+    for i in "blk whtl blul yell cynl magl".split():
         print(f"{t(i)}{i:7s}{t.n}", end=" ")
     print()
-    for i in "blk lwht lblu lyel lcyn lmag".split():
+    for i in "blk whtl blul yell cynl magl".split():
         print(f"{t(i)}{d[i]}{t.n}", end=" ")
     print()
     ngray = 12

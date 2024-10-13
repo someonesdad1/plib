@@ -4,12 +4,10 @@ Print out a table of colors (using RGB) representing visible colors from
 '''
 from columnize import Columnize
 from wrap import dedent
-from rgb import ColorNum
-from clr import Clr
-c = Clr(always=True)
+from color import t, Color
 def wl2rgb(nm, gamma=0.8):
-    '''Convert nm (light wavelength in nm) into a ColorNum object using a
-    linear approximation.  The ColorNum object represents an RGB color.
+    '''Convert nm (light wavelength in nm) into a Color object using a
+    linear approximation.  The Color object represents an RGB color.
     gamma is used for a gamma adjustment.  nm must be on [380, 780].
     '''
     # Translation of Dan Bruton's FORTRAN code from
@@ -45,28 +43,24 @@ def wl2rgb(nm, gamma=0.8):
         b = [float(i) for i in a]
     # Make sure the numbers are on [0, 1]
     assert(all([0 <= i <=1 for i in b]))
-    return ColorNum(b)
-def SteppedWavelengths(nm_step, compact=False):
+    return Color(*b)
+def SteppedWavelengths(nm_step):
     gamma = 0.8
     print(f"Wavelength in steps of {nm_step} nm to RGB colors")
     out, count = [], 0
-    if not compact:
-        print(f"  wl in nm, RGB hex, RGB integer, HSV integer")
     for nm in range(380, 781, nm_step):
         colornum = wl2rgb(nm, gamma=gamma)
-        s = colornum.rgbhex
-        t = colornum.RGB
-        u = colornum.HSV
-        if compact:
-            out.append(f"{c(s)}{nm}{c.n}")
-        else:
-            out.append(f"{c(s)}{nm} {s!s:7s}   {fi(t)}   {fi(u)}{c.n}")
+        s = colornum.xrgb
+        T = colornum.irgb
+        u = colornum.ihsv
+        out.append(f"{t(s)}{nm}{t.n}")
         count += 1
-    if compact:
-        o = Columnize(out, indent=" "*2, horiz=True, columns=11)
-    else:
-        o = out
+        o = Columnize(out, indent=" "*2, horiz=True, columns=15)
     for line in o:
         print(line)
     print(f"{count} wavelengths printed")
-SteppedWavelengths(5, compact=True)
+SteppedWavelengths(2)
+print()
+SteppedWavelengths(5)
+print()
+SteppedWavelengths(10)

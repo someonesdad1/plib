@@ -49,23 +49,25 @@ if 1:   # Imports
     from pdb import set_trace as xx
 if 1:   # Custom imports
     from wrap import dedent
-    # We'll try to import the color module to highlight the utilities by
-    # their language.
-    have_color = False
-    try:
-        import color as c
-        have_color = True
-    except ImportError:
-        class C:    # Dummy object that will swallow calls to the color module
-            def __setattr__(self, attr, x):
-                pass
-            def __getattr__(self, attr):
-                return None
-            def fg(self, *p):
-                pass
-            def normal(self):
-                pass
-        c = C()
+    from color import t
+    if 0:
+        # We'll try to import the color module to highlight the utilities by
+        # their language.
+        have_color = False
+        try:
+            import color as c
+            have_color = True
+        except ImportError:
+            class C:    # Dummy object that will swallow calls to the color module
+                def __setattr__(self, attr, x):
+                    pass
+                def __getattr__(self, attr):
+                    return None
+                def fg(self, *p):
+                    pass
+                def normal(self):
+                    pass
+            c = C()
 if 1:   # Global variables
     sep = "@@"          # Separates datafile records
     nl = "\n"
@@ -73,16 +75,10 @@ if 1:   # Global variables
     # Define colors for language types.  Languages not in this list won't
     # be highlighted.
     language_colors = {  # Color, name to display
-        #"algorithm": ((c.lwhite, c.lblue), "Algorithm"),
-        #"awk": (c.red, "awk"),
-        "c": (c.yellow, "C"),
-        #"c++": (c.lred, "C++"),
-        #"java": (c.cyan, "Java"),
-        "normal": ((c.white, c.black), ""),
-        #"perl": (c.magenta, "Perl"),
-        "python": (c.lcyan, "python"),
-        "sh": (c.lgreen, "sh"),
-        "text": (c.white, "text"),
+        "c": ("yell", "C"),
+        "python": ("cynl", "python"),
+        "sh": ("grnl", "sh"),
+        "text": ("wht", "text"),
     }
 class Record(object):
     '''Holds the data from one record.
@@ -200,20 +196,16 @@ def ShowContents(records, d):
     where name, category, description, and language are strings and
     lines is a sequence of strings.
     '''
-    if have_color:
-        # print the language names in their colors
-        L = list(language_colors.keys())
-        L.sort()
-        for language in L:
-            if language == "normal":
-                continue
-            else:
-                color, name = language_colors[language]
-                c.fg(color)
-                print(name, end=" ")
-                c.normal()
-                print(" ")
-        print()
+    # Print the language names in their colors
+    L = list(language_colors.keys())
+    L.sort()
+    for language in L:
+        if language == "normal":
+            continue
+        else:
+            color, name = language_colors[language]
+            t.print(f"{t(color)}{name}")
+    print()
     # Get maximum name length
     maxlen = max([len(name) for name in records])
     # Create a dictionary keyed by categories so we can list by
@@ -231,21 +223,15 @@ def ShowContents(records, d):
         print("%s" % category)
         category_records = sorted(by_category[category], key=lambda x: x.name)
         for r in category_records:
-            if have_color:
-                try:
-                    lang_color, lang_name = language_colors[r.language]
-                except KeyError:
-                    s = ["Language '%s' doesn't have an associated color"
-                         % language]
-                    s += ["  in record for '%s'" % r.name]
-                    Error(nl.join(s))
-                c.fg(lang_color)
-                print("  %-*s " % (maxlen, r.name), end=" ")
-                c.normal()
-                print("%s" % r.description)
-            else:
-                print("  %-*s " % (maxlen, r.name), end=" ")
-                print("%s" % r.description)
+            try:
+                lang_color, lang_name = language_colors[r.language]
+            except KeyError:
+                s = ["Language '%s' doesn't have an associated color"
+                        % language]
+                s += ["  in record for '%s'" % r.name]
+                Error(nl.join(s))
+            print(f"{t(lang_color)}  %-*s " % (maxlen, r.name), end=" ")
+            print(f"{t.n}%s" % r.description)
 def GetKey(key, records):
     '''Search for key as a beginning string of record names.  If not
     unique or can't be found, print error message and stop.  Return
