@@ -856,11 +856,8 @@ def TempConvert(t, in_unit, to_unit):
             (tou == "f" and T < -r)):
         raise e
     return T
-
 def TemplateRound(x, template, up=None):
-
     '''Round a number to a template number.  
-
         - The returned value's type will be the same as template's type
         - template must be a number greater than zero
         - x/template must be a meaningful expression (x will be converted to template's type)
@@ -870,35 +867,35 @@ def TemplateRound(x, template, up=None):
         - If up is False, then the fractional part is always rounded towards zero
         - Supported types for template are int, float, flt, decimal.Decimal, fraction.Fraction,
           and mpmath.mpf
-
+    
     The algorithm determines how many template values are in x.  It is descended from the BASIC
     algorithm on pg 435 of the 31 Oct 1988 issue of "PC Magazine":
-    
+     
         DEF FNRound(Amount, Template) = SGN(Amount)*INT(0.5 + ABS(Amount)/Template)*Template
-
+    
     Examples:
         TemplateRound(12, 10) = 10
         TemplateRound(12, 10, up=True) = 20
         TemplateRound(15, 10) = 20
         TemplateRound(15, 10, up=False) = 10
-
+    
         The following example shows that this "rounding" can lead to numbers that don't look
         rounded.  
-
+    
             TemplateRound(1.6535, 0.1) = 1.7000000000000002
             TemplateRound(1.6535, flt(0.1)) = 1.7
             repr(TemplateRound(1.6535, flt(0.1))) = '1.7000000000000002'
-
+    
         The root cause of the problem is that there's no floating point binary number equal to
         1.7.  Use Decimal or mpmath numbers for such a case:
-
+    
             TemplateRound(Decimal("1.6535"), Decimal("0.1")) = 1.7
             TemplateRound(mpmath.mpf("1.6535"), mpmath.mpf("0.1")) = 1.7
-
+    
         You can use fractions.Fraction too:
-
+    
             TemplateRound(1.6535, Fraction(1, 8)) = 13/8
-
+    
         which is correct, as 12/8 is 1.5 and 0.1535 is about 0.03 larger than 1/8.
     '''
     # Check inputs
@@ -918,14 +915,6 @@ def TemplateRound(x, template, up=None):
         elif not up and y > abs(tt(x)):     # Round towards zero
             y -= template
     return sign*y
-
-if 0:
-    f, w = TemplateRound, 8
-    template = 0.1
-    x = 1.6535
-    print(f(mpmath.mpf("1.6535"), mpmath.mpf("0.1")))
-    exit()
-
 def ConvertToNumber(s, handle_i=True):
     '''This is a general-purpose routine that will return a python number for a string if it is
     possible.  The basic logic is:
@@ -2477,7 +2466,6 @@ if __name__ == "__main__":
     if check_names:
         mnames, delete = set(dir()), []
         ignore = '''
-
             AlmostEqual
             ascii_letters
             Assert
@@ -2552,7 +2540,6 @@ if __name__ == "__main__":
             __doc__
             __annotations__
             __file__
-
         '''.split()
         for name in mnames:
             for s in ignore:
