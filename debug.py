@@ -73,7 +73,6 @@ if 1:   # Header
         from collections import deque
         from pdb import set_trace as xx 
     # Custom imports 
-        from util import IsIterable
         from wrap import dedent
         from color import Color, Trm, TRM as t
         import dpdb
@@ -152,7 +151,6 @@ def watch(variables, color=None, stream=sys.stdout):
     See http://code.activestate.com/recipes/52314; also
     pg 427 of Python Cookbook.
     '''
-    assert(IsIterable(variables)) 
     assert(color is None or ii(color, str) or ii(color, Color))
     assert(hasattr(stream, "write"))
     def GetVariableNames(s):

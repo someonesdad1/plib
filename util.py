@@ -5,7 +5,7 @@ ToDo
     - Debug class should use print()'s arguments
     - Document Now class
 
-Miscellaneous routines in python:
+Miscellaneous routines in python: @start
  
 AcceptableDiff        Returns False if two numbers are not equal
 Ampacity              Returns NEC ampacity of copper wire
@@ -69,58 +69,67 @@ VisualCount           Return a list representing a histogram of a sequence
 WindChillInDegF       Calculate wind chill given OAT & wind speed
 
 '''
-if 1:  # Copyright, license
-    # These "trigger strings" can be managed with trigger.py
-    #∞copyright∞# Copyright (C) 2014 Don Peterson #∞copyright∞#
-    #∞contact∞# gmail.com@someonesdad1 #∞contact∞#
-    #∞license∞#
-    #   Licensed under the Open Software License version 3.0.
-    #   See http://opensource.org/licenses/OSL-3.0.
-    #∞license∞#
-    #∞what∞#
-    # <utility> Contains over 60 utility functions.
-    #∞what∞#
-    #∞test∞# run #∞test∞#
-    pass
-if 1:   # Imports
-    from collections import deque, defaultdict, OrderedDict
-    from collections.abc import Iterable
-    from decimal import Decimal
-    from fractions import Fraction
-    from heapq import nlargest
-    from itertools import chain, combinations, islice, groupby
-    from itertools import cycle, zip_longest, product
-    from operator import itemgetter
-    from pathlib import Path as P
-    from random import randint, seed
-    from reprlib import repr as Repr
-    from string import ascii_letters, digits as DIGITS, punctuation
- 
-    import cmath
-    import glob
-    import hashlib
-    import math
-    import os
-    import platform
-    import random
-    import re
-    import struct
-    import subprocess
-    import sys
-    import tempfile
-    import time
-    if platform.system() == "Windows":
-        import msvcrt
- 
-if 1:   # Custom imports
-    from dpmath import AlmostEqual, SignSignificandExponent, signum
-    from frange import frange
-if 1:   # Global variables
-    ii = isinstance
-    nl = "\n"
-    # Note:  this choice of a small floating point number may be
-    # wrong on a system that doesn't use IEEE floating point numbers.
-    eps = 1e-15
+if 1:  # Header
+    if 1:  # Copyright, license
+        # These "trigger strings" can be managed with trigger.py
+        #∞copyright∞# Copyright (C) 2014 Don Peterson #∞copyright∞#
+        #∞contact∞# gmail.com@someonesdad1 #∞contact∞#
+        #∞license∞#
+        #   Licensed under the Open Software License version 3.0.
+        #   See http://opensource.org/licenses/OSL-3.0.
+        #∞license∞#
+        #∞what∞#
+        # <utility> Contains over 60 utility functions.
+        #∞what∞#
+        #∞test∞# run #∞test∞#
+        pass
+    if 1:   # Imports
+        from collections import deque, defaultdict, OrderedDict
+        from collections.abc import Iterable
+        from decimal import Decimal
+        from fractions import Fraction
+        from heapq import nlargest
+        from itertools import chain, combinations, islice, groupby
+        from itertools import cycle, zip_longest, product
+        from operator import itemgetter
+        from pathlib import Path as P
+        from random import randint, seed
+        from reprlib import repr as Repr
+        from string import ascii_letters, digits as DIGITS, punctuation
+        import cmath
+        import glob
+        import hashlib
+        import math
+        import os
+        import platform
+        import random
+        import re
+        import struct
+        import subprocess
+        import sys
+        import tempfile
+        import time
+        if platform.system() == "Windows":
+            import msvcrt
+    if 1:   # Custom imports
+        from dpmath import AlmostEqual, SignSignificandExponent
+        from frange import frange
+        from f import flt
+        _have_mpmath = False
+        try:
+            import mpmath
+            _have_mpmath = True
+        except ImportError:
+            pass
+        if 1:
+            import debug        
+            debug.SetDebugger() 
+    if 1:   # Global variables
+        ii = isinstance
+        nl = "\n"
+        # Note:  this choice of a small floating point number may be
+        # wrong on a system that doesn't use IEEE floating point numbers.
+        eps = 1e-15
 def US_states():
     'Return dictionary of US state abbreviations'
     a = '''AK AL AR AZ CA CO CT DE FL GA HI IA ID IL IN KS KY LA MA MD ME MI MN MO MS MT NC ND NE
@@ -847,27 +856,76 @@ def TempConvert(t, in_unit, to_unit):
             (tou == "f" and T < -r)):
         raise e
     return T
-def TemplateRound(x, template, round_up=True):
 
-    '''Round a float to a template number.  The algorithm is to determine how many template values
-    are in x.  You can choose to round up or down.
+def TemplateRound(x, template, up=None):
+
+    '''Round a number to a template number.  
+
+        - The returned value's type will be the same as template's type
+        - template must be a number greater than zero
+        - x/template must be a meaningful expression (x will be converted to template's type)
+        - If up is None, then rounding is "simple", meaning the number is rounded up if the
+          left-over fraction is 0.5 or larger
+        - If up is True, then the fractional part is always rounded away from zero
+        - If up is False, then the fractional part is always rounded towards zero
+        - Supported types for template are int, float, flt, decimal.Decimal, fraction.Fraction,
+          and mpmath.mpf
+
+    The algorithm determines how many template values are in x.  It is descended from the BASIC
+    algorithm on pg 435 of the 31 Oct 1988 issue of "PC Magazine":
+    
+        DEF FNRound(Amount, Template) = SGN(Amount)*INT(0.5 + ABS(Amount)/Template)*Template
 
     Examples:
-        TemplateRound(12, 10, round_up=True) = 20
-        TemplateRound(12, 10, round_up=False) = 10
+        TemplateRound(12, 10) = 10
+        TemplateRound(12, 10, up=True) = 20
+        TemplateRound(15, 10) = 20
+        TemplateRound(15, 10, up=False) = 10
 
+        The following example shows that this "rounding" can lead to numbers that don't look
+        rounded.  
+
+            TemplateRound(1.6535, 0.1) = 1.7000000000000002
+            TemplateRound(1.6535, flt(0.1)) = 1.7
+            repr(TemplateRound(1.6535, flt(0.1))) = '1.7000000000000002'
+
+        The root cause of the problem is that there's no floating point binary number equal to
+        1.7.  Use Decimal or mpmath numbers for such a case:
+
+            TemplateRound(Decimal("1.6535"), Decimal("0.1")) = 1.7
+            TemplateRound(mpmath.mpf("1.6535"), mpmath.mpf("0.1")) = 1.7
+
+        You can use fractions.Fraction too:
+
+            TemplateRound(1.6535, Fraction(1, 8)) = 13/8
+
+        which is correct, as 12/8 is 1.5 and 0.1535 is about 0.03 larger than 1/8.
     '''
+    # Check inputs
+    if template <= 0:
+        raise ValueError("template must be > 0")
+    tt = type(template)
     if not x:
-        return x
-    sign = 1 if x >= 0 else -1
-    if sign < 0:
-        round_up = not round_up
-    y = int(abs(x/template) + 0.5)*abs(template)
-    if round_up and y < abs(x):
-        y += template
-    elif not round_up and y > abs(x):
-        y -= template
+        return tt(x)
+    sign = tt(1) if x >= 0 else tt(-1)
+    y = tt(int(abs(tt(x)/template) + tt(1)/tt(2))*template)
+    if up is not None:
+        # Round toward or away from zero
+        if sign < 0:
+            up = not up
+        if up and y < abs(tt(x)):           # Round away from zero
+            y += template
+        elif not up and y > abs(tt(x)):     # Round towards zero
+            y -= template
     return sign*y
+
+if 0:
+    f, w = TemplateRound, 8
+    template = 0.1
+    x = 1.6535
+    print(f(mpmath.mpf("1.6535"), mpmath.mpf("0.1")))
+    exit()
+
 def ConvertToNumber(s, handle_i=True):
     '''This is a general-purpose routine that will return a python number for a string if it is
     possible.  The basic logic is:
@@ -1432,7 +1490,7 @@ def SizeOf(o, handlers={}, verbose=False, full=False, title=None):
 class PPSeq:
     '''Format sequences for pretty printing
     Floats must be in [0, 1].
-
+    
     Example:
         p = PPSeq(bits_per_number=32)
         a = [.4, .12, .33, .16000]
@@ -1563,7 +1621,7 @@ def DoubleFactorial(n):
     '''Returns n!! which is defined to be the product from k = 0 to k = int(n/2) - 1 of (n - 2*k).
     Since we ensure that n is an integer, this function should never fail, but of course it will
     take a long time for big integers.
-
+    
     Examples:  
         If n is even, n!! = n(n - 1)(n - 4)···(4)(2)
             Or:  Product from k = 1 to n//2 of 2*k
@@ -1581,7 +1639,7 @@ def DoubleFactorial(n):
 def Cumul(seq, check=False):
     '''Return the cumulative sum list of the given sequence seq.  If check is True, verify the last
     element of the returned array is equal to the sum of all the elements in seq.
-
+    
     Example:  Cumul([1, 2, 3, 4, 7]) returns [1, 3, 6, 10, 17]
     '''
     cumul, dq = [], deque(seq)
@@ -2231,27 +2289,6 @@ if __name__ == "__main__":
         s = RandomIntegers(n, 1000, seed=0, duplicates_OK=True)
         t = RandomIntegers(n, 1000, seed=0, duplicates_OK=True)
         Assert(s == t)
-    def Test_check_names():
-        'Make sure the docstring list of names is up-to-date'
-        if not check_names:
-            return
-        names = set()
-        ignore = "Miscellaneous".split()
-        for line in __doc__.split("\n"):
-            if not line.strip():
-                continue
-            name = line.split()[0]
-            if name in ignore:
-                continue
-            names.add(name)
-            if name not in mnames:
-                print(f"{name} in docstring not in module")
-        print("-"*70)
-        for name in mnames:
-            if name.startswith("Test"):
-                continue
-            if name not in names:
-                print(f"{name} in module not in docstring")
     def Test_iDistribute():
         def Dist(seq):
             'Return distances between numbers in seq'
@@ -2361,33 +2398,165 @@ if __name__ == "__main__":
         # Illegal forms
         raises(ValueError, ParseComplex, "x")
     def Test_TemplateRound():
+        # Routine floating point rounding
         a, t = 463.77, 0.1
-        Assert(TemplateRound(-a, t, round_up=True) == -463.7)
-        Assert(TemplateRound(-a, t, round_up=False) == -463.8)
-        Assert(TemplateRound(a, t, round_up=True) == 463.8)
-        Assert(TemplateRound(a, t, round_up=False) == 463.7)
-        a, t = 463.77, 1
-        Assert(TemplateRound(-a, t, round_up=True) == -463)
-        Assert(TemplateRound(-a, t, round_up=False) == -464)
-        Assert(TemplateRound( a, t, round_up=True) == 464)
-        Assert(TemplateRound( a, t, round_up=False) == 463)
-        a, t = 463.77, 10
-        Assert(TemplateRound(-a, t, round_up=True) == -460)
-        Assert(TemplateRound(-a, t, round_up=False) == -470)
-        Assert(TemplateRound( a, t, round_up=True) == 470)
-        Assert(TemplateRound( a, t, round_up=False) == 460)
+        Assert(TemplateRound(-a, t, up=True) == -463.7)
+        Assert(TemplateRound(-a, t, up=False) == -463.8)
+        Assert(TemplateRound(a, t, up=True) == 463.8)
+        Assert(TemplateRound(a, t, up=False) == 463.7)
+        a, t = 463.77, 1.0
+        Assert(TemplateRound(-a, t, up=True) == -463)
+        Assert(TemplateRound(-a, t, up=False) == -464)
+        Assert(TemplateRound( a, t, up=True) == 464)
+        Assert(TemplateRound( a, t, up=False) == 463)
+        a, t = 463.77, 10.0
+        Assert(TemplateRound(-a, t, up=True) == -460)
+        Assert(TemplateRound(-a, t, up=False) == -470)
+        Assert(TemplateRound( a, t, up=True) == 470)
+        Assert(TemplateRound( a, t, up=False) == 460)
+        Assert(TemplateRound(123.48, 0.1, up=True) == 123.5)
+        Assert(TemplateRound(123.48, 0.1, up=False) == 123.4)
+        # Integer rounding
+        a, t = 463, 1
+        Assert(TemplateRound(-a, t, up=True) == -463)
+        Assert(TemplateRound(-a, t, up=False) == -463)
+        Assert(TemplateRound( a, t, up=True) == 463)
+        Assert(TemplateRound( a, t, up=False) == 463)
+        a, t = 463, 10
+        Assert(TemplateRound(-a, t, up=True) == -460)
+        Assert(TemplateRound(-a, t, up=False) == -470)
+        Assert(TemplateRound( a, t, up=True) == 470)
+        Assert(TemplateRound( a, t, up=False) == 460)
+        # Decimal rounding
+        a, t = Decimal("123.48"), Decimal("0.1")
+        Assert(TemplateRound(a, t, up=True) == Decimal("123.5"))
+        Assert(TemplateRound(a, t, up=False) == Decimal("123.4"))
+        # Fraction rounding:  a will be 123+31/64, t will be 1/8
+        a, t = 123 + Fraction(31, 64), Fraction(1, 8)
+        Assert(TemplateRound(a, t, up=True) == Fraction(247, 2))
+        Assert(TemplateRound(a, t, up=False) == Fraction(987, 8))
+        # mpmath
+        if _have_mpmath:
+            mpf = mpmath.mpf
+            a, t = mpf("123.48"), mpf("0.1")
+            Assert(TemplateRound(a, t, up=True) == mpf("123.5"))
+            Assert(TemplateRound(a, t, up=False) == mpf("123.4"))
+    def Test_check_names():
+        'Make sure the docstring list of names is up-to-date'
+        if not check_names:
+            return
+        names = set()
+        dq = deque(__doc__.split("\n"))
+        # Position at beginning of relevant items
+        while dq:
+            item = dq.popleft()
+            if "@start" in item:
+                break
+        found = False
+        while dq:
+            line = dq.popleft()
+            if not line.strip():
+                continue
+            name = line.split()[0]
+            if not name or name in ignore:
+                continue
+            names.add(name)
+            if name not in mnames:
+                print(f"{name} in docstring not in module")
+                found = True
+        if found:
+            print("-"*70)
+        for name in mnames:
+            if name.startswith("Test"):
+                continue
+            if name not in names:
+                print(f"{name} in module not in docstring")
+    # Make sure the docstring list of names is up-to-date'
     check_names = False
+    check_names = True
     if check_names:
         mnames, delete = set(dir()), []
         ignore = '''
-        deque defaultdict OrderedDict Iterable Decimal Fraction nlargest
-        chain combinations islice groupby cycle zip_longest itemgetter xx
-        randint seed ascii_letters DIGITS punctuation AlmostEqual
-        SignSignificandExponent signum cmath glob math os pathlib re struct
-        subprocess sys tempfile time Test __ Miscellaneous'''.split()
+
+            AlmostEqual
+            ascii_letters
+            Assert
+            assert_equal
+            chain
+            check_names
+            cmath
+            combinations
+            cycle
+            debug
+            Decimal
+            dedent
+            defaultdict
+            deque
+            DIGITS
+            eps
+            flt
+            Fraction
+            frange
+            glob
+            groupby
+            hashlib
+            ii
+            islice
+            itemgetter
+            Iterable
+            itertools
+            math
+            Miscellaneous
+            mpmath
+            nl
+            nlargest
+            OrderedDict
+            os
+            P
+            pathlib
+            platform
+            product
+            punctuation
+            raises
+            randint
+            random
+            re
+            Repr
+            run
+            seed
+            show_coverage
+            SignSignificandExponent
+            signum
+            StringIO
+            struct
+            subprocess
+            sys
+            tempfile
+            Test
+            time
+            ToDo
+            translated_util_simlink
+            util_simlink
+            ver
+            vi
+            xx
+            zip_longest
+            _have_mpmath
+            __
+            __package__
+            __name__
+            __cached__
+            __loader__
+            __builtins__
+            __spec__
+            __doc__
+            __annotations__
+            __file__
+
+        '''.split()
         for name in mnames:
             for s in ignore:
-                if name.startswith(s):
+                if name == s:
                     delete.append(name)
                     break
         for name in delete:
