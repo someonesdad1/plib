@@ -1,117 +1,99 @@
 '''
+Todo
+    - Need tests for all the functions
+
 Color coordinates and transformations 
     - Your thumb at the end of your arm is 2°; your fist is 10°. 
-    - Chances are, if you get some RGB color data, it's probably in the
-      sRGB color space.  For example, the Dell monitor I'm using is stated
-      as covering 99% of the sRGB space.  Because of this, the primary
-      tools that should be used to go from a device RGB space to a
-      perceptual space such as CIEXYZ, use the functions sRGB_to_XYZ and
-      XYZ_to_sRGB below.
+    - Chances are, if you get some RGB color data, it's probably in the sRGB color space.  For
+      example, the Dell monitor I'm using is stated as covering 99% of the sRGB space.  Because of
+      this, the primary tools that should be used to go from a device RGB space to a perceptual
+      space such as CIEXYZ should be the functions sRGB_to_XYZ and XYZ_to_sRGB below.
     - Here, LAB means CIE's L*a*b*, not Hunter's LAB
     - XYZ
-        - CIE 1930 tristimulus values representing the amount of blue,
-          green, and red gotten from an integration of the physical PSD
-          with the three human response functions for blue, green, and red
+        - CIE 1930 tristimulus values representing the amount of blue, green, and red gotten from
+          an integration of the physical PSD with the three human response functions for blue,
+          green, and red
     - xyY
         - Transformed XYZ by x = X/s, y = Y/s, s = sum(X, Y, Z)
         - Y represents the intensity of the light, regardless of color
         - x, y represent the chromaticity (hue)
     - References
         - [cie1931] https://en.wikipedia.org/wiki/CIE_1931_color_space
-            - Results from experiments in late 1920's (D. Wright, 10
-              observers; J. Guild, 7 observers).
+            - Results from experiments in late 1920's (D. Wright, 10 observers; J. Guild, 7
+              observers).
             - Relate wavelength of light to human-perceived color
-            - Though the samples sizes are small and they were undoubtedly
-              biased, Guild's Phil Trans paper stated "The trichromatic
-              coefficients for [Wright's] ten observers agreed so closely
-              with those of the seven observers examined at the National
-              Physical Laboratory as to indicate that both groups must give
-              results approximating more closely to 'normal' than might
-              have been expected from the size of either group."
-        - [schils] http://www.color-theory-phenomena.nl/index.html.  Paul
-          Schils died in 2011, so these pages won't be updated.
-          http://www.color-theory-phenomena.nl/07.00.html is good with a
-          number of general thoughts/observations.
-        - [hyperp1]
-          http://hyperphysics.phy-astr.gsu.edu/hbase/vision/colper.html
+            - Though the samples sizes are small and they were undoubtedly biased, Guild's Phil
+              Trans paper stated "The trichromatic coefficients for [Wright's] ten observers
+              agreed so closely with those of the seven observers examined at the National
+              Physical Laboratory as to indicate that both groups must give results approximating
+              more closely to 'normal' than might have been expected from the size of either
+              group."
+        - [schils] http://www.color-theory-phenomena.nl/index.html.  Paul Schils died in 2011, so
+          these pages won't be updated.  http://www.color-theory-phenomena.nl/07.00.html is good
+          with a number of general thoughts/observations.
+        - [hyperp1] http://hyperphysics.phy-astr.gsu.edu/hbase/vision/colper.html
             - Overview of color perception
-        - [hyperp2]
-          http://hyperphysics.phy-astr.gsu.edu/hbase/vision/cieprim.html
-            - An overview of the 1931 CIE primary XYZ tristimulus values.
-              Properties
+        - [hyperp2] http://hyperphysics.phy-astr.gsu.edu/hbase/vision/cieprim.html
+            - An overview of the 1931 CIE primary XYZ tristimulus values.  Properties
                 - X, Y, and Z are alays positive
                 - Any color can be represented by these three numbers
                 - Equal values of X, Y, Z produce white
                 - Y determines the luminance of the color
                 - Related to sensitivity of human eye
-                - The color matching functions (CMF) let you derive X, Y, Z
-                  by multiplying the CMF at each wavelength by the spectral
-                  power distribution (SPD, derived e.g. from a
+                - The color matching functions (CMF) let you derive X, Y, Z by multiplying the CMF
+                  at each wavelength by the spectral power distribution (SPD, derived e.g. from a
                   spectrophotometer), summing, and normalizing.  Note z = 1
                   - x - y, so x and y are the relevant color coordinates.
                 - Result is x, y, and Y for the luminance.
-                - Y is luminance, which is radiant flux power weighted by
-                  the sensitivity of the human eye, giving luminous flux in
-                  lumens.
-        - [cmf1]
-          https://www.sciencedirect.com/topics/engineering/color-matching-function
-        - [cmf2] http://cvrl.ioo.ucl.ac.uk/cmfs.htm  Site for downloading
-          CIE color matching functions
+                - Y is luminance, which is radiant flux power weighted by the sensitivity of the
+                  human eye, giving luminous flux in lumens.
+        - [cmf1] https://www.sciencedirect.com/topics/engineering/color-matching-function
+        - [cmf2] http://cvrl.ioo.ucl.ac.uk/cmfs.htm  Site for downloading CIE color matching
+          functions
         - [poyn] Poynton's ColorFAQ.pdf
-        - [kon]
-          https://sensing.konicaminolta.us/us/learning-center/color-measurement/color-spaces/
+        - [kon] https://sensing.konicaminolta.us/us/learning-center/color-measurement/color-spaces/
         - [wplab] https://en.wikipedia.org/wiki/CIELAB_color_space
-        - [efg]
-          http://ultra.sdk.free.fr/docs/Image-Processing/Colors/Format/Chromaticity%20Diagrams%20Lab%20Report.htm
-        - [jw] https://www.fourmilab.ch/documents/specrend/  Explains about
-          getting XYZ coordinates and converting from xy to RGB (device)
-          color.  His table 1 shows chromaticities of primary colors for
-          various system.  Note his article is from 1996, the same year
-          that sRGB came out, so his material doesn't cover it.
-        - The Dell manual for my P2415 manual pg 10 state the color gamut
-          of the monitor is 102.28% of CIE1976 test standards and includes
-          99% of sRBG.
-        - https://getreuer.info/posts/colorspace/index.html gives some C++
-          code for color space xfm functions
-        - https://easyrgb.com/en/math.php shows the math functions for
-          their RGB calculator.  A refreshing find in the crappy world of
-          calculator boxes with no explanations.
+        - [efg] http://ultra.sdk.free.fr/docs/Image-Processing/Colors/Format/Chromaticity%20Diagrams%20Lab%20Report.htm
+        - [jw] https://www.fourmilab.ch/documents/specrend/  Explains about getting XYZ
+          coordinates and converting from xy to RGB (device) color.  His table 1 shows
+          chromaticities of primary colors for various system.  Note his article is from 1996, the
+          same year that sRGB came out, so his material doesn't cover it.
+        - The Dell manual for my P2415 manual pg 10 state the color gamut of the monitor is
+          102.28% of CIE1976 test standards and includes 99% of sRBG.
+        - https://getreuer.info/posts/colorspace/index.html gives some C++ code for color space
+          transformation functions
+        - https://easyrgb.com/en/math.php shows the math functions for their RGB calculator.  A
+          refreshing find in the crappy world of calculator boxes with no explanations.
         - https://medium.com/hipster-color-science/a-beginners-guide-to-colorimetry-401f1830b65a
           has some good discussions.
-        - http://www.cvrl.org/ Color & Vision Research Lab, Institute of
-          Ophthalmology, part of Univ. College London.
-        - https://rgbcmyk.com.ar/en/emulating-the-wright-guild-experiment/
-          Web page with an "emulator" of the Wright and Guild experiments,
-          asking you to match colors like was done in the late 1920s.
-        - http://jamie-wong.com/post/color/ Pretty good discussion.  I like
-          the comment near the end "even if you're a person who understands
-          that most things are deeper than they look, color is way deeper
-          than you would reasonably expect".
-        - Grassman's Law:  if two colors are indistinguishable (metamers),
-          you can add another color equally to both of them and they will
-          still appear to be the same color.  This with the Wright and
-          Guild experiments showed that we are dealing with a linear
-          system.
-        - https://michaelbach.de/ot/col-lilacChaser/index.html Interesting
-          applet to play around with.  If I put it in my browser on the
-          right half of my first monitor and edit this text on my other
-          monitor, my peripheral vision sees the moving green dots and
-          mostly ignores the lilac colored ones.
-        - https://scholar.harvard.edu/files/schwartz/files/lecture17-color.pdf
-          Good discussion.  Makes the point on pg 7 that the point of
-          inventing XYZ is it lets us embed all perceivable colors in a
-          triangle on the chromaticity diagram.
-        - https://www.w3.org/TR/css-color-4 is a good document on color in
-          CSS and the specs
+        - http://www.cvrl.org/ Color & Vision Research Lab, Institute of Ophthalmology, part of
+          Univ. College London.
+        - https://rgbcmyk.com.ar/en/emulating-the-wright-guild-experiment/ Web page with an
+          "emulator" of the Wright and Guild experiments, asking you to match colors like was done
+          in the late 1920s.
+        - http://jamie-wong.com/post/color/ Pretty good discussion.  I like the comment near the
+          end "even if you're a person who understands that most things are deeper than they look,
+          color is way deeper than you would reasonably expect".
+        - Grassman's Law:  if two colors are indistinguishable (metamers), you can add another
+          color equally to both of them and they will still appear to be the same color.  This
+          with the Wright and Guild experiments showed that we are dealing with a linear system.
+          Grassman was an 1800's polymath who is also known for Grassman algebra.
+        - https://michaelbach.de/ot/col-lilacChaser/index.html Interesting applet to play around
+          with.  If I put it in my browser on the right half of my first monitor and edit this
+          text on my other monitor, my peripheral vision sees the moving green dots and mostly
+          ignores the lilac colored ones.
+        - https://scholar.harvard.edu/files/schwartz/files/lecture17-color.pdf Good discussion.
+          Makes the point on pg 7 that the point of inventing XYZ is it lets us embed all
+          perceivable colors in a triangle on the chromaticity diagram.
+        - https://www.w3.org/TR/css-color-4 is a good document on color in CSS and the specs
 
 '''
 if 1:   # Imports
-    from pdb import set_trace as xx 
     from util import IsIterable
     from lwtest import run, raises, assert_equal, Assert
 if 1:   # Utility
     def Dot(a, b, n=None):
-        'Dot product of two sequences'
+        'Dot product of two sequences (n is number of decimal places to round to)'
         Assert(len(a) == len(b))
         if n:
             return sum([round(i*j, n) for i, j in zip(a, b)])
@@ -120,7 +102,7 @@ if 1:   # Utility
         'Clamp all values onto [0, 1]'
         f = lambda x: min(max(0.0, x), 1.0)
         if IsIterable(a):
-            return tuple([f(i) for i in seq])
+            return tuple([f(i) for i in a])
         else:
             return f(a)
 if 1:   # Core functionality
@@ -130,35 +112,32 @@ if 1:   # Core functionality
         XYZ = xy_to_XYZ(xy, Y)
         return f(XYZ_to_sRGB(XYZ))
     def sRGB_to_XYZ(srgb, hires=False):
-        '''Returns a tuple of XYZ values for an sRGB tuple.  All values in
-        srgb must be on [0, 1].
+        '''Returns a tuple of XYZ values for an sRGB tuple.  All values in srgb must be on [0, 1].
         sRGB to CIE XYZ from https://en.wikipedia.org/wiki/SRGB#From_sRGB_to_CIE_XYZ 
         
-        - srgb components must be on [0, 1].  If 8-bit numbers, divide by
-          255 to put on this range.
-        - Use "gamma-expanded" values if the component is > 0.04; otherwise
-          divide the component by 12.92.
+        - srgb components must be on [0, 1].  If 8-bit numbers, divide by 255 to put on this
+          range.
+        - Use "gamma-expanded" values if the component is > 0.04; otherwise divide the component
+          by 12.92.
         - Transform to XYZ space with a matrix transformation.
  
-        Test values:  Let sRGB = (0.2, 0.5, 0.8).  Transform each component
-        x to be ((x + 0.055)/1.055)**2.4, giving 
-        (0.033104766570885055, 0.21404114048223255, 0.6038273388553378) = (a, b, c).
-        The matrix multiplication is 
+        Test values:  Let sRGB = (0.2, 0.5, 0.8).  Transform each component x to be ((x +
+        0.055)/1.055)**2.4, giving (0.033104766570885055, 0.21404114048223255, 0.6038273388553378)
+        = (a, b, c).  The matrix multiplication is 
  
         X = 0.4124*a + 0.3576*b + 0.1805*c
         Y = 0.2126*a + 0.7152*b + 0.0722*c
         Z = 0.0193*a + 0.1192*b + 0.9505*c
  
-        giving (0.19918435223366782, 0.20371663091121825, 0.6000905115222988).
-        The routine rounds this off to 4 figures.
- 
+        giving (0.19918435223366782, 0.20371663091121825, 0.6000905115222988).  The routine rounds
+        this to 4 figures.
         '''
         def GammaExpand(x):
             return x/12.92 if x <= 0.04045 else ((x + 0.055)/1.055)**2.4
         # Make sure all values are between 0 and 1
         Assert(all([0 <= i <= 1 for i in srgb]))
-        # Transformation matrix to produce XYZ values with respect to the
-        # D65 illumination (6500 K blackbody radiation).
+        # Transformation matrix to produce XYZ values with respect to the D65 illumination (6500 K
+        # blackbody radiation).
         if hires:
             # More significant figures from
             # https://www.image-engineering.de/library/technotes/958-how-to-convert-between-srgb-and-ciexyz
@@ -171,8 +150,7 @@ if 1:   # Core functionality
             r1 = (0.4124, 0.3576, 0.1805)
             r2 = (0.2126, 0.7152, 0.0722)
             r3 = (0.0193, 0.1192, 0.9505)
-        # "Gamma-expand" the values (the web page calls these the "linear"
-        # components).
+        # "Gamma-expand" the values (the web page calls these the "linear" components).
         rgb = [GammaExpand(i) for i in srgb]
         # Perform the matrix transformation
         XYZ = Dot(r1, rgb), Dot(r2, rgb), Dot(r3, rgb)
@@ -182,9 +160,9 @@ if 1:   # Core functionality
     def XYZ_to_sRGB(XYZ, hires=False):
         '''CIE XYZ to sRGB
         https://en.wikipedia.org/wiki/SRGB#From_CIE_XYZ_to_sRGB
-
-        The test case for sRGB_to_XYZ will result in the original sRGB
-        values when operated on with XYZ_to_sRGB().
+        
+        The test case for sRGB_to_XYZ will result in the original sRGB values when operated on
+        with XYZ_to_sRGB().
         '''
         def GammaCompressed(x):
             return 12.92*x if x <= 0.0031308 else 1.055*x**(1/2.4) - 0.055
@@ -354,8 +332,10 @@ if 1:   # Other functionality
         return u1, v1
 
 if __name__ == "__main__": 
+    from color import t
     def Test_RGB():
         # Not working yet
+        t.print(f"{t.ornl}Test_RGB() not working yet")
         return #xx
         def Test_XYZ_to_rgb():
             # [poyn] pg 9
@@ -378,7 +358,7 @@ if __name__ == "__main__":
     def Test_sRGB_to_XYZ():
         if 1:
             # This is the example given in the docstring of sRGB_to_XYZ and was
-            # manually calculated in the python REPL.
+            # manually calculated in a python REPL.
             sRGB = (0.2, 0.5, 0.8)
             XYZ = sRGB_to_XYZ(sRGB, hires=False)
             Assert(XYZ == (0.1992, 0.2037, 0.6001))

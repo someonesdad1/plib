@@ -4,44 +4,33 @@ Dump the colors in rgbdata.py's list to stdout
     24-bit color terminal.  In a mintty terminal full-screen on cygwin with
     548 columns and 157 lines, all 6743 of these colored strings are shown
     at the same time on my 4k monitor (there are over 10000 in the
-    rgbdata.py file, but there are many duplicates.  They are sorted by HSV
-    numbers.
-
+    rgbdata.py file, but there are many duplicates.
 '''
  
-if 1:  # Copyright, license
-    # These "trigger strings" can be managed with trigger.py
-    #∞copyright∞# Copyright (C) 2022 Don Peterson #∞copyright∞#
-    #∞contact∞# gmail.com@someonesdad1 #∞contact∞#
-    #∞license∞#
-    #   Licensed under the Open Software License version 3.0.
-    #   See http://opensource.org/licenses/OSL-3.0.
-    #∞license∞#
-    #∞what∞#
-    # Program description string
-    #∞what∞#
-    #∞test∞# #∞test∞#
-    pass
-if 1:   # Standard imports
-    import getopt
-    import os
-    import pathlib
-    import sys
-    from collections import deque
-    from pdb import set_trace as xx
-if 1:   # Custom imports
-    from rgbdata import color_data
-    from wrap import wrap, dedent
-    from color import Color, t
-    #from clr import Clr
-    #from rgb import Color
-    if 1:
-        import debug
-        debug.SetDebugger()
-if 1:   # Global variables
-    P = pathlib.Path
-    ii = isinstance
-    #c = Clr()
+if 1:  # Header
+    if 1:  # Copyright, license
+        # These "trigger strings" can be managed with trigger.py
+        #∞copyright∞# Copyright (C) 2022 Don Peterson #∞copyright∞#
+        #∞contact∞# gmail.com@someonesdad1 #∞contact∞#
+        #∞license∞#
+        #   Licensed under the Open Software License version 3.0.
+        #   See http://opensource.org/licenses/OSL-3.0.
+        #∞license∞#
+        #∞what∞#
+        # Program description string
+        #∞what∞#
+        #∞test∞# #∞test∞#
+        pass
+    if 1:   # Standard imports
+        import getopt
+        import os
+        import pathlib
+        import sys
+        from collections import deque
+    if 1:   # Custom imports
+        from rgbdata import color_data
+        from wrap import dedent
+        from color import Color, t
 if 1:   # Utility
     def Error(*msg, status=1):
         print(*msg, file=sys.stderr)

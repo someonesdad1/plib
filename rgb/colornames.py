@@ -5,18 +5,20 @@ import sys
 import colorsys
 from pdb import set_trace as xx 
 
-from rgb import ColorNum
 from util import iDistribute
 from interpolate import LinearInterpFunction
 from f import flt
-from clr import Clr
+#from rgb import ColorNum
+from color import t, Color as ColorNum
 from wrap import dedent
 from columnize import Columnize
 from frange import frange
 from wl2rgb import wl2rgb, rgb2wl
+if 1:
+    import debug
+    debug.SetDebugger()
 
 ii = isinstance
-c = Clr(always=True)
 fi = lambda x: f"({x[0]:3d}, {x[1]:3d}, {x[2]:3d})"
 square = "■"
 
@@ -66,7 +68,7 @@ def Introduction():
 def PrintedLine(step):
     for nm in range(380, 781, step):
         a = wl2rgb(nm)
-        print(f"{c(a.rgbhex)}{square}{c.n}", end="")
+        print(f"{t(a.xrgb)}{square}{t.n}", end="")
     print()
 def SteppedWavelengths(step, compact=False, hdr=False):
     gamma = 0.8
@@ -81,13 +83,13 @@ def SteppedWavelengths(step, compact=False, hdr=False):
         print(f"  wl in nm, RGB hex, RGB integer, HSV integer")
     for nm in range(380, 781, step):
         colornum = wl2rgb(nm, gamma=gamma)
-        s = colornum.rgbhex
-        t = colornum.RGB
-        u = colornum.HSV
+        s = colornum.xrgb
+        T = colornum.irgb
+        u = colornum.ihsv
         if compact:
-            out.append(f"{c(s)}{nm}{c.n}")
+            out.append(f"{t(s)}{nm}{t.n}")
         else:
-            out.append(f"{c(s)}{nm} {s!s:7s}   {fi(t)}   {fi(u)}{c.n}")
+            out.append(f"{t(s)}{nm} {s!s:7s}   {fi(T)}   {fi(u)}{t.n}")
         count += 1
     if compact:
         o = Columnize(out, indent=" "*2, horiz=True)
@@ -120,11 +122,11 @@ def BasicColorNames():
     for name, nm, hue in defs:
         hsv = [i/255 for i in (hue, 255, 255)]
         rgb = colorsys.hsv_to_rgb(*hsv)
-        colornum = ColorNum(rgb)
-        s = colornum.rgbhex
-        t = colornum.RGB
-        u = colornum.HSV
-        print(f"    {c(s)}{name:4s} {nm:3d}  {hue:3d} {s!s:7s}   {fi(t)}   {fi(u)}{c.n}")
+        colornum = ColorNum(*rgb)
+        s = colornum.xrgb
+        T = colornum.irgb
+        u = colornum.ihsv
+        print(f"    {t(s)}{name:4s} {nm:3d}  {hue:3d} {s!s:7s}   {fi(T)}   {fi(u)}{t.n}")
     print(dedent(f'''
 
     These look like a good basis, although they don't appear to be the same
@@ -177,8 +179,8 @@ def HueIntervals():
     for color, wavelengths in colors:
         for nm in wavelengths:
             colornum = wl2rgb(nm)
-            s = colornum.rgbhex
-            print(f"    {c(s)}{color}{nm}{c.n} ", end="")
+            s = colornum.xrgb
+            print(f"    {t(s)}{color}{nm}{t.n} ", end="")
         print()
     print(dedent('''
 
@@ -206,8 +208,8 @@ def HueIntervals():
                     o600 o614 o628
                     r632 r682 r732'''.split():
         colornum = GetBaseColornum(name)
-        s = colornum.rgbhex
-        print(f"{c(s)}{name}{c.n} ", end="")
+        s = colornum.xrgb
+        print(f"{t(s)}{name}{t.n} ", end="")
         count += 1
         if count and not (count % 9):
             print()
@@ -218,65 +220,65 @@ def GetBaseColornum(name):
     return wl2rgb(nm)
 def HueGradations():
     def ShowHLS(k, use_hex=False):
-        R = iDistribute(0, 255, k + 1)   # Count 0 as one we don't want
+        R = list(iDistribute(k + 1, 0, 255))   # Count 0 as one we don't want
         if R[0] == 0:
             R = R[1:]   # Remove the first element of 0
         indent = " "*4
         for base in "g500 g520 g540".split():
             cn = GetBaseColornum(base)
-            s = cn.rgbhex
-            print(f"{c(s)}{base}{c.n}")
-            hls = list(cn.hls)
+            s = cn.xrgb
+            print(f"{t(s)}{base}{t.n}")
+            hls = list(cn.ihls)
             for l in R:
                 if l == 255:
                     continue
                 print(indent, end="")
                 hls[1] = l/255
                 rgb = colorsys.hls_to_rgb(*hls)
-                n = ColorNum(rgb)
-                hls1 = list(n.hls)
+                n = ColorNum(*rgb)
+                hls1 = list(n.ihls)
                 for s in R:
                     li = R.index(l)
                     si = R.index(s)
                     hls1[2] = s/255
                     rgb = colorsys.hls_to_rgb(*hls1)
-                    m = ColorNum(rgb)
+                    m = ColorNum(*rgb)
                     if use_hex:
-                        print(f"{c(m.rgbhex)}{m.rgbhex}{c.n} ", end="")
+                        print(f"{t(m.xrgb)}{m.xrgb}{t.n} ", end="")
                     else:
                         name = f"{base}_{li}{si}"
-                        print(f"{c(m.rgbhex)}{name}{c.n} ", end="")
+                        print(f"{t(m.xrgb)}{name}{t.n} ", end="")
                 print()
             print()
     def ShowHSV(k, use_hex=False):
-        R = iDistribute(0, 255, k + 1)   # Count 0 as one we don't want
+        R = list(iDistribute(k + 1, 0, 255))   # Count 0 as one we don't want
         if R[0] == 0:
             R = R[1:]   # Remove the first element of 0
         indent = " "*4
         for base in "g500 g520 g540".split():
             cn = GetBaseColornum(base)
-            s = cn.rgbhex
-            print(f"{c(s)}{base}{c.n}")
-            hsv = list(cn.hsv)
+            s = cn.xrgb
+            print(f"{t(s)}{base}{t.n}")
+            hsv = list(cn.ihsv)
             for s in R:
                 if s == 255:
                     continue
                 print(indent, end="")
                 hsv[1] = s/255
                 rgb = colorsys.hsv_to_rgb(*hsv)
-                n = ColorNum(rgb)
-                hsv1 = list(n.hsv)
+                n = ColorNum(*rgb)
+                hsv1 = list(n.ihsv)
                 for v in R:
                     si = R.index(s)
                     vi = R.index(v)
                     hsv1[2] = v/255
                     rgb = colorsys.hsv_to_rgb(*hsv1)
-                    m = ColorNum(rgb)
+                    m = ColorNum(*rgb)
                     if use_hex:
-                        print(f"{c(m.rgbhex)}{m.rgbhex}{c.n} ", end="")
+                        print(f"{t(m.xrgb)}{m.xrgb}{t.n} ", end="")
                     else:
                         name = f"{base}_{si}{vi}"
-                        print(f"{c(m.rgbhex)}{name}{c.n} ", end="")
+                        print(f"{t(m.xrgb)}{name}{t.n} ", end="")
                 print()
             print()
     print(dedent('''
@@ -329,22 +331,22 @@ def FirstChoice(n):
     for name in colorbands:
         colornum = GetBaseColornum(name)
         hls = list(colornum.hls)
-        s = colornum.rgbhex
-        print(f"{c(s)}{name}{c.n} ", end="")
+        s = colornum.xrgb
+        print(f"{t(s)}{name}{t.n} ", end="")
         for l in R:
             if l == 255:
                 continue
             hls[1] = l/255  # Convert to decimal
             rgb = colorsys.hls_to_rgb(*hls)
-            n = ColorNum(rgb)
+            n = ColorNum(*rgb)
             hls1 = list(n.hls)
             for s in R:
                 li = R.index(l)
                 si = R.index(s)
                 hls1[2] = s/255
                 rgb = colorsys.hls_to_rgb(*hls1)
-                m = ColorNum(rgb)
-                print(f"{c(m.rgbhex)}{m.hlshex}{c.n} ", end="")
+                m = ColorNum(*rgb)
+                print(f"{t(m.xrgb)}{m.hlshex}{t.n} ", end="")
         print()
     print(dedent(f'''
 
@@ -354,19 +356,19 @@ def FirstChoice(n):
 
     '''))
     d = {
-        "blk": ColorNum((0, 0, 0)).hlshex,
-        "lwht": ColorNum((1, 1, 1)).hlshex,
-        "lblu": ColorNum((0, 0, 1)).hlshex,
-        "lyel": ColorNum((1, 1, 0)).hlshex,
-        "lcyn": ColorNum((0, 1, 1)).hlshex,
-        "lmag": ColorNum((1, 0, 1)).hlshex,
+        "blk": ColorNum(*(0, 0, 0)).xhls,
+        "lwht": ColorNum(*(1, 1, 1)).xhls,
+        "lblu": ColorNum(*(0, 0, 1)).xhls,
+        "lyel": ColorNum(*(1, 1, 0)).xhls,
+        "lcyn": ColorNum(*(0, 1, 1)).xhls,
+        "lmag": ColorNum(*(1, 0, 1)).xhls,
     }
     print("  ", end="")
     for i in "blk lwht lblu lyel lcyn lmag".split():
-        print(f"{c(i)}{i:7s}{c.n}", end=" ")
+        print(f"{t(i)}{i:7s}{t.n}", end=" ")
     print()
     for i in "blk lwht lblu lyel lcyn lmag".split():
-        print(f"{c(i)}{d[i]}{c.n}", end=" ")
+        print(f"{t(i)}{d[i]}{t.n}", end=" ")
     print()
     ngray = 12
     print(dedent(f'''
@@ -377,11 +379,11 @@ def FirstChoice(n):
     '''))
     count = 0
     for i in iDistribute(0, 255, ngray):
-        n = ColorNum([i/255 for i in (i, i, i)])
+        n = ColorNum(*[i/255 for i in (i, i, i)])
         count += 1
         if count == ngray//2 + 1:
             print()
-        print(f"{c(n.rgbhex)}{n.rgbhex}{c.n} ", end="")
+        print(f"{t(n.xrgb)}{n.xrgb}{t.n} ", end="")
     print()
     n = 12*21 + ngray
     print(dedent(f'''
@@ -450,8 +452,8 @@ def SomeNames():
     print(f"{indent}Band   Short  Longer     Named")
     for name in colorbands:
         colornum = GetBaseColornum(name)
-        s = colornum.rgbhex
-        print(f"{indent}{c(s)}{name}  {d[name]}{c.n} ")
+        s = colornum.xrgb
+        print(f"{indent}{t(s)}{name}  {d[name]}{t.n} ")
     print(dedent(f'''
 
     One of the features of these names is that they are all six or less
@@ -490,7 +492,6 @@ def HueVersusFrequency():
     wavelengths in nm in 10 nm steps:
 
     '''))
-    c = Clr(always=True)
     flt(0).rtdp = True
     i = " "*4
     use_color = True
@@ -500,8 +501,8 @@ def HueVersusFrequency():
         h, l, s = cn.HLS
         f = int(1e5/nm)
         if use_color:   # Print in color
-            cl = c(cn.rgbhex)
-            print(f"{i}{cl}{h:3d}{c.n}   {f:3d}   {nm:3d}")
+            cl = t(cn.xrgb)
+            print(f"{i}{cl}{h:3d}{t.n}   {f:3d}   {nm:3d}")
         else:
             print(f"{i}{h:3d}   {f:3d}   {nm:3d}")
     print(dedent(f'''
@@ -517,9 +518,9 @@ def HueVersusFrequency():
     for hue in range(200, 256, 5):
         hls = [i/255 for i in (hue, 128, 255)]
         rgb = colorsys.hls_to_rgb(*hls)
-        cn = ColorNum(rgb)
-        cl = c(cn.rgbhex)
-        print(f"{i}{c(cn.rgbhex)}{hue:3d}{c.n}")
+        cn = ColorNum(*rgb)
+        cl = t(cn.xrgb)
+        print(f"{i}{t(cn.xrgb)}{hue:3d}{t.n}")
     print(dedent(f'''
 
     A plot of "frequency" versus hue is nonlinear, so I decided the
@@ -534,8 +535,8 @@ def HueVersusFrequency():
     '''))
     for wl in range(380, 781, 6):
         cn = wl2rgb(wl)
-        print(f"{c(cn.rgbhex)}{square}", end="")
-    print(f"{c.n}")
+        print(f"{t(cn.xrgb)}{square}", end="")
+    print(f"{t.n}")
 
     print(dedent(f'''
 
@@ -571,14 +572,14 @@ def HueVersusFrequency():
     for nm in range(380, 781, 10):
         print(f"{i}{nm:3d}    ", end="")
         cn = wl2rgb(nm, gamma=0)
-        x = cn.rgbhex
+        x = cn.xrgb
         hue = cn.HLS[0]
-        print(f"{c(x)}{hue:03d}{c.n} ", end="")
+        print(f"{t(x)}{hue:03d}{t.n} ", end="")
         # Convert wl2rgb() color's hue back to wavelength
         nm_new = rgb2wl(cn)
         cn_new = wl2rgb(nm_new, gamma=0)
         hue_new = cn_new.HLS[0]
-        print(f"{c(cn_new.rgbhex)}{hue_new:03d}{c.n}   ", end="")
+        print(f"{t(cn_new.xrgb)}{hue_new:03d}{t.n}   ", end="")
         hue_diff = hue_new - hue
         hue_diff = str(hue_diff) if hue_diff else ""
         nm_diff = nm_new - nm
