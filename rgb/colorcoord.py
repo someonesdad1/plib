@@ -3,7 +3,7 @@ Todo
     - Need tests for all the functions
 
 Color coordinates and transformations 
-    - Your thumb at the end of your arm is 2°; your fist is 10°. 
+    - Your thumb at the end of your arm subtends 2°; your fist is 10°. 
     - Chances are, if you get some RGB color data, it's probably in the sRGB color space.  For
       example, the Dell monitor I'm using is stated as covering 99% of the sRGB space.  Because of
       this, the primary tools that should be used to go from a device RGB space to a perceptual
@@ -77,7 +77,8 @@ Color coordinates and transformations
         - Grassman's Law:  if two colors are indistinguishable (metamers), you can add another
           color equally to both of them and they will still appear to be the same color.  This
           with the Wright and Guild experiments showed that we are dealing with a linear system.
-          Grassman was an 1800's polymath who is also known for Grassman algebra.
+          Grassman was an 1800's polymath who is also known for Grassman algebra (Clifford
+          algebras were an extension).
         - https://michaelbach.de/ot/col-lilacChaser/index.html Interesting applet to play around
           with.  If I put it in my browser on the right half of my first monitor and edit this
           text on my other monitor, my peripheral vision sees the moving green dots and mostly
