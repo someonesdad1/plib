@@ -1702,14 +1702,24 @@ def ParseComplex(numstring):
             else:
                 raise ValueError(msg)
     return (first, second)
-def unrange(seq, sort_it=True):
-    '''Turn a sequence of integers into a collection of ranges.  Example: 1 3 4 5 6 7 8 10 11 12 is
-    turned into "1 3-9 10-12".
-  
-    If sort_it is True, the sequence is sorted.
+def unrange(seq, sort_first=True):
+    '''Turn a sequence of integers into a collection of ranges and return as a string.
+    
+    If sort_first is True, the sequence is sorted before processing.
+    
+    Examples:
+        seq = [1, 5, 6, 7, 3, 4, 8, 10, 11, 12]
+        unrange(seq, sort_first=True)  --> "1 3-8 10-12"
+        unrange(seq, sort_first=False) --> "1 5-7 3-4 8 10-12"
+        seq = [-1, -5, -6, -7, -3, -4, -8, -10, -11, -12]
+        unrange(seq, sort_first=True)  --> "-12--10 -8--3 -1"
+        unrange(seq, sort_first=False) --> "-1 -5 -6 -7 -3 -4 -8 -10 -11 -12"
+    
+    The range notation for two negative numbers is a bit confusing until you mentally replace the
+    hyphen between two negative numbers with the word "to".
     '''
-    dq = deque(sorted(seq)) if sort_it else deque(seq)
-    def Get():
+    dq = deque(sorted(seq)) if sort_first else deque(seq)
+    def GetInt():
         x = dq.popleft()
         if not ii(x, int):
             raise TypeError(f"{x!r} is not an integer")
@@ -1719,22 +1729,39 @@ def unrange(seq, sort_it=True):
     lastx = dq.popleft()
     out = [lastx]
     in_sequence = False
-    while dq:
-        x = Get()
-        if not in_sequence and x == out[-1] + 1:
-            in_sequence = True
-        elif in_sequence:
-            if x != lastx + 1:
-                in_sequence = False
-                out.extend(["-", lastx])
+    if 1:   # Integers
+        while dq:
+            x = GetInt()
+            if not in_sequence and x == out[-1] + 1:
+                in_sequence = True
+            elif in_sequence:
+                if x != lastx + 1:
+                    in_sequence = False
+                    out.extend(["-", lastx])
+                    out.append(x)
+            else:
                 out.append(x)
-        else:
-            out.append(x)
-        lastx = x
-    if in_sequence:
-        out.extend(["-", lastx])
-    s = ' '.join([str(i) for i in out])
-    return s.replace(" - ", "-")
+            lastx = x
+        if in_sequence:
+            out.extend(["-", lastx])
+        s = ' '.join([str(i) for i in out])
+        return s.replace(" - ", "-")
+    else:   # Any numbers
+        while dq:
+            x = dq.popleft()
+            if x < out[-1]:
+                in_sequence = False
+            #if dq:
+                #if x >= lastx and x 
+
+if 0: #xx
+    # For development of handling floats too
+    seq = [1, 5, 6, 7, 3, 4, 8, 10, 11, 12]
+    print(unrange(seq, sort_first=True))
+    print(unrange(seq, sort_first=False))
+    exit()
+
+
 def Unique(seq):
     '''Generator to return only the unique elements in sequence.  The order of the items in the
     sequence is maintained.

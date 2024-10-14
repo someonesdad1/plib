@@ -1,6 +1,6 @@
 '''
-Produced by /plib/kolor/names/names/namedict.py script
-11 May 2022 Wed 11:41:20 am
+This file contains a collection of named colors organized by hue.  It was produced by a script
+that I wrote but can no longer find.
 6976 total colors
 '''
 #∞test∞# none #∞test∞#
@@ -7013,3 +7013,93 @@ colorhues = {
     'Medium Forest Green': '#6b8e23',
   },
 }
+
+if __name__ == "__main__":  
+    from wl2rgb import rgb2wl
+    from color import t, Color
+    from util import unrange
+    from wrap import dedent
+    def ByWavelength():
+        print(dedent(f'''
+        The following printout shows the "wavelengths" in nm making up each of the "hues" in the
+        colorhues dict: 
+        '''))
+        o = {}
+        for hue in colorhues:
+            di = colorhues[hue]
+            s = set()
+            for name in di:
+                c = Color(di[name])
+                wl_nm = rgb2wl(c)
+                s.add(wl_nm)
+            u = unrange(s)
+            o[hue] = u
+            print(f"  {hue} {u}")
+        print("These can be collapsed to the following ranges:")
+        for hue in colorhues:
+            u = o[hue]
+            u = u.replace("-", " ")
+            v = u.split()
+            print(f"  {hue:8s}:  {v[0]}-{v[-1]}")
+        '''Results
+            The following printout shows the "wavelengths" in nm making up each of the "hues" in the
+            colorhues dict: 
+            blu 433-450
+            cyn 478-480 482-483 485-486 488-495
+            cynblu 451-454 456-460 462-465 467-469 471-473 475-476
+            grn 506-513 515-518 520-521 523-524 526-527 529
+            grncyn 495-505
+            mag 380 382 384 386-387 389 391 393-394 396-397 645
+            magred 645
+            orn 609 611 613-614 616 618-619 621-622 624-625
+            ornyel 592 594-595 597 599 601-602 604 606 608
+            red 419 641-645
+            redorn 627-628 630-631 633-636 638-640
+            vio 420 422-423 425-428 430-432
+            viomag 399 401-402 404 406-407 409-411 413 415-416 418
+            yel 569 571 573 575 577 579-580 582 584 586 588 590
+            yelgrn 530 532 534-535 537 539 541-542 544 546 548-549 551 553 555 557 559 561 563 565 567
+            These can be collapsed to the following ranges:
+            blu     :  433-450 †
+            cyn     :  478-495 †
+            cynblu  :  451-476 †
+            grn     :  506-529 †
+            grncyn  :  495-505 †
+            mag     :  380-645   *
+            magred  :  645-645   *
+            orn     :  609-625 †
+            ornyel  :  592-608 †
+            red     :  419-645   *
+            redorn  :  627-640 †
+            vio     :  420-432 †
+            viomag  :  399-418 †
+            yel     :  569-590 †
+            yelgrn  :  530-567 †
+
+        Rearrangement
+            - Here's the table with the non-overlapping ranges:
+
+            433-450 451-476 478-495 495-505 506-529 530-567 569-590 592-608 609-625 627-640
+            blu     cynblu  cyn     grncyn  grn     yelgrn  yel     ornyel  orn     redorn
+
+        Conclusions
+            - I've marked the 'good' ranges in the above table with †; the problematic ones are
+              the red and magenta, marked with *.
+        '''
+    def ByHue():
+        print(dedent(f'''
+        The following printout shows the hues making up each of the "hues" in the colorhues dict: 
+        '''))
+        o = {}
+        for hue in colorhues:
+            di = colorhues[hue]
+            s = set()
+            for name in di:
+                c = Color(di[name])
+                h = c.ihsv[0]
+                s.add(h)
+            u = unrange(s)
+            o[hue] = u
+            print(f"  {hue:8s} {u}")
+
+    ByHue()
