@@ -113,7 +113,8 @@ if 1:   # Inverse to wl2rgb()
 if __name__ == "__main__": 
     from lwtest import run
     from rgbdata import color_data
-    from util import VisualCount
+    from util import VisualCount, TemplateRound
+    from columnize import Columnize
     def Test():
         'Show that wl2rgb() and rgb2wl() are (nearly) inverses'
         diffs = set()
@@ -130,24 +131,44 @@ if __name__ == "__main__":
         At the end, a histogram of the wavelengths used is printed, showing an overwhelming use of
         reds.
         '''
-        o = []
+        o, p = [], []
+        print("Wavelength in nm of each RGB color in rgbdata.py")
+        maxlen = 0
         for _, name, c in color_data:
             wl = rgb2wl(c)
             rgb = wl2rgb(wl)
-            o.append(wl)
-            print(f"{t(rgb)}{wl}{t.n} {t(c)}{name:40s}{t.n}")
+            o.append(TemplateRound(wl, 10))
+            s = f"{t(rgb)}{wl}{t.n} {t(c)}{name.strip()}{t.n}"
+            p.append(s)
+            maxlen = max(maxlen, len(s))
+        for i in Columnize(p, esc=True):
+            print(i)
+        print(f"maxlen = {maxlen}")
+        print("Histogram of wavelengths in above data")
         for i in VisualCount(o, indent=4):
             print(i)
-    #t.on = True
+        print(f"({len(o)} colors in file)")
+    def SteppedWavelengths(step_nm):
+        gamma = 0.8
+        print(f"Wavelength in steps of {step_nm} nm to RGB colors")
+        out, count = [], 0
+        for nm in range(380, 781, step_nm):
+            colornum = wl2rgb(nm, gamma=gamma)
+            s = colornum.xrgb
+            T = colornum.irgb
+            u = colornum.ihsv
+            out.append(f"{t(s)}{nm}{t.n}")
+            count += 1
+            o = Columnize(out, indent=" "*2, horiz=True)
+        for line in o:
+            print(line)
+        print(f"{count} wavelengths printed")
+    t.on = True
     Test()
     Decorate()
-    if 0:
-        rgb2wl(Color(0,0,0))
-        diffs = set()
-        for nm in range(380, 645, 1):
-            rgb = wl2rgb(nm)
-            nm1 = rgb2wl(rgb)
-            diff = nm1 - nm
-            diffs.add(diff)
-            print(f"{t(rgb)}{nm:3d}{t.n} {rgb.ihsv[0]} {nm1} {diff}")
-        print(diffs)
+    print()
+    SteppedWavelengths(2)
+    print()
+    SteppedWavelengths(5)
+    print()
+    SteppedWavelengths(10)
