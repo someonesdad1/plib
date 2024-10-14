@@ -49,12 +49,15 @@ if 1:   # Header
     if 1:   # Custom imports
         from wrap import wrap, dedent
         from color import Color, Trm
+        from wl2rgb import rgb2wl, wl2rgb
         if 0:
             import debug
             debug.SetDebugger()
     if 1:   # Global variables
         ii = isinstance
         t = Trm()
+        # The following makes the script's output always have escape codes for color, letting you
+        # save the results to a file and view later with e.g. /usr/bin/less.
         t.on = True
         class g:
             pass   # Hold global variables
@@ -78,17 +81,23 @@ if 1:   # Utility
     def Usage(status=1):
         print(dedent(f'''
         Usage:  {sys.argv[0]} [options] file1 [file2...]
-          Search the lines of the file(s) for color specifiers and print matching
-          lines found in the color specified.  Use '-' to read from stdin.  Regular
-          expressions (-r or -R) are OR'd together.
+          Search the lines of the file(s) for color specifiers and print matching lines found in
+          the color specified.  Use '-' to read from stdin.  Regular expressions (-r or -R) are
+          OR'd together.
+
+          Allowed color specifiers are:
+            - #4169e1 (rgb), @9fb5e1 (hsv), $9f91b9 (HSL)
+            - Three integers or floats separated by commas or whitespace
         Options:
             -d      Print details on the color
             -e      Eliminate duplicates
             -f      Use escape code even if terminal is not a tty
+            -h      Show an example
             -r x    Search for case-insensitive regexp x in lines
             -R x    Search for case-sensitive regexp x in lines
             -s s    Sort output by letters s in "rgbhsvHSL"
-            -x      Decorate each line with hex color notations
+            -x      Decorate each line with hex color notations: # = rgb, @ = hsv, $ = HSL.
+                    The number in nm is the estimated spectral wavelength of the color.
         '''))
         exit(status)
     def ParseCommandLine(d):
@@ -103,7 +112,7 @@ if 1:   # Utility
         if len(sys.argv) < 2:
             Usage()
         try:
-            opts, args = getopt.getopt(sys.argv[1:], "bDdeR:r:s:x", "help")
+            opts, args = getopt.getopt(sys.argv[1:], "bDdehR:r:s:x", "help")
         except getopt.GetoptError as e:
             print(str(e))
             exit(1)
@@ -120,8 +129,8 @@ if 1:   # Utility
                     if i not in allowed:
                         Error(f"'{i}' for -s option not in {allowed.split()}")
                 d[o] = a
-            elif o in ("-h", "--help"):
-                Usage()
+            elif o == "-h":
+                Example()
         return args
 if 1:   # Nonworking Browse function (broken because less is broken)
     def Browse():
@@ -256,9 +265,8 @@ if 1:   # Core functionality
             c = Color(*a)
         return c
     def Search(file):
-        '''Put lines to be decorated in the deque g.out.  The structure put
-        into the deque is (line, Color).  The trailing whitespace
-        of the line is stripped.
+        '''Put lines to be decorated in the deque g.out.  The structure put into the deque is
+        (line, Color).  The trailing whitespace of the line is stripped.
         '''
         keep = deque()
         if file == "-":
@@ -310,9 +318,11 @@ if 1:   # Core functionality
         for line, c in g.out:
             s = ""
             if d["-x"]:
-                s = ' '.join([c.xrgb, c.xhsv, c.xhls])
+                wl = rgb2wl(c)
+                raw_rgb = wl2rgb(wl)
+                s = ' '.join([c.xrgb, c.xhsv, c.xhls, f"{t(raw_rgb)}{wl} nm{t.n}"])
             try:
-                print(f"{t(c.xrgb)}{line} {s}{t.n}")
+                print(f"{t(c.xrgb)}{line}{t.n} {s}")
             except Exception:
                 # Isn't a proper form, so ignore it
                 continue
@@ -330,10 +340,41 @@ if 1:   # Core functionality
         def f(x):
             return x[1]
         g.out = Color.Sort(g.out, keys=d["-s"], get=f)
+    def Example():
+        data = '''
+            royal blue      #4169e1
+            periwinkle      #8e82fe
+            teal            #029386
+            cyan            #00ffff
+            blue            #0343df
+            light blue      #b0e2ff
+            sky blue        #729fff
+            bright blue     #0165fc
+            green           #00ff00
+            light green     #96f97b
+            forest green    #228b22
+            Pea Soup        #b9b880
+        '''
+        print(dedent(f'''
+        Suppose you had the following text in a file:
+        {data}
+        This script will decorate the lines of the file in the color indicated on each line as
+        shown in the following output.
+        '''))
+        print()
+        for line in data.split("\n"):
+            if not line.strip():
+                continue
+            a, b = line.split("#")
+            g.out.append((" "*4 + line.strip(), Color("#" + b)))
+        Report()
+        exit()
 
 if __name__ == "__main__":
     g.color_regexps = GetColorRegexps()
-    g.out = deque()     # Container for the lines to output
+    # Container for the lines to output; contents will be (line, Color).  The trailing whitespace
+    # from line is stripped.
+    g.out = deque()
     d = {}              # Options dictionary
     files = ParseCommandLine(d)
     if d["-b"]:
