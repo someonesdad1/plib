@@ -18,13 +18,11 @@ from pdb import set_trace as xx
 import sys
 import colorcoord
 import wl2rgb
-from clr import Clr
-from rgb import ColorNum
+from color import Color, t
 
-if len(sys.argv) > 2:
+if 0:
     import debug
     debug.SetDebugger()
-c = Clr(always=True)
 
 def GetCIETable():
     '''Returns a tuple of (nm, (xbar, ybar, zbar)) values to give the CIE's
@@ -143,9 +141,12 @@ def GetCIETable():
             Σy += d[1]
             Σz += d[2]
             checked.append((wl, tuple([f(i) for i in d])))
-        if (f(Σx) != f(21.371524) or f(Σy) != f(21.371327) or
-                f(Σz) != f(21.371540)):
-            raise ValueError("Sums did not check")
+        if f(Σx) != f(21.371524):
+            raise ValueError("Bad x checksum")
+        if f(Σy) != f(21.371327):
+            raise ValueError("Bad y checksum")
+        if f(Σz) != f(21.371540):
+            raise ValueError("Bad z checksum")
         GetCIETable.data = checked
     return GetCIETable.data
 GetCIETable.checked = False
@@ -155,7 +156,7 @@ def GetCIEDict():
     '''Returns a dict keyed by integer wavelength in nm to return the CIE
     1931 Color Matching Functions to convert a spectral power density to
     tristimulus XYZ values by integration.  The keys are integers on the
-    interval [380, 780].
+    interval [380, 780] in steps of 1.
     '''
     if GetCIEDict.dict is None:
         # Linearly interpolate the GetCIETable()'s data to get 1 nm steps
@@ -208,15 +209,14 @@ if 0:
 
 if 1:
     # Print the wavelengths out in their sRGB colors
-    print("wl vs CIExy")
+    print("wl in nm vs CIExy")
     To_sRGB =  colorcoord.xy_to_sRGB
     step = 5
     for nm in range(380, 781, step):
         x, y = wl2cie_xy(nm)
         rgb = To_sRGB((x, y), Y=1)
-        cn = ColorNum(rgb)
-        bruton_rgb =  wl2rgb.wl2rgb(nm)
-        cnb = ColorNum(bruton_rgb)
-        print(f"{c(cn.rgbhex)}{nm:3d} ({x:5.3f}, {y:5.3f}{c.n}     ", end="")
-        print(f"{c(cnb.rgbhex)}Bruton wavelength{c.n}")
+        cn = Color(*rgb)
+        bruton_rgb = wl2rgb.wl2rgb(nm)
+        print(f"{t(cn)}{nm:3d} ({x:5.3f}, {y:5.3f}){t.n}     ", end="")
+        print(f"{t(bruton_rgb)}Bruton wavelength{t.n}")
     exit()
