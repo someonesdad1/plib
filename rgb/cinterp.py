@@ -2,49 +2,41 @@
 Interpolate between colors and show on console
 
 Examples to try:
-
-    '#000000' 8 '#ffffff'
-        Shows 8 interpolations between black and white.
-
-    '#ff0000' 10 '#00ff00' 10 '#0000ff'
-        Shows 10 interpolations between red and green, then 10 between green and blue.
-
+    - '#000000' 8 '#ffffff'
+        - Shows 8 interpolations between black and white.
+    - '#ff0000' 10 '#00ff00' 10 '#0000ff'
+        - Shows 10 interpolations between red and green, then 10 between green and blue.
 '''
- 
-if 1:  # Copyright, license
-    # These "trigger strings" can be managed with trigger.py
-    #∞copyright∞# Copyright (C) 2022 Don Peterson #∞copyright∞#
-    #∞contact∞# gmail.com@someonesdad1 #∞contact∞#
-    #∞license∞#
-    #   Licensed under the Open Software License version 3.0.
-    #   See http://opensource.org/licenses/OSL-3.0.
-    #∞license∞#
-    #∞what∞#
-    # Interpolate between colors and show on console
-    #∞what∞#
-    #∞test∞# #∞test∞#
-    pass
-if 1:   # Standard imports
-    import getopt
-    import os
-    from collections import deque
-    from pathlib import Path as P
-    import sys
-    from pdb import set_trace as xx
-if 1:   # Custom imports
-    from wrap import wrap, dedent
-    if 0:
-        from clr import Clr
-        from rgb import ColorNum
-    else:
+if 1:  # Header
+    if 1:  # Copyright, license
+        # These "trigger strings" can be managed with trigger.py
+        #∞copyright∞# Copyright (C) 2022 Don Peterson #∞copyright∞#
+        #∞contact∞# gmail.com@someonesdad1 #∞contact∞#
+        #∞license∞#
+        #   Licensed under the Open Software License version 3.0.
+        #   See http://opensource.org/licenses/OSL-3.0.
+        #∞license∞#
+        #∞what∞#
+        # Interpolate between colors and show on console
+        #∞what∞#
+        #∞test∞# #∞test∞#
+        pass
+    if 1:   # Standard imports
+        import getopt
+        import os
+        from collections import deque
+        from pathlib import Path as P
+        import sys
+        from pdb import set_trace as xx
+    if 1:   # Custom imports
+        from wrap import wrap, dedent
         from color import Color, t
-    from util import fDistribute
-    if 0:
-        import debug
-        debug.SetDebugger()
-if 1:   # Global variables
-    ii = isinstance
-    #c = Clr()
+        from util import fDistribute
+        if 0:
+            import debug
+            debug.SetDebugger()
+    if 1:   # Global variables
+        ii = isinstance
 if 1:   # Utility
     def Error(*msg, status=1):
         print(*msg, file=sys.stderr)
