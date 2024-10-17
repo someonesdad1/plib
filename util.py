@@ -64,6 +64,7 @@ Time                  Returns a string giving local time and date
 TranslateSymlink      Returns what a cygwin symlink is pointing to
 Unique                Generator to return only the unique elements in sequence
 unrange               Turn a seq of integers into a collection of ranges
+unrange_real          Turn a seq of real numbers into a collection of ranges
 US_states             Return a dict of US_states keyed by two-letter names
 VisualCount           Return a list representing a histogram of a sequence
 WindChillInDegF       Calculate wind chill given OAT & wind speed
@@ -121,15 +122,12 @@ if 1:  # Header
             _have_mpmath = True
         except ImportError:
             pass
-        if 1:
+        if 0:
             import debug        
             debug.SetDebugger() 
     if 1:   # Global variables
         ii = isinstance
         nl = "\n"
-        # Note:  this choice of a small floating point number may be
-        # wrong on a system that doesn't use IEEE floating point numbers.
-        eps = 1e-15
 def US_states():
     'Return dictionary of US state abbreviations'
     a = '''AK AL AR AZ CA CO CT DE FL GA HI IA ID IL IN KS KY LA MA MD ME MI MN MO MS MT NC ND NE
@@ -1702,65 +1700,104 @@ def ParseComplex(numstring):
             else:
                 raise ValueError(msg)
     return (first, second)
-def unrange(seq, sort_first=True):
-    '''Turn a sequence of integers into a collection of ranges and return as a string.
+
+def unrange(seq, sort_first=False, sep="┅"):
+    '''Turn a sequence of integers seq into a collection of ranges and return as a string.  It
+    provides a string summary of the ranges in the sequence.  See unrange_real() for sequences of
+    real numbers.
     
-    If sort_first is True, the sequence is sorted before processing.
+    If sort_first is True, the sequence is sorted before processing.  The sep string is used to
+    separate a number range.
     
     Examples:
         seq = [1, 5, 6, 7, 3, 4, 8, 10, 11, 12]
-        unrange(seq, sort_first=True)  --> "1 3-8 10-12"
-        unrange(seq, sort_first=False) --> "1 5-7 3-4 8 10-12"
+        unrange(seq, sort_first=True)  outputs 1 3┅8 10┅12
+        unrange(seq, sort_first=False) outputs 1 5┅7 3┅4 8 10┅12
         seq = [-1, -5, -6, -7, -3, -4, -8, -10, -11, -12]
-        unrange(seq, sort_first=True)  --> "-12--10 -8--3 -1"
-        unrange(seq, sort_first=False) --> "-1 -5 -6 -7 -3 -4 -8 -10 -11 -12"
-    
-    The range notation for two negative numbers is a bit confusing until you mentally replace the
-    hyphen between two negative numbers with the word "to".
+        unrange(seq, sort_first=True)  outputs -12┅-10 -8┅-3 -1
+        unrange(seq, sort_first=False) outputs -1 -5 -6 -7 -3 -4 -8 -10 -11 -12
     '''
+    if not seq:
+        return ""
     dq = deque(sorted(seq)) if sort_first else deque(seq)
-    def GetInt():
+    in_sequence = False
+    lastx = dq.popleft()
+    out = [lastx]
+    while dq:
         x = dq.popleft()
         if not ii(x, int):
             raise TypeError(f"{x!r} is not an integer")
-        return x
-    if not dq:
-        return ""
-    lastx = dq.popleft()
-    out = [lastx]
-    in_sequence = False
-    if 1:   # Integers
-        while dq:
-            x = GetInt()
-            if not in_sequence and x == out[-1] + 1:
-                in_sequence = True
-            elif in_sequence:
-                if x != lastx + 1:
-                    in_sequence = False
-                    out.extend(["-", lastx])
-                    out.append(x)
-            else:
-                out.append(x)
-            lastx = x
-        if in_sequence:
-            out.extend(["-", lastx])
-        s = ' '.join([str(i) for i in out])
-        return s.replace(" - ", "-")
-    else:   # Any numbers
-        while dq:
-            x = dq.popleft()
-            if x < out[-1]:
+        if not in_sequence and x == out[-1] + 1:
+            in_sequence = True
+        elif in_sequence:
+            if x != lastx + 1:
                 in_sequence = False
-            #if dq:
-                #if x >= lastx and x 
+                out.extend([sep, lastx])
+                # Restart for the next range
+                out.append(x)
+        else:
+            out.append(x)
+        lastx = x
+    if in_sequence:
+        out.extend([sep, lastx])
+    s = ' '.join([str(i) for i in out])
+    u = s.replace(" " + sep + " ", sep)
+    return u
+
+def unrange_real(seq, sort_first=False, sep="┅"):
+    '''Turn a sequence of numbers seq into a collection of ranges and return as a string.  It
+    provides a string summary of the ranges in the sequence.  See unrange() for sequences of
+    integers.
+    
+    If sort_first is True, the sequence is sorted before processing.  The sep string is used to
+    separate a number range.
+    
+    Note:  no knowledge about the sequence elements being real numbers is used; the only
+    operation used is ordering by the >= operator.  Thus, any sequence of items that can be
+    ordered by >= can be converted to a range.
+    
+    Examples:
+        seq = [1.0, 2.2, 3.1, 2.7, 8.1]
+        unrange_real(seq, sort_first=True)  outputs 1.0┅8.1
+        unrange_real(seq, sort_first=False) outputs 1.0┅3.1 2.7┅8.1
+    '''
+    if not seq:
+        return ""
+    dq = deque(sorted(seq)) if sort_first else deque(seq)
+    out, seq = [], []
+    while dq:
+        x = dq.popleft()
+        seq = [x]
+        while dq and dq[0] >= seq[-1]:
+            seq.append(dq.popleft())
+        s = f"{seq[0]}"
+        if len(seq) > 1:
+            s += f"{sep}{seq[-1]}"
+        out.append(s)
+        if not dq:
+            break   # Finished
+    return ' '.join(out)
 
 if 0: #xx
-    # For development of handling floats too
-    seq = [1, 5, 6, 7, 3, 4, 8, 10, 11, 12]
-    print(unrange(seq, sort_first=True))
-    print(unrange(seq, sort_first=False))
-    exit()
-
+    if 1: #xx
+        # unrange handle floats too
+        from color import t
+        seq = [i for i in [1.0, 2.2, 3.1, 2.7, 8.1]]
+        t.print(f"{t.ornl}{seq}")
+        print("sort   ", unrange_real(seq, sort_first=True))
+        print("no sort", unrange_real(seq, sort_first=False))
+        exit()
+    if 1: #xx
+        from color import t
+        seq = [1, 5, 6, 7, 3, 4, 8, 10, 11, 12]
+        t.print(f"{t.ornl}{seq}")
+        print("sort   ",unrange(seq, sort_first=True))
+        print("no sort",unrange(seq, sort_first=False))
+        seq = [-1, -5, -6, -7, -3, -4, -8, -10, -11, -12]
+        t.print(f"{t.ornl}{seq}")
+        print("sort   ", unrange(seq, sort_first=True))
+        print("no sort", unrange(seq, sort_first=False))
+        exit()
 
 def Unique(seq):
     '''Generator to return only the unique elements in sequence.  The order of the items in the
@@ -1817,23 +1854,52 @@ if __name__ == "__main__":
         Assert(tuple(Unique([1, 2, 1])) == (1, 2))
         Assert(f(["Mon", "Tue", 1, "Tue"]) == ["Mon", "Tue", 1])
         Assert(f(["Mon", "Tue", 1, "Tue"]) != ["Mon", 1, "Tue"])
-    def Test_unrange():
-        s = unrange([])
+    def Test_unrange_real():
+        sep, f = "┅", unrange_real
+        s = f([], sort_first=False)
         Assert(s == "")
-        s = unrange([1])
+        s = f([1], sort_first=False)
         Assert(s == "1")
-        s = unrange([1, 2])
-        Assert(s == "1-2")
-        s = unrange([1, 2, 4])
-        Assert(s == "1-2 4")
-        s = unrange([1, 3, 4, 5, 6, 7, 8, 10, 11, 12])
-        Assert(s == "1 3-8 10-12")
+        s = f([1, 2], sort_first=False)
+        Assert(s == f"1{sep}2")
+        s = f([1, 2, 4], sort_first=False)
+        Assert(s == f"1{sep}4")
+        s = f([1, 3, 4, 5, 6, 7, 8, 10, 11, 12], sort_first=False)
+        Assert(s == f"1{sep}12")
         n = 10000
-        s = unrange(range(1, n))
-        Assert(s == f"1-{n - 1}")
+        s = f(range(1, n), sort_first=False)
+        Assert(s == f"1{sep}{n - 1}")
+        s = f([float(i) for i in range(1, n)], sort_first=False)
+        Assert(s == f"1.0{sep}{float(n - 1)}")
+        s = f([1.0], sort_first=False)
+        Assert(s == f"1.0")
+        s = f([float(i) for i in range(1, n)], sort_first=False)
+        Assert(s == f"1.0{sep}{float(n - 1)}")
+        s = f([1.0, 2.2, 3.1, 2.7, 8.1], sort_first=False)
+        Assert(s == f"1.0{sep}3.1 2.7{sep}8.1")
+        s = f([1.0, 2.2, 3.1, 2.7, 8.1], sort_first=True)
+        Assert(s == f"1.0{sep}8.1")
+
+    def Test_unrange():
+        sep, f = "┅", unrange
+        s = f([], sort_first=False)
+        Assert(s == "")
+        s = f([1], sort_first=False)
+        Assert(s == "1")
+        s = f([1, 2], sort_first=False)
+        Assert(s == f"1{sep}2")
+        s = f([1, 2, 4], sort_first=False)
+        Assert(s == f"1{sep}2 4")
+        s = f([1, 3, 4, 5, 6, 7, 8, 10, 11, 12], sort_first=False)
+        Assert(s == f"1 3{sep}8 10{sep}12")
+        n = 10000
+        s = f(range(1, n), sort_first=False)
+        Assert(s == f"1{sep}{n - 1}")
         seq = [-i for i in (1, 3, 4, 5, 6, 7, 8, 10, 11, 12)]
-        s = unrange(seq)
-        Assert(s == f"-12--10 -8--3 -1")
+        s = f(seq, sort_first=False)
+        Assert(s == f"-1 -3 -4 -5 -6 -7 -8 -10 -11 -12")
+        s = f(seq, sort_first=True)
+        Assert(s == f"-12{sep}-10 -8{sep}-3 -1")
     def Test_Cumul():
         for a in ([], [0], [0, 1]):
             Assert(Cumul(a, check=True) == a)
@@ -2508,7 +2574,6 @@ if __name__ == "__main__":
             defaultdict
             deque
             DIGITS
-            eps
             flt
             Fraction
             frange

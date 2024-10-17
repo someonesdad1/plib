@@ -1,5 +1,10 @@
 Active:  /plib/.todo
 
+    - util.py
+        - unrange 
+            - Should handle any numerical item that obeys ordering rules.  This should include
+              floats.
+        
     - color.py
         - colorhues.py needs attribution; it references the old kolor directory
         - /plib/rgb
