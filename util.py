@@ -1700,7 +1700,6 @@ def ParseComplex(numstring):
             else:
                 raise ValueError(msg)
     return (first, second)
-
 def unrange(seq, sort_first=False, sep="┅"):
     '''Turn a sequence of integers seq into a collection of ranges and return as a string.  It
     provides a string summary of the ranges in the sequence.  See unrange_real() for sequences of
@@ -1743,7 +1742,6 @@ def unrange(seq, sort_first=False, sep="┅"):
     s = ' '.join([str(i) for i in out])
     u = s.replace(" " + sep + " ", sep)
     return u
-
 def unrange_real(seq, sort_first=False, sep="┅"):
     '''Turn a sequence of numbers seq into a collection of ranges and return as a string.  It
     provides a string summary of the ranges in the sequence.  See unrange() for sequences of
@@ -1777,28 +1775,6 @@ def unrange_real(seq, sort_first=False, sep="┅"):
         if not dq:
             break   # Finished
     return ' '.join(out)
-
-if 0: #xx
-    if 1: #xx
-        # unrange handle floats too
-        from color import t
-        seq = [i for i in [1.0, 2.2, 3.1, 2.7, 8.1]]
-        t.print(f"{t.ornl}{seq}")
-        print("sort   ", unrange_real(seq, sort_first=True))
-        print("no sort", unrange_real(seq, sort_first=False))
-        exit()
-    if 1: #xx
-        from color import t
-        seq = [1, 5, 6, 7, 3, 4, 8, 10, 11, 12]
-        t.print(f"{t.ornl}{seq}")
-        print("sort   ",unrange(seq, sort_first=True))
-        print("no sort",unrange(seq, sort_first=False))
-        seq = [-1, -5, -6, -7, -3, -4, -8, -10, -11, -12]
-        t.print(f"{t.ornl}{seq}")
-        print("sort   ", unrange(seq, sort_first=True))
-        print("no sort", unrange(seq, sort_first=False))
-        exit()
-
 def Unique(seq):
     '''Generator to return only the unique elements in sequence.  The order of the items in the
     sequence is maintained.
@@ -1879,7 +1855,6 @@ if __name__ == "__main__":
         Assert(s == f"1.0{sep}3.1 2.7{sep}8.1")
         s = f([1.0, 2.2, 3.1, 2.7, 8.1], sort_first=True)
         Assert(s == f"1.0{sep}8.1")
-
     def Test_unrange():
         sep, f = "┅", unrange
         s = f([], sort_first=False)
