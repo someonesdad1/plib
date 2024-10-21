@@ -496,4 +496,3 @@ if __name__ == "__main__":
     for line in output:
         PrintOutputLine(line, settings)
     PrintTruncation(settings)
-    D

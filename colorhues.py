@@ -7097,9 +7097,66 @@ if __name__ == "__main__":
             for name in di:
                 c = Color(di[name])
                 h = c.ihsv[0]
+                #if h in (187, 188, 189):
+                #    print(f"xx {name}", c)
                 s.add(h)
-            u = unrange(s)
+            u = unrange(s, sort_first=True)
             o[hue] = u
             print(f"  {hue:8s} {u}")
+        '''
+        Results
+            The following printout shows the hues making up each of the "hues" in the colorhues dict: 
+            blu      158┅177
+            cyn      128┅136 119┅127
+            cynblu   137┅157
+            grn      70┅97
+            grncyn   98┅118
+            mag      202┅222
+            magred   223┅245
+            orn      16┅26
+            ornyel   32┅36 27┅31
+            red      0┅4 188 246┅254
+            redorn   5┅15
+            vio      178┅187
+            viomag   192┅201 189┅191
+            yel      37┅48
+            yelgrn   49┅69
+
+        The 188 for red is definitely wrong, as it's a violet color.
+
+        Have /plib/rgb/build/build.py construct the colorhues dict 
+        '''
 
     ByHue()
+
+d = {
+    # Use x % 255 to get hue
+    "red": (244, 258),
+    "redorn": (5, 15),
+    "orn": (16, 26),
+    "ornyel": (27, 36),
+    "yel": (37, 48),
+    "yelgrn": (49, 69),
+    "grn": (70, 97),
+    "grncyn": (97, 118),
+    "cyn": (119, 136),
+    "cynblu": (137, 154),
+    "blu": (155, 177),
+    "vio": (178, 187),
+    "viomag": (189, 201),
+    "mag": (202, 222),
+    "magred": (223, 243),
+}
+for name in d:
+    a, b = d[name]
+    print(f"{name:6s}", end=" ")
+    if 0:
+        for i in range(a, b + 1):
+            h = i % 255
+            c = Color(h, 255, 255, hsv=True)
+            print(f"{t(c)}{i % 255:3d}{t.n}", end=" ")
+        print()
+    else:
+        h1, h2 = [i % 255 for i in (a, b)]
+        c1, c2 = Color(h1, 255, 255, hsv=True), Color(h2, 255, 255, hsv=True)
+        t.print(f"{t(c1)}{h1:03d} {t(c2)}{h2:03d}")

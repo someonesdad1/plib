@@ -1,12 +1,11 @@
 Active:  /plib/.todo
 
-    - util.py
-        - unrange 
-            - Should handle any numerical item that obeys ordering rules.  This should include
-              floats.
-        
     - color.py
-        - colorhues.py needs attribution; it references the old kolor directory
+        - colorhues
+            - Add the cyn, cynblu, grn, grncyn, etc. designators to build.py in rgb/build.
+              Then add these strings to rgbdata.color_data along with a definition of the hue
+              ranges for each string.
+
         - /plib/rgb
             - Fix up chromaticity directory's stuff
         - TRM needs a way to ensure all attribute access returns "" when .on is False.

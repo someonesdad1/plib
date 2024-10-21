@@ -34,7 +34,6 @@ if 1:  # Header
         from sig import sig
         from fpformat import FPFormat
         from columnize import Columnize
-        from color import C, fg, normal, yellow as highlight, lred, lgreen
         from color import t
         from u import u, ParseUnit, SI_prefixes
     if 1:   # Global variables
