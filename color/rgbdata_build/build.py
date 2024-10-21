@@ -27,6 +27,7 @@ if 1:  # Header
         from pdb import set_trace as xx
     if 1:   # Custom imports
         from wrap import wrap, dedent
+        from color import Color as C
     if 1:   # Global variables
         ii = isinstance
 if 1:   # Utility
@@ -110,6 +111,41 @@ if 1:   # Core functionality
         s = s[1:]
         rgb = s[0:2], s[2:4], s[4:6]
         return tuple(int(i, 16) for i in rgb)
+    def GetHueCategory(color_instance):
+        'Return a hue category string for the color instance'
+        h = color_instance.ihsv[0]
+        if 5 <= h <= 15:
+            return "redorn"
+        elif 16 <= h <= 26:
+            return "orn"
+        elif 27 <= h <= 36:
+            return "ornyel"
+        elif 37 <= h <= 48:
+            return "yel"
+        elif 49 <= h <= 69:
+            return "yelgrn"
+        elif 70 <= h <= 97:
+            return "grn"
+        elif 98 <= h <= 118:
+            return "grncyn"
+        elif 119 <= h <= 136:
+            return "cyn"
+        elif 137 <= h <= 154:
+            return "cynblu"
+        elif 155 <= h <= 177:
+            return "blu"
+        elif 178 <= h <= 187:
+            return "vio"
+        elif 188 <= h <= 201:
+            return "viomag"
+        elif 202 <= h <= 222:
+            return "mag"
+        elif 223 <= h <= 243:
+            return "magred"
+        elif (0 <= h <= 4) or (244 <= h <= 255):
+            return "red"
+        else:
+            raise ValueError(f"{h} is a bad hue number")
     def Report(data, attrdict):
         'Write output in form of python list and dict'
         myname = P(sys.argv[0]).resolve()
@@ -131,6 +167,8 @@ if 1:   # Core functionality
             #   Attribution number (indexes into attribution_dict)
             #   Text name of color
             #   Color object holding the color data 
+            #   Hue category string (there are 15 hue categories:  red, redorn, orn, ornyel, yel,
+            #   yelgrn, grn, grncyn, cyn, cynblu, blu, vio, viomag, mag, magred))
 
             '''))
             print("color_data = [")
@@ -140,8 +178,10 @@ if 1:   # Core functionality
                     print()
                     last = i
                 attr, name, c = i
+                # Make c a 'real' color.py:Color instance
+                clr = C(*c.rgb)
                 n = f'"{name}"'
-                print(f"    ({attr:2d}, {n:44s}, {c}),")
+                print(f"    ({attr:2d}, {n:44s}, {c}, {GetHueCategory(clr)!r}),")
             print("]")
         # Attribution data
         print(dedent(f'''
