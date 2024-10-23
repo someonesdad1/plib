@@ -16,6 +16,9 @@ if 1:   # Header
         from wrap import dedent
         from columnize import Columnize
         from color import TRM as t
+        if 0:
+            import debug             
+            debug.SetDebugger()      
     if 1:   # Global variables
         beginning_lines_to_ignore = 3
         data_file = "/elec/spreadsheets/Components.csv"
