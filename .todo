@@ -1,5 +1,9 @@
 Active:  /plib/.todo
 
+    - pgm/goto.py
+        - Add -o option that opens Explorer on a selection's directory.  Use case:  'g -o hp' would
+          open Explorer on the HP catalog directory.
+
     - color.py
         - /plib/rgb
             - Fix up chromaticity directory's stuff

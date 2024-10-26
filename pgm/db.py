@@ -24,13 +24,18 @@ if 1:   # Imports
 if 1:   # Custom imports
     from wrap import dedent
     from columnize import Columnize
-    from f import flt, sqrt
+    from f import flt, sqrt, log10
     from color import t
 if 1:   # Global variables
     W = int(os.environ["COLUMNS"]) - 1
     x = flt(0)
     x.N = 3
     x.rtz = True
+    # Color coding
+    t.dBV = t("brnl")
+    t.dBm600 = t("magl")
+    t.dBm50 = t("grnl")
+    t.dBm75 = t("yell")
 def Error(msg, status=1):
     print(msg, file=sys.stderr)
     exit(status)
@@ -38,23 +43,42 @@ def Usage(d, status=1):
     name = sys.argv[0]
     print(dedent(f'''
     Usage:  {name} [options]
-      Print dB stuff.
-    
+      Print dB information.  The default is to print a dBm(600 Ω) to voltage table.  The range
+      printed is typical for HP AC voltmeters, -80 to 60 dBm.
     Options:
-        -d  Print only distortion information
-        -h  Print a manpage
+        -5      Print dBm(50 Ω) to dBm(600 Ω) table
+        -d      Print distortion in dBc table converted to %
+        -h      Print a manpage
+        -n n    Use n digits in calculations
+        -r n    Print dB table in steps of n [{d['-r']}]
+        -t      Print a conversion table amongst common dB measures
+        -v      Print dBV to dBm(600 Ω) table
     '''))
     exit(status)
 def ParseCommandLine(d):
+    d["-5"] = False     # Print dBm(50 Ω) to dBm(600 Ω) table
     d["-d"] = False     # Print distortion data only
+    d["-n"] = 3         # Number of digits
+    d["-r"] = 0         # dB table step
+    d["-t"] = False     # Print conversions amongst common dB measures
+    d["-v"] = False     # Print dBV to dBm(600 Ω) table
     try:
-        opts, args = getopt.getopt(sys.argv[1:], "dh")
+        opts, args = getopt.getopt(sys.argv[1:], "5dhn:r:t")
     except getopt.GetoptError as e:
         print(str(e))
         exit(1)
     for o, a in opts:
-        if o[1] in list("d"):
+        if o[1] in list("5dt"):
             d[o] = not d[o]
+        elif o == "-n":
+            d[o] = n = int(a)
+            if not (1 <= n <= 15):
+                Error(f"Number of digits must be between 1 and 15")
+            flt(0).N = n
+        elif o == "-r":
+            d[o] = n = int(a)
+            if n < 1:
+                Error(f"{o} option's value must be integer > 0")
         elif o in ("-h", "--help"):
             Usage(d, status=0)
     return args
@@ -68,11 +92,15 @@ def Distortion():
     for i in Columnize(out):
         print(i)
 def dBV_dBm600():
+    w1, w2 = 8, 8
     print(f"{'dBV to dBm(600 Ω)':^{W}s}")
-    out = ["dBV  dBm"]
+    out = [f"{t.dBV}{'dBV':^{w1}s}{t.n}  {t.dBm600}{'dBm':^{w2}s}{t.n}"]
+    for dBV in range(60, 0, -d["-r"]):
+        dBm = flt(20*log(10**(dBV/20)/sqrt(600/1000)))
+        out.append(f"{t.dBV}{str(dBV):^{w1}s}{t.n}  {t.dBm600}{dBm!s:^{w2}s}{t.n}")
     for dBV in range(101):
-        dBm = 20*log(10**(-dBV/20)/sqrt(600/1000))
-        out.append(f"{-dBV:3d}  {dBm:4.1f}")
+        dBm = flt(20*log(10**(-dBV/20)/sqrt(600/1000)))
+        out.append(f"{t.dBV}{str(-dBV):^{w1}s}{t.n}  {t.dBm600}{dBm!s:^{w2}s}{t.n}")
     for i in Columnize(out):
         print(i)
 def Header():
@@ -81,7 +109,7 @@ def Header():
         dBm(R Ω) = 20*log(V/sqrt(R/1000))
         V = sqrt(R/1000)*10**(dBm/20)
         R = V**2*10**(-dBm/10 + 3)
-
+     
     Converting between different dBm voltage measures:
         dBm(R Ω) = dBm(S Ω) + C where C = 10*log(S/R)
             dBm(50 Ω) = dBm(600 Ω) + 10.8
@@ -91,7 +119,7 @@ def Header():
         0 dBm(50 Ω) is 0.2236 V = sqrt(50/1000)
         0 dBm(75 Ω) is 0.2739 V = sqrt(75/1000)
     '''))
-def Table():
+def ConversionTable():
     w = 12  # Column width
     hdr = (
         f"{'Value':>{w}s}",
@@ -104,7 +132,7 @@ def Table():
     )
     print("dB values in voltage for various references\n")
     t.print(f"{t('pnkl')}{' '.join(hdr)}")
-    for db in range(60, -120 - 1, -2):
+    for db in range(60, -120 - 1, -d["-r"]):
         res = []
         res.append(sqrt(50/1000)*10**(db/20))       # dBm(50)
         res.append(sqrt(75/1000)*10**(db/20))       # dBm(75)
@@ -119,17 +147,49 @@ def Table():
         else:
             print(' '.join(res))
     t.print(f"{t('pnkl')}{' '.join(hdr)}")
+def dBmToVoltage():
+    w1, w2 = 12, 8
+    t.print(f"{t(attr='ul')}{'dBm(600 Ω) to voltage':^{W}s}")
+    print()
+    out = [f"{t.dBm600}{'dBm(600 Ω)':^{w1}s}{t.n}  {'Voltage, V':^{w2}s}"]
+    c = sqrt(600/1000)
+    for dBm in range(60, 0, -d["-r"]):
+        V = flt(c*10**(dBm/20))
+        out.append(f"{t.dBm600}{str(dBm):^{w1}s}{t.n}  {V.engsi + 'V':^{w2}s}")
+    for dBm in range(0, -81, -d["-r"]):
+        V = flt(c*10**(dBm/20))
+        out.append(f"{t.dBm600}{str(dBm):^{w1}s}{t.n}  {V.engsi + 'V':^{w2}s}")
+    for i in Columnize(out):
+        print(i)
+def dB50_to_dB600():
+    w1, w2 = 12, 12
+    t.print(f"{t(attr='ul')}{'dBm(50 Ω) to dBm(600 Ω)':^{W}s}")
+    print()
+    out = [f"{t.dBm50}{'dBm(50 Ω)':^{w1}s}{t.n}  {t.dBm600}{'dBm(600 Ω)':^{w2}s}{t.n}"]
+    c = flt(10*log10(600/50))
+    for dBm50 in range(60, 0, -d["-r"]):
+        dBm600 = dBm50 + c
+        out.append(f"{t.dBm50}{dBm50!s:^{w1}s}{t.n}  {t.dBm600}{dBm600!s:^{w2}s}{t.n}")
+    for dBm50 in range(0, 81, d["-r"]):
+        dBm600 = -dBm50 + c
+        out.append(f"{t.dBm50}{-dBm50!s:^{w1}s}{t.n}  {t.dBm600}{dBm600!s:^{w2}s}{t.n}")
+    for i in Columnize(out):
+        print(i)
 
 if __name__ == "__main__":
     d = {}      # Options dictionary
     args = ParseCommandLine(d)
-    if d["-d"]:
-        Distortion()
-        exit()
     Header()
     print()
-    Distortion()
-    print()
-    dBV_dBm600()
-    print()
-    Table()
+    if not d["-r"]:
+        d["-r"] = 2
+    if d["-d"]:
+        Distortion()
+    elif d["-5"]:
+        dB50_to_dB600()
+    elif d["-t"]:
+        ConversionTable()
+    elif d["-v"]:
+        dBV_dBm600()
+    else:
+        dBmToVoltage()
