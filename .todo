@@ -1,5 +1,19 @@
 Active:  /plib/.todo
 
+    - pgm/x.py
+        - Fix 'from color import C'
+
+    - pgm/db.py
+        - -r option changes the reference resistance R in Ω (600 Ω default)
+        - Default is to print dB(R Ω) to voltage table
+        - Change existing -r to -s option (step of table); allow n to be a float > 0
+        - Change command line to 'low_dB high_dB [step]' for generating table
+
+    - pgm/ac.py
+        - Calculate the RMS, average, and peak functionals for common AC waveforms.  Ok to use
+          numpy and scipy.
+        - This script should reproduce the graphs in Appendix II of HP's AN60 "Which AC Voltmeter?"
+
     - pgm/goto.py
         - Add -o option that opens Explorer on a selection's directory.  Use case:  'g -o hp' would
           open Explorer on the HP catalog directory.

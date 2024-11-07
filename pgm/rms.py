@@ -11,10 +11,10 @@ Basic calculations with RMS related things
         - Then equivalent measures are printed out
     - Options
         - -t x  Type of waveform
-            - sin       Sine
-            - squ       Square
-            - tri       Triangle  (ramps are with symmetry 0 or 100)
-            - pul:n     Pulse with duty cycle n (0 to 100)
+            -- sin       Sine
+            -- squ       Square
+            -- tri       Triangle  (ramps are with symmetry 0 or 100)
+            -- pul:n     Pulse with duty cycle n (0 to 100)
         - -d n  DC offset
         - -s n  Symmetry
 

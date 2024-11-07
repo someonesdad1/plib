@@ -92,7 +92,6 @@ if 1:   # Classes
                     s.append("by " + t.author + authors + t.N)
                 s.append("pg " + self.pages)
             return ', '.join(s)
-
 if 1:   # Data
     # Constructed by lines.py script Sun Nov  1 20:30:02 2020
     #Article = namedtuple('Article', 'year month title subtitle authors pages volume number')
@@ -3162,7 +3161,6 @@ if 1:   # Data
         1997-01-03.pdf:  History of frequency traceability at HP Santa Clara; Timebase test/adjustment procedure
         1998-01-03.pdf:  Important measurement information on cleaning and handling HP lightwave equipment; Practical tips on using power supplies in the T&M environment
     '''
-
 if 1:   # Utility
     def SetColors(): 
         t.date = t("ornl") if d["-c"] else ""
@@ -3177,13 +3175,15 @@ if 1:   # Utility
     def Usage(d, status=1):
         print(dedent(f'''
         Usage:  {sys.argv[0]} [options] [regex1 [regex2 ...]]
-          Search the HP Journal article information.  Use the options to
-          restrict the things to search.  One article is printed per line.
+          Search the HP Journal article information.  Use the options to restrict the things to
+          search.  One article is printed per line.  To search for a year such as 1977, use the
+          special regex '1977-'.  You can include a one or two digit number after '-' to specify
+          the month.
         Options:
           -a      Search author names only
           -B      Search Bench Brief topics
           -b      Brief report:  date and title only
-          -c      Use color decoration
+          -c      Turn color decoration off
           -d      Dump all the data
           -g      Prompt for which files to open
           -i      Don't ignore case in search
@@ -3323,26 +3323,53 @@ if 1:   # Core functionality
     def Search(regex, results):
         '''Return in the list 'results' the integer index into data that has a
         match to the regular expression regex.
+         
+        The HPJ dates are 1998-02 to 1949-12.  The special regex 'dddd-' where d is a decimal
+        digit is an indication you want to search for articles by year.
         '''
-        r = re.compile(regex, re.I) if d["-i"] else re.compile(regex)
-        for i, a in enumerate(data):
-            found = False
-            authors = ' '.join(a.authors)
-            if d["-a"]:
-                if r.search(authors):
-                    results.append(i)
-                    continue
-            elif d["-s"]:
-                if r.search(a.subtitle):
-                    results.append(i)
-                    continue
-            elif d["-t"]:
-                if r.search(a.title):
-                    results.append(i)
-                    continue
-            else:
-                if r.search(' '.join((a.title, a.subtitle, authors))):
-                    results.append(i)
+        if re.search(r"^\d\d\d\d-", regex):
+            # User wants a date
+            y, m = regex.split("-")
+            try:
+                yr = int(y)
+                if not (1949 <= yr <= 1998):
+                    raise ValueError()
+            except ValueError:
+                Error(f"{y!r} is not a valid year")
+            if m:  # Month also supplied
+                try:
+                    mo = int(m)
+                    if not (1 <= mo <= 12):
+                        raise ValueError()
+                except ValueError:
+                    Error(f"{m!r} is not a valid month")
+            for i, a in enumerate(data):
+                if a.year == yr:
+                    if m:
+                        # Have a month to, so must match it too
+                        if a.month == mo:
+                            results.append(i)
+                    else:
+                        results.append(i)
+        else:
+            r = re.compile(regex, re.I) if d["-i"] else re.compile(regex)
+            for i, a in enumerate(data):
+                authors = ' '.join(a.authors)
+                if d["-a"]:
+                    if r.search(authors):
+                        results.append(i)
+                        continue
+                elif d["-s"]:
+                    if r.search(a.subtitle):
+                        results.append(i)
+                        continue
+                elif d["-t"]:
+                    if r.search(a.title):
+                        results.append(i)
+                        continue
+                else:
+                    if r.search(' '.join((a.title, a.subtitle, authors))):
+                        results.append(i)
         return results
     def OpenArticles():
         'Open the articles given by the dates in OpenArticles.list.'

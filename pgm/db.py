@@ -36,6 +36,7 @@ if 1:   # Global variables
     t.dBm600 = t("magl")
     t.dBm50 = t("grnl")
     t.dBm75 = t("yell")
+    t.always = True
 def Error(msg, status=1):
     print(msg, file=sys.stderr)
     exit(status)
@@ -50,6 +51,7 @@ def Usage(d, status=1):
         -d      Print distortion in dBc table converted to %
         -h      Print a manpage
         -n n    Use n digits in calculations
+        -p      Show voltage drop in % vs drop in dB
         -r n    Print dB table in steps of n [{d['-r']}]
         -t      Print a conversion table amongst common dB measures
         -v      Print dBV to dBm(600 Ω) table
@@ -59,16 +61,17 @@ def ParseCommandLine(d):
     d["-5"] = False     # Print dBm(50 Ω) to dBm(600 Ω) table
     d["-d"] = False     # Print distortion data only
     d["-n"] = 3         # Number of digits
+    d["-p"] = False     # % drop vs dB
     d["-r"] = 0         # dB table step
     d["-t"] = False     # Print conversions amongst common dB measures
     d["-v"] = False     # Print dBV to dBm(600 Ω) table
     try:
-        opts, args = getopt.getopt(sys.argv[1:], "5dhn:r:t")
+        opts, args = getopt.getopt(sys.argv[1:], "5dhn:pr:t")
     except getopt.GetoptError as e:
         print(str(e))
         exit(1)
     for o, a in opts:
-        if o[1] in list("5dt"):
+        if o[1] in list("5dpt"):
             d[o] = not d[o]
         elif o == "-n":
             d[o] = n = int(a)
@@ -175,7 +178,61 @@ def dB50_to_dB600():
         out.append(f"{t.dBm50}{-dBm50!s:^{w1}s}{t.n}  {t.dBm600}{dBm600!s:^{w2}s}{t.n}")
     for i in Columnize(out):
         print(i)
+def PercentDrop():
+    print(f"dB drop versus percentage drop")
 
+'''
+Change to command on command line
+
+Commands
+    eq
+        Print equations
+    db%
+        dB drop to percentage table
+    %db
+        % drop to dB drop 
+            Equations:
+                dB = 20*log10(V/V0)
+                10**(dB/20) = V/V0
+                or V = V0*10**(dB/20)
+                % = 100*(V - V0)/V0 = 100(V/V0 - 1) = 100*(10**(dB/20) - 1)
+    dbc
+        Distortion in dBc converted to % table
+    %
+        Distortion in % converted to dBc table
+    conv fromΩ toΩ [step]
+        Table converting between two dB(R Ω) values
+    dbv R [step]
+        dBV to dB(R Ω) table
+    R dbv [step]
+        dB(R Ω) to dBV table
+    v
+        Print voltages from 1 kV to 1 μV in steps of 1-2-5 and their equivalents in common dB
+        measures (dBm(50 Ω), dBm(75 Ω), dBm(600 Ω), dBV)
+
+Options
+    - -s n  Step size for dB table [1]
+    - -r R  Resistance reference in Ω 
+    - -H    Print a manpage
+
+dBm definitions (R in Ω, V in volts)
+    dBm(R Ω) = 20*log(V/sqrt(R/1000))
+    V = sqrt(R/1000)*10**(dBm/20) = C*10**(dBm/20)
+        C = 0.7746 V for 600 Ω
+        C = 0.2739 V for 75 Ω
+        C = 0.2236 V for 50 Ω
+    R = V**2*10**(-dBm/10 + 3)
+
+Converting between different dBm voltage measures:
+    dBm(R Ω) = dBm(S Ω) + C where C = 10*log(S/R)
+        dBm(50 Ω) = dBm(600 Ω) + 10.8
+        dBm(75 Ω) = dBm(600 Ω) + 9.0
+        dBm(50 Ω) = dBm(75 Ω) + 1.8
+    0 dBm(600 Ω) is 0.7746 V = sqrt(600/1000)
+    0 dBm(50 Ω) is 0.2236 V = sqrt(50/1000)
+    0 dBm(75 Ω) is 0.2739 V = sqrt(75/1000)
+
+'''
 if __name__ == "__main__":
     d = {}      # Options dictionary
     args = ParseCommandLine(d)
@@ -187,6 +244,8 @@ if __name__ == "__main__":
         Distortion()
     elif d["-5"]:
         dB50_to_dB600()
+    elif d["-p"]:
+        PercentDrop()
     elif d["-t"]:
         ConversionTable()
     elif d["-v"]:
