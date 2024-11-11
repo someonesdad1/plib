@@ -1,5 +1,14 @@
 Active:  /plib/.todo
 
+    - pgm/ds.py
+        - Need a feature to define default documents so they open on the first search.
+            - Example:  I have 3 versions of the HP427A manual:  1970, 1972, 1983.  The 1983 one
+              covers my instrument best, but it can take time to render in Sumatra.  I'd like to
+              define the 1972 version as the one to open by default, but e.g. use the -e option to
+              let me see all the options if I don't want the default.  When the default is used,
+              print a message to stdout that this happens so that the user knows there's more to
+              see.
+
     - pgm/x.py
         - Fix 'from color import C'
 
