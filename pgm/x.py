@@ -24,7 +24,7 @@ if 1:   # Standard imports
 if 1:   # Custom imports
     from columnize import Columnize
     from wrap import dedent
-    from color import C
+    from color import t  # C
 if 1:   # Global variables
     P = pathlib.Path
     ii = isinstance
@@ -55,11 +55,13 @@ if 1:   # Utility
                 if kw["cc"]:
                     print(f"{kw['cc']}", end="")
                 else:
-                    print(f"{C.cyn}", end="")
+                    #print(f"{C.cyn}", end="")
+                    print(f"{t('cynl')}", end="")
                 del kw["cc"]
             kw["end"] = ""
             print(*p, **kw)
-            print(f"{C.norm}")
+            #print(f"{C.norm}")
+            print(f"{t.n}")
     def Usage(d, status=1):
         name = sys.argv[0]
         print(dedent(f'''
@@ -136,13 +138,11 @@ if 1:   # Core functions
             except UnicodeDecodeError:
                 # It's not a UTF-8 file
                 if d["-d"]:
-                    print(f"{C.lmag}Unicode decode error for '{file}'{C.norm}",
-                          file=sys.stderr)
+                    t.print(f"{t('magl')}Unicode decode error for '{file}'", file=sys.stderr)
                 return False
             except Exception as e:
                 if d["-d"]:
-                    print(f"{C.lmag}Exception for '{file}':  {e}{C.norm}",
-                            file=sys.stderr)
+                    t.print(f"{t('magl')}Exception for '{file}':  {e}", file=sys.stderr)
                 return False
             if len(line) > 2:
                 return True if line[:2] == "#!" else False
@@ -155,18 +155,18 @@ if 1:   # Core functions
         def clear_bit(value, n):
             return value & ~(1 << n)
         if file.is_dir():  # Do not change directory permissions
-            Dbg(f"Ignored directory:  '{file}'", cc=C.lred)
+            Dbg(f"Ignored directory:  '{file}'", cc=t('redl'))
             return
         elif file.is_symlink():  # Do not change directory permissions
-            Dbg(f"Ignored symlink:  '{file}'", cc=C.lred)
+            Dbg(f"Ignored symlink:  '{file}'", cc=t('redl'))
             return
         p = file.stat().st_mode
         if execute_is_on(p):
             if IgnoreExecutable(file):
-                Dbg(f"Ignored executable:  '{file}'", cc=C.lred)
+                Dbg(f"Ignored executable:  '{file}'", cc=t('redl'))
                 return
             if IgnoreHidden(file):
-                Dbg(f"Ignored hidden:  '{file}'", cc=C.lred)
+                Dbg(f"Ignored hidden:  '{file}'", cc=t('redl'))
                 return
             if d["-n"]:     # Dry run
                 print(file)
