@@ -1,9 +1,5 @@
 Active:  /plib/.todo
 
-    - pgm/hpc.py
-        - Script to open an HP catalog.  With no arguments, prompt for the number to open.  With an
-          argument, it's a year, so open up the nearest one.
-
     - pgm/ds.py
         - Need a feature to define default documents so they open on the first search.
             - Example:  I have 3 versions of the HP427A manual:  1970, 1972, 1983.  The 1983 one

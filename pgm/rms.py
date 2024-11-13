@@ -1,5 +1,5 @@
 '''
-Basic calculations with RMS related things
+Calculations with RMS related things
 
     - Input a number x.  It is interpreted in a number of ways
         - It's a peak-to-peak value for sine wave
@@ -17,6 +17,7 @@ Basic calculations with RMS related things
             -- pul:n     Pulse with duty cycle n (0 to 100)
         - -d n  DC offset
         - -s n  Symmetry
+        - -v    Validate the formulas in the RMS document
 
 '''
  
@@ -42,10 +43,11 @@ if 1:  # Header
         import re
         import sys
     if 1:   # Custom imports
-        from f import flt
+        #from f import flt
         from wrap import dedent
-        from color import t
-        from lwtest import Assert
+        #from color import t
+        #from lwtest import Assert
+        import waveform
         if 0:
             import debug
             debug.SetDebugger()
@@ -80,40 +82,46 @@ if 1:   # Utility
           Calculations related to RMS values.
         Options:
             -h      Print a manpage
+            -v      Validate the formulas in the RMS document
         '''))
         exit(status)
     def ParseCommandLine(d):
-        d["-a"] = False     # Need description
-        d["-d"] = 3         # Number of significant digits
+        d["-v"] = False
         if len(sys.argv) < 2:
             Usage()
         try:
-            opts, args = getopt.getopt(sys.argv[1:], "ad:h", "--debug") 
+            opts, args = getopt.getopt(sys.argv[1:], "hv") 
         except getopt.GetoptError as e:
             print(str(e))
             exit(1)
         for o, a in opts:
-            if o[1] in list("a"):
+            if o[1] in list("v"):
                 d[o] = not d[o]
-            elif o in ("-d",):
-                try:
-                    d["-d"] = int(a)
-                    if not (1 <= d["-d"] <= 15):
-                        raise ValueError()
-                except ValueError:
-                    msg = ("-d option's argument must be an integer between "
-                        "1 and 15")
-                    Error(msg)
             elif o == "-h":
                 Usage()
-            elif o in ("--debug",):
-                # Set up a handler to drop us into the debugger on an unhandled exception
-                import debug
-                debug.SetDebugger()
         return args
+if 1:   # RMS formula validation
+    def ValidateFormulas():
+        '''The RMS.odt document that discusses RMS measurements for hobbyists has a number of
+        formulas for particular waveforms.  When giving such things, it's important that the
+        equations be validated to be correct to avoid wasting the reader's time or helping them
+        make a mistaken decision or statement.
+
+        In the document, the formulas are given a caption number of category "Formulas" and there
+        is a string name of the formula after the "Formula X" part, where X is an integer.  This
+        name is used here to identify the formula (I don't use the number because reorganization 
+        or insertion of a new section will mess up the numbering).
+
+        '''
+        print("Validating formulas")
+
 if 1:   # Core functionality
     pass
 
 if __name__ == "__main__":
     d = {}      # Options dictionary
     args = ParseCommandLine(d)
+    if d["-v"]:
+        ValidateFormulas()
+    else:
+        print("Functionality needs to be written")
