@@ -28,7 +28,7 @@ if 1:  # Header
     if 1:   # Custom imports
         from wrap import dedent
         from columnize import Columnize
-        if 0:
+        if 1:
             import debug
             debug.SetDebugger()
     if 1:   # Global variables
@@ -63,23 +63,23 @@ if 1:   # Utility
           Open the HP catalog PDF for the indicated year.
         Options:
             -h      Print a manpage
+            -l      Print first & last years for various HP instrument models
         '''))
         exit(status)
     def ParseCommandLine(d):
-        d["-a"] = False     # Need description
-        d["-d"] = 3         # Number of significant digits
+        d["-l"] = False     # Show first and last years of instrument models
         try:
-            opts, args = getopt.getopt(sys.argv[1:], "h") 
+            opts, args = getopt.getopt(sys.argv[1:], "hl") 
         except getopt.GetoptError as e:
             print(str(e))
             exit(1)
         for o, a in opts:
-            if o[1] in list(""):
+            if o[1] in list("l"):
                 d[o] = not d[o]
             elif o == "-h":
                 Usage()
         return args
-if 1:   # Core functionality
+if 1:   # Open catalogs
     def GetPDFs():
         'Construct dict mapping year to file'
         dir, catalogs = P("/manuals/catalogs/hp"), {}
@@ -124,15 +124,50 @@ if 1:   # Core functionality
             print(i)
         print("You can use 2 digit or 4 digit years")
         exit(0)
+if 1:   # Show first and last years of various instrument models
+    class Inst:
+        def __init__(self, model, description, first=None, last=None):
+            '''Provide model number as a string and a description.  first and last are integer
+            years of introduction and last in the catalog or None if not known
+            '''
+            self.model = model
+            self.desc = description
+            self.first = str(first) if first is not None else "?"
+            self.last = str(last) if last is not None else "?"
+            self.w = (10, 30, 5, 5)
+        def __str__(self):
+            s = []
+            u = f"{self.model:{self.w[0]}s} "
+            u += f"{self.desc:{self.w[1]}s} "
+            u += f"{self.first:>{self.w[2]}s}-"
+            u += f"{self.last:<{self.w[2]}s}"
+            s.append(u)
+            return ''.join(s)
+            
+    def ShowModelYears():
+        '''Print out information on the first and last years of selected instrument models.  This
+        isn't a comprehensive list, but rather those instruments that are of interest to me.
+        '''
+        models = (
+            Inst("400E/EL", "AC voltmeter", 1965, 1986),
+            Inst("400F/FL", "AC voltmeter", 1967, 1986),
+            Inst("403A", "AC voltmeter", 1960),
+            Inst("427A", "Multi-function meter", 1967, 1986),
+        )
+        for m in models:
+            print(m)
 
 if __name__ == "__main__":
     d = {}      # Options dictionary
     args = ParseCommandLine(d)
-    if not args:
-        ShowYears()
-    files = GetFile(args)
-    for file in files:
-        if 0:
-            subprocess.run([g.cygstart, file])
-        else:
-            print(file)
+    if d["-l"]:
+        ShowModelYears()
+    else:
+        if not args:
+            ShowYears()
+        files = GetFile(args)
+        for file in files:
+            if 1:
+                subprocess.run([g.cygstart, file])
+            else:
+                print(file)
