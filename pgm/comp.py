@@ -192,7 +192,11 @@ if 1:   # Core functionality
         found = list(set(found))
         found.sort(key=cmp_to_key(strsort))
         for item in found:
+            used = []   # Captures duplicates so only printed once
             for i, k in enumerate(pos[item]):
+                if k in used:
+                    continue
+                used.append(k)
                 n, m = k
                 spc = item.find(" ")   # Location of first space after box/bin
                 # Correct for ignoring searches up to the space

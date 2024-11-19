@@ -1,13 +1,14 @@
 '''
 
 To Do
+    - Make sure you can negate a waveform by multiplying by -1
     - Get rid of sig, use flt 
     - Get running under python 3.11.5
     - Document the self._* attributes in the constructor
     - Review method names
     - Add a vertical ASCII plotting method that shows how things behave
-    - Write a linear interpolation routine so scipy isn't mandatory
-        - Is resizing really necessary?  Just create a new Waveform instance.
+    - Is resizing really necessary?  Just create a new Waveform instance.
+    - Create 'fullwave' and 'halfwave' waveforms that represent what you get from a rectifier.
 
 Module to create common waveforms as numpy arrays
 
@@ -132,6 +133,7 @@ if 1:  # Header
         #from color import t
         #from lwtest import Assert
         from sig import sig as _sig
+        import plotille
         if 0:
             import debug
             debug.SetDebugger()
@@ -1006,32 +1008,29 @@ if 1:   # Plot some examples (needs matplotlib)
         print(name, end=" ")
 if 1:   # Other routines
     def GetScreen():
-        'Return (LINES, COLUMNS)'
+        'Return terminal screen size (LINES, COLUMNS)'
         return (
             int(os.environ.get("LINES", "50")),
             int(os.environ.get("COLUMNS", "80")) - 1
         )
-    def AsciiPlot(waveform):
-        lines, columns = GetScreen()    
-        w = Waveform(waveform)  # Get a copy
-        # Make the size one less than the number of lines so it fits on the screen
-        w.size = lines - 1
-        # Get maximum and minimum y values and pick the biggest in absolute value
-        y = w.y
-        ybig = max(abs(max(y)), abs(min(y)))
-        # See if we should print the y = 0 axis (i.e., it's "on screen")
-        zero = False
-        if not max(y) or not min(y) or max(y)*min(y) < 0:
-            zero = True
-        # Scale y by dividing each element by ybig
-        y /= ybig
-        # Scale y by columns//2
-        y *= columns//2
-        # Now print the points 
-        for i in range(w.size):
-            
-        breakpoint() #xx
+    def Plot(waveform):
+        '''Using plotille, produce an ASCII plot of the waveform.  Scale things appropriately to
+        fit in the existing terminal window.
+        '''
+        H, W = GetScreen()    
+        H, W = 40, 80
+        #H, W = 40, 180
+        w = Waveform(waveform)  # Make a copy
+        # Resize it to fit width
+        w.size = W
+        x, y = w.xy()
+        fig = plotille.Figure()
+        fig.width = W
+        fig.height = H
+        fig.plot(x, y)
+        print(fig.show())
 
 if __name__ == "__main__":  
-    w = Waveform("sine", 100)
-    AsciiPlot(w)
+    lines, columns = GetScreen()    
+    w = Waveform("square", columns - 1)
+    Plot(w)

@@ -1,5 +1,77 @@
 Active:  /plib/.todo
 
+    - mn.py
+        - Same as ds.py but only for popular instrument manuals
+
+    - hobbyutil
+        - This project hasn't been updated because the old script is unmaintained and it's a lot of
+          work converting to makefiles.
+        - It would make more sense to standardize on a set of directories, construct a content file
+          in that directory for its files (descriptions and links), and use a top-level script to
+          combine everything.  Then the file content is manually updated as needed.
+        - Still, it needs a way to determine when things are out of date.
+        - A good step might be to get rid of anything that's in /plib, as that's where most of my
+          scripts exist today.
+
+    - Help to remember how to install conda stuff
+        - Often there are python installations I'd like, such as 'pip install plotext'
+          (https://pypi.org/project/plotext/).  But as I recall, it's better to use conda to do the
+          installation.  But I have no remembrance of doing this stuff a year or so ago, so the
+          details need to be put in the python help document.
+
+    - ASCII plotting
+        - Module to help you make ASCII plots in a terminal window
+            - With the right choice of Unicode characters, colors, and large terminal window, this
+              could produce some stunning graphs.
+                - Histograms, horizontal and vertical
+                - Line plots
+                - etc.
+            - But it would be a lot of work
+        - plotille
+            - pip install plotille
+            - First plot example on website worked fine
+            - It needs some tuning to figure out how to automatically fit to the screen width or a
+              selected percentage
+        - One complaint I have with most plotting libraries is that they are naive and lazy when it
+          comes to making "good" units for the axes.  Sometimes you have no choice because of the
+          range, but the plotting routines should let you define the limits and the major/minor
+          tick marks.
+        - Tactics
+            - plotille looks like it might be the best as there are no dependencies; you can make
+              complex drawings with the Figure class or make fast simple plots
+        - gnuplot could be suitable, as it does ASCII plotting
+            - https://github.com/nschloe/termplotlib relies on gnuplot, but is a python lib
+        - https://pypi.org/project/plotext/ looks very good
+            - Made to look similar to matplotlib
+        - https://github.com/olavolav/uniplot
+            - Looks very simple, might be a good choice for the basics.  I like its use case: "this
+              was built for is to have plots as part of your [workflow] - that way whenever
+              something goes wrong, you get not only the error and backtrace but also plots that
+              show what the problem was".
+            - Only dependency is numpy
+        - https://pypi.org/project/terminalplot/
+            - Basic, no dependencies.  But could likely be hacked to taste.  Developed around 2013
+              with a few mods in recent years.
+        - https://github.com/nschloe/termplotlib
+            - Relies on gnuplot for line plots
+            - Aims to work like matplotlib
+            - If gnuplot is installed, would be worth a try; I like the basic demos
+        - https://github.com/tammoippen/plotille
+            - Uses braille characters for better resolution
+            - Example:
+                - fig = plotille.Figure()
+                - fig.width = 60
+                - fig.height = 30
+                - fig.set_x_limits(min_=-3, max_=3)
+                - fig.set_y_limits(min_=-1, max_=1)
+                - fig.color_mode = 'byte'
+                - fig.plot([-0.5, 1], [-1, 1], lc=25, label='First line')
+                - fig.scatter(X, np.sin(X), lc=100, label='sin')
+                - fig.plot(X, (X+2)**2 , lc=200, label='square')
+                - print(fig.show(legend=True))
+            - Methods:  plot, scatter, histogram, text
+
+    - Check out https://github.com/nschloe/termtables for printing tables in the terminal
     - pgm/ds.py
         - Need a feature to define default documents so they open on the first search.
             - Example:  I have 3 versions of the HP427A manual:  1970, 1972, 1983.  The 1983 one
