@@ -1,5 +1,17 @@
 Active:  /plib/.todo
 
+    - pgm/rms.py
+        - Numerical aid to dealing with various functionals used to measure voltage:  RMS, ACCRMS,
+          peak-to-peak voltage, 0-to-peak voltage, average, absolute average, Fourier coefficients
+        - Common use cases
+            - You have a 1 V RMS 1 kHz sine wave with a +0.37 V DC offset.  What are the resulting
+              functionals of the waveform?
+            - You set up a pulse on a function generator with -2 V low and 3.3 V high.  The
+              duty cycle is 22% and frequency is 1.22 kHz.  What are the functionals?
+        - These problems can be done with waveform.py and numpy.
+        - From studying my tools like the HP scope, Aneng meters, and HP analog meters, predict
+          what their measurements will be.
+
     - mn.py
         - Same as ds.py but only for popular instrument manuals
 

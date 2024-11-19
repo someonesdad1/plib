@@ -88,6 +88,7 @@ if 1:  # Header
         g.index_files = {
             #"bk": "/plib/pgm/ds.bk.index", 
             "ds": "/manuals/ds.ds.index", 
+            "mn": "/manuals/ds.mn.index", 
             "eb": "/ebooks/ds.eb.index", 
             "hpj": "/ebooks/hpj/ds.hpj.index", 
         }
@@ -146,7 +147,7 @@ if 1:   # Utility
             elif o == "--exec":
                 d["--exec"] = a
                 if a not in g.index_files:
-                    Error("'{a}' not an index")
+                    Error(f"'{a}' not an index")
             elif o == "-h":
                 Usage(d, 0)
         if d["-I"] or d["-x"]:
@@ -340,6 +341,7 @@ if 1:   # Core functionality
             "ds": "/manuals",
             "eb": "/ebooks",
             "hpj": "/cygdrive/d/ebooks",
+            "mn": "/manuals",
         }
         d["root"] = root[key]
     def OpenMatches(matches, d):

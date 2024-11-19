@@ -2,18 +2,28 @@
 
 To Do
     - Make sure you can negate a waveform by multiplying by -1
+        - Or add scale and offset methods?
     - Get rid of sig, use flt 
+        - Printing an array should use Columnize and look nice like numpy arrays.  Or just set the
+          number of digits to see in numpy's printout (easiest, but I suspect it's naive).
     - Get running under python 3.11.5
     - Document the self._* attributes in the constructor
     - Review method names
-    - Add a vertical ASCII plotting method that shows how things behave
+    - Use plotext to show ASCII plots for quick review
     - Is resizing really necessary?  Just create a new Waveform instance.
     - Create 'fullwave' and 'halfwave' waveforms that represent what you get from a rectifier.
+    - This will be used with the RMS document, so support all the waveforms used in that document
+    - Internally, the waveform should include the n+1 point, but not print it.  I'll assume this
+      might be needed to avoid rounding problems and get good Fourier coefficients.
+    - Option to choose real or complex Fourier coefficients
+    - Study responses of my voltmeters (Aneng, HP, scopes) and have an option that predicts what
+      they would measure for the waveform.  This would require knowing the frequency or period of
+      the stored waveform.
 
-Module to create common waveforms as numpy arrays
+Module to create common periodic waveforms as numpy arrays
 
-    Examples are sine waves, square waves, triangle waves, pulses, etc.  These arrays are created
-    by the Waveform object.
+    Examples:  sine, square, triangle, pulses, etc.  These arrays are created by the Waveform
+    object.
 
     See the pydoc display of this module's documentation along with the Waveform.pdf documentation
     file included in the distribution.  Running this module as a script will produce some plotted
