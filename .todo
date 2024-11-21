@@ -12,9 +12,6 @@ Active:  /plib/.todo
         - From studying my tools like the HP scope, Aneng meters, and HP analog meters, predict
           what their measurements will be.
 
-    - mn.py
-        - Same as ds.py but only for popular instrument manuals
-
     - hobbyutil
         - This project hasn't been updated because the old script is unmaintained and it's a lot of
           work converting to makefiles.

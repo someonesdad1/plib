@@ -1,6 +1,9 @@
 '''
 
 To Do
+    - Ensure there's an easy way to make a waveform have both desired x and y values.  Example:  I
+      want two periods of a 4 kHz cosine wave of 3.2 V RMS, so x will be time and y will be in
+      volts.  Allow the units to be included.
     - Make sure you can negate a waveform by multiplying by -1
         - Or add scale and offset methods?
     - Get rid of sig, use flt 
@@ -20,25 +23,87 @@ To Do
       they would measure for the waveform.  This would require knowing the frequency or period of
       the stored waveform.
 
-Module to create common periodic waveforms as numpy arrays
+Consider developing built-in waveforms for the ones that are in the B&K 4052 function generator:
 
-    Examples:  sine, square, triangle, pulses, etc.  These arrays are created by the Waveform
-    object.
+    - sine
+    - square
+    - ramp
+    - pulse
+    - noise
+    - AWG
+        - StairUp, StairDn, StairUD
+        - PPulse, NPulse (positive & negative pulse)
+        - Trapezia (trapezoid)
+        - UpRamp, DnRamp (sawtooth)
+        - ExpFall, ExpRise (exponential)
+        - LogFall, LogRise (logarithmic)
+        - Sqrt, Root3
+        - X^2, X^3
+        - Sinc
+        - Gaussian
+        - Dlorentz
+        - Haversin
+        - Lorentz
+        - Gauspuls (Gaussian mono pulse)
+        - Gmonpuls (Gaussian modulated sinusoidal pulse)
+        - Tripuls (triangle pulse)
+        - SNR (sine with white noise)
+        - Window:  Hamming, Hannings, Kaiser, Blackman, Gaussian, Triangle, Haris, Bartlett
+        - Trig:  tan, cot, sec, csc, asin, acos, atan, acot
+    - This could be done with a method that let you define a waveform, then provide linear
+      sections with slope, starting point (on [0, 1)), and ending point.  The slope would default
+      to 0.
+    - Another method would would take a set of n points on [a, b] and map them to a mathematical
+      function's values.  Then the y values would be normalized to a given value.
+    - You'd give an amplitude measure in volts (Vpp, Vrms, dBm) and the constructed waveform would
+      have the functionals that the instruments would measure.  This would of course take a goodly
+      amount of experimentation, but it would be handy to get waveform objects for numerical
+      calculations and then be able to experimentally verify the results.
 
-    See the pydoc display of this module's documentation along with the Waveform.pdf documentation
-    file included in the distribution.  Running this module as a script will produce some plotted
-    examples if you have scipy and matplotlib installed.  You'll also need the sig.py module from
-    http://code.google.com/p/hobbyutil/.
+---------------------------------------------------------------------------
 
-    Once you've created a Waveform object, you can use it to get numpy arrays of the waveform by
-    calling the Waveform object with the number of periods you want.  Example:
+Module to create periodic waveforms as numpy arrays
+
+    Examples:  sine, square, triangle, pulses, etc.  The module's objectives are:
+        - Create most of the waveforms supported by my function generator
+        - You can create the waveforms with the parameters the function generator uses
+            - Frequency or period
+            - RMS voltage
+            - Peak-to-peak voltage
+            - High level and low level voltages
+            - DC offset
+        - Once the waveform is created, the script will print out what my instrumentation will
+          measure for the waveform as it is output by the function generator
+            - HP 3400A RMS voltmeter
+            - HP 400EL average-responding AC voltmeter
+            - HP 427A average-responding AC voltmeter
+                - DC voltage
+                - AC voltage
+            - HP 54601B 100 MHz digital oscilloscope
+            - B&K 2556 200 MHz digital oscilloscope
+            - Aneng 870 digital multimeter, DC and AC
+            - Aneng AOS03 digital multimeter/oscilloscope, DC and AC
+            - Aneng 8009 digital multimeter, DC and AC
+            - Simpson 260 series 7 VOM
+            - The output is of course specific to my instruments and their calibrations, but
+              another user can provide relevant calibration data and bandwidths to predict the
+              output of their own instrumentation.
+        - The functionals output are
+            - RMS voltage
+            - AC-coupled RMS voltage
+            - DC voltage
+            - Peak-to-peak voltage
+            - 0-to-peak voltage
+            - Average responding voltmeter voltage
+
+    Example code:
 
         # Create a sine wave with 11 points per period
         w = Waveform("sin", 11)
         y = w(2)   # Get an array containing two periods
         print(y)
 
-        results in:
+    results in:
 
         [ 0.     0.541  0.91   0.99   0.756  0.282 -0.282 -0.756 -0.99
         -0.91  -0.541  0.     0.541  0.91   0.99   0.756  0.282 -0.282
@@ -127,34 +192,32 @@ if 1:  # Header
         #∞test∞# #∞test∞#
         pass
     if 1:   # Standard imports
-        #from collections import deque
-        #from pathlib import Path as P
-        #import getopt
+        import math
         import os
-        #import re
         import sys
         import numpy as np
         from numpy.random import normal as _normal
         from collections.abc import Iterable
         from collections import defaultdict
     if 1:   # Custom imports
-        #from f import flt
+        import f
         from wrap import dedent
-        #from color import t
-        #from lwtest import Assert
+        from color import t
+        from lwtest import Assert
         from sig import sig as _sig
-        import plotille
-        if 0:
+        import plotext as plt
+        if len(sys.argv) > 1:
             import debug
             debug.SetDebugger()
     if 1:   # Global variables
         class G:
             pass
+        flt = f.flt
         g = G()
         g.dbg = False
+        t.dbg = t.sky
         ii = isinstance
-        # scipy's interpolation routine is used when resizing a waveform.  This is optional here
-        # because I may write a built-in routine that does simply linear interpolation.
+        # scipy's interpolation routine is used when resizing a waveform
         g.have_scipy = False
         try:
             from scipy.interpolate import interp1d
@@ -1023,24 +1086,81 @@ if 1:   # Other routines
             int(os.environ.get("LINES", "50")),
             int(os.environ.get("COLUMNS", "80")) - 1
         )
-    def Plot(waveform):
-        '''Using plotille, produce an ASCII plot of the waveform.  Scale things appropriately to
-        fit in the existing terminal window.
+    def Plot(waveform, **kw):
+        '''Print an ASCII plot of the waveform, a Waveform instance.  Keywords are:
+
+            diag        Diagonal size plot area as fraction of whole terminal [1]
+            aspect      Aspect ratio:  1 = square, 0.5 = tall rectangle, 1.5 = wide, 0 means to
+                        use the existing window's aspect ratio [0]
+            theme       ["clear"] Color theme (try 'pro', 'matrix' or 'dark')
+            periods     Number of periods to plot [1]
+            dbg         If true, print debugging info
+            xscale      Scale x values by this number
+            yscale      Scale y values by this number
+            xlabel      Label for x axis
+            ylabel      Label for y axis
+            title       Plot title
+
         '''
-        H, W = GetScreen()    
-        H, W = 40, 80
-        #H, W = 40, 180
-        w = Waveform(waveform)  # Make a copy
-        # Resize it to fit width
-        w.size = W
-        x, y = w.xy()
-        fig = plotille.Figure()
-        fig.width = W
-        fig.height = H
-        fig.plot(x, y)
-        print(fig.show())
+        W, H = plt.terminal_size()  # Terminal window width and height
+        diagonal = f.floor(f.sqrt(W**2 + H**2))
+        if 1:   # Get keywords
+            dbg = flt(kw.get("dbg", False))
+            diag = flt(kw.get("diag", 1))
+            aspect = flt(kw.get("aspect", 0))
+            theme = kw.get("theme", "pro")
+            periods = int(kw.get("periods", 1))
+            xscale = flt(kw.get("xscale", 1))
+            yscale = flt(kw.get("yscale", 1))
+            xlabel = kw.get("xlabel", None)
+            ylabel = kw.get("ylabel", None)
+            title = kw.get("title", None)
+            theme = kw.get("theme", "clear")
+        if 1:   # Check values
+            Assert(ii(diag, flt) and 0 < diag <= 1)
+            Assert(ii(aspect, flt) and aspect >= 0)
+            Assert(ii(periods, int) and periods > 0)
+            Assert(ii(xscale, flt) and xscale)
+            Assert(ii(yscale, flt) and yscale)
+        # Get x and y, the numpy arrays of data to plot
+        w = Waveform(waveform)
+        x, y = w.xy(num_periods=periods)
+        x *= xscale
+        y *= yscale
+        # Calculate plot dimensions.  The method is that an aspect ratio of 1 means the diagonal
+        # is at 45°.  Therefore we use atan(aspect) to get the angle of the diagonal and use the
+        # sine and cosine to get the width and height.
+        aspect_ratio = aspect if aspect else flt(H/W)
+        angle = f.atan(aspect_ratio)
+        width, height = f.floor(diag*diagonal*f.cos(angle)), f.floor(diag*diagonal*f.sin(angle))
+        plt.plot_size(width, height)
+        if dbg:     # Print debugging data
+            t.print(f"{t.grn}Terminal:  width = {W}, height = {H}, diagonal = {diagonal}, aspect = {aspect}")
+            t.print(f"{t.dbg}Plot details")
+            t.print(f"{t.dbg}   diag = {diag}")
+            t.print(f"{t.dbg}   aspect_ratio = {aspect_ratio}")
+            t.print(f"{t.dbg}   periods = {periods}")
+            t.print(f"{t.dbg}   Plot width = {width}, height = {height}")
+        # Make the plot
+        plt.theme(theme) 
+        plt.plot(x, y, marker="braille")
+        plt.grid(False, True)
+        if title is not None:
+            plt.title(title) 
+        if xlabel is not None:
+            plt.xlabel(xlabel) 
+        if ylabel is not None:
+            plt.ylabel(ylabel) 
+        plt.show()
 
 if __name__ == "__main__":  
     lines, columns = GetScreen()    
-    w = Waveform("square", columns - 1)
-    Plot(w)
+    w = Waveform("triangle", columns - 1)
+    if 1:
+        Plot(w, dia=1, aspect=1/4, dbg=True, periods=1, xscale=2, yscale=1.74, 
+            xlabel="Time, ms", 
+            ylabel="Voltage, mV", 
+            title="500 Hz cosine of 1.23 mV RMS",
+            theme="clear")
+    else:
+        Plot(w)
