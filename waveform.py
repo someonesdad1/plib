@@ -1156,8 +1156,9 @@ if 1:   # Other routines
 if __name__ == "__main__":  
     lines, columns = GetScreen()    
     w = Waveform("triangle", columns - 1)
+    w = Waveform("triangle", columns)
     if 1:
-        Plot(w, dia=1, aspect=1/4, dbg=True, periods=1, xscale=2, yscale=1.74, 
+        Plot(w, diag=0.8, aspect=1/4, dbg=True, periods=1, xscale=2, yscale=1.74, 
             xlabel="Time, ms", 
             ylabel="Voltage, mV", 
             title="500 Hz cosine of 1.23 mV RMS",
