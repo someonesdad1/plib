@@ -763,41 +763,93 @@ bama = {
     'zentro': ['7941'],
 }
 if __name__ == "__main__": 
+    import getopt
+    import os
     import sys
-    def Search(regex):
-        regex_printed = False
-        def PrintRegex():
-            nonlocal regex_printed
-            if not regex_printed:
-                print(f"Search term = {regex!r}")
-                regex_printed = True
-        r, mfg, model = re.compile(regex, re.I), [], defaultdict(list)
-        indent = " "*2
-        # Find manufacturers that match
-        for name in bama:
-            if r.search(name):
-                mfg.append(name)
-        if mfg:
-            PrintRegex()
-            print(f"{indent}Manufacturers that matched:")
-            for m in mfg:
-                print(f"{indent*2}{m}")
-        # Find model numbers that match
-        for name in bama:
-            for m in bama[name]:
-                if r.search(m):
-                    model[name].append(m)
-        if model:
-            PrintRegex()
-            print(f"{indent}Models that matched:")
-            for mfg in model:
-                for inst in model[mfg]:
-                    print(f"{indent*2}{inst} ({mfg})")
-
-    if len(sys.argv) == 1:
-        print("Usage:  {sys.argv[0]} regex1 [regex2...]")
-        print("  Search for manufacturers & model numbers on BAMA")
-        exit(0)
-    for regex in sys.argv[1:]:
+    from wrap import dedent
+    if 1:   # Utility
+        def Error(*msg, status=1):
+            print(*msg, file=sys.stderr)
+            exit(status)
+        def Usage(status=0):
+            pgm = sys.argv[0]
+            print(dedent(f'''
+            Usage:  {pgm} [options] regex1 [regex2...]
+              Search for manufacturers & model numbers on BAMA.  Searches are 
+              case insensitive.  Regular expressions are python's re module's
+              syntax.
+            Options:
+                -l          Only list manufacturers
+                -m name     Search only in this manufacturer's name (string, not regex)
+                -n          Only list model numbers
+            Examples:
+              '{pgm} 3400a'
+                Lists instruments with '3400a' in their model number.
+              '{pgm} -m hp 3400a'
+                Lists only HP instruments with '3400a' in the model number.
+              '{pgm} -n 40\\d'
+                Lists instruments with at least three digit model numbers
+                containing 400 to 409.
+              '{pgm} -m simpson .'
+                Show only instruments from manufacturers with 'simpson' in
+                their name.
+            '''))
+            exit(status)
+        def ParseCommandLine(d):
+            d["-l"] = False     # Only list manufacturers
+            d["-m"] = None      # Search only for this manufacturer
+            d["-n"] = False     # Only list model numbers
+            if len(sys.argv) < 2:
+                Usage()
+            try:
+                opts, args = getopt.getopt(sys.argv[1:], "lm:n") 
+            except getopt.GetoptError as e:
+                print(str(e))
+                exit(1)
+            for o, a in opts:
+                if o[1] in list("ln"):
+                    d[o] = not d[o]
+                elif o in ("-m",):
+                    d[o] = a
+            return args
+    if 1:   # Searching functionality
+        def Search(regex):
+            regex_printed = False
+            def PrintRegex():
+                nonlocal regex_printed
+                if not regex_printed:
+                    print(f"Search term = {regex!r}")
+                    regex_printed = True
+            r, mfg, model = re.compile(regex, re.I), [], defaultdict(list)
+            indent = " "*2
+            # Find manufacturers that match
+            if not d["-n"]:
+                for name in bama:
+                    if r.search(name):
+                        mfg.append(name)
+                if mfg:
+                    PrintRegex()
+                    print(f"{indent}Manufacturers that matched:")
+                    for m in mfg:
+                        print(f"{indent*2}{m}")
+                if d["-l"]:  # Only list manufacturers
+                    return
+            # Find model numbers that match
+            for name in bama:
+                if d["-m"]:
+                    if d["-m"] not in name:
+                        continue
+                for m in bama[name]:
+                    if r.search(m):
+                        model[name].append(m)
+            if model:
+                PrintRegex()
+                print(f"{indent}Models that matched:")
+                for mfg in model:
+                    for inst in model[mfg]:
+                        print(f"{indent*2}{inst} ({mfg})")
+if __name__ == "__main__":
+    d = {}      # Options dictionary
+    args = ParseCommandLine(d)
+    for regex in args:
         Search(regex)
-
