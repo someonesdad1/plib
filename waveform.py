@@ -1155,13 +1155,14 @@ if 1:   # Other routines
 
 if __name__ == "__main__":  
     lines, columns = GetScreen()    
-    w = Waveform("triangle", columns - 1)
-    w = Waveform("triangle", columns)
+    shape = "sine"
+    w = Waveform(shape, columns)
     if 1:
-        Plot(w, diag=0.8, aspect=1/4, dbg=True, periods=1, xscale=2, yscale=1.74, 
+        print("Sample plot using plotext\n")
+        Plot(w, diag=0.8, aspect=1/4, dbg=0, periods=1, xscale=2, yscale=1.74, 
             xlabel="Time, ms", 
             ylabel="Voltage, mV", 
-            title="500 Hz cosine of 1.23 mV RMS",
+            title=f"500 Hz {shape} of 1.23 mV RMS",
             theme="clear")
     else:
         Plot(w)
