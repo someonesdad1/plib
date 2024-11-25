@@ -766,7 +766,6 @@ if __name__ == "__main__":
     import getopt
     import os
     import sys
-    #from wrap import dedent
     if 1:   # Utility
         def LeadingSpaces(s):
             'Return the number of space characters at the beginning of string s'

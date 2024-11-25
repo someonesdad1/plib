@@ -48,31 +48,31 @@ if 1:  # Header
         g.W = int(os.environ.get("COLUMNS", "80")) - 1
         g.L = int(os.environ.get("LINES", "50"))
         # Colors for charge levels
-        t.bad = t("ornl")   # < 50%
-        t.good = t("trq")   # >= 50%
+        t.bad = t("lip")   # < 50%
+        t.good = t("grn")   # >= 50%
 if 1:  # Utility
+    def Error(*msg, status=1):
+        print(*msg, file=sys.stderr)
+        exit(status)
     def Manpage():
         print(dedent(f'''
-        The formula used for these tables is one I found many years ago on
-        the web and I can't attribute it, but it looks like someone found a
-        table of battery voltages as a function of P (percent of charge)
-        and T (electrolyte temperature) and did a linear regression, as the
-        function is of the form V = b0 + b1*P + b2*T where the b's are the
-        regression constants and V is the voltage.
 
-        These tables are approximate and can depend on a number of factors.
-        A core assumption is that the battery is open circuit and has
-        not been charged or discharged for 4 hours (battery manufacturers
-        may recommend 24 hours).  Figure 5 in [1] is useful to give you a
+        The formula used for these tables is one I found many years ago on the web and I can't
+        attribute it, but it looks like someone found a table of battery voltages as a function of
+        P (percent of charge) and T (electrolyte temperature) and did a linear regression, as the
+        function is of the form V = b0 + b1*P + b2*T where the b's are the regression constants
+        and V is the voltage.
+
+        These tables are approximate and can depend on a number of factors.  A core assumption is
+        that the battery is open circuit and has not been charged or discharged for 4 hours
+        (battery manufacturers may recommend 24 hours).  Figure 5 in [1] is useful to give you a
         feel for the variance.
 
-        A basic problem with testing a battery in a modern car is that the
-        car's electronics can be drawing power at various times, even when
-        the ignition is off.  The easiest fix is to disconnect the positive
-        battery terminal, but be sure you can do this without causing the
-        car problems (our GM and Subaru cars withstand this OK, but a
-        friend had a 2000's Audi that would get pretty screwed up if its
-        battery was disconnected). 
+        A basic problem with testing a battery in a modern car is that the car's electronics can
+        be drawing power at various times, even when the ignition is off.  The easiest fix is to
+        disconnect the positive battery terminal, but be sure you can do this without causing the
+        car problems (our GM and Subaru cars withstand this OK, but a friend had a 2000's Audi
+        that would get pretty screwed up if its battery was disconnected). 
 
         Equations in °C:
             V = (P/100 + 15.5151)/1.3065 + (T - 26.7)/231.7
@@ -85,8 +85,7 @@ if 1:  # Utility
             V = battery voltage
             T = temperature of electrolyte
 
-        Figure 12 in [1] show some circuits that might help prevent
-        overdischarge of batteries.  
+        Figure 12 in [1] show some circuits that might help prevent overdischarge of batteries.  
 
         References
         ----------
@@ -97,37 +96,35 @@ if 1:  # Utility
     def Usage(d, status=1):
         print(dedent(f'''
         Usage:  {sys.argv[0]} [temperature]
-          Print a table of percent of charge of a lead acid battery as a
-          function of electrolyte temperature and voltage.  Allow 24 hours
-          for the battery to reach equilibrium after charging and make sure
-          there is no load on the battery.
+          Print a table of percent of charge of a lead acid battery as a function of electrolyte
+          temperature and voltage.  Allow 24 hours for the battery to reach equilibrium after
+          charging and make sure there is no load on the battery.
 
-          If temperature is included, print a table of voltages for that
-          temperature.
-        Example:  temp = 0
-          The table gives the battery voltage for % charge from 0 to 109%.  I
-          went out to one of our cars and used an IR thermometer to measure the
-          battery temperature at -4 °C.  The battery voltage was 12.30 V, but
-          it was rising by 10-20 mV/s, probably because the door locks were
-          opened with the clicker.  The closest temperature is 0 °C, so the 
-          voltage table indicates the % charge is 71%.  It has been 2 weeks
-          since this battery was charged and it has been unused in that time.
-          This measurement indicates to me that I need to charge the battery
-          again.
+          If temperature is included, print a table of voltages for that temperature and ±5
+          degrees above and below it.
+        Example:  '{sys.argv[0]} -c -4'
+          The table gives the battery voltage for % charge from 0 to 109%.  I went out to one of
+          our cars and used an IR thermometer to measure the battery temperature at -4 °C.  The
+          battery voltage was 12.30 V, but it was rising by 10-20 mV/s, probably because the door
+          locks were opened with the clicker.  The table indicates the battery's charge is around
+          75%.  It has been 2 weeks since this battery was charged and it has been unused in that
+          time.  This measurement indicates to me that I need to charge the battery again.
         Options
-          -c    Use °C
+          -2    Give voltages to 2 places
+          -c    Use °C [{d["-c"]}]
           -H    Print manpage
         '''))
         exit(status)
     def ParseCommandLine(d):
+        d["-2"] = False
         d["-c"] = False
         try:
-            opts, args = getopt.getopt(sys.argv[1:], "cHh")
+            opts, args = getopt.getopt(sys.argv[1:], "2cHh")
         except getopt.GetoptError as e:
             print(str(e))
             exit(1)
         for o, a in opts:
-            if o[1] in "c":
+            if o[1] in "2c":
                 d[o] = not d[o]
             elif o in ("-h", "--help"):
                 Usage(d, status=0)
@@ -164,32 +161,31 @@ if 1:  # Core functionality
     def ChargeTable(temperature):
         'Print charge table when command line has a temperature'
         T = int(temperature)
-        if T % 10 != 0:
-            print("Temperature must be divisible by 10")
-            exit(1)
         degC = d["-c"]
-        w = int(os.environ.get("COLUMNS", 80)) - 1 
+        w = 80  # Can use fixed-width
+        low, high = T - 5, T + 5  # Which temperature columns to print
         print(f"{t.bad}{'Lead-Acid Battery Voltage at % of Charge':^{w}s}{t.n}\n")
         deg = f"°{'C' if degC else 'F'}"
         n = 6
         s = f"Temperature in {deg}"
         print(f"{t.good}{s:^{w}s}{t.n}")
         print(" %  ", end=f"{t.good}")
-        for i in range(10):
-            print(f"{T + i:^{n}d} ", end="")
+        R = range(low, high + 1)
+        for i in R:
+            print(f"{i:^{n}d} ", end="")
         print(t.n)
         print("--- ", end="")
-        for i in range(10):
+        for i in R:
             print(f"{'-'*n:^{n}s} ", end="")
         print()
         for pct in range(0, 101, 10):
             print(f"{pct:3d}", end=" ")
-            for T_offset in range(10):
+            for T_offset in R:
                 T0 = T + T_offset
                 if not degC:
                     T0 = C(T0)  # Change F to C
                 v = Voltage(pct, T0)
-                print(f"{v:{n}.3f}", end=" ")
+                print(f"{v:{n}.2f}" if d["-2"] else f"{v:{n}.3f}", end=" ")
             print()
         print()
     def VoltageTable(degC=True):
@@ -278,6 +274,7 @@ if 1:  # Core functionality
                     else:
                         print(f"{'  · '}", end="")
                 print()
+        print("Use -c for °C, -H for manpage")
 
 if __name__ == "__main__":
     d = {}      # Options dictionary
