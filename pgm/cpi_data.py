@@ -1,24 +1,47 @@
 '''
 
-Gets the average CPI number from the table at the indicated website.  Note that the average calculated from
-the tables' entries for early years doesn't match the yearly average; still, I've chosen to use the table's
-average column (zero-based column 13) rather than compute the average.
+Returns a dictionary cpi_data for the average US CPI (consumer price index) from 1913 to the present
 
-The output of this script is the CPI dictionary data in cpi.py.
+    Gets the average CPI number from the table at the indicated website.  Note that the average calculated
+    from the tables' entries for early years doesn't match the yearly average; still, I've chosen to use the
+    table's average column (zero-based column 13) rather than compute the average.
 
-Each of the numbers in the table can be used to compare costs for the things we need to live over time.
-Let's compare the year 1967 to 2023.  The yearly average for 1967 is 33.4 and the yearly average for 2023 is
-305.  The ratio of these two numbers 305/33.4 = 9.1.  This tells me that something that cost me $1 in 1967
-would probably cost around $9 in 2023.  
+    Each of the numbers in the table can be used to compare costs for the things we need to live over time.
+    Let's compare the year 1967 to 2023.  The yearly average for 1967 is 33.4 and the yearly average for 2023
+    is 305.  The ratio of these two numbers 305/33.4 = 9.1.  This tells me that something that cost me $1 in
+    1967 would probably cost around $9 in 2023.  
 
-Visit https://www.bls.gov/opub/hom/cpi/ to learn more about the CPI.  The US Bureau of Labor and Statistics
-collects about 94000 prices and 8000 rental housing unit quotes monthly and condenses the information into an
-estimate of what it costs to live in an urban environment.
+    Visit https://www.bls.gov/opub/hom/cpi/ to learn more about the CPI.  The US Bureau of Labor and
+    Statistics collects about 94000 prices and 8000 rental housing unit quotes monthly and condenses the
+    information into an estimate of what it costs to live in an urban environment.
 
 '''
+if 1:  # Header
+    if 1:  # Copyright, license
+        # These "trigger strings" can be managed with trigger.py
+        #∞copyright∞# Copyright (C) 2024 Don Peterson #∞copyright∞#
+        #∞contact∞# gmail.com@someonesdad1 #∞contact∞#
+        #∞license∞#
+        #   Licensed under the Open Software License version 3.0.
+        #   See http://opensource.org/licenses/OSL-3.0.
+        #∞license∞#
+        #∞what∞#
+        # Returns a dictionary of the US consumer price index
+        #∞what∞#
+        #∞test∞# #∞test∞#
+        pass
+    if 1:   # Standard imports
+        pass
+    if 1:   # Custom imports
+        from color import t
+        from f import flt
+        from columnize import Columnize
+
 # From https://www.inflationdata.com/inflation/Consumer_Price_Index/HistoricalCPI.aspx?reloaded%3Dtrue#Table
-# Updated 3 Mar 2024 
+#         Jan     Feb     Mar     Apr     May     Jun     Jul     Aug     Sep     Oct     Nov     Dec    Year
+# Updated 25 Nov 2024 
 data = '''
+2024	308.417	310.326	312.332	313.548	314.069	314.175	314.540	314.796	315.301	315.664
 2023	299.170	300.840	301.836	303.363	304.127	305.109	305.691	307.026	307.789	307.671	307.051	306.746	304.702
 2022	281.148	283.716	287.504	289.109	292.296	296.311	296.276	296.171	296.808	298.012	297.711	296.797	292.655
 2021	261.582	263.014	264.877	267.054	269.195	271.696	273.003	273.567	274.310	276.589	277.948	278.802	270.970
@@ -132,75 +155,95 @@ data = '''
 1913	9.800	9.800	9.800	9.800	9.700	9.800	9.900	9.900	10.000	10.000	10.100	10.000	9.900
 '''
 
-import sys
-import statistics
-from f import flt
-from columnize import Columnize
-from color import t
-
-def CPI_Data():
-	"This function is used to produce the dictionary's data in cpi.py"
-	out = []
-	for i, line in enumerate(data.split("\n")):
-		if not line.strip():
-			continue
-		f = line.split("\t")
-		yr = int(f[0])
-		if len(f) != 14:
-			raise ValueError(f"Bad line {i+1}")
-		cpi = flt(f[-1])
-		out.append((yr, cpi))
-	x = flt(0)
-	x.N = 4
-	d = []
-	for yr, cpi in out:
-		d.append(f"{yr}: flt({cpi}),")
-	for i in Columnize(d):
-		print(i)
-CPI_Data()
-
-if 0:
-    # Print a table that shows the yearly ratio
-    last = None
-    x = flt(0)
-    x.N = 2
-    t.plus = t("wht")
-    t.zero = t("ornl")
-    t.minus = t("pnk")
-    results = []
-    st = []
-    start = 1950
-    for i, item in enumerate(out):
-        yr, cpi = item
-        if not i:
-            last = cpi
+def CPI_Data(use_partial=True, show=False):
+    '''Return a dictionary that maps integer year to average inflation for the year.  If use_partial is True,
+    then calculate the mean of the given data even if a line only has a partial number of entries.  Otherwise,
+    use the last entry on the line if the line has 14 fields.  If show is True, print the data to stdout.
+    '''
+    out, t.bad = [], t("ornl")
+    for i, line in enumerate(data.split("\n")):
+        if not line.strip():
             continue
-        elif yr < start:
-            last = cpi
-            continue
+        f = line.split("\t")
+        yr = int(f[0])
+        if len(f) == 14:
+            cpi = flt(f[-1])
         else:
-            pctchg = round(100*flt(1 - cpi/last), 1)
-            st.append(pctchg)
-            c = t.zero
-            if pctchg > 0:
-                c = t.plus
-            elif pctchg < 0:
-                c = t.minus
-            results.append(f"{c}{yr:4d} {pctchg:-5.1f}{t.n}")
-            last = cpi
-    print("% change yearly in consumer price index")
-    for i in Columnize(results, sep=" "*3):
-        print(i)
-    mean = flt(statistics.mean(st))
-    median = flt(statistics.median(st))
-    s = flt(statistics.stdev(st))
-    q = [flt(i) for i in statistics.quantiles(st)]
-    Q = ', '.join(str(i) for i in q)
-    print(f"Statistics over {len(st)} years in %/yr:")
-    print(f"  Mean                  {mean}")
-    print(f"  Median                {median}")
-    print(f"  Standard deviation    {s}")
-    print(f"  Quantiles             {Q}")
-    print(f"  Minimum               {min(st)}")
-    print(f"  Maximum               {max(st)}")
-# vim: tw=0
+            if not use_partial:
+                t.print(f"{t.bad}Line {i + 1} is a bad line in the data:")
+                s = line.replace('\t', ' ')
+                t.print(f"{t.bad}  {s!r}")
+                t.print(f"{t('yell')}  It does not have 14 fields")
+                raise ValueError(f"Bad line {i+1}")
+            # The cpi will be the mean of the given values
+            cpi = sum([flt(k) for k in f[1:]])/len(f[1:])
+        out.append((yr, cpi))
+    # Set up floating point resolution
+    x = flt(0)
+    x.N = 4
+    # Construct dictionary
+    di = {}
+    for yr, cpi in out:
+        di[yr] = cpi
+    if show:
+        s = []
+        for yr, cpi in out:
+            s.append(f"{yr}: {cpi}")
+        for i in Columnize(s):
+            print(i)
+    return di
+
+cpi_data = CPI_Data(show=False)
+
+if __name__ == "__main__":  
+    import sys
+    import statistics
+    def ShowYearlyRatio():
+        'Print a table that shows the yearly ratio'
+        out = []
+        for i in cpi_data:
+            out.append((i, cpi_data[i]))
+        last = None
+        x = flt(0)
+        x.N = 2
+        t.plus = t("wht")
+        t.zero = t("purl")
+        t.minus = t("lip")
+        results = []
+        st = []
+        start = 1913
+        for i, item in enumerate(out):
+            yr, cpi = item
+            if not i:
+                last = cpi
+                continue
+            elif yr < start:
+                last = cpi
+                continue
+            else:
+                pctchg = round(100*flt(1 - cpi/last), 1)
+                st.append(pctchg)
+                c = t.zero
+                if pctchg > 0:
+                    c = t.plus
+                elif pctchg < 0:
+                    c = t.minus
+                results.append(f"{c}{yr:4d} {pctchg:-5.1f}{t.n}")
+                last = cpi
+        print("% change yearly in consumer price index")
+        for i in Columnize(results, sep=" "*3):
+            print(i)
+        mean = flt(statistics.mean(st))
+        median = flt(statistics.median(st))
+        s = flt(statistics.stdev(st))
+        q = [flt(i) for i in statistics.quantiles(st)]
+        Q = ', '.join(str(i) for i in q)
+        print(f"Statistics over {len(st)} years in %/yr:")
+        print(f"  Mean                  {mean}")
+        print(f"  Median                {median}")
+        print(f"  Standard deviation    {s}")
+        print(f"  Quantiles             {Q}")
+        print(f"  Minimum               {min(st)}")
+        print(f"  Maximum               {max(st)}")
+        print(f"  Range                 {max(st) - min(st)}")
+    ShowYearlyRatio()
