@@ -7,7 +7,7 @@ TODO
       valuable than it is today.  Make the current -t table shown under -T.
     - In table, remove $ and leading 0.  Show year in color.
 
-Consumer price index utility.
+Consumer price index utility
 '''
 if 1:  # Header
     if 1:  # Copyright, license
@@ -34,164 +34,169 @@ if 1:  # Header
         from color import t
         from months import months
     if 1:   # Global variables
-        # Construct CPI dictionary:  key is year, value is CPI index
-        CPI0 = { # The following CPI data came from the cpi_data.py script.
-            2023: flt(304.7),   2000: flt(172.2),   1978: flt(65.2),    1956: flt(27.2),    1934: flt(13.4),
-            2022: flt(292.7),   1999: flt(166.6),   1977: flt(60.6),    1955: flt(26.8),    1933: flt(13),
-            2021: flt(271),     1998: flt(163),     1976: flt(56.9),    1954: flt(26.9),    1932: flt(13.7),
-            2020: flt(258.8),   1997: flt(160.5),   1975: flt(53.8),    1953: flt(26.7),    1931: flt(15.2),
-            2019: flt(255.7),   1996: flt(156.9),   1974: flt(49.3),    1952: flt(26.5),    1930: flt(16.7),
-            2018: flt(251.1),   1995: flt(152.4),   1973: flt(44.4),    1951: flt(26),      1929: flt(17.1),
-            2017: flt(245.1),   1994: flt(148.2),   1972: flt(41.8),    1950: flt(24.1),    1928: flt(17.1),
-            2016: flt(240),     1993: flt(144.5),   1971: flt(40.5),    1949: flt(23.8),    1927: flt(17.4),
-            2015: flt(237),     1992: flt(140.3),   1970: flt(38.8),    1948: flt(24.1),    1926: flt(17.7),
-            2014: flt(236.7),   1991: flt(136.2),   1969: flt(36.7),    1947: flt(22.3),    1925: flt(17.5),
-            2013: flt(233),     1990: flt(130.7),   1968: flt(34.8),    1946: flt(19.5),    1924: flt(17.1),
-            2012: flt(229.6),   1989: flt(124),     1967: flt(33.4),    1945: flt(18),      1923: flt(17.1),
-            2011: flt(224.9),   1988: flt(118.3),   1966: flt(32.4),    1944: flt(17.6),    1922: flt(16.8),
-            2010: flt(218.1),   1987: flt(113.6),   1965: flt(31.5),    1943: flt(17.3),    1921: flt(17.9),
-            2009: flt(214.5),   1986: flt(109.6),   1964: flt(31),      1942: flt(16.3),    1920: flt(20),
-            2008: flt(215.3),   1985: flt(107.6),   1963: flt(30.6),    1941: flt(14.7),    1919: flt(17.3),
-            2007: flt(207.3),   1984: flt(103.9),   1962: flt(30.2),    1940: flt(14),      1918: flt(15.1),
-            2006: flt(201.6),   1983: flt(99.6),    1961: flt(29.9),    1939: flt(13.9),    1917: flt(12.8),
-            2005: flt(195.3),   1982: flt(96.5),    1960: flt(29.6),    1938: flt(14.1),    1916: flt(10.9),
-            2004: flt(188.9),   1981: flt(90.9),    1959: flt(29.1),    1937: flt(14.4),    1915: flt(10.1),
-            2003: flt(184),     1980: flt(82.4),    1958: flt(28.9),    1936: flt(13.9),    1914: flt(10),
-            2002: flt(179.9),   1979: flt(72.6),    1957: flt(28.1),    1935: flt(13.7),    1913: flt(9.9),
-            2001: flt(177.1),
-        }
-        # The following data came from the Bureau of Labor Statistics page
-        # https://data.bls.gov/pdq/SurveyOutputServlet.  Select
-        #   "Table Format"
-        #   "Original Data Value"
-        #   "All years"
-        #   "Annual Data"
-        #   Output type of HTML table
-        # then click on the "Retrieve Data" button.
-        # Copy and paste the table from 1913 to 2024.
-        # Downloaded Fri 26 Jul 2024 03:07:26 PM
-        # Note that 6 digits are given for 2007 and later.
-        # Year	Annual
-        data = '''
-            1913	9.9
-            1914	10.0
-            1915	10.1
-            1916	10.9
-            1917	12.8
-            1918	15.1
-            1919	17.3
-            1920	20.0
-            1921	17.9
-            1922	16.8
-            1923	17.1
-            1924	17.1
-            1925	17.5
-            1926	17.7
-            1927	17.4
-            1928	17.1
-            1929	17.1
-            1930	16.7
-            1931	15.2
-            1932	13.7
-            1933	13.0
-            1934	13.4
-            1935	13.7
-            1936	13.9
-            1937	14.4
-            1938	14.1
-            1939	13.9
-            1940	14.0
-            1941	14.7
-            1942	16.3
-            1943	17.3
-            1944	17.6
-            1945	18.0
-            1946	19.5
-            1947	22.3
-            1948	24.1
-            1949	23.8
-            1950	24.1
-            1951	26.0
-            1952	26.5
-            1953	26.7
-            1954	26.9
-            1955	26.8
-            1956	27.2
-            1957	28.1
-            1958	28.9
-            1959	29.1
-            1960	29.6
-            1961	29.9
-            1962	30.2
-            1963	30.6
-            1964	31.0
-            1965	31.5
-            1966	32.4
-            1967	33.4
-            1968	34.8
-            1969	36.7
-            1970	38.8
-            1971	40.5
-            1972	41.8
-            1973	44.4
-            1974	49.3
-            1975	53.8
-            1976	56.9
-            1977	60.6
-            1978	65.2
-            1979	72.6
-            1980	82.4
-            1981	90.9
-            1982	96.5
-            1983	99.6
-            1984	103.9
-            1985	107.6
-            1986	109.6
-            1987	113.6
-            1988	118.3
-            1989	124.0
-            1990	130.7
-            1991	136.2
-            1992	140.3
-            1993	144.5
-            1994	148.2
-            1995	152.4
-            1996	156.9
-            1997	160.5
-            1998	163.0
-            1999	166.6
-            2000	172.2
-            2001	177.1
-            2002	179.9
-            2003	184.0
-            2004	188.9
-            2005	195.3
-            2006	201.6
-            2007	207.342
-            2008	215.303
-            2009	214.537
-            2010	218.056
-            2011	224.939
-            2012	229.594
-            2013	232.957
-            2014	236.736
-            2015	237.017
-            2016	240.007
-            2017	245.120
-            2018	251.107
-            2019	255.657
-            2020	258.811
-            2021	270.970
-            2022	292.655
-            2023	304.702
-        '''
-        CPI = {}
-        for line in data.split("\n"):
-            if not line.strip():
-                continue
-            yr, cpi = line.split("\t")
-            CPI[int(yr)] = flt(cpi)
-        #
+        # The needed information is in the CPI dictionary, which maps integer year to CPI values.  
+        if 1:
+            from cpi_data import cpi_data as CPI
+        else:
+            # Older methods
+            # Construct CPI dictionary:  key is year, value is CPI index
+            CPI0 = { # The following CPI data came from the cpi_data.py script.
+                2023: flt(304.7),   2000: flt(172.2),   1978: flt(65.2),    1956: flt(27.2),    1934: flt(13.4),
+                2022: flt(292.7),   1999: flt(166.6),   1977: flt(60.6),    1955: flt(26.8),    1933: flt(13),
+                2021: flt(271),     1998: flt(163),     1976: flt(56.9),    1954: flt(26.9),    1932: flt(13.7),
+                2020: flt(258.8),   1997: flt(160.5),   1975: flt(53.8),    1953: flt(26.7),    1931: flt(15.2),
+                2019: flt(255.7),   1996: flt(156.9),   1974: flt(49.3),    1952: flt(26.5),    1930: flt(16.7),
+                2018: flt(251.1),   1995: flt(152.4),   1973: flt(44.4),    1951: flt(26),      1929: flt(17.1),
+                2017: flt(245.1),   1994: flt(148.2),   1972: flt(41.8),    1950: flt(24.1),    1928: flt(17.1),
+                2016: flt(240),     1993: flt(144.5),   1971: flt(40.5),    1949: flt(23.8),    1927: flt(17.4),
+                2015: flt(237),     1992: flt(140.3),   1970: flt(38.8),    1948: flt(24.1),    1926: flt(17.7),
+                2014: flt(236.7),   1991: flt(136.2),   1969: flt(36.7),    1947: flt(22.3),    1925: flt(17.5),
+                2013: flt(233),     1990: flt(130.7),   1968: flt(34.8),    1946: flt(19.5),    1924: flt(17.1),
+                2012: flt(229.6),   1989: flt(124),     1967: flt(33.4),    1945: flt(18),      1923: flt(17.1),
+                2011: flt(224.9),   1988: flt(118.3),   1966: flt(32.4),    1944: flt(17.6),    1922: flt(16.8),
+                2010: flt(218.1),   1987: flt(113.6),   1965: flt(31.5),    1943: flt(17.3),    1921: flt(17.9),
+                2009: flt(214.5),   1986: flt(109.6),   1964: flt(31),      1942: flt(16.3),    1920: flt(20),
+                2008: flt(215.3),   1985: flt(107.6),   1963: flt(30.6),    1941: flt(14.7),    1919: flt(17.3),
+                2007: flt(207.3),   1984: flt(103.9),   1962: flt(30.2),    1940: flt(14),      1918: flt(15.1),
+                2006: flt(201.6),   1983: flt(99.6),    1961: flt(29.9),    1939: flt(13.9),    1917: flt(12.8),
+                2005: flt(195.3),   1982: flt(96.5),    1960: flt(29.6),    1938: flt(14.1),    1916: flt(10.9),
+                2004: flt(188.9),   1981: flt(90.9),    1959: flt(29.1),    1937: flt(14.4),    1915: flt(10.1),
+                2003: flt(184),     1980: flt(82.4),    1958: flt(28.9),    1936: flt(13.9),    1914: flt(10),
+                2002: flt(179.9),   1979: flt(72.6),    1957: flt(28.1),    1935: flt(13.7),    1913: flt(9.9),
+                2001: flt(177.1),
+            }
+            # The following data came from the Bureau of Labor Statistics page
+            # https://data.bls.gov/pdq/SurveyOutputServlet.  Select
+            #   "Table Format"
+            #   "Original Data Value"
+            #   "All years"
+            #   "Annual Data"
+            #   Output type of HTML table
+            # then click on the "Retrieve Data" button.
+            # Copy and paste the table from 1913 to 2024.
+            # Downloaded Fri 26 Jul 2024 03:07:26 PM
+            # Note that 6 digits are given for 2007 and later.
+            # Year	Annual
+            data = '''
+                1913	9.9
+                1914	10.0
+                1915	10.1
+                1916	10.9
+                1917	12.8
+                1918	15.1
+                1919	17.3
+                1920	20.0
+                1921	17.9
+                1922	16.8
+                1923	17.1
+                1924	17.1
+                1925	17.5
+                1926	17.7
+                1927	17.4
+                1928	17.1
+                1929	17.1
+                1930	16.7
+                1931	15.2
+                1932	13.7
+                1933	13.0
+                1934	13.4
+                1935	13.7
+                1936	13.9
+                1937	14.4
+                1938	14.1
+                1939	13.9
+                1940	14.0
+                1941	14.7
+                1942	16.3
+                1943	17.3
+                1944	17.6
+                1945	18.0
+                1946	19.5
+                1947	22.3
+                1948	24.1
+                1949	23.8
+                1950	24.1
+                1951	26.0
+                1952	26.5
+                1953	26.7
+                1954	26.9
+                1955	26.8
+                1956	27.2
+                1957	28.1
+                1958	28.9
+                1959	29.1
+                1960	29.6
+                1961	29.9
+                1962	30.2
+                1963	30.6
+                1964	31.0
+                1965	31.5
+                1966	32.4
+                1967	33.4
+                1968	34.8
+                1969	36.7
+                1970	38.8
+                1971	40.5
+                1972	41.8
+                1973	44.4
+                1974	49.3
+                1975	53.8
+                1976	56.9
+                1977	60.6
+                1978	65.2
+                1979	72.6
+                1980	82.4
+                1981	90.9
+                1982	96.5
+                1983	99.6
+                1984	103.9
+                1985	107.6
+                1986	109.6
+                1987	113.6
+                1988	118.3
+                1989	124.0
+                1990	130.7
+                1991	136.2
+                1992	140.3
+                1993	144.5
+                1994	148.2
+                1995	152.4
+                1996	156.9
+                1997	160.5
+                1998	163.0
+                1999	166.6
+                2000	172.2
+                2001	177.1
+                2002	179.9
+                2003	184.0
+                2004	188.9
+                2005	195.3
+                2006	201.6
+                2007	207.342
+                2008	215.303
+                2009	214.537
+                2010	218.056
+                2011	224.939
+                2012	229.594
+                2013	232.957
+                2014	236.736
+                2015	237.017
+                2016	240.007
+                2017	245.120
+                2018	251.107
+                2019	255.657
+                2020	258.811
+                2021	270.970
+                2022	292.655
+                2023	304.702
+            '''
+            CPI = {}
+            for line in data.split("\n"):
+                if not line.strip():
+                    continue
+                yr, cpi = line.split("\t")
+                CPI[int(yr)] = flt(cpi)
+        # Get some summary statistics
         ref_year = max(CPI)
         min_year = min(CPI)
         min_digits, max_digits = 1, 8
@@ -199,9 +204,9 @@ if 1:  # Header
         if 0:   # Compare the CPI data
             x = flt(0)
             x.N = 6
-            print("year, new, old")
+            print("year, new, old, ratio")
             for i in CPI:
-                print(f"{i} {CPI[i]!r} {CPI0[i]!r}")
+                print(f"{i} {CPI[i]!r} {CPI0[i]!r} {CPI[i]/CPI0[i]}")
             exit(0)
 if 1:  # Utility
     def Error(msg, status=1):
@@ -453,8 +458,7 @@ if __name__ == "__main__":
     # Print percentages
     year = GetYear(args[0])
     cpi, ref_cpi = CPI[year], CPI[ref_year]
-    print("Year = {}, reference year = {}, difference = {} years".format(
-          year, ref_year, abs(year - ref_year)))
+    print(f"Year = {year}, reference year = {ref_year}, difference = {abs(year - ref_year)} years")
     ratio = ref_cpi/cpi
     print(f"Ratio for year/ref = {ratio}") 
     print(f"Ratio for ref/year = {1/ratio}")
@@ -468,4 +472,4 @@ if __name__ == "__main__":
         for x in [float(j) for j in args[1:]]:
             a = f"${rdp(x*ratio)} in {ref_year}"
             b = f"${rdp(x/ratio)} in {year}"
-            print(f"{rdp(x):^{m}s}   {a:^{n}s}   {b:^{n}s}")
+            print(f"{'$' + rdp(x):^{m}s}   {a:^{n}s}   {b:^{n}s}")
