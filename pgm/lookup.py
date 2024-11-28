@@ -61,9 +61,10 @@ if 1:   # Imports
 if 1:   # Custom imports
     from wrap import dedent
     from get import GetTokens
-    # The following is a non-standard python module that can be gotten from
-    # https://someonesdad1.github.io/hobbyutil/project_list.html
-    import color as color
+    if 1:   # Use new color module
+        from color import t
+    else:
+        import color as color
 if 1:   # Global variables
     dbg = False   # Turn on for debug printing, which helps to debug the code
     # This script uses a grep-like tool to perform the searches.  The grep
@@ -112,27 +113,29 @@ if 1:   # Global variables
     streams["s"] = streams["a"]
     # Get the number of screen columns
     columns = int(os.environ["COLUMNS"]) - 1 if "COLUMNS" in os.environ else 79
-    # Color-related stuff.  Note:  the color module is a python module
-    # that uses escape sequences to set colors.  I use it under a modern bash
-    # based on mintty under cygwin and bash under Linux.
-    black = color.black
-    blue = color.blue
-    green = color.green
-    cyan = color.cyan
-    red = color.red
-    magenta = color.magenta
-    brown = color.brown
-    white = color.white
-    gray = color.gray
-    lblue = color.lblue
-    lgreen = color.lgreen
-    lcyan = color.lcyan
-    lred = color.lred
-    lmagenta = color.lmagenta
-    yellow = color.yellow
-    lwhite = color.lwhite
-    fg = color.fg
-    normal = color.normal
+    if 1:   # Use new color stuff
+    else:
+        # Color-related stuff.  Note:  the color module is a python module
+        # that uses escape sequences to set colors.  I use it under a modern bash
+        # based on mintty under cygwin and bash under Linux.
+        black = color.black
+        blue = color.blue
+        green = color.green
+        cyan = color.cyan
+        red = color.red
+        magenta = color.magenta
+        brown = color.brown
+        white = color.white
+        gray = color.gray
+        lblue = color.lblue
+        lgreen = color.lgreen
+        lcyan = color.lcyan
+        lred = color.lred
+        lmagenta = color.lmagenta
+        yellow = color.yellow
+        lwhite = color.lwhite
+        fg = color.fg
+        normal = color.normal
     # WordNet uses letters to identify the types of words; we'll use more
     # conventional abbreviations.  This also allows us to set the color
     # for these types of words.
