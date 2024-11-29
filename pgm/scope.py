@@ -38,10 +38,15 @@ if 1:  # Header
         g.dbg = False
         g.registers = {}    # Indexes register number to Scope object
         ii = isinstance
+        # Printing widths
+        g.w_reg = 3
+        g.w_name = 50
+        g.w_trig = 20
         # Colors
         t.reg = t.orn
         t.name = t.wht
         t.trig = t.royl
+        t.title = t.purl
 if 1:   # Classes
     class Scope:
         def __init__(self, register, name, trigger):
@@ -51,7 +56,7 @@ if 1:   # Classes
             self.details = ""
         def __str__(self):
             s = f"Def " if not self.register else f"{self.register:<3d} "
-            s += f"{self.name:50s} {self.trigger:30s}"
+            s += f"{self.name:{g.w_name}s} {self.trigger:{g.w_trig}s}"
             return s
         def __repr__(self):
             if self.details:
@@ -60,7 +65,7 @@ if 1:   # Classes
                 return f"{str(self)}"
         def get_details(self):
             s = f"{t.reg}Def{t.n} " if not self.register else f"{t.reg}{self.register:<3d}{t.n} "
-            s += f"{t.name}{self.name:50s} {t.trig}{self.trigger:30s}{t.n}"
+            s += f"{t.name}{self.name:{g.w_name}s} {t.trig}{self.trigger:{g.w_trig}s}{t.n}"
             return s
 
 if 1:   # Utility
@@ -139,8 +144,8 @@ if 1:   # Core functionality
             are 1 V/div and set up for 10X probes.
         ''')
     def Summary():
-        print(f"Reg {'Name':^50s} {'Trigger':^30s}")
-        print(f"--- {'-'*50} {'-'*30}")
+        print(f"{t.title}Reg {'Name':^{g.w_name}s} {'Trigger':^{g.w_trig}s}")
+        print(f"--- {'-'*g.w_name} {'-'*g.w_trig}{t.n}")
         for i in g.registers:
             print(g.registers[i].get_details())
     def Details(args):
