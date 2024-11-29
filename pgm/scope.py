@@ -38,6 +38,10 @@ if 1:  # Header
         g.dbg = False
         g.registers = {}    # Indexes register number to Scope object
         ii = isinstance
+        # Colors
+        t.reg = t.orn
+        t.name = t.wht
+        t.trig = t.royl
 if 1:   # Classes
     class Scope:
         def __init__(self, register, name, trigger):
@@ -50,7 +54,14 @@ if 1:   # Classes
             s += f"{self.name:50s} {self.trigger:30s}"
             return s
         def __repr__(self):
-            return t("purl") + str(self) + t.n + "\n" + self.details
+            if self.details:
+                return f"{t.purl}{str(self)}{t.n}\n{self.details}"
+            else:
+                return f"{str(self)}"
+        def get_details(self):
+            s = f"{t.reg}Def{t.n} " if not self.register else f"{t.reg}{self.register:<3d}{t.n} "
+            s += f"{t.name}{self.name:50s} {t.trig}{self.trigger:30s}{t.n}"
+            return s
 
 if 1:   # Utility
     def GetColors():
@@ -97,8 +108,8 @@ if 1:   # Core functionality
         s = g.registers
         s[0] = Scope(0, "Default setup 100 mV/div", "CH1 auto lvl")
         s[1] = Scope(1, "General CH 1", "CH1 auto lvl")
-        s[2] = Scope(2, "General CH 2", "CH1 auto lvl")
-        s[3] = Scope(3, "General CH1 & CH 2", "CH3 auto lvl")
+        s[2] = Scope(2, "General CH 2", "CH2 auto lvl")
+        s[3] = Scope(3, "General CH 1 & CH 2", "CH3 auto lvl")
         s[3].details = dedent(f'''
             This mode is intended for general exploration of a circuit.  Connect a scope probe to
             CH 3 and use it for the clocking signal of the circuit.  Then CH 1 and CH 2 can be
@@ -128,8 +139,20 @@ if 1:   # Core functionality
             are 1 V/div and set up for 10X probes.
         ''')
     def Summary():
+        print(f"Reg {'Name':^50s} {'Trigger':^30s}")
+        print(f"--- {'-'*50} {'-'*30}")
         for i in g.registers:
-            print(g.registers[i])
+            print(g.registers[i].get_details())
+    def Details(args):
+        for i, arg in enumerate(args):
+            try:
+                o = g.registers[int(arg)]
+                print(f"{o!r}")
+                if len(args) > 1 and arg != args[-1]:
+                    print()
+            except Exception as e:
+                print(f"{e}")
+                print(f"Register {arg!r} not found")
 
 if __name__ == "__main__":
     d = {}      # Options dictionary
@@ -138,11 +161,4 @@ if __name__ == "__main__":
     if not args:
         Summary()
     else:
-        for i, arg in enumerate(args):
-            try:
-                print(f"{g.registers[int(arg)]!r}")
-                if len(args) > 1 and arg != args[-1]:
-                    print()
-            except Exception as e:
-                print(f"{e}")
-                print(f"Register {arg!r} not found")
+        Details(args)
