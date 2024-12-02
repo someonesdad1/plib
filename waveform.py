@@ -243,9 +243,9 @@ class Waveform(object):
         "triangle",
         "unknown",
     ))
-    def __init__(self, *args):
+    def __init__(self, x, **kw):
         '''Create a Waveform object by the following constructors:
-            Waveform(name, size)
+            Waveform(name)
                 Makes one of the supported waveforms indicated by name with size points per
                 period.  It's straightforward to add support for new types of waveforms (modify
                 the _make method).  name is a string defined in the _names attribute of the
@@ -257,8 +257,37 @@ class Waveform(object):
                 The numpy array will be flattened.
             Waveform(waveform_object)
                 Creates a copy of an existing Waveform object.
+
+        Keywords
+            size        int     Number of points per period [100]
+            freq        float   Frequency [1].  Can also be a string with an SI prefix as suffix.
+            freq_unit   string  Frequency unit [Hz]
+            period      float   Period [1].  Can also be a string with an SI prefix as suffix.
+            period_unit string  Period unit [s]
+            ampl        float   Amplitude >= 0 [1]
+            ampl_unit   string  Amplitude unit [V]
+            numperiods  int     Number of periods [1]
+            duty        float   Duty cycle on [0, 100] [50]
+            dc          float   DC offset [0]
+            ndig        int     Number of digits to display [3]
+
+            leftge      bool    ...
+            rightle     bool    ...
+            posclip     bool    Defines positive clipping limit
+            negclip     bool    Defines negative clipping limit
+
+
         '''
         self.reset()
+        if ii(x, str):              # Initialize with a name
+            pass
+        elif ii(x, np.array):       # Initialize with a numpy array
+            pass
+        elif ii(x, Waveform):       # Initialize with a Waveform instance
+            pass
+        else:                       # Must be an iterable
+            pass
+            
         if len(args) == 1:
             # Initializing with another Waveform object, array or iterable
             if isinstance(args[0], Waveform):
@@ -480,12 +509,6 @@ class Waveform(object):
         y = self._adjust_zero(y)
         x = num_periods*np.arange(len(y))/len(y)
         return (x, y)
-    def awg(self):
-        '''Generate a sequence of numbers suitable for a particular
-        arbitrary waveform generator.  You must implement this method
-        yourself.
-        '''
-        raise NotImplementedError("Waveform.awg() needs to be implemented")
     def __call__(self, num_periods=1):
         '''When a Waveform object w is called with a number, the data
         array with num_periods is generated and returned.  Thus, for
