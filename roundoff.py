@@ -55,7 +55,6 @@ if 1:   # Global variables
     ]
     ii = isinstance
 def RoundOff(number, digits=12, convert=False):
-
     '''Round the significand of number to the indicated number of digits and return the rounded
     number (integers and Fractions are returned untransformed).  number can be an int, float,
     Decimal, Fraction or complex number.

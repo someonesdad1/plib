@@ -234,38 +234,48 @@ if 1:   # RMS formula validation
         if 1:   # Functionals
             @property
             def Vpp(self):
-                return abs(max(self.y)) + abs(min(self.y))
+                return flt(abs(max(self.y)) + abs(min(self.y)))
             @property
             def Vpk(self):
-                return max(abs(max(self.y)), abs(min(self.y)))
+                return flt(max(abs(max(self.y)), abs(min(self.y))))
             @property
             def Vrms(self):
                 'Calculate the RMS integral'
                 dx = self.x[1] - self.x[0]
                 T = self.x[-1] - self.x[0]
-                return np.sqrt(sum(dx*self.y**2)/T)
+                return flt(np.sqrt(sum(dx*self.y**2)/T))
             @property
             def Varms(self):
-                return np.sqrt(self.Vrms**2 - self.Vdc**2)
+                return flt(np.sqrt(self.Vrms**2 - self.Vdc**2))
+            @property
+            def Vaa(self):
+                'Calculate the absolute average integral'
+                dx = self.x[1] - self.x[0]
+                T = self.x[-1] - self.x[0]
+                return flt(sum(abs(dx*self.y))/T)
             @property
             def Vdc(self):
                 'Calculate the average integral'
                 dx = self.x[1] - self.x[0]
                 T = self.x[-1] - self.x[0]
-                return sum(dx*self.y)/T
+                avg = flt(sum(dx*self.y)/T)
+                return round(avg, 15)
 
     w = Waveform("sine")
-    w.N = 1e2
-    plt.plot(w.x, w.y)
-    plt.title("Sine")
-    plt.grid()
-    plt.theme("clear")
-    plt.plot_size(80, 30)
-    plt.show()
+    w.N = 1e3
+    flt(0).N = 5
+    if 0:
+        plt.plot(w.x, w.y)
+        plt.title("Sine")
+        plt.grid()
+        plt.theme("clear")
+        plt.plot_size(60, 20)
+        plt.show()
     print(f"Vpp   = {w.Vpp}")
     print(f"Vpk   = {w.Vpk}")
     print(f"Vrms  = {w.Vrms}")
     print(f"Varms = {w.Varms}")
+    print(f"Vaa   = {w.Vaa}")
     print(f"Vdc   = {w.Vdc}")
     exit()
 
