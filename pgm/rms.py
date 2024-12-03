@@ -45,6 +45,7 @@ if 1:  # Header
         pass
     if 1:   # Standard imports
         from collections import deque
+        from math import floor, ceil
         from pathlib import Path as P
         import getopt
         import numpy as np
@@ -68,10 +69,9 @@ if 1:  # Header
         ii = isinstance
         g.have_plotext = True
         try:
-            import pplotext as plt
+            import plotext as plt
         except ImportError:
             g.have_plotext = False
-        g.have_plotext = False
 if 1:   # Utility
     def GetColors():
         t.err = t("redl")
@@ -115,16 +115,25 @@ if 1:   # Utility
             elif o == "-h":
                 Usage()
         return args
+    def SlopeAndIntercept(x1, y1, x2, y2, numtype=float):
+        '''Return (m, b) where m is the slope and b is the intercept of a line, gotten from the
+        point-slope formula.  The slope is m = (y2 - y1)/(x2 - x1).  Then for any two points (x1,
+        y1) and (x2, y2) on a line, the line's equation is (y - y1)/(x - x1) = m.  Thus, the
+        intercept is b = y1 - m*x1.
+        '''
+        if not (x2 - x1):
+            raise ValueError("Denominator is zero")
+        m = numtype((y2 - y1)/(x2 - x1))
+        return m, numtype(y1 - m*x1)
 if 1:   # RMS formula validation
     class Waveform:
-        '''Construct a basic waveform in a numpy array (the .data property has the array).
+        '''Construct a basic waveform in a numpy array (the x and y properties have the arrays).
         Methods then can be used to get
             Vdc
             Varms
             Vrms
             Vpk
             Vpp
-
         '''
         names = set((
             "sine",
@@ -134,45 +143,51 @@ if 1:   # RMS formula validation
             "noise",
             "halfsine",
         ))
-        def __init__(self, name):
+        def __init__(self, name, N=100, D=0.5, DC=0, zero_baseline=False):
             '''Attributes
-            N           (int)   Number of points [100]
-            D           (flt)   Duty cycle
-            DC          (flt)   DC offset
-            CF          (flt)   Crest factor (adjusts D to get desired CF)
+            N   (int)   Number of points [100]
+            D   (flt)   Duty cycle
+            DC  (flt)   DC offset
             zero_baseline (bool)  Set to True for a 0 baseline (sets DC offset)
             '''
-            self._name = name
-            self.reset()
+            self._ready = False     # Don't construct waveform yet
+            self.name = name
+            self._N = self._D = self._DC = self._zero_baseline = self.x = self.y = None
+            self.N = N
+            self.D = D
+            self.DC = DC
+            self.zero_baseline = zero_baseline
+            self._ready = True
             if name in Waveform.names:
                 self.construct()
             else:
                 raise ValueError(f"{name!r} is not recognized")
-        def reset(self):
-            'Set attributes to defaults'
-            self.x = None
-            self.y = None
-            self._N = 1000
-            self._D = flt(0.5)
-            self._DC = flt(0)
-            self._CF = None
-            self._zero_baseline = False
+        def __str__(self):
+            s = (f"Waveform({self.name!r}, N={self.N}, D={self.D}, "
+                 f"DC={self.DC}, zero_baseline={self.zero_baseline})")
+            return s
         def construct(self):
+            '''self.x contains the abscissas, self.y contains the ordinates.
+            T is the period.
+            '''
+            if not self._ready:
+                return
+            N, D = self._N, self._D
+            dx = 1/N
+            # Get x on [0, 1]
+            self.x = np.arange(0, 1, dx)
             if self._name == "sine":
-                x = 2*np.pi
-                # Need to include endpoint at 2*pi to get proper integration
-                dx = x/(self.N + 1)
-                self.x = np.arange(0, x + dx, x/self.N)
-                self.y = np.sin(self.x)
-                if self._DC:
-                    self.y += self._DC
-                elif self._zero_baseline:
+                x = np.arange(0, 2*np.pi, 2*np.pi*dx)
+                self.y = np.sin(x)
+                self.y += self._DC
+                if self._zero_baseline:
                     self.y += 1
             elif self._name == "square":
-                self.x = np.arange(0, 1, 1/self.N)
-                n = int(self._D*self.N)
+                # Positive portion
+                n = int(D*N)
                 first = np.arange(0, n)*0.0 + 1.0
-                m = int((1 - self._D)*self.N)
+                # Negative portion
+                m = int((1 - D)*N)
                 second = np.arange(0, m)*0.0 - 1.0
                 self.y = np.concatenate((first, second), axis=None)
                 if self._DC:
@@ -182,22 +197,57 @@ if 1:   # RMS formula validation
                     second = np.arange(0, m)*0.0
                     self.y = np.concatenate((first, second), axis=None)
             elif self._name == "triangle":
-                self.x = np.arange(0, 1, 1/self.N)
+                # The five key points on the waveform are:
+                # (0, 0) and ((D*T/2, 1)            From 0 to n1        Section 1
+                # (D*T/2, 1) and (T/2, 0)           From n1 + 1 to n2   Section 2
+                # (T/2, 0) and (T*(1 - D/2), -1)    From n2 + 1 to n3   Section 3
+                # (T*(1 - D/2), -1) and (0, T)      From n3 + 1 to N    Section 4
+                N, D = self._N, self._D
+                T = self.x[-1] - self.x[0] + dx
+                # Indexes of the key points
+                n1 = int(round(D*N/2, 0))
+                n2 = int(round(N/2, 0))
+                n3 = N - n1
+                # Section 1
+                m, b = SlopeAndIntercept(0, 0, D*T/2, 1)
+                y1 = m*self.x[0:n1 + 1] + b
+                # Section 2
+                m, b = SlopeAndIntercept(D*T/2, 1, T/2, 0)
+                y2 = m*self.x[n1 + 1:n2 + 1] + b
+                # Section 3
+                m, b = SlopeAndIntercept(T/2, 0, T*(1 - D/2), -1)
+                y3 = m*self.x[n2 + 1:n3 + 1] + b
+                # Section 4
+                m, b = SlopeAndIntercept(T*(1 - D/2), -1, T, 0)
+                y4 = m*self.x[n3 + 1:] + b
+                # Put waveform's sections together
+                self.y = np.concatenate((y1, y2, y3, y4), axis=None)
             elif self._name == "ramp":
-                breakpoint() #xx
+                # The key points on the waveform are:
+                # (0, -1) and (T, 1)
+                dx = 1/N
+                T = self.x[-1] - self.x[0] + dx
+                m, b = SlopeAndIntercept(0, -1, T, 1)
+                self.y = m*self.x + b
             elif self._name == "noise":
-                self.x = np.arange(0, 1, 1/self.N)
                 self.y = random.normal(size=self.N)
                 if self._DC:
                     self.y += self._DC
             elif self._name == "halfsine":
-                breakpoint() #xx
+                self._name = "sine"
+                self.construct()
+                self._name = "halfsine"
+                # Set the negative elements to zero
+                self.y = np.where(self.y >= 0, self.y, 0)
             else:
                 raise RuntimeError(f"Bug:  {self._name!r} is unknown waveform name")
-        def plot(self, title="", W=40, H=15):
+            if len(self.y) != self.N:
+                raise ValueError(f"len(self.y) = {len(self.y)} is not equal to {N}")
+        def plot(self, title="", W=60, H=30):
             if not g.have_plotext:
                 print("plotext library not installed", file=sys.stderr)
                 return
+            plt.clear_figure()
             plt.theme("clear")
             plt.plot(self.x, self.y)
             if title:
@@ -215,6 +265,7 @@ if 1:   # RMS formula validation
                 if name not in Waveform.names:
                     raise ValueError(f"{self._name!r} is unknown waveform name")
                 self._name = name
+                self.construct()
             # Number of points in waveform
             @property
             def N(self):
@@ -233,8 +284,8 @@ if 1:   # RMS formula validation
             @D.setter
             def D(self, value):
                 D = flt(value)
-                if not 0 <= D <= 1:
-                    raise ValueError("Property D must be flt on [0, 1]")
+                if not 0 < D < 1:
+                    raise ValueError("Duty cycle D must be float on (0, 1)")
                 self._D = D
                 self.construct()
             # DC offset
@@ -243,27 +294,26 @@ if 1:   # RMS formula validation
                 return flt(self._DC)
             @DC.setter
             def DC(self, value):
-                self._DC = flt(value)
+                dc = flt(value)
+                self._DC = dc
                 self._zero_baseline = False
                 self.construct()
             # Crest factor
             @property
             def CF(self):
-                return self._CF
-            @CF.setter
-            def CF(self, value):
-                cf = flt(value)
-                if cf < 1:
-                    raise ValueError("Property CF must be >= 1")
-                self._D = cf
-                self.construct()
+                pk = self.Vpk
+                rms = self.Varms
+                return flt(pk/rms) if rms else flt(1)
             # Zero baseline
             @property
             def zero_baseline(self):
                 return self._zero_baseline
             @zero_baseline.setter
             def zero_baseline(self, value):
-                self._zero_baseline = bool(value)
+                zbl = bool(value)
+                if self._zero_baseline == zbl:
+                    return
+                self._zero_baseline = zbl
                 self._DC = 0
                 self.construct()
         if 1:   # Functionals
@@ -300,13 +350,12 @@ if 1:   # RMS formula validation
                     dc = abs(dc)
                 return flt(dc)
 
-    for name in Waveform.names:
-        if name in ("triangle", "ramp", "halfsine"):
-            continue
-        w = Waveform(name)
-        w.N = 100
-        if 0:
-            w.plot(W=80, H=20)
+    if 1:
+        w = Waveform("triangle", D=1)
+        flt(0).N = 4
+        if 1:
+            w.plot()
+        print(w)
         print(f"Name = {w.name}")
         print(f"  Vpp   = {w.Vpp}")
         print(f"  Vpk   = {w.Vpk}")
@@ -314,7 +363,7 @@ if 1:   # RMS formula validation
         print(f"  Varms = {w.Varms}")
         print(f"  Vaa   = {w.Vaa}")
         print(f"  Vdc   = {w.Vdc}")
-    exit()
+        exit()
 
     def ValidateFormulas():
         '''The RMS.odt document that discusses RMS measurements for hobbyists has a number of
