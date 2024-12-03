@@ -49,6 +49,7 @@ if 1:  # Header
         from pathlib import Path as P
         import getopt
         import numpy as np
+        from numpy.fft import fft
         import numpy.random as random
         import os
         import re
@@ -78,11 +79,8 @@ if 1:   # Utility
         t.dbg = t("lill") if g.dbg else ""
         t.N = t.n if g.dbg else ""
     def GetScreen():
-        'Return (LINES, COLUMNS)'
-        return (
-            int(os.environ.get("LINES", "50")),
-            int(os.environ.get("COLUMNS", "80")) - 1
-        )
+        'Get LINES & COLUMNS'
+        g.H, g.W = int(os.environ.get("LINES", "50")), int(os.environ.get("COLUMNS", "80")) - 1
     def Dbg(*p, **kw):
         if g.dbg:
             print(f"{t.dbg}", end="")
@@ -243,7 +241,33 @@ if 1:   # RMS formula validation
                 raise RuntimeError(f"Bug:  {self._name!r} is unknown waveform name")
             if len(self.y) != self.N:
                 raise ValueError(f"len(self.y) = {len(self.y)} is not equal to {N}")
-        def plot(self, title="", W=60, H=30):
+        def fft(self, title="", W=60, H=30, fit=False):
+            'Plot the FFT of the waveform'
+            if not g.have_plotext:
+                print("plotext library not installed", file=sys.stderr)
+                return
+            plt.clear_figure()
+            plt.theme("clear")
+            # Get FFT:  it's a complex array, so take the magnitude
+            dft = np.abs(fft(self.y))
+            # Cut it in half, as the two halves are redundant
+            half = len(dft)//2
+            dft, x = dft[:half], self.x[:half]
+            # Double every element except the first, which is DC
+            dc = dft[0]
+            dft *= 2
+            dft[0] = dc
+            # Make a bar chart
+            plt.bar(x, np.abs(dft))
+            if title:
+                plt.title(title)
+            plt.grid()
+            if fit:
+                GetScreen()
+                W, H = g.W, g.H
+            plt.plot_size(W, H)
+            plt.show()
+        def plot(self, title="", W=60, H=30, fit=False):
             if not g.have_plotext:
                 print("plotext library not installed", file=sys.stderr)
                 return
@@ -253,8 +277,13 @@ if 1:   # RMS formula validation
             if title:
                 plt.title(title)
             plt.grid()
+            if fit:
+                GetScreen()
+                W, H = g.W, g.H
             plt.plot_size(W, H)
             plt.show()
+        def remove_DC(self):
+            self.y -= self.Vdc
         if 1:   # Properties
             # Name of waveform
             @property
@@ -351,10 +380,14 @@ if 1:   # RMS formula validation
                 return flt(dc)
 
     if 1:
-        w = Waveform("triangle", D=1)
+        w = Waveform("square")
         flt(0).N = 4
-        if 1:
+        if 0:
             w.plot()
+        elif 1:
+            w.D = .1
+            w.remove_DC()
+            w.fft(fit=0)
         print(w)
         print(f"Name = {w.name}")
         print(f"  Vpp   = {w.Vpp}")
