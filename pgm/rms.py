@@ -1,4 +1,8 @@
 '''
+Todo
+    - Waveform
+        - Let ampl, f, T, nper, DC, and D be strings that can contain cuddled SI strings for convenience
+
 Calculations with RMS related things
 
     - Input a number x.  It is interpreted in a number of ways
@@ -185,7 +189,7 @@ if 1:   # Waveform class
             '''
             # Set the defining attributes
             self._name = name
-            self._n = n
+            self._n = int(n)
             self._ampl = flt(ampl)
             self._f = flt(1/T) if T is not None else flt(f)
             self._nper = flt(nper)
@@ -197,6 +201,8 @@ if 1:   # Waveform class
             else:
                 raise ValueError(f"Waveform name {name!r} is not recognized")
         def validate_attributes(self):
+            if not ii(self._name, str):
+                raise TypeError(f"name must be a string")
             if self._n <= 0 or not ii(self._n, int):
                 raise ValueError(f"n = number of points must be integer > 0")
             if self._ampl <= 0:
@@ -211,7 +217,19 @@ if 1:   # Waveform class
             '''Return a colorized string representing the waveform.  This is somewhat verbose,
             intended to show the details.
             '''
-            s = (f"Waveform({self.name!r}, n={self.n}, D={self.D}, DC={self.DC})")
+            s = [repr(self)]
+            s.append(f"  Vdc   = {self.Vdc}")
+            s.append(f"  Varms = {self.Varms}")
+            s.append(f"  Vrms  = {self.Vrms}")
+            s.append(f"  Vpk   = {self.Vpk}")
+            s.append(f"  Vpp   = {self.Vpp}")
+            s.append(f"  Vaa   = {self.Vaa}")
+            s.append(f"  Var   = {self.Var}")
+            s.append(f"  CF    = {self.CF}")
+            return '\n'.join(s)
+        def __repr__(self):
+            s = (f"Waveform({self._name!r}, n={self._n}, ampl={self._ampl}, f={self._f}, "
+                 f"nper={self._nper}, DC={self.DC}, D={self.D})")
             return s
         def construct(self):
             '''Construct the numpy arrays for the waveform:  
@@ -539,24 +557,15 @@ if 1:
         linewidth=int(os.environ.get("COLUMNS", "80")) - 1,
         suppress=True,
     )
-    w = Waveform("sine", n=20, f=100)
+    w = Waveform("sine", ampl=12, n=20, f=1000)
     w.DC = 0.5
     flt(0).N = 4
     if 1:
         w.plot()
-    elif 0:
+    if 0:
         w.remove_DC()
         w.fft()
     print(w)
-    print(f"Name = {w.name}")
-    print(f"  Vdc   = {w.Vdc}")
-    print(f"  Varms = {w.Varms}")
-    print(f"  Vrms  = {w.Vrms}")
-    print(f"  Vpk   = {w.Vpk}")
-    print(f"  Vpp   = {w.Vpp}")
-    print(f"  Vaa   = {w.Vaa}")
-    print(f"  Var   = {w.Var}")
-    print(f"  CF    = {w.CF}")
     exit()
 
 if 1:
