@@ -299,8 +299,14 @@ if 1:   # Waveform class
                 npoints = int(round(self._nper*self._n, 0))
                 self.y = self.z
                 Assert(len(self.y) == npoints)
-            if 1:   # Convert self.x to time waveform self.t
-                print(len(self.y))
+            if 1:   # Generate time waveform self.t
+                total_time = self._nper/self._f
+                dt = total_time/self._n
+                self.t = np.arange(0, total_time, dt)
+                print("y", 100*self.y)
+                print("t", self.t)
+                print(np.get_printoptions())
+                breakpoint() #xx 
                 exit()#xx
             if 1:   # Check invariants
                 pass
@@ -520,6 +526,12 @@ if 1:   # RMS formula validation
         Check(w.Vaa, 2/math.pi + DC, p=0)
 
 if 1:
+    np.set_printoptions(
+        precision=2,
+        threshold=101,
+        linewidth=99,
+        suppress=True,
+    )
     w = Waveform("sine", n=20)
     w.DC = 0.5
     flt(0).N = 4
