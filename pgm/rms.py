@@ -75,6 +75,10 @@ if 1:  # Header
             import plotext as plt
         except ImportError:
             g.have_plotext = False
+            print(dedent('''
+                Use 'pip install plotext' to install the plotext library which allows plotting
+                with text characters in the terminal.
+            '''))
 if 1:   # Utility
     def GetColors():
         t.err = t("redl")
@@ -128,12 +132,27 @@ if 1:   # Utility
 if 1:   # Waveform class
     class Waveform:
         '''Construct a basic waveform in a numpy array (the x and y properties have the arrays).
-        Methods then can be used to get
-            Vdc
-            Varms
-            Vrms
-            Vpk
-            Vpp
+        The resulting object instance then has the following properties:
+            Vdc     DC offset voltage
+            Varms   AC-coupled RMS voltage
+            Vrms    RMS voltage
+            Vpk     Peak voltage (mathematical amplitude)
+            Vpp     Peak-to-peak voltage
+            Vaa     Absolute average voltage
+            Var     Average-responding voltmeter value
+            CF      Crest factor
+
+        Example:  Waveform("square", n=1000) has the following properties:
+          Waveform('square', n=1000, D=0.5, DC=0, zero_baseline=False)
+          Name = square
+          Vdc   = 0
+          Varms = 1.001
+          Vrms  = 1.001
+          Vpk   = 1
+          Vpp   = 2
+          Vaa   = 1.001
+          Var   = 1.112
+          CF    = 0.9995
         '''
         names = set((
             "sine",
@@ -143,31 +162,49 @@ if 1:   # Waveform class
             "noise",
             "halfsine",
         ))
-        def __init__(self, name, n=100, D=0.5, DC=0, zero_baseline=False):
+        def __init__(self, name, n=100, D=0.5, DC=0, zb=False):
             '''Attributes
-            n   (int)   Number of points [100]
-            D   (flt)   Duty cycle
-            DC  (flt)   DC offset
-            zero_baseline (bool)  Set to True for a 0 baseline (sets DC offset)
+                n   (int)   Number of points [100]
+                D   (flt)   Duty cycle
+                DC  (flt)   DC offset
+                zb  (bool)  Set to True for a 0 baseline (sets DC offset)
+
+            The use case for zb is when you want pulses to have a low value of 0 and a high value
+            of 1.  This waveform has a DC offset and if you change the duty cycle, the DC offset
+            changes.  If you set zb to True, then you can change the D property (duty cycle) and
+            the waveform's low value remains 0 and Vpk remains 1.
+
+            Note:  if you set the zb property to True, the DC property is set to 0.  If you set
+            the DC value, zb is set to False.
             '''
             self._ready = False     # Don't construct waveform yet
             self.name = name
-            self._n = self._D = self._DC = self._zero_baseline = self.x = self.y = None
+            self._n = self._D = self._DC = self._zb = self.x = self.y = None
             self.n = n
             self.D = D
             self.DC = DC
-            self.zero_baseline = zero_baseline
+            self.zb = zb
             self._ready = True
             if name in Waveform.names:
                 self.construct()
             else:
                 raise ValueError(f"{name!r} is not recognized")
         def __str__(self):
-            s = (f"Waveform({self.name!r}, n={self.n}, D={self.D}, "
-                 f"DC={self.DC}, zero_baseline={self.zero_baseline})")
+            s = (f"Waveform({self.name!r}, n={self.n}, D={self.D}, DC={self.DC}, zb={self.zb})")
             return s
         def construct(self):
-            '''self.x contains the abscissas, self.y contains the ordinates.
+
+            '''Construct the numpy arrays for the waveform:  self.x contains the abscissas, self.y
+            contains the ordinates.
+            
+            A core need is that if the zb property is True, then the waveform needs to remain with
+            a zero baseline.  Example:  for a pulse (square wave with duty cycle not equal to
+            1/2), the DC offset is a function of duty cycle.  Thus, if zb is True, the DC offset
+            needs to be adjusted when the duty cycle is adjusted.
+            
+            As of this writing, the only waveforms affected by duty cycle are "square" and
+            "triangle".
+            
             T is the period.
             '''
             if not self._ready:
@@ -181,7 +218,7 @@ if 1:   # Waveform class
                 x = np.arange(0, twopi, twopi*dx)
                 self.y = np.sin(x)
                 self.y += self._DC
-                if self._zero_baseline:
+                if self._zb:
                     self.y += 1
             elif self._name == "square":
                 # Positive portion
@@ -189,9 +226,9 @@ if 1:   # Waveform class
                 # Negative portion
                 second = np.arange(0, int((1 - D)*n))*0.0 - 1.0
                 self.y = np.concatenate((first, second), axis=None)
-                if self._DC:
+                if self._DC:    # Note zb and DC properties cannot both be set
                     self.y += self._DC
-                elif self._zero_baseline:
+                elif self._zb:
                     first = np.arange(0, n)*0.0 + 1.0
                     second = np.arange(0, m)*0.0
                     self.y = np.concatenate((first, second), axis=None)
@@ -201,7 +238,7 @@ if 1:   # Waveform class
                 # (D*T/2, 1) and (T/2, 0)           From n1 + 1 to n2   Section 2
                 # (T/2, 0) and (T*(1 - D/2), -1)    From n2 + 1 to n3   Section 3
                 # (T*(1 - D/2), -1) and (0, T)      From n3 + 1 to n    Section 4
-                T = self.x[-1] - self.x[0] + dx
+                T = self.x[-1] - self.x[0] + dx     # Period
                 # Indexes of the key points
                 n1 = int(round(D*n/2, 0))
                 n2 = int(round(n/2, 0))
@@ -220,6 +257,11 @@ if 1:   # Waveform class
                 y4 = m*self.x[n3 + 1:] + b
                 # Put waveform's sections together
                 self.y = np.concatenate((y1, y2, y3, y4), axis=None)
+                if self._DC:    # Note zb and DC properties cannot both be set
+                    self.y += self._DC
+                elif self._zb:
+                    offset = np.min(self.y)
+                    self.y += -offset
             elif self._name == "ramp":
                 # The key points on the waveform are:
                 # (0, -1) and (T, 1)
@@ -284,6 +326,14 @@ if 1:   # Waveform class
             plt.show()
         def remove_DC(self):
             self.y -= self.Vdc
+        def copy(self):
+            'Return a copy of this waveform'
+            w = Waveform(self.name)
+            w.n = self.n
+            w.D = self.D
+            w._DC = self._DC
+            w._zb = self._zb
+            return w
         if 1:   # Properties
             # Name of waveform
             @property
@@ -325,7 +375,7 @@ if 1:   # Waveform class
             def DC(self, value):
                 dc = flt(value)
                 self._DC = dc
-                self._zero_baseline = False
+                self._zb = False
                 self.construct()
             # Crest factor
             @property
@@ -335,14 +385,14 @@ if 1:   # Waveform class
                 return flt(pk/rms) if rms else flt(1)
             # Zero baseline
             @property
-            def zero_baseline(self):
-                return self._zero_baseline
-            @zero_baseline.setter
-            def zero_baseline(self, value):
+            def zb(self):
+                return self._zb
+            @zb.setter
+            def zb(self, value):
                 zbl = bool(value)
-                if self._zero_baseline == zbl:
+                if self._zb == zbl:
                     return
-                self._zero_baseline = zbl
+                self._zb = zbl
                 self._DC = 0
                 self.construct()
         if 1:   # Functionals
@@ -368,6 +418,15 @@ if 1:   # Waveform class
                 T = self.x[-1] - self.x[0]
                 return flt(sum(np.abs(dx*self.y))/T)
             @property
+            def Var(self):
+                '''Calculate what an average-responding voltmeter would measure.  This is the
+                waveform with any DC removed, then the absolute average multiplied by
+                pi/(2*sqrt(2)) to get 1/sqrt(2) for a sine wave, its RMS value.
+                '''
+                w = self.copy()
+                w.y -= w.DC      # Remove DC offset
+                return flt(w.Vaa*pi/(2*sqrt(2)))
+            @property
             def CF(self):
                 '''Calculate the crest factor.  If Vrms is zero, this will return a crest factor
                 of zero.
@@ -388,7 +447,6 @@ if 1:   # Waveform class
                     dc = abs(dc)
                 return flt(dc)
 if 1:   # RMS formula validation
-
     '''The RMS.odt document that discusses RMS measurements for hobbyists has a number of formulas
     for particular waveforms.  When giving such things, it's important that the equations be
     validated to to avoid wasting the reader's time or helping them make a mistaken decision or
@@ -448,25 +506,24 @@ if 1:   # RMS formula validation
         breakpoint() #xx 
         Check(w.Vaa, 2/pi + DC, p=0)
 
-if 1:   # Core functionality
-    pass
-
-if 0:
-    w = Waveform("sine", n=100)
-    flt(0).N = 3
-    if 0:
+if 1:
+    w = Waveform("sine", n=1000, zb=1)
+    flt(0).N = 4
+    if 1:
         w.plot()
-    elif 1:
+    elif 0:
         w.remove_DC()
         w.fft()
     print(w)
     print(f"Name = {w.name}")
-    print(f"  Vpp   = {w.Vpp}")
-    print(f"  Vpk   = {w.Vpk}")
-    print(f"  Vrms  = {w.Vrms}")
-    print(f"  Varms = {w.Varms}")
-    print(f"  Vaa   = {w.Vaa}")
     print(f"  Vdc   = {w.Vdc}")
+    print(f"  Varms = {w.Varms}")
+    print(f"  Vrms  = {w.Vrms}")
+    print(f"  Vpk   = {w.Vpk}")
+    print(f"  Vpp   = {w.Vpp}")
+    print(f"  Vaa   = {w.Vaa}")
+    print(f"  Var   = {w.Var}")
+    print(f"  CF    = {w.CF}")
     exit()
 
 if __name__ == "__main__":
