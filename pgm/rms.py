@@ -45,6 +45,7 @@ if 1:  # Header
         pass
     if 1:   # Standard imports
         from collections import deque
+        from functools import partial
         from math import floor, ceil
         from pathlib import Path as P
         import getopt
@@ -58,7 +59,7 @@ if 1:  # Header
         from f import flt
         from wrap import dedent
         from color import t
-        from lwtest import Assert
+        from lwtest import run, Assert, check_equal, assert_equal
         if 0:
             import debug
             debug.SetDebugger()
@@ -68,6 +69,7 @@ if 1:  # Header
         g = G()
         g.dbg = False
         ii = isinstance
+        # Get plotext for plotting in the terminal
         g.have_plotext = True
         try:
             import plotext as plt
@@ -123,7 +125,7 @@ if 1:   # Utility
             raise ValueError("Denominator is zero")
         m = numtype((y2 - y1)/(x2 - x1))
         return m, numtype(y1 - m*x1)
-if 1:   # RMS formula validation
+if 1:   # Waveform class
     class Waveform:
         '''Construct a basic waveform in a numpy array (the x and y properties have the arrays).
         Methods then can be used to get
@@ -141,17 +143,17 @@ if 1:   # RMS formula validation
             "noise",
             "halfsine",
         ))
-        def __init__(self, name, N=100, D=0.5, DC=0, zero_baseline=False):
+        def __init__(self, name, n=100, D=0.5, DC=0, zero_baseline=False):
             '''Attributes
-            N   (int)   Number of points [100]
+            n   (int)   Number of points [100]
             D   (flt)   Duty cycle
             DC  (flt)   DC offset
             zero_baseline (bool)  Set to True for a 0 baseline (sets DC offset)
             '''
             self._ready = False     # Don't construct waveform yet
             self.name = name
-            self._N = self._D = self._DC = self._zero_baseline = self.x = self.y = None
-            self.N = N
+            self._n = self._D = self._DC = self._zero_baseline = self.x = self.y = None
+            self.n = n
             self.D = D
             self.DC = DC
             self.zero_baseline = zero_baseline
@@ -161,7 +163,7 @@ if 1:   # RMS formula validation
             else:
                 raise ValueError(f"{name!r} is not recognized")
         def __str__(self):
-            s = (f"Waveform({self.name!r}, N={self.N}, D={self.D}, "
+            s = (f"Waveform({self.name!r}, n={self.n}, D={self.D}, "
                  f"DC={self.DC}, zero_baseline={self.zero_baseline})")
             return s
         def construct(self):
@@ -170,8 +172,8 @@ if 1:   # RMS formula validation
             '''
             if not self._ready:
                 return
-            N, D = self._N, self._D
-            dx = 1/N
+            n, D = self._n, self._D
+            dx = 1/n
             # Get x on [0, 1]
             self.x = np.arange(0, 1, dx)
             if self._name == "sine":
@@ -182,11 +184,9 @@ if 1:   # RMS formula validation
                     self.y += 1
             elif self._name == "square":
                 # Positive portion
-                n = int(D*N)
-                first = np.arange(0, n)*0.0 + 1.0
+                first = np.arange(0, int(D*n))*0.0 + 1.0
                 # Negative portion
-                m = int((1 - D)*N)
-                second = np.arange(0, m)*0.0 - 1.0
+                second = np.arange(0, int((1 - D)*n))*0.0 - 1.0
                 self.y = np.concatenate((first, second), axis=None)
                 if self._DC:
                     self.y += self._DC
@@ -199,13 +199,12 @@ if 1:   # RMS formula validation
                 # (0, 0) and ((D*T/2, 1)            From 0 to n1        Section 1
                 # (D*T/2, 1) and (T/2, 0)           From n1 + 1 to n2   Section 2
                 # (T/2, 0) and (T*(1 - D/2), -1)    From n2 + 1 to n3   Section 3
-                # (T*(1 - D/2), -1) and (0, T)      From n3 + 1 to N    Section 4
-                N, D = self._N, self._D
+                # (T*(1 - D/2), -1) and (0, T)      From n3 + 1 to n    Section 4
                 T = self.x[-1] - self.x[0] + dx
                 # Indexes of the key points
-                n1 = int(round(D*N/2, 0))
-                n2 = int(round(N/2, 0))
-                n3 = N - n1
+                n1 = int(round(D*n/2, 0))
+                n2 = int(round(n/2, 0))
+                n3 = n - n1
                 # Section 1
                 m, b = SlopeAndIntercept(0, 0, D*T/2, 1)
                 y1 = m*self.x[0:n1 + 1] + b
@@ -223,12 +222,11 @@ if 1:   # RMS formula validation
             elif self._name == "ramp":
                 # The key points on the waveform are:
                 # (0, -1) and (T, 1)
-                dx = 1/N
                 T = self.x[-1] - self.x[0] + dx
                 m, b = SlopeAndIntercept(0, -1, T, 1)
                 self.y = m*self.x + b
             elif self._name == "noise":
-                self.y = random.normal(size=self.N)
+                self.y = random.normal(size=self.n)
                 if self._DC:
                     self.y += self._DC
             elif self._name == "halfsine":
@@ -239,10 +237,10 @@ if 1:   # RMS formula validation
                 self.y = np.where(self.y >= 0, self.y, 0)
             else:
                 raise RuntimeError(f"Bug:  {self._name!r} is unknown waveform name")
-            if len(self.y) != self.N:
-                raise ValueError(f"len(self.y) = {len(self.y)} is not equal to {N}")
+            if len(self.y) != self.n:
+                raise ValueError(f"len(self.y) = {len(self.y)} is not equal to {n}")
         def fft(self, title="", W=60, H=30, fit=False):
-            'Plot the FFT of the waveform'
+            'Plot the FFT of the waveform.  If fit is True, fit to the whole screen.'
             if not g.have_plotext:
                 print("plotext library not installed", file=sys.stderr)
                 return
@@ -268,6 +266,7 @@ if 1:   # RMS formula validation
             plt.plot_size(W, H)
             plt.show()
         def plot(self, title="", W=60, H=30, fit=False):
+            'Plot the waveform.  If fit is True, fit to the whole screen.'
             if not g.have_plotext:
                 print("plotext library not installed", file=sys.stderr)
                 return
@@ -297,14 +296,14 @@ if 1:   # RMS formula validation
                 self.construct()
             # Number of points in waveform
             @property
-            def N(self):
-                return self._N
-            @N.setter
-            def N(self, value):
+            def n(self):
+                return self._n
+            @n.setter
+            def n(self, value):
                 n = int(value)
                 if n <= 0:
-                    raise ValueError("Property N must be integer > 0")
-                self._N = n
+                    raise ValueError("Property n must be integer > 0")
+                self._n = n
                 self.construct()
             # Duty cycle
             @property
@@ -378,47 +377,58 @@ if 1:   # RMS formula validation
                     # Sometimes is -0
                     dc = abs(dc)
                 return flt(dc)
+if 1:   # RMS formula validation
 
-    if 1:
-        w = Waveform("square")
-        flt(0).N = 4
-        if 0:
-            w.plot()
-        elif 1:
-            w.D = .1
-            w.remove_DC()
-            w.fft(fit=0)
-        print(w)
-        print(f"Name = {w.name}")
-        print(f"  Vpp   = {w.Vpp}")
-        print(f"  Vpk   = {w.Vpk}")
-        print(f"  Vrms  = {w.Vrms}")
-        print(f"  Varms = {w.Varms}")
-        print(f"  Vaa   = {w.Vaa}")
-        print(f"  Vdc   = {w.Vdc}")
-        exit()
+    '''The RMS.odt document that discusses RMS measurements for hobbyists has a number of formulas
+    for particular waveforms.  When giving such things, it's important that the equations be
+    validated to to avoid wasting the reader's time or helping them make a mistaken decision or
+    statement.
 
-    def ValidateFormulas():
-        '''The RMS.odt document that discusses RMS measurements for hobbyists has a number of
-        formulas for particular waveforms.  When giving such things, it's important that the
-        equations be validated to to avoid wasting the reader's time or helping them make a
-        mistaken decision or statement.
+    In the document, the formulas are given a caption number of category "Formulas" and there is a
+    string name of the formula after the "Formula X" part, where X is an integer.  This name is
+    used here to identify the formula (I don't use the equation number because insertion of a new
+    equation will mess up the numbering).
 
-        In the document, the formulas are given a caption number of category "Formulas" and there
-        is a string name of the formula after the "Formula X" part, where X is an integer.  This
-        name is used here to identify the formula (I don't use the number because reorganization 
-        or insertion of a new section will mess up the numbering).
+    '''
 
-        '''
-        print("Validating formulas")
+    def Check(a, b):
+        Assert(assert_equal(a, b, reltol=g.reltol) is None)
+    def Setup_Test_RMS():
+        g.numpoints = 1000
+        g.reltol = 1e-3     # Relative tolerance for comparisons
+    def Test_RMS_sine():
+        # No DC offset
+        w = Waveform("sine", n=g.numpoints)
+        Check(w.Vrms, 1/2**0.5)
+
+
 
 if 1:   # Core functionality
     pass
+
+if 0:
+    w = Waveform("sine", n=100)
+    flt(0).N = 3
+    if 0:
+        w.plot()
+    elif 1:
+        w.remove_DC()
+        w.fft()
+    print(w)
+    print(f"Name = {w.name}")
+    print(f"  Vpp   = {w.Vpp}")
+    print(f"  Vpk   = {w.Vpk}")
+    print(f"  Vrms  = {w.Vrms}")
+    print(f"  Varms = {w.Varms}")
+    print(f"  Vaa   = {w.Vaa}")
+    print(f"  Vdc   = {w.Vdc}")
+    exit()
 
 if __name__ == "__main__":
     d = {}      # Options dictionary
     args = ParseCommandLine(d)
     if d["-v"]:
-        ValidateFormulas()
+        Setup_Test_RMS()
+        exit(run(globals(), halt=True, regexp="^Test_RMS")[0])
     else:
         print("Functionality needs to be written")

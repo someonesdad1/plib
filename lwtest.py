@@ -330,15 +330,15 @@ if 1:   # Checking functions
         possible.
         '''
         assert(ii(a, flt))
-        check_float(float(a), float(b), reltol=reltol,
-                    abstol=abstol, use_min=use_min)
+        return check_float(float(a), float(b), reltol=reltol,
+                           abstol=abstol, use_min=use_min)
     def check_cpx(a, b, reltol=None, abstol=None, use_min=False):
         '''a must be a cpx.  If b is not a cpx, then convert it if
         possible.
         '''
         assert(ii(a, cpx))
-        check_complex(complex(a), complex(b), reltol=reltol,
-                      abstol=abstol, use_min=use_min)
+        return check_complex(complex(a), complex(b), reltol=reltol,
+                             abstol=abstol, use_min=use_min)
     def check_float(a, b, reltol=None, abstol=None, use_min=False):
         '''Some of these checks were patterned after the checks in
         Lib/test/test_cmath.py in the python distribution (probably
