@@ -46,9 +46,9 @@ if 1:  # Header
     if 1:   # Standard imports
         from collections import deque
         from functools import partial
-        from math import pi, sqrt
         from pathlib import Path as P
         import getopt
+        import math
         import numpy as np
         from numpy.fft import fft
         import numpy.random as random
@@ -60,7 +60,7 @@ if 1:  # Header
         from wrap import dedent
         from color import t
         from lwtest import run, Assert, check_equal, assert_equal
-        if 0:
+        if len(sys.argv) > 1:
             import debug
             debug.SetDebugger()
     if 1:   # Global variables
@@ -131,28 +131,40 @@ if 1:   # Utility
         return m, numtype(y1 - m*x1)
 if 1:   # Waveform class
     class Waveform:
-        '''Construct a basic waveform in a numpy array (the x and y properties have the arrays).
-        The resulting object instance then has the following properties:
+        '''Construct a basic waveform in a numpy array (the t and V properties have the arrays).
+        The resulting object instance then has the following functionals (all are flt type):
+        
             Vdc     DC offset voltage
             Varms   AC-coupled RMS voltage
             Vrms    RMS voltage
             Vpk     Peak voltage (mathematical amplitude)
             Vpp     Peak-to-peak voltage
             Vaa     Absolute average voltage
-            Var     Average-responding voltmeter value
+            Var     Average-responding voltmeter value (voltmeter with infinite bandwidth)
             CF      Crest factor
 
-        Example:  Waveform("square", n=1000) has the following properties:
-          Waveform('square', n=1000, D=0.5, DC=0, zero_baseline=False)
-          Name = square
-          Vdc   = 0
-          Varms = 1.001
-          Vrms  = 1.001
-          Vpk   = 1
-          Vpp   = 2
-          Vaa   = 1.001
-          Var   = 1.112
-          CF    = 0.9995
+        You can set the following properties of the waveform
+            
+            n       (int)   Number of points in waveform (must be > 0)
+            ampl    (flt)   Mathematical amplitude (must be > 0)
+            f       (flt)   Frequency (must be > 0)
+            T       (flt)   Period = 1/f (must be > 0)
+            nper    (flt)   Number of periods (must be > 0)
+            DC      (flt)   DC offset
+            D       (flt)   Duty cycle on (0, 1)
+
+        The physical units for these properties are unspecified, but it's fine to assume volts for
+        amplitude/DC and seconds for time because the intent is to model voltage waveforms as a
+        function of time (hence the V and t property arrays).
+
+        One period of the waveform contains n points, but the endpoint is missing.  Thus, for a
+        sine wave, the "natural" thing to do would be to include the points from 0 to 2*pi
+        inclusive.  However, by eliminating the last point, the arrays can be concatentated to
+        make multiple periods.
+
+        You can print the waveform instance to stdout to get a report on its attributes and
+        functionals.  You can change the color-highlighting of the functionals to make them easier
+        to spot in the output.
         '''
         names = set((
             "sine",
@@ -162,126 +174,136 @@ if 1:   # Waveform class
             "noise",
             "halfsine",
         ))
-        def __init__(self, name, n=100, D=0.5, DC=0, zb=False):
+        def __init__(self, name, n=100, ampl=1, f=1, T=None, nper=1, DC=0, D=0.5):
             '''Attributes
-                n   (int)   Number of points [100]
-                D   (flt)   Duty cycle
-                DC  (flt)   DC offset
-                zb  (bool)  Set to True for a 0 baseline (sets DC offset)
-
-            The use case for zb is when you want pulses to have a low value of 0 and a high value
-            of 1.  This waveform has a DC offset and if you change the duty cycle, the DC offset
-            changes.  If you set zb to True, then you can change the D property (duty cycle) and
-            the waveform's low value remains 0 and Vpk remains 1.
-
-            Note:  if you set the zb property to True, the DC property is set to 0.  If you set
-            the DC value, zb is set to False.
+                n    (int)   Number of points in one period
+                ampl (flt)   Mathematical amplitude (0-to-peak amplitude)
+                f    (flt)   Frequency
+                T    (flt)   Period (setting T overrides f's value)
+                DC   (flt)   DC offset
+                D    (flt)   Duty cycle
             '''
-            self._ready = False     # Don't construct waveform yet
-            self.name = name
-            self._n = self._D = self._DC = self._zb = self.x = self.y = None
-            self.n = n
-            self.D = D
-            self.DC = DC
-            self.zb = zb
-            self._ready = True
+            # Set the defining attributes
+            self._name = name
+            self._n = n
+            self._ampl = flt(ampl)
+            self._f = flt(1/T) if T is not None else flt(f)
+            self._nper = flt(nper)
+            self._DC = flt(DC)
+            self._D = flt(D)
+            self.validate_attributes()
             if name in Waveform.names:
                 self.construct()
             else:
-                raise ValueError(f"{name!r} is not recognized")
+                raise ValueError(f"Waveform name {name!r} is not recognized")
+        def validate_attributes(self):
+            if self._n <= 0 or not ii(self._n, int):
+                raise ValueError(f"n = number of points must be integer > 0")
+            if self._ampl <= 0:
+                raise ValueError(f"ampl = mathematical amplitude must be > 0")
+            if self._f <= 0:
+                raise ValueError(f"Frequency f and period T must be > 0")
+            if self._nper <= 0:
+                raise ValueError(f"nper = number of periods must be > 0")
+            if not 0 < self._D < 1:
+                raise ValueError(f"D = duty cycle must be between 0 and 1 exclusive")
         def __str__(self):
-            s = (f"Waveform({self.name!r}, n={self.n}, D={self.D}, DC={self.DC}, zb={self.zb})")
+            '''Return a colorized string representing the waveform.  This is somewhat verbose,
+            intended to show the details.
+            '''
+            s = (f"Waveform({self.name!r}, n={self.n}, D={self.D}, DC={self.DC})")
             return s
         def construct(self):
+            '''Construct the numpy arrays for the waveform:  
+                self.t      Contains the time values (abscissas)
+                self.V      Contains the voltages (ordinates)
+            
+            As of this writing, the only waveforms affected by duty cycle are 'square' and
+            'triangle'.  For the triangle wave, changing D really affects the symmetry, not the
+            duty cycle.
 
-            '''Construct the numpy arrays for the waveform:  self.x contains the abscissas, self.y
-            contains the ordinates.
-            
-            A core need is that if the zb property is True, then the waveform needs to remain with
-            a zero baseline.  Example:  for a pulse (square wave with duty cycle not equal to
-            1/2), the DC offset is a function of duty cycle.  Thus, if zb is True, the DC offset
-            needs to be adjusted when the duty cycle is adjusted.
-            
-            As of this writing, the only waveforms affected by duty cycle are "square" and
-            "triangle".
-            
-            T is the period.
+            'ramp' could be a candidate for this, where the result would be a plain
+            ramp for D == 1 and ramp pulses for D < 1.
             '''
-            if not self._ready:
-                return
-            n, D = self._n, self._D
+            n, D, T = self._n, self._D, 1/self._f
             dx = 1/n
-            # Get x on [0, 1]
-            self.x = np.arange(0, 1, dx)
-            if self._name == "sine":
-                twopi = 2*pi
-                x = np.arange(0, twopi, twopi*dx)
-                self.y = np.sin(x)
-                self.y += self._DC
-                if self._zb:
-                    self.y += 1
-            elif self._name == "square":
-                # Positive portion
-                first = np.arange(0, int(D*n))*0.0 + 1.0
-                # Negative portion
-                second = np.arange(0, int((1 - D)*n))*0.0 - 1.0
-                self.y = np.concatenate((first, second), axis=None)
-                if self._DC:    # Note zb and DC properties cannot both be set
-                    self.y += self._DC
-                elif self._zb:
-                    first = np.arange(0, n)*0.0 + 1.0
-                    second = np.arange(0, m)*0.0
+            self.x = np.arange(0, 1, dx)    # n points on [0, 1)
+            if 1:   # Construct an array of one period
+                if self._name == "sine":
+                    x = np.arange(0, 2*math.pi, 2*math.pi*dx)
+                    self.y = np.sin(x)
+                elif self._name == "square":
+                    # Positive portion
+                    first = np.arange(0, int(D*n))*0.0 + 1.0
+                    # Negative portion
+                    second = np.arange(0, int((1 - D)*n))*0.0 - 1.0
                     self.y = np.concatenate((first, second), axis=None)
-            elif self._name == "triangle":
-                # The five key points on the waveform are:
-                # (0, 0) and ((D*T/2, 1)            From 0 to n1        Section 1
-                # (D*T/2, 1) and (T/2, 0)           From n1 + 1 to n2   Section 2
-                # (T/2, 0) and (T*(1 - D/2), -1)    From n2 + 1 to n3   Section 3
-                # (T*(1 - D/2), -1) and (0, T)      From n3 + 1 to n    Section 4
-                T = self.x[-1] - self.x[0] + dx     # Period
-                # Indexes of the key points
-                n1 = int(round(D*n/2, 0))
-                n2 = int(round(n/2, 0))
-                n3 = n - n1
-                # Section 1
-                m, b = SlopeAndIntercept(0, 0, D*T/2, 1)
-                y1 = m*self.x[0:n1 + 1] + b
-                # Section 2
-                m, b = SlopeAndIntercept(D*T/2, 1, T/2, 0)
-                y2 = m*self.x[n1 + 1:n2 + 1] + b
-                # Section 3
-                m, b = SlopeAndIntercept(T/2, 0, T*(1 - D/2), -1)
-                y3 = m*self.x[n2 + 1:n3 + 1] + b
-                # Section 4
-                m, b = SlopeAndIntercept(T*(1 - D/2), -1, T, 0)
-                y4 = m*self.x[n3 + 1:] + b
-                # Put waveform's sections together
-                self.y = np.concatenate((y1, y2, y3, y4), axis=None)
-                if self._DC:    # Note zb and DC properties cannot both be set
-                    self.y += self._DC
-                elif self._zb:
-                    offset = np.min(self.y)
-                    self.y += -offset
-            elif self._name == "ramp":
-                # The key points on the waveform are:
-                # (0, -1) and (T, 1)
-                T = self.x[-1] - self.x[0] + dx
-                m, b = SlopeAndIntercept(0, -1, T, 1)
-                self.y = m*self.x + b
-            elif self._name == "noise":
-                self.y = random.normal(size=self.n)
+                elif self._name == "triangle":
+                    # The five key points on the waveform are:
+                    # (0, 0) and ((D*T/2, 1)            From 0 to n1        Section 1
+                    # (D*T/2, 1) and (T/2, 0)           From n1 + 1 to n2   Section 2
+                    # (T/2, 0) and (T*(1 - D/2), -1)    From n2 + 1 to n3   Section 3
+                    # (T*(1 - D/2), -1) and (0, T)      From n3 + 1 to n    Section 4
+                    T = self.x[-1] - self.x[0] + dx     # Period
+                    # Indexes of the key points
+                    n1 = int(round(D*n/2, 0))
+                    n2 = int(round(n/2, 0))
+                    n3 = n - n1
+                    # Section 1
+                    m, b = SlopeAndIntercept(0, 0, D*T/2, 1)
+                    y1 = m*self.x[0:n1 + 1] + b
+                    # Section 2
+                    m, b = SlopeAndIntercept(D*T/2, 1, T/2, 0)
+                    y2 = m*self.x[n1 + 1:n2 + 1] + b
+                    # Section 3
+                    m, b = SlopeAndIntercept(T/2, 0, T*(1 - D/2), -1)
+                    y3 = m*self.x[n2 + 1:n3 + 1] + b
+                    # Section 4
+                    m, b = SlopeAndIntercept(T*(1 - D/2), -1, T, 0)
+                    y4 = m*self.x[n3 + 1:] + b
+                    # Put waveform's sections together
+                    self.y = np.concatenate((y1, y2, y3, y4), axis=None)
+                elif self._name == "ramp":
+                    # The key points on the waveform are:
+                    # (0, -1) and (T, 1)
+                    T = self.x[-1] - self.x[0] + dx
+                    m, b = SlopeAndIntercept(0, -1, T, 1)
+                    self.y = m*self.x + b
+                elif self._name == "noise":
+                    self.y = random.normal(size=self.n)
+                elif self._name == "halfsine":
+                    self._name = "sine"
+                    self.construct()
+                    self._name = "halfsine"
+                    # Set the negative elements to zero
+                    self.y = np.where(self.y >= 0, self.y, 0)
+                else:
+                    raise RuntimeError(f"Bug:  {self._name!r} is unknown waveform name")
+            if 1:   # Scale waveform to proper amplitude and add DC offset
+                self.y *= self._ampl
                 if self._DC:
                     self.y += self._DC
-            elif self._name == "halfsine":
-                self._name = "sine"
-                self.construct()
-                self._name = "halfsine"
-                # Set the negative elements to zero
-                self.y = np.where(self.y >= 0, self.y, 0)
-            else:
-                raise RuntimeError(f"Bug:  {self._name!r} is unknown waveform name")
-            if len(self.y) != self.n:
-                raise ValueError(f"len(self.y) = {len(self.y)} is not equal to {n}")
+            if 1:   # Construct waveform with indicated number of periods
+                assert len(self.y) == self._n, "Incorrect number of points in waveform"
+                self.z = self.y.copy()
+                frac_part, int_part = math.modf(self._nper)
+                # Integer number of concatenations
+                for i in range(int(int_part) - 1):
+                    self.z = np.concatenate((self.z, self.y), axis=None)
+                # Fractional number of concatenations
+                m = int(round(self._n*frac_part, 0))
+                assert m >= 0
+                if m:
+                    self.z = np.concatenate((self.z, self.y[:m]), axis=None)
+                # Check we have the right number of points
+                npoints = int(round(self._nper*self._n, 0))
+                self.y = self.z
+                Assert(len(self.y) == npoints)
+            if 1:   # Convert self.x to time waveform self.t
+                print(len(self.y))
+                exit()#xx
+            if 1:   # Check invariants
+                pass
         def fft(self, title="", W=60, H=30, fit=False):
             'Plot the FFT of the waveform.  If fit is True, fit to the whole screen.'
             if not g.have_plotext:
@@ -329,10 +351,14 @@ if 1:   # Waveform class
         def copy(self):
             'Return a copy of this waveform'
             w = Waveform(self.name)
-            w.n = self.n
-            w.D = self.D
+            w._ampl = self._ampl
+            w._f = self._f
+            w._n = self._n
+            w._D = self._D
             w._DC = self._DC
-            w._zb = self._zb
+            w.construct()
+            w.x = self.x
+            w.y = self.y
             return w
         if 1:   # Properties
             # Name of waveform
@@ -375,7 +401,6 @@ if 1:   # Waveform class
             def DC(self, value):
                 dc = flt(value)
                 self._DC = dc
-                self._zb = False
                 self.construct()
             # Crest factor
             @property
@@ -383,18 +408,6 @@ if 1:   # Waveform class
                 pk = self.Vpk
                 rms = self.Varms
                 return flt(pk/rms) if rms else flt(1)
-            # Zero baseline
-            @property
-            def zb(self):
-                return self._zb
-            @zb.setter
-            def zb(self, value):
-                zbl = bool(value)
-                if self._zb == zbl:
-                    return
-                self._zb = zbl
-                self._DC = 0
-                self.construct()
         if 1:   # Functionals
             @property
             def Vpp(self):
@@ -419,13 +432,16 @@ if 1:   # Waveform class
                 return flt(sum(np.abs(dx*self.y))/T)
             @property
             def Var(self):
-                '''Calculate what an average-responding voltmeter would measure.  This is the
-                waveform with any DC removed, then the absolute average multiplied by
-                pi/(2*sqrt(2)) to get 1/sqrt(2) for a sine wave, its RMS value.
+                '''Calculate what an average-responding voltmeter would measure:  
+                    - Remove any DC component
+                    - Calculate Vaa = integral over period of absolute value of waveform
+                    - Return Vaa*pi/(2*math.sqrt(2))
+                This gives the RMS value for a sine wave.
                 '''
                 w = self.copy()
-                w.y -= w.DC      # Remove DC offset
-                return flt(w.Vaa*pi/(2*sqrt(2)))
+                w.DC = 0        # Remove any DC offset
+                const = math.pi/(2*math.sqrt(2))   # = 1.11072
+                return flt(w.Vaa*const)
             @property
             def CF(self):
                 '''Calculate the crest factor.  If Vrms is zero, this will return a crest factor
@@ -451,14 +467,12 @@ if 1:   # RMS formula validation
     for particular waveforms.  When giving such things, it's important that the equations be
     validated to to avoid wasting the reader's time or helping them make a mistaken decision or
     statement.
-
+    
     In the document, the formulas are given a caption number of category "Formulas" and there is a
     string name of the formula after the "Formula X" part, where X is an integer.  This name is
     used here to identify the formula (I don't use the equation number because insertion of a new
     equation will mess up the numbering).
-
     '''
-
     def Check(a, b, reltol=1e-3, p=False):
         if a:
             tol = abs(a - b)/a
@@ -480,34 +494,34 @@ if 1:   # RMS formula validation
     def Test_RMS_sine():
         # No DC offset
         w = Waveform("sine", n=g.numpoints)
-        Check(w.Vrms, sqrt(1/2))
-        Check(w.Varms, sqrt(1/2))
+        Check(w.Vrms, math.sqrt(1/2))
+        Check(w.Varms, math.sqrt(1/2))
         Check(w.Vdc, 0, p=1)
         Check(w.Vpp, 2)
         Check(w.Vpk, 1)
-        Check(w.Vaa, 2/pi)
-        Check(w.CF, sqrt(2))
+        Check(w.Vaa, 2/math.pi)
+        Check(w.CF, math.sqrt(2))
         # With DC offset
         DC = 2
         w = Waveform("sine", n=g.numpoints, DC=DC)
-        Check(w.Vrms, sqrt(1/2 + DC**2))
-        Check(w.Varms, sqrt(w.Vrms**2 - w.Vdc**2))
+        Check(w.Vrms, math.sqrt(1/2 + DC**2))
+        Check(w.Varms, math.sqrt(w.Vrms**2 - w.Vdc**2))
         Check(w.Vdc, DC)
         Check(w.Vpp, 2 + DC)
         Check(w.Vpk, 1 + DC)
-        Check(w.CF, sqrt(2))
-
-        # Why is this failing?  The Vaa value should be the DC value plus the 2/pi for the no DC
+        Check(w.CF, math.sqrt(2))
+        # xx Why is this failing?  The Vaa value should be the DC value plus the 2/pi for the no DC
         # offset case.
         # w.Vaa = 2.002002002002001
         # 2/pi = 0.6366197723675814
         # 2/pi + DC = 2.6366197723675815
         w = Waveform("sine", n=100, DC=DC)
         breakpoint() #xx 
-        Check(w.Vaa, 2/pi + DC, p=0)
+        Check(w.Vaa, 2/math.pi + DC, p=0)
 
 if 1:
-    w = Waveform("sine", n=1000, zb=1)
+    w = Waveform("sine", n=20)
+    w.DC = 0.5
     flt(0).N = 4
     if 1:
         w.plot()
@@ -526,6 +540,9 @@ if 1:
     print(f"  CF    = {w.CF}")
     exit()
 
+if 1:
+    Setup_Test_RMS()
+    exit(run(globals(), halt=True, regexp="^Test_RMS")[0])
 if __name__ == "__main__":
     d = {}      # Options dictionary
     args = ParseCommandLine(d)

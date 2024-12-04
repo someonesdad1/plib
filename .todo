@@ -1,5 +1,8 @@
 Active:  /plib/.todo
 
+    - cal.py in ~/.0rc
+        - Need to fix color stuff, as script doesn't work
+
     - pgm/rms.py
         - Numerical aid to dealing with various functionals used to measure voltage:  RMS, ACCRMS,
           peak-to-peak voltage, 0-to-peak voltage, average, absolute average, Fourier coefficients
