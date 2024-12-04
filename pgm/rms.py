@@ -215,8 +215,15 @@ if 1:   # Waveform class
             return s
         def construct(self):
             '''Construct the numpy arrays for the waveform:  
-                self.t      Contains the time values (abscissas)
-                self.V      Contains the voltages (ordinates)
+                self.x      Contains the abscissas of one period
+                self.y      Contains the ordinates of one period
+                self.t      Contains the time values (abscissas) for all periods
+                self.V      Contains the voltages (ordinates) for all periods
+
+            self.x and self.y are kept because they are needed to calculate the functionals for
+            the waveform.
+
+            self.t and self.V contain all the points specified for the waveform.
             
             As of this writing, the only waveforms affected by duty cycle are 'square' and
             'triangle'.  For the triangle wave, changing D really affects the symmetry, not the
@@ -227,7 +234,7 @@ if 1:   # Waveform class
             '''
             n, D, T = self._n, self._D, 1/self._f
             dx = 1/n
-            self.x = np.arange(0, 1, dx)    # n points on [0, 1)
+            x = np.arange(0, 1, dx)     # This will become self.x
             if 1:   # Construct an array of one period
                 if self._name == "sine":
                     x = np.arange(0, 2*math.pi, 2*math.pi*dx)
@@ -244,31 +251,31 @@ if 1:   # Waveform class
                     # (D*T/2, 1) and (T/2, 0)           From n1 + 1 to n2   Section 2
                     # (T/2, 0) and (T*(1 - D/2), -1)    From n2 + 1 to n3   Section 3
                     # (T*(1 - D/2), -1) and (0, T)      From n3 + 1 to n    Section 4
-                    T = self.x[-1] - self.x[0] + dx     # Period
+                    T = x[-1] - x[0] + dx     # "period" in x space
                     # Indexes of the key points
                     n1 = int(round(D*n/2, 0))
                     n2 = int(round(n/2, 0))
                     n3 = n - n1
                     # Section 1
                     m, b = SlopeAndIntercept(0, 0, D*T/2, 1)
-                    y1 = m*self.x[0:n1 + 1] + b
+                    y1 = m*x[0:n1 + 1] + b
                     # Section 2
                     m, b = SlopeAndIntercept(D*T/2, 1, T/2, 0)
-                    y2 = m*self.x[n1 + 1:n2 + 1] + b
+                    y2 = m*x[n1 + 1:n2 + 1] + b
                     # Section 3
                     m, b = SlopeAndIntercept(T/2, 0, T*(1 - D/2), -1)
-                    y3 = m*self.x[n2 + 1:n3 + 1] + b
+                    y3 = m*x[n2 + 1:n3 + 1] + b
                     # Section 4
                     m, b = SlopeAndIntercept(T*(1 - D/2), -1, T, 0)
-                    y4 = m*self.x[n3 + 1:] + b
+                    y4 = m*x[n3 + 1:] + b
                     # Put waveform's sections together
                     self.y = np.concatenate((y1, y2, y3, y4), axis=None)
                 elif self._name == "ramp":
                     # The key points on the waveform are:
                     # (0, -1) and (T, 1)
-                    T = self.x[-1] - self.x[0] + dx
+                    T = x[-1] - x[0] + dx
                     m, b = SlopeAndIntercept(0, -1, T, 1)
-                    self.y = m*self.x + b
+                    self.y = m*x + b
                 elif self._name == "noise":
                     self.y = random.normal(size=self.n)
                 elif self._name == "halfsine":
@@ -283,6 +290,7 @@ if 1:   # Waveform class
                 self.y *= self._ampl
                 if self._DC:
                     self.y += self._DC
+                self.x = x
             if 1:   # Construct waveform with indicated number of periods
                 assert len(self.y) == self._n, "Incorrect number of points in waveform"
                 self.z = self.y.copy()
@@ -297,19 +305,18 @@ if 1:   # Waveform class
                     self.z = np.concatenate((self.z, self.y[:m]), axis=None)
                 # Check we have the right number of points
                 npoints = int(round(self._nper*self._n, 0))
-                self.y = self.z
+                # Now make the voltage waveform
+                self.V = self.z
                 Assert(len(self.y) == npoints)
             if 1:   # Generate time waveform self.t
                 total_time = self._nper/self._f
                 dt = total_time/self._n
                 self.t = np.arange(0, total_time, dt)
-                print("y", 100*self.y)
-                print("t", self.t)
-                print(np.get_printoptions())
-                breakpoint() #xx 
-                exit()#xx
             if 1:   # Check invariants
-                pass
+                Assert(len(self.x) == n)
+                Assert(len(self.y) == n)
+                Assert(len(self.t) == npoints)
+                Assert(len(self.V) == npoints)
         def fft(self, title="", W=60, H=30, fit=False):
             'Plot the FFT of the waveform.  If fit is True, fit to the whole screen.'
             if not g.have_plotext:
@@ -321,13 +328,13 @@ if 1:   # Waveform class
             dft = np.abs(fft(self.y))
             # Cut it in half, as the two halves are redundant
             half = len(dft)//2
-            dft, x = dft[:half], self.x[:half]
+            dft, t = dft[:half], self.t[:half]
             # Double every element except the first, which is DC
             dc = dft[0]
             dft *= 2
             dft[0] = dc
             # Make a bar chart
-            plt.bar(x, np.abs(dft))
+            plt.bar(t, np.abs(dft))
             if title:
                 plt.title(title)
             plt.grid()
@@ -343,7 +350,7 @@ if 1:   # Waveform class
                 return
             plt.clear_figure()
             plt.theme("clear")
-            plt.plot(self.x, self.y)
+            plt.plot(self.t, self.y)
             if title:
                 plt.title(title)
             plt.grid()
@@ -363,7 +370,7 @@ if 1:   # Waveform class
             w._D = self._D
             w._DC = self._DC
             w.construct()
-            w.x = self.x
+            w.t = self.t
             w.y = self.y
             return w
         if 1:   # Properties
@@ -527,12 +534,12 @@ if 1:   # RMS formula validation
 
 if 1:
     np.set_printoptions(
-        precision=2,
-        threshold=101,
-        linewidth=99,
+        precision=4,
+        threshold=201,
+        linewidth=int(os.environ.get("COLUMNS", "80")) - 1,
         suppress=True,
     )
-    w = Waveform("sine", n=20)
+    w = Waveform("sine", n=20, f=100)
     w.DC = 0.5
     flt(0).N = 4
     if 1:
