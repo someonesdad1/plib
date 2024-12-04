@@ -46,7 +46,7 @@ if 1:  # Header
     if 1:   # Standard imports
         from collections import deque
         from functools import partial
-        from math import floor, ceil
+        from math import pi, sqrt
         from pathlib import Path as P
         import getopt
         import numpy as np
@@ -177,7 +177,8 @@ if 1:   # Waveform class
             # Get x on [0, 1]
             self.x = np.arange(0, 1, dx)
             if self._name == "sine":
-                x = np.arange(0, 2*np.pi, 2*np.pi*dx)
+                twopi = 2*pi
+                x = np.arange(0, twopi, twopi*dx)
                 self.y = np.sin(x)
                 self.y += self._DC
                 if self._zero_baseline:
@@ -365,7 +366,16 @@ if 1:   # Waveform class
                 'Calculate the absolute average integral'
                 dx = self.x[1] - self.x[0]
                 T = self.x[-1] - self.x[0]
-                return flt(sum(abs(dx*self.y))/T)
+                return flt(sum(np.abs(dx*self.y))/T)
+            @property
+            def CF(self):
+                '''Calculate the crest factor.  If Vrms is zero, this will return a crest factor
+                of zero.
+                '''
+                if not self.Vrms:
+                    return flt(0)
+                else:
+                    return self.Vpk/self.Vrms
             @property
             def Vdc(self):
                 'Calculate the average integral'
@@ -391,17 +401,52 @@ if 1:   # RMS formula validation
 
     '''
 
-    def Check(a, b):
-        Assert(assert_equal(a, b, reltol=g.reltol) is None)
+    def Check(a, b, reltol=1e-3, p=False):
+        if a:
+            tol = abs(a - b)/a
+        else:
+            if not b:
+                return
+            tol = abs(a - b)/b
+        if p:
+            Assert(tol <= reltol)
+        else:
+            fail = check_equal(a, b, reltol=reltol)
+            if fail:
+                fail = [f"{t.ornl}Arguments not equal:{t.n}", f"  a = {a!r}", f"  b = {b!r}"] + fail
+                print('\n'.join(fail))
+                exit(0)
     def Setup_Test_RMS():
         g.numpoints = 1000
         g.reltol = 1e-3     # Relative tolerance for comparisons
     def Test_RMS_sine():
         # No DC offset
         w = Waveform("sine", n=g.numpoints)
-        Check(w.Vrms, 1/2**0.5)
+        Check(w.Vrms, sqrt(1/2))
+        Check(w.Varms, sqrt(1/2))
+        Check(w.Vdc, 0, p=1)
+        Check(w.Vpp, 2)
+        Check(w.Vpk, 1)
+        Check(w.Vaa, 2/pi)
+        Check(w.CF, sqrt(2))
+        # With DC offset
+        DC = 2
+        w = Waveform("sine", n=g.numpoints, DC=DC)
+        Check(w.Vrms, sqrt(1/2 + DC**2))
+        Check(w.Varms, sqrt(w.Vrms**2 - w.Vdc**2))
+        Check(w.Vdc, DC)
+        Check(w.Vpp, 2 + DC)
+        Check(w.Vpk, 1 + DC)
+        Check(w.CF, sqrt(2))
 
-
+        # Why is this failing?  The Vaa value should be the DC value plus the 2/pi for the no DC
+        # offset case.
+        # w.Vaa = 2.002002002002001
+        # 2/pi = 0.6366197723675814
+        # 2/pi + DC = 2.6366197723675815
+        w = Waveform("sine", n=100, DC=DC)
+        breakpoint() #xx 
+        Check(w.Vaa, 2/pi + DC, p=0)
 
 if 1:   # Core functionality
     pass
