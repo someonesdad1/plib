@@ -3,6 +3,7 @@ Todo
     - Waveform
         - Let ampl, f, T, nper, DC, and D be strings that can contain cuddled SI strings for convenience
         - In __str__, don't show D for waveforms that don't use it
+        - Make init only create a single period.  Add multiple_periods() to get multiples.
 
 Calculations with RMS related things
 
@@ -65,7 +66,9 @@ if 1:  # Header
         from f import flt
         from wrap import dedent
         from color import t
+        from roundoff import RoundOff
         from lwtest import run, Assert, check_equal, assert_equal
+        import si
         if len(sys.argv) > 1:
             import debug
             debug.SetDebugger()
@@ -188,20 +191,32 @@ if 1:   # Waveform class
                 T    (flt)   Period (setting T overrides f's value)
                 DC   (flt)   DC offset
                 D    (flt)   Duty cycle
+            You can use SI prefixes to indicate magnitudes.  For example, ampl="100 m" means you
+            want 0.1 for the amplitude.
             '''
             # Set the defining attributes
             self._name = name
-            self._n = int(n)
-            self._ampl = flt(ampl)
-            self._f = flt(1/T) if T is not None else flt(f)
-            self._nper = flt(nper)
-            self._DC = flt(DC)
-            self._D = flt(D)
+            self._n = self.interpret(n, typ=int)
+            self._ampl = self.interpret(ampl)
+            self._f = 1/self.interpret(T) if T is not None else self.interpret(f)
+            self._nper = self.interpret(nper)
+            self._DC = self.interpret(DC)
+            self._D = self.interpret(D)
             self.validate_attributes()
             if name in Waveform.names:
                 self.construct()
             else:
                 raise ValueError(f"Waveform name {name!r} is not recognized")
+        def interpret(self, value, typ=flt):
+            '''Return a number of type typ representing what was in value.  value can be either a
+            number or string convertible to typ.  If it's a string, search for an SI prefix as a
+            suffix used to indicate magnitude.
+            '''
+            if ii(value, str):
+                x =  si.ConvertSI(value)
+                return typ(x)
+            else:
+                return typ(value)
         def validate_attributes(self):
             if not ii(self._name, str):
                 raise TypeError(f"name must be a string")
@@ -238,7 +253,7 @@ if 1:   # Waveform class
             o.append(f"range = {flt(abs(self.y.max() - self.y.min()))}")
             W = int(os.environ.get("COLUMNS", "80")) - 1
             out = []
-            for i in Columnize(o, columns=3, col_width=W//4):
+            for i in Columnize(o, columns=3, col_width=W//4, indent=" "*2):
                 out.append(i)
             return header + '\n'.join(out)
         def __repr__(self):
@@ -323,32 +338,42 @@ if 1:   # Waveform class
                 if self._DC:
                     self.y += self._DC
                 self.x = x
-            if 1:   # Construct waveform with indicated number of periods
-                assert len(self.y) == self._n, "Incorrect number of points in waveform"
-                self.z = self.y.copy()
-                frac_part, int_part = math.modf(self._nper)
-                # Integer number of concatenations
-                for i in range(int(int_part) - 1):
-                    self.z = np.concatenate((self.z, self.y), axis=None)
-                # Fractional number of concatenations
-                m = int(round(self._n*frac_part, 0))
-                assert m >= 0
-                if m:
-                    self.z = np.concatenate((self.z, self.y[:m]), axis=None)
-                # Check we have the right number of points
-                npoints = int(round(self._nper*self._n, 0))
-                # Now make the voltage waveform
-                self.V = self.z
-                Assert(len(self.y) == npoints)
             if 1:   # Generate time waveform self.t
-                total_time = self._nper/self._f
-                dt = total_time/self._n
-                self.t = np.arange(0, total_time, dt)
+                self.t = np.arange(0, T, T/n)
             if 1:   # Check invariants
                 Assert(len(self.x) == n)
                 Assert(len(self.y) == n)
-                Assert(len(self.t) == npoints)
-                Assert(len(self.V) == npoints)
+                Assert(len(self.t) == n)
+        def multiple_periods(self, num_periods):
+            'Return two numpy arrays t and V that contain the desired number of periods'
+            if not ii(num_periods, (flt, float, int)) or num_periods <= 0:
+                raise TypeError("num_periods must be an int, float, or flt")
+            if num_periods <= 0:
+                raise ValueError("num_periods must be > 0")
+            assert len(self.y) == self._n, "Incorrect number of points in waveform"
+            nper = float(num_periods)
+            self.z = self.y.copy()
+            frac_part, int_part = math.modf(nper)
+            # Integer number of concatenations
+            for i in range(int(int_part) - 1):
+                self.z = np.concatenate((self.z, self.y), axis=None)
+            # Fractional number of concatenations
+            m = int(round(self._n*frac_part, 0))
+            assert m >= 0
+            if m:
+                self.z = np.concatenate((self.z, self.y[:m]), axis=None)
+            # Check we have the right number of points
+            npoints = int(round(nper*self._n, 0))
+            # Make the voltage waveform V
+            V = self.z
+            Assert(len(V) == npoints)
+            # Generate time waveform t
+            total_time = nper/self._f
+            dt = total_time/self._n
+            t = np.arange(0, total_time, dt)
+            # Return the arrays
+            Assert(len(t) == npoints)
+            return t, V
         def fft(self, title="", W=60, H=30, fit=False):
             'Plot the FFT of the waveform.  If fit is True, fit to the whole screen.'
             if not g.have_plotext:
@@ -385,6 +410,8 @@ if 1:   # Waveform class
             plt.plot(self.t, self.y)
             if title:
                 plt.title(title)
+            plt.xlabel("Time")
+            plt.ylabel("Voltage")
             plt.grid()
             if fit:
                 GetScreen()
@@ -518,13 +545,13 @@ if 1:   # RMS formula validation
     used here to identify the formula (I don't use the equation number because insertion of a new
     equation will mess up the numbering).
     '''
-    def Check(a, b, reltol=1e-3, p=False):
+    def Check(a, b, reltol=1e-3, p=True):
         if a:
-            tol = abs(a - b)/a
+            tol = RoundOff(abs(a - b)/a)
         else:
             if not b:
                 return
-            tol = abs(a - b)/b
+            tol = RoundOff(abs(a - b)/b)
         if p:
             Assert(tol <= reltol)
         else:
@@ -555,6 +582,7 @@ if 1:   # RMS formula validation
         Check(w.Vpp, 2 + DC)
         Check(w.Vpk, 1 + DC)
         Check(w.CF, math.sqrt(2))
+
         # xx Why is this failing?  The Vaa value should be the DC value plus the 2/pi for the no DC
         # offset case.
         # w.Vaa = 2.002002002002001
@@ -571,18 +599,16 @@ if 1:
         linewidth=int(os.environ.get("COLUMNS", "80")) - 1,
         suppress=True,
     )
-
     # Task:  Set up a sine wave with an amplitude of 276 mV and DC offset of 100 mV.  This means
     # pp is 552 mV, so the functionals should be
-
     #   Vaa  = 100 + 552/pi = 276 mV
     #   Varms = 552/(2*sqrt(2)) = 195 mV
     #   Vrms = quadrature of Varms and 100 = 219 mV
-
-    w = Waveform("sine", ampl=0.276, n=100, f=100, DC=0.1)
+    w = Waveform("sine", ampl="276m", n=100, f="1M", DC="100 m")
     flt(0).N = 3
     if 1:
         w.plot()
+        print()
     if 0:
         w.remove_DC()
         w.fft()
