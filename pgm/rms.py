@@ -1,9 +1,7 @@
 '''
 Todo
     - Waveform
-        - Let ampl, f, T, nper, DC, and D be strings that can contain cuddled SI strings for convenience
         - In __str__, don't show D for waveforms that don't use it
-        - Make init only create a single period.  Add multiple_periods() to get multiples.
 
 Calculations with RMS related things
 
@@ -232,7 +230,7 @@ if 1:   # Waveform class
                 raise ValueError(f"D = duty cycle must be between 0 and 1 exclusive")
         def __str__(self):
             'Return a string representing the waveform with functionals and basic statistics'
-            header = repr(self) + "\n(Numbers are for one cycle)\n"
+            header = repr(self) + "\n"
             # Put the following in columns
             o = []
             o.append(f"Vdc   = {self.Vdc}")
@@ -258,7 +256,10 @@ if 1:   # Waveform class
             return header + '\n'.join(out)
         def __repr__(self):
             s = (f"Waveform({self._name!r}, n={self._n}, ampl={self._ampl}, f={self._f}, "
-                 f"nper={self._nper}, DC={self.DC}, D={self.D})")
+                 f"nper={self._nper}, DC={self.DC}")
+            if self._name not in ("sine", "noise"):
+                s += f", D={self.D}"
+            s += f")"
             return s
         def construct(self):
             '''Construct the numpy arrays for the waveform:  
@@ -604,7 +605,7 @@ if 1:
     #   Vaa  = 100 + 552/pi = 276 mV
     #   Varms = 552/(2*sqrt(2)) = 195 mV
     #   Vrms = quadrature of Varms and 100 = 219 mV
-    w = Waveform("sine", ampl="276m", n=100, f="1M", DC="100 m")
+    w = Waveform("noise", ampl="276 m", n=100, f="1m", DC="100 m")
     flt(0).N = 3
     if 1:
         w.plot()
