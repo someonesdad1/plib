@@ -2,6 +2,7 @@
 Todo
     - Waveform
         - Let ampl, f, T, nper, DC, and D be strings that can contain cuddled SI strings for convenience
+        - In __str__, don't show D for waveforms that don't use it
 
 Calculations with RMS related things
 
@@ -60,6 +61,7 @@ if 1:  # Header
         import re
         import sys
     if 1:   # Custom imports
+        from columnize import Columnize
         from f import flt
         from wrap import dedent
         from color import t
@@ -214,19 +216,31 @@ if 1:   # Waveform class
             if not 0 < self._D < 1:
                 raise ValueError(f"D = duty cycle must be between 0 and 1 exclusive")
         def __str__(self):
-            '''Return a colorized string representing the waveform.  This is somewhat verbose,
-            intended to show the details.
-            '''
-            s = [repr(self)]
-            s.append(f"  Vdc   = {self.Vdc}")
-            s.append(f"  Varms = {self.Varms}")
-            s.append(f"  Vrms  = {self.Vrms}")
-            s.append(f"  Vpk   = {self.Vpk}")
-            s.append(f"  Vpp   = {self.Vpp}")
-            s.append(f"  Vaa   = {self.Vaa}")
-            s.append(f"  Var   = {self.Var}")
-            s.append(f"  CF    = {self.CF}")
-            return '\n'.join(s)
+            'Return a string representing the waveform with functionals and basic statistics'
+            header = repr(self) + "\n(Numbers are for one cycle)\n"
+            # Put the following in columns
+            o = []
+            o.append(f"Vdc   = {self.Vdc}")
+            o.append(f"Varms = {self.Varms}")
+            o.append(f"Vrms  = {self.Vrms}")
+            o.append(f"Vpk   = {self.Vpk}")
+            o.append(f"Vpp   = {self.Vpp}")
+            o.append(f"Vaa   = {self.Vaa}")
+            o.append(f"Var   = {self.Var}")
+            o.append(f"CF    = {self.CF}")
+            o.append(f"")
+            o.append(f"  Statistics")
+            o.append(f"mean  = {flt(self.y.mean())}")
+            o.append(f"s     = {flt(self.y.std())}")
+            o.append(f"var   = {flt(self.y.var())}")
+            o.append(f"max   = {flt(self.y.max())}")
+            o.append(f"min   = {flt(self.y.min())}")
+            o.append(f"range = {flt(abs(self.y.max() - self.y.min()))}")
+            W = int(os.environ.get("COLUMNS", "80")) - 1
+            out = []
+            for i in Columnize(o, columns=3, col_width=W//4):
+                out.append(i)
+            return header + '\n'.join(out)
         def __repr__(self):
             s = (f"Waveform({self._name!r}, n={self._n}, ampl={self._ampl}, f={self._f}, "
                  f"nper={self._nper}, DC={self.DC}, D={self.D})")
@@ -557,9 +571,16 @@ if 1:
         linewidth=int(os.environ.get("COLUMNS", "80")) - 1,
         suppress=True,
     )
-    w = Waveform("sine", ampl=12, n=20, f=1000)
-    w.DC = 0.5
-    flt(0).N = 4
+
+    # Task:  Set up a sine wave with an amplitude of 276 mV and DC offset of 100 mV.  This means
+    # pp is 552 mV, so the functionals should be
+
+    #   Vaa  = 100 + 552/pi = 276 mV
+    #   Varms = 552/(2*sqrt(2)) = 195 mV
+    #   Vrms = quadrature of Varms and 100 = 219 mV
+
+    w = Waveform("sine", ampl=0.276, n=100, f=100, DC=0.1)
+    flt(0).N = 3
     if 1:
         w.plot()
     if 0:
