@@ -1,7 +1,6 @@
 '''
 Todo
     - plot:  use fixed aspect ratio and % of W
-    - stats:  quartiles
 
 Calculations with RMS related things
     
@@ -53,6 +52,7 @@ if 1:  # Header
         from pathlib import Path as P
         import getopt
         import math
+        import statistics
         import numpy as np
         from numpy.fft import fft
         import numpy.random as random
@@ -66,8 +66,10 @@ if 1:  # Header
         from color import t
         from roundoff import RoundOff
         from lwtest import run, Assert, check_equal, assert_equal
+        import cmddecode
         import si
-        if len(sys.argv) > 1:
+        #if len(sys.argv) > 1:
+        if 0:
             import debug
             debug.SetDebugger()
     if 1:   # Global variables
@@ -104,25 +106,48 @@ if 1:   # Utility
         exit(status)
     def Usage(status=0):
         print(dedent(f'''
-        Usage:  {sys.argv[0]} [options] etc.
-          Calculations related to RMS values.
+        Usage:  {sys.argv[0]} [options] waveform ampl=1 f=1 D=0.5 DC=0
+          Calculations related to RMS values.  waveform can be 
+                sine   square   triangle   noise   ramp   halfsine
+          The subsequent parameters are optional:
+                ampl        Amplitude
+                f           Frequency
+                n           Number of points in waveform
+                D           Duty cycle (triangle, square only)
+                DC          DC offset
+                T           Period (overrides f)
+          You can include a cuddle SI prefix as a suffix.  A report is printed with the common
+          functionals and statistics.
         Options:
+            -d n    Set number of digits [{d['-d']}]
             -h      Print a manpage
+            -f      Plot the FFT
+            -p      Plot the graph
             -v      Validate the formulas in the RMS document
         '''))
         exit(status)
     def ParseCommandLine(d):
-        d["-v"] = False
+        d["-d"] = 3         # Number of digits in report
+        d["-f"] = False     # Plot FFT
+        d["-p"] = False     # Plot waveform
+        d["-v"] = False     # Validate formulas in the RMS document
         if len(sys.argv) < 2:
             Usage()
         try:
-            opts, args = getopt.getopt(sys.argv[1:], "hv") 
+            opts, args = getopt.getopt(sys.argv[1:], "d:fhpv") 
         except getopt.GetoptError as e:
             print(str(e))
             exit(1)
         for o, a in opts:
-            if o[1] in list("v"):
+            if o[1] in list("fpv"):
                 d[o] = not d[o]
+            elif o in ("-d",):
+                try:
+                    d["-d"] = int(a)
+                    if not (1 <= d["-d"] <= 15):
+                        raise ValueError()
+                except ValueError:
+                    Error("-d option's argument must be an integer between 1 and 15")
             elif o == "-h":
                 Usage()
         return args
@@ -234,7 +259,7 @@ if 1:   # Waveform class
             "noise",
             "halfsine",
         ))
-        def __init__(self, name, n=100, ampl=1, f=1, T=None, DC=0, D=0.5):
+        def __init__(self, name, n=1000, ampl=1, f=1, T=None, DC=0, D=0.5):
             '''Attributes
                 n    (int)   Number of points in one period
                 ampl (flt)   Mathematical amplitude (0-to-peak amplitude)
@@ -299,6 +324,11 @@ if 1:   # Waveform class
             o.append(f"max   = {flt(self.y.max())}")
             o.append(f"min   = {flt(self.y.min())}")
             o.append(f"range = {flt(abs(self.y.max() - self.y.min()))}")
+            o.append(f"")
+            o.append(f"  Deciles")
+            dec = statistics.quantiles(self.y, n=10)
+            for i in range(1, 10):
+                o.append(f"{10*i}%   = {flt(dec[i - 1])}")
             W = int(os.environ.get("COLUMNS", "80")) - 1
             out = []
             for i in Columnize(o, columns=3, col_width=W//4, indent=" "*2):
@@ -445,6 +475,10 @@ if 1:   # Waveform class
             plt.bar(t, np.abs(dft))
             if title:
                 plt.title(title)
+            else:
+                plt.title("FFT")
+            plt.xlabel("Frequency")
+            plt.ylabel("Voltage²")
             plt.grid()
             if fit:
                 GetScreen()
@@ -551,7 +585,9 @@ if 1:   # Waveform class
                 return flt(np.sqrt(self.Vrms**2 - self.Vdc**2))
             @property
             def Vaa(self):
-                'Return the absolute average value'
+                '''Return the absolute average value.  This is the integral of the absolute value
+                over the period.
+                '''
                 dx = self.x[1] - self.x[0]
                 return flt(np.sum(np.abs(dx*self.y))/self.T)
             @property
@@ -568,13 +604,10 @@ if 1:   # Waveform class
                 return flt(w.Vaa*const)
             @property
             def CF(self):
-                '''Calculate the crest factor.  If Vrms is zero, this will return a crest factor
-                of zero.
+                '''Calculate the crest factor.  The definition is Vpk/Vrms.  If Vrms is zero, this
+                will return a crest factor of zero.
                 '''
-                if not self.Vrms:
-                    return flt(0)
-                else:
-                    return self.Vpk/self.Vrms
+                return self.Vpk/self.Vrms if self.Vrms else flt(0)
             @property
             def Vdc(self):
                 'Calculate the average integral'
@@ -591,22 +624,29 @@ if 1:   # Waveform class
                 pk = self.Vpk
                 rms = self.Varms
                 return flt(pk/rms) if rms else flt(1)
-if 1:
+if 1:   # Core functionality
+    def GetParam(s):
+        '''A form of name=val is expected where name can be one of "ampl f n D DC T" and val must be
+        a number with an optional cuddled SI prefix.  Return (name, flt(val)).
+        '''
+        try:
+            name, value = s.split("=")
+        except Exception:
+            Error(f"Parameter {s!r} is of improper form")
+        if name not in "ampl f D DC T n".split():
+            Error(f"Name {name!r} not one of 'ampl f D DC T n'")
+        return name, value
+if 0:
     np.set_printoptions(
         precision=4,
         threshold=201,
         linewidth=int(os.environ.get("COLUMNS", "80")) - 1,
         suppress=True,
     )
-    # Task:  Set up a sine wave with an amplitude of 276 mV and DC offset of 100 mV.  This means
-    # pp is 552 mV, so the functionals should be
-    #   Vaa  = 100 + 552/pi = 276 mV
-    #   Varms = 552/(2*sqrt(2)) = 195 mV
-    #   Vrms = quadrature of Varms and 100 = 219 mV
-    w = Waveform("sine", ampl=1, n=1000, f=1, DC=0)
+    w = Waveform("sine", ampl=1, n=1000, f=1, DC=0.5)
 
     flt(0).N = 3
-    if 1:
+    if 0:
         w.plot()
         print()
     if 0:
@@ -614,13 +654,35 @@ if 1:
         w.fft()
     print(w)
     exit()
+
 if __name__ == "__main__":
-    Setup_Test_RMS()
-    exit(run(globals(), halt=True, regexp="^Test_RMS")[0])
+    cd = cmddecode.CommandDecode(Waveform.names)
     d = {}      # Options dictionary
     args = ParseCommandLine(d)
     if d["-v"]:
         Setup_Test_RMS()
         exit(run(globals(), halt=True, regexp="^Test_RMS")[0])
     else:
-        print("Functionality needs to be written")
+        # Get waveform name
+        name = args[0]
+        x = cd(name)
+        if not x:
+            Error(f"Waveform {name!r} unrecognized")
+        elif len(x) > 1:
+            # Ambiguous, so must have been 's' for sine or square
+            name = "sine"
+            #Error(f"{name!r} is ambiguous:  {x}")
+        else:
+            name = x[0]
+        kw = {}
+        # Get other parameters
+        for i in args[1:]:
+            param, value = GetParam(i)
+            kw[param] = value
+        # Construct waveform
+        w = Waveform(name, **kw)
+        if d["-p"]:
+            w.plot()
+        if d["-f"]:
+            w.fft()
+        print(w)
