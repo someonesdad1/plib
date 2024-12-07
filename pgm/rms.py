@@ -1,10 +1,10 @@
 '''
 Todo
-    - Waveform
-        - In __str__, don't show D for waveforms that don't use it
+    - plot:  use fixed aspect ratio and % of W
+    - stats:  quartiles
 
 Calculations with RMS related things
-
+    
     - Input a number x.  It is interpreted in a number of ways
         - It's a peak-to-peak value for sine wave
         - It's a 0-to-peak value for sine wave (i.e., mathematical definition of the
@@ -24,13 +24,13 @@ Calculations with RMS related things
         - -d n  DC offset
         - -s n  Symmetry
         - -v    Validate the formulas in the RMS document
-
+    
     - All waveforms are nominally about unit amplitude by default and will have an RMS value of
       around unity.  
-
+    
     - This script uses the optional plotext library that does a good job of plotting in a terminal
       window, well enough to see basic behavior.  https://github.com/piccolomo/plotext/tree/master
-
+    
 '''
  
 if 1:  # Header
@@ -136,6 +136,62 @@ if 1:   # Utility
             raise ValueError("Denominator is zero")
         m = numtype((y2 - y1)/(x2 - x1))
         return m, numtype(y1 - m*x1)
+if 1:   # RMS formula validation
+    '''The RMS.odt document that discusses RMS measurements for hobbyists has a number of formulas
+    for particular waveforms.  When giving such things, it's important that the equations be
+    validated to to avoid wasting the reader's time or helping them make a mistaken decision or
+    statement.
+    
+    In the document, the formulas are given a caption number of category "Formulas" and there is a
+    string name of the formula after the "Formula X" part, where X is an integer.  This name is
+    used here to identify the formula (I don't use the equation number because insertion of a new
+    equation will mess up the numbering).
+    '''
+    def Check(a, b, reltol=1e-3, p=True):
+        if a:
+            tol = RoundOff(abs(a - b)/a)
+        else:
+            if not b:
+                return
+            tol = RoundOff(abs(a - b)/b)
+        if p:
+            Assert(tol <= reltol)
+        else:
+            fail = check_equal(a, b, reltol=reltol)
+            if fail:
+                fail = [f"{t.ornl}Arguments not equal:{t.n}", f"  a = {a!r}", f"  b = {b!r}"] + fail
+                print('\n'.join(fail))
+                exit(0)
+    def Setup_Test_RMS():
+        g.numpoints = 1000
+        g.reltol = 1e-3     # Relative tolerance for comparisons
+    def Test_RMS_sine():
+        # No DC offset
+        w = Waveform("sine", n=g.numpoints)
+        Check(w.Vrms, math.sqrt(1/2))
+        Check(w.Varms, math.sqrt(1/2))
+        Check(w.Vdc, 0, p=1)
+        Check(w.Vpp, 2)
+        Check(w.Vpk, 1)
+        Check(w.Vaa, 2/math.pi)
+        Check(w.CF, math.sqrt(2))
+        # With DC offset
+        DC = 2
+        w = Waveform("sine", n=g.numpoints, DC=DC)
+        Check(w.Vrms, math.sqrt(1/2 + DC**2))
+        Check(w.Varms, math.sqrt(w.Vrms**2 - w.Vdc**2))
+        Check(w.Vdc, DC)
+        Check(w.Vpp, 2 + DC)
+        Check(w.Vpk, 1 + DC)
+        Check(w.CF, math.sqrt(2))
+        # xx Why is this failing?  The Vaa value should be the DC value plus the 2/pi for the no DC
+        # offset case.
+        # w.Vaa = 2.002002002002001
+        # 2/pi = 0.6366197723675814
+        # 2/pi + DC = 2.6366197723675815
+        w = Waveform("sine", n=100, DC=DC)
+        breakpoint() #xx 
+        Check(w.Vaa, 2/math.pi + DC, p=0)
 if 1:   # Waveform class
     class Waveform:
         '''Construct a basic waveform in a numpy array (the t and V properties have the arrays).
@@ -149,29 +205,26 @@ if 1:   # Waveform class
             Vaa     Absolute average voltage
             Var     Average-responding voltmeter value (voltmeter with infinite bandwidth)
             CF      Crest factor
-
-        You can set the following properties of the waveform
             
+        You can set the following properties of the waveform (* means read-only)
+        
             n       (int)   Number of points in waveform (must be > 0)
             ampl    (flt)   Mathematical amplitude (must be > 0)
             f       (flt)   Frequency (must be > 0)
-            T       (flt)   Period = 1/f (must be > 0)
-            nper    (flt)   Number of periods (must be > 0)
+            T     * (flt)   Period = 1/f (must be > 0)
             DC      (flt)   DC offset
             D       (flt)   Duty cycle on (0, 1)
-
+        
         The physical units for these properties are unspecified, but it's fine to assume volts for
         amplitude/DC and seconds for time because the intent is to model voltage waveforms as a
         function of time (hence the V and t property arrays).
-
+        
         One period of the waveform contains n points, but the endpoint is missing.  Thus, for a
         sine wave, the "natural" thing to do would be to include the points from 0 to 2*pi
         inclusive.  However, by eliminating the last point, the arrays can be concatentated to
         make multiple periods.
-
-        You can print the waveform instance to stdout to get a report on its attributes and
-        functionals.  You can change the color-highlighting of the functionals to make them easier
-        to spot in the output.
+        
+        Print the waveform instance to stdout to get a report on its attributes and functionals.
         '''
         names = set((
             "sine",
@@ -181,7 +234,7 @@ if 1:   # Waveform class
             "noise",
             "halfsine",
         ))
-        def __init__(self, name, n=100, ampl=1, f=1, T=None, nper=1, DC=0, D=0.5):
+        def __init__(self, name, n=100, ampl=1, f=1, T=None, DC=0, D=0.5):
             '''Attributes
                 n    (int)   Number of points in one period
                 ampl (flt)   Mathematical amplitude (0-to-peak amplitude)
@@ -197,7 +250,6 @@ if 1:   # Waveform class
             self._n = self.interpret(n, typ=int)
             self._ampl = self.interpret(ampl)
             self._f = 1/self.interpret(T) if T is not None else self.interpret(f)
-            self._nper = self.interpret(nper)
             self._DC = self.interpret(DC)
             self._D = self.interpret(D)
             self.validate_attributes()
@@ -224,8 +276,6 @@ if 1:   # Waveform class
                 raise ValueError(f"ampl = mathematical amplitude must be > 0")
             if self._f <= 0:
                 raise ValueError(f"Frequency f and period T must be > 0")
-            if self._nper <= 0:
-                raise ValueError(f"nper = number of periods must be > 0")
             if not 0 < self._D < 1:
                 raise ValueError(f"D = duty cycle must be between 0 and 1 exclusive")
         def __str__(self):
@@ -256,7 +306,7 @@ if 1:   # Waveform class
             return header + '\n'.join(out)
         def __repr__(self):
             s = (f"Waveform({self._name!r}, n={self._n}, ampl={self._ampl}, f={self._f}, "
-                 f"nper={self._nper}, DC={self.DC}")
+                 f"DC={self.DC}")
             if self._name not in ("sine", "noise"):
                 s += f", D={self.D}"
             s += f")"
@@ -267,16 +317,16 @@ if 1:   # Waveform class
                 self.y      Contains the ordinates of one period
                 self.t      Contains the time values (abscissas) for all periods
                 self.V      Contains the voltages (ordinates) for all periods
-
+            
             self.x and self.y are kept because they are needed to calculate the functionals for
             the waveform.
-
+            
             self.t and self.V contain all the points specified for the waveform.
             
             As of this writing, the only waveforms affected by duty cycle are 'square' and
             'triangle'.  For the triangle wave, changing D really affects the symmetry, not the
             duty cycle.
-
+            
             'ramp' could be a candidate for this, where the result would be a plain
             ramp for D == 1 and ramp pulses for D < 1.
             '''
@@ -408,7 +458,8 @@ if 1:   # Waveform class
                 return
             plt.clear_figure()
             plt.theme("clear")
-            plt.plot(self.t, self.y)
+            #plt.plot(self.t, self.y)
+            plt.scatter(self.t, self.y)
             if title:
                 plt.title(title)
             plt.xlabel("Time")
@@ -433,7 +484,7 @@ if 1:   # Waveform class
             w.t = self.t
             w.y = self.y
             return w
-        if 1:   # Properties
+        if 1:   # Writable properties
             # Name of waveform
             @property
             def name(self):
@@ -475,34 +526,34 @@ if 1:   # Waveform class
                 dc = flt(value)
                 self._DC = dc
                 self.construct()
-            # Crest factor
+        if 1:   # Read-only properties
+            # Period
             @property
-            def CF(self):
-                pk = self.Vpk
-                rms = self.Varms
-                return flt(pk/rms) if rms else flt(1)
+            def T(self):
+                return flt(self.x[-1] - self.x[0])
         if 1:   # Functionals
             @property
             def Vpp(self):
+                'Return the peak-to-peak value'
                 return flt(abs(max(self.y)) + abs(min(self.y)))
             @property
             def Vpk(self):
+                'Return the 0-to-peak value (mathematical amplitude)'
                 return flt(max(abs(max(self.y)), abs(min(self.y))))
             @property
             def Vrms(self):
-                'Calculate the RMS integral'
-                dx = self.x[1] - self.x[0]
-                T = self.x[-1] - self.x[0]
-                return flt(np.sqrt(sum(dx*self.y**2)/T))
+                'Return the RMS value'
+                dx = self.x[1] - self.x[0]  # Needed to use the integral definition
+                return flt(np.sqrt(np.sum(dx*np.square(self.y))/self.T))
             @property
             def Varms(self):
+                'Return the AC-coupled RMS (ARMS) value'
                 return flt(np.sqrt(self.Vrms**2 - self.Vdc**2))
             @property
             def Vaa(self):
-                'Calculate the absolute average integral'
+                'Return the absolute average value'
                 dx = self.x[1] - self.x[0]
-                T = self.x[-1] - self.x[0]
-                return flt(sum(np.abs(dx*self.y))/T)
+                return flt(np.sum(np.abs(dx*self.y))/self.T)
             @property
             def Var(self):
                 '''Calculate what an average-responding voltmeter would measure:  
@@ -535,64 +586,11 @@ if 1:   # Waveform class
                     # Sometimes is -0
                     dc = abs(dc)
                 return flt(dc)
-if 1:   # RMS formula validation
-    '''The RMS.odt document that discusses RMS measurements for hobbyists has a number of formulas
-    for particular waveforms.  When giving such things, it's important that the equations be
-    validated to to avoid wasting the reader's time or helping them make a mistaken decision or
-    statement.
-    
-    In the document, the formulas are given a caption number of category "Formulas" and there is a
-    string name of the formula after the "Formula X" part, where X is an integer.  This name is
-    used here to identify the formula (I don't use the equation number because insertion of a new
-    equation will mess up the numbering).
-    '''
-    def Check(a, b, reltol=1e-3, p=True):
-        if a:
-            tol = RoundOff(abs(a - b)/a)
-        else:
-            if not b:
-                return
-            tol = RoundOff(abs(a - b)/b)
-        if p:
-            Assert(tol <= reltol)
-        else:
-            fail = check_equal(a, b, reltol=reltol)
-            if fail:
-                fail = [f"{t.ornl}Arguments not equal:{t.n}", f"  a = {a!r}", f"  b = {b!r}"] + fail
-                print('\n'.join(fail))
-                exit(0)
-    def Setup_Test_RMS():
-        g.numpoints = 1000
-        g.reltol = 1e-3     # Relative tolerance for comparisons
-    def Test_RMS_sine():
-        # No DC offset
-        w = Waveform("sine", n=g.numpoints)
-        Check(w.Vrms, math.sqrt(1/2))
-        Check(w.Varms, math.sqrt(1/2))
-        Check(w.Vdc, 0, p=1)
-        Check(w.Vpp, 2)
-        Check(w.Vpk, 1)
-        Check(w.Vaa, 2/math.pi)
-        Check(w.CF, math.sqrt(2))
-        # With DC offset
-        DC = 2
-        w = Waveform("sine", n=g.numpoints, DC=DC)
-        Check(w.Vrms, math.sqrt(1/2 + DC**2))
-        Check(w.Varms, math.sqrt(w.Vrms**2 - w.Vdc**2))
-        Check(w.Vdc, DC)
-        Check(w.Vpp, 2 + DC)
-        Check(w.Vpk, 1 + DC)
-        Check(w.CF, math.sqrt(2))
-
-        # xx Why is this failing?  The Vaa value should be the DC value plus the 2/pi for the no DC
-        # offset case.
-        # w.Vaa = 2.002002002002001
-        # 2/pi = 0.6366197723675814
-        # 2/pi + DC = 2.6366197723675815
-        w = Waveform("sine", n=100, DC=DC)
-        breakpoint() #xx 
-        Check(w.Vaa, 2/math.pi + DC, p=0)
-
+            @property
+            def CF(self):
+                pk = self.Vpk
+                rms = self.Varms
+                return flt(pk/rms) if rms else flt(1)
 if 1:
     np.set_printoptions(
         precision=4,
@@ -605,7 +603,8 @@ if 1:
     #   Vaa  = 100 + 552/pi = 276 mV
     #   Varms = 552/(2*sqrt(2)) = 195 mV
     #   Vrms = quadrature of Varms and 100 = 219 mV
-    w = Waveform("noise", ampl="276 m", n=100, f="1m", DC="100 m")
+    w = Waveform("sine", ampl=1, n=1000, f=1, DC=0)
+
     flt(0).N = 3
     if 1:
         w.plot()
@@ -615,11 +614,9 @@ if 1:
         w.fft()
     print(w)
     exit()
-
-if 1:
+if __name__ == "__main__":
     Setup_Test_RMS()
     exit(run(globals(), halt=True, regexp="^Test_RMS")[0])
-if __name__ == "__main__":
     d = {}      # Options dictionary
     args = ParseCommandLine(d)
     if d["-v"]:
