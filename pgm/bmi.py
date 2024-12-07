@@ -100,7 +100,6 @@ if 1:   # Core functionality
         for i in Columnize(m, col_width=15):
             print(i)
         exit()
-
     def GetColor(bmi):
         'Return escape code for color'
         if not bmi:

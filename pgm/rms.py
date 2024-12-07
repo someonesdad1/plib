@@ -1,6 +1,11 @@
 '''
+
 Todo
     - plot:  use fixed aspect ratio and % of W
+    - Use cases to address
+        - Be able to enter amplitudes like pp, pk, rms, arms, ar, aa
+        - For square, appending a 0 to the name means it's a 0-based waveform.  This is useful for
+          calculating the DC offset of a pulse.  Or consider using the zb keyword (a bool).
 
 Calculations with RMS related things
     
@@ -27,8 +32,9 @@ Calculations with RMS related things
     - All waveforms are nominally about unit amplitude by default and will have an RMS value of
       around unity.  
     
-    - This script uses the optional plotext library that does a good job of plotting in a terminal
-      window, well enough to see basic behavior.  https://github.com/piccolomo/plotext/tree/master
+    - This script uses the optional plotext library that does a good job of plotting in a
+      text-based terminal window, well enough to see basic behavior.  You can get it with 'pip
+      install plotext' (see https://github.com/piccolomo/plotext/tree/master).
     
 '''
  
@@ -104,6 +110,51 @@ if 1:   # Utility
     def Error(*msg, status=1):
         print(*msg, file=sys.stderr)
         exit(status)
+    def Manpage():
+        print(dedent(f'''
+
+        This script allows you to enter a waveform type and amplitude and see the various
+        functionals associated with that waveform:
+         
+            Vdc     DC offset voltage
+            Varms   AC-coupled RMS voltage
+            Vdrms   DC-coupled RMS voltage
+            Vpk     Peak voltage (mathematical amplitude)
+            Vpp     Peak-to-peak voltage
+            Vaa     Absolute average voltage
+            Var     Average-responding voltmeter value (voltmeter with infinite bandwidth)
+            CF      Crest factor
+
+        The allowed input amplitude names are
+            
+            ampl    Mathematical amplitude
+            pk      Same as ampl
+            pp      Peak-to-peak (e.g., measured with a scope)
+            rms     DC-coupled RMS 
+            arms    AC-coupled RMS (no DC component)
+            ar      Average-responding voltmeter value
+            aa      Absolute average
+
+        Use cases
+
+        - Converting measured values
+            - I measured a square wave with an HP 400EL average-responding meter as 2.25 V.  What
+              is the ARMS value of this waveform?
+                - Use the command line = 'sq ar=2.5'
+                - The result is Varms = 2.02
+                - The HP 3400A measured 2.02 V
+                - Note the script doesn't assume any units for the amplitude, but much of the time
+                  you'll probably want to assume volts or amps.
+                - Note:  these are measured results with HP 400 EL and 3400A voltmeters for a
+                  square wave at 100 Hz.  Changing to 1 MHz gave 2.26 V on the 400EL and 2.05 V
+                  mV on the 3400A.  This script would predict the ARMS value of 2.034 V for such
+                  a Var measurement.  Thus, you must be cognizant of the instruments' bandwidths
+                  to make meaningful comparisons.
+                - For the 100 Hz signal, a Simpson 260-7 measured 2.19 V; it's also an
+                  average-responding voltmeter.
+
+        '''))
+        exit(0)
     def Usage(status=0):
         print(dedent(f'''
         Usage:  {sys.argv[0]} [options] waveform ampl=1 f=1 D=0.5 DC=0
@@ -116,8 +167,9 @@ if 1:   # Utility
                 D           Duty cycle (triangle, square only)
                 DC          DC offset
                 T           Period (overrides f)
-          You can include a cuddle SI prefix as a suffix.  A report is printed with the common
-          functionals and statistics.
+          You can include a single cuddled SI prefix as the last character, which is stripped and
+          the remaining string is evaluated as an expression (the math module's symbols are in
+          scope).  A report is printed with the common functionals and statistics.
         Options:
             -d n    Set number of digits [{d['-d']}]
             -h      Print a manpage
@@ -149,7 +201,7 @@ if 1:   # Utility
                 except ValueError:
                     Error("-d option's argument must be an integer between 1 and 15")
             elif o == "-h":
-                Usage()
+                Manpage()
         flt(0).N = d["-d"]
         return args
     def SlopeAndIntercept(x1, y1, x2, y2, numtype=float):
@@ -194,7 +246,7 @@ if 1:   # RMS formula validation
     def Test_RMS_sine():
         # No DC offset
         w = Waveform("sine", n=g.numpoints)
-        Check(w.Vrms, math.sqrt(1/2))
+        Check(w.Vdrms, math.sqrt(1/2))
         Check(w.Varms, math.sqrt(1/2))
         Check(w.Vdc, 0, p=1)
         Check(w.Vpp, 2)
@@ -204,8 +256,8 @@ if 1:   # RMS formula validation
         # With DC offset
         DC = 2
         w = Waveform("sine", n=g.numpoints, DC=DC)
-        Check(w.Vrms, math.sqrt(1/2 + DC**2))
-        Check(w.Varms, math.sqrt(w.Vrms**2 - w.Vdc**2))
+        Check(w.Vdrms, math.sqrt(1/2 + DC**2))
+        Check(w.Varms, math.sqrt(w.Vdrms**2 - w.Vdc**2))
         Check(w.Vdc, DC)
         Check(w.Vpp, 2 + DC)
         Check(w.Vpk, 1 + DC)
@@ -225,11 +277,11 @@ if 1:   # Waveform class
         
             Vdc     DC offset voltage
             Varms   AC-coupled RMS voltage
-            Vrms    RMS voltage
+            Vdrms   DC-coupled RMS voltage
             Vpk     Peak voltage (mathematical amplitude)
             Vpp     Peak-to-peak voltage
             Vaa     Absolute average voltage
-            Var     Average-responding voltmeter value (voltmeter with infinite bandwidth)
+            Var     Average-responding voltmeter value
             CF      Crest factor
             
         You can set the following properties of the waveform (* means read-only)
@@ -260,16 +312,21 @@ if 1:   # Waveform class
             "noise",
             "halfsine",
         ))
-        def __init__(self, name, n=1000, ampl=1, f=1, T=None, DC=0, D=0.5):
-            '''Attributes
-                n    (int)   Number of points in one period
-                ampl (flt)   Mathematical amplitude (0-to-peak amplitude)
-                f    (flt)   Frequency
-                T    (flt)   Period (setting T overrides f's value)
-                DC   (flt)   DC offset
-                D    (flt)   Duty cycle
-            You can use SI prefixes to indicate magnitudes.  For example, ampl="100 m" means you
-            want 0.1 for the amplitude.
+        def __init__(self, name="sine", n=100, ampl=1, f=1, T=None, DC=0, D=0.5, zb=False):
+            '''Keywords:
+                name (str)      Name of waveform
+                n    (int)      Number of points in one period
+                ampl (flt)      Mathematical amplitude (0-to-peak amplitude)
+                f    (flt)      Frequency
+                T    (flt)      Period (setting T overrides f's value)
+                DC   (flt)      DC offset
+                D    (flt)      Duty cycle
+                zb   (bool)     If true, use a zero baseline (overrides DC)
+            
+            These keyword arguments can also be a string and may have an SI prefix as a suffix to
+            indicate magnitudes.  This prefix must only be one character and must be the last
+            character (excluding whitespace).  After this optional SI prefix is stripped off, the
+            string is evaluated as an expression with the math module's symbols in scope.
             '''
             # Set the defining attributes
             self._name = name
@@ -278,7 +335,9 @@ if 1:   # Waveform class
             self._f = 1/self.interpret(T) if T is not None else self.interpret(f)
             self._DC = self.interpret(DC)
             self._D = self.interpret(D)
+            self._zb = bool(zb)
             self.validate_attributes()
+            # Make the waveform
             if name in Waveform.names:
                 self.construct()
             else:
@@ -288,11 +347,26 @@ if 1:   # Waveform class
             number or string convertible to typ.  If it's a string, search for an SI prefix as a
             suffix used to indicate magnitude.
             '''
-            if ii(value, str):
-                x =  si.ConvertSI(value)
-                return typ(x)
-            else:
+            # Import math symbols
+            from math import acos, acosh, asin, asinh, atan, atan2, atanh, cbrt, ceil, copysign, cos
+            from math import cosh, degrees, dist, erf, erfc, exp, exp2, expm1, fabs, factorial, floor
+            from math import fmod, frexp, fsum, gamma, gcd, hypot, isclose, isfinite, isinf, isnan
+            from math import isqrt, lcm, ldexp, lgamma, log, log1p, log10, log2, modf, pow, radians
+            from math import remainder, sin, sinh, sqrt, tan, tanh, trunc, prod, perm, comb, nextafter
+            from math import ulp, pi, e, tau, inf, nan
+            if not ii(value, str):
                 return typ(value)
+            # It's a string
+            s = value.strip()
+            if not s:
+                raise ValueError("Argument needs to be a non-empty string")
+            # Look for an SI prefix as a suffix.  Note 'd', 'c', 'da', 'h' are not allowed.
+            last_char = s[-1]
+            if last_char in si.si:
+                factor = 10**si.si[last_char]
+                s = s[:-1]
+            value = eval(s)
+            return factor*value
         def validate_attributes(self):
             if not ii(self._name, str):
                 raise TypeError(f"name must be a string")
@@ -302,7 +376,7 @@ if 1:   # Waveform class
                 raise ValueError(f"ampl = mathematical amplitude must be > 0")
             if self._f <= 0:
                 raise ValueError(f"Frequency f and period T must be > 0")
-            if not 0 < self._D < 1:
+            if not (0 < self._D < 1):
                 raise ValueError(f"D = duty cycle must be between 0 and 1 exclusive")
         def __str__(self):
             'Return a string representing the waveform with functionals and basic statistics'
@@ -311,7 +385,7 @@ if 1:   # Waveform class
             o = []
             o.append(f"Vdc   = {self.Vdc}")
             o.append(f"Varms = {self.Varms}")
-            o.append(f"Vrms  = {self.Vrms}")
+            o.append(f"Vdrms = {self.Vdrms}")
             o.append(f"Vpk   = {self.Vpk}")
             o.append(f"Vpp   = {self.Vpp}")
             o.append(f"Vaa   = {self.Vaa}")
@@ -329,7 +403,7 @@ if 1:   # Waveform class
             o.append(f"  Deciles")
             dec = statistics.quantiles(self.y, n=10)
             for i in range(1, 10):
-                o.append(f"{10*i}%   = {flt(dec[i - 1])}")
+                o.append(f"{10*i}%   = {RoundOff(flt(dec[i - 1]))}")
             W = int(os.environ.get("COLUMNS", "80")) - 1
             out = []
             for i in Columnize(o, columns=3, col_width=W//4, indent=" "*2):
@@ -576,14 +650,14 @@ if 1:   # Waveform class
                 'Return the 0-to-peak value (mathematical amplitude)'
                 return flt(max(abs(max(self.y)), abs(min(self.y))))
             @property
-            def Vrms(self):
-                'Return the RMS value'
+            def Vdrms(self):
+                'Return the DC-coupled RMS value'
                 dx = self.x[1] - self.x[0]  # Needed to use the integral definition
                 return flt(np.sqrt(np.sum(dx*np.square(self.y))/self.T))
             @property
             def Varms(self):
                 'Return the AC-coupled RMS (ARMS) value'
-                diff = self.Vrms**2 - self.Vdc**2
+                diff = self.Vdrms**2 - self.Vdc**2
                 # Take the absolute value to protect against situations like a square wave with
                 # duty cycle of D = 1e-6, where the diff will be -1.0000196170922848e-05; this
                 # is essentially zero, but results in a runtime warning.
@@ -609,10 +683,10 @@ if 1:   # Waveform class
                 return flt(w.Vaa*const)
             @property
             def CF(self):
-                '''Calculate the crest factor.  The definition is Vpk/Vrms.  If Vrms is zero, this
+                '''Calculate the crest factor.  The definition is Vpk/Vdrms.  If Vdrms is zero, this
                 will return a crest factor of zero.
                 '''
-                return self.Vpk/self.Vrms if self.Vrms else flt(0)
+                return self.Vpk/self.Vdrms if self.Vdrms else flt(0)
             @property
             def Vdc(self):
                 'Calculate the average integral'
@@ -641,14 +715,14 @@ if 1:   # Core functionality
         if name not in "ampl f D DC T n".split():
             Error(f"Name {name!r} not one of 'ampl f D DC T n'")
         return name, value
-if 0:
+if 1:
     np.set_printoptions(
         precision=4,
         threshold=201,
         linewidth=int(os.environ.get("COLUMNS", "80")) - 1,
         suppress=True,
     )
-    w = Waveform("sine", ampl=1, n=1000, f=1, DC=0.5)
+    w = Waveform("sine", ampl="1m", n=1000, f=1, DC=0.5)
 
     if 0:
         w.plot()
