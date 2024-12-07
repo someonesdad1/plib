@@ -196,12 +196,12 @@ if __name__ == "__main__":
     args = ParseCommandLine(d)
     height = personal_height_inches  # My height in inches
     if len(args) == 2:
-        mass, height = [float(i) for i in args]
+        mass, height = [flt(i) for i in args]
     else:
-        mass = float(args[0])
+        mass = flt(args[0])
     if not d["-m"]:
-        mass *= lb2kg
-        height *= in2m
+        mass *= flt(lb2kg)
+        height *= flt(in2m)
     # Check mass and height for reasonableness
     mlo, mhi = 10, 200
     hlo, hhi = 0.6, 2.5
@@ -209,7 +209,7 @@ if __name__ == "__main__":
         Error(f"Mass must be between {mlo} and {mhi} kg")
     if not (hlo <= height <= hhi):
         Error(f"Height must be between {hlo} and {hhi} m")
-    bmi = mass/height**2
-    print(f"Mass   = {mass:.1f} kg = {mass/lb2kg:.0f} lb")
-    print(f"Height = {height:.1f} m = {height/in2m:.1f} in")
-    t.print(f"{GetColor(bmi)}BMI    = {bmi:.1f}")
+    bmi = flt(mass/height**2)
+    print(f"Mass   = {mass} kg = {mass/lb2kg} lb")
+    print(f"Height = {height} m = {height/in2m} inches")
+    t.print(f"{GetColor(bmi)}BMI    = {bmi}")
