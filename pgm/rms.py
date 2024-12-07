@@ -1,6 +1,5 @@
 '''
 Todo
-    - Bug:  'z sq D=.0001' gets Assertion on line 426
     - plot:  use fixed aspect ratio and % of W
 
 Calculations with RMS related things
@@ -151,6 +150,7 @@ if 1:   # Utility
                     Error("-d option's argument must be an integer between 1 and 15")
             elif o == "-h":
                 Usage()
+        flt(0).N = d["-d"]
         return args
     def SlopeAndIntercept(x1, y1, x2, y2, numtype=float):
         '''Return (m, b) where m is the slope and b is the intercept of a line, gotten from the
@@ -369,10 +369,10 @@ if 1:   # Waveform class
                     x = np.arange(0, 2*math.pi, 2*math.pi*dx)
                     self.y = np.sin(x)
                 elif self._name == "square":
-                    # Positive portion
-                    first = np.arange(0, int(D*n))*0.0 + 1.0
-                    # Negative portion
-                    second = np.arange(0, int((1 - D)*n))*0.0 - 1.0
+                    npos = int(D*n)     # Number of points in positive portion
+                    nneg = n - npos     # Number of points in negative portion
+                    first = np.arange(0, npos)*0.0 + 1.0
+                    second = np.arange(0, nneg)*0.0 - 1.0
                     self.y = np.concatenate((first, second), axis=None)
                 elif self._name == "triangle":
                     # The five key points on the waveform are:
@@ -583,7 +583,11 @@ if 1:   # Waveform class
             @property
             def Varms(self):
                 'Return the AC-coupled RMS (ARMS) value'
-                return flt(np.sqrt(self.Vrms**2 - self.Vdc**2))
+                diff = self.Vrms**2 - self.Vdc**2
+                # Take the absolute value to protect against situations like a square wave with
+                # duty cycle of D = 1e-6, where the diff will be -1.0000196170922848e-05; this
+                # is essentially zero, but results in a runtime warning.
+                return flt(np.sqrt(abs(diff)))
             @property
             def Vaa(self):
                 '''Return the absolute average value.  This is the integral of the absolute value
@@ -646,7 +650,6 @@ if 0:
     )
     w = Waveform("sine", ampl=1, n=1000, f=1, DC=0.5)
 
-    flt(0).N = 3
     if 0:
         w.plot()
         print()
