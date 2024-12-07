@@ -99,8 +99,27 @@ if 1:   # Utility
             Usage()
         return args
 if 1:   # Core functionality
-    def HarrisBenedict(m, h, y, a):
-        pass
+    def HarrisBenedict(m, h, y, a, female=False):
+        '''Harris-Benedict 1919, revised by Mifflin and St Jeor in 1990.
+        https://en.wikipedia.org/wiki/Harris%E2%80%93Benedict_equation
+            m is mass in kg
+            h is height in m
+            y is age in years
+            a is activity level in (1, 2, 3, 4)
+        Test case:  should return xxxxxx for m = 70 kg, h = 1.75 m, y = 70 years, a = 1, and for a
+        male.  For a female, it should return xxxxxx.
+        '''
+        kcal = 10*m + 625*h - 5*y
+        if female:
+            activity = {1: 1.3, 2: 1.5, 3: 1.6, 4: 1.9, 5: 2.2}
+            p = activity[a]
+            kcal -= 161
+        else:
+            activity = {1: 1.3, 2: 1.6, 3: 1.7, 4: 2.1, 5: 2.4}
+            p = activity[a]
+            kcal += 5
+        kcal *= p
+        return flt(kcal)
     def IofM(m, h, y, a, female=False):
         '''Institute of Medicine formula, dated 2002.  Return daily energy need in kcal.
         Ref. https://en.wikipedia.org/wiki/Institute_of_Medicine_Equation
@@ -155,4 +174,11 @@ if __name__ == "__main__":
         kcal_male = IofM(m, h, y, a, False)
         kcal_female = IofM(m, h, y, a, True)
         print(f"  {A[a]:^{w}s}    {kcal_male!s:4s}     {kcal_female!s:4s}")
-    #HarrisBenedict(m, h, y, a)
+    print(f"\nHarris-Benedict formula:  daily energy need in kcal")
+    A = {1: "Sedentary", 2: "Light", 3: "Moderate", 4:"Very", 5: "Extremely"}
+    print(f"  Activity level    Male    Female")
+    print(f"  --------------    ----    ------")
+    for a in range(1, 6):
+        kcal_male = HarrisBenedict(m, h, y, a, False)
+        kcal_female = HarrisBenedict(m, h, y, a, True)
+        print(f"  {A[a]:^{w}s}    {kcal_male!s:4s}     {kcal_female!s:4s}")
