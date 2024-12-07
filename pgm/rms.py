@@ -1,5 +1,6 @@
 '''
 Todo
+    - Bug:  'z sq D=.0001' gets Assertion on line 426
     - plot:  use fixed aspect ratio and % of W
 
 Calculations with RMS related things
