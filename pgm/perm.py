@@ -209,7 +209,7 @@ if 1:   # Core functionality
                     o.append(sum(c))
         o = set(o)
         print(f"({len(o)} combinations)")
-        for i in Columnize(sorted(o), col_width=10):
+        for i in Columnize(sorted(o), col_width=10, horiz=True):
             print(i)
         exit(0)
     def PrintOutput(func, name, objects):
