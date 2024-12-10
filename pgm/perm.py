@@ -112,7 +112,7 @@ if 1:   # Utility
         if comb:
             print(dedent(f'''
             C(n, k) = combinations of n objects taken k at a time
-                    = n!/((n - k)!*k!)''', n=10))
+                    = n!/((n - k)!*k!)'''))
             print(dedent(f'''
             Example:  The arguments {ex!r} will print out all the combinations of
               the four words that contain two words.
@@ -121,7 +121,7 @@ if 1:   # Utility
             print(dedent(f'''
             P(n, k) = all permutations of the size k subsets taken from all the n elements
                     = n!/(n - k)!
-            P(n)    = P(n, n) = n!''', n=10))
+            P(n)    = P(n, n) = n!'''))
             print(dedent(f'''
             Example:  The arguments {ex!r} will print out all the permutations of
               the four words that contain two words.
@@ -136,6 +136,8 @@ if 1:   # Utility
           -n n  Set the number of objects (implies -l also)
           -q    Quote the output strings
           -s x  Separator string for grouped items [""]
+          --sum     The arguments are numbers; show all sums
+          --prod    The arguments are numbers; show all products
         '''))
         exit(0)
     def ParseCommandLine(d):
@@ -149,7 +151,7 @@ if 1:   # Utility
         if len(sys.argv) < 2:
             Usage()
         try:
-            opts, args = getopt.getopt(sys.argv[1:], "cfhk:ln:qs:", "help")
+            opts, args = getopt.getopt(sys.argv[1:], "cfhk:ln:qs:", ["help", "sum", "prod"])
         except getopt.GetoptError as e:
             print(str(e))
             exit(1)
@@ -183,8 +185,33 @@ if 1:   # Utility
                 d[o] = a
             elif o in ("-h", "--help"):
                 Manpage()
+            elif o == "--sum":
+                Sums(args)
+            elif o == "--prod":
+                Sums(args, product=True)
         return args
 if 1:   # Core functionality
+    def Product(*args):
+        product = flt(1)
+        for i in args:
+            product *= flt(i)
+        return product
+    def Sums(args, product=False):
+        'Print a sorted list of all the possible sums/products of the numbers on the command line'
+        print(f"All {'products' if product else 'sums'} of {' '.join(args)!r}:", end=" ")
+        nums = [flt(i) for i in args]
+        o = []
+        for k in range(1, len(nums) + 1):
+            for c in combinations(nums, k):
+                if product:
+                    o.append(Product(*c))
+                else:
+                    o.append(sum(c))
+        o = set(o)
+        print(f"({len(o)} combinations)")
+        for i in Columnize(sorted(o), col_width=10):
+            print(i)
+        exit(0)
     def PrintOutput(func, name, objects):
         count = 0
         if g.k is None and func == combinations:

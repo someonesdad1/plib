@@ -2,6 +2,7 @@
  
 TODO
     - Use fmt.py for formatting
+    - cbrt, exp2 not in namespace
     -flt
         - rlz doesn't remove 0 for negative numbers
     - cpx:

@@ -4,8 +4,12 @@ Todo
     - plot:  use fixed aspect ratio and % of W
     - Use cases to address
         - Be able to enter amplitudes like pp, pk, rms, arms, ar, aa
-        - For square, appending a 0 to the name means it's a 0-based waveform.  This is useful for
-          calculating the DC offset of a pulse.  Or consider using the zb keyword (a bool).
+        - Add zb keyword again for zero-based waveforms (overrides the DC setting)
+        - The /elec/Articles/RMS/docs/TheStudyOfRootMeanSquareValue.pdf document contains the
+          example function for the "Energy from tidal movement" example in the RMS doc.  The
+          waveform script needs to be able to define such a waveform, the number of periods, and
+          be able to compute the functionals over the desired number of periods.  This is a more
+          general case than the present "simple" waveform object handles.
 
 Calculations with RMS related things
     
@@ -56,6 +60,7 @@ if 1:  # Header
         from collections import deque
         from functools import partial
         from pathlib import Path as P
+        from pprint import pprint as pp
         import getopt
         import math
         import statistics
@@ -157,16 +162,23 @@ if 1:   # Utility
         exit(0)
     def Usage(status=0):
         print(dedent(f'''
-        Usage:  {sys.argv[0]} [options] waveform ampl=1 f=1 D=0.5 DC=0
+        Usage:  {sys.argv[0]} [options] waveform A=1 f=1 D=0.5 DC=0
           Calculations related to RMS values.  waveform can be 
                 sine   square   triangle   noise   ramp   halfsine
+          A sets the amplitude.  It can be one of
+            a       Mathematical amplitude
+            pk      0-to-peak (mathematical amplitude)
+            pp      Peak-to-peak
+            rms     DC-coupled RMS value
+            arms    AC-coupled RMS value
+            aa      Absolute average
+            ar      Average-responding voltmeter value
           The subsequent parameters are optional:
-                ampl        Amplitude
                 f           Frequency
+                T           Period (overrides f)
                 n           Number of points in waveform
                 D           Duty cycle (triangle, square only)
                 DC          DC offset
-                T           Period (overrides f)
           You can include a single cuddled SI prefix as the last character, which is stripped and
           the remaining string is evaluated as an expression (the math module's symbols are in
           scope).  A report is printed with the common functionals and statistics.
@@ -360,13 +372,13 @@ if 1:   # Waveform class
             s = value.strip()
             if not s:
                 raise ValueError("Argument needs to be a non-empty string")
-            # Look for an SI prefix as a suffix.  Note 'd', 'c', 'da', 'h' are not allowed.
+            # Look for an SI prefix as a suffix ('d', 'c', 'da', 'h' are not allowed)
             last_char = s[-1]
             if last_char in si.si:
                 factor = 10**si.si[last_char]
                 s = s[:-1]
             value = eval(s)
-            return factor*value
+            return typ(factor*value)
         def validate_attributes(self):
             if not ii(self._name, str):
                 raise TypeError(f"name must be a string")
@@ -704,25 +716,63 @@ if 1:   # Waveform class
                 rms = self.Varms
                 return flt(pk/rms) if rms else flt(1)
 if 1:   # Core functionality
-    def GetParam(s):
-        '''A form of name=val is expected where name can be one of "ampl f n D DC T" and val must be
-        a number with an optional cuddled SI prefix.  Return (name, flt(val)).
+    def GetKeyword(s):
+        '''A form of name=val is expected.  Return (name, flt(val)).
+        name must be 
+            a pk pp rms arms aa ar f T n D DC zb
         '''
+        allowed = "a pk pp rms arms aa ar f T n D DC zb"
         try:
             name, value = s.split("=")
         except Exception:
             Error(f"Parameter {s!r} is of improper form")
-        if name not in "ampl f D DC T n".split():
-            Error(f"Name {name!r} not one of 'ampl f D DC T n'")
+        if name not in allowed.split():
+            Error(f"Name {name!r} not one of '{allowed}'")
+        # Process value
+        # Look for an SI prefix as a suffix ('d', 'c', 'da', 'h' are not allowed)
+        last_char = value[-1]
+        factor = 1
+        if last_char in si.si:
+            factor = 10**si.si[last_char]
+            value = value[:-1]
+        value = factor*eval(value)
+        if name == "n":
+            value = int(value)
+        elif name == "zb":
+            value = bool(value)
+        else:
+            value = flt(value)
         return name, value
-if 1:
+    def GetWaveformParameters(**kw):
+        '''Return a dict of the needed waveform parameters:
+            name n ampl f DC D zb
+        '''
+        name = kw["name"]
+        # Calculate the mathematical amplitude from the given functional value
+        if "ar" in kw:
+            pass
+        elif "aa" in kw:
+            pass
+        elif "arms" in kw:
+            pass
+        elif "rms" in kw:
+            pass
+        elif "pp" in kw:
+            pass
+        elif "pk" in kw:
+            pass
+        elif "a" in kw:
+            pass
+
+        exit() #xx
+if 0:
     np.set_printoptions(
         precision=4,
         threshold=201,
         linewidth=int(os.environ.get("COLUMNS", "80")) - 1,
         suppress=True,
     )
-    w = Waveform("sine", ampl="1m", n=1000, f=1, DC=0.5)
+    w = Waveform("sine", ampl="sin(1.2)m", n=1000, f=1, DC=0.5)
 
     if 0:
         w.plot()
@@ -732,9 +782,8 @@ if 1:
         w.fft()
     print(w)
     exit()
-
 if __name__ == "__main__":
-    cd = cmddecode.CommandDecode(Waveform.names)
+    getname = cmddecode.CommandDecode(Waveform.names)
     d = {}      # Options dictionary
     args = ParseCommandLine(d)
     if d["-v"]:
@@ -743,7 +792,7 @@ if __name__ == "__main__":
     else:
         # Get waveform name
         name = args[0]
-        x = cd(name)
+        x = getname(name)
         if not x:
             Error(f"Waveform {name!r} unrecognized")
         elif len(x) > 1:
@@ -753,10 +802,12 @@ if __name__ == "__main__":
         else:
             name = x[0]
         kw = {}
+        kw["name"] = name
         # Get other parameters
         for i in args[1:]:
-            param, value = GetParam(i)
+            param, value = GetKeyword(i)
             kw[param] = value
+        kw = GetWaveformParameters(**kw)
         # Construct waveform
         w = Waveform(name, **kw)
         if d["-p"]:
