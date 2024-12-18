@@ -175,7 +175,7 @@ def TemplateRound(x, template, up=True):
     being any numerical types with floating point semantics.  The absolute
     value of template is used.
  
-    The algorithm is derive from pg 435 of the 31 Oct 1988 issue of "PC
+    The algorithm is derived from pg 435 of the 31 Oct 1988 issue of "PC
     Magazine" written in BASIC:
         DEF FNRound(Amount, Template) =
             SGN(Amount)*INT(0.5 + ABS(Amount)/Template)*Template
