@@ -1,10 +1,4 @@
 '''
-
-ToDo
-    - Rewrite QuadraticEquation, CubicEquation, QuarticEquation to allow use of mpmath numbers
-      and library, letting these functions calculate with arbitrary precision.
-
----------------------------------------------------------------------------
 Root Finding Routines
     The following functions find real roots of functions.  You can call them using e.g. mpmath
     numbers and find roots to arbitrary precision.  The functions QuadraticEquation, CubicEquation,

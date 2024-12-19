@@ -4,12 +4,9 @@ Todo
     - plot:  use fixed aspect ratio and % of W
     - Use cases to address
         - Be able to enter amplitudes like pp, pk, rms, arms, ar, aa
+            - One way to do this might be to use a root finder with setting the 0-peak value until
+              you get the desired functional.
         - Add zb keyword again for zero-based waveforms (overrides the DC setting)
-        - The /elec/Articles/RMS/docs/TheStudyOfRootMeanSquareValue.pdf document contains the
-          example function for the "Energy from tidal movement" example in the RMS doc.  The
-          waveform script needs to be able to define such a waveform, the number of periods, and
-          be able to compute the functionals over the desired number of periods.  This is a more
-          general case than the present "simple" waveform object handles.
 
 Calculations with RMS related things
     
@@ -78,6 +75,7 @@ if 1:  # Header
         from roundoff import RoundOff
         from lwtest import run, Assert, check_equal, assert_equal
         import cmddecode
+        import root
         import si
         #if len(sys.argv) > 1:
         if 0:
@@ -616,6 +614,30 @@ if 1:   # Waveform class
                     raise ValueError(f"{self._name!r} is unknown waveform name")
                 self._name = name
                 self.construct()
+            # Amplitude
+            @property
+            def ampl(self):
+                return self._ampl
+            @ampl.setter
+            def ampl(self, value):
+                self._ampl = flt(value)
+                self.construct()
+            # Frequency
+            @property
+            def f(self):
+                return self._f
+            @f.setter
+            def f(self, value):
+                self._f = flt(value)
+                self.construct()
+            # Period
+            @property
+            def T(self):
+                return 1/self._f
+            @T.setter
+            def T(self, value):
+                self._f = 1/flt(value)
+                self.construct()
             # Number of points in waveform
             @property
             def n(self):
@@ -646,6 +668,14 @@ if 1:   # Waveform class
             def DC(self, value):
                 dc = flt(value)
                 self._DC = dc
+                self.construct()
+            # zb (zero baseline)
+            @property
+            def zb(self):
+                return self._zb
+            @zb.setter
+            def zb(self, value):
+                self._zb = bool(value)
                 self.construct()
         if 1:   # Read-only properties
             # Period

@@ -1,5 +1,9 @@
 Active:  /plib/.todo
 
+    - root.py
+        - Rewrite QuadraticEquation, CubicEquation, QuarticEquation to allow use of mpmath numbers
+          and library, letting these functions calculate with arbitrary precision.
+
     - cal.py in ~/.0rc
         - Need to fix color stuff, as script doesn't work
 
