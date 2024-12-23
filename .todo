@@ -1,5 +1,13 @@
 Active:  /plib/.todo
 
+    - ds.py
+        - Add the ability to open a set of PDFs with a keyword.  For example, if I get the HP
+          54645D MOS and use it with the 54659B module, I'd want them to be opened, along with the
+          manual for my 54601B scope.  I'd put all these under the name "scope".  This
+          functionality can be added with the -k option and it can be e.g. be called the bash
+          function dk.
+        - Also fix the -h printout
+
     - root.py
         - Rewrite QuadraticEquation, CubicEquation, QuarticEquation to allow use of mpmath numbers
           and library, letting these functions calculate with arbitrary precision.

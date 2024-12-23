@@ -29,6 +29,7 @@ if 1:  # Header
         from itertools import combinations
         from pdb import set_trace as xx
     if 1:   # Custom imports
+        from bidict import bidict
         from wrap import dedent
         from sig import sig
         from fpformat import FPFormat
@@ -156,6 +157,8 @@ if 1:  # Utility
               of either serial (s) or parallel (p) resistance values.  The output
               will be presented as a % deviation from the target value for all the
               combinations.
+          P[ots]
+              List the number codes used on trimmer pots.
         Options:
           -c f   Specifies a set of on-hand resistors to use instead of the
                  internally defined ones.  The file f consists of
@@ -239,22 +242,23 @@ if 1:  # Utility
                     Error("-t:  percent tolerance must be > 0")
         if not args:
             Usage(d)
-        if args[0][:2] == "dd":
-            cmd = "dd"
-        else:
-            cmd = args[0][0]
-        if cmd not in ("b", "d", "D", "dd", "l", "p", "q", "r", "R"):
-            Error("Command '%s' not recognized" % args[0])
-        if cmd in ("d", "q", "r", "R"):
-            if len(args) != 2:
-                Usage(d)
-        elif cmd in ("dd",):
-            if len(args) < 3:
-                Usage(d)
-        elif cmd in ("l",):
-            if len(args) != 1:
-                Usage(d)
-        args[0] = cmd
+        if args[0] != "pots":
+            if args[0][:2] == "dd":
+                cmd = "dd"
+            else:
+                cmd = args[0][0]
+            if cmd not in ("b", "d", "D", "dd", "l", "p", "q", "r", "R", "P"):
+                Error("Command '%s' not recognized" % args[0])
+            if cmd in ("d", "q", "r", "R"):
+                if len(args) != 2:
+                    Usage(d)
+            elif cmd in ("dd",):
+                if len(args) < 3:
+                    Usage(d)
+            elif cmd in ("l",):
+                if len(args) != 1:
+                    Usage(d)
+            args[0] = cmd
         return args
 if 1:  # Core functionality
     def ConvertString(s):
@@ -692,6 +696,11 @@ if 1:  # Core functionality
                         #normal()
                         t.print(f"{t.redl}No match")
         exit(0)
+    def Pots():
+        'List code numbers on trimmer pots'
+        p = bidict()
+        breakpoint() #xx
+
 if __name__ == "__main__":
     d = {}   # Options dictionary
     args = ParseCommandLine(d)
@@ -715,6 +724,8 @@ if __name__ == "__main__":
         List(d)
     elif args[0] == "p":
         Pairs(args, d)
+    elif args[0] == "P":
+        Pots()
     elif args[0] == "q":
         ratio = args[1]
         if float(ratio) <= 0:
