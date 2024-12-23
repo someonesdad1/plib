@@ -1,6 +1,11 @@
 '''
 
 ToDo
+    - Add the ability to open a set of PDFs with a keyword.  For example, if I get the HP 54645D
+      MOS and use it with the 54659B module, I'd want them to be opened, along with the manual for
+      my 54601B scope.  I'd put all these under the name "scope".  This functionality can be added
+      with the -k option and it can be e.g. be called the bash function dk.
+    - Fix the -h printout
     - Store the datafiles in the directories they index.  
         - What is benefit of pickling?  The basic datastructure is a set of file names.
     - My storage directories like /ebooks are bloated.  To keep things but allow me to see fewer
@@ -8,8 +13,8 @@ ToDo
       Then this script will not enter and index such a directory.
     - Change default behavior
         - Command line becomes 're1 re1 ...'
-            - This means find documents with re1, then refine the set by
-              including only those with re2
+            - This means find documents with re1, then refine the set by including only those with
+              re2
             - To get current behavior, use 're1 | re2'
             - You can use either one such string or 
             - You'll have to escape '|' from the shell
@@ -116,7 +121,7 @@ if 1:   # Utility
           out the matches and choose which ones to display.  When choosing, you
           can select multiple numbers by separating them with spaces or commas.
           Ranges like 5-8 are recognized.
-    
+          
           If re2 etc. are present, they are other regexps to additionally
           search for in the results; they are ORed together.
         Options
@@ -124,6 +129,7 @@ if 1:   # Utility
           -i    Make the search case sensitive
           -j    Search HP Journal and Bench Brief files (note:  consider
                 using the hpj.py script for such searches)
+          -k    Regex is a keyword; open the associated docs
           -x    Generate the index (print debug info)
         Long options
           --exec n
@@ -135,14 +141,15 @@ if 1:   # Utility
         d["-I"] = d["-x"] = False     # If True, then generate indexes
         d["-i"] = False     # If True, then case-sensitive search
         d["-j"] = False     # Show HPJ matches
+        d["-k"] = False     # Open files indicated by keyword
         try:
-            optlist, args = getopt.getopt(sys.argv[1:], "hIijx", ["exec="])
+            optlist, args = getopt.getopt(sys.argv[1:], "hIijkx", ["exec="])
         except getopt.GetoptError as e:
             msg, option = e
             print(msg)
             exit(1)
         for o, a in optlist:
-            if o[1] in list("Iijx"):
+            if o[1] in list("Iijkx"):
                 d[o] = not d[o]
             elif o == "--exec":
                 d["--exec"] = a
@@ -158,6 +165,8 @@ if 1:   # Utility
             d["--exec"] = "hpj"
         if not args:
             Usage(d)
+        if d["-k"]:   # Open files indicated by keyword
+            OpenByKeyword(*args)
         return args
 if 1:   # Core functionality
     def GenerateIndexFiles(d):
@@ -273,10 +282,11 @@ if 1:   # Core functionality
                 # Old method on older Linux
                 # Send stderr to /dev/null because some apps on Linux have annoying
                 # bug messages sent to the console.
-                subprocess.Popen([app, matches[choice - 1][0]],
-                                stderr=subprocess.DEVNULL)
+                subprocess.Popen([app, matches[choice - 1][0]], stderr=subprocess.DEVNULL)
             else:
                 subprocess.run([app, file])
+    def OpenFile1(file):
+        r = subprocess.run(f"/home/don/.0rc/bin/expl {file}", shell=True)
     def PrintMatch(num, path, start, end, d):
         '''For the match in path, print things out in the appropriate colors.
         Note start and end are the indices into just the file part of the
@@ -357,6 +367,20 @@ if 1:   # Core functionality
             OpenFile(g.app, matches, 0)
         else:
             print("No matches")
+    def OpenByKeyword(*args):
+        man = "/manuals/manuals/hp"
+        files = {
+            "scope": {
+                f"{man}/54601B_oscilloscope.pdf",
+                f"{man}/54658A_scope_module_RS232.pdf",
+                f"{man}/54645_MSO_scope.pdf",
+                f"{man}/54645_scope.png",
+            },
+        }
+        for keyword in args:
+            if keyword in files:
+                for file in files[keyword]:
+                    OpenFile1(file)
 
 if __name__ == "__main__":
     d = {   # Options dictionary
