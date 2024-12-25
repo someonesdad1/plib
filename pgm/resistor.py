@@ -36,6 +36,9 @@ if 1:  # Header
         from columnize import Columnize
         from color import t
         from u import u, ParseUnit, SI_prefixes
+        if 0:
+            import debug
+            debug.SetDebugger()
     if 1:   # Global variables
         fp = FPFormat()
         fp.trailing_dp = False
@@ -698,8 +701,33 @@ if 1:  # Core functionality
         exit(0)
     def Pots():
         'List code numbers on trimmer pots'
-        p = bidict()
-        breakpoint() #xx
+        p = (
+            ("50 Ω", 500),
+            ("100 Ω", 101),
+            ("200 Ω", 201),
+            ("500 Ω", 501),
+            ("1 kΩ", 102),
+            ("2 kΩ", 202),
+            ("5 kΩ", 502),
+            ("10 kΩ", 103),
+            ("20 kΩ", 203),
+            ("50 kΩ", 503),
+            ("100 kΩ", 104),
+            ("200 kΩ", 204),
+            ("500 kΩ", 504),
+            ("1 MΩ", 105),
+            ("2 MΩ", 205),
+        )
+        i, c = " "*4, t.purl
+        if 1:   # Print by code number
+            f = lambda x: x[1]
+            t.print(f"{c}By code:")
+            for R, code in sorted(p, key=f):
+                print(f"{i}{code}      {R:8s}")
+        if 1:   # Print by resistance
+            t.print(f"{c}By resistance:")
+            for R, code in p:
+                print(f"{i}{R:8s} {code}")
 
 if __name__ == "__main__":
     d = {}   # Options dictionary
