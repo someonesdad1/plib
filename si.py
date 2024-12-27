@@ -82,7 +82,7 @@ if 1:   # Classes
         An incorrect string or integer will result in a KeyError
         exception.
     
-        Use pure=True in constructor to avoid the 'd c, da h" prefixes.
+        Use pure=True in constructor to avoid the 'd c da h" prefixes.
         '''
         def __init__(self, pure=False):
             self.update({

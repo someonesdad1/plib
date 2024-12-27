@@ -50,6 +50,7 @@ randq                 Simple, fast random number generator
 randr                 Random numbers on [0,1) using randq
 ReadVariables         Read variables from a file
 RemoveIndent          Remove spaces from beginning of multiline string
+ShowFile              Open indicated file(s) with registered app
 SignificantFigures    Rounds to specified num of sig figs (returns float)
 SignificantFiguresS   Rounds to specified num of sig figs (returns string)
 signum                Return -1, 0, or 1 if x < 0, == 0, or > 0
@@ -116,6 +117,7 @@ if 1:  # Header
         from dpmath import AlmostEqual, SignSignificandExponent
         from frange import frange
         from f import flt
+        from wsl import wsl
         _have_mpmath = False
         try:
             import mpmath
@@ -1801,6 +1803,16 @@ def AcceptableDiff(x, y, n=3, strict=False):
         return abs((x - y)/x) <= 10**-n
     else:
         return abs((x - y)/y) <= 10**-n
+def ShowFile(*files):
+    'Open indicated file(s) with registered app'
+    for file in files:
+        if wsl:
+            # Use the ~/.0rc/bin/expl script to open a file with Explorer.  This script first
+            # cd's to the file's directory, as otherwise Explorer doesn't work.
+            r = subprocess.run(f"/home/don/.0rc/bin/expl {file}", shell=True)
+        else:
+            app = "d:/cygwin64/bin/cygstart.exe"  # cygwin
+            subprocess.run([app, file])
 
 if __name__ == "__main__": 
     # Missing tests for: Ignore Debug, Dispatch, GetString

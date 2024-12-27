@@ -69,6 +69,7 @@ if 1:  # Header
         from timer import GetET
         from f import flt
         from color import t
+        import util
     if 1:   # Global variables
         class G: # Storage for global variables as attributes
             pass
@@ -100,6 +101,28 @@ if 1:  # Header
         # Colors for output
         t.dir = t("sky")        # Contrast for directory portion
         t.match = t("ornl")     # Color for matches
+if 1:   # -k option data
+    man = "/manuals/manuals/"
+    files = {
+        "hp": {
+            f"{man}/hp/54601B_oscilloscope.pdf",
+            f"{man}/hp/54658A_scope_module_RS232.pdf",
+            #f"{man}/hp/54645_MSO_scope.pdf",
+            #f"{man}/hp/54645_scope.png",
+        },
+        "rigol": {
+            f"{man}/rigol/Rigol_DHO800_Manual.pdf",
+            f"{man}/rigol/Rigol_DHO800_datasheet.pdf",
+            f"{man}/rigol/Rigol_DG800Pro_function_generator.pdf",
+            f"{man}/rigol/Rigol_DHO800900_ProgrammingGuide.pdf",
+        },
+        "siglent": {
+            f"{man}/siglent/Siglent_SDG1000X_function_generator.pdf",
+            f"{man}/siglent/Siglent_SDG2000X_function_generator.pdf",
+            f"{man}/siglent/Siglent_SDG2000X_function_generator_manual.pdf",
+            f"{man}/siglent/Siglent_SDS2000X_Plus_scope_manual.pdf",
+        },
+    }
 if 1:   # Utility
     def Dbg(*p, **kw):
         if g.dbg:
@@ -368,19 +391,10 @@ if 1:   # Core functionality
         else:
             print("No matches")
     def OpenByKeyword(*args):
-        man = "/manuals/manuals/hp"
-        files = {
-            "scope": {
-                f"{man}/54601B_oscilloscope.pdf",
-                f"{man}/54658A_scope_module_RS232.pdf",
-                f"{man}/54645_MSO_scope.pdf",
-                f"{man}/54645_scope.png",
-            },
-        }
         for keyword in args:
             if keyword in files:
                 for file in files[keyword]:
-                    OpenFile1(file)
+                    util.ShowFile(file)
 
 if __name__ == "__main__":
     d = {   # Options dictionary

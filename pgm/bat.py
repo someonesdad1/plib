@@ -23,6 +23,8 @@ if 1:   # Imports
 if 1:   # Custom imports
     from wrap import dedent
     from color import t
+    from wsl import wsl
+    import util
     t.e = t("ornl")
 def PrintData():
     print(f'''
@@ -51,7 +53,7 @@ Silver Oxide   Volts mA*hr     Alkaline   Volts  mA*hr   Dia   Length
 ------------   ----- -----     --------   -----  -----   ----  ------
     SR41        1.55   42        LR41       1.5    32     7.9    3.6
     SR44        1.55  200        LR44[2.0g] 1.5   150    11.6    5.4
-
+    
 Coin cells (selected, 3 V nom, 3.6 V open circuit, LiMn02 chemistry)
   No.     Dia, mm   Thk, mm   Mass, g     mA*hr
 ------    -------   -------   -------     -----
@@ -133,7 +135,7 @@ def Usage(d, status=1):
     print(dedent(f'''
     Usage:  {sys.argv[0]} [options] [cmd]
       Print out battery data for no cmd.  Other commands:
-
+    
       aa, aaa, c, d, 9      Open Duracell PDF for that battery
       t                     Suggested DC load testing methods
       l                     Print lithium coin cell data too
@@ -158,20 +160,26 @@ def ParseCommandLine(d):
         exit(0)
     return args
 def Open(cmd):
+    'cmd is one of aa, aaa, c, d, or 9.  Open the relevant Duracell datasheet.'
     if 0:
+        # Old 32 bit cygwin environment
         pth = "C:/cygwin/elec/batteries/duracell"
         st = "C:/cygwin/bin/cygstart.exe"
     else:
-        pth = "d:/cygwin64/elec/batteries/duracell"
-        st = "d:/cygwin64/bin/cygstart.exe"
+        if wsl:
+            pth = "/mnt/d/cygwin64/elec/batteries/duracell"
+        else:
+            # 64 bit cygwin environment
+            pth = "d:/cygwin64/elec/batteries/duracell"
+            st = "d:/cygwin64/bin/cygstart.exe"
     file = f"{pth}/Duracell_{cmd.upper()}_alkaline.pdf"
-    subprocess.Popen([st, file])
+    util.ShowFile(file)
 def TestData():
     print(dedent(f'''
     Suggested testing method with DC load.  This is for new alkaline batteries.
     Measure the open circuit voltage, then the voltage with a 0.1 A load; the
     latter should be equal to or greater than that in the third column.
-
+    
                            Voltage, V
                 Open circuit        Under load
                 ------------        ----------
@@ -179,7 +187,7 @@ def TestData():
         AAA        1.55-1.6             1.5
         9V         9.4-9.5              9.0 (will drop pretty quickly)
         C          1.55-1.6          1.45-1.5
-
+    
     The C battery measurements were probably with old batteries, as we rarely
     use them.
     '''))
