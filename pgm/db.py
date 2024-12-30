@@ -1,4 +1,10 @@
 '''
+
+ToDo
+    - -r option changes the reference resistance R in Ω (600 Ω default)
+    - Change existing -r to -s option (step of table); allow n to be a float > 0
+    - Change command line to 'low_dB high_dB [step]' for generating table
+
 Prints out tables of dB stuff
 
 '''
@@ -150,18 +156,34 @@ def ConversionTable():
         else:
             print(' '.join(res))
     t.print(f"{t('pnkl')}{' '.join(hdr)}")
+def Title(s):
+    # The following is needed to get the underlining to print all the way across
+    sp = " "*((W - len(s))//2)
+    s = sp + s + sp[:-1] + chr(0xa0)
+    t.print(f"{t(attr='ul')}{s:^{W}s}")
 def dBmToVoltage():
     w1, w2 = 12, 8
-    t.print(f"{t(attr='ul')}{'dBm(600 Ω) to voltage':^{W}s}")
-    print()
+    Title("dBm(600 Ω) to voltage")
     out = [f"{t.dBm600}{'dBm(600 Ω)':^{w1}s}{t.n}  {'Voltage, V':^{w2}s}"]
     c = sqrt(600/1000)
-    for dBm in range(60, 0, -d["-r"]):
+    for dBm in range(50, 0, -d["-r"]):
         V = flt(c*10**(dBm/20))
         out.append(f"{t.dBm600}{str(dBm):^{w1}s}{t.n}  {V.engsi + 'V':^{w2}s}")
-    for dBm in range(0, -81, -d["-r"]):
+    for dBm in range(0, -61, -d["-r"]):
         V = flt(c*10**(dBm/20))
         out.append(f"{t.dBm600}{str(dBm):^{w1}s}{t.n}  {V.engsi + 'V':^{w2}s}")
+    for i in Columnize(out):
+        print(i)
+def dBVToVoltage():
+    w1, w2 = 12, 8
+    Title("dBV to voltage")
+    out = [f"{t.dBV}{'dBV':^{w1}s}{t.n}  {'Voltage, V':^{w2}s}"]
+    for dBV in range(50, 0, -d["-r"]):
+        V = flt(10**(dBV/20))
+        out.append(f"{t.dBV}{str(dBV):^{w1}s}{t.n}  {V.engsi + 'V':^{w2}s}")
+    for dBV in range(0, -61, -d["-r"]):
+        V = flt(10**(dBV/20))
+        out.append(f"{t.dBV}{str(dBV):^{w1}s}{t.n}  {V.engsi + 'V':^{w2}s}")
     for i in Columnize(out):
         print(i)
 def dB50_to_dB600():
@@ -252,3 +274,5 @@ if __name__ == "__main__":
         dBV_dBm600()
     else:
         dBmToVoltage()
+        print()
+        dBVToVoltage()

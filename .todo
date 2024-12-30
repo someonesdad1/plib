@@ -1,19 +1,17 @@
 Active:  /plib/.todo
 
-    - ds.py
-        - Add the ability to open a set of PDFs with a keyword.  For example, if I get the HP
-          54645D MOS and use it with the 54659B module, I'd want them to be opened, along with the
-          manual for my 54601B scope.  I'd put all these under the name "scope".  This
-          functionality can be added with the -k option and it can be e.g. be called the bash
-          function dk.
-        - Also fix the -h printout
+    - pgm/ds.py
+        - Need a feature to define default documents so they open on the first search.
+            - Example:  I have 3 versions of the HP427A manual:  1970, 1972, 1983.  The 1983 one
+              covers my instrument best, but it can take time to render in Sumatra.  I'd like to
+              define the 1972 version as the one to open by default, but e.g. use the -e option to
+              let me see all the options if I don't want the default.  When the default is used,
+              print a message to stdout that this happens so that the user knows there's more to
+              see.
 
     - root.py
         - Rewrite QuadraticEquation, CubicEquation, QuarticEquation to allow use of mpmath numbers
           and library, letting these functions calculate with arbitrary precision.
-
-    - cal.py in ~/.0rc
-        - Need to fix color stuff, as script doesn't work
 
     - pgm/rms.py
         - Numerical aid to dealing with various functionals used to measure voltage:  RMS, ACCRMS,
@@ -28,14 +26,13 @@ Active:  /plib/.todo
           what their measurements will be.
 
     - hobbyutil
+        - Get rid of anything that's in /plib
         - This project hasn't been updated because the old script is unmaintained and it's a lot of
           work converting to makefiles.
         - It would make more sense to standardize on a set of directories, construct a content file
           in that directory for its files (descriptions and links), and use a top-level script to
           combine everything.  Then the file content is manually updated as needed.
         - Still, it needs a way to determine when things are out of date.
-        - A good step might be to get rid of anything that's in /plib, as that's where most of my
-          scripts exist today.
 
     - Help to remember how to install conda stuff
         - Often there are python installations I'd like, such as 'pip install plotext'
@@ -43,71 +40,10 @@ Active:  /plib/.todo
           installation.  But I have no remembrance of doing this stuff a year or so ago, so the
           details need to be put in the python help document.
 
-    - ASCII plotting
-        - Module to help you make ASCII plots in a terminal window
-            - With the right choice of Unicode characters, colors, and large terminal window, this
-              could produce some stunning graphs.
-                - Histograms, horizontal and vertical
-                - Line plots
-                - etc.
-            - But it would be a lot of work
-        - plotille
-            - pip install plotille
-            - First plot example on website worked fine
-            - It needs some tuning to figure out how to automatically fit to the screen width or a
-              selected percentage
-        - One complaint I have with most plotting libraries is that they are naive and lazy when it
-          comes to making "good" units for the axes.  Sometimes you have no choice because of the
-          range, but the plotting routines should let you define the limits and the major/minor
-          tick marks.
-        - Tactics
-            - plotille looks like it might be the best as there are no dependencies; you can make
-              complex drawings with the Figure class or make fast simple plots
-        - gnuplot could be suitable, as it does ASCII plotting
-            - https://github.com/nschloe/termplotlib relies on gnuplot, but is a python lib
-        - https://pypi.org/project/plotext/ looks very good
-            - Made to look similar to matplotlib
-        - https://github.com/olavolav/uniplot
-            - Looks very simple, might be a good choice for the basics.  I like its use case: "this
-              was built for is to have plots as part of your [workflow] - that way whenever
-              something goes wrong, you get not only the error and backtrace but also plots that
-              show what the problem was".
-            - Only dependency is numpy
-        - https://pypi.org/project/terminalplot/
-            - Basic, no dependencies.  But could likely be hacked to taste.  Developed around 2013
-              with a few mods in recent years.
-        - https://github.com/nschloe/termplotlib
-            - Relies on gnuplot for line plots
-            - Aims to work like matplotlib
-            - If gnuplot is installed, would be worth a try; I like the basic demos
-        - https://github.com/tammoippen/plotille
-            - Uses braille characters for better resolution
-            - Example:
-                - fig = plotille.Figure()
-                - fig.width = 60
-                - fig.height = 30
-                - fig.set_x_limits(min_=-3, max_=3)
-                - fig.set_y_limits(min_=-1, max_=1)
-                - fig.color_mode = 'byte'
-                - fig.plot([-0.5, 1], [-1, 1], lc=25, label='First line')
-                - fig.scatter(X, np.sin(X), lc=100, label='sin')
-                - fig.plot(X, (X+2)**2 , lc=200, label='square')
-                - print(fig.show(legend=True))
-            - Methods:  plot, scatter, histogram, text
-
     - Check out https://github.com/nschloe/termtables for printing tables in the terminal
-    - pgm/ds.py
-        - Need a feature to define default documents so they open on the first search.
-            - Example:  I have 3 versions of the HP427A manual:  1970, 1972, 1983.  The 1983 one
-              covers my instrument best, but it can take time to render in Sumatra.  I'd like to
-              define the 1972 version as the one to open by default, but e.g. use the -e option to
-              let me see all the options if I don't want the default.  When the default is used,
-              print a message to stdout that this happens so that the user knows there's more to
-              see.
 
     - pgm/db.py
         - -r option changes the reference resistance R in Ω (600 Ω default)
-        - Default is to print dB(R Ω) to voltage table
         - Change existing -r to -s option (step of table); allow n to be a float > 0
         - Change command line to 'low_dB high_dB [step]' for generating table
 
@@ -145,6 +81,8 @@ Active:  /plib/.todo
           into a specialized REPL tool that allows you to set variables and convert them amongst
           compatible units, then doing desired calculations.
         - Another idea:  incorporate its functionality in hc.py
+            - This would give hc.py the ability to calculate with units and allow for detecting
+              incompatible unit operations without having to write a complicated library
         - Need to come up with some example use cases for desired behavior before designing
         - Variable assignment
             - v = expression
@@ -1886,6 +1824,18 @@ Inactive
         - https://sundials.org/index.php/nass-shop2/2-publications $30 to get the NASS repository,
           800 MB of documentation
 
+    - ASCII plotting in terminal window
+        - plotext is my tool of choice https://pypi.org/project/plotext
+            - Made to look similar to matplotlib
+        - Others found
+        - plotille 'pip install plotille'
+        - gnuplot could be suitable, as it does ASCII plotting
+            - https://github.com/nschloe/termplotlib relies on gnuplot, but is a python lib
+        - https://github.com/olavolav/uniplot
+        - https://pypi.org/project/terminalplot/
+        - https://github.com/nschloe/termplotlib
+        - https://github.com/tammoippen/plotille
+
 g library
     - Update to a more thought-through library form
         - Should contain a back end that renders in the desired form
@@ -1959,13 +1909,12 @@ wb.py
         Rlt: resistance_in_ohms [unc]
         etc.
 
-    The line that is left blank is the dependent variable.  You can specify
-    numbers with cuddled SI prefixes.  If unc is given, it's either a
-    number with optional cuddled SI prefix or a percentage.  If you use u
-    or μ, then it's in ppm.
+    The line that is left blank is the dependent variable.  You can specify numbers with cuddled SI
+    prefixes.  If unc is given, it's either a number with optional cuddled SI prefix or a
+    percentage.  If you use u or μ, then it's in ppm.
 
-    The tool is set up so that when the script's last modification time
-    changes, the output is recalculated and printed to stdout.
+    The tool is set up so that when the script's last modification time changes, the output is
+    recalculated and printed to stdout.
 
     Output report
 
@@ -1986,8 +1935,8 @@ wb.py
             Unknown = 
         Derivatives of unknown wrt known variables
 
-    If uncertainties are given, then the calculations are done with the
-    python uncertainties library.
+    If uncertainties are given, then the calculations are done with the python uncertainties
+    library.
 
 Programmer's index  xxpgidx
 

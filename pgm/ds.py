@@ -101,28 +101,6 @@ if 1:  # Header
         # Colors for output
         t.dir = t("sky")        # Contrast for directory portion
         t.match = t("ornl")     # Color for matches
-if 1:   # -k option data
-    man = "/manuals/manuals/"
-    files = {
-        "hp": {
-            f"{man}/hp/54601B_oscilloscope.pdf",
-            f"{man}/hp/54658A_scope_module_RS232.pdf",
-            #f"{man}/hp/54645_MSO_scope.pdf",
-            #f"{man}/hp/54645_scope.png",
-        },
-        "rigol": {
-            f"{man}/rigol/Rigol_DHO800_Manual.pdf",
-            f"{man}/rigol/Rigol_DHO800_datasheet.pdf",
-            f"{man}/rigol/Rigol_DG800Pro_function_generator.pdf",
-            f"{man}/rigol/Rigol_DHO800900_ProgrammingGuide.pdf",
-        },
-        "siglent": {
-            f"{man}/siglent/Siglent_SDG1000X_function_generator.pdf",
-            f"{man}/siglent/Siglent_SDG2000X_function_generator.pdf",
-            f"{man}/siglent/Siglent_SDG2000X_function_generator_manual.pdf",
-            f"{man}/siglent/Siglent_SDS2000X_Plus_scope_manual.pdf",
-        },
-    }
 if 1:   # Utility
     def Dbg(*p, **kw):
         if g.dbg:
@@ -390,11 +368,34 @@ if 1:   # Core functionality
             OpenFile(g.app, matches, 0)
         else:
             print("No matches")
+if 1:   # Open by keyword
     def OpenByKeyword(*args):
+        man = "/manuals/manuals/"
+        files = {
+            "hp": {
+                f"{man}/hp/54601B_oscilloscope.pdf",
+                f"{man}/hp/54658A_scope_module_RS232.pdf",
+                #f"{man}/hp/54645_MSO_scope.pdf",
+                #f"{man}/hp/54645_scope.png",
+            },
+            "rigol": {
+                f"{man}/rigol/Rigol_DHO800_Manual.pdf",
+                #f"{man}/rigol/Rigol_DHO800_datasheet.pdf",
+                #f"{man}/rigol/Rigol_DG800Pro_function_generator.pdf",
+                #f"{man}/rigol/Rigol_DHO800900_ProgrammingGuide.pdf",
+            },
+            "siglent": {
+                f"{man}/siglent/Siglent_SDG1000X_function_generator.pdf",
+                f"{man}/siglent/Siglent_SDG2000X_function_generator.pdf",
+                f"{man}/siglent/Siglent_SDG2000X_function_generator_manual.pdf",
+                f"{man}/siglent/Siglent_SDS2000X_Plus_scope_manual.pdf",
+            },
+        }
         for keyword in args:
             if keyword in files:
                 for file in files[keyword]:
                     util.ShowFile(file)
+        exit(0)
 
 if __name__ == "__main__":
     d = {   # Options dictionary
