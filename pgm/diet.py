@@ -30,6 +30,8 @@ if 1:  # Header
         from color import t
         from lwtest import Assert
         from columnize import Columnize
+        import u
+        import get
         if 0:
             import debug
             debug.SetDebugger()
@@ -105,10 +107,10 @@ if 1:   # Utility
               both your current BMI and what you both agree would be a good target BMI.
             - What daily energy deficit ED is reasonable for you.  
 
-        Example:  My starting BMI was 25.5 and my BMI goal was 22, which is right in the middle of
-        the "normal" range.  This required me losing 25 lb of weight.  My daily energy need is
-        about 2000 C.  My original planning goal was to have a deficit of between 500 C and 1000
-        C.  
+        Example:  My starting BMI (body mass index, see below) was 25.5 and my BMI goal was 22,
+        which is right in the middle of the "normal" range.  This required me losing 25 lb of
+        weight.  My daily energy need is about 2000 C.  My original planning goal was to have a
+        deficit of between 500 C and 1000 C.  
             - Results:  Over 84 days, I lost 17 lb, meaning my daily deficit was 708 C/day.  I was
               within 3 lb of my target weight for that day; believe it or not the uncertainty is
               because I wasn't sure of what exactly my starting weight was.  To reach my target
@@ -185,12 +187,20 @@ if 1:   # Utility
         information on a healthy diet at
         https://www.heart.org/-/media/AHA/H4GM/PDF-Files/How-much-should-i-eat-Infographic-PDF.pdf.
 
+        BMI is calculated from m/h² where m is mass in kg and h is height in m.  General guidelines for
+        BMI are
+            Underweight		< 18.5
+            Normal		    18.5 to 25
+            Overweight		25 to 30
+            Obese 		    > 30
+
         '''))
         exit(0)
     def Usage(status=0):
         print(dedent(f'''
         Usage:  {sys.argv[0]} [options] [cmd]
           Print out information relevant to a diet.
+          e     Estimate daily food energy need
           h     General information
           b     Breakfast info
           l     Lunch info
@@ -267,7 +277,7 @@ if 1:   # Core functionality
             refried beans 94
             Ritz crackers 500
             sesame oil 884
-            spam 321
+            Spam 321
             spinach 23
             strawberry 32
             sugar 387
@@ -326,11 +336,110 @@ if 1:   # Core functionality
         for i in Columnize(o):
             print(i)
         ColorKey()
+    def Breakfast():
+        print(dedent(f'''
+        '''))
+    def Lunch():
+        print(dedent(f'''
+        '''))
+    def Dinner():
+        print(dedent(f'''
+        '''))
+    def Metabolism():
+        print(dedent(f'''
+        The Harris-Benedict formula for basal metabolic rate from the early 1900's is (revised by
+        Mifflin and St Jeor in 1990)
+        
+            Men:    BMR in Calories = 10*m + 6.25*h - 5*y + 5
+            Women:  BMR in Calories = 10*m + 6.25*h - 5*y - 161
+        
+        where m is mass in kg, h is height in cm, and y is age in years.  Here are some scaling
+        constants to convert BMR to daily energy needs:
+        
+            Activity Level  Men     Women
+            Sedentary       1.3     1.3     Inactive in both work and leisure.
+            Light           1.6     1.5     Daily routine includes some walking or intense
+                                            exercise once or twice per week.
+            Moderate        1.7     1.6     Intense exercise lasting 20-45 minutes at least 
+                                            three times per week, or a job with a lot of walking,
+                                            or a moderate-intensity job.
+            Very            2.1     1.9     Intense exercise lasting at least an hour per day, or 
+                                            a heavy physical job, such as a mail carrier or an
+                                            athlete in training.
+            Extreme         2.4     2.2     A very demanding job, such as working in the armed 
+                                            forces or shoveling coal.
+        
+        The Institute of Medicine equation (published 2002) is 
+        
+            Men:    EER in Calories = 662 - 9.53*y + 15.91*m*p + 539.6*h
+            Women:  EER in Calories = 354 - 6.91*y + 9.36*m*p + 726*h
+        
+        where
+        
+            EER = estimate energy requirement in Calories
+            m = mass in kg
+            h = height in m
+            y = age in years
+            p = physical activity level:
+        
+                Activity level      Adult men       Adult women
+                Sedentary               1               1
+                Moderately active      1.11            1.12
+                Active                 1.25            1.27
+                Very active            1.48            1.45
+        
+        Example:  assume a moderately active male with 
+        
+            m = 70 kg
+            h = 1.75 m
+            y = 70 years
+            p = 1.11
+        
+        The equation is 662 - 9.53(70) + 15.91(70)(1.11) + 539.6(1.75), which is 662 - 667.1 +
+        1236.2 + 994.3 or 2225.4 Calories.  I'd round this to 2200 Calories per day.
+        
+        '''))
+    def GetDailyEnergyNeed():
+        '''Show daily Calories needed given activity level, mass, height, age, and sex.  The
+        calculation is based on the Institute of Medicine equation published in 2002.
+        '''
+        not_ok = True
+        print("You'll be prompted for mass, height, and age.  Enter different units if desired.")
+        # Get mass
+        s = "What is mass in lb [150]?"
+        m = get.GetNumber(s, default=150, use_unit=True)
+        breakpoint() #xx 
+
+        # Get activity level
+        levels = [
+            "Sedentary",
+            "Moderately active",
+            "Active",
+            "Very active",
+        ]
+        activity_level = get.GetChoice(levels, indent="  ")
+        factor = {0: (1, 1), 1: (1.11, 1.12), 2: (1.25, 1.27), 3: (1.48, 1.45)}
 
 if 1:
-    PrintTable()
+    GetDailyEnergyNeed()
     exit()
+        
 
 if __name__ == "__main__":
     d = {}      # Options dictionary
     args = ParseCommandLine(d)
+    cmd = args[0].lower()
+    if cmd == "h":
+        Manpage()
+    elif cmd == "e":
+        GetDailyEnergyNeed()
+    elif cmd == "b":
+        Breakfast()
+    elif cmd == "l":
+        Lunch()
+    elif cmd == "r":
+        Dinner()
+    elif cmd == "m":
+        Metabolism()
+    elif cmd == "f":
+        PrintTable()

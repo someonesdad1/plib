@@ -308,8 +308,8 @@ if 1:   # Getting text, lines, bytes
                 return open(thing, "rb").read()
 if 1:   # Getting numbers
     def GetNumber(prompt_msg, **kw):
-        '''General-purpose routine to get a number from the user with the
-        prompt msg.  These are the things that can be returned:
+        '''General-purpose routine to get a number from the user with the prompt msg.  These are
+        the things that can be returned:
             
             number                      use_unit is False
             (number, unit_string)       use_unit is True
@@ -323,71 +323,64 @@ if 1:   # Getting numbers
             a_flt = GetNumber(prompt_msg, numtype=flt)
             a_UFloat = GetNumber(prompt_msg, use_unc=True)
     
-        The user can utilize python expressions in the input; the math 
-        library's functions are in scope.
+        The user can utilize python expressions in the input; the math library's functions are in
+        scope.
     
-        If you wish to restrict the allowed values of the number, use the
-        following keyword arguments (default values are in square brackets):
+        If you wish to restrict the allowed values of the number, use the following keyword
+        arguments (default values are in square brackets):
     
-            numtype     Number type [flt].  Use int if you want the number to
-                        be an integer.  You can use a number type as long as it
-                        obeys the required ordering semantics and the
-                        constructor returns a number object that raises a
-                        ValueError if the initializing string is of improper
-                        form.  For an example, see the use of mpmath's mpf
-                        numbers in the unit tests.
+            numtype     Number type [flt].  Use int if you want the number to be an integer.  You
+                        can use a number type as long as it obeys the required ordering semantics
+                        and the constructor returns a number object that raises a ValueError if
+                        the initializing string is of improper form.  For an example, see the use
+                        of mpmath's mpf numbers in the unit tests.
     
-            default     Default value.  This value will be returned if
-                        the user just presses the return key when prompted.
-                        Note the default value of None will cause an exception
-                        unless the keyword allow_none is True.  [None]
+            default     Default value.  This value will be returned if the user just presses the
+                        return key when prompted.  Note the default value of None will cause an
+                        exception unless the keyword allow_none is True.  [None]
  
-            allow_none  If True, allows None to be returned as the default.
-                        [False]
+            allow_none  If True, allows None to be returned as the default.  [False]
     
             low         Lowest allowed value.  [None]
     
             high        Highest allowed value.  [None]
     
-            low_open    Boolean; if True, then the low end of the acceptance
-                        interval is open.  [False]
+            low_open    Boolean; if True, then the low end of the acceptance interval is open.
+                        [False]
     
-            high_open   Boolean; if True, then the high end of the acceptance
-                        interval is open.  [False]
+            high_open   Boolean; if True, then the high end of the acceptance interval is open.
+                        [False]
     
-            invert      If true, the value must be in the complement interval.
-                        This is used to allow numbers except those in a
-                        particular range.  See note below.
+            invert      If true, the value must be in the complement interval.  This is used to
+                        allow numbers except those in a particular range.  See note below.
     
             outstream   Stream to print messages to.  [stdout]
     
             instream    Stream to get input from (intended for unit tests).
     
-            prefix      Prefix string for error messages
-                            ["Error:  must have "]
+            prefix      Prefix string for error messages ["Error:  must have "]
     
-            use_unc     If true, lets you use number strings that can be
-                        interpreted by the python uncertainties library.
-                        If use_unit is true, then all units must be
-                        separated from the uncertain number string by one or
-                        more spaces (i.e., no cuddled units).  Note:  if you
-                        use a number string like '9 m' and use_unc is True,
-                        then the returned number will be 9+/-1, which is the
-                        default interpretive behavior of the uncertainties
-                        library's ufloat_fromstr() function.  The following
-                        strings mean the same number and uncertainty:
+            use_unc     If true, lets you use number strings that can be interpreted by the python
+                        uncertainties library.  If use_unit is true, then all units must be
+                        separated from the uncertain number string by one or more spaces (i.e., no
+                        cuddled units).  Note:  if you use a number string like '9 m' and use_unc
+                        is True, then the returned number will be 9+/-1, which is the default
+                        interpretive behavior of the uncertainties library's ufloat_fromstr()
+                        function.  The following strings mean the same number and uncertainty:
                         "4.2+/-0.4", "4.2+-0.4", "4.2(4)".  [False]
     
-            use_unit    If true, allows a unit to be included in the string.
-                        The return value will be a tuple of (number,
-                        unit_string).  [False]
-    
+            use_unit    If true, allows a unit to be included in the string.  The return value will
+                        be a tuple of (number, unit_string).  [False]
+                        
+                        Additionally, if use_unit is a string, it's the unit that any entered unit
+                        must be dimensionally equal to or a TypeError is raised.  If the default
+                        answer is used, this is the unit that will be returned with it.
+            
             allow_quit  If true, "Q" or "q" quits the program.  [True]
     
-            inspect     If not None, it's a string that should be
-                        inspected to see if it meets the requirements.  If
-                        it does, True will be returned; otherwise, False
-                        is returned.
+            inspect     If not None, it's a string that should be inspected to see if it meets the
+                        requirements.  If it does, True will be returned; otherwise, False is
+                        returned.
     
             vars        Dictionary to use as locals to evaluate expressions.
     
@@ -395,36 +388,32 @@ if 1:   # Getting numbers
     
             GetNumber("", low=a, high=b)
     
-        the number returned will be the number in the closed interval [a, b].
-        If you make the same call but with invert set to True
+        the number returned will be the number in the closed interval [a, b].  If you make the
+        same call but with invert set to True
     
             GetNumber("", low=a, high=b, invert=True)
     
-        then the returned number must lie in the union of the open intervals
-        (-inf, a) and (b, inf); this set of numbers is the complement of the
-        previous call's.  If you make the call
+        then the returned number must lie in the union of the open intervals (-inf, a) and (b,
+        inf); this set of numbers is the complement of the previous call's.  If you make the call
     
             GetNumber("", low=a, high=b, low_open=True, high_open=True)
     
-        the number returned will be in the open interval (a, b).  If this is
-        inverted by setting invert to True as in
+        the number returned will be in the open interval (a, b).  If this is inverted by setting
+        invert to True as in
     
             GetNumber("", low=a, high=b, low_open=True,
                     high_open=True, invert=True)
     
-        then you'll get a number returned in the union of the half-closed
-        intervals (-inf, a] and [b, inf).  A programmer might be confused
-        by the fact that the intervals were half-closed, even though the
-        settings low_open and high_open were used, implying the programmer
-        wanted open intervals.  The way to look at this is to realize that
-        if invert is True, it changes an open half-interval to a closed
-        half-interval.  I chose to make the function behave this way
-        because it's technically correct.  However, if this behavior is
-        not to your liking, it's easy to change by changing the
-        conditional statements in the conditionals dictionary.  (I debated
-        as to whether I should make this function an object instead; then
-        this could be done by subclassing rather than changing the
-        function.  But the convenience of a simple function won out.)
+        then you'll get a number returned in the union of the half-closed intervals (-inf, a] and
+        [b, inf).  A programmer might be confused by the fact that the intervals were half-closed,
+        even though the settings low_open and high_open were used, implying the programmer wanted
+        open intervals.  The way to look at this is to realize that if invert is True, it changes
+        an open half-interval to a closed half-interval.  I chose to make the function behave this
+        way because it's technically correct.  However, if this behavior is not to your liking,
+        it's easy to change by changing the conditional statements in the conditionals dictionary.
+        (I debated as to whether I should make this function an object instead; then this could be
+        done by subclassing rather than changing the function.  But the convenience of a simple
+        function won out.)
         '''
         outstream = kw.get("outstream", sys.stdout)
         instream = kw.get("instream", None)
@@ -491,7 +480,7 @@ if 1:   # Getting numbers
                     out(msg)
                 if instream is not None:
                     s = instream.readline()
-                    if not s:
+                    if not s:   # No input
                         if default is None:
                             if allow_none:
                                 return None
@@ -500,7 +489,10 @@ if 1:   # Getting numbers
                                 raise RuntimeError("Empty input!")
                         else:
                             if use_unit:
-                                return (numtype(default), "")
+                                if ii(use_unit, str):
+                                    return (numtype(default), use_unit)
+                                else:
+                                    return (numtype(default), "")
                             else:
                                 return numtype(default)
                 else:
@@ -520,7 +512,10 @@ if 1:   # Getting numbers
                     if inspect is not None:
                         return True
                     if use_unit:
-                        return (numtype(default), "")
+                        if ii(use_unit, str):
+                            return (numtype(default), use_unit)
+                        else:
+                            return (numtype(default), "")
                     else:
                         return numtype(default)
             if len(s) == 1 and s in "qQ" and allow_quit:
@@ -555,7 +550,15 @@ if 1:   # Getting numbers
                     if inspect is not None:
                         return True
                     if use_unit:
-                        return (x, unit_string)
+                        if ii(use_unit, str):
+                            # unit_string must have the same dimensions as use_unit
+                            dim_needed = u.u(use_unit, dim=True)[1]
+                            dim_given = u.u(unit_string, dim=True)[1]
+                            if dim_needed != dim_given:
+                                msg = f"Dimensional error:  got {dim_given!r}, need {dim_needed!r}"
+                                raise TypeError(msg)
+                        else:
+                            return (x, unit_string)
                     else:
                         return x
                 # Check if this number meets the specified conditions; if it
@@ -591,6 +594,13 @@ if 1:   # Getting numbers
                 if inspect is not None:
                     return True
                 if use_unit:
+                    if ii(use_unit, str):
+                        # unit_string must have the same dimensions as use_unit
+                        dim_needed = u.u(use_unit, dim=True)[1]
+                        dim_given = u.u(unit_string, dim=True)[1]
+                        if dim_needed != dim_given:
+                            msg = f"Dimensional error:  got {dim_given!r}, need {dim_needed!r}"
+                            raise TypeError(msg)
                     return (x, unit_string)
                 else:
                     return x
@@ -884,8 +894,7 @@ if 1:   # Getting numbers
             # Choose seq[i - 1] or seq[i], whichever is closest to x
             return seq[i - 1] if dist(x, seq[i - 1]) < dist(x, seq[i]) else seq[i]
 if 1:   # Getting choices
-    def GetChoice(seq, default=1, indent=None, col=False, instream=None,
-                  outstream=None):
+    def GetChoice(seq, default=1, indent=None, col=False, instream=None, outstream=None):
         '''Display the choices in seq with numbers and prompt the user for his
         choice.  Note the numbers are 1-based as displayed to the user, but the
         returned value of choice will be 0-based.  Return the choice_number.
@@ -1463,45 +1472,43 @@ if __name__ == "__main__":
         def TestGetNumberNumberWithUnit():
             # Show that we can return numbers with units
             # 5 with no unit string
-            n = GetNumber("", low=0, high=10, outstream=sio(), instream=sio("5"),
-                use_unit=True)
+            n = GetNumber("", low=0, high=10, outstream=sio(), instream=sio("5"), use_unit=True)
             Assert(n == (5, "") and isinstance(n[0], float))
             Assert(n == (5, "") and isinstance(n[0], flt))
             # 5 meters, cuddled
-            n = GetNumber("", low=0, high=10, outstream=sio(), instream=sio("5m"),
-                use_unit=True)
+            n = GetNumber("", low=0, high=10, outstream=sio(), instream=sio("5m"), use_unit=True)
             Assert(n == (5, "m") and isinstance(n[0], float))
             Assert(n == (5, "m") and isinstance(n[0], flt))
             # 5 meters
-            n = GetNumber("", low=0, high=10, outstream=sio(), instream=sio("5 m"),
-                use_unit=True)
+            n = GetNumber("", low=0, high=10, outstream=sio(), instream=sio("5 m"), use_unit=True)
             Assert(n == (5, "m") and isinstance(n[0], float))
             Assert(n == (5, "m") and isinstance(n[0], flt))
             # millimeters, cuddled
-            n = GetNumber("", low=0, high=1e100, outstream=sio(),
-                instream=sio("123.456e7mm"), use_unit=True)
+            n = GetNumber("", low=0, high=1e100, outstream=sio(), instream=sio("123.456e7mm"), use_unit=True)
             Assert(n == (123.456e7, "mm") and isinstance(n[0], float))
             Assert(n == (123.456e7, "mm") and isinstance(n[0], flt))
             # millimeters
-            n = GetNumber("", low=0, high=1e100, outstream=sio(),
-                instream=sio("123.456e7   mm"), use_unit=True)
+            n = GetNumber("", low=0, high=1e100, outstream=sio(), instream=sio("123.456e7   mm"), use_unit=True)
             Assert(n == (123.456e7, "mm") and isinstance(n[0], float))
             Assert(n == (123.456e7, "mm") and isinstance(n[0], flt))
             # millimeters, negative number
-            n = GetNumber("", low=-1e100, high=1e100, outstream=sio(),
-                instream=sio("-123.456e7   mm"), use_unit=True)
+            n = GetNumber("", low=-1e100, high=1e100, outstream=sio(), instream=sio("-123.456e7   mm"), use_unit=True)
             Assert(n == (-123.456e7, "mm") and isinstance(n[0], float))
             Assert(n == (-123.456e7, "mm") and isinstance(n[0], flt))
             #--------------------
             # Uncertainties
             #--------------------
             for t in ("8 mm", "8+-1 mm", "8+/-1 mm", "8(1) mm"):
-                n = GetNumber("", low=-1e100, high=1e100, outstream=sio(),
-                            instream=sio(t), use_unit=True, use_unc=True)
+                n = GetNumber("", low=-1e100, high=1e100, outstream=sio(), instream=sio(t), use_unit=True, use_unc=True)
                 Assert(isinstance(n[0], UFloat))
                 Assert(n[0].nominal_value == 8)
                 Assert(n[0].std_dev == 1)
                 Assert(n[1] == "mm")
+            # 5 inches with use_unit = "m" string; we should get a good conversion with inches,
+            # but a TypeError with '5 s'.
+            n = GetNumber("", low=0, high=10, outstream=sio(), instream=sio("5 inches"), use_unit="m")
+            Assert(n == (5, "inches"))
+            raises(TypeError, GetNumber, "", low=0, high=10, outstream=sio(), instream=sio("5 inches"), use_unit="s")
         def TestGetNumberInspect():
             # Test that 2 isn't in the first interval, but is in the second.
             Assert(not GetNumber("", low=0, high=1, inspect="2"))

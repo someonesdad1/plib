@@ -162,11 +162,11 @@ if 1:  # Module docstring
     You can use the dim() function to determine the physical dimensions of a unit expression.  This
     returns a Dim object that encapsulates the dimensions.
     
-    While the idea of using random numbers to orthogonalize the unit conversion factors is
-    interesting, I've found in practice that I don't use it.  Instead, I pay careful attention to
-    the code I write and use the u() function in this module to make sure every physical number has
-    the appropriate unit.  Byrnes (the author of numericalunits) points out that the feature is
-    usable to test code you don't have the source to or is compiled library code.
+    While the idea of using random numbers to orthogonalize the unit conversion factors is useful,
+    I've found in practice that I don't use it.  Instead, I pay careful attention to the code I
+    write and use the u() function in this module to make sure every physical number has the
+    appropriate unit.  Byrnes (the author of numericalunits) points out that the method can test
+    code you don't have the source to or is compiled library code, a very useful feature.
     
     Dimensional arithmetic
     ----------------------
@@ -2505,11 +2505,9 @@ if __name__ == "__main__":
     from lwtest import run, raises, assert_equal, Assert
     from uncertainties import ufloat, ufloat_fromstr, UFloat
     from io import StringIO
-    import color as C
+    from color import t     # Color for warnings
     eps = 1e-15     # For testing float equality
     seed(0)         # So results are repeatable
-    # Color for warnings
-    yel, norm = C.fg(C.yellow, s=1), C.normal(s=1)
     def Initialize(randomize=False):
         global u
         units, dims = GetUnits(randomize=randomize)
@@ -2748,7 +2746,7 @@ if __name__ == "__main__":
             raises(ValueError, ParseUnit, "4+/-1m", allow_unc=True)
             raises(ValueError, ParseUnit, "m", allow_unc=True)
         else:
-            print(f"{yel}Warning:  uncertainties in u.py not tested{norm}")
+            t.print(f"{t.yel}Warning:  uncertainties in u.py not tested")
     def TestParseFraction():
         pf = ParseFraction
         expected_f = (Fraction(9, 8), "mm")
