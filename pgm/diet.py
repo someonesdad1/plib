@@ -74,7 +74,8 @@ if 1:   # Utility
         Unfortunately, most dietary information uses the screwball "food calorie", which is a kcal
         if you've got a technical background.  A regular calorie is 4.18 J.  I will use the food
         calorie as the basic unit, call it Calorie, and denote it by the symbol C.  I will also
-        use pounds for weight because it is the most common unit used by non-technical people.
+        use pounds for weight because it is the most common unit used by non-technical people in
+        the US.
 
         An important constant is 3500 C/lb.  This is the energy content of fat that your body
         collects when it has too much food, storing it for later when food isn't plentiful.  The
@@ -233,6 +234,9 @@ if 1:   # Utility
                     Error(f"-d option's argument must be an integer between 1 and 15")
             elif o == "-h":
                 Usage()
+        x = flt(0)
+        x.N = d["-d"]
+        x.rtz = True
         return args
 if 1:   # Core functionality
     def GetData():
@@ -400,25 +404,80 @@ if 1:   # Core functionality
         
         '''))
     def GetDailyEnergyNeed():
-        '''Show daily Calories needed given activity level, mass, height, age, and sex.  The
-        calculation is based on the Institute of Medicine equation published in 2002.
+        '''Show daily Calories needed given mass, height, and age.  The calculation is based on
+        the Institute of Medicine equation published in 2002.
         '''
-        not_ok = True
         print("You'll be prompted for mass, height, and age.  Enter different units if desired.")
-        # Get mass
-        s = "What is mass in lb [150]?"
-        m = get.GetNumber(s, default=150, use_unit=True)
-        breakpoint() #xx 
+        # Get m, the mass in kg
+        done = False
+        nodbg = False
+        while nodbg and not done:
+            s = "What is mass in lb?"
+            mass, unit = get.GetNumber(s, default=150, use_unit=True)
+            if unit:
+                if u.u(unit, dim=True)[1] != u.u("m", dim=True)[1]:
+                    print("You must use a mass unit")
+                    continue
+                m = mass*u.u(unit)  # Mass in kg
+            else:
+                m = mass*u.u("lbm")
+                mass = f"{mass} lb"
+            done = True
+        # Get h, the height in m
+        done = False
+        while nodbg and not done:
+            s = "What is height in inches?"
+            try:
+                height, unit = get.GetNumber(s, default=69.3, use_unit="inches")
+            except TypeError:
+                print("You must use a length unit")
+                continue
+            else:
+                # Convert to m
+                if unit:
+                    h = height*u.u(unit)
+                    height = f"{height} {unit}"
+                else:
+                    h = height*u.u("inch")
+                    height = f"{height} inches"
+                done = True
+        # Get y, the age in years
+        done = False
+        while nodbg and not done:
+            y = get.GetNumber("What is age in years? ", default=75, low=18, high=100)
+            years = f"{y} years"
 
-        # Get activity level
-        levels = [
-            "Sedentary",
-            "Moderately active",
-            "Active",
-            "Very active",
-        ]
-        activity_level = get.GetChoice(levels, indent="  ")
-        factor = {0: (1, 1), 1: (1.11, 1.12), 2: (1.25, 1.27), 3: (1.48, 1.45)}
+        if not nodbg:
+            mass = "150 lb"
+            m = flt(150)*u.u("lbm")
+            height = "69.3 inches"
+            h = flt(69.3)*u.u("inch")
+            y = flt(75) #xx
+            years = f"{y} years" #xx
+        # Activity levels and factors
+        levels = {
+            # Description, factor for males, factor for females
+            0: ("Sedentary", 1, 1),
+            1: ("Moderately active", 1.11, 1.12),
+            2: ("Active", 1.25, 1.27),
+            3: ("Very active", 1.48, 1.45),
+        }
+        # Print report
+        i = " "*2
+        t.print(f"\n{t.purl}Institute of Medicine daily food energy need in Calories (2002)")
+        print(f"{i}Mass   = {mass} = {m} kg")  
+        print(f"{i}Height = {height} = {h} m")  
+        print(f"{i}Age    = {y} years")  
+        w, w1, w2, w3 = 5, 17, 8, 8
+        s = " "*w
+        print(f"{i}{'Activity level':^{w1}s}{s}{'Male':^{w2}s}{s}{'Female':^{w3}s}")
+        print(f"{i}{'-'*w1:{w1}s}{s}{'-'*w2:{w2}s}{s}{'-'*w3:^{w3}s}")
+        for j in levels:
+            level, pmen, pwomen = levels[j]
+            eer_men = 662 - 9.53*y + 15.91*m*pmen + 539.6*h
+            eer_women= 354 - 6.91*y + 9.36*m*pwomen + 726*h
+            print(f"{i}{level:{w1}s}{' '*w}{eer_men!s:^{w2}s}{' '*w}{eer_women!s:^{w3}s}")
+            
 
 if 1:
     GetDailyEnergyNeed()
