@@ -410,8 +410,10 @@ if 1:   # Core functionality
         print("You'll be prompted for mass, height, and age.  Enter different units if desired.")
         # Get m, the mass in kg
         done = False
-        nodbg = False
-        while nodbg and not done:
+        # Set no_test to False to avoid prompting so you can test
+        no_test = False
+        no_test = True
+        while no_test and not done:
             s = "What is mass in lb?"
             mass, unit = get.GetNumber(s, default=150, use_unit=True)
             if unit:
@@ -422,13 +424,17 @@ if 1:   # Core functionality
             else:
                 m = mass*u.u("lbm")
                 mass = f"{mass} lb"
+            # Check for reasonableness
+            if not (35 <= m <= 200):
+                print("Mass must be between 35 and 200 kg")
+                continue
             done = True
         # Get h, the height in m
         done = False
-        while nodbg and not done:
+        while no_test and not done:
             s = "What is height in inches?"
             try:
-                height, unit = get.GetNumber(s, default=69.3, use_unit="inches")
+                height, unit = get.GetNumber(s, default=69.3, use_unit=True)
             except TypeError:
                 print("You must use a length unit")
                 continue
@@ -440,20 +446,21 @@ if 1:   # Core functionality
                 else:
                     h = height*u.u("inch")
                     height = f"{height} inches"
+                # Check for reasonableness
+                if not (1 <= h <= 3):
+                    print("Height must be between 1 and 3 m")
+                    continue
                 done = True
         # Get y, the age in years
         done = False
-        while nodbg and not done:
+        while no_test and not done:
             y = get.GetNumber("What is age in years? ", default=75, low=18, high=100)
             years = f"{y} years"
-
-        if not nodbg:
-            mass = "150 lb"
-            m = flt(150)*u.u("lbm")
-            height = "69.3 inches"
-            h = flt(69.3)*u.u("inch")
-            y = flt(75) #xx
-            years = f"{y} years" #xx
+            done = True
+        if not no_test:
+            mass, m = "150 lb", flt(150)*u.u("lbm")
+            height, h = "69.3 inches", flt(69.3)*u.u("inch")
+            years, y = f"{y} years", flt(75)
         # Activity levels and factors
         levels = {
             # Description, factor for males, factor for females
@@ -470,6 +477,7 @@ if 1:   # Core functionality
         print(f"{i}Age    = {y} years")  
         w, w1, w2, w3 = 5, 17, 8, 8
         s = " "*w
+        print(f"{' '*25}Food Calories (kcal)")
         print(f"{i}{'Activity level':^{w1}s}{s}{'Male':^{w2}s}{s}{'Female':^{w3}s}")
         print(f"{i}{'-'*w1:{w1}s}{s}{'-'*w2:{w2}s}{s}{'-'*w3:^{w3}s}")
         for j in levels:
@@ -477,12 +485,10 @@ if 1:   # Core functionality
             eer_men = 662 - 9.53*y + 15.91*m*pmen + 539.6*h
             eer_women= 354 - 6.91*y + 9.36*m*pwomen + 726*h
             print(f"{i}{level:{w1}s}{' '*w}{eer_men!s:^{w2}s}{' '*w}{eer_women!s:^{w3}s}")
-            
 
-if 1:
+if 0:
     GetDailyEnergyNeed()
     exit()
-        
 
 if __name__ == "__main__":
     d = {}      # Options dictionary
