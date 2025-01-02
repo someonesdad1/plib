@@ -64,7 +64,7 @@ if 1:   # Utility
           AND'd together unless you use the -n option to OR them together.
         Options:
             -i      Do not ignore case in searches
-            -O      OR the regexes
+            -n      OR the regexes
             -o      Open the URLs that are found
         '''))
         exit(status)
@@ -75,17 +75,22 @@ if 1:   # Utility
         if len(sys.argv) < 2:
             Usage()
         try:
-            opts, args = getopt.getopt(sys.argv[1:], "io") 
+            opts, args = getopt.getopt(sys.argv[1:], "ino") 
         except getopt.GetoptError as e:
             print(str(e))
             exit(1)
         for o, a in opts:
-            if o[1] in list("io"):
+            if o[1] in list("ino"):
                 d[o] = not d[o]
         return args
 if 1:   # Core functionality
-    def GetCandidates(*regexps)
+    def GetCandidates(*regexps):
+        o = list(eevblog)
+        breakpoint() #xx 
 
+if 1:
+    GetCandidates(["rigol", "siglent"])
+    exit()
 if __name__ == "__main__":
     d = {}      # Options dictionary
     args = ParseCommandLine(d)

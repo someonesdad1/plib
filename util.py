@@ -69,6 +69,7 @@ unrange_real          Turn a seq of real numbers into a collection of ranges
 US_states             Return a dict of US_states keyed by two-letter names
 VisualCount           Return a list representing a histogram of a sequence
 WindChillInDegF       Calculate wind chill given OAT & wind speed
+Winnow                Winnow a sequence of strings with regular expressions
 
 '''
 if 1:  # Header
@@ -1813,6 +1814,32 @@ def ShowFile(*files):
         else:
             app = "d:/cygwin64/bin/cygstart.exe"  # cygwin
             subprocess.run([app, file])
+def Winnow(seq, regexps=[], OR=False, flags=re.I):
+    '''Returns a set of strings contained in seq that match the regular expression strings in the
+    sequence regexps.  The regexps are ANDed together unless OR is True.  flags are used in the
+    re.compile() function (use 0 or re.NOFLAG to use no flags).
+    '''
+    if not seq:
+        return set()
+    if not regexps:
+        return set(seq)
+    # Don't modify seq or regexps
+    items = set(seq)
+    regexes = deque(regexps)
+    if not all(ii(i, str) for i in items):
+        raise TypeError("Items in seq must all be strings")
+    if not all(ii(i, str) for i in regexps):
+        raise TypeError("Items in *regexps must all be strings")
+    results = set()
+    while regexes:
+        r = re.compile(regexes.popleft(), flags)
+        for item in items:
+            if r.search(item):
+                results.add(item)
+        if not OR and regexes:
+            items = results
+            results = set()
+    return results
 
 if __name__ == "__main__": 
     # Missing tests for: Ignore Debug, Dispatch, GetString
@@ -1820,6 +1847,7 @@ if __name__ == "__main__":
     from lwtest import run, assert_equal, raises, Assert
     from random import seed
     from wrap import dedent
+    from color import t
     import itertools
     import math
     import sys
@@ -1829,6 +1857,20 @@ if __name__ == "__main__":
     # Need to have version, as SizeOf stuff changed between 3.7 and 3.9
     vi = sys.version_info
     ver = f"{vi[0]}.{vi[1]}"
+    def Test_Winnow():
+        s = set("ei eI Ei EI".split())
+        regexps = ["e", "I"]
+        # Don't ignore case
+        u = Winnow(s, regexps=regexps, flags=0)
+        Assert(u == {'eI'})
+        # Ignore case
+        flags = re.I
+        u = Winnow(s, regexps=regexps, flags=re.I)
+        Assert(u == s)
+        # Empty item_sequence returns empty set
+        Assert(Winnow([], regexps=regexps, flags=0) == set())
+        # Empty regexps returns item_sequence set
+        Assert(Winnow(s, regexps=[], flags=0) == set(s))
     def Test_AcceptableDiff():
         Assert(AcceptableDiff(0, 0))
         Assert(not AcceptableDiff(1, 1.01))
@@ -2538,8 +2580,8 @@ if __name__ == "__main__":
         for name in mnames:
             if name.startswith("Test"):
                 continue
-            if name not in names:
-                print(f"{name} in module not in docstring")
+            if name not in names and name not in "wsl t".split():
+                print(f"{t.ornl}util:Test_check_names(){t.n}:  {name} in module not in docstring")
     # Make sure the docstring list of names is up-to-date'
     check_names = False
     check_names = True
