@@ -70,7 +70,6 @@ US_states             Return a dict of US_states keyed by two-letter names
 VisualCount           Return a list representing a histogram of a sequence
 WindChillInDegF       Calculate wind chill given OAT & wind speed
 Winnow                Winnow a sequence of strings with regular expressions
-
 '''
 if 1:  # Header
     if 1:  # Copyright, license

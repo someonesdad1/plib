@@ -39,10 +39,71 @@ if 1:   # Header
         import requests
         from dptime import dpdatetime
         from color import t
-        if 1:
+        if 0:
             import debug
             debug.SetDebugger() 
 if 1:   # Core functionality
+    class Title:
+        '''Class to regularize the title.  Note there are a number of things needing fixes, as
+        the website was written by a human, not a script.
+        '''
+        def __init__(self, title):
+            '''We'll standardize on the following properties
+            n           EEVblog number (most are numbered in sequence).  None if no number.
+            title       Basic title with no 'EEVblog dddd -'.
+            part        Part number (<= numparts), None if not a multipart
+            numparts    Number of parts, None if not a multipart
+            
+            The __str__ form is what should be used to print the title to the screen.
+            '''
+            # Remove leading and trailing " characters
+            if title[0] == '"':
+                title = title[1:]
+            if title[-1] == '"':
+                title = title[:-1]
+            # title can have double and single quotes in them, so escape them
+            title1 = title.replace('"', '\\"').replace("'", "\\'")
+            # Standardize on 'EEVblog'
+            title = title.replace("EEVBlog", "EEVblog")
+            # Standardize the numbering
+            if title.startswith("EEVblog #"):
+                title = title.replace("EEVblog #", "EEVblog ")
+            if title.startswith("EEVblog#"):
+                title = title.replace("EEVblog#", "EEVblog ")
+            # Some are missing space characters
+            if title.startswith("EEVblog") and title[7] != " ":
+                title = "EEVblog " + title[7:]
+            # These are the standard forms that are fine
+            r = re.compile(r"^EEVblog \d+ -")
+            mo = r.search(title)
+            if mo:
+                self.title = title
+                if "1388" in title:
+                    title = "Dumpster Diving 4K TV Murphy's \"Repair\""
+                return
+            # Find the not quite standard forms
+            r = re.compile(r"^EEVblog \d+")
+            mo = r.search(title)
+            if not mo:
+                self.title = title
+                return
+            # These  have things like "Part x", a cuddled '-' or ':'
+            r = re.compile(r"^EEVblog \d+:")
+            mo = r.search(title)
+            if mo:
+                title = title.replace(":", " -", 1)
+                self.title = title
+                return
+            r = re.compile(r"^EEVblog \d+-")
+            mo = r.search(title)
+            if mo:
+                title = title.replace("-", " -", 1)
+                self.title = title
+                return
+            # Set our title
+            self.title = title
+        def __str__(self):
+            return self.title
     def CreateModule():
         '''Create the /plib/eevblog_data.py module file that has a dict of titles and the relevant
         URL to the web page.
@@ -55,11 +116,9 @@ if 1:   # Core functionality
         module = P("/plib/eevblog_data.py")
         datafile = P("/home/don/dp/eevblog.data")
         # regex to get relevant lines with URL
-        r_url = re.compile(f'^<a href=("{url}.*?")')
-        # regex to get eevblog URL
-        r_title = re.compile(r'title=(".*")')
+        r_url = re.compile(f'^<a href="({url}.*?)"')
         # regex to get title
-        r_title = re.compile(r'title=(".*")')
+        r_title = re.compile(r'title="(.*?)"')
         # Get the datafile's lines
         lines = datafile.read_text().split("\n")
         o = []
@@ -73,7 +132,7 @@ if 1:   # Core functionality
             if not mo:
                 continue
             title = mo.groups()[0]
-            o.append((title, page_url))
+            o.append((title.strip(), page_url.strip()))
             if 0:
                 t.print(f"{t.purl}{page_url} {t.ornl}{title}")
         # Write the module
@@ -86,14 +145,12 @@ if 1:   # Core functionality
             print("eevblog = {", file=f)
             for i, x in enumerate(o):
                 title, page_url = x
-                # Remove leading and trailing " characters
-                if title[0] == '"':
-                    title = title[1:]
-                if title[-1] == '"':
-                    title = title[:-1]
-                # title can have double and single quotes in them, so escape them
-                title1 = title.replace('"', '\\"').replace("'", "\\'")
-                print(f'{" "*4}"{title1}": {page_url},', file=f)
+                if not title:
+                    continue
+                # Regularize the title
+                title = Title(title)
+                print(f'{" "*4}"{title!s}": "{page_url}",', file=f)
             print("}", file=f)
+
 if __name__ == "__main__":  
     CreateModule()

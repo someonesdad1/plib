@@ -22,6 +22,7 @@ if 1:  # Header
         import getopt
         import os
         import re
+        from string import digits
         import sys
     if 1:   # Custom imports
         from eevblog_data import eevblog    # Dictionary of titles & URLs
@@ -29,6 +30,7 @@ if 1:  # Header
         from wrap import dedent
         from color import t
         from lwtest import Assert
+        from util import Winnow
         if 0:
             import debug
             debug.SetDebugger()
@@ -37,6 +39,7 @@ if 1:  # Header
             pass
         g = G()
         g.dbg = False
+        g.eev_num = re.compile(r"^EEVblog #?(\d{1, 4}) -")
         ii = isinstance
 if 1:   # Utility
     def GetColors():
@@ -66,31 +69,63 @@ if 1:   # Utility
             -i      Do not ignore case in searches
             -n      OR the regexes
             -o      Open the URLs that are found
+            -r      Print out in most-recent-first order
         '''))
         exit(status)
     def ParseCommandLine(d):
+        d["-d"] = False     # Open URLs that are found
         d["-i"] = False     # Do not ignore case
-        d["-n"] = False     # OR the regexes
-        d["-o"] = False     # Open URLs that are found
+        d["-o"] = False     # OR the regexes
+        d["-r"] = False     # Most recent first order
         if len(sys.argv) < 2:
             Usage()
         try:
-            opts, args = getopt.getopt(sys.argv[1:], "ino") 
+            opts, args = getopt.getopt(sys.argv[1:], "dio") 
         except getopt.GetoptError as e:
             print(str(e))
             exit(1)
         for o, a in opts:
-            if o[1] in list("ino"):
+            if o[1] in list("dio"):
                 d[o] = not d[o]
         return args
 if 1:   # Core functionality
-    def GetCandidates(*regexps):
-        o = list(eevblog)
-        breakpoint() #xx 
+    def GetCandidates(regexps):
+        'Return a set of the titles to open'
+        titles_to_search = list(eevblog)
+        ignore_case = 0 if d["-i"] else re.I
+        OR = True if d["-o"] else False
+        titles = Winnow(titles_to_search, regexps, OR=OR, flags=ignore_case)
+        return titles
+    def SortKey(item):
+        "Return the EEVblog number as int if it's there else 0"
+        item = item.lower()
+        if item.startswith("eevblog "):
+            s = item.replace("eevblog ", "")
+            if s and s[0] == "#":
+                s = s[1:]
+            # Get leading digits
+            u = ""
+            while s[0] in digits:
+                u += s[0]
+                s = s[1:]
+            return int(u) if u else 0
+        else:
+            return 0
+    def FormatTitle(title):
+        "Remove 'EEVblog <num> -' stuff and replace with 'num: '"
+        num = SortKey(title)
+        if not num:
+            return title
 
-if 1:
-    GetCandidates(["rigol", "siglent"])
-    exit()
+                
 if __name__ == "__main__":
     d = {}      # Options dictionary
-    args = ParseCommandLine(d)
+    regexps = ParseCommandLine(d)
+    candidates = GetCandidates(regexps)
+    results = []
+    for i in sorted(candidates, key=SortKey):
+        results.append(f"{i}")
+    if d["-r"]:
+        results = reversed(results)
+    for i in results:
+        print(i)
