@@ -24,6 +24,7 @@ if 1:  # Header
         import re
         from string import digits
         import sys
+        import webbrowser
     if 1:   # Custom imports
         from eevblog_data import eevblog    # Dictionary of titles & URLs
         from f import flt
@@ -31,6 +32,7 @@ if 1:  # Header
         from color import t
         from lwtest import Assert
         from util import Winnow
+        from wsl import wsl
         if 0:
             import debug
             debug.SetDebugger()
@@ -70,6 +72,7 @@ if 1:   # Utility
             -n      OR the regexes
             -o      Open the URLs that are found
             -r      Print out in most-recent-first order
+            -u      Include URL in screen printing
         '''))
         exit(status)
     def ParseCommandLine(d):
@@ -77,15 +80,16 @@ if 1:   # Utility
         d["-i"] = False     # Do not ignore case
         d["-o"] = False     # OR the regexes
         d["-r"] = False     # Most recent first order
+        d["-u"] = False     # Include URL in screen printing
         if len(sys.argv) < 2:
             Usage()
         try:
-            opts, args = getopt.getopt(sys.argv[1:], "dio") 
+            opts, args = getopt.getopt(sys.argv[1:], "diou") 
         except getopt.GetoptError as e:
             print(str(e))
             exit(1)
         for o, a in opts:
-            if o[1] in list("dio"):
+            if o[1] in list("diou"):
                 d[o] = not d[o]
         return args
 if 1:   # Core functionality
@@ -116,7 +120,6 @@ if 1:   # Core functionality
         num = SortKey(title)
         if not num:
             return title
-
                 
 if __name__ == "__main__":
     d = {}      # Options dictionary
@@ -127,5 +130,19 @@ if __name__ == "__main__":
         results.append(f"{i}")
     if d["-r"]:
         results = reversed(results)
-    for i in results:
-        print(i)
+    if wsl:
+        for i in results:
+            # Under WSL, you can't open a URL in the web browser, so we print the URLs
+            if d["-u"] or d["-o"]:
+                t.print(f"{t.whtl}{i}  {t.gry}{eevblog[i]}")
+            else:
+                print(f"{i}")
+    else:
+        for i in results:
+                print(f"{i}")
+        if d["-o"]:
+            # Display the results
+            for i in results:
+                url = eevblog[i]
+                webbrowser.open(url)
+            
