@@ -24,7 +24,7 @@ if 1:   # Header
         data_file = "/elec/spreadsheets/Components.csv"
         # Colors
         t.hl = t("purl")        # Highlight for a regexp
-        t.cat = t("lill")       # Highlight for category
+        t.cat = t("mag")        # Highlight for category
         t.warn = t("ornl")      # Color for a missing category warning
         t.N = t.n
 if 1:   # Classes
@@ -66,7 +66,7 @@ if 1:   # Utility
             Options
               -a        Dump all records
               -b N      Show contents of box number N
-              -C        Use color highlighting [{d["-C"]}]
+              -C        Do not Use color highlighting
               -c        Show category
               -i        Do not ignore case in searches
               -k kwd    Show items with keyword kwd
@@ -195,8 +195,7 @@ if 1:   # Core functionality
                         matched_all = False
                 if matched_all:
                     found.append(s)
-        # found is a list of the strings matched (e.g. "1:1 Component pins")
-        # pos is a dict indexed by a found entry with the start and end of the match
+        # Print results
         found = list(set(found))
         found.sort(key=cmp_to_key(strsort))
         for item in found:
@@ -207,10 +206,17 @@ if 1:   # Core functionality
                 used.append(k)
                 n, m = k
                 spc = item.find(" ")   # Location of first space after box/bin
+                # Print box and compartment in color
+                box, compartment = item[:spc].split(":")
+                r = 6 - len(box) - len(compartment) - 1
+                if d["-C"]:
+                    print(f"{t.lill}{box:>2s}:{t.trq}{compartment:>2s}{t.n}{' '*r}", end="")
+                else:
+                    print(f"{box:>2s}:{compartment:>2s}{' '*r}", end="")
                 # Correct for ignoring searches up to the space
                 n += spc + 1
                 m += spc + 1
-                print(item[:n], end="")
+                print(item[spc:n], end="")
                 clr = GetColor(i)
                 if d["-C"]:
                     print(f"{clr}", end="")

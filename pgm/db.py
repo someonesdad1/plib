@@ -136,44 +136,51 @@ def ConversionTable():
         f"{'dBm(75 Ω)':>{w}s}",
         f"{'dBm(600 Ω)':>{w}s}",
         f"{'dBV':>{w}s}",
-        #f"{'dBmV':>{w}s}",
-        #f"{'dBuV':>{w}s}",
+        f"{'dBmV':>{w}s}",
+        f"{'dBuV':>{w}s}",
     )
     print("dB values in voltage for various references\n")
-    t.print(f"{t('pnkl')}{' '.join(hdr)}")
+    h = t.magl  # Header color
+    t.print(f"{h}{' '.join(hdr)}")
     for db in range(60, -120 - 1, -d["-r"]):
         res = []
         res.append(sqrt(50/1000)*10**(db/20))       # dBm(50)
         res.append(sqrt(75/1000)*10**(db/20))       # dBm(75)
         res.append(sqrt(600/1000)*10**(db/20))      # dBm(600)
         res.append(10**(db/20))                     # dBV
-        #res.append(1e-3*10**(db/20))                # dBmV
-        #res.append(1e-6*10**(db/20))                # dBμV
+        res.append(1e-3*10**(db/20))                # dBmV
+        res.append(1e-6*10**(db/20))                # dBμV
         res = [f"{flt(i).engsi + 'V'!s:>{w}s}" for i in res]
         res.insert(0, f"{'%3d' % db!s:>{w}s}")
         if db % 10 == 0:
             t.print(f"{t('grnl')}{' '.join(res)}")
         else:
             print(' '.join(res))
-    t.print(f"{t('pnkl')}{' '.join(hdr)}")
+    t.print(f"{h}{' '.join(hdr)}")
 def Title(s):
     # The following is needed to get the underlining to print all the way across
     sp = " "*((W - len(s))//2)
     s = sp + s + sp[:-1] + chr(0xa0)
     t.print(f"{t(attr='ul')}{s:^{W}s}")
-def dBmToVoltage():
+def dBmToVoltage(R=600, nl=False):
+    'Print a dBm(R Ω) to voltage table'
+    # Colors
+    C = {600: t.magl, 50: t.yell, 75: t.trql}
+    c = C.get(R, "t.whtl")
     w1, w2 = 12, 8
-    Title("dBm(600 Ω) to voltage")
-    out = [f"{t.dBm600}{'dBm(600 Ω)':^{w1}s}{t.n}  {'Voltage, V':^{w2}s}"]
-    c = sqrt(600/1000)
+    Title(f"dBm({R} Ω) to voltage")
+    out = [f"{c}{f'dBm({R} Ω)':^{w1}s}{t.n}  {'Voltage, V':^{w2}s}"]
+    u = sqrt(R/1000)
     for dBm in range(50, 0, -d["-r"]):
-        V = flt(c*10**(dBm/20))
-        out.append(f"{t.dBm600}{str(dBm):^{w1}s}{t.n}  {V.engsi + 'V':^{w2}s}")
+        V = flt(u*10**(dBm/20))
+        out.append(f"{c}{str(dBm):^{w1}s}{t.n}  {V.engsi + 'V':^{w2}s}")
     for dBm in range(0, -61, -d["-r"]):
-        V = flt(c*10**(dBm/20))
-        out.append(f"{t.dBm600}{str(dBm):^{w1}s}{t.n}  {V.engsi + 'V':^{w2}s}")
+        V = flt(u*10**(dBm/20))
+        out.append(f"{c}{str(dBm):^{w1}s}{t.n}  {V.engsi + 'V':^{w2}s}")
     for i in Columnize(out):
         print(i)
+    if nl:
+        print()
 def dBVToVoltage():
     w1, w2 = 12, 8
     Title("dBV to voltage")
@@ -273,6 +280,6 @@ if __name__ == "__main__":
     elif d["-v"]:
         dBV_dBm600()
     else:
-        dBmToVoltage()
-        print()
+        dBmToVoltage(50, nl=True)
+        dBmToVoltage(600, nl=True)
         dBVToVoltage()
