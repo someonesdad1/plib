@@ -70,7 +70,7 @@ if 1:   # Utility
         Options:
             -i      Do not ignore case in searches
             -n      OR the regexes
-            -o      Open the URLs that are found
+            -o      Open the URLs that are found (won't work under WSL)
             -r      Print out in most-recent-first order
             -u      Include URL in screen printing
         '''))

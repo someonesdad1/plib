@@ -1,13 +1,20 @@
 '''
 TODO:  
+
+    - GetNumber uses the boolean use_unit to allow the user to append a unit string.  Change it to
+      also allow use_unit to be a string; then a unit string, if appended, must have the same
+      dimensions as the given string.
+    - GetLine needs a keep=[] keyword argument to be used on lines that aren't removed by the
+      ignore argument.
+    - GetLine1 staged to be removed by commenting out
     - See if GetLines and GetLines1 can be combined
-    - Add number kw to GetLines which then causes a list of tuples
-      (linenum, str) to be returned
+    - Add number kw to GetLines which then causes a list of tuples (linenum, str) to be returned
     - Add Zn to GetNumbers
     - Change GetFraction to also handle integers
 
-Module for a) getting data from files, strings, and streams, b) getting
-numbers interactively from user.
+Module for a) getting data from files, strings, and streams, b) getting numbers interactively from
+user.
+
 '''
 if 1:   # Header
     # Copyright, license
@@ -21,7 +28,7 @@ if 1:   # Header
         #∞what∞#
         # <programming> Module for getting data from files, strings, and
         # streams.  An example is reading a text file, getting all the lines
-        # except for those that match a sequency of regular expressions.
+        # except for those that match a sequence of regular expressions.
         # Other examples are getting all the words (tokens) from a file or a
         # set of numbers.  Handles a number of common programming tasks.
         #∞what∞#
@@ -988,10 +995,11 @@ if 1:   # Tokenizing
         def __new__(cls, value):
             return super(pnc, cls).__new__(cls, value)
     def Tokenize(s, wordchars=letters, otherchars=others, check=True, wordtype=wrd, punctype=pnc):
-        '''Return a deque t that contains all the word tokens in the string s.  The tokenizing
-        process is such that ''.join(t) is the same string as s (this is verified if check is
-        True).  wordchars and otherchars must be sequences of letters (sets preferred) so that "in"
-        works on detecting whether a letter is in the sequence.
+        '''Return a deque out that contains all the word tokens in the string s.  The tokenizing
+        process is such that ''.join(out) is the same string as s (this is verified if check is
+        True and raises an exception if it isn't).  wordchars and otherchars must be sequences of
+        letters (sets preferred) so that "in" works on detecting whether a letter is in the
+        sequence.
     
         The returned deque is made up of non-empty strings of a) words with letters and b)
         non-letters.  These strings will be wordtype and punctype, respectively, which are derived
@@ -1004,20 +1012,25 @@ if 1:   # Tokenizing
         The word tokens have isinstance(token, wrd) return True and the punctuation strings have
         isinstance(token, pnc) return True.
         '''
-        def Handle(c, seq1, seq2, seq2type):
-            seq1.append(c)
+        def Handle(char, seq1, seq2, seq2type):
+            '''Append char to seq1 and coalesce seq2 to seq2type, and clear seq2.  seq1 and seq2
+            are either word or punctuation sequences.
+            '''
+            seq1.append(char)
             if seq2:
-                p = ''.join(seq2)
+                p = ''.join(seq2)   # Coalesce into a single string
                 if p:
                     out.append(seq2type(p))
                 seq2.clear()
         inp, out, word, punc = deque(s), deque(), deque(), deque()
         while inp:
-            c = inp.popleft()
-            if c in letters or c in otherchars:
-                Handle(c, word, punc, punctype)
+            char = inp.popleft()
+            if char in letters or char in otherchars:
+                # It's a letter or other character
+                Handle(char, word, punc, punctype)
             else:
-                Handle(c, punc, word, wordtype)
+                # It's a punctuation character
+                Handle(char, punc, word, wordtype)
         if word:
             out.append(wordtype(''.join(word)))
         if punc:
@@ -1027,7 +1040,7 @@ if 1:   # Tokenizing
             if t != s:
                 print(f"Orig:  {repr(s)}")
                 print(f"New :  {repr(t)}")
-                print("Tokenize's invariant failed")
+                raise ValueError("Tokenize's invariant failed")
         return out
 if 1:   # Miscellaneous
     def IsPunctuation(seq):

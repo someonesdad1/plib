@@ -53,9 +53,9 @@ if 1:   # Classes
             ...
             t = sw()    # How many seconds have elapsed since starting
             sw.reset()  # Start the timer over again
-        The timer's resolution is ns because it uses time.perf_counter_ns()
-        but resolution will be limited for long times because of the limited
-        resolution of floats.
+        The timer's resolution is ns because it uses time.perf_counter_ns() which returns an
+        integer.  Resolution will be limited for long times because of the limited resolution of
+        floats.
         '''
         def __init__(self):
             self.reset()

@@ -1,12 +1,23 @@
 Active:  /plib/.todo
 
-    - get.py
-        - GetNumber uses the boolean use_unit to allow the user to append a unit string.  Change it
-          to also allow use_unit to be a string; then a unit string, if appended, must have the
-          same dimensions as the given string.
-        - GetLine needs a keep=[] keyword argument to be used on lines that aren't removed by the
-          ignore argument.
-        - GetLine1 staged to be removed by commenting out
+    - pspell.py
+        - Utility to spell check source code.  I keep finding spelling errors in my old scripts
+          and a tool should be able to do this reasonably well.
+        - Use the algorithm from xref.py to split tokens into words at capital letter boundaries or
+          underscores
+        - Identify the language by the file extension or pass it in as a keyword
+        - The core case-sensitive words file should end up in /words and should be classified by
+          things like human names, language, programming language specificity, etc.
+        - A first experiment might be to get all the tokens from all of the scripts in /plib.  With
+          import timer, get and the following code, it took 7.4 s to tokenize all the python
+          scripts:
+
+            p = P("/plib")
+            sw = timer.Stopwatch()
+            for i in p.glob("**/*.py"):
+                text = open(i).read()
+                dq = get.Tokenize(text)
+            print(sw())
 
     - pgm/ds.py
         - Need a feature to define default documents so they open on the first search.

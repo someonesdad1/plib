@@ -23,7 +23,7 @@ if 1:   # Header
         beginning_lines_to_ignore = 3
         data_file = "/elec/spreadsheets/Components.csv"
         # Colors
-        t.hl = t("yel")         # Highlight for a regexp
+        t.hl = t("purl")        # Highlight for a regexp
         t.cat = t("lill")       # Highlight for category
         t.warn = t("ornl")      # Color for a missing category warning
         t.N = t.n
@@ -49,11 +49,18 @@ if 1:   # Classes
                 return f"{self.loc} {self.descr}"
         def __repr__(self):
             return str(self)
+        def __lt__(self, other):
+            if int(self.box) < int(other.box):
+                return True
+            elif int(self.box) > int(other.box):
+                return False
+            else:
+                return int(self.compartment) < int(other.compartment)
 if 1:   # Utility
     def Usage(status=0):
         print(dedent(f'''
             {sys.argv[0]} [options] [regex [regex2...]]
-              Searches the components database for the indicated regular expressions OR'd
+              Searches the components database for the indicated regular expressions AND'd
               together.  The search is case-insensitive.  The data file is 
                 {data_file!r}
             Options
@@ -94,14 +101,15 @@ if 1:   # Utility
 if 1:   # Core functionality
     def GetData():
         # Return a list of Entry items
-        items, empty = [], ["", "", "", "", ""]
+        items, empty = set(), ["", "", "", "", ""]
         C = csv.reader(open(data_file, "r"))
         for i, row in enumerate(C):
             if i < beginning_lines_to_ignore or row[2] == "Empty":
                 continue
             if row != empty:
                 entry = Entry(i + 1, row)
-            items.append(entry)
+                items.add(entry)
+        items = list(sorted(items))
         return items
     def strsort(a, b):
         '''Sorting comparison function for lines to be printed.  The line is
@@ -135,7 +143,7 @@ if 1:   # Core functionality
             raise TypeError("i must be an int")
         i = abs(i)
         colors = (
-            t.yell,
+            t.yel,
             t.grnl,
             t.ornl,
             t.magl,
