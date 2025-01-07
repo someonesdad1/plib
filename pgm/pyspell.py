@@ -40,8 +40,6 @@ if 1:  # Header
         g = G()
         g.dbg = False
         ii = isinstance
-        # Load the default set of words
-        g.wordlist = set(open("/donrepo/words/words.univ").read().split())
 if 1:   # Utility
     def GetColors():
         t.err = t("redl")
@@ -92,7 +90,26 @@ if 1:   # Utility
             elif o == "-h":
                 Usage()
         return args
+if 1:   # Classes
+    class Token(str):
+        'Hold words so they can be sorted in dictionary order'
+        def __new__(cls, value, file_number):
+            instance = super().__new__(cls, value)
+            instance.n = file_number
+            return instance
+        def __str__(self):
+            return super().__str__()
+        def __repr__(self):
+            return super().__str__() + f"<{self.n}>"
+        def __lt__(self, other):
+            return self.lower() < other.lower()
 if 1:   # Core functionality
+    def GetWordlist():
+        'Load the default set of words'
+        g.wordlist = set()
+        # Remove any underscores
+        for w in open("/donrepo/words/words.univ").read().split():
+            g.wordlist.add(w.replace("_", ""))
     def SplitOnCapitals(word):
         assert "_" not in word
         capitals = set("ABCDEFGHIJKLMNOPQRSTUVWXYZ")
@@ -122,38 +139,47 @@ if 1:   # Core functionality
                 if word not in g.wordlist and word.lower() not in g.wordlist:
                     return True
             return False
+    def DebugPrintTokens(words):
+        o = []
+        for i in sorted(words):
+            o.append(str(i))
+        for i in Columnize(o):
+            print(i)
+    def SortTokens(words):
+        'Sort the tokens in dictionary order'
+        return list(sorted(words))
     def Report(misspelled, files):
         if not misspelled:
             return
         print("File            Word")
         print("------   --------------------")
-        for i, word in misspelled:
-            print(f"{i:6d}   {word}")
+        # Print the words (they are in folded sort order)
+        for word in misspelled:
+            print(f"{word.n:^6d}   {word}")
         print(f"\nFile numbers:")
         for i, file in enumerate(files):
-            print(f"{i:6d}   {file}")
+            print(f"{i:^6d}   {file}")
 
 if __name__ == "__main__":
     d = {}      # Options dictionary
     files = ParseCommandLine(d)
-    sw = timer.Stopwatch()
+    GetWordlist()
+    # The words to be checked will be in the words set, which will be (n, word) where n is the
+    # number of the file it came from.
     words = set()
     for n, file in enumerate(files):
         text = open(file).read()
         dq = get.Tokenize(text)
         for token in dq:
             if ii(token, get.wrd):
-                words.add((n, token))
+                words.add(Token(token, n))
     if 0:
-        # Debug print the tokens
-        o = []
-        for i in sorted(words):
-            o.append(i)
-        for i in Columnize(o):
-            print(i)
+        DebugPrintTokens(words)
+        exit()
     # Report the words that seem to be misspelled
-    misspelled = []
-    for n, word in words:
+    misspelled = set()
+    for word in words:
         if IsMisspelled(word):
-            misspelled.append((n, word))
+            misspelled.add(word)
+    misspelled = SortTokens(misspelled)
     Report(misspelled, files)
