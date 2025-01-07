@@ -140,7 +140,7 @@ def Manpage():
       (token).  For example, the module /plib/bidict.py supplies a bidict, a
       bidirectional dictionary.  I can find all uses of 'bidict' in python
       files with the command 'pgrep -l bidict', which is like how you'd use
-      grep to do the search in the current directory (i.e., 'grep -l bidct
+      grep to do the search in the current directory (i.e., 'grep -l bidict
       *.py').
  
       If you search text files with a particular set of extensions frequently,

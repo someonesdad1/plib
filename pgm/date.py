@@ -92,7 +92,7 @@ if 1:   # Utility
         interesting detail on how the measured length of a day varies over
         60 years starting in 1962, about 7 years after the invention of
         atomic clocks with the precision to make such measurements.  Note
-        the vertical scale is 5 ms.  The small flucuations are caused by
+        the vertical scale is 5 ms.  The small fluctuations are caused by
         the changes in mass distribution over the Earth by things like
         tides, crustal movements, atmospheric changes, core and mantle
         changes, and perhaps other things.
@@ -121,7 +121,7 @@ if 1:   # Utility
           minutes, hours, days, weeks, months, years, and centuries.
 
           Allowed forms of expr:  +nu and -nu where n is a number and u is
-          an optional cuddled time unit leter.
+          an optional cuddled time unit letter.
 
         Examples:
           '-3y' 

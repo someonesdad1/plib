@@ -472,8 +472,8 @@ if 1:   # Core functionality
     def GuessSyllables(word):
         "Guess the number of syllables in a word"
         # Our basic way of guessing is to count the number of vowels
-        # in a word.  We then subtract 1 for each dipthong we find,
-        # and add 1 for anti-dipthongs (OK, that's probably not the
+        # in a word.  We then subtract 1 for each diphthong we find,
+        # and add 1 for anti-diphthongs (OK, that's probably not the
         # technical term).
         #
         # This function is from the pyflesch.py script written by Seb Bacon,

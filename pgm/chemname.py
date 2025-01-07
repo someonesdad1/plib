@@ -223,7 +223,7 @@ if 1:   # Global variables
     French vergidris    	Basic copper acetate        	Cu(C2H2O2)2·H20
     Fulminating silver	Silver nitride	Ag3N
     Galena              	Natural lead sulfide        	PbS
-    Glacial	Glass-like, crystalized	
+    Glacial	Glass-like, crystallized	
     Glance	Mineral with a glassy appearance	
     Glauber's salt      	Sodium sulfate              	Na2SO4·10H2O
     Glucinium or glucinum	Beryllium	Be
@@ -589,7 +589,7 @@ if 1:   # Global variables
     Vitamin Bc	Folic acid	C19H19N7O6
     Vitamin C	Ascorbic acid	C6H8O6
     Vitamin D	This fat-soluble vitamin consists of steroid derivatives including ergocalciferol, C28H44O, and cholecalciferol, C27H44O	
-    Vitamin E	This vitamin occurs in four naturally occuring forms, called ?-, ?-, ?-, and ?-tocopherol. The ? form, C29H50O2, has the greatest activity; the ?- and ?- forms have one fewer methyl group, and the ?- form two fewer.	
+    Vitamin E	This vitamin occurs in four naturally occurring forms, called ?-, ?-, ?-, and ?-tocopherol. The ? form, C29H50O2, has the greatest activity; the ?- and ?- forms have one fewer methyl group, and the ?- form two fewer.	
     Vitriol	A sulfate	
     Vitriol                     	Sulfuric acid                 	H2SO4
     Vitriolate of tartar	Potassium sulfate	K2SO4

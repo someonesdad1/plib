@@ -4542,7 +4542,7 @@ if 1:   # Global variables
     553 Electronic traction control
     556 AdvanceTrac Vehicle Stability System
     572 Air conditioning, manual
-    572 Air Conditiong, CFC Free
+    572 Air Conditioning, CFC Free
     573 Air Conditioning
     574 High Capacity A/C F&R
     575 Auxiliary Climate Control
@@ -4691,7 +4691,7 @@ if 1:   # Global variables
     60D XLT Upgrade Package/RC
     60F Advanced Security Group
     60L Luxury Group
-    60N Navigaton w/ Audiophile 7 Speaker 6 Disc In-Dash
+    60N Navigation w/ Audiophile 7 Speaker 6 Disc In-Dash
     60S Sliding Side Cargo Door
     60T Traction Control
     61A AUTO DIP REAR VIEW MIRROR
@@ -4774,7 +4774,7 @@ if 1:   # Global variables
     85B 2nd Row Floor Console
     85B Stowable Bed Extender
     85D Seat upholstery
-    85D Wales Mohogany Wood Appearance Package
+    85D Wales Mahogany Wood Appearance Package
     85E Aluminum Trim Package
     85G Tailgate Step
     85M Bed Mat (Dealer)
@@ -5056,7 +5056,7 @@ if 1:   # Global variables
     A59 Sizzler Package
     A60 4-Speed Transmission Special Package
     A61 Automatic Transmission Special Package
-    A62 Rallye Instrument Cluster Package
+    A62 Rally Instrument Cluster Package
     A63 Challenger Moulding Group
     A65 Dart GT Package
     A66 Challenger 340 Performance Package
@@ -5605,7 +5605,7 @@ if 1:   # Global variables
     TRN Tires - P225/75R15 OWL A/T - SE
     TSC P235/75R15XL BSW A/S Tires
     TSK P235/75R15XL BSW A/S Tires
-    TTX 245/45ZR20 Performacne Tires
+    TTX 245/45ZR20 Performance Tires
     TWH P215/65R17 All-Season Self-Sealing Tires
     TX-- H.D. Vinyl 40/20/40 Split Back Bench
     TXW Tires - LT265/75R16 A/T OWL (5) /1500
@@ -5793,7 +5793,7 @@ if 1:   # Global variables
     V9Y Longitudinal Stripes - Yellow
     VK_ Hardtop
     W21 Road Wheels
-    W21 Rallye Wheels
+    W21 Rally Wheels
     W23 Road Wheels
     W34 Collapsible Spare Tire
     W55 Wheels Painted Body Color

@@ -82,7 +82,7 @@ if 1:   # Utility
             -h      Print a manpage
             -i e    Ignore extension e (e.g., '.jpg')
                     (can have multiple i options)
-            -n n    Starting number for file numberss [0]
+            -n n    Starting number for file numbers [0]
             -p p    New prefix for file names ['']
             -s s    New suffix for file names ['']
             -x      Perform the renaming

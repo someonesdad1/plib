@@ -1,4 +1,8 @@
 '''
+
+ToDo
+    - Use /plib/Dev/tokenize/contractions.py to help find tokens before the ' character
+
 Print out misspelled tokens in source code files.
 '''
  

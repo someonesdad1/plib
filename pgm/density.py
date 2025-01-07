@@ -316,7 +316,7 @@ if 1:  # Header
         Molybdenum                                     ; 10.22       ; asm 52
         Molybdenum                                     ; 10.220      ; el
         Molybdenum, liquid at melting point            ; 9.33        ; hcp B263
-        Molydenum                                      ; 10.2        ; aes 120
+        Molybdenum                                     ; 10.2        ; aes 120
         Monel (Ni-Cu alloy)                            ; 8.36-8.84   ; sim
         Monel (Ni-Cu alloy)                            ; 8.47        ; aes 118
         Monel (Ni-Cu alloy)                            ; 8.84        ; asm 52
@@ -742,8 +742,8 @@ if 1:  # Header
         NaCl in water 20 °C (salt brine), 9%            ; 1.0651      ; hcp D300
         Naphtha 15 °C (lighter fluid, camp stove fuel)  ; .6648       ; sim
         Naphtha, wood 25 °C                             ; .9595       ; sim
-        Naptha, aromatic (lighter fluid)               ; .85         ; aes 353
-        Napthalene 25 °C                                ; .8201       ; sim
+        Naphtha, aromatic (lighter fluid)               ; .85         ; aes 353
+        Naphthalene 25 °C                               ; .8201       ; sim
         Neon (liquid, bp = 111 K)                      ; 1.205       ; aes 97
         Nitric acid, 15%                               ; 1.0861      ; aes 370
         Nitric acid, 30%                               ; 1.1822      ; aes 370
@@ -2721,7 +2721,7 @@ if 1:  # Header
         Sodium hydrosulfate                            ; 1.121       ; pwdrh
         Sodium hydrosulphite                           ; 1.169       ; pwdrh
         Sodium hydroxide                               ; 0.961       ; pwdrh
-        Sodium metasilicafe                            ; 1.121       ; pwdrh
+        Sodium metasilicate                            ; 1.121       ; pwdrh
         Sodium naptholine sulph.                       ; 0.433       ; pwdrh
         Sodium nitrate                                 ; 1.346       ; pwdrh
         Sodium perborate                               ; 0.849       ; pwdrh

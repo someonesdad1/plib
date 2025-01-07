@@ -53,8 +53,8 @@ def Usage(d, status=1):
       possible dividers from the on-hand set of resistors.
     
     {name} -2 R V0 V1 V2
-      Given a potiometer of resistance R, calculate the two resistors needed to
-      let the pot adjust between V1 and V2 when the two resistors and the pot
+      Given a potentiometer of resistance R, calculate the two resistors needed 
+      to let the pot adjust between V1 and V2 when the two resistors and the pot
       are in series with the pot in the middle and V0 across the three
       resistances.
     

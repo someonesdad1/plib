@@ -1,5 +1,7 @@
 Active:  /plib/.todo
 
+    - Once pspell.py is finished, run it on hsm.py and tmbr.py, as there are numerous misspellings.
+
     - pgm/lookup.py needs color stuff fixed
 
     - pspell.py

@@ -95,7 +95,7 @@ def GetDefaultSettings(tick_levels_supported=6):
     return settings
 class CircularScale:
     '''A general class to allow you to create a circular scale.  Note that
-    all font sizes, tick lenths, tick widths, etc. are fractions of the
+    all font sizes, tick lengths, tick widths, etc. are fractions of the
     diameter of the scale.  This allows the scale to be printed at any
     desired size.
     '''

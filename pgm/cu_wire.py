@@ -117,7 +117,7 @@ if 1:   # Utility
         Unfortunately, the US still uses AWG, a gauge system to state wire size instead of diameter
         measurements.  AWG is American Wire Gauge [1].  Given an AWG number N, the diameter of a wire
         in inches is 92**((36 - N)/39)/200.  For 2/0, 3/0, or m/0 where m >= 2, use an N of 1 - m.
-        This silly gauge system was orginally related to the number of dies needed to draw down a
+        This silly gauge system was originally related to the number of dies needed to draw down a
         particular size -- fine for manufacturers but of absolutely no use to users of wire. 
         
         Useful approximations to memorize are that 12 gauge wire is about 2 mm in diameter and 18 gauge
@@ -144,7 +144,7 @@ if 1:   # Utility
               slope of 5.4 mJ/(mol*K). [7]
         
             - The change in length of commercial copper from room temperature to the melting point is
-              about 2%.  Thus, the change in volume for instrinsic specific physical quantities as a
+              about 2%.  Thus, the change in volume for intrinsic specific physical quantities as a
               function of temperature will be about 6%. [8]
         
         Over the indicated temperature ranges, these linear relationships make integrations easier.
@@ -287,7 +287,7 @@ if 1:   # Utility
             - Copper's specific heat is constant to the melting point 
             - The time involved is short enough that heat losses to the environment can be ignored
 
-        The treatment results in a first order linear differental equation for the wire
+        The treatment results in a first order linear differential equation for the wire
         temperature as a function of time.  The "short time" should probably no more than a few
         seconds.  The derivation ignores the heat of fusion of the conductor, which is probably
         reasonable, as once the conductor is at the melting point, mechanical disruption is likely
@@ -1041,7 +1041,7 @@ if 1:   # Core functionality
         wire diameter).  Pwr uses a current density of 2.82 A/mm².  Use the -H option for more details.
         '''))
     def MIL5088(gauge, ΔT):
-        '''Return the allowed current for a wire of size AWG gauge.  The temperature differenct ΔT
+        '''Return the allowed current for a wire of size AWG gauge.  The temperature difference ΔT
         is the wire's rating minus the ambient temperature in K.
         
         From MIL-W-5088L dated 10 May 1991.  This is a specification for the wiring of aerospace

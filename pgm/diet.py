@@ -122,7 +122,7 @@ if 1:   # Utility
               because one of these medicines is something he's not fond of, having seen
               complications with it.
 
-        Your daily weight flucuates quite a bit because of the air, water, and food you take in
+        Your daily weight fluctuates quite a bit because of the air, water, and food you take in
         and the stuff you excrete out.  It's not meaningful to measure your weight every day
         because of these fluctuations.  Walker in the "Hacker's Diet" suggest a moving average to
         filter out these fluctuations, but I think that's more work than needed.  I measured my

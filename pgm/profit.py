@@ -599,7 +599,7 @@ if 1:   # Core functionality
                 t.print(f"{t.msg}Need an argument for * command")
             try:
                 x = eval(cmd[1:], globals(), mdl.vars)
-            except Exeption as e:
+            except Exception as e:
                 t.print(f"{t.msg}[{Lineno()}] * command exception: {e}")
                 return 2
             mdl.c *= x
@@ -611,7 +611,7 @@ if 1:   # Core functionality
                 t.print(f"{t.msg}Need an argument for / command")
             try:
                 x = eval(cmd[1:], globals(), mdl.vars)
-            except Exeption as e:
+            except Exception as e:
                 t.print(f"{t.msg}[{Lineno()}] / command exception: {e}")
                 return 2
             mdl.c /= x
@@ -636,7 +636,7 @@ if 1:   # Core functionality
                 return 1
             try:
                 Save(name)
-            except Exeption as e:
+            except Exception as e:
                 t.print(f"{t.msg}[{Lineno()}] Save() exception: {e}")
         elif cmd[0] == "<":     # Load state from file
             if len(cmd) == 1:

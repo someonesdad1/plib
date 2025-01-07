@@ -48,7 +48,7 @@ Thoughts about using multithreading to reduce computation time
           denote the combination.  
         - There are (51 choose 5)*5! permutations = 2349060(120) =
           281887200 = 2.82e8.  A test showed that a list of 1e5 5-byte
-          bytestrings can be concatentated to at least 4e9 bytes.  I
+          bytestrings can be concatenated to at least 4e9 bytes.  I
           stopped the test at 535e6 of these 5-byte bytestrings, so 
           a deque could hold all the needed combinations, computed at
           startup.  These bytestrings can be the integer offset into the

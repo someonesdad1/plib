@@ -53,7 +53,7 @@ if 1:   # Header
         import string
 if 1:   # Core functionality
     def IsValidWord(word):
-        '''Return True if word is considerd a valid word.  Here, valid
+        '''Return True if word is considered a valid word.  Here, valid
         means it only contains ASCII letters.
  
         If you want to have letters other than ASCII, construct a custom

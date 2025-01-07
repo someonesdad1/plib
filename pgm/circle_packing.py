@@ -22,7 +22,7 @@ Information on circle packing
         Pi/(2*sqrt(3))=0.90689968211
     5  contacts
         number of contacts between circles and container and between the
-        circles themselves, respectivel
+        circles themselves, respectively
     6  loose
         number of circles that have still degrees of freedom for a
         movement inside the container (so called "rattlers"
@@ -1587,7 +1587,7 @@ if 1:   # Global variables
         Pi/(2*sqrt(3))=0.90689968211
     contacts
         number of contacts between circles and container and between the
-        circles themselves, respectivel
+        circles themselves, respectively
     loose
         number of circles that have still degrees of freedom for a
         movement inside the container (so called "rattlers"

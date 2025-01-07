@@ -247,7 +247,7 @@ if 1:  # Utility
                 the '.(' by the 'line x' message just after this file and
                 line number chunk.  If you used the -v option, you'll be
                 able to view the offending line on the screen by doing this
-                countin
+                counting.
         
             .include file [once]
                 Used to include another file at this point.  The behavior is

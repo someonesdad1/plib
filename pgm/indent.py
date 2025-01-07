@@ -343,40 +343,40 @@ if 1:   # Core functionality
         indentations marked.
  
         Test case:  command line invocation on files
-            * Run mk
-            * run 'indent *.cpp *.h'
-                * You should see 2 files indented with no failures.
-            * Verify the indenting 
-            * Verify there are the backup files equivalent to the original
-              files exclusing of indentation
-            * run 'indent -d *.cpp *.h'
-            * You should get the same results but see two colored debug
+            - Run mk
+            - run 'indent *.cpp *.h'
+                - You should see 2 files indented with no failures.
+            - Verify the indenting 
+            - Verify there are the backup files equivalent to the original
+              files exclusive of indentation
+            - run 'indent -d *.cpp *.h'
+            - You should get the same results but see two colored debug
               print lines telling you the files that have been indented.
  
         Test case:  verify -C option works
-            * Run 'indent -C'
-            * Verify all backup files are gone in current directory but not
+            - Run 'indent -C'
+            - Verify all backup files are gone in current directory but not
               in the subdirectory.
  
         Test case:  verify -f option works
-            * Run mk
-            * Create a file f with the names of the source files in it.  An
+            - Run mk
+            - Create a file f with the names of the source files in it.  An
               easy way to do this is 'ls >f' and edit out the non-source
               files.
-            * Run 'indent -f f'
-            * Verify the indenting worked the same as in the first test
+            - Run 'indent -f f'
+            - Verify the indenting worked the same as in the first test
               case
-            * Run 'indent -C' to remove backup files.  Note:  you may find
+            - Run 'indent -C' to remove backup files.  Note:  you may find
               it convenient to remove them in the mk script.
  
         Test case:  verify -h option works
-            * Run 'indent -h' and verify you get a listing of the different
+            - Run 'indent -h' and verify you get a listing of the different
               indentation styles.
  
         Test case:  verify project file works
-            * Run 'indent XX' where XX is the filename less the suffix of
+            - Run 'indent XX' where XX is the filename less the suffix of
               your project file
-            * Verify the correct number of files were formatted and that
+            - Verify the correct number of files were formatted and that
               they have the new style given in the project file
  
         Test case:  verify -C works with project file

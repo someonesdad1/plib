@@ -309,7 +309,7 @@ if 1:   # Waveform class
         
         One period of the waveform contains n points, but the endpoint is missing.  Thus, for a
         sine wave, the "natural" thing to do would be to include the points from 0 to 2*pi
-        inclusive.  However, by eliminating the last point, the arrays can be concatentated to
+        inclusive.  However, by eliminating the last point, the arrays can be concatenated to
         make multiple periods.
         
         Print the waveform instance to stdout to get a report on its attributes and functionals.

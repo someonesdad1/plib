@@ -396,7 +396,7 @@ if 1:   # Global variables
         145 ; Steel Magnolias
         146 ; Peterson's Movies
         147 ; Fields of Dream
-        147 ; Leviathon
+        147 ; Leviathan
         147 ; Secret Garden
         148 ; Exercise to the 50's
         150 ; Color Purple, The

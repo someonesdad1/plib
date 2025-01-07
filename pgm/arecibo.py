@@ -90,7 +90,7 @@ if 1:   # Utility
         Even with the explanations of these bitmaps, they can be a bit hard to follow
         or see without careful studying.  I got interested in these messages after
         reading [7] again, which I consider an excellent book because of the careful
-        and thoughtful contributions of the confererence's attendees (many were
+        and thoughtful contributions of the conference's attendees (many were
         amongst the top scientists at the time).  I loaned the book to a friend, both
         because I thought he might be interested in some of the discussions and some
         of the ideas/topics might make for interesting discussions/projects amongst
