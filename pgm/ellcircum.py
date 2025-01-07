@@ -107,10 +107,10 @@ if 1:   # Core functionality
             )
         text(0.02, 2.0, msg)
         # Put an errorbar to show rational deviation at eps == 1
-        barlength = (r[-1] - 2)/2
+        bar_length = (r[-1] - 2)/2
         x = 1.01
-        errorbar(x, 2 + barlength, yerr=0.05)
-        text(1.003*x, 2 + barlength/2, f"{100*barlength:.0f}%")
+        errorbar(x, 2 + bar_length, yerr=0.05)
+        text(1.003*x, 2 + bar_length/2, f"{100*bar_length:.0f}%")
         savefig("ellcircum.png")
     def Table():
         print(dedent(f'''

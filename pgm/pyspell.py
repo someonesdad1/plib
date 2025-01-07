@@ -138,6 +138,8 @@ if 1:   # Core functionality
             "/plib/pgm/random_phrase.py",
             "/plib/pgm/igor.sibilant_c.py",
             "/plib/pgm/uni.py",
+            "/plib/pgm/uri.py",
+            "/plib/pgm/personality.py",
         ]
         for i in plib_stuff:
             ignore.add(P(i))

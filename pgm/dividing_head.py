@@ -159,7 +159,7 @@ if 1:   # Utility
         exit(status)
     def Usage(status=1):
         print(dedent(f'''
-        Usage:  {sys.argv[0]} [options] operator operator_aruments
+        Usage:  {sys.argv[0]} [options] operator operator_arguments
           d   N [h]
             Construct table showing number of holes to get divisions 
             from 2 to N.  If h is given, limit holes to h.

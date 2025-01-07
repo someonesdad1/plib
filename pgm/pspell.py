@@ -153,13 +153,13 @@ if 1:   # Core functionality
                 bad.add(word)
         return list(sorted(bad, key=str.lower))
     def Process(tokens):
-        badwords = []
+        bad_words = []
         for mytoken in tokens:
             bad = SpellCheck(mytoken.string)
             if bad:
                 for item in bad:
-                    badwords.append((item, mytoken))
-        return badwords
+                    bad_words.append((item, mytoken))
+        return bad_words
     def ProcessFile(file):
         filename = file
         p = P(filename)
@@ -182,18 +182,18 @@ if 1:   # Core functionality
                         comments.append(T)
         except tokenize.TokenError:
             Error(f"{file!r} may not be a python script")
-        badstrings = Process(strings) if d["-s"] else []
-        badcomments = Process(comments) if d["-k"] else []
-        if badstrings:
+        bad_strings = Process(strings) if d["-s"] else []
+        bad_comments = Process(comments) if d["-k"] else []
+        if bad_strings:
             if d["-b"]:
-                d["brief"].extend(badstrings)
+                d["brief"].extend(bad_strings)
             else:
-                Report(badstrings, t.str, file, "bad strings")
-        if badcomments:
+                Report(bad_strings, t.str, file, "bad strings")
+        if bad_comments:
             if d["-b"]:
-                d["brief"].extend(badcomments)
+                d["brief"].extend(bad_comments)
             else:
-                Report(badcomments, t.cmt, file, "bad comments")
+                Report(bad_comments, t.cmt, file, "bad comments")
     def Report(items, clrstr, file, mytype):
         '''Condense the items into one line per word with line numbers.
           items     (word, token)
