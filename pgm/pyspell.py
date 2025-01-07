@@ -64,31 +64,26 @@ if 1:   # Utility
         Usage:  {sys.argv[0]} [options] file1 [file2...]
           Tokenize the indicated source code files and list the tokens that may be misspelled.
         Options:
-            -h      Print a manpage
+            -a      Process all files on command line (certain files in /plib are ignored
+                    otherwise)
+            -b      Print a bare list of words (no file information)
+            -c      Print a columnized list of the words with no file information
         '''))
         exit(status)
     def ParseCommandLine(d):
-        d["-a"] = False     # Need description
-        d["-d"] = 3         # Number of significant digits
+        d["-a"] = False     # Don't ignore certain /plib files
+        d["-b"] = False     # Print a bare list of tokens (no file information)
+        d["-c"] = False     # Print the words in columns and exit
         if len(sys.argv) < 2:
             Usage()
         try:
-            opts, args = getopt.getopt(sys.argv[1:], "ad:h") 
+            opts, args = getopt.getopt(sys.argv[1:], "abc") 
         except getopt.GetoptError as e:
             print(str(e))
             exit(1)
         for o, a in opts:
-            if o[1] in list("a"):
+            if o[1] in list("abc"):
                 d[o] = not d[o]
-            elif o == "-d":
-                try:
-                    d[o] = int(a)
-                    if not (1 <= d[o] <= 15):
-                        raise ValueError()
-                except ValueError:
-                    Error(f"-d option's argument must be an integer between 1 and 15")
-            elif o == "-h":
-                Usage()
         return args
 if 1:   # Classes
     class Token(str):
@@ -111,8 +106,11 @@ if 1:   # Core functionality
         for w in open("/donrepo/words/words.univ").read().split():
             g.wordlist.add(w.replace("_", ""))
         # Load the ancillary set
-        file = "/plib/pgm/pyspell.dat"
+        file = P("/donrepo/plib/pgm/pyspell.words")
+        if not file.exists():
+            Error(f"{file} doesn't exist")
         words = get.GetLines(file, script=True, ignore_empty=True, strip=True, nonl=True)
+        g.wordlist.update(set(words))
     def SplitOnCapitals(word):
         assert "_" not in word
         capitals = set("ABCDEFGHIJKLMNOPQRSTUVWXYZ")
@@ -123,6 +121,33 @@ if 1:   # Core functionality
         for i in word:
             o.append(f" {i}") if i in capitals else o.append(f"{i}")
         return ''.join(o).split()
+    def FilterFiles(files):
+        'Filter out certain files unless -a was used'
+        # First convert all strings to pathlib.Path objects
+        files = [P(i) for i in files]
+        # Make sure all files exist
+        for file in files:
+            if not file.exists():
+                Error(f"File {t.ornl}{file}{t.n} doesn't exist")
+        if d["-a"]:
+            return files
+        keep = []
+        ignore = set()
+        plib_stuff = [
+            "/plib/pgm/words_syllables.py",
+            "/plib/pgm/random_phrase.py",
+            "/plib/pgm/igor.sibilant_c.py",
+            "/plib/pgm/uni.py",
+        ]
+        for i in plib_stuff:
+            ignore.add(P(i))
+            # Need to include donrepo stuff because of incompatibility of WSL & cygwin's filesystems
+            ignore.add(P("/donrepo" + i))
+        for file in files:
+            if file.absolute() in ignore:
+                continue
+            keep.append(file)
+        return keep
     def IsMisspelled(word):
         '''Check the indicated word for a misspelling.  Split it on '_' if it contains
         underscores.  If not, split it on uppercase letters and spell check each token.
@@ -142,43 +167,53 @@ if 1:   # Core functionality
                 if word not in g.wordlist and word.lower() not in g.wordlist:
                     return True
             return False
-    def DebugPrintTokens(words):
+    def PrintTokensInColumns(words):
+        'Print the words in columns'
         o = []
         for i in sorted(words):
             o.append(str(i))
         for i in Columnize(o):
             print(i)
+        exit(0)
     def SortTokens(words):
         'Sort the tokens in dictionary order'
         return list(sorted(words))
     def Report(misspelled, files):
         if not misspelled:
             return
-        print("File            Word")
-        print("------   --------------------")
-        # Print the words (they are in folded sort order)
-        for word in misspelled:
-            print(f"{word.n:^6d}   {word}")
-        print(f"\nFile numbers:")
-        for i, file in enumerate(files):
-            print(f"{i:^6d}   {file}")
+        if d["-b"]:     # Print a bare list of words
+            for word in misspelled:
+                print(word)
+        else:
+            print("File            Word")
+            print("------   --------------------")
+            # Print the words (they are in folded sort order)
+            for word in misspelled:
+                print(f"{word.n:^6d}   {word}")
+            print(f"\nFile numbers:")
+            for i, file in enumerate(files):
+                print(f"{i:^6d}   {file}")
 
 if __name__ == "__main__":
     d = {}      # Options dictionary
     files = ParseCommandLine(d)
+    files = FilterFiles(files)  # files are now all pathlib.Path instances
+    if not files:
+        print("No files to process")
+        exit(0)
     GetWordlist()
-    # The words to be checked will be in the words set, which will be (n, word) where n is the
-    # number of the file it came from.
+    # Build the list of words to check.  Each word will be a Token instance which is a str that
+    # contains the file number it came from.
     words = set()
-    for n, file in enumerate(files):
-        text = open(file).read()
+    for file_number, file in enumerate(files):
+        text = file.read_text()
         dq = get.Tokenize(text)
-        for token in dq:
+        while dq:   # dq is a deque
+            token = dq.popleft()
             if ii(token, get.wrd):
-                words.add(Token(token, n))
-    if 0:
-        DebugPrintTokens(words)
-        exit()
+                words.add(Token(token, file_number))
+    if d["-c"]:
+        PrintTokensInColumns(words)
     # Report the words that seem to be misspelled
     misspelled = set()
     for word in words:

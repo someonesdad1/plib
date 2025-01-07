@@ -1,5 +1,7 @@
 Active:  /plib/.todo
 
+    - pgm/lookup.py needs color stuff fixed
+
     - pspell.py
         - Utility to spell check source code.  I keep finding spelling errors in my old scripts
           and a tool should be able to do this reasonably well.

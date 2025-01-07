@@ -74,7 +74,7 @@ if 1:   # Data
         Chalk;                  s;      0.75;       -        ; 1
         Charcoal;               s;      0.84;       -        ; 1
         Chromium;               s;      0.449;      -        ; 1
-        Concrete w/ aggregrate; s;      0.9;        1.3      ; 1
+        Concrete w/ aggregate;  s;      0.9;        1.3      ; 1
         Concrete;               s;      0.88;       -        ; 0
         Copper;                 s;      0.385;      401      ; 0
         Cork;                   s;      2;          -        ; 1
