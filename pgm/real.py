@@ -33,31 +33,23 @@ def Error(*msg, status=1):
 def Usage(d):
     print(dedent(f'''
     Usage:  {sys.argv[0]} [options] num1 [num2...]
-      Try to identify the real numbers given on the command line.  If an
-      argument is 'h', the history of the commands that resulted in output
-      are printed to stdout.  Because arguments are evaluated, you can also
-      use this script to perform special function evaluations.
-     
-      Also try the Inverse Symbolic Calculator at
-      http://isc.carma.newcastle.edu.au/index
+      Try to identify the real numbers given on the command line.  If an argument is 'h', the
+      history of the commands that resulted in output are printed to stdout.  Because arguments
+      are evaluated, you can also use this script to perform special function evaluations.
     Options
-      -d n  Set the number of significant digits to display.  The default
-            is {d["-d"]}.
+      -d n  Set the number of significant digits to display.  The default is {d["-d"]}.
       -e    Include e in the output expression(s)
       -f    List available function names
       -P n  Find a polynomial of degree n with the given number as a root
       -p    Include pi in the output expression(s).
-      -r d  Include a rational approximation to the number with a maximum
-            indicated denominator d
-      -s s  Include the sequence s of other expressions.  For example, if
-            you think the square root of 33 might be in the number, include
-            -s ['sqrt(33)'] on the command line.
+      -r d  Include a rational approximation to the number with a maximum indicated denominator d
+      -s s  Include the sequence s of other expressions.  For example, if you think the square
+            root of 33 might be in the number, include -s ['sqrt(33)'] on the command line.
       -S    Don't use sympy for simplification
-      -u c  Use char c for the variable and Unicode when printing the
-            polynomial found with the -P option.  Use %alp for lowercase
-            Greek alpha, %Alp for uppercase, etc.
+      -u c  Use char c for the variable and Unicode when printing the polynomial found with the
+            -P option.  Use %alp for lowercase Greek alpha, %Alp for uppercase, etc.
     '''))
-    exit(1)
+    exit(0)
 def Functions(*p):
     '''If p is empty, print out a list of available function names.
     Otherwise, list syntax for each non-obvious function.

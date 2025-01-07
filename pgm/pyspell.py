@@ -110,6 +110,9 @@ if 1:   # Core functionality
         # Remove any underscores
         for w in open("/donrepo/words/words.univ").read().split():
             g.wordlist.add(w.replace("_", ""))
+        # Load the ancillary set
+        file = "/plib/pgm/pyspell.dat"
+        words = get.GetLines(file, script=True, ignore_empty=True, strip=True, nonl=True)
     def SplitOnCapitals(word):
         assert "_" not in word
         capitals = set("ABCDEFGHIJKLMNOPQRSTUVWXYZ")
