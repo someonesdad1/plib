@@ -67,7 +67,7 @@ if 1:   # Utility
           scripts.  The line number(s) are printed with the misspelled
           token.  All characters are converted to lowercase and words
           are made up only of ASCII letters.
- 
+           
           To spell check a complete file, use /plib/pgm/xref.py with the -s
           option.
         Options:
