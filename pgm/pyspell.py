@@ -114,6 +114,7 @@ if 1:   # Core functionality
         if not file.exists():
             Error(f"{file} doesn't exist")
         words = get.GetLines(file, script=True, ignore_empty=True, strip=True, nonl=True)
+        breakpoint() #xx
         g.wordlist.update(set(words))
     def SplitOnCapitals(word):
         assert "_" not in word
