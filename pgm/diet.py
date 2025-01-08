@@ -1,5 +1,14 @@
 '''
 Information relevant to a diet.
+
+Food info to add
+    - peanuts
+    - peanut butter
+    - ham, fat trimmed off
+    - steak, hamburger
+    - celery
+    - pickled beets:  29 g per serving = 15 Cal or 52 Cal/100 g
+
 '''
  
 if 1:  # Header
