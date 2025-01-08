@@ -220,7 +220,7 @@ if 1:   # Utility
         pleasing to the eye.  This should be mostly harmless (harmful == loss
         of significance) for unit conversion factors, as virtually no one works
         with measurements to 14 significant figures (there are only a few
-        physical constants listed at NIST to about 14 signficant figures).
+        physical constants listed at NIST to about 14 significant figures).
         However, be careful if you set digits to much less than 15, as you may
         lose some significance in some of the conversion factors.
         '''

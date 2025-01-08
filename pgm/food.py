@@ -10,7 +10,7 @@ Motivation
 food_mealplan.csv
     - This is a CSV version of Walker's Mealplan.xls file from the above comptoolsExcel page.
       Warning:  the encoding in Excel is screwed up, so first save the file as an Open Office
-      spreasheet, then open it in Open Office and save it as a CSV file using UTF-8 encoding.
+      spreadsheet, then open it in Open Office and save it as a CSV file using UTF-8 encoding.
     - After saving it, edit it to remove blank lines and the cruft at the bottom of the file.
 
 '''

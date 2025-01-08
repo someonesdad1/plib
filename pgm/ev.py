@@ -38,7 +38,7 @@ Here's a data structure found in another file:
         double Trecip;
     }
 
-    typdef FILM struct {
+    typedef FILM struct {
         char *name;
         float *T;
         float *Trecip;

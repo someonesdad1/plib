@@ -4438,7 +4438,7 @@ if 1:   # Global variables
     43R Power windows
     43S Safety & Security Package
     44* Elect. 4-Speed Automatic
-    44* Electronic 4-Spd. Auto
+    44* Electronic 4-Speed Auto
     445 5 Speed Manual Transmission
     445 6-Speed Manual Transmission (Gas)
     447 6-Speed Manual Transmission (Diesel)

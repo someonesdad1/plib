@@ -99,7 +99,7 @@ if 1:   # Core functionality
             sleep(d["-i"])
             Dbg(f"Sleep over at {g.sw()} s")
             if not file.exists():
-                Dbg(f"Sentinal file no longer exists at {g.sw()} s")
+                Dbg(f"Sentinel file no longer exists at {g.sw()} s")
                 break
             if g.sw() > d["-k"]:
                 timeout = True

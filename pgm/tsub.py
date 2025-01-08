@@ -350,7 +350,7 @@ if 1:  # Utility
         t.print(f"    {t.line}Non-command line from input file", file=f)
         t.print(f"    {t.code}Line from code block", file=f)
         t.print(f"    {t.redef}Warning of a redefinition", file=f)
-        t.print(f"    {t.undef}Undefinining a substitution", file=f)
+        t.print(f"    {t.undef}Undefining a substitution", file=f)
         print(file=f)
     def Dedent(s):
         's is a code string; remove any common indenting and return it'

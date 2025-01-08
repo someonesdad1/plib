@@ -1608,7 +1608,7 @@ if 1:  # Header
         Polytetrafluoroethylene (Teflon)               ; 2.1-2.3     ; aes 137
         Polytrifluorochloroethylene                    ; 2.1-2.3     ; aes 137
         Silicones                                      ; 1.8-2.8     ; aes 137
-        Stryofoam                                      ; .04         ; wp
+        Styrofoam                                      ; .04         ; wp
         Teflon, FEP                                    ; 2.15        ; aes 152
         Teflon, FEP w/glass cloth                      ; 2.2         ; aes 152
         Teflon, TFE                                    ; 2.15        ; aes 152

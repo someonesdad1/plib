@@ -310,7 +310,7 @@ if 1:   # Core functionality
         while (abs(d - newd)/newd) > 0.0005:
             mdia = OD - d
             wahl = 2.120672*((mdia/d)**(-0.268606))  # Wahl's constant
-            s = math.floor(43094-(11037*math.log(d)))  # Allowable stess, average service
+            s = math.floor(43094-(11037*math.log(d)))  # Allowable stress, average service
             newd = (8*P*mdia*wahl/(pi*s))**(1/3)
             d = newd
         working_stress = s

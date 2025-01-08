@@ -74,7 +74,7 @@ if 1:   # Utility
           errors).  Lines are printed in reverse numerical order so you can fix the last ones in
           the file first, maintaining the line numbering.
         Options:
-            -b      Brief output (shows all serverities)
+            -b      Brief output (shows all severities)
             -c      Don't ignore my referenced shell colors
             -n n    Limit number of output lines to this number
             -s s    Select shell syntax (s = bash, dash, ksh, sh)

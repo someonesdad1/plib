@@ -208,7 +208,7 @@ if 1:   # Core functionality
         'Put density dict in g.density in kg/m3'
         # Density in g/cc 
         data = '''
-        Stryofoam                         ; 0.04     
+        Styrofoam                         ; 0.04     
         Aerogel                           ; 0.11     
         Corkboard                         ; 0.2      
         Coffee, instant                   ; 0.304     

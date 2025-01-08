@@ -46,7 +46,7 @@ if 1:   # Header
         g.dbg = 1
         g.dbg = 0
 if 1:   # Utility
-    def Error(*msg, stasus=1):
+    def Error(*msg, status=1):
         print(*msg, file=sys.stderr)
         exit(status)
     def Usage(status=1):
