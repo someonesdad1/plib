@@ -1579,7 +1579,8 @@ if __name__ == "__main__":
             P = pathlib.Path
             d = {}      # Options dictionary
             # Set up colors for demo
-            u = use_colors = bool(os.environ.get("DPRC", False))
+            u = use_colors = True
+            t.always = True
             t.t = t() if u else ""          # Title
             t.u = t("ornl") if u else ""    # Normal float formatting
             t.f = t("sky") if u else ""     # Feature being demonstrated
@@ -1722,7 +1723,7 @@ if __name__ == "__main__":
         indicate the number's magnitude.  You can then append a physical unit string
         to get proper SI syntax:  {t.u}{f(x, 'engsi')}Ω{t.n}.  {t.f}f.engsic{t.n} does the same except the prefix
         is cuddled: {t.u}{f(x, 'engsic')}Ω{t.n} (incorrect SI syntax, but sometimes useful).
-        ''', n=8))
+        '''))
         # Complex numbers
         z = complex(3.45678, -6.78901)
         fmt.imag_unit = "j"
@@ -1732,7 +1733,7 @@ if __name__ == "__main__":
             str(z) = {t.f}{str(z)}{t.n}
             fmt(z) = {t.f}{fmt(z)}{t.n}
         Use the Fmt object's attributes to change the formatted form:
-        ''', n=8))
+        '''))
         w, sp = 25, " "*4
         fmt.imag_unit = "i"
         s = 'fmt.imag_unit = "i"'
