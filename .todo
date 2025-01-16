@@ -1,8 +1,11 @@
 Active:  /plib/.todo
 
-    - Once pspell.py is finished, run it on hsm.py and tmbr.py, as there are numerous misspellings.
-
-    - pgm/lookup.py needs color stuff fixed
+    - pgm/purch.py
+        - Script to review purchase invoices in ~/dp/purchases.  The default behavior is to list
+          the files by date.
+        - Given an argument, it will be of the form DDMMMYYYY, DDMMM, or YYYY.  The matching files
+          are listed.  If -o is used, all of them are opened.
+            - -l means to open latest of the matching name (mpja or proto)
 
     - pspell.py
         - Utility to spell check source code.  I keep finding spelling errors in my old scripts
@@ -13,15 +16,11 @@ Active:  /plib/.todo
         - The core case-sensitive words file should end up in /words and should be classified by
           things like human names, language, programming language specificity, etc.
         - A first experiment might be to get all the tokens from all of the scripts in /plib.  With
-          import timer, get and the following code, it took 7.4 s to tokenize all the python
+          "import timer, get" and the following code, it took 7.4 s to tokenize all the python
           scripts:
 
-            p = P("/plib")
-            sw = timer.Stopwatch()
-            for i in p.glob("**/*.py"):
-                text = open(i).read()
-                dq = get.Tokenize(text)
-            print(sw())
+            for i in P("/plib").glob("**/*.py"):
+                dq = get.Tokenize(open(i).read())
 
     - pgm/ds.py
         - Need a feature to define default documents so they open on the first search.

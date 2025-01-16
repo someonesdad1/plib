@@ -2181,6 +2181,7 @@ if __name__ == "__main__":
     from dpprint import PP
     pp = PP()   # Screen width aware form of pprint.pprint
     from wsl import wsl     # wsl is True when running under WSL Linux
+    import wl2rgb
     def GetScreen():
         'Return (LINES, COLUMNS)'
         return (
@@ -3132,6 +3133,79 @@ if __name__ == "__main__":
             print(f"{indent}{i}")
         print("\nNote:  change terminal width to show numbers 16-51 in the second row and")
         print("the table will coincide with the bitmap ~/.0rc/256colors.png.")
+    def Wavelengths():
+        '''Print a table of colors with their RGB specs as a function of approximate wavelength in
+        nm.  Following this, print the color.py standard names with their approximate wavelengths.
+        '''
+        # Wavelength in nm to color specifier
+        gamma = 0.8
+        step_nm = 10
+        print(f"Wavelength in steps of {step_nm} nm to RGB colors")
+        out, out_long, count, i = [], [], 0, " "*4
+        for nm in range(380, 781, step_nm):
+            colornum = wl2rgb.wl2rgb(nm, gamma=gamma)
+            s = colornum.xrgb
+            out.append(f"{t(s)}{nm}{t.n}")
+            out_long.append(f"{t(s)}{nm}{i}{s}{i}{colornum.xhsv}{i}{colornum.xhls}{t.n}")
+            count += 1
+        if 0:   # Columnize the short form
+            o = Columnize(out, indent=" "*2, horiz=True)
+            for line in o:
+                print(line)
+        else:   # Print table data
+            for i in out_long:
+                print(i)
+        print(f"{count} wavelengths printed")
+        # Color names to approximate wavelength
+        print()
+        names = '''blk   blkl  blkd  blkb
+                   brn   brnl  brnd  brnb
+                   red   redl  redd  redb
+                   orn   ornl  ornd  ornb
+                   yel   yell  yeld  yelb
+                   grn   grnl  grnd  grnb
+                   blu   blul  blud  blub
+                   vio   viol  viod  viob
+                   gry   gryl  gryd  gryb
+                   wht   whtl  whtd  whtb
+                   cyn   cynl  cynd  cynb
+                   mag   magl  magd  magb
+                   pnk   pnkl  pnkd  pnkb
+                   lip   lipl  lipd  lipb
+                   lav   lavl  lavd  lavb
+                   lil   lill  lild  lilb
+                   pur   purl  purd  purb
+                   roy   royl  royd  royb
+                   den   denl  dend  denb
+                   sky   skyl  skyd  skyb
+                   trq   trql  trqd  trqb
+                   sea   seal  sead  seab
+                   lwn   lwnl  lwnd  lwnb
+                   olv   olvl  olvd  olvb'''.split()
+        o = []
+        for name in names:
+            c = Color(name)
+            wavelength_nm = wl2rgb.rgb2wl(c)
+            o.append((name, wavelength_nm))
+        # Print table by sorted names
+        t.hdr = t('whtl', attr='ul')
+        print(f"{t.hdr}color.py names with their approximate "
+              f"wavelength in nm, sorted by name{t.n}")
+        o1 = []
+        for i in sorted(o):
+            o1.append(f"{t(i[0])}{i[0]:4s} {i[1]:3d}{t.n}    ")
+        for i in Columnize(o1):
+            print(i)
+        # Print table sorted by wavelength
+        print()
+        print(f"{t.hdr}color.py names with their approximate "
+              f"wavelength in nm, sorted by wavelength{t.n}")
+        o1 = []
+        for i in sorted(o, key=lambda x: x[1]):
+            o1.append(f"{t(i[0])}{i[1]:3d} {i[0]:4s}{t.n}    ")
+        for i in Columnize(o1):
+            print(i)
+        print("Note that saturation plays a large part in how the color appears")
     def Error(*msg, status=1):
         print(*msg, file=sys.stderr)
         exit(status)
@@ -3163,6 +3237,7 @@ if __name__ == "__main__":
            t8   Show 8-bit color table
            t24  Show 24-bit color table
            a    Attributes
+           w    Show colors of light wavelengths (approximate)
          <num>  Convert color specifier on command line to various representations
                 in RGB, HSV, and HLS.  Argument type examples:
                     'ornl',     '128 64 32',    '0x80 0o100 0b100000', '202'
@@ -3189,6 +3264,8 @@ if __name__ == "__main__":
         ColorTable(int(cmds[0][1:]))
     elif first_char == "l":     # Show #/@/$ and RGB numbers for short names
         ShowShortNames()
+    elif first_char == "w":     # Show wavelengths and RGB color specifier
+        Wavelengths()
     else:                       # Interpret color strings on command line
         for i in cmds:
             InterpretColorSpecifier(i)

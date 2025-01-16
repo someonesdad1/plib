@@ -100,11 +100,11 @@ class Fmt:  Format floating point numbers
         directory.  You can get the needed tools at
         https://github.com/someonesdad1/plib.  I use this script in a bash
         terminal in a cygwin environment using the mintty terminal emulator
-        and it works as written.  Look at /plib/pictures/fmt.png to see
+        and it works as written.  It also works in the WSL environment with 
+        the more limited Windows Terminal.  Look at /plib/pictures/fmt.png to see
         what the Demo() function's output looks like on my screen.  Other
         terminals may need hacking on color.py to get things to work 
-        correctly.  For the demo, define the environment variable DPRC to
-        get ANSI color strings output to the terminal.
+        correctly.
  
     How it works
         The TakeApart class takes apart numbers into their component parts
@@ -1759,8 +1759,6 @@ if __name__ == "__main__":
         fmt.cuddled = False
         t.print(f"{sp}{'':{w}s} {t.f}{fmt(z)}{t.n} (fmt.cuddled False)")
         t.print(f"The fmt.ul underlining won't work unless your terminal supports it.")
-        if not use_colors:
-            print(f"Set the environment variable DPRC to true to see colorized output.")
         if W < 79:
             print("[Need a screen width of at least 80 for acceptable Demo() output]")
     if 1:   # Test code 

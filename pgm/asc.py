@@ -83,10 +83,10 @@ if 1:   # Utility
         Usage: {name} [options] [offset [numchars]]
           Prints the ASCII/Unicode character set starting at the indicated offset 
           for the indicated number of characters (default 0x100).
- 
+           
           offset and numchars can be expressions.  Prefix hex numbers with
           '0x', octal numbers with '0o', and binary numbers with '0b'.
- 
+           
           The character 0x7f is printed as a red block, as it typically
           won't display as a single characters.
         Options

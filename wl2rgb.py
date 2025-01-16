@@ -229,8 +229,15 @@ if 1:   # Core functionality
         The dictionary was gotten by printing wl2rgb()'s output and filling in any missing key
         values by hand.  The "inversion" isn't perfect, but it matches mostly within ±1 nm.
         '''
-        if not ii(color, Color):
-            raise TypeError("color must be a Color (/plib/color.py) instance")
+        # 16 Jan 2025 14:34:34 pm Thu
+        if not str(color)[:3] == "C⁸(":
+            # This is a hack, as I'm getting very strange behavior:  just before wl2rgb.rgb2wl(c)
+            # where c is the Color instance 'C⁸(  0,   0,   0)' and ii(c, Color) returns true, the
+            # ii(color, Color) in this function returns false.  Further, both id(instance) show
+            # the identical location in memory.  To make this work, I've added the string form
+            # detection.
+            if not ii(color, Color):
+                raise TypeError("color must be a Color (/plib/color.py) instance")
         if not hasattr(rgb2wl, "dict"):
             rgb2wl.dict = {
                 0: 645, 1: 644, 2: 643, 3: 642, 4: 641, 5: 640, 6: 639, 7: 638, 8: 636, 9: 635,
@@ -306,11 +313,11 @@ if __name__ == "__main__":
         o, p = [], []
         print("Wavelength in nm of each RGB color in rgbdata.py")
         maxlen = 0
-        for _, name, c in color_data:
-            wl = rgb2wl(c)
+        for attribution_number, name, Color_instance, hue_category in color_data:
+            wl = rgb2wl(Color_instance)
             rgb = wl2rgb(wl)
             o.append(TemplateRound(wl, 10))
-            s = f"{t(rgb)}{wl}{t.n} {t(c)}{name.strip()}{t.n}"
+            s = f"{t(rgb)}{wl}{t.n} {t(Color_instance)}{name.strip()}{t.n}"
             p.append(s)
             maxlen = max(maxlen, len(s))
         for i in Columnize(p, esc=True):
