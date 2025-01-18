@@ -3140,13 +3140,38 @@ if __name__ == "__main__":
         # Wavelength in nm to color specifier
         gamma = 0.8
         step_nm = 10
-        print(f"Wavelength in steps of {step_nm} nm to RGB colors")
+        print(f"{t.whtl}Wavelength in steps of {step_nm} nm to RGB colors")
+        t.print(f"         rgb        hsv        hsl")
         out, out_long, count, i = [], [], 0, " "*4
+        # Table for some named colors that are close to a wavelength
+        c = {
+            380: ("magl", ""),
+            400: ("purl", " 406"),
+            420: ("lill", " 422"),
+            440: ("blu", ""),
+            450: ("roy", ", royl 449"),
+            460: ("denl", " 458"),
+            470: ("sky", " 467"),
+            490: ("cynl", ""),
+            500: ("trql", " 498"),
+            510: ("grnl", ""),
+            540: ("lwn", " 537"),
+            550: ("olvl", " 555"),
+            580: ("yell", ""),
+            620: ("brnl", " 618"),
+            630: ("ornl", " 628"),
+            640: ("redl", ", lip, lipl, pnk, pnkl 645"),
+        }
         for nm in range(380, 781, step_nm):
             colornum = wl2rgb.wl2rgb(nm, gamma=gamma)
             s = colornum.xrgb
             out.append(f"{t(s)}{nm}{t.n}")
-            out_long.append(f"{t(s)}{nm}{i}{s}{i}{colornum.xhsv}{i}{colornum.xhls}{t.n}")
+            if nm in c:
+                a, b = c[nm]
+                out_long.append(f"{t(s)}{nm}{i}{s}{i}{colornum.xhsv}{i}{colornum.xhls}"
+                                f" {t(a)}{a}{b}{t.n}")
+            else:
+                out_long.append(f"{t(s)}{nm}{i}{s}{i}{colornum.xhsv}{i}{colornum.xhls}{t.n}")
             count += 1
         if 0:   # Columnize the short form
             o = Columnize(out, indent=" "*2, horiz=True)
