@@ -17,6 +17,8 @@ if 1:  # Header
         pass
     if 1:  # Imports
         import bisect
+    if 1:  # Local imports
+        from f import flt
 if 1:  # Core functionality
     def LagrangeInterpolation(x, X, Y, strict=False):
         '''Page 32 of Meeus, "Astronomical Algorithms", 2nd ed.  Given x, an
@@ -43,7 +45,7 @@ if 1:  # Core functionality
                 terms *= (x - X[j])/(X[i] - X[j])
             y += terms*Y[i]
         return y
-    def LinearInterp(x, X, Y, inv=False, check=False):
+    def LinearInterp(x, X, Y, inv=False, check=False, ret_type=flt):
         '''Given two sequences X and Y, use linear interpolation to find the y
         value corresponding to x.  If inv is True, find the abscissa
         corresponding to the y value = x.  X and Y must have an equal number of
@@ -52,6 +54,8 @@ if 1:  # Core functionality
      
         If check is True, verify that X is sorted and that X and Y have an
         equal number of elements.
+
+        ret_type is the number type to return.  It must be initializable from a float.
         '''
         def find_le(a, x):
             'Return index of rightmost value less than or equal to x'
@@ -71,7 +75,7 @@ if 1:  # Core functionality
                 raise ValueError("{} not found in sequence Y".format(str(x)))
             i = find_le(Y, x)
             if i == len(Y) - 1:
-                return X[-1]
+                return ret_type(X[-1])
             x0, y0 = Y[i], X[i]
             x1, y1 = Y[i + 1], X[i + 1]
         else:
@@ -79,27 +83,28 @@ if 1:  # Core functionality
                 raise ValueError("{} not found in sequence X".format(str(x)))
             i = find_le(X, x)
             if i == len(X) - 1:
-                return Y[-1]
+                return ret_type(Y[-1])
             x0, y0 = X[i], Y[i]
             x1, y1 = X[i + 1], Y[i + 1]
         assert(x0 <= x < x1)
         frac = (x - x0)/(x1 - x0)
-        return y0 + frac*(y1 - y0)
-    def LinearInterpFunction(X, Y):
+        return ret_type(y0 + frac*(y1 - y0))
+    def LinearInterpFunction(X, Y, ret_type=flt):
         '''Return a function that returns the linearly-interpolated value for
         the function Y(X).  X does not need to be sorted.
         '''
         # Make sure X is sorted
         x, y = zip(*sorted(zip(X, Y)))
-        a = LinearInterp(x[0], x, y, check=True)
+        a = LinearInterp(x[0], x, y, check=True, ret_type=ret_type)
         def Func(arg):
-            return LinearInterp(arg, x, y)
+            return LinearInterp(arg, x, y, ret_type=ret_type)
         return Func
 
 if __name__ == "__main__": 
     from math import pi, sin, fabs
     from lwtest import run, raises, assert_equal
     from frange import frange
+    ii = isinstance
     def eq(x, y, relative_error=1e-12):
         if x == y:
             return True
@@ -168,6 +173,13 @@ if __name__ == "__main__":
         Y = [1, 2, 3]
         raises(ValueError, LinearInterp, 0.5, X, Y, inv=0, check=1)
         raises(ValueError, LinearInterp, 0.5, X, Y, inv=1, check=1)
+    def TestLinearInterpWithType():
+        X = [0, 1, 2]
+        Y = [1, 2, 3]
+        # Test with integers
+        x = LinearInterp(2.0, X, Y, ret_type=int)
+        assert(x == 3)
+        assert(ii(x, int))
     def TestLinearInterpFunction():
         X = (0, 1)
         Y = (0.5, 1.5)
@@ -176,4 +188,10 @@ if __name__ == "__main__":
         assert_equal(f(0.5), 1)
         assert_equal(f(1), 1.5)
         raises(ValueError, f, 1.01)
+        # Test you can get an integer
+        f = LinearInterpFunction(X, Y, ret_type=int)
+        assert(f(0.5) == 1)
+        assert(ii(f(0.5), int))
+        assert(f(1) == 1)
+        assert(ii(f(1), int))
     exit(run(globals(), halt=1)[0])
