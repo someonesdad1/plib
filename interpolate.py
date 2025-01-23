@@ -49,12 +49,14 @@ if 1:  # Core functionality
         '''Given two sequences X and Y, use linear interpolation to find the y
         value corresponding to x.  If inv is True, find the abscissa
         corresponding to the y value = x.  X and Y must have an equal number of
-        elements and X must be in sorted order.  A ValueError exception will be
-        raised if there's no associated value or x is out of range.
-     
+        elements and X must be in sorted order.  
+        
+        A ValueError exception will be raised if there's no associated value or x
+        is out of range.
+        
         If check is True, verify that X is sorted and that X and Y have an
         equal number of elements.
-
+        
         ret_type is the number type to return.  It must be initializable from a float.
         '''
         def find_le(a, x):
