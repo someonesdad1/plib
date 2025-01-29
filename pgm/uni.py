@@ -283,6 +283,12 @@ Data on codepoint U+{cp:0X} = character {c}
         except Exception:
             pass
     print("  Encodings:")
+    # Print a form that can be pasted into C/C++ code
+    print("    C/C++    ", end="")
+    print(f'"', end="")
+    for b in chr(cp).encode("utf-8"):
+        print(f"\\x{b:0x}", end="")
+    print(f'"')
     for enc in ("utf-8", "utf-16", "utf-32"):
         print(f"    {enc:8s} ", end="")
         for b in chr(cp).encode(enc):
