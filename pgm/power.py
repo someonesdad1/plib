@@ -112,18 +112,18 @@ def Usage(status=0):
         dpkWhr.N = 4
         print(dedent(f'''
     Usage:  {sys.argv[0]} [options] p1 [p2 ...]
-      Prints out various period costs of electrical power for the rate of {100*flt(d["-r"])}¢/(kW*hr) for a given
-      power p1, p2, ... in watts.  The current cost of electrical power as of {d["date"]} for the state 
-      of Idaho is:
-        {cent_per_kWhr} ¢/(kW·hr) = {cent_per_MJ} ¢/MJ
-
-      You can append an optional power unit to p1 with a space (put the expression in quotes to
-      escape it from shell parsing).  The powers can be expressions (the math module's symbols are
-      in scope).
-    Example:
-        {sys.argv[0]} '300*cos(49*pi/180) hp'
-      prints out a table for a power of an apparent power of 300 hp at a power factor angle of 49
-      degrees (power factor is 0.65).
+      Prints out various period costs of electrical power for the rate of {100*flt(d["-r"])}¢/(kW*hr) for a
+      given power p1, p2, ... in watts.  The current cost of electrical power as of {d["date"]}
+      for the state of Idaho is {cent_per_kWhr} ¢/(kW·hr) = {cent_per_MJ} ¢/MJ.  You can append an optional
+      power unit to p1 with a space (put the expression in quotes to escape it from shell
+      parsing).  The powers can be expressions (the math module's symbols are in scope).
+    Examples:
+      {sys.argv[0]} '5*50/1000'
+          Prints out a cost table for running an Arduino and LCD shield that runs at 5 V and has a
+          current of 50 mA.
+      {sys.argv[0]} '300*cos(49*pi/180) hp'
+          Prints out a table for an apparent power of 300 hp at a power factor angle of 49 degrees
+          (power factor is 0.65).
     Options:
       -d n      Set the number of significant figures in the output [{d["-d"]}]
       -l        Print typical lighting power table

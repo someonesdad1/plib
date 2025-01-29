@@ -199,7 +199,7 @@ if 1:  # Utility
         if len(sys.argv) < 2:
             Usage(d)
         try:
-            optlist, args = getopt.getopt(sys.argv[1:], "c:d:e:n:pr:st:")
+            optlist, args = getopt.getopt(sys.argv[1:], "c:d:e:hn:pr:st:")
         except getopt.GetoptError as e:
             msg, option = e
             print(msg)
@@ -207,25 +207,25 @@ if 1:  # Utility
         for opt in optlist:
             if opt[0] == "-c":
                 d["-c"] = opt[1]
-            if opt[0] == "-d":
+            elif opt[0] == "-d":
                 d["-d"] = int(opt[1])
                 if d["-d"] < 1 or d["-d"] > 15:
                     print("Bad argument for -d option")
                     exit(1)
-            if opt[0] == "-e":
+            elif opt[0] == "-e":
                 d["-e"] = int(opt[1])
                 if d["-e"] not in (6, 12, 24, 48, 96):
                     Error("-e option's value must be 6, 12, 24, 48, or 96")
-            if opt[0] == "-n":
+            elif opt[0] == "-n":
                 try:
                     d["-n"] = int(opt[1])
                     if d["-n"] < 1:
                         raise Exception()
                 except Exception:
                     Error("-n option must be integer > 0")
-            if opt[0] == "-p":
+            elif opt[0] == "-p":
                 d["-p"] = True
-            if opt[0] == "-r":
+            elif opt[0] == "-r":
                 s = opt[1]
                 if ":" in s:
                     f = s.split(":")
@@ -237,12 +237,14 @@ if 1:  # Utility
                         Error("-r:  percent tolerance must be > 0")
                 else:
                     Error("-r option must contain a ':' character")
-            if opt[0] == "-s":
+            elif opt[0] == "-s":
                 d["-s"] = True
-            if opt[0] == "-t":
+            elif opt[0] == "-t":
                 d["-t"] = float(opt[1])/100
                 if d["-t"] <= 0:
                     Error("-t:  percent tolerance must be > 0")
+            elif opt[0] == "-h":
+                Usage(d)
         if not args:
             Usage(d)
         if args[0] != "pots":
