@@ -1,25 +1,16 @@
 '''
 
 ToDo
+    - Add -o option to OR the regexps together rather than ANDing them
     - Add the ability to open a set of PDFs with a keyword.  For example, if I get the HP 54645D
       MOS and use it with the 54659B module, I'd want them to be opened, along with the manual for
       my 54601B scope.  I'd put all these under the name "scope".  This functionality can be added
       with the -k option and it can be e.g. be called the bash function dk.
-    - Fix the -h printout
     - Store the datafiles in the directories they index.  
         - What is benefit of pickling?  The basic datastructure is a set of file names.
     - My storage directories like /ebooks are bloated.  To keep things but allow me to see fewer
       selections, change this program so that older stuff can be moved to a directory named 'old'.
       Then this script will not enter and index such a directory.
-    - Change default behavior
-        - Command line becomes 're1 re1 ...'
-            - This means find documents with re1, then refine the set by including only those with
-              re2
-            - To get current behavior, use 're1 | re2'
-            - You can use either one such string or 
-            - You'll have to escape '|' from the shell
-    - Get help with -h
-    - If no args on command line, prompt the user
 
 Open a document file
     File is opened if it's the only match to the regexp on the command
@@ -52,7 +43,7 @@ if 1:  # Header
         import getopt
         import glob
         import os
-        import pathlib
+        from pathlib import Path as P
         import pickle
         import re
         import subprocess
@@ -118,13 +109,12 @@ if 1:   # Utility
         name = d["--exec"]
         print(dedent(f'''
         Usage:  {name} [options] regexp [re1 re2...]
-          Open a document if it's the only match to the regexp.  Otherwise print
-          out the matches and choose which ones to display.  When choosing, you
-          can select multiple numbers by separating them with spaces or commas.
-          Ranges like 5-8 are recognized.
+          Open a document if it's the only match to the regexp.  Otherwise print out the matches
+          and choose which ones to display.  When choosing, you can select multiple numbers by
+          separating them with spaces or commas.  Ranges like 5-8 are recognized.
           
-          If re2 etc. are present, they are other regexps to additionally
-          search for in the results; they are ORed together.
+          If re2 etc. are present, they are other regexps to additionally search for in the
+          results; they are ANDed together.
         Options
           -I    Generate the index
           -i    Make the search case sensitive
@@ -305,37 +295,43 @@ if 1:   # Core functionality
         for num, data in enumerate(matches):
             file, mo = data
             PrintMatch(num + 1, file, mo.start(), mo.end(), d)
-    def GetMatches(regexp, d, regexps):
-        '''regexp is the first regex on the command line.  d is the options
-        dict and regexps are any other regexes give on the command line.
-        '''
-        r = re.compile(regexp) if d["-i"] else re.compile(regexp, re.I)
-        matches = []
+    def GetMatches(regexps):
+        'regexps are the regexes on the command line; AND them together'
+        flag = 0 if d["-i"] else re.I   # Ignore case unless d["-i"] is True
+        # Compile the regexes
+        R = [re.compile(i, flag) for i in regexps]
+        matches = set()
+        # d["files"] is a set of absolute path names
         for i in d["files"]:
-            # Only search for match in file name
-            dir, file = split(i)
-            mo = r.search(file)
+            i = i.strip()
+            if not i:
+                continue
+            p = P(i)
+            # Only search for matches in the file name
+            mo = R[0].search(p.name)
             if mo:
-                # Decorate with string first for sorting output
-                matches.append([str(i), i, mo])
-        # Refine by regexps
-        if regexps:
-            filtered_matches = []
-            res = [re.compile(i) if d["-i"] else re.compile(i, re.I) for i in regexps]
-            for r in res:
+                # Decorate with file name for sorting below
+                matches.add((p.name, p, mo))
+        orig_R = R.pop(0)
+        if R:
+            # Winnow matches down, as each regexp has to match to keep an entry
+            for r in R:
+                keep = set()
                 for i in matches:
-                    p = i[1]    # This is the file's Path object
-                    name = p.name
-                    mo = r.search(name)
-                    if mo and i not in filtered_matches:
-                        filtered_matches.append(i)
-            matches = filtered_matches
+                    # i[0] is file name, i[1] is Path object, i[2] is the re.Match object
+                    mo = r.search(i[0])
+                    if mo and i not in keep:
+                        keep.add(i)
+                matches = keep
         if matches:
-            # Sort by whole path name (first element), then toss out first element
+            # Sort by whole path name (first element), then remove first element, as it was only
+            # the element to sort by.
             matches = [(i[1], i[2]) for i in list(sorted(matches))]
         if 0:
             pp(matches)
             exit()
+        # Change matches to [path_string, match_object]
+        matches = [(str(i[0]), i[1]) for i in matches]
         return matches
     def ReadIndexFile(d):
         'Read the index file keyed by d["--exec"]'
@@ -402,8 +398,6 @@ if __name__ == "__main__":
         "--exec": "ds",
     }
     regexps = ParseCommandLine(d)
-    regexp = regexps[0]
-    regexps.pop(0)
     ReadIndexFile(d)    # Get list of the files to search
-    matches = GetMatches(regexp, d, regexps)
+    matches = GetMatches(regexps)
     OpenMatches(matches, d)
