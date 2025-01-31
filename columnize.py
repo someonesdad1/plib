@@ -142,9 +142,8 @@ if 1:   # Core functionality
             # Regular expression to recognize ANSI escape sequences
             r = re.compile(r"(\x9B|\x1B\[)[0-?]*[ -\/]*[@-~]")
             def Len(s):
-                '''Returns the length of a string s after removing the escape
-                sequences.
-                '''
+                'Returns the length of a string s after removing the escape sequences'
+                # This is same as Len in util.py, but avoids a circular import
                 return len(r.sub("", s))
         else:
             Len = len

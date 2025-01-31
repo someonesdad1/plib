@@ -60,10 +60,11 @@ def Int(s):
     if n <= 0:
         raise ValueError("Integer value of s must be > 0")
     return n
-def PP(width=None):
+def PP(width=None, compact=False):
     '''Returns pprint.pprint with a width parameter set to one less than
     the current screen width if the parameter width is None.  Otherwise,
     it's a number converted to a positive integer that must be nonzero.
+    If compact is True, multiple items will be printed on one line.
     '''
     columns = int(os.environ.get("COLUMNS", 80)) - 1
     if width is not None:
@@ -74,7 +75,7 @@ def PP(width=None):
         except Exception as e:
             print(e)
             exit(1)
-    return partial(pprint, width=columns)
+    return partial(pprint, width=columns, compact=compact)
 def Clear():
     subprocess.run("clear", shell=True)
 

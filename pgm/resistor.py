@@ -1,7 +1,8 @@
 '''
 TODO
-    - Print the color code in Usage in color
+    - Change 'res l' to only list on-hand resistors.  Add 'res e' to show EIA values.
     - Incorporate 2 W resistor values (use special color when showing them)
+    - Print the color code in Usage in color
 
 Select from on-hand resistors to make a voltage divider or a given resistance value from a pair of
 resistors in series or parallel Change the on_hand global variable to reflect the resistors you
@@ -22,9 +23,10 @@ if 1:  # Header
         #∞test∞# #∞test∞#
         pass
     if 1:   # Imports
-        import sys
-        import os
         import getopt
+        import os
+        import string
+        import sys
         from math import *
         from itertools import combinations
         from pdb import set_trace as xx
@@ -36,14 +38,20 @@ if 1:  # Header
         from columnize import Columnize
         from color import t
         from u import u, ParseUnit, SI_prefixes
-        if 0:
+        from dpprint import PP, Clear
+        from f import flt
+        if len(sys.argv) > 1:
             import debug
             debug.SetDebugger()
     if 1:   # Global variables
+        W = int(os.environ.get("COLUMNS", "80")) - 1
         fp = FPFormat()
         fp.trailing_dp = False
+        class G:
+            pass
+        g = G() # Global variable container
         # On-hand resistor values.  Change these entries to match what you have.
-        on_hand = dedent('''
+        g.on_hand = dedent('''
             0.025 0.18 0.2 0.27 0.33 0.6
 
             1 2.2 4.6 8.3
@@ -63,7 +71,7 @@ if 1:  # Header
         
             1M 1.2M 1.5M 1.7M 1.9M 2.2M 2.4M 2.6M 2.8M 3.2M 4M 4.8M 5.6M 6M 8.7M 10M 16M 23.5M
         ''')
-        two_watt = dedent('''
+        g.two_watt = dedent('''
             1 1.2 1.5 2 3 4.7 6.3 8.2 9.1
 
             10 12 15 20 22 30 47 51 62 82 91 
@@ -114,7 +122,10 @@ if 1:  # Header
         }
         # Colors
         t.hl = t.grn
-        t.two_watt = t.ornl
+        t.hdr = t.purl
+        t.size = t.ornl
+        t.watt_quarter = t.sky
+        t.watt2 = t.yell
 if 1:  # Utility
     def Error(msg, status=1):
         print(msg, file=sys.stderr)
@@ -187,7 +198,7 @@ if 1:  # Utility
             2   Red         5   Green       8   Gray        Silver 0.01
         '''))
         exit(status)
-    def ParseCommandLine(d):
+    def ParseCommandLine():
         d["-c"] = None      # Configuration file
         d["-d"] = 4         # Significant figures
         d["-e"] = None      # Which EIA series to use
@@ -252,7 +263,7 @@ if 1:  # Utility
                 cmd = "dd"
             else:
                 cmd = args[0][0]
-            if cmd not in ("b", "d", "D", "dd", "l", "p", "q", "r", "R", "P"):
+            if cmd not in "b d D dd e l p q r R P".split():
                 Error("Command '%s' not recognized" % args[0])
             if cmd in ("d", "q", "r", "R"):
                 if len(args) != 2:
@@ -284,7 +295,7 @@ if 1:  # Core functionality
             return float(m)*factor
         except Exception:
             Error(msg)
-    def GetResistors(d):
+    def GetResistors():
         R, p = [], {"m": 1e-3, "k": 1e3, "M": 1e6, "G": 1e9, "T": 1e12}
         if d["-e"] is not None:
             # Use EIA resistors
@@ -294,9 +305,8 @@ if 1:  # Core functionality
         else:
             # Use on-hand resistors
             if d["-c"] is not None:
-                global on_hand
-                on_hand = open(d["-c"]).read()
-            for line in on_hand.split("\n"):
+                g.on_hand = open(d["-c"]).read()
+            for line in g.on_hand.split("\n"):
                 line = line.strip()
                 if not line or line[0] == "#":
                     continue
@@ -317,7 +327,7 @@ if 1:  # Core functionality
             d["divider"].add((rat1, R1, R2))
         elif (1 - t)*ratio <= rat2 <= (1 + t)*ratio:
             d["divider"].add((rat2, R2, R1))
-    def Divider(d, ratio):
+    def Divider(ratio):
         d["divider"] = set()
         # First check using equal resistors
         for R in d["R"]:
@@ -347,7 +357,7 @@ if 1:  # Core functionality
                 print(t.hl, end="")
             t.print("   {0:10}   {1:^10}   {2:^10}   {3:^10}".format(pct, R1, R2, R))
             #normal()
-    def Resistance(d, resistance, report=False):
+    def Resistance(resistance, report=False):
         '''Print the report of the choices to get the desired resistance if
         report is True.  If report is False, return 
         '''
@@ -420,7 +430,7 @@ if 1:  # Core functionality
         par = 1/(1/R1 + 1/R2)
         if (1 - t)*R <= par <= (1 + t)*R:
             d["resistances"].add((par, "p", R1, R2))
-    def Quotient(d, ratio):
+    def Quotient(ratio):
         if ratio == 1:
             print("Quotient cannot be 1")
             exit(1)
@@ -455,31 +465,7 @@ if 1:  # Core functionality
                 print(t.hl, end="")
             t.print("   {0:10}   {1:^10}   {2:^10}".format(pct, R1, R2))
             #normal()
-    def List(d):
-        # EIA
-        t.print(f"{t.ornl}EIA resistance series:")
-        sig.rtz = True
-        for n in (6, 12, 24, 48, 96):
-            print("E%d:" % n)
-            digits = 2 if n < 48 else 3
-            s = []
-            for num in EIA[n]:
-                s.append(sig(num, digits))
-            for i in Columnize(s, horiz=True):
-                print(" ", i)
-        if 0:
-            print(dedent(f'''
-            Allen-Bradley 1.6 kW pot:
-              Resistance:  0.35 to 17.5 ohms
-              Current:  250 A max
-              At line voltages:  120 VAC ==> 6.8 to 250 A, 240 VAC ==> 13.7 to 250 A
-              10 A at 120 V requires 12 ohms, 15 A requires 8 ohms'''))
-        print()
-        t.print(f"{t.ornl}On-hand resistors:")
-        print(f"{t.skyl}", end="")
-        print(on_hand)
-        print(t.n, end="")
-    def Pairs(args, d):
+    def Pairs(args):
         if len(args) != 4:
             Usage(d)
         parallel = True if args[3] == "p" else False
@@ -546,7 +532,7 @@ if 1:  # Core functionality
         except Exception:
             print("'%s' isn't recognized as a resistance value" % ' '.join(args))
             exit(1)
-    def Series(d, res):
+    def Series(res):
         '''Find a set of resistors that sum to the desired value but remain
         less than or equal to it.
         '''
@@ -576,7 +562,7 @@ if 1:  # Core functionality
             factor = 10**prefixes[s[-1]]
             s = s[:-1]
         return float(eval(s))*factor
-    def DividerRatios(d, res):
+    def DividerRatios(res):
         r = [Interpret(i) for i in res]
         R = sum(r)
         print("String of voltage dividers:")
@@ -588,7 +574,7 @@ if 1:  # Core functionality
         for i in range(1, len(r)):
             D = sum(r[i:])/R
             print("  %2d  " % i, sig(D, 4))
-    def DDivider(args, d):
+    def DDivider(args):
         '''The arguments are:
             total_resistance_ohms ratio1 ratio2 ...
                                   -----------------
@@ -664,7 +650,7 @@ if 1:  # Core functionality
         return match
     def Int(x):
         return int(x) if x == int(x) else x
-    def BCD(args, d):
+    def BCD(args):
         '''Print the series/parallel combinations of on-hand resistors to
         construct the needed 1, 2, 4, 8 values in each decade.  This allows
         construction of a resistance box from suitable BCD (binary-coded
@@ -687,7 +673,7 @@ if 1:  # Core functionality
                     #normal()
                     t.print(f"{t.grnl}Exact")
                 else:
-                    res = Resistance(d, R, report=False)
+                    res = Resistance(R, report=False)
                     if res:
                         choice = Best(R, res)
                         p = "+" if choice[1] == "s" else "||"
@@ -730,47 +716,136 @@ if 1:  # Core functionality
             t.print(f"{c}By resistance:")
             for R, code in p:
                 print(f"{i}{R:8s} {code}")
+    def ListEIA():
+        t.print(f"{t.hdr}EIA resistance series:")
+        sig.rtz = True
+        for n in (6, 12, 24, 48, 96):
+            print("E%d:" % n)
+            digits = 2 if n < 48 else 3
+            s = []
+            for num in EIA[n]:
+                s.append(sig(num, digits))
+            for i in Columnize(s, horiz=True):
+                print(" ", i)
+    class Resistor:
+        def __init__(self, value, wattage):
+            self.value = value
+            self.wattage = wattage
+            # Get resistance value
+            last_character = value[-1]
+            if last_character not in string.digits and last_character != ".":
+                multiplier = 10**prefixes[last_character]
+                self.R = flt(value[:-1])*multiplier
+            else:
+                self.R = flt(value)
+        def __lt__(self, other):
+            return self.R < other.R
+        def __str__(self):
+            'Return string form, colorized if needed'
+            if self.wattage == 2:
+                return f"{t.watt2}{self.value}{t.n}"
+            else:
+                return f"{t.watt_quarter}{self.value}{t.n}"
+        def __repr__(self):
+            return str(self)
+    def ListOnhand():
+        '''This is the most-used feature of this script.  What's desired is an easy to read
+        listing of the resistors I have on-hand.  Most in my collection are 1/4 W, so these are
+        printed in the t.watt_quarter color.  The 2 W resistors are in the t.watt2 color so that
+        they stand out.
+        '''
+        t.print(f"{t.hdr}On-hand resistors{t.n}   {t('wht', attr='ul')}Colors{t.n}:  "
+                f"{t.watt_quarter}1/4 watt{t.n}, "
+                f"{t.watt2}2 watt")
+        if 0:   # Old method
+            print(f"{t.skyl}", end="")
+            print(g.on_hand)
+            print(t.n, end="")
+        else:
+            pp = PP(width=90, compact=True)
+            quarter_watt = g.on_hand.split()
+            two_watt = g.two_watt.split()
+            if 0:
+                pp(quarter_watt)
+                print()
+                pp(two_watt)
+            r = [Resistor(i, 0.25) for i in g.on_hand.split()]
+            for i in g.two_watt.split():
+                r.append(Resistor(i, 2))
+            r = sorted(r)
+            # Print organized by magnitude
+            sizes = (
+                # String category to display, upper-end magnitude
+                ("< 1", 1e0),
+                ("1", 1e1),
+                ("10", 1e2),
+                ("100", 1e3),
+                ("1k", 1e4),
+                ("10k", 1e5),
+                ("100k", 1e6),
+                ("1M", 1e7),
+                ("10M", 1e8),
+                #("100M", 1e9),
+            )
+            for size, Rmax in sizes:
+                row = []
+                t.print(f"{t.size}{size}")
+                while r and r[0] < Resistor(str(Rmax), 0.25):
+                    row.append(r.pop(0))
+                for i in Columnize(row, indent=" "*4, horiz=True, sep=" "*8):
+                    print(i)
+            # xx Note this illuminates one or more bugs in Columnize, as this doesn't print as
+            # I would wish.
+            print("\nCrappy display due to bug in columnize.Columnize")
+
+
+if 0: #xx
+    ListOnhand()
+    exit()
 
 if __name__ == "__main__":
     d = {}   # Options dictionary
-    args = ParseCommandLine(d)
+    args = ParseCommandLine()
+    cmd = args[0]
     sig.digits = d["-d"]
-    GetResistors(d)
-    if args[0] == "b":
-        BCD(args, d)
-    elif args[0] == "dd":
-        DDivider(args, d)
-    elif args[0] == "d":
+    GetResistors()
+    if cmd == "b":
+        BCD(args)
+    elif cmd == "dd":
+        DDivider(args)
+    elif cmd == "d":
         ratio = args[1]
         if float(ratio) <= 0:
             Error("Divider ratio must be > 0")
-        Divider(d, ratio)
-    elif args[0] == "D":
+        Divider(ratio)
+    elif cmd == "D":
         res = args[1:]
         if len(res) < 2:
             Error("Need at least two resistances")
-        DividerRatios(d, res)
-    elif args[0] == "l":
-        List(d)
-    elif args[0] == "p":
-        Pairs(args, d)
-    elif args[0] == "P":
+        DividerRatios(res)
+    elif cmd == "e":
+        ListEIA()
+    elif cmd == "l":
+        ListOnhand()
+    elif cmd == "p":
+        Pairs(args)
+    elif cmd == "P":
         Pots()
-    elif args[0] == "q":
+    elif cmd == "q":
         ratio = args[1]
         if float(ratio) <= 0:
             Error("Quotient ratio must be > 0")
-        Quotient(d, ratio)
-    elif args[0] == "R":
+        Quotient(ratio)
+    elif cmd == "R":
         d["desired"] = ' '.join(args[1:])
         res = d["res"] = GetValue(args[1:])
         if res <= 0:
             Error("Desired resistance must be > 0")
-        Series(d, res)
-    elif args[0] == "r":
+        Series(res)
+    elif cmd == "r":
         d["desired"] = ' '.join(args[1:])
         res = d["res"] = GetValue(args[1:])
         if res <= 0:
             Error("Desired resistance must be > 0")
-        Resistance(d, res, report=True)
+        Resistance(res, report=True)
 # vim: wm=5
