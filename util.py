@@ -9,6 +9,7 @@ Miscellaneous routines in python: @start
  
 AcceptableDiff        Returns False if two numbers are not equal
 Ampacity              Returns NEC ampacity of copper wire
+ANSI_strip            Remove ANSI escape sequences from a string
 AWG                   Returns wire diameter in inches for AWG gauge number
 Batch                 Generator to pick n items at a time from a sequence
 BraceExpansion        Brace expansion like modern shells
@@ -40,6 +41,7 @@ IsCygwinSymlink       Returns True if a file is a cygwin symlink
 IsIterable            Determines if you can iterate over an object
 IsTextFile            Heuristic to see if a file is a text file
 ItemCount             Summarize a sequence with counts of each item
+Len                   Return the length of a string with ANSI escape sequences removed
 Now                   Time or datetime as now
 ParseComplex          Split a complex number string into re, im strings
 Paste                 Return sequence of pasted sequences
@@ -1839,6 +1841,16 @@ def Winnow(seq, regexps=[], OR=False, flags=re.I):
             items = results
             results = set()
     return results
+def Len(string):
+    'Return the length of a string with ANSI escape sequences removed'
+    return len(ANSI_strip(string))
+def ANSI_strip(string):
+    '''Return the a string with ANSI escape sequences removed.  16 Feb 2023 Suggested regexp from
+    https://stackoverflow.com/questions/14693701/how-can-i-remove-the-ansi-escape-sequences-from-a-string-in-python
+    (see the answer below this answer, as it is a more general regexp).
+    '''
+    r = re.compile(r'(\x9B|\x1B\[)[0-?]*[ -\/]*[@-~]')
+    return r.sub('', string)
 
 if __name__ == "__main__": 
     # Missing tests for: Ignore Debug, Dispatch, GetString
@@ -1856,6 +1868,14 @@ if __name__ == "__main__":
     # Need to have version, as SizeOf stuff changed between 3.7 and 3.9
     vi = sys.version_info
     ver = f"{vi[0]}.{vi[1]}"
+    def Test_Len():
+        'Also test ANSI_strip'
+        s = "hello world"
+        Assert(Len(s) == 11)
+        s = "\x1b[38;2;198;174;239m12.578\x1b[38;2;192;192;192m\x1b[48;2;0;0;0m\x1b[0m"
+        Assert(Len(s) == 6)
+        u = ANSI_strip(s)
+        Assert(u == "12.578")
     def Test_Winnow():
         s = set("ei eI Ei EI".split())
         regexps = ["e", "I"]
