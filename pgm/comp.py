@@ -66,18 +66,23 @@ if 1:   # Utility
     def Usage(status=0):
         print(dedent(f'''
             {sys.argv[0]} [options] [regex [regex2...]]
-              Searches the components database for the indicated regular expressions AND'd
-              together.  The search is case-insensitive.  The data file is 
-                {data_file!r}
+                Searches the components database for the indicated regular expressions AND'd
+                together.  The search is case-insensitive.  The data file is 
+                    {data_file!r}
+                Prefix a regex with '-' and anything that matches this with the '-' removed will 
+                not appear in the output.
+            Example
+                python '{sys.argv[0]}' diode -zener
+                    shows diodes that don't contain 'zener'.
             Options
-              -a        Dump all records
-              -b N      Show contents of box number N
-              -C        Do not Use color highlighting
-              -c        Show category
-              -i        Do not ignore case in searches
-              -k kwd    Show items with keyword kwd
-              -l        List the keywords
-              -o        OR the regexes instead of AND
+                -a        Dump all records
+                -b N      Show contents of box number N
+                -C        Do not Use color highlighting
+                -c        Show category
+                -i        Do not ignore case in searches
+                -k kwd    Show items with keyword kwd
+                -l        List the keywords
+                -o        OR the regexes instead of AND
         '''))
         exit(status)
     def ParseCommandLine(d):
@@ -127,11 +132,15 @@ if 1:   # Core functionality
         '''
         if 1:  # regexps is a list of the regular expressions made from args
             regexps = []
+            remove = []     # Hold those that begin with "-"
             for i in args:
-                if d["-i"]:
-                    regexps.append(re.compile(i, re.I))
+                i = i.strip()
+                if not i:
+                    continue
+                if i.startswith("-"):
+                    remove.append(i[1:])
                 else:
-                    regexps.append(re.compile(i))
+                    regexps.append(re.compile(i, re.I) if d["-i"] else re.compile(i))
         if 1:  # Search all the items (Entry instances) for regex matches in their descr attribute
             found = []  # List containing the Entry instances that had a regex match
             if d["-o"]:  # OR the regexes
@@ -156,6 +165,20 @@ if 1:   # Core functionality
                             matched_all = False
                     if matched_all:
                         found.append(i)
+        if 1 and remove:  # Remove any specified regexes
+            keep = []
+            # Compile the regexes
+            remove = [re.compile(regex, re.I) if d["-i"] else re.compile(regex) for regex in remove]
+            for item in found:
+                not_found = True
+                for r in remove:
+                    if r.search(item.descr):
+                        # Had a match, so ignore this item
+                        not_found = False
+                        break
+                if not_found:
+                    keep.append(item)
+            found = keep
         if 1:  # Print results
             for item in sorted(found):
                 # Print box and compartment in color
