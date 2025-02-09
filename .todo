@@ -1,5 +1,7 @@
 Active:  /plib/.todo
 
+    - pgm/comp.py
+
     - pgm/purch.py
         - Script to review purchase invoices in ~/dp/purchases.  The default behavior is to list
           the files by date.

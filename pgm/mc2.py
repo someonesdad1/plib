@@ -68,7 +68,7 @@ if 1:   # Utility
         From the equation E = mc², you can do this problem in your head: m is 1 kg and the speed
         of light c in SI is 3e8 m/s, so the result is 1(3e8)² or 9e16 J, as expected.  
 
-        The Volume is calculated from the mass, assuming the density of steel.  You can select
+        The Volume is calculated from the mass, assuming the density of water.  You can select
         different materials with the -m option (see a list of materials with -M) or give the -m
         option a numerical argument, assumed to be a density in g/mL.
 
@@ -80,15 +80,17 @@ if 1:   # Utility
         Here are some other examples.  While there's nothing you can't do with a calculator, the
         script makes it a little easier to see the numbers.
 
-        - What size of a cube of steel will convert to 1 J of energy?  Use the command '{n} L 1'
-          and you get the length of 0.11 μm.  This is on the order of the size of a typical virus.
+        - What size of a cube of steel will convert to 1 J of energy?  Use the command '{n} -m
+          steel L 1' and you get the length of 0.11 μm.  This is on the order of the size of a
+          typical virus.
 
         - A car has a gas tank that contains 20 gallons of gasoline.  The combustion heat of this
           gasoline is 44 MJ/kg and the density of gasoline is about 0.75 g/mL³, giving 2.5 GJ of
           heat energy.  The size of a cube of steel for this energy is 150 μm, or a cube with a
           side roughly the diameter of a human hair.  This shows the large difference between the
           chemical energy and the total energy in mass when it is converted completely to energy.
-          Here, the chemical mass is about 57 kg and the 
+          Here, the chemical mass is about 57 kg and the mass of steel to be annihilated is 27 μg,
+          a ratio of 4e-10..
 
         - What mass has the energy equivalent of the bomb dropped on Hiroshima?  Noting the above
           example for 1 kg of mass yielded 1400 Hiroshimas, use the command 
@@ -96,8 +98,9 @@ if 1:   # Utility
             {n} m 1/1400*tan(pi/4)
 
           to get a mass of 0.7 μg.  This demonstrates that the numerical term can be a python
-          expression and that the math library is in scope.  You may have to escape the math
-          symbols from the shell.
+          expression and that the math library is in scope (the tangent term is 1, so it doesn't
+          affect the numerical calculation).  You may have to escape the math symbols from the
+          shell.
 
         - An estimate for the mass of the observable universe is 1e53 kg.  Assuming the big bang
           started with the equivalent energy, how much energy does this represent?  'm 1e53' gives
@@ -109,9 +112,9 @@ if 1:   # Utility
           universe.
 
         - The US consumed in 2021 about 1e20 J of energy.  If this could be produced by total
-          annihilation of mass with 10% efficiency, how much mass would be required?  Use '{n} e
-          1e20/0.1' to get a mass of about 1e6 kg.  That's a cube of steel about 1 m on a side,
-          maybe about half the size of a regular desk.
+          annihilation of mass with 10% efficiency, how much mass would be required?  Use '{n} -m
+          steel e 1e20/0.1' to get a mass of about 1e6 kg.  That's a cube of steel about 1 m on a
+          side, maybe about half the size of a regular desk.
 
         '''.rstrip()))
         exit(0)
@@ -119,40 +122,37 @@ if 1:   # Utility
         n = sys.argv[0]
         print(dedent(f'''
         Usage:  {n} [options] op arg
-          Calculations involving m = mass, E = energy, s = side of cube.
-          The op choices denoting the calculation to be done are:
+          Calculations involving m = mass, E = energy, s = side of cube.  The op choices denoting
+          the calculation to be done are:
             op    arg
             --    -------
             m     mass      
             E     energy    
             V     volume    
             L     length    
-          You can include common units with the arg number, cuddled or
-          separated by whitespace.  If you give a volume, the corresponding
-          mass is calculated assuming the indicated material.  The letter
-          for op is case-independent.  The default units are kg, m, J.
-  
-          A kiloton of TNT is equivalent to 4.184 TJ.  This unit is denoted
-          kttnt in the script.  The Hiroshima bomb was 15.5 kttnt.
+          You can include common units with the arg number, cuddled or separated by whitespace.
+          If you give a volume, the corresponding mass is calculated assuming the indicated
+          material.  The letter for op is case-independent.  The default units are kg, m, J.
+        
+          A kiloton of TNT is equivalent to 4.184 TJ.  This unit is denoted kttnt in the script.
+          The Hiroshima bomb was 15.5 kttnt.
         Example:
             {n} -m water v 1 ml
-          will calculate the energy created by the conversion of 1
-          milliliter of water to energy.  Since this is 1 g of water,
-          the resulting energy is 9e13 J.
+          will calculate the energy created by the conversion of 1 milliliter of water to energy.
+          Since this is 1 g of water, the resulting energy is 9e13 J.
         Options:
             -d n    Number of significant digits [{d['-d']}]
             -h      Print manpage
             -M      List material choices
-            -m mat  Choose material (default is steel).  The mat string
-                    must start the name in the list of materials.  Can also
-                    be a number in g/mL.
+            -m mat  Choose material (default is water).  The mat string must start the name in the
+                    list of materials.  Can also be a number in g/mL.
             -t      Run self tests
         '''))
         exit(status)
     def ParseCommandLine(d):
         GetDensityDict()
         d["-d"] = 2         # Number of significant figures
-        d["-m"] = "steel"   # Material
+        d["-m"] = "water"   # Material
         d["-t"] = False     # Run self tests
         try:
             opts, args = getopt.getopt(sys.argv[1:], "d:hMm:t") 
@@ -379,7 +379,13 @@ if 1:   # Core functionality
         kt = g.E/flt(4.184e12)
         hiroshima = kt/15.5
         print(f"{'Energy':{w}s}{t}{g.E.engsi}J = {g.E.sci} J = {kt} kilotons TNT = {hiroshima} Hiroshimas")
-        print(f"{'Volume':{w}s}{t}{g.V.engsi}m³ = {g.V.sci} m³")
+        # Need to handle the exceptional case where g.V.engsi is "m" because it will read "mm³",
+        # which is incorrect.
+        if g.V.engsi.endswith("m"):
+            print(f"{'Volume':{w}s}{t}{g.V.engsi}(m³) = {g.V.sci} m³")
+        else:
+            print(f"{'Volume':{w}s}{t}{g.V.engsi}m³ = {g.V.sci} m³")
+
         print(f"{'Length':{w}s}{t}{g.s.engsi}m = {g.s.sci} m = {(g.s/u('in')).sci} in")
         print(f"{'Density':{w}s}{t}{g.rho} kg/m³ = {g.rho/1000} g/cm³")
         print(f"{'Material':{w}s}{t}{g.name}")
