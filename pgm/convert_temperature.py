@@ -1,4 +1,18 @@
 '''
+
+- ToDo
+    - Change display to a columnar format
+        - Display the columns in the selected colors
+        - The input number will also be underlined
+    - Decide on a logical color scheme for temperature units
+        - Original was wht for F, magl for C, ornl for K, blul for R
+        - I'm leaning towards
+            - F grnl
+            - C yell
+            - K roy
+            - R viol
+            - or vice versa for K & R
+
 Temperature conversion utility
 '''
 if 1:  # Header
@@ -18,33 +32,41 @@ if 1:  # Header
     if 1:   # Imports
         import getopt
         import sys
-        from math import fabs
     if 1:   # Custom imports
         from u import ParseUnit
-        useflt = True
         from sig import GetSigFig
-        if useflt:
-            from f import flt
-        else:
-            from sig import sig
+        from f import flt
         from color import t
         from wrap import dedent
+        from lwtest import Assert, assert_equal
+        if 0:
+            import debug
+            debug.SetDebugger()
     if 1:   # Global variables
-        # Colors
-        c = {
-            "k": t("ornl"),
-            "f": t("wht"),
-            "c": t("magl"),
-            "r": t("blul"),
-        }
-        # Units
-        uK = " K"
-        uC = " °C"
-        uF = " °F"
-        uR = " °R"
-        # Conversions
-        p0, c0, k0, r0 = 9/5, 32, 273.15, 459.67
+        class G:
+            pass
+        g = G()
+        g.sep = 5   # Column separation
+        g.w = 15    # Column width
+        if 0:   # Old stuff
+            # Colors:  gotten by e.g. clr["c"]
+            clr = {}
+        if 0:   # Old stuff
+            # Unit symbols
+            uK, uC, uF, uR = " K", " °C", " °F", " °R"
+            # Denote conversion types
+            K, C, F, R = 1, 2, 3, 4
+            # Conversion factors
+            p0, c0, k0, r0 = 9/5, 32, 273.15, 459.67
 if 1:  # Utility
+    def GetColors():
+        uc = d["-c"]
+        if 1:   # New colors
+            t.k = t.roy  if uc else ""
+            t.f = t.grn  if uc else ""
+            t.c = t.yel  if uc else ""
+            t.r = t.viol if uc else ""
+            t.w = t("redl", attr="it") if uc else ""
     def Error(msg, status=1):
         print(msg, file=sys.stderr)
         exit(status)
@@ -53,7 +75,7 @@ if 1:  # Utility
         Usage:  {sys.argv[0]} temperature1 [temperature2 ...]
           Utility to convert between common temperatures.  The number of digits in the conversions
           is determined from the number of significant figures in the command line arguments (will
-          be 3 or more) if the -d option isn't used.
+          be 3 or more if the -d option isn't used).
         Options:
             -c      Don't use color in output
             -d n    Set number of significant figures
@@ -79,182 +101,131 @@ if 1:  # Utility
                     d[o] = int(a)
                 except Exception:
                     Error("-d argument must be integer > 0")
+        # Set up flt characteristics
+        z = flt(0)
+        z.rtdp = True   # Remove a bare trailing decimal point
+        z.rtz = False   # Remove trailing '0' characters
+        GetColors()
         return args
 if 1:  # Core functionality
-    def f2c(t):
-        return flt((t - c0)/p0)
-    def k2c(t):
-        return flt(t - k0)
-    def r2c(t):
-        return flt(r2f(f2c(t)))
-    def c2f(t):
-        return flt(p0*t + c0)
-    def k2f(t):
-        return flt(c2f(k2c(t)))
-    def r2f(t):
-        return flt(t - r0)
-    def c2k(t):
-        return flt(t + k0)
-    def f2k(t):
-        return flt(c2k(f2c(t)))
-    def r2k(t):
-        return flt(t/p0)
-    def f2r(t):
-        return flt(c2r(f2c(t)))
-    def k2r(t):
-        return flt(p0*t)
-    def c2r(t):
-        return flt(c2f(t) + r0)
     def NumberOfFigures(s):
         'Return the number of significant figures in s'
         return 5 if s == "0" else max(GetSigFig(s), 3)
-    def P(s):
-        'Print with no newline'
-        print(s, end=" ")
-    def K(s=""):
-        'Set the appropriate color'
-        if d["-c"]:
-            if s:
-                print(f"{c[s]}", end="")
-            else:
-                print(f"{t.n}", end="")
     def ShowFormulas():
+        print()
         print(dedent(f'''
         Formulas:
-            C = 5/9*(F - 32) = K - 273.15
-            F = 9/5*C + 32 
-            R = F + 459.67'''))
-    def Report(t, include_nl=False):
-        n = d["-d"]
-        try:
-            T = int(t)
-        except Exception:
-            T = flt(t)
-        if useflt:
-            z = flt(0)
-            z.N = n if n else NumberOfFigures(t)
-            z.rtz = True
-            z.rtdp = True
-            z.rtz = False
+            {t.c}C{t.n} = 5/9*({t.f}F{t.n} - 32) = {t.k}K{t.n} - 273.15
+            {t.f}F{t.n} = 9/5*{t.c}C{t.n} + 32'''))
+        if d["-r"]:
+            print(f"    {t.r}R{t.n} = {t.f}F{t.n} + 459.67")
+    def Convert(T, uin, uout):
+        '''Convert temperature T in input units uin to output units uout.  The temperature units
+        can be k c f r K C F R (i.e., case doesn't matter).  The function works by converting the
+        input temperature to K, then converting it to the output units.
+        
+        Example:  Convert(32, "f", "c") returns 0 °C.
+        '''
+        units = list("kcfr")
+        Assert(uin.lower() in units)
+        Assert(uout.lower() in units)
+        k0 = 273.15     # 0 °C in K
+        p0= 9/5         # Number of °F in K
+        c0 = 32         # Freezing point of water in °F 
+        r0 = 459.67     # 0 °C in °R
+        # Create functions to convert from a given unit to K
+        toK = {
+            "k": lambda k: k,
+            "c": lambda c: c + k0,
+            "f": lambda f: (f - c0)/p0 + k0,
+            "r": lambda r: (r - r0 - c0)/p0 + k0,
+        }
+        fromK = {
+            "k": lambda k: k,
+            "c": lambda c: c - k0,
+            "f": lambda f: (f - k0)*p0 + c0,
+            "r": lambda r: (r - k0)*p0 + c0 + r0,
+        }
+        if 0:   # Test these functions
+            Assert(toK["k"](k0) == k0)
+            Assert(toK["c"](0) == k0)
+            Assert(toK["f"](32) == k0)
+            Assert(toK["r"](32 + r0) == k0)
+            #
+            Assert(fromK["k"](k0) == k0)
+            Assert(fromK["c"](k0) == 0)
+            Assert(fromK["f"](k0) == 32)
+            Assert(fromK["r"](k0) == 32 + r0)
+            # These functions are inverses of each other
+            temps, reltol = [0, 1, 10, 250, 500, 1000, 2000, 3000, 5000], 1e-10
+            for t in temps:
+                for i in units:
+                    assert_equal(toK[i](fromK[i](t)), t, reltol=reltol)
+                    assert_equal(toK[i](fromK[i](-t)), -t, reltol=reltol)
+            exit()
+        # Perform the conversion
+        Tin = toK[uin.lower()](T)           # First convert T in uin to K
+        Tout = fromK[uout.lower()](Tin)     # Convert Tin in K to uout
+        return flt(Tout)
+    def Header():
+        'Print a report header'
+        w = g.w  # Column width
+        sep = " "*g.sep
+        # Print temperature units
+        t.print(f"{t.c}{'°C':^{w}s}{sep}"
+                f"{t.f}{'°F':^{w}s}{sep}"
+                f"{t.k}{'K':^{w}s}",
+                end="")
+        t.print(f"{sep}{t.r}{'°R':^{w}s}") if d["-r"] else t.print()
+        # Print underlines
+        s = "─"*w
+        t.print(f"{t.c}{s:^{w}s}{sep}"
+                f"{t.f}{s:^{w}s}{sep}"
+                f"{t.k}{s:^{w}s}",
+                end="")
+        t.print(f"{sep}{t.r}{s:^{w}s}") if d["-r"] else t.print()
+    def Report(temp):
+        'temp is the string on the command line'
+        w = g.w  # Column width
+        sep = " "*g.sep
+        T = flt(temp)
+        if d["-d"] is None:
+            n = max(GetSigFig(temp), 3)
         else:
-            sig.digits = n if n else NumberOfFigures(t)
-            sig.rtz = True
-        # It's °F
-        if T >= -r0:
-            K("f")
-            P(f"{T}{uF}")
-            K()
-            P("=")
-            K("c")
-            if useflt:
-                P(f"{f2c(T)}{uC}")
-            else:
-                P(f"{sig(f2c(T))}{uC}")
-            K()
-            P("=")
-            K("k")
-            if useflt:
-                P(f"{f2k(T)}{uK}")
-            else:
-                P(f"{sig(f2k(T))}{uK}")
-            K()
+            n = d["-d"]
+        with T:
+            T.N = n
+            # Assume it's °C
+            From = "c"
+            print(f"{t.w}{T!s:^{w}s}{sep}", end="")
+            print(f"{t.f}{Convert(T, From, 'f')!s:^{w}s}{sep}", end="")
+            print(f"{t.k}{Convert(T, From, 'k')!s:^{w}s}{sep}", end="")
+            t.print(f"{t.r}{Convert(T, From, 'r')!s:^{w}s}") if d["-r"] else t.print()
+            # Assume it's °F
+            From = "f"
+            print(f"{t.c}{Convert(T, From, 'c')!s:^{w}s}{sep}", end="")
+            print(f"{t.w}{T!s:^{w}s}{sep}", end="")
+            print(f"{t.k}{Convert(T, From, 'k')!s:^{w}s}{sep}", end="")
+            t.print(f"{t.r}{Convert(T, From, 'r')!s:^{w}s}") if d["-r"] else t.print()
+            # Assume it's K
+            From = "k"
+            print(f"{t.c}{Convert(T, From, 'c')!s:^{w}s}{sep}", end="")
+            print(f"{t.f}{Convert(T, From, 'f')!s:^{w}s}{sep}", end="")
+            print(f"{t.w}{T!s:^{w}s}{sep}", end="")
+            t.print(f"{t.r}{Convert(T, From, 'r')!s:^{w}s}") if d["-r"] else t.print()
+            # Assume it's °R
             if d["-r"]:
-                P("=")
-                K("r")
-                if useflt:
-                    P(f"{f2r(T)}{uR}")
-                else:
-                    P(f"{sig(f2r(T))}{uR}")
-                K()
-            print()
-        # It's °C
-        if T >= -k0:
-            K("c")
-            P(f"{T}{uC}")
-            K()
-            P("=")
-            K("f")
-            if useflt:
-                P(f"{c2f(T)}{uF}")
-            else:
-                P(f"{sig(c2f(T))}{uF}")
-            K()
-            P("=")
-            K("k")
-            if useflt:
-                P(f"{c2k(T)}{uK}")
-            else:
-                P(f"{sig(c2k(T))}{uK}")
-            K()
-            if d["-r"]:
-                P("=")
-                K("r")
-                if useflt:
-                    P(f"{c2r(T)}{uR}")
-                else:
-                    P(f"{sig(c2r(T))}{uR}")
-                K()
-            print()
-        # It's K
-        if T >= 0:
-            K("k")
-            P(f"{T}{uK}")
-            K()
-            P("=")
-            K("f")
-            if useflt:
-                P(f"{k2f(T)}{uF}")
-            else:
-                P(f"{sig(k2f(T))}{uF}")
-            K()
-            P("=")
-            K("c")
-            if useflt:
-                P(f"{k2c(T)}{uC}")
-            else:
-                P(f"{sig(k2c(T))}{uC}")
-            K()
-            if d["-r"]:
-                P("=")
-                K("r")
-                if useflt:
-                    P(f"{k2r(T)}{uR}")
-                else:
-                    P(f"{sig(k2r(T))}{uR}")
-                K()
-            print()
-        # It's R
-        if T >= 0 and d["-r"]:
-            K("r")
-            P(f"{T}{uR}")
-            K()
-            P("=")
-            K("f")
-            if useflt:
-                P(f"{r2f(T)}{uF}")
-            else:
-                P(f"{sig(r2f(T))}{uF}")
-            K()
-            P("=")
-            K("c")
-            if useflt:
-                P(f"{r2c(T)}{uC}")
-            else:
-                P(f"{sig(r2c(T))}{uC}")
-            K()
-            P("=")
-            K("k")
-            if useflt:
-                P(f"{r2k(T)}{uK}")
-            else:
-                P(f"{sig(r2k(T))}{uK}")
-            K()
-            print()
-        if include_nl:
-            print()
+                From = "r"
+                print(f"{t.c}{Convert(T, From, 'c')!s:^{w}s}{sep}", end="")
+                print(f"{t.f}{Convert(T, From, 'f')!s:^{w}s}{sep}", end="")
+                print(f"{t.k}{Convert(T, From, 'k')!s:^{w}s}{sep}", end="")
+                t.print(f"{t.w}{T!s:^{w}s}")
+
 if __name__ == "__main__":
     d = {}      # Options dictionary
     args = ParseCommandLine(d)
+    assert(args)
+    Header()
     for temperature in args:
-        Report(temperature, include_nl=len(args) > 1)
+        Report(temperature)
     ShowFormulas()
