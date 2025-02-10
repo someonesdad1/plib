@@ -1,18 +1,4 @@
 '''
-
-- ToDo
-    - Change display to a columnar format
-        - Display the columns in the selected colors
-        - The input number will also be underlined
-    - Decide on a logical color scheme for temperature units
-        - Original was wht for F, magl for C, ornl for K, blul for R
-        - I'm leaning towards
-            - F grnl
-            - C yell
-            - K roy
-            - R viol
-            - or vice versa for K & R
-
 Temperature conversion utility
 '''
 if 1:  # Header
@@ -33,6 +19,7 @@ if 1:  # Header
         import getopt
         import sys
     if 1:   # Custom imports
+        from temperature import ConvertTemperature
         from u import ParseUnit
         from sig import GetSigFig
         from f import flt
@@ -119,54 +106,6 @@ if 1:  # Core functionality
             {t.f}F{t.n} = 9/5*{t.c}C{t.n} + 32'''))
         if d["-r"]:
             print(f"    {t.r}R{t.n} = {t.f}F{t.n} + 459.67")
-    def Convert(T, uin, uout):
-        '''Convert temperature T in input units uin to output units uout.  The temperature units
-        can be k c f r K C F R (i.e., case doesn't matter).  The function works by converting the
-        input temperature to K, then converting it to the output units.
-        
-        Example:  Convert(32, "f", "c") returns 0 °C.
-        '''
-        units = list("kcfr")
-        Assert(uin.lower() in units)
-        Assert(uout.lower() in units)
-        k0 = 273.15     # 0 °C in K
-        p0= 9/5         # Number of °F in K
-        c0 = 32         # Freezing point of water in °F 
-        r0 = 459.67     # 0 °C in °R
-        # Create functions to convert from a given unit to K
-        toK = {
-            "k": lambda k: k,
-            "c": lambda c: c + k0,
-            "f": lambda f: (f - c0)/p0 + k0,
-            "r": lambda r: (r - r0 - c0)/p0 + k0,
-        }
-        fromK = {
-            "k": lambda k: k,
-            "c": lambda c: c - k0,
-            "f": lambda f: (f - k0)*p0 + c0,
-            "r": lambda r: (r - k0)*p0 + c0 + r0,
-        }
-        if 0:   # Test these functions
-            Assert(toK["k"](k0) == k0)
-            Assert(toK["c"](0) == k0)
-            Assert(toK["f"](32) == k0)
-            Assert(toK["r"](32 + r0) == k0)
-            #
-            Assert(fromK["k"](k0) == k0)
-            Assert(fromK["c"](k0) == 0)
-            Assert(fromK["f"](k0) == 32)
-            Assert(fromK["r"](k0) == 32 + r0)
-            # These functions are inverses of each other
-            temps, reltol = [0, 1, 10, 250, 500, 1000, 2000, 3000, 5000], 1e-10
-            for t in temps:
-                for i in units:
-                    assert_equal(toK[i](fromK[i](t)), t, reltol=reltol)
-                    assert_equal(toK[i](fromK[i](-t)), -t, reltol=reltol)
-            exit()
-        # Perform the conversion
-        Tin = toK[uin.lower()](T)           # First convert T in uin to K
-        Tout = fromK[uout.lower()](Tin)     # Convert Tin in K to uout
-        return flt(Tout)
     def Header():
         'Print a report header'
         w = g.w  # Column width
@@ -198,27 +137,27 @@ if 1:  # Core functionality
             # Assume it's °C
             From = "c"
             print(f"{t.w}{T!s:^{w}s}{sep}", end="")
-            print(f"{t.f}{Convert(T, From, 'f')!s:^{w}s}{sep}", end="")
-            print(f"{t.k}{Convert(T, From, 'k')!s:^{w}s}{sep}", end="")
-            t.print(f"{t.r}{Convert(T, From, 'r')!s:^{w}s}") if d["-r"] else t.print()
+            print(f"{t.f}{ConvertTemperature(T, From, 'f')!s:^{w}s}{sep}", end="")
+            print(f"{t.k}{ConvertTemperature(T, From, 'k')!s:^{w}s}{sep}", end="")
+            t.print(f"{t.r}{ConvertTemperature(T, From, 'r')!s:^{w}s}") if d["-r"] else t.print()
             # Assume it's °F
             From = "f"
-            print(f"{t.c}{Convert(T, From, 'c')!s:^{w}s}{sep}", end="")
+            print(f"{t.c}{ConvertTemperature(T, From, 'c')!s:^{w}s}{sep}", end="")
             print(f"{t.w}{T!s:^{w}s}{sep}", end="")
-            print(f"{t.k}{Convert(T, From, 'k')!s:^{w}s}{sep}", end="")
-            t.print(f"{t.r}{Convert(T, From, 'r')!s:^{w}s}") if d["-r"] else t.print()
+            print(f"{t.k}{ConvertTemperature(T, From, 'k')!s:^{w}s}{sep}", end="")
+            t.print(f"{t.r}{ConvertTemperature(T, From, 'r')!s:^{w}s}") if d["-r"] else t.print()
             # Assume it's K
             From = "k"
-            print(f"{t.c}{Convert(T, From, 'c')!s:^{w}s}{sep}", end="")
-            print(f"{t.f}{Convert(T, From, 'f')!s:^{w}s}{sep}", end="")
+            print(f"{t.c}{ConvertTemperature(T, From, 'c')!s:^{w}s}{sep}", end="")
+            print(f"{t.f}{ConvertTemperature(T, From, 'f')!s:^{w}s}{sep}", end="")
             print(f"{t.w}{T!s:^{w}s}{sep}", end="")
-            t.print(f"{t.r}{Convert(T, From, 'r')!s:^{w}s}") if d["-r"] else t.print()
+            t.print(f"{t.r}{ConvertTemperature(T, From, 'r')!s:^{w}s}") if d["-r"] else t.print()
             # Assume it's °R
             if d["-r"]:
                 From = "r"
-                print(f"{t.c}{Convert(T, From, 'c')!s:^{w}s}{sep}", end="")
-                print(f"{t.f}{Convert(T, From, 'f')!s:^{w}s}{sep}", end="")
-                print(f"{t.k}{Convert(T, From, 'k')!s:^{w}s}{sep}", end="")
+                print(f"{t.c}{ConvertTemperature(T, From, 'c')!s:^{w}s}{sep}", end="")
+                print(f"{t.f}{ConvertTemperature(T, From, 'f')!s:^{w}s}{sep}", end="")
+                print(f"{t.k}{ConvertTemperature(T, From, 'k')!s:^{w}s}{sep}", end="")
                 t.print(f"{t.w}{T!s:^{w}s}")
 
 if __name__ == "__main__":
