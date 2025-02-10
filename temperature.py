@@ -63,10 +63,14 @@ if 1:   # Core functionality
             "r": lambda r: (r - k0)*p0 + c0 + r0,
         }
         # Perform the conversion
-        Tin = toK[uin.lower()](T)           # Convert T in uin to K
-        if strict and Tin < 0:
-            raise ValueError(f"Input temperature T = {T} is less than 0 K")
-        Tout = fromK[uout.lower()](Tin)     # Convert Tin in K to uout
+        if not T and ((uin.lower() == "k" and uout.lower() == "r") or 
+                      (uin.lower() == "r" and uout.lower() == "k")):
+            Tout = 0    # Handles e.g. where 0 K rounds to 5.68e-14 °R
+        else:
+            Tin = toK[uin.lower()](T)           # Convert T in uin to K
+            if strict and Tin < 0:
+                raise ValueError(f"Input temperature T = {T} is less than 0 K")
+            Tout = fromK[uout.lower()](Tin)     # Convert Tin in K to uout
         return R(Tout)
 
 if __name__ == "__main__":
