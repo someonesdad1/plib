@@ -1,4 +1,11 @@
 '''
+
+ToDo
+    - Scoring needs to change:  first goal should be to get as close to desired resistance value
+      as possible, then get closest to the desired ratio
+        - For dr, calculation abs(dr - 1) and sort by this value.  Then sort by how close the
+          ratio is.
+
 Given a voltage divider total resistance and ratio, print out the closest
 divider that can be made with on-hand resistors.
 '''
@@ -31,14 +38,14 @@ if 1:   # Custom imports
     from sig import sig
     from u import ParseUnit, SI_prefixes
     from fpformat import FPFormat
-    if 1:
+    if 0:
         import debug
         debug.SetDebugger()
 if 1:   # Global variables
     number_limit_default = 20
     fp = FPFormat(num_digits=3)
     fp.trailing_decimal_point(False)
-    t.exact = t("ornl")
+    t.exact = t("yel")
 def Error(msg, status=1):
     print(msg, file=sys.stderr)
     exit(status)
@@ -47,31 +54,27 @@ def Usage(d, status=1):
     n = number_limit_default
     print(dedent(f'''
     Usage:  {name} [options] R ratio [n]
-      For the indicated total resistance R and desired ratio, print out the
-      resistors to use from the on-hand set that give the closest fit.  You can
-      specify n matches to print; it defaults to {n}.  Set n to 0 to show all
-      possible dividers from the on-hand set of resistors.
+      For the indicated total resistance R and desired ratio, print out the resistors to use from
+      the on-hand set that give the closest fit.  You can specify n matches to print; it defaults
+      to {n}.  Set n to 0 to show all possible dividers from the on-hand set of resistors.
     
-    {name} -2 R V0 V1 V2
-      Given a potentiometer of resistance R, calculate the two resistors needed 
-      to let the pot adjust between V1 and V2 when the two resistors and the pot
-      are in series with the pot in the middle and V0 across the three
-      resistances.
+    divider.py -2 R V0 V1 V2
+      Given a potentiometer of resistance R, calculate the two resistors needed to let the pot
+      adjust between V1 and V2 when the two resistors and the pot are in series with the pot in
+      the middle and V0 across the three resistances.
     
     Options
       -2        Solve the problem 2 problem
-      -r        Sort by divider resistance match [default]
-      -s        Sort by divider ratio match
-      -t res    Set the minimum ratio of Rtotal/Rdesired to keep
-      -T res    Set the maximum ratio of Rtotal/Rdesired to keep
+      -r tol    % tolerance for ratio [{d["-r"]}]
+      -t res    Set the minimum ratio of Rtotal/Rdesired to keep [{d["-t"]}]
+      -T res    Set the maximum ratio of Rtotal/Rdesired to keep [{d["-T"]}]
     '''))
     exit(status)
 def ParseCommandLine(d):
-    d["-2"] = False
-    d["-r"] = False
-    d["-s"] = False
-    d["-t"] = None
-    d["-T"] = None
+    d["-2"] = False     # Solve problem #2
+    d["-r"] = 30        # % tolerance for ratio
+    d["-t"] = 0.95      # Min ratio of Rtotal/Rdesired to keep
+    d["-T"] = 1.05      # Max ratio of Rtotal/Rdesired to keep
     if len(sys.argv) < 2:
         Usage(d)
     try:
@@ -80,7 +83,7 @@ def ParseCommandLine(d):
         print(str(e))
         exit(1)
     for o, a in opts:
-        if o[1] in "rs":
+        if o[1] in "":
             d[o] = not d[o]
         elif o in ("-t", "-T"):
             d[o] = GetR(a)
@@ -91,8 +94,6 @@ def ParseCommandLine(d):
         Usage(d)
     if len(args) == 2:
         args.append(number_limit_default)
-    if d["-r"] and d["-s"]:
-        Error("Cannot set both -r and -s")
     sig.digits = 3
     sig.rtz = True
     return args
@@ -125,7 +126,7 @@ def GetMatches(candidates, delta):
         if c.dr <= delta and c.dratio <= delta:
             matches.append(c)
     return matches
-def Include(dr, d):
+def Include(dr):
     '''If dr satisfies the -t and -T options, return True; otherwise return
     False.
     '''
@@ -153,40 +154,55 @@ def FindResistors(Rtotal, desired_ratio, number_limit, d):
     N = len(comb)
     def f(x, y):
         return round(abs(x/y - 1), 4)
+    pct_factor = 1 + d["-r"]/100
     for R1, R2 in comb:
         rtotal = R1 + R2
-        ratio = R1/rtotal
-        dr, dratio = rtotal/Rtotal, f(ratio, desired_ratio)
-        if Include(dr, d):
-            matches.append(C(dratio, dr, ratio, rtotal, R1, R2))
-        ratio = R2/rtotal
-        dratio = f(ratio, desired_ratio)
-        if Include(dr, d):
-            matches.append(C(dratio, dr, ratio, rtotal, R2, R1))
+        # R1 and R2
+        ratio1 = R1/rtotal
+        dr, dratio1 = rtotal/Rtotal, f(ratio1, desired_ratio)
+        # R2 and R1
+        ratio2 = R2/rtotal
+        dratio2 = f(ratio2, desired_ratio)
+        # Check using the -r option for ratio tolerance
+        if desired_ratio/pct_factor <= ratio1 <= desired_ratio*pct_factor:
+            if Include(dr):
+                matches.append(C(dr, dratio1, ratio1, rtotal, R1, R2))
+        if desired_ratio/pct_factor <= ratio2 <= desired_ratio*pct_factor:
+            if Include(dr):
+                matches.append(C(dr, dratio2, ratio2, rtotal, R2, R1))
+    # Sort matches by dr
     matches = list(sorted(matches))
     if number_limit:
         matches = matches[:number_limit]
-    print("Rtotal = {}, ratio = {}".format(eng(Rtotal), sig(desired_ratio)))
+    # Sort by dratio
+    matches = list(sorted(matches, key=lambda x: x.dratio))
+    t.r = t.yel
+    t.t = t.grn
     print(dedent(f'''
-    {n} resistors in on-hand set
-    {N} pairwise combinations examined
-    Scores:
-        - Ratio score closest to zero is best
-        - Rtotal score nearest 1 is best
-     
-        Scores             Actual
-    Ratio    Rtotal    Ratio   Rtotal      R1       R2
-    ---------------    --------------    ------   ------'''))
+        Command line:  {' '.join(sys.argv)}
+        
+        Voltage divider with on-hand resistors
+          Ratio  = {t.r}{sig(desired_ratio)}{t.n}
+          Rtotal = {t.t}{eng(Rtotal)}{t.n}
+          {n} resistors in on-hand set, {N} pairwise combinations
+          Ratio tolerances
+            -t option:  low  = {d["-t"]}
+            -T option:  high = {d["-T"]}
+          -r option:  tolerance for ratio = ±{d["-r"]}%'''))
+    w = 8
+    s, i = "─"*w, " "*4
+    print(f"{t.r}{'Ratio':^{w}s}{i}"
+          f"{t.t}{'Rtotal':^{w}s}{t.n}{i}"
+          f"{'R1':^{w}s}{i}{'R2':^{w}s}")
+    print(f"{t.r}{s:^{w}s}{i}{t.t}{s:^{w}s}{t.n}{i}{s:^{w}s}{i}{s:^{w}s}")
     for candidate in matches:
-        drat, dr, ratio, rtotal, R1, R2 = candidate
-        if drat:
-            print("{:^6s}   {:6s}    {:8s} {:8s} {:^8s} {:^8s}".format(
-                Pct(100*drat), Show_dr(dr), sig(ratio, 3), eng(rtotal),
-                eng(R1), eng(R2)))
-        else:
-            t.print("{:s}{:^6s}   {:6s}    {:8s} {:8s} {:^8s} {:^8s}".format(
-                    t.exact, Pct(100*drat), Show_dr(dr), sig(ratio, 3), eng(rtotal),
-                    eng(R1), eng(R2)))
+        dr, dratio, ratio, rtotal, R1, R2 = candidate
+        print(f"{t.r}{sig(ratio, 3):^{w}s}{i}"
+              f"{t.t}{eng(rtotal):^{w}s}{t.n}{i}"
+              f"{eng(R1):^{w}s}{i}"
+              f"{eng(R2):^{w}s}")
+        #print("{:8s} {:8s} {:^8s} {:^8s}".format(
+        #        sig(ratio, 3), eng(rtotal), eng(R1), eng(R2)))
 def Problem2(args, d):
     E = fp.engsi
     if len(args) != 4:
