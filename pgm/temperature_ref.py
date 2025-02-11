@@ -30,7 +30,7 @@ if 1:  # Header
         from wrap import dedent
         from color import t
         from lwtest import Assert
-        if 0:
+        if 1:
             import debug
             debug.SetDebugger()
     if 1:   # Global variables
@@ -39,10 +39,11 @@ if 1:  # Header
             pass
         g = G()
         g.dbg = False
+        g.data = None   # Holder of the list of temperature data
         ii = isinstance
 if 1:   # Data
-    # Fields
-    #   0   Temperature in K; trailing letter C, F, or R for °C, °F, °R
+    # First field is a temperature in K (with optional alternate unit letter of C, F, or R)
+    # Remaining string is the description
     data = '''
 
         1.41679e32 Planck temperature
@@ -338,6 +339,8 @@ if 1:   # Classes
             self.Traw = T               # Raw string
             self.T = self.get_value(T)  # Numerical value
             self.name = name
+        def __lt__(self, other):
+            return self.T < other.T
         def __str__(self):
             return f"{self.T} {self.name}"
         def __repr__(self):
@@ -358,16 +361,15 @@ if 1:   # Classes
             return (a + b)/2
         def get_value(self, T):
             if "-" in T:
-                T_K = self.interpret_range(T)
+                return self.interpret_range(T)
             elif T.startswith(">"):
                 return self.interpret(T[1:])
             else:
                 last = T[-1].lower()
                 if last in list("kcfr"):
-                    T_K = self.interpret(T)
+                    return self.interpret(T)
                 else:
-                    T_K = flt(T)
-                return T_K
+                    return flt(T)
 if 1:   # Utility
     def GetColors():
         t.err = t("redl")
@@ -393,10 +395,15 @@ if 1:   # Utility
         exit(status)
     def Usage(status=0):
         print(dedent(f'''
-        Usage:  {sys.argv[0]} [options] etc.
+        Usage:  {sys.argv[0]} [options] regex
           Explanations...
         Options:
+            -C      Don't use color
+            -c      Display temperatures in °C
+            -f      Display temperatures in °F
             -h      Print a manpage
+            -k      Display temperatures in K
+            -r      Display temperatures in °R
         '''))
         exit(status)
     def ParseCommandLine(d):
@@ -435,12 +442,8 @@ if 1:   # Core functionality
             o.append(Element(T, name.strip()))
         return o
 
-if 1: #xx
-    o = GetData()
-    pp(o)
-    exit()
-
 if __name__ == "__main__":
     d = {}      # Options dictionary
     args = ParseCommandLine(d)
-    GetData()
+    g.data = sorted(GetData())
+    pp(g.data)
