@@ -395,14 +395,25 @@ if 1:   # Utility
         exit(status)
     def Usage(status=0):
         print(dedent(f'''
-        Usage:  {sys.argv[0]} [options] regex
-          Explanations...
+        Usage:  {sys.argv[0]} [options] unit regex1 [regex2...]
+          Search for items in the temperature list that match the regexes.  unit must be one of
+          the letters c, f, k, r indicating the temperature unit to use.  Numbers will display
+          items with temperatures close to the indicated one.  More than one regexes are ANDed
+          together.
+        Examples
+          temperature_ref.py c 200
+            Show items with temperatures near 200 °C.
+          temperature_ref.py aluminum
+            Show items containing the string 'aluminum'.
         Options:
+            -a      Show all entries
             -C      Don't use color
             -c      Display temperatures in °C
             -f      Display temperatures in °F
             -h      Print a manpage
+            -i      Don't ignore case
             -k      Display temperatures in K
+            -n n    Number of items to display on either side of found temperature items
             -r      Display temperatures in °R
         '''))
         exit(status)

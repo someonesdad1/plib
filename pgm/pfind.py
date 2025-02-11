@@ -84,7 +84,7 @@ if 1:   # Utility
         '''))
         exit(status)
     def ParseCommandLine():
-        d["-c"] = False     # Use color coding
+        d["-c"] = True      # Use color coding
         d["-d"] = False     # Show directories only
         d["-f"] = False     # Show files only
         d["-i"] = True      # Ignore case in searches
@@ -142,7 +142,7 @@ if 1:   # Core functionality
         t.norm = t.n if cc else ""
         e = "\x1b[01;31m"   # This will match grep & ls color for directories
         t.dirs = e if cc else ""
-        t.files = t("brnl") if cc else ""
+        t.files = t("yell") if cc else ""   # This matches grep too
     def GetDirectories(dir):
         '''Return a list of directories as Path instances at and below dir.
             Filter out the things indicated by the options in d.

@@ -18,17 +18,41 @@
       be a problem with decimal roundoff in the colorsys module.
 
 - More color names could be handy
-    - White:  pearl snow ivory cream egg cotton chiffon salt linen bone frost rice vanilla cloud casper moon ghost milk blizzard polar crystal
-    - Black:  ebony crow ink raven onyx soot coal obsidian
-    - Gray:  graphite iron pewter cloud silver smoke slate ash dove fog flint charcoal lead coin fossil lava rhino granite shark platinum
-    - Purple:  mauve violet lavender plum lilac grape iris orchid thistle prune indigo pansy fuchsia eggplant
-    - Blue:  ice baby robin egg blueberry navy slate sky navy indigo cobalt teal ocean azure lapis spruce denim sapphire arctic aqua steel royal
-    - Green:  juniper sage lime fern emerald pear moss shamrock pine mint seaweed pickle pistachio basil tea army kelly jungle apple laurel beryl tea moss sage spring copper mint army pea turtle lime leaf kiwi jade teal kelly aqua grass frog emerald shamrock kermit verdigris foilage glade willow mantis broccoli turf
-    - Yellow: canary gold flax butter lemon mustard corn banana dijon honey blonde peach daffodil maize citrus topaz ochre custard tangerine melon straw saffron khaki papaya sand pee sun mustard
-    - Orange:  cider rust ginger tiger fire bronze apricot carrot amber yam mango papaya sunset coral paprika nectarine squash salmon caramel umber
-    - Red:  cherry rose jam merlot garnet ruby scarlet wine brick blood berry candy lipstick chili barn fuchsia punch rouge tomato flame cerise sunset pink pig barbie inferno claret
-    - Tan:  beige oat fawn sand sepia latte oyster desert caramel latte beach almond toffee vanilla butter wheat maple nutmeg
-    - Brown:  coffee mocha peanut wood pecan walnut caramel syrup umber tawny penny cedar cognac sienna
+    - White
+        - pearl snow ivory cream egg cotton chiffon salt linen bone frost rice vanilla cloud
+          casper moon ghost milk blizzard polar crystal
+    - Black
+        - ebony crow ink raven onyx soot coal obsidian
+    - Gray
+        - graphite iron pewter cloud silver smoke slate ash dove fog flint charcoal lead coin
+          fossil lava rhino granite shark platinum
+    - Purple
+        - mauve violet lavender plum lilac grape iris orchid thistle prune indigo pansy fuchsia
+          eggplant
+    - Blue
+        - ice baby robin egg blueberry navy slate sky navy indigo cobalt teal ocean azure lapis
+          spruce denim sapphire arctic aqua steel royal
+    - Green
+        - juniper sage lime fern emerald pear moss shamrock pine mint seaweed pickle pistachio
+          basil tea army kelly jungle apple laurel beryl tea moss sage spring copper mint army pea
+          turtle lime leaf kiwi jade teal kelly aqua grass frog emerald shamrock kermit verdigris
+          foilage glade willow mantis broccoli turf
+    - Yellow
+        - canary gold flax butter lemon mustard corn banana dijon honey blonde peach daffodil
+          maize citrus topaz ochre custard tangerine melon straw saffron khaki papaya sand pee sun
+          mustard
+    - Orange
+        - cider rust ginger tiger fire bronze apricot carrot amber yam mango papaya sunset coral
+          paprika nectarine squash salmon caramel umber
+    - Red
+        - cherry rose jam merlot garnet ruby scarlet wine brick blood berry candy lipstick chili
+          barn fuchsia punch rouge tomato flame cerise sunset pink pig barbie inferno claret
+    - Tan
+        - beige oat fawn sand sepia latte oyster desert caramel latte beach almond toffee vanilla
+          butter wheat maple nutmeg
+    - Brown
+        - coffee mocha peanut wood pecan walnut caramel syrup umber tawny penny cedar cognac
+          sienna
 
 ---------------------------------------------------------------------------
 Functions to convert between ANSI 8-bit color numbers and 24-bit RGB values:
@@ -135,10 +159,12 @@ if 1:   # Header
         import os
         import re
         import sys
+        from io import StringIO
         from pathlib import Path as P
         from collections.abc import Iterable
         from collections import deque
         from string import hexdigits
+        from pdb import set_trace as xx
     # Custom imports
     if 1:
         from wsl import wsl
@@ -158,6 +184,9 @@ if 1:   # Header
             have_mpmath = False
     # Global variables
     if 1:
+        class G:
+            pass
+        g = G()     # Container for global variables
         ii = isinstance
         # This is commented out until I get rid of the legacy klr stuff
         #__all__ = "Color Trm TRM t ColorName CN RegexpDecorate".split()
@@ -1470,62 +1499,58 @@ if 1:
         t.print(f"{t.magb}magb")
 
 class RegexpDecorate:
-    '''Decorate regular expression matches with color.
-        The styles attribute is a dictionary that contains the styles to
-        apply for each regexp's match (key is the compiled regexp).  The
-        style is a tuple of 1 to 3 values:  fg color, bg color, and text
-        attributes.  None means to use the default.
+    '''Decorate regular expression matches with color
     
-        Example use:
+    The styles attribute is a dictionary that contains the styles to apply for each regexp's match
+    (key is the compiled regexp).  The style is a tuple of 1 to 3 values:  fg color, bg color, and
+    text attributes.  None means to use the default.
     
-            rd = RegexpDecorate()
-            r = re.compile(r"[Mm]adison")
-            fg = t("yell")
-            bg = t.n
-            # Note fg and bg must be escape sequences
-            rd.register(r, fg, bg)    # Print matches in light yellow on black
-            for line in open(file).readlines():
-                rd(line)    # Lines with matches are printed to stdout
+    Example use:  highlight lines to stdout that contain '[Mm]adison'
     
-        The previous can also be done with
+        rd = RegexpDecorate()
+        r = re.compile(r"[Mm]adison")
+        fg = t.yell
+        bg = t.n
+        # Note fg and bg must be escape sequences
+        rd.register(r, fg, bg)    # Print matches in light yellow on black
+        for line in open(file).readlines():
+            rd(line)    # Lines with matches are printed to stdout
+    
+        Can als be done with
             rd(open(file))
     
-        multiline = """
-            Here's a multiline string that
-            might contain madison or Madison.
-        """
-        rd(multiline)
+    Suppose you have python files in a directory "mydir" and you're interested in knowing how many
+    lines contain the string "MySymbol".  This can be done with
     
-        Suppose the string pnp contains the text of "Pride and Prejudice".  You
-        could print out all the lines with the string "Elizabeth" or "Lizzy"
-        with
-            rd = RegexpDecorate()
-            r = re.compile(r"Elizabeth|Lizzy", re.I)
-            rd.register(r, t(Color("yell")), t.n)
-            rd(pnp)
+        rd = RegexpDecorate()
+        r = re.compile(r"MySymbol")
+        files = pathlib.Path("mydir").glob("*.py")
+        rd.register(r, t(Color("yell")), t.n)
+        rd(*files)
     
-        Suppose you have python files in a directory "mydir" and you're
-        interested in knowing how many lines contain the string "MySymbol".
-        This can be done with
-            rd = RegexpDecorate()
-            r = re.compile(r"MySymbol")
-            files = pathlib.Path("mydir").glob("*.py")
-            rd.register(r, t(Color("yell")), t.n)
-            rd(*files)
-    
-        A command line tool like grep is capable of more precise searching
-        including file names and line numbers.
+    A command line tool like grep is capable of more precise searching
+    including file names and line numbers.
     '''
     def __init__(self):
         self._styles = {}
-    def register(self, r, match_style, nomatch_style=""):
-        '''Register a regexp and its styles.  
-            match_style is the escape code to print before a match and
-            nomatch_style is the escape code to print before a nonmatching
-            string.  You can generate these escape codes with a TRM
-            instance.
+    def register(self, r, match_style, nomatch_style=None):
+        '''Register a regular expression and its styles
+        
+        Arguments:
+            - match_style:  escape code to print before a match
+            - nomatch_style:  escape code to print before a nonmatching string.  If it is None,
+              then t.n is used as the return-to-standard escape code.
+        
+        You can generate these escape codes with a TRM instance.
+        
+        If your escape code for match_style includes an attribute, you'll want to include
+        the 'no' attribute for normal text in your nomatch_style.  Otherwise, the remaining text
+        will continue to be printed in the match_style's attribute.  The easiest way to do this is
+        to not set nomatch_style.
         '''
         assert(ii(r, re.Pattern))
+        if nomatch_style is None:
+            nomatch_style = t.n
         self._styles[r] = (match_style, nomatch_style)
     def unregister(self, r):
         'Remove regexp r from our styles dict'
@@ -1535,20 +1560,24 @@ class RegexpDecorate:
         return f"RegexpDecorate(<styles={len(self._styles)}>)"
     def __repr__(self):
         return str(self)
+    def decorate(self, line):
+        '''Apply the registered regular expressions to the string line and return the string,
+        decorated if there was a match.
+        '''
+        assert(ii(line, str))
+        out = StringIO()
+        self(line, file=out)
+        return out.getvalue()
     def __call__(self, line, file=sys.stdout, insert_nl=False):
-        '''Print the decorated line to the stream.
-            Check line for a match to one of the registered regexps and if
-            there's a match, print the decorated line to the indicated
-            stream.  Returns True if there was a match, False otherwise.
- 
-            If insert_nl is True, print a newline if line doesn't end with
-            a newline.
- 
-            Note:  if your escape code for match_style includes an
-            attribute, you'll want to include
-            the 'no' attribute for normal text in your nomatch_style.
-            Otherwise, the remaining text will continue to be printed in
-            the match_style's attribute.
+        '''Print the decorated line to a stream.  Check line for a match to one of the
+        registered regexps and if there's a match, print the decorated line to the indicated
+        stream.  Returns True if there was a match, False otherwise.
+        
+        Arguments:
+            - line:  String to search
+            - file:  Stream to send the decorated line
+            - insert_nl:  If True, print a newline if line doesn't end with a newline.
+         
         '''
         assert(ii(line, str))
         if not line:
@@ -2952,6 +2981,10 @@ if __name__ == "__main__":
                 for j in "ldb":
                     k = i + j
                     print(f"{c('blk', cn[k])}{k:{w}s}{c.n}", end=" "*sp)
+                # Print the RGB codes for the first two colors
+                k, kl, kd, kb = cn[i], cn[i + "l"], cn[i + "d"], cn[i + "b"]
+                print(f"{c(k)}{k.xrgb}{c.n} {c(kl)}{kl.xrgb}{c.n}", end=" ")
+                print(f"{c(kd)}{kd.xrgb}{c.n} {c(kb)}{kb.xrgb}{c.n}", end="")
                 print()
             print(dedent(f'''
  

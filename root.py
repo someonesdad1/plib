@@ -231,6 +231,11 @@ def RootFinder(x0, x2, f, eps=eps0, itmax=ITMAX, fp=float, args=[], kw={}):
     order algorithm.  The routine works by starting with x0, x2, and finding a third x1 by
     bisection.  The ordinates are gotten, then a horizontally-opening parabola is fitted to the
     points.  The abscissa to the parabola's root is gotten, and the iteration is repeated.
+
+    Sad news:  on 25 Feb 2025 I got an email from a friend of Jack's that Jack died on 24 Dec
+    2024.  I originally contacted Jack about this algorithm and it led to an email friendship with
+    many hundreds of emails on a bewildering variety of topics.  I never got to meet him (we lived
+    on opposite coasts of the US), but we connected over many things.
     '''
     zero, one, two, eps = fp("0"), fp("1"), fp("2"), fp(eps)
     assert(x0 != x2 and eps > 0 and itmax > 0)
