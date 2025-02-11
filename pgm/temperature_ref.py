@@ -1,7 +1,6 @@
 '''
 Print out a sorted list of reference temperatures
 '''
- 
 if 1:  # Header
     if 1:  # Copyright, license
         # These "trigger strings" can be managed with trigger.py
@@ -19,6 +18,7 @@ if 1:  # Header
     if 1:   # Standard imports
         from collections import deque
         from pathlib import Path as P
+        import bisect
         import getopt
         import os
         import re
@@ -30,7 +30,7 @@ if 1:  # Header
         from wrap import dedent
         from color import t
         from lwtest import Assert
-        if 1:
+        if 0:
             import debug
             debug.SetDebugger()
     if 1:   # Global variables
@@ -40,12 +40,15 @@ if 1:  # Header
         g = G()
         g.dbg = False
         g.data = None   # Holder of the list of temperature data
+        g.unit = "c"    # Default temperature unit
+        g.allowed_units = set(list("cfkr"))
         ii = isinstance
 if 1:   # Data
     # First field is a temperature in K (with optional alternate unit letter of C, F, or R)
     # Remaining string is the description
     data = '''
 
+        0 Absolute zero temperature on Kelvin scale
         1.41679e32 Planck temperature
         0C Common STP at 1 atmosphere pressure
         288.1 Standard atmosphere at sea level
@@ -60,7 +63,7 @@ if 1:   # Data
         380 Sulfur (gamma) melting point
         386 Sulfur (alpha) melting point
         392.2 Sulfur (beta) melting point
-        455.9 Solder, 63 Sn, 37 Pb melting point
+        455.9 Solder, 63 Sn, 37 Pb (eutectic) melting point
         463.1 Solder, 60 Sn, 40 Pb melting point
         465.4 Solder, 70 Sn, 30 Pb melting point
         489.3 Solder, 50 Sn, 50 Pb melting point
@@ -138,25 +141,25 @@ if 1:   # Data
         100C Vegetables in water cooking temperature
 
         # https://en.wikipedia.org/wiki/Boiling_points_of_the_elements_(data_page)
-        20.271 Element 1 H hydrogen (H2) boiling point
+        20.271 Element 1 H hydrogen (H₂) boiling point
         4.222 Element 2 He helium boiling point
         1603 Element 3 Li lithium boiling point
         2742 Element 4 Be beryllium boiling point
         4200 Element 5 B boron boiling point
         4300 Element 6 C carbon (diamond) boiling point
-        77.355 Element 7 N nitrogen (N2) boiling point
-        90.188 Element 8 O oxygen (O2) boiling point
-        85.04 Element 9 F fluorine (F2) boiling point
+        77.355 Element 7 N nitrogen (N₂) boiling point
+        90.188 Element 8 O oxygen (O₂) boiling point
+        85.04 Element 9 F fluorine (F₂) boiling point
         27.104 Element 10 Ne neon boiling point
         1156.090 Element 11 Na sodium boiling point
         1363 Element 12 Mg magnesium boiling point
-        2743 Element 13 Al aluminium boiling point
+        2743 Element 13 Al aluminum boiling point
         3538 Element 14 Si silicon boiling point
         550 Element 15 P phosphorus (white) boiling point
         717.8 Element 16 S sulfur (orthorhombic, alpha) boiling point
         717.8 Element 16 S sulfur (monoclinic, beta) boiling point
         717.87 Element 16 S sulfur (gamma) boiling point
-        239.11 Element 17 Cl chlorine (Cl2) boiling point
+        239.11 Element 17 Cl chlorine (Cl₂) boiling point
         87.302 Element 18 Ar argon boiling point
         1032 Element 19 K potassium boiling point
         1757 Element 20 Ca calcium boiling point
@@ -174,7 +177,7 @@ if 1:   # Data
         3106 Element 32 Ge germanium boiling point
         887 Element 33 As arsenic (gray) boiling point
         958 Element 34 Se selenium (hexagonal, gray) boiling point
-        332.0 Element 35 Br bromine (Br2) boiling point
+        332.0 Element 35 Br bromine (Br₂) boiling point
         119.735 Element 36 Kr krypton boiling point
         961 Element 37 Rb rubidium boiling point
         1650 Element 38 Sr strontium boiling point
@@ -182,7 +185,7 @@ if 1:   # Data
         4650 Element 40 Zr zirconium boiling point
         5017 Element 41 Nb niobium boiling point
         4912 Element 42 Mo molybdenum boiling point
-        4538 Element 43 Tc technetium (Tc-98 ?) boiling point
+        4538 Element 43 Tc technetium (⁹⁸Tc?) boiling point
         4423 Element 44 Ru ruthenium boiling point
         3968 Element 45 Rh rhodium boiling point
         3236 Element 46 Pd palladium boiling point
@@ -192,7 +195,7 @@ if 1:   # Data
         2875 Element 50 Sn tin (white) boiling point
         1908 Element 51 Sb antimony boiling point
         1261 Element 52 Te tellurium boiling point
-        457.4 Element 53 I iodine (I2) boiling point
+        457.4 Element 53 I iodine (I₂) boiling point
         165.051 Element 54 Xe xenon boiling point
         944 Element 55 Cs caesium boiling point
         1910 Element 56 Ba barium boiling point
@@ -200,7 +203,7 @@ if 1:   # Data
         3716 Element 58 Ce cerium boiling point
         3403 Element 59 Pr praseodymium boiling point
         3347 Element 60 Nd neodymium boiling point
-        3273 Element 61 Pm promethium (Pm-147 ?) boiling point
+        3273 Element 61 Pm promethium (¹⁴⁷Pm?) boiling point
         2173 Element 62 Sm samarium boiling point
         1802 Element 63 Eu europium boiling point
         3546 Element 64 Gd gadolinium boiling point
@@ -227,13 +230,13 @@ if 1:   # Data
         211.5 Element 86 Rn radon boiling point
         890 Element 87 Fr francium boiling point
         2010 Element 88 Ra radium boiling point
-        3471 Element 89 Ac actinium (Ac-227 ?) boiling point
+        3471 Element 89 Ac actinium (²²⁷Ac?) boiling point
         5061 Element 90 Th thorium boiling point
         4404 Element 92 U uranium boiling point
         4273 Element 93 Np neptunium boiling point
         3501 Element 94 Pu plutonium boiling point
         2880 Element 95 Am americium boiling point
-        3383 Element 96 Cm curium (Cm-244 ?) boiling point
+        3383 Element 96 Cm curium (²⁴⁴Cm?) boiling point
 
         # Melting point of elements https://en.wikipedia.org/wiki/List_of_chemical_elements
         14.01 Element 1 H Hydrogen melting point
@@ -342,7 +345,7 @@ if 1:   # Classes
         def __lt__(self, other):
             return self.T < other.T
         def __str__(self):
-            return f"{self.T} {self.name}"
+            return f"{self.T!r} {self.name}"
         def __repr__(self):
             return str(self)
         def interpret(self, s):
@@ -360,6 +363,7 @@ if 1:   # Classes
             a, b = [self.interpret(i) for i in s.split("-")]
             return (a + b)/2
         def get_value(self, T):
+            'T can have a single letter suffix denoting the temperature unit'
             if "-" in T:
                 return self.interpret_range(T)
             elif T.startswith(">"):
@@ -395,11 +399,13 @@ if 1:   # Utility
         exit(status)
     def Usage(status=0):
         print(dedent(f'''
-        Usage:  {sys.argv[0]} [options] unit regex1 [regex2...]
-          Search for items in the temperature list that match the regexes.  unit must be one of
-          the letters c, f, k, r indicating the temperature unit to use.  Numbers will display
-          items with temperatures close to the indicated one.  More than one regexes are ANDed
-          together.
+        Usage:  {sys.argv[0]} [options] [unit] regex1 [regex2...]
+
+          Search for items in the temperature list that match the regexes.  If unit is present, it
+          must be one of the letters c, f, k, r indicating the temperature unit to use (default is
+          c).  Numbers will display items with temperatures close to the indicated one.  The
+          regexes are ANDed together.
+
         Examples
           temperature_ref.py c 200
             Show items with temperatures near 200 °C.
@@ -407,36 +413,32 @@ if 1:   # Utility
             Show items containing the string 'aluminum'.
         Options:
             -a      Show all entries
-            -C      Don't use color
-            -c      Display temperatures in °C
-            -f      Display temperatures in °F
+            -c      Don't use color
             -h      Print a manpage
             -i      Don't ignore case
-            -k      Display temperatures in K
-            -n n    Number of items to display on either side of found temperature items
-            -r      Display temperatures in °R
+            -n n    ± number of items to display [{d["-n"]}]
         '''))
         exit(status)
     def ParseCommandLine(d):
-        d["-a"] = False     # Need description
-        d["-d"] = 3         # Number of significant digits
+        d["-a"] = False     # Show all entries
+        d["-c"] = False     # Don't use color
+        d["-i"] = False     # Don't ignore case
+        d["-n"] = 5         # Number of items to display on either side of found temperature items
         if len(sys.argv) < 2:
             Usage()
         try:
-            opts, args = getopt.getopt(sys.argv[1:], "ad:h") 
+            opts, args = getopt.getopt(sys.argv[1:], "achi") 
         except getopt.GetoptError as e:
             print(str(e))
             exit(1)
         for o, a in opts:
-            if o[1] in list("a"):
+            if o[1] in list("aci"):
                 d[o] = not d[o]
-            elif o == "-d":
+            elif o == "-n":
                 try:
-                    d[o] = int(a)
-                    if not (1 <= d[o] <= 15):
-                        raise ValueError()
+                    d[o] = abs(int(a))
                 except ValueError:
-                    Error(f"-d option's argument must be an integer between 1 and 15")
+                    Error(f"-n option's argument must be an integer")
             elif o == "-h":
                 Usage()
         return args
@@ -452,9 +454,135 @@ if 1:   # Core functionality
             T, name = line[:sp], line[sp:]
             o.append(Element(T, name.strip()))
         return o
+    def GetSuffix(s):
+        '''Return (a, b) where b is the last character of s if it's c, f, k, or r and a is the
+        remaining portion of the string.  Return K as the default temperature unit.
+        '''
+        default = (s, "k")
+        if len(s) < 2:
+            return default
+        a, u = s[:-1], s[-1]
+        if u in g.allowed_units:
+            return (a, u)
+        return default
+    def GetRegexes(args):
+        '''If the first argument is one of the letters c, f, k, r, then set g.unit using it.
+        Otherwise, see if it's a number by seeing if it's a flt (it can have one of the unit
+        letters as a suffix).  If not, then compile it as a regular expression.  Return
+        (numbers_in_K, compiled_regexes).
+        '''
+        flags = re.X if d["-i"] else re.X | re.I
+        rnum = re.compile(r'''              # Regex to get integers or floats
+            (?x)                            # Allow verbosity
+            ^
+            (                               # Group
+                [+-]?                       # Optional sign
+                \.\d+                       # Number like .345
+                ([eE][+-]?\d+)?|            # Optional exponent
+            # or
+                [+-]?                       # Optional sign
+                \d+\.?\d*                   # Number:  2.345
+                ([eE][+-]?\d+)?             # Optional exponent
+            )                               # End group
+            ([cfkrCFKR])?                   # Optional temperature unit
+            $
+            ''', flags)
+        # Check for first letter being a unit
+        if len(args[0]) == 1:
+            letter = args[0].lower()
+            if letter in g.allowed_units:
+                g.unit = letter
+                args.pop(0)
+        temperatures_in_K, regexes = [], []
+        for item in args:
+            # See if it's a number
+            is_a_number = False
+            mo = rnum.match(item)
+            if mo:
+                num, unit = GetSuffix(item)
+                try:
+                    T = flt(num)
+                    is_a_number = True
+                except ValueError:
+                    pass
+                if is_a_number:
+                    T = ConvertTemperature(T, unit, "k")     # Convert it to K
+                    temperatures_in_K.append(T)
+                    continue
+            # It's a regex; compile it
+            try:
+                r = re.compile(item, flags)
+                regexes.append(r)
+            except Exception as e:
+                Error(f"{repr(item)} is a bad regular expression")
+        return (temperatures_in_K, regexes)
+    def get_leftmost(x):
+        '''Return the smallest index of the item in g.data equal to x.
+        Is index(a, x) from python's doc page on the bisect module.
+        '''
+        i = bisect.bisect_left(g.data, x, key=lambda x: x.T)
+        if i != len(g.data) and g.data[i].T == x:
+            return i
+        raise ValueError
+    def GetTemperatureData(temperatures_in_K):
+        '''g.data is sorted by temperature in K, so use binary search to find the closest matches
+        to the given list of temperatures.
+        '''
+        found, key, N = [], lambda x: x.T, len(g.data) - 1
+        for T in temperatures_in_K:
+            try:
+                i = get_leftmost(T)
+                found.append(i)
+            except ValueError:
+                continue
+            # Add -n indexes to found
+            for j in range(1, d["-n"] + 1):
+                if i - j < 0:
+                    continue
+                found.append(i - j)
+            # Increment i while g.data[i] == T
+            while i < len(g.data) and g.data[i].T == T:
+                i += 1
+            # Add +n indexes to found
+            for j in range(1, d["-n"] + 1):
+                if i + j > N:
+                    continue
+                found.append(i + j)
+        found = list(sorted(set(found)))
+        print(f"Searching for {temperatures_in_K}")
+        for i in found:
+            print(g.data[i])
+
+if 1: #xx
+    d = {"-n": 2,}      # Options dictionary
+    g.data = sorted(GetData())
+    GetTemperatureData([85.04])
+    exit()
+
+if 0: #xx
+    g.data = sorted(GetData())
+    key = lambda x: x.T
+    x = flt(455.9)
+    x.N = 4
+    x.rtz = x.rtdp = True
+    i = bisect.bisect_left(g.data, x, key=key)
+    s = " "*4
+    print("bisect_left found:")
+    print(s, i)
+    print(s, g.data[i-1])
+    t.print(f"{t.grn}{s} {g.data[i]}")
+    print(s, g.data[i+1])
+    print("bisect_right found:")
+    i = bisect.bisect_right(g.data, x, key=key)
+    print(s, i)
+    print(s, g.data[i-1])
+    t.print(f"{t.grn}{s} {g.data[i]}")
+    print(s, g.data[i+1])
+    exit()
 
 if __name__ == "__main__":
+    g.data = sorted(GetData())
     d = {}      # Options dictionary
     args = ParseCommandLine(d)
-    g.data = sorted(GetData())
+    temperatures_in_K, regexes = GetRegexes(*args)
     pp(g.data)

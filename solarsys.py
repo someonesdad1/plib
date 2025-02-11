@@ -62,7 +62,6 @@ if 1:   # Header
         from wrap import wrap, dedent
         from color import Color, TRM as t
         from lwtest import Assert, assert_equal
-        #import f as F #xx Gives the flt object for floating point calculations & math funcs
         import f 
         from u import u
         from columnize import Columnize
@@ -77,8 +76,8 @@ if 1:   # Header
         G = 6.6743e-11
         # Colors
         t.name = t("ornl")
-        t.rel = t("grnl")
-        t.notrel = t("lipl")
+        t.rel = t("trq")
+        t.notrel = t("whtl")
         t.nan = t("redl")
         # Color coding for objects
         t.planet = t("ornl")
@@ -415,9 +414,9 @@ if 1:   # Utility
         print(dedent(f'''
         This script prints out wikipedia's information on the major solar system bodies as of
         {scrape_date}.
- 
+         
         Here's example output for Titan (the table mapping index numbers to body is omitted):
- 
+         
         Titan (index = 28) S6
             d         1.2e9 m = 1.2 Gm          Distance from primary
             r         2.6e6 m = 2.6 Mm          Mean radius
@@ -433,39 +432,39 @@ if 1:   # Utility
             moons     0                         Number of moons
             T         94 K = 94 K               Mean surface temperature
             ld        xx                        Log discriminant
- 
+         
         Because SI prefixes can be useful in interpreting results, the values are followed by the
         significand with an appended SI prefix to the units.
- 
+         
         d is the distance to the primary.  Thus, for a planet like Mars, this means the distance to
         the sun.  For a moon like Ganymede, it means the distance to Jupiter.
- 
+         
         The index number lets you use either that number or "Titan" as the command line argument to
         get the report.  The command line arguments will also be interpreted as case-insensitive
         regular expressions, so e.g. "^t" will show you the bodies with names that start with the
         letter t.
- 
+         
         The variables are explained in the usage statement.
- 
+         
         When you use the -r option, you specify a reference body.  Then the report's parameters are
         printed to the reference body's values.  Example:  'solarsys.py -r earth venus' shows
         Venus' values in terms of Earth's.  You should see Venus' mass is 0.82 of Earth's and its
         surface temperature is 2.5 times that of Earth's.
- 
+         
         If you use Earth as the -r argument, you won't get quite the same numbers as seen in the
         wikipedia table because the Earth's mean distance from the sun is 1.00000011 AU, not unity
         as you'd expect.  If you use this correction, you should get the table values to within
         about 7 or 8 digits.
- 
+         
         The default number of digits printed is 2.  You can change this in the ParseCommandLine()
         function if you wish.  I find 2 digits nice for getting a feel for the size of things.
- 
+         
         ld is the base 10 logarithm of the Soter discriminant for a planet, which is M/m where M is
         the planet's mass and m is the summed mass of all the other objects in the neighorhood of
         that planet's orbit.  The planets will have ld >> 0 and dwarf planets will have ld < 0.
- 
+         
         Here's a list of the 38 objects that are included and their counts by category:
- 
+         
             Planets (8) {t.planet}
                 Mercury Venus Earth Mars Jupiter Saturn Uranus Neptune {t.n}
             Dwarf planets (5)
@@ -492,7 +491,7 @@ if 1:   # Utility
           either the index number (e.g., Earth is 2) or a regular
           expression for the names (e.g. '^ti' will show Titan's and
           Titania's data).
- 
+         
           The parameters printed are:
             sym     Symbol (e.g. 'S6' means 6th moon of Saturn)
             r       Distance from primary, m
@@ -563,14 +562,6 @@ if 1:   # Core functionality
             di[i] = name
         return di
     num2name = GetObjDict()
-    def ListObjects():
-        a, di = [], GetObjDict()
-        for i in di:
-            s = f"{i:2d} {di[i]}"
-            a.append(s)
-        for i in Columnize(a):
-            print(i)
-        exit(0)
     def MatchName(regex):
         'Return a list of matched names by index number'
         ss = solarsys["name"]
@@ -602,6 +593,52 @@ if 1:   # Core functionality
             return f"{s}{' '*(not cuddle)}{unit}"
         else:
             return f"{s}{unit}"
+    def PrintSun():
+        # Get variables
+        r = f.flt(2.5e20)      # Mean distance to galactic center, m
+        D = f.flt(2*695508e3)  # Mean diameter, m
+        A = f.flt(4*f.pi*(D/2)**2)     # Surface area, m2
+        V = f.flt(4/3*f.pi*(D/2)**3)   # Volume, m3
+        m = f.flt(1.9855e30)   # Mass, kg
+        rho = f.flt((m/V)/1000)    # Density, g/cm3
+        g = f.flt(G*m/(D/2)**2)    # Gravitational acceleration at surface, m/s2
+        ev = f.flt(f.sqrt(2*G*m/(D/2)))    # Escape velocity, m/s
+        rot = f.flt(25.38*86400)   # Rotation period, s
+        orb = f.flt(240e6*3.156e13)    # Orbital period about galactic center, s
+        vel = f.flt(2*f.pi*(D/2)/orb)  # Mean orbital speed, m/s
+        ecc = f.Unk("?")
+        inc = f.Unk("?")
+        tilt = f.flt(7.25)     # Axial tilt to ecliptic, °
+        moons = f.Unk("?")
+        T = f.flt(5778)        # Mean surface temperature, K
+        ld = f.Unk("?")
+        #
+        u, w = " "*4, 10
+        print(f"{t.sun}{'Sun'}{t.n}")
+        print(f"{u}{'r':{w}s}{r} m = {SI(r, 'm')} (dist. to galactic center)")
+        print(f"{u}{'D':{w}s}{D} m = {SI(D, 'm')}")
+        print(f"{u}{'A':{w}s}{A} m² = {SI(A, 'm²')}")
+        print(f"{u}{'V':{w}s}{V} m³ = {SI(V, 'm³')}")
+        print(f"{u}{'m':{w}s}{m} kg = {SI(1000*m, 'g')}")
+        print(f"{u}{'rho':{w}s}{rho} g/cm³ = {SI(rho, 'g/cm³')}")
+        print(f"{u}{'g':{w}s}{g} m/s² = {SI(g, 'm/s²')}")
+        print(f"{u}{'ev':{w}s}{ev} m/s = {SI(ev, 'm/s')}")
+        print(f"{u}{'rot':{w}s}{rot} s = {SI(rot, 's')}")
+        print(f"{u}{'orb':{w}s}{orb} s = {SI(orb, 's')} (time to rotate around galaxy)")
+        print(f"{u}{'vel':{w}s}{vel} m/s = {SI(vel, 'm/s')}")
+        print(f"{u}{'ecc':{w}s}{ecc}")
+        print(f"{u}{'inc':{w}s}{inc}")
+        print(f"{u}{'tilt':{w}s}{tilt}° (axial tilt to ecliptic)")
+        print(f"{u}{'moons':{w}s}{moons}")
+        print(f"{u}{'T':{w}s}{T} K = {SI(T, 'K')}")
+    def ListObjects():
+        a, di = [], GetObjDict()
+        for i in di:
+            s = f"{i:2d} {di[i]}"
+            a.append(s)
+        for i in Columnize(a):
+            print(i)
+        exit(0)
     def PrintItem(num):
         'Print indicated item.  num must be an integer.'
         assert(ii(num, int))
@@ -614,7 +651,7 @@ if 1:   # Core functionality
         sym = ss["sym"][num]
         color = obj_color[ss['name'][num]]
         print(f"{color}{ss['name'][num]} (index = {num}) {'' if sym == 'None' else sym}{t.n}")
-        w = 10
+        w = 35  # Column width for names
         # Put data in local variables
         r = ss['r'][num]
         D = ss['D'][num]
@@ -701,60 +738,22 @@ if 1:   # Core functionality
             print(f"{u}{'moons':{w}s}{r_moons}")
             print(f"{u}{'T':{w}s}{r_T}")
         else:
-            print(f"{u}{'r':{w}s}{r} m = {SI(r, 'm')}")
-            print(f"{u}{'D':{w}s}{D} m = {SI(D, 'm')}")
-            print(f"{u}{'A':{w}s}{A} m² = {SI(A, 'm²')}")
-            print(f"{u}{'V':{w}s}{V} m³ = {SI(V, 'm³')}")
-            print(f"{u}{'m':{w}s}{m} kg = {SI(1000*m, 'g')}")
-            print(f"{u}{'rho':{w}s}{rho} g/cm³ = {SI(rho, 'g/cm³')}")
-            print(f"{u}{'g':{w}s}{g} m/s² = {SI(g, 'm/s²')}")
-            print(f"{u}{'ev':{w}s}{ev} m/s = {SI(ev, 'm/s')}")
-            print(f"{u}{'rot':{w}s}{rot} s = {SI(rot, 's')}")
-            print(f"{u}{'orb':{w}s}{orb} s = {SI(orb, 's')}")
-            print(f"{u}{'vel':{w}s}{vel} m/s = {SI(vel, 'm/s')}")
-            print(f"{u}{'ecc':{w}s}{ecc}")
-            print(f"{u}{'inc':{w}s}{inc}°")
-            print(f"{u}{'tilt':{w}s}{tilt}°")
-            print(f"{u}{'moons':{w}s}{moons}")
-            print(f"{u}{'T':{w}s}{T} K")
-    def PrintSun():
-        # Get variables
-        r = f.flt(2.5e20)      # Mean distance to galactic center, m
-        D = f.flt(2*695508e3)  # Mean diameter, m
-        A = f.flt(4*f.pi*(D/2)**2)     # Surface area, m2
-        V = f.flt(4/3*f.pi*(D/2)**3)   # Volume, m3
-        m = f.flt(1.9855e30)   # Mass, kg
-        rho = f.flt((m/V)/1000)    # Density, g/cm3
-        g = f.flt(G*m/(D/2)**2)    # Gravitational acceleration at surface, m/s2
-        ev = f.flt(f.sqrt(2*G*m/(D/2)))    # Escape velocity, m/s
-        rot = f.flt(25.38*86400)   # Rotation period, s
-        orb = f.flt(240e6*3.156e13)    # Orbital period about galactic center, s
-        vel = f.flt(2*f.pi*(D/2)/orb)  # Mean orbital speed, m/s
-        ecc = f.Unk("?")
-        inc = f.Unk("?")
-        tilt = f.flt(7.25)     # Axial tilt to ecliptic, °
-        moons = f.Unk("?")
-        T = f.flthttps://en.wikipedia.org/wiki/List_of_screw_drives(5778)        # Mean surface temperature, K
-        ld = f.Unk("?")
-        #
-        u, w = " "*4, 10
-        print(f"{t.sun}{'Sun'}{t.n}")
-        print(f"{u}{'r':{w}s}{r} m = {SI(r, 'm')} (dist. to galactic center)")
-        print(f"{u}{'D':{w}s}{D} m = {SI(D, 'm')}")
-        print(f"{u}{'A':{w}s}{A} m² = {SI(A, 'm²')}")
-        print(f"{u}{'V':{w}s}{V} m³ = {SI(V, 'm³')}")
-        print(f"{u}{'m':{w}s}{m} kg = {SI(1000*m, 'g')}")
-        print(f"{u}{'rho':{w}s}{rho} g/cm³ = {SI(rho, 'g/cm³')}")
-        print(f"{u}{'g':{w}s}{g} m/s² = {SI(g, 'm/s²')}")
-        print(f"{u}{'ev':{w}s}{ev} m/s = {SI(ev, 'm/s')}")
-        print(f"{u}{'rot':{w}s}{rot} s = {SI(rot, 's')}")
-        print(f"{u}{'orb':{w}s}{orb} s = {SI(orb, 's')} (time to rotate around galaxy)")
-        print(f"{u}{'vel':{w}s}{vel} m/s = {SI(vel, 'm/s')}")
-        print(f"{u}{'ecc':{w}s}{ecc}")
-        print(f"{u}{'inc':{w}s}{inc}")
-        print(f"{u}{'tilt':{w}s}{tilt}° (axial tilt to ecliptic)")
-        print(f"{u}{'moons':{w}s}{moons}")
-        print(f"{u}{'T':{w}s}{T} K = {SI(T, 'K')}")
+            print(f"{u}{'r      distance from primary':{w}s}{r} m = {SI(r, 'm')}")
+            print(f"{u}{'D      mean diameter':{w}s}{D} m = {SI(D, 'm')}")
+            print(f"{u}{'A      surface area':{w}s}{A} m² = {SI(A, 'm²')}")
+            print(f"{u}{'V      volume':{w}s}{V} m³ = {SI(V, 'm³')}")
+            print(f"{u}{'m      mass':{w}s}{m} kg = {SI(1000*m, 'g')}")
+            print(f"{u}{'rho    mean density':{w}s}{rho} g/cm³ = {SI(rho, 'g/cm³')}")
+            print(f"{u}{'g      equatorial grav. accel.':{w}s}{g} m/s² = {SI(g, 'm/s²')}")
+            print(f"{u}{'ev     escape velocity':{w}s}{ev} m/s = {SI(ev, 'm/s')}")
+            print(f"{u}{'rot    rotation period':{w}s}{rot} s = {SI(rot, 's')}")
+            print(f"{u}{'orb    orbital period':{w}s}{orb} s = {SI(orb, 's')}")
+            print(f"{u}{'vel    mean orbital speed':{w}s}{vel} m/s = {SI(vel, 'm/s')}")
+            print(f"{u}{'ecc    eccentricity':{w}s}{ecc}")
+            print(f"{u}{'inc    inclination':{w}s}{inc}°")
+            print(f"{u}{'tilt   axial tilt':{w}s}{tilt}°")
+            print(f"{u}{'moons  number of moons':{w}s}{moons}")
+            print(f"{u}{'T      mean surface temperature':{w}s}{T} K")
 
 if __name__ == "__main__":
     d = {}      # Options dictionary
