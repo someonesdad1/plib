@@ -596,6 +596,17 @@ if 1:   # Core functionality
             found.append(i + j)
         found = list(sorted(set(found)))
         return found
+    def PrintItems(results):
+        for i in results:
+            e = g.data[i]   # Element instance
+            print(g.indent, end="")
+            # Convert e.T to requisite temperature unit
+            T = ConvertTemperature(e.T, "k", g.unit)
+            # Print the colorized temperature
+            s = f"{T} {g.units[g.unit]}"
+            print(f"{g.get_color[g.unit]}{s:{g.T_width}s}{t.n}{g.sep}", end="")
+            # Print the description
+            print(e.name)
 
 if __name__ == "__main__":
     g.data = sorted(GetData())
@@ -604,24 +615,25 @@ if __name__ == "__main__":
     for arg in args:
         if IsTemperatureUnit(arg):
             g.unit = arg
+            continue
         results = IsTemperature(arg)
         if results is not None:
             # The user gave a temperature to search for
             T, unit = results
             T_K = ConvertTemperature(T, unit, "k")
             results = GetTemperatureData(T_K)
-            if results:
+            if results:     # List of matching item indexes
                 print(f"Search for temperature {repr(arg)}")
-                for i in results:
-                    e = g.data[i]   # Element instance
-                    print(g.indent, end="")
-                    # Convert e.T to requisite temperature unit
-                    T = ConvertTemperature(e.T, "k", g.unit)
-                    # Print the colorized temperature
-                    s = f"{T} {g.units[g.unit]}"
-                    print(f"{g.get_color[g.unit]}{s:{g.T_width}s}{t.n}{g.sep}", end="")
-                    # Print the description
-                    print(e.name)
+                PrintItems(results)
         else:
             # arg is a regex
-            pass
+            flags = re.X if d["-i"] else re.X | re.I
+            r = re.compile(arg, flags)
+            results = []
+            for i, item in enumerate(g.data):
+                mo = r.search(item.name)
+                if mo:
+                    results.append(i)
+            if results:
+                print(f"Search for regex {repr(arg)}")
+                PrintItems(results)
