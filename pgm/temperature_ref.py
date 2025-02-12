@@ -38,10 +38,16 @@ if 1:  # Header
         class G:
             pass
         g = G()
-        g.dbg = False
+        g.dbg = True
         g.data = None   # Holder of the list of temperature data
         g.unit = "c"    # Default temperature unit
+        g.units = {"k": "K", "c": "°C", "f": "°F", "r": "°R"}
+        g.get_color = {}
         g.allowed_units = set(list("cfkr"))
+        # Printing constants
+        g.indent = " "*2    # How much to indent the line
+        g.T_width = 10      # Width of temperature column
+        g.sep = " "*4       # Separation between temperature and description
         ii = isinstance
 if 1:   # Data
     # First field is a temperature in K (with optional alternate unit letter of C, F, or R)
@@ -345,7 +351,14 @@ if 1:   # Classes
         def __lt__(self, other):
             return self.T < other.T
         def __str__(self):
-            return f"{self.T!r} {self.name}"
+            s = g.indent
+            # Convert self.T to requisite temperature unit
+            T = ConvertTemperature(self.T, "k", g.unit)
+            # Colorize the temperature
+            s += f"{g.get_color[g.unit]}{T} {g.units[g.unit]}{t.n}{g.sep}"
+            # Append the description
+            s += self.name
+            return f"{self.T} {self.name}"
         def __repr__(self):
             return str(self)
         def interpret(self, s):
@@ -375,14 +388,23 @@ if 1:   # Classes
                 else:
                     return flt(T)
 if 1:   # Utility
+    def Dbg(*p, **kw):
+        if g.dbg:
+            print(f"{t.dbg}", end="")
+            print(*p, **kw)
+            print(f"{t.N}", end="")
     def GetColors():
         t.err = t("redl")
         t.dbg = t("lill") if g.dbg else ""
-        t.k = t.roy if d["-c"] else ""
-        t.c = t.yel if d["-c"] else ""
-        t.f = t.grn if d["-c"] else ""
-        t.r = t.viol if d["-c"] else ""
-        t.N = t.n if d["-c"] else ""
+        t.k = t.roy if not d["-c"] else ""
+        t.c = t.yel if not d["-c"] else ""
+        t.f = t.grn if not d["-c"] else ""
+        t.r = t.viol if not d["-c"] else ""
+        t.N = t.n if not d["-c"] else ""
+        g.get_color["k"] = t.k
+        g.get_color["c"] = t.c
+        g.get_color["f"] = t.f
+        g.get_color["r"] = t.r
     def GetScreen():
         'Return (LINES, COLUMNS)'
         return (
@@ -393,7 +415,7 @@ if 1:   # Utility
         if g.dbg:
             print(f"{t.dbg}", end="")
             print(*p, **kw)
-            print(f"{t.N}", end="")
+            print(f"{t.n}", end="")
     def Error(*msg, status=1):
         print(*msg, file=sys.stderr)
         exit(status)
@@ -422,18 +444,26 @@ if 1:   # Utility
     def ParseCommandLine(d):
         d["-a"] = False     # Show all entries
         d["-c"] = False     # Don't use color
+        d["-d"] = 4         # Number of digits
         d["-i"] = False     # Don't ignore case
-        d["-n"] = 5         # Number of items to display on either side of found temperature items
+        d["-n"] = 2         # Number of items to display on either side of found temperature items
         if len(sys.argv) < 2:
             Usage()
         try:
-            opts, args = getopt.getopt(sys.argv[1:], "achi") 
+            opts, args = getopt.getopt(sys.argv[1:], "acd:hin:") 
         except getopt.GetoptError as e:
             print(str(e))
             exit(1)
         for o, a in opts:
             if o[1] in list("aci"):
                 d[o] = not d[o]
+            elif o == "-d":
+                try:
+                    d[o] = int(a)
+                    if not (1 <= d[o] <= 15):
+                        raise ValueError()
+                except ValueError:
+                    Error(f"-d option's argument must be an integer between 1 and 15")
             elif o == "-n":
                 try:
                     d[o] = abs(int(a))
@@ -441,6 +471,10 @@ if 1:   # Utility
                     Error(f"-n option's argument must be an integer")
             elif o == "-h":
                 Usage()
+        x = flt(0)
+        x.N = d["-d"]
+        x.rtz = x.rtdp = True
+        GetColors()
         return args
 if 1:   # Core functionality
     def GetData():
@@ -516,73 +550,51 @@ if 1:   # Core functionality
             except Exception as e:
                 Error(f"{repr(item)} is a bad regular expression")
         return (temperatures_in_K, regexes)
-    def get_leftmost(x):
-        '''Return the smallest index of the item in g.data equal to x.
-        Is index(a, x) from python's doc page on the bisect module.
-        '''
-        i = bisect.bisect_left(g.data, x, key=lambda x: x.T)
-        if i != len(g.data) and g.data[i].T == x:
-            return i
         raise ValueError
-    def GetTemperatureData(temperatures_in_K):
+    def GetTemperatureData(T_K):
         '''g.data is sorted by temperature in K, so use binary search to find the closest matches
-        to the given list of temperatures.
+        to the given temperature; return a list of indexes into g.data.
         '''
         found, key, N = [], lambda x: x.T, len(g.data) - 1
-        for T in temperatures_in_K:
-            try:
-                i = get_leftmost(T)
-                found.append(i)
-            except ValueError:
+        # This call to bisect_left finds the insertion point in the sequence where an
+        # element with the temperature T could be inserted and the sequence sort order
+        # would be maintained.  This gets us close enough and then we include the d["-n"]
+        # number of items on either side of this location.
+        i = bisect.bisect_left(g.data, T_K, key=lambda x: x.T)
+        found.append(i)
+        R = range(1, d["-n"] + 1)
+        # Add -n indexes to found
+        for j in R:
+            if i - j < 0:
                 continue
-            # Add -n indexes to found
-            for j in range(1, d["-n"] + 1):
-                if i - j < 0:
-                    continue
-                found.append(i - j)
-            # Increment i while g.data[i] == T
-            while i < len(g.data) and g.data[i].T == T:
-                i += 1
-            # Add +n indexes to found
-            for j in range(1, d["-n"] + 1):
-                if i + j > N:
-                    continue
-                found.append(i + j)
+            found.append(i - j)
+        # Increment i while g.data[i] == T_K
+        while i < len(g.data) and g.data[i].T == T_K:
+            i += 1
+        # Add +n indexes to found
+        for j in R:
+            if i + j > N:
+                continue
+            found.append(i + j)
         found = list(sorted(set(found)))
-        print(f"Searching for {temperatures_in_K}")
-        for i in found:
-            print(g.data[i])
-
-if 1: #xx
-    d = {"-n": 2,}      # Options dictionary
-    g.data = sorted(GetData())
-    GetTemperatureData([85.04])
-    exit()
-
-if 0: #xx
-    g.data = sorted(GetData())
-    key = lambda x: x.T
-    x = flt(455.9)
-    x.N = 4
-    x.rtz = x.rtdp = True
-    i = bisect.bisect_left(g.data, x, key=key)
-    s = " "*4
-    print("bisect_left found:")
-    print(s, i)
-    print(s, g.data[i-1])
-    t.print(f"{t.grn}{s} {g.data[i]}")
-    print(s, g.data[i+1])
-    print("bisect_right found:")
-    i = bisect.bisect_right(g.data, x, key=key)
-    print(s, i)
-    print(s, g.data[i-1])
-    t.print(f"{t.grn}{s} {g.data[i]}")
-    print(s, g.data[i+1])
-    exit()
+        return found
 
 if __name__ == "__main__":
     g.data = sorted(GetData())
     d = {}      # Options dictionary
     args = ParseCommandLine(d)
-    temperatures_in_K, regexes = GetRegexes(*args)
-    pp(g.data)
+    temperatures_in_K, regexes = GetRegexes(args)
+    Dbg(f"Temperatures in K:  {temperatures_in_K}")
+    for T_K in temperatures_in_K:
+        results = GetTemperatureData(T_K)
+        print("Temperature search:")
+        for i in results:
+            e = g.data[i]   # Element instance
+            print(g.indent, end="")
+            # Convert e.T to requisite temperature unit
+            T = ConvertTemperature(e.T, "k", g.unit)
+            # Print the colorized temperature
+            s = f"{T} {g.units[g.unit]}"
+            print(f"{g.get_color[g.unit]}{s:{g.T_width}s}{t.n}{g.sep}", end="")
+            # Print the description
+            print(e.name)
