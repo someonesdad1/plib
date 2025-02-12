@@ -35,22 +35,40 @@ if 1:  # Header
             pass
         g = G()
         g.dbg = True
+        # Script's data
         g.data = None   # Holder of the list of temperature data
         g.unit = "c"    # Default temperature unit
-        g.units = {"k": "K", "c": "°C", "f": "°F", "r": "°R"}
-        g.get_color = {}
+        g.Twidth = 15   # Temperature column width
+        g.get_color = {}    # Color to print temperature units
+        g.n = 4         # Number to print near a found item (default of -n option)
+        g.N = 4         # Default number of decimal places (default of -d option)
         g.allowed_units = set(list("cfkr"))
         # Printing constants
         g.indent = " "*2    # How much to indent the line
-        g.T_width = 10      # Width of temperature column
-        g.sep = " "*4       # Separation between temperature and description
+        g.sep = " "*2       # Separation between temperature and description
+        g.units = {"k": "K", "c": "°C", "f": "°F", "r": "°R"}
         ii = isinstance
 if 1:   # Data
     # First field is a temperature in K (with optional alternate unit letter of C, F, or R)
     # Remaining string is the description
     data = '''
 
-        0 Absolute zero temperature on Kelvin scale
+        # Approximate ocean temperatures https://en.wikipedia.org/wiki/Ocean_temperature
+        11C Winter sea surface
+        15C Summer sea surface
+        20C Tropical summer sea surface
+        9C Sea at 500 m depth
+        7C Sea at 1 km depth
+        2C Sea at 2 km depth
+        # https://en.wikipedia.org/wiki/Global_surface_temperature
+        15C Global mean surface temperature of Earth
+        # https://en.wikipedia.org/wiki/List_of_weather_records
+        56.7C Hottest Earth air temperature (10 Jul 1913, Furnace Creek, Death Valley)
+        -89.2C Coldest Earth air temperature (21 Jul 1983, Vostok Station, Antarctica))
+        -62.2C Coldest contiguous US air temperature (20 Jan 1954, Rogers Pass, Montana))
+        34C Highest temperature with 100% humidity (21 Jul 2012 Jask, Iran)
+
+        0 Absolute zero on Kelvin scale
         1.41679e32 Planck temperature
         573-773 Mineral oil b.p.
         180C Mineral oil flash point
@@ -63,6 +81,110 @@ if 1:   # Data
         216.7 Standard atmosphere at 40 kft
         216.7 Standard atmosphere at 50 kft
         227.0 Standard atmosphere at 100 kft
+
+        # https://en.wikipedia.org/wiki/U.S._state_and_territory_temperature_extremes
+        112F Alabama state high (6 Sep 1925 Centreville) diff = 139F
+        -27F Alabama state low (30 Jan 1966 New Market) diff = 139F
+        100F Alaska state high (27 Jun 1915 Fort Yukon) diff = 180F
+        -80F Alaska state low (23 Jan 1971 Prospect Creek) diff = 180F
+        128F Arizona state high (29 Jun 1994 Lake Havasu City) diff = 168F
+        -40F Arizona state low (7 Jan 1971 McNary) diff = 168F
+        120F Arkansas state high (10 Aug 1936 Ozark) diff = 149F
+        -29F Arkansas state low (13 Feb 1905 Gravette) diff = 149F
+        134F California state high (10 Jul 1913 Greenland Ranch (Death Valley)) diff = 179F
+        -45F California state low (20 Jan 1937 Boca) diff = 179F
+        115F Colorado state high (20 Jul 2019 John Martin Reservoir) diff = 176F
+        -61F Colorado state low (1 Feb 1985 Maybell) diff = 176F
+        106F Connecticut state high (15 Jul 1995 Danbury) diff = 143F
+        -37F Connecticut state low (16 Feb 1943 Norfolk) diff = 143F
+        110F Delaware state high (21 Jul 1930 Millsboro) diff = 127F
+        -17F Delaware state low (17 Jan 1893 Millsboro) diff = 127F
+        106F District of Columbia state high (20 Jul 1930 Washington) diff = 121F
+        -15F District of Columbia state low (11 Feb 1899 Washington) diff = 121F
+        109F Florida state high (29 Jun 1931 Monticello) diff = 111F
+        -2F Florida state low (13 Feb 1899 Tallahassee) diff = 111F
+        112F Georgia state high (20 Aug 1983 Greenville) diff = 129F
+        -17F Georgia state low (27 Jan 1940 Chatsworth) diff = 129F
+        100F Hawaii state high (27 Apr 1931 Pahala) diff = 83F
+        15F Hawaii state low (5 Jan 1975 Mauna Kea Observatories) diff = 83F
+        118F Idaho state high (28 Jul 1934 Orofino) diff = 178F
+        -60F Idaho state low (18 Jan 1943 Island Park) diff = 178F
+        117F Illinois state high (14 Jul 1954 East Saint Louis) diff = 155F
+        -38F Illinois state low (31 Jan 2019 Mount Carroll) diff = 155F
+        116F Indiana state high (14 Jul 1936 Collegeville) diff = 152F
+        -36F Indiana state low (19 Jan 1994 New Whiteland) diff = 152F
+        118F Iowa state high (20 Jul 1934 Keokuk) diff = 165F
+        -47F Iowa state low (3 Feb 1996 Elkader) diff = 165F
+        121F Kansas state high (24 Jul 1936 Alton) diff = 161F
+        -40F Kansas state low (13 Feb 1905 Lebanon) diff = 161F
+        116F Kentucky state high (28 Jul 1930 Louisville) diff = 151F
+        -37F Kentucky state low (19 Jan 1994 Shelbyville) diff = 151F
+        114F Louisiana state high (10 Aug 1936 Plain Dealing) diff = 130F
+        -16F Louisiana state low (13 Feb 1899 Minden) diff = 130F
+        105F Maine state high (10 Jul 1911 North Bridgton) diff = 155F
+        -50F Maine state low (16 Jan 2009 Clayton Lake) diff = 155F
+        109F Maryland state high (10 Jul 1936 Cumberland) diff = 149F
+        -40F Maryland state low (13 Jan 1912 Oakland) diff = 149F
+        107F Massachusetts state high (2 Aug 1975 New Bedford) diff = 147F
+        -40F Massachusetts state low (22 Jan 1984 Chester) diff = 147F
+        112F Michigan state high (13 Jul 1936 Mio) diff = 163F
+        -51F Michigan state low (9 Feb 1934 Vanderbilt) diff = 163F
+        115F Minnesota state high (29 Jul 1917 Beardsley) diff = 175F
+        -60F Minnesota state low (2 Feb 1996 Tower) diff = 175F
+        115F Mississippi state high (29 Jul 1930 Holly Springs) diff = 134F
+        -19F Mississippi state low (30 Jan 1966 Corinth) diff = 134F
+        118F Missouri state high (14 Jul 1954 Warsaw) diff = 158F
+        -40F Missouri state low (13 Feb 1905 Warsaw) diff = 158F
+        117F Montana state high (5 Jul 1937 Medicine Lake) diff = 187F
+        -70F Montana state low (20 Jan 1954 Lincoln (Rogers Pass)) diff = 187F
+        118F Nebraska state high (24 Jul 1936 Minden) diff = 165F
+        -47F Nebraska state low (22 Dec 1989 Oshkosh) diff = 165F
+        125F Nevada state high (29 Jun 1994 Laughlin) diff = 175F
+        -50F Nevada state low (8 Jan 1937 San Jacinto) diff = 175F
+        106F New Hampshire state high (4 Jul 1911 Nashua) diff = 156F
+        -50F New Hampshire state low (22 Jan 1885 Mount Washington) diff = 156F
+        110F New Jersey state high (10 Jul 1936 Runyon) diff = 144F
+        -34F New Jersey state low (5 Jan 1904 River Vale) diff = 144F
+        122F New Mexico state high (27 Jun 1994 Waste Isolation Pilot Plant) diff = 179F
+        -57F New Mexico state low (13 Jan 1963 Ciniza) diff = 179F
+        108F New York state high (22 Jul 1926 Troy) diff = 160F
+        -52F New York state low (18 Feb 1979 Old Forge) diff = 160F
+        110F North Carolina state high (21 Aug 1983 Fayetteville) diff = 144F
+        -34F North Carolina state low (21 Jan 1985 Burnsville) diff = 144F
+        121F North Dakota state high (6 Jul 1936 Steele) diff = 181F
+        -60F North Dakota state low (15 Feb 1936 Parshall) diff = 181F
+        113F Ohio state high (21 Jul 1934 Gallipolis) diff = 152F
+        -39F Ohio state low (10 Feb 1899 Milligan) diff = 152F
+        120F Oklahoma state high (27 Jun 1994 Tipton) diff = 151F
+        -31F Oklahoma state low (10 Feb 2011 Nowata) diff = 151F
+        119F Oregon state high (29 Jun 2021 Pelton Dam) diff = 172F
+        -54F Oregon state low (10 Feb 1933 Seneca) diff = 172F
+        111F Pennsylvania state high (10 Jul 1936 Phoenixville) diff = 153F
+        -42F Pennsylvania state low (5 Jan 1904 Smethport) diff = 153F
+        104F Rhode Island state high (2 Aug 1975 Providence) diff = 132F
+        -28F Rhode Island state low (17 Jan 1942 Richmond) diff = 132F
+        113F South Carolina state high (29 Jun 2012 Columbia) diff = 135F
+        -22F South Carolina state low (21 Jan 1985 Landrum (Hogback Mountain)) diff = 135F
+        120F South Dakota state high (15 Jul 2006 Fort Pierre) diff = 180F
+        -60F South Dakota state low (22 Dec 1989 Rochford) diff = 180F
+        113F Tennessee state high (9 Aug 1930 Perryville) diff = 145F
+        -32F Tennessee state low (30 Dec 1917 Mountain City) diff = 145F
+        120F Texas state high (28 Jun 1994 Monahans) diff = 143F
+        -23F Texas state low (8 Feb 1933 Seminole) diff = 143F
+        120F Utah state high (5 Jul 2007 Lake Powell) diff = 189F
+        -69F Utah state low (1 Feb 1985 Peter Sinks[11]) diff = 189F
+        105F Vermont state high (4 Jul 1911 Vernon) diff = 155F
+        -50F Vermont state low (30 Dec 1933 Bloomfield) diff = 155F
+        110F Virginia state high (15 Jul 1954 Balcony Falls) diff = 140F
+        -30F Virginia state low (22 Jan 1985 Pembroke) diff = 140F
+        120F Washington state high (29 Jun 2021 Hanford Site) diff = 168F
+        -48F Washington state low (30 Dec 1968 Winthrop) diff = 168F
+        112F West Virginia state high (10 Jul 1936 Martinsburg) diff = 149F
+        -37F West Virginia state low (30 Dec 1917 Lewisburg) diff = 149F
+        114F Wisconsin state high (13 Jul 1936 Wisconsin Dells) diff = 169F
+        -55F Wisconsin state low (4 Feb 1996 Couderay) diff = 169F
+        116F Wyoming state high (12 Jul 1900 Bitter Creek) diff = 182F
+        -66F Wyoming state low (9 Feb 1933 Riverside Ranger Station) diff = 182F
 
         380 Sulfur (gamma) m.p.
         386 Sulfur (alpha) m.p.
@@ -114,36 +236,36 @@ if 1:   # Data
         5900 Surface of sun
         100C Boiling point of water at 1 atmosphere
         98.6F Body temperature
-        40C Sweltering air temperature
-        30C Warm to hot air temperature
-        20C Comfortable air temperature
-        10C Cold air temperature
+        40C Sweltering air 
+        30C Warm to hot air
+        20C Comfortable air
+        10C Cold air
         0C Freezing point of water at 1 atmosphere
 
         # https://www.nist.gov/pml/owm/culinary-temperature
-        200F Cool oven temperature
-        250F Very slow oven temperature
-        300F-325F Slow oven temperature
-        325F-350F Moderately slow oven temperature
-        350F-375F Moderate oven temperature
-        375F-400F Moderately hot oven temperature
-        400F-450F Hot oven temperature
-        450F-500F Very hot oven temperature
+        200F Cool oven
+        250F Very slow oven
+        300F-325F Slow oven
+        325F-350F Moderately slow oven
+        350F-375F Moderate oven 
+        375F-400F Moderately hot oven 
+        400F-450F Hot oven 
+        450F-500F Very hot oven 
 
         # https://www.nist.gov/pml/owm/culinary-temperature
-        220C Pie crust cooking temperature
-        200C Quick breads cooking temperature
-        190C Fried foods cooking temperature
-        180C Apple crisp cooking temperature
-        180C Banana bread cooking temperature
-        180C Cakes cooking temperature
-        180C Cookies cooking temperature
-        180C Grilling steaks cooking temperature
-        165C Roasting meat & poultry cooking temperature
-        160C Macaroni and cheese cooking temperature
-        150C Meringues cooking temperature
-        120C Baked beans, custard cooking temperature
-        100C Vegetables in water cooking temperature
+        220C Pie crust cooking
+        200C Quick breads cooking 
+        190C Fried foods cooking 
+        180C Apple crisp cooking
+        180C Banana bread cooking
+        180C Cakes cooking
+        180C Cookies cooking
+        180C Grilling steaks cooking
+        165C Roasting meat & poultry cooking
+        160C Macaroni and cheese cooking
+        150C Meringues cooking
+        120C Baked beans, custard cooking
+        100C Vegetables in water cooking
 
         # https://en.wikipedia.org/wiki/Boiling_points_of_the_elements_(data_page)
         20.271 1 H Hydrogen (H₂) b.p.
@@ -376,7 +498,7 @@ if 1:   # Classes
             return (a + b)/2
         def get_value(self, T):
             'T can have a single letter suffix denoting the temperature unit'
-            if "-" in T:
+            if "-" in T and T[0] != "-":
                 return self.interpret_range(T)
             elif T.startswith(">"):
                 return self.interpret(T[1:])
@@ -427,30 +549,35 @@ if 1:   # Utility
         Here's an example of the script's use.  I wanted to make an ad hoc electrical clamp from
         an office binder clip.  These would be cheap and have sufficient size to clamp on standard
         tapered lead-acid battery terminals, as I was building a battery charger for up to 8
-        batteries and wanted a functional clip without having to buy 8 commercial clips at $5 to
-        $10 each.  My design was to first sand off the blue oxide layer on the clamp's inner edges
-        and solder a wire to a hole drilled in the top of the clip.  My concern was whether the
-        heat of soldering would ruin the spring temper of the clip, ruining its clamping ability.
-        If so, then I'd have to attach the wire with e.g. a rivet instead.  I used this script to
-        get some temperatures:
+        batteries and wanted a functional clip without having to buy 16 commercial clips.  My
+        design was to sand off the blue oxide layer on the binder clamp's inner edges and solder a
+        wire to a hole drilled in the top of the clip.  My concern was whether the heat of
+        soldering would ruin the spring temper of the clip, ruining its clamping ability.  If so,
+        then I'd have to attach the wire with e.g. a rivet instead.  I used this script to get
+        some temperatures:
 
-            'python temperature_ref.py solder' gave me the melting point of eutectic tin-lead
-            solder, which is 182 °C.
+            'python temperature_ref.py solder' 
+                This gave me the melting point of eutectic tin-lead solder, which is 182 °C.
 
-            'python temperature_ref.py temper:' gave me 293 °C, the tempering temperature of
-            springs that give the characteristic blue oxide layer.
+            'python temperature_ref.py temper:'
 
-            My soldering iron is typically set to 350 °C, but I might set it higher if it doesn't
-            replace the heat fast enough to melt the solder and heat the steel clamp well enough
-            to melt the solder.  There appears to be a 100 °C margin, so I'm hoping I shouldn't
-            have a problem.  I decided to proceed with the fabrication experiment.
+                This gave me 293 °C, the tempering temperature of springs that give the
+                characteristic blue oxide layer.  I included the ':' after temper so that I
+                wouldn't see all the other entries with 'temperature' in them.
 
-            I felt a better design would be to take some solid copper wire, pound it flat, bend it
-            around the sanded bottom of the clip and solder the copper to the steel clip so that
-            the copper contacts the lead battery post instead of the sanded curved steel surface,
-            giving better contact.  This is because I worry about the sanded bare steel rusting
-            over time, leading to them needing periodic maintenance.  The copper strips will
-            require less maintenance. 
+            There appears to be a 100 °C margin, so I decided to proceed with the fabrication
+            experiment.  I drilled two holes in the top of the clamp about 8 mm from the end.  I
+            used a Foredom grinding wheel to remove the blue oxide between one of the holes and
+            the edge of the clamp to provide a clean surface for soldering the wire.  I threaded
+            some 18 gauge (1 mm diameter) silicone insulated wire through the holes, bent the
+            exposed wire around the edge of the clamp, and it soldered nicely to the steel with
+            the soldering iron set to its maximum temperature of 480 °C.  I used a plastic tie
+            wrap to clamp the wire in the other hole and used sandpaper to remove the oxide where
+            the clamp will contact the lead post.
+
+            A quick measurement with a DC power supply set to 1 A and a DMM on the clamp attached
+            to a banana plug gave a Kelvin resistance measurement of the banana plug to soldered
+            wire resistance of 3.0 mΩ.  No further work needed.
 
         This script is intended to help you find temperatures near a chosen temperature.  The data
         comprising the script is included so you can edit the items to your tastes.  For example,
@@ -459,14 +586,25 @@ if 1:   # Utility
         boiling point (b.p.) of elemental aluminum.
 
         In the raw data, some temperatures are given as e.g. '300F-350F', which is a range of
-        temperatures for archaic terms like 'moderately hot oven', which the script will print the
-        mean of the two values.
+        temperatures for archaic terms like 'moderately hot oven'.  For such entries, the script
+        will print the mean of the two values.
 
         The first argument on the command line can optionally be a temperature unit (c f k r),
-        case not important.  This establishes the default unit to use with numbers on the command
-        line without a cuddled unit suffix and the temperature unit to produce the report.  Note
-        the different temperature units are printed in different colors (they are the same as
+        where case is not important.  This defines the default unit to use with numbers on the
+        command line without a cuddled unit suffix and the temperature unit to produce the report.
+        Note the different temperature units are printed in different colors (they are the same as
         those used in the /plib/pgm/convert_temperature.py script).
+
+        If you want a particular number to use a different unit on the command line, add the unit
+        as a suffix with no space.  Example:  find temperatures close to the boiling point of
+        liquid nitrogen:  
+
+            'python temperature_ref.py k nitrogen' gives 77 K as the boiling point of nitrogen.
+
+            Then use 'python temperature_ref.py -n 10 k 77' to show up to 10 items on either side
+            of the match to nitrogen.  These will all be melting or boiling points of elemental
+            gases.
+            
 
         The elemental data are printed as e.g. '1414 °C       14 Si Silicon m.p.', which gives the
         atomic number, elemental symbol, and the element's name.
@@ -488,23 +626,24 @@ if 1:   # Utility
           temperature_ref.py aluminum
             Show items containing the string 'aluminum'.
         Options:
-            -a      Show all entries
-            -c      Don't use color
-            -h      Print a manpage
-            -i      Don't ignore case
-            -n n    ± number of items to display [{d["-n"]}]
+            -a          Show all entries
+            -c          Don't use color
+            -h          Print a manpage
+            -i          Don't ignore case
+            -n n        ± number of items to display [{d["-n"]}]
+            --debug     Enter debugger on unhandled exception
         '''))
         exit(status)
     def ParseCommandLine(d):
         d["-a"] = False     # Show all entries
         d["-c"] = False     # Don't use color
-        d["-d"] = 4         # Number of digits
+        d["-d"] = g.N       # Number of digits in floating point numbers
         d["-i"] = False     # Don't ignore case
-        d["-n"] = 2         # Number of items to display on either side of found temperature items
+        d["-n"] = g.n       # Number of items to display on either side of found temperature items
         if len(sys.argv) < 2:
             Usage()
         try:
-            opts, args = getopt.getopt(sys.argv[1:], "acd:hin:") 
+            opts, args = getopt.getopt(sys.argv[1:], "acd:hin:", "debug") 
         except getopt.GetoptError as e:
             print(str(e))
             exit(1)
@@ -525,6 +664,9 @@ if 1:   # Utility
                     Error(f"-n option's argument must be an integer")
             elif o == "-h":
                 Manpage()
+            elif o == "--debug":
+                import debug
+                debug.SetDebugger()
         x = flt(0)
         x.N = d["-d"]
         x.rtz = x.rtdp = True
@@ -658,7 +800,7 @@ if 1:   # Core functionality
             T = ConvertTemperature(e.T, "k", g.unit)
             # Print the colorized temperature
             s = f"{T} {g.units[g.unit]}"
-            print(f"{g.get_color[g.unit]}{s:{g.T_width}s}{t.n}{g.sep}", end="")
+            print(f"{g.get_color[g.unit]}{s:{g.Twidth}s}{t.n}{g.sep}", end="")
             # Print the description
             print(e.name)
 
