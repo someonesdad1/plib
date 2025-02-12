@@ -506,21 +506,6 @@ if 1:   # Core functionality
         (numbers_in_K, compiled_regexes).
         '''
         flags = re.X if d["-i"] else re.X | re.I
-        rnum = re.compile(r'''              # Regex to get integers or floats
-            (?x)                            # Allow verbosity
-            ^
-            (                               # Group
-                [+-]?                       # Optional sign
-                \.\d+                       # Number like .345
-                ([eE][+-]?\d+)?|            # Optional exponent
-            # or
-                [+-]?                       # Optional sign
-                \d+\.?\d*                   # Number:  2.345
-                ([eE][+-]?\d+)?             # Optional exponent
-            )                               # End group
-            ([cfkrCFKR])?                   # Optional temperature unit
-            $
-            ''', flags)
         # Check for first letter being a unit
         if len(args[0]) == 1:
             letter = args[0].lower()
@@ -551,9 +536,42 @@ if 1:   # Core functionality
                 Error(f"{repr(item)} is a bad regular expression")
         return (temperatures_in_K, regexes)
         raise ValueError
+    def IsTemperatureUnit(arg):
+        "Return True if it's a single letter that's a temperature unit"
+        return len(arg) == 1 and arg.lower() in g.allowed_units
+    def IsTemperature(arg):
+        'Return (temperature, unit) or None'
+        flags = re.X if d["-i"] else re.X | re.I
+        rnum = re.compile(r'''              # Regex to get integers or floats
+            (?x)                            # Allow verbosity
+            ^
+            (                               # Group
+                [+-]?                       # Optional sign
+                \.\d+                       # Number like .345
+                ([eE][+-]?\d+)?|            # Optional exponent
+            # or
+                [+-]?                       # Optional sign
+                \d+\.?\d*                   # Number:  2.345
+                ([eE][+-]?\d+)?             # Optional exponent
+            )                               # End group
+            ([cfkrCFKR])?                   # Optional temperature unit
+            $
+            ''', flags)
+        mo = rnum.match(arg)
+        if mo:
+            is_a_number = False
+            num, unit = GetSuffix(arg)
+            try:
+                T = flt(num)
+                is_a_number = True
+            except ValueError:
+                pass
+            if is_a_number:
+                return (T, unit)
+        return None
     def GetTemperatureData(T_K):
         '''g.data is sorted by temperature in K, so use binary search to find the closest matches
-        to the given temperature; return a list of indexes into g.data.
+        to the given temperature in K; return a list of indexes into g.data.
         '''
         found, key, N = [], lambda x: x.T, len(g.data) - 1
         # This call to bisect_left finds the insertion point in the sequence where an
@@ -583,18 +601,27 @@ if __name__ == "__main__":
     g.data = sorted(GetData())
     d = {}      # Options dictionary
     args = ParseCommandLine(d)
-    temperatures_in_K, regexes = GetRegexes(args)
-    Dbg(f"Temperatures in K:  {temperatures_in_K}")
-    for T_K in temperatures_in_K:
-        results = GetTemperatureData(T_K)
-        print("Temperature search:")
-        for i in results:
-            e = g.data[i]   # Element instance
-            print(g.indent, end="")
-            # Convert e.T to requisite temperature unit
-            T = ConvertTemperature(e.T, "k", g.unit)
-            # Print the colorized temperature
-            s = f"{T} {g.units[g.unit]}"
-            print(f"{g.get_color[g.unit]}{s:{g.T_width}s}{t.n}{g.sep}", end="")
-            # Print the description
-            print(e.name)
+    for arg in args:
+        if IsTemperatureUnit(arg):
+            g.unit = arg
+        results = IsTemperature(arg)
+        if results is not None:
+            # The user gave a temperature to search for
+            T, unit = results
+            T_K = ConvertTemperature(T, unit, "k")
+            results = GetTemperatureData(T_K)
+            if results:
+                print(f"Search for temperature {repr(arg)}")
+                for i in results:
+                    e = g.data[i]   # Element instance
+                    print(g.indent, end="")
+                    # Convert e.T to requisite temperature unit
+                    T = ConvertTemperature(e.T, "k", g.unit)
+                    # Print the colorized temperature
+                    s = f"{T} {g.units[g.unit]}"
+                    print(f"{g.get_color[g.unit]}{s:{g.T_width}s}{t.n}{g.sep}", end="")
+                    # Print the description
+                    print(e.name)
+        else:
+            # arg is a regex
+            pass
