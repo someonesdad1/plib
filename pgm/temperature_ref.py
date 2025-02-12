@@ -16,15 +16,12 @@ if 1:  # Header
         #∞test∞# #∞test∞#
         pass
     if 1:   # Standard imports
-        from collections import deque
-        from pathlib import Path as P
         import bisect
         import getopt
         import os
         import re
         import sys
     if 1:   # Custom imports
-        from dpprint import PP
         from temperature import ConvertTemperature
         from f import flt
         from wrap import dedent
@@ -34,7 +31,6 @@ if 1:  # Header
             import debug
             debug.SetDebugger()
     if 1:   # Global variables
-        pp = PP()   # pprint tuned to current screen width
         class G:
             pass
         g = G()
@@ -56,6 +52,8 @@ if 1:   # Data
 
         0 Absolute zero temperature on Kelvin scale
         1.41679e32 Planck temperature
+        573-773 Mineral oil b.p.
+        180C Mineral oil flash point
         0C Common STP at 1 atmosphere pressure
         288.1 Standard atmosphere at sea level
         284.2 Standard atmosphere at 2 kft
@@ -66,51 +64,52 @@ if 1:   # Data
         216.7 Standard atmosphere at 50 kft
         227.0 Standard atmosphere at 100 kft
 
-        380 Sulfur (gamma) melting point
-        386 Sulfur (alpha) melting point
-        392.2 Sulfur (beta) melting point
-        455.9 Solder, 63 Sn, 37 Pb (eutectic) melting point
-        463.1 Solder, 60 Sn, 40 Pb melting point
-        465.4 Solder, 70 Sn, 30 Pb melting point
-        489.3 Solder, 50 Sn, 50 Pb melting point
-        683 Phosphorus (red, under pressure) melting point
+        380 Sulfur (gamma) m.p.
+        386 Sulfur (alpha) m.p.
+        392.2 Sulfur (beta) m.p.
+        455.9 Solder, 63 Sn, 37 Pb (eutectic) m.p.
+        463.1 Solder, 60 Sn, 40 Pb m.p.
+        465.4 Solder, 70 Sn, 30 Pb m.p.
+        489.3 Solder, 50 Sn, 50 Pb m.p.
+        683 Phosphorus (red, under pressure) m.p.
 
-        420F Faint yellow temper, (Knives, hammers)
-        430F Very pale yellow temper, (Reamers)
-        440F Light yellow temper, (Lathe tools, scrapers, milling cutters, reamers)
-        450F Pale straw yellow temper, (Twist drills for hard use)
-        460F Straw yellow temper, (Dies, punches, bits, reamers)
-        470F Deep straw yellow temper
-        480F Dark yellow temper, (Twist drills, large taps)
-        490F Yellow brown temper
-        500F Brown yellow temper, (Axes, wood chisels, drifts, taps >= 1/2", dies)
-        510F Spotted red brown temper
-        520F Brown purple temper, (Taps <= 1/4")
-        530F Light purple temper
-        540F Full purple temper, (Cold chisels, center punches)
-        550F Dark purple temper
-        560F Full blue temper, (Screwdrivers, springs, gears)
-        570F Dark blue temper
-        600F Medium blue temper, (Scrapers, spokeshaves)
-        640F Light blue temper
-        400C Red, visible at night (incandescent color)      
-        474C Red, visible at twilight (incandescent color)   
-        524C Red, visible in daylight (incandescent color)   
-        580C Red, visible in sunlight (incandescent color)   
-        660C Blood red (incandescent color)                  
-        700C Dark red (incandescent color)                   
-        800C Dull cherry red (incandescent color)            
-        900C Cherry red (incandescent color)                 
-        1000C Bright cherry red (incandescent color)          
-        1100C Orange red (incandescent color)                 
-        1200C Orange yellow (incandescent color)              
-        1300C Yellow white (incandescent color)               
-        1400C White (incandescent color)                      
-        1500C Brilliant white (incandescent color)            
-        1600C Blue white (incandescent color)                 
-        2250C Acetylene flame (incandescent color)            
-        3000C Induction furnace (incandescent color)          
-        4000C Electric arc light (incandescent color)         
+        420F Faint yellow metal temper:  knives, hammers
+        430F Very pale yellow metal temper:  reamers
+        440F Light yellow metal temper:  lathe tools, scrapers, milling cutters, reamers
+        450F Pale straw yellow metal temper:  twist drills for hard use
+        460F Straw yellow metal temper:  dies, punches, bits, reamers
+        470F Deep straw yellow metal temper:
+        480F Dark yellow metal temper:  twist drills, large taps
+        490F Yellow brown metal temper:
+        500F Brown yellow metal temper:  axes, wood chisels, drifts, taps >= 1/2", dies
+        510F Spotted red brown metal temper:
+        520F Brown purple metal temper:  taps <= 1/4"
+        530F Light purple metal temper:
+        540F Full purple metal temper:  cold chisels, center punches
+        550F Dark purple metal temper:
+        560F Full blue metal temper:  screwdrivers, springs, gears
+        570F Dark blue metal temper:
+        600F Medium blue metal temper:  scrapers, spokeshaves
+        640F Light blue metal temper:
+
+        400C Red, visible at night (incandescence)      
+        474C Red, visible at twilight (incandescence)   
+        524C Red, visible in daylight (incandescence)   
+        580C Red, visible in sunlight (incandescence)   
+        660C Blood red (incandescence)                  
+        700C Dark red (incandescence)                   
+        800C Dull cherry red (incandescence)            
+        900C Cherry red (incandescence)                 
+        1000C Bright cherry red (incandescence)          
+        1100C Orange red (incandescence)                 
+        1200C Orange yellow (incandescence)              
+        1300C Yellow white (incandescence)               
+        1400C White (incandescence)                      
+        1500C Brilliant white (incandescence)            
+        1600C Blue white (incandescence)                 
+        2250C Acetylene flame (incandescence)            
+        3000C Induction furnace (incandescence)          
+        4000C Electric arc light (incandescence)         
 
         5900 Surface of sun
         100C Boiling point of water at 1 atmosphere
@@ -147,199 +146,199 @@ if 1:   # Data
         100C Vegetables in water cooking temperature
 
         # https://en.wikipedia.org/wiki/Boiling_points_of_the_elements_(data_page)
-        20.271 Element 1 H hydrogen (H₂) boiling point
-        4.222 Element 2 He helium boiling point
-        1603 Element 3 Li lithium boiling point
-        2742 Element 4 Be beryllium boiling point
-        4200 Element 5 B boron boiling point
-        4300 Element 6 C carbon (diamond) boiling point
-        77.355 Element 7 N nitrogen (N₂) boiling point
-        90.188 Element 8 O oxygen (O₂) boiling point
-        85.04 Element 9 F fluorine (F₂) boiling point
-        27.104 Element 10 Ne neon boiling point
-        1156.090 Element 11 Na sodium boiling point
-        1363 Element 12 Mg magnesium boiling point
-        2743 Element 13 Al aluminum boiling point
-        3538 Element 14 Si silicon boiling point
-        550 Element 15 P phosphorus (white) boiling point
-        717.8 Element 16 S sulfur (orthorhombic, alpha) boiling point
-        717.8 Element 16 S sulfur (monoclinic, beta) boiling point
-        717.87 Element 16 S sulfur (gamma) boiling point
-        239.11 Element 17 Cl chlorine (Cl₂) boiling point
-        87.302 Element 18 Ar argon boiling point
-        1032 Element 19 K potassium boiling point
-        1757 Element 20 Ca calcium boiling point
-        3109 Element 21 Sc scandium boiling point
-        3560 Element 22 Ti titanium (hexagonal) boiling point
-        3680 Element 23 V vanadium boiling point
-        2755 Element 24 Cr chromium boiling point
-        2334 Element 25 Mn manganese boiling point
-        3134 Element 26 Fe iron boiling point
-        3200 Element 27 Co cobalt boiling point
-        3003 Element 28 Ni nickel boiling point
-        2835 Element 29 Cu copper boiling point
-        1180 Element 30 Zn zinc boiling point
-        2673 Element 31 Ga gallium boiling point
-        3106 Element 32 Ge germanium boiling point
-        887 Element 33 As arsenic (gray) boiling point
-        958 Element 34 Se selenium (hexagonal, gray) boiling point
-        332.0 Element 35 Br bromine (Br₂) boiling point
-        119.735 Element 36 Kr krypton boiling point
-        961 Element 37 Rb rubidium boiling point
-        1650 Element 38 Sr strontium boiling point
-        3203 Element 39 Y yttrium boiling point
-        4650 Element 40 Zr zirconium boiling point
-        5017 Element 41 Nb niobium boiling point
-        4912 Element 42 Mo molybdenum boiling point
-        4538 Element 43 Tc technetium (⁹⁸Tc?) boiling point
-        4423 Element 44 Ru ruthenium boiling point
-        3968 Element 45 Rh rhodium boiling point
-        3236 Element 46 Pd palladium boiling point
-        2483 Element 47 Ag silver boiling point
-        1040 Element 48 Cd cadmium boiling point
-        2345 Element 49 In indium boiling point
-        2875 Element 50 Sn tin (white) boiling point
-        1908 Element 51 Sb antimony boiling point
-        1261 Element 52 Te tellurium boiling point
-        457.4 Element 53 I iodine (I₂) boiling point
-        165.051 Element 54 Xe xenon boiling point
-        944 Element 55 Cs caesium boiling point
-        1910 Element 56 Ba barium boiling point
-        3737 Element 57 La lanthanum boiling point
-        3716 Element 58 Ce cerium boiling point
-        3403 Element 59 Pr praseodymium boiling point
-        3347 Element 60 Nd neodymium boiling point
-        3273 Element 61 Pm promethium (¹⁴⁷Pm?) boiling point
-        2173 Element 62 Sm samarium boiling point
-        1802 Element 63 Eu europium boiling point
-        3546 Element 64 Gd gadolinium boiling point
-        3396 Element 65 Tb terbium boiling point
-        2840 Element 66 Dy dysprosium boiling point
-        2873 Element 67 Ho holmium boiling point
-        3141 Element 68 Er erbium boiling point
-        2223 Element 69 Tm thulium boiling point
-        1703 Element 70 Yb ytterbium boiling point
-        3675 Element 71 Lu lutetium boiling point
-        4876 Element 72 Hf hafnium boiling point
-        5731 Element 73 Ta tantalum boiling point
-        6203 Element 74 W tungsten boiling point
-        5869 Element 75 Re rhenium boiling point
-        5285 Element 76 Os osmium boiling point
-        4403 Element 77 Ir iridium boiling point
-        4098 Element 78 Pt platinum boiling point
-        3243 Element 79 Au gold boiling point
-        629.88 Element 80 Hg mercury boiling point
-        1746 Element 81 Tl thallium boiling point
-        2022 Element 82 Pb lead boiling point
-        1837 Element 83 Bi bismuth boiling point
-        1235 Element 84 Po polonium (alpha) boiling point
-        211.5 Element 86 Rn radon boiling point
-        890 Element 87 Fr francium boiling point
-        2010 Element 88 Ra radium boiling point
-        3471 Element 89 Ac actinium (²²⁷Ac?) boiling point
-        5061 Element 90 Th thorium boiling point
-        4404 Element 92 U uranium boiling point
-        4273 Element 93 Np neptunium boiling point
-        3501 Element 94 Pu plutonium boiling point
-        2880 Element 95 Am americium boiling point
-        3383 Element 96 Cm curium (²⁴⁴Cm?) boiling point
+        20.271 1 H Hydrogen (H₂) b.p.
+        4.222 2 He Helium b.p.
+        1603 3 Li Lithium b.p.
+        2742 4 Be Beryllium b.p.
+        4200 5 B Boron b.p.
+        4300 6 C Carbon (diamond) b.p.
+        77.355 7 N Nitrogen (N₂) b.p.
+        90.188 8 O Oxygen (O₂) b.p.
+        85.04 9 F Fluorine (F₂) b.p.
+        27.104 10 Ne Neon b.p.
+        1156.090 11 Na Sodium b.p.
+        1363 12 Mg Magnesium b.p.
+        2743 13 Al Aluminum b.p.
+        3538 14 Si Silicon b.p.
+        550 15 P Phosphorus (white) b.p.
+        717.8 16 S Sulfur (orthorhombic, alpha) b.p.
+        717.8 16 S Sulfur (monoclinic, beta) b.p.
+        717.87 16 S Sulfur (gamma) b.p.
+        239.11 17 Cl Chlorine (Cl₂) b.p.
+        87.302 18 Ar Argon b.p.
+        1032 19 K Potassium b.p.
+        1757 20 Ca Calcium b.p.
+        3109 21 Sc Scandium b.p.
+        3560 22 Ti Titanium (hexagonal) b.p.
+        3680 23 V Vanadium b.p.
+        2755 24 Cr Chromium b.p.
+        2334 25 Mn Manganese b.p.
+        3134 26 Fe Iron b.p.
+        3200 27 Co Cobalt b.p.
+        3003 28 Ni Nickel b.p.
+        2835 29 Cu Copper b.p.
+        1180 30 Zn Zinc b.p.
+        2673 31 Ga Gallium b.p.
+        3106 32 Ge Germanium b.p.
+        887 33 As Arsenic (gray) b.p.
+        958 34 Se Selenium (hexagonal, gray) b.p.
+        332.0 35 Br Bromine (Br₂) b.p.
+        119.735 36 Kr Krypton b.p.
+        961 37 Rb Rubidium b.p.
+        1650 38 Sr Strontium b.p.
+        3203 39 Y Yttrium b.p.
+        4650 40 Zr Zirconium b.p.
+        5017 41 Nb Niobium b.p.
+        4912 42 Mo Molybdenum b.p.
+        4538 43 Tc Technetium (⁹⁸Tc?) b.p.
+        4423 44 Ru Ruthenium b.p.
+        3968 45 Rh Rhodium b.p.
+        3236 46 Pd Palladium b.p.
+        2483 47 Ag Silver b.p.
+        1040 48 Cd Cadmium b.p.
+        2345 49 In Indium b.p.
+        2875 50 Sn Tin (white) b.p.
+        1908 51 Sb Antimony b.p.
+        1261 52 Te Tellurium b.p.
+        457.4 53 I Iodine (I₂) b.p.
+        165.051 54 Xe Xenon b.p.
+        944 55 Cs Cesium b.p.
+        1910 56 Ba Barium b.p.
+        3737 57 La Lanthanum b.p.
+        3716 58 Ce Cerium b.p.
+        3403 59 Pr Praseodymium b.p.
+        3347 60 Nd Neodymium b.p.
+        3273 61 Pm Promethium (¹⁴⁷Pm?) b.p.
+        2173 62 Sm Samarium b.p.
+        1802 63 Eu Europium b.p.
+        3546 64 Gd Gadolinium b.p.
+        3396 65 Tb Terbium b.p.
+        2840 66 Dy Dysprosium b.p.
+        2873 67 Ho Holmium b.p.
+        3141 68 Er Erbium b.p.
+        2223 69 Tm Thulium b.p.
+        1703 70 Yb Ytterbium b.p.
+        3675 71 Lu Lutetium b.p.
+        4876 72 Hf Hafnium b.p.
+        5731 73 Ta Tantalum b.p.
+        6203 74 W Tungsten b.p.
+        5869 75 Re Rhenium b.p.
+        5285 76 Os Osmium b.p.
+        4403 77 Ir Iridium b.p.
+        4098 78 Pt Platinum b.p.
+        3243 79 Au Gold b.p.
+        629.88 80 Hg Mercury b.p.
+        1746 81 Tl Thallium b.p.
+        2022 82 Pb Lead b.p.
+        1837 83 Bi Bismuth b.p.
+        1235 84 Po Polonium (alpha) b.p.
+        211.5 86 Rn Radon b.p.
+        890 87 Fr Francium b.p.
+        2010 88 Ra Radium b.p.
+        3471 89 Ac Actinium (²²⁷Ac?) b.p.
+        5061 90 Th Thorium b.p.
+        4404 92 U Uranium b.p.
+        4273 93 Np Neptunium b.p.
+        3501 94 Pu Plutonium b.p.
+        2880 95 Am Americium b.p.
+        3383 96 Cm Curium (²⁴⁴Cm?) b.p.
 
         # Melting point of elements https://en.wikipedia.org/wiki/List_of_chemical_elements
-        14.01 Element 1 H Hydrogen melting point
-        453.69 Element 3 Li Lithium melting point
-        1560 Element 4 Be Beryllium melting point
-        2349 Element 5 B Boron melting point
-        >4000 Element 6 C Carbon melting point
-        63.15 Element 7 N Nitrogen melting point
-        54.36 Element 8 O Oxygen melting point
-        53.53 Element 9 F Fluorine melting point
-        24.56 Element 10 Ne Neon melting point
-        370.87 Element 11 Na Sodium melting point
-        923 Element 12 Mg Magnesium melting point
-        933.47 Element 13 Al Aluminium melting point
-        1687 Element 14 Si Silicon melting point
-        317.30 Element 15 P Phosphorus melting point
-        388.36 Element 16 S Sulfur melting point
-        171.6 Element 17 Cl Chlorine melting point
-        83.80 Element 18 Ar Argon melting point
-        336.53 Element 19 K Potassium melting point
-        1115 Element 20 Ca Calcium melting point
-        1814 Element 21 Sc Scandium melting point
-        1941 Element 22 Ti Titanium melting point
-        2183 Element 23 V Vanadium melting point
-        2180 Element 24 Cr Chromium melting point
-        1519 Element 25 Mn Manganese melting point
-        1811 Element 26 Fe Iron melting point
-        1768 Element 27 Co Cobalt melting point
-        1728 Element 28 Ni Nickel melting point
-        1357.77 Element 29 Cu Copper melting point
-        692.88 Element 30 Zn Zinc melting point
-        302.9146 Element 31 Ga Gallium melting point
-        1211.40 Element 32 Ge Germanium melting point
-        1090 Element 33 As Arsenic melting point
-        453 Element 34 Se Selenium melting point
-        265.8 Element 35 Br Bromine melting point
-        115.79 Element 36 Kr Krypton melting point
-        312.46 Element 37 Rb Rubidium melting point
-        1050 Element 38 Sr Strontium melting point
-        1799 Element 39 Y Yttrium melting point
-        2128 Element 40 Zr Zirconium melting point
-        2750 Element 41 Nb Niobium melting point
-        2896 Element 42 Mo Molybdenum melting point
-        2430 Element 43 Tc Technetium melting point
-        2607 Element 44 Ru Ruthenium melting point
-        2237 Element 45 Rh Rhodium melting point
-        1828.05 Element 46 Pd Palladium melting point
-        1234.93 Element 47 Ag Silver melting point
-        594.22 Element 48 Cd Cadmium melting point
-        429.75 Element 49 In Indium melting point
-        505.08 Element 50 Sn Tin melting point
-        903.78 Element 51 Sb Antimony melting point
-        722.66 Element 52 Te Tellurium melting point
-        386.85 Element 53 I Iodine melting point
-        161.4 Element 54 Xe Xenon melting point
-        301.59 Element 55 Cs Caesium melting point
-        1000 Element 56 Ba Barium melting point
-        1193 Element 57 La Lanthanum melting point
-        1068 Element 58 Ce Cerium melting point
-        1208 Element 59 Pr Praseodymium melting point
-        1297 Element 60 Nd Neodymium melting point
-        1315 Element 61 Pm Promethium melting point
-        1345 Element 62 Sm Samarium melting point
-        1099 Element 63 Eu Europium melting point
-        1585 Element 64 Gd Gadolinium melting point
-        1629 Element 65 Tb Terbium melting point
-        1680 Element 66 Dy Dysprosium melting point
-        1734 Element 67 Ho Holmium melting point
-        1802 Element 68 Er Erbium melting point
-        1818 Element 69 Tm Thulium melting point
-        1097 Element 70 Yb Ytterbium melting point
-        1925 Element 71 Lu Lutetium melting point
-        2506 Element 72 Hf Hafnium melting point
-        3290 Element 73 Ta Tantalum melting point
-        3695 Element 74 W Tungsten melting point
-        3459 Element 75 Re Rhenium melting point
-        3306 Element 76 Os Osmium melting point
-        2719 Element 77 Ir Iridium melting point
-        2041.4 Element 78 Pt Platinum melting point
-        1337.33 Element 79 Au Gold melting point
-        234.43 Element 80 Hg Mercury melting point
-        577 Element 81 Tl Thallium melting point
-        600.61 Element 82 Pb Lead melting point
-        544.7 Element 83 Bi Bismuth melting point
-        527 Element 84 Po Polonium melting point
-        575 Element 85 At Astatine melting point
-        202 Element 86 Rn Radon melting point
-        281 Element 87 Fr Francium melting point
-        973 Element 88 Ra Radium melting point
-        1323 Element 89 Ac Actinium melting point
-        2115 Element 90 Th Thorium melting point
-        1841 Element 91 Pa Protactinium melting point
-        1405.3 Element 92 U Uranium melting point
-        917 Element 93 Np Neptunium melting point
-        912.5 Element 94 Pu Plutonium melting point
-        1449 Element 95 Am Americium melting point
-        1613 Element 96 Cm Curium melting point
+        14.01 1 H Hydrogen m.p.
+        453.69 3 Li Lithium m.p.
+        1560 4 Be Beryllium m.p.
+        2349 5 B Boron m.p.
+        >4000 6 C Carbon m.p.
+        63.15 7 N Nitrogen m.p.
+        54.36 8 O Oxygen m.p.
+        53.53 9 F Fluorine m.p.
+        24.56 10 Ne Neon m.p.
+        370.87 11 Na Sodium m.p.
+        923 12 Mg Magnesium m.p.
+        933.47 13 Al Aluminum m.p.
+        1687 14 Si Silicon m.p.
+        317.30 15 P Phosphorus m.p.
+        388.36 16 S Sulfur m.p.
+        171.6 17 Cl Chlorine m.p.
+        83.80 18 Ar Argon m.p.
+        336.53 19 K Potassium m.p.
+        1115 20 Ca Calcium m.p.
+        1814 21 Sc Scandium m.p.
+        1941 22 Ti Titanium m.p.
+        2183 23 V Vanadium m.p.
+        2180 24 Cr Chromium m.p.
+        1519 25 Mn Manganese m.p.
+        1811 26 Fe Iron m.p.
+        1768 27 Co Cobalt m.p.
+        1728 28 Ni Nickel m.p.
+        1357.77 29 Cu Copper m.p.
+        692.88 30 Zn Zinc m.p.
+        302.9146 31 Ga Gallium m.p.
+        1211.40 32 Ge Germanium m.p.
+        1090 33 As Arsenic m.p.
+        453 34 Se Selenium m.p.
+        265.8 35 Br Bromine m.p.
+        115.79 36 Kr Krypton m.p.
+        312.46 37 Rb Rubidium m.p.
+        1050 38 Sr Strontium m.p.
+        1799 39 Y Yttrium m.p.
+        2128 40 Zr Zirconium m.p.
+        2750 41 Nb Niobium m.p.
+        2896 42 Mo Molybdenum m.p.
+        2430 43 Tc Technetium m.p.
+        2607 44 Ru Ruthenium m.p.
+        2237 45 Rh Rhodium m.p.
+        1828.05 46 Pd Palladium m.p.
+        1234.93 47 Ag Silver m.p.
+        594.22 48 Cd Cadmium m.p.
+        429.75 49 In Indium m.p.
+        505.08 50 Sn Tin m.p.
+        903.78 51 Sb Antimony m.p.
+        722.66 52 Te Tellurium m.p.
+        386.85 53 I Iodine m.p.
+        161.4 54 Xe Xenon m.p.
+        301.59 55 Cs Cesium m.p.
+        1000 56 Ba Barium m.p.
+        1193 57 La Lanthanum m.p.
+        1068 58 Ce Cerium m.p.
+        1208 59 Pr Praseodymium m.p.
+        1297 60 Nd Neodymium m.p.
+        1315 61 Pm Promethium m.p.
+        1345 62 Sm Samarium m.p.
+        1099 63 Eu Europium m.p.
+        1585 64 Gd Gadolinium m.p.
+        1629 65 Tb Terbium m.p.
+        1680 66 Dy Dysprosium m.p.
+        1734 67 Ho Holmium m.p.
+        1802 68 Er Erbium m.p.
+        1818 69 Tm Thulium m.p.
+        1097 70 Yb Ytterbium m.p.
+        1925 71 Lu Lutetium m.p.
+        2506 72 Hf Hafnium m.p.
+        3290 73 Ta Tantalum m.p.
+        3695 74 W Tungsten m.p.
+        3459 75 Re Rhenium m.p.
+        3306 76 Os Osmium m.p.
+        2719 77 Ir Iridium m.p.
+        2041.4 78 Pt Platinum m.p.
+        1337.33 79 Au Gold m.p.
+        234.43 80 Hg Mercury m.p.
+        577 81 Tl Thallium m.p.
+        600.61 82 Pb Lead m.p.
+        544.7 83 Bi Bismuth m.p.
+        527 84 Po Polonium m.p.
+        575 85 At Astatine m.p.
+        202 86 Rn Radon m.p.
+        281 87 Fr Francium m.p.
+        973 88 Ra Radium m.p.
+        1323 89 Ac Actinium m.p.
+        2115 90 Th Thorium m.p.
+        1841 91 Pa Protactinium m.p.
+        1405.3 92 U Uranium m.p.
+        917 93 Np Neptunium m.p.
+        912.5 94 Pu Plutonium m.p.
+        1449 95 Am Americium m.p.
+        1613 96 Cm Curium m.p.
 
     '''
 if 1:   # Classes
@@ -419,15 +418,70 @@ if 1:   # Utility
     def Error(*msg, status=1):
         print(*msg, file=sys.stderr)
         exit(status)
+    def Manpage():
+        print(dedent(f'''
+
+        The basic use cases for this script are:  1) show various temperatures close to an entered
+        temperature and 2) look up a temperature for a material.  
+
+        Here's an example of the script's use.  I wanted to make an ad hoc electrical clamp from
+        an office binder clip.  These would be cheap and have sufficient size to clamp on standard
+        tapered lead-acid battery terminals, as I was building a battery charger for up to 8
+        batteries and wanted a functional clip without having to buy 8 commercial clips at $5 to
+        $10 each.  My design was to first sand off the blue oxide layer on the clamp's inner edges
+        and solder a wire to a hole drilled in the top of the clip.  My concern was whether the
+        heat of soldering would ruin the spring temper of the clip, ruining its clamping ability.
+        If so, then I'd have to attach the wire with e.g. a rivet instead.  I used this script to
+        get some temperatures:
+
+            'python temperature_ref.py solder' gave me the melting point of eutectic tin-lead
+            solder, which is 182 °C.
+
+            'python temperature_ref.py temper:' gave me 293 °C, the tempering temperature of
+            springs that give the characteristic blue oxide layer.
+
+            My soldering iron is typically set to 350 °C, but I might set it higher if it doesn't
+            replace the heat fast enough to melt the solder and heat the steel clamp well enough
+            to melt the solder.  There appears to be a 100 °C margin, so I'm hoping I shouldn't
+            have a problem.  I decided to proceed with the fabrication experiment.
+
+            I felt a better design would be to take some solid copper wire, pound it flat, bend it
+            around the sanded bottom of the clip and solder the copper to the steel clip so that
+            the copper contacts the lead battery post instead of the sanded curved steel surface,
+            giving better contact.  This is because I worry about the sanded bare steel rusting
+            over time, leading to them needing periodic maintenance.  The copper strips will
+            require less maintenance. 
+
+        This script is intended to help you find temperatures near a chosen temperature.  The data
+        comprising the script is included so you can edit the items to your tastes.  For example,
+        the items contain the melting and boiling points of the elements.  To find the melting
+        point of aluminum, use the regex 'aluminum' and you'll get the melting point (m.p) and
+        boiling point (b.p.) of elemental aluminum.
+
+        In the raw data, some temperatures are given as e.g. '300F-350F', which is a range of
+        temperatures for archaic terms like 'moderately hot oven', which the script will print the
+        mean of the two values.
+
+        The first argument on the command line can optionally be a temperature unit (c f k r),
+        case not important.  This establishes the default unit to use with numbers on the command
+        line without a cuddled unit suffix and the temperature unit to produce the report.  Note
+        the different temperature units are printed in different colors (they are the same as
+        those used in the /plib/pgm/convert_temperature.py script).
+
+        The elemental data are printed as e.g. '1414 °C       14 Si Silicon m.p.', which gives the
+        atomic number, elemental symbol, and the element's name.
+
+        The default temperature unit used is in the variable g.unit.
+
+        '''))
+        exit(0)
     def Usage(status=0):
         print(dedent(f'''
         Usage:  {sys.argv[0]} [options] [unit] regex1 [regex2...]
-
           Search for items in the temperature list that match the regexes.  If unit is present, it
           must be one of the letters c, f, k, r indicating the temperature unit to use (default is
-          c).  Numbers will display items with temperatures close to the indicated one.  The
-          regexes are ANDed together.
-
+          c).  Numbers will display items with temperatures close to the indicated one.  Each
+          regex is searched for separately.
         Examples
           temperature_ref.py c 200
             Show items with temperatures near 200 °C.
@@ -470,7 +524,7 @@ if 1:   # Utility
                 except ValueError:
                     Error(f"-n option's argument must be an integer")
             elif o == "-h":
-                Usage()
+                Manpage()
         x = flt(0)
         x.N = d["-d"]
         x.rtz = x.rtdp = True
@@ -490,9 +544,9 @@ if 1:   # Core functionality
         return o
     def GetSuffix(s):
         '''Return (a, b) where b is the last character of s if it's c, f, k, or r and a is the
-        remaining portion of the string.  Return K as the default temperature unit.
+        remaining portion of the string.
         '''
-        default = (s, "k")
+        default = (s, "")
         if len(s) < 2:
             return default
         a, u = s[:-1], s[-1]
@@ -612,28 +666,38 @@ if __name__ == "__main__":
     g.data = sorted(GetData())
     d = {}      # Options dictionary
     args = ParseCommandLine(d)
-    for arg in args:
-        if IsTemperatureUnit(arg):
-            g.unit = arg
-            continue
-        results = IsTemperature(arg)
-        if results is not None:
-            # The user gave a temperature to search for
-            T, unit = results
-            T_K = ConvertTemperature(T, unit, "k")
-            results = GetTemperatureData(T_K)
-            if results:     # List of matching item indexes
-                print(f"Search for temperature {repr(arg)}")
-                PrintItems(results)
-        else:
-            # arg is a regex
-            flags = re.X if d["-i"] else re.X | re.I
-            r = re.compile(arg, flags)
-            results = []
-            for i, item in enumerate(g.data):
-                mo = r.search(item.name)
-                if mo:
-                    results.append(i)
-            if results:
-                print(f"Search for regex {repr(arg)}")
-                PrintItems(results)
+    # See if first argument is a temperature unit
+    if args and IsTemperatureUnit(args[0]):
+        g.unit = args[0]
+        args.pop(0)
+    if d["-a"]:
+        # Print all entries
+        PrintItems(range(len(g.data)))
+    else:
+        if not args:
+            Usage()
+        for arg in args:
+            results = IsTemperature(arg)
+            if results is not None:
+                # The user gave a temperature to search for
+                T, unit = results
+                #Dbg(f"T = {T}, unit = {unit!r}")
+                if not unit:
+                    unit = g.unit
+                T_K = ConvertTemperature(T, unit, "k")
+                results = GetTemperatureData(T_K)
+                if results:     # List of matching item indexes
+                    print(f"Search for temperature {repr(arg)}")
+                    PrintItems(results)
+            else:
+                # arg is a regex
+                flags = re.X if d["-i"] else re.X | re.I
+                r = re.compile(arg, flags)
+                results = []
+                for i, item in enumerate(g.data):
+                    mo = r.search(item.name)
+                    if mo:
+                        results.append(i)
+                if results:
+                    print(f"Search for regex {repr(arg)}")
+                    PrintItems(results)
