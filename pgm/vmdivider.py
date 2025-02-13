@@ -32,18 +32,18 @@ if 1:  # Header
         from wrap import dedent
         from resistors import resistors, FindClosest
         from fpformat import FPFormat
-        from f import *
-        from color import C
+        from f import flt
+        from color import t
         import u
     if 1:   # Global variables
         class g:
             pass
-        g.exact = C.lcyn
-        g.ser = C.yel
-        g.par = C.grn
-        g.dev = C.lmag
-        g.err = C.lred
-        g.norm = C.norm
+        t.exact = t.cynl
+        t.ser = t.yel
+        t.par = t.grn
+        t.dev = t.magl
+        t.err = t.redl
+        t.norm = t.wht
 if 1:  # Utility
     def Error(*msg, status=1):
         print(*msg, file=sys.stderr)
@@ -236,13 +236,13 @@ if 1:  # Utility
         return args
 if 1:  # Core functionality
     def ColorCoding():
-        print(dedent(f'''
+        t.print(dedent(f'''
             The color coding in the report is:
-                {g.dev}Deviation in % from goal{g.norm}
-                {g.err}Needed resistor is not available{g.norm}
-                {g.exact}Deviation is zero to about 6 figures{g.norm}
-                {g.ser}Resistors are in series {g.norm}
-                {g.par}Resistors are in parallel {g.norm}
+                {t.dev}Deviation in % from goal
+                {t.err}Needed resistor is not available
+                {t.exact}Deviation is zero to about 6 figures
+                {t.ser}Resistors are in series
+                {t.par}Resistors are in parallel
         '''))
     def ProcessArguments(args):
         if 1:  # Get the total resistance
@@ -306,8 +306,8 @@ if 1:  # Core functionality
         decimal point if possible.
         '''
         fp = d["fp"].engsi
-        t = fp(R) + d["ohm"]
-        s, u = t.split()
+        T = fp(R) + d["ohm"]
+        s, u = T.split()
         while s and s[-1] == "0":
             s = s[:-1]
         if s and s[-1] == ".":
@@ -350,8 +350,8 @@ if 1:  # Core functionality
         except Exception as e:
             print(f"FindClosest() got exception '{e!s}'")
             exit(1)
-        t = f"EIA{GetEIA()[0]}" if d["-E"] else "on-hand"
-        print(f"  Using the {t} resistor set")
+        T = f"EIA{GetEIA()[0]}" if d["-E"] else "on-hand"
+        print(f"  Using the {T} resistor set")
         Rtotal_actual = 0
         Ractual = []
         nearly_exact = 1e-6
@@ -362,16 +362,16 @@ if 1:  # Core functionality
                     Rt = R1 + R2
                     dev = flt((Rt - R[i])/R[i])
                     if abs(dev) < nearly_exact:
-                        Re = f"{g.ser}{F(R1)} + {F(R2)}{g.norm}"
+                        Re = f"{t.ser}{F(R1)} + {F(R2)}{t.norm}"
                     else:
-                        Re = f"{g.ser}{F(R1)} + {F(R2)} {g.dev}{100*dev}%{g.norm}"
+                        Re = f"{t.ser}{F(R1)} + {F(R2)} {t.dev}{100*dev}%{t.norm}"
                 else:
                     Rt = 1/(1/R1 + 1/R2)
                     dev = flt((Rt - R[i])/R[i])
                     if abs(dev) < nearly_exact:
-                        Re = f"{g.par}{F(R1)} || {F(R2)}{g.norm}"
+                        Re = f"{t.par}{F(R1)} || {F(R2)}{t.norm}"
                     else:
-                        Re = f"{g.par}{F(R1)} || {F(R2)} {g.dev}{100*dev}%{g.norm}"
+                        Re = f"{t.par}{F(R1)} || {F(R2)} {t.dev}{100*dev}%{t.norm}"
                 Rtotal_actual += Rt
                 Ractual.append(Rt)
                 print(f"{ind}{F(Rt):{k}s}    {Re}")
@@ -390,11 +390,11 @@ if 1:  # Core functionality
             goal = ratios[i + 1]
             dev = flt((ratio - goal)/goal)
             if abs(dev) < nearly_exact:
-                print(f"{g.exact}{ind}{Fix(ratio):{k}s}{C.norm}")
+                t.print(f"{t.exact}{ind}{Fix(ratio):{k}s}")
             else:
                 with dev:
-                    dev.n = 2
-                    print(f"{ind}{Fix(ratio):{k}s}   {g.dev}{100*dev}%{g.norm}")
+                    dev.N = 2
+                    print(f"{ind}{Fix(ratio):{k}s}   {t.dev}{100*dev}%{t.norm}")
     def GetR(s):
         's is a string that can have a cuddled SI prefix'
         val, prefix = u.ParseUnit(s)

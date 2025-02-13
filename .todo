@@ -1,34 +1,7 @@
 Active:  /plib/.todo
 
-    - pgm/temperature.py
-        - Script to show a variety of temperatures of things (all at 1 atm pressure)
-            - shop data
-                - Melting points of various materials
-        - Divide materials into different types:
-            - Common
-            - Less common
-            - All
-        - https://www.nist.gov/pml/owm/si-units-temperature has some useful entries
-        - Regex search for matches, then a tolerance to show other materials close to the found
-          ones
-        - Other viewing method could be opening in vi at relevant line
-        - In terminal, use colors for °C, °F, K (match those of my temp shell cmd)
-        - The normal printing would be ordered by temperature
-        - Example
-            - I was wondering how soldering a chunk of copper to an office clip would affect its
-              spring temper.  My guess is that it might remove the temper.
-            - Sn/Pb eutectic solder μP = 182 °C = 361 °F 
-            - Blue spring tempers are around 560-570 °F, so maybe it will be OK
-
     - pgm/comp.py
         - Inventory the boxes to get quantities
-
-    - pgm/purch.py
-        - Script to review purchase invoices in ~/dp/purchases.  The default behavior is to list
-          the files by date.
-        - Given an argument, it will be of the form DDMMMYYYY, DDMMM, or YYYY.  The matching files
-          are listed.  If -o is used, all of them are opened.
-            - -l means to open latest of the matching name (mpja or proto)
 
     - pspell.py
         - Utility to spell check source code.  I keep finding spelling errors in my old scripts
