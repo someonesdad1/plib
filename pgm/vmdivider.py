@@ -88,7 +88,7 @@ if 1:  # Utility
                     |
                     +-----------o  ρn
                     |
-                GND
+                   GND
         
         The equations are
         
@@ -97,24 +97,24 @@ if 1:  # Utility
             R1 = R*(1 - ρ1)
             Ri = R*(ρ(i-1) - ρi), i = 2, 3, ..., n-1
             Rn = R*ρ(n-1)
-    
+         
         If we define ρ0 = 1 and ρn = 0, we have the solution
-    
+         
             Ri = R*(ρ(i-1) - ρi) where i = 1, 2, ..., n
-    
+         
         The inverse equations are
-    
+         
             ρ1 = 1 - R1/R
             ρi = ρ(i-1) - Ri/R
             ρ(n-1) = Rn/R
-    
+         
         Algorithm
             - Solve for the needed resistances
             - For each resistance, get the two resistors (parallel or series) that best give the needed
               resistance
             - Calculate the actual ratios and total resistance
             - Report the information
-    
+         
         EIA resistor set
           To use an EIA set of resistors, use the -E option with an argument of the form
                 'n e1 e2 ...'
@@ -160,44 +160,52 @@ if 1:  # Utility
                         23.33 kΩ
                         6.667 kΩ
                         3.333 kΩ
-                Using the on-hand resistor set (% is deviation from needed)
-                        6.674 MΩ        [0;33;40m674 kΩ + 6 MΩ [1;35;40m0.11%[0;37;40m
-                        2.333 MΩ        [0;32;40m4 MΩ || 5.6 MΩ[0;37;40m
-                        666.7 kΩ        [0;32;40m1.2 MΩ || 1.5 MΩ[0;37;40m
-                        233.3 kΩ        [0;33;40m13.3 kΩ + 220 kΩ [1;35;40m-0.014%[0;37;40m
-                        66.72 kΩ        [0;32;40m67 kΩ || 16 MΩ [1;35;40m0.081%[0;37;40m
-                        23.33 kΩ        [0;33;40m1.33 kΩ + 22 kΩ [1;35;40m-0.014%[0;37;40m
-                        6.667 kΩ        [0;32;40m10 kΩ || 20 kΩ[0;37;40m
-                        3.333 kΩ        [0;32;40m5 kΩ || 10 kΩ[0;37;40m
+                Using the on-hand resistor set
+                        6 MΩ        
+                        2.4 MΩ      
+                        674 kΩ      
+                        220 kΩ      
+                        67 kΩ       
+                        22 kΩ       
+                        6.8 kΩ      
+                        3.3 kΩ      
                 Actual ratios (% is deviation from goal)
-                        0.3331         [1;35;40m-0.073%[0;37;40m
-                        0.0999         [1;35;40m-0.072%[0;37;40m
-                        0.0333         [1;35;40m-0.068%[0;37;40m
-                        0.01           [1;35;40m-0.023%[0;37;40m
-                        0.0033         [1;35;40m-0.083%[0;37;40m
-                        0.001          [1;35;40m-0.073%[0;37;40m
-                        0.0003         [1;35;40m-0.073%[0;37;40m
-    
+                        0.3612         8.4%
+                        0.1057         5.7%
+                        0.034          1.9%
+                        0.0106         5.5%
+                        0.0034         2.5%
+                        0.0011         7.5%
+                        0.0004         5.4%
+         
+            You would think that you can just add a trimpot to each of the resistors and trim
+            things to get the desired ratios.  A problem is that each trimpot will change the
+            overall divider ratio, so all the adjustments will interact.  Another way would be to
+            use the trimpots to get each resistor slightly above the needed target value, then
+            adjust the trimpot to get the exactly-needed value.  This is what us hobbyists have to
+            do; companies like HP built products in large enough volumes that they could
+            economically order the exact resistor sizes needed (although there were likely some
+            products that still required selection at construction time).
         '''))
         ColorCoding()
         print(dedent(rf'''
-    
+         
         Problem 2
             The -2 option solves the following problem:
-    
+         
                                     ◯ Vout
                                     |
                                     V
                 Ground  ◯--\/\/\---\/\/\---\/\/\---◯ V 
                             R1      R       R2
-    
+         
             Two resistors R1 and R2 have a pot of resistance R between them.
             When V is applied across the pot and two resistors, the pot
             adjustment allows you to have voltages between V1 and V2 at the
             Vout terminal.  The script prints out 1) the resistances needed and
             2) the current that will pass through the pot and resistors when
             the Vout terminal is open.
-    
+         
         '''.rstrip()))
         exit(0)
     def ParseCommandLine():
