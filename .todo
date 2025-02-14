@@ -1,5 +1,13 @@
 Active:  /plib/.todo
 
+    - root.py
+        - Rewrite QuadraticEquation, CubicEquation, QuarticEquation to allow use of mpmath numbers
+          and library, letting these functions calculate with arbitrary precision.
+            - Can be Decimal numbers, as there's a sqrt() method defined for Decimal objects
+                - Need to define Decimal complex numbers as (D1, D2) pairs
+                - Then also need a complex Decimal square root
+                - This could also allow the args to be integers & floats
+
     - pgm/comp.py
         - Inventory the boxes to get quantities
 
@@ -26,10 +34,6 @@ Active:  /plib/.todo
               let me see all the options if I don't want the default.  When the default is used,
               print a message to stdout that this happens so that the user knows there's more to
               see.
-
-    - root.py
-        - Rewrite QuadraticEquation, CubicEquation, QuarticEquation to allow use of mpmath numbers
-          and library, letting these functions calculate with arbitrary precision.
 
     - pgm/rms.py
         - Numerical aid to dealing with various functionals used to measure voltage:  RMS, ACCRMS,

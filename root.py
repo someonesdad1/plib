@@ -81,17 +81,17 @@ Root Finding Routines
     complex numbers.
  
     QuadraticEquation(a, b, c, adjust=True)
-        Returns the two roots of a*x^2 + b*x + c = 0.  If adjust is true, any root where Im/Re <
+        Returns the two roots of a*x**2 + b*x + c = 0.  If adjust is true, any root where Im/Re <
         eps is converted to a real root.  Set adjust to zero to have all roots returned as complex
         numbers.
  
     CubicEquation(a, b, c, d, adjust=True)
-        Returns the three roots of a*x^3 + b*x^2 + c*x + d = 0.  If adjust is true, any root where
+        Returns the three roots of a*x**3 + b*x**2 + c*x + d = 0.  If adjust is true, any root where
         Im/Re < eps is converted to a real root.  Set adjust to zero to have all roots returned as
         complex numbers.
  
     QuarticEquation(a, b, c, d, e, adjust=True)
-        Returns the four roots of a*x^4 + b*x^3 + c*x^2 + d*x + e = 0.  If adjust is true, any root
+        Returns the four roots of a*x**4 + b*x**3 + c*x**2 + d*x + e = 0.  If adjust is true, any root
         where Im/Re < eps is converted to a real root.  Set adjust to zero to have all roots
         returned as complex numbers.
 '''
@@ -231,11 +231,12 @@ def RootFinder(x0, x2, f, eps=eps0, itmax=ITMAX, fp=float, args=[], kw={}):
     order algorithm.  The routine works by starting with x0, x2, and finding a third x1 by
     bisection.  The ordinates are gotten, then a horizontally-opening parabola is fitted to the
     points.  The abscissa to the parabola's root is gotten, and the iteration is repeated.
-
+    
     Sad news:  on 25 Feb 2025 I got an email from a friend of Jack's that Jack died on 24 Dec
     2024.  I originally contacted Jack about this algorithm and it led to an email friendship with
     many hundreds of emails on a bewildering variety of topics.  I never got to meet him (we lived
-    on opposite coasts of the US), but we connected over many things.
+    on opposite coasts of the US), but we connected over many things.  I will miss his lively
+    mind.
     '''
     zero, one, two, eps = fp("0"), fp("1"), fp("2"), fp(eps)
     assert(x0 != x2 and eps > 0 and itmax > 0)
@@ -286,8 +287,7 @@ def RootFinder(x0, x2, f, eps=eps0, itmax=ITMAX, fp=float, args=[], kw={}):
             else:
                 x0, y0, x2, y2 = xm, ym, x1, y1
     raise NoConvergence("No convergence in RootFinder()")
-def NewtonRaphson(f, fd, x, eps=eps0, itmax=ITMAX, show=False,
-                  fp=float, args=[], kw={}):
+def NewtonRaphson(f, fd, x, eps=eps0, itmax=ITMAX, show=False, fp=float, args=[], kw={}):
     '''Returns the root using Newton-Raphson algorithm for solving f(x) = 0.
         f     = the function (must be a function object)
         fd    = the function's derivative (must be a function object)
@@ -533,7 +533,7 @@ def Brent(x1, x2, f, args=[], kw={}, eps=eps0, itmax=ITMAX):
         tol1 = 2.0*EPS*abs(b) + 0.5*eps
         xm = 0.5*(c - b)
         if abs(xm) <= tol1 or fb == 0.0:
-            return (b, i)       # *** Found the root ***
+            return (b, i)       # Found the root
         if abs(e) >= tol1 and abs(fa) > abs(fb):
             s = fb/fa
             if a == c:
@@ -554,17 +554,16 @@ def Brent(x1, x2, f, args=[], kw={}, eps=eps0, itmax=ITMAX):
                 d = xm
                 e = d
         else:
-            d = xm      # Bounds decreasing too slowly, use bisection.
+            d = xm      # Bounds decreasing too slowly, use bisection
             e = d
         a, fa = b, fb
-        if abs(d) > tol1:   # Evaluate new trial root.
+        if abs(d) > tol1:   # Evaluate new trial root
             b += d
         else:
             b += tol1 if xm >= 0 else -tol1
         fb = F(b)
     raise NoConvergence("No convergence in Brent()")
 def kbrent(a, b, f, eps=eps0, itmax=ITMAX):
-
     '''Finds root of f(x) = 0 by combining quadratic interpolation with bisection (simplified
     Brent's method).  The root must be bracketed in (a, b).  Calls user-supplied function f(x).
  
@@ -668,7 +667,9 @@ def Crenshaw(x1, x3, f, eps=eps0, itmax=ITMAX, dbg=None, p=4):
         Note:  Jack has mentioned numerous times that this algorithm was from some unknown genius
         at IBM in the 1960's and was part of their FORTRAN library code.  Jack studied the
         algorithm and wrote articles in "Embedded Systems Development" to popularize it.  The
-        method is inverse parabolic interpolation with bisection and it converges quadratically.
+        method is inverse parabolic interpolation with bisection and it converges quadratically
+        (converging quadratically means the error in the current step is the square of the error
+        in the previous step).
         '''
         args = list(args)
         x = args[0]
@@ -839,7 +840,7 @@ def Pound(x, adjust=True, eps=float(epsilon)):
         return x.imag*1j
     return x
 def QuadraticEquation(a, b, c, adjust=True, force_real=False):
-    '''Return the two roots of a quadratic equation.  The equation is a*x^2 + b*x + c = 0; the
+    '''Return the two roots of a quadratic equation.  The equation is a*x**2 + b*x + c = 0; the
     coefficients can be complex.  Note this works with float types only.  Set force_real to True to
     force the returned values to be real.
  
@@ -937,12 +938,12 @@ def CubicEquation(a, b, c, d, adjust=True, force_real=False):
     routines.
  
     (* Cubic *)
-      f = a*x^3 + b*x^2 + c*x + d;
+      f = a*x**3 + b*x**2 + c*x + d;
       g = Solve[f == 0, x];
       FortranForm[g]
  
     (* Quartic *)
-      f = a*x^4 + b*x^3 + c*x^2 + d*x + e;
+      f = a*x**4 + b*x**3 + c*x**2 + d*x + e;
       g = Solve[f == 0, x];
       FortranForm[g]
  
@@ -961,7 +962,7 @@ def CubicEquation(a, b, c, d, adjust=True, force_real=False):
     use De Moivre's theorem:  Let z be a complex number written in polar form z = r*(cos(x) +
     i*sin(x)).  Then
  
-      z^(1/n) = r^(1/n)*(cos((x + 2*k*pi)/n) + i*sin((x + 2*k*pi)/n))
+      z**(1/n) = r**(1/n)*(cos((x + 2*k*pi)/n) + i*sin((x + 2*k*pi)/n))
  
     where k varies from 0 to n-1 to give the n roots of z.
     '''

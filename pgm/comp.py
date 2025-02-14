@@ -2,19 +2,47 @@
 Search for text in the components database
 '''
 if 1:   # Data
-    data = '''
+    from wrap import dedent
+    todo = dedent('''
+    comp.py ToDo list
 
-        The compartments are numbered from left to right and front to back.  These data are free
-        form.  The actual data lines contain three integers separated by colons:
+    - Inventory
+        - Quantities
+        - Symbols:  M = many, F = few, * = few or none and need to order
+    - Data structure
+        - Data lines with two nonbreaking spaces to give 3 fields
+            - Box, compartment, etc. data
+            - Description
+            - Keywords
+        - Code can find missing lines by compartment numbering interruptions
+    - Plano box
+        - Use for Arduino/prototyping stuff
+        - Move things around to get this
+        - Put spares of multiples in a cardboard box on the rolling cart
+            - Spares have box:compartment pointer in their description
+    - Look at getting some locking heavy duty plastic boxes for storage that will stack in a
+      compact fashion
+
+    ''')
+    data = dedent('''
+        
+        The compartments of the plastic boxes are numbered from left to right and front to back.
+        These data are free form.  The actual data lines contain three integers separated by
+        colons:
+        
             Box
             Compartment
             Quantity
+        
         The default quantity parameter is ? at the moment, but will eventually get set to the
-        actual count or a symbol.
+        actual count or a symbol:
 
+            M   Many
+            *   Few or none, need to purchase more
+        
         This also allows for another field (maybe called shelf) that locates it on a bookcase,
         rolling cart, or shelves in another room.
-
+        
         Each data line's description is free form and optional keywords follow a no-break space
         (use 'nbs' in vim).
 
@@ -68,7 +96,7 @@ if 1:   # Data
             2:16:?    HP alphanumeric LED display   opto
             2:16:?    LED bars   opto LED
             2:17:?    2N3704 NPN 30 V 500 mA, hfe=100-300   NPN
-            2:17:?    74HC74N dual D flip-flop   IC TTL
+            2:17:?    74HC74N dual D flip-flop   TTL
             2:17:?    Luxeon star, 1 W, white   LED LED
             2:17:?    MPQ2222A Motorola, quad NPN transistor (HP 1858-0112)   NPN
             2:18:?    7 segment LEDs   opto LED
@@ -108,13 +136,14 @@ if 1:   # Data
             4:10:?    1854-0045 NPN  hfe=150   NPN transistor
             4:11:?    1854-0045 NPN  hfe=150   NPN transistor
             4:12:?    1854-0404 NPN small signal transistor, National NS04008   NPN transistor
-            4:13:?    LM725 op amp   opamp linear
+            4:13:?    LM725 op amp   opamp
             4:13:?    Small 600 uA meter (from old Omega TC box)   misc
             4:14:?    2N2369A NPN 40 V 200 mA, hfe=20-40   NPN transistor
             4:15:?    2N2907A PNP 60 V 600 mA, hfe=100-450   PNP transistor
-            4:16:?    LF353AH Dual input JFET op amp, 8-pin metal can   opamp linear
-            4:17:?    1826-0217 HP IC, op amp, TO-99 8 pin package   IC linear
+            4:16:?    LF353AH Dual input JFET op amp, 8-pin metal can   opamp
+            4:17:?    1826-0217 HP IC, op amp, TO-99 8 pin package   opamp
             4:18:?    2N3251 PNP 40 V 200 mA, hfe>90   PNP transistor
+
         Box 5
             5:1:?    Switches, pushbutton   switch
             5:2:?    Switch, rotary, 7 position, single deck    switch
@@ -205,16 +234,17 @@ if 1:   # Data
             9:2:?    Relay, 12 V, DPDT, latching   relay switch
             9:3:?      
             9:4:?    Luxeon star LED, 350 mA max   opto
-            9:5:?    555 timer   IC linear
-            9:5:?    556 timer (dual 555)   IC linear
+            9:5:?    555 timer   linear
+            9:5:?    556 timer (dual 555)   linear
             9:6:?    8-pin DIP sockets   socket
-            9:7:?    1826-0065 LM311 comparator   IC linear
-            9:7:?    1826-0311 LM201A op amp   opamp linear
-            9:7:?    74LS14 hex inverter with Schmitt trigger   IC TTL
-            9:7:?    CD4051 8 channel analog mux CMOS   IC CMOS
-            9:8:?    74LS151 8-channel digital mux   IC TTL
-            9:9:?    CA3094E transconductance amplifier, Intersil   IC linear
+            9:7:?    1826-0065 LM311 comparator   linear
+            9:7:?    1826-0311 LM201A op amp   opamp
+            9:7:?    74LS14 hex inverter with Schmitt trigger   TTL
+            9:7:?    CD4051 8 channel analog mux CMOS   CMOS
+            9:8:?    74LS151 8-channel digital mux   TTL
+            9:9:?    CA3094E transconductance amplifier, Intersil   linear
             9:10:?    Orthodontic rubber bands   misc
+
         Box 10
             10:1:?    Pot, 2 kohm, PC mount, finger dial   pot
             10:2:?    Pot, 250 ohm, PC mount, finger dial   pot
@@ -235,15 +265,15 @@ if 1:   # Data
             11:6:?    TIP120 NPN Darlington 60 V 5 A, TO220, BCE from front, tab is B   NPN transistor
             11:7:?    12 VDC reed relay, 1 kohm coil, single pole NO   relay switch
             11:8:?    2N2222 NPN 30 V 600 mA, hfe=35-300   NPN transistor
-            11:9:?    LF353 Dual JFET op amp, 8-pin DIP   opamp linear
+            11:9:?    LF353 Dual JFET op amp, 8-pin DIP   opamp
             11:9:?    PT27311 current transformer, 30-200 kHz   transformer
             11:10:?    Photosensitive resistors from 1960's HP differential voltmeter   opto
         Box 12
             12:1:?    Chunk of broken UV glass   opto
             12:2:?    Frosted neon bulbs, short   opto
-            12:3:?    741 op amp   opamp linear
-            12:4:?    4066 quad bilateral switch CMOS   IC CMOS
-            12:4:?    74LS04 hex inverter   IC TTL
+            12:3:?    741 op amp   opamp
+            12:4:?    4066 quad bilateral switch CMOS   CMOS
+            12:4:?    74LS04 hex inverter   TTL
             12:5:?    fasteners, red LED, 2N3904 transistor   misc
             12:6:?    10 kohm resistor   resistor
             12:7:?    470 ohm resistor   resistor
@@ -272,13 +302,14 @@ if 1:   # Data
             14:8:?    Ferrite toroid, square, 19 mm dia, 10 mm thick, 9 mm ID   ferrite
             14:9:?    Ferrite toroid, square, 13 mm dia, 6 mm thick, 7 mm ID   ferrite
             14:10:?    Ferrite toroid, square, 10 mm dia, 5 mm thick, 5 mm ID, with 2 wires, 2 turns   ferrite
+
         Box 15
             15:1:?    Capacitor, 68 uF, 15 V, electrolytic, 1970's Sprague salvaged from Ithaca lock-in   capacitor
             15:2:?    Capacitor, 15 uF, 20 V, electrolytic, 1970's Sprague salvaged from Ithaca lock-in   capacitor
             15:3:?    Capacitor, 100 pF, 1 kV, ceramic?   capacitor
             15:4:?    US Sensor PT502J2 bead thermistor, 5 kohm @ 25 °C, 0.2 °C accuracy   thermistor
             15:5:?    5 V 5 mW 650 nm lasers   opto
-            15:6:?    D battery holder (holds one battery)   capacitor
+            15:6:?    D battery holder (holds one battery)   battery
             15:6:?    Capacitor, 100 nF, 100 V, 1970's GE salvaged from Ithaca lock-in   capacitor
             15:7:?    Capacitor, 205 uF, 10 V, 1970's Kemet salvaged from Ithaca lock-in   capacitor
             15:8:?    Capacitor, 2 uF, 200 V, 1970's Electrocube salvaged from Ithaca lock-in   capacitor
@@ -329,54 +360,56 @@ if 1:   # Data
             18:12:?    IC tube pin (closes IC antistatic tube off)   misc
             18:12:?    0.2 A AGC-size fuse for Aneng 870 DMM   fuse
         Box 19
-            19:1:?    LF353 dual JFET op amp, 8-pin DIP   opamp linear
-            19:2:?    LM224 quad op amp, 14-pin DIP   opamp linear
-            19:2:?    LM324 quad op amp, 14-pin DIP   opamp linear
-            19:3:?    CA3140  op amp, 8-pin DIP   opamp linear
-            19:3:?    LM2904 dual op amp (like LM358), 8-pin DIP   opamp linear
-            19:4:?    741 op amp, 8-pin DIP   opamp linear
-            19:4:?    747 dual op amp, 14-pin DIP   opamp linear
-            19:5:?    CA3130 op amp, 8-lead metal can   opamp linear
-            19:6:?    LM386 low power audio amplifier, 8-pin DIP   IC linear
-            19:6:?    MAX480 micropower op amp   opamp linear
-            19:6:?    TS912IN dual CMOS op amp   opamp linear
-            19:7:?    1826-0123 LM320-12K negative 12 V regulator TO-3   IC linear
-            19:7:?    2N1487 NPN 40 V 6 A, hfe=15-45   NPN transistor
-            19:8:?    LM339 quad comparator, 14-pin DIP (HP part no. 1826-0138)   IC linear
-            19:9:?    ECG56020 triac, 25 A, 400 V, 2.5 V gate voltage, 50 mA gate current   misc
-            19:9:?    NTE5638 triac, 400 V, 8 A, 80 A surge, 2 V gate voltage max, 10 mA gate current   misc
-            19:10:?    LM350 adjustable regulator, 3 A, TO-3   IC linear
-            19:11:?    LM338 regulator, 5 A, TO-3   IC linear
-            19:12:?    LM338 regulator, 5 A, TO-3   IC linear
+            19:1:2    LF353 dual JFET op amp, 8-pin DIP   opamp
+            19:2:M    LM224 quad op amp, 14-pin DIP   opamp
+            19:2:M    LM324 quad op amp, 14-pin DIP   opamp
+            19:3:0    CA3140  op amp, 8-pin DIP   opamp
+            19:3:2    LM2904 dual op amp (like LM358), 8-pin DIP   opamp
+            19:4:9    741 op amp, 8-pin DIP   opamp
+            19:4:2    747 dual op amp, 14-pin DIP   opamp
+            19:5:4    CA3130 op amp, 8-lead metal can   opamp
+            19:6:1    LM386 low power audio amplifier, 8-pin DIP   linear
+            19:6:4    CA3140EZ (Intersil) BiMOS op amp, MOSFET input, bipolar output   opamp
+            19:6:1    TS912IN dual CMOS op amp   opamp
+            19:7:3    1826-0123 LM320-12K negative 12 V regulator TO-3   linear
+            19:7:1    2N1487 NPN 40 V 6 A, hfe=15-45   NPN transistor
+            19:8:1    1826-0123 LM320-12K negative 12 V regulator TO-3   linear
+            19:8:3    LM339 quad comparator, 14-pin DIP (HP part no. 1826-0138)   linear
+            19:9:1    ECG56020 triac, 25 A, 400 V, 2.5 V gate voltage, 50 mA gate current   misc
+            19:9:2    NTE5638 triac, 400 V, 8 A, 80 A surge, 2 V gate voltage max, 10 mA gate current   misc
+            19:10:1    LM350 adjustable regulator, 3 A, TO-3   linear
+            19:11:2    LM338 regulator, 1.2-32 V, 5 A, TO-3   linear
+            19:12:3    LM338 regulator, 1.2-32 V, 5 A, TO-3   linear
+
         Box 20
-            20:1:?    LM285Z-1.2 voltage reference, TO-92   IC linear
-            20:1:?    LM285Z-2.5 voltage reference, TO-92   IC linear
-            20:1:?    MAX8069 1.2 volts voltage reference, TO-92   IC linear
-            20:1:?    MAX872 2.5 volts voltage reference, 8-pin DIP   IC linear
-            20:2:?    CD40106/74C14 hex inverter Schmitt trigger CMOS   IC CMOS
-            20:2:?    CD40192/74C192 synchronous 4-bit up/down decade counter CMOS   IC CMOS
-            20:2:?    CD4047 monostable/astable multivibrator CMOS   IC CMOS
-            20:2:?    CD4082 dual 4-input AND gate CMOS   IC CMOS
-            20:3:?    4001 quad 2-in NOR CMOS   IC CMOS
-            20:3:?    4093 quad 2-in NAND Schmitt trigger CMOS   IC CMOS
-            20:3:?    74AC14 hex inverter with Schmitt trigger   IC TTL
-            20:3:?    7555 CMOS version of 555   IC CMOS
+            20:1:?    LM285Z-1.2 voltage reference, TO-92   linear
+            20:1:?    LM285Z-2.5 voltage reference, TO-92   linear
+            20:1:?    MAX8069 1.2 volts voltage reference, TO-92   linear
+            20:1:?    MAX872 2.5 volts voltage reference, 8-pin DIP   linear
+            20:2:?    CD40106/74C14 hex inverter Schmitt trigger CMOS   CMOS
+            20:2:?    CD40192/74C192 synchronous 4-bit up/down decade counter CMOS   CMOS
+            20:2:?    CD4047 monostable/astable multivibrator CMOS   CMOS
+            20:2:?    CD4082 dual 4-input AND gate CMOS   CMOS
+            20:3:?    4001 quad 2-in NOR CMOS   CMOS
+            20:3:?    4093 quad 2-in NAND Schmitt trigger CMOS   CMOS
+            20:3:?    74AC14 hex inverter with Schmitt trigger   TTL
+            20:3:?    7555 CMOS version of 555   CMOS
             20:4:?    1N5818 Schottky diode 30 V 1 A, 0.26 V @ 10 mA   diode
             20:4:?    4N25 opto isolator   opto
             20:4:?    4N26 opto isolator   opto
             20:4:?    6N139 opto isolator Darlington   opto
             20:4:?    Diac   misc
             20:5:?    IRF540 NMOS FET 33 A, 100 V, 44 mohm   FET transistor
-            20:6:?    74F240 octal buffer with 3-state outputs   IC TTL
+            20:6:?    74F240 octal buffer with 3-state outputs   TTL
             20:7:?    IRF3205 NMOS FET 75 A, 33 V, 8 mohm   FET transistor
-            20:8:?    74LS251M 3 state 1-of-8 line data selector/mux   IC TTL
+            20:8:?    74LS251M 3 state 1-of-8 line data selector/mux   TTL
             20:9:?    210A102 SIP resistors, 1 kohm, Allen-Bradley   resistor
             20:9:?    DIP resistors, 1 kohm   resistor
-            20:10:?    LM317 adjustable voltage regulator   IC linear
-            20:10:?    TL780-05C 5 V voltage regulator   IC linear
-            20:11:?    7812 voltage regulator TO220   IC linear
-            20:12:?    7818 voltage regulator TO220   IC linear
-            20:12:?    7805 voltage regulator TO220   IC linear
+            20:10:?    LM317 adjustable voltage regulator   linear
+            20:10:?    TL780-05C 5 V voltage regulator   linear
+            20:11:?    7812 voltage regulator TO220   linear
+            20:12:?    7818 voltage regulator TO220   linear
+            20:12:?    7805 voltage regulator TO220   
         Box 21
             21:1:?    Alligator clips   misc
             21:2:?    BNC all-female tees and angles   adapter BNC
@@ -396,7 +429,7 @@ if 1:   # Data
             22:1:?    PICDEM lab parts -- short wires   misc
             22:2:?    PICDEM lab parts -- jumpers   jumper
             22:3:?    PICDEM lab parts -- 1 k resistors   resistor
-            22:4:?    PICDEM lab parts -- LEDs   opto
+            22:4:?    PICDEM lab parts -- LEDs   LED
             22:5:?    PICDEM lab parts -- 10 uF 35 V cap   capacitor
             22:6:?    PICDEM lab parts -- resistors, pot   resistor
             22:7:?    PICDEM lab parts -- resistor   resistor
@@ -443,19 +476,19 @@ if 1:   # Data
             24:22:?    N, UHF adapters   adapter
             24:23:?    Mini toggle switch DPDT on-off-mom 6 A at 125 V AC   switch
             24:24:?    Grayhill 240 VAC SSR 3.5 A solid state relay   relay
+
         Box 25
-            25:1:?    5 mm RGB LEDs (12 cents each from banggood)   opto
-            25:1:?    High gain μV/mV amplifier module, gain 1.5 to 1000   IC
-            25:1:?    2.5/5/7.5/10 V voltage reference   IC
-            25:1:?    GR precision wirewound resistors (1, 10, 100, 1000 kΩ) from 1656 impedance bridge   resistor
-            25:2:?    650 nm laser 5 mW, 5 V, two wires   opto
-            25:2:?    LM34 temperature IC   IC
-            25:3:?    Green 5 mm LED   opto LED
-            25:4:?    Red 5 mm LED   opto LED
-            25:5:?    Blue 5 mm LED   opto LED
-            25:6:?    Yellow 5 mm LED   opto LED
-            25:7:?    White 5 mm LED   opto LED
-            25:8:?    Miniature DPDT center-off toggle switches 6 A 120 V   switch
+            25:1:M    5 mm RGB LEDs (12 cents each from banggood)   LED
+            25:1:4    GR precision wirewound resistors (1, 10, 100, 1000 kΩ) from 1656 impedance bridge   resistor
+            25:2:13   650 nm laser 5 mW, 5 V, two wires   opto
+            25:2:1    LM34 temperature IC   IC
+            25:3:M    Green 5 mm LED   LED
+            25:4:M    Red 5 mm LED   LED
+            25:5:M    Blue 5 mm LED   LED
+            25:6:M    Yellow 5 mm LED   LED
+            25:6:1    High gain μV/mV amplifier module, gain 1.5 to 1000   IC
+            25:7:M    White 5 mm LED   LED
+            25:8:M    Miniature DPDT center-off toggle switches 6 A 120 V   switch
         Box 26
             26:1:?    8 and 10 pin SIP, resistor, 1k   resistor
             26:2:?    10 pin SIP, resistor, 1.5k   resistor
@@ -476,11 +509,11 @@ if 1:   # Data
             26:15:?    10k, 50k, and 100k NTC thermistors 5%   thermistor
             26:15:?    200 mA fuses for Aneng 8009 meter   fuse
         Box 27
-            27:1:?    3 mm LED, yellow, 2.04 V @ 10 mA   opto LED
-            27:2:?    3 mm LED, green, 2.02 V @ 10 mA   opto LED
-            27:3:?    3 mm LED, red, 1.91 V @ 10 mA   opto LED
-            27:4:?    3 mm LED, blue, 2.99 V @ 10 mA   opto LED
-            27:5:?    3 mm LED, white, 2.96 V @ 10 mA   opto LED
+            27:1:?    3 mm LED, yellow, 2.04 V @ 10 mA   LED
+            27:2:?    3 mm LED, green, 2.02 V @ 10 mA   LED
+            27:3:?    3 mm LED, red, 1.91 V @ 10 mA   LED
+            27:4:?    3 mm LED, blue, 2.99 V @ 10 mA   LED
+            27:5:?    3 mm LED, white, 2.96 V @ 10 mA   LED
         Box 28
             28:1:?    Connector pair, locking 8-pin MPJA 32426   connector
             28:2:?    Connector pair, locking 8-pin MPJA 32426   connector
@@ -510,6 +543,7 @@ if 1:   # Data
             29:7:?    Standard toggle switch safety cover   switch
             29:8:?    Hamon 0.1 and 0.01 divider parts   misc
             29:9:?      
+
         Box 30
             30:1:?    Dupont jumper wires, assorted, 100 mm   connector
             30:1:?    AC volts multi-function meter (line voltage & current measurement)   meter
@@ -539,7 +573,7 @@ if 1:   # Data
             32:12:?      
             32:13:?      
 
-    '''
+    ''')
 if 1:   # Header
     if 1:   # Imports
         import sys
@@ -552,7 +586,6 @@ if 1:   # Header
         from functools import cmp_to_key
         from pprint import pprint as pp
     if 1:   # Custom imports
-        from wrap import dedent
         from columnize import Columnize
         from color import TRM as t
         if 0:
@@ -575,9 +608,10 @@ if 1:   # Classes
             self.end = None
         def __str__(self):
             k = '/'.join(self.keywords)
-            i = " "*2
-            s = (f"{t.box}{self.box:2d}:{t.compartment}{self.compartment:2d}:"
-                 f"{t.quantity}{self.quantity:s}{t.n}{i}{self.description}")
+            i = " "*1
+            s = f"{t.box}{self.box:2d}:{t.compartment}{self.compartment:2d}:"
+            q = "" if self.quantity == "?" else str(self.quantity)
+            s += f"{t.quantity}{q:3s}{t.n}{i}{self.description}"
             #s = f"{t.box}{self.box:2d}:{t.compartment}{self.compartment:2d}{t.n}{i}{self.description}"
             if k:
                 s += f" {t.keyword}[{k}]{t.n}"
@@ -597,10 +631,10 @@ if 1:   # Classes
 if 1:   # Utility
     def SetColors(on=True):
         # Colors
-        t.match = t("skyl") if on else ""
+        t.match = t("royl") if on else ""
         t.box = t("yel") if on else ""
         t.compartment = t("grn") if on else ""
-        t.quantity = t("pnkl") if on else ""
+        t.quantity = t("viol") if on else ""
         t.keyword = t("gry") if on else ""
         t.warn = t("ornl") if on else ""     # Color for a missing category warning
     def Usage(status=0):
@@ -608,7 +642,9 @@ if 1:   # Utility
             {sys.argv[0]} [options] [regex [regex2...]]
                 Searches the components database for the indicated regular expressions AND'd
                 together.  The search is case-insensitive.  Prefix a regex with '-' and anything
-                that matches this with the '-' removed will not appear in the output.
+                that matches this with the '-' removed will not appear in the output.  The numbers
+                separated by ':' are:  box, compartment, quantity.  Quantity is not shown unless
+                it is known (i.e., not '?' in the data).
             Example
                 python '{sys.argv[0]}' diode -zener
                     shows diodes that don't contain 'zener'.
@@ -617,12 +653,14 @@ if 1:   # Utility
                 -b N      Show contents of box number N
                 -C        Do not use color highlighting
                 -c        Show category
+                -D        Dump the raw data to stdout
                 -d        Inspect the data, looking for problems
                 -e        Show empty compartments
                 -i        Do not ignore case in searches
                 -k kwd    Show items with keyword kwd (not case-sensitive)
                 -l        List the keywords
                 -o        OR the regexes instead of AND
+                -t        Dump the ToDo list
                 -v        Print out color code and numbering key 
         '''))
         exit(status)
@@ -639,7 +677,7 @@ if 1:   # Utility
         d["-o"] = False     # OR the regexes on the command line
         d["-v"] = False     # Print color coding & numbering key
         try:
-            optlist, args = getopt.getopt(sys.argv[1:], "ab:Ccdehik:lov")
+            optlist, args = getopt.getopt(sys.argv[1:], "ab:CcDdehik:lotv")
         except getopt.GetoptError as e:
             print(str(e))
             exit(1)
@@ -648,10 +686,16 @@ if 1:   # Utility
                 d[o] = not d[o]
             elif o in ("-b",):
                 d["-b"] = int(a)
+            elif o in ("-D",):
+                print(data)
+                exit(0)
             elif o in ("-h",):
                 Usage()
             elif o in ("-k",):
                 d["-k"] = a
+            elif o in ("-t",):
+                print(todo)
+                exit(0)
         SetColors(False) if d["-C"] else SetColors()
         return args
 if 1:   # Core functionality
@@ -748,13 +792,15 @@ if 1:   # Core functionality
             # We can't just print the string of the Entry because we want to highlight the search
             # match in the description
             for item in sorted(found):
-                # Box and compartment
+                # Box, compartment, quantity.  If quantity is ?, meaning it hasn't been
+                # inventoried, then print it in black so that it won't be visible.
+                q = t.blk if item.quantity == "?" else t.quantity
                 print(f"{t.box}{item.box:>2d}:"
                       f"{t.compartment}{item.compartment:>2d}:"
-                      f"{t.quantity}{item.quantity:s}{t.n}", end="")
+                      f"{q}{item.quantity:3s}{t.n}", end="")
                 # Description
                 if 1:
-                    print("", end=" "*2)    # Spacing between box:compartment and description
+                    print("", end=" "*1)    # Spacing between box:compartment and description
                     s = item.description
                     print(s[:item.start], end="")
                     # Colorized match
