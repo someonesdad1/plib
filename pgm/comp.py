@@ -382,34 +382,38 @@ if 1:   # Data
             19:12:3    LM338 regulator, 1.2-32 V, 5 A, TO-3   linear
 
         Box 20
-            20:1:?    LM285Z-1.2 voltage reference, TO-92   linear
-            20:1:?    LM285Z-2.5 voltage reference, TO-92   linear
-            20:1:?    MAX8069 1.2 volts voltage reference, TO-92   linear
-            20:1:?    MAX872 2.5 volts voltage reference, 8-pin DIP   linear
-            20:2:?    CD40106/74C14 hex inverter Schmitt trigger CMOS   CMOS
-            20:2:?    CD40192/74C192 synchronous 4-bit up/down decade counter CMOS   CMOS
-            20:2:?    CD4047 monostable/astable multivibrator CMOS   CMOS
-            20:2:?    CD4082 dual 4-input AND gate CMOS   CMOS
-            20:3:?    4001 quad 2-in NOR CMOS   CMOS
-            20:3:?    4093 quad 2-in NAND Schmitt trigger CMOS   CMOS
-            20:3:?    74AC14 hex inverter with Schmitt trigger   TTL
-            20:3:?    7555 CMOS version of 555   CMOS
-            20:4:?    1N5818 Schottky diode 30 V 1 A, 0.26 V @ 10 mA   diode
-            20:4:?    4N25 opto isolator   opto
-            20:4:?    4N26 opto isolator   opto
-            20:4:?    6N139 opto isolator Darlington   opto
-            20:4:?    Diac   misc
-            20:5:?    IRF540 NMOS FET 33 A, 100 V, 44 mohm   FET transistor
-            20:6:?    74F240 octal buffer with 3-state outputs   TTL
-            20:7:?    IRF3205 NMOS FET 75 A, 33 V, 8 mohm   FET transistor
-            20:8:?    74LS251M 3 state 1-of-8 line data selector/mux   TTL
-            20:9:?    210A102 SIP resistors, 1 kohm, Allen-Bradley   resistor
-            20:9:?    DIP resistors, 1 kohm   resistor
-            20:10:?    LM317 adjustable voltage regulator   linear
-            20:10:?    TL780-05C 5 V voltage regulator   linear
-            20:11:?    7812 voltage regulator TO220   linear
-            20:12:?    7818 voltage regulator TO220   linear
-            20:12:?    7805 voltage regulator TO220   
+            20:1:1    LM285Z-1.2 voltage reference, TO-92   linear
+            20:1:2    LM285Z-2.5 voltage reference, TO-92   linear
+            20:1:2    MAX8069 1.2 volts voltage reference, TO-92   linear
+            20:2:1    CD40106/74C14 hex inverter Schmitt trigger CMOS   CMOS
+            20:2:2    CD40192/74C192 synchronous 4-bit up/down decade counter CMOS   CMOS
+            20:2:2    CD4047 monostable/astable multivibrator CMOS   CMOS
+            20:2:1    CD4082 dual 4-input AND gate CMOS   CMOS
+            20:3:10   4001AE RCA quad 2-in NOR CMOS   CMOS
+            20:3:2    4093BCN National quad 2-in NAND Schmitt trigger CMOS   CMOS
+            20:3:4    4093BP Philips quad 2-in NAND Schmitt trigger CMOS   CMOS
+            20:3:5    74AC14 hex inverter with Schmitt trigger   TTL
+            20:3:4    7555 CMOS version of 555   CMOS
+            20:4:8    1N5818 Schottky diode 30 V 1 A, 0.26 V @ 10 mA   diode
+            20:4:4    4N25 opto isolator   opto
+            20:4:5    4N26 opto isolator   opto
+            20:4:1    6N139 opto isolator Darlington   opto
+            20:4:8    Diac   misc
+            20:4:1    HP 6N139 optocoupler   opto
+            20:5:15   IRF540 NMOS FET 33 A, 100 V, 44 mohm   FET transistor
+            20:6:1    74F240 octal buffer with 3-state outputs   TTL
+            20:7:2    BTB08600BW Sensitive gate triac 8 A 600 V TO-220    
+            20:8:1    74LS251M 3 state 1-of-8 line data selector/mux   TTL
+            20:9:10   7812 voltage regulator TO220   linear
+            20:10:10  7805 voltage regulator TO220   linear
+            20:11:2   210A102 SIP resistors, 1 kohm, Allen-Bradley   resistor
+            20:11:1   DIP resistors, 1 kohm   resistor
+            20:12:1   TL780-05C 5 V voltage regulator, TO-220   linear
+            20:11:2   LM317K adjustable voltage regulator, TO-3   linear
+            20:12:2   LM317K adjustable voltage regulator, TO-3   linear
+            20:12:2   LM317T adjustable voltage regulator, TO-220   linear
+            20:12:1   7818C voltage regulator TO220   linear
+            20:12:2   HP 1826-0393, LM317T, TO-220   linear
         Box 21
             21:1:?    Alligator clips   misc
             21:2:?    BNC all-female tees and angles   adapter BNC
