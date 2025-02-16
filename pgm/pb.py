@@ -451,8 +451,6 @@ if __name__ == "__main__":
     if d["-p"]:
         if args:
             T = flt(args[0])        # Assume °F
-            if d["-c"]:
-                T = (T - 32)*5/9    # Now in °C
         else:
             T = flt(20) if d["-c"] else flt(70)
         ChargeTable(T)
