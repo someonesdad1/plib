@@ -120,10 +120,10 @@ if 1:   # Data
         Box 4
             4:1:?    2N5114 transistor, P-channel JFET, < 75 ohm, 30 V, 500 mW   FET transistor
             4:1:?    4-pin transistor socket   socket
-            4:2:?    1855-0078 N-channel JFET, depletion mode   FET transistor
+            4:2:?    1855-0078 TI932 N-channel JFET, depletion mode   FET transistor
             4:3:?    1854-0019 HP NPN transistor, silicon, TO-18   NPN transistor
             4:4:?    1853-0316 Dual PNP, ITS-1160, (?) 40 V 200 mA   PNP transistor
-            4:5:?    TI932 (?), was labeled as 1855-0078   
+            4:5:?    1855-0078 TI932 N-channel JFET, depletion mode   FET transistor
             4:6:?    1854-0071 NPN   NPN transistor
             4:7:?    2N2160 unijunction transistor, GE   misc transistor
             4:7:?    2N2907 PNP 40 V 800 mA, hfe=100-300 at 150 mA   PNP transistor
@@ -187,7 +187,7 @@ if 1:   # Data
             7:1:?    C battery holder (holds one battery)   battery
             7:1:?    Zener 1/2 W: 3.3 4.7 5.1 6.2 7.5 8.2 9.1 10 12 15 18 24 27 30 V   zener
             7:2:?    Various AGC fuses   fuse
-            7:3:?    Small silicon diodes (probably 1N4148), adhesive on leads (from Steve King)   diode
+            7:3:?    Small silicon diodes (probably 1N4148), adhesive on leads (from SK)   diode
             7:4:?    DC micromotor, 1 rev/s at 6 VDC, 10 mA no load current, 100 mA under load   misc
             7:5:?    1N4004 diode 400 PIV, 1 A   diode
             7:5:?    Round fluorescent starters, two pin   opto
@@ -402,7 +402,7 @@ if 1:   # Data
             20:4:1    HP 6N139 optocoupler   opto
             20:5:15   IRF540 NMOS FET 33 A, 100 V, 44 mohm   FET transistor
             20:6:1    74F240 octal buffer with 3-state outputs   TTL
-            20:7:2    BTB08600BW Sensitive gate triac 8 A 600 V TO-220    
+            20:7:2    BTB08600BW Sensitive gate triac 8 A 600 V TO-220    misc
             20:8:1    74LS251M 3 state 1-of-8 line data selector/mux   TTL
             20:9:10   7812 voltage regulator TO220   linear
             20:10:10  7805 voltage regulator TO220   linear
@@ -578,6 +578,11 @@ if 1:   # Data
             32:13:?      
 
     ''')
+    if 0:   # For testing/debugging
+        data = dedent('''
+                32:1:?    Capacitor, 100 nF, 25 V, part no. 104M5C806   capacitor
+                32:2:?      
+        ''')
 if 1:   # Header
     if 1:   # Imports
         import sys
@@ -610,6 +615,8 @@ if 1:   # Classes
             # Attributes to indicate a regex match in the self.description string
             self.start = None
             self.end = None
+            # Other attributes
+            self.empty = True if not self.description else False
         def __str__(self):
             k = '/'.join(self.keywords)
             i = " "*1
@@ -713,23 +720,30 @@ if 1:   # Core functionality
             line = line.strip()
             mo = r.search(line)
             if mo:
-                try:
-                    location, remainder = line.split(" ", 1)
-                except ValueError:
+                if 0:   # Show the line
+                    t.print(f"{t.magl}{line}")
+                f = line.split()
+                if len(f) == 1:
                     # Empty line after matched location stuff
-                    e = Entry(i + 1, location, "", "")
+                    e = Entry(i + 1, f[0], "", "")
                 else:
+                    location, remainder = line.split(" ", 1)
                     # location is of the form 'n:m:s' where n and m are integers and s is a
                     # string.  remainder is the description followed by a non-breaking space,
                     # followed by optional keyword(s).
                     nbs = "\xa0"    # Non-breaking space character
-                    if nbs in remainder:
+                    if nbs in remainder:    # Has one or more keywords
                         description, keywords = remainder.split(nbs)
-                    else:
+                    else:                   # Has no keywords
                         description = remainder.strip()
                         keywords = ""
                     e = Entry(i + 1, location, description, keywords)
                 items.append(e)
+        if 0:   # Debug dump items
+            t.print(f"{t.ornl}Debug dump of items:")
+            for i in items:
+                print(i)
+            exit(0)
         items = list(sorted(items))
         if not items:
             print(f"{t.ornl}items is empty")
@@ -843,8 +857,17 @@ if 1:   # Core functionality
             - No keyword
             - Misspelled
         '''
-        #for item in items:
-        #    if 
+        # No keyword
+        no_kwd = []
+        for item in items:
+            if item.empty:
+                continue
+            if not item.keywords:
+                no_kwd.append(item)
+        if no_kwd:
+            t.print(f"{t.ornl}Items with no keyword:")
+            for item in no_kwd:
+                print(item)
 
 if __name__ == "__main__": 
     d = {}  # Options dictionary
@@ -866,10 +889,14 @@ if __name__ == "__main__":
     elif d["-d"]:
             Inspection()
     elif d["-e"]:  # Show empty compartments
+        u = defaultdict(list)
         for item in items:
-            if not item.description:
-                print(item)
-        PrintColorCoding(False)
+            if item.empty:
+                u[item.box].append(item.compartment)
+        t.print(f"{t.ornl}Empty compartments:")
+        for i in u:
+            b = list(sorted(set(u[i])))
+            t.print(f"{t.box}{i:2d}: {t.compartment}{' '.join(str(j) for j in b)}")
     elif d["-l"]:  # Show allowed keywords
         print("Keywords:")
         # Put each keyword into a dict with its count
