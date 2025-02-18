@@ -1,12 +1,17 @@
 Active:  /plib/.todo
 
-    - root.py
-        - Rewrite QuadraticEquation, CubicEquation, QuarticEquation to allow use of mpmath numbers
-          and library, letting these functions calculate with arbitrary precision.
-            - Can be Decimal numbers, as there's a sqrt() method defined for Decimal objects
-                - Need to define Decimal complex numbers as (D1, D2) pairs
-                - Then also need a complex Decimal square root
-                - This could also allow the args to be integers & floats
+    - pgm/lookup.py
+        - This is a tool I used a lot.  It needs to be fixed.
+        - This relies on Wordnet and was a lot of work.  /pylib/types_of_words/WordNet
+        - The raw stuff needs to be moved to /words and checked in to github.  Then the overall
+          stuff needs to be examined to see how it works again.  Finally, construct the needed
+          /words/words.* files for dict and lookup to work, as I use them a lot.
+        - The Wordnet stuff is too complicated for most work (it's for stuff academic use).
+          Stratify the wordlists into e.g. 3 layers:  easy, moderate, arcane.  This will take a lot
+          of time, but will be a valuable set of words.
+        - Get rid of the old dictionary use in /pylib and use the stuff in /words.  
+            - Use 🔵🟢🟡🟠🔴 to indicate which dict matched, with 🔵 representing the easiest dict
+              with harder ones to the right.
 
     - pgm/comp.py
         - Inventory the boxes to get quantities
@@ -270,17 +275,6 @@ Active:  /plib/.todo
             - Give the bin-type command and it will execute it for you
         - This will likely cut number of commands by 2 or more
 
-    - pgm/lookup.py
-        - This relies on Wordnet and was a lot of work.  /pylib/types_of_words/WordNet
-        - The raw stuff needs to be moved to /words and checked in to github.  Then the overall
-          stuff needs to be examined to see how it works again.  Finally, construct the needed
-          /words/words.* files for dict and lookup to work, as I use them a lot.
-        - The Wordnet stuff is too complicated for most work (it's for stuff academic use)).
-          Stratify the wordlists into e.g. 3 layers:  easy, moderate, arcane.  This will take a lot
-          of time, but will be a valuable set of words.
-        - Get rid of the old dictionary use in /pylib and use the stuff in /words.  
-            - Use 🔵🟢🟡🟠🔴 to indicate which dict matched, with 🔵 representing the easiest dict
-              with harder ones to the right.
     - /words
         - Include verbs, nouns, adjectives, etc. from Wordnet
 

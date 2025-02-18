@@ -605,6 +605,17 @@ if 1:   # Header
 if 1:   # Classes
     class Entry:
         def __init__(self, line_number, info, description, keywords):
+            '''Attributes:
+            line_number     i Line number in data string
+            box             i Box number
+            compartment     i Compartment number
+            quantity        s Count, M for many, * for 0 or needs ordering, ? for unknown
+            description     s Item's description
+            keywords        l List of keywords
+            start           i Start of regex match
+            end             i End of regex match
+            empty           b If description string is empty
+            '''
             self.line_number = line_number  # 1-based number
             # info will be two integers and a string separated by colons
             self.box, self.compartment, self.quantity = info.split(":")
@@ -855,20 +866,41 @@ if 1:   # Core functionality
     def Inspection():
         '''Look for problems in the data:
             - No keyword
-            - Misspelled
+            - Misspelled (not important yet)
+            - Needs inventory taken
         '''
         # No keyword
-        no_kwd = []
-        for item in items:
-            if item.empty:
-                continue
-            if not item.keywords:
-                no_kwd.append(item)
-        if no_kwd:
-            t.print(f"{t.ornl}Items with no keyword:")
-            for item in no_kwd:
-                print(item)
-        # Misspelled:  not terribly important at the moment
+        if 1:
+            no_kwd = []
+            for item in items:
+                if item.empty:
+                    continue
+                if not item.keywords:
+                    no_kwd.append(item)
+            if no_kwd:
+                t.print(f"{t.ornl}Items with no keyword:")
+                for item in no_kwd:
+                    print(item)
+        # Need inventory:  print boxes that still need their parts counted
+        if 1:
+            needs_counting = defaultdict(int)  # key: box, value: number of ?
+            box = 0
+            for item in items:
+                if item.box != box:
+                    box = item.box
+                if item.quantity == "?":
+                    needs_counting[box] += 1
+            if needs_counting:
+                o = []
+                t.print(f"{t.ornl}Boxes:compartments that still need parts counting:")
+                for box in needs_counting:
+                    o.append(f"{box:2d}: {needs_counting[box]}")
+                for i in Columnize(o, columns=5, sep=" "*5):
+                    print(i)
+                
+        
+                
+            
 
 if __name__ == "__main__": 
     d = {}  # Options dictionary
