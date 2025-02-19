@@ -293,7 +293,6 @@ if 1:   # Classes
             369       383
             397       680
             420       980''')
-
         m = []
         for line in data.split("\n"):
             row = [flt(i) for i in line.split()]
