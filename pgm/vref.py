@@ -33,6 +33,7 @@ if 1:  # Header
         from scipy.interpolate import interp1d
         from dpprint import PP
         from transpose import Transpose
+        from columnize import Columnize
         if 0:
             import debug
             debug.SetDebugger()
@@ -46,8 +47,8 @@ if 1:  # Header
 if 1:   # Utility
     def GetColors():
         t.err = t.redl
-        t.i = t.orn
-        t.V = t.grn
+        t.i = t.lipl
+        t.V = t.whtl
         t.diode = t.magl
         t.dbg = t("lill") if g.dbg else ""
         t.N = t.n if g.dbg else ""
@@ -69,19 +70,24 @@ if 1:   # Utility
         print(dedent(f'''
         Usage:  {sys.argv[0]} [options] op value1 [value2...]
           Functionality defined by the op argument:
-            v       Print the predicted voltage(s) for the given current(s)
-            i       Print the predicted current(s) for the given voltage(s)
+            v       Print the voltage/current table for the selected diode
+            i       Print the current/voltage table for the selected diode
             ref     Design a voltage reference using diodes
         Options:
-            -d num  Select diode type
-                        0   1N4148 [default]
+            -d str  Select diode type (see list below, 1N4148 is default)
             -h      Print a manpage
             -n n    Number of digits in output [{d["-n"]}]
             -t n    Print a voltage or current table with n points for the diode
         '''))
+        # Print diode types list
+        print("Diode types:")
+        dt = sorted(diodes.keys())
+        for i in Columnize(dt, columns=5, col_width=15, indent=" "*4):
+            print(i)
         exit(status)
     def ParseCommandLine(d):
         d["-d"] = "1N4148"  # Selected diode
+        #d["-f"] = False     # Fine table resolution
         d["-n"] = 3         # Number of significant digits
         d["-t"] = None      # Print table with indicated number of points
         if len(sys.argv) < 2:
@@ -122,38 +128,59 @@ if 1:   # Utility
                     Error(f"-t option's argument must be an integer >= 2")
             elif o == "-h":
                 Usage()
+        x = flt(0)
+        x.N = d["-n"]
+        x.rtz = False
+        x.rtdp = True
         return args
 if 1:   # Doc
     def Manpage():
         print(dedent(f'''
 
-            This tool uses measured current versus voltage curves of on-hand diodes to design a
-            voltage reference.  Your input is the operating voltage and the desired voltage.  The
-            script will select a set of diodes and a resistor to approximate the desired output
-            voltage.  The resistor and diodes are all in series and the voltage is applied to the
-            whole string.
+        This script uses measured current versus voltage curves of on-hand diodes.  Its two
+        functions are 1) to print out voltage/current relationships of these diodes and 2) to help
+        design a voltage reference using these diodes.
 
-            The measured diode characteristics are given in mV and mA.  You are responsible for
-            providing the measured or modeled data for these current/voltage characteristics
-            unless you wish to use my measurements.  I recommend 1-2-5 spacing from 1 μA up to the
-            diode's current rating.  This information is encapsulated in the Diode objects, which
-            have i(V) and V(i) methods, found by interpolation on your entered data.  The Diode
-            object also has a PIV attribute, the maximum inverse voltage rating and i_max_mA, the
-            maximum current rating in mA.
+        Voltage/Current relationships
 
-            Diodes that are supported:
-                1N5817G Schottky 1 A 20 PIV
-                1N5818 Schottky 1 A 30 PIV
-                1N4148 300 mA 100 PIV
-                1N3600 200 mA 100 PIV
-                1N4004 1 A 400 PIV
-                1N4007 1 A 1000 PIV
-                3 mm LED:  yel, grn, red, blu, wht
-                5 mm LED:  yel, grn, red, blu, wht
+            The 'v' or 'i' on the command line tells the script which variable is the independent
+            one.  This variable gets the "nice" intervals.  The script will handle nearly any
+            diode i-V relationship because it's a semilog relationship:  the current increases
+            exponentially with voltage.  The currents range over μA to A levels, but voltages will
+            typically be in the 0.1 to 3 V range.  Internally, you just type in the measured diode
+            i-V data and scipy's linear interpolation tool is used to generate the needed output.
+            A nice feature of the interpolation tool is that it will raise an exception if an
+            argument is outside the interpolation table; this feature is used to ignore all input
+            unless it's in the tabel's range.
 
-            Since the diodes' behaviors will be stochastic, even for an set of diodes from a
-            single manufacturing lot, the script's output is only an approximation.  You'll of
-            course want to build, test, and tune a particular exemplar.
+        to design a voltage reference.  Your input is the operating voltage and the desired
+        voltage.  The script will select a set of diodes and a resistor to approximate the desired
+        output voltage.  The resistor and diodes are all in series and the voltage is applied to
+        the whole string.
+
+        The measured diode characteristics are given in mV and mA.  You are responsible for
+        providing the measured or modeled data for these current/voltage characteristics unless
+        you wish to use my measurements.  I recommend 1-2-5 spacing from 1 μA up to the diode's
+        current rating.  This information is encapsulated in the Diode objects, which have i(V)
+        and V(i) methods, found by interpolation on your entered data.  The Diode object also has
+        a PIV attribute, the maximum inverse voltage rating and i_max_mA, the maximum current
+        rating in mA.
+
+        Diodes that are supported:
+            1N5817G Schottky 1 A 20 PIV
+            1N5818 Schottky 1 A 30 PIV
+            1N4148 300 mA 100 PIV
+            1N3600 200 mA 100 PIV
+            1N4004 1 A 400 PIV
+            1N4007 1 A 1000 PIV
+            3 mm LED:  yel, grn, red, blu, wht
+            5 mm LED:  yel, grn, red, blu, wht
+
+        Since the diodes' behaviors will be stochastic, even for an set of diodes from a
+        single manufacturing lot, the script's output is only an approximation.  You'll of
+        course want to build, test, and tune a particular exemplar.  Remember the diodes'
+        behaviors will also be temperature dependent.
+
 
         '''))
         exit(0)
@@ -181,11 +208,17 @@ if 1:   # Classes
         def __repr__(self):
             return f"Diode({self.name!r})"
         def i(self, V):
-            'Return diode current in A for voltage V in V'
-            return flt(self.iv(V))
+            'Return diode current in A for voltage V in V or None if out of range'
+            try:
+                return flt(self.iv(V))
+            except ValueError:
+                return None
         def V(self, i):
-            'Return diode voltage in V for current i in A'
-            return flt(self.vi(i))
+            'Return diode voltage in V for current i in A or None if out of range'
+            try:
+                return flt(self.vi(i))
+            except ValueError:
+                return None
     # Construct diode data
     diodes = {}
     def D1N4148():
@@ -328,7 +361,6 @@ if 1:   # Classes
 if 1:   # Core functionality
     def Table(numpoints, arg):
         'Print a table for the selected diode'
-        breakpoint() #xx 
         D = diodes[d["-d"]]
         if arg == "i":
             t.print(f"{t.diode}Current vs. voltage for {D.name}")
@@ -351,12 +383,77 @@ if 1:   # Core functionality
                 i = flt(D.i(V))
                 I = f"{i.engsi}A"
                 V = f"{V.engsi}V"
-                t.print(f"{t.i}{I:>{w}s} {t.V}{V:>{w}s}")
+                t.print(f"{t.V}{V:>{w}s} {t.i}{I:>{w}s}")
+    def VoltageTable():
+        'Print a voltage table for the selected diode'
+        D = diodes[d["-d"]]
+        # Get the voltages in mV to print
+        V = [1, 2, 3, 4, 5, 6, 7, 8, 9,
+             10, 20, 30, 40, 50, 60, 70, 80, 90,
+             100, 150, 200, 250, 300, 350, 400, 450, 500,
+             600, 650, 700, 750, 800, 850, 900, 950]
+        V += range(1000, 5001, 50)
+        w = 10
+        ind = " "*4
+        print(f"Voltage/current relationship for {D.name} diode")
+        print(f"{ind}{'Voltage':>{w}s}"
+              f"{ind}{'Current':>{w}s}"
+              f"{ind}{'Power':>{w}s}")
+        print(f"{ind}{'-'*7:>{w}s}"
+              f"{ind}{'-'*7:>{w}s}"
+              f"{ind}{'-'*7:>{w}s}")
+        for v in V:
+            v = flt(v)/1000
+            i = D.i(v)
+            if i is None:
+                continue
+            p = v*i
+            sv = f"{v.engsi}V"
+            si = f"{i.engsi}A"
+            sp = f"{p.engsi}W"
+            print(f"{ind}{sv:>{w}s}"
+                  f"{ind}{si:>{w}s}"
+                  f"{ind}{sp:>{w}s}")
+    def CurrentTable():
+        'Print a current table for the selected diode'
+        D = diodes[d["-d"]]
+        # Get the currents in mA to print
+        DI = [0.001, 0.002, 0.005, 0.01, 0.02, 0.05, 0.1, 0.2, 0.5,
+              1, 2, 3, 4, 5, 6, 7, 8, 9,
+              10, 20, 30, 40, 50, 60, 70, 80, 90,
+              100, 150, 200, 250, 300, 350, 400, 450, 500,
+              600, 650, 700, 750, 800, 850, 900, 950, 1000]
+        DI += range(1100, 10000, 100)
+        DI += range(10000, 100000, 1000)
+        w = 10
+        ind = " "*4
+        print(f"Current/voltage relationship for {D.name} diode")
+        print(f"{ind}{'Current':>{w}s}"
+              f"{ind}{'Voltage':>{w}s}"
+              f"{ind}{'Power':>{w}s}")
+        print(f"{ind}{'-'*7:>{w}s}"
+              f"{ind}{'-'*7:>{w}s}"
+              f"{ind}{'-'*7:>{w}s}")
+        for I in DI:
+            i = flt(I)/1000
+            v = D.V(i)
+            if v is None:
+                continue
+            p = v*i
+            sv = f"{v.engsi}V"
+            si = f"{i.engsi}A"
+            sp = f"{p.engsi}W"
+            print(f"{ind}{si:>{w}s}"
+                  f"{ind}{sv:>{w}s}"
+                  f"{ind}{sp:>{w}s}")
+                
 
 if __name__ == "__main__":
     d = {}      # Options dictionary
     args = ParseCommandLine(d)
-    if d["-t"] is not None:
-        if not args or args[0] not in "v i".split():
-            Error(f"First command line argument needs to be v or i")
-        Table(d["-t"], args[0])
+    if args[0].lower() == "v":
+        VoltageTable()
+    elif args[0].lower() == "i":
+        CurrentTable() 
+    else:
+        VoltageReference()
