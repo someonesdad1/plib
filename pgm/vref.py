@@ -81,7 +81,7 @@ if 1:   # Utility
         '''))
         exit(status)
     def ParseCommandLine(d):
-        d["-d"] = 0         # Which diode to model
+        d["-d"] = "1N4148"  # Selected diode
         d["-n"] = 3         # Number of significant digits
         d["-t"] = None      # Print table with indicated number of points
         if len(sys.argv) < 2:
@@ -95,9 +95,20 @@ if 1:   # Utility
             if o[1] in list(""):
                 d[o] = not d[o]
             elif o == "-d":     # Select diode
-                d[o] = int(a)
-                if d[o] < 0:
-                    Error(f"-d option's argument must be an integer >= 0")
+                # The -d option is a regex
+                r = re.compile(a, re.I)
+                matches = []
+                for i in diodes:
+                    mo = r.search(i)
+                    if mo:
+                        matches.append(i)
+                if not matches: 
+                    Error(f"{a!r} didn't match any diode name")
+                elif len(matches) == 1:
+                    d[o] = matches[0]
+                else:
+                    s = "\n"
+                    Error(f"{a!r} had multiple matches: {s}{s.join(matches)}")
             elif o == "-n":     # Number of digits
                 try:
                     d[o] = int(a)
@@ -123,13 +134,14 @@ if 1:   # Doc
             whole string.
 
             The measured diode characteristics are given in mV and mA.  You are responsible for
-            providing the measured or modeled data for these current/voltage characteristics.  I
-            recommend 1-2-5 spacing from 1 μA up to the diode's current rating.  This information is
-            encapsulated in the Diode objects, which have i(V) and V(i) methods, found by
-            interpolation on your entered data.  The Diode object also has a PIV attribute, the
-            maximum inverse voltage rating and i_max_mA, the maximum current rating in mA.
+            providing the measured or modeled data for these current/voltage characteristics
+            unless you wish to use my measurements.  I recommend 1-2-5 spacing from 1 μA up to the
+            diode's current rating.  This information is encapsulated in the Diode objects, which
+            have i(V) and V(i) methods, found by interpolation on your entered data.  The Diode
+            object also has a PIV attribute, the maximum inverse voltage rating and i_max_mA, the
+            maximum current rating in mA.
 
-            Diodes:
+            Diodes that are supported:
                 1N5817G Schottky 1 A 20 PIV
                 1N5818 Schottky 1 A 30 PIV
                 1N4148 300 mA 100 PIV
@@ -138,6 +150,10 @@ if 1:   # Doc
                 1N4007 1 A 1000 PIV
                 3 mm LED:  yel, grn, red, blu, wht
                 5 mm LED:  yel, grn, red, blu, wht
+
+            Since the diodes' behaviors will be stochastic, even for an set of diodes from a
+            single manufacturing lot, the script's output is only an approximation.  You'll of
+            course want to build, test, and tune a particular exemplar.
 
         '''))
         exit(0)
@@ -163,20 +179,21 @@ if 1:   # Classes
         def __str__(self):
             return self.name
         def __repr__(self):
-            return self.name
+            return f"Diode({self.name!r})"
         def i(self, V):
             'Return diode current in A for voltage V in V'
             return flt(self.iv(V))
         def V(self, i):
             'Return diode voltage in V for current i in A'
             return flt(self.vi(i))
+    # Construct diode data
     diodes = {}
     def D1N4148():
         # Raw data in mV and mA
         V_V = [flt(i)/1000 for i in (260, 320, 360, 400, 450, 500, 550, 600, 650, 700, 750, 800, 850, 900)]
         i_A = [flt(i) /1000 for i in (0.001, 0.002, 0.005, 0.01, 0.03, 0.1, 0.3, 0.8, 2.5, 8, 18, 40, 100, 200)]
         # Store the data in the diode container
-        name = "1N4148silicon"
+        name = "1N4148"
         D = diodes[name] = Diode(name, flt(300), flt(100), V_V, i_A)
         if 1:   # Debug printout
             w = 10
@@ -277,7 +294,7 @@ if 1:   # Classes
         mt = Transpose(m)
         V_V = [flt(i)/1000 for i in mt[0]]
         i_A = [flt(i/1000) for i in mt[1]]
-        name = "1N5817Gschottky"
+        name = "1N5817G"
         i_max, PIV = flt(1), flt(20)
         diodes[name] = Diode(name, i_max, PIV, V_V, i_A)
     def D1N5818():
@@ -300,21 +317,18 @@ if 1:   # Classes
         mt = Transpose(m)
         V_V = [flt(i)/1000 for i in mt[0]]
         i_A = [flt(i/1000) for i in mt[1]]
-        name = "1N5818schottky"
+        name = "1N5818"
         i_max, PIV = flt(1), flt(30)
         diodes[name] = Diode(name, i_max, PIV, V_V, i_A)
-
-    # Construct diode data
     D1N4148()
     D3mmLED()
     D5mmLED()
     D1N5817G()
     D1N5818()
-    pp(diodes)
-    exit()
 if 1:   # Core functionality
     def Table(numpoints, arg):
         'Print a table for the selected diode'
+        breakpoint() #xx 
         D = diodes[d["-d"]]
         if arg == "i":
             t.print(f"{t.diode}Current vs. voltage for {D.name}")
@@ -338,13 +352,6 @@ if 1:   # Core functionality
                 I = f"{i.engsi}A"
                 V = f"{V.engsi}V"
                 t.print(f"{t.i}{I:>{w}s} {t.V}{V:>{w}s}")
-
-if 1:
-    d = {"-d": 0,}
-    Table(30, "i")
-    print()
-    Table(30, "v")
-    exit()
 
 if __name__ == "__main__":
     d = {}      # Options dictionary
