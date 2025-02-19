@@ -31,6 +31,8 @@ if 1:  # Header
         from color import t
         from lwtest import Assert
         from scipy.interpolate import interp1d
+        from dpprint import PP
+        from transpose import Transpose
         if 0:
             import debug
             debug.SetDebugger()
@@ -40,6 +42,7 @@ if 1:  # Header
         g = G()
         g.dbg = False
         ii = isinstance
+        pp = PP()
 if 1:   # Utility
     def GetColors():
         t.err = t.redl
@@ -159,6 +162,8 @@ if 1:   # Classes
             self.iv = interp1d(self.V_V, self.i_A)
         def __str__(self):
             return self.name
+        def __repr__(self):
+            return self.name
         def i(self, V):
             'Return diode current in A for voltage V in V'
             return flt(self.iv(V))
@@ -166,12 +171,13 @@ if 1:   # Classes
             'Return diode voltage in V for current i in A'
             return flt(self.vi(i))
     diodes = {}
-    def D1N4148(num):
+    def D1N4148():
         # Raw data in mV and mA
         V_V = [flt(i)/1000 for i in (260, 320, 360, 400, 450, 500, 550, 600, 650, 700, 750, 800, 850, 900)]
         i_A = [flt(i) /1000 for i in (0.001, 0.002, 0.005, 0.01, 0.03, 0.1, 0.3, 0.8, 2.5, 8, 18, 40, 100, 200)]
         # Store the data in the diode container
-        D = diodes[num] = Diode("1N4148", flt(300), flt(100), V_V, i_A)
+        name = "1N4148silicon"
+        D = diodes[name] = Diode(name, flt(300), flt(100), V_V, i_A)
         if 1:   # Debug printout
             w = 10
             GetColors()
@@ -187,8 +193,126 @@ if 1:   # Classes
             Dbg(f"{t.trql}{ind}num{ind}{'i':{w}s}{ind}{'V_calc':{w}s}{ind}   {'V_actual':{w}s}")
             for j, i in enumerate(i_A):
                 Dbg(f"{ind}{j:2d}{ind}{flt(i)!s:{w}s} calc = {D.V(i)!s:{w}s}  table = {V_V[j]!s:{w}s}")
+    def D3mmLED():
+        # 3 mm LEDs measured voltage drops as function of current
+        #   mA      yel      grn      red      blu      wht
+        data = dedent('''
+            0.5     1.85     1.87     1.81     2.62     2.60
+             1      1.90     1.91     1.84     2.67     2.64
+             2      1.94     1.94     1.87     2.74     2.70
+             5      1.99     1.98     1.93     2.86     2.80
+            10      2.03     2.02     1.97     3.00     2.90
+            15      2.06     2.04     2.01     3.10     2.98
+            20      2.07     2.06     2.03     3.16     3.05
+            25      2.09     2.07     2.05     3.21     3.11
+            30      2.10     2.08     2.07     3.25     3.17''')
+        # Generate a nested list
+        m = []
+        for line in data.split("\n"):
+            row = [flt(i) for i in line.split()]
+            m.append(row)
+        mt = Transpose(m)
+        i_A = [flt(i/1000) for i in mt[0]]      # Current
+        V_V_yel = [flt(i) for i in mt[1]]       # yel voltage
+        V_V_grn = [flt(i) for i in mt[2]]       # grn voltage
+        V_V_red = [flt(i) for i in mt[3]]       # red voltage
+        V_V_blu = [flt(i) for i in mt[4]]       # blu voltage
+        V_V_wht = [flt(i) for i in mt[5]]       # wht voltage
+        i_max, PIV = 0.05, 20
+        name = "LED3mm:yel"; diodes[name] = Diode(name, i_max, PIV, V_V_yel, i_A)
+        name = "LED3mm:grn"; diodes[name] = Diode(name, i_max, PIV, V_V_grn, i_A)
+        name = "LED3mm:red"; diodes[name] = Diode(name, i_max, PIV, V_V_red, i_A)
+        name = "LED3mm:blu"; diodes[name] = Diode(name, i_max, PIV, V_V_blu, i_A)
+        name = "LED3mm:wht"; diodes[name] = Diode(name, i_max, PIV, V_V_wht, i_A)
+    def D5mmLED():
+        # 5 mm LEDs measured voltage drops as function of current
+        #   mA      yel      grn      red      blu      wht
+        data = dedent('''
+            0.5     1.85     2.28     1.76     2.61     2.61
+             1      1.88     2.33     1.79     2.65     2.65
+             2      1.92     2.40     1.83     2.71     2.70
+             5      1.98     2.54     1.90     2.82     2.82
+            10      2.05     2.68     1.98     2.95     2.96
+            15      2.09     2.78     2.03     3.05     3.07
+            20      2.12     2.86     2.07     3.13     3.14
+            25      2.15     2.92     2.10     3.19     3.21
+            30      2.16     2.98     2.13     3.25     3.26''')
+        # Generate a nested list
+        m = []
+        for line in data.split("\n"):
+            row = [flt(i) for i in line.split()]
+            m.append(row)
+        mt = Transpose(m)
+        i_A = [flt(i/1000) for i in mt[0]]      # Current
+        V_V_yel = [flt(i) for i in mt[1]]       # yel voltage
+        V_V_grn = [flt(i) for i in mt[2]]       # grn voltage
+        V_V_red = [flt(i) for i in mt[3]]       # red voltage
+        V_V_blu = [flt(i) for i in mt[4]]       # blu voltage
+        V_V_wht = [flt(i) for i in mt[5]]       # wht voltage
+        i_max, PIV = 0.05, 20
+        name = "LED5mm:yel"; diodes[name] = Diode(name, i_max, PIV, V_V_yel, i_A)
+        name = "LED5mm:grn"; diodes[name] = Diode(name, i_max, PIV, V_V_grn, i_A)
+        name = "LED5mm:red"; diodes[name] = Diode(name, i_max, PIV, V_V_red, i_A)
+        name = "LED5mm:blu"; diodes[name] = Diode(name, i_max, PIV, V_V_blu, i_A)
+        name = "LED5mm:wht"; diodes[name] = Diode(name, i_max, PIV, V_V_wht, i_A)
+    def D1N5817G():
+        # Columns:  voltage in mV, current in mA
+        data = dedent('''
+            10.6    0.00253
+            52.1    0.032
+            102.8   0.2503
+            137.4   0.9461
+            172     3.2
+            241.9   46.9
+            265.4   106.2
+            288.4   224
+            300.4   328
+            319.3   526
+            337.7   786
+            350.9   1003''')
+        m = []
+        for line in data.split("\n"):
+            row = [flt(i) for i in line.split()]
+            m.append(row)
+        mt = Transpose(m)
+        V_V = [flt(i)/1000 for i in mt[0]]
+        i_A = [flt(i/1000) for i in mt[1]]
+        name = "1N5817Gschottky"
+        i_max, PIV = flt(1), flt(20)
+        diodes[name] = Diode(name, i_max, PIV, V_V, i_A)
+    def D1N5818():
+        # Columns:  voltage in mV, current in mA
+        data = dedent('''
+            15.34     0.00047
+            63.16     0.00645
+            101.38    0.02969
+            156.36    0.2436
+            203.3     1.2
+            295.5     42.3
+            322.3     104
+            369       383
+            397       680
+            420       980''')
+
+        m = []
+        for line in data.split("\n"):
+            row = [flt(i) for i in line.split()]
+            m.append(row)
+        mt = Transpose(m)
+        V_V = [flt(i)/1000 for i in mt[0]]
+        i_A = [flt(i/1000) for i in mt[1]]
+        name = "1N5818schottky"
+        i_max, PIV = flt(1), flt(30)
+        diodes[name] = Diode(name, i_max, PIV, V_V, i_A)
+
     # Construct diode data
-    D1N4148(0)
+    D1N4148()
+    D3mmLED()
+    D5mmLED()
+    D1N5817G()
+    D1N5818()
+    pp(diodes)
+    exit()
 if 1:   # Core functionality
     def Table(numpoints, arg):
         'Print a table for the selected diode'

@@ -1,5 +1,6 @@
 '''
 - Write & test --csv option.  Needs to write transpose in CSV too.
+- Illustrative test case:  5 mm LEDs voltage drops as a function of current
  
 Generate the transpose of a nested list (matrix or vector) of objects
 '''
@@ -30,8 +31,9 @@ if 1:   # Header
     # Global variables
         ii = isinstance
         __all__ = ["Transpose"]
-        class g:
+        class G:
             pass
+        g = G()
         g.type = None
         g.homogenous = False
         g.lock = threading.Lock()

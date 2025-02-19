@@ -1,5 +1,15 @@
 Active:  /plib/.todo
 
+    - transpose.py
+        - I often need the transpose of a string array of numbers, so make this transparent to use
+          as a module with clear instructions.
+        - Example:  LEDs voltage drops as a function of current:  the data file gives it in a
+          matrix table, but I need the transpose of the data as a set of row vectors.
+        - Make it the Numbers() function
+            - Go through the sequence of strings.  If they can all be successfully converted to
+              integers, do so.  Otherwise, convert to flt; if exception, use cpx.
+            - Pass in a keyword numtype for a specific conversion
+
     - pgm/lookup.py
         - This is a tool I used a lot.  It needs to be fixed.
         - This relies on Wordnet and was a lot of work.  /pylib/types_of_words/WordNet
