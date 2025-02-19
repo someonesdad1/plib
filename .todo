@@ -1,5 +1,8 @@
 Active:  /plib/.todo
 
+    - resistors.py
+        - Needs to reflect current resistors:  1/4 W and 2 W
+
     - transpose.py
         - I often need the transpose of a string array of numbers, so make this transparent to use
           as a module with clear instructions.

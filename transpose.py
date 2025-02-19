@@ -28,6 +28,7 @@ if 1:   # Header
         from wrap import wrap, dedent
         from lwtest import run, raises, Assert, ToDoMessage
         from get import GetLines
+        from f import flt, cpx
     # Global variables
         ii = isinstance
         __all__ = ["Transpose"]
@@ -120,6 +121,7 @@ if 1:   # Core functionality
         # Get the required type for testing homogeneity
         g.homogenous = homogenous
         if homogenous:
+            # A lock is used so that another thread can't mess with our global data type
             g.lock.acquire()
             item0 = seq[0]
             if ii(item0, (list, tuple)):
@@ -165,13 +167,77 @@ if 1:   # Core functionality
             print(f"  Size = ({nrows}, {ncols}])")
             print("  output sequence:")
             pp(output)
-        # Reset the global variable
+        # Reset the global variable and unlock the lock
         if homogenous:
-            g.lock.release()
+            if g.lock.locked():
+                g.lock.release()
         g.homogenous = False
         return output
+    def Numbers(string, numtype=None):
+        '''Return a nested list of the transposed numbers in the string, splitting on
+        whitespace.  If all of the elements can be represented by integers, all the
+        returned numbers will be integers; ditto for flt and cpx types.  You can also set
+        numtype to any numerical type that can use the individual strings in their
+        constructor.
+        
+        The core example of this is we often have numerical data in a table with the
+        numbers in columns, but we want the columns returned as row vectors.  Here's an
+        example of LED voltage drops as a function of current through the LED:
+        
+            #mA yel     grn
+            1   1.88    2.28
+            10  2.05    2.68
+            30  2.16    2.98
+        
+        The returned nested list would be
+            [[ 1.0, 10.0, 30.0],
+             [1.88, 2.05, 2.16],
+             [2.28, 2.68, 2.98]]
+        where each element is a flt.
+        '''
+        # Make a nested array of strings
+        o = []
+        for line in string.split("\n"):
+            o.append(line.split())
+        # Check for uniform size
+        sizes = [len(i) for i in o]
+        if not all(len(i) == sizes[0] for i in o):
+            raise ValueError(f"All rows not of uniform size {sizes[0]}")
+        if numtype is None:
+            if "j" in string:   # Use cpx
+                p = []
+                for line in o:
+                    p.append(list(cpx(i) for i in line))
+            elif "." in string or "e" in string or "E" in string:   # Use flt
+                p = []
+                for line in o:
+                    p.append(list(flt(i) for i in line))
+            else:   # Use int
+                p = []
+                for line in o:
+                    p.append(list(int(i) for i in line))
+            o = p
+        else:
+            # User passed the desired type
+            p = []
+            for line in o:
+                p.append(list(numtype(i) for i in line))
+            o = p
+        return Transpose(o, homogenous=True)
+            
+if 0:
+    from dpprint import PP
+    pp = PP()
+    data = "1 2 3\n4 5 6"
+    print(Numbers(data, numtype=cpx))
+    exit()
 
 if __name__ == "__main__":
+    from util import Flatten
+    import time
+    import math
+    from f import flt
+    from decimal import Decimal
     if 1:   # Test code
         def TestEmpty():
             for i in ([], tuple()):
@@ -198,6 +264,8 @@ if __name__ == "__main__":
             Assert(Transpose(m) == expected)
             # Improper size
             raises(TypeError, Transpose, [[1, 2], 3])
+            if g.lock.locked():
+                g.lock.release()
             # Common matrix with numbers
             m = [[1, 2, 3, 4], [5, 6, 7., 8]]
             expected = [[1, 5], [2, 6], [3, 7.], [4, 8]]
@@ -212,18 +280,16 @@ if __name__ == "__main__":
             v = [1, "2"]
             with raises(TypeError):
                 Transpose(v, homogenous=True)
+            if g.lock.locked():
+                g.lock.release()
         def TestInvariant():
             'Invariant is Transpose(Transpose(x)) == x'
-            # Note:  we use only lists because things like
-            # [1, 2, [3]] != [1, 2, tuple([3])] even though they are equal 
-            # from an element by element value comparison.
+            # Note:  we use only lists because things like 
+            # [1, 2, [3]] != [1, 2, # tuple([3])] even though they are equal from an element
+            # by element value comparison.
             #
-            # Use a variety of types that would be typical of things seen in the real
-            # world
-            import time
-            import math
-            from f import flt
-            from decimal import Decimal
+            # Use a variety of types that would be typical of things seen in the real world
+            #
             # Vector
             x = ["a", 1, 2, 3-3j, Decimal(math.pi)]
             Assert(Transpose(Transpose(x)) == x)
@@ -263,6 +329,70 @@ if __name__ == "__main__":
             # Things that are iterables
             for i in (tuple(), []):
                 Assert(IsIterable(i))
+        def TestNumbers():
+            if 1:   # Implied types
+                # Implied int
+                data = "1 2 3\n4 5 6"
+                o = Numbers(data, numtype=None)
+                i = [[1, 4], [2, 5], [3, 6]]
+                Assert(o == i)
+                Assert(all(isinstance(j, int) for j in Flatten(o)))
+                # Implied flt
+                data = "1. 2 3\n4 5 6"
+                o = Numbers(data, numtype=None)
+                i = [[1, 4], [2, 5], [3, 6]]
+                Assert(o == i)  # Numerically still equal to the integer form
+                Assert(all(isinstance(j, flt) for j in Flatten(o)))
+                data = "1 2 3\n4 5e0 6"
+                o = Numbers(data, numtype=None)
+                i = [[1, 4], [2, 5], [3, 6]]
+                Assert(o == i)  # Numerically still equal to the integer form
+                Assert(all(isinstance(j, flt) for j in Flatten(o)))
+                data = "1 2 3\n4 5 6E0"
+                o = Numbers(data, numtype=None)
+                i = [[1, 4], [2, 5], [3, 6]]
+                Assert(o == i)  # Numerically still equal to the integer form
+                Assert(all(isinstance(j, flt) for j in Flatten(o)))
+                # Implied cpx
+                data = "1 2 3\n4 5 6E0+0j"
+                o = Numbers(data, numtype=None)
+                i = [[1, 4], [2, 5], [3, 6]]
+                Assert(o == i)  # Numerically still equal to the integer form
+                Assert(all(isinstance(j, cpx) for j in Flatten(o)))
+            if 1:   # Forced types
+                data = "1 2 3\n4 5 6"
+                # Force int
+                o = Numbers(data, numtype=int)
+                Assert(o == i)
+                Assert(all(isinstance(j, int) for j in Flatten(o)))
+                # Force flt
+                o = Numbers(data, numtype=flt)
+                Assert(o == i)
+                Assert(all(isinstance(j, flt) for j in Flatten(o)))
+                # Force float
+                o = Numbers(data, numtype=float)
+                Assert(o == i)
+                Assert(all(isinstance(j, float) for j in Flatten(o)))
+                # Force cpx
+                o = Numbers(data, numtype=cpx)
+                Assert(o == i)
+                Assert(all(isinstance(j, cpx) for j in Flatten(o)))
+                # Force complex
+                o = Numbers(data, numtype=complex)
+                Assert(o == i)
+                Assert(all(isinstance(j, complex) for j in Flatten(o)))
+                # Force Decimal
+                o = Numbers(data, numtype=Decimal)
+                Assert(o == i)
+                Assert(all(isinstance(j, Decimal) for j in Flatten(o)))
+            if 1:   # Improper form
+                data = "a 2 3\n4 5 6"
+                raises(ValueError, Numbers, data)
+                raises(ValueError, Numbers, data, numtype=int)
+                raises(ValueError, Numbers, data, numtype=flt)
+                raises(ValueError, Numbers, data, numtype=cpx)
+                raises(ValueError, Numbers, data, numtype=float)
+                raises(ValueError, Numbers, data, numtype=complex)
         def RunSelfTests():
             exit(run(globals(), halt=True)[0])
     if 1:   # Script
