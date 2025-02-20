@@ -1,6 +1,11 @@
 '''
-Design a voltage reference from diodes and a resistor in series.  This script prints out the
-measured voltage & current relationships of various diodes.
+
+ToDo
+    - Allow a command like '-a i 2.7m' show the operating point for all diodes at 2.7 mA
+    - Add a 'vr Vref Vcc' feature that designs a voltage ref Vref output for a given operating
+      voltage Vcc.  Aim for operating currents from 1 to 10 mA.
+
+This script prints out the measured voltage & current relationships of various diodes.
 '''
  
 if 1:  # Header
@@ -50,6 +55,7 @@ if 1:  # Header
         pp = PP()
 if 1:   # Utility
     def GetColors():
+        t.always = True # Always use color
         t.err = t.redl
         t.i = t.sky
         t.V = t.trql
@@ -157,6 +163,13 @@ if 1:   # Doc
         manufacturing lot, the script's output is only an approximation, so you'll want to build,
         test, and tune a particular exemplar.  Remember the diodes' behaviors will also be
         temperature dependent:  a silicon diode has a temperature coefficient of about -2 mV/K.
+
+        Short examples
+            '-a v 667m'     Show the current through the diodes with a 667 mV drop.  An empty
+                            string for the current means the diode hasn't been characterized 
+                            at that voltage.
+
+            '-a i 6.7m'     Show the voltage across the diodes with 6.7 mA current.
 
         Example:  2 V reference
 
@@ -465,10 +478,11 @@ if 1:   # Core functionality
         t.print(f"{g.ind}{t.V}{'-'*7:>{g.w}s}"
                 f"{g.ind}{t.i}{'-'*7:>{g.w}s}"
                 f"{g.ind}{t.P}{'-'*7:>{g.w}s}")
-    def PrintVoltage(V, diode):
+    def PrintVoltage(V, diode, alert=False):
         i = diode.i(V)
         if i is None:
-            t.print(f"{2*g.ind}{t.err}No current for voltage {V} V")
+            if alert:
+                t.print(f"{2*g.ind}{t.err}No current for voltage {V} V")
             return
         p = V*i
         sv = f"{V.engsi}V"
@@ -499,10 +513,11 @@ if 1:   # Core functionality
         t.print(f"{g.ind}{t.i}{'-'*7:>{g.w}s}"
                 f"{g.ind}{t.V}{'-'*7:>{g.w}s}"
                 f"{g.ind}{t.P}{'-'*7:>{g.w}s}")
-    def PrintCurrent(i, diode):
+    def PrintCurrent(i, diode, alert=False):
         v = diode.V(i)
         if v is None:
-            t.print(f"{2*g.ind}{t.err}No voltage for current {i} A")
+            if alert:
+                t.print(f"{2*g.ind}{t.err}No voltage for current {i} A")
             return
         p = v*i
         sv = f"{v.engsi}V"
@@ -528,10 +543,41 @@ if 1:   # Core functionality
 if __name__ == "__main__":
     d = {}      # Options dictionary
     args = ParseCommandLine(d)
-    if d["-a"] and not args:
-        # Print out details of all diodes
-        for diode in diodes:
-            VoltageTable(diodes[diode])
+    if d["-a"]:
+        if not args:
+            # Print out details of all diodes
+            for diode in diodes:
+                VoltageTable(diodes[diode])
+        else:
+            # Get max width of diode names
+            wn = 0
+            for diode in diodes:
+                wn = max(wn, len(diodes[diode].name))
+            ind = " "*4
+            if args[0].lower() == "v":
+                for v in args[1:]:
+                    V = si.NumberWithSISuffix(v)
+                    t.print(f"{t.title}For voltage of {V.engsi}V:")
+                    for diode in diodes:
+                        D = diodes[diode]
+                        try:
+                            vs = f"{D.i(V).engsi}A"
+                            print(f"{ind}{D.name:{wn}s}{ind}{vs:>10s}")
+                        except Exception:
+                            print(f"{ind}{D.name:{wn}s}")
+            elif args[0].lower() == "i":
+                for I in args[1:]:
+                    i = si.NumberWithSISuffix(I)
+                    t.print(f"{t.title}For current of {i.engsi}A:")
+                    for diode in diodes:
+                        D = diodes[diode]
+                        try:
+                            Is = f"{D.V(i).engsi}V"
+                            print(f"{ind}{D.name:{wn}s}{ind}{Is:>10s}")
+                        except Exception:
+                            print(f"{ind}{D.name:{wn}s}")
+            else:
+                Error(f"{args[0]!r} not recognized")
     elif len(args) == 1:
         if args[0].lower() == "v":
             func = VoltageTable
@@ -548,9 +594,9 @@ if __name__ == "__main__":
             PrintVoltageHeader(diode)
             for V in args[1:]:
                 v = si.NumberWithSISuffix(V)
-                PrintVoltage(v, diode)
+                PrintVoltage(v, diode, alert=True)
         else:
             PrintCurrentHeader(diode)
             for I in args[1:]:
                 i = si.NumberWithSISuffix(I)
-                PrintCurrent(i, diode)
+                PrintCurrent(i, diode, alert=True)
