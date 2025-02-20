@@ -1,6 +1,7 @@
 '''
 
 ToDo
+    - Printout should include the diode's resistance
     - Allow a command like '-a i 2.7m' show the operating point for all diodes at 2.7 mA
     - Add a 'vr Vref Vcc' feature that designs a voltage ref Vref output for a given operating
       voltage Vcc.  Aim for operating currents from 1 to 10 mA.
@@ -57,9 +58,10 @@ if 1:   # Utility
     def GetColors():
         t.always = True # Always use color
         t.err = t.redl
-        t.i = t.sky
-        t.V = t.trql
-        t.P = t.yel
+        t.i = t.lipl
+        t.V = t.grnl
+        t.R = t.sky
+        t.P = t.brnl
         t.title = t.purl
         t.subtitle = t.whtl
         t.dbg = t("lill") if g.dbg else ""
@@ -164,36 +166,42 @@ if 1:   # Doc
         test, and tune a particular exemplar.  Remember the diodes' behaviors will also be
         temperature dependent:  a silicon diode has a temperature coefficient of about -2 mV/K.
 
-        Short examples
-            '-a v 667m'     Show the current through the diodes with a 667 mV drop.  An empty
+        Examples
+
+            'v'             Shows the voltage across a 1N4148 diode (the default) for different
+                            current levels.  
+            'i 1m'          Show the 1N4148's voltage drop at 1 mA.
+            '-d 1N4007 i 1m'
+                            Show the 1N4007's voltage drop at 1 mA.
+            '-a v 667m'     Show the current through all the diodes with a 667 mV drop.  An empty
                             string for the current means the diode hasn't been characterized 
                             at that voltage.
 
-            '-a i 6.7m'     Show the voltage across the diodes with 6.7 mA current.
+            '-a i 10m'      Show the voltage across the diodes with 10 mA current.
 
-        Example:  2 V reference
+        Here's an example of using the script to design a simple voltage reference using on-hand
+        diodes.  I wanted a 2 V reference voltage in a circuit to provide an offset.  The voltage
+        I'd put across this diode resistor stack would be 13.5 V (a float battery charger for
+        lead-acid batteries).  A silicon PN junction diode has a voltage drop of about 0.6 V to
+        0.7 V at 1 mA.  Thus, three of these diodes should give 1.8 V to 2 V at 1 mA.  Fine tuning
+        can be done by changing the series resistance to change the resistor/diode stack current.
+        (2 V)/3 is about 0.67 V, so run the script with the argument 'v'.  You'll see 0.65 V for a
+        1N4148 diode (the default) at 2.5 mA.  Thus, the design is three of these 1N4148 diodes
+        across 13.5 V with a suitable resistor, giving 1.95 V across the 3 diodes.  We can now use
+        the script with the 'i' argument to see better current resolution:  to get 2 V, we'd need
+        a bit over 4.5 mA of current.
 
-            I wanted a 2 V reference voltage in a circuit to provide an offset.  The voltage I'd
-            put across this diode resistor stack would be 13.5 V (a float battery charger for
-            lead-acid batteries).  A silicon PN junction diode has a voltage drop of about 0.6 V
-            to 0.7 V at 1 mA.  Thus, three of these diodes should give 1.8 V to 2 V at 1 mA.  Fine
-            tuning can be done by changing the series resistance.  (2 V)/3 is about 0.67 V, so run
-            the script with the argument 'v'.  You'll see 0.65 V for a 1N4148 diode (the default)
-            at 2.5 mA.  Thus, the design is three of these 1N4148 diodes across 13.5 V with a
-            suitable resistor, giving 1.95 V across the 3 diodes.  We can now use the script with
-            the 'i' argument to see better current resolution:  to get 2 V, we'd need a bit over
-            4.5 mA of current.  Run the script with 'i 0.0045' and the voltage will be 668 mV.
+        Run the script with 'i 0.0045' and the voltage will be 668 mV.  The diode voltage is
+        3(0.668) = 2.004 V and the resistor needs to drop 13.5 - 2 or 11.5 V.  With 4.5 mA of
+        current, this is 11.5/4.5 kΩ or 2.5 kΩ.  I'd use my on-hand resistors of 1 kΩ and 1.5 kΩ;
+        the power is 50 mW, so a 1/4 W resistor is fine.
 
-            The diode voltage is 3(0.668) = 2.004 V and the resistor needs to drop 13.5 - 2 or 
-            11.5 V.  With 4.5 mA of current, this is 11.5/4.5 kΩ or 2.5 kΩ.  I'd use my
-            on-hand resistors of 1 kΩ and 1.5 kΩ; the power is 50 mW, so a 1/4 W resistor is fine.
-
-            However, I also need an LED on the front panel of this battery charger to show that
-            the power is on.  Run the script with the argument '-a' and you'll see the voltages
-            for all the diodes.  A 2 V drop can be gotten with a 6.2 mA current through a 3mm
-            yellow LED.  I chose this color because it wouldn't clash with the other 8 LEDs on the
-            charger's panel.  I'll have 5 V for the microprocessor, so it needs a series resistor
-            of 3/6.2 kΩ or 480 Ω.
+        However, I also need an LED on the front panel of this battery charger to show that the
+        power is on.  Run the script with the argument '-a' and you'll see the voltages for all
+        the diodes.  A 2 V drop can be gotten with a 6.25 mA current through a 3mm yellow LED.  I
+        chose this color because it wouldn't clash with the other 8 LEDs on the charger's panel.
+        I'll have 5 V for the microprocessor, so it needs a series resistor of (5 - 2)/6.2 kΩ or
+        480 Ω.
 
         '''))
         exit(0)
@@ -474,22 +482,26 @@ if 1:   # Core functionality
             t.print(f"  {t.subtitle}{diode.note}")
         t.print(f"{g.ind}{t.V}{'Voltage':>{g.w}s}"
                 f"{g.ind}{t.i}{'Current':>{g.w}s}"
+                f"{g.ind}{t.R}{'Resistance':>{g.w}s}"
                 f"{g.ind}{t.P}{'Power':>{g.w}s}")
-        t.print(f"{g.ind}{t.V}{'-'*7:>{g.w}s}"
-                f"{g.ind}{t.i}{'-'*7:>{g.w}s}"
-                f"{g.ind}{t.P}{'-'*7:>{g.w}s}")
+        t.print(f"{g.ind}{t.V}{'-'*g.w:>{g.w}s}"
+                f"{g.ind}{t.i}{'-'*g.w:>{g.w}s}"
+                f"{g.ind}{t.R}{'-'*g.w:>{g.w}s}"
+                f"{g.ind}{t.P}{'-'*g.w:>{g.w}s}")
     def PrintVoltage(V, diode, alert=False):
         i = diode.i(V)
         if i is None:
             if alert:
                 t.print(f"{2*g.ind}{t.err}No current for voltage {V} V")
             return
-        p = V*i
+        p, r = V*i, V/i
         sv = f"{V.engsi}V"
         si = f"{i.engsi}A"
         sp = f"{p.engsi}W"
+        sr = f"{r.engsi}Ω"
         t.print(f"{g.ind}{t.V}{sv:>{g.w}s}"
                 f"{g.ind}{t.i}{si:>{g.w}s}"
+                f"{g.ind}{t.R}{sr:>{g.w}s}"
                 f"{g.ind}{t.P}{sp:>{g.w}s}")
     def VoltageTable(diode):
         'Print a voltage table for the indicated diode instance'
@@ -509,10 +521,12 @@ if 1:   # Core functionality
             print(f"  {t.subtitle}{diode.note}")
         t.print(f"{g.ind}{t.i}{'Current':>{g.w}s}"
                 f"{g.ind}{t.V}{'Voltage':>{g.w}s}"
+                f"{g.ind}{t.R}{'Resistance':>{g.w}s}"
                 f"{g.ind}{t.P}{'Power':>{g.w}s}")
-        t.print(f"{g.ind}{t.i}{'-'*7:>{g.w}s}"
-                f"{g.ind}{t.V}{'-'*7:>{g.w}s}"
-                f"{g.ind}{t.P}{'-'*7:>{g.w}s}")
+        t.print(f"{g.ind}{t.i}{'-'*g.w:>{g.w}s}"
+                f"{g.ind}{t.V}{'-'*g.w:>{g.w}s}"
+                f"{g.ind}{t.R}{'-'*g.w:>{g.w}s}"
+                f"{g.ind}{t.P}{'-'*g.w:>{g.w}s}")
     def PrintCurrent(i, diode, alert=False):
         v = diode.V(i)
         if v is None:
@@ -520,11 +534,14 @@ if 1:   # Core functionality
                 t.print(f"{2*g.ind}{t.err}No voltage for current {i} A")
             return
         p = v*i
+        r = v/i
         sv = f"{v.engsi}V"
         si = f"{i.engsi}A"
         sp = f"{p.engsi}W"
+        sr = f"{r.engsi}Ω"
         t.print(f"{g.ind}{t.i}{si:>{g.w}s}"
                 f"{g.ind}{t.V}{sv:>{g.w}s}"
+                f"{g.ind}{t.R}{sr:>{g.w}s}"
                 f"{g.ind}{t.P}{sp:>{g.w}s}")
     def CurrentTable(diode):
         'Print a current table for the selected diode'
@@ -544,7 +561,7 @@ if __name__ == "__main__":
     d = {}      # Options dictionary
     args = ParseCommandLine(d)
     if d["-a"]:
-        if not args:
+        if not args or ((len(args[0]) == 1) and (args[0].lower() == "v")):
             # Print out details of all diodes
             for diode in diodes:
                 VoltageTable(diodes[diode])
