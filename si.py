@@ -32,6 +32,8 @@ if 1:   # Header
         from color import t
         from fmt import fmt
         from f import flt
+        from dpprint import PP
+        pp = PP()
         have_mpmath = False
         try:
             import mpmath as M
@@ -73,14 +75,12 @@ if 1:   # Utility
         return args
 if 1:   # Classes
     class SI(dict):
-        '''Class to present a bidict behavior for both SI prefix strings
-        and exponents.  Index as a dictionary with an SI prefix string and
-        you'll have the corresponding base 10 logarithm returned.  Call as
-        a function with an integer representing the base 10 logarithm of
-        the prefix and you'll have the corresponding prefix returned.
+        '''Class to present a bidict behavior for both SI prefix strings and exponents.  Index as
+        a dictionary with an SI prefix string and you'll have the corresponding base 10 logarithm
+        returned.  Call as a function with an integer representing the base 10 logarithm of the
+        prefix and you'll have the corresponding prefix returned.
      
-        An incorrect string or integer will result in a KeyError
-        exception.
+        An incorrect string or integer will result in a KeyError exception.
     
         Use pure=True in constructor to avoid the 'd c da h" prefixes.
         '''
@@ -160,12 +160,10 @@ if 1:   # Core functionality
         return e
     def GetSI(x, eng=False):
         '''
-        - Call with a single character string that is an SI prefix and
-          you'll have the corresponding power of 10 returned.  An
-          unrecognized SI string results in an exception.
+        - Call with a single character string that is an SI prefix and you'll have the
+          corresponding power of 10 returned.  An unrecognized SI string results in an exception.
      
-        - Call with a number (integer or float) and a tuple (x, t, p) will
-          be returned:
+        - Call with a number (integer or float) and a tuple (x, t, p) will be returned:
             x is the original number
             t is the number's significand (a number in the interval [1, 10)
             p is the appropriate SI prefix
@@ -174,13 +172,11 @@ if 1:   # Core functionality
      
           If x is in (1/1000, 1000), then (x, x, "") is returned.
      
-          If x is not within a factor of 1000 of
-          the largest or smallest SI prefix, then None is returned for t
-          and p.  The exception is when x is 0, in which case (x, 0, "")
-          will be returned.  If x is in (1/1000, 1000), then (x, x, "") is
-          returned if eng is True.
+          If x is not within a factor of 1000 of the largest or smallest SI prefix, then None is
+          returned for t and p.  The exception is when x is 0, in which case (x, 0, "") will be
+          returned.  If x is in (1/1000, 1000), then (x, x, "") is returned if eng is True.
      
-        If eng is True, then the prefixes d, c, da, and h are not allowed.
+          If eng is True, then the prefixes d, c, da, and h are not allowed.
         '''
         if ii(x, str):
             if not x:
@@ -219,6 +215,59 @@ if 1:   # Core functionality
             return (x, t, p)
         else:
             raise ValueError("x must be string, float (mpmath.mpf OK too), or integer")
+    def GetSISuffix(s, eng=False):
+        '''Return (s1, sisuffix) where s1 is the string s with the SI suffix sisuffix removed.
+        Leading and trailing whitespace are first removed from s.
+
+        If eng is True, then the prefixes d, c, da, and h are not allowed.
+
+        Examples:                                   Returns
+            GetSISuffix("")                         ("", "")
+            GetSISuffix("   ")                      ("", "")
+            GetSISuffix("wirhwua")                  ("wirhwu", "a")
+            GetSISuffix("wirhwuda")                 ("wirhwu", "da")
+            GetSISuffix("wirhwuda", eng=True)       ("wirhwuda", "")
+            GetSISuffix("wirhwux")                  ("wirhwux", "")
+        '''
+        s1 = s.strip()
+        if not s1:
+            return ("", "")
+        # We need 'da' to appear before 'a', so make our own prefix list
+        si = SI(pure=True)
+        prefixes = list(si.keys())
+        if not eng:
+            prefixes = ["da", "d", "c", "h"] + prefixes
+        si = SI(pure=eng)
+        for prefix in prefixes:
+            if s1.endswith(prefix):
+                return (s1[:-len(prefix)].strip(), prefix)
+        return (s1, "")
+    def NumberWithSISuffix(s, eng=False):
+        '''Return a flt form of the string s.  When s has an SI prefix as a suffix, include its
+        magnitude.  If eng is True, then the prefixes d, c, da, and h are not allowed.  If a
+        suitable flt form can't be returned, raise ValueError.
+        
+        The use case is scripts that request user input.  For example, when working with
+        capacitance, microfarads is a common unit and it's handy to let the user type in '10 u' or
+        '10u' to a prompt to indicate 10e-6 as a shorthand.  This also allows the shorthand 'u' to
+        mean '1u'.
+        
+        Examples:
+            - '1.2k' and '1.2 k' will return flt(1.2)*1000.
+            - 'k' and '   k   ' will return flt(1000).
+            - 'xyz' will raise an exception even though the last character is a valid SI prefix because
+              the conversion of 'xy' to flt will fail.
+        '''
+        sx, si = s.strip(), SI(pure=eng)
+        number, suffix = GetSISuffix(sx, eng=eng)
+        x = flt(number)
+        if suffix:
+            try:
+                x *= 10**si[suffix]
+            except IndexError:
+                msg = f"{suffix!r} is not a valid SI prefix"
+                raise ValueError(msg)
+        return x
     def PerformConversion(s):
         '''If the string s contains 'e', then convert to SI engineering notation.
         If it contains an SI prefix, convert it to 'e' notation.
@@ -302,7 +351,7 @@ if 1:   # Core functionality
         s = s[:-1]  # Remove prefix letter
         x = flt(s)*10**si[prefix]
         return x
-    def Testing():
+    def RunSelfTests():
         from lwtest import Assert, raises
         global si
         si = SI(pure=False)
@@ -402,13 +451,41 @@ if 1:   # Core functionality
             ):
             Assert(GetSignificantFigures(s, rtz=rtz) == n)
             Assert(GetSignificantFigures("-" + s, rtz=rtz) == n)
+        # Test GetSISuffix
+        Assert(GetSISuffix("") == ("", ""))
+        Assert(GetSISuffix("   ") == ("", ""))
+        Assert(GetSISuffix("  z") == ("", "z"))
+        Assert(GetSISuffix("  z   ") == ("", "z"))
+        Assert(GetSISuffix("309t5rz") == ("309t5r", "z"))
+        Assert(GetSISuffix("a") == ("", "a"))
+        Assert(GetSISuffix("yda") == ("y", "da"))
+        Assert(GetSISuffix("y d") == ("y", "d"))
+        Assert(GetSISuffix("K") == ("K", ""))
+        Assert(GetSISuffix("1.23k") == ("1.23", "k"))
+        Assert(GetSISuffix("1.23 k") == ("1.23", "k"))
+        Assert(GetSISuffix("±-1.23e-87k") == ("±-1.23e-87", "k"))
+        Assert(GetSISuffix("±-1.23e-87 k") == ("±-1.23e-87", "k"))
+        # Test NumberWithSISuffix
+        x = NumberWithSISuffix("1.2k")
+        Assert(x == 1200)
+        Assert(ii(x, flt))
+        Assert(NumberWithSISuffix("1.2 k") == 1200)
+        Assert(NumberWithSISuffix("1.2 d") == 0.12)
+        Assert(NumberWithSISuffix("1.2 da") == 12)
+        Assert(NumberWithSISuffix("  -1.2 k") == -1200)
+        raises(ValueError, NumberWithSISuffix, "")
+        raises(ValueError, NumberWithSISuffix, "  ")
+        raises(ValueError, NumberWithSISuffix, "xK")
+        raises(ValueError, NumberWithSISuffix, "1K")
+        raises(ValueError, NumberWithSISuffix, "1da", eng=True)
+        # Reset global variable
         si = SI(pure=True)
-    
+
 # Convenience instance 
 si = SI(pure=True)
 
 if __name__ == "__main__": 
-    Testing()
+    RunSelfTests()
     d = {}      # Options dictionary
     args = ParseCommandLine(d)
     if args:

@@ -144,8 +144,6 @@ if 1:   # Doc
         print(dedent(f'''
 
         This script shows the measured current versus voltage relationships of on-hand diodes.
-        This is helpful to design a voltage reference using a string of diodes and a resistor.
-
         Internally, the script uses your measured voltage/current relationships of the diodes you
         have on-hand.  Of course, it comes to you with the diodes that I have on-hand, but you'll
         want to measure you own diodes.  To do this, get a constant voltage DC power supply, put a
@@ -153,70 +151,34 @@ if 1:   # Doc
         and generate a set of data for that diode.  I recommend measuring the current over a wide
         range.
 
-        The script takes a command line argument of 'v' or 'i'.  For starting a design, use 'v',
-        as you'll get even voltage spacings for a diode's voltage.  When you need better
-        resolution, use 'i'.
+        Since the diodes' behaviors will be stochastic, even for an set of diodes from a single
+        manufacturing lot, the script's output is only an approximation, so you'll want to build,
+        test, and tune a particular exemplar.  Remember the diodes' behaviors will also be
+        temperature dependent:  a silicon diode has a temperature coefficient of about -2 mV/K.
 
-        Voltage/Current relationships
+        Example:  2 V reference
 
-            The 'v' or 'i' on the command line tells the script which variable is the independent
-            one.  This variable gets the "nice" intervals.  The script will handle nearly any
-            diode i-V relationship because it's a semilog relationship:  the current increases
-            exponentially with voltage.  The currents range over μA to A levels, but voltages will
-            typically be in the 0.1 to 3 V range.  Internally, you just type in the measured diode
-            i-V data and scipy's linear interpolation tool is used to generate the needed output.
-            The interpolation tool will raise an exception if an argument is outside the
-            interpolation table; this feature is used to ignore all input unless it's in the
-            tabel's range, letting the table handle small signal diodes to heavy power diodes.
+            I wanted a 2 V reference voltage in a circuit to provide an offset.  The voltage I'd
+            put across this diode resistor stack would be 13.5 V (a float battery charger for
+            lead-acid batteries).  A silicon PN junction diode has a voltage drop of about 0.6 V
+            to 0.7 V at 1 mA.  Thus, three of these diodes should give 1.8 V to 2 V at 1 mA.  Fine
+            tuning can be done by changing the series resistance.  (2 V)/3 is about 0.67 V, so run
+            the script with the argument 'v'.  You'll see 0.65 V for a 1N4148 diode (the default)
+            at 2.5 mA.  Thus, the design is three of these 1N4148 diodes across 13.5 V with a
+            suitable resistor, giving 1.95 V across the 3 diodes.  We can now use the script with
+            the 'i' argument to see better current resolution:  to get 2 V, we'd need a bit over
+            4.5 mA of current.  Run the script with 'i 0.0045' and the voltage will be 668 mV.
 
-        Voltage reference
+            The diode voltage is 3(0.668) = 2.004 V and the resistor needs to drop 13.5 - 2 or 
+            11.5 V.  With 4.5 mA of current, this is 11.5/4.5 kΩ or 2.5 kΩ.  I'd use my
+            on-hand resistors of 1 kΩ and 1.5 kΩ; the power is 50 mW, so a 1/4 W resistor is fine.
 
-            Since the script "knows" the voltage/current relationships of the diodes, it can be
-            used to "design" a voltage reference using a stack of diodes, an input Vcc voltage,
-            and a desired reference voltage.  The design method is a heuristic of starting with a
-            1 mA current, using the diode with the highest voltage drop at this current, using as
-            many of this diode type as necessary to get the desired voltage, then getting the next
-            highest voltage diode, using it if possible, etc.
-
-            Let's illustrate this method with a real-world example.  I wanted a 2 V reference
-            voltage in a circuit to provide an offset.  The voltage I'd put across this diode
-            resistor stack would be 13.5 V (a float battery charger for lead-acid batteries).  A
-            silicon PN junction diode has a voltage drop of about 0.6 V at 1 mA.  Thus, three of
-            these diodes would give 1.8 V at 1 mA.  We'd get 2 V by increasing the diode current
-            slightly.  (2 V)/3 is 667 mV and if you run this script with an argument of 'i', you'll see
-            the needed current is slightly over 4 mA.  In fact, the voltage is 0.4% low, so this
-            is a good design, as diode variations will likely be at least a few percent.  Thus,
-            the resistor needs to drop 13.5 - 2 or 11.5 V at 4 mA, which means the resistance must
-            be 11.5/4 kΩ or 2875 Ω.  I have a 2.72 kΩ resistor that would work.  The power is
-            (0.004²)2720 or 43 mW, so a 1/4 W resistor is fine.
-
-            But there's a better selection -- run the script with the arguments '-d LED5mm:yel i'
-            and you'll see a 2 V drop can be gotten with a current of about 6.5 mA with one diode.
-            A 5 mm red diode needs about 10 mA to get a 2 V drop -- and this was attractive to me,
-            as this red diode could also double as the power-on monitor for my project.
-            (11.5 V)/0.01 is 1150 Ω, so an on-hand 1.18 kΩ would work and the power dissipation is
-            about 1/8 W.
-
-
-        Supported diodes
-
-            These are the diodes that I have on-hand.  You'll want to change the list to the
-            diodes you use.
-
-            1N5817G Schottky 1 A 20 PIV
-            1N5818 Schottky 1 A 30 PIV
-            1N4148 300 mA 100 PIV
-            1N3600 200 mA 100 PIV
-            1N4004 1 A 400 PIV
-            1N4007 1 A 1000 PIV
-            3 mm LED:  yel, grn, red, blu, wht
-            5 mm LED:  yel, grn, red, blu, wht
-
-            Since the diodes' behaviors will be stochastic, even for an set of diodes from a
-            single manufacturing lot, the script's output is only an approximation.  You'll of
-            course want to build, test, and tune a particular exemplar.  Remember the diodes'
-            behaviors will also be temperature dependent.
-
+            However, I also need an LED on the front panel of this battery charger to show that
+            the power is on.  Run the script with the argument '-a' and you'll see the voltages
+            for all the diodes.  A 2 V drop can be gotten with a 6.2 mA current through a 3mm
+            yellow LED.  I chose this color because it wouldn't clash with the other 8 LEDs on the
+            charger's panel.  I'll have 5 V for the microprocessor, so it needs a series resistor
+            of 3/6.2 kΩ or 480 Ω.
 
         '''))
         exit(0)
@@ -562,7 +524,10 @@ if 1:   # Core functionality
 if __name__ == "__main__":
     d = {}      # Options dictionary
     args = ParseCommandLine(d)
-    if len(args) == 1:
+    if d["-a"] and not args:
+        for diode in diodes:
+            VoltageTable(diodes[diode])
+    elif len(args) == 1:
         if args[0].lower() == "v":
             func = VoltageTable
         elif args[0].lower() == "i":

@@ -1,5 +1,9 @@
 Active:  /plib/.todo
 
+    - pgm/diode.py
+        - Finish manpage with an example of constructing a voltage reference
+        - Allow cuddle SI prefixes for numbers
+
     - resistors.py
         - Needs to reflect current resistors:  1/4 W and 2 W
 
