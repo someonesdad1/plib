@@ -1,7 +1,6 @@
 '''
 
 ToDo
-    - Printout should include the diode's resistance
     - Allow a command like '-a i 2.7m' show the operating point for all diodes at 2.7 mA
     - Add a 'vr Vref Vcc' feature that designs a voltage ref Vref output for a given operating
       voltage Vcc.  Aim for operating currents from 1 to 10 mA.
@@ -579,7 +578,11 @@ if __name__ == "__main__":
                         D = diodes[diode]
                         try:
                             vs = f"{D.i(V).engsi}A"
-                            print(f"{ind}{D.name:{wn}s}{ind}{vs:>10s}")
+                            vp = f"{(V*D.i(V)).engsi}W"
+                            vr = f"{(V/D.i(V)).engsi}Ω"
+                            t.print(f"{ind}{D.name:{wn}s}{ind}{vs:>{g.w}s}"
+                                    f"{ind}{t.R}{vr:>{g.w}s}"
+                                    f"{ind}{t.P}{vp:>{g.w}s}")
                         except Exception:
                             print(f"{ind}{D.name:{wn}s}")
             elif args[0].lower() == "i":
@@ -589,8 +592,12 @@ if __name__ == "__main__":
                     for diode in diodes:
                         D = diodes[diode]
                         try:
-                            Is = f"{D.V(i).engsi}V"
-                            print(f"{ind}{D.name:{wn}s}{ind}{Is:>10s}")
+                            vs = f"{D.V(i).engsi}V"
+                            vp = f"{(i*D.V(i)).engsi}W"
+                            vr = f"{(D.V(i)/i).engsi}Ω"
+                            t.print(f"{ind}{D.name:{wn}s}{ind}{t.V}{vs:>{g.w}s}"
+                                    f"{ind}{t.R}{vr:>{g.w}s}"
+                                    f"{ind}{t.P}{vp:>{g.w}s}")
                         except Exception:
                             print(f"{ind}{D.name:{wn}s}")
             else:
