@@ -35,6 +35,7 @@ if 1:  # Header
         from dpprint import PP
         from transpose import Transpose
         from columnize import Columnize
+        import si
         if 0:
             import debug
             debug.SetDebugger()
@@ -49,6 +50,7 @@ if 1:  # Header
         pp = PP()
 if 1:   # Utility
     def GetColors():
+        t.err = t.redl
         t.i = t.sky
         t.V = t.trql
         t.P = t.yel
@@ -466,6 +468,7 @@ if 1:   # Core functionality
     def PrintVoltage(V, diode):
         i = diode.i(V)
         if i is None:
+            t.print(f"{2*g.ind}{t.err}No current for voltage {V} V")
             return
         p = V*i
         sv = f"{V.engsi}V"
@@ -499,6 +502,7 @@ if 1:   # Core functionality
     def PrintCurrent(i, diode):
         v = diode.V(i)
         if v is None:
+            t.print(f"{2*g.ind}{t.err}No voltage for current {i} A")
             return
         p = v*i
         sv = f"{v.engsi}V"
@@ -525,6 +529,7 @@ if __name__ == "__main__":
     d = {}      # Options dictionary
     args = ParseCommandLine(d)
     if d["-a"] and not args:
+        # Print out details of all diodes
         for diode in diodes:
             VoltageTable(diodes[diode])
     elif len(args) == 1:
@@ -542,8 +547,10 @@ if __name__ == "__main__":
         if args[0].lower() == "v":
             PrintVoltageHeader(diode)
             for V in args[1:]:
-                PrintVoltage(flt(V), diode)
+                v = si.NumberWithSISuffix(V)
+                PrintVoltage(v, diode)
         else:
             PrintCurrentHeader(diode)
-            for i in args[1:]:
-                PrintCurrent(flt(i), diode)
+            for I in args[1:]:
+                i = si.NumberWithSISuffix(I)
+                PrintCurrent(i, diode)

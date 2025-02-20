@@ -1,9 +1,4 @@
 '''
-ToDo
-    - GetSI:  add keyword 'strict' that when False allows prefixes like
-      'kk' to be appended to a number and interpreted as 'M'.  This is not
-      legal SI syntax, but could occasionally be useful.
-
 SI prefixes
 '''
 if 1:   # Header
@@ -21,58 +16,19 @@ if 1:   # Header
         #∞test∞# #∞test∞#
         pass
     if 1:   # Standard imports
-        import getopt
         import math
-        import os
-        import sys
-        from pathlib import Path as P
         from collections import deque
     if 1:   # Custom imports
-        from wrap import dedent
-        from color import t
         from fmt import fmt
         from f import flt
-        from dpprint import PP
-        pp = PP()
         have_mpmath = False
         try:
             import mpmath as M
             have_mpmath = True
         except ImportError:
             pass
-        if 0:
-            import debug
-            debug.SetDebugger()
     if 1:   # Global variables
         ii = isinstance
-        W = int(os.environ.get("COLUMNS", "80")) - 1
-        L = int(os.environ.get("LINES", "50"))
-if 1:   # Utility
-    def Error(*msg, status=1):
-        print(*msg, file=sys.stderr)
-        exit(status)
-    def Usage(status=1):
-        print(dedent(f'''
-        Usage:  {sys.argv[0]} [options] expr1 [expr2 ...]
-          Convert expressions to and from SI-prefix forms.  If no
-          expressions are given, print out a table of SI prefixes.
-        Options:
-            -t      Put tabs in the table output
-        '''))
-        exit(status)
-    def ParseCommandLine(d):
-        d["-t"] = False     # Tabs in printed table
-        try:
-            opts, args = getopt.getopt(sys.argv[1:], "ht") 
-        except getopt.GetoptError as e:
-            print(str(e))
-            exit(1)
-        for o, a in opts:
-            if o[1] in list("t"):
-                d[o] = not d[o]
-            if o == "-h":
-                Usage(0)
-        return args
 if 1:   # Classes
     class SI(dict):
         '''Class to present a bidict behavior for both SI prefix strings and exponents.  Index as
@@ -149,8 +105,8 @@ if 1:   # Classes
             return self.d[x]
 if 1:   # Core functionality
     def GetSIExponent(e: int):
-        '''Return None if not (-24 <= e <= 26).  Otherwise, return the nearest
-        integer that is a suitable exponent division by 3.
+        '''Return None if not (-24 <= e <= 26).  Otherwise, return the nearest integer that is a
+        suitable exponent division by 3.
         '''
         if not (-24 <= e <= 26):
             return None
@@ -218,9 +174,9 @@ if 1:   # Core functionality
     def GetSISuffix(s, eng=False):
         '''Return (s1, sisuffix) where s1 is the string s with the SI suffix sisuffix removed.
         Leading and trailing whitespace are first removed from s.
-
+        
         If eng is True, then the prefixes d, c, da, and h are not allowed.
-
+        
         Examples:                                   Returns
             GetSISuffix("")                         ("", "")
             GetSISuffix("   ")                      ("", "")
@@ -255,8 +211,8 @@ if 1:   # Core functionality
         Examples:
             - '1.2k' and '1.2 k' will return flt(1.2)*1000.
             - 'k' and '   k   ' will return flt(1000).
-            - 'xyz' will raise an exception even though the last character is a valid SI prefix because
-              the conversion of 'xy' to flt will fail.
+            - 'xyz' will raise an exception even though the last character is a valid SI prefix
+              because the conversion of 'xy' to flt will fail.
         '''
         sx, si = s.strip(), SI(pure=eng)
         number, suffix = GetSISuffix(sx, eng=eng)
@@ -351,141 +307,176 @@ if 1:   # Core functionality
         s = s[:-1]  # Remove prefix letter
         x = flt(s)*10**si[prefix]
         return x
-    def RunSelfTests():
-        from lwtest import Assert, raises
-        global si
-        si = SI(pure=False)
-        # float
-        a = 6.2
-        for e in range(-25, 28):
-            b = a*10**e
-            e1 = GetSIExponent(e)
-            expected_p = None
-            if e1 in si.values():
-                expected_p = si(e1)
-                correction = e - e1
-            if expected_p is not None:
-                x, t, p = GetSI(b)
-                Assert(p == expected_p)
-                Assert(correction in (0, 1, 2))
-                x1 = round(float(t), 2)
-                b1 = 10**correction*round(float(fmt.significand(t)), 2)
-                Assert(str(x1) == str(b1))
-            else:
-                if e < -24 or e > 25:
-                    Assert(GetSI(b) == (b, None, None))
-                elif 0 <= e < 3:
-                    Assert(GetSI(b) == (b, b, ""))
-                else:
-                    raise Exception("Bug")
-        # mpmath
-        a = M.mpf(6.2)
-        for e in range(-25, 28):
-            b = a*10**e
-            e1 = GetSIExponent(e)
-            expected_p = None
-            if e1 in si.values():
-                expected_p = si(e1)
-                correction = e - e1
-            if expected_p is not None:
-                x, t, p = GetSI(b)
-                Assert(p == expected_p)
-                Assert(correction in (0, 1, 2))
-                x1 = round(M.mpf(t), 2)
-                b1 = 10**correction*round(M.mpf(fmt.significand(t)), 2)
-                Assert(str(x1) == str(b1))
-            else:
-                if e < -24 or e > 25:
-                    Assert(GetSI(b) == (b, None, None))
-                elif 0 <= e < 3:
-                    Assert(GetSI(b) == (b, b, ""))
-                else:
-                    raise Exception("Bug")
-        # Prefixes
-        di = {
-            "": 0,
-            "d": -1,
-            "c": -2,
-            "m": -3,
-            "μ": -6,
-            "u": -6,
-            "n": -9,
-            "p": -12,
-            "f": -15,
-            "a": -18,
-            "z": -21,
-            "y": -24,
-            "r": -27,
-            "q": -30,
-            "da": 1,
-            "h": 2,
-            "k": 3,
-            "M": 6,
-            "G": 9,
-            "T": 12,
-            "P": 15,
-            "E": 18,
-            "Z": 21,
-            "Y": 24,
-            "R": 27,
-            "Q": 30,
-        }
-        for prefix in di:
-            expected = 10**di[prefix]
-            Assert(expected == GetSI(prefix, eng=False))
-        # Not allowed prefix when eng is True
-        for i in ("d", "c", "da", "h"):
-            raises(ValueError, GetSI, i, eng=True)
-        # GetSignificantFigures
-        for s, rtz, n in (
-            ("0", False, 1),
-            ("00", False, 1),
-            ("1", False, 1),
-            ("100", False, 3),
-            ("100", True, 1),
-            ("12.34", True, 4),
-            ("12.34k", True, 4),
-            ("12.340000", True, 4),
-            ("12.34e6", False, 4),
-            ("12.34×10⁶", False, 4),
-            ):
-            Assert(GetSignificantFigures(s, rtz=rtz) == n)
-            Assert(GetSignificantFigures("-" + s, rtz=rtz) == n)
-        # Test GetSISuffix
-        Assert(GetSISuffix("") == ("", ""))
-        Assert(GetSISuffix("   ") == ("", ""))
-        Assert(GetSISuffix("  z") == ("", "z"))
-        Assert(GetSISuffix("  z   ") == ("", "z"))
-        Assert(GetSISuffix("309t5rz") == ("309t5r", "z"))
-        Assert(GetSISuffix("a") == ("", "a"))
-        Assert(GetSISuffix("yda") == ("y", "da"))
-        Assert(GetSISuffix("y d") == ("y", "d"))
-        Assert(GetSISuffix("K") == ("K", ""))
-        Assert(GetSISuffix("1.23k") == ("1.23", "k"))
-        Assert(GetSISuffix("1.23 k") == ("1.23", "k"))
-        Assert(GetSISuffix("±-1.23e-87k") == ("±-1.23e-87", "k"))
-        Assert(GetSISuffix("±-1.23e-87 k") == ("±-1.23e-87", "k"))
-        # Test NumberWithSISuffix
-        x = NumberWithSISuffix("1.2k")
-        Assert(x == 1200)
-        Assert(ii(x, flt))
-        Assert(NumberWithSISuffix("1.2 k") == 1200)
-        Assert(NumberWithSISuffix("1.2 d") == 0.12)
-        Assert(NumberWithSISuffix("1.2 da") == 12)
-        Assert(NumberWithSISuffix("  -1.2 k") == -1200)
-        raises(ValueError, NumberWithSISuffix, "")
-        raises(ValueError, NumberWithSISuffix, "  ")
-        raises(ValueError, NumberWithSISuffix, "xK")
-        raises(ValueError, NumberWithSISuffix, "1K")
-        raises(ValueError, NumberWithSISuffix, "1da", eng=True)
-        # Reset global variable
-        si = SI(pure=True)
 
 # Convenience instance 
 si = SI(pure=True)
 
 if __name__ == "__main__": 
-    RunSelfTests()
+    import getopt
+    import sys
+    from lwtest import Assert, raises
+    from wrap import dedent
+    if 0:
+        import debug
+        debug.SetDebugger()
+    if 1:   # Utility
+        def Error(*msg, status=1):
+            print(*msg, file=sys.stderr)
+            exit(status)
+        def Usage(status=1):
+            print(dedent(f'''
+            Usage:  {sys.argv[0]} [options] expr1 [expr2 ...]
+              Convert expressions to and from SI-prefix forms.  If no
+              expressions are given, print out a table of SI prefixes.
+            Options:
+                -t      Put tabs in the table output
+            '''))
+            exit(status)
+        def ParseCommandLine(d):
+            d["-t"] = False     # Tabs in printed table
+            try:
+                opts, args = getopt.getopt(sys.argv[1:], "ht") 
+            except getopt.GetoptError as e:
+                print(str(e))
+                exit(1)
+            for o, a in opts:
+                if o[1] in list("t"):
+                    d[o] = not d[o]
+                if o == "-h":
+                    Usage(0)
+            return args
+    if 1:   # Tests
+        def RunSelfTests():
+            global si
+            si = SI(pure=False)
+            # float
+            a = 6.2
+            for e in range(-25, 28):
+                b = a*10**e
+                e1 = GetSIExponent(e)
+                expected_p = None
+                if e1 in si.values():
+                    expected_p = si(e1)
+                    correction = e - e1
+                if expected_p is not None:
+                    x, t, p = GetSI(b)
+                    Assert(p == expected_p)
+                    Assert(correction in (0, 1, 2))
+                    x1 = round(float(t), 2)
+                    b1 = 10**correction*round(float(fmt.significand(t)), 2)
+                    Assert(str(x1) == str(b1))
+                else:
+                    if e < -24 or e > 25:
+                        Assert(GetSI(b) == (b, None, None))
+                    elif 0 <= e < 3:
+                        Assert(GetSI(b) == (b, b, ""))
+                    else:
+                        raise Exception("Bug")
+            # mpmath
+            a = M.mpf(6.2)
+            for e in range(-25, 28):
+                b = a*10**e
+                e1 = GetSIExponent(e)
+                expected_p = None
+                if e1 in si.values():
+                    expected_p = si(e1)
+                    correction = e - e1
+                if expected_p is not None:
+                    x, t, p = GetSI(b)
+                    Assert(p == expected_p)
+                    Assert(correction in (0, 1, 2))
+                    x1 = round(M.mpf(t), 2)
+                    b1 = 10**correction*round(M.mpf(fmt.significand(t)), 2)
+                    Assert(str(x1) == str(b1))
+                else:
+                    if e < -24 or e > 25:
+                        Assert(GetSI(b) == (b, None, None))
+                    elif 0 <= e < 3:
+                        Assert(GetSI(b) == (b, b, ""))
+                    else:
+                        raise Exception("Bug")
+            # Prefixes
+            di = {
+                "": 0,
+                "d": -1,
+                "c": -2,
+                "m": -3,
+                "μ": -6,
+                "u": -6,
+                "n": -9,
+                "p": -12,
+                "f": -15,
+                "a": -18,
+                "z": -21,
+                "y": -24,
+                "r": -27,
+                "q": -30,
+                "da": 1,
+                "h": 2,
+                "k": 3,
+                "M": 6,
+                "G": 9,
+                "T": 12,
+                "P": 15,
+                "E": 18,
+                "Z": 21,
+                "Y": 24,
+                "R": 27,
+                "Q": 30,
+            }
+            for prefix in di:
+                expected = 10**di[prefix]
+                Assert(expected == GetSI(prefix, eng=False))
+            # Not allowed prefix when eng is True
+            for i in ("d", "c", "da", "h"):
+                raises(ValueError, GetSI, i, eng=True)
+            # GetSignificantFigures
+            for s, rtz, n in (
+                ("0", False, 1),
+                ("00", False, 1),
+                ("1", False, 1),
+                ("100", False, 3),
+                ("100", True, 1),
+                ("12.34", True, 4),
+                ("12.34k", True, 4),
+                ("12.340000", True, 4),
+                ("12.34e6", False, 4),
+                ("12.34×10⁶", False, 4),
+                ):
+                Assert(GetSignificantFigures(s, rtz=rtz) == n)
+                Assert(GetSignificantFigures("-" + s, rtz=rtz) == n)
+            # Test GetSISuffix
+            Assert(GetSISuffix("") == ("", ""))
+            Assert(GetSISuffix("   ") == ("", ""))
+            Assert(GetSISuffix("  z") == ("", "z"))
+            Assert(GetSISuffix("  z   ") == ("", "z"))
+            Assert(GetSISuffix("309t5rz") == ("309t5r", "z"))
+            Assert(GetSISuffix("a") == ("", "a"))
+            Assert(GetSISuffix("yda") == ("y", "da"))
+            Assert(GetSISuffix("y d") == ("y", "d"))
+            Assert(GetSISuffix("K") == ("K", ""))
+            Assert(GetSISuffix("1.23k") == ("1.23", "k"))
+            Assert(GetSISuffix("1.23 k") == ("1.23", "k"))
+            Assert(GetSISuffix("±-1.23e-87k") == ("±-1.23e-87", "k"))
+            Assert(GetSISuffix("±-1.23e-87 k") == ("±-1.23e-87", "k"))
+            # Test NumberWithSISuffix
+            x = NumberWithSISuffix("1.2k")
+            Assert(x == 1200)
+            Assert(ii(x, flt))
+            Assert(NumberWithSISuffix("1.2 k") == 1200)
+            Assert(NumberWithSISuffix("1.2 d") == 0.12)
+            Assert(NumberWithSISuffix("1.2 da") == 12)
+            Assert(NumberWithSISuffix("  -1.2 k") == -1200)
+            raises(ValueError, NumberWithSISuffix, "")
+            raises(ValueError, NumberWithSISuffix, "  ")
+            raises(ValueError, NumberWithSISuffix, "xK")
+            raises(ValueError, NumberWithSISuffix, "1K")
+            raises(ValueError, NumberWithSISuffix, "1da", eng=True)
+            # Reset global variable
+            si = SI(pure=True)
+    if 1:   # Run self tests
+        RunSelfTests()
+    # Script behavior
     d = {}      # Options dictionary
     args = ParseCommandLine(d)
     if args:
