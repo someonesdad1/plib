@@ -1,8 +1,8 @@
 '''
 
 ToDo
-    - Add a 'vr Vref Vcc' feature that designs a voltage ref Vref output for a given operating
-      voltage Vcc.  Aim for operating currents from 1 to 10 mA.
+    - Change the Vref calculation so it can use a root finding algorithm, as this will be much
+      more efficient
 
 This script prints out the measured voltage & current relationships of various diodes.
 '''
@@ -30,7 +30,7 @@ if 1:  # Header
         import sys
     if 1:   # Custom imports
         from f import flt
-        from math import log as ln, exp
+        from math import log as ln, exp, ceil
         from frange import frange
         from wrap import dedent
         from color import t
@@ -559,6 +559,18 @@ if 1:   # Core functionality
         for I in DI:
             PrintCurrent(flt(I)/1000, diode)
     def VoltageReference(args):
+        '''Find a set of diodes and resistors in series that give a desired output voltage Vref
+        when put across an given input voltage Vcc.  Limit the maximum current through the series
+        circuit to approximately 10 mA.  For Vref > 3 V, this will be done by putting blue LEDs
+        in series.  The minimum voltage is 0.1 V.
+
+        The algorithm is to start with a 1 μA current and increase the current until the selected
+        stack of diodes has the desired Vref reference voltage within a percent or two.
+
+        Test case:  Vcc = 10, Vref = 1:  solution = two series 1N4148 with a 11.3 kΩ resistor.  With an
+        actual Vcc of 10.007 V, the actual reference voltage was 0.9994 V with a 10.98 kΩ
+        resistance at 88 μA.
+        '''
         assert args[0].lower() == "vref"
         Vcc = si.NumberWithSISuffix(args[1])
         Vref = si.NumberWithSISuffix(args[2])
@@ -577,42 +589,59 @@ if 1:   # Core functionality
         elif 0.5 < Vref <= 0.71:
             Diodes = ["si1"]
         elif 0.71 < Vref <= 1.41:
-            Diodes = ["si1", "si1"]
+            Diodes = ["si1"]*2
         elif 1.41 < Vref <= 1.9:
-            Diodes = ["si1", "si1", "si1"]
-        elif 1.9 < Vref <= 2.02:
-            Diodes = ["grn5"]
-        elif 2.02 < Vref <= 2.65:
-            Diodes = ["grn5", "si1"]
+            Diodes = ["si1"]*3
+        elif 1.9 < Vref <= 2.65:
+            Diodes = ["si1"]*4
         elif 2.65 < Vref <= 3:
             Diodes = ["blu5"]
         elif 3 < Vref:
             # Use multiples of the blu/wht LEDs
-            n = math.ceil(Vref/3)
+            n = ceil(Vref/3)
             Diodes = ["blu5"]*n
         # Now we must find the current to run this set of diodes at to get the desired voltage
         # drop.  We'll start at 0.5 mA and go to 15 mA and we'll stop when we're within 1% of our
         # goal.
         low, high = flt(0.98), flt(1.02)
-        increment, i, found = flt(1.05), flt(0.0005), False
+        increment, i, found = flt(1.05), flt(1e-6), False
         while not found and i < 0.015:
             v = 0
             # Add up the voltage drops
             for diode in Diodes:
-                v += diodes[diode].V(i)
+                u = diodes[diode].V(i)
+                if u is None:
+                    # Increment the current and try again
+                    i *= increment
+                    continue
+                else:
+                    v += u
             Dbg(f"v = {v}  i = {i}  goal = {Vref}")
             # See if we're done
             if Vref*low <= v <= Vref*high:
                 found = True
                 Dbg(f"Found")
                 continue
-            # Increment the current and try again
-            i *= increment
+            else:
+                # Increment the current and try again
+                i *= increment
         if found:
+            ind = " "*2
+            t.print(f"{t.name}Voltage reference solution found:")
+            print(f"{ind}Vref = {Vref} V, Vcc = {Vcc} V")
             pct = 100*(v - Vref)/Vref
-            Dbg(f"Ratio = {Vref/v}, goal = {Vref}, got = {v}   {pct}%")
+            with pct:
+                pct.N = 2
+                t.print(f"{ind}Found solution within {t.P}{pct}%")
+            t.print(f"{ind}{t.i}Current = {i.engsi}A")
+            s = "" if len(Diodes) == 1 else "s"
+            t.print(f"{ind}Diode{s}:  {t.title}{' '.join(Diodes)}")
+            R = (Vcc - Vref)/i
+            t.print(f"{ind}{t.R}Needed series resistance = {R.engsi}Ω")
+        else:
+            print(f"No solution found:  Vref = {Vref.engsi}V, Vcc = {Vcc.engsi}V")
 
-if 1: #xx
+if 0: #xx
     GetColors()
     VoltageReference(["vref", "10", "0.15"]) 
     exit()
