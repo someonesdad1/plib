@@ -1,7 +1,6 @@
 '''
 
 ToDo
-    - Allow a command like '-a i 2.7m' show the operating point for all diodes at 2.7 mA
     - Add a 'vr Vref Vcc' feature that designs a voltage ref Vref output for a given operating
       voltage Vcc.  Aim for operating currents from 1 to 10 mA.
 
@@ -49,6 +48,7 @@ if 1:  # Header
             pass
         g = G()
         g.dbg = False
+        g.dbg = True
         g.w = 10
         g.ind = " "*4
         ii = isinstance
@@ -57,6 +57,7 @@ if 1:   # Utility
     def GetColors():
         t.always = True # Always use color
         t.err = t.redl
+        t.name = t.ornl
         t.i = t.lipl
         t.V = t.grnl
         t.R = t.sky
@@ -86,6 +87,8 @@ if 1:   # Utility
           for a single diode and linear interpolation.  Functionality defined by the op argument:
             v       Print the voltage/current table for the selected diode
             i       Print the current/voltage table for the selected diode
+            ref     Design a voltage reference:  value1 = Vcc, value2 = Vref, Vref > Vcc.
+                    The design will attempt to use currents in the 1 to 10 mA range.
           Additional values are i or v values evaluated at that value only.  Predicted values are
           approximate due to variations between diodes.
         Options:
@@ -475,7 +478,7 @@ if 1:   # Classes
     ConstructDiodeData()
 if 1:   # Core functionality
     def PrintVoltageHeader(diode):
-        t.print(f"{t.title}Voltage/current relationship for {diode.name} diode")
+        t.print(f"{t.title}Voltage/current relationship for {t.name}{diode.name}{t.title} diode")
         t.print(f"{t.subtitle}  Max current = {diode.i_max_A} A, PIV = {diode.PIV}")
         if diode.note:
             t.print(f"  {t.subtitle}{diode.note}")
@@ -555,12 +558,70 @@ if 1:   # Core functionality
         PrintCurrentHeader(diode)
         for I in DI:
             PrintCurrent(flt(I)/1000, diode)
+    def VoltageReference(args):
+        assert args[0].lower() == "vref"
+        Vcc = si.NumberWithSISuffix(args[1])
+        Vref = si.NumberWithSISuffix(args[2])
+        if Vcc <= Vref:
+            Error("Vcc must be > Vref")
+        if Vcc <= 0:
+            Error("Vcc must be > 0")
+        if Vref <= 0:
+            Error("Vref must be > 0")
+        if 0.1 <= Vref <= 0.183:
+            Diodes = ["1N5817G"]
+        elif 0.183 < Vref <= 0.223:
+            Diodes = ["1N5818"]
+        elif 0.223 < Vref <= 0.5:
+            Diodes = ["1N5818", "1N5818"]
+        elif 0.5 < Vref <= 0.71:
+            Diodes = ["si1"]
+        elif 0.71 < Vref <= 1.41:
+            Diodes = ["si1", "si1"]
+        elif 1.41 < Vref <= 1.9:
+            Diodes = ["si1", "si1", "si1"]
+        elif 1.9 < Vref <= 2.02:
+            Diodes = ["grn5"]
+        elif 2.02 < Vref <= 2.65:
+            Diodes = ["grn5", "si1"]
+        elif 2.65 < Vref <= 3:
+            Diodes = ["blu5"]
+        elif 3 < Vref:
+            # Use multiples of the blu/wht LEDs
+            n = math.ceil(Vref/3)
+            Diodes = ["blu5"]*n
+        # Now we must find the current to run this set of diodes at to get the desired voltage
+        # drop.  We'll start at 0.5 mA and go to 15 mA and we'll stop when we're within 1% of our
+        # goal.
+        low, high = flt(0.98), flt(1.02)
+        increment, i, found = flt(1.05), flt(0.0005), False
+        while not found and i < 0.015:
+            v = 0
+            # Add up the voltage drops
+            for diode in Diodes:
+                v += diodes[diode].V(i)
+            Dbg(f"v = {v}  i = {i}  goal = {Vref}")
+            # See if we're done
+            if Vref*low <= v <= Vref*high:
+                found = True
+                Dbg(f"Found")
+                continue
+            # Increment the current and try again
+            i *= increment
+        if found:
+            pct = 100*(v - Vref)/Vref
+            Dbg(f"Ratio = {Vref/v}, goal = {Vref}, got = {v}   {pct}%")
+
+if 1: #xx
+    GetColors()
+    VoltageReference(["vref", "10", "0.15"]) 
+    exit()
 
 if __name__ == "__main__":
     d = {}      # Options dictionary
     args = ParseCommandLine(d)
     if d["-a"]:
-        if not args or ((len(args[0]) == 1) and (args[0].lower() == "v")):
+        if not args or ((len(args) == 1) and (args[0].lower() == "v")):
             # Print out details of all diodes
             for diode in diodes:
                 VoltageTable(diodes[diode])
@@ -602,6 +663,8 @@ if __name__ == "__main__":
                             print(f"{ind}{D.name:{wn}s}")
             else:
                 Error(f"{args[0]!r} not recognized")
+    elif len(args) == 3 and args[0].lower() == "vref":
+        VoltageReference(args)
     elif len(args) == 1:
         if args[0].lower() == "v":
             func = VoltageTable
