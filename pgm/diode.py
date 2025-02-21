@@ -1,8 +1,8 @@
 '''
 
 ToDo
-    - Change the Vref calculation so it can use a root finding algorithm, as this will be much
-      more efficient
+    - Change the Vref calculation so it can use a root finding algorithm, as this will be more
+      efficient
 
 This script prints out the measured voltage & current relationships of various diodes.
 '''
@@ -29,6 +29,7 @@ if 1:  # Header
         import re
         import sys
     if 1:   # Custom imports
+        import root     # Use for finding roots of equations
         from f import flt
         from math import log as ln, exp, ceil
         from frange import frange
@@ -40,7 +41,7 @@ if 1:  # Header
         from transpose import Transpose
         from columnize import Columnize
         import si
-        if 0:
+        if 1:
             import debug
             debug.SetDebugger()
     if 1:   # Global variables
@@ -87,7 +88,7 @@ if 1:   # Utility
           for a single diode and linear interpolation.  Functionality defined by the op argument:
             v       Print the voltage/current table for the selected diode
             i       Print the current/voltage table for the selected diode
-            ref     Design a voltage reference:  value1 = Vcc, value2 = Vref, Vref > Vcc.
+            vref    Design a voltage reference:  value1 = Vcc, value2 = Vref, Vref > Vcc.
                     The design will attempt to use currents in the 1 to 10 mA range.
           Additional values are i or v values evaluated at that value only.  Predicted values are
           approximate due to variations between diodes.
@@ -261,6 +262,64 @@ if 1:   # Classes
                 return min(self.V_V)
     diodes = {}
     def ConstructDiodeData():
+        '''In Feb 2025 I systematically measured a number of diodes.  My Aneng 870 was used to
+        measure the diode's current, an Aneng 8009 was used to measure the voltage across the
+        diode, and an HP E3615A power supply was used to supply the needed voltage.  An EDFM
+        resistance box was used to provide a series resistance, as this is a great convenience in
+        making such measurements as you can dynamically adjust the resistance while making the
+        measurements.  
+
+        Starting off at 1 μA usually requires a 1 to 10 MΩ resistance, as this gives the necessary
+        adjustability with the HP supply's 10-turn pot to set the current to the exact value to
+        the nearest 10 nA.  I usually find the supply is outputting in the 5-12 V range.  I
+        usually set the current limit to about 10 mA to avoid damaging the LED or the resistance
+        box.  
+
+        When adjusting to higher currents, I'll drop the resistance by a factor of 10.  Sometimes
+        this means I can't adjust the voltage control closely enough to get the desired value, so
+        a quick press of the resistance box button increases the resistance by 5 times.  Now it's
+        easy to adjust.  I got this box in 2021 for a bit less than $200 and it has proven its
+        worth over and over again.  Though I'd much rather have an equivalent GR resistance box,
+        the GR resistance boxes are either too hard to find, too expensive, or the new clones from
+        IET are far outside my hobbyist budget.
+
+        At higher currents I have to be careful not to exceed the resistance box resistors' rating
+        of 1 W.  When the series resistor gets in the neighborhood of 1 kΩ and the current is 1 mA
+        or more, I'll do the power arithmetic in my head or grab a calculator if needed to make
+        sure the resistor power dissipation isn't too high.  When I get in the neighborhood of 10
+        mA, I usually just short out the resistance box and adjust the current with the HP
+        supply's 10-turn current knob.  This would be a much easier task with e.g. a computerized
+        source/measure unit, but until my pockets are lined with gold I'll have to do it the
+        old-fashioned manual way.  It's still worth the time, as having these i-V curves on-hand
+        has proven very useful.
+
+        The blue LEDs that I use can easily be run at 100 mA and they get slightly warm to the
+        touch, as they are dissipating around 0.37 W.  This part of the i(V) curve is very steep
+        and it's difficult to set the current to better than a percent or two.  The HP power
+        supply has a pushbutton to display the current limit and this is extremely useful in such
+        testing, as I set it just beyond where I want to go.  At 100 mA for a few minutes will
+        cause the current to start dropping.  Continual running at this current (at one point to
+        110 mA) caused eventual failure of the LED, so I'd label 50 mA as the maximum I would
+        ever run these LEDs.
+
+        Pleasantly, the set current values can be repeated to 3 figures and the measured voltages
+        are the same, so these are trustworthy numbers with unknown but relatively small
+        uncertainty and the variations in the script's predictions will come from the ensemble
+        diode variations.  Still, I've been a bit surprised by how well this ad hoc voltage
+        reference tool works.
+
+        Since the silicon diode has a temperature coefficient of a measured -2.1 mV/K (sample size
+        of one 1N4148 in my garage with a 13 K temperature difference from room temperature), a
+        10 K temperature change means a -20 mV voltage change.  This script was written to help
+        with my battery charger project and the diode string was used for a 2.0 V reference, so
+        the change in reference voltage for a 10 K change from room temperature means the
+        reference voltage will be 0.02 V higher, a 1% change.  This reference voltage was used as
+        a measurement offset into an op amp and this was biasing a 0.1 voltage divider, meaning
+        the offset voltage for a battery voltage measurement would increase by 0.2 V.  The system
+        is run by an Arduino that has access to a real time clock module that can also measure
+        ambient temperature, so these diode temperature offsets are corrected for in the software.
+
+        '''
         if 1:   # 1N4148
             # Raw data in mV and mA
             V_V = [flt(i)/1000 for i in (260, 320, 360, 400, 450, 500, 550, 600, 650, 700, 750, 800, 850, 900)]
@@ -346,6 +405,7 @@ if 1:   # Classes
                 25      2.15     2.92     2.10     3.19     3.21
                 30      2.16     2.98     2.13     3.25     3.26''')
             # Generate a nested list
+            # For blu, see next section's more detailed measurements
             m = []
             for line in data.split("\n"):
                 row = [flt(i) for i in line.split()]
@@ -354,15 +414,48 @@ if 1:   # Classes
             i_A = [flt(i/1000) for i in mt[0]]      # Current
             V_V_yel = [flt(i) for i in mt[1]]       # yel voltage
             V_V_grn = [flt(i) for i in mt[2]]       # grn voltage
+           #V_V_blu = [flt(i) for i in mt[4]]       # blu voltage
             V_V_red = [flt(i) for i in mt[3]]       # red voltage
-            V_V_blu = [flt(i) for i in mt[4]]       # blu voltage
             V_V_wht = [flt(i) for i in mt[5]]       # wht voltage
             i_max, PIV = 0.05, 20
             name = "yel5"; diodes[name] = Diode(name, i_max, PIV, V_V_yel, i_A)
             name = "grn5"; diodes[name] = Diode(name, i_max, PIV, V_V_grn, i_A)
             name = "red5"; diodes[name] = Diode(name, i_max, PIV, V_V_red, i_A)
-            name = "blu5"; diodes[name] = Diode(name, i_max, PIV, V_V_blu, i_A)
+            #name = "blu5"; diodes[name] = Diode(name, i_max, PIV, V_V_blu, i_A)
             name = "wht5"; diodes[name] = Diode(name, i_max, PIV, V_V_wht, i_A)
+        if 1:   # 5 mm blue LED
+            # Measured 21 Feb 2025:  Aneng 870 for i, Aneng 8009 for V
+            # Columns:  i in mA, V in V
+            # Interestingly, I can see blue light from the LED at 1 μA of current -- and
+            # connecting the 8009 voltmeter changed the current by about 40 nA.
+            data = dedent('''
+                0.001   2.275
+                0.002   2.337
+                0.005   2.401
+                0.01    2.441
+                0.02    2.475
+                0.05    2.521
+                0.1     2.554
+                0.2     2.587
+                0.5     2.637
+                1       2.687
+                2       2.759
+                5       2.902
+                10      3.074
+                20      3.281
+                50      3.535
+                100     3.756
+                ''')
+            # Generate a nested list
+            m = []
+            for line in data.split("\n"):
+                row = [flt(i) for i in line.split()]
+                m.append(row)
+            mt = Transpose(m)
+            i_A = [flt(i/1000) for i in mt[0]]      # Current
+            V_V_blu = [flt(i) for i in mt[1]]       # blu voltage
+            name = "blu5"; diodes[name] = Diode(name, i_max, PIV, V_V_blu, i_A)
+
         if 1:   # 1N5817G Schottky
             # Columns:  voltage in mV, current in mA
             data = dedent('''
@@ -563,10 +656,10 @@ if 1:   # Core functionality
         when put across an given input voltage Vcc.  Limit the maximum current through the series
         circuit to approximately 10 mA.  For Vref > 3 V, this will be done by putting blue LEDs
         in series.  The minimum voltage is 0.1 V.
-
+        
         The algorithm is to start with a 1 μA current and increase the current until the selected
         stack of diodes has the desired Vref reference voltage within a percent or two.
-
+        
         Test case:  Vcc = 10, Vref = 1:  solution = two series 1N4148 with a 11.3 kΩ resistor.  With an
         actual Vcc of 10.007 V, the actual reference voltage was 0.9994 V with a 10.98 kΩ
         resistance at 88 μA.
@@ -603,48 +696,93 @@ if 1:   # Core functionality
         # Now we must find the current to run this set of diodes at to get the desired voltage
         # drop.  We'll start at 0.5 mA and go to 15 mA and we'll stop when we're within 1% of our
         # goal.
-        low, high = flt(0.98), flt(1.02)
-        increment, i, found = flt(1.05), flt(1e-6), False
-        while not found and i < 0.015:
-            v = 0
-            # Add up the voltage drops
-            for diode in Diodes:
-                u = diodes[diode].V(i)
-                if u is None:
-                    # Increment the current and try again
-                    i *= increment
+        if 0:   # Iterative approach
+            low, high = flt(0.98), flt(1.02)
+            increment, i, found = flt(1.05), flt(1e-6), False
+            while not found and i < 0.015:
+                v = 0
+                # Add up the voltage drops
+                for diode in Diodes:
+                    u = diodes[diode].V(i)
+                    if u is None:
+                        # Increment the current and try again
+                        i *= increment
+                        continue
+                    else:
+                        v += u
+                Dbg(f"v = {v}  i = {i}  goal = {Vref}")
+                # See if we're done
+                if Vref*low <= v <= Vref*high:
+                    found = True
+                    Dbg(f"Found")
                     continue
                 else:
-                    v += u
-            Dbg(f"v = {v}  i = {i}  goal = {Vref}")
-            # See if we're done
-            if Vref*low <= v <= Vref*high:
-                found = True
-                Dbg(f"Found")
-                continue
-            else:
-                # Increment the current and try again
-                i *= increment
-        if found:
-            ind = " "*2
-            t.print(f"{t.name}Voltage reference solution found:")
-            print(f"{ind}Vref = {Vref} V, Vcc = {Vcc} V")
-            pct = 100*(v - Vref)/Vref
-            with pct:
-                pct.N = 2
-                t.print(f"{ind}Found solution within {t.P}{pct}%")
-            t.print(f"{ind}{t.i}Current = {i.engsi}A")
-            s = "" if len(Diodes) == 1 else "s"
-            t.print(f"{ind}Diode{s}:  {t.title}{' '.join(Diodes)}")
-            R = (Vcc - Vref)/i
-            t.print(f"{ind}{t.R}Needed series resistance = {R.engsi}Ω")
-        else:
-            print(f"No solution found:  Vref = {Vref.engsi}V, Vcc = {Vcc.engsi}V")
+                    # Increment the current and try again
+                    i *= increment
+            if 0 and found:
+                ind = " "*2
+                t.print(f"{t.name}Voltage reference solution found:")
+                print(f"{ind}Vref = {Vref} V, Vcc = {Vcc} V")
+                pct = 100*(v - Vref)/Vref
+                with pct:
+                    pct.N = 2
+                    t.print(f"{ind}Found solution within {t.P}{pct}%")
+                t.print(f"{ind}{t.i}Current = {i.engsi}A")
+                s = "" if len(Diodes) == 1 else "s"
+                t.print(f"{ind}Diode{s}:  {t.title}{' '.join(Diodes)}")
+                R = (Vcc - Vref)/i
+                t.print(f"{ind}{t.R}Needed series resistance = {R.engsi}Ω")
+            if not found:
+                print(f"No solution found:  Vref = {Vref.engsi}V, Vcc = {Vcc.engsi}V")
+                return
+        else:   # Use a rootfinder
+            # Approach using a rootfinder.  f is a closure that is a function of current in A that
+            # will return the voltage of a stack of diodes minus the Vref value.  Thus, its root
+            # is the current we desire.
+            f = GetVrefFunction(Diodes, Vref)
+            ilow = max(diodes[i].imin for i in Diodes)
+            ihigh = min(diodes[i].imax for i in Diodes)
+            try:
+                stream = sys.stdout if 0 else None
+                eps = 1e-3  # Relative change in root to stop
+                i, num_iterations = root.Crenshaw(ilow, ihigh, f, eps=eps, dbg=stream)
+                # Get the voltage drop across the diodes
+                v = 0
+                for diode in Diodes:
+                    v += diodes[diode].V(i)
+            except root.NoConvergence as e:
+                print(f"No solution found:  Vref = {Vref.engsi}V, Vcc = {Vcc.engsi}V")
+        # Print report
+        ind = " "*2
+        t.print(f"{t.name}Voltage reference solution found:")
+        print(f"{ind}Vref = {Vref} V, Vcc = {Vcc} V")
+        pct = 100*(v - Vref)/Vref
+        with pct:
+            pct.N = 2
+            t.print(f"{ind}Found solution within {t.P}{pct}%")
+        t.print(f"{ind}{t.i}Current = {i.engsi}A")
+        s = "" if len(Diodes) == 1 else "s"
+        t.print(f"{ind}Diode{s}:  {t.title}{' '.join(Diodes)}")
+        R = (Vcc - Vref)/i
+        t.print(f"{ind}{t.R}Needed series resistance = {R.engsi}Ω")
+    def GetVrefFunction(set_of_diodes, Vref):
+        '''Return a function of current i in A that a root finder can use to find the current that
+        gives the diode stack operating point such that the sum of the diodes' drops is Vref.
+        Note f is a closure, which is needed to remember our two arguments when f is called later
+        by a root finder.
 
-if 0: #xx
-    GetColors()
-    VoltageReference(["vref", "10", "0.15"]) 
-    exit()
+        set_of_diodes   List of diode name strings (the Diode instances are in diodes[name])
+        Vref            A flt containing the desired voltage reference in V
+        '''
+        def f(i):
+            nonlocal set_of_diodes, Vref    # Get GetVrefFunction's local variables
+            global diodes                   # A dict containing Diode class instances
+            V = 0       # Sum of voltages across a group of diodes in series
+            for diode_ID in set_of_diodes:
+                V += diodes[diode_ID].V(i)
+            #t.print(f"{t.dbg}Vref = {Vref}, V = {V}, Vref - V = {Vref - V}")
+            return V - Vref     # The desired current will be such that V - Vref is zero
+        return f
 
 if __name__ == "__main__":
     d = {}      # Options dictionary

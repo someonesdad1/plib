@@ -1,8 +1,16 @@
 Active:  /plib/.todo
 
+    - root.py
+        - Why are RootFinder and Crenshaw present?  RootFinder is Jack's algorithm, so is the
+          Crenshaw function obsolete?  
+            - I'd like RootFinder to be the general purpose tool.  It should have a dbgstream
+              argument to let you see convergence like Crenshaw does.
+        - This was written before closures existed in python, but it should be rewritten to take
+          advantage of them.  Example is GetVrefFunction() in pgm/diode.py which returns a closure
+          to use by the rootfinder.
+
     - pgm/diode.py
-        - Finish manpage with an example of constructing a voltage reference
-        - Allow cuddle SI prefixes for numbers
+        - Use rootfinder instead of iteration
 
     - resistors.py
         - Needs to reflect current resistors:  1/4 W and 2 W

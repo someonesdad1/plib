@@ -1,19 +1,32 @@
 '''
+
+TODO
+    - This stuff was written before closures existed in python.  Show how they can be used for
+      root finding duties.  Note that the args/kw arguments are probably more general, as their
+      form/values could change during iteration.
+    - Look at Crenshaw and RootFinder and keep one of them, as they sound like they are very
+      similar.  I'd like my general purpose rootfinding method to be named after Jack.
+        - I want the general routine to have a debug stream to see convergence
+            - Use colors in the debug stream
+        - Use flt as the general purpose floating point type
+
 Root Finding Routines
+
     The following functions find real roots of functions.  You can call them using e.g. mpmath
-    numbers and find roots to arbitrary precision.  The functions QuadraticEquation, CubicEquation,
-    and QuarticEquation use functions from the math and cmath library, so they can't be used with
-    other floating point implementations.
+    numbers and find roots to arbitrary precision.  The functions QuadraticEquation,
+    CubicEquation, and QuarticEquation use functions from the math and cmath library, so they
+    can't be used with other floating point implementations.
  
     The fp keyword arguments let you perform these root-finding calculations with any floating
-    point type that can convert strings like "1.5" to a floating point number.  Python's float type
-    is the default.
+    point type that can convert strings like "1.5" to a floating point number.  Python's float
+    type is the default.
  
-    The following "prototypes" may be abbreviated; see the actual function definitions for details.
+    The following "prototypes" may be abbreviated; see the actual function definitions for
+    details.
  
     Bisection(x1, x2, f)
-        Finds a root by bisection.  Slow, but guaranteed to find the root if the root is bracketed
-        in [x1, x2].
+        Finds a root by bisection.  Slow, but guaranteed to find the root if the root is
+        bracketed in [x1, x2].
  
     Note:  Crenshaw, RootFinder, Brent, and kbrent are all forms of Brent's algorithm, but have
     different source code.  From my testing they behave quite similarly, but Jack Crenshaw's
@@ -22,78 +35,78 @@ Root Finding Routines
  
     Crenshaw(x1, x3, f)
         This is a slightly updated form of the translation of Jack Crenshaw's C code in the
-        RootFinder routine.  It includes a keyword to show progress to a stream so you can watch
-        convergence and it uses slightly better convergence criteria on both x and y so that
-        sometimes it takes one less iteration.  
+        RootFinder routine.  It includes a keyword to show progress to a stream so you can
+        watch convergence and it uses slightly better convergence criteria on both x and y so
+        that sometimes it takes one less iteration.  
  
     RootFinder(x0, x2, f)
         Finds a root with quadratic convergence that lies between x0 and x2.  x0 and x2 must
-        bracket the root.  The function whose root is being found is f(x).  The root is found when
-        successive estimates differ by less than eps.  The routine will raise an exception if the
-        number of iterations exceeds itmax.  The returned value is the root.
+        bracket the root.  The function whose root is being found is f(x).  The root is found
+        when successive estimates differ by less than eps.  The routine will raise an exception
+        if the number of iterations exceeds itmax.  The returned value is the root.
  
     Brent(x1, x2, f)
-        Brent's method.  The root must be bracketed in [x1, x2].  Uses a combination of bisection
-        and inverse quadratic interpolation.  Translated from the C algorithm in "Numerical
-        Recipes".
+        Brent's method.  The root must be bracketed in [x1, x2].  Uses a combination of
+        bisection and inverse quadratic interpolation.  Translated from the C algorithm in
+        "Numerical Recipes".
  
     kbrent(a, b, f)
         Another form of Brent's method from Kiusalaas, "Numerical Methods in Engineering with
         Python".
  
     Ostrowski(x0, f, deriv)
-        An improved form of Newton's method which uses another evaluation of the function f(x) in
-        each iteration to get fourth-order convergence.
+        An improved form of Newton's method which uses another evaluation of the function f(x)
+        in each iteration to get fourth-order convergence.
  
     FindRoots(f, n, x1, x2)
-        This is a general-purpose root finding routine.  It uses SearchIntervalForRoots to divide
-        the interval [x1, x2] into n intervals and look for roots in each subinterval by sign
-        changes.  If a subinterval has a root, the RootFinder routine is used to find the root to
-        precision eps.  If more than itmax iterations are used in any interval, an exception is
-        raised.  Returns a tuple of the roots found.
+        This is a general-purpose root finding routine.  It uses SearchIntervalForRoots to
+        divide the interval [x1, x2] into n intervals and look for roots in each subinterval by
+        sign changes.  If a subinterval has a root, the RootFinder routine is used to find the
+        root to precision eps.  If more than itmax iterations are used in any interval, an
+        exception is raised.  Returns a tuple of the roots found.
  
     Pound(x)
-        Utility function to reduce complex numbers with small real or imaginary components to pure
-        imaginary or pure real numbers, respectively.
+        Utility function to reduce complex numbers with small real or imaginary components to
+        pure imaginary or pure real numbers, respectively.
  
     Ridders(f, a, b)
-        Finds a root via Ridder's method if the root is bracketed.  Converges quadratically with
-        two function evaluations per iteration.
+        Finds a root via Ridder's method if the root is bracketed.  Converges quadratically
+        with two function evaluations per iteration.
  
     NewtonRaphson(f, fd, x)
         Quadratically-converging root-finding method; you need to supply the function f, its
         derivative fd, and an initial guess x.
  
     SearchIntervalForRoots(f, n, x1, x2)
-        Given a function f of one variable, divide the interval [x1, x2] into n subintervals and
-        determine if the function crosses the x axis in each subinterval.  Return a tuple of the
-        intervals where there is a zero crossing (i.e., there's at least one root in each intervale
-        in the tuple).
+        Given a function f of one variable, divide the interval [x1, x2] into n subintervals
+        and determine if the function crosses the x axis in each subinterval.  Return a tuple
+        of the intervals where there is a zero crossing (i.e., there's at least one root in
+        each intervale in the tuple).
  
     BracketRoots(f, x1, x2):
         Expands an interval geometrically until a root is bracketed or the number of iterations
-        exceed itmax.  Returns (a, b) where a and b bracket the root.  An exception is raised if
-        too many iterations are used.
+        exceed itmax.  Returns (a, b) where a and b bracket the root.  An exception is raised
+        if too many iterations are used.
  
-    The following functions find real and complex roots and use the math library, so are only for
-    calculations with floats.  If adjust is True, any root where Im/Re < epsilon is converted to a
-    real root.  epsilon is a global variable.  Set adjust to False, to have the roots returned as
-    complex numbers.
+    The following functions find real and complex roots and use the math library, so are only
+    for calculations with floats.  If adjust is True, any root where Im/Re < epsilon is
+    converted to a real root.  epsilon is a global variable.  Set adjust to False, to have the
+    roots returned as complex numbers.
  
     QuadraticEquation(a, b, c, adjust=True)
-        Returns the two roots of a*x**2 + b*x + c = 0.  If adjust is true, any root where Im/Re <
-        eps is converted to a real root.  Set adjust to zero to have all roots returned as complex
-        numbers.
- 
-    CubicEquation(a, b, c, d, adjust=True)
-        Returns the three roots of a*x**3 + b*x**2 + c*x + d = 0.  If adjust is true, any root where
-        Im/Re < eps is converted to a real root.  Set adjust to zero to have all roots returned as
+        Returns the two roots of a*x**2 + b*x + c = 0.  If adjust is true, any root where Im/Re
+        < eps is converted to a real root.  Set adjust to zero to have all roots returned as
         complex numbers.
  
-    QuarticEquation(a, b, c, d, e, adjust=True)
-        Returns the four roots of a*x**4 + b*x**3 + c*x**2 + d*x + e = 0.  If adjust is true, any root
+    CubicEquation(a, b, c, d, adjust=True)
+        Returns the three roots of a*x**3 + b*x**2 + c*x + d = 0.  If adjust is true, any root
         where Im/Re < eps is converted to a real root.  Set adjust to zero to have all roots
         returned as complex numbers.
+ 
+    QuarticEquation(a, b, c, d, e, adjust=True)
+        Returns the four roots of a*x**4 + b*x**3 + c*x**2 + d*x + e = 0.  If adjust is true,
+        any root where Im/Re < eps is converted to a real root.  Set adjust to zero to have all
+        roots returned as complex numbers.
 '''
 if 1:  # Copyright, license
     # These "trigger strings" can be managed with trigger.py
@@ -137,30 +150,174 @@ if 1:   # Global variables
     '''.split()]
     ITMAX = 100     # Default maximum number of iterations
  
-    # Ratio of imag/real to decide when something is a real root (or
-    # real/imag to decide when something is pure imaginary).  Also used as
-    # the default tolerance for root finding.  It's a string because
-    # it will be converted to a floating point type inside the function
-    # it's used in (some of the functions can allow other numerical types
-    # besides floating point).
+    # Ratio of imag/real to decide when something is a real root (or real/imag to decide when
+    # something is pure imaginary).  Also used as the default tolerance for root finding.  It's
+    # a string because it will be converted to a floating point type inside the function it's
+    # used in (some of the functions can allow other numerical types besides floating point).
     epsilon = "2.5e-15"
-     
-    # Default relative tolerance for root finding.  I've set it to 1e-6.
-    # It is rare in working with practical stuff to need higher precisions
-    # because the problem's solution is probably limited by the
-    # uncertainties in measured parameters -- and it's rare to have more
-    # than 6 figures for measurements.
+
+    # Default relative tolerance for root finding.  I've set it to 1e-6.  It is rare in working
+    # with practical stuff to need higher precisions because the problem's solution is probably
+    # limited by the uncertainties in measured parameters -- and it's rare to have more than 6
+    # figures for measurements.
     eps0 = 1e-6
+
 class NoConvergence(Exception):
     pass
-def FindRoots(f, n, x1, x2, eps=eps0, itmax=ITMAX, fp=float, args=[], kw={}):
-    '''This is a general-purpose root finding routine that returns a tuple of the roots found of
-    the function f on the interval [x1, x2].
+def Crenshaw(x1, x3, f, eps=eps0, itmax=ITMAX, dbg=None, p=4):
+    '''Returns (root, number_of_iterations).
+      x1, x3        Initial estimates of the root and must bracket it.
+      f             Function f(x) to call to evaluate.
+      eps           Relative change used to determine when the algorithm
+                    has converged.
+      itmax         Maximum number of iterations to use.
+      dbg           If not None, it must be a stream; the function prints
+                    intermediate values to this stream so you can watch
+                    convergence.
+      p             Number of significant digits to print to dbg stream.
+    '''
+    d = {
+        "p": p,
+        "xlast": None,
+        "ymin": 1e308,
+        "ymax": -1e308,
+        "eps": eps,
+    }
+    def Dbg(s, end="\n"):
+        if dbg:
+            for i in s.split("\n"):
+                dbg.write("+ {0}{1}".format(i, end))
+    def F(*args, **kw):
+        '''Parameters args:  the first element is x and is mandatory.  The following parameters are
+        passed to the function f.  The keyword dictionary must contain a dictionary named opts; it
+        is used in this function, the opts key is removed, and the remaining dictionary is passed
+        to the function f.
  
-    It uses SearchIntervalForRoots to divide the interval into n intervals and look for roots in
-    each subinterval.  If a subinterval has a root, the RootFinder routine is used to find the root
-    to precision eps.  If more than itmax iterations are used in any interval, an exception is
-    raised.
+        This is a wrapper function that calls f(x) given a dictionary d that contains the following
+        keys:
+          ymin        Minimum y value encountered
+          ymax        Maximum y value encountered
+          eps         Desired convergence radius, relative
+          converged   Will be True when the current y value is less than
+                      eps*(ymax - ymin).
+
+        This is per Jack Crenshaw's follow-up article on 13 Apr 2004 entitled "A root-finding
+        algorithm" in "Embedded Systems Development".  Jack's realization was that the original
+        algorithm he published in May 2002 ("All Problems Are Simple" in "Embedded Systems
+        Programming", pg 7-14) often converged to a value better than requested by the user (I've
+        noticed the same behavior).  Jack's insight was to look at successive y values and base
+        convergence on getting a y value that was less in absolute value than eps*(ymax - ymin).
+        This function, F(x) does the bookkeeping so that a) the minimum and maximum y values are
+        remembered and b) the convergence status is returned in a Boolean variable.  You'll find
+        this method gets the root to the desired precision and does it in fewer steps than the
+        original algorithm.
+ 
+        Note:  Jack has mentioned numerous times that this algorithm was from some unknown genius
+        at IBM in the 1960's and was part of their FORTRAN library code.  Jack studied the
+        algorithm and wrote articles in "Embedded Systems Development" to popularize it.  The
+        method is inverse parabolic interpolation with bisection and it converges quadratically
+        (converging quadratically means the error in the current step is the square of the error
+        in the previous step).
+        '''
+        args = list(args)
+        x = args[0]
+        del args[0]
+        d = kw["opts"]  # Options dictionary
+        p = d["p"]  # Number of digits in debug printing
+        del kw["opts"]
+        def dx(x):
+            diff = abs(x - d["xlast"])
+            if d["xlast"]:
+                return diff/d["xlast"]
+            elif x:
+                return diff/x
+            else:
+                return 0
+        if args:
+            y = f(x, *p, **kw) if kw else f(x, *p)
+        else:
+            y = f(x, **kw) if kw else f(x)
+        d["xlast"] = x
+        d["ymin"] = ymin = min(y, d["ymin"])
+        d["ymax"] = ymax = max(y, d["ymax"])
+        Dbg("f(x): x = {x:.{p}g}, y = {y:.{p}g}, Y min/max: "
+            "[{ymin:.{p}g}, {ymax:.{p}g}]".format(**locals()))
+        d["converged"] = abs(y) < d["eps"]*(ymax - ymin) and dx(x) < eps
+        return y
+    Dbg('''Crenshaw() called with:
+    Starting interval = [{x1:.{p}g}, {x3:.{p}g}]
+    eps   = {eps}
+    itmax = {itmax}'''.format(**locals()))
+    # Local variables
+    x2 = y2 = 0     # Middle point in bisections
+    xm = ym = 0     # Estimated root in interpolations
+    y1 = y3 = y21 = y31 = y32 = 0
+    b = c = 0       # Temporary variables
+    # Set up values at initial points.
+    # Test each just in case we luck out.
+    Dbg("Get function values at both ends")
+    y1, y3 = F(x1, opts=d), F(x3, opts=d)
+    if not y1 or d["converged"]:
+        Dbg("--> Converged to " + str((x1, 0)))
+        return (x1, 0)
+    if not y3 or d["converged"]:
+        Dbg("--> Converged to " + str((x3, 0)))
+        return (x3, 0)
+    # If the signs are the same, we were given
+    # bad initial values of x1, x3
+    if y3*y1 > 0.0:
+        raise ValueError("Root not bracketed")
+    for i in range(itmax):
+        x2 = (x3 + x1)/2  # Bisection step
+        y2 = F(x2, opts=d)
+        Dbg("Bisection x2 = {x2:.{p}g}, y2 = {y2:.{p}g}".format(**locals()))
+        if not y2 or d["converged"]:
+            Dbg("--> Converged to " + str((x2, i + 1)))
+            return (x2, i + 1)
+        if y2*y1 > 0:  # Relabel to keep the root between x1 and x2.
+            x1, x3, y1, y3 = x3, x1, y3, y1
+        # Attempt a parabolic interpolation.
+        y21, y32, y31 = y2 - y1, y3 - y2, y3 - y1
+        if y3*y31 < 2*y2*y21:
+            # Do another bisection
+            x3, y3 = x2, y2
+            Dbg("Can't use parabolic; x3 now {x3:.{p}g}".format(**locals()))
+        else:
+            # Parabolic interpolation
+            try:
+                # y21 and y31 cannot be zero, but y32 might.
+                b, c = (x2 - x1)/y21, (y21 - y32)/(y32*y31)
+                xm = x1 - b*y1*(1 - c*y2)
+                ym = F(xm, opts=d)
+                Dbg("Parabolic xm = {xm:.{p}g}, ym = {ym:.{p}g}".
+                    format(**locals()))
+                if not ym or d["converged"]:
+                    Dbg("--> Converged to " + str((xm, i + 1)))
+                    return (xm, i + 1)
+                # Relabel to keep root between x1 and x2.
+                if(ym*y1 < 0):
+                    x3, y3 = xm, ym
+                else:
+                    x1, y1, x3, y3 = xm, ym, x2, y2
+            except ZeroDivisionError:
+                f = sys.stderr
+                print("Division by zero in RootFinder:", file=f)
+                print("  x1  =", x1, file=f)
+                print("  x2  =", x2, file=f)
+                print("  y21 =", y21, file=f)
+                print("  y31 =", y31, file=f)
+                print("  y32 =", y32, file=f)
+                # Do another bisection
+                x3, y3 = x2, y2
+    raise NoConvergence("No convergence in Crenshaw()")
+def FindRoots(f, n, x1, x2, eps=eps0, itmax=ITMAX, fp=float, args=[], kw={}):
+    '''This is a general-purpose root finding routine that returns a tuple of the roots found
+    of the function f on the interval [x1, x2].
+ 
+    It uses SearchIntervalForRoots to divide the interval into n intervals and look for roots
+    in each subinterval.  If a subinterval has a root, the RootFinder routine is used to find
+    the root to precision eps.  If more than itmax iterations are used in any interval, an
+    exception is raised.
  
     Parameters
         f       Function to search for roots
@@ -616,152 +773,6 @@ def kbrent(a, b, f, eps=eps0, itmax=ITMAX):
             x1, f1 = x3, f3
         x3 = x
     raise NoConvergence("No convergence in kbrent()")
-def Crenshaw(x1, x3, f, eps=eps0, itmax=ITMAX, dbg=None, p=4):
-    '''Returns (root, number_of_iterations).
-      x1, x3        Initial estimates of the root and must bracket it.
-      f             Function f(x) to call to evaluate.
-      eps           Relative change used to determine when the algorithm
-                    has converged.
-      itmax         Maximum number of iterations to use.
-      dbg           If not None, it must be a stream; the function prints
-                    intermediate values to this stream so you can watch
-                    convergence.
-      p             Number of significant digits to print to dbg stream.
-    '''
-    d = {
-        "p": p,
-        "xlast": None,
-        "ymin": 1e308,
-        "ymax": -1e308,
-        "eps": eps,
-    }
-    def Dbg(s, end="\n"):
-        if dbg:
-            for i in s.split("\n"):
-                dbg.write("+ {0}{1}".format(i, end))
-    def F(*args, **kw):
-        '''Parameters args:  the first element is x and is mandatory.  The following parameters are
-        passed to the function f.  The keyword dictionary must contain a dictionary named opts; it
-        is used in this function, the opts key is removed, and the remaining dictionary is passed
-        to the function f.
- 
-        This is a wrapper function that calls f(x) given a dictionary d that contains the following
-        keys:
-          ymin        Minimum y value encountered
-          ymax        Maximum y value encountered
-          eps         Desired convergence radius, relative
-          converged   Will be True when the current y value is less than
-                      eps*(ymax - ymin).
-
-        This is per Jack Crenshaw's follow-up article on 13 Apr 2004 entitled "A root-finding
-        algorithm" in "Embedded Systems Development".  Jack's realization was that the original
-        algorithm he published in May 2002 ("All Problems Are Simple" in "Embedded Systems
-        Programming", pg 7-14) often converged to a value better than requested by the user (I've
-        noticed the same behavior).  Jack's insight was to look at successive y values and base
-        convergence on getting a y value that was less in absolute value than eps*(ymax - ymin).
-        This function, F(x) does the bookkeeping so that a) the minimum and maximum y values are
-        remembered and b) the convergence status is returned in a Boolean variable.  You'll find
-        this method gets the root to the desired precision and does it in fewer steps than the
-        original algorithm.
- 
-        Note:  Jack has mentioned numerous times that this algorithm was from some unknown genius
-        at IBM in the 1960's and was part of their FORTRAN library code.  Jack studied the
-        algorithm and wrote articles in "Embedded Systems Development" to popularize it.  The
-        method is inverse parabolic interpolation with bisection and it converges quadratically
-        (converging quadratically means the error in the current step is the square of the error
-        in the previous step).
-        '''
-        args = list(args)
-        x = args[0]
-        del args[0]
-        d = kw["opts"]  # Options dictionary
-        p = d["p"]  # Number of digits in debug printing
-        del kw["opts"]
-        def dx(x):
-            diff = abs(x - d["xlast"])
-            if d["xlast"]:
-                return diff/d["xlast"]
-            elif x:
-                return diff/x
-            else:
-                return 0
-        if args:
-            y = f(x, *p, **kw) if kw else f(x, *p)
-        else:
-            y = f(x, **kw) if kw else f(x)
-        d["xlast"] = x
-        d["ymin"] = ymin = min(y, d["ymin"])
-        d["ymax"] = ymax = max(y, d["ymax"])
-        Dbg("f(x): x = {x:.{p}g}, y = {y:.{p}g}, Y min/max: "
-            "[{ymin:.{p}g}, {ymax:.{p}g}]".format(**locals()))
-        d["converged"] = abs(y) < d["eps"]*(ymax - ymin) and dx(x) < eps
-        return y
-    Dbg('''Crenshaw() called with:
-    Starting interval = [{x1:.{p}g}, {x3:.{p}g}]
-    eps   = {eps}
-    itmax = {itmax}'''.format(**locals()))
-    # Local variables
-    x2 = y2 = 0     # Middle point in bisections
-    xm = ym = 0     # Estimated root in interpolations
-    y1 = y3 = y21 = y31 = y32 = 0
-    b = c = 0       # Temporary variables
-    # Set up values at initial points.
-    # Test each just in case we luck out.
-    Dbg("Get function values at both ends")
-    y1, y3 = F(x1, opts=d), F(x3, opts=d)
-    if not y1 or d["converged"]:
-        Dbg("--> Converged to " + str((x1, 0)))
-        return (x1, 0)
-    if not y3 or d["converged"]:
-        Dbg("--> Converged to " + str((x3, 0)))
-        return (x3, 0)
-    # If the signs are the same, we were given
-    # bad initial values of x1, x3
-    if y3*y1 > 0.0:
-        raise ValueError("Root not bracketed")
-    for i in range(itmax):
-        x2 = (x3 + x1)/2  # Bisection step
-        y2 = F(x2, opts=d)
-        Dbg("Bisection x2 = {x2:.{p}g}, y2 = {y2:.{p}g}".format(**locals()))
-        if not y2 or d["converged"]:
-            Dbg("--> Converged to " + str((x2, i + 1)))
-            return (x2, i + 1)
-        if y2*y1 > 0:  # Relabel to keep the root between x1 and x2.
-            x1, x3, y1, y3 = x3, x1, y3, y1
-        # Attempt a parabolic interpolation.
-        y21, y32, y31 = y2 - y1, y3 - y2, y3 - y1
-        if y3*y31 < 2*y2*y21:
-            # Do another bisection
-            x3, y3 = x2, y2
-            Dbg("Can't use parabolic; x3 now {x3:.{p}g}".format(**locals()))
-        else:
-            # Parabolic interpolation
-            try:
-                # y21 and y31 cannot be zero, but y32 might.
-                b, c = (x2 - x1)/y21, (y21 - y32)/(y32*y31)
-                xm = x1 - b*y1*(1 - c*y2)
-                ym = F(xm, opts=d)
-                Dbg("Parabolic xm = {xm:.{p}g}, ym = {ym:.{p}g}".
-                    format(**locals()))
-                if not ym or d["converged"]:
-                    Dbg("--> Converged to " + str((xm, i + 1)))
-                    return (xm, i + 1)
-                # Relabel to keep root between x1 and x2.
-                if(ym*y1 < 0):
-                    x3, y3 = xm, ym
-                else:
-                    x1, y1, x3, y3 = xm, ym, x2, y2
-            except ZeroDivisionError:
-                f = sys.stderr
-                print("Division by zero in RootFinder:", file=f)
-                print("  x1  =", x1, file=f)
-                print("  x2  =", x2, file=f)
-                print("  y21 =", y21, file=f)
-                print("  y31 =", y31, file=f)
-                print("  y32 =", y32, file=f)
-                # Do another bisection
-                x3, y3 = x2, y2
-    raise NoConvergence("No convergence in Crenshaw()")
 def Ostrowski(x0, f, deriv, eps=eps0, itmax=ITMAX, dbg=None):
     '''Returns (root, num_iterations) for the root of the function f(x).
     
@@ -1077,3 +1088,4 @@ def QuarticEquation(a, b, c, d, e, adjust=True, force_real=False):
     if force_real:
         return tuple([i.real for i in roots])
     return tuple(Pound(i, adjust) for i in roots)
+# vim: tw=95
