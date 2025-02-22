@@ -1,5 +1,13 @@
 Active:  /plib/.todo
 
+    - fish.py
+        - See if pgm/fish.py can be sped up by about a factor of 3 by using the multiprocessing
+          library.  Note python can't run multiple threads, so this is the only available way to
+          use more cores.  It should get the solution time down to about 1 minute with my current
+          computer and a late version of python.  Of course, the solution is only of intellectual
+          interest, but could introduce a way to get speedups in other programs.
+        - See dev/scrdatafile.py below
+
     - root.py
         - Why are RootFinder and Crenshaw present?  RootFinder is Jack's algorithm, so is the
           Crenshaw function obsolete?  I believe the Crenshaw routine is a slightly updated form

@@ -62,6 +62,15 @@ Mon 15 Jan 2024 01:56:55 PM
     Same Windows computer with python 3.10.12 in a Ubuntu bash shell
     under WSL in 176.5 s = 2.9 minutes.
 
+22 Feb 2025 10:51:30 am Sat
+
+    Same Windows computer with python 3.11.5 in a Ubuntu bash shell under WSL
+    in 114.5 s = 1.9 minutes.  2461839 permutations/s; there are 
+    (51 choose 5)*5!  = 281887200 permutations.
+
+    It's interesting to note that this is the identical hardware used since 
+    2017; the only change has been to WSL in 2024 and later python versions.
+
 ---------------------------------------------------------------------------
 
 I've analyzed a copy of this script and it's pretty clear that it would be

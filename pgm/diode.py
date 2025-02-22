@@ -1,8 +1,8 @@
 '''
 
 ToDo
-    - Collapse the vref report so that the diodes' list is e.g. 'blu5:6' with the diode color in
-      an appropriate color and the count in whtl
+    - Add cmd 'stack 12V 20mA d1 d2...' that calculates the resistance needed for such a stack to
+      run at indicated voltage and current.
 
 This script prints out the measured voltage & current relationships of various diodes.
 '''
@@ -41,8 +41,8 @@ if 1:  # Header
         from transpose import Transpose
         from columnize import Columnize
         import si
-        if 1:
-            import debug
+        import debug
+        if 0:
             debug.SetDebugger()
     if 1:   # Global variables
         class G:
@@ -88,18 +88,26 @@ if 1:   # Utility
           for a single diode and linear interpolation.  Functionality defined by the op argument:
             v       Print the voltage/current table for the selected diode
             i       Print the current/voltage table for the selected diode
-            vref    Design a voltage reference:  value1 = Vcc, value2 = Vref, Vref > Vcc.
-                    The design will attempt to use currents in the 1 to 10 mA range.
+            vref    Design a voltage reference; arguments:  'Vcc Vref', Vref > Vcc.  The resulting
+                    design will use currents in the 1 μA to 10 mA range.
+            st      Calculate the resistor needed for a diode/resistor stack (see below)
           Additional values are i or v values evaluated at that value only.  Predicted values are
           approximate due to variations between diodes.
+        Diode resistor stack:
+          Arguments are 'V i d1 d2 ...' where V is the operating voltage in V, i is the operating
+          current in mA, and d1, d2, etc. are the diodes to use.  You can append a colon and
+          integer to the diode names to indicate the quantity.  Example: 'st 10 1 1N4148:3' will
+          print out the resistor needed to run three 1N4148 diodes in series at 10 V with 1 mA
+          through them.
         Options:
             -a      Print a report for each diode type
+            -D      Enter debugger on unhandled exception
             -d str  Select diode type (see list below, si1 == 1N4148 is default)
             -h      Print a manpage
             -n n    Number of digits in output [{d["-n"]}]
         '''))
         # Print diode types list
-        print("Diode types:")
+        print("Diode types (4004 means e.g. 1N4004, red5 is a 5 mm red LED):")
         dt = sorted(diodes.keys())
         for i in Columnize(dt, columns=5, col_width=15, indent=" "*4):
             print(i)
@@ -111,13 +119,15 @@ if 1:   # Utility
         if len(sys.argv) < 2:
             Usage()
         try:
-            opts, args = getopt.getopt(sys.argv[1:], "ad:hn:") 
+            opts, args = getopt.getopt(sys.argv[1:], "aDd:hn:") 
         except getopt.GetoptError as e:
             print(str(e))
             exit(1)
         for o, a in opts:
             if o[1] in list("a"):
                 d[o] = not d[o]
+            elif o == "-D":     # Enter debugger on unhandled exception
+                debug.SetDebugger()
             elif o == "-d":     # Select diode
                 # The -d option is a regex
                 r = re.compile(a, re.I)
@@ -133,6 +143,8 @@ if 1:   # Utility
                 else:
                     s = "\n"
                     Error(f"{a!r} had multiple matches: {s}{s.join(matches)}")
+            elif o == "-h":     # Show manpage
+                Manpage()
             elif o == "-n":     # Number of digits
                 try:
                     d[o] = int(a)
@@ -172,15 +184,17 @@ if 1:   # Doc
         Examples
 
             'v'             Shows the voltage across a 1N4148 diode (the default diode) for
-                            different current levels.  
+                            different current levels.  The script calls this diode 'si1'.
             'i 1m'          Show the 1N4148's voltage drop at 1 mA.
-            '-d 1N4007 i 1m'
+            '-d 4007 i 1m'
                             Show the 1N4007's voltage drop at 1 mA.
             '-a v 667m'     Show the current through all the diodes with a 667 mV drop.  An empty
-                            string for the current means the diode hasn't been characterized 
-                            at that voltage.
-
+                            line for the diode means the diode hasn't been characterized at that
+                            voltage.
             '-a i 10m'      Show the voltage across the diodes with 10 mA current.
+
+        The arguments on the command line can use cuddled SI prefixes as a suffix to make it
+        easier to enter big or small numbers.  μ or u work for 'micro'.
 
         Here's an example of using the script to design a voltage reference using on-hand diodes.
         I wanted a 2 V reference voltage in a circuit to provide an offset.  The voltage I'd put
@@ -193,17 +207,25 @@ if 1:   # Doc
         script again with the 'i' argument and you'll see just a bit over 4 mA would give you
         0.667 V.  Run the script a final time with 'v 0.667' and you'll see the required current
         is 4.37 mA.  Since I'd be running the battery charging voltage at 13.5 V, the resistor
-        needed to get 4.37 mA is 13.5/4.37 kΩ or 3.09 kΩ.
+        needed to get 4.37 mA is (13.5 V)/(4.37 mA) or 3.09 kΩ.
 
         However, the script can solve this problem for you with a single command:  'vref 13.5 2'
-        where 13.5 is the Vcc and 2 is the reference voltage.  It will print out that you should
-        use the 5 mm yellow LED run at 6.43 mA with a 1.79 kΩ resistor.
+        where 13.5 is the Vcc (voltage applied to the diode stack and resistor) and 2 is the
+        reference voltage.  It will print out that you should use the 5 mm yellow LED run at 6.43
+        mA with a 1.79 kΩ resistor.
 
         Since the battery charger design has a separate 5 V power supply for the microprocessor, I
         chose to use that voltage instead, so the command 'vref 5 2' gave the same current with a
         467 Ω resistor.  I decided I'd use that yellow LED for the front power indicator for the
         charger also because it wouldn't clash with the other 8 LEDs on the front panel (this
-        charger keeps up to 8 lead-acid batteries charged).
+        charger keeps up to 8 lead-acid batteries charged and the 8 LEDs show the state of each
+        battery).
+
+        If you would rather use three 1N4148 diodes, you can use the diode stack feature of the
+        script.  Use the command 'st 13.5 1 si1:3' and you'll get a voltage drop for the stack of
+        three diodes as 1.82 V.  Change the current to 4 mA with 'st 13.5 4.5 si1:3' and you'll
+        get the desired drop of 2 V.  You'll have to iterate to get the correct current, but it
+        will let you use your choice of diodes, not the script's choice.
 
         '''))
         exit(0)
@@ -489,7 +511,7 @@ if 1:   # Classes
             mt = Transpose(m)
             V_V = [flt(i)/1000 for i in mt[0]]
             i_A = [flt(i/1000) for i in mt[1]]
-            name = "1N5817G"
+            name = "5817"
             i_max, PIV = flt(1), flt(20)
             diodes[name] = Diode(name, i_max, PIV, V_V, i_A, "Schottky diode")
         if 1:   # 1N5818 Schottky
@@ -512,7 +534,7 @@ if 1:   # Classes
             mt = Transpose(m)
             V_V = [flt(i)/1000 for i in mt[0]]
             i_A = [flt(i/1000) for i in mt[1]]
-            name = "1N5818"
+            name = "5818"
             i_max, PIV = flt(1), flt(30)
             diodes[name] = Diode(name, i_max, PIV, V_V, i_A, "Schottky diode")
         if 1:   # 1N4004
@@ -544,7 +566,7 @@ if 1:   # Classes
             mt = Transpose(m)
             i_A = [flt(i/1000) for i in mt[0]]
             V_V = [flt(i)/1000 for i in mt[1]]
-            name = "1N4004"
+            name = "4004"
             i_max, PIV = flt(1), flt(400)
             diodes[name] = Diode(name, i_max, PIV, V_V, i_A)
         if 1:   # 1N4007
@@ -576,7 +598,7 @@ if 1:   # Classes
             mt = Transpose(m)
             i_A = [flt(i/1000) for i in mt[0]]
             V_V = [flt(i)/1000 for i in mt[1]]
-            name = "1N4007"
+            name = "4007"
             i_max, PIV = flt(1), flt(1000)
             diodes[name] = Diode(name, i_max, PIV, V_V, i_A)
     ConstructDiodeData()
@@ -686,11 +708,11 @@ if 1:   # Core functionality
             Error("Vref must be > 0")
         if 1:   # Select diodes to use
             if 20e-3 <= Vref <= 0.183:
-                Diodes = ["1N5817G"]
+                Diodes = ["5817"]
             elif 0.183 < Vref <= 0.223:
-                Diodes = ["1N5818"]
+                Diodes = ["5818"]
             elif 0.223 < Vref <= 0.5:
-                Diodes = ["1N5818", "1N5818"]
+                Diodes = ["5818", "5818"]
             elif 0.5 < Vref <= 0.71:
                 Diodes = ["si1"]*1
             elif 0.71 < Vref <= 0.92:
@@ -841,7 +863,7 @@ if 1:   # Core functionality
 if __name__ == "__main__":
     d = {}      # Options dictionary
     args = ParseCommandLine(d)
-    if d["-a"]:
+    if d["-a"]:     # Print all diodes
         if not args or ((len(args) == 1) and (args[0].lower() == "v")):
             # Print out details of all diodes
             for diode in diodes:
@@ -886,6 +908,47 @@ if __name__ == "__main__":
                 Error(f"{args[0]!r} not recognized")
     elif len(args) == 3 and args[0].lower() == "vref":
         VoltageReference(args)
+    elif args and args[0].lower() == "st":  # Calculate resistor for diode stack
+        if len(args) < 4:
+            Usage()
+        V, i = flt(args[1]), flt(args[2])/1000  # In volts and amperes
+        if V <= 0 or i <= 0:
+            Error(f"Voltage and current have to be > 0")
+        Diodes = []
+        for s in args[3:]:
+            if s.count(":") == 1:
+                name, count = s.split(":")
+                try:
+                    count = int(count)
+                    if count <= 0:
+                        Error(f"Diode {count!r} must be > 0")
+                except Exception:
+                    Error(f"{count!r} is a bad integer")
+            else:
+                name = s
+                count = 1
+            for j in range(count):
+                try:
+                    Diodes.append(diodes[name])
+                except IndexError:
+                    Error(f"{name!r} is a bad diode name")
+        # Calculate diode drop
+        v = 0
+        for j in Diodes:
+            v += j.V(i)
+        R = v/i
+        ind = " "*4
+        t.print(f"{t.title}Diode stack with arguments {' '.join(args[1:])!r}")
+        t.print(f"{ind}Voltage = {t.V}{V.engsi}V")
+        t.print(f"{ind}Current = {t.i}{i.engsi}A")
+        print(f"{ind}Voltage drops of individual diodes:")
+        for j in Diodes:
+            print(f"{ind*2}{t.V}{j.V(i).engsi}V{t.n} {j.name}")
+        t.print(f"{ind}Total voltage drop = {t.V}{v.engsi}V")
+        t.print(f"{ind}Resistor needs to drop {t.V}{(V - v).engsi}V")
+        P = v*i
+        t.print(f"{ind}Resistor = {t.R}{R.engsi}Ω{t.n} (power = {t.P}{P.engsi}W{t.n})")
+
     elif len(args) == 1:
         if args[0].lower() == "v":
             func = VoltageTable
