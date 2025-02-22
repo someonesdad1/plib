@@ -263,8 +263,7 @@ def Crenshaw(x1, x3, f, eps=eps0, itmax=ITMAX, dbg=None, p=4):
     if not y3 or d["converged"]:
         Dbg("--> Converged to " + str((x3, 0)))
         return (x3, 0)
-    # If the signs are the same, we were given
-    # bad initial values of x1, x3
+    # If the signs are the same, we were given bad initial values of x1, x3
     if y3*y1 > 0.0:
         raise ValueError("Root not bracketed")
     for i in range(itmax):

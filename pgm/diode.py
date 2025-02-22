@@ -1,8 +1,8 @@
 '''
 
 ToDo
-    - Change the Vref calculation so it can use a root finding algorithm, as this will be more
-      efficient
+    - Collapse the vref report so that the diodes' list is e.g. 'blu5:6' with the diode color in
+      an appropriate color and the count in whtl
 
 This script prints out the measured voltage & current relationships of various diodes.
 '''
@@ -22,7 +22,7 @@ if 1:  # Header
         #∞test∞# #∞test∞#
         pass
     if 1:   # Standard imports
-        from collections import deque
+        from collections import defaultdict
         from pathlib import Path as P
         import getopt
         import os
@@ -162,17 +162,17 @@ if 1:   # Doc
         want to measure you own diodes.  To do this, get a constant voltage DC power supply, put a
         suitable resistor across the diode, use DMMs to measure the diode's voltage and current,
         and generate a set of data for that diode.  I recommend measuring the current over a wide
-        range.
+        range -- I like to measure from 1 μA to the diode's maximum current rating.
 
-        Since the diodes' behaviors will be stochastic, even for an set of diodes from a single
+        Since the diodes' behaviors will be stochastic, even for a set of diodes from a single
         manufacturing lot, the script's output is only an approximation, so you'll want to build,
         test, and tune a particular exemplar.  Remember the diodes' behaviors will also be
         temperature dependent:  a silicon diode has a temperature coefficient of about -2 mV/K.
 
         Examples
 
-            'v'             Shows the voltage across a 1N4148 diode (the default) for different
-                            current levels.  
+            'v'             Shows the voltage across a 1N4148 diode (the default diode) for
+                            different current levels.  
             'i 1m'          Show the 1N4148's voltage drop at 1 mA.
             '-d 1N4007 i 1m'
                             Show the 1N4007's voltage drop at 1 mA.
@@ -182,29 +182,28 @@ if 1:   # Doc
 
             '-a i 10m'      Show the voltage across the diodes with 10 mA current.
 
-        Here's an example of using the script to design a simple voltage reference using on-hand
-        diodes.  I wanted a 2 V reference voltage in a circuit to provide an offset.  The voltage
-        I'd put across this diode resistor stack would be 13.5 V (a float battery charger for
-        lead-acid batteries).  A silicon PN junction diode has a voltage drop of about 0.6 V to
-        0.7 V at 1 mA.  Thus, three of these diodes should give 1.8 V to 2 V at 1 mA.  Fine tuning
-        can be done by changing the series resistance to change the resistor/diode stack current.
-        (2 V)/3 is about 0.67 V, so run the script with the argument 'v'.  You'll see 0.65 V for a
-        1N4148 diode (the default) at 2.5 mA.  Thus, the design is three of these 1N4148 diodes
-        across 13.5 V with a suitable resistor, giving 1.95 V across the 3 diodes.  We can now use
-        the script with the 'i' argument to see better current resolution:  to get 2 V, we'd need
-        a bit over 4.5 mA of current.
+        Here's an example of using the script to design a voltage reference using on-hand diodes.
+        I wanted a 2 V reference voltage in a circuit to provide an offset.  The voltage I'd put
+        across this diode resistor stack would be 13.5 V (a float battery charger for lead-acid
+        batteries).  
 
-        Run the script with 'i 0.0045' and the voltage will be 668 mV.  The diode voltage is
-        3(0.668) = 2.004 V and the resistor needs to drop 13.5 - 2 or 11.5 V.  With 4.5 mA of
-        current, this is 11.5/4.5 kΩ or 2.5 kΩ.  I'd use my on-hand resistors of 1 kΩ and 1.5 kΩ;
-        the power is 50 mW, so a 1/4 W resistor is fine.
+        You can manually solve this problem using the script.  Run it with argument 'v' and you'll
+        see that a 1N4148 diode will drop about 0.65 V at 2.5 mA.  Thus, three of these diodes
+        would be about right for a stack to get 2 V.  We want 2/3 V for each diode, so run the
+        script again with the 'i' argument and you'll see just a bit over 4 mA would give you
+        0.667 V.  Run the script a final time with 'v 0.667' and you'll see the required current
+        is 4.37 mA.  Since I'd be running the battery charging voltage at 13.5 V, the resistor
+        needed to get 4.37 mA is 13.5/4.37 kΩ or 3.09 kΩ.
 
-        However, I also need an LED on the front panel of this battery charger to show that the
-        power is on.  Run the script with the argument '-a' and you'll see the voltages for all
-        the diodes.  A 2 V drop can be gotten with a 6.25 mA current through a 3mm yellow LED.  I
-        chose this color because it wouldn't clash with the other 8 LEDs on the charger's panel.
-        I'll have 5 V for the microprocessor, so it needs a series resistor of (5 - 2)/6.2 kΩ or
-        480 Ω.
+        However, the script can solve this problem for you with a single command:  'vref 13.5 2'
+        where 13.5 is the Vcc and 2 is the reference voltage.  It will print out that you should
+        use the 5 mm yellow LED run at 6.43 mA with a 1.79 kΩ resistor.
+
+        Since the battery charger design has a separate 5 V power supply for the microprocessor, I
+        chose to use that voltage instead, so the command 'vref 5 2' gave the same current with a
+        467 Ω resistor.  I decided I'd use that yellow LED for the front power indicator for the
+        charger also because it wouldn't clash with the other 8 LEDs on the front panel (this
+        charger keeps up to 8 lead-acid batteries charged).
 
         '''))
         exit(0)
@@ -230,9 +229,21 @@ if 1:   # Classes
             self.vi = interp1d(self.i_A, self.V_V)
             self.iv = interp1d(self.V_V, self.i_A)
         def __str__(self):
+            # Return a string decorated with the diode's color for LEDs
+            c = ""
+            if self.name.startswith("yel"):
+                c = t.yell
+            elif self.name.startswith("grn"):
+                c = t.grnl
+            elif self.name.startswith("red"):
+                c = t.redl
+            elif self.name.startswith("blu"):
+                c = t.royl
+            elif self.name.startswith("wht"):
+                c = t.whtl
             if self.note:
-                return self.name + f" ({self.note})"
-            return self.name
+                return f"{c}{self.name} ({self.note}){t.N}"
+            return f"{c}{self.name}{t.N}"
         def __repr__(self):
             return f"Diode({self.name!r})"
         def i(self, V):
@@ -671,28 +682,43 @@ if 1:   # Core functionality
             Error("Vcc must be > Vref")
         if Vcc <= 0:
             Error("Vcc must be > 0")
-        if Vref <= 0:
+        if Vref < 20e-3:
             Error("Vref must be > 0")
-        if 0.1 <= Vref <= 0.183:
-            Diodes = ["1N5817G"]
-        elif 0.183 < Vref <= 0.223:
-            Diodes = ["1N5818"]
-        elif 0.223 < Vref <= 0.5:
-            Diodes = ["1N5818", "1N5818"]
-        elif 0.5 < Vref <= 0.71:
-            Diodes = ["si1"]
-        elif 0.71 < Vref <= 1.41:
-            Diodes = ["si1"]*2
-        elif 1.41 < Vref <= 1.9:
-            Diodes = ["si1"]*3
-        elif 1.9 < Vref <= 2.65:
-            Diodes = ["si1"]*4
-        elif 2.65 < Vref <= 3:
-            Diodes = ["blu5"]
-        elif 3 < Vref:
-            # Use multiples of the blu/wht LEDs
-            n = ceil(Vref/3)
-            Diodes = ["blu5"]*n
+        if 1:   # Select diodes to use
+            if 20e-3 <= Vref <= 0.183:
+                Diodes = ["1N5817G"]
+            elif 0.183 < Vref <= 0.223:
+                Diodes = ["1N5818"]
+            elif 0.223 < Vref <= 0.5:
+                Diodes = ["1N5818", "1N5818"]
+            elif 0.5 < Vref <= 0.71:
+                Diodes = ["si1"]*1
+            elif 0.71 < Vref <= 0.92:
+                Diodes = ["si1"]*2
+            elif 0.92 < Vref <= 1.13:
+                Diodes = ["si1"]*3
+            elif 1.13 < Vref <= 1.34:
+                Diodes = ["si1"]*4
+            elif 1.34 < Vref <= 1.55:
+                Diodes = ["si1"]*5
+            elif 1.55 < Vref <= 1.76:
+                Diodes = ["si1"]*6
+            elif 1.76 < Vref <= 1.85:
+                Diodes = ["si1"]*7
+            elif 1.85 < Vref <= 2.05:
+                Diodes = ["yel5"]*1
+            elif 2.05 < Vref <= 2.21:
+                Diodes = ["yel5", "si1"]
+            elif 2.21 < Vref <= 2.42:
+                Diodes = ["yel5", "si1", "si1"]
+            elif 2.42 < Vref <= 2.68:
+                Diodes = ["grn5"]
+            elif 2.68 < Vref <= 2.95:
+                Diodes = ["blu5"]
+            elif 2.95 < Vref:
+                # Use multiples of the blu/wht LEDs
+                n = ceil(Vref/3)
+                Diodes = ["blu5"]*n
         # Now we must find the current to run this set of diodes at to get the desired voltage
         # drop.  We'll start at 0.5 mA and go to 15 mA and we'll stop when we're within 1% of our
         # goal.
@@ -743,29 +769,57 @@ if 1:   # Core functionality
             ilow = max(diodes[i].imin for i in Diodes)
             ihigh = min(diodes[i].imax for i in Diodes)
             try:
-                stream = sys.stdout if 0 else None
+                stream = sys.stdout if 0 else None  # Set to 1 for debugging output from rootfinder
                 eps = 1e-3  # Relative change in root to stop
+                if 1:   # Check for root bracketing
+                    v1, v2 = f(ilow), f(ihigh)
+                    if v1*v2 > 0:
+                        print("Root bracketing problem:")
+                        print(f"  Vref = {Vref}")
+                        print(f"  v1 = {v1} at i = {ilow.engsi}A")
+                        print(f"  v2 = {v2} at i = {ihigh.engsi}A")
+                        print(f"  Diodes = {Diodes}")
+                        if v1*v2 > 0:
+                            exit() #xx
                 i, num_iterations = root.Crenshaw(ilow, ihigh, f, eps=eps, dbg=stream)
                 # Get the voltage drop across the diodes
                 v = 0
                 for diode in Diodes:
                     v += diodes[diode].V(i)
+            except ValueError as e:
+                t.print(f"{t.err}{str(e)} (diode data in script probably not sufficient)")
+                print(f"Diodes = {Diodes}")
+                for diode in Diodes:
+                    try:
+                        print(f"{diode}:  {diodes[diode].V(i)}")
+                    except Exception:
+                        print(f"Problem for {diode}")
+                return
             except root.NoConvergence as e:
                 print(f"No solution found:  Vref = {Vref.engsi}V, Vcc = {Vcc.engsi}V")
+                return
         # Print report
         ind = " "*2
-        t.print(f"{t.name}Voltage reference solution found:")
-        print(f"{ind}Vref = {Vref} V, Vcc = {Vcc} V")
+        t.print(f"{t.name}Diode stack Voltage reference:")
+        print(f"{ind}Vref = {t.V}{Vref} V{t.N}, Vcc = {Vcc} V")
         pct = 100*(v - Vref)/Vref
-        with pct:
-            pct.N = 2
-            t.print(f"{ind}Found solution within {t.P}{pct}%")
-        t.print(f"{ind}{t.i}Current = {i.engsi}A")
+        if 0:   # Don't really need percent, as root finder will work nearly exactly
+            with pct:
+                pct.N = 2
+                t.print(f"{ind}Found solution within {t.P}{pct}%")
+        t.print(f"{ind}Current = {t.i}{i.engsi}A")
         s = "" if len(Diodes) == 1 else "s"
-        t.print(f"{ind}Diode{s}:  {t.title}{' '.join(Diodes)}")
+        t.print(f"{ind}Diode{s} (count and diode type):")
+        PrintDiodes(Diodes, ind)
         R = (Vcc - Vref)/i
-        t.print(f"{ind}{t.R}Needed series resistance = {R.engsi}Ω")
-    def GetVrefFunction(set_of_diodes, Vref):
+        t.print(f"{ind}Needed series resistance = {t.R}{R.engsi}Ω")
+    def PrintDiodes(list_of_diodes, ind):
+        di = defaultdict(int)
+        for i in list_of_diodes:
+            di[i] += 1
+        for i in sorted(di):
+            print(f"{ind*2} {di[i]:3d}{ind}{str(diodes[i])}")
+    def GetVrefFunction(list_of_diodes, Vref):
         '''Return a function of current i in A that a root finder can use to find the current that
         gives the diode stack operating point such that the sum of the diodes' drops is Vref.
         Note f is a closure, which is needed to remember our two arguments when f is called later
@@ -775,10 +829,10 @@ if 1:   # Core functionality
         Vref            A flt containing the desired voltage reference in V
         '''
         def f(i):
-            nonlocal set_of_diodes, Vref    # Get GetVrefFunction's local variables
+            nonlocal list_of_diodes, Vref   # Get GetVrefFunction's local variables
             global diodes                   # A dict containing Diode class instances
             V = 0       # Sum of voltages across a group of diodes in series
-            for diode_ID in set_of_diodes:
+            for diode_ID in list_of_diodes:
                 V += diodes[diode_ID].V(i)
             #t.print(f"{t.dbg}Vref = {Vref}, V = {V}, Vref - V = {Vref - V}")
             return V - Vref     # The desired current will be such that V - Vref is zero
