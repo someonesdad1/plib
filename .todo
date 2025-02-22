@@ -2,12 +2,23 @@ Active:  /plib/.todo
 
     - root.py
         - Why are RootFinder and Crenshaw present?  RootFinder is Jack's algorithm, so is the
-          Crenshaw function obsolete?  
+          Crenshaw function obsolete?  I believe the Crenshaw routine is a slightly updated form
+          that used Jack's observation that the routine would often converge to a solution better
+          than what you asked for.  This should be the standard routine.
             - I'd like RootFinder to be the general purpose tool.  It should have a dbgstream
               argument to let you see convergence like Crenshaw does.
-        - This was written before closures existed in python, but it should be rewritten to take
+        - This was written before closures existed in python; it should be rewritten to take
           advantage of them.  Example is GetVrefFunction() in pgm/diode.py which returns a closure
           to use by the rootfinder.
+
+    - Python lex-yacc by Beazley
+        - See ch 191 in PythonNotesForProfessionals.pdf pg 788
+        - Link broken; use https://github.com/dabeaz/ply
+
+    - Advanced python mastery by Beazley
+        - https://github.com/dabeaz-course/python-mastery
+        - Clone the repository, see PythonMastery.pdf for the presentation slides.
+        - This was a 4-5 day class, will take 30-50 hours of work
 
     - pgm/diode.py
         - Use rootfinder instead of iteration

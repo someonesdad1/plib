@@ -1,14 +1,41 @@
 '''
 
 TODO
-    - This stuff was written before closures existed in python.  Show how they can be used for
-      root finding duties.  Note that the args/kw arguments are probably more general, as their
-      form/values could change during iteration.
-    - Look at Crenshaw and RootFinder and keep one of them, as they sound like they are very
-      similar.  I'd like my general purpose rootfinding method to be named after Jack.
-        - I want the general routine to have a debug stream to see convergence
-            - Use colors in the debug stream
-        - Use flt as the general purpose floating point type
+    - Must
+        - See if every routing can be give an fp keyword argument; this would be the floating
+          point type to use for the calculations.  Default to flt.  Does this change by virtue
+          of e.g. needing a math module inside the functions?  If so, then float may be the
+          only real choice.
+        - Change printing stuff to use f-strings, as they are easier to read
+        - Closures vs args/kw
+            - This stuff was written before closures existed in python.  Show how they can be
+              used for root finding duties.
+            - args/kw arguments are probably more general, as their form/values could change
+              during iteration (probably only possible if the function evaluation has some side
+              effect, a likely pernicious thing to do).
+            - I like closures so much that they probably should be the default.  A keyword
+              could flag the routine to use the args/kw stuff, so we'd have the best of both
+              worlds.
+        - Look at Crenshaw and RootFinder and keep one of them, as they sound like they are
+          very similar.  I'd like my general purpose rootfinding method to be named after Jack.
+        - Each routine should make use of a debug stream passed into the function.  Watching an
+          algorithm converge or diverge is helpful to understand what's going on.
+            - Use some standardized color names in the module for debugging output
+            - I'd like to see all debugging stuff be e.g. lill.  Then abscissa arguments would
+              be grnl and ordinate arguments would be yell.  Anything related to convergence
+              could be ornl.
+        - Crenshaw, RootFinder, Brent, and kbrent are all forms of Brent's algorithm, but use
+          different source code.  It doesn't make sense to have them all enabled, so use an 'if
+          0' to comment three of them out.
+    - Want
+        - In the Quadratic etc. routines, get rid of the python 2 syntax of things like '1./3'.
+             - Consider making each coefficent in these explicitly a flt and change to use the
+               math routines in f.py
+        - Consider getting rid of NoConvergence and using ValueError("No convergence")
+        - Write a test routine that sets up a number of different problems and reports on the
+          time each method uses, number of iterations, and goodness of answer.  This could
+          obviously uncover some things that might not work right, as they should give the same
+          answers.  This would make a good addition to the testing strategy.
 
 Root Finding Routines
 
@@ -95,17 +122,17 @@ Root Finding Routines
  
     QuadraticEquation(a, b, c, adjust=True)
         Returns the two roots of a*x**2 + b*x + c = 0.  If adjust is true, any root where Im/Re
-        < eps is converted to a real root.  Set adjust to zero to have all roots returned as
+        < eps is converted to a real root.  Set adjust to False to have all roots returned as
         complex numbers.
  
     CubicEquation(a, b, c, d, adjust=True)
         Returns the three roots of a*x**3 + b*x**2 + c*x + d = 0.  If adjust is true, any root
-        where Im/Re < eps is converted to a real root.  Set adjust to zero to have all roots
+        where Im/Re < eps is converted to a real root.  Set adjust to False to have all roots
         returned as complex numbers.
  
     QuarticEquation(a, b, c, d, e, adjust=True)
         Returns the four roots of a*x**4 + b*x**3 + c*x**2 + d*x + e = 0.  If adjust is true,
-        any root where Im/Re < eps is converted to a real root.  Set adjust to zero to have all
+        any root where Im/Re < eps is converted to a real root.  Set adjust to False to have all
         roots returned as complex numbers.
 '''
 if 1:  # Copyright, license
