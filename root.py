@@ -2,7 +2,7 @@
 
 TODO
     - Must
-        - See if every routing can be give an fp keyword argument; this would be the floating
+        - See if every routine can be given an fp keyword argument; this would be the floating
           point type to use for the calculations.  Default to flt.  Does this change by virtue
           of e.g. needing a math module inside the functions?  If so, then float may be the
           only real choice.
