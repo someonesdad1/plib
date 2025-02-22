@@ -61,13 +61,14 @@ if 1:   # Utility
     def Usage(status=0):
         print(dedent(f'''
         Usage:  {sys.argv[0]} [options] length [N]
-          Generate random passwords of length in bytes.  N is the number of passwords to
-          generate and defaults to 1.
+          Generate random passwords of length bytes.  N is the number of passwords to generate and
+          defaults to 1.  If you don't use any options, the behavior will be if you used '-c lLd'
+          and -s.
         Options:
             -b      Return bytestring
             -c str  Only use characters coded in str [{d["-c"]}]
-            -h      Return a hex number
-            -i      Return an integer
+            -h      Return a hex number (you'll get 2*length hex digits)
+            -i      Return a base 10 integer with 8*length bits
             -s      Return a character string defined by -c
             -u      Return URL-safe string
             -x n    Return an XKCD-style password using n words
@@ -99,11 +100,13 @@ if 1:   # Utility
         for o, a in opts:
             if o[1] in list("bhisux"):
                 d[o] = not d[o]
+                found = True
             elif o == "-c":
                 s = set(a)
                 if not s.issubset(set("lLdpw")):
                     Error("Only the letters lLdpw are allowed for -c option")
                 d[o] = s
+                found = True
             elif o == "-d":
                 d[o] = a
             elif o == "-w":
@@ -168,3 +171,6 @@ if __name__ == "__main__":
         URLSafeString(length, N)
     elif d["-x"]:
         XKCDStyle(length, N)
+    else:
+        d["-c"] = "lLd"
+        CharacterString(length, N)
