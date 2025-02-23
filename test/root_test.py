@@ -13,7 +13,7 @@ from decimal import Decimal, getcontext
 from random import uniform, seed
 
 from root import (BracketRoots, Brent, CubicEquation, FindRoots, Bisection, Ridders, 
-                  NewtonRaphson, epsilon, QuarticEquation, RootFinder, NoConvergence, Pound,
+                  NewtonRaphson, QuarticEquation, RootFinder, Pound,
                   QuadraticEquation, SearchIntervalForRoots, Crenshaw, kbrent, Ostrowski)
 from lwtest import run, assert_equal, raises, Assert
 from pdb import set_trace as xx
@@ -67,10 +67,10 @@ def TestCubic():
     Assert(r == (0, 0, 0))
     # Cube roots of 1
     for r in CubicEquation(1, 0, 0, -1):
-        assert_equal(Pound(r**3, eps=eps), 1, reltol=eps)
+        assert_equal(Pound(r**3, ratio=eps), 1, reltol=eps)
     # Cube roots of -1
     for r in CubicEquation(1, 0, 0, 1):
-        assert_equal(Pound(r**3, eps=eps), -1, reltol=eps)
+        assert_equal(Pound(r**3, ratio=eps), -1, reltol=eps)
     # Three real roots:  (x-1)*(x-2)*(x-3)
     for i, j in zip(CubicEquation(1, -6, 11, -6), (3, 1, 2)):
         assert_equal(i, j, reltol=eps)
@@ -92,7 +92,7 @@ def TestQuartic():
         assert_equal(r**4, 1)
     # Fourth roots of -1
     for r in QuarticEquation(1, 0, 0, 0, 1):
-        assert_equal(Pound(r**4, eps=eps), -1, reltol=eps)
+        assert_equal(Pound(r**4, ratio=eps), -1, reltol=eps)
     # The equation (x-1)*(x-2)*(x-3)*(x-4)
     for i,j in zip(QuarticEquation(1, -10, 35, -50, 24), range(1, 5)):
         assert_equal(i, j, reltol=eps)
@@ -222,6 +222,7 @@ def TestPound():
             Assert(b == expected)
             Assert(isinstance(b, t))
     def test2():
+        epsilon = 2.5e-15
         eps = 0.99*float(epsilon)
         # Zero
         Assert(Pound(0, 0) == 0)
@@ -287,7 +288,7 @@ def TestBracketRoots():
            (r[0] <= r3 <= r[1]))
     # Demonstate iteration limit can be reached
     f = lambda x: x - 1000000
-    raises(NoConvergence, BracketRoots, f, -2, -1, itmax=10)
+    raises(StopIteration, BracketRoots, f, -2, -1, itmax=10)
 
 def TestBrent():
     # Find the root of f(x) = tan(x) - 1 for 0 < x < pi/2.

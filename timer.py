@@ -1,11 +1,8 @@
 '''
 Todo
-    - The timing tool of choice is probably time.perf_counter_ns()
-        - You must subtract two calls to get a valid time
-        - It includes sleep times
-    - Add split() method to Timer.  Or let et() be allow to be called when
-      running.
- 
+    - Add split() method to Timer.  Or let et() be allow to be called when running.
+    - Put module usage documentation here
+
 Time-related tools:
     Stopwatch class:  For elapsed times
     Timer class:  Tool that works as a context manager and decorator
@@ -46,60 +43,47 @@ if 1:  # Header
         ii = isinstance
         __all__ = "Stopwatch Timer FNTime GetET timer fnt sw".split()
 if 1:   # Classes 
-    class Stopwatch(object):
-        '''Timer that returns a flt of the elapsed time in seconds from
-        when it was started.  Example usage:
-            sw = Stopwatch()
-            ...
-            t = sw()    # How many seconds have elapsed since starting
-            sw.reset()  # Start the timer over again
-        The timer's resolution is ns because it uses time.perf_counter_ns() which returns an
-        integer.  Resolution will be limited for long times because of the limited resolution of
-        floats.
-        '''
-        def __init__(self):
-            self.reset()
-        def __call__(self):
-            et = time.perf_counter_ns() - self.start
-            return flt(et/1e9)
-        def reset(self):
-            'Start the timer over; handy so an instance can be reused'
-            self.start = time.perf_counter_ns()
     class Timer(object):
-        '''Use an instance of this object to time events in code.  
-        Usage patterns are:
-    
-            Object:
-                t = Timer()
-                t.start
-                ...do stuff...
-                t.stop
-                elapsed_time_in_seconds = t.et
-                # Do stuff not related to what you're timing
-                t.cont     # Continue timing
-                ...do more stuff...
-                t.stop
-                cumulative_elapsed_time_in_seconds = t.et
-            
-            Context manager:
-                with Timer() as t:
-                    <do stuff>
-                elapsed_time_in_seconds = t.et
+        '''Use an instance of this object to time events in code.  Note this design is inherently
+        not thread-safe.  Usage patterns:
         
-            Decorator:
-                @Timer()
-                def myfunc():
-                    <do stuff>
-        
-                This will cause an elapsed time to be printed to stdout after
-                the function exits.
+        Object:
+            t = Timer()
+            t.start     # Starts/resets the timer
+            ...do stuff...
+            t.stop      # Turn timer off but retain state
+            elapsed_time_in_seconds = t.et  # Elapsed time from t.start, a flt
+            # Do stuff not related to what you're timing
+            t.cont      # Continue timing
+            ...do more stuff...
+            t.stop
+            cumulative_elapsed_time_in_seconds = t.et   # A flt
+        Context manager:
+            with Timer() as t:
+                <do stuff>
+            elapsed_time_in_seconds = t.et
     
-        The u attribute is set to 1 to indicate time units of 1 second.  Set 
-        it to a different value to change the default time units.  Example:
-        set u to 1000 to set the time units to ms.
+        Decorator:
+            @Timer()
+            def myfunc():
+                <do stuff>
+    
+            This will cause an elapsed time to be printed to stdout after the function exits.
+    
+        The u attribute is set to 1 to indicate time units of 1 second.  Set it to a different
+        value to change the default time units.  Example: set u to 1000 to set the time units to
+        ms.
+
+        Internally, a Decimal instance is used so that long times don't have resolution problems.
+        For convenience, the elapsed time property returns a flt so that you don't have to see a
+        large number of floating point digits.
+
+        The lists _start and _stop are used internally to keep track of start and stop times in
+        Decimals.  These lists aren't exposed by the interface, but if you need them they provide
+        a record of when the timer was started and stopped.
  
         Ideas from
-            https://realpython.com/python-timer/ and 
+            https://realpython.com/python-timer/
             https://realpython.com/python-with-statement/#measuring-execution-time
         '''
         # The following function returns time in ns and avoids resolution
@@ -140,8 +124,8 @@ if 1:   # Classes
             self._start.append(t)
             self._state = "run"
         @property
-        def et(self):
-            'Returns elapsed time'
+        def ET(self):
+            'Returns elapsed time as a Decimal'
             if self._state != "stop":
                 raise ValueError("Timer not stopped")
             # Check the invariants
@@ -149,16 +133,23 @@ if 1:   # Classes
             assert(len(self._stop) == n)
             if not n:
                 raise ValueError("No accumulated data")
-            # Calculate elapsed time by subtracting stop/start times
+            # Calculate elapsed time by subtracting stop/start times.  self._start and self._stop
+            # are lists of start and stop times as Decimal instances.
             T = zip(self._stop, self._start)
             t = [stop - start for stop, start in T]
             assert(all([i >= 0 for i in t]))
-            return flt(sum(t))
+            # Sum the interval durations (a Decimal result)
+            return sum(t)
+        @property
+        def et(self):
+            'Returns elapsed time as a flt'
+            return flt(self.ET)
         @property
         def start(self):
             'Starts timer and returns start time'
             self.clear()
             t = self.time
+            # Update list of start times
             self._start.append(t)
             self._state = "run"
             return t
@@ -168,12 +159,17 @@ if 1:   # Classes
             if self._state != "run":
                 raise ValueError("Timer not running")
             t = self.time
+            # Update list of start times
             self._stop.append(t)
             self._state = "stop"
             return t
         @property
         def time(self):
-            'Return current time in current time units'
+            'Return current time as a Decimal in current time units'
+            # By default, Decimal objects use 28 digits.  Since time.perf_counter_ns() returns an
+            # integer number of ns, our nominal resolution is 1e28*1e-9 or 1e19 s which is over
+            # 1e11 years, so there should be no resolution problems in timing code.
+            # ns, 
             return decimal.Decimal(Timer.ns())/decimal.Decimal("1e9")*self.u
         @property
         def u(self):
@@ -185,6 +181,23 @@ if 1:   # Classes
             if self._state != "init":
                 raise ValueError("Use self.clear() before setting u")
             self._u = decimal.Decimal(value)
+    class Stopwatch(object):
+        '''Timer that returns a flt of the elapsed time in seconds from when it was started.
+        Example usage:
+            sw = Stopwatch()
+            ...
+            t = sw()    # How many seconds (a flt) have elapsed since starting
+            sw.reset()  # Start the timer over again
+        '''
+        def __init__(self):
+            self.timer = Timer()
+            self.reset()
+        def __call__(self):
+            'Returns the elapsed time in s as a flt'
+            return self.timer.et
+        def reset(self):
+            'Start the timer over; handy so an instance can be reused'
+            self.timer.start
     class FNTime(object):
         def __init__(self):
             pass
@@ -206,28 +219,24 @@ if 1:   # Classes
             return s
 if 1:   # Functions
     def GetET(seconds, units="", digits=3, eng=False):
-        '''Return a string with the elapsed time in seconds given in
-        familiar units.  Examples:  
+        '''Return a string with the elapsed time in seconds given in familiar units.  Examples:  
                                                 Returns 
             GetET(86399)                        '24 hr'
             GetET(86399 + 1)                    '1 day'
             GetET(time.time(), units="yr")      '54.1 years'
  
-        The last example is the current time since 1 Jan 1970 and will
-        depend on the time it's run.
+        The last example is the current time since 1 Jan 1970 and will depend on the time it's
+        run.
  
-        If you pass the units keyword, that will be used.
-        You can specify the number of digits in the output.  If eng is
-        given, then engineering format will be used with either seconds or
+        If you pass the units keyword, that will be used.  You can specify the number of digits in
+        the output.  If eng is given, then engineering format will be used with either seconds or
         the units you specified.
  
-        If units is None, then appropriate units will be chosen.  For
-        seconds less than 1, ms, us, etc. will be used.  For seconds
-        greater than 1, minutes, hours, days, weeks, months, years,
-        centuries, and millenia will be used.
+        If units is None, then appropriate units will be chosen.  For seconds less than 1, ms, us,
+        etc. will be used.  For seconds greater than 1, minutes, hours, days, weeks, months,
+        years, centuries, and millenia will be used.
         '''
-        # seconds must be an integer, float, Fraction, Decimal, or
-        # mpmath.mpf
+        # seconds must be an integer, float, Fraction, Decimal, or mpmath.mpf
         if have_mpmath:
             if not ii(seconds, (int, float, Fraction, Decimal, mpmath.mpf)): 
                 raise TypeError("seconds must be int, float, Fraction, Decimal, mpmath.mpf")
@@ -318,7 +327,7 @@ if 1:   # Convenience instances
 if __name__ == "__main__": 
     import re
     from fmt import fmt
-    from color import t
+    from color import t as C
     from f import sqrt
     from lwtest import run, Assert
     from textwrap import dedent
@@ -413,84 +422,78 @@ if __name__ == "__main__":
         t1, t2 = Timer.ns(), Timer.ns()
         print("\nDiscussion:\n")
         print(dedent(f'''
-        Timer objects use Decimal numbers to keep track of time.  The default
-        Decimal context uses {N} significant figures, so you will see numerous
-        meaningless figures in typical output. 
+        Timer objects use Decimal numbers to keep track of time.  The default Decimal context uses
+        {N} significant figures, so you will see numerous meaningless figures in typical output. 
         
-        Timing is done using the time.perf_counter_ns function.  Two
-        sequential calls to this resulted in the times {t1} and 
-        {t2}.  Their difference is {t2 - t1} ns, which will be different each
-        time you try it.
+        Timing is done using the time.perf_counter_ns function.  Two sequential calls to this
+        resulted in the times {t1} and {t2}.  Their difference is {t2 - t1} ns,
+        which will be different each time you try it.
         
-        Timing things on computers with software has been notoriously poor
-        over the decades and you need to be aware of the pitfalls.  If my
-        memory serves, trying to get decent timing on early MSDOS systems was
-        tough because clock resolutions were on the order of a second or so.
-        UNIX systems in the 1980's might have had resolutions of an order of
-        magnitude or two better, but still pretty crummy.  Things are also
-        more problematic on operating systems that can suspend your process,
-        which means almost everything you'd use today.
+        Timing things on computers with software has been notoriously poor over the decades and
+        you need to be aware of the pitfalls.  If my memory serves, trying to get decent timing on
+        early MSDOS systems was tough because clock resolutions were on the order of a second or
+        so.  UNIX systems in the 1980's might have had resolutions of an order of magnitude or two
+        better, but still pretty crummy.  Things are also more problematic on operating systems
+        that can suspend your process, which means almost everything you'd use today.
         
-        Python will use tools available to it from the operating system, so
-        your results will depend on your hardware and software.  The best
-        advice is to be aware of the many sources of timing variability and
-        use multiple measurements to estimate the mean and the spread in the
-        results.
+        Python will use tools available to it from the operating system, so your results will
+        depend on your hardware and software.  The best advice is to be aware of the many sources
+        of timing variability and use multiple measurements to estimate the mean and the spread in
+        the results.
         
-        When you get the elapsed time of a Timer object (et attribute), it
-        will be a flt instance from f.py.  This will cause the elapsed time to
-        be printed to 3 digits, the default.  Change Timer.et.n to a larger
-        number for more digits.
+        When you get the elapsed time of a Timer object (et attribute), it will be a flt instance
+        from f.py.  This will cause the elapsed time to be printed to 3 digits, the default.
+        Change Timer.et.n to a larger number for more digits.
  
-        The Stopwatch class is a convenience for routine timing tasks in a
-        script.  You can use the timer.sw convenience instance by starting
-        it with sw.reset(), but be aware that it is not thread-safe.  It's
-        handy because the returned type of flt means you don't see a lot of
+        The Stopwatch class is a convenience for routine timing tasks in a script.  You can use
+        the timer.sw convenience instance by starting it with sw.reset(), but be aware that it is
+        not thread-safe.  It's handy because the returned type of flt means you don't see a lot of
         useless digits.
  
-        The GetET function will return the argument in seconds in a time
-        unit that is easier to interpret:
+        The GetET function will return the argument in seconds in a time unit that is easier to
+        interpret:
                                                 Returns
             GetET(86399)                        '24 hr'
             GetET(86399 + 1)                    '1 day'
             GetET(time.time(), units="yr")      '54.1 years'
         '''[1:].rstrip()))
-    # Testing
-    def Test():
-        s = GetET(2e-9)
-        Assert(s == "2 ns")
-        s = GetET(0.1)
-        Assert(s == "100 ms")
-        s = GetET(50)
-        Assert(s == "50 s")
-        s = GetET(u("minute"))
-        Assert(s == "1 min")
-        s = GetET(u("hr"))
-        Assert(s == "1 hr")
-        s = GetET(u("day"))
-        Assert(s == "1 day")
-        s = GetET(u("week"))
-        Assert(s == "1 wk")
-        s = GetET(u("month"))
-        Assert(s == "1 mo")
-        s = GetET(u("yr"))
-        Assert(s == "1 yr")
-        s = GetET(u("century"))
-        Assert(s == "1 century")
-        s = GetET(u("millenia"))
-        Assert(s == "1 millenia")
-        # AdjustTimeUnits()
-        for un in "years months weeks days hours minutes".split():
-            Assert(AdjustTimeUnits(1*u(un)) == f"1 {un}")
-    retvalue, s = run(globals(), quiet=True, halt=False)
-    if retvalue:
-        t.print(f"{t('ornl')}Self tests failed")
-        print(s.strip())
-        exit(1)
-    else:
-        t.print(f"{t('grnl')}Tests passed")
+    if 1:   # Run self tests
+        def Test():
+            s = GetET(2e-9)
+            Assert(s == "2 ns")
+            s = GetET(0.1)
+            Assert(s == "100 ms")
+            s = GetET(50)
+            Assert(s == "50 s")
+            s = GetET(u("minute"))
+            Assert(s == "1 min")
+            s = GetET(u("hr"))
+            Assert(s == "1 hr")
+            s = GetET(u("day"))
+            Assert(s == "1 day")
+            s = GetET(u("week"))
+            Assert(s == "1 wk")
+            s = GetET(u("month"))
+            Assert(s == "1 mo")
+            s = GetET(u("yr"))
+            Assert(s == "1 yr")
+            s = GetET(u("century"))
+            Assert(s == "1 century")
+            s = GetET(u("millenia"))
+            Assert(s == "1 millenia")
+            # AdjustTimeUnits()
+            for un in "years months weeks days hours minutes".split():
+                Assert(AdjustTimeUnits(1*u(un)) == f"1 {un}")
+        retvalue, s = run(globals(), quiet=True, halt=False)
+        if retvalue:
+            C.print(f"{C.ornl}Self tests failed")
+            print(s.strip())
+            exit(1)
+        else:
+            C.print(f"{C.grnl}Tests passed")
+    # Run a demo
     with Timer() as T:
-        run(globals(), regexp="example$", quiet=True)
-        #run(globals(), regexp="example$", verbose=True)
+        #run(globals(), regexp="example$", quiet=True)
+        run(globals(), regexp="example$", verbose=True)
         #run(globals(), regexp="example$")
     print(f"Total time for examples = {fmt(T.et, n=2)} s")

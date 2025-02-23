@@ -2,6 +2,8 @@
 
 TODO
     - Must
+        - Rename epsilon to something that is specific to complex numbers
+        - eps0 should become reltol, as it's more expressive
         - See if every routine can be given an fp keyword argument; this would be the floating
           point type to use for the calculations.  Default to flt.  Does this change by virtue
           of e.g. needing a math module inside the functions?  If so, then float may be the
@@ -35,7 +37,6 @@ TODO
         - Quadratic, etc.
             - Get rid of the python 2 syntax of things like '1./3'.
             - Consider converting the routines to mpmath.mpf numbers
-        - Get rid of NoConvergence and use ValueError("No convergence")?
         - Write a test routine that sets up a number of different problems and reports on the
           time each method uses, number of iterations, and goodness of answer.  This could
           obviously uncover some things that might not work right, as they should give the same
@@ -47,6 +48,9 @@ Root Finding Routines
     numbers and find roots to arbitrary precision.  The functions QuadraticEquation,
     CubicEquation, and QuarticEquation use functions from the math and cmath library, so they
     can't be used with other floating point implementations.
+
+    The routines will raise StopIteration if the number of iterations exceeds the allowed
+    number.
  
     The fp keyword arguments let you perform these root-finding calculations with any floating
     point type that can convert strings like "1.5" to a floating point number.  Python's float
@@ -140,63 +144,35 @@ Root Finding Routines
         any root where Im/Re < eps is converted to a real root.  Set adjust to False to have all
         roots returned as complex numbers.
 '''
-if 1:  # Copyright, license
-    # These "trigger strings" can be managed with trigger.py
-    #∞copyright∞# Copyright (C) 2006, 2010 Don Peterson #∞copyright∞#
-    #∞contact∞# gmail.com@someonesdad1 #∞contact∞#
-    #∞license∞#
-    #   Licensed under the Open Software License version 3.0.
-    #   See http://opensource.org/licenses/OSL-3.0.
-    #∞license∞#
-    #∞what∞#
-    # <math> Root finding routines
-    #∞what∞#
-    #∞test∞# ["test/root_test.py"] #∞test∞#
-    pass
-if 1:   # Imports
-    import sys
-    import math
-    import cmath
-    import numbers
-    from pdb import set_trace as xx
-if 1:   # Custom imports
-    from wrap import dedent
-if 1:   # Global variables
-    __all__ = ['''
-        Bisection
-        BracketRoots
-        Brent
-        Crenshaw
-        CubicEquation
-        FindRoots
-        ITMAX
-        kbrent
-        NewtonRaphson
-        NoConvergence
-        Pound
-        QuadraticEquation
-        QuarticEquation
-        Ridders
-        RootFinder
-        SearchIntervalForRoots
-    '''.split()]
-    ITMAX = 100     # Default maximum number of iterations
- 
-    # Ratio of imag/real to decide when something is a real root (or real/imag to decide when
-    # something is pure imaginary).  Also used as the default tolerance for root finding.  It's
-    # a string because it will be converted to a floating point type inside the function it's
-    # used in (some of the functions can allow other numerical types besides floating point).
-    epsilon = "2.5e-15"
-
-    # Default relative tolerance for root finding.  I've set it to 1e-6.  It is rare in working
-    # with practical stuff to need higher precisions because the problem's solution is probably
-    # limited by the uncertainties in measured parameters -- and it's rare to have more than 6
-    # figures for measurements.
-    eps0 = 1e-6
-
-class NoConvergence(Exception):
-    pass
-def Crenshaw(x1, x3, f, eps=eps0, itmax=ITMAX, dbg=None, p=4):
+if 1:  # Header
+    if 1:  # Copyright, license
+        # These "trigger strings" can be managed with trigger.py
+        #∞copyright∞# Copyright (C) 2006, 2010 Don Peterson #∞copyright∞#
+        #∞contact∞# gmail.com@someonesdad1 #∞contact∞#
+        #∞license∞#
+        #   Licensed under the Open Software License version 3.0.
+        #   See http://opensource.org/licenses/OSL-3.0.
+        #∞license∞#
+        #∞what∞#
+        # <math> Root finding routines
+        #∞what∞#
+        #∞test∞# ["test/root_test.py"] #∞test∞#
+        pass
+    if 1:   # Imports
+        import sys
+        import math
+        import cmath
+        import numbers
+        from pdb import set_trace as xx
+    if 1:   # Custom imports
+        from wrap import dedent
+    if 1:   # Global variables
+        class G:    # Holder of global information
+            pass
+        g = G()
+        g.itmax = 50    # Default maximum number of iterations
+        g.eps = 1e-6    # Default relative tolerance for root finding
+def Crenshaw(x1, x3, f, eps=g.eps, itmax=g.itmax, dbg=None, p=4):
     '''Returns (root, number_of_iterations).
       x1, x3        Initial estimates of the root and must bracket it.
       f             Function f(x) to call to evaluate.
@@ -340,8 +316,8 @@ def Crenshaw(x1, x3, f, eps=eps0, itmax=ITMAX, dbg=None, p=4):
                 print("  y32 =", y32, file=f)
                 # Do another bisection
                 x3, y3 = x2, y2
-    raise NoConvergence("No convergence in Crenshaw()")
-def FindRoots(f, n, x1, x2, eps=eps0, itmax=ITMAX, fp=float, args=[], kw={}):
+    raise StopIteration("No convergence in Crenshaw()")
+def FindRoots(f, n, x1, x2, eps=g.eps, itmax=g.itmax, fp=float, args=[], kw={}):
     '''This is a general-purpose root finding routine that returns a tuple of the roots found
     of the function f on the interval [x1, x2].
  
@@ -384,12 +360,12 @@ def FindRoots(f, n, x1, x2, eps=eps0, itmax=ITMAX, fp=float, args=[], kw={}):
         try:
             x, numits = RootFinder(x1, x2, f, eps=eps, itmax=itmax,
                                    args=args, kw=kw)
-        except NoConvergence:
+        except StopIteration:
             pass
         else:
             roots.append(x)
     return tuple(roots)
-def RootFinder(x0, x2, f, eps=eps0, itmax=ITMAX, fp=float, args=[], kw={}):
+def RootFinder(x0, x2, f, eps=g.eps, itmax=g.itmax, fp=float, args=[], kw={}):
     '''Return (root, num_iterations) where root is a root of the function f() that lies in the
     interval [x0, x2] and num_iterations is the number of iterations taken.
  
@@ -474,8 +450,8 @@ def RootFinder(x0, x2, f, eps=eps0, itmax=ITMAX, fp=float, args=[], kw={}):
                 x2, y2 = xm, ym
             else:
                 x0, y0, x2, y2 = xm, ym, x1, y1
-    raise NoConvergence("No convergence in RootFinder()")
-def NewtonRaphson(f, fd, x, eps=eps0, itmax=ITMAX, show=False, fp=float, args=[], kw={}):
+    raise StopIteration("No convergence in RootFinder()")
+def NewtonRaphson(f, fd, x, eps=g.eps, itmax=g.itmax, show=False, fp=float, args=[], kw={}):
     '''Returns the root using Newton-Raphson algorithm for solving f(x) = 0.
         f     = the function (must be a function object)
         fd    = the function's derivative (must be a function object)
@@ -518,10 +494,10 @@ def NewtonRaphson(f, fd, x, eps=eps0, itmax=ITMAX, show=False, fp=float, args=[]
         count += 1
         if count > itmax:
             msg = "Too many iterations ({0}) in NewtonRaphson()".format(count)
-            raise NoConvergence(msg)
+            raise StopIteration(msg)
         if show:
             print("NewtonRaphson[%d]: x = %s" % (count, x))
-def BracketRoots(f, x1, x2, itmax=ITMAX, fp=float, args=[], kw={}):
+def BracketRoots(f, x1, x2, itmax=g.itmax, fp=float, args=[], kw={}):
     '''Given a function f and an initial interval [x1, x2], expand the interval geometrically until
     a root is bracketed or the number of iterations exceeds itmax.  Return (x3, x4), where the
     interval definitely brackets a root.  If the maximum number of iterations is exceeded, an
@@ -559,7 +535,7 @@ def BracketRoots(f, x1, x2, itmax=ITMAX, fp=float, args=[], kw={}):
                 f2 = f(x2, **kw) if kw else f(x2)
         count += 1
         if count > itmax:
-            raise NoConvergence("No convergence in BracketRoots()")
+            raise StopIteration("No convergence in BracketRoots()")
 def SearchIntervalForRoots(f, n, x1, x2, fp=float, args=[], kw={}):
     '''Given a function f of one variable, divide the interval [x1, x2] into n subintervals and
     determine if the function crosses the x axis in any subinterval; return a tuple of the
@@ -585,7 +561,7 @@ def SearchIntervalForRoots(f, n, x1, x2, fp=float, args=[], kw={}):
             intervals.append((x0, x))
         x0, y0 = x, y
     return tuple(intervals)
-def Bisection(x1, x2, f, eps=eps0, switch=False):
+def Bisection(x1, x2, f, eps=g.eps, switch=False):
     '''Returns (root, num_it) (the root and number of iterations) by finding a root of f(x) = 0 by
     bisection.  The root must be bracketed in [x1,x2].
  
@@ -640,19 +616,7 @@ def Bisection(x1, x2, f, eps=eps0, switch=False):
     assert(d/2**n <= eps)
     return x, n
 
-if 0: #xx
-    from f import flt
-    x = flt(0)
-    x.N = 8
-    f = lambda x: flt(math.cos(x) - x)
-    eps = 1e-5
-    x, n = Bisection(flt(0), flt(math.pi/2), f, eps=eps)
-    print(f"Got {x} in {n} steps")
-    print()
-    x, n = Crenshaw(flt(0), flt(math.pi/2), f, eps=eps, dbg=sys.stdout, p=5)
-    exit()
-
-def Ridders(a, b, f, eps=eps0, itmax=ITMAX):
+def Ridders(a, b, f, eps=g.eps, itmax=g.itmax):
     '''Returns (root, num_it) (root and the number of iterations) using Ridders' method to find a
     root of f(x) = 0 to the specified relative tolerance eps.  The root must be bracketed in [a,
     b].  If the number of iterations exceeds itmax, an exception will be raised.
@@ -703,8 +667,8 @@ def Ridders(a, b, f, eps=eps0, itmax=ITMAX):
                 a, fa = x, fx
         else:
             a, b, fa, fb = c, x, fc, fx
-    raise NoConvergence("Too many iterations ({0}) in Ridders()".format(i))
-def Brent(x1, x2, f, args=[], kw={}, eps=eps0, itmax=ITMAX):
+    raise StopIteration("Too many iterations ({0}) in Ridders()".format(i))
+def Brent(x1, x2, f, args=[], kw={}, eps=g.eps, itmax=g.itmax):
     '''Return (r, numits) where r is the root of the function f that is known to lie in the
     interval [x1, x2].  The root will be found within the absolute tolerance eps.  numits is the
     number of iterations it took.
@@ -768,8 +732,8 @@ def Brent(x1, x2, f, args=[], kw={}, eps=eps0, itmax=ITMAX):
         else:
             b += tol1 if xm >= 0 else -tol1
         fb = F(b)
-    raise NoConvergence("No convergence in Brent()")
-def kbrent(a, b, f, eps=eps0, itmax=ITMAX):
+    raise StopIteration("No convergence in Brent()")
+def kbrent(a, b, f, eps=g.eps, itmax=g.itmax):
     '''Finds root of f(x) = 0 by combining quadratic interpolation with bisection (simplified
     Brent's method).  The root must be bracketed in (a, b).  Calls user-supplied function f(x).
  
@@ -821,8 +785,8 @@ def kbrent(a, b, f, eps=eps0, itmax=ITMAX):
         else:
             x1, f1 = x3, f3
         x3 = x
-    raise NoConvergence("No convergence in kbrent()")
-def Ostrowski(x0, f, deriv, eps=eps0, itmax=ITMAX, dbg=None):
+    raise StopIteration("No convergence in kbrent()")
+def Ostrowski(x0, f, deriv, eps=g.eps, itmax=g.itmax, dbg=None):
     '''Returns (root, num_iterations) for the root of the function f(x).
     
     x0 is the initial guess for the root, f is f(x), the univariate function whose root we want,
@@ -874,9 +838,9 @@ def Ostrowski(x0, f, deriv, eps=eps0, itmax=ITMAX, dbg=None):
                 return (xn1, i)
         # Set up for next iteration
         xn = xn1
-    raise NoConvergence("No convergence in Ostrowski()")
-def Pound(x, adjust=True, eps=float(epsilon)):
-    '''Turn x into a real if the imaginary part is small enough relative to the real part and
+    raise StopIteration("No convergence in Ostrowski()")
+def Pound(z, adjust=True, ratio=2.5e-15):
+    '''Turn z into a real if the imaginary part is small enough relative to the real part and
     adjust is True.  The analogous thing is done for a nearly pure imaginary number.
  
     The name comes from imagining the complex number is a nail which a light tap from a hammer
@@ -886,19 +850,19 @@ def Pound(x, adjust=True, eps=float(epsilon)):
     True, then the conversion is done if the ratio of the real to imaginary part is small enough.
     '''
     # Handle the "pure" cases first.
-    if not x.real and not x.imag:
+    if not z.real and not z.imag:
         return 0
-    elif x.real and not x.imag:
-        return x.real
-    elif not x.real and x.imag:
-        return x.imag*1j
+    elif z.real and not z.imag:
+        return z.real
+    elif not z.real and z.imag:
+        return z.imag*1j
     # Adjust if the Re/Im or Im/Re ratio is small enough; otherwise
     # return unchanged.
-    if adjust and x.real and abs(x.imag/x.real) < eps:
-        return x.real
-    elif adjust and x.imag and abs(x.real/x.imag) < eps:
-        return x.imag*1j
-    return x
+    if adjust and z.real and abs(z.imag/z.real) < ratio:
+        return z.real
+    elif adjust and z.imag and abs(z.real/z.imag) < ratio:
+        return z.imag*1j
+    return z
 def QuadraticEquation(a, b, c, adjust=True, force_real=False):
     '''Return the two roots of a quadratic equation.  The equation is a*x**2 + b*x + c = 0; the
     coefficients can be complex.  Note this works with float types only.  Set force_real to True to
@@ -1137,4 +1101,25 @@ def QuarticEquation(a, b, c, d, e, adjust=True, force_real=False):
     if force_real:
         return tuple([i.real for i in roots])
     return tuple(Pound(i, adjust) for i in roots)
+if __name__ == "__main__":  
+    '''
+
+    Run this file as a script to produce a report of the different methods' timing and number
+    of iterations to find an "easy" root, the solution of f(x) = cos(x) - x = 0.  This is easy
+    to solve on a calculator by iteration, as you just continuously press the cosine button.
+    The root is 0.739.
+
+    '''
+    from f import flt
+    x = flt(0)
+    x.N = 8
+    f = lambda x: flt(math.cos(x) - x)
+    eps = 1e-5
+    x, n = Bisection(flt(0), flt(math.pi/2), f, eps=eps)
+    print(f"Got {x} in {n} steps")
+    print()
+    x, n = Crenshaw(flt(0), flt(math.pi/2), f, eps=eps, dbg=sys.stdout, p=5)
+    exit()
+
+
 # vim: tw=95
