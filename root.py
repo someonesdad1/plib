@@ -11,8 +11,8 @@ TODO
         - Closures vs args/kw
             - This stuff was written before closures existed in python.  Show how they can be
               used for root finding duties.
-            - args/kw arguments may be more general, as their form/values could change
-              during iteration (probably only possible if the function evaluation has some side
+            - args/kw arguments may be more general, as their form/values could change during
+              iteration (probably only possible if the function evaluation has some side
               effect, a likely pernicious thing to do).  However, if this was global data and
               you used a 'global' statement in the closure, you'd get the same result.
             - I like closures so much that they probably should be the default.  A keyword
@@ -23,17 +23,19 @@ TODO
         - Each routine should make use of a debug stream passed into the function.  Watching an
           algorithm converge or diverge is helpful to understand what's going on.
             - Use some standardized color names in the module for debugging output
-            - I'd like to see all debugging stuff be e.g. lill.  Then abscissa arguments would
-              be grnl and ordinate arguments would be yell.  Anything related to convergence
-              could be ornl.
+                - grnl abscissa
+                - yell ordinate
+                - ornl for convergence quality
         - Crenshaw, RootFinder, Brent, and kbrent are all forms of Brent's algorithm, but use
           different source code.  It doesn't make sense to have them all enabled, so use an 'if
           0' to comment three of them out.
+            - Would it be worth the time to implement the algorithm given in
+              https://en.wikipedia.org/wiki/Brent%27s_method?
     - Want
-        - In the Quadratic etc. routines, get rid of the python 2 syntax of things like '1./3'.
-             - Consider making each coefficent in these explicitly a flt and change to use the
-               math routines in f.py
-        - Consider getting rid of NoConvergence and using ValueError("No convergence")
+        - Quadratic, etc.
+            - Get rid of the python 2 syntax of things like '1./3'.
+            - Consider converting the routines to mpmath.mpf numbers
+        - Get rid of NoConvergence and use ValueError("No convergence")?
         - Write a test routine that sets up a number of different problems and reports on the
           time each method uses, number of iterations, and goodness of answer.  This could
           obviously uncover some things that might not work right, as they should give the same
@@ -54,8 +56,9 @@ Root Finding Routines
     details.
  
     Bisection(x1, x2, f)
-        Finds a root by bisection.  Slow, but guaranteed to find the root if the root is
-        bracketed in [x1, x2].
+        Finds a root by bisection.  Slow, but guaranteed to find the root of a continuous
+        function if the root is bracketed between [x1, x2].  The number of iterations can be
+        calculated beforehand also.
  
     Note:  Crenshaw, RootFinder, Brent, and kbrent are all forms of Brent's algorithm, but have
     different source code.  From my testing they behave quite similarly, but Jack Crenshaw's

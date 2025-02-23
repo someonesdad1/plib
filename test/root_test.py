@@ -1,3 +1,9 @@
+'''
+
+Todo
+    - TestBracketRoots doesn't follow stated plan
+
+'''
 import cmath
 import debug
 import math
@@ -5,11 +11,10 @@ import numbers
 import sys
 from decimal import Decimal, getcontext
 from random import uniform, seed
-from root import BracketRoots, Brent, CubicEquation, FindRoots
-from root import Bisection, Ridders, NewtonRaphson, epsilon
-from root import QuarticEquation, RootFinder, NoConvergence
-from root import Pound, QuadraticEquation, SearchIntervalForRoots
-from root import Crenshaw, kbrent, Ostrowski
+
+from root import (BracketRoots, Brent, CubicEquation, FindRoots, Bisection, Ridders, 
+                  NewtonRaphson, epsilon, QuarticEquation, RootFinder, NoConvergence, Pound,
+                  QuadraticEquation, SearchIntervalForRoots, Crenshaw, kbrent, Ostrowski)
 from lwtest import run, assert_equal, raises, Assert
 from pdb import set_trace as xx
 
@@ -278,8 +283,8 @@ def TestBracketRoots():
     f = lambda x: (x - r1)*(x - r2)*(x + r3)
     r = BracketRoots(f, -2, -1)
     Assert((r[0] <= r1 <= r[1]) or
-                    (r[0] <= r2 <= r[1]) or
-                    (r[0] <= r3 <= r[1]))
+           (r[0] <= r2 <= r[1]) or
+           (r[0] <= r3 <= r[1]))
     # Demonstate iteration limit can be reached
     f = lambda x: x - 1000000
     raises(NoConvergence, BracketRoots, f, -2, -1, itmax=10)
