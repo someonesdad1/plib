@@ -6,13 +6,15 @@ TODO
           point type to use for the calculations.  Default to flt.  Does this change by virtue
           of e.g. needing a math module inside the functions?  If so, then float may be the
           only real choice.
+            - No, math module not used in root finding modules (except ceil in bisect())
         - Change printing stuff to use f-strings, as they are easier to read
         - Closures vs args/kw
             - This stuff was written before closures existed in python.  Show how they can be
               used for root finding duties.
-            - args/kw arguments are probably more general, as their form/values could change
+            - args/kw arguments may be more general, as their form/values could change
               during iteration (probably only possible if the function evaluation has some side
-              effect, a likely pernicious thing to do).
+              effect, a likely pernicious thing to do).  However, if this was global data and
+              you used a 'global' statement in the closure, you'd get the same result.
             - I like closures so much that they probably should be the default.  A keyword
               could flag the routine to use the args/kw stuff, so we'd have the best of both
               worlds.
@@ -594,8 +596,13 @@ def Bisection(x1, x2, f, eps=eps0, switch=False):
     interval containing the midpoint and the other point that evaluates to the opposite sign.
     Repeat until you find the root to the required accuracy.  Each iteration adds a significant
     digit to the answer.
- 
+    
     The number of iterations and function evaluations will be log2(abs(x2 - x1)/eps).
+    
+    Editorial comment:  Much of the time real-world applications use data from measurements and
+    these are almost always only 3 or 4 digits of useful information.  If the function is
+    continuous, bisection is guaranteed to work and you get roughly one root digit per
+    iteration.  
  
     Adapted slightly from the book "Numerical Methods in Engineering with Python" by Jaan
     Kiusalaas, 2nd ed.  You can get the book's algorithms from
@@ -629,6 +636,19 @@ def Bisection(x1, x2, f, eps=eps0, switch=False):
     x = (x1 + x2)/2
     assert(d/2**n <= eps)
     return x, n
+
+if 0: #xx
+    from f import flt
+    x = flt(0)
+    x.N = 8
+    f = lambda x: flt(math.cos(x) - x)
+    eps = 1e-5
+    x, n = Bisection(flt(0), flt(math.pi/2), f, eps=eps)
+    print(f"Got {x} in {n} steps")
+    print()
+    x, n = Crenshaw(flt(0), flt(math.pi/2), f, eps=eps, dbg=sys.stdout, p=5)
+    exit()
+
 def Ridders(a, b, f, eps=eps0, itmax=ITMAX):
     '''Returns (root, num_it) (root and the number of iterations) using Ridders' method to find a
     root of f(x) = 0 to the specified relative tolerance eps.  The root must be bracketed in [a,

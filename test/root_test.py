@@ -1,4 +1,5 @@
 import cmath
+import debug
 import math
 import numbers
 import sys
@@ -9,8 +10,11 @@ from root import Bisection, Ridders, NewtonRaphson, epsilon
 from root import QuarticEquation, RootFinder, NoConvergence
 from root import Pound, QuadraticEquation, SearchIntervalForRoots
 from root import Crenshaw, kbrent, Ostrowski
-from lwtest import run, assert_equal, raises
+from lwtest import run, assert_equal, raises, Assert
 from pdb import set_trace as xx
+
+if 1:
+    debug.SetDebugger()
 
 have_pylab = False
 if 1:
@@ -39,8 +43,8 @@ def TestQuadratic():
     assert_equal(r2, 0j)
     # Real, distinct
     r1, r2 = QuadraticEquation(1, 4, -21)
-    assert(r1 == 3)
-    assert(r2 == -7)
+    Assert(r1 == 3)
+    Assert(r2 == -7)
     # Real coefficients, complex roots
     r1, r2 = QuadraticEquation(1, -4, 5)
     assert_equal(r1, 2 + 1j)
@@ -55,7 +59,7 @@ def TestCubic():
     raises(ValueError, CubicEquation, *(0, 1, 1, 1))
     # Basic equation
     r = CubicEquation(1, 0, 0, 0)
-    assert(r == (0, 0, 0))
+    Assert(r == (0, 0, 0))
     # Cube roots of 1
     for r in CubicEquation(1, 0, 0, -1):
         assert_equal(Pound(r**3, eps=eps), 1, reltol=eps)
@@ -67,17 +71,17 @@ def TestCubic():
         assert_equal(i, j, reltol=eps)
     # One real root:  (x-1)*(x-j)*(x+j)
     for i, k in zip(CubicEquation(1, -1, 1, -1), (1, 1j, -1j)):
-        # In the following, assert is used instead of assert_equal
+        # In the following, Assert is used instead of assert_equal
         # because one test case results in -0-1j vs. -1j, which results
         # in a failure -- but the numbers are numerically equal.
-        assert(i == k)
+        Assert(i == k)
 
 def TestQuartic():
     # Exception if not cubic
     raises(ValueError, QuarticEquation, *(0, 1, 1, 1, 1))
     # Basic equation
     r = QuarticEquation(1, 0, 0, 0, 0)
-    assert(r == (0, 0, 0, 0))
+    Assert(r == (0, 0, 0, 0))
     # Fourth roots of 1
     for r in QuarticEquation(1, 0, 0, 0, -1):
         assert_equal(r**4, 1)
@@ -146,7 +150,7 @@ def TestFindRoots():
     f = lambda x: (x-1)*(x-2)*(x-3)*(x-4)*(x-5)
     x1, x2, n = 0, 10, 10
     r = FindRoots(f, n, x1, x2, eps=eps)
-    assert(r == tuple([1.0*i for i in range(1, 6)]))
+    Assert(r == tuple([1.0*i for i in range(1, 6)]))
     # Roots of sinc function
     f = lambda x: math.sin(x)/x
     x1, x2, n = 1, 10, 100
@@ -180,37 +184,68 @@ def TestPound():
     '''Pound(z) returns a pure real or imaginary if z is close enough to
     the real or imaginary axis.
     '''
-    assert(Pound(0, True) == 0)
-    assert(Pound(1 + 1j, True) == 1 + 1j)
-    for z, expected, t in (
-        (1 + 0j, 1, numbers.Real),
-        (1 - 0j, 1, numbers.Real),
-        (-1 + 0j, 1, numbers.Real),
-        (-1 - 0j, 1, numbers.Real),
-        #
-        (1 + 1e-16j, 1, numbers.Real),
-        (1 - 1e-16j, 1, numbers.Real),
-        (-1 + 1e-16j, 1, numbers.Real),
-        (-1 - 1e-16j, 1, numbers.Real),
-        #
-        (1e-16 + 1e-32j, 1e-16, numbers.Real),
-        (1e-16 - 1e-32j, 1e-16, numbers.Real),
-        (-1e-16 + 1e-32j, 1e-16, numbers.Real),
-        (-1e-16 - 1e-32j, 1e-16, numbers.Real),
-        #
-        (0 + 1j, 1j, numbers.Complex),
-        (0 - 1j, 1j, numbers.Complex),
-        (-0 + 1j, 1j, numbers.Complex),
-        (-0 - 1j, 1j, numbers.Complex),
-        #
-        (1e-16 + 1j, 1j, numbers.Complex),
-        (1e-16 - 1j, 1j, numbers.Complex),
-        (-1e-16 + 1j, 1j, numbers.Complex),
-        (-1e-16 - 1j, 1j, numbers.Complex),
-    ):
-        b = Pound(z)
-        assert(b == expected)
-        assert(isinstance(b, t))
+    def test1():
+        Assert(Pound(0, True) == 0)
+        Assert(Pound(1 + 1j, True) == 1 + 1j)
+        for z, expected, t in (
+            (1 + 0j, 1, numbers.Real),
+            (1 - 0j, 1, numbers.Real),
+            (-1 + 0j, -1, numbers.Real),
+            (-1 - 0j, -1, numbers.Real),
+            #
+            (1 + 1e-16j, 1, numbers.Real),
+            (1 - 1e-16j, 1, numbers.Real),
+            (-1 + 1e-16j, -1, numbers.Real),
+            (-1 - 1e-16j, -1, numbers.Real),
+            #
+            (1e-16 + 1e-32j, 1e-16, numbers.Real),
+            (1e-16 - 1e-32j, 1e-16, numbers.Real),
+            (-1e-16 + 1e-32j, -1e-16, numbers.Real),
+            (-1e-16 - 1e-32j, -1e-16, numbers.Real),
+            #
+            (0 + 1j, 1j, numbers.Complex),
+            (0 - 1j, -1j, numbers.Complex),
+            (-0 + 1j, 1j, numbers.Complex),
+            (-0 - 1j, -1j, numbers.Complex),
+            #
+            (1e-16 + 1j, 1j, numbers.Complex),
+            (1e-16 - 1j, -1j, numbers.Complex),
+            (-1e-16 + 1j, 1j, numbers.Complex),
+            (-1e-16 - 1j, -1j, numbers.Complex),
+        ):
+            b = Pound(z)
+            Assert(b == expected)
+            Assert(isinstance(b, t))
+    def test2():
+        eps = 0.99*float(epsilon)
+        # Zero
+        Assert(Pound(0, 0) == 0)
+        Assert(Pound(0j, 1) == 0)
+        Assert(Pound(0+0j, 1) == 0)
+        # Pure real
+        Assert(Pound(1, 0) == 1)
+        Assert(Pound(1, 1) == 1)
+        Assert(Pound(1 + eps, 1) == 1 + eps)
+        # Pure imaginary
+        Assert(Pound(1j, 0) == 1j)
+        Assert(Pound(1j, 1) == 1j)
+        x = (1 + eps)*1j
+        Assert(Pound(x, 1) == x)
+        # Real with small imaginary part
+        x = 1
+        y = x + eps*1j
+        Assert(Pound(y, 0) == y)
+        Assert(Pound(y, 1) == x)
+        # Imaginary with small real part
+        y = eps + x*1j
+        Assert(Pound(y, 0) == y)
+        Assert(Pound(y, 1) == x*1j)
+        # Number that shouldn't be changed
+        x = 1 + 1j
+        Assert(Pound(x, 0) == x)
+        Assert(Pound(x, 1) == x)
+    test1()
+    test2()
 
 def TestNewtonRaphson():
     # Find the root of f(x) = tan(x) - 1 for 0 < x < pi/2.
@@ -227,10 +262,10 @@ def TestSearchIntervalForRoots():
     x1, x2 = 0, math.pi/2
     intervals = SearchIntervalForRoots(f, 10, x1, x2)
     for start, end in intervals:
-        assert(start <= answer <= end)
+        Assert(start <= answer <= end)
     intervals = SearchIntervalForRoots(f, 1000, x1, x2)
     for start, end in intervals:
-        assert(start <= answer <= end)
+        Assert(start <= answer <= end)
 
 def TestBracketRoots():
     '''The polynomial p(x) = (x-1)*(x-10)*(x+10) has
@@ -242,54 +277,25 @@ def TestBracketRoots():
     r1, r2, r3  = 1000, -500, 500
     f = lambda x: (x - r1)*(x - r2)*(x + r3)
     r = BracketRoots(f, -2, -1)
-    assert((r[0] <= r1 <= r[1]) or
+    Assert((r[0] <= r1 <= r[1]) or
                     (r[0] <= r2 <= r[1]) or
                     (r[0] <= r3 <= r[1]))
     # Demonstate iteration limit can be reached
     f = lambda x: x - 1000000
     raises(NoConvergence, BracketRoots, f, -2, -1, itmax=10)
 
-def TestPound():
-    eps = 0.99*float(epsilon)
-    # Zero
-    assert(Pound(0, 0) == 0)
-    assert(Pound(0j, 1) == 0)
-    assert(Pound(0+0j, 1) == 0)
-    # Pure real
-    assert(Pound(1, 0) == 1)
-    assert(Pound(1, 1) == 1)
-    assert(Pound(1 + eps, 1) == 1 + eps)
-    # Pure imaginary
-    assert(Pound(1j, 0) == 1j)
-    assert(Pound(1j, 1) == 1j)
-    x = (1 + eps)*1j
-    assert(Pound(x, 1) == x)
-    # Real with small imaginary part
-    x = 1
-    y = x + eps*1j
-    assert(Pound(y, 0) == y)
-    assert(Pound(y, 1) == x)
-    # Imaginary with small real part
-    y = eps + x*1j
-    assert(Pound(y, 0) == y)
-    assert(Pound(y, 1) == x*1j)
-    # Number that shouldn't be changed
-    x = 1 + 1j
-    assert(Pound(x, 0) == x)
-    assert(Pound(x, 1) == x)
-
 def TestBrent():
     # Find the root of f(x) = tan(x) - 1 for 0 < x < pi/2.
     f = lambda x: math.tan(x) - 1
     eps = 1e-8
     x, numits = Brent(0, 1, f, eps=eps)
-    assert(abs(x - math.atan(1)) < 2*eps)
+    Assert(abs(x - math.atan(1)) < 2*eps)
     # Find the roots of a quadratic
     r = 5
     f = lambda x: (x - 1)*(x - r)
     eps = 1e-8
     x, numits = Brent(r - 1, r + 1, f, eps=eps)
-    assert(abs(x - r) < eps)
+    Assert(abs(x - r) < eps)
 
 def TestBisection():
     # Root of x = cos(x); it's 0.739085133215161 as can be found easily
@@ -297,18 +303,18 @@ def TestBisection():
     f = lambda x: x - math.cos(x)
     eps = 1e-14
     root, numit = Bisection(0.7, 0.8, f, eps=eps)
-    assert abs(root - 0.739085133215161) <= eps
+    Assert(abs(root - 0.739085133215161) <= eps)
     # Eighth root of 2:  root of x**8 = 2
     f = lambda x: x**8 - 2
     eps = 1e-14
     root, numit = Bisection(1, 2, f, eps=eps)
-    assert abs(root - math.pow(2, 1/8)) <= eps
+    Assert(abs(root - math.pow(2, 1/8)) <= eps)
     # Simple quadratic equation
     t = 100001
     f = lambda x: (x - t)*(x + 100)
     eps = 1e-10
     root, numit = Bisection(0, 2.1*t, f, eps=eps)
-    assert abs(root - t) <= eps
+    Assert(abs(root - t) <= eps)
     # Note setting switch to True will cause an exception for this
     # case.
     raises(ValueError, Bisection, 0, 2.1*t, f, eps=eps, switch=True)
@@ -319,18 +325,18 @@ def TestRidders():
     f = lambda x: x - math.cos(x)
     eps = 1e-14
     root, numit = Ridders(0.7, 0.8, f, eps=eps)
-    assert abs(root - 0.739085133215161) <= eps
+    Assert(abs(root - 0.739085133215161) <= eps)
     # Eighth root of 2:  root of x**8 = 2
     f = lambda x: x**8 - 2
     eps = 1e-14
     root, numit = Ridders(1, 2, f, eps=eps)
-    assert abs(root - math.pow(2, 1/8)) <= eps
+    Assert(abs(root - math.pow(2, 1/8)) <= eps)
     # Simple quadratic equation
     t = 100001
     f = lambda x: (x - t)*(x + 100)
     eps = 1e-10
     root, numit = Ridders(0, 2.1*t, f, eps=eps)
-    assert abs(root - t) <= eps
+    Assert(abs(root - t) <= eps)
 
 def TestGeneralRootFinding(show=(len(sys.argv) > 1)):
     '''This test case uses each of the root finding functions to test a
