@@ -1,28 +1,47 @@
 Active:  /plib/.todo
 
+    - I need a python code linter/formatter.
+        - https://github.com/life4/awesome-python-code-formatters
+        - ruff looks like a good tool; it's written in rust and is very fast.
+          https://github.com/astral-sh/ruff
+        - This is worth some serious reading.  I got tired of black.  Most of the time all
+          I really need is a formatter, but for serious code the linter can be valuable,
+          so it would be wise to have both.
+        - ruff can be gotten on pypy.  However, it can also be installed with uv (you can
+          also install it on Linux with a curl command).  
+        - uv looks very interesting (https://docs.astral.sh/uv/), written by the creators
+          of ruff..  It's a fast Python package and project manager, written in Rust.
+
+        - I chose to install it with 'conda install conda-forge::ruff' to get running
+          quickly at 23 Feb 2025 19:49:14.  It had to update libgcc stuff and the ruff
+          install was about 8 MB.  In installed in
+          /home/dpbin/miniconda3/envs/11/bin/ruff.
+
     - pgm/ptoken.py python_file fn_name regex
-        - Script to take a set of python scripts and print out the tokens that match those used in
-          the function fn_name.
+        - Script to take a set of python scripts and print out the tokens that match those
+          used in the function fn_name.
             - Use case:  see if the 'sin' or 'math.sin' token is used in a routine.
 
     - fish.py
-        - See if pgm/fish.py can be sped up by about a factor of 3 by using the multiprocessing
-          library.  Note python can't run multiple threads, so this is the only available way to
-          use more cores.  It should get the solution time down to about 1 minute with my current
-          computer and a late version of python.  Of course, the solution is only of intellectual
-          interest, but could introduce a way to get speedups in other programs.
+        - See if pgm/fish.py can be sped up by about a factor of 3 by using the
+          multiprocessing library.  Note python can't run multiple threads, so this is the
+          only available way to use more cores.  It should get the solution time down to
+          about 1 minute with my current computer and a late version of python.  Of
+          course, the solution is only of intellectual interest, but could introduce a way
+          to get speedups in other programs.
         - See dev/scrdatafile.py below
 
     - root.py
-        - Why are RootFinder and Crenshaw present?  RootFinder is Jack's algorithm, so is the
-          Crenshaw function obsolete?  I believe the Crenshaw routine is a slightly updated form
-          that used Jack's observation that the routine would often converge to a solution better
-          than what you asked for.  This should be the standard routine.
-            - I'd like RootFinder to be the general purpose tool.  It should have a dbgstream
-              argument to let you see convergence like Crenshaw does.
-        - This was written before closures existed in python; it should be rewritten to take
-          advantage of them.  Example is GetVrefFunction() in pgm/diode.py which returns a closure
-          to use by the rootfinder.
+        - Why are RootFinder and Crenshaw present?  RootFinder is Jack's algorithm, so is
+          the Crenshaw function obsolete?  I believe the Crenshaw routine is a slightly
+          updated form that used Jack's observation that the routine would often converge
+          to a solution better than what you asked for.  This should be the standard
+          routine.
+            - I'd like RootFinder to be the general purpose tool.  It should have a
+              dbgstream argument to let you see convergence like Crenshaw does.
+        - This was written before closures existed in python; it should be rewritten to
+          take advantage of them.  Example is GetVrefFunction() in pgm/diode.py which
+          returns a closure to use by the rootfinder.
 
     - Python lex-yacc by Beazley
         - See ch 191 in PythonNotesForProfessionals.pdf pg 788
@@ -2029,4 +2048,4 @@ Game for the goils
     https://www.adventuregamestudio.co.uk/ provides a studio to develop an adventure game.  It
     sounds like something that would be straightforward to develop games for Tiny & Pepper.
 
-vim: tw=99
+vim: tw=90

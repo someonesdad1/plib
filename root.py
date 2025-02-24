@@ -1,6 +1,10 @@
 '''
 
 TODO
+    - ITP
+        - The C code I loaded later works faster than the code from the pseudocode and it worked
+          the first time.  It's now about half the speed of bisection, where before it was nearly
+          equal.  This is keeper code.
     - Cleanup
         - From examining the solving of cos x = x, it's apparent that kbrent, RootFinder, and
           Crenshaw are getting the same answers.  Often, as Jack noted, Crenshaw gets things in
@@ -1045,12 +1049,12 @@ def QuarticEquation(a, b, c, d, e, adjust=True, force_real=False):
     return tuple(Pound(i, adjust) for i in roots)
 def ITP(f, a, b, eps, k1=None, k2=2, n0=1):
     '''ITP algorithm for roots (interpolate/truncate/project)
-
+    
     f           Function to find the root of
     [a, b]      Interval that brackets root
     eps         Precision within which to find the root
     k1, k2, n0  Tuning constants.  These are chosen based on the comments given below.
-
+    
     23 Feb 2025:  This is one of those lucky events; I had asked buff a question about closures in
     the context of rootfinders vs using args/kw arguments to a function call.  This led to me
     looking more at the stuff I had and finding a link to the ITP method on wikipedia's page on
@@ -1061,21 +1065,21 @@ def ITP(f, a, b, eps, k1=None, k2=2, n0=1):
     work correctly, but I got things typed in and the first example of finding the root to x**3 -
     x - 2 on [1, 2] worked perfectly.  With some testing, it's likely this will become my
     rootfinder of choice.
-
+    
     The original paper is 
-
+    
         Oliveira, I. F. D.; Takahashi, R. H. C. (2020-12-06). "An Enhancement of the Bisection
         Method Average Performance Preserving Minmax Optimality". ACM Transactions on Mathematical
         Software.  47 (1): 5:1–5:24. doi:10.1145/3423597. ISSN 0098-3500. S2CID 230586635.
-
+    
     Here are some links to implementations
-
+    
         https://people.sc.fsu.edu/~jburkardt/f_src/zero_itp/zero_itp.html
         C:       https://people.sc.fsu.edu/~jburkardt/c_src/zero_itp/zero_itp.c
         Octave:  https://people.sc.fsu.edu/~jburkardt/octave_src/zero_itp/zero_itp.m
-
+    
     Here's the algorithm from https://www.wikiwand.com/en/articles/ITP_Method
-
+    
         Given interval [a0, b0], f, ϵ
             f is the function to find its root
             f(a0)*f(b0) < 0 (required) (i.e., a0 and b0 bracket the root)
@@ -1104,7 +1108,7 @@ def ITP(f, a, b, eps, k1=None, k2=2, n0=1):
                 βₖ = min(ϵ*2**(noh + n0 - j) - (b - a)/2, abs(x_t - x_b))
     
             (j not defined, but used in the pseudocode)
-
+    
     From https://docs.rs/kurbo/0.8.1/kurbo/common/fn.solve_itp.html
         - ITP paper https://dl.acm.org/doi/10.1145/3423597
         - The assumption is that ya < 0 and yb > 0, otherwise unexpected results may occur
@@ -1124,7 +1128,7 @@ def ITP(f, a, b, eps, k1=None, k2=2, n0=1):
           0.2/(b-a) is suggested, and this is confirmed to give good results.
         - When the function is monotonic, the returned result is guaranteed to be within epsilon
           of the zero crossing.
-
+    
     '''
     # Get ordinates at given abscissas
     ya, yb = f(a), f(b)
@@ -1186,7 +1190,134 @@ def ITP(f, a, b, eps, k1=None, k2=2, n0=1):
                 j += 1
         diff = abs(b - a)
     return (a + b)/2, count
+def zero_itp(f, a, b, eps, k1=None, k2=2, n0=1):
+    '''
+    math symbols used:  ceil, log2, pow
 
+    Note:
+        - ceil can be gotten with ROUND_CEIL
+        - pow cat be gotten with Decimal.power()
+        - log2 can be gotten with ln
+        - Thus, this could be written with a Decimal implementation.  It would be interesting to
+          do this; fp could be set to Decimal and you'd get this impl.  Interesting to see how
+          much slower it is than float.
+            - This may give the general pattern for all the rootfinders to let them support float,
+              Decimal, and mpf.
+
+        '''
+    # Purpose:
+    #
+    #     zero_itp() seeks a zero of a function using the ITP algorithm.
+    #
+    # Licensing:
+    #
+    #     This code is distributed under the MIT license.
+    #
+    # Modified:
+    #
+    #     02 March 2024
+    #
+    # Author:
+    #
+    #     John Burkardt
+    #
+    # Input:
+    #
+    #     function f(x): the name of the user-supplied function.
+    #
+    #     real a, b: the endpoints of the change of sign interval.
+    #
+    #     real eps: error tolerance between exact and computed roots.
+    #     A reasonable value might be sqrt(eps).
+    #
+    #     real k1: a parameter, with suggested value 0.2/(b - a).
+    #
+    #     real k2: a parameter, typically set to 2.
+    #
+    #     int n0: a parameter that can be set to 0 for difficult problems,
+    #     but is usually set to 1, to take more advantage of the secant method.
+    #
+    #     bool verbose: if true, requests additional printed output.
+    '''
+    double c;
+    double delta;
+    int nh;
+    int nmax;
+    double r;
+    double s;
+    double sigma;
+    double xf;
+    double xh;
+    double xitp;
+    double xt;
+    double ya;
+    double yb;
+    double yitp;
+    '''
+    if (b < a) :
+        c = a;
+        a = b;
+        b = c;
+    if k1 is None:
+        k1 = 0.2/(b - a)
+    ya = f(a);
+    yb = f(b);
+    if (0.0 < ya*yb) :
+        print("\n");
+        print("zero_itp(): Fatal error!\n");
+        print("  a and b do not bracket the root\n");
+    # Modify f(x) so that y(a) < 0, 0 < y(b);
+    if (0.0 < ya) :
+        s = -1.0;
+        ya = -ya;
+        yb = -yb;
+    else :
+        s = +1.0;
+    nh = math.ceil(math.log2((b - a)/2.0/eps));
+    nmax = nh + n0;
+    #if (verbose) :
+    #    print("\n");
+    #    print("  User has requested additional verbose output.\n");
+    #    print("  step   [a,    b]    x    f(x)\n");
+    #    print("\n");
+    count = 0
+    while (2.0*eps < (b - a)) :
+        count += 1
+        # Calculate parameters
+        xh = 0.5*(a + b);
+        r = eps*math.pow(2.0, nmax - count) - 0.5*(b - a);
+        delta = k1*math.pow(b - a, k2);
+        # Interpolation
+        xf = (yb*a - ya*b)/(yb - ya);
+        # Truncation
+        if (0 <= xh - xf) :
+            sigma = +1;
+        else :
+            sigma = -1;
+        if (delta < abs(xh - xf)) :
+            xt = xf + sigma*delta;
+        else :
+            xt = xh;
+        # Projection
+        if (abs(xt - xh) <= r) :
+            xitp = xt;
+        else :
+            xitp = xh - sigma*r;
+        # Update the interval
+        yitp = s*f(xitp);
+        #if (verbose) :
+        #    printf ("%d  [%g,%g]  f(%g)=%g\n", count, a, b, xitp, yitp);
+        if (0.0 < yitp) :
+            b = xitp;
+            yb = yitp;
+        elif (yitp < 0.0) :
+            a = xitp;
+            ya = yitp;
+        else :
+            a = xitp;
+            b = xitp;
+            break;
+    return (a + b)/2, count
 if __name__ == "__main__":  
     '''
     
@@ -1206,8 +1337,8 @@ if __name__ == "__main__":
         f = lambda x: x - math.cos(x)
     x0, x1 = 0, math.pi/2
     y0, y1 = f(x0), f(x1)
-    eps = 1e-15
-    n = 1000
+    eps = 1e-6
+    n = 10000
     print(f"eps = {eps}, num evals = {n}")
     g.dbg = None
     if 1:   # Bisection
@@ -1259,7 +1390,8 @@ if __name__ == "__main__":
         count = 0
         t.start
         for i in range(n):
-            x, m = ITP(f, x0, x1, eps=eps)
+            #x, m = ITP(f, x0, x1, eps=eps)
+            x, m = zero_itp(f, x0, x1, eps=eps)
             count += m
         t.stop
         M = flt(count/n)
