@@ -1,6 +1,18 @@
 '''
 
 TODO
+    - Cleanup
+        - From examining the solving of cos x = x, it's apparent that kbrent, RootFinder, and
+          Crenshaw are getting the same answers.  Often, as Jack noted, Crenshaw gets things in
+          one step less than the other two (I eliminated Brent as it didn't work as well as
+          these others).  
+        - Another observation is that Ridders gets the same answer and beats the others in
+          speed sometimes.
+        - Figure out the slightly better criterion used in Crenshaw and add it to both
+          RootFinder and kbrent.
+        - Crenshaw and its F() implementation is an order of magnitude slower than the other
+          two.  
+
     - Must
         - Rename epsilon to something that is specific to complex numbers
         - eps0 should become reltol, as it's more expressive
@@ -43,12 +55,12 @@ TODO
           answers.  This would make a good addition to the testing strategy.
 
 Root Finding Routines
-
+    
     The following functions find real roots of functions.  You can call them using e.g. mpmath
     numbers and find roots to arbitrary precision.  The functions QuadraticEquation,
     CubicEquation, and QuarticEquation use functions from the math and cmath library, so they
     can't be used with other floating point implementations.
-
+    
     The routines will raise StopIteration if the number of iterations exceeds the allowed
     number.
  
@@ -166,23 +178,22 @@ if 1:  # Header
         from pdb import set_trace as xx
     if 1:   # Custom imports
         from wrap import dedent
+        from lwtest import Assert
     if 1:   # Global variables
         class G:    # Holder of global information
             pass
         g = G()
         g.itmax = 50    # Default maximum number of iterations
         g.eps = 1e-6    # Default relative tolerance for root finding
-def Crenshaw(x1, x3, f, eps=g.eps, itmax=g.itmax, dbg=None, p=4):
+        # Send debugging information to this stream if not None
+        g.dbg = sys.stdout
+def Crenshaw(x1, x3, f, eps=g.eps, itmax=g.itmax, p=4):
     '''Returns (root, number_of_iterations).
       x1, x3        Initial estimates of the root and must bracket it.
       f             Function f(x) to call to evaluate.
       eps           Relative change used to determine when the algorithm
                     has converged.
       itmax         Maximum number of iterations to use.
-      dbg           If not None, it must be a stream; the function prints
-                    intermediate values to this stream so you can watch
-                    convergence.
-      p             Number of significant digits to print to dbg stream.
     '''
     d = {
         "p": p,
@@ -192,9 +203,9 @@ def Crenshaw(x1, x3, f, eps=g.eps, itmax=g.itmax, dbg=None, p=4):
         "eps": eps,
     }
     def Dbg(s, end="\n"):
-        if dbg:
+        if g.dbg:
             for i in s.split("\n"):
-                dbg.write("+ {0}{1}".format(i, end))
+                g.dbg.write("+ {0}{1}".format(i, end))
     def F(*args, **kw):
         '''Parameters args:  the first element is x and is mandatory.  The following parameters are
         passed to the function f.  The keyword dictionary must contain a dictionary named opts; it
@@ -208,7 +219,7 @@ def Crenshaw(x1, x3, f, eps=g.eps, itmax=g.itmax, dbg=None, p=4):
           eps         Desired convergence radius, relative
           converged   Will be True when the current y value is less than
                       eps*(ymax - ymin).
-
+        
         This is per Jack Crenshaw's follow-up article on 13 Apr 2004 entitled "A root-finding
         algorithm" in "Embedded Systems Development".  Jack's realization was that the original
         algorithm he published in May 2002 ("All Problems Are Simple" in "Embedded Systems
@@ -253,9 +264,9 @@ def Crenshaw(x1, x3, f, eps=g.eps, itmax=g.itmax, dbg=None, p=4):
         d["converged"] = abs(y) < d["eps"]*(ymax - ymin) and dx(x) < eps
         return y
     Dbg('''Crenshaw() called with:
-    Starting interval = [{x1:.{p}g}, {x3:.{p}g}]
-    eps   = {eps}
-    itmax = {itmax}'''.format(**locals()))
+        Starting interval = [{x1:.{p}g}, {x3:.{p}g}]
+        eps   = {eps}
+        itmax = {itmax}'''.format(**locals()))
     # Local variables
     x2 = y2 = 0     # Middle point in bisections
     xm = ym = 0     # Estimated root in interpolations
@@ -317,6 +328,7 @@ def Crenshaw(x1, x3, f, eps=g.eps, itmax=g.itmax, dbg=None, p=4):
                 # Do another bisection
                 x3, y3 = x2, y2
     raise StopIteration("No convergence in Crenshaw()")
+# Uses SearchIntervalForRoots
 def FindRoots(f, n, x1, x2, eps=g.eps, itmax=g.itmax, fp=float, args=[], kw={}):
     '''This is a general-purpose root finding routine that returns a tuple of the roots found
     of the function f on the interval [x1, x2].
@@ -615,7 +627,6 @@ def Bisection(x1, x2, f, eps=g.eps, switch=False):
     x = (x1 + x2)/2
     assert(d/2**n <= eps)
     return x, n
-
 def Ridders(a, b, f, eps=g.eps, itmax=g.itmax):
     '''Returns (root, num_it) (root and the number of iterations) using Ridders' method to find a
     root of f(x) = 0 to the specified relative tolerance eps.  The root must be bracketed in [a,
@@ -668,71 +679,6 @@ def Ridders(a, b, f, eps=g.eps, itmax=g.itmax):
         else:
             a, b, fa, fb = c, x, fc, fx
     raise StopIteration("Too many iterations ({0}) in Ridders()".format(i))
-def Brent(x1, x2, f, args=[], kw={}, eps=g.eps, itmax=g.itmax):
-    '''Return (r, numits) where r is the root of the function f that is known to lie in the
-    interval [x1, x2].  The root will be found within the absolute tolerance eps.  numits is the
-    number of iterations it took.
- 
-    args is a sequence of extra arguments for f(); kw is a dictionary of keyword arguments for f().
- 
-    The is essentially the zbrent routine from "Numerical Recipes in C", translated into python.
-    '''
-    def F(x):
-        if args:
-            return f(x, *args, kw=kw) if kw else f(x, *args)
-        else:
-            return f(x, kw=kw) if kw else f(x)
-    a, b, c = x1, x2, x2
-    i, EPS = 0, 3.0e-8
-    fa, fb = F(a), F(b)
-    fc = fb
-    if (fa > 0.0 and fb > 0.0) or (fa < 0.0 and fb < 0.0):
-        raise ValueError("Root must be bracketed")
-    while i < itmax:
-        i += 1
-        if (fb > 0.0 and fc > 0.0) or (fb < 0.0 and fc < 0.0):
-            c, fc = a, fa
-            e = d = b - a
-        if abs(fc) < abs(fb):
-            a = b
-            b = c
-            c = a
-            fa = fb
-            fb = fc
-            fc = fa
-        tol1 = 2.0*EPS*abs(b) + 0.5*eps
-        xm = 0.5*(c - b)
-        if abs(xm) <= tol1 or fb == 0.0:
-            return (b, i)       # Found the root
-        if abs(e) >= tol1 and abs(fa) > abs(fb):
-            s = fb/fa
-            if a == c:
-                p, q = 2.0*xm*s, 1.0 - s
-            else:
-                q, r = fa/fc, fb/fc
-                p = s*(2.0*xm*q*(q - r) - (b - a)*(r - 1.0))
-                q = (q - 1.0)*(r - 1.0)*(s - 1.0)
-            if p > 0.0:
-                q = -q
-            p = abs(p)
-            min1 = 3.0*xm*q - abs(tol1*q)
-            min2 = abs(e*q)
-            if 2.0*p < (min1 if min1 < min2 else min2):
-                e = d
-                d = p/q
-            else:
-                d = xm
-                e = d
-        else:
-            d = xm      # Bounds decreasing too slowly, use bisection
-            e = d
-        a, fa = b, fb
-        if abs(d) > tol1:   # Evaluate new trial root
-            b += d
-        else:
-            b += tol1 if xm >= 0 else -tol1
-        fb = F(b)
-    raise StopIteration("No convergence in Brent()")
 def kbrent(a, b, f, eps=g.eps, itmax=g.itmax):
     '''Finds root of f(x) = 0 by combining quadratic interpolation with bisection (simplified
     Brent's method).  The root must be bracketed in (a, b).  Calls user-supplied function f(x).
@@ -759,6 +705,7 @@ def kbrent(a, b, f, eps=g.eps, itmax=g.itmax):
         if abs(f3) < eps:
             return x3, i + 1
         #print("i = {0}  x3 = {1:.8g}  f3 = {2:.8g}".format(i + 1, x3, f3))
+        #print(f"i = {i + 1}  x = {x3:.15g}  y = {f3:.15g}")
         # Tighten the brackets on the root
         if f1*f3 < 0:
             b = x3  # New interval is left-hand half
@@ -766,17 +713,14 @@ def kbrent(a, b, f, eps=g.eps, itmax=g.itmax):
             a = x3  # New interval is right-hand half
         if (b - a) < eps*max(abs(b), 1):
             return (a + b)/2, i + 1
-        # Try quadratic interpolation
+        # Try quadratic interpolation (Lagrange's 3-point formula)
+        numer = (x3*(f1 - f2)*(f2 - f3 + f1) + f2*x1*(f2 - f3) + f1*x2*(f3 - f1))
         denom = (f2 - f1)*(f3 - f1)*(f2 - f3)
-        numer = (x3*(f1 - f2)*(f2 - f3 + f1) +
-                 f2*x1*(f2 - f3) + f1*x2*(f3 - f1))
         # If division by zero, push x out of bounds
         x = x3 + (f3*numer/denom if denom else b - a)
-        # If interpolation goes out of bounds, use bisection.  This test
-        # is equivalent to (a < x < b) if a < b or (b < x < a) if b < a.
-        # 13 Oct 2014:  added inf test because was getting
-        # nonconvergence for simple test case (sqrt(1e108)) because x
-        # was NaN.
+        # If interpolation goes out of bounds, use bisection.  This test is equivalent to 
+        # (a < x < b) if a < b or (b < x < a) if b < a.  13 Oct 2014:  added inf test because
+        # was getting nonconvergence for simple test case (sqrt(1e108)) because x was NaN.
         if denom == float("inf") or (b - x)*(x - a) < 0:
             x = a + (b - a)/2
         # Let x3 be x & choose new x1 and x2 so that x1 < x3 < x2
@@ -840,8 +784,8 @@ def Ostrowski(x0, f, deriv, eps=g.eps, itmax=g.itmax, dbg=None):
         xn = xn1
     raise StopIteration("No convergence in Ostrowski()")
 def Pound(z, adjust=True, ratio=2.5e-15):
-    '''Turn z into a real if the imaginary part is small enough relative to the real part and
-    adjust is True.  The analogous thing is done for a nearly pure imaginary number.
+    '''Turn z into a real if z.imag is small enough relative to the z.real and adjust is True.
+    Do the analogous thing for a nearly pure imaginary number.
  
     The name comes from imagining the complex number is a nail which a light tap from a hammer
     makes it lie parallel to either the real or imaginary axis.
@@ -849,15 +793,13 @@ def Pound(z, adjust=True, ratio=2.5e-15):
     Set adjust to False so that only pure real or imaginary numbers are converted.  If adjust is
     True, then the conversion is done if the ratio of the real to imaginary part is small enough.
     '''
-    # Handle the "pure" cases first.
-    if not z.real and not z.imag:
-        return 0
-    elif z.real and not z.imag:
+    if not isinstance(z, complex):
+        return z
+    if z.real and not z.imag:
         return z.real
     elif not z.real and z.imag:
         return z.imag*1j
-    # Adjust if the Re/Im or Im/Re ratio is small enough; otherwise
-    # return unchanged.
+    # Adjust if the z.real/z.imag or z.imag/z.real ratio is small enough, otherwise return unchanged
     if adjust and z.real and abs(z.imag/z.real) < ratio:
         return z.real
     elif adjust and z.imag and abs(z.real/z.imag) < ratio:
@@ -1101,25 +1043,233 @@ def QuarticEquation(a, b, c, d, e, adjust=True, force_real=False):
     if force_real:
         return tuple([i.real for i in roots])
     return tuple(Pound(i, adjust) for i in roots)
+def ITP(f, a, b, eps, k1=None, k2=2, n0=1):
+    '''ITP algorithm for roots (interpolate/truncate/project)
+
+    f           Function to find the root of
+    [a, b]      Interval that brackets root
+    eps         Precision within which to find the root
+    k1, k2, n0  Tuning constants.  These are chosen based on the comments given below.
+
+    23 Feb 2025:  This is one of those lucky events; I had asked buff a question about closures in
+    the context of rootfinders vs using args/kw arguments to a function call.  This led to me
+    looking more at the stuff I had and finding a link to the ITP method on wikipedia's page on
+    bisection.  The basic article is from 2020 and appears to be a fundamentally important
+    contribution to root finders, as it combines the reliability of bisection with faster
+    convergence, apparently replacing Brent, Ridder's, secant, etc.  Some searching led to
+    https://www.wikiwand.com/en/articles/ITP_Method; I figured it would be a mess and wouldn't
+    work correctly, but I got things typed in and the first example of finding the root to x**3 -
+    x - 2 on [1, 2] worked perfectly.  With some testing, it's likely this will become my
+    rootfinder of choice.
+
+    The original paper is 
+
+        Oliveira, I. F. D.; Takahashi, R. H. C. (2020-12-06). "An Enhancement of the Bisection
+        Method Average Performance Preserving Minmax Optimality". ACM Transactions on Mathematical
+        Software.  47 (1): 5:1–5:24. doi:10.1145/3423597. ISSN 0098-3500. S2CID 230586635.
+
+    Here are some links to implementations
+
+        https://people.sc.fsu.edu/~jburkardt/f_src/zero_itp/zero_itp.html
+        C:       https://people.sc.fsu.edu/~jburkardt/c_src/zero_itp/zero_itp.c
+        Octave:  https://people.sc.fsu.edu/~jburkardt/octave_src/zero_itp/zero_itp.m
+
+    Here's the algorithm from https://www.wikiwand.com/en/articles/ITP_Method
+
+        Given interval [a0, b0], f, ϵ
+            f is the function to find its root
+            f(a0)*f(b0) < 0 (required) (i.e., a0 and b0 bracket the root)
+            ϵ > 0 is the target precision
+    
+        Problem definition:  Find xᵦ such that |xᵦ - q| <= ϵ and f(q) = 0.
+    
+        Constants (no info on how best to select [see below]):
+            k1 is on [0,∞]
+            k2 is on [1, 1+ϕ] == [1, 2.618], ϕ = (1 + sqrt(5))/2
+            n0 on [0,∞] = max number of iterations over bisection
+    
+        noh = ln2((b0 - a0)/(2ϵ)) = guaranteed number of iterations to terminate
+    
+        Step 1:  Interpolation [Calculate bisection & regula falsi points]
+            x_b = (a + b)/2
+            x_f = (b*f(a) - a*f(b))/(f(a) - f(b))
+    
+        Step 2:  Truncation [peturb the estimator towards the center
+            x_t = x_f + σ*ρ where 
+                σ = sign(x_b - x_f)
+                ρ = min(k1*abs(b - a)**k2, abs(x_b - x_f))
+    
+        Step 3:  Projection [Project the estimator to minmax interval
+            x_itp = x_b - σ*βₖ where
+                βₖ = min(ϵ*2**(noh + n0 - j) - (b - a)/2, abs(x_t - x_b))
+    
+            (j not defined, but used in the pseudocode)
+
+    From https://docs.rs/kurbo/0.8.1/kurbo/common/fn.solve_itp.html
+        - ITP paper https://dl.acm.org/doi/10.1145/3423597
+        - The assumption is that ya < 0 and yb > 0, otherwise unexpected results may occur
+        - a and b must bracked the root and represent the search lower/upper bounds
+        - Must have eps > 2**(-63)(b - a), otherwise integer overflow may occur.  This is probably
+          specific to kurbo, which appears to be a 64-bit floating point R implementation
+        - kurbo hardwires k2 = 2, both because it avoids a floating point exponentiation and the
+          value has been tested to work well with curve fitting problems
+        - The n0 parameter controls the relative impact of the bisection and secant components.
+          When it is 0, the number of iterations is guaranteed to be no more than the number
+          required by bisection (thus, this method is strictly superior to bisection). However,
+          when the function is smooth, a value of 1 gives the secant method more of a chance to
+          engage, so the average number of iterations is likely lower, though there can be one
+          more iteration than bisection in the worst case.
+        - The k1 parameter is harder to characterize, and interested users are referred to the
+          paper, as well as encouraged to do empirical testing. To match the paper, a value of
+          0.2/(b-a) is suggested, and this is confirmed to give good results.
+        - When the function is monotonic, the returned result is guaranteed to be within epsilon
+          of the zero crossing.
+
+    '''
+    # Get ordinates at given abscissas
+    ya, yb = f(a), f(b)
+    # Check for luck
+    if not ya:
+        return a
+    if not yb:
+        return b
+    # Validate parameters
+    Assert(ya*yb < 0)   # a and b must bracket the root
+    if 1:   # xx Not sure I need this yet
+        # Assure that ya < 0 and yb > 0
+        if ya > 0:
+            a, b = b, a
+            ya, yb = yb, ya
+    Assert(ya < 0)
+    Assert(yb > 0)
+    # Compute constants and set things up
+    noh = math.ceil(math.log2(abs(b - a)/(2*eps)))
+    nmax = noh + n0
+    if k1 is None:
+        k1 = 0.2/abs(b - a)
+    Assert(k1 >= 0)
+    count, j = 0, 0
+    sign = lambda x: -1 if x < 0 else 1
+    diff = abs(b - a)
+    while (diff > 2*eps):
+        count += 1
+        # Calculate parameters
+        xoh = (a + b)/2
+        r = eps*2**(nmax - j) - diff/2
+        delta = k1*diff**k2
+        ya, yb = f(a), f(b)
+        # Interpolation
+        xf = (a*yb - b*ya)/(yb - ya)
+        # Truncation
+        sigma = sign(xoh - xf)
+        if delta <= abs(xoh - xf):
+            xt = xf + sigma*delta
+        else:
+            xt = xoh
+        # Projection
+        if abs(xt - xoh) <= r:
+            xitp = xt
+        else:
+            xitp = xoh - sigma*r
+        # Updating interval
+        yitp = f(xitp)
+        if yitp > 0:
+            b = xitp
+            yb = yitp
+        else:
+            if yitp < 0:
+                a = xitp
+                ya = yitp
+            else:
+                a = xitp
+                b = xitp
+                j += 1
+        diff = abs(b - a)
+    return (a + b)/2, count
+
 if __name__ == "__main__":  
     '''
-
+    
     Run this file as a script to produce a report of the different methods' timing and number
     of iterations to find an "easy" root, the solution of f(x) = cos(x) - x = 0.  This is easy
     to solve on a calculator by iteration, as you just continuously press the cosine button.
     The root is 0.739.
-
+    
     '''
     from f import flt
-    x = flt(0)
-    x.N = 8
-    f = lambda x: flt(math.cos(x) - x)
-    eps = 1e-5
-    x, n = Bisection(flt(0), flt(math.pi/2), f, eps=eps)
-    print(f"Got {x} in {n} steps")
-    print()
-    x, n = Crenshaw(flt(0), flt(math.pi/2), f, eps=eps, dbg=sys.stdout, p=5)
-    exit()
-
-
-# vim: tw=95
+    from timer import Timer
+    t = Timer()
+    t.u = 1000000   # Set units to μs
+    if 0:
+        f = lambda x: math.cos(x) - x
+    else:
+        f = lambda x: x - math.cos(x)
+    x0, x1 = 0, math.pi/2
+    y0, y1 = f(x0), f(x1)
+    eps = 1e-15
+    n = 1000
+    print(f"eps = {eps}, num evals = {n}")
+    g.dbg = None
+    if 1:   # Bisection
+        count = 0
+        t.start
+        for i in range(n):
+            x, m = Bisection(x0, x1, f, eps=eps)
+            count += m
+        t.stop
+        M = flt(count/n)
+        print(f"Bisection:  Got {x} in {M} steps, {flt(t.et)/n} μs")
+    if 1:   # Crenshaw
+        count = 0
+        t.start
+        for i in range(n):
+            x, m = Crenshaw(x0, x1, f, eps=eps)
+            count += m
+        t.stop
+        M = flt(count/n)
+        print(f"Crenshaw:   Got {x} in {M} steps, {flt(t.et)/n} μs")
+    if 1:   # Ridders
+        count = 0
+        t.start
+        for i in range(n):
+            x, m = Ridders(x0, x1, f, eps=eps)
+            count += m
+        t.stop
+        M = flt(count/n)
+        print(f"Ridders:    Got {x} in {M} steps, {flt(t.et)/n} μs")
+    if 1:   # kbrent
+        count = 0
+        t.start
+        for i in range(n):
+            x, m = kbrent(x0, x1, f, eps=eps)
+            count += m
+        t.stop
+        M = flt(count/n)
+        print(f"kbrent:     Got {x} in {M} steps, {flt(t.et)/n} μs")
+    if 1:   # RootFinder
+        count = 0
+        t.start
+        for i in range(n):
+            x, m = RootFinder(x0, x1, f, eps=eps)
+            count += m
+        t.stop
+        M = flt(count/n)
+        print(f"RootFinder: Got {x} in {M} steps, {flt(t.et)/n} μs")
+    if 1:   # ITP 
+        count = 0
+        t.start
+        for i in range(n):
+            x, m = ITP(f, x0, x1, eps=eps)
+            count += m
+        t.stop
+        M = flt(count/n)
+        print(f"ITP:        Got {x} in {M} steps, {flt(t.et)/n} μs")
+    if 1:   # FindRoots 
+        count = 0
+        t.start
+        for i in range(n):
+            x = FindRoots(f, 10, x0, x1, eps=eps)
+            count += m
+        t.stop
+        M = flt(count/n)
+        print(f"FindRoots:  Got {x[0]} in  ?  steps, {flt(t.et)/n} μs")

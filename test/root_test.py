@@ -128,8 +128,7 @@ def TestRootFinder():
     getcontext().prec = 50
     eps = Decimal("1e-48")
     x0, x1 = Decimal(0), Decimal(10)
-    root, numits = RootFinder(x0, x1, f, eps=eps, itmax=itmax,
-                              fp=Decimal)
+    root, numits = RootFinder(x0, x1, f, eps=eps, itmax=itmax, fp=Decimal)
     assert_equal(root**8, 2, reltol=eps)
     # Call a function that uses extra arguments
     def f(x, a, **kw):
@@ -144,8 +143,7 @@ def TestRootFinder():
     assert_equal(root, math.pow(a, 1/b))
     # Use keyword argument
     a, b = 3, 7
-    root, numits = RootFinder(x0, x1, f, eps=eps, itmax=itmax,
-            args=[a], kw={"b":b})
+    root, numits = RootFinder(x0, x1, f, eps=eps, itmax=itmax, args=[a], kw={"b":b})
     assert_equal(root, math.pow(a, 1/b), reltol=eps)
 
 def TestFindRoots():
