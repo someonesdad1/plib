@@ -38,6 +38,7 @@ iDistribute           Return an integer sequence equally distributed
 IsBinaryFile          Heuristic to see if a file is a binary file
 IsConvexPolygon       Is seq of 2-D points a convex polygon?
 IsCygwinSymlink       Returns True if a file is a cygwin symlink
+IsHomogeneous         Returns True if a sequence is homogeneous
 IsIterable            Determines if you can iterate over an object
 IsTextFile            Heuristic to see if a file is a text file
 ItemCount             Summarize a sequence with counts of each item
@@ -65,6 +66,7 @@ TempConvert           Convert a temperature
 TemplateRound         Round a float to a template number
 Time                  Returns a string giving local time and date
 TranslateSymlink      Returns what a cygwin symlink is pointing to
+transpose             Returns transpose of a nested list
 Unique                Generator to return only the unique elements in sequence
 unrange               Turn a seq of integers into a collection of ranges
 unrange_real          Turn a seq of real numbers into a collection of ranges
@@ -424,6 +426,121 @@ def IsCygwinSymlink(file):
 def TranslateSymlink(file):
     "For a cygwin symlink, return a string of what it's pointing to"
     return open(file).read()[12:].replace("\x00", "")
+def transpose(seq, typ=list, check=False):
+    '''Return the transpose of a nested two-dimensional sequence, such as an n x m matrix.
+    len(seq) is n and len(seq[i]) is m for i in range(0, n).  
+     
+    typ:  The returned sequence will be of type typ, with each nested sequence also of type type.
+     
+    check:  If check is True, then checks are made on seq to ensure it's of proper type.
+        If checks are not satisfied, a ValueError exception is raised.
+     
+    Note:  I wrote this to be a library function, so the tests and checks are hopefully thorough.
+    For everyday computing where you need a quick transpose without all the checking and type
+    safety, this function translates into a short tool (if you don't mind things being lists):
+    
+        def transpose(seq):
+            return list(map(lambda *x: list(x), *seq)))
+    
+    I was surprised when I tried it and it worked, as I didn't realize lambdas would take the
+    variadic argument notation (but it makes sense on reflection).
+    
+    Example use case
+        A progenitor of this function is the following string, used to contain voltage/current
+        relationships of some LEDs I have on-hand.  It's natural to display the data as a table
+        with the data in the columns.  However, when you want to e.g. plot the yellow LEDs voltage
+        as a function of current, you need the transpose of the matrix, as its rows are the wanted
+        columns.
+        
+        data = """
+            5 mm LEDs measured voltage drops as function of current:
+              mA     Yellow   Green     Red      Blue    White
+              0.5     1.85     2.28     1.76     2.61     2.61
+               1      1.88     2.33     1.79     2.65     2.65
+               2      1.92     2.40     1.83     2.71     2.70
+               5      1.98     2.54     1.90     2.82     2.82
+              10      2.05     2.68     1.98     2.95     2.96
+              15      2.09     2.78     2.03     3.05     3.07
+              20      2.12     2.86     2.07     3.13     3.14
+              25      2.15     2.92     2.10     3.19     3.21
+              30      2.16     2.98     2.13     3.25     3.26"""[1:]
+        m = []
+        for line in lines:
+            m.append(list(flt(i) for i in line.strip().split()))
+        
+        This gives the nested array of data (flt is a float with better str semantics)
+            
+            [[0.5, 1.85, 2.28, 1.76, 2.61, 2.61],
+             [1.0, 1.88, 2.33, 1.79, 2.65, 2.65],
+             [2.0, 1.92, 2.4, 1.83, 2.71, 2.7],
+             [5.0, 1.98, 2.54, 1.9, 2.82, 2.82],
+             [10.0, 2.05, 2.68, 1.98, 2.95, 2.96],
+             [15.0, 2.09, 2.78, 2.03, 3.05, 3.07],
+             [20.0, 2.12, 2.86, 2.07, 3.13, 3.14],
+             [25.0, 2.15, 2.92, 2.1, 3.19, 3.21],
+             [30.0, 2.16, 2.98, 2.13, 3.25, 3.26]]
+         
+        Unfortunately, to use the voltage/current relationships, we want the column vectors.
+        The transpose() function does this to give 
+        
+            [[0.5, 1.0, 2.0, 5.0, 10.0, 15.0, 20.0, 25.0, 30.0],
+             [1.85, 1.88, 1.92, 1.98, 2.05, 2.09, 2.12, 2.15, 2.16],
+             [2.28, 2.33, 2.4, 2.54, 2.68, 2.78, 2.86, 2.92, 2.98],
+             [1.76, 1.79, 1.83, 1.9, 1.98, 2.03, 2.07, 2.1, 2.13],
+             [2.61, 2.65, 2.71, 2.82, 2.95, 3.05, 3.13, 3.19, 3.25],
+             [2.61, 2.65, 2.7, 2.82, 2.96, 3.07, 3.14, 3.21, 3.26]]
+        
+        An advantage of the transpose() method is that it makes no assumptions about the elements'
+        types, so the arrays can be heterogeneous.  If instead we used the code
+        
+            lines = data.split("\n")[1:]
+            m = []
+            for line in lines:
+                m.append(line.split())
+        
+        the output data would have been
+        
+            [['mA', '0.5', '1', '2', '5', '10', '15', '20', '25', '30'],
+             ['Yellow', '1.85', '1.88', '1.92', '1.98', '2.05', '2.09', '2.12', '2.15', '2.16'],
+             ['Green', '2.28', '2.33', '2.40', '2.54', '2.68', '2.78', '2.86', '2.92', '2.98'],
+             ['Red', '1.76', '1.79', '1.83', '1.90', '1.98', '2.03', '2.07', '2.10', '2.13'],
+             ['Blue', '2.61', '2.65', '2.71', '2.82', '2.95', '3.05', '3.13', '3.19', '3.25'],
+             ['White', '2.61', '2.65', '2.70', '2.82', '2.96', '3.07', '3.14', '3.21', '3.26']]
+        
+        and we would have the row titles for e.g. getting the data into a dictionary.
+    '''
+    if check:
+        if 1:   # seq can't be a string, set, or dict
+            if isinstance(seq, (str, dict, set)):
+                raise TypeError("seq cannot be a string, set, or dictionary")
+        if 1:   # seq must be an iterable
+            try:
+                iter(seq)
+            except TypeError:
+                raise TypeError("seq is not an iterable")
+        if 1:   # seq must be an n x m nested sequence
+            nrows = len(seq)        # Number of rows
+            try:
+                ncols = len(seq[0])     # Number of columns
+            except Exception:
+                raise TypeError("seq[0] is not a sequence")
+            # Look for extra dimensionality
+            num_elements = nrows*ncols
+            if len(Flatten(seq)) != num_elements:
+                raise TypeError("seq is not a proper 2D nested list representing a matrix")
+        if 1:   # Each sequence in seq must have the same length
+            if not all(len(i) == ncols for i in seq):
+                raise TypeError(f"seq row lengths not all {ncols}")
+    if not seq:
+        return typ(seq)
+    retval = typ(map(lambda *x: typ(x), *seq))
+    if check:
+        # Verify that the transpose of retval is equal to seq.  Note we make copies, which is
+        # expensive in memory, which is why these checks aren't done by default.
+        orig = list(map(list, seq))
+        trans = transpose(retval, typ=list)
+        Assert(orig == trans)
+    return typ(map(lambda *x: typ(x), *seq))
 def IsTextFile(file, num_bytes=100):
     '''Heuristic to classify a file as text or binary.  The algorithm is to read num_bytes from the
     beginning of the file; if there are any characters other than the "typical" ones found in plain
@@ -467,6 +584,12 @@ class Dispatch:
             raise TypeError("Don't know how to dispatch %s arguments" %
                             type(arg1))
         return apply(self._dispatch[type(arg1)], (arg1,) + args, kw)
+def IsHomogeneous(seq):
+    'Return True if seq is homogeneous'
+    if not seq:
+        return True
+    typ = type(seq[0])
+    return all(type(i) == typ for i in seq)
 def IsIterable(x, ignore_strings=True):
     '''Return True if x is an iterable.  You can exclude strings from the things that can be
     iterated on if you wish.
@@ -2082,6 +2205,11 @@ if __name__ == "__main__":
         Assert(eng(3456.78, digits=4) == "3.457e3")
         # kkg is a illegal SI unit, but the code allows it
         Assert(eng(3456.78, unit="kg") == "3.46 kkg")
+    def Test_IsHomogeneous():
+        a = [1, 2, 3]
+        Assert(IsHomogeneous(a))
+        a[1] = 2.0
+        Assert(not IsHomogeneous(a))
     def Test_IsIterable():
         Assert(IsIterable("", ignore_strings=False))
         Assert(not IsIterable("", ignore_strings=True))
@@ -2601,6 +2729,62 @@ if __name__ == "__main__":
                 continue
             if name not in names and name not in "wsl t".split():
                 print(f"{t.ornl}util:Test_check_names(){t.n}:  {name} in module not in docstring")
+    def TestEmptySequence():
+        a = []
+        Assert(transpose(a) == a)
+    def TestCornerCaseChecks():
+        raises(TypeError, transpose, lambda x: x, check=True)   # Can't be function
+        raises(TypeError, transpose, "a", check=True)           # Can't be string
+        raises(TypeError, transpose, dict(), check=True)        # Can't be dict
+        raises(TypeError, transpose, set(), check=True)         # Can't be set
+        raises(TypeError, transpose, 1, check=True)             # seq must be an iterable
+        raises(TypeError, transpose, [1, [2, 3]], check=True)   # seq[0] has no len
+        a = [[1, 2], [3]]
+        raises(TypeError, transpose, a, check=True)             # Unequal row lengths
+        # Can't be a 3D matrix
+        a = [[[1, 2], [3, 4]], [[5, 6], [7, 8]], [[9, 10], [11, 12]]]
+        raises(TypeError, transpose, a, check=True)             # Not a 2D matrix
+    def TestCommonVectorsAndMatrixes():
+        # Row vector
+        a = [[1, 2, 3]]
+        Assert(transpose(a) == [[1], [2], [3]])
+        Assert(transpose(transpose(a)) == a)
+        # Column vector
+        a = [[1], [2], [3]]
+        Assert(transpose(a) == [[1, 2, 3]])
+        Assert(transpose(transpose(a)) == a)
+        # 2x3 to 3x2 to 2x3
+        a = [list("abc"), list("def")]
+        Assert(transpose(a) == [list("ad"), list("be"), list("cf")])
+        Assert(transpose(transpose(a)) == a)
+        # 2x2 to 2x2 to 2x2
+        a = [list("ab"), list("cd")]
+        Assert(transpose(a) == [list("ac"), list("bd")])
+        Assert(transpose(transpose(a)) == a)
+    def TestGetDesiredType():
+        a = ((1, 2), (3, 4))
+        b = transpose(a)
+        # List of list by default
+        Assert(isinstance(b, list))
+        Assert(isinstance(b[0], list))
+        Assert(isinstance(b[1], list))
+        Assert(isinstance(b, list))
+        # Tuple if you ask for it
+        b = transpose(a, typ=tuple)
+        Assert(isinstance(b[0], tuple))
+        Assert(isinstance(b[1], tuple))
+        Assert(isinstance(b, tuple))
+    def TestTransposeOfTransposeIsOriginal():
+        # With tuple
+        a = ((1, 2), (3, 4))
+        b = transpose(a)
+        c = transpose(b, typ=tuple)
+        Assert(a == c)
+        # With list
+        a = [[1, 2], [3, 4]]
+        b = transpose(a)
+        c = transpose(b)
+        Assert(a == c)
     # Make sure the docstring list of names is up-to-date'
     check_names = False
     check_names = True

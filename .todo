@@ -17,6 +17,12 @@ Active:  /plib/.todo
           install was about 8 MB.  In installed in
           /home/dpbin/miniconda3/envs/11/bin/ruff.
 
+    - Learn rust
+        - Write a cli:  https://rust-cli.github.io/book/tutorial/index.html
+        - Install:  https://www.rust-lang.org/tools/install
+            - WSL:  "curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh"
+        - Book:  https://www.rust-lang.org/learn
+
     - pgm/ptoken.py python_file fn_name regex
         - Script to take a set of python scripts and print out the tokens that match those
           used in the function fn_name.
