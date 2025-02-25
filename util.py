@@ -17,7 +17,6 @@ Cfg                   Execute a sequence of text lines for config use
 ConvertToNumber       Convert a string to a number
 Cumul                 Return cumulative sums of a sequence
 Debug                 A class that helps with debugging
-Dispatch              Class to aid polymorphism
 DoubleFactorial       Compute the double factorial of an integer
 EBCDIC                Return string translation table ASCII <--> EBCDIC
 EditData              Edit a str or bytes object with vim
@@ -94,23 +93,17 @@ if 1:  # Header
         from collections.abc import Iterable
         from decimal import Decimal
         from fractions import Fraction
-        from heapq import nlargest
-        from itertools import chain, combinations, islice, groupby
+        from itertools import chain, groupby
         from itertools import cycle, zip_longest, product
         from operator import itemgetter
         from pathlib import Path as P
-        from random import randint, seed
+        from random import seed
         from reprlib import repr as Repr
-        from string import ascii_letters, digits as DIGITS, punctuation
-        import cmath
-        import glob
-        import hashlib
         import math
         import os
         import platform
         import random
         import re
-        import struct
         import subprocess
         import sys
         import tempfile
@@ -119,8 +112,6 @@ if 1:  # Header
             import msvcrt
     if 1:   # Custom imports
         from dpmath import AlmostEqual, SignSignificandExponent
-        from frange import frange
-        from f import flt
         from wsl import wsl
         _have_mpmath = False
         try:
@@ -400,16 +391,13 @@ def randq(seed=-1):
   
     If seed is not -1, it is used to initialize the sequence; it can be any hashable value.
     '''
-    # The multiplicative constant 1664525 was recommended by Knuth and
-    # the additive constant 1013904223 came from Lewis.
-    a, c = 1664525, 1013904223
     if seed != -1:
         randq.idum = abs(hash(seed))
     randq.idum = (randq.a*randq.idum + randq.c) % randq.maxidum
     return randq.idum
 if 1:   # State variables for randq
-    randq.a = 1664525
-    randq.c = 1013904223
+    randq.a = 1664525       # Recommended by Knuth
+    randq.c = 1013904223    # From Lewis
     randq.idum = 0
     randq.maxidum = 2**32
 def randr(seed=-1):
@@ -430,117 +418,56 @@ def transpose(seq, typ=list, check=False):
     '''Return the transpose of a nested two-dimensional sequence, such as an n x m matrix.
     len(seq) is n and len(seq[i]) is m for i in range(0, n).  
      
-    typ:  The returned sequence will be of type typ, with each nested sequence also of type type.
+    typ:  The returned sequence will be of type typ, with each nested sequence also of type typ.
      
     check:  If check is True, then checks are made on seq to ensure it's of proper type.
         If checks are not satisfied, a ValueError exception is raised.
      
-    Note:  I wrote this to be a library function, so the tests and checks are hopefully thorough.
-    For everyday computing where you need a quick transpose without all the checking and type
-    safety, this function translates into a short tool (if you don't mind things being lists):
+    For a quick transpose without the checking and type safety:
     
         def transpose(seq):
-            return list(map(lambda *x: list(x), *seq)))
+            return map(lambda *x: x, *seq)
     
-    I was surprised when I tried it and it worked, as I didn't realize lambdas would take the
-    variadic argument notation (but it makes sense on reflection).
-    
-    Example use case
-        A progenitor of this function is the following string, used to contain voltage/current
-        relationships of some LEDs I have on-hand.  It's natural to display the data as a table
-        with the data in the columns.  However, when you want to e.g. plot the yellow LEDs voltage
-        as a function of current, you need the transpose of the matrix, as its rows are the wanted
-        columns.
-        
-        data = """
-            5 mm LEDs measured voltage drops as function of current:
-              mA     Yellow   Green     Red      Blue    White
-              0.5     1.85     2.28     1.76     2.61     2.61
-               1      1.88     2.33     1.79     2.65     2.65
-               2      1.92     2.40     1.83     2.71     2.70
-               5      1.98     2.54     1.90     2.82     2.82
-              10      2.05     2.68     1.98     2.95     2.96
-              15      2.09     2.78     2.03     3.05     3.07
-              20      2.12     2.86     2.07     3.13     3.14
-              25      2.15     2.92     2.10     3.19     3.21
-              30      2.16     2.98     2.13     3.25     3.26"""[1:]
-        m = []
-        for line in lines:
-            m.append(list(flt(i) for i in line.strip().split()))
-        
-        This gives the nested array of data (flt is a float with better str semantics)
-            
-            [[0.5, 1.85, 2.28, 1.76, 2.61, 2.61],
-             [1.0, 1.88, 2.33, 1.79, 2.65, 2.65],
-             [2.0, 1.92, 2.4, 1.83, 2.71, 2.7],
-             [5.0, 1.98, 2.54, 1.9, 2.82, 2.82],
-             [10.0, 2.05, 2.68, 1.98, 2.95, 2.96],
-             [15.0, 2.09, 2.78, 2.03, 3.05, 3.07],
-             [20.0, 2.12, 2.86, 2.07, 3.13, 3.14],
-             [25.0, 2.15, 2.92, 2.1, 3.19, 3.21],
-             [30.0, 2.16, 2.98, 2.13, 3.25, 3.26]]
-         
-        Unfortunately, to use the voltage/current relationships, we want the column vectors.
-        The transpose() function does this to give 
-        
-            [[0.5, 1.0, 2.0, 5.0, 10.0, 15.0, 20.0, 25.0, 30.0],
-             [1.85, 1.88, 1.92, 1.98, 2.05, 2.09, 2.12, 2.15, 2.16],
-             [2.28, 2.33, 2.4, 2.54, 2.68, 2.78, 2.86, 2.92, 2.98],
-             [1.76, 1.79, 1.83, 1.9, 1.98, 2.03, 2.07, 2.1, 2.13],
-             [2.61, 2.65, 2.71, 2.82, 2.95, 3.05, 3.13, 3.19, 3.25],
-             [2.61, 2.65, 2.7, 2.82, 2.96, 3.07, 3.14, 3.21, 3.26]]
-        
-        An advantage of the transpose() method is that it makes no assumptions about the elements'
-        types, so the arrays can be heterogeneous.  If instead we used the code
-        
-            lines = data.split("\n")[1:]
-            m = []
-            for line in lines:
-                m.append(line.split())
-        
-        the output data would have been
-        
-            [['mA', '0.5', '1', '2', '5', '10', '15', '20', '25', '30'],
-             ['Yellow', '1.85', '1.88', '1.92', '1.98', '2.05', '2.09', '2.12', '2.15', '2.16'],
-             ['Green', '2.28', '2.33', '2.40', '2.54', '2.68', '2.78', '2.86', '2.92', '2.98'],
-             ['Red', '1.76', '1.79', '1.83', '1.90', '1.98', '2.03', '2.07', '2.10', '2.13'],
-             ['Blue', '2.61', '2.65', '2.71', '2.82', '2.95', '3.05', '3.13', '3.19', '3.25'],
-             ['White', '2.61', '2.65', '2.70', '2.82', '2.96', '3.07', '3.14', '3.21', '3.26']]
-        
-        and we would have the row titles for e.g. getting the data into a dictionary.
+    Example:
+        data = [[1, 2],
+                [3, 4],
+                [5, 6]]
+        transpose(data) = [[1, 3, 5],
+                           [2, 4, 6]]
+
     '''
     if check:
-        if 1:   # seq can't be a string, set, or dict
-            if isinstance(seq, (str, dict, set)):
-                raise TypeError("seq cannot be a string, set, or dictionary")
-        if 1:   # seq must be an iterable
-            try:
-                iter(seq)
-            except TypeError:
-                raise TypeError("seq is not an iterable")
-        if 1:   # seq must be an n x m nested sequence
-            nrows = len(seq)        # Number of rows
-            try:
-                ncols = len(seq[0])     # Number of columns
-            except Exception:
+        # seq can't be a string, set, or dict
+        if isinstance(seq, (str, dict, set)):
+            raise TypeError("seq cannot be a string, set, or dictionary")
+        # seq must be an iterable
+        try:
+            iter(seq)
+        except TypeError:
+            raise TypeError("seq is not an iterable")
+        # seq must be an n x m nested sequence
+        nrows = len(seq)            # Number of rows
+        try:
+            ncols = len(seq[0])     # Number of columns
+        except Exception:
+            if seq:                 # Empty sequence ok
                 raise TypeError("seq[0] is not a sequence")
-            # Look for extra dimensionality
+        # Look for extra dimensionality
+        if seq:
             num_elements = nrows*ncols
             if len(Flatten(seq)) != num_elements:
                 raise TypeError("seq is not a proper 2D nested list representing a matrix")
-        if 1:   # Each sequence in seq must have the same length
-            if not all(len(i) == ncols for i in seq):
-                raise TypeError(f"seq row lengths not all {ncols}")
+        # Each sequence in seq must have the same length
+        if seq and not all(len(i) == ncols for i in seq):
+            raise TypeError(f"seq row lengths not all {ncols}")
     if not seq:
         return typ(seq)
-    retval = typ(map(lambda *x: typ(x), *seq))
-    if check:
-        # Verify that the transpose of retval is equal to seq.  Note we make copies, which is
-        # expensive in memory, which is why these checks aren't done by default.
+    seqT = typ(map(lambda *x: typ(x), *seq))
+    if check:  # transpose(seqT) == seq
         orig = list(map(list, seq))
-        trans = transpose(retval, typ=list)
-        Assert(orig == trans)
-    return typ(map(lambda *x: typ(x), *seq))
+        tseq = transpose(seqT, typ=list)
+        Assert(orig == tseq)
+    return seqT
 def IsTextFile(file, num_bytes=100):
     '''Heuristic to classify a file as text or binary.  The algorithm is to read num_bytes from the
     beginning of the file; if there are any characters other than the "typical" ones found in plain
@@ -562,34 +489,12 @@ def IsTextFile(file, num_bytes=100):
 def IsBinaryFile(file, num_bytes=100):
     'Heuristic that returns True if a file is a binary file'
     return not IsTextFile(file, num_bytes)
-class Dispatch:
-    '''The Dispatch class allows different functions to be called depending on the argument types.
-    Thus, there can be one function name regardless of the argument type.  Due to David Ascher.
-  
-    Example:  the following lets us define a function ss which will calculate the sum of squares of
-    the contents of an array, whether the array is a python sequence or a NumPy array.
- 
-        ss = Dispatch((list_ss, (ListType, TupleType)), (array_ss, (numpy.ArrayType)))
-    '''
-    def __init__(self, *tuples):
-        self._dispatch = {}
-        for func, types in tuples:
-            for t in types:
-                if t in self._dispatch.keys():
-                    raise ValueError("Can't have two dispatches on " + str(t))
-                self._dispatch[t] = func
-        self._types = self._dispatch.keys()
-    def __call__(self, arg1, *args, **kw):
-        if type(arg1) not in self._types:
-            raise TypeError("Don't know how to dispatch %s arguments" %
-                            type(arg1))
-        return apply(self._dispatch[type(arg1)], (arg1,) + args, kw)
 def IsHomogeneous(seq):
     'Return True if seq is homogeneous'
     if not seq:
         return True
     typ = type(seq[0])
-    return all(type(i) == typ for i in seq)
+    return all(type(i) is typ for i in seq)
 def IsIterable(x, ignore_strings=True):
     '''Return True if x is an iterable.  You can exclude strings from the things that can be
     iterated on if you wish.
@@ -1141,55 +1046,6 @@ def grouper(data, mapper, reducer=None):
         for key, group in d.items():
             d[key] = reducer(group)
     return d
-if 0:
-    # This Walker class is obsolete because pathlib.glob("**/*") can do these things.
-    class Walker(object):
-        '''Defines a class that operates as a generator for recursively getting files or
-        directories from a starting directory.  The default is to return files; if you want
-        directories, set the dir attribute to True.  The ignore option to the constructor defines
-        directories to ignore.
-     
-        An example of use to show all the files in the current directory tree:
-            w = Walker()
-            for i in w("."):
-                print(i)
-        '''
-        def __init__(self, ignore=".bzr .git .hg .rcs __pycache__".split(),
-                     dir=False):
-            self.dir = dir
-            self._ignore = ignore
-            print(f"{C.lyel}{sys.argv[0]}:  Warning:  Walker is deprecated; use "
-                  f"e.g. pathlib.Path.glob('**/*'){C.norm}")
-        def __str__(self):
-            return "util.Walker(ignore={}, dir={})".format(self._ignore, self.dir)
-        def __repr__(self):
-            return str(self)
-        def _ignore_this(self, dir):
-            for i in dir.split("/"):
-                if i in self._ignore:
-                    return True
-            return False
-        def __call__(self, location):
-            '''Walk the directory tree starting at location.  This is a generator that returns each
-            file or directory found.
-            '''
-            if not os.path.isdir(location):
-                raise ValueError("location must be a directory")
-            for root, dirs, files in os.walk(location):
-                if self._ignore_this(root):
-                    continue
-                if self.dir:
-                    for dir in dirs:
-                        if self._ignore_this(dir):
-                            continue
-                        p = os.path.join(root, dir)
-                        if os.path.isdir(p):
-                            yield p
-                else:
-                    for file in files:
-                        p = os.path.join(root, file)
-                        if os.path.isfile(p):
-                            yield p
 def IsConvexPolygon(*p):
     '''Return True if the sequence p of two-dimensional points constitutes a convex polygon.  Ref:
     http://stackoverflow.com/questions/471962/how-do-determine-if-a-polygon-is-complex-convex-nonconvex
@@ -1436,8 +1292,7 @@ def RandomIntegers(n, maxint, seed=None, duplicates_OK=False):
     if not maxint and duplicates_OK:
         return [0]*n
     if not duplicates_OK and n > maxint:
-        m = f"maxint ({maxint}) is too small to generate {n} distinct integers"
-        raise ValueError("maxint is too small to generate n distinct integers")
+        raise ValueError(f"maxint ({maxint}) is too small to generate {n} distinct integers")
     s = [] if duplicates_OK else set()
     f = s.append if duplicates_OK else s.add
     numbytes = maxint.bit_length()//8 + 1
@@ -1623,15 +1478,15 @@ class PPSeq:
         sep = kw.get("sep", " ")                # Element separation string
         # Get the container type and decorators
         if ii(seq, tuple):
-            l, r = "(", ")"
+            left, right = "(", ")"
         elif ii(seq, list):
-            l, r = "[", "]"
+            left, right = "[", "]"
         elif ii(seq, set):
-            l, r = "{", "}"
+            left, right = "{", "}"
         elif ii(seq, deque):
-            l, r = "<", ">"
+            left, right = "<", ">"
         elif ii(seq, bytes):
-            l, r = "«", "»"
+            left, right = "«", "»"
         else:
             raise TypeError("Unsupported container type")
         x = self.get_element(seq)
@@ -1650,7 +1505,7 @@ class PPSeq:
         s += sep
         t = s.join(myseq)
         if brackets:
-            t = f"{l}{t}{r}"
+            t = f"{left}{t}{right}"
             if exp:
                 u = "⁰¹²³⁴⁵⁶⁷⁸⁹"
                 t += ''.join(u[int(i)] for i in str(self._bpn))
@@ -1659,20 +1514,16 @@ class PPSeq:
         if ii(seq, tuple):
             return seq[0]
         elif ii(seq, list):
-            l, r = "[", "]"
             return seq[0]
         elif ii(seq, set):
-            l, r = "{", "}"
             x = seq.pop()
             seq.add(x)
             return x
         elif ii(seq, deque):
-            l, r = "<", ">"
             x = seq.pop()
             seq.append(x)
             return x
         elif ii(seq, bytes):
-            l, r = "«", "»"
             return seq[0]
     def format(self, x):
         'Return the string form of number x (float or int)'
@@ -1689,12 +1540,12 @@ class PPSeq:
         x = self.get_element(seq)
         # Check the type of each element
         typ = type(x)
-        if not all(type(i) == typ for i in seq):
+        if not all(type(i) is typ for i in seq):
             return False
         # Make sure they are of the allowed types
         if not ii(x, (int, float, Decimal, Fraction)):
             try:
-                y = float(x)
+                float(x)
             except Exception:
                 return False
         return True
@@ -1920,7 +1771,7 @@ def AcceptableDiff(x, y, n=3, strict=False):
     The use case for this is testing for numerical differences when the numbers come from physical
     measurements.  Most of the time such data have n = 2, 3, or 4 figures.
     '''
-    if strict and (type(x) != type(y)):
+    if strict and (type(x) is not type(y)):
         raise TypeError("x and y must be the same numerical type")
     if x == y:
         return True
@@ -1934,7 +1785,7 @@ def ShowFile(*files):
         if wsl:
             # Use the ~/.0rc/bin/expl script to open a file with Explorer.  This script first
             # cd's to the file's directory, as otherwise Explorer doesn't work.
-            r = subprocess.run(f"/home/don/.0rc/bin/expl {file}", shell=True)
+            subprocess.run(f"/home/don/.0rc/bin/expl {file}", shell=True)
         else:
             app = "d:/cygwin64/bin/cygstart.exe"  # cygwin
             subprocess.run([app, file])
@@ -1976,7 +1827,7 @@ def ANSI_strip(string):
     return r.sub('', string)
 
 if __name__ == "__main__": 
-    # Missing tests for: Ignore Debug, Dispatch, GetString
+    # Missing tests for: Ignore Debug, GetString
     from io import StringIO
     from lwtest import run, assert_equal, raises, Assert
     from random import seed
@@ -2006,7 +1857,6 @@ if __name__ == "__main__":
         u = Winnow(s, regexps=regexps, flags=0)
         Assert(u == {'eI'})
         # Ignore case
-        flags = re.I
         u = Winnow(s, regexps=regexps, flags=re.I)
         Assert(u == s)
         # Empty item_sequence returns empty set
@@ -2019,7 +1869,8 @@ if __name__ == "__main__":
         Assert(AcceptableDiff(1, 1.001))
         raises(TypeError, AcceptableDiff, 1, 1.1, strict=True)
     def Test_Unique():
-        f = lambda x: list(Unique(x))
+        def f(x):
+            return list(Unique(x))
         Assert(f([]) == [])
         Assert(f([1, 1, 1]) == [1])
         Assert(f([1, 2, 1]) == [1, 2])
@@ -2044,7 +1895,7 @@ if __name__ == "__main__":
         s = f([float(i) for i in range(1, n)], sort_first=False)
         Assert(s == f"1.0{sep}{float(n - 1)}")
         s = f([1.0], sort_first=False)
-        Assert(s == f"1.0")
+        Assert(s == "1.0")
         s = f([float(i) for i in range(1, n)], sort_first=False)
         Assert(s == f"1.0{sep}{float(n - 1)}")
         s = f([1.0, 2.2, 3.1, 2.7, 8.1], sort_first=False)
@@ -2068,7 +1919,7 @@ if __name__ == "__main__":
         Assert(s == f"1{sep}{n - 1}")
         seq = [-i for i in (1, 3, 4, 5, 6, 7, 8, 10, 11, 12)]
         s = f(seq, sort_first=False)
-        Assert(s == f"-1 -3 -4 -5 -6 -7 -8 -10 -11 -12")
+        Assert(s == "-1 -3 -4 -5 -6 -7 -8 -10 -11 -12")
         s = f(seq, sort_first=True)
         Assert(s == f"-12{sep}-10 -8{sep}-3 -1")
     def Test_Cumul():
@@ -2339,7 +2190,6 @@ if __name__ == "__main__":
         t = ((0, 1, 2),)
         Assert(t == tuple(GroupByN(s, m, fill=False)))
         t = ((0, 1, 2), (3, 4, None))
-        u = tuple(GroupByN(s, m, fill=True))
         Assert(t == tuple(GroupByN(s, m, fill=True)))
     def Test_IsConvexPolygon():
         p = ((0, 0), (1, 0), (1, 1), (0, 1))
@@ -2428,62 +2278,6 @@ if __name__ == "__main__":
         2      ****
         (1, 2) ****''')
         Assert(got == expected)
-    def Test_Walker():
-        return  # Walker() is commented out
-        dir, file = "walker", "a"
-        if 0:   # Old method using os.path
-            # Construct a dummy directory structure
-            path = os.path.join(dir, file)
-            try:
-                os.mkdir(dir)
-            except FileExistsError:
-                pass
-            open(path, "w").write("hello")
-            # Test we see directory
-            w = Walker()
-            w.dir = True
-            for i in w("."):
-                # Ignore the test directory (needed after moving util.py to
-                # /plib)
-                if "test" in i:
-                    continue
-                Assert(i.replace("\\", "/") == "./walker")
-            # Test we see file
-            w = Walker()
-            w.dir = False
-            for i in w("walker"):
-                Assert(i.replace("\\", "/") == "walker/a")
-            # Remove what we set up
-            os.remove(path)
-            os.rmdir(dir)
-        else:   # Use pathlib
-            p = P(".")/dir
-            try:
-                p.mkdir()
-            except Exception:
-                if p.is_dir():
-                    pass
-                else:
-                    raise ValueError(f"Couldn't make {p}")
-            path = p/file
-            path.write_text("hello")
-            # Test we see directory
-            w = Walker()
-            w.dir = True
-            for i in w("."):
-                # Ignore the test directory (needed after moving util.py to
-                # /plib)
-                if "test" in i:
-                    continue
-                Assert(i.replace("\\", "/") == "./walker")
-            # Test we see file
-            w = Walker()
-            w.dir = False
-            for i in w("walker"):
-                Assert(i.replace("\\", "/") == "walker/a")
-            # Remove what we set up
-            path.unlink()
-            p.rmdir()
     def Test_BraceExpansion():
         # Simple
         s = ' '.join(BraceExpansion("a{d,c,b}e"))
@@ -2585,15 +2379,15 @@ if __name__ == "__main__":
         got = list(fd(3, a=1, b=2))
         assert_equal(got, expected)
         # Check type/value violations
-        with raises(TypeError) as x:
+        with raises(TypeError):
             list(fd(1.0))
-        with raises(ValueError) as x:
+        with raises(ValueError):
             list(fd(1))
-        with raises(TypeError) as x:
+        with raises(TypeError):
             list(fd(2, a=""))
-        with raises(TypeError) as x:
+        with raises(TypeError):
             list(fd(2, b=""))
-        with raises(ValueError) as x:
+        with raises(ValueError):
             list(fd(1, a=2, b=1))
     def Test_signum():
         for i in (-1, -2, -2.2, Fraction(-1, 1), Decimal("-3.7")):
@@ -2821,7 +2615,6 @@ if __name__ == "__main__":
             Miscellaneous
             mpmath
             nl
-            nlargest
             OrderedDict
             os
             P
